@@ -21,22 +21,26 @@ async function recordStartLogoPhases(page: Page): Promise<void> {
   }, PHASE_ATTRIBUTE);
 }
 
-/** Holds the start animation at its first frame, so a case sees it without racing its end. */
+/**
+ * Holds every part of the start animation at its first frame as soon as it starts, so a case
+ * sees the animation without racing its end.
+ */
 async function freezeStartAnimation(page: Page): Promise<void> {
-  await page.addInitScript((attribute) => {
-    const observer = new MutationObserver(() => {
-      const host = document.querySelector(`[${attribute}]`);
-      if (!host) {
-        return;
-      }
-      observer.disconnect();
-      for (const animation of host.getAnimations({ subtree: true })) {
-        animation.pause();
-        animation.currentTime = 0;
-      }
-    });
-    observer.observe(document, { subtree: true, childList: true });
-  }, PHASE_ATTRIBUTE);
+  await page.addInitScript(() => {
+    document.addEventListener(
+      "animationstart",
+      (event) => {
+        if (!(event.target instanceof Element)) {
+          return;
+        }
+        for (const animation of event.target.getAnimations()) {
+          animation.pause();
+          animation.currentTime = 0;
+        }
+      },
+      { capture: true },
+    );
+  });
 }
 
 function startLogo(page: Page) {

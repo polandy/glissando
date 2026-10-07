@@ -1,36 +1,46 @@
 <script lang="ts">
+  import { SvelteSet } from "svelte/reactivity";
   import logoMarkup from "../../../assets/brand/logo-stacked-animated.svg?raw";
 
   type Phase = "playing" | "settled";
 
   let { play }: { play: boolean } = $props();
 
+  // The logo's parts that the start animation moves; the class hooks come from the brand build.
+  const ANIMATED_PARTS = ".card, .motif, .wordmark";
+
   let host: HTMLElement;
-  let animationsEnded = $state(false);
-  const phase: Phase = $derived(play && !animationsEnded ? "playing" : "settled");
+  let settled = $state(false);
+  const phase: Phase = $derived(play && !settled ? "playing" : "settled");
 
-  // The settled phase is the animation's completion signal (data-phase): it follows the
-  // animations' own end, whether they ran out or a tap finished them early.
-  $effect(() => {
-    if (phase !== "playing") {
-      return;
+  // data-phase is the completion signal. It follows each part's own animationend rather than a
+  // snapshot of running animations, which is empty while the stylesheet is still being applied.
+  const endedParts = new SvelteSet<EventTarget>();
+
+  function recordAnimationEnd(event: AnimationEvent): void {
+    if (event.target !== null) {
+      endedParts.add(event.target);
     }
-    const animations = host.getAnimations({ subtree: true });
-    void Promise.all(animations.map((animation) => animation.finished)).then(() => {
-      animationsEnded = true;
-    });
-  });
+    if (endedParts.size === host.querySelectorAll(ANIMATED_PARTS).length) {
+      settled = true;
+    }
+  }
 
+  // Settling drops the animations, which leaves every part in its final place.
   function skip(): void {
-    for (const animation of host.getAnimations({ subtree: true })) {
-      animation.finish();
-    }
+    settled = true;
   }
 </script>
 
 <svelte:window onpointerdown={phase === "playing" ? skip : undefined} />
 
-<div bind:this={host} class="start-logo" class:playing={phase === "playing"} data-phase={phase}>
+<div
+  bind:this={host}
+  class="start-logo"
+  class:playing={phase === "playing"}
+  data-phase={phase}
+  onanimationend={recordAnimationEnd}
+>
   <!-- eslint-disable-next-line svelte/no-at-html-tags -- build-generated brand asset, no user input -->
   {@html logoMarkup}
 </div>
