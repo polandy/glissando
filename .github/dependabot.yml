@@ -9,6 +9,9 @@ updates:
     groups:
       npm:
         patterns: ["*"]
+    ignore:
+      # Its browsers come from the digest-pinned image in ci.yml; both are bumped together by hand.
+      - dependency-name: "@playwright/test"
   - package-ecosystem: github-actions
     directory: /
     schedule:
