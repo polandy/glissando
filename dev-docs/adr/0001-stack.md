@@ -5,8 +5,9 @@
 ## Context
 
 Glissando is a self-hosted web app, installable as a PWA, with the work done client-side
-(`dev-docs/SCOPE.md`). The first milestone is the player: WebGL2 transitions and Ken Burns over a
-JSON slideshow. An editor with drag & drop and a timeline follows.
+(`dev-docs/SCOPE.md`). The MVP turns local pictures and music into an automatic slideshow:
+WebGL2 transitions and Ken Burns over a JSON slideshow, played offline. A full editor with drag &
+drop and a timeline follows.
 
 ## Decision
 

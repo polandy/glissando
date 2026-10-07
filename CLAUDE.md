@@ -2,7 +2,7 @@
 
 Self-hosted **slideshow software**: a web app, installable as a PWA, work done client-side.
 
-- Scope, client-first rule, milestones (player → editor): `dev-docs/SCOPE.md`
+- Scope, product principles, MVP and ordered roadmap: `dev-docs/SCOPE.md`
 - Stack — TypeScript, Svelte 5, Vite; framework-free WebGL2 player engine: `dev-docs/adr/0001-stack.md`
 - Brand, palette "Sorbet", font: `dev-docs/BRAND.md`
 
