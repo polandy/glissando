@@ -3,7 +3,7 @@ import svelte from "eslint-plugin-svelte";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  { ignores: ["dist/"] },
+  { ignores: ["dist/", "playwright-report/", "test-results/"] },
   js.configs.recommended,
   ...tseslint.configs.strict,
   ...svelte.configs.recommended,
