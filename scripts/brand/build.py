@@ -1,4 +1,4 @@
-"""Builds the self-hosted Baloo 2 webfont and the outlined wordmark logos.
+"""Builds the self-hosted Baloo 2 webfont and the outlined wordmark logos, static and animated.
 
 Run from the repo root:  scripts/brand/build.sh
 Outputs are committed; this script only reruns when the font source or the logo changes.
@@ -8,6 +8,7 @@ import hashlib
 import io
 import sys
 import urllib.request
+from dataclasses import dataclass
 from pathlib import Path
 
 import uharfbuzz as hb
@@ -128,19 +129,61 @@ def wordmark_path(source: bytes) -> str:
     return pen.getCommands()
 
 
-def stacked_logo(path: str, outline: str, wordmark: str) -> str:
+@dataclass(frozen=True)
+class LogoPaint:
+    peach: str
+    mint: str
+    lemon: str
+    outline: str
+    wordmark: str
+
+
+LIGHT_PAINT = LogoPaint(PEACH, MINT, LEMON, outline=PLUM, wordmark=PLUM)
+DARK_PAINT = LogoPaint(PEACH, MINT, LEMON, outline=NIGHT_PLUM, wordmark=MILK)
+# The animated logo is inlined into the app, so it paints with the theme's design tokens.
+TOKEN_PAINT = LogoPaint(
+    peach="var(--gl-peach)",
+    mint="var(--gl-mint)",
+    lemon="var(--gl-lemon)",
+    outline="var(--gl-logo-outline)",
+    wordmark="var(--gl-text)",
+)
+
+
+def stacked_logo(path: str, paint: LogoPaint) -> str:
     angle, cx, cy = WORDMARK_ROTATION
     return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 270">
   <g transform="translate(110 0) scale(1.5)" fill="none">
-    <g transform="rotate(-14 36 56)"><rect x="10" y="36" width="52" height="40" rx="9" fill="{PEACH}" stroke="{outline}" stroke-width="4"/></g>
-    <g transform="rotate(-2 56 44)"><rect x="30" y="24" width="52" height="40" rx="9" fill="{MINT}" stroke="{outline}" stroke-width="4"/></g>
+    <g transform="rotate(-14 36 56)"><rect x="10" y="36" width="52" height="40" rx="9" fill="{paint.peach}" stroke="{paint.outline}" stroke-width="4"/></g>
+    <g transform="rotate(-2 56 44)"><rect x="30" y="24" width="52" height="40" rx="9" fill="{paint.mint}" stroke="{paint.outline}" stroke-width="4"/></g>
     <g transform="rotate(10 78 32)">
-      <rect x="52" y="12" width="52" height="40" rx="9" fill="{LEMON}" stroke="{outline}" stroke-width="4"/>
-      <circle cx="66" cy="25" r="5" fill="{outline}"/>
-      <path d="M60 46 L72 33 L80 40 L86 35 L96 46 Z" fill="{outline}"/>
+      <rect x="52" y="12" width="52" height="40" rx="9" fill="{paint.lemon}" stroke="{paint.outline}" stroke-width="4"/>
+      <circle cx="66" cy="25" r="5" fill="{paint.outline}"/>
+      <path d="M60 46 L72 33 L80 40 L86 35 L96 46 Z" fill="{paint.outline}"/>
     </g>
   </g>
-  <path transform="rotate({angle} {cx} {cy})" fill="{wordmark}" d="{path}"/>
+  <path transform="rotate({angle} {cx} {cy})" fill="{paint.wordmark}" d="{path}"/>
+</svg>
+"""
+
+
+def animated_logo(path: str, paint: LogoPaint) -> str:
+    """The stacked logo with class hooks for the start animation.
+
+    Every animated part sits in its own group: a CSS transform on an element replaces its
+    transform attribute, so the static placement stays on a parent.
+    """
+    angle, cx, cy = WORDMARK_ROTATION
+    return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 270" role="img" aria-label="{WORDMARK_TEXT}">
+  <g transform="translate(110 0) scale(1.5)" fill="none">
+    <g class="card card-back"><g transform="rotate(-14 36 56)"><rect x="10" y="36" width="52" height="40" rx="9" fill="{paint.peach}" stroke="{paint.outline}" stroke-width="4"/></g></g>
+    <g class="card card-middle"><g transform="rotate(-2 56 44)"><rect x="30" y="24" width="52" height="40" rx="9" fill="{paint.mint}" stroke="{paint.outline}" stroke-width="4"/></g></g>
+    <g class="card card-front"><g transform="rotate(10 78 32)">
+      <rect x="52" y="12" width="52" height="40" rx="9" fill="{paint.lemon}" stroke="{paint.outline}" stroke-width="4"/>
+      <g class="motif"><circle cx="66" cy="25" r="5" fill="{paint.outline}"/><path d="M60 46 L72 33 L80 40 L86 35 L96 46 Z" fill="{paint.outline}"/></g>
+    </g></g>
+  </g>
+  <g transform="rotate({angle} {cx} {cy})"><path class="wordmark" fill="{paint.wordmark}" d="{path}"/></g>
 </svg>
 """
 
@@ -151,8 +194,9 @@ def main() -> None:
     build_webfont(source)
     (FONT_DIR / LICENSE_FILE).write_bytes(fetch(LICENSE_FILE))
     path = wordmark_path(source)
-    (BRAND_DIR / "logo-stacked-light.svg").write_text(stacked_logo(path, PLUM, PLUM))
-    (BRAND_DIR / "logo-stacked-dark.svg").write_text(stacked_logo(path, NIGHT_PLUM, MILK))
+    (BRAND_DIR / "logo-stacked-light.svg").write_text(stacked_logo(path, LIGHT_PAINT))
+    (BRAND_DIR / "logo-stacked-dark.svg").write_text(stacked_logo(path, DARK_PAINT))
+    (BRAND_DIR / "logo-stacked-animated.svg").write_text(animated_logo(path, TOKEN_PAINT))
 
 
 if __name__ == "__main__":

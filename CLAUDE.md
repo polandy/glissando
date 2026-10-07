@@ -14,6 +14,7 @@ pointers only. Detail lives in `dev-docs/`. **Don't grow it** — move detail ou
 - **Verify before finishing**: `npm run verify` — mirrors CI 1:1, quiet, a failing step in full.
 - Fast unit tests: `npx vitest run <path>`. Dev server on the LAN: `npm run dev`.
 - Failures of a red CI run only: `scripts/ci-failures.sh [branch]`.
+- E2e cases locally, in the same pinned image as CI: `scripts/e2e.sh [playwright args]`.
 - Slow jobs (full e2e, visual) run on GitHub, not here.
 
 ## Reading budget
