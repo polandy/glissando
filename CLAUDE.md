@@ -1,23 +1,26 @@
 # CLAUDE.md — Glissando
 
-Self-hosted **slideshow software**. Scope, stack and architecture are not decided yet — they get
-recorded here (one line each, pointing into `dev-docs/`) as the owner decides them.
+Self-hosted **slideshow software**: a web app, installable as a PWA, work done client-side.
+
+- Scope, client-first rule, milestones (player → editor): `dev-docs/SCOPE.md`
+- Stack — TypeScript, Svelte 5, Vite; framework-free WebGL2 player engine: `dev-docs/adr/0001-stack.md`
+- Brand, palette "Sorbet", font: `dev-docs/BRAND.md`
 
 This file is loaded in full by every session and every subagent, so it holds the rules and
 pointers only. Detail lives in `dev-docs/`. **Don't grow it** — move detail out, keep a pointer.
 
 ## Commands
 
-Not defined yet. Once a stack is chosen, this section names: the one **verify-before-finishing
-target** (mirrors CI 1:1, quiet, a failing step's output in full), the fast unit-test command, and
-the script that prints only the failures of a red CI run. Slow jobs (full e2e, visual) run on
-GitHub, not here.
+- **Verify before finishing**: `npm run verify` — mirrors CI 1:1, quiet, a failing step in full.
+- Fast unit tests: `npx vitest run <path>`. Dev server on the LAN: `npm run dev`.
+- Failures of a red CI run only: `scripts/ci-failures.sh [branch]`.
+- Slow jobs (full e2e, visual) run on GitHub, not here.
 
 ## Reading budget
 
 Every tool result is re-read, and paid for, on every later turn.
 
-- **Grep before you read**; read a large file by offset. Open the doc *section* a change touches,
+- **Grep before you read**; read a large file by offset. Open the doc _section_ a change touches,
   never the whole set — specs are split one file per section once they pass a few KB.
 - **Bundle independent commands into one call**; never repeat a check whose answer cannot have
   changed.
@@ -30,11 +33,12 @@ Every tool result is re-read, and paid for, on every later turn.
 
 ## Where things live
 
-| Question | File |
-|---|---|
-| How do I write code here? | `dev-docs/CODING_PRINCIPLES.md` — **binding**, read once before writing anything |
-| Why X over Y? | `dev-docs/adr/` — only for a real tradeoff (options weighed, one chosen at a cost) |
-| Owner's open work | `TODO.md` (the `/todo` skill), **HIGH** first |
+| Question                  | File                                                                               |
+| ------------------------- | ---------------------------------------------------------------------------------- |
+| What is the product?      | `dev-docs/SCOPE.md`                                                                |
+| How do I write code here? | `dev-docs/CODING_PRINCIPLES.md` — **binding**, read once before writing anything   |
+| Why X over Y?             | `dev-docs/adr/` — only for a real tradeoff (options weighed, one chosen at a cost) |
+| Owner's open work         | `TODO.md` (the `/todo` skill), **HIGH** first                                      |
 
 - Only the current version of each document is kept — never a "v2"; git holds the history.
 - A behaviour change updates the matching doc in the same change. A user-visible change updates
@@ -85,7 +89,7 @@ Every tool result is re-read, and paid for, on every later turn.
 
 ## Code rules (full text in `dev-docs/CODING_PRINCIPLES.md`)
 
-- Readability over cleverness; names say *what*, comments say *why* — and describe the current
+- Readability over cleverness; names say _what_, comments say _why_ — and describe the current
   state only, never history ("used to", "no longer", dates, provenance).
 - Pure domain logic, I/O at thin edges, dependencies injected (no globals, no singletons).
 - No magic strings or numbers; strict typing (no `any`); fail loud at boundaries.

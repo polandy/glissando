@@ -32,6 +32,7 @@ a finished item is deleted.
      seed data). No history narration.
    - Add a spec id only if you can name it from what the owner said or a quick `grep`; do not research the item.
    - A larger item may carry indented sub-bullets (`  - ...`), nothing more.
+
 5. Reply with one line: the entry as written. Do nothing else (no implementation, no `git` commands).
 
 ## Variations

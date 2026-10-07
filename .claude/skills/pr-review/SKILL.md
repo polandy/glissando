@@ -15,8 +15,8 @@ for real findings rather than rubber-stamping, and finish with a verdict.
 - `gh pr view <PR> --json title,body,baseRefName,headRefName,mergeStateStatus,statusCheckRollup`
   and `gh pr diff <PR>` in one call. Work in the PR's worktree (`../glissando-<slug>`) if one
   exists; use `git -C`, never `cd` into the main checkout.
-- Read the PR description and any linked ADR first — the review checks the code *against its
-  stated intent*.
+- Read the PR description and any linked ADR first — the review checks the code _against its
+  stated intent_.
 - **The standard is the files, not this skill**: `CLAUDE.md` (Testing, Working agreement, Code
   rules) and `dev-docs/CODING_PRINCIPLES.md`. If they changed in this PR, the files win. Read
   only the sections the diff touches.
