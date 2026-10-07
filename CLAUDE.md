@@ -78,7 +78,8 @@ Every tool result is re-read, and paid for, on every later turn.
   Artifact; specs and code follow only after the owner approves it. A UI change ships a running
   e2e case, written **after** the owner's OK on the built change, in the feature's own PR.
   Judge rendering from pixels (a screenshot), never by reasoning about the stylesheet; a UI PR
-  shows its change as 2–3 small cropped screenshots, not prose.
+  shows its change as 2–3 small cropped screenshots, not prose — hosted in
+  `polandy/glissando-assets` (`pr-<n>/`), never committed here.
 - **Before push**: the verify target plus every job the diff can obviously break (the affected
   e2e cases, visual baselines when a screen moved). The rest stays on GitHub.
 - **English throughout** — code, comments, docs, commits, PR text. The owner's German is
