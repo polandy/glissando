@@ -1,0 +1,7 @@
+body {
+  margin: 0;
+  background: var(--gl-bg);
+  color: var(--gl-text);
+  font-family: var(--gl-font);
+  font-weight: var(--gl-weight-label);
+}

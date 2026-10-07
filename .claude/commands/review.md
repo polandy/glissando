@@ -5,8 +5,8 @@ Review uncommitted or recently committed changes against project standards:
    **Code rules**. **Those files are the standard** — check the diff against them rather than a
    list restated here.
 3. Beyond them, check:
-   - a driving test per new behaviour, whose *name* says which rule would break; no racing test
-   - comments say *why* and describe the current state only
+   - a driving test per new behaviour, whose _name_ says which rule would break; no racing test
+   - comments say _why_ and describe the current state only
    - no security issues (OWASP top 10)
    - docs updated in the same change; `TODO.md` line deleted if the change closes it
    - Conventional Commits, English, no attribution lines

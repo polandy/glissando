@@ -1,7 +1,7 @@
 Identify the next task to work on:
 
 1. Check what is already in flight first: `gh pr list` and `git worktree list`. This session's
-   open PR waiting on a merge go-ahead *is* the next task (one open feature PR per session).
+   open PR waiting on a merge go-ahead _is_ the next task (one open feature PR per session).
 2. Sources of open work, in order:
    - whatever the owner has just asked for
    - `TODO.md` in the repo root, **HIGH** first

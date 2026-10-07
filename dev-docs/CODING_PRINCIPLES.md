@@ -3,8 +3,7 @@
 **Status:** Binding for all code in this project.
 **Precedence:** These principles > convenience. A deviation needs a written note in the PR.
 
-The stack is not chosen yet. Stack-specific conventions (formatter, linter, test runner, folder
-layout) are added as their own section once it is.
+Stack-specific conventions are in §7; the stack itself is ADR-0001.
 
 ## 1. Non-negotiables
 
@@ -12,7 +11,7 @@ layout) are added as their own section once it is.
    Red → green (simplest passing code) → refactor. No production logic without a driving test.
 2. **Readability over cleverness.** If a construct needs explaining, rewrite it before commenting.
 3. **English everywhere** — identifiers, tests, comments, commits, docs.
-4. **Comments justify *why*, never *what*.** They describe the current state only — no history,
+4. **Comments justify _why_, never _what_.** They describe the current state only — no history,
    no provenance, no commented-out code; git holds the past.
 5. **Clear responsibilities.** Every module has one reason to exist and one to change; dependencies
    point inward, never sideways into a sibling's internals.
@@ -23,7 +22,7 @@ layout) are added as their own section once it is.
 10. **Consistency.** Follow the existing pattern over personal preference.
 11. **Delete dead code.** Nothing is kept "for later" — an unused API is complexity, not
     future-proofing.
-12. **Terse comments.** The non-obvious *what* plus the one *why*. A comment that would vanish once
+12. **Terse comments.** The non-obvious _what_ plus the one _why_. A comment that would vanish once
     the value is extracted into a well-named variable or function should be that name. Rationale
     that lives in an ADR is a pointer (`see ADR-00NN`), never repeated inline.
 
@@ -46,7 +45,7 @@ layout) are added as their own section once it is.
   - clock, randomness and IDs are injected; tests never read the real clock;
   - if a test can only pass by waiting, the production code is missing a seam (a settled state,
     a completion signal) — fix it there, never with a longer wait;
-  - an assertion that something did *not* happen needs a positive signal, or it is false-green;
+  - an assertion that something did _not_ happen needs a positive signal, or it is false-green;
   - **prove it can fail**: break the behaviour and watch exactly that case go red.
 - **Motion is waited on, never timed** — e2e runs with reduced motion; a spec about the motion
   waits on its end state.
@@ -65,7 +64,7 @@ layout) are added as their own section once it is.
   composition root wires real implementations. No globals, no module-level singletons.
 - **Framework-agnostic domain.** Domain code imports no UI framework, router or I/O library.
 - **No ordering races in production code.** Behaviour never depends on which of two async
-  things completes first — make it a *state* (latch, settled flag, replay on subscribe), not a
+  things completes first — make it a _state_ (latch, settled flag, replay on subscribe), not a
   one-shot event.
 - **Fail loud.** Validate at boundaries, throw on invalid state; no empty `catch`, no catch that
   turns an unexpected error into a user message. Never discard an error that matters — log it at
@@ -85,11 +84,11 @@ layout) are added as their own section once it is.
 
 ## 4. No magic strings or numbers
 
-A literal that is *compared against*, *switched on*, or repeated across files is named once as a
+A literal that is _compared against_, _switched on_, or repeated across files is named once as a
 constant, next to the concept it names, in the module that owns it — never a `constants` grab-bag.
 
 Exceptions: a test that states its expectation literally on purpose (so a wrong constant shows
-as a mismatch); a serialization key that *is* the wire contract.
+as a mismatch); a serialization key that _is_ the wire contract.
 
 Colours, type, icons and shape come from the design-token tables only — no raw value, not even
 as a fallback.
@@ -105,7 +104,7 @@ as a fallback.
 
 ## 6. Workflow
 
-- Conventional Commits, imperative, ≤ 72-char subject, body explains *why*; type matches the
+- Conventional Commits, imperative, ≤ 72-char subject, body explains _why_; type matches the
   user-facing impact (release-please derives version and changelog from it).
 - Each commit compiles and passes tests.
 - **Output hygiene**: a session's output is re-read on every later turn — targeted edits, never
@@ -115,4 +114,20 @@ as a fallback.
 - **Definition of Done**: tests green, lint clean, docs updated, no TODO without an issue or
   `TODO.md` reference.
 
-*Amendments to this document are themselves test-first: propose, discuss, commit.*
+## 7. Stack conventions (TypeScript, Svelte 5, Vite)
+
+- **Local first**: logic runs in the browser and works offline; a server is never required
+  (see `dev-docs/SCOPE.md`).
+- **The player engine** (`src/player/`) is framework-free TypeScript plus WebGL2; it never imports
+  Svelte. Svelte components live in `src/app/` and drive the engine through its public API.
+- **Strict TypeScript** (`tsconfig.json`: `strict`, `noUncheckedIndexedAccess`,
+  `exactOptionalPropertyTypes`); `any` is a lint error.
+- **Tooling**: Prettier formats, ESLint (typescript-eslint strict + eslint-plugin-svelte) lints,
+  `svelte-check` type-checks, Vitest runs unit tests next to the code as `*.test.ts`.
+- **npm** with `package-lock.json` (integrity hashes) and `npm ci`; Node pinned in `.node-version`.
+- **UI copy** comes from the message catalogue (German and English), never a literal in a
+  component.
+- **Brand assets** are generated by `scripts/brand/build.sh` from a hash-verified font source;
+  the outputs are committed, never edited by hand.
+
+_Amendments to this document are themselves test-first: propose, discuss, commit._

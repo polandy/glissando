@@ -1,0 +1,44 @@
+/* Palette "Sorbet" and type tokens; roles and rules in dev-docs/BRAND.md. */
+@font-face {
+  font-family: "Baloo 2";
+  src: url("../../assets/fonts/baloo2-latin-wght600-800.woff2") format("woff2");
+  font-weight: 600 800;
+  font-display: swap;
+}
+
+:root {
+  --gl-milk: #fdf8f2;
+  --gl-white: #ffffff;
+  --gl-plum: #2a2340;
+  --gl-night-plum: #171223;
+  --gl-peach: #ffb59a;
+  --gl-mint: #8fd9c4;
+  --gl-lemon: #ffd95a;
+
+  --gl-bg: var(--gl-milk);
+  --gl-surface: var(--gl-white);
+  --gl-text: var(--gl-plum);
+  --gl-on-accent: var(--gl-plum);
+
+  --gl-font: "Baloo 2", "Trebuchet MS", sans-serif;
+  --gl-weight-heading: 800;
+  --gl-weight-label: 600;
+  --gl-radius: 18px;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --gl-bg: var(--gl-night-plum);
+    --gl-surface: var(--gl-plum);
+    --gl-text: var(--gl-milk);
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --gl-bg: var(--gl-night-plum);
+  --gl-surface: var(--gl-plum);
+  --gl-text: var(--gl-milk);
+  color-scheme: dark;
+}
