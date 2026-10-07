@@ -54,6 +54,17 @@ secure context, so the app is installed from an HTTPS host (a static host, or a 
 behind a reverse proxy such as Caddy, Traefik or Tailscale) or from `localhost`; plain
 `http://<lan-ip>` works as a web app without PWA features.
 
+## Browsers and devices
+
+The last two versions of Chrome/Edge, Firefox and Safari, including Safari on iPhone and iPad —
+each one is a supported target, tested in CI. TV browsers are best effort. Where a browser lacks a
+capability (e.g. WebCodecs for video export), the feature says so plainly instead of failing.
+
+## Languages
+
+German and English. The UI follows the browser language (English otherwise) and can be switched;
+all UI copy lives in a message catalogue, never inline.
+
 ## MVP — pictures and music in, a good slideshow out
 
 Usable end to end by a non-technical user, fully offline:
