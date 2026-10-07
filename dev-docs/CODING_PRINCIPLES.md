@@ -116,7 +116,8 @@ as a fallback.
 
 ## 7. Stack conventions (TypeScript, Svelte 5, Vite)
 
-- **Client first**: logic runs in the browser unless it cannot (see `dev-docs/SCOPE.md`).
+- **Local first**: logic runs in the browser and works offline; a server is never required
+  (see `dev-docs/SCOPE.md`).
 - **The player engine** (`src/player/`) is framework-free TypeScript plus WebGL2; it never imports
   Svelte. Svelte components live in `src/app/` and drive the engine through its public API.
 - **Strict TypeScript** (`tsconfig.json`: `strict`, `noUncheckedIndexedAccess`,

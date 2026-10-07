@@ -1,7 +1,8 @@
 # Scope
 
-Glissando is self-hosted slideshow software for images, videos and other content with
-high-quality animation. It is a web app, installable as a PWA, aimed at end users.
+Glissando is local-first slideshow software for images, videos and other content with
+high-quality animation. It is a web app, installable as a PWA, aimed at end users, and made
+primarily for offline use: once installed it needs neither the internet nor a server.
 
 ## Inspiration
 
@@ -21,34 +22,45 @@ high-quality animation. It is a web app, installable as a PWA, aimed at end user
   varied transitions and sensible timing are chosen automatically. Every automatic choice can be
   overridden in the editor, none has to be. Pictures are ordered by capture date (EXIF
   `DateTimeOriginal`, Immich's date for Immich photos, the file date as a last resort).
-- **Fully offline.** With local pictures and music, Glissando works with no network at all:
-  every asset (code, fonts, shaders, detection models) ships with the app and is cached by the
-  service worker; nothing is fetched from a third party. Only Immich needs its server reachable.
+- **Offline is the primary use.** With local pictures and music, Glissando works with no
+  network and no server at all: every asset (code, fonts, shaders, detection models) ships with
+  the app and is cached by the service worker; nothing is fetched from a third party. Features
+  that need a network — Immich, sync, TV control — are optional extras on top, never required.
 - **Any common audio format.** MP3, AAC/M4A, Ogg/Opus, FLAC, WAV and the like are accepted. The
   browser decodes what it can natively; anything else is converted client-side (WASM decoder) to
   a format every target browser plays, before it enters the slideshow.
 
-## Client first
+## Local first
 
-As much as possible runs in the browser: playback, Ken Burns, transitions, thumbnails, audio
-conversion, editing and video export (WebCodecs). Slideshows and media are kept client-side (OPFS/IndexedDB),
-which also gives the PWA offline playback. The server stays thin — it serves the app and stores
-or syncs slideshows and media; it does no rendering or processing. A feature moves to the server
-only when the browser cannot do it, and that move is an ADR.
+Everything runs in the browser: playback, Ken Burns, transitions, thumbnails, audio conversion,
+editing and video export (WebCodecs). Slideshows and media live on the device (OPFS/IndexedDB):
+
+- **Persistent storage** is requested (`navigator.storage.persist()`) so the browser does not
+  evict slideshows on its own.
+- **Pictures are downscaled on import** to display resolution (about 4K); a slideshow needs no
+  more, and the device's originals stay untouched.
+- **Moving between devices** is a file: a slideshow exports to and imports from one
+  `.glissando` file holding its pictures, music and settings.
+
+**The server is optional.** Installing needs one load from any static HTTPS host; after that the
+app runs without it. A Glissando server only adds the network extras (Immich proxy, sync, TV
+control) and does no rendering or processing. A feature moves to the server only when the
+browser cannot do it, and that move is an ADR.
 
 ## PWA
 
-Installable on phone, tablet and desktop, fullscreen, offline playback of cached slideshows.
-Service workers need a secure context, so a LAN install is served over HTTPS through a reverse
-proxy (Caddy, Traefik, Tailscale); plain `http://<lan-ip>` works as a web app without PWA
-features.
+Installable on phone, tablet and desktop, fullscreen, fully offline. Service workers need a
+secure context, so the app is installed from an HTTPS host (a static host, or a LAN install
+behind a reverse proxy such as Caddy, Traefik or Tailscale) or from `localhost`; plain
+`http://<lan-ip>` works as a web app without PWA features.
 
 ## MVP — pictures and music in, a good slideshow out
 
 Usable end to end by a non-technical user, fully offline:
 
-- **Import** pictures (files or a folder) and one music file from the device; stored client-side
-  (OPFS/IndexedDB), the slideshow survives a reload.
+- **Import** pictures (files or a folder) and one music file from the device; pictures are
+  downscaled to display resolution and stored on the device in persistent storage, so the
+  slideshow survives a reload.
 - **Order** by capture date (see _Good by default_).
 - **Automatic Ken Burns** from a simple framing rule (no detection yet).
 - **About six GLSL transitions**, varied automatically, with the DOM/opacity fallback.
@@ -57,7 +69,8 @@ Usable end to end by a non-technical user, fully offline:
 - **Player**: fullscreen, play/pause/seek, the HTML5-video-style API over the slideshow JSON
   (which already carries the music track).
 - **Minimal editing**: remove and reorder pictures — nothing more.
-- **PWA**: installable, works offline.
+- **Export/import** a slideshow as one `.glissando` file.
+- **PWA**: installable, works fully offline, no server needed.
 
 Not in the MVP: per-slide settings, detection, Immich, video export, audio conversion.
 
