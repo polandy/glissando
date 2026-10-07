@@ -19,12 +19,19 @@ high-quality animation. It is a web app, installable as a PWA, aimed at end user
   step. A feature that needs a manual is redesigned, not documented.
 - **Good by default.** Picking the pictures is enough for a good slideshow: focus-aware Ken Burns,
   varied transitions and sensible timing are chosen automatically. Every automatic choice can be
-  overridden in the editor, none has to be.
+  overridden in the editor, none has to be. Pictures are ordered by capture date (EXIF
+  `DateTimeOriginal`, Immich's date for Immich photos, the file date as a last resort).
+- **Fully offline.** With local pictures and music, Glissando works with no network at all:
+  every asset (code, fonts, shaders, detection models) ships with the app and is cached by the
+  service worker; nothing is fetched from a third party. Only Immich needs its server reachable.
+- **Any common audio format.** MP3, AAC/M4A, Ogg/Opus, FLAC, WAV and the like are accepted. The
+  browser decodes what it can natively; anything else is converted client-side (WASM decoder) to
+  a format every target browser plays, before it enters the slideshow.
 
 ## Client first
 
-As much as possible runs in the browser: playback, Ken Burns, transitions, thumbnails, and later
-editing and video export (WebCodecs). Slideshows and media are kept client-side (OPFS/IndexedDB),
+As much as possible runs in the browser: playback, Ken Burns, transitions, thumbnails, audio
+conversion, editing and video export (WebCodecs). Slideshows and media are kept client-side (OPFS/IndexedDB),
 which also gives the PWA offline playback. The server stays thin — it serves the app and stores
 or syncs slideshows and media; it does no rendering or processing. A feature moves to the server
 only when the browser cannot do it, and that move is an ADR.
@@ -38,12 +45,14 @@ features.
 
 ## Milestones
 
-1. **Player (MVP)** — JSON in, playback out: Ken Burns, a set of GLSL transitions with fallback, a music
-   track played in sync with the timeline, the HTML5-video-style control API and a minimal
+1. **Player (MVP)** — JSON in, playback out: Ken Burns, a set of GLSL transitions with fallback,
+   a music track played in sync with the timeline, the HTML5-video-style control API and a minimal
    control bar.
 2. **Editor** — add and order images, configure each slide's effect (Ken Burns from/to,
    transition, duration) and choose the music; edits the same JSON the player plays.
 3. **Automatic focus** — detect people or the image's subject and aim Ken Burns at it. Photos
    from Immich use Immich's face data; others get on-device detection in the browser.
 4. **Immich** — browse and pick albums and photos from an Immich library via its API.
-5. **Later** — video export (WebCodecs), videos and other content as slides.
+5. **Video export** — render the slideshow with its music to a video file in the browser
+   (WebCodecs encoding, client-side muxing), no server involved.
+6. **Later** — videos and other content as slides.
