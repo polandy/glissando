@@ -57,7 +57,8 @@ behind a reverse proxy such as Caddy, Traefik or Tailscale) or from `localhost`;
 ## Browsers and devices
 
 The last two versions of Chrome/Edge, Firefox and Safari, including Safari on iPhone and iPad —
-each one is a supported target, tested in CI. TV browsers are best effort. Where a browser lacks a
+each one is a supported target, tested in CI on the matching Playwright engine (Chromium,
+Firefox, WebKit). TV browsers are best effort. Where a browser lacks a
 capability (e.g. WebCodecs for video export), the feature says so plainly instead of failing.
 
 ## Languages
