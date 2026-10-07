@@ -43,16 +43,43 @@ Service workers need a secure context, so a LAN install is served over HTTPS thr
 proxy (Caddy, Traefik, Tailscale); plain `http://<lan-ip>` works as a web app without PWA
 features.
 
-## Milestones
+## MVP — pictures and music in, a good slideshow out
 
-1. **Player (MVP)** — JSON in, playback out: Ken Burns, a set of GLSL transitions with fallback,
-   a music track played in sync with the timeline, the HTML5-video-style control API and a minimal
-   control bar.
-2. **Editor** — add and order images, configure each slide's effect (Ken Burns from/to,
-   transition, duration) and choose the music; edits the same JSON the player plays.
-3. **Automatic focus** — detect people or the image's subject and aim Ken Burns at it. Photos
-   from Immich use Immich's face data; others get on-device detection in the browser.
-4. **Immich** — browse and pick albums and photos from an Immich library via its API.
-5. **Video export** — render the slideshow with its music to a video file in the browser
-   (WebCodecs encoding, client-side muxing), no server involved.
-6. **Later** — videos and other content as slides.
+Usable end to end by a non-technical user, fully offline:
+
+- **Import** pictures (files or a folder) and one music file from the device; stored client-side
+  (OPFS/IndexedDB), the slideshow survives a reload.
+- **Order** by capture date (see _Good by default_).
+- **Automatic Ken Burns** from a simple framing rule (no detection yet).
+- **About six GLSL transitions**, varied automatically, with the DOM/opacity fallback.
+- **Music**: one track in any format the browser decodes natively; slide timing fits the track's
+  length.
+- **Player**: fullscreen, play/pause/seek, the HTML5-video-style API over the slideshow JSON
+  (which already carries the music track).
+- **Minimal editing**: remove and reorder pictures — nothing more.
+- **PWA**: installable, works offline.
+
+Not in the MVP: per-slide settings, detection, Immich, video export, audio conversion.
+
+## Roadmap — in this order after the MVP
+
+1. **Editor** — per slide: duration, transition, Ken Burns from/to; music trim and fade.
+2. **Automatic focus** — Ken Burns aims at people or the subject; Immich photos use Immich's face
+   data, others get on-device detection in the browser.
+3. **Immich** — browse and pick albums and photos via the Immich API. Whether the browser calls
+   it directly (CORS, API key exposure) or through a thin server proxy is an ADR.
+4. **Video export** — the slideshow with its music rendered to a video file in the browser
+   (WebCodecs encoding, client-side muxing; muxer choice is an ADR).
+5. **Audio formats** — formats the browser cannot decode are converted client-side (WASM
+   decoder; choice is an ADR).
+6. **Beat sync** — transitions land on the music's beats, detected in the browser.
+7. **Culling** — near-duplicate burst shots and blurry pictures are skipped automatically.
+8. **Portrait layouts** — two portrait pictures side by side, or one over a blurred fill,
+   instead of a hard crop.
+9. **Picture frame mode** — an endless, varied slideshow from an album (e.g. Immich) on an old
+   tablet or a TV browser.
+10. **On the TV, controlled from the phone** — open a slideshow on the TV via link or QR code and
+    control it from the phone; the cross-device channel is an ADR.
+11. **Videos as slides.**
+
+Each step goes through the UI flow in `CLAUDE.md` (mockup first, owner OK, then specs and code).
