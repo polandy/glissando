@@ -77,7 +77,8 @@ Usable end to end by a non-technical user, fully offline:
 - **Automatic Ken Burns** from a simple framing rule (no detection yet).
 - **About six GLSL transitions**, varied automatically, with the DOM/opacity fallback.
 - **Music**: one track in any format the browser decodes natively; slide timing fits the track's
-  length. Without music every picture stays 5 s; the value is set per slideshow.
+  length. Without music every picture stays 5 s; the value is set per slideshow in half-second
+  steps.
 - **Title** from the capture-date range of the pictures ("July 2025"), editable in place.
 - **Player**: fullscreen, play/pause/seek, the HTML5-video-style API over the slideshow JSON
   (which already carries the music track).
