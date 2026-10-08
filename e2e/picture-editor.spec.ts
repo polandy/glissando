@@ -103,9 +103,14 @@ test("E2E-020 a picture gets its own Ken Burns motion that is stored, and goes b
 
   await selectionBar.getByRole("button", { name: "Bearbeiten" }).click();
   await expect(state).toHaveText("Eigene Bewegung");
-  await page.getByRole("button", { name: "Zurück auf automatisch" }).click();
+  await page
+    .getByRole("region", { name: "Ken Burns" })
+    .getByRole("button", { name: "Zurück auf automatisch" })
+    .click();
   await expect(state).toHaveText("Automatisch");
-  await expect(page.getByRole("status")).toContainText("Bewegung wieder automatisch");
+  await expect(
+    page.getByRole("status").filter({ hasText: "Bewegung wieder automatisch" }),
+  ).toBeVisible();
   await page.getByRole("button", { name: "Rückgängig" }).click();
   await expect(state).toHaveText("Eigene Bewegung");
   await expect(endToggle.locator(".mono")).toHaveText(endZoom);
@@ -159,5 +164,7 @@ test("E2E-022 a picture gets its own duration and transition, stored, and the tr
   await expect(transitionState).toHaveText("Eigener Übergang");
   await transitionSection.getByRole("button", { name: "Zurück auf automatisch" }).click();
   await expect(transitionState).toHaveText("Automatisch");
-  await expect(page.locator(".toast")).toContainText("Übergang wieder automatisch");
+  await expect(
+    page.getByRole("status").filter({ hasText: "Übergang wieder automatisch" }),
+  ).toBeVisible();
 });
