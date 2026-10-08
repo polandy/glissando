@@ -2,24 +2,30 @@
   import { onDestroy } from "svelte";
   import { KEN_BURNS_EASING } from "../../compose";
   import type { OwnKenBurns } from "../../library/own-ken-burns";
-  import { framingAt, type Framing } from "../../player";
+  import type { TransitionChoice } from "../../library/own-timing";
+  import { framingAt, normalizeCaption, type Framing } from "../../player";
   import Header from "../components/Header.svelte";
   import Icon from "../components/Icon.svelte";
   import { getTranslator } from "../i18n/context";
   import FrameWell from "./FrameWell.svelte";
+  import DurationSection from "./DurationSection.svelte";
   import MotionPanel from "./MotionPanel.svelte";
+  import MotionPreviewScreen from "./MotionPreviewScreen.svelte";
+  import TransitionSection from "./TransitionSection.svelte";
   import { MotionPreview, type MotionPreviewPorts } from "./motion-preview";
+  import { previewPlan, transitionHoldMs, transitionLeadInMs } from "./timing/preview-timeline";
   import { FRAME_KEYS, type FrameKey } from "./frame-keys";
   import type { PictureEditorView } from "./picture-editor-view";
 
   /**
    * The picture editor: a picture's Ken Burns motion as two frames on the picture, with a
-   * preview of what the player will show, and its caption. Every change goes to `onChange` or
-   * `onCaption` and is stored at once.
+   * preview of what the player will show, its caption, duration and transition into the next
+   * picture. Every change goes to its callback and is stored at once.
    */
   let {
     picture,
     pictureUrl,
+    nextPictureUrl,
     slideshowTitle,
     onBack,
     onOpen,
@@ -27,6 +33,10 @@
     onSwap,
     onReset,
     onCaption,
+    onDuration,
+    onResetDuration,
+    onTransition,
+    onResetTransition,
     previewPorts,
     reducedMotion,
     saving,
@@ -34,6 +44,8 @@
     picture: PictureEditorView;
     /** The display rendition's object URL; null while it loads. */
     pictureUrl: string | null;
+    /** The next picture's, for the transition; null while it loads and at the last picture. */
+    nextPictureUrl: string | null;
     slideshowTitle: string;
     onBack: () => void;
     /** Opens another picture of the slideshow in the editor. */
@@ -43,6 +55,11 @@
     onReset: () => void;
     /** The caption as typed, on every keystroke. */
     onCaption: (typed: string) => void;
+    /** An own duration in whole milliseconds. */
+    onDuration: (durationMs: number) => void;
+    onResetDuration: () => void;
+    onTransition: (choice: TransitionChoice) => void;
+    onResetTransition: () => void;
     previewPorts: MotionPreviewPorts;
     /** The preview starts paused. */
     reducedMotion: boolean;
@@ -60,23 +77,37 @@
   // svelte-ignore state_referenced_locally
   let caption = $state(picture.caption);
 
-  // The screen is keyed by picture: duration and the start state are fixed for its lifetime.
+  // The screen is keyed by picture: the start state is fixed for its lifetime.
   // svelte-ignore state_referenced_locally
-  const preview = new MotionPreview(
+  const previewClock = new MotionPreview(
     { durationMs: picture.durationMs, playing: !reducedMotion },
     previewPorts,
   );
-  let previewState = $state.raw(preview.state);
-  preview.subscribe((state) => (previewState = state));
-  onDestroy(() => preview.dispose());
+  let previewState = $state.raw(previewClock.state);
+  previewClock.subscribe((state) => (previewState = state));
+  onDestroy(() => previewClock.dispose());
+
+  // svelte-ignore state_referenced_locally
+  let previewedDurationMs = picture.durationMs;
+  /** A new duration plays from the start. */
+  $effect(() => {
+    if (picture.durationMs !== previewedDurationMs) {
+      previewedDurationMs = picture.durationMs;
+      previewClock.retime(picture.durationMs);
+      replay();
+    }
+  });
 
   const previewFraming = $derived(
-    framingAt({ ...motion, easing: KEN_BURNS_EASING }, previewState.progress),
+    framingAt(
+      { ...motion, easing: KEN_BURNS_EASING },
+      Math.min(1, previewState.elapsedMs / picture.durationMs),
+    ),
   );
 
   /** Editing a frame shows its end in the preview: the start at 0, the end at 1. */
   function holdOn(key: FrameKey): void {
-    preview.holdAt(key === "from" ? 0 : 1);
+    previewClock.holdAt(key === "from" ? 0 : 1);
   }
 
   function activate(key: FrameKey): void {
@@ -98,9 +129,19 @@
   /** After a swap or a reset the whole new motion plays, unless motion is reduced. */
   function replay(): void {
     if (reducedMotion) {
-      preview.holdAt(0);
+      previewClock.holdAt(0);
     } else {
-      preview.restart();
+      previewClock.restart();
+    }
+  }
+
+  /** A transition picked (or reset) plays from a moment before it, or rests half-way through. */
+  function showTransition(): void {
+    const plan = previewPlan(picture);
+    if (reducedMotion) {
+      previewClock.restAt(transitionHoldMs(plan));
+    } else {
+      previewClock.playFrom(transitionLeadInMs(plan));
     }
   }
 
@@ -158,14 +199,9 @@
     </div>
     <MotionPanel
       {picture}
-      {pictureUrl}
       {motion}
       {active}
-      {previewState}
-      {previewFraming}
       onActivate={activate}
-      onPlay={() => preview.play()}
-      onPause={() => preview.pause()}
       onSwap={() => {
         onSwap();
         replay();
@@ -178,7 +214,38 @@
       }}
       bind:caption
       {onCaption}
-    />
+    >
+      {#snippet preview()}
+        <MotionPreviewScreen
+          {picture}
+          {motion}
+          {pictureUrl}
+          {nextPictureUrl}
+          caption={normalizeCaption(caption)}
+          playback={previewState}
+          onPlay={() => previewClock.play()}
+          onPause={() => previewClock.pause()}
+        />
+      {/snippet}
+      {#snippet timing()}
+        <DurationSection {picture} {onDuration} onReset={onResetDuration} />
+        <TransitionSection
+          {picture}
+          {pictureUrl}
+          {nextPictureUrl}
+          ports={previewPorts}
+          {reducedMotion}
+          onTransition={(choice) => {
+            onTransition(choice);
+            showTransition();
+          }}
+          onReset={() => {
+            onResetTransition();
+            showTransition();
+          }}
+        />
+      {/snippet}
+    </MotionPanel>
   </main>
 </div>
 

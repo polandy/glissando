@@ -11,6 +11,7 @@ export {
   autoTransitionEffect,
   transitionDurationMs,
   MAX_TRANSITION_DURATION_MS,
+  TRANSITION_SHARE_OF_SLIDE,
 } from "./auto-transition";
 export { pictureTransition } from "./picture-transition";
 export { titleForCaptureRange } from "./title-for-capture-range";

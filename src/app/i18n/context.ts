@@ -24,6 +24,7 @@ export function getTranslator(): Translator {
     t: (key, ...args) => source.current.t(key, ...args),
     formatDuration: (seconds) => source.current.formatDuration(seconds),
     formatSeconds: (seconds) => source.current.formatSeconds(seconds),
+    formatTenthSeconds: (seconds) => source.current.formatTenthSeconds(seconds),
     formatDate: (isoDateTime) => source.current.formatDate(isoDateTime),
     formatBytes: (bytes) => source.current.formatBytes(bytes),
     formatZoom: (zoom) => source.current.formatZoom(zoom),

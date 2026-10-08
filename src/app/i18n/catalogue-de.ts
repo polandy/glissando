@@ -1,4 +1,5 @@
 import { deEditor } from "./catalogue-de-editor";
+import { deTiming } from "./catalogue-de-timing";
 import type { Message } from "./messages";
 
 /**
@@ -262,4 +263,5 @@ export const de = {
   "player.pictureError": "Ein Bild konnte nicht geladen werden.",
   "player.playbackError": "Die Diashow konnte nicht abgespielt werden.",
   ...deEditor,
+  ...deTiming,
 } as const satisfies Record<string, Message>;

@@ -1,6 +1,7 @@
 /** Shared set-up of the `PictureEditorScreen` browser tests. */
 import { flushSync } from "svelte";
 import type { OwnKenBurns } from "../../library/own-ken-burns";
+import type { TransitionChoice } from "../../library/own-timing";
 import { FakeClock, FakeFrameScheduler } from "../../player/testing/fakes";
 import { mountWithTranslator } from "../testing/mount-with-translator";
 import PictureEditorScreen from "./PictureEditorScreen.svelte";
@@ -52,10 +53,15 @@ export function mountEditor(shown: PictureEditorView = view(), { reducedMotion =
     resets: 0,
     backs: 0,
     captions: [] as string[],
+    durations: [] as number[],
+    durationResets: 0,
+    transitions: [] as TransitionChoice[],
+    transitionResets: 0,
   };
   const mounted = mountWithTranslator(PictureEditorScreen, {
     picture: shown,
     pictureUrl: PIXEL,
+    nextPictureUrl: PIXEL,
     slideshowTitle: "Sommer am See",
     onBack: () => (calls.backs += 1),
     onOpen: (pictureId: string) => calls.opened.push(pictureId),
@@ -63,6 +69,10 @@ export function mountEditor(shown: PictureEditorView = view(), { reducedMotion =
     onSwap: () => (calls.swaps += 1),
     onReset: () => (calls.resets += 1),
     onCaption: (typed: string) => calls.captions.push(typed),
+    onDuration: (durationMs: number) => calls.durations.push(durationMs),
+    onResetDuration: () => (calls.durationResets += 1),
+    onTransition: (choice: TransitionChoice) => calls.transitions.push(choice),
+    onResetTransition: () => (calls.transitionResets += 1),
     previewPorts: { clock, frames },
     reducedMotion,
     saving: false,

@@ -6,6 +6,11 @@ import type { SlideAtTime, TimelineFrame } from "./timeline";
 
 const TRANSITION_EASING: Easing = "ease-in-out";
 
+/** A transition's linear progress (0..1) as the player draws it. */
+export function easeTransition(progress: number): number {
+  return ease(TRANSITION_EASING, progress);
+}
+
 /** What the renderer draws for `frame`; `pictureAt` holds the loaded picture of each slide on it. */
 export function renderFrame<Picture>(
   frame: TimelineFrame,
@@ -29,7 +34,7 @@ export function renderFrame<Picture>(
   return {
     kind: "transition",
     effect: frame.effect,
-    progress: ease(TRANSITION_EASING, frame.progress),
+    progress: easeTransition(frame.progress),
     from: layer(frame.from),
     to: layer(frame.to),
   };

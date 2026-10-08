@@ -1,42 +1,37 @@
 <script lang="ts">
+  import type { Snippet } from "svelte";
   import type { OwnKenBurns } from "../../library/own-ken-burns";
-  import { normalizeCaption, type Framing } from "../../player";
   import Icon from "../components/Icon.svelte";
   import { getTranslator } from "../i18n/context";
   import { FRAME_KEYS, type FrameKey } from "./frame-keys";
-  import type { MotionPreviewState } from "./motion-preview";
   import type { PictureEditorView } from "./picture-editor-view";
   import CaptionField from "./CaptionField.svelte";
-  import MotionPreviewScreen from "./MotionPreviewScreen.svelte";
+  import ResetButton from "./ResetButton.svelte";
+  import SectionHead from "./SectionHead.svelte";
 
   /**
-   * Beside the picture (below it on a phone): which frame is edited, the preview, the actions,
-   * and below them the caption.
+   * Beside the picture (below it on a phone): the preview, staying in view while the panel
+   * scrolls; which frame is edited and the motion's actions; the caption; then the timing.
    */
   let {
     picture,
-    pictureUrl,
     motion,
     active,
-    previewState,
-    previewFraming,
+    preview,
+    timing,
     onActivate,
-    onPlay,
-    onPause,
     onSwap,
     onReset,
     caption = $bindable(),
     onCaption,
   }: {
     picture: PictureEditorView;
-    pictureUrl: string | null;
     motion: OwnKenBurns;
     active: FrameKey;
-    previewState: MotionPreviewState;
-    previewFraming: Framing;
+    preview: Snippet;
+    /** The duration and transition sections. */
+    timing: Snippet;
     onActivate: (key: FrameKey) => void;
-    onPlay: () => void;
-    onPause: () => void;
     onSwap: () => void;
     onReset: () => void;
     /** The caption as typed. */
@@ -49,17 +44,18 @@
 </script>
 
 <aside class="panel">
+  <div class="preview-block">{@render preview()}</div>
   <div class="who">
     <b>{t("editor.position", { number: picture.number, count: picture.count })}</b>
     <span class="muted mono">{picture.fileName} · {formatDate(picture.capturedAt)}</span>
   </div>
   <section class="motion" aria-label={t("editor.kenBurns")}>
-    <div class="row">
-      <h2 class="eyebrow">{t("editor.kenBurns")}</h2>
-      <span class="state" class:own={picture.ownMotion}>
-        {picture.ownMotion ? t("editor.own") : t("editor.automatic")}
-      </span>
-    </div>
+    <SectionHead
+      id="motion-label"
+      title={t("editor.kenBurns")}
+      stateText={picture.ownMotion ? t("editor.own") : t("editor.automatic")}
+      own={picture.ownMotion}
+    />
     <div class="keys" role="group" aria-label={t("editor.frames")}>
       {#each FRAME_KEYS as key (key)}
         <button
@@ -74,32 +70,19 @@
       {/each}
     </div>
     <p class="narrow-hint muted">{t("editor.hintNarrow")}</p>
-    <MotionPreviewScreen
-      size={picture.size}
-      {pictureUrl}
-      framing={previewFraming}
-      playback={previewState}
-      durationMs={picture.durationMs}
-      caption={normalizeCaption(caption)}
-      {onPlay}
-      {onPause}
-    />
     <div class="actions">
       <button class="btn small" type="button" onclick={onSwap}>
         <Icon name="swap" />{t("editor.swap")}
       </button>
-      <button
-        class="btn small ghost"
-        type="button"
-        aria-disabled={!picture.ownMotion}
-        title={picture.ownMotion ? undefined : t("editor.alreadyAutomatic")}
-        onclick={onReset}
-      >
-        <Icon name="replay" />{t("editor.reset")}
-      </button>
+      <ResetButton
+        automatic={!picture.ownMotion}
+        alreadyAutomatic={t("editor.alreadyAutomatic")}
+        {onReset}
+      />
     </div>
   </section>
   <CaptionField pictureId={picture.id} bind:value={caption} onInput={onCaption} />
+  {@render timing()}
 </aside>
 
 <style>
@@ -111,6 +94,18 @@
     padding: 20px;
     overflow: auto;
     border-left: 1px solid var(--gl-line);
+    background: var(--gl-surface);
+  }
+  /* Stays in view while the panel (or, on a phone, the page) scrolls under it. */
+  .preview-block {
+    position: sticky;
+    top: -20px;
+    z-index: 2;
+    display: grid;
+    gap: 8px;
+    margin: -20px -20px 0;
+    padding: 20px 20px 12px;
+    border-bottom: 1px solid var(--gl-line);
     background: var(--gl-surface);
   }
   .who {
@@ -128,29 +123,6 @@
   .motion {
     display: grid;
     gap: 12px;
-  }
-  .row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-  }
-  .row h2 {
-    margin: 0;
-  }
-  .state {
-    padding: 3px 9px;
-    border: 1px solid var(--gl-line);
-    border-radius: var(--gl-radius-pill);
-    color: var(--gl-muted);
-    font-size: var(--gl-size-small);
-    font-weight: var(--gl-weight-semibold);
-    white-space: nowrap;
-  }
-  .state.own {
-    border-color: transparent;
-    background: color-mix(in srgb, var(--gl-accent) 28%, var(--gl-surface));
-    color: var(--gl-ink);
   }
   .keys {
     display: grid;
@@ -212,6 +184,11 @@
       padding: 16px;
       overflow: visible;
       border-left: 0;
+    }
+    .preview-block {
+      top: 0;
+      margin: -16px -16px 0;
+      padding: 12px 16px 10px;
     }
     .narrow-hint {
       display: block;

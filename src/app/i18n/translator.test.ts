@@ -81,6 +81,13 @@ describe("formatters", () => {
   });
 
   it.each([
+    ["de", 5, "5,0 s"],
+    ["en", 4.62, "4.6 s"],
+  ] as const)("in %s formats %d seconds with its tenth as %s", (language, seconds, expected) => {
+    expect(createTranslator(language).formatTenthSeconds(seconds)).toBe(expected);
+  });
+
+  it.each([
     ["de", 1.2, "1,20×"],
     ["en", 2.345, "2.35×"],
     ["de", 3, "3,00×"],

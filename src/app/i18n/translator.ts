@@ -45,6 +45,8 @@ export interface Translator {
   formatDuration(seconds: number): string;
   /** Seconds with at most one decimal in the locale and the unit, e.g. "4,5 s". */
   formatSeconds(seconds: number): string;
+  /** Seconds with exactly one decimal in the locale and the unit, e.g. "5,0 s". */
+  formatTenthSeconds(seconds: number): string;
   /** A date-time as dd.mm.yyyy (or the locale's order), read in UTC. */
   formatDate(isoDateTime: string): string;
   /** A Ken Burns zoom with two decimals in the locale: "1,20×". */
@@ -61,6 +63,10 @@ export function createTranslator(language: Language): Translator {
   const plurals = new Intl.PluralRules(locale);
   const numbers = new Intl.NumberFormat(locale);
   const decimals = new Intl.NumberFormat(locale, {
+    maximumFractionDigits: SECONDS_FRACTION_DIGITS,
+  });
+  const tenths = new Intl.NumberFormat(locale, {
+    minimumFractionDigits: SECONDS_FRACTION_DIGITS,
     maximumFractionDigits: SECONDS_FRACTION_DIGITS,
   });
   const zooms = new Intl.NumberFormat(locale, {
@@ -121,6 +127,9 @@ export function createTranslator(language: Language): Translator {
     },
     formatSeconds(seconds) {
       return t("units.seconds", { seconds: decimals.format(seconds) });
+    },
+    formatTenthSeconds(seconds) {
+      return t("units.seconds", { seconds: tenths.format(seconds) });
     },
     formatDate(isoDateTime) {
       const date = new Date(isoDateTime);

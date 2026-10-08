@@ -1,7 +1,7 @@
 import { TRANSITION_EFFECTS, type TransitionEffect } from "../player/slideshow";
 
 /** The transition's share of its slide's duration, before the cap below. */
-const TRANSITION_SHARE_OF_SLIDE = 0.3;
+export const TRANSITION_SHARE_OF_SLIDE = 0.3;
 
 /** No transition runs longer than this, even on a long slide. */
 export const MAX_TRANSITION_DURATION_MS = 1000;

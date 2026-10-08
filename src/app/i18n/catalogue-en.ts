@@ -1,4 +1,5 @@
 import { enEditor } from "./catalogue-en-editor";
+import { enTiming } from "./catalogue-en-timing";
 import type { Catalogue } from "./messages";
 
 /** English UI copy; the type demands exactly the German catalogue's keys and message shapes. */
@@ -260,4 +261,5 @@ export const en: Catalogue = {
   "player.pictureError": "A picture could not be loaded.",
   "player.playbackError": "The slideshow could not be played.",
   ...enEditor,
+  ...enTiming,
 };
