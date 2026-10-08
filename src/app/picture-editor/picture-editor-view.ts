@@ -5,7 +5,7 @@ import {
   slideDurationsMs,
 } from "../../compose";
 import type { OwnKenBurns } from "../../library/own-ken-burns";
-import type { TransitionChoice } from "../../library/own-timing";
+import { MIN_OWN_DURATION_MS, type TransitionChoice } from "../../library/own-timing";
 import type { StoredPicture, StoredSlideshow } from "../../library/stored-slideshow";
 import { MILLISECONDS_PER_SECOND, type Size, type TransitionEffect } from "../../player";
 
@@ -18,6 +18,8 @@ export type DurationBasis =
       readonly automaticCount: number;
       /** What each of them gets; null when there are none. */
       readonly shareMs: number | null;
+      /** The own durations use up the music; the automatic pictures get the minimum instead. */
+      readonly clamped: boolean;
     };
 
 export interface TransitionView {
@@ -134,5 +136,15 @@ function durationBasis(stored: StoredSlideshow, durationsMs: readonly number[]):
   const automatic = stored.pictures.flatMap((picture, at) =>
     picture.durationMs === undefined ? [durationsMs[at] as number] : [],
   );
-  return { kind: "music", automaticCount: automatic.length, shareMs: automatic[0] ?? null };
+  if (automatic.length === 0) {
+    return { kind: "music", automaticCount: 0, shareMs: null, clamped: false };
+  }
+  const ownTotalMs = stored.pictures.reduce((sum, picture) => sum + (picture.durationMs ?? 0), 0);
+  const idealShareMs = Math.floor((stored.music.durationMs - ownTotalMs) / automatic.length);
+  return {
+    kind: "music",
+    automaticCount: automatic.length,
+    shareMs: automatic[0] ?? null,
+    clamped: idealShareMs < MIN_OWN_DURATION_MS,
+  };
 }

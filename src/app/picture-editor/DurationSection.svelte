@@ -38,12 +38,11 @@
     if (!picture.ownDuration) {
       return t("editor.durationHintMusic", { count: basis.automaticCount });
     }
-    return basis.shareMs === null
-      ? t("editor.durationHintAllOwn")
-      : t("editor.durationHintMusicOwn", {
-          count: basis.automaticCount,
-          share: seconds(basis.shareMs),
-        });
+    if (basis.shareMs === null) {
+      return t("editor.durationHintAllOwn");
+    }
+    const key = basis.clamped ? "editor.durationHintMusicClamped" : "editor.durationHintMusicOwn";
+    return t(key, { count: basis.automaticCount, share: seconds(basis.shareMs) });
   });
 
   function step(direction: StepDirection): void {

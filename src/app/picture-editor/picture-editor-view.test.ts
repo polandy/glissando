@@ -109,11 +109,13 @@ describe("pictureEditorView", () => {
       kind: "music",
       automaticCount: 2,
       shareMs: 11_000,
+      clamped: false,
     });
     expect(pictureEditorView(timed, "p1").durationBasis).toEqual({
       kind: "music",
       automaticCount: 2,
       shareMs: 11_000,
+      clamped: false,
     });
   });
 
@@ -128,6 +130,18 @@ describe("pictureEditorView", () => {
       kind: "music",
       automaticCount: 0,
       shareMs: null,
+      clamped: false,
+    });
+  });
+
+  it("with music, marks the automatic pictures clamped once the own durations use it up", () => {
+    const outlasted = { ...withPicture(1, { durationMs: 15_000 }), music: music(17_000) };
+
+    expect(pictureEditorView(outlasted, "p1").durationBasis).toEqual({
+      kind: "music",
+      automaticCount: 2,
+      shareMs: 2000,
+      clamped: true,
     });
   });
 

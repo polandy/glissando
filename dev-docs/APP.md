@@ -158,8 +158,10 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
     make it this picture's own." or, own, "Automatic would be 5.0 s, the slideshow's seconds per
     picture."; with music "The music is shared evenly across the 7 pictures without an own
     duration." or, own, "The other 7 pictures share the rest of the music: 4.6 s each." or, when
-    every picture has its own, "Every picture has its own duration; the slideshow no longer
-    follows the music's length." — each followed by "2 to 15 s." Then "Back to automatic"
+    the own durations use up the music, "The music is used up; the other 7 pictures get the
+    minimum, 2.0 s each." or, when every picture has its own, "Every picture has its own
+    duration; the slideshow no longer follows the music's length." — each followed by "2 to
+    15 s." Then "Back to automatic"
     (disabled-looking and titled "The duration is already automatic" while it is); the toast
     "Duration back to automatic" with "Undo" follows. How durations share the music:
     `dev-docs/COMPOSITION.md`.

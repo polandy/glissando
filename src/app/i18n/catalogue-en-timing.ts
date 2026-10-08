@@ -27,6 +27,10 @@ export const enTiming: Pick<Catalogue, keyof typeof deTiming> = {
     one: "The one other picture gets the rest of the music: {share}.",
     other: "The other {count} pictures share the rest of the music: {share} each.",
   },
+  "editor.durationHintMusicClamped": {
+    one: "The music is used up; the one other picture gets the minimum, {share}.",
+    other: "The music is used up; the other {count} pictures get the minimum, {share} each.",
+  },
   "editor.durationHintAllOwn":
     "Every picture has its own duration; the slideshow no longer follows the music's length.",
   "editor.durationRange": "{min} to {max} s.",

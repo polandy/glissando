@@ -70,12 +70,26 @@ describe("PictureEditorScreen duration", () => {
       view({
         durationMs: 8000,
         ownDuration: true,
-        durationBasis: { kind: "music", automaticCount: 7, shareMs: 4620 },
+        durationBasis: { kind: "music", automaticCount: 7, shareMs: 4620, clamped: false },
       }),
     );
 
     expect(text(durationSection())).toContain(
       "Die übrigen 7 Bilder teilen sich den Rest der Musik: je 4,6 s.",
+    );
+  });
+
+  it("with music used up by own durations, says the others get the minimum", () => {
+    mountEditor(
+      view({
+        durationMs: 8000,
+        ownDuration: true,
+        durationBasis: { kind: "music", automaticCount: 7, shareMs: 2000, clamped: true },
+      }),
+    );
+
+    expect(text(durationSection())).toContain(
+      "Die Musik ist aufgebraucht; die übrigen 7 Bilder bekommen das Minimum, je 2,0 s.",
     );
   });
 });
