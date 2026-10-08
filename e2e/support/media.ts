@@ -77,3 +77,12 @@ export function silentTrack(name: string, seconds: number): TestFile {
     buffer: Buffer.from(silentWav(seconds * millisecondsPerSecond)),
   };
 }
+
+/** `blob` as a file chooser takes it, under `name`. */
+export async function blobFile(name: string, blob: Blob): Promise<TestFile> {
+  return {
+    name,
+    mimeType: "application/octet-stream",
+    buffer: Buffer.from(new Uint8Array(await blob.arrayBuffer())),
+  };
+}
