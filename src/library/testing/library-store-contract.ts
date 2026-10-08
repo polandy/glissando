@@ -6,6 +6,9 @@ import {
   type StoredPicture,
   type StoredSlideshow,
 } from "../stored-slideshow";
+import { describeImportsInProgress } from "./imports-in-progress-contract";
+
+const CLEAN_UP_AT = new Date("2026-10-08T12:00:00Z");
 
 /** A store under test, freshly emptied, and how to open it again over the same data. */
 export interface StoreHarness {
@@ -35,16 +38,17 @@ function slideshow(overrides: Partial<StoredSlideshow> = {}): StoredSlideshow {
   };
 }
 
-function pictureBlobs(label: string): { display: Blob; thumbnail: Blob } {
+export function pictureBlobs(label: string): { display: Blob; thumbnail: Blob } {
   return {
     display: new Blob([`${label} display`], { type: "image/jpeg" }),
     thumbnail: new Blob([`${label} thumbnail`], { type: "image/jpeg" }),
   };
 }
 
-const musicBlob = (label: string): Blob => new Blob([`${label} music`], { type: "audio/mpeg" });
+export const musicBlob = (label: string): Blob =>
+  new Blob([`${label} music`], { type: "audio/mpeg" });
 
-async function rejection(promise: Promise<unknown>): Promise<unknown> {
+export async function rejection(promise: Promise<unknown>): Promise<unknown> {
   try {
     await promise;
   } catch (error) {
@@ -159,12 +163,10 @@ export function describeLibraryStoreContract(
       expect(await (await reopened.musicBlob("music-1")).text()).toBe("one music");
     });
 
-    it("deletes media no saved slideshow references, except the kept ids", async () => {
+    it("deletes media no saved slideshow references and no import in progress claims", async () => {
       await store.putPicture("referenced-picture", pictureBlobs("referenced"));
-      await store.putPicture("kept-picture", pictureBlobs("kept"));
       await store.putPicture("abandoned-picture", pictureBlobs("abandoned"));
       await store.putMusic("referenced-music", musicBlob("referenced"));
-      await store.putMusic("kept-music", musicBlob("kept"));
       await store.putMusic("abandoned-music", musicBlob("abandoned"));
       await store.saveSlideshow(
         slideshow({
@@ -178,14 +180,12 @@ export function describeLibraryStoreContract(
         }),
       );
 
-      await store.deleteUnreferencedMedia(new Set(["kept-picture", "kept-music"]));
+      await store.deleteUnreferencedMedia(CLEAN_UP_AT);
 
       expect(await (await store.pictureBlob("referenced-picture")).text()).toBe(
         "referenced display",
       );
-      expect(await (await store.thumbnailBlob("kept-picture")).text()).toBe("kept thumbnail");
       expect(await (await store.musicBlob("referenced-music")).text()).toBe("referenced music");
-      expect(await (await store.musicBlob("kept-music")).text()).toBe("kept music");
       expect(await rejection(store.pictureBlob("abandoned-picture"))).toBeInstanceOf(
         MediaNotFoundError,
       );
@@ -196,5 +196,10 @@ export function describeLibraryStoreContract(
         MediaNotFoundError,
       );
     });
+
+    describeImportsInProgress(
+      () => store,
+      () => harness,
+    );
   });
 }

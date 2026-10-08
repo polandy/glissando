@@ -13,6 +13,6 @@ export interface AppServices {
   readonly reportError: ErrorReporter;
   readonly persistencePrompt: PersistencePrompt;
   newImportSession(): ImportSession;
-  /** The import is created or discarded: its media is no longer spared from the clean-up. */
-  endImport(): void;
+  /** Deletes media no slideshow and no import in progress in any tab uses; reports failures. */
+  deleteAbandonedMedia(): void;
 }

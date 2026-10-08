@@ -260,7 +260,7 @@ describe("PictureImport", () => {
     expect(decoder.decoded).toEqual(["a.jpg", "b.jpg"]);
     expect(pictureImport.state).toMatchObject({ total: 0, pictures: [] });
     expect(await (await store.pictureBlob("picture-2")).text()).toBe("b.jpg display");
-    await store.deleteUnreferencedMedia(new Set());
+    await store.deleteUnreferencedMedia(new Date("2026-10-08T12:00:00Z"));
     for (const id of ["picture-1", "picture-2"]) {
       expect(await store.pictureBlob(id).catch((error: unknown) => error)).toBeInstanceOf(
         MediaNotFoundError,
@@ -281,6 +281,26 @@ describe("PictureImport", () => {
 
     expect(fileNames(pictureImport.state)).toEqual(["b.jpg"]);
     expect(pictureImport.state).toMatchObject({ total: 1, done: 1, busy: false });
+  });
+
+  it("an unexpected error of a file cancelled in flight leaves the fresh import unfailed", async () => {
+    const failure = new Error("the disk went away");
+    const decoder = new FakeDecoder();
+    const { pictureImport } = setUp({
+      decoder,
+      captureDate: (file) =>
+        file.name === "a.jpg" ? Promise.reject(failure) : captureDates({})(file),
+    });
+    decoder.hold();
+    pictureImport.add([picture("a.jpg")]);
+    pictureImport.cancel();
+    pictureImport.add([picture("b.jpg")]);
+
+    decoder.open();
+
+    await expect(pictureImport.settled()).rejects.toBe(failure);
+    expect(fileNames(pictureImport.state)).toEqual(["b.jpg"]);
+    expect(pictureImport.state).toMatchObject({ failed: false, busy: false, total: 1, done: 1 });
   });
 
   it("fails loud on an unexpected error: settled rejects and the state reports it", async () => {

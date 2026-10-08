@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { UnreadableMusicError, type MusicProbe } from "../../import/music-probe";
-import { DEFAULT_SECONDS_PER_PICTURE } from "../../library/stored-slideshow";
+import {
+  DEFAULT_SECONDS_PER_PICTURE,
+  MediaNotFoundError,
+  type PictureBlobs,
+  type StoredSlideshow,
+} from "../../library/stored-slideshow";
 import { MemoryLibraryStore } from "../../library/testing/memory-store";
 import { ImportSession, type ImportChoices, type ImportSessionPorts } from "./import-session";
 
@@ -10,7 +15,10 @@ const MUSIC_MS = 60_000;
 const pictureFile = (name: string, capturedAt: string): File =>
   Object.assign(new File([name], name, { type: "image/jpeg" }), { capturedAt });
 
-function sessionWith(store = new MemoryLibraryStore()) {
+function sessionWith(
+  store = new MemoryLibraryStore(),
+  overrides: Partial<ImportSessionPorts> = {},
+) {
   let nextId = 0;
   const errors: unknown[] = [];
   const ports: ImportSessionPorts = {
@@ -30,6 +38,7 @@ function sessionWith(store = new MemoryLibraryStore()) {
     newId: () => `id-${(nextId += 1)}`,
     now: () => CREATED_AT,
     onError: (error) => errors.push(error),
+    ...overrides,
   };
   return { session: new ImportSession(ports), store, errors };
 }
@@ -48,7 +57,84 @@ function choicesOf(session: ImportSession): ImportChoices {
   return session.choices.current();
 }
 
+/** Logs the calls that order media writes against the claims of the import in progress. */
+class LoggingStore extends MemoryLibraryStore {
+  readonly log: string[] = [];
+  override recordImportMedia(importId: string, startedAt: Date, mediaId: string): Promise<void> {
+    this.log.push(`claim ${mediaId}`);
+    return super.recordImportMedia(importId, startedAt, mediaId);
+  }
+  override putPicture(id: string, blobs: PictureBlobs): Promise<void> {
+    this.log.push(`picture ${id}`);
+    return super.putPicture(id, blobs);
+  }
+  override putMusic(id: string, blob: Blob): Promise<void> {
+    this.log.push(`music ${id}`);
+    return super.putMusic(id, blob);
+  }
+  override saveSlideshow(slideshow: StoredSlideshow): Promise<void> {
+    this.log.push("slideshow");
+    return super.saveSlideshow(slideshow);
+  }
+  override endImport(importId: string): Promise<void> {
+    this.log.push(`end ${importId}`);
+    return super.endImport(importId);
+  }
+}
+
 describe("ImportSession", () => {
+  it("claims every media id for the import before writing the media, and ends the import once created", async () => {
+    const store = new LoggingStore();
+    const { session } = sessionWith(store);
+    session.addPictures([pictureFile("a.jpg", "2025-07-01T10:00:00Z")]);
+    await session.pictures.settled();
+    await session.chooseMusic(new File(["tune"], "Sommer.mp3", { type: "audio/mpeg" }));
+
+    await session.create("de");
+
+    expect(store.log).toEqual([
+      "claim id-2",
+      "picture id-2",
+      "claim id-3",
+      "music id-3",
+      "slideshow",
+      "end id-1",
+    ]);
+  });
+
+  it("spares the pictures of the running import from a clean-up", async () => {
+    const { session, store } = await withTwoPictures();
+    const [first] = session.pictures.state.pictures;
+
+    await store.deleteUnreferencedMedia(CREATED_AT);
+
+    expect(await (await store.pictureBlob(first?.id ?? "")).text()).toMatch(/display/);
+  });
+
+  it("discarding ends the import, so the next clean-up deletes its pictures", async () => {
+    const { session, store } = await withTwoPictures();
+    const [first] = session.pictures.state.pictures;
+
+    await session.discard();
+    await store.deleteUnreferencedMedia(CREATED_AT);
+
+    expect(
+      await store.pictureBlob(first?.id ?? "").catch((error: unknown) => error),
+    ).toBeInstanceOf(MediaNotFoundError);
+  });
+
+  it("starts a new import after a discard", async () => {
+    const store = new LoggingStore();
+    const { session } = sessionWith(store);
+    await session.discard();
+    session.addPictures([pictureFile("a.jpg", "2025-07-01T10:00:00Z")]);
+    await session.pictures.settled();
+
+    await session.discard();
+
+    expect(store.log.filter((entry) => entry.startsWith("end"))).toEqual(["end id-1", "end id-2"]);
+  });
+
   it("publishes its choices to a subscriber at once and on every change", () => {
     const { session } = sessionWith();
     const seen: ImportChoices[] = [];
@@ -143,6 +229,38 @@ describe("ImportSession", () => {
 
     expect(session.pictures.state.failed).toBe(true);
     expect(errors).toEqual([failure]);
+  });
+
+  it("reports an unexpected import error once, however often pictures were added", async () => {
+    const store = new MemoryLibraryStore();
+    const failure = new Error("disk on fire");
+    store.putPicture = () => Promise.reject(failure);
+    const { session, errors } = sessionWith(store);
+
+    session.addPictures([pictureFile("a.jpg", "2025-07-01T10:00:00Z")]);
+    session.addPictures([pictureFile("b.jpg", "2025-07-01T10:00:00Z")]);
+    session.addPictures([pictureFile("c.jpg", "2025-07-01T10:00:00Z")]);
+    await session.pictures.settled().catch(() => undefined);
+    await session.reported();
+
+    expect(session.pictures.state.failed).toBe(true);
+    expect(errors).toEqual([failure]);
+  });
+
+  it("keeps the last music picked when an earlier pick is probed later", async () => {
+    const probes = new Map<string, (probe: MusicProbe) => void>();
+    const { session } = sessionWith(new MemoryLibraryStore(), {
+      probeMusic: (file) => new Promise((resolve) => probes.set(file.name, resolve)),
+    });
+    const first = session.chooseMusic(new File(["a"], "first.mp3", { type: "audio/mpeg" }));
+    const second = session.chooseMusic(new File(["b"], "second.mp3", { type: "audio/mpeg" }));
+
+    probes.get("second.mp3")?.({ durationMs: MUSIC_MS });
+    await second;
+    probes.get("first.mp3")?.({ durationMs: MUSIC_MS });
+    await first;
+
+    expect(choicesOf(session).music?.file.name).toBe("second.mp3");
   });
 
   it("discarding clears the pictures and the choices", async () => {

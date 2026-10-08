@@ -1,7 +1,8 @@
-import { newestFirst, referencedMediaIds } from "./slideshow-queries";
+import { importsAt, newestFirst, referencedMediaIds, withImportMedia } from "./slideshow-queries";
 import {
   MediaNotFoundError,
   SlideshowNotFoundError,
+  type ImportInProgress,
   type LibraryStore,
   type PictureBlobs,
   type StoredSlideshow,
@@ -9,12 +10,15 @@ import {
 
 /** Records and media share one database so a transaction can span both (see ADR-0003). */
 export const LIBRARY_DATABASE_NAME = "glissando";
-const SCHEMA_VERSION = 1;
+const SCHEMA_VERSION = 2;
+/** The version that added the `imports` store. */
+const IMPORTS_ADDED_IN = 2;
 
 const SLIDESHOWS = "slideshows";
 const PICTURES = "pictures";
 const MUSIC = "music";
-type StoreName = typeof SLIDESHOWS | typeof PICTURES | typeof MUSIC;
+const IMPORTS = "imports";
+type StoreName = typeof SLIDESHOWS | typeof PICTURES | typeof MUSIC | typeof IMPORTS;
 
 /**
  * Media is kept as bytes plus MIME type, not as a Blob: WebKit refuses Blobs in IndexedDB in
@@ -104,18 +108,45 @@ export class IndexedDbLibraryStore implements LibraryStore {
     return toBlob(media as StoredMedia);
   }
 
-  /** Reads the references and deletes in one transaction, so a concurrent save cannot interleave. */
-  deleteUnreferencedMedia(keep: ReadonlySet<string>): Promise<void> {
-    return this.#write([SLIDESHOWS, PICTURES, MUSIC], (transaction) => {
+  recordImportMedia(importId: string, startedAt: Date, mediaId: string): Promise<void> {
+    return this.#write([IMPORTS], (transaction) => {
+      const imports = transaction.objectStore(IMPORTS);
+      const existing = imports.get(importId);
+      existing.onsuccess = () => {
+        const record = existing.result as ImportInProgress | undefined;
+        imports.put(withImportMedia(record, importId, startedAt, mediaId));
+      };
+    });
+  }
+
+  endImport(importId: string): Promise<void> {
+    return this.#write([IMPORTS], (transaction) => {
+      transaction.objectStore(IMPORTS).delete(importId);
+    });
+  }
+
+  /**
+   * Reads the references and imports and deletes in one transaction, so a concurrent save or
+   * claim cannot interleave.
+   */
+  deleteUnreferencedMedia(now: Date): Promise<void> {
+    return this.#write([SLIDESHOWS, PICTURES, MUSIC, IMPORTS], (transaction) => {
       const slideshows = transaction.objectStore(SLIDESHOWS).getAll();
-      slideshows.onsuccess = () => {
+      const importStore = transaction.objectStore(IMPORTS);
+      const imports = importStore.getAll();
+      imports.onsuccess = () => {
         const referenced = referencedMediaIds(slideshows.result as StoredSlideshow[]);
+        const { sparedMediaIds, staleImportIds } = importsAt(
+          imports.result as ImportInProgress[],
+          now,
+        );
+        staleImportIds.forEach((id) => importStore.delete(id));
         for (const name of [PICTURES, MUSIC]) {
           const media = transaction.objectStore(name);
           const keys = media.getAllKeys();
           keys.onsuccess = () => {
             for (const key of keys.result) {
-              if (typeof key === "string" && !referenced.has(key) && !keep.has(key)) {
+              if (typeof key === "string" && !referenced.has(key) && !sparedMediaIds.has(key)) {
                 media.delete(key);
               }
             }
@@ -154,11 +185,16 @@ export class IndexedDbLibraryStore implements LibraryStore {
 /** Opens (and creates or upgrades) the library database. */
 export function openLibraryStore(indexedDB: IDBFactory): Promise<IndexedDbLibraryStore> {
   const request = indexedDB.open(LIBRARY_DATABASE_NAME, SCHEMA_VERSION);
-  request.onupgradeneeded = () => {
+  request.onupgradeneeded = (event) => {
     const database = request.result;
-    database.createObjectStore(SLIDESHOWS, { keyPath: "id" });
-    database.createObjectStore(PICTURES);
-    database.createObjectStore(MUSIC);
+    if (event.oldVersion < 1) {
+      database.createObjectStore(SLIDESHOWS, { keyPath: "id" });
+      database.createObjectStore(PICTURES);
+      database.createObjectStore(MUSIC);
+    }
+    if (event.oldVersion < IMPORTS_ADDED_IN) {
+      database.createObjectStore(IMPORTS, { keyPath: "id" });
+    }
   };
   return requestResult(request).then(() => new IndexedDbLibraryStore(request.result));
 }

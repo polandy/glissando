@@ -22,7 +22,11 @@ export class ControlsVisibility {
     return this.#visible;
   }
 
+  /** Called on every playback tick, so only a change of state may touch the hide delay. */
   setPlaying(playing: boolean): void {
+    if (playing === this.#playing) {
+      return;
+    }
     this.#playing = playing;
     if (playing) {
       this.#armHide();

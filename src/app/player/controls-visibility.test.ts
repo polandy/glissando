@@ -28,6 +28,17 @@ describe("player controls visibility", () => {
     expect(CONTROLS_HIDE_DELAY_MS).toBe(2500);
   });
 
+  it("repeated setPlaying(true) does not restart the hide delay", () => {
+    const { scheduler, controls } = setUp();
+    controls.setPlaying(true);
+
+    scheduler.advance(CONTROLS_HIDE_DELAY_MS - 1);
+    controls.setPlaying(true);
+    scheduler.advance(1);
+
+    expect(controls.visible).toBe(false);
+  });
+
   it("keeps the controls while paused", () => {
     const { scheduler, controls } = setUp();
     controls.setPlaying(false);

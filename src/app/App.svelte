@@ -51,8 +51,7 @@
   }
 
   function discardImport(leave: boolean): void {
-    importSession?.discard();
-    services.endImport();
+    importSession?.discard().then(services.deleteAbandonedMedia, reportError);
     if (leave) {
       importSession = null;
       navigator.back();
@@ -61,7 +60,7 @@
 
   function created(slideshow: StoredSlideshow): void {
     importSession = null;
-    services.endImport();
+    services.deleteAbandonedMedia();
     navigator.open({ screen: "slideshow", slideshowId: slideshow.id });
     toaster.show({ text: t("import.created"), tone: "info" });
     persistencePrompt.afterCreate().then((refused) => (persistRefused = refused), reportError);

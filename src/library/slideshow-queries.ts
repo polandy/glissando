@@ -1,4 +1,8 @@
-import type { StoredSlideshow } from "./stored-slideshow";
+import {
+  IMPORT_SPARED_FOR_MS,
+  type ImportInProgress,
+  type StoredSlideshow,
+} from "./stored-slideshow";
 
 /** Orders slideshows by creation instant, newest first; equal instants by id for a stable list. */
 export function newestFirst(slideshows: readonly StoredSlideshow[]): StoredSlideshow[] {
@@ -20,4 +24,32 @@ export function referencedMediaIds(slideshows: readonly StoredSlideshow[]): Set<
     }
   }
   return ids;
+}
+
+/** `imports` with `mediaId` claimed for `importId`; a new import starts at `startedAt`. */
+export function withImportMedia(
+  existing: ImportInProgress | undefined,
+  importId: string,
+  startedAt: Date,
+  mediaId: string,
+): ImportInProgress {
+  const record = existing ?? { id: importId, startedAt: startedAt.toISOString(), mediaIds: [] };
+  return { ...record, mediaIds: [...record.mediaIds, mediaId] };
+}
+
+/** Which media the imports in progress spare at `now`, and which imports are stale. */
+export function importsAt(
+  imports: readonly ImportInProgress[],
+  now: Date,
+): { readonly sparedMediaIds: Set<string>; readonly staleImportIds: string[] } {
+  const sparedMediaIds = new Set<string>();
+  const staleImportIds: string[] = [];
+  for (const record of imports) {
+    if (now.getTime() - Date.parse(record.startedAt) < IMPORT_SPARED_FOR_MS) {
+      record.mediaIds.forEach((id) => sparedMediaIds.add(id));
+    } else {
+      staleImportIds.push(record.id);
+    }
+  }
+  return { sparedMediaIds, staleImportIds };
 }

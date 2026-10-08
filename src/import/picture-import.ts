@@ -1,3 +1,4 @@
+import { orderByCaptureDate } from "../compose";
 import type { LibraryStore, StoredPicture } from "../library/stored-slideshow";
 import { UnreadablePictureError, type DecodedPicture } from "./downscale";
 
@@ -113,11 +114,25 @@ export class PictureImport {
     this.#update(EMPTY);
   }
 
+  /**
+   * An unexpected error fails the import it belongs to. One of a file cancelled in flight leaves
+   * the fresh import running and rejects `settled()` once the queue is done, so it still surfaces.
+   */
   async #drain(): Promise<void> {
+    let cancelledFileError: { readonly error: unknown } | null = null;
     try {
       for (let file = this.#queue.shift(); file !== undefined; file = this.#queue.shift()) {
         const generation = this.#generation;
-        const outcome = await this.#importOne(file);
+        let outcome: Outcome;
+        try {
+          outcome = await this.#importOne(file);
+        } catch (error) {
+          if (generation === this.#generation) {
+            throw error;
+          }
+          cancelledFileError = { error };
+          continue;
+        }
         if (generation === this.#generation) {
           this.#apply(file, outcome);
         }
@@ -128,6 +143,9 @@ export class PictureImport {
       throw error;
     } finally {
       this.#isDraining = false;
+    }
+    if (cancelledFileError !== null) {
+      throw cancelledFileError.error;
     }
   }
 
@@ -166,7 +184,7 @@ export class PictureImport {
         this.#update({
           done,
           busy,
-          pictures: byCaptureDate([...this.#state.pictures, outcome.picture]),
+          pictures: orderByCaptureDate([...this.#state.pictures, outcome.picture]),
         });
         return;
       case "unreadable":
@@ -189,12 +207,4 @@ export class PictureImport {
       listener(this.#state);
     }
   }
-}
-
-function byCaptureDate(pictures: StoredPicture[]): StoredPicture[] {
-  return pictures.sort(
-    (a, b) =>
-      Date.parse(a.capturedAt) - Date.parse(b.capturedAt) ||
-      (a.fileName < b.fileName ? -1 : a.fileName > b.fileName ? 1 : 0),
-  );
 }

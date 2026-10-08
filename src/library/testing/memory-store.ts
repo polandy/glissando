@@ -1,7 +1,8 @@
-import { newestFirst, referencedMediaIds } from "../slideshow-queries";
+import { importsAt, newestFirst, referencedMediaIds, withImportMedia } from "../slideshow-queries";
 import {
   MediaNotFoundError,
   SlideshowNotFoundError,
+  type ImportInProgress,
   type LibraryStore,
   type PictureBlobs,
   type StoredSlideshow,
@@ -12,6 +13,7 @@ export class MemoryLibraryStore implements LibraryStore {
   readonly #slideshows = new Map<string, StoredSlideshow>();
   readonly #pictures = new Map<string, PictureBlobs>();
   readonly #music = new Map<string, Blob>();
+  readonly #imports = new Map<string, ImportInProgress>();
 
   putPicture(id: string, blobs: PictureBlobs): Promise<void> {
     this.#pictures.set(id, { display: blobs.display, thumbnail: blobs.thumbnail });
@@ -53,11 +55,24 @@ export class MemoryLibraryStore implements LibraryStore {
     return found(id, this.#music.get(id));
   }
 
-  deleteUnreferencedMedia(keep: ReadonlySet<string>): Promise<void> {
+  recordImportMedia(importId: string, startedAt: Date, mediaId: string): Promise<void> {
+    const existing = this.#imports.get(importId);
+    this.#imports.set(importId, withImportMedia(existing, importId, startedAt, mediaId));
+    return Promise.resolve();
+  }
+
+  endImport(importId: string): Promise<void> {
+    this.#imports.delete(importId);
+    return Promise.resolve();
+  }
+
+  deleteUnreferencedMedia(now: Date): Promise<void> {
     const referenced = referencedMediaIds([...this.#slideshows.values()]);
+    const { sparedMediaIds, staleImportIds } = importsAt([...this.#imports.values()], now);
+    staleImportIds.forEach((id) => this.#imports.delete(id));
     for (const media of [this.#pictures, this.#music]) {
       for (const id of media.keys()) {
-        if (!referenced.has(id) && !keep.has(id)) {
+        if (!referenced.has(id) && !sparedMediaIds.has(id)) {
           media.delete(id);
         }
       }

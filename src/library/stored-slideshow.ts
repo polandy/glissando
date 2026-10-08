@@ -62,8 +62,29 @@ export interface LibraryStore {
   pictureBlob(id: string): Promise<Blob>;
   thumbnailBlob(id: string): Promise<Blob>;
   musicBlob(id: string): Promise<Blob>;
-  /** Deletes media no saved slideshow references, keeping the ids in `keep`. */
-  deleteUnreferencedMedia(keep: ReadonlySet<string>): Promise<void>;
+  /**
+   * Claims a media id for an import in progress, before the media is written, so a clean-up in
+   * any tab spares it. The first claim of an import records `startedAt`.
+   */
+  recordImportMedia(importId: string, startedAt: Date, mediaId: string): Promise<void>;
+  /** The import was created or discarded: its media is spared no longer. */
+  endImport(importId: string): Promise<void>;
+  /**
+   * Deletes media no saved slideshow references, sparing that of imports started less than
+   * `IMPORT_SPARED_FOR_MS` before `now`; older imports are taken for crashed and forgotten.
+   */
+  deleteUnreferencedMedia(now: Date): Promise<void>;
+}
+
+/** How long an import in progress spares its media; a tab that crashed never ends its import. */
+export const IMPORT_SPARED_FOR_MS = 24 * 60 * 60 * 1000;
+
+/** The stored record of an import in progress. */
+export interface ImportInProgress {
+  readonly id: string;
+  /** ISO 8601. */
+  readonly startedAt: string;
+  readonly mediaIds: readonly string[];
 }
 
 export class SlideshowNotFoundError extends Error {

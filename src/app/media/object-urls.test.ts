@@ -5,14 +5,21 @@ import { ObjectUrls, type ObjectUrlPorts } from "./object-urls";
 class FakePorts implements ObjectUrlPorts {
   readonly revoked: string[] = [];
   readonly errors: unknown[] = [];
+  /** Loads in flight per id, oldest first. */
   readonly #pending = new Map<
     string,
-    { resolve: (blob: Blob) => void; reject: (e: unknown) => void }
+    { resolve: (blob: Blob) => void; reject: (e: unknown) => void }[]
   >();
   #created = 0;
 
   readonly load = (id: string): Promise<Blob> =>
-    new Promise((resolve, reject) => this.#pending.set(id, { resolve, reject }));
+    new Promise((resolve, reject) =>
+      this.#pending.set(id, [...(this.#pending.get(id) ?? []), { resolve, reject }]),
+    );
+
+  get created(): number {
+    return this.#created;
+  }
 
   readonly create = (blob: Blob): string => {
     this.#created += 1;
@@ -41,16 +48,35 @@ class FakePorts implements ObjectUrlPorts {
   }
 
   #take(id: string) {
-    const pending = this.#pending.get(id);
+    const [pending, ...rest] = this.#pending.get(id) ?? [];
     if (pending === undefined) {
       throw new Error(`nothing is loading "${id}"`);
     }
-    this.#pending.delete(id);
+    if (rest.length === 0) {
+      this.#pending.delete(id);
+    } else {
+      this.#pending.set(id, rest);
+    }
     return pending;
   }
 }
 
 describe("ObjectUrls", () => {
+  it("an id dropped and wanted again while its first load is pending holds exactly one URL", async () => {
+    const ports = new FakePorts();
+    const urls = new ObjectUrls(ports);
+
+    urls.sync(["a"]);
+    urls.sync([]);
+    urls.sync(["a"]);
+    ports.release("a");
+    ports.release("a");
+    await urls.settled();
+
+    expect(urls.get("a")).toBeDefined();
+    expect(ports.created - ports.revoked.length).toBe(1);
+  });
+
   it("loads each new id once and publishes its URL when it arrives", async () => {
     const ports = new FakePorts();
     const urls = new ObjectUrls(ports);
@@ -84,7 +110,7 @@ describe("ObjectUrls", () => {
     expect(ports.revoked).toEqual(["url:a:1"]);
   });
 
-  it("revokes a URL that arrives after its id was dropped", async () => {
+  it("creates no URL for a blob that arrives after its id was dropped", async () => {
     const ports = new FakePorts();
     const urls = new ObjectUrls(ports);
     urls.sync(["a", "b"]);
@@ -93,12 +119,13 @@ describe("ObjectUrls", () => {
     ports.release("b");
     await urls.settled();
 
-    expect(urls.get("b")).toBe("url:b:2");
+    expect(urls.get("b")).toBe("url:b:1");
     expect(urls.get("a")).toBeUndefined();
-    expect(ports.revoked).toEqual(["url:a:1"]);
+    expect(ports.created).toBe(1);
+    expect(ports.revoked).toEqual([]);
   });
 
-  it("revokes every URL, and every late one, once disposed", async () => {
+  it("revokes every URL once disposed and creates none for a late blob", async () => {
     const ports = new FakePorts();
     const urls = new ObjectUrls(ports);
     urls.sync(["a"]);
@@ -110,7 +137,8 @@ describe("ObjectUrls", () => {
     ports.release("b");
     await urls.settled();
 
-    expect(ports.revoked.sort()).toEqual(["url:a:1", "url:b:2"]);
+    expect(ports.revoked).toEqual(["url:a:1"]);
+    expect(ports.created).toBe(1);
     expect(urls.get("b")).toBeUndefined();
   });
 

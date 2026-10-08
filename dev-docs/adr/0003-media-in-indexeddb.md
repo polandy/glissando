@@ -13,9 +13,10 @@ abandoned media found and removed.
 ## Decision
 
 One IndexedDB database, `glissando`, holds the slideshow records and the media, in separate
-object stores (`slideshows`, `pictures` with display and thumbnail rendition, `music`). Media is
-written while importing, the record last; cleaning up abandoned media reads the references and
-deletes in one transaction. Media is stored as bytes plus MIME type, not as `Blob`s.
+object stores (`slideshows`, `pictures` with display and thumbnail rendition, `music`, and
+`imports` for imports in progress). Media is written while importing, each id claimed in `imports`
+first, the record last; cleaning up abandoned media reads the references and imports and deletes
+in one transaction. Media is stored as bytes plus MIME type, not as `Blob`s.
 
 ## Options weighed
 
@@ -28,7 +29,9 @@ deletes in one transaction. Media is stored as bytes plus MIME type, not as `Blo
 
 ## Consequences
 
-- Records and media share transactions; a cleanup cannot race a save.
+- Records and media share transactions; a clean-up cannot race a save. An import still running
+  in another tab is visible to the clean-up only through its `imports` record, so a tab that
+  crashed leaves a record behind; it is trusted for one day (see `dev-docs/LIBRARY.md`).
 - Each write holds one rendition's bytes in memory once; the import writes one picture at a
   time, so memory stays bounded.
 - Exporting and video rendering read media whole, not streamed; fine at display resolution.

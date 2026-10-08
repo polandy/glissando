@@ -23,6 +23,8 @@ export class ObjectUrls {
   #urls = new Map<string, string>();
   readonly #wanted = new Set<string>();
   readonly #loading = new Set<Promise<void>>();
+  /** The latest load per id; an id dropped and wanted again while loading starts a new one. */
+  readonly #latestLoad = new Map<string, symbol>();
   #disposed = false;
 
   constructor(ports: ObjectUrlPorts) {
@@ -74,19 +76,23 @@ export class ObjectUrls {
   }
 
   async #load(id: string): Promise<void> {
+    const load = Symbol(id);
+    this.#latestLoad.set(id, load);
     let blob: Blob;
     try {
       blob = await this.#ports.load(id);
     } catch (error) {
       this.#ports.onError(error);
       return;
+    } finally {
+      if (this.#latestLoad.get(id) === load) {
+        this.#latestLoad.delete(id);
+      }
     }
-    const url = this.#ports.create(blob);
-    if (!this.#wanted.has(id)) {
-      this.#ports.revoke(url);
+    if (this.#latestLoad.has(id) || !this.#wanted.has(id)) {
       return;
     }
-    this.#publish(new Map(this.#urls).set(id, url));
+    this.#publish(new Map(this.#urls).set(id, this.#ports.create(blob)));
   }
 
   #drop(id: string): void {

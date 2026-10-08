@@ -38,15 +38,8 @@ window.addEventListener("unhandledrejection", (event) => reportError(event.reaso
 
 const store = await openLibraryStore(window.indexedDB);
 
-/** Media ids handed to the import in progress; the clean-up spares them until it ends. */
-const importMediaIds = new Set<string>();
-function newImportId(): string {
-  const id = randomId(crypto);
-  importMediaIds.add(id);
-  return id;
-}
 function deleteAbandonedMedia(): void {
-  store.deleteUnreferencedMedia(importMediaIds).catch(reportError);
+  store.deleteUnreferencedMedia(new Date()).catch(reportError);
 }
 deleteAbandonedMedia();
 
@@ -65,14 +58,11 @@ const services = {
       decode: decodePicture,
       captureDate,
       probeMusic,
-      newId: newImportId,
+      newId: () => randomId(crypto),
       now: () => new Date(),
       onError: reportError,
     }),
-  endImport() {
-    importMediaIds.clear();
-    deleteAbandonedMedia();
-  },
+  deleteAbandonedMedia,
 };
 
 const playStartAnimation = consumeFirstLaunch(createStorageFirstLaunchStore(window.localStorage));
