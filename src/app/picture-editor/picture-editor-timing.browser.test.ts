@@ -193,6 +193,17 @@ describe("PictureEditorScreen preview of the timing", () => {
     expect(layers()).toBe(0);
   });
 
+  it("plays a new duration from the start", () => {
+    const { advance, update } = mountEditor();
+    advance(3000);
+
+    update(view({ durationMs: 3000, ownDuration: true }));
+
+    expect(time()).toBe("0:00,0 / 0:03,0");
+    advance(3500);
+    expect(time()).toBe("0:03,0 / 0:03,0");
+  });
+
   it("plays a picked transition from a moment before it", () => {
     mountEditor();
 

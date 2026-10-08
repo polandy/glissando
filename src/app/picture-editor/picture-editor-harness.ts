@@ -4,6 +4,7 @@ import type { OwnKenBurns } from "../../library/own-ken-burns";
 import type { TransitionChoice } from "../../library/own-timing";
 import { FakeClock, FakeFrameScheduler } from "../../player/testing/fakes";
 import { mountWithTranslator } from "../testing/mount-with-translator";
+import { reactiveProps } from "../testing/reactive-props.svelte";
 import PictureEditorScreen from "./PictureEditorScreen.svelte";
 import type { PictureEditorView } from "./picture-editor-view";
 
@@ -58,7 +59,7 @@ export function mountEditor(shown: PictureEditorView = view(), { reducedMotion =
     transitions: [] as TransitionChoice[],
     transitionResets: 0,
   };
-  const mounted = mountWithTranslator(PictureEditorScreen, {
+  const props = reactiveProps({
     picture: shown,
     pictureUrl: PIXEL,
     nextPictureUrl: PIXEL,
@@ -77,14 +78,20 @@ export function mountEditor(shown: PictureEditorView = view(), { reducedMotion =
     reducedMotion,
     saving: false,
   });
+  const mounted = mountWithTranslator(PictureEditorScreen, props);
   destroy = mounted.destroy;
+  /** Shows the picture as stored after an edit, e.g. with its new duration. */
+  const update = (changed: PictureEditorView) => {
+    props.picture = changed;
+    flushSync();
+  };
   /** Moves the preview's clock on and lets it draw the next frame. */
   const advance = (ms: number) => {
     clock.advance(ms);
     frames.runFrame();
     flushSync();
   };
-  return { target: mounted.target, calls, frames, advance };
+  return { target: mounted.target, calls, frames, advance, update };
 }
 
 export function element<T extends Element = HTMLElement>(selector: string): T {

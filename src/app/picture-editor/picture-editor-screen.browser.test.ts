@@ -91,7 +91,7 @@ describe("PictureEditorScreen", () => {
     expect(calls.changed[0]?.from.centerX).toBeCloseTo(0.51);
     expect(calls.changed[1]?.from.centerY).toBeCloseTo(0.55);
     expect(calls.changed[2]?.from.zoom).toBeCloseTo(2.05);
-    expect(calls.changed.every((motion) => motion.to === zoomed.to)).toBe(true);
+    expect(calls.changed.map((motion) => motion.to)).toEqual([zoomed.to, zoomed.to, zoomed.to]);
   });
 
   it("opens the previous and next picture, and looks off at the ends", () => {
