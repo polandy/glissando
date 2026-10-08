@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { StoredSlideshow } from "../library/stored-slideshow";
+import type { StoredPicture, StoredSlideshow } from "../library/stored-slideshow";
 import { slideshowDetails, slideshowSummary } from "./library-views";
 
 const stored: StoredSlideshow = {
@@ -53,14 +53,31 @@ describe("slideshowDetails", () => {
       coverUrl: "url:p1",
       durationSeconds: 8,
       musicTitle: null,
+      musicSeconds: null,
       ownOrder: false,
       ownMotionCount: 0,
+      ownDurationCount: 0,
+      ownTransitionCount: 0,
       captionCount: 0,
       capturedFrom: "2025-07-01T10:00:00Z",
       capturedTo: "2025-07-02T10:00:00Z",
       pictures: [
-        { id: "p1", thumbnailUrl: "url:p1", capturedAt: "2025-07-01T10:00:00Z", ownMotion: false },
-        { id: "p2", thumbnailUrl: "url:p2", capturedAt: "2025-07-02T10:00:00Z", ownMotion: false },
+        {
+          id: "p1",
+          thumbnailUrl: "url:p1",
+          capturedAt: "2025-07-01T10:00:00Z",
+          ownMotion: false,
+          ownDurationMs: null,
+          ownTransition: null,
+        },
+        {
+          id: "p2",
+          thumbnailUrl: "url:p2",
+          capturedAt: "2025-07-02T10:00:00Z",
+          ownMotion: false,
+          ownDurationMs: null,
+          ownTransition: null,
+        },
       ],
     });
   });
@@ -112,6 +129,24 @@ describe("slideshowDetails", () => {
       "2025-07-01T10:00:00Z",
       "2025-07-02T10:00:00Z",
     ]);
+  });
+
+  it("marks own durations and own transitions, a last picture's transition not counting", () => {
+    const timed: StoredSlideshow = {
+      ...withMusic,
+      pictures: [
+        { ...(stored.pictures[0] as StoredPicture), durationMs: 8000, transition: "cut" },
+        { ...(stored.pictures[1] as StoredPicture), transition: "dissolve" },
+      ],
+    };
+
+    const details = slideshowDetails(timed, urlOf);
+
+    expect(details.pictures.map((picture) => picture.ownDurationMs)).toEqual([8000, null]);
+    expect(details.pictures.map((picture) => picture.ownTransition)).toEqual(["cut", null]);
+    expect([details.ownDurationCount, details.ownTransitionCount]).toEqual([1, 1]);
+    expect(details.durationSeconds).toBe(30);
+    expect(details.musicSeconds).toBe(30);
   });
 
   it("spreads the music over the pictures that are left", () => {

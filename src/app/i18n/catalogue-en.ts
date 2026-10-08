@@ -48,7 +48,6 @@ export const en: Catalogue = {
   "slideshow.duration": "Duration",
   "slideshow.music": "Music",
   "slideshow.noMusic": "No music",
-  "slideshow.perPicture": "Per picture",
   "slideshow.kenBurns": "Ken Burns",
   "slideshow.automatic": "automatic",
   "slideshow.transitions": "Transitions",

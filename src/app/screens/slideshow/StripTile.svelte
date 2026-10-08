@@ -1,6 +1,7 @@
 <script lang="ts">
   import Icon from "../../components/Icon.svelte";
   import { getTranslator } from "../../i18n/context";
+  import { MILLISECONDS_PER_SECOND } from "../../../player";
   import type { PictureTile } from "../view-models";
 
   /** One picture of the strip: its order number and date, and the marks a pointer reveals. */
@@ -43,8 +44,26 @@
     onDragEnd: () => void;
   } = $props();
 
-  const { t, formatDate } = getTranslator();
+  const { t, formatDate, formatSeconds } = getTranslator();
   const date = $derived(formatDate(picture.capturedAt));
+  const ownSeconds = $derived(
+    picture.ownDurationMs === null
+      ? null
+      : formatSeconds(picture.ownDurationMs / MILLISECONDS_PER_SECOND),
+  );
+  const label = $derived(
+    [
+      picture.ownMotion
+        ? t("slideshow.pictureLabelOwnMotion", { number, date })
+        : t("slideshow.pictureLabel", { number, date }),
+      ownSeconds === null ? "" : t("slideshow.pictureLabelOwnDuration", { duration: ownSeconds }),
+      picture.ownTransition === null
+        ? ""
+        : t("slideshow.pictureLabelOwnTransition", {
+            effect: t(`effect.${picture.ownTransition}`),
+          }),
+    ].join(""),
+  );
 </script>
 
 <li
@@ -73,18 +92,22 @@
     }}
     onkeydown={onKeydown}
   >
-    <img
-      src={picture.thumbnailUrl}
-      alt={picture.ownMotion
-        ? t("slideshow.pictureLabelOwnMotion", { number, date })
-        : t("slideshow.pictureLabel", { number, date })}
-      draggable="false"
-    />
+    <img src={picture.thumbnailUrl} alt={label} draggable="false" />
     <span class="number mono" aria-hidden="true">{number}</span>
-    {#if picture.ownMotion}
-      <span class="badge" aria-hidden="true"
-        ><Icon name="frame" />{t("slideshow.ownMotionBadge")}</span
-      >
+    {#if picture.ownMotion || ownSeconds !== null || picture.ownTransition !== null}
+      <span class="badges" aria-hidden="true">
+        {#if picture.ownMotion}
+          <span class="badge"><Icon name="frame" />{t("slideshow.ownMotionBadge")}</span>
+        {/if}
+        {#if ownSeconds !== null}
+          <span class="badge timing-badge mono"><Icon name="clock" />{ownSeconds}</span>
+        {/if}
+        {#if picture.ownTransition !== null}
+          <span class="badge timing-badge" title={t(`effect.${picture.ownTransition}`)}
+            ><Icon name="transition" /></span
+          >
+        {/if}
+      </span>
     {/if}
     <span class="date mono" aria-hidden="true">{date}</span>
   </button>
@@ -172,10 +195,14 @@
     border-radius: var(--gl-radius-small);
     background: var(--gl-photo-badge);
   }
-  .badge {
+  .badges {
     position: absolute;
     right: 6px;
     bottom: 22px;
+    display: flex;
+    gap: 4px;
+  }
+  .badge {
     display: flex;
     align-items: center;
     gap: 4px;

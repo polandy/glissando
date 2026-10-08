@@ -51,7 +51,6 @@ export const de = {
   "slideshow.duration": "Dauer",
   "slideshow.music": "Musik",
   "slideshow.noMusic": "Ohne Musik",
-  "slideshow.perPicture": "Je Bild",
   "slideshow.kenBurns": "Ken Burns",
   "slideshow.automatic": "automatisch",
   "slideshow.transitions": "Übergänge",
