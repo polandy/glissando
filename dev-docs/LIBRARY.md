@@ -57,6 +57,11 @@ Media is written while importing, the slideshow record last. Edits on the slides
 replace the record; `ownOrder` marks pictures the user reordered. `deleteSlideshow` deletes the
 record and, in the same transaction, the media no other slideshow references.
 
+A write commits its transaction explicitly (`commit()`) as soon as its last request is placed —
+right away for a plain write, in the read's callback for one that reads first. Chromium aborts a
+transaction still open when the page unloads, so an edit followed at once by a reload would
+otherwise be lost. Every edit starts its write synchronously in the event that made it.
+
 A removed picture's media stays until the next clean-up (below), so its toast can undo the
 removal; once the record no longer references it, it counts as unreferenced.
 

@@ -101,7 +101,7 @@ export class IndexedDbLibraryStore implements LibraryStore {
   /** Reads the other records and deletes in one transaction, so a concurrent save cannot interleave. */
   deleteSlideshow(id: string): Promise<void> {
     let found = true;
-    const deleted = this.#write([SLIDESHOWS, PICTURES, MUSIC], (transaction) => {
+    const deleted = this.#update([SLIDESHOWS, PICTURES, MUSIC], (transaction) => {
       const slideshows = transaction.objectStore(SLIDESHOWS);
       const all = slideshows.getAll();
       all.onsuccess = () => {
@@ -117,6 +117,8 @@ export class IndexedDbLibraryStore implements LibraryStore {
           transaction.objectStore(PICTURES).delete(mediaId);
           transaction.objectStore(MUSIC).delete(mediaId);
         }
+        // The last request is placed: commit before a reload can abort the deletion.
+        transaction.commit();
       };
     });
     return deleted.then(() => {
@@ -143,7 +145,7 @@ export class IndexedDbLibraryStore implements LibraryStore {
   }
 
   recordImportMedia(importId: string, startedAt: Date, mediaId: string): Promise<void> {
-    return this.#write([IMPORTS], (transaction) => {
+    return this.#update([IMPORTS], (transaction) => {
       const imports = transaction.objectStore(IMPORTS);
       const existing = imports.get(importId);
       existing.onsuccess = () => {
@@ -164,7 +166,7 @@ export class IndexedDbLibraryStore implements LibraryStore {
    * claim cannot interleave.
    */
   deleteUnreferencedMedia(now: Date): Promise<void> {
-    return this.#write([SLIDESHOWS, PICTURES, MUSIC, IMPORTS], (transaction) => {
+    return this.#update([SLIDESHOWS, PICTURES, MUSIC, IMPORTS], (transaction) => {
       const slideshows = transaction.objectStore(SLIDESHOWS).getAll();
       const importStore = transaction.objectStore(IMPORTS);
       const imports = importStore.getAll();
@@ -203,8 +205,24 @@ export class IndexedDbLibraryStore implements LibraryStore {
     return requestResult(request);
   }
 
-  /** Resolves once the transaction has committed; rejects with its error (e.g. QuotaExceededError). */
+  /**
+   * Writes that need no read, committed at once: Chromium aborts a transaction still open when
+   * the page unloads, so a reload right after an edit would otherwise lose it.
+   */
   #write(names: StoreName[], work: (transaction: IDBTransaction) => void): Promise<void> {
+    return this.#transact(names, (transaction) => {
+      work(transaction);
+      transaction.commit();
+    });
+  }
+
+  /** Writes that read first; the transaction commits once its last request callback has run. */
+  #update(names: StoreName[], work: (transaction: IDBTransaction) => void): Promise<void> {
+    return this.#transact(names, work);
+  }
+
+  /** Resolves once the transaction has committed; rejects with its error (e.g. QuotaExceededError). */
+  #transact(names: StoreName[], work: (transaction: IDBTransaction) => void): Promise<void> {
     const transaction = this.#database.transaction(names, "readwrite");
     const committed = new Promise<void>((resolve, reject) => {
       transaction.oncomplete = () => resolve();

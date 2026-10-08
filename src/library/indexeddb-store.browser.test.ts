@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import type { StoredSlideshow } from "./stored-slideshow";
 import { LIBRARY_DATABASE_NAME, openLibraryStore } from "./indexeddb-store";
 import { describeLibraryStoreContract } from "./testing/library-store-contract";
@@ -41,6 +41,33 @@ describeLibraryStoreContract("MemoryLibraryStore", () => {
     store,
     reopen: () => Promise.resolve(store),
     close: () => Promise.resolve(),
+  });
+});
+
+describe("IndexedDbLibraryStore saves", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("asks to commit a slideshow save before returning, so a reload right after cannot abort it", async () => {
+    await deleteLibraryDatabase();
+    const store = await openLibraryStore(indexedDB);
+    const commit = vi.spyOn(IDBTransaction.prototype, "commit");
+    try {
+      const saved = store.saveSlideshow({
+        id: "show-1",
+        title: "Sommer am See",
+        createdAt: "2025-07-02T08:00:00Z",
+        pictures: [],
+        secondsPerPicture: 5,
+      });
+      expect(commit).toHaveBeenCalledTimes(1);
+      await saved;
+      expect((await store.getSlideshow("show-1")).title).toBe("Sommer am See");
+    } finally {
+      store.close();
+      await deleteLibraryDatabase();
+    }
   });
 });
 
