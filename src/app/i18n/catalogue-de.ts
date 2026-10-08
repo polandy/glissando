@@ -103,8 +103,11 @@ export const de = {
   },
   "import.dateRange": "{from} bis {to}",
   "import.addMore": "mehr hinzufügen",
-  "import.skipped": { one: "{count} Datei übersprungen:", other: "{count} Dateien übersprungen:" },
-  "import.skippedReason": "{files} — dieses Format kann der Browser nicht lesen.",
+  "import.skipped": {
+    one: "{count} Datei konnte nicht als Bild gelesen werden und wurde übersprungen:",
+    other: "{count} Dateien konnten nicht als Bild gelesen werden und wurden übersprungen:",
+  },
+  "import.skippedFiles": "{files}.",
   "import.skippedRest": {
     one: "Das andere Bild ist drin.",
     other: "Die anderen {count} Bilder sind drin.",

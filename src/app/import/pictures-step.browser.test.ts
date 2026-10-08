@@ -35,6 +35,7 @@ function failingSession(): ImportSession {
     newId: () => `id-${nextId++}`,
     now: () => new Date(0),
     onError: () => undefined,
+    log: () => undefined,
   });
 }
 

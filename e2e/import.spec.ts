@@ -36,10 +36,10 @@ test("E2E-005 importing pictures and music creates a slideshow ordered by captur
   await choosePictures(page, [late, textFile("notes.txt"), early, middle], 3);
 
   await expect(page.getByText("· 12.07.2025 bis 20.07.2025")).toBeVisible();
-  await expect(page.getByText("1 Datei übersprungen:")).toBeVisible();
   await expect(
-    page.getByText(/notes\.txt — dieses Format kann der Browser nicht lesen\./),
+    page.getByText("1 Datei konnte nicht als Bild gelesen werden und wurde übersprungen:"),
   ).toBeVisible();
+  await expect(page.getByText(/notes\.txt\./)).toBeVisible();
   await expect(page.getByRole("listitem")).toHaveText(["12.07.2025", "14.07.2025", "20.07.2025"]);
   await expect(next).toBeEnabled();
 

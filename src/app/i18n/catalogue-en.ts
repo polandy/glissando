@@ -101,8 +101,11 @@ export const en: Catalogue = {
   },
   "import.dateRange": "{from} to {to}",
   "import.addMore": "add more",
-  "import.skipped": { one: "{count} file skipped:", other: "{count} files skipped:" },
-  "import.skippedReason": "{files} — the browser cannot read this format.",
+  "import.skipped": {
+    one: "{count} file could not be read as a picture and was skipped:",
+    other: "{count} files could not be read as pictures and were skipped:",
+  },
+  "import.skippedFiles": "{files}.",
   "import.skippedRest": {
     one: "The other picture is in.",
     other: "The other {count} pictures are in.",

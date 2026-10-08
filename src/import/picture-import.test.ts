@@ -3,7 +3,7 @@ import { MediaNotFoundError, type PictureBlobs } from "../library/stored-slidesh
 import { MemoryLibraryStore } from "../library/testing/memory-store";
 import type { DecodedPicture } from "./downscale";
 import { UnreadablePictureError } from "./unreadable-picture";
-import { PictureImport, type PictureImportState } from "./picture-import";
+import { PictureImport, PictureImportFailedError, type PictureImportState } from "./picture-import";
 
 const picture = (name: string, type = "image/jpeg"): File => new File([name], name, { type });
 
@@ -324,13 +324,15 @@ describe("PictureImport", () => {
     expect(pictureImport.state).toMatchObject({ failed: false, busy: false, total: 1, done: 1 });
   });
 
-  it("fails loud on an unexpected error: settled rejects and the state reports it", async () => {
+  it("fails loud on an unexpected error: settled rejects with it as the failed import's cause, and the state reports it", async () => {
     const failure = new Error("the disk went away");
     const { pictureImport } = setUp({ captureDate: () => Promise.reject(failure) });
 
     pictureImport.add([picture("a.jpg"), picture("b.jpg")]);
 
-    await expect(pictureImport.settled()).rejects.toBe(failure);
+    const rejection: unknown = await pictureImport.settled().catch((error: unknown) => error);
+    expect(rejection).toBeInstanceOf(PictureImportFailedError);
+    expect((rejection as PictureImportFailedError).cause).toBe(failure);
     expect(pictureImport.state).toMatchObject({ failed: true, busy: false, total: 0, done: 0 });
     expect(() => pictureImport.add([picture("c.jpg")])).toThrow(/failed/);
   });
@@ -343,7 +345,7 @@ describe("PictureImport", () => {
         failing ? Promise.reject(failure) : Promise.resolve("2025-07-01T10:00:00Z"),
     });
     pictureImport.add([picture("a.jpg")]);
-    await expect(pictureImport.settled()).rejects.toBe(failure);
+    await expect(pictureImport.settled()).rejects.toBeInstanceOf(PictureImportFailedError);
 
     failing = false;
     pictureImport.cancel();

@@ -30,8 +30,11 @@ publishes a state with the Svelte store contract:
 - **Storage full** (`QuotaExceededError`): the import stops, keeps what is stored, drops the
   remaining files from `total` and reports `storageFull`. Adding files again tries again.
 - **Cancel** stops after the file in flight and clears the state.
-- Any other error ends the import as `failed`; it is never swallowed. A failed import takes no
-  more files until it is cancelled, which starts it over.
+- Any other error ends the import as `failed`; it is never swallowed: `settled()` rejects with
+  `PictureImportFailedError` (the error as its `cause`), which the app logs and shows as the
+  failed state only. The error of a file cancelled in flight fails nothing and rejects as itself,
+  so the app reports it. A failed import takes no more files until it is cancelled, which starts
+  it over.
 
 ## Music
 

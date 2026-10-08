@@ -146,7 +146,7 @@
   {#if !importState.busy && importState.skipped.length > 0}
     <Notice tone="warn">
       <b>{t("import.skipped", { count: importState.skipped.length })}</b>
-      {t("import.skippedReason", { files: skippedNames })}
+      {t("import.skippedFiles", { files: skippedNames })}
       {#if importState.pictures.length > 0}
         {t("import.skippedRest", { count: importState.pictures.length })}
       {/if}

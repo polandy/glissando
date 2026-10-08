@@ -47,8 +47,9 @@ if (!target) {
 }
 
 const toaster = new Toaster(browserScheduler);
+const logError = (error: unknown): void => console.error(error);
 const reportError = createErrorReporter({
-  log: (error) => console.error(error),
+  log: logError,
   toaster,
   text: () => translator.current.t("common.unexpectedError"),
 });
@@ -81,6 +82,7 @@ const services = {
       newId: () => randomId(crypto),
       now: () => new Date(),
       onError: reportError,
+      log: logError,
     }),
   deleteAbandonedMedia,
 };
