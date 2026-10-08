@@ -27,3 +27,8 @@ export function toggleFullscreen(element: HTMLElement): void {
     exitFullscreen();
   }
 }
+
+/** Whether the browser can put an element into fullscreen at all (iPhone Safari cannot). */
+export function canFullscreen(): boolean {
+  return document.fullscreenEnabled;
+}

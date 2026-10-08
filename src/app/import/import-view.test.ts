@@ -7,6 +7,7 @@ import {
   hasSelection,
   importTiming,
   musicFormatLabel,
+  pendingPictureCount,
   picturesPhase,
 } from "./import-view";
 
@@ -37,6 +38,16 @@ describe("picturesPhase", () => {
     ["only unreadable files leave it empty", { ...idle, total: 1, done: 1 }, "empty"],
   ] as const)("%s", (_, state, phase) => {
     expect(picturesPhase(state)).toBe(phase);
+  });
+});
+
+describe("pendingPictureCount", () => {
+  it("counts the accepted files still being processed while the import runs", () => {
+    expect(pendingPictureCount({ ...oneStored, total: 4, done: 1, busy: true })).toBe(3);
+  });
+
+  it("is zero once the import has settled", () => {
+    expect(pendingPictureCount(oneStored)).toBe(0);
   });
 });
 

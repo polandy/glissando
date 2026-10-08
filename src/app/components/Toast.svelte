@@ -1,7 +1,7 @@
 <script lang="ts">
   import { getTranslator } from "../i18n/context";
-  import { ICONS } from "../icons";
   import type { ToastMessage } from "../toast/toaster";
+  import Icon from "./Icon.svelte";
 
   /** Renders the `Toaster`'s current toast; the toaster owns its timing. */
   let {
@@ -14,12 +14,15 @@
 </script>
 
 <div class="toast {toast.tone}" role={toast.tone === "error" ? "alert" : "status"}>
-  <span>{toast.text}</span>
-  {#if toast.action}
-    <button class="action" type="button" onclick={onAction}>{toast.action.label}</button>
+  {#if toast.tone === "error"}
+    <span class="icon"><Icon name="alert" /></span>
   {/if}
-  <button class="close" type="button" aria-label={t("common.dismiss")} onclick={onDismiss}>
-    {ICONS.close}
+  <span class="text">{toast.text}</span>
+  {#if toast.action}
+    <button class="btn ghost action" type="button" onclick={onAction}>{toast.action.label}</button>
+  {/if}
+  <button class="icon-btn close" type="button" aria-label={t("common.dismiss")} onclick={onDismiss}>
+    <Icon name="close" />
   </button>
 </div>
 
@@ -33,42 +36,32 @@
     z-index: 20;
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 12px 16px;
-    border-radius: 16px;
-    background: var(--gl-inverse-bg);
-    color: var(--gl-inverse-text);
+    gap: 10px;
+    padding: 8px 8px 8px 16px;
+    border: 1px solid var(--gl-line);
+    border-radius: var(--gl-radius-large);
+    background: var(--gl-surface);
+    color: var(--gl-ink);
     box-shadow: var(--gl-shadow);
     font-size: var(--gl-size-body);
+    line-height: 1.4;
     animation: rise 0.2s ease-out;
   }
   .toast.error {
-    background: var(--gl-coral);
-    color: var(--gl-on-accent);
+    border-color: color-mix(in srgb, var(--gl-coral) 55%, var(--gl-line));
+    background: color-mix(in srgb, var(--gl-coral) 14%, var(--gl-surface));
+  }
+  .icon {
+    flex: none;
+    display: flex;
+    color: var(--gl-coral);
+  }
+  .text {
+    flex: 1;
+    min-width: 0;
   }
   .action {
-    margin-left: auto;
-    border: 0;
-    background: transparent;
-    color: inherit;
-    font: inherit;
-    font-weight: var(--gl-weight-heading);
-    text-decoration: underline;
-    text-underline-offset: 3px;
-    white-space: nowrap;
-    cursor: pointer;
-  }
-  .close {
-    padding: 0 2px;
-    border: 0;
-    background: transparent;
-    color: inherit;
-    font: inherit;
-    font-size: var(--gl-size-title);
-    cursor: pointer;
-  }
-  .toast:not(:has(.action)) .close {
-    margin-left: auto;
+    color: var(--gl-ink);
   }
   @media (min-width: 700px) {
     .toast {

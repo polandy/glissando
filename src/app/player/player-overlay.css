@@ -30,111 +30,193 @@
   pointer-events: auto;
 }
 
-.player .top {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px;
-  background: linear-gradient(var(--gl-player-scrim-top), transparent);
-}
-.player .round {
-  display: grid;
-  place-items: center;
-  width: 44px;
-  height: 44px;
-  border: 0;
-  border-radius: 50%;
-  background: var(--gl-player-button);
-  color: inherit;
-  font: inherit;
-  font-size: var(--gl-size-title);
-  cursor: pointer;
-  backdrop-filter: blur(6px);
-}
-.player .counter {
-  font-size: var(--gl-size-body);
-  opacity: 0.9;
-}
-
+.player .top,
 .player .bottom {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 0;
   display: flex;
+  gap: 14px;
+}
+.player .top {
+  top: 0;
   align-items: center;
-  gap: 12px;
-  padding: 14px 16px calc(16px + env(safe-area-inset-bottom));
+  padding: calc(16px + env(safe-area-inset-top)) 20px 16px;
+  background: linear-gradient(var(--gl-player-scrim-top), transparent);
+}
+.player .bottom {
+  bottom: 0;
+  flex-direction: column;
+  gap: 10px;
+  padding: 40px 20px calc(16px + env(safe-area-inset-bottom));
   background: linear-gradient(transparent, var(--gl-player-scrim-bottom));
 }
-.player .play {
+
+.player .glass {
   flex: none;
   display: grid;
   place-items: center;
-  width: 56px;
-  height: 56px;
+  width: 40px;
+  height: 40px;
+  padding: 0;
   border: 0;
   border-radius: 50%;
-  background: var(--gl-peach);
-  color: var(--gl-on-accent);
-  font-family: inherit;
-  font-size: var(--gl-size-icon);
+  background: var(--gl-player-glass);
+  color: inherit;
   cursor: pointer;
+  backdrop-filter: blur(10px);
 }
-.player .seek {
+.player .heading {
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+  min-width: 0;
+  display: grid;
 }
-.player .seek input {
-  width: 100%;
-  height: 22px;
-  margin: 0;
-  accent-color: var(--gl-peach);
-  cursor: pointer;
+.player .heading .name {
+  overflow: hidden;
+  font-family: var(--gl-font-display);
+  font-weight: var(--gl-weight-title);
+  font-size: var(--gl-size-title);
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
-.player .ticks {
-  position: relative;
-  height: 4px;
-  margin: 0 6px;
-}
-.player .ticks i {
-  position: absolute;
-  top: 0;
-  width: 2px;
-  height: 100%;
-  border-radius: 1px;
-  background: var(--gl-player-tick);
-}
-.player .time {
+.player .heading small {
   font-size: var(--gl-size-small);
-  text-align: right;
-  opacity: 0.9;
+  opacity: 0.7;
+}
+.player .counter {
+  font-size: var(--gl-size-label);
 }
 
-.player .music,
 .player .hint {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  opacity: 0.65;
+}
+.player .hint kbd {
+  padding: 1px 5px;
+  border: 1px solid var(--gl-player-key-line);
+  border-radius: var(--gl-radius-small);
+  font-weight: var(--gl-weight-medium);
+  font-size: var(--gl-size-caption);
+}
+
+/*
+ * The native range input stays the control (keyboard, a11y, dragging) but is drawn invisible
+ * except for its knob; the rail under it draws the progress and the slide ticks. The rail is
+ * inset by half a knob because the knob's centre travels that much less than the input's width.
+ */
+.player .scrub {
+  --knob: 14px;
+  position: relative;
+  height: 18px;
+}
+.player .rail {
   position: absolute;
-  bottom: 92px;
-  font-size: var(--gl-size-small);
+  top: 50%;
+  left: calc(var(--knob) / 2);
+  right: calc(var(--knob) / 2);
+  height: 4px;
+  translate: 0 -50%;
+  border-radius: 2px;
+  background: var(--gl-player-track);
+}
+.player .rail i {
+  position: absolute;
+  top: 0;
+  height: 100%;
+}
+.player .rail .done {
+  left: 0;
+  border-radius: 2px;
+  background: var(--gl-player-progress);
+}
+.player .rail .tick {
+  width: 2px;
+  background: var(--gl-player-tick);
+}
+.player .scrub input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+.player .scrub input::-webkit-slider-runnable-track {
+  height: 100%;
+  background: transparent;
+}
+.player .scrub input::-moz-range-track {
+  background: transparent;
+}
+.player .scrub input::-webkit-slider-thumb {
+  appearance: none;
+  width: var(--knob);
+  height: var(--knob);
+  margin-top: 2px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--gl-player-play-bg);
+  box-shadow: var(--gl-player-knob-shadow);
+}
+.player .scrub input::-moz-range-thumb {
+  width: var(--knob);
+  height: var(--knob);
+  border: 0;
+  border-radius: 50%;
+  background: var(--gl-player-play-bg);
+  box-shadow: var(--gl-player-knob-shadow);
+}
+
+.player .row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.player .play {
+  --gl-icon-size: var(--gl-size-icon);
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--gl-player-play-bg);
+  color: var(--gl-player-play-ink);
+  cursor: pointer;
+}
+.player .time {
+  font-weight: var(--gl-weight-medium);
+  font-size: var(--gl-size-label);
+  opacity: 0.9;
 }
 .player .music {
-  left: 16px;
-  opacity: 0.75;
+  --gl-icon-size: var(--gl-size-icon-small);
+  min-width: 0;
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow: hidden;
+  font-size: var(--gl-size-meta);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  opacity: 0.8;
 }
-.player .hint {
-  right: 16px;
-  font-size: var(--gl-size-caption);
-  opacity: 0.6;
-}
-@container (max-width: 699px) {
+@container (max-width: 720px) {
   .player .hint {
     display: none;
+  }
+  .player .top {
+    padding-inline: 12px;
+  }
+  .player .bottom {
+    padding-inline: 16px;
   }
 }
 
@@ -146,22 +228,46 @@
   background: var(--gl-player-scrim-end);
 }
 .player .card-layer .box {
+  display: grid;
+  justify-items: center;
+  gap: 18px;
+  padding: 16px;
   text-align: center;
 }
 .player .card-layer h2 {
-  margin: 0 0 14px;
-  font-weight: var(--gl-weight-heading);
+  margin: 0;
+  font-family: var(--gl-font-display);
+  font-weight: var(--gl-weight-title);
   font-size: var(--gl-size-display);
+  letter-spacing: var(--gl-tracking-title);
 }
 .player .card-layer p {
-  margin: 0 0 14px;
+  margin: 0;
   font-size: var(--gl-size-title);
 }
 .player .card-layer .row {
-  display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 10px;
+}
+.player .pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: var(--gl-radius-pill);
+  background: var(--gl-player-glass);
+  color: inherit;
+  font: inherit;
+  font-weight: var(--gl-weight-semibold);
+  font-size: var(--gl-size-button-large);
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+}
+.player .pill.light {
+  background: var(--gl-player-play-bg);
+  color: var(--gl-player-play-ink);
 }
 
 @media (prefers-reduced-motion: reduce) {

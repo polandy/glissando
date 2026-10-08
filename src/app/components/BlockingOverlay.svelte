@@ -5,7 +5,7 @@
 
 <div class="overlay" role="alertdialog" aria-modal="true" aria-busy="true" aria-label={title}>
   <div class="box">
-    <div class="spinner" aria-hidden="true"></div>
+    <div class="ring spinner" aria-hidden="true"></div>
     <h3>{title}</h3>
     <small>{detail}</small>
   </div>
@@ -19,38 +19,39 @@
     display: grid;
     place-items: center;
     padding: 20px;
-    background: var(--gl-scrim);
+    background: var(--gl-backdrop);
     animation: fade 0.15s;
   }
   .box {
+    display: grid;
+    justify-items: center;
+    gap: 6px;
     width: 100%;
     max-width: 380px;
-    padding: 22px;
-    border-radius: var(--gl-radius);
+    padding: 24px 20px;
+    border: 1px solid var(--gl-line);
+    border-radius: var(--gl-radius-large);
     background: var(--gl-surface);
-    color: var(--gl-text);
+    color: var(--gl-ink);
     box-shadow: var(--gl-shadow);
     text-align: center;
   }
   .spinner {
-    width: 46px;
-    height: 46px;
-    margin: 0 auto 12px;
-    border-radius: 50%;
-    border: 5px solid var(--gl-line);
-    border-top-color: var(--gl-peach);
-    animation: gl-spin 0.9s linear infinite;
+    width: 36px;
+    height: 36px;
+    margin-bottom: 8px;
+    border-width: 3px;
   }
   h3 {
-    margin: 0 0 8px;
-    font-weight: var(--gl-weight-heading);
-    font-size: var(--gl-size-title);
+    margin: 0;
+    font-family: var(--gl-font-display);
+    font-weight: var(--gl-weight-title);
+    font-size: var(--gl-size-name);
+    letter-spacing: var(--gl-tracking-title);
   }
   small {
-    display: block;
-    margin-top: 6px;
     color: var(--gl-muted);
-    font-size: var(--gl-size-small);
+    font-size: var(--gl-size-meta);
   }
   @keyframes fade {
     from {
@@ -60,9 +61,6 @@
   @media (prefers-reduced-motion: reduce) {
     .overlay {
       animation: none;
-    }
-    .spinner {
-      animation-duration: 3s;
     }
   }
 </style>

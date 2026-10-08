@@ -1,4 +1,22 @@
-/* Palette "Sorbet" and type tokens; roles and rules in dev-docs/BRAND.md. */
+/* Design tokens: the "studio" palette per theme, type and shape; roles in dev-docs/BRAND.md. */
+@font-face {
+  font-family: "Instrument Sans";
+  src: url("../../assets/fonts/instrumentsans-latin-wght400-600.woff2") format("woff2");
+  font-weight: 400 600;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Bricolage Grotesque";
+  src: url("../../assets/fonts/bricolagegrotesque-latin-wght700.woff2") format("woff2");
+  font-weight: 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Geist Mono";
+  src: url("../../assets/fonts/geistmono-latin-wght400-500.woff2") format("woff2");
+  font-weight: 400 500;
+  font-display: swap;
+}
 @font-face {
   font-family: "Baloo 2";
   src: url("../../assets/fonts/baloo2-latin-wght600-800.woff2") format("woff2");
@@ -6,84 +24,135 @@
   font-display: swap;
 }
 
+/* Light is the bare root; the dark values below replace the theme-dependent ones. */
 :root {
-  --gl-milk: #fdf8f2;
-  --gl-white: #ffffff;
-  --gl-plum: #2a2340;
-  --gl-night-plum: #171223;
-  --gl-peach: #ffb59a;
-  --gl-mint: #8fd9c4;
-  --gl-lemon: #ffd95a;
-  --gl-coral: #ff8f84;
+  --gl-ground: #f6f5f8;
+  --gl-surface: #ffffff;
+  --gl-raised: #fbfafc;
+  --gl-ink: #221d33;
+  --gl-muted: #6b6580;
+  --gl-faint: #9c97ad;
+  --gl-line: #e5e2eb;
+  --gl-hover: #efedf3;
+  --gl-accent: #ff9f7f;
+  --gl-accent-ink: #2a1a14;
+  --gl-accent-hover: #ff8f6b;
+  --gl-scrim: rgb(34 29 51 / 0.04);
+  --gl-shadow: 0 1px 2px rgb(34 29 51 / 0.06), 0 6px 18px rgb(34 29 51 / 0.06);
+  --gl-backdrop: rgb(10 8 18 / 0.38);
+  --gl-inverse-bg: var(--gl-ink);
+  --gl-inverse-text: var(--gl-surface);
 
-  --gl-bg: var(--gl-milk);
-  --gl-surface: var(--gl-white);
-  --gl-text: var(--gl-plum);
-  --gl-logo-outline: var(--gl-plum);
-  --gl-on-accent: var(--gl-plum);
-  --gl-muted: rgb(42 35 64 / 0.62);
-  --gl-line: rgb(42 35 64 / 0.14);
-  --gl-shadow: 0 6px 24px rgb(42 35 64 / 0.1);
-  --gl-inverse-bg: var(--gl-plum);
-  --gl-inverse-text: var(--gl-milk);
-  --gl-scrim: rgb(23 18 35 / 0.55);
-  --gl-caption-scrim: rgb(42 35 64 / 0.7);
-  --gl-badge-bg: var(--gl-plum);
-  --gl-badge-text: var(--gl-milk);
-  --gl-raised-shadow: 0 4px 14px rgb(0 0 0 / 0.25);
+  /* Status colours: mint for done and progress, lemon for warnings, coral for errors. */
+  --gl-mint: #6fcfb4;
+  --gl-mint-ink: #16302a;
+  --gl-lemon: #f5c94a;
+  --gl-warn-icon: #b8890f;
+  --gl-coral: #f2786b;
+  --gl-art-ink: #3a2a10;
+
+  /* The brand palette of the logo and the start animation. */
+  --gl-logo-peach: #ffb59a;
+  --gl-logo-mint: #8fd9c4;
+  --gl-logo-lemon: #ffd95a;
+  --gl-logo-outline: #2a2340;
+
+  /* Over a picture: white marks on a dark veil, in both themes. */
+  --gl-on-photo: #ffffff;
+  --gl-photo-badge: rgb(0 0 0 / 0.45);
+  --gl-photo-fade: rgb(0 0 0 / 0.55);
+  --gl-photo-vignette: rgb(0 0 0 / 0.22);
+  --gl-photo-play-bg: rgb(255 255 255 / 0.92);
+  --gl-photo-play-ink: #221d33;
+  --gl-photo-play-shadow: 0 6px 24px rgb(0 0 0 / 0.25);
 
   /* The player is black in both themes: pictures look best on it. */
   --gl-player-bg: #000000;
   --gl-player-text: #ffffff;
-  --gl-player-button: rgb(255 255 255 / 0.18);
-  --gl-player-tick: rgb(255 255 255 / 0.5);
-  --gl-player-scrim-top: rgb(0 0 0 / 0.55);
+  --gl-player-glass: rgb(255 255 255 / 0.14);
+  --gl-player-track: rgb(255 255 255 / 0.25);
+  --gl-player-progress: #ffb59a;
+  --gl-player-tick: rgb(0 0 0 / 0.45);
+  --gl-player-knob-shadow: 0 1px 4px rgb(0 0 0 / 0.4);
+  --gl-player-key-line: rgb(255 255 255 / 0.35);
+  --gl-player-play-bg: #ffffff;
+  --gl-player-play-ink: #111111;
+  --gl-player-scrim-top: rgb(0 0 0 / 0.5);
   --gl-player-scrim-bottom: rgb(0 0 0 / 0.65);
   --gl-player-scrim-end: rgb(0 0 0 / 0.6);
 
-  --gl-font: "Baloo 2", "Trebuchet MS", sans-serif;
-  --gl-weight-heading: 800;
-  --gl-weight-label: 600;
-  --gl-radius: 18px;
-  --gl-radius-tile: 14px;
-  --gl-radius-thumb: 12px;
-  --gl-radius-pill: 999px;
+  --gl-font-ui: "Instrument Sans", "Segoe UI", system-ui, sans-serif;
+  --gl-font-display: "Bricolage Grotesque", "Instrument Sans", system-ui, sans-serif;
+  --gl-font-mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --gl-font-wordmark: "Baloo 2", "Instrument Sans", sans-serif;
+  --gl-weight-regular: 400;
+  --gl-weight-medium: 500;
+  --gl-weight-semibold: 600;
+  --gl-weight-title: 700;
+  --gl-weight-wordmark: 800;
+  --gl-tracking-title: -0.015em;
+  --gl-tracking-eyebrow: 0.06em;
 
-  --gl-size-caption: 12px;
-  --gl-size-small: 13px;
-  --gl-size-body: 15px;
-  --gl-size-button: 16px;
-  --gl-size-title: 18px;
-  --gl-size-icon: 22px;
+  --gl-size-caption: 11px;
+  --gl-size-small: 12px;
+  --gl-size-meta: 12.5px;
+  --gl-size-label: 13px;
+  --gl-size-body: 14px;
+  --gl-size-button-large: 15px;
+  --gl-size-title: 16px;
+  --gl-size-name: 17px;
+  --gl-size-wordmark: 19px;
+  --gl-size-panel-title: 22px;
+  --gl-size-heading-narrow: 23px;
   --gl-size-heading: 26px;
   --gl-size-display: 34px;
+  --gl-size-icon: 18px;
+  --gl-size-icon-small: 14px;
+  --gl-size-icon-large: 26px;
+  --gl-icon-stroke: 1.7;
+
+  --gl-radius-small: 6px;
+  --gl-radius-tile: 8px;
+  --gl-radius: 10px;
+  --gl-radius-large: 14px;
+  --gl-radius-pill: 999px;
   color-scheme: light;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --gl-bg: var(--gl-night-plum);
-    --gl-surface: var(--gl-plum);
-    --gl-text: var(--gl-milk);
-    --gl-logo-outline: var(--gl-night-plum);
-    --gl-muted: rgb(253 248 242 / 0.62);
-    --gl-line: rgb(253 248 242 / 0.16);
-    --gl-shadow: 0 6px 24px rgb(0 0 0 / 0.35);
-    --gl-inverse-bg: var(--gl-milk);
-    --gl-inverse-text: var(--gl-plum);
+    --gl-ground: #121019;
+    --gl-surface: #1a1723;
+    --gl-raised: #221e2d;
+    --gl-ink: #edeaf3;
+    --gl-muted: #9a94ab;
+    --gl-faint: #6c6680;
+    --gl-line: #2c2838;
+    --gl-hover: #26222f;
+    --gl-accent: #ffb59a;
+    --gl-accent-hover: #ffc5af;
+    --gl-scrim: rgb(255 255 255 / 0.03);
+    --gl-shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px rgb(0 0 0 / 0.3);
+    --gl-warn-icon: var(--gl-lemon);
+    --gl-logo-outline: #171223;
     color-scheme: dark;
   }
 }
 
 :root[data-theme="dark"] {
-  --gl-bg: var(--gl-night-plum);
-  --gl-surface: var(--gl-plum);
-  --gl-text: var(--gl-milk);
-  --gl-logo-outline: var(--gl-night-plum);
-  --gl-muted: rgb(253 248 242 / 0.62);
-  --gl-line: rgb(253 248 242 / 0.16);
-  --gl-shadow: 0 6px 24px rgb(0 0 0 / 0.35);
-  --gl-inverse-bg: var(--gl-milk);
-  --gl-inverse-text: var(--gl-plum);
+  --gl-ground: #121019;
+  --gl-surface: #1a1723;
+  --gl-raised: #221e2d;
+  --gl-ink: #edeaf3;
+  --gl-muted: #9a94ab;
+  --gl-faint: #6c6680;
+  --gl-line: #2c2838;
+  --gl-hover: #26222f;
+  --gl-accent: #ffb59a;
+  --gl-accent-hover: #ffc5af;
+  --gl-scrim: rgb(255 255 255 / 0.03);
+  --gl-shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px rgb(0 0 0 / 0.3);
+  --gl-warn-icon: var(--gl-lemon);
+  --gl-logo-outline: #171223;
   color-scheme: dark;
 }

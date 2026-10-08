@@ -3,8 +3,8 @@
 export interface SlideshowSummary {
   readonly id: string;
   readonly title: string;
-  /** Object URL of the first picture's thumbnail. */
-  readonly coverUrl: string;
+  /** Object URLs of the first pictures' thumbnails, in play order; one to three. */
+  readonly coverUrls: readonly string[];
   readonly pictureCount: number;
   readonly durationSeconds: number;
   readonly hasMusic: boolean;

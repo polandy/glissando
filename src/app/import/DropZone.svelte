@@ -1,5 +1,7 @@
 <script lang="ts">
   import type { Snippet } from "svelte";
+  import Icon from "../components/Icon.svelte";
+  import type { IconName } from "../icons";
   import { droppedFiles } from "./dropped-files";
 
   /** Dashed area that takes files dropped on it (desktop); the buttons inside open pickers. */
@@ -9,7 +11,7 @@
     onError,
     children,
   }: {
-    icon: string;
+    icon: IconName;
     onFiles: (files: File[]) => void;
     onError: (error: unknown) => void;
     children: Snippet;
@@ -39,7 +41,7 @@
   ondragleave={() => (hover = false)}
   ondrop={drop}
 >
-  <span class="icon" aria-hidden="true">{icon}</span>
+  <span class="icon"><Icon name={icon} /></span>
   {@render children()}
 </div>
 
@@ -49,18 +51,18 @@
     flex-direction: column;
     align-items: center;
     gap: 10px;
-    padding: 28px 16px;
-    border: 3px dashed var(--gl-line);
-    border-radius: var(--gl-radius);
-    background: var(--gl-surface);
+    padding: 32px 16px;
+    border: 1.5px dashed var(--gl-line);
+    border-radius: var(--gl-radius-large);
+    color: var(--gl-muted);
     text-align: center;
   }
   .drop.hover {
     border-color: var(--gl-mint);
-    background: color-mix(in srgb, var(--gl-mint) 15%, var(--gl-surface));
+    background: var(--gl-hover);
   }
   .icon {
-    font-size: var(--gl-size-display);
-    line-height: 1;
+    --gl-icon-size: var(--gl-size-display);
+    color: var(--gl-faint);
   }
 </style>

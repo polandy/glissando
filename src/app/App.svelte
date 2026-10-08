@@ -109,7 +109,7 @@
     actions={[
       {
         label: t("common.understood"),
-        tone: "mint",
+        tone: "primary",
         onSelect: () => importFlow.dismissPersistNotice(),
       },
     ]}

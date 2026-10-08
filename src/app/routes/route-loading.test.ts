@@ -63,8 +63,8 @@ describe("loadStartSlideshows", () => {
     const loading = loadStartSlideshows(store, thumbnailUrls(store, errors), signal());
     store.openGate();
 
-    expect((await loading)?.map(({ id, coverUrl }) => ({ id, coverUrl }))).toEqual([
-      { id: "show-1", coverUrl: "url:1" },
+    expect((await loading)?.map(({ id, coverUrls }) => ({ id, coverUrls }))).toEqual([
+      { id: "show-1", coverUrls: ["url:1"] },
     ]);
     expect(errors).toEqual([]);
   });

@@ -1,8 +1,8 @@
 <script lang="ts" module>
   export interface DialogAction {
     readonly label: string;
-    /** Plain outline by default; `danger` for the irreversible choice. */
-    readonly tone?: "default" | "mint" | "danger";
+    /** Plain outline by default; `primary` for the expected answer, `danger` for the irreversible one. */
+    readonly tone?: "default" | "primary" | "danger";
     readonly onSelect: () => void;
   }
 </script>
@@ -45,7 +45,7 @@
     {#each actions as action (action.label)}
       <button
         class="btn"
-        class:mint={action.tone === "mint"}
+        class:primary={action.tone === "primary"}
         class:danger={action.tone === "danger"}
         type="button"
         onclick={action.onSelect}
@@ -59,31 +59,34 @@
 <style>
   dialog {
     width: calc(100% - 40px);
-    max-width: 380px;
-    padding: 22px;
-    border: 0;
-    border-radius: var(--gl-radius);
+    max-width: 400px;
+    padding: 20px;
+    border: 1px solid var(--gl-line);
+    border-radius: var(--gl-radius-large);
     background: var(--gl-surface);
-    color: var(--gl-text);
+    color: var(--gl-ink);
     box-shadow: var(--gl-shadow);
   }
   dialog::backdrop {
-    background: var(--gl-scrim);
+    background: var(--gl-backdrop);
   }
   h3 {
     margin: 0 0 8px;
-    font-weight: var(--gl-weight-heading);
-    font-size: var(--gl-size-title);
+    font-family: var(--gl-font-display);
+    font-weight: var(--gl-weight-title);
+    font-size: var(--gl-size-name);
+    letter-spacing: var(--gl-tracking-title);
   }
   p {
     margin: 6px 0;
-    line-height: 1.4;
+    color: var(--gl-muted);
+    line-height: 1.5;
   }
   .actions {
     display: flex;
     flex-wrap: wrap;
     justify-content: flex-end;
     gap: 10px;
-    margin-top: 16px;
+    margin-top: 18px;
   }
 </style>

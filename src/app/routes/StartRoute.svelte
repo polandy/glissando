@@ -45,10 +45,17 @@
   });
 </script>
 
+{#snippet startLogo()}
+  <StartLogo play={playStartAnimation} />
+{/snippet}
+
 {#if slideshows !== null}
-  <StartScreen {slideshows} {onCreate} {onOpen}>
-    {#snippet logo()}
-      <StartLogo play={playStartAnimation} />
-    {/snippet}
-  </StartScreen>
+  <!-- The header carries the brand; the large logo greets an empty library and plays the
+       first-launch animation even over a filled one. -->
+  <StartScreen
+    {slideshows}
+    {onCreate}
+    {onOpen}
+    logo={slideshows.length === 0 || playStartAnimation ? startLogo : undefined}
+  />
 {/if}

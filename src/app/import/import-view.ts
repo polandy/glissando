@@ -13,6 +13,11 @@ export function picturesPhase(state: PictureImportState): PicturesPhase {
   return state.pictures.length > 0 ? "done" : "empty";
 }
 
+/** Files accepted but not yet processed: step 1 shows a placeholder tile for each. */
+export function pendingPictureCount(state: PictureImportState): number {
+  return state.busy ? state.total - state.done : 0;
+}
+
 /** "Next" waits until every picture is downscaled (dev-docs/SCOPE.md, interaction rules). */
 export function canContinue(state: PictureImportState): boolean {
   return !state.busy && !state.failed && state.pictures.length > 0;

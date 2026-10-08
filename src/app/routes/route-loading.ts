@@ -3,7 +3,7 @@ import {
   type LibraryStore,
   type StoredSlideshow,
 } from "../../library/stored-slideshow";
-import { slideshowDetails, slideshowSummary } from "../library-views";
+import { COVER_PICTURE_COUNT, slideshowDetails, slideshowSummary } from "../library-views";
 import type { ObjectUrls } from "../media/object-urls";
 import type { SlideshowDetails, SlideshowSummary } from "../screens/view-models";
 
@@ -22,7 +22,11 @@ export async function loadStartSlideshows(
   if (left.aborted) {
     return null;
   }
-  covers.sync(stored.flatMap((slideshow) => slideshow.pictures.slice(0, 1).map(({ id }) => id)));
+  covers.sync(
+    stored.flatMap((slideshow) =>
+      slideshow.pictures.slice(0, COVER_PICTURE_COUNT).map(({ id }) => id),
+    ),
+  );
   await covers.settled();
   if (left.aborted) {
     return null;

@@ -3,6 +3,9 @@ import { MILLISECONDS_PER_SECOND } from "../player";
 import type { StoredSlideshow } from "../library/stored-slideshow";
 import type { SlideshowDetails, SlideshowSummary } from "./screens/view-models";
 
+/** A start card's cover shows the first pictures in play order, one large and two small. */
+export const COVER_PICTURE_COUNT = 3;
+
 /** Resolves a picture id to its thumbnail's object URL. */
 export type ThumbnailUrl = (pictureId: string) => string;
 
@@ -21,7 +24,9 @@ export function slideshowSummary(
   return {
     id: stored.id,
     title: stored.title,
-    coverUrl: thumbnailUrl(coverId(stored)),
+    coverUrls: stored.pictures
+      .slice(0, COVER_PICTURE_COUNT)
+      .map((picture) => thumbnailUrl(picture.id)),
     pictureCount: stored.pictures.length,
     durationSeconds: slideshowDurationMs(stored) / MILLISECONDS_PER_SECOND,
     hasMusic: stored.music !== undefined,

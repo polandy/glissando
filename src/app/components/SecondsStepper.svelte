@@ -1,6 +1,6 @@
 <script lang="ts">
   import { getTranslator } from "../i18n/context";
-  import { ICONS } from "../icons";
+  import Icon from "./Icon.svelte";
   import { canStep, stepSeconds, type StepDirection } from "./seconds-step";
 
   /** Seconds per picture without music, in half-second steps within the allowed range. */
@@ -15,23 +15,23 @@
 
 <div class="stepper">
   <button
-    class="btn"
+    class="btn stepper-btn"
     type="button"
     aria-label={t("import.secondsShorter")}
     disabled={!canStep(seconds, "shorter")}
     onclick={() => step("shorter")}
   >
-    {ICONS.minus}
+    <Icon name="minus" />
   </button>
-  <b aria-live="polite">{formatSeconds(seconds)}</b>
+  <b class="mono" aria-live="polite">{formatSeconds(seconds)}</b>
   <button
-    class="btn"
+    class="btn stepper-btn"
     type="button"
     aria-label={t("import.secondsLonger")}
     disabled={!canStep(seconds, "longer")}
     onclick={() => step("longer")}
   >
-    {ICONS.plus}
+    <Icon name="plus" />
   </button>
 </div>
 
@@ -42,12 +42,13 @@
     align-items: center;
     gap: 4px;
   }
-  .btn {
-    padding: 6px 14px;
+  .stepper-btn {
+    width: 38px;
+    padding: 0;
   }
   b {
-    min-width: 48px;
-    font-weight: var(--gl-weight-heading);
+    min-width: 56px;
+    font-weight: var(--gl-weight-medium);
     text-align: center;
   }
 </style>

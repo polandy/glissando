@@ -9,10 +9,10 @@
     type Slideshow,
   } from "../../player";
   import { getTranslator } from "../i18n/context";
-  import { ICONS } from "../icons";
+  import Icon from "../components/Icon.svelte";
   import { browserScheduler, type Scheduler } from "../scheduler";
   import { ControlsVisibility } from "./controls-visibility";
-  import { enterFullscreen, exitFullscreen, toggleFullscreen } from "./fullscreen";
+  import { canFullscreen, enterFullscreen, exitFullscreen, toggleFullscreen } from "./fullscreen";
   import { playerActionForKey, type PlayerAction } from "./player-keys";
   import {
     nextSlideStart,
@@ -25,6 +25,7 @@
   let {
     slideshow,
     musicTitle = null,
+    slideDates = [],
     openPicture,
     onClose,
     scheduler = browserScheduler,
@@ -32,6 +33,8 @@
     slideshow: Slideshow;
     /** Shown bottom left while there is music. */
     musicTitle?: string | null;
+    /** Each slide's capture date (ISO 8601), shown under the title; empty shows none. */
+    slideDates?: readonly string[];
     /** Reads a slide's picture by its `src`; without it, `src` is a URL. */
     openPicture?: OpenPicture;
     onClose: () => void;
@@ -43,7 +46,8 @@
   const STATE_EVENTS: readonly PlayerEvent[] = ["timeupdate", "play", "pause", "seeked", "ended"];
   const SEEK_STEP_SECONDS = 0.1;
 
-  const { t, formatDuration } = getTranslator();
+  const { t, formatDuration, formatDate } = getTranslator();
+  const fullscreenAvailable = canFullscreen();
   const boundaries = $derived(slideBoundaries(slideshow));
 
   let root: HTMLElement;
@@ -60,6 +64,14 @@
 
   const slideCount = $derived(boundaries.starts.length);
   const slideNumber = $derived(slideIndexAt(boundaries, currentTime) + 1);
+  const slideDate = $derived(slideDates[slideNumber - 1]);
+  const progress = $derived(boundaries.duration > 0 ? currentTime / boundaries.duration : 0);
+  const KEY_HINTS = [
+    "player.keyPlay",
+    "player.keyPrevious",
+    "player.keyNext",
+    "player.keyClose",
+  ] as const;
 
   onMount(() => {
     const created = createPlayer(
@@ -166,30 +178,47 @@
   <div class="ui" inert={!controlsVisible}>
     <div class="top" role="group" onpointerdown={() => controls.reveal()}>
       <button
-        class="round"
+        class="glass"
         type="button"
         title={t("player.close")}
         aria-label={t("player.close")}
         onclick={onClose}
       >
-        {ICONS.close}
+        <Icon name="close" />
       </button>
-      <span class="counter">{t("player.counter", { index: slideNumber, total: slideCount })}</span>
-    </div>
-    {#if musicTitle !== null}
-      <div class="music">{ICONS.music} {t("player.music", { track: musicTitle })}</div>
-    {/if}
-    <div class="hint">{t("player.hint")}</div>
-    <div class="bottom" role="group" onpointerdown={() => controls.reveal()}>
-      <button
-        class="play"
-        type="button"
-        aria-label={paused ? t("player.play") : t("player.pause")}
-        onclick={togglePlay}
+      <div class="heading">
+        <span class="name">{slideshow.title}</span>
+        {#if slideDate !== undefined}
+          <small class="mono">{formatDate(slideDate)}</small>
+        {/if}
+      </div>
+      <span class="counter mono"
+        >{t("player.counter", { index: slideNumber, total: slideCount })}</span
       >
-        {paused ? ICONS.play : ICONS.pause}
-      </button>
-      <div class="seek">
+      {#if fullscreenAvailable}
+        <button
+          class="glass"
+          type="button"
+          title={t("player.fullscreen")}
+          aria-label={t("player.fullscreen")}
+          onclick={() => toggleFullscreen(root)}
+        >
+          <Icon name="expand" />
+        </button>
+      {/if}
+    </div>
+    <div class="bottom" role="group" onpointerdown={() => controls.reveal()}>
+      <div class="hint" role="note" aria-label={t("player.hint")}>
+        {#each KEY_HINTS as key (key)}<kbd class="mono">{t(key)}</kbd>{/each}
+      </div>
+      <div class="scrub">
+        <div class="rail" aria-hidden="true">
+          <i class="done" style:width="{progress * 100}%"></i>
+          {#each boundaries.starts as start (start)}
+            {#if start > 0}<i class="tick" style:left="{(start / boundaries.duration) * 100}%"
+              ></i>{/if}
+          {/each}
+        </div>
         <input
           type="range"
           min="0"
@@ -200,17 +229,25 @@
           aria-valuetext={formatDuration(currentTime)}
           oninput={(event) => seek(event.currentTarget.valueAsNumber)}
         />
-        <div class="ticks" aria-hidden="true">
-          {#each boundaries.starts as start (start)}
-            <i style:left="{(start / boundaries.duration) * 100}%"></i>
-          {/each}
-        </div>
-        <div class="time">
+      </div>
+      <div class="row">
+        <button
+          class="play"
+          type="button"
+          aria-label={paused ? t("player.play") : t("player.pause")}
+          onclick={togglePlay}
+        >
+          <Icon name={paused ? "play" : "pause"} />
+        </button>
+        <span class="time mono">
           {t("player.time", {
             current: formatDuration(currentTime),
             total: formatDuration(boundaries.duration),
           })}
-        </div>
+        </span>
+        {#if musicTitle !== null}
+          <span class="music"><Icon name="music" />{t("player.music", { track: musicTitle })}</span>
+        {/if}
       </div>
     </div>
   </div>
@@ -219,7 +256,7 @@
     <div class="card-layer" role="alert">
       <div class="box">
         <p>{failure === "picture" ? t("player.pictureError") : t("player.playbackError")}</p>
-        <button class="btn" type="button" onclick={onClose}>{t("common.close")}</button>
+        <button class="pill" type="button" onclick={onClose}>{t("common.close")}</button>
       </div>
     </div>
   {:else if ended}
@@ -227,10 +264,10 @@
       <div class="box">
         <h2>{t("player.end")}</h2>
         <div class="row">
-          <button class="btn primary" type="button" onclick={togglePlay}>
-            <span aria-hidden="true">{ICONS.replay}</span>{t("player.again")}
+          <button class="pill light" type="button" onclick={togglePlay}>
+            <Icon name="replay" />{t("player.again")}
           </button>
-          <button class="btn" type="button" onclick={onClose}>{t("common.close")}</button>
+          <button class="pill" type="button" onclick={onClose}>{t("common.close")}</button>
         </div>
       </div>
     </div>

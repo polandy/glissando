@@ -65,7 +65,7 @@
     onDiscard={() => onDiscard(false)}
   />
 {:else}
-  <MusicStep {session} {onBack} onCreate={create} {onError} {onMusicUnreadable} />
+  <MusicStep {session} {loadThumbnail} {onBack} onCreate={create} {onError} {onMusicUnreadable} />
 {/if}
 
 {#if confirmingDiscard}

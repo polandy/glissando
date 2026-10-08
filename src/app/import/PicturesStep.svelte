@@ -2,12 +2,12 @@
   import { onDestroy } from "svelte";
   import Notice from "../components/Notice.svelte";
   import { getTranslator } from "../i18n/context";
-  import { ICONS } from "../icons";
+  import Icon from "../components/Icon.svelte";
   import { browserObjectUrls, ObjectUrls } from "../media/object-urls";
   import DropZone from "./DropZone.svelte";
   import ImportFrame from "./ImportFrame.svelte";
   import type { ImportSession } from "./import-session";
-  import { canContinue, captureRange, picturesPhase } from "./import-view";
+  import { canContinue, captureRange, pendingPictureCount, picturesPhase } from "./import-view";
 
   let {
     session,
@@ -47,6 +47,7 @@
 
   const phase = $derived(picturesPhase(importState));
   const range = $derived(captureRange(importState.pictures));
+  const pending = $derived(pendingPictureCount(importState));
   const skippedNames = $derived(importState.skipped.map((file) => file.fileName).join(", "));
 
   function add(files: readonly File[]): void {
@@ -71,22 +72,24 @@
 <input bind:this={pickFolder} type="file" webkitdirectory hidden onchange={picked} />
 
 <ImportFrame step="pictures" onBack={onLeave}>
-  <h1>{t("import.picturesTitle")}</h1>
-  <p class="muted">{t("import.picturesText")}</p>
+  <div>
+    <h1 class="title">{t("import.picturesTitle")}</h1>
+    <p class="lead">{t("import.picturesText")}</p>
+  </div>
 
   {#if phase === "empty"}
-    <DropZone icon={ICONS.pictures} onFiles={add} {onError}>
+    <DropZone icon="image" onFiles={add} {onError}>
       <button class="btn primary" type="button" onclick={() => pickFiles.click()}>
         {t("import.pickPictures")}
       </button>
-      <span class="muted">
+      <span>
         {t("import.or")}
         <button class="btn ghost inline" type="button" onclick={() => pickFolder.click()}>
           {t("import.pickFolder")}
         </button>
         · {t("import.dropHint")}
       </span>
-      <span class="muted formats">{t("import.pictureFormats")}</span>
+      <span class="formats">{t("import.pictureFormats")}</span>
     </DropZone>
   {/if}
 
@@ -99,28 +102,36 @@
     </Notice>
   {/if}
 
-  {#if phase === "importing"}
+  {#if phase === "importing" || (phase === "done" && range !== null)}
     <div class="progress">
       <div class="progress-row">
-        <span>{t("import.progress", { done: importState.done, count: importState.total })}</span>
-        <button class="btn ghost inline" type="button" onclick={onDiscard}>
-          {t("common.cancel")}
-        </button>
+        {#if phase === "importing"}
+          <span>
+            <span class="mono">
+              {t("import.progressCount", { done: importState.done, count: importState.total })}
+            </span>
+            {t("import.progressLabel", { count: importState.total })}
+          </span>
+          <button class="btn ghost" type="button" onclick={onDiscard}>
+            {t("common.cancel")}
+          </button>
+        {:else if range !== null}
+          <span>
+            <b>{t("units.pictures", { count: importState.pictures.length })}</b>
+            <span class="muted">
+              · {t("import.dateRange", { from: formatDate(range.from), to: formatDate(range.to) })}
+            </span>
+          </span>
+          <button class="btn ghost" type="button" onclick={() => pickFiles.click()}>
+            <Icon name="plus" />{t("import.addMore")}
+          </button>
+        {/if}
       </div>
-      <div class="bar"><i style:width="{(importState.done / importState.total) * 100}%"></i></div>
+      <div class="meter">
+        <i style:width="{importState.total > 0 ? (importState.done / importState.total) * 100 : 0}%"
+        ></i>
+      </div>
     </div>
-  {/if}
-
-  {#if phase === "done" && range !== null}
-    <p class="summary">
-      <b>{t("units.pictures", { count: importState.pictures.length })}</b>
-      <span class="muted">
-        · {t("import.dateRange", { from: formatDate(range.from), to: formatDate(range.to) })}
-      </span>
-      <button class="btn ghost inline" type="button" onclick={() => pickFiles.click()}>
-        {t("import.addMore")}
-      </button>
-    </p>
   {/if}
 
   {#if !importState.busy && importState.skipped.length > 0}
@@ -133,16 +144,18 @@
     </Notice>
   {/if}
 
-  {#if importState.pictures.length > 0}
-    <ul class="grid">
+  {#if importState.pictures.length > 0 || pending > 0}
+    <ul class="strip">
       {#each importState.pictures as picture (picture.id)}
-        {@const date = formatDate(picture.capturedAt)}
-        <li class="tile">
+        <li class="tile" class:pending={!urls.has(picture.id)}>
           {#if urls.has(picture.id)}
             <img src={urls.get(picture.id)} alt="" />
           {/if}
-          <span class="caption">{date}</span>
+          <span class="date mono">{formatDate(picture.capturedAt)}</span>
         </li>
+      {/each}
+      {#each { length: pending }, index (index)}
+        <li class="tile pending"></li>
       {/each}
     </ul>
   {/if}
@@ -150,18 +163,20 @@
   {#snippet actions()}
     <button class="btn ghost" type="button" onclick={onLeave}>{t("common.cancel")}</button>
     <button class="btn primary" type="button" disabled={!canContinue(importState)} onclick={onNext}>
-      {t("common.next")} <span aria-hidden="true">{ICONS.forward}</span>
+      {t("common.next")}
     </button>
   {/snippet}
 </ImportFrame>
 
 <style>
   .inline {
+    height: auto;
     padding: 0 4px;
     font-size: inherit;
   }
   .formats {
-    font-size: var(--gl-size-caption);
+    font-size: var(--gl-size-small);
+    color: var(--gl-faint);
   }
   .link {
     padding: 0;
@@ -173,52 +188,45 @@
     cursor: pointer;
   }
   .progress {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    margin-top: 12px;
+    display: grid;
+    gap: 10px;
+    padding: 14px 16px;
+    border: 1px solid var(--gl-line);
+    border-radius: var(--gl-radius-large);
+    background: var(--gl-surface);
   }
   .progress-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
   }
-  .bar {
-    height: 10px;
+  .meter {
+    height: 6px;
     overflow: hidden;
-    border-radius: 5px;
-    background: var(--gl-line);
+    border-radius: 3px;
+    background: var(--gl-hover);
   }
-  .bar i {
+  .meter i {
     display: block;
     height: 100%;
+    border-radius: 3px;
     background: var(--gl-mint);
-    transition: width 0.2s;
+    transition: width 0.3s;
   }
-  .summary {
-    margin-top: 14px;
-  }
-  .grid {
+  .strip {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
     gap: 10px;
-    margin: 12px 0 0;
+    margin: 0;
     padding: 0;
     list-style: none;
-  }
-  @container (min-width: 700px) {
-    .grid {
-      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    }
   }
   .tile {
     position: relative;
     aspect-ratio: 4 / 3;
     overflow: hidden;
     border-radius: var(--gl-radius-tile);
-    background: var(--gl-surface);
-    animation: pop 0.25s ease-out;
   }
   .tile img {
     position: absolute;
@@ -227,27 +235,45 @@
     height: 100%;
     object-fit: cover;
   }
-  .caption {
+  .date {
     position: absolute;
+    z-index: 1;
     left: 0;
     right: 0;
     bottom: 0;
-    padding: 14px 8px 5px;
-    background: linear-gradient(transparent, var(--gl-caption-scrim));
-    color: var(--gl-milk);
+    padding: 14px 7px 5px;
+    background: linear-gradient(transparent, var(--gl-photo-fade));
+    color: var(--gl-on-photo);
+    font-weight: var(--gl-weight-medium);
     font-size: var(--gl-size-caption);
   }
-  @keyframes pop {
-    from {
-      transform: scale(0.9);
-      opacity: 0;
+  .tile.pending {
+    background: var(--gl-hover);
+  }
+  .tile.pending::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(100deg, transparent 30%, var(--gl-scrim) 50%, transparent 70%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s infinite linear;
+  }
+  @keyframes shimmer {
+    to {
+      background-position: -200% 0;
+    }
+  }
+  @container (max-width: 720px) {
+    .strip {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
     }
   }
   @media (prefers-reduced-motion: reduce) {
-    .bar i {
+    .meter i {
       transition: none;
     }
-    .tile {
+    .tile.pending::after {
       animation: none;
     }
   }

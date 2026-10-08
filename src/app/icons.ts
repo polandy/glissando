@@ -1,18 +1,83 @@
-/** The app's icons are Unicode glyphs; this table is their one source (see dev-docs/BRAND.md). */
+/**
+ * The app's line icons on a 24-unit grid; this table is their one source (see dev-docs/BRAND.md).
+ * Icon.svelte draws them with a shared stroke, so a shape here carries geometry only.
+ */
+export type IconShape =
+  | { readonly kind: "path"; readonly d: string }
+  | { readonly kind: "circle"; readonly cx: number; readonly cy: number; readonly r: number }
+  | {
+      readonly kind: "rect";
+      readonly x: number;
+      readonly y: number;
+      readonly width: number;
+      readonly height: number;
+      readonly rx: number;
+    };
+
+export interface IconDefinition {
+  readonly shapes: readonly IconShape[];
+  /** Solid glyphs (play, pause) read better filled than outlined at small sizes. */
+  readonly filled?: boolean;
+}
+
+const path = (d: string): IconShape => ({ kind: "path", d });
+const circle = (cx: number, cy: number, r: number): IconShape => ({ kind: "circle", cx, cy, r });
+const rect = (x: number, y: number, width: number, height: number, rx: number): IconShape => ({
+  kind: "rect",
+  x,
+  y,
+  width,
+  height,
+  rx,
+});
+
 export const ICONS = {
-  back: "←",
-  forward: "→",
-  crumbSeparator: "›",
-  add: "＋",
-  play: "▶",
-  pause: "❚❚",
-  replay: "↻",
-  close: "✕",
-  music: "♪",
-  info: "ℹ️",
-  warning: "⚠️",
-  pictures: "🖼️",
-  musicFile: "🎵",
-  minus: "−",
-  plus: "+",
-} as const;
+  back: { shapes: [path("M15 6l-6 6 6 6")] },
+  plus: { shapes: [path("M12 5v14M5 12h14")] },
+  minus: { shapes: [path("M5 12h14")] },
+  play: { shapes: [path("M7 4.5v15l13-7.5z")], filled: true },
+  pause: { shapes: [path("M7 5h3.5v14H7zM13.5 5H17v14h-3.5z")], filled: true },
+  replay: { shapes: [path("M4.5 12a7.5 7.5 0 102.2-5.3L4.5 9"), path("M4.5 4.5V9H9")] },
+  close: { shapes: [path("M6 6l12 12M18 6L6 18")] },
+  image: { shapes: [rect(3, 4.5, 18, 15, 2.5), circle(9, 10, 1.8), path("M21 16l-5-5-9 8.5")] },
+  music: { shapes: [path("M9 18V6l11-2v12"), circle(6.5, 18, 2.5), circle(17.5, 16, 2.5)] },
+  folder: {
+    shapes: [
+      path(
+        "M3 7.5A1.5 1.5 0 014.5 6H9l2 2h8.5A1.5 1.5 0 0121 9.5v8a1.5 1.5 0 01-1.5 1.5h-15A1.5 1.5 0 013 17.5z",
+      ),
+    ],
+  },
+  clock: { shapes: [circle(12, 12, 8.5), path("M12 7.5V12l3 2")] },
+  info: { shapes: [circle(12, 12, 9), path("M12 11v5M12 8h.01")] },
+  alert: {
+    shapes: [
+      path("M10.3 4.3L2.6 18a2 2 0 001.7 3h15.4a2 2 0 001.7-3L13.7 4.3a2 2 0 00-3.4 0z"),
+      path("M12 9.5v4M12 17h.01"),
+    ],
+  },
+  pencil: { shapes: [path("M4 20h4L19 9l-4-4L4 16z")] },
+  more: { shapes: [circle(5, 12, 1.2), circle(12, 12, 1.2), circle(19, 12, 1.2)] },
+  expand: { shapes: [path("M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5")] },
+  check: { shapes: [path("M5 12.5l4.5 4.5L19 7.5")] },
+  gear: {
+    shapes: [
+      circle(12, 12, 3),
+      path(
+        "M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z",
+      ),
+    ],
+  },
+  sun: {
+    shapes: [
+      circle(12, 12, 4),
+      path(
+        "M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4",
+      ),
+    ],
+  },
+  moon: { shapes: [path("M20 14.5A8 8 0 019.5 4a8 8 0 1010.5 10.5z")] },
+  monitor: { shapes: [rect(3, 4, 18, 12, 2), path("M8 20h8M12 16v4")] },
+} as const satisfies Record<string, IconDefinition>;
+
+export type IconName = keyof typeof ICONS;

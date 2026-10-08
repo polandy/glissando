@@ -56,6 +56,7 @@
   <PlayerOverlay
     {slideshow}
     musicTitle={stored.music?.fileName ?? null}
+    slideDates={stored.pictures.map((picture) => picture.capturedAt)}
     openPicture={(id) => store.pictureBlob(id)}
     {onClose}
   />

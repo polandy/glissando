@@ -89,7 +89,11 @@ Usable end to end by a non-technical user, fully offline:
   the start screen's footer and is offered again when the browser refuses persistent storage.
 
 Interaction rules (the approved mockup:
-https://polandy.github.io/glissando-assets/mockups/mvp-flow/, tab "Konzept"):
+https://polandy.github.io/glissando-assets/mockups/mvp-flow/, tab "Konzept"; the visual
+reference is the approved studio-look mockup:
+https://polandy.github.io/glissando-assets/mockups/studio-look/):
+
+- **Light and dark**: the theme follows the device by default and can be set in the settings.
 
 - **Three levels, never more**: start → slideshow → (import steps | player). The player is a
   modal fullscreen layer, not a place in the navigation; back arrow and browser back do the same.

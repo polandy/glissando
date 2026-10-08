@@ -19,15 +19,30 @@ const withMusic: StoredSlideshow = {
 const urlOf = (id: string) => `url:${id}`;
 
 describe("slideshowSummary", () => {
-  it("summarises a slideshow for its start card, covered by the first picture", () => {
+  it("summarises a slideshow for its start card, covered by its first pictures", () => {
     expect(slideshowSummary(withMusic, urlOf)).toEqual({
       id: "show",
       title: "Juli 2025",
-      coverUrl: "url:p1",
+      coverUrls: ["url:p1", "url:p2"],
       pictureCount: 2,
       durationSeconds: 30,
       hasMusic: true,
     });
+  });
+
+  it("covers a start card with at most three pictures", () => {
+    const morePictures: StoredSlideshow = {
+      ...stored,
+      pictures: ["p1", "p2", "p3", "p4"].map((id) => ({
+        id,
+        capturedAt: "2025-07-01T10:00:00Z",
+        width: 300,
+        height: 200,
+        fileName: `${id}.jpg`,
+      })),
+    };
+
+    expect(slideshowSummary(morePictures, urlOf).coverUrls).toEqual(["url:p1", "url:p2", "url:p3"]);
   });
 });
 

@@ -1,8 +1,8 @@
 <script lang="ts">
   import type { Snippet } from "svelte";
   import Header from "../components/Header.svelte";
+  import Icon from "../components/Icon.svelte";
   import { getTranslator } from "../i18n/context";
-  import { ICONS } from "../icons";
   import type { SlideshowSummary } from "./view-models";
 
   let {
@@ -15,137 +15,215 @@
     slideshows: readonly SlideshowSummary[];
     onCreate: () => void;
     onOpen: (slideshowId: string) => void;
-    logo?: Snippet;
+    logo?: Snippet | undefined;
   } = $props();
 
   const { t, formatDuration } = getTranslator();
-
-  function cardMeta(slideshow: SlideshowSummary): string {
-    return t("start.cardMeta", {
-      pictures: t("units.pictures", { count: slideshow.pictureCount }),
-      duration: formatDuration(slideshow.durationSeconds),
-    });
-  }
 </script>
 
 <div class="screen">
-  <Header crumbs={[]} />
-  <main>
+  <Header crumbs={[]} actions={slideshows.length === 0 ? undefined : newSlideshowAction} />
+  {#snippet newSlideshowAction()}
+    <button class="btn primary" type="button" onclick={onCreate}>
+      <Icon name="plus" />{t("start.newSlideshow")}
+    </button>
+  {/snippet}
+  <main class="content">
     {#if logo}
       <div class="logo">{@render logo()}</div>
     {/if}
-    <div class="hero">
-      {#if slideshows.length === 0}
-        <h1>{t("start.heroTitle")}</h1>
-        <p class="muted">{t("start.heroText")}</p>
-      {/if}
-      <p class="create">
-        <button class="btn primary" type="button" onclick={onCreate}>
-          <span aria-hidden="true">{ICONS.add}</span>{t("start.newSlideshow")}
+    {#if slideshows.length === 0}
+      <div class="hero">
+        <h1 class="title">{t("start.heroTitle")}</h1>
+        <p class="lead">{t("start.heroText")}</p>
+        <button class="btn primary large" type="button" onclick={onCreate}>
+          <Icon name="plus" />{t("start.newSlideshow")}
         </button>
-      </p>
-    </div>
-    {#if slideshows.length > 0}
-      <h2>{t("start.yourSlideshows")}</h2>
-      <ul class="list">
+      </div>
+    {:else}
+      <div>
+        <div class="eyebrow">{t("start.library")}</div>
+        <h1 class="title">{t("start.yourSlideshows")}</h1>
+      </div>
+      <ul class="grid">
         {#each slideshows as slideshow (slideshow.id)}
           <li>
-            <button class="card show" type="button" onclick={() => onOpen(slideshow.id)}>
-              <img class="cover" src={slideshow.coverUrl} alt="" />
-              <span class="text">
-                <b>{slideshow.title}</b>
-                <span class="muted">
-                  {cardMeta(slideshow)}
+            <button class="show" type="button" onclick={() => onOpen(slideshow.id)}>
+              <span class="cover pictures-{slideshow.coverUrls.length}">
+                {#each slideshow.coverUrls as coverUrl, index (index)}
+                  <img src={coverUrl} alt="" />
+                {/each}
+              </span>
+              <span class="meta">
+                <span class="name">{slideshow.title}</span>
+                <span class="facts">
+                  <span class="mono">
+                    {t("units.pictures", { count: slideshow.pictureCount })}
+                  </span>
+                  <span class="mono">{formatDuration(slideshow.durationSeconds)}</span>
                   {#if slideshow.hasMusic}
-                    · <span aria-label={t("start.withMusic")}>{ICONS.music}</span>
+                    <span class="music" role="img" aria-label={t("start.withMusic")}>
+                      <Icon name="music" />
+                    </span>
                   {/if}
                 </span>
               </span>
             </button>
           </li>
         {/each}
+        <li>
+          <button class="new" type="button" onclick={onCreate}>
+            <Icon name="plus" />{t("start.newSlideshow")}
+          </button>
+        </li>
       </ul>
     {/if}
   </main>
-  <footer class="muted">{t("start.footer")}</footer>
+  <footer class="status"><span class="dot"></span>{t("start.footer")}</footer>
 </div>
 
 <style>
-  main {
-    flex: 1;
-    padding: 8px 16px 24px;
-  }
   .logo {
     display: flex;
     justify-content: center;
-    margin: 24px 0 10px;
+    padding-top: 8px;
   }
   .hero {
-    max-width: 480px;
+    display: grid;
+    justify-items: center;
+    gap: 14px;
+    max-width: 520px;
     margin: 0 auto;
     text-align: center;
   }
-  h1 {
-    margin: 8px 0 6px;
-    font-weight: var(--gl-weight-heading);
-    font-size: var(--gl-size-heading);
-    line-height: 1.1;
+  .hero .lead {
+    margin: 0;
   }
-  .hero p {
-    margin: 6px 0;
-    line-height: 1.4;
-  }
-  .hero .create {
-    margin-top: 18px;
-  }
-  h2 {
-    margin: 22px 0 8px;
-    font-weight: var(--gl-weight-heading);
-    font-size: var(--gl-size-title);
-  }
-  .list {
+  .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 12px;
-    margin: 10px 0 0;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 18px;
+    margin: 0;
     padding: 0;
     list-style: none;
   }
+  .grid li {
+    display: grid;
+  }
   .show {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    width: 100%;
-    padding: 10px;
-    border: 0;
+    display: grid;
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid var(--gl-line);
+    border-radius: var(--gl-radius-large);
+    background: var(--gl-surface);
     color: inherit;
-    font: inherit;
     text-align: left;
     cursor: pointer;
+    transition:
+      transform 0.15s,
+      box-shadow 0.15s;
   }
-  .show:hover,
-  .show:focus-visible {
-    outline: 3px solid var(--gl-mint);
+  .show:hover {
+    box-shadow: var(--gl-shadow);
+    transform: translateY(-1px);
   }
+  /* One large picture and two small ones; fewer pictures take the free cells. */
   .cover {
-    flex: none;
-    width: 84px;
-    height: 62px;
-    border-radius: var(--gl-radius-thumb);
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 2px;
+    aspect-ratio: 16 / 10;
+    background: var(--gl-line);
+  }
+  .cover img {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
     object-fit: cover;
   }
-  .text {
-    min-width: 0;
+  .cover img:first-child {
+    grid-row: 1 / 3;
   }
-  .text b {
-    display: block;
+  .pictures-1 img:first-child {
+    grid-column: 1 / 3;
+  }
+  .pictures-2 img:last-child {
+    grid-row: 1 / 3;
+  }
+  .meta {
+    display: grid;
+    gap: 4px;
+    padding: 12px 14px 14px;
+  }
+  .name {
     overflow: hidden;
-    font-weight: var(--gl-weight-heading);
-    font-size: var(--gl-size-title);
+    font-family: var(--gl-font-display);
+    font-weight: var(--gl-weight-title);
+    font-size: var(--gl-size-name);
+    letter-spacing: var(--gl-tracking-title);
     white-space: nowrap;
     text-overflow: ellipsis;
   }
-  footer {
-    padding: 10px 16px;
+  .facts {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--gl-muted);
+    font-size: var(--gl-size-meta);
+  }
+  .music {
+    display: flex;
+    --gl-icon-size: var(--gl-size-icon-small);
+  }
+  .new {
+    display: grid;
+    place-content: center;
+    justify-items: center;
+    gap: 8px;
+    min-height: 200px;
+    border: 1.5px dashed var(--gl-line);
+    border-radius: var(--gl-radius-large);
+    background: transparent;
+    color: var(--gl-muted);
+    font: inherit;
+    font-weight: var(--gl-weight-semibold);
+    cursor: pointer;
+  }
+  .new:hover {
+    border-color: var(--gl-accent);
+    color: var(--gl-ink);
+  }
+  .status {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 24px;
+    border-top: 1px solid var(--gl-line);
+    background: var(--gl-surface);
+    color: var(--gl-muted);
+    font-size: var(--gl-size-meta);
+  }
+  .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--gl-mint);
+  }
+  @container (max-width: 720px) {
+    .grid {
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+    .status {
+      padding: 10px 16px;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .show {
+      transition: none;
+    }
   }
 </style>
