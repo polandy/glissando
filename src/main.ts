@@ -8,6 +8,7 @@ import { createTranslator, pickLanguage } from "./app/i18n/translator";
 import { ImportSession } from "./app/import/import-session";
 import { createWindowHistory, Navigator } from "./app/navigation/navigator";
 import { randomId } from "./app/random-id";
+import { applyThemePreference, createStorageThemePreferenceStore } from "./app/settings/theme";
 import { browserScheduler } from "./app/scheduler";
 import { consumeFirstLaunch, createStorageFirstLaunchStore } from "./app/start/first-launch";
 import {
@@ -20,6 +21,10 @@ import { captureDate } from "./import/exif-capture-date";
 import { probeMusic } from "./import/music-probe";
 import { openLibraryStore } from "./library/indexeddb-store";
 import { requestPersistentStorage } from "./library/persistent-storage";
+
+// Before anything awaits, so a pinned theme is in place for the first paint.
+const themePreferences = createStorageThemePreferenceStore(window.localStorage);
+applyThemePreference(document.documentElement, themePreferences.read());
 
 const target = document.getElementById("app");
 if (!target) {
