@@ -126,6 +126,8 @@
       undoLabel: () => translator.t("slideshow.undo"),
       lastPictureText: () => translator.t("slideshow.lastPictureStays"),
       motionAutomaticText: () => translator.t("editor.motionAutomatic"),
+      durationAutomaticText: () => translator.t("editor.durationAutomatic"),
+      transitionAutomaticText: () => translator.t("editor.transitionAutomatic"),
       automaticTitle: (slideshow) =>
         titleForCaptureRange(
           slideshow.pictures.map((picture) => picture.capturedAt),

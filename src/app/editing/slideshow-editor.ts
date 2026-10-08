@@ -1,20 +1,21 @@
 import { pictureKenBurns } from "../../compose";
 import type { OwnKenBurns } from "../../library/own-ken-burns";
+import type { TransitionChoice } from "../../library/own-timing";
 import {
   movePicture,
   removePicture,
   renameSlideshow,
   restorePictures,
   setPictureCaption,
+  setPictureDuration,
   setPictureKenBurns,
+  setPictureTransition,
   type RemovedPicture,
 } from "../../library/slideshow-edits";
-import {
-  SlideshowNotFoundError,
-  type LibraryStore,
-  type StoredSlideshow,
-} from "../../library/stored-slideshow";
+import type { LibraryStore, StoredSlideshow } from "../../library/stored-slideshow";
 import type { Toaster, ToastMessage } from "../toast/toaster";
+import { EditSaver } from "./edit-saver";
+import { ResetUndo, type ResettableSetting } from "./reset-undo";
 
 export interface SlideshowEditorPorts {
   readonly store: Pick<LibraryStore, "updateSlideshow" | "claimMedia" | "releaseClaim">;
@@ -32,6 +33,10 @@ export interface SlideshowEditorPorts {
   readonly lastPictureText: () => string;
   /** The undo toast's text after a picture's own motion was dropped. */
   readonly motionAutomaticText: () => string;
+  /** The undo toast's text after a picture's own duration was dropped. */
+  readonly durationAutomaticText: () => string;
+  /** The undo toast's text after a picture's own transition was dropped. */
+  readonly transitionAutomaticText: () => string;
   /** The title from the capture dates, which an emptied title falls back to. */
   readonly automaticTitle: (slideshow: StoredSlideshow) => string;
 }
@@ -41,12 +46,6 @@ interface RemovalBatch {
   readonly toast: ToastMessage;
   readonly removals: readonly RemovedPicture[];
   readonly claimId: string;
-}
-
-/** A dropped own motion whose undo toast may still bring it back. */
-interface MotionUndo {
-  readonly toast: ToastMessage;
-  readonly pictureId: string;
 }
 
 /**
@@ -59,17 +58,23 @@ interface MotionUndo {
 export class SlideshowEditor {
   readonly #ports: SlideshowEditorPorts;
   readonly #listeners = new Set<(slideshow: StoredSlideshow) => void>();
-  readonly #savingListeners = new Set<(saving: boolean) => void>();
-  #unsaved = 0;
   #slideshow: StoredSlideshow;
   #batch: RemovalBatch | null = null;
-  #motionUndo: MotionUndo | null = null;
-  #saving: Promise<void> = Promise.resolve();
-  #gone = false;
+  readonly #resetUndo: ResetUndo;
+  readonly #saver: EditSaver;
 
   constructor(initial: StoredSlideshow, ports: SlideshowEditorPorts) {
     this.#slideshow = initial;
     this.#ports = ports;
+    this.#resetUndo = new ResetUndo(ports.toaster, ports.undoLabel);
+    this.#saver = new EditSaver({
+      store: ports.store,
+      onError: ports.onError,
+      onGone: () => {
+        this.#endBatch();
+        ports.onGone();
+      },
+    });
   }
 
   get slideshow(): StoredSlideshow {
@@ -82,13 +87,9 @@ export class SlideshowEditor {
     return () => this.#listeners.delete(listener);
   }
 
-  /**
-   * Called with `true` when an edit starts storing and `false` once every edit made so far is
-   * stored (or reported as failed); returns the unsubscribe function.
-   */
+  /** See `EditSaver.subscribeSaving`. */
   subscribeSaving(listener: (saving: boolean) => void): () => void {
-    this.#savingListeners.add(listener);
-    return () => this.#savingListeners.delete(listener);
+    return this.#saver.subscribeSaving(listener);
   }
 
   /** The last picture stays; asking to remove it explains why in a toast. */
@@ -102,7 +103,7 @@ export class SlideshowEditor {
     const ongoing = this.#batch;
     const claimId = ongoing?.claimId ?? this.#ports.newId();
     // Claimed before the save that drops the reference, so no clean-up can fall in between.
-    this.#track(this.#ports.store.claimMedia(claimId, this.#ports.now(), removed.picture.id));
+    this.#saver.track(this.#ports.store.claimMedia(claimId, this.#ports.now(), removed.picture.id));
     const removals = [...(ongoing?.removals ?? []), removed];
     const toast: ToastMessage = {
       text: this.#ports.removedText(removals.length),
@@ -134,9 +135,7 @@ export class SlideshowEditor {
    * that picture's reset, which would otherwise overwrite this newer motion.
    */
   setKenBurns(pictureId: string, kenBurns: OwnKenBurns): void {
-    if (this.#motionUndo?.pictureId === pictureId) {
-      this.#endMotionUndo();
-    }
+    this.#resetUndo.supersede(pictureId, "kenBurns");
     this.#apply(setPictureKenBurns(this.#slideshow, pictureId, kenBurns));
   }
 
@@ -147,14 +146,45 @@ export class SlideshowEditor {
       return;
     }
     this.#apply(setPictureKenBurns(this.#slideshow, pictureId, undefined));
-    const toast: ToastMessage = {
-      text: this.#ports.motionAutomaticText(),
-      tone: "info",
-      action: { label: this.#ports.undoLabel(), run: () => this.#undoReset(undo, previous) },
-    };
-    const undo: MotionUndo = { toast, pictureId };
-    this.#motionUndo = undo;
-    this.#ports.toaster.show(toast);
+    this.#offerUndo(pictureId, "kenBurns", this.#ports.motionAutomaticText(), () =>
+      this.setKenBurns(pictureId, previous),
+    );
+  }
+
+  /** The picture shows `durationMs` (validated) from now on, wherever it moves. */
+  setDuration(pictureId: string, durationMs: number): void {
+    this.#resetUndo.supersede(pictureId, "durationMs");
+    this.#apply(setPictureDuration(this.#slideshow, pictureId, durationMs));
+  }
+
+  /** Makes the picture's duration automatic without asking; the toast's undo brings it back. */
+  resetDuration(pictureId: string): void {
+    const previous = this.#picture(pictureId).durationMs;
+    if (previous === undefined) {
+      return;
+    }
+    this.#apply(setPictureDuration(this.#slideshow, pictureId, undefined));
+    this.#offerUndo(pictureId, "durationMs", this.#ports.durationAutomaticText(), () =>
+      this.setDuration(pictureId, previous),
+    );
+  }
+
+  /** The picture hands over to the next one with `transition` from now on, wherever it moves. */
+  setTransition(pictureId: string, transition: TransitionChoice): void {
+    this.#resetUndo.supersede(pictureId, "transition");
+    this.#apply(setPictureTransition(this.#slideshow, pictureId, transition));
+  }
+
+  /** Makes the picture's transition automatic without asking; the toast's undo brings it back. */
+  resetTransition(pictureId: string): void {
+    const previous = this.#picture(pictureId).transition;
+    if (previous === undefined) {
+      return;
+    }
+    this.#apply(setPictureTransition(this.#slideshow, pictureId, undefined));
+    this.#offerUndo(pictureId, "transition", this.#ports.transitionAutomaticText(), () =>
+      this.setTransition(pictureId, previous),
+    );
   }
 
   /** Reverses the picture's motion; an automatic one becomes the picture's own. */
@@ -175,35 +205,27 @@ export class SlideshowEditor {
 
   /** Resolves once every edit made so far is stored (or reported as failed). */
   settled(): Promise<void> {
-    return this.#saving;
+    return this.#saver.settled();
   }
 
   /** The screen closes: its undo toast would act on a slideshow no longer shown. */
   dispose(): void {
     this.#endBatch();
-    this.#endMotionUndo();
+    this.#resetUndo.end();
   }
 
-  #undoReset(undo: MotionUndo, previous: OwnKenBurns): void {
-    if (this.#motionUndo !== undo) {
-      return;
-    }
-    this.#motionUndo = null;
-    // A picture removed meanwhile has nothing to bring back.
-    if (this.#slideshow.pictures.some((picture) => picture.id === undo.pictureId)) {
-      this.setKenBurns(undo.pictureId, previous);
-    }
-  }
-
-  #endMotionUndo(): void {
-    const undo = this.#motionUndo;
-    if (undo === null) {
-      return;
-    }
-    this.#motionUndo = null;
-    if (this.#ports.toaster.current === undo.toast) {
-      this.#ports.toaster.dismiss();
-    }
+  /** The undo of a reset; a picture removed meanwhile has nothing to bring back. */
+  #offerUndo(
+    pictureId: string,
+    setting: ResettableSetting,
+    text: string,
+    restore: () => void,
+  ): void {
+    this.#resetUndo.offer(pictureId, setting, text, () => {
+      if (this.#slideshow.pictures.some((picture) => picture.id === pictureId)) {
+        restore();
+      }
+    });
   }
 
   #picture(pictureId: string) {
@@ -243,58 +265,17 @@ export class SlideshowEditor {
   }
 
   #release(claimId: string): void {
-    this.#track(this.#ports.store.releaseClaim(claimId));
+    this.#saver.track(this.#ports.store.releaseClaim(claimId));
   }
 
   #apply(slideshow: StoredSlideshow): void {
-    if (this.#gone) {
+    if (this.#saver.gone) {
       return;
     }
     this.#slideshow = slideshow;
-    this.#unsaved += 1;
-    if (this.#unsaved === 1) {
-      this.#notifySaving(true);
-    }
-    // IndexedDB commits write transactions on one store in the order they were created.
-    const saved = this.#ports.store
-      .updateSlideshow(slideshow)
-      .catch((error: unknown) => {
-        if (error instanceof SlideshowNotFoundError) {
-          this.#goneMeanwhile();
-        } else {
-          this.#ports.onError(error);
-        }
-      })
-      .then(() => {
-        this.#unsaved -= 1;
-        if (this.#unsaved === 0) {
-          this.#notifySaving(false);
-        }
-      });
-    this.#saving = Promise.all([this.#saving, saved]).then(() => undefined);
+    this.#saver.save(slideshow);
     for (const listener of this.#listeners) {
       listener(slideshow);
-    }
-  }
-
-  #goneMeanwhile(): void {
-    if (this.#gone) {
-      return;
-    }
-    this.#gone = true;
-    this.#endBatch();
-    this.#ports.onGone();
-  }
-
-  /** A claim or release counts towards `settled`; its failure is reported. */
-  #track(work: Promise<void>): void {
-    const done = work.catch(this.#ports.onError);
-    this.#saving = Promise.all([this.#saving, done]).then(() => undefined);
-  }
-
-  #notifySaving(saving: boolean): void {
-    for (const listener of this.#savingListeners) {
-      listener(saving);
     }
   }
 }
