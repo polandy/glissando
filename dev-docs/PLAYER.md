@@ -69,7 +69,7 @@ The player:
   frame), `ended`, `error`.
 - `captionInset` (CSS pixels, ≥ 0, default 0) lifts every caption from the bottom, e.g. above
   controls laid over the player while they show. Setting it glides the captions there over
-  `CAPTION_GLIDE_MS` (280 ms, CSS `ease`), starting from where they are mid-glide; the getter
+  `CAPTION_GLIDE_MS` (300 ms, CSS `ease`; the app fades its controls in the same time), starting from where they are mid-glide; the getter
   returns the target. Each drawn frame takes the glide's value at the player's clock: playback
   frames carry it, and while paused (or waiting) the player requests frames of its own until the
   glide ends, then draws no more. `jumpCaptionInset(cssPixels)` sets it at once and redraws, e.g.

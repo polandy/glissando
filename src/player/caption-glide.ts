@@ -1,5 +1,8 @@
-/** How long a caption takes to glide to a new inset, as the controls' own fade. */
-export const CAPTION_GLIDE_MS = 280;
+/**
+ * How long a caption takes to glide to a new inset. The app's player overlay fades its controls
+ * in the same time, so the caption moves with them.
+ */
+export const CAPTION_GLIDE_MS = 300;
 
 /** CSS `ease`, i.e. `cubic-bezier(0.25, 0.1, 0.25, 1)`. */
 const EASE_X1 = 0.25;

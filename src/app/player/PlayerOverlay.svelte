@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { MediaQuery } from "svelte/reactivity";
   import {
+    CAPTION_GLIDE_MS,
     createPlayer,
     MusicPlaybackError,
     SlideshowLoadError,
@@ -11,9 +11,8 @@
   } from "../../player";
   import { getTranslator } from "../i18n/context";
   import Icon from "../components/Icon.svelte";
-  import { REDUCED_MOTION_QUERY } from "../reduced-motion";
   import { browserScheduler, type Scheduler } from "../scheduler";
-  import { captionInset, captionInsetMotion } from "./caption-inset";
+  import PlayerCaption from "./PlayerCaption.svelte";
   import { ControlsVisibility } from "./controls-visibility";
   import { canFullscreen, enterFullscreen, exitFullscreen, toggleFullscreen } from "./fullscreen";
   import { playerActionForKey, type PlayerAction } from "./player-keys";
@@ -55,7 +54,7 @@
 
   let root: HTMLElement;
   let stage: HTMLElement;
-  let bottomBar: HTMLElement;
+  let bottomBar = $state<HTMLElement>();
   let bottomBarHeight = $state(0);
   let player = $state.raw<ReturnType<typeof createPlayer> | null>(null);
   let currentTime = $state(0);
@@ -63,9 +62,6 @@
   let ended = $state(false);
   let failure = $state<Failure | null>(null);
   let controlsVisible = $state(true);
-  const reducedMotion = new MediaQuery(REDUCED_MOTION_QUERY);
-  /** The player whose caption inset is placed; a new player gets its first inset at once. */
-  let insetPlayer: ReturnType<typeof createPlayer> | null = null;
   // The scheduler is fixed for the overlay's lifetime.
   // svelte-ignore state_referenced_locally
   const controls = new ControlsVisibility(scheduler, (visible) => (controlsVisible = visible));
@@ -110,27 +106,6 @@
       player = null;
       exitFullscreen();
     };
-  });
-
-  // Captions glide up above the bottom controls while they show.
-  $effect(() => {
-    if (player === null) {
-      return;
-    }
-    const inset = captionInset(controlsVisible, {
-      height: bottomBarHeight,
-      fadeHeight: parseFloat(getComputedStyle(bottomBar).paddingTop),
-    });
-    const motion = captionInsetMotion({
-      firstPlacement: player !== insetPlayer,
-      reducedMotion: reducedMotion.current,
-    });
-    insetPlayer = player;
-    if (motion === "jump") {
-      player.jumpCaptionInset(inset);
-    } else {
-      player.captionInset = inset;
-    }
   });
 
   /** A refused music start is no failure: the player pauses, and play retries with a gesture. */
@@ -197,6 +172,7 @@
   bind:this={root}
   class="player"
   class:hidden={!controlsVisible}
+  style:--player-controls-fade="{CAPTION_GLIDE_MS}ms"
   role="dialog"
   aria-modal="true"
   aria-label={slideshow.title}
@@ -204,8 +180,14 @@
   <!-- A tap toggles the controls; the keyboard has its own shortcuts. -->
   <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
   <div bind:this={stage} class="stage" onclick={() => controls.toggle()}></div>
-  <!-- The caption is drawn into the picture; screen readers hear it from here. -->
-  <p class="caption-text" aria-live="polite">{slideCaption}</p>
+  <PlayerCaption
+    {player}
+    caption={slideCaption}
+    {controlsVisible}
+    {bottomBar}
+    {bottomBarHeight}
+    {scheduler}
+  />
 
   <div class="ui" inert={!controlsVisible}>
     <div class="top" role="group" onpointerdown={() => controls.reveal()}>

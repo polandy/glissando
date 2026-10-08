@@ -3,15 +3,23 @@ import { captionInset, captionInsetMotion } from "./caption-inset";
 
 describe("captionInset", () => {
   it("lifts the caption above the controls while they show, not above their fade", () => {
-    expect(captionInset(true, { height: 150, fadeHeight: 40 })).toBe(110);
+    expect(captionInset(true, { height: 150, fadeHeight: 40 }, 0)).toBe(110);
   });
 
   it("leaves the caption at the bottom while the controls are hidden", () => {
-    expect(captionInset(false, { height: 150, fadeHeight: 40 })).toBe(0);
+    expect(captionInset(false, { height: 150, fadeHeight: 40 }, 0)).toBe(0);
   });
 
   it("never lowers the caption below the bottom", () => {
-    expect(captionInset(true, { height: 0, fadeHeight: 40 })).toBe(0);
+    expect(captionInset(true, { height: 0, fadeHeight: 40 }, 0)).toBe(0);
+  });
+
+  it("keeps the caption above the home indicator's safe area while the controls are hidden", () => {
+    expect(captionInset(false, { height: 150, fadeHeight: 40 }, 34)).toBe(34);
+  });
+
+  it("lifts the caption above the controls, which already clear the safe area", () => {
+    expect(captionInset(true, { height: 150, fadeHeight: 40 }, 34)).toBe(110);
   });
 });
 
