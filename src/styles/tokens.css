@@ -130,8 +130,14 @@
   --gl-editor-handle-hit: 36px;
   --gl-editor-handle-coarse: 18px;
   --gl-editor-handle-hit-coarse: 48px;
-  /* Room around the picture in the editor's well, so handles on its edges stay grabbable. */
-  --gl-editor-well-margin: 16px;
+  /*
+   * Room around the picture in the editor's well, at least the handles' hit area reaches past
+   * a corner (half the hit area), so a handle on the picture's edge is grabbable whole.
+   */
+  --gl-editor-well-margin: 20px;
+  --gl-editor-well-margin-coarse: 24px;
+  /* The editor's well spans the width up to 720 px, as high as the picture up to this cap. */
+  --gl-editor-well-max-height: 440px;
   color-scheme: light;
 }
 

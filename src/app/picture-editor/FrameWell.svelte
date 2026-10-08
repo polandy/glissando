@@ -56,6 +56,9 @@
     return { x: (x + width / 2) * 100, y: (y + height / 2) * 100 };
   }
 
+  /** `PointerEvent.button` of a mouse's main button. */
+  const MAIN_BUTTON = 0;
+
   /** The frame the running gesture changes: the one active when its first pointer went down. */
   let gestureKey: FrameKey = FRAME_KEYS[0];
   /** Where a mouse click would pick the other frame, the cursor says so. */
@@ -77,6 +80,11 @@
   }
 
   function pointerDown(event: PointerEvent): void {
+    // A mouse's other buttons open menus or scroll; only the main one edits. Touch and pen
+    // report their contact as the main button too.
+    if (event.pointerType === "mouse" && event.button !== MAIN_BUTTON) {
+      return;
+    }
     const target = event.target as Element;
     const corner = target.closest<HTMLElement>("[data-corner]")?.dataset["corner"] as
       Corner | undefined;
@@ -198,8 +206,9 @@
 <style>
   .well {
     position: relative;
+    --well-margin: var(--gl-editor-well-margin);
     min-height: 0;
-    padding: 20px;
+    padding: var(--well-margin);
     border-radius: var(--gl-radius-large);
     background: var(--gl-editor-well);
     touch-action: none;
@@ -261,12 +270,16 @@
     border-radius: 2px;
     pointer-events: none;
   }
+  @media (pointer: coarse) {
+    .well {
+      --well-margin: var(--gl-editor-well-margin-coarse);
+    }
+  }
   @container (max-width: 720px) {
     /* As high as the picture at full width, up to a cap. */
     .well {
       aspect-ratio: var(--picture-aspect);
-      max-height: 440px;
-      padding: var(--gl-editor-well-margin);
+      max-height: var(--gl-editor-well-max-height);
       border-radius: 0;
     }
   }

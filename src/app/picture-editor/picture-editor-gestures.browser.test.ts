@@ -32,12 +32,12 @@ function pointer(point: { x: number; y: number }, pointerId = 1) {
 }
 
 /** A pointer down on whatever the browser hits at `point`, as a real finger would. */
-function downAt(point: { x: number; y: number }): Element {
+function downAt(point: { x: number; y: number }, init: PointerEventInit = {}): Element {
   const hit = document.elementFromPoint(point.x, point.y);
   if (hit === null) {
     throw new Error(`nothing at ${point.x}, ${point.y}`);
   }
-  hit.dispatchEvent(new PointerEvent("pointerdown", pointer(point)));
+  hit.dispatchEvent(new PointerEvent("pointerdown", { ...pointer(point), ...init }));
   flushSync();
   return hit;
 }
@@ -49,6 +49,11 @@ function moveTo(point: { x: number; y: number }): void {
 
 function upAt(point: { x: number; y: number }): void {
   window.dispatchEvent(new PointerEvent("pointerup", pointer(point)));
+  flushSync();
+}
+
+function cancelAt(point: { x: number; y: number }): void {
+  window.dispatchEvent(new PointerEvent("pointercancel", pointer(point)));
   flushSync();
 }
 
@@ -143,5 +148,46 @@ describe("picture editor gestures", () => {
     upAt(pagePoint(0.2, top + 0.15));
 
     expect(calls.changed[0]?.from.zoom).toBeGreaterThan(1);
+  });
+
+  it("a cancelled drag keeps the frame where it reached and stores it", () => {
+    const zoomed = { ...AUTOMATIC, from: { zoom: 2, centerX: 0.5, centerY: 0.5 } };
+    const { calls } = mountEditor(view({ motion: zoomed }));
+
+    downAt(pagePoint(0.5, 0.5));
+    moveTo(pagePoint(0.6, 0.55));
+    cancelAt(pagePoint(0.6, 0.55));
+
+    expect(calls.changed).toHaveLength(1);
+    expect(calls.changed[0]?.from.centerX).toBeCloseTo(0.6);
+    expect(calls.changed[0]?.from.centerY).toBeCloseTo(0.55);
+  });
+
+  it("a cancelled touch on the inactive frame is no tap and picks nothing", () => {
+    const { calls } = mountEditor(view({ motion: APART }));
+
+    // Inside the end frame only, away from its chip, where a tap would pick it.
+    downAt(pagePoint(0.6, 0.8));
+    cancelAt(pagePoint(0.6, 0.8));
+
+    expect(activeFrame().dataset["key"]).toBe("from");
+    expect(calls.changed).toEqual([]);
+  });
+
+  it("a mouse drag with any button but the main one moves nothing", () => {
+    const zoomed = { ...AUTOMATIC, from: { zoom: 2, centerX: 0.5, centerY: 0.5 } };
+    const { calls } = mountEditor(view({ motion: zoomed }));
+    const before = activeFrame().getAttribute("style");
+
+    downAt(pagePoint(0.5, 0.5), { pointerType: "mouse", button: 2 });
+    moveTo(pagePoint(0.7, 0.6));
+    upAt(pagePoint(0.7, 0.6));
+    expect(activeFrame().getAttribute("style")).toBe(before);
+    expect(calls.changed).toEqual([]);
+
+    downAt(pagePoint(0.5, 0.5), { pointerType: "mouse", button: 0 });
+    moveTo(pagePoint(0.7, 0.6));
+    upAt(pagePoint(0.7, 0.6));
+    expect(calls.changed[0]?.from.centerX).toBeCloseTo(0.7);
   });
 });

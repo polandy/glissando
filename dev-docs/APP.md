@@ -87,7 +87,8 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
     chip already on pointer down. A mouse shows a pointer where a click would pick the other
     frame, a move cursor elsewhere on the picture. The active frame's handles come first: a
     12 px square with a 36 px hit area, 18 px and 48 px on a touch screen, reaching past the
-    picture's edges into the well's margin (at least 16 px, on a phone too). A dashed line joins
+    picture's edges into the well's margin (20 px, 24 px on a touch screen, on a phone too, so
+    the whole hit area stays on screen). A dashed line joins
     the two centres; while the preview plays, a peach outline runs over the picture with it.
   - **Changing a frame**: a drag anywhere on the picture (one pointer, past 8 px, counted from
     where it went down) moves the active frame by the pointer's travel; a corner resizes it about
@@ -98,12 +99,14 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
     every other change at once.
   - **Panel**: "Picture 3 of 8", file name · capture date; "Ken Burns" with the state
     "Automatic" or "Own motion" (accent-tinted); the toggle, each half with "Zoom 1.20×"; up to
-    720 px the hint "Drag the frame to move it; corners or two fingers zoom." (wider, under the
+    720 px the hint "Drag anywhere to move the frame; corners or two fingers zoom." (wider, under the
     well: "Drag to move the frame, drag a corner to zoom · mouse wheel zooms · arrow
     keys, + and −"). A 16:9 preview plays the motion over the slide's real duration and loops
     after a short hold, rendered with the player's own crop and transform; play/pause, a
     progress track and "0:02.4 / 0:05.0". Changing a frame pauses it on that frame (start or
-    end); play then starts over. With reduced motion it starts paused.
+    end); play then starts over. "Swap start and end" and "Back to automatic" replay the new
+    motion from the start. With reduced motion it starts paused, and a swap or reset holds it at
+    the start.
   - **Automatic and own**: until changed, the frames show the automatic motion. The first change
     makes it the picture's own (the automatic one, changed), stored at once like every edit.
     "Swap start and end" reverses the motion (an automatic one becomes own). "Back to automatic"

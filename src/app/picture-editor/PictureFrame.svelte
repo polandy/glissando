@@ -75,6 +75,7 @@
     border: 1.5px dashed var(--gl-photo-dashed);
     border-radius: 2px;
     pointer-events: none;
+    --active-border: 2px;
     --handle: var(--gl-editor-handle);
     --handle-hit: var(--gl-editor-handle-hit);
   }
@@ -87,7 +88,7 @@
   /* Above the other frame: its handles come first. Only chip and handles take pointers. */
   .frame.active {
     z-index: 3;
-    border: 2px solid var(--gl-on-photo);
+    border: var(--active-border) solid var(--gl-on-photo);
   }
   .frame:focus-visible {
     outline: 2px solid var(--gl-accent);
@@ -121,9 +122,9 @@
     right: 4px;
     bottom: 4px;
   }
-  /* Centred on the 2 px border's corner. */
+  /* Centred on the active border's corner. */
   .handle {
-    --offset: calc(var(--handle) / -2 - 1px);
+    --offset: calc(var(--handle) / -2 - var(--active-border) / 2);
     position: absolute;
     width: var(--handle);
     height: var(--handle);
