@@ -1,10 +1,10 @@
 import { crc32OfBlob } from "./crc32";
 import {
   MANIFEST_ENTRY_NAME,
-  readManifest,
   typeOfPicturePath,
   type GlissandoManifest,
 } from "./glissando-manifest";
+import { readManifest } from "./read-manifest";
 import { entryData, firstEntryName, readZipDirectory, type ZipEntry } from "./stored-zip";
 
 /** A file that passed every check; its media are slices of it, typed for the store. */

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { MemoryLibraryStore } from "../library/testing/memory-store";
 import type { StoredSlideshow } from "../library/stored-slideshow";
 import { exportSlideshow, glissandoFileName } from "./export-slideshow";
-import { readManifest } from "./glissando-manifest";
+import { readManifest } from "./read-manifest";
 import { entryData, readZipDirectory } from "./stored-zip";
 
 const MODIFIED = new Date("2025-10-01T08:00:00Z");

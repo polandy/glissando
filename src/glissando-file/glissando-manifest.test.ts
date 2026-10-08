@@ -4,10 +4,10 @@ import {
   manifestFor,
   musicPath,
   picturePaths,
-  readManifest,
   typeOfPicturePath,
   type GlissandoManifest,
 } from "./glissando-manifest";
+import { readManifest } from "./read-manifest";
 import type { StoredSlideshow } from "../library/stored-slideshow";
 
 const slideshow: StoredSlideshow = {
