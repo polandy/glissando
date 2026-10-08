@@ -1,4 +1,5 @@
 import type { OwnKenBurns } from "./own-ken-burns";
+import type { TransitionChoice } from "./own-timing";
 
 /**
  * A slideshow as kept on the device: the user's pictures and music plus the few settings the
@@ -24,6 +25,13 @@ export interface StoredPicture {
   readonly kenBurns?: OwnKenBurns;
   /** Shown with the picture in the player; absent: none. Normalised (`normalizeCaption`). */
   readonly caption?: string;
+  /** How long the picture shows, in whole ms (`checkOwnDurationMs`); absent: automatic. */
+  readonly durationMs?: number;
+  /**
+   * How the picture hands over to the next one; absent: automatic. Kept on the last picture but
+   * not applied there (see ADR-0008).
+   */
+  readonly transition?: TransitionChoice;
 }
 
 export interface StoredMusic {

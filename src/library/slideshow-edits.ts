@@ -1,10 +1,11 @@
 import { normalizeCaption } from "../player/caption";
 import { checkOwnKenBurns, type OwnKenBurns } from "./own-ken-burns";
+import { checkOwnDurationMs, checkTransitionChoice, type TransitionChoice } from "./own-timing";
 import type { StoredPicture, StoredSlideshow } from "./stored-slideshow";
 
 /**
  * The editing of a slideshow (dev-docs/SCOPE.md): remove, reorder, rename, a picture's own
- * Ken Burns motion and its caption. Pure functions over the stored record; the caller stores the
+ * Ken Burns motion, duration and transition, and its caption. Pure functions over the stored record; the caller stores the
  * result.
  */
 
@@ -111,6 +112,34 @@ export function setPictureCaption(
   return editPicture(slideshow, pictureId, (picture) => {
     delete picture.caption;
     return caption === undefined ? picture : { ...picture, caption };
+  });
+}
+
+/** Gives the picture its own duration in ms; `undefined` makes it automatic again. */
+export function setPictureDuration(
+  slideshow: StoredSlideshow,
+  pictureId: string,
+  durationMs: number | undefined,
+): StoredSlideshow {
+  return editPicture(slideshow, pictureId, (picture) => {
+    delete picture.durationMs;
+    return durationMs === undefined
+      ? picture
+      : { ...picture, durationMs: checkOwnDurationMs(durationMs, `picture "${pictureId}"`) };
+  });
+}
+
+/** Gives the picture its own transition to the next; `undefined` makes it automatic again. */
+export function setPictureTransition(
+  slideshow: StoredSlideshow,
+  pictureId: string,
+  transition: TransitionChoice | undefined,
+): StoredSlideshow {
+  return editPicture(slideshow, pictureId, (picture) => {
+    delete picture.transition;
+    return transition === undefined
+      ? picture
+      : { ...picture, transition: checkTransitionChoice(transition, `picture "${pictureId}"`) };
   });
 }
 
