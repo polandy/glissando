@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import type { BrowserPicture } from "../browser/picture-loader";
 import type { RenderFrame, SlideLayer } from "../ports";
 import type { Framing } from "../slideshow";
@@ -74,7 +74,7 @@ async function setUp({ fontsLoaded = true } = {}) {
     gl?.readPixels(0, 0, canvas.width, half, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
     return [...pixels].filter((_, index) => index % 4 === 0);
   }
-  return { renderer, fonts, drawAndRead, bottomHalfReds };
+  return { renderer, fonts, drawAndRead, bottomHalfReds, canvas, gl };
 }
 
 function isColour(actual: Rgb, expected: Rgb): boolean {
@@ -92,6 +92,20 @@ async function layer(colour: Rgb, caption?: string): Promise<SlideLayer<BrowserP
 
 async function slideFrame(colour: Rgb, caption?: string): Promise<RenderFrame<BrowserPicture>> {
   return { kind: "slide", slide: await layer(colour, caption) };
+}
+
+/** Resolves once `type` fires on `target`. */
+function waitFor(target: EventTarget, type: string): Promise<void> {
+  return new Promise((resolve) => target.addEventListener(type, () => resolve(), { once: true }));
+}
+
+/** Resolves in a later task, once the one now running has finished. */
+function afterCurrentTask(): Promise<void> {
+  const channel = new MessageChannel();
+  return new Promise((resolve) => {
+    channel.port1.onmessage = () => resolve();
+    channel.port2.postMessage(null);
+  });
 }
 
 afterEach(() => box.remove());
@@ -186,5 +200,48 @@ describe("WebGlRenderer captions", () => {
     expect(drawAndRead(await slideFrame(RED, CAPTION), GRADIENT_CORNER)).toSatisfy((pixel: Rgb) =>
       isColour(pixel, DARKENED_RED),
     );
+  });
+
+  it("deletes the caption's texture when its slide's picture is released", async () => {
+    const { renderer, drawAndRead, gl } = await setUp();
+    const frame = await slideFrame(BLUE, CAPTION);
+    const created: WebGLTexture[] = [];
+    const createTexture = gl.createTexture.bind(gl);
+    vi.spyOn(gl, "createTexture").mockImplementation(() => {
+      const texture = createTexture();
+      created.push(texture);
+      return texture;
+    });
+    drawAndRead(frame, GRADIENT_CORNER);
+    expect(created.length).toBeGreaterThan(0);
+    expect(created.every((texture) => gl.isTexture(texture))).toBe(true);
+
+    if (frame.kind === "slide") {
+      renderer.forget(frame.slide.picture);
+    }
+
+    expect(created.some((texture) => gl.isTexture(texture))).toBe(false);
+  });
+
+  it("draws the caption again once a lost WebGL context is restored", async () => {
+    const { bottomHalfReds, canvas, gl } = await setUp();
+    const lose = gl.getExtension("WEBGL_lose_context");
+    if (lose === null) {
+      throw new Error("this browser has no WEBGL_lose_context");
+    }
+    const frame = await slideFrame(BLUE, CAPTION);
+    expect(bottomHalfReds(frame).some((red) => red > 200)).toBe(true);
+
+    const lost = waitFor(canvas, "webglcontextlost");
+    lose.loseContext();
+    await lost;
+    // The browser allows a restore only once the task dispatching the lost event has ended.
+    await afterCurrentTask();
+    const restored = waitFor(canvas, "webglcontextrestored");
+    lose.restoreContext();
+    // The renderer listened first, so it has rebuilt its resources by now.
+    await restored;
+
+    expect(bottomHalfReds(frame).some((red) => red > 200)).toBe(true);
   });
 });
