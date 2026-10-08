@@ -1,12 +1,14 @@
 /**
- * The app's places. Three levels, never more: start → slideshow → (import steps | player). The
- * player is a modal layer over its slideshow, yet it has a history entry so back closes it.
+ * The app's places. Three levels, never more: start → (settings | slideshow → (import steps |
+ * player)). The player and the settings sheet are modal layers over their parent, yet each has a
+ * history entry so back closes it.
  */
 export const IMPORT_STEPS = ["pictures", "music"] as const;
 export type ImportStep = (typeof IMPORT_STEPS)[number];
 
 export type Route =
   | { readonly screen: "start" }
+  | { readonly screen: "settings" }
   | { readonly screen: "slideshow"; readonly slideshowId: string }
   | { readonly screen: "import"; readonly step: ImportStep }
   | { readonly screen: "player"; readonly slideshowId: string };
@@ -18,6 +20,7 @@ export function parentOf(route: Route): Route | null {
   switch (route.screen) {
     case "start":
       return null;
+    case "settings":
     case "slideshow":
       return START_ROUTE;
     case "import":
@@ -28,12 +31,13 @@ export function parentOf(route: Route): Route | null {
 }
 
 /**
- * Whether history may bring the route back: an import's selection lives in memory only, and
- * the player's music needs a user gesture to start.
+ * Whether history may bring the route back: an import's selection lives in memory only, the
+ * player's music needs a user gesture to start, and a closed overlay stays closed.
  */
 export function isRestorable(route: Route, from: Route | null): boolean {
   switch (route.screen) {
     case "player":
+    case "settings":
       return false;
     case "import":
       return from?.screen === "import";
@@ -62,6 +66,8 @@ export function parseRoute(state: unknown): Route | null {
   switch (state["screen"]) {
     case "start":
       return START_ROUTE;
+    case "settings":
+      return { screen: "settings" };
     case "slideshow":
     case "player": {
       const slideshowId = state["slideshowId"];

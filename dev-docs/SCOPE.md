@@ -63,7 +63,8 @@ capability (e.g. WebCodecs for video export), the feature says so plainly instea
 
 ## Languages
 
-German and English. The UI follows the browser language (English otherwise) and can be switched;
+German and English. The UI follows the browser language (English otherwise) and can be pinned to
+either in the settings;
 all UI copy lives in a message catalogue, never inline.
 
 ## MVP — pictures and music in, a good slideshow out

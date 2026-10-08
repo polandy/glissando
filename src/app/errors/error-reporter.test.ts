@@ -10,7 +10,7 @@ describe("createErrorReporter", () => {
     const report = createErrorReporter({
       log: (error) => logged.push(error),
       toaster,
-      text: "Etwas ist schiefgegangen.",
+      text: () => "Etwas ist schiefgegangen.",
     });
     const failure = new Error("boom");
 
@@ -18,5 +18,16 @@ describe("createErrorReporter", () => {
 
     expect(logged).toEqual([failure]);
     expect(toaster.current).toEqual({ text: "Etwas ist schiefgegangen.", tone: "error" });
+  });
+
+  it("words the toast in the language in effect when the error happens", () => {
+    const toaster = new Toaster(new FakeScheduler());
+    let text = "Etwas ist schiefgegangen.";
+    const report = createErrorReporter({ log: () => {}, toaster, text: () => text });
+
+    text = "Something went wrong.";
+    report(new Error("boom"));
+
+    expect(toaster.current?.text).toBe("Something went wrong.");
   });
 });

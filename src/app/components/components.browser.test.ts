@@ -21,7 +21,7 @@ describe("Header", () => {
   it("shows the back arrow only with a back handler, and the last crumb as the current place", () => {
     let backs = 0;
     const mounted = mountWithTranslator(Header, {
-      crumbs: ["Glissando", "Sommer am See"],
+      crumbs: ["Bibliothek", "Sommer am See"],
       onBack: () => (backs += 1),
     });
     destroy = mounted.destroy;

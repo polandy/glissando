@@ -1,23 +1,34 @@
-import { getContext, setContext } from "svelte";
+import { getContext } from "svelte";
 import type { Translator } from "./translator";
 
 const TRANSLATOR_CONTEXT = Symbol("translator");
 
-/** Makes `translator` available to every component below the caller (the composition root). */
-export function provideTranslator(translator: Translator): void {
-  setContext(TRANSLATOR_CONTEXT, translator);
+/** Where the translator in effect is read; a reactive source re-renders copy when it changes. */
+export interface TranslatorSource {
+  readonly current: Translator;
 }
 
-/** The translator a parent provided; call during component initialisation. */
+/**
+ * A translator that always speaks the current language: each call reads the source, so copy
+ * rendered from it follows a language switch. Call during component initialisation.
+ */
 export function getTranslator(): Translator {
-  const translator = getContext<Translator | undefined>(TRANSLATOR_CONTEXT);
-  if (translator === undefined) {
-    throw new Error("no translator in context: call provideTranslator in a parent component");
+  const source = getContext<TranslatorSource | undefined>(TRANSLATOR_CONTEXT);
+  if (source === undefined) {
+    throw new Error("no translator in context: mount the root with translatorContext");
   }
-  return translator;
+  return {
+    get language() {
+      return source.current.language;
+    },
+    t: (key, ...args) => source.current.t(key, ...args),
+    formatDuration: (seconds) => source.current.formatDuration(seconds),
+    formatSeconds: (seconds) => source.current.formatSeconds(seconds),
+    formatDate: (isoDateTime) => source.current.formatDate(isoDateTime),
+  };
 }
 
 /** The context for `mount(App, { context })`, for a root mounted outside a component. */
-export function translatorContext(translator: Translator): Map<symbol, Translator> {
-  return new Map([[TRANSLATOR_CONTEXT, translator]]);
+export function translatorContext(source: TranslatorSource): Map<symbol, TranslatorSource> {
+  return new Map([[TRANSLATOR_CONTEXT, source]]);
 }

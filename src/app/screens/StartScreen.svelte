@@ -9,12 +9,14 @@
     slideshows,
     onCreate,
     onOpen,
+    onSettings,
     logo,
   }: {
     /** Newest first. */
     slideshows: readonly SlideshowSummary[];
     onCreate: () => void;
     onOpen: (slideshowId: string) => void;
+    onSettings: () => void;
     logo?: Snippet | undefined;
   } = $props();
 
@@ -22,11 +24,23 @@
 </script>
 
 <div class="screen">
-  <Header crumbs={[]} actions={slideshows.length === 0 ? undefined : newSlideshowAction} />
-  {#snippet newSlideshowAction()}
-    <button class="btn primary" type="button" onclick={onCreate}>
-      <Icon name="plus" />{t("start.newSlideshow")}
+  <Header crumbs={[]} {actions} />
+  {#snippet actions()}
+    <button
+      class="icon-btn"
+      type="button"
+      title={t("settings.open")}
+      aria-label={t("settings.open")}
+      onclick={onSettings}
+    >
+      <Icon name="gear" />
     </button>
+    <!-- An empty library has the large button in the hero instead. -->
+    {#if slideshows.length > 0}
+      <button class="btn primary" type="button" onclick={onCreate}>
+        <Icon name="plus" />{t("start.newSlideshow")}
+      </button>
+    {/if}
   {/snippet}
   <main class="content">
     {#if logo}

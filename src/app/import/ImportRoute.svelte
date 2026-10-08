@@ -33,7 +33,8 @@
     onCreated: (slideshow: StoredSlideshow) => void;
   } = $props();
 
-  const { t, language } = getTranslator();
+  const translator = getTranslator();
+  const { t } = translator;
 
   let confirmingDiscard = $state(false);
   let creating = $state(false);
@@ -49,7 +50,7 @@
   function create(): void {
     creating = true;
     session
-      .create(language)
+      .create(translator.language)
       .then(onCreated, onError)
       .finally(() => (creating = false));
   }

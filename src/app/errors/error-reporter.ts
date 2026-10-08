@@ -6,11 +6,11 @@ export type ErrorReporter = (error: unknown) => void;
 export function createErrorReporter(options: {
   readonly log: (error: unknown) => void;
   readonly toaster: Toaster;
-  /** The user-language line of the coral toast. */
-  readonly text: string;
+  /** The coral toast's line, in the language in effect. */
+  readonly text: () => string;
 }): ErrorReporter {
   return (error) => {
     options.log(error);
-    options.toaster.show({ text: options.text, tone: "error" });
+    options.toaster.show({ text: options.text(), tone: "error" });
   };
 }

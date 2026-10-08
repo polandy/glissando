@@ -29,7 +29,7 @@
 </script>
 
 <div class="screen">
-  <Header crumbs={[t("app.name"), slideshow.title]} {onBack} />
+  <Header crumbs={[t("start.library"), slideshow.title]} {onBack} />
   <main class="content">
     <div class="detail">
       <div class="pictures">

@@ -53,6 +53,7 @@ const SHOW: Route = { screen: "slideshow", slideshowId: "s1" };
 const PLAYER: Route = { screen: "player", slideshowId: "s1" };
 const PICTURES: Route = { screen: "import", step: "pictures" };
 const MUSIC: Route = { screen: "import", step: "music" };
+const SETTINGS: Route = { screen: "settings" };
 
 function routes(history: FakeHistory): unknown[] {
   return history.entries;
@@ -190,6 +191,46 @@ describe("Navigator", () => {
 
     history.deliverPop(+1);
     expect(navigator.route).toEqual(SHOW);
+  });
+
+  it("opens the settings sheet over the start screen with its own history entry", () => {
+    const history = new FakeHistory();
+    const navigator = new Navigator(history);
+
+    navigator.open(SETTINGS);
+
+    expect(navigator.route).toEqual(SETTINGS);
+    expect(routes(history)).toEqual([START, SETTINGS]);
+  });
+
+  it("closes the settings sheet with the browser back gesture", () => {
+    const history = new FakeHistory();
+    const navigator = new Navigator(history);
+    navigator.open(SETTINGS);
+
+    history.deliverPop(-1);
+
+    expect(navigator.route).toEqual(START);
+  });
+
+  it("returns to the start screen after a reload with the settings sheet open", () => {
+    const history = new FakeHistory([START, SETTINGS]);
+    const navigator = new Navigator(history);
+
+    expect(navigator.route).toEqual(START);
+    history.deliverPop();
+    expect(history.index).toBe(0);
+  });
+
+  it("does not let browser forward reopen the settings sheet", () => {
+    const history = new FakeHistory();
+    const navigator = new Navigator(history);
+    navigator.open(SETTINGS);
+    navigator.back();
+    history.deliverPop();
+
+    history.deliverPop(+1);
+    expect(navigator.route).toEqual(START);
   });
 
   it("rejects a route that is not reachable from the current one, naming both", () => {

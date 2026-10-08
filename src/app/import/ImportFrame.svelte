@@ -27,7 +27,7 @@
 </script>
 
 <div class="screen">
-  <Header crumbs={[t("app.name"), t("import.crumb"), stepCrumb]} {onBack} />
+  <Header crumbs={[t("start.library"), t("import.crumb"), stepCrumb]} {onBack} />
   <main class="content">
     <!-- The crumbs name the step for assistive technology; this bar repeats it visually. -->
     <ol class="steps" aria-hidden="true">

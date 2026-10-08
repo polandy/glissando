@@ -10,6 +10,8 @@
   import SlideshowRoute from "./routes/SlideshowRoute.svelte";
   import StartRoute from "./routes/StartRoute.svelte";
   import type { AppServices } from "./services";
+  import type { SettingsState } from "./settings/app-settings";
+  import SettingsSheet from "./settings/SettingsSheet.svelte";
   import type { ToastMessage } from "./toast/toaster";
 
   let { services, playStartAnimation }: { services: AppServices; playStartAnimation: boolean } =
@@ -17,7 +19,7 @@
 
   // The services are wired once, by the composition root.
   // svelte-ignore state_referenced_locally
-  const { store, navigator, toaster, reportError } = services;
+  const { store, navigator, toaster, reportError, settings } = services;
   const { t } = getTranslator();
   // svelte-ignore state_referenced_locally
   const importFlow = new ImportFlow<ImportSession>({
@@ -27,6 +29,7 @@
 
   let route = $state.raw<Route>(navigator.route);
   let toast = $state.raw<ToastMessage | null>(toaster.current);
+  let settingsState = $state.raw<SettingsState>(settings.state);
   let importSession = $state.raw<ImportSession | null>(null);
   let persistRefused = $state(false);
   // The logo animates on the first launch only, not on every return to the start screen.
@@ -35,7 +38,7 @@
 
   onMount(() => {
     const stopRoute = navigator.subscribe((next) => {
-      if (next.screen !== "start") {
+      if (next.screen !== "start" && next.screen !== "settings") {
         logoPlays = false;
       }
       if (next.screen === "import") {
@@ -44,6 +47,7 @@
       route = next;
     });
     const stopToast = toaster.subscribe((next) => (toast = next));
+    const stopSettings = settings.subscribe((next) => (settingsState = next));
     const stopImport = importFlow.subscribe((next) => {
       importSession = next.session;
       persistRefused = next.persistRefused;
@@ -51,6 +55,7 @@
     return () => {
       stopRoute();
       stopToast();
+      stopSettings();
       stopImport();
     };
   });
@@ -64,14 +69,23 @@
   }
 </script>
 
-{#if route.screen === "start"}
+{#if route.screen === "start" || route.screen === "settings"}
   <StartRoute
     {store}
     playStartAnimation={logoPlays}
     onError={reportError}
     onCreate={() => importFlow.open()}
     onOpen={(slideshowId) => navigator.open({ screen: "slideshow", slideshowId })}
+    onSettings={() => navigator.open({ screen: "settings" })}
   />
+  {#if route.screen === "settings"}
+    <SettingsSheet
+      state={settingsState}
+      onTheme={(theme) => settings.setTheme(theme)}
+      onLanguage={(language) => settings.setLanguage(language)}
+      onClose={() => navigator.back()}
+    />
+  {/if}
 {:else if route.screen === "import" && importSession !== null}
   <ImportRoute
     step={route.step}

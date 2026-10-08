@@ -13,12 +13,14 @@
     onError,
     onCreate,
     onOpen,
+    onSettings,
   }: {
     store: LibraryStore;
     playStartAnimation: boolean;
     onError: (error: unknown) => void;
     onCreate: () => void;
     onOpen: (slideshowId: string) => void;
+    onSettings: () => void;
   } = $props();
 
   let slideshows = $state.raw<readonly SlideshowSummary[] | null>(null);
@@ -56,6 +58,7 @@
     {slideshows}
     {onCreate}
     {onOpen}
+    {onSettings}
     logo={slideshows.length === 0 || playStartAnimation ? startLogo : undefined}
   />
 {/if}

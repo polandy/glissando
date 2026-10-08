@@ -9,14 +9,16 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
 
 - **Header** (`components/Header.svelte`): a 56 px bar. On the start screen the logo mark and
   the "Glissando" wordmark; elsewhere the back arrow and the breadcrumb (earlier crumbs hidden up
-  to 720 px wide, the current one ellipsised); a right-hand slot for the screen's own buttons.
-- **Start** (`screens/StartScreen.svelte`): the large logo while the library is empty, with the
+  to 720 px wide, the current one ellipsised; the root crumb is "Library"); a right-hand slot for
+  the screen's own buttons.
+- **Start** (`screens/StartScreen.svelte`): in the header a gear ("Settings", opens the
+  settings sheet, below) and, with slideshows, "New slideshow"; the large logo while the library is empty, with the
   hero line and "New slideshow"; it also shows on a first launch over a filled library, so the
   start animation always plays. With slideshows: "Library / Your slideshows" and a card grid —
   a cover of the first three pictures (one large, two small), the title, "12 pictures · 1:00" and a
   music icon — ending in a dashed "New slideshow" card. A status bar at the bottom: "Offline · stored on
   this device".
-- **Slideshow** (`screens/SlideshowScreen.svelte`): breadcrumb "Glissando / title"; a 16:9
+- **Slideshow** (`screens/SlideshowScreen.svelte`): breadcrumb "Library / title"; a 16:9
   preview of the cover (tap plays) with the running time, then the pictures in play order,
   read-only, each with its order number and capture date. Beside it an info panel: title, date
   range, "Play" and the facts — pictures, duration, music, seconds per picture, Ken Burns
@@ -28,7 +30,7 @@ info panel below the preview, three tiles per row.
 
 ## Import wizard
 
-`import/ImportRoute.svelte` shows two steps under the crumbs "Glissando / New slideshow /
+`import/ImportRoute.svelte` shows two steps under the crumbs "Library / New slideshow /
 Pictures | Music" and a numbered two-step bar (a done step shows a mint check); the actions sit at the bottom. One `ImportSession`
 (`import/import-session.ts`) holds the selection for the tab: leaving by the browser back
 gesture (which cannot be stopped) keeps it, and "New slideshow" resumes it.
@@ -52,8 +54,8 @@ gesture (which cannot be stopped) keeps it, and "New slideshow" resumes it.
 
 ## Wiring
 
-`main.ts` is the composition root: it opens the IndexedDB library, picks the language from
-`navigator.languages`, and builds the `Navigator` over `window.history` and the `Toaster`
+`main.ts` is the composition root: it reads the settings (theme and language, below), opens the
+IndexedDB library, and builds the `Navigator` over `window.history` and the `Toaster`
 over real timers.
 
 - **Abandoned imports**: at startup and whenever an import ends (created or discarded), media
@@ -73,16 +75,16 @@ over real timers.
 
 ## Navigation
 
-Routes: `start`, `slideshow(id)`, `import(pictures | music)`, `player(slideshowId)` — three
-levels, the player a modal layer over its slideshow. `navigation/navigator.ts`:
+Routes: `start`, `settings`, `slideshow(id)`, `import(pictures | music)`, `player(slideshowId)` —
+three levels; the player is a modal layer over its slideshow, the settings sheet one over start. `navigation/navigator.ts`:
 
 - Every screen is one history entry; the back arrow calls history back, so it and the browser
   or phone back gesture do the same. `open(route)` pushes from the route's parent, or first goes
   back to that parent: the created slideshow replaces the import steps, so back leads to start.
 - History state is validated on every read; anything unknown is the start screen.
 - History never restores what is gone: after a reload, or on browser forward, an import step
-  returns to start (its selection lived in memory) and the player to its slideshow (music needs
-  a user gesture).
+  returns to start (its selection lived in memory), the player to its slideshow (music needs
+  a user gesture) and the settings sheet to start (a closed overlay stays closed).
 
 ## Waiting and errors
 
@@ -111,6 +113,25 @@ level). Closing destroys the player.
 - A picture that fails to load shows a short message with "Close". Music the browser refuses
   to start leaves the player paused with the controls showing; play retries.
 
+## Settings
+
+`settings/SettingsSheet.svelte`, opened by the gear on the start screen. Like the player it is
+a route with its own history entry, so ✕, a tap on the scrim, Esc and the browser or phone back
+gesture all close it the same way: by going back. A native modal dialog (focus trapped, the page
+behind inert, focus back on the gear when closed): above 720 px viewport width a 380 px panel at
+the top right, narrower a bottom sheet. Two radio groups (`components/RadioGroup.svelte`: one tab
+stop, arrows and Home/End move the choice with the focus) and the footnote "Applies at once and
+is stored on this device":
+
+- **Appearance**: "Same as device" (hint "Light or dark, following the system setting"),
+  "Light", "Dark" — the theme preference below.
+- **Language**: "Same as browser" (hint "Currently German" or "Currently English", what the
+  browser languages pick), "Deutsch", "English" — the language preference below.
+
+`settings/app-settings.ts` holds both preferences: a choice is stored at once and announced to
+its subscribers, a new subscriber gets the current state immediately. `main.ts` subscribes and
+applies them — the theme on `<html>`, the language as `<html lang>` and the translator in effect.
+
 ## Themes
 
 Light and dark, both from the tokens in `src/styles/tokens.css` (palette in
@@ -118,13 +139,17 @@ Light and dark, both from the tokens in `src/styles/tokens.css` (palette in
 follow the device's `prefers-color-scheme`), "light" or "dark". It is kept in the browser's local
 storage under `glissando.theme`; an unknown stored value counts as "system". `main.ts` applies it
 before anything else runs, so a pinned theme is in place for the first paint: "light" or "dark"
-sets `data-theme` on `<html>`, "system" removes it. No screen sets the preference yet; the
-settings sheet will.
+sets `data-theme` on `<html>`, "system" removes it. The settings sheet sets it.
 
 ## Languages
 
-German and English (`i18n/`), from the browser languages, English otherwise. All copy lives in
+German and English (`i18n/`). The language preference (`settings/language.ts`) is "auto" (the
+default: the first browser language the app speaks, English otherwise), "de" or "en", kept in
+local storage under `glissando.language`; an unknown stored value counts as "auto". It also sets
+`<html lang>` and the locale of the month in a new slideshow's title. All copy lives in
 `catalogue-de.ts` (which defines the keys, named `screen.element`) and `catalogue-en.ts` (typed
 to the same keys); placeholders `{name}`, plurals `{ one, other }` on `{count}`. Components get
-the translator with `getTranslator()` from Svelte context: `t(key, params)`, `formatDuration`
+the translator with `getTranslator()` from Svelte context; it reads the translator in effect
+(`i18n/translator-state.svelte.ts`) on every call, so a language switch re-renders all copy at
+once, without a reload: `t(key, params)`, `formatDuration`
 (m:ss), `formatSeconds` ("4,5 s"), `formatDate` (dd.mm.yyyy, UTC).
