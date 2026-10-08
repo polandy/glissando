@@ -20,6 +20,7 @@
     onDismissNotice,
     onReload,
     logo,
+    statusBar,
   }: {
     /** Newest first. */
     slideshows: readonly SlideshowSummary[];
@@ -33,6 +34,8 @@
     onDismissNotice: () => void;
     onReload: () => void;
     logo?: Snippet | undefined;
+    /** The status line at the bottom (dev-docs/APP.md, Installing and offline). */
+    statusBar: Snippet;
   } = $props();
 
   const { t, formatDuration } = getTranslator();
@@ -135,7 +138,7 @@
       <DropLayer />
     {/if}
   </main>
-  <footer class="status"><span class="dot"></span>{t("start.footer")}</footer>
+  {@render statusBar()}
 </div>
 
 <style>
@@ -261,30 +264,10 @@
     border-color: var(--gl-accent);
     color: var(--gl-ink);
   }
-  .status {
-    flex: none;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 24px;
-    border-top: 1px solid var(--gl-line);
-    background: var(--gl-surface);
-    color: var(--gl-muted);
-    font-size: var(--gl-size-meta);
-  }
-  .dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: var(--gl-mint);
-  }
   @container (max-width: 720px) {
     .grid {
       grid-template-columns: 1fr;
       gap: 14px;
-    }
-    .status {
-      padding: 10px 16px;
     }
   }
   @media (prefers-reduced-motion: reduce) {

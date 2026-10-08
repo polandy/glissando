@@ -1,17 +1,24 @@
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 import { playwright } from "@vitest/browser-playwright";
 import { defineConfig } from "vitest/config";
+import { serviceWorkerPlugin } from "./build/service-worker-plugin.ts";
 
 const BROWSER_TESTS = "src/**/*.browser.test.ts";
 
 export default defineConfig({
-  plugins: [svelte()],
+  // Relative, so the same build runs from any static host path (ADR-0005).
+  base: "./",
+  plugins: [svelte(), serviceWorkerPlugin()],
   test: {
     // e2e/ belongs to Playwright.
     projects: [
       {
         extends: true,
-        test: { name: "unit", include: ["src/**/*.test.ts"], exclude: [BROWSER_TESTS] },
+        test: {
+          name: "unit",
+          include: ["src/**/*.test.ts", "build/**/*.test.ts"],
+          exclude: [BROWSER_TESTS],
+        },
       },
       {
         // WebGL and the DOM only exist in a browser; these run in each engine CI supports.

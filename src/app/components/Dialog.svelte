@@ -1,14 +1,21 @@
 <script lang="ts" module>
+  import type { IconName } from "../icons";
+
   export interface DialogAction {
     readonly label: string;
-    /** Plain outline by default; `primary` for the expected answer, `danger` for the irreversible one. */
-    readonly tone?: "default" | "primary" | "danger";
+    /**
+     * Plain outline by default; `primary` for the expected answer, `danger` for the irreversible
+     * one, `ghost` for the dismissal next to a better answer.
+     */
+    readonly tone?: "default" | "primary" | "danger" | "ghost";
+    readonly icon?: IconName;
     readonly onSelect: () => void;
   }
 </script>
 
 <script lang="ts">
-  import { onMount } from "svelte";
+  import { onMount, type Snippet } from "svelte";
+  import Icon from "./Icon.svelte";
 
   /** Only when the user must decide or would otherwise lose data (dev-docs/APP.md). */
   let {
@@ -16,13 +23,19 @@
     message,
     actions,
     onCancel,
+    children,
   }: {
     title: string;
-    message: string;
+    /** One paragraph each. */
+    message: string | readonly string[];
     actions: readonly DialogAction[];
     /** Esc; without it the dialog cannot be dismissed, only answered. */
     onCancel?: () => void;
+    /** Shown before the message, e.g. a list of steps. */
+    children?: Snippet;
   } = $props();
+
+  const paragraphs = $derived(typeof message === "string" ? [message] : message);
 
   let dialog: HTMLDialogElement;
 
@@ -40,16 +53,21 @@
 
 <dialog bind:this={dialog} aria-labelledby="dialog-title" oncancel={cancel}>
   <h3 id="dialog-title">{title}</h3>
-  <p>{message}</p>
+  {@render children?.()}
+  {#each paragraphs as paragraph (paragraph)}
+    <p>{paragraph}</p>
+  {/each}
   <div class="actions">
     {#each actions as action (action.label)}
       <button
         class="btn"
         class:primary={action.tone === "primary"}
         class:danger={action.tone === "danger"}
+        class:ghost={action.tone === "ghost"}
         type="button"
         onclick={action.onSelect}
       >
+        {#if action.icon !== undefined}<Icon name={action.icon} />{/if}
         {action.label}
       </button>
     {/each}

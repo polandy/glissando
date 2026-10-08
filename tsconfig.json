@@ -13,7 +13,11 @@
     "verbatimModuleSyntax": true,
     "isolatedModules": true,
     "skipLibCheck": true,
-    "noEmit": true
+    "noEmit": true,
+    // Node runs vite.config.ts and build/ as they are, which needs the extension.
+    "allowImportingTsExtensions": true
   },
-  "include": ["src", "e2e", "*.config.ts"]
+  "include": ["src", "e2e", "build", "*.config.ts"],
+  // The service worker has its own globals (WebWorker lib): src/sw/tsconfig.json.
+  "exclude": ["src/sw/service-worker.ts"]
 }

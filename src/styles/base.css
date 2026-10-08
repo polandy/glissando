@@ -197,3 +197,17 @@ button {
     animation-duration: 3s;
   }
 }
+
+/* Small buttons sit in dense bars, such as the start screen's status bar. */
+.btn.small {
+  height: 30px;
+  padding: 0 10px;
+  gap: 6px;
+  font-size: var(--gl-size-label);
+}
+.icon-btn.small {
+  width: 28px;
+  height: 28px;
+  color: var(--gl-muted);
+  --gl-icon-size: var(--gl-size-icon-small);
+}

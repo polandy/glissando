@@ -20,9 +20,10 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
   file". With slideshows: "Library / Your slideshows" with an "Open file" button beside it and a
   card grid —
   a cover of the first three pictures (one large, two small), the title, "12 pictures · 1:00" and a
-  music icon — ending in a dashed "New slideshow" card. A status bar at the bottom: "Offline · stored on
-  this device". A file dragged over the library shows the layer "Drop to open the slideshow";
-  dropped, it opens (below).
+  music icon — ending in a dashed "New slideshow" card. A status bar at the bottom
+  (`pwa/StatusBar.svelte`): "Offline · stored on this device", or what
+  [Installing and offline](#installing-and-offline) says. A file dragged over the library shows
+  the layer "Drop to open the slideshow"; dropped, it opens (below).
 - **Slideshow** (`screens/SlideshowScreen.svelte`, parts in `screens/slideshow/`): breadcrumb
   "Library / title" and a ⋯ "More" button whose menu holds "Export" (subtitle "A .glissando
   file, about 184 MB", measured when the menu opens, again only after its pictures or music changed), a separator and "Delete slideshow
@@ -134,8 +135,8 @@ over real timers.
   still-undoable removal claims, in any tab, so a picture stored before its slideshow record is
   never lost and an Undo always finds its media.
 - **Persistent storage** is requested after the first slideshow a tab creates; a refusal shows
-  the dialog "Glissando may not store anything permanently" (only "Understood"), once per
-  device.
+  the dialog "Glissando may not store anything permanently" ("Understood", and "Install as
+  app" while installing is possible), once per device. Installing and offline follow below.
 - **Unexpected errors**, including uncaught ones, are logged and shown as a coral toast;
   none is swallowed.
 - **Object URLs**: thumbnails and covers exist while their screen shows them; a screen left
@@ -148,6 +149,49 @@ over real timers.
   its progress through a context) and the `OpenFlow` (its overlay and notices); the composition
   root supplies the download (an object URL on a clicked link, revoked a minute later), the free
   storage estimate and the reload.
+
+## Installing and offline
+
+The approved mockup: https://claude.ai/artifact/LBoKKSKY9qRJ3ntHCVaAVU. The service worker and
+its update rule: ADR-0005. Web app manifest and icons in `public/`; the PNG icons come from
+`scripts/brand/icons.sh`.
+
+- **Where**: only the start screen's status bar. Left a dot and a status line, right at most one
+  action — never a banner or a pop-up of our own.
+- **Status line** (one of, first match):
+  - _insecure context_ (`http://<lan-ip>`, no service worker possible): lemon dot, "Online only ·
+    no offline mode and no installing at this address" (narrow: "Online only · no offline
+    mode"); action "Why?" opens a sheet: browsers allow offline use and installing only over a
+    secure connection, slideshows stay stored on the device, the app itself needs the network to
+    open; remedy: an `https://` address, or `localhost` on the device itself (at home e.g. Caddy
+    or Tailscale).
+  - _storage refused_ (the refusal was told, `persisted()` is still false, not running
+    installed): lemon dot, "Offline · on this device, but not stored permanently" (narrow:
+    "Offline · not stored permanently").
+  - _running installed_ (display mode standalone, or iOS `navigator.standalone`): mint dot,
+    "Installed · ready offline · stored on this device" (narrow: "Installed · ready offline").
+  - otherwise mint dot, "Offline · stored on this device" (narrow: "Offline · on this device").
+- **Action** (first match): "New version · Reload" while a new version waits (ADR-0005);
+  otherwise the install hint while installing is possible, the app is not running installed and
+  the hint is not dismissed — or storage was refused, then it shows again and has no ✕.
+- **Install hint**: a small button with the install icon plus a ✕ ("Hide hint", remembered per
+  device). Where the browser offers an install prompt (`beforeinstallprompt`: Chrome, Edge,
+  Samsung Internet) it reads "Install app" and opens that prompt; accepted, the app counts as
+  installed. Elsewhere it reads "Install as app" and opens a sheet with the steps of that
+  browser (`pwa/install-guide.ts`, from the user agent):
+  - iPhone and iPad (every iOS browser): Share → "Add to Home Screen" → "Add".
+  - Safari 17 or newer on the Mac: menu "File" → "Add to Dock…" → "Add".
+  - Firefox on Android: menu ⋮ → "Add to Home screen" → "Add".
+  - Firefox on the computer: titled "Firefox does not install apps"; Glissando still runs
+    offline here at the same address; as its own window: open it in Chrome, Edge or Safari.
+  - Chromium before its prompt arrived, Safari before 17 on the Mac, and any other browser: no
+    hint.
+- **Persistent storage refused** also offers "Install as app" in its dialog (same action as the
+  hint) while installing is possible.
+- **Running installed with a told refusal**: at startup storage is requested again, since
+  browsers grant it to installed apps without asking.
+- **Updates**: "Reload" asks the waiting version to take over, then this tab reloads into the
+  new version; other tabs keep running their version until their next start.
 
 ## Navigation
 

@@ -27,6 +27,8 @@ import { captureDate } from "./import/exif-capture-date";
 import { probeMusic } from "./import/music-probe";
 import { openLibraryStore } from "./library/indexeddb-store";
 import { requestPersistentStorage } from "./library/persistent-storage";
+import { browserPwaPorts } from "./pwa/browser-pwa";
+import { createStorageHintDismissalStore, PwaStatus } from "./pwa/pwa-status";
 
 const settings = new AppSettings({
   themes: createStorageThemePreferenceStore(window.localStorage),
@@ -59,6 +61,18 @@ const reportError = createErrorReporter({
 window.addEventListener("error", (event) => reportError(event.error));
 window.addEventListener("unhandledrejection", (event) => reportError(event.reason));
 
+const refusalNotice = createStorageRefusalNoticeStore(window.localStorage);
+// Before anything awaits, so the browser's install prompt is not missed.
+const pwa = new PwaStatus(
+  browserPwaPorts(window, {
+    production: import.meta.env.PROD,
+    hintDismissal: createStorageHintDismissalStore(window.localStorage),
+    refusalTold: () => refusalNotice.wasShown(),
+    onError: logError,
+  }),
+);
+pwa.start().catch(reportError);
+
 const store = await openLibraryStore(window.indexedDB);
 
 const newId = (): string => randomId(crypto);
@@ -77,8 +91,10 @@ const services = {
   settings,
   persistencePrompt: new PersistencePrompt(
     () => requestPersistentStorage(window.navigator.storage),
-    createStorageRefusalNoticeStore(window.localStorage),
+    refusalNotice,
   ),
+  pwa,
+  appAddress: window.location.origin,
   newImportSession: () =>
     new ImportSession({
       store,
