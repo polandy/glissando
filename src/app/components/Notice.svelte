@@ -1,14 +1,46 @@
 <script lang="ts">
   import type { Snippet } from "svelte";
+  import { getTranslator } from "../i18n/context";
   import Icon from "./Icon.svelte";
 
-  /** Lemon for a warning, coral for an error; it stays where its cause is (dev-docs/APP.md). */
-  let { tone, children }: { tone: "warn" | "error"; children: Snippet } = $props();
+  /**
+   * Lemon for a warning, coral for an error; it stays where its cause is (dev-docs/APP.md).
+   * `actions` are buttons below the text; `onDismiss` adds a ✕.
+   */
+  let {
+    tone,
+    children,
+    actions,
+    onDismiss,
+  }: {
+    tone: "warn" | "error";
+    children: Snippet;
+    actions?: Snippet | undefined;
+    onDismiss?: (() => void) | undefined;
+  } = $props();
+
+  const { t } = getTranslator();
 </script>
 
 <div class="notice {tone}" role={tone === "error" ? "alert" : "status"}>
   <span class="icon"><Icon name={tone === "error" ? "alert" : "info"} /></span>
-  <div>{@render children()}</div>
+  <div class="body">
+    <div class="text">{@render children()}</div>
+    {#if actions}
+      <div class="actions">{@render actions()}</div>
+    {/if}
+  </div>
+  {#if onDismiss}
+    <button
+      class="icon-btn dismiss"
+      type="button"
+      title={t("common.dismiss")}
+      aria-label={t("common.dismiss")}
+      onclick={onDismiss}
+    >
+      <Icon name="close" />
+    </button>
+  {/if}
 </div>
 
 <style>
@@ -43,8 +75,23 @@
   .error .icon {
     color: var(--gl-coral);
   }
-  /* A way out inside the notice reads as a link. */
-  .notice :global(button) {
+  .body {
+    flex: 1;
+    display: grid;
+    gap: 10px;
+    min-width: 0;
+  }
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .dismiss {
+    flex: none;
+    margin: -6px -8px -6px 0;
+  }
+  /* A way out inside the text reads as a link. */
+  .text :global(button) {
     padding: 0;
     border: 0;
     background: transparent;

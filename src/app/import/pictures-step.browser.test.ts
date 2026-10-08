@@ -15,6 +15,13 @@ afterEach(() => {
   unmounts = [];
 });
 
+const noFileOpening = {
+  onOpenFile: () => undefined,
+  notice: null,
+  onDismissNotice: () => undefined,
+  onReload: () => undefined,
+};
+
 /** A session whose import stores "a.jpg" and fails unexpectedly on any other file. */
 function failingSession(): ImportSession {
   let nextId = 1;
@@ -50,6 +57,7 @@ describe("PicturesStep after a failed import", () => {
       onLeave: () => undefined,
       onNext: () => undefined,
       onDiscard: () => discards.push("discard"),
+      ...noFileOpening,
     });
     unmounts.push(step.destroy);
 
@@ -73,5 +81,31 @@ describe("PicturesStep after a failed import", () => {
     );
     startOver?.click();
     expect(discards).toEqual(["discard"]);
+  });
+});
+
+describe("PicturesStep and .glissando files", () => {
+  function mountStep(onOpenFile: (file: File) => void, session = failingSession()) {
+    const step = mountWithTranslator(PicturesStep, {
+      session,
+      loadThumbnail: () => Promise.resolve(new Blob()),
+      onError: () => undefined,
+      onLeave: () => undefined,
+      onNext: () => undefined,
+      onDiscard: () => undefined,
+      ...noFileOpening,
+      onOpenFile,
+    });
+    unmounts.push(step.destroy);
+    return step.target;
+  }
+
+  it("offers to open a slideshow from another device below the drop zone", () => {
+    const target = mountStep(() => undefined);
+
+    expect(target.textContent).toContain("Diashow von einem anderen Gerät?");
+    expect([...target.querySelectorAll("button")].map((b) => b.textContent.trim())).toContain(
+      "Datei öffnen",
+    );
   });
 });

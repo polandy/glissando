@@ -51,6 +51,9 @@ export function mountScreen(
     onMove: (pictureId: string, toIndex: number) => calls.moved.push([pictureId, toIndex]),
     onRename: (typed: string) => calls.renamed.push(typed),
     onDelete: () => (calls.deletes += 1),
+    exportState: { kind: "idle", sizeBytes: null },
+    onExport: () => {},
+    onMenuOpened: () => {},
     mousePointer,
     saving,
   });

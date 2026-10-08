@@ -8,6 +8,8 @@
     type StoredSlideshow,
   } from "../../library/stored-slideshow";
   import { SlideshowEditor } from "../editing/slideshow-editor";
+  import type { ExportProgress } from "../glissando-file/export-job";
+  import { exportMenuState } from "../glissando-file/export-menu";
   import { getTranslator } from "../i18n/context";
   import { slideshowDetails } from "../library-views";
   import { browserObjectUrls, ObjectUrls } from "../media/object-urls";
@@ -24,6 +26,8 @@
     newId,
     now,
     slideshowId,
+    exportProgress,
+    onExport,
     playing,
     onBack,
     onPlay,
@@ -36,6 +40,9 @@
     newId: () => string;
     now: () => Date;
     slideshowId: string;
+    /** The export running in the background, of this slideshow or another. */
+    exportProgress: ExportProgress | null;
+    onExport: () => void;
     /** The player layer is open over the screen. */
     playing: boolean;
     /** Also taken when the slideshow is no longer on this device. */
@@ -53,6 +60,9 @@
   let stored = $state.raw<StoredSlideshow | null>(null);
   let editor: SlideshowEditor | null = null;
   let saving = $state(false);
+  /** Measured when the menu first opens: it reads every media record. */
+  let exportBytes = $state<number | null>(null);
+  let measuring = false;
   const mousePointer = new MediaQuery(MOUSE_POINTER_QUERY);
   // The store is fixed for the screen's lifetime.
   // svelte-ignore state_referenced_locally
@@ -108,6 +118,18 @@
     });
   }
 
+  function measureExport(): void {
+    if (measuring || stored === null) {
+      return;
+    }
+    measuring = true;
+    store.mediaBytes(stored).then((bytes) => {
+      if (!left.signal.aborted) {
+        exportBytes = bytes;
+      }
+    }, onError);
+  }
+
   function deleteSlideshow(): void {
     deleteShownSlideshow(store, slideshowId, editor).then(onDeleted, onError);
   }
@@ -127,6 +149,9 @@
     onMove={(pictureId, toIndex) => editor?.move(pictureId, toIndex)}
     onRename={(typed) => editor?.rename(typed)}
     onDelete={deleteSlideshow}
+    exportState={exportMenuState(exportProgress, slideshowId, exportBytes)}
+    {onExport}
+    onMenuOpened={measureExport}
     mousePointer={mousePointer.current}
     {saving}
   />

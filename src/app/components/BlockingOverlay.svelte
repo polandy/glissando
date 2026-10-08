@@ -1,13 +1,55 @@
 <script lang="ts">
-  /** Only while the next screen cannot exist without the result; title and line are required. */
-  let { title, detail }: { title: string; detail: string } = $props();
+  import { getTranslator } from "../i18n/context";
+
+  /**
+   * Only while the next screen cannot exist without the result; title and line are required.
+   * With `progress` (0 to 1) a bar replaces the spinner, `note` names what is being worked on
+   * and `onCancel` offers Cancel.
+   */
+  let {
+    title,
+    detail,
+    progress,
+    note,
+    onCancel,
+  }: {
+    title: string;
+    detail: string;
+    progress?: number | undefined;
+    note?: string | undefined;
+    onCancel?: (() => void) | undefined;
+  } = $props();
+
+  const PERCENT = 100;
+  const { t } = getTranslator();
 </script>
 
 <div class="overlay" role="alertdialog" aria-modal="true" aria-busy="true" aria-label={title}>
-  <div class="box">
-    <div class="ring spinner" aria-hidden="true"></div>
+  <div class="box" class:measured={progress !== undefined}>
+    {#if progress === undefined}
+      <div class="ring spinner" aria-hidden="true"></div>
+    {/if}
     <h3>{title}</h3>
     <small>{detail}</small>
+    {#if progress !== undefined}
+      <div
+        class="meter"
+        role="progressbar"
+        aria-valuemin="0"
+        aria-valuemax={PERCENT}
+        aria-valuenow={Math.round(progress * PERCENT)}
+      >
+        <i style:width="{progress * PERCENT}%"></i>
+      </div>
+    {/if}
+    {#if note !== undefined || onCancel}
+      <div class="row">
+        <span class="note mono">{note ?? ""}</span>
+        {#if onCancel}
+          <button class="btn" type="button" onclick={onCancel}>{t("common.cancel")}</button>
+        {/if}
+      </div>
+    {/if}
   </div>
 </div>
 
@@ -36,6 +78,39 @@
     box-shadow: var(--gl-shadow);
     text-align: center;
   }
+  .measured {
+    justify-items: stretch;
+    gap: 10px;
+    text-align: left;
+  }
+  .meter {
+    height: 6px;
+    overflow: hidden;
+    border-radius: 3px;
+    background: var(--gl-hover);
+  }
+  .meter i {
+    display: block;
+    height: 100%;
+    border-radius: 3px;
+    background: var(--gl-mint);
+    transition: width 0.3s;
+  }
+  .row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 4px;
+  }
+  .note {
+    min-width: 0;
+    overflow: hidden;
+    color: var(--gl-muted);
+    font-size: var(--gl-size-meta);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
   .spinner {
     width: 36px;
     height: 36px;
@@ -59,8 +134,10 @@
     }
   }
   @media (prefers-reduced-motion: reduce) {
-    .overlay {
+    .overlay,
+    .meter i {
       animation: none;
+      transition: none;
     }
   }
 </style>

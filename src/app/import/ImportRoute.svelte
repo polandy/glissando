@@ -5,6 +5,7 @@
   import { getTranslator } from "../i18n/context";
   import type { ImportStep } from "../navigation/route";
   import MusicStep from "./MusicStep.svelte";
+  import type { OpenNotice } from "../glissando-file/open-flow";
   import PicturesStep from "./PicturesStep.svelte";
   import type { ImportSession } from "./import-session";
   import { hasSelection } from "./import-view";
@@ -19,6 +20,10 @@
     onBack,
     onDiscard,
     onCreated,
+    onOpenFile,
+    notice,
+    onDismissNotice,
+    onReload,
   }: {
     step: ImportStep;
     session: ImportSession;
@@ -31,6 +36,10 @@
     /** Throws the selection away; `leave` also leaves the wizard. */
     onDiscard: (leave: boolean) => void;
     onCreated: (slideshow: StoredSlideshow) => void;
+    onOpenFile: (file: File) => void;
+    notice: OpenNotice | null;
+    onDismissNotice: () => void;
+    onReload: () => void;
   } = $props();
 
   const translator = getTranslator();
@@ -64,6 +73,10 @@
     onLeave={leave}
     onNext={onToMusic}
     onDiscard={() => onDiscard(false)}
+    {onOpenFile}
+    {notice}
+    {onDismissNotice}
+    {onReload}
   />
 {:else}
   <MusicStep {session} {loadThumbnail} {onBack} onCreate={create} {onError} {onMusicUnreadable} />

@@ -2,6 +2,7 @@
   import { onDestroy, onMount } from "svelte";
   import type { LibraryStore } from "../../library/stored-slideshow";
   import { browserObjectUrls, ObjectUrls } from "../media/object-urls";
+  import type { OpenNotice } from "../glissando-file/open-flow";
   import StartScreen from "../screens/StartScreen.svelte";
   import type { SlideshowSummary } from "../screens/view-models";
   import StartLogo from "../start/StartLogo.svelte";
@@ -14,6 +15,10 @@
     onCreate,
     onOpen,
     onSettings,
+    onOpenFile,
+    notice,
+    onDismissNotice,
+    onReload,
   }: {
     store: LibraryStore;
     playStartAnimation: boolean;
@@ -21,6 +26,10 @@
     onCreate: () => void;
     onOpen: (slideshowId: string) => void;
     onSettings: () => void;
+    onOpenFile: (file: File) => void;
+    notice: OpenNotice | null;
+    onDismissNotice: () => void;
+    onReload: () => void;
   } = $props();
 
   let slideshows = $state.raw<readonly SlideshowSummary[] | null>(null);
@@ -59,6 +68,10 @@
     {onCreate}
     {onOpen}
     {onSettings}
+    {onOpenFile}
+    {notice}
+    {onDismissNotice}
+    {onReload}
     logo={slideshows.length === 0 || playStartAnimation ? startLogo : undefined}
   />
 {/if}
