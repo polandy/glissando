@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { flushSync } from "svelte";
   import Dialog from "../components/Dialog.svelte";
   import Header from "../components/Header.svelte";
   import Icon from "../components/Icon.svelte";
@@ -60,6 +61,16 @@
     }
   }
 
+  let moreMenu = $state<MoreMenu>();
+
+  /** Keep or Esc: focus goes back to the ⋯ button the dialog was opened from. */
+  function keepSlideshow(): void {
+    confirmingDelete = false;
+    // The modal dialog must be gone first: until then the page behind it is inert.
+    flushSync();
+    moreMenu?.focus();
+  }
+
   function deleteConfirmed(): void {
     confirmingDelete = false;
     onDelete();
@@ -69,7 +80,7 @@
 <div class="screen" class:selecting={selectedIndex >= 0} aria-busy={saving}>
   <Header crumbs={[t("start.library"), slideshow.title]} {onBack}>
     {#snippet actions()}
-      <MoreMenu onDelete={() => (confirmingDelete = true)} />
+      <MoreMenu bind:this={moreMenu} onDelete={() => (confirmingDelete = true)} />
     {/snippet}
   </Header>
   <main class="content">
@@ -129,10 +140,10 @@
     title={t("slideshow.deleteTitle", { title: slideshow.title })}
     message={t("slideshow.deleteText", { count: slideshow.pictures.length })}
     actions={[
-      { label: t("slideshow.keep"), onSelect: () => (confirmingDelete = false) },
+      { label: t("slideshow.keep"), onSelect: keepSlideshow },
       { label: t("slideshow.deleteConfirm"), tone: "danger", onSelect: deleteConfirmed },
     ]}
-    onCancel={() => (confirmingDelete = false)}
+    onCancel={keepSlideshow}
   />
 {/if}
 

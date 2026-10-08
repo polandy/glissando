@@ -11,6 +11,11 @@
   let open = $state(false);
   let toggle = $state<HTMLButtonElement>();
 
+  /** Back to the ⋯ button, e.g. once the dialog an item opened is answered. */
+  export function focus(): void {
+    toggle?.focus();
+  }
+
   function focusFirstItem(menu: HTMLElement): void {
     menu.querySelector<HTMLElement>('[role="menuitem"]')?.focus();
   }

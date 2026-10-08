@@ -26,18 +26,34 @@
 
   const { t } = getTranslator();
   const lastPicture = $derived(count < 2);
+  const first = $derived(index === 0);
+  const last = $derived(index === count - 1);
+
+  function earlier(): void {
+    if (!first) {
+      onEarlier();
+    }
+  }
+
+  function later(): void {
+    if (!last) {
+      onLater();
+    }
+  }
 </script>
 
 <div class="dock" use:keepToastsClear>
   <div class="bar" role="toolbar" aria-label={t("slideshow.selection")}>
-    <span class="count mono">
+    <!-- Announced on every move; on a narrow screen hidden from sight, not from screen readers. -->
+    <span class="count mono" aria-live="polite">
       {t("slideshow.selectionCount", { number: index + 1, total: count })}
     </span>
     <span class="separator" aria-hidden="true"></span>
-    <button class="btn" type="button" disabled={index === 0} onclick={onEarlier}>
+    <!-- At the ends Earlier and Later look off but keep their place in the tab order. -->
+    <button class="btn" type="button" aria-disabled={first} onclick={earlier}>
       <Icon name="chevronLeft" /><span>{t("slideshow.earlier")}</span>
     </button>
-    <button class="btn" type="button" disabled={index === count - 1} onclick={onLater}>
+    <button class="btn" type="button" aria-disabled={last} onclick={later}>
       <span>{t("slideshow.later")}</span><Icon name="chevronRight" />
     </button>
     <!-- The last picture stays: Remove looks off but still answers, saying why. -->
@@ -119,7 +135,14 @@
       padding: 0 9px;
       font-size: var(--gl-size-label);
     }
-    .count,
+    .count {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      overflow: hidden;
+      clip-path: inset(50%);
+    }
     .separator {
       display: none;
     }
