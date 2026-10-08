@@ -17,7 +17,10 @@ I/O, no subject detection.
 - **Ken Burns**: zoom alternates in/out by slide index between `MIN_KEN_BURNS_ZOOM` and 1.2; a
   gentle horizontal pan alternates direction with it. A portrait picture's centre is raised
   toward where faces usually sit; a landscape picture's centre stays in the middle. Easing is
-  always `linear`.
+  always `linear`. A picture with an own motion (set in the picture editor, stored as
+  `StoredPicture.kenBurns`, ADR-0006) plays that one instead, wherever it sits, with the same
+  easing (`pictureKenBurns`): the automatic motion follows the position, an own one stays with
+  its picture.
 - **Transitions**: effects cycle through `TRANSITION_EFFECTS` in order (so none repeats back to
   back); the last slide has none (ADR-0002). A transition's duration is 30% of its slide's
   duration, capped at 1000 ms.

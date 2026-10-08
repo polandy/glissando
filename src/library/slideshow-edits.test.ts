@@ -6,7 +6,9 @@ import {
   removePicture,
   renameSlideshow,
   restorePictures,
+  setPictureKenBurns,
 } from "./slideshow-edits";
+import { InvalidOwnKenBurnsError } from "./own-ken-burns";
 import type { StoredPicture, StoredSlideshow } from "./stored-slideshow";
 
 function picture(id: string): StoredPicture {
@@ -103,5 +105,54 @@ describe("renameSlideshow", () => {
 
     expect(renamed.title).toHaveLength(MAX_TITLE_LENGTH);
     expect(MAX_TITLE_LENGTH).toBe(80);
+  });
+});
+
+const motion = {
+  from: { zoom: 1, centerX: 0.4, centerY: 0.5 },
+  to: { zoom: 2, centerX: 0.6, centerY: 0.5 },
+};
+
+describe("setPictureKenBurns", () => {
+  it("gives the picture its own motion and leaves the others automatic", () => {
+    const edited = setPictureKenBurns(slideshow(["a", "b"]), "b", motion);
+
+    expect(edited.pictures[1]?.kenBurns).toEqual(motion);
+    expect(edited.pictures[0]).toEqual(picture("a"));
+  });
+
+  it("without a motion makes the picture automatic again: the field is gone", () => {
+    const own = setPictureKenBurns(slideshow(["a"]), "a", motion);
+
+    const automatic = setPictureKenBurns(own, "a", undefined);
+
+    expect(automatic.pictures[0]?.id).toBe("a");
+    expect(automatic.pictures[0]).not.toHaveProperty("kenBurns");
+  });
+
+  it("refuses a motion outside the zoom range, so no invalid record is stored", () => {
+    const tooFar = { ...motion, to: { zoom: 4, centerX: 0.5, centerY: 0.5 } };
+
+    expect(() => setPictureKenBurns(slideshow(["a"]), "a", tooFar)).toThrow(
+      InvalidOwnKenBurnsError,
+    );
+  });
+
+  it("keeps the own motion with its picture when the picture moves", () => {
+    const own = setPictureKenBurns(slideshow(["a", "b", "c"]), "a", motion);
+
+    const moved = movePicture(own, "a", 2);
+
+    expect(ids(moved)).toEqual(["b", "c", "a"]);
+    expect(moved.pictures[2]?.kenBurns).toEqual(motion);
+  });
+
+  it("keeps the own motion through a removal and its undo", () => {
+    const own = setPictureKenBurns(slideshow(["a", "b"]), "b", motion);
+    const { slideshow: without, removed } = removePicture(own, "b");
+
+    const restored = restorePictures(without, [removed]);
+
+    expect(restored.pictures[1]?.kenBurns).toEqual(motion);
   });
 });

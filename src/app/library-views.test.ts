@@ -54,13 +54,28 @@ describe("slideshowDetails", () => {
       durationSeconds: 8,
       musicTitle: null,
       ownOrder: false,
+      ownMotionCount: 0,
       capturedFrom: "2025-07-01T10:00:00Z",
       capturedTo: "2025-07-02T10:00:00Z",
       pictures: [
-        { id: "p1", thumbnailUrl: "url:p1", capturedAt: "2025-07-01T10:00:00Z" },
-        { id: "p2", thumbnailUrl: "url:p2", capturedAt: "2025-07-02T10:00:00Z" },
+        { id: "p1", thumbnailUrl: "url:p1", capturedAt: "2025-07-01T10:00:00Z", ownMotion: false },
+        { id: "p2", thumbnailUrl: "url:p2", capturedAt: "2025-07-02T10:00:00Z", ownMotion: false },
       ],
     });
+  });
+
+  it("marks the pictures with an own motion and counts them", () => {
+    const motion = {
+      from: { zoom: 1, centerX: 0.5, centerY: 0.5 },
+      to: { zoom: 2, centerX: 0.5, centerY: 0.5 },
+    };
+    const [first, second] = stored.pictures;
+    const edited = { ...stored, pictures: [first, { ...second, kenBurns: motion }] };
+
+    const details = slideshowDetails(edited as StoredSlideshow, urlOf);
+
+    expect(details.pictures.map((picture) => picture.ownMotion)).toEqual([false, true]);
+    expect(details.ownMotionCount).toBe(1);
   });
 
   it("names the music by its file name", () => {

@@ -69,6 +69,10 @@
   --gl-photo-play-bg: rgb(255 255 255 / 0.92);
   --gl-photo-play-ink: #221d33;
   --gl-photo-play-shadow: 0 6px 24px rgb(0 0 0 / 0.25);
+  /* The picture editor: a dark well around the picture, frames drawn in white. */
+  --gl-editor-well: #1d1928;
+  --gl-photo-veil: rgb(0 0 0 / 0.46);
+  --gl-photo-dashed: rgb(255 255 255 / 0.75);
 
   /* The player is black in both themes: pictures look best on it. */
   --gl-player-bg: #000000;

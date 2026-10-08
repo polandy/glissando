@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { checkGlissandoFile } from "./check-glissando-file";
+import { GLISSANDO_FORMAT_VERSION } from "./glissando-manifest";
 import { entryData, readZipDirectory } from "./stored-zip";
 import { exportedFile, withBytesReplaced, zipWith } from "./testing/glissando-fixtures";
 
@@ -51,7 +52,10 @@ describe("checkGlissandoFile", () => {
 
   it("refuses a file from a newer format version as newer", async () => {
     const file = await zipWith({
-      "glissando.json": await manifestText((m) => ({ ...m, formatVersion: 2 })),
+      "glissando.json": await manifestText((m) => ({
+        ...m,
+        formatVersion: GLISSANDO_FORMAT_VERSION + 1,
+      })),
     });
     expect((await checkGlissandoFile(file, plentyOfSpace)).kind).toBe("newer");
   });

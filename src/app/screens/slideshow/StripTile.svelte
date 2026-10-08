@@ -13,6 +13,7 @@
     drop,
     removable,
     onPick,
+    onOpen,
     onKeydown,
     onRemove,
     onDragStart,
@@ -32,6 +33,8 @@
     /** False for the last picture, which stays. */
     removable: boolean;
     onPick: () => void;
+    /** A double-click with a mouse: opens the picture editor. */
+    onOpen: () => void;
     onKeydown: (event: KeyboardEvent) => void;
     onRemove: () => void;
     onDragStart: (event: DragEvent) => void;
@@ -62,14 +65,27 @@
     data-picture-id={picture.id}
     aria-pressed={selected}
     onclick={onPick}
+    ondblclick={() => {
+      // A double tap on a touch screen is two taps: it selects and deselects.
+      if (draggable) {
+        onOpen();
+      }
+    }}
     onkeydown={onKeydown}
   >
     <img
       src={picture.thumbnailUrl}
-      alt={t("slideshow.pictureLabel", { number, date })}
+      alt={picture.ownMotion
+        ? t("slideshow.pictureLabelOwnMotion", { number, date })
+        : t("slideshow.pictureLabel", { number, date })}
       draggable="false"
     />
     <span class="number mono" aria-hidden="true">{number}</span>
+    {#if picture.ownMotion}
+      <span class="badge" aria-hidden="true"
+        ><Icon name="frame" />{t("slideshow.ownMotionBadge")}</span
+      >
+    {/if}
     <span class="date mono" aria-hidden="true">{date}</span>
   </button>
   <span class="mark grab" aria-hidden="true"><Icon name="grip" /></span>
@@ -155,6 +171,21 @@
     padding: 1px 6px;
     border-radius: var(--gl-radius-small);
     background: var(--gl-photo-badge);
+  }
+  .badge {
+    position: absolute;
+    right: 6px;
+    bottom: 22px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 1px 6px;
+    border-radius: var(--gl-radius-small);
+    background: var(--gl-photo-badge);
+    color: var(--gl-on-photo);
+    font-size: var(--gl-size-caption);
+    font-weight: var(--gl-weight-semibold);
+    --gl-icon-size: var(--gl-size-caption);
   }
   .date {
     left: 0;

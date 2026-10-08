@@ -80,6 +80,22 @@ describe("formatters", () => {
     expect(createTranslator(language).formatSeconds(seconds)).toBe(expected);
   });
 
+  it.each([
+    ["de", 1.2, "1,20×"],
+    ["en", 2.345, "2.35×"],
+    ["de", 3, "3,00×"],
+  ] as const)("in %s formats the zoom %d as %s", (language, zoom, expected) => {
+    expect(createTranslator(language).formatZoom(zoom)).toBe(expected);
+  });
+
+  it.each([
+    ["de", 2.46, "0:02,4"],
+    ["en", 2.46, "0:02.4"],
+    ["de", 65, "1:05,0"],
+  ] as const)("in %s formats %d seconds to the tenth as %s", (language, seconds, expected) => {
+    expect(createTranslator(language).formatTenths(seconds)).toBe(expected);
+  });
+
   it("formats a capture date as dd.mm.yyyy in UTC", () => {
     expect(createTranslator("de").formatDate("2025-07-12T23:30:00Z")).toBe("12.07.2025");
   });

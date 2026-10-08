@@ -68,6 +68,8 @@ export const ICONS = {
     ],
   },
   pencil: { shapes: [path("M4 20h4L19 9l-4-4L4 16z")] },
+  frame: { shapes: [rect(3, 6, 13, 9, 1), rect(8, 9, 13, 9, 1)] },
+  swap: { shapes: [path("M7 7h11l-3-3M17 17H6l3 3")] },
   trash: {
     shapes: [
       path(

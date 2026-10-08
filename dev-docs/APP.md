@@ -32,8 +32,9 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
   order, each with its order number and capture date, under "Sorted by capture date" or, once
   the user reordered, "Own order" (with "drag or tap", narrow: "tap to reorder"). Beside it an
   info panel: title with a ✎ button, date range (earliest to latest capture), "Play" and the
-  facts — pictures, duration, music, seconds per picture, Ken Burns "automatic", transitions
-  "alternating". The info panel and the player always use the edited picture list.
+  facts — pictures, duration, music, seconds per picture, Ken Burns "automatic" (with own
+  motions "automatic, 2 own"), transitions "alternating". A tile whose picture has an own motion
+  carries a small frame badge "own" (its label adds "own motion"). The info panel and the player always use the edited picture list.
 - **Editing the slideshow** (`editing/slideshow-editor.ts`; pure operations in
   `src/library/slideshow-edits.ts`): every edit applies at once and is stored; the screen is
   `aria-busy` from an edit until every edit so far is stored.
@@ -51,13 +52,14 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
   - **Select and reorder**: a tap on a tile selects it (outlined in the accent; another tap
     deselects) and opens the selection bar at the bottom — "Picture 3 of 12" (a polite live
     region, so every move is announced; visually hidden up to 720 px, where the bar spans the
-    width), "◀ Earlier", "Later ▶", "Remove", "Done". At the ends Earlier or Later looks disabled
+    width), "◀ Earlier", "Later ▶", "✎ Edit" (opens the picture editor, below), "Remove", "Done". At the ends Earlier or Later looks disabled
     but stays focusable (`aria-disabled`) and does nothing. While the
     bar shows, the content keeps room below it for the bar, and the selected tile scrolls clear
     of it. The bar's buttons highlight on hover only where the pointer hovers. Mouse: drag a
     tile onto another (tiles are draggable only with a mouse, so a touch never starts a drag); a dashed lemon line before or after the target shows where it
     lands. Keyboard: arrows move the focus (and a selection) through the grid, Shift+arrows move
-    the tile (up and down by a row), Enter or Space selects, Esc deselects.
+    the tile (up and down by a row), Enter or Space selects, Esc deselects. With a mouse, a
+    double-click on a tile opens the picture editor too.
   - **Rename**: ✎ turns the title into a field (at most 80 characters): Enter or leaving it
     saves, Esc cancels, an empty title falls back to the automatic one from the capture dates.
   - **Delete**: "Delete slideshow …" asks in a dialog, "Delete “title”?", what goes (the
@@ -67,6 +69,39 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
     start and shows the toast "Slideshow deleted" there — also when another tab deleted it
     first. An edit to a slideshow deleted elsewhere goes back to start with the toast "This
     slideshow no longer exists."
+- **Picture editor** (`picture-editor/`, route `routes/PictureEditorRoute.svelte`): a picture's
+  own Ken Burns motion (mockup: https://polandy.github.io/glissando-assets/mockups/editor/).
+  Breadcrumb "Library / title / Picture 3"; header right ‹ previous picture, "3 / 8" (mono, hidden
+  up to 720 px), › next picture (looking disabled at the ends). Back (arrow or browser) returns to
+  the slideshow screen with that picture selected. Desktop: a dark well with the whole picture
+  left, a 340 px panel right; up to 720 px the well spans the width on top (as high as the
+  picture, at most 440 px), the panel below.
+  - **Frames**: two 16:9 frames on the picture, "Start" and "End" — exactly what the player
+    crops for a 16:9 screen (`frame-geometry.ts` over the player's `cropRect`). The active one is
+    solid white with four corner handles and veils the rest of the picture; its label chip sits
+    top left (Start) or bottom right (End). The other one is dashed and not draggable; tapping
+    its chip, or the panel's "Start | End" toggle, makes it active. A dashed line joins the two
+    centres; while the preview plays, a peach outline runs over the picture with it.
+  - **Changing a frame**: drag inside it moves it, a corner resizes it about the opposite corner
+    (shape kept), the wheel and two fingers zoom; on the focused frame the arrow keys move it by
+    1 % (Shift 5 %), + and − zoom by 0.05. Zoom runs from 1 (the whole picture as far as it fills
+    a 16:9 screen) to 3, and the frame never leaves the picture. A drag is stored when it ends,
+    every other change at once.
+  - **Panel**: "Picture 3 of 8", file name · capture date; "Ken Burns" with the state
+    "Automatic" or "Own motion" (accent-tinted); the toggle, each half with "Zoom 1.20×"; up to
+    720 px the hint "Drag the frame to move it; corners or two fingers zoom." (wider, under the
+    well: "Drag inside the frame to move it, drag a corner to zoom · mouse wheel zooms · arrow
+    keys, + and −"). A 16:9 preview plays the motion over the slide's real duration and loops
+    after a short hold, rendered with the player's own crop and transform; play/pause, a
+    progress track and "0:02.4 / 0:05.0". Changing a frame pauses it on that frame (start or
+    end); play then starts over. With reduced motion it starts paused.
+  - **Automatic and own**: until changed, the frames show the automatic motion. The first change
+    makes it the picture's own (the automatic one, changed), stored at once like every edit.
+    "Swap start and end" reverses the motion (an automatic one becomes own). "Back to automatic"
+    (looking disabled, titled "The motion is already automatic", while it is) drops the own
+    motion without asking; the toast "Motion back to automatic" with "Undo" brings it back. An own
+    motion stays with its picture through reorder, removal and undo; the automatic one follows
+    the position.
 - **Export** (`glissando-file/export-job.ts`): runs in the background, one at a time; the app
   stays usable, also on other screens. While it runs, the menu item is `aria-disabled` and reads
   "Exporting … 34 %" (for another slideshow: "Export", subtitle "Once the running export is
@@ -195,8 +230,10 @@ its update rule: ADR-0005. Web app manifest and icons in `public/`; the PNG icon
 
 ## Navigation
 
-Routes: `start`, `settings`, `slideshow(id)`, `import(pictures | music)`, `player(slideshowId)` —
-three levels; the player is a modal layer over its slideshow, the settings sheet one over start. `navigation/navigator.ts`:
+Routes: `start`, `settings`, `slideshow(id)`, `import(pictures | music)`, `player(slideshowId)`,
+`picture(slideshowId, pictureId)` — three levels; the player is a modal layer over its
+slideshow, the settings sheet one over start, the picture editor a screen below its slideshow
+(‹ and › replace its history entry with the neighbour's, so back still leads to the slideshow). `navigation/navigator.ts`:
 
 - Every screen is one history entry; the back arrow calls history back, so it and the browser
   or phone back gesture do the same. `open(route)` pushes from the route's parent, or first goes

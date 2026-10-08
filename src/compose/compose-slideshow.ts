@@ -1,7 +1,7 @@
 import type { StoredSlideshow } from "../library/stored-slideshow";
 import { SLIDESHOW_FORMAT_VERSION, type Slide, type Slideshow } from "../player/slideshow";
-import { autoKenBurns } from "./auto-ken-burns";
 import { autoTransition } from "./auto-transition";
+import { pictureKenBurns } from "./picture-ken-burns";
 import { slideDurationsMs } from "./slide-durations-ms";
 
 /** Resolves a stored picture or music id to the URL the player loads it from. */
@@ -10,7 +10,10 @@ export interface SlideshowSources {
   music(id: string): string;
 }
 
-/** Composes the playable slideshow JSON from a stored slideshow, applying the automatic choices. */
+/**
+ * Composes the playable slideshow JSON from a stored slideshow, applying the automatic choices
+ * wherever the user made none of their own.
+ */
 export function composeSlideshow(stored: StoredSlideshow, sources: SlideshowSources): Slideshow {
   const slideCount = stored.pictures.length;
   const durationsMs = slideDurationsMs(
@@ -25,7 +28,7 @@ export function composeSlideshow(stored: StoredSlideshow, sources: SlideshowSour
     const slide = {
       image: { src: sources.picture(picture.id), capturedAt: picture.capturedAt },
       durationMs,
-      kenBurns: autoKenBurns(index, picture),
+      kenBurns: pictureKenBurns(index, picture),
     };
     const transitionToNext = autoTransition(index, slideCount, durationMs);
     return transitionToNext === undefined ? slide : { ...slide, transitionToNext };

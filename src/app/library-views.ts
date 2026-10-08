@@ -50,12 +50,14 @@ export function slideshowDetails(
     durationSeconds: slideshowDurationMs(stored) / MILLISECONDS_PER_SECOND,
     musicTitle: stored.music?.fileName ?? null,
     ownOrder: stored.ownOrder === true,
+    ownMotionCount: stored.pictures.filter((picture) => picture.kenBurns !== undefined).length,
     capturedFrom: span.from,
     capturedTo: span.to,
     pictures: stored.pictures.map((picture) => ({
       id: picture.id,
       thumbnailUrl: thumbnailUrl(picture.id),
       capturedAt: picture.capturedAt,
+      ownMotion: picture.kenBurns !== undefined,
     })),
   };
 }

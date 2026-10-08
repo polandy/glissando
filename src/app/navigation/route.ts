@@ -1,6 +1,6 @@
 /**
- * The app's places. Three levels, never more: start → (settings | slideshow → (import steps |
- * player)). The player and the settings sheet are modal layers over their parent, yet each has a
+ * The app's places. Three levels, never more: start → (settings | import steps | slideshow →
+ * (picture editor | player)). The player and the settings sheet are modal layers over their parent, yet each has a
  * history entry so back closes it.
  */
 export const IMPORT_STEPS = ["pictures", "music"] as const;
@@ -11,7 +11,8 @@ export type Route =
   | { readonly screen: "settings" }
   | { readonly screen: "slideshow"; readonly slideshowId: string }
   | { readonly screen: "import"; readonly step: ImportStep }
-  | { readonly screen: "player"; readonly slideshowId: string };
+  | { readonly screen: "player"; readonly slideshowId: string }
+  | { readonly screen: "picture"; readonly slideshowId: string; readonly pictureId: string };
 
 export const START_ROUTE: Route = { screen: "start" };
 
@@ -26,6 +27,7 @@ export function parentOf(route: Route): Route | null {
     case "import":
       return route.step === "music" ? { screen: "import", step: "pictures" } : START_ROUTE;
     case "player":
+    case "picture":
       return { screen: "slideshow", slideshowId: route.slideshowId };
   }
 }
@@ -72,6 +74,12 @@ export function parseRoute(state: unknown): Route | null {
     case "player": {
       const slideshowId = state["slideshowId"];
       return isId(slideshowId) ? { screen: state["screen"], slideshowId } : null;
+    }
+    case "picture": {
+      const { slideshowId, pictureId } = state;
+      return isId(slideshowId) && isId(pictureId)
+        ? { screen: "picture", slideshowId, pictureId }
+        : null;
     }
     case "import": {
       const step = IMPORT_STEPS.find((known) => known === state["step"]);

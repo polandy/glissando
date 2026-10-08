@@ -1,0 +1,36 @@
+import type { Message } from "./messages";
+
+/** German copy of the picture editor; part of the German catalogue, which defines the keys. */
+export const deEditor = {
+  "units.zoom": "{zoom}×",
+  "slideshow.edit": "Bearbeiten",
+  "slideshow.ownMotionBadge": "eigen",
+  "slideshow.pictureLabelOwnMotion": "Bild {number}, aufgenommen am {date}, eigene Bewegung",
+  "slideshow.automaticWithOwn": "automatisch, {count} eigene",
+  "editor.crumb": "Bild {number}",
+  "editor.position": "Bild {number} von {count}",
+  "editor.counter": "{number} / {count}",
+  "editor.previous": "Vorheriges Bild",
+  "editor.next": "Nächstes Bild",
+  "editor.kenBurns": "Ken Burns",
+  "editor.automatic": "Automatisch",
+  "editor.own": "Eigene Bewegung",
+  "editor.frames": "Rahmen",
+  "editor.start": "Start",
+  "editor.end": "Ende",
+  "editor.zoom": "Zoom {zoom}",
+  "editor.startFrame": "Startrahmen, Zoom {zoom}",
+  "editor.endFrame": "Endrahmen, Zoom {zoom}",
+  "editor.editStartFrame": "Startrahmen bearbeiten",
+  "editor.editEndFrame": "Endrahmen bearbeiten",
+  "editor.playPreview": "Vorschau abspielen",
+  "editor.pausePreview": "Vorschau anhalten",
+  "editor.previewTime": "{current} / {total}",
+  "editor.swap": "Start und Ende tauschen",
+  "editor.reset": "Zurück auf automatisch",
+  "editor.alreadyAutomatic": "Die Bewegung ist schon automatisch",
+  "editor.motionAutomatic": "Bewegung wieder automatisch",
+  "editor.hintWide":
+    "Im Rahmen ziehen verschiebt, an den Ecken ziehen zoomt · Mausrad zoomt · Pfeiltasten, + und −",
+  "editor.hintNarrow": "Rahmen ziehen verschiebt, Ecken oder zwei Finger zoomen.",
+} as const satisfies Record<string, Message>;

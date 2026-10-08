@@ -1,8 +1,11 @@
+import { pictureKenBurns } from "../../compose";
+import type { OwnKenBurns } from "../../library/own-ken-burns";
 import {
   movePicture,
   removePicture,
   renameSlideshow,
   restorePictures,
+  setPictureKenBurns,
   type RemovedPicture,
 } from "../../library/slideshow-edits";
 import {
@@ -26,6 +29,8 @@ export interface SlideshowEditorPorts {
   readonly undoLabel: () => string;
   /** Why the last picture stays, and how to discard the whole slideshow instead. */
   readonly lastPictureText: () => string;
+  /** The undo toast's text after a picture's own motion was dropped. */
+  readonly motionAutomaticText: () => string;
   /** The title from the capture dates, which an emptied title falls back to. */
   readonly automaticTitle: (slideshow: StoredSlideshow) => string;
 }
@@ -116,6 +121,40 @@ export class SlideshowEditor {
     this.#apply(renameSlideshow(this.#slideshow, typed, automatic));
   }
 
+  /** The picture plays `kenBurns` from now on, wherever it moves. */
+  setKenBurns(pictureId: string, kenBurns: OwnKenBurns): void {
+    this.#apply(setPictureKenBurns(this.#slideshow, pictureId, kenBurns));
+  }
+
+  /** Drops the picture's own motion without asking; the toast's undo brings it back. */
+  resetKenBurns(pictureId: string): void {
+    const previous = this.#picture(pictureId).kenBurns;
+    if (previous === undefined) {
+      return;
+    }
+    this.#apply(setPictureKenBurns(this.#slideshow, pictureId, undefined));
+    this.#ports.toaster.show({
+      text: this.#ports.motionAutomaticText(),
+      tone: "info",
+      action: {
+        label: this.#ports.undoLabel(),
+        run: () => {
+          // A picture removed meanwhile has nothing to bring back.
+          if (this.#slideshow.pictures.some((picture) => picture.id === pictureId)) {
+            this.setKenBurns(pictureId, previous);
+          }
+        },
+      },
+    });
+  }
+
+  /** Reverses the picture's motion; an automatic one becomes the picture's own. */
+  swapKenBurns(pictureId: string): void {
+    const index = this.#slideshow.pictures.findIndex((picture) => picture.id === pictureId);
+    const { from, to } = pictureKenBurns(index, this.#picture(pictureId));
+    this.setKenBurns(pictureId, { from: to, to: from });
+  }
+
   /** Resolves once every edit made so far is stored (or reported as failed). */
   settled(): Promise<void> {
     return this.#saving;
@@ -124,6 +163,14 @@ export class SlideshowEditor {
   /** The screen closes: its undo toast would act on a slideshow no longer shown. */
   dispose(): void {
     this.#endBatch();
+  }
+
+  #picture(pictureId: string) {
+    const picture = this.#slideshow.pictures.find((candidate) => candidate.id === pictureId);
+    if (picture === undefined) {
+      throw new Error(`slideshow "${this.#slideshow.id}" holds no picture "${pictureId}"`);
+    }
+    return picture;
   }
 
   #undo(batch: RemovalBatch): void {

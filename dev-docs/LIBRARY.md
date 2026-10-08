@@ -59,7 +59,12 @@ Media is written while importing, the slideshow record last. Edits on the slides
 replace the record through `updateSlideshow`, which reads it in the same transaction and throws
 `SlideshowNotFoundError` when it is gone, so an edit (or an Undo) from a tab still showing a
 slideshow deleted elsewhere never brings it back; that tab goes back to start with the toast
-"This slideshow no longer exists." `ownOrder` marks pictures the user reordered. `mediaBytes`
+"This slideshow no longer exists." `ownOrder` marks pictures the user reordered. A picture's
+optional `kenBurns` (`{ from, to }`, two framings as in the player's JSON: zoom 1 to
+`MAX_OWN_KEN_BURNS_ZOOM` = 3, centre 0..1) is its own motion from the picture editor; absent, the
+motion is automatic (ADR-0006). `setPictureKenBurns` validates it before it is stored
+(`checkOwnKenBurns`, failing loud with the field and value); records without it need no
+migration. `mediaBytes`
 measures what a slideshow's pictures (both renditions) and music take, in one read-only
 transaction, for the export's size estimate. `deleteSlideshow` deletes the
 record and, in the same transaction, the media no other slideshow references.
@@ -94,16 +99,17 @@ entries are stored, not compressed, so any unzip tool opens it; no ZIP64, so it 
 
 | Entry                  | Content                                                                |
 | ---------------------- | ---------------------------------------------------------------------- |
-| `glissando.json`       | always first: `format` "glissando", `formatVersion` 1, the `slideshow` |
+| `glissando.json`       | always first: `format` "glissando", `formatVersion` 2, the `slideshow` |
 | `pictures/0001.jpg` …  | the display renditions in play order, as stored (numbered from 0001)   |
 | `thumbnails/0001.jpg`… | their thumbnails, as stored                                            |
 | `music/track.<ext>`    | the music, extension from its file name (none when it has none)        |
 
 `slideshow` is the stored record without device ids: `title`, `createdAt`, `secondsPerPicture`,
 `ownOrder` (only when true), `pictures` (`file`, `thumbnail`, `capturedAt`, `width`, `height`,
-`fileName`) and `music` (`file`, `fileName`, `durationMs`, `mimeType`). Picture types follow
+`fileName`, and `kenBurns` for a picture with an own motion) and `music` (`file`, `fileName`, `durationMs`, `mimeType`). Picture types follow
 the extension (`jpg`, `png`, `webp`). The manifest is read strictly: an unknown key or a value
-out of range makes the file damaged.
+out of range makes the file damaged. Version 2 added `kenBurns`; version 1 files (without it)
+are still read, and a version 1 file carrying it is damaged.
 
 - **Export** (`exportSlideshow`) reads the media from the store one file at a time and builds
   the container from their blobs; the file is named after the title, characters a file system

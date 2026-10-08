@@ -22,12 +22,14 @@ export function details(ids: readonly string[], overrides: Partial<SlideshowDeta
     durationSeconds: 60,
     musicTitle: null,
     ownOrder: false,
+    ownMotionCount: 0,
     capturedFrom: "2025-07-01T10:00:00Z",
     capturedTo: "2025-07-03T10:00:00Z",
     pictures: ids.map((id, index) => ({
       id,
       thumbnailUrl: PIXEL,
       capturedAt: `2025-07-0${index + 1}T10:00:00Z`,
+      ownMotion: false,
     })),
   };
   return { ...base, ...overrides };
@@ -41,6 +43,7 @@ export function mountScreen(
     removed: [] as string[],
     moved: [] as [string, number][],
     renamed: [] as string[],
+    edited: [] as string[],
     deletes: 0,
   };
   const mounted = mountWithTranslator(SlideshowScreen, {
@@ -50,6 +53,7 @@ export function mountScreen(
     onRemove: (pictureId: string) => calls.removed.push(pictureId),
     onMove: (pictureId: string, toIndex: number) => calls.moved.push([pictureId, toIndex]),
     onRename: (typed: string) => calls.renamed.push(typed),
+    onEdit: (pictureId: string) => calls.edited.push(pictureId),
     onDelete: () => (calls.deletes += 1),
     exportState: { kind: "idle", sizeBytes: null },
     onExport: () => {},

@@ -1,4 +1,7 @@
-import { MIN_KEN_BURNS_ZOOM, type KenBurns } from "../player/slideshow";
+import { MIN_KEN_BURNS_ZOOM, type Easing, type KenBurns } from "../player/slideshow";
+
+/** Every motion, automatic or the user's own, runs at an even pace. */
+export const KEN_BURNS_EASING: Easing = "linear";
 
 /** Largest zoom the automatic framing reaches; `MIN_KEN_BURNS_ZOOM` is the smallest. */
 const MAX_ZOOM = 1.2;
@@ -39,6 +42,6 @@ export function autoKenBurns(index: number, picture: { width: number; height: nu
       centerX: endCenterX,
       centerY,
     },
-    easing: "linear",
+    easing: KEN_BURNS_EASING,
   };
 }
