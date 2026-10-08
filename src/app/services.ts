@@ -1,4 +1,5 @@
 import type { LibraryStore } from "../library/stored-slideshow";
+import type { PwaStatus } from "../pwa/pwa-status";
 import type { ErrorReporter } from "./errors/error-reporter";
 import type { ImportSession } from "./import/import-session";
 import type { Navigator } from "./navigation/navigator";
@@ -14,6 +15,10 @@ export interface AppServices {
   readonly reportError: ErrorReporter;
   readonly settings: AppSettings;
   readonly persistencePrompt: PersistencePrompt;
+  /** Installing, offline use and updates (dev-docs/APP.md, Installing and offline). */
+  readonly pwa: PwaStatus;
+  /** The address the app was opened at, e.g. `http://192.168.1.20:4173`. */
+  readonly appAddress: string;
   newImportSession(): ImportSession;
   /** A new random id. */
   newId(): string;

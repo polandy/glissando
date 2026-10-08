@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onDestroy, onMount } from "svelte";
+  import { onDestroy, onMount, type Snippet } from "svelte";
   import type { LibraryStore } from "../../library/stored-slideshow";
   import { browserObjectUrls, ObjectUrls } from "../media/object-urls";
   import type { OpenNotice } from "../glissando-file/open-flow";
@@ -19,6 +19,7 @@
     notice,
     onDismissNotice,
     onReload,
+    statusBar,
   }: {
     store: LibraryStore;
     playStartAnimation: boolean;
@@ -30,6 +31,7 @@
     notice: OpenNotice | null;
     onDismissNotice: () => void;
     onReload: () => void;
+    statusBar: Snippet;
   } = $props();
 
   let slideshows = $state.raw<readonly SlideshowSummary[] | null>(null);
@@ -72,6 +74,7 @@
     {notice}
     {onDismissNotice}
     {onReload}
+    {statusBar}
     logo={slideshows.length === 0 || playStartAnimation ? startLogo : undefined}
   />
 {/if}

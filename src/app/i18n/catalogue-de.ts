@@ -28,7 +28,6 @@ export const de = {
   "start.library": "Bibliothek",
   "start.yourSlideshows": "Deine Diashows",
   "start.withMusic": "mit Musik",
-  "start.footer": "Offline · gespeichert auf diesem Gerät",
 
   "settings.open": "Einstellungen",
   "settings.title": "Einstellungen",
@@ -153,6 +152,57 @@ export const de = {
   "storage.persistRefusedTitle": "Glissando darf nichts dauerhaft speichern",
   "storage.persistRefusedText":
     "Der Browser hat dauerhaften Speicher abgelehnt. Deine Diashow funktioniert jetzt, kann aber nach einem Neustart fehlen.",
+
+  "pwa.status.offline": "Offline · gespeichert auf diesem Gerät",
+  "pwa.status.offlineNarrow": "Offline · auf diesem Gerät",
+  "pwa.status.insecure":
+    "Nur online · über diese Adresse kein Offline-Modus und keine Installation",
+  "pwa.status.insecureNarrow": "Nur online · ohne Offline-Modus",
+  "pwa.status.storageRefused": "Offline · auf diesem Gerät, aber nicht dauerhaft gespeichert",
+  "pwa.status.storageRefusedNarrow": "Offline · nicht dauerhaft gespeichert",
+  "pwa.status.installed": "Installiert · offline bereit · gespeichert auf diesem Gerät",
+  "pwa.status.installedNarrow": "Installiert · offline bereit",
+  "pwa.why": "Warum?",
+  "pwa.installApp": "App installieren",
+  "pwa.installAsApp": "Als App installieren",
+  "pwa.reload": "Neue Version · Neu laden",
+  "pwa.hideHint": "Hinweis ausblenden",
+  "pwa.installedKeepsMore": "Als installierte App behält der Browser deine Diashows eher.",
+  "pwa.whyTitle": "Warum nur online?",
+  "pwa.whyInsecure":
+    "Browser erlauben Offline-Betrieb und Installation nur über eine sichere Verbindung. Die Adresse {address} ist unverschlüsselt.",
+  "pwa.whyStored":
+    "Deine Diashows bleiben auf diesem Gerät gespeichert. Glissando selbst braucht aber zum Öffnen das Netz.",
+  "pwa.whyRemedy":
+    "Abhilfe: Öffne Glissando über eine https://-Adresse oder auf dem Gerät selbst über localhost. Wer Glissando im Heimnetz betreibt, richtet dafür HTTPS ein, zum Beispiel mit Caddy oder Tailscale.",
+  "pwa.guideTitle": "Glissando als App",
+  "pwa.ios.step1": "Tippe unten auf {key}",
+  "pwa.ios.step2": "Wähle {key}",
+  "pwa.ios.step3": "Tippe auf {key}",
+  "pwa.ios.after": "Danach startest du Glissando vom Home-Bildschirm, im Vollbild und ohne Netz.",
+  "pwa.ios.share": "Teilen",
+  "pwa.ios.addToHome": "Zum Home-Bildschirm",
+  "pwa.ios.add": "Hinzufügen",
+  "pwa.macSafari.step1": "Öffne das Menü {key}",
+  "pwa.macSafari.step2": "Wähle {key}",
+  "pwa.macSafari.step3": "Klicke auf {key}",
+  "pwa.macSafari.after":
+    "Danach startet Glissando aus dem Dock in einem eigenen Fenster, auch ohne Netz.",
+  "pwa.macSafari.file": "Ablage",
+  "pwa.macSafari.addToDock": "Zum Dock hinzufügen …",
+  "pwa.macSafari.add": "Hinzufügen",
+  "pwa.firefoxAndroid.step1": "Tippe auf {key}",
+  "pwa.firefoxAndroid.step2": "Wähle {key}",
+  "pwa.firefoxAndroid.step3": "Bestätige mit {key}",
+  "pwa.firefoxAndroid.after": "Danach startest du Glissando vom Startbildschirm, auch ohne Netz.",
+  "pwa.firefoxAndroid.menu": "Menü",
+  "pwa.firefoxAndroid.addToHome": "Zum Startbildschirm hinzufügen",
+  "pwa.firefoxAndroid.add": "Hinzufügen",
+  "pwa.firefoxDesktop.title": "Firefox installiert keine Apps",
+  "pwa.firefoxDesktop.text":
+    "Firefox am Computer kann Web-Apps nicht installieren. Glissando läuft hier trotzdem offline: Öffne einfach wieder dieselbe Adresse, auch ohne Netz.",
+  "pwa.firefoxDesktop.note":
+    "Als eigenes Fenster im Dock oder in der Taskleiste: öffne Glissando in Chrome, Edge oder Safari und installiere es dort.",
 
   "glissandoFile.export": "Exportieren",
   "glissandoFile.exportSize": "Eine .glissando-Datei, ca. {size}",

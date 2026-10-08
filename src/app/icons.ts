@@ -87,6 +87,11 @@ export const ICONS = {
   },
   more: { shapes: [circle(5, 12, 1.2), circle(12, 12, 1.2), circle(19, 12, 1.2)] },
   expand: { shapes: [path("M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5")] },
+  install: { shapes: [path("M12 4v11M7 10l5 5 5-5M5 20h14")] },
+  refresh: { shapes: [path("M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7")] },
+  share: { shapes: [path("M12 3v12M8 7l4-4 4 4"), path("M6 11v9h12v-9")] },
+  addToHome: { shapes: [rect(4, 4, 16, 16, 3), path("M12 8v8M8 12h8")] },
+  menuDots: { shapes: [circle(12, 5, 1.2), circle(12, 12, 1.2), circle(12, 19, 1.2)] },
   check: { shapes: [path("M5 12.5l4.5 4.5L19 7.5")] },
   gear: {
     shapes: [

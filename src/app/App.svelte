@@ -1,5 +1,12 @@
 <script lang="ts">
   import { onMount } from "svelte";
+  import {
+    installOffer,
+    statusBarView,
+    type InstallOffer,
+    type PwaState,
+    type StatusBarAction,
+  } from "../pwa/status-bar-view";
   import Dialog from "./components/Dialog.svelte";
   import { ExportJob, type ExportProgress } from "./glissando-file/export-job";
   import { setExportStatus } from "./glissando-file/export-status";
@@ -11,6 +18,8 @@
   import ImportRoute from "./import/ImportRoute.svelte";
   import type { ImportSession } from "./import/import-session";
   import type { Route } from "./navigation/route";
+  import PwaSheet, { type PwaSheetContent } from "./pwa/PwaSheet.svelte";
+  import StatusBar from "./pwa/StatusBar.svelte";
   import SlideshowRoute from "./routes/SlideshowRoute.svelte";
   import { leaveWithToast } from "./routes/slideshow-exits";
   import StartRoute from "./routes/StartRoute.svelte";
@@ -24,7 +33,7 @@
 
   // The services are wired once, by the composition root.
   // svelte-ignore state_referenced_locally
-  const { store, navigator, toaster, reportError, settings, newId, now } = services;
+  const { store, navigator, toaster, reportError, settings, newId, now, pwa } = services;
   const { t, formatBytes } = getTranslator();
   // svelte-ignore state_referenced_locally
   const importFlow = new ImportFlow<ImportSession>({
@@ -61,6 +70,8 @@
   let settingsState = $state.raw<SettingsState>(settings.state);
   let importSession = $state.raw<ImportSession | null>(null);
   let persistRefused = $state(false);
+  let pwaState = $state.raw<PwaState>(pwa.state);
+  let pwaSheet = $state.raw<PwaSheetContent | null>(null);
   // The logo animates on the first launch only, not on every return to the start screen.
   // svelte-ignore state_referenced_locally
   let logoPlays = $state(playStartAnimation);
@@ -86,7 +97,11 @@
     const stopImport = importFlow.subscribe((next) => {
       importSession = next.session;
       persistRefused = next.persistRefused;
+      if (next.persistRefused) {
+        pwa.storageRefusalTold();
+      }
     });
+    const stopPwa = pwa.subscribe((next) => (pwaState = next));
     return () => {
       stopRoute();
       stopToast();
@@ -94,11 +109,35 @@
       stopImport();
       stopExport();
       stopOpen();
+      stopPwa();
     };
   });
 
   function noticeFor(origin: OpenOrigin) {
     return openState.notice?.origin === origin ? openState.notice : null;
+  }
+
+  function install(offer: InstallOffer): void {
+    if (offer.kind === "installPrompt") {
+      pwa.install().catch(reportError);
+    } else {
+      pwaSheet = { kind: "guide", guide: offer.guide };
+    }
+  }
+
+  function statusBarAction(action: StatusBarAction): void {
+    switch (action.kind) {
+      case "none":
+        return;
+      case "reload":
+        pwa.reload();
+        return;
+      case "why":
+        pwaSheet = { kind: "why", address: services.appAddress };
+        return;
+      default:
+        install(action);
+    }
   }
 
   function musicUnreadable(retry: () => void): void {
@@ -109,6 +148,14 @@
     });
   }
 </script>
+
+{#snippet statusBar()}
+  <StatusBar
+    view={statusBarView(pwaState)}
+    onAction={statusBarAction}
+    onDismissHint={() => pwa.dismissHint()}
+  />
+{/snippet}
 
 {#if route.screen === "start" || route.screen === "settings"}
   <StartRoute
@@ -122,6 +169,7 @@
     notice={noticeFor("library")}
     onDismissNotice={() => openFlow.dismissNotice()}
     onReload={services.reload}
+    {statusBar}
   />
   {#if route.screen === "settings"}
     <SettingsSheet
@@ -177,15 +225,38 @@
 {/if}
 
 {#if persistRefused}
-  <Dialog
-    title={t("storage.persistRefusedTitle")}
-    message={t("storage.persistRefusedText")}
-    actions={[
-      {
-        label: t("common.understood"),
-        tone: "primary",
-        onSelect: () => importFlow.dismissPersistNotice(),
-      },
-    ]}
-  />
+  {@const offer = installOffer(pwaState)}
+  {@const understood = {
+    label: t("common.understood"),
+    onSelect: () => importFlow.dismissPersistNotice(),
+  }}
+  <!-- Installing is the remedy wherever it is possible (dev-docs/APP.md). -->
+  {#if offer === null}
+    <Dialog
+      title={t("storage.persistRefusedTitle")}
+      message={t("storage.persistRefusedText")}
+      actions={[{ ...understood, tone: "primary" }]}
+    />
+  {:else}
+    <Dialog
+      title={t("storage.persistRefusedTitle")}
+      message={[t("storage.persistRefusedText"), t("pwa.installedKeepsMore")]}
+      actions={[
+        { ...understood, tone: "ghost" },
+        {
+          label: t("pwa.installAsApp"),
+          tone: "primary",
+          icon: "install",
+          onSelect: () => {
+            importFlow.dismissPersistNotice();
+            install(offer);
+          },
+        },
+      ]}
+    />
+  {/if}
+{/if}
+
+{#if pwaSheet !== null}
+  <PwaSheet sheet={pwaSheet} onClose={() => (pwaSheet = null)} />
 {/if}

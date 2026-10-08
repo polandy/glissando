@@ -13,6 +13,8 @@ export default defineConfig({
     baseURL: BASE_URL,
     // Motion is waited on, never timed: cases see reduced motion unless they opt out.
     reducedMotion: "reduce",
+    // A cached app would hide a change; a case about offline use opts in (ADR-0005).
+    serviceWorkers: "block",
     trace: "retain-on-failure",
   },
   projects: [
