@@ -1,6 +1,8 @@
+import { CAPTION_RULE, isCaption } from "../player/caption";
 import { checkOwnKenBurns, InvalidOwnKenBurnsError, motionPath } from "../library/own-ken-burns";
 import { MAX_SECONDS_PER_PICTURE, MIN_SECONDS_PER_PICTURE } from "../library/stored-slideshow";
 import {
+  CAPTION_FROM_VERSION,
   GLISSANDO_FORMAT_ID,
   GLISSANDO_FORMAT_VERSION,
   OLDEST_READABLE_FORMAT_VERSION,
@@ -114,13 +116,13 @@ function readValidManifest(input: JsonObject): GlissandoManifest {
 const PICTURE_KEYS = ["file", "thumbnail", "capturedAt", "width", "height", "fileName"];
 
 function readPicture(value: unknown, path: string, version: number): ManifestPicture {
-  const ownKenBurns = version >= OWN_KEN_BURNS_FROM_VERSION;
-  const picture = readObject(
-    value,
-    path,
-    ownKenBurns ? [...PICTURE_KEYS, "kenBurns"] : PICTURE_KEYS,
-  );
+  const picture = readObject(value, path, [
+    ...PICTURE_KEYS,
+    ...(version >= OWN_KEN_BURNS_FROM_VERSION ? ["kenBurns"] : []),
+    ...(version >= CAPTION_FROM_VERSION ? ["caption"] : []),
+  ]);
   const kenBurns = picture["kenBurns"];
+  const caption = picture["caption"];
   return {
     file: readText(picture["file"], `${path}.file`),
     thumbnail: readText(picture["thumbnail"], `${path}.thumbnail`),
@@ -129,7 +131,15 @@ function readPicture(value: unknown, path: string, version: number): ManifestPic
     height: readPositiveInteger(picture["height"], `${path}.height`),
     fileName: readText(picture["fileName"], `${path}.fileName`),
     ...(kenBurns === undefined ? {} : { kenBurns: readOwnKenBurns(kenBurns, path) }),
+    ...(caption === undefined ? {} : { caption: readCaption(caption, `${path}.caption`) }),
   };
+}
+
+function readCaption(value: unknown, path: string): string {
+  if (!isCaption(value)) {
+    throw new ManifestFormatError(path, CAPTION_RULE, value);
+  }
+  return value;
 }
 
 function readOwnKenBurns(value: unknown, path: string) {

@@ -10,7 +10,9 @@ void main() {
 
 /**
  * Shared by every effect. Screen coordinates `p` run 0..1 from the bottom left; crops are in
- * picture coordinates from the top left, which is also the texture's row order.
+ * picture coordinates from the top left, which is also the texture's row order. Each slide's
+ * caption band (premultiplied) lies over its picture in screen space, unmoved by the Ken Burns
+ * crop, so every effect carries it with the slide (ADR-0007).
  */
 const FRAGMENT_PRELUDE = `#version 300 es
 precision highp float;
@@ -20,8 +22,13 @@ uniform sampler2D fromPicture;
 uniform sampler2D toPicture;
 uniform vec4 fromCrop;
 uniform vec4 toCrop;
+uniform sampler2D fromCaption;
+uniform sampler2D toCaption;
 uniform float progress;
 uniform float aspect;
+/** The caption band's height and its lift from the bottom, as shares of the screen height. */
+uniform float captionBand;
+uniform float captionInset;
 /** Width of the blend between both pictures at a moving edge, in screen heights. */
 const float SOFT_EDGE = 0.04;
 const float DISSOLVE_CELL_PIXELS = 4.0;
@@ -32,8 +39,20 @@ float cellNoise(vec2 cell) {
 vec4 pictureColor(sampler2D picture, vec4 crop, vec2 p) {
   return texture(picture, crop.xy + vec2(p.x, 1.0 - p.y) * crop.zw);
 }
-vec4 fromColor(vec2 p) { return pictureColor(fromPicture, fromCrop, p); }
-vec4 toColor(vec2 p) { return pictureColor(toPicture, toCrop, p); }
+vec4 withCaption(vec4 picture, sampler2D caption, vec2 p) {
+  float bandY = (p.y - captionInset) / captionBand;
+  if (bandY < 0.0 || bandY > 1.0) {
+    return picture;
+  }
+  vec4 band = texture(caption, vec2(p.x, 1.0 - bandY));
+  return vec4(band.rgb + picture.rgb * (1.0 - band.a), 1.0);
+}
+vec4 fromColor(vec2 p) {
+  return withCaption(pictureColor(fromPicture, fromCrop, p), fromCaption, p);
+}
+vec4 toColor(vec2 p) {
+  return withCaption(pictureColor(toPicture, toCrop, p), toCaption, p);
+}
 /** 0 where the reveal has not reached \`position\` yet, 1 behind it, soft in between. */
 float revealed(float position, float extent) {
   return clamp((progress * (extent + SOFT_EDGE) - position) / SOFT_EDGE, 0.0, 1.0);

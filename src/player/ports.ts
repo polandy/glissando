@@ -1,10 +1,11 @@
 import type { Framing, TransitionEffect } from "./slideshow";
 import type { Size } from "./ken-burns";
 
-/** A slide's picture with its framing at the moment drawn. */
+/** A slide's picture with its framing at the moment drawn, and its caption if it has one. */
 export interface SlideLayer<Picture> {
   readonly picture: Picture;
   readonly framing: Framing;
+  readonly caption?: string;
 }
 
 export type RenderFrame<Picture> =
@@ -21,6 +22,8 @@ export type RenderFrame<Picture> =
 /** Draws frames into its viewport; WebGL2 or the DOM fallback. */
 export interface SlideRenderer<Picture extends Size> {
   render(frame: RenderFrame<Picture>): void;
+  /** Lifts every caption by `cssPixels` from the bottom, e.g. above the player's controls. */
+  setCaptionInset(cssPixels: number): void;
   /** The picture will not be drawn again; free what the renderer holds for it. */
   forget(picture: Picture): void;
   dispose(): void;

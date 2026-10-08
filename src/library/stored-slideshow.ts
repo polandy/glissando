@@ -22,6 +22,8 @@ export interface StoredPicture {
   readonly fileName: string;
   /** The user's own motion for this picture; absent while it is automatic (see ADR-0006). */
   readonly kenBurns?: OwnKenBurns;
+  /** Shown with the picture in the player; absent: none. Normalised (`normalizeCaption`). */
+  readonly caption?: string;
 }
 
 export interface StoredMusic {

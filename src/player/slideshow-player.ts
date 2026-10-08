@@ -1,13 +1,8 @@
-import { ease } from "./easing";
-import { framingAt, type Size } from "./ken-burns";
+import type { Size } from "./ken-burns";
 import { PictureBuffer } from "./picture-buffer";
-import {
-  MusicPlaybackError,
-  type PlayerDependencies,
-  type RenderFrame,
-  type SlideLayer,
-} from "./ports";
-import { MILLISECONDS_PER_SECOND, type Easing, type Slideshow } from "./slideshow";
+import { MusicPlaybackError, type PlayerDependencies } from "./ports";
+import { renderFrame } from "./render-frame";
+import { MILLISECONDS_PER_SECOND, type Slideshow } from "./slideshow";
 import { createTimeline, type SlideAtTime, type Timeline, type TimelineFrame } from "./timeline";
 
 /** Events named and ordered as on an HTML media element. */
@@ -24,7 +19,6 @@ export const PLAYER_EVENTS = [
 ] as const;
 export type PlayerEvent = (typeof PLAYER_EVENTS)[number];
 
-const TRANSITION_EASING: Easing = "ease-in-out";
 /**
  * Plays a slideshow with the API of an HTML video element: `play`, `pause`, `currentTime` and
  * `duration` in seconds, and the media events in `PLAYER_EVENTS`.
@@ -43,6 +37,7 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
   #destroyed = false;
   #error: Error | null = null;
   #frameHandle: number | null = null;
+  #captionInset = 0;
   /** Bumped by every seek, play and pause, so a load finishing late cannot act on stale state. */
   #generation = 0;
 
@@ -128,6 +123,23 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
     this.#stopAdvancing();
     this.#paused = true;
     this.#emit("pause");
+  }
+
+  /**
+   * How far, in CSS pixels, every caption sits above its usual place at the bottom: the height of
+   * controls laid over the player while they show, 0 otherwise.
+   */
+  get captionInset(): number {
+    return this.#captionInset;
+  }
+
+  set captionInset(cssPixels: number) {
+    if (!Number.isFinite(cssPixels) || cssPixels < 0) {
+      throw new RangeError(`captionInset: expected CSS pixels ≥ 0, got ${cssPixels}`);
+    }
+    this.#captionInset = cssPixels;
+    this.#deps.renderer.setCaptionInset(cssPixels);
+    this.redraw();
   }
 
   /** Draws the current frame again, e.g. after the viewport changed size. */
@@ -258,7 +270,9 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
   }
 
   #draw(): void {
-    this.#deps.renderer.render(this.#renderFrame(this.#currentFrame()));
+    this.#deps.renderer.render(
+      renderFrame(this.#currentFrame(), this.#slideshow, (index) => this.#pictures.get(index)),
+    );
     this.#loadAroundCurrentFrame().catch(() => {
       // The buffer retries a failed picture and reports it once the frame needs it.
     });
@@ -266,28 +280,6 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
       this.#ready = true;
       this.#emit("canplay");
     }
-  }
-
-  #renderFrame(frame: TimelineFrame): RenderFrame<Picture> {
-    if (frame.kind === "slide") {
-      return { kind: "slide", slide: this.#layer(frame.slide) };
-    }
-    return {
-      kind: "transition",
-      effect: frame.effect,
-      progress: ease(TRANSITION_EASING, frame.progress),
-      from: this.#layer(frame.from),
-      to: this.#layer(frame.to),
-    };
-  }
-
-  #layer(slideAtTime: SlideAtTime): SlideLayer<Picture> {
-    const picture = this.#pictures.get(slideAtTime.index);
-    const slide = this.#slideshow.slides[slideAtTime.index];
-    if (picture === undefined || slide === undefined) {
-      throw new Error(`slide ${slideAtTime.index} is drawn before its picture loaded`);
-    }
-    return { picture, framing: framingAt(slide.kenBurns, slideAtTime.kenBurnsProgress) };
   }
 
   #loadAroundCurrentFrame(): Promise<void> {

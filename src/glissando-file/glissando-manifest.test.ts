@@ -15,7 +15,14 @@ const slideshow: StoredSlideshow = {
   title: "Herbst in Wien",
   createdAt: "2025-10-01T08:00:00.000Z",
   pictures: [
-    { id: "p1", capturedAt: "2025-09-30T10:00:00Z", width: 3840, height: 2160, fileName: "a.jpg" },
+    {
+      id: "p1",
+      capturedAt: "2025-09-30T10:00:00Z",
+      width: 3840,
+      height: 2160,
+      fileName: "a.jpg",
+      caption: "Am Steg",
+    },
     {
       id: "p2",
       capturedAt: "2025-09-30T11:00:00Z",
@@ -48,7 +55,7 @@ describe("manifestFor", () => {
   it("names the format and its version and keeps the slideshow without device ids", () => {
     const written = manifest();
     expect(written.format).toBe("glissando");
-    expect(written.formatVersion).toBe(2);
+    expect(written.formatVersion).toBe(3);
     expect(written.slideshow.pictures[0]).toEqual({
       file: "pictures/0001.jpg",
       thumbnail: "thumbnails/0001.jpg",
@@ -56,6 +63,7 @@ describe("manifestFor", () => {
       width: 3840,
       height: 2160,
       fileName: "a.jpg",
+      caption: "Am Steg",
     });
     expect(written.slideshow.music).toEqual({
       file: "music/track.m4a",
@@ -64,6 +72,7 @@ describe("manifestFor", () => {
       mimeType: "audio/mp4",
     });
     expect(written.slideshow.pictures[1]?.kenBurns).toEqual(slideshow.pictures[1]?.kenBurns);
+    expect(written.slideshow.pictures[1]).not.toHaveProperty("caption");
     expect(asText(written)).not.toContain("show-1");
     expect(asText(written)).not.toContain('"p1"');
   });
@@ -108,7 +117,13 @@ describe("readManifest", () => {
     const versionOne = {
       ...written,
       formatVersion: 1,
-      slideshow: { ...written.slideshow, pictures: [first, { ...second, kenBurns: undefined }] },
+      slideshow: {
+        ...written.slideshow,
+        pictures: [
+          { ...first, caption: undefined },
+          { ...second, kenBurns: undefined },
+        ],
+      },
     };
 
     const reading = readManifest(asText(versionOne));
@@ -120,6 +135,25 @@ describe("readManifest", () => {
     });
     expect(reading.kind === "ok" && reading.manifest.slideshow.pictures[1]).not.toHaveProperty(
       "kenBurns",
+    );
+  });
+
+  it("reads a version 2 file, which knows no captions", () => {
+    const written = manifest();
+    const [first, second] = written.slideshow.pictures;
+    const versionTwo = {
+      ...written,
+      formatVersion: 2,
+      slideshow: { ...written.slideshow, pictures: [{ ...first, caption: undefined }, second] },
+    };
+
+    const reading = readManifest(asText(versionTwo));
+
+    expect(reading.kind === "ok" && reading.manifest.slideshow.pictures[1]?.kenBurns).toEqual(
+      slideshow.pictures[1]?.kenBurns,
+    );
+    expect(reading.kind === "ok" && reading.manifest.slideshow.pictures[0]).not.toHaveProperty(
+      "caption",
     );
   });
 
@@ -171,6 +205,17 @@ describe("readManifest", () => {
       }),
     ],
     ["an own motion in a version 1 file", asText({ ...manifest(), formatVersion: 1 })],
+    ["a caption in a version 2 file", asText({ ...manifest(), formatVersion: 2 })],
+    [
+      "an empty caption",
+      withSlideshow({ pictures: [{ ...manifest().slideshow.pictures[0], caption: "" }] }),
+    ],
+    [
+      "a caption longer than 80 characters",
+      withSlideshow({
+        pictures: [{ ...manifest().slideshow.pictures[0], caption: "a".repeat(81) }],
+      }),
+    ],
   ])("takes %s for a damaged file, naming the fault", (_, text) => {
     const reading = readManifest(text);
     expect(reading.kind).toBe("damaged");
@@ -194,6 +239,18 @@ describe("readManifest", () => {
       kind: "damaged",
       reason:
         "glissando.json slideshow.pictures[0].kenBurns.from.zoom: expected a number from 1 to 3, got 9",
+    });
+  });
+
+  it("names a bad caption's path, its value and what is expected", () => {
+    const text = withSlideshow({
+      pictures: [{ ...manifest().slideshow.pictures[0], caption: "Am\nSteg" }],
+    });
+
+    expect(readManifest(text)).toEqual({
+      kind: "damaged",
+      reason:
+        'glissando.json slideshow.pictures[0].caption: expected a single-line string of 1 to 80 characters without leading, trailing or repeated whitespace, got "Am\\nSteg"',
     });
   });
 });

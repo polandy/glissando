@@ -1,3 +1,4 @@
+import { CAPTION_RULE, isCaption } from "./caption";
 import {
   EASINGS,
   MIN_KEN_BURNS_ZOOM,
@@ -62,16 +63,25 @@ function readSlides(value: unknown): readonly Slide[] {
 }
 
 function readSlide(value: unknown, path: string, isLast: boolean): Slide {
-  const slide = readObject(value, path, ["image", "durationMs", "kenBurns", "transitionToNext"]);
+  const slide = readObject(value, path, [
+    "image",
+    "durationMs",
+    "kenBurns",
+    "caption",
+    "transitionToNext",
+  ]);
   const image = readObject(slide.image, `${path}.image`, ["src", "capturedAt"]);
   const durationMs = readPositiveInteger(slide.durationMs, `${path}.durationMs`);
-  const read = {
+  const read: Slide = {
     image: {
       src: readNonEmptyString(image.src, `${path}.image.src`),
       capturedAt: readIsoDate(image.capturedAt, `${path}.image.capturedAt`),
     },
     durationMs,
     kenBurns: readKenBurns(slide.kenBurns, `${path}.kenBurns`),
+    ...(slide.caption === undefined
+      ? {}
+      : { caption: readCaption(slide.caption, `${path}.caption`) }),
   };
   if (slide.transitionToNext === undefined) {
     return read;
@@ -91,6 +101,13 @@ function readSlide(value: unknown, path: string, isLast: boolean): Slide {
       durationMs,
     ),
   };
+}
+
+function readCaption(value: unknown, path: string): string {
+  if (!isCaption(value)) {
+    throw new SlideshowFormatError(path, CAPTION_RULE, value);
+  }
+  return value;
 }
 
 function readKenBurns(value: unknown, path: string): KenBurns {

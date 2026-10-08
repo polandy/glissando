@@ -2,6 +2,7 @@ import type { BrowserPicture } from "../browser/picture-loader";
 import { cropRect, type Size } from "../ken-burns";
 import type { RenderFrame, SlideLayer, SlideRenderer } from "../ports";
 import { TRANSITION_EFFECTS, type TransitionEffect } from "../slideshow";
+import { CaptionTextures, type CaptionFonts } from "./caption-textures";
 import { fragmentShader, VERTEX_SHADER } from "./transition-shaders";
 
 /** A single slide is a crossfade that has not started. */
@@ -12,6 +13,8 @@ const POSITION_ATTRIBUTE = 0;
 const COORDINATES_PER_VERTEX = 2;
 const FROM_TEXTURE_UNIT = 0;
 const TO_TEXTURE_UNIT = 1;
+const FROM_CAPTION_TEXTURE_UNIT = 2;
+const TO_CAPTION_TEXTURE_UNIT = 3;
 
 export class ShaderCompileError extends Error {
   constructor(effect: TransitionEffect, log: string) {
@@ -30,10 +33,21 @@ const UNIFORM_NAMES = [
   "toPicture",
   "fromCrop",
   "toCrop",
+  "fromCaption",
+  "toCaption",
   "progress",
   "aspect",
+  "captionBand",
+  "captionInset",
 ] as const;
 type UniformName = (typeof UNIFORM_NAMES)[number];
+
+export interface WebGlRendererOptions {
+  /** Device pixels per CSS pixel. */
+  readonly pixelRatio?: () => number;
+  /** Loads the caption font; captions are drawn once it has. */
+  readonly fonts?: CaptionFonts;
+}
 
 /** Draws slides and the GLSL transitions into a canvas that fills its container. */
 export class WebGlRenderer implements SlideRenderer<BrowserPicture> {
@@ -43,6 +57,8 @@ export class WebGlRenderer implements SlideRenderer<BrowserPicture> {
   #programs: ReadonlyMap<TransitionEffect, EffectProgram> = new Map();
   readonly #textures = new Map<HTMLImageElement, WebGLTexture>();
   readonly #pixelRatio: () => number;
+  readonly #captions: CaptionTextures;
+  #captionInsetCssPixels = 0;
   readonly #resizeObserver: ResizeObserver;
   /** Set between `webglcontextlost` and `webglcontextrestored`; no GL call is safe meanwhile. */
   #contextLost = false;
@@ -51,13 +67,14 @@ export class WebGlRenderer implements SlideRenderer<BrowserPicture> {
     canvas: HTMLCanvasElement,
     gl: WebGL2RenderingContext,
     onResize: () => void,
-    pixelRatio: () => number = () => devicePixelRatio,
+    { pixelRatio = () => devicePixelRatio, fonts = document.fonts }: WebGlRendererOptions = {},
   ) {
     this.#canvas = canvas;
     this.#gl = gl;
     this.#onResize = onResize;
     this.#pixelRatio = pixelRatio;
     this.#setUpGlResources();
+    this.#captions = new CaptionTextures(gl, fonts, pixelRatio, onResize);
     canvas.addEventListener("webglcontextlost", this.#handleContextLost);
     canvas.addEventListener("webglcontextrestored", this.#handleContextRestored);
     this.#resizeObserver = new ResizeObserver(onResize);
@@ -87,6 +104,7 @@ export class WebGlRenderer implements SlideRenderer<BrowserPicture> {
   readonly #handleContextRestored = (): void => {
     this.#textures.clear();
     this.#setUpGlResources();
+    this.#captions.recreate();
     this.#contextLost = false;
     this.#onResize();
   };
@@ -106,12 +124,29 @@ export class WebGlRenderer implements SlideRenderer<BrowserPicture> {
     gl.useProgram(program);
     this.#bindLayer(FROM_TEXTURE_UNIT, from, uniforms.fromPicture, uniforms.fromCrop, viewport);
     this.#bindLayer(TO_TEXTURE_UNIT, to, uniforms.toPicture, uniforms.toCrop, viewport);
+    this.#bindCaption(FROM_CAPTION_TEXTURE_UNIT, from, uniforms.fromCaption, viewport);
+    this.#bindCaption(TO_CAPTION_TEXTURE_UNIT, to, uniforms.toCaption, viewport);
     gl.uniform1f(uniforms.progress, progress);
     gl.uniform1f(uniforms.aspect, viewport.width / viewport.height);
+    gl.uniform1f(uniforms.captionBand, this.#captions.bandShare(viewport));
+    gl.uniform1f(
+      uniforms.captionInset,
+      (this.#captionInsetCssPixels * this.#pixelRatio()) / viewport.height,
+    );
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, VERTEX_COUNT);
   }
 
+  setCaptionInset(cssPixels: number): void {
+    this.#captionInsetCssPixels = cssPixels;
+  }
+
+  /** Settles once captions can be drawn, after asking the player for a redraw. */
+  get captionFontLoaded(): Promise<void> {
+    return this.#captions.fontLoaded;
+  }
+
   forget(picture: BrowserPicture): void {
+    this.#captions.forget(picture.element);
     const texture = this.#textures.get(picture.element);
     if (texture !== undefined) {
       this.#gl.deleteTexture(texture);
@@ -125,6 +160,7 @@ export class WebGlRenderer implements SlideRenderer<BrowserPicture> {
     this.#resizeObserver.disconnect();
     this.#textures.forEach((texture) => this.#gl.deleteTexture(texture));
     this.#textures.clear();
+    this.#captions.dispose();
     this.#programs.forEach(({ program }) => this.#gl.deleteProgram(program));
     this.#canvas.remove();
   }
@@ -152,6 +188,18 @@ export class WebGlRenderer implements SlideRenderer<BrowserPicture> {
     gl.uniform1i(sampler, unit);
     const crop = cropRect(framing, picture, viewport);
     gl.uniform4f(cropUniform, crop.x, crop.y, crop.width, crop.height);
+  }
+
+  #bindCaption(
+    unit: number,
+    { picture, caption }: SlideLayer<BrowserPicture>,
+    sampler: WebGLUniformLocation | null,
+    viewport: Size,
+  ): void {
+    const gl = this.#gl;
+    gl.activeTexture(gl.TEXTURE0 + unit);
+    gl.bindTexture(gl.TEXTURE_2D, this.#captions.texture(picture.element, caption, viewport));
+    gl.uniform1i(sampler, unit);
   }
 
   /** Uploads once per picture, with mipmaps so a 4K picture shrinks to the screen smoothly. */
