@@ -8,7 +8,7 @@ steps=(
   "format:npx prettier --check ."
   "lint:npx eslint ."
   "typecheck:npx svelte-check --fail-on-warnings"
-  "test:npx vitest run --passWithNoTests"
+  "test:npx vitest run --project unit"
   "build:npx vite build"
 )
 
