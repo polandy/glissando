@@ -1,10 +1,6 @@
-import type { Plugin, Rolldown } from "vite";
-import {
-  precacheFor,
-  SERVICE_WORKER_FILE,
-  writePrecache,
-  type BuiltFile,
-} from "./precache-list.ts";
+import type { Plugin } from "vite";
+import { SERVICE_WORKER_FILE } from "./precache-list.ts";
+import { publicFiles, writeServiceWorker, type PublicDirPort } from "./service-worker-bundle.ts";
 
 const APP_ENTRY = "index.html";
 const SERVICE_WORKER_ENTRY = "sw";
@@ -37,49 +33,11 @@ export function serviceWorkerPlugin(): Plugin {
       publicDir = config.publicDir;
     },
     async generateBundle(_options, bundle) {
-      const worker = bundle[SERVICE_WORKER_FILE];
-      if (worker?.type !== "chunk") {
-        throw new Error(
-          `the build emitted no ${SERVICE_WORKER_FILE} from ${SERVICE_WORKER_SOURCE}`,
-        );
-      }
-      // A classic script cannot import: anything shared with the app would become an import.
-      const links = [...worker.imports, ...worker.dynamicImports, ...worker.exports];
-      if (links.length > 0) {
-        throw new Error(
-          `${SERVICE_WORKER_FILE} must import and export nothing, it links ${links.join(", ")}; ` +
-            `move code it shares with the app out of the modules the app imports`,
-        );
-      }
-      const built: BuiltFile[] = Object.values(bundle).map((file) => ({
-        path: file.fileName,
-        content: file.type === "chunk" ? file.code : file.source,
-      }));
-      const precache = await precacheFor([...built, ...(await publicFiles(this.fs, publicDir))]);
-      worker.code = writePrecache(worker.code, precache);
+      const fs: PublicDirPort = {
+        readdir: (path) => this.fs.readdir(path, { withFileTypes: true }),
+        readFile: (path) => this.fs.readFile(path),
+      };
+      await writeServiceWorker(bundle, await publicFiles(fs, publicDir));
     },
   };
-}
-
-/** Every file below the public directory, with its path relative to it. */
-async function publicFiles(
-  fs: Rolldown.PluginContext["fs"],
-  publicDir: string,
-): Promise<BuiltFile[]> {
-  if (publicDir === "") {
-    return [];
-  }
-  const files: BuiltFile[] = [];
-  async function walk(directory: string, prefix: string): Promise<void> {
-    for (const entry of await fs.readdir(directory, { withFileTypes: true })) {
-      const path = `${directory}/${entry.name}`;
-      if (entry.isDirectory()) {
-        await walk(path, `${prefix}${entry.name}/`);
-      } else if (entry.isFile()) {
-        files.push({ path: `${prefix}${entry.name}`, content: await fs.readFile(path) });
-      }
-    }
-  }
-  await walk(publicDir, "");
-  return files;
 }
