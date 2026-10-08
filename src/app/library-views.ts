@@ -33,15 +33,25 @@ export function slideshowSummary(
   };
 }
 
+/** Capture dates are ISO 8601 with the same `Z` suffix, so they sort as strings. */
+function captureSpan(stored: StoredSlideshow): { from: string; to: string } {
+  const dates = stored.pictures.map((picture) => picture.capturedAt).sort();
+  return { from: dates[0] ?? "", to: dates.at(-1) ?? "" };
+}
+
 export function slideshowDetails(
   stored: StoredSlideshow,
   thumbnailUrl: ThumbnailUrl,
 ): SlideshowDetails {
+  const span = captureSpan(stored);
   return {
     title: stored.title,
     coverUrl: thumbnailUrl(coverId(stored)),
     durationSeconds: slideshowDurationMs(stored) / MILLISECONDS_PER_SECOND,
     musicTitle: stored.music?.fileName ?? null,
+    ownOrder: stored.ownOrder === true,
+    capturedFrom: span.from,
+    capturedTo: span.to,
     pictures: stored.pictures.map((picture) => ({
       id: picture.id,
       thumbnailUrl: thumbnailUrl(picture.id),

@@ -47,7 +47,12 @@ One IndexedDB database, `glissando` (schema version 2; version 1 lacked `imports
 | `music`      | media id | the music file, bytes + type                  |
 | `imports`    | `id`     | an import in progress: `startedAt`, media ids |
 
-Media is written while importing, the slideshow record last.
+Media is written while importing, the slideshow record last. Edits on the slideshow screen
+replace the record; `ownOrder` marks pictures the user reordered. `deleteSlideshow` deletes the
+record and, in the same transaction, the media no other slideshow references.
+
+A removed picture's media stays until the next clean-up (below), so its toast can undo the
+removal; once the record no longer references it, it counts as unreferenced.
 
 ## Abandoned imports
 

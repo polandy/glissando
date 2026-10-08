@@ -123,7 +123,12 @@ button {
   background: var(--gl-hover);
 }
 .btn.danger {
-  border-color: var(--gl-coral);
+  border-color: transparent;
+  color: var(--gl-coral-ink);
+  background: var(--gl-coral);
+}
+.btn.danger:hover {
+  background: var(--gl-coral-hover);
 }
 .btn.large {
   height: 44px;

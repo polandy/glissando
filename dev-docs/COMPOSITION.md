@@ -5,9 +5,9 @@ into the playable `Slideshow` JSON (`dev-docs/PLAYER.md`). Pure, framework-free 
 I/O, no subject detection.
 
 - **Order**: pictures sort ascending by `capturedAt`; a tie breaks by file name, then input
-  order.
+  order. Once the user reordered them (`ownOrder`), the stored order is the play order.
 - **Title**: the month, or month range, the pictures were captured in, formatted with
-  `Intl.DateTimeFormat(locale, …).formatRange`.
+  `Intl.DateTimeFormat(locale, …).formatRange`; a title the user emptied falls back to it.
 - **Durations**: with music, the track's length splits evenly across the pictures (the
   remainder milliseconds go to the first slides, so the sum matches the track exactly) — unless
   that split would fall below `MIN_SECONDS_PER_PICTURE`, in which case every slide gets the

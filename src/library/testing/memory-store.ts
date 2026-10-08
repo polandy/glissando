@@ -1,4 +1,10 @@
-import { importsAt, newestFirst, referencedMediaIds, withImportMedia } from "../slideshow-queries";
+import {
+  importsAt,
+  mediaOnlyIn,
+  newestFirst,
+  referencedMediaIds,
+  withImportMedia,
+} from "../slideshow-queries";
 import {
   MediaNotFoundError,
   SlideshowNotFoundError,
@@ -41,6 +47,19 @@ export class MemoryLibraryStore implements LibraryStore {
     return slideshow === undefined
       ? Promise.reject(new SlideshowNotFoundError(id))
       : Promise.resolve(structuredClone(slideshow));
+  }
+
+  deleteSlideshow(id: string): Promise<void> {
+    const deleted = this.#slideshows.get(id);
+    if (deleted === undefined) {
+      return Promise.reject(new SlideshowNotFoundError(id));
+    }
+    this.#slideshows.delete(id);
+    for (const mediaId of mediaOnlyIn(deleted, [...this.#slideshows.values()])) {
+      this.#pictures.delete(mediaId);
+      this.#music.delete(mediaId);
+    }
+    return Promise.resolve();
   }
 
   pictureBlob(id: string): Promise<Blob> {

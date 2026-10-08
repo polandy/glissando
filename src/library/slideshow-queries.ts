@@ -26,6 +26,15 @@ export function referencedMediaIds(slideshows: readonly StoredSlideshow[]): Set<
   return ids;
 }
 
+/** The media ids `deleted` uses that none of the `remaining` slideshows uses. */
+export function mediaOnlyIn(
+  deleted: StoredSlideshow,
+  remaining: readonly StoredSlideshow[],
+): string[] {
+  const kept = referencedMediaIds(remaining);
+  return [...referencedMediaIds([deleted])].filter((id) => !kept.has(id));
+}
+
 /** `imports` with `mediaId` claimed for `importId`; a new import starts at `startedAt`. */
 export function withImportMedia(
   existing: ImportInProgress | undefined,

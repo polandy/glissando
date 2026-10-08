@@ -18,11 +18,34 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
   a cover of the first three pictures (one large, two small), the title, "12 pictures · 1:00" and a
   music icon — ending in a dashed "New slideshow" card. A status bar at the bottom: "Offline · stored on
   this device".
-- **Slideshow** (`screens/SlideshowScreen.svelte`): breadcrumb "Library / title"; a 16:9
-  preview of the cover (tap plays) with the running time, then the pictures in play order,
-  read-only, each with its order number and capture date. Beside it an info panel: title, date
-  range, "Play" and the facts — pictures, duration, music, seconds per picture, Ken Burns
-  "automatic", transitions "alternating".
+- **Slideshow** (`screens/SlideshowScreen.svelte`, parts in `screens/slideshow/`): breadcrumb
+  "Library / title" and a ⋯ "More" button whose menu holds only "Delete slideshow …"; a 16:9
+  preview of the first picture (tap plays) with the running time, then the pictures in play
+  order, each with its order number and capture date, under "Sorted by capture date" or, once
+  the user reordered, "Own order" (with "drag or tap", narrow: "tap to reorder"). Beside it an
+  info panel: title with a ✎ button, date range (earliest to latest capture), "Play" and the
+  facts — pictures, duration, music, seconds per picture, Ken Burns "automatic", transitions
+  "alternating". The info panel and the player always use the edited picture list.
+- **Editing the slideshow** (`editing/slideshow-editor.ts`; pure operations in
+  `src/library/slideshow-edits.ts`): every edit applies at once and is stored.
+  - **Remove**: a ✕ on a tile (shown on hover, for pointers that hover), "Remove" in the
+    selection bar, or Delete/Backspace on a focused tile — never confirmed. A toast "Picture
+    removed" with "Undo" follows; removals made while it is shown add up ("3 pictures removed")
+    and one Undo puts them all back where they were. Leaving the screen dismisses it. The last
+    picture stays: its ✕ and "Remove" are disabled and the bar says "The last picture stays. To
+    get rid of it, delete the whole slideshow."
+  - **Select and reorder**: a tap on a tile selects it (outlined in the accent; another tap
+    deselects) and opens the selection bar at the bottom — "Picture 3 of 12" (hidden up to
+    720 px, where the bar spans the width), "◀ Earlier", "Later ▶", "Remove", "Done". Pointer:
+    drag a tile onto another; a dashed lemon line before or after the target shows where it
+    lands. Keyboard: arrows move the focus (and a selection) through the grid, Shift+arrows move
+    the tile (up and down by a row), Enter or Space selects, Esc deselects.
+  - **Rename**: ✎ turns the title into a field (at most 80 characters): Enter or leaving it
+    saves, Esc cancels, an empty title falls back to the automatic one from the capture dates.
+  - **Delete**: "Delete slideshow …" asks in a dialog, "Delete “title”?", what goes (the
+    slideshow and its n pictures, not the original photos; cannot be undone), "Keep" (focused)
+    and a coral "Delete". Deleting removes the record and the media only it uses,
+    goes back to start and shows the toast "Slideshow deleted".
 - **Import** (`import/`, below) and the **player** open from these.
 
 Up to 720 px wide (a container query on `.screen`) the layout narrows: one card column, the
@@ -92,8 +115,8 @@ three levels; the player is a modal layer over its slideshow, the settings sheet
   slideshow …".
 - **Notice** (`Notice`): inline at the cause; lemon for warnings, coral for errors.
 - **Toast** (`Toast` + `toast/toaster.ts`): one at a time, bottom (right from 700 px viewport width), gone after
-  6 s; an optional action and a close button. A new toast replaces the shown one. While the import wizard is
-  shown, it rises above the wizard's bottom actions.
+  6 s; an optional action and a close button. A new toast replaces the shown one. While the import wizard's
+  bottom actions or the slideshow's selection bar are shown, it rises above them.
 - **Dialog** (`Dialog`): a native modal dialog, only when the user must decide.
 
 ## Player overlay

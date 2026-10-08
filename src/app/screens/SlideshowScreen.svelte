@@ -1,107 +1,129 @@
 <script lang="ts">
+  import Dialog from "../components/Dialog.svelte";
   import Header from "../components/Header.svelte";
   import Icon from "../components/Icon.svelte";
   import { getTranslator } from "../i18n/context";
+  import InfoPanel from "./slideshow/InfoPanel.svelte";
+  import MoreMenu from "./slideshow/MoreMenu.svelte";
+  import PictureStrip from "./slideshow/PictureStrip.svelte";
+  import SelectionBar from "./slideshow/SelectionBar.svelte";
   import type { SlideshowDetails } from "./view-models";
 
   let {
     slideshow,
     onBack,
     onPlay,
+    onRemove,
+    onMove,
+    onRename,
+    onDelete,
   }: {
     slideshow: SlideshowDetails;
     onBack: () => void;
     onPlay: () => void;
+    onRemove: (pictureId: string) => void;
+    onMove: (pictureId: string, toIndex: number) => void;
+    onRename: (typed: string) => void;
+    /** The user confirmed deleting the whole slideshow. */
+    onDelete: () => void;
   } = $props();
 
-  const { t, formatDuration, formatSeconds, formatDate } = getTranslator();
+  const { t, formatDuration } = getTranslator();
 
-  const duration = $derived(formatDuration(slideshow.durationSeconds));
-  // The pictures are in capture order, so the first and the last one span the slideshow.
-  const dateRange = $derived.by(() => {
-    const from = formatDate(slideshow.pictures[0]?.capturedAt ?? "");
-    const to = formatDate(slideshow.pictures.at(-1)?.capturedAt ?? "");
-    return from === to ? from : t("slideshow.dateRange", { from, to });
-  });
-  const secondsPerPicture = $derived(
-    formatSeconds(slideshow.durationSeconds / slideshow.pictures.length),
+  let selectedId = $state<string | null>(null);
+  let confirmingDelete = $state(false);
+  // A selected picture that was removed meanwhile leaves no selection.
+  const selectedIndex = $derived(
+    slideshow.pictures.findIndex((picture) => picture.id === selectedId),
   );
+
+  function moveSelected(step: number): void {
+    if (selectedId !== null) {
+      onMove(selectedId, selectedIndex + step);
+    }
+  }
+
+  function removeSelected(): void {
+    if (selectedId !== null) {
+      onRemove(selectedId);
+      selectedId = null;
+    }
+  }
+
+  function deleteConfirmed(): void {
+    confirmingDelete = false;
+    onDelete();
+  }
 </script>
 
 <div class="screen">
-  <Header crumbs={[t("start.library"), slideshow.title]} {onBack} />
+  <Header crumbs={[t("start.library"), slideshow.title]} {onBack}>
+    {#snippet actions()}
+      <MoreMenu onDelete={() => (confirmingDelete = true)} />
+    {/snippet}
+  </Header>
   <main class="content">
     <div class="detail">
-      <div class="pictures">
+      <div class="pictures" class:selecting={selectedIndex >= 0}>
         <button class="preview" type="button" aria-label={t("slideshow.play")} onclick={onPlay}>
           <img src={slideshow.coverUrl} alt="" />
           <span class="play"><Icon name="play" /></span>
           <span class="time mono">
-            {t("player.time", { current: formatDuration(0), total: duration })}
+            {t("player.time", {
+              current: formatDuration(0),
+              total: formatDuration(slideshow.durationSeconds),
+            })}
           </span>
         </button>
 
         <div class="strip-head">
           <div>
             <h2 class="eyebrow">{t("slideshow.pictures")}</h2>
-            <p class="muted sorted">{t("slideshow.sortedByDate")}</p>
+            <p class="muted sorted">
+              {slideshow.ownOrder ? t("slideshow.ownOrder") : t("slideshow.sortedByDate")} ·
+              <span class="wide-hint">{t("slideshow.reorderHintWide")}</span><span
+                class="narrow-hint">{t("slideshow.reorderHintNarrow")}</span
+              >
+            </p>
           </div>
           <span class="mono muted">{slideshow.pictures.length}</span>
         </div>
-        <ol class="strip">
-          {#each slideshow.pictures as picture, index (picture.id)}
-            {@const date = formatDate(picture.capturedAt)}
-            <li class="tile">
-              <img
-                src={picture.thumbnailUrl}
-                alt={t("slideshow.pictureLabel", { number: index + 1, date })}
-              />
-              <span class="number mono" aria-hidden="true">{index + 1}</span>
-              <span class="date mono" aria-hidden="true">{date}</span>
-            </li>
-          {/each}
-        </ol>
+        <PictureStrip
+          pictures={slideshow.pictures}
+          {selectedId}
+          onSelect={(pictureId) => (selectedId = pictureId)}
+          {onRemove}
+          {onMove}
+        />
       </div>
 
-      <aside class="panel">
-        <div>
-          <div class="eyebrow">{t("slideshow.eyebrow")}</div>
-          <h1 class="title">{slideshow.title}</h1>
-          <div class="muted mono range">{dateRange}</div>
-        </div>
-        <button class="btn primary large" type="button" onclick={onPlay}>
-          <Icon name="play" />{t("slideshow.play")}
-        </button>
-        <dl class="rows">
-          <div>
-            <dt>{t("slideshow.pictures")}</dt>
-            <dd class="mono">{slideshow.pictures.length}</dd>
-          </div>
-          <div>
-            <dt>{t("slideshow.duration")}</dt>
-            <dd class="mono">{duration}</dd>
-          </div>
-          <div>
-            <dt>{t("slideshow.music")}</dt>
-            <dd>{slideshow.musicTitle ?? t("slideshow.noMusic")}</dd>
-          </div>
-          <div>
-            <dt>{t("slideshow.perPicture")}</dt>
-            <dd class="mono">{secondsPerPicture}</dd>
-          </div>
-          <div>
-            <dt>{t("slideshow.kenBurns")}</dt>
-            <dd><span class="pill"><i></i>{t("slideshow.automatic")}</span></dd>
-          </div>
-          <div>
-            <dt>{t("slideshow.transitions")}</dt>
-            <dd><span class="pill"><i></i>{t("slideshow.alternating")}</span></dd>
-          </div>
-        </dl>
-      </aside>
+      <InfoPanel {slideshow} {onPlay} {onRename} />
     </div>
   </main>
+  <!-- Inside the screen, so the container query narrows it with the layout. -->
+  {#if selectedIndex >= 0}
+    <SelectionBar
+      index={selectedIndex}
+      count={slideshow.pictures.length}
+      onEarlier={() => moveSelected(-1)}
+      onLater={() => moveSelected(1)}
+      onRemove={removeSelected}
+      onDone={() => (selectedId = null)}
+    />
+  {/if}
 </div>
+
+{#if confirmingDelete}
+  <Dialog
+    title={t("slideshow.deleteTitle", { title: slideshow.title })}
+    message={t("slideshow.deleteText", { count: slideshow.pictures.length })}
+    actions={[
+      { label: t("slideshow.keep"), onSelect: () => (confirmingDelete = false) },
+      { label: t("slideshow.deleteConfirm"), tone: "danger", onSelect: deleteConfirmed },
+    ]}
+    onCancel={() => (confirmingDelete = false)}
+  />
+{/if}
 
 <style>
   .detail {
@@ -181,112 +203,22 @@
   .sorted {
     margin: 3px 0 0;
   }
-  .strip {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
-    gap: 10px;
-    margin: 0;
-    padding: 0;
-    list-style: none;
+  /* Room below the last tiles for the selection bar fixed over them. */
+  .pictures.selecting {
+    padding-bottom: 80px;
   }
-  .tile {
-    position: relative;
-    aspect-ratio: 4 / 3;
-    overflow: hidden;
-    border-radius: var(--gl-radius-tile);
-    background: var(--gl-hover);
-  }
-  .tile img {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-  .number,
-  .date {
-    position: absolute;
-    color: var(--gl-on-photo);
-    font-weight: var(--gl-weight-medium);
-    font-size: var(--gl-size-caption);
-  }
-  .number {
-    left: 6px;
-    top: 6px;
-    padding: 1px 6px;
-    border-radius: var(--gl-radius-small);
-    background: var(--gl-photo-badge);
-  }
-  .date {
-    left: 0;
-    right: 0;
-    bottom: 0;
-    padding: 14px 7px 5px;
-    background: linear-gradient(transparent, var(--gl-photo-fade));
-  }
-  .panel {
-    display: grid;
-    gap: 16px;
-    padding: 18px;
-    border: 1px solid var(--gl-line);
-    border-radius: var(--gl-radius-large);
-    background: var(--gl-surface);
-  }
-  .panel .title {
-    margin-top: 4px;
-    font-size: var(--gl-size-panel-title);
-  }
-  .range {
-    margin-top: 4px;
-    font-size: var(--gl-size-meta);
-  }
-  .rows {
-    display: grid;
-    margin: 0;
-  }
-  .rows div {
-    display: flex;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 9px 0;
-    border-top: 1px solid var(--gl-line);
-  }
-  .rows dt {
-    flex: none;
-    color: var(--gl-muted);
-  }
-  .rows dd {
-    min-width: 0;
-    margin: 0;
-    font-weight: var(--gl-weight-medium);
-    text-align: right;
-    overflow-wrap: anywhere;
-  }
-  .pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    padding: 2px 8px;
-    border: 1px solid var(--gl-line);
-    border-radius: var(--gl-radius-pill);
-    background: var(--gl-scrim);
-    color: var(--gl-muted);
-    font-weight: var(--gl-weight-semibold);
-    font-size: var(--gl-size-small);
-  }
-  .pill i {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--gl-mint);
+  .narrow-hint {
+    display: none;
   }
   @container (max-width: 720px) {
     .detail {
       grid-template-columns: 1fr;
     }
-    .strip {
-      grid-template-columns: repeat(3, 1fr);
-      gap: 6px;
+    .wide-hint {
+      display: none;
+    }
+    .narrow-hint {
+      display: inline;
     }
   }
 </style>

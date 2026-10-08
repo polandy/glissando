@@ -32,8 +32,10 @@ export interface StoredSlideshow {
   readonly title: string;
   /** ISO 8601 date-time. */
   readonly createdAt: string;
-  /** In play order. */
+  /** In play order; never empty. */
   readonly pictures: readonly StoredPicture[];
+  /** The user reordered the pictures; absent while they keep the capture-date order. */
+  readonly ownOrder?: true;
   readonly music?: StoredMusic;
   readonly secondsPerPicture: number;
 }
@@ -59,6 +61,11 @@ export interface LibraryStore {
   listSlideshows(): Promise<readonly StoredSlideshow[]>;
   /** Throws `SlideshowNotFoundError` for an unknown id. */
   getSlideshow(id: string): Promise<StoredSlideshow>;
+  /**
+   * Deletes the record and, in the same transaction, the media only it references. Throws
+   * `SlideshowNotFoundError` for an unknown id.
+   */
+  deleteSlideshow(id: string): Promise<void>;
   pictureBlob(id: string): Promise<Blob>;
   thumbnailBlob(id: string): Promise<Blob>;
   musicBlob(id: string): Promise<Blob>;

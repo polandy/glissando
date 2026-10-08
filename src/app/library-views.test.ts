@@ -53,6 +53,9 @@ describe("slideshowDetails", () => {
       coverUrl: "url:p1",
       durationSeconds: 8,
       musicTitle: null,
+      ownOrder: false,
+      capturedFrom: "2025-07-01T10:00:00Z",
+      capturedTo: "2025-07-02T10:00:00Z",
       pictures: [
         { id: "p1", thumbnailUrl: "url:p1", capturedAt: "2025-07-01T10:00:00Z" },
         { id: "p2", thumbnailUrl: "url:p2", capturedAt: "2025-07-02T10:00:00Z" },
@@ -62,5 +65,36 @@ describe("slideshowDetails", () => {
 
   it("names the music by its file name", () => {
     expect(slideshowDetails(withMusic, urlOf).musicTitle).toBe("Sommer.mp3");
+  });
+
+  it("tells an order of the user's own, and covers it first with its first picture", () => {
+    const reordered: StoredSlideshow = {
+      ...stored,
+      pictures: [...stored.pictures].reverse(),
+      ownOrder: true,
+    };
+
+    const details = slideshowDetails(reordered, urlOf);
+
+    expect(details.ownOrder).toBe(true);
+    expect(details.coverUrl).toBe("url:p2");
+  });
+
+  it("spans the earliest to the latest capture date, whatever the order", () => {
+    const reordered: StoredSlideshow = { ...stored, pictures: [...stored.pictures].reverse() };
+
+    const details = slideshowDetails(reordered, urlOf);
+
+    expect([details.capturedFrom, details.capturedTo]).toEqual([
+      "2025-07-01T10:00:00Z",
+      "2025-07-02T10:00:00Z",
+    ]);
+  });
+
+  it("spreads the music over the pictures that are left", () => {
+    const fewer: StoredSlideshow = { ...withMusic, pictures: stored.pictures.slice(0, 1) };
+
+    expect(slideshowDetails(fewer, urlOf).durationSeconds).toBe(30);
+    expect(slideshowDetails(fewer, urlOf).pictures).toHaveLength(1);
   });
 });

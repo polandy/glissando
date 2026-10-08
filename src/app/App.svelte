@@ -60,6 +60,11 @@
     };
   });
 
+  function slideshowDeleted(): void {
+    navigator.back();
+    toaster.show({ text: t("slideshow.deleted"), tone: "info" });
+  }
+
   function musicUnreadable(retry: () => void): void {
     toaster.show({
       text: t("import.musicUnreadable"),
@@ -103,10 +108,12 @@
   {#key slideshowId}
     <SlideshowRoute
       {store}
+      {toaster}
       {slideshowId}
       playing={route.screen === "player"}
       onBack={() => navigator.back()}
       onPlay={() => navigator.open({ screen: "player", slideshowId })}
+      onDeleted={slideshowDeleted}
       onError={reportError}
     />
   {/key}

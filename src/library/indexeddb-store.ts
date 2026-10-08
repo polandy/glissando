@@ -1,4 +1,10 @@
-import { importsAt, newestFirst, referencedMediaIds, withImportMedia } from "./slideshow-queries";
+import {
+  importsAt,
+  mediaOnlyIn,
+  newestFirst,
+  referencedMediaIds,
+  withImportMedia,
+} from "./slideshow-queries";
 import {
   MediaNotFoundError,
   SlideshowNotFoundError,
@@ -90,6 +96,34 @@ export class IndexedDbLibraryStore implements LibraryStore {
       throw new SlideshowNotFoundError(id);
     }
     return slideshow as StoredSlideshow;
+  }
+
+  /** Reads the other records and deletes in one transaction, so a concurrent save cannot interleave. */
+  deleteSlideshow(id: string): Promise<void> {
+    let found = true;
+    const deleted = this.#write([SLIDESHOWS, PICTURES, MUSIC], (transaction) => {
+      const slideshows = transaction.objectStore(SLIDESHOWS);
+      const all = slideshows.getAll();
+      all.onsuccess = () => {
+        const records = all.result as StoredSlideshow[];
+        const record = records.find((slideshow) => slideshow.id === id);
+        if (record === undefined) {
+          found = false;
+          return;
+        }
+        slideshows.delete(id);
+        const remaining = records.filter((slideshow) => slideshow.id !== id);
+        for (const mediaId of mediaOnlyIn(record, remaining)) {
+          transaction.objectStore(PICTURES).delete(mediaId);
+          transaction.objectStore(MUSIC).delete(mediaId);
+        }
+      };
+    });
+    return deleted.then(() => {
+      if (!found) {
+        throw new SlideshowNotFoundError(id);
+      }
+    });
   }
 
   async pictureBlob(id: string): Promise<Blob> {
