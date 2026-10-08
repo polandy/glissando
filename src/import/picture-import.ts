@@ -1,6 +1,7 @@
 import { orderByCaptureDate } from "../compose";
 import type { LibraryStore, StoredPicture } from "../library/stored-slideshow";
-import { UnreadablePictureError, type DecodedPicture } from "./downscale";
+import type { DecodedPicture } from "./downscale";
+import { UnreadablePictureError } from "./unreadable-picture";
 
 export type SkipReason = "unsupported" | "unreadable";
 
@@ -23,6 +24,7 @@ export interface PictureImportState {
   readonly failed: boolean;
 }
 
+/** `decode` and `captureDate` reject with `UnreadablePictureError` for a file they cannot read. */
 export interface PictureImportPorts {
   decode(file: File): Promise<DecodedPicture>;
   captureDate(file: File): Promise<string>;
@@ -53,6 +55,14 @@ type Outcome =
  * processed one at a time so memory stays bounded on phones. Media stored by a cancelled import
  * is left unreferenced for `LibraryStore.deleteUnreferencedMedia`.
  */
+/** The import stopped on an unexpected error, its `cause`; the state reports it as failed. */
+export class PictureImportFailedError extends Error {
+  constructor(cause: unknown) {
+    super("the picture import failed on an unexpected error", { cause });
+    this.name = "PictureImportFailedError";
+  }
+}
+
 export class PictureImport {
   readonly #ports: PictureImportPorts;
   readonly #listeners = new Set<(state: PictureImportState) => void>();
@@ -99,7 +109,10 @@ export class PictureImport {
     }
   }
 
-  /** Resolves once every queued file is processed; rejects with an unexpected error. */
+  /**
+   * Resolves once every queued file is processed; rejects with `PictureImportFailedError`, or with
+   * the unexpected error of a file cancelled in flight.
+   */
   settled(): Promise<void> {
     return this.#draining;
   }
@@ -140,7 +153,7 @@ export class PictureImport {
     } catch (error) {
       this.#queue = [];
       this.#update({ total: this.#state.done, busy: false, failed: true });
-      throw error;
+      throw new PictureImportFailedError(error);
     } finally {
       this.#isDraining = false;
     }
@@ -151,15 +164,16 @@ export class PictureImport {
 
   async #importOne(file: File): Promise<Outcome> {
     let decoded: DecodedPicture;
+    let capturedAt: string;
     try {
       decoded = await this.#ports.decode(file);
+      capturedAt = await this.#ports.captureDate(file);
     } catch (error) {
       if (error instanceof UnreadablePictureError) {
         return { kind: "unreadable" };
       }
       throw error;
     }
-    const capturedAt = await this.#ports.captureDate(file);
     const id = this.#ports.newId();
     try {
       await this.#ports.store.putPicture(id, {

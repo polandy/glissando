@@ -9,7 +9,7 @@ interface DiscardableSession {
 
 export interface ImportFlowPorts<Session extends DiscardableSession> {
   newImportSession(): Session;
-  /** Deletes media no slideshow and no import in progress in any tab uses; reports failures. */
+  /** Deletes media no slideshow uses and no claim in any tab spares; reports failures. */
   deleteAbandonedMedia(): void;
   readonly navigator: Pick<Navigator, "open" | "back">;
   readonly toaster: Pick<Toaster, "show">;

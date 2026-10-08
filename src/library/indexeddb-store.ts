@@ -1,8 +1,14 @@
-import { importsAt, newestFirst, referencedMediaIds, withImportMedia } from "./slideshow-queries";
+import {
+  claimsAt,
+  mediaOnlyIn,
+  newestFirst,
+  referencedMediaIds,
+  withClaimedMedia,
+} from "./slideshow-queries";
 import {
   MediaNotFoundError,
   SlideshowNotFoundError,
-  type ImportInProgress,
+  type MediaClaim,
   type LibraryStore,
   type PictureBlobs,
   type StoredSlideshow,
@@ -79,6 +85,29 @@ export class IndexedDbLibraryStore implements LibraryStore {
     });
   }
 
+  /** Reads and writes in one transaction, so a deletion in another tab cannot interleave. */
+  updateSlideshow(slideshow: StoredSlideshow): Promise<void> {
+    let found = true;
+    const updated = this.#update([SLIDESHOWS], (transaction) => {
+      const slideshows = transaction.objectStore(SLIDESHOWS);
+      const existing = slideshows.getKey(slideshow.id);
+      existing.onsuccess = () => {
+        if (existing.result === undefined) {
+          found = false;
+          return;
+        }
+        slideshows.put(slideshow);
+        // The last request is placed: commit before a reload can abort the edit.
+        transaction.commit();
+      };
+    });
+    return updated.then(() => {
+      if (!found) {
+        throw new SlideshowNotFoundError(slideshow.id);
+      }
+    });
+  }
+
   async listSlideshows(): Promise<readonly StoredSlideshow[]> {
     const all = await this.#read(SLIDESHOWS, (store) => store.getAll());
     return newestFirst(all as StoredSlideshow[]);
@@ -90,6 +119,36 @@ export class IndexedDbLibraryStore implements LibraryStore {
       throw new SlideshowNotFoundError(id);
     }
     return slideshow as StoredSlideshow;
+  }
+
+  /** Reads the other records and deletes in one transaction, so a concurrent save cannot interleave. */
+  deleteSlideshow(id: string): Promise<void> {
+    let found = true;
+    const deleted = this.#update([SLIDESHOWS, PICTURES, MUSIC], (transaction) => {
+      const slideshows = transaction.objectStore(SLIDESHOWS);
+      const all = slideshows.getAll();
+      all.onsuccess = () => {
+        const records = all.result as StoredSlideshow[];
+        const record = records.find((slideshow) => slideshow.id === id);
+        if (record === undefined) {
+          found = false;
+          return;
+        }
+        slideshows.delete(id);
+        const remaining = records.filter((slideshow) => slideshow.id !== id);
+        for (const mediaId of mediaOnlyIn(record, remaining)) {
+          transaction.objectStore(PICTURES).delete(mediaId);
+          transaction.objectStore(MUSIC).delete(mediaId);
+        }
+        // The last request is placed: commit before a reload can abort the deletion.
+        transaction.commit();
+      };
+    });
+    return deleted.then(() => {
+      if (!found) {
+        throw new SlideshowNotFoundError(id);
+      }
+    });
   }
 
   async pictureBlob(id: string): Promise<Blob> {
@@ -108,20 +167,20 @@ export class IndexedDbLibraryStore implements LibraryStore {
     return toBlob(media as StoredMedia);
   }
 
-  recordImportMedia(importId: string, startedAt: Date, mediaId: string): Promise<void> {
-    return this.#write([IMPORTS], (transaction) => {
+  claimMedia(claimId: string, startedAt: Date, mediaId: string): Promise<void> {
+    return this.#update([IMPORTS], (transaction) => {
       const imports = transaction.objectStore(IMPORTS);
-      const existing = imports.get(importId);
+      const existing = imports.get(claimId);
       existing.onsuccess = () => {
-        const record = existing.result as ImportInProgress | undefined;
-        imports.put(withImportMedia(record, importId, startedAt, mediaId));
+        const record = existing.result as MediaClaim | undefined;
+        imports.put(withClaimedMedia(record, claimId, startedAt, mediaId));
       };
     });
   }
 
-  endImport(importId: string): Promise<void> {
+  releaseClaim(claimId: string): Promise<void> {
     return this.#write([IMPORTS], (transaction) => {
-      transaction.objectStore(IMPORTS).delete(importId);
+      transaction.objectStore(IMPORTS).delete(claimId);
     });
   }
 
@@ -130,17 +189,14 @@ export class IndexedDbLibraryStore implements LibraryStore {
    * claim cannot interleave.
    */
   deleteUnreferencedMedia(now: Date): Promise<void> {
-    return this.#write([SLIDESHOWS, PICTURES, MUSIC, IMPORTS], (transaction) => {
+    return this.#update([SLIDESHOWS, PICTURES, MUSIC, IMPORTS], (transaction) => {
       const slideshows = transaction.objectStore(SLIDESHOWS).getAll();
       const importStore = transaction.objectStore(IMPORTS);
       const imports = importStore.getAll();
       imports.onsuccess = () => {
         const referenced = referencedMediaIds(slideshows.result as StoredSlideshow[]);
-        const { sparedMediaIds, staleImportIds } = importsAt(
-          imports.result as ImportInProgress[],
-          now,
-        );
-        staleImportIds.forEach((id) => importStore.delete(id));
+        const { sparedMediaIds, staleClaimIds } = claimsAt(imports.result as MediaClaim[], now);
+        staleClaimIds.forEach((id) => importStore.delete(id));
         for (const name of [PICTURES, MUSIC]) {
           const media = transaction.objectStore(name);
           const keys = media.getAllKeys();
@@ -169,8 +225,24 @@ export class IndexedDbLibraryStore implements LibraryStore {
     return requestResult(request);
   }
 
-  /** Resolves once the transaction has committed; rejects with its error (e.g. QuotaExceededError). */
+  /**
+   * Writes that need no read, committed at once: Chromium aborts a transaction still open when
+   * the page unloads, so a reload right after an edit would otherwise lose it.
+   */
   #write(names: StoreName[], work: (transaction: IDBTransaction) => void): Promise<void> {
+    return this.#transact(names, (transaction) => {
+      work(transaction);
+      transaction.commit();
+    });
+  }
+
+  /** Writes that read first; the transaction commits once its last request callback has run. */
+  #update(names: StoreName[], work: (transaction: IDBTransaction) => void): Promise<void> {
+    return this.#transact(names, work);
+  }
+
+  /** Resolves once the transaction has committed; rejects with its error (e.g. QuotaExceededError). */
+  #transact(names: StoreName[], work: (transaction: IDBTransaction) => void): Promise<void> {
     const transaction = this.#database.transaction(names, "readwrite");
     const committed = new Promise<void>((resolve, reject) => {
       transaction.oncomplete = () => resolve();

@@ -123,14 +123,21 @@ button {
   background: var(--gl-hover);
 }
 .btn.danger {
-  border-color: var(--gl-coral);
+  border-color: transparent;
+  color: var(--gl-coral-ink);
+  background: var(--gl-coral);
+}
+.btn.danger:hover {
+  background: var(--gl-coral-hover);
 }
 .btn.large {
   height: 44px;
   padding: 0 20px;
   font-size: var(--gl-size-button-large);
 }
-.btn:disabled {
+/* `aria-disabled` looks off yet stays focusable and clickable, to say why it is off. */
+.btn:disabled,
+.btn[aria-disabled="true"] {
   opacity: 0.45;
   cursor: default;
 }

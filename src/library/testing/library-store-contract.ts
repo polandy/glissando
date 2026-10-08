@@ -6,6 +6,7 @@ import {
   type StoredPicture,
   type StoredSlideshow,
 } from "../stored-slideshow";
+import { describeEditing } from "./editing-contract";
 import { describeImportsInProgress } from "./imports-in-progress-contract";
 
 const CLEAN_UP_AT = new Date("2026-10-08T12:00:00Z");
@@ -17,7 +18,7 @@ export interface StoreHarness {
   close(): Promise<void>;
 }
 
-function picture(id: string): StoredPicture {
+export function picture(id: string): StoredPicture {
   return {
     id,
     capturedAt: "2025-07-01T10:00:00Z",
@@ -27,7 +28,7 @@ function picture(id: string): StoredPicture {
   };
 }
 
-function slideshow(overrides: Partial<StoredSlideshow> = {}): StoredSlideshow {
+export function slideshow(overrides: Partial<StoredSlideshow> = {}): StoredSlideshow {
   return {
     id: "show-1",
     title: "July 2025",
@@ -197,9 +198,40 @@ export function describeLibraryStoreContract(
       );
     });
 
+    it("deletes a slideshow with its pictures and music, sparing media another one uses", async () => {
+      const music = { id: "music-1", fileName: "a.mp3", durationMs: 1000, mimeType: "audio/mpeg" };
+      for (const id of ["own-picture", "shared-picture", "other-picture"]) {
+        await store.putPicture(id, pictureBlobs(id));
+      }
+      await store.putMusic("music-1", musicBlob("one"));
+      await store.saveSlideshow(
+        slideshow({ pictures: [picture("own-picture"), picture("shared-picture")], music }),
+      );
+      await store.saveSlideshow(
+        slideshow({ id: "other", pictures: [picture("shared-picture"), picture("other-picture")] }),
+      );
+
+      await store.deleteSlideshow("show-1");
+
+      expect((await store.listSlideshows()).map((listed) => listed.id)).toEqual(["other"]);
+      expect(await (await store.thumbnailBlob("shared-picture")).text()).toBe(
+        "shared-picture thumbnail",
+      );
+      expect(await (await store.pictureBlob("other-picture")).text()).toBe("other-picture display");
+      expect(await rejection(store.pictureBlob("own-picture"))).toBeInstanceOf(MediaNotFoundError);
+      expect(await rejection(store.musicBlob("music-1"))).toBeInstanceOf(MediaNotFoundError);
+    });
+
+    it("throws SlideshowNotFoundError when deleting an unknown slideshow", async () => {
+      expect(await rejection(store.deleteSlideshow("missing"))).toBeInstanceOf(
+        SlideshowNotFoundError,
+      );
+    });
+
     describeImportsInProgress(
       () => store,
       () => harness,
     );
+    describeEditing(() => store);
   });
 }

@@ -33,6 +33,8 @@ const rect = (x: number, y: number, width: number, height: number, rx: number): 
 
 export const ICONS = {
   back: { shapes: [path("M15 6l-6 6 6 6")] },
+  chevronLeft: { shapes: [path("M15 6l-6 6 6 6")] },
+  chevronRight: { shapes: [path("M9 6l6 6-6 6")] },
   plus: { shapes: [path("M12 5v14M5 12h14")] },
   minus: { shapes: [path("M5 12h14")] },
   play: { shapes: [path("M7 4.5v15l13-7.5z")], filled: true },
@@ -57,6 +59,23 @@ export const ICONS = {
     ],
   },
   pencil: { shapes: [path("M4 20h4L19 9l-4-4L4 16z")] },
+  trash: {
+    shapes: [
+      path(
+        "M4.5 7h15M9.5 7V4.8h5V7M6.5 7l.9 12.2a1.5 1.5 0 001.5 1.3h6.2a1.5 1.5 0 001.5-1.3L17.5 7M10 11v6M14 11v6",
+      ),
+    ],
+  },
+  grip: {
+    shapes: [
+      circle(9, 6, 1.3),
+      circle(15, 6, 1.3),
+      circle(9, 12, 1.3),
+      circle(15, 12, 1.3),
+      circle(9, 18, 1.3),
+      circle(15, 18, 1.3),
+    ],
+  },
   more: { shapes: [circle(5, 12, 1.2), circle(12, 12, 1.2), circle(19, 12, 1.2)] },
   expand: { shapes: [path("M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5")] },
   check: { shapes: [path("M5 12.5l4.5 4.5L19 7.5")] },

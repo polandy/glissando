@@ -102,6 +102,15 @@
     </Notice>
   {/if}
 
+  {#if phase === "failed"}
+    <Notice tone="error">
+      <b>{t("import.failed")}</b>
+      {t("import.failedText")}
+      <button class="link" type="button" onclick={onDiscard}>{t("import.startOver")}</button>
+      {t("import.startOverText")}
+    </Notice>
+  {/if}
+
   {#if phase === "importing" || (phase === "done" && range !== null)}
     <div class="progress">
       <div class="progress-row">
@@ -137,7 +146,7 @@
   {#if !importState.busy && importState.skipped.length > 0}
     <Notice tone="warn">
       <b>{t("import.skipped", { count: importState.skipped.length })}</b>
-      {t("import.skippedReason", { files: skippedNames })}
+      {t("import.skippedFiles", { files: skippedNames })}
       {#if importState.pictures.length > 0}
         {t("import.skippedRest", { count: importState.pictures.length })}
       {/if}

@@ -23,6 +23,11 @@ export interface SlideshowDetails {
   readonly durationSeconds: number;
   /** The music file's name, or null without music. */
   readonly musicTitle: string | null;
+  /** The user reordered the pictures; otherwise they are in capture-date order. */
+  readonly ownOrder: boolean;
+  /** The earliest and the latest capture date, ISO 8601. */
+  readonly capturedFrom: string;
+  readonly capturedTo: string;
   /** In play order; never empty. */
   readonly pictures: readonly PictureTile[];
 }

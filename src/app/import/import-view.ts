@@ -3,10 +3,16 @@ import type { PictureImportState } from "../../import/picture-import";
 import type { StoredPicture } from "../../library/stored-slideshow";
 import { MILLISECONDS_PER_SECOND } from "../../player";
 
-/** What step 1 shows: the drop zone, the live progress, or the chosen pictures. */
-export type PicturesPhase = "empty" | "importing" | "done";
+/**
+ * What step 1 shows: the drop zone, the live progress, the chosen pictures, or a failed import,
+ * which takes no more files until it is started over.
+ */
+export type PicturesPhase = "empty" | "importing" | "done" | "failed";
 
 export function picturesPhase(state: PictureImportState): PicturesPhase {
+  if (state.failed) {
+    return "failed";
+  }
   if (state.busy) {
     return "importing";
   }

@@ -18,11 +18,47 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
   a cover of the first three pictures (one large, two small), the title, "12 pictures · 1:00" and a
   music icon — ending in a dashed "New slideshow" card. A status bar at the bottom: "Offline · stored on
   this device".
-- **Slideshow** (`screens/SlideshowScreen.svelte`): breadcrumb "Library / title"; a 16:9
-  preview of the cover (tap plays) with the running time, then the pictures in play order,
-  read-only, each with its order number and capture date. Beside it an info panel: title, date
-  range, "Play" and the facts — pictures, duration, music, seconds per picture, Ken Burns
-  "automatic", transitions "alternating".
+- **Slideshow** (`screens/SlideshowScreen.svelte`, parts in `screens/slideshow/`): breadcrumb
+  "Library / title" and a ⋯ "More" button whose menu holds only "Delete slideshow …"; a 16:9
+  preview of the first picture (tap plays) with the running time, then the pictures in play
+  order, each with its order number and capture date, under "Sorted by capture date" or, once
+  the user reordered, "Own order" (with "drag or tap", narrow: "tap to reorder"). Beside it an
+  info panel: title with a ✎ button, date range (earliest to latest capture), "Play" and the
+  facts — pictures, duration, music, seconds per picture, Ken Burns "automatic", transitions
+  "alternating". The info panel and the player always use the edited picture list.
+- **Editing the slideshow** (`editing/slideshow-editor.ts`; pure operations in
+  `src/library/slideshow-edits.ts`): every edit applies at once and is stored; the screen is
+  `aria-busy` from an edit until every edit so far is stored.
+  - **Remove**: a ✕ on a tile, "Remove" in the selection bar, or Delete/Backspace on a focused
+    tile — never confirmed. The ✕ and the drag grip are for a mouse only (`(hover: hover) and
+(pointer: fine)`): shown on hover and on the selected tile; touch has neither and uses the
+    selection bar. A toast "Picture removed" with "Undo" follows; removals made while it is
+    shown add up ("3 pictures removed") and one Undo puts them all back where they were. Any move
+    ends that batch and dismisses the toast, so Undo never puts pictures back at positions that
+    shifted meanwhile; leaving the screen dismisses it too. While the toast shows, the removed
+    pictures' media is claimed against the clean-up (`dev-docs/LIBRARY.md`). The last picture stays: its ✕ is disabled (titled with the reason);
+    "Remove" looks disabled but stays focusable and clickable (`aria-disabled`), and it and
+    Delete answer with the toast "The last picture stays. To get rid of it, delete the whole
+    slideshow.", keeping the selection.
+  - **Select and reorder**: a tap on a tile selects it (outlined in the accent; another tap
+    deselects) and opens the selection bar at the bottom — "Picture 3 of 12" (a polite live
+    region, so every move is announced; visually hidden up to 720 px, where the bar spans the
+    width), "◀ Earlier", "Later ▶", "Remove", "Done". At the ends Earlier or Later looks disabled
+    but stays focusable (`aria-disabled`) and does nothing. While the
+    bar shows, the content keeps room below it for the bar, and the selected tile scrolls clear
+    of it. The bar's buttons highlight on hover only where the pointer hovers. Mouse: drag a
+    tile onto another (tiles are draggable only with a mouse, so a touch never starts a drag); a dashed lemon line before or after the target shows where it
+    lands. Keyboard: arrows move the focus (and a selection) through the grid, Shift+arrows move
+    the tile (up and down by a row), Enter or Space selects, Esc deselects.
+  - **Rename**: ✎ turns the title into a field (at most 80 characters): Enter or leaving it
+    saves, Esc cancels, an empty title falls back to the automatic one from the capture dates.
+  - **Delete**: "Delete slideshow …" asks in a dialog, "Delete “title”?", what goes (the
+    slideshow and its n pictures, not the original photos; cannot be undone), "Keep" (focused)
+    and a coral "Delete"; Keep or Esc puts the focus back on the ⋯ button. Deleting first closes
+    the screen's undo toast, then removes the record and the media only it uses, goes back to
+    start and shows the toast "Slideshow deleted" there — also when another tab deleted it
+    first. An edit to a slideshow deleted elsewhere goes back to start with the toast "This
+    slideshow no longer exists."
 - **Import** (`import/`, below) and the **player** open from these.
 
 Up to 720 px wide (a container query on `.screen`) the layout narrows: one card column, the
@@ -40,8 +76,12 @@ gesture (which cannot be stopped) keeps it, and "New slideshow" resumes it.
   pictures are being downscaled …" with a mono counter, Cancel and a mint meter; a shimmering
   placeholder per file still in flight; the tiles appear in capture order as
   they are stored. Then "n pictures · from – to" and "add more". Skipped files are a lemon
-  notice, full storage a coral one with "Choose fewer pictures" (discards and reopens the
-  picker). "Next" is enabled once nothing is in flight and at least one picture is stored.
+  notice "n files could not be read as pictures and were skipped: names. The other m pictures
+  are in.", full storage a coral one with "Choose fewer pictures" (discards and reopens the
+  picker). A failed import is a coral notice "The import failed. No more pictures can be added."
+  with "Start over" (discards the selection and shows the empty drop zone); the drop zone and
+  "add more" stay hidden until then. Its error is logged; the notice is its only message (no
+  "unexpected error" toast besides). "Next" is enabled once nothing is in flight and at least one picture is stored.
   Cancel and ← with a selection ask "Discard selection?" (Keep choosing / Discard).
 - **Music** (optional): a drop zone with "Choose music" (`audio/*`); a file the browser cannot
   play is a coral toast with "Retry", which reopens the picker. Chosen music is a card (music icon, file
@@ -59,8 +99,9 @@ IndexedDB library, and builds the `Navigator` over `window.history` and the `Toa
 over real timers.
 
 - **Abandoned imports**: at startup and whenever an import ends (created or discarded), media
-  no slideshow references is deleted — except every media id handed to the import in progress,
-  so a picture stored before its slideshow record is never lost.
+  no slideshow references is deleted — except every media id an import in progress or a
+  still-undoable removal claims, in any tab, so a picture stored before its slideshow record is
+  never lost and an Undo always finds its media.
 - **Persistent storage** is requested after the first slideshow a tab creates; a refusal shows
   the dialog "Glissando may not store anything permanently" (only "Understood"), once per
   device.
@@ -92,8 +133,8 @@ three levels; the player is a modal layer over its slideshow, the settings sheet
   slideshow …".
 - **Notice** (`Notice`): inline at the cause; lemon for warnings, coral for errors.
 - **Toast** (`Toast` + `toast/toaster.ts`): one at a time, bottom (right from 700 px viewport width), gone after
-  6 s; an optional action and a close button. A new toast replaces the shown one. While the import wizard is
-  shown, it rises above the wizard's bottom actions.
+  6 s; an optional action and a close button. A new toast replaces the shown one. While the import wizard's
+  bottom actions or the slideshow's selection bar are shown, it rises above them.
 - **Dialog** (`Dialog`): a native modal dialog, only when the user must decide.
 
 ## Player overlay

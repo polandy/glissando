@@ -15,6 +15,10 @@ export interface AppServices {
   readonly settings: AppSettings;
   readonly persistencePrompt: PersistencePrompt;
   newImportSession(): ImportSession;
-  /** Deletes media no slideshow and no import in progress in any tab uses; reports failures. */
+  /** A new random id. */
+  newId(): string;
+  /** The current instant. */
+  now(): Date;
+  /** Deletes media no slideshow uses and no claim in any tab spares; reports failures. */
   deleteAbandonedMedia(): void;
 }

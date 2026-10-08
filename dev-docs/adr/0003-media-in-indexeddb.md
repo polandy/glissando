@@ -30,7 +30,8 @@ in one transaction. Media is stored as bytes plus MIME type, not as `Blob`s.
 ## Consequences
 
 - Records and media share transactions; a clean-up cannot race a save. An import still running
-  in another tab is visible to the clean-up only through its `imports` record, so a tab that
+  in another tab, or a removal still undoable there, is visible to the clean-up only through
+  its claim in `imports`, so a tab that
   crashed leaves a record behind; it is trusted for one day (see `dev-docs/LIBRARY.md`).
 - Each write holds one rendition's bytes in memory once; the import writes one picture at a
   time, so memory stays bounded.

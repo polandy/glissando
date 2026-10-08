@@ -36,6 +36,11 @@ describe("picturesPhase", () => {
     ["files in flight are importing", { ...idle, total: 2, busy: true }, "importing"],
     ["every file processed with a picture is done", oneStored, "done"],
     ["only unreadable files leave it empty", { ...idle, total: 1, done: 1 }, "empty"],
+    [
+      "a failed import is failed, even with pictures stored",
+      { ...oneStored, failed: true },
+      "failed",
+    ],
   ] as const)("%s", (_, state, phase) => {
     expect(picturesPhase(state)).toBe(phase);
   });

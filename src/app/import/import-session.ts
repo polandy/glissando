@@ -1,6 +1,10 @@
 import { buildStoredSlideshow } from "../../compose";
 import type { MusicProbe } from "../../import/music-probe";
-import { PictureImport, type PictureImportPorts } from "../../import/picture-import";
+import {
+  PictureImport,
+  PictureImportFailedError,
+  type PictureImportPorts,
+} from "../../import/picture-import";
 import {
   DEFAULT_SECONDS_PER_PICTURE,
   type LibraryStore,
@@ -16,6 +20,8 @@ export interface ImportSessionPorts extends Pick<PictureImportPorts, "decode" | 
   now(): Date;
   /** An unexpected error of the picture import, which runs on without a caller to throw to. */
   onError(error: unknown): void;
+  /** Records an error the user already sees, such as a failed import shown by step 1. */
+  log(error: unknown): void;
 }
 
 export interface ChosenMusic {
@@ -84,11 +90,15 @@ export class ImportSession {
     const drain = this.pictures.settled();
     if (drain !== this.#reportedDrain) {
       this.#reportedDrain = drain;
-      this.#reporting = drain.catch(this.#ports.onError);
+      this.#reporting = drain.catch((error: unknown) =>
+        error instanceof PictureImportFailedError
+          ? this.#ports.log(error)
+          : this.#ports.onError(error),
+      );
     }
   }
 
-  /** Resolves once an unexpected picture-import error, if any, has been reported. */
+  /** Resolves once an unexpected picture-import error, if any, has been reported or logged. */
   reported(): Promise<void> {
     return this.#reporting;
   }
@@ -156,14 +166,14 @@ export class ImportSession {
 
   #claim(mediaId: string): Promise<void> {
     this.#startedAt ??= this.#ports.now();
-    return this.#ports.store.recordImportMedia(this.#importId, this.#startedAt, mediaId);
+    return this.#ports.store.claimMedia(this.#importId, this.#startedAt, mediaId);
   }
 
   #endImport(): Promise<void> {
     const ended = this.#importId;
     this.#importId = this.#ports.newId();
     this.#startedAt = null;
-    return this.#ports.store.endImport(ended);
+    return this.#ports.store.releaseClaim(ended);
   }
 
   async #storeMusic(): Promise<StoredMusic | undefined> {

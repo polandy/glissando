@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { MediaNotFoundError, type PictureBlobs } from "../library/stored-slideshow";
 import { MemoryLibraryStore } from "../library/testing/memory-store";
-import { UnreadablePictureError, type DecodedPicture } from "./downscale";
-import { PictureImport, type PictureImportState } from "./picture-import";
+import type { DecodedPicture } from "./downscale";
+import { UnreadablePictureError } from "./unreadable-picture";
+import { PictureImport, PictureImportFailedError, type PictureImportState } from "./picture-import";
 
 const picture = (name: string, type = "image/jpeg"): File => new File([name], name, { type });
 
@@ -207,6 +208,26 @@ describe("PictureImport", () => {
     });
   });
 
+  it("skips a picture the browser cannot read as unreadable and goes on", async () => {
+    const { pictureImport } = setUp({
+      captureDate: (file) =>
+        file.name === "lapsed.jpg"
+          ? Promise.reject(new UnreadablePictureError(file.name))
+          : Promise.resolve("2025-07-01T10:00:00Z"),
+    });
+
+    pictureImport.add([picture("lapsed.jpg"), picture("a.jpg")]);
+    await pictureImport.settled();
+
+    expect(fileNames(pictureImport.state)).toEqual(["a.jpg"]);
+    expect(pictureImport.state).toMatchObject({
+      total: 2,
+      done: 2,
+      skipped: [{ fileName: "lapsed.jpg", reason: "unreadable" }],
+      failed: false,
+    });
+  });
+
   it("stops at full storage, keeping what was stored and dropping the rest from the total", async () => {
     const decoder = new FakeDecoder();
     const { pictureImport } = setUp({ decoder, store: new FillingStore(1) });
@@ -303,15 +324,36 @@ describe("PictureImport", () => {
     expect(pictureImport.state).toMatchObject({ failed: false, busy: false, total: 1, done: 1 });
   });
 
-  it("fails loud on an unexpected error: settled rejects and the state reports it", async () => {
+  it("fails loud on an unexpected error: settled rejects with it as the failed import's cause, and the state reports it", async () => {
     const failure = new Error("the disk went away");
     const { pictureImport } = setUp({ captureDate: () => Promise.reject(failure) });
 
     pictureImport.add([picture("a.jpg"), picture("b.jpg")]);
 
-    await expect(pictureImport.settled()).rejects.toBe(failure);
+    const rejection: unknown = await pictureImport.settled().catch((error: unknown) => error);
+    expect(rejection).toBeInstanceOf(PictureImportFailedError);
+    expect((rejection as PictureImportFailedError).cause).toBe(failure);
     expect(pictureImport.state).toMatchObject({ failed: true, busy: false, total: 0, done: 0 });
     expect(() => pictureImport.add([picture("c.jpg")])).toThrow(/failed/);
+  });
+
+  it("starts over after a failed import is cancelled and accepts new files", async () => {
+    let failing = true;
+    const failure = new Error("the disk went away");
+    const { pictureImport } = setUp({
+      captureDate: () =>
+        failing ? Promise.reject(failure) : Promise.resolve("2025-07-01T10:00:00Z"),
+    });
+    pictureImport.add([picture("a.jpg")]);
+    await expect(pictureImport.settled()).rejects.toBeInstanceOf(PictureImportFailedError);
+
+    failing = false;
+    pictureImport.cancel();
+    pictureImport.add([picture("b.jpg")]);
+    await pictureImport.settled();
+
+    expect(fileNames(pictureImport.state)).toEqual(["b.jpg"]);
+    expect(pictureImport.state).toMatchObject({ failed: false, total: 1, done: 1 });
   });
 
   it("stops notifying a listener once it unsubscribes", async () => {
