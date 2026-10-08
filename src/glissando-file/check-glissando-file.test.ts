@@ -88,4 +88,14 @@ describe("checkGlissandoFile", () => {
     });
     expect(check.kind).toBe("ok");
   });
+
+  it("stops with the signal's reason when cancelled while checking the media", async () => {
+    const cancel = new AbortController();
+    const checking = checkGlissandoFile(await exportedFile(), {
+      ...plentyOfSpace,
+      signal: cancel.signal,
+      onProgress: () => cancel.abort(),
+    });
+    await expect(checking).rejects.toMatchObject({ name: "AbortError" });
+  });
 });

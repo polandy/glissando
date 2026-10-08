@@ -88,6 +88,11 @@ export class ImportFlow<Session extends DiscardableSession> {
     this.#ports.deleteAbandonedMedia();
     this.#ports.navigator.open({ screen: "slideshow", slideshowId });
     this.#ports.toaster.show({ text: this.#ports.createdText(), tone: "info" });
+    await this.afterCreate();
+  }
+
+  /** A slideshow was created, here or from a file: asks for persistent storage once. */
+  async afterCreate(): Promise<void> {
     try {
       if (await this.#ports.persistencePrompt.afterCreate()) {
         this.#publish({ persistRefused: true });

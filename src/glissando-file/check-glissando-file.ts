@@ -28,6 +28,8 @@ export interface CheckOptions {
   freeBytes(): Promise<number | null>;
   /** The share of the media checked, from 0 to 1. */
   readonly onProgress?: (fraction: number) => void;
+  /** Cancels the check between media files; it then rejects with the signal's reason. */
+  readonly signal?: AbortSignal;
 }
 
 /**
@@ -74,6 +76,7 @@ export async function checkGlissandoFile(
 
   let checkedBytes = 0;
   for (const entry of mediaEntries) {
+    options.signal?.throwIfAborted();
     if (!(await checksumMatches(file, entry))) {
       return damaged(`"${entry.name}" does not match its checksum`);
     }
