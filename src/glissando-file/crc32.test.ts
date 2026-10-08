@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { crc32, crc32OfBlob } from "./crc32";
 
-const bytes = (text: string): Uint8Array => new TextEncoder().encode(text);
+const bytes = (text: string): Uint8Array<ArrayBuffer> =>
+  new Uint8Array(new TextEncoder().encode(text));
 
 describe("crc32", () => {
   it.each([

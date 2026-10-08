@@ -13,7 +13,7 @@ async function zipOf(entries: Record<string, string>): Promise<Blob> {
   return writer.finish();
 }
 
-async function bytesOf(blob: Blob): Promise<Uint8Array> {
+async function bytesOf(blob: Blob): Promise<Uint8Array<ArrayBuffer>> {
   return new Uint8Array(await blob.arrayBuffer());
 }
 

@@ -74,6 +74,8 @@ export interface LibraryStore {
   pictureBlob(id: string): Promise<Blob>;
   thumbnailBlob(id: string): Promise<Blob>;
   musicBlob(id: string): Promise<Blob>;
+  /** The bytes the slideshow's pictures (both renditions) and music take; missing media counts 0. */
+  mediaBytes(slideshow: StoredSlideshow): Promise<number>;
   /**
    * Claims a media id no saved slideshow references (yet or any more), so a clean-up in any tab
    * spares it: an import in progress claims its media before writing it, a removal its pictures

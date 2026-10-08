@@ -40,7 +40,7 @@ export class ZipTooLargeError extends Error {
 }
 
 interface WrittenEntry {
-  readonly nameBytes: Uint8Array;
+  readonly nameBytes: Uint8Array<ArrayBuffer>;
   readonly size: number;
   readonly crc32: number;
   readonly localOffset: number;
@@ -62,7 +62,7 @@ export class StoredZipWriter {
     if (this.#entries.length >= MAX_ENTRIES) {
       throw new ZipTooLargeError(`more than ${MAX_ENTRIES} entries`);
     }
-    const nameBytes = new TextEncoder().encode(name);
+    const nameBytes = new Uint8Array(new TextEncoder().encode(name));
     const entry = {
       nameBytes,
       size: data.size,

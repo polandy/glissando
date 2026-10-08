@@ -132,6 +132,16 @@ export function describeLibraryStoreContract(
       expect(await (await store.musicBlob("music-1")).text()).toBe("one music");
     });
 
+    it("measures the bytes a slideshow's pictures, thumbnails and music take", async () => {
+      await store.putPicture("picture-1", pictureBlobs("one"));
+      await store.putMusic("music-1", musicBlob("one"));
+      const music = { id: "music-1", fileName: "a.mp3", durationMs: 1000, mimeType: "audio/mpeg" };
+
+      const bytes = await store.mediaBytes(slideshow({ music }));
+
+      expect(bytes).toBe("one display".length + "one thumbnail".length + "one music".length);
+    });
+
     it.each([
       ["pictureBlob", (s: LibraryStore) => s.pictureBlob("missing")],
       ["thumbnailBlob", (s: LibraryStore) => s.thumbnailBlob("missing")],
