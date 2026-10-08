@@ -15,6 +15,8 @@ export interface SlideshowEditorPorts {
   /** The undo toast's text for `count` pictures removed. */
   readonly removedText: (count: number) => string;
   readonly undoLabel: () => string;
+  /** Why the last picture stays, and how to discard the whole slideshow instead. */
+  readonly lastPictureText: () => string;
   /** The title from the capture dates, which an emptied title falls back to. */
   readonly automaticTitle: (slideshow: StoredSlideshow) => string;
 }
@@ -51,8 +53,12 @@ export class SlideshowEditor {
     return () => this.#listeners.delete(listener);
   }
 
-  /** Throws `LastPictureError` for the last picture: the screen offers no way to do that. */
+  /** The last picture stays; asking to remove it explains why in a toast. */
   remove(pictureId: string): void {
+    if (this.#slideshow.pictures.length < 2) {
+      this.#ports.toaster.show({ text: this.#ports.lastPictureText(), tone: "info" });
+      return;
+    }
     const { slideshow, removed } = removePicture(this.#slideshow, pictureId);
     const ongoing = this.#batch !== null && this.#ports.toaster.current === this.#batch.toast;
     const removals = [...(ongoing && this.#batch !== null ? this.#batch.removals : []), removed];

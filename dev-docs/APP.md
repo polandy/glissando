@@ -28,12 +28,15 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
   "alternating". The info panel and the player always use the edited picture list.
 - **Editing the slideshow** (`editing/slideshow-editor.ts`; pure operations in
   `src/library/slideshow-edits.ts`): every edit applies at once and is stored.
-  - **Remove**: a ✕ on a tile (shown on hover, for pointers that hover), "Remove" in the
-    selection bar, or Delete/Backspace on a focused tile — never confirmed. A toast "Picture
-    removed" with "Undo" follows; removals made while it is shown add up ("3 pictures removed")
-    and one Undo puts them all back where they were. Leaving the screen dismisses it. The last
-    picture stays: its ✕ and "Remove" are disabled and the bar says "The last picture stays. To
-    get rid of it, delete the whole slideshow."
+  - **Remove**: a ✕ on a tile, "Remove" in the selection bar, or Delete/Backspace on a focused
+    tile — never confirmed. The ✕ and the drag grip are for a mouse only (`(hover: hover) and
+(pointer: fine)`): shown on hover and on the selected tile; touch has neither and uses the
+    selection bar. A toast "Picture removed" with "Undo" follows; removals made while it is
+    shown add up ("3 pictures removed") and one Undo puts them all back where they were. Leaving
+    the screen dismisses it. The last picture stays: its ✕ is disabled (titled with the reason);
+    "Remove" looks disabled but stays focusable and clickable (`aria-disabled`), and it and
+    Delete answer with the toast "The last picture stays. To get rid of it, delete the whole
+    slideshow.", keeping the selection.
   - **Select and reorder**: a tap on a tile selects it (outlined in the accent; another tap
     deselects) and opens the selection bar at the bottom — "Picture 3 of 12" (hidden up to
     720 px, where the bar spans the width), "◀ Earlier", "Later ▶", "Remove", "Done". Pointer:

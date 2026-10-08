@@ -73,6 +73,8 @@
   /** The focus, and a selection, pass to the tile that takes the removed one's place. */
   function removeByKey(pictureId: string, index: number): void {
     if (lastPicture) {
+      // Answered with why it stays; the focus and selection stay too.
+      onRemove(pictureId);
       return;
     }
     const neighbour = pictures[index + 1]?.id ?? pictures[index - 1]?.id ?? null;

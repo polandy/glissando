@@ -92,17 +92,24 @@ describe("SlideshowScreen editing", () => {
     expect(document.querySelector("dialog")).toBeNull();
   });
 
-  it("keeps the last picture: no ✕, no Remove, and a hint why", () => {
-    mountScreen(details(["a"]));
-
-    tile(1, "01.07.2025").click();
+  it("keeps the last picture: its ✕ is off; Remove and Delete look off but ask, keeping the selection", () => {
+    const { calls } = mountScreen(details(["a"]));
+    const only = tile(1, "01.07.2025");
+    only.click();
     flushSync();
+    const remove = buttonNamed("Entfernen");
 
     expect(byLabel("Bild 1 entfernen").disabled).toBe(true);
-    expect(buttonNamed("Entfernen").disabled).toBe(true);
-    expect(document.body.textContent).toContain(
-      "Das letzte Bild bleibt. Zum Wegwerfen die ganze Diashow löschen.",
-    );
+    expect(remove.disabled).toBe(false);
+    expect(remove.getAttribute("aria-disabled")).toBe("true");
+    remove.click();
+    flushSync();
+    press(only, "Delete");
+
+    // The editor answers both with a toast that says why the picture stays.
+    expect(calls.removed).toEqual(["a", "a"]);
+    expect(selectionBar()?.textContent).toContain("Bild 1 von 1");
+    expect(document.body.textContent).not.toContain("Das letzte Bild bleibt.");
   });
 
   it("selects a tile with a tap and shows the selection bar; a second tap deselects", () => {

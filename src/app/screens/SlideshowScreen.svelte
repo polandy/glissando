@@ -45,8 +45,12 @@
 
   function removeSelected(): void {
     if (selectedId !== null) {
+      // The last picture stays, and so does its selection.
+      const lastPicture = slideshow.pictures.length < 2;
       onRemove(selectedId);
-      selectedId = null;
+      if (!lastPicture) {
+        selectedId = null;
+      }
     }
   }
 

@@ -162,7 +162,7 @@
     position: absolute;
     top: 5px;
     z-index: 2;
-    display: grid;
+    display: none;
     place-items: center;
     width: 26px;
     height: 26px;
@@ -192,17 +192,15 @@
     cursor: grab;
     pointer-events: none;
   }
-  /* Hover marks for pointers that hover; touch selects a tile and uses the selection bar. */
-  @media (hover: hover) {
+  /* Marks for a mouse only; touch selects a tile and uses the selection bar. */
+  @media (hover: hover) and (pointer: fine) {
+    .mark {
+      display: grid;
+    }
     .tile:hover .mark,
     .tile.selected .mark,
     .tile:focus-within .mark {
       opacity: 1;
-    }
-  }
-  @media (hover: none) {
-    .mark {
-      display: none;
     }
   }
   @media (prefers-reduced-motion: reduce) {

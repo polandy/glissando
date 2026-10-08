@@ -34,6 +34,7 @@ async function setUp(ids: readonly string[] = ["a", "b", "c", "d"]) {
     onError: (error) => errors.push(error),
     removedText: (count) => (count === 1 ? "Bild entfernt" : `${count} Bilder entfernt`),
     undoLabel: () => "Rückgängig",
+    lastPictureText: () => "Das letzte Bild bleibt.",
     automaticTitle: () => "Juli 2025",
   });
   const order = () => editor.slideshow.pictures.map((picture) => picture.id);
@@ -95,11 +96,15 @@ describe("SlideshowEditor", () => {
     expect(toaster.current?.text).toBe("Bild entfernt");
   });
 
-  it("keeps the last picture and reports that as a broken caller", async () => {
-    const { editor, order } = await setUp(["a"]);
+  it("keeps the last picture and explains in a toast how to discard the slideshow", async () => {
+    const { editor, toaster, order, storedOrder } = await setUp(["a"]);
 
-    expect(() => editor.remove("a")).toThrow(/one picture left/);
+    editor.remove("a");
+
     expect(order()).toEqual(["a"]);
+    expect(await storedOrder()).toEqual(["a"]);
+    expect(toaster.current?.text).toBe("Das letzte Bild bleibt.");
+    expect(toaster.current?.action).toBeUndefined();
   });
 
   it("moves a picture, stores the new order and marks it as the user's own", async () => {

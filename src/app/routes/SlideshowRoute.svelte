@@ -83,6 +83,7 @@
       onError,
       removedText: (count) => translator.t("slideshow.removed", { count }),
       undoLabel: () => translator.t("slideshow.undo"),
+      lastPictureText: () => translator.t("slideshow.lastPictureStays"),
       automaticTitle: (slideshow) =>
         titleForCaptureRange(
           slideshow.pictures.map((picture) => picture.capturedAt),

@@ -135,7 +135,9 @@ button {
   padding: 0 20px;
   font-size: var(--gl-size-button-large);
 }
-.btn:disabled {
+/* `aria-disabled` looks off yet stays focusable and clickable, to say why it is off. */
+.btn:disabled,
+.btn[aria-disabled="true"] {
   opacity: 0.45;
   cursor: default;
 }

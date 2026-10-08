@@ -26,9 +26,6 @@
 </script>
 
 <div class="dock" use:keepToastsClear>
-  {#if lastPicture}
-    <p class="hint">{t("slideshow.lastPictureStays")}</p>
-  {/if}
   <div class="bar" role="toolbar" aria-label={t("slideshow.selection")}>
     <span class="count mono">
       {t("slideshow.selectionCount", { number: index + 1, total: count })}
@@ -40,7 +37,8 @@
     <button class="btn" type="button" disabled={index === count - 1} onclick={onLater}>
       <span>{t("slideshow.later")}</span><Icon name="chevronRight" />
     </button>
-    <button class="btn remove" type="button" disabled={lastPicture} onclick={onRemove}>
+    <!-- The last picture stays: Remove looks off but still answers, saying why. -->
+    <button class="btn remove" type="button" aria-disabled={lastPicture} onclick={onRemove}>
       <Icon name="trash" /><span>{t("slideshow.remove")}</span>
     </button>
     <button class="btn done" type="button" onclick={onDone}>{t("slideshow.done")}</button>
@@ -59,16 +57,6 @@
     max-width: calc(100% - 24px);
     translate: -50% 0;
   }
-  .hint {
-    margin: 0;
-    padding: 5px 10px;
-    border: 1px solid var(--gl-line);
-    border-radius: var(--gl-radius-tile);
-    background: var(--gl-surface);
-    color: var(--gl-muted);
-    font-size: var(--gl-size-meta);
-    text-align: center;
-  }
   .bar {
     display: flex;
     align-items: center;
@@ -85,10 +73,10 @@
     border-color: transparent;
     background: transparent;
   }
-  .bar .btn:hover:not(:disabled) {
+  .bar .btn:hover:not(:disabled, [aria-disabled="true"]) {
     background: var(--gl-hover);
   }
-  .bar .remove:hover:not(:disabled) {
+  .bar .remove:hover:not([aria-disabled="true"]) {
     background: color-mix(in srgb, var(--gl-coral) 22%, var(--gl-surface));
   }
   .bar .done,
