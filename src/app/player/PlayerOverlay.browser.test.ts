@@ -1,5 +1,6 @@
 import { flushSync } from "svelte";
 import { afterEach, describe, expect, it } from "vitest";
+import { CAPTION_GLIDE_MS } from "../../player";
 import { oneSlideShow } from "../../player/testing/browser-pictures";
 import { OPENED_PICTURE_SHOW } from "../../player/testing/opened-pictures";
 import { FakeScheduler } from "../testing/fake-scheduler";
@@ -9,16 +10,22 @@ import PlayerOverlay from "./PlayerOverlay.svelte";
 let destroy = () => {};
 afterEach(() => destroy());
 
-async function openPlayer(musicTitle: string | null = null) {
+async function openPlayer(musicTitle: string | null = null, caption?: string) {
   let closes = 0;
+  const scheduler = new FakeScheduler();
+  const show = await oneSlideShow();
+  const slideshow =
+    caption === undefined
+      ? show
+      : { ...show, slides: show.slides.map((slide) => ({ ...slide, caption })) };
   const mounted = mountWithTranslator(PlayerOverlay, {
-    slideshow: await oneSlideShow(),
+    slideshow,
     musicTitle,
     onClose: () => (closes += 1),
-    scheduler: new FakeScheduler(),
+    scheduler,
   });
   destroy = mounted.destroy;
-  return { ...mounted, closes: () => closes };
+  return { ...mounted, scheduler, closes: () => closes };
 }
 
 /** Resolves with the first element matching `selector` in `target`, once it is rendered. */
@@ -60,6 +67,25 @@ describe("PlayerOverlay", () => {
 
     expect(target.querySelector(".counter")?.textContent).toBe("1 / 1");
     expect(playButton(target).getAttribute("aria-label")).toBe("Pause");
+  });
+
+  it("tells screen readers the current slide's caption, politely, once it is open", async () => {
+    const { target, scheduler } = await openPlayer(null, "Abends am Steg");
+
+    scheduler.advance(0);
+    flushSync();
+
+    const region = target.querySelector('[aria-live="polite"]');
+    expect(region?.textContent).toBe("Abends am Steg");
+    expect(region?.closest("[inert]")).toBeNull();
+  });
+
+  it("fades the controls in the time the caption glides with them", async () => {
+    const { target } = await openPlayer();
+
+    const ui = target.querySelector(".ui");
+    expect(ui).not.toBeNull();
+    expect(getComputedStyle(ui as Element).transitionDuration).toBe(`${CAPTION_GLIDE_MS / 1000}s`);
   });
 
   it("pauses and plays again with the space bar", async () => {

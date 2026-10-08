@@ -6,6 +6,7 @@ import {
   removePicture,
   renameSlideshow,
   restorePictures,
+  setPictureCaption,
   setPictureKenBurns,
 } from "./slideshow-edits";
 import { InvalidOwnKenBurnsError } from "./own-ken-burns";
@@ -154,5 +155,39 @@ describe("setPictureKenBurns", () => {
     const restored = restorePictures(without, [removed]);
 
     expect(restored.pictures[1]?.kenBurns).toEqual(motion);
+  });
+});
+
+describe("setPictureCaption", () => {
+  it("gives the picture the caption, normalised, and leaves the others without", () => {
+    const edited = setPictureCaption(slideshow(["a", "b"]), "b", "  Evening\non the   jetty ");
+
+    expect(edited.pictures[1]?.caption).toBe("Evening on the jetty");
+    expect(edited.pictures[0]).toEqual(picture("a"));
+  });
+
+  it("with only whitespace removes the caption: the field is gone", () => {
+    const captioned = setPictureCaption(slideshow(["a"]), "a", "Jetty");
+
+    const cleared = setPictureCaption(captioned, "a", "  ");
+
+    expect(cleared.pictures[0]?.id).toBe("a");
+    expect(cleared.pictures[0]).not.toHaveProperty("caption");
+  });
+
+  it("keeps the picture's own motion", () => {
+    const own = setPictureKenBurns(slideshow(["a"]), "a", motion);
+
+    const captioned = setPictureCaption(own, "a", "Jetty");
+
+    expect(captioned.pictures[0]?.kenBurns).toEqual(motion);
+  });
+
+  it("keeps the caption with its picture when the picture moves", () => {
+    const captioned = setPictureCaption(slideshow(["a", "b", "c"]), "a", "Jetty");
+
+    const moved = movePicture(captioned, "a", 2);
+
+    expect(moved.pictures[2]?.caption).toBe("Jetty");
   });
 });

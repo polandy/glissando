@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import {
+    CAPTION_GLIDE_MS,
     createPlayer,
     MusicPlaybackError,
     SlideshowLoadError,
@@ -11,6 +12,7 @@
   import { getTranslator } from "../i18n/context";
   import Icon from "../components/Icon.svelte";
   import { browserScheduler, type Scheduler } from "../scheduler";
+  import PlayerCaption from "./PlayerCaption.svelte";
   import { ControlsVisibility } from "./controls-visibility";
   import { canFullscreen, enterFullscreen, exitFullscreen, toggleFullscreen } from "./fullscreen";
   import { playerActionForKey, type PlayerAction } from "./player-keys";
@@ -52,7 +54,9 @@
 
   let root: HTMLElement;
   let stage: HTMLElement;
-  let player: ReturnType<typeof createPlayer> | null = null;
+  let bottomBar = $state<HTMLElement>();
+  let bottomBarHeight = $state(0);
+  let player = $state.raw<ReturnType<typeof createPlayer> | null>(null);
   let currentTime = $state(0);
   let paused = $state(true);
   let ended = $state(false);
@@ -65,6 +69,7 @@
   const slideCount = $derived(boundaries.starts.length);
   const slideNumber = $derived(slideIndexAt(boundaries, currentTime) + 1);
   const slideDate = $derived(slideDates[slideNumber - 1]);
+  const slideCaption = $derived(slideshow.slides[slideNumber - 1]?.caption ?? "");
   const progress = $derived(boundaries.duration > 0 ? currentTime / boundaries.duration : 0);
   const KEY_HINTS = [
     "player.keyPlay",
@@ -167,6 +172,7 @@
   bind:this={root}
   class="player"
   class:hidden={!controlsVisible}
+  style:--player-controls-fade="{CAPTION_GLIDE_MS}ms"
   role="dialog"
   aria-modal="true"
   aria-label={slideshow.title}
@@ -174,6 +180,14 @@
   <!-- A tap toggles the controls; the keyboard has its own shortcuts. -->
   <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
   <div bind:this={stage} class="stage" onclick={() => controls.toggle()}></div>
+  <PlayerCaption
+    {player}
+    caption={slideCaption}
+    {controlsVisible}
+    {bottomBar}
+    {bottomBarHeight}
+    {scheduler}
+  />
 
   <div class="ui" inert={!controlsVisible}>
     <div class="top" role="group" onpointerdown={() => controls.reveal()}>
@@ -207,7 +221,13 @@
         </button>
       {/if}
     </div>
-    <div class="bottom" role="group" onpointerdown={() => controls.reveal()}>
+    <div
+      bind:this={bottomBar}
+      bind:offsetHeight={bottomBarHeight}
+      class="bottom"
+      role="group"
+      onpointerdown={() => controls.reveal()}
+    >
       <div class="hint" role="note" aria-label={t("player.hint")}>
         {#each KEY_HINTS as key (key)}<kbd class="mono">{t(key)}</kbd>{/each}
       </div>

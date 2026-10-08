@@ -33,7 +33,7 @@ function setUp(onResize: () => void = () => undefined) {
   if (gl === null) {
     throw new Error("this browser has no WebGL2");
   }
-  const renderer = new WebGlRenderer(canvas, gl, onResize, () => 1);
+  const renderer = new WebGlRenderer(canvas, gl, onResize, { pixelRatio: () => 1 });
   /** Reads straight after drawing, before the browser presents and clears the frame. */
   function drawAndRead(
     frame: RenderFrame<BrowserPicture>,

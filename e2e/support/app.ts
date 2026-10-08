@@ -76,3 +76,49 @@ export async function createSlideshow(
   await page.getByRole("button", { name: "Ohne Musik erstellen" }).click();
   await expect(page.getByRole("status")).toHaveText(CREATED_TOAST);
 }
+
+/**
+ * Waits until every edit is stored: the screen is busy from an edit until then, and that edit's
+ * own result is asserted first, so the busy mark has been set by the time this checks it.
+ */
+export async function editsStored(page: Page): Promise<void> {
+  await expect(page.locator(".screen")).toHaveAttribute("aria-busy", "false");
+}
+
+/** The picture editor's caption field. */
+export function captionField(page: Page): Locator {
+  return page.getByRole("textbox", { name: "Bildtitel" });
+}
+
+function selectionBar(page: Page): Locator {
+  return page.getByRole("toolbar", { name: "Ausgewähltes Bild" });
+}
+
+/** Opens the picture editor of the picture whose tile is named `tile`; none may be selected. */
+export async function editPicture(page: Page, tile: string): Promise<void> {
+  const tileButton = page.getByRole("button", { name: tile, exact: true });
+  await expect(tileButton).toHaveAttribute("aria-pressed", "false");
+  await tileButton.click();
+  await expect(tileButton).toHaveAttribute("aria-pressed", "true");
+  await selectionBar(page).getByRole("button", { name: "Bearbeiten" }).click();
+  await expect(captionField(page)).toBeVisible();
+}
+
+/**
+ * Goes back from the picture editor, which leaves the edited picture selected, and ends the
+ * selection, so the next `editPicture` starts with none.
+ */
+export async function leaveEditor(page: Page): Promise<void> {
+  await page.getByRole("button", { name: "Zurück", exact: true }).click();
+  await selectionBar(page).getByRole("button", { name: "Fertig" }).click();
+  await expect(selectionBar(page)).toBeHidden();
+}
+
+/** Gives the picture whose tile is named `tile` a caption, stores it and goes back. */
+export async function captionPicture(page: Page, tile: string, caption: string): Promise<void> {
+  await editPicture(page, tile);
+  await captionField(page).fill(caption);
+  await expect(captionField(page)).toHaveValue(caption);
+  await editsStored(page);
+  await leaveEditor(page);
+}

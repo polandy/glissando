@@ -20,6 +20,7 @@ const stored: StoredSlideshow = {
       height: 200,
       fileName: "b.jpg",
       kenBurns: own,
+      caption: "Am Steg",
     },
     { id: "p3", capturedAt: "2025-07-03T10:00:00Z", width: 200, height: 300, fileName: "c.jpg" },
   ],
@@ -42,6 +43,7 @@ describe("pictureEditorView", () => {
       motion: { from: automatic.from, to: automatic.to },
       ownMotion: false,
       durationMs: 4000,
+      caption: "",
       previousId: null,
       nextId: "p2",
     });
@@ -53,6 +55,10 @@ describe("pictureEditorView", () => {
     expect(view.motion).toEqual(own);
     expect(view.ownMotion).toBe(true);
     expect([view.previousId, view.nextId]).toEqual(["p1", "p3"]);
+  });
+
+  it("shows a picture's caption", () => {
+    expect(pictureEditorView(stored, "p2").caption).toBe("Am Steg");
   });
 
   it("plays the slide's real duration, as the music sets it", () => {

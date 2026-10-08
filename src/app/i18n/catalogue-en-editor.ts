@@ -8,6 +8,8 @@ export const enEditor: Pick<Catalogue, keyof typeof deEditor> = {
   "slideshow.ownMotionBadge": "own",
   "slideshow.pictureLabelOwnMotion": "Picture {number}, taken on {date}, own motion",
   "slideshow.automaticWithOwn": "automatic, {count} own",
+  "slideshow.captions": "Captions",
+  "slideshow.captionCount": "{count} of {total}",
   "editor.crumb": "Picture {number}",
   "editor.position": "Picture {number} of {count}",
   "editor.counter": "{number} / {count}",
@@ -34,4 +36,10 @@ export const enEditor: Pick<Catalogue, keyof typeof deEditor> = {
   "editor.hintWide":
     "Drag to move the frame, drag a corner to zoom · mouse wheel zooms · arrow keys, + and −",
   "editor.hintNarrow": "Drag anywhere to move the frame; corners or two fingers zoom.",
+  "editor.caption": "Caption",
+  "editor.captionPlaceholder": "e.g. Evening on the jetty",
+  "editor.captionCount": "{count} / {max}",
+  "editor.captionClear": "Clear caption",
+  "editor.captionHint":
+    "Shown bottom left in the player, fading in and out with the picture. Empty: no caption.",
 };

@@ -78,6 +78,19 @@ describe("writeGlissandoFile", () => {
     expect(automatic).not.toHaveProperty("kenBurns");
   });
 
+  it("keeps each picture's caption and leaves the others without", async () => {
+    const store = new MemoryLibraryStore();
+    const created = await writeGlissandoFile(await checked(), ports(store), {
+      existingTitles: [],
+      signal: new AbortController().signal,
+    });
+
+    const [captioned, without] = (await store.getSlideshow(created.id)).pictures;
+    expect(captioned?.caption).toBe("Am Steg");
+    expect(without?.fileName).toBe("a.jpg");
+    expect(without).not.toHaveProperty("caption");
+  });
+
   it("never overwrites: a clashing title gets a number, the other slideshow stays", async () => {
     const store = await storeWithOtherShow();
     const created = await writeGlissandoFile(await checked(), ports(store), {

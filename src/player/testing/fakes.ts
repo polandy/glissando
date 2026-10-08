@@ -86,8 +86,12 @@ export class FakeRenderer implements SlideRenderer<FakePicture> {
   readonly frames: RenderFrame<FakePicture>[] = [];
   readonly forgotten: string[] = [];
   disposed = false;
+  captionInset = 0;
   render(frame: RenderFrame<FakePicture>): void {
     this.frames.push(frame);
+  }
+  setCaptionInset(cssPixels: number): void {
+    this.captionInset = cssPixels;
   }
   forget(picture: FakePicture): void {
     this.forgotten.push(picture.src);

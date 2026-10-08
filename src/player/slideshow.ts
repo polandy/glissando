@@ -50,6 +50,8 @@ export interface Slide {
   readonly image: { readonly src: string; readonly capturedAt: string };
   readonly durationMs: number;
   readonly kenBurns: KenBurns;
+  /** Shown bottom left with the slide; absent: none. Rules in `caption.ts`, see ADR-0007. */
+  readonly caption?: string;
   /** Absent: a hard cut. Never on the last slide. */
   readonly transitionToNext?: Transition;
 }

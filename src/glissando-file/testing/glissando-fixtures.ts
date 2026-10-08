@@ -5,13 +5,20 @@ import { StoredZipWriter } from "../stored-zip";
 
 export const MODIFIED_AT = new Date("2025-10-01T08:00:00Z");
 
-/** Two pictures in an own order, the second with its own motion, and music, as stored on the exporting device. */
+/** Two pictures in an own order, the first with a caption, the second with its own motion, and music, as stored on the exporting device. */
 export const EXPORTED_SLIDESHOW: StoredSlideshow = {
   id: "source-show",
   title: "Herbst in Wien",
   createdAt: "2025-10-01T08:00:00.000Z",
   pictures: [
-    { id: "src-p2", capturedAt: "2025-09-30T11:00:00Z", width: 40, height: 30, fileName: "b.jpg" },
+    {
+      id: "src-p2",
+      capturedAt: "2025-09-30T11:00:00Z",
+      width: 40,
+      height: 30,
+      fileName: "b.jpg",
+      caption: "Am Steg",
+    },
     {
       id: "src-p1",
       capturedAt: "2025-09-30T10:00:00Z",

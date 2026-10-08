@@ -55,6 +55,7 @@ describe("slideshowDetails", () => {
       musicTitle: null,
       ownOrder: false,
       ownMotionCount: 0,
+      captionCount: 0,
       capturedFrom: "2025-07-01T10:00:00Z",
       capturedTo: "2025-07-02T10:00:00Z",
       pictures: [
@@ -76,6 +77,13 @@ describe("slideshowDetails", () => {
 
     expect(details.pictures.map((picture) => picture.ownMotion)).toEqual([false, true]);
     expect(details.ownMotionCount).toBe(1);
+  });
+
+  it("counts the pictures with a caption", () => {
+    const [first, second] = stored.pictures;
+    const edited = { ...stored, pictures: [first, { ...second, caption: "Am Steg" }] };
+
+    expect(slideshowDetails(edited as StoredSlideshow, urlOf).captionCount).toBe(1);
   });
 
   it("names the music by its file name", () => {

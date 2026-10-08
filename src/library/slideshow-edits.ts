@@ -1,10 +1,11 @@
+import { normalizeCaption } from "../player/caption";
 import { checkOwnKenBurns, type OwnKenBurns } from "./own-ken-burns";
 import type { StoredPicture, StoredSlideshow } from "./stored-slideshow";
 
 /**
  * The editing of a slideshow (dev-docs/SCOPE.md): remove, reorder, rename, a picture's own
- * Ken Burns motion. Pure
- * functions over the stored record; the caller stores the result.
+ * Ken Burns motion and its caption. Pure functions over the stored record; the caller stores the
+ * result.
  */
 
 export const MAX_TITLE_LENGTH = 80;
@@ -92,13 +93,35 @@ export function setPictureKenBurns(
   pictureId: string,
   kenBurns: OwnKenBurns | undefined,
 ): StoredSlideshow {
-  const index = indexOf(slideshow, pictureId);
-  const picture = { ...(slideshow.pictures[index] as StoredPicture) };
-  delete picture.kenBurns;
-  const edited: StoredPicture =
-    kenBurns === undefined
+  return editPicture(slideshow, pictureId, (picture) => {
+    delete picture.kenBurns;
+    return kenBurns === undefined
       ? picture
       : { ...picture, kenBurns: checkOwnKenBurns(kenBurns, `picture "${pictureId}"`) };
+  });
+}
+
+/** Stores the caption as `normalizeCaption` leaves `typed`; nothing left removes it. */
+export function setPictureCaption(
+  slideshow: StoredSlideshow,
+  pictureId: string,
+  typed: string,
+): StoredSlideshow {
+  const caption = normalizeCaption(typed);
+  return editPicture(slideshow, pictureId, (picture) => {
+    delete picture.caption;
+    return caption === undefined ? picture : { ...picture, caption };
+  });
+}
+
+/** `edit` receives a mutable copy of the picture. */
+function editPicture(
+  slideshow: StoredSlideshow,
+  pictureId: string,
+  edit: (picture: { -readonly [Key in keyof StoredPicture]: StoredPicture[Key] }) => StoredPicture,
+): StoredSlideshow {
+  const index = indexOf(slideshow, pictureId);
+  const edited = edit({ ...(slideshow.pictures[index] as StoredPicture) });
   const pictures = slideshow.pictures.map((other, at) => (at === index ? edited : other));
   return { ...slideshow, pictures };
 }

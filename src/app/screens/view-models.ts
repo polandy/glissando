@@ -29,6 +29,8 @@ export interface SlideshowDetails {
   readonly ownOrder: boolean;
   /** How many pictures play a Ken Burns motion of the user's own. */
   readonly ownMotionCount: number;
+  /** How many pictures have a caption. */
+  readonly captionCount: number;
   /** The earliest and the latest capture date, ISO 8601. */
   readonly capturedFrom: string;
   readonly capturedTo: string;

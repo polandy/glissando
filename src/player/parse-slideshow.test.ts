@@ -53,6 +53,12 @@ describe("parseSlideshow", () => {
     expect(parseSlideshow(withoutMusic).music).toBeUndefined();
   });
 
+  it("accepts a slide's caption", () => {
+    const input = validSlideshow({ slides: [validSlide({ caption: "Evening on the jetty" })] });
+
+    expect(parseSlideshow(input).slides[0]?.caption).toBe("Evening on the jetty");
+  });
+
   it("accepts a slide without a transition as a hard cut", () => {
     const input = validSlideshow({ slides: [validSlide(), validSlide()] });
 
@@ -185,11 +191,24 @@ describe("parseSlideshow", () => {
   });
 
   it.each([
+    ["a non-string caption", 7],
+    ["an empty caption", ""],
+    ["a multi-line caption", "Evening\non the jetty"],
+    ["a caption with padding", " Evening "],
+    ["a caption longer than 80 characters", "a".repeat(81)],
+  ])("rejects %s, naming the path and what to set", (_case, caption) => {
+    const error = parseError(validSlideshow({ slides: [validSlide({ caption })] }));
+
+    expect(error.path).toBe("slides[0].caption");
+    expect(error.message).toContain("a single-line string of 1 to 80 characters");
+  });
+
+  it.each([
     ["the slideshow", validSlideshow({ autoplay: true }), "autoplay"],
     [
       "a slide",
-      validSlideshow({ slides: [validSlide({ caption: "Beach" })] }),
-      "slides[0].caption",
+      validSlideshow({ slides: [validSlide({ subtitle: "Beach" })] }),
+      "slides[0].subtitle",
     ],
     [
       "a framing",

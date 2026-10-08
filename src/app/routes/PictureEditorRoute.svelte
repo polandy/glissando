@@ -5,6 +5,7 @@
   import { animationFrames, performanceClock } from "../../player";
   import type { SlideshowEditor } from "../editing/slideshow-editor";
   import { browserObjectUrls, ObjectUrls } from "../media/object-urls";
+  import { REDUCED_MOTION_QUERY } from "../reduced-motion";
   import PictureEditorScreen from "../picture-editor/PictureEditorScreen.svelte";
   import { pictureEditorView } from "../picture-editor/picture-editor-view";
 
@@ -29,7 +30,6 @@
     onError: (error: unknown) => void;
   } = $props();
 
-  const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
   const reducedMotion = new MediaQuery(REDUCED_MOTION_QUERY);
   // The store is fixed for the route's lifetime.
   // svelte-ignore state_referenced_locally
@@ -72,6 +72,7 @@
       onChange={(motion) => editor.setKenBurns(view.id, motion)}
       onSwap={() => editor.swapKenBurns(view.id)}
       onReset={() => editor.resetKenBurns(view.id)}
+      onCaption={(typed) => editor.setCaption(view.id, typed)}
       previewPorts={{ clock: performanceClock, frames: animationFrames }}
       reducedMotion={reducedMotion.current}
       {saving}

@@ -25,10 +25,11 @@ export function composeSlideshow(stored: StoredSlideshow, sources: SlideshowSour
   const slides: Slide[] = stored.pictures.map((picture, index) => {
     // durationsMs has exactly one entry per picture; the index is always in range.
     const durationMs = durationsMs[index] as number;
-    const slide = {
+    const slide: Slide = {
       image: { src: sources.picture(picture.id), capturedAt: picture.capturedAt },
       durationMs,
       kenBurns: pictureKenBurns(index, picture),
+      ...(picture.caption === undefined ? {} : { caption: picture.caption }),
     };
     const transitionToNext = autoTransition(index, slideCount, durationMs);
     return transitionToNext === undefined ? slide : { ...slide, transitionToNext };

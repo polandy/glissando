@@ -1,30 +1,13 @@
-import { ease } from "./easing";
-import { framingAt, type Size } from "./ken-burns";
+import { CaptionInset } from "./caption-inset";
+import type { Size } from "./ken-burns";
 import { PictureBuffer } from "./picture-buffer";
-import {
-  MusicPlaybackError,
-  type PlayerDependencies,
-  type RenderFrame,
-  type SlideLayer,
-} from "./ports";
-import { MILLISECONDS_PER_SECOND, type Easing, type Slideshow } from "./slideshow";
+import { MusicPlaybackError, type PlayerDependencies } from "./ports";
+import { renderFrame } from "./render-frame";
+import { MILLISECONDS_PER_SECOND, type Slideshow } from "./slideshow";
 import { createTimeline, type SlideAtTime, type Timeline, type TimelineFrame } from "./timeline";
 
-/** Events named and ordered as on an HTML media element. */
-export const PLAYER_EVENTS = [
-  "canplay",
-  "play",
-  "playing",
-  "waiting",
-  "pause",
-  "seeked",
-  "timeupdate",
-  "ended",
-  "error",
-] as const;
-export type PlayerEvent = (typeof PLAYER_EVENTS)[number];
+import type { PlayerEvent } from "./player-events";
 
-const TRANSITION_EASING: Easing = "ease-in-out";
 /**
  * Plays a slideshow with the API of an HTML video element: `play`, `pause`, `currentTime` and
  * `duration` in seconds, and the media events in `PLAYER_EVENTS`.
@@ -43,6 +26,7 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
   #destroyed = false;
   #error: Error | null = null;
   #frameHandle: number | null = null;
+  readonly #captionInset: CaptionInset;
   /** Bumped by every seek, play and pause, so a load finishing late cannot act on stale state. */
   #generation = 0;
 
@@ -51,6 +35,12 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
     this.#slideshow = slideshow;
     this.#timeline = createTimeline(slideshow.slides);
     this.#deps = dependencies;
+    this.#captionInset = new CaptionInset({
+      clock: dependencies.clock,
+      frames: dependencies.frames,
+      isPlaybackDrawing: () => this.#frameHandle !== null,
+      redraw: () => this.redraw(),
+    });
     this.#pictures = new PictureBuffer(
       slideshow.slides.map((slide) => slide.image.src),
       dependencies.pictures,
@@ -128,6 +118,25 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
     this.#stopAdvancing();
     this.#paused = true;
     this.#emit("pause");
+    this.#captionInset.follow();
+  }
+
+  /**
+   * How far, in CSS pixels, every caption sits above its usual place at the bottom: the height of
+   * controls laid over the player while they show, 0 otherwise. Setting it glides the captions
+   * there over the next frames (`CAPTION_GLIDE_MS`), also while paused.
+   */
+  get captionInset(): number {
+    return this.#captionInset.target;
+  }
+
+  set captionInset(cssPixels: number) {
+    this.#captionInset.glideTo(cssPixels);
+  }
+
+  /** Sets `captionInset` at once, without a glide. */
+  jumpCaptionInset(cssPixels: number): void {
+    this.#captionInset.jumpTo(cssPixels);
   }
 
   /** Draws the current frame again, e.g. after the viewport changed size. */
@@ -142,6 +151,7 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
       return;
     }
     this.#stopAdvancing();
+    this.#captionInset.dispose();
     this.#paused = true;
     this.#destroyed = true;
     this.#pictures.clear();
@@ -222,6 +232,7 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
     this.#ended = true;
     this.#emit("pause");
     this.#emit("ended");
+    this.#captionInset.follow();
   }
 
   #fail(error: Error): void {
@@ -258,7 +269,10 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
   }
 
   #draw(): void {
-    this.#deps.renderer.render(this.#renderFrame(this.#currentFrame()));
+    this.#deps.renderer.setCaptionInset(this.#captionInset.current);
+    this.#deps.renderer.render(
+      renderFrame(this.#currentFrame(), this.#slideshow, (index) => this.#pictures.get(index)),
+    );
     this.#loadAroundCurrentFrame().catch(() => {
       // The buffer retries a failed picture and reports it once the frame needs it.
     });
@@ -266,28 +280,6 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
       this.#ready = true;
       this.#emit("canplay");
     }
-  }
-
-  #renderFrame(frame: TimelineFrame): RenderFrame<Picture> {
-    if (frame.kind === "slide") {
-      return { kind: "slide", slide: this.#layer(frame.slide) };
-    }
-    return {
-      kind: "transition",
-      effect: frame.effect,
-      progress: ease(TRANSITION_EASING, frame.progress),
-      from: this.#layer(frame.from),
-      to: this.#layer(frame.to),
-    };
-  }
-
-  #layer(slideAtTime: SlideAtTime): SlideLayer<Picture> {
-    const picture = this.#pictures.get(slideAtTime.index);
-    const slide = this.#slideshow.slides[slideAtTime.index];
-    if (picture === undefined || slide === undefined) {
-      throw new Error(`slide ${slideAtTime.index} is drawn before its picture loaded`);
-    }
-    return { picture, framing: framingAt(slide.kenBurns, slideAtTime.kenBurnsProgress) };
   }
 
   #loadAroundCurrentFrame(): Promise<void> {

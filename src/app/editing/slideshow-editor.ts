@@ -5,6 +5,7 @@ import {
   removePicture,
   renameSlideshow,
   restorePictures,
+  setPictureCaption,
   setPictureKenBurns,
   type RemovedPicture,
 } from "../../library/slideshow-edits";
@@ -161,6 +162,15 @@ export class SlideshowEditor {
     const index = this.#slideshow.pictures.findIndex((picture) => picture.id === pictureId);
     const { from, to } = pictureKenBurns(index, this.#picture(pictureId));
     this.setKenBurns(pictureId, { from: to, to: from });
+  }
+
+  /** Stores the caption as typed, normalised; a keystroke that changes nothing stores nothing. */
+  setCaption(pictureId: string, typed: string): void {
+    const edited = setPictureCaption(this.#slideshow, pictureId, typed);
+    const index = this.#slideshow.pictures.findIndex((picture) => picture.id === pictureId);
+    if (edited.pictures[index]?.caption !== this.#picture(pictureId).caption) {
+      this.#apply(edited);
+    }
   }
 
   /** Resolves once every edit made so far is stored (or reported as failed). */

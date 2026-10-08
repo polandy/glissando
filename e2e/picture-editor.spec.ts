@@ -1,19 +1,11 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
-import { createSlideshow, definitionOf, GERMAN_BROWSER } from "./support/app";
+import { createSlideshow, definitionOf, editsStored, GERMAN_BROWSER } from "./support/app";
 import { openApp } from "./support/browser";
 
 test.use(GERMAN_BROWSER);
 
 /** Pointer travel split into steps, so a drag passes the editor's drag threshold as a hand does. */
 const DRAG_STEPS = 8;
-
-/**
- * Waits until every edit is stored: the screen is busy from an edit until then, and that edit's
- * own result is asserted first, so the busy mark has been set by the time this checks it.
- */
-async function editsStored(page: Page): Promise<void> {
-  await expect(page.locator(".screen")).toHaveAttribute("aria-busy", "false");
-}
 
 /** A page point given in picture coordinates (0–1 across and down the shown picture). */
 async function onPicture(page: Page, x: number, y: number): Promise<{ x: number; y: number }> {

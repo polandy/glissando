@@ -7,11 +7,16 @@ import type { StoredSlideshow } from "../library/stored-slideshow";
  */
 
 export const GLISSANDO_FORMAT_ID = "glissando";
-/** Version 2 added a picture's own Ken Burns motion (ADR-0006); version 1 files are still read. */
-export const GLISSANDO_FORMAT_VERSION = 2;
+/**
+ * Version 2 added a picture's own Ken Burns motion (ADR-0006), version 3 its caption; files of
+ * every older version are still read.
+ */
+export const GLISSANDO_FORMAT_VERSION = 3;
 export const OLDEST_READABLE_FORMAT_VERSION = 1;
 /** The first version that carries a picture's own motion. */
 export const OWN_KEN_BURNS_FROM_VERSION = 2;
+/** The first version that carries a picture's caption. */
+export const CAPTION_FROM_VERSION = 3;
 export const MANIFEST_ENTRY_NAME = "glissando.json";
 
 const PICTURE_EXTENSIONS: Readonly<Record<string, string>> = {
@@ -30,6 +35,7 @@ export interface ManifestPicture {
   readonly height: number;
   readonly fileName: string;
   readonly kenBurns?: OwnKenBurns;
+  readonly caption?: string;
 }
 
 export interface ManifestMusic {
@@ -104,6 +110,7 @@ export function manifestFor(
     height: picture.height,
     fileName: picture.fileName,
     ...(picture.kenBurns === undefined ? {} : { kenBurns: picture.kenBurns }),
+    ...(picture.caption === undefined ? {} : { caption: picture.caption }),
   }));
   const { music } = slideshow;
   return {

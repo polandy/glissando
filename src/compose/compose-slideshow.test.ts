@@ -108,3 +108,16 @@ describe("composeSlideshow with an own motion", () => {
     );
   });
 });
+
+describe("composeSlideshow with a caption", () => {
+  it("carries a picture's caption onto its slide and gives the others none", () => {
+    const [first, second] = storedSlideshow().pictures as [StoredPicture, StoredPicture];
+    const stored = storedSlideshow({ pictures: [first, { ...second, caption: "Jetty" }] });
+
+    const slides = composeSlideshow(stored, sources).slides;
+
+    expect(slides[1]?.caption).toBe("Jetty");
+    expect(slides[0]).toBeDefined();
+    expect(slides[0]).not.toHaveProperty("caption");
+  });
+});

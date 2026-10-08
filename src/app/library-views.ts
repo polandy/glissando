@@ -51,6 +51,7 @@ export function slideshowDetails(
     musicTitle: stored.music?.fileName ?? null,
     ownOrder: stored.ownOrder === true,
     ownMotionCount: stored.pictures.filter((picture) => picture.kenBurns !== undefined).length,
+    captionCount: stored.pictures.filter((picture) => picture.caption !== undefined).length,
     capturedFrom: span.from,
     capturedTo: span.to,
     pictures: stored.pictures.map((picture) => ({

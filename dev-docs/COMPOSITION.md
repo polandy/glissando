@@ -21,6 +21,8 @@ I/O, no subject detection.
   `StoredPicture.kenBurns`, ADR-0006) plays that one instead, wherever it sits, with the same
   easing (`pictureKenBurns`): the automatic motion follows the position, an own one stays with
   its picture.
+- **Caption**: a picture's caption (`StoredPicture.caption`) becomes its slide's `caption`; a
+  picture without one gets none. There is no automatic caption.
 - **Transitions**: effects cycle through `TRANSITION_EFFECTS` in order (so none repeats back to
   back); the last slide has none (ADR-0002). A transition's duration is 30% of its slide's
   duration, capped at 1000 ms.

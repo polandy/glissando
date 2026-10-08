@@ -14,7 +14,8 @@
 
   /**
    * The picture editor: a picture's Ken Burns motion as two frames on the picture, with a
-   * preview of what the player will show. Every change goes to `onChange` and is stored at once.
+   * preview of what the player will show, and its caption. Every change goes to `onChange` or
+   * `onCaption` and is stored at once.
    */
   let {
     picture,
@@ -25,6 +26,7 @@
     onChange,
     onSwap,
     onReset,
+    onCaption,
     previewPorts,
     reducedMotion,
     saving,
@@ -39,6 +41,8 @@
     onChange: (motion: OwnKenBurns) => void;
     onSwap: () => void;
     onReset: () => void;
+    /** The caption as typed, on every keystroke. */
+    onCaption: (typed: string) => void;
     previewPorts: MotionPreviewPorts;
     /** The preview starts paused. */
     reducedMotion: boolean;
@@ -52,6 +56,9 @@
   /** The motion while a drag is under way; stored on release. */
   let draft = $state.raw<OwnKenBurns | null>(null);
   const motion = $derived(draft ?? picture.motion);
+  // Typed text stays as typed while the stored caption is its normalised form.
+  // svelte-ignore state_referenced_locally
+  let caption = $state(picture.caption);
 
   // The screen is keyed by picture: duration and the start state are fixed for its lifetime.
   // svelte-ignore state_referenced_locally
@@ -169,6 +176,8 @@
           replay();
         }
       }}
+      bind:caption
+      {onCaption}
     />
   </main>
 </div>

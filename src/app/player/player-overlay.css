@@ -21,7 +21,8 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  transition: opacity 0.3s;
+  /* Set on .player from CAPTION_GLIDE_MS, so the caption glides with the controls. */
+  transition: opacity var(--player-controls-fade);
 }
 .player.hidden .ui {
   opacity: 0;
