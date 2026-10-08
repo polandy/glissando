@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { Snippet } from "svelte";
   import Header from "../components/Header.svelte";
+  import { keepToastsClear } from "../components/toast-clearance";
   import { getTranslator } from "../i18n/context";
   import { IMPORT_STEPS, type ImportStep } from "../navigation/route";
 
@@ -27,7 +28,7 @@
     {/each}
   </div>
   <main>{@render children()}</main>
-  <div class="actions">{@render actions()}</div>
+  <div class="actions" use:keepToastsClear>{@render actions()}</div>
 </div>
 
 <style>

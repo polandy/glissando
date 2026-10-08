@@ -28,7 +28,8 @@
     position: fixed;
     left: 12px;
     right: 12px;
-    bottom: 16px;
+    /* Raised above a bottom action bar while one is shown; see toast-clearance.ts. */
+    bottom: calc(16px + var(--gl-toast-clearance, 0px));
     z-index: 20;
     display: flex;
     align-items: center;
@@ -73,7 +74,7 @@
     .toast {
       left: auto;
       right: 20px;
-      bottom: 20px;
+      bottom: calc(20px + var(--gl-toast-clearance, 0px));
       max-width: 440px;
     }
   }
