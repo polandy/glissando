@@ -77,12 +77,30 @@ Usable end to end by a non-technical user, fully offline:
 - **Automatic Ken Burns** from a simple framing rule (no detection yet).
 - **About six GLSL transitions**, varied automatically, with the DOM/opacity fallback.
 - **Music**: one track in any format the browser decodes natively; slide timing fits the track's
-  length.
+  length. Without music every picture stays 5 s; the value is set per slideshow in half-second
+  steps.
+- **Title** from the capture-date range of the pictures ("July 2025"), editable in place.
 - **Player**: fullscreen, play/pause/seek, the HTML5-video-style API over the slideshow JSON
   (which already carries the music track).
-- **Minimal editing**: remove and reorder pictures — nothing more.
+- **Minimal editing**: remove and reorder pictures — nothing more. Removing is undone from a
+  toast, not confirmed up front; only deleting a slideshow asks first.
 - **Export/import** a slideshow as one `.glissando` file.
-- **PWA**: installable, works fully offline, no server needed.
+- **PWA**: installable, works fully offline, no server needed. The install hint sits quietly in
+  the start screen's footer and is offered again when the browser refuses persistent storage.
+
+Interaction rules (the approved mockup:
+https://polandy.github.io/glissando-assets/mockups/mvp-flow/, tab "Konzept"):
+
+- **Three levels, never more**: start → slideshow → (import steps | player). The player is a
+  modal fullscreen layer, not a place in the navigation; back arrow and browser back do the same.
+- **Import is a two-step wizard** (pictures, then optional music); "Next" is enabled only once
+  every picture is downscaled.
+- **Waiting has three forms**: inline progress with a count where the work belongs to the screen;
+  a global indicator in the header for non-blocking background work; a blocking overlay only when
+  the next screen cannot exist without the result. Never a spinner without a label.
+- **Errors sit at their cause**, in user language, with a way out: inline notice (lemon for
+  warnings, coral for errors), toast with an action for transient ones, a dialog only when the
+  user must decide.
 
 Not in the MVP: per-slide settings, detection, Immich, video export, audio conversion.
 

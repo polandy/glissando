@@ -47,11 +47,13 @@ Tokens in `src/styles/tokens.css`. Light and dark mode share the same roles:
 | Accent 1     | Peach `#FFB59A` | same                 |
 | Accent 2     | Mint `#8FD9C4`  | same                 |
 | Accent 3     | Lemon `#FFD95A` | same                 |
+| Error        | Coral `#FF8F84` | same                 |
 
 Rules:
 
 - Accents are fills (buttons, highlights, markers), never text colour on a light background —
   too little contrast.
 - Text on an accent fill is always plum `#2A2340` (`--gl-on-accent`).
+- Coral is the fill for error notices only; warnings use lemon. Both follow the accent rules.
 - In dark mode the logo cards are outlined in the background colour (sticker look).
 - The theme follows `prefers-color-scheme`, overridable with `data-theme="light|dark"` on `<html>`.
