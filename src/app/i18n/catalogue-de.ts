@@ -18,6 +18,8 @@ export const de = {
 
   "units.seconds": "{seconds} s",
   "units.pictures": { one: "{count} Bild", other: "{count} Bilder" },
+  "units.megabytes": "{size} MB",
+  "units.gigabytes": "{size} GB",
 
   "start.heroTitle": "Bilder rein, Diashow raus.",
   "start.heroText":
@@ -151,6 +153,45 @@ export const de = {
   "storage.persistRefusedTitle": "Glissando darf nichts dauerhaft speichern",
   "storage.persistRefusedText":
     "Der Browser hat dauerhaften Speicher abgelehnt. Deine Diashow funktioniert jetzt, kann aber nach einem Neustart fehlen.",
+
+  "glissandoFile.export": "Exportieren",
+  "glissandoFile.exportSize": "Eine .glissando-Datei, ca. {size}",
+  "glissandoFile.exportSizeUnknown": "Eine .glissando-Datei",
+  "glissandoFile.exportRunning": "Wird exportiert\u00a0… {percent}\u00a0%",
+  "glissandoFile.exportAfterRunning": "Erst wenn der laufende Export fertig ist",
+  "glissandoFile.exportIndicator": "Exportiere „{title}“\u00a0… {percent}\u00a0%",
+  "glissandoFile.downloaded": "„{fileName}“ heruntergeladen · {size}",
+  "glissandoFile.exportFailed": "Export fehlgeschlagen: zu wenig Speicher auf dem Gerät.",
+  "glissandoFile.tryAgain": "Erneut versuchen",
+  "glissandoFile.openFile": "Datei öffnen",
+  "glissandoFile.openGlissandoFile": ".glissando-Datei öffnen",
+  "glissandoFile.fromOtherDevice": "Diashow von einem anderen Gerät?",
+  "glissandoFile.fromOtherDeviceText":
+    "Eine exportierte .glissando-Datei öffnen, mit Bildern, Musik und Reihenfolge.",
+  "glissandoFile.dropToOpen": "Loslassen, um die Diashow zu öffnen",
+  "glissandoFile.openingTitle": "Diashow wird geöffnet\u00a0…",
+  "glissandoFile.checking": "Datei wird geprüft\u00a0…",
+  "glissandoFile.picture": "Bild {number} von {count}",
+  "glissandoFile.music": "Musik",
+  "glissandoFile.opened": "„{title}“ geöffnet",
+  "glissandoFile.openedAs": "Geöffnet als „{title}“, „{original}“ bleibt unverändert.",
+  "glissandoFile.cancelled": "Öffnen abgebrochen, nichts gespeichert.",
+  "glissandoFile.foreignTitle": "„{name}“ ist keine Glissando-Diashow.",
+  "glissandoFile.foreignText":
+    "Glissando öffnet hier nur .glissando-Dateien, die es selbst exportiert hat. Bilder kommen über „Neue Diashow“ hinein.",
+  "glissandoFile.damagedTitle": "„{name}“ ist beschädigt.",
+  "glissandoFile.damagedText":
+    "Die Datei ist unvollständig oder Teile davon lassen sich nicht lesen, vielleicht wurde sie nicht fertig kopiert oder heruntergeladen. Exportiere die Diashow auf dem anderen Gerät noch einmal.",
+  "glissandoFile.newerTitle": "„{name}“ stammt aus einer neueren Glissando-Version.",
+  "glissandoFile.newerText":
+    "Diese Version kann die Datei noch nicht lesen. Lade die App neu, um die neueste Version zu holen, und öffne die Datei dann noch einmal.",
+  "glissandoFile.fullTitle": "Nicht genug Speicherplatz.",
+  "glissandoFile.fullText":
+    "„{name}“ braucht {needed}, auf diesem Gerät sind noch {free} frei. Lösche alte Diashows oder schaffe Platz auf dem Gerät. Es wurde nichts gespeichert.",
+  "glissandoFile.fullTextUnknown":
+    "„{name}“ passt nicht mehr in den freien Speicher dieses Geräts. Lösche alte Diashows oder schaffe Platz auf dem Gerät. Es wurde nichts gespeichert.",
+  "glissandoFile.chooseAnother": "Andere Datei wählen",
+  "glissandoFile.reloadApp": "App neu laden",
 
   "player.close": "Schließen (Esc)",
   "player.counter": "{index} / {total}",
