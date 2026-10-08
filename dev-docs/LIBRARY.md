@@ -7,7 +7,9 @@ Code: `src/import/` (reading files), `src/library/` (storing them). Storage choi
 
 - **Accepted**: any file the browser reports as `image/*`, picked as files or as a folder.
   Other files are skipped as _unsupported_ and are not counted. A picture the browser cannot
-  decode (e.g. HEIC outside Safari) is skipped as _unreadable_.
+  decode (e.g. HEIC outside Safari) or can no longer read (`NotReadableError`, e.g. when Android
+  Chrome lets the picker's permission lapse before the file's turn comes) is skipped as
+  _unreadable_. The adapters that read a file's bytes map both to `UnreadablePictureError`.
 - **Downscaled** to fit 3840 px on the long edge and 2160 px on the short edge (about 4K, either
   orientation), never upscaled, turned upright by its EXIF orientation and stored as JPEG
   (quality 0.9). A thumbnail fits 480 px on the long edge (JPEG, quality 0.8).
@@ -28,7 +30,8 @@ publishes a state with the Svelte store contract:
 - **Storage full** (`QuotaExceededError`): the import stops, keeps what is stored, drops the
   remaining files from `total` and reports `storageFull`. Adding files again tries again.
 - **Cancel** stops after the file in flight and clears the state.
-- Any other error ends the import as `failed`; it is never swallowed.
+- Any other error ends the import as `failed`; it is never swallowed. A failed import takes no
+  more files until it is cancelled, which starts it over.
 
 ## Music
 

@@ -111,6 +111,10 @@ export const en: Catalogue = {
   "import.storageFullText": "Not all pictures fit on this device.",
   "import.chooseFewer": "Choose fewer pictures",
   "import.orDeleteOld": "or delete old slideshows.",
+  "import.failed": "The import failed.",
+  "import.failedText": "No more pictures can be added.",
+  "import.startOver": "Start over",
+  "import.startOverText": "and choose the pictures again.",
   "import.musicTitle": "Which music?",
   "import.musicText":
     "One piece is enough — the pictures share its length. Without music each picture stays {seconds}.",

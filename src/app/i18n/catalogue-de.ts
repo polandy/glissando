@@ -113,6 +113,10 @@ export const de = {
   "import.storageFullText": "Es passen nicht alle Bilder auf dieses Gerät.",
   "import.chooseFewer": "Weniger Bilder wählen",
   "import.orDeleteOld": "oder alte Diashows löschen.",
+  "import.failed": "Der Import ist fehlgeschlagen.",
+  "import.failedText": "Es lassen sich keine Bilder mehr hinzufügen.",
+  "import.startOver": "Neu starten",
+  "import.startOverText": "und die Bilder noch einmal wählen.",
   "import.musicTitle": "Welche Musik?",
   "import.musicText":
     "Ein Stück genügt — die Bilder teilen sich seine Länge. Ohne Musik läuft jedes Bild {seconds}.",

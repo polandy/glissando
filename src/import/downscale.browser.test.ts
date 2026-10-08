@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { decodePicture, UnreadablePictureError } from "./downscale";
+import { decodePicture } from "./downscale";
+import { UnreadablePictureError } from "./unreadable-picture";
 
 async function pngFile(width: number, height: number): Promise<File> {
   const canvas = document.createElement("canvas");

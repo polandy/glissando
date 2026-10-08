@@ -1,3 +1,5 @@
+import { UnreadablePictureError } from "./unreadable-picture";
+
 /** Imported pictures are stored downscaled: a slideshow never needs more than display resolution. */
 
 export interface Size {
@@ -22,16 +24,6 @@ const STORED_PICTURE_TYPE = "image/jpeg";
 export interface DecodedPicture extends Size {
   readonly display: Blob;
   readonly thumbnail: Blob;
-}
-
-export class UnreadablePictureError extends Error {
-  constructor(
-    readonly fileName: string,
-    options?: ErrorOptions,
-  ) {
-    super(`the browser cannot decode the picture "${fileName}"`, options);
-    this.name = "UnreadablePictureError";
-  }
 }
 
 /** Scales `size` down, keeping its aspect ratio, until it fits `bound`; never scales up. */

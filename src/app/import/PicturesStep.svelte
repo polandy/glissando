@@ -102,6 +102,15 @@
     </Notice>
   {/if}
 
+  {#if phase === "failed"}
+    <Notice tone="error">
+      <b>{t("import.failed")}</b>
+      {t("import.failedText")}
+      <button class="link" type="button" onclick={onDiscard}>{t("import.startOver")}</button>
+      {t("import.startOverText")}
+    </Notice>
+  {/if}
+
   {#if phase === "importing" || (phase === "done" && range !== null)}
     <div class="progress">
       <div class="progress-row">

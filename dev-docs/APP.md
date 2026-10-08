@@ -64,7 +64,9 @@ gesture (which cannot be stopped) keeps it, and "New slideshow" resumes it.
   placeholder per file still in flight; the tiles appear in capture order as
   they are stored. Then "n pictures · from – to" and "add more". Skipped files are a lemon
   notice, full storage a coral one with "Choose fewer pictures" (discards and reopens the
-  picker). "Next" is enabled once nothing is in flight and at least one picture is stored.
+  picker). A failed import is a coral notice "The import failed. No more pictures can be added."
+  with "Start over" (discards the selection and shows the empty drop zone); the drop zone and
+  "add more" stay hidden until then, and the error is reported as well. "Next" is enabled once nothing is in flight and at least one picture is stored.
   Cancel and ← with a selection ask "Discard selection?" (Keep choosing / Discard).
 - **Music** (optional): a drop zone with "Choose music" (`audio/*`); a file the browser cannot
   play is a coral toast with "Retry", which reopens the picker. Chosen music is a card (music icon, file

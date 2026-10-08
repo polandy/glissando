@@ -1,3 +1,5 @@
+import { readPictureHead } from "./unreadable-picture";
+
 /**
  * The capture date of a picture. EXIF stores the camera's wall-clock time without a zone, so
  * capture dates are wall times written with a "Z" suffix: an ISO date the slideshow format
@@ -36,7 +38,7 @@ export function readExifCaptureDate(bytes: ArrayBuffer): string | null {
 
 /** EXIF date of the file's head, else its modification time (see the module comment). */
 export async function captureDate(file: File): Promise<string> {
-  const head = await file.slice(0, EXIF_SEARCH_BYTES).arrayBuffer();
+  const head = await readPictureHead(file, EXIF_SEARCH_BYTES);
   return readExifCaptureDate(head) ?? localWallTime(new Date(file.lastModified));
 }
 

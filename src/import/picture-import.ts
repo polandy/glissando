@@ -1,6 +1,7 @@
 import { orderByCaptureDate } from "../compose";
 import type { LibraryStore, StoredPicture } from "../library/stored-slideshow";
-import { UnreadablePictureError, type DecodedPicture } from "./downscale";
+import type { DecodedPicture } from "./downscale";
+import { UnreadablePictureError } from "./unreadable-picture";
 
 export type SkipReason = "unsupported" | "unreadable";
 
@@ -23,6 +24,7 @@ export interface PictureImportState {
   readonly failed: boolean;
 }
 
+/** `decode` and `captureDate` reject with `UnreadablePictureError` for a file they cannot read. */
 export interface PictureImportPorts {
   decode(file: File): Promise<DecodedPicture>;
   captureDate(file: File): Promise<string>;
@@ -151,15 +153,16 @@ export class PictureImport {
 
   async #importOne(file: File): Promise<Outcome> {
     let decoded: DecodedPicture;
+    let capturedAt: string;
     try {
       decoded = await this.#ports.decode(file);
+      capturedAt = await this.#ports.captureDate(file);
     } catch (error) {
       if (error instanceof UnreadablePictureError) {
         return { kind: "unreadable" };
       }
       throw error;
     }
-    const capturedAt = await this.#ports.captureDate(file);
     const id = this.#ports.newId();
     try {
       await this.#ports.store.putPicture(id, {
