@@ -293,7 +293,9 @@ level). Closing destroys the player.
   with one tick per picture, the white play/pause button, "0:12 / 1:00" and the music's name.
 - Captions (ADR-0007) are drawn into their slide by the player, bottom left; while the
   controls show, the player's `captionInset` lifts them above the bottom bar's controls (its
-  height without the fade above them, `caption-inset.ts`), and back down when they hide. A
+  height without the fade above them, `caption-inset.ts`), and back down when they hide,
+  gliding there with the controls (0.28 s, CSS `ease`). The first placement after opening, and
+  every move under reduced motion, is instant (`jumpCaptionInset`). A
   visually hidden polite live region, outside the controls, holds the current picture's caption
   for screen readers.
 - Keys: Space play/pause, ←/→ previous/next picture, Esc close, F fullscreen. "Previous" more

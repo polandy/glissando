@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
+  import { MediaQuery } from "svelte/reactivity";
   import {
     createPlayer,
     MusicPlaybackError,
@@ -10,8 +11,9 @@
   } from "../../player";
   import { getTranslator } from "../i18n/context";
   import Icon from "../components/Icon.svelte";
+  import { REDUCED_MOTION_QUERY } from "../reduced-motion";
   import { browserScheduler, type Scheduler } from "../scheduler";
-  import { captionInset } from "./caption-inset";
+  import { captionInset, captionInsetMotion } from "./caption-inset";
   import { ControlsVisibility } from "./controls-visibility";
   import { canFullscreen, enterFullscreen, exitFullscreen, toggleFullscreen } from "./fullscreen";
   import { playerActionForKey, type PlayerAction } from "./player-keys";
@@ -61,6 +63,9 @@
   let ended = $state(false);
   let failure = $state<Failure | null>(null);
   let controlsVisible = $state(true);
+  const reducedMotion = new MediaQuery(REDUCED_MOTION_QUERY);
+  /** The player whose caption inset is placed; a new player gets its first inset at once. */
+  let insetPlayer: ReturnType<typeof createPlayer> | null = null;
   // The scheduler is fixed for the overlay's lifetime.
   // svelte-ignore state_referenced_locally
   const controls = new ControlsVisibility(scheduler, (visible) => (controlsVisible = visible));
@@ -107,13 +112,24 @@
     };
   });
 
-  // Captions move up above the bottom controls while they show.
+  // Captions glide up above the bottom controls while they show.
   $effect(() => {
-    if (player !== null) {
-      player.captionInset = captionInset(controlsVisible, {
-        height: bottomBarHeight,
-        fadeHeight: parseFloat(getComputedStyle(bottomBar).paddingTop),
-      });
+    if (player === null) {
+      return;
+    }
+    const inset = captionInset(controlsVisible, {
+      height: bottomBarHeight,
+      fadeHeight: parseFloat(getComputedStyle(bottomBar).paddingTop),
+    });
+    const motion = captionInsetMotion({
+      firstPlacement: player !== insetPlayer,
+      reducedMotion: reducedMotion.current,
+    });
+    insetPlayer = player;
+    if (motion === "jump") {
+      player.jumpCaptionInset(inset);
+    } else {
+      player.captionInset = inset;
     }
   });
 

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Slide, Slideshow } from "./slideshow";
-import { SlideshowPlayer, PLAYER_EVENTS } from "./slideshow-player";
+import { PLAYER_EVENTS } from "./player-events";
+import { SlideshowPlayer } from "./slideshow-player";
 import {
   FakeClock,
   FakeFrameScheduler,

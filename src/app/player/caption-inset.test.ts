@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { captionInset } from "./caption-inset";
+import { captionInset, captionInsetMotion } from "./caption-inset";
 
 describe("captionInset", () => {
   it("lifts the caption above the controls while they show, not above their fade", () => {
@@ -12,5 +12,19 @@ describe("captionInset", () => {
 
   it("never lowers the caption below the bottom", () => {
     expect(captionInset(true, { height: 0, fadeHeight: 40 })).toBe(0);
+  });
+});
+
+describe("captionInsetMotion", () => {
+  it("glides the caption along with the controls", () => {
+    expect(captionInsetMotion({ firstPlacement: false, reducedMotion: false })).toBe("glide");
+  });
+
+  it("places the caption at once when the player opens, so it does not slide in", () => {
+    expect(captionInsetMotion({ firstPlacement: true, reducedMotion: false })).toBe("jump");
+  });
+
+  it("moves the caption at once when the viewer prefers reduced motion", () => {
+    expect(captionInsetMotion({ firstPlacement: false, reducedMotion: true })).toBe("jump");
   });
 });

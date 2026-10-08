@@ -11,3 +11,11 @@ export interface ControlsBar {
 export function captionInset(controlsVisible: boolean, bar: ControlsBar): number {
   return controlsVisible ? Math.max(0, bar.height - bar.fadeHeight) : 0;
 }
+
+/** How a new caption inset reaches the player: `captionInset` glides, `jumpCaptionInset` jumps. */
+export function captionInsetMotion(context: {
+  readonly firstPlacement: boolean;
+  readonly reducedMotion: boolean;
+}): "glide" | "jump" {
+  return context.firstPlacement || context.reducedMotion ? "jump" : "glide";
+}
