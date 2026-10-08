@@ -90,19 +90,28 @@ export function captionField(page: Page): Locator {
   return page.getByRole("textbox", { name: "Bildtitel" });
 }
 
-/** Opens the picture editor of the picture whose tile is named `tile`. */
+function selectionBar(page: Page): Locator {
+  return page.getByRole("toolbar", { name: "Ausgewähltes Bild" });
+}
+
+/** Opens the picture editor of the picture whose tile is named `tile`; none may be selected. */
 export async function editPicture(page: Page, tile: string): Promise<void> {
   const tileButton = page.getByRole("button", { name: tile, exact: true });
-  // A tap on a selected tile clears the selection; the screen keeps it across the editor.
-  if ((await tileButton.getAttribute("aria-pressed")) !== "true") {
-    await tileButton.click();
-  }
+  await expect(tileButton).toHaveAttribute("aria-pressed", "false");
+  await tileButton.click();
   await expect(tileButton).toHaveAttribute("aria-pressed", "true");
-  await page
-    .getByRole("toolbar", { name: "Ausgewähltes Bild" })
-    .getByRole("button", { name: "Bearbeiten" })
-    .click();
+  await selectionBar(page).getByRole("button", { name: "Bearbeiten" }).click();
   await expect(captionField(page)).toBeVisible();
+}
+
+/**
+ * Goes back from the picture editor, which leaves the edited picture selected, and ends the
+ * selection, so the next `editPicture` starts with none.
+ */
+export async function leaveEditor(page: Page): Promise<void> {
+  await page.getByRole("button", { name: "Zurück", exact: true }).click();
+  await selectionBar(page).getByRole("button", { name: "Fertig" }).click();
+  await expect(selectionBar(page)).toBeHidden();
 }
 
 /** Gives the picture whose tile is named `tile` a caption, stores it and goes back. */
@@ -111,5 +120,5 @@ export async function captionPicture(page: Page, tile: string, caption: string):
   await captionField(page).fill(caption);
   await expect(captionField(page)).toHaveValue(caption);
   await editsStored(page);
-  await page.getByRole("button", { name: "Zurück", exact: true }).click();
+  await leaveEditor(page);
 }

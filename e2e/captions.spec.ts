@@ -7,6 +7,7 @@ import {
   editPicture,
   editsStored,
   GERMAN_BROWSER,
+  leaveEditor,
 } from "./support/app";
 import { openApp } from "./support/browser";
 
@@ -15,6 +16,8 @@ test.use(GERMAN_BROWSER);
 const TITLE = "Juli 2025";
 const FIRST_TILE = "Bild 1, aufgenommen am 12.07.2025";
 const CAPTION = "Abends am Steg";
+const SECOND_TILE = "Bild 2, aufgenommen am 14.07.2025";
+const SECOND_CAPTION = "Am Morgen";
 /** Long pictures, so the first is still showing while the case reads its caption. */
 const LONGEST_SECONDS_PER_PICTURE = 15;
 
@@ -48,7 +51,7 @@ test("E2E-021 a picture's caption is stored, shown by the player, counted, and c
   await editPicture(page, FIRST_TILE);
   await page.reload();
   await expect(captionField(page)).toHaveValue(CAPTION);
-  await page.getByRole("button", { name: "Zurück", exact: true }).click();
+  await leaveEditor(page);
 
   const spoken = await playFirstPicture(page);
   await expect(spoken).toHaveText(CAPTION);
@@ -59,9 +62,16 @@ test("E2E-021 a picture's caption is stored, shown by the player, counted, and c
   await expect(captionField(page)).toHaveValue("");
   await expect(captionField(page)).toBeFocused();
   await editsStored(page);
-  await page.getByRole("button", { name: "Zurück", exact: true }).click();
+  await leaveEditor(page);
   await expect(captions).toHaveText("0 von 2");
 
+  // The second picture's caption shows the region is live before the cleared one is read.
+  await captionPicture(page, SECOND_TILE, SECOND_CAPTION);
   const spokenAfterClearing = await playFirstPicture(page);
+  await page.keyboard.press("ArrowRight");
+  await expect(player(page).getByText("2 / 2", { exact: true })).toBeVisible();
+  await expect(spokenAfterClearing).toHaveText(SECOND_CAPTION);
+  await player(page).getByRole("slider").fill("0");
+  await expect(player(page).getByText("1 / 2", { exact: true })).toBeVisible();
   await expect(spokenAfterClearing).toHaveText("");
 });
