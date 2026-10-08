@@ -15,6 +15,8 @@ export const en: Catalogue = {
 
   "units.seconds": "{seconds} s",
   "units.pictures": { one: "{count} picture", other: "{count} pictures" },
+  "units.megabytes": "{size} MB",
+  "units.gigabytes": "{size} GB",
 
   "start.heroTitle": "Pictures in, slideshow out.",
   "start.heroText":
@@ -149,6 +151,45 @@ export const en: Catalogue = {
   "storage.persistRefusedTitle": "Glissando may not store anything permanently",
   "storage.persistRefusedText":
     "The browser refused permanent storage. Your slideshow works now but may be gone after a restart.",
+
+  "glissandoFile.export": "Export",
+  "glissandoFile.exportSize": "A .glissando file, about {size}",
+  "glissandoFile.exportSizeUnknown": "A .glissando file",
+  "glissandoFile.exportRunning": "Exporting\u00a0… {percent}\u00a0%",
+  "glissandoFile.exportAfterRunning": "Once the running export is done",
+  "glissandoFile.exportIndicator": "Exporting “{title}”\u00a0… {percent}\u00a0%",
+  "glissandoFile.downloaded": "“{fileName}” downloaded · {size}",
+  "glissandoFile.exportFailed": "Export failed: not enough storage on the device.",
+  "glissandoFile.tryAgain": "Try again",
+  "glissandoFile.openFile": "Open file",
+  "glissandoFile.openGlissandoFile": "Open .glissando file",
+  "glissandoFile.fromOtherDevice": "Slideshow from another device?",
+  "glissandoFile.fromOtherDeviceText":
+    "Open an exported .glissando file, with pictures, music and order.",
+  "glissandoFile.dropToOpen": "Drop to open the slideshow",
+  "glissandoFile.openingTitle": "Opening slideshow\u00a0…",
+  "glissandoFile.checking": "Checking file\u00a0…",
+  "glissandoFile.picture": "Picture {number} of {count}",
+  "glissandoFile.music": "Music",
+  "glissandoFile.opened": "“{title}” opened",
+  "glissandoFile.openedAs": "Opened as “{title}”, “{original}” stays unchanged.",
+  "glissandoFile.cancelled": "Opening cancelled, nothing saved.",
+  "glissandoFile.foreignTitle": "“{name}” is not a Glissando slideshow.",
+  "glissandoFile.foreignText":
+    "Glissando only opens .glissando files it exported itself. Pictures come in through “New slideshow”.",
+  "glissandoFile.damagedTitle": "“{name}” is damaged.",
+  "glissandoFile.damagedText":
+    "The file is incomplete or parts of it cannot be read, perhaps it was not fully copied or downloaded. Export the slideshow again on the other device.",
+  "glissandoFile.newerTitle": "“{name}” comes from a newer Glissando version.",
+  "glissandoFile.newerText":
+    "This version cannot read the file yet. Reload the app to get the newest version, then open the file again.",
+  "glissandoFile.fullTitle": "Not enough storage.",
+  "glissandoFile.fullText":
+    "“{name}” needs {needed}, this device has {free} free. Delete old slideshows or free up space on the device. Nothing was saved.",
+  "glissandoFile.fullTextUnknown":
+    "“{name}” does not fit into the storage left on this device. Delete old slideshows or free up space on the device. Nothing was saved.",
+  "glissandoFile.chooseAnother": "Choose another file",
+  "glissandoFile.reloadApp": "Reload app",
 
   "player.close": "Close (Esc)",
   "player.counter": "{index} / {total}",

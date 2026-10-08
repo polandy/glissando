@@ -8,6 +8,8 @@
     type StoredSlideshow,
   } from "../../library/stored-slideshow";
   import { SlideshowEditor } from "../editing/slideshow-editor";
+  import type { ExportProgress } from "../glissando-file/export-job";
+  import { exportMediaKey, exportMenuState } from "../glissando-file/export-menu";
   import { getTranslator } from "../i18n/context";
   import { slideshowDetails } from "../library-views";
   import { browserObjectUrls, ObjectUrls } from "../media/object-urls";
@@ -24,6 +26,8 @@
     newId,
     now,
     slideshowId,
+    exportProgress,
+    onExport,
     playing,
     onBack,
     onPlay,
@@ -36,6 +40,9 @@
     newId: () => string;
     now: () => Date;
     slideshowId: string;
+    /** The export running in the background, of this slideshow or another. */
+    exportProgress: ExportProgress | null;
+    onExport: () => void;
     /** The player layer is open over the screen. */
     playing: boolean;
     /** Also taken when the slideshow is no longer on this device. */
@@ -53,6 +60,10 @@
   let stored = $state.raw<StoredSlideshow | null>(null);
   let editor: SlideshowEditor | null = null;
   let saving = $state(false);
+  /** Measured when the menu opens and the media changed since the last measure. */
+  let exportBytes = $state<number | null>(null);
+  /** The media the size is measured for; see `exportMediaKey`. */
+  let measuredMedia: string | null = null;
   const mousePointer = new MediaQuery(MOUSE_POINTER_QUERY);
   // The store is fixed for the screen's lifetime.
   // svelte-ignore state_referenced_locally
@@ -108,6 +119,29 @@
     });
   }
 
+  function measureExport(): void {
+    if (stored === null) {
+      return;
+    }
+    const media = exportMediaKey(stored);
+    if (media === measuredMedia) {
+      return;
+    }
+    measuredMedia = media;
+    exportBytes = null;
+    store.mediaBytes(stored).then(
+      (bytes) => {
+        if (!left.signal.aborted && measuredMedia === media) {
+          exportBytes = bytes;
+        }
+      },
+      (error: unknown) => {
+        measuredMedia = null;
+        onError(error);
+      },
+    );
+  }
+
   function deleteSlideshow(): void {
     deleteShownSlideshow(store, slideshowId, editor).then(onDeleted, onError);
   }
@@ -127,6 +161,9 @@
     onMove={(pictureId, toIndex) => editor?.move(pictureId, toIndex)}
     onRename={(typed) => editor?.rename(typed)}
     onDelete={deleteSlideshow}
+    exportState={exportMenuState(exportProgress, slideshowId, exportBytes)}
+    {onExport}
+    onMenuOpened={measureExport}
     mousePointer={mousePointer.current}
     {saving}
   />

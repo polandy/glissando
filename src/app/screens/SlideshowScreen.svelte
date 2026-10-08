@@ -9,6 +9,7 @@
   import PictureStrip from "./slideshow/PictureStrip.svelte";
   import SelectionBar from "./slideshow/SelectionBar.svelte";
   import type { SlideshowDetails } from "./view-models";
+  import type { ExportMenuState } from "../glissando-file/export-menu";
 
   let {
     slideshow,
@@ -18,6 +19,9 @@
     onMove,
     onRename,
     onDelete,
+    exportState,
+    onExport,
+    onMenuOpened,
     mousePointer,
     saving,
   }: {
@@ -29,6 +33,10 @@
     onRename: (typed: string) => void;
     /** The user confirmed deleting the whole slideshow. */
     onDelete: () => void;
+    exportState: ExportMenuState;
+    onExport: () => void;
+    /** The ⋯ menu opened. */
+    onMenuOpened: () => void;
     /** The primary pointer is a mouse (hovers, fine): tiles can be dragged. */
     mousePointer: boolean;
     /** An edit is being stored. */
@@ -80,7 +88,13 @@
 <div class="screen" class:selecting={selectedIndex >= 0} aria-busy={saving}>
   <Header crumbs={[t("start.library"), slideshow.title]} {onBack}>
     {#snippet actions()}
-      <MoreMenu bind:this={moreMenu} onDelete={() => (confirmingDelete = true)} />
+      <MoreMenu
+        bind:this={moreMenu}
+        {exportState}
+        {onExport}
+        onOpened={onMenuOpened}
+        onDelete={() => (confirmingDelete = true)}
+      />
     {/snippet}
   </Header>
   <main class="content">

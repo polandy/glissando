@@ -10,16 +10,23 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
 - **Header** (`components/Header.svelte`): a 56 px bar. On the start screen the logo mark and
   the "Glissando" wordmark; elsewhere the back arrow and the breadcrumb (earlier crumbs hidden up
   to 720 px wide, the current one ellipsised; the root crumb is "Library"); a right-hand slot for
-  the screen's own buttons.
+  the screen's own buttons. While an export runs, on every screen: a progress ring and "Exporting
+  “title” … 34 %" before the buttons (the label hidden up to 720 px, the ring stays) and a 3 px
+  mint line along the bar's bottom edge growing with the progress.
 - **Start** (`screens/StartScreen.svelte`): in the header a gear ("Settings", opens the
   settings sheet, below) and, with slideshows, "New slideshow"; the large logo while the library is empty, with the
   hero line and "New slideshow"; it also shows on a first launch over a filled library, so the
-  start animation always plays. With slideshows: "Library / Your slideshows" and a card grid —
+  start animation always plays; under the hero's "New slideshow" a ghost button "Open .glissando
+  file". With slideshows: "Library / Your slideshows" with an "Open file" button beside it and a
+  card grid —
   a cover of the first three pictures (one large, two small), the title, "12 pictures · 1:00" and a
   music icon — ending in a dashed "New slideshow" card. A status bar at the bottom: "Offline · stored on
-  this device".
+  this device". A file dragged over the library shows the layer "Drop to open the slideshow";
+  dropped, it opens (below).
 - **Slideshow** (`screens/SlideshowScreen.svelte`, parts in `screens/slideshow/`): breadcrumb
-  "Library / title" and a ⋯ "More" button whose menu holds only "Delete slideshow …"; a 16:9
+  "Library / title" and a ⋯ "More" button whose menu holds "Export" (subtitle "A .glissando
+  file, about 184 MB", measured when the menu opens, again only after its pictures or music changed), a separator and "Delete slideshow
+  …"; a 16:9
   preview of the first picture (tap plays) with the running time, then the pictures in play
   order, each with its order number and capture date, under "Sorted by capture date" or, once
   the user reordered, "Own order" (with "drag or tap", narrow: "tap to reorder"). Beside it an
@@ -59,6 +66,27 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
     start and shows the toast "Slideshow deleted" there — also when another tab deleted it
     first. An edit to a slideshow deleted elsewhere goes back to start with the toast "This
     slideshow no longer exists."
+- **Export** (`glissando-file/export-job.ts`): runs in the background, one at a time; the app
+  stays usable, also on other screens. While it runs, the menu item is `aria-disabled` and reads
+  "Exporting … 34 %" (for another slideshow: "Export", subtitle "Once the running export is
+  done"). At the end the browser downloads "title.glissando" and the toast "“title.glissando”
+  downloaded · 184 MB" follows. A device out of storage or memory ends it with the coral toast
+  "Export failed: not enough storage on the device." and "Try again"; any other failure is an
+  unexpected error.
+- **Open a .glissando file** (`glissando-file/open-flow.ts`): from the library ("Open file",
+  the hero's button, a drop) or import step 1 (below). It blocks under the overlay "Opening
+  slideshow …" with a bar, the line "Checking file …", then "Picture 12 of 48", then "Music",
+  the file name and "Cancel". Then the new slideshow's screen opens with the toast "“title”
+  opened", or, when the title was taken, "Opened as “title (2)”, “title” stays unchanged."
+  Cancel ends with the toast "Opening cancelled, nothing saved." A refused file is a coral
+  notice with a ✕ at the top of the screen it was opened from, gone when that screen is left:
+  - foreign: "“name” is not a Glissando slideshow." — "Choose another file" and, in the
+    library, "New slideshow";
+  - damaged or incomplete: "“name” is damaged." — "Choose another file";
+  - newer: "“name” comes from a newer Glissando version." — "Reload app";
+  - too large: "Not enough storage." with "needs 2.1 GB, this device has 640 MB free" (without
+    the numbers where the browser cannot tell the free space) — "Choose another file". A
+    storage running full while writing ends the same way, after everything written is removed.
 - **Import** (`import/`, below) and the **player** open from these.
 
 Up to 720 px wide (a container query on `.screen`) the layout narrows: one card column, the
@@ -82,7 +110,10 @@ gesture (which cannot be stopped) keeps it, and "New slideshow" resumes it.
   with "Start over" (discards the selection and shows the empty drop zone); the drop zone and
   "add more" stay hidden until then. Its error is logged; the notice is its only message (no
   "unexpected error" toast besides). "Next" is enabled once nothing is in flight and at least one picture is stored.
-  Cancel and ← with a selection ask "Discard selection?" (Keep choosing / Discard).
+  Cancel and ← with a selection ask "Discard selection?" (Keep choosing / Discard). While the
+  drop zone shows, a box below it offers "Slideshow from another device?" with "Open file"; a
+  single .glissando file chosen or dropped on the drop zone opens it (above) instead of being
+  imported as a picture.
 - **Music** (optional): a drop zone with "Choose music" (`audio/*`); a file the browser cannot
   play is a coral toast with "Retry", which reopens the picker. Chosen music is a card (music icon, file
   name, m:ss · format, a close button removes it, and a strip of the pictures' thumbnails
@@ -112,7 +143,11 @@ over real timers.
   each display picture by media id only when it buffers it (`openPicture`), and the music when
   it opens; the music's URL is revoked when it closes. The player shows the music's file name.
 - **Import flow** (`import/import-flow.ts`): the import session, the clean-up when an import
-  ends and the persistence prompt after creating.
+  ends and the persistence prompt after creating, also after opening a file.
+- **Export and open** (`glissando-file/`): `App.svelte` owns the `ExportJob` (the header reads
+  its progress through a context) and the `OpenFlow` (its overlay and notices); the composition
+  root supplies the download (an object URL on a clicked link, revoked a minute later), the free
+  storage estimate and the reload.
 
 ## Navigation
 
@@ -130,8 +165,10 @@ three levels; the player is a modal layer over its slideshow, the settings sheet
 ## Waiting and errors
 
 - **Blocking overlay** (`BlockingOverlay`): a title and one line, always; e.g. "Creating
-  slideshow …".
-- **Notice** (`Notice`): inline at the cause; lemon for warnings, coral for errors.
+  slideshow …". With a progress it shows a bar instead of the spinner, optionally a note (the
+  file name) and "Cancel".
+- **Notice** (`Notice`): inline at the cause; lemon for warnings, coral for errors. Links in its
+  text, optionally buttons below it and a ✕ that dismisses it.
 - **Toast** (`Toast` + `toast/toaster.ts`): one at a time, bottom (right from 700 px viewport width), gone after
   6 s; an optional action and a close button. A new toast replaces the shown one. While the import wizard's
   bottom actions or the slideshow's selection bar are shown, it rises above them.

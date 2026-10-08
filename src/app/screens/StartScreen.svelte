@@ -2,6 +2,11 @@
   import type { Snippet } from "svelte";
   import Header from "../components/Header.svelte";
   import Icon from "../components/Icon.svelte";
+  import DropLayer from "../glissando-file/DropLayer.svelte";
+  import { fileDrop } from "../glissando-file/file-drop";
+  import GlissandoFilePicker from "../glissando-file/GlissandoFilePicker.svelte";
+  import type { OpenNotice as OpenNoticeModel } from "../glissando-file/open-flow";
+  import OpenNotice from "../glissando-file/OpenNotice.svelte";
   import { getTranslator } from "../i18n/context";
   import type { SlideshowSummary } from "./view-models";
 
@@ -10,6 +15,10 @@
     onCreate,
     onOpen,
     onSettings,
+    onOpenFile,
+    notice,
+    onDismissNotice,
+    onReload,
     logo,
   }: {
     /** Newest first. */
@@ -17,11 +26,21 @@
     onCreate: () => void;
     onOpen: (slideshowId: string) => void;
     onSettings: () => void;
+    /** A .glissando file was chosen or dropped. */
+    onOpenFile: (file: File) => void;
+    /** Why the last file opened from here was refused. */
+    notice: OpenNoticeModel | null;
+    onDismissNotice: () => void;
+    onReload: () => void;
     logo?: Snippet | undefined;
   } = $props();
 
   const { t, formatDuration } = getTranslator();
+  let picker: GlissandoFilePicker;
+  let dragging = $state(false);
 </script>
+
+<GlissandoFilePicker bind:this={picker} onFile={onOpenFile} />
 
 <div class="screen">
   <Header crumbs={[]} {actions} />
@@ -42,7 +61,19 @@
       </button>
     {/if}
   {/snippet}
-  <main class="content">
+  <main
+    class="content"
+    use:fileDrop={{ onDragging: (next) => (dragging = next), onFile: onOpenFile }}
+  >
+    {#if notice !== null}
+      <OpenNotice
+        {notice}
+        onPick={() => picker.pick()}
+        {onCreate}
+        {onReload}
+        onDismiss={onDismissNotice}
+      />
+    {/if}
     {#if logo}
       <div class="logo">{@render logo()}</div>
     {/if}
@@ -53,11 +84,19 @@
         <button class="btn primary large" type="button" onclick={onCreate}>
           <Icon name="plus" />{t("start.newSlideshow")}
         </button>
+        <button class="btn ghost" type="button" onclick={() => picker.pick()}>
+          <Icon name="open" />{t("glissandoFile.openGlissandoFile")}
+        </button>
       </div>
     {:else}
-      <div>
-        <div class="eyebrow">{t("start.library")}</div>
-        <h1 class="title">{t("start.yourSlideshows")}</h1>
+      <div class="head">
+        <div>
+          <div class="eyebrow">{t("start.library")}</div>
+          <h1 class="title">{t("start.yourSlideshows")}</h1>
+        </div>
+        <button class="btn" type="button" onclick={() => picker.pick()}>
+          <Icon name="open" />{t("glissandoFile.openFile")}
+        </button>
       </div>
       <ul class="grid">
         {#each slideshows as slideshow (slideshow.id)}
@@ -92,11 +131,24 @@
         </li>
       </ul>
     {/if}
+    {#if dragging}
+      <DropLayer />
+    {/if}
   </main>
   <footer class="status"><span class="dot"></span>{t("start.footer")}</footer>
 </div>
 
 <style>
+  main {
+    position: relative;
+  }
+  .head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    justify-content: space-between;
+    gap: 12px;
+  }
   .logo {
     display: flex;
     justify-content: center;

@@ -2,9 +2,14 @@
   import { onDestroy } from "svelte";
   import Notice from "../components/Notice.svelte";
   import { getTranslator } from "../i18n/context";
-  import Icon from "../components/Icon.svelte";
   import { browserObjectUrls, ObjectUrls } from "../media/object-urls";
+  import GlissandoFilePicker from "../glissando-file/GlissandoFilePicker.svelte";
+  import OpenFileBox from "../glissando-file/OpenFileBox.svelte";
+  import type { OpenNotice as OpenNoticeModel } from "../glissando-file/open-flow";
+  import OpenNotice from "../glissando-file/OpenNotice.svelte";
+  import { singleGlissandoFile } from "./dropped-files";
   import DropZone from "./DropZone.svelte";
+  import PicturesProgress from "./PicturesProgress.svelte";
   import ImportFrame from "./ImportFrame.svelte";
   import type { ImportSession } from "./import-session";
   import { canContinue, captureRange, pendingPictureCount, picturesPhase } from "./import-view";
@@ -16,6 +21,10 @@
     onLeave,
     onNext,
     onDiscard,
+    onOpenFile,
+    notice,
+    onDismissNotice,
+    onReload,
   }: {
     session: ImportSession;
     loadThumbnail: (pictureId: string) => Promise<Blob>;
@@ -25,6 +34,12 @@
     onNext: () => void;
     /** Throws the selection away and stays on the step. */
     onDiscard: () => void;
+    /** A .glissando file was chosen or dropped. */
+    onOpenFile: (file: File) => void;
+    /** Why the last file opened from here was refused. */
+    notice: OpenNoticeModel | null;
+    onDismissNotice: () => void;
+    onReload: () => void;
   } = $props();
 
   const PICTURE_TYPES = "image/*";
@@ -36,6 +51,7 @@
   let urls = $state<ReadonlyMap<string, string>>(new Map());
   let pickFiles: HTMLInputElement;
   let pickFolder: HTMLInputElement;
+  let pickGlissando: GlissandoFilePicker;
 
   // svelte-ignore state_referenced_locally
   const thumbnails = new ObjectUrls({ ...browserObjectUrls, load: loadThumbnail, onError });
@@ -51,7 +67,10 @@
   const skippedNames = $derived(importState.skipped.map((file) => file.fileName).join(", "));
 
   function add(files: readonly File[]): void {
-    if (files.length > 0) {
+    const glissandoFile = singleGlissandoFile(files);
+    if (glissandoFile !== null) {
+      onOpenFile(glissandoFile);
+    } else if (files.length > 0) {
       session.addPictures(files);
     }
   }
@@ -71,7 +90,17 @@
 <input bind:this={pickFiles} type="file" accept={PICTURE_TYPES} multiple hidden onchange={picked} />
 <input bind:this={pickFolder} type="file" webkitdirectory hidden onchange={picked} />
 
+<GlissandoFilePicker bind:this={pickGlissando} onFile={onOpenFile} />
+
 <ImportFrame step="pictures" onBack={onLeave}>
+  {#if notice !== null}
+    <OpenNotice
+      {notice}
+      onPick={() => pickGlissando.pick()}
+      {onReload}
+      onDismiss={onDismissNotice}
+    />
+  {/if}
   <div>
     <h1 class="title">{t("import.picturesTitle")}</h1>
     <p class="lead">{t("import.picturesText")}</p>
@@ -91,6 +120,7 @@
       </span>
       <span class="formats">{t("import.pictureFormats")}</span>
     </DropZone>
+    <OpenFileBox onPick={() => pickGlissando.pick()} />
   {/if}
 
   {#if importState.storageFull}
@@ -112,35 +142,12 @@
   {/if}
 
   {#if phase === "importing" || (phase === "done" && range !== null)}
-    <div class="progress">
-      <div class="progress-row">
-        {#if phase === "importing"}
-          <span>
-            <span class="mono">
-              {t("import.progressCount", { done: importState.done, count: importState.total })}
-            </span>
-            {t("import.progressLabel", { count: importState.total })}
-          </span>
-          <button class="btn ghost" type="button" onclick={onDiscard}>
-            {t("common.cancel")}
-          </button>
-        {:else if range !== null}
-          <span>
-            <b>{t("units.pictures", { count: importState.pictures.length })}</b>
-            <span class="muted">
-              · {t("import.dateRange", { from: formatDate(range.from), to: formatDate(range.to) })}
-            </span>
-          </span>
-          <button class="btn ghost" type="button" onclick={() => pickFiles.click()}>
-            <Icon name="plus" />{t("import.addMore")}
-          </button>
-        {/if}
-      </div>
-      <div class="meter">
-        <i style:width="{importState.total > 0 ? (importState.done / importState.total) * 100 : 0}%"
-        ></i>
-      </div>
-    </div>
+    <PicturesProgress
+      state={importState}
+      {range}
+      onCancel={onDiscard}
+      onAddMore={() => pickFiles.click()}
+    />
   {/if}
 
   {#if !importState.busy && importState.skipped.length > 0}
@@ -195,33 +202,6 @@
     font: inherit;
     text-decoration: underline;
     cursor: pointer;
-  }
-  .progress {
-    display: grid;
-    gap: 10px;
-    padding: 14px 16px;
-    border: 1px solid var(--gl-line);
-    border-radius: var(--gl-radius-large);
-    background: var(--gl-surface);
-  }
-  .progress-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 12px;
-  }
-  .meter {
-    height: 6px;
-    overflow: hidden;
-    border-radius: 3px;
-    background: var(--gl-hover);
-  }
-  .meter i {
-    display: block;
-    height: 100%;
-    border-radius: 3px;
-    background: var(--gl-mint);
-    transition: width 0.3s;
   }
   .strip {
     display: grid;
@@ -279,9 +259,6 @@
     }
   }
   @media (prefers-reduced-motion: reduce) {
-    .meter i {
-      transition: none;
-    }
     .tile.pending::after {
       animation: none;
     }

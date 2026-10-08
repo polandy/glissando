@@ -10,8 +10,11 @@ describe("SlideshowScreen deleting", () => {
     byLabel("Mehr").click();
     flushSync();
     const items = [...document.querySelectorAll('[role="menuitem"]')];
-    expect(items.map((item) => item.textContent?.trim())).toEqual(["Diashow löschen …"]);
-    (items[0] as HTMLElement).click();
+    const deleteItem = items.find((item) => item.textContent?.trim() === "Diashow löschen …");
+    if (!(deleteItem instanceof HTMLElement)) {
+      throw new Error("no delete item in the menu");
+    }
+    deleteItem.click();
     flushSync();
     const dialog = document.querySelector("dialog");
     if (dialog === null) {

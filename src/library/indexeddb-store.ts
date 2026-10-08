@@ -13,6 +13,13 @@ import {
   type PictureBlobs,
   type StoredSlideshow,
 } from "./stored-slideshow";
+import {
+  requestResult,
+  toBlob,
+  toStoredMedia,
+  type StoredMedia,
+  type StoredPictureMedia,
+} from "./indexeddb-records";
 
 /** Records and media share one database so a transaction can span both (see ADR-0003). */
 export const LIBRARY_DATABASE_NAME = "glissando";
@@ -25,28 +32,6 @@ const PICTURES = "pictures";
 const MUSIC = "music";
 const IMPORTS = "imports";
 type StoreName = typeof SLIDESHOWS | typeof PICTURES | typeof MUSIC | typeof IMPORTS;
-
-/**
- * Media is kept as bytes plus MIME type, not as a Blob: WebKit refuses Blobs in IndexedDB in
- * ephemeral sessions (private browsing), bytes it stores everywhere.
- */
-interface StoredMedia {
-  readonly bytes: ArrayBuffer;
-  readonly type: string;
-}
-
-interface StoredPictureMedia {
-  readonly display: StoredMedia;
-  readonly thumbnail: StoredMedia;
-}
-
-async function toStoredMedia(blob: Blob): Promise<StoredMedia> {
-  return { bytes: await blob.arrayBuffer(), type: blob.type };
-}
-
-function toBlob(media: StoredMedia): Blob {
-  return new Blob([media.bytes], { type: media.type });
-}
 
 /** A `LibraryStore` over IndexedDB: slideshow records keyed by id, media blobs keyed by media id. */
 export class IndexedDbLibraryStore implements LibraryStore {
@@ -167,6 +152,32 @@ export class IndexedDbLibraryStore implements LibraryStore {
     return toBlob(media as StoredMedia);
   }
 
+  /** One read-only transaction; each record is dropped once measured, so memory stays bounded. */
+  mediaBytes(slideshow: StoredSlideshow): Promise<number> {
+    const transaction = this.#database.transaction([PICTURES, MUSIC], "readonly");
+    let bytes = 0;
+    const measure = (name: StoreName, id: string, size: (media: unknown) => number): void => {
+      const request = transaction.objectStore(name).get(id);
+      request.onsuccess = () => {
+        bytes += request.result === undefined ? 0 : size(request.result);
+      };
+    };
+    for (const picture of slideshow.pictures) {
+      measure(PICTURES, picture.id, (media) => {
+        const { display, thumbnail } = media as StoredPictureMedia;
+        return display.bytes.byteLength + thumbnail.bytes.byteLength;
+      });
+    }
+    if (slideshow.music !== undefined) {
+      measure(MUSIC, slideshow.music.id, (media) => (media as StoredMedia).bytes.byteLength);
+    }
+    return new Promise((resolve, reject) => {
+      transaction.oncomplete = () => resolve(bytes);
+      transaction.onabort = () =>
+        reject(transaction.error ?? new Error("measuring the media was aborted"));
+    });
+  }
+
   claimMedia(claimId: string, startedAt: Date, mediaId: string): Promise<void> {
     return this.#update([IMPORTS], (transaction) => {
       const imports = transaction.objectStore(IMPORTS);
@@ -269,11 +280,4 @@ export function openLibraryStore(indexedDB: IDBFactory): Promise<IndexedDbLibrar
     }
   };
   return requestResult(request).then(() => new IndexedDbLibraryStore(request.result));
-}
-
-function requestResult(request: IDBRequest): Promise<unknown> {
-  return new Promise((resolve, reject) => {
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error ?? new Error("an IndexedDB request failed"));
-  });
 }

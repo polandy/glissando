@@ -21,4 +21,12 @@ export interface AppServices {
   now(): Date;
   /** Deletes media no slideshow uses and no claim in any tab spares; reports failures. */
   deleteAbandonedMedia(): void;
+  /** Logs an error the user was told about in other words, or need not be. */
+  log(error: unknown): void;
+  /** Free storage on the device in bytes; null where the browser cannot tell. */
+  freeBytes(): Promise<number | null>;
+  /** Hands a file to the browser's downloads. */
+  download(file: Blob, fileName: string): void;
+  /** Reloads the app, e.g. to get a newer version. */
+  reload(): void;
 }

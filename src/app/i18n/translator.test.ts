@@ -89,6 +89,20 @@ describe("formatters", () => {
   });
 });
 
+describe("formatBytes", () => {
+  it.each([
+    ["de", 184_000_000, "184 MB"],
+    ["de", 2_100_000_000, "2,1 GB"],
+    ["en", 2_100_000_000, "2.1 GB"],
+    ["en", 640_400_000, "640 MB"],
+    ["en", 999_600_000, "1 GB"],
+    ["en", 51, "1 MB"],
+    ["en", 0, "0 MB"],
+  ] as const)("in %s shows %d bytes as %j", (language, bytes, expected) => {
+    expect(createTranslator(language).formatBytes(bytes)).toBe(expected);
+  });
+});
+
 describe("catalogues", () => {
   function placeholdersOf(message: unknown): string[] {
     const text = typeof message === "string" ? message : JSON.stringify(message);

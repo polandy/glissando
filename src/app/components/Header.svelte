@@ -1,5 +1,7 @@
 <script lang="ts">
   import type { Snippet } from "svelte";
+  import ExportIndicator from "../glissando-file/ExportIndicator.svelte";
+  import { getExportStatus } from "../glissando-file/export-status";
   import { getTranslator } from "../i18n/context";
   import Icon from "./Icon.svelte";
   import LogoMark from "./LogoMark.svelte";
@@ -18,6 +20,7 @@
   } = $props();
 
   const { t } = getTranslator();
+  const exportStatus = getExportStatus();
 </script>
 
 <header class="bar">
@@ -45,6 +48,9 @@
       {/if}
     {/each}
   </nav>
+  {#if exportStatus?.current}
+    <ExportIndicator progress={exportStatus.current} />
+  {/if}
   {#if actions}
     <div class="actions">{@render actions()}</div>
   {/if}
@@ -52,6 +58,7 @@
 
 <style>
   .bar {
+    position: relative;
     flex: none;
     display: flex;
     align-items: center;

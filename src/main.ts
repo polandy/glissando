@@ -19,6 +19,9 @@ import {
   PersistencePrompt,
 } from "./app/storage/persistence-prompt";
 import { Toaster } from "./app/toast/toaster";
+import { createDownloader } from "./app/glissando-file/download-file";
+import { browserObjectUrls } from "./app/media/object-urls";
+import { freeStorageBytes } from "./library/free-storage";
 import { decodePicture } from "./import/downscale";
 import { captureDate } from "./import/exif-capture-date";
 import { probeMusic } from "./import/music-probe";
@@ -90,6 +93,10 @@ const services = {
   newId,
   now,
   deleteAbandonedMedia,
+  log: logError,
+  freeBytes: () => freeStorageBytes(window.navigator.storage),
+  download: createDownloader({ document, urls: browserObjectUrls, scheduler: browserScheduler }),
+  reload: () => window.location.reload(),
 };
 
 const playStartAnimation = consumeFirstLaunch(createStorageFirstLaunchStore(window.localStorage));

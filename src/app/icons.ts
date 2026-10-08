@@ -50,6 +50,15 @@ export const ICONS = {
       ),
     ],
   },
+  download: { shapes: [path("M12 4v11M7 10.5l5 5 5-5M5 19.5h14")] },
+  open: {
+    shapes: [
+      path(
+        "M3 7.5A1.5 1.5 0 014.5 6H9l2 2h8.5A1.5 1.5 0 0121 9.5v8a1.5 1.5 0 01-1.5 1.5h-15A1.5 1.5 0 013 17.5z",
+      ),
+      path("M12 11v5M9.5 13.5L12 11l2.5 2.5"),
+    ],
+  },
   clock: { shapes: [circle(12, 12, 8.5), path("M12 7.5V12l3 2")] },
   info: { shapes: [circle(12, 12, 9), path("M12 11v5M12 8h.01")] },
   alert: {

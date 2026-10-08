@@ -1,7 +1,9 @@
 # LIBRARY.md — Import and storage on the device
 
-Pictures and music are imported into the browser's storage on the device; nothing leaves it.
-Code: `src/import/` (reading files), `src/library/` (storing them). Storage choice: ADR-0003.
+Pictures and music are imported into the browser's storage on the device; nothing leaves it
+unless the user exports a slideshow as a file. Code: `src/import/` (reading files),
+`src/library/` (storing them), `src/glissando-file/` (the `.glissando` file). Storage choice:
+ADR-0003; file container: ADR-0004.
 
 ## Importing pictures
 
@@ -57,7 +59,9 @@ Media is written while importing, the slideshow record last. Edits on the slides
 replace the record through `updateSlideshow`, which reads it in the same transaction and throws
 `SlideshowNotFoundError` when it is gone, so an edit (or an Undo) from a tab still showing a
 slideshow deleted elsewhere never brings it back; that tab goes back to start with the toast
-"This slideshow no longer exists." `ownOrder` marks pictures the user reordered. `deleteSlideshow` deletes the
+"This slideshow no longer exists." `ownOrder` marks pictures the user reordered. `mediaBytes`
+measures what a slideshow's pictures (both renditions) and music take, in one read-only
+transaction, for the export's size estimate. `deleteSlideshow` deletes the
 record and, in the same transaction, the media no other slideshow references.
 
 A write commits its transaction explicitly (`commit()`) as soon as its last request is placed —
@@ -81,6 +85,42 @@ in any tab — spares its media. An undoable removal claims its media the same w
 than one day (`CLAIM_SPARED_FOR_MS`, from a tab that crashed) is dropped and its media deleted.
 The clean-up reads the references and claims and deletes in one transaction. Web Locks would
 need a secure context, which the app over plain HTTP on the LAN lacks.
+
+## The .glissando file
+
+One slideshow as one file, to move it between devices (`src/glissando-file/`). A ZIP whose
+entries are stored, not compressed, so any unzip tool opens it; no ZIP64, so it stays under
+4 GiB and 65,535 entries (ADR-0004):
+
+| Entry                  | Content                                                                |
+| ---------------------- | ---------------------------------------------------------------------- |
+| `glissando.json`       | always first: `format` "glissando", `formatVersion` 1, the `slideshow` |
+| `pictures/0001.jpg` …  | the display renditions in play order, as stored (numbered from 0001)   |
+| `thumbnails/0001.jpg`… | their thumbnails, as stored                                            |
+| `music/track.<ext>`    | the music, extension from its file name (none when it has none)        |
+
+`slideshow` is the stored record without device ids: `title`, `createdAt`, `secondsPerPicture`,
+`ownOrder` (only when true), `pictures` (`file`, `thumbnail`, `capturedAt`, `width`, `height`,
+`fileName`) and `music` (`file`, `fileName`, `durationMs`, `mimeType`). Picture types follow
+the extension (`jpg`, `png`, `webp`). The manifest is read strictly: an unknown key or a value
+out of range makes the file damaged.
+
+- **Export** (`exportSlideshow`) reads the media from the store one file at a time and builds
+  the container from their blobs; the file is named after the title, characters a file system
+  refuses replaced by "-".
+- **Check first, then write** (`checkGlissandoFile`): before anything is stored the file must
+  start with `glissando.json` (else _foreign_), have a readable ZIP directory whose entries match
+  their local headers and are stored (else _damaged_), a manifest of this format (else
+  _foreign_) and no higher version (else _newer_) that validates (else _damaged_), every media
+  file it names present, and fit into the free storage (`navigator.storage.estimate()`, quota
+  minus usage; else _too large_, skipped where the browser cannot tell, e.g. over plain HTTP).
+  Last, every media file's CRC-32 is checked (else _damaged_): one damaged picture refuses the
+  whole file. Each media file is read as a slice of the file, never all at once.
+- **Write** (`writeGlissandoFile`): always a new slideshow with fresh ids, created now; a title
+  the library already has gets the first free " (2)", " (3)" …. All or nothing: it claims each
+  media id in `imports` before writing that media and saves the record last. Cancelled, or
+  failing midway (e.g. `QuotaExceededError`), it releases its claim and deletes the unreferenced
+  media, so no half slideshow stays behind.
 
 ## Persistent storage
 

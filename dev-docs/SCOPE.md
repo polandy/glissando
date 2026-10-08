@@ -85,7 +85,9 @@ Usable end to end by a non-technical user, fully offline:
   (which already carries the music track).
 - **Minimal editing**: remove and reorder pictures — nothing more. Removing is undone from a
   toast, not confirmed up front; only deleting a slideshow asks first.
-- **Export/import** a slideshow as one `.glissando` file.
+- **Export/import** a slideshow as one `.glissando` file (the approved mockup:
+  https://polandy.github.io/glissando-assets/mockups/glissando-file/, tab "Konzept"): export in
+  the background, open as a new slideshow, checked whole before anything is stored.
 - **PWA**: installable, works fully offline, no server needed. The install hint sits quietly in
   the start screen's footer and is offered again when the browser refuses persistent storage.
 

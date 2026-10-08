@@ -81,6 +81,18 @@ export class MemoryLibraryStore implements LibraryStore {
     return found(id, this.#music.get(id));
   }
 
+  mediaBytes(slideshow: StoredSlideshow): Promise<number> {
+    let bytes = 0;
+    for (const picture of slideshow.pictures) {
+      const blobs = this.#pictures.get(picture.id);
+      bytes += (blobs?.display.size ?? 0) + (blobs?.thumbnail.size ?? 0);
+    }
+    if (slideshow.music !== undefined) {
+      bytes += this.#music.get(slideshow.music.id)?.size ?? 0;
+    }
+    return Promise.resolve(bytes);
+  }
+
   claimMedia(claimId: string, startedAt: Date, mediaId: string): Promise<void> {
     const existing = this.#imports.get(claimId);
     this.#imports.set(claimId, withClaimedMedia(existing, claimId, startedAt, mediaId));

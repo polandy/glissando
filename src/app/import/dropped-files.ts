@@ -1,3 +1,5 @@
+import { GLISSANDO_FILE_EXTENSION } from "../../glissando-file/export-slideshow";
+
 /** The part of the File and Directory Entries API a drop needs; a dropped item is one of them. */
 export interface DroppedEntry {
   readonly isFile: boolean;
@@ -47,4 +49,12 @@ async function allChildren(reader: ReturnType<NonNullable<DroppedEntry["createRe
     }
     children.push(...page);
   }
+}
+
+/** A lone .glissando file among picked or dropped files opens as a slideshow; null otherwise. */
+export function singleGlissandoFile(files: readonly File[]): File | null {
+  const [only] = files;
+  return files.length === 1 && only?.name.toLowerCase().endsWith(GLISSANDO_FILE_EXTENSION)
+    ? only
+    : null;
 }
