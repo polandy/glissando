@@ -6,6 +6,7 @@ import {
   type StoredPicture,
   type StoredSlideshow,
 } from "../stored-slideshow";
+import { describeEditing } from "./editing-contract";
 import { describeImportsInProgress } from "./imports-in-progress-contract";
 
 const CLEAN_UP_AT = new Date("2026-10-08T12:00:00Z");
@@ -17,7 +18,7 @@ export interface StoreHarness {
   close(): Promise<void>;
 }
 
-function picture(id: string): StoredPicture {
+export function picture(id: string): StoredPicture {
   return {
     id,
     capturedAt: "2025-07-01T10:00:00Z",
@@ -27,7 +28,7 @@ function picture(id: string): StoredPicture {
   };
 }
 
-function slideshow(overrides: Partial<StoredSlideshow> = {}): StoredSlideshow {
+export function slideshow(overrides: Partial<StoredSlideshow> = {}): StoredSlideshow {
   return {
     id: "show-1",
     title: "July 2025",
@@ -231,5 +232,6 @@ export function describeLibraryStoreContract(
       () => store,
       () => harness,
     );
+    describeEditing(() => store);
   });
 }

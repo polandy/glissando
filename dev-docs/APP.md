@@ -33,14 +33,18 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
     tile — never confirmed. The ✕ and the drag grip are for a mouse only (`(hover: hover) and
 (pointer: fine)`): shown on hover and on the selected tile; touch has neither and uses the
     selection bar. A toast "Picture removed" with "Undo" follows; removals made while it is
-    shown add up ("3 pictures removed") and one Undo puts them all back where they were. Leaving
-    the screen dismisses it. The last picture stays: its ✕ is disabled (titled with the reason);
+    shown add up ("3 pictures removed") and one Undo puts them all back where they were. Any move
+    ends that batch and dismisses the toast, so Undo never puts pictures back at positions that
+    shifted meanwhile; leaving the screen dismisses it too. While the toast shows, the removed
+    pictures' media is claimed against the clean-up (`dev-docs/LIBRARY.md`). The last picture stays: its ✕ is disabled (titled with the reason);
     "Remove" looks disabled but stays focusable and clickable (`aria-disabled`), and it and
     Delete answer with the toast "The last picture stays. To get rid of it, delete the whole
     slideshow.", keeping the selection.
   - **Select and reorder**: a tap on a tile selects it (outlined in the accent; another tap
-    deselects) and opens the selection bar at the bottom — "Picture 3 of 12" (hidden up to
-    720 px, where the bar spans the width), "◀ Earlier", "Later ▶", "Remove", "Done". While the
+    deselects) and opens the selection bar at the bottom — "Picture 3 of 12" (a polite live
+    region, so every move is announced; visually hidden up to 720 px, where the bar spans the
+    width), "◀ Earlier", "Later ▶", "Remove", "Done". At the ends Earlier or Later looks disabled
+    but stays focusable (`aria-disabled`) and does nothing. While the
     bar shows, the content keeps room below it for the bar, and the selected tile scrolls clear
     of it. The bar's buttons highlight on hover only where the pointer hovers. Mouse: drag a
     tile onto another (tiles are draggable only with a mouse, so a touch never starts a drag); a dashed lemon line before or after the target shows where it
@@ -50,8 +54,11 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
     saves, Esc cancels, an empty title falls back to the automatic one from the capture dates.
   - **Delete**: "Delete slideshow …" asks in a dialog, "Delete “title”?", what goes (the
     slideshow and its n pictures, not the original photos; cannot be undone), "Keep" (focused)
-    and a coral "Delete". Deleting removes the record and the media only it uses,
-    goes back to start and shows the toast "Slideshow deleted".
+    and a coral "Delete"; Keep or Esc puts the focus back on the ⋯ button. Deleting first closes
+    the screen's undo toast, then removes the record and the media only it uses, goes back to
+    start and shows the toast "Slideshow deleted" there — also when another tab deleted it
+    first. An edit to a slideshow deleted elsewhere goes back to start with the toast "This
+    slideshow no longer exists."
 - **Import** (`import/`, below) and the **player** open from these.
 
 Up to 720 px wide (a container query on `.screen`) the layout narrows: one card column, the
@@ -92,8 +99,9 @@ IndexedDB library, and builds the `Navigator` over `window.history` and the `Toa
 over real timers.
 
 - **Abandoned imports**: at startup and whenever an import ends (created or discarded), media
-  no slideshow references is deleted — except every media id handed to the import in progress,
-  so a picture stored before its slideshow record is never lost.
+  no slideshow references is deleted — except every media id an import in progress or a
+  still-undoable removal claims, in any tab, so a picture stored before its slideshow record is
+  never lost and an Undo always finds its media.
 - **Persistent storage** is requested after the first slideshow a tab creates; a refusal shows
   the dialog "Glissando may not store anything permanently" (only "Understood"), once per
   device.

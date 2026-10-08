@@ -58,8 +58,11 @@ window.addEventListener("unhandledrejection", (event) => reportError(event.reaso
 
 const store = await openLibraryStore(window.indexedDB);
 
+const newId = (): string => randomId(crypto);
+const now = (): Date => new Date();
+
 function deleteAbandonedMedia(): void {
-  store.deleteUnreferencedMedia(new Date()).catch(reportError);
+  store.deleteUnreferencedMedia(now()).catch(reportError);
 }
 deleteAbandonedMedia();
 
@@ -79,11 +82,13 @@ const services = {
       decode: decodePicture,
       captureDate,
       probeMusic,
-      newId: () => randomId(crypto),
-      now: () => new Date(),
+      newId,
+      now,
       onError: reportError,
       log: logError,
     }),
+  newId,
+  now,
   deleteAbandonedMedia,
 };
 

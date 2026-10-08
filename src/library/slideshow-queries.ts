@@ -1,8 +1,4 @@
-import {
-  IMPORT_SPARED_FOR_MS,
-  type ImportInProgress,
-  type StoredSlideshow,
-} from "./stored-slideshow";
+import { CLAIM_SPARED_FOR_MS, type MediaClaim, type StoredSlideshow } from "./stored-slideshow";
 
 /** Orders slideshows by creation instant, newest first; equal instants by id for a stable list. */
 export function newestFirst(slideshows: readonly StoredSlideshow[]): StoredSlideshow[] {
@@ -35,30 +31,30 @@ export function mediaOnlyIn(
   return [...referencedMediaIds([deleted])].filter((id) => !kept.has(id));
 }
 
-/** `imports` with `mediaId` claimed for `importId`; a new import starts at `startedAt`. */
-export function withImportMedia(
-  existing: ImportInProgress | undefined,
-  importId: string,
+/** `existing` with `mediaId` claimed for `claimId`; a new claim starts at `startedAt`. */
+export function withClaimedMedia(
+  existing: MediaClaim | undefined,
+  claimId: string,
   startedAt: Date,
   mediaId: string,
-): ImportInProgress {
-  const record = existing ?? { id: importId, startedAt: startedAt.toISOString(), mediaIds: [] };
+): MediaClaim {
+  const record = existing ?? { id: claimId, startedAt: startedAt.toISOString(), mediaIds: [] };
   return { ...record, mediaIds: [...record.mediaIds, mediaId] };
 }
 
-/** Which media the imports in progress spare at `now`, and which imports are stale. */
-export function importsAt(
-  imports: readonly ImportInProgress[],
+/** Which media the claims spare at `now`, and which claims are stale. */
+export function claimsAt(
+  imports: readonly MediaClaim[],
   now: Date,
-): { readonly sparedMediaIds: Set<string>; readonly staleImportIds: string[] } {
+): { readonly sparedMediaIds: Set<string>; readonly staleClaimIds: string[] } {
   const sparedMediaIds = new Set<string>();
-  const staleImportIds: string[] = [];
+  const staleClaimIds: string[] = [];
   for (const record of imports) {
-    if (now.getTime() - Date.parse(record.startedAt) < IMPORT_SPARED_FOR_MS) {
+    if (now.getTime() - Date.parse(record.startedAt) < CLAIM_SPARED_FOR_MS) {
       record.mediaIds.forEach((id) => sparedMediaIds.add(id));
     } else {
-      staleImportIds.push(record.id);
+      staleClaimIds.push(record.id);
     }
   }
-  return { sparedMediaIds, staleImportIds };
+  return { sparedMediaIds, staleClaimIds };
 }

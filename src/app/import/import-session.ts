@@ -166,14 +166,14 @@ export class ImportSession {
 
   #claim(mediaId: string): Promise<void> {
     this.#startedAt ??= this.#ports.now();
-    return this.#ports.store.recordImportMedia(this.#importId, this.#startedAt, mediaId);
+    return this.#ports.store.claimMedia(this.#importId, this.#startedAt, mediaId);
   }
 
   #endImport(): Promise<void> {
     const ended = this.#importId;
     this.#importId = this.#ports.newId();
     this.#startedAt = null;
-    return this.#ports.store.endImport(ended);
+    return this.#ports.store.releaseClaim(ended);
   }
 
   async #storeMusic(): Promise<StoredMusic | undefined> {

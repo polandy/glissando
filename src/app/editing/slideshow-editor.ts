@@ -5,13 +5,22 @@ import {
   restorePictures,
   type RemovedPicture,
 } from "../../library/slideshow-edits";
-import type { LibraryStore, StoredSlideshow } from "../../library/stored-slideshow";
+import {
+  SlideshowNotFoundError,
+  type LibraryStore,
+  type StoredSlideshow,
+} from "../../library/stored-slideshow";
 import type { Toaster, ToastMessage } from "../toast/toaster";
 
 export interface SlideshowEditorPorts {
-  readonly store: Pick<LibraryStore, "saveSlideshow">;
+  readonly store: Pick<LibraryStore, "updateSlideshow" | "claimMedia" | "releaseClaim">;
   readonly toaster: Pick<Toaster, "current" | "show" | "dismiss">;
+  /** A new id for the claim that spares removed pictures' media while they can be undone. */
+  readonly newId: () => string;
+  readonly now: () => Date;
   readonly onError: (error: unknown) => void;
+  /** The slideshow was deleted meanwhile, e.g. in another tab; edits are no longer stored. */
+  readonly onGone: () => void;
   /** The undo toast's text for `count` pictures removed. */
   readonly removedText: (count: number) => string;
   readonly undoLabel: () => string;
@@ -21,15 +30,19 @@ export interface SlideshowEditorPorts {
   readonly automaticTitle: (slideshow: StoredSlideshow) => string;
 }
 
-/** Removals made while their one undo toast is shown. */
+/** Removals made while their one undo toast is shown, and the claim sparing their media. */
 interface RemovalBatch {
   readonly toast: ToastMessage;
   readonly removals: readonly RemovedPicture[];
+  readonly claimId: string;
 }
 
 /**
  * The slideshow screen's edits: each applies at once and is stored. Removing needs no
- * confirmation; its toast undoes every removal made while it is shown.
+ * confirmation; its toast undoes every removal made while it is shown, and any other edit
+ * ends that batch, so an undo never puts pictures back at positions that shifted meanwhile.
+ * While the toast is shown, the removed pictures' media is claimed, so a clean-up in any tab
+ * spares it.
  */
 export class SlideshowEditor {
   readonly #ports: SlideshowEditorPorts;
@@ -39,6 +52,7 @@ export class SlideshowEditor {
   #slideshow: StoredSlideshow;
   #batch: RemovalBatch | null = null;
   #saving: Promise<void> = Promise.resolve();
+  #gone = false;
 
   constructor(initial: StoredSlideshow, ports: SlideshowEditorPorts) {
     this.#slideshow = initial;
@@ -71,14 +85,20 @@ export class SlideshowEditor {
       return;
     }
     const { slideshow, removed } = removePicture(this.#slideshow, pictureId);
-    const ongoing = this.#batch !== null && this.#ports.toaster.current === this.#batch.toast;
-    const removals = [...(ongoing && this.#batch !== null ? this.#batch.removals : []), removed];
+    // A batch exists only while its toast is shown (see #closed).
+    const ongoing = this.#batch;
+    const claimId = ongoing?.claimId ?? this.#ports.newId();
+    // Claimed before the save that drops the reference, so no clean-up can fall in between.
+    this.#track(this.#ports.store.claimMedia(claimId, this.#ports.now(), removed.picture.id));
+    const removals = [...(ongoing?.removals ?? []), removed];
     const toast: ToastMessage = {
       text: this.#ports.removedText(removals.length),
       tone: "info",
-      action: { label: this.#ports.undoLabel(), run: () => this.#undo(removals) },
+      action: { label: this.#ports.undoLabel(), run: () => this.#undo(batch) },
+      onClosed: () => this.#closed(toast),
     };
-    this.#batch = { toast, removals };
+    const batch: RemovalBatch = { toast, removals, claimId };
+    this.#batch = batch;
     this.#apply(slideshow);
     this.#ports.toaster.show(toast);
   }
@@ -86,6 +106,7 @@ export class SlideshowEditor {
   move(pictureId: string, toIndex: number): void {
     const moved = movePicture(this.#slideshow, pictureId, toIndex);
     if (moved !== this.#slideshow) {
+      this.#endBatch();
       this.#apply(moved);
     }
   }
@@ -102,18 +123,45 @@ export class SlideshowEditor {
 
   /** The screen closes: its undo toast would act on a slideshow no longer shown. */
   dispose(): void {
-    if (this.#batch !== null && this.#ports.toaster.current === this.#batch.toast) {
-      this.#ports.toaster.dismiss();
-    }
-    this.#batch = null;
+    this.#endBatch();
   }
 
-  #undo(removals: readonly RemovedPicture[]): void {
+  #undo(batch: RemovalBatch): void {
     this.#batch = null;
-    this.#apply(restorePictures(this.#slideshow, removals));
+    this.#apply(restorePictures(this.#slideshow, batch.removals));
+    // Released after the restoring save is queued: a clean-up queued in between waits for it.
+    this.#release(batch.claimId);
+  }
+
+  /** The undo toast left without being used: the removals are final. */
+  #closed(toast: ToastMessage): void {
+    if (this.#batch?.toast === toast) {
+      const { claimId } = this.#batch;
+      this.#batch = null;
+      this.#release(claimId);
+    }
+  }
+
+  #endBatch(): void {
+    const batch = this.#batch;
+    if (batch === null) {
+      return;
+    }
+    this.#batch = null;
+    if (this.#ports.toaster.current === batch.toast) {
+      this.#ports.toaster.dismiss();
+    }
+    this.#release(batch.claimId);
+  }
+
+  #release(claimId: string): void {
+    this.#track(this.#ports.store.releaseClaim(claimId));
   }
 
   #apply(slideshow: StoredSlideshow): void {
+    if (this.#gone) {
+      return;
+    }
     this.#slideshow = slideshow;
     this.#unsaved += 1;
     if (this.#unsaved === 1) {
@@ -121,8 +169,14 @@ export class SlideshowEditor {
     }
     // IndexedDB commits write transactions on one store in the order they were created.
     const saved = this.#ports.store
-      .saveSlideshow(slideshow)
-      .catch(this.#ports.onError)
+      .updateSlideshow(slideshow)
+      .catch((error: unknown) => {
+        if (error instanceof SlideshowNotFoundError) {
+          this.#goneMeanwhile();
+        } else {
+          this.#ports.onError(error);
+        }
+      })
       .then(() => {
         this.#unsaved -= 1;
         if (this.#unsaved === 0) {
@@ -133,6 +187,21 @@ export class SlideshowEditor {
     for (const listener of this.#listeners) {
       listener(slideshow);
     }
+  }
+
+  #goneMeanwhile(): void {
+    if (this.#gone) {
+      return;
+    }
+    this.#gone = true;
+    this.#endBatch();
+    this.#ports.onGone();
+  }
+
+  /** A claim or release counts towards `settled`; its failure is reported. */
+  #track(work: Promise<void>): void {
+    const done = work.catch(this.#ports.onError);
+    this.#saving = Promise.all([this.#saving, done]).then(() => undefined);
   }
 
   #notifySaving(saving: boolean): void {

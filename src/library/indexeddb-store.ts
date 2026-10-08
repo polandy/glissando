@@ -1,14 +1,14 @@
 import {
-  importsAt,
+  claimsAt,
   mediaOnlyIn,
   newestFirst,
   referencedMediaIds,
-  withImportMedia,
+  withClaimedMedia,
 } from "./slideshow-queries";
 import {
   MediaNotFoundError,
   SlideshowNotFoundError,
-  type ImportInProgress,
+  type MediaClaim,
   type LibraryStore,
   type PictureBlobs,
   type StoredSlideshow,
@@ -85,6 +85,29 @@ export class IndexedDbLibraryStore implements LibraryStore {
     });
   }
 
+  /** Reads and writes in one transaction, so a deletion in another tab cannot interleave. */
+  updateSlideshow(slideshow: StoredSlideshow): Promise<void> {
+    let found = true;
+    const updated = this.#update([SLIDESHOWS], (transaction) => {
+      const slideshows = transaction.objectStore(SLIDESHOWS);
+      const existing = slideshows.getKey(slideshow.id);
+      existing.onsuccess = () => {
+        if (existing.result === undefined) {
+          found = false;
+          return;
+        }
+        slideshows.put(slideshow);
+        // The last request is placed: commit before a reload can abort the edit.
+        transaction.commit();
+      };
+    });
+    return updated.then(() => {
+      if (!found) {
+        throw new SlideshowNotFoundError(slideshow.id);
+      }
+    });
+  }
+
   async listSlideshows(): Promise<readonly StoredSlideshow[]> {
     const all = await this.#read(SLIDESHOWS, (store) => store.getAll());
     return newestFirst(all as StoredSlideshow[]);
@@ -144,20 +167,20 @@ export class IndexedDbLibraryStore implements LibraryStore {
     return toBlob(media as StoredMedia);
   }
 
-  recordImportMedia(importId: string, startedAt: Date, mediaId: string): Promise<void> {
+  claimMedia(claimId: string, startedAt: Date, mediaId: string): Promise<void> {
     return this.#update([IMPORTS], (transaction) => {
       const imports = transaction.objectStore(IMPORTS);
-      const existing = imports.get(importId);
+      const existing = imports.get(claimId);
       existing.onsuccess = () => {
-        const record = existing.result as ImportInProgress | undefined;
-        imports.put(withImportMedia(record, importId, startedAt, mediaId));
+        const record = existing.result as MediaClaim | undefined;
+        imports.put(withClaimedMedia(record, claimId, startedAt, mediaId));
       };
     });
   }
 
-  endImport(importId: string): Promise<void> {
+  releaseClaim(claimId: string): Promise<void> {
     return this.#write([IMPORTS], (transaction) => {
-      transaction.objectStore(IMPORTS).delete(importId);
+      transaction.objectStore(IMPORTS).delete(claimId);
     });
   }
 
@@ -172,11 +195,8 @@ export class IndexedDbLibraryStore implements LibraryStore {
       const imports = importStore.getAll();
       imports.onsuccess = () => {
         const referenced = referencedMediaIds(slideshows.result as StoredSlideshow[]);
-        const { sparedMediaIds, staleImportIds } = importsAt(
-          imports.result as ImportInProgress[],
-          now,
-        );
-        staleImportIds.forEach((id) => importStore.delete(id));
+        const { sparedMediaIds, staleClaimIds } = claimsAt(imports.result as MediaClaim[], now);
+        staleClaimIds.forEach((id) => importStore.delete(id));
         for (const name of [PICTURES, MUSIC]) {
           const media = transaction.objectStore(name);
           const keys = media.getAllKeys();

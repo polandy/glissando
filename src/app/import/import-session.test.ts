@@ -63,9 +63,9 @@ function choicesOf(session: ImportSession): ImportChoices {
 /** Logs the calls that order media writes against the claims of the import in progress. */
 class LoggingStore extends MemoryLibraryStore {
   readonly log: string[] = [];
-  override recordImportMedia(importId: string, startedAt: Date, mediaId: string): Promise<void> {
+  override claimMedia(importId: string, startedAt: Date, mediaId: string): Promise<void> {
     this.log.push(`claim ${mediaId}`);
-    return super.recordImportMedia(importId, startedAt, mediaId);
+    return super.claimMedia(importId, startedAt, mediaId);
   }
   override putPicture(id: string, blobs: PictureBlobs): Promise<void> {
     this.log.push(`picture ${id}`);
@@ -79,9 +79,9 @@ class LoggingStore extends MemoryLibraryStore {
     this.log.push("slideshow");
     return super.saveSlideshow(slideshow);
   }
-  override endImport(importId: string): Promise<void> {
+  override releaseClaim(importId: string): Promise<void> {
     this.log.push(`end ${importId}`);
-    return super.endImport(importId);
+    return super.releaseClaim(importId);
   }
 }
 

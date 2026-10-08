@@ -8,6 +8,7 @@
   import type { ImportSession } from "./import/import-session";
   import type { Route } from "./navigation/route";
   import SlideshowRoute from "./routes/SlideshowRoute.svelte";
+  import { leaveWithToast } from "./routes/slideshow-exits";
   import StartRoute from "./routes/StartRoute.svelte";
   import type { AppServices } from "./services";
   import type { SettingsState } from "./settings/app-settings";
@@ -19,7 +20,7 @@
 
   // The services are wired once, by the composition root.
   // svelte-ignore state_referenced_locally
-  const { store, navigator, toaster, reportError, settings } = services;
+  const { store, navigator, toaster, reportError, settings, newId, now } = services;
   const { t } = getTranslator();
   // svelte-ignore state_referenced_locally
   const importFlow = new ImportFlow<ImportSession>({
@@ -59,11 +60,6 @@
       stopImport();
     };
   });
-
-  function slideshowDeleted(): void {
-    navigator.back();
-    toaster.show({ text: t("slideshow.deleted"), tone: "info" });
-  }
 
   function musicUnreadable(retry: () => void): void {
     toaster.show({
@@ -109,11 +105,14 @@
     <SlideshowRoute
       {store}
       {toaster}
+      {newId}
+      {now}
       {slideshowId}
       playing={route.screen === "player"}
       onBack={() => navigator.back()}
       onPlay={() => navigator.open({ screen: "player", slideshowId })}
-      onDeleted={slideshowDeleted}
+      onDeleted={() => leaveWithToast({ navigator, toaster }, t("slideshow.deleted"))}
+      onGone={() => leaveWithToast({ navigator, toaster }, t("slideshow.gone"))}
       onError={reportError}
     />
   {/key}

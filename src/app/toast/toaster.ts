@@ -13,6 +13,8 @@ export interface ToastMessage {
   readonly text: string;
   readonly tone: ToastTone;
   readonly action?: ToastAction;
+  /** Called once the toast leaves without its action run: it expired, or was dismissed or replaced. */
+  readonly onClosed?: () => void;
 }
 
 /** One toast at a time: a new one replaces the shown one; each dismisses itself after 6 s. */
@@ -48,7 +50,9 @@ export class Toaster {
     if (action === undefined) {
       throw new Error("the shown toast has no action to run");
     }
-    this.dismiss();
+    this.#cancelTimeout?.();
+    this.#cancelTimeout = null;
+    this.#set(null, { acted: true });
     action.run();
   }
 
@@ -58,10 +62,14 @@ export class Toaster {
     return () => this.#listeners.delete(listener);
   }
 
-  #set(toast: ToastMessage | null): void {
+  #set(toast: ToastMessage | null, { acted = false } = {}): void {
+    const previous = this.#current;
     this.#current = toast;
     for (const listener of this.#listeners) {
       listener(toast);
+    }
+    if (previous !== null && previous !== toast && !acted) {
+      previous.onClosed?.();
     }
   }
 }

@@ -57,6 +57,11 @@ export interface LibraryStore {
   putMusic(id: string, blob: Blob): Promise<void>;
   /** Writes the record atomically; replaces one with the same id. */
   saveSlideshow(slideshow: StoredSlideshow): Promise<void>;
+  /**
+   * Replaces a stored record, reading it in the same transaction: throws
+   * `SlideshowNotFoundError` when it is gone, so an edit never brings a deleted slideshow back.
+   */
+  updateSlideshow(slideshow: StoredSlideshow): Promise<void>;
   /** Newest first. */
   listSlideshows(): Promise<readonly StoredSlideshow[]>;
   /** Throws `SlideshowNotFoundError` for an unknown id. */
@@ -70,24 +75,25 @@ export interface LibraryStore {
   thumbnailBlob(id: string): Promise<Blob>;
   musicBlob(id: string): Promise<Blob>;
   /**
-   * Claims a media id for an import in progress, before the media is written, so a clean-up in
-   * any tab spares it. The first claim of an import records `startedAt`.
+   * Claims a media id no saved slideshow references (yet or any more), so a clean-up in any tab
+   * spares it: an import in progress claims its media before writing it, a removal its pictures
+   * while it can be undone. The first claim under `claimId` records `startedAt`.
    */
-  recordImportMedia(importId: string, startedAt: Date, mediaId: string): Promise<void>;
-  /** The import was created or discarded: its media is spared no longer. */
-  endImport(importId: string): Promise<void>;
+  claimMedia(claimId: string, startedAt: Date, mediaId: string): Promise<void>;
+  /** The import was created or discarded, the removal undone or final: its media is spared no longer. */
+  releaseClaim(claimId: string): Promise<void>;
   /**
-   * Deletes media no saved slideshow references, sparing that of imports started less than
-   * `IMPORT_SPARED_FOR_MS` before `now`; older imports are taken for crashed and forgotten.
+   * Deletes media no saved slideshow references, sparing that of claims made less than
+   * `CLAIM_SPARED_FOR_MS` before `now`; older claims are taken for crashed and forgotten.
    */
   deleteUnreferencedMedia(now: Date): Promise<void>;
 }
 
-/** How long an import in progress spares its media; a tab that crashed never ends its import. */
-export const IMPORT_SPARED_FOR_MS = 24 * 60 * 60 * 1000;
+/** How long a claim spares its media; a tab that crashed never releases its claims. */
+export const CLAIM_SPARED_FOR_MS = 24 * 60 * 60 * 1000;
 
-/** The stored record of an import in progress. */
-export interface ImportInProgress {
+/** The stored record of a claim: an import in progress or an undoable removal. */
+export interface MediaClaim {
   readonly id: string;
   /** ISO 8601. */
   readonly startedAt: string;

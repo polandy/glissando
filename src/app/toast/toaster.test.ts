@@ -83,4 +83,56 @@ describe("Toaster", () => {
 
     expect(seen).toEqual([SAVED, null]);
   });
+
+  it("tells a toast it closed without its action, whether it expired, was dismissed or replaced", () => {
+    const { scheduler, toaster } = setUp();
+    const closed: string[] = [];
+    const closing = (text: string): ToastMessage => ({
+      text,
+      tone: "info",
+      onClosed: () => closed.push(text),
+    });
+
+    toaster.show(closing("expires"));
+    scheduler.advance(TOAST_DURATION_MS);
+    toaster.show(closing("dismissed"));
+    toaster.dismiss();
+    toaster.show(closing("replaced"));
+    toaster.show(SAVED);
+
+    expect(toaster.current).toEqual(SAVED);
+    expect(closed).toEqual(["expires", "dismissed", "replaced"]);
+  });
+
+  it("does not tell a toast it closed when its action ran", () => {
+    const { toaster } = setUp();
+    const events: string[] = [];
+    toaster.show({
+      text: "Bild entfernt",
+      tone: "info",
+      action: { label: "Rückgängig", run: () => events.push("undone") },
+      onClosed: () => events.push("closed"),
+    });
+
+    toaster.act();
+
+    expect(toaster.current).toBeNull();
+    expect(events).toEqual(["undone"]);
+  });
+
+  it("does not tell a toast it closed when it is shown again", () => {
+    const { toaster } = setUp();
+    let closed = 0;
+    const toast: ToastMessage = {
+      text: "Bild entfernt",
+      tone: "info",
+      onClosed: () => (closed += 1),
+    };
+
+    toaster.show(toast);
+    toaster.show(toast);
+
+    expect(toaster.current).toBe(toast);
+    expect(closed).toBe(0);
+  });
 });

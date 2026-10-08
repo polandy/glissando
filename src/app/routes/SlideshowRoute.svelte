@@ -15,20 +15,26 @@
   import type { Toaster } from "../toast/toaster";
   import PlayerLayer from "./PlayerLayer.svelte";
   import { loadSlideshowScreen } from "./route-loading";
+  import { deleteShownSlideshow } from "./slideshow-exits";
   import { MOUSE_POINTER_QUERY } from "../screens/slideshow/pointer";
 
   let {
     store,
     toaster,
+    newId,
+    now,
     slideshowId,
     playing,
     onBack,
     onPlay,
     onDeleted,
+    onGone,
     onError,
   }: {
     store: LibraryStore;
     toaster: Toaster;
+    newId: () => string;
+    now: () => Date;
     slideshowId: string;
     /** The player layer is open over the screen. */
     playing: boolean;
@@ -37,6 +43,8 @@
     onPlay: () => void;
     /** The slideshow and its media are gone from the device. */
     onDeleted: () => void;
+    /** The slideshow was deleted elsewhere, e.g. in another tab, while it was shown. */
+    onGone: () => void;
     onError: (error: unknown) => void;
   } = $props();
 
@@ -85,7 +93,10 @@
     return new SlideshowEditor(initial, {
       store,
       toaster,
+      newId,
+      now,
       onError,
+      onGone,
       removedText: (count) => translator.t("slideshow.removed", { count }),
       undoLabel: () => translator.t("slideshow.undo"),
       lastPictureText: () => translator.t("slideshow.lastPictureStays"),
@@ -98,12 +109,7 @@
   }
 
   function deleteSlideshow(): void {
-    // Deleted meanwhile in another tab: gone either way.
-    store
-      .deleteSlideshow(slideshowId)
-      .then(onDeleted, (error: unknown) =>
-        error instanceof SlideshowNotFoundError ? onDeleted() : onError(error),
-      );
+    deleteShownSlideshow(store, slideshowId, editor).then(onDeleted, onError);
   }
 
   // The thumbnails are loaded once, for every picture: an undo brings back ones already loaded.

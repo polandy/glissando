@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { IMPORT_SPARED_FOR_MS, MediaNotFoundError, type LibraryStore } from "../stored-slideshow";
+import { CLAIM_SPARED_FOR_MS, MediaNotFoundError, type LibraryStore } from "../stored-slideshow";
 import { musicBlob, pictureBlobs, rejection, type StoreHarness } from "./library-store-contract";
 
 const STARTED_AT = new Date("2026-10-08T12:00:00Z");
@@ -12,9 +12,9 @@ export function describeImportsInProgress(
 ): void {
   describe("imports in progress", () => {
     async function importWithMedia(store: LibraryStore): Promise<void> {
-      await store.recordImportMedia("import-1", STARTED_AT, "import-picture");
+      await store.claimMedia("import-1", STARTED_AT, "import-picture");
       await store.putPicture("import-picture", pictureBlobs("import"));
-      await store.recordImportMedia("import-1", STARTED_AT, "import-music");
+      await store.claimMedia("import-1", STARTED_AT, "import-music");
       await store.putMusic("import-music", musicBlob("import"));
     }
 
@@ -23,7 +23,7 @@ export function describeImportsInProgress(
       await importWithMedia(store);
       await store.putPicture("abandoned-picture", pictureBlobs("abandoned"));
 
-      await store.deleteUnreferencedMedia(atMs(IMPORT_SPARED_FOR_MS - 1));
+      await store.deleteUnreferencedMedia(atMs(CLAIM_SPARED_FOR_MS - 1));
 
       expect(await (await store.pictureBlob("import-picture")).text()).toBe("import display");
       expect(await (await store.musicBlob("import-music")).text()).toBe("import music");
@@ -47,7 +47,7 @@ export function describeImportsInProgress(
       await store.deleteUnreferencedMedia(atMs(0));
       expect(await (await store.pictureBlob("import-picture")).text()).toBe("import display");
 
-      await store.deleteUnreferencedMedia(atMs(IMPORT_SPARED_FOR_MS));
+      await store.deleteUnreferencedMedia(atMs(CLAIM_SPARED_FOR_MS));
       await store.putPicture("import-picture", pictureBlobs("again"));
       await store.deleteUnreferencedMedia(atMs(0));
 
@@ -61,9 +61,9 @@ export function describeImportsInProgress(
       const store = currentStore();
       await importWithMedia(store);
       await store.putPicture("other-picture", pictureBlobs("other"));
-      await store.recordImportMedia("import-2", STARTED_AT, "other-picture");
+      await store.claimMedia("import-2", STARTED_AT, "other-picture");
 
-      await store.endImport("import-1");
+      await store.releaseClaim("import-1");
       await store.deleteUnreferencedMedia(atMs(0));
 
       expect(await (await store.pictureBlob("other-picture")).text()).toBe("other display");
@@ -74,7 +74,7 @@ export function describeImportsInProgress(
     });
 
     it("ending an unknown import is a no-op", async () => {
-      await expect(currentStore().endImport("never-started")).resolves.toBeUndefined();
+      await expect(currentStore().releaseClaim("never-started")).resolves.toBeUndefined();
     });
   });
 }

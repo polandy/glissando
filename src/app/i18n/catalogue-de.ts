@@ -84,6 +84,7 @@ export const de = {
   "slideshow.keep": "Behalten",
   "slideshow.deleteConfirm": "Löschen",
   "slideshow.deleted": "Diashow gelöscht",
+  "slideshow.gone": "Diese Diashow gibt es nicht mehr.",
 
   "import.crumb": "Neue Diashow",
   "import.crumbPictures": "Bilder",

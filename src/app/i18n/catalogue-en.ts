@@ -82,6 +82,7 @@ export const en: Catalogue = {
   "slideshow.keep": "Keep",
   "slideshow.deleteConfirm": "Delete",
   "slideshow.deleted": "Slideshow deleted",
+  "slideshow.gone": "This slideshow no longer exists.",
 
   "import.crumb": "New slideshow",
   "import.crumbPictures": "Pictures",
