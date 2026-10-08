@@ -99,7 +99,8 @@ export class MotionPreview {
   #tick(): void {
     this.#frame = null;
     const elapsedMs =
-      (this.#ports.clock.now() - this.#startedAt) % previewLengthMs({ durationMs: this.#durationMs });
+      (this.#ports.clock.now() - this.#startedAt) %
+      previewLengthMs({ durationMs: this.#durationMs });
     this.#set({ playing: true, elapsedMs, onFrame: false });
     this.#requestFrame();
   }

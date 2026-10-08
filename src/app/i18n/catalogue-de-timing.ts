@@ -29,7 +29,8 @@ export const deTiming = {
   },
   "editor.durationHintMusicClamped": {
     one: "Die Musik ist aufgebraucht; das übrige Bild bekommt das Minimum, {share}.",
-    other: "Die Musik ist aufgebraucht; die übrigen {count} Bilder bekommen das Minimum, je {share}.",
+    other:
+      "Die Musik ist aufgebraucht; die übrigen {count} Bilder bekommen das Minimum, je {share}.",
   },
   "editor.durationHintAllOwn":
     "Alle Bilder haben eine eigene Dauer; die Diashow folgt nicht mehr der Länge der Musik.",
