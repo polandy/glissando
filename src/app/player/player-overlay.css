@@ -1,0 +1,171 @@
+/* PlayerOverlay's look; every selector is under .player, which only that component renders. */
+.player {
+  container-type: inline-size;
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  overflow: hidden;
+  background: var(--gl-player-bg);
+  color: var(--gl-player-text);
+  user-select: none;
+}
+.player.hidden {
+  cursor: none;
+}
+.player .stage {
+  position: absolute;
+  inset: 0;
+}
+
+.player .ui {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+.player.hidden .ui {
+  opacity: 0;
+}
+.player .ui > * {
+  pointer-events: auto;
+}
+
+.player .top {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background: linear-gradient(var(--gl-player-scrim-top), transparent);
+}
+.player .round {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--gl-player-button);
+  color: inherit;
+  font: inherit;
+  font-size: var(--gl-size-title);
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+}
+.player .counter {
+  font-size: var(--gl-size-body);
+  opacity: 0.9;
+}
+
+.player .bottom {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px calc(16px + env(safe-area-inset-bottom));
+  background: linear-gradient(transparent, var(--gl-player-scrim-bottom));
+}
+.player .play {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--gl-peach);
+  color: var(--gl-on-accent);
+  font-family: inherit;
+  font-size: var(--gl-size-icon);
+  cursor: pointer;
+}
+.player .seek {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.player .seek input {
+  width: 100%;
+  height: 22px;
+  margin: 0;
+  accent-color: var(--gl-peach);
+  cursor: pointer;
+}
+.player .ticks {
+  position: relative;
+  height: 4px;
+  margin: 0 6px;
+}
+.player .ticks i {
+  position: absolute;
+  top: 0;
+  width: 2px;
+  height: 100%;
+  border-radius: 1px;
+  background: var(--gl-player-tick);
+}
+.player .time {
+  font-size: var(--gl-size-small);
+  text-align: right;
+  opacity: 0.9;
+}
+
+.player .music,
+.player .hint {
+  position: absolute;
+  bottom: 92px;
+  font-size: var(--gl-size-small);
+}
+.player .music {
+  left: 16px;
+  opacity: 0.75;
+}
+.player .hint {
+  right: 16px;
+  font-size: var(--gl-size-caption);
+  opacity: 0.6;
+}
+@container (max-width: 699px) {
+  .player .hint {
+    display: none;
+  }
+}
+
+.player .card-layer {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: var(--gl-player-scrim-end);
+}
+.player .card-layer .box {
+  text-align: center;
+}
+.player .card-layer h2 {
+  margin: 0 0 14px;
+  font-weight: var(--gl-weight-heading);
+  font-size: var(--gl-size-display);
+}
+.player .card-layer p {
+  margin: 0 0 14px;
+  font-size: var(--gl-size-title);
+}
+.player .card-layer .row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .player .ui {
+    transition: none;
+  }
+}

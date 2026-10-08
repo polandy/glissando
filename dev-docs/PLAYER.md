@@ -60,7 +60,8 @@ with the transition and ends with its own slide. Transitions are eased `ease-in-
 Behaviour:
 
 - **Music** follows the player: it starts at `currentTime` on play and after a seek, pauses on
-  pause, while waiting and at the end. A refused `play()` is an `error` and pauses.
+  pause, while waiting and at the end. A refused `play()` is an `error` and pauses; a start
+  interrupted by a pause (a quick seek) is not a refusal.
 - **Pictures** are loaded for the slides on screen plus the next one; all others are released,
   so memory stays bounded. When a frame needs a picture that is not loaded yet, time stops,
   `waiting` fires, and playback goes on from the same moment with `playing`.
@@ -72,6 +73,10 @@ Behaviour:
 - **WebGL2** (default): one shader program per transition, compiled up front;
   `ShaderCompileError` carries the driver's log. Pictures become mipmapped textures; the
   canvas follows its CSS size times the device pixel ratio.
+- **Context loss**: on `webglcontextlost` it stops issuing GL calls (`render()` is a no-op, never
+  throwing) until `webglcontextrestored`, when it rebuilds its buffers and shader programs,
+  drops its texture cache (textures are re-uploaded lazily from the still-held pictures), and
+  triggers a redraw of the current frame.
 - **DOM fallback** when the browser has no WebGL2: each slide is its `<img>`, framed by a CSS
   transform; every transition becomes a crossfade.
 

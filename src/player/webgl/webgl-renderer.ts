@@ -39,10 +39,13 @@ type UniformName = (typeof UNIFORM_NAMES)[number];
 export class WebGlRenderer implements SlideRenderer<BrowserPicture> {
   readonly #canvas: HTMLCanvasElement;
   readonly #gl: WebGL2RenderingContext;
-  readonly #programs: ReadonlyMap<TransitionEffect, EffectProgram>;
+  readonly #onResize: () => void;
+  #programs: ReadonlyMap<TransitionEffect, EffectProgram> = new Map();
   readonly #textures = new Map<HTMLImageElement, WebGLTexture>();
   readonly #pixelRatio: () => number;
   readonly #resizeObserver: ResizeObserver;
+  /** Set between `webglcontextlost` and `webglcontextrestored`; no GL call is safe meanwhile. */
+  #contextLost = false;
 
   constructor(
     canvas: HTMLCanvasElement,
@@ -52,17 +55,46 @@ export class WebGlRenderer implements SlideRenderer<BrowserPicture> {
   ) {
     this.#canvas = canvas;
     this.#gl = gl;
+    this.#onResize = onResize;
     this.#pixelRatio = pixelRatio;
+    this.#setUpGlResources();
+    canvas.addEventListener("webglcontextlost", this.#handleContextLost);
+    canvas.addEventListener("webglcontextrestored", this.#handleContextRestored);
+    this.#resizeObserver = new ResizeObserver(onResize);
+    this.#resizeObserver.observe(canvas);
+  }
+
+  /** The vertex buffer, its attribute binding and every transition's shader program. */
+  #setUpGlResources(): void {
+    const gl = this.#gl;
     gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
     gl.bufferData(gl.ARRAY_BUFFER, FULL_SCREEN_TRIANGLE_STRIP, gl.STATIC_DRAW);
     gl.enableVertexAttribArray(POSITION_ATTRIBUTE);
     gl.vertexAttribPointer(POSITION_ATTRIBUTE, COORDINATES_PER_VERTEX, gl.FLOAT, false, 0, 0);
     this.#programs = new Map(TRANSITION_EFFECTS.map((effect) => [effect, this.#compile(effect)]));
-    this.#resizeObserver = new ResizeObserver(onResize);
-    this.#resizeObserver.observe(canvas);
   }
 
+  readonly #handleContextLost = (event: Event): void => {
+    event.preventDefault();
+    this.#contextLost = true;
+  };
+
+  /**
+   * The lost context destroyed every GL object; rebuild them, then let the player redraw.
+   * Textures are not re-uploaded here: `#texture` re-uploads lazily, from the picture elements
+   * the player still holds, the next time each one is bound.
+   */
+  readonly #handleContextRestored = (): void => {
+    this.#textures.clear();
+    this.#setUpGlResources();
+    this.#contextLost = false;
+    this.#onResize();
+  };
+
   render(frame: RenderFrame<BrowserPicture>): void {
+    if (this.#contextLost) {
+      return;
+    }
     const gl = this.#gl;
     const viewport = this.#fitCanvasToDisplay();
     gl.viewport(0, 0, viewport.width, viewport.height);
@@ -88,6 +120,8 @@ export class WebGlRenderer implements SlideRenderer<BrowserPicture> {
   }
 
   dispose(): void {
+    this.#canvas.removeEventListener("webglcontextlost", this.#handleContextLost);
+    this.#canvas.removeEventListener("webglcontextrestored", this.#handleContextRestored);
     this.#resizeObserver.disconnect();
     this.#textures.forEach((texture) => this.#gl.deleteTexture(texture));
     this.#textures.clear();

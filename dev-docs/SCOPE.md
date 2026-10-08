@@ -33,7 +33,7 @@ primarily for offline use: once installed it needs neither the internet nor a se
 ## Local first
 
 Everything runs in the browser: playback, Ken Burns, transitions, thumbnails, audio conversion,
-editing and video export (WebCodecs). Slideshows and media live on the device (OPFS/IndexedDB):
+editing and video export (WebCodecs). Slideshows and media live on the device in IndexedDB (ADR-0003):
 
 - **Persistent storage** is requested (`navigator.storage.persist()`) so the browser does not
   evict slideshows on its own.

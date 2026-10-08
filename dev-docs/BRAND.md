@@ -31,7 +31,9 @@ shows the finished logo at once; the launch is remembered in the browser's local
 ## Type
 
 **Baloo 2** by Ek Type, SIL Open Font License 1.1 (`assets/fonts/OFL.txt`, shipped with the font).
-ExtraBold (800) for logo and headings, SemiBold (600) for UI labels. Self-hosted as one variable
+ExtraBold (800) for logo and headings, SemiBold (600) for UI labels. Sizes come from a small scale
+(`--gl-size-*`): caption 12, small 13, body 15, button 16, title 18, icon 22, heading 26,
+display 34 px. Self-hosted as one variable
 woff2 (weights 600–800, Latin subset incl. German); no request leaves the server.
 
 ## Colours — palette "Sorbet"
@@ -57,3 +59,27 @@ Rules:
 - Coral is the fill for error notices only; warnings use lemon. Both follow the accent rules.
 - In dark mode the logo cards are outlined in the background colour (sticker look).
 - The theme follows `prefers-color-scheme`, overridable with `data-theme="light|dark"` on `<html>`.
+
+### Derived tokens
+
+Built from the palette for the app's chrome; light / dark where they differ:
+
+| Token                       | Use                                     | Light                | Dark                |
+| --------------------------- | --------------------------------------- | -------------------- | ------------------- |
+| `--gl-muted`                | Secondary text                          | plum 62 %            | milk 62 %           |
+| `--gl-line`                 | Outlines, tracks, hover fills           | plum 14 %            | milk 16 %           |
+| `--gl-shadow`               | Cards, dialogs, toasts                  | soft plum shadow     | darker black shadow |
+| `--gl-inverse-bg` / `-text` | Toast                                   | plum / milk          | milk / plum         |
+| `--gl-scrim`                | Behind a dialog or blocking overlay     | night plum 55 %      | same                |
+| `--gl-caption-scrim`        | Under a tile's date caption             | plum 70 %            | same                |
+| `--gl-badge-bg` / `-text`   | A tile's order number                   | plum / milk          | same                |
+| `--gl-raised-shadow`        | The play badge on a cover               | black 25 %           | same                |
+| `--gl-player-*`             | Player: black stage, white text, scrims | black, white, alphas | same                |
+
+Shape: `--gl-radius` 18 px (cards, dialogs), `--gl-radius-tile` 14 px (tiles, notices),
+`--gl-radius-thumb` 12 px (covers), `--gl-radius-pill` (buttons).
+
+## Icons
+
+Unicode glyphs, listed once in `src/app/icons.ts` (← › ＋ ▶ ❚❚ ↻ ✕ ♪ ℹ️ ⚠️ 🖼️ 🎵 − +); a
+glyph next to a label is hidden from screen readers, a glyph alone carries an `aria-label`.
