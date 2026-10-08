@@ -48,7 +48,7 @@ export type PreviewScene =
   | { readonly kind: "next"; readonly progress: number }
   | { readonly kind: "end" };
 
-export function previewLengthMs(plan: PreviewPlan): number {
+export function previewLengthMs(plan: { readonly durationMs: number }): number {
   return plan.durationMs + NEXT_HOLD_MS;
 }
 

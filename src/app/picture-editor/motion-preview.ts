@@ -1,5 +1,5 @@
 import type { Clock, FrameScheduler } from "../../player";
-import { NEXT_HOLD_MS } from "./timing/preview-timeline";
+import { previewLengthMs } from "./timing/preview-timeline";
 
 export interface MotionPreviewState {
   readonly playing: boolean;
@@ -99,7 +99,7 @@ export class MotionPreview {
   #tick(): void {
     this.#frame = null;
     const elapsedMs =
-      (this.#ports.clock.now() - this.#startedAt) % (this.#durationMs + NEXT_HOLD_MS);
+      (this.#ports.clock.now() - this.#startedAt) % previewLengthMs({ durationMs: this.#durationMs });
     this.#set({ playing: true, elapsedMs, onFrame: false });
     this.#requestFrame();
   }
