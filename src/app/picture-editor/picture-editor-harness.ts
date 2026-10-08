@@ -1,7 +1,8 @@
 /** Shared set-up of the `PictureEditorScreen` browser tests. */
 import { flushSync } from "svelte";
+import { transitionDurationMs } from "../../compose";
 import type { OwnKenBurns } from "../../library/own-ken-burns";
-import type { TransitionChoice } from "../../library/own-timing";
+import { CUT_TRANSITION, type TransitionChoice } from "../../library/own-timing";
 import { FakeClock, FakeFrameScheduler } from "../../player/testing/fakes";
 import { mountWithTranslator } from "../testing/mount-with-translator";
 import { reactiveProps } from "../testing/reactive-props.svelte";
@@ -44,9 +45,28 @@ export function unmountEditor(): void {
   destroy();
 }
 
+/** The view after `choice` is picked (`own: true`) or an own transition is reset to it. */
+function transitionedView(
+  current: PictureEditorView,
+  choice: TransitionChoice,
+  own: boolean,
+): PictureEditorView {
+  const plays = current.next !== null && choice !== CUT_TRANSITION;
+  return {
+    ...current,
+    transition: {
+      ...current.transition,
+      choice,
+      own,
+      durationMs: plays ? transitionDurationMs(current.durationMs) : 0,
+    },
+  };
+}
+
 export function mountEditor(shown: PictureEditorView = view(), { reducedMotion = false } = {}) {
   const clock = new FakeClock();
   const frames = new FakeFrameScheduler();
+  let current = shown;
   const calls = {
     changed: [] as OwnKenBurns[],
     opened: [] as string[],
@@ -58,6 +78,12 @@ export function mountEditor(shown: PictureEditorView = view(), { reducedMotion =
     durationResets: 0,
     transitions: [] as TransitionChoice[],
     transitionResets: 0,
+  };
+  /** Shows the picture as stored after an edit, e.g. with its new duration. */
+  const update = (changed: PictureEditorView): void => {
+    current = changed;
+    props.picture = changed;
+    flushSync();
   };
   const props = reactiveProps({
     picture: shown,
@@ -72,19 +98,21 @@ export function mountEditor(shown: PictureEditorView = view(), { reducedMotion =
     onCaption: (typed: string) => calls.captions.push(typed),
     onDuration: (durationMs: number) => calls.durations.push(durationMs),
     onResetDuration: () => (calls.durationResets += 1),
-    onTransition: (choice: TransitionChoice) => calls.transitions.push(choice),
-    onResetTransition: () => (calls.transitionResets += 1),
+    // A picked (or reset) transition is stored at once, as the real app's store does.
+    onTransition: (choice: TransitionChoice) => {
+      calls.transitions.push(choice);
+      update(transitionedView(current, choice, true));
+    },
+    onResetTransition: () => {
+      calls.transitionResets += 1;
+      update(transitionedView(current, current.transition.automatic, false));
+    },
     previewPorts: { clock, frames },
     reducedMotion,
     saving: false,
   });
   const mounted = mountWithTranslator(PictureEditorScreen, props);
   destroy = mounted.destroy;
-  /** Shows the picture as stored after an edit, e.g. with its new duration. */
-  const update = (changed: PictureEditorView) => {
-    props.picture = changed;
-    flushSync();
-  };
   /** Moves the preview's clock on and lets it draw the next frame. */
   const advance = (ms: number) => {
     clock.advance(ms);

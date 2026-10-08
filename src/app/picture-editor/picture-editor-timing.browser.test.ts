@@ -138,20 +138,47 @@ describe("PictureEditorScreen transition", () => {
   });
 
   it("shows an own cut: no tag, and the next picture follows without a transition", () => {
+    mountEditor(
+      view({ transition: { choice: "cut", own: true, automatic: "push-left", durationMs: 0 } }),
+    );
+
+    expect(chip(transitionSection())).toBe("Eigener Übergang");
+    expect(transitionSection().querySelector(".tag")).toBeNull();
+    expect(text(transitionSection())).toContain("Bild 3 folgt ohne Übergang.");
+    expect(text(transitionSection())).not.toContain("Automatisch wechseln");
+  });
+
+  it("Back to automatic on an own cut reverts to the automatic transition", () => {
     const { calls } = mountEditor(
       view({ transition: { choice: "cut", own: true, automatic: "push-left", durationMs: 0 } }),
     );
 
     resetIn(transitionSection()).click();
 
-    expect(chip(transitionSection())).toBe("Eigener Übergang");
-    expect(transitionSection().querySelector(".tag")).toBeNull();
-    expect(text(transitionSection())).toContain("Bild 3 folgt ohne Übergang.");
-    expect(text(transitionSection())).not.toContain("Automatisch wechseln");
+    expect(chip(transitionSection())).toBe("Automatisch");
+    expect(tile("push-left").querySelector(".tag")?.textContent).toBe("Auto");
     expect(calls.transitionResets).toBe(1);
   });
 
-  it("at the last picture, says the slideshow ends and keeps a stored transition", () => {
+  it("at the last picture with an own transition stored, says the slideshow ends and names it", () => {
+    mountEditor(
+      view({
+        number: 3,
+        nextId: null,
+        next: null,
+        transition: { choice: "dissolve", own: true, automatic: "wipe-right", durationMs: 0 },
+      }),
+    );
+
+    expect(chip(transitionSection())).toBe("Letztes Bild");
+    expect(text(transitionSection())).toContain("Hier endet die Diashow, ohne Übergang.");
+    expect(text(transitionSection())).toContain(
+      "Der eigene Übergang „Auflösen“ bleibt gespeichert und gilt wieder, sobald ein Bild folgt.",
+    );
+    expect(transitionSection().querySelector('[role="radio"]')).toBeNull();
+  });
+
+  it("at the last picture, Back to automatic drops the stored transition", () => {
     const { calls } = mountEditor(
       view({
         number: 3,
@@ -164,11 +191,7 @@ describe("PictureEditorScreen transition", () => {
     resetIn(transitionSection()).click();
 
     expect(chip(transitionSection())).toBe("Letztes Bild");
-    expect(text(transitionSection())).toContain("Hier endet die Diashow, ohne Übergang.");
-    expect(text(transitionSection())).toContain(
-      "Der eigene Übergang „Auflösen“ bleibt gespeichert und gilt wieder, sobald ein Bild folgt.",
-    );
-    expect(transitionSection().querySelector('[role="radio"]')).toBeNull();
+    expect(text(transitionSection())).not.toContain("bleibt gespeichert");
     expect(calls.transitionResets).toBe(1);
   });
 });
@@ -237,5 +260,18 @@ describe("PictureEditorScreen preview of the timing", () => {
     expect(time()).toBe("0:04,5 / 0:05,0");
     expect(layers()).toBe(2);
     expect(frames.hasPendingFrame).toBe(false);
+  });
+
+  it("from a cut, with reduced motion, picking an effect rests half-way through it", () => {
+    mountEditor(
+      view({ transition: { choice: "cut", own: true, automatic: "push-left", durationMs: 0 } }),
+      { reducedMotion: true },
+    );
+
+    tile("crossfade").click();
+    flushSync();
+
+    expect(time()).toBe("0:04,5 / 0:05,0");
+    expect(layers()).toBe(2);
   });
 });

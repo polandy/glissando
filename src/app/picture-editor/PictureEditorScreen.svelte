@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onDestroy } from "svelte";
-  import { KEN_BURNS_EASING } from "../../compose";
+  import { KEN_BURNS_EASING, transitionDurationMs } from "../../compose";
   import type { OwnKenBurns } from "../../library/own-ken-burns";
   import type { TransitionChoice } from "../../library/own-timing";
   import { framingAt, normalizeCaption, type Framing } from "../../player";
@@ -135,9 +135,17 @@
     }
   }
 
-  /** A transition picked (or reset) plays from a moment before it, or rests half-way through. */
-  function showTransition(): void {
-    const plan = previewPlan(picture);
+  /**
+   * A transition picked (or reset) plays from a moment before it, or rests half-way through.
+   * Built from `choice` explicitly, not the picture prop: right after `onTransition` fires, it
+   * may not carry the new transition yet.
+   */
+  function showTransition(choice: TransitionChoice): void {
+    const plan = previewPlan({
+      durationMs: picture.durationMs,
+      transition: { choice, durationMs: transitionDurationMs(picture.durationMs) },
+      next: picture.next,
+    });
     if (reducedMotion) {
       previewClock.restAt(transitionHoldMs(plan));
     } else {
@@ -237,11 +245,11 @@
           {reducedMotion}
           onTransition={(choice) => {
             onTransition(choice);
-            showTransition();
+            showTransition(choice);
           }}
           onReset={() => {
             onResetTransition();
-            showTransition();
+            showTransition(picture.transition.automatic);
           }}
         />
       {/snippet}
