@@ -47,8 +47,15 @@ with the transition and ends with its own slide. Transitions are eased `ease-in-
 
 ## Player API
 
-`createPlayer(container, slideshow)` fills a positioned `container` and returns a
-`SlideshowPlayer`, modelled on an HTML video element:
+`createPlayer(container, slideshow, { webGl2Context?, openPicture? })` fills a positioned
+`container` and returns a `SlideshowPlayer`, modelled on an HTML video element. Options:
+
+- `openPicture(src): Promise<Blob>` reads a slide's picture when the player loads it, so
+  `image.src` can be a key such as a stored media id. Each blob gets an object URL for its
+  decode, revoked when the picture is released or fails to decode. Without it, `src` is a URL.
+- `webGl2Context(canvas)` supplies the WebGL2 context; `null` selects the DOM fallback.
+
+The player:
 
 - `play()`, `pause()`, `currentTime` (seconds, settable to seek, clamped), `duration`,
   `paused`, `ended`, `ready` (first frame shown), `error`.
@@ -65,7 +72,7 @@ Behaviour:
 - **Pictures** are loaded for the slides on screen plus the next one; all others are released,
   so memory stays bounded. When a frame needs a picture that is not loaded yet, time stops,
   `waiting` fires, and playback goes on from the same moment with `playing`.
-- A picture that fails to load is an `error` (`SlideshowLoadError`) and pauses.
+- A picture that fails to load or open is an `error` (`SlideshowLoadError`) and pauses.
 - `play()` after the end starts from the beginning.
 
 ## Renderers

@@ -1,6 +1,7 @@
 import { flushSync } from "svelte";
 import { afterEach, describe, expect, it } from "vitest";
 import { oneSlideShow } from "../../player/testing/browser-pictures";
+import { OPENED_PICTURE_SHOW } from "../../player/testing/opened-pictures";
 import { FakeScheduler } from "../testing/fake-scheduler";
 import { mountWithTranslator } from "../testing/mount-with-translator";
 import PlayerOverlay from "./PlayerOverlay.svelte";
@@ -18,6 +19,26 @@ async function openPlayer(musicTitle: string | null = null) {
   });
   destroy = mounted.destroy;
   return { ...mounted, closes: () => closes };
+}
+
+/** Resolves with the first element matching `selector` in `target`, once it is rendered. */
+function whenRendered(target: HTMLElement, selector: string): Promise<Element> {
+  return new Promise((resolve) => {
+    const found = () => target.querySelector(selector);
+    const observer = new MutationObserver(() => {
+      const element = found();
+      if (element !== null) {
+        observer.disconnect();
+        resolve(element);
+      }
+    });
+    observer.observe(target, { childList: true, subtree: true, characterData: true });
+    const already = found();
+    if (already !== null) {
+      observer.disconnect();
+      resolve(already);
+    }
+  });
 }
 
 function press(key: string): void {
@@ -77,5 +98,24 @@ describe("PlayerOverlay", () => {
     destroy();
 
     expect(stage?.childElementCount).toBe(0);
+  });
+
+  it("says a picture could not be loaded when opening it fails", async () => {
+    const opened: string[] = [];
+    const mounted = mountWithTranslator(PlayerOverlay, {
+      slideshow: OPENED_PICTURE_SHOW,
+      openPicture: (src: string) => {
+        opened.push(src);
+        return Promise.reject(new Error("the picture is gone from storage"));
+      },
+      onClose: () => undefined,
+      scheduler: new FakeScheduler(),
+    });
+    destroy = mounted.destroy;
+
+    const alert = await whenRendered(mounted.target, "[role=alert]");
+
+    expect(opened).toContain(OPENED_PICTURE_SHOW.slides[0]?.image.src);
+    expect(alert.textContent).toContain("Ein Bild konnte nicht geladen werden.");
   });
 });

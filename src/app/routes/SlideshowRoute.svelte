@@ -5,12 +5,11 @@
     type LibraryStore,
     type StoredSlideshow,
   } from "../../library/stored-slideshow";
-  import { slideshowDetails } from "../library-views";
   import { browserObjectUrls, ObjectUrls } from "../media/object-urls";
-  import { loadPlayerMedia, type PlayerMedia } from "../media/player-media";
   import SlideshowScreen from "../screens/SlideshowScreen.svelte";
   import type { SlideshowDetails } from "../screens/view-models";
   import PlayerLayer from "./PlayerLayer.svelte";
+  import { loadSlideshowScreen } from "./route-loading";
 
   let {
     store,
@@ -32,7 +31,6 @@
 
   let details = $state.raw<SlideshowDetails | null>(null);
   let stored = $state.raw<StoredSlideshow | null>(null);
-  let media = $state.raw<PlayerMedia | null>(null);
   // The store is fixed for the screen's lifetime.
   // svelte-ignore state_referenced_locally
   const thumbnails = new ObjectUrls({
@@ -41,30 +39,34 @@
     onError,
   });
 
-  onMount(() => {
-    void show().catch((error: unknown) => {
-      if (error instanceof SlideshowNotFoundError) {
-        onBack();
-      } else {
-        onError(error);
-      }
-    });
-  });
-  onDestroy(() => thumbnails.dispose());
+  const left = new AbortController();
 
-  async function show(): Promise<void> {
-    const slideshow = await store.getSlideshow(slideshowId);
-    thumbnails.sync(slideshow.pictures.map((picture) => picture.id));
-    await thumbnails.settled();
-    details = slideshowDetails(slideshow, (id) => thumbnails.get(id) ?? "");
-    stored = slideshow;
-    media = await loadPlayerMedia(store, slideshow);
-  }
+  onMount(() => {
+    loadSlideshowScreen(store, slideshowId, thumbnails, left.signal).then(
+      (loaded) => {
+        if (loaded !== null) {
+          details = loaded.details;
+          stored = loaded.stored;
+        }
+      },
+      (error: unknown) => {
+        if (error instanceof SlideshowNotFoundError) {
+          onBack();
+        } else {
+          onError(error);
+        }
+      },
+    );
+  });
+  onDestroy(() => {
+    left.abort();
+    thumbnails.dispose();
+  });
 </script>
 
 {#if details !== null}
   <SlideshowScreen slideshow={details} {onBack} {onPlay} />
 {/if}
-{#if playing && stored !== null && media !== null}
-  <PlayerLayer {stored} {media} onClose={onBack} />
+{#if playing && stored !== null}
+  <PlayerLayer {store} {stored} onClose={onBack} {onError} />
 {/if}

@@ -4,6 +4,7 @@
     createPlayer,
     MusicPlaybackError,
     SlideshowLoadError,
+    type OpenPicture,
     type PlayerEvent,
     type Slideshow,
   } from "../../player";
@@ -24,12 +25,15 @@
   let {
     slideshow,
     musicTitle = null,
+    openPicture,
     onClose,
     scheduler = browserScheduler,
   }: {
     slideshow: Slideshow;
     /** Shown bottom left while there is music. */
     musicTitle?: string | null;
+    /** Reads a slide's picture by its `src`; without it, `src` is a URL. */
+    openPicture?: OpenPicture;
     onClose: () => void;
     scheduler?: Scheduler;
   } = $props();
@@ -58,7 +62,11 @@
   const slideNumber = $derived(slideIndexAt(boundaries, currentTime) + 1);
 
   onMount(() => {
-    const created = createPlayer(stage, slideshow);
+    const created = createPlayer(
+      stage,
+      slideshow,
+      openPicture === undefined ? {} : { openPicture },
+    );
     player = created;
     const sync = () => {
       currentTime = created.currentTime;

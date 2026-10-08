@@ -1,5 +1,9 @@
 import { AudioElementMusic, animationFrames, performanceClock } from "./browser/platform";
-import { ImageElementLoader, type BrowserPicture } from "./browser/picture-loader";
+import {
+  ImageElementLoader,
+  type BrowserPicture,
+  type OpenPicture,
+} from "./browser/picture-loader";
 import { DomRenderer } from "./dom/dom-renderer";
 import type { SlideRenderer } from "./ports";
 import type { Slideshow } from "./slideshow";
@@ -11,6 +15,21 @@ type WebGl2Context = (canvas: HTMLCanvasElement) => WebGL2RenderingContext | nul
 const defaultWebGl2Context: WebGl2Context = (canvas) =>
   canvas.getContext("webgl2", { alpha: false, antialias: false });
 
+export interface CreatePlayerOptions {
+  /** The WebGL2 context for the player's canvas; null selects the DOM fallback. */
+  readonly webGl2Context?: WebGl2Context;
+  /**
+   * Reads a slide's picture by its `image.src`, which then needs to be no URL; without it, `src`
+   * is loaded as a URL.
+   */
+  readonly openPicture?: OpenPicture;
+}
+
+const browserObjectUrls = {
+  create: (blob: Blob) => URL.createObjectURL(blob),
+  revoke: (url: string) => URL.revokeObjectURL(url),
+};
+
 /**
  * Plays `slideshow` inside `container`, which it fills: with WebGL2 where the browser has it,
  * otherwise with the DOM fallback.
@@ -18,14 +37,16 @@ const defaultWebGl2Context: WebGl2Context = (canvas) =>
 export function createPlayer(
   container: HTMLElement,
   slideshow: Slideshow,
-  webGl2Context: WebGl2Context = defaultWebGl2Context,
+  { webGl2Context = defaultWebGl2Context, openPicture }: CreatePlayerOptions = {},
 ): SlideshowPlayer<BrowserPicture> {
   let player: SlideshowPlayer<BrowserPicture> | null = null;
   const redraw = () => player?.redraw();
   const renderer = createRenderer(container, redraw, webGl2Context);
   player = new SlideshowPlayer(slideshow, {
     renderer,
-    pictures: new ImageElementLoader(),
+    pictures: new ImageElementLoader(
+      openPicture === undefined ? null : { openPicture, urls: browserObjectUrls },
+    ),
     clock: performanceClock,
     frames: animationFrames,
     ...(slideshow.music ? { music: new AudioElementMusic(slideshow.music.src) } : {}),

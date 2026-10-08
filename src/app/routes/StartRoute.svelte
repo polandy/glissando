@@ -1,11 +1,11 @@
 <script lang="ts">
   import { onDestroy, onMount } from "svelte";
   import type { LibraryStore } from "../../library/stored-slideshow";
-  import { slideshowSummary } from "../library-views";
   import { browserObjectUrls, ObjectUrls } from "../media/object-urls";
   import StartScreen from "../screens/StartScreen.svelte";
   import type { SlideshowSummary } from "../screens/view-models";
   import StartLogo from "../start/StartLogo.svelte";
+  import { loadStartSlideshows } from "./route-loading";
 
   let {
     store,
@@ -30,19 +30,19 @@
     onError,
   });
 
-  onMount(() => {
-    void showSlideshows().catch(onError);
-  });
-  onDestroy(() => covers.dispose());
+  const left = new AbortController();
 
-  async function showSlideshows(): Promise<void> {
-    const stored = await store.listSlideshows();
-    covers.sync(stored.flatMap((slideshow) => slideshow.pictures.slice(0, 1).map(({ id }) => id)));
-    await covers.settled();
-    slideshows = stored.map((slideshow) =>
-      slideshowSummary(slideshow, (id) => covers.get(id) ?? ""),
-    );
-  }
+  onMount(() => {
+    loadStartSlideshows(store, covers, left.signal).then((loaded) => {
+      if (loaded !== null) {
+        slideshows = loaded;
+      }
+    }, onError);
+  });
+  onDestroy(() => {
+    left.abort();
+    covers.dispose();
+  });
 </script>
 
 {#if slideshows !== null}

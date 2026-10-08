@@ -1,24 +1,62 @@
 <script lang="ts">
-  import { onDestroy } from "svelte";
+  import { onDestroy, onMount } from "svelte";
   import { composeSlideshow } from "../../compose";
-  import type { StoredSlideshow } from "../../library/stored-slideshow";
+  import type { LibraryStore, StoredSlideshow } from "../../library/stored-slideshow";
+  import type { Slideshow } from "../../player";
   import { browserObjectUrls } from "../media/object-urls";
-  import { openPlayerMedia, type PlayerMedia } from "../media/player-media";
   import PlayerOverlay from "../player/PlayerOverlay.svelte";
+  import { loadPlayerMusic } from "./route-loading";
 
-  /** The player over its slideshow; the media's object URLs live exactly as long as it does. */
+  /**
+   * The player over its slideshow. Pictures are read by media id as the player buffers them;
+   * the music's object URL lives exactly as long as the layer.
+   */
   let {
+    store,
     stored,
-    media,
     onClose,
-  }: { stored: StoredSlideshow; media: PlayerMedia; onClose: () => void } = $props();
+    onError,
+  }: {
+    store: Pick<LibraryStore, "pictureBlob" | "musicBlob">;
+    stored: StoredSlideshow;
+    onClose: () => void;
+    onError: (error: unknown) => void;
+  } = $props();
 
-  // One opening plays one slideshow; a different one mounts a new layer.
-  // svelte-ignore state_referenced_locally
-  const opened = openPlayerMedia(media, browserObjectUrls);
-  // svelte-ignore state_referenced_locally
-  const slideshow = composeSlideshow(stored, opened.sources);
-  onDestroy(() => opened.close());
+  let slideshow = $state.raw<Slideshow | null>(null);
+  let musicUrl: string | null = null;
+  const closed = new AbortController();
+
+  onMount(() => {
+    loadPlayerMusic(store, stored, browserObjectUrls.create, closed.signal).then((music) => {
+      if (music === null) {
+        return;
+      }
+      musicUrl = music.url;
+      slideshow = composeSlideshow(stored, {
+        picture: (id) => id,
+        music: () => {
+          if (music.url === null) {
+            throw new Error(`slideshow "${stored.id}" has music but none was loaded`);
+          }
+          return music.url;
+        },
+      });
+    }, onError);
+  });
+  onDestroy(() => {
+    closed.abort();
+    if (musicUrl !== null) {
+      browserObjectUrls.revoke(musicUrl);
+    }
+  });
 </script>
 
-<PlayerOverlay {slideshow} musicTitle={stored.music?.fileName ?? null} {onClose} />
+{#if slideshow !== null}
+  <PlayerOverlay
+    {slideshow}
+    musicTitle={stored.music?.fileName ?? null}
+    openPicture={(id) => store.pictureBlob(id)}
+    {onClose}
+  />
+{/if}
