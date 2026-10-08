@@ -5,6 +5,9 @@
 
 export const SLIDESHOW_FORMAT_VERSION = 1;
 
+/** Durations in the format are milliseconds; the player's clock speaks seconds. */
+export const MILLISECONDS_PER_SECOND = 1000;
+
 export const EASINGS = ["linear", "ease-in", "ease-out", "ease-in-out"] as const;
 export type Easing = (typeof EASINGS)[number];
 

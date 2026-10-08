@@ -1,6 +1,7 @@
 <script lang="ts">
   import { UnreadableMusicError } from "../../import/music-probe";
   import { DEFAULT_SECONDS_PER_PICTURE } from "../../library/stored-slideshow";
+  import { MILLISECONDS_PER_SECOND } from "../../player";
   import SecondsStepper from "../components/SecondsStepper.svelte";
   import { getTranslator } from "../i18n/context";
   import { ICONS } from "../icons";
@@ -24,7 +25,6 @@
     onMusicUnreadable: (retry: () => void) => void;
   } = $props();
 
-  const MILLISECONDS_PER_SECOND = 1000;
   const MUSIC_TYPES = "audio/*";
   const { t, formatDuration, formatSeconds } = getTranslator();
 

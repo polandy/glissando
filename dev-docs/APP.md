@@ -74,8 +74,6 @@ levels, the player a modal layer over its slideshow. `navigation/navigator.ts`:
 
 ## Waiting and errors
 
-- **Global indicator** (`Header` `activity`): ring and label at the right of the header, a 3 px
-  bar below it, determinate or not. The app stays usable.
 - **Blocking overlay** (`BlockingOverlay`): a title and one line, always; e.g. "Creating
   slideshow …".
 - **Notice** (`Notice`): inline at the cause; lemon for warnings, coral for errors.

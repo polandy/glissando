@@ -7,7 +7,7 @@ import {
   type RenderFrame,
   type SlideLayer,
 } from "./ports";
-import type { Easing, Slideshow } from "./slideshow";
+import { MILLISECONDS_PER_SECOND, type Easing, type Slideshow } from "./slideshow";
 import { createTimeline, type SlideAtTime, type Timeline, type TimelineFrame } from "./timeline";
 
 /** Events named and ordered as on an HTML media element. */
@@ -25,7 +25,6 @@ export const PLAYER_EVENTS = [
 export type PlayerEvent = (typeof PLAYER_EVENTS)[number];
 
 const TRANSITION_EASING: Easing = "ease-in-out";
-const MS_PER_SECOND = 1000;
 /**
  * Plays a slideshow with the API of an HTML video element: `play`, `pause`, `currentTime` and
  * `duration` in seconds, and the media events in `PLAYER_EVENTS`.
@@ -61,17 +60,20 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
   }
 
   get duration(): number {
-    return this.#timeline.durationMs / MS_PER_SECOND;
+    return this.#timeline.durationMs / MILLISECONDS_PER_SECOND;
   }
 
   get currentTime(): number {
-    return this.#liveTimeMs() / MS_PER_SECOND;
+    return this.#liveTimeMs() / MILLISECONDS_PER_SECOND;
   }
 
   set currentTime(seconds: number) {
     this.#assertAlive();
     this.#stopAdvancing();
-    this.#timeMs = Math.min(this.#timeline.durationMs, Math.max(0, seconds * MS_PER_SECOND));
+    this.#timeMs = Math.min(
+      this.#timeline.durationMs,
+      Math.max(0, seconds * MILLISECONDS_PER_SECOND),
+    );
     this.#ended = false;
     const announceSeeked = () => {
       this.#emit("seeked");
@@ -163,7 +165,7 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
       onFirstFrame?.();
       this.#emit("playing");
       this.#scheduleFrame();
-      this.#deps.music?.play(this.#timeMs / MS_PER_SECOND).catch((cause: unknown) => {
+      this.#deps.music?.play(this.#timeMs / MILLISECONDS_PER_SECOND).catch((cause: unknown) => {
         this.#fail(new MusicPlaybackError(cause));
       });
     };

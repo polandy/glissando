@@ -1,9 +1,7 @@
-import type { Slideshow } from "../../player";
+import { MILLISECONDS_PER_SECOND, type Slideshow } from "../../player";
 
 /** Within this many seconds of a slide's start, "previous" goes to the slide before. */
 export const RESTART_SLIDE_AFTER_SECONDS = 1;
-
-const MS_PER_SECOND = 1000;
 
 /** Where each slide starts on the slideshow's time line, in seconds. */
 export interface SlideBoundaries {
@@ -15,10 +13,10 @@ export function slideBoundaries(slideshow: Pick<Slideshow, "slides">): SlideBoun
   const starts: number[] = [];
   let elapsedMs = 0;
   for (const slide of slideshow.slides) {
-    starts.push(elapsedMs / MS_PER_SECOND);
+    starts.push(elapsedMs / MILLISECONDS_PER_SECOND);
     elapsedMs += slide.durationMs;
   }
-  return { starts, duration: elapsedMs / MS_PER_SECOND };
+  return { starts, duration: elapsedMs / MILLISECONDS_PER_SECOND };
 }
 
 /** The slide on screen at `seconds`, clamped to the first and last. */

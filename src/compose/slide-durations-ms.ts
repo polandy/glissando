@@ -1,6 +1,6 @@
 import { MIN_SECONDS_PER_PICTURE } from "../library/stored-slideshow";
+import { MILLISECONDS_PER_SECOND } from "../player/slideshow";
 
-const MILLISECONDS_PER_SECOND = 1000;
 const MIN_SLIDE_DURATION_MS = MIN_SECONDS_PER_PICTURE * MILLISECONDS_PER_SECOND;
 
 /**

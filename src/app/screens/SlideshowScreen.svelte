@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Header, { type BackgroundActivity } from "../components/Header.svelte";
+  import Header from "../components/Header.svelte";
   import { getTranslator } from "../i18n/context";
   import { ICONS } from "../icons";
   import type { SlideshowDetails } from "./view-models";
@@ -8,12 +8,10 @@
     slideshow,
     onBack,
     onPlay,
-    activity = null,
   }: {
     slideshow: SlideshowDetails;
     onBack: () => void;
     onPlay: () => void;
-    activity?: BackgroundActivity | null;
   } = $props();
 
   const { t, formatDuration, formatSeconds, formatDate } = getTranslator();
@@ -37,7 +35,7 @@
 </script>
 
 <div class="screen">
-  <Header crumbs={[t("app.name"), slideshow.title]} {onBack} {activity} />
+  <Header crumbs={[t("app.name"), slideshow.title]} {onBack} />
   <main>
     <section class="card hero">
       <button class="cover" type="button" aria-label={t("slideshow.play")} onclick={onPlay}>

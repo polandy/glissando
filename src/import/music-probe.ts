@@ -1,3 +1,5 @@
+import { MILLISECONDS_PER_SECOND } from "../player/slideshow";
+
 export interface MusicProbe {
   readonly durationMs: number;
 }
@@ -27,7 +29,7 @@ export async function probeMusic(file: File): Promise<MusicProbe> {
     if (!Number.isFinite(durationSeconds) || durationSeconds <= 0) {
       throw new UnreadableMusicError(file.name);
     }
-    return { durationMs: Math.round(durationSeconds * 1000) };
+    return { durationMs: Math.round(durationSeconds * MILLISECONDS_PER_SECOND) };
   } finally {
     audio.removeAttribute("src");
     audio.load();

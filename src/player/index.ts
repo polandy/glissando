@@ -6,6 +6,7 @@ export { MusicPlaybackError } from "./ports";
 export { PLAYER_EVENTS, SlideshowPlayer, type PlayerEvent } from "./slideshow-player";
 export {
   EASINGS,
+  MILLISECONDS_PER_SECOND,
   SLIDESHOW_FORMAT_VERSION,
   TRANSITION_EFFECTS,
   type Easing,

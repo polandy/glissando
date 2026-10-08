@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { Snippet } from "svelte";
-  import Header, { type BackgroundActivity } from "../components/Header.svelte";
+  import Header from "../components/Header.svelte";
   import { getTranslator } from "../i18n/context";
   import { ICONS } from "../icons";
   import type { SlideshowSummary } from "./view-models";
@@ -10,14 +10,12 @@
     onCreate,
     onOpen,
     logo,
-    activity = null,
   }: {
     /** Newest first. */
     slideshows: readonly SlideshowSummary[];
     onCreate: () => void;
     onOpen: (slideshowId: string) => void;
     logo?: Snippet;
-    activity?: BackgroundActivity | null;
   } = $props();
 
   const { t, formatDuration } = getTranslator();
@@ -31,7 +29,7 @@
 </script>
 
 <div class="screen">
-  <Header crumbs={[]} {activity} />
+  <Header crumbs={[]} />
   <main>
     {#if logo}
       <div class="logo">{@render logo()}</div>

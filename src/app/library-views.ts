@@ -1,8 +1,7 @@
 import { slideshowDurationMs } from "../compose";
+import { MILLISECONDS_PER_SECOND } from "../player";
 import type { StoredSlideshow } from "../library/stored-slideshow";
 import type { SlideshowDetails, SlideshowSummary } from "./screens/view-models";
-
-const MILLISECONDS_PER_SECOND = 1000;
 
 /** Resolves a picture id to its thumbnail's object URL. */
 export type ThumbnailUrl = (pictureId: string) => string;

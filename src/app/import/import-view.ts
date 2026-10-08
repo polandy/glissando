@@ -1,11 +1,10 @@
 import { slideDurationsMs } from "../../compose";
 import type { PictureImportState } from "../../import/picture-import";
 import type { StoredPicture } from "../../library/stored-slideshow";
+import { MILLISECONDS_PER_SECOND } from "../../player";
 
 /** What step 1 shows: the drop zone, the live progress, or the chosen pictures. */
 export type PicturesPhase = "empty" | "importing" | "done";
-
-const MILLISECONDS_PER_SECOND = 1000;
 
 export function picturesPhase(state: PictureImportState): PicturesPhase {
   if (state.busy) {
