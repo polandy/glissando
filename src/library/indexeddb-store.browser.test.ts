@@ -1,6 +1,6 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import type { StoredSlideshow } from "./stored-slideshow";
-import { LIBRARY_DATABASE_NAME, openLibraryStore } from "./indexeddb-store";
+import { IndexedDbLibraryStore, LIBRARY_DATABASE_NAME, openLibraryStore } from "./indexeddb-store";
 import { describeLibraryStoreContract } from "./testing/library-store-contract";
 import { MemoryLibraryStore } from "./testing/memory-store";
 
@@ -44,24 +44,62 @@ describeLibraryStoreContract("MemoryLibraryStore", () => {
   });
 });
 
-describe("IndexedDbLibraryStore saves", () => {
-  afterEach(() => {
-    vi.restoreAllMocks();
+/** The real library database, recording every transaction a store opens on it. */
+async function recordingDatabase(): Promise<{
+  readonly database: IDBDatabase;
+  readonly transactions: IDBTransaction[];
+}> {
+  (await openLibraryStore(indexedDB)).close();
+  const database = (await new Promise((resolve, reject) => {
+    const request = indexedDB.open(LIBRARY_DATABASE_NAME);
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error ?? new Error("opening the database failed"));
+  })) as IDBDatabase;
+  const transactions: IDBTransaction[] = [];
+  const recording = new Proxy(database, {
+    get(target, property) {
+      if (property === "transaction") {
+        return (...args: Parameters<IDBDatabase["transaction"]>) => {
+          const transaction = target.transaction(...args);
+          transactions.push(transaction);
+          return transaction;
+        };
+      }
+      const value: unknown = Reflect.get(target, property, target);
+      return typeof value === "function" ? (value as () => unknown).bind(target) : value;
+    },
+    set: (target, property, value) => Reflect.set(target, property, value, target),
   });
+  return { database: recording, transactions };
+}
 
-  it("asks to commit a slideshow save before returning, so a reload right after cannot abort it", async () => {
+describe("IndexedDbLibraryStore saves", () => {
+  it("commits a slideshow save before returning, so a reload right after cannot abort it", async () => {
     await deleteLibraryDatabase();
-    const store = await openLibraryStore(indexedDB);
-    const commit = vi.spyOn(IDBTransaction.prototype, "commit");
+    const { database, transactions } = await recordingDatabase();
+    const store = new IndexedDbLibraryStore(database);
     try {
       const saved = store.saveSlideshow({
         id: "show-1",
         title: "Sommer am See",
         createdAt: "2025-07-02T08:00:00Z",
-        pictures: [],
+        pictures: [
+          {
+            id: "picture-1",
+            capturedAt: "2025-07-01T10:00:00Z",
+            width: 1,
+            height: 1,
+            fileName: "a.jpg",
+          },
+        ],
         secondsPerPicture: 5,
       });
-      expect(commit).toHaveBeenCalledTimes(1);
+
+      // A committing transaction is finished for new requests, even within the task that opened it.
+      const save = transactions.at(-1);
+      expect(() => save?.objectStore("slideshows").get("show-1")).toThrow(
+        expect.objectContaining({ name: "InvalidStateError" }),
+      );
       await saved;
       expect((await store.getSlideshow("show-1")).title).toBe("Sommer am See");
     } finally {
@@ -96,7 +134,15 @@ describe("IndexedDbLibraryStore schema upgrade", () => {
       id: "show-1",
       title: "July 2025",
       createdAt: "2025-07-02T08:00:00Z",
-      pictures: [],
+      pictures: [
+        {
+          id: "saved-picture",
+          capturedAt: "2025-07-01T10:00:00Z",
+          width: 1,
+          height: 1,
+          fileName: "a.jpg",
+        },
+      ],
       secondsPerPicture: 5,
     };
     await openVersionOneWithSlideshow(saved);
@@ -104,7 +150,7 @@ describe("IndexedDbLibraryStore schema upgrade", () => {
     const store = await openLibraryStore(indexedDB);
     try {
       expect(await store.getSlideshow("show-1")).toEqual(saved);
-      await store.recordImportMedia("import-1", new Date("2026-10-08T12:00:00Z"), "picture-1");
+      await store.claimMedia("import-1", new Date("2026-10-08T12:00:00Z"), "picture-1");
       await store.putPicture("picture-1", { display: new Blob(["d"]), thumbnail: new Blob(["t"]) });
       await store.deleteUnreferencedMedia(new Date("2026-10-08T12:00:00Z"));
       expect(await (await store.pictureBlob("picture-1")).text()).toBe("d");

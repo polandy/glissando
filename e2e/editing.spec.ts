@@ -70,5 +70,7 @@ test("E2E-014 pictures are removed with undo, reordered and renamed across a rel
 
   await expect(page.getByRole("status")).toHaveText("Diashow gelöscht");
   await expect(page.getByRole("button", { name: "Neue Diashow" }).first()).toBeVisible();
+  await page.reload();
+  await expect(page.getByRole("heading", { name: "Bilder rein, Diashow raus." })).toBeVisible();
   await expect(page.getByRole("button", { name: /Sommer am See/ })).toHaveCount(0);
 });
