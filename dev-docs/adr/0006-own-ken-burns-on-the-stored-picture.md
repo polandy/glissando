@@ -38,3 +38,5 @@ which may carry the field; version 1 files are still read.
 - Every `.glissando` file is written as version 2, even without an own motion: an older app
   reports such a file as coming from a newer version instead of calling it damaged.
 - Records in IndexedDB need no migration: a record without the field is all automatic.
+- A picture's caption follows the same pattern: an optional `caption`, `.glissando` version 3
+  (how it is drawn: ADR-0007).

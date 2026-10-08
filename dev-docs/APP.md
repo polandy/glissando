@@ -33,7 +33,8 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
   the user reordered, "Own order" (with "drag or tap", narrow: "tap to reorder"). Beside it an
   info panel: title with a ✎ button, date range (earliest to latest capture), "Play" and the
   facts — pictures, duration, music, seconds per picture, Ken Burns "automatic" (with own
-  motions "automatic, 2 own"), transitions "alternating". A tile whose picture has an own motion
+  motions "automatic, 2 own"), transitions "alternating", captions "3 of 8" (pictures with a
+  caption of all; none: "0 of 8"). A tile whose picture has an own motion
   carries a small frame badge "own" (its label adds "own motion"). The info panel and the player always use the edited picture list.
 - **Editing the slideshow** (`editing/slideshow-editor.ts`; pure operations in
   `src/library/slideshow-edits.ts`): every edit applies at once and is stored; the screen is
@@ -70,7 +71,8 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
     first. An edit to a slideshow deleted elsewhere goes back to start with the toast "This
     slideshow no longer exists."
 - **Picture editor** (`picture-editor/`, route `routes/PictureEditorRoute.svelte`): a picture's
-  own Ken Burns motion (mockup: https://polandy.github.io/glissando-assets/mockups/editor/).
+  own Ken Burns motion (mockup: https://polandy.github.io/glissando-assets/mockups/editor/) and
+  its caption (mockup: https://polandy.github.io/glissando-assets/mockups/captions/).
   Breadcrumb "Library / title / Picture 3"; header right ‹ previous picture, "3 / 8" (mono, hidden
   up to 720 px), › next picture (looking disabled at the ends). Back (arrow or browser) returns to
   the slideshow screen with that picture selected. Desktop: a dark well with the whole picture
@@ -114,6 +116,17 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
     motion without asking; the toast "Motion back to automatic" with "Undo" brings it back. An own
     motion stays with its picture through reorder, removal and undo; the automatic one follows
     the position.
+  - **Caption** (`CaptionField.svelte`): below the Ken Burns section, after a hairline, the
+    eyebrow "Caption" with the counter "14 / 80" (mono, characters as typed) right of it; a
+    one-line field (at most 80, placeholder "e.g. Evening on the jetty", Enter key labelled
+    "done") with a ✕ inside on the right while it holds text, which empties it and keeps the
+    focus; the hint "Shown bottom left in the player, fading in and out with the picture. Empty:
+    no caption." Every keystroke is stored at once, normalised (`normalizeCaption`: whitespace
+    runs become one space, trimmed, at most 80 characters; nothing left removes the caption), and
+    a keystroke that changes nothing stored stores nothing. Enter leaves the field; leaving it
+    tidies the text to what is stored. Nothing is filled in automatically. The preview shows
+    the caption as the player lays it over a 16:9 screen (`captionStyles`, type at least 10 px
+    so the small screen keeps the player's proportions).
 - **Export** (`glissando-file/export-job.ts`): runs in the background, one at a time; the app
   stays usable, also on other screens. While it runs, the menu item is `aria-disabled` and reads
   "Exporting … 34 %" (for another slideshow: "Export", subtitle "Once the running export is
@@ -278,6 +291,11 @@ level). Closing destroys the player.
 - Top: close, the title with the current picture's capture date, "3 / 12" and a fullscreen
   button (hidden without the Fullscreen API). Bottom: the key hint (above 720 px), the seek bar
   with one tick per picture, the white play/pause button, "0:12 / 1:00" and the music's name.
+- Captions (ADR-0007) are drawn into their slide by the player, bottom left; while the
+  controls show, the player's `captionInset` lifts them above the bottom bar's controls (its
+  height without the fade above them, `caption-inset.ts`), and back down when they hide. A
+  visually hidden polite live region, outside the controls, holds the current picture's caption
+  for screen readers.
 - Keys: Space play/pause, ←/→ previous/next picture, Esc close, F fullscreen. "Previous" more
   than a second into a picture restarts it, else goes to the one before.
 - At the end an "End" card offers "Again" and "Close"; it never jumps back by itself.
