@@ -70,4 +70,13 @@ describe("SlideshowScreen, a picture's own timing", () => {
     expect(facts()).toContain("Dauer 0:44");
     expect(facts()).not.toContain("Musik 0:44");
   });
+
+  it("names the duration alone when the two round to the same displayed second", () => {
+    mountScreen(
+      details(["a", "b"], { durationSeconds: 60.4, musicSeconds: 60.6, musicTitle: "m.mp3" }),
+    );
+
+    expect(facts()).toContain("Dauer 1:00");
+    expect(facts()).not.toContain("Musik 1:00");
+  });
 });

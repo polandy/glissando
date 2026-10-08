@@ -22,9 +22,15 @@
     const to = formatDate(slideshow.capturedTo);
     return from === to ? from : t("slideshow.dateRange", { from, to });
   });
-  /** Named beside the duration when the slideshow does not end with the music. */
+  /**
+   * Named beside the duration when the slideshow does not end with the music, as displayed:
+   * two seconds counts that round to the same duration never show it twice.
+   */
   const differingMusicSeconds = $derived(
-    slideshow.musicSeconds === slideshow.durationSeconds ? null : slideshow.musicSeconds,
+    slideshow.musicSeconds !== null &&
+      formatDuration(slideshow.musicSeconds) !== formatDuration(slideshow.durationSeconds)
+      ? slideshow.musicSeconds
+      : null,
   );
 </script>
 
