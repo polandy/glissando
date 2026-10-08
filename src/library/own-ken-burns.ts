@@ -20,8 +20,16 @@ const MOTION_KEYS = ["from", "to"] as const;
 const FRAMING_KEYS = ["zoom", "centerX", "centerY"] as const;
 
 export class InvalidOwnKenBurnsError extends Error {
-  constructor(where: string, path: string, expected: string, actual: unknown) {
-    super(`${where} kenBurns.${path}: expected ${expected}, got ${JSON.stringify(actual)}`);
+  constructor(
+    where: string,
+    /** The bad field within the motion, e.g. `from.zoom`; empty for the motion itself. */
+    readonly path: string,
+    readonly expected: string,
+    readonly actual: unknown,
+  ) {
+    super(
+      `${where} ${motionPath("kenBurns", path)}: expected ${expected}, got ${JSON.stringify(actual)}`,
+    );
     this.name = "InvalidOwnKenBurnsError";
   }
 }
@@ -68,7 +76,7 @@ function readObject(
   keys: readonly string[],
 ): Readonly<Record<string, unknown>> {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
-    throw new InvalidOwnKenBurnsError(where, path || "(root)", "an object", value);
+    throw new InvalidOwnKenBurnsError(where, path, "an object", value);
   }
   const unknownKey = Object.keys(value).find((key) => !keys.includes(key));
   if (unknownKey !== undefined) {
@@ -80,4 +88,9 @@ function readObject(
     );
   }
   return value as Readonly<Record<string, unknown>>;
+}
+
+/** `field` within the motion at `base`, e.g. `kenBurns.from.zoom`. */
+export function motionPath(base: string, field: string): string {
+  return field === "" ? base : `${base}.${field}`;
 }

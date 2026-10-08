@@ -176,4 +176,24 @@ describe("readManifest", () => {
     expect(reading.kind).toBe("damaged");
     expect(reading.kind === "damaged" && reading.reason.length).toBeGreaterThan(0);
   });
+
+  it("names a bad own motion's path, its value and what is expected, once", () => {
+    const text = withSlideshow({
+      pictures: [
+        {
+          ...manifest().slideshow.pictures[0],
+          kenBurns: {
+            from: { zoom: 9, centerX: 0.5, centerY: 0.5 },
+            to: { zoom: 1, centerX: 0.5, centerY: 0.5 },
+          },
+        },
+      ],
+    });
+
+    expect(readManifest(text)).toEqual({
+      kind: "damaged",
+      reason:
+        "glissando.json slideshow.pictures[0].kenBurns.from.zoom: expected a number from 1 to 3, got 9",
+    });
+  });
 });

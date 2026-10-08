@@ -42,6 +42,12 @@ interface RemovalBatch {
   readonly claimId: string;
 }
 
+/** A dropped own motion whose undo toast may still bring it back. */
+interface MotionUndo {
+  readonly toast: ToastMessage;
+  readonly pictureId: string;
+}
+
 /**
  * The slideshow screen's edits: each applies at once and is stored. Removing needs no
  * confirmation; its toast undoes every removal made while it is shown, and any other edit
@@ -56,6 +62,7 @@ export class SlideshowEditor {
   #unsaved = 0;
   #slideshow: StoredSlideshow;
   #batch: RemovalBatch | null = null;
+  #motionUndo: MotionUndo | null = null;
   #saving: Promise<void> = Promise.resolve();
   #gone = false;
 
@@ -121,8 +128,14 @@ export class SlideshowEditor {
     this.#apply(renameSlideshow(this.#slideshow, typed, automatic));
   }
 
-  /** The picture plays `kenBurns` from now on, wherever it moves. */
+  /**
+   * The picture plays `kenBurns` from now on, wherever it moves. It ends a pending undo of
+   * that picture's reset, which would otherwise overwrite this newer motion.
+   */
   setKenBurns(pictureId: string, kenBurns: OwnKenBurns): void {
+    if (this.#motionUndo?.pictureId === pictureId) {
+      this.#endMotionUndo();
+    }
     this.#apply(setPictureKenBurns(this.#slideshow, pictureId, kenBurns));
   }
 
@@ -133,19 +146,14 @@ export class SlideshowEditor {
       return;
     }
     this.#apply(setPictureKenBurns(this.#slideshow, pictureId, undefined));
-    this.#ports.toaster.show({
+    const toast: ToastMessage = {
       text: this.#ports.motionAutomaticText(),
       tone: "info",
-      action: {
-        label: this.#ports.undoLabel(),
-        run: () => {
-          // A picture removed meanwhile has nothing to bring back.
-          if (this.#slideshow.pictures.some((picture) => picture.id === pictureId)) {
-            this.setKenBurns(pictureId, previous);
-          }
-        },
-      },
-    });
+      action: { label: this.#ports.undoLabel(), run: () => this.#undoReset(undo, previous) },
+    };
+    const undo: MotionUndo = { toast, pictureId };
+    this.#motionUndo = undo;
+    this.#ports.toaster.show(toast);
   }
 
   /** Reverses the picture's motion; an automatic one becomes the picture's own. */
@@ -163,6 +171,29 @@ export class SlideshowEditor {
   /** The screen closes: its undo toast would act on a slideshow no longer shown. */
   dispose(): void {
     this.#endBatch();
+    this.#endMotionUndo();
+  }
+
+  #undoReset(undo: MotionUndo, previous: OwnKenBurns): void {
+    if (this.#motionUndo !== undo) {
+      return;
+    }
+    this.#motionUndo = null;
+    // A picture removed meanwhile has nothing to bring back.
+    if (this.#slideshow.pictures.some((picture) => picture.id === undo.pictureId)) {
+      this.setKenBurns(undo.pictureId, previous);
+    }
+  }
+
+  #endMotionUndo(): void {
+    const undo = this.#motionUndo;
+    if (undo === null) {
+      return;
+    }
+    this.#motionUndo = null;
+    if (this.#ports.toaster.current === undo.toast) {
+      this.#ports.toaster.dismiss();
+    }
   }
 
   #picture(pictureId: string) {

@@ -1,4 +1,4 @@
-import { checkOwnKenBurns, InvalidOwnKenBurnsError } from "../library/own-ken-burns";
+import { checkOwnKenBurns, InvalidOwnKenBurnsError, motionPath } from "../library/own-ken-burns";
 import { MAX_SECONDS_PER_PICTURE, MIN_SECONDS_PER_PICTURE } from "../library/stored-slideshow";
 import {
   GLISSANDO_FORMAT_ID,
@@ -137,7 +137,11 @@ function readOwnKenBurns(value: unknown, path: string) {
     return checkOwnKenBurns(value, `glissando.json ${path}`);
   } catch (error) {
     if (error instanceof InvalidOwnKenBurnsError) {
-      throw new ManifestFormatError(`${path}.kenBurns`, "a valid own motion", error.message);
+      throw new ManifestFormatError(
+        motionPath(`${path}.kenBurns`, error.path),
+        error.expected,
+        error.actual,
+      );
     }
     throw error;
   }

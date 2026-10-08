@@ -40,6 +40,60 @@ describe("SlideshowEditor, a picture's own motion", () => {
     expect((await storedPicture("b"))?.kenBurns).toEqual(own);
   });
 
+  it("the undo of a picture removed meanwhile has nothing to bring back", async () => {
+    const { editor, toaster, errors } = await setUp();
+    editor.setKenBurns("b", own);
+    editor.resetKenBurns("b");
+    const undo = toaster.current?.action ?? fail();
+    editor.remove("b");
+
+    undo.run();
+    await editor.settled();
+
+    expect(editor.slideshow.pictures.map((picture) => picture.id)).toEqual(["a", "c", "d"]);
+    expect(errors).toEqual([]);
+  });
+
+  it("leaving the slideshow dismisses the undo toast, and its undo no longer applies", async () => {
+    const { editor, toaster, storedPicture } = await setUp();
+    editor.setKenBurns("b", own);
+    editor.resetKenBurns("b");
+    const undo = toaster.current?.action ?? fail();
+
+    editor.dispose();
+    undo.run();
+
+    expect((await storedPicture("b"))?.id).toBe("b");
+    expect(toaster.current).toBeNull();
+    expect(await storedPicture("b")).not.toHaveProperty("kenBurns");
+  });
+
+  it("a new motion for the picture ends the undo, so it never overwrites the newer motion", async () => {
+    const { editor, toaster, storedPicture } = await setUp();
+    editor.setKenBurns("b", own);
+    editor.resetKenBurns("b");
+    const undo = toaster.current?.action ?? fail();
+
+    editor.swapKenBurns("b");
+    const newer = (await storedPicture("b"))?.kenBurns;
+    undo.run();
+
+    expect(newer).toBeDefined();
+    expect(toaster.current).toBeNull();
+    expect((await storedPicture("b"))?.kenBurns).toEqual(newer);
+  });
+
+  it("a new motion for another picture keeps the undo", async () => {
+    const { editor, toaster, storedPicture } = await setUp();
+    editor.setKenBurns("b", own);
+    editor.resetKenBurns("b");
+
+    editor.setKenBurns("a", own);
+    toaster.act();
+
+    expect((await storedPicture("b"))?.kenBurns).toEqual(own);
+  });
+
   it("back to automatic on an automatic picture stores nothing and shows no toast", async () => {
     const { editor, toaster, store } = await setUp();
     editor.setKenBurns("a", own);
