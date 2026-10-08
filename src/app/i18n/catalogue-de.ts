@@ -1,3 +1,4 @@
+import { deEditor } from "./catalogue-de-editor";
 import type { Message } from "./messages";
 
 /**
@@ -260,4 +261,5 @@ export const de = {
   "player.again": "Nochmal",
   "player.pictureError": "Ein Bild konnte nicht geladen werden.",
   "player.playbackError": "Die Diashow konnte nicht abgespielt werden.",
+  ...deEditor,
 } as const satisfies Record<string, Message>;

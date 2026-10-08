@@ -1,7 +1,9 @@
+import { checkOwnKenBurns, type OwnKenBurns } from "./own-ken-burns";
 import type { StoredPicture, StoredSlideshow } from "./stored-slideshow";
 
 /**
- * The minimal editing of a slideshow (dev-docs/SCOPE.md): remove, reorder, rename. Pure
+ * The editing of a slideshow (dev-docs/SCOPE.md): remove, reorder, rename, a picture's own
+ * Ken Burns motion. Pure
  * functions over the stored record; the caller stores the result.
  */
 
@@ -82,4 +84,21 @@ export function renameSlideshow(
 ): StoredSlideshow {
   const title = typed.trim().slice(0, MAX_TITLE_LENGTH).trim();
   return { ...slideshow, title: title === "" ? automaticTitle : title };
+}
+
+/** Gives the picture its own motion; `undefined` makes it automatic again. */
+export function setPictureKenBurns(
+  slideshow: StoredSlideshow,
+  pictureId: string,
+  kenBurns: OwnKenBurns | undefined,
+): StoredSlideshow {
+  const index = indexOf(slideshow, pictureId);
+  const picture = { ...(slideshow.pictures[index] as StoredPicture) };
+  delete picture.kenBurns;
+  const edited: StoredPicture =
+    kenBurns === undefined
+      ? picture
+      : { ...picture, kenBurns: checkOwnKenBurns(kenBurns, `picture "${pictureId}"`) };
+  const pictures = slideshow.pictures.map((other, at) => (at === index ? edited : other));
+  return { ...slideshow, pictures };
 }

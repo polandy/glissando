@@ -1,3 +1,5 @@
+import type { OwnKenBurns } from "./own-ken-burns";
+
 /**
  * A slideshow as kept on the device: the user's pictures and music plus the few settings the
  * MVP has. The playable slideshow JSON is composed from it (see `src/compose/`), so every
@@ -18,6 +20,8 @@ export interface StoredPicture {
   readonly width: number;
   readonly height: number;
   readonly fileName: string;
+  /** The user's own motion for this picture; absent while it is automatic (see ADR-0006). */
+  readonly kenBurns?: OwnKenBurns;
 }
 
 export interface StoredMusic {

@@ -16,7 +16,17 @@ const slideshow: StoredSlideshow = {
   createdAt: "2025-10-01T08:00:00.000Z",
   pictures: [
     { id: "p1", capturedAt: "2025-09-30T10:00:00Z", width: 3840, height: 2160, fileName: "a.jpg" },
-    { id: "p2", capturedAt: "2025-09-30T11:00:00Z", width: 2160, height: 3840, fileName: "b.jpg" },
+    {
+      id: "p2",
+      capturedAt: "2025-09-30T11:00:00Z",
+      width: 2160,
+      height: 3840,
+      fileName: "b.jpg",
+      kenBurns: {
+        from: { zoom: 2.5, centerX: 0.3, centerY: 0.2 },
+        to: { zoom: 1, centerX: 0.5, centerY: 0.5 },
+      },
+    },
   ],
   ownOrder: true,
   music: { id: "m1", fileName: "Walzer.m4a", durationMs: 240000, mimeType: "audio/mp4" },
@@ -38,7 +48,7 @@ describe("manifestFor", () => {
   it("names the format and its version and keeps the slideshow without device ids", () => {
     const written = manifest();
     expect(written.format).toBe("glissando");
-    expect(written.formatVersion).toBe(1);
+    expect(written.formatVersion).toBe(2);
     expect(written.slideshow.pictures[0]).toEqual({
       file: "pictures/0001.jpg",
       thumbnail: "thumbnails/0001.jpg",
@@ -53,6 +63,7 @@ describe("manifestFor", () => {
       durationMs: 240000,
       mimeType: "audio/mp4",
     });
+    expect(written.slideshow.pictures[1]?.kenBurns).toEqual(slideshow.pictures[1]?.kenBurns);
     expect(asText(written)).not.toContain("show-1");
     expect(asText(written)).not.toContain('"p1"');
   });
@@ -91,6 +102,27 @@ describe("readManifest", () => {
     expect(readManifest(asText(manifest()))).toEqual({ kind: "ok", manifest: manifest() });
   });
 
+  it("reads a version 1 file, which knows no own motions", () => {
+    const written = manifest();
+    const [first, second] = written.slideshow.pictures;
+    const versionOne = {
+      ...written,
+      formatVersion: 1,
+      slideshow: { ...written.slideshow, pictures: [first, { ...second, kenBurns: undefined }] },
+    };
+
+    const reading = readManifest(asText(versionOne));
+
+    expect(reading.kind).toBe("ok");
+    expect(reading.kind === "ok" && reading.manifest.slideshow.pictures[1]).toEqual({
+      ...second,
+      kenBurns: undefined,
+    });
+    expect(reading.kind === "ok" && reading.manifest.slideshow.pictures[1]).not.toHaveProperty(
+      "kenBurns",
+    );
+  });
+
   it.each([
     ["another format id", asText({ ...manifest(), format: "zip-of-photos" })],
     ["no format id", asText({ formatVersion: 1 })],
@@ -124,9 +156,44 @@ describe("readManifest", () => {
       withSlideshow({ music: { ...manifest().slideshow.music, durationMs: -1 } }),
     ],
     ["ownOrder other than true", withSlideshow({ ownOrder: false })],
+    [
+      "an own motion zoomed past the maximum",
+      withSlideshow({
+        pictures: [
+          {
+            ...manifest().slideshow.pictures[0],
+            kenBurns: {
+              from: { zoom: 9, centerX: 0.5, centerY: 0.5 },
+              to: { zoom: 1, centerX: 0.5, centerY: 0.5 },
+            },
+          },
+        ],
+      }),
+    ],
+    ["an own motion in a version 1 file", asText({ ...manifest(), formatVersion: 1 })],
   ])("takes %s for a damaged file, naming the fault", (_, text) => {
     const reading = readManifest(text);
     expect(reading.kind).toBe("damaged");
     expect(reading.kind === "damaged" && reading.reason.length).toBeGreaterThan(0);
+  });
+
+  it("names a bad own motion's path, its value and what is expected, once", () => {
+    const text = withSlideshow({
+      pictures: [
+        {
+          ...manifest().slideshow.pictures[0],
+          kenBurns: {
+            from: { zoom: 9, centerX: 0.5, centerY: 0.5 },
+            to: { zoom: 1, centerX: 0.5, centerY: 0.5 },
+          },
+        },
+      ],
+    });
+
+    expect(readManifest(text)).toEqual({
+      kind: "damaged",
+      reason:
+        "glissando.json slideshow.pictures[0].kenBurns.from.zoom: expected a number from 1 to 3, got 9",
+    });
   });
 });

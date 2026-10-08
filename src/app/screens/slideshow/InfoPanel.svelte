@@ -55,7 +55,13 @@
     </div>
     <div>
       <dt>{t("slideshow.kenBurns")}</dt>
-      <dd><span class="pill"><i></i>{t("slideshow.automatic")}</span></dd>
+      <dd>
+        <span class="pill"
+          ><i></i>{slideshow.ownMotionCount > 0
+            ? t("slideshow.automaticWithOwn", { count: slideshow.ownMotionCount })
+            : t("slideshow.automatic")}</span
+        >
+      </dd>
     </div>
     <div>
       <dt>{t("slideshow.transitions")}</dt>

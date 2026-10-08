@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { MediaNotFoundError } from "../library/stored-slideshow";
 import { MemoryLibraryStore } from "../library/testing/memory-store";
 import { checkGlissandoFile, type CheckedGlissandoFile } from "./check-glissando-file";
-import { exportedFile } from "./testing/glissando-fixtures";
+import { EXPORTED_SLIDESHOW, exportedFile } from "./testing/glissando-fixtures";
 import { writeGlissandoFile, type OpenStep, type WritePorts } from "./write-glissando-file";
 
 const NOW = new Date("2026-01-02T03:04:05Z");
@@ -63,6 +63,19 @@ describe("writeGlissandoFile", () => {
     const music = saved.music;
     expect(music && (await (await store.musicBlob(music.id)).text())).toBe("music bytes");
     expect(music?.fileName).toBe("Walzer.m4a");
+  });
+
+  it("keeps each picture's own motion and leaves the automatic ones automatic", async () => {
+    const store = new MemoryLibraryStore();
+    const created = await writeGlissandoFile(await checked(), ports(store), {
+      existingTitles: [],
+      signal: new AbortController().signal,
+    });
+
+    const [automatic, own] = (await store.getSlideshow(created.id)).pictures;
+    expect(own?.kenBurns).toEqual(EXPORTED_SLIDESHOW.pictures[1]?.kenBurns);
+    expect(automatic?.fileName).toBe("b.jpg");
+    expect(automatic).not.toHaveProperty("kenBurns");
   });
 
   it("never overwrites: a clashing title gets a number, the other slideshow stays", async () => {

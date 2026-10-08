@@ -66,6 +66,7 @@ export async function setUp(ids: readonly string[] = ["a", "b", "c", "d"]) {
     removedText: (count) => (count === 1 ? "Bild entfernt" : `${count} Bilder entfernt`),
     undoLabel: () => "Rückgängig",
     lastPictureText: () => "Das letzte Bild bleibt.",
+    motionAutomaticText: () => "Bewegung wieder automatisch",
     automaticTitle: () => "Juli 2025",
   });
   const order = () => editor.slideshow.pictures.map((picture) => picture.id);
@@ -92,6 +93,10 @@ export async function setUp(ids: readonly string[] = ["a", "b", "c", "d"]) {
     }
   };
   const goneCount = () => gone;
+  const storedPicture = async (id: string) => {
+    await editor.settled();
+    return (await store.getSlideshow("show")).pictures.find((picture) => picture.id === id);
+  };
   return {
     scheduler,
     toaster,
@@ -101,6 +106,7 @@ export async function setUp(ids: readonly string[] = ["a", "b", "c", "d"]) {
     order,
     storedOrder,
     storedTitle,
+    storedPicture,
     mediaSurvivesCleanUp,
     goneCount,
   };

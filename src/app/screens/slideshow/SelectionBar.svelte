@@ -12,6 +12,7 @@
     count,
     onEarlier,
     onLater,
+    onEdit,
     onRemove,
     onDone,
   }: {
@@ -20,6 +21,8 @@
     count: number;
     onEarlier: () => void;
     onLater: () => void;
+    /** Opens the picture editor. */
+    onEdit: () => void;
     onRemove: () => void;
     onDone: () => void;
   } = $props();
@@ -55,6 +58,9 @@
     </button>
     <button class="btn" type="button" aria-disabled={last} onclick={later}>
       <span>{t("slideshow.later")}</span><Icon name="chevronRight" />
+    </button>
+    <button class="btn" type="button" onclick={onEdit}>
+      <Icon name="pencil" /><span>{t("slideshow.edit")}</span>
     </button>
     <!-- The last picture stays: Remove looks off but still answers, saying why. -->
     <button class="btn remove" type="button" aria-disabled={lastPicture} onclick={onRemove}>

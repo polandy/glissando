@@ -78,6 +78,7 @@ export async function writeGlissandoFile(
         width: picture.width,
         height: picture.height,
         fileName: picture.fileName,
+        ...(picture.kenBurns === undefined ? {} : { kenBurns: picture.kenBurns }),
       });
     }
     const music = slideshow.music;

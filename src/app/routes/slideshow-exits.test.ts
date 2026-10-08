@@ -49,6 +49,7 @@ function editorOver(store: MemoryLibraryStore, toaster: Toaster): SlideshowEdito
     removedText: () => "Bild entfernt",
     undoLabel: () => "Rückgängig",
     lastPictureText: () => "Das letzte Bild bleibt.",
+    motionAutomaticText: () => "Bewegung wieder automatisch",
     automaticTitle: () => "Juli 2025",
   });
 }

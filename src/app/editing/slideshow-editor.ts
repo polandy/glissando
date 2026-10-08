@@ -1,8 +1,11 @@
+import { pictureKenBurns } from "../../compose";
+import type { OwnKenBurns } from "../../library/own-ken-burns";
 import {
   movePicture,
   removePicture,
   renameSlideshow,
   restorePictures,
+  setPictureKenBurns,
   type RemovedPicture,
 } from "../../library/slideshow-edits";
 import {
@@ -26,6 +29,8 @@ export interface SlideshowEditorPorts {
   readonly undoLabel: () => string;
   /** Why the last picture stays, and how to discard the whole slideshow instead. */
   readonly lastPictureText: () => string;
+  /** The undo toast's text after a picture's own motion was dropped. */
+  readonly motionAutomaticText: () => string;
   /** The title from the capture dates, which an emptied title falls back to. */
   readonly automaticTitle: (slideshow: StoredSlideshow) => string;
 }
@@ -35,6 +40,12 @@ interface RemovalBatch {
   readonly toast: ToastMessage;
   readonly removals: readonly RemovedPicture[];
   readonly claimId: string;
+}
+
+/** A dropped own motion whose undo toast may still bring it back. */
+interface MotionUndo {
+  readonly toast: ToastMessage;
+  readonly pictureId: string;
 }
 
 /**
@@ -51,6 +62,7 @@ export class SlideshowEditor {
   #unsaved = 0;
   #slideshow: StoredSlideshow;
   #batch: RemovalBatch | null = null;
+  #motionUndo: MotionUndo | null = null;
   #saving: Promise<void> = Promise.resolve();
   #gone = false;
 
@@ -116,6 +128,41 @@ export class SlideshowEditor {
     this.#apply(renameSlideshow(this.#slideshow, typed, automatic));
   }
 
+  /**
+   * The picture plays `kenBurns` from now on, wherever it moves. It ends a pending undo of
+   * that picture's reset, which would otherwise overwrite this newer motion.
+   */
+  setKenBurns(pictureId: string, kenBurns: OwnKenBurns): void {
+    if (this.#motionUndo?.pictureId === pictureId) {
+      this.#endMotionUndo();
+    }
+    this.#apply(setPictureKenBurns(this.#slideshow, pictureId, kenBurns));
+  }
+
+  /** Drops the picture's own motion without asking; the toast's undo brings it back. */
+  resetKenBurns(pictureId: string): void {
+    const previous = this.#picture(pictureId).kenBurns;
+    if (previous === undefined) {
+      return;
+    }
+    this.#apply(setPictureKenBurns(this.#slideshow, pictureId, undefined));
+    const toast: ToastMessage = {
+      text: this.#ports.motionAutomaticText(),
+      tone: "info",
+      action: { label: this.#ports.undoLabel(), run: () => this.#undoReset(undo, previous) },
+    };
+    const undo: MotionUndo = { toast, pictureId };
+    this.#motionUndo = undo;
+    this.#ports.toaster.show(toast);
+  }
+
+  /** Reverses the picture's motion; an automatic one becomes the picture's own. */
+  swapKenBurns(pictureId: string): void {
+    const index = this.#slideshow.pictures.findIndex((picture) => picture.id === pictureId);
+    const { from, to } = pictureKenBurns(index, this.#picture(pictureId));
+    this.setKenBurns(pictureId, { from: to, to: from });
+  }
+
   /** Resolves once every edit made so far is stored (or reported as failed). */
   settled(): Promise<void> {
     return this.#saving;
@@ -124,6 +171,37 @@ export class SlideshowEditor {
   /** The screen closes: its undo toast would act on a slideshow no longer shown. */
   dispose(): void {
     this.#endBatch();
+    this.#endMotionUndo();
+  }
+
+  #undoReset(undo: MotionUndo, previous: OwnKenBurns): void {
+    if (this.#motionUndo !== undo) {
+      return;
+    }
+    this.#motionUndo = null;
+    // A picture removed meanwhile has nothing to bring back.
+    if (this.#slideshow.pictures.some((picture) => picture.id === undo.pictureId)) {
+      this.setKenBurns(undo.pictureId, previous);
+    }
+  }
+
+  #endMotionUndo(): void {
+    const undo = this.#motionUndo;
+    if (undo === null) {
+      return;
+    }
+    this.#motionUndo = null;
+    if (this.#ports.toaster.current === undo.toast) {
+      this.#ports.toaster.dismiss();
+    }
+  }
+
+  #picture(pictureId: string) {
+    const picture = this.#slideshow.pictures.find((candidate) => candidate.id === pictureId);
+    if (picture === undefined) {
+      throw new Error(`slideshow "${this.#slideshow.id}" holds no picture "${pictureId}"`);
+    }
+    return picture;
   }
 
   #undo(batch: RemovalBatch): void {

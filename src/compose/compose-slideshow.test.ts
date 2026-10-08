@@ -90,3 +90,21 @@ describe("composeSlideshow", () => {
     expect(total).toBe(10_000);
   });
 });
+
+describe("composeSlideshow with an own motion", () => {
+  it("plays a picture's own motion and the automatic one for the others", () => {
+    const own = {
+      from: { zoom: 3, centerX: 0.2, centerY: 0.8 },
+      to: { zoom: 1.5, centerX: 0.6, centerY: 0.4 },
+    };
+    const [first, second] = storedSlideshow().pictures as [StoredPicture, StoredPicture];
+    const stored = storedSlideshow({ pictures: [first, { ...second, kenBurns: own }] });
+
+    const slides = composeSlideshow(stored, sources).slides;
+
+    expect(slides[1]?.kenBurns).toEqual({ ...own, easing: "linear" });
+    expect(slides[0]?.kenBurns).toEqual(
+      composeSlideshow(storedSlideshow(), sources).slides[0]?.kenBurns,
+    );
+  });
+});

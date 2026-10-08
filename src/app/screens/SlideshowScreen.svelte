@@ -18,12 +18,14 @@
     onRemove,
     onMove,
     onRename,
+    onEdit,
     onDelete,
     exportState,
     onExport,
     onMenuOpened,
     mousePointer,
     saving,
+    selectedId = $bindable(null),
   }: {
     slideshow: SlideshowDetails;
     onBack: () => void;
@@ -31,6 +33,8 @@
     onRemove: (pictureId: string) => void;
     onMove: (pictureId: string, toIndex: number) => void;
     onRename: (typed: string) => void;
+    /** Opens the picture editor for a picture. */
+    onEdit: (pictureId: string) => void;
     /** The user confirmed deleting the whole slideshow. */
     onDelete: () => void;
     exportState: ExportMenuState;
@@ -41,11 +45,12 @@
     mousePointer: boolean;
     /** An edit is being stored. */
     saving: boolean;
+    /** The picture the selection bar acts on; kept by the parent across the picture editor. */
+    selectedId?: string | null;
   } = $props();
 
   const { t, formatDuration } = getTranslator();
 
-  let selectedId = $state<string | null>(null);
   let confirmingDelete = $state(false);
   // A selected picture that was removed meanwhile leaves no selection.
   const selectedIndex = $derived(
@@ -128,6 +133,7 @@
           {selectedId}
           draggable={mousePointer}
           onSelect={(pictureId) => (selectedId = pictureId)}
+          onOpen={onEdit}
           {onRemove}
           {onMove}
         />
@@ -143,6 +149,7 @@
       count={slideshow.pictures.length}
       onEarlier={() => moveSelected(-1)}
       onLater={() => moveSelected(1)}
+      onEdit={() => selectedId !== null && onEdit(selectedId)}
       onRemove={removeSelected}
       onDone={() => (selectedId = null)}
     />

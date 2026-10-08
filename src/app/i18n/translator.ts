@@ -14,6 +14,10 @@ const LOCALES: Readonly<Record<Language, string>> = { de: "de-DE", en: "en-GB" }
 
 const SECONDS_PER_MINUTE = 60;
 const SECONDS_FRACTION_DIGITS = 1;
+const ZOOM_FRACTION_DIGITS = 2;
+const TENTHS_PER_SECOND = 10;
+/** So a tenth stored a hair below itself in binary (2.3 → 22.999…) is not cut to the one before. */
+const FLOAT_TOLERANCE = 1e-9;
 const PLACEHOLDER = /\{(\w+)\}/g;
 /** Decimal units, as file managers show file sizes. */
 const BYTES_PER_MEGABYTE = 1_000_000;
@@ -43,6 +47,10 @@ export interface Translator {
   formatSeconds(seconds: number): string;
   /** A date-time as dd.mm.yyyy (or the locale's order), read in UTC. */
   formatDate(isoDateTime: string): string;
+  /** A Ken Burns zoom with two decimals in the locale: "1,20×". */
+  formatZoom(zoom: number): string;
+  /** `m:ss` and the tenth, cut off, with the locale's decimal sign: "0:02,4". */
+  formatTenths(seconds: number): string;
   /** A file size in whole MB, from 1 GB in GB with one decimal: "184 MB", "2,1 GB". */
   formatBytes(bytes: number): string;
 }
@@ -55,6 +63,11 @@ export function createTranslator(language: Language): Translator {
   const decimals = new Intl.NumberFormat(locale, {
     maximumFractionDigits: SECONDS_FRACTION_DIGITS,
   });
+  const zooms = new Intl.NumberFormat(locale, {
+    minimumFractionDigits: ZOOM_FRACTION_DIGITS,
+    maximumFractionDigits: ZOOM_FRACTION_DIGITS,
+  });
+  const decimalSign = decimals.formatToParts(0.5).find((part) => part.type === "decimal")?.value;
   const gigabytes = new Intl.NumberFormat(locale, {
     maximumFractionDigits: GIGABYTE_FRACTION_DIGITS,
   });
@@ -87,14 +100,24 @@ export function createTranslator(language: Language): Translator {
     });
   }
 
+  function formatDuration(seconds: number): string {
+    const whole = Math.floor(seconds);
+    const minutes = Math.floor(whole / SECONDS_PER_MINUTE);
+    const rest = String(whole % SECONDS_PER_MINUTE).padStart(2, "0");
+    return `${minutes}:${rest}`;
+  }
+
   return {
     language,
     t,
-    formatDuration(seconds) {
-      const whole = Math.floor(seconds);
-      const minutes = Math.floor(whole / SECONDS_PER_MINUTE);
-      const rest = String(whole % SECONDS_PER_MINUTE).padStart(2, "0");
-      return `${minutes}:${rest}`;
+    formatDuration,
+    formatZoom(zoom) {
+      return t("units.zoom", { zoom: zooms.format(zoom) });
+    },
+    formatTenths(seconds) {
+      const tenths = Math.floor(seconds * TENTHS_PER_SECOND + FLOAT_TOLERANCE);
+      const whole = Math.floor(tenths / TENTHS_PER_SECOND);
+      return `${formatDuration(whole)}${decimalSign ?? "."}${tenths % TENTHS_PER_SECOND}`;
     },
     formatSeconds(seconds) {
       return t("units.seconds", { seconds: decimals.format(seconds) });

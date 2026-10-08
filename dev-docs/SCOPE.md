@@ -114,6 +114,9 @@ Not in the MVP: per-slide settings, detection, Immich, video export, audio conve
 ## Roadmap — in this order after the MVP
 
 1. **Editor** — per slide: duration, transition, Ken Burns from/to; music trim and fade.
+   Mockup: https://polandy.github.io/glissando-assets/mockups/editor/. One PR each, in this
+   order: 1. Ken Burns per picture (the picture editor), 2. picture captions (edited in the same
+   editor, below the motion), 3. duration and transition per picture, 4. music trim and fade.
 2. **Automatic focus** — Ken Burns aims at people or the subject; Immich photos use Immich's face
    data, others get on-device detection in the browser.
 3. **Immich** — browse and pick albums and photos via the Immich API. Whether the browser calls

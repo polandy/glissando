@@ -5,14 +5,24 @@ import { StoredZipWriter } from "../stored-zip";
 
 export const MODIFIED_AT = new Date("2025-10-01T08:00:00Z");
 
-/** Two pictures in an own order, with music, as stored on the exporting device. */
+/** Two pictures in an own order, the second with its own motion, and music, as stored on the exporting device. */
 export const EXPORTED_SLIDESHOW: StoredSlideshow = {
   id: "source-show",
   title: "Herbst in Wien",
   createdAt: "2025-10-01T08:00:00.000Z",
   pictures: [
     { id: "src-p2", capturedAt: "2025-09-30T11:00:00Z", width: 40, height: 30, fileName: "b.jpg" },
-    { id: "src-p1", capturedAt: "2025-09-30T10:00:00Z", width: 40, height: 30, fileName: "a.jpg" },
+    {
+      id: "src-p1",
+      capturedAt: "2025-09-30T10:00:00Z",
+      width: 40,
+      height: 30,
+      fileName: "a.jpg",
+      kenBurns: {
+        from: { zoom: 2, centerX: 0.25, centerY: 0.5 },
+        to: { zoom: 1.25, centerX: 0.6, centerY: 0.4 },
+      },
+    },
   ],
   ownOrder: true,
   music: { id: "src-m1", fileName: "Walzer.m4a", durationMs: 240000, mimeType: "audio/mp4" },

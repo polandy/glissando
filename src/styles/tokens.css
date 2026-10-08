@@ -69,6 +69,10 @@
   --gl-photo-play-bg: rgb(255 255 255 / 0.92);
   --gl-photo-play-ink: #221d33;
   --gl-photo-play-shadow: 0 6px 24px rgb(0 0 0 / 0.25);
+  /* The picture editor: a dark well around the picture, frames drawn in white. */
+  --gl-editor-well: #1d1928;
+  --gl-photo-veil: rgb(0 0 0 / 0.46);
+  --gl-photo-dashed: rgb(255 255 255 / 0.75);
 
   /* The player is black in both themes: pictures look best on it. */
   --gl-player-bg: #000000;
@@ -120,6 +124,20 @@
   --gl-radius: 10px;
   --gl-radius-large: 14px;
   --gl-radius-pill: 999px;
+
+  /* The picture editor's corner handles: the visible square and its finger-sized hit area. */
+  --gl-editor-handle: 12px;
+  --gl-editor-handle-hit: 36px;
+  --gl-editor-handle-coarse: 18px;
+  --gl-editor-handle-hit-coarse: 48px;
+  /*
+   * Room around the picture in the editor's well, at least the handles' hit area reaches past
+   * a corner (half the hit area), so a handle on the picture's edge is grabbable whole.
+   */
+  --gl-editor-well-margin: 20px;
+  --gl-editor-well-margin-coarse: 24px;
+  /* The editor's well spans the width up to 720 px, as high as the picture up to this cap. */
+  --gl-editor-well-max-height: 440px;
   color-scheme: light;
 }
 

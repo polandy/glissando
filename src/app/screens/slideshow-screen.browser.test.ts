@@ -180,6 +180,7 @@ describe("SlideshowScreen editing", () => {
       id,
       thumbnailUrl: PIXEL,
       capturedAt: "2025-07-01T10:00:00Z",
+      ownMotion: false,
     }));
     mountScreen(details(ids, { pictures }));
     const last = document.querySelector<HTMLElement>(".strip > li:last-child button.pick");

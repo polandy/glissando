@@ -10,6 +10,7 @@
     selectedId,
     draggable,
     onSelect,
+    onOpen,
     onRemove,
     onMove,
   }: {
@@ -18,6 +19,8 @@
     /** Tiles can be dragged: a mouse is the primary pointer. */
     draggable: boolean;
     onSelect: (pictureId: string | null) => void;
+    /** Opens the picture editor. */
+    onOpen: (pictureId: string) => void;
     onRemove: (pictureId: string) => void;
     onMove: (pictureId: string, toIndex: number) => void;
   } = $props();
@@ -150,6 +153,7 @@
       drop={dropMark?.id === picture.id ? (dropMark.after ? "after" : "before") : null}
       removable={!lastPicture}
       onPick={() => onSelect(picture.id === selectedId ? null : picture.id)}
+      onOpen={() => onOpen(picture.id)}
       onKeydown={(event) => keydown(event, picture.id, index)}
       onRemove={() => onRemove(picture.id)}
       onDragStart={(event) => dragStart(event, picture.id)}
