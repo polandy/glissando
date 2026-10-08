@@ -79,8 +79,11 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
   - **Frames**: two 16:9 frames on the picture, "Start" and "End" — exactly what the player
     crops for a 16:9 screen (`frame-geometry.ts` over the player's `cropRect`). The active one is
     solid white with four corner handles and veils the rest of the picture; its label chip sits
-    top left (Start) or bottom right (End). The other one is dashed and not draggable; tapping
-    its chip, or the panel's "Start | End" toggle, makes it active. A dashed line joins the two
+    top left (Start) or bottom right (End). The other one is dashed; a tap anywhere inside it
+    (where it does not overlap the active one) makes it active, and a drag started there moves it
+    at once; a mouse shows a pointer there. Where the frames overlap the active one keeps the
+    gesture; there its chip, or the panel's "Start | End" toggle, picks the other. The active
+    frame's handles come first. A dashed line joins the two
     centres; while the preview plays, a peach outline runs over the picture with it.
   - **Changing a frame**: drag inside it moves it, a corner resizes it about the opposite corner
     (shape kept), the wheel and two fingers zoom; on the focused frame the arrow keys move it by

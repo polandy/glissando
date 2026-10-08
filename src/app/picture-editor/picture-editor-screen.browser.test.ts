@@ -118,6 +118,62 @@ describe("PictureEditorScreen", () => {
     expect(calls.changed[0]?.from.centerY).toBeCloseTo(0.6);
   });
 
+  describe("picking a frame by tapping inside it", () => {
+    /** Start top left, end bottom right, overlapping in the middle (4:3 picture). */
+    const apart = {
+      from: { zoom: 2, centerX: 0.3, centerY: 0.35 },
+      to: { zoom: 2, centerX: 0.7, centerY: 0.65 },
+    };
+    function pointerAt(x: number, y: number, pointerId = 1) {
+      const picture = element(".pic").getBoundingClientRect();
+      return {
+        bubbles: true,
+        isPrimary: true,
+        pointerId,
+        clientX: picture.left + x * picture.width,
+        clientY: picture.top + y * picture.height,
+      };
+    }
+
+    it("a tap inside the inactive frame only makes it active, and a drag goes on moving it", () => {
+      const { calls } = mountEditor(view({ motion: apart }));
+
+      element(".pic").dispatchEvent(new PointerEvent("pointerdown", pointerAt(0.85, 0.8)));
+      flushSync();
+      expect(activeFrame().dataset["key"]).toBe("to");
+      window.dispatchEvent(new PointerEvent("pointermove", pointerAt(0.8, 0.75)));
+      window.dispatchEvent(new PointerEvent("pointerup", pointerAt(0.8, 0.75)));
+
+      expect(calls.changed).toHaveLength(1);
+      expect(calls.changed[0]?.to.centerX).toBeCloseTo(0.65);
+      expect(calls.changed[0]?.from).toEqual(apart.from);
+    });
+
+    it("where both frames overlap, the active frame keeps the gesture", () => {
+      const { calls } = mountEditor(view({ motion: apart }));
+
+      activeFrame().dispatchEvent(new PointerEvent("pointerdown", pointerAt(0.5, 0.5)));
+      flushSync();
+      window.dispatchEvent(new PointerEvent("pointermove", pointerAt(0.45, 0.45)));
+      window.dispatchEvent(new PointerEvent("pointerup", pointerAt(0.45, 0.45)));
+
+      expect(activeFrame().dataset["key"]).toBe("from");
+      expect(calls.changed[0]?.from.centerX).toBeCloseTo(0.25);
+      expect(calls.changed[0]?.to).toEqual(apart.to);
+    });
+
+    it("a tap outside both frames changes nothing", () => {
+      const { calls } = mountEditor(view({ motion: apart }));
+
+      element(".pic").dispatchEvent(new PointerEvent("pointerdown", pointerAt(0.95, 0.05)));
+      window.dispatchEvent(new PointerEvent("pointerup", pointerAt(0.95, 0.05)));
+      flushSync();
+
+      expect(activeFrame().dataset["key"]).toBe("from");
+      expect(calls.changed).toEqual([]);
+    });
+  });
+
   it("opens the previous and next picture, and looks off at the ends", () => {
     const { calls } = mountEditor(view({ previousId: null, nextId: "c" }));
 

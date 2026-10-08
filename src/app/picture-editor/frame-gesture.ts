@@ -40,6 +40,11 @@ export class FrameGesture {
     this.#size = size;
   }
 
+  /** No pointer is down: the next one starts a new gesture. */
+  get idle(): boolean {
+    return this.#pointers.size === 0;
+  }
+
   /** Returns whether the pointer takes part in a gesture (its default action is then unwanted). */
   down(pointerId: number, point: PagePoint, target: GestureTarget, framing: Framing): boolean {
     const start = this.#latest ?? framing;

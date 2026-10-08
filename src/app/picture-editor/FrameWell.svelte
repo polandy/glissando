@@ -9,7 +9,8 @@
     type Corner,
   } from "./frame-geometry";
   import { FrameGesture, type GestureTarget } from "./frame-gesture";
-  import { FRAME_KEYS, type FrameKey } from "./frame-keys";
+  import { frameAt, type FrameHit } from "./frame-hit";
+  import { FRAME_KEYS, isFrameKey, type FrameKey } from "./frame-keys";
   import PictureFrame from "./PictureFrame.svelte";
 
   /**
@@ -55,18 +56,46 @@
     return { x: (x + width / 2) * 100, y: (y + height / 2) * 100 };
   }
 
+  /** The frame the running gesture changes; picked when its first pointer goes down. */
+  let gestureKey: FrameKey = FRAME_KEYS[0];
+  /** Over the inactive frame alone a mouse shows that a click picks it. */
+  let picksFrame = $state(false);
+
+  function onPicture(event: PointerEvent) {
+    const box = pictureElement?.getBoundingClientRect();
+    return box === undefined
+      ? null
+      : { x: (event.clientX - box.left) / box.width, y: (event.clientY - box.top) / box.height };
+  }
+
+  function hitAt(event: PointerEvent): FrameHit {
+    const point = onPicture(event);
+    const rects = { from: frameRect(motion.from, size), to: frameRect(motion.to, size) };
+    return point === null ? "none" : frameAt(point, rects);
+  }
+
   function pointerDown(event: PointerEvent): void {
     const target = event.target as Element;
     const corner = target.closest<HTMLElement>("[data-corner]")?.dataset["corner"] as
       Corner | undefined;
+    const hit = hitAt(event);
+    const firstPointer = gesture.idle;
+    // The active frame's handles come first; a point in both frames stays with the active one.
+    const picked = corner === undefined && firstPointer && hit !== active && isFrameKey(hit);
+    if (firstPointer) {
+      gestureKey = picked ? hit : active;
+    }
+    if (picked) {
+      onActivate(hit);
+    }
     const on: GestureTarget =
       corner !== undefined
         ? { kind: "corner", corner }
-        : target.closest(".frame.active") !== null
+        : picked || hit === active || hit === "ambiguous"
           ? { kind: "frame" }
           : { kind: "other" };
     const point = { x: event.clientX, y: event.clientY };
-    if (gesture.down(event.pointerId, point, on, motion[active])) {
+    if (gesture.down(event.pointerId, point, on, motion[gestureKey])) {
       event.preventDefault();
     }
   }
@@ -78,15 +107,20 @@
     const point = { x: event.clientX, y: event.clientY };
     const framing = gesture.move(event.pointerId, point, pictureElement.getBoundingClientRect());
     if (framing !== null) {
-      onFraming(active, framing, false);
+      onFraming(gestureKey, framing, false);
     }
   }
 
   function pointerEnd(event: PointerEvent): void {
     const done = gesture.up(event.pointerId);
     if (done !== null) {
-      onFraming(active, done, true);
+      onFraming(gestureKey, done, true);
     }
+  }
+
+  function hover(event: PointerEvent): void {
+    const hit = hitAt(event);
+    picksFrame = event.pointerType === "mouse" && hit !== active && isFrameKey(hit);
   }
 
   function keydown(event: KeyboardEvent): void {
@@ -121,7 +155,9 @@
       bind:this={pictureElement}
       style:width="{shownWidth}px"
       style:height="{shownWidth / aspect}px"
+      class:picks-frame={picksFrame}
       onpointerdown={pointerDown}
+      onpointermove={hover}
       use:wheelZoom
     >
       {#if pictureUrl !== null}
@@ -168,6 +204,9 @@
   .pic {
     position: relative;
     overflow: hidden;
+  }
+  .pic.picks-frame {
+    cursor: pointer;
   }
   .pic img {
     position: absolute;
