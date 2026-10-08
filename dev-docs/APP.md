@@ -55,9 +55,12 @@ over real timers.
   device.
 - **Unexpected errors**, including uncaught ones, are logged and shown as a coral toast;
   none is swallowed.
-- **Object URLs**: thumbnails and covers exist while their screen shows them. The slideshow
-  screen reads the display pictures and the music ahead; their URLs are created when the
-  player opens and revoked when it closes. The player shows the music's file name.
+- **Object URLs**: thumbnails and covers exist while their screen shows them; a screen left
+  before its data arrived drops the late result (`routes/route-loading.ts`). The player reads
+  each display picture by media id only when it buffers it (`openPicture`), and the music when
+  it opens; the music's URL is revoked when it closes. The player shows the music's file name.
+- **Import flow** (`import/import-flow.ts`): the import session, the clean-up when an import
+  ends and the persistence prompt after creating.
 
 ## Navigation
 
@@ -78,12 +81,13 @@ levels, the player a modal layer over its slideshow. `navigation/navigator.ts`:
   slideshow …".
 - **Notice** (`Notice`): inline at the cause; lemon for warnings, coral for errors.
 - **Toast** (`Toast` + `toast/toaster.ts`): one at a time, bottom (right from 700 px), gone after
-  6 s; an optional action and ✕. A new toast replaces the shown one.
+  6 s; an optional action and ✕. A new toast replaces the shown one. While the import wizard is
+  shown, it rises above the wizard's bottom actions.
 - **Dialog** (`Dialog`): a native modal dialog, only when the user must decide.
 
 ## Player overlay
 
-`player/PlayerOverlay.svelte` takes a `Slideshow`, fills the viewport in black, starts playing
+`player/PlayerOverlay.svelte` takes a `Slideshow` (and an `openPicture` for stored media), fills the viewport in black, starts playing
 and asks for fullscreen where the browser has the Fullscreen API (a refusal is logged at debug
 level). Closing destroys the player.
 
