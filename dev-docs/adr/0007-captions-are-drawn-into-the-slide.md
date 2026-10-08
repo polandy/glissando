@@ -46,4 +46,6 @@ player overlay.
   captions, then redraw), a resize redraws each caption texture, and each loaded slide with a
   caption holds one more texture (as wide as the screen, 42 % of its height).
 - Two lines are laid out by our greedy line breaker, not by the browser's balanced wrapping.
+- The DOM fallback and the picture editor's preview wrap with CSS, so their line breaks can
+  differ from the WebGL player's greedy ones; place, size and type are the same.
 - The caption's text is not in the page as text: screen readers rely on the live region.
