@@ -121,3 +121,28 @@ describe("composeSlideshow with a caption", () => {
     expect(slides[0]).not.toHaveProperty("caption");
   });
 });
+
+describe("composeSlideshow with an own duration and transition", () => {
+  it("plays the own duration and the own effect, at the length that duration gives", () => {
+    const [first, second] = storedSlideshow().pictures as [StoredPicture, StoredPicture];
+    const stored = storedSlideshow({
+      pictures: [{ ...first, durationMs: 2000, transition: "dissolve" }, second],
+    });
+
+    const [slide] = composeSlideshow(stored, sources).slides;
+
+    expect(slide?.durationMs).toBe(2000);
+    expect(slide?.transitionToNext).toEqual({ effect: "dissolve", durationMs: 600 });
+  });
+
+  it("composes a cut as a slide without transitionToNext, which the player accepts", () => {
+    const [first, second] = storedSlideshow().pictures as [StoredPicture, StoredPicture];
+    const stored = storedSlideshow({ pictures: [{ ...first, transition: "cut" }, second] });
+
+    const composed = composeSlideshow(stored, sources);
+
+    expect(composed.slides[0]?.durationMs).toBe(5000);
+    expect(composed.slides[0]).not.toHaveProperty("transitionToNext");
+    expect(() => parseSlideshow(composed)).not.toThrow();
+  });
+});

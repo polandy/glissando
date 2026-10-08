@@ -1,7 +1,7 @@
 import type { StoredSlideshow } from "../library/stored-slideshow";
 import { SLIDESHOW_FORMAT_VERSION, type Slide, type Slideshow } from "../player/slideshow";
-import { autoTransition } from "./auto-transition";
 import { pictureKenBurns } from "./picture-ken-burns";
+import { pictureTransition } from "./picture-transition";
 import { slideDurationsMs } from "./slide-durations-ms";
 
 /** Resolves a stored picture or music id to the URL the player loads it from. */
@@ -31,7 +31,7 @@ export function composeSlideshow(stored: StoredSlideshow, sources: SlideshowSour
       kenBurns: pictureKenBurns(index, picture),
       ...(picture.caption === undefined ? {} : { caption: picture.caption }),
     };
-    const transitionToNext = autoTransition(index, slideCount, durationMs);
+    const transitionToNext = pictureTransition(index, slideCount, picture, durationMs);
     return transitionToNext === undefined ? slide : { ...slide, transitionToNext };
   });
 
