@@ -4,9 +4,9 @@ import { checkOwnDurationMs, checkTransitionChoice, type TransitionChoice } from
 import type { StoredPicture, StoredSlideshow } from "./stored-slideshow";
 
 /**
- * The editing of a slideshow (dev-docs/SCOPE.md): remove, reorder, rename, a picture's own
- * Ken Burns motion, duration and transition, and its caption. Pure functions over the stored record; the caller stores the
- * result.
+ * The editing of a slideshow (dev-docs/SCOPE.md): remove, reorder, rename, a picture's own Ken
+ * Burns motion, duration and transition, and its caption. Pure functions over the stored
+ * record; the caller stores the result.
  */
 
 export const MAX_TITLE_LENGTH = 80;
