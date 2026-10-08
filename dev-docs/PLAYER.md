@@ -112,7 +112,8 @@ transition, but stands still in screen space, unmoved by the Ken Burns motion. I
   port; until then slides draw without captions, then a redraw follows), each loaded slide with
   a caption gets its band, gradient and text, drawn with Canvas 2D at drawing-buffer resolution
   into a premultiplied texture (`caption-textures.ts`), released with the slide's picture and
-  drawn anew when the viewport or the caption changes. The transition shaders composite each
+  drawn anew when the viewport, the pixel ratio (browser zoom) or the caption changes, and after
+  a restored WebGL context. The transition shaders composite each
   slide's band over its picture in screen space inside `fromColor`/`toColor`, so every effect
   carries it; `captionInset` is a uniform shifting where the band is sampled, so it never redraws
   the texture. A slide without a caption samples a transparent 1×1 texture.

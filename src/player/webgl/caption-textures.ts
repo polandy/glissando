@@ -15,12 +15,14 @@ interface CaptionTexture {
   readonly texture: WebGLTexture;
   readonly caption: string;
   readonly viewport: Size;
+  /** Browser zoom changes it without changing the viewport's device pixels. */
+  readonly pixelRatio: number;
 }
 
 /**
  * One texture per slide with a caption, holding its band (see `rasterizeCaption`), premultiplied
- * for the shaders. Drawn once the caption font has loaded; again when the viewport or the
- * caption changes. A slide without a caption, or before the font loaded, gets a transparent one.
+ * for the shaders. Drawn once the caption font has loaded; again when the viewport, the
+ * pixel ratio or the caption changes. A slide without a caption, or before the font loaded, gets a transparent one.
  */
 export class CaptionTextures {
   readonly #gl: WebGL2RenderingContext;
@@ -63,8 +65,10 @@ export class CaptionTextures {
       return this.#transparent;
     }
     const existing = this.#textures.get(owner);
+    const pixelRatio = this.#pixelRatio();
     if (
       existing?.caption === caption &&
+      existing.pixelRatio === pixelRatio &&
       existing.viewport.width === viewport.width &&
       existing.viewport.height === viewport.height
     ) {
@@ -72,13 +76,13 @@ export class CaptionTextures {
     }
     const gl = this.#gl;
     const texture = existing?.texture ?? gl.createTexture();
-    rasterizeCaption(this.#canvas, caption, viewport, this.#pixelRatio());
+    rasterizeCaption(this.#canvas, caption, viewport, pixelRatio);
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.#canvas);
     gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
     setLinearClamped(gl);
-    this.#textures.set(owner, { texture, caption, viewport });
+    this.#textures.set(owner, { texture, caption, viewport, pixelRatio });
     return texture;
   }
 
