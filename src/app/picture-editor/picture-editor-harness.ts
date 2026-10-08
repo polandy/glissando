@@ -25,9 +25,13 @@ export function view(overrides: Partial<PictureEditorView> = {}): PictureEditorV
     motion: AUTOMATIC,
     ownMotion: false,
     durationMs: 5000,
+    ownDuration: false,
+    durationBasis: { kind: "seconds-per-picture", automaticMs: 5000 },
+    transition: { choice: "push-left", own: false, automatic: "push-left", durationMs: 1000 },
     caption: "",
     previousId: "a",
     nextId: "c",
+    next: { size: { width: 300, height: 400 }, motion: AUTOMATIC, durationMs: 5000, caption: "" },
     ...overrides,
   };
 }
