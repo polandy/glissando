@@ -91,6 +91,20 @@ describe("writeGlissandoFile", () => {
     expect(without).not.toHaveProperty("caption");
   });
 
+  it("keeps each picture's own duration and transition and leaves the others automatic", async () => {
+    const store = new MemoryLibraryStore();
+    const created = await writeGlissandoFile(await checked(), ports(store), {
+      existingTitles: [],
+      signal: new AbortController().signal,
+    });
+
+    const [own, automatic] = (await store.getSlideshow(created.id)).pictures;
+    expect(own).toMatchObject({ durationMs: 8000, transition: "dissolve" });
+    expect(automatic?.fileName).toBe("a.jpg");
+    expect(automatic).not.toHaveProperty("durationMs");
+    expect(automatic).not.toHaveProperty("transition");
+  });
+
   it("never overwrites: a clashing title gets a number, the other slideshow stays", async () => {
     const store = await storeWithOtherShow();
     const created = await writeGlissandoFile(await checked(), ports(store), {

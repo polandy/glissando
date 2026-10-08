@@ -1,5 +1,10 @@
 import { CAPTION_RULE, isCaption } from "../player/caption";
 import { checkOwnKenBurns, InvalidOwnKenBurnsError, motionPath } from "../library/own-ken-burns";
+import {
+  checkOwnDurationMs,
+  checkTransitionChoice,
+  InvalidOwnTimingError,
+} from "../library/own-timing";
 import { MAX_SECONDS_PER_PICTURE, MIN_SECONDS_PER_PICTURE } from "../library/stored-slideshow";
 import {
   CAPTION_FROM_VERSION,
@@ -7,6 +12,7 @@ import {
   GLISSANDO_FORMAT_VERSION,
   OLDEST_READABLE_FORMAT_VERSION,
   OWN_KEN_BURNS_FROM_VERSION,
+  OWN_TIMING_FROM_VERSION,
   type GlissandoManifest,
   type ManifestMusic,
   type ManifestPicture,
@@ -120,9 +126,12 @@ function readPicture(value: unknown, path: string, version: number): ManifestPic
     ...PICTURE_KEYS,
     ...(version >= OWN_KEN_BURNS_FROM_VERSION ? ["kenBurns"] : []),
     ...(version >= CAPTION_FROM_VERSION ? ["caption"] : []),
+    ...(version >= OWN_TIMING_FROM_VERSION ? ["durationMs", "transition"] : []),
   ]);
   const kenBurns = picture["kenBurns"];
   const caption = picture["caption"];
+  const durationMs = picture["durationMs"];
+  const transition = picture["transition"];
   return {
     file: readText(picture["file"], `${path}.file`),
     thumbnail: readText(picture["thumbnail"], `${path}.thumbnail`),
@@ -132,7 +141,28 @@ function readPicture(value: unknown, path: string, version: number): ManifestPic
     fileName: readText(picture["fileName"], `${path}.fileName`),
     ...(kenBurns === undefined ? {} : { kenBurns: readOwnKenBurns(kenBurns, path) }),
     ...(caption === undefined ? {} : { caption: readCaption(caption, `${path}.caption`) }),
+    ...(durationMs === undefined
+      ? {}
+      : { durationMs: readOwnTiming(checkOwnDurationMs, durationMs, path) }),
+    ...(transition === undefined
+      ? {}
+      : { transition: readOwnTiming(checkTransitionChoice, transition, path) }),
   };
+}
+
+function readOwnTiming<Value>(
+  check: (value: unknown, where: string) => Value,
+  value: unknown,
+  path: string,
+): Value {
+  try {
+    return check(value, `glissando.json ${path}`);
+  } catch (error) {
+    if (error instanceof InvalidOwnTimingError) {
+      throw new ManifestFormatError(`${path}.${error.field}`, error.expected, error.actual);
+    }
+    throw error;
+  }
 }
 
 function readCaption(value: unknown, path: string): string {
