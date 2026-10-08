@@ -9,7 +9,7 @@
   } from "../../library/stored-slideshow";
   import { SlideshowEditor } from "../editing/slideshow-editor";
   import type { ExportProgress } from "../glissando-file/export-job";
-  import { exportMenuState } from "../glissando-file/export-menu";
+  import { exportMediaKey, exportMenuState } from "../glissando-file/export-menu";
   import { getTranslator } from "../i18n/context";
   import { slideshowDetails } from "../library-views";
   import { browserObjectUrls, ObjectUrls } from "../media/object-urls";
@@ -60,9 +60,10 @@
   let stored = $state.raw<StoredSlideshow | null>(null);
   let editor: SlideshowEditor | null = null;
   let saving = $state(false);
-  /** Measured when the menu first opens: it reads every media record. */
+  /** Measured when the menu opens and the media changed since the last measure. */
   let exportBytes = $state<number | null>(null);
-  let measuring = false;
+  /** The media the size is measured for; see `exportMediaKey`. */
+  let measuredMedia: string | null = null;
   const mousePointer = new MediaQuery(MOUSE_POINTER_QUERY);
   // The store is fixed for the screen's lifetime.
   // svelte-ignore state_referenced_locally
@@ -119,15 +120,26 @@
   }
 
   function measureExport(): void {
-    if (measuring || stored === null) {
+    if (stored === null) {
       return;
     }
-    measuring = true;
-    store.mediaBytes(stored).then((bytes) => {
-      if (!left.signal.aborted) {
-        exportBytes = bytes;
-      }
-    }, onError);
+    const media = exportMediaKey(stored);
+    if (media === measuredMedia) {
+      return;
+    }
+    measuredMedia = media;
+    exportBytes = null;
+    store.mediaBytes(stored).then(
+      (bytes) => {
+        if (!left.signal.aborted && measuredMedia === media) {
+          exportBytes = bytes;
+        }
+      },
+      (error: unknown) => {
+        measuredMedia = null;
+        onError(error);
+      },
+    );
   }
 
   function deleteSlideshow(): void {

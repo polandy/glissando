@@ -25,7 +25,7 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
   dropped, it opens (below).
 - **Slideshow** (`screens/SlideshowScreen.svelte`, parts in `screens/slideshow/`): breadcrumb
   "Library / title" and a ⋯ "More" button whose menu holds "Export" (subtitle "A .glissando
-  file, about 184 MB", measured when the menu first opens), a separator and "Delete slideshow
+  file, about 184 MB", measured when the menu opens, again only after its pictures or music changed), a separator and "Delete slideshow
   …"; a 16:9
   preview of the first picture (tap plays) with the running time, then the pictures in play
   order, each with its order number and capture date, under "Sorted by capture date" or, once
