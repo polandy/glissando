@@ -32,6 +32,6 @@ export const enEditor: Pick<Catalogue, keyof typeof deEditor> = {
   "editor.alreadyAutomatic": "The motion is already automatic",
   "editor.motionAutomatic": "Motion back to automatic",
   "editor.hintWide":
-    "Drag inside the frame to move it, drag a corner to zoom · mouse wheel zooms · arrow keys, + and −",
+    "Drag to move the frame, drag a corner to zoom · mouse wheel zooms · arrow keys, + and −",
   "editor.hintNarrow": "Drag the frame to move it; corners or two fingers zoom.",
 };

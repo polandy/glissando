@@ -124,6 +124,14 @@
   --gl-radius: 10px;
   --gl-radius-large: 14px;
   --gl-radius-pill: 999px;
+
+  /* The picture editor's corner handles: the visible square and its finger-sized hit area. */
+  --gl-editor-handle: 12px;
+  --gl-editor-handle-hit: 36px;
+  --gl-editor-handle-coarse: 18px;
+  --gl-editor-handle-hit-coarse: 48px;
+  /* Room around the picture in the editor's well, so handles on its edges stay grabbable. */
+  --gl-editor-well-margin: 16px;
   color-scheme: light;
 }
 

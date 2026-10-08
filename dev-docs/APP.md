@@ -79,21 +79,27 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
   - **Frames**: two 16:9 frames on the picture, "Start" and "End" — exactly what the player
     crops for a 16:9 screen (`frame-geometry.ts` over the player's `cropRect`). The active one is
     solid white with four corner handles and veils the rest of the picture; its label chip sits
-    top left (Start) or bottom right (End). The other one is dashed; a tap anywhere inside it
-    (where it does not overlap the active one) makes it active, and a drag started there moves it
-    at once; a mouse shows a pointer there. Where the frames overlap the active one keeps the
-    gesture; there its chip, or the panel's "Start | End" toggle, picks the other. The active
-    frame's handles come first. A dashed line joins the two
-    centres; while the preview plays, a peach outline runs over the picture with it.
-  - **Changing a frame**: drag inside it moves it, a corner resizes it about the opposite corner
-    (shape kept), the wheel and two fingers zoom; on the focused frame the arrow keys move it by
+    top left (Start) or bottom right (End). The other one is dashed. A pointer that goes up
+    before travelling 8 px is a tap, and a tap picks a frame only where that is unambiguous:
+    inside the inactive frame alone, or within 24 px of exactly one frame's border (also where
+    the frames overlap or nest; when both borders are that near, nothing). Otherwise a tap does
+    nothing; the inactive frame's chip, or the panel's "Start | End" toggle, always picks it, the
+    chip already on pointer down. A mouse shows a pointer where a click would pick the other
+    frame, a move cursor elsewhere on the picture. The active frame's handles come first: a
+    12 px square with a 36 px hit area, 18 px and 48 px on a touch screen, reaching past the
+    picture's edges into the well's margin (at least 16 px, on a phone too). A dashed line joins
+    the two centres; while the preview plays, a peach outline runs over the picture with it.
+  - **Changing a frame**: a drag anywhere on the picture (one pointer, past 8 px, counted from
+    where it went down) moves the active frame by the pointer's travel; a corner resizes it about
+    the opposite corner (shape kept), the wheel and two fingers anywhere zoom (at once, without
+    the 8 px); on the focused frame the arrow keys move it by
     1 % (Shift 5 %), + and − zoom by 0.05. Zoom runs from 1 (the whole picture as far as it fills
     a 16:9 screen) to 3, and the frame never leaves the picture. A drag is stored when it ends,
     every other change at once.
   - **Panel**: "Picture 3 of 8", file name · capture date; "Ken Burns" with the state
     "Automatic" or "Own motion" (accent-tinted); the toggle, each half with "Zoom 1.20×"; up to
     720 px the hint "Drag the frame to move it; corners or two fingers zoom." (wider, under the
-    well: "Drag inside the frame to move it, drag a corner to zoom · mouse wheel zooms · arrow
+    well: "Drag to move the frame, drag a corner to zoom · mouse wheel zooms · arrow
     keys, + and −"). A 16:9 preview plays the motion over the slide's real duration and loops
     after a short hold, rendered with the player's own crop and transform; play/pause, a
     progress track and "0:02.4 / 0:05.0". Changing a frame pauses it on that frame (start or

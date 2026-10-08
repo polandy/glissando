@@ -75,14 +75,19 @@
     border: 1.5px dashed var(--gl-photo-dashed);
     border-radius: 2px;
     pointer-events: none;
+    --handle: var(--gl-editor-handle);
+    --handle-hit: var(--gl-editor-handle-hit);
   }
-  /* Below the other frame, so that one's chip stays tappable over the veil. */
+  @media (pointer: coarse) {
+    .frame {
+      --handle: var(--gl-editor-handle-coarse);
+      --handle-hit: var(--gl-editor-handle-hit-coarse);
+    }
+  }
+  /* Above the other frame: its handles come first. Only chip and handles take pointers. */
   .frame.active {
-    z-index: 1;
+    z-index: 3;
     border: 2px solid var(--gl-on-photo);
-    box-shadow: 0 0 0 100vmax var(--gl-photo-veil);
-    pointer-events: auto;
-    cursor: move;
   }
   .frame:focus-visible {
     outline: 2px solid var(--gl-accent);
@@ -106,7 +111,7 @@
   .active .chip {
     background: var(--gl-on-photo);
     color: var(--gl-photo-play-ink);
-    cursor: move;
+    cursor: inherit;
   }
   [data-key="from"] .chip {
     left: 4px;
@@ -116,39 +121,42 @@
     right: 4px;
     bottom: 4px;
   }
+  /* Centred on the 2 px border's corner. */
   .handle {
+    --offset: calc(var(--handle) / -2 - 1px);
     position: absolute;
-    width: 12px;
-    height: 12px;
+    width: var(--handle);
+    height: var(--handle);
     box-sizing: border-box;
     border: 1.5px solid var(--gl-photo-play-ink);
     border-radius: 3px;
     background: var(--gl-on-photo);
+    pointer-events: auto;
   }
   /* A larger hit area than the visible square, for a finger. */
   .handle::before {
     content: "";
     position: absolute;
-    inset: -12px;
+    inset: calc((var(--handle) - var(--handle-hit)) / 2);
   }
   .nw {
-    left: -7px;
-    top: -7px;
+    left: var(--offset);
+    top: var(--offset);
     cursor: nwse-resize;
   }
   .se {
-    right: -7px;
-    bottom: -7px;
+    right: var(--offset);
+    bottom: var(--offset);
     cursor: nwse-resize;
   }
   .ne {
-    right: -7px;
-    top: -7px;
+    right: var(--offset);
+    top: var(--offset);
     cursor: nesw-resize;
   }
   .sw {
-    left: -7px;
-    bottom: -7px;
+    left: var(--offset);
+    bottom: var(--offset);
     cursor: nesw-resize;
   }
 </style>

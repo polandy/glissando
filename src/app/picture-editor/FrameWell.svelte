@@ -8,15 +8,15 @@
     wheelZoomedFraming,
     type Corner,
   } from "./frame-geometry";
-  import { FrameGesture, type GestureTarget } from "./frame-gesture";
-  import { frameAt, type FrameHit } from "./frame-hit";
-  import { FRAME_KEYS, isFrameKey, type FrameKey } from "./frame-keys";
+  import { FrameGesture } from "./frame-gesture";
+  import { tappedFrame, TAP_TOLERANCE_PX } from "./frame-hit";
+  import { FRAME_KEYS, type FrameKey } from "./frame-keys";
   import PictureFrame from "./PictureFrame.svelte";
 
   /**
-   * The picture with the motion's two frames on it. The active frame moves by drag, resizes by
-   * its corners, zooms by wheel, pinch and + / −, and moves by arrow keys; it never leaves the
-   * picture.
+   * The picture with the motion's two frames on it. A drag anywhere on the picture moves the
+   * active frame, its corners resize it, wheel, pinch and + / − zoom it, arrow keys move it; it
+   * never leaves the picture. A tap picks the frame it unambiguously lies on.
    */
   let {
     size,
@@ -56,45 +56,36 @@
     return { x: (x + width / 2) * 100, y: (y + height / 2) * 100 };
   }
 
-  /** The frame the running gesture changes; picked when its first pointer goes down. */
+  /** The frame the running gesture changes: the one active when its first pointer went down. */
   let gestureKey: FrameKey = FRAME_KEYS[0];
-  /** Over the inactive frame alone a mouse shows that a click picks it. */
+  /** Where a mouse click would pick the other frame, the cursor says so. */
   let picksFrame = $state(false);
 
-  function onPicture(event: PointerEvent) {
+  /** The frame a tap at the event's point picks, or null. */
+  function tapped(event: PointerEvent): FrameKey | null {
     const box = pictureElement?.getBoundingClientRect();
-    return box === undefined
-      ? null
-      : { x: (event.clientX - box.left) / box.width, y: (event.clientY - box.top) / box.height };
-  }
-
-  function hitAt(event: PointerEvent): FrameHit {
-    const point = onPicture(event);
+    if (box === undefined || box.width === 0 || box.height === 0) {
+      return null;
+    }
+    const point = {
+      x: (event.clientX - box.left) / box.width,
+      y: (event.clientY - box.top) / box.height,
+    };
     const rects = { from: frameRect(motion.from, size), to: frameRect(motion.to, size) };
-    return point === null ? "none" : frameAt(point, rects);
+    const tolerance = { x: TAP_TOLERANCE_PX / box.width, y: TAP_TOLERANCE_PX / box.height };
+    return tappedFrame(point, rects, active, tolerance);
   }
 
   function pointerDown(event: PointerEvent): void {
     const target = event.target as Element;
     const corner = target.closest<HTMLElement>("[data-corner]")?.dataset["corner"] as
       Corner | undefined;
-    const hit = hitAt(event);
-    const firstPointer = gesture.idle;
-    // The active frame's handles come first; a point in both frames stays with the active one.
-    const picked = corner === undefined && firstPointer && hit !== active && isFrameKey(hit);
-    if (firstPointer) {
-      gestureKey = picked ? hit : active;
+    if (gesture.idle) {
+      gestureKey = active;
     }
-    if (picked) {
-      onActivate(hit);
-    }
-    const on: GestureTarget =
-      corner !== undefined
-        ? { kind: "corner", corner }
-        : picked || hit === active || hit === "ambiguous"
-          ? { kind: "frame" }
-          : { kind: "other" };
     const point = { x: event.clientX, y: event.clientY };
+    const on =
+      corner === undefined ? { kind: "picture" as const } : { kind: "corner" as const, corner };
     if (gesture.down(event.pointerId, point, on, motion[gestureKey])) {
       event.preventDefault();
     }
@@ -111,16 +102,29 @@
     }
   }
 
-  function pointerEnd(event: PointerEvent): void {
-    const done = gesture.up(event.pointerId);
-    if (done !== null) {
-      onFraming(gestureKey, done, true);
+  function pointerUp(event: PointerEvent): void {
+    const end = gesture.up(event.pointerId);
+    if (end.kind === "framing") {
+      onFraming(gestureKey, end.framing, true);
+    } else if (end.kind === "tap") {
+      const picked = tapped(event);
+      if (picked !== null && picked !== active) {
+        onActivate(picked);
+      }
+    }
+  }
+
+  /** A cancelled pointer is no tap; a drag it was part of still keeps what it reached. */
+  function pointerCancel(event: PointerEvent): void {
+    const end = gesture.up(event.pointerId);
+    if (end.kind === "framing") {
+      onFraming(gestureKey, end.framing, true);
     }
   }
 
   function hover(event: PointerEvent): void {
-    const hit = hitAt(event);
-    picksFrame = event.pointerType === "mouse" && hit !== active && isFrameKey(hit);
+    const picked = event.pointerType === "mouse" && gesture.idle ? tapped(event) : null;
+    picksFrame = picked !== null && picked !== active;
   }
 
   function keydown(event: KeyboardEvent): void {
@@ -144,7 +148,11 @@
   const path = $derived({ from: centre(motion.from), to: centre(motion.to) });
 </script>
 
-<svelte:window onpointermove={pointerMove} onpointerup={pointerEnd} onpointercancel={pointerEnd} />
+<svelte:window
+  onpointermove={pointerMove}
+  onpointerup={pointerUp}
+  onpointercancel={pointerCancel}
+/>
 
 <div class="well" style:--picture-aspect={aspect}>
   <div class="fit" bind:clientWidth={fitWidth} bind:clientHeight={fitHeight}>
@@ -163,6 +171,10 @@
       {#if pictureUrl !== null}
         <img src={pictureUrl} {alt} draggable="false" />
       {/if}
+      <!-- The veil darkens the picture around the active frame; its own clip spares the handles. -->
+      <div class="veil" aria-hidden="true">
+        <div class="hole" style={frameStyle(motion[active], size)}></div>
+      </div>
       {#each FRAME_KEYS as key (key)}
         <PictureFrame
           {key}
@@ -188,7 +200,6 @@
     position: relative;
     min-height: 0;
     padding: 20px;
-    overflow: hidden;
     border-radius: var(--gl-radius-large);
     background: var(--gl-editor-well);
     touch-action: none;
@@ -201,9 +212,10 @@
     width: 100%;
     height: 100%;
   }
+  /* Not clipped: the active frame's handles reach past the picture's edges. */
   .pic {
     position: relative;
-    overflow: hidden;
+    cursor: move;
   }
   .pic.picks-frame {
     cursor: pointer;
@@ -215,6 +227,17 @@
     width: 100%;
     height: 100%;
     pointer-events: none;
+  }
+  .veil {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .hole {
+    position: absolute;
+    border-radius: 2px;
+    box-shadow: 0 0 0 100vmax var(--gl-photo-veil);
   }
   .path {
     position: absolute;
@@ -243,7 +266,7 @@
     .well {
       aspect-ratio: var(--picture-aspect);
       max-height: 440px;
-      padding: 0;
+      padding: var(--gl-editor-well-margin);
       border-radius: 0;
     }
   }

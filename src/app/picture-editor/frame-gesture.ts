@@ -15,26 +15,42 @@ export interface PictureBox {
   readonly height: number;
 }
 
-/** What a pointer went down on. */
+/** How far, in CSS pixels, a pointer travels before a tap becomes a drag. */
+export const DRAG_THRESHOLD_PX = 8;
+
+/** What a pointer went down on: one of the active frame's corners, or anywhere else on the picture. */
 export type GestureTarget =
-  | { readonly kind: "frame" }
-  | { readonly kind: "corner"; readonly corner: Corner }
-  | { readonly kind: "other" };
+  { readonly kind: "picture" } | { readonly kind: "corner"; readonly corner: Corner };
+
+/** How a gesture ended once its last pointer is up. */
+export type GestureEnd =
+  | { readonly kind: "tap" }
+  | { readonly kind: "framing"; readonly framing: Framing }
+  | { readonly kind: "none" };
 
 type Gesture =
   | { readonly kind: "move"; readonly start: Framing; readonly from: PagePoint }
-  | { readonly kind: "resize"; readonly start: Framing; readonly corner: Corner }
+  | {
+      readonly kind: "resize";
+      readonly start: Framing;
+      readonly from: PagePoint;
+      readonly corner: Corner;
+    }
   | { readonly kind: "pinch"; readonly start: Framing; readonly distance: number };
 
 /**
- * The active frame's pointer gestures: one pointer inside the frame moves it, one on a corner
- * resizes it, two pointers anywhere on the picture pinch its zoom. Pure: page points in, framings out.
+ * The active frame's pointer gestures: one pointer anywhere on the picture moves it by the
+ * pointer's travel, one on a corner resizes it, two pointers pinch its zoom. A single pointer
+ * changes nothing until it has travelled `DRAG_THRESHOLD_PX`; one that goes up before is a tap.
+ * Pure: page points in, framings out.
  */
 export class FrameGesture {
   readonly #size: Size;
   readonly #pointers = new Map<number, PagePoint>();
   #gesture: Gesture | null = null;
   #latest: Framing | null = null;
+  /** A single pointer has travelled past the threshold, or a second one joined. */
+  #dragging = false;
 
   constructor(size: Size) {
     this.#size = size;
@@ -54,14 +70,12 @@ export class FrameGesture {
     this.#pointers.set(pointerId, point);
     if (this.#pointers.size === 2) {
       this.#gesture = { kind: "pinch", start, distance: this.#distance() };
+      this.#dragging = true;
       return true;
-    }
-    if (target.kind === "other") {
-      return false;
     }
     this.#gesture =
       target.kind === "corner"
-        ? { kind: "resize", start, corner: target.corner }
+        ? { kind: "resize", start, from: point, corner: target.corner }
         : { kind: "move", start, from: point };
     return true;
   }
@@ -73,6 +87,13 @@ export class FrameGesture {
       return null;
     }
     this.#pointers.set(pointerId, point);
+    if (gesture.kind !== "pinch" && !this.#dragging) {
+      const travel = Math.hypot(point.x - gesture.from.x, point.y - gesture.from.y);
+      if (travel < DRAG_THRESHOLD_PX) {
+        return null;
+      }
+      this.#dragging = true;
+    }
     switch (gesture.kind) {
       case "move":
         this.#latest = movedFraming(
@@ -100,15 +121,20 @@ export class FrameGesture {
     return this.#latest;
   }
 
-  /** The framing to store once the last pointer is up; null before that or without a change. */
-  up(pointerId: number): Framing | null {
+  /** How the gesture ended, once its last pointer is up; "none" before that. */
+  up(pointerId: number): GestureEnd {
     if (!this.#pointers.delete(pointerId) || this.#pointers.size > 0) {
-      return null;
+      return { kind: "none" };
     }
     const done = this.#latest;
+    const tapped = !this.#dragging;
     this.#gesture = null;
     this.#latest = null;
-    return done;
+    this.#dragging = false;
+    if (tapped) {
+      return { kind: "tap" };
+    }
+    return done === null ? { kind: "none" } : { kind: "framing", framing: done };
   }
 
   #distance(): number {

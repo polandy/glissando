@@ -31,6 +31,6 @@ export const deEditor = {
   "editor.alreadyAutomatic": "Die Bewegung ist schon automatisch",
   "editor.motionAutomatic": "Bewegung wieder automatisch",
   "editor.hintWide":
-    "Im Rahmen ziehen verschiebt, an den Ecken ziehen zoomt · Mausrad zoomt · Pfeiltasten, + und −",
+    "Ziehen verschiebt den Rahmen, an den Ecken ziehen zoomt · Mausrad zoomt · Pfeiltasten, + und −",
   "editor.hintNarrow": "Rahmen ziehen verschiebt, Ecken oder zwei Finger zoomen.",
 } as const satisfies Record<string, Message>;
