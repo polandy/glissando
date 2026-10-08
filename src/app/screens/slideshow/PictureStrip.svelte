@@ -8,12 +8,15 @@
   let {
     pictures,
     selectedId,
+    draggable,
     onSelect,
     onRemove,
     onMove,
   }: {
     pictures: readonly PictureTile[];
     selectedId: string | null;
+    /** Tiles can be dragged: a mouse is the primary pointer. */
+    draggable: boolean;
     onSelect: (pictureId: string | null) => void;
     onRemove: (pictureId: string) => void;
     onMove: (pictureId: string, toIndex: number) => void;
@@ -23,6 +26,16 @@
   let draggedId = $state<string | null>(null);
   let dropMark = $state<{ readonly id: string; readonly after: boolean } | null>(null);
   const lastPicture = $derived(pictures.length < 2);
+
+  // A selected tile stays in view, clear of the selection bar (the tiles' scroll margin).
+  $effect(() => {
+    if (selectedId !== null) {
+      strip
+        .querySelector(`[data-picture-id="${selectedId}"]`)
+        ?.closest("li")
+        ?.scrollIntoView({ block: "nearest" });
+    }
+  });
 
   /** The grid's column count, for moving up and down by a row. */
   function columns(): number {
@@ -132,6 +145,7 @@
       {picture}
       number={index + 1}
       selected={picture.id === selectedId}
+      {draggable}
       dragging={picture.id === draggedId}
       drop={dropMark?.id === picture.id ? (dropMark.after ? "after" : "before") : null}
       removable={!lastPicture}

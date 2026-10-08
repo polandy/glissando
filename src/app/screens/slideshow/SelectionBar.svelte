@@ -3,7 +3,10 @@
   import { keepToastsClear } from "../../components/toast-clearance";
   import { getTranslator } from "../../i18n/context";
 
-  /** What a selected picture tile offers, fixed to the bottom of the viewport. */
+  /**
+   * What a selected picture tile offers, fixed to the bottom of the viewport. Its height and
+   * inset come from the screen, which keeps that much room below its content.
+   */
   let {
     index,
     count,
@@ -49,7 +52,7 @@
   .dock {
     position: fixed;
     left: 50%;
-    bottom: 16px;
+    bottom: var(--selection-bar-inset);
     z-index: 10;
     display: grid;
     justify-items: center;
@@ -60,6 +63,8 @@
   .bar {
     display: flex;
     align-items: center;
+    box-sizing: border-box;
+    height: var(--selection-bar-height);
     gap: 4px;
     padding: 6px;
     border: 1px solid var(--gl-line);
@@ -73,16 +78,19 @@
     border-color: transparent;
     background: transparent;
   }
-  .bar .btn:hover:not(:disabled, [aria-disabled="true"]) {
-    background: var(--gl-hover);
-  }
-  .bar .remove:hover:not([aria-disabled="true"]) {
-    background: color-mix(in srgb, var(--gl-coral) 22%, var(--gl-surface));
-  }
   .bar .done,
   .bar .done:hover {
     background: var(--gl-inverse-bg);
     color: var(--gl-inverse-text);
+  }
+  /* A touch screen keeps the last tapped button "hovered": highlight for a mouse only. */
+  @media (hover: hover) {
+    .bar .btn:hover:not(:disabled, [aria-disabled="true"], .done) {
+      background: var(--gl-hover);
+    }
+    .bar .remove:hover:not([aria-disabled="true"]) {
+      background: color-mix(in srgb, var(--gl-coral) 22%, var(--gl-surface));
+    }
   }
   .count {
     padding: 0 8px 0 6px;
@@ -99,7 +107,6 @@
     .dock {
       left: 8px;
       right: 8px;
-      bottom: 10px;
       max-width: none;
       justify-items: stretch;
       translate: none;

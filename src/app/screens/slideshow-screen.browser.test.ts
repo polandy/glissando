@@ -28,7 +28,10 @@ function details(ids: readonly string[], overrides: Partial<SlideshowDetails> = 
   return { ...base, ...overrides };
 }
 
-function mountScreen(slideshow: SlideshowDetails = details(["a", "b", "c"])) {
+function mountScreen(
+  slideshow: SlideshowDetails = details(["a", "b", "c"]),
+  { mousePointer = true, saving = false } = {},
+) {
   const calls = {
     removed: [] as string[],
     moved: [] as [string, number][],
@@ -43,6 +46,8 @@ function mountScreen(slideshow: SlideshowDetails = details(["a", "b", "c"])) {
     onMove: (pictureId: string, toIndex: number) => calls.moved.push([pictureId, toIndex]),
     onRename: (typed: string) => calls.renamed.push(typed),
     onDelete: () => (calls.deletes += 1),
+    mousePointer,
+    saving,
   });
   destroy = mounted.destroy;
   return { target: mounted.target, calls };
@@ -201,6 +206,56 @@ describe("SlideshowScreen editing", () => {
 
     expect(calls.moved).toEqual([["a", 2]]);
     expect(third.classList.contains("drop-after")).toBe(false);
+  });
+
+  it("lets tiles be dragged with a mouse only, so touch never starts a native drag", () => {
+    mountScreen(details(["a", "b"]), { mousePointer: false });
+    const items = [...document.querySelectorAll<HTMLElement>(".strip > li")];
+
+    expect(items).toHaveLength(2);
+    expect(items.map((item) => item.draggable)).toEqual([false, false]);
+    destroy();
+
+    mountScreen(details(["a", "b"]), { mousePointer: true });
+    const draggable = [...document.querySelectorAll<HTMLElement>(".strip > li")];
+    expect(draggable.map((item) => item.draggable)).toEqual([true, true]);
+  });
+
+  it("keeps a selected tile of the last row above the selection bar, scrolled to the end", () => {
+    const ids = Array.from({ length: 30 }, (_, index) => `p${index}`);
+    const pictures = ids.map((id) => ({
+      id,
+      thumbnailUrl: PIXEL,
+      capturedAt: "2025-07-01T10:00:00Z",
+    }));
+    mountScreen(details(ids, { pictures }));
+    const last = document.querySelector<HTMLElement>(".strip > li:last-child button.pick");
+    if (last === null) {
+      throw new Error("no last tile");
+    }
+    window.scrollTo(0, document.documentElement.scrollHeight);
+
+    last.click();
+    flushSync();
+    const bar = selectionBar();
+    expect(bar).not.toBeNull();
+    expect(last.getBoundingClientRect().bottom).toBeLessThanOrEqual(
+      bar?.getBoundingClientRect().top ?? 0,
+    );
+
+    window.scrollTo(0, document.documentElement.scrollHeight);
+    expect(last.getBoundingClientRect().bottom).toBeLessThanOrEqual(
+      bar?.getBoundingClientRect().top ?? 0,
+    );
+  });
+
+  it("marks the screen busy while an edit is being saved", () => {
+    const { target } = mountScreen(details(["a", "b"]), { saving: true });
+    expect(target.querySelector(".screen")?.getAttribute("aria-busy")).toBe("true");
+    destroy();
+
+    const saved = mountScreen(details(["a", "b"]), { saving: false });
+    expect(saved.target.querySelector(".screen")?.getAttribute("aria-busy")).toBe("false");
   });
 
   it("calls the order the user's own once it was changed", () => {

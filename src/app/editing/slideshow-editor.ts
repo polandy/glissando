@@ -34,6 +34,8 @@ interface RemovalBatch {
 export class SlideshowEditor {
   readonly #ports: SlideshowEditorPorts;
   readonly #listeners = new Set<(slideshow: StoredSlideshow) => void>();
+  readonly #savingListeners = new Set<(saving: boolean) => void>();
+  #unsaved = 0;
   #slideshow: StoredSlideshow;
   #batch: RemovalBatch | null = null;
   #saving: Promise<void> = Promise.resolve();
@@ -51,6 +53,15 @@ export class SlideshowEditor {
   subscribe(listener: (slideshow: StoredSlideshow) => void): () => void {
     this.#listeners.add(listener);
     return () => this.#listeners.delete(listener);
+  }
+
+  /**
+   * Called with `true` when an edit starts storing and `false` once every edit made so far is
+   * stored (or reported as failed); returns the unsubscribe function.
+   */
+  subscribeSaving(listener: (saving: boolean) => void): () => void {
+    this.#savingListeners.add(listener);
+    return () => this.#savingListeners.delete(listener);
   }
 
   /** The last picture stays; asking to remove it explains why in a toast. */
@@ -104,11 +115,29 @@ export class SlideshowEditor {
 
   #apply(slideshow: StoredSlideshow): void {
     this.#slideshow = slideshow;
+    this.#unsaved += 1;
+    if (this.#unsaved === 1) {
+      this.#notifySaving(true);
+    }
     // IndexedDB commits write transactions on one store in the order they were created.
-    const saved = this.#ports.store.saveSlideshow(slideshow).catch(this.#ports.onError);
+    const saved = this.#ports.store
+      .saveSlideshow(slideshow)
+      .catch(this.#ports.onError)
+      .then(() => {
+        this.#unsaved -= 1;
+        if (this.#unsaved === 0) {
+          this.#notifySaving(false);
+        }
+      });
     this.#saving = Promise.all([this.#saving, saved]).then(() => undefined);
     for (const listener of this.#listeners) {
       listener(slideshow);
+    }
+  }
+
+  #notifySaving(saving: boolean): void {
+    for (const listener of this.#savingListeners) {
+      listener(saving);
     }
   }
 }

@@ -8,6 +8,7 @@
     picture,
     number,
     selected,
+    draggable,
     dragging,
     drop,
     removable,
@@ -23,6 +24,8 @@
     /** The position in play order, from 1. */
     number: number;
     selected: boolean;
+    /** Only a mouse drags: a native drag would take over a touch meant to scroll or select. */
+    draggable: boolean;
     dragging: boolean;
     /** Where a dragged picture would land, beside this one. */
     drop: "before" | "after" | null;
@@ -47,7 +50,7 @@
   class:dragging
   class:drop-before={drop === "before"}
   class:drop-after={drop === "after"}
-  draggable="true"
+  {draggable}
   ondragstart={onDragStart}
   ondragover={onDragOver}
   ondrop={onDrop}
@@ -86,6 +89,8 @@
   .tile {
     position: relative;
     aspect-ratio: 4 / 3;
+    /* The screen's room for the selection bar, while it is shown. */
+    scroll-margin-bottom: var(--selection-clearance, 0px);
     border-radius: var(--gl-radius-tile);
     background: var(--gl-hover);
   }

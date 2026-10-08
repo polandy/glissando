@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onDestroy, onMount } from "svelte";
+  import { MediaQuery } from "svelte/reactivity";
   import { titleForCaptureRange } from "../../compose";
   import {
     SlideshowNotFoundError,
@@ -14,6 +15,7 @@
   import type { Toaster } from "../toast/toaster";
   import PlayerLayer from "./PlayerLayer.svelte";
   import { loadSlideshowScreen } from "./route-loading";
+  import { MOUSE_POINTER_QUERY } from "../screens/slideshow/pointer";
 
   let {
     store,
@@ -42,6 +44,8 @@
 
   let stored = $state.raw<StoredSlideshow | null>(null);
   let editor: SlideshowEditor | null = null;
+  let saving = $state(false);
+  const mousePointer = new MediaQuery(MOUSE_POINTER_QUERY);
   // The store is fixed for the screen's lifetime.
   // svelte-ignore state_referenced_locally
   const thumbnails = new ObjectUrls({
@@ -59,6 +63,7 @@
           stored = loaded.stored;
           editor = createEditor(loaded.stored);
           editor.subscribe((edited) => (stored = edited));
+          editor.subscribeSaving((isSaving) => (saving = isSaving));
         }
       },
       (error: unknown) => {
@@ -116,6 +121,8 @@
     onMove={(pictureId, toIndex) => editor?.move(pictureId, toIndex)}
     onRename={(typed) => editor?.rename(typed)}
     onDelete={deleteSlideshow}
+    mousePointer={mousePointer.current}
+    {saving}
   />
 {/if}
 {#if playing && stored !== null}

@@ -17,6 +17,8 @@
     onMove,
     onRename,
     onDelete,
+    mousePointer,
+    saving,
   }: {
     slideshow: SlideshowDetails;
     onBack: () => void;
@@ -26,6 +28,10 @@
     onRename: (typed: string) => void;
     /** The user confirmed deleting the whole slideshow. */
     onDelete: () => void;
+    /** The primary pointer is a mouse (hovers, fine): tiles can be dragged. */
+    mousePointer: boolean;
+    /** An edit is being stored. */
+    saving: boolean;
   } = $props();
 
   const { t, formatDuration } = getTranslator();
@@ -60,7 +66,7 @@
   }
 </script>
 
-<div class="screen">
+<div class="screen" class:selecting={selectedIndex >= 0} aria-busy={saving}>
   <Header crumbs={[t("start.library"), slideshow.title]} {onBack}>
     {#snippet actions()}
       <MoreMenu onDelete={() => (confirmingDelete = true)} />
@@ -68,7 +74,7 @@
   </Header>
   <main class="content">
     <div class="detail">
-      <div class="pictures" class:selecting={selectedIndex >= 0}>
+      <div class="pictures">
         <button class="preview" type="button" aria-label={t("slideshow.play")} onclick={onPlay}>
           <img src={slideshow.coverUrl} alt="" />
           <span class="play"><Icon name="play" /></span>
@@ -95,6 +101,7 @@
         <PictureStrip
           pictures={slideshow.pictures}
           {selectedId}
+          draggable={mousePointer}
           onSelect={(pictureId) => (selectedId = pictureId)}
           {onRemove}
           {onMove}
@@ -207,14 +214,31 @@
   .sorted {
     margin: 3px 0 0;
   }
-  /* Room below the last tiles for the selection bar fixed over them. */
-  .pictures.selecting {
-    padding-bottom: 80px;
+  /*
+   * Room below the content for the selection bar fixed over it, so the last row scrolls clear;
+   * a tile scrolled into view keeps the same distance (StripTile's scroll margin).
+   */
+  .screen {
+    --selection-bar-height: 54px;
+    --selection-bar-inset: 16px;
+    --selection-bar-gap: 12px;
+  }
+  .screen.selecting {
+    --selection-clearance: calc(
+      var(--selection-bar-height) + var(--selection-bar-inset) + var(--selection-bar-gap)
+    );
+  }
+  .screen.selecting .content {
+    padding-bottom: var(--selection-clearance);
   }
   .narrow-hint {
     display: none;
   }
   @container (max-width: 720px) {
+    /* A container query styles descendants only: the bar and the content inherit this. */
+    .screen > :global(*) {
+      --selection-bar-inset: 10px;
+    }
     .detail {
       grid-template-columns: 1fr;
     }

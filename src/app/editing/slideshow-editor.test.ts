@@ -140,6 +140,19 @@ describe("SlideshowEditor", () => {
     ]);
   });
 
+  it("reports saving from the first edit until every edit made so far is stored", async () => {
+    const { editor } = await setUp();
+    const saving: boolean[] = [];
+    editor.subscribeSaving((isSaving) => saving.push(isSaving));
+
+    editor.rename("Sommer am See");
+    editor.move("a", 2);
+
+    expect(saving).toEqual([true]);
+    await editor.settled();
+    expect(saving).toEqual([true, false]);
+  });
+
   it("reports a failed save instead of swallowing it", async () => {
     const { editor, store, errors } = await setUp();
     const failure = new Error("disk full");

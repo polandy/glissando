@@ -87,8 +87,10 @@
     height: 32px;
     color: var(--gl-muted);
   }
-  .rename:hover {
-    color: var(--gl-ink);
+  @media (hover: hover) {
+    .rename:hover {
+      color: var(--gl-ink);
+    }
   }
   .title-input {
     width: 100%;

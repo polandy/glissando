@@ -27,7 +27,8 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
   facts — pictures, duration, music, seconds per picture, Ken Burns "automatic", transitions
   "alternating". The info panel and the player always use the edited picture list.
 - **Editing the slideshow** (`editing/slideshow-editor.ts`; pure operations in
-  `src/library/slideshow-edits.ts`): every edit applies at once and is stored.
+  `src/library/slideshow-edits.ts`): every edit applies at once and is stored; the screen is
+  `aria-busy` from an edit until every edit so far is stored.
   - **Remove**: a ✕ on a tile, "Remove" in the selection bar, or Delete/Backspace on a focused
     tile — never confirmed. The ✕ and the drag grip are for a mouse only (`(hover: hover) and
 (pointer: fine)`): shown on hover and on the selected tile; touch has neither and uses the
@@ -39,8 +40,10 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
     slideshow.", keeping the selection.
   - **Select and reorder**: a tap on a tile selects it (outlined in the accent; another tap
     deselects) and opens the selection bar at the bottom — "Picture 3 of 12" (hidden up to
-    720 px, where the bar spans the width), "◀ Earlier", "Later ▶", "Remove", "Done". Pointer:
-    drag a tile onto another; a dashed lemon line before or after the target shows where it
+    720 px, where the bar spans the width), "◀ Earlier", "Later ▶", "Remove", "Done". While the
+    bar shows, the content keeps room below it for the bar, and the selected tile scrolls clear
+    of it. The bar's buttons highlight on hover only where the pointer hovers. Mouse: drag a
+    tile onto another (tiles are draggable only with a mouse, so a touch never starts a drag); a dashed lemon line before or after the target shows where it
     lands. Keyboard: arrows move the focus (and a selection) through the grid, Shift+arrows move
     the tile (up and down by a row), Enter or Space selects, Esc deselects.
   - **Rename**: ✎ turns the title into a field (at most 80 characters): Enter or leaving it
