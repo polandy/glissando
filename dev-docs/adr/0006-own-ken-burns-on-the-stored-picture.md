@@ -40,3 +40,4 @@ which may carry the field; version 1 files are still read.
 - Records in IndexedDB need no migration: a record without the field is all automatic.
 - A picture's caption follows the same pattern: an optional `caption`, `.glissando` version 3
   (how it is drawn: ADR-0007).
+- A picture's own duration and transition follow it as well: `.glissando` version 4 (ADR-0008).

@@ -66,7 +66,13 @@ motion is automatic (ADR-0006). `setPictureKenBurns` validates it before it is s
 (`checkOwnKenBurns`, failing loud with the field and value); records without it need no
 migration. A picture's optional `caption` is the one line shown with it in the player, stored
 as `normalizeCaption` leaves the typed text (`setPictureCaption`: whitespace runs become one
-space, trimmed, at most 80 characters counted in graphemes; nothing left deletes the field). `mediaBytes`
+space, trimmed, at most 80 characters counted in graphemes; nothing left deletes the field). A
+picture's optional `durationMs` is how long it shows (whole ms, 2000 to 15000 in steps of 500)
+and its optional `transition` how it hands over to the next picture (one of
+`TRANSITION_CHOICES`: the player's six effects or `"cut"`); absent, each is automatic and no
+transition length is ever stored (ADR-0008). `setPictureDuration` and `setPictureTransition`
+validate them (`checkOwnDurationMs`, `checkTransitionChoice`) and delete the field for
+`undefined`; records without them need no migration. `mediaBytes`
 measures what a slideshow's pictures (both renditions) and music take, in one read-only
 transaction, for the export's size estimate. `deleteSlideshow` deletes the
 record and, in the same transaction, the media no other slideshow references.
@@ -101,18 +107,20 @@ entries are stored, not compressed, so any unzip tool opens it; no ZIP64, so it 
 
 | Entry                  | Content                                                                |
 | ---------------------- | ---------------------------------------------------------------------- |
-| `glissando.json`       | always first: `format` "glissando", `formatVersion` 3, the `slideshow` |
+| `glissando.json`       | always first: `format` "glissando", `formatVersion` 4, the `slideshow` |
 | `pictures/0001.jpg` …  | the display renditions in play order, as stored (numbered from 0001)   |
 | `thumbnails/0001.jpg`… | their thumbnails, as stored                                            |
 | `music/track.<ext>`    | the music, extension from its file name (none when it has none)        |
 
 `slideshow` is the stored record without device ids: `title`, `createdAt`, `secondsPerPicture`,
 `ownOrder` (only when true), `pictures` (`file`, `thumbnail`, `capturedAt`, `width`, `height`,
-`fileName`, `kenBurns` for a picture with an own motion and `caption` for one with a caption) and `music` (`file`, `fileName`, `durationMs`, `mimeType`). Picture types follow
+`fileName`, `kenBurns` for a picture with an own motion, `caption` for one with a caption,
+`durationMs` and `transition` for one with an own duration or transition) and `music` (`file`, `fileName`, `durationMs`, `mimeType`). Picture types follow
 the extension (`jpg`, `png`, `webp`). The manifest is read strictly: an unknown key or a value
-out of range makes the file damaged. Version 2 added `kenBurns`, version 3 `caption`; files of
-versions 1 and 2 are still read, and a file carrying a field its version does not know is
-damaged. A caption must be what `normalizeCaption` leaves (1 to 80 characters counted in graphemes, one line, no
+out of range makes the file damaged. Version 2 added `kenBurns`, version 3 `caption`, version 4
+`durationMs` and `transition`; files of versions 1 to 3 are still read, and a file carrying a
+field its version does not know is damaged. An own duration or transition is checked as on the
+edit; the reason names its path and value. A caption must be what `normalizeCaption` leaves (1 to 80 characters counted in graphemes, one line, no
 leading, trailing or repeated whitespace); the reason names its path and value.
 
 - **Export** (`exportSlideshow`) reads the media from the store one file at a time and builds

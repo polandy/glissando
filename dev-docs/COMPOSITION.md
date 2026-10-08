@@ -9,11 +9,13 @@ I/O, no subject detection.
   the user's own once they reordered the pictures.
 - **Title**: the month, or month range, the pictures were captured in, formatted with
   `Intl.DateTimeFormat(locale, …).formatRange`; a title the user emptied falls back to it.
-- **Durations**: with music, the track's length splits evenly across the pictures (the
-  remainder milliseconds go to the first slides, so the sum matches the track exactly) — unless
-  that split would fall below `MIN_SECONDS_PER_PICTURE`, in which case every slide gets the
-  minimum and the slideshow outlasts the music. Without music, every slide gets
-  `secondsPerPicture`.
+- **Durations** (`slideDurationsMs`): a picture's own duration (`StoredPicture.durationMs`,
+  ADR-0008) is kept exactly. Without music, every other slide gets `secondsPerPicture`. With
+  music, the pictures without an own duration share what the own durations leave of the track
+  evenly (the remainder milliseconds go to the first of them, so the sum matches the track
+  exactly) — unless that share would fall below `MIN_SECONDS_PER_PICTURE` (or nothing is left),
+  in which case each of them gets the minimum and the slideshow outlasts the music. When every
+  picture has an own duration, the music plays no part in the timing.
 - **Ken Burns**: zoom alternates in/out by slide index between `MIN_KEN_BURNS_ZOOM` and 1.2; a
   gentle horizontal pan alternates direction with it. A portrait picture's centre is raised
   toward where faces usually sit; a landscape picture's centre stays in the middle. Easing is
@@ -23,17 +25,20 @@ I/O, no subject detection.
   its picture.
 - **Caption**: a picture's caption (`StoredPicture.caption`) becomes its slide's `caption`; a
   picture without one gets none. There is no automatic caption.
-- **Transitions**: effects cycle through `TRANSITION_EFFECTS` in order (so none repeats back to
-  back); the last slide has none (ADR-0002). A transition's duration is 30% of its slide's
-  duration, capped at 1000 ms.
+- **Transitions** (`pictureTransition`): the automatic effect cycles through
+  `TRANSITION_EFFECTS` in order by position (`autoTransitionEffect`, so none repeats back to
+  back). A picture's own transition (`StoredPicture.transition`, ADR-0008) replaces it wherever
+  the picture sits; `"cut"` composes a slide without `transitionToNext`. The last slide has none
+  (ADR-0002), even with an own one stored. A transition's duration, own effect or automatic, is
+  30% of its slide's duration, capped at 1000 ms (`transitionDurationMs`).
 
 ## Entry points
 
 - `buildStoredSlideshow` applies the order and title to a fresh import.
 - `composeSlideshow` turns a stored slideshow into the player's JSON, resolving picture and
   music ids to URLs through an injected `SlideshowSources`.
-- `slideshowDurationMs` sums a stored slideshow's slide durations, for a "12 pictures · 1:00"
-  summary.
+- `slideshowDurationMs` sums a stored slideshow's slide durations, own ones included, for a
+  "12 pictures · 1:00" summary.
 
 See `dev-docs/adr/0002-transitions-inside-slide-durations.md` for why a transition runs inside
 its slide's duration, and `dev-docs/PLAYER.md` for the JSON contract these functions produce.
