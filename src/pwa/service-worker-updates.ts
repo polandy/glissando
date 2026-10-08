@@ -43,6 +43,7 @@ export function registerServiceWorker({
 }): ServiceWorkerUpdates {
   const listeners: (() => void)[] = [];
   let waiting: WorkerPort | null = null;
+  const tracked = new WeakSet<WorkerPort>();
   let requested = false;
   let takenOver = false;
 
@@ -51,6 +52,18 @@ export function registerServiceWorker({
     for (const listener of listeners) {
       listener();
     }
+  }
+
+  function trackInstalling(installing: WorkerPort | null): void {
+    if (installing === null || tracked.has(installing)) {
+      return;
+    }
+    tracked.add(installing);
+    installing.addEventListener("statechange", () => {
+      if (installing.state === INSTALLED && container.controller !== null) {
+        reportWaiting(installing);
+      }
+    });
   }
 
   container.addEventListener("controllerchange", () => {
@@ -71,13 +84,11 @@ export function registerServiceWorker({
       if (registration.waiting !== null && container.controller !== null) {
         reportWaiting(registration.waiting);
       }
+      // A version may have started installing before registering resolved: its updatefound
+      // has passed already.
+      trackInstalling(registration.installing);
       registration.addEventListener("updatefound", () => {
-        const installing = registration.installing;
-        installing?.addEventListener("statechange", () => {
-          if (installing.state === INSTALLED && container.controller !== null) {
-            reportWaiting(installing);
-          }
-        });
+        trackInstalling(registration.installing);
       });
     })
     .catch(onError);

@@ -1,9 +1,28 @@
 import { describe, expect, it } from "vitest";
-import { cacheNameFor, cachesToDelete, versionsAfterActivating } from "./app-caches";
+import {
+  cacheNameFor,
+  cachesToDelete,
+  cachesToSearch,
+  versionsAfterActivating,
+  versionsCacheFor,
+} from "./app-caches";
+
+const SCOPE = "https://example.org/app/";
+const OTHER_SCOPE = "https://example.org/app/other/";
 
 describe("cacheNameFor", () => {
   it("names one cache per version", () => {
-    expect(cacheNameFor("abc123")).toBe("glissando-app-abc123");
+    expect(cacheNameFor(SCOPE, "v1")).not.toBe(cacheNameFor(SCOPE, "v2"));
+  });
+
+  it("keeps installs below different paths of one host apart", () => {
+    expect(cacheNameFor(SCOPE, "v1")).not.toBe(cacheNameFor(OTHER_SCOPE, "v1"));
+    expect(versionsCacheFor(SCOPE)).not.toBe(versionsCacheFor(OTHER_SCOPE));
+  });
+
+  it("gives no scope a name that starts like another scope's caches", () => {
+    const longer = "https://example.org/app/-v1/";
+    expect(cacheNameFor(longer, "x").startsWith(cacheNameFor(SCOPE, ""))).toBe(false);
   });
 });
 
@@ -40,12 +59,37 @@ describe("versionsAfterActivating", () => {
 });
 
 describe("cachesToDelete", () => {
-  it("deletes every app cache except the kept versions", () => {
-    const names = ["glissando-app-v1", "glissando-app-v2", "glissando-app-v3"];
-    expect(cachesToDelete(names, ["v2", "v3"])).toEqual(["glissando-app-v1"]);
+  it("deletes every app cache of its scope except the kept versions", () => {
+    const names = ["v1", "v2", "v3"].map((version) => cacheNameFor(SCOPE, version));
+    expect(cachesToDelete(names, SCOPE, ["v2", "v3"])).toEqual([cacheNameFor(SCOPE, "v1")]);
   });
 
-  it("leaves caches that are not the app's alone", () => {
-    expect(cachesToDelete(["glissando-versions", "someone-else"], ["v1"])).toEqual([]);
+  it("leaves another install's caches on the same host alone", () => {
+    const names = [cacheNameFor(OTHER_SCOPE, "v1"), versionsCacheFor(OTHER_SCOPE)];
+    expect(cachesToDelete(names, SCOPE, ["v2"])).toEqual([]);
+  });
+
+  it("leaves its versions record and caches that are not the app's alone", () => {
+    expect(cachesToDelete([versionsCacheFor(SCOPE), "someone-else"], SCOPE, ["v1"])).toEqual([]);
+  });
+});
+
+describe("cachesToSearch", () => {
+  it("searches the current version first, though the previous one's cache is older", () => {
+    const names = [cacheNameFor(SCOPE, "old"), cacheNameFor(SCOPE, "new")];
+    expect(cachesToSearch(names, SCOPE, "new")).toEqual([
+      cacheNameFor(SCOPE, "new"),
+      cacheNameFor(SCOPE, "old"),
+    ]);
+  });
+
+  it("searches neither the versions record nor another install's caches", () => {
+    const names = [
+      versionsCacheFor(SCOPE),
+      cacheNameFor(OTHER_SCOPE, "new"),
+      cacheNameFor(SCOPE, "new"),
+      "someone-else",
+    ];
+    expect(cachesToSearch(names, SCOPE, "new")).toEqual([cacheNameFor(SCOPE, "new")]);
   });
 });

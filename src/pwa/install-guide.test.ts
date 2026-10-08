@@ -53,6 +53,20 @@ const cases: readonly {
     guide: "mac-safari",
   },
   {
+    browser: "Safari 17.0 on the Mac, the first with Add to Dock",
+    userAgent:
+      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15",
+    maxTouchPoints: NO_TOUCH,
+    guide: "mac-safari",
+  },
+  {
+    browser: "Safari 16 on the Mac, which cannot install a web app",
+    userAgent:
+      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Safari/605.1.15",
+    maxTouchPoints: NO_TOUCH,
+    guide: null,
+  },
+  {
     browser: "Chrome on the Mac",
     userAgent:
       "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",

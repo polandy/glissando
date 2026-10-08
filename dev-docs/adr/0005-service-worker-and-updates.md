@@ -17,9 +17,12 @@ tab or in another one. Every dependency is pinned and weighed (`CODING_PRINCIPLE
   contents. The service worker imports nothing, so the emitted file is a plain classic script
   that every supported browser registers.
 - **Cache first, per version.** Installing caches the whole list in a cache named after the
-  version; requests are answered from the caches, navigations with the cached `index.html`; only
-  what is not cached goes to the network. Activating deletes every cache except the current and
-  the previous version, so a tab still running the previous version keeps finding its files.
+  version; the app's own requests are answered from the current version's cache, navigations
+  with its `index.html`; a miss looks in the previous version's cache, so a tab still running
+  that version keeps finding its files; only what neither holds goes to the network, as does
+  every request to another origin. Activating deletes every cache except the current and the
+  previous version. Cache names carry the worker's scope, so installs below different paths of
+  one host never touch each other's caches.
 - **No automatic takeover.** A new version installs in the background and waits (no
   `skipWaiting` on install). It takes over by itself once every Glissando window is closed, so
   the next launch runs it. Meanwhile the start screen's footer offers "Reload"; only that click

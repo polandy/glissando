@@ -180,17 +180,18 @@ its update rule: ADR-0005. Web app manifest and icons in `public/`; the PNG icon
   installed. Elsewhere it reads "Install as app" and opens a sheet with the steps of that
   browser (`pwa/install-guide.ts`, from the user agent):
   - iPhone and iPad (every iOS browser): Share → "Add to Home Screen" → "Add".
-  - Safari on the Mac: menu "File" → "Add to Dock…" → "Add".
+  - Safari 17 or newer on the Mac: menu "File" → "Add to Dock…" → "Add".
   - Firefox on Android: menu ⋮ → "Add to Home screen" → "Add".
   - Firefox on the computer: titled "Firefox does not install apps"; Glissando still runs
     offline here at the same address; as its own window: open it in Chrome, Edge or Safari.
-  - Chromium before its prompt arrived, and any other browser: no hint.
+  - Chromium before its prompt arrived, Safari before 17 on the Mac, and any other browser: no
+    hint.
 - **Persistent storage refused** also offers "Install as app" in its dialog (same action as the
   hint) while installing is possible.
 - **Running installed with a told refusal**: at startup storage is requested again, since
   browsers grant it to installed apps without asking.
-- **Updates**: "Reload" asks the waiting version to take over, then this tab reloads; other tabs
-  keep running their version until their next start.
+- **Updates**: "Reload" asks the waiting version to take over, then this tab reloads into the
+  new version; other tabs keep running their version until their next start.
 
 ## Navigation
 

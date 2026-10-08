@@ -10,7 +10,9 @@ const IOS_DEVICE = /iPhone|iPad|iPod/;
 const MAC = /Macintosh/;
 const ANDROID = /Android/;
 const FIREFOX = /Firefox\//;
-const SAFARI = /Version\/[\d.]+.*Safari\//;
+const SAFARI = /Version\/(\d+)[\d.]*.*Safari\//;
+/** "Add to Dock…" exists from Safari 17 on. */
+const FIRST_MAC_SAFARI_WITH_DOCK = 17;
 const OTHER_BROWSER_ON_WEBKIT = /Chrome\/|Chromium\/|Edg\/|OPR\//;
 // iPadOS presents itself as a Mac; only its touch screen tells it apart.
 const IPAD_MIN_TOUCH_POINTS = 2;
@@ -27,7 +29,13 @@ export function installGuideFor({
   if (FIREFOX.test(userAgent)) {
     return ANDROID.test(userAgent) ? "firefox-android" : "firefox-desktop";
   }
-  if (mac && SAFARI.test(userAgent) && !OTHER_BROWSER_ON_WEBKIT.test(userAgent)) {
+  const safariMajor = SAFARI.exec(userAgent)?.[1];
+  if (
+    mac &&
+    safariMajor !== undefined &&
+    Number(safariMajor) >= FIRST_MAC_SAFARI_WITH_DOCK &&
+    !OTHER_BROWSER_ON_WEBKIT.test(userAgent)
+  ) {
     return "mac-safari";
   }
   return null;

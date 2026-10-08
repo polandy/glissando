@@ -105,6 +105,30 @@ describe("registerServiceWorker", () => {
     expect(waiting()).toBe(1);
   });
 
+  it("reports a new version that was already installing when registering resolved", async () => {
+    const { container, start } = setUp();
+    const worker = new FakeWorker();
+    container.registration.installing = worker;
+    const updates = start();
+    const waiting = waitingCount(updates);
+    await updates.registered;
+    expect(waiting()).toBe(0);
+    worker.become("installed");
+    expect(waiting()).toBe(1);
+  });
+
+  it("reports an installing version once, though updatefound announces it again", async () => {
+    const { container, start } = setUp();
+    const worker = new FakeWorker();
+    container.registration.installing = worker;
+    const updates = start();
+    const waiting = waitingCount(updates);
+    await updates.registered;
+    container.registration.dispatchEvent(new Event("updatefound"));
+    worker.become("installed");
+    expect(waiting()).toBe(1);
+  });
+
   it("reports no update for the first install, which has nothing to replace", async () => {
     const { container, start } = setUp(false);
     const updates = start();

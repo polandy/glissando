@@ -1,31 +1,46 @@
 // The service worker (ADR-0005), emitted as the classic script `sw.js`: it imports nothing the
 // app imports, and the build writes the precache list into it.
-import { cacheNameFor, cachesToDelete, versionsAfterActivating } from "./app-caches";
-import type { SkipWaitingMessage } from "./messages";
+import { cacheNameFor, cachesToSearch, versionsCacheFor } from "./app-caches";
+import { forgetOldVersions, isSkipWaiting, type VersionStorePorts } from "./lifecycle";
 import { parsePrecache, PRECACHE_PLACEHOLDER } from "./precache";
-import { respond } from "./respond";
+import { answersRequest, respond } from "./respond";
 
 declare const self: ServiceWorkerGlobalScope;
 
 const precache = parsePrecache(PRECACHE_PLACEHOLDER);
+const SCOPE = self.registration.scope;
 const INDEX_URL = new URL("index.html", self.location.href).href;
-// Which versions were activated, oldest first, so activating knows the previous one.
-const VERSIONS_CACHE = "glissando-versions";
-const VERSIONS_URL = new URL("versions.json", self.location.href).href;
-const SKIP_WAITING_TYPE: SkipWaitingMessage["type"] = "SKIP_WAITING";
-const GET = "GET";
+const CURRENT_CACHE = cacheNameFor(SCOPE, precache.version);
+const VERSIONS_CACHE = versionsCacheFor(SCOPE);
+// The record's key in its own cache, which no request is ever looked up in.
+const VERSIONS_RECORD = new URL("?glissando-versions-record", SCOPE).href;
+
+const versionStore: VersionStorePorts = {
+  async readRecord() {
+    const stored = await (await caches.open(VERSIONS_CACHE)).match(VERSIONS_RECORD);
+    if (stored === undefined) {
+      return undefined;
+    }
+    const record: unknown = await stored.json();
+    return record;
+  },
+  async writeRecord(versions) {
+    const record = new Response(JSON.stringify(versions));
+    await (await caches.open(VERSIONS_CACHE)).put(VERSIONS_RECORD, record);
+  },
+  cacheNames: () => caches.keys(),
+  deleteCache: (name) => caches.delete(name),
+};
 
 self.addEventListener("install", (event) => {
   // Revalidated, so an unhashed file such as index.html never comes from a stale HTTP cache.
   const requests = precache.files.map((file) => new Request(file, { cache: "no-cache" }));
   // No skipWaiting: a new version waits until the app reloads (ADR-0005).
-  event.waitUntil(
-    caches.open(cacheNameFor(precache.version)).then((cache) => cache.addAll(requests)),
-  );
+  event.waitUntil(caches.open(CURRENT_CACHE).then((cache) => cache.addAll(requests)));
 });
 
 self.addEventListener("activate", (event) => {
-  event.waitUntil(forgetOldVersions());
+  event.waitUntil(forgetOldVersions(versionStore, SCOPE, precache.version));
 });
 
 self.addEventListener("message", (event) => {
@@ -35,40 +50,19 @@ self.addEventListener("message", (event) => {
 });
 
 self.addEventListener("fetch", (event) => {
-  if (event.request.method !== GET) {
+  if (!answersRequest(event.request, self.location.origin)) {
     return;
   }
   event.respondWith(
     respond(event.request, {
       indexUrl: INDEX_URL,
-      match: (url) => caches.match(url),
+      caches: async () =>
+        Promise.all(
+          cachesToSearch(await caches.keys(), SCOPE, precache.version).map((name) =>
+            caches.open(name),
+          ),
+        ),
       fetch: (request) => fetch(request),
     }),
   );
 });
-
-async function forgetOldVersions(): Promise<void> {
-  const versions = await caches.open(VERSIONS_CACHE);
-  const kept = versionsAfterActivating(await seenVersions(versions), precache.version);
-  await versions.put(VERSIONS_URL, new Response(JSON.stringify(kept)));
-  const stale = cachesToDelete(await caches.keys(), kept);
-  await Promise.all(stale.map((name) => caches.delete(name)));
-}
-
-async function seenVersions(versions: Cache): Promise<string[]> {
-  const stored = await versions.match(VERSIONS_URL);
-  if (stored === undefined) {
-    return [];
-  }
-  const seen: unknown = await stored.json();
-  if (!Array.isArray(seen) || !seen.every((version) => typeof version === "string")) {
-    throw new Error(`the stored versions are invalid: ${JSON.stringify(seen)}`);
-  }
-  return seen;
-}
-
-function isSkipWaiting(data: unknown): data is SkipWaitingMessage {
-  return (
-    typeof data === "object" && data !== null && "type" in data && data.type === SKIP_WAITING_TYPE
-  );
-}
