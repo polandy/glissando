@@ -1,6 +1,13 @@
 import { expect, test, type Page } from "@playwright/test";
 import { exportedFile } from "../src/glissando-file/testing/glissando-fixtures";
-import { chooseFiles, createSlideshow, GERMAN_BROWSER, openImport } from "./support/app";
+import {
+  captionPicture,
+  chooseFiles,
+  createSlideshow,
+  definitionOf,
+  GERMAN_BROWSER,
+  openImport,
+} from "./support/app";
 import { openApp } from "./support/browser";
 import { holdPictureStore } from "./support/hold-pictures";
 import { blobFile, textFile } from "./support/media";
@@ -27,6 +34,8 @@ test("E2E-015 a slideshow exported from its menu opens again from the library as
 }, testInfo) => {
   await openApp(page);
   await createSlideshow(page, ["2025-07-12", "2025-07-14"], 2);
+  await captionPicture(page, "Bild 1, aufgenommen am 12.07.2025", "Abends am Steg");
+  await expect(definitionOf(page, "Bildtitel")).toHaveText("1 von 2");
 
   await page.getByRole("button", { name: "Mehr" }).click();
   const exportItem = page.getByRole("menuitem", { name: /^Exportieren/ });
@@ -55,6 +64,7 @@ test("E2E-015 a slideshow exported from its menu opens again from the library as
     status(page, `Geöffnet als „${TITLE} (2)“, „${TITLE}“ bleibt unverändert.`),
   ).toBeVisible();
   await expect(openingOverlay(page)).toHaveCount(0);
+  await expect(definitionOf(page, "Bildtitel")).toHaveText("1 von 2");
 });
 
 test("E2E-016 a file that is no .glissando file is refused in the library and stores nothing", async ({
