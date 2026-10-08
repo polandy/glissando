@@ -1,9 +1,9 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import type { StoredSlideshow } from "../library/stored-slideshow";
   import Dialog from "./components/Dialog.svelte";
   import Toast from "./components/Toast.svelte";
   import { getTranslator } from "./i18n/context";
+  import { ImportFlow } from "./import/import-flow";
   import ImportRoute from "./import/ImportRoute.svelte";
   import type { ImportSession } from "./import/import-session";
   import type { Route } from "./navigation/route";
@@ -17,8 +17,13 @@
 
   // The services are wired once, by the composition root.
   // svelte-ignore state_referenced_locally
-  const { store, navigator, toaster, reportError, persistencePrompt } = services;
+  const { store, navigator, toaster, reportError } = services;
   const { t } = getTranslator();
+  // svelte-ignore state_referenced_locally
+  const importFlow = new ImportFlow<ImportSession>({
+    ...services,
+    createdText: () => t("import.created"),
+  });
 
   let route = $state.raw<Route>(navigator.route);
   let toast = $state.raw<ToastMessage | null>(toaster.current);
@@ -34,37 +39,21 @@
         logoPlays = false;
       }
       if (next.screen === "import") {
-        importSession ??= services.newImportSession();
+        importFlow.ensureSession();
       }
       route = next;
     });
     const stopToast = toaster.subscribe((next) => (toast = next));
+    const stopImport = importFlow.subscribe((next) => {
+      importSession = next.session;
+      persistRefused = next.persistRefused;
+    });
     return () => {
       stopRoute();
       stopToast();
+      stopImport();
     };
   });
-
-  function openImport(): void {
-    importSession ??= services.newImportSession();
-    navigator.open({ screen: "import", step: "pictures" });
-  }
-
-  function discardImport(leave: boolean): void {
-    importSession?.discard().then(services.deleteAbandonedMedia, reportError);
-    if (leave) {
-      importSession = null;
-      navigator.back();
-    }
-  }
-
-  function created(slideshow: StoredSlideshow): void {
-    importSession = null;
-    services.deleteAbandonedMedia();
-    navigator.open({ screen: "slideshow", slideshowId: slideshow.id });
-    toaster.show({ text: t("import.created"), tone: "info" });
-    persistencePrompt.afterCreate().then((refused) => (persistRefused = refused), reportError);
-  }
 
   function musicUnreadable(retry: () => void): void {
     toaster.show({
@@ -80,7 +69,7 @@
     {store}
     playStartAnimation={logoPlays}
     onError={reportError}
-    onCreate={openImport}
+    onCreate={() => importFlow.open()}
     onOpen={(slideshowId) => navigator.open({ screen: "slideshow", slideshowId })}
   />
 {:else if route.screen === "import" && importSession !== null}
@@ -92,8 +81,8 @@
     onMusicUnreadable={musicUnreadable}
     onToMusic={() => navigator.open({ screen: "import", step: "music" })}
     onBack={() => navigator.back()}
-    onDiscard={discardImport}
-    onCreated={created}
+    onDiscard={(leave) => void importFlow.discard(leave)}
+    onCreated={(slideshow) => void importFlow.created(slideshow.id)}
   />
 {:else if route.screen === "slideshow" || route.screen === "player"}
   {@const slideshowId = route.slideshowId}
@@ -118,7 +107,11 @@
     title={t("storage.persistRefusedTitle")}
     message={t("storage.persistRefusedText")}
     actions={[
-      { label: t("common.understood"), tone: "mint", onSelect: () => (persistRefused = false) },
+      {
+        label: t("common.understood"),
+        tone: "mint",
+        onSelect: () => importFlow.dismissPersistNotice(),
+      },
     ]}
   />
 {/if}
