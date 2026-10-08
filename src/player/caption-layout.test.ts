@@ -67,6 +67,17 @@ describe("breakCaption", () => {
     ]);
   });
 
+  it("breaks a long word between graphemes, never inside a flag", () => {
+    const flag = "🇨🇭";
+    /** A flag is two code points, each 10 pixels wide: 90 pixels hold four and a half flags. */
+    const perCodePoint = (text: string): number => [...text].length * 10;
+
+    expect(breakCaption(flag.repeat(6), 90, perCodePoint)).toEqual([
+      flag.repeat(4),
+      flag.repeat(2),
+    ]);
+  });
+
   it("never drops below one character a line, however narrow", () => {
     expect(breakCaption("Steg", 5, monospace)).toEqual(["S", "…"]);
   });

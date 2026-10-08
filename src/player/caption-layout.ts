@@ -1,3 +1,4 @@
+import { graphemes } from "./caption";
 import type { Size } from "./ken-burns";
 
 /**
@@ -117,13 +118,13 @@ function withEllipsis(text: string, fits: (line: string) => boolean): string {
   return prefix.trimEnd() + CAPTION_ELLIPSIS;
 }
 
-/** Counted in characters; never shorter than `minimumCharacters`, even when that does not fit. */
+/** Counted in graphemes, never cut inside one; never shorter than `minimumCharacters`, even when that does not fit. */
 function longestFittingPrefix(
   text: string,
   fits: (line: string) => boolean,
   minimumCharacters: number,
 ): string {
-  const characters = [...text];
+  const characters = graphemes(text);
   let count = characters.length;
   while (count > minimumCharacters && !fits(characters.slice(0, count).join(""))) {
     count -= 1;

@@ -3,7 +3,10 @@
  * library, the `.glissando` file and the slideshow JSON.
  */
 
-/** Counted in code points, so an emoji is one character as the user sees it. */
+/**
+ * Counted in graphemes (user-perceived characters), so an emoji, a flag or a letter with a
+ * combining mark is one character as the user sees it.
+ */
 export const MAX_CAPTION_LENGTH = 80;
 
 /** What a stored or parsed caption must be; error messages name it as the fix. */
@@ -11,8 +14,22 @@ export const CAPTION_RULE = `a single-line string of 1 to ${MAX_CAPTION_LENGTH} 
 
 const WHITESPACE_RUN = /\s+/g;
 
+const graphemeSegmenter = new Intl.Segmenter(undefined, { granularity: "grapheme" });
+
+/** `text` split into graphemes, the units the caption limit counts and a line may break between. */
+export function graphemes(text: string): string[] {
+  return Array.from(graphemeSegmenter.segment(text), ({ segment }) => segment);
+}
+
+/** The length the caption limit counts: graphemes. */
 export function captionLength(text: string): number {
-  return [...text].length;
+  return graphemes(text).length;
+}
+
+/** `text` cut to at most `MAX_CAPTION_LENGTH` graphemes, never inside one; otherwise as is. */
+export function withinCaptionLimit(text: string): string {
+  const all = graphemes(text);
+  return all.length <= MAX_CAPTION_LENGTH ? text : all.slice(0, MAX_CAPTION_LENGTH).join("");
 }
 
 /**
@@ -21,7 +38,7 @@ export function captionLength(text: string): number {
  */
 export function normalizeCaption(typed: string): string | undefined {
   const collapsed = typed.replace(WHITESPACE_RUN, " ").trim();
-  const normal = [...collapsed].slice(0, MAX_CAPTION_LENGTH).join("").trimEnd();
+  const normal = withinCaptionLimit(collapsed).trimEnd();
   return normal === "" ? undefined : normal;
 }
 

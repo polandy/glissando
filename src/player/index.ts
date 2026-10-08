@@ -1,7 +1,7 @@
 /** The player engine's public API; the app imports nothing else from `src/player/`. */
 export { type OpenPicture } from "./browser/picture-loader";
 export { animationFrames, performanceClock } from "./browser/platform";
-export { captionLength, MAX_CAPTION_LENGTH, normalizeCaption } from "./caption";
+export { captionLength, MAX_CAPTION_LENGTH, normalizeCaption, withinCaptionLimit } from "./caption";
 export { captionStyles } from "./caption-style";
 export { createPlayer } from "./create-player";
 export { layerTransform } from "./dom/layer-transform";

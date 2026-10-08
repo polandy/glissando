@@ -66,7 +66,7 @@ motion is automatic (ADR-0006). `setPictureKenBurns` validates it before it is s
 (`checkOwnKenBurns`, failing loud with the field and value); records without it need no
 migration. A picture's optional `caption` is the one line shown with it in the player, stored
 as `normalizeCaption` leaves the typed text (`setPictureCaption`: whitespace runs become one
-space, trimmed, at most 80 characters in code points; nothing left deletes the field). `mediaBytes`
+space, trimmed, at most 80 characters counted in graphemes; nothing left deletes the field). `mediaBytes`
 measures what a slideshow's pictures (both renditions) and music take, in one read-only
 transaction, for the export's size estimate. `deleteSlideshow` deletes the
 record and, in the same transaction, the media no other slideshow references.
@@ -112,7 +112,7 @@ entries are stored, not compressed, so any unzip tool opens it; no ZIP64, so it 
 the extension (`jpg`, `png`, `webp`). The manifest is read strictly: an unknown key or a value
 out of range makes the file damaged. Version 2 added `kenBurns`, version 3 `caption`; files of
 versions 1 and 2 are still read, and a file carrying a field its version does not know is
-damaged. A caption must be what `normalizeCaption` leaves (1 to 80 characters, one line, no
+damaged. A caption must be what `normalizeCaption` leaves (1 to 80 characters counted in graphemes, one line, no
 leading, trailing or repeated whitespace); the reason names its path and value.
 
 - **Export** (`exportSlideshow`) reads the media from the store one file at a time and builds

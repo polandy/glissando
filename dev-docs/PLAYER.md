@@ -39,7 +39,8 @@ are rejected.
   `ease-in-out` (cubic).
 - **Transitions**: `crossfade`, `push-left`, `wipe-right`, `circle-open`, `zoom-in`,
   `dissolve`. A missing `transitionToNext` is a hard cut; the last slide has none.
-- **Caption** (optional): one line of 1 to 80 characters (counted in code points) without
+- **Caption** (optional): one line of 1 to 80 characters (counted in graphemes, so an emoji, a flag or a
+  letter with a combining mark is one) without
   leading, trailing or repeated whitespace, as `normalizeCaption` leaves typed text; absent
   means none. Anything else is a `SlideshowFormatError` at `slides[i].caption`. The format
   version stays 1: the field is optional and nothing existing changed.

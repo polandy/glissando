@@ -4,6 +4,9 @@ import { button, element, mountEditor, unmountEditor, view } from "./picture-edi
 
 afterEach(() => unmountEditor());
 
+/** One grapheme of five code points (eight UTF-16 units). */
+const FAMILY = "👨‍👩‍👧";
+
 const field = () => element<HTMLInputElement>('input[type="text"]');
 const counter = () => element(".caption .count").textContent;
 const previewCaption = () => document.querySelector(".preview [data-caption]");
@@ -23,7 +26,6 @@ describe("PictureEditorScreen, the caption", () => {
     expect(element(".caption label").textContent).toBe("Bildtitel");
     expect(field().value).toBe("Am Steg");
     expect(field().placeholder).toBe("z. B. Abends am Steg");
-    expect(field().maxLength).toBe(80);
     expect(field().getAttribute("enterkeyhint")).toBe("done");
     expect(counter()).toBe("7 / 80");
     expect(section.textContent).toContain("Steht im Player unten links");
@@ -36,6 +38,49 @@ describe("PictureEditorScreen, the caption", () => {
 
     expect(calls.captions).toEqual(["Abends "]);
     expect(counter()).toBe("7 / 80");
+  });
+
+  it("caps the text at 80 characters as the counter counts them, a ZWJ emoji as one", () => {
+    const { calls } = mountEditor();
+
+    type(FAMILY.repeat(81));
+
+    expect(field().value).toBe(FAMILY.repeat(80));
+    expect(counter()).toBe("80 / 80");
+    expect(calls.captions.at(-1)).toBe(FAMILY.repeat(80));
+  });
+
+  it("lets 80 emoji in, more than 80 UTF-16 units", () => {
+    mountEditor();
+
+    type("🌅".repeat(80));
+
+    expect(field().hasAttribute("maxlength")).toBe(false);
+    expect(field().value).toBe("🌅".repeat(80));
+    expect(counter()).toBe("80 / 80");
+  });
+
+  it("keeps the caret where it was when a paste in the middle is cut", () => {
+    mountEditor();
+    field().focus();
+    field().value = "a".repeat(85);
+    field().setSelectionRange(41, 41);
+
+    field().dispatchEvent(new Event("input", { bubbles: true }));
+    flushSync();
+
+    expect(field().value).toBe("a".repeat(80));
+    expect(field().selectionStart).toBe(41);
+  });
+
+  it("describes the field by its hint and its counter, under the visible label only", () => {
+    mountEditor(view({ caption: "Am Steg" }));
+
+    const described = (field().getAttribute("aria-describedby") ?? "").split(" ");
+    const descriptions = described.map((id) => document.getElementById(id)?.textContent?.trim());
+    expect(descriptions).toContain("7 / 80");
+    expect(descriptions.some((text) => text?.startsWith("Steht im Player unten links"))).toBe(true);
+    expect(element(".caption").hasAttribute("aria-label")).toBe(false);
   });
 
   it("shows the clear button only while there is text; it empties the field and keeps focus", () => {

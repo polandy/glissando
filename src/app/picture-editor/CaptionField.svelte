@@ -1,5 +1,10 @@
 <script lang="ts">
-  import { captionLength, MAX_CAPTION_LENGTH, normalizeCaption } from "../../player";
+  import {
+    captionLength,
+    MAX_CAPTION_LENGTH,
+    normalizeCaption,
+    withinCaptionLimit,
+  } from "../../player";
   import Icon from "../components/Icon.svelte";
   import { getTranslator } from "../i18n/context";
 
@@ -20,11 +25,27 @@
 
   const { t } = getTranslator();
   const fieldId = $derived(`caption-${pictureId}`);
+  const hintId = $derived(`${fieldId}-hint`);
+  const countId = $derived(`${fieldId}-count`);
   let field = $state<HTMLInputElement>();
 
   function typed(text: string): void {
     value = text;
     onInput(text);
+  }
+
+  /**
+   * Caps the text at the limit the counter counts (graphemes); `maxlength` would count UTF-16
+   * units. A cut keeps the caret where it was, or at the new end.
+   */
+  function input(target: HTMLInputElement): void {
+    const capped = withinCaptionLimit(target.value);
+    if (capped !== target.value) {
+      const caret = Math.min(target.selectionStart ?? capped.length, capped.length);
+      target.value = capped;
+      target.setSelectionRange(caret, caret);
+    }
+    typed(capped);
   }
 
   function clear(): void {
@@ -40,10 +61,10 @@
   }
 </script>
 
-<section class="caption" aria-label={t("editor.caption")}>
+<section class="caption">
   <div class="row">
     <label class="eyebrow" for={fieldId}>{t("editor.caption")}</label>
-    <span class="count mono">
+    <span id={countId} class="count mono">
       {t("editor.captionCount", { count: captionLength(value), max: MAX_CAPTION_LENGTH })}
     </span>
   </div>
@@ -54,11 +75,11 @@
       class="field"
       type="text"
       {value}
-      maxlength={MAX_CAPTION_LENGTH}
+      aria-describedby="{hintId} {countId}"
       enterkeyhint="done"
       autocomplete="off"
       placeholder={t("editor.captionPlaceholder")}
-      oninput={(event) => typed(event.currentTarget.value)}
+      oninput={(event) => input(event.currentTarget)}
       onkeydown={keydown}
       onblur={() => (value = normalizeCaption(value) ?? "")}
     />
@@ -74,7 +95,7 @@
       </button>
     {/if}
   </div>
-  <p class="hint muted">{t("editor.captionHint")}</p>
+  <p id={hintId} class="hint muted">{t("editor.captionHint")}</p>
 </section>
 
 <style>
