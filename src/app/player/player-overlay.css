@@ -17,6 +17,15 @@
   inset: 0;
 }
 
+.player .caption-text {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
 .player .ui {
   position: absolute;
   inset: 0;

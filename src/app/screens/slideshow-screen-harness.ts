@@ -23,6 +23,7 @@ export function details(ids: readonly string[], overrides: Partial<SlideshowDeta
     musicTitle: null,
     ownOrder: false,
     ownMotionCount: 0,
+    captionCount: 0,
     capturedFrom: "2025-07-01T10:00:00Z",
     capturedTo: "2025-07-03T10:00:00Z",
     pictures: ids.map((id, index) => ({

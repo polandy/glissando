@@ -25,6 +25,7 @@ export function view(overrides: Partial<PictureEditorView> = {}): PictureEditorV
     motion: AUTOMATIC,
     ownMotion: false,
     durationMs: 5000,
+    caption: "",
     previousId: "a",
     nextId: "c",
     ...overrides,
@@ -46,6 +47,7 @@ export function mountEditor(shown: PictureEditorView = view(), { reducedMotion =
     swaps: 0,
     resets: 0,
     backs: 0,
+    captions: [] as string[],
   };
   const mounted = mountWithTranslator(PictureEditorScreen, {
     picture: shown,
@@ -56,6 +58,7 @@ export function mountEditor(shown: PictureEditorView = view(), { reducedMotion =
     onChange: (motion: OwnKenBurns) => calls.changed.push(motion),
     onSwap: () => (calls.swaps += 1),
     onReset: () => (calls.resets += 1),
+    onCaption: (typed: string) => calls.captions.push(typed),
     previewPorts: { clock, frames },
     reducedMotion,
     saving: false,

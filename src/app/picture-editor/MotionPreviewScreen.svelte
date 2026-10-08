@@ -1,5 +1,6 @@
 <script lang="ts">
   import {
+    captionStyles,
     cropRect,
     layerTransform,
     MILLISECONDS_PER_SECOND,
@@ -12,7 +13,8 @@
 
   /**
    * A 16:9 screen showing the motion as the player shows it: the same crop (`cropRect`) and the
-   * DOM renderer's transform (`layerTransform`), over the picture at its stored size.
+   * DOM renderer's transform (`layerTransform`), over the picture at its stored size; and the
+   * caption as the player lays it over that screen.
    */
   let {
     size,
@@ -20,6 +22,7 @@
     framing,
     playback,
     durationMs,
+    caption,
     onPlay,
     onPause,
   }: {
@@ -28,6 +31,8 @@
     framing: Framing;
     playback: MotionPreviewState;
     durationMs: number;
+    /** Normalised; absent shows none. */
+    caption: string | undefined;
     onPlay: () => void;
     onPause: () => void;
   } = $props();
@@ -44,6 +49,18 @@
     return layerTransform(cropRect(framing, size, viewport), size, viewport);
   });
   const totalSeconds = $derived(durationMs / MILLISECONDS_PER_SECOND);
+  /** A small screen's caption keeps the player's proportions, readable down to this size. */
+  const PREVIEW_CAPTION_MIN_FONT_SIZE_PX = 10;
+  const captionLook = $derived(
+    captionStyles({ width, height }, 0, PREVIEW_CAPTION_MIN_FONT_SIZE_PX),
+  );
+
+  /** Applies `declarations` to the element's inline style, again whenever they change. */
+  function styled(declarations: Readonly<Record<string, string>>) {
+    return (element: HTMLElement) => {
+      Object.assign(element.style, declarations);
+    };
+  }
 </script>
 
 <div class="preview" bind:clientWidth={width} bind:clientHeight={height}>
@@ -55,6 +72,11 @@
       style:height="{size.height}px"
       style:transform
     />
+  {/if}
+  {#if caption !== undefined && height > 0}
+    <div data-caption {@attach styled(captionLook.band)}>
+      <span {@attach styled(captionLook.text)}>{caption}</span>
+    </div>
   {/if}
 </div>
 <div class="controls">

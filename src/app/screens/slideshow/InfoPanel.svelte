@@ -67,6 +67,15 @@
       <dt>{t("slideshow.transitions")}</dt>
       <dd><span class="pill"><i></i>{t("slideshow.alternating")}</span></dd>
     </div>
+    <div>
+      <dt>{t("slideshow.captions")}</dt>
+      <dd class="mono">
+        {t("slideshow.captionCount", {
+          count: slideshow.captionCount,
+          total: slideshow.pictures.length,
+        })}
+      </dd>
+    </div>
   </dl>
 </aside>
 

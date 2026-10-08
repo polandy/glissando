@@ -7,6 +7,8 @@ export const deEditor = {
   "slideshow.ownMotionBadge": "eigen",
   "slideshow.pictureLabelOwnMotion": "Bild {number}, aufgenommen am {date}, eigene Bewegung",
   "slideshow.automaticWithOwn": "automatisch, {count} eigene",
+  "slideshow.captions": "Bildtitel",
+  "slideshow.captionCount": "{count} von {total}",
   "editor.crumb": "Bild {number}",
   "editor.position": "Bild {number} von {count}",
   "editor.counter": "{number} / {count}",
@@ -33,4 +35,10 @@ export const deEditor = {
   "editor.hintWide":
     "Ziehen verschiebt den Rahmen, an den Ecken ziehen zoomt · Mausrad zoomt · Pfeiltasten, + und −",
   "editor.hintNarrow": "Ziehen verschiebt den Rahmen, Ecken oder zwei Finger zoomen.",
+  "editor.caption": "Bildtitel",
+  "editor.captionPlaceholder": "z. B. Abends am Steg",
+  "editor.captionCount": "{count} / {max}",
+  "editor.captionClear": "Bildtitel leeren",
+  "editor.captionHint":
+    "Steht im Player unten links und blendet mit dem Bild ein und aus. Leer: kein Titel.",
 } as const satisfies Record<string, Message>;

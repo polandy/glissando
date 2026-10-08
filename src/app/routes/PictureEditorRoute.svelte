@@ -72,6 +72,7 @@
       onChange={(motion) => editor.setKenBurns(view.id, motion)}
       onSwap={() => editor.swapKenBurns(view.id)}
       onReset={() => editor.resetKenBurns(view.id)}
+      onCaption={(typed) => editor.setCaption(view.id, typed)}
       previewPorts={{ clock: performanceClock, frames: animationFrames }}
       reducedMotion={reducedMotion.current}
       {saving}

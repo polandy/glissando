@@ -19,6 +19,8 @@ export interface PictureEditorView {
   readonly ownMotion: boolean;
   /** How long the picture's slide shows, so the preview plays the real motion. */
   readonly durationMs: number;
+  /** As stored; empty without one. */
+  readonly caption: string;
   /** The neighbours in play order; null at the ends. */
   readonly previousId: string | null;
   readonly nextId: string | null;
@@ -48,6 +50,7 @@ export function pictureEditorView(stored: StoredSlideshow, pictureId: string): P
     ownMotion: picture.kenBurns !== undefined,
     // One duration per picture: the index is in range.
     durationMs: durationsMs[index] as number,
+    caption: picture.caption ?? "",
     previousId: pictures[index - 1]?.id ?? null,
     nextId: pictures[index + 1]?.id ?? null,
   };

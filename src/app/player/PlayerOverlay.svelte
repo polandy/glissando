@@ -11,6 +11,7 @@
   import { getTranslator } from "../i18n/context";
   import Icon from "../components/Icon.svelte";
   import { browserScheduler, type Scheduler } from "../scheduler";
+  import { captionInset } from "./caption-inset";
   import { ControlsVisibility } from "./controls-visibility";
   import { canFullscreen, enterFullscreen, exitFullscreen, toggleFullscreen } from "./fullscreen";
   import { playerActionForKey, type PlayerAction } from "./player-keys";
@@ -52,7 +53,9 @@
 
   let root: HTMLElement;
   let stage: HTMLElement;
-  let player: ReturnType<typeof createPlayer> | null = null;
+  let bottomBar: HTMLElement;
+  let bottomBarHeight = $state(0);
+  let player = $state.raw<ReturnType<typeof createPlayer> | null>(null);
   let currentTime = $state(0);
   let paused = $state(true);
   let ended = $state(false);
@@ -65,6 +68,7 @@
   const slideCount = $derived(boundaries.starts.length);
   const slideNumber = $derived(slideIndexAt(boundaries, currentTime) + 1);
   const slideDate = $derived(slideDates[slideNumber - 1]);
+  const slideCaption = $derived(slideshow.slides[slideNumber - 1]?.caption ?? "");
   const progress = $derived(boundaries.duration > 0 ? currentTime / boundaries.duration : 0);
   const KEY_HINTS = [
     "player.keyPlay",
@@ -101,6 +105,16 @@
       player = null;
       exitFullscreen();
     };
+  });
+
+  // Captions move up above the bottom controls while they show.
+  $effect(() => {
+    if (player !== null) {
+      player.captionInset = captionInset(controlsVisible, {
+        height: bottomBarHeight,
+        fadeHeight: parseFloat(getComputedStyle(bottomBar).paddingTop),
+      });
+    }
   });
 
   /** A refused music start is no failure: the player pauses, and play retries with a gesture. */
@@ -174,6 +188,8 @@
   <!-- A tap toggles the controls; the keyboard has its own shortcuts. -->
   <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
   <div bind:this={stage} class="stage" onclick={() => controls.toggle()}></div>
+  <!-- The caption is drawn into the picture; screen readers hear it from here. -->
+  <p class="caption-text" aria-live="polite">{slideCaption}</p>
 
   <div class="ui" inert={!controlsVisible}>
     <div class="top" role="group" onpointerdown={() => controls.reveal()}>
@@ -207,7 +223,13 @@
         </button>
       {/if}
     </div>
-    <div class="bottom" role="group" onpointerdown={() => controls.reveal()}>
+    <div
+      bind:this={bottomBar}
+      bind:offsetHeight={bottomBarHeight}
+      class="bottom"
+      role="group"
+      onpointerdown={() => controls.reveal()}
+    >
       <div class="hint" role="note" aria-label={t("player.hint")}>
         {#each KEY_HINTS as key (key)}<kbd class="mono">{t(key)}</kbd>{/each}
       </div>

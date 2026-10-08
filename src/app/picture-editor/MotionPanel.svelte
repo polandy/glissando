@@ -1,14 +1,18 @@
 <script lang="ts">
   import type { OwnKenBurns } from "../../library/own-ken-burns";
-  import type { Framing } from "../../player";
+  import { normalizeCaption, type Framing } from "../../player";
   import Icon from "../components/Icon.svelte";
   import { getTranslator } from "../i18n/context";
   import { FRAME_KEYS, type FrameKey } from "./frame-keys";
   import type { MotionPreviewState } from "./motion-preview";
   import type { PictureEditorView } from "./picture-editor-view";
+  import CaptionField from "./CaptionField.svelte";
   import MotionPreviewScreen from "./MotionPreviewScreen.svelte";
 
-  /** Beside the picture (below it on a phone): which frame is edited, the preview, the actions. */
+  /**
+   * Beside the picture (below it on a phone): which frame is edited, the preview, the actions,
+   * and below them the caption.
+   */
   let {
     picture,
     pictureUrl,
@@ -21,6 +25,8 @@
     onPause,
     onSwap,
     onReset,
+    caption = $bindable(),
+    onCaption,
   }: {
     picture: PictureEditorView;
     pictureUrl: string | null;
@@ -33,6 +39,9 @@
     onPause: () => void;
     onSwap: () => void;
     onReset: () => void;
+    /** The caption as typed. */
+    caption: string;
+    onCaption: (typed: string) => void;
   } = $props();
 
   const { t, formatDate, formatZoom } = getTranslator();
@@ -71,6 +80,7 @@
       framing={previewFraming}
       playback={previewState}
       durationMs={picture.durationMs}
+      caption={normalizeCaption(caption)}
       {onPlay}
       {onPause}
     />
@@ -89,6 +99,7 @@
       </button>
     </div>
   </section>
+  <CaptionField pictureId={picture.id} bind:value={caption} onInput={onCaption} />
 </aside>
 
 <style>

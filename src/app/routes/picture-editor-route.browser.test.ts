@@ -29,6 +29,7 @@ async function mountRoute(pictureId: string) {
   for (const picture of SHOW.pictures) {
     await store.putPicture(picture.id, { display: new Blob([]), thumbnail: new Blob([]) });
   }
+  await store.saveSlideshow(SHOW);
   const errors: unknown[] = [];
   const editor = new SlideshowEditor(SHOW, {
     store,
@@ -55,7 +56,7 @@ async function mountRoute(pictureId: string) {
     onError: (error: unknown) => errors.push(error),
   });
   destroy = mounted.destroy;
-  return { target: mounted.target, backs: () => backs };
+  return { target: mounted.target, backs: () => backs, store, editor, errors };
 }
 
 describe("the picture editor route", () => {
@@ -71,5 +72,21 @@ describe("the picture editor route", () => {
 
     expect(target.querySelector(".pic")).toBeNull();
     expect(backs()).toBe(1);
+  });
+
+  it("stores the caption typed for the picture, normalised", async () => {
+    const { target, store, editor, errors } = await mountRoute("b");
+    const field = target.querySelector<HTMLInputElement>('input[type="text"]');
+    if (field === null) {
+      throw new Error("the caption field is missing");
+    }
+
+    field.value = "Abends  am Steg";
+    field.dispatchEvent(new Event("input", { bubbles: true }));
+    await editor.settled();
+
+    const stored = await store.getSlideshow("show");
+    expect(stored.pictures[1]?.caption).toBe("Abends am Steg");
+    expect(errors).toEqual([]);
   });
 });

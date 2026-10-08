@@ -9,10 +9,15 @@ import PlayerOverlay from "./PlayerOverlay.svelte";
 let destroy = () => {};
 afterEach(() => destroy());
 
-async function openPlayer(musicTitle: string | null = null) {
+async function openPlayer(musicTitle: string | null = null, caption?: string) {
   let closes = 0;
+  const show = await oneSlideShow();
+  const slideshow =
+    caption === undefined
+      ? show
+      : { ...show, slides: show.slides.map((slide) => ({ ...slide, caption })) };
   const mounted = mountWithTranslator(PlayerOverlay, {
-    slideshow: await oneSlideShow(),
+    slideshow,
     musicTitle,
     onClose: () => (closes += 1),
     scheduler: new FakeScheduler(),
@@ -60,6 +65,14 @@ describe("PlayerOverlay", () => {
 
     expect(target.querySelector(".counter")?.textContent).toBe("1 / 1");
     expect(playButton(target).getAttribute("aria-label")).toBe("Pause");
+  });
+
+  it("tells screen readers the current slide's caption, politely", async () => {
+    const { target } = await openPlayer(null, "Abends am Steg");
+
+    const region = target.querySelector('[aria-live="polite"]');
+    expect(region?.textContent).toBe("Abends am Steg");
+    expect(region?.closest("[inert]")).toBeNull();
   });
 
   it("pauses and plays again with the space bar", async () => {
