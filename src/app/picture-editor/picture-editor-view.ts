@@ -35,7 +35,7 @@ export function pictureEditorView(stored: StoredSlideshow, pictureId: string): P
   }
   const { from, to } = pictureKenBurns(index, picture);
   const durationsMs = slideDurationsMs(
-    pictures.length,
+    pictures,
     stored.music?.durationMs,
     stored.secondsPerPicture,
   );

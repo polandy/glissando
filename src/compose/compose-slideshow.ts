@@ -17,7 +17,7 @@ export interface SlideshowSources {
 export function composeSlideshow(stored: StoredSlideshow, sources: SlideshowSources): Slideshow {
   const slideCount = stored.pictures.length;
   const durationsMs = slideDurationsMs(
-    slideCount,
+    stored.pictures,
     stored.music?.durationMs,
     stored.secondsPerPicture,
   );

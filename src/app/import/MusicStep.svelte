@@ -1,6 +1,5 @@
 <script lang="ts">
   import { onDestroy } from "svelte";
-  import { slideDurationsMs } from "../../compose";
   import { UnreadableMusicError } from "../../import/music-probe";
   import { DEFAULT_SECONDS_PER_PICTURE } from "../../library/stored-slideshow";
   import { MILLISECONDS_PER_SECOND } from "../../player";
@@ -11,7 +10,7 @@
   import DropZone from "./DropZone.svelte";
   import ImportFrame from "./ImportFrame.svelte";
   import type { ImportSession } from "./import-session";
-  import { importTiming, musicFormatLabel } from "./import-view";
+  import { importSlideDurationsMs, importTiming, musicFormatLabel } from "./import-view";
 
   let {
     session,
@@ -58,7 +57,7 @@
   );
   // Each picture's share of the track, by the rule the slideshow is composed with.
   const segmentsMs = $derived(
-    slideDurationsMs(pictureCount, choices.music?.durationMs, choices.secondsPerPicture),
+    importSlideDurationsMs(pictureCount, choices.music?.durationMs, choices.secondsPerPicture),
   );
   function choose(files: readonly File[]): void {
     const file = files[0];
