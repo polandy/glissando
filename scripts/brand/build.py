@@ -99,8 +99,9 @@ WORDMARK_TEXT = "Glissando"
 WORDMARK_SIZE = 76
 WORDMARK_LETTER_SPACING = -1
 WORDMARK_CENTER_X = 200
-WORDMARK_BASELINE_Y = 240
-WORDMARK_ROTATION = (-3, 200, 215)
+WORDMARK_BASELINE_Y = 206
+WORDMARK_ROTATION = (-3, 200, 181)
+STACKED_VIEW_BOX = "0 0 400 236"
 
 PLUM = "#2A2340"
 NIGHT_PLUM = "#171223"
@@ -170,7 +171,7 @@ TOKEN_PAINT = LogoPaint(
 
 def stacked_logo(path: str, paint: LogoPaint) -> str:
     angle, cx, cy = WORDMARK_ROTATION
-    return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 270">
+    return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="{STACKED_VIEW_BOX}">
   <g transform="translate(110 0) scale(1.5)" fill="none">
     <g transform="rotate(-14 36 56)"><rect x="10" y="36" width="52" height="40" rx="9" fill="{paint.peach}" stroke="{paint.outline}" stroke-width="4"/></g>
     <g transform="rotate(-2 56 44)"><rect x="30" y="24" width="52" height="40" rx="9" fill="{paint.mint}" stroke="{paint.outline}" stroke-width="4"/></g>
@@ -192,7 +193,7 @@ def animated_logo(path: str, paint: LogoPaint) -> str:
     transform attribute, so the static placement stays on a parent.
     """
     angle, cx, cy = WORDMARK_ROTATION
-    return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 270" role="img" aria-label="{WORDMARK_TEXT}">
+    return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="{STACKED_VIEW_BOX}" role="img" aria-label="{WORDMARK_TEXT}">
   <g transform="translate(110 0) scale(1.5)" fill="none">
     <g class="card card-back"><g transform="rotate(-14 36 56)"><rect x="10" y="36" width="52" height="40" rx="9" fill="{paint.peach}" stroke="{paint.outline}" stroke-width="4"/></g></g>
     <g class="card card-middle"><g transform="rotate(-2 56 44)"><rect x="30" y="24" width="52" height="40" rx="9" fill="{paint.mint}" stroke="{paint.outline}" stroke-width="4"/></g></g>
