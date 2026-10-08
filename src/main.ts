@@ -2,11 +2,92 @@ import { mount } from "svelte";
 import "./styles/tokens.css";
 import "./styles/base.css";
 import App from "./app/App.svelte";
+import { createErrorReporter } from "./app/errors/error-reporter";
+import { translatorContext } from "./app/i18n/context";
+import { createTranslator } from "./app/i18n/translator";
+import { TranslatorState } from "./app/i18n/translator-state.svelte";
+import { ImportSession } from "./app/import/import-session";
+import { createWindowHistory, Navigator } from "./app/navigation/navigator";
+import { randomId } from "./app/random-id";
+import { AppSettings } from "./app/settings/app-settings";
+import { createStorageLanguagePreferenceStore } from "./app/settings/language";
+import { applyThemePreference, createStorageThemePreferenceStore } from "./app/settings/theme";
+import { browserScheduler } from "./app/scheduler";
 import { consumeFirstLaunch, createStorageFirstLaunchStore } from "./app/start/first-launch";
+import {
+  createStorageRefusalNoticeStore,
+  PersistencePrompt,
+} from "./app/storage/persistence-prompt";
+import { Toaster } from "./app/toast/toaster";
+import { decodePicture } from "./import/downscale";
+import { captureDate } from "./import/exif-capture-date";
+import { probeMusic } from "./import/music-probe";
+import { openLibraryStore } from "./library/indexeddb-store";
+import { requestPersistentStorage } from "./library/persistent-storage";
+
+const settings = new AppSettings({
+  themes: createStorageThemePreferenceStore(window.localStorage),
+  languages: createStorageLanguagePreferenceStore(window.localStorage),
+  browserLanguages: window.navigator.languages,
+});
+const translator = new TranslatorState(createTranslator(settings.state.effectiveLanguage));
+// Before anything awaits, so a pinned theme is in place for the first paint; a later choice
+// in the settings sheet applies at once.
+settings.subscribe(({ theme, effectiveLanguage }) => {
+  applyThemePreference(document.documentElement, theme);
+  document.documentElement.lang = effectiveLanguage;
+  if (translator.current.language !== effectiveLanguage) {
+    translator.current = createTranslator(effectiveLanguage);
+  }
+});
 
 const target = document.getElementById("app");
 if (!target) {
   throw new Error("Mount point #app is missing from index.html");
 }
+
+const toaster = new Toaster(browserScheduler);
+const reportError = createErrorReporter({
+  log: (error) => console.error(error),
+  toaster,
+  text: () => translator.current.t("common.unexpectedError"),
+});
+window.addEventListener("error", (event) => reportError(event.error));
+window.addEventListener("unhandledrejection", (event) => reportError(event.reason));
+
+const store = await openLibraryStore(window.indexedDB);
+
+function deleteAbandonedMedia(): void {
+  store.deleteUnreferencedMedia(new Date()).catch(reportError);
+}
+deleteAbandonedMedia();
+
+const services = {
+  store,
+  navigator: new Navigator(createWindowHistory(window)),
+  toaster,
+  reportError,
+  settings,
+  persistencePrompt: new PersistencePrompt(
+    () => requestPersistentStorage(window.navigator.storage),
+    createStorageRefusalNoticeStore(window.localStorage),
+  ),
+  newImportSession: () =>
+    new ImportSession({
+      store,
+      decode: decodePicture,
+      captureDate,
+      probeMusic,
+      newId: () => randomId(crypto),
+      now: () => new Date(),
+      onError: reportError,
+    }),
+  deleteAbandonedMedia,
+};
+
 const playStartAnimation = consumeFirstLaunch(createStorageFirstLaunchStore(window.localStorage));
-mount(App, { target, props: { playStartAnimation } });
+mount(App, {
+  target,
+  props: { services, playStartAnimation },
+  context: translatorContext(translator),
+});

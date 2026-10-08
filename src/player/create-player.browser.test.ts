@@ -8,7 +8,7 @@ afterEach(() => box.remove());
 describe("createPlayer", () => {
   it("falls back to the DOM renderer when the browser has no WebGL2", async () => {
     box = viewportBox({ width: 160, height: 90 });
-    const player = createPlayer(box, await oneSlideShow(), () => null);
+    const player = createPlayer(box, await oneSlideShow(), { webGl2Context: () => null });
 
     await firstFrame(player);
 

@@ -24,7 +24,7 @@ const SAMPLE_GRID = [0.1, 0.3, 0.5, 0.7, 0.9].flatMap((x) =>
 
 let box: HTMLElement;
 
-function setUp() {
+function setUp(onResize: () => void = () => undefined) {
   box = viewportBox(VIEWPORT);
   const canvas = document.createElement("canvas");
   Object.assign(canvas.style, { width: "100%", height: "100%", display: "block" });
@@ -33,12 +33,7 @@ function setUp() {
   if (gl === null) {
     throw new Error("this browser has no WebGL2");
   }
-  const renderer = new WebGlRenderer(
-    canvas,
-    gl,
-    () => undefined,
-    () => 1,
-  );
+  const renderer = new WebGlRenderer(canvas, gl, onResize, () => 1);
   /** Reads straight after drawing, before the browser presents and clears the frame. */
   function drawAndRead(
     frame: RenderFrame<BrowserPicture>,
@@ -52,7 +47,21 @@ function setUp() {
     gl?.readPixels(x, y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel);
     return [pixel[0] ?? 0, pixel[1] ?? 0, pixel[2] ?? 0];
   }
-  return { renderer, drawAndRead };
+  return { renderer, drawAndRead, canvas, gl };
+}
+
+/** Resolves once `type` fires on `target`. */
+function waitFor(target: EventTarget, type: string): Promise<void> {
+  return new Promise((resolve) => target.addEventListener(type, () => resolve(), { once: true }));
+}
+
+/** Resolves in a later task, once the one now running has finished. */
+function afterCurrentTask(): Promise<void> {
+  const channel = new MessageChannel();
+  return new Promise((resolve) => {
+    channel.port1.onmessage = () => resolve();
+    channel.port2.postMessage(null);
+  });
 }
 
 function isColour(actual: Rgb, expected: Rgb): boolean {
@@ -126,6 +135,79 @@ describe("WebGlRenderer", () => {
 
       expect(samples.some((sample) => sample[2] > COLOUR_TOLERANCE)).toBe(true);
       expect(samples.some((sample) => !isColour(sample, BLUE))).toBe(true);
+    });
+  });
+
+  describe("losing and restoring the WebGL context", () => {
+    function loseContextExtension(gl: WebGL2RenderingContext): WEBGL_lose_context {
+      const extension = gl.getExtension("WEBGL_lose_context");
+      if (extension === null) {
+        throw new Error("this browser has no WEBGL_lose_context");
+      }
+      return extension;
+    }
+
+    it("does nothing and never throws from render() while the context is lost", async () => {
+      const { renderer, drawAndRead, canvas, gl } = setUp();
+      const lose = loseContextExtension(gl);
+      const picture = await solidPicture(RED);
+      const frame: RenderFrame<BrowserPicture> = {
+        kind: "slide",
+        slide: { picture, framing: WHOLE_PICTURE },
+      };
+      drawAndRead(frame, 0.5, 0.5);
+
+      const lost = waitFor(canvas, "webglcontextlost");
+      lose.loseContext();
+      await lost;
+
+      expect(() => renderer.render(frame)).not.toThrow();
+      expect(() => renderer.forget(picture)).not.toThrow();
+    });
+
+    it("rebuilds its GL resources and redraws the current frame once the context is restored", async () => {
+      let resolveResize: (() => void) | undefined;
+      const resized = new Promise<void>((resolve) => (resolveResize = resolve));
+      const { drawAndRead, canvas, gl } = setUp(() => resolveResize?.());
+      const lose = loseContextExtension(gl);
+      const picture = await solidPicture(RED);
+      const frame: RenderFrame<BrowserPicture> = {
+        kind: "slide",
+        slide: { picture, framing: WHOLE_PICTURE },
+      };
+      drawAndRead(frame, 0.5, 0.5);
+
+      const lost = waitFor(canvas, "webglcontextlost");
+      lose.loseContext();
+      await lost;
+      // The browser allows a restore only once the task dispatching the lost event has ended;
+      // the listener above resumes us inside that task.
+      await afterCurrentTask();
+      const restored = waitFor(canvas, "webglcontextrestored");
+      lose.restoreContext();
+      await restored;
+      await resized;
+
+      for (const [x, y] of SAMPLE_GRID) {
+        expect(drawAndRead(frame, x, y)).toEqual(RED);
+      }
+    });
+
+    it("leaves dispose() safe to call while the context is lost", async () => {
+      const { renderer, drawAndRead, canvas, gl } = setUp();
+      const lose = loseContextExtension(gl);
+      const picture = await solidPicture(RED);
+      const frame: RenderFrame<BrowserPicture> = {
+        kind: "slide",
+        slide: { picture, framing: WHOLE_PICTURE },
+      };
+      drawAndRead(frame, 0.5, 0.5);
+
+      const lost = waitFor(canvas, "webglcontextlost");
+      lose.loseContext();
+      await lost;
+
+      expect(() => renderer.dispose()).not.toThrow();
     });
   });
 });

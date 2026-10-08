@@ -7,6 +7,9 @@ export const animationFrames: FrameScheduler = {
   cancel: (handle) => cancelAnimationFrame(handle),
 };
 
+/** What a media element's `play()` rejects with when a later `pause()` interrupts it. */
+const INTERRUPTED_PLAY = "AbortError";
+
 export class AudioElementMusic implements MusicPlayback {
   readonly #audio: HTMLAudioElement;
 
@@ -17,7 +20,12 @@ export class AudioElementMusic implements MusicPlayback {
 
   play(atSeconds: number): Promise<void> {
     this.#audio.currentTime = atSeconds;
-    return this.#audio.play();
+    // A pause before the start lands (a quick seek pauses and plays again) is not a refusal.
+    return this.#audio.play().catch((error: unknown) => {
+      if (!(error instanceof DOMException && error.name === INTERRUPTED_PLAY)) {
+        throw error;
+      }
+    });
   }
 
   pause(): void {

@@ -47,8 +47,15 @@ with the transition and ends with its own slide. Transitions are eased `ease-in-
 
 ## Player API
 
-`createPlayer(container, slideshow)` fills a positioned `container` and returns a
-`SlideshowPlayer`, modelled on an HTML video element:
+`createPlayer(container, slideshow, { webGl2Context?, openPicture? })` fills a positioned
+`container` and returns a `SlideshowPlayer`, modelled on an HTML video element. Options:
+
+- `openPicture(src): Promise<Blob>` reads a slide's picture when the player loads it, so
+  `image.src` can be a key such as a stored media id. Each blob gets an object URL for its
+  decode, revoked when the picture is released or fails to decode. Without it, `src` is a URL.
+- `webGl2Context(canvas)` supplies the WebGL2 context; `null` selects the DOM fallback.
+
+The player:
 
 - `play()`, `pause()`, `currentTime` (seconds, settable to seek, clamped), `duration`,
   `paused`, `ended`, `ready` (first frame shown), `error`.
@@ -60,11 +67,12 @@ with the transition and ends with its own slide. Transitions are eased `ease-in-
 Behaviour:
 
 - **Music** follows the player: it starts at `currentTime` on play and after a seek, pauses on
-  pause, while waiting and at the end. A refused `play()` is an `error` and pauses.
+  pause, while waiting and at the end. A refused `play()` is an `error` and pauses; a start
+  interrupted by a pause (a quick seek) is not a refusal.
 - **Pictures** are loaded for the slides on screen plus the next one; all others are released,
   so memory stays bounded. When a frame needs a picture that is not loaded yet, time stops,
   `waiting` fires, and playback goes on from the same moment with `playing`.
-- A picture that fails to load is an `error` (`SlideshowLoadError`) and pauses.
+- A picture that fails to load or open is an `error` (`SlideshowLoadError`) and pauses.
 - `play()` after the end starts from the beginning.
 
 ## Renderers
@@ -72,6 +80,10 @@ Behaviour:
 - **WebGL2** (default): one shader program per transition, compiled up front;
   `ShaderCompileError` carries the driver's log. Pictures become mipmapped textures; the
   canvas follows its CSS size times the device pixel ratio.
+- **Context loss**: on `webglcontextlost` it stops issuing GL calls (`render()` is a no-op, never
+  throwing) until `webglcontextrestored`, when it rebuilds its buffers and shader programs,
+  drops its texture cache (textures are re-uploaded lazily from the still-held pictures), and
+  triggers a redraw of the current frame.
 - **DOM fallback** when the browser has no WebGL2: each slide is its `<img>`, framed by a CSS
   transform; every transition becomes a crossfade.
 

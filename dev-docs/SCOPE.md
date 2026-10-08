@@ -33,7 +33,7 @@ primarily for offline use: once installed it needs neither the internet nor a se
 ## Local first
 
 Everything runs in the browser: playback, Ken Burns, transitions, thumbnails, audio conversion,
-editing and video export (WebCodecs). Slideshows and media live on the device (OPFS/IndexedDB):
+editing and video export (WebCodecs). Slideshows and media live on the device in IndexedDB (ADR-0003):
 
 - **Persistent storage** is requested (`navigator.storage.persist()`) so the browser does not
   evict slideshows on its own.
@@ -63,7 +63,8 @@ capability (e.g. WebCodecs for video export), the feature says so plainly instea
 
 ## Languages
 
-German and English. The UI follows the browser language (English otherwise) and can be switched;
+German and English. The UI follows the browser language (English otherwise) and can be pinned to
+either in the settings;
 all UI copy lives in a message catalogue, never inline.
 
 ## MVP — pictures and music in, a good slideshow out
@@ -89,7 +90,11 @@ Usable end to end by a non-technical user, fully offline:
   the start screen's footer and is offered again when the browser refuses persistent storage.
 
 Interaction rules (the approved mockup:
-https://polandy.github.io/glissando-assets/mockups/mvp-flow/, tab "Konzept"):
+https://polandy.github.io/glissando-assets/mockups/mvp-flow/, tab "Konzept"; the visual
+reference is the approved studio-look mockup:
+https://polandy.github.io/glissando-assets/mockups/studio-look/):
+
+- **Light and dark**: the theme follows the device by default and can be set in the settings.
 
 - **Three levels, never more**: start → slideshow → (import steps | player). The player is a
   modal fullscreen layer, not a place in the navigation; back arrow and browser back do the same.
