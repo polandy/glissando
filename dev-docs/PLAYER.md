@@ -92,6 +92,9 @@ The player:
 
 - `play()`, `pause()`, `currentTime` (seconds, settable to seek, clamped), `duration`,
   `paused`, `ended`, `ready` (first frame shown), `error`.
+- `renderAt(seconds): Promise<void>` (paused only, for the video export): pauses, moves to
+  `seconds` (clamped), waits until that frame's pictures are loaded, draws it, prepares the
+  upcoming pictures and resolves; rejects with the load's error, emits no events.
 - Events: `canplay`, `play`, `playing`, `waiting`, `pause`, `seeked`, `timeupdate` (every drawn
   frame), `ended`, `error`.
 - `captionInset` (CSS pixels, ≥ 0, default 0) lifts every caption from the bottom, e.g. above
@@ -142,7 +145,8 @@ transition, but stands still in screen space, unmoved by the Ken Burns motion. I
 
 - **WebGL2** (default): one shader program per transition, compiled up front;
   `ShaderCompileError` carries the driver's log. The canvas follows its CSS size times the
-  device pixel ratio. Its pictures are `ImageBitmap`s decoded in a worker (`BitmapLoader`,
+  device pixel ratio, or keeps a fixed `drawingSize` (the video export's, with pixel ratio 1).
+  Its pictures are `ImageBitmap`s decoded in a worker (`BitmapLoader`,
   `WorkerPictureDecoder`), upright by their EXIF orientation; a released picture's bitmap is
   closed. Each becomes a mipmapped texture (`picture-textures.ts`), uploaded by `prepare` in
   steps: the storage for the whole mip chain with a first slice of rows, one slice of at most
