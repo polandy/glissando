@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { MusicTrim } from "../../library/own-music";
-  import { MILLISECONDS_PER_SECOND, musicGainAt } from "../../player";
+  import { MILLISECONDS_PER_SECOND } from "../../player";
   import { getTranslator } from "../i18n/context";
   import type { MusicEditorView } from "./music-editor-view";
   import {
@@ -10,8 +10,8 @@
     nearerEdge,
     type TrimEdge,
   } from "./trim-edges";
-  import { waveformPeaks } from "./waveform-peaks";
-  import { barCountFor, percentOf, rulerTicksMs } from "./waveform-scale";
+  import { percentOf, rulerTicksMs } from "./waveform-scale";
+  import WaveformBars from "./WaveformBars.svelte";
 
   /**
    * The whole track as a waveform with the excerpt's two handles, the volume's fade envelope
@@ -48,18 +48,6 @@
     ArrowUp: 1,
   };
   const EDGE_LABELS = { start: "music.start", end: "music.end" } as const;
-  /** The SVG's own units; it stretches to the waveform's box. */
-  const VIEW_WIDTH = 1000;
-  const VIEW_HEIGHT = 100;
-  /** Bars inside a fade never shrink below this share, so the shape stays readable. */
-  const MIN_FADED_SHARE = 0.06;
-  /** A silent bar still shows as a line. */
-  const MIN_BAR_HEIGHT = 1.5;
-  /** Share of a bar's slot the bar fills. */
-  const BAR_FILL = 0.64;
-  /** Where the envelope line rests at full volume, just inside the top. */
-  const ENVELOPE_TOP = 2;
-
   let wave = $state<HTMLDivElement>();
   let width = $state(0);
   let drag: {
@@ -74,35 +62,6 @@
   const pct = (ms: number) => percentOf(ms, music.durationMs);
   const seconds = (ms: number) => ms / MILLISECONDS_PER_SECOND;
 
-  const bars = $derived.by(() => {
-    const count = barCountFor(width);
-    const heights = peaks === null ? Array<number>(count).fill(0) : waveformPeaks(peaks, count);
-    return heights.map((height, index) => {
-      const atMs = ((index + 0.5) / count) * music.durationMs;
-      const inside = atMs >= music.startMs && atMs <= music.audibleEndMs;
-      const gain = inside
-        ? Math.max(MIN_FADED_SHARE, musicGainAt(music.timing, atMs - music.startMs))
-        : 1;
-      return {
-        x: (index / count) * VIEW_WIDTH,
-        height: Math.max(MIN_BAR_HEIGHT, height * gain * VIEW_HEIGHT),
-        inside,
-      };
-    });
-  });
-  const barWidth = $derived((VIEW_WIDTH / barCountFor(width)) * BAR_FILL);
-  const envelope = $derived.by(() => {
-    const { startMs, endMs, fadeInMs, fadeOutMs } = music.timing;
-    const x = (ms: number) => (ms / music.durationMs) * VIEW_WIDTH;
-    return [
-      [x(startMs), fadeInMs > 0 ? VIEW_HEIGHT : ENVELOPE_TOP],
-      [x(startMs + fadeInMs), ENVELOPE_TOP],
-      [x(endMs - fadeOutMs), ENVELOPE_TOP],
-      [x(endMs), fadeOutMs > 0 ? VIEW_HEIGHT : ENVELOPE_TOP],
-    ]
-      .map(([px, py]) => `${px},${py}`)
-      .join(" ");
-  });
   const ticks = $derived(rulerTicksMs(music.durationMs, width));
 
   function atMsOf(event: PointerEvent): number {
@@ -160,30 +119,22 @@
     }
     event.preventDefault();
     const stepMs = event.shiftKey ? ARROW_STEP_LARGE_MS : ARROW_STEP_MS;
-    onCommit(moveTrimEdge(trim, edge, edgeMs(edge, trim) + direction * stepMs, music.durationMs));
+    const moved = moveTrimEdge(
+      trim,
+      edge,
+      edgeMs(edge, trim) + direction * stepMs,
+      music.durationMs,
+    );
+    if (edgeMs(edge, moved) !== edgeMs(edge, trim)) {
+      onCommit(moved);
+    }
   }
 </script>
 
 <svelte:window {onpointermove} onpointerup={release} onpointercancel={release} />
 
 <div class="wave" bind:this={wave} bind:clientWidth={width} {onpointerdown} role="presentation">
-  <svg
-    class="bars"
-    viewBox="0 0 {VIEW_WIDTH} {VIEW_HEIGHT}"
-    preserveAspectRatio="none"
-    aria-hidden="true"
-  >
-    {#each bars as bar, index (index)}
-      <rect
-        class:inside={bar.inside}
-        x={bar.x + (VIEW_WIDTH / bars.length - barWidth) / 2}
-        y={(VIEW_HEIGHT - bar.height) / 2}
-        width={barWidth}
-        height={bar.height}
-      />
-    {/each}
-    <polyline class="envelope" points={envelope} />
-  </svg>
+  <WaveformBars {music} {peaks} {width} />
   <div class="out" style:left="0" style:width={pct(music.startMs)}></div>
   <div class="out" style:left={pct(music.endMs)} style:right="0"></div>
   {#if music.audibleEndMs < music.endMs}
@@ -229,29 +180,6 @@
     user-select: none;
     -webkit-user-select: none;
     cursor: ew-resize;
-  }
-  .bars {
-    position: absolute;
-    inset: 0;
-    display: block;
-    width: 100%;
-    height: 100%;
-    overflow: visible;
-  }
-  .bars rect {
-    fill: var(--gl-faint);
-    fill-opacity: 0.45;
-  }
-  .bars rect.inside {
-    fill: var(--gl-ink);
-    fill-opacity: 0.78;
-  }
-  .envelope {
-    fill: none;
-    stroke: var(--gl-accent);
-    stroke-width: 2.2;
-    stroke-linejoin: round;
-    vector-effect: non-scaling-stroke;
   }
   .out {
     position: absolute;

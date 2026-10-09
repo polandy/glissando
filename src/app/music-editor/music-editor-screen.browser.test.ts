@@ -6,6 +6,7 @@ import {
   mountEditor,
   slideshowWith,
   text,
+  TRACK_MS,
   unmountEditor,
   xOf,
 } from "./music-editor-harness";
@@ -90,6 +91,16 @@ describe("MusicEditorScreen, the excerpt", () => {
       { startMs: 12_100, endMs: 150_000 },
       { startMs: 12_000, endMs: 149_000 },
     ]);
+  });
+
+  it("stores nothing for an arrow key that cannot move the handle any further", () => {
+    const { calls } = mountEditor(slideshowWith());
+    const start = handle("Anfang");
+
+    start.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
+    start.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowLeft", bubbles: true }));
+
+    expect(calls.trims).toEqual([{ startMs: 100, endMs: TRACK_MS }]);
   });
 
   it("steps the start and the end by half a second with − and +", () => {
