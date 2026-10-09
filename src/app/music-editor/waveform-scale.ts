@@ -4,10 +4,8 @@ import { MILLISECONDS_PER_SECOND } from "../../player";
 const RULER_STEPS_MS = [10, 15, 30, 60, 120, 300, 600].map(
   (seconds) => seconds * MILLISECONDS_PER_SECOND,
 );
-/** The room one ruler label needs. */
-const RULER_LABEL_PX = 60;
-/** A tick closer than this share of a step to the end label gives way to it. */
-const END_LABEL_ROOM = 0.5;
+/** The room one ruler label needs; a tick closer to the end label gives way to it. */
+const RULER_LABEL_PX = 80;
 
 /** Where the ruler under a waveform `widthPx` wide labels a track `durationMs` long. */
 export function rulerTicksMs(durationMs: number, widthPx: number): number[] {
@@ -15,7 +13,8 @@ export function rulerTicksMs(durationMs: number, widthPx: number): number[] {
   const stepMs =
     RULER_STEPS_MS.find((step) => durationMs / step <= labels) ?? (RULER_STEPS_MS.at(-1) as number);
   const ticks: number[] = [];
-  for (let atMs = 0; atMs <= durationMs - stepMs * END_LABEL_ROOM; atMs += stepMs) {
+  const endRoomMs = (RULER_LABEL_PX / widthPx) * durationMs;
+  for (let atMs = 0; atMs <= durationMs - endRoomMs; atMs += stepMs) {
     ticks.push(atMs);
   }
   return [...ticks, durationMs];

@@ -13,6 +13,9 @@ describe("rulerTicksMs", () => {
   });
 
   it("leaves out a tick too close to the end label", () => {
+    expect(rulerTicksMs(204_000, 860)).toEqual([
+      0, 30_000, 60_000, 90_000, 120_000, 150_000, 180_000, 204_000,
+    ]);
     expect(rulerTicksMs(185_000, 600)).toEqual([
       0, 30_000, 60_000, 90_000, 120_000, 150_000, 185_000,
     ]);
