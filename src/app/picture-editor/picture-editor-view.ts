@@ -15,6 +15,7 @@ import {
 } from "../../library/own-timing";
 import type { StoredPicture, StoredSlideshow } from "../../library/stored-slideshow";
 import { MILLISECONDS_PER_SECOND, type Size } from "../../player";
+import { focusStatus, type PictureFocusStatus, type PicturesFocus } from "../focus/pictures-focus";
 
 /** What an automatic duration follows: the slideshow's seconds per picture, or the music. */
 export type DurationBasis =
@@ -63,6 +64,8 @@ export interface PictureEditorView {
   /** The motion the picture plays: its own, or the automatic one for its position. */
   readonly motion: OwnKenBurns;
   readonly ownMotion: boolean;
+  /** What the automatic motion aims at, or that the search for it is still to come. */
+  readonly focus: PictureFocusStatus;
   /** How long the picture's slide shows: its own duration or the automatic one. */
   readonly durationMs: number;
   readonly ownDuration: boolean;
@@ -76,7 +79,12 @@ export interface PictureEditorView {
   readonly next: NextPictureView | null;
 }
 
-export function pictureEditorView(stored: StoredSlideshow, pictureId: string): PictureEditorView {
+/** `focus`: the automatic motions aim at it, so the preview plays what the player will. */
+export function pictureEditorView(
+  stored: StoredSlideshow,
+  pictureId: string,
+  focus: PicturesFocus,
+): PictureEditorView {
   const { pictures } = stored;
   const index = pictures.findIndex((picture) => picture.id === pictureId);
   const picture = pictures[index];
@@ -107,8 +115,9 @@ export function pictureEditorView(stored: StoredSlideshow, pictureId: string): P
     fileName: picture.fileName,
     capturedAt: picture.capturedAt,
     size: sizeOf(picture),
-    motion: motionOf(index, picture),
+    motion: motionOf(index, picture, focus),
     ownMotion: picture.kenBurns !== undefined,
+    focus: focusStatus(focus, picture.id),
     durationMs: durationAt(index),
     ownDuration: picture.durationMs !== undefined,
     durationBasis: durationBasis(stored, durationsMs),
@@ -127,7 +136,7 @@ export function pictureEditorView(stored: StoredSlideshow, pictureId: string): P
         ? null
         : {
             size: sizeOf(nextPicture),
-            motion: motionOf(index + 1, nextPicture),
+            motion: motionOf(index + 1, nextPicture, focus),
             durationMs: durationAt(index + 1),
             caption: nextPicture.caption ?? "",
           },
@@ -138,8 +147,8 @@ function sizeOf(picture: StoredPicture): Size {
   return { width: picture.width, height: picture.height };
 }
 
-function motionOf(index: number, picture: StoredPicture): OwnKenBurns {
-  const { from, to } = pictureKenBurns(index, picture);
+function motionOf(index: number, picture: StoredPicture, focus: PicturesFocus): OwnKenBurns {
+  const { from, to } = pictureKenBurns(index, picture, focus.found.get(picture.id));
   return { from, to };
 }
 

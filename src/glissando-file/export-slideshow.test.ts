@@ -58,6 +58,21 @@ describe("exportSlideshow", () => {
     expect(manifest.kind === "ok" && manifest.manifest.slideshow.title).toBe("Herbst in Wien");
   });
 
+  it("carries no picture's focus, even one stored on this device (ADR-0012)", async () => {
+    const store = await storeWithMedia();
+    await store.putPictureFocus("p1", {
+      kind: "subject",
+      box: { x: 0.2, y: 0.1, width: 0.3, height: 0.4 },
+    });
+    expect((await store.pictureFocus(["p1"])).has("p1")).toBe(true);
+
+    const file = await exportSlideshow(slideshow, store, { modifiedAt: MODIFIED });
+
+    const json = (await contents(file))["glissando.json"] ?? "";
+    expect(json).toContain('"capturedAt"');
+    expect(json).not.toMatch(/focus|"box"/i);
+  });
+
   it("reports progress per media file up to all of them", async () => {
     const reported: number[] = [];
     await exportSlideshow(slideshow, await storeWithMedia(), {

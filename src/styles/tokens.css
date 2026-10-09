@@ -73,6 +73,9 @@
   --gl-editor-well: #1d1928;
   --gl-photo-veil: rgb(0 0 0 / 0.46);
   --gl-photo-dashed: rgb(255 255 255 / 0.75);
+  /* Lifts the accent focus marker off any picture, light or dark. */
+  --gl-photo-marker-shadow: drop-shadow(0 0 1px rgb(0 0 0 / 0.75))
+    drop-shadow(0 1px 4px rgb(0 0 0 / 0.35));
 
   /* The player is black in both themes: pictures look best on it. */
   --gl-player-bg: #000000;

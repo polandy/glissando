@@ -90,6 +90,7 @@ async function mountRoute(stored: StoredSlideshow = SHOW) {
     transitionAutomaticText: () => "Übergang wieder automatisch",
     slideshowTransitionResetText: () => "Übergänge wieder auf Überblenden",
     automaticTitle: () => "Juli 2025",
+    focusOf: () => undefined,
   });
   const fake = fakeAudio();
   let backs = 0;

@@ -20,7 +20,11 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
   file". With slideshows: "Library / Your slideshows" with an "Open file" button beside it and a
   card grid —
   a cover of the first three pictures (one large, two small), the title, "12 pictures · 1:00" and a
-  music icon — ending in a dashed "New slideshow" card. A status bar at the bottom
+  music icon — ending in a dashed "New slideshow" card. While the background search for the
+  focus (dev-docs/LIBRARY.md, Looking for the focus) has pictures of a slideshow left, its card
+  adds the line "Looking for subjects · 12 of 40" over a 2 px mint hairline filling with the
+  progress (`screens/FocusSearchLine.svelte`); both go once the slideshow is done, and the card
+  stays fully usable meanwhile. A status bar at the bottom
   (`pwa/StatusBar.svelte`): "Offline · stored on this device", or what
   [Installing and offline](#installing-and-offline) says. A file dragged over the library shows
   the layer "Drop to open the slideshow"; dropped, it opens (below).
@@ -103,7 +107,7 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
   up to 720 px), › next picture (looking disabled at the ends). Back (arrow or browser) returns to
   the slideshow screen with that picture selected. Desktop: a dark well with the whole picture
   left, a 340 px panel right; up to 720 px the well spans the width on top (as high as the
-  picture, at most 440 px), the panel below.
+  picture, at most 440 px, always the full width), the panel below.
   - **Frames**: two 16:9 frames on the picture, "Start" and "End" — exactly what the player
     crops for a 16:9 screen (`frame-geometry.ts` over the player's `cropRect`). The active one is
     solid white with four corner handles and veils the rest of the picture; its label chip sits
@@ -118,6 +122,16 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
     picture's edges into the well's margin (20 px, 24 px on a touch screen, on a phone too, so
     the whole hit area stays on screen). A dashed line joins
     the two centres; while the preview plays, a peach outline runs over the picture with it.
+  - **Focus** (`focus-indication.ts`, `FocusMarker.svelte`, `FocusLine.svelte`): with the
+    automatic motion, accent corner brackets mark the subject box it aims at, with a small
+    "Focus" chip above it (below a box at the picture's top, right-aligned at its right edge);
+    over the frames, never in the way of a drag. Found while the editor is open, the marker
+    settles in (fades in from slightly larger; at once with reduced motion); a focus already
+    known, on opening or on ‹/›, shows at once. Under the picture
+    one quiet line: "No subject found – the motion stays centred." or, while the search is still
+    to come, a pill "Looking for the focus …" with a pulsing mint dot (still with reduced
+    motion). A picture not looked at (its detection failed) shows nothing; nor does an own
+    motion, whose frames say where it goes — back to automatic, the marker returns at once.
   - **Changing a frame**: a drag anywhere on the picture (one pointer, past 8 px, counted from
     where it went down) moves the active frame by the pointer's travel; a corner resizes it about
     the opposite corner (shape kept), the wheel and two fingers anywhere zoom (at once, without
@@ -320,7 +334,15 @@ over real timers.
   each display picture by media id only when it buffers it (`openPicture`), and the music when
   it opens; the music's URL is revoked when it closes. The player shows the music's file name.
 - **Import flow** (`import/import-flow.ts`): the import session, the clean-up when an import
-  ends and the persistence prompt after creating, also after opening a file.
+  ends and, after creating (also after opening a file), the search for the new pictures' focus
+  and the persistence prompt.
+- **Focus** (ADR-0012): the composition root builds the `FocusPass` over the store and the
+  worker's detector and starts it as the app opens (dev-docs/LIBRARY.md, Looking for the focus).
+  The start screen subscribes to it for the cards' progress; the slideshow screen subscribes to
+  it while shown: the picture editor's view carries the
+  picture's focus status (`subject`, `none`, `searching`, `not-looked-at`), and its motion and
+  the swap aim at what is known now. The player reads the stored focus as it opens; a focus that
+  cannot be read is logged and the automatic motions aim at the middle, play goes on.
 - **Export and open** (`glissando-file/`): `App.svelte` owns the `ExportJob` (the header reads
   its progress through a context) and the `OpenFlow` (its overlay and notices); the composition
   root supplies the download (an object URL on a clicked link, revoked a minute later), the free

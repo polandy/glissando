@@ -17,9 +17,11 @@ I/O, no subject detection.
   in which case each of them gets the minimum and the slideshow outlasts the music. When every
   picture has an own duration, the music plays no part in the timing.
 - **Ken Burns**: zoom alternates in/out by slide index between `MIN_KEN_BURNS_ZOOM` and 1.2; a
-  gentle horizontal pan alternates direction with it. A portrait picture's centre is raised
-  toward where faces usually sit; a landscape picture's centre stays in the middle. Easing is
-  always `linear`. A picture with an own motion (set in the picture editor, stored as
+  gentle horizontal pan alternates direction with it. The motion swings around the picture's
+  focus — the centre of the subject box the on-device detection found (`PictureFocus`,
+  ADR-0012), each pan end kept inside the picture. Without a subject (nothing found, or not
+  looked at yet) a portrait picture's centre is raised toward where faces usually sit and a
+  landscape picture's stays in the middle. Easing is always `linear`. A picture with an own motion (set in the picture editor, stored as
   `StoredPicture.kenBurns`, ADR-0006) plays that one instead, wherever it sits, with the same
   easing (`pictureKenBurns`): the automatic motion follows the position, an own one stays with
   its picture.
@@ -46,7 +48,9 @@ I/O, no subject detection.
 
 - `buildStoredSlideshow` applies the order and title to a fresh import.
 - `composeSlideshow` turns a stored slideshow into the player's JSON, resolving picture and
-  music ids to URLs through an injected `SlideshowSources`.
+  music ids to URLs through an injected `SlideshowSources`; the pictures' focus comes in as a
+  map by picture id (`LibraryStore.pictureFocus`), read when the player opens — play never waits
+  on the search for the rest.
 - `slideshowDurationMs` sums a stored slideshow's slide durations, own ones included, for a
   "12 pictures · 1:00" summary.
 

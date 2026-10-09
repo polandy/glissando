@@ -37,6 +37,10 @@ export const deEditor = {
   "editor.hintWide":
     "Ziehen verschiebt den Rahmen, an den Ecken ziehen zoomt · Mausrad zoomt · Pfeiltasten, + und −",
   "editor.hintNarrow": "Ziehen verschiebt den Rahmen, Ecken oder zwei Finger zoomen.",
+  "editor.focusChip": "Fokus",
+  "editor.focusMarker": "Fokus: Gesicht erkannt",
+  "editor.noSubject": "Kein Motiv erkannt – die Bewegung bleibt mittig.",
+  "editor.searchingFocus": "Fokus wird gesucht …",
   "editor.caption": "Bildtitel",
   "editor.captionPlaceholder": "z. B. Abends am Steg",
   "editor.captionCount": "{count} / {max}",

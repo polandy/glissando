@@ -4,6 +4,7 @@ import {
   type StoredMusic,
   type StoredSlideshow,
 } from "../../library/stored-slideshow";
+import type { PictureFocus } from "../../library/picture-focus";
 import { MemoryLibraryStore } from "../../library/testing/memory-store";
 import { FakeScheduler } from "../testing/fake-scheduler";
 import { Toaster } from "../toast/toaster";
@@ -63,8 +64,11 @@ export async function setUp(
   }
   await store.saveSlideshow(initial);
   let claims = 0;
+  /** The pictures' focus as known to the screen; a test sets what the pass found. */
+  const focus = new Map<string, PictureFocus>();
   const editor = new SlideshowEditor(initial, {
     store,
+    focusOf: (pictureId) => focus.get(pictureId),
     toaster,
     newId: () => `claim-${(claims += 1)}`,
     now: () => EDITED_AT,
@@ -112,6 +116,7 @@ export async function setUp(
     return (await store.getSlideshow("show")).pictures.find((picture) => picture.id === id);
   };
   return {
+    focus,
     scheduler,
     toaster,
     store,

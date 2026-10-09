@@ -8,6 +8,8 @@
     wheelZoomedFraming,
     type Corner,
   } from "./frame-geometry";
+  import FocusMarker from "./FocusMarker.svelte";
+  import type { FocusIndication } from "./focus-indication";
   import { FrameGesture } from "./frame-gesture";
   import { tappedFrame, TAP_TOLERANCE_PX } from "./frame-hit";
   import { FRAME_KEYS, type FrameKey } from "./frame-keys";
@@ -25,6 +27,8 @@
     motion,
     active,
     playhead,
+    focus,
+    reducedMotion,
     onActivate,
     onFraming,
   }: {
@@ -35,6 +39,9 @@
     active: FrameKey;
     /** Where the playing preview is, outlined on the picture; null while it is paused. */
     playhead: Framing | null;
+    /** The focus the automatic motion aims at, marked on the picture when there is a box. */
+    focus: FocusIndication;
+    reducedMotion: boolean;
     onActivate: (key: FrameKey) => void;
     /** A frame changed; `final` once a gesture ends, while dragging it is false. */
     onFraming: (key: FrameKey, framing: Framing, final: boolean) => void;
@@ -199,6 +206,7 @@
       {#if playhead !== null}
         <div class="playhead" style={frameStyle(playhead, size)} aria-hidden="true"></div>
       {/if}
+      <FocusMarker indication={focus} {reducedMotion} />
     </div>
   </div>
 </div>
@@ -276,8 +284,9 @@
     }
   }
   @container (max-width: 720px) {
-    /* As high as the picture at full width, up to a cap. */
+    /* As high as the picture at full width, up to a cap; a tall picture keeps the full width. */
     .well {
+      width: 100%;
       aspect-ratio: var(--picture-aspect);
       max-height: var(--gl-editor-well-max-height);
       border-radius: 0;

@@ -3,6 +3,7 @@
   import { MediaQuery } from "svelte/reactivity";
   import type { LibraryStore, StoredSlideshow } from "../../library/stored-slideshow";
   import { animationFrames, performanceClock } from "../../player";
+  import type { PicturesFocus } from "../focus/pictures-focus";
   import type { SlideshowEditor } from "../editing/slideshow-editor";
   import { browserObjectUrls, ObjectUrls } from "../media/object-urls";
   import { REDUCED_MOTION_QUERY } from "../reduced-motion";
@@ -13,6 +14,7 @@
   let {
     store,
     stored,
+    focus,
     editor,
     pictureId,
     saving,
@@ -22,6 +24,8 @@
   }: {
     store: LibraryStore;
     stored: StoredSlideshow;
+    /** The pictures' focus, updated as the background pass finds it. */
+    focus: PicturesFocus;
     editor: SlideshowEditor;
     pictureId: string;
     saving: boolean;
@@ -46,7 +50,7 @@
   });
 
   const present = $derived(stored.pictures.some((picture) => picture.id === pictureId));
-  const view = $derived(present ? pictureEditorView(stored, pictureId) : null);
+  const view = $derived(present ? pictureEditorView(stored, pictureId, focus) : null);
   // The neighbours load ahead, so ‹ and › show their picture at once.
   $effect(() =>
     pictures.sync(

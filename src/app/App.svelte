@@ -166,6 +166,7 @@
 {#if route.screen === "start" || route.screen === "settings"}
   <StartRoute
     {store}
+    focusPass={services.focusPass}
     playStartAnimation={logoPlays}
     onError={reportError}
     onCreate={() => importFlow.open()}
@@ -206,6 +207,7 @@
   {#key slideshowId}
     <SlideshowRoute
       {store}
+      focusPass={services.focusPass}
       {toaster}
       {newId}
       {now}
@@ -228,6 +230,7 @@
       onDeleted={() => leaveWithToast({ navigator, toaster }, t("slideshow.deleted"))}
       onGone={() => leaveWithToast({ navigator, toaster }, t("slideshow.gone"))}
       onError={reportError}
+      log={services.log}
     />
   {/key}
 {/if}

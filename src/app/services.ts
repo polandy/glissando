@@ -1,3 +1,4 @@
+import type { FocusPass } from "../library/focus-pass";
 import type { MusicOutput } from "../player";
 import type { LibraryStore } from "../library/stored-slideshow";
 import type { PwaStatus } from "../pwa/pwa-status";
@@ -24,6 +25,8 @@ export interface AppServices {
   readonly musicOutput: MusicOutput;
   /** Decoding and playing the music in the music editor. */
   readonly musicAudio: MusicEditorAudio;
+  /** Looks for the pictures' focus in the background (ADR-0012); started as the app opens. */
+  readonly focusPass: FocusPass;
   /** Files the installed app was launched with; null where the browser has none. */
   readonly launchQueue: LaunchQueue | null;
   /** The address the app was opened at, e.g. `http://192.168.1.20:4173`. */

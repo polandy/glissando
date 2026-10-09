@@ -160,3 +160,64 @@ describe("IndexedDbLibraryStore schema upgrade", () => {
     }
   });
 });
+
+describe("IndexedDbLibraryStore focus upgrade", () => {
+  /** A library as schema version 2 left it: a slideshow with its picture, no focus store. */
+  function openVersionTwoWithSlideshow(slideshow: StoredSlideshow): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open(LIBRARY_DATABASE_NAME, 2);
+      request.onupgradeneeded = () => {
+        const database = request.result;
+        database.createObjectStore("slideshows", { keyPath: "id" }).put(slideshow);
+        database.createObjectStore("pictures").put(
+          {
+            display: { bytes: new ArrayBuffer(1), type: "image/jpeg" },
+            thumbnail: { bytes: new ArrayBuffer(1), type: "image/jpeg" },
+          },
+          "saved-picture",
+        );
+        database.createObjectStore("music");
+        database.createObjectStore("imports", { keyPath: "id" });
+      };
+      request.onsuccess = () => {
+        request.result.close();
+        resolve();
+      };
+      request.onerror = () => reject(request.error ?? new Error("opening version 2 failed"));
+    });
+  }
+
+  it("keeps a version 2 library's slideshows and pictures and stores focus after upgrading", async () => {
+    await deleteLibraryDatabase();
+    const saved: StoredSlideshow = {
+      id: "show-1",
+      title: "July 2025",
+      createdAt: "2025-07-02T08:00:00Z",
+      pictures: [
+        {
+          id: "saved-picture",
+          capturedAt: "2025-07-01T10:00:00Z",
+          width: 1,
+          height: 1,
+          fileName: "a.jpg",
+        },
+      ],
+      secondsPerPicture: 5,
+    };
+    await openVersionTwoWithSlideshow(saved);
+
+    const store = await openLibraryStore(indexedDB);
+    try {
+      expect(await store.getSlideshow("show-1")).toEqual(saved);
+      expect((await store.thumbnailBlob("saved-picture")).size).toBe(1);
+      expect(await store.pictureFocus(["saved-picture"])).toEqual(new Map());
+      await store.putPictureFocus("saved-picture", { kind: "none" });
+      expect(await store.pictureFocus(["saved-picture"])).toEqual(
+        new Map([["saved-picture", { kind: "none" }]]),
+      );
+    } finally {
+      store.close();
+      await deleteLibraryDatabase();
+    }
+  });
+});

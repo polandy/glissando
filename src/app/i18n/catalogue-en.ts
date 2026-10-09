@@ -29,6 +29,8 @@ export const en: Catalogue = {
   "start.library": "Library",
   "start.yourSlideshows": "Your slideshows",
   "start.withMusic": "with music",
+  "start.searchingSubjects": "Looking for subjects",
+  "start.searchProgress": "{done} of {total}",
 
   "settings.open": "Settings",
   "settings.title": "Settings",

@@ -1,6 +1,7 @@
 import { pictureKenBurns } from "../../compose";
 import type { OwnKenBurns } from "../../library/own-ken-burns";
 import type { MusicTrim } from "../../library/own-music";
+import type { PictureFocus } from "../../library/picture-focus";
 import type { SlideshowTransition, TransitionChoice } from "../../library/own-timing";
 import {
   movePicture,
@@ -24,6 +25,8 @@ import { ResetUndo, type ResettableSetting } from "./reset-undo";
 
 export interface SlideshowEditorPorts {
   readonly store: Pick<LibraryStore, "updateSlideshow" | "claimMedia" | "releaseClaim">;
+  /** The picture's focus as known now; the automatic motion aims at it. */
+  readonly focusOf: (pictureId: string) => PictureFocus | undefined;
   readonly toaster: Pick<Toaster, "current" | "show" | "dismiss">;
   /** A new id for the claim that spares removed pictures' media while they can be undone. */
   readonly newId: () => string;
@@ -203,7 +206,11 @@ export class SlideshowEditor {
   /** Reverses the picture's motion; an automatic one becomes the picture's own. */
   swapKenBurns(pictureId: string): void {
     const index = this.#slideshow.pictures.findIndex((picture) => picture.id === pictureId);
-    const { from, to } = pictureKenBurns(index, this.#picture(pictureId));
+    const { from, to } = pictureKenBurns(
+      index,
+      this.#picture(pictureId),
+      this.#ports.focusOf(pictureId),
+    );
     this.setKenBurns(pictureId, { from: to, to: from });
   }
 

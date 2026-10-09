@@ -108,7 +108,7 @@ describe("SlideshowEditor, a picture's own motion", () => {
 
   it("swapping start and end of an automatic picture makes it an own motion, reversed", async () => {
     const { editor, storedPicture } = await setUp();
-    const automatic = pictureKenBurns(2, editor.slideshow.pictures[2] ?? fail());
+    const automatic = pictureKenBurns(2, editor.slideshow.pictures[2] ?? fail(), undefined);
 
     editor.swapKenBurns("c");
 
@@ -116,6 +116,17 @@ describe("SlideshowEditor, a picture's own motion", () => {
       from: automatic.to,
       to: automatic.from,
     });
+  });
+
+  it("swapping an automatic picture reverses the motion aimed at its focus", async () => {
+    const { editor, storedPicture, focus } = await setUp();
+    const faces = { kind: "subject", box: { x: 0.7, y: 0.6, width: 0.2, height: 0.2 } } as const;
+    focus.set("c", faces);
+    const aimed = pictureKenBurns(2, editor.slideshow.pictures[2] ?? fail(), faces);
+
+    editor.swapKenBurns("c");
+
+    expect((await storedPicture("c"))?.kenBurns).toEqual({ from: aimed.to, to: aimed.from });
   });
 
   it("swapping an own motion reverses it", async () => {

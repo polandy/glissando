@@ -1,9 +1,15 @@
+import { flushSync } from "svelte";
 import { afterEach, describe, expect, it } from "vitest";
+import { FocusPass, type FocusPassState } from "../../library/focus-pass";
+import type { PictureFocus } from "../../library/picture-focus";
 import type { StoredSlideshow } from "../../library/stored-slideshow";
+import { FakeFocusDetector } from "../../library/testing/fake-focus-detector";
 import { MemoryLibraryStore } from "../../library/testing/memory-store";
 import { SlideshowEditor } from "../editing/slideshow-editor";
+import { NO_FOCUS_KNOWN, picturesFocus } from "../focus/pictures-focus";
 import { FakeScheduler } from "../testing/fake-scheduler";
 import { mountWithTranslator } from "../testing/mount-with-translator";
+import { reactiveProps } from "../testing/reactive-props.svelte";
 import { Toaster } from "../toast/toaster";
 import PictureEditorRoute from "./PictureEditorRoute.svelte";
 
@@ -46,11 +52,13 @@ async function mountRoute(pictureId: string) {
     transitionAutomaticText: () => "Übergang wieder automatisch",
     slideshowTransitionResetText: () => "Übergänge wieder auf Überblenden",
     automaticTitle: () => "Juli 2025",
+    focusOf: () => undefined,
   });
   let backs = 0;
-  const mounted = mountWithTranslator(PictureEditorRoute, {
+  const props = reactiveProps({
     store,
     stored: SHOW,
+    focus: NO_FOCUS_KNOWN,
     editor,
     pictureId,
     saving: false,
@@ -58,8 +66,23 @@ async function mountRoute(pictureId: string) {
     onOpen: () => {},
     onError: (error: unknown) => errors.push(error),
   });
+  const mounted = mountWithTranslator(PictureEditorRoute, props);
   destroy = mounted.destroy;
-  return { target: mounted.target, backs: () => backs, store, editor, errors };
+  return { target: mounted.target, backs: () => backs, store, editor, errors, props };
+}
+
+const FACE: PictureFocus = { kind: "subject", box: { x: 0.4, y: 0.2, width: 0.2, height: 0.3 } };
+
+/** Resolves with the first state of the pass that `matches`. */
+function stateOf(pass: FocusPass, matches: (state: FocusPassState) => boolean): Promise<void> {
+  return new Promise((resolve) => {
+    const stop = pass.subscribe((state) => {
+      if (matches(state)) {
+        queueMicrotask(stop);
+        resolve();
+      }
+    });
+  });
 }
 
 describe("the picture editor route", () => {
@@ -91,5 +114,45 @@ describe("the picture editor route", () => {
     const stored = await store.getSlideshow("show");
     expect(stored.pictures[1]?.caption).toBe("Abends am Steg");
     expect(errors).toEqual([]);
+  });
+
+  it("marks the focus the background pass finds while the picture is open", async () => {
+    const { target, store, props } = await mountRoute("b");
+    const detector = new FakeFocusDetector(() => FACE);
+    const held = detector.holdNext();
+    const pass = new FocusPass({ store, detector, log: () => {}, reportError: () => {} });
+    // As the slideshow route does: what the pass finds joins the focus the editor shows.
+    pass.subscribe((state) => (props.focus = picturesFocus(new Map(), state)));
+    const searching = stateOf(pass, (state) => state.searching.has("b"));
+
+    pass.start();
+    await searching;
+    flushSync();
+    const marker = () => target.querySelector('[role="img"][aria-label="Fokus: Gesicht erkannt"]');
+    expect(target.querySelector('[role="status"]')?.textContent?.trim()).toBe(
+      "Fokus wird gesucht …",
+    );
+    expect(marker()).toBeNull();
+
+    held.release();
+    await pass.settled();
+    flushSync();
+
+    expect(marker()).not.toBeNull();
+    expect(target.querySelector('[role="status"]')).toBeNull();
+  });
+
+  it("shows the next picture's known focus at once when ‹/› moves on to it", async () => {
+    const { target, props } = await mountRoute("a");
+    const found = { found: new Map([["b", FACE]]), searching: new Set<string>() };
+    props.focus = found;
+    flushSync();
+
+    props.pictureId = "b";
+    flushSync();
+
+    const marker = target.querySelector('[role="img"][aria-label="Fokus: Gesicht erkannt"]');
+    expect(marker).not.toBeNull();
+    expect(marker?.getAnimations()).toEqual([]);
   });
 });

@@ -27,7 +27,9 @@ import { decodePicture } from "./import/downscale";
 import { captureDate } from "./import/exif-capture-date";
 import { probeMusic } from "./import/music-probe";
 import { createMusicAudioContext, MusicOutput } from "./player";
+import { FocusPass } from "./library/focus-pass";
 import { openLibraryStore } from "./library/indexeddb-store";
+import { startFocusWorker, WorkerFocusDetector } from "./focus/worker-focus-detector";
 import { requestPersistentStorage } from "./library/persistent-storage";
 import { browserPwaPorts } from "./pwa/browser-pwa";
 import { createStorageHintDismissalStore, PwaStatus } from "./pwa/pwa-status";
@@ -90,6 +92,14 @@ function deleteAbandonedMedia(): void {
 }
 deleteAbandonedMedia();
 
+const focusPass = new FocusPass({
+  store,
+  detector: new WorkerFocusDetector(startFocusWorker),
+  log: logError,
+  reportError,
+});
+focusPass.start();
+
 const services = {
   store,
   navigator: new Navigator(createWindowHistory(window)),
@@ -105,6 +115,7 @@ const services = {
   launchQueue: browserLaunchQueue(window),
   musicOutput,
   musicAudio: browserMusicEditorAudio(musicOutput),
+  focusPass,
   newImportSession: () =>
     new ImportSession({
       store,
