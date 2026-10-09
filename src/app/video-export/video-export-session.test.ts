@@ -61,6 +61,17 @@ describe("VideoExportSession — choose", () => {
     expect(sheet.state).toEqual({ kind: "unsupported", reason: "no-video-encoder" });
   });
 
+  it("shows a probe that fails as failed and logs it", async () => {
+    const ports = new FakeExportPorts();
+    const broken = new Error("isConfigSupported threw");
+    ports.probe = () => Promise.reject(broken);
+
+    const sheet = await opened(ports);
+
+    expect(sheet.state).toEqual({ kind: "failed", error: broken });
+    expect(ports.logged).toEqual([broken]);
+  });
+
   it("chooses an available preset and ignores one this device cannot encode", async () => {
     const ports = new FakeExportPorts();
     ports.capabilities = {
@@ -323,6 +334,17 @@ describe("VideoExportSession — outcomes", () => {
     expect(sheet.state).toEqual({ kind: "failed", error });
     expect(ports.logged).toEqual([error]);
   });
+  it("discards the private file when the export throws instead of ending", async () => {
+    const ports = new FakeExportPorts();
+    const sheet = await opened(ports);
+    const broken = new Error("music unreadable");
+    ports.run = () => Promise.reject(broken);
+
+    await sheet.start();
+
+    expect(sheet.state).toEqual({ kind: "failed", error: broken });
+    expect(ports.privateTargets[0]?.discarded).toBe(1);
+  });
 });
 
 describe("VideoExportSession — closing", () => {
@@ -332,7 +354,7 @@ describe("VideoExportSession — closing", () => {
     const { run } = await running(ports, sheet);
     expect(run.signal.aborted).toBe(false);
 
-    void sheet.close();
+    sheet.close();
 
     expect(run.signal.aborted).toBe(true);
     expect(ports.awake).toBe(0);
@@ -347,9 +369,41 @@ describe("VideoExportSession — closing", () => {
     const [target] = ports.privateTargets;
     expect(target?.discarded).toBe(0);
 
-    await sheet.close();
+    sheet.close();
 
     expect(target?.discarded).toBe(1);
+  });
+
+  it("logs a private file that cannot be discarded, which the next app start sweeps", async () => {
+    const ports = new FakeExportPorts();
+    const sheet = await opened(ports);
+    const { ended } = await running(ports, sheet);
+    ports.finish({ kind: "done", frames: FRAMES, file: new File(["mp4"], "x.mp4") });
+    await ended;
+    const stuck = new DOMException("in use", "NoModificationAllowedError");
+    const [target] = ports.privateTargets;
+    if (target !== undefined) {
+      target.discard = () => Promise.reject(stuck);
+    }
+
+    sheet.close();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(ports.logged).toEqual([stuck]);
+  });
+
+  it("discards once however often the sheet is closed", async () => {
+    const ports = new FakeExportPorts();
+    const sheet = await opened(ports);
+    const { ended } = await running(ports, sheet);
+    ports.finish({ kind: "done", frames: FRAMES, file: new File(["mp4"], "x.mp4") });
+    await ended;
+
+    sheet.close();
+    sheet.close();
+
+    expect(ports.privateTargets[0]?.discarded).toBe(1);
   });
 
   it("keeps a file the user picked when the sheet closes", async () => {
@@ -362,7 +416,7 @@ describe("VideoExportSession — closing", () => {
     ports.finish({ kind: "done", frames: FRAMES, file: new File(["mp4"], "Urlaub.mp4") });
     await ended;
 
-    await sheet.close();
+    sheet.close();
 
     expect(sheet.state.kind).toBe("done");
     expect(picked.discarded).toBe(0);
@@ -373,7 +427,7 @@ describe("VideoExportSession — closing", () => {
     const sheet = await opened(ports);
     const { ended } = await running(ports, sheet);
 
-    void sheet.close();
+    sheet.close();
     ports.finish({ kind: "done", frames: FRAMES, file: new File(["mp4"], "x.mp4") });
     await ended;
 
@@ -387,7 +441,7 @@ describe("VideoExportSession — closing", () => {
     const sheet = await opened(ports);
 
     const starting = sheet.start();
-    void sheet.close();
+    sheet.close();
     await starting;
 
     expect(ports.pickedNames).toHaveLength(1);

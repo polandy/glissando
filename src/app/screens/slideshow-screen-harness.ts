@@ -87,6 +87,9 @@ export function mountScreen(
     exportState: { kind: "idle", sizeBytes: null } as ExportMenuState,
     onExport: () => {},
     onMenuOpened: () => {},
+    newVideoExport: () => {
+      throw new Error("the video export sheet is not opened in these tests");
+    },
     mousePointer,
     saving,
   });

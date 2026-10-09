@@ -9,6 +9,9 @@
   import PlayPreview from "./slideshow/PlayPreview.svelte";
   import SelectionBar from "./slideshow/SelectionBar.svelte";
   import TransitionsSheet from "./slideshow/TransitionsSheet.svelte";
+  import VideoExportSheet from "./slideshow/VideoExportSheet.svelte";
+  import type { ExportPreview } from "../video-export/slideshow-video-export";
+  import type { VideoExportSession } from "../video-export/video-export-session";
   import type { SlideshowDetails } from "./view-models";
   import type { SlideshowTransition } from "../../library/own-timing";
   import type { MotionPreviewPorts } from "../picture-editor/motion-preview";
@@ -31,6 +34,7 @@
     exportState,
     onExport,
     onMenuOpened,
+    newVideoExport,
     mousePointer,
     saving,
     selectedId = $bindable(null),
@@ -59,6 +63,8 @@
     onExport: () => void;
     /** The ⋯ menu opened. */
     onMenuOpened: () => void;
+    /** A video export of the slideshow as it is now, for the sheet "Save as video". */
+    newVideoExport: () => VideoExportSession<ExportPreview>;
     /** The primary pointer is a mouse (hovers, fine): tiles can be dragged. */
     mousePointer: boolean;
     /** An edit is being stored. */
@@ -71,6 +77,7 @@
 
   let confirmingDelete = $state(false);
   let editingTransitions = $state(false);
+  let videoExport = $state.raw<VideoExportSession<ExportPreview> | null>(null);
   // A selected picture that was removed meanwhile leaves no selection.
   const selectedIndex = $derived(
     slideshow.pictures.findIndex((picture) => picture.id === selectedId),
@@ -102,6 +109,14 @@
     // The modal dialog must be gone first: until then the page behind it is inert.
     flushSync();
     infoPanel?.focusTransitions();
+  }
+
+  /** Focus goes back to the button the sheet was opened from. */
+  function closeVideoExport(): void {
+    videoExport = null;
+    // The modal dialog must be gone first: until then the page behind it is inert.
+    flushSync();
+    infoPanel?.focusSaveVideo();
   }
 
   /** Keep or Esc: focus goes back to the ⋯ button the dialog was opened from. */
@@ -166,6 +181,7 @@
         bind:this={infoPanel}
         {slideshow}
         {onPlay}
+        onSaveVideo={() => (videoExport = newVideoExport())}
         {onRename}
         {onEditMusic}
         onEditTransitions={() => (editingTransitions = true)}
@@ -194,6 +210,14 @@
     {onTransition}
     onReset={onResetTransition}
     onClose={closeTransitions}
+  />
+{/if}
+
+{#if videoExport !== null}
+  <VideoExportSheet
+    session={videoExport}
+    coverUrl={slideshow.coverUrl}
+    onClose={closeVideoExport}
   />
 {/if}
 

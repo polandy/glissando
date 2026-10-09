@@ -13,6 +13,7 @@ import { reactiveProps } from "../testing/reactive-props.svelte";
 import { whenRendered } from "../testing/when-rendered";
 import { Toaster } from "../toast/toaster";
 import SlideshowRoute from "./SlideshowRoute.svelte";
+import { FakeExportPorts } from "../video-export/testing/fake-export-ports";
 
 const SHOW: StoredSlideshow = {
   id: "show",
@@ -57,6 +58,7 @@ function mountRoute(store: MemoryLibraryStore, focusPass: FocusPass, editingPict
     slideshowId: SHOW.id,
     exportProgress: null,
     onExport: () => {},
+    videoExport: new FakeExportPorts(),
     playing: false,
     editingPictureId,
     editingMusic: false,

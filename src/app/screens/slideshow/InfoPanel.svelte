@@ -5,16 +5,22 @@
   import type { SlideshowDetails } from "../view-models";
   import TitleEditor from "./TitleEditor.svelte";
 
-  /** Beside the pictures: the title (renamed in place), "Play" and the slideshow's facts. */
+  /**
+   * Beside the pictures: the title (renamed in place), "Play", "Save as video" and the
+   * slideshow's facts.
+   */
   let {
     slideshow,
     onPlay,
+    onSaveVideo,
     onRename,
     onEditMusic,
     onEditTransitions,
   }: {
     slideshow: SlideshowDetails;
     onPlay: () => void;
+    /** Opens the video export sheet. */
+    onSaveVideo: () => void;
     onRename: (typed: string) => void;
     onEditMusic: () => void;
     /** Opens the sheet of the slideshow's default transition. */
@@ -22,6 +28,12 @@
   } = $props();
 
   let transitionsRow: HTMLButtonElement;
+  let saveVideoButton: HTMLButtonElement;
+
+  /** The video export sheet closed: focus goes back to its button. */
+  export function focusSaveVideo(): void {
+    saveVideoButton.focus();
+  }
 
   /** The transitions sheet closed: focus goes back to the row it was opened from. */
   export function focusTransitions(): void {
@@ -83,9 +95,14 @@
     <TitleEditor title={slideshow.title} {onRename} />
     <div class="muted mono range">{dateRange}</div>
   </div>
-  <button class="btn primary large" type="button" onclick={onPlay}>
-    <Icon name="play" />{t("slideshow.play")}
-  </button>
+  <div class="actions">
+    <button class="btn primary large" type="button" onclick={onPlay}>
+      <Icon name="play" />{t("slideshow.play")}
+    </button>
+    <button bind:this={saveVideoButton} class="btn large" type="button" onclick={onSaveVideo}>
+      <Icon name="film" />{t("slideshow.saveAsVideo")}
+    </button>
+  </div>
   <dl class="rows">
     <div>
       <dt>{t("slideshow.pictures")}</dt>
@@ -174,6 +191,10 @@
     border: 1px solid var(--gl-line);
     border-radius: var(--gl-radius-large);
     background: var(--gl-surface);
+  }
+  .actions {
+    display: grid;
+    gap: 8px;
   }
   .range {
     margin-top: 4px;

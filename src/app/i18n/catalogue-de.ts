@@ -3,6 +3,7 @@ import { deMusic } from "./catalogue-de-music";
 import { deTiming } from "./catalogue-de-timing";
 import { deTransitions } from "./catalogue-de-transitions";
 import { deImmich } from "./catalogue-de-immich";
+import { deVideo } from "./catalogue-de-video";
 import type { Message } from "./messages";
 
 /**
@@ -50,6 +51,7 @@ export const de = {
   "settings.languageGerman": "Deutsch",
   "settings.languageEnglish": "English",
   "settings.footnote": "Gilt sofort und wird auf diesem Gerät gespeichert.",
+  "settings.licenses": "Open-Source-Lizenzen",
 
   "slideshow.eyebrow": "Diashow",
   "slideshow.dateRange": "{from} – {to}",
@@ -274,4 +276,5 @@ export const de = {
   ...deTransitions,
   ...deImmich,
   ...deMusic,
+  ...deVideo,
 } as const satisfies Record<string, Message>;

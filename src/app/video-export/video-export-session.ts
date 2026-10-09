@@ -125,6 +125,15 @@ export class VideoExportSession<Preview> {
     return this.#state;
   }
 
+  get subject(): ExportSubject {
+    return this.#subject;
+  }
+
+  /** The file's rough size with `preset`, from the bitrates. */
+  estimate(preset: PresetId): number {
+    return estimatedBytes(presetById(preset), this.#subject.durationMs, this.#subject.withMusic);
+  }
+
   /** The listener gets the current state at once, then every change. */
   subscribe(listener: (state: ExportSheetState) => void): () => void {
     this.#listeners.add(listener);
@@ -134,12 +143,17 @@ export class VideoExportSession<Preview> {
 
   async open(): Promise<void> {
     const ports = this.#ports;
-    const [capabilities, freeBytes] = await Promise.all([
-      ports.probe(this.#subject.withMusic),
-      // A picked file is not the browser's storage, so only a private one is measured.
-      ports.canPickSaveFile() ? null : ports.freeBytes(),
-    ]);
-    this.#freeBytes = freeBytes;
+    let capabilities: ExportCapabilities;
+    try {
+      [capabilities, this.#freeBytes] = await Promise.all([
+        ports.probe(this.#subject.withMusic),
+        // A picked file is not the browser's storage, so only a private one is measured.
+        ports.canPickSaveFile() ? null : ports.freeBytes(),
+      ]);
+    } catch (error: unknown) {
+      this.#fail(error);
+      return;
+    }
     if (!capabilities.supported) {
       this.#set({ kind: "unsupported", reason: capabilities.reason });
       return;
@@ -212,11 +226,14 @@ export class VideoExportSession<Preview> {
   }
 
   /** Cancels a running export at once; a finished private file is discarded. */
-  async close(): Promise<void> {
+  close(): void {
+    if (this.#closed.signal.aborted) {
+      return;
+    }
     this.#closed.abort();
     this.#releaseScreen();
     if (this.#state.kind === "done" && this.#target !== null) {
-      await this.#discardPrivate(this.#target);
+      void this.#discardPrivate(this.#target);
     }
   }
 
@@ -245,6 +262,8 @@ export class VideoExportSession<Preview> {
         },
       });
     } catch (error: unknown) {
+      // The export never rejects for its own failures, so this one came before it began.
+      await this.#discardPrivate(target);
       this.#fail(error);
       return;
     } finally {
@@ -275,7 +294,7 @@ export class VideoExportSession<Preview> {
         });
         return;
       case "storage-full": {
-        const estimate = this.#estimate(preset);
+        const estimate = this.estimate(preset);
         this.#set({
           kind: "storage-full",
           preset,
@@ -318,19 +337,15 @@ export class VideoExportSession<Preview> {
 
   #spaceShortage(preset: PresetId, available: readonly PresetId[]): SpaceShortage | null {
     const freeBytes = this.#freeBytes;
-    const neededBytes = this.#estimate(preset);
+    const neededBytes = this.estimate(preset);
     if (freeBytes === null || freeBytes >= neededBytes) {
       return null;
     }
     const fitting =
       VIDEO_PRESETS.filter(
-        ({ id }) => id !== preset && available.includes(id) && this.#estimate(id) <= freeBytes,
+        ({ id }) => id !== preset && available.includes(id) && this.estimate(id) <= freeBytes,
       ).at(-1)?.id ?? null;
     return { freeBytes, neededBytes, fitting };
-  }
-
-  #estimate(preset: PresetId): number {
-    return estimatedBytes(presetById(preset), this.#subject.durationMs, this.#subject.withMusic);
   }
 
   #fail(error: unknown): void {
@@ -343,9 +358,10 @@ export class VideoExportSession<Preview> {
     this.#awake = null;
   }
 
+  /** Never rejects: a file left behind is swept at the next app start. */
   async #discardPrivate(target: ExportTarget): Promise<void> {
     if (target.kind === "private") {
-      await target.discard();
+      await target.discard().catch((error: unknown) => this.#ports.log(error));
     }
   }
 
