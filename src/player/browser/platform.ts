@@ -28,6 +28,10 @@ export class AudioElementMusic implements MusicPlayback {
     });
   }
 
+  setVolume(volume: number): void {
+    this.#audio.volume = volume;
+  }
+
   pause(): void {
     this.#audio.pause();
   }

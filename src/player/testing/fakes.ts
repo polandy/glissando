@@ -106,6 +106,8 @@ export class FakeRenderer implements SlideRenderer<FakePicture> {
 
 export class FakeMusic implements MusicPlayback {
   readonly calls: string[] = [];
+  /** The last volume set; kept apart from `calls`, which it would flood once per frame. */
+  volume: number | undefined;
   #refusal: Error | null = null;
   refuseNextPlay(error: Error): void {
     this.#refusal = error;
@@ -115,6 +117,9 @@ export class FakeMusic implements MusicPlayback {
     const refusal = this.#refusal;
     this.#refusal = null;
     return refusal ? Promise.reject(refusal) : Promise.resolve();
+  }
+  setVolume(volume: number): void {
+    this.volume = volume;
   }
   pause(): void {
     this.calls.push("pause");

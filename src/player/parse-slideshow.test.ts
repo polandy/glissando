@@ -16,9 +16,9 @@ function validSlide(overrides: Record<string, unknown> = {}): Record<string, unk
 
 function validSlideshow(overrides: Record<string, unknown> = {}): Record<string, unknown> {
   return {
-    formatVersion: 1,
+    formatVersion: 2,
     title: "July 2025",
-    music: { src: "music/summer.mp3" },
+    music: { src: "music/summer.mp3", startMs: 0, endMs: 10_000, fadeInMs: 0, fadeOutMs: 0 },
     slides: [
       validSlide({ transitionToNext: { effect: "crossfade", durationMs: 1000 } }),
       validSlide(),
@@ -67,7 +67,7 @@ describe("parseSlideshow", () => {
 
   it.each([
     ["not an object", "a slideshow", "", "an object"],
-    [{ ...validSlideshow(), formatVersion: 2 }, "formatVersion", "formatVersion", "1"],
+    [{ ...validSlideshow(), formatVersion: 3 }, "formatVersion", "formatVersion", "1 or 2"],
     [validSlideshow({ title: 7 }), "title", "title", "a string"],
     [validSlideshow({ slides: [] }), "no slides", "slides", "at least one slide"],
     [
@@ -178,7 +178,9 @@ describe("parseSlideshow", () => {
       "absent on the last slide",
     ],
     [
-      validSlideshow({ music: { src: "" } }),
+      validSlideshow({
+        music: { src: "", startMs: 0, endMs: 10_000, fadeInMs: 0, fadeOutMs: 0 },
+      }),
       "an empty music source",
       "music.src",
       "a non-empty string",
