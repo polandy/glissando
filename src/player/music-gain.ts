@@ -1,10 +1,13 @@
 import { MILLISECONDS_PER_SECOND, type Music } from "./slideshow";
 
+/** What the volume follows: the music without its source. */
+export type MusicEnvelope = Pick<Music, "startMs" | "endMs" | "fadeInMs" | "fadeOutMs">;
+
 /**
  * The music's volume as a pure function of slideshow time (0 being the excerpt's start), so
  * play, pause and seek all land on the same envelope without a jump. See ADR-0009.
  */
-export function musicGainAt(music: Music, timeMs: number): number {
+export function musicGainAt(music: MusicEnvelope, timeMs: number): number {
   const endMs = music.endMs ?? Number.POSITIVE_INFINITY;
   const heardMs = endMs - music.startMs;
   if (timeMs < 0 || timeMs >= heardMs) {
@@ -16,11 +19,11 @@ export function musicGainAt(music: Music, timeMs: number): number {
 }
 
 /** Where in the track slideshow time `timeMs` plays, in seconds. */
-export function musicTrackSeconds(music: Music, timeMs: number): number {
+export function musicTrackSeconds(music: MusicEnvelope, timeMs: number): number {
   return (music.startMs + timeMs) / MILLISECONDS_PER_SECOND;
 }
 
 /** Whether the music is still heard at slideshow time `timeMs`. */
-export function isMusicHeardAt(music: Music, timeMs: number): boolean {
+export function isMusicHeardAt(music: MusicEnvelope, timeMs: number): boolean {
   return music.endMs === undefined || music.startMs + timeMs < music.endMs;
 }
