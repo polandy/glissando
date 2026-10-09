@@ -127,7 +127,8 @@ export class MemoryLibraryStore implements LibraryStore {
     const referenced = referencedMediaIds([...this.#slideshows.values()]);
     const { sparedMediaIds, staleClaimIds } = claimsAt([...this.#imports.values()], now);
     staleClaimIds.forEach((id) => this.#imports.delete(id));
-    for (const id of [...this.#pictures.keys(), ...this.#music.keys()]) {
+    // A focus is media too: one kept for a picture whose media went goes with it.
+    for (const id of [...this.#pictures.keys(), ...this.#music.keys(), ...this.#focus.keys()]) {
       if (!referenced.has(id) && !sparedMediaIds.has(id)) {
         this.#deleteMedia(id);
       }

@@ -14,9 +14,10 @@ abandoned media found and removed.
 
 One IndexedDB database, `glissando`, holds the slideshow records and the media, in separate
 object stores (`slideshows`, `pictures` with display and thumbnail rendition, `music`, and
-`imports` for imports in progress; `focus` for each picture's detected focus, ADR-0012). Media is written while importing, each id claimed in `imports`
-first, the record last; cleaning up abandoned media reads the references and imports and deletes
-in one transaction. Media is stored as bytes plus MIME type, not as `Blob`s.
+`imports` for imports in progress; `focus` for each picture's detected focus, ADR-0012). Media
+is written while importing, each id claimed in `imports` first, the record last; cleaning up
+abandoned media reads the references and imports and deletes in one transaction. Media is
+stored as bytes plus MIME type, not as `Blob`s.
 
 ## Options weighed
 

@@ -10,7 +10,7 @@
   import type { FocusPass, FocusPassState } from "../../library/focus-pass";
   import type { PictureFocus } from "../../library/picture-focus";
   import { SlideshowEditor } from "../editing/slideshow-editor";
-  import { picturesFocus } from "../focus/pictures-focus";
+  import { NO_FOCUS_KNOWN, picturesFocus } from "../focus/pictures-focus";
   import type { ExportProgress } from "../glissando-file/export-job";
   import { exportMediaKey, exportMenuState } from "../glissando-file/export-menu";
   import { getTranslator } from "../i18n/context";
@@ -91,7 +91,7 @@
   let editor = $state.raw<SlideshowEditor | null>(null);
   let saving = $state(false);
   /** As stored when the slideshow was opened; the pass's state adds what it found since. */
-  let storedFocus = $state.raw<ReadonlyMap<string, PictureFocus>>(new Map());
+  let storedFocus = $state.raw<ReadonlyMap<string, PictureFocus>>(NO_FOCUS_KNOWN.found);
   // The pass is fixed for the screen's lifetime.
   // svelte-ignore state_referenced_locally
   let passState = $state.raw<FocusPassState>(focusPass.state);

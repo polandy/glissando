@@ -119,8 +119,9 @@ export interface LibraryStore {
   /** The import was created or discarded, the removal undone or final: its media is spared no longer. */
   releaseClaim(claimId: string): Promise<void>;
   /**
-   * Deletes media (pictures with their focus) no saved slideshow references, sparing that of claims made less than
-   * `CLAIM_SPARED_FOR_MS` before `now`; older claims are taken for crashed and forgotten.
+   * Deletes media (pictures with their focus) no saved slideshow references, sparing that of
+   * claims made less than `CLAIM_SPARED_FOR_MS` before `now`; older claims are taken for crashed
+   * and forgotten.
    */
   deleteUnreferencedMedia(now: Date): Promise<void>;
 }

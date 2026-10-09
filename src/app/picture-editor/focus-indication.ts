@@ -2,7 +2,7 @@ import type { FocusBox } from "../../library/picture-focus";
 import type { PictureFocusStatus } from "../focus/pictures-focus";
 
 /** Where the marker's "Focus" chip sits, so it stays on the picture. */
-export interface ChipPlacement {
+interface ChipPlacement {
   readonly below: boolean;
   readonly alignRight: boolean;
 }
