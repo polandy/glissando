@@ -48,6 +48,8 @@
   width: calc(min(80vw, 400px) * 0.45);
   aspect-ratio: 6 / 5;
   overflow: visible;
+  /* A slow breath shows that the app is still on its way. */
+  animation: app-shell-breath 1.6s ease-in-out infinite;
 }
 .app-shell-status {
   flex: none;
@@ -70,10 +72,6 @@
 }
 .app-shell-motif {
   fill: var(--gl-logo-outline);
-}
-/* A slow breath shows that the app is still on its way. */
-.app-shell-logo {
-  animation: app-shell-breath 1.6s ease-in-out infinite;
 }
 @keyframes app-shell-breath {
   50% {
