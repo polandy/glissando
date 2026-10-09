@@ -37,7 +37,14 @@ export const EXPORTED_SLIDESHOW: StoredSlideshow = {
     },
   ],
   ownOrder: true,
-  music: { id: "src-m1", fileName: "Walzer.m4a", durationMs: 240000, mimeType: "audio/mp4" },
+  music: {
+    id: "src-m1",
+    fileName: "Walzer.m4a",
+    durationMs: 240000,
+    mimeType: "audio/mp4",
+    trim: { startMs: 12_000, endMs: 200_000 },
+    fadeOutMs: 5000,
+  },
   secondsPerPicture: 5,
 };
 

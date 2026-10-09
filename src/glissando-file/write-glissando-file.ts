@@ -1,5 +1,6 @@
 import type { LibraryStore, StoredPicture, StoredSlideshow } from "../library/stored-slideshow";
 import type { CheckedGlissandoFile } from "./check-glissando-file";
+import { ownMusicFields } from "./glissando-manifest";
 import { uniqueTitle } from "./unique-title";
 
 export type OpenStep = (
@@ -94,6 +95,7 @@ export async function writeGlissandoFile(
         fileName: music.fileName,
         durationMs: music.durationMs,
         mimeType: music.mimeType,
+        ...ownMusicFields(music),
       };
     }
     options.signal.throwIfAborted();
