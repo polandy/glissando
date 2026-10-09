@@ -48,6 +48,8 @@ export interface WebGlRendererOptions {
   readonly pixelRatio?: () => number;
   /** Loads the caption font; captions are drawn once it has. */
   readonly fonts?: CaptionFonts;
+  /** A fixed drawing buffer, e.g. a video's frame size, instead of the CSS size × pixel ratio. */
+  readonly drawingSize?: Size;
 }
 
 /** Draws slides and the GLSL transitions into a canvas that fills its container. */
@@ -60,7 +62,9 @@ export class WebGlRenderer implements SlideRenderer<BitmapPicture> {
   readonly #pixelRatio: () => number;
   readonly #captions: CaptionTextures;
   #captionInsetCssPixels = 0;
-  readonly #resizeObserver: ResizeObserver;
+  readonly #drawingSize: Size | undefined;
+  /** None with a fixed drawing size, which no layout changes. */
+  readonly #resizeObserver: ResizeObserver | null;
   /** Set between `webglcontextlost` and `webglcontextrestored`; no GL call is safe meanwhile. */
   #contextLost = false;
 
@@ -68,19 +72,24 @@ export class WebGlRenderer implements SlideRenderer<BitmapPicture> {
     canvas: HTMLCanvasElement,
     gl: WebGL2RenderingContext,
     onResize: () => void,
-    { pixelRatio = () => devicePixelRatio, fonts = document.fonts }: WebGlRendererOptions = {},
+    {
+      pixelRatio = () => devicePixelRatio,
+      fonts = document.fonts,
+      drawingSize,
+    }: WebGlRendererOptions = {},
   ) {
     this.#canvas = canvas;
     this.#gl = gl;
     this.#onResize = onResize;
     this.#pixelRatio = pixelRatio;
+    this.#drawingSize = drawingSize;
     this.#setUpGlResources();
     this.#pictures = new PictureTextures(gl);
     this.#captions = new CaptionTextures(gl, fonts, pixelRatio, onResize);
     canvas.addEventListener("webglcontextlost", this.#handleContextLost);
     canvas.addEventListener("webglcontextrestored", this.#handleContextRestored);
-    this.#resizeObserver = new ResizeObserver(onResize);
-    this.#resizeObserver.observe(canvas);
+    this.#resizeObserver = drawingSize === undefined ? new ResizeObserver(onResize) : null;
+    this.#resizeObserver?.observe(canvas);
   }
 
   /** The vertex buffer, its attribute binding and every transition's shader program. */
@@ -167,7 +176,7 @@ export class WebGlRenderer implements SlideRenderer<BitmapPicture> {
   dispose(): void {
     this.#canvas.removeEventListener("webglcontextlost", this.#handleContextLost);
     this.#canvas.removeEventListener("webglcontextrestored", this.#handleContextRestored);
-    this.#resizeObserver.disconnect();
+    this.#resizeObserver?.disconnect();
     this.#pictures.dispose();
     this.#captions.dispose();
     this.#programs.forEach(({ program }) => this.#gl.deleteProgram(program));
@@ -175,6 +184,9 @@ export class WebGlRenderer implements SlideRenderer<BitmapPicture> {
   }
 
   #displaySize(): Size {
+    if (this.#drawingSize !== undefined) {
+      return this.#drawingSize;
+    }
     return {
       width: Math.max(1, Math.round(this.#canvas.clientWidth * this.#pixelRatio())),
       height: Math.max(1, Math.round(this.#canvas.clientHeight * this.#pixelRatio())),
