@@ -5,8 +5,8 @@
 ## Context
 
 Every picture without an own transition (ADR-0008) cycled through the player's six effects by
-position. Owners of a calm slideshow wanted one effect throughout, mostly the crossfade, and
-had to set it picture by picture. The slideshow screen's info panel gets a "Transitions" row
+position. One effect throughout, mostly the crossfade, could only be had by setting it
+picture by picture. The slideshow screen's info panel gets a "Transitions" row
 that opens a sheet of eight choices: the six effects, the cut and "Alternating", the cycle.
 Three questions need an answer: where the choice is stored, what existing slideshows and files
 become, and what the player is told.
