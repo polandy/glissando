@@ -1,11 +1,11 @@
 import { CaptionInset } from "./caption-inset";
+import { FramePictures } from "./frame-pictures";
 import type { Size } from "./ken-burns";
-import { PictureBuffer } from "./picture-buffer";
 import { MusicPlaybackError, type PlayerDependencies } from "./ports";
 import { renderFrame } from "./render-frame";
 import { MILLISECONDS_PER_SECOND, type Slideshow } from "./slideshow";
 import { TrimmedMusic } from "./trimmed-music";
-import { createTimeline, type SlideAtTime, type Timeline, type TimelineFrame } from "./timeline";
+import { createTimeline, type Timeline, type TimelineFrame } from "./timeline";
 
 import type { PlayerEvent } from "./player-events";
 
@@ -17,7 +17,7 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
   readonly #slideshow: Slideshow;
   readonly #timeline: Timeline;
   readonly #deps: PlayerDependencies<Picture>;
-  readonly #pictures: PictureBuffer<Picture>;
+  readonly #pictures: FramePictures<Picture>;
   readonly #music: TrimmedMusic | null;
   #timeMs = 0;
   /** Where the clock and the slideshow time met; set only while time advances. */
@@ -47,8 +47,9 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
       isPlaybackDrawing: () => this.#frameHandle !== null,
       redraw: () => this.redraw(),
     });
-    this.#pictures = new PictureBuffer(
-      slideshow.slides.map((slide) => slide.image.src),
+    this.#pictures = new FramePictures(
+      slideshow.slides,
+      () => this.#currentFrame(),
       dependencies.pictures,
       dependencies.renderer,
     );
@@ -147,7 +148,7 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
 
   /** Draws the current frame again, e.g. after the viewport changed size. */
   redraw(): void {
-    if (!this.#destroyed && this.#isDrawable()) {
+    if (!this.#destroyed && this.#pictures.areOnScreenLoaded()) {
       this.#draw();
     }
   }
@@ -161,6 +162,7 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
     this.#paused = true;
     this.#destroyed = true;
     this.#pictures.clear();
+    this.#deps.pictures.dispose();
     this.#music?.dispose();
     this.#deps.renderer.dispose();
   }
@@ -176,8 +178,9 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
   /** Advances from the current time, after waiting for its pictures if they are missing. */
   #startAdvancing(onFirstFrame?: () => void): void {
     const advance = () => {
-      this.#anchor = { timeMs: this.#timeMs, clockMs: this.#deps.clock.now() };
+      // Anchored after drawing, so the time the first frame takes never shows as a jump.
       this.#draw();
+      this.#anchor = { timeMs: this.#timeMs, clockMs: this.#deps.clock.now() };
       onFirstFrame?.();
       this.#emit("playing");
       this.#scheduleFrame();
@@ -185,7 +188,7 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
         this.#fail(new MusicPlaybackError(cause));
       });
     };
-    if (this.#isDrawable()) {
+    if (this.#pictures.areOnScreenLoaded()) {
       advance();
       return;
     }
@@ -220,12 +223,13 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
     }
     this.#timeMs = timeMs;
     this.#music?.follow(timeMs);
-    if (!this.#isDrawable()) {
+    if (!this.#pictures.areOnScreenLoaded()) {
       this.#stopAdvancing();
       this.#startAdvancing();
       return;
     }
     this.#draw();
+    this.#pictures.prepareUpcoming();
     this.#emit("timeupdate");
     this.#scheduleFrame();
   }
@@ -251,24 +255,11 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
   /** Runs `action` once the current frame's pictures are loaded, unless the state moved on. */
   #whenDrawable(action: () => void): void {
     const generation = this.#generation;
-    this.#loadAroundCurrentFrame().then(
-      () => {
-        if (generation === this.#generation && !this.#destroyed && this.#isDrawable()) {
-          action();
-        }
-      },
-      (error: unknown) => {
-        if (generation === this.#generation && !this.#destroyed) {
-          this.#fail(error instanceof Error ? error : new Error(String(error)));
-        }
-      },
-    );
-  }
-
-  #isDrawable(): boolean {
-    return slidesOf(this.#currentFrame()).every(
-      (slide) => this.#pictures.get(slide.index) !== undefined,
-    );
+    this.#pictures.whenOnScreenLoaded({
+      isWanted: () => generation === this.#generation && !this.#destroyed,
+      onLoaded: action,
+      onError: (error) => this.#fail(error),
+    });
   }
 
   #currentFrame(): TimelineFrame {
@@ -280,17 +271,13 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
     this.#deps.renderer.render(
       renderFrame(this.#currentFrame(), this.#slideshow, (index) => this.#pictures.get(index)),
     );
-    this.#loadAroundCurrentFrame().catch(() => {
+    this.#pictures.loadAroundScreen().catch(() => {
       // The buffer retries a failed picture and reports it once the frame needs it.
     });
     if (!this.#ready) {
       this.#ready = true;
       this.#emit("canplay");
     }
-  }
-
-  #loadAroundCurrentFrame(): Promise<void> {
-    return this.#pictures.keep(slidesOf(this.#currentFrame()).map((slide) => slide.index));
   }
 
   #emit(type: PlayerEvent): void {
@@ -302,8 +289,4 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
       throw new Error("the player was destroyed; create a new one to play again");
     }
   }
-}
-
-function slidesOf(frame: TimelineFrame): readonly SlideAtTime[] {
-  return frame.kind === "slide" ? [frame.slide] : [frame.from, frame.to];
 }

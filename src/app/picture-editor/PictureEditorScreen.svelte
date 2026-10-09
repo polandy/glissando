@@ -3,12 +3,13 @@
   import { KEN_BURNS_EASING, transitionDurationMs } from "../../compose";
   import type { OwnKenBurns } from "../../library/own-ken-burns";
   import type { TransitionChoice } from "../../library/own-timing";
-  import { framingAt, normalizeCaption, type Framing } from "../../player";
+  import { normalizeCaption, type Framing } from "../../player";
   import Header from "../components/Header.svelte";
   import { getTranslator } from "../i18n/context";
   import FocusLine from "./FocusLine.svelte";
   import { focusIndication } from "./focus-indication";
   import FrameWell from "./FrameWell.svelte";
+  import { playheadRect } from "./frame-geometry";
   import DurationSection from "./DurationSection.svelte";
   import MotionPanel from "./MotionPanel.svelte";
   import MotionPreviewScreen from "./MotionPreviewScreen.svelte";
@@ -101,10 +102,13 @@
     }
   });
 
-  const previewFraming = $derived(
-    framingAt(
-      { ...motion, easing: KEN_BURNS_EASING },
-      Math.min(1, previewState.elapsedMs / picture.durationMs),
+  const previewPlayhead = $derived(
+    playheadRect(
+      {
+        kenBurns: { ...motion, easing: KEN_BURNS_EASING },
+        progress: Math.min(1, previewState.elapsedMs / picture.durationMs),
+      },
+      picture.size,
     ),
   );
 
@@ -174,7 +178,7 @@
         alt={t("editor.crumb", { number: picture.number })}
         {motion}
         {active}
-        playhead={previewState.playing ? previewFraming : null}
+        playhead={previewState.playing ? previewPlayhead : null}
         {focus}
         {reducedMotion}
         onActivate={activate}

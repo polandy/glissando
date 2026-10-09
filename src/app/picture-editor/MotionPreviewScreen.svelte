@@ -1,7 +1,7 @@
 <script lang="ts">
   import { KEN_BURNS_EASING } from "../../compose";
   import type { OwnKenBurns } from "../../library/own-ken-burns";
-  import { framingAt, MILLISECONDS_PER_SECOND } from "../../player";
+  import { MILLISECONDS_PER_SECOND } from "../../player";
   import Icon from "../components/Icon.svelte";
   import { getTranslator } from "../i18n/context";
   import type { MotionPreviewState } from "./motion-preview";
@@ -81,7 +81,7 @@
     <PreviewLayer
       size={picture.size}
       url={pictureUrl}
-      framing={framingAt({ ...motion, easing: KEN_BURNS_EASING }, thisProgress)}
+      motion={{ kenBurns: { ...motion, easing: KEN_BURNS_EASING }, progress: thisProgress }}
       {caption}
       {viewport}
       look={looks.from}
@@ -91,7 +91,10 @@
     <PreviewLayer
       size={picture.next.size}
       url={nextPictureUrl}
-      framing={framingAt({ ...picture.next.motion, easing: KEN_BURNS_EASING }, nextProgress)}
+      motion={{
+        kenBurns: { ...picture.next.motion, easing: KEN_BURNS_EASING },
+        progress: nextProgress,
+      }}
       caption={picture.next.caption === "" ? undefined : picture.next.caption}
       {viewport}
       look={looks.to}

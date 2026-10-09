@@ -58,6 +58,36 @@ export async function pictureTakenOn(
 }
 
 /**
+ * A JPEG `width` × `height` running from black at its left edge to white at its right, the same
+ * down every column: the brightness of a pixel says where across the picture it was taken from.
+ */
+export async function horizontalGradientJpeg(
+  page: Page,
+  width: number,
+  height: number,
+): Promise<Uint8Array> {
+  const encoded = await page.evaluate(
+    ({ pictureWidth, pictureHeight }) => {
+      const canvas = document.createElement("canvas");
+      canvas.width = pictureWidth;
+      canvas.height = pictureHeight;
+      const context = canvas.getContext("2d");
+      if (context === null) {
+        throw new Error("no 2D canvas context to draw a test picture");
+      }
+      const gradient = context.createLinearGradient(0, 0, pictureWidth, 0);
+      gradient.addColorStop(0, "#000000");
+      gradient.addColorStop(1, "#ffffff");
+      context.fillStyle = gradient;
+      context.fillRect(0, 0, pictureWidth, pictureHeight);
+      return canvas.toDataURL("image/jpeg").split(",")[1] ?? "";
+    },
+    { pictureWidth: width, pictureHeight: height },
+  );
+  return Buffer.from(encoded, "base64");
+}
+
+/**
  * The public-domain NASA portrait of Eileen Collins that the face detector's own tests use, with
  * EXIF saying it was taken on `day`: a picture with a face to find.
  */

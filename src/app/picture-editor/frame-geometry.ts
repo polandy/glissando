@@ -1,5 +1,13 @@
 import { MAX_OWN_KEN_BURNS_ZOOM } from "../../library/own-ken-burns";
-import { cropRect, MIN_KEN_BURNS_ZOOM, type Framing, type Rect, type Size } from "../../player";
+import {
+  cropAt,
+  cropRect,
+  MIN_KEN_BURNS_ZOOM,
+  type Framing,
+  type KenBurnsAt,
+  type Rect,
+  type Size,
+} from "../../player";
 
 /**
  * Where the picture editor's frames sit on the picture. A frame is exactly what the player crops
@@ -31,9 +39,18 @@ export function frameRect(framing: Framing, picture: Size): Rect {
   return cropRect(framing, picture, EDITOR_SCREEN);
 }
 
+/** What the preview shows of the picture `motion.progress` of the way through the motion. */
+export function playheadRect(motion: KenBurnsAt, picture: Size): Rect {
+  return cropAt(motion, picture, EDITOR_SCREEN);
+}
+
 /** A frame's place on the picture as CSS, in percent of the picture's box. */
 export function frameStyle(framing: Framing, picture: Size): string {
-  const { x, y, width, height } = frameRect(framing, picture);
+  return rectStyle(frameRect(framing, picture));
+}
+
+/** A part of the picture as CSS, in percent of the picture's box. */
+export function rectStyle({ x, y, width, height }: Rect): string {
   const percent = (value: number) => `${value * 100}%`;
   return `left:${percent(x)};top:${percent(y)};width:${percent(width)};height:${percent(height)}`;
 }

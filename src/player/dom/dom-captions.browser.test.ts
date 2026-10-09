@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { BLUE, RED, solidPicture, viewportBox } from "../testing/browser-pictures";
+import { BLUE, RED, solidPicture, standingStill, viewportBox } from "../testing/browser-pictures";
 import { DomRenderer } from "./dom-renderer";
 
 const VIEWPORT = { width: 160, height: 90 };
-const FRAMING = { zoom: 1.5, centerX: 0.4, centerY: 0.6 };
+const MOTION = standingStill({ zoom: 1.5, centerX: 0.4, centerY: 0.6 });
 const CAPTION = "Evening on the jetty";
 
 let box: HTMLElement;
@@ -25,7 +25,7 @@ describe("DomRenderer captions", () => {
 
     renderer.render({
       kind: "slide",
-      slide: { picture: outgoing, framing: FRAMING, caption: CAPTION },
+      slide: { picture: outgoing, motion: MOTION, caption: CAPTION },
     });
 
     const [caption] = captionElements();
@@ -42,8 +42,8 @@ describe("DomRenderer captions", () => {
       kind: "transition",
       effect: "crossfade",
       progress: 0.25,
-      from: { picture: outgoing, framing: FRAMING },
-      to: { picture: incoming, framing: FRAMING, caption: CAPTION },
+      from: { picture: outgoing, motion: MOTION },
+      to: { picture: incoming, motion: MOTION, caption: CAPTION },
     });
 
     const [caption] = captionElements();
@@ -55,10 +55,10 @@ describe("DomRenderer captions", () => {
     const { renderer, outgoing, incoming } = await setUp();
     renderer.render({
       kind: "slide",
-      slide: { picture: outgoing, framing: FRAMING, caption: CAPTION },
+      slide: { picture: outgoing, motion: MOTION, caption: CAPTION },
     });
 
-    renderer.render({ kind: "slide", slide: { picture: incoming, framing: FRAMING } });
+    renderer.render({ kind: "slide", slide: { picture: incoming, motion: MOTION } });
 
     expect(incoming.element.isConnected).toBe(true);
     expect(captionElements()).toEqual([]);
@@ -70,7 +70,7 @@ describe("DomRenderer captions", () => {
 
     renderer.render({
       kind: "slide",
-      slide: { picture: outgoing, framing: FRAMING, caption: CAPTION },
+      slide: { picture: outgoing, motion: MOTION, caption: CAPTION },
     });
 
     const [caption] = captionElements();

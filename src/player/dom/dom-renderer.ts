@@ -1,6 +1,6 @@
 import type { BrowserPicture } from "../browser/picture-loader";
 import { captionStyles } from "../caption-style";
-import { cropRect, type Size } from "../ken-burns";
+import { cropAt, type Size } from "../ken-burns";
 import type { RenderFrame, SlideLayer, SlideRenderer } from "../ports";
 import { layerTransform } from "./layer-transform";
 
@@ -62,6 +62,11 @@ export class DomRenderer implements SlideRenderer<BrowserPicture> {
     this.#captionInsetCssPixels = cssPixels;
   }
 
+  /** Nothing to prepare: the browser draws the decoded picture element. */
+  prepare(): void {
+    return;
+  }
+
   forget(picture: BrowserPicture): void {
     picture.element.remove();
     this.#captions.get(picture.element)?.remove();
@@ -74,8 +79,8 @@ export class DomRenderer implements SlideRenderer<BrowserPicture> {
   }
 
   /** A new layer is appended, so the incoming slide lies on top of the outgoing one. */
-  #place({ picture, framing }: SlideLayer<BrowserPicture>, opacity: number, viewport: Size): void {
-    const crop = cropRect(framing, picture, viewport);
+  #place({ picture, motion }: SlideLayer<BrowserPicture>, opacity: number, viewport: Size): void {
+    const crop = cropAt(motion, picture, viewport);
     Object.assign(picture.element.style, {
       position: "absolute",
       left: "0",

@@ -5,6 +5,7 @@ import {
   frameRect,
   framingForKey,
   movedFraming,
+  playheadRect,
   resizedFraming,
   wheelZoomedFraming,
   zoomedFraming,
@@ -27,6 +28,23 @@ describe("frameRect", () => {
     const rect = frameRect({ ...CENTRE, zoom: 2 }, LANDSCAPE);
 
     expect(rect).toEqual({ x: 0.25, y: expect.closeTo(0.3125), width: 0.5, height: 0.375 });
+  });
+});
+
+describe("playheadRect", () => {
+  it("runs straight between the start and end frames as the picture's edges hold them", () => {
+    const fromEdge = { zoom: 1.2, centerX: 0.05, centerY: 0.5 };
+    const toCentre = { zoom: 2, centerX: 0.5, centerY: 0.5 };
+    const centreX = ({ x, width }: { x: number; width: number }) => x + width / 2;
+
+    const halfway = playheadRect(
+      { kenBurns: { from: fromEdge, to: toCentre, easing: "linear" }, progress: 0.5 },
+      LANDSCAPE,
+    );
+
+    const start = centreX(frameRect(fromEdge, LANDSCAPE));
+    const end = centreX(frameRect(toCentre, LANDSCAPE));
+    expect(centreX(halfway)).toBeCloseTo((start + end) / 2, 12);
   });
 });
 
