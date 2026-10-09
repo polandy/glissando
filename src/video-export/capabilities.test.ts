@@ -8,8 +8,8 @@ function browser({
   hasVideoEncoder = true,
   hasWebGl2 = true,
 }: {
-  videoCodecs?: string[];
-  audioCodecs?: string[];
+  videoCodecs?: readonly string[];
+  audioCodecs?: readonly string[];
   hasVideoEncoder?: boolean;
   hasWebGl2?: boolean;
 } = {}) {
