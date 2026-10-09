@@ -68,7 +68,9 @@ between those two crops: zoom and centre interpolated by the slide's easing. The
 (crop-to-fit ÷ zoom) never exceeds the straight line between the end frames' widths, so a path
 whose ends fit stays inside the picture all the way and never reaches a border on the way: no
 edge stops the motion part-way, which would show as a sudden change of pan speed or direction.
-The renderers and the picture editor's preview and playhead all draw this path.
+The renderers and the picture editor's preview and playhead all draw this path. E2E-031 plays
+a motion that starts past a picture's edge and checks, frame by seeked frame, that the view's
+centre moves one way only.
 
 Show time follows the clock from an anchor set when playing starts or resumes, **after** that
 first frame is drawn, so the time it takes never shows as a jump in the motion. While playing,
