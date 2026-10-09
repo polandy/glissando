@@ -50,6 +50,8 @@ function editorOver(store: MemoryLibraryStore, toaster: Toaster): SlideshowEdito
     undoLabel: () => "Rückgängig",
     lastPictureText: () => "Das letzte Bild bleibt.",
     motionAutomaticText: () => "Bewegung wieder automatisch",
+    durationAutomaticText: () => "Dauer wieder automatisch",
+    transitionAutomaticText: () => "Übergang wieder automatisch",
     automaticTitle: () => "Juli 2025",
   });
 }

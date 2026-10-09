@@ -80,6 +80,8 @@ export async function writeGlissandoFile(
         fileName: picture.fileName,
         ...(picture.kenBurns === undefined ? {} : { kenBurns: picture.kenBurns }),
         ...(picture.caption === undefined ? {} : { caption: picture.caption }),
+        ...(picture.durationMs === undefined ? {} : { durationMs: picture.durationMs }),
+        ...(picture.transition === undefined ? {} : { transition: picture.transition }),
       });
     }
     const music = slideshow.music;

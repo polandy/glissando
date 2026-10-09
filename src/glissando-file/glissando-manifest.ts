@@ -1,4 +1,5 @@
 import type { OwnKenBurns } from "../library/own-ken-burns";
+import type { TransitionChoice } from "../library/own-timing";
 import type { StoredSlideshow } from "../library/stored-slideshow";
 
 /**
@@ -8,15 +9,17 @@ import type { StoredSlideshow } from "../library/stored-slideshow";
 
 export const GLISSANDO_FORMAT_ID = "glissando";
 /**
- * Version 2 added a picture's own Ken Burns motion (ADR-0006), version 3 its caption; files of
- * every older version are still read.
+ * Version 2 added a picture's own Ken Burns motion (ADR-0006), version 3 its caption, version 4
+ * its own duration and transition (ADR-0008); files of every older version are still read.
  */
-export const GLISSANDO_FORMAT_VERSION = 3;
+export const GLISSANDO_FORMAT_VERSION = 4;
 export const OLDEST_READABLE_FORMAT_VERSION = 1;
 /** The first version that carries a picture's own motion. */
 export const OWN_KEN_BURNS_FROM_VERSION = 2;
 /** The first version that carries a picture's caption. */
 export const CAPTION_FROM_VERSION = 3;
+/** The first version that carries a picture's own duration and transition. */
+export const OWN_TIMING_FROM_VERSION = 4;
 export const MANIFEST_ENTRY_NAME = "glissando.json";
 
 const PICTURE_EXTENSIONS: Readonly<Record<string, string>> = {
@@ -36,6 +39,8 @@ export interface ManifestPicture {
   readonly fileName: string;
   readonly kenBurns?: OwnKenBurns;
   readonly caption?: string;
+  readonly durationMs?: number;
+  readonly transition?: TransitionChoice;
 }
 
 export interface ManifestMusic {
@@ -111,6 +116,8 @@ export function manifestFor(
     fileName: picture.fileName,
     ...(picture.kenBurns === undefined ? {} : { kenBurns: picture.kenBurns }),
     ...(picture.caption === undefined ? {} : { caption: picture.caption }),
+    ...(picture.durationMs === undefined ? {} : { durationMs: picture.durationMs }),
+    ...(picture.transition === undefined ? {} : { transition: picture.transition }),
   }));
   const { music } = slideshow;
   return {

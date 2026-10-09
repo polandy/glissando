@@ -32,10 +32,14 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
   order, each with its order number and capture date, under "Sorted by capture date" or, once
   the user reordered, "Own order" (with "drag or tap", narrow: "tap to reorder"). Beside it an
   info panel: title with a ✎ button, date range (earliest to latest capture), "Play" and the
-  facts — pictures, duration, music, seconds per picture, Ken Burns "automatic" (with own
-  motions "automatic, 2 own"), transitions "alternating", captions "3 of 8" (pictures with a
-  caption of all; none: "0 of 8"). A tile whose picture has an own motion
-  carries a small frame badge "own" (its label adds "own motion"). The info panel and the player always use the edited picture list.
+  facts — pictures, duration (with "· music 0:44" beside it, muted, when the slideshow does not
+  end with the music), music, picture times "automatic" (with own durations "automatic, 1
+  own"), Ken Burns "automatic" (with own motions "automatic, 2 own"), transitions "alternating"
+  (with own transitions "alternating, 2 own"; a last picture's stored one does not count),
+  captions "3 of 8" (pictures with a caption of all; none: "0 of 8"). A tile carries small
+  badges bottom right: a frame "own" for an own motion, a clock with "8 s" for an own duration
+  and a transition mark (titled with the effect, e.g. "Circle") for an own transition, except on
+  the last picture; its label adds "own motion", "own duration 8 s", "own transition Circle". The info panel and the player always use the edited picture list.
 - **Editing the slideshow** (`editing/slideshow-editor.ts`; pure operations in
   `src/library/slideshow-edits.ts`): every edit applies at once and is stored; the screen is
   `aria-busy` from an edit until every edit so far is stored.
@@ -72,7 +76,9 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
     slideshow no longer exists."
 - **Picture editor** (`picture-editor/`, route `routes/PictureEditorRoute.svelte`): a picture's
   own Ken Burns motion (mockup: https://polandy.github.io/glissando-assets/mockups/editor/) and
-  its caption (mockup: https://polandy.github.io/glissando-assets/mockups/captions/).
+  its caption (mockup: https://polandy.github.io/glissando-assets/mockups/captions/), its own
+  duration and transition into the next picture (mockup:
+  https://polandy.github.io/glissando-assets/mockups/slide-timing/, ADR-0008).
   Breadcrumb "Library / title / Picture 3"; header right ‹ previous picture, "3 / 8" (mono, hidden
   up to 720 px), › next picture (looking disabled at the ends). Back (arrow or browser) returns to
   the slideshow screen with that picture selected. Desktop: a dark well with the whole picture
@@ -99,16 +105,29 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
     1 % (Shift 5 %), + and − zoom by 0.05. Zoom runs from 1 (the whole picture as far as it fills
     a 16:9 screen) to 3, and the frame never leaves the picture. A drag is stored when it ends,
     every other change at once.
-  - **Panel**: "Picture 3 of 8", file name · capture date; "Ken Burns" with the state
-    "Automatic" or "Own motion" (accent-tinted); the toggle, each half with "Zoom 1.20×"; up to
-    720 px the hint "Drag anywhere to move the frame; corners or two fingers zoom." (wider, under the
-    well: "Drag to move the frame, drag a corner to zoom · mouse wheel zooms · arrow
-    keys, + and −"). A 16:9 preview plays the motion over the slide's real duration and loops
-    after a short hold, rendered with the player's own crop and transform; play/pause, a
-    progress track and "0:02.4 / 0:05.0". Changing a frame pauses it on that frame (start or
+  - **Preview** (`MotionPreviewScreen.svelte`, timing in `timing/preview-timeline.ts`): at the
+    top of the panel, staying in view (sticky) while the panel, or up to 720 px the page,
+    scrolls. A 16:9 screen plays the picture over its real duration with its motion, rendered
+    with the player's own crop and transform; its transition into the next picture in the
+    picture's last part, the next picture's motion starting with it as in the player
+    (ADR-0002); then 0.9 s of the next picture, or at the last picture a black "End of
+    slideshow" card; then it loops. Play/pause, a progress track whose end is hatched in the
+    accent where the transition runs, "0:02.4 / 0:05.0" (the picture's time), and the line
+    "Picture 5 · 5.0 s, with Circle 1.0 s into picture 6" ("…, then a cut to picture 6",
+    "…, then the slideshow ends"). The effects are the player's shaders redone in CSS on two
+    layers (`timing/transition-styles.ts`), eased as the player eases them: crossfade, push,
+    wipe, circle and zoom follow the shaders' geometry and soft edge; dissolve is approximated,
+    revealing a 16 × 9 grid of cells in the shader's noise order where the player reveals
+    4-pixel cells. Changing a frame pauses it on that frame of this picture alone (start or
     end); play then starts over. "Swap start and end" and "Back to automatic" replay the new
-    motion from the start. With reduced motion it starts paused, and a swap or reset holds it at
-    the start.
+    motion from the start, and so does a new duration. Picking a transition (or its "Back to
+    automatic") plays from 1.2 s before the transition. With reduced motion it starts paused; a
+    swap, reset or new duration holds it at the start, a picked transition half-way through it.
+  - **Panel**: below the preview "Picture 3 of 8", file name · capture date; "Ken Burns" with the
+    state "Automatic" or "Own motion" (accent-tinted); the toggle, each half with "Zoom 1.20×";
+    up to 720 px the hint "Drag anywhere to move the frame; corners or two fingers zoom." (wider,
+    under the well: "Drag to move the frame, drag a corner to zoom · mouse wheel zooms · arrow
+    keys, + and −"); "Swap start and end" and "Back to automatic".
   - **Automatic and own**: until changed, the frames show the automatic motion. The first change
     makes it the picture's own (the automatic one, changed), stored at once like every edit.
     "Swap start and end" reverses the motion (an automatic one becomes own). "Back to automatic"
@@ -129,6 +148,38 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
     the caption in the player's place, size and type over a 16:9 screen (`captionStyles`, type
     at least 10 px so the small screen keeps the player's proportions); it wraps with CSS like
     the DOM fallback, so its line breaks can differ from the WebGL player's.
+  - **Duration** (`DurationSection.svelte`): below the caption, the eyebrow "Duration" with the
+    state "Automatic" or "Own duration" (accent-tinted); a stepper − "5.0 s" + (mono, announced
+    politely) in half-second steps from 2 to 15 s, − and + looking disabled (`aria-disabled`) at
+    the bounds. The first step from an automatic duration off the half-second grid (shared music
+    can leave it off the grid) rounds to the next grid value in the step's direction — up for +,
+    down for − — and makes it the picture's own; on the grid, + and − move by half a second as
+    usual. The hint follows the case: without music "The slideshow's seconds per picture. − and +
+    make it this picture's own." or, own, "Automatic would be 5.0 s, the slideshow's seconds per
+    picture."; with music "The music is shared evenly across the 7 pictures without an own
+    duration." or, own, "The other 7 pictures share the rest of the music: 4.6 s each." or, when
+    the own durations use up the music, "The music is used up; the other 7 pictures get the
+    minimum, 2.0 s each." or, when every picture has its own, "Every picture has its own
+    duration; the slideshow no longer follows the music's length." — each followed by "2 to
+    15 s." Then "Back to automatic"
+    (disabled-looking and titled "The duration is already automatic" while it is); the toast
+    "Duration back to automatic" with "Undo" follows. How durations share the music:
+    `dev-docs/COMPOSITION.md`.
+  - **Transition** (`TransitionSection.svelte`): the eyebrow "Transition to picture 6" with the
+    state "Automatic" or "Own transition"; a radiogroup of seven tiles in four columns —
+    Crossfade, Push, Wipe, Circle, Zoom, Dissolve, Cut — each looping its effect from this
+    picture to the next in a small 16:9 frame (Cut: a hard switch, with a slash), still half-way
+    with reduced motion. The applied choice has an accent outline, dashed while automatic, and
+    the automatic effect carries an "Auto" tag. Tapping any tile, also the automatic one, makes
+    it the picture's own; the arrow keys move the choice (selection follows focus, one tab
+    stop). The hint: "Takes 1.0 s at the end of picture 5: 30 % of the picture's time, at most
+    1 s." or, for a cut, "Picture 6 follows without a transition.", while automatic prefixed by
+    "Transitions alternate automatically from picture to picture." Then "Back to automatic" as
+    for the duration, toast "Transition back to automatic" with "Undo". At the last picture the
+    eyebrow is "Transition", the state "Last picture", and a note says "**The slideshow ends
+    here**, without a transition."; with an own transition stored it adds "The own transition
+    “Dissolve” stays saved and applies again once a picture follows." and an enabled "Back to
+    automatic".
 - **Export** (`glissando-file/export-job.ts`): runs in the background, one at a time; the app
   stays usable, also on other screens. While it runs, the menu item is `aria-disabled` and reads
   "Exporting … 34 %" (for another slideshow: "Export", subtitle "Once the running export is

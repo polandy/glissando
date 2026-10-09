@@ -67,6 +67,8 @@ export async function setUp(ids: readonly string[] = ["a", "b", "c", "d"]) {
     undoLabel: () => "Rückgängig",
     lastPictureText: () => "Das letzte Bild bleibt.",
     motionAutomaticText: () => "Bewegung wieder automatisch",
+    durationAutomaticText: () => "Dauer wieder automatisch",
+    transitionAutomaticText: () => "Übergang wieder automatisch",
     automaticTitle: () => "Juli 2025",
   });
   const order = () => editor.slideshow.pictures.map((picture) => picture.id);

@@ -1,12 +1,12 @@
 import type { Clock, FrameScheduler } from "../../player";
-
-/** After each run the preview rests on the end framing this long before it starts over. */
-export const LOOP_HOLD_MS = 700;
+import { previewLengthMs } from "./timing/preview-timeline";
 
 export interface MotionPreviewState {
   readonly playing: boolean;
-  /** How far through the motion, 0..1, linear in time. */
-  readonly progress: number;
+  /** Into the loop: the picture's duration, then the hold on what follows. */
+  readonly elapsedMs: number;
+  /** Paused on a frame being edited: the preview shows this picture alone, no transition. */
+  readonly onFrame: boolean;
 }
 
 export interface MotionPreviewPorts {
@@ -15,18 +15,16 @@ export interface MotionPreviewPorts {
 }
 
 /**
- * The picture editor's preview clock: runs the motion over the slide's real duration and loops
- * with a short hold. Time comes from the injected clock, one step per animation frame.
+ * The picture editor's preview clock: runs over the slide's real duration and a short hold on
+ * what follows, then loops. Time comes from the injected clock, one step per animation frame.
  */
 export class MotionPreview {
-  readonly #durationMs: number;
+  #durationMs: number;
   readonly #ports: MotionPreviewPorts;
   readonly #listeners = new Set<(state: MotionPreviewState) => void>();
   #state: MotionPreviewState;
-  /** The clock time the current run started at; meaningful while playing. */
+  /** The clock time the current loop started at; meaningful while playing. */
   #startedAt = 0;
-  /** Held at a frame: the next play starts the motion over. */
-  #held = false;
   #frame: number | null = null;
 
   constructor(
@@ -35,7 +33,7 @@ export class MotionPreview {
   ) {
     this.#durationMs = initial.durationMs;
     this.#ports = ports;
-    this.#state = { playing: false, progress: 0 };
+    this.#state = { playing: false, elapsedMs: 0, onFrame: false };
     if (initial.playing) {
       this.play();
     }
@@ -51,33 +49,46 @@ export class MotionPreview {
     return () => this.#listeners.delete(listener);
   }
 
+  /** Goes on from where it rests; held on a frame, starts over. */
   play(): void {
     if (this.#state.playing) {
       return;
     }
-    const progress = this.#held ? 0 : this.#state.progress;
-    this.#held = false;
-    this.#startedAt = this.#ports.clock.now() - progress * this.#durationMs;
-    this.#set({ playing: true, progress });
+    this.playFrom(this.#state.onFrame ? 0 : this.#state.elapsedMs);
+  }
+
+  playFrom(elapsedMs: number): void {
+    this.#cancelFrame();
+    this.#startedAt = this.#ports.clock.now() - elapsedMs;
+    this.#set({ playing: true, elapsedMs, onFrame: false });
     this.#requestFrame();
   }
 
   pause(): void {
     this.#cancelFrame();
-    this.#set({ playing: false, progress: this.#state.progress });
+    this.#set({ ...this.#state, playing: false });
   }
 
-  /** Pauses on the framing at `progress`, e.g. the frame being dragged. */
+  /** Pauses at `elapsedMs`, e.g. half-way through a transition just picked. */
+  restAt(elapsedMs: number): void {
+    this.#cancelFrame();
+    this.#set({ playing: false, elapsedMs, onFrame: false });
+  }
+
+  /** Pauses on this picture's framing at `progress` (0..1), e.g. the frame being dragged. */
   holdAt(progress: number): void {
     this.#cancelFrame();
-    this.#held = true;
-    this.#set({ playing: false, progress });
+    this.#set({ playing: false, elapsedMs: progress * this.#durationMs, onFrame: true });
   }
 
-  /** Starts the motion over, playing. */
+  /** Starts over, playing. */
   restart(): void {
-    this.holdAt(0);
-    this.play();
+    this.playFrom(0);
+  }
+
+  /** The picture's duration changed; the caller decides where the preview goes on. */
+  retime(durationMs: number): void {
+    this.#durationMs = durationMs;
   }
 
   dispose(): void {
@@ -87,8 +98,10 @@ export class MotionPreview {
 
   #tick(): void {
     this.#frame = null;
-    const elapsed = (this.#ports.clock.now() - this.#startedAt) % (this.#durationMs + LOOP_HOLD_MS);
-    this.#set({ playing: true, progress: Math.min(1, elapsed / this.#durationMs) });
+    const elapsedMs =
+      (this.#ports.clock.now() - this.#startedAt) %
+      previewLengthMs({ durationMs: this.#durationMs });
+    this.#set({ playing: true, elapsedMs, onFrame: false });
     this.#requestFrame();
   }
 

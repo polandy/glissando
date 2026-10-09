@@ -21,8 +21,11 @@ export function details(ids: readonly string[], overrides: Partial<SlideshowDeta
     coverUrl: PIXEL,
     durationSeconds: 60,
     musicTitle: null,
+    musicSeconds: null,
     ownOrder: false,
     ownMotionCount: 0,
+    ownDurationCount: 0,
+    ownTransitionCount: 0,
     captionCount: 0,
     capturedFrom: "2025-07-01T10:00:00Z",
     capturedTo: "2025-07-03T10:00:00Z",
@@ -31,6 +34,8 @@ export function details(ids: readonly string[], overrides: Partial<SlideshowDeta
       thumbnailUrl: PIXEL,
       capturedAt: `2025-07-0${index + 1}T10:00:00Z`,
       ownMotion: false,
+      ownDurationMs: null,
+      ownTransition: null,
     })),
   };
   return { ...base, ...overrides };

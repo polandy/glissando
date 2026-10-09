@@ -7,7 +7,13 @@ export { orderByCaptureDate } from "./order-by-capture-date";
 export { slideDurationsMs } from "./slide-durations-ms";
 export { autoKenBurns, KEN_BURNS_EASING } from "./auto-ken-burns";
 export { pictureKenBurns } from "./picture-ken-burns";
-export { autoTransition } from "./auto-transition";
+export {
+  autoTransitionEffect,
+  transitionDurationMs,
+  MAX_TRANSITION_DURATION_MS,
+  TRANSITION_SHARE_OF_SLIDE,
+} from "./auto-transition";
+export { pictureTransition } from "./picture-transition";
 export { titleForCaptureRange } from "./title-for-capture-range";
 export { buildStoredSlideshow, type BuildStoredSlideshowInput } from "./build-stored-slideshow";
 export { composeSlideshow, type SlideshowSources } from "./compose-slideshow";

@@ -69,6 +69,12 @@ export const ICONS = {
   },
   pencil: { shapes: [path("M4 20h4L19 9l-4-4L4 16z")] },
   frame: { shapes: [rect(3, 6, 13, 9, 1), rect(8, 9, 13, 9, 1)] },
+  transition: {
+    shapes: [
+      rect(3, 6, 10, 12, 1.5),
+      path("M13 6h6.5a1.5 1.5 0 011.5 1.5v9a1.5 1.5 0 01-1.5 1.5H13"),
+    ],
+  },
   swap: { shapes: [path("M7 7h11l-3-3M17 17H6l3 3")] },
   trash: {
     shapes: [

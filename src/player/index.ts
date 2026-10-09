@@ -10,6 +10,7 @@ export { cropRect, framingAt, type Rect, type Size } from "./ken-burns";
 export { parseSlideshow, SlideshowFormatError } from "./parse-slideshow";
 export { SlideshowLoadError } from "./picture-buffer";
 export { MusicPlaybackError, type Clock, type FrameScheduler } from "./ports";
+export { easeTransition } from "./render-frame";
 export { PLAYER_EVENTS, type PlayerEvent } from "./player-events";
 export { SlideshowPlayer } from "./slideshow-player";
 export {

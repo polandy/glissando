@@ -27,6 +27,19 @@ const stored: StoredSlideshow = {
   secondsPerPicture: 4,
 };
 
+function withPicture(index: number, changes: Partial<StoredPicture>): StoredSlideshow {
+  return {
+    ...stored,
+    pictures: stored.pictures.map((picture, at) =>
+      at === index ? { ...picture, ...changes } : picture,
+    ),
+  };
+}
+
+function music(durationMs: number) {
+  return { id: "m", fileName: "m.mp3", durationMs, mimeType: "audio/mpeg" };
+}
+
 describe("pictureEditorView", () => {
   it("shows an automatic picture's motion for its position, its place and neighbours", () => {
     const automatic = autoKenBurns(0, stored.pictures[0] as StoredPicture);
@@ -43,9 +56,18 @@ describe("pictureEditorView", () => {
       motion: { from: automatic.from, to: automatic.to },
       ownMotion: false,
       durationMs: 4000,
+      ownDuration: false,
+      durationBasis: { kind: "seconds-per-picture", automaticMs: 4000 },
+      transition: { choice: "crossfade", own: false, automatic: "crossfade", durationMs: 1000 },
       caption: "",
       previousId: null,
       nextId: "p2",
+      next: {
+        size: { width: 300, height: 200 },
+        motion: own,
+        durationMs: 4000,
+        caption: "Am Steg",
+      },
     });
   });
 
@@ -68,6 +90,90 @@ describe("pictureEditorView", () => {
     };
 
     expect(pictureEditorView(withMusic, "p3").durationMs).toBe(10_000);
+  });
+
+  it("shows an own duration and still names the automatic one", () => {
+    const timed = withPicture(1, { durationMs: 8000 });
+
+    const view = pictureEditorView(timed, "p2");
+
+    expect(view.durationMs).toBe(8000);
+    expect(view.ownDuration).toBe(true);
+    expect(view.durationBasis).toEqual({ kind: "seconds-per-picture", automaticMs: 4000 });
+  });
+
+  it("with music, counts the pictures sharing the rest and names their share", () => {
+    const timed = { ...withPicture(1, { durationMs: 8000 }), music: music(30_000) };
+
+    expect(pictureEditorView(timed, "p2").durationBasis).toEqual({
+      kind: "music",
+      automaticCount: 2,
+      shareMs: 11_000,
+      clamped: false,
+    });
+    expect(pictureEditorView(timed, "p1").durationBasis).toEqual({
+      kind: "music",
+      automaticCount: 2,
+      shareMs: 11_000,
+      clamped: false,
+    });
+  });
+
+  it("with music and every picture timed, names no share", () => {
+    const all = {
+      ...stored,
+      pictures: stored.pictures.map((picture) => ({ ...picture, durationMs: 3000 })),
+      music: music(30_000),
+    };
+
+    expect(pictureEditorView(all, "p1").durationBasis).toEqual({
+      kind: "music",
+      automaticCount: 0,
+      shareMs: null,
+      clamped: false,
+    });
+  });
+
+  it("with music, marks the automatic pictures clamped once the own durations use it up", () => {
+    const outlasted = { ...withPicture(1, { durationMs: 15_000 }), music: music(17_000) };
+
+    expect(pictureEditorView(outlasted, "p1").durationBasis).toEqual({
+      kind: "music",
+      automaticCount: 2,
+      shareMs: 2000,
+      clamped: true,
+    });
+  });
+
+  it("shows an own transition beside the automatic one, its length from the duration", () => {
+    const timed = withPicture(1, { transition: "dissolve", durationMs: 2000 });
+
+    expect(pictureEditorView(timed, "p2").transition).toEqual({
+      choice: "dissolve",
+      own: true,
+      automatic: "push-left",
+      durationMs: 600,
+    });
+  });
+
+  it("gives a cut no length", () => {
+    const cut = withPicture(0, { transition: "cut" });
+
+    expect(pictureEditorView(cut, "p1").transition).toMatchObject({ choice: "cut", durationMs: 0 });
+  });
+
+  it("at the last picture, keeps a stored transition but plays none and has no next", () => {
+    const last = withPicture(2, { transition: "zoom-in" });
+
+    const view = pictureEditorView(last, "p3");
+
+    expect(view.transition).toEqual({
+      choice: "zoom-in",
+      own: true,
+      automatic: "wipe-right",
+      durationMs: 0,
+    });
+    expect(view.next).toBeNull();
   });
 
   it("refuses a picture the slideshow does not hold", () => {

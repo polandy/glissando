@@ -103,10 +103,68 @@ test("E2E-020 a picture gets its own Ken Burns motion that is stored, and goes b
 
   await selectionBar.getByRole("button", { name: "Bearbeiten" }).click();
   await expect(state).toHaveText("Eigene Bewegung");
-  await page.getByRole("button", { name: "Zurück auf automatisch" }).click();
+  await page
+    .getByRole("region", { name: "Ken Burns" })
+    .getByRole("button", { name: "Zurück auf automatisch" })
+    .click();
   await expect(state).toHaveText("Automatisch");
-  await expect(page.getByRole("status")).toContainText("Bewegung wieder automatisch");
+  await expect(
+    page.getByRole("status").filter({ hasText: "Bewegung wieder automatisch" }),
+  ).toBeVisible();
   await page.getByRole("button", { name: "Rückgängig" }).click();
   await expect(state).toHaveText("Eigene Bewegung");
   await expect(endToggle.locator(".mono")).toHaveText(endZoom);
+});
+
+test("E2E-022 a picture gets its own duration and transition, stored, and the transition goes back to automatic", async ({
+  page,
+}) => {
+  const selectionBar = page.getByRole("toolbar", { name: "Ausgewähltes Bild" });
+  const automaticTile = page.getByRole("button", {
+    name: "Bild 2, aufgenommen am 14.07.2025",
+    exact: true,
+  });
+  const ownTile = page.getByRole("button", {
+    name: "Bild 2, aufgenommen am 14.07.2025, eigene Dauer 6,5 s, eigener Übergang Kreis",
+  });
+  const durationSection = page.locator('section[aria-labelledby="duration-label"]');
+  const transitionSection = page.locator('section[aria-labelledby="transition-label"]');
+  const durationState = durationSection.locator(".state");
+  const transitionState = transitionSection.locator(".state");
+  const durationValue = durationSection.locator("output.mono");
+  const longer = durationSection.getByRole("button", { name: "Eine halbe Sekunde länger" });
+  const circleTile = transitionSection.getByRole("radio", { name: /Kreis/ });
+  await openApp(page);
+  await createSlideshow(page, ["2025-07-12", "2025-07-14", "2025-07-20"], 5);
+
+  await automaticTile.click();
+  await selectionBar.getByRole("button", { name: "Bearbeiten" }).click();
+  await expect(durationState).toHaveText("Automatisch");
+  await expect(transitionState).toHaveText("Automatisch");
+
+  await longer.click();
+  await longer.click();
+  await longer.click();
+  await expect(durationState).toHaveText("Eigene Dauer");
+  await expect(durationValue).toHaveText("6,5 s");
+
+  await circleTile.click();
+  await expect(transitionState).toHaveText("Eigener Übergang");
+  await expect(circleTile).toHaveAttribute("aria-checked", "true");
+  await editsStored(page);
+
+  await page.getByRole("button", { name: "Zurück", exact: true }).click();
+  await expect(ownTile).toHaveAttribute("aria-pressed", "true");
+  await expect(ownTile.locator(".timing-badge.mono")).toHaveText("6,5 s");
+  await expect(ownTile.locator(".timing-badge[title]")).toHaveAttribute("title", "Kreis");
+  await expect(definitionOf(page, "Bildzeiten")).toHaveText("automatisch, 1 eigene");
+  await expect(definitionOf(page, "Übergänge")).toHaveText("abwechselnd, 1 eigene");
+
+  await selectionBar.getByRole("button", { name: "Bearbeiten" }).click();
+  await expect(transitionState).toHaveText("Eigener Übergang");
+  await transitionSection.getByRole("button", { name: "Zurück auf automatisch" }).click();
+  await expect(transitionState).toHaveText("Automatisch");
+  await expect(
+    page.getByRole("status").filter({ hasText: "Übergang wieder automatisch" }),
+  ).toBeVisible();
 });

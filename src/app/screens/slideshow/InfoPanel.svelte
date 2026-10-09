@@ -15,15 +15,22 @@
     onRename: (typed: string) => void;
   } = $props();
 
-  const { t, formatDuration, formatSeconds, formatDate } = getTranslator();
+  const { t, formatDuration, formatDate } = getTranslator();
 
   const dateRange = $derived.by(() => {
     const from = formatDate(slideshow.capturedFrom);
     const to = formatDate(slideshow.capturedTo);
     return from === to ? from : t("slideshow.dateRange", { from, to });
   });
-  const secondsPerPicture = $derived(
-    formatSeconds(slideshow.durationSeconds / slideshow.pictures.length),
+  /**
+   * Named beside the duration when the slideshow does not end with the music, as displayed:
+   * two seconds counts that round to the same duration never show it twice.
+   */
+  const differingMusicSeconds = $derived(
+    slideshow.musicSeconds !== null &&
+      formatDuration(slideshow.musicSeconds) !== formatDuration(slideshow.durationSeconds)
+      ? slideshow.musicSeconds
+      : null,
   );
 </script>
 
@@ -43,15 +50,28 @@
     </div>
     <div>
       <dt>{t("slideshow.duration")}</dt>
-      <dd class="mono">{formatDuration(slideshow.durationSeconds)}</dd>
+      <dd class="mono">
+        {formatDuration(slideshow.durationSeconds)}
+        {#if differingMusicSeconds !== null}
+          <small>
+            · {t("slideshow.musicLength", { duration: formatDuration(differingMusicSeconds) })}
+          </small>
+        {/if}
+      </dd>
     </div>
     <div>
       <dt>{t("slideshow.music")}</dt>
       <dd>{slideshow.musicTitle ?? t("slideshow.noMusic")}</dd>
     </div>
     <div>
-      <dt>{t("slideshow.perPicture")}</dt>
-      <dd class="mono">{secondsPerPicture}</dd>
+      <dt>{t("slideshow.pictureTimes")}</dt>
+      <dd>
+        <span class="pill"
+          ><i></i>{slideshow.ownDurationCount > 0
+            ? t("slideshow.automaticWithOwn", { count: slideshow.ownDurationCount })
+            : t("slideshow.automatic")}</span
+        >
+      </dd>
     </div>
     <div>
       <dt>{t("slideshow.kenBurns")}</dt>
@@ -65,7 +85,13 @@
     </div>
     <div>
       <dt>{t("slideshow.transitions")}</dt>
-      <dd><span class="pill"><i></i>{t("slideshow.alternating")}</span></dd>
+      <dd>
+        <span class="pill"
+          ><i></i>{slideshow.ownTransitionCount > 0
+            ? t("slideshow.alternatingWithOwn", { count: slideshow.ownTransitionCount })
+            : t("slideshow.alternating")}</span
+        >
+      </dd>
     </div>
     <div>
       <dt>{t("slideshow.captions")}</dt>
@@ -113,6 +139,11 @@
     font-weight: var(--gl-weight-medium);
     text-align: right;
     overflow-wrap: anywhere;
+  }
+  .rows small {
+    color: var(--gl-muted);
+    font-size: inherit;
+    font-weight: var(--gl-weight-regular);
   }
   .pill {
     display: inline-flex;

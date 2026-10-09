@@ -45,13 +45,23 @@ export function captureRange(
     : { from: first.capturedAt, to: last.capturedAt };
 }
 
+/** The slide durations of a slideshow about to be created: none of its pictures has an own one. */
+export function importSlideDurationsMs(
+  pictureCount: number,
+  musicDurationMs: number | undefined,
+  secondsPerPicture: number,
+): number[] {
+  const pictures = Array.from({ length: pictureCount }, () => ({}));
+  return slideDurationsMs(pictures, musicDurationMs, secondsPerPicture);
+}
+
 /** Step 2's timing row, by the same rule the slideshow is composed with. */
 export function importTiming(
   pictureCount: number,
   musicDurationMs: number | undefined,
   secondsPerPicture: number,
 ): { readonly perPictureSeconds: number; readonly totalSeconds: number } {
-  const totalMs = slideDurationsMs(pictureCount, musicDurationMs, secondsPerPicture).reduce(
+  const totalMs = importSlideDurationsMs(pictureCount, musicDurationMs, secondsPerPicture).reduce(
     (sum, durationMs) => sum + durationMs,
     0,
   );

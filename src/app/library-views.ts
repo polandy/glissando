@@ -44,21 +44,30 @@ export function slideshowDetails(
   thumbnailUrl: ThumbnailUrl,
 ): SlideshowDetails {
   const span = captureSpan(stored);
+  const lastIndex = stored.pictures.length - 1;
+  const tiles = stored.pictures.map((picture, index) => ({
+    id: picture.id,
+    thumbnailUrl: thumbnailUrl(picture.id),
+    capturedAt: picture.capturedAt,
+    ownMotion: picture.kenBurns !== undefined,
+    ownDurationMs: picture.durationMs ?? null,
+    // The last picture plays no transition; one stored there waits for a picture to follow.
+    ownTransition: index === lastIndex ? null : (picture.transition ?? null),
+  }));
   return {
     title: stored.title,
     coverUrl: thumbnailUrl(coverId(stored)),
     durationSeconds: slideshowDurationMs(stored) / MILLISECONDS_PER_SECOND,
     musicTitle: stored.music?.fileName ?? null,
+    musicSeconds:
+      stored.music === undefined ? null : stored.music.durationMs / MILLISECONDS_PER_SECOND,
     ownOrder: stored.ownOrder === true,
     ownMotionCount: stored.pictures.filter((picture) => picture.kenBurns !== undefined).length,
+    ownDurationCount: tiles.filter((tile) => tile.ownDurationMs !== null).length,
+    ownTransitionCount: tiles.filter((tile) => tile.ownTransition !== null).length,
     captionCount: stored.pictures.filter((picture) => picture.caption !== undefined).length,
     capturedFrom: span.from,
     capturedTo: span.to,
-    pictures: stored.pictures.map((picture) => ({
-      id: picture.id,
-      thumbnailUrl: thumbnailUrl(picture.id),
-      capturedAt: picture.capturedAt,
-      ownMotion: picture.kenBurns !== undefined,
-    })),
+    pictures: tiles,
   };
 }

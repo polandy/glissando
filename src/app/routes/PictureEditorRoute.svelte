@@ -66,6 +66,7 @@
     <PictureEditorScreen
       picture={view}
       pictureUrl={pictureUrls.get(view.id) ?? null}
+      nextPictureUrl={view.nextId === null ? null : (pictureUrls.get(view.nextId) ?? null)}
       slideshowTitle={stored.title}
       {onBack}
       {onOpen}
@@ -73,6 +74,10 @@
       onSwap={() => editor.swapKenBurns(view.id)}
       onReset={() => editor.resetKenBurns(view.id)}
       onCaption={(typed) => editor.setCaption(view.id, typed)}
+      onDuration={(durationMs) => editor.setDuration(view.id, durationMs)}
+      onResetDuration={() => editor.resetDuration(view.id)}
+      onTransition={(choice) => editor.setTransition(view.id, choice)}
+      onResetTransition={() => editor.resetTransition(view.id)}
       previewPorts={{ clock: performanceClock, frames: animationFrames }}
       reducedMotion={reducedMotion.current}
       {saving}

@@ -32,6 +32,8 @@ export const deEditor = {
   "editor.reset": "Zurück auf automatisch",
   "editor.alreadyAutomatic": "Die Bewegung ist schon automatisch",
   "editor.motionAutomatic": "Bewegung wieder automatisch",
+  "editor.durationAutomatic": "Dauer wieder automatisch",
+  "editor.transitionAutomatic": "Übergang wieder automatisch",
   "editor.hintWide":
     "Ziehen verschiebt den Rahmen, an den Ecken ziehen zoomt · Mausrad zoomt · Pfeiltasten, + und −",
   "editor.hintNarrow": "Ziehen verschiebt den Rahmen, Ecken oder zwei Finger zoomen.",
