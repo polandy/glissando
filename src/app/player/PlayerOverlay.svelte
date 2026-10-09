@@ -5,6 +5,7 @@
     createPlayer,
     MusicPlaybackError,
     SlideshowLoadError,
+    type MusicOutput,
     type OpenPicture,
     type PlayerEvent,
     type Slideshow,
@@ -29,6 +30,7 @@
     musicTitle = null,
     slideDates = [],
     openPicture,
+    musicOutput,
     onClose,
     scheduler = browserScheduler,
   }: {
@@ -39,6 +41,8 @@
     slideDates?: readonly string[];
     /** Reads a slide's picture by its `src`; without it, `src` is a URL. */
     openPicture?: OpenPicture;
+    /** Where the music sounds; without it, at the audio element's own volume. */
+    musicOutput?: MusicOutput;
     onClose: () => void;
     scheduler?: Scheduler;
   } = $props();
@@ -79,11 +83,10 @@
   ] as const;
 
   onMount(() => {
-    const created = createPlayer(
-      stage,
-      slideshow,
-      openPicture === undefined ? {} : { openPicture },
-    );
+    const created = createPlayer(stage, slideshow, {
+      ...(openPicture === undefined ? {} : { openPicture }),
+      ...(musicOutput === undefined ? {} : { musicOutput }),
+    });
     player = created;
     const sync = () => {
       currentTime = created.currentTime;
@@ -133,6 +136,8 @@
     }
     if (player.paused) {
       failure = null;
+      // Within the gesture, also when the music starts only once the pictures are loaded.
+      musicOutput?.unlock();
       player.play();
     } else {
       player.pause();

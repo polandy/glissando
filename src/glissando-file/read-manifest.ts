@@ -5,6 +5,7 @@ import {
   checkTransitionChoice,
   InvalidOwnTimingError,
 } from "../library/own-timing";
+import { checkMusicFadeMs, checkMusicTrim, InvalidOwnMusicError } from "../library/own-music";
 import { MAX_SECONDS_PER_PICTURE, MIN_SECONDS_PER_PICTURE } from "../library/stored-slideshow";
 import {
   CAPTION_FROM_VERSION,
@@ -12,6 +13,7 @@ import {
   GLISSANDO_FORMAT_VERSION,
   OLDEST_READABLE_FORMAT_VERSION,
   OWN_KEN_BURNS_FROM_VERSION,
+  MUSIC_TRIM_FROM_VERSION,
   OWN_TIMING_FROM_VERSION,
   type GlissandoManifest,
   type ManifestMusic,
@@ -114,7 +116,7 @@ function readValidManifest(input: JsonObject): GlissandoManifest {
       pictures: pictures.map((picture: unknown, index) =>
         readPicture(picture, `slideshow.pictures[${index}]`, version),
       ),
-      ...(show["music"] === undefined ? {} : { music: readMusic(show["music"]) }),
+      ...(show["music"] === undefined ? {} : { music: readMusic(show["music"], version) }),
     },
   };
 }
@@ -187,19 +189,51 @@ function readOwnKenBurns(value: unknown, path: string) {
   }
 }
 
-function readMusic(value: unknown): ManifestMusic {
+function readMusic(value: unknown, version: number): ManifestMusic {
   const path = "slideshow.music";
-  const music = readObject(value, path, ["file", "fileName", "durationMs", "mimeType"]);
+  const music = readObject(value, path, [
+    "file",
+    "fileName",
+    "durationMs",
+    "mimeType",
+    ...(version >= MUSIC_TRIM_FROM_VERSION ? ["trim", "fadeInMs", "fadeOutMs"] : []),
+  ]);
   const durationMs = music["durationMs"];
-  if (typeof durationMs !== "number" || !Number.isFinite(durationMs) || durationMs <= 0) {
-    throw new ManifestFormatError(`${path}.durationMs`, "a positive number", durationMs);
+  if (typeof durationMs !== "number" || !Number.isInteger(durationMs) || durationMs <= 0) {
+    throw new ManifestFormatError(
+      `${path}.durationMs`,
+      "a positive whole number of milliseconds",
+      durationMs,
+    );
   }
+  const where = `glissando.json ${path}`;
+  const { trim, fadeInMs, fadeOutMs } = music;
   return {
     file: readText(music["file"], `${path}.file`),
     fileName: readText(music["fileName"], `${path}.fileName`),
     durationMs,
     mimeType: readText(music["mimeType"], `${path}.mimeType`),
+    ...readOwnMusic(path, () => ({
+      ...(trim === undefined ? {} : { trim: checkMusicTrim(trim, durationMs, where) }),
+      ...(fadeInMs === undefined
+        ? {}
+        : { fadeInMs: checkMusicFadeMs(fadeInMs, "fadeInMs", where) }),
+      ...(fadeOutMs === undefined
+        ? {}
+        : { fadeOutMs: checkMusicFadeMs(fadeOutMs, "fadeOutMs", where) }),
+    })),
   };
+}
+
+function readOwnMusic<Fields>(path: string, read: () => Fields): Fields {
+  try {
+    return read();
+  } catch (error) {
+    if (error instanceof InvalidOwnMusicError) {
+      throw new ManifestFormatError(`${path}.${error.field}`, error.expected, error.actual);
+    }
+    throw error;
+  }
 }
 
 function isObject(value: unknown): value is JsonObject {

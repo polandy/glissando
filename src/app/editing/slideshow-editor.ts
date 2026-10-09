@@ -1,20 +1,24 @@
 import { pictureKenBurns } from "../../compose";
 import type { OwnKenBurns } from "../../library/own-ken-burns";
+import type { MusicTrim } from "../../library/own-music";
 import type { TransitionChoice } from "../../library/own-timing";
 import {
   movePicture,
   removePicture,
   renameSlideshow,
   restorePictures,
+  setMusicFadeIn,
+  setMusicFadeOut,
+  setMusicTrim,
   setPictureCaption,
   setPictureDuration,
   setPictureKenBurns,
   setPictureTransition,
-  type RemovedPicture,
 } from "../../library/slideshow-edits";
 import type { LibraryStore, StoredSlideshow } from "../../library/stored-slideshow";
-import type { Toaster, ToastMessage } from "../toast/toaster";
+import type { Toaster } from "../toast/toaster";
 import { EditSaver } from "./edit-saver";
+import { RemovalUndo } from "./removal-undo";
 import { ResetUndo, type ResettableSetting } from "./reset-undo";
 
 export interface SlideshowEditorPorts {
@@ -41,13 +45,6 @@ export interface SlideshowEditorPorts {
   readonly automaticTitle: (slideshow: StoredSlideshow) => string;
 }
 
-/** Removals made while their one undo toast is shown, and the claim sparing their media. */
-interface RemovalBatch {
-  readonly toast: ToastMessage;
-  readonly removals: readonly RemovedPicture[];
-  readonly claimId: string;
-}
-
 /**
  * The slideshow screen's edits: each applies at once and is stored. Removing needs no
  * confirmation; its toast undoes every removal made while it is shown, and any other edit
@@ -59,7 +56,7 @@ export class SlideshowEditor {
   readonly #ports: SlideshowEditorPorts;
   readonly #listeners = new Set<(slideshow: StoredSlideshow) => void>();
   #slideshow: StoredSlideshow;
-  #batch: RemovalBatch | null = null;
+  readonly #removalUndo: RemovalUndo;
   readonly #resetUndo: ResetUndo;
   readonly #saver: EditSaver;
 
@@ -71,9 +68,13 @@ export class SlideshowEditor {
       store: ports.store,
       onError: ports.onError,
       onGone: () => {
-        this.#endBatch();
+        this.#removalUndo.end();
         ports.onGone();
       },
+    });
+    this.#removalUndo = new RemovalUndo({
+      ...ports,
+      track: (work) => this.#saver.track(work),
     });
   }
 
@@ -99,28 +100,16 @@ export class SlideshowEditor {
       return;
     }
     const { slideshow, removed } = removePicture(this.#slideshow, pictureId);
-    // A batch exists only while its toast is shown (see #closed).
-    const ongoing = this.#batch;
-    const claimId = ongoing?.claimId ?? this.#ports.newId();
-    // Claimed before the save that drops the reference, so no clean-up can fall in between.
-    this.#saver.track(this.#ports.store.claimMedia(claimId, this.#ports.now(), removed.picture.id));
-    const removals = [...(ongoing?.removals ?? []), removed];
-    const toast: ToastMessage = {
-      text: this.#ports.removedText(removals.length),
-      tone: "info",
-      action: { label: this.#ports.undoLabel(), run: () => this.#undo(batch) },
-      onClosed: () => this.#closed(toast),
-    };
-    const batch: RemovalBatch = { toast, removals, claimId };
-    this.#batch = batch;
+    this.#removalUndo.add(removed, (removals) =>
+      this.#apply(restorePictures(this.#slideshow, removals)),
+    );
     this.#apply(slideshow);
-    this.#ports.toaster.show(toast);
   }
 
   move(pictureId: string, toIndex: number): void {
     const moved = movePicture(this.#slideshow, pictureId, toIndex);
     if (moved !== this.#slideshow) {
-      this.#endBatch();
+      this.#removalUndo.end();
       this.#apply(moved);
     }
   }
@@ -203,6 +192,23 @@ export class SlideshowEditor {
     }
   }
 
+  // The music's edits offer no undo: one tap on "whole track" or "automatic" restores them.
+
+  /** Plays only `trim` of the music; `undefined` or the whole track plays all of it. */
+  setMusicTrim(trim: MusicTrim | undefined): void {
+    this.#apply(setMusicTrim(this.#slideshow, trim));
+  }
+
+  /** The music's own fade-in in ms, 0 being off; `undefined` makes it automatic. */
+  setMusicFadeIn(fadeInMs: number | undefined): void {
+    this.#apply(setMusicFadeIn(this.#slideshow, fadeInMs));
+  }
+
+  /** The music's own fade-out in ms, 0 being off; `undefined` makes it automatic. */
+  setMusicFadeOut(fadeOutMs: number | undefined): void {
+    this.#apply(setMusicFadeOut(this.#slideshow, fadeOutMs));
+  }
+
   /** Resolves once every edit made so far is stored (or reported as failed). */
   settled(): Promise<void> {
     return this.#saver.settled();
@@ -210,7 +216,7 @@ export class SlideshowEditor {
 
   /** The screen closes: its undo toast would act on a slideshow no longer shown. */
   dispose(): void {
-    this.#endBatch();
+    this.#removalUndo.end();
     this.#resetUndo.end();
   }
 
@@ -234,38 +240,6 @@ export class SlideshowEditor {
       throw new Error(`slideshow "${this.#slideshow.id}" holds no picture "${pictureId}"`);
     }
     return picture;
-  }
-
-  #undo(batch: RemovalBatch): void {
-    this.#batch = null;
-    this.#apply(restorePictures(this.#slideshow, batch.removals));
-    // Released after the restoring save is queued: a clean-up queued in between waits for it.
-    this.#release(batch.claimId);
-  }
-
-  /** The undo toast left without being used: the removals are final. */
-  #closed(toast: ToastMessage): void {
-    if (this.#batch?.toast === toast) {
-      const { claimId } = this.#batch;
-      this.#batch = null;
-      this.#release(claimId);
-    }
-  }
-
-  #endBatch(): void {
-    const batch = this.#batch;
-    if (batch === null) {
-      return;
-    }
-    this.#batch = null;
-    if (this.#ports.toaster.current === batch.toast) {
-      this.#ports.toaster.dismiss();
-    }
-    this.#release(batch.claimId);
-  }
-
-  #release(claimId: string): void {
-    this.#saver.track(this.#ports.store.releaseClaim(claimId));
   }
 
   #apply(slideshow: StoredSlideshow): void {

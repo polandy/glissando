@@ -27,9 +27,9 @@ function slide(src: string, durationMs: number, transitionMs?: number): Slide {
 
 /** a: 0–4 s, wipe into b from 3 s; b: 4–9 s; c: 9–12 s. */
 const SLIDESHOW: Slideshow = {
-  formatVersion: 1,
+  formatVersion: 2,
   title: "July 2025",
-  music: { src: "summer.mp3" },
+  music: { src: "summer.mp3", startMs: 0, fadeInMs: 0, fadeOutMs: 0 },
   slides: [slide("a.jpg", 4000, 1000), slide("b.jpg", 5000), slide("c.jpg", 3000)],
 };
 

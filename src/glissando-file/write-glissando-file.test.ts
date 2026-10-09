@@ -65,6 +65,18 @@ describe("writeGlissandoFile", () => {
     expect(music?.fileName).toBe("Walzer.m4a");
   });
 
+  it("keeps the music's excerpt and own fades, and leaves the other fade automatic", async () => {
+    const store = new MemoryLibraryStore();
+    const created = await writeGlissandoFile(await checked(), ports(store), {
+      existingTitles: [],
+      signal: new AbortController().signal,
+    });
+
+    expect(created.music?.trim).toEqual({ startMs: 12_000, endMs: 200_000 });
+    expect(created.music?.fadeOutMs).toBe(5000);
+    expect(created.music).not.toHaveProperty("fadeInMs");
+  });
+
   it("keeps each picture's own motion and leaves the automatic ones automatic", async () => {
     const store = new MemoryLibraryStore();
     const created = await writeGlissandoFile(await checked(), ports(store), {

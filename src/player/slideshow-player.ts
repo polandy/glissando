@@ -4,6 +4,7 @@ import { PictureBuffer } from "./picture-buffer";
 import { MusicPlaybackError, type PlayerDependencies } from "./ports";
 import { renderFrame } from "./render-frame";
 import { MILLISECONDS_PER_SECOND, type Slideshow } from "./slideshow";
+import { TrimmedMusic } from "./trimmed-music";
 import { createTimeline, type SlideAtTime, type Timeline, type TimelineFrame } from "./timeline";
 
 import type { PlayerEvent } from "./player-events";
@@ -17,6 +18,7 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
   readonly #timeline: Timeline;
   readonly #deps: PlayerDependencies<Picture>;
   readonly #pictures: PictureBuffer<Picture>;
+  readonly #music: TrimmedMusic | null;
   #timeMs = 0;
   /** Where the clock and the slideshow time met; set only while time advances. */
   #anchor: { readonly timeMs: number; readonly clockMs: number } | null = null;
@@ -35,6 +37,10 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
     this.#slideshow = slideshow;
     this.#timeline = createTimeline(slideshow.slides);
     this.#deps = dependencies;
+    this.#music =
+      slideshow.music === undefined || dependencies.music === undefined
+        ? null
+        : new TrimmedMusic(slideshow.music, dependencies.music);
     this.#captionInset = new CaptionInset({
       clock: dependencies.clock,
       frames: dependencies.frames,
@@ -155,7 +161,7 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
     this.#paused = true;
     this.#destroyed = true;
     this.#pictures.clear();
-    this.#deps.music?.dispose();
+    this.#music?.dispose();
     this.#deps.renderer.dispose();
   }
 
@@ -175,7 +181,7 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
       onFirstFrame?.();
       this.#emit("playing");
       this.#scheduleFrame();
-      this.#deps.music?.play(this.#timeMs / MILLISECONDS_PER_SECOND).catch((cause: unknown) => {
+      this.#music?.play(this.#timeMs).catch((cause: unknown) => {
         this.#fail(new MusicPlaybackError(cause));
       });
     };
@@ -183,7 +189,7 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
       advance();
       return;
     }
-    this.#deps.music?.pause();
+    this.#music?.pause();
     this.#emit("waiting");
     this.#whenDrawable(advance);
   }
@@ -193,7 +199,7 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
     if (this.#anchor !== null) {
       this.#timeMs = this.#liveTimeMs();
       this.#anchor = null;
-      this.#deps.music?.pause();
+      this.#music?.pause();
     }
     if (this.#frameHandle !== null) {
       this.#deps.frames.cancel(this.#frameHandle);
@@ -213,6 +219,7 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
       return;
     }
     this.#timeMs = timeMs;
+    this.#music?.follow(timeMs);
     if (!this.#isDrawable()) {
       this.#stopAdvancing();
       this.#startAdvancing();

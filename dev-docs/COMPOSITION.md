@@ -11,9 +11,9 @@ I/O, no subject detection.
   `Intl.DateTimeFormat(locale, …).formatRange`; a title the user emptied falls back to it.
 - **Durations** (`slideDurationsMs`): a picture's own duration (`StoredPicture.durationMs`,
   ADR-0008) is kept exactly. Without music, every other slide gets `secondsPerPicture`. With
-  music, the pictures without an own duration share what the own durations leave of the track
-  evenly (the remainder milliseconds go to the first of them, so the sum matches the track
-  exactly) — unless that share would fall below `MIN_SECONDS_PER_PICTURE` (or nothing is left),
+  music, the pictures without an own duration share what the own durations leave of the music's
+  excerpt (`musicExcerptMs`: the trim, or the whole track; ADR-0009) evenly (the remainder
+  milliseconds go to the first of them, so the sum matches the excerpt exactly) — unless that share would fall below `MIN_SECONDS_PER_PICTURE` (or nothing is left),
   in which case each of them gets the minimum and the slideshow outlasts the music. When every
   picture has an own duration, the music plays no part in the timing.
 - **Ken Burns**: zoom alternates in/out by slide index between `MIN_KEN_BURNS_ZOOM` and 1.2; a
@@ -31,6 +31,14 @@ I/O, no subject detection.
   the picture sits; `"cut"` composes a slide without `transitionToNext`. The last slide has none
   (ADR-0002), even with an own one stored. A transition's duration, own effect or automatic, is
   30% of its slide's duration, capped at 1000 ms (`transitionDurationMs`).
+
+- **Music** (`resolveMusicTiming`, ADR-0009): the music plays from the excerpt's start and is
+  heard until the excerpt's end or the slideshow's, whichever comes first (`audibleEndMs`): a
+  longer slideshow plays its last pictures in silence, a shorter one ends the music with it. An
+  own fade (`StoredMusic.fadeInMs`, `fadeOutMs`, 0 being off) is kept; an automatic one is short
+  (2 s) where the music is cut and off where the track starts or ends by itself: fade-in iff the
+  excerpt starts after 0, fade-out iff the music stops before the track's end. Fades that
+  together outlast what is heard are scaled down in proportion.
 
 ## Entry points
 

@@ -2,7 +2,7 @@
   import { onDestroy, onMount } from "svelte";
   import { composeSlideshow } from "../../compose";
   import type { LibraryStore, StoredSlideshow } from "../../library/stored-slideshow";
-  import type { Slideshow } from "../../player";
+  import type { MusicOutput, Slideshow } from "../../player";
   import { browserObjectUrls } from "../media/object-urls";
   import PlayerOverlay from "../player/PlayerOverlay.svelte";
   import { loadPlayerMusic } from "./route-loading";
@@ -14,11 +14,13 @@
   let {
     store,
     stored,
+    musicOutput,
     onClose,
     onError,
   }: {
     store: Pick<LibraryStore, "pictureBlob" | "musicBlob">;
     stored: StoredSlideshow;
+    musicOutput: MusicOutput;
     onClose: () => void;
     onError: (error: unknown) => void;
   } = $props();
@@ -58,6 +60,7 @@
     musicTitle={stored.music?.fileName ?? null}
     slideDates={stored.pictures.map((picture) => picture.capturedAt)}
     openPicture={(id) => store.pictureBlob(id)}
+    {musicOutput}
     {onClose}
   />
 {/if}

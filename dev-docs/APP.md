@@ -33,7 +33,9 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
   the user reordered, "Own order" (with "drag or tap", narrow: "tap to reorder"). Beside it an
   info panel: title with a ✎ button, date range (earliest to latest capture), "Play" and the
   facts — pictures, duration (with "· music 0:44" beside it, muted, when the slideshow does not
-  end with the music), music, picture times "automatic" (with own durations "automatic, 1
+  end with the music's excerpt), music (with music a button spanning the row: the file name,
+  below it "whole track", or once changed in the music editor "0:12–2:30 · fades in and out",
+  and "Edit ›"; it opens the music editor, below; without music the plain "No music"), picture times "automatic" (with own durations "automatic, 1
   own"), Ken Burns "automatic" (with own motions "automatic, 2 own"), transitions "alternating"
   (with own transitions "alternating, 2 own"; a last picture's stored one does not count),
   captions "3 of 8" (pictures with a caption of all; none: "0 of 8"). A tile carries small
@@ -180,6 +182,39 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
     here**, without a transition."; with an own transition stored it adds "The own transition
     “Dissolve” stays saved and applies again once a picture follows." and an enabled "Back to
     automatic".
+- **Music editor** (`music-editor/`, route `routes/MusicEditorRoute.svelte`; mockup:
+  https://polandy.github.io/glissando-assets/mockups/music-trim/, ADR-0009): the music's
+  excerpt and fades. Bar: back and "Library / title / Music". Desktop: a main column and a
+  340 px panel on the right; up to 720 px stacked. Every change is stored at once, with no undo
+  toast: "Whole track" and "Back to automatic" restore anything in one tap.
+  - **Main column**: a music tile, the file name and "3:24" (trimmed: "3:24 · trimmed to 2:18").
+    The waveform of the whole track (decoded once with Web Audio into 1000 peaks, drawn as a bar
+    every 5 px), dimmed outside the excerpt; an accent line over it is the volume, ramping
+    through the fades, and the bars inside a fade shrink with it. Two accent handles "Start"
+    and "End" carry their time ("0:12,0"); dragging one, or grabbing the waveform anywhere (the
+    nearer handle follows, keeping the grab's offset), moves it in tenths of a second, live,
+    and stores it on release; as sliders the arrow keys move a tenth, with Shift a second. The
+    excerpt stays at least 5 s; a track shorter than that stays whole. A time ruler below. Then the lane "Slideshow, 24 pictures" with
+    its length: a mint bar from the excerpt's start for as long as the slideshow plays, a tick
+    per picture change, lemon hatching past the excerpt's end when the pictures play on in
+    silence; when the slideshow ends earlier, the waveform is hatched from there to the
+    excerpt's end. "Listen to the start" (the excerpt's first 8 s with the fade-in, "from
+    0:12,0") and "Listen to the end" (the last 8 s before the music stops being heard, with the
+    fade-out, "until 2:30,0") toggle to pause; a playhead runs over the waveform; grabbing a
+    handle stops it. A hint names the handles' keys and the line.
+  - **Excerpt**: the state "Whole track" or "Trimmed" (accent-tinted), Start and End as
+    "0:12,0" with − and + for half seconds, then "Whole track" (resets) or, untrimmed, "The
+    slideshow uses the whole track, 3:24."
+  - **Fade in** and **Fade out**: a ramp icon, the state "Automatic" or "Own", three steps Off,
+    Short (2 s), Long (5 s) as a radiogroup (arrows move the choice); the automatic choice is
+    outlined dashed and explained: "Automatic: short, as the excerpt starts mid-track." / "off,
+    as the track plays from its start" / "short, as the slideshow ends at 2:00" / "short, as the
+    excerpt stops before the track ends" / "off, as the track ends by itself". Any step makes it
+    own; "Back to automatic" follows.
+  - **Picture times**: "23 pictures without their own duration share the excerpt: 5.7 s each.
+    The slideshow ends with the music.", or on lemon "The slideshow runs 0:14 longer than the
+    music." with why, or with every picture timed "… The slideshow ends after 2:00; the music
+    fades out there." The rules: `dev-docs/COMPOSITION.md`.
 - **Export** (`glissando-file/export-job.ts`): runs in the background, one at a time; the app
   stays usable, also on other screens. While it runs, the menu item is `aria-disabled` and reads
   "Exporting … 34 %" (for another slideshow: "Export", subtitle "Once the running export is
@@ -309,8 +344,9 @@ its update rule: ADR-0005. Web app manifest and icons in `public/`; the PNG icon
 ## Navigation
 
 Routes: `start`, `settings`, `slideshow(id)`, `import(pictures | music)`, `player(slideshowId)`,
-`picture(slideshowId, pictureId)` — three levels; the player is a modal layer over its
-slideshow, the settings sheet one over start, the picture editor a screen below its slideshow
+`picture(slideshowId, pictureId)`, `music(slideshowId)` — three levels; the player is a modal
+layer over its slideshow, the settings sheet one over start, the picture and music editors
+screens below their slideshow
 (‹ and › replace its history entry with the neighbour's, so back still leads to the slideshow). `navigation/navigator.ts`:
 
 - Every screen is one history entry; the back arrow calls history back, so it and the browser

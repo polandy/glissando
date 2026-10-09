@@ -41,3 +41,4 @@ which may carry the field; version 1 files are still read.
 - A picture's caption follows the same pattern: an optional `caption`, `.glissando` version 3
   (how it is drawn: ADR-0007).
 - A picture's own duration and transition follow it as well: `.glissando` version 4 (ADR-0008).
+- The music's excerpt and fades follow it on the stored music: `.glissando` version 5 (ADR-0009).

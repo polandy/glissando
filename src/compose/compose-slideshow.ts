@@ -1,5 +1,6 @@
 import type { StoredSlideshow } from "../library/stored-slideshow";
 import { SLIDESHOW_FORMAT_VERSION, type Slide, type Slideshow } from "../player/slideshow";
+import { musicExcerptMs, resolveMusicTiming } from "./music-excerpt";
 import { pictureKenBurns } from "./picture-ken-burns";
 import { pictureTransition } from "./picture-transition";
 import { slideDurationsMs } from "./slide-durations-ms";
@@ -18,7 +19,7 @@ export function composeSlideshow(stored: StoredSlideshow, sources: SlideshowSour
   const slideCount = stored.pictures.length;
   const durationsMs = slideDurationsMs(
     stored.pictures,
-    stored.music?.durationMs,
+    musicExcerptMs(stored.music),
     stored.secondsPerPicture,
   );
 
@@ -35,12 +36,17 @@ export function composeSlideshow(stored: StoredSlideshow, sources: SlideshowSour
     return transitionToNext === undefined ? slide : { ...slide, transitionToNext };
   });
 
-  return stored.music === undefined
-    ? { formatVersion: SLIDESHOW_FORMAT_VERSION, title: stored.title, slides }
-    : {
-        formatVersion: SLIDESHOW_FORMAT_VERSION,
-        title: stored.title,
-        music: { src: sources.music(stored.music.id) },
-        slides,
-      };
+  if (stored.music === undefined) {
+    return { formatVersion: SLIDESHOW_FORMAT_VERSION, title: stored.title, slides };
+  }
+  const slideshowMs = durationsMs.reduce((sum, durationMs) => sum + durationMs, 0);
+  return {
+    formatVersion: SLIDESHOW_FORMAT_VERSION,
+    title: stored.title,
+    music: {
+      src: sources.music(stored.music.id),
+      ...resolveMusicTiming(stored.music, slideshowMs),
+    },
+    slides,
+  };
 }

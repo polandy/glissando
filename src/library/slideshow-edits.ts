@@ -1,12 +1,13 @@
 import { normalizeCaption } from "../player/caption";
 import { checkOwnKenBurns, type OwnKenBurns } from "./own-ken-burns";
+import { checkMusicFadeMs, checkMusicTrim, type MusicTrim } from "./own-music";
 import { checkOwnDurationMs, checkTransitionChoice, type TransitionChoice } from "./own-timing";
-import type { StoredPicture, StoredSlideshow } from "./stored-slideshow";
+import type { StoredMusic, StoredPicture, StoredSlideshow } from "./stored-slideshow";
 
 /**
  * The editing of a slideshow (dev-docs/SCOPE.md): remove, reorder, rename, a picture's own Ken
- * Burns motion, duration and transition, and its caption. Pure functions over the stored
- * record; the caller stores the result.
+ * Burns motion, duration and transition, its caption, and the music's excerpt and fades. Pure
+ * functions over the stored record; the caller stores the result.
  */
 
 export const MAX_TITLE_LENGTH = 80;
@@ -153,4 +154,63 @@ function editPicture(
   const edited = edit({ ...(slideshow.pictures[index] as StoredPicture) });
   const pictures = slideshow.pictures.map((other, at) => (at === index ? edited : other));
   return { ...slideshow, pictures };
+}
+
+/** Plays only `trim` of the music; `undefined` or the whole track deletes the field (ADR-0009). */
+export function setMusicTrim(
+  slideshow: StoredSlideshow,
+  trim: MusicTrim | undefined,
+): StoredSlideshow {
+  return editMusic(slideshow, (music) => {
+    delete music.trim;
+    if (trim === undefined) {
+      return music;
+    }
+    const checked = checkMusicTrim(trim, music.durationMs, `slideshow "${slideshow.id}" music`);
+    const wholeTrack = checked.startMs === 0 && checked.endMs === music.durationMs;
+    return wholeTrack ? music : { ...music, trim: checked };
+  });
+}
+
+/** Gives the music its own fade-in in ms, 0 being off; `undefined` makes it automatic again. */
+export function setMusicFadeIn(
+  slideshow: StoredSlideshow,
+  fadeInMs: number | undefined,
+): StoredSlideshow {
+  return editMusic(slideshow, (music) => {
+    delete music.fadeInMs;
+    return fadeInMs === undefined
+      ? music
+      : {
+          ...music,
+          fadeInMs: checkMusicFadeMs(fadeInMs, "fadeInMs", `slideshow "${slideshow.id}" music`),
+        };
+  });
+}
+
+/** Gives the music its own fade-out in ms, 0 being off; `undefined` makes it automatic again. */
+export function setMusicFadeOut(
+  slideshow: StoredSlideshow,
+  fadeOutMs: number | undefined,
+): StoredSlideshow {
+  return editMusic(slideshow, (music) => {
+    delete music.fadeOutMs;
+    return fadeOutMs === undefined
+      ? music
+      : {
+          ...music,
+          fadeOutMs: checkMusicFadeMs(fadeOutMs, "fadeOutMs", `slideshow "${slideshow.id}" music`),
+        };
+  });
+}
+
+/** `edit` receives a mutable copy of the music; throws when the slideshow has none. */
+function editMusic(
+  slideshow: StoredSlideshow,
+  edit: (music: { -readonly [Key in keyof StoredMusic]: StoredMusic[Key] }) => StoredMusic,
+): StoredSlideshow {
+  if (slideshow.music === undefined) {
+    throw new Error(`slideshow "${slideshow.id}" has no music to edit`);
+  }
+  return { ...slideshow, music: edit({ ...slideshow.music }) };
 }

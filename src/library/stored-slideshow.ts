@@ -1,4 +1,5 @@
 import type { OwnKenBurns } from "./own-ken-burns";
+import type { MusicTrim } from "./own-music";
 import type { TransitionChoice } from "./own-timing";
 
 /**
@@ -39,6 +40,12 @@ export interface StoredMusic {
   readonly fileName: string;
   readonly durationMs: number;
   readonly mimeType: string;
+  /** The part of the track that plays (`checkMusicTrim`); absent: the whole track (ADR-0009). */
+  readonly trim?: MusicTrim;
+  /** Own fade-in in whole ms, 0 being off (`checkMusicFadeMs`); absent: automatic. */
+  readonly fadeInMs?: number;
+  /** Own fade-out in whole ms, 0 being off (`checkMusicFadeMs`); absent: automatic. */
+  readonly fadeOutMs?: number;
 }
 
 export interface StoredSlideshow {

@@ -15,6 +15,9 @@
   import { browserObjectUrls, ObjectUrls } from "../media/object-urls";
   import SlideshowScreen from "../screens/SlideshowScreen.svelte";
   import type { Toaster } from "../toast/toaster";
+  import type { MusicEditorAudio } from "../music-editor/music-editor-audio";
+  import type { MusicOutput } from "../../player";
+  import MusicEditorRoute from "./MusicEditorRoute.svelte";
   import PictureEditorRoute from "./PictureEditorRoute.svelte";
   import PlayerLayer from "./PlayerLayer.svelte";
   import { loadSlideshowScreen } from "./route-loading";
@@ -31,9 +34,13 @@
     onExport,
     playing,
     editingPictureId,
+    editingMusic,
+    musicAudio,
+    musicOutput,
     onBack,
     onPlay,
     onEdit,
+    onEditMusic,
     onDeleted,
     onGone,
     onError,
@@ -50,11 +57,17 @@
     playing: boolean;
     /** The picture editor is open on this picture, in place of the screen. */
     editingPictureId: string | null;
+    /** The music editor is open, in place of the screen. */
+    editingMusic: boolean;
+    musicAudio: MusicEditorAudio;
+    /** Where the player's music sounds. */
+    musicOutput: MusicOutput;
     /** Also taken when the slideshow is no longer on this device. */
     onBack: () => void;
     onPlay: () => void;
     /** Opens the picture editor on a picture, from the screen or from the editor itself. */
     onEdit: (pictureId: string) => void;
+    onEditMusic: () => void;
     /** The slideshow and its media are gone from the device. */
     onDeleted: () => void;
     /** The slideshow was deleted elsewhere, e.g. in another tab, while it was shown. */
@@ -180,6 +193,8 @@
     onOpen={onEdit}
     {onError}
   />
+{:else if editingMusic && stored !== null && editor !== null}
+  <MusicEditorRoute {store} {stored} {editor} audio={musicAudio} {saving} {onBack} {onError} />
 {:else if details !== null}
   <SlideshowScreen
     bind:selectedId
@@ -190,6 +205,7 @@
     onMove={(pictureId, toIndex) => editor?.move(pictureId, toIndex)}
     onRename={(typed) => editor?.rename(typed)}
     {onEdit}
+    {onEditMusic}
     onDelete={deleteSlideshow}
     exportState={exportMenuState(exportProgress, slideshowId, exportBytes)}
     {onExport}
@@ -199,5 +215,5 @@
   />
 {/if}
 {#if playing && stored !== null}
-  <PlayerLayer {store} {stored} onClose={onBack} {onError} />
+  <PlayerLayer {store} {stored} {musicOutput} onClose={onBack} {onError} />
 {/if}

@@ -25,14 +25,26 @@ export interface PictureTile {
   readonly ownTransition: TransitionChoice | null;
 }
 
+/** Which fades the music plays: named in its summary once the user changed the music. */
+export type MusicFades = "in-and-out" | "in" | "out";
+
+export interface MusicSummary {
+  /** The excerpt in seconds of the track; null: the whole track. */
+  readonly excerpt: { readonly fromSeconds: number; readonly toSeconds: number } | null;
+  /** Null while the music is untouched, or when it plays no fade. */
+  readonly fades: MusicFades | null;
+}
+
 export interface SlideshowDetails {
   readonly title: string;
   readonly coverUrl: string;
   readonly durationSeconds: number;
   /** The music file's name, or null without music. */
   readonly musicTitle: string | null;
-  /** The music's length, or null without music. */
+  /** The length of the music's excerpt, or null without music. */
   readonly musicSeconds: number | null;
+  /** What the music editor changed, or null without music. */
+  readonly musicSummary: MusicSummary | null;
   /** The user reordered the pictures; otherwise they are in capture-date order. */
   readonly ownOrder: boolean;
   /** How many pictures play a Ken Burns motion of the user's own. */

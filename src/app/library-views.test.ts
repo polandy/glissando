@@ -12,10 +12,8 @@ const stored: StoredSlideshow = {
   ],
   secondsPerPicture: 4,
 };
-const withMusic: StoredSlideshow = {
-  ...stored,
-  music: { id: "m", fileName: "Sommer.mp3", durationMs: 30_000, mimeType: "audio/mpeg" },
-};
+const music = { id: "m", fileName: "Sommer.mp3", durationMs: 30_000, mimeType: "audio/mpeg" };
+const withMusic: StoredSlideshow = { ...stored, music };
 const urlOf = (id: string) => `url:${id}`;
 
 describe("slideshowSummary", () => {
@@ -54,6 +52,7 @@ describe("slideshowDetails", () => {
       durationSeconds: 8,
       musicTitle: null,
       musicSeconds: null,
+      musicSummary: null,
       ownOrder: false,
       ownMotionCount: 0,
       ownDurationCount: 0,
@@ -101,6 +100,32 @@ describe("slideshowDetails", () => {
     const edited = { ...stored, pictures: [first, { ...second, caption: "Am Steg" }] };
 
     expect(slideshowDetails(edited as StoredSlideshow, urlOf).captionCount).toBe(1);
+  });
+
+  it("sums up the whole track with automatic fades as such", () => {
+    expect(slideshowDetails(withMusic, urlOf).musicSummary).toEqual({ excerpt: null, fades: null });
+  });
+
+  it("sums up an excerpt with the fades it plays, and its length as the music's", () => {
+    const trimmed: StoredSlideshow = {
+      ...withMusic,
+      music: { ...music, trim: { startMs: 2000, endMs: 22_000 } },
+    };
+
+    const details = slideshowDetails(trimmed, urlOf);
+
+    expect(details.musicSummary).toEqual({
+      excerpt: { fromSeconds: 2, toSeconds: 22 },
+      fades: "in-and-out",
+    });
+    expect(details.musicSeconds).toBe(20);
+    expect(details.durationSeconds).toBe(20);
+  });
+
+  it("names the fades once one is the user's own", () => {
+    const faded: StoredSlideshow = { ...withMusic, music: { ...music, fadeInMs: 5000 } };
+
+    expect(slideshowDetails(faded, urlOf).musicSummary).toEqual({ excerpt: null, fades: "in" });
   });
 
   it("names the music by its file name", () => {

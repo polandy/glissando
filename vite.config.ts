@@ -33,8 +33,15 @@ export default defineConfig({
             instances: [
               { browser: "chromium" },
               // Headless Firefox in the CI image has no WebGL at all, whatever its prefs; it
-              // tests the DOM fallback, Chromium and WebKit test the WebGL renderer.
-              { browser: "firefox", exclude: ["src/player/webgl/**"] },
+              // tests the DOM fallback, Chromium and WebKit test the WebGL renderer. Nor has it
+              // an audio output, so its AudioContext never runs.
+              {
+                browser: "firefox",
+                exclude: [
+                  "src/player/webgl/**",
+                  "src/player/browser/web-audio-unlock.browser.test.ts",
+                ],
+              },
               { browser: "webkit" },
             ],
           },

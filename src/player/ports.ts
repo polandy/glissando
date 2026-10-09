@@ -47,6 +47,8 @@ export interface FrameScheduler {
 export interface MusicPlayback {
   /** Plays from `atSeconds`; rejects when the browser refuses playback. */
   play(atSeconds: number): Promise<void>;
+  /** From 0 (silent) to 1 (as recorded). */
+  setVolume(volume: number): void;
   pause(): void;
   dispose(): void;
 }

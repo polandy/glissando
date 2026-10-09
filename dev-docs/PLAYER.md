@@ -11,9 +11,15 @@ are rejected.
 
 ```json
 {
-  "formatVersion": 1,
+  "formatVersion": 2,
   "title": "July 2025",
-  "music": { "src": "music/summer.mp3" },
+  "music": {
+    "src": "music/summer.mp3",
+    "startMs": 12000,
+    "endMs": 150000,
+    "fadeInMs": 2000,
+    "fadeOutMs": 2000
+  },
   "slides": [
     {
       "image": { "src": "pictures/1.jpg", "capturedAt": "2025-07-01T10:00:00Z" },
@@ -42,8 +48,13 @@ are rejected.
 - **Caption** (optional): one line of 1 to 80 characters (counted in graphemes, so an emoji, a flag or a
   letter with a combining mark is one) without
   leading, trailing or repeated whitespace, as `normalizeCaption` leaves typed text; absent
-  means none. Anything else is a `SlideshowFormatError` at `slides[i].caption`. The format
-  version stays 1: the field is optional and nothing existing changed.
+  means none. Anything else is a `SlideshowFormatError` at `slides[i].caption`.
+- **Music** (version 2, ADR-0009): `startMs` is where in the track the slideshow's start falls,
+  `endMs` where the music stops being heard, `fadeInMs` and `fadeOutMs` ramp the volume up from
+  `startMs` and down to `endMs` (0: none); all whole milliseconds of the track, `endMs` after
+  `startMs`, the two fades together at most `endMs − startMs`. The composer resolves them: the
+  player knows no "automatic" and no "whole track". A version 1 slideshow is still read; its
+  `music`, `{ src }` only, plays as the whole track without fades (`endMs` absent).
 
 ## Timing
 
@@ -80,9 +91,17 @@ The player:
 
 Behaviour:
 
-- **Music** follows the player: it starts at `currentTime` on play and after a seek, pauses on
-  pause, while waiting and at the end. A refused `play()` is an `error` and pauses; a start
-  interrupted by a pause (a quick seek) is not a refusal.
+- **Music** follows the player: it starts at `startMs` plus `currentTime` on play and after a
+  seek, pauses on pause, while waiting, at the end and once play time passes `endMs`, and stays
+  silent when played beyond it. Its volume is a pure function of play time (`musicGainAt`:
+  linear fades), set before every start and on every frame, so pause, resume and seek land on
+  the envelope without a jump. The volume is set on a Web Audio gain node at the context's
+  current time (`MusicOutput`, one `AudioContext` per page), since iOS ignores a media element's
+  `volume`; without Web Audio it falls back to the element's volume. iOS lets the context sound
+  only when it is resumed synchronously in a user gesture: the app unlocks it in the Play tap
+  that opens the player, in the player's play control, and every `play()` of the music unlocks
+  it too. A refused `play()` is an `error` and pauses; a start interrupted by a pause (a quick
+  seek) is not a refusal.
 - **Pictures** are loaded for the slides on screen plus the next one; all others are released,
   so memory stays bounded. When a frame needs a picture that is not loaded yet, time stops,
   `waiting` fires, and playback goes on from the same moment with `playing`.

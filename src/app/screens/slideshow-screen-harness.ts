@@ -22,6 +22,7 @@ export function details(ids: readonly string[], overrides: Partial<SlideshowDeta
     durationSeconds: 60,
     musicTitle: null,
     musicSeconds: null,
+    musicSummary: null,
     ownOrder: false,
     ownMotionCount: 0,
     ownDurationCount: 0,
@@ -50,6 +51,7 @@ export function mountScreen(
     moved: [] as [string, number][],
     renamed: [] as string[],
     edited: [] as string[],
+    musicEdits: 0,
     deletes: 0,
   };
   const mounted = mountWithTranslator(SlideshowScreen, {
@@ -60,6 +62,7 @@ export function mountScreen(
     onMove: (pictureId: string, toIndex: number) => calls.moved.push([pictureId, toIndex]),
     onRename: (typed: string) => calls.renamed.push(typed),
     onEdit: (pictureId: string) => calls.edited.push(pictureId),
+    onEditMusic: () => (calls.musicEdits += 1),
     onDelete: () => (calls.deletes += 1),
     exportState: { kind: "idle", sizeBytes: null },
     onExport: () => {},

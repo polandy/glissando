@@ -1,6 +1,7 @@
 import { CAPTION_RULE, isCaption } from "./caption";
 import {
   EASINGS,
+  FIRST_SLIDESHOW_FORMAT_VERSION,
   MIN_KEN_BURNS_ZOOM,
   SLIDESHOW_FORMAT_VERSION,
   TRANSITION_EFFECTS,
@@ -33,23 +34,53 @@ type JsonObject = Readonly<Record<string, unknown>>;
 /** Validates untrusted JSON as a slideshow; throws `SlideshowFormatError` on the first fault. */
 export function parseSlideshow(input: unknown): Slideshow {
   const root = readObject(input, "", ["formatVersion", "title", "music", "slides"]);
-  if (root.formatVersion !== SLIDESHOW_FORMAT_VERSION) {
+  const version = root.formatVersion;
+  if (version !== FIRST_SLIDESHOW_FORMAT_VERSION && version !== SLIDESHOW_FORMAT_VERSION) {
     throw new SlideshowFormatError(
       "formatVersion",
-      String(SLIDESHOW_FORMAT_VERSION),
-      root.formatVersion,
+      `${FIRST_SLIDESHOW_FORMAT_VERSION} or ${SLIDESHOW_FORMAT_VERSION}`,
+      version,
     );
   }
   const slides = readSlides(root.slides);
   const title = readString(root.title, "title");
   return root.music === undefined
     ? { formatVersion: SLIDESHOW_FORMAT_VERSION, title, slides }
-    : { formatVersion: SLIDESHOW_FORMAT_VERSION, title, music: readMusic(root.music), slides };
+    : {
+        formatVersion: SLIDESHOW_FORMAT_VERSION,
+        title,
+        music:
+          version === FIRST_SLIDESHOW_FORMAT_VERSION
+            ? readFirstVersionMusic(root.music)
+            : readMusic(root.music),
+        slides,
+      };
+}
+
+/** Version 1 music is the whole track without fades. */
+function readFirstVersionMusic(value: unknown): Music {
+  const music = readObject(value, "music", ["src"]);
+  return { src: readNonEmptyString(music.src, "music.src"), startMs: 0, fadeInMs: 0, fadeOutMs: 0 };
 }
 
 function readMusic(value: unknown): Music {
-  const music = readObject(value, "music", ["src"]);
-  return { src: readNonEmptyString(music.src, "music.src") };
+  const music = readObject(value, "music", ["src", "startMs", "endMs", "fadeInMs", "fadeOutMs"]);
+  const startMs = readNonNegativeInteger(music.startMs, "music.startMs");
+  const endMs = readNonNegativeInteger(music.endMs, "music.endMs");
+  if (endMs <= startMs) {
+    throw new SlideshowFormatError("music.endMs", `a time after startMs (${startMs})`, endMs);
+  }
+  const fadeInMs = readNonNegativeInteger(music.fadeInMs, "music.fadeInMs");
+  const fadeOutMs = readNonNegativeInteger(music.fadeOutMs, "music.fadeOutMs");
+  const heardMs = endMs - startMs;
+  if (fadeInMs + fadeOutMs > heardMs) {
+    throw new SlideshowFormatError(
+      "music.fadeOutMs",
+      `fadeInMs + fadeOutMs at most endMs − startMs (${heardMs})`,
+      fadeOutMs,
+    );
+  }
+  return { src: readNonEmptyString(music.src, "music.src"), startMs, endMs, fadeInMs, fadeOutMs };
 }
 
 function readSlides(value: unknown): readonly Slide[] {
@@ -190,6 +221,13 @@ function readIsoDate(value: unknown, path: string): string {
 function readPositiveInteger(value: unknown, path: string): number {
   if (typeof value !== "number" || !Number.isInteger(value) || value <= 0) {
     throw new SlideshowFormatError(path, "a positive integer", value);
+  }
+  return value;
+}
+
+function readNonNegativeInteger(value: unknown, path: string): number {
+  if (typeof value !== "number" || !Number.isInteger(value) || value < 0) {
+    throw new SlideshowFormatError(path, "a whole number ≥ 0", value);
   }
   return value;
 }

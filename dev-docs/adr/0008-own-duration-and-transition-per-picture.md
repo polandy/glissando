@@ -51,3 +51,4 @@ still read.
 - Every `.glissando` file is written as version 4; an older app reports it as coming from a
   newer version.
 - Records in IndexedDB need no migration: a record without the fields is all automatic.
+- The music's excerpt replaces the track's length in this timing; its own fades follow the same "absent means automatic" pattern (ADR-0009).
