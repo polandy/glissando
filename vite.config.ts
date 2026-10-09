@@ -3,6 +3,7 @@ import { playwright } from "@vitest/browser-playwright";
 import { defineConfig } from "vitest/config";
 import { pinnedThemePlugin } from "./build/pinned-theme-script.ts";
 import { serviceWorkerPlugin } from "./build/service-worker-plugin.ts";
+import { THIRD_PARTY_LICENSES_FILE } from "./src/app/settings/third-party-licenses.ts";
 
 const BROWSER_TESTS = "src/**/*.browser.test.ts";
 
@@ -10,7 +11,7 @@ export default defineConfig({
   // Relative, so the same build runs from any static host path (ADR-0005).
   base: "./",
   // Ships the licence of every bundled dependency, among them mediabunny's MPL-2.0 (ADR-0015).
-  build: { license: { fileName: "third-party-licenses.md" } },
+  build: { license: { fileName: THIRD_PARTY_LICENSES_FILE } },
   plugins: [svelte(), pinnedThemePlugin(), serviceWorkerPlugin()],
   test: {
     // e2e/ belongs to Playwright.

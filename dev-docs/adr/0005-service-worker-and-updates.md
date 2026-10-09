@@ -18,7 +18,7 @@ tab or in another one. Every dependency is pinned and weighed (`CODING_PRINCIPLE
   that every supported browser registers.
 - **Cache first, per version.** Installing caches the whole list in a cache named after the
   version; the app's own requests are answered from the current version's cache, navigations
-  with its `index.html`; a miss looks in the previous version's cache, so a tab still running
+  with the cached file they name (the third-party licences) or else its `index.html`; a miss looks in the previous version's cache, so a tab still running
   that version keeps finding its files; only what neither holds goes to the network, as does
   every request to another origin and every request under the app's `immich/` route, which is
   never cached (ADR-0013). Activating deletes every cache except the current and the

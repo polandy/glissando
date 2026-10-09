@@ -46,8 +46,11 @@ write path):
   the export says beforehand that the file will not play on Apple devices. HEVC, VP9 and AV1 are not
   offered: a smaller file that does not play everywhere misses the point.
 - **mediabunny**, pinned exactly with its integrity in the lockfile, loaded with a dynamic
-  `import()` on the first export and precached for offline use. MPL-2.0 is file-level copyleft. We
-  ship its files unmodified with their licence notice, which leaves the rest of the code unaffected.
+  `import()` on the first export and precached for offline use. MPL-2.0 is file-level copyleft. Its
+  code is bundled unmodified; the build lists its name, version and licence text in
+  `third-party-licenses.md` (Vite's `build.license`), which the service worker precaches and the
+  settings link as "Open-source licences", so the notice is there offline too. That leaves the
+  rest of the code unaffected.
 - **Streamed to a file, `moov` up front.** The muxer writes in chunks to a `FileSystemWritableFileStream`:
   the file the user picks (`showSaveFilePicker`, Chromium), otherwise a file in the origin private
   file system, which is then shared or downloaded as a disk-backed `File`. The `moov` box is

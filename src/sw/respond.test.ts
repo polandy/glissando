@@ -39,6 +39,16 @@ describe("respond", () => {
     expect(fetched).toEqual([]);
   });
 
+  it("answers a navigation to a cached file with that file, e.g. the licences from the settings", async () => {
+    const licences = `${ORIGIN}/app/third-party-licenses.md`;
+    const { respondPorts, fetched } = ports(
+      cache({ [INDEX_URL]: "app", [licences]: "# Licenses" }),
+    );
+    const response = await respond(request(licences, "navigate"), respondPorts);
+    expect(await response.text()).toBe("# Licenses");
+    expect(fetched).toEqual([]);
+  });
+
   it("answers a cached file from the cache", async () => {
     const { respondPorts, fetched } = ports(cache({ [HASHED_URL]: "code" }));
     const response = await respond(request(HASHED_URL, "cors"), respondPorts);

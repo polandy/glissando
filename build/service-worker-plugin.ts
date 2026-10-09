@@ -1,4 +1,5 @@
 import type { Plugin } from "vite";
+import { THIRD_PARTY_LICENSES_FILE } from "../src/app/settings/third-party-licenses.ts";
 import { SERVICE_WORKER_FILE } from "./precache-list.ts";
 import { publicFiles, writeServiceWorker, type PublicDirPort } from "./service-worker-bundle.ts";
 
@@ -32,12 +33,18 @@ export function serviceWorkerPlugin(): Plugin {
     configResolved(config) {
       publicDir = config.publicDir;
     },
-    async generateBundle(_options, bundle) {
-      const fs: PublicDirPort = {
-        readdir: (path) => this.fs.readdir(path, { withFileTypes: true }),
-        readFile: (path) => this.fs.readFile(path),
-      };
-      await writeServiceWorker(bundle, await publicFiles(fs, publicDir));
+    // Last, after Vite's licence plugin has emitted the licences file.
+    generateBundle: {
+      order: "post",
+      async handler(_options, bundle) {
+        const fs: PublicDirPort = {
+          readdir: (path) => this.fs.readdir(path, { withFileTypes: true }),
+          readFile: (path) => this.fs.readFile(path),
+        };
+        await writeServiceWorker(bundle, await publicFiles(fs, publicDir), [
+          THIRD_PARTY_LICENSES_FILE,
+        ]);
+      },
     },
   };
 }

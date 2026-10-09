@@ -5,7 +5,7 @@ export interface CachePort {
 }
 
 export interface RespondPorts<R extends RequestLike> {
-  /** The cached `index.html` every navigation is answered with. */
+  /** The cached `index.html` a navigation is answered with unless it names a cached file. */
   readonly indexUrl: string;
   /**
    * The app caches in search order: the current version's first, then the previous one's, so a
@@ -36,16 +36,22 @@ export function answersRequest(request: Pick<Request, "method" | "url">, scope: 
   );
 }
 
-/** Cache first: the network only for what no cache holds (ADR-0005). */
+/**
+ * Cache first: the network only for what no cache holds (ADR-0005). A navigation gets the cached
+ * file it names, such as the licences, and otherwise the app.
+ */
 export async function respond<R extends RequestLike>(
   request: R,
   ports: RespondPorts<R>,
 ): Promise<Response> {
-  const url = request.mode === NAVIGATION ? ports.indexUrl : request.url;
-  for (const cache of await ports.caches()) {
-    const cached = await cache.match(url);
-    if (cached !== undefined) {
-      return cached;
+  const caches = await ports.caches();
+  const urls = request.mode === NAVIGATION ? [request.url, ports.indexUrl] : [request.url];
+  for (const url of urls) {
+    for (const cache of caches) {
+      const cached = await cache.match(url);
+      if (cached !== undefined) {
+        return cached;
+      }
     }
   }
   return ports.fetch(request);
