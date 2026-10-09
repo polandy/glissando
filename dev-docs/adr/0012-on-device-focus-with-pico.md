@@ -15,14 +15,14 @@ The candidates were measured, not guessed: 59 of the owner's photos with 133 han
 people, in Chromium 153 at CPU throttle 1×, 4× and 6× (4× ≈ a mid-range phone). "Hits a face"
 is the share of pictures whose chosen focus point lies inside a tagged face (box grown 1.5×).
 
-| Candidate (on the 480 px thumbnail) | Download, gzip     | ms per picture 1× / 4× / 6× | Hits a face | Finds nothing |
-| ----------------------------------- | ------------------ | --------------------------- | ----------- | ------------- |
-| Shape Detection `FaceDetector`      | —                  | not available               | —           | —             |
-| MediaPipe face detector, full range | 4.2 MB + 1 MB      | 8 / 34 / 52                 | 73%         | 10%           |
-| MediaPipe face detector, short range| 4.2 MB + 0.2 MB    | 3 / 12 / 18                 | 37%         | 49%           |
-| pico.js + facefinder cascade        | 0.23 MB            | 53 / 213 / 324              | 68%         | 17%           |
-| Saliency (spectral residual, + skin)| 1 KB               | 1 / 5 / 7                   | 15–36%      | never         |
-| The picture's middle (no detection) | 0                  | 0                           | 39%         | —             |
+| Candidate (on the 480 px thumbnail)  | Download, gzip  | ms per picture 1× / 4× / 6× | Hits a face | Finds nothing |
+| ------------------------------------ | --------------- | --------------------------- | ----------- | ------------- |
+| Shape Detection `FaceDetector`       | —               | not available               | —           | —             |
+| MediaPipe face detector, full range  | 4.2 MB + 1 MB   | 8 / 34 / 52                 | 73%         | 10%           |
+| MediaPipe face detector, short range | 4.2 MB + 0.2 MB | 3 / 12 / 18                 | 37%         | 49%           |
+| pico.js + facefinder cascade         | 0.23 MB         | 53 / 213 / 324              | 68%         | 17%           |
+| Saliency (spectral residual, + skin) | 1 KB            | 1 / 5 / 7                   | 15–36%      | never         |
+| The picture's middle (no detection)  | 0               | 0                           | 39%         | —             |
 
 ## Decision
 
