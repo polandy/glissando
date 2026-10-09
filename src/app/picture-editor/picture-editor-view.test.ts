@@ -145,6 +145,24 @@ describe("pictureEditorView", () => {
     });
   });
 
+  it("with trimmed music, shares the excerpt rather than the whole track", () => {
+    const trimmed = {
+      ...withPicture(1, { durationMs: 8000 }),
+      music: { ...music(60_000), trim: { startMs: 10_000, endMs: 40_000 } },
+    };
+
+    expect(pictureEditorView(trimmed, "p1").durationBasis).toMatchObject({ shareMs: 11_000 });
+  });
+
+  it("with trimmed music, marks the pictures clamped against the excerpt", () => {
+    const trimmed = {
+      ...withPicture(1, { durationMs: 15_000 }),
+      music: { ...music(60_000), trim: { startMs: 0, endMs: 17_000 } },
+    };
+
+    expect(pictureEditorView(trimmed, "p1").durationBasis).toMatchObject({ clamped: true });
+  });
+
   it("shows an own transition beside the automatic one, its length from the duration", () => {
     const timed = withPicture(1, { transition: "dissolve", durationMs: 2000 });
 

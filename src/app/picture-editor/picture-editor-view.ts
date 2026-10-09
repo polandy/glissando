@@ -1,5 +1,7 @@
 import {
   autoTransitionEffect,
+  musicExcerpt,
+  musicExcerptMs,
   pictureKenBurns,
   pictureTransition,
   slideDurationsMs,
@@ -77,7 +79,7 @@ export function pictureEditorView(stored: StoredSlideshow, pictureId: string): P
   }
   const durationsMs = slideDurationsMs(
     pictures,
-    stored.music?.durationMs,
+    musicExcerptMs(stored.music),
     stored.secondsPerPicture,
   );
   // One duration per picture: every index below is in range.
@@ -140,7 +142,8 @@ function durationBasis(stored: StoredSlideshow, durationsMs: readonly number[]):
     return { kind: "music", automaticCount: 0, shareMs: null, clamped: false };
   }
   const ownTotalMs = stored.pictures.reduce((sum, picture) => sum + (picture.durationMs ?? 0), 0);
-  const idealShareMs = Math.floor((stored.music.durationMs - ownTotalMs) / automatic.length);
+  const { startMs, endMs } = musicExcerpt(stored.music);
+  const idealShareMs = Math.floor((endMs - startMs - ownTotalMs) / automatic.length);
   return {
     kind: "music",
     automaticCount: automatic.length,

@@ -18,3 +18,13 @@ export { titleForCaptureRange } from "./title-for-capture-range";
 export { buildStoredSlideshow, type BuildStoredSlideshowInput } from "./build-stored-slideshow";
 export { composeSlideshow, type SlideshowSources } from "./compose-slideshow";
 export { slideshowDurationMs } from "./slideshow-duration-ms";
+export {
+  AUTOMATIC_MUSIC_FADE_MS,
+  audibleEndMs,
+  automaticFadeInMs,
+  automaticFadeOutMs,
+  musicExcerpt,
+  musicExcerptMs,
+  resolveMusicTiming,
+  type MusicTiming,
+} from "./music-excerpt";

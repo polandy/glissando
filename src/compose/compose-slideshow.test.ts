@@ -43,7 +43,37 @@ describe("composeSlideshow", () => {
 
     const result = composeSlideshow(stored, sources);
 
-    expect(result.music).toEqual({ src: "music/m1.mp3" });
+    expect(result.music).toEqual({
+      src: "music/m1.mp3",
+      startMs: 0,
+      endMs: 10_000,
+      fadeInMs: 0,
+      fadeOutMs: 0,
+    });
+  });
+
+  it("plays the music's excerpt with its fades, resolved, and times the slides to it", () => {
+    const stored = storedSlideshow({
+      music: {
+        id: "m1",
+        fileName: "song.mp3",
+        durationMs: 60_000,
+        mimeType: "audio/mpeg",
+        trim: { startMs: 12_000, endMs: 22_000 },
+        fadeOutMs: 5000,
+      },
+    });
+
+    const result = composeSlideshow(stored, sources);
+
+    expect(result.music).toEqual({
+      src: "music/m1.mp3",
+      startMs: 12_000,
+      endMs: 22_000,
+      fadeInMs: 2000,
+      fadeOutMs: 5000,
+    });
+    expect(result.slides.map((slide) => slide.durationMs)).toEqual([5000, 5000]);
   });
 
   it("omits music when the stored slideshow has none", () => {

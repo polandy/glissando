@@ -8,14 +8,15 @@ export type TimedPicture = Pick<StoredPicture, "durationMs">;
 
 /**
  * The slide durations in play order. An own duration is kept exactly. Without music the other
- * pictures show `secondsPerPicture` each; with music they share the rest of the track evenly (the
+ * pictures show `secondsPerPicture` each; with music they share the rest of its excerpt evenly (the
  * remainder going to the first of them so the sum matches exactly). A share below
  * `MIN_SECONDS_PER_PICTURE` is rejected in favour of the minimum, so the slideshow outlasts a
- * track too short for it. See ADR-0008.
+ * excerpt too short for it. See ADR-0008 and ADR-0009.
  */
 export function slideDurationsMs(
   pictures: readonly TimedPicture[],
-  musicDurationMs: number | undefined,
+  /** The length of the music's excerpt (`musicExcerptMs`); absent without music. */
+  musicExcerptMs: number | undefined,
   secondsPerPicture: number,
 ): number[] {
   if (pictures.length < 1) {
@@ -23,9 +24,9 @@ export function slideDurationsMs(
   }
   const automaticCount = pictures.filter((picture) => picture.durationMs === undefined).length;
   const automaticMs =
-    musicDurationMs === undefined
+    musicExcerptMs === undefined
       ? Array<number>(automaticCount).fill(secondsPerPicture * MILLISECONDS_PER_SECOND)
-      : evenSplitMs(automaticCount, musicDurationMs - ownTotalMs(pictures));
+      : evenSplitMs(automaticCount, musicExcerptMs - ownTotalMs(pictures));
   let nextAutomatic = 0;
   // automaticMs holds exactly one entry per picture without an own duration.
   return pictures.map((picture) => picture.durationMs ?? (automaticMs[nextAutomatic++] as number));
