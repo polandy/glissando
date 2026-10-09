@@ -300,6 +300,12 @@ gesture (which cannot be stopped) keeps it, and "New slideshow" resumes it.
 IndexedDB library, and builds the `Navigator` over `window.history` and the `Toaster`
 over real timers.
 
+- **App shell** (ADR-0011): `index.html` paints the header bar with the brand, the logo where the
+  start screen has its mark, and the status strip before any script runs. Once the app has
+  mounted, `main.ts` hands over (`shell/app-shell.ts`): the shell fades out over the app in
+  0.18 s and is removed, at once with reduced motion. The app's stylesheets are linked by
+  `index.html`, not imported by `main.ts`, so the shell is styled from the first paint.
+
 - **Abandoned imports**: at startup and whenever an import ends (created or discarded), media
   no slideshow references is deleted — except every media id an import in progress or a
   still-undoable removal claims, in any tab, so a picture stored before its slideshow record is
@@ -454,8 +460,9 @@ applies them — the theme on `<html>`, the language as `<html lang>` and the tr
 Light and dark, both from the tokens in `src/styles/tokens.css` (palette in
 [BRAND.md](BRAND.md)). The theme preference (`settings/theme.ts`) is "system" (the default:
 follow the device's `prefers-color-scheme`), "light" or "dark". It is kept in the browser's local
-storage under `glissando.theme`; an unknown stored value counts as "system". `main.ts` applies it
-before anything else runs, so a pinned theme is in place for the first paint: "light" or "dark"
+storage under `glissando.theme`; an unknown stored value counts as "system". An inline script in
+`index.html`'s head (`build/pinned-theme-script.ts`) applies it before the first paint, so the app
+shell already shows a pinned theme; `main.ts` keeps it applied from then on: "light" or "dark"
 sets `data-theme` on `<html>`, "system" removes it. The settings sheet sets it.
 
 ## Languages

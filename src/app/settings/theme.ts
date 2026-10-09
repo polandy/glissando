@@ -12,8 +12,8 @@ export type ThemePreferenceStore = StoredChoice<ThemePreference>;
 /** The element whose data-theme attribute tokens.css keys the pinned themes on. */
 export type ThemeRoot = Pick<Element, "setAttribute" | "removeAttribute">;
 
-const THEME_KEY = "glissando.theme";
-const THEME_ATTRIBUTE = "data-theme";
+export const THEME_KEY = "glissando.theme";
+export const THEME_ATTRIBUTE = "data-theme";
 
 export function createStorageThemePreferenceStore(storage: KeyValueStorage): ThemePreferenceStore {
   return createStoredChoice(storage, THEME_KEY, THEME_PREFERENCES, DEFAULT_THEME_PREFERENCE);

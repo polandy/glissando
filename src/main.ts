@@ -1,6 +1,4 @@
 import { mount } from "svelte";
-import "./styles/tokens.css";
-import "./styles/base.css";
 import App from "./app/App.svelte";
 import { createErrorReporter } from "./app/errors/error-reporter";
 import { translatorContext } from "./app/i18n/context";
@@ -13,6 +11,7 @@ import { AppSettings } from "./app/settings/app-settings";
 import { createStorageLanguagePreferenceStore } from "./app/settings/language";
 import { applyThemePreference, createStorageThemePreferenceStore } from "./app/settings/theme";
 import { browserScheduler } from "./app/scheduler";
+import { handOverFromShell } from "./app/shell/app-shell";
 import { consumeFirstLaunch, createStorageFirstLaunchStore } from "./app/start/first-launch";
 import {
   createStorageRefusalNoticeStore,
@@ -52,6 +51,10 @@ settings.subscribe(({ theme, effectiveLanguage }) => {
 const target = document.getElementById("app");
 if (!target) {
   throw new Error("Mount point #app is missing from index.html");
+}
+const shell = document.getElementById("app-shell");
+if (!shell) {
+  throw new Error("The app shell #app-shell is missing from index.html");
 }
 
 const toaster = new Toaster(browserScheduler);
@@ -128,3 +131,4 @@ mount(App, {
   props: { services, playStartAnimation },
   context: translatorContext(translator),
 });
+handOverFromShell(shell).catch(reportError);
