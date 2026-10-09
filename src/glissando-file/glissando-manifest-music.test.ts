@@ -106,4 +106,13 @@ describe("the music's excerpt and fades in the .glissando file", () => {
         "glissando.json slideshow.music.fadeOutMs: expected whole milliseconds from 0 to 10000 in steps of 500, got 1200",
     });
   });
+
+  it("take a track length off whole milliseconds for a damaged file, as the excerpt ends on it", () => {
+    expect(readManifest(withMusic({ durationMs: 240_000 })).kind).toBe("ok");
+    expect(readManifest(withMusic({ durationMs: 240_000.5 }))).toEqual({
+      kind: "damaged",
+      reason:
+        "glissando.json slideshow.music.durationMs: expected a positive whole number of milliseconds, got 240000.5",
+    });
+  });
 });

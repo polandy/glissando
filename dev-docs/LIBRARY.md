@@ -51,7 +51,7 @@ absent, the whole track. `fadeInMs` and `fadeOutMs` are own fades in whole ms, 0
 steps of 500, 0 being off (the editor offers off, 2000 and 5000); absent, automatic.
 `setMusicTrim` deletes the field for `undefined` or the whole track, `setMusicFadeIn` and
 `setMusicFadeOut` for `undefined`; all three validate (`checkMusicTrim`, `checkMusicFadeMs`).
-Records without them need no migration. Replacing the music drops them with it.
+Records without them need no migration.
 
 ## Storage layout
 
@@ -124,7 +124,7 @@ entries are stored, not compressed, so any unzip tool opens it; no ZIP64, so it 
 `slideshow` is the stored record without device ids: `title`, `createdAt`, `secondsPerPicture`,
 `ownOrder` (only when true), `pictures` (`file`, `thumbnail`, `capturedAt`, `width`, `height`,
 `fileName`, `kenBurns` for a picture with an own motion, `caption` for one with a caption,
-`durationMs` and `transition` for one with an own duration or transition) and `music` (`file`, `fileName`, `durationMs`, `mimeType`, and `trim`, `fadeInMs`, `fadeOutMs` where set). Picture types follow
+`durationMs` and `transition` for one with an own duration or transition) and `music` (`file`, `fileName`, `durationMs` in whole ms, `mimeType`, and `trim`, `fadeInMs`, `fadeOutMs` where set). Picture types follow
 the extension (`jpg`, `png`, `webp`). The manifest is read strictly: an unknown key or a value
 out of range makes the file damaged. Version 2 added `kenBurns`, version 3 `caption`, version 4
 `durationMs` and `transition`, version 5 the music's `trim`, `fadeInMs` and `fadeOutMs`; files

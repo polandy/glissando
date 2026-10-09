@@ -199,8 +199,12 @@ function readMusic(value: unknown, version: number): ManifestMusic {
     ...(version >= MUSIC_TRIM_FROM_VERSION ? ["trim", "fadeInMs", "fadeOutMs"] : []),
   ]);
   const durationMs = music["durationMs"];
-  if (typeof durationMs !== "number" || !Number.isFinite(durationMs) || durationMs <= 0) {
-    throw new ManifestFormatError(`${path}.durationMs`, "a positive number", durationMs);
+  if (typeof durationMs !== "number" || !Number.isInteger(durationMs) || durationMs <= 0) {
+    throw new ManifestFormatError(
+      `${path}.durationMs`,
+      "a positive whole number of milliseconds",
+      durationMs,
+    );
   }
   const where = `glissando.json ${path}`;
   const { trim, fadeInMs, fadeOutMs } = music;
