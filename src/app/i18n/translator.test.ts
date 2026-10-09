@@ -110,6 +110,21 @@ describe("formatters", () => {
   it("rejects a date it cannot read, naming the value", () => {
     expect(() => createTranslator("de").formatDate("yesterday")).toThrow(/"yesterday"/);
   });
+
+  it.each([
+    ["de", "Sa., 12. Juli 2025"],
+    ["en", "Sat, 12 July 2025"],
+  ] as const)("in %s formats a day heading as %s", (language, expected) => {
+    expect(createTranslator(language).formatDay("2025-07-12")).toBe(expected);
+  });
+
+  it.each([
+    ["de", "2025-07-12T08:00:00Z", "2025-07-19T20:00:00Z", "12.–19. Juli 2025"],
+    ["en", "2025-07-12T08:00:00Z", "2025-07-19T20:00:00Z", "12\u2009–\u200919 July 2025"],
+    ["de", "2025-05-04T08:00:00Z", "2025-05-04T20:00:00Z", "4. Mai 2025"],
+  ] as const)("in %s formats the days %s to %s as %s", (language, from, to, expected) => {
+    expect(createTranslator(language).formatDayRange(from, to)).toBe(expected);
+  });
 });
 
 describe("formatBytes", () => {

@@ -1,5 +1,5 @@
 /**
- * The app's places. Three levels, never more: start → (settings | import steps | slideshow →
+ * The app's places: start → (settings | import steps → Immich browser → album | slideshow →
  * (picture editor | music editor | player)). The player and the settings sheet are modal layers over their parent, yet each has a
  * history entry so back closes it.
  */
@@ -11,6 +11,8 @@ export type Route =
   | { readonly screen: "settings" }
   | { readonly screen: "slideshow"; readonly slideshowId: string }
   | { readonly screen: "import"; readonly step: ImportStep }
+  /** The Immich browser opened from the pictures step; with an album id, that album. */
+  | { readonly screen: "immich"; readonly albumId: string | null }
   | { readonly screen: "player"; readonly slideshowId: string }
   | { readonly screen: "music"; readonly slideshowId: string }
   | { readonly screen: "picture"; readonly slideshowId: string; readonly pictureId: string };
@@ -27,6 +29,10 @@ export function parentOf(route: Route): Route | null {
       return START_ROUTE;
     case "import":
       return route.step === "music" ? { screen: "import", step: "pictures" } : START_ROUTE;
+    case "immich":
+      return route.albumId === null
+        ? { screen: "import", step: "pictures" }
+        : { screen: "immich", albumId: null };
     case "player":
     case "picture":
     case "music":
@@ -44,7 +50,8 @@ export function isRestorable(route: Route, from: Route | null): boolean {
     case "settings":
       return false;
     case "import":
-      return from?.screen === "import";
+    case "immich":
+      return from?.screen === "import" || from?.screen === "immich";
     default:
       return true;
   }
@@ -87,6 +94,10 @@ export function parseRoute(state: unknown): Route | null {
     case "import": {
       const step = IMPORT_STEPS.find((known) => known === state["step"]);
       return step ? { screen: "import", step } : null;
+    }
+    case "immich": {
+      const albumId = state["albumId"];
+      return albumId === null || isId(albumId) ? { screen: "immich", albumId } : null;
     }
     default:
       return null;

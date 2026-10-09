@@ -49,6 +49,10 @@ export interface Translator {
   formatTenthSeconds(seconds: number): string;
   /** A date-time as dd.mm.yyyy (or the locale's order), read in UTC. */
   formatDate(isoDateTime: string): string;
+  /** A day heading from `YYYY-MM-DD`, with the weekday: "Sat, 12 July 2025". */
+  formatDay(day: string): string;
+  /** The days between two date-times, read in UTC, as compact as the locale allows. */
+  formatDayRange(fromIsoDateTime: string, toIsoDateTime: string): string;
   /** A Ken Burns zoom with two decimals in the locale: "1,20×". */
   formatZoom(zoom: number): string;
   /** `m:ss` and the tenth, cut off, with the locale's decimal sign: "0:02,4". */
@@ -80,6 +84,20 @@ export function createTranslator(language: Language): Translator {
   const dates = new Intl.DateTimeFormat(locale, {
     day: "2-digit",
     month: "2-digit",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+
+  const days = new Intl.DateTimeFormat(locale, {
+    weekday: "short",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+  const dayRanges = new Intl.DateTimeFormat(locale, {
+    day: "numeric",
+    month: "long",
     year: "numeric",
     timeZone: "UTC",
   });
@@ -132,11 +150,13 @@ export function createTranslator(language: Language): Translator {
       return t("units.seconds", { seconds: tenths.format(seconds) });
     },
     formatDate(isoDateTime) {
-      const date = new Date(isoDateTime);
-      if (Number.isNaN(date.getTime())) {
-        throw new RangeError(`cannot format "${isoDateTime}" as a date: expected ISO 8601`);
-      }
-      return dates.format(date);
+      return dates.format(parseDate(isoDateTime));
+    },
+    formatDay(day) {
+      return days.format(parseDate(day));
+    },
+    formatDayRange(fromIsoDateTime, toIsoDateTime) {
+      return dayRanges.formatRange(parseDate(fromIsoDateTime), parseDate(toIsoDateTime));
     },
     formatBytes(bytes) {
       const megabytes = bytes / BYTES_PER_MEGABYTE;
@@ -148,4 +168,12 @@ export function createTranslator(language: Language): Translator {
       return t("units.megabytes", { size: numbers.format(shown) });
     },
   };
+}
+
+function parseDate(isoDateTime: string): Date {
+  const date = new Date(isoDateTime);
+  if (Number.isNaN(date.getTime())) {
+    throw new RangeError(`cannot format "${isoDateTime}" as a date: expected ISO 8601`);
+  }
+  return date;
 }

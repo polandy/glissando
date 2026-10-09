@@ -1,10 +1,9 @@
 import { buildStoredSlideshow } from "../../compose";
+import type { ImmichPhoto } from "../../immich/immich-client";
+import { localPictureSource, type LocalPictureReaders } from "../../import/local-picture-source";
 import type { MusicProbe } from "../../import/music-probe";
-import {
-  PictureImport,
-  PictureImportFailedError,
-  type PictureImportPorts,
-} from "../../import/picture-import";
+import { PictureImport, PictureImportFailedError } from "../../import/picture-import";
+import type { PictureSource } from "../../import/picture-source";
 import {
   DEFAULT_SECONDS_PER_PICTURE,
   type LibraryStore,
@@ -12,8 +11,10 @@ import {
   type StoredSlideshow,
 } from "../../library/stored-slideshow";
 
-export interface ImportSessionPorts extends Pick<PictureImportPorts, "decode" | "captureDate"> {
+export interface ImportSessionPorts extends LocalPictureReaders {
   readonly store: LibraryStore;
+  /** A photo picked in the Immich browser, read through the composition root's client. */
+  immichSource(photo: ImmichPhoto): PictureSource;
   probeMusic(file: File): Promise<MusicProbe>;
   /** Import, media and slideshow ids. */
   newId(): string;
@@ -63,13 +64,12 @@ export class ImportSession {
     this.#ports = ports;
     this.#importId = ports.newId();
     this.pictures = new PictureImport({
-      decode: ports.decode,
-      captureDate: ports.captureDate,
       store: {
         putPicture: async (id, blobs) => {
           await this.#claim(id);
           await ports.store.putPicture(id, blobs);
         },
+        putPictureFocus: (id, focus) => ports.store.putPictureFocus(id, focus),
       },
       newId: ports.newId,
     });
@@ -86,7 +86,15 @@ export class ImportSession {
   };
 
   addPictures(files: readonly File[]): void {
-    this.pictures.add(files);
+    this.#add(files.map((file) => localPictureSource(file, this.#ports)));
+  }
+
+  addImmichPhotos(photos: readonly ImmichPhoto[]): void {
+    this.#add(photos.map((photo) => this.#ports.immichSource(photo)));
+  }
+
+  #add(sources: readonly PictureSource[]): void {
+    this.pictures.add(sources);
     const drain = this.pictures.settled();
     if (drain !== this.#reportedDrain) {
       this.#reportedDrain = drain;

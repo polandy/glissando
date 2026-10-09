@@ -290,7 +290,8 @@ gesture (which cannot be stopped) keeps it, and "New slideshow" resumes it.
   placeholder per file still in flight; the tiles appear in capture order as
   they are stored. Then "n pictures · from – to" and "add more". Skipped files are a lemon
   notice "n files could not be read as pictures and were skipped: names. The other m pictures
-  are in.", full storage a coral one with "Choose fewer pictures" (discards and reopens the
+  are in." (photos that could not be downloaded from Immich get their own sentence "n photos
+  could not be downloaded from Immich and were skipped: names." in the same notice), full storage a coral one with "Choose fewer pictures" (discards and reopens the
   picker). A failed import is a coral notice "The import failed. No more pictures can be added."
   with "Start over" (discards the selection and shows the empty drop zone); the drop zone and
   "add more" stay hidden until then. Its error is logged; the notice is its only message (no
@@ -298,7 +299,11 @@ gesture (which cannot be stopped) keeps it, and "New slideshow" resumes it.
   Cancel and ← with a selection ask "Discard selection?" (Keep choosing / Discard). While the
   drop zone shows, a box below it offers "Slideshow from another device?" with "Open file"; a
   single .glissando file chosen or dropped on the drop zone opens it (above) instead of being
-  imported as a picture.
+  imported as a picture. Above that box, when this Glissando offers Immich (below), a box "From
+  Immich" with "Open Immich" opens the Immich browser; offline it is greyed out ("Offline — Immich
+  needs a connection to your Glissando server …"), with an Immich problem it names it and offers
+  "Settings". Photos added from Immich join the same import: the same progress ("loaded from
+  Immich"), tiles, notices and "Next"; "add more" then also offers "more from Immich".
 - **Music** (optional): a drop zone with "Choose music" (`audio/*`); a file the browser cannot
   play is a coral toast with "Retry", which reopens the picker. Chosen music is a card (music icon, file
   name, m:ss · format, a close button removes it, and a strip of the pictures' thumbnails
@@ -307,6 +312,48 @@ gesture (which cannot be stopped) keeps it, and "New slideshow" resumes it.
   rules (`src/compose/`). "Pictures" goes back; "Create slideshow" (or "Create without
   music") stores the music and then the slideshow record under the blocking overlay "Creating
   slideshow …", opens the slideshow and shows the toast "Slideshow created — tap Play".
+
+## Immich
+
+Only the self-hosted Glissando offers Immich (ADR-0013, `docs/self-hosting.md`); the key lives in
+its container, the app has no key field. `immich/immich-availability.ts` asks
+`./immich/api/server/version` when the app opens, when the pictures step opens and on "Check
+again", and publishes an `ImmichStatus` (`src/immich/immich-client.ts`): available, not set up
+(the Immich box stays hidden), offline, Immich unreachable from the server, key rejected,
+permission missing, sign-in expired (the owner's proxy redirected).
+
+`immich/ImmichRoute.svelte`, under the crumbs "New slideshow / Pictures / Immich" (an album adds
+its name), opened from the pictures step; ← goes back a level (album → albums → pictures step),
+keeping the selection. `immich/immich-browser.ts` holds the selection, the tab, the albums and the
+feeds read so far for as long as the import session lives (`App.svelte` makes one per session):
+
+- **Tabs** "All photos" (first) and "Albums".
+- **All photos**: the library's photos newest first, grouped by day (heading "Sat, 12 July 2025",
+  mono count, "Select day" / "Deselect day"), square tiles from Immich's thumbnails loaded lazily.
+  The next 60 load when the list nears its end (shimmering tiles meanwhile); after the last page
+  "That's all · n photos". Videos are not listed.
+- **Albums**: a grid of covers with name and "n photos · date range" (mono), a filter field
+  (by name; "No album matches"), shimmering cards while loading. The circle on a cover selects the
+  whole album (all its photos, fetched page by page), a badge counts what is selected in it. An
+  album opens to its photos by day, with "Select all n" / "Select none"; "n videos hidden" when it
+  has any; an empty album says so. Immich counts an album's videos with its photos, so the count
+  of photos, "Select all n" and "n videos hidden" are exact once all of its pages are read (the
+  first page of a small album; until then "n photos" is Immich's count and the button "Select
+  all"), and the badge counts only photos already read from that album.
+- **Selection** spans both tabs and several albums. A tile toggles with a tap (check circle, the
+  photo inset on a peach tint). A shift-click gives every photo shown from the last tapped one to
+  this one the last tapped one's state (selected or not), across days; the next shift-click
+  re-aims from the same photo. The footer reads "n selected (from k albums, when k ≥ 2)" or "Tap photos or
+  pick a whole album", with "Clear selection" and "Add n", which returns to the pictures step and
+  adds them to the import.
+- A failing request shows "Immich isn't answering" with "Try again"; the selection stays.
+
+**Settings** shows a read-only "Immich" group: "Through this Glissando server · Immich v ·
+n albums" when available; "Not set up" with "How to set it up" (the self-hosting guide) when not;
+otherwise the problem in one line ("The Glissando backend cannot reach the Immich server.", "Immich
+rejects the server's key.", "The server's key lacks permissions." naming the five, "Your sign-in
+has expired.") with "Check again" (or "Reload" for the sign-in). The cause in detail is in the
+container's log, never in the app.
 
 ## Wiring
 
@@ -404,7 +451,8 @@ its update rule: ADR-0005. Web app manifest and icons in `public/`; the PNG icon
 
 ## Navigation
 
-Routes: `start`, `settings`, `slideshow(id)`, `import(pictures | music)`, `player(slideshowId)`,
+Routes: `start`, `settings`, `slideshow(id)`, `import(pictures | music)`, `immich(albumId | null)`
+(below the pictures step; an album below the browser), `player(slideshowId)`,
 `picture(slideshowId, pictureId)`, `music(slideshowId)` — three levels; the player is a modal
 layer over its slideshow, the settings sheet one over start, the picture and music editors
 screens below their slideshow
@@ -415,7 +463,7 @@ screens below their slideshow
   back to that parent: the created slideshow replaces the import steps, so back leads to start.
 - History state is validated on every read; anything unknown is the start screen.
 - History never restores what is gone: after a reload, or on browser forward, an import step
-  returns to start (its selection lived in memory), the player to its slideshow (music needs
+  or the Immich browser returns to start (its selection lived in memory), the player to its slideshow (music needs
   a user gesture) and the settings sheet to start (a closed overlay stays closed).
 
 ## Waiting and errors
@@ -472,6 +520,7 @@ is stored on this device":
   "Light", "Dark" — the theme preference below.
 - **Language**: "Same as browser" (hint "Currently German" or "Currently English", what the
   browser languages pick), "Deutsch", "English" — the language preference below.
+- **Immich** (`immich/ImmichSettingsGroup.svelte`): read-only, see Immich above.
 
 `settings/app-settings.ts` holds both preferences: a choice is stored at once and announced to
 its subscribers, a new subscriber gets the current state immediately. `main.ts` subscribes and

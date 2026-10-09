@@ -20,7 +20,10 @@ const noFileOpening = {
   notice: null,
   onDismissNotice: () => undefined,
   onReload: () => undefined,
-};
+  immich: { kind: "notSetUp" },
+  onOpenImmich: () => undefined,
+  onImmichSettings: () => undefined,
+} as const;
 
 /** A session whose import stores "a.jpg" and fails unexpectedly on any other file. */
 function failingSession(): ImportSession {
@@ -38,6 +41,9 @@ function failingSession(): ImportSession {
       file.name === "a.jpg"
         ? Promise.resolve("2025-07-01T10:00:00Z")
         : Promise.reject(new Error("the disk went away")),
+    immichSource: () => {
+      throw new Error("no Immich in this test");
+    },
     probeMusic: () => Promise.reject(new Error("no music in this test")),
     newId: () => `id-${nextId++}`,
     now: () => new Date(0),

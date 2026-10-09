@@ -8,10 +8,13 @@ import {
 } from "../../library/stored-slideshow";
 import { MemoryLibraryStore } from "../../library/testing/memory-store";
 import { PictureImportFailedError } from "../../import/picture-import";
+import type { ImmichPhoto } from "../../immich/immich-client";
+import type { PictureFocus } from "../../library/picture-focus";
 import { ImportSession, type ImportChoices, type ImportSessionPorts } from "./import-session";
 
 const CREATED_AT = new Date("2026-10-08T12:00:00Z");
 const MUSIC_MS = 60_000;
+const FACE: PictureFocus = { kind: "subject", box: { x: 0.25, y: 0.1, width: 0.5, height: 0.4 } };
 
 const pictureFile = (name: string, capturedAt: string): File =>
   Object.assign(new File([name], name, { type: "image/jpeg" }), { capturedAt });
@@ -33,6 +36,21 @@ function sessionWith(
         thumbnail: new Blob([`thumbnail ${file.name}`]),
       }),
     captureDate: (file) => Promise.resolve((file as File & { capturedAt: string }).capturedAt),
+    immichSource: (photo: ImmichPhoto) => ({
+      fileName: photo.fileName,
+      mimeType: "image/jpeg",
+      read: () =>
+        Promise.resolve({
+          decoded: {
+            width: 400,
+            height: 300,
+            display: new Blob([`display ${photo.id}`]),
+            thumbnail: new Blob([`thumbnail ${photo.id}`]),
+          },
+          capturedAt: photo.takenAt,
+          focus: FACE,
+        }),
+    }),
     probeMusic: (file): Promise<MusicProbe> =>
       file.name.endsWith(".broken")
         ? Promise.reject(new UnreadableMusicError(file.name))
@@ -103,6 +121,23 @@ describe("ImportSession", () => {
       "slideshow",
       "end id-1",
     ]);
+  });
+
+  it("adds photos from Immich to the same import, claimed before stored, with their focus", async () => {
+    const store = new LoggingStore();
+    const { session } = sessionWith(store);
+    session.addPictures([pictureFile("a.jpg", "2025-07-01T10:00:00Z")]);
+    session.addImmichPhotos([
+      { id: "asset-1", fileName: "IMG_0001.HEIC", takenAt: "2025-06-01T10:00:00Z" },
+    ]);
+    await session.pictures.settled();
+
+    expect(session.pictures.state.pictures.map((picture) => picture.fileName)).toEqual([
+      "IMG_0001.HEIC",
+      "a.jpg",
+    ]);
+    expect(store.log).toEqual(["claim id-2", "picture id-2", "claim id-3", "picture id-3"]);
+    expect(await store.pictureFocus(["id-3"])).toEqual(new Map([["id-3", FACE]]));
   });
 
   it("spares the pictures of the running import from a clean-up", async () => {

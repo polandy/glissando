@@ -1,5 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
+  import type { ImmichAvailabilityState } from "../../immich/immich-availability";
+  import ImmichSettingsGroup from "../immich/ImmichSettingsGroup.svelte";
   import Icon from "../components/Icon.svelte";
   import RadioGroup, { type RadioOption } from "../components/RadioGroup.svelte";
   import { getTranslator } from "../i18n/context";
@@ -11,11 +13,18 @@
 
   let {
     state,
+    immich,
     onTheme,
     onLanguage,
+    onCheckImmich,
+    onReload,
     onClose,
   }: {
     state: SettingsState;
+    immich: ImmichAvailabilityState;
+    onCheckImmich: () => void;
+    /** Reloads the app, e.g. so the owner's proxy can ask for a new sign-in. */
+    onReload: () => void;
     onTheme: (theme: ThemePreference) => void;
     onLanguage: (language: LanguagePreference) => void;
     /** ✕, the scrim, Esc; it should go back through history (see dev-docs/APP.md). */
@@ -108,6 +117,7 @@
         onSelect={onLanguage}
       />
     </section>
+    <ImmichSettingsGroup state={immich} onCheck={onCheckImmich} {onReload} />
     <p class="footnote">{t("settings.footnote")}</p>
   </div>
 </dialog>

@@ -1,4 +1,6 @@
 import type { FocusPass } from "../library/focus-pass";
+import type { ImmichAvailability } from "../immich/immich-availability";
+import type { ImmichClient } from "../immich/immich-client";
 import type { MusicOutput } from "../player";
 import type { LibraryStore } from "../library/stored-slideshow";
 import type { PwaStatus } from "../pwa/pwa-status";
@@ -27,6 +29,8 @@ export interface AppServices {
   readonly musicAudio: MusicEditorAudio;
   /** Looks for the pictures' focus in the background (ADR-0012); started as the app opens. */
   readonly focusPass: FocusPass;
+  /** Immich through the self-hosted Glissando (ADR-0013); checked as the app opens. */
+  readonly immich: { readonly client: ImmichClient; readonly availability: ImmichAvailability };
   /** Files the installed app was launched with; null where the browser has none. */
   readonly launchQueue: LaunchQueue | null;
   /** The address the app was opened at, e.g. `http://192.168.1.20:4173`. */

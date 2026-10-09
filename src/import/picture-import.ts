@@ -1,9 +1,9 @@
 import { orderByCaptureDate } from "../compose";
 import type { LibraryStore, StoredPicture } from "../library/stored-slideshow";
-import type { DecodedPicture } from "./downscale";
+import { PictureNotDownloadedError, type PictureSource, type ReadPicture } from "./picture-source";
 import { UnreadablePictureError } from "./unreadable-picture";
 
-export type SkipReason = "unsupported" | "unreadable";
+export type SkipReason = "unsupported" | "unreadable" | "notDownloaded";
 
 export interface SkippedFile {
   readonly fileName: string;
@@ -13,7 +13,7 @@ export interface SkippedFile {
 export interface PictureImportState {
   /** Picture files accepted so far; files dropped at full storage leave the count. */
   readonly total: number;
-  /** Accepted files processed, stored or unreadable, so progress "done of total" reaches total. */
+  /** Accepted files processed, stored or skipped, so progress "done of total" reaches total. */
   readonly done: number;
   /** By capture date ascending, ties by file name. */
   readonly pictures: readonly StoredPicture[];
@@ -24,11 +24,8 @@ export interface PictureImportState {
   readonly failed: boolean;
 }
 
-/** `decode` and `captureDate` reject with `UnreadablePictureError` for a file they cannot read. */
 export interface PictureImportPorts {
-  decode(file: File): Promise<DecodedPicture>;
-  captureDate(file: File): Promise<string>;
-  readonly store: Pick<LibraryStore, "putPicture">;
+  readonly store: Pick<LibraryStore, "putPicture" | "putPictureFocus">;
   newId(): string;
 }
 
@@ -47,11 +44,11 @@ const EMPTY: PictureImportState = {
 
 type Outcome =
   | { readonly kind: "stored"; readonly picture: StoredPicture }
-  | { readonly kind: "unreadable" }
+  | { readonly kind: "skipped"; readonly reason: SkipReason }
   | { readonly kind: "storageFull" };
 
 /**
- * Step 1 of creating a slideshow: picture files in, stored downscaled pictures out. Files are
+ * Step 1 of creating a slideshow: pictures from files or Immich in, stored downscaled pictures out. Files are
  * processed one at a time so memory stays bounded on phones. Media stored by a cancelled import
  * is left unreferenced for `LibraryStore.deleteUnreferencedMedia`.
  */
@@ -67,7 +64,7 @@ export class PictureImport {
   readonly #ports: PictureImportPorts;
   readonly #listeners = new Set<(state: PictureImportState) => void>();
   #state = EMPTY;
-  #queue: File[] = [];
+  #queue: PictureSource[] = [];
   #draining: Promise<void> = Promise.resolve();
   #isDraining = false;
   /** Bumped by `cancel()`, so the file in flight at that moment is discarded. */
@@ -88,14 +85,16 @@ export class PictureImport {
     return () => this.#listeners.delete(listener);
   }
 
-  add(files: readonly File[]): void {
+  add(sources: readonly PictureSource[]): void {
     if (this.#state.failed) {
       throw new Error("the picture import failed; cancel it or start a new one to add files");
     }
-    const pictures = files.filter((file) => file.type.startsWith(PICTURE_TYPE_PREFIX));
-    const unsupported = files
-      .filter((file) => !file.type.startsWith(PICTURE_TYPE_PREFIX))
-      .map((file): SkippedFile => ({ fileName: file.name, reason: "unsupported" }));
+    const isPicture = (source: PictureSource): boolean =>
+      source.mimeType.startsWith(PICTURE_TYPE_PREFIX);
+    const pictures = sources.filter(isPicture);
+    const unsupported = sources
+      .filter((source) => !isPicture(source))
+      .map((source): SkippedFile => ({ fileName: source.fileName, reason: "unsupported" }));
     this.#queue.push(...pictures);
     this.#update({
       total: this.#state.total + pictures.length,
@@ -134,11 +133,11 @@ export class PictureImport {
   async #drain(): Promise<void> {
     let cancelledFileError: { readonly error: unknown } | null = null;
     try {
-      for (let file = this.#queue.shift(); file !== undefined; file = this.#queue.shift()) {
+      for (let source = this.#queue.shift(); source !== undefined; source = this.#queue.shift()) {
         const generation = this.#generation;
         let outcome: Outcome;
         try {
-          outcome = await this.#importOne(file);
+          outcome = await this.#importOne(source);
         } catch (error) {
           if (generation === this.#generation) {
             throw error;
@@ -147,7 +146,7 @@ export class PictureImport {
           continue;
         }
         if (generation === this.#generation) {
-          this.#apply(file, outcome);
+          this.#apply(source, outcome);
         }
       }
     } catch (error) {
@@ -162,24 +161,29 @@ export class PictureImport {
     }
   }
 
-  async #importOne(file: File): Promise<Outcome> {
-    let decoded: DecodedPicture;
-    let capturedAt: string;
+  async #importOne(source: PictureSource): Promise<Outcome> {
+    let read: ReadPicture;
     try {
-      decoded = await this.#ports.decode(file);
-      capturedAt = await this.#ports.captureDate(file);
+      read = await source.read();
     } catch (error) {
       if (error instanceof UnreadablePictureError) {
-        return { kind: "unreadable" };
+        return { kind: "skipped", reason: "unreadable" };
+      }
+      if (error instanceof PictureNotDownloadedError) {
+        return { kind: "skipped", reason: "notDownloaded" };
       }
       throw error;
     }
+    const { decoded, capturedAt, focus } = read;
     const id = this.#ports.newId();
     try {
       await this.#ports.store.putPicture(id, {
         display: decoded.display,
         thumbnail: decoded.thumbnail,
       });
+      if (focus !== null) {
+        await this.#ports.store.putPictureFocus(id, focus);
+      }
     } catch (error) {
       if (error instanceof DOMException && error.name === QUOTA_EXCEEDED) {
         return { kind: "storageFull" };
@@ -187,10 +191,11 @@ export class PictureImport {
       throw error;
     }
     const { width, height } = decoded;
-    return { kind: "stored", picture: { id, capturedAt, width, height, fileName: file.name } };
+    const fileName = source.fileName;
+    return { kind: "stored", picture: { id, capturedAt, width, height, fileName } };
   }
 
-  #apply(file: File, outcome: Outcome): void {
+  #apply(source: PictureSource, outcome: Outcome): void {
     const done = this.#state.done + 1;
     const busy = this.#queue.length > 0;
     switch (outcome.kind) {
@@ -201,11 +206,11 @@ export class PictureImport {
           pictures: orderByCaptureDate([...this.#state.pictures, outcome.picture]),
         });
         return;
-      case "unreadable":
+      case "skipped":
         this.#update({
           done,
           busy,
-          skipped: [...this.#state.skipped, { fileName: file.name, reason: "unreadable" }],
+          skipped: [...this.#state.skipped, { fileName: source.fileName, reason: outcome.reason }],
         });
         return;
       case "storageFull":

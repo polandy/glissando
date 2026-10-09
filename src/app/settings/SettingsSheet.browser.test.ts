@@ -21,6 +21,9 @@ function mountSheet(state: SettingsState = STATE) {
   let closes = 0;
   const mounted = mountWithTranslator(SettingsSheet, {
     state,
+    immich: { kind: "notSetUp" },
+    onCheckImmich: () => undefined,
+    onReload: () => undefined,
     onTheme: (theme: ThemePreference) => chosen.themes.push(theme),
     onLanguage: (language: LanguagePreference) => chosen.languages.push(language),
     onClose: () => (closes += 1),

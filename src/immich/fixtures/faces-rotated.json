@@ -1,0 +1,24 @@
+[
+  {
+    "id": "f75465bc-b535-43e9-b122-332b5d4df4dd",
+    "boundingBoxX1": 148,
+    "boundingBoxY1": 137,
+    "boundingBoxX2": 369,
+    "boundingBoxY2": 449,
+    "imageWidth": 520,
+    "imageHeight": 671,
+    "sourceType": "machine-learning",
+    "person": {
+      "id": "1352c1ac-0629-4ee1-86c3-15bd746be2b1",
+      "name": "",
+      "birthDate": null,
+      "thumbnailPath": "/data/thumbs/edc8562f-b788-4cf5-8b1b-42d0006bef7d/13/52/1352c1ac-0629-4ee1-86c3-15bd746be2b1.jpeg",
+      "isHidden": false,
+      "isFavorite": false,
+      "updatedAt": "2026-10-09T17:00:14.559817+00:00",
+      "otherPeople": [],
+      "sharedBy": [],
+      "sharedWith": []
+    }
+  }
+]

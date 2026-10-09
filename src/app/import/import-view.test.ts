@@ -9,6 +9,7 @@ import {
   musicFormatLabel,
   pendingPictureCount,
   picturesPhase,
+  skippedNotices,
 } from "./import-view";
 
 const picture = (id: string, capturedAt: string): StoredPicture => ({
@@ -113,5 +114,25 @@ describe("musicFormatLabel", () => {
     ["nothing when neither is known", "Sommer", "", ""],
   ])("names the format by %s", (_, fileName, mimeType, label) => {
     expect(musicFormatLabel(fileName, mimeType)).toBe(label);
+  });
+});
+
+describe("skippedNotices", () => {
+  it("tells the files not readable as pictures apart from the photos not downloaded from Immich", () => {
+    expect(
+      skippedNotices([
+        { fileName: "notes.txt", reason: "unsupported" },
+        { fileName: "IMG_1.HEIC", reason: "notDownloaded" },
+        { fileName: "broken.jpg", reason: "unreadable" },
+        { fileName: "IMG_2.HEIC", reason: "notDownloaded" },
+      ]),
+    ).toEqual({
+      unreadable: ["notes.txt", "broken.jpg"],
+      notDownloaded: ["IMG_1.HEIC", "IMG_2.HEIC"],
+    });
+  });
+
+  it("has nothing to tell without skipped files", () => {
+    expect(skippedNotices([])).toEqual({ unreadable: [], notDownloaded: [] });
   });
 });

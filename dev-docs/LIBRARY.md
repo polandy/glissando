@@ -20,6 +20,11 @@ ADR-0003; file container: ADR-0004.
   with a `Z` suffix (`2025-07-01T10:30:15Z`); the file-date fallback uses the device's local
   time the same way. Ordering and titles follow the clock the user saw, not a true UTC instant.
 - **Order**: by capture date ascending, equal dates by file name.
+- **From Immich** (ADR-0013): the original is downloaded and goes through the same decode; one
+  the browser cannot decode falls back to Immich's preview (JPEG, ≤ 1440 px). The capture date is
+  Immich's `localDateTime` (wall time with `Z`, as above). A photo whose download fails (Immich or
+  the server gone meanwhile) is skipped as _not downloaded_; the import goes on. Files and Immich
+  photos are two `PictureSource` adapters of the one `PictureImport`.
 
 ## Step 1 — the picture import
 
@@ -105,7 +110,11 @@ picture not looked at yet is absent.
 picture without one (ADR-0012): newest slideshow first, one picture at a time, its thumbnail
 through the `FocusDetector` (a worker) into the store. It starts when the app opens and again
 whenever a slideshow is created (an import, an opened file); a start while it runs only takes up
-the slideshows created since, so two never run at once. A picture whose media is gone meanwhile
+the slideshows created since, so two never run at once. A picture from Immich with faces already
+has its focus when it is stored: the largest of Immich's face boxes (by area; Immich gives no
+score), divided by its `imageWidth`/`imageHeight` (Immich's preview in display orientation),
+stored as `{kind: "subject"}`. An empty face list stores nothing — it may mean "not scanned yet" —
+so the pass looks at that picture like any other. A picture whose media is gone meanwhile
 is skipped; one whose detection fails is logged (`FocusDetectionFailedError`), keeps no focus and
 is tried again on the next pass. A detection failing because the detector itself is gone
 (`FocusDetectorGoneError`: its worker crashed, sent a reply that could not be read, or answered

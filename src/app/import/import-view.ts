@@ -1,5 +1,5 @@
 import { slideDurationsMs } from "../../compose";
-import type { PictureImportState } from "../../import/picture-import";
+import type { PictureImportState, SkippedFile } from "../../import/picture-import";
 import type { StoredPicture } from "../../library/stored-slideshow";
 import { MILLISECONDS_PER_SECOND } from "../../player";
 
@@ -35,6 +35,22 @@ export function hasSelection(state: PictureImportState): boolean {
 }
 
 /** First and last capture date of pictures already in capture order. */
+/** The names of the skipped files by what step 1 tells about them. */
+export interface SkippedNotices {
+  /** Not a picture, or one the browser cannot read. */
+  readonly unreadable: readonly string[];
+  /** Photos Immich could not deliver. */
+  readonly notDownloaded: readonly string[];
+}
+
+export function skippedNotices(skipped: readonly SkippedFile[]): SkippedNotices {
+  const namesFor = (isNotDownloaded: boolean): string[] =>
+    skipped
+      .filter((file) => (file.reason === "notDownloaded") === isNotDownloaded)
+      .map((file) => file.fileName);
+  return { unreadable: namesFor(false), notDownloaded: namesFor(true) };
+}
+
 export function captureRange(
   pictures: readonly StoredPicture[],
 ): { readonly from: string; readonly to: string } | null {

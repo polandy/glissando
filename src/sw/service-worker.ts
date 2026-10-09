@@ -50,7 +50,7 @@ self.addEventListener("message", (event) => {
 });
 
 self.addEventListener("fetch", (event) => {
-  if (!answersRequest(event.request, self.location.origin)) {
+  if (!answersRequest(event.request, SCOPE)) {
     return;
   }
   event.respondWith(

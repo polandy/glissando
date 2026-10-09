@@ -1,0 +1,68 @@
+import type { Message } from "./messages";
+
+/** German copy of the Immich box, browser and settings group; part of the German catalogue. */
+export const deImmich = {
+  "immich.name": "Immich",
+  "immich.sourceTitle": "Aus Immich",
+  "immich.sourceText":
+    "Alben und Fotos aus deinem Immich. Sie werden heruntergeladen und bleiben auf dem Gerät.",
+  "immich.open": "Immich öffnen",
+  "immich.more": "mehr aus Immich",
+  "immich.offlineText":
+    "Offline – Immich geht nur mit Verbindung zu deinem Glissando-Server. Bilder von diesem Gerät gehen weiter.",
+  "immich.detailsInSettings": "Details in den Einstellungen.",
+  "immich.problemOffline": "Offline – Immich braucht eine Verbindung zu deinem Glissando-Server.",
+  "immich.problemUnreachable": "Das Glissando-Backend erreicht den Immich-Server nicht.",
+  "immich.problemKeyRejected": "Immich lehnt den Schlüssel des Servers ab.",
+  "immich.problemPermissionMissing":
+    "Dem Schlüssel des Servers fehlen Rechte: album.read, asset.read, asset.view, asset.download und face.read.",
+  "immich.problemSignInExpired": "Deine Anmeldung ist abgelaufen.",
+  "immich.checking": "Verbindung wird geprüft …",
+  "immich.throughServer": "Über diesen Glissando-Server",
+  "immich.serverDetails": {
+    one: "Immich {version} · {count} Album",
+    other: "Immich {version} · {count} Alben",
+  },
+  "immich.notSetUp": "Nicht eingerichtet",
+  "immich.notSetUpText":
+    "Immich gibt es, wenn Glissando selbst gehostet neben Immich läuft. Den Schlüssel trägt man dort ein, nicht hier.",
+  "immich.howToSetUp": "So richtest du es ein",
+  "immich.unusable": "Immich gerade nicht nutzbar",
+  "immich.checkAgain": "Erneut prüfen",
+  "immich.reload": "Neu laden",
+  "immich.views": "Ansicht",
+  "immich.tabPhotos": "Alle Fotos",
+  "immich.tabAlbums": "Alben",
+  "immich.newestFirst": "neueste zuerst",
+  "immich.selectDay": "Tag wählen",
+  "immich.deselectDay": "Tag abwählen",
+  "immich.thatsAll": "Das war alles",
+  "immich.photos": { one: "{count} Foto", other: "{count} Fotos" },
+  "immich.notAnswering": "Immich antwortet nicht",
+  "immich.notAnsweringText":
+    "Der Server ist gerade nicht erreichbar. Schon gewählte Fotos bleiben gewählt.",
+  "immich.tryAgain": "Erneut versuchen",
+  "immich.filter": "Alben filtern",
+  "immich.noAlbumMatches": "Kein Album passt",
+  "immich.noAlbumMatchesText": "„{filter}“ kommt in keinem Albumnamen vor.",
+  "immich.albumMeta": "{photos} · {range}",
+  "immich.selectAlbum": "Ganzes Album wählen",
+  "immich.deselectAlbum": "Ganzes Album abwählen",
+  "immich.albumSelected": { one: "{count} gewählt", other: "{count} gewählt" },
+  "immich.albumAllSelected": "alle gewählt",
+  "immich.selectAll": { one: "{count} wählen", other: "Alle {count} wählen" },
+  "immich.selectAllUncounted": "Alle wählen",
+  "immich.selectNone": "Keins wählen",
+  "immich.videosHidden": {
+    one: "{count} Video ausgeblendet",
+    other: "{count} Videos ausgeblendet",
+  },
+  "immich.emptyAlbum": "Dieses Album ist leer",
+  "immich.emptyAlbumText": "Lege in Immich Fotos hinein oder wähle ein anderes Album.",
+  "immich.pickHint": "Tippe Fotos an oder wähle ein ganzes Album",
+  "immich.selected": "gewählt",
+  "immich.fromAlbums": { one: "aus {count} Album", other: "aus {count} Alben" },
+  "immich.clear": "Auswahl leeren",
+  "immich.add": { one: "{count} hinzufügen", other: "{count} hinzufügen" },
+  "immich.addNothing": "Hinzufügen",
+} as const satisfies Record<string, Message>;

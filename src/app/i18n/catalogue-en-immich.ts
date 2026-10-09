@@ -1,0 +1,66 @@
+import type { Catalogue } from "./messages";
+import type { deImmich } from "./catalogue-de-immich";
+
+/** English copy of the Immich box, browser and settings group; typed to the German keys. */
+export const enImmich: Pick<Catalogue, keyof typeof deImmich> = {
+  "immich.name": "Immich",
+  "immich.sourceTitle": "From Immich",
+  "immich.sourceText":
+    "Albums and photos from your Immich. They are downloaded and stay on this device.",
+  "immich.open": "Open Immich",
+  "immich.more": "more from Immich",
+  "immich.offlineText":
+    "Offline — Immich needs a connection to your Glissando server. Pictures from this device still work.",
+  "immich.detailsInSettings": "Details in the settings.",
+  "immich.problemOffline": "Offline — Immich needs a connection to your Glissando server.",
+  "immich.problemUnreachable": "The Glissando backend cannot reach the Immich server.",
+  "immich.problemKeyRejected": "Immich rejects the server's key.",
+  "immich.problemPermissionMissing":
+    "The server's key lacks permissions: album.read, asset.read, asset.view, asset.download and face.read.",
+  "immich.problemSignInExpired": "Your sign-in has expired.",
+  "immich.checking": "Checking the connection …",
+  "immich.throughServer": "Through this Glissando server",
+  "immich.serverDetails": {
+    one: "Immich {version} · {count} album",
+    other: "Immich {version} · {count} albums",
+  },
+  "immich.notSetUp": "Not set up",
+  "immich.notSetUpText":
+    "Immich is there when Glissando is self-hosted next to Immich. The key is set there, not here.",
+  "immich.howToSetUp": "How to set it up",
+  "immich.unusable": "Immich can't be used right now",
+  "immich.checkAgain": "Check again",
+  "immich.reload": "Reload",
+  "immich.views": "View",
+  "immich.tabPhotos": "All photos",
+  "immich.tabAlbums": "Albums",
+  "immich.newestFirst": "newest first",
+  "immich.selectDay": "Select day",
+  "immich.deselectDay": "Deselect day",
+  "immich.thatsAll": "That's all",
+  "immich.photos": { one: "{count} photo", other: "{count} photos" },
+  "immich.notAnswering": "Immich isn't answering",
+  "immich.notAnsweringText":
+    "The server cannot be reached right now. Photos already selected stay selected.",
+  "immich.tryAgain": "Try again",
+  "immich.filter": "Filter albums",
+  "immich.noAlbumMatches": "No album matches",
+  "immich.noAlbumMatchesText": "“{filter}” is in no album's name.",
+  "immich.albumMeta": "{photos} · {range}",
+  "immich.selectAlbum": "Select the whole album",
+  "immich.deselectAlbum": "Deselect the whole album",
+  "immich.albumSelected": { one: "{count} selected", other: "{count} selected" },
+  "immich.albumAllSelected": "all selected",
+  "immich.selectAll": { one: "Select {count}", other: "Select all {count}" },
+  "immich.selectAllUncounted": "Select all",
+  "immich.selectNone": "Select none",
+  "immich.videosHidden": { one: "{count} video hidden", other: "{count} videos hidden" },
+  "immich.emptyAlbum": "This album is empty",
+  "immich.emptyAlbumText": "Add photos to it in Immich or choose another album.",
+  "immich.pickHint": "Tap photos or pick a whole album",
+  "immich.selected": "selected",
+  "immich.fromAlbums": { one: "from {count} album", other: "from {count} albums" },
+  "immich.clear": "Clear selection",
+  "immich.add": { one: "Add {count}", other: "Add {count}" },
+  "immich.addNothing": "Add",
+};

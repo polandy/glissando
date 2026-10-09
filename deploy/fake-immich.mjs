@@ -1,0 +1,24 @@
+// A stand-in for Immich in deploy/test-image.sh: it answers every request with what arrived —
+// method, path and the credential headers — and logs one line per request.
+// Node's globals; the lint config does not know them for .mjs.
+/* global console */
+import { createServer } from "node:http";
+
+const PORT = 2283;
+const ECHOED_HEADERS = ["x-api-key", "cookie", "authorization", "x-immich-share-key"];
+
+const server = createServer((request, response) => {
+  const received = {
+    method: request.method,
+    url: request.url,
+    headers: Object.fromEntries(
+      ECHOED_HEADERS.map((name) => [name, request.headers[name] ?? null]),
+    ),
+  };
+  const body = JSON.stringify(received);
+  console.log(`request ${body}`);
+  response.writeHead(200, { "content-type": "application/json" });
+  response.end(body);
+});
+
+server.listen(PORT, () => console.log(`listening on ${PORT}`));

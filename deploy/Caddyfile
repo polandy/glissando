@@ -1,0 +1,33 @@
+# Started by entrypoint.sh, which validates the environment and chooses the Immich route.
+{
+	admin off
+	persist_config off
+	auto_https off
+	log {
+		output stdout
+		format json
+	}
+}
+
+# Plain HTTP: TLS and access protection come from the owner's reverse proxy.
+:8080 {
+	log {
+		output stdout
+		format filter {
+			wrap json
+			fields {
+				request>headers>X-Api-Key delete
+				request>headers>Cookie delete
+				request>headers>Authorization delete
+			}
+		}
+	}
+
+	# immich-proxy.caddy or immich-off.caddy.
+	import {$GLISSANDO_IMMICH_ROUTE}
+
+	handle {
+		root * /srv
+		file_server
+	}
+}
