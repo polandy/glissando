@@ -4,6 +4,7 @@ import type {
   FrameScheduler,
   MusicPlayback,
   PictureLoader,
+  PreparedSlide,
   RenderFrame,
   SlideRenderer,
 } from "../ports";
@@ -52,6 +53,8 @@ interface PendingLoad {
 export class FakePictureLoader implements PictureLoader<FakePicture> {
   readonly requested: string[] = [];
   readonly released: string[] = [];
+  readonly completed: string[] = [];
+  disposed = false;
   #pending = new Map<string, PendingLoad>();
   #releaseListeners: ((src: string) => void)[] = [];
 
@@ -63,11 +66,15 @@ export class FakePictureLoader implements PictureLoader<FakePicture> {
     this.released.push(picture.src);
     this.#releaseListeners.splice(0).forEach((listener) => listener(picture.src));
   }
+  dispose(): void {
+    this.disposed = true;
+  }
   nextRelease(): Promise<string> {
     return new Promise((resolve) => this.#releaseListeners.push(resolve));
   }
   complete(src: string, size: Size = { width: 1600, height: 900 }): void {
     this.#take(src).resolve({ src, ...size });
+    this.completed.push(src);
   }
   fail(src: string, error: Error): void {
     this.#take(src).reject(error);
@@ -82,25 +89,65 @@ export class FakePictureLoader implements PictureLoader<FakePicture> {
   }
 }
 
+/**
+ * What drawing costs, charged to a `FakeClock`: drawing a picture not prepared yet costs a whole
+ * upload, each `prepare` one slice of it.
+ */
+export interface FakeRenderCosts {
+  readonly clock: FakeClock;
+  readonly fullUploadMs: number;
+  readonly sliceMs: number;
+  readonly slicesPerPicture: number;
+}
+
 export class FakeRenderer implements SlideRenderer<FakePicture> {
   readonly frames: RenderFrame<FakePicture>[] = [];
   readonly forgotten: string[] = [];
+  readonly prepared: PreparedSlide<FakePicture>[] = [];
   disposed = false;
   captionInset = 0;
+  /** Runs at the start of every `render`, before its cost is charged. */
+  onRender: (() => void) | null = null;
+  readonly #costs: FakeRenderCosts | null;
+  readonly #slicesDone = new Map<string, number>();
+
+  constructor(costs: FakeRenderCosts | null = null) {
+    this.#costs = costs;
+  }
+
   render(frame: RenderFrame<FakePicture>): void {
+    this.onRender?.();
     this.frames.push(frame);
+    const layers = frame.kind === "slide" ? [frame.slide] : [frame.from, frame.to];
+    for (const { picture } of layers) {
+      if (this.#costs !== null && !this.#isPrepared(picture)) {
+        this.#costs.clock.advance(this.#costs.fullUploadMs);
+        this.#slicesDone.set(picture.src, this.#costs.slicesPerPicture);
+      }
+    }
+  }
+  prepare(slide: PreparedSlide<FakePicture>): void {
+    this.prepared.push(slide);
+    if (this.#costs !== null && !this.#isPrepared(slide.picture)) {
+      this.#costs.clock.advance(this.#costs.sliceMs);
+      this.#slicesDone.set(slide.picture.src, (this.#slicesDone.get(slide.picture.src) ?? 0) + 1);
+    }
   }
   setCaptionInset(cssPixels: number): void {
     this.captionInset = cssPixels;
   }
   forget(picture: FakePicture): void {
     this.forgotten.push(picture.src);
+    this.#slicesDone.delete(picture.src);
   }
   dispose(): void {
     this.disposed = true;
   }
   get lastFrame(): RenderFrame<FakePicture> | undefined {
     return this.frames.at(-1);
+  }
+  #isPrepared(picture: FakePicture): boolean {
+    return (this.#slicesDone.get(picture.src) ?? 0) >= (this.#costs?.slicesPerPicture ?? 0);
   }
 }
 

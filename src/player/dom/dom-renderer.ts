@@ -62,6 +62,11 @@ export class DomRenderer implements SlideRenderer<BrowserPicture> {
     this.#captionInsetCssPixels = cssPixels;
   }
 
+  /** Nothing to prepare: the browser draws the decoded picture element. */
+  prepare(): void {
+    return;
+  }
+
   forget(picture: BrowserPicture): void {
     picture.element.remove();
     this.#captions.get(picture.element)?.remove();

@@ -1,4 +1,5 @@
 import type { Slideshow } from "../slideshow";
+import type { BitmapPicture } from "../browser/bitmap-loader";
 import { ImageElementLoader, type BrowserPicture } from "../browser/picture-loader";
 
 export const RED = [255, 0, 0] as const;
@@ -13,9 +14,7 @@ function css([red, green, blue]: Rgb): string {
   return `rgb(${red} ${green} ${blue})`;
 }
 
-async function pictureFrom(
-  draw: (context: CanvasRenderingContext2D) => void,
-): Promise<BrowserPicture> {
+function canvasOf(draw: (context: CanvasRenderingContext2D) => void): HTMLCanvasElement {
   const canvas = document.createElement("canvas");
   canvas.width = PICTURE_SIZE;
   canvas.height = PICTURE_SIZE;
@@ -24,30 +23,58 @@ async function pictureFrom(
     throw new Error("no 2D canvas context to draw a test picture");
   }
   draw(context);
-  return new ImageElementLoader().load(canvas.toDataURL());
+  return canvas;
+}
+
+function pictureFrom(draw: (context: CanvasRenderingContext2D) => void): Promise<BrowserPicture> {
+  return new ImageElementLoader().load(canvasOf(draw).toDataURL());
+}
+
+async function bitmapFrom(
+  draw: (context: CanvasRenderingContext2D) => void,
+): Promise<BitmapPicture> {
+  const bitmap = await createImageBitmap(canvasOf(draw));
+  return { bitmap, width: bitmap.width, height: bitmap.height };
+}
+
+function fillSolid(colour: Rgb): (context: CanvasRenderingContext2D) => void {
+  return (context) => {
+    context.fillStyle = css(colour);
+    context.fillRect(0, 0, PICTURE_SIZE, PICTURE_SIZE);
+  };
+}
+
+/** Red top left, green top right, blue bottom left, white bottom right. */
+function fillQuadrants(context: CanvasRenderingContext2D): void {
+  const half = PICTURE_SIZE / 2;
+  for (const [colour, x, y] of [
+    [RED, 0, 0],
+    [GREEN, half, 0],
+    [BLUE, 0, half],
+    [WHITE, half, half],
+  ] as const) {
+    context.fillStyle = css(colour);
+    context.fillRect(x, y, half, half);
+  }
 }
 
 export function solidPicture(colour: Rgb): Promise<BrowserPicture> {
-  return pictureFrom((context) => {
-    context.fillStyle = css(colour);
-    context.fillRect(0, 0, PICTURE_SIZE, PICTURE_SIZE);
-  });
+  return pictureFrom(fillSolid(colour));
 }
 
 /** Red top left, green top right, blue bottom left, white bottom right. */
 export function quadrantPicture(): Promise<BrowserPicture> {
-  const half = PICTURE_SIZE / 2;
-  return pictureFrom((context) => {
-    for (const [colour, x, y] of [
-      [RED, 0, 0],
-      [GREEN, half, 0],
-      [BLUE, 0, half],
-      [WHITE, half, half],
-    ] as const) {
-      context.fillStyle = css(colour);
-      context.fillRect(x, y, half, half);
-    }
-  });
+  return pictureFrom(fillQuadrants);
+}
+
+/** `solidPicture` as the WebGL renderer draws it. */
+export function solidBitmap(colour: Rgb): Promise<BitmapPicture> {
+  return bitmapFrom(fillSolid(colour));
+}
+
+/** `quadrantPicture` as the WebGL renderer draws it. */
+export function quadrantBitmap(): Promise<BitmapPicture> {
+  return bitmapFrom(fillQuadrants);
 }
 
 /** A positioned box of `size` CSS pixels in the page. */

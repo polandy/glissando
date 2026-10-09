@@ -62,6 +62,12 @@ A transition runs during the **last `durationMs` of the slide carrying it**, so 
 lasts exactly the sum of its slide durations (ADR-0002). The incoming slide's Ken Burns starts
 with the transition and ends with its own slide. Transitions are eased `ease-in-out`.
 
+Show time follows the clock from an anchor set when playing starts or resumes, **after** that
+first frame is drawn, so the time it takes never shows as a jump in the motion. While playing,
+every animation frame is drawn first, then `SlideRenderer.prepare` is called for each buffered
+picture after the ones on screen: a bounded step of the work to draw it later, so the frame a
+picture comes on screen pays nothing for it (ADR-0014).
+
 ## Player API
 
 `createPlayer(container, slideshow, { webGl2Context?, openPicture? })` fills a positioned
@@ -125,12 +131,19 @@ transition, but stands still in screen space, unmoved by the Ken Burns motion. I
 ## Renderers
 
 - **WebGL2** (default): one shader program per transition, compiled up front;
-  `ShaderCompileError` carries the driver's log. Pictures become mipmapped textures; the
-  canvas follows its CSS size times the device pixel ratio.
+  `ShaderCompileError` carries the driver's log. The canvas follows its CSS size times the
+  device pixel ratio. Its pictures are `ImageBitmap`s decoded in a worker (`BitmapLoader`,
+  `WorkerPictureDecoder`), upright by their EXIF orientation; a released picture's bitmap is
+  closed. Each becomes a mipmapped texture (`picture-textures.ts`), uploaded by `prepare` in
+  steps: the storage for the whole mip chain with a first slice of rows, one slice of at most
+  `UPLOAD_PIXELS_PER_FRAME` pixels per call, the mipmaps in a call of their own, then the
+  caption. Drawing a picture not fully prepared (after a seek) uploads the rest at once
+  (ADR-0014).
 - **Captions in WebGL**: once the caption font has loaded (`document.fonts.load`, an injected
   port; until then slides draw without captions, then a redraw follows), each loaded slide with
   a caption gets its band, gradient and text, drawn with Canvas 2D at drawing-buffer resolution
-  into a premultiplied texture (`caption-textures.ts`), released with the slide's picture and
+  into a premultiplied texture (`caption-textures.ts`), keyed on and released with the slide's
+  picture, prepared ahead like the picture, and
   drawn anew when the viewport, the pixel ratio (browser zoom) or the caption changes, and after
   a restored WebGL context. The transition shaders composite each
   slide's band over its picture in screen space inside `fromColor`/`toColor`, so every effect
@@ -138,9 +151,11 @@ transition, but stands still in screen space, unmoved by the Ken Burns motion. I
   the texture. A slide without a caption samples a transparent 1×1 texture.
 - **Context loss**: on `webglcontextlost` it stops issuing GL calls (`render()` is a no-op, never
   throwing) until `webglcontextrestored`, when it rebuilds its buffers and shader programs,
-  drops its texture cache (textures are re-uploaded lazily from the still-held pictures), and
+  drops its texture cache (textures are uploaded anew from the still-held bitmaps when each
+  picture is next prepared or drawn), and
   triggers a redraw of the current frame.
-- **DOM fallback** when the browser has no WebGL2: each slide is its `<img>`, framed by a CSS
+- **DOM fallback** when the browser has no WebGL2: pictures load as `<img>` elements decoded by
+  the browser (`ImageElementLoader`), and `prepare` does nothing. Each slide is its `<img>`, framed by a CSS
   transform, followed by its caption element (`[data-caption]`, styled by `captionStyles`)
   outside that transform; every transition becomes a crossfade, the caption fading with its
   slide. Two lines are clamped with CSS.
@@ -148,8 +163,12 @@ transition, but stands still in screen space, unmoved by the Ken Burns motion. I
 ## Tests
 
 - Pure logic (schema, timeline, Ken Burns, player state) runs as unit tests against
-  hand-written fakes: clock, animation frames, picture loader, renderer, music.
+  hand-written fakes: clock, animation frames, picture loader, renderer, music. The fake
+  renderer can charge the fake clock for uploads — a whole one for drawing an unprepared
+  picture, a slice per `prepare` — so tests bound every frame's step in show time.
 - Renderers run as Vitest browser tests (`*.browser.test.ts`) in real engines
   (`scripts/browser-tests.sh`, CI job `e2e`). WebGL output is checked by reading pixels in
-  Chromium and WebKit. Headless Firefox in the CI image has no WebGL, so it tests the DOM fallback
+  Chromium and WebKit, where the sliced upload is also checked by counting the pixels each
+  upload call sends; the worker decode, EXIF orientation included, runs in all three engines.
+  Headless Firefox in the CI image has no WebGL, so it tests the DOM fallback
   only.

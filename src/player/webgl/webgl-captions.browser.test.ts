@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { BrowserPicture } from "../browser/picture-loader";
+import type { BitmapPicture } from "../browser/bitmap-loader";
 import type { RenderFrame, SlideLayer } from "../ports";
 import type { Framing } from "../slideshow";
-import { BLUE, RED, solidPicture, viewportBox, type Rgb } from "../testing/browser-pictures";
+import { BLUE, RED, solidBitmap, viewportBox, type Rgb } from "../testing/browser-pictures";
 import type { CaptionFonts } from "./caption-textures";
 import { WebGlRenderer } from "./webgl-renderer";
 
@@ -52,7 +52,7 @@ async function setUp({ fontsLoaded = true } = {}) {
     await renderer.captionFontLoaded;
   }
   /** Reads straight after drawing, before the browser presents and clears the frame. */
-  function drawAndRead(frame: RenderFrame<BrowserPicture>, [x, y]: readonly [number, number]) {
+  function drawAndRead(frame: RenderFrame<BitmapPicture>, [x, y]: readonly [number, number]) {
     renderer.render(frame);
     const pixel = new Uint8Array(4);
     gl?.readPixels(
@@ -67,7 +67,7 @@ async function setUp({ fontsLoaded = true } = {}) {
     return [pixel[0] ?? 0, pixel[1] ?? 0, pixel[2] ?? 0] as const;
   }
   /** Every pixel's red channel in the bottom half, after drawing `frame`. */
-  function bottomHalfReds(frame: RenderFrame<BrowserPicture>): number[] {
+  function bottomHalfReds(frame: RenderFrame<BitmapPicture>): number[] {
     renderer.render(frame);
     const half = canvas.height / 2;
     const pixels = new Uint8Array(canvas.width * half * 4);
@@ -83,14 +83,14 @@ function isColour(actual: Rgb, expected: Rgb): boolean {
   );
 }
 
-async function layer(colour: Rgb, caption?: string): Promise<SlideLayer<BrowserPicture>> {
-  const picture = await solidPicture(colour);
+async function layer(colour: Rgb, caption?: string): Promise<SlideLayer<BitmapPicture>> {
+  const picture = await solidBitmap(colour);
   return caption === undefined
     ? { picture, framing: WHOLE_PICTURE }
     : { picture, framing: WHOLE_PICTURE, caption };
 }
 
-async function slideFrame(colour: Rgb, caption?: string): Promise<RenderFrame<BrowserPicture>> {
+async function slideFrame(colour: Rgb, caption?: string): Promise<RenderFrame<BitmapPicture>> {
   return { kind: "slide", slide: await layer(colour, caption) };
 }
 
@@ -152,7 +152,7 @@ describe("WebGlRenderer captions", () => {
 
   it("pushes the caption in with its slide on push-left, not fixed on the screen", async () => {
     const { drawAndRead } = await setUp();
-    const frame: RenderFrame<BrowserPicture> = {
+    const frame: RenderFrame<BitmapPicture> = {
       kind: "transition",
       effect: "push-left",
       progress: 0.5,
@@ -168,7 +168,7 @@ describe("WebGlRenderer captions", () => {
 
   it("fades the caption with its slide on crossfade", async () => {
     const { drawAndRead } = await setUp();
-    const frame: RenderFrame<BrowserPicture> = {
+    const frame: RenderFrame<BitmapPicture> = {
       kind: "transition",
       effect: "crossfade",
       progress: 1,

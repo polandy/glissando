@@ -8,6 +8,9 @@ export interface SlideLayer<Picture> {
   readonly caption?: string;
 }
 
+/** A picture to draw later, with the caption it will be drawn with. */
+export type PreparedSlide<Picture> = Omit<SlideLayer<Picture>, "framing">;
+
 export type RenderFrame<Picture> =
   | { readonly kind: "slide"; readonly slide: SlideLayer<Picture> }
   | {
@@ -22,6 +25,11 @@ export type RenderFrame<Picture> =
 /** Draws frames into its viewport; WebGL2 or the DOM fallback. */
 export interface SlideRenderer<Picture extends Size> {
   render(frame: RenderFrame<Picture>): void;
+  /**
+   * Does a bounded part of the work to draw this slide later, e.g. one slice of a texture upload,
+   * so no single frame pays for all of it; drawing it unprepared finishes the rest at once.
+   */
+  prepare(slide: PreparedSlide<Picture>): void;
   /** Lifts every caption by `cssPixels` from the bottom, e.g. above the player's controls. */
   setCaptionInset(cssPixels: number): void;
   /** The picture will not be drawn again; free what the renderer holds for it. */
@@ -32,6 +40,8 @@ export interface SlideRenderer<Picture extends Size> {
 export interface PictureLoader<Picture extends Size> {
   load(src: string): Promise<Picture>;
   release(picture: Picture): void;
+  /** No picture will be loaded again; free what the loader holds, e.g. its worker. */
+  dispose(): void;
 }
 
 /** Milliseconds on a monotonic clock. */

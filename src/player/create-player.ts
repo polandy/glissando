@@ -1,4 +1,5 @@
 import type { MusicOutput } from "./browser/music-output";
+import { BitmapLoader, type BitmapPicture } from "./browser/bitmap-loader";
 import { AudioElementMusic, animationFrames, performanceClock } from "./browser/platform";
 import {
   ImageElementLoader,
@@ -6,10 +7,11 @@ import {
   type OpenPicture,
 } from "./browser/picture-loader";
 import { DomRenderer } from "./dom/dom-renderer";
-import type { SlideRenderer } from "./ports";
+import type { PictureLoader, SlideRenderer } from "./ports";
 import type { Slideshow } from "./slideshow";
 import { SlideshowPlayer } from "./slideshow-player";
 import { WebGlRenderer } from "./webgl/webgl-renderer";
+import { startPictureDecodeWorker, WorkerPictureDecoder } from "./browser/worker-picture-decoder";
 
 type WebGl2Context = (canvas: HTMLCanvasElement) => WebGL2RenderingContext | null;
 
@@ -33,41 +35,80 @@ const browserObjectUrls = {
   revoke: (url: string) => URL.revokeObjectURL(url),
 };
 
+/** A renderer with the loader whose pictures it draws. */
+type Drawing =
+  | {
+      readonly kind: "webgl";
+      readonly renderer: SlideRenderer<BitmapPicture>;
+      readonly pictures: PictureLoader<BitmapPicture>;
+    }
+  | {
+      readonly kind: "dom";
+      readonly renderer: SlideRenderer<BrowserPicture>;
+      readonly pictures: PictureLoader<BrowserPicture>;
+    };
+
+/** A player drawing with WebGL2 or with the DOM fallback; they differ only inside. */
+export type BrowserPlayer = SlideshowPlayer<BitmapPicture> | SlideshowPlayer<BrowserPicture>;
+
 /**
  * Plays `slideshow` inside `container`, which it fills: with WebGL2 where the browser has it,
- * otherwise with the DOM fallback.
+ * its pictures decoded in a worker, otherwise with the DOM fallback.
  */
 export function createPlayer(
   container: HTMLElement,
   slideshow: Slideshow,
   { webGl2Context = defaultWebGl2Context, openPicture, musicOutput }: CreatePlayerOptions = {},
-): SlideshowPlayer<BrowserPicture> {
-  let player: SlideshowPlayer<BrowserPicture> | null = null;
+): BrowserPlayer {
+  let player: BrowserPlayer | null = null;
   const redraw = () => player?.redraw();
-  const renderer = createRenderer(container, redraw, webGl2Context);
-  player = new SlideshowPlayer(slideshow, {
-    renderer,
-    pictures: new ImageElementLoader(
-      openPicture === undefined ? null : { openPicture, urls: browserObjectUrls },
-    ),
+  const drawing = createDrawing(container, redraw, webGl2Context, openPicture);
+  const playback = {
     clock: performanceClock,
     frames: animationFrames,
     ...(slideshow.music ? { music: new AudioElementMusic(slideshow.music.src, musicOutput) } : {}),
-  });
+  };
+  player =
+    drawing.kind === "webgl"
+      ? new SlideshowPlayer(slideshow, {
+          renderer: drawing.renderer,
+          pictures: drawing.pictures,
+          ...playback,
+        })
+      : new SlideshowPlayer(slideshow, {
+          renderer: drawing.renderer,
+          pictures: drawing.pictures,
+          ...playback,
+        });
   return player;
 }
 
-function createRenderer(
+function createDrawing(
   container: HTMLElement,
   onResize: () => void,
   webGl2Context: WebGl2Context,
-): SlideRenderer<BrowserPicture> {
+  openPicture: OpenPicture | undefined,
+): Drawing {
   const canvas = document.createElement("canvas");
   Object.assign(canvas.style, { position: "absolute", inset: "0", width: "100%", height: "100%" });
   const gl = webGl2Context(canvas);
   if (gl === null) {
-    return new DomRenderer(container, onResize);
+    return {
+      kind: "dom",
+      renderer: new DomRenderer(container, onResize),
+      pictures: new ImageElementLoader(
+        openPicture === undefined ? null : { openPicture, urls: browserObjectUrls },
+      ),
+    };
   }
   container.append(canvas);
-  return new WebGlRenderer(canvas, gl, onResize);
+  const decoder = new WorkerPictureDecoder(startPictureDecodeWorker);
+  return {
+    kind: "webgl",
+    renderer: new WebGlRenderer(canvas, gl, onResize),
+    pictures:
+      openPicture === undefined
+        ? new BitmapLoader(decoder)
+        : new BitmapLoader(decoder, openPicture),
+  };
 }

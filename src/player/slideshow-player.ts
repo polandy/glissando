@@ -161,6 +161,7 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
     this.#paused = true;
     this.#destroyed = true;
     this.#pictures.clear();
+    this.#deps.pictures.dispose();
     this.#music?.dispose();
     this.#deps.renderer.dispose();
   }
@@ -176,8 +177,9 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
   /** Advances from the current time, after waiting for its pictures if they are missing. */
   #startAdvancing(onFirstFrame?: () => void): void {
     const advance = () => {
-      this.#anchor = { timeMs: this.#timeMs, clockMs: this.#deps.clock.now() };
+      // Anchored after drawing, so the time the first frame takes never shows as a jump.
       this.#draw();
+      this.#anchor = { timeMs: this.#timeMs, clockMs: this.#deps.clock.now() };
       onFirstFrame?.();
       this.#emit("playing");
       this.#scheduleFrame();
@@ -226,8 +228,18 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
       return;
     }
     this.#draw();
+    this.#prepareUpcoming();
     this.#emit("timeupdate");
     this.#scheduleFrame();
+  }
+
+  /** Spreads the work to draw the next pictures over the frames before they come on screen. */
+  #prepareUpcoming(): void {
+    const onScreen = slidesOf(this.#currentFrame()).map((slide) => slide.index);
+    for (const { index, picture } of this.#pictures.loadedAfter(onScreen)) {
+      const caption = this.#slideshow.slides[index]?.caption;
+      this.#deps.renderer.prepare(caption === undefined ? { picture } : { picture, caption });
+    }
   }
 
   #finish(): void {

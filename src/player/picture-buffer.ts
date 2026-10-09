@@ -37,6 +37,17 @@ export class PictureBuffer<Picture extends Size> {
     return this.#loaded.get(index);
   }
 
+  /** The loaded pictures of the slides after the last one `onScreen`, nearest first. */
+  loadedAfter(
+    onScreen: readonly number[],
+  ): { readonly index: number; readonly picture: Picture }[] {
+    const lastOnScreen = Math.max(...onScreen);
+    return [...this.#loaded]
+      .filter(([index]) => index > lastOnScreen)
+      .sort(([left], [right]) => left - right)
+      .map(([index, picture]) => ({ index, picture }));
+  }
+
   /**
    * Keeps the slides `onScreen` and the next ones, releasing all others. Resolves once the
    * slides on screen are loaded; rejects with `SlideshowLoadError` if one of them fails.

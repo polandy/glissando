@@ -59,6 +59,11 @@ export class ImageElementLoader implements PictureLoader<BrowserPicture> {
     this.#revoke(picture.element);
   }
 
+  /** Nothing to free: each picture is freed on its release. */
+  dispose(): void {
+    return;
+  }
+
   #revoke(element: HTMLImageElement): void {
     const url = this.#objectUrls.get(element);
     if (url !== undefined) {

@@ -324,6 +324,7 @@ describe("SlideshowPlayer", () => {
 
     expect(renderer.disposed).toBe(true);
     expect(pictures.released).toEqual(["a.jpg", "b.jpg"]);
+    expect(pictures.disposed).toBe(true);
     expect(music.calls.at(-1)).toBe("dispose");
     expect(frames.hasPendingFrame).toBe(false);
     expect(() => player.play()).toThrow(/destroyed/);

@@ -1,8 +1,9 @@
-import type { BrowserPicture } from "../browser/picture-loader";
+import type { BitmapPicture } from "../browser/bitmap-loader";
 import { cropRect, type Size } from "../ken-burns";
-import type { RenderFrame, SlideLayer, SlideRenderer } from "../ports";
+import type { PreparedSlide, RenderFrame, SlideLayer, SlideRenderer } from "../ports";
 import { TRANSITION_EFFECTS, type TransitionEffect } from "../slideshow";
 import { CaptionTextures, type CaptionFonts } from "./caption-textures";
+import { PictureTextures } from "./picture-textures";
 import { fragmentShader, VERTEX_SHADER } from "./transition-shaders";
 
 /** A single slide is a crossfade that has not started. */
@@ -50,12 +51,12 @@ export interface WebGlRendererOptions {
 }
 
 /** Draws slides and the GLSL transitions into a canvas that fills its container. */
-export class WebGlRenderer implements SlideRenderer<BrowserPicture> {
+export class WebGlRenderer implements SlideRenderer<BitmapPicture> {
   readonly #canvas: HTMLCanvasElement;
   readonly #gl: WebGL2RenderingContext;
   readonly #onResize: () => void;
   #programs: ReadonlyMap<TransitionEffect, EffectProgram> = new Map();
-  readonly #textures = new Map<HTMLImageElement, WebGLTexture>();
+  readonly #pictures: PictureTextures;
   readonly #pixelRatio: () => number;
   readonly #captions: CaptionTextures;
   #captionInsetCssPixels = 0;
@@ -74,6 +75,7 @@ export class WebGlRenderer implements SlideRenderer<BrowserPicture> {
     this.#onResize = onResize;
     this.#pixelRatio = pixelRatio;
     this.#setUpGlResources();
+    this.#pictures = new PictureTextures(gl);
     this.#captions = new CaptionTextures(gl, fonts, pixelRatio, onResize);
     canvas.addEventListener("webglcontextlost", this.#handleContextLost);
     canvas.addEventListener("webglcontextrestored", this.#handleContextRestored);
@@ -98,18 +100,18 @@ export class WebGlRenderer implements SlideRenderer<BrowserPicture> {
 
   /**
    * The lost context destroyed every GL object; rebuild them, then let the player redraw.
-   * Textures are not re-uploaded here: `#texture` re-uploads lazily, from the picture elements
-   * the player still holds, the next time each one is bound.
+   * Textures are not re-uploaded here: they are uploaded anew, from the bitmaps the player still
+   * holds, when each picture is next prepared or drawn.
    */
   readonly #handleContextRestored = (): void => {
-    this.#textures.clear();
+    this.#pictures.recreate();
     this.#setUpGlResources();
     this.#captions.recreate();
     this.#contextLost = false;
     this.#onResize();
   };
 
-  render(frame: RenderFrame<BrowserPicture>): void {
+  render(frame: RenderFrame<BitmapPicture>): void {
     if (this.#contextLost) {
       return;
     }
@@ -136,6 +138,18 @@ export class WebGlRenderer implements SlideRenderer<BrowserPicture> {
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, VERTEX_COUNT);
   }
 
+  /** One upload step of the picture per call, then its caption (see `PictureTextures`). */
+  prepare({ picture, caption }: PreparedSlide<BitmapPicture>): void {
+    if (this.#contextLost) {
+      return;
+    }
+    if (!this.#pictures.isComplete(picture)) {
+      this.#pictures.prepareStep(picture);
+      return;
+    }
+    this.#captions.texture(picture, caption, this.#displaySize());
+  }
+
   setCaptionInset(cssPixels: number): void {
     this.#captionInsetCssPixels = cssPixels;
   }
@@ -145,29 +159,30 @@ export class WebGlRenderer implements SlideRenderer<BrowserPicture> {
     return this.#captions.fontLoaded;
   }
 
-  forget(picture: BrowserPicture): void {
-    this.#captions.forget(picture.element);
-    const texture = this.#textures.get(picture.element);
-    if (texture !== undefined) {
-      this.#gl.deleteTexture(texture);
-      this.#textures.delete(picture.element);
-    }
+  forget(picture: BitmapPicture): void {
+    this.#captions.forget(picture);
+    this.#pictures.forget(picture);
   }
 
   dispose(): void {
     this.#canvas.removeEventListener("webglcontextlost", this.#handleContextLost);
     this.#canvas.removeEventListener("webglcontextrestored", this.#handleContextRestored);
     this.#resizeObserver.disconnect();
-    this.#textures.forEach((texture) => this.#gl.deleteTexture(texture));
-    this.#textures.clear();
+    this.#pictures.dispose();
     this.#captions.dispose();
     this.#programs.forEach(({ program }) => this.#gl.deleteProgram(program));
     this.#canvas.remove();
   }
 
+  #displaySize(): Size {
+    return {
+      width: Math.max(1, Math.round(this.#canvas.clientWidth * this.#pixelRatio())),
+      height: Math.max(1, Math.round(this.#canvas.clientHeight * this.#pixelRatio())),
+    };
+  }
+
   #fitCanvasToDisplay(): Size {
-    const width = Math.max(1, Math.round(this.#canvas.clientWidth * this.#pixelRatio()));
-    const height = Math.max(1, Math.round(this.#canvas.clientHeight * this.#pixelRatio()));
+    const { width, height } = this.#displaySize();
     if (this.#canvas.width !== width || this.#canvas.height !== height) {
       this.#canvas.width = width;
       this.#canvas.height = height;
@@ -177,14 +192,14 @@ export class WebGlRenderer implements SlideRenderer<BrowserPicture> {
 
   #bindLayer(
     unit: number,
-    { picture, framing }: SlideLayer<BrowserPicture>,
+    { picture, framing }: SlideLayer<BitmapPicture>,
     sampler: WebGLUniformLocation | null,
     cropUniform: WebGLUniformLocation | null,
     viewport: Size,
   ): void {
     const gl = this.#gl;
     gl.activeTexture(gl.TEXTURE0 + unit);
-    gl.bindTexture(gl.TEXTURE_2D, this.#texture(picture));
+    this.#pictures.texture(picture);
     gl.uniform1i(sampler, unit);
     const crop = cropRect(framing, picture, viewport);
     gl.uniform4f(cropUniform, crop.x, crop.y, crop.width, crop.height);
@@ -192,33 +207,14 @@ export class WebGlRenderer implements SlideRenderer<BrowserPicture> {
 
   #bindCaption(
     unit: number,
-    { picture, caption }: SlideLayer<BrowserPicture>,
+    { picture, caption }: SlideLayer<BitmapPicture>,
     sampler: WebGLUniformLocation | null,
     viewport: Size,
   ): void {
     const gl = this.#gl;
     gl.activeTexture(gl.TEXTURE0 + unit);
-    gl.bindTexture(gl.TEXTURE_2D, this.#captions.texture(picture.element, caption, viewport));
+    gl.bindTexture(gl.TEXTURE_2D, this.#captions.texture(picture, caption, viewport));
     gl.uniform1i(sampler, unit);
-  }
-
-  /** Uploads once per picture, with mipmaps so a 4K picture shrinks to the screen smoothly. */
-  #texture(picture: BrowserPicture): WebGLTexture {
-    const existing = this.#textures.get(picture.element);
-    if (existing !== undefined) {
-      return existing;
-    }
-    const gl = this.#gl;
-    const texture = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, texture);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, picture.element);
-    gl.generateMipmap(gl.TEXTURE_2D);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    this.#textures.set(picture.element, texture);
-    return texture;
   }
 
   #program(effect: TransitionEffect): EffectProgram {
