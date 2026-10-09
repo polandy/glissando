@@ -1,6 +1,6 @@
 /**
  * The app's places. Three levels, never more: start → (settings | import steps | slideshow →
- * (picture editor | player)). The player and the settings sheet are modal layers over their parent, yet each has a
+ * (picture editor | music editor | player)). The player and the settings sheet are modal layers over their parent, yet each has a
  * history entry so back closes it.
  */
 export const IMPORT_STEPS = ["pictures", "music"] as const;
@@ -12,6 +12,7 @@ export type Route =
   | { readonly screen: "slideshow"; readonly slideshowId: string }
   | { readonly screen: "import"; readonly step: ImportStep }
   | { readonly screen: "player"; readonly slideshowId: string }
+  | { readonly screen: "music"; readonly slideshowId: string }
   | { readonly screen: "picture"; readonly slideshowId: string; readonly pictureId: string };
 
 export const START_ROUTE: Route = { screen: "start" };
@@ -28,6 +29,7 @@ export function parentOf(route: Route): Route | null {
       return route.step === "music" ? { screen: "import", step: "pictures" } : START_ROUTE;
     case "player":
     case "picture":
+    case "music":
       return { screen: "slideshow", slideshowId: route.slideshowId };
   }
 }
@@ -71,7 +73,8 @@ export function parseRoute(state: unknown): Route | null {
     case "settings":
       return { screen: "settings" };
     case "slideshow":
-    case "player": {
+    case "player":
+    case "music": {
       const slideshowId = state["slideshowId"];
       return isId(slideshowId) ? { screen: state["screen"], slideshowId } : null;
     }

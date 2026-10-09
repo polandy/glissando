@@ -1,4 +1,5 @@
 import { deEditor } from "./catalogue-de-editor";
+import { deMusic } from "./catalogue-de-music";
 import { deTiming } from "./catalogue-de-timing";
 import type { Message } from "./messages";
 
@@ -263,4 +264,5 @@ export const de = {
   "player.playbackError": "Die Diashow konnte nicht abgespielt werden.",
   ...deEditor,
   ...deTiming,
+  ...deMusic,
 } as const satisfies Record<string, Message>;

@@ -6,8 +6,8 @@
   import { FRAME_KEYS, type FrameKey } from "./frame-keys";
   import type { PictureEditorView } from "./picture-editor-view";
   import CaptionField from "./CaptionField.svelte";
-  import ResetButton from "./ResetButton.svelte";
-  import SectionHead from "./SectionHead.svelte";
+  import ResetButton from "../components/ResetButton.svelte";
+  import SectionHead from "../components/SectionHead.svelte";
 
   /**
    * Beside the picture (below it on a phone): the preview, staying in view while the panel

@@ -11,8 +11,8 @@
   import { getTranslator } from "../i18n/context";
   import type { MotionPreviewPorts } from "./motion-preview";
   import type { PictureEditorView } from "./picture-editor-view";
-  import ResetButton from "./ResetButton.svelte";
-  import SectionHead from "./SectionHead.svelte";
+  import ResetButton from "../components/ResetButton.svelte";
+  import SectionHead from "../components/SectionHead.svelte";
   import { FrameTicker } from "./timing/frame-ticker";
   import { TILE_STILL_MS } from "./timing/preview-timeline";
   import TransitionTile from "./TransitionTile.svelte";

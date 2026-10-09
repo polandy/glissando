@@ -19,6 +19,7 @@
     onMove,
     onRename,
     onEdit,
+    onEditMusic,
     onDelete,
     exportState,
     onExport,
@@ -35,6 +36,8 @@
     onRename: (typed: string) => void;
     /** Opens the picture editor for a picture. */
     onEdit: (pictureId: string) => void;
+    /** Opens the music editor; only offered with music. */
+    onEditMusic: () => void;
     /** The user confirmed deleting the whole slideshow. */
     onDelete: () => void;
     exportState: ExportMenuState;
@@ -139,7 +142,7 @@
         />
       </div>
 
-      <InfoPanel {slideshow} {onPlay} {onRename} />
+      <InfoPanel {slideshow} {onPlay} {onRename} {onEditMusic} />
     </div>
   </main>
   <!-- Inside the screen, so the container query narrows it with the layout. -->

@@ -4,8 +4,8 @@
   import Icon from "../components/Icon.svelte";
   import { getTranslator } from "../i18n/context";
   import type { PictureEditorView } from "./picture-editor-view";
-  import ResetButton from "./ResetButton.svelte";
-  import SectionHead from "./SectionHead.svelte";
+  import ResetButton from "../components/ResetButton.svelte";
+  import SectionHead from "../components/SectionHead.svelte";
   import { canStepDuration, stepDurationMs, type StepDirection } from "./timing/duration-step";
 
   /** How long the picture shows: automatic until − or + makes it the picture's own. */

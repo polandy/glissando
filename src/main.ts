@@ -21,6 +21,7 @@ import {
 import { Toaster } from "./app/toast/toaster";
 import { createDownloader } from "./app/glissando-file/download-file";
 import { browserObjectUrls } from "./app/media/object-urls";
+import { browserMusicEditorAudio } from "./app/music-editor/music-editor-audio";
 import { freeStorageBytes } from "./library/free-storage";
 import { decodePicture } from "./import/downscale";
 import { captureDate } from "./import/exif-capture-date";
@@ -95,6 +96,7 @@ const services = {
   ),
   pwa,
   appAddress: window.location.origin,
+  musicAudio: browserMusicEditorAudio,
   newImportSession: () =>
     new ImportSession({
       store,

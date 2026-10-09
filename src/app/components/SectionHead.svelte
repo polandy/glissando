@@ -1,15 +1,21 @@
 <script lang="ts">
+  import type { IconName } from "../icons";
+  import Icon from "./Icon.svelte";
+
   /** A panel section's eyebrow title and its state chip, accent-tinted when the user's own. */
   let {
     id,
     title,
     stateText,
     own,
-  }: { id: string; title: string; stateText: string; own: boolean } = $props();
+    icon,
+  }: { id: string; title: string; stateText: string; own: boolean; icon?: IconName } = $props();
 </script>
 
 <div class="row">
-  <h2 class="eyebrow" {id}>{title}</h2>
+  <h2 class="eyebrow" {id}>
+    {#if icon}<Icon name={icon} />{/if}{title}
+  </h2>
   <span class="state" class:own>{stateText}</span>
 </div>
 
@@ -21,6 +27,9 @@
     gap: 8px;
   }
   h2 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     margin: 0;
   }
   .state {

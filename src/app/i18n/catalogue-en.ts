@@ -1,4 +1,5 @@
 import { enEditor } from "./catalogue-en-editor";
+import { enMusic } from "./catalogue-en-music";
 import { enTiming } from "./catalogue-en-timing";
 import type { Catalogue } from "./messages";
 
@@ -261,4 +262,5 @@ export const en: Catalogue = {
   "player.playbackError": "The slideshow could not be played.",
   ...enEditor,
   ...enTiming,
+  ...enMusic,
 };

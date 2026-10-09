@@ -195,7 +195,7 @@
     onDismissNotice={() => openFlow.dismissNotice()}
     onReload={services.reload}
   />
-{:else if route.screen === "slideshow" || route.screen === "player" || route.screen === "picture"}
+{:else if route.screen === "slideshow" || route.screen === "player" || route.screen === "picture" || route.screen === "music"}
   {@const slideshowId = route.slideshowId}
   {#key slideshowId}
     <SlideshowRoute
@@ -208,9 +208,12 @@
       onExport={() => void exportJob.start(slideshowId)}
       playing={route.screen === "player"}
       editingPictureId={route.screen === "picture" ? route.pictureId : null}
+      editingMusic={route.screen === "music"}
+      musicAudio={services.musicAudio}
       onBack={() => navigator.back()}
       onPlay={() => navigator.open({ screen: "player", slideshowId })}
       onEdit={(pictureId) => navigator.open({ screen: "picture", slideshowId, pictureId })}
+      onEditMusic={() => navigator.open({ screen: "music", slideshowId })}
       onDeleted={() => leaveWithToast({ navigator, toaster }, t("slideshow.deleted"))}
       onGone={() => leaveWithToast({ navigator, toaster }, t("slideshow.gone"))}
       onError={reportError}

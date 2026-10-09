@@ -9,10 +9,12 @@
     slideshow,
     onPlay,
     onRename,
+    onEditMusic,
   }: {
     slideshow: SlideshowDetails;
     onPlay: () => void;
     onRename: (typed: string) => void;
+    onEditMusic: () => void;
   } = $props();
 
   const { t, formatDuration, formatDate } = getTranslator();
@@ -32,6 +34,24 @@
       ? slideshow.musicSeconds
       : null,
   );
+  const musicSummary = $derived.by(() => {
+    const summary = slideshow.musicSummary;
+    if (summary === null) {
+      return "";
+    }
+    const excerpt =
+      summary.excerpt === null
+        ? null
+        : t("slideshow.musicExcerpt", {
+            from: formatDuration(summary.excerpt.fromSeconds),
+            to: formatDuration(summary.excerpt.toSeconds),
+          });
+    const fades = summary.fades === null ? null : t(`slideshow.musicFades-${summary.fades}`);
+    if (excerpt !== null && fades !== null) {
+      return t("slideshow.musicSummary", { excerpt, fades });
+    }
+    return excerpt ?? fades ?? t("slideshow.musicWholeTrack");
+  });
 </script>
 
 <aside class="panel">
@@ -59,10 +79,23 @@
         {/if}
       </dd>
     </div>
-    <div>
-      <dt>{t("slideshow.music")}</dt>
-      <dd>{slideshow.musicTitle ?? t("slideshow.noMusic")}</dd>
-    </div>
+    {#if slideshow.musicTitle === null}
+      <div>
+        <dt>{t("slideshow.music")}</dt>
+        <dd>{t("slideshow.noMusic")}</dd>
+      </div>
+    {:else}
+      <div class="music-row">
+        <button type="button" class="music" onclick={onEditMusic}>
+          <span class="label">{t("slideshow.music")}</span>
+          <span class="value">
+            <b>{slideshow.musicTitle}</b>
+            <small>{musicSummary}</small>
+          </span>
+          <span class="go">{t("slideshow.edit")}<Icon name="chevronRight" /></span>
+        </button>
+      </div>
+    {/if}
     <div>
       <dt>{t("slideshow.pictureTimes")}</dt>
       <dd>
@@ -144,6 +177,56 @@
     color: var(--gl-muted);
     font-size: inherit;
     font-weight: var(--gl-weight-regular);
+  }
+  /* The music row opens the music editor: a button spanning the row. */
+  .rows .music-row {
+    display: block;
+    padding: 6px 0;
+  }
+  .music {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 4px 14px;
+    width: calc(100% + 8px);
+    margin: 0 -4px;
+    padding: 9px 10px 9px 12px;
+    border: 1px solid var(--gl-line);
+    border-radius: var(--gl-radius);
+    background: var(--gl-raised);
+    color: var(--gl-ink);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+  .music:hover {
+    background: var(--gl-hover);
+  }
+  .music .label {
+    color: var(--gl-muted);
+  }
+  .music .value {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+  }
+  .music .value b {
+    overflow: hidden;
+    font-weight: var(--gl-weight-medium);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .music .value small {
+    color: var(--gl-muted);
+    font-size: var(--gl-size-meta);
+  }
+  .music .go {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    color: var(--gl-muted);
+    font-size: var(--gl-size-meta);
+    font-weight: var(--gl-weight-semibold);
   }
   .pill {
     display: inline-flex;
