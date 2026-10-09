@@ -49,6 +49,7 @@
     onDeleted,
     onGone,
     onError,
+    log,
   }: {
     store: LibraryStore;
     /** What it finds updates the editors' automatic motions and focus marks as it goes. */
@@ -80,6 +81,8 @@
     /** The slideshow was deleted elsewhere, e.g. in another tab, while it was shown. */
     onGone: () => void;
     onError: (error: unknown) => void;
+    /** Logs an error the user need not be told about. */
+    log: (error: unknown) => void;
   } = $props();
 
   const translator = getTranslator();
@@ -248,5 +251,5 @@
   />
 {/if}
 {#if playing && stored !== null}
-  <PlayerLayer {store} {stored} {musicOutput} onClose={onBack} {onError} />
+  <PlayerLayer {store} {stored} {musicOutput} onClose={onBack} {onError} {log} />
 {/if}

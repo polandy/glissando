@@ -230,6 +230,7 @@
       onDeleted={() => leaveWithToast({ navigator, toaster }, t("slideshow.deleted"))}
       onGone={() => leaveWithToast({ navigator, toaster }, t("slideshow.gone"))}
       onError={reportError}
+      log={services.log}
     />
   {/key}
 {/if}

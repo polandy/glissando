@@ -5,6 +5,7 @@ import { oneSlideShow } from "../../player/testing/browser-pictures";
 import { OPENED_PICTURE_SHOW } from "../../player/testing/opened-pictures";
 import { FakeScheduler } from "../testing/fake-scheduler";
 import { mountWithTranslator } from "../testing/mount-with-translator";
+import { whenRendered } from "../testing/when-rendered";
 import PlayerOverlay from "./PlayerOverlay.svelte";
 
 let destroy = () => {};
@@ -26,26 +27,6 @@ async function openPlayer(musicTitle: string | null = null, caption?: string) {
   });
   destroy = mounted.destroy;
   return { ...mounted, scheduler, closes: () => closes };
-}
-
-/** Resolves with the first element matching `selector` in `target`, once it is rendered. */
-function whenRendered(target: HTMLElement, selector: string): Promise<Element> {
-  return new Promise((resolve) => {
-    const found = () => target.querySelector(selector);
-    const observer = new MutationObserver(() => {
-      const element = found();
-      if (element !== null) {
-        observer.disconnect();
-        resolve(element);
-      }
-    });
-    observer.observe(target, { childList: true, subtree: true, characterData: true });
-    const already = found();
-    if (already !== null) {
-      observer.disconnect();
-      resolve(already);
-    }
-  });
 }
 
 function press(key: string): void {
