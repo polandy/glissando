@@ -44,6 +44,15 @@ One file the browser plays natively. Its duration is read from the file's metada
 browser cannot load, or one without a finite duration (a live stream), is rejected as
 unreadable.
 
+The music editor sets an excerpt and fades on the stored music (ADR-0009); the file itself is
+never changed. `StoredMusic.trim` (`{ startMs, endMs }`, whole ms, `0 ≤ startMs`,
+`endMs ≤ durationMs`, at least `MIN_MUSIC_EXCERPT_MS` = 5000 long) is the part that plays;
+absent, the whole track. `fadeInMs` and `fadeOutMs` are own fades in whole ms, 0 to 10000 in
+steps of 500, 0 being off (the editor offers off, 2000 and 5000); absent, automatic.
+`setMusicTrim` deletes the field for `undefined` or the whole track, `setMusicFadeIn` and
+`setMusicFadeOut` for `undefined`; all three validate (`checkMusicTrim`, `checkMusicFadeMs`).
+Records without them need no migration. Replacing the music drops them with it.
+
 ## Storage layout
 
 One IndexedDB database, `glissando` (schema version 2; version 1 lacked `imports`):
@@ -115,12 +124,13 @@ entries are stored, not compressed, so any unzip tool opens it; no ZIP64, so it 
 `slideshow` is the stored record without device ids: `title`, `createdAt`, `secondsPerPicture`,
 `ownOrder` (only when true), `pictures` (`file`, `thumbnail`, `capturedAt`, `width`, `height`,
 `fileName`, `kenBurns` for a picture with an own motion, `caption` for one with a caption,
-`durationMs` and `transition` for one with an own duration or transition) and `music` (`file`, `fileName`, `durationMs`, `mimeType`). Picture types follow
+`durationMs` and `transition` for one with an own duration or transition) and `music` (`file`, `fileName`, `durationMs`, `mimeType`, and `trim`, `fadeInMs`, `fadeOutMs` where set). Picture types follow
 the extension (`jpg`, `png`, `webp`). The manifest is read strictly: an unknown key or a value
 out of range makes the file damaged. Version 2 added `kenBurns`, version 3 `caption`, version 4
-`durationMs` and `transition`; files of versions 1 to 3 are still read, and a file carrying a
-field its version does not know is damaged. An own duration or transition is checked as on the
-edit; the reason names its path and value. A caption must be what `normalizeCaption` leaves (1 to 80 characters counted in graphemes, one line, no
+`durationMs` and `transition`, version 5 the music's `trim`, `fadeInMs` and `fadeOutMs`; files
+of versions 1 to 4 are still read, and a file carrying a field its version does not know is
+damaged. An own duration, transition, excerpt or fade is checked as on the edit; the reason
+names its path and value. A caption must be what `normalizeCaption` leaves (1 to 80 characters counted in graphemes, one line, no
 leading, trailing or repeated whitespace); the reason names its path and value.
 
 - **Export** (`exportSlideshow`) reads the media from the store one file at a time and builds
