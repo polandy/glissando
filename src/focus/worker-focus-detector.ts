@@ -1,4 +1,4 @@
-import type { FocusDetector } from "../library/focus-detector";
+import { FocusDetectorGoneError, type FocusDetector } from "../library/focus-detector";
 import type { PictureFocus } from "../library/picture-focus";
 import type { FocusReply, FocusRequest } from "./focus-worker-protocol";
 
@@ -9,14 +9,14 @@ export interface FocusWorker {
   onerror: ((event: ErrorEvent) => void) | null;
 }
 
-/** A detection the worker could not finish: an undecodable thumbnail, or the worker died. */
+/** A detection the worker could not finish: an undecodable thumbnail. */
 export class FocusDetectionError extends Error {
   override readonly name = "FocusDetectionError";
 }
 
 interface PendingDetection {
   resolve(focus: PictureFocus): void;
-  reject(error: FocusDetectionError): void;
+  reject(error: Error): void;
 }
 
 /** Starts the worker that runs the face detector off the main thread (ADR-0012). */
@@ -26,13 +26,13 @@ export function startFocusWorker(): Worker {
 
 /**
  * Detects in one worker, started on the first detection, so a phone's slow search never blocks
- * playback. Once the worker has crashed, every detection rejects.
+ * playback. Once the worker has crashed, every detection rejects with `FocusDetectorGoneError`.
  */
 export class WorkerFocusDetector implements FocusDetector {
   readonly #startWorker: () => FocusWorker;
   readonly #pending = new Map<number, PendingDetection>();
   #worker: FocusWorker | undefined;
-  #crash: FocusDetectionError | undefined;
+  #crash: FocusDetectorGoneError | undefined;
   #nextId = 0;
 
   constructor(startWorker: () => FocusWorker) {
@@ -65,7 +65,9 @@ export class WorkerFocusDetector implements FocusDetector {
   }
 
   #crashed(): void {
-    this.#crash = new FocusDetectionError("The focus worker crashed; no picture can be searched");
+    this.#crash = new FocusDetectorGoneError(
+      "The focus worker crashed; no picture can be searched",
+    );
     for (const pending of this.#pending.values()) pending.reject(this.#crash);
     this.#pending.clear();
   }

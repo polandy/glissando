@@ -1,4 +1,4 @@
-import type { FocusDetector } from "./focus-detector";
+import { FocusDetectorGoneError, type FocusDetector } from "./focus-detector";
 import type { PictureFocus } from "./picture-focus";
 import { MediaNotFoundError, type LibraryStore } from "./stored-slideshow";
 
@@ -10,7 +10,7 @@ export interface FocusPassPorts {
   readonly detector: FocusDetector;
   /** A detection failed for one picture: logged, the pass carries on. */
   log(error: unknown): void;
-  /** An unexpected error ended the pass. */
+  /** An unexpected error, or the detector gone, ended the pass. */
   reportError(error: unknown): void;
 }
 
@@ -58,7 +58,7 @@ const IDLE: FocusPassState = {
  * Looks, in the background, for the focus of every stored picture that has none yet (ADR-0012):
  * one picture at a time, so the device stays responsive, its thumbnail through the detector into
  * the store. A picture whose media is gone meanwhile is skipped; one whose detection fails is
- * logged and left for the next pass.
+ * logged and left for the next pass. A detector gone ends the pass, the rest left for the next.
  */
 export class FocusPass {
   readonly #ports: FocusPassPorts;
@@ -166,6 +166,10 @@ export class FocusPass {
     try {
       focus = await this.#ports.detector.detect(thumbnail);
     } catch (error) {
+      if (error instanceof FocusDetectorGoneError) {
+        // Every later detection would fail alike: the pass ends, the rest waits for the next.
+        throw error;
+      }
       this.#ports.log(new FocusDetectionFailedError(pictureId, error));
       return;
     }

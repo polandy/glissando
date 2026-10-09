@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { FocusDetectorGoneError } from "../library/focus-detector";
 import type { PictureFocus } from "../library/picture-focus";
 import type { FocusReply, FocusRequest } from "./focus-worker-protocol";
 import {
@@ -114,17 +115,17 @@ describe("WorkerFocusDetector", () => {
 
     workers[0]?.crash();
 
-    await expect(first).rejects.toThrow(FocusDetectionError);
-    await expect(second).rejects.toThrow(FocusDetectionError);
+    await expect(first).rejects.toThrow(FocusDetectorGoneError);
+    await expect(second).rejects.toThrow(FocusDetectorGoneError);
   });
 
   it("rejects later detections at once after a crash, without asking the dead worker", async () => {
     const { detector, workers } = detectorWithFakeWorker();
     const before = detector.detect(new Blob(["a"]));
     workers[0]?.crash();
-    await expect(before).rejects.toThrow(FocusDetectionError);
+    await expect(before).rejects.toThrow(FocusDetectorGoneError);
 
-    await expect(detector.detect(new Blob(["b"]))).rejects.toThrow(FocusDetectionError);
+    await expect(detector.detect(new Blob(["b"]))).rejects.toThrow(FocusDetectorGoneError);
     expect(workers).toHaveLength(1);
     expect(workers[0]?.requests).toHaveLength(1);
   });
