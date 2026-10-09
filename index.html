@@ -10,9 +10,39 @@
     <meta name="theme-color" content="#2A2340" />
     <meta name="apple-mobile-web-app-title" content="Glissando" />
     <title>Glissando</title>
+    <!-- Linked here rather than imported by main.ts, so the app shell below is styled before any
+         script runs (ADR-0011). -->
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/base.css" />
+    <link rel="stylesheet" href="/src/styles/app-shell.css" />
   </head>
   <body>
     <div id="app"></div>
+    <!-- Shown until the app has rendered; main.ts hands over from it (src/app/shell/). -->
+    <div id="app-shell" class="app-shell" aria-hidden="true">
+      <svg width="0" height="0" class="app-shell-defs">
+        <symbol id="app-shell-mark" viewBox="0 0 120 100">
+          <g transform="rotate(-14 36 56)">
+            <rect class="app-shell-card peach" x="10" y="36" width="52" height="40" rx="9" />
+          </g>
+          <g transform="rotate(-2 56 44)">
+            <rect class="app-shell-card mint" x="30" y="24" width="52" height="40" rx="9" />
+          </g>
+          <g transform="rotate(10 78 32)">
+            <rect class="app-shell-card lemon" x="52" y="12" width="52" height="40" rx="9" />
+            <circle class="app-shell-motif" cx="66" cy="25" r="5" />
+            <path class="app-shell-motif" d="M60 46 L72 33 L80 40 L86 35 L96 46 Z" />
+          </g>
+        </symbol>
+      </svg>
+      <div class="app-shell-bar">
+        <svg class="app-shell-bar-mark"><use href="#app-shell-mark" /></svg>Glissando
+      </div>
+      <div class="app-shell-stage">
+        <svg class="app-shell-logo"><use href="#app-shell-mark" /></svg>
+      </div>
+      <div class="app-shell-status"></div>
+    </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

@@ -1,0 +1,96 @@
+/* The app shell in index.html: painted before any script runs and faded out over the rendered app
+   (ADR-0011). Its bar and status strip match Header.svelte's and StatusBar.svelte's, so only the
+   middle changes at the handover. */
+.app-shell {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--gl-ground);
+  transition: opacity 0.18s ease-out;
+}
+.app-shell[data-leaving] {
+  opacity: 0;
+  pointer-events: none;
+}
+.app-shell-defs {
+  position: absolute;
+}
+.app-shell-bar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  height: 56px;
+  padding: 0 18px;
+  border-bottom: 1px solid var(--gl-line);
+  background: var(--gl-surface);
+  color: var(--gl-ink);
+  font-family: var(--gl-font-wordmark);
+  font-weight: var(--gl-weight-wordmark);
+  font-size: var(--gl-size-wordmark);
+}
+.app-shell-bar-mark {
+  flex: none;
+  width: 26px;
+  height: 22px;
+}
+/* The logo sits where the start screen's logo has its mark: 45 % of the stacked logo's width
+   (assets/brand/logo-stacked-*.svg), below the screen's content padding. */
+.app-shell-stage {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 32px;
+}
+.app-shell-logo {
+  width: calc(min(80vw, 400px) * 0.45);
+  aspect-ratio: 6 / 5;
+  overflow: visible;
+  /* A slow breath shows that the app is still on its way. */
+  animation: app-shell-breath 1.6s ease-in-out infinite;
+}
+.app-shell-status {
+  flex: none;
+  min-height: 46px;
+  border-top: 1px solid var(--gl-line);
+  background: var(--gl-surface);
+}
+.app-shell-card {
+  stroke: var(--gl-logo-outline);
+  stroke-width: 4;
+}
+.app-shell-card.peach {
+  fill: var(--gl-logo-peach);
+}
+.app-shell-card.mint {
+  fill: var(--gl-logo-mint);
+}
+.app-shell-card.lemon {
+  fill: var(--gl-logo-lemon);
+}
+.app-shell-motif {
+  fill: var(--gl-logo-outline);
+}
+@keyframes app-shell-breath {
+  50% {
+    translate: 0 -5px;
+  }
+}
+/* The shell spans the viewport, so the screens' 720 px container query is a media query here. */
+@media (max-width: 720px) {
+  .app-shell-bar {
+    padding: 0 12px;
+  }
+  .app-shell-stage {
+    padding-top: 26px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .app-shell,
+  .app-shell-logo {
+    transition: none;
+    animation: none;
+  }
+}

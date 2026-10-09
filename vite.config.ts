@@ -1,6 +1,7 @@
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 import { playwright } from "@vitest/browser-playwright";
 import { defineConfig } from "vitest/config";
+import { pinnedThemePlugin } from "./build/pinned-theme-script.ts";
 import { serviceWorkerPlugin } from "./build/service-worker-plugin.ts";
 
 const BROWSER_TESTS = "src/**/*.browser.test.ts";
@@ -8,7 +9,7 @@ const BROWSER_TESTS = "src/**/*.browser.test.ts";
 export default defineConfig({
   // Relative, so the same build runs from any static host path (ADR-0005).
   base: "./",
-  plugins: [svelte(), serviceWorkerPlugin()],
+  plugins: [svelte(), pinnedThemePlugin(), serviceWorkerPlugin()],
   test: {
     // e2e/ belongs to Playwright.
     projects: [
