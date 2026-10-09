@@ -1,3 +1,4 @@
+import type { FocusPass } from "../../library/focus-pass";
 import type { Navigator } from "../navigation/navigator";
 import type { PersistencePrompt } from "../storage/persistence-prompt";
 import type { Toaster } from "../toast/toaster";
@@ -14,6 +15,8 @@ export interface ImportFlowPorts<Session extends DiscardableSession> {
   readonly navigator: Pick<Navigator, "open" | "back">;
   readonly toaster: Pick<Toaster, "show">;
   readonly persistencePrompt: Pick<PersistencePrompt, "afterCreate">;
+  /** Looks for the new slideshow's pictures' focus in the background. */
+  readonly focusPass: Pick<FocusPass, "start">;
   reportError(error: unknown): void;
   createdText(): string;
 }
@@ -91,8 +94,12 @@ export class ImportFlow<Session extends DiscardableSession> {
     await this.afterCreate();
   }
 
-  /** A slideshow was created, here or from a file: asks for persistent storage once. */
+  /**
+   * A slideshow was created, here or from a file: its pictures' focus is looked for, and
+   * persistent storage asked for once.
+   */
   async afterCreate(): Promise<void> {
+    this.#ports.focusPass.start();
     try {
       if (await this.#ports.persistencePrompt.afterCreate()) {
         this.#publish({ persistRefused: true });

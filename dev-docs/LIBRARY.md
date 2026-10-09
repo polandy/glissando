@@ -55,7 +55,8 @@ Records without them need no migration.
 
 ## Storage layout
 
-One IndexedDB database, `glissando` (schema version 2; version 1 lacked `imports`):
+One IndexedDB database, `glissando` (schema version 3; version 1 lacked `imports`, version 2
+`focus` — each upgrade only adds its store, existing data stays as it is):
 
 | Object store | Key      | Value                                                                    |
 | ------------ | -------- | ------------------------------------------------------------------------ |
@@ -63,6 +64,7 @@ One IndexedDB database, `glissando` (schema version 2; version 1 lacked `imports
 | `pictures`   | media id | display and thumbnail rendition, bytes + type                            |
 | `music`      | media id | the music file, bytes + type                                             |
 | `imports`    | `id`     | a claim (import in progress or undoable removal): `startedAt`, media ids |
+| `focus`      | media id | a picture's `PictureFocus`: its subject box, or none found (ADR-0012)    |
 
 Media is written while importing, the slideshow record last. Edits on the slideshow screen
 replace the record through `updateSlideshow`, which reads it in the same transaction and throws
@@ -88,7 +90,28 @@ validates it (`checkSlideshowTransition`) and deletes the field for `undefined` 
 `"crossfade"`; records without it need no migration. `mediaBytes`
 measures what a slideshow's pictures (both renditions) and music take, in one read-only
 transaction, for the export's size estimate. `deleteSlideshow` deletes the
-record and, in the same transaction, the media no other slideshow references.
+record and, in the same transaction, the media no other slideshow references, those pictures'
+focus with it.
+
+A picture's focus lives beside its media, not on the record: the editors save whole records
+from their copy, which would erase a focus found meanwhile. `putPictureFocus` checks for the
+picture's media in the same transaction and keeps nothing without it, so a detection finishing
+after its slideshow was deleted resurrects nothing; `pictureFocus(ids)` returns a map in which a
+picture not looked at yet is absent.
+
+## Looking for the focus
+
+`FocusPass` (`library/focus-pass.ts`) looks, in the background, for the focus of every stored
+picture without one (ADR-0012): newest slideshow first, one picture at a time, its thumbnail
+through the `FocusDetector` (a worker) into the store. It starts when the app opens and again
+whenever a slideshow is created (an import, an opened file); a start while it runs only takes up
+the slideshows created since, so two never run at once. A picture whose media is gone meanwhile
+is skipped; one whose detection fails is logged (`FocusDetectionFailedError`), keeps no focus and
+is tried again on the next pass. An unexpected store error ends the pass and is reported. Its
+state, with the Svelte store contract: `running`; per slideshow with pictures left, `done` of
+`total` (those it had no focus for when taken up); `searching`, the pictures still to come; and
+`found`, every focus it stored since the app opened. The slideshow screen merges `found` into
+the focus it read on opening, so the editors' automatic motions and focus marks follow at once.
 
 A write commits its transaction explicitly (`commit()`) as soon as its last request is placed —
 right away for a plain write, in the read's callback for one that reads first. Chromium aborts a
@@ -109,7 +132,8 @@ id in `imports` (`claimMedia`) before writing the media, and its claim is releas
 (`releaseClaim`) when the slideshow is created or the import discarded; until then the clean-up —
 in any tab — spares its media. An undoable removal claims its media the same way (above). A record older
 than one day (`CLAIM_SPARED_FOR_MS`, from a tab that crashed) is dropped and its media deleted.
-The clean-up reads the references and claims and deletes in one transaction. Web Locks would
+The clean-up reads the references and claims and deletes in one transaction, a deleted
+picture's focus included. Web Locks would
 need a secure context, which the app over plain HTTP on the LAN lacks.
 
 ## The .glissando file
@@ -129,7 +153,8 @@ entries are stored, not compressed, so any unzip tool opens it; no ZIP64, so it 
 `ownOrder` (only when true), `transition` (only when not the crossfade), `pictures` (`file`, `thumbnail`, `capturedAt`, `width`, `height`,
 `fileName`, `kenBurns` for a picture with an own motion, `caption` for one with a caption,
 `durationMs` and `transition` for one with an own duration or transition) and `music` (`file`, `fileName`, `durationMs` in whole ms, `mimeType`, and `trim`, `fadeInMs`, `fadeOutMs` where set). Picture types follow
-the extension (`jpg`, `png`, `webp`). The manifest is read strictly: an unknown key or a value
+the extension (`jpg`, `png`, `webp`). No picture's focus travels in the file: the receiving
+device looks for it itself (ADR-0012). The manifest is read strictly: an unknown key or a value
 out of range makes the file damaged. Version 2 added `kenBurns`, version 3 `caption`, version 4
 `durationMs` and `transition`, version 5 the music's `trim`, `fadeInMs` and `fadeOutMs`,
 version 6 the slideshow's `transition`; files of versions 1 to 5 are still read (without

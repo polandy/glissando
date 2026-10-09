@@ -14,24 +14,27 @@ import {
   type StoredSlideshow,
 } from "./stored-slideshow";
 import {
+  completed,
   requestResult,
   toBlob,
   toStoredMedia,
   type StoredMedia,
   type StoredPictureMedia,
 } from "./indexeddb-records";
+import {
+  FOCUS,
+  IMPORTS,
+  LIBRARY_DATABASE_NAME,
+  MUSIC,
+  PICTURES,
+  SCHEMA_VERSION,
+  SLIDESHOWS,
+  upgradeLibraryDatabase,
+  type StoreName,
+} from "./indexeddb-schema";
+import type { PictureFocus } from "./picture-focus";
 
-/** Records and media share one database so a transaction can span both (see ADR-0003). */
-export const LIBRARY_DATABASE_NAME = "glissando";
-const SCHEMA_VERSION = 2;
-/** The version that added the `imports` store. */
-const IMPORTS_ADDED_IN = 2;
-
-const SLIDESHOWS = "slideshows";
-const PICTURES = "pictures";
-const MUSIC = "music";
-const IMPORTS = "imports";
-type StoreName = typeof SLIDESHOWS | typeof PICTURES | typeof MUSIC | typeof IMPORTS;
+export { LIBRARY_DATABASE_NAME } from "./indexeddb-schema";
 
 /** A `LibraryStore` over IndexedDB: slideshow records keyed by id, media blobs keyed by media id. */
 export class IndexedDbLibraryStore implements LibraryStore {
@@ -109,7 +112,7 @@ export class IndexedDbLibraryStore implements LibraryStore {
   /** Reads the other records and deletes in one transaction, so a concurrent save cannot interleave. */
   deleteSlideshow(id: string): Promise<void> {
     let found = true;
-    const deleted = this.#update([SLIDESHOWS, PICTURES, MUSIC], (transaction) => {
+    const deleted = this.#update([SLIDESHOWS, PICTURES, MUSIC, FOCUS], (transaction) => {
       const slideshows = transaction.objectStore(SLIDESHOWS);
       const all = slideshows.getAll();
       all.onsuccess = () => {
@@ -122,8 +125,9 @@ export class IndexedDbLibraryStore implements LibraryStore {
         slideshows.delete(id);
         const remaining = records.filter((slideshow) => slideshow.id !== id);
         for (const mediaId of mediaOnlyIn(record, remaining)) {
-          transaction.objectStore(PICTURES).delete(mediaId);
-          transaction.objectStore(MUSIC).delete(mediaId);
+          for (const name of [PICTURES, FOCUS, MUSIC]) {
+            transaction.objectStore(name).delete(mediaId);
+          }
         }
         // The last request is placed: commit before a reload can abort the deletion.
         transaction.commit();
@@ -152,6 +156,34 @@ export class IndexedDbLibraryStore implements LibraryStore {
     return toBlob(media as StoredMedia);
   }
 
+  /** Checks for the media and writes in one transaction, so a concurrent deletion cannot interleave. */
+  putPictureFocus(pictureId: string, focus: PictureFocus): Promise<void> {
+    return this.#update([PICTURES, FOCUS], (transaction) => {
+      const media = transaction.objectStore(PICTURES).getKey(pictureId);
+      media.onsuccess = () => {
+        if (media.result !== undefined) {
+          transaction.objectStore(FOCUS).put(focus, pictureId);
+          transaction.commit();
+        }
+      };
+    });
+  }
+
+  pictureFocus(pictureIds: readonly string[]): Promise<ReadonlyMap<string, PictureFocus>> {
+    const transaction = this.#database.transaction(FOCUS, "readonly");
+    const store = transaction.objectStore(FOCUS);
+    const found = new Map<string, PictureFocus>();
+    for (const id of pictureIds) {
+      const request = store.get(id);
+      request.onsuccess = () => {
+        if (request.result !== undefined) {
+          found.set(id, request.result as PictureFocus);
+        }
+      };
+    }
+    return completed(transaction, () => found, "reading the pictures' focus");
+  }
+
   /** One read-only transaction; each record is dropped once measured, so memory stays bounded. */
   mediaBytes(slideshow: StoredSlideshow): Promise<number> {
     const transaction = this.#database.transaction([PICTURES, MUSIC], "readonly");
@@ -171,11 +203,7 @@ export class IndexedDbLibraryStore implements LibraryStore {
     if (slideshow.music !== undefined) {
       measure(MUSIC, slideshow.music.id, (media) => (media as StoredMedia).bytes.byteLength);
     }
-    return new Promise((resolve, reject) => {
-      transaction.oncomplete = () => resolve(bytes);
-      transaction.onabort = () =>
-        reject(transaction.error ?? new Error("measuring the media was aborted"));
-    });
+    return completed(transaction, () => bytes, "measuring the media");
   }
 
   claimMedia(claimId: string, startedAt: Date, mediaId: string): Promise<void> {
@@ -200,7 +228,7 @@ export class IndexedDbLibraryStore implements LibraryStore {
    * claim cannot interleave.
    */
   deleteUnreferencedMedia(now: Date): Promise<void> {
-    return this.#update([SLIDESHOWS, PICTURES, MUSIC, IMPORTS], (transaction) => {
+    return this.#update([SLIDESHOWS, PICTURES, MUSIC, IMPORTS, FOCUS], (transaction) => {
       const slideshows = transaction.objectStore(SLIDESHOWS).getAll();
       const importStore = transaction.objectStore(IMPORTS);
       const imports = importStore.getAll();
@@ -208,7 +236,8 @@ export class IndexedDbLibraryStore implements LibraryStore {
         const referenced = referencedMediaIds(slideshows.result as StoredSlideshow[]);
         const { sparedMediaIds, staleClaimIds } = claimsAt(imports.result as MediaClaim[], now);
         staleClaimIds.forEach((id) => importStore.delete(id));
-        for (const name of [PICTURES, MUSIC]) {
+        // A focus is media too: one kept for a picture whose media went goes with it.
+        for (const name of [PICTURES, MUSIC, FOCUS]) {
           const media = transaction.objectStore(name);
           const keys = media.getAllKeys();
           keys.onsuccess = () => {
@@ -255,11 +284,7 @@ export class IndexedDbLibraryStore implements LibraryStore {
   /** Resolves once the transaction has committed; rejects with its error (e.g. QuotaExceededError). */
   #transact(names: StoreName[], work: (transaction: IDBTransaction) => void): Promise<void> {
     const transaction = this.#database.transaction(names, "readwrite");
-    const committed = new Promise<void>((resolve, reject) => {
-      transaction.oncomplete = () => resolve();
-      transaction.onabort = () =>
-        reject(transaction.error ?? new Error(`the write to ${names.join(", ")} was aborted`));
-    });
+    const committed = completed(transaction, () => undefined, `the write to ${names.join(", ")}`);
     work(transaction);
     return committed;
   }
@@ -268,16 +293,6 @@ export class IndexedDbLibraryStore implements LibraryStore {
 /** Opens (and creates or upgrades) the library database. */
 export function openLibraryStore(indexedDB: IDBFactory): Promise<IndexedDbLibraryStore> {
   const request = indexedDB.open(LIBRARY_DATABASE_NAME, SCHEMA_VERSION);
-  request.onupgradeneeded = (event) => {
-    const database = request.result;
-    if (event.oldVersion < 1) {
-      database.createObjectStore(SLIDESHOWS, { keyPath: "id" });
-      database.createObjectStore(PICTURES);
-      database.createObjectStore(MUSIC);
-    }
-    if (event.oldVersion < IMPORTS_ADDED_IN) {
-      database.createObjectStore(IMPORTS, { keyPath: "id" });
-    }
-  };
+  request.onupgradeneeded = (event) => upgradeLibraryDatabase(request.result, event.oldVersion);
   return requestResult(request).then(() => new IndexedDbLibraryStore(request.result));
 }

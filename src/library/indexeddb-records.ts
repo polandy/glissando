@@ -28,3 +28,15 @@ export function requestResult(request: IDBRequest): Promise<unknown> {
     request.onerror = () => reject(request.error ?? new Error("an IndexedDB request failed"));
   });
 }
+
+/** Resolves with `result()` once the transaction has committed; rejects with its error. */
+export function completed<T>(
+  transaction: IDBTransaction,
+  result: () => T,
+  what: string,
+): Promise<T> {
+  return new Promise((resolve, reject) => {
+    transaction.oncomplete = () => resolve(result());
+    transaction.onabort = () => reject(transaction.error ?? new Error(`${what} was aborted`));
+  });
+}

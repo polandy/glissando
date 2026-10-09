@@ -13,6 +13,7 @@ import {
   type PictureBlobs,
   type StoredSlideshow,
 } from "../stored-slideshow";
+import type { PictureFocus } from "../picture-focus";
 
 /** An in-memory `LibraryStore` for tests; holds copies, like a real store, so callers share nothing. */
 export class MemoryLibraryStore implements LibraryStore {
@@ -20,6 +21,7 @@ export class MemoryLibraryStore implements LibraryStore {
   readonly #pictures = new Map<string, PictureBlobs>();
   readonly #music = new Map<string, Blob>();
   readonly #imports = new Map<string, MediaClaim>();
+  readonly #focus = new Map<string, PictureFocus>();
 
   putPicture(id: string, blobs: PictureBlobs): Promise<void> {
     this.#pictures.set(id, { display: blobs.display, thumbnail: blobs.thumbnail });
@@ -63,8 +65,7 @@ export class MemoryLibraryStore implements LibraryStore {
     }
     this.#slideshows.delete(id);
     for (const mediaId of mediaOnlyIn(deleted, [...this.#slideshows.values()])) {
-      this.#pictures.delete(mediaId);
-      this.#music.delete(mediaId);
+      this.#deleteMedia(mediaId);
     }
     return Promise.resolve();
   }
@@ -79,6 +80,24 @@ export class MemoryLibraryStore implements LibraryStore {
 
   musicBlob(id: string): Promise<Blob> {
     return found(id, this.#music.get(id));
+  }
+
+  putPictureFocus(pictureId: string, focus: PictureFocus): Promise<void> {
+    if (this.#pictures.has(pictureId)) {
+      this.#focus.set(pictureId, structuredClone(focus));
+    }
+    return Promise.resolve();
+  }
+
+  pictureFocus(pictureIds: readonly string[]): Promise<ReadonlyMap<string, PictureFocus>> {
+    const found = new Map<string, PictureFocus>();
+    for (const id of pictureIds) {
+      const focus = this.#focus.get(id);
+      if (focus !== undefined) {
+        found.set(id, structuredClone(focus));
+      }
+    }
+    return Promise.resolve(found);
   }
 
   mediaBytes(slideshow: StoredSlideshow): Promise<number> {
@@ -108,14 +127,18 @@ export class MemoryLibraryStore implements LibraryStore {
     const referenced = referencedMediaIds([...this.#slideshows.values()]);
     const { sparedMediaIds, staleClaimIds } = claimsAt([...this.#imports.values()], now);
     staleClaimIds.forEach((id) => this.#imports.delete(id));
-    for (const media of [this.#pictures, this.#music]) {
-      for (const id of media.keys()) {
-        if (!referenced.has(id) && !sparedMediaIds.has(id)) {
-          media.delete(id);
-        }
+    for (const id of [...this.#pictures.keys(), ...this.#music.keys()]) {
+      if (!referenced.has(id) && !sparedMediaIds.has(id)) {
+        this.#deleteMedia(id);
       }
     }
     return Promise.resolve();
+  }
+
+  #deleteMedia(id: string): void {
+    this.#pictures.delete(id);
+    this.#focus.delete(id);
+    this.#music.delete(id);
   }
 }
 

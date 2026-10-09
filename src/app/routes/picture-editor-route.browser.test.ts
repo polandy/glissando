@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import type { StoredSlideshow } from "../../library/stored-slideshow";
 import { MemoryLibraryStore } from "../../library/testing/memory-store";
 import { SlideshowEditor } from "../editing/slideshow-editor";
+import { NO_FOCUS_KNOWN } from "../focus/pictures-focus";
 import { FakeScheduler } from "../testing/fake-scheduler";
 import { mountWithTranslator } from "../testing/mount-with-translator";
 import { Toaster } from "../toast/toaster";
@@ -46,11 +47,13 @@ async function mountRoute(pictureId: string) {
     transitionAutomaticText: () => "Übergang wieder automatisch",
     slideshowTransitionResetText: () => "Übergänge wieder auf Überblenden",
     automaticTitle: () => "Juli 2025",
+    focusOf: () => undefined,
   });
   let backs = 0;
   const mounted = mountWithTranslator(PictureEditorRoute, {
     store,
     stored: SHOW,
+    focus: NO_FOCUS_KNOWN,
     editor,
     pictureId,
     saving: false,

@@ -18,7 +18,7 @@
     onClose,
     onError,
   }: {
-    store: Pick<LibraryStore, "pictureBlob" | "musicBlob">;
+    store: Pick<LibraryStore, "pictureBlob" | "musicBlob" | "pictureFocus">;
     stored: StoredSlideshow;
     musicOutput: MusicOutput;
     onClose: () => void;
@@ -30,20 +30,28 @@
   const closed = new AbortController();
 
   onMount(() => {
-    loadPlayerMusic(store, stored, browserObjectUrls.create, closed.signal).then((music) => {
+    // Play waits on reading the focus found so far, never on the search for the rest.
+    Promise.all([
+      loadPlayerMusic(store, stored, browserObjectUrls.create, closed.signal),
+      store.pictureFocus(stored.pictures.map((picture) => picture.id)),
+    ]).then(([music, focus]) => {
       if (music === null) {
         return;
       }
       musicUrl = music.url;
-      slideshow = composeSlideshow(stored, {
-        picture: (id) => id,
-        music: () => {
-          if (music.url === null) {
-            throw new Error(`slideshow "${stored.id}" has music but none was loaded`);
-          }
-          return music.url;
+      slideshow = composeSlideshow(
+        stored,
+        {
+          picture: (id) => id,
+          music: () => {
+            if (music.url === null) {
+              throw new Error(`slideshow "${stored.id}" has music but none was loaded`);
+            }
+            return music.url;
+          },
         },
-      });
+        focus,
+      );
     }, onError);
   });
   onDestroy(() => {

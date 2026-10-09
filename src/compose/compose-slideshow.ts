@@ -1,3 +1,4 @@
+import type { PictureFocus } from "../library/picture-focus";
 import type { StoredSlideshow } from "../library/stored-slideshow";
 import { SLIDESHOW_FORMAT_VERSION, type Slide, type Slideshow } from "../player/slideshow";
 import { musicExcerptMs, resolveMusicTiming } from "./music-excerpt";
@@ -13,9 +14,14 @@ export interface SlideshowSources {
 
 /**
  * Composes the playable slideshow JSON from a stored slideshow, applying the automatic choices
- * wherever the user made none of their own.
+ * wherever the user made none of their own. An automatic motion aims at the picture's `focus`,
+ * by picture id; a picture absent from it was not looked at yet.
  */
-export function composeSlideshow(stored: StoredSlideshow, sources: SlideshowSources): Slideshow {
+export function composeSlideshow(
+  stored: StoredSlideshow,
+  sources: SlideshowSources,
+  focus: ReadonlyMap<string, PictureFocus>,
+): Slideshow {
   const slideCount = stored.pictures.length;
   const defaultTransition = slideshowTransition(stored);
   const durationsMs = slideDurationsMs(
@@ -30,7 +36,7 @@ export function composeSlideshow(stored: StoredSlideshow, sources: SlideshowSour
     const slide: Slide = {
       image: { src: sources.picture(picture.id), capturedAt: picture.capturedAt },
       durationMs,
-      kenBurns: pictureKenBurns(index, picture),
+      kenBurns: pictureKenBurns(index, picture, focus.get(picture.id)),
       ...(picture.caption === undefined ? {} : { caption: picture.caption }),
     };
     const transitionToNext = pictureTransition(

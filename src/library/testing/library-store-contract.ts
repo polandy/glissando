@@ -8,6 +8,7 @@ import {
 } from "../stored-slideshow";
 import { describeEditing } from "./editing-contract";
 import { describeImportsInProgress } from "./imports-in-progress-contract";
+import { describePictureFocus } from "./picture-focus-contract";
 
 const CLEAN_UP_AT = new Date("2026-10-08T12:00:00Z");
 
@@ -239,6 +240,10 @@ export function describeLibraryStoreContract(
     });
 
     describeImportsInProgress(
+      () => store,
+      () => harness,
+    );
+    describePictureFocus(
       () => store,
       () => harness,
     );

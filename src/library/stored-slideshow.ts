@@ -1,4 +1,5 @@
 import type { OwnKenBurns } from "./own-ken-burns";
+import type { PictureFocus } from "./picture-focus";
 import type { MusicTrim } from "./own-music";
 import type { SlideshowTransition, TransitionChoice } from "./own-timing";
 
@@ -93,13 +94,20 @@ export interface LibraryStore {
   /** Throws `SlideshowNotFoundError` for an unknown id. */
   getSlideshow(id: string): Promise<StoredSlideshow>;
   /**
-   * Deletes the record and, in the same transaction, the media only it references. Throws
-   * `SlideshowNotFoundError` for an unknown id.
+   * Deletes the record and, in the same transaction, the media only it references and those
+   * pictures' focus. Throws `SlideshowNotFoundError` for an unknown id.
    */
   deleteSlideshow(id: string): Promise<void>;
   pictureBlob(id: string): Promise<Blob>;
   thumbnailBlob(id: string): Promise<Blob>;
   musicBlob(id: string): Promise<Blob>;
+  /**
+   * Stores what the detection found in a picture, beside its media (ADR-0012). A picture whose
+   * media is not stored (any more) keeps nothing, so a late detection cannot resurrect it.
+   */
+  putPictureFocus(pictureId: string, focus: PictureFocus): Promise<void>;
+  /** The stored focus of each picture asked for; a picture not looked at yet is absent. */
+  pictureFocus(pictureIds: readonly string[]): Promise<ReadonlyMap<string, PictureFocus>>;
   /** The bytes the slideshow's pictures (both renditions) and music take; missing media counts 0. */
   mediaBytes(slideshow: StoredSlideshow): Promise<number>;
   /**
@@ -111,7 +119,7 @@ export interface LibraryStore {
   /** The import was created or discarded, the removal undone or final: its media is spared no longer. */
   releaseClaim(claimId: string): Promise<void>;
   /**
-   * Deletes media no saved slideshow references, sparing that of claims made less than
+   * Deletes media (pictures with their focus) no saved slideshow references, sparing that of claims made less than
    * `CLAIM_SPARED_FOR_MS` before `now`; older claims are taken for crashed and forgotten.
    */
   deleteUnreferencedMedia(now: Date): Promise<void>;

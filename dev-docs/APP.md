@@ -320,7 +320,13 @@ over real timers.
   each display picture by media id only when it buffers it (`openPicture`), and the music when
   it opens; the music's URL is revoked when it closes. The player shows the music's file name.
 - **Import flow** (`import/import-flow.ts`): the import session, the clean-up when an import
-  ends and the persistence prompt after creating, also after opening a file.
+  ends and, after creating (also after opening a file), the search for the new pictures' focus
+  and the persistence prompt.
+- **Focus** (ADR-0012): the composition root builds the `FocusPass` over the store and the
+  worker's detector and starts it as the app opens (dev-docs/LIBRARY.md, Looking for the focus).
+  The slideshow screen subscribes to it while shown: the picture editor's view carries the
+  picture's focus status (`subject`, `none`, `searching`, `not-looked-at`), and its motion and
+  the swap aim at what is known now.
 - **Export and open** (`glissando-file/`): `App.svelte` owns the `ExportJob` (the header reads
   its progress through a context) and the `OpenFlow` (its overlay and notices); the composition
   root supplies the download (an object URL on a clicked link, revoked a minute later), the free

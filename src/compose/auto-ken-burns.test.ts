@@ -73,6 +73,54 @@ describe("autoKenBurns", () => {
     expect(from.centerY).toBe(0.5);
   });
 
+  describe("with a focus", () => {
+    const FACE_TOP_RIGHT = { x: 0.7, y: 0.1, width: 0.1, height: 0.2 };
+    const subject = (box: typeof FACE_TOP_RIGHT) => ({ kind: "subject" as const, box });
+
+    it("swings the pan around the focus centre instead of the picture's middle", () => {
+      const { from, to } = autoKenBurns(0, LANDSCAPE, subject(FACE_TOP_RIGHT));
+
+      expect((from.centerX + to.centerX) / 2).toBeCloseTo(0.75);
+      expect(from.centerY).toBeCloseTo(0.2);
+      expect(to.centerY).toBeCloseTo(0.2);
+    });
+
+    it("aims a portrait picture at its focus, not at where faces usually sit", () => {
+      const { from } = autoKenBurns(
+        0,
+        PORTRAIT,
+        subject({ x: 0.4, y: 0.6, width: 0.2, height: 0.2 }),
+      );
+
+      expect(from.centerY).toBeCloseTo(0.7);
+    });
+
+    it("keeps the zoom and its alternation", () => {
+      const plain = autoKenBurns(1, LANDSCAPE);
+      const focused = autoKenBurns(1, LANDSCAPE, subject(FACE_TOP_RIGHT));
+
+      expect([focused.from.zoom, focused.to.zoom]).toEqual([plain.from.zoom, plain.to.zoom]);
+    });
+
+    it("keeps the pan inside the picture for a focus at its edge", () => {
+      const { from, to } = autoKenBurns(
+        0,
+        LANDSCAPE,
+        subject({ x: 0.95, y: 0, width: 0.05, height: 0.05 }),
+      );
+
+      expect(to.centerX).toBeGreaterThan(from.centerX);
+      for (const framing of [from, to]) {
+        expect(framing.centerX).toBeLessThanOrEqual(1);
+        expect(framing.centerY).toBeGreaterThanOrEqual(0);
+      }
+    });
+
+    it("moves as without one when the detection found nothing", () => {
+      expect(autoKenBurns(2, PORTRAIT, { kind: "none" })).toEqual(autoKenBurns(2, PORTRAIT));
+    });
+  });
+
   it("uses linear easing", () => {
     expect(autoKenBurns(0, LANDSCAPE).easing).toBe("linear");
   });

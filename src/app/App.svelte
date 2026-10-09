@@ -206,6 +206,7 @@
   {#key slideshowId}
     <SlideshowRoute
       {store}
+      focusPass={services.focusPass}
       {toaster}
       {newId}
       {now}

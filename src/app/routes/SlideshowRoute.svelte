@@ -7,7 +7,10 @@
     type LibraryStore,
     type StoredSlideshow,
   } from "../../library/stored-slideshow";
+  import type { FocusPass, FocusPassState } from "../../library/focus-pass";
+  import type { PictureFocus } from "../../library/picture-focus";
   import { SlideshowEditor } from "../editing/slideshow-editor";
+  import { picturesFocus } from "../focus/pictures-focus";
   import type { ExportProgress } from "../glissando-file/export-job";
   import { exportMediaKey, exportMenuState } from "../glissando-file/export-menu";
   import { getTranslator } from "../i18n/context";
@@ -27,6 +30,7 @@
 
   let {
     store,
+    focusPass,
     toaster,
     newId,
     now,
@@ -47,6 +51,8 @@
     onError,
   }: {
     store: LibraryStore;
+    /** What it finds updates the editors' automatic motions and focus marks as it goes. */
+    focusPass: Pick<FocusPass, "state" | "subscribe">;
     toaster: Toaster;
     newId: () => string;
     now: () => Date;
@@ -81,6 +87,12 @@
   let stored = $state.raw<StoredSlideshow | null>(null);
   let editor = $state.raw<SlideshowEditor | null>(null);
   let saving = $state(false);
+  /** As stored when the slideshow was opened; the pass's state adds what it found since. */
+  let storedFocus = $state.raw<ReadonlyMap<string, PictureFocus>>(new Map());
+  // The pass is fixed for the screen's lifetime.
+  // svelte-ignore state_referenced_locally
+  let passState = $state.raw<FocusPassState>(focusPass.state);
+  const focus = $derived(picturesFocus(storedFocus, passState));
   /** The selection survives the picture editor: back there, the edited picture is selected. */
   let selectedId = $state<string | null>(null);
   $effect(() => {
@@ -105,9 +117,11 @@
   const left = new AbortController();
 
   onMount(() => {
+    const stopFocus = focusPass.subscribe((next) => (passState = next));
     loadSlideshowScreen(store, slideshowId, thumbnails, left.signal).then(
       (loaded) => {
         if (loaded !== null) {
+          loadStoredFocus(loaded.stored);
           stored = loaded.stored;
           editor = createEditor(loaded.stored);
           editor.subscribe((edited) => (stored = edited));
@@ -122,6 +136,7 @@
         }
       },
     );
+    return stopFocus;
   });
   onDestroy(() => {
     left.abort();
@@ -129,9 +144,19 @@
     thumbnails.dispose();
   });
 
+  /** Edits never add pictures, so the focus of those opened with is all the screen needs. */
+  function loadStoredFocus(opened: StoredSlideshow): void {
+    store.pictureFocus(opened.pictures.map((picture) => picture.id)).then((read) => {
+      if (!left.signal.aborted) {
+        storedFocus = read;
+      }
+    }, onError);
+  }
+
   function createEditor(initial: StoredSlideshow): SlideshowEditor {
     return new SlideshowEditor(initial, {
       store,
+      focusOf: (pictureId) => focus.found.get(pictureId),
       toaster,
       newId,
       now,
@@ -189,6 +214,7 @@
   <PictureEditorRoute
     {store}
     {stored}
+    {focus}
     {editor}
     pictureId={editingPictureId}
     {saving}

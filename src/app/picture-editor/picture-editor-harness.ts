@@ -27,6 +27,7 @@ export function view(overrides: Partial<PictureEditorView> = {}): PictureEditorV
     size: { width: 400, height: 300 },
     motion: AUTOMATIC,
     ownMotion: false,
+    focus: { kind: "not-looked-at" },
     durationMs: 5000,
     ownDuration: false,
     durationBasis: { kind: "seconds-per-picture", automaticMs: 5000 },

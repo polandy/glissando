@@ -54,6 +54,7 @@ function editorOver(store: MemoryLibraryStore, toaster: Toaster): SlideshowEdito
     transitionAutomaticText: () => "Übergang wieder automatisch",
     slideshowTransitionResetText: () => "Übergänge wieder auf Überblenden",
     automaticTitle: () => "Juli 2025",
+    focusOf: () => undefined,
   });
 }
 
