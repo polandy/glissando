@@ -7,6 +7,7 @@ export interface FocusWorker {
   postMessage(request: FocusRequest): void;
   onmessage: ((event: MessageEvent<FocusReply>) => void) | null;
   onerror: ((event: ErrorEvent) => void) | null;
+  onmessageerror: ((event: MessageEvent) => void) | null;
 }
 
 /** A detection the worker could not finish: an undecodable thumbnail. */
@@ -26,13 +27,14 @@ export function startFocusWorker(): Worker {
 
 /**
  * Detects in one worker, started on the first detection, so a phone's slow search never blocks
- * playback. Once the worker has crashed, every detection rejects with `FocusDetectorGoneError`.
+ * playback. Once the worker has crashed, sent a reply that cannot be read or said it can detect
+ * in no picture, every detection rejects with `FocusDetectorGoneError`.
  */
 export class WorkerFocusDetector implements FocusDetector {
   readonly #startWorker: () => FocusWorker;
   readonly #pending = new Map<number, PendingDetection>();
   #worker: FocusWorker | undefined;
-  #crash: FocusDetectorGoneError | undefined;
+  #gone: FocusDetectorGoneError | undefined;
   #nextId = 0;
 
   constructor(startWorker: () => FocusWorker) {
@@ -40,7 +42,7 @@ export class WorkerFocusDetector implements FocusDetector {
   }
 
   detect(thumbnail: Blob): Promise<PictureFocus> {
-    if (this.#crash) return Promise.reject(this.#crash);
+    if (this.#gone) return Promise.reject(this.#gone);
     const id = this.#nextId++;
     const { promise, resolve, reject } = Promise.withResolvers<PictureFocus>();
     this.#pending.set(id, { resolve, reject });
@@ -52,23 +54,27 @@ export class WorkerFocusDetector implements FocusDetector {
     if (this.#worker) return this.#worker;
     const worker = this.#startWorker();
     worker.onmessage = (event) => this.#settle(event.data);
-    worker.onerror = () => this.#crashed();
+    worker.onerror = () => this.#goneWith("The focus worker crashed; no picture can be searched");
+    worker.onmessageerror = () =>
+      this.#goneWith("A reply of the focus worker could not be read; no picture can be searched");
     this.#worker = worker;
     return worker;
   }
 
   #settle(reply: FocusReply): void {
+    if (reply.kind === "unavailable") {
+      this.#goneWith(reply.message);
+      return;
+    }
     const pending = this.#pending.get(reply.id);
     this.#pending.delete(reply.id);
     if (reply.kind === "found") pending?.resolve(reply.focus);
     else pending?.reject(new FocusDetectionError(reply.message));
   }
 
-  #crashed(): void {
-    this.#crash = new FocusDetectorGoneError(
-      "The focus worker crashed; no picture can be searched",
-    );
-    for (const pending of this.#pending.values()) pending.reject(this.#crash);
+  #goneWith(message: string): void {
+    this.#gone ??= new FocusDetectorGoneError(message);
+    for (const pending of this.#pending.values()) pending.reject(this.#gone);
     this.#pending.clear();
   }
 }

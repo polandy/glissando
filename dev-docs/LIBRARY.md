@@ -108,7 +108,8 @@ whenever a slideshow is created (an import, an opened file); a start while it ru
 the slideshows created since, so two never run at once. A picture whose media is gone meanwhile
 is skipped; one whose detection fails is logged (`FocusDetectionFailedError`), keeps no focus and
 is tried again on the next pass. A detection failing because the detector itself is gone
-(`FocusDetectorGoneError`: its worker crashed) ends the pass and is reported once; the pictures
+(`FocusDetectorGoneError`: its worker crashed, sent a reply that could not be read, or answered
+`unavailable` as its face cascade did not load) ends the pass and is reported once; the pictures
 left wait for the next pass. An unexpected store error ends the pass and is reported too. Its
 state, with the Svelte store contract: `running`; per slideshow with pictures left, `done` of
 `total` (those it had no focus for when taken up); `searching`, the pictures still to come; and

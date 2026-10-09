@@ -15,11 +15,21 @@ self.addEventListener("message", (event: MessageEvent<FocusRequest>) => {
 });
 
 async function answer({ id, thumbnail }: FocusRequest): Promise<FocusReply> {
+  let loaded: Cascade;
   try {
-    return { id, kind: "found", focus: findFocus(await greyOf(thumbnail), await cascade) };
+    loaded = await cascade;
   } catch (error) {
-    return { id, kind: "failed", message: error instanceof Error ? error.message : String(error) };
+    return { id, kind: "unavailable", message: messageOf(error) };
   }
+  try {
+    return { id, kind: "found", focus: findFocus(await greyOf(thumbnail), loaded) };
+  } catch (error) {
+    return { id, kind: "failed", message: messageOf(error) };
+  }
+}
+
+function messageOf(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
 }
 
 async function loadCascade(): Promise<Cascade> {

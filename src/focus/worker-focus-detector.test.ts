@@ -16,6 +16,7 @@ class FakeFocusWorker implements FocusWorker {
   readonly requests: FocusRequest[] = [];
   onmessage: ((event: MessageEvent<FocusReply>) => void) | null = null;
   onerror: ((event: ErrorEvent) => void) | null = null;
+  onmessageerror: ((event: MessageEvent) => void) | null = null;
 
   postMessage(request: FocusRequest): void {
     this.requests.push(request);
@@ -31,6 +32,11 @@ class FakeFocusWorker implements FocusWorker {
 
   crash(): void {
     this.onerror?.(new ErrorEvent("error"));
+  }
+
+  /** A reply that could not be deserialised on its way to the detector. */
+  garble(): void {
+    this.onmessageerror?.(new MessageEvent("messageerror"));
   }
 
   requestAt(index: number): FocusRequest {
@@ -128,5 +134,37 @@ describe("WorkerFocusDetector", () => {
     await expect(detector.detect(new Blob(["b"]))).rejects.toThrow(FocusDetectorGoneError);
     expect(workers).toHaveLength(1);
     expect(workers[0]?.requests).toHaveLength(1);
+  });
+
+  it("rejects every pending detection, and later ones at once, when a reply cannot be read", async () => {
+    const { detector, workers } = detectorWithFakeWorker();
+    const first = detector.detect(new Blob(["a"]));
+    const second = detector.detect(new Blob(["b"]));
+
+    workers[0]?.garble();
+
+    await expect(first).rejects.toThrow(FocusDetectorGoneError);
+    await expect(second).rejects.toThrow(FocusDetectorGoneError);
+    await expect(detector.detect(new Blob(["c"]))).rejects.toThrow(FocusDetectorGoneError);
+    expect(workers[0]?.requests).toHaveLength(2);
+  });
+
+  it("is gone once the worker says it cannot detect at all, asking it nothing more", async () => {
+    const { detector, workers } = detectorWithFakeWorker();
+    const first = detector.detect(new Blob(["a"]));
+    const second = detector.detect(new Blob(["b"]));
+    const worker = workers[0];
+
+    worker?.reply({
+      id: worker.requestAt(0).id,
+      kind: "unavailable",
+      message: "the face cascade did not load",
+    });
+
+    await expect(first).rejects.toThrow(FocusDetectorGoneError);
+    await expect(first).rejects.toThrow("the face cascade did not load");
+    await expect(second).rejects.toThrow(FocusDetectorGoneError);
+    await expect(detector.detect(new Blob(["c"]))).rejects.toThrow(FocusDetectorGoneError);
+    expect(worker?.requests).toHaveLength(2);
   });
 });

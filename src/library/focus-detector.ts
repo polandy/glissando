@@ -9,7 +9,10 @@ export interface FocusDetector {
   detect(thumbnail: Blob): Promise<PictureFocus>;
 }
 
-/** The detector itself is gone (its worker crashed): every later detection would fail too. */
+/**
+ * The detector itself is gone (its worker crashed, or cannot detect in any picture): every later
+ * detection would fail too.
+ */
 export class FocusDetectorGoneError extends Error {
   override readonly name = "FocusDetectorGoneError";
 }
