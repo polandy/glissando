@@ -1,23 +1,23 @@
 <script lang="ts">
-  import { captionStyles, cropRect, layerTransform, type Framing, type Size } from "../../player";
+  import { captionStyles, cropAt, layerTransform, type KenBurnsAt, type Size } from "../../player";
   import type { LayerStyle } from "./timing/transition-styles";
 
   /**
-   * One picture of the preview as the player shows it: the same crop (`cropRect`) and the DOM
+   * One picture of the preview as the player shows it: the same crop (`cropAt`) and the DOM
    * renderer's transform (`layerTransform`), and the caption as the player lays it over the
    * screen. The layer itself carries a transition's styles, so the caption moves with it.
    */
   let {
     size,
     url,
-    framing,
+    motion,
     caption,
     viewport,
     look,
   }: {
     size: Size;
     url: string | null;
-    framing: Framing;
+    motion: KenBurnsAt;
     /** Normalised; absent shows none. */
     caption: string | undefined;
     viewport: Size;
@@ -30,7 +30,7 @@
   const transform = $derived(
     viewport.width === 0 || viewport.height === 0
       ? ""
-      : layerTransform(cropRect(framing, size, viewport), size, viewport),
+      : layerTransform(cropAt(motion, size, viewport), size, viewport),
   );
   const captionLook = $derived(captionStyles(viewport, 0, PREVIEW_CAPTION_MIN_FONT_SIZE_PX));
 

@@ -93,7 +93,7 @@ describe("SlideshowPlayer", () => {
       kind: "slide",
       slide: {
         picture: { src: "a.jpg", width: 1600, height: 900 },
-        framing: { zoom: 1, centerX: 0.5, centerY: 0.5 },
+        motion: { kenBurns: slide("a.jpg", 4000).kenBurns, progress: 0 },
       },
     });
   });
@@ -106,7 +106,10 @@ describe("SlideshowPlayer", () => {
     advance(2000);
 
     expect(player.currentTime).toBe(2);
-    expect(renderer.lastFrame).toMatchObject({ kind: "slide", slide: { framing: { zoom: 1.5 } } });
+    expect(renderer.lastFrame).toMatchObject({
+      kind: "slide",
+      slide: { motion: { progress: 0.5 } },
+    });
   });
 
   it("fires play and playing, and starts the music at the current time", async () => {
@@ -131,7 +134,7 @@ describe("SlideshowPlayer", () => {
       effect: "wipe-right",
       progress: 0.0625,
       from: { picture: { src: "a.jpg" } },
-      to: { picture: { src: "b.jpg" }, framing: { zoom: 1 + 250 / 6000 } },
+      to: { picture: { src: "b.jpg" }, motion: { progress: 250 / 6000 } },
     });
   });
 

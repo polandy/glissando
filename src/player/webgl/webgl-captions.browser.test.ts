@@ -2,7 +2,14 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { BitmapPicture } from "../browser/bitmap-loader";
 import type { RenderFrame, SlideLayer } from "../ports";
 import type { Framing } from "../slideshow";
-import { BLUE, RED, solidBitmap, viewportBox, type Rgb } from "../testing/browser-pictures";
+import {
+  BLUE,
+  RED,
+  solidBitmap,
+  standingStill,
+  viewportBox,
+  type Rgb,
+} from "../testing/browser-pictures";
 import type { CaptionFonts } from "./caption-textures";
 import { WebGlRenderer } from "./webgl-renderer";
 
@@ -86,8 +93,8 @@ function isColour(actual: Rgb, expected: Rgb): boolean {
 async function layer(colour: Rgb, caption?: string): Promise<SlideLayer<BitmapPicture>> {
   const picture = await solidBitmap(colour);
   return caption === undefined
-    ? { picture, framing: WHOLE_PICTURE }
-    : { picture, framing: WHOLE_PICTURE, caption };
+    ? { picture, motion: standingStill(WHOLE_PICTURE) }
+    : { picture, motion: standingStill(WHOLE_PICTURE), caption };
 }
 
 async function slideFrame(colour: Rgb, caption?: string): Promise<RenderFrame<BitmapPicture>> {

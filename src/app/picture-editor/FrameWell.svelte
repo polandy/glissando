@@ -1,9 +1,10 @@
 <script lang="ts">
   import type { OwnKenBurns } from "../../library/own-ken-burns";
-  import type { Framing, Size } from "../../player";
+  import type { Framing, Rect, Size } from "../../player";
   import {
     frameRect,
     frameStyle,
+    rectStyle,
     framingForKey,
     wheelZoomedFraming,
     type Corner,
@@ -38,7 +39,7 @@
     motion: OwnKenBurns;
     active: FrameKey;
     /** Where the playing preview is, outlined on the picture; null while it is paused. */
-    playhead: Framing | null;
+    playhead: Rect | null;
     /** The focus the automatic motion aims at, marked on the picture when there is a box. */
     focus: FocusIndication;
     reducedMotion: boolean;
@@ -204,7 +205,7 @@
         <line x1={path.from.x} y1={path.from.y} x2={path.to.x} y2={path.to.y} />
       </svg>
       {#if playhead !== null}
-        <div class="playhead" style={frameStyle(playhead, size)} aria-hidden="true"></div>
+        <div class="playhead" style={rectStyle(playhead)} aria-hidden="true"></div>
       {/if}
       <FocusMarker indication={focus} {reducedMotion} />
     </div>

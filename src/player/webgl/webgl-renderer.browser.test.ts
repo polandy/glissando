@@ -9,6 +9,7 @@ import {
   RED,
   solidBitmap,
   viewportBox,
+  standingStill,
   WHITE,
   type Rgb,
 } from "../testing/browser-pictures";
@@ -78,7 +79,7 @@ describe("WebGlRenderer", () => {
     const picture = await quadrantBitmap();
     const frame: RenderFrame<BitmapPicture> = {
       kind: "slide",
-      slide: { picture, framing: WHOLE_PICTURE },
+      slide: { picture, motion: standingStill(WHOLE_PICTURE) },
     };
 
     expect(drawAndRead(frame, 0.2, 0.2)).toEqual(RED);
@@ -91,7 +92,10 @@ describe("WebGlRenderer", () => {
     const { drawAndRead } = setUp();
     const picture = await quadrantBitmap();
     const framing = { zoom: 2, centerX: 0.25, centerY: 0.25 };
-    const frame: RenderFrame<BitmapPicture> = { kind: "slide", slide: { picture, framing } };
+    const frame: RenderFrame<BitmapPicture> = {
+      kind: "slide",
+      slide: { picture, motion: standingStill(framing) },
+    };
 
     for (const [x, y] of SAMPLE_GRID) {
       expect(drawAndRead(frame, x, y)).toEqual(RED);
@@ -104,8 +108,8 @@ describe("WebGlRenderer", () => {
         kind: "transition",
         effect,
         progress,
-        from: { picture: await solidBitmap(RED), framing: WHOLE_PICTURE },
-        to: { picture: await solidBitmap(BLUE), framing: WHOLE_PICTURE },
+        from: { picture: await solidBitmap(RED), motion: standingStill(WHOLE_PICTURE) },
+        to: { picture: await solidBitmap(BLUE), motion: standingStill(WHOLE_PICTURE) },
       };
     }
 
@@ -153,7 +157,7 @@ describe("WebGlRenderer", () => {
       const picture = await solidBitmap(RED);
       const frame: RenderFrame<BitmapPicture> = {
         kind: "slide",
-        slide: { picture, framing: WHOLE_PICTURE },
+        slide: { picture, motion: standingStill(WHOLE_PICTURE) },
       };
       drawAndRead(frame, 0.5, 0.5);
 
@@ -173,7 +177,7 @@ describe("WebGlRenderer", () => {
       const picture = await solidBitmap(RED);
       const frame: RenderFrame<BitmapPicture> = {
         kind: "slide",
-        slide: { picture, framing: WHOLE_PICTURE },
+        slide: { picture, motion: standingStill(WHOLE_PICTURE) },
       };
       drawAndRead(frame, 0.5, 0.5);
 
@@ -199,7 +203,7 @@ describe("WebGlRenderer", () => {
       const picture = await solidBitmap(RED);
       const frame: RenderFrame<BitmapPicture> = {
         kind: "slide",
-        slide: { picture, framing: WHOLE_PICTURE },
+        slide: { picture, motion: standingStill(WHOLE_PICTURE) },
       };
       drawAndRead(frame, 0.5, 0.5);
 

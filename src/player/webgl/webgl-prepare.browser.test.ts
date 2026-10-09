@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 import type { BitmapPicture } from "../browser/bitmap-loader";
 import type { RenderFrame } from "../ports";
-import { BLUE, RED, viewportBox, type Rgb } from "../testing/browser-pictures";
+import { BLUE, RED, standingStill, viewportBox, type Rgb } from "../testing/browser-pictures";
 import { UPLOAD_PIXELS_PER_FRAME } from "./picture-textures";
 import { WebGlRenderer } from "./webgl-renderer";
 
@@ -66,7 +66,10 @@ function setUp() {
 }
 
 function wholePicture(picture: BitmapPicture): RenderFrame<BitmapPicture> {
-  return { kind: "slide", slide: { picture, framing: { zoom: 1, centerX: 0.5, centerY: 0.5 } } };
+  return {
+    kind: "slide",
+    slide: { picture, motion: standingStill({ zoom: 1, centerX: 0.5, centerY: 0.5 }) },
+  };
 }
 
 function expectColour(actual: Rgb, expected: Rgb): void {

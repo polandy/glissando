@@ -1,5 +1,4 @@
 import { ease } from "./easing";
-import { framingAt } from "./ken-burns";
 import type { RenderFrame, SlideLayer } from "./ports";
 import type { Easing, Slideshow } from "./slideshow";
 import type { SlideAtTime, TimelineFrame } from "./timeline";
@@ -23,10 +22,10 @@ export function renderFrame<Picture>(
     if (picture === undefined || slide === undefined) {
       throw new Error(`slide ${slideAtTime.index} is drawn before its picture loaded`);
     }
-    const framing = framingAt(slide.kenBurns, slideAtTime.kenBurnsProgress);
+    const motion = { kenBurns: slide.kenBurns, progress: slideAtTime.kenBurnsProgress };
     return slide.caption === undefined
-      ? { picture, framing }
-      : { picture, framing, caption: slide.caption };
+      ? { picture, motion }
+      : { picture, motion, caption: slide.caption };
   };
   if (frame.kind === "slide") {
     return { kind: "slide", slide: layer(frame.slide) };

@@ -1,4 +1,5 @@
-import type { Slideshow } from "../slideshow";
+import type { KenBurnsAt } from "../ken-burns";
+import type { Framing, Slideshow } from "../slideshow";
 import type { BitmapPicture } from "../browser/bitmap-loader";
 import { ImageElementLoader, type BrowserPicture } from "../browser/picture-loader";
 
@@ -9,6 +10,11 @@ export const WHITE = [255, 255, 255] as const;
 export type Rgb = readonly [number, number, number];
 
 const PICTURE_SIZE = 64;
+
+/** A Ken Burns motion that holds `framing` throughout. */
+export function standingStill(framing: Framing): KenBurnsAt {
+  return { kenBurns: { from: framing, to: framing, easing: "linear" }, progress: 0 };
+}
 
 function css([red, green, blue]: Rgb): string {
   return `rgb(${red} ${green} ${blue})`;

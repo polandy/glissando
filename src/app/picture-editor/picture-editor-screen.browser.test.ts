@@ -1,7 +1,7 @@
 import { flushSync } from "svelte";
 import { afterEach, describe, expect, it } from "vitest";
 import { layerTransform } from "../../player";
-import { cropRect, framingAt } from "../../player/ken-burns";
+import { cropAt } from "../../player/ken-burns";
 import {
   AUTOMATIC,
   button,
@@ -120,9 +120,9 @@ describe("PictureEditorScreen", () => {
     const screen = element(".preview");
     const viewport = { width: screen.clientWidth, height: screen.clientHeight };
     const size = { width: 400, height: 300 };
-    const framing = framingAt({ ...AUTOMATIC, easing: "linear" }, 0.5);
+    const motion = { kenBurns: { ...AUTOMATIC, easing: "linear" as const }, progress: 0.5 };
     expect(element<HTMLImageElement>(".preview img").style.transform).toBe(
-      normalised(layerTransform(cropRect(framing, size, viewport), size, viewport)),
+      normalised(layerTransform(cropAt(motion, size, viewport), size, viewport)),
     );
     expect(element(".preview-time").textContent).toBe("0:02,5 / 0:05,0");
   });

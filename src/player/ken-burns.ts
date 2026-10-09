@@ -25,6 +25,35 @@ export function framingAt(kenBurns: KenBurns, progress: number): Framing {
   };
 }
 
+/** A Ken Burns motion `progress` (linear, 0..1) of its way. */
+export interface KenBurnsAt {
+  readonly kenBurns: KenBurns;
+  readonly progress: number;
+}
+
+/**
+ * The part of the picture that fills the viewport `progress` of the way through a Ken Burns
+ * motion: from the start frame to the end frame, each first held inside the picture by its edges.
+ * No edge is reached on the way between, so none bends the motion: the centre runs straight
+ * between the end frames' centres while the width (cover / zoom) stays at or below the straight
+ * line between their widths, so a crop that fits at both ends fits all the way.
+ */
+export function cropAt({ kenBurns, progress }: KenBurnsAt, picture: Size, viewport: Size): Rect {
+  const from = heldInside(kenBurns.from, picture, viewport);
+  const to = heldInside(kenBurns.to, picture, viewport);
+  return cropRect(framingAt({ ...kenBurns, from, to }, progress), picture, viewport);
+}
+
+/** `framing` centred on its crop, i.e. moved as far as the picture's edges push it. */
+function heldInside(framing: Framing, picture: Size, viewport: Size): Framing {
+  const crop = cropRect(framing, picture, viewport);
+  return {
+    zoom: framing.zoom,
+    centerX: crop.x + crop.width / 2,
+    centerY: crop.y + crop.height / 2,
+  };
+}
+
 /**
  * The part of the picture that fills the viewport: crop-to-fit, shrunk by the zoom, moved to
  * the centre as far as the picture's edges allow.

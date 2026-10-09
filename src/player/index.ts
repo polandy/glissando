@@ -12,7 +12,7 @@ export { CAPTION_GLIDE_MS } from "./caption-glide";
 export { captionStyles } from "./caption-style";
 export { createPlayer } from "./create-player";
 export { layerTransform } from "./dom/layer-transform";
-export { cropRect, framingAt, type Rect, type Size } from "./ken-burns";
+export { cropAt, cropRect, type KenBurnsAt, type Rect, type Size } from "./ken-burns";
 export { parseSlideshow, SlideshowFormatError } from "./parse-slideshow";
 export { SlideshowLoadError } from "./picture-buffer";
 export { musicGainAt, type MusicEnvelope } from "./music-gain";

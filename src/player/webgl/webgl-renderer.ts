@@ -1,5 +1,5 @@
 import type { BitmapPicture } from "../browser/bitmap-loader";
-import { cropRect, type Size } from "../ken-burns";
+import { cropAt, type Size } from "../ken-burns";
 import type { PreparedSlide, RenderFrame, SlideLayer, SlideRenderer } from "../ports";
 import { TRANSITION_EFFECTS, type TransitionEffect } from "../slideshow";
 import { CaptionTextures, type CaptionFonts } from "./caption-textures";
@@ -192,7 +192,7 @@ export class WebGlRenderer implements SlideRenderer<BitmapPicture> {
 
   #bindLayer(
     unit: number,
-    { picture, framing }: SlideLayer<BitmapPicture>,
+    { picture, motion }: SlideLayer<BitmapPicture>,
     sampler: WebGLUniformLocation | null,
     cropUniform: WebGLUniformLocation | null,
     viewport: Size,
@@ -201,7 +201,7 @@ export class WebGlRenderer implements SlideRenderer<BitmapPicture> {
     gl.activeTexture(gl.TEXTURE0 + unit);
     this.#pictures.texture(picture);
     gl.uniform1i(sampler, unit);
-    const crop = cropRect(framing, picture, viewport);
+    const crop = cropAt(motion, picture, viewport);
     gl.uniform4f(cropUniform, crop.x, crop.y, crop.width, crop.height);
   }
 

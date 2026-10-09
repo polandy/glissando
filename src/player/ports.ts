@@ -1,15 +1,15 @@
-import type { Framing, TransitionEffect } from "./slideshow";
-import type { Size } from "./ken-burns";
+import type { TransitionEffect } from "./slideshow";
+import type { KenBurnsAt, Size } from "./ken-burns";
 
-/** A slide's picture with its framing at the moment drawn, and its caption if it has one. */
+/** A slide's picture with its Ken Burns motion at the moment drawn, and its caption if it has one. */
 export interface SlideLayer<Picture> {
   readonly picture: Picture;
-  readonly framing: Framing;
+  readonly motion: KenBurnsAt;
   readonly caption?: string;
 }
 
 /** A picture to draw later, with the caption it will be drawn with. */
-export type PreparedSlide<Picture> = Omit<SlideLayer<Picture>, "framing">;
+export type PreparedSlide<Picture> = Omit<SlideLayer<Picture>, "motion">;
 
 export type RenderFrame<Picture> =
   | { readonly kind: "slide"; readonly slide: SlideLayer<Picture> }
