@@ -175,7 +175,7 @@
         {motion}
         {active}
         playhead={previewState.playing ? previewFraming : null}
-        focusMarker={focus.kind === "marker" ? focus : null}
+        {focus}
         {reducedMotion}
         onActivate={activate}
         onFraming={frameChanged}

@@ -59,4 +59,35 @@ describe("PictureEditorScreen, the focus of the automatic motion", () => {
     update(automatic);
     expect(marker()).not.toBeNull();
   });
+
+  it("settles the marker in when the focus is found while the picture is open", () => {
+    const searching = view({ focus: { kind: "searching" } });
+    const { update } = mountEditor(searching);
+
+    update({ ...searching, focus: { kind: "subject", box: FACE } });
+
+    expect(marker()?.getAnimations()).not.toEqual([]);
+  });
+
+  it("shows a focus already known at once, without settling in", () => {
+    mountEditor(view({ focus: { kind: "subject", box: FACE } }));
+
+    const shown = marker();
+    expect(shown).not.toBeNull();
+    expect(shown?.getAnimations()).toEqual([]);
+  });
+
+  it("brings the marker back at once when the automatic motion returns", () => {
+    const searching = view({ focus: { kind: "searching" } });
+    const found = { ...searching, focus: { kind: "subject", box: FACE } } as const;
+    const { update } = mountEditor(searching);
+    update(found);
+    update({ ...found, ownMotion: true });
+
+    update(found);
+
+    const shown = marker();
+    expect(shown).not.toBeNull();
+    expect(shown?.getAnimations()).toEqual([]);
+  });
 });

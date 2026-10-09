@@ -126,11 +126,12 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
     automatic motion, accent corner brackets mark the subject box it aims at, with a small
     "Focus" chip above it (below a box at the picture's top, right-aligned at its right edge);
     over the frames, never in the way of a drag. Found while the editor is open, the marker
-    settles in (fades in from slightly larger; at once with reduced motion). Under the picture
+    settles in (fades in from slightly larger; at once with reduced motion); a focus already
+    known, on opening or on ‹/›, shows at once. Under the picture
     one quiet line: "No subject found – the motion stays centred." or, while the search is still
     to come, a pill "Looking for the focus …" with a pulsing mint dot (still with reduced
     motion). A picture not looked at (its detection failed) shows nothing; nor does an own
-    motion, whose frames say where it goes — back to automatic, the marker returns.
+    motion, whose frames say where it goes — back to automatic, the marker returns at once.
   - **Changing a frame**: a drag anywhere on the picture (one pointer, past 8 px, counted from
     where it went down) moves the active frame by the pointer's travel; a corner resizes it about
     the opposite corner (shape kept), the wheel and two fingers anywhere zoom (at once, without

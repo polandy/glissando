@@ -27,7 +27,7 @@
     motion,
     active,
     playhead,
-    focusMarker,
+    focus,
     reducedMotion,
     onActivate,
     onFraming,
@@ -39,8 +39,8 @@
     active: FrameKey;
     /** Where the playing preview is, outlined on the picture; null while it is paused. */
     playhead: Framing | null;
-    /** The focus the automatic motion aims at, marked on the picture; null for none. */
-    focusMarker: Extract<FocusIndication, { kind: "marker" }> | null;
+    /** The focus the automatic motion aims at, marked on the picture when there is a box. */
+    focus: FocusIndication;
     reducedMotion: boolean;
     onActivate: (key: FrameKey) => void;
     /** A frame changed; `final` once a gesture ends, while dragging it is false. */
@@ -206,7 +206,7 @@
       {#if playhead !== null}
         <div class="playhead" style={frameStyle(playhead, size)} aria-hidden="true"></div>
       {/if}
-      <FocusMarker marker={focusMarker} {reducedMotion} />
+      <FocusMarker indication={focus} {reducedMotion} />
     </div>
   </div>
 </div>

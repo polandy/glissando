@@ -7,15 +7,27 @@
   /**
    * Accent corner brackets around the subject box the automatic motion aims at, with a small
    * "Focus" chip; over the frames, never in the way of a drag. It fades in when the focus is
-   * found while the editor is open, not when the editor opens on it.
+   * found while the editor is open, not when the editor opens on it or the automatic motion
+   * returns.
    */
   let {
-    marker,
+    indication,
     reducedMotion,
   }: {
-    marker: Extract<FocusIndication, { kind: "marker" }> | null;
+    indication: FocusIndication;
     reducedMotion: boolean;
   } = $props();
+
+  const marker = $derived(indication.kind === "marker" ? indication : null);
+  // The indication before the current one: a marker following "searching" was just found.
+  // svelte-ignore state_referenced_locally
+  let shownBefore = indication.kind;
+  /** Read as the marker enters; set before, as the indication changes. */
+  let found = false;
+  $effect.pre(() => {
+    found = shownBefore === "searching" && indication.kind === "marker";
+    shownBefore = indication.kind;
+  });
 
   const { t } = getTranslator();
 
@@ -25,7 +37,7 @@
 
   /** A Svelte transition: it needs no look at the node, only the time to take. */
   const settle: (node: Element) => TransitionConfig = () => ({
-    duration: reducedMotion ? 0 : ENTER_MS,
+    duration: reducedMotion || !found ? 0 : ENTER_MS,
     easing: cubicOut,
     css: (shown: number) => `opacity: ${shown}; transform: scale(${1 + ENTER_SCALE * (1 - shown)})`,
   });

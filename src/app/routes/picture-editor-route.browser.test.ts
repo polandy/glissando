@@ -141,4 +141,18 @@ describe("the picture editor route", () => {
     expect(marker()).not.toBeNull();
     expect(target.querySelector('[role="status"]')).toBeNull();
   });
+
+  it("shows the next picture's known focus at once when ‹/› moves on to it", async () => {
+    const { target, props } = await mountRoute("a");
+    const found = { found: new Map([["b", FACE]]), searching: new Set<string>() };
+    props.focus = found;
+    flushSync();
+
+    props.pictureId = "b";
+    flushSync();
+
+    const marker = target.querySelector('[role="img"][aria-label="Fokus: Gesicht erkannt"]');
+    expect(marker).not.toBeNull();
+    expect(marker?.getAnimations()).toEqual([]);
+  });
 });
