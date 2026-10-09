@@ -389,6 +389,8 @@ over real timers.
   no slideshow references is deleted — except every media id an import in progress or a
   still-undoable removal claims, in any tab, so a picture stored before its slideshow record is
   never lost and an Undo always finds its media.
+- **Video exports** left in the origin private file system by a crash or a closed tab are
+  deleted at startup (`sweepPrivateExports`, dev-docs/VIDEO_EXPORT.md).
 - **Persistent storage** is requested after the first slideshow a tab creates; a refusal shows
   the dialog "Glissando may not store anything permanently" ("Understood", and "Install as
   app" while installing is possible), once per device. Installing and offline follow below.

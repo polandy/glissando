@@ -88,12 +88,24 @@ The info panel's second button, "Als Video sichern" (film icon), below "Play" op
 - "Abbrechen" stops at once: the encoders are closed, the writable is aborted, and the OPFS file is
   deleted. With the picker, the half-written user file is truncated to empty. A browser cannot
   delete it.
-- One export at a time; the sheet is modal while running.
+- One export at a time; the sheet is modal while running. While running, ✕ reads "Abbrechen"
+  and Esc cancels too; a tap on the scrim closes the sheet only where nothing is lost (not while
+  running, not once done). Closed, focus goes back to "Als Video sichern".
+- While the browser is being probed, the sheet shows "Glissando prüft, was dieses Gerät kann …".
+  A probe or a target that fails shows as failed.
+- Below the done file row: with "Teilen …" the hint on the share menu, with "Herunterladen"
+  "Schließen löscht die Kopie in Glissando; vorher herunterladen." A dismissed share sheet is no
+  error.
+- A refused wake lock (e.g. battery saver) is logged; the export runs on without it.
 
 ## Code
 
 `src/video-export/` holds pure logic and ports. The browser adapters live in
-`src/video-export/browser/`, the sheet in `src/app/screens/slideshow/VideoExportSheet.svelte`.
+`src/video-export/browser/`, the sheet in `src/app/screens/slideshow/VideoExportSheet.svelte` with
+its states' parts in `screens/slideshow/video-export/`. `src/app/video-export/` drives it:
+`video-export-session.ts` (the sheet's flow over injected ports, unit-tested with fakes),
+`screen-awake.ts` (the wake lock), `slideshow-video-export.ts` (composes the stored slideshow for
+the run) and `browser-video-export-device.ts` (the browser ports, wired by `main.ts`).
 
 - `plan.ts`: presets, frame count, timestamps, keyframes, size estimate, packet-count bounds.
 - `export-video.ts`: the run, which owns the frame loop, interleaving, backpressure, progress,
