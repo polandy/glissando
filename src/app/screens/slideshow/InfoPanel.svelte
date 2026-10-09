@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { DEFAULT_SLIDESHOW_TRANSITION } from "../../../library/own-timing";
   import Icon from "../../components/Icon.svelte";
   import { getTranslator } from "../../i18n/context";
   import type { SlideshowDetails } from "../view-models";
@@ -10,12 +11,22 @@
     onPlay,
     onRename,
     onEditMusic,
+    onEditTransitions,
   }: {
     slideshow: SlideshowDetails;
     onPlay: () => void;
     onRename: (typed: string) => void;
     onEditMusic: () => void;
+    /** Opens the sheet of the slideshow's default transition. */
+    onEditTransitions: () => void;
   } = $props();
+
+  let transitionsRow: HTMLButtonElement;
+
+  /** The transitions sheet closed: focus goes back to the row it was opened from. */
+  export function focusTransitions(): void {
+    transitionsRow.focus();
+  }
 
   const { t, formatDuration, formatDate } = getTranslator();
 
@@ -52,6 +63,18 @@
     }
     return excerpt ?? fades ?? t("slideshow.musicWholeTrack");
   });
+  const transitionSummary = $derived.by(() => {
+    const choice =
+      slideshow.transition === DEFAULT_SLIDESHOW_TRANSITION
+        ? t("slideshow.transitionDefault")
+        : t("slideshow.transitionOwnChoice");
+    return slideshow.ownTransitionCount === 0
+      ? choice
+      : t("slideshow.transitionSummary", {
+          choice,
+          own: t("slideshow.transitionOwnCount", { count: slideshow.ownTransitionCount }),
+        });
+  });
 </script>
 
 <aside class="panel">
@@ -85,8 +108,8 @@
         <dd>{t("slideshow.noMusic")}</dd>
       </div>
     {:else}
-      <div class="music-row">
-        <button type="button" class="music" onclick={onEditMusic}>
+      <div class="action-row">
+        <button type="button" class="row-action music" onclick={onEditMusic}>
           <span class="label">{t("slideshow.music")}</span>
           <span class="value">
             <b>{slideshow.musicTitle}</b>
@@ -116,15 +139,20 @@
         >
       </dd>
     </div>
-    <div>
-      <dt>{t("slideshow.transitions")}</dt>
-      <dd>
-        <span class="pill"
-          ><i></i>{slideshow.ownTransitionCount > 0
-            ? t("slideshow.alternatingWithOwn", { count: slideshow.ownTransitionCount })
-            : t("slideshow.alternating")}</span
-        >
-      </dd>
+    <div class="action-row">
+      <button
+        bind:this={transitionsRow}
+        type="button"
+        class="row-action transitions"
+        onclick={onEditTransitions}
+      >
+        <span class="label">{t("slideshow.transitions")}</span>
+        <span class="value">
+          <b>{t(`effect.${slideshow.transition}`)}</b>
+          <small>{transitionSummary}</small>
+        </span>
+        <span class="go">{t("slideshow.change")}<Icon name="chevronRight" /></span>
+      </button>
     </div>
     <div>
       <dt>{t("slideshow.captions")}</dt>
@@ -178,12 +206,12 @@
     font-size: inherit;
     font-weight: var(--gl-weight-regular);
   }
-  /* The music row opens the music editor: a button spanning the row. */
-  .rows .music-row {
+  /* The music and transitions rows open their editors: a button spanning the row. */
+  .rows .action-row {
     display: block;
     padding: 6px 0;
   }
-  .music {
+  .row-action {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
@@ -199,28 +227,28 @@
     text-align: left;
     cursor: pointer;
   }
-  .music:hover {
+  .row-action:hover {
     background: var(--gl-hover);
   }
-  .music .label {
+  .row-action .label {
     color: var(--gl-muted);
   }
-  .music .value {
+  .row-action .value {
     display: grid;
     gap: 2px;
     min-width: 0;
   }
-  .music .value b {
+  .row-action .value b {
     overflow: hidden;
     font-weight: var(--gl-weight-medium);
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  .music .value small {
+  .row-action .value small {
     color: var(--gl-muted);
     font-size: var(--gl-size-meta);
   }
-  .music .go {
+  .row-action .go {
     display: flex;
     align-items: center;
     gap: 2px;

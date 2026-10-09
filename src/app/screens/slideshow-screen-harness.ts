@@ -1,7 +1,11 @@
 /** Shared set-up of the `SlideshowScreen` browser tests. */
 import { flushSync } from "svelte";
+import type { SlideshowTransition } from "../../library/own-timing";
+import { FakeClock, FakeFrameScheduler } from "../../player/testing/fakes";
 import { mountWithTranslator } from "../testing/mount-with-translator";
+import { reactiveProps } from "../testing/reactive-props.svelte";
 import SlideshowScreen from "./SlideshowScreen.svelte";
+import type { ExportMenuState } from "../glissando-file/export-menu";
 import type { SlideshowDetails } from "./view-models";
 
 let destroy = () => {};
@@ -27,6 +31,7 @@ export function details(ids: readonly string[], overrides: Partial<SlideshowDeta
     ownMotionCount: 0,
     ownDurationCount: 0,
     ownTransitionCount: 0,
+    transition: "crossfade",
     captionCount: 0,
     capturedFrom: "2025-07-01T10:00:00Z",
     capturedTo: "2025-07-03T10:00:00Z",
@@ -44,17 +49,22 @@ export function details(ids: readonly string[], overrides: Partial<SlideshowDeta
 
 export function mountScreen(
   slideshow: SlideshowDetails = details(["a", "b", "c"]),
-  { mousePointer = true, saving = false } = {},
+  { mousePointer = true, saving = false, reducedMotion = false } = {},
 ) {
+  const clock = new FakeClock();
+  const frames = new FakeFrameScheduler();
   const calls = {
     removed: [] as string[],
     moved: [] as [string, number][],
     renamed: [] as string[],
     edited: [] as string[],
     musicEdits: 0,
+    transitions: [] as SlideshowTransition[],
+    transitionResets: 0,
     deletes: 0,
   };
-  const mounted = mountWithTranslator(SlideshowScreen, {
+  // The transitions sheet's picks and resets come back as the parent would show them.
+  const props = reactiveProps({
     slideshow,
     onBack: () => {},
     onPlay: () => {},
@@ -63,15 +73,26 @@ export function mountScreen(
     onRename: (typed: string) => calls.renamed.push(typed),
     onEdit: (pictureId: string) => calls.edited.push(pictureId),
     onEditMusic: () => (calls.musicEdits += 1),
+    onTransition: (transition: SlideshowTransition) => {
+      calls.transitions.push(transition);
+      props.slideshow = { ...props.slideshow, transition };
+    },
+    onResetTransition: () => {
+      calls.transitionResets += 1;
+      props.slideshow = { ...props.slideshow, transition: "crossfade" };
+    },
+    previewPorts: { clock, frames },
+    reducedMotion,
     onDelete: () => (calls.deletes += 1),
-    exportState: { kind: "idle", sizeBytes: null },
+    exportState: { kind: "idle", sizeBytes: null } as ExportMenuState,
     onExport: () => {},
     onMenuOpened: () => {},
     mousePointer,
     saving,
   });
+  const mounted = mountWithTranslator(SlideshowScreen, props);
   destroy = mounted.destroy;
-  return { target: mounted.target, calls };
+  return { target: mounted.target, calls, clock, frames };
 }
 
 export function byLabel<T extends HTMLElement = HTMLButtonElement>(label: string): T {

@@ -117,6 +117,16 @@ describe("writeGlissandoFile", () => {
     expect(automatic).not.toHaveProperty("transition");
   });
 
+  it("keeps the slideshow's default transition", async () => {
+    const store = new MemoryLibraryStore();
+    const created = await writeGlissandoFile(await checked(), ports(store), {
+      existingTitles: [],
+      signal: new AbortController().signal,
+    });
+
+    expect((await store.getSlideshow(created.id)).transition).toBe("alternate");
+  });
+
   it("never overwrites: a clashing title gets a number, the other slideshow stays", async () => {
     const store = await storeWithOtherShow();
     const created = await writeGlissandoFile(await checked(), ports(store), {

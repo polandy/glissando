@@ -1,18 +1,23 @@
 import type { StoredPicture } from "../../library/stored-slideshow";
 import type { Toaster, ToastMessage } from "../toast/toaster";
 
-/** The own settings of a picture that "Back to automatic" drops. */
-export type ResettableSetting = keyof Pick<StoredPicture, "kenBurns" | "durationMs" | "transition">;
+/**
+ * The settings a reset drops: a picture's own ones ("Back to automatic") and the slideshow's
+ * default transition ("Back to crossfade").
+ */
+export type ResettableSetting =
+  keyof Pick<StoredPicture, "kenBurns" | "durationMs" | "transition"> | "slideshowTransition";
 
 interface PendingReset {
   readonly toast: ToastMessage;
-  readonly pictureId: string;
+  /** The picture's id, or the slideshow's for its default transition. */
+  readonly ownerId: string;
   readonly setting: ResettableSetting;
 }
 
 /**
- * The undo of the latest "Back to automatic": its toast brings the dropped own setting back.
- * Only one is pending at a time, as only one toast is shown.
+ * The undo of the latest reset: its toast brings the dropped setting back. Only one is pending
+ * at a time, as only one toast is shown.
  */
 export class ResetUndo {
   readonly #toaster: Pick<Toaster, "current" | "show" | "dismiss">;
@@ -25,20 +30,20 @@ export class ResetUndo {
   }
 
   /** Shows `text` with an undo that runs `restore`, unless the undo has ended meanwhile. */
-  offer(pictureId: string, setting: ResettableSetting, text: string, restore: () => void): void {
+  offer(ownerId: string, setting: ResettableSetting, text: string, restore: () => void): void {
     const toast: ToastMessage = {
       text,
       tone: "info",
       action: { label: this.#undoLabel(), run: () => this.#undo(pending, restore) },
     };
-    const pending: PendingReset = { toast, pictureId, setting };
+    const pending: PendingReset = { toast, ownerId, setting };
     this.#pending = pending;
     this.#toaster.show(toast);
   }
 
   /** A newer value for the setting ends its undo, which would otherwise overwrite that value. */
-  supersede(pictureId: string, setting: ResettableSetting): void {
-    if (this.#pending?.pictureId === pictureId && this.#pending.setting === setting) {
+  supersede(ownerId: string, setting: ResettableSetting): void {
+    if (this.#pending?.ownerId === ownerId && this.#pending.setting === setting) {
       this.end();
     }
   }

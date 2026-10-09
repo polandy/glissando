@@ -2,13 +2,16 @@
   import { flushSync } from "svelte";
   import Dialog from "../components/Dialog.svelte";
   import Header from "../components/Header.svelte";
-  import Icon from "../components/Icon.svelte";
   import { getTranslator } from "../i18n/context";
   import InfoPanel from "./slideshow/InfoPanel.svelte";
   import MoreMenu from "./slideshow/MoreMenu.svelte";
   import PictureStrip from "./slideshow/PictureStrip.svelte";
+  import PlayPreview from "./slideshow/PlayPreview.svelte";
   import SelectionBar from "./slideshow/SelectionBar.svelte";
+  import TransitionsSheet from "./slideshow/TransitionsSheet.svelte";
   import type { SlideshowDetails } from "./view-models";
+  import type { SlideshowTransition } from "../../library/own-timing";
+  import type { MotionPreviewPorts } from "../picture-editor/motion-preview";
   import type { ExportMenuState } from "../glissando-file/export-menu";
 
   let {
@@ -20,6 +23,10 @@
     onRename,
     onEdit,
     onEditMusic,
+    onTransition,
+    onResetTransition,
+    previewPorts,
+    reducedMotion,
     onDelete,
     exportState,
     onExport,
@@ -38,6 +45,14 @@
     onEdit: (pictureId: string) => void;
     /** Opens the music editor; only offered with music. */
     onEditMusic: () => void;
+    /** The slideshow's default transition was picked in its sheet. */
+    onTransition: (transition: SlideshowTransition) => void;
+    /** "Back to crossfade" in the transitions sheet. */
+    onResetTransition: () => void;
+    /** The transitions sheet's tiles loop on these. */
+    previewPorts: MotionPreviewPorts;
+    /** The transitions sheet's tiles stand still. */
+    reducedMotion: boolean;
     /** The user confirmed deleting the whole slideshow. */
     onDelete: () => void;
     exportState: ExportMenuState;
@@ -52,9 +67,10 @@
     selectedId?: string | null;
   } = $props();
 
-  const { t, formatDuration } = getTranslator();
+  const { t } = getTranslator();
 
   let confirmingDelete = $state(false);
+  let editingTransitions = $state(false);
   // A selected picture that was removed meanwhile leaves no selection.
   const selectedIndex = $derived(
     slideshow.pictures.findIndex((picture) => picture.id === selectedId),
@@ -78,6 +94,15 @@
   }
 
   let moreMenu = $state<MoreMenu>();
+  let infoPanel = $state<InfoPanel>();
+
+  /** Focus goes back to the row the sheet was opened from. */
+  function closeTransitions(): void {
+    editingTransitions = false;
+    // The modal dialog must be gone first: until then the page behind it is inert.
+    flushSync();
+    infoPanel?.focusTransitions();
+  }
 
   /** Keep or Esc: focus goes back to the ⋯ button the dialog was opened from. */
   function keepSlideshow(): void {
@@ -108,16 +133,11 @@
   <main class="content">
     <div class="detail">
       <div class="pictures">
-        <button class="preview" type="button" aria-label={t("slideshow.play")} onclick={onPlay}>
-          <img src={slideshow.coverUrl} alt="" />
-          <span class="play"><Icon name="play" /></span>
-          <span class="time mono">
-            {t("player.time", {
-              current: formatDuration(0),
-              total: formatDuration(slideshow.durationSeconds),
-            })}
-          </span>
-        </button>
+        <PlayPreview
+          coverUrl={slideshow.coverUrl}
+          durationSeconds={slideshow.durationSeconds}
+          {onPlay}
+        />
 
         <div class="strip-head">
           <div>
@@ -142,7 +162,14 @@
         />
       </div>
 
-      <InfoPanel {slideshow} {onPlay} {onRename} {onEditMusic} />
+      <InfoPanel
+        bind:this={infoPanel}
+        {slideshow}
+        {onPlay}
+        {onRename}
+        {onEditMusic}
+        onEditTransitions={() => (editingTransitions = true)}
+      />
     </div>
   </main>
   <!-- Inside the screen, so the container query narrows it with the layout. -->
@@ -158,6 +185,17 @@
     />
   {/if}
 </div>
+
+{#if editingTransitions}
+  <TransitionsSheet
+    {slideshow}
+    ports={previewPorts}
+    {reducedMotion}
+    {onTransition}
+    onReset={onResetTransition}
+    onClose={closeTransitions}
+  />
+{/if}
 
 {#if confirmingDelete}
   <Dialog
@@ -181,61 +219,6 @@
   .pictures {
     display: grid;
     gap: 20px;
-  }
-  .preview {
-    position: relative;
-    aspect-ratio: 16 / 9;
-    padding: 0;
-    overflow: hidden;
-    border: 0;
-    border-radius: var(--gl-radius-large);
-    background: var(--gl-hover);
-    cursor: pointer;
-  }
-  .preview img {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-  .preview::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(120% 90% at 50% 40%, transparent 55%, var(--gl-photo-vignette));
-  }
-  .play {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    z-index: 1;
-    display: grid;
-    place-items: center;
-    width: 64px;
-    height: 64px;
-    translate: -50% -50%;
-    border-radius: 50%;
-    background: var(--gl-photo-play-bg);
-    color: var(--gl-photo-play-ink);
-    box-shadow: var(--gl-photo-play-shadow);
-    --gl-icon-size: var(--gl-size-icon-large);
-  }
-  /* The triangle's visual centre sits right of its box's centre. */
-  .play :global(svg) {
-    translate: 2px 0;
-  }
-  .time {
-    position: absolute;
-    left: 14px;
-    bottom: 12px;
-    z-index: 1;
-    padding: 3px 8px;
-    border-radius: var(--gl-radius-small);
-    background: var(--gl-photo-badge);
-    color: var(--gl-on-photo);
-    font-size: var(--gl-size-small);
-    backdrop-filter: blur(6px);
   }
   .strip-head {
     display: flex;

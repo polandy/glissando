@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { CUT_TRANSITION, type TransitionChoice } from "../../library/own-timing";
+  import { CUT_TRANSITION, type SlideshowTransition } from "../../library/own-timing";
   import { getTranslator } from "../i18n/context";
-  import { tileProgress } from "./timing/preview-timeline";
+  import { tileEffect, tileProgress } from "./timing/preview-timeline";
   import { transitionStyles, type TransitionStyles } from "./timing/transition-styles";
 
   /** One choice of the transition radiogroup: a tiny loop of its effect into the next picture. */
@@ -9,7 +9,7 @@
     choice,
     checked,
     automatic,
-    tagged,
+    tag,
     pictureUrl,
     nextPictureUrl,
     elapsedMs,
@@ -17,12 +17,13 @@
     onPick,
     onKeydown,
   }: {
-    choice: TransitionChoice;
+    /** The alternating choice shows the effects in turn, one per loop. */
+    choice: SlideshowTransition;
     checked: boolean;
     /** The section is automatic: the checked tile's outline is dashed. */
     automatic: boolean;
-    /** Carries the "Auto" tag: the automatic effect while the section is automatic. */
-    tagged: boolean;
+    /** Marks the choice the setting falls back to, e.g. "Auto"; null for none. */
+    tag: string | null;
     pictureUrl: string | null;
     nextPictureUrl: string | null;
     /** Into the tiles' shared loop. */
@@ -38,9 +39,10 @@
   let width = $state(0);
   let height = $state(0);
   const looks: TransitionStyles = $derived.by(() => {
-    const progress = tileProgress(choice, elapsedMs);
-    if (choice !== CUT_TRANSITION) {
-      return transitionStyles(choice, progress, { width, height });
+    const effect = tileEffect(choice, elapsedMs);
+    const progress = tileProgress(effect, elapsedMs);
+    if (effect !== CUT_TRANSITION) {
+      return transitionStyles(effect, progress, { width, height });
     }
     const still = transitionStyles("crossfade", 1, { width, height });
     return { ...still, to: { ...still.to, opacity: progress === 0 ? HIDDEN : still.to.opacity } };
@@ -72,7 +74,7 @@
       </span>
     {/each}
     {#if choice === CUT_TRANSITION}<span class="cut-mark"><i></i></span>{/if}
-    {#if tagged}<span class="tag">{t("editor.autoTag")}</span>{/if}
+    {#if tag !== null}<span class="tag">{tag}</span>{/if}
   </span>
   <span class="name">{t(`effect.${choice}`)}</span>
 </button>

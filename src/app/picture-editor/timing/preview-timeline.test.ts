@@ -5,7 +5,9 @@ import {
   previewLengthMs,
   previewPlan,
   previewSceneAt,
+  TILE_LOOP_MS,
   TILE_STILL_MS,
+  tileEffect,
   tileProgress,
   transitionHoldMs,
   transitionLeadInMs,
@@ -84,6 +86,23 @@ describe("tileProgress", () => {
   it("standing still, shows an effect half-way and a cut before it switches", () => {
     expect(tileProgress("wipe-right", TILE_STILL_MS)).toBeCloseTo(0.5);
     expect(tileProgress("cut", TILE_STILL_MS)).toBe(0);
+  });
+});
+
+describe("tileEffect", () => {
+  it("shows a tile's own choice in every loop", () => {
+    expect(tileEffect("dissolve", 0)).toBe("dissolve");
+    expect(tileEffect("dissolve", 3 * TILE_LOOP_MS)).toBe("dissolve");
+  });
+
+  it("shows the alternating tile's effects in turn, the next one each loop", () => {
+    const loops = [0, 1, 2].map((loop) => tileEffect("alternate", loop * TILE_LOOP_MS + 100));
+
+    expect(loops).toEqual(["crossfade", "push-left", "wipe-right"]);
+  });
+
+  it("standing still, shows the alternating tile's first effect", () => {
+    expect(tileEffect("alternate", TILE_STILL_MS)).toBe("crossfade");
   });
 });
 

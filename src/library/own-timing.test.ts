@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
+  ALTERNATE_TRANSITION,
   CUT_TRANSITION,
   InvalidOwnTimingError,
+  SLIDESHOW_TRANSITIONS,
   TRANSITION_CHOICES,
   checkOwnDurationMs,
+  checkSlideshowTransition,
   checkTransitionChoice,
 } from "./own-timing";
 import { TRANSITION_EFFECTS } from "../player/slideshow";
@@ -41,5 +44,22 @@ describe("checkTransitionChoice", () => {
   it.each([["fade"], [""], [3], [null]])("refuses %j, naming the field", (value) => {
     expect(() => checkTransitionChoice(value, "picture p1")).toThrow(InvalidOwnTimingError);
     expect(() => checkTransitionChoice(value, "picture p1")).toThrow("picture p1 transition");
+  });
+});
+
+describe("checkSlideshowTransition", () => {
+  it("offers a picture's choices plus alternating", () => {
+    expect(SLIDESHOW_TRANSITIONS).toEqual([...TRANSITION_CHOICES, ALTERNATE_TRANSITION]);
+  });
+
+  it.each(SLIDESHOW_TRANSITIONS)("accepts %s", (choice) => {
+    expect(checkSlideshowTransition(choice, "slideshow s1")).toBe(choice);
+  });
+
+  it.each([["fade"], [""], [3], [null]])("refuses %j, naming the field", (value) => {
+    expect(() => checkSlideshowTransition(value, "slideshow s1")).toThrow(InvalidOwnTimingError);
+    expect(() => checkSlideshowTransition(value, "slideshow s1")).toThrow(
+      "slideshow s1 transition",
+    );
   });
 });

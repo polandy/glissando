@@ -42,14 +42,14 @@ describe("SlideshowScreen, a picture's own timing", () => {
     mountScreen(timedSecond());
 
     expect(facts()).toContain("Bildzeiten automatisch, 1 eigene");
-    expect(facts()).toContain("Übergänge abwechselnd, 2 eigene");
+    expect(facts()).toContain("Übergänge Überblenden Vorgabe · 2 eigene");
   });
 
-  it("says automatic and alternating while every picture follows the slideshow", () => {
+  it("says automatic and the default while every picture follows the slideshow", () => {
     mountScreen(details(["a", "b"]));
 
     expect(facts()).toContain("Bildzeiten automatisch");
-    expect(facts()).toContain("Übergänge abwechselnd");
+    expect(facts()).toContain("Übergänge Überblenden Vorgabe Ändern");
     expect(facts()).not.toContain("eigene");
     expect(document.querySelector(".strip .timing-badge")).toBeNull();
   });

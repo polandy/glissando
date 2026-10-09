@@ -1,6 +1,6 @@
 import type { OwnKenBurns } from "../library/own-ken-burns";
 import type { MusicTrim } from "../library/own-music";
-import type { TransitionChoice } from "../library/own-timing";
+import type { SlideshowTransition, TransitionChoice } from "../library/own-timing";
 import type { StoredSlideshow } from "../library/stored-slideshow";
 
 /**
@@ -12,9 +12,10 @@ export const GLISSANDO_FORMAT_ID = "glissando";
 /**
  * Version 2 added a picture's own Ken Burns motion (ADR-0006), version 3 its caption, version 4
  * its own duration and transition (ADR-0008), version 5 the music's excerpt and fades
- * (ADR-0009); files of every older version are still read.
+ * (ADR-0009), version 6 the slideshow's default transition (ADR-0010); files of every older
+ * version are still read.
  */
-export const GLISSANDO_FORMAT_VERSION = 5;
+export const GLISSANDO_FORMAT_VERSION = 6;
 export const OLDEST_READABLE_FORMAT_VERSION = 1;
 /** The first version that carries a picture's own motion. */
 export const OWN_KEN_BURNS_FROM_VERSION = 2;
@@ -24,6 +25,8 @@ export const CAPTION_FROM_VERSION = 3;
 export const OWN_TIMING_FROM_VERSION = 4;
 /** The first version that carries the music's excerpt and fades. */
 export const MUSIC_TRIM_FROM_VERSION = 5;
+/** The first version that carries the slideshow's default transition. */
+export const DEFAULT_TRANSITION_FROM_VERSION = 6;
 export const MANIFEST_ENTRY_NAME = "glissando.json";
 
 const PICTURE_EXTENSIONS: Readonly<Record<string, string>> = {
@@ -62,6 +65,7 @@ export interface ManifestSlideshow {
   readonly createdAt: string;
   readonly secondsPerPicture: number;
   readonly ownOrder?: true;
+  readonly transition?: SlideshowTransition;
   readonly pictures: readonly ManifestPicture[];
   readonly music?: ManifestMusic;
 }
@@ -135,6 +139,7 @@ export function manifestFor(
       createdAt: slideshow.createdAt,
       secondsPerPicture: slideshow.secondsPerPicture,
       ...(slideshow.ownOrder ? { ownOrder: true } : {}),
+      ...(slideshow.transition === undefined ? {} : { transition: slideshow.transition }),
       pictures,
       ...(music === undefined
         ? {}

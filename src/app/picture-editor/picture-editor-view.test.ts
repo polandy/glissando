@@ -58,7 +58,13 @@ describe("pictureEditorView", () => {
       durationMs: 4000,
       ownDuration: false,
       durationBasis: { kind: "seconds-per-picture", automaticMs: 4000 },
-      transition: { choice: "crossfade", own: false, automatic: "crossfade", durationMs: 1000 },
+      transition: {
+        choice: "crossfade",
+        own: false,
+        automatic: "crossfade",
+        slideshowTransition: "crossfade",
+        durationMs: 1000,
+      },
       caption: "",
       previousId: null,
       nextId: "p2",
@@ -169,9 +175,39 @@ describe("pictureEditorView", () => {
     expect(pictureEditorView(timed, "p2").transition).toEqual({
       choice: "dissolve",
       own: true,
-      automatic: "push-left",
+      automatic: "crossfade",
+      slideshowTransition: "crossfade",
       durationMs: 600,
     });
+  });
+
+  it("plays the slideshow's default while the picture has no transition of its own", () => {
+    const view = pictureEditorView({ ...stored, transition: "circle-open" }, "p2");
+
+    expect(view.transition).toEqual({
+      choice: "circle-open",
+      own: false,
+      automatic: "circle-open",
+      slideshowTransition: "circle-open",
+      durationMs: 1000,
+    });
+  });
+
+  it("plays the effect for the position while the slideshow alternates", () => {
+    const view = pictureEditorView({ ...stored, transition: "alternate" }, "p2");
+
+    expect(view.transition).toMatchObject({
+      choice: "push-left",
+      own: false,
+      automatic: "push-left",
+      slideshowTransition: "alternate",
+    });
+  });
+
+  it("gives an automatic cut no length while the slideshow cuts", () => {
+    const view = pictureEditorView({ ...stored, transition: "cut" }, "p1");
+
+    expect(view.transition).toMatchObject({ choice: "cut", automatic: "cut", durationMs: 0 });
   });
 
   it("gives a cut no length", () => {
@@ -188,7 +224,8 @@ describe("pictureEditorView", () => {
     expect(view.transition).toEqual({
       choice: "zoom-in",
       own: true,
-      automatic: "wipe-right",
+      automatic: "crossfade",
+      slideshowTransition: "crossfade",
       durationMs: 0,
     });
     expect(view.next).toBeNull();

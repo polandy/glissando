@@ -1,6 +1,6 @@
 import type { OwnKenBurns } from "./own-ken-burns";
 import type { MusicTrim } from "./own-music";
-import type { TransitionChoice } from "./own-timing";
+import type { SlideshowTransition, TransitionChoice } from "./own-timing";
 
 /**
  * A slideshow as kept on the device: the user's pictures and music plus the few settings the
@@ -59,6 +59,11 @@ export interface StoredSlideshow {
   readonly ownOrder?: true;
   readonly music?: StoredMusic;
   readonly secondsPerPicture: number;
+  /**
+   * The transition every picture without its own hands over with; absent: the crossfade
+   * (`DEFAULT_SLIDESHOW_TRANSITION`, see ADR-0010).
+   */
+  readonly transition?: SlideshowTransition;
 }
 
 /** A picture's two stored renditions. */

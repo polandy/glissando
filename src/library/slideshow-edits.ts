@@ -1,7 +1,14 @@
 import { normalizeCaption } from "../player/caption";
 import { checkOwnKenBurns, type OwnKenBurns } from "./own-ken-burns";
 import { checkMusicFadeMs, checkMusicTrim, type MusicTrim } from "./own-music";
-import { checkOwnDurationMs, checkTransitionChoice, type TransitionChoice } from "./own-timing";
+import {
+  DEFAULT_SLIDESHOW_TRANSITION,
+  checkOwnDurationMs,
+  checkSlideshowTransition,
+  checkTransitionChoice,
+  type SlideshowTransition,
+  type TransitionChoice,
+} from "./own-timing";
 import type { StoredMusic, StoredPicture, StoredSlideshow } from "./stored-slideshow";
 
 /**
@@ -142,6 +149,27 @@ export function setPictureTransition(
       ? picture
       : { ...picture, transition: checkTransitionChoice(transition, `picture "${pictureId}"`) };
   });
+}
+
+/**
+ * Sets the slideshow's default transition; `undefined` or the crossfade deletes the field, since
+ * its absence is the crossfade (ADR-0010). The pictures' own transitions stay as they are.
+ */
+export function setSlideshowTransition(
+  slideshow: StoredSlideshow,
+  transition: SlideshowTransition | undefined,
+): StoredSlideshow {
+  const withoutTransition: { -readonly [Key in keyof StoredSlideshow]: StoredSlideshow[Key] } = {
+    ...slideshow,
+  };
+  delete withoutTransition.transition;
+  if (transition === undefined) {
+    return withoutTransition;
+  }
+  const checked = checkSlideshowTransition(transition, `slideshow "${slideshow.id}"`);
+  return checked === DEFAULT_SLIDESHOW_TRANSITION
+    ? withoutTransition
+    : { ...withoutTransition, transition: checked };
 }
 
 /** `edit` receives a mutable copy of the picture. */

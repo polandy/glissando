@@ -2,6 +2,7 @@
   import { onDestroy } from "svelte";
   import { MAX_TRANSITION_DURATION_MS, TRANSITION_SHARE_OF_SLIDE } from "../../compose";
   import {
+    ALTERNATE_TRANSITION,
     CUT_TRANSITION,
     TRANSITION_CHOICES,
     type TransitionChoice,
@@ -66,6 +67,14 @@
         }),
   );
 
+  const automaticHint = $derived(
+    picture.transition.slideshowTransition === ALTERNATE_TRANSITION
+      ? t("editor.transitionsAlternate")
+      : t("editor.transitionFollowsSlideshow", {
+          effect: t(`effect.${picture.transition.slideshowTransition}`),
+        }),
+  );
+
   // Selection follows focus, as in the WAI-ARIA radio group: one tab stop, arrows choose.
   function onkeydown(event: KeyboardEvent, index: number): void {
     const next = radioIndexForKey(event.key, index, TRANSITION_CHOICES.length);
@@ -114,7 +123,7 @@
           {choice}
           checked={choice === picture.transition.choice}
           automatic={!own}
-          tagged={!own && choice === picture.transition.automatic}
+          tag={!own && choice === picture.transition.automatic ? t("editor.autoTag") : null}
           {pictureUrl}
           {nextPictureUrl}
           {elapsedMs}
@@ -124,7 +133,7 @@
       {/each}
     </div>
     <p class="hint">
-      {#if !own}{t("editor.transitionsAlternate")}{/if}
+      {#if !own}{automaticHint}{/if}
       {hint}
     </p>
     <div>

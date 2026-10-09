@@ -13,7 +13,7 @@ export {
   MAX_TRANSITION_DURATION_MS,
   TRANSITION_SHARE_OF_SLIDE,
 } from "./auto-transition";
-export { pictureTransition } from "./picture-transition";
+export { automaticTransition, pictureTransition, slideshowTransition } from "./picture-transition";
 export { titleForCaptureRange } from "./title-for-capture-range";
 export { buildStoredSlideshow, type BuildStoredSlideshowInput } from "./build-stored-slideshow";
 export { composeSlideshow, type SlideshowSources } from "./compose-slideshow";

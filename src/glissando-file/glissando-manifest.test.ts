@@ -55,7 +55,7 @@ describe("manifestFor", () => {
   it("names the format and its version and keeps the slideshow without device ids", () => {
     const written = manifest();
     expect(written.format).toBe("glissando");
-    expect(written.formatVersion).toBe(5);
+    expect(written.formatVersion).toBe(6);
     expect(written.slideshow.pictures[0]).toEqual({
       file: "pictures/0001.jpg",
       thumbnail: "thumbnails/0001.jpg",

@@ -52,3 +52,4 @@ still read.
   newer version.
 - Records in IndexedDB need no migration: a record without the fields is all automatic.
 - The music's excerpt replaces the track's length in this timing; its own fades follow the same "absent means automatic" pattern (ADR-0009).
+- The slideshow's default transition replaces the automatic cycle (ADR-0010).

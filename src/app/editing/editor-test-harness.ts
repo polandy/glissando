@@ -76,6 +76,7 @@ export async function setUp(
     motionAutomaticText: () => "Bewegung wieder automatisch",
     durationAutomaticText: () => "Dauer wieder automatisch",
     transitionAutomaticText: () => "Übergang wieder automatisch",
+    slideshowTransitionResetText: () => "Übergänge wieder auf Überblenden",
     automaticTitle: () => "Juli 2025",
   });
   const order = () => editor.slideshow.pictures.map((picture) => picture.id);

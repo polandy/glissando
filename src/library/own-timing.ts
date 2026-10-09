@@ -22,6 +22,16 @@ export const CUT_TRANSITION = "cut";
 export const TRANSITION_CHOICES = [...TRANSITION_EFFECTS, CUT_TRANSITION] as const;
 export type TransitionChoice = TransitionEffect | typeof CUT_TRANSITION;
 
+/** The slideshow's default only: the effects take turns by position. */
+export const ALTERNATE_TRANSITION = "alternate";
+
+/** The choices for the slideshow's default transition: a picture's choices plus alternating. */
+export const SLIDESHOW_TRANSITIONS = [...TRANSITION_CHOICES, ALTERNATE_TRANSITION] as const;
+export type SlideshowTransition = TransitionChoice | typeof ALTERNATE_TRANSITION;
+
+/** The default while the slideshow stores none (see ADR-0010). */
+export const DEFAULT_SLIDESHOW_TRANSITION = "crossfade" satisfies SlideshowTransition;
+
 export const MIN_OWN_DURATION_MS = MIN_SECONDS_PER_PICTURE * MILLISECONDS_PER_SECOND;
 export const MAX_OWN_DURATION_MS = MAX_SECONDS_PER_PICTURE * MILLISECONDS_PER_SECOND;
 export const OWN_DURATION_STEP_MS = SECONDS_PER_PICTURE_STEP * MILLISECONDS_PER_SECOND;
@@ -29,7 +39,7 @@ export const OWN_DURATION_STEP_MS = SECONDS_PER_PICTURE_STEP * MILLISECONDS_PER_
 export class InvalidOwnTimingError extends Error {
   constructor(
     where: string,
-    /** The bad field of the picture: `durationMs` or `transition`. */
+    /** The bad field of the picture or slideshow: `durationMs` or `transition`. */
     readonly field: string,
     readonly expected: string,
     readonly actual: unknown,
@@ -66,6 +76,20 @@ export function checkTransitionChoice(value: unknown, where: string): Transition
       where,
       "transition",
       `one of ${TRANSITION_CHOICES.join(", ")}`,
+      value,
+    );
+  }
+  return choice;
+}
+
+/** `value` as the slideshow's default transition; throws `InvalidOwnTimingError` naming `where`. */
+export function checkSlideshowTransition(value: unknown, where: string): SlideshowTransition {
+  const choice = SLIDESHOW_TRANSITIONS.find((candidate) => candidate === value);
+  if (choice === undefined) {
+    throw new InvalidOwnTimingError(
+      where,
+      "transition",
+      `one of ${SLIDESHOW_TRANSITIONS.join(", ")}`,
       value,
     );
   }

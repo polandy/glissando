@@ -41,8 +41,7 @@ function withMusic(change: Record<string, unknown>, formatVersion = MUSIC_TRIM_F
 }
 
 describe("the music's excerpt and fades in the .glissando file", () => {
-  it("are written as format version 5, the version that carries them", () => {
-    expect(GLISSANDO_FORMAT_VERSION).toBe(5);
+  it("are written from format version 5, the version that carries them", () => {
     expect(MUSIC_TRIM_FROM_VERSION).toBe(5);
     expect(manifest().slideshow.music).toMatchObject({
       trim: { startMs: 12_000, endMs: 200_000 },

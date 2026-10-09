@@ -1,4 +1,9 @@
-import { musicExcerptMs, resolveMusicTiming, slideshowDurationMs } from "../compose";
+import {
+  musicExcerptMs,
+  resolveMusicTiming,
+  slideshowDurationMs,
+  slideshowTransition,
+} from "../compose";
 import { MILLISECONDS_PER_SECOND } from "../player";
 import type { StoredMusic, StoredSlideshow } from "../library/stored-slideshow";
 import type {
@@ -72,6 +77,7 @@ export function slideshowDetails(
     ownMotionCount: stored.pictures.filter((picture) => picture.kenBurns !== undefined).length,
     ownDurationCount: tiles.filter((tile) => tile.ownDurationMs !== null).length,
     ownTransitionCount: tiles.filter((tile) => tile.ownTransition !== null).length,
+    transition: slideshowTransition(stored),
     captionCount: stored.pictures.filter((picture) => picture.caption !== undefined).length,
     capturedFrom: span.from,
     capturedTo: span.to,

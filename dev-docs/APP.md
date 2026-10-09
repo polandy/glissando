@@ -36,9 +36,10 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
   end with the music's excerpt), music (with music a button spanning the row: the file name,
   below it "whole track", or once changed in the music editor "0:12–2:30 · fades in and out",
   and "Edit ›"; it opens the music editor, below; without music the plain "No music"), picture times "automatic" (with own durations "automatic, 1
-  own"), Ken Burns "automatic" (with own motions "automatic, 2 own"), transitions "alternating"
-  (with own transitions "alternating, 2 own"; a last picture's stored one does not count),
-  captions "3 of 8" (pictures with a caption of all; none: "0 of 8"). A tile carries small
+  own"), Ken Burns "automatic" (with own motions "automatic, 2 own"), transitions (a button
+  spanning the row like the music's: the effect, e.g. "Crossfade" or "Alternating", below it
+  "default" or "own choice", with own transitions "· 2 own" — a last picture's stored one does
+  not count — and "Change ›"; it opens the transitions sheet, below), captions "3 of 8" (pictures with a caption of all; none: "0 of 8"). A tile carries small
   badges bottom right: a frame "own" for an own motion, a clock with "8 s" for an own duration
   and a transition mark (titled with the effect, e.g. "Circle") for an own transition, except on
   the last picture; its label adds "own motion", "own duration 8 s", "own transition Circle". The info panel and the player always use the edited picture list.
@@ -69,6 +70,23 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
     double-click on a tile opens the picture editor too.
   - **Rename**: ✎ turns the title into a field (at most 80 characters): Enter or leaving it
     saves, Esc cancels, an empty title falls back to the automatic one from the capture dates.
+  - **Transitions** (`slideshow/TransitionsSheet.svelte`, ADR-0010): the info panel's
+    transitions row opens a modal sheet "Slideshow transitions" (bottom sheet up to 720 px wide,
+    a centred dialog above, over a scrim) with the state "Default" or, accent-tinted, "Own
+    choice". A radiogroup of eight tiles in four columns — Crossfade, Push, Wipe, Circle, Zoom,
+    Dissolve, Cut, Alternating — each looping its effect from the first picture to the second
+    (the only picture twice when there is one; "Alternating" shows the next effect each loop;
+    still with reduced motion), the picture editor's `TransitionTile`. Crossfade carries the
+    tag "Default"; while it applies, the checked outline is dashed. A tap stores the choice at
+    once; the arrow keys move it (selection follows focus). The hint: "Every transition:
+    Dissolve. It takes 30 % of the picture's time, at most 1 s.", for a cut "The pictures follow
+    one another without a transition.", for alternating "The effects alternate from picture to
+    picture, never the same one twice in a row." A note names the pictures that keep an own
+    transition: "Pictures 5 and 7 keep their own transitions – change them in the picture
+    editor." Then "Back to crossfade" (disabled-looking and titled "The transitions are already
+    set to crossfade" while they are; the toast "Transitions back to crossfade" with "Undo"
+    follows) and "Done". Done, Esc or a tap on the scrim closes it; focus starts on the checked
+    tile and goes back to the row.
   - **Delete**: "Delete slideshow …" asks in a dialog, "Delete “title”?", what goes (the
     slideshow and its n pictures, not the original photos; cannot be undone), "Keep" (focused)
     and a coral "Delete"; Keep or Esc puts the focus back on the ⋯ button. Deleting first closes
@@ -176,7 +194,10 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
     it the picture's own; the arrow keys move the choice (selection follows focus, one tab
     stop). The hint: "Takes 1.0 s at the end of picture 5: 30 % of the picture's time, at most
     1 s." or, for a cut, "Picture 6 follows without a transition.", while automatic prefixed by
-    "Transitions alternate automatically from picture to picture." Then "Back to automatic" as
+    "Automatically, the slideshow's transition applies: Crossfade." or, for an alternating
+    default, "Automatically, the transitions alternate, as set for the slideshow." The automatic
+    choice is the slideshow's default (ADR-0010); an own transition stays own even when it
+    equals the default. Then "Back to automatic" as
     for the duration, toast "Transition back to automatic" with "Undo". At the last picture the
     eyebrow is "Transition", the state "Last picture", and a note says "**The slideshow ends
     here**, without a transition."; with an own transition stored it adds "The own transition
