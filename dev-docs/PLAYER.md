@@ -95,8 +95,13 @@ Behaviour:
   seek, pauses on pause, while waiting, at the end and once play time passes `endMs`, and stays
   silent when played beyond it. Its volume is a pure function of play time (`musicGainAt`:
   linear fades), set before every start and on every frame, so pause, resume and seek land on
-  the envelope without a jump. A refused `play()` is an `error` and pauses; a start
-  interrupted by a pause (a quick seek) is not a refusal.
+  the envelope without a jump. The volume is set on a Web Audio gain node at the context's
+  current time (`MusicOutput`, one `AudioContext` per page), since iOS ignores a media element's
+  `volume`; without Web Audio it falls back to the element's volume. iOS lets the context sound
+  only when it is resumed synchronously in a user gesture: the app unlocks it in the Play tap
+  that opens the player, in the player's play control, and every `play()` of the music unlocks
+  it too. A refused `play()` is an `error` and pauses; a start interrupted by a pause (a quick
+  seek) is not a refusal.
 - **Pictures** are loaded for the slides on screen plus the next one; all others are released,
   so memory stays bounded. When a frame needs a picture that is not loaded yet, time stops,
   `waiting` fires, and playback goes on from the same moment with `playing`.

@@ -16,6 +16,7 @@
   import SlideshowScreen from "../screens/SlideshowScreen.svelte";
   import type { Toaster } from "../toast/toaster";
   import type { MusicEditorAudio } from "../music-editor/music-editor-audio";
+  import type { MusicOutput } from "../../player";
   import MusicEditorRoute from "./MusicEditorRoute.svelte";
   import PictureEditorRoute from "./PictureEditorRoute.svelte";
   import PlayerLayer from "./PlayerLayer.svelte";
@@ -35,6 +36,7 @@
     editingPictureId,
     editingMusic,
     musicAudio,
+    musicOutput,
     onBack,
     onPlay,
     onEdit,
@@ -58,6 +60,8 @@
     /** The music editor is open, in place of the screen. */
     editingMusic: boolean;
     musicAudio: MusicEditorAudio;
+    /** Where the player's music sounds. */
+    musicOutput: MusicOutput;
     /** Also taken when the slideshow is no longer on this device. */
     onBack: () => void;
     onPlay: () => void;
@@ -211,5 +215,5 @@
   />
 {/if}
 {#if playing && stored !== null}
-  <PlayerLayer {store} {stored} onClose={onBack} {onError} />
+  <PlayerLayer {store} {stored} {musicOutput} onClose={onBack} {onError} />
 {/if}

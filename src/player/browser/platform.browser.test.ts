@@ -1,13 +1,14 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { userEvent } from "vitest/browser";
 import { silentWav } from "../../import/testing/silent-wav";
-import { AudioElementMusic } from "./platform";
+import { MusicOutput } from "./music-output";
+import { AudioElementMusic, createMusicAudioContext } from "./platform";
 
 describe("AudioElementMusic", () => {
   const urls: string[] = [];
   afterEach(() => urls.splice(0).forEach((url) => URL.revokeObjectURL(url)));
 
-  async function musicWithUserActivation(): Promise<AudioElementMusic> {
+  async function musicWithUserActivation(output?: MusicOutput): Promise<AudioElementMusic> {
     const button = document.createElement("button");
     button.textContent = "start";
     document.body.append(button);
@@ -15,7 +16,7 @@ describe("AudioElementMusic", () => {
     button.remove();
     const url = URL.createObjectURL(new Blob([silentWav(2000)], { type: "audio/wav" }));
     urls.push(url);
-    return new AudioElementMusic(url);
+    return new AudioElementMusic(url, output);
   }
 
   it("treats a start interrupted by a pause, as a quick seek does, as no refusal", async () => {
@@ -25,6 +26,16 @@ describe("AudioElementMusic", () => {
     music.pause();
 
     await expect(started).resolves.toBeUndefined();
+    music.dispose();
+  });
+
+  it("plays routed through Web Audio", async () => {
+    const output = new MusicOutput(createMusicAudioContext);
+    const music = await musicWithUserActivation(output);
+
+    await expect(music.play(0.5)).resolves.toBeUndefined();
+    music.setVolume(0.5);
+    music.pause();
     music.dispose();
   });
 });

@@ -1,3 +1,4 @@
+import type { MusicOutput } from "./browser/music-output";
 import { AudioElementMusic, animationFrames, performanceClock } from "./browser/platform";
 import {
   ImageElementLoader,
@@ -23,6 +24,8 @@ export interface CreatePlayerOptions {
    * is loaded as a URL.
    */
   readonly openPicture?: OpenPicture;
+  /** Where the music sounds; without it, at the audio element's own volume. */
+  readonly musicOutput?: MusicOutput;
 }
 
 const browserObjectUrls = {
@@ -37,7 +40,7 @@ const browserObjectUrls = {
 export function createPlayer(
   container: HTMLElement,
   slideshow: Slideshow,
-  { webGl2Context = defaultWebGl2Context, openPicture }: CreatePlayerOptions = {},
+  { webGl2Context = defaultWebGl2Context, openPicture, musicOutput }: CreatePlayerOptions = {},
 ): SlideshowPlayer<BrowserPicture> {
   let player: SlideshowPlayer<BrowserPicture> | null = null;
   const redraw = () => player?.redraw();
@@ -49,7 +52,7 @@ export function createPlayer(
     ),
     clock: performanceClock,
     frames: animationFrames,
-    ...(slideshow.music ? { music: new AudioElementMusic(slideshow.music.src) } : {}),
+    ...(slideshow.music ? { music: new AudioElementMusic(slideshow.music.src, musicOutput) } : {}),
   });
   return player;
 }

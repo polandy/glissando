@@ -1,6 +1,12 @@
 /** The player engine's public API; the app imports nothing else from `src/player/`. */
 export { type OpenPicture } from "./browser/picture-loader";
-export { AudioElementMusic, animationFrames, performanceClock } from "./browser/platform";
+export {
+  AudioElementMusic,
+  animationFrames,
+  createMusicAudioContext,
+  performanceClock,
+} from "./browser/platform";
+export { MusicOutput } from "./browser/music-output";
 export { captionLength, MAX_CAPTION_LENGTH, normalizeCaption, withinCaptionLimit } from "./caption";
 export { CAPTION_GLIDE_MS } from "./caption-glide";
 export { captionStyles } from "./caption-style";

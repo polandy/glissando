@@ -33,6 +33,9 @@ the excerpt is cut while playing.
   fades as played (scaled down in proportion when together they would outlast what is heard).
   The player applies the volume as a pure function of play time. Version 1 is still read, as
   the whole track without fades.
+- **The volume goes through Web Audio**: the music's audio element feeds a `GainNode`, set at
+  the context's current time, because iOS and iPadOS ignore `HTMLMediaElement.volume`. Where
+  `AudioContext` is missing or cannot be made, the element's own volume is the fallback.
 
 The `.glissando` format goes to version 5, whose music may carry the three fields; versions 1
 to 4 are still read.
@@ -56,3 +59,7 @@ to 4 are still read.
 - Records in IndexedDB need no migration: music without the fields plays whole, fading
   automatically, which for the whole track filling the slideshow means no fade at all.
 - The music editor offers no undo toast: a reset is one tap away from what it replaced.
+- The page's `AudioContext` must be resumed within the gesture that starts playback, or iOS keeps
+  it silent; the music then also follows iOS's media session rather than the ring/silent switch
+  (`navigator.audioSession.type = "playback"` where Safari has it). In the fallback, fades are
+  lost on iOS only.

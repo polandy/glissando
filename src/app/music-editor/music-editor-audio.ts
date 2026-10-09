@@ -4,6 +4,7 @@ import {
   performanceClock,
   type Clock,
   type FrameScheduler,
+  type MusicOutput,
   type MusicPlayback,
 } from "../../player";
 import { browserObjectUrls } from "../media/object-urls";
@@ -20,11 +21,14 @@ export interface MusicEditorAudio {
   readonly frames: FrameScheduler;
 }
 
-export const browserMusicEditorAudio: MusicEditorAudio = {
-  decodePeaks: decodePeaksWithWebAudio,
-  playback: (url) => new AudioElementMusic(url),
-  createUrl: browserObjectUrls.create,
-  revokeUrl: browserObjectUrls.revoke,
-  clock: performanceClock,
-  frames: animationFrames,
-};
+/** The browser's audio, listening through `output`. */
+export function browserMusicEditorAudio(output: MusicOutput): MusicEditorAudio {
+  return {
+    decodePeaks: decodePeaksWithWebAudio,
+    playback: (url) => new AudioElementMusic(url, output),
+    createUrl: browserObjectUrls.create,
+    revokeUrl: browserObjectUrls.revoke,
+    clock: performanceClock,
+    frames: animationFrames,
+  };
+}

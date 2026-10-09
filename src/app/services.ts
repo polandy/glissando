@@ -1,3 +1,4 @@
+import type { MusicOutput } from "../player";
 import type { LibraryStore } from "../library/stored-slideshow";
 import type { PwaStatus } from "../pwa/pwa-status";
 import type { ErrorReporter } from "./errors/error-reporter";
@@ -18,6 +19,8 @@ export interface AppServices {
   readonly persistencePrompt: PersistencePrompt;
   /** Installing, offline use and updates (dev-docs/APP.md, Installing and offline). */
   readonly pwa: PwaStatus;
+  /** Where the music sounds, in the player and the music editor; unlocked by a user gesture. */
+  readonly musicOutput: MusicOutput;
   /** Decoding and playing the music in the music editor. */
   readonly musicAudio: MusicEditorAudio;
   /** The address the app was opened at, e.g. `http://192.168.1.20:4173`. */

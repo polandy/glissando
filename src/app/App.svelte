@@ -210,8 +210,13 @@
       editingPictureId={route.screen === "picture" ? route.pictureId : null}
       editingMusic={route.screen === "music"}
       musicAudio={services.musicAudio}
+      musicOutput={services.musicOutput}
       onBack={() => navigator.back()}
-      onPlay={() => navigator.open({ screen: "player", slideshowId })}
+      onPlay={() => {
+        // Within the Play gesture: the player starts the music only after its pictures load.
+        services.musicOutput.unlock();
+        navigator.open({ screen: "player", slideshowId });
+      }}
       onEdit={(pictureId) => navigator.open({ screen: "picture", slideshowId, pictureId })}
       onEditMusic={() => navigator.open({ screen: "music", slideshowId })}
       onDeleted={() => leaveWithToast({ navigator, toaster }, t("slideshow.deleted"))}

@@ -26,6 +26,7 @@ import { freeStorageBytes } from "./library/free-storage";
 import { decodePicture } from "./import/downscale";
 import { captureDate } from "./import/exif-capture-date";
 import { probeMusic } from "./import/music-probe";
+import { createMusicAudioContext, MusicOutput } from "./player";
 import { openLibraryStore } from "./library/indexeddb-store";
 import { requestPersistentStorage } from "./library/persistent-storage";
 import { browserPwaPorts } from "./pwa/browser-pwa";
@@ -78,6 +79,7 @@ const store = await openLibraryStore(window.indexedDB);
 
 const newId = (): string => randomId(crypto);
 const now = (): Date => new Date();
+const musicOutput = new MusicOutput(createMusicAudioContext);
 
 function deleteAbandonedMedia(): void {
   store.deleteUnreferencedMedia(now()).catch(reportError);
@@ -96,7 +98,8 @@ const services = {
   ),
   pwa,
   appAddress: window.location.origin,
-  musicAudio: browserMusicEditorAudio,
+  musicOutput,
+  musicAudio: browserMusicEditorAudio(musicOutput),
   newImportSession: () =>
     new ImportSession({
       store,
