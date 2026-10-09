@@ -34,12 +34,14 @@ is the share of pictures whose chosen focus point lies inside a tagged face (box
   sha256 in a unit test. The face fixture in the tests is NASA's public-domain portrait from
   scikit-image's test data.
 - It runs on the stored **480 px thumbnail**, in a **Web Worker**, so the ~0.2 s a phone needs
-  per picture never blocks playback or the editor. The focus is the box of the strongest
-  detection; no detection is stored as "none" and the motion keeps today's rule.
+  per picture never blocks playback or the editor. Detections are clustered and kept above a
+  score of 5 (picojs's own cut-off); the focus is the box of the one with the largest
+  score-weighted area (size² × score), which hit best in the measurement. No detection is stored
+  as "none" and the motion keeps today's rule.
 - **When:** a background pass, one picture at a time, over every picture without a result: when
   the library opens and whenever a slideshow is created. Playing never waits for it; a picture
   not looked at yet plays today's motion.
-- **Where:** a `pictureFocus` IndexedDB store keyed by picture id, beside the media and deleted
+- **Where:** a `focus` IndexedDB store keyed by picture id, beside the media and deleted
   with it — not on `StoredPicture`, whose record the editor rewrites from its in-memory copy.
 - **`.glissando` files do not carry it** (format unchanged): the focus is an automatic result, like
   the automatic motion; the receiving device detects it again in the background.
@@ -64,10 +66,10 @@ is the share of pictures whose chosen focus point lies inside a tagged face (box
 
 - Small faces are the weak spot: 4 of 15 pictures with only small faces are hit. The automatic
   motion zooms gently (at most 1.2×), so a missed face is not cut off, only not aimed at.
-- In a group the motion aims at the strongest face, not the group's middle; aiming at the union
+- In a group the motion aims at the face with the largest score-weighted area, not the group's middle; aiming at the union
   of all detections hit less often in the measurement.
 - The picture editor marks the focus and the library shows the pass's progress (mockup:
   https://polandy.github.io/glissando-assets/mockups/automatic-focus/).
-- A better detector later reaches every picture by clearing the `pictureFocus` store in a
+- A better detector later reaches every picture by clearing the `focus` store in a
   database upgrade; nothing else stores the result.
 - Immich's face data (roadmap 3) can fill the same store for Immich photos.
