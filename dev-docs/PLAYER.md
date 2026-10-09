@@ -88,6 +88,11 @@ picture comes on screen pays nothing for it (ADR-0014).
   decode, revoked when the picture is released or fails to decode. Without it, `src` is a URL.
 - `webGl2Context(canvas)` supplies the WebGL2 context; `null` selects the DOM fallback.
 
+`createFramePlayer(slideshow, size, openPicture?)` is the video export's: a silent player on a
+canvas in no document, drawn with WebGL2 at exactly `size` (pixel ratio 1, drawing buffer
+preserved for `new VideoFrame(canvas)`), with `captionFontLoaded` to await before the first
+`renderAt`; `null` without WebGL2.
+
 The player:
 
 - `play()`, `pause()`, `currentTime` (seconds, settable to seek, clamped), `duration`,
