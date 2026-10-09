@@ -10,6 +10,11 @@ const PICTURE = { width: 2048, height: 1200 };
 /** Not on a slice boundary, so a slice taken from the wrong rows shows. */
 const BAND_ROW = 700;
 const COLOUR_TOLERANCE = 8;
+const CAPTION = "HH";
+/** Left of the caption's text and below it: only the caption's gradient, at its darkest. */
+const GRADIENT_CORNER = { x: 0.005, y: 0.995 };
+/** The gradient starts at half black: the blue bottom of the picture shows half its blue there. */
+const DARKENED_BLUE: Rgb = [0, 0, 128];
 
 let box: HTMLElement;
 afterEach(() => box.remove());
@@ -40,6 +45,8 @@ function setUp() {
     throw new Error("this browser has no WebGL2");
   }
   const uploads: number[] = [];
+  /** One entry per caption rasterised and uploaded; captions are uploaded from a canvas. */
+  const captionUploads: HTMLCanvasElement[] = [];
   const texSubImage2D = gl.texSubImage2D.bind(gl) as (...args: unknown[]) => void;
   gl.texSubImage2D = ((...args: unknown[]) => {
     if (args[8] instanceof ImageBitmap) {
@@ -53,22 +60,27 @@ function setUp() {
     if (source instanceof ImageBitmap) {
       uploads.push(source.width * source.height);
     }
+    if (source instanceof HTMLCanvasElement) {
+      captionUploads.push(source);
+    }
     texImage2D(...args);
   }) as typeof gl.texImage2D;
   const renderer = new WebGlRenderer(canvas, gl, () => undefined, { pixelRatio: () => 1 });
-  function drawAndRead(frame: RenderFrame<BitmapPicture>, yFromTop: number): Rgb {
+  function drawAndRead(frame: RenderFrame<BitmapPicture>, yFromTop: number, xFromLeft = 0.5): Rgb {
     renderer.render(frame);
     const pixel = new Uint8Array(4);
-    gl?.readPixels(50, Math.floor((1 - yFromTop) * 100), 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel);
+    const [x, y] = [Math.floor(xFromLeft * 100), Math.floor((1 - yFromTop) * 100)];
+    gl?.readPixels(x, y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel);
     return [pixel[0] ?? 0, pixel[1] ?? 0, pixel[2] ?? 0];
   }
-  return { renderer, uploads, drawAndRead };
+  return { renderer, uploads, captionUploads, drawAndRead };
 }
 
-function wholePicture(picture: BitmapPicture): RenderFrame<BitmapPicture> {
+function wholePicture(picture: BitmapPicture, caption?: string): RenderFrame<BitmapPicture> {
+  const motion = standingStill({ zoom: 1, centerX: 0.5, centerY: 0.5 });
   return {
     kind: "slide",
-    slide: { picture, motion: standingStill({ zoom: 1, centerX: 0.5, centerY: 0.5 }) },
+    slide: caption === undefined ? { picture, motion } : { picture, motion, caption },
   };
 }
 
@@ -98,6 +110,27 @@ describe("WebGlRenderer.prepare", () => {
     expectColour(top, RED);
     expectColour(bottom, BLUE);
     expect(uploads).toEqual([]);
+  });
+
+  it("rasterises a slide's caption once its picture is uploaded, so drawing the captioned slide afterwards rasterises nothing", async () => {
+    const { renderer, uploads, captionUploads, drawAndRead } = setUp();
+    await renderer.captionFontLoaded;
+    const picture = await twoBandPicture();
+    // The picture's steps as the first case counts them, then one for the caption.
+    const pictureSteps = Math.ceil((PICTURE.width * PICTURE.height) / UPLOAD_PIXELS_PER_FRAME) + 1;
+
+    for (let step = 0; step < pictureSteps + 1; step += 1) {
+      renderer.prepare({ picture, caption: CAPTION });
+    }
+    const rasterisedWhilePreparing = captionUploads.length;
+    uploads.length = 0;
+    captionUploads.length = 0;
+    const band = drawAndRead(wholePicture(picture, CAPTION), GRADIENT_CORNER.y, GRADIENT_CORNER.x);
+
+    expectColour(band, DARKENED_BLUE);
+    expect(rasterisedWhilePreparing).toBe(1);
+    expect(uploads).toEqual([]);
+    expect(captionUploads).toEqual([]);
   });
 
   it("draws a picture prepared only in part by uploading the rest at once", async () => {

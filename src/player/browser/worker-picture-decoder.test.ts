@@ -36,6 +36,19 @@ class FakeDecodeWorker implements PictureDecodeWorker {
 const BYTES = new Blob(["picture"]);
 const BITMAP = { width: 4, height: 3 } as ImageBitmap;
 
+/** A bitmap that records whether it was closed. */
+function closableBitmap(): { readonly bitmap: ImageBitmap; closed(): boolean } {
+  let closed = false;
+  const bitmap = {
+    width: 4,
+    height: 3,
+    close: () => {
+      closed = true;
+    },
+  } as ImageBitmap;
+  return { bitmap, closed: () => closed };
+}
+
 describe("WorkerPictureDecoder", () => {
   it("starts one worker on the first decode and resolves each request with its own reply", async () => {
     const workers: FakeDecodeWorker[] = [];
@@ -65,6 +78,31 @@ describe("WorkerPictureDecoder", () => {
     await expect(pending).rejects.toBeInstanceOf(PictureDecodeError);
     await expect(decoder.decode(BYTES)).rejects.toBeInstanceOf(PictureDecodeError);
     expect(worker.requests).toHaveLength(1);
+  });
+
+  it("terminates a worker that crashed", () => {
+    const worker = new FakeDecodeWorker();
+    const decoder = new WorkerPictureDecoder(() => worker);
+    decoder.decode(BYTES).catch(() => {
+      // The crash rejects it; this case is about the worker.
+    });
+
+    worker.crash();
+
+    expect(worker.terminated).toBe(true);
+  });
+
+  it("closes a decoded picture whose request was already rejected", async () => {
+    const worker = new FakeDecodeWorker();
+    const decoder = new WorkerPictureDecoder(() => worker);
+    const pending = decoder.decode(BYTES);
+    worker.onmessageerror?.(new MessageEvent("messageerror"));
+    const late = closableBitmap();
+
+    worker.reply({ id: worker.requests[0]?.id ?? -1, kind: "decoded", bitmap: late.bitmap });
+
+    await expect(pending).rejects.toBeInstanceOf(PictureDecodeError);
+    expect(late.closed()).toBe(true);
   });
 
   it("terminates the worker on dispose and rejects what it was decoding", async () => {

@@ -1,7 +1,11 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { openingOnly, PICTURE_ID } from "../testing/opened-pictures";
 import { BitmapLoader } from "./bitmap-loader";
-import { startPictureDecodeWorker, WorkerPictureDecoder } from "./worker-picture-decoder";
+import {
+  PictureDecodeError,
+  startPictureDecodeWorker,
+  WorkerPictureDecoder,
+} from "./worker-picture-decoder";
 
 const WIDE = { width: 32, height: 16 };
 
@@ -106,6 +110,6 @@ describe("BitmapLoader", () => {
   it("rejects a picture the browser cannot decode", async () => {
     const loader = loaderOpening(new Blob(["not a picture"], { type: "image/jpeg" }));
 
-    await expect(loader.load(PICTURE_ID)).rejects.toThrow();
+    await expect(loader.load(PICTURE_ID)).rejects.toBeInstanceOf(PictureDecodeError);
   });
 });

@@ -38,13 +38,6 @@ function nextEvent(target: EventTarget, type: string): Promise<Event> {
   return new Promise((resolve) => target.addEventListener(type, resolve, { once: true }));
 }
 
-/** Lets settled loads reach the player; only microtasks run, no time passes. */
-async function settleLoads(): Promise<void> {
-  for (let hop = 0; hop < 5; hop += 1) {
-    await Promise.resolve();
-  }
-}
-
 /** A player whose renderer charges the clock for uploads, with the show time of every frame drawn. */
 async function playerReadyToPlay() {
   const clock = new FakeClock();
@@ -83,8 +76,8 @@ describe("SlideshowPlayer preparing pictures", () => {
       frames.runFrame();
       if (pictures.requested.includes("c.jpg") && !pictures.completed.includes("c.jpg")) {
         pictures.complete("c.jpg");
+        await pictures.settled("c.jpg");
       }
-      await settleLoads();
     }
 
     expect(waits).toEqual([]);

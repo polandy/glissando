@@ -1,17 +1,17 @@
-import type { MusicOutput } from "./browser/music-output";
 import { BitmapLoader, type BitmapPicture } from "./browser/bitmap-loader";
-import { AudioElementMusic, animationFrames, performanceClock } from "./browser/platform";
+import type { MusicOutput } from "./browser/music-output";
 import {
   ImageElementLoader,
   type BrowserPicture,
   type OpenPicture,
 } from "./browser/picture-loader";
+import { AudioElementMusic, animationFrames, performanceClock } from "./browser/platform";
+import { startPictureDecodeWorker, WorkerPictureDecoder } from "./browser/worker-picture-decoder";
 import { DomRenderer } from "./dom/dom-renderer";
 import type { PictureLoader, SlideRenderer } from "./ports";
 import type { Slideshow } from "./slideshow";
 import { SlideshowPlayer } from "./slideshow-player";
 import { WebGlRenderer } from "./webgl/webgl-renderer";
-import { startPictureDecodeWorker, WorkerPictureDecoder } from "./browser/worker-picture-decoder";
 
 type WebGl2Context = (canvas: HTMLCanvasElement) => WebGL2RenderingContext | null;
 
@@ -106,9 +106,6 @@ function createDrawing(
   return {
     kind: "webgl",
     renderer: new WebGlRenderer(canvas, gl, onResize),
-    pictures:
-      openPicture === undefined
-        ? new BitmapLoader(decoder)
-        : new BitmapLoader(decoder, openPicture),
+    pictures: new BitmapLoader(decoder, openPicture),
   };
 }

@@ -37,7 +37,8 @@ export function startPictureDecodeWorker(): Worker {
 
 /**
  * Decodes in one worker, started on the first picture. Once the worker has crashed or sent a
- * reply that cannot be read, or was disposed, every decode rejects with `PictureDecodeError`.
+ * reply that cannot be read, or was disposed, it is terminated and every decode rejects with
+ * `PictureDecodeError`.
  */
 export class WorkerPictureDecoder implements PictureDecoder {
   readonly #startWorker: () => PictureDecodeWorker;
@@ -60,7 +61,6 @@ export class WorkerPictureDecoder implements PictureDecoder {
   }
 
   dispose(): void {
-    this.#worker?.terminate();
     this.#goneWith("The picture decoder was disposed");
   }
 
@@ -78,12 +78,15 @@ export class WorkerPictureDecoder implements PictureDecoder {
   #settle(reply: DecodeReply): void {
     const pending = this.#pending.get(reply.id);
     this.#pending.delete(reply.id);
-    if (reply.kind === "decoded") pending?.resolve(reply.bitmap);
-    else pending?.reject(new PictureDecodeError(reply.message));
+    if (reply.kind === "failed") pending?.reject(new PictureDecodeError(reply.message));
+    // A reply to a request already rejected is nobody's, so its bitmap is closed here.
+    else if (pending === undefined) reply.bitmap.close();
+    else pending.resolve(reply.bitmap);
   }
 
   #goneWith(message: string): void {
     this.#gone ??= new PictureDecodeError(message);
+    this.#worker?.terminate();
     for (const pending of this.#pending.values()) pending.reject(this.#gone);
     this.#pending.clear();
   }

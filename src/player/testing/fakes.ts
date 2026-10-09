@@ -56,11 +56,27 @@ export class FakePictureLoader implements PictureLoader<FakePicture> {
   readonly completed: string[] = [];
   disposed = false;
   #pending = new Map<string, PendingLoad>();
+  readonly #loads = new Map<string, Promise<FakePicture>>();
   #releaseListeners: ((src: string) => void)[] = [];
 
   load(src: string): Promise<FakePicture> {
     this.requested.push(src);
-    return new Promise((resolve, reject) => this.#pending.set(src, { resolve, reject }));
+    const loading = new Promise<FakePicture>((resolve, reject) =>
+      this.#pending.set(src, { resolve, reject }),
+    );
+    this.#loads.set(src, loading);
+    return loading;
+  }
+  /**
+   * Resolves once everyone who awaited the latest load of `src` before this call has seen it
+   * settle: promise reactions run in the order they were registered.
+   */
+  async settled(src: string): Promise<void> {
+    const loading = this.#loads.get(src);
+    if (loading === undefined) {
+      throw new Error(`no load of ${src}; requested: ${this.requested.join(", ")}`);
+    }
+    await loading.catch(() => undefined);
   }
   release(picture: FakePicture): void {
     this.released.push(picture.src);
