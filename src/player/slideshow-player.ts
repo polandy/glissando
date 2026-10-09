@@ -67,10 +67,7 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
   set currentTime(seconds: number) {
     this.#assertAlive();
     this.#stopAdvancing();
-    this.#timeMs = Math.min(
-      this.#timeline.durationMs,
-      Math.max(0, seconds * MILLISECONDS_PER_SECOND),
-    );
+    this.#timeMs = this.#clampedMs(seconds);
     this.#ended = false;
     const announceSeeked = () => {
       this.#emit("seeked");
@@ -146,6 +143,25 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
     this.#captionInset.jumpTo(cssPixels);
   }
 
+  /**
+   * For the video export: pauses without events, moves to `seconds` (clamped), waits for that
+   * frame's pictures, draws it and prepares the upcoming ones. Rejects with the load's error.
+   */
+  async renderAt(seconds: number): Promise<void> {
+    this.#assertAlive();
+    this.#stopAdvancing();
+    this.#paused = true;
+    this.#ended = false;
+    this.#timeMs = this.#clampedMs(seconds);
+    const generation = this.#generation;
+    await this.#pictures.loadAroundScreen();
+    if (this.#destroyed || generation !== this.#generation) {
+      throw new Error(`the frame at ${seconds} s was superseded before it was drawn`);
+    }
+    this.#renderCurrentFrame();
+    this.#pictures.prepareUpcoming();
+  }
+
   /** Draws the current frame again, e.g. after the viewport changed size. */
   redraw(): void {
     if (!this.#destroyed && this.#pictures.areOnScreenLoaded()) {
@@ -165,6 +181,10 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
     this.#deps.pictures.dispose();
     this.#music?.dispose();
     this.#deps.renderer.dispose();
+  }
+
+  #clampedMs(seconds: number): number {
+    return Math.min(this.#timeline.durationMs, Math.max(0, seconds * MILLISECONDS_PER_SECOND));
   }
 
   #liveTimeMs(): number {
@@ -267,10 +287,7 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
   }
 
   #draw(): void {
-    this.#deps.renderer.setCaptionInset(this.#captionInset.current);
-    this.#deps.renderer.render(
-      renderFrame(this.#currentFrame(), this.#slideshow, (index) => this.#pictures.get(index)),
-    );
+    this.#renderCurrentFrame();
     this.#pictures.loadAroundScreen().catch(() => {
       // The buffer retries a failed picture and reports it once the frame needs it.
     });
@@ -278,6 +295,13 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
       this.#ready = true;
       this.#emit("canplay");
     }
+  }
+
+  #renderCurrentFrame(): void {
+    this.#deps.renderer.setCaptionInset(this.#captionInset.current);
+    this.#deps.renderer.render(
+      renderFrame(this.#currentFrame(), this.#slideshow, (index) => this.#pictures.get(index)),
+    );
   }
 
   #emit(type: PlayerEvent): void {
