@@ -194,7 +194,7 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
     and "End" carry their time ("0:12,0"); dragging one, or grabbing the waveform anywhere (the
     nearer handle follows, keeping the grab's offset), moves it in tenths of a second, live,
     and stores it on release; as sliders the arrow keys move a tenth, with Shift a second. The
-    excerpt stays at least 5 s. A time ruler below. Then the lane "Slideshow, 24 pictures" with
+    excerpt stays at least 5 s; a track shorter than that stays whole. A time ruler below. Then the lane "Slideshow, 24 pictures" with
     its length: a mint bar from the excerpt's start for as long as the slideshow plays, a tick
     per picture change, lemon hatching past the excerpt's end when the pictures play on in
     silence; when the slideshow ends earlier, the waveform is hatched from there to the

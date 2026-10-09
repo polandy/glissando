@@ -17,7 +17,7 @@ const SIGN: Readonly<Record<TrimStepDirection, number>> = { earlier: -1, later: 
 
 /**
  * `trim` with `edge` moved to `atMs`, snapped, within the track and keeping the excerpt at least
- * `MIN_MUSIC_EXCERPT_MS` long; the other edge stays.
+ * `MIN_MUSIC_EXCERPT_MS` long; the other edge stays. A track shorter than that stays whole.
  */
 export function moveTrimEdge(
   trim: MusicTrim,
@@ -25,6 +25,9 @@ export function moveTrimEdge(
   atMs: number,
   durationMs: number,
 ): MusicTrim {
+  if (durationMs < MIN_MUSIC_EXCERPT_MS) {
+    return trim;
+  }
   const snapped = Math.round(atMs / TRIM_SNAP_MS) * TRIM_SNAP_MS;
   return edge === "start"
     ? { ...trim, startMs: clamp(snapped, 0, trim.endMs - MIN_MUSIC_EXCERPT_MS) }

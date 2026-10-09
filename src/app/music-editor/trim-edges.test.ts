@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   ARROW_STEP_MS,
   ARROW_STEP_LARGE_MS,
+  canStepTrimEdge,
   moveTrimEdge,
   nearerEdge,
   stepTrimEdge,
@@ -33,6 +34,15 @@ describe("moveTrimEdge", () => {
       endMs: 150_000,
     });
     expect(moveTrimEdge(TRIM, "end", 13_000, TRACK_MS)).toEqual({ startMs: 12_000, endMs: 17_000 });
+  });
+
+  it("leaves a track shorter than 5 s whole, as no excerpt of it is long enough", () => {
+    const shortTrack = { startMs: 0, endMs: 3000 };
+
+    expect(moveTrimEdge(shortTrack, "start", 1000, 3000)).toEqual(shortTrack);
+    expect(moveTrimEdge(shortTrack, "end", 2000, 3000)).toEqual(shortTrack);
+    expect(canStepTrimEdge(shortTrack, "start", "later", 3000)).toBe(false);
+    expect(canStepTrimEdge(shortTrack, "end", "earlier", 3000)).toBe(false);
   });
 });
 
