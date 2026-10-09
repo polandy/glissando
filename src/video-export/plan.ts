@@ -131,3 +131,13 @@ export function packetCountBounds(frames: number): {
     audio: Math.ceil(durationMs / AUDIO_PACKET_MIN_MS) + AUDIO_PACKET_SLACK,
   };
 }
+
+/** Characters Windows, macOS or the origin private file system refuse in a file name. */
+const UNSAFE_FILE_NAME_CHARACTERS = /[/\\:*?"<>|]/g;
+const SAFE_REPLACEMENT = "-";
+
+/** "<title> (1080p).mp4" */
+export function exportFileName(title: string, preset: PresetId): string {
+  const safeTitle = title.replace(UNSAFE_FILE_NAME_CHARACTERS, SAFE_REPLACEMENT);
+  return `${safeTitle} (${presetById(preset).fileNameLabel}).mp4`;
+}

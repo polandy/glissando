@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   audioSegments,
   estimatedBytes,
+  exportFileName,
   frameCount,
   frameDurationUs,
   frameTimeSeconds,
@@ -111,5 +112,17 @@ describe("video export packet-count bounds", () => {
     const opusPackets = Math.ceil(340 / 0.02);
     expect(audio).toBeGreaterThanOrEqual(34_000);
     expect(audio).toBeGreaterThan(Math.max(aacPackets, opusPackets));
+  });
+});
+
+describe("video export file name", () => {
+  it("is the title with the preset: <title> (4K).mp4", () => {
+    expect(exportFileName("Sommer 2025", "4k")).toBe("Sommer 2025 (4K).mp4");
+  });
+
+  it("replaces characters no file name may hold", () => {
+    expect(exportFileName('Paris/Rom: "Best of"?', "720p")).toBe(
+      "Paris-Rom- -Best of-- (720p).mp4",
+    );
   });
 });
