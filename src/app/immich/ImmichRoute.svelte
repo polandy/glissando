@@ -6,6 +6,7 @@
   import { getTranslator } from "../i18n/context";
   import AlbumGrid from "./AlbumGrid.svelte";
   import AlbumView from "./AlbumView.svelte";
+  import BrowseFailed from "./BrowseFailed.svelte";
   import BrowseState from "./BrowseState.svelte";
   import { browserEndObserver, type EndObserver } from "./end-observer";
   import type { BrowserTab, ImmichBrowser } from "./immich-browser";
@@ -22,6 +23,7 @@
     onOpenAlbum,
     onAdd,
     onError,
+    onReload,
     observeEnd = browserEndObserver,
   }: {
     browser: ImmichBrowser;
@@ -33,6 +35,8 @@
     onOpenAlbum: (album: ImmichAlbum) => void;
     onAdd: (photos: readonly ImmichPhoto[]) => void;
     onError: (error: unknown) => void;
+    /** Reloads the app: the remedy for an expired sign-in at the owner's proxy. */
+    onReload: () => void;
     observeEnd?: EndObserver;
   } = $props();
 
@@ -73,6 +77,10 @@
     browser.toggleAlbum(target.id).catch(onError);
   }
 
+  function retryAlbums(): void {
+    browser.retryAlbums().catch(onError);
+  }
+
   function add(): void {
     const photos = browser.selection.photos();
     browser.selection.clear();
@@ -90,6 +98,7 @@
       shown === null ? browser.selection.toggle(photo) : browser.selection.extendTo(photo, shown)}
     onSelectDay={selectDay}
     {onError}
+    {onReload}
   />
 {/snippet}
 
@@ -103,10 +112,21 @@
           feed={browser.albumFeed(album.id)}
           membership={browserState.membership.get(album.id)}
           busy={browserState.busyAlbumIds.has(album.id)}
+          failure={browserState.albumFailures.get(album.id) ?? null}
           {selectedIds}
           onToggleAll={() => toggleAlbum(album)}
           {feedView}
         />
+      {:else if browserState.albumsFailure !== null}
+        <BrowseFailed failure={browserState.albumsFailure} onRetry={retryAlbums} {onReload} />
+      {:else if browserState.albums === null}
+        <BrowseState icon="image" title={t("immich.loadingAlbum")} />
+      {:else}
+        <BrowseState icon="image" title={t("immich.albumGone")}>
+          {#snippet action()}
+            <button class="btn" type="button" onclick={onBack}>{t("immich.backToAlbums")}</button>
+          {/snippet}
+        </BrowseState>
       {/if}
     {:else}
       <div class="browse-head">
@@ -140,18 +160,8 @@
       </div>
       {#if browserState.tab === "photos"}
         {@render feedView(browser.library)}
-      {:else if browserState.albumsFailed}
-        <BrowseState
-          icon="alert"
-          title={t("immich.notAnswering")}
-          text={t("immich.notAnsweringText")}
-        >
-          {#snippet action()}
-            <button class="btn" type="button" onclick={() => browser.retryAlbums().catch(onError)}>
-              {t("immich.tryAgain")}
-            </button>
-          {/snippet}
-        </BrowseState>
+      {:else if browserState.albumsFailure !== null}
+        <BrowseFailed failure={browserState.albumsFailure} onRetry={retryAlbums} {onReload} />
       {:else}
         {@const shown =
           browserState.albums === null ? null : filterAlbums(browserState.albums, filter)}
@@ -166,6 +176,7 @@
             albums={shown}
             membership={browserState.membership}
             busyAlbumIds={browserState.busyAlbumIds}
+            albumFailures={browserState.albumFailures}
             {selectedIds}
             {thumbnailUrl}
             onOpen={onOpenAlbum}

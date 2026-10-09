@@ -3,7 +3,7 @@
   import { groupByDay } from "../../immich/photo-days";
   import type { PhotoFeed } from "../../immich/photo-feed";
   import { getTranslator } from "../i18n/context";
-  import BrowseState from "./BrowseState.svelte";
+  import BrowseFailed from "./BrowseFailed.svelte";
   import type { EndObserver } from "./end-observer";
   import PhotoDays from "./PhotoDays.svelte";
 
@@ -16,6 +16,7 @@
     onToggle,
     onSelectDay,
     onError,
+    onReload,
   }: {
     feed: PhotoFeed;
     selectedIds: ReadonlySet<string>;
@@ -24,6 +25,7 @@
     onToggle: (photo: ImmichPhoto, shown: readonly ImmichPhoto[] | null) => void;
     onSelectDay: (photos: readonly ImmichPhoto[], select: boolean) => void;
     onError: (error: unknown) => void;
+    onReload: () => void;
   } = $props();
 
   const SHIMMER_TILES = 8;
@@ -56,14 +58,12 @@
 
 <PhotoDays {days} {selectedIds} {thumbnailUrl} {onToggle} {onSelectDay} />
 
-{#if feedState.failed}
-  <BrowseState icon="alert" title={t("immich.notAnswering")} text={t("immich.notAnsweringText")}>
-    {#snippet action()}
-      <button class="btn" type="button" onclick={() => feed.retry().catch(onError)}>
-        {t("immich.tryAgain")}
-      </button>
-    {/snippet}
-  </BrowseState>
+{#if feedState.failure !== null}
+  <BrowseFailed
+    failure={feedState.failure}
+    onRetry={() => feed.retry().catch(onError)}
+    {onReload}
+  />
 {:else if feedState.done}
   {#if feedState.photos.length > 0}
     <p class="end">

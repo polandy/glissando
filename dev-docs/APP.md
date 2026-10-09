@@ -302,8 +302,13 @@ gesture (which cannot be stopped) keeps it, and "New slideshow" resumes it.
   imported as a picture. Above that box, when this Glissando offers Immich (below), a box "From
   Immich" with "Open Immich" opens the Immich browser; offline it is greyed out ("Offline — Immich
   needs a connection to your Glissando server …"), with an Immich problem it names it and offers
-  "Settings". Photos added from Immich join the same import: the same progress ("loaded from
-  Immich"), tiles, notices and "Next"; "add more" then also offers "more from Immich".
+  "Settings". Photos added from Immich join the same import: the same progress ("n / m pictures
+  being downsized …"), tiles, notices and "Next"; "add more" then also offers "more from Immich".
+  A photo whose original or preview Immich does not deliver (e.g. a 404 for one deleted in Immich
+  after browsing) is skipped as not downloaded and the import goes on; when only its faces fail,
+  it is kept without a focus (the on-device pass looks for one) and the error is logged. An Immich
+  problem met on the way (e.g. a rejected key) is reported to `ImmichAvailability`, so the Immich
+  box and the settings name it.
 - **Music** (optional): a drop zone with "Choose music" (`audio/*`); a file the browser cannot
   play is a coral toast with "Retry", which reopens the picker. Chosen music is a card (music icon, file
   name, m:ss · format, a close button removes it, and a strip of the pictures' thumbnails
@@ -320,7 +325,10 @@ its container, the app has no key field. `immich/immich-availability.ts` asks
 `./immich/api/server/version` when the app opens, when the pictures step opens and on "Check
 again", and publishes an `ImmichStatus` (`src/immich/immich-client.ts`): available, not set up
 (the Immich box stays hidden), offline, Immich unreachable from the server, key rejected,
-permission missing, sign-in expired (the owner's proxy redirected).
+permission missing, sign-in expired (the owner's proxy redirected). If the version answer does
+not match Immich's API, the error is reported and the status stays "checking". A problem a request
+meets while browsing or importing is published at once (`report(kind)`); the next check may clear
+it.
 
 `immich/ImmichRoute.svelte`, under the crumbs "New slideshow / Pictures / Immich" (an album adds
 its name), opened from the pictures step; ← goes back a level (album → albums → pictures step),
@@ -346,10 +354,19 @@ feeds read so far for as long as the import session lives (`App.svelte` makes on
   re-aims from the same photo. The footer reads "n selected (from k albums, when k ≥ 2)" or "Tap photos or
   pick a whole album", with "Clear selection" and "Add n", which returns to the pictures step and
   adds them to the import.
-- A failing request shows "Immich isn't answering" with "Try again"; the selection stays.
+- A failing request names its problem with "Try again" ("Reload" for an expired sign-in, which
+  only a reload brings back); the selection stays. Immich unreachable
+  (or an unexpected error) reads "Immich isn't answering"; a problem the user can act on reads
+  "Immich can't be used right now" with its one line from the settings (e.g. "Immich rejects the
+  server's key."). A failed whole-album select fails that album only: its card, or the album
+  view under "Select all", shows the line, and the next toggle tries again. A toggle while the
+  album's photos are being fetched is ignored, and a photo deselected meanwhile stays deselected.
+  The album route shows "Loading the album …" while the albums load, and their failure with "Try
+  again"; an album no longer in Immich reads "This album is no longer in Immich" with "Back to
+  albums".
 
-**Settings** shows a read-only "Immich" group: "Through this Glissando server · Immich v ·
-n albums" when available; "Not set up" with "How to set it up" (the self-hosting guide) when not;
+**Settings** shows a read-only "Immich" group: "Through this Glissando server · Immich 3.3.1 ·
+n albums" (the server's version) when available; "Not set up" with "How to set it up" (the self-hosting guide) when not;
 otherwise the problem in one line ("The Glissando backend cannot reach the Immich server.", "Immich
 rejects the server's key.", "The server's key lacks permissions." naming the five, "Your sign-in
 has expired.") with "Check again" (or "Reload" for the sign-in). The cause in detail is in the
@@ -453,7 +470,8 @@ its update rule: ADR-0005. Web app manifest and icons in `public/`; the PNG icon
 
 Routes: `start`, `settings`, `slideshow(id)`, `import(pictures | music)`, `immich(albumId | null)`
 (below the pictures step; an album below the browser), `player(slideshowId)`,
-`picture(slideshowId, pictureId)`, `music(slideshowId)` — three levels; the player is a modal
+`picture(slideshowId, pictureId)`, `music(slideshowId)` — four levels at most (start → import →
+Immich browser → album); the player is a modal
 layer over its slideshow, the settings sheet one over start, the picture and music editors
 screens below their slideshow
 (‹ and › replace its history entry with the neighbour's, so back still leads to the slideshow). `navigation/navigator.ts`:

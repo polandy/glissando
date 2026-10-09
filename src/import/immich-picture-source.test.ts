@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
+  ImmichRequestFailedError,
   ImmichUnavailableError,
   type ImmichFace,
   type ImmichPhoto,
   type ImmichThumbnailSize,
+  type ImmichUnavailableKind,
 } from "../immich/immich-client";
 import type { DecodedPicture } from "./downscale";
 import { immichPictureSource } from "./immich-picture-source";
@@ -62,7 +64,19 @@ async function decode(file: File): Promise<DecodedPicture> {
   };
 }
 
-const sourceFor = (client: FakeImmichClient) => immichPictureSource(PHOTO, { client, decode });
+function setUp(client = new FakeImmichClient()) {
+  const reported: ImmichUnavailableKind[] = [];
+  const logged: unknown[] = [];
+  const source = immichPictureSource(PHOTO, {
+    client,
+    decode,
+    reportUnavailable: (kind) => reported.push(kind),
+    log: (error) => logged.push(error),
+  });
+  return { client, reported, logged, source };
+}
+
+const sourceFor = (client: FakeImmichClient) => setUp(client).source;
 
 describe("immichPictureSource", () => {
   it("is named after the photo's file and counts as a picture, as Immich lists photos only", () => {
@@ -114,28 +128,69 @@ describe("immichPictureSource", () => {
     await expect(sourceFor(client).read()).rejects.toBeInstanceOf(UnreadablePictureError);
   });
 
-  it.each(["original", "thumbnail", "faces"] as const)(
-    "is not downloaded when Immich is unavailable for the %s, keeping the cause",
+  it.each(["original", "thumbnail"] as const)(
+    "is not downloaded when Immich is unavailable for the %s, keeping the cause and telling why",
     async (call) => {
-      const client = new FakeImmichClient();
+      const { client, reported, logged, source } = setUp();
       client.original_ = new Blob([UNDECODABLE], { type: "image/heic" });
-      const unavailable = new ImmichUnavailableError("offline");
+      const unavailable = new ImmichUnavailableError("keyRejected");
       client.fails[call] = unavailable;
 
-      const failure: unknown = await sourceFor(client)
-        .read()
-        .catch((error: unknown) => error);
+      const failure: unknown = await source.read().catch((error: unknown) => error);
 
       expect(failure).toBeInstanceOf(PictureNotDownloadedError);
       expect((failure as PictureNotDownloadedError).cause).toBe(unavailable);
+      expect(reported).toEqual(["keyRejected"]);
+      expect(logged).toEqual([]);
     },
   );
 
-  it("lets an unexpected client error through as it is", async () => {
-    const client = new FakeImmichClient();
-    const unexpected = new Error("an answer that does not match the Immich API");
-    client.fails.faces = unexpected;
+  it.each([
+    ["original", 404],
+    ["original", 500],
+    ["thumbnail", 400],
+  ] as const)(
+    "is not downloaded when Immich answers the %s with %i, keeping the cause",
+    async (call, code) => {
+      const { client, reported, source } = setUp();
+      client.original_ = new Blob([UNDECODABLE], { type: "image/heic" });
+      const failed = new ImmichRequestFailedError(`GET ${call}`, code);
+      client.fails[call] = failed;
 
-    await expect(sourceFor(client).read()).rejects.toBe(unexpected);
+      const failure: unknown = await source.read().catch((error: unknown) => error);
+
+      expect(failure).toBeInstanceOf(PictureNotDownloadedError);
+      expect((failure as PictureNotDownloadedError).cause).toBe(failed);
+      expect(reported).toEqual([]);
+    },
+  );
+
+  it.each([
+    ["Immich is unavailable", new ImmichUnavailableError("unreachable"), ["unreachable"]],
+    ["Immich answers 404", new ImmichRequestFailedError("GET faces", 404), []],
+    ["the answer does not match Immich's API", new Error("not Immich's shape"), []],
+  ])(
+    "keeps a decoded picture without focus and logs the error when its faces fail as %s",
+    async (_name, error, expectedReports) => {
+      const { client, reported, logged, source } = setUp();
+      client.fails.faces = error;
+
+      const read = await source.read();
+
+      expect(await read.decoded.display.text()).toBe(
+        "original bytes as IMG_0001.HEIC (image/heic)",
+      );
+      expect(read.focus).toBeNull();
+      expect(logged).toEqual([error]);
+      expect(reported).toEqual(expectedReports);
+    },
+  );
+
+  it("lets an unexpected error of the original through as it is", async () => {
+    const { client, source } = setUp();
+    const unexpected = new Error("an answer that does not match the Immich API");
+    client.fails.original = unexpected;
+
+    await expect(source.read()).rejects.toBe(unexpected);
   });
 });

@@ -4,6 +4,7 @@ import { photo } from "../../immich/testing/fake-immich-client";
 import {
   albumPick,
   albumsWithSelection,
+  browseFailureMessages,
   filterAlbums,
   immichBox,
   immichSettings,
@@ -119,5 +120,29 @@ describe("albumsWithSelection", () => {
     ]);
 
     expect(albumsWithSelection(membership, new Set(["b", "c", "x"]))).toBe(2);
+  });
+});
+
+describe("browseFailureMessages", () => {
+  it.each([
+    ["unexpected", "immich.notAnswering", "immich.notAnsweringText", "immich.notAnswering"],
+    ["unreachable", "immich.notAnswering", "immich.notAnsweringText", "immich.notAnswering"],
+    ["notSetUp", "immich.notAnswering", "immich.notAnsweringText", "immich.notAnswering"],
+    ["offline", "immich.unusable", "immich.problemOffline", "immich.problemOffline"],
+    ["keyRejected", "immich.unusable", "immich.problemKeyRejected", "immich.problemKeyRejected"],
+    [
+      "permissionMissing",
+      "immich.unusable",
+      "immich.problemPermissionMissing",
+      "immich.problemPermissionMissing",
+    ],
+    [
+      "signInExpired",
+      "immich.unusable",
+      "immich.problemSignInExpired",
+      "immich.problemSignInExpired",
+    ],
+  ] as const)("tells a %s failure with %s, %s and the line %s", (failure, title, text, line) => {
+    expect(browseFailureMessages(failure)).toEqual({ title, text, line });
   });
 });

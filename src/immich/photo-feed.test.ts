@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ImmichUnavailableError } from "./immich-client";
+import { ImmichUnavailableError, type ImmichUnavailableKind } from "./immich-client";
 import { PhotoFeed, type PhotoFeedState } from "./photo-feed";
 import { FakeImmichClient, photo } from "./testing/fake-immich-client";
 
@@ -8,17 +8,21 @@ const SECOND = [photo("c")];
 
 function setUp(albumId?: string) {
   const client = new FakeImmichClient();
-  const feed = new PhotoFeed(albumId === undefined ? { client } : { client, albumId });
+  const reported: ImmichUnavailableKind[] = [];
+  const reportUnavailable = (kind: ImmichUnavailableKind) => reported.push(kind);
+  const feed = new PhotoFeed(
+    albumId === undefined ? { client, reportUnavailable } : { client, reportUnavailable, albumId },
+  );
   const seen: PhotoFeedState[] = [];
   feed.subscribe((state) => seen.push(state));
-  return { client, feed, seen };
+  return { client, feed, seen, reported };
 }
 
 describe("PhotoFeed", () => {
   it("starts empty, not loading, and tells a subscriber at once", () => {
     const { feed, seen } = setUp();
 
-    const empty = { photos: [], loading: false, done: false, failed: false };
+    const empty = { photos: [], loading: false, done: false, failure: null };
     expect(feed.state).toEqual(empty);
     expect(seen).toEqual([empty]);
   });
@@ -35,7 +39,7 @@ describe("PhotoFeed", () => {
       photos: [...FIRST, ...SECOND],
       loading: false,
       done: true,
-      failed: false,
+      failure: null,
     });
   });
 
@@ -84,16 +88,17 @@ describe("PhotoFeed", () => {
     expect(client.photoQueries).toEqual([{ page: 1 }]);
   });
 
-  it("fails when Immich is unavailable, keeps what it has, and ignores loadMore", async () => {
-    const { client, feed } = setUp();
+  it("fails with the problem Immich met, reports it, keeps what it has, and ignores loadMore", async () => {
+    const { client, feed, reported } = setUp();
     client.photoAnswers.push({ photos: FIRST, nextPage: 2 }, new ImmichUnavailableError("offline"));
     await feed.loadMore();
 
     await feed.loadMore();
     await feed.loadMore();
 
-    expect(feed.state).toEqual({ photos: FIRST, loading: false, done: false, failed: true });
+    expect(feed.state).toEqual({ photos: FIRST, loading: false, done: false, failure: "offline" });
     expect(client.photoQueries).toEqual([{ page: 1 }, { page: 2 }]);
+    expect(reported).toEqual(["offline"]);
   });
 
   it("asks for the failed page again on retry", async () => {
@@ -105,15 +110,16 @@ describe("PhotoFeed", () => {
     await feed.retry();
 
     expect(client.photoQueries).toEqual([{ page: 1 }, { page: 1 }]);
-    expect(feed.state).toEqual({ photos: FIRST, loading: false, done: true, failed: false });
+    expect(feed.state).toEqual({ photos: FIRST, loading: false, done: true, failure: null });
   });
 
-  it("fails and rethrows an answer that does not match Immich's API", async () => {
-    const { client, feed } = setUp();
+  it("fails as unexpected and rethrows an answer that does not match Immich's API", async () => {
+    const { client, feed, reported } = setUp();
     const mismatch = new Error('POST api/search/metadata answered with "assets" that is not ...');
     client.photoAnswers.push(mismatch);
 
     await expect(feed.loadMore()).rejects.toBe(mismatch);
-    expect(feed.state.failed).toBe(true);
+    expect(feed.state.failure).toBe("unexpected");
+    expect(reported).toEqual([]);
   });
 });

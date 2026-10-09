@@ -2,6 +2,11 @@ import type { ImmichClient, ImmichPhoto } from "./immich-client";
 
 const FIRST_PAGE = 1;
 
+export interface DeselectionWatch {
+  readonly ids: ReadonlySet<string>;
+  stop(): void;
+}
+
 /**
  * The photos picked for an import, across tabs and albums, in the order they were picked; each
  * keeps its data for the import. Published with the Svelte store contract as that list.
@@ -9,6 +14,7 @@ const FIRST_PAGE = 1;
 export class PhotoSelection {
   readonly #photos = new Map<string, ImmichPhoto>();
   readonly #listeners = new Set<(photos: readonly ImmichPhoto[]) => void>();
+  readonly #deselectionWatches = new Set<Set<string>>();
   /** The photo last toggled on its own: where a shift-click's range starts. */
   #anchor: ImmichPhoto | null = null;
 
@@ -30,8 +36,16 @@ export class PhotoSelection {
     return () => this.#listeners.delete(listener);
   }
 
+  /** Collects the ids of the photos deselected from now until `stop()`. */
+  watchDeselections(): DeselectionWatch {
+    const ids = new Set<string>();
+    this.#deselectionWatches.add(ids);
+    return { ids, stop: () => this.#deselectionWatches.delete(ids) };
+  }
+
   toggle(photo: ImmichPhoto): void {
-    if (!this.#photos.delete(photo.id)) this.#photos.set(photo.id, photo);
+    if (this.#photos.delete(photo.id)) this.#noteDeselected([photo.id]);
+    else this.#photos.set(photo.id, photo);
     this.#anchor = photo;
     this.#publish();
   }
@@ -61,14 +75,20 @@ export class PhotoSelection {
 
   deselectAll(photos: readonly ImmichPhoto[]): void {
     const removed = photos.filter(({ id }) => this.#photos.delete(id));
+    this.#noteDeselected(removed.map(({ id }) => id));
     if (removed.length > 0) this.#publish();
   }
 
   clear(): void {
     this.#anchor = null;
     if (this.#photos.size === 0) return;
+    this.#noteDeselected([...this.#photos.keys()]);
     this.#photos.clear();
     this.#publish();
+  }
+
+  #noteDeselected(photoIds: readonly string[]): void {
+    for (const watch of this.#deselectionWatches) for (const id of photoIds) watch.add(id);
   }
 
   #publish(): void {

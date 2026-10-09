@@ -1,9 +1,10 @@
 import {
-  ImmichUnavailableError,
-  type ImmichAlbum,
-  type ImmichClient,
-  type ImmichPhoto,
-} from "../../immich/immich-client";
+  browseFailureOf,
+  UNEXPECTED_FAILURE,
+  type BrowseFailure,
+  type ReportUnavailable,
+} from "../../immich/browse-failure";
+import type { ImmichAlbum, ImmichClient, ImmichPhoto } from "../../immich/immich-client";
 import { PhotoFeed } from "../../immich/photo-feed";
 import { allAlbumPhotos, PhotoSelection } from "../../immich/photo-selection";
 import type { AlbumMembership } from "./immich-view";
@@ -14,16 +15,19 @@ export interface ImmichBrowserState {
   readonly tab: BrowserTab;
   /** Null until the albums have arrived. */
   readonly albums: readonly ImmichAlbum[] | null;
-  /** The last album request failed; `retryAlbums()` asks again. */
-  readonly albumsFailed: boolean;
+  /** Why the last album request failed, or null; `retryAlbums()` asks again. */
+  readonly albumsFailure: BrowseFailure | null;
   /** Albums whose photos are being fetched to select them all. */
   readonly busyAlbumIds: ReadonlySet<string>;
+  /** Why an album's last whole-album select failed; its next toggle tries again. */
+  readonly albumFailures: ReadonlyMap<string, BrowseFailure>;
   /** What is known of each album's photos, for its badge and the footer's "from k albums". */
   readonly membership: ReadonlyMap<string, AlbumMembership>;
 }
 
 export interface ImmichBrowserOptions {
   readonly client: ImmichClient;
+  readonly reportUnavailable: ReportUnavailable;
 }
 
 /**
@@ -35,6 +39,7 @@ export class ImmichBrowser {
   readonly selection = new PhotoSelection();
   readonly library: PhotoFeed;
   readonly #client: ImmichClient;
+  readonly #reportUnavailable: ReportUnavailable;
   readonly #listeners = new Set<(state: ImmichBrowserState) => void>();
   readonly #albumFeeds = new Map<string, PhotoFeed>();
   readonly #albumPhotos = new Map<string, Map<string, ImmichPhoto>>();
@@ -43,14 +48,16 @@ export class ImmichBrowser {
   #state: ImmichBrowserState = {
     tab: "photos",
     albums: null,
-    albumsFailed: false,
+    albumsFailure: null,
     busyAlbumIds: new Set(),
+    albumFailures: new Map(),
     membership: new Map(),
   };
 
   constructor(options: ImmichBrowserOptions) {
     this.#client = options.client;
-    this.library = new PhotoFeed({ client: options.client });
+    this.#reportUnavailable = options.reportUnavailable;
+    this.library = new PhotoFeed(options);
   }
 
   get state(): ImmichBrowserState {
@@ -69,13 +76,15 @@ export class ImmichBrowser {
 
   /** Asks for the albums unless they are here, on their way, or failed (see `retryAlbums`). */
   loadAlbums(): Promise<void> {
-    if (this.#state.albums !== null || this.#state.albumsFailed) return Promise.resolve();
+    if (this.#state.albums !== null || this.#state.albumsFailure !== null) {
+      return Promise.resolve();
+    }
     this.#albumsLoad ??= this.#fetchAlbums().finally(() => (this.#albumsLoad = null));
     return this.#albumsLoad;
   }
 
   retryAlbums(): Promise<void> {
-    if (this.#state.albumsFailed) this.#publish({ ...this.#state, albumsFailed: false });
+    if (this.#state.albumsFailure !== null) this.#publish({ ...this.#state, albumsFailure: null });
     return this.loadAlbums();
   }
 
@@ -83,14 +92,21 @@ export class ImmichBrowser {
   albumFeed(albumId: string): PhotoFeed {
     let feed = this.#albumFeeds.get(albumId);
     if (feed === undefined) {
-      feed = new PhotoFeed({ client: this.#client, albumId });
+      feed = new PhotoFeed({
+        client: this.#client,
+        reportUnavailable: this.#reportUnavailable,
+        albumId,
+      });
       this.#albumFeeds.set(albumId, feed);
       feed.subscribe(({ photos, done }) => this.#learn(albumId, photos, done));
     }
     return feed;
   }
 
-  /** Selects every photo of the album, or deselects them when all already are. */
+  /**
+   * Selects every photo of the album, or deselects them when all already are. A toggle while the
+   * album's photos are being fetched is ignored; a photo deselected meanwhile stays deselected.
+   */
   async toggleAlbum(albumId: string): Promise<void> {
     if (this.#state.busyAlbumIds.has(albumId)) return;
     const known = this.#albumPhotos.get(albumId);
@@ -104,14 +120,18 @@ export class ImmichBrowser {
       return;
     }
     this.#setBusy(albumId, true);
+    this.#setAlbumFailure(albumId, null);
+    const deselected = this.selection.watchDeselections();
     try {
       const photos = await allAlbumPhotos(this.#client, albumId);
       this.#learn(albumId, photos, true);
-      this.selection.selectAll(photos);
+      this.selection.selectAll(photos.filter(({ id }) => !deselected.ids.has(id)));
     } catch (error) {
-      if (!(error instanceof ImmichUnavailableError)) throw error;
-      this.#publish({ ...this.#state, albumsFailed: true });
+      const failure = browseFailureOf(error, this.#reportUnavailable);
+      this.#setAlbumFailure(albumId, failure);
+      if (failure === UNEXPECTED_FAILURE) throw error;
     } finally {
+      deselected.stop();
       this.#setBusy(albumId, false);
     }
   }
@@ -119,11 +139,12 @@ export class ImmichBrowser {
   async #fetchAlbums(): Promise<void> {
     try {
       const albums = await this.#client.albums();
-      this.#publish({ ...this.#state, albums, albumsFailed: false });
+      this.#publish({ ...this.#state, albums, albumsFailure: null });
     } catch (error) {
-      this.#publish({ ...this.#state, albumsFailed: true });
-      // Unavailability is shown as "failed"; anything else is a bug to surface, not hide.
-      if (!(error instanceof ImmichUnavailableError)) throw error;
+      const albumsFailure = browseFailureOf(error, this.#reportUnavailable);
+      this.#publish({ ...this.#state, albumsFailure });
+      // An Immich problem is shown as the failure; anything else is a bug to surface, not hide.
+      if (albumsFailure === UNEXPECTED_FAILURE) throw error;
     }
   }
 
@@ -141,6 +162,14 @@ export class ImmichBrowser {
       complete: this.#completeAlbums.has(albumId),
     });
     this.#publish({ ...this.#state, membership });
+  }
+
+  #setAlbumFailure(albumId: string, failure: BrowseFailure | null): void {
+    if (failure === null && !this.#state.albumFailures.has(albumId)) return;
+    const albumFailures = new Map(this.#state.albumFailures);
+    if (failure === null) albumFailures.delete(albumId);
+    else albumFailures.set(albumId, failure);
+    this.#publish({ ...this.#state, albumFailures });
   }
 
   #setBusy(albumId: string, busy: boolean): void {

@@ -1,87 +1,10 @@
 import { flushSync } from "svelte";
 import { afterEach, describe, expect, it } from "vitest";
-import {
-  ImmichUnavailableError,
-  type ImmichAlbum,
-  type ImmichPhoto,
-} from "../../immich/immich-client";
+import { ImmichUnavailableError } from "../../immich/immich-client";
 import { FakeImmichClient, photo } from "../../immich/testing/fake-immich-client";
-import { createTranslator } from "../i18n/translator";
-import { mountWithTranslator } from "../testing/mount-with-translator";
-import type { EndObserver } from "./end-observer";
-import { ImmichBrowser } from "./immich-browser";
-import ImmichRoute from "./ImmichRoute.svelte";
+import { destroyRoutes, LAKE, mountRoute, until } from "./testing/immich-route-harness";
 
-let destroy = () => {};
-afterEach(() => destroy());
-
-const LAKE: ImmichAlbum = {
-  id: "lake",
-  name: "Lake",
-  photoCount: 2,
-  coverId: "l1",
-  startDate: "2025-07-12T10:00:00.000Z",
-  endDate: "2025-07-13T10:00:00.000Z",
-};
-
-/** An `EndObserver` the test drives: `reachEnd()` says the end is in view. */
-function fakeEndObserver() {
-  const watching = new Set<() => void>();
-  const observe: EndObserver = (_element, onVisible) => {
-    watching.add(onVisible);
-    return () => watching.delete(onVisible);
-  };
-  return {
-    observe,
-    reachEnd: () => {
-      for (const onVisible of watching) onVisible();
-    },
-    watched: () => watching.size,
-  };
-}
-
-/** Resolves once a store-contract publisher's state meets `ready`: a state, not a wait. */
-function until<State>(
-  store: { subscribe(listener: (state: State) => void): () => void },
-  ready: (state: State) => boolean,
-): Promise<void> {
-  let stop = () => {};
-  const met = new Promise<void>((resolve) => {
-    stop = store.subscribe((state) => {
-      if (ready(state)) resolve();
-    });
-  });
-  return met.finally(() => stop());
-}
-
-function mountRoute(client: FakeImmichClient, albumId: string | null = null) {
-  const browser = new ImmichBrowser({ client });
-  const end = fakeEndObserver();
-  const added: (readonly ImmichPhoto[])[] = [];
-  const opened: string[] = [];
-  const mounted = mountWithTranslator(
-    ImmichRoute,
-    {
-      browser,
-      albumId,
-      thumbnailUrl: (id: string) => `data:,${id}`,
-      onBack: () => undefined,
-      onOpenAlbum: (album: ImmichAlbum) => opened.push(album.id),
-      onAdd: (photos: readonly ImmichPhoto[]) => added.push(photos),
-      onError: (error: unknown) => {
-        throw error;
-      },
-      observeEnd: end.observe,
-    },
-    { current: createTranslator("en") },
-  );
-  destroy = mounted.destroy;
-  const target = mounted.target;
-  const button = (label: string) =>
-    [...target.querySelectorAll("button")].find((b) => b.textContent.trim() === label);
-  const footer = () => target.querySelector(".actions")?.textContent.replace(/\s+/g, " ").trim();
-  return { browser, target, end, added, opened, button, footer };
-}
+afterEach(() => destroyRoutes());
 
 describe("ImmichRoute, All photos", () => {
   it("loads the next page when the end comes into view, and says when all are there", async () => {
@@ -163,7 +86,7 @@ describe("ImmichRoute, All photos", () => {
 
   it("offers Try again when Immich isn't answering, keeping the selection", async () => {
     const client = new FakeImmichClient();
-    client.photoAnswers.push(new ImmichUnavailableError("offline"));
+    client.photoAnswers.push(new ImmichUnavailableError("unreachable"));
     client.photoAnswers.push({ photos: [photo("a")], nextPage: null });
     const { browser, target, button } = mountRoute(client);
     browser.selection.toggle(photo("kept"));
@@ -179,51 +102,66 @@ describe("ImmichRoute, All photos", () => {
     expect(target.querySelectorAll(".ph")).toHaveLength(1);
     expect(browser.selection.count).toBe(1);
   });
+
+  it("names the problem Immich met, e.g. a rejected key, with Try again", async () => {
+    const client = new FakeImmichClient();
+    client.photoAnswers.push(new ImmichUnavailableError("keyRejected"));
+    const { browser, target, button } = mountRoute(client);
+
+    await browser.library.loadMore();
+    flushSync();
+
+    expect(target.textContent).toContain("Immich can't be used right now");
+    expect(target.textContent).toContain("Immich rejects the server's key.");
+    expect(button("Try again")).toBeDefined();
+    expect(target.textContent).not.toContain("Immich isn't answering");
+  });
 });
 
-describe("ImmichRoute, Albums", () => {
-  it("filters the albums by name and opens one", async () => {
-    const client = new FakeImmichClient();
-    client.albumList = [LAKE, { ...LAKE, id: "hike", name: "Hike" }];
-    const { browser, target, opened, button } = mountRoute(client);
-
-    button("Albums")?.click();
-    await browser.loadAlbums();
-    flushSync();
-    const field = target.querySelector<HTMLInputElement>("input[type=search]");
-    if (field === null) throw new Error("no album filter");
-    field.value = "lak";
-    field.dispatchEvent(new Event("input"));
-    flushSync();
-
-    expect([...target.querySelectorAll(".album .name")].map((name) => name.textContent)).toEqual([
-      "Lake",
-    ]);
-    target.querySelector<HTMLButtonElement>(".album .open")?.click();
-    expect(opened).toEqual(["lake"]);
-
-    field.value = "Berge";
-    field.dispatchEvent(new Event("input"));
-    flushSync();
-    expect(target.textContent).toContain("No album matches");
-  });
-
-  it("selects a whole album with the circle on its cover and badges it", async () => {
+describe("ImmichRoute, one album", () => {
+  it("says the album is loading while the albums are on their way", () => {
     const client = new FakeImmichClient();
     client.albumList = [LAKE];
-    client.photoAnswers.push({ photos: [photo("l1"), photo("l2")], nextPage: null });
-    const { browser, target, footer } = mountRoute(client);
-    browser.showTab("albums");
+    client.photoAnswers.push({ photos: [], nextPage: null });
+    const { target } = mountRoute(client, "lake");
+    flushSync();
+
+    expect(target.textContent).toContain("Loading the album …");
+  });
+
+  it("names the albums' failure with Try again, then shows the album", async () => {
+    const client = new FakeImmichClient();
+    client.albumsError = new ImmichUnavailableError("permissionMissing");
+    client.photoAnswers.push({ photos: [photo("l1")], nextPage: null });
+    const { browser, target, button } = mountRoute(client, "lake");
+    await until(browser, (state) => state.albumsFailure !== null);
+    flushSync();
+    expect(target.textContent).toContain("The server's key lacks permissions");
+
+    client.albumsError = null;
+    client.albumList = [LAKE];
+    button("Try again")?.click();
+    await until(browser, (state) => state.albums !== null);
+    flushSync();
+
+    expect(target.querySelector("h1")?.textContent).toBe("Lake");
+  });
+
+  it("names a failed Select all in the album and keeps its photos", async () => {
+    const client = new FakeImmichClient();
+    client.albumList = [LAKE];
+    const { browser, target, button } = mountRoute(client, "lake");
     await browser.loadAlbums();
+    client.photoAnswers.push(new ImmichUnavailableError("keyRejected"));
     flushSync();
 
-    target.querySelector<HTMLButtonElement>(".album .check")?.click();
-    await until(browser, (state) => state.membership.get("lake")?.complete === true);
-    await until(browser, (state) => state.busyAlbumIds.size === 0);
+    button("Select all")?.click();
+    await until(browser, (state) => state.albumFailures.has("lake"));
     flushSync();
 
-    expect(browser.selection.count).toBe(2);
-    expect(target.querySelector(".badge")?.textContent.trim()).toBe("all selected");
-    expect(footer()).toContain("2 selected");
+    expect(target.querySelector("h1")?.textContent).toBe("Lake");
+    expect(target.querySelector("[role=alert]")?.textContent).toBe(
+      "Immich rejects the server's key.",
+    );
   });
 });

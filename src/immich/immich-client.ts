@@ -70,9 +70,23 @@ export class ImmichUnavailableError extends Error {
 }
 
 /**
+ * A request Immich answered with an HTTP status that names no `ImmichStatus`, e.g. a 404 for a
+ * photo deleted in Immich after it was listed: that one request failed, Immich itself is fine.
+ */
+export class ImmichRequestFailedError extends Error {
+  readonly status: number;
+
+  constructor(request: string, status: number) {
+    super(`${request} answered ${String(status)}`);
+    this.name = "ImmichRequestFailedError";
+    this.status = status;
+  }
+}
+
+/**
  * Every method but `status()` and `thumbnailUrl()` rejects with `ImmichUnavailableError` when
- * Immich cannot be used, and with a plain `Error` for an answer that does not match the measured
- * Immich API (fail loud).
+ * Immich cannot be used, with `ImmichRequestFailedError` for another failing HTTP status, and with
+ * a plain `Error` for an answer that does not match the measured Immich API (fail loud).
  */
 export interface ImmichClient {
   status(): Promise<ImmichStatus>;

@@ -1,10 +1,11 @@
 <script lang="ts">
   import type { Snippet } from "svelte";
+  import type { BrowseFailure } from "../../immich/browse-failure";
   import type { ImmichAlbum } from "../../immich/immich-client";
   import type { PhotoFeed } from "../../immich/photo-feed";
   import { getTranslator } from "../i18n/context";
   import BrowseState from "./BrowseState.svelte";
-  import { albumPick, type AlbumMembership } from "./immich-view";
+  import { albumPick, browseFailureMessages, type AlbumMembership } from "./immich-view";
 
   /** One album: its name, Select all n / Select none, then its photos by day. */
   let {
@@ -12,6 +13,7 @@
     feed,
     membership,
     busy,
+    failure,
     selectedIds,
     onToggleAll,
     feedView,
@@ -20,6 +22,8 @@
     feed: PhotoFeed;
     membership: AlbumMembership | undefined;
     busy: boolean;
+    /** Why the last Select all failed, or null; the button tries again. */
+    failure: BrowseFailure | null;
     selectedIds: ReadonlySet<string>;
     onToggleAll: () => void;
     feedView: Snippet<[PhotoFeed]>;
@@ -52,6 +56,9 @@
       {/if}
     </button>
   </div>
+  {#if failure !== null}
+    <p class="failed" role="alert">{t(browseFailureMessages(failure).line)}</p>
+  {/if}
   {@render feedView(feed)}
 {/if}
 
@@ -67,6 +74,11 @@
     padding: 8px 0;
     border-bottom: 1px solid var(--gl-line);
     background: var(--gl-ground);
+  }
+  .failed {
+    margin: 0;
+    color: var(--gl-danger-text);
+    font-size: var(--gl-size-label);
   }
   .count {
     flex: 1;

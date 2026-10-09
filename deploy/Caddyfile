@@ -1,11 +1,32 @@
 # Started by entrypoint.sh, which validates the environment and chooses the Immich route.
+
+# The credentials a client may send, in headers or in the query (see immich-proxy.caddy); no log
+# keeps them, the access log nor the error log of a failed request.
+(credential_log_filters) {
+	format filter {
+		wrap json
+		fields {
+			request>headers>X-Api-Key delete
+			request>headers>Cookie delete
+			request>headers>Authorization delete
+			request>headers>X-Immich-Share-Key delete
+			request>uri query {
+				delete apiKey
+				delete key
+				delete slug
+				delete sessionKey
+			}
+		}
+	}
+}
+
 {
 	admin off
 	persist_config off
 	auto_https off
 	log {
 		output stdout
-		format json
+		import credential_log_filters
 	}
 }
 
@@ -13,14 +34,7 @@
 :8080 {
 	log {
 		output stdout
-		format filter {
-			wrap json
-			fields {
-				request>headers>X-Api-Key delete
-				request>headers>Cookie delete
-				request>headers>Authorization delete
-			}
-		}
+		import credential_log_filters
 	}
 
 	# immich-proxy.caddy or immich-off.caddy.

@@ -35,6 +35,10 @@ readonly CLIENT_CREDENTIALS=(
 	-H "Authorization: Bearer client-token"
 	-H "x-immich-share-key: client-share"
 )
+# Every credential a client sends, in its headers or its query; none may reach a log.
+readonly CLIENT_SECRETS=(client-key client-cookie client-token client-share client-query)
+# The fake's own sign-in cookie; the route drops it on the way back.
+readonly UPSTREAM_COOKIE=upstream-cookie
 readonly WAIT_SECONDS=60
 
 WORK=$(mktemp -d)
@@ -170,7 +174,7 @@ expect_equal "without IMMICH_URL /immich/api/server/version answers 404" 404 "$S
 
 echo "# Immich down"
 docker stop "$UPSTREAM" >/dev/null
-request "$PROXY" GET /immich/api/albums
+request "$PROXY" GET "/immich/api/albums?apiKey=client-query" "${CLIENT_CREDENTIALS[@]}"
 expect_equal "with Immich down an allowed read answers 502" 502 "$STATUS"
 wait_for_log "$PROXY" '"status":502'
 docker logs "$PROXY" 2>&1 | grep '"level":"error"' | grep -q "$UPSTREAM" &&
@@ -184,12 +188,20 @@ for container in "$PROXY" "$KEY_FILE_PROXY"; do
 		pass "$container logs its requests" || fail "$container logs its requests"
 	grep -q -F "$KEY" "$WORK/log-$container" &&
 		fail "$container logs the server's key" || pass "$container never logs the server's key"
-	grep -q -F "client-key" "$WORK/log-$container" &&
-		fail "$container logs a client's key" || pass "$container never logs a client's key"
+	for secret in "${CLIENT_SECRETS[@]}"; do
+		grep -q -F "$secret" "$WORK/log-$container" &&
+			fail "$container logs the client's $secret" ||
+			pass "$container never logs the client's $secret"
+	done
 done
+grep -q '"level":"error"' "$WORK/log-$PROXY" &&
+	pass "$PROXY's log has the error entries checked above" ||
+	fail "$PROXY's log has the error entries checked above"
 grep -q "HTTP/1.1 200" "$WORK/responses" && pass "responses were recorded" || fail "responses were recorded"
 grep -q -F "$KEY" "$WORK/responses" &&
 	fail "a response carries the server's key" || pass "no response carries the server's key"
+grep -q -F "$UPSTREAM_COOKIE" "$WORK/responses" &&
+	fail "a response carries Immich's cookie" || pass "no response carries Immich's cookie"
 
 echo "# invalid settings stop the start"
 startup_fails() { # name, text the error must contain, docker run arguments...

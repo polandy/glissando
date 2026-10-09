@@ -18,6 +18,9 @@ export const deImmich = {
     "Dem Schlüssel des Servers fehlen Rechte: album.read, asset.read, asset.view, asset.download und face.read.",
   "immich.problemSignInExpired": "Deine Anmeldung ist abgelaufen.",
   "immich.checking": "Verbindung wird geprüft …",
+  "immich.loadingAlbum": "Album wird geladen …",
+  "immich.albumGone": "Dieses Album gibt es in Immich nicht mehr",
+  "immich.backToAlbums": "Zurück zu den Alben",
   "immich.throughServer": "Über diesen Glissando-Server",
   "immich.serverDetails": {
     one: "Immich {version} · {count} Album",
