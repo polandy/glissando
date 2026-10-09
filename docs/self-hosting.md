@@ -87,14 +87,14 @@ variable starting with `IMMICH_` or `GLISSANDO_` is not one of the above (a typo
 Glissando shows the state of its Immich connection in one line, in the pictures step and in the
 settings. What each one means:
 
-| Glissando says                                        | What to do                                                                                                                                                                         |
-| ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Not set up                                            | `IMMICH_URL` is not set, or you opened the public Glissando instead of yours.                                                                                                      |
-| The Glissando backend cannot reach the Immich server. | Look at the container's log (`docker compose logs glissando`): it names the failed connection. Check that Immich runs, that `IMMICH_URL` is right and both share a Docker network. |
-| Immich rejects the server's key.                      | The key is wrong or was deleted in Immich. Create a new one (step 1), replace the file, restart the container.                                                                     |
-| The server's key lacks permissions: …                 | Edit the key in Immich and give it all five permissions from step 1.                                                                                                               |
-| Your sign-in has expired.                             | Your reverse proxy's sign-in ran out. Reload the page and sign in again.                                                                                                           |
-| No connection (Immich source greyed)                  | The device is offline. Photos you already added, and every slideshow, keep working.                                                                                                |
+| Glissando says                                                | What to do                                                                                                                                                                         |
+| ------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Not set up                                                    | `IMMICH_URL` is not set, or you opened the public Glissando instead of yours.                                                                                                      |
+| The Glissando backend cannot reach the Immich server.         | Look at the container's log (`docker compose logs glissando`): it names the failed connection. Check that Immich runs, that `IMMICH_URL` is right and both share a Docker network. |
+| Immich rejects the server's key.                              | The key is wrong or was deleted in Immich. Create a new one (step 1), replace the file, restart the container.                                                                     |
+| The server's key lacks permissions: …                         | Edit the key in Immich and give it all five permissions from step 1.                                                                                                               |
+| Your sign-in has expired.                                     | Your reverse proxy's sign-in ran out. Reload the page and sign in again.                                                                                                           |
+| Offline — Immich needs a connection to your Glissando server. | The device is offline. Photos you already added, and every slideshow, keep working.                                                                                                |
 
 Photos you pick are downloaded and stored on your device like pictures from its own files, so
 your slideshows play without Immich and without a connection.

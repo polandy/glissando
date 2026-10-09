@@ -34,7 +34,6 @@ export function hasSelection(state: PictureImportState): boolean {
   return state.busy || state.pictures.length > 0;
 }
 
-/** First and last capture date of pictures already in capture order. */
 /** The names of the skipped files by what step 1 tells about them. */
 export interface SkippedNotices {
   /** Not a picture, or one the browser cannot read. */
@@ -51,6 +50,7 @@ export function skippedNotices(skipped: readonly SkippedFile[]): SkippedNotices 
   return { unreadable: namesFor(false), notDownloaded: namesFor(true) };
 }
 
+/** First and last capture date of pictures already in capture order. */
 export function captureRange(
   pictures: readonly StoredPicture[],
 ): { readonly from: string; readonly to: string } | null {

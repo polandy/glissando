@@ -106,7 +106,13 @@
     const stopOpen = openFlow.subscribe((next) => (openState = next));
     const stopImport = importFlow.subscribe((next) => {
       if (next.session !== importSession) {
-        immichBrowser = next.session === null ? null : new ImmichBrowser({ client: immich.client });
+        immichBrowser =
+          next.session === null
+            ? null
+            : new ImmichBrowser({
+                client: immich.client,
+                reportUnavailable: (kind) => immich.availability.report(kind),
+              });
       }
       importSession = next.session;
       persistRefused = next.persistRefused;
@@ -235,6 +241,7 @@
       navigator.open({ screen: "import", step: "pictures" });
     }}
     onError={reportError}
+    onReload={services.reload}
   />
 {:else if route.screen === "slideshow" || route.screen === "player" || route.screen === "picture" || route.screen === "music"}
   {@const slideshowId = route.slideshowId}

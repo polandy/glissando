@@ -1,7 +1,7 @@
 /**
  * The app's places: start → (settings | import steps → Immich browser → album | slideshow →
- * (picture editor | music editor | player)). The player and the settings sheet are modal layers over their parent, yet each has a
- * history entry so back closes it.
+ * (picture editor | music editor | player)). The player and the settings sheet are modal layers
+ * over their parent, yet each has a history entry so back closes it.
  */
 export const IMPORT_STEPS = ["pictures", "music"] as const;
 export type ImportStep = (typeof IMPORT_STEPS)[number];

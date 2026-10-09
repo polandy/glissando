@@ -47,11 +47,6 @@ type Outcome =
   | { readonly kind: "skipped"; readonly reason: SkipReason }
   | { readonly kind: "storageFull" };
 
-/**
- * Step 1 of creating a slideshow: pictures from files or Immich in, stored downscaled pictures out. Files are
- * processed one at a time so memory stays bounded on phones. Media stored by a cancelled import
- * is left unreferenced for `LibraryStore.deleteUnreferencedMedia`.
- */
 /** The import stopped on an unexpected error, its `cause`; the state reports it as failed. */
 export class PictureImportFailedError extends Error {
   constructor(cause: unknown) {
@@ -60,6 +55,11 @@ export class PictureImportFailedError extends Error {
   }
 }
 
+/**
+ * Step 1 of creating a slideshow: pictures from files or Immich in, stored downscaled pictures
+ * out. Pictures are processed one at a time so memory stays bounded on phones. Media stored by a
+ * cancelled import is left unreferenced for `LibraryStore.deleteUnreferencedMedia`.
+ */
 export class PictureImport {
   readonly #ports: PictureImportPorts;
   readonly #listeners = new Set<(state: PictureImportState) => void>();

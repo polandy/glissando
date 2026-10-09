@@ -1,4 +1,4 @@
-import type { ImmichClient, ImmichStatus } from "./immich-client";
+import type { ImmichClient, ImmichStatus, ImmichUnavailableKind } from "./immich-client";
 
 /** The device's network connection, as the browser reports it. */
 export interface NetworkStatus {
@@ -30,7 +30,10 @@ export class ImmichAvailability {
   readonly #stopListeningToNetwork: () => void;
   #state: ImmichAvailabilityState;
   #inFlight: Promise<void> | null = null;
-  /** Bumped when the device goes offline, so a check under way then cannot overwrite it. */
+  /**
+   * Bumped when the device goes offline or a problem is reported, so a check under way then
+   * cannot overwrite that newer news.
+   */
   #generation = 0;
 
   constructor(options: ImmichAvailabilityOptions) {
@@ -40,9 +43,7 @@ export class ImmichAvailability {
       if (online) {
         void this.check();
       } else {
-        this.#generation += 1;
-        this.#inFlight = null;
-        this.#publish(OFFLINE);
+        this.#supersede(OFFLINE);
       }
     });
   }
@@ -63,6 +64,14 @@ export class ImmichAvailability {
     return this.#inFlight;
   }
 
+  /**
+   * A problem a request met while browsing or importing, e.g. a key Immich rejects; published
+   * until a later `check()` answers otherwise.
+   */
+  report(kind: ImmichUnavailableKind): void {
+    this.#supersede({ kind });
+  }
+
   /** Resolves once the check under way, if any, has published its answer. */
   async settled(): Promise<void> {
     while (this.#inFlight !== null) await this.#inFlight;
@@ -79,6 +88,12 @@ export class ImmichAvailability {
     } finally {
       if (generation === this.#generation) this.#inFlight = null;
     }
+  }
+
+  #supersede(state: ImmichAvailabilityState): void {
+    this.#generation += 1;
+    this.#inFlight = null;
+    this.#publish(state);
   }
 
   #publish(state: ImmichAvailabilityState): void {

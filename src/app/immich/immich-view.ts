@@ -1,3 +1,4 @@
+import { UNEXPECTED_FAILURE, type BrowseFailure } from "../../immich/browse-failure";
 import type { ImmichAvailabilityState } from "../../immich/immich-availability";
 import type { ImmichAlbum, ImmichPhoto, ImmichUnavailableKind } from "../../immich/immich-client";
 import type { MessageKey } from "../i18n/messages";
@@ -13,6 +14,36 @@ export const PROBLEM_MESSAGES: Readonly<Record<ImmichProblem, MessageKey>> = {
   permissionMissing: "immich.problemPermissionMissing",
   signInExpired: "immich.problemSignInExpired",
 };
+
+/**
+ * How the browser tells a failed request: a whole view's title and text, and the one line an
+ * album card has room for.
+ */
+export interface BrowseFailureMessages {
+  readonly title: MessageKey;
+  readonly text: MessageKey;
+  readonly line: MessageKey;
+}
+
+const NOT_ANSWERING: BrowseFailureMessages = {
+  title: "immich.notAnswering",
+  text: "immich.notAnsweringText",
+  line: "immich.notAnswering",
+};
+
+/** A problem the user can act on is named; anything else is Immich not answering. */
+export function browseFailureMessages(failure: BrowseFailure): BrowseFailureMessages {
+  switch (failure) {
+    case UNEXPECTED_FAILURE:
+    case "unreachable":
+    case "notSetUp":
+      return NOT_ANSWERING;
+    default: {
+      const problem = PROBLEM_MESSAGES[failure];
+      return { title: "immich.unusable", text: problem, line: problem };
+    }
+  }
+}
 
 /** The pictures step's Immich box. */
 export type ImmichBox =

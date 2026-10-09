@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { ImmichRequestFailedError } from "../immich/immich-client";
 import type { PictureFocus } from "../library/picture-focus";
 import { MemoryLibraryStore } from "../library/testing/memory-store";
+import { immichPictureSource } from "./immich-picture-source";
 import { PictureImport } from "./picture-import";
 import { PictureNotDownloadedError, type PictureSource, type ReadPicture } from "./picture-source";
 
@@ -74,6 +76,38 @@ describe("PictureImport with a picture source", () => {
       total: 2,
       done: 2,
       skipped: [{ fileName: "gone.jpg", reason: "notDownloaded" }],
+      failed: false,
+    });
+  });
+
+  it("skips a photo deleted in Immich after browsing as not downloaded and goes on", async () => {
+    const { pictureImport } = setUp();
+    const client = {
+      original: (photoId: string) =>
+        photoId === "deleted"
+          ? Promise.reject(new ImmichRequestFailedError(`GET api/assets/${photoId}/original`, 404))
+          : Promise.resolve(new Blob([photoId], { type: "image/jpeg" })),
+      thumbnail: () => Promise.reject(new Error("no preview is needed")),
+      faces: () => Promise.resolve([]),
+    };
+    const fromImmich = (id: string) =>
+      immichPictureSource(
+        { id, fileName: `${id}.jpg`, takenAt: "2025-07-01T10:00:00Z" },
+        {
+          client,
+          decode: (file) => Promise.resolve(readPicture(file.name, null).decoded),
+          reportUnavailable: () => undefined,
+          log: () => undefined,
+        },
+      );
+
+    pictureImport.add([fromImmich("deleted"), fromImmich("kept")]);
+    await pictureImport.settled();
+
+    expect(pictureImport.state.pictures.map((picture) => picture.fileName)).toEqual(["kept.jpg"]);
+    expect(pictureImport.state).toMatchObject({
+      done: 2,
+      skipped: [{ fileName: "deleted.jpg", reason: "notDownloaded" }],
       failed: false,
     });
   });

@@ -3,19 +3,24 @@
   import Icon from "../components/Icon.svelte";
   import type { IconName } from "../icons";
 
-  /** A whole-view message in the Immich browser: failing, empty, nothing matching. */
+  /** A whole-view message in the Immich browser: loading, failing, empty, nothing matching. */
   let {
     icon,
     title,
     text,
     action,
-  }: { icon: IconName; title: string; text: string; action?: Snippet | undefined } = $props();
+  }: {
+    icon: IconName;
+    title: string;
+    text?: string | undefined;
+    action?: Snippet | undefined;
+  } = $props();
 </script>
 
 <div class="state">
   <Icon name={icon} />
   <b>{title}</b>
-  <span>{text}</span>
+  {#if text !== undefined}<span>{text}</span>{/if}
   {#if action}{@render action()}{/if}
 </div>
 

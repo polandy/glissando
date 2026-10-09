@@ -122,6 +122,40 @@ describe("ImmichAvailability", () => {
     expect(availability.state).toEqual({ kind: "offline" });
   });
 
+  it("publishes a problem a request met", async () => {
+    const { client, availability, seen } = setUp();
+    client.statusAnswers.push(AVAILABLE);
+    await availability.check();
+
+    availability.report("keyRejected");
+
+    expect(availability.state).toEqual({ kind: "keyRejected" });
+    expect(seen).toEqual([{ kind: "checking" }, AVAILABLE, { kind: "keyRejected" }]);
+  });
+
+  it("clears a reported problem on a later check that finds Immich available", async () => {
+    const { client, availability } = setUp();
+    availability.report("unreachable");
+    client.statusAnswers.push(AVAILABLE);
+
+    await availability.check();
+
+    expect(availability.state).toEqual(AVAILABLE);
+  });
+
+  it("drops the answer of a check that was under way when a problem was reported", async () => {
+    const { client, availability } = setUp();
+    const answer = client.holdStatus();
+    const check = availability.check();
+
+    availability.report("permissionMissing");
+    answer(AVAILABLE);
+    await check;
+
+    expect(client.statusCalls).toBe(1);
+    expect(availability.state).toEqual({ kind: "permissionMissing" });
+  });
+
   it("stops listening to the network when disposed", () => {
     const { network, availability } = setUp();
     expect(network.listenerCount).toBe(1);

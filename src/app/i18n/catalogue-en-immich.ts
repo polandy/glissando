@@ -19,6 +19,9 @@ export const enImmich: Pick<Catalogue, keyof typeof deImmich> = {
     "The server's key lacks permissions: album.read, asset.read, asset.view, asset.download and face.read.",
   "immich.problemSignInExpired": "Your sign-in has expired.",
   "immich.checking": "Checking the connection …",
+  "immich.loadingAlbum": "Loading the album …",
+  "immich.albumGone": "This album is no longer in Immich",
+  "immich.backToAlbums": "Back to albums",
   "immich.throughServer": "Through this Glissando server",
   "immich.serverDetails": {
     one: "Immich {version} · {count} album",

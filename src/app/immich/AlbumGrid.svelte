@@ -1,14 +1,16 @@
 <script lang="ts">
+  import type { BrowseFailure } from "../../immich/browse-failure";
   import type { ImmichAlbum } from "../../immich/immich-client";
   import Icon from "../components/Icon.svelte";
   import { getTranslator } from "../i18n/context";
-  import { albumPick, type AlbumMembership } from "./immich-view";
+  import { albumPick, browseFailureMessages, type AlbumMembership } from "./immich-view";
 
   /** Album covers: a tap opens the album, the circle on the cover picks all of its photos. */
   let {
     albums,
     membership,
     busyAlbumIds,
+    albumFailures,
     selectedIds,
     thumbnailUrl,
     onOpen,
@@ -18,6 +20,8 @@
     albums: readonly ImmichAlbum[] | null;
     membership: ReadonlyMap<string, AlbumMembership>;
     busyAlbumIds: ReadonlySet<string>;
+    /** Why an album's last whole-album select failed. */
+    albumFailures: ReadonlyMap<string, BrowseFailure>;
     selectedIds: ReadonlySet<string>;
     thumbnailUrl: (photoId: string) => string;
     onOpen: (album: ImmichAlbum) => void;
@@ -46,6 +50,7 @@
     {#each albums as album (album.id)}
       {@const pick = albumPick(membership.get(album.id), selectedIds)}
       {@const busy = busyAlbumIds.has(album.id)}
+      {@const failure = albumFailures.get(album.id)}
       <li class="album" class:picked={pick.selected > 0}>
         <button class="open" type="button" onclick={() => onOpen(album)}>
           <span class="cover" class:pending={busy}>
@@ -62,6 +67,9 @@
           </span>
           <span class="name">{album.name}</span>
           <span class="meta mono">{meta(album)}</span>
+          {#if failure !== undefined}
+            <span class="failed" role="alert">{t(browseFailureMessages(failure).line)}</span>
+          {/if}
         </button>
         {#if album.photoCount > 0}
           <button
@@ -140,6 +148,11 @@
   .name {
     padding: 0 2px;
     font-weight: var(--gl-weight-semibold);
+  }
+  .failed {
+    padding: 0 2px;
+    color: var(--gl-danger-text);
+    font-size: var(--gl-size-small);
   }
   .meta {
     margin-top: -6px;

@@ -1,4 +1,10 @@
-import { ImmichUnavailableError, type ImmichClient, type ImmichPhoto } from "./immich-client";
+import {
+  browseFailureOf,
+  UNEXPECTED_FAILURE,
+  type BrowseFailure,
+  type ReportUnavailable,
+} from "./browse-failure";
+import type { ImmichClient, ImmichPhoto } from "./immich-client";
 
 export interface PhotoFeedState {
   /** Every photo loaded so far, newest first. */
@@ -6,12 +12,13 @@ export interface PhotoFeedState {
   readonly loading: boolean;
   /** The last page has arrived. */
   readonly done: boolean;
-  /** The last request failed; `retry()` asks for the same page again. */
-  readonly failed: boolean;
+  /** Why the last request failed, or null; `retry()` asks for the same page again. */
+  readonly failure: BrowseFailure | null;
 }
 
 export interface PhotoFeedOptions {
   readonly client: ImmichClient;
+  readonly reportUnavailable: ReportUnavailable;
   /** One album's photos; the whole library without it. */
   readonly albumId?: string;
 }
@@ -26,13 +33,15 @@ const FIRST_PAGE = 1;
 export class PhotoFeed {
   readonly #client: ImmichClient;
   readonly #albumId: string | undefined;
+  readonly #reportUnavailable: ReportUnavailable;
   readonly #listeners = new Set<(state: PhotoFeedState) => void>();
-  #state: PhotoFeedState = { photos: [], loading: false, done: false, failed: false };
+  #state: PhotoFeedState = { photos: [], loading: false, done: false, failure: null };
   #nextPage = FIRST_PAGE;
 
   constructor(options: PhotoFeedOptions) {
     this.#client = options.client;
     this.#albumId = options.albumId;
+    this.#reportUnavailable = options.reportUnavailable;
   }
 
   get state(): PhotoFeedState {
@@ -46,14 +55,14 @@ export class PhotoFeed {
   }
 
   async loadMore(): Promise<void> {
-    const { loading, done, failed } = this.#state;
-    if (loading || done || failed) return;
+    const { loading, done, failure } = this.#state;
+    if (loading || done || failure !== null) return;
     await this.#load();
   }
 
   async retry(): Promise<void> {
-    if (!this.#state.failed) return;
-    this.#publish({ ...this.#state, failed: false });
+    if (this.#state.failure === null) return;
+    this.#publish({ ...this.#state, failure: null });
     await this.#load();
   }
 
@@ -70,12 +79,13 @@ export class PhotoFeed {
         photos: [...this.#state.photos, ...page.photos],
         loading: false,
         done: page.nextPage === null,
-        failed: false,
+        failure: null,
       });
     } catch (error) {
-      this.#publish({ ...this.#state, loading: false, failed: true });
-      // Unavailability is shown as "failed"; anything else is a bug to surface, not hide.
-      if (!(error instanceof ImmichUnavailableError)) throw error;
+      const failure = browseFailureOf(error, this.#reportUnavailable);
+      this.#publish({ ...this.#state, loading: false, failure });
+      // An Immich problem is shown as the failure; anything else is a bug to surface, not hide.
+      if (failure === UNEXPECTED_FAILURE) throw error;
     }
   }
 

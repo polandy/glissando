@@ -137,7 +137,12 @@ const services = {
       decode: decodePicture,
       captureDate,
       immichSource: (photo) =>
-        immichPictureSource(photo, { client: immichClient, decode: decodePicture }),
+        immichPictureSource(photo, {
+          client: immichClient,
+          decode: decodePicture,
+          reportUnavailable: (kind) => immichAvailability.report(kind),
+          log: logError,
+        }),
       probeMusic,
       newId,
       now,

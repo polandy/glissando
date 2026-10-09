@@ -1,4 +1,5 @@
 import {
+  ImmichRequestFailedError,
   ImmichUnavailableError,
   type ImmichAlbum,
   type ImmichClient,
@@ -194,7 +195,7 @@ export class HttpImmichClient implements ImmichClient {
     if (response.ok) return;
     const kind = UNAVAILABLE_BY_HTTP_STATUS.get(response.status);
     if (kind !== undefined) throw new ImmichUnavailableError(kind);
-    throw new Error(`${method} ${path} answered ${String(response.status)}`);
+    throw new ImmichRequestFailedError(`${method} ${path}`, response.status);
   }
 
   #url(path: string): URL {
