@@ -76,7 +76,8 @@ Usable end to end by a non-technical user, fully offline:
   slideshow survives a reload.
 - **Order** by capture date (see _Good by default_).
 - **Automatic Ken Burns** from a simple framing rule (no detection yet).
-- **About six GLSL transitions**, varied automatically, with the DOM/opacity fallback.
+- **About six GLSL transitions**, one default per slideshow (Crossfade unless chosen), with the
+  DOM/opacity fallback.
 - **Music**: one track in any format the browser decodes natively; slide timing fits the track's
   length. Without music every picture stays 5 s; the value is set per slideshow in half-second
   steps.
