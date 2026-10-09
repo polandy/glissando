@@ -99,3 +99,25 @@ test("E2E-017 step 1 of a new slideshow opens a .glissando file from another dev
   await expect(page.getByRole("heading", { name: "Herbst in Wien" })).toBeVisible();
   await expect(status(page, "„Herbst in Wien“ geöffnet")).toBeVisible();
 });
+
+test("E2E-024 a .glissando file double-clicked on the desktop opens in the installed app", async ({
+  page,
+}) => {
+  const bytes = [...new Uint8Array(await (await exportedFile()).arrayBuffer())];
+  // The operating system's hand-over: Chromium's Launch Queue with the double-clicked file.
+  await page.addInitScript(
+    ({ name, bytes }) => {
+      const launched = { getFile: () => Promise.resolve(new File([new Uint8Array(bytes)], name)) };
+      Object.defineProperty(window, "launchQueue", {
+        value: {
+          setConsumer: (consumer: (params: object) => void) => consumer({ files: [launched] }),
+        },
+      });
+    },
+    { name: "Herbst in Wien.glissando", bytes },
+  );
+  await openApp(page);
+
+  await expect(page.getByRole("heading", { name: "Herbst in Wien" })).toBeVisible();
+  await expect(status(page, "„Herbst in Wien“ geöffnet")).toBeVisible();
+});

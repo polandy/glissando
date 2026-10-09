@@ -10,6 +10,7 @@
   import Dialog from "./components/Dialog.svelte";
   import { ExportJob, type ExportProgress } from "./glissando-file/export-job";
   import { setExportStatus } from "./glissando-file/export-status";
+  import { openLaunchedFiles } from "./glissando-file/launched-files";
   import { OpenFlow, type OpenFlowState, type OpenOrigin } from "./glissando-file/open-flow";
   import OpeningOverlay from "./glissando-file/OpeningOverlay.svelte";
   import Toast from "./components/Toast.svelte";
@@ -102,6 +103,11 @@
       }
     });
     const stopPwa = pwa.subscribe((next) => (pwaState = next));
+    // A double-clicked file starts a new window (`launch_handler`), so it opens from the library.
+    openLaunchedFiles(services.launchQueue, {
+      open: (file) => openFlow.open(file, "library"),
+      reportError,
+    });
     return () => {
       stopRoute();
       stopToast();

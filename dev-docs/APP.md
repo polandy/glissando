@@ -223,7 +223,8 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
   "Export failed: not enough storage on the device." and "Try again"; any other failure is an
   unexpected error.
 - **Open a .glissando file** (`glissando-file/open-flow.ts`): from the library ("Open file",
-  the hero's button, a drop) or import step 1 (below). It blocks under the overlay "Opening
+  the hero's button, a drop), import step 1 (below), or a double-click on the file on the desktop
+  (below). It blocks under the overlay "Opening
   slideshow …" with a bar, the line "Checking file …", then "Picture 12 of 48", then "Music",
   the file name and "Cancel". Then the new slideshow's screen opens with the toast "“title”
   opened", or, when the title was taken, "Opened as “title (2)”, “title” stays unchanged."
@@ -340,6 +341,17 @@ its update rule: ADR-0005. Web app manifest and icons in `public/`; the PNG icon
   browsers grant it to installed apps without asking.
 - **Updates**: "Reload" asks the waiting version to take over, then this tab reloads into the
   new version; other tabs keep running their version until their next start.
+
+- **Double-click on a .glissando file** (`glissando-file/launched-files.ts`): the installed app
+  registers as the program for `.glissando` (manifest `file_handlers`, type
+  `application/x-glissando`, the app icon as file icon) — Chromium on the desktop only. Every
+  double-clicked file opens in a new app window (`launch_handler` `navigate-new`, one window per
+  file), so a running window, e.g. one playing a slideshow, stays as it is. The new window starts
+  in the library and opens the file from there exactly as "Open file" does: overlay, toasts,
+  notices, every format version; opening the same file again makes another copy ("Opened as …").
+  Browsers without file handlers (Firefox, Safari, phones) show no trace of it; "Open file"
+  stays the way there. The registration comes with installing, and updates with the manifest
+  like any other file of a new version (ADR-0005).
 
 ## Navigation
 
