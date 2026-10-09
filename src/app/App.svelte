@@ -166,6 +166,7 @@
 {#if route.screen === "start" || route.screen === "settings"}
   <StartRoute
     {store}
+    focusPass={services.focusPass}
     playStartAnimation={logoPlays}
     onError={reportError}
     onCreate={() => importFlow.open()}

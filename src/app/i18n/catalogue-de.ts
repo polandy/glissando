@@ -32,6 +32,8 @@ export const de = {
   "start.library": "Bibliothek",
   "start.yourSlideshows": "Deine Diashows",
   "start.withMusic": "mit Musik",
+  "start.searchingSubjects": "Motive werden gesucht",
+  "start.searchProgress": "{done} von {total}",
 
   "settings.open": "Einstellungen",
   "settings.title": "Einstellungen",

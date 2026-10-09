@@ -5,12 +5,14 @@
   import type { TransitionChoice } from "../../library/own-timing";
   import { framingAt, normalizeCaption, type Framing } from "../../player";
   import Header from "../components/Header.svelte";
-  import Icon from "../components/Icon.svelte";
   import { getTranslator } from "../i18n/context";
+  import FocusLine from "./FocusLine.svelte";
+  import { focusIndication } from "./focus-indication";
   import FrameWell from "./FrameWell.svelte";
   import DurationSection from "./DurationSection.svelte";
   import MotionPanel from "./MotionPanel.svelte";
   import MotionPreviewScreen from "./MotionPreviewScreen.svelte";
+  import PictureNavigation from "./PictureNavigation.svelte";
   import TransitionSection from "./TransitionSection.svelte";
   import { MotionPreview, type MotionPreviewPorts } from "./motion-preview";
   import { previewPlan, transitionHoldMs, transitionLeadInMs } from "./timing/preview-timeline";
@@ -73,6 +75,7 @@
   /** The motion while a drag is under way; stored on release. */
   let draft = $state.raw<OwnKenBurns | null>(null);
   const motion = $derived(draft ?? picture.motion);
+  const focus = $derived(focusIndication(picture.focus, picture.ownMotion));
   // Typed text stays as typed while the stored caption is its normalised form.
   // svelte-ignore state_referenced_locally
   let caption = $state(picture.caption);
@@ -152,12 +155,6 @@
       previewClock.playFrom(transitionLeadInMs(plan));
     }
   }
-
-  function openNeighbour(pictureId: string | null): void {
-    if (pictureId !== null) {
-      onOpen(pictureId);
-    }
-  }
 </script>
 
 <div class="screen" aria-busy={saving}>
@@ -166,29 +163,7 @@
     {onBack}
   >
     {#snippet actions()}
-      <button
-        class="icon-btn"
-        type="button"
-        aria-label={t("editor.previous")}
-        title={t("editor.previous")}
-        aria-disabled={picture.previousId === null}
-        onclick={() => openNeighbour(picture.previousId)}
-      >
-        <Icon name="chevronLeft" />
-      </button>
-      <span class="counter mono muted">
-        {t("editor.counter", { number: picture.number, count: picture.count })}
-      </span>
-      <button
-        class="icon-btn"
-        type="button"
-        aria-label={t("editor.next")}
-        title={t("editor.next")}
-        aria-disabled={picture.nextId === null}
-        onclick={() => openNeighbour(picture.nextId)}
-      >
-        <Icon name="chevronRight" />
-      </button>
+      <PictureNavigation {picture} {onOpen} />
     {/snippet}
   </Header>
   <main class="edit">
@@ -200,9 +175,12 @@
         {motion}
         {active}
         playhead={previewState.playing ? previewFraming : null}
+        focusMarker={focus.kind === "marker" ? focus : null}
+        {reducedMotion}
         onActivate={activate}
         onFraming={frameChanged}
       />
+      <FocusLine indication={focus} />
       <p class="hint wide-hint">{t("editor.hintWide")}</p>
     </div>
     <MotionPanel
@@ -267,7 +245,7 @@
   }
   .well-column {
     display: grid;
-    grid-template-rows: minmax(0, 1fr) auto;
+    grid-template-rows: minmax(0, 1fr) auto auto;
     gap: 10px;
     min-height: 0;
     padding: 18px;
@@ -278,9 +256,6 @@
     font-size: var(--gl-size-meta);
     text-align: center;
   }
-  .counter {
-    font-size: var(--gl-size-meta);
-  }
   @container (max-width: 720px) {
     /* The phone layout scrolls as one: the picture on top, the panel below. */
     .edit {
@@ -290,8 +265,7 @@
     .well-column {
       padding: 0;
     }
-    .wide-hint,
-    .counter {
+    .wide-hint {
       display: none;
     }
   }

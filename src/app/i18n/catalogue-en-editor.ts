@@ -38,6 +38,10 @@ export const enEditor: Pick<Catalogue, keyof typeof deEditor> = {
   "editor.hintWide":
     "Drag to move the frame, drag a corner to zoom · mouse wheel zooms · arrow keys, + and −",
   "editor.hintNarrow": "Drag anywhere to move the frame; corners or two fingers zoom.",
+  "editor.focusChip": "Focus",
+  "editor.focusMarker": "Focus: face found",
+  "editor.noSubject": "No subject found – the motion stays centred.",
+  "editor.searchingFocus": "Looking for the focus …",
   "editor.caption": "Caption",
   "editor.captionPlaceholder": "e.g. Evening on the jetty",
   "editor.captionCount": "{count} / {max}",

@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onDestroy, onMount, type Snippet } from "svelte";
+  import type { FocusPass, FocusPassState } from "../../library/focus-pass";
   import type { LibraryStore } from "../../library/stored-slideshow";
   import { browserObjectUrls, ObjectUrls } from "../media/object-urls";
   import type { OpenNotice } from "../glissando-file/open-flow";
@@ -10,6 +11,7 @@
 
   let {
     store,
+    focusPass,
     playStartAnimation,
     onError,
     onCreate,
@@ -22,6 +24,8 @@
     statusBar,
   }: {
     store: LibraryStore;
+    /** Its progress per slideshow shows on the cards. */
+    focusPass: Pick<FocusPass, "state" | "subscribe">;
     playStartAnimation: boolean;
     onError: (error: unknown) => void;
     onCreate: () => void;
@@ -35,6 +39,9 @@
   } = $props();
 
   let slideshows = $state.raw<readonly SlideshowSummary[] | null>(null);
+  // The pass is fixed for the screen's lifetime.
+  // svelte-ignore state_referenced_locally
+  let passState = $state.raw<FocusPassState>(focusPass.state);
   // The store is fixed for the screen's lifetime.
   // svelte-ignore state_referenced_locally
   const covers = new ObjectUrls({
@@ -46,11 +53,13 @@
   const left = new AbortController();
 
   onMount(() => {
+    const stopFocus = focusPass.subscribe((next) => (passState = next));
     loadStartSlideshows(store, covers, left.signal).then((loaded) => {
       if (loaded !== null) {
         slideshows = loaded;
       }
     }, onError);
+    return stopFocus;
   });
   onDestroy(() => {
     left.abort();
@@ -67,6 +76,7 @@
        first-launch animation even over a filled one. -->
   <StartScreen
     {slideshows}
+    focusSearches={passState.slideshows}
     {onCreate}
     {onOpen}
     {onSettings}

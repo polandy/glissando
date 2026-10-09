@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { Snippet } from "svelte";
+  import type { SlideshowSearch } from "../../library/focus-pass";
   import Header from "../components/Header.svelte";
   import Icon from "../components/Icon.svelte";
   import DropLayer from "../glissando-file/DropLayer.svelte";
@@ -8,10 +9,12 @@
   import type { OpenNotice as OpenNoticeModel } from "../glissando-file/open-flow";
   import OpenNotice from "../glissando-file/OpenNotice.svelte";
   import { getTranslator } from "../i18n/context";
+  import FocusSearchLine from "./FocusSearchLine.svelte";
   import type { SlideshowSummary } from "./view-models";
 
   let {
     slideshows,
+    focusSearches,
     onCreate,
     onOpen,
     onSettings,
@@ -24,6 +27,8 @@
   }: {
     /** Newest first. */
     slideshows: readonly SlideshowSummary[];
+    /** The slideshows the background pass is still searching subjects in, by id. */
+    focusSearches: ReadonlyMap<string, SlideshowSearch>;
     onCreate: () => void;
     onOpen: (slideshowId: string) => void;
     onSettings: () => void;
@@ -103,6 +108,7 @@
       </div>
       <ul class="grid">
         {#each slideshows as slideshow (slideshow.id)}
+          {@const search = focusSearches.get(slideshow.id)}
           <li>
             <button class="show" type="button" onclick={() => onOpen(slideshow.id)}>
               <span class="cover pictures-{slideshow.coverUrls.length}">
@@ -123,6 +129,9 @@
                     </span>
                   {/if}
                 </span>
+                {#if search !== undefined}
+                  <FocusSearchLine {search} />
+                {/if}
               </span>
             </button>
           </li>
