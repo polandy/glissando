@@ -25,6 +25,9 @@ import { browserMusicEditorAudio } from "./app/music-editor/music-editor-audio";
 import { freeStorageBytes } from "./library/free-storage";
 import { decodePicture } from "./import/downscale";
 import { captureDate } from "./import/exif-capture-date";
+import { immichPictureSource } from "./import/immich-picture-source";
+import { HttpImmichClient } from "./immich/http-immich-client";
+import { browserNetworkStatus, ImmichAvailability } from "./immich/immich-availability";
 import { probeMusic } from "./import/music-probe";
 import { createMusicAudioContext, MusicOutput } from "./player";
 import { FocusPass } from "./library/focus-pass";
@@ -33,6 +36,16 @@ import { startFocusWorker, WorkerFocusDetector } from "./focus/worker-focus-dete
 import { requestPersistentStorage } from "./library/persistent-storage";
 import { browserPwaPorts } from "./pwa/browser-pwa";
 import { createStorageHintDismissalStore, PwaStatus } from "./pwa/pwa-status";
+
+/** Same origin: the self-hosted Glissando's `/immich/` route sets the API key (ADR-0013). */
+const immichClient = new HttpImmichClient({
+  baseUrl: new URL("./immich/", window.location.href),
+  fetch: window.fetch.bind(window),
+});
+const immichAvailability = new ImmichAvailability({
+  client: immichClient,
+  network: browserNetworkStatus(window),
+});
 
 const settings = new AppSettings({
   themes: createStorageThemePreferenceStore(window.localStorage),
@@ -68,6 +81,7 @@ const reportError = createErrorReporter({
 });
 window.addEventListener("error", (event) => reportError(event.error));
 window.addEventListener("unhandledrejection", (event) => reportError(event.reason));
+immichAvailability.check().catch(reportError);
 
 const refusalNotice = createStorageRefusalNoticeStore(window.localStorage);
 // Before anything awaits, so the browser's install prompt is not missed.
@@ -116,11 +130,19 @@ const services = {
   musicOutput,
   musicAudio: browserMusicEditorAudio(musicOutput),
   focusPass,
+  immich: { client: immichClient, availability: immichAvailability },
   newImportSession: () =>
     new ImportSession({
       store,
       decode: decodePicture,
       captureDate,
+      immichSource: (photo) =>
+        immichPictureSource(photo, {
+          client: immichClient,
+          decode: decodePicture,
+          reportUnavailable: (kind) => immichAvailability.report(kind),
+          log: logError,
+        }),
       probeMusic,
       newId,
       now,

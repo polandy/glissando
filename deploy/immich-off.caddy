@@ -1,0 +1,4 @@
+# No IMMICH_URL: the app reads a 404 as "Immich is not set up" (ADR-0013).
+handle /immich/* {
+	respond 404
+}

@@ -1,0 +1,16 @@
+{
+  "albums": {
+    "total": 0,
+    "count": 0,
+    "items": [],
+    "facets": []
+  },
+  "assets": {
+    "total": 0,
+    "count": 0,
+    "items": [],
+    "facets": [],
+    "nextPage": null,
+    "nextCursor": null
+  }
+}

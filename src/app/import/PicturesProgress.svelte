@@ -10,12 +10,15 @@
     range,
     onCancel,
     onAddMore,
+    onMoreFromImmich,
   }: {
     state: PictureImportState;
     /** The capture dates of the stored pictures; null while none is stored. */
     range: { readonly from: string; readonly to: string } | null;
     onCancel: () => void;
     onAddMore: () => void;
+    /** Shown only while Immich can be opened. */
+    onMoreFromImmich: (() => void) | null;
   } = $props();
 
   const { t, formatDate } = getTranslator();
@@ -41,9 +44,16 @@
           · {t("import.dateRange", { from: formatDate(range.from), to: formatDate(range.to) })}
         </span>
       </span>
-      <button class="btn ghost" type="button" onclick={onAddMore}>
-        <Icon name="plus" />{t("import.addMore")}
-      </button>
+      <span class="more">
+        {#if onMoreFromImmich !== null}
+          <button class="btn ghost" type="button" onclick={onMoreFromImmich}>
+            <Icon name="plus" />{t("immich.more")}
+          </button>
+        {/if}
+        <button class="btn ghost" type="button" onclick={onAddMore}>
+          <Icon name="plus" />{t("import.addMore")}
+        </button>
+      </span>
     {/if}
   </div>
   <div class="meter">
@@ -65,6 +75,12 @@
     justify-content: space-between;
     align-items: center;
     gap: 12px;
+  }
+  .more {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 4px;
   }
   .meter {
     height: 6px;

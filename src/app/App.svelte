@@ -7,7 +7,9 @@
     type PwaState,
     type StatusBarAction,
   } from "../pwa/status-bar-view";
-  import Dialog from "./components/Dialog.svelte";
+  import type { ImmichAvailabilityState } from "../immich/immich-availability";
+  import { ImmichBrowser } from "./immich/immich-browser";
+  import ImmichRoute from "./immich/ImmichRoute.svelte";
   import { ExportJob, type ExportProgress } from "./glissando-file/export-job";
   import { setExportStatus } from "./glissando-file/export-status";
   import { openLaunchedFiles } from "./glissando-file/launched-files";
@@ -27,6 +29,7 @@
   import type { AppServices } from "./services";
   import type { SettingsState } from "./settings/app-settings";
   import SettingsSheet from "./settings/SettingsSheet.svelte";
+  import PersistRefusedDialog from "./storage/PersistRefusedDialog.svelte";
   import type { ToastMessage } from "./toast/toaster";
 
   let { services, playStartAnimation }: { services: AppServices; playStartAnimation: boolean } =
@@ -34,7 +37,7 @@
 
   // The services are wired once, by the composition root.
   // svelte-ignore state_referenced_locally
-  const { store, navigator, toaster, reportError, settings, newId, now, pwa } = services;
+  const { store, navigator, toaster, reportError, settings, newId, now, pwa, immich } = services;
   const { t, formatBytes } = getTranslator();
   // svelte-ignore state_referenced_locally
   const importFlow = new ImportFlow<ImportSession>({
@@ -70,6 +73,9 @@
   let toast = $state.raw<ToastMessage | null>(toaster.current);
   let settingsState = $state.raw<SettingsState>(settings.state);
   let importSession = $state.raw<ImportSession | null>(null);
+  /** The Immich browser's selection and lists belong to the import session they feed. */
+  let immichBrowser = $state.raw<ImmichBrowser | null>(null);
+  let immichState = $state.raw<ImmichAvailabilityState>(immich.availability.state);
   let persistRefused = $state(false);
   let pwaState = $state.raw<PwaState>(pwa.state);
   let pwaSheet = $state.raw<PwaSheetContent | null>(null);
@@ -82,8 +88,11 @@
       if (next.screen !== "start" && next.screen !== "settings") {
         logoPlays = false;
       }
-      if (next.screen === "import") {
+      if (next.screen === "import" || next.screen === "immich") {
         importFlow.ensureSession();
+      }
+      if (next.screen === "import" && next.step === "pictures") {
+        immich.availability.check().catch(reportError);
       }
       // A refused file's notice belongs to the screen it was opened from.
       if (next.screen !== route.screen) {
@@ -96,6 +105,15 @@
     const stopExport = exportJob.subscribe((next) => (exportProgress = next));
     const stopOpen = openFlow.subscribe((next) => (openState = next));
     const stopImport = importFlow.subscribe((next) => {
+      if (next.session !== importSession) {
+        immichBrowser =
+          next.session === null
+            ? null
+            : new ImmichBrowser({
+                client: immich.client,
+                reportUnavailable: (kind) => immich.availability.report(kind),
+              });
+      }
       importSession = next.session;
       persistRefused = next.persistRefused;
       if (next.persistRefused) {
@@ -103,6 +121,7 @@
       }
     });
     const stopPwa = pwa.subscribe((next) => (pwaState = next));
+    const stopImmich = immich.availability.subscribe((next) => (immichState = next));
     // A double-clicked file starts a new window (`launch_handler`), so it opens from the library.
     openLaunchedFiles(services.launchQueue, {
       open: (file) => openFlow.open(file, "library"),
@@ -116,6 +135,7 @@
       stopExport();
       stopOpen();
       stopPwa();
+      stopImmich();
     };
   });
 
@@ -181,6 +201,9 @@
   {#if route.screen === "settings"}
     <SettingsSheet
       state={settingsState}
+      immich={immichState}
+      onCheckImmich={() => immich.availability.check().catch(reportError)}
+      onReload={services.reload}
       onTheme={(theme) => settings.setTheme(theme)}
       onLanguage={(language) => settings.setLanguage(language)}
       onClose={() => navigator.back()}
@@ -200,6 +223,24 @@
     onOpenFile={(file) => void openFlow.open(file, "pictures")}
     notice={noticeFor("pictures")}
     onDismissNotice={() => openFlow.dismissNotice()}
+    onReload={services.reload}
+    immich={immichState}
+    onOpenImmich={() => navigator.open({ screen: "immich", albumId: null })}
+    onImmichSettings={() => navigator.open({ screen: "settings" })}
+  />
+{:else if route.screen === "immich" && importSession !== null && immichBrowser !== null}
+  {@const session = importSession}
+  <ImmichRoute
+    browser={immichBrowser}
+    albumId={route.albumId}
+    thumbnailUrl={(photoId) => immich.client.thumbnailUrl(photoId)}
+    onBack={() => navigator.back()}
+    onOpenAlbum={(album) => navigator.open({ screen: "immich", albumId: album.id })}
+    onAdd={(photos) => {
+      session.addImmichPhotos(photos);
+      navigator.open({ screen: "import", step: "pictures" });
+    }}
+    onError={reportError}
     onReload={services.reload}
   />
 {:else if route.screen === "slideshow" || route.screen === "player" || route.screen === "picture" || route.screen === "music"}
@@ -244,36 +285,11 @@
 {/if}
 
 {#if persistRefused}
-  {@const offer = installOffer(pwaState)}
-  {@const understood = {
-    label: t("common.understood"),
-    onSelect: () => importFlow.dismissPersistNotice(),
-  }}
-  <!-- Installing is the remedy wherever it is possible (dev-docs/APP.md). -->
-  {#if offer === null}
-    <Dialog
-      title={t("storage.persistRefusedTitle")}
-      message={t("storage.persistRefusedText")}
-      actions={[{ ...understood, tone: "primary" }]}
-    />
-  {:else}
-    <Dialog
-      title={t("storage.persistRefusedTitle")}
-      message={[t("storage.persistRefusedText"), t("pwa.installedKeepsMore")]}
-      actions={[
-        { ...understood, tone: "ghost" },
-        {
-          label: t("pwa.installAsApp"),
-          tone: "primary",
-          icon: "install",
-          onSelect: () => {
-            importFlow.dismissPersistNotice();
-            install(offer);
-          },
-        },
-      ]}
-    />
-  {/if}
+  <PersistRefusedDialog
+    offer={installOffer(pwaState)}
+    onUnderstood={() => importFlow.dismissPersistNotice()}
+    onInstall={install}
+  />
 {/if}
 
 {#if pwaSheet !== null}

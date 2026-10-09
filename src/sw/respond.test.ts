@@ -80,8 +80,34 @@ describe("respond", () => {
 });
 
 describe("answersRequest", () => {
+  const SCOPE = `${ORIGIN}/app/`;
+
   it.each([
     { what: "a GET of the app's origin", method: "GET", url: HASHED_URL, answers: true },
+    {
+      what: "a GET through the app's Immich route",
+      method: "GET",
+      url: `${ORIGIN}/app/immich/api/albums`,
+      answers: false,
+    },
+    {
+      what: "a navigation to the app's Immich route itself",
+      method: "GET",
+      url: `${ORIGIN}/app/immich/`,
+      answers: false,
+    },
+    {
+      what: "a GET of a file whose name merely starts with immich",
+      method: "GET",
+      url: `${ORIGIN}/app/immich-logo.svg`,
+      answers: true,
+    },
+    {
+      what: "a GET of an immich path outside the app",
+      method: "GET",
+      url: `${ORIGIN}/immich/api/albums`,
+      answers: true,
+    },
     { what: "a POST", method: "POST", url: HASHED_URL, answers: false },
     {
       what: "a request to another origin",
@@ -90,6 +116,6 @@ describe("answersRequest", () => {
       answers: false,
     },
   ])("answers $what: $answers", ({ method, url, answers }) => {
-    expect(answersRequest({ method, url }, ORIGIN)).toBe(answers);
+    expect(answersRequest({ method, url }, SCOPE)).toBe(answers);
   });
 });

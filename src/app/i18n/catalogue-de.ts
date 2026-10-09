@@ -2,6 +2,7 @@ import { deEditor } from "./catalogue-de-editor";
 import { deMusic } from "./catalogue-de-music";
 import { deTiming } from "./catalogue-de-timing";
 import { deTransitions } from "./catalogue-de-transitions";
+import { deImmich } from "./catalogue-de-immich";
 import type { Message } from "./messages";
 
 /**
@@ -112,6 +113,10 @@ export const de = {
   "import.skipped": {
     one: "{count} Datei konnte nicht als Bild gelesen werden und wurde übersprungen:",
     other: "{count} Dateien konnten nicht als Bild gelesen werden und wurden übersprungen:",
+  },
+  "import.notDownloaded": {
+    one: "{count} Foto konnte nicht von Immich geladen werden und wurde übersprungen:",
+    other: "{count} Fotos konnten nicht von Immich geladen werden und wurden übersprungen:",
   },
   "import.skippedFiles": "{files}.",
   "import.skippedRest": {
@@ -267,5 +272,6 @@ export const de = {
   ...deEditor,
   ...deTiming,
   ...deTransitions,
+  ...deImmich,
   ...deMusic,
 } as const satisfies Record<string, Message>;

@@ -2,6 +2,7 @@ import { enEditor } from "./catalogue-en-editor";
 import { enMusic } from "./catalogue-en-music";
 import { enTiming } from "./catalogue-en-timing";
 import { enTransitions } from "./catalogue-en-transitions";
+import { enImmich } from "./catalogue-en-immich";
 import type { Catalogue } from "./messages";
 
 /** English UI copy; the type demands exactly the German catalogue's keys and message shapes. */
@@ -110,6 +111,10 @@ export const en: Catalogue = {
   "import.skipped": {
     one: "{count} file could not be read as a picture and was skipped:",
     other: "{count} files could not be read as pictures and were skipped:",
+  },
+  "import.notDownloaded": {
+    one: "{count} photo could not be downloaded from Immich and was skipped:",
+    other: "{count} photos could not be downloaded from Immich and were skipped:",
   },
   "import.skippedFiles": "{files}.",
   "import.skippedRest": {
@@ -265,5 +270,6 @@ export const en: Catalogue = {
   ...enEditor,
   ...enTiming,
   ...enTransitions,
+  ...enImmich,
   ...enMusic,
 };

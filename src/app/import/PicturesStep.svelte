@@ -1,5 +1,7 @@
 <script lang="ts">
   import { onDestroy } from "svelte";
+  import type { ImmichAvailabilityState } from "../../immich/immich-availability";
+  import ImmichBox from "../immich/ImmichBox.svelte";
   import Notice from "../components/Notice.svelte";
   import { getTranslator } from "../i18n/context";
   import { browserObjectUrls, ObjectUrls } from "../media/object-urls";
@@ -12,7 +14,13 @@
   import PicturesProgress from "./PicturesProgress.svelte";
   import ImportFrame from "./ImportFrame.svelte";
   import type { ImportSession } from "./import-session";
-  import { canContinue, captureRange, pendingPictureCount, picturesPhase } from "./import-view";
+  import {
+    canContinue,
+    captureRange,
+    pendingPictureCount,
+    picturesPhase,
+    skippedNotices,
+  } from "./import-view";
 
   let {
     session,
@@ -25,6 +33,9 @@
     notice,
     onDismissNotice,
     onReload,
+    immich,
+    onOpenImmich,
+    onImmichSettings,
   }: {
     session: ImportSession;
     loadThumbnail: (pictureId: string) => Promise<Blob>;
@@ -40,9 +51,14 @@
     notice: OpenNoticeModel | null;
     onDismissNotice: () => void;
     onReload: () => void;
+    immich: ImmichAvailabilityState;
+    onOpenImmich: () => void;
+    /** An Immich problem's details are in the settings. */
+    onImmichSettings: () => void;
   } = $props();
 
   const PICTURE_TYPES = "image/*";
+  const FILE_NAME_SEPARATOR = ", ";
   const { t, formatDate } = getTranslator();
 
   // The session and the loader are fixed for the step's lifetime.
@@ -64,7 +80,7 @@
   const phase = $derived(picturesPhase(importState));
   const range = $derived(captureRange(importState.pictures));
   const pending = $derived(pendingPictureCount(importState));
-  const skippedNames = $derived(importState.skipped.map((file) => file.fileName).join(", "));
+  const skipped = $derived(skippedNotices(importState.skipped));
 
   function add(files: readonly File[]): void {
     const glissandoFile = singleGlissandoFile(files);
@@ -120,7 +136,10 @@
       </span>
       <span class="formats">{t("import.pictureFormats")}</span>
     </DropZone>
-    <OpenFileBox onPick={() => pickGlissando.pick()} />
+    <div class="sources">
+      <ImmichBox state={immich} onOpen={onOpenImmich} onSettings={onImmichSettings} />
+      <OpenFileBox onPick={() => pickGlissando.pick()} />
+    </div>
   {/if}
 
   {#if importState.storageFull}
@@ -147,13 +166,20 @@
       {range}
       onCancel={onDiscard}
       onAddMore={() => pickFiles.click()}
+      onMoreFromImmich={immich.kind === "available" ? onOpenImmich : null}
     />
   {/if}
 
   {#if !importState.busy && importState.skipped.length > 0}
     <Notice tone="warn">
-      <b>{t("import.skipped", { count: importState.skipped.length })}</b>
-      {t("import.skippedFiles", { files: skippedNames })}
+      {#if skipped.unreadable.length > 0}
+        <b>{t("import.skipped", { count: skipped.unreadable.length })}</b>
+        {t("import.skippedFiles", { files: skipped.unreadable.join(FILE_NAME_SEPARATOR) })}
+      {/if}
+      {#if skipped.notDownloaded.length > 0}
+        <b>{t("import.notDownloaded", { count: skipped.notDownloaded.length })}</b>
+        {t("import.skippedFiles", { files: skipped.notDownloaded.join(FILE_NAME_SEPARATOR) })}
+      {/if}
       {#if importState.pictures.length > 0}
         {t("import.skippedRest", { count: importState.pictures.length })}
       {/if}
@@ -185,6 +211,10 @@
 </ImportFrame>
 
 <style>
+  .sources {
+    display: grid;
+    gap: 10px;
+  }
   .inline {
     height: auto;
     padding: 0 4px;

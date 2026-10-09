@@ -17,14 +17,23 @@ export interface RespondPorts<R extends RequestLike> {
 
 const NAVIGATION: RequestMode = "navigate";
 const GET = "GET";
+/** The self-hosted install's route to Immich, relative to the app (ADR-0013). */
+const IMMICH_ROUTE = "immich/";
 
 /**
  * Only the app's own reads are answered; any other request goes to the network untouched.
  * A navigation to a path outside the app but inside the scope gets the app too: the scope is
- * the app's directory, so nothing else lives there.
+ * the app's directory, so nothing else lives there — except the Immich route, which is live
+ * data and never comes from or goes into a cache (ADR-0013).
  */
-export function answersRequest(request: Pick<Request, "method" | "url">, origin: string): boolean {
-  return request.method === GET && new URL(request.url).origin === origin;
+export function answersRequest(request: Pick<Request, "method" | "url">, scope: string): boolean {
+  const url = new URL(request.url);
+  const immichRoute = new URL(IMMICH_ROUTE, scope);
+  return (
+    request.method === GET &&
+    url.origin === immichRoute.origin &&
+    !url.pathname.startsWith(immichRoute.pathname)
+  );
 }
 
 /** Cache first: the network only for what no cache holds (ADR-0005). */

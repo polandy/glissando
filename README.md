@@ -16,6 +16,9 @@ needed once it is installed.
 Runs in current Chrome, Edge, Firefox and Safari (including iPhone and iPad), in German and
 English.
 
+To pick photos from your own [Immich](https://immich.app) server, run Glissando next to it:
+[Self-hosting Glissando with Immich](docs/self-hosting.md).
+
 ## License
 
 [MIT](LICENSE). The Baloo 2 font is licensed under the [SIL Open Font License 1.1](assets/fonts/OFL.txt).

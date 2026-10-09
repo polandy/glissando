@@ -1,0 +1,60 @@
+[
+  {
+    "albumName": "Landscapes Lab",
+    "description": "",
+    "albumThumbnailAssetId": "8e726f72-b602-4950-9d3c-95df4c1cc362",
+    "createdAt": "2026-10-09T16:42:54.833Z",
+    "updatedAt": "2026-10-09T16:43:33.483Z",
+    "id": "81d82341-f78f-43b8-8b6a-9e156b52f550",
+    "albumUsers": [
+      {
+        "user": {
+          "id": "edc8562f-b788-4cf5-8b1b-42d0006bef7d",
+          "email": "admin@immich-lab.local",
+          "name": "Lab Admin",
+          "profileImagePath": "",
+          "avatarColor": "yellow",
+          "profileChangedAt": "2026-10-09T16:42:54.606341+00:00"
+        },
+        "role": "owner"
+      }
+    ],
+    "shared": false,
+    "hasSharedLink": false,
+    "startDate": "2019-07-01T00:00:00.000Z",
+    "endDate": "2019-07-03T00:00:00.000Z",
+    "assetCount": 3,
+    "isActivityEnabled": true,
+    "order": "desc",
+    "lastModifiedAssetTimestamp": "2026-10-09T16:43:24.327Z"
+  },
+  {
+    "albumName": "Faces Lab",
+    "description": "",
+    "albumThumbnailAssetId": "4d420d08-d7d5-43b0-859f-435fc771a684",
+    "createdAt": "2026-10-09T16:42:54.826Z",
+    "updatedAt": "2026-10-09T16:43:33.472Z",
+    "id": "2652da63-9fe6-4c6d-b527-fc2b01107d00",
+    "albumUsers": [
+      {
+        "user": {
+          "id": "edc8562f-b788-4cf5-8b1b-42d0006bef7d",
+          "email": "admin@immich-lab.local",
+          "name": "Lab Admin",
+          "profileImagePath": "",
+          "avatarColor": "yellow",
+          "profileChangedAt": "2026-10-09T16:42:54.606341+00:00"
+        },
+        "role": "owner"
+      }
+    ],
+    "shared": false,
+    "hasSharedLink": false,
+    "startDate": "2019-06-15T00:00:00.000Z",
+    "endDate": "2025-07-12T00:00:00.000Z",
+    "assetCount": 6,
+    "isActivityEnabled": true,
+    "order": "desc",
+    "lastModifiedAssetTimestamp": "2026-10-09T16:43:24.294Z"
+  }
+]

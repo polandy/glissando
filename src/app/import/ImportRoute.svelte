@@ -1,4 +1,5 @@
 <script lang="ts">
+  import type { ImmichAvailabilityState } from "../../immich/immich-availability";
   import type { StoredSlideshow } from "../../library/stored-slideshow";
   import BlockingOverlay from "../components/BlockingOverlay.svelte";
   import Dialog from "../components/Dialog.svelte";
@@ -24,6 +25,9 @@
     notice,
     onDismissNotice,
     onReload,
+    immich,
+    onOpenImmich,
+    onImmichSettings,
   }: {
     step: ImportStep;
     session: ImportSession;
@@ -40,6 +44,9 @@
     notice: OpenNotice | null;
     onDismissNotice: () => void;
     onReload: () => void;
+    immich: ImmichAvailabilityState;
+    onOpenImmich: () => void;
+    onImmichSettings: () => void;
   } = $props();
 
   const translator = getTranslator();
@@ -77,6 +84,9 @@
     {notice}
     {onDismissNotice}
     {onReload}
+    {immich}
+    {onOpenImmich}
+    {onImmichSettings}
   />
 {:else}
   <MusicStep {session} {loadThumbnail} {onBack} onCreate={create} {onError} {onMusicUnreadable} />

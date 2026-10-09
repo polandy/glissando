@@ -121,6 +121,13 @@ export const ICONS = {
   },
   moon: { shapes: [path("M20 14.5A8 8 0 019.5 4a8 8 0 1010.5 10.5z")] },
   monitor: { shapes: [rect(3, 4, 18, 12, 2), path("M8 20h8M12 16v4")] },
+  search: { shapes: [circle(11, 11, 6.5), path("M16 16l4 4")] },
+  cloudOff: {
+    shapes: [
+      path("M3 3l18 18"),
+      path("M8 7.5A5.5 5.5 0 0117.5 10 4 4 0 0120 16.5M16 18H7a4.5 4.5 0 01-1.6-8.7"),
+    ],
+  },
 } as const satisfies Record<string, IconDefinition>;
 
 export type IconName = keyof typeof ICONS;

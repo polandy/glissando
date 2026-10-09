@@ -1,0 +1,35 @@
+[
+  {
+    "id": "a5cc3169-1029-42ff-9491-dc071066a9f3",
+    "boundingBoxX1": 60,
+    "boundingBoxY1": 441,
+    "boundingBoxX2": 95,
+    "boundingBoxY2": 486,
+    "imageWidth": 1280,
+    "imageHeight": 926,
+    "sourceType": "machine-learning",
+    "person": null
+  },
+  {
+    "id": "8ae62cb0-dd31-4e80-8a98-a09fa0aeeaba",
+    "boundingBoxX1": 100,
+    "boundingBoxY1": 487,
+    "boundingBoxX2": 137,
+    "boundingBoxY2": 533,
+    "imageWidth": 1280,
+    "imageHeight": 926,
+    "sourceType": "machine-learning",
+    "person": null
+  },
+  {
+    "id": "c0693f40-43e6-49a6-9dda-d00f418ed380",
+    "boundingBoxX1": 176,
+    "boundingBoxY1": 461,
+    "boundingBoxX2": 210,
+    "boundingBoxY2": 506,
+    "imageWidth": 1280,
+    "imageHeight": 926,
+    "sourceType": "machine-learning",
+    "person": null
+  }
+]
