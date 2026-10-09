@@ -3,7 +3,7 @@
   import { FRAMES_PER_SECOND } from "../../../../video-export";
   import { getTranslator } from "../../../i18n/context";
   import type { ExportPreview } from "../../../video-export/slideshow-video-export";
-  import type { ExportSheetState } from "../../../video-export/video-export-session";
+  import type { ExportSheetState } from "../../../video-export/export-sheet-state";
 
   /** The frame just encoded, the progress and the time left; only "Cancel". */
   let {

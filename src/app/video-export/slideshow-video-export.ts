@@ -2,7 +2,8 @@ import { composeSlideshow, slideshowDurationMs } from "../../compose";
 import type { LibraryStore, StoredSlideshow } from "../../library/stored-slideshow";
 import { runVideoExport } from "../../video-export";
 import { NO_FOCUS_KNOWN } from "../focus/pictures-focus";
-import { VideoExportSession, type ExportRun, type VideoExportPorts } from "./video-export-session";
+import type { ExportRun, VideoExportPorts } from "./export-sheet-state";
+import { VideoExportSession } from "./video-export-session";
 
 /** The export's preview is the canvas it draws each frame on. */
 export type ExportPreview = CanvasImageSource;

@@ -1,5 +1,5 @@
 import type { ExportCapabilities, ExportTarget, VideoExportResult } from "../../../video-export";
-import type { ExportRun, VideoExportPorts } from "../video-export-session";
+import type { ExportRun, VideoExportPorts } from "../export-sheet-state";
 
 /** A preview stands in for the canvas the export draws on. */
 export interface FakePreview {

@@ -6,10 +6,8 @@
   import Notice from "../../components/Notice.svelte";
   import { getTranslator } from "../../i18n/context";
   import type { ExportPreview } from "../../video-export/slideshow-video-export";
-  import type {
-    ExportSheetState,
-    VideoExportSession,
-  } from "../../video-export/video-export-session";
+  import type { ExportSheetState } from "../../video-export/export-sheet-state";
+  import type { VideoExportSession } from "../../video-export/video-export-session";
   import ExportChoose from "./video-export/ExportChoose.svelte";
   import ExportDone from "./video-export/ExportDone.svelte";
   import ExportRunning from "./video-export/ExportRunning.svelte";

@@ -2,7 +2,7 @@
   import { presetById } from "../../../../video-export";
   import Icon from "../../../components/Icon.svelte";
   import { getTranslator } from "../../../i18n/context";
-  import type { ExportSheetState } from "../../../video-export/video-export-session";
+  import type { ExportSheetState } from "../../../video-export/export-sheet-state";
 
   /** The finished file and how it reaches the user: saved, shared or downloaded. */
   let {

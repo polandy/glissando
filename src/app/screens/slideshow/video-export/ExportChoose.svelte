@@ -4,7 +4,7 @@
   import Icon from "../../../components/Icon.svelte";
   import Notice from "../../../components/Notice.svelte";
   import { getTranslator } from "../../../i18n/context";
-  import type { ExportSheetState } from "../../../video-export/video-export-session";
+  import type { ExportSheetState } from "../../../video-export/export-sheet-state";
   import PresetRadios from "./PresetRadios.svelte";
 
   /** The size, the format and the notes before the start. */

@@ -103,9 +103,9 @@ The info panel's second button, "Als Video sichern" (film icon), below "Play" op
 `src/video-export/` holds pure logic and ports. The browser adapters live in
 `src/video-export/browser/`, the sheet in `src/app/screens/slideshow/VideoExportSheet.svelte` with
 its states' parts in `screens/slideshow/video-export/`. `src/app/video-export/` drives it:
-`video-export-session.ts` (the sheet's flow over injected ports, unit-tested with fakes),
-`screen-awake.ts` (the wake lock), `slideshow-video-export.ts` (composes the stored slideshow for
-the run) and `browser-video-export-device.ts` (the browser ports, wired by `main.ts`).
+`video-export-session.ts` (the sheet's flow over the ports and states in `export-sheet-state.ts`,
+unit-tested with fakes), `screen-awake.ts` (the wake lock), `slideshow-video-export.ts` (composes
+the stored slideshow for the run) and `browser-video-export-device.ts` (the browser ports, wired by `main.ts`).
 
 - `plan.ts`: presets, frame count, timestamps, keyframes, size estimate, packet-count bounds.
 - `export-video.ts`: the run, which owns the frame loop, interleaving, backpressure, progress,

@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { estimatedBytes, presetById } from "../../video-export";
 import { FakeExportPorts, fakeTarget, type FakePreview } from "./testing/fake-export-ports";
-import { VideoExportSession, type ExportSheetState } from "./video-export-session";
+import type { ExportSheetState } from "./export-sheet-state";
+import { VideoExportSession } from "./video-export-session";
 
 const TITLE = "Sommer am See";
 /** 10 s: 300 frames. */
