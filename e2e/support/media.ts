@@ -1,4 +1,5 @@
 import type { Page } from "@playwright/test";
+import { readFileSync } from "node:fs";
 import { silentWav } from "../../src/import/testing/silent-wav";
 import { syntheticJpeg } from "../../src/import/testing/synthetic-jpeg";
 
@@ -12,7 +13,7 @@ declare const Buffer: {
   concat(list: readonly Uint8Array[]): Uint8Array;
 };
 
-/** A file as a file chooser takes it: built in the test, never a committed fixture. */
+/** A file as a file chooser takes it: built in the test, or a test picture the unit tests share. */
 export interface TestFile {
   readonly name: string;
   readonly mimeType: string;
@@ -49,18 +50,36 @@ export async function pictureTakenOn(
     },
     { width: PICTURE_WIDTH, height: PICTURE_HEIGHT, fill: colour },
   );
-  const jpeg = Buffer.from(encoded, "base64");
+  return {
+    name,
+    mimeType: "image/jpeg",
+    buffer: withCaptureDay(Buffer.from(encoded, "base64"), day),
+  };
+}
+
+/**
+ * The public-domain NASA portrait of Eileen Collins that the face detector's own tests use, with
+ * EXIF saying it was taken on `day`: a picture with a face to find.
+ */
+export function portraitTakenOn(name: string, day: string): TestFile {
+  const portrait = readFileSync(
+    new URL("../../src/focus/testing/astronaut-128.jpg", import.meta.url),
+  );
+  return { name, mimeType: "image/jpeg", buffer: withCaptureDay(portrait, day) };
+}
+
+/** `jpeg` with an EXIF segment saying it was taken on `day` (at noon), spliced in after its start. */
+function withCaptureDay(jpeg: Uint8Array, day: string): Uint8Array {
   const exifDate = `${day.replaceAll("-", ":")} 12:00:00`;
   const exifSource = syntheticJpeg({ byteOrder: "little", dateTimeOriginal: exifDate }).bytes;
   const app1Start = JPEG_START_OF_IMAGE_LENGTH;
   const app1Length = SEGMENT_MARKER_LENGTH + ((exifSource[4] ?? 0) << 8) + (exifSource[5] ?? 0);
   const app1 = exifSource.subarray(app1Start, app1Start + app1Length);
-  const buffer = Buffer.concat([
+  return Buffer.concat([
     jpeg.subarray(0, JPEG_START_OF_IMAGE_LENGTH),
     app1,
     jpeg.subarray(JPEG_START_OF_IMAGE_LENGTH),
   ]);
-  return { name, mimeType: "image/jpeg", buffer };
 }
 
 /** A file no browser reads as a picture. */
