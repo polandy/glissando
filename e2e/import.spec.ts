@@ -67,7 +67,9 @@ test("E2E-005 importing pictures and music creates a slideshow ordered by captur
   await expect(page.getByRole("heading", { name: "Juli 2025" })).toBeVisible();
   await expect(page.getByText("12.07.2025 – 20.07.2025")).toBeVisible();
   await expect(definitionOf(page, "Bilder")).toHaveText("3");
-  await expect(definitionOf(page, "Musik")).toHaveText("Sommerwind.wav");
+  await expect(
+    page.getByRole("button", { name: "Musik Sommerwind.wav ganzer Titel Bearbeiten" }),
+  ).toBeVisible();
   await expect(page.getByRole("status")).toHaveText(CREATED_TOAST);
 });
 
