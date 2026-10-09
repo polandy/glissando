@@ -20,6 +20,7 @@ import {
 } from "./app/storage/persistence-prompt";
 import { Toaster } from "./app/toast/toaster";
 import { createDownloader } from "./app/glissando-file/download-file";
+import { browserLaunchQueue } from "./app/glissando-file/launched-files";
 import { browserObjectUrls } from "./app/media/object-urls";
 import { browserMusicEditorAudio } from "./app/music-editor/music-editor-audio";
 import { freeStorageBytes } from "./library/free-storage";
@@ -98,6 +99,7 @@ const services = {
   ),
   pwa,
   appAddress: window.location.origin,
+  launchQueue: browserLaunchQueue(window),
   musicOutput,
   musicAudio: browserMusicEditorAudio(musicOutput),
   newImportSession: () =>
