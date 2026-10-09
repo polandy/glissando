@@ -81,7 +81,11 @@ and its optional `transition` how it hands over to the next picture (one of
 `TRANSITION_CHOICES`: the player's six effects or `"cut"`); absent, each is automatic and no
 transition length is ever stored (ADR-0008). `setPictureDuration` and `setPictureTransition`
 validate them (`checkOwnDurationMs`, `checkTransitionChoice`) and delete the field for
-`undefined`; records without them need no migration. `mediaBytes`
+`undefined`; records without them need no migration. The slideshow's optional `transition` is
+the default every picture without its own plays (one of `SLIDESHOW_TRANSITIONS`: a picture's
+choices or `"alternate"`); absent, it is the crossfade (ADR-0010). `setSlideshowTransition`
+validates it (`checkSlideshowTransition`) and deletes the field for `undefined` or
+`"crossfade"`; records without it need no migration. `mediaBytes`
 measures what a slideshow's pictures (both renditions) and music take, in one read-only
 transaction, for the export's size estimate. `deleteSlideshow` deletes the
 record and, in the same transaction, the media no other slideshow references.
@@ -116,20 +120,21 @@ entries are stored, not compressed, so any unzip tool opens it; no ZIP64, so it 
 
 | Entry                  | Content                                                                |
 | ---------------------- | ---------------------------------------------------------------------- |
-| `glissando.json`       | always first: `format` "glissando", `formatVersion` 4, the `slideshow` |
+| `glissando.json`       | always first: `format` "glissando", `formatVersion` 6, the `slideshow` |
 | `pictures/0001.jpg` …  | the display renditions in play order, as stored (numbered from 0001)   |
 | `thumbnails/0001.jpg`… | their thumbnails, as stored                                            |
 | `music/track.<ext>`    | the music, extension from its file name (none when it has none)        |
 
 `slideshow` is the stored record without device ids: `title`, `createdAt`, `secondsPerPicture`,
-`ownOrder` (only when true), `pictures` (`file`, `thumbnail`, `capturedAt`, `width`, `height`,
+`ownOrder` (only when true), `transition` (only when not the crossfade), `pictures` (`file`, `thumbnail`, `capturedAt`, `width`, `height`,
 `fileName`, `kenBurns` for a picture with an own motion, `caption` for one with a caption,
 `durationMs` and `transition` for one with an own duration or transition) and `music` (`file`, `fileName`, `durationMs` in whole ms, `mimeType`, and `trim`, `fadeInMs`, `fadeOutMs` where set). Picture types follow
 the extension (`jpg`, `png`, `webp`). The manifest is read strictly: an unknown key or a value
 out of range makes the file damaged. Version 2 added `kenBurns`, version 3 `caption`, version 4
-`durationMs` and `transition`, version 5 the music's `trim`, `fadeInMs` and `fadeOutMs`; files
-of versions 1 to 4 are still read, and a file carrying a field its version does not know is
-damaged. An own duration, transition, excerpt or fade is checked as on the edit; the reason
+`durationMs` and `transition`, version 5 the music's `trim`, `fadeInMs` and `fadeOutMs`,
+version 6 the slideshow's `transition`; files of versions 1 to 5 are still read (without
+`transition`: the crossfade), and a file carrying a field its version does not know is
+damaged. An own duration, transition, default transition, excerpt or fade is checked as on the edit; the reason
 names its path and value. A caption must be what `normalizeCaption` leaves (1 to 80 characters counted in graphemes, one line, no
 leading, trailing or repeated whitespace); the reason names its path and value.
 

@@ -1,6 +1,7 @@
 import { enEditor } from "./catalogue-en-editor";
 import { enMusic } from "./catalogue-en-music";
 import { enTiming } from "./catalogue-en-timing";
+import { enTransitions } from "./catalogue-en-transitions";
 import type { Catalogue } from "./messages";
 
 /** English UI copy; the type demands exactly the German catalogue's keys and message shapes. */
@@ -52,7 +53,6 @@ export const en: Catalogue = {
   "slideshow.kenBurns": "Ken Burns",
   "slideshow.automatic": "automatic",
   "slideshow.transitions": "Transitions",
-  "slideshow.alternating": "alternating",
   "slideshow.play": "Play",
   "slideshow.pictures": "Pictures",
   "slideshow.sortedByDate": "Sorted by capture date",
@@ -262,5 +262,6 @@ export const en: Catalogue = {
   "player.playbackError": "The slideshow could not be played.",
   ...enEditor,
   ...enTiming,
+  ...enTransitions,
   ...enMusic,
 };

@@ -44,6 +44,7 @@ async function mountRoute(pictureId: string) {
     motionAutomaticText: () => "Bewegung wieder automatisch",
     durationAutomaticText: () => "Dauer wieder automatisch",
     transitionAutomaticText: () => "Übergang wieder automatisch",
+    slideshowTransitionResetText: () => "Übergänge wieder auf Überblenden",
     automaticTitle: () => "Juli 2025",
   });
   let backs = 0;

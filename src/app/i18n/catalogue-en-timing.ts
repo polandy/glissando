@@ -4,7 +4,6 @@ import type { deTiming } from "./catalogue-de-timing";
 /** English copy of a picture's own duration and transition; typed to the German keys. */
 export const enTiming: Pick<Catalogue, keyof typeof deTiming> = {
   "slideshow.pictureTimes": "Picture times",
-  "slideshow.alternatingWithOwn": "alternating, {count} own",
   "slideshow.musicLength": "music {duration}",
   "slideshow.pictureLabelOwnDuration": ", own duration {duration}",
   "slideshow.pictureLabelOwnTransition": ", own transition {effect}",
@@ -43,7 +42,10 @@ export const enTiming: Pick<Catalogue, keyof typeof deTiming> = {
   "editor.endsHereRest": ", without a transition.",
   "editor.storedTransitionStays":
     "The own transition “{effect}” stays saved and applies again once a picture follows.",
-  "editor.transitionsAlternate": "Transitions alternate automatically from picture to picture.",
+  "editor.transitionFollowsSlideshow":
+    "Automatically, the slideshow's transition applies: {effect}.",
+  "editor.transitionsAlternate":
+    "Automatically, the transitions alternate, as set for the slideshow.",
   "editor.transitionHint":
     "Takes {length} at the end of picture {number}: {share} % of the picture's time, at most {max} s.",
   "editor.cutHint": "Picture {number} follows without a transition.",
@@ -56,4 +58,5 @@ export const enTiming: Pick<Catalogue, keyof typeof deTiming> = {
   "effect.zoom-in": "Zoom",
   "effect.dissolve": "Dissolve",
   "effect.cut": "Cut",
+  "effect.alternate": "Alternating",
 };

@@ -57,6 +57,7 @@ describe("slideshowDetails", () => {
       ownMotionCount: 0,
       ownDurationCount: 0,
       ownTransitionCount: 0,
+      transition: "crossfade",
       captionCount: 0,
       capturedFrom: "2025-07-01T10:00:00Z",
       capturedTo: "2025-07-02T10:00:00Z",
@@ -154,6 +155,12 @@ describe("slideshowDetails", () => {
       "2025-07-01T10:00:00Z",
       "2025-07-02T10:00:00Z",
     ]);
+  });
+
+  it("tells the slideshow's default transition as stored", () => {
+    expect(slideshowDetails({ ...stored, transition: "alternate" }, urlOf).transition).toBe(
+      "alternate",
+    );
   });
 
   it("marks own durations and own transitions, a last picture's transition not counting", () => {

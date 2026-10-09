@@ -1,4 +1,9 @@
-import { CUT_TRANSITION, type TransitionChoice } from "../../../library/own-timing";
+import { automaticTransition } from "../../../compose";
+import {
+  CUT_TRANSITION,
+  type SlideshowTransition,
+  type TransitionChoice,
+} from "../../../library/own-timing";
 import { easeTransition, type TransitionEffect } from "../../../player";
 
 /**
@@ -106,4 +111,9 @@ export function tileProgress(choice: TransitionChoice, elapsedMs: number): numbe
     return loop < TILE_CUT_AT ? 0 : 1;
   }
   return easeTransition((loop - TILE_EFFECT_FROM) / TILE_EFFECT_SHARE);
+}
+
+/** What a tile shows `elapsedMs` into its loops: its choice, the alternating one's in turn. */
+export function tileEffect(choice: SlideshowTransition, elapsedMs: number): TransitionChoice {
+  return automaticTransition(Math.floor(elapsedMs / TILE_LOOP_MS), choice);
 }

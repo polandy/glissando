@@ -2,6 +2,7 @@ import { CAPTION_RULE, isCaption } from "../player/caption";
 import { checkOwnKenBurns, InvalidOwnKenBurnsError, motionPath } from "../library/own-ken-burns";
 import {
   checkOwnDurationMs,
+  checkSlideshowTransition,
   checkTransitionChoice,
   InvalidOwnTimingError,
 } from "../library/own-timing";
@@ -9,6 +10,7 @@ import { checkMusicFadeMs, checkMusicTrim, InvalidOwnMusicError } from "../libra
 import { MAX_SECONDS_PER_PICTURE, MIN_SECONDS_PER_PICTURE } from "../library/stored-slideshow";
 import {
   CAPTION_FROM_VERSION,
+  DEFAULT_TRANSITION_FROM_VERSION,
   GLISSANDO_FORMAT_ID,
   GLISSANDO_FORMAT_VERSION,
   OLDEST_READABLE_FORMAT_VERSION,
@@ -85,6 +87,7 @@ function readValidManifest(input: JsonObject): GlissandoManifest {
     "ownOrder",
     "pictures",
     "music",
+    ...(version >= DEFAULT_TRANSITION_FROM_VERSION ? ["transition"] : []),
   ]);
   const secondsPerPicture = show["secondsPerPicture"];
   if (
@@ -113,6 +116,9 @@ function readValidManifest(input: JsonObject): GlissandoManifest {
       createdAt: readDateTime(show["createdAt"], "slideshow.createdAt"),
       secondsPerPicture,
       ...(show["ownOrder"] === true ? { ownOrder: true } : {}),
+      ...(show["transition"] === undefined
+        ? {}
+        : { transition: readOwnTiming(checkSlideshowTransition, show["transition"], "slideshow") }),
       pictures: pictures.map((picture: unknown, index) =>
         readPicture(picture, `slideshow.pictures[${index}]`, version),
       ),

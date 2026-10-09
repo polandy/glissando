@@ -4,6 +4,7 @@ import {
   setPictureCaption,
   setPictureDuration,
   setPictureTransition,
+  setSlideshowTransition,
 } from "./slideshow-edits";
 import { InvalidOwnTimingError } from "./own-timing";
 import type { StoredPicture, StoredSlideshow } from "./stored-slideshow";
@@ -86,5 +87,36 @@ describe("setPictureTransition", () => {
     const own = setPictureTransition(slideshow(["a", "b", "c"]), "a", "circle-open");
 
     expect(movePicture(own, "a", 1).pictures[1]?.transition).toBe("circle-open");
+  });
+});
+
+describe("setSlideshowTransition", () => {
+  it("gives the slideshow its default transition and leaves the pictures' own ones alone", () => {
+    const own = setPictureTransition(slideshow(["a", "b"]), "a", "cut");
+
+    const edited = setSlideshowTransition(own, "alternate");
+
+    expect(edited.transition).toBe("alternate");
+    expect(edited.pictures).toEqual(own.pictures);
+  });
+
+  it.each([["crossfade" as const], [undefined]])(
+    "with %s returns to the default crossfade: the field is gone",
+    (transition) => {
+      const own = setSlideshowTransition(slideshow(["a"]), "dissolve");
+
+      const reset = setSlideshowTransition(own, transition);
+
+      expect(reset.id).toBe("show");
+      expect(reset).not.toHaveProperty("transition");
+    },
+  );
+
+  it("refuses an unknown effect, so no invalid record is stored", () => {
+    const unknownEffect = "fade" as "cut";
+
+    expect(() => setSlideshowTransition(slideshow(["a"]), unknownEffect)).toThrow(
+      'slideshow "show" transition',
+    );
   });
 });

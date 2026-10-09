@@ -16,7 +16,8 @@
   import SlideshowScreen from "../screens/SlideshowScreen.svelte";
   import type { Toaster } from "../toast/toaster";
   import type { MusicEditorAudio } from "../music-editor/music-editor-audio";
-  import type { MusicOutput } from "../../player";
+  import { animationFrames, performanceClock, type MusicOutput } from "../../player";
+  import { REDUCED_MOTION_QUERY } from "../reduced-motion";
   import MusicEditorRoute from "./MusicEditorRoute.svelte";
   import PictureEditorRoute from "./PictureEditorRoute.svelte";
   import PlayerLayer from "./PlayerLayer.svelte";
@@ -92,6 +93,7 @@
   /** The media the size is measured for; see `exportMediaKey`. */
   let measuredMedia: string | null = null;
   const mousePointer = new MediaQuery(MOUSE_POINTER_QUERY);
+  const reducedMotion = new MediaQuery(REDUCED_MOTION_QUERY);
   // The store is fixed for the screen's lifetime.
   // svelte-ignore state_referenced_locally
   const thumbnails = new ObjectUrls({
@@ -141,6 +143,7 @@
       motionAutomaticText: () => translator.t("editor.motionAutomatic"),
       durationAutomaticText: () => translator.t("editor.durationAutomatic"),
       transitionAutomaticText: () => translator.t("editor.transitionAutomatic"),
+      slideshowTransitionResetText: () => translator.t("transitions.resetDone"),
       automaticTitle: (slideshow) =>
         titleForCaptureRange(
           slideshow.pictures.map((picture) => picture.capturedAt),
@@ -206,6 +209,10 @@
     onRename={(typed) => editor?.rename(typed)}
     {onEdit}
     {onEditMusic}
+    onTransition={(transition) => editor?.setSlideshowTransition(transition)}
+    onResetTransition={() => editor?.resetSlideshowTransition()}
+    previewPorts={{ clock: performanceClock, frames: animationFrames }}
+    reducedMotion={reducedMotion.current}
     onDelete={deleteSlideshow}
     exportState={exportMenuState(exportProgress, slideshowId, exportBytes)}
     {onExport}

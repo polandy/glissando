@@ -105,6 +105,7 @@ export async function writeGlissandoFile(
       createdAt: ports.now().toISOString(),
       pictures,
       ...(slideshow.ownOrder ? { ownOrder: true } : {}),
+      ...(slideshow.transition === undefined ? {} : { transition: slideshow.transition }),
       ...(storedMusic === undefined ? {} : { music: storedMusic }),
       secondsPerPicture: slideshow.secondsPerPicture,
     };

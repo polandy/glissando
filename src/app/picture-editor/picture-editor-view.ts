@@ -1,15 +1,20 @@
 import {
-  autoTransitionEffect,
+  automaticTransition,
   musicExcerpt,
   musicExcerptMs,
   pictureKenBurns,
   pictureTransition,
   slideDurationsMs,
+  slideshowTransition,
 } from "../../compose";
 import type { OwnKenBurns } from "../../library/own-ken-burns";
-import { MIN_OWN_DURATION_MS, type TransitionChoice } from "../../library/own-timing";
+import {
+  MIN_OWN_DURATION_MS,
+  type SlideshowTransition,
+  type TransitionChoice,
+} from "../../library/own-timing";
 import type { StoredPicture, StoredSlideshow } from "../../library/stored-slideshow";
-import { MILLISECONDS_PER_SECOND, type Size, type TransitionEffect } from "../../player";
+import { MILLISECONDS_PER_SECOND, type Size } from "../../player";
 
 /** What an automatic duration follows: the slideshow's seconds per picture, or the music. */
 export type DurationBasis =
@@ -25,11 +30,12 @@ export type DurationBasis =
     };
 
 export interface TransitionView {
-  /** The own choice, else the automatic effect for the picture's position. */
+  /** The own choice, else the automatic one. */
   readonly choice: TransitionChoice;
   readonly own: boolean;
-  /** The effect the automatic cycle gives the picture's position. */
-  readonly automatic: TransitionEffect;
+  /** What the slideshow's default gives the picture's position. */
+  readonly automatic: TransitionChoice;
+  readonly slideshowTransition: SlideshowTransition;
   /** How long it runs at the end of the picture; 0 for a cut and at the last picture. */
   readonly durationMs: number;
 }
@@ -85,7 +91,15 @@ export function pictureEditorView(stored: StoredSlideshow, pictureId: string): P
   // One duration per picture: every index below is in range.
   const durationAt = (at: number) => durationsMs[at] as number;
   const nextPicture = pictures[index + 1];
-  const transition = pictureTransition(index, pictures.length, picture, durationAt(index));
+  const defaultTransition = slideshowTransition(stored);
+  const automatic = automaticTransition(index, defaultTransition);
+  const transition = pictureTransition(
+    index,
+    pictures.length,
+    picture,
+    durationAt(index),
+    defaultTransition,
+  );
   return {
     id: picture.id,
     number: index + 1,
@@ -99,9 +113,10 @@ export function pictureEditorView(stored: StoredSlideshow, pictureId: string): P
     ownDuration: picture.durationMs !== undefined,
     durationBasis: durationBasis(stored, durationsMs),
     transition: {
-      choice: picture.transition ?? autoTransitionEffect(index),
+      choice: picture.transition ?? automatic,
       own: picture.transition !== undefined,
-      automatic: autoTransitionEffect(index),
+      automatic,
+      slideshowTransition: defaultTransition,
       durationMs: transition?.durationMs ?? 0,
     },
     caption: picture.caption ?? "",

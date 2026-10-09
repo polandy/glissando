@@ -3,7 +3,6 @@ import type { Message } from "./messages";
 /** German copy of a picture's own duration and transition; part of the German catalogue. */
 export const deTiming = {
   "slideshow.pictureTimes": "Bildzeiten",
-  "slideshow.alternatingWithOwn": "abwechselnd, {count} eigene",
   "slideshow.musicLength": "Musik {duration}",
   "slideshow.pictureLabelOwnDuration": ", eigene Dauer {duration}",
   "slideshow.pictureLabelOwnTransition": ", eigener Übergang {effect}",
@@ -44,7 +43,9 @@ export const deTiming = {
   "editor.endsHereRest": ", ohne Übergang.",
   "editor.storedTransitionStays":
     "Der eigene Übergang „{effect}“ bleibt gespeichert und gilt wieder, sobald ein Bild folgt.",
-  "editor.transitionsAlternate": "Automatisch wechseln die Übergänge von Bild zu Bild ab.",
+  "editor.transitionFollowsSlideshow": "Automatisch gilt der Übergang der Diashow: {effect}.",
+  "editor.transitionsAlternate":
+    "Automatisch wechseln die Übergänge ab, wie für die Diashow eingestellt.",
   "editor.transitionHint":
     "Dauert {length}, am Ende von Bild {number}: {share} % der Bildzeit, höchstens {max} s.",
   "editor.cutHint": "Bild {number} folgt ohne Übergang.",
@@ -57,4 +58,5 @@ export const deTiming = {
   "effect.zoom-in": "Zoom",
   "effect.dissolve": "Auflösen",
   "effect.cut": "Schnitt",
+  "effect.alternate": "Abwechselnd",
 } as const satisfies Record<string, Message>;

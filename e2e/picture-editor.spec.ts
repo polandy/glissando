@@ -158,7 +158,9 @@ test("E2E-022 a picture gets its own duration and transition, stored, and the tr
   await expect(ownTile.locator(".timing-badge.mono")).toHaveText("6,5 s");
   await expect(ownTile.locator(".timing-badge[title]")).toHaveAttribute("title", "Kreis");
   await expect(definitionOf(page, "Bildzeiten")).toHaveText("automatisch, 1 eigene");
-  await expect(definitionOf(page, "Übergänge")).toHaveText("abwechselnd, 1 eigene");
+  await expect(
+    page.getByRole("button", { name: "Übergänge Überblenden Vorgabe · 1 eigener Ändern" }),
+  ).toBeVisible();
 
   await selectionBar.getByRole("button", { name: "Bearbeiten" }).click();
   await expect(transitionState).toHaveText("Eigener Übergang");

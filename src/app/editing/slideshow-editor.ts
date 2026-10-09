@@ -1,7 +1,7 @@
 import { pictureKenBurns } from "../../compose";
 import type { OwnKenBurns } from "../../library/own-ken-burns";
 import type { MusicTrim } from "../../library/own-music";
-import type { TransitionChoice } from "../../library/own-timing";
+import type { SlideshowTransition, TransitionChoice } from "../../library/own-timing";
 import {
   movePicture,
   removePicture,
@@ -14,6 +14,7 @@ import {
   setPictureDuration,
   setPictureKenBurns,
   setPictureTransition,
+  setSlideshowTransition,
 } from "../../library/slideshow-edits";
 import type { LibraryStore, StoredSlideshow } from "../../library/stored-slideshow";
 import type { Toaster } from "../toast/toaster";
@@ -41,6 +42,8 @@ export interface SlideshowEditorPorts {
   readonly durationAutomaticText: () => string;
   /** The undo toast's text after a picture's own transition was dropped. */
   readonly transitionAutomaticText: () => string;
+  /** The undo toast's text after the slideshow's default transition went back to crossfade. */
+  readonly slideshowTransitionResetText: () => string;
   /** The title from the capture dates, which an emptied title falls back to. */
   readonly automaticTitle: (slideshow: StoredSlideshow) => string;
 }
@@ -173,6 +176,27 @@ export class SlideshowEditor {
     this.#apply(setPictureTransition(this.#slideshow, pictureId, undefined));
     this.#offerUndo(pictureId, "transition", this.#ports.transitionAutomaticText(), () =>
       this.setTransition(pictureId, previous),
+    );
+  }
+
+  /** Every picture without its own transition hands over with `transition` from now on. */
+  setSlideshowTransition(transition: SlideshowTransition): void {
+    this.#resetUndo.supersede(this.#slideshow.id, "slideshowTransition");
+    this.#apply(setSlideshowTransition(this.#slideshow, transition));
+  }
+
+  /** Returns the default to crossfade without asking; the toast's undo brings it back. */
+  resetSlideshowTransition(): void {
+    const previous = this.#slideshow.transition;
+    if (previous === undefined) {
+      return;
+    }
+    this.#apply(setSlideshowTransition(this.#slideshow, undefined));
+    this.#resetUndo.offer(
+      this.#slideshow.id,
+      "slideshowTransition",
+      this.#ports.slideshowTransitionResetText(),
+      () => this.setSlideshowTransition(previous),
     );
   }
 

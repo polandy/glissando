@@ -1,4 +1,4 @@
-import type { TransitionChoice } from "../../library/own-timing";
+import type { SlideshowTransition, TransitionChoice } from "../../library/own-timing";
 
 /** What the screens show; the composition root derives these from the stored slideshows. */
 
@@ -53,6 +53,8 @@ export interface SlideshowDetails {
   readonly ownDurationCount: number;
   /** How many pictures play an own transition into the next one. */
   readonly ownTransitionCount: number;
+  /** The transition of every picture without its own. */
+  readonly transition: SlideshowTransition;
   /** How many pictures have a caption. */
   readonly captionCount: number;
   /** The earliest and the latest capture date, ISO 8601. */

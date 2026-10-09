@@ -1,6 +1,7 @@
 import { deEditor } from "./catalogue-de-editor";
 import { deMusic } from "./catalogue-de-music";
 import { deTiming } from "./catalogue-de-timing";
+import { deTransitions } from "./catalogue-de-transitions";
 import type { Message } from "./messages";
 
 /**
@@ -55,7 +56,6 @@ export const de = {
   "slideshow.kenBurns": "Ken Burns",
   "slideshow.automatic": "automatisch",
   "slideshow.transitions": "Übergänge",
-  "slideshow.alternating": "abwechselnd",
   "slideshow.play": "Abspielen",
   "slideshow.pictures": "Bilder",
   "slideshow.sortedByDate": "Nach Aufnahmedatum sortiert",
@@ -264,5 +264,6 @@ export const de = {
   "player.playbackError": "Die Diashow konnte nicht abgespielt werden.",
   ...deEditor,
   ...deTiming,
+  ...deTransitions,
   ...deMusic,
 } as const satisfies Record<string, Message>;

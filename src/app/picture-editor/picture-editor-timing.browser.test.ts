@@ -110,53 +110,90 @@ describe("PictureEditorScreen transition", () => {
     ]);
     expect(element(".eyebrow#transition-label").textContent).toBe("Übergang zu Bild 3");
     expect(chip(transitionSection())).toBe("Automatisch");
-    expect(tile("push-left").getAttribute("aria-checked")).toBe("true");
-    expect(tile("push-left").classList.contains("automatic")).toBe(true);
-    expect(tile("push-left").querySelector(".tag")?.textContent).toBe("Auto");
+    expect(tile("crossfade").getAttribute("aria-checked")).toBe("true");
+    expect(tile("crossfade").classList.contains("automatic")).toBe(true);
+    expect(tile("crossfade").querySelector(".tag")?.textContent).toBe("Auto");
     expect(text(transitionSection())).toContain(
-      "Automatisch wechseln die Übergänge von Bild zu Bild ab. Dauert 1,0 s, am Ende von Bild 2: 30 % der Bildzeit, höchstens 1 s.",
+      "Automatisch gilt der Übergang der Diashow: Überblenden. Dauert 1,0 s, am Ende von Bild 2: 30 % der Bildzeit, höchstens 1 s.",
     );
+  });
+
+  it("while the slideshow alternates, tags the effect for the position and says so", () => {
+    mountEditor(
+      view({
+        transition: {
+          ...view().transition,
+          choice: "push-left",
+          automatic: "push-left",
+          slideshowTransition: "alternate",
+        },
+      }),
+    );
+
+    expect(tile("push-left").getAttribute("aria-checked")).toBe("true");
+    expect(tile("push-left").querySelector(".tag")?.textContent).toBe("Auto");
+    expect(transitionSection().querySelectorAll(".tag")).toHaveLength(1);
+    expect(text(transitionSection())).toContain(
+      "Automatisch wechseln die Übergänge ab, wie für die Diashow eingestellt.",
+    );
+  });
+
+  it("tags the slideshow's default effect and names it", () => {
+    mountEditor(
+      view({
+        transition: {
+          ...view().transition,
+          choice: "zoom-in",
+          automatic: "zoom-in",
+          slideshowTransition: "zoom-in",
+        },
+      }),
+    );
+
+    expect(tile("zoom-in").querySelector(".tag")?.textContent).toBe("Auto");
+    expect(tile("crossfade").querySelector(".tag")).toBeNull();
+    expect(text(transitionSection())).toContain("Automatisch gilt der Übergang der Diashow: Zoom.");
   });
 
   it("makes a tapped effect own, also the automatic one", () => {
     const { calls } = mountEditor();
 
     tile("circle-open").click();
-    tile("push-left").click();
+    tile("crossfade").click();
 
-    expect(calls.transitions).toEqual(["circle-open", "push-left"]);
+    expect(calls.transitions).toEqual(["circle-open", "crossfade"]);
   });
 
   it("moves the choice with the arrow keys", () => {
     const { calls } = mountEditor();
-    tile("push-left").focus();
+    tile("crossfade").focus();
 
-    press(tile("push-left"), "ArrowRight");
+    press(tile("crossfade"), "ArrowRight");
 
-    expect(calls.transitions).toEqual(["wipe-right"]);
-    expect(document.activeElement).toBe(tile("wipe-right"));
+    expect(calls.transitions).toEqual(["push-left"]);
+    expect(document.activeElement).toBe(tile("push-left"));
   });
 
   it("shows an own cut: no tag, and the next picture follows without a transition", () => {
     mountEditor(
-      view({ transition: { choice: "cut", own: true, automatic: "push-left", durationMs: 0 } }),
+      view({ transition: { ...view().transition, choice: "cut", own: true, durationMs: 0 } }),
     );
 
     expect(chip(transitionSection())).toBe("Eigener Übergang");
     expect(transitionSection().querySelector(".tag")).toBeNull();
     expect(text(transitionSection())).toContain("Bild 3 folgt ohne Übergang.");
-    expect(text(transitionSection())).not.toContain("Automatisch wechseln");
+    expect(text(transitionSection())).not.toContain("Automatisch gilt");
   });
 
   it("Back to automatic on an own cut reverts to the automatic transition", () => {
     const { calls } = mountEditor(
-      view({ transition: { choice: "cut", own: true, automatic: "push-left", durationMs: 0 } }),
+      view({ transition: { ...view().transition, choice: "cut", own: true, durationMs: 0 } }),
     );
 
     resetIn(transitionSection()).click();
 
     expect(chip(transitionSection())).toBe("Automatisch");
-    expect(tile("push-left").querySelector(".tag")?.textContent).toBe("Auto");
+    expect(tile("crossfade").querySelector(".tag")?.textContent).toBe("Auto");
     expect(calls.transitionResets).toBe(1);
   });
 
@@ -166,7 +203,7 @@ describe("PictureEditorScreen transition", () => {
         number: 3,
         nextId: null,
         next: null,
-        transition: { choice: "dissolve", own: true, automatic: "wipe-right", durationMs: 0 },
+        transition: { ...view().transition, choice: "dissolve", own: true, durationMs: 0 },
       }),
     );
 
@@ -184,7 +221,7 @@ describe("PictureEditorScreen transition", () => {
         number: 3,
         nextId: null,
         next: null,
-        transition: { choice: "dissolve", own: true, automatic: "wipe-right", durationMs: 0 },
+        transition: { ...view().transition, choice: "dissolve", own: true, durationMs: 0 },
       }),
     );
 
@@ -203,7 +240,9 @@ describe("PictureEditorScreen preview of the timing", () => {
   it("names what plays and marks the transition's zone at the end of the track", () => {
     mountEditor();
 
-    expect(text(element(".preview-line"))).toBe("Bild 2 · 5,0 s, darin Schieben 1,0 s zu Bild 3");
+    expect(text(element(".preview-line"))).toBe(
+      "Bild 2 · 5,0 s, darin Überblenden 1,0 s zu Bild 3",
+    );
     expect(element(".transition-zone").style.width).toBe("20%");
   });
 
@@ -264,7 +303,7 @@ describe("PictureEditorScreen preview of the timing", () => {
 
   it("from a cut, with reduced motion, picking an effect rests half-way through it", () => {
     mountEditor(
-      view({ transition: { choice: "cut", own: true, automatic: "push-left", durationMs: 0 } }),
+      view({ transition: { ...view().transition, choice: "cut", own: true, durationMs: 0 } }),
       { reducedMotion: true },
     );
 
