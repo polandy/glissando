@@ -24,6 +24,8 @@ export function musicExcerpt(music: StoredMusic): MusicTrim {
 }
 
 /** How long the excerpt is; what the slides share (ADR-0008). Absent without music. */
+export function musicExcerptMs(music: StoredMusic): number;
+export function musicExcerptMs(music: StoredMusic | undefined): number | undefined;
 export function musicExcerptMs(music: StoredMusic | undefined): number | undefined {
   if (music === undefined) {
     return undefined;

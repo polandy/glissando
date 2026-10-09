@@ -1,7 +1,12 @@
-import { slideshowDurationMs } from "../compose";
+import { musicExcerptMs, resolveMusicTiming, slideshowDurationMs } from "../compose";
 import { MILLISECONDS_PER_SECOND } from "../player";
-import type { StoredSlideshow } from "../library/stored-slideshow";
-import type { SlideshowDetails, SlideshowSummary } from "./screens/view-models";
+import type { StoredMusic, StoredSlideshow } from "../library/stored-slideshow";
+import type {
+  MusicFades,
+  MusicSummary,
+  SlideshowDetails,
+  SlideshowSummary,
+} from "./screens/view-models";
 
 /** A start card's cover shows the first pictures in play order, one large and two small. */
 export const COVER_PICTURE_COUNT = 3;
@@ -60,7 +65,9 @@ export function slideshowDetails(
     durationSeconds: slideshowDurationMs(stored) / MILLISECONDS_PER_SECOND,
     musicTitle: stored.music?.fileName ?? null,
     musicSeconds:
-      stored.music === undefined ? null : stored.music.durationMs / MILLISECONDS_PER_SECOND,
+      stored.music === undefined ? null : musicExcerptMs(stored.music) / MILLISECONDS_PER_SECOND,
+    musicSummary:
+      stored.music === undefined ? null : musicSummary(stored.music, slideshowDurationMs(stored)),
     ownOrder: stored.ownOrder === true,
     ownMotionCount: stored.pictures.filter((picture) => picture.kenBurns !== undefined).length,
     ownDurationCount: tiles.filter((tile) => tile.ownDurationMs !== null).length,
@@ -70,4 +77,30 @@ export function slideshowDetails(
     capturedTo: span.to,
     pictures: tiles,
   };
+}
+
+function musicSummary(music: StoredMusic, slideshowMs: number): MusicSummary {
+  const changed =
+    music.trim !== undefined || music.fadeInMs !== undefined || music.fadeOutMs !== undefined;
+  const { fadeInMs, fadeOutMs } = resolveMusicTiming(music, slideshowMs);
+  return {
+    excerpt:
+      music.trim === undefined
+        ? null
+        : {
+            fromSeconds: music.trim.startMs / MILLISECONDS_PER_SECOND,
+            toSeconds: music.trim.endMs / MILLISECONDS_PER_SECOND,
+          },
+    fades: changed ? fadesPlayed(fadeInMs > 0, fadeOutMs > 0) : null,
+  };
+}
+
+function fadesPlayed(fadesIn: boolean, fadesOut: boolean): MusicFades | null {
+  if (fadesIn && fadesOut) {
+    return "in-and-out";
+  }
+  if (fadesIn) {
+    return "in";
+  }
+  return fadesOut ? "out" : null;
 }

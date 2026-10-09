@@ -1,11 +1,15 @@
 import { pictureKenBurns } from "../../compose";
 import type { OwnKenBurns } from "../../library/own-ken-burns";
+import type { MusicTrim } from "../../library/own-music";
 import type { TransitionChoice } from "../../library/own-timing";
 import {
   movePicture,
   removePicture,
   renameSlideshow,
   restorePictures,
+  setMusicFadeIn,
+  setMusicFadeOut,
+  setMusicTrim,
   setPictureCaption,
   setPictureDuration,
   setPictureKenBurns,
@@ -201,6 +205,23 @@ export class SlideshowEditor {
     if (edited.pictures[index]?.caption !== this.#picture(pictureId).caption) {
       this.#apply(edited);
     }
+  }
+
+  // The music's edits offer no undo: one tap on "whole track" or "automatic" restores them.
+
+  /** Plays only `trim` of the music; `undefined` or the whole track plays all of it. */
+  setMusicTrim(trim: MusicTrim | undefined): void {
+    this.#apply(setMusicTrim(this.#slideshow, trim));
+  }
+
+  /** The music's own fade-in in ms, 0 being off; `undefined` makes it automatic. */
+  setMusicFadeIn(fadeInMs: number | undefined): void {
+    this.#apply(setMusicFadeIn(this.#slideshow, fadeInMs));
+  }
+
+  /** The music's own fade-out in ms, 0 being off; `undefined` makes it automatic. */
+  setMusicFadeOut(fadeOutMs: number | undefined): void {
+    this.#apply(setMusicFadeOut(this.#slideshow, fadeOutMs));
   }
 
   /** Resolves once every edit made so far is stored (or reported as failed). */

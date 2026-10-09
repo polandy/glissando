@@ -1,5 +1,9 @@
 /** Shared set-up of the `SlideshowEditor` tests. */
-import { MediaNotFoundError, type StoredSlideshow } from "../../library/stored-slideshow";
+import {
+  MediaNotFoundError,
+  type StoredMusic,
+  type StoredSlideshow,
+} from "../../library/stored-slideshow";
 import { MemoryLibraryStore } from "../../library/testing/memory-store";
 import { FakeScheduler } from "../testing/fake-scheduler";
 import { Toaster } from "../toast/toaster";
@@ -44,13 +48,16 @@ class RecordingStore extends MemoryLibraryStore {
 }
 
 /** An editor over a stored slideshow whose pictures' media is stored too. */
-export async function setUp(ids: readonly string[] = ["a", "b", "c", "d"]) {
+export async function setUp(
+  ids: readonly string[] = ["a", "b", "c", "d"],
+  music: StoredMusic | null = null,
+) {
   const scheduler = new FakeScheduler();
   const toaster = new Toaster(scheduler);
   const store = new RecordingStore();
   const errors: unknown[] = [];
   let gone = 0;
-  const initial = stored(ids);
+  const initial = music === null ? stored(ids) : { ...stored(ids), music };
   for (const id of ids) {
     await store.putPicture(id, { display: new Blob([id]), thumbnail: new Blob([id]) });
   }
@@ -95,6 +102,10 @@ export async function setUp(ids: readonly string[] = ["a", "b", "c", "d"]) {
     }
   };
   const goneCount = () => gone;
+  const storedMusic = async () => {
+    await editor.settled();
+    return (await store.getSlideshow("show")).music;
+  };
   const storedPicture = async (id: string) => {
     await editor.settled();
     return (await store.getSlideshow("show")).pictures.find((picture) => picture.id === id);
@@ -108,6 +119,7 @@ export async function setUp(ids: readonly string[] = ["a", "b", "c", "d"]) {
     order,
     storedOrder,
     storedTitle,
+    storedMusic,
     storedPicture,
     mediaSurvivesCleanUp,
     goneCount,

@@ -22,6 +22,7 @@ export function details(ids: readonly string[], overrides: Partial<SlideshowDeta
     durationSeconds: 60,
     musicTitle: null,
     musicSeconds: null,
+    musicSummary: null,
     ownOrder: false,
     ownMotionCount: 0,
     ownDurationCount: 0,
