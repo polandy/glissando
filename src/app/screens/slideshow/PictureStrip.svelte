@@ -223,6 +223,8 @@
     }
     drag.pointerDown({
       pointerType: lastPointerWasTouch ? "touch" : "mouse",
+      pointerId: event.pointerId,
+      button: event.button,
       x: event.clientX,
       y: event.clientY,
       pictureId,
@@ -238,9 +240,10 @@
 </script>
 
 <svelte:window
-  onpointermove={(event) => drag.pointerMove({ x: event.clientX, y: event.clientY })}
-  onpointerup={() => drag.pointerUp()}
-  onpointercancel={() => drag.pointerCancel()}
+  onpointermove={(event) =>
+    drag.pointerMove({ pointerId: event.pointerId, x: event.clientX, y: event.clientY })}
+  onpointerup={(event) => drag.pointerUp(event.pointerId)}
+  onpointercancel={(event) => drag.pointerCancel(event.pointerId)}
 />
 
 <ol class="strip" bind:this={strip} onpointerdown={pointerDown} oncontextmenu={contextmenu}>

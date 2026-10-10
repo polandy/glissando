@@ -15,6 +15,8 @@ export const HOLD_MS = 450;
 export const SCROLL_EDGE_PX = 64;
 /** The auto-scroll's fastest step, reached right at the edge. */
 export const MAX_SCROLL_STEP_PX = 14;
+/** `PointerEvent.button` of a mouse's main (usually left) button, and of a touch contact. */
+export const PRIMARY_BUTTON = 0;
 
 export interface DropTarget {
   readonly pictureId: string;
@@ -23,6 +25,10 @@ export interface DropTarget {
 
 export interface PointerDownInput {
   readonly pointerType: "mouse" | "touch";
+  /** The gesture's pointer: a second pointer (another finger) must not join or end it. */
+  readonly pointerId: number;
+  /** A mouse drags only with `PRIMARY_BUTTON`; a right- or middle-press leaves the tile alone. */
+  readonly button: number;
   readonly x: number;
   readonly y: number;
   readonly pictureId: string;
@@ -31,6 +37,10 @@ export interface PointerDownInput {
 export interface PointerPoint {
   readonly x: number;
   readonly y: number;
+}
+
+export interface PointerMoveInput extends PointerPoint {
+  readonly pointerId: number;
 }
 
 /** What the drag is doing, for the strip to render: a ghost, a drop mark, the faded tiles. */
@@ -113,6 +123,8 @@ export class TileDrag {
   #dropMark: DropTarget | null = null;
   #scrollSpeed = 0;
   #frameHandle: number | null = null;
+  /** The pointer driving the current gesture; null while idle. */
+  #activePointerId: number | null = null;
 
   constructor(ports: TileDragPorts) {
     this.#ports = ports;
@@ -131,8 +143,16 @@ export class TileDrag {
   }
 
   /** A mouse press, or a finger touching a tile: starts the 8 px move or the 450 ms hold. */
-  pointerDown({ pointerType, x, y, pictureId }: PointerDownInput): void {
+  pointerDown({ pointerType, pointerId, button, x, y, pictureId }: PointerDownInput): void {
+    if (this.#phase.kind !== "idle" && pointerId !== this.#activePointerId) {
+      // A second pointer (another finger) must not interrupt the first's gesture.
+      return;
+    }
+    if (pointerType === "mouse" && button !== PRIMARY_BUTTON) {
+      return;
+    }
     this.#endDrag();
+    this.#activePointerId = pointerId;
     if (pointerType === "mouse") {
       this.#phase = { kind: "pendingMouse", pictureId, x, y };
       return;
@@ -141,7 +161,10 @@ export class TileDrag {
     this.#phase = { kind: "pendingHold", pictureId, x, y, cancelHold };
   }
 
-  pointerMove({ x, y }: PointerPoint): void {
+  pointerMove({ pointerId, x, y }: PointerMoveInput): void {
+    if (pointerId !== this.#activePointerId) {
+      return;
+    }
     const phase = this.#phase;
     switch (phase.kind) {
       case "idle":
@@ -155,7 +178,7 @@ export class TileDrag {
         if (distance(phase, { x, y }) > MOVE_THRESHOLD_PX) {
           // The finger is scrolling, not holding still: the page scrolls as usual (ADR-0019).
           phase.cancelHold();
-          this.#phase = { kind: "idle" };
+          this.#endDrag();
         }
         return;
       case "lifted":
@@ -173,17 +196,20 @@ export class TileDrag {
   }
 
   /** A mouse release, or a finger lifted off the screen. */
-  pointerUp(): void {
+  pointerUp(pointerId: number): void {
+    if (pointerId !== this.#activePointerId) {
+      return;
+    }
     const phase = this.#phase;
     switch (phase.kind) {
       case "idle":
         return;
       case "pendingMouse":
-        this.#phase = { kind: "idle" };
+        this.#endDrag();
         return;
       case "pendingHold":
         phase.cancelHold();
-        this.#phase = { kind: "idle" };
+        this.#endDrag();
         return;
       case "lifted":
         // Letting go of a held tile in place only selects it (already done by the hold).
@@ -206,7 +232,10 @@ export class TileDrag {
   }
 
   /** The browser cancelled the gesture (e.g. a system gesture took over): no drop happens. */
-  pointerCancel(): void {
+  pointerCancel(pointerId: number): void {
+    if (pointerId !== this.#activePointerId) {
+      return;
+    }
     if (this.#phase.kind === "pendingHold") {
       this.#phase.cancelHold();
     }
@@ -281,5 +310,6 @@ export class TileDrag {
     this.#scrollSpeed = 0;
     this.#dropMark = null;
     this.#phase = { kind: "idle" };
+    this.#activePointerId = null;
   }
 }

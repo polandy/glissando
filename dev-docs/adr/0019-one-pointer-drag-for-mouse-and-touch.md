@@ -15,11 +15,14 @@ tile, then drag. Native drag and drop cannot do that, so the touch drag needs it
 **One drag built on pointer events serves both pointers** (`screens/slideshow/tile-drag.ts`,
 pure and driven by the strip):
 
-- **A mouse** starts dragging once the pointer moves 8 px with the button held on a tile.
+- **A mouse** starts dragging once the pointer moves 8 px with the primary button held on a
+  tile; a right- or middle-press starts nothing.
 - **A finger** first holds the tile still for 450 ms. The tile then lifts and is selected
   (selecting several starts). Moving on drags; letting go in place only selects. Until the
   lift, the finger scrolls as usual. From the lift on, the strip cancels `touchmove`, so the
   page stays put under the finger.
+- **One pointer drives a gesture**: the pointer that started it moves, drops or cancels it;
+  a second finger touching down meanwhile is ignored.
 - **The group** is the selection when the dragged tile is part of it, otherwise that tile
   alone. A stack of up to three thumbnails with the count follows the pointer. The dashed
   lemon line marks where the group lands, together, in play order.
