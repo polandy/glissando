@@ -262,6 +262,8 @@ expect_equal "docker stop ends the container with status 0" 0 \
 	"$(docker inspect --format '{{.State.ExitCode}}' "$LIBRARY")"
 docker logs "$LIBRARY" 2>&1 | grep -q -F "a process ended" &&
 	fail "docker stop logs a process ending" || pass "docker stop logs no process ending"
+docker run --rm --entrypoint sh --volume "$PWD/deploy/test-supervise.sh:/test-supervise.sh:ro" \
+	"$IMAGE" /test-supervise.sh /usr/local/lib/glissando/supervise.sh || failures=$((failures + 1))
 start_library
 docker exec "$LIBRARY" pkill -KILL -f glissando-library.mjs
 expect_equal "the container stops with the status of a library service that died" "$KILLED_STATUS" \

@@ -22,6 +22,7 @@ COPY deploy/Caddyfile deploy/immich-proxy.caddy deploy/immich-off.caddy deploy/l
 COPY --chmod=0755 deploy/entrypoint.sh /usr/local/bin/glissando-entrypoint
 COPY --from=build /app/dist /srv
 COPY --from=build /app/dist-server/glissando-library.mjs /usr/local/lib/glissando/
+COPY deploy/supervise.sh /usr/local/lib/glissando/
 # A named volume mounted here starts out owned by the user the container runs as.
 RUN mkdir /data && chown 10001:10001 /data
 USER 10001:10001
