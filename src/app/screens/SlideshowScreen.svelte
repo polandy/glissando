@@ -27,6 +27,7 @@
     onAddPictures,
     newPictureIds = new Set(),
     onRemove,
+    onShift,
     onMove,
     onRename,
     onEdit,
@@ -55,7 +56,10 @@
     /** The pictures just added, marked as new while the screen is shown. */
     newPictureIds?: ReadonlySet<string>;
     onRemove: (pictureId: string) => void;
-    onMove: (pictureId: string, toIndex: number) => void;
+    /** Earlier/Later and Shift+arrows: moves the picture by `offset` steps (ADR-0019). */
+    onShift: (pictureId: string, offset: number) => void;
+    /** A drop: moves the picture to the slot before the tile at `insertion`. */
+    onMove: (pictureId: string, insertion: number) => void;
     onRename: (typed: string) => void;
     /** Opens the picture editor for a picture. */
     onEdit: (pictureId: string) => void;
@@ -101,7 +105,7 @@
 
   function moveSelected(step: number): void {
     if (selectedId !== null) {
-      onMove(selectedId, selectedIndex + step);
+      onShift(selectedId, step);
     }
   }
 
@@ -179,6 +183,7 @@
           onSelect={(pictureId) => (selectedId = pictureId)}
           onOpen={onEdit}
           {onRemove}
+          {onShift}
           {onMove}
         />
         {#if storage?.kind === "server" && storage.missingCount > 0}

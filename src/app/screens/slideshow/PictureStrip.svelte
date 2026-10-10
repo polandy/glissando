@@ -2,7 +2,7 @@
   import { tick } from "svelte";
   import type { PictureTile } from "../view-models";
   import StripTile from "./StripTile.svelte";
-  import { dropIndex, stripKeyAction } from "./strip-keys";
+  import { stripKeyAction } from "./strip-keys";
 
   /** The pictures in play order as tiles: select, remove, and reorder by drag or keyboard. */
   let {
@@ -13,6 +13,7 @@
     onSelect,
     onOpen,
     onRemove,
+    onShift,
     onMove,
   }: {
     pictures: readonly PictureTile[];
@@ -25,7 +26,10 @@
     /** Opens the picture editor. */
     onOpen: (pictureId: string) => void;
     onRemove: (pictureId: string) => void;
-    onMove: (pictureId: string, toIndex: number) => void;
+    /** Shift+arrows: moves the picture by `offset` steps (ADR-0019). */
+    onShift: (pictureId: string, offset: number) => void;
+    /** A drop: moves the picture to the slot before the tile at `insertion`. */
+    onMove: (pictureId: string, insertion: number) => void;
   } = $props();
 
   let strip: HTMLOListElement;
@@ -76,15 +80,18 @@
         }
         break;
       }
-      case "move":
+      case "shift":
         onSelect(pictureId);
-        onMove(pictureId, action.to);
+        onShift(pictureId, action.offset);
         void focusTile(pictureId);
         break;
       case "remove":
         removeByKey(pictureId, index);
         break;
+      case "addToggle":
+      case "range":
       case "none":
+        // Several-picture selection (dev-docs/APP.md, Selecting several) is not wired up yet.
         break;
     }
   }
@@ -132,9 +139,8 @@
       return;
     }
     event.preventDefault();
-    const from = pictures.findIndex((picture) => picture.id === draggedId);
-    if (dropMark !== null && from >= 0) {
-      onMove(draggedId, dropIndex(from, targetIndex, dropMark.after));
+    if (dropMark !== null) {
+      onMove(draggedId, targetIndex + (dropMark.after ? 1 : 0));
     }
     dragEnd();
   }

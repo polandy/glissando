@@ -81,6 +81,8 @@ export const de = {
   "slideshow.remove": "Entfernen",
   "slideshow.done": "Fertig",
   "slideshow.lastPictureStays": "Das letzte Bild bleibt. Zum Wegwerfen die ganze Diashow löschen.",
+  "slideshow.everyPictureStays":
+    "Mindestens ein Bild bleibt. Um alle loszuwerden, die ganze Diashow löschen.",
   "slideshow.rename": "Titel umbenennen",
   "slideshow.titleInput": "Titel",
   "slideshow.titleHint": "Enter speichert · Esc verwirft · leer = automatischer Titel",

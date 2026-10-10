@@ -63,6 +63,7 @@ export function mountScreen(
   const frames = new FakeFrameScheduler();
   const calls = {
     removed: [] as string[],
+    shifted: [] as [string, number][],
     moved: [] as [string, number][],
     renamed: [] as string[],
     edited: [] as string[],
@@ -81,7 +82,8 @@ export function mountScreen(
     onAddPictures: () => (calls.adds += 1),
     newPictureIds,
     onRemove: (pictureId: string) => calls.removed.push(pictureId),
-    onMove: (pictureId: string, toIndex: number) => calls.moved.push([pictureId, toIndex]),
+    onShift: (pictureId: string, offset: number) => calls.shifted.push([pictureId, offset]),
+    onMove: (pictureId: string, insertion: number) => calls.moved.push([pictureId, insertion]),
     onRename: (typed: string) => calls.renamed.push(typed),
     onEdit: (pictureId: string) => calls.edited.push(pictureId),
     onEditMusic: () => (calls.musicEdits += 1),

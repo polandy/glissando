@@ -67,9 +67,9 @@ describe("SlideshowScreen editing", () => {
     buttonNamed("Früher").click();
     buttonNamed("Später").click();
 
-    expect(calls.moved).toEqual([
-      ["b", 0],
-      ["b", 2],
+    expect(calls.shifted).toEqual([
+      ["b", -1],
+      ["b", 1],
     ]);
   });
 
@@ -85,14 +85,14 @@ describe("SlideshowScreen editing", () => {
     earlier.focus();
     expect(document.activeElement).toBe(earlier);
     earlier.click();
-    expect(calls.moved).toEqual([]);
+    expect(calls.shifted).toEqual([]);
 
     tile(1, "01.07.2025").click();
     tile(3, "03.07.2025").click();
     flushSync();
     buttonNamed("Später").click();
     expect(buttonNamed("Später").getAttribute("aria-disabled")).toBe("true");
-    expect(calls.moved).toEqual([]);
+    expect(calls.shifted).toEqual([]);
   });
 
   it("announces the selected picture's position politely, also where the count is hidden", () => {
@@ -126,7 +126,7 @@ describe("SlideshowScreen editing", () => {
     first.focus();
 
     press(first, "ArrowRight", true);
-    expect(calls.moved).toEqual([["a", 1]]);
+    expect(calls.shifted).toEqual([["a", 1]]);
     expect(selectionBar()).not.toBeNull();
     press(first, "Escape");
     expect(selectionBar()).toBeNull();
@@ -157,7 +157,7 @@ describe("SlideshowScreen editing", () => {
     expect(third.classList.contains("drop-after")).toBe(true);
     drag("drop", third);
 
-    expect(calls.moved).toEqual([["a", 2]]);
+    expect(calls.moved).toEqual([["a", 3]]);
     expect(third.classList.contains("drop-after")).toBe(false);
   });
 

@@ -79,6 +79,8 @@ export const en: Catalogue = {
   "slideshow.done": "Done",
   "slideshow.lastPictureStays":
     "The last picture stays. To get rid of it, delete the whole slideshow.",
+  "slideshow.everyPictureStays":
+    "At least one picture stays. To get rid of all of them, delete the whole slideshow.",
   "slideshow.rename": "Rename title",
   "slideshow.titleInput": "Title",
   "slideshow.titleHint": "Enter saves · Esc discards · empty = automatic title",

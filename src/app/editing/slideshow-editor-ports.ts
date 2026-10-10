@@ -24,6 +24,8 @@ export interface SlideshowEditorPorts {
   readonly undoLabel: () => string;
   /** Why the last picture stays, and how to discard the whole slideshow instead. */
   readonly lastPictureText: () => string;
+  /** Why removing every picture of a selection is refused instead. */
+  readonly everyPictureText: () => string;
   /** The undo toast's text after a picture's own motion was dropped. */
   readonly motionAutomaticText: () => string;
   /** The undo toast's text after a picture's own duration was dropped. */

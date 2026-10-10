@@ -253,7 +253,8 @@
     onAddPictures={() => stored !== null && onAddPictures(stored)}
     {newPictureIds}
     onRemove={(pictureId) => editor?.remove(pictureId)}
-    onMove={(pictureId, toIndex) => editor?.move(pictureId, toIndex)}
+    onShift={(pictureId, offset) => editor?.shiftGroup([pictureId], offset)}
+    onMove={(pictureId, insertion) => editor?.moveGroup([pictureId], insertion)}
     onRename={(typed) => editor?.rename(typed)}
     {onEdit}
     {onEditMusic}
