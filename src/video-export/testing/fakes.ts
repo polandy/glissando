@@ -153,8 +153,13 @@ export class FakeMuxer implements MuxerPort {
   readonly #log: ExportLog;
   #writes = 0;
   #failure: { readonly atWrite: number; readonly error: Error } | null = null;
+  #cancelFailure: Error | null = null;
   constructor(log: ExportLog) {
     this.#log = log;
+  }
+  /** `cancel` rejects with `error`, as closing a writable that failed a write does. */
+  failCancelWith(error: Error): void {
+    this.#cancelFailure = error;
   }
   /** The `atWrite`-th call of `written` (from 1) and every later one reject with `error`. */
   failWrittenAt(atWrite: number, error: Error): void {
@@ -172,7 +177,7 @@ export class FakeMuxer implements MuxerPort {
   }
   cancel(): Promise<void> {
     this.#log.push("cancel muxer");
-    return Promise.resolve();
+    return this.#cancelFailure === null ? Promise.resolve() : Promise.reject(this.#cancelFailure);
   }
 }
 

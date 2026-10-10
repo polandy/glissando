@@ -173,6 +173,16 @@ describe("exportVideo", () => {
     expect(log.slice(-3)).toEqual(["close video", "cancel muxer", "discard file"]);
   });
 
+  it("still discards the file and ends storage-full when cancelling the failed file rejects too", async () => {
+    const { log, muxer, run } = setUp({ durationMs: 1000 });
+    const error = quotaExceeded();
+    muxer.failWrittenAt(8, error);
+    muxer.failCancelWith(error);
+
+    expect(await run()).toEqual({ kind: "storage-full", frameReached: 7 });
+    expect(log.slice(-2)).toEqual(["cancel muxer", "discard file"]);
+  });
+
   it("ends storage-full when the encoder's flush runs out of space", async () => {
     const { videoEncoder, frames, run } = setUp({ durationMs: 100 });
     frames.onFrame = (index) => {

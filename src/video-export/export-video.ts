@@ -139,7 +139,9 @@ async function cleanUp<Frame extends Closable, Block extends Closable>({
 }: ExportJob<Frame, Block>): Promise<void> {
   videoEncoder.close();
   audio?.encoder.close();
-  await muxer.cancel();
+  // A writable that failed a write rejects its close with that same error, which the outcome
+  // already carries; the file must be discarded all the same.
+  await muxer.cancel().catch(() => undefined);
   await sink.discard();
 }
 
