@@ -133,7 +133,7 @@ describe("ImportSession", () => {
     const { session } = sessionWith(store);
     session.addPictures([pictureFile("a.jpg", "2025-07-01T10:00:00Z")]);
     session.addImmichPhotos([
-      { id: "asset-1", fileName: "IMG_0001.HEIC", takenAt: "2025-06-01T10:00:00Z" },
+      { id: "asset-1", fileName: "IMG_0001.HEIC", takenAt: "2025-06-01T10:00:00Z", size: null },
     ]);
     await session.pictures.settled();
 

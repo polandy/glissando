@@ -19,6 +19,8 @@ export interface ImmichPhoto {
   readonly fileName: string;
   /** Immich's `localDateTime`: the capture time as wall time with a `Z`, as `captureDate()`. */
   readonly takenAt: string;
+  /** Immich's `width`/`height` in pixels; null while Immich has not read them. */
+  readonly size: { readonly width: number; readonly height: number } | null;
 }
 
 /** One page of photos, newest first; `nextPage` is null on the last one. */

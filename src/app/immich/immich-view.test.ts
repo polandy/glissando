@@ -100,7 +100,12 @@ describe("alreadyInAmong", () => {
   it("finds a photo by its asset id, or by file name and capture date", () => {
     expect(isIn(photo("asset-1"))).toBe(true);
     expect(
-      isIn({ id: "asset-9", fileName: "beach.jpg", takenAt: "2025-07-12T14:30:00.000Z" }),
+      isIn({
+        id: "asset-9",
+        fileName: "beach.jpg",
+        takenAt: "2025-07-12T14:30:00.000Z",
+        size: null,
+      }),
     ).toBe(true);
   });
 

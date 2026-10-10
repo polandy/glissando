@@ -57,6 +57,7 @@ describe("HttpImmichClient reading the library", () => {
       id: "3f16f3f8-e346-4991-a491-12c925a9d879",
       fileName: "face6_rotated.jpg",
       takenAt: "2025-07-12T14:30:00.000Z",
+      size: { width: 520, height: 671 },
     });
     expect(page.photos).toHaveLength(3);
     expect(page.nextPage).toBe(2);
@@ -91,6 +92,19 @@ describe("HttpImmichClient reading the library", () => {
 
     await expect(clientWith(fake).photos({ page: 1 })).rejects.toThrow(/"originalFileName"/);
   });
+
+  it.each([null, 0])(
+    "gives a photo whose size Immich has not read (%s) no size",
+    async (unreadSize) => {
+      const unread = structuredClone(searchPage1) as { assets: { items: object[] } };
+      unread.assets.items[0] = { ...unread.assets.items[0], width: unreadSize, height: unreadSize };
+      const fake = new FakeFetch().answer("POST", "api/search/metadata", json(unread));
+
+      const page = await clientWith(fake).photos({ page: 1 });
+
+      expect(page.photos[0]?.size).toBeNull();
+    },
+  );
 
   it("fails loud on a next page that is not a page number", async () => {
     const broken = structuredClone(searchPage1) as { assets: { nextPage: unknown } };

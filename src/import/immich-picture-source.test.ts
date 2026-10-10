@@ -16,6 +16,7 @@ const PHOTO: ImmichPhoto = {
   id: "asset-1",
   fileName: "IMG_0001.HEIC",
   takenAt: "2025-07-01T10:00:00Z",
+  size: null,
 };
 
 const FACE: ImmichFace = { imageWidth: 100, imageHeight: 50, x1: 25, y1: 5, x2: 75, y2: 25 };
