@@ -239,6 +239,11 @@ export class TileDrag {
     }
   }
 
+  /** The strip unmounted: a pending hold or an auto-scroll frame loop must not outlive it. */
+  destroy(): void {
+    this.#endDrag();
+  }
+
   #onHoldFired(pictureId: string): void {
     if (this.#phase.kind !== "pendingHold" || this.#phase.pictureId !== pictureId) {
       return;

@@ -15,6 +15,7 @@ let destroy = () => {};
 /** Unmounts the screen the last `mountScreen` mounted. */
 export function unmountScreen(): void {
   destroy();
+  destroy = () => {};
 }
 
 // A transparent pixel stands in for every thumbnail.

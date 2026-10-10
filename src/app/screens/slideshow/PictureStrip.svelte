@@ -237,6 +237,9 @@
       event.preventDefault();
     }
   }
+
+  // The strip unmounting mid-gesture must not leave a hold timer or an auto-scroll loop running.
+  $effect(() => () => drag.destroy());
 </script>
 
 <svelte:window

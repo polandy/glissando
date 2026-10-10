@@ -98,6 +98,27 @@ describe("SlideshowScreen, dragging a tile (ADR-0019)", () => {
     expect(pick.getAttribute("aria-pressed")).toBe("false");
     expect(calls.moved).toEqual([]);
   });
+
+  it("leaves no pending hold behind when the strip unmounts mid-press: nothing lifts later", () => {
+    const { holdScheduler } = mountScreen();
+    firePointer(tile(1, "01.07.2025"), "pointerdown", { pointerType: "touch" });
+    expect(holdScheduler.pending).toBe(1);
+
+    unmountScreen();
+
+    expect(holdScheduler.pending).toBe(0);
+  });
+
+  it("stops the auto-scroll's frames when the strip unmounts mid-drag", () => {
+    const { dragFrames } = mountScreen();
+    firePointer(tile(1, "01.07.2025"), "pointerdown", { x: 0, y: 0, pointerType: "mouse" });
+    firePointer(window, "pointermove", { x: 0, y: window.innerHeight - 1, pointerType: "mouse" });
+    expect(dragFrames.hasPendingFrame).toBe(true);
+
+    unmountScreen();
+
+    expect(dragFrames.hasPendingFrame).toBe(false);
+  });
 });
 
 describe("SlideshowScreen, selecting several", () => {
