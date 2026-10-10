@@ -3,8 +3,7 @@ import type { LibraryStore, StoredSlideshow } from "../../library/stored-slidesh
 import { PictureIntake, type PictureIntakePorts } from "../import/picture-intake";
 
 export interface AddPicturesSessionPorts extends PictureIntakePorts {
-  readonly store: PictureIntakePorts["store"] &
-    Pick<LibraryStore, "getSlideshow" | "updateSlideshow">;
+  readonly store: PictureIntakePorts["store"] & Pick<LibraryStore, "updateSlideshowWith">;
 }
 
 /**
@@ -28,9 +27,10 @@ export class AddPicturesSession {
   }
 
   /**
-   * Stores the new pictures into the slideshow as stored now, in one update, then ends the claim
-   * on their media; resolves with their ids. Rejects with `SlideshowNotFoundError` when the
-   * slideshow was deleted meanwhile.
+   * Stores the new pictures into the slideshow as stored now, read and written in one edit, then
+   * ends the claim on their media; resolves with their ids. Rejects with `SlideshowNotFoundError`
+   * when the slideshow was deleted meanwhile. Once the pictures are stored, a claim that fails to
+   * end is reported, not thrown: it only spares their media, which the slideshow now keeps.
    */
   async commit(): Promise<readonly string[]> {
     const state = this.intake.pictures.state;
@@ -40,9 +40,14 @@ export class AddPicturesSession {
     if (state.pictures.length === 0) {
       throw new Error("cannot add no pictures: import at least one first");
     }
-    const current = await this.#ports.store.getSlideshow(this.slideshowId);
-    await this.#ports.store.updateSlideshow(addPictures(current, state.pictures));
-    await this.intake.endClaim();
+    await this.#ports.store.updateSlideshowWith(this.slideshowId, (current) =>
+      addPictures(current, state.pictures),
+    );
+    try {
+      await this.intake.endClaim();
+    } catch (error) {
+      this.#ports.onError(error);
+    }
     return state.pictures.map(({ id }) => id);
   }
 

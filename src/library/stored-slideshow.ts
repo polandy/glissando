@@ -93,6 +93,15 @@ export interface LibraryStore {
    * `SlideshowNotFoundError` when it is gone, so an edit never brings a deleted slideshow back.
    */
   updateSlideshow(slideshow: StoredSlideshow): Promise<void>;
+  /**
+   * Replaces the stored record `id` with `edit` of it, read and written in one transaction, so
+   * nothing written meanwhile is lost; resolves with the result. Throws `SlideshowNotFoundError`
+   * when it is gone, and `edit`'s own error with the record left as it was.
+   */
+  updateSlideshowWith(
+    id: string,
+    edit: (current: StoredSlideshow) => StoredSlideshow,
+  ): Promise<StoredSlideshow>;
   /** Newest first. */
   listSlideshows(): Promise<readonly StoredSlideshow[]>;
   /** Throws `SlideshowNotFoundError` for an unknown id. */

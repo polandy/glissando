@@ -69,15 +69,18 @@ export function restorePictures(
 
 /**
  * New pictures go into their places by capture date while the slideshow keeps that order, and
- * at the end in capture order once the order is the user's own, which stays.
+ * at the end in capture order once the order is the user's own, which stays. A picture whose id
+ * is already in the slideshow is skipped, so an add applied twice adds once.
  */
 export function addPictures(
   slideshow: StoredSlideshow,
   added: readonly StoredPicture[],
 ): StoredSlideshow {
+  const present = new Set(slideshow.pictures.map(({ id }) => id));
+  const fresh = added.filter(({ id }) => !present.has(id));
   const pictures = slideshow.ownOrder
-    ? [...slideshow.pictures, ...orderByCaptureDate(added)]
-    : orderByCaptureDate([...slideshow.pictures, ...added]);
+    ? [...slideshow.pictures, ...orderByCaptureDate(fresh)]
+    : orderByCaptureDate([...slideshow.pictures, ...fresh]);
   return { ...slideshow, pictures };
 }
 

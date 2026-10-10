@@ -229,6 +229,17 @@ describe("addPictures", () => {
     expect(ids(added)).toEqual(["c", "a", "b", "d"]);
     expect(added.ownOrder).toBe(true);
   });
+
+  it("skips a picture whose id is already in the slideshow, so adding twice adds once", () => {
+    const once = addPictures(sorted(), [at("b", "2025-07-02T10:00:00Z")]);
+
+    const twice = addPictures(once, [
+      at("b", "2025-07-02T10:00:00Z"),
+      at("d", "2025-07-04T10:00:00Z"),
+    ]);
+
+    expect(ids(twice)).toEqual(["a", "b", "c", "d"]);
+  });
 });
 
 describe("takeOutPictures", () => {

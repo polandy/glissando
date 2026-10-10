@@ -94,7 +94,7 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
     picture). The bottom actions: "Cancel" and "Add n". Cancel and ← with new pictures ask
     "Discard selection?" as in the import; discarding goes back to the slideshow unchanged and
     the clean-up deletes their media. "Add n" stores the record once (`addPictures` in
-    `slideshow-edits.ts`, through `updateSlideshow`): sorted by capture date the new pictures
+    `slideshow-edits.ts`, through `updateSlideshowWith`): sorted by capture date the new pictures
     take their places and the slideshow stays sorted; with own order they go at the end in
     capture order and `ownOrder` stays. The screen then returns to the slideshow, where the new
     tiles carry an accent outline and a "new" badge while it is shown (label adds "new"), and

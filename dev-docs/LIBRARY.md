@@ -33,7 +33,9 @@ ADR-0003; file container: ADR-0004.
   `addDuplicates(reason)` can take those of one reason in after all.
 - **Adding to a slideshow**: the same import, given the slideshow's pictures as the known ones;
   `addPictures` puts the stored ones into the record (by capture date, or at the end with
-  `ownOrder`) in one `updateSlideshow`, and the import's claim is released after it.
+  `ownOrder`; an id already in it is skipped) in one `updateSlideshowWith`, which reads and
+  writes the record in one transaction, and the import's claim is released after it. Once the
+  record is stored, a release that fails is reported and the adding still succeeds.
 
 ## Step 1 — the picture import
 
@@ -84,7 +86,8 @@ One IndexedDB database, `glissando` (schema version 3; version 1 lacked `imports
 
 Media is written while importing, the slideshow record last. Edits on the slideshow screen
 replace the record through `updateSlideshow`, which reads it in the same transaction and throws
-`SlideshowNotFoundError` when it is gone, so an edit (or an Undo) from a tab still showing a
+`SlideshowNotFoundError` when it is gone (`updateSlideshowWith(id, edit)` does the same with a pure
+edit of the record as stored), so an edit (or an Undo) from a tab still showing a
 slideshow deleted elsewhere never brings it back; that tab goes back to start with the toast
 "This slideshow no longer exists." `ownOrder` marks pictures the user reordered. A picture's
 optional `kenBurns` (`{ from, to }`, two framings as in the player's JSON: zoom 1 to

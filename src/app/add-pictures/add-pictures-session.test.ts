@@ -12,12 +12,23 @@ const SHOW: StoredSlideshow = slideshow({
   ],
 });
 
-/** Logs the slideshow updates and the claims ended, in their order. */
+/** Logs the slideshow reads, the slideshow edits and the claims ended, in their order. */
 class LoggingStore extends MemoryLibraryStore {
   readonly log: string[] = [];
+  override getSlideshow(id: string): Promise<StoredSlideshow> {
+    this.log.push("read");
+    return super.getSlideshow(id);
+  }
   override updateSlideshow(updated: StoredSlideshow): Promise<void> {
-    this.log.push("update");
+    this.log.push("replace");
     return super.updateSlideshow(updated);
+  }
+  override updateSlideshowWith(
+    id: string,
+    edit: (current: StoredSlideshow) => StoredSlideshow,
+  ): Promise<StoredSlideshow> {
+    this.log.push("update");
+    return super.updateSlideshowWith(id, edit);
   }
   override releaseClaim(claimId: string): Promise<void> {
     this.log.push(`end ${claimId}`);
@@ -25,11 +36,18 @@ class LoggingStore extends MemoryLibraryStore {
   }
 }
 
-async function sessionFor(stored: StoredSlideshow = SHOW) {
-  const store = new LoggingStore();
+/** Fails to end any claim. */
+class UnreleasingStore extends LoggingStore {
+  static readonly failure = new Error("the claim could not be released");
+  override releaseClaim(): Promise<void> {
+    return Promise.reject(UnreleasingStore.failure);
+  }
+}
+
+async function sessionFor(stored: StoredSlideshow = SHOW, store = new LoggingStore()) {
   await store.saveSlideshow(stored);
-  const { ports } = fakeIntakePorts(store);
-  return { session: new AddPicturesSession(stored, { ...ports, store }), store };
+  const { ports, errors } = fakeIntakePorts(store);
+  return { session: new AddPicturesSession(stored, { ...ports, store }), store, errors };
 }
 
 describe("AddPicturesSession", () => {
@@ -59,6 +77,28 @@ describe("AddPicturesSession", () => {
 
     expect(await (await store.pictureBlob(added ?? "")).text()).toMatch(/display/);
     expect(store.log).toEqual(["update", "end id-1"]);
+  });
+
+  it("stores the pictures in one read-and-write edit of the record, never a separate read", async () => {
+    const { session, store } = await sessionFor();
+    session.intake.addPictures([pictureFile("new.jpg", "2025-07-02T10:00:00Z")]);
+    await session.intake.pictures.settled();
+
+    await session.commit();
+
+    expect(store.log).toEqual(["update", "end id-1"]);
+  });
+
+  it("still resolves with the ids once stored when ending the claim fails, and reports it", async () => {
+    const { session, store, errors } = await sessionFor(SHOW, new UnreleasingStore());
+    session.intake.addPictures([pictureFile("new.jpg", "2025-07-02T10:00:00Z")]);
+    await session.intake.pictures.settled();
+
+    const added = await session.commit();
+
+    const stored = await store.getSlideshow(SHOW.id);
+    expect(added).toEqual([stored.pictures[1]?.id]);
+    expect(errors).toEqual([UnreleasingStore.failure]);
   });
 
   it("skips a picture already in the slideshow as a duplicate", async () => {
