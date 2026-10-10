@@ -288,8 +288,24 @@
     background: var(--gl-accent);
     color: var(--gl-accent-ink);
   }
+  /* A bold check: the icon set's hairline stroke vanishes at this size on the accent. */
+  .check :global(svg) {
+    stroke-width: 3.2;
+  }
+  /* While selecting several, the unpicked tiles step back and a picked picture sits inset. */
+  .tile.selecting-mode:not(.selected) .pick img {
+    filter: saturate(0.8) brightness(0.92);
+  }
+  .tile.selecting-mode .pick img {
+    transition: scale 0.12s;
+  }
+  .tile.selecting-mode.selected .pick img {
+    scale: 0.94;
+    border-radius: var(--gl-radius-small);
+  }
   @media (prefers-reduced-motion: reduce) {
-    .mark {
+    .mark,
+    .tile.selecting-mode .pick img {
       transition: none;
     }
   }
