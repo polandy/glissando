@@ -466,8 +466,9 @@ over real timers.
 ## Installing and offline
 
 The approved mockup: https://claude.ai/artifact/LBoKKSKY9qRJ3ntHCVaAVU. The service worker and
-its update rule: ADR-0005. Web app manifest and icons in `public/`; the PNG icons come from
-`scripts/brand/icons.sh`.
+its update rule: ADR-0005; it leaves the Immich route (`immich/`) and the library route
+(`api/library`, SERVER_LIBRARY.md) to the network, never caching their live data. Web app
+manifest and icons in `public/`; the PNG icons come from `scripts/brand/icons.sh`.
 
 - **Where**: only the start screen's status bar. Left a dot and a status line, right at most one
   action — never a banner or a pop-up of our own.
