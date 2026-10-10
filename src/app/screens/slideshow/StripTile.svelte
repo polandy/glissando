@@ -4,6 +4,7 @@
   import { MILLISECONDS_PER_SECOND } from "../../../player";
   import type { PictureTile } from "../view-models";
   import StripTileBadges from "./StripTileBadges.svelte";
+  import StripTileCheck from "./StripTileCheck.svelte";
 
   /** One picture of the strip: its order number and date, and the marks a pointer reveals. */
   let {
@@ -101,7 +102,7 @@
     {/if}
     <span class="date mono" aria-hidden="true">{date}</span>
   </button>
-  <span class="check" aria-hidden="true"><Icon name="check" /></span>
+  <StripTileCheck {selecting} {selected} />
   <span class="mark grab" aria-hidden="true"><Icon name="grip" /></span>
   <button
     class="mark remove"
@@ -261,36 +262,9 @@
       opacity: 1;
     }
   }
-  /* Selecting several (dev-docs/APP.md, Selecting several): a check circle instead of the marks. */
-  .check {
-    position: absolute;
-    top: 6px;
-    right: 6px;
-    z-index: 2;
-    display: none;
-    place-items: center;
-    width: 22px;
-    height: 22px;
-    border: 2px solid var(--gl-on-photo);
-    border-radius: var(--gl-radius-pill);
-    background: var(--gl-photo-badge);
-    color: transparent;
-    --gl-icon-size: 13px;
-  }
-  .tile.selecting-mode .check {
-    display: grid;
-  }
+  /* Selecting several (dev-docs/APP.md, Selecting several): the check circle instead of the marks. */
   .tile.selecting-mode .mark {
     display: none;
-  }
-  .tile.selected .check {
-    border-color: var(--gl-accent);
-    background: var(--gl-accent);
-    color: var(--gl-accent-ink);
-  }
-  /* A bold check: the icon set's hairline stroke vanishes at this size on the accent. */
-  .check :global(svg) {
-    stroke-width: 3.2;
   }
   /* While selecting several, the unpicked tiles step back and a picked picture sits inset. */
   .tile.selecting-mode:not(.selected) .pick img {

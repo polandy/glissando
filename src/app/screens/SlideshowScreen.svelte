@@ -4,16 +4,13 @@
   import { getTranslator } from "../i18n/context";
   import InfoPanel from "./slideshow/InfoPanel.svelte";
   import MoreMenu from "./slideshow/MoreMenu.svelte";
-  import PictureStrip from "./slideshow/PictureStrip.svelte";
-  import PlayPreview from "./slideshow/PlayPreview.svelte";
+  import PicturesColumn from "./slideshow/PicturesColumn.svelte";
   import SelectionBar from "./slideshow/SelectionBar.svelte";
-  import StripHead from "./slideshow/StripHead.svelte";
   import TransitionsSheet from "./slideshow/TransitionsSheet.svelte";
   import ExportSheets from "./slideshow/ExportSheets.svelte";
   import type { HtmlExportSession } from "../html-export/html-export-session";
   import type { ExportPreview } from "../video-export/slideshow-video-export";
   import type { VideoExportSession } from "../video-export/video-export-session";
-  import MissingPicturesNotice from "./slideshow/MissingPicturesNotice.svelte";
   import DeleteDialog from "./slideshow/DeleteDialog.svelte";
   import type { SlideshowDetails, SlideshowStorage, StorageAction } from "./view-models";
   import type { SlideshowTransition } from "../../library/own-timing";
@@ -22,7 +19,6 @@
   import {
     endSelecting,
     NO_SELECTION,
-    startSelecting,
     withoutRemoved,
     type StripSelection,
   } from "./slideshow/strip-selection";
@@ -184,42 +180,23 @@
   </Header>
   <main class="content">
     <div class="detail">
-      <div class="pictures">
-        <PlayPreview
-          coverUrl={slideshow.coverUrl}
-          durationSeconds={slideshow.durationSeconds}
-          {onPlay}
-        />
-
-        <StripHead
-          count={slideshow.pictures.length}
-          ownOrder={slideshow.ownOrder}
-          selecting={selection.several}
-          onToggleSelect={() =>
-            (selection = selection.several ? endSelecting() : startSelecting(selection))}
-          onAdd={onAddPictures}
-        />
-        <PictureStrip
-          pictures={slideshow.pictures}
-          {newPictureIds}
-          {selection}
-          {mousePointer}
-          onSelectionChange={(next) => (selection = next)}
-          onOpen={onEdit}
-          {onRemove}
-          onRemoveGroup={removeGroup}
-          {onShiftGroup}
-          {onMoveGroup}
-          {holdScheduler}
-          {frameScheduler}
-        />
-        {#if storage?.kind === "server" && storage.missingCount > 0}
-          <MissingPicturesNotice
-            count={storage.missingCount}
-            onRemove={() => onStorageAction("removeMissing")}
-          />
-        {/if}
-      </div>
+      <PicturesColumn
+        {slideshow}
+        {onPlay}
+        {onAddPictures}
+        {newPictureIds}
+        bind:selection
+        {mousePointer}
+        {onEdit}
+        {onRemove}
+        onRemoveGroup={removeGroup}
+        {onShiftGroup}
+        {onMoveGroup}
+        {storage}
+        {onStorageAction}
+        {holdScheduler}
+        {frameScheduler}
+      />
 
       <InfoPanel
         bind:this={infoPanel}
@@ -283,10 +260,6 @@
     grid-template-columns: minmax(0, 1fr) 300px;
     gap: 24px;
     align-items: start;
-  }
-  .pictures {
-    display: grid;
-    gap: 20px;
   }
   /*
    * Room below the content for the selection bar fixed over it, so the last row scrolls clear;
