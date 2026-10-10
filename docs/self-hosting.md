@@ -6,7 +6,8 @@ the public website never shows Immich.
 
 The self-hosted Glissando is a container image, `ghcr.io/polandy/glissando`. It holds the same
 app as the public one, served by [Caddy](https://caddyserver.com), plus one route: `/immich/`
-leads to your Immich server. There is no application server behind it. The route passes on only
+leads to your Immich server. With a data volume it also keeps slideshows on the server (step 3);
+without one there is no application server behind it. The route passes on only
 the few reads Glissando makes (albums, photos, faces) and adds your Immich API key on the way;
 everything else is refused. The key stays inside the container: browsers never see it, and there
 is no key to type into the app.
@@ -77,10 +78,44 @@ deliberately.
 | `IMMICH_URL`          | Immich's address inside the Docker network, scheme, host and port only. Unset: no Immich |
 | `IMMICH_API_KEY_FILE` | A file holding the API key (a Docker secret). Preferred                                  |
 | `IMMICH_API_KEY`      | The API key itself, instead of a file                                                    |
+| `GLISSANDO_DATA_DIR`  | Where slideshows on the server are kept, a mounted volume (step 3). Unset: none          |
 
 The container refuses to start, and says why in its log, when `IMMICH_URL` is set without a key,
-a key is set without `IMMICH_URL`, both key variables are set, the key file cannot be read, or a
-variable starting with `IMMICH_` or `GLISSANDO_` is not one of the above (a typo).
+a key is set without `IMMICH_URL`, both key variables are set, the key file cannot be read,
+`GLISSANDO_DATA_DIR` is set without `IMMICH_URL` or is not a directory the container can write, or
+a variable starting with `IMMICH_` or `GLISSANDO_` is not one of the above (a typo).
+
+## 3. Optional: slideshows on the server
+
+With a data volume, Glissando also keeps slideshows on the server: every device at home can play
+and edit them, and their photos stay in Immich, linked rather than copied. Only the slideshows
+themselves and their music are stored in the volume, in one SQLite database
+(`library.sqlite`). Add a volume and `GLISSANDO_DATA_DIR` to the service from step 2:
+
+```yaml
+services:
+  glissando:
+    # … as in step 2 …
+    environment:
+      IMMICH_URL: http://immich-server:2283
+      IMMICH_API_KEY_FILE: /run/secrets/immich_api_key
+      GLISSANDO_DATA_DIR: /data
+    volumes:
+      - glissando-data:/data
+
+volumes:
+  glissando-data:
+```
+
+A named volume like this one is writable by the container from the start. If you mount a
+directory of the host instead (`./glissando-data:/data`), make it writable for user id 10001
+(`chown 10001 glissando-data`).
+
+**Everyone who can open your Glissando can change and delete the slideshows on the server** — the
+app asks before deleting, but there is no sign-in of its own; protect it as described above.
+**Back up the volume** with your other backups: a deleted or changed slideshow cannot be restored
+from Glissando. Copy the volume while the container is stopped, or back up the whole directory
+including `library.sqlite-wal` together.
 
 ## Troubleshooting
 
