@@ -1,7 +1,7 @@
 import type { PictureFocus } from "../../library/picture-focus";
 import type { LibraryStore, StoredSlideshow } from "../../library/stored-slideshow";
 import type { Toaster } from "../toast/toaster";
-import type { EditRefusal } from "./edit-saver";
+import type { EditRefusal } from "./edit-refusal";
 
 /** What the slideshow editor stores with, tells the user with and words its toasts with. */
 export interface SlideshowEditorPorts {

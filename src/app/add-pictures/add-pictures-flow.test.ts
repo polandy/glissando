@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { SlideshowNotFoundError, type StoredSlideshow } from "../../library/stored-slideshow";
 import { slideshow } from "../../library/testing/library-store-contract";
+import { ServerLibraryUnavailableError } from "../../server-library/server-library-client";
+import { SlideshowChangedError } from "../../server-library/server-slideshow-store";
+import { refusalToast } from "../editing/edit-refusal";
+import { createTranslator } from "../i18n/translator";
 import type { Route } from "../navigation/route";
 import type { SlideshowHome } from "../routes/slideshow-storage";
 import type { ToastMessage } from "../toast/toaster";
@@ -86,6 +90,7 @@ function setUp() {
     focusPass: { start: () => log.push("look for focus") },
     reportError: (error) => errors.push(error),
     goneText: () => GONE_TEXT,
+    refusalToast: (reason) => refusalToast(reason, createTranslator("en")),
   });
   const states: AddPicturesFlowState<FakeSession>[] = [];
   flow.subscribe((state) => states.push(state));
@@ -240,6 +245,41 @@ describe("AddPicturesFlow", () => {
 
     expect(errors).toEqual([failure]);
     expect(flow.session).toBe(sessions[0]);
+  });
+
+  it("a stale revision adds nothing, shows the current version and says it changed elsewhere", async () => {
+    const { flow, sessions, toasts, errors, opened } = setUp();
+    flow.open(SHOW_1, "server");
+
+    const commit = flow.commit();
+    sessions[0]?.failCommit(new SlideshowChangedError({ ...SHOW_1, title: "Renamed elsewhere" }));
+    await commit;
+
+    expect(flow.session).toBe(sessions[0]);
+    expect(sessions[0]?.refreshedWith).toEqual(["Renamed elsewhere"]);
+    expect(toasts).toEqual([
+      { text: "Changed on another device. Showing the latest version.", tone: "info" },
+    ]);
+    expect(flow.committing).toBe(false);
+    expect(opened).toEqual([{ screen: "add", slideshowId: "s1" }]);
+    expect(errors).toEqual([]);
+  });
+
+  it("a server out of reach adds nothing, keeps the selection and says it couldn't save", async () => {
+    const { flow, sessions, toasts, errors } = setUp();
+    flow.open(SHOW_1, "server");
+
+    const commit = flow.commit();
+    sessions[0]?.failCommit(new ServerLibraryUnavailableError("PUT /api/library/slideshows/s1"));
+    await commit;
+
+    expect(flow.session).toBe(sessions[0]);
+    expect(sessions[0]?.refreshedWith).toEqual([]);
+    expect(toasts).toEqual([
+      { text: "Couldn't save. Your Glissando server isn't answering.", tone: "error" },
+    ]);
+    expect(flow.committing).toBe(false);
+    expect(errors).toEqual([]);
   });
 
   it("leaves a restored add screen or Immich browser whose selection is gone", () => {

@@ -161,7 +161,10 @@ wizard as it was with a coral toast naming it and "Try again".
   exists." A network failure: the edit is not applied, the coral toast "Couldn't save. Your
   Glissando server isn't answering." and the screen keeps the last saved version.
 - **Adding pictures**: Immich only, linked, as in the wizard's server mode (the lead leaves out
-  downscaling); "Add" stores them with one edit at the revision last seen.
+  downscaling); "Add" stores them with one edit at the revision last seen. Refused as an edit
+  is, with its toasts: 412 adds nothing and the add screen takes the current version (its
+  pictures become the known ones), keeping the selection for another "Add"; a network failure
+  adds nothing and keeps the selection.
 - **Missing pictures**: a picture Immich answers 404 for (thumbnail or original) shows as a dashed
   tile "No longer in Immich"; below the strip the lemon notice "n pictures are no longer in Immich.
   They are skipped when playing." with "Remove them". The player skips it.

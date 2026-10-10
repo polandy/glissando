@@ -1,13 +1,6 @@
 import { SlideshowNotFoundError, type LibraryStore } from "../../library/stored-slideshow";
 import type { StoredSlideshow } from "../../library/stored-slideshow";
-import { ServerLibraryUnavailableError } from "../../server-library/server-library-client";
-import { SlideshowChangedError } from "../../server-library/server-slideshow-store";
-
-/**
- * Why a server slideshow's edit was not applied (`dev-docs/SERVER_LIBRARY.md`, A server
- * slideshow's screen): it changed on another device, or the server is not answering.
- */
-export type EditRefusal = "changed" | "unavailable";
+import { refusedEditOf, type EditRefusal } from "./edit-refusal";
 
 export interface EditSaverPorts {
   readonly store: Pick<LibraryStore, "updateSlideshow">;
@@ -62,12 +55,13 @@ export class EditSaver {
         this.#saved = slideshow;
       })
       .catch((error: unknown) => {
+        const refused = refusedEditOf(error);
         if (error instanceof SlideshowNotFoundError) {
           this.#goneMeanwhile();
-        } else if (error instanceof SlideshowChangedError) {
-          this.#saved = error.current;
-          this.#ports.onRefused(error.current, "changed");
-        } else if (error instanceof ServerLibraryUnavailableError) {
+        } else if (refused?.reason === "changed") {
+          this.#saved = refused.current;
+          this.#ports.onRefused(refused.current, "changed");
+        } else if (refused?.reason === "unavailable") {
           this.#ports.onRefused(this.#saved, "unavailable");
         } else {
           this.#ports.onError(error);

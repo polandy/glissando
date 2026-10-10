@@ -8,7 +8,7 @@ import type { PictureFocus } from "../../library/picture-focus";
 import { MemoryLibraryStore } from "../../library/testing/memory-store";
 import { FakeScheduler } from "../../ui-kit/testing/fake-scheduler";
 import { Toaster } from "../toast/toaster";
-import type { EditRefusal } from "./edit-saver";
+import type { EditRefusal } from "./edit-refusal";
 import { SlideshowEditor } from "./slideshow-editor";
 
 export function stored(ids: readonly string[]): StoredSlideshow {

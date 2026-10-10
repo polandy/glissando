@@ -1,6 +1,6 @@
 import { titleForCaptureRange } from "../../compose";
 import type { StoredSlideshow } from "../../library/stored-slideshow";
-import type { EditRefusal } from "../editing/edit-saver";
+import { refusalToast, type EditRefusal } from "../editing/edit-refusal";
 import { SlideshowEditor } from "../editing/slideshow-editor";
 import type { SlideshowEditorPorts } from "../editing/slideshow-editor-ports";
 import type { Translator } from "../i18n/translator";
@@ -21,13 +21,8 @@ export function createScreenEditor(
   translator: Translator,
 ): SlideshowEditor {
   const { t } = translator;
-  const refused = (reason: EditRefusal): void => {
-    ports.toaster.show(
-      reason === "changed"
-        ? { text: t("server.changedElsewhere"), tone: "info" }
-        : { text: t("server.saveFailed"), tone: "error" },
-    );
-  };
+  const refused = (reason: EditRefusal): void =>
+    ports.toaster.show(refusalToast(reason, translator));
   return new SlideshowEditor(initial, {
     ...ports,
     onRefused: refused,
