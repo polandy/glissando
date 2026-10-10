@@ -1,8 +1,10 @@
 <script lang="ts">
   import { onDestroy, type Snippet } from "svelte";
   import type { ImmichAvailabilityState } from "../../immich/immich-availability";
+  import type { DuplicateReason } from "../../import/picture-import";
   import Notice from "../components/Notice.svelte";
   import { getTranslator } from "../i18n/context";
+  import type { MessageKey } from "../i18n/messages";
   import { browserObjectUrls, ObjectUrls } from "../media/object-urls";
   import DropZone from "./DropZone.svelte";
   import PicturesProgress from "./PicturesProgress.svelte";
@@ -21,7 +23,6 @@
     onDiscard,
     immich,
     onOpenImmich,
-    duplicates,
     sources,
   }: {
     intake: PictureIntake;
@@ -33,13 +34,16 @@
     onDiscard: () => void;
     immich: ImmichAvailabilityState;
     onOpenImmich: () => void;
-    /** How the duplicates notice names what they duplicate. */
-    duplicates: "inSlideshow" | "chosenTwice";
     /** The boxes below the drop zone. */
     sources: Snippet;
   } = $props();
 
   const PICTURE_TYPES = "image/*";
+  const DUPLICATE_REASONS: readonly DuplicateReason[] = ["alreadyIn", "chosenTwice"];
+  const DUPLICATE_LEADS = {
+    alreadyIn: "add.alreadyIn",
+    chosenTwice: "add.chosenTwice",
+  } as const satisfies Record<DuplicateReason, MessageKey>;
   const FILE_NAME_SEPARATOR = ", ";
   const { t, formatDate } = getTranslator();
 
@@ -139,21 +143,21 @@
   </Notice>
 {/if}
 
-{#if !importState.busy && skipped.duplicate.length > 0}
-  {@const count = skipped.duplicate.length}
-  <Notice tone="warn">
-    <b>
-      {duplicates === "inSlideshow"
-        ? t("add.duplicatesInSlideshow", { count })
-        : t("add.chosenTwice", { count })}
-    </b>
-    {t("import.skippedFiles", { files: skipped.duplicate.join(FILE_NAME_SEPARATOR) })}
-    {#snippet actions()}
-      <button class="btn small" type="button" onclick={() => intake.addDuplicates()}>
-        {t("add.addAnyway")}
-      </button>
-    {/snippet}
-  </Notice>
+{#if !importState.busy}
+  {#each DUPLICATE_REASONS as reason (reason)}
+    {@const names = skipped[reason]}
+    {#if names.length > 0}
+      <Notice tone="warn">
+        <b>{t(DUPLICATE_LEADS[reason], { count: names.length })}</b>
+        {t("import.skippedFiles", { files: names.join(FILE_NAME_SEPARATOR) })}
+        {#snippet actions()}
+          <button class="btn small" type="button" onclick={() => intake.addDuplicates(reason)}>
+            {t("add.addAnyway")}
+          </button>
+        {/snippet}
+      </Notice>
+    {/if}
+  {/each}
 {/if}
 
 {#if importState.pictures.length > 0 || pending > 0}

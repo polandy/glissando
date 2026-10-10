@@ -84,7 +84,6 @@
     onDiscard={() => onDiscard(false)}
     {immich}
     {onOpenImmich}
-    duplicates="inSlideshow"
   >
     {#snippet sources()}
       <ImmichBox state={immich} onOpen={onOpenImmich} onSettings={onImmichSettings} />

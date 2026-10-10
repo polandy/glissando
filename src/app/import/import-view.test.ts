@@ -118,23 +118,30 @@ describe("musicFormatLabel", () => {
 });
 
 describe("skippedNotices", () => {
-  it("tells the files not readable as pictures, the photos not downloaded and the duplicates apart", () => {
+  it("tells the files not readable as pictures, the photos not downloaded and both kinds of duplicates apart", () => {
     expect(
       skippedNotices([
         { fileName: "notes.txt", reason: "unsupported" },
         { fileName: "IMG_1.HEIC", reason: "notDownloaded" },
-        { fileName: "beach.jpg", reason: "duplicate" },
+        { fileName: "beach.jpg", reason: "alreadyIn" },
+        { fileName: "hill.jpg", reason: "chosenTwice" },
         { fileName: "broken.jpg", reason: "unreadable" },
         { fileName: "IMG_2.HEIC", reason: "notDownloaded" },
       ]),
     ).toEqual({
       unreadable: ["notes.txt", "broken.jpg"],
       notDownloaded: ["IMG_1.HEIC", "IMG_2.HEIC"],
-      duplicate: ["beach.jpg"],
+      alreadyIn: ["beach.jpg"],
+      chosenTwice: ["hill.jpg"],
     });
   });
 
   it("has nothing to tell without skipped files", () => {
-    expect(skippedNotices([])).toEqual({ unreadable: [], notDownloaded: [], duplicate: [] });
+    expect(skippedNotices([])).toEqual({
+      unreadable: [],
+      notDownloaded: [],
+      alreadyIn: [],
+      chosenTwice: [],
+    });
   });
 });

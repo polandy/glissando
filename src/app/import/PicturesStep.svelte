@@ -90,7 +90,6 @@
     {onDiscard}
     {immich}
     {onOpenImmich}
-    duplicates="chosenTwice"
   >
     {#snippet sources()}
       <ImmichBox state={immich} onOpen={onOpenImmich} onSettings={onImmichSettings} />

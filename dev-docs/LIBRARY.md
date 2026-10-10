@@ -28,8 +28,9 @@ ADR-0003; file container: ADR-0004.
 - **Origin** (ADR-0016): a picture keeps `immichAssetId` (from Immich) or `fileBytes` (a file's
   size). **Duplicates**: before a picture is read, its identity (`PictureSource.identify()`: file
   name, capture date and origin; a file reads only its EXIF for it) is compared by `isSamePicture`
-  with the pictures it is added to and those this import took in. A match is skipped as
-  _duplicate_ and kept, so `addDuplicates()` can take them in after all.
+  with the pictures it is added to and those this import took in. A match with the former is
+  skipped as _alreadyIn_, one with the latter as _chosenTwice_; both are kept, so
+  `addDuplicates(reason)` can take those of one reason in after all.
 - **Adding to a slideshow**: the same import, given the slideshow's pictures as the known ones;
   `addPictures` puts the stored ones into the record (by capture date, or at the end with
   `ownOrder`) in one `updateSlideshow`, and the import's claim is released after it.
@@ -45,7 +46,7 @@ publishes a state with the Svelte store contract:
 - **Storage full** (`QuotaExceededError`): the import stops, keeps what is stored, drops the
   remaining files from `total` and reports `storageFull`. Adding files again tries again.
 - `skipped` names each skipped file with its reason (_unsupported_, _unreadable_, _not
-  downloaded_, _duplicate_); a duplicate counts as done.
+  downloaded_, _alreadyIn_, _chosenTwice_); a duplicate counts as done.
 - **Cancel** stops after the file in flight and clears the state.
 - Any other error ends the import as `failed`; it is never swallowed: `settled()` rejects with
   `PictureImportFailedError` (the error as its `cause`), which the app logs and shows as the

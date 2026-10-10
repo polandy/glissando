@@ -40,8 +40,10 @@ export interface SkippedNotices {
   readonly unreadable: readonly string[];
   /** Photos Immich could not deliver. */
   readonly notDownloaded: readonly string[];
-  /** Pictures already there, which "Add anyway" takes in after all. */
-  readonly duplicate: readonly string[];
+  /** Pictures already in the slideshow being added to, which "Add anyway" takes in after all. */
+  readonly alreadyIn: readonly string[];
+  /** Pictures this import already took in, which "Add anyway" takes in after all. */
+  readonly chosenTwice: readonly string[];
 }
 
 export function skippedNotices(skipped: readonly SkippedFile[]): SkippedNotices {
@@ -50,7 +52,8 @@ export function skippedNotices(skipped: readonly SkippedFile[]): SkippedNotices 
   return {
     unreadable: namesFor((reason) => reason === "unsupported" || reason === "unreadable"),
     notDownloaded: namesFor((reason) => reason === "notDownloaded"),
-    duplicate: namesFor((reason) => reason === "duplicate"),
+    alreadyIn: namesFor((reason) => reason === "alreadyIn"),
+    chosenTwice: namesFor((reason) => reason === "chosenTwice"),
   };
 }
 

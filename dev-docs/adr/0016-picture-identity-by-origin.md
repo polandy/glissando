@@ -32,8 +32,8 @@ neither the Immich asset id nor anything about the original file was kept.
   still match by name and capture time.
 
 - The check runs before a picture is downscaled, against the slideshow's pictures and those
-  already taken in by the same import; a duplicate is skipped as _duplicate_ and can be added
-  anyway on request.
+  already taken in by the same import; a duplicate is skipped as _alreadyIn_ or _chosenTwice_
+  and can be added anyway on request.
 - The origin travels in the `.glissando` file (format version 7), so a slideshow moved to another
   device keeps recognising its pictures.
 

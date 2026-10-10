@@ -4,7 +4,10 @@ import type { LibraryStore, StoredPicture } from "../library/stored-slideshow";
 import { PictureNotDownloadedError, type PictureSource, type ReadPicture } from "./picture-source";
 import { UnreadablePictureError } from "./unreadable-picture";
 
-export type SkipReason = "unsupported" | "unreadable" | "notDownloaded" | "duplicate";
+/** Why a picture was skipped as a duplicate: one of the known ones, or one this import took in. */
+export type DuplicateReason = "alreadyIn" | "chosenTwice";
+
+export type SkipReason = "unsupported" | "unreadable" | "notDownloaded" | DuplicateReason;
 
 export interface SkippedFile {
   readonly fileName: string;
@@ -77,7 +80,7 @@ export class PictureImport {
   #state = EMPTY;
   #queue: Queued[] = [];
   /** The sources skipped as duplicates, for `addDuplicates`. */
-  #duplicates: PictureSource[] = [];
+  #duplicates: { readonly source: PictureSource; readonly reason: DuplicateReason }[] = [];
   #draining: Promise<void> = Promise.resolve();
   #isDraining = false;
   /** Bumped by `cancel()`, so the file in flight at that moment is discarded. */
@@ -117,18 +120,18 @@ export class PictureImport {
     );
   }
 
-  /** Takes the pictures skipped as duplicates in after all; they leave the skipped list. */
-  addDuplicates(): void {
+  /** Takes the pictures skipped as duplicates for `reason` in after all; they leave the skipped list. */
+  addDuplicates(reason: DuplicateReason): void {
     if (this.#state.failed) {
       throw new Error("the picture import failed; cancel it or start a new one to add files");
     }
-    const duplicates = this.#duplicates;
-    this.#duplicates = [];
+    const taken = this.#duplicates.filter((duplicate) => duplicate.reason === reason);
+    this.#duplicates = this.#duplicates.filter((duplicate) => duplicate.reason !== reason);
     this.#enqueue(
-      duplicates.map((source) => ({ source, skipDuplicate: false })),
+      taken.map(({ source }) => ({ source, skipDuplicate: false })),
       {
-        done: this.#state.done - duplicates.length,
-        skipped: this.#state.skipped.filter((skip) => skip.reason !== "duplicate"),
+        done: this.#state.done - taken.length,
+        skipped: this.#state.skipped.filter((skip) => skip.reason !== reason),
       },
     );
   }
@@ -206,8 +209,9 @@ export class PictureImport {
     let read: ReadPicture;
     try {
       identity = await source.identify();
-      if (skipDuplicate && this.#isDuplicate(identity)) {
-        return { kind: "skipped", reason: "duplicate" };
+      const duplicate = skipDuplicate ? this.#duplicateReason(identity) : null;
+      if (duplicate !== null) {
+        return { kind: "skipped", reason: duplicate };
       }
       read = await source.read();
     } catch (error) {
@@ -244,9 +248,12 @@ export class PictureImport {
     return { kind: "stored", picture: { id, capturedAt, width, height, fileName, ...origin } };
   }
 
-  #isDuplicate(identity: PictureIdentity): boolean {
-    const known = [...(this.#ports.known ?? []), ...this.#state.pictures];
-    return known.some((picture) => isSamePicture(picture, identity));
+  #duplicateReason(identity: PictureIdentity): DuplicateReason | null {
+    const matches = (picture: PictureIdentity) => isSamePicture(picture, identity);
+    if ((this.#ports.known ?? []).some(matches)) {
+      return "alreadyIn";
+    }
+    return this.#state.pictures.some(matches) ? "chosenTwice" : null;
   }
 
   #apply(source: PictureSource, outcome: Outcome): void {
@@ -261,8 +268,8 @@ export class PictureImport {
         });
         return;
       case "skipped":
-        if (outcome.reason === "duplicate") {
-          this.#duplicates.push(source);
+        if (outcome.reason === "alreadyIn" || outcome.reason === "chosenTwice") {
+          this.#duplicates.push({ source, reason: outcome.reason });
         }
         this.#update({
           done,

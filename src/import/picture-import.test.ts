@@ -211,7 +211,7 @@ describe("PictureImport", () => {
     expect(pictureImport.state).toMatchObject({ total: 1, done: 1 });
   });
 
-  it("skips a picture the slideshow already has as a duplicate, without decoding it", async () => {
+  it("skips a picture the slideshow already has as already in, without decoding it", async () => {
     const { pictureImport, addFiles, decoder } = setUp({
       dates: { "a.jpg": "2025-07-01T10:00:00Z" },
       known: [{ fileName: "a.jpg", capturedAt: "2025-07-01T10:00:00Z", fileBytes: 5 }],
@@ -221,12 +221,12 @@ describe("PictureImport", () => {
     await pictureImport.settled();
 
     expect(fileNames(pictureImport.state)).toEqual(["b.jpg"]);
-    expect(pictureImport.state.skipped).toEqual([{ fileName: "a.jpg", reason: "duplicate" }]);
+    expect(pictureImport.state.skipped).toEqual([{ fileName: "a.jpg", reason: "alreadyIn" }]);
     expect(pictureImport.state).toMatchObject({ total: 2, done: 2 });
     expect(decoder.decoded).toEqual(["b.jpg"]);
   });
 
-  it("skips a picture chosen twice in the same import as a duplicate", async () => {
+  it("skips a picture chosen twice in the same import as chosen twice", async () => {
     const { pictureImport, addFiles } = setUp();
 
     addFiles([picture("a.jpg")]);
@@ -234,10 +234,10 @@ describe("PictureImport", () => {
     await pictureImport.settled();
 
     expect(fileNames(pictureImport.state)).toEqual(["a.jpg"]);
-    expect(pictureImport.state.skipped).toEqual([{ fileName: "a.jpg", reason: "duplicate" }]);
+    expect(pictureImport.state.skipped).toEqual([{ fileName: "a.jpg", reason: "chosenTwice" }]);
   });
 
-  it("takes the skipped duplicates in after all on addDuplicates, keeping the other skips", async () => {
+  it("takes the pictures skipped as already in after all on addDuplicates, keeping the other skips", async () => {
     const { pictureImport, addFiles } = setUp({
       decoder: new FakeDecoder(new Set(["broken.jpg"])),
       known: [{ fileName: "a.jpg", capturedAt: "2025-07-01T10:00:00Z" }],
@@ -245,11 +245,27 @@ describe("PictureImport", () => {
     addFiles([picture("a.jpg"), picture("broken.jpg"), picture("b.jpg")]);
     await pictureImport.settled();
 
-    pictureImport.addDuplicates();
+    pictureImport.addDuplicates("alreadyIn");
     await pictureImport.settled();
 
     expect(fileNames(pictureImport.state)).toEqual(["a.jpg", "b.jpg"]);
     expect(pictureImport.state.skipped).toEqual([{ fileName: "broken.jpg", reason: "unreadable" }]);
+    expect(pictureImport.state).toMatchObject({ total: 3, done: 3, busy: false });
+  });
+
+  it("takes in only the duplicates of the reason asked for on addDuplicates", async () => {
+    const { pictureImport, addFiles } = setUp({
+      dates: { "a.jpg": "2025-07-01T10:00:00Z", "b.jpg": "2025-07-02T10:00:00Z" },
+      known: [{ fileName: "a.jpg", capturedAt: "2025-07-01T10:00:00Z" }],
+    });
+    addFiles([picture("a.jpg"), picture("b.jpg"), picture("b.jpg")]);
+    await pictureImport.settled();
+
+    pictureImport.addDuplicates("chosenTwice");
+    await pictureImport.settled();
+
+    expect(fileNames(pictureImport.state)).toEqual(["b.jpg", "b.jpg"]);
+    expect(pictureImport.state.skipped).toEqual([{ fileName: "a.jpg", reason: "alreadyIn" }]);
     expect(pictureImport.state).toMatchObject({ total: 3, done: 3, busy: false });
   });
 

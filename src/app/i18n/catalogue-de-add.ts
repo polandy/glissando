@@ -23,7 +23,7 @@ export const deAdd = {
   "add.added": { one: "{count} Bild hinzugefügt", other: "{count} Bilder hinzugefügt" },
   "add.newBadge": "neu",
   "add.newLabel": "{label}, neu",
-  "add.duplicatesInSlideshow": {
+  "add.alreadyIn": {
     one: "{count} Bild ist schon in der Diashow und wird übersprungen:",
     other: "{count} Bilder sind schon in der Diashow und werden übersprungen:",
   },

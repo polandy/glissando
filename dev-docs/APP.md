@@ -333,9 +333,9 @@ gesture (which cannot be stopped) keeps it, and "New slideshow" resumes it.
   single .glissando file chosen or dropped on the drop zone opens it (above) instead of being
   imported as a picture. **Duplicates** (ADR-0016): a picture already in the slideshow being
   added to, or already taken in by this import, is skipped before it is downscaled and counts
-  as done; a lemon notice names them, "2 pictures are already in the slideshow and were skipped:
-  names." (a new slideshow: "2 pictures were chosen twice and were skipped: names."), with "Add
-  anyway", which takes them in after all. Above that box, when this Glissando offers Immich (below), a box "From
+  as done; a lemon notice per kind names them, "2 pictures are already in the slideshow and were
+  skipped: names." and "2 pictures were chosen twice and were skipped: names.", each with "Add
+  anyway", which takes that kind in after all. Above that box, when this Glissando offers Immich (below), a box "From
   Immich" with "Open Immich" opens the Immich browser; offline it is greyed out ("Offline — Immich
   needs a connection to your Glissando server …"), with an Immich problem it names it and offers
   "Settings". Photos added from Immich join the same import: the same progress ("n / m pictures

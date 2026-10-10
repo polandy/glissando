@@ -1,6 +1,10 @@
 import type { ImmichPhoto } from "../../immich/immich-client";
 import { localPictureSource, type LocalPictureReaders } from "../../import/local-picture-source";
-import { PictureImport, PictureImportFailedError } from "../../import/picture-import";
+import {
+  PictureImport,
+  PictureImportFailedError,
+  type DuplicateReason,
+} from "../../import/picture-import";
 import type { PictureSource } from "../../import/picture-source";
 import type { PictureIdentity } from "../../library/picture-identity";
 import type { LibraryStore } from "../../library/stored-slideshow";
@@ -65,9 +69,9 @@ export class PictureIntake {
     this.#watchDrain();
   }
 
-  /** Takes the pictures skipped as duplicates in after all. */
-  addDuplicates(): void {
-    this.pictures.addDuplicates();
+  /** Takes the pictures skipped as duplicates for `reason` in after all. */
+  addDuplicates(reason: DuplicateReason): void {
+    this.pictures.addDuplicates(reason);
     this.#watchDrain();
   }
 

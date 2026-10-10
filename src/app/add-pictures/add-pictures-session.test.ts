@@ -68,7 +68,7 @@ describe("AddPicturesSession", () => {
     await session.intake.pictures.settled();
 
     expect(session.intake.pictures.state.skipped).toEqual([
-      { fileName: "old-1.jpg", reason: "duplicate" },
+      { fileName: "old-1.jpg", reason: "alreadyIn" },
     ]);
   });
 

@@ -18,7 +18,7 @@ describe("PictureIntake", () => {
     await intake.pictures.settled();
 
     expect(intake.pictures.state.pictures.map(({ fileName }) => fileName)).toEqual(["hill.jpg"]);
-    expect(intake.pictures.state.skipped).toEqual([{ fileName: "beach.jpg", reason: "duplicate" }]);
+    expect(intake.pictures.state.skipped).toEqual([{ fileName: "beach.jpg", reason: "alreadyIn" }]);
   });
 
   it("takes the duplicates in after all, claimed like every other picture", async () => {
@@ -27,7 +27,7 @@ describe("PictureIntake", () => {
     intake.addPictures([pictureFile("beach.jpg", KNOWN.capturedAt)]);
     await intake.pictures.settled();
 
-    intake.addDuplicates();
+    intake.addDuplicates("alreadyIn");
     await intake.pictures.settled();
 
     const [picture] = intake.pictures.state.pictures;

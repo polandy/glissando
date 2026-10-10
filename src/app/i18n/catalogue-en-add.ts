@@ -23,7 +23,7 @@ export const enAdd: Pick<Catalogue, keyof typeof deAdd> = {
   "add.added": { one: "{count} picture added", other: "{count} pictures added" },
   "add.newBadge": "new",
   "add.newLabel": "{label}, new",
-  "add.duplicatesInSlideshow": {
+  "add.alreadyIn": {
     one: "{count} picture is already in the slideshow and was skipped:",
     other: "{count} pictures are already in the slideshow and were skipped:",
   },
