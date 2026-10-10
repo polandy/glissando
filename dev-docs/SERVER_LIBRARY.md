@@ -174,7 +174,16 @@ wizard as it was with a coral toast naming it and "Try again".
   through `/immich/` and makes the display rendition on the device (Immich's preview where the
   original cannot be decoded, as on import); `thumbnailBlob` is Immich's thumbnail; `musicBlob`
   the server's music; `pictureFocus` the largest Immich face box (ADR-0013's rule), asked once per
-  picture and kept for the session; `putPictureFocus` keeps it for the session only.
+  picture and kept for the session (faces Immich could not give are logged and asked again
+  later); `putPictureFocus` keeps it for the session only. Both stores share the type
+  `SlideshowStore` (`src/library/stored-slideshow.ts`).
+- Errors the screens tell apart: an unknown slideshow is `SlideshowNotFoundError` as on the
+  device; an edit at a stale revision `SlideshowChangedError` carrying the current slideshow; a
+  server out of reach or failing (network, 5xx) `ServerLibraryUnavailableError`; a picture Immich
+  answers 404 for `PictureMissingFromImmichError`; Immich itself unavailable
+  `ImmichUnavailableError` (also reported to `ImmichAvailability`). Edits are applied one at a
+  time, each naming the revision the one before left; one that failed leaves the last saved
+  version as the one the next edit names.
 - The player prepares pictures ahead as for device slideshows (ADR-0014). A picture that fails
   with a 404 is skipped; any other failure stops playing with "Immich isn't answering" and back.
 - Video and web page export work the same way (the pictures are fetched as they are needed);

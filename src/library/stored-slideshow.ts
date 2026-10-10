@@ -139,6 +139,24 @@ export interface LibraryStore {
   deleteUnreferencedMedia(now: Date): Promise<void>;
 }
 
+/**
+ * What the library, a slideshow's screen, its editors, the player and the exports need of a
+ * store: the device's `LibraryStore` has it, and so has the server's (`ServerSlideshowStore`).
+ */
+export type SlideshowStore = Pick<
+  LibraryStore,
+  | "listSlideshows"
+  | "getSlideshow"
+  | "updateSlideshow"
+  | "updateSlideshowWith"
+  | "deleteSlideshow"
+  | "pictureBlob"
+  | "thumbnailBlob"
+  | "musicBlob"
+  | "pictureFocus"
+  | "putPictureFocus"
+>;
+
 /** How long a claim spares its media; a tab that crashed never releases its claims. */
 export const CLAIM_SPARED_FOR_MS = 24 * 60 * 60 * 1000;
 
