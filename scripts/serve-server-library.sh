@@ -73,7 +73,8 @@ docker network create "$NETWORK" >/dev/null
 docker volume create "$VOLUME" >/dev/null
 echo "starting the fake Immich (drawing its photos)"
 docker run --detach --name "$IMMICH" --network "$NETWORK" --user node --env FAKE_IMMICH_API_KEY="$KEY" \
-	--volume "$PWD/deploy/fake-immich.mjs:/fake-immich.mjs:ro" "$NODE_IMAGE" \
+	--volume "$PWD/deploy/fake-immich.mjs:/fake-immich.mjs:ro" \
+	--volume "$PWD/deploy/fake-immich-images.mjs:/fake-immich-images.mjs:ro" "$NODE_IMAGE" \
 	node /fake-immich.mjs gallery >/dev/null
 wait_for_log "$IMMICH" "listening"
 

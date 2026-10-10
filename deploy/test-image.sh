@@ -115,7 +115,8 @@ echoed() { # method, url, key: what the fake answers when exactly the server's k
 
 docker network create "$NETWORK" >/dev/null
 docker run --detach --name "$UPSTREAM" --network "$NETWORK" --user node \
-	--volume "$PWD/deploy/fake-immich.mjs:/fake-immich.mjs:ro" "$NODE_IMAGE" node /fake-immich.mjs >/dev/null
+	--volume "$PWD/deploy/fake-immich.mjs:/fake-immich.mjs:ro" \
+	--volume "$PWD/deploy/fake-immich-images.mjs:/fake-immich-images.mjs:ro" "$NODE_IMAGE" node /fake-immich.mjs >/dev/null
 wait_for_log "$UPSTREAM" "listening"
 start_proxy "$PROXY" --env IMMICH_URL="$IMMICH_URL" --env IMMICH_API_KEY="$KEY"
 
