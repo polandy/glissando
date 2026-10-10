@@ -1,6 +1,6 @@
 import type { StoredSlideshow } from "../../library/stored-slideshow";
 import { PictureMissingFromImmichError } from "../../server-library/server-slideshow-store";
-import type { PlayerFailure } from "../player/PlayerCard.svelte";
+import type { PlayerFailure } from "../player/player-failure";
 import type { SlideshowHome } from "./slideshow-storage";
 
 /** The slideshow as played: the pictures Immich no longer has are skipped. */

@@ -14,7 +14,8 @@
   import Icon from "../components/Icon.svelte";
   import { browserScheduler, type Scheduler } from "../../ui-kit/scheduler";
   import PlayerCaption from "./PlayerCaption.svelte";
-  import PlayerCard, { type PlayerFailure } from "./PlayerCard.svelte";
+  import PlayerCard from "./PlayerCard.svelte";
+  import type { PlayerFailure } from "./player-failure";
   import { ControlsVisibility } from "../../ui-kit/controls-visibility";
   import {
     canFullscreen,

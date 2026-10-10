@@ -6,7 +6,7 @@
   import type { PictureFocus } from "../../library/picture-focus";
   import { browserObjectUrls } from "../media/object-urls";
   import { NO_FOCUS_KNOWN } from "../focus/pictures-focus";
-  import type { PlayerFailure } from "../player/PlayerCard.svelte";
+  import type { PlayerFailure } from "../player/player-failure";
   import PlayerOverlay from "../player/PlayerOverlay.svelte";
   import { slideBoundaries } from "../player/slide-boundaries";
   import { loadPlayerMusic } from "./route-loading";
