@@ -1,8 +1,14 @@
 import { orderByCaptureDate } from "../compose";
-import { isSamePicture, type PictureIdentity } from "../library/picture-identity";
-import type { LibraryStore, StoredPicture } from "../library/stored-slideshow";
-import { PictureNotDownloadedError, type PictureSource, type ReadPicture } from "./picture-source";
-import { UnreadablePictureError } from "./unreadable-picture";
+import type { PictureIdentity } from "../library/picture-identity";
+import type { StoredPicture } from "../library/stored-slideshow";
+import {
+  duplicateReason,
+  importOne,
+  type Outcome,
+  type OutcomePorts,
+  type Queued,
+} from "./picture-import-outcome";
+import type { PictureSource } from "./picture-source";
 
 /** Why a picture was skipped as a duplicate: one of the known ones, or one this import took in. */
 export type DuplicateReason = "alreadyIn" | "chosenTwice";
@@ -28,21 +34,12 @@ export interface PictureImportState {
   readonly failed: boolean;
 }
 
-export interface PictureImportPorts {
-  readonly store: Pick<LibraryStore, "putPicture" | "putPictureFocus">;
-  newId(): string;
+export interface PictureImportPorts extends OutcomePorts {
   /** Pictures already there now, such as the slideshow's when adding to it; absent: none. */
   known?(): readonly PictureIdentity[];
 }
 
-interface Queued {
-  readonly source: PictureSource;
-  /** False for a duplicate the user takes in after all. */
-  readonly skipDuplicate: boolean;
-}
-
 const PICTURE_TYPE_PREFIX = "image/";
-const QUOTA_EXCEEDED = "QuotaExceededError";
 
 const EMPTY: PictureImportState = {
   total: 0,
@@ -53,11 +50,6 @@ const EMPTY: PictureImportState = {
   busy: false,
   failed: false,
 };
-
-type Outcome =
-  | { readonly kind: "stored"; readonly picture: StoredPicture }
-  | { readonly kind: "skipped"; readonly reason: SkipReason }
-  | { readonly kind: "storageFull" };
 
 /** The import stopped on an unexpected error, its `cause`; the state reports it as failed. */
 export class PictureImportFailedError extends Error {
@@ -218,56 +210,10 @@ export class PictureImport {
     }
   }
 
-  async #importOne({ source, skipDuplicate }: Queued): Promise<Outcome> {
-    let identity: PictureIdentity;
-    let read: ReadPicture;
-    try {
-      identity = await source.identify();
-      const duplicate = skipDuplicate ? this.#duplicateReason(identity) : null;
-      if (duplicate !== null) {
-        return { kind: "skipped", reason: duplicate };
-      }
-      read = await source.read();
-    } catch (error) {
-      if (error instanceof UnreadablePictureError) {
-        return { kind: "skipped", reason: "unreadable" };
-      }
-      if (error instanceof PictureNotDownloadedError) {
-        return { kind: "skipped", reason: "notDownloaded" };
-      }
-      throw error;
-    }
-    const { decoded, focus } = read;
-    const id = this.#ports.newId();
-    try {
-      await this.#ports.store.putPicture(id, {
-        display: decoded.display,
-        thumbnail: decoded.thumbnail,
-      });
-      if (focus !== null) {
-        await this.#ports.store.putPictureFocus(id, focus);
-      }
-    } catch (error) {
-      if (error instanceof DOMException && error.name === QUOTA_EXCEEDED) {
-        return { kind: "storageFull" };
-      }
-      throw error;
-    }
-    const { width, height } = decoded;
-    const { fileName, capturedAt, immichAssetId, fileBytes } = identity;
-    const origin = {
-      ...(immichAssetId === undefined ? {} : { immichAssetId }),
-      ...(fileBytes === undefined ? {} : { fileBytes }),
-    };
-    return { kind: "stored", picture: { id, capturedAt, width, height, fileName, ...origin } };
-  }
-
-  #duplicateReason(identity: PictureIdentity): DuplicateReason | null {
-    const matches = (picture: PictureIdentity) => isSamePicture(picture, identity);
-    if ((this.#ports.known?.() ?? []).some(matches)) {
-      return "alreadyIn";
-    }
-    return this.#state.pictures.some(matches) ? "chosenTwice" : null;
+  #importOne(entry: Queued): Promise<Outcome> {
+    return importOne(entry, this.#ports, (identity) =>
+      duplicateReason(identity, this.#ports.known?.() ?? [], this.#state.pictures),
+    );
   }
 
   #apply(source: PictureSource, outcome: Outcome): void {
