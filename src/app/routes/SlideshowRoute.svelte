@@ -295,7 +295,17 @@
   />
 {/if}
 {#if playing && stored !== null}
-  <PlayerLayer {store} {stored} {musicOutput} onClose={onBack} {onError} {log} />
+  <PlayerLayer
+    {store}
+    {stored}
+    {musicOutput}
+    onClose={onBack}
+    {onError}
+    {log}
+    {home}
+    missing={missingIds}
+    onPictureMissing={(id) => missingIds.add(id)}
+  />
 {/if}
 {#if confirmingCopy !== null && stored !== null}
   <ServerCopyConfirm

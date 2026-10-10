@@ -2,15 +2,22 @@
   import { onDestroy, onMount } from "svelte";
   import { composeSlideshow } from "../../compose";
   import type { LibraryStore, StoredSlideshow } from "../../library/stored-slideshow";
-  import type { MusicOutput, Slideshow } from "../../player";
+  import type { MusicOutput } from "../../player";
+  import type { PictureFocus } from "../../library/picture-focus";
   import { browserObjectUrls } from "../media/object-urls";
   import { NO_FOCUS_KNOWN } from "../focus/pictures-focus";
+  import type { PlayerFailure } from "../player/PlayerCard.svelte";
   import PlayerOverlay from "../player/PlayerOverlay.svelte";
+  import { slideBoundaries } from "../player/slide-boundaries";
   import { loadPlayerMusic } from "./route-loading";
+  import { pictureFailureFor, playedPictures } from "./server-playing";
+  import type { SlideshowHome } from "./slideshow-storage";
 
   /**
    * The player over its slideshow. Pictures are read by media id as the player buffers them;
-   * the music's object URL lives exactly as long as the layer.
+   * the music's object URL lives exactly as long as the layer. A server slideshow plays without
+   * the pictures Immich no longer has: one found missing while playing restarts the player
+   * without it, where its slide would have begun.
    */
   let {
     store,
@@ -19,6 +26,9 @@
     onClose,
     onError,
     log,
+    home,
+    missing,
+    onPictureMissing,
   }: {
     store: Pick<LibraryStore, "pictureBlob" | "musicBlob" | "pictureFocus">;
     stored: StoredSlideshow;
@@ -27,10 +37,55 @@
     onError: (error: unknown) => void;
     /** Logs a focus that could not be read: play goes on without it. */
     log: (error: unknown) => void;
+    home: SlideshowHome;
+    /** Pictures Immich answered 404 for, as the screen knows them when playing begins. */
+    missing: ReadonlySet<string>;
+    onPictureMissing: (pictureId: string) => void;
   } = $props();
 
-  let slideshow = $state.raw<Slideshow | null>(null);
+  interface Loaded {
+    readonly musicUrl: string | null;
+    readonly focus: ReadonlyMap<string, PictureFocus>;
+  }
+
+  let loaded = $state.raw<Loaded | null>(null);
+  let startAt = $state(0);
   let musicUrl: string | null = null;
+  /** The pictures known missing when playing began, and those skipped since. */
+  // svelte-ignore state_referenced_locally
+  let skipped = $state.raw<ReadonlySet<string>>(new Set(missing));
+  const played = $derived(playedPictures(stored, skipped));
+  const slideshow = $derived(
+    loaded === null
+      ? null
+      : composeSlideshow(
+          played,
+          {
+            picture: (id) => id,
+            music: () => {
+              const url = loaded?.musicUrl ?? null;
+              if (url === null) {
+                throw new Error(`slideshow "${stored.id}" has music but none was loaded`);
+              }
+              return url;
+            },
+          },
+          loaded.focus,
+        ),
+  );
+
+  function pictureFailure(cause: unknown): PlayerFailure | null {
+    const outcome = pictureFailureFor(home, cause);
+    if (outcome.kind === "stop") return outcome.failure;
+    const { pictureId } = outcome;
+    onPictureMissing(pictureId);
+    const index = played.pictures.findIndex(({ id }) => id === pictureId);
+    if (slideshow === null || index === -1 || played.pictures.length === 1) return "picture";
+    const boundaries = slideBoundaries(slideshow);
+    startAt = boundaries.starts[index] ?? boundaries.duration;
+    skipped = new Set([...skipped, pictureId]);
+    return null;
+  }
   const closed = new AbortController();
 
   onMount(() => {
@@ -47,19 +102,7 @@
         return;
       }
       musicUrl = music.url;
-      slideshow = composeSlideshow(
-        stored,
-        {
-          picture: (id) => id,
-          music: () => {
-            if (music.url === null) {
-              throw new Error(`slideshow "${stored.id}" has music but none was loaded`);
-            }
-            return music.url;
-          },
-        },
-        focus,
-      );
+      loaded = { musicUrl: music.url, focus };
     }, onError);
   });
   onDestroy(() => {
@@ -71,12 +114,16 @@
 </script>
 
 {#if slideshow !== null}
-  <PlayerOverlay
-    {slideshow}
-    musicTitle={stored.music?.fileName ?? null}
-    slideDates={stored.pictures.map((picture) => picture.capturedAt)}
-    openPicture={(id) => store.pictureBlob(id)}
-    {musicOutput}
-    {onClose}
-  />
+  {#key slideshow}
+    <PlayerOverlay
+      {slideshow}
+      musicTitle={stored.music?.fileName ?? null}
+      slideDates={played.pictures.map((picture) => picture.capturedAt)}
+      openPicture={(id) => store.pictureBlob(id)}
+      {musicOutput}
+      {startAt}
+      {pictureFailure}
+      {onClose}
+    />
+  {/key}
 {/if}
