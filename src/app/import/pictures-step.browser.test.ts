@@ -45,6 +45,7 @@ function failingSession(): ImportSession {
       throw new Error("no Immich in this test");
     },
     probeMusic: () => Promise.reject(new Error("no music in this test")),
+    createOnServer: () => Promise.reject(new Error("no server in this test")),
     newId: () => `id-${nextId++}`,
     now: () => new Date(0),
     onError: () => undefined,
@@ -59,6 +60,9 @@ describe("PicturesStep after a failed import", () => {
     const step = mountWithTranslator(PicturesStep, {
       session,
       loadThumbnail: () => Promise.resolve(new Blob()),
+      serverOn: false,
+      rememberedHome: "device",
+      onHomeChosen: () => undefined,
       onError: () => undefined,
       onLeave: () => undefined,
       onNext: () => undefined,
@@ -95,6 +99,9 @@ describe("PicturesStep and .glissando files", () => {
     const step = mountWithTranslator(PicturesStep, {
       session,
       loadThumbnail: () => Promise.resolve(new Blob()),
+      serverOn: false,
+      rememberedHome: "device",
+      onHomeChosen: () => undefined,
       onError: () => undefined,
       onLeave: () => undefined,
       onNext: () => undefined,

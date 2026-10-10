@@ -3,6 +3,7 @@
   import Icon from "../../components/Icon.svelte";
   import type { ExportMenuState } from "../../glissando-file/export-menu";
   import { getTranslator } from "../../i18n/context";
+  import type { SlideshowStorage, StorageAction } from "../view-models";
 
   /** The header's ⋯ button and its menu of the slideshow's rarer actions. */
   let {
@@ -10,13 +11,22 @@
     onExport,
     onOpened,
     onDelete,
+    storage = null,
+    pictureCount,
+    onStorageAction,
   }: {
     exportState: ExportMenuState;
     onExport: () => void;
     /** The menu opened: the export's size is due. */
     onOpened: () => void;
     onDelete: () => void;
+    /** Where the slideshow lives; null while the server library is off. */
+    storage?: SlideshowStorage | null;
+    pictureCount: number;
+    onStorageAction: (action: StorageAction) => void;
   } = $props();
+
+  const onServer = $derived(storage?.kind === "server");
 
   const PERCENT = 100;
   const { t, formatBytes } = getTranslator();
@@ -87,6 +97,33 @@
       onclick={() => void close()}
     ></button>
     <div class="menu" role="menu" tabindex="-1" use:focusFirstItem onkeydown={keydown}>
+      {#if storage?.kind === "server"}
+        <button
+          class="item two-line"
+          type="button"
+          role="menuitem"
+          onclick={() => choose(() => onStorageAction("keepCopy"))}
+        >
+          <Icon name="download" />
+          <span class="text">
+            {t("server.keepCopy")}
+            <small>{t("server.keepCopyHint", { count: pictureCount })}</small>
+          </span>
+        </button>
+      {:else if storage?.kind === "device"}
+        <button
+          class="item two-line"
+          type="button"
+          role="menuitem"
+          onclick={() => choose(() => onStorageAction("saveOnServer"))}
+        >
+          <Icon name="upload" />
+          <span class="text">
+            {t("server.saveOnServer")}
+            <small>{t("server.saveOnServerHint")}</small>
+          </span>
+        </button>
+      {/if}
       <button
         class="item two-line"
         type="button"
@@ -106,6 +143,8 @@
           <small>
             {#if exportState.kind === "other"}
               {t("glissandoFile.exportAfterRunning")}
+            {:else if onServer}
+              {t("server.exportHint")}
             {:else if exportState.kind === "idle" && exportState.sizeBytes !== null}
               {t("glissandoFile.exportSize", { size: formatBytes(exportState.sizeBytes) })}
             {:else}
@@ -115,8 +154,21 @@
         </span>
       </button>
       <hr />
-      <button class="item danger" type="button" role="menuitem" onclick={() => choose(onDelete)}>
-        <Icon name="trash" />{t("slideshow.delete")}
+      <button
+        class="item danger"
+        class:two-line={onServer}
+        type="button"
+        role="menuitem"
+        onclick={() => choose(onDelete)}
+      >
+        <Icon name="trash" />
+        {#if onServer}
+          <span class="text">
+            {t("slideshow.delete")}<small>{t("server.deleteHint")}</small>
+          </span>
+        {:else}
+          {t("slideshow.delete")}
+        {/if}
       </button>
     </div>
   {/if}

@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
+import type { ImmichPhoto } from "../../immich/immich-client";
 import { SlideshowNotFoundError, type StoredSlideshow } from "../../library/stored-slideshow";
 import { MemoryLibraryStore } from "../../library/testing/memory-store";
 import { picture, slideshow } from "../../library/testing/library-store-contract";
 import { fakeIntakePorts, INTAKE_NOW, pictureFile } from "../testing/picture-intake-ports";
-import { AddPicturesSession } from "./add-pictures-session";
+import { AddPicturesSession, serverAddingStore } from "./add-pictures-session";
 
 const SHOW: StoredSlideshow = slideshow({
   pictures: [
@@ -44,11 +45,91 @@ class UnreleasingStore extends LoggingStore {
   }
 }
 
-async function sessionFor(stored: StoredSlideshow = SHOW, store = new LoggingStore()) {
+async function sessionFor(
+  stored: StoredSlideshow = SHOW,
+  store = new LoggingStore(),
+  home: "device" | "server" = "device",
+) {
   await store.saveSlideshow(stored);
   const { ports, errors } = fakeIntakePorts(store);
-  return { session: new AddPicturesSession(stored, { ...ports, store }), store, errors };
+  return { session: new AddPicturesSession(stored, home, { ...ports, store }), store, errors };
 }
+
+const immichPhoto = (id: string, takenAt: string): ImmichPhoto => ({
+  id,
+  fileName: `${id}.jpg`,
+  takenAt,
+  size: { width: 4000, height: 3000 },
+});
+
+describe("AddPicturesSession, to a slideshow on the Glissando server", () => {
+  it("links Immich photos without downloading them", async () => {
+    const { session } = await sessionFor(SHOW, new LoggingStore(), "server");
+
+    session.addImmichPhotos([immichPhoto("asset-1", "2025-07-02T10:00:00Z")]);
+
+    expect(session.intake.pictures.state.pictures).toEqual([
+      expect.objectContaining({ id: "asset-1", immichAssetId: "asset-1" }),
+    ]);
+    expect(session.intake.pictures.state.busy).toBe(false);
+  });
+
+  it("refuses device pictures", async () => {
+    const { session } = await sessionFor(SHOW, new LoggingStore(), "server");
+
+    expect(() => session.addPictures([pictureFile("a.jpg", "2025-07-02T10:00:00Z")])).toThrow(
+      /server slideshow/,
+    );
+  });
+
+  it("stores the linked photos into the slideshow by capture date", async () => {
+    const { session, store } = await sessionFor(SHOW, new LoggingStore(), "server");
+    session.addImmichPhotos([immichPhoto("asset-1", "2025-07-02T10:00:00Z")]);
+
+    await session.commit();
+
+    expect((await store.getSlideshow(SHOW.id)).pictures.map(({ id }) => id)).toEqual([
+      "old-1",
+      "asset-1",
+      "old-2",
+    ]);
+  });
+});
+
+describe("the store adding to a server slideshow", () => {
+  it("edits the slideshow on the server", async () => {
+    const server = new MemoryLibraryStore();
+    await server.saveSlideshow(SHOW);
+
+    await serverAddingStore(server).updateSlideshowWith(SHOW.id, (current) => ({
+      ...current,
+      title: "Renamed",
+    }));
+
+    expect((await server.getSlideshow(SHOW.id)).title).toBe("Renamed");
+  });
+
+  it("writes no picture, as a server slideshow links its photos", async () => {
+    const adding = serverAddingStore(new MemoryLibraryStore());
+
+    await expect(adding.claimMedia("claim", INTAKE_NOW, "media")).resolves.toBeUndefined();
+    await expect(
+      adding.putPicture("media", { display: new Blob(), thumbnail: new Blob() }),
+    ).rejects.toThrow(/links/);
+  });
+});
+
+describe("AddPicturesSession, to a slideshow on this device", () => {
+  it("downloads Immich photos into the device", async () => {
+    const { session } = await sessionFor();
+
+    session.addImmichPhotos([immichPhoto("asset-1", "2025-07-02T10:00:00Z")]);
+    await session.intake.pictures.settled();
+
+    expect(session.intake.pictures.state.pictures).toHaveLength(1);
+    expect(session.intake.pictures.state.pictures[0]?.id).not.toBe("asset-1");
+  });
+});
 
 describe("AddPicturesSession", () => {
   it("stores the new pictures into the slideshow by capture date and returns their ids", async () => {

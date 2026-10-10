@@ -46,6 +46,7 @@ function editorOver(store: MemoryLibraryStore, toaster: Toaster): SlideshowEdito
       throw error;
     },
     onGone: () => {},
+    onRefused: () => {},
     removedText: () => "Bild entfernt",
     addedText: () => "Bilder hinzugefügt",
     undoLabel: () => "Rückgängig",

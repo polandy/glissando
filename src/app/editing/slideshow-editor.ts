@@ -1,7 +1,6 @@
 import { pictureKenBurns } from "../../compose";
 import type { OwnKenBurns } from "../../library/own-ken-burns";
 import type { MusicTrim } from "../../library/own-music";
-import type { PictureFocus } from "../../library/picture-focus";
 import type { SlideshowTransition, TransitionChoice } from "../../library/own-timing";
 import {
   movePicture,
@@ -17,41 +16,11 @@ import {
   setPictureTransition,
   setSlideshowTransition,
 } from "../../library/slideshow-edits";
-import type { LibraryStore, StoredSlideshow } from "../../library/stored-slideshow";
-import type { Toaster } from "../toast/toaster";
+import type { StoredSlideshow } from "../../library/stored-slideshow";
 import { EditSaver } from "./edit-saver";
 import { EditorUndos } from "./editor-undos";
 import type { ResettableSetting } from "./reset-undo";
-
-export interface SlideshowEditorPorts {
-  readonly store: Pick<LibraryStore, "updateSlideshow" | "claimMedia" | "releaseClaim">;
-  /** The picture's focus as known now; the automatic motion aims at it. */
-  readonly focusOf: (pictureId: string) => PictureFocus | undefined;
-  readonly toaster: Pick<Toaster, "current" | "show" | "dismiss">;
-  /** A new id for the claim that spares removed pictures' media while they can be undone. */
-  readonly newId: () => string;
-  readonly now: () => Date;
-  readonly onError: (error: unknown) => void;
-  /** The slideshow was deleted meanwhile, e.g. in another tab; edits are no longer stored. */
-  readonly onGone: () => void;
-  /** The undo toast's text for `count` pictures removed. */
-  readonly removedText: (count: number) => string;
-  /** The undo toast's text for `count` pictures added. */
-  readonly addedText: (count: number) => string;
-  readonly undoLabel: () => string;
-  /** Why the last picture stays, and how to discard the whole slideshow instead. */
-  readonly lastPictureText: () => string;
-  /** The undo toast's text after a picture's own motion was dropped. */
-  readonly motionAutomaticText: () => string;
-  /** The undo toast's text after a picture's own duration was dropped. */
-  readonly durationAutomaticText: () => string;
-  /** The undo toast's text after a picture's own transition was dropped. */
-  readonly transitionAutomaticText: () => string;
-  /** The undo toast's text after the slideshow's default transition went back to crossfade. */
-  readonly slideshowTransitionResetText: () => string;
-  /** The title from the capture dates, which an emptied title falls back to. */
-  readonly automaticTitle: (slideshow: StoredSlideshow) => string;
-}
+import type { SlideshowEditorPorts } from "./slideshow-editor-ports";
 
 /**
  * The slideshow screen's edits: each applies at once and is stored. Removing needs no
@@ -70,9 +39,14 @@ export class SlideshowEditor {
   constructor(initial: StoredSlideshow, ports: SlideshowEditorPorts) {
     this.#slideshow = initial;
     this.#ports = ports;
-    this.#saver = new EditSaver({
+    this.#saver = new EditSaver(initial, {
       store: ports.store,
       onError: ports.onError,
+      onRefused: (shown, reason) => {
+        this.#undos.removal.end();
+        this.#show(shown);
+        ports.onRefused(reason);
+      },
       onGone: () => {
         this.#undos.removal.end();
         ports.onGone();
@@ -282,8 +256,12 @@ export class SlideshowEditor {
     if (this.#saver.gone) {
       return;
     }
-    this.#slideshow = slideshow;
     this.#saver.save(slideshow);
+    this.#show(slideshow);
+  }
+
+  #show(slideshow: StoredSlideshow): void {
+    this.#slideshow = slideshow;
     for (const listener of this.#listeners) {
       listener(slideshow);
     }

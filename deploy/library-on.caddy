@@ -1,0 +1,5 @@
+# GLISSANDO_DATA_DIR set: the library service on loopback answers /api/library (ADR-0018).
+@library path /api/library /api/library/*
+handle @library {
+	reverse_proxy 127.0.0.1:{$GLISSANDO_LIBRARY_PORT}
+}

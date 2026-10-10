@@ -1,6 +1,7 @@
 # ADR-0013: Immich comes through the self-hosted Glissando; picked photos are stored locally
 
-**Status:** accepted
+**Status:** accepted; slideshows on the Glissando server that link Immich photos instead of
+storing them, and the server logic they need: ADR-0018
 
 ## Context
 

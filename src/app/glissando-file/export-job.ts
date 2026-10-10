@@ -13,6 +13,8 @@ export interface ExportProgress {
   readonly title: string;
   /** From 0 to 1. */
   readonly fraction: number;
+  /** A server slideshow being copied to this device rather than exported. */
+  readonly copying?: true;
 }
 
 export interface ExportJobPorts {
@@ -61,20 +63,21 @@ export class ExportJob {
   }
 
   /** Never rejects; a start while an export runs does nothing. */
-  start(slideshowId: string): Promise<void> {
+  /** Exports from `store` where given (a server slideshow's), else from the job's own. */
+  start(slideshowId: string, store: ExportJobPorts["store"] = this.#ports.store): Promise<void> {
     if (!this.#busy) {
       this.#busy = true;
-      this.#settled = this.#run(slideshowId).finally(() => (this.#busy = false));
+      this.#settled = this.#run(slideshowId, store).finally(() => (this.#busy = false));
     }
     return this.#settled;
   }
 
-  async #run(slideshowId: string): Promise<void> {
+  async #run(slideshowId: string, store: ExportJobPorts["store"]): Promise<void> {
     const ports = this.#ports;
     try {
-      const slideshow = await ports.store.getSlideshow(slideshowId);
+      const slideshow = await store.getSlideshow(slideshowId);
       this.#publish({ slideshowId, title: slideshow.title, fraction: 0 });
-      const file = await exportSlideshow(slideshow, ports.store, {
+      const file = await exportSlideshow(slideshow, store, {
         modifiedAt: ports.now(),
         onProgress: (fraction) => this.#publish({ slideshowId, title: slideshow.title, fraction }),
       });
@@ -92,7 +95,7 @@ export class ExportJob {
       ports.toaster.show({
         text: ports.failedText(),
         tone: "error",
-        action: { label: ports.tryAgainLabel(), run: () => void this.start(slideshowId) },
+        action: { label: ports.tryAgainLabel(), run: () => void this.start(slideshowId, store) },
       });
     }
   }

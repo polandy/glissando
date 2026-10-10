@@ -1,10 +1,6 @@
-<script module lang="ts">
-  /** Why the player stopped short: a picture could not be loaded, or playback failed. */
-  export type PlayerFailure = "picture" | "playback";
-</script>
-
 <script lang="ts">
   import Icon from "../components/Icon.svelte";
+  import type { PlayerFailure } from "./player-failure";
   import { getTranslator } from "../i18n/context";
 
   /**
@@ -24,12 +20,17 @@
   } = $props();
 
   const { t } = getTranslator();
+  const FAILURE_TEXT = {
+    picture: "player.pictureError",
+    immich: "server.immichNotAnswering",
+    playback: "player.playbackError",
+  } as const satisfies Record<PlayerFailure, string>;
 </script>
 
 {#if failure !== null}
   <div class="card-layer" role="alert">
     <div class="box">
-      <p>{failure === "picture" ? t("player.pictureError") : t("player.playbackError")}</p>
+      <p>{t(FAILURE_TEXT[failure])}</p>
       <button class="pill" type="button" onclick={onClose}>{t("common.close")}</button>
     </div>
   </div>

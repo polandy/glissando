@@ -22,7 +22,7 @@
     onOpen,
     onError,
   }: {
-    store: LibraryStore;
+    store: Pick<LibraryStore, "pictureBlob">;
     stored: StoredSlideshow;
     /** The pictures' focus, updated as the background pass finds it. */
     focus: PicturesFocus;

@@ -14,7 +14,8 @@
   import Icon from "../components/Icon.svelte";
   import { browserScheduler, type Scheduler } from "../../ui-kit/scheduler";
   import PlayerCaption from "./PlayerCaption.svelte";
-  import PlayerCard, { type PlayerFailure } from "./PlayerCard.svelte";
+  import PlayerCard from "./PlayerCard.svelte";
+  import type { PlayerFailure } from "./player-failure";
   import { ControlsVisibility } from "../../ui-kit/controls-visibility";
   import {
     canFullscreen,
@@ -37,6 +38,8 @@
     slideDates = [],
     openPicture,
     musicOutput,
+    startAt = 0,
+    pictureFailure = () => "picture",
     onClose,
     scheduler = browserScheduler,
   }: {
@@ -49,6 +52,10 @@
     openPicture?: OpenPicture;
     /** Where the music sounds; without it, at the audio element's own volume. */
     musicOutput?: MusicOutput;
+    /** Where on the time line playing starts, in seconds. */
+    startAt?: number;
+    /** The card for a picture that failed to load with `cause`; null: the caller handles it. */
+    pictureFailure?: (cause: unknown) => PlayerFailure | null;
     onClose: () => void;
     scheduler?: Scheduler;
   } = $props();
@@ -65,7 +72,8 @@
   let bottomBar = $state<HTMLElement>();
   let bottomBarHeight = $state(0);
   let player = $state.raw<ReturnType<typeof createPlayer> | null>(null);
-  let currentTime = $state(0);
+  // svelte-ignore state_referenced_locally
+  let currentTime = $state(startAt);
   let paused = $state(true);
   let ended = $state(false);
   let failure = $state<PlayerFailure | null>(null);
@@ -92,6 +100,9 @@
       ...(musicOutput === undefined ? {} : { musicOutput }),
     });
     player = created;
+    if (startAt > 0) {
+      created.currentTime = startAt;
+    }
     const sync = () => {
       currentTime = created.currentTime;
       paused = created.paused;
@@ -121,7 +132,7 @@
       return null;
     }
     if (error instanceof SlideshowLoadError) {
-      return "picture";
+      return pictureFailure(error.cause);
     }
     console.error("the player failed", error);
     return "playback";

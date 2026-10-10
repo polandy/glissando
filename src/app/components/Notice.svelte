@@ -4,7 +4,8 @@
   import Icon from "./Icon.svelte";
 
   /**
-   * Lemon for a warning, coral for an error; it stays where its cause is (dev-docs/APP.md).
+   * Lemon for a warning, coral for an error, mint for what is done as asked; it stays where its
+   * cause is (dev-docs/APP.md).
    * `actions` are buttons below the text; `onDismiss` adds a ✕.
    */
   let {
@@ -13,7 +14,7 @@
     actions,
     onDismiss,
   }: {
-    tone: "warn" | "error";
+    tone: "warn" | "error" | "mint";
     children: Snippet;
     actions?: Snippet | undefined;
     onDismiss?: (() => void) | undefined;
@@ -63,6 +64,10 @@
   .error {
     border-color: color-mix(in srgb, var(--gl-coral) 55%, var(--gl-line));
     background: color-mix(in srgb, var(--gl-coral) 14%, var(--gl-surface));
+  }
+  .mint {
+    border-color: color-mix(in srgb, var(--gl-mint) 55%, var(--gl-line));
+    background: color-mix(in srgb, var(--gl-mint) 14%, var(--gl-surface));
   }
   .icon {
     flex: none;

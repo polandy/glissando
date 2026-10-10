@@ -1,9 +1,11 @@
 import type { FocusPass } from "../../library/focus-pass";
 import { SlideshowNotFoundError, type StoredSlideshow } from "../../library/stored-slideshow";
+import { refusedEditOf, type EditRefusal } from "../editing/edit-refusal";
 import type { Navigator } from "../navigation/navigator";
 import type { Route } from "../navigation/route";
+import type { SlideshowHome } from "../routes/slideshow-storage";
 import { leaveWithToast } from "../routes/slideshow-exits";
-import type { Toaster } from "../toast/toaster";
+import type { ToastMessage, Toaster } from "../toast/toaster";
 
 /** The slideshow screen and the layers and editors over it, where added pictures stay new. */
 const SLIDESHOW_SCREENS: ReadonlySet<Route["screen"]> = new Set([
@@ -24,7 +26,7 @@ interface AddingSession {
 }
 
 export interface AddPicturesFlowPorts<Session extends AddingSession> {
-  newSession(slideshow: StoredSlideshow): Session;
+  newSession(slideshow: StoredSlideshow, home: SlideshowHome): Session;
   /** Deletes media no slideshow uses and no claim in any tab spares; reports failures. */
   deleteAbandonedMedia(): void;
   readonly navigator: Pick<Navigator, "open" | "back">;
@@ -34,6 +36,8 @@ export interface AddPicturesFlowPorts<Session extends AddingSession> {
   reportError(error: unknown): void;
   /** The toast's text when the slideshow was deleted meanwhile. */
   goneText(): string;
+  /** The toast when a server slideshow refused the adding, as it refuses an edit. */
+  refusalToast(reason: EditRefusal): ToastMessage;
 }
 
 /** The pictures just added, which the slideshow screen marks as new while it is shown. */
@@ -85,10 +89,10 @@ export class AddPicturesFlow<Session extends AddingSession> {
   }
 
   /**
-   * Opens the add screen for `slideshow`; its session is kept and takes the record as stored now,
+   * Opens the add screen for `slideshow`, which lives at `home`; its session is kept and takes the record as stored now,
    * a selection for another slideshow is discarded.
    */
-  open(slideshow: StoredSlideshow): void {
+  open(slideshow: StoredSlideshow, home: SlideshowHome): void {
     const previous = this.#state.session;
     if (previous?.slideshowId === slideshow.id) {
       previous.refresh(slideshow);
@@ -96,7 +100,7 @@ export class AddPicturesFlow<Session extends AddingSession> {
       if (previous !== null) {
         this.#replaced = this.#discardAndCleanUp(previous);
       }
-      this.#publish({ session: this.#ports.newSession(slideshow) });
+      this.#publish({ session: this.#ports.newSession(slideshow, home) });
     }
     this.#ports.navigator.open({ screen: "add", slideshowId: slideshow.id });
   }
@@ -156,6 +160,13 @@ export class AddPicturesFlow<Session extends AddingSession> {
       pictureIds = await session.commit();
     } catch (error) {
       this.#publish({ committing: false });
+      const refused = refusedEditOf(error);
+      if (refused !== null) {
+        // The selection stays, so "Add" stores it at the version now shown.
+        if (refused.reason === "changed") session.refresh(refused.current);
+        this.#ports.toaster.show(this.#ports.refusalToast(refused.reason));
+        return;
+      }
       if (!(error instanceof SlideshowNotFoundError)) {
         this.#ports.reportError(error);
         return;

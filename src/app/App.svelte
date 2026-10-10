@@ -1,19 +1,14 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import {
-    installOffer,
-    statusBarView,
-    type InstallOffer,
-    type PwaState,
-    type StatusBarAction,
-  } from "../pwa/status-bar-view";
+  import { installOffer, statusBarView, type PwaState } from "../pwa/status-bar-view";
   import type { ImmichAvailabilityState } from "../immich/immich-availability";
+  import { createAppActions } from "./app-actions";
   import type { AddedPictures } from "./add-pictures/add-pictures-flow";
   import type { AddPicturesSession } from "./add-pictures/add-pictures-session";
   import { createAppFlows } from "./app-flows";
+  import { subscribeAppState } from "./app-subscriptions";
   import type { ExportProgress } from "./glissando-file/export-job";
   import { setExportStatus } from "./glissando-file/export-status";
-  import { openLaunchedFiles } from "./glissando-file/launched-files";
   import type { OpenFlowState, OpenOrigin } from "./glissando-file/open-flow";
   import OpeningOverlay from "./glissando-file/OpeningOverlay.svelte";
   import Toast from "./components/Toast.svelte";
@@ -26,12 +21,16 @@
   import IntakeRoutes from "./routes/IntakeRoutes.svelte";
   import SlideshowRoute from "./routes/SlideshowRoute.svelte";
   import { leaveWithToast } from "./routes/slideshow-exits";
+  import { findSlideshowHome, serverRouteStore, type RouteStore } from "./routes/slideshow-home";
+  import type { SlideshowHome } from "./routes/slideshow-storage";
   import StartRoute from "./routes/StartRoute.svelte";
   import type { AppServices } from "./services";
   import type { SettingsState } from "./settings/app-settings";
   import SettingsSheet from "./settings/SettingsSheet.svelte";
   import PersistRefusedDialog from "./storage/PersistRefusedDialog.svelte";
   import type { ToastMessage } from "./toast/toaster";
+  import { ServerCopyFlows } from "./server-library/server-copy-flows";
+  import type { ServerLibraryState } from "../server-library/server-library-availability";
 
   let { services, playStartAnimation }: { services: AppServices; playStartAnimation: boolean } =
     $props();
@@ -46,6 +45,34 @@
     services,
     translator,
   );
+
+  // svelte-ignore state_referenced_locally
+  const serverCopies = new ServerCopyFlows({
+    serverLibrary: services.serverLibrary,
+    deviceStore: store,
+    toaster,
+    open: (slideshowId) => navigator.open({ screen: "slideshow", slideshowId }),
+    reportError,
+    log: services.log,
+    translator,
+  });
+  // svelte-ignore state_referenced_locally
+  const serverRoute = serverRouteStore(services.serverLibrary.store);
+
+  /** A slideshow opened by id, with the store of where it lives. */
+  async function openedSlideshow(
+    slideshowId: string,
+  ): Promise<{ home: SlideshowHome; store: RouteStore }> {
+    try {
+      const home = await findSlideshowHome(slideshowId, store);
+      return { home, store: home === "device" ? store : serverRoute };
+    } catch (error) {
+      reportError(error);
+      throw error;
+    }
+  }
+  // svelte-ignore state_referenced_locally
+  let serverState = $state.raw<ServerLibraryState>(services.serverLibrary.availability.state);
 
   let route = $state.raw<Route>(navigator.route);
   let exportProgress = $state.raw<ExportProgress | null>(null);
@@ -68,92 +95,57 @@
   // svelte-ignore state_referenced_locally
   let logoPlays = $state(playStartAnimation);
 
-  onMount(() => {
-    const stopRoute = navigator.subscribe((next) => {
-      if (next.screen !== "start" && next.screen !== "settings") {
-        logoPlays = false;
-      }
-      if (next.screen === "import" || (next.screen === "immich" && next.slideshowId === null)) {
-        importFlow.ensureSession();
-      }
-      addFlow.follow(next);
-      if ((next.screen === "import" && next.step === "pictures") || next.screen === "add") {
-        immich.availability.check().catch(reportError);
-      }
-      // A refused file's notice belongs to the screen it was opened from.
-      if (next.screen !== route.screen) {
-        openFlow.dismissNotice();
-      }
-      route = next;
-    });
-    const stopToast = toaster.subscribe((next) => (toast = next));
-    const stopSettings = settings.subscribe((next) => (settingsState = next));
-    const stopExport = exportJob.subscribe((next) => (exportProgress = next));
-    const stopOpen = openFlow.subscribe((next) => (openState = next));
-    const stopAdd = addFlow.subscribe((next) => {
-      addSession = next.session;
-      added = next.added;
-    });
-    const stopImport = importFlow.subscribe((next) => {
-      importSession = next.session;
-      persistRefused = next.persistRefused;
-      if (next.persistRefused) {
-        pwa.storageRefusalTold();
-      }
-    });
-    const stopPwa = pwa.subscribe((next) => (pwaState = next));
-    const stopImmich = immich.availability.subscribe((next) => (immichState = next));
-    // A double-clicked file starts a new window (`launch_handler`), so it opens from the library.
-    openLaunchedFiles(services.launchQueue, {
-      open: (file) => openFlow.open(file, "library"),
-      reportError,
-    });
-    return () => {
-      stopRoute();
-      stopToast();
-      stopSettings();
-      stopImport();
-      stopAdd();
-      stopExport();
-      stopOpen();
-      stopPwa();
-      stopImmich();
-    };
-  });
+  onMount(() =>
+    subscribeAppState(
+      services,
+      { importFlow, addFlow, exportJob, openFlow },
+      {
+        setRoute: (next) => (route = next),
+        stopLogoPlaying: () => (logoPlays = false),
+        setToast: (next) => (toast = next),
+        setSettingsState: (next) => (settingsState = next),
+        setExportProgress: (next) => (exportProgress = next),
+        setOpenState: (next) => (openState = next),
+        setImportSession: (session, refused) => {
+          importSession = session;
+          persistRefused = refused;
+        },
+        setAddState: (session, pictures) => {
+          addSession = session;
+          added = pictures;
+        },
+        setPwaState: (next) => (pwaState = next),
+        setImmichState: (next) => (immichState = next),
+        setServerState: (next) => (serverState = next),
+      },
+      () => route,
+    ),
+  );
 
   function noticeFor(origin: OpenOrigin) {
     return openState.notice?.origin === origin ? openState.notice : null;
   }
 
-  function install(offer: InstallOffer): void {
-    if (offer.kind === "installPrompt") {
-      pwa.install().catch(reportError);
-    } else {
-      pwaSheet = { kind: "guide", guide: offer.guide };
-    }
+  // svelte-ignore state_referenced_locally
+  const { install, statusBarAction, createFailed, musicUnreadable } = createAppActions(
+    { pwa, toaster, reportError, appAddress: services.appAddress },
+    t,
+    (sheet) => (pwaSheet = sheet),
+  );
+
+  // svelte-ignore state_referenced_locally
+  const serverMemory = services.serverLibrary.memory;
+  let rememberedHome = $state<SlideshowHome>(serverMemory.newSlideshowHome());
+
+  function homeChosen(home: SlideshowHome): void {
+    rememberedHome = home;
+    serverMemory.rememberNewSlideshowHome(home);
   }
 
-  function statusBarAction(action: StatusBarAction): void {
-    switch (action.kind) {
-      case "none":
-        return;
-      case "reload":
-        pwa.reload();
-        return;
-      case "why":
-        pwaSheet = { kind: "why", address: services.appAddress };
-        return;
-      default:
-        install(action);
-    }
-  }
-
-  function musicUnreadable(retry: () => void): void {
-    toaster.show({
-      text: t("import.musicUnreadable"),
-      tone: "error",
-      action: { label: t("common.retry"), run: retry },
-    });
+  /** A server slideshow's pictures in the making are linked: their thumbnails are Immich's. */
+  function importThumbnail(pictureId: string): Promise<Blob> {
+    const home = importSession?.choices.current().home;
+    return (home === "server" ? serverRoute : store).thumbnailBlob(pictureId);
   }
 </script>
 
@@ -168,6 +160,7 @@
 {#if route.screen === "start" || route.screen === "settings"}
   <StartRoute
     {store}
+    serverLibrary={services.serverLibrary}
     focusPass={services.focusPass}
     playStartAnimation={logoPlays}
     onError={reportError}
@@ -195,9 +188,13 @@
   <ImportRoute
     step={route.step}
     session={importSession}
-    loadThumbnail={(id) => store.thumbnailBlob(id)}
+    loadThumbnail={importThumbnail}
     onError={reportError}
     onMusicUnreadable={musicUnreadable}
+    serverOn={serverState.kind === "on"}
+    {rememberedHome}
+    onHomeChosen={homeChosen}
+    onCreateFailed={createFailed}
     onToMusic={() => navigator.open({ screen: "import", step: "music" })}
     onBack={() => navigator.back()}
     onDiscard={(leave) => void importFlow.discard(leave)}
@@ -223,37 +220,43 @@
 {:else if route.screen === "slideshow" || route.screen === "player" || route.screen === "picture" || route.screen === "music"}
   {@const slideshowId = route.slideshowId}
   {#key slideshowId}
-    <SlideshowRoute
-      {store}
-      focusPass={services.focusPass}
-      {toaster}
-      {newId}
-      {now}
-      {slideshowId}
-      {exportProgress}
-      onExport={() => void exportJob.start(slideshowId)}
-      videoExport={services.videoExport}
-      htmlExport={services.htmlExport}
-      playing={route.screen === "player"}
-      editingPictureId={route.screen === "picture" ? route.pictureId : null}
-      editingMusic={route.screen === "music"}
-      musicAudio={services.musicAudio}
-      musicOutput={services.musicOutput}
-      onBack={() => navigator.back()}
-      onPlay={() => {
-        // Within the Play gesture: the player starts the music only after its pictures load.
-        services.musicOutput.unlock();
-        navigator.open({ screen: "player", slideshowId });
-      }}
-      onAddPictures={(slideshow) => addFlow.open(slideshow)}
-      addedPictureIds={added?.slideshowId === slideshowId ? added.pictureIds : []}
-      onEdit={(pictureId) => navigator.open({ screen: "picture", slideshowId, pictureId })}
-      onEditMusic={() => navigator.open({ screen: "music", slideshowId })}
-      onDeleted={() => leaveWithToast({ navigator, toaster }, t("slideshow.deleted"))}
-      onGone={() => leaveWithToast({ navigator, toaster }, t("slideshow.gone"))}
-      onError={reportError}
-      log={services.log}
-    />
+    {#await openedSlideshow(slideshowId) then opened}
+      <SlideshowRoute
+        store={opened.store}
+        focusPass={services.focusPass}
+        {toaster}
+        {newId}
+        {now}
+        {slideshowId}
+        {exportProgress}
+        onExport={() => void exportJob.start(slideshowId, opened.store)}
+        videoExport={services.videoExport}
+        htmlExport={services.htmlExport}
+        playing={route.screen === "player"}
+        editingPictureId={route.screen === "picture" ? route.pictureId : null}
+        editingMusic={route.screen === "music"}
+        musicAudio={services.musicAudio}
+        musicOutput={services.musicOutput}
+        onBack={() => navigator.back()}
+        onPlay={() => {
+          // Within the Play gesture: the player starts the music only after its pictures load.
+          services.musicOutput.unlock();
+          navigator.open({ screen: "player", slideshowId });
+        }}
+        onAddPictures={(slideshow) => addFlow.open(slideshow, opened.home)}
+        addedPictureIds={added?.slideshowId === slideshowId ? added.pictureIds : []}
+        onEdit={(pictureId) => navigator.open({ screen: "picture", slideshowId, pictureId })}
+        onEditMusic={() => navigator.open({ screen: "music", slideshowId })}
+        onDeleted={() => leaveWithToast({ navigator, toaster }, t("slideshow.deleted"))}
+        onGone={() => leaveWithToast({ navigator, toaster }, t("slideshow.gone"))}
+        onError={reportError}
+        log={services.log}
+        home={opened.home}
+        serverOn={serverState.kind === "on"}
+        onKeepCopy={(slideshow) => void serverCopies.keepCopy(slideshow)}
+        onSaveOnServer={(slideshow) => void serverCopies.saveOnServer(slideshow)}
+      />
+    {/await}
   {/key}
 {/if}
 

@@ -101,6 +101,18 @@ describe("answersRequest", () => {
       answers: false,
     },
     {
+      what: "a GET of the app's library discovery",
+      method: "GET",
+      url: `${ORIGIN}/app/api/library`,
+      answers: false,
+    },
+    {
+      what: "a GET through the app's library route",
+      method: "GET",
+      url: `${ORIGIN}/app/api/library/slideshows/1`,
+      answers: false,
+    },
+    {
       what: "a navigation to the app's Immich route itself",
       method: "GET",
       url: `${ORIGIN}/app/immich/`,

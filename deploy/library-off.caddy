@@ -1,0 +1,5 @@
+# No GLISSANDO_DATA_DIR: the app reads a 404 as "no slideshows on the server" (ADR-0018).
+@library path /api/library /api/library/*
+handle @library {
+	respond 404
+}

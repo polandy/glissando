@@ -6,7 +6,8 @@ import { mountWithTranslator } from "../testing/mount-with-translator";
 import { reactiveProps } from "../testing/reactive-props.svelte";
 import SlideshowScreen from "./SlideshowScreen.svelte";
 import type { ExportMenuState } from "../glissando-file/export-menu";
-import type { SlideshowDetails } from "./view-models";
+import type { SlideshowDetails, SlideshowStorage, StorageAction } from "./view-models";
+import { createTranslator } from "../i18n/translator";
 
 let destroy = () => {};
 
@@ -54,6 +55,8 @@ export function mountScreen(
     saving = false,
     reducedMotion = false,
     newPictureIds = new Set<string>(),
+    storage = null as SlideshowStorage | null,
+    english = false,
   } = {},
 ) {
   const clock = new FakeClock();
@@ -68,6 +71,7 @@ export function mountScreen(
     transitionResets: 0,
     deletes: 0,
     adds: 0,
+    storageActions: [] as StorageAction[],
   };
   // The transitions sheet's picks and resets come back as the parent would show them.
   const props = reactiveProps({
@@ -103,8 +107,14 @@ export function mountScreen(
     },
     mousePointer,
     saving,
+    storage,
+    onStorageAction: (action: StorageAction) => calls.storageActions.push(action),
   });
-  const mounted = mountWithTranslator(SlideshowScreen, props);
+  const mounted = mountWithTranslator(
+    SlideshowScreen,
+    props,
+    english ? { current: createTranslator("en") } : undefined,
+  );
   destroy = mounted.destroy;
   return { target: mounted.target, calls, clock, frames };
 }

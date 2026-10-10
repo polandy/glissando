@@ -24,6 +24,7 @@
     immich,
     onOpenImmich,
     sources,
+    linking = false,
   }: {
     intake: PictureIntake;
     loadThumbnail: (pictureId: string) => Promise<Blob>;
@@ -36,6 +37,11 @@
     onOpenImmich: () => void;
     /** The boxes below the drop zone. */
     sources: Snippet;
+    /**
+     * A server slideshow's pictures: linked from Immich, whose box comes first, none from the
+     * device (`dev-docs/SERVER_LIBRARY.md`, Where a new slideshow lives).
+     */
+    linking?: boolean;
   } = $props();
 
   const PICTURE_TYPES = "image/*";
@@ -82,7 +88,13 @@
 <input bind:this={pickFiles} type="file" accept={PICTURE_TYPES} multiple hidden onchange={picked} />
 <input bind:this={pickFolder} type="file" webkitdirectory hidden onchange={picked} />
 
-{#if phase === "empty"}
+{#if phase === "empty" && linking}
+  <div class="sources immich-first">{@render sources()}</div>
+  <div class="device-off" aria-disabled="true">
+    <b>{t("server.devicePictures")}</b>
+    <small>{t("server.deviceDisabled")}</small>
+  </div>
+{:else if phase === "empty"}
   <DropZone icon="image" onFiles={(files) => onFiles(files)} {onError}>
     <button class="btn primary" type="button" onclick={() => pickFiles.click()}>
       {t("import.pickPictures")}
@@ -122,7 +134,7 @@
     state={importState}
     {range}
     onCancel={onDiscard}
-    onAddMore={() => pickFiles.click()}
+    onAddMore={linking ? null : () => pickFiles.click()}
     onMoreFromImmich={immich.kind === "available" ? onOpenImmich : null}
   />
 {/if}
@@ -151,9 +163,11 @@
         <b>{t(DUPLICATE_LEADS[reason], { count: names.length })}</b>
         {t("import.skippedFiles", { files: names.join(FILE_NAME_SEPARATOR) })}
         {#snippet actions()}
-          <button class="btn small" type="button" onclick={() => intake.addDuplicates(reason)}>
-            {t("add.addAnyway")}
-          </button>
+          {#if !linking}
+            <button class="btn small" type="button" onclick={() => intake.addDuplicates(reason)}>
+              {t("add.addAnyway")}
+            </button>
+          {/if}
         {/snippet}
       </Notice>
     {/if}
@@ -176,7 +190,26 @@
   </ul>
 {/if}
 
+{#if linking && importState.pictures.length > 0}
+  <Notice tone="mint">{t("server.linked")}</Notice>
+{/if}
+
 <style>
+  .device-off {
+    display: grid;
+    justify-items: center;
+    gap: 6px;
+    padding: 28px 16px;
+    border: 1.5px dashed var(--gl-line);
+    border-radius: var(--gl-radius-large);
+    background: var(--gl-surface);
+    text-align: center;
+    opacity: 0.55;
+  }
+  .device-off small {
+    max-width: 44ch;
+    color: var(--gl-muted);
+  }
   .sources {
     display: grid;
     gap: 10px;

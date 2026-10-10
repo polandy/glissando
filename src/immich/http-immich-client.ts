@@ -107,6 +107,10 @@ export class HttpImmichClient implements ImmichClient {
         id: reader.string(asset, "id"),
         fileName: reader.string(asset, "originalFileName"),
         takenAt: reader.string(asset, "localDateTime"),
+        size: photoSize(
+          reader.optionalNumber(asset, "width"),
+          reader.optionalNumber(asset, "height"),
+        ),
       };
     });
     return { photos, nextPage: reader.optionalCountingString(assets, "nextPage") };
@@ -201,6 +205,11 @@ export class HttpImmichClient implements ImmichClient {
   #url(path: string): URL {
     return new URL(path, this.#baseUrl);
   }
+}
+
+function photoSize(width: number | null, height: number | null): ImmichPhoto["size"] {
+  // Immich answers 0 for a size it could not read.
+  return width === null || height === null || width <= 0 || height <= 0 ? null : { width, height };
 }
 
 function assetPath(photoId: string): string {

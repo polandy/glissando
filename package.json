@@ -10,7 +10,8 @@
     "dev": "vite --host",
     "build": "vite build",
     "test": "vitest run",
-    "verify": "scripts/verify.sh"
+    "verify": "scripts/verify.sh",
+    "build:server": "vite build --config server/vite.config.ts"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

@@ -4,7 +4,7 @@ import { createErrorReporter } from "./app/errors/error-reporter";
 import { translatorContext } from "./app/i18n/context";
 import { createTranslator } from "./app/i18n/translator";
 import { TranslatorState } from "./app/i18n/translator-state.svelte";
-import { AddPicturesSession } from "./app/add-pictures/add-pictures-session";
+import { AddPicturesSession, serverAddingStore } from "./app/add-pictures/add-pictures-session";
 import { ImportSession } from "./app/import/import-session";
 import { createWindowHistory, Navigator } from "./app/navigation/navigator";
 import { randomId } from "./app/random-id";
@@ -28,8 +28,9 @@ import { decodePicture } from "./import/downscale";
 import { captureDate } from "./import/exif-capture-date";
 import { immichPictureSource } from "./import/immich-picture-source";
 import { HttpImmichClient } from "./immich/http-immich-client";
-import type { ImmichPhoto } from "./immich/immich-client";
+import type { ImmichPhoto, ImmichUnavailableKind } from "./immich/immich-client";
 import type { StoredSlideshow } from "./library/stored-slideshow";
+import type { SlideshowHome } from "./app/routes/slideshow-storage";
 import { browserNetworkStatus, ImmichAvailability } from "./immich/immich-availability";
 import { probeMusic } from "./import/music-probe";
 import { createMusicAudioContext, MusicOutput } from "./player";
@@ -40,6 +41,9 @@ import { requestPersistentStorage } from "./library/persistent-storage";
 import { browserPwaPorts } from "./pwa/browser-pwa";
 import { createStorageHintDismissalStore, PwaStatus } from "./pwa/pwa-status";
 import { sweepPrivateExports } from "./video-export";
+import { HttpServerLibraryClient } from "./server-library/http-server-library-client";
+import { createServerLibrary } from "./server-library/server-library";
+import { createStorageServerLibraryMemory } from "./server-library/server-library-memory";
 import { browserHtmlExportDevice } from "./app/html-export/browser-html-export-device";
 import { browserVideoExportDevice } from "./app/video-export/browser-video-export-device";
 
@@ -129,17 +133,34 @@ const download = createDownloader({
   scheduler: browserScheduler,
 });
 
+/** How Immich's pictures are read, for an intake, a server slideshow and a copy of one. */
+const immichReaders = {
+  client: immichClient,
+  decode: decodePicture,
+  reportUnavailable: (kind: ImmichUnavailableKind) => immichAvailability.report(kind),
+  log: logError,
+};
+
+// Same origin: the self-hosted Glissando routes ./api/library to its library service (ADR-0018).
+const serverLibrary = createServerLibrary({
+  client: new HttpServerLibraryClient({
+    appUrl: new URL("./", window.location.href),
+    fetch: window.fetch.bind(window),
+  }),
+  immichAvailability,
+  memory: createStorageServerLibraryMemory(window.localStorage, logError),
+  immich: immichReaders,
+  deviceStore: store,
+  newId,
+  now,
+  log: logError,
+});
+
 /** What every picture intake reads with, for a new slideshow and for adding to one. */
 const intakePorts = {
   decode: decodePicture,
   captureDate,
-  immichSource: (photo: ImmichPhoto) =>
-    immichPictureSource(photo, {
-      client: immichClient,
-      decode: decodePicture,
-      reportUnavailable: (kind) => immichAvailability.report(kind),
-      log: logError,
-    }),
+  immichSource: (photo: ImmichPhoto) => immichPictureSource(photo, immichReaders),
   newId,
   now,
   onError: reportError,
@@ -163,9 +184,20 @@ const services = {
   musicAudio: browserMusicEditorAudio(musicOutput),
   focusPass,
   immich: { client: immichClient, availability: immichAvailability },
-  newImportSession: () => new ImportSession({ ...intakePorts, store, probeMusic }),
-  newAddPicturesSession: (slideshow: StoredSlideshow) =>
-    new AddPicturesSession(slideshow, { ...intakePorts, store }),
+  serverLibrary,
+  newImportSession: () =>
+    new ImportSession({
+      ...intakePorts,
+      store,
+      probeMusic,
+      createOnServer: (slideshow, musicAudio) =>
+        serverLibrary.createSlideshow(slideshow, musicAudio),
+    }),
+  newAddPicturesSession: (slideshow: StoredSlideshow, home: SlideshowHome) =>
+    new AddPicturesSession(slideshow, home, {
+      ...intakePorts,
+      store: home === "device" ? store : serverAddingStore(serverLibrary.store),
+    }),
   newId,
   now,
   deleteAbandonedMedia,

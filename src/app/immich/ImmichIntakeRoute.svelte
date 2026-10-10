@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { ImmichAlbum } from "../../immich/immich-client";
+  import type { ImmichAlbum, ImmichPhoto } from "../../immich/immich-client";
   import type { PictureIntake } from "../import/picture-intake";
   import type { ImmichBrowser } from "./immich-browser";
   import { alreadyInAmong } from "./immich-view";
@@ -7,7 +7,8 @@
 
   /**
    * The Immich browser feeding a picture intake: what the intake already has (the slideshow's
-   * pictures, those taken in) shows as already in; Add hands the picks to the intake.
+   * pictures, those taken in) shows as already in; Add hands the picks to `addPhotos`, which
+   * downloads or links them into the intake.
    */
   let {
     intake,
@@ -17,6 +18,7 @@
     thumbnailUrl,
     onBack,
     onOpenAlbum,
+    addPhotos,
     onAdded,
     onError,
     onReload,
@@ -28,6 +30,7 @@
     thumbnailUrl: (photoId: string) => string;
     onBack: () => void;
     onOpenAlbum: (album: ImmichAlbum) => void;
+    addPhotos: (photos: readonly ImmichPhoto[]) => void;
     /** The picks went to the intake: back to its screen. */
     onAdded: () => void;
     onError: (error: unknown) => void;
@@ -51,7 +54,7 @@
   {onBack}
   {onOpenAlbum}
   onAdd={(photos) => {
-    intake.addImmichPhotos(photos);
+    addPhotos(photos);
     onAdded();
   }}
   {onError}

@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { SlideshowNotFoundError, type StoredSlideshow } from "../../library/stored-slideshow";
 import { slideshow } from "../../library/testing/library-store-contract";
+import { ServerLibraryUnavailableError } from "../../server-library/server-library-client";
+import { SlideshowChangedError } from "../../server-library/server-slideshow-store";
+import { refusalToast } from "../editing/edit-refusal";
+import { createTranslator } from "../i18n/translator";
 import type { Route } from "../navigation/route";
+import type { SlideshowHome } from "../routes/slideshow-storage";
 import type { ToastMessage } from "../toast/toaster";
 import { AddPicturesFlow, type AddPicturesFlowState } from "./add-pictures-flow";
 
@@ -22,14 +27,16 @@ class Deferred<T> {
 /** A session whose discard and commit settle only when the test says so. */
 class FakeSession {
   readonly slideshowId: string;
+  readonly home: SlideshowHome;
   /** The records `refresh` was handed, by title. */
   readonly refreshedWith: string[] = [];
   discardCalls = 0;
   readonly #discard = new Deferred<void>();
   readonly #commit = new Deferred<readonly string[]>();
 
-  constructor(slideshowId: string) {
+  constructor(slideshowId: string, home: SlideshowHome) {
     this.slideshowId = slideshowId;
+    this.home = home;
   }
 
   refresh(slideshow: StoredSlideshow): void {
@@ -69,8 +76,8 @@ function setUp() {
   const errors: unknown[] = [];
   const sessions: FakeSession[] = [];
   const flow = new AddPicturesFlow<FakeSession>({
-    newSession: (opening) => {
-      const session = new FakeSession(opening.id);
+    newSession: (opening, home) => {
+      const session = new FakeSession(opening.id, home);
       sessions.push(session);
       return session;
     },
@@ -83,6 +90,7 @@ function setUp() {
     focusPass: { start: () => log.push("look for focus") },
     reportError: (error) => errors.push(error),
     goneText: () => GONE_TEXT,
+    refusalToast: (reason) => refusalToast(reason, createTranslator("en")),
   });
   const states: AddPicturesFlowState<FakeSession>[] = [];
   flow.subscribe((state) => states.push(state));
@@ -91,7 +99,7 @@ function setUp() {
 
 async function committing(ids: readonly string[]) {
   const setup = setUp();
-  setup.flow.open(SHOW_1);
+  setup.flow.open(SHOW_1, "device");
   const commit = setup.flow.commit();
   setup.sessions[0]?.committed(ids);
   await commit;
@@ -102,8 +110,8 @@ describe("AddPicturesFlow", () => {
   it("opens the add screen with one session per slideshow, kept across visits", () => {
     const { flow, sessions, opened } = setUp();
 
-    flow.open(SHOW_1);
-    flow.open(SHOW_1);
+    flow.open(SHOW_1, "device");
+    flow.open(SHOW_1, "device");
 
     expect(sessions).toHaveLength(1);
     expect(flow.session).toBe(sessions[0]);
@@ -113,11 +121,19 @@ describe("AddPicturesFlow", () => {
     ]);
   });
 
+  it("opens the session for where the slideshow lives", () => {
+    const { flow, sessions } = setUp();
+
+    flow.open(SHOW_1, "server");
+
+    expect(sessions.map(({ home }) => home)).toEqual(["server"]);
+  });
+
   it("reopening the same slideshow hands its session the record as stored now", () => {
     const { flow, sessions } = setUp();
-    flow.open(SHOW_1);
+    flow.open(SHOW_1, "device");
 
-    flow.open({ ...SHOW_1, title: "Renamed" });
+    flow.open({ ...SHOW_1, title: "Renamed" }, "device");
 
     expect(sessions).toHaveLength(1);
     expect(sessions[0]?.refreshedWith).toEqual(["Renamed"]);
@@ -125,7 +141,7 @@ describe("AddPicturesFlow", () => {
 
   it("ignores a discard while the pictures are being added, and navigates once", async () => {
     const { flow, sessions, log, opened } = setUp();
-    flow.open(SHOW_1);
+    flow.open(SHOW_1, "device");
     const commit = flow.commit();
     expect(flow.committing).toBe(true);
 
@@ -145,9 +161,9 @@ describe("AddPicturesFlow", () => {
 
   it("discards the selection for another slideshow when adding to a new one, then cleans up", async () => {
     const { flow, sessions, log } = setUp();
-    flow.open(SHOW_1);
+    flow.open(SHOW_1, "device");
 
-    flow.open(SHOW_2);
+    flow.open(SHOW_2, "device");
     expect(flow.session?.slideshowId).toBe("s2");
     expect(log).toEqual([]);
     sessions[0]?.discarded();
@@ -158,7 +174,7 @@ describe("AddPicturesFlow", () => {
 
   it("discarding leaves for the slideshow and deletes the media once the store spares it", async () => {
     const { flow, log, sessions } = setUp();
-    flow.open(SHOW_1);
+    flow.open(SHOW_1, "device");
 
     const discarding = flow.discard(true);
     expect(flow.session).toBeNull();
@@ -171,7 +187,7 @@ describe("AddPicturesFlow", () => {
 
   it("reports a failed discard instead of cleaning up", async () => {
     const { flow, log, sessions, errors } = setUp();
-    flow.open(SHOW_1);
+    flow.open(SHOW_1, "device");
     const failure = new Error("release failed");
 
     const discarding = flow.discard(false);
@@ -204,7 +220,7 @@ describe("AddPicturesFlow", () => {
 
   it("a slideshow deleted meanwhile leaves with a toast and discards the new media", async () => {
     const { flow, sessions, log, toasts, errors } = setUp();
-    flow.open(SHOW_1);
+    flow.open(SHOW_1, "device");
 
     const commit = flow.commit();
     sessions[0]?.failCommit(new SlideshowNotFoundError("s1"));
@@ -220,7 +236,7 @@ describe("AddPicturesFlow", () => {
 
   it("reports any other failure to add and keeps the selection", async () => {
     const { flow, sessions, errors } = setUp();
-    flow.open(SHOW_1);
+    flow.open(SHOW_1, "device");
     const failure = new Error("store failed");
 
     const commit = flow.commit();
@@ -231,9 +247,44 @@ describe("AddPicturesFlow", () => {
     expect(flow.session).toBe(sessions[0]);
   });
 
+  it("a stale revision adds nothing, shows the current version and says it changed elsewhere", async () => {
+    const { flow, sessions, toasts, errors, opened } = setUp();
+    flow.open(SHOW_1, "server");
+
+    const commit = flow.commit();
+    sessions[0]?.failCommit(new SlideshowChangedError({ ...SHOW_1, title: "Renamed elsewhere" }));
+    await commit;
+
+    expect(flow.session).toBe(sessions[0]);
+    expect(sessions[0]?.refreshedWith).toEqual(["Renamed elsewhere"]);
+    expect(toasts).toEqual([
+      { text: "Changed on another device. Showing the latest version.", tone: "info" },
+    ]);
+    expect(flow.committing).toBe(false);
+    expect(opened).toEqual([{ screen: "add", slideshowId: "s1" }]);
+    expect(errors).toEqual([]);
+  });
+
+  it("a server out of reach adds nothing, keeps the selection and says it couldn't save", async () => {
+    const { flow, sessions, toasts, errors } = setUp();
+    flow.open(SHOW_1, "server");
+
+    const commit = flow.commit();
+    sessions[0]?.failCommit(new ServerLibraryUnavailableError("PUT /api/library/slideshows/s1"));
+    await commit;
+
+    expect(flow.session).toBe(sessions[0]);
+    expect(sessions[0]?.refreshedWith).toEqual([]);
+    expect(toasts).toEqual([
+      { text: "Couldn't save. Your Glissando server isn't answering.", tone: "error" },
+    ]);
+    expect(flow.committing).toBe(false);
+    expect(errors).toEqual([]);
+  });
+
   it("leaves a restored add screen or Immich browser whose selection is gone", () => {
     const { flow, log } = setUp();
-    flow.open(SHOW_1);
+    flow.open(SHOW_1, "device");
 
     flow.follow({ screen: "add", slideshowId: "s1" });
     flow.follow({ screen: "immich", albumId: null, slideshowId: null });

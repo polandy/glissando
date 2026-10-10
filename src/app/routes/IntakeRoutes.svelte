@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { ImmichAvailabilityState } from "../../immich/immich-availability";
+  import type { ImmichPhoto } from "../../immich/immich-client";
   import type { AddPicturesFlow } from "../add-pictures/add-pictures-flow";
   import type { AddPicturesSession } from "../add-pictures/add-pictures-session";
   import AddPicturesRoute from "../add-pictures/AddPicturesRoute.svelte";
@@ -28,13 +29,16 @@
     addSession: AddPicturesSession | null;
     addFlow: AddPicturesFlow<AddPicturesSession>;
     immichBrowsers: ImmichBrowsers;
-    services: Pick<AppServices, "store" | "navigator" | "immich" | "reportError" | "reload">;
+    services: Pick<
+      AppServices,
+      "store" | "serverLibrary" | "navigator" | "immich" | "reportError" | "reload"
+    >;
     immichState: ImmichAvailabilityState;
   } = $props();
 
   const { t } = getTranslator();
   // svelte-ignore state_referenced_locally
-  const { store, navigator, immich, reportError, reload } = services;
+  const { store, serverLibrary, navigator, immich, reportError, reload } = services;
 
   const adding = $derived(
     route.slideshowId !== null && addSession?.slideshowId === route.slideshowId ? addSession : null,
@@ -44,9 +48,14 @@
     route.slideshowId === null
       ? importSession && {
           intake: importSession.intake,
+          addPhotos: (photos: readonly ImmichPhoto[]) => importSession.addImmichPhotos(photos),
           crumbs: [t("import.crumb"), t("import.crumbPictures")],
         }
-      : adding && { intake: adding.intake, crumbs: [adding.slideshow.title, t("add.title")] },
+      : adding && {
+          intake: adding.intake,
+          addPhotos: (photos: readonly ImmichPhoto[]) => adding.addImmichPhotos(photos),
+          crumbs: [adding.slideshow.title, t("add.title")],
+        },
   );
 </script>
 
@@ -54,7 +63,8 @@
   {@const slideshowId = route.slideshowId}
   <AddPicturesRoute
     session={adding}
-    loadThumbnail={(id) => store.thumbnailBlob(id)}
+    loadThumbnail={(id) =>
+      (adding.home === "server" ? serverLibrary.store : store).thumbnailBlob(id)}
     onError={reportError}
     onDiscard={(leave) => void addFlow.discard(leave)}
     onCommit={() => addFlow.commit()}
@@ -67,6 +77,7 @@
   {#key feed.intake}
     <ImmichIntakeRoute
       intake={feed.intake}
+      addPhotos={feed.addPhotos}
       browser={immichBrowsers.for(feed.intake)}
       parentCrumbs={feed.crumbs}
       {albumId}

@@ -76,6 +76,10 @@ function mountRoute(store: MemoryLibraryStore, focusPass: FocusPass, editingPict
     onGone: () => {},
     onError: (error: unknown) => errors.push(error),
     log: (error: unknown) => errors.push(error),
+    home: "device" as const,
+    serverOn: false,
+    onKeepCopy: () => {},
+    onSaveOnServer: () => {},
   });
   const mounted = mountWithTranslator(SlideshowRoute, props);
   destroy = mounted.destroy;

@@ -1,5 +1,6 @@
 import type { AddPicturesSession } from "./add-pictures/add-pictures-session";
 import { AddPicturesFlow } from "./add-pictures/add-pictures-flow";
+import { refusalToast } from "./editing/edit-refusal";
 import { ExportJob } from "./glissando-file/export-job";
 import { OpenFlow } from "./glissando-file/open-flow";
 import type { Translator } from "./i18n/translator";
@@ -19,8 +20,9 @@ export function createAppFlows(
   });
   const addFlow = new AddPicturesFlow<AddPicturesSession>({
     ...services,
-    newSession: (slideshow) => services.newAddPicturesSession(slideshow),
+    newSession: (slideshow, home) => services.newAddPicturesSession(slideshow, home),
     goneText: () => t("slideshow.gone"),
+    refusalToast: (reason) => refusalToast(reason, { t }),
   });
   const exportJob = new ExportJob({
     ...services,

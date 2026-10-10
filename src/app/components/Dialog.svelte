@@ -24,6 +24,7 @@
     actions,
     onCancel,
     children,
+    after,
   }: {
     title: string;
     /** One paragraph each. */
@@ -33,6 +34,8 @@
     onCancel?: () => void;
     /** Shown before the message, e.g. a list of steps. */
     children?: Snippet;
+    /** Shown after the message, e.g. a list it introduces. */
+    after?: Snippet;
   } = $props();
 
   const paragraphs = $derived(typeof message === "string" ? [message] : message);
@@ -57,6 +60,7 @@
   {#each paragraphs as paragraph (paragraph)}
     <p>{paragraph}</p>
   {/each}
+  {@render after?.()}
   <div class="actions">
     {#each actions as action (action.label)}
       <button

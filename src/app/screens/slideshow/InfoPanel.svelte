@@ -2,7 +2,8 @@
   import { DEFAULT_SLIDESHOW_TRANSITION } from "../../../library/own-timing";
   import Icon from "../../components/Icon.svelte";
   import { getTranslator } from "../../i18n/context";
-  import type { SlideshowDetails } from "../view-models";
+  import type { SlideshowDetails, SlideshowStorage } from "../view-models";
+  import StorageRow from "./StorageRow.svelte";
   import PanelActionRow from "./PanelActionRow.svelte";
   import SaveAsRow from "./SaveAsRow.svelte";
   import TitleEditor from "./TitleEditor.svelte";
@@ -14,6 +15,7 @@
   let {
     slideshow,
     onPlay,
+    storage = null,
     onSaveVideo,
     onSaveWebPage,
     onRename,
@@ -22,6 +24,8 @@
   }: {
     slideshow: SlideshowDetails;
     onPlay: () => void;
+    /** Where the slideshow lives; null while the server library is off. */
+    storage?: SlideshowStorage | null;
     /** Opens the video export sheet. */
     onSaveVideo: () => void;
     /** Opens the web page export sheet. */
@@ -110,6 +114,9 @@
       <Icon name="play" />{t("slideshow.play")}
     </button>
     <SaveAsRow bind:this={saveAs} {onSaveVideo} {onSaveWebPage} />
+    {#if storage !== null}
+      <StorageRow {storage} />
+    {/if}
   </div>
   <dl class="rows">
     <div>

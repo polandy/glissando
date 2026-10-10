@@ -10,6 +10,8 @@
   import PicturesStep from "./PicturesStep.svelte";
   import type { ImportSession } from "./import-session";
   import { hasSelection } from "./import-view";
+  import type { SlideshowHome } from "../../server-library/server-library-memory";
+  import { ServerLibraryUnavailableError } from "../../server-library/server-library-client";
 
   let {
     step,
@@ -28,6 +30,10 @@
     immich,
     onOpenImmich,
     onImmichSettings,
+    serverOn,
+    rememberedHome,
+    onHomeChosen,
+    onCreateFailed,
   }: {
     step: ImportStep;
     session: ImportSession;
@@ -47,6 +53,12 @@
     immich: ImmichAvailabilityState;
     onOpenImmich: () => void;
     onImmichSettings: () => void;
+    /** The server library is on: step 1 asks where the slideshow lives. */
+    serverOn: boolean;
+    rememberedHome: SlideshowHome;
+    onHomeChosen: (home: SlideshowHome) => void;
+    /** Creating a server slideshow failed as the server is away; the wizard stays as it was. */
+    onCreateFailed: (retry: () => void) => void;
   } = $props();
 
   const translator = getTranslator();
@@ -54,6 +66,7 @@
 
   let confirmingDiscard = $state(false);
   let creating = $state(false);
+  let creatingOnServer = $state(false);
 
   function leave(): void {
     if (hasSelection(session.pictures.state)) {
@@ -64,10 +77,14 @@
   }
 
   function create(): void {
+    creatingOnServer = session.choices.current().home === "server";
     creating = true;
     session
       .create(translator.language)
-      .then(onCreated, onError)
+      .then(onCreated, (error: unknown) => {
+        if (error instanceof ServerLibraryUnavailableError) onCreateFailed(create);
+        else onError(error);
+      })
       .finally(() => (creating = false));
   }
 </script>
@@ -87,6 +104,9 @@
     {immich}
     {onOpenImmich}
     {onImmichSettings}
+    {serverOn}
+    {rememberedHome}
+    {onHomeChosen}
   />
 {:else}
   <MusicStep {session} {loadThumbnail} {onBack} onCreate={create} {onError} {onMusicUnreadable} />
@@ -112,5 +132,8 @@
 {/if}
 
 {#if creating}
-  <BlockingOverlay title={t("import.creatingTitle")} detail={t("import.creatingText")} />
+  <BlockingOverlay
+    title={creatingOnServer ? t("server.creating") : t("import.creatingTitle")}
+    detail={t("import.creatingText")}
+  />
 {/if}

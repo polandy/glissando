@@ -61,6 +61,13 @@ export class ImmichJsonReader {
     return value;
   }
 
+  /** A number, or null where Immich leaves the field out or sets it null. */
+  optionalNumber(record: JsonRecord, field: string): number | null {
+    const value = record[field];
+    if (value === undefined || value === null) return null;
+    return this.number(record, field);
+  }
+
   #mismatch(what: string, expected: string, got: unknown): Error {
     return new Error(
       `${this.#request} answered with ${what} that is not ${expected} (got ${JSON.stringify(got)}); ` +

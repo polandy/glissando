@@ -1,6 +1,6 @@
 import { flushSync } from "svelte";
 import { afterEach, describe, expect, it } from "vitest";
-import { CAPTION_GLIDE_MS } from "../../player";
+import { CAPTION_GLIDE_MS, MILLISECONDS_PER_SECOND } from "../../player";
 import { oneSlideShow } from "../../player/testing/browser-pictures";
 import { OPENED_PICTURE_SHOW } from "../../player/testing/opened-pictures";
 import { FakeScheduler } from "../../ui-kit/testing/fake-scheduler";
@@ -124,5 +124,43 @@ describe("PlayerOverlay", () => {
 
     expect(opened).toContain(OPENED_PICTURE_SHOW.slides[0]?.image.src);
     expect(alert.textContent).toContain("Ein Bild konnte nicht geladen werden.");
+  });
+
+  it("shows the failure its caller makes of a picture's error", async () => {
+    const gone = new Error("Immich is not answering");
+    const causes: unknown[] = [];
+    const mounted = mountWithTranslator(PlayerOverlay, {
+      slideshow: OPENED_PICTURE_SHOW,
+      openPicture: () => Promise.reject(gone),
+      pictureFailure: (cause: unknown) => {
+        causes.push(cause);
+        return "immich";
+      },
+      onClose: () => undefined,
+      scheduler: new FakeScheduler(),
+    });
+    destroy = mounted.destroy;
+
+    const alert = await whenRendered(mounted.target, "[role=alert]");
+
+    expect(alert.textContent).toContain("Immich antwortet nicht");
+    expect(causes).toEqual([gone]);
+  });
+
+  it("starts at the time it is given", async () => {
+    const show = await oneSlideShow();
+    const twoSlides = { ...show, slides: [...show.slides, ...show.slides] };
+    const secondStart = (show.slides[0]?.durationMs ?? 0) / MILLISECONDS_PER_SECOND;
+    const mounted = mountWithTranslator(PlayerOverlay, {
+      slideshow: twoSlides,
+      startAt: secondStart,
+      onClose: () => undefined,
+      scheduler: new FakeScheduler(),
+    });
+    destroy = mounted.destroy;
+
+    const counter = await whenRendered(mounted.target, ".counter");
+
+    expect(counter.textContent).toBe("2 / 2");
   });
 });

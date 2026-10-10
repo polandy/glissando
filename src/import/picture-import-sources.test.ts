@@ -92,7 +92,7 @@ describe("PictureImport with a picture source", () => {
     };
     const fromImmich = (id: string) =>
       immichPictureSource(
-        { id, fileName: `${id}.jpg`, takenAt: "2025-07-01T10:00:00Z" },
+        { id, fileName: `${id}.jpg`, takenAt: "2025-07-01T10:00:00Z", size: null },
         {
           client,
           decode: (file) => Promise.resolve(readPicture(file.name, null).decoded),

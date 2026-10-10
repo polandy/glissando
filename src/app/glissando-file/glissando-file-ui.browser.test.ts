@@ -89,6 +89,8 @@ describe("MoreMenu", () => {
       onExport: () => calls.push("export"),
       onOpened: () => calls.push("opened"),
       onDelete: () => calls.push("delete"),
+      pictureCount: 3,
+      onStorageAction: () => calls.push("storage"),
     });
   }
 

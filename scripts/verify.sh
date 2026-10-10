@@ -11,6 +11,7 @@ steps=(
   "typecheck-sw:npx tsc -p src/sw/tsconfig.json"
   "test:npx vitest run --project unit"
   "build:npx vite build"
+  "build-server:npm run --silent build:server"
 )
 
 failed=0

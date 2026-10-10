@@ -27,7 +27,10 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
   stays fully usable meanwhile. A status bar at the bottom
   (`pwa/StatusBar.svelte`): "Offline · stored on this device", or what
   [Installing and offline](#installing-and-offline) says. A file dragged over the library shows
-  the layer "Drop to open the slideshow"; dropped, it opens (below).
+  the layer "Drop to open the slideshow"; dropped, it opens (below). With the server library on
+  or offline, the library splits into "On this device" and "On your Glissando server", the
+  server cards from the last list this device remembers while offline (SERVER_LIBRARY.md,
+  Library).
 - **Slideshow** (`screens/SlideshowScreen.svelte`, parts in `screens/slideshow/`): breadcrumb
   "Library / title" and a ⋯ "More" button whose menu holds "Export" (subtitle "A .glissando
   file, about 184 MB", measured when the menu opens, again only after its pictures or music changed), a separator and "Delete slideshow
@@ -50,6 +53,10 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
   badges bottom right: a frame "own" for an own motion, a clock with "8 s" for an own duration
   and a transition mark (titled with the effect, e.g. "Circle") for an own transition, except on
   the last picture; its label adds "own motion", "own duration 8 s", "own transition Circle". The info panel and the player always use the edited picture list.
+  A slideshow opened by id is looked up on the device first, then taken for a server slideshow
+  (`routes/slideshow-home.ts`); a server slideshow's screen adds where it lives, its missing
+  pictures and its own ⋯ menu, and its edits are saved on the server (SERVER_LIBRARY.md, A server
+  slideshow's screen).
 - **Editing the slideshow** (`editing/slideshow-editor.ts`; pure operations in
   `src/library/slideshow-edits.ts`): every edit applies at once and is stored; the screen is
   `aria-busy` from an edit until every edit so far is stored.
@@ -318,7 +325,10 @@ info panel below the preview, three tiles per row.
 `import/ImportRoute.svelte` shows two steps under the crumbs "Library / New slideshow /
 Pictures | Music" and a numbered two-step bar (a done step shows a mint check); the actions sit at the bottom. One `ImportSession`
 (`import/import-session.ts`) holds the selection for the tab: leaving by the browser back
-gesture (which cannot be stopped) keeps it, and "New slideshow" resumes it.
+gesture (which cannot be stopped) keeps it, and "New slideshow" resumes it. With the server
+library on, the pictures step starts with "Where should it live?"; a server slideshow links its
+Immich photos, offers no "Open file" and is created on the server (SERVER_LIBRARY.md, Where a
+new slideshow lives).
 
 - **Pictures**: a drop zone with "Choose pictures" (several files, `image/*`), "choose a
   folder", and drag-and-drop on desktop (folders read recursively). While downscaling: "k of N
@@ -398,7 +408,7 @@ intake, the import's or the adding's):
   this one the last tapped one's state (selected or not), across days; the next shift-click
   re-aims from the same photo. The footer reads "n selected (from k albums, when k ≥ 2)" or "Tap photos or
   pick a whole album", with "Clear selection" and "Add n", which returns to the pictures step and
-  adds them to the import.
+  adds them to the import (a server slideshow's are linked, not downloaded).
 - A failing request names its problem with "Try again" ("Reload" for an expired sign-in, which
   only a reload brings back); the selection stays. Immich unreachable
   (or an unexpected error) reads "Immich isn't answering"; a problem the user can act on reads
@@ -433,6 +443,13 @@ over real timers.
   0.18 s and is removed, at once with reduced motion. The app's stylesheets are linked by
   `index.html`, not imported by `main.ts`, so the shell is styled from the first paint.
 
+- **Server library** (SERVER_LIBRARY.md, In the app): `createServerLibrary` wires the
+  `./api/library` client, `ServerLibraryAvailability` (following Immich's availability), the
+  `ServerSlideshowStore`, its use-cases and the per-device `ServerLibraryMemory` into
+  `services.serverLibrary`. `App.svelte` hands the slideshow route the store of where the
+  slideshow lives; the add flow opens its session with that home, and a server slideshow's
+  session links Immich photos through `serverAddingStore`, which writes no media. The Immich
+  browser hands its picks to the session (`addImmichPhotos`), which downloads or links them.
 - **Abandoned imports**: at startup and whenever an import ends (created or discarded), media
   no slideshow references is deleted — except every media id an import in progress or a
   still-undoable removal claims, in any tab, so a picture stored before its slideshow record is
@@ -466,8 +483,9 @@ over real timers.
 ## Installing and offline
 
 The approved mockup: https://claude.ai/artifact/LBoKKSKY9qRJ3ntHCVaAVU. The service worker and
-its update rule: ADR-0005. Web app manifest and icons in `public/`; the PNG icons come from
-`scripts/brand/icons.sh`.
+its update rule: ADR-0005; it leaves the Immich route (`immich/`) and the library route
+(`api/library`, SERVER_LIBRARY.md) to the network, never caching their live data. Web app
+manifest and icons in `public/`; the PNG icons come from `scripts/brand/icons.sh`.
 
 - **Where**: only the start screen's status bar. Left a dot and a status line, right at most one
   action — never a banner or a pop-up of our own.

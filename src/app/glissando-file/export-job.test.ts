@@ -56,6 +56,20 @@ describe("ExportJob", () => {
     ]);
   });
 
+  it("exports from the store it is given, such as a server slideshow's, over its own", async () => {
+    const { job, downloads } = await setUp();
+    const server = new MemoryLibraryStore();
+    await server.putPicture("p1", {
+      display: new Blob(["display"], { type: "image/jpeg" }),
+      thumbnail: new Blob(["thumb"], { type: "image/jpeg" }),
+    });
+    await server.saveSlideshow({ ...SHOW, id: "on-server", title: "Server" });
+
+    await job.start("on-server", server);
+
+    expect(downloads.map((download) => download.fileName)).toEqual(["Server.glissando"]);
+  });
+
   it("publishes its progress with the slideshow's title while it runs, then nothing", async () => {
     const { job, states } = await setUp();
 

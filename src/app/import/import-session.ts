@@ -8,11 +8,14 @@ import {
   type StoredMusic,
   type StoredSlideshow,
 } from "../../library/stored-slideshow";
+import type { SlideshowHome } from "../routes/slideshow-storage";
 import { PictureIntake, type PictureIntakePorts } from "./picture-intake";
 
 export interface ImportSessionPorts extends PictureIntakePorts {
   readonly store: LibraryStore;
   probeMusic(file: File): Promise<MusicProbe>;
+  /** Creates a server slideshow with its music's audio (`ServerLibrary.createSlideshow`). */
+  createOnServer(slideshow: StoredSlideshow, musicAudio: Blob | null): Promise<StoredSlideshow>;
 }
 
 export interface ChosenMusic {
@@ -20,13 +23,16 @@ export interface ChosenMusic {
   readonly durationMs: number;
 }
 
-/** Step 2's choices. */
+/** Where the slideshow lives (step 1) and step 2's choices. */
 export interface ImportChoices {
+  /** A server slideshow links Immich photos and is created on the server (ADR-0018). */
+  readonly home: SlideshowHome;
   readonly music: ChosenMusic | null;
   readonly secondsPerPicture: number;
 }
 
 const INITIAL_CHOICES: ImportChoices = {
+  home: "device",
   music: null,
   secondsPerPicture: DEFAULT_SECONDS_PER_PICTURE,
 };
@@ -62,12 +68,26 @@ export class ImportSession {
     },
   };
 
+  /** Where the slideshow lives; fixed once a picture is in. */
+  chooseHome(home: SlideshowHome): void {
+    if (home === this.#choices.home) return;
+    if (this.pictures.state.pictures.length > 0 || this.pictures.state.busy) {
+      throw new Error(`cannot move the slideshow to the ${home}: clear the pictures first`);
+    }
+    this.#setChoices({ home });
+  }
+
   addPictures(files: readonly File[]): void {
+    if (this.#choices.home === "server") {
+      throw new Error("a server slideshow only links photos from Immich: add none from the device");
+    }
     this.intake.addPictures(files);
   }
 
+  /** Downloaded for a device slideshow, linked for a server slideshow. */
   addImmichPhotos(photos: readonly ImmichPhoto[]): void {
-    this.intake.addImmichPhotos(photos);
+    if (this.#choices.home === "server") this.intake.linkImmichPhotos(photos);
+    else this.intake.addImmichPhotos(photos);
   }
 
   /** Resolves once an unexpected picture-import error, if any, has been reported or logged. */
@@ -102,7 +122,10 @@ export class ImportSession {
     this.#setChoices({ secondsPerPicture });
   }
 
-  /** Stores the music and the slideshow record, last; `locale` writes the title's month. */
+  /**
+   * Stores the music and the slideshow record, last, or creates it on the server; `locale` writes
+   * the title's month. A failure keeps the session as it was.
+   */
   async create(locale: string): Promise<StoredSlideshow> {
     const state = this.pictures.state;
     if (state.busy) {
@@ -111,7 +134,8 @@ export class ImportSession {
     if (state.pictures.length === 0) {
       throw new Error("cannot create a slideshow with no pictures: import at least one first");
     }
-    const music = await this.#storeMusic();
+    const onServer = this.#choices.home === "server";
+    const music = onServer ? this.#musicOnServer() : await this.#storeMusic();
     const slideshow = buildStoredSlideshow({
       id: this.#ports.newId(),
       createdAt: this.#ports.now().toISOString(),
@@ -120,9 +144,24 @@ export class ImportSession {
       secondsPerPicture: this.#choices.secondsPerPicture,
       locale,
     });
+    if (onServer) {
+      return this.#ports.createOnServer(slideshow, this.#choices.music?.file ?? null);
+    }
     await this.#ports.store.saveSlideshow(slideshow);
     await this.intake.endClaim();
     return slideshow;
+  }
+
+  /** The music record of a server slideshow; its audio is uploaded with the slideshow. */
+  #musicOnServer(): StoredMusic | undefined {
+    const chosen = this.#choices.music;
+    if (chosen === null) return undefined;
+    return {
+      id: this.#ports.newId(),
+      fileName: chosen.file.name,
+      durationMs: chosen.durationMs,
+      mimeType: chosen.file.type,
+    };
   }
 
   /**

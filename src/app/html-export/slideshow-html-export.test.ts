@@ -29,12 +29,25 @@ async function storeWithMedia(): Promise<MemoryLibraryStore> {
 }
 
 describe("slideshowHtmlExport", () => {
+  it("tells the sheet a server slideshow's pictures come from Immich", () => {
+    const sheet = slideshowHtmlExport(
+      fakeHtmlExportDevice(),
+      new MemoryLibraryStore(),
+      STORED,
+      createTranslator("de"),
+      "server",
+    );
+
+    expect(sheet.subject.picturesFromImmich).toBe(true);
+  });
+
   it("estimates from the stored display pictures' and the music's bytes and the player bundle", async () => {
     const sheet = slideshowHtmlExport(
       fakeHtmlExportDevice(),
       await storeWithMedia(),
       STORED,
       createTranslator("de"),
+      "device",
     );
 
     await sheet.open();
@@ -63,6 +76,7 @@ describe("slideshowHtmlExport", () => {
       await storeWithMedia(),
       STORED,
       createTranslator("en"),
+      "device",
     );
     await sheet.open();
 
