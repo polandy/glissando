@@ -10,6 +10,7 @@
   import type { SettingsState } from "./app-settings";
   import type { LanguagePreference } from "./language";
   import type { ThemePreference } from "./theme";
+  import { THIRD_PARTY_LICENSES_FILE } from "./third-party-licenses";
 
   let {
     state,
@@ -119,6 +120,9 @@
     </section>
     <ImmichSettingsGroup state={immich} onCheck={onCheckImmich} {onReload} />
     <p class="footnote">{t("settings.footnote")}</p>
+    <a class="licenses" href={THIRD_PARTY_LICENSES_FILE} target="_blank" rel="noopener">
+      {t("settings.licenses")}
+    </a>
   </div>
 </dialog>
 
@@ -166,6 +170,15 @@
     margin: 0;
     color: var(--gl-muted);
     font-size: var(--gl-size-meta);
+  }
+  .licenses {
+    justify-self: start;
+    color: var(--gl-muted);
+    font-size: var(--gl-size-meta);
+    text-underline-offset: 3px;
+  }
+  .licenses:hover {
+    color: var(--gl-ink);
   }
   /* The dialog sits in the top layer, outside the screen's container, so the viewport decides;
      the app fills it, so this matches the screens' 720 px container queries. */

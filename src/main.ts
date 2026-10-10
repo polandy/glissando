@@ -36,6 +36,8 @@ import { startFocusWorker, WorkerFocusDetector } from "./focus/worker-focus-dete
 import { requestPersistentStorage } from "./library/persistent-storage";
 import { browserPwaPorts } from "./pwa/browser-pwa";
 import { createStorageHintDismissalStore, PwaStatus } from "./pwa/pwa-status";
+import { sweepPrivateExports } from "./video-export";
+import { browserVideoExportDevice } from "./app/video-export/browser-video-export-device";
 
 /** Same origin: the self-hosted Glissando's `/immich/` route sets the API key (ADR-0013). */
 const immichClient = new HttpImmichClient({
@@ -105,6 +107,8 @@ function deleteAbandonedMedia(): void {
   store.deleteUnreferencedMedia(now()).catch(reportError);
 }
 deleteAbandonedMedia();
+// Exports a crash or a closed tab left behind (VIDEO_EXPORT.md, Clean-up).
+sweepPrivateExports().catch(logError);
 
 const focusPass = new FocusPass({
   store,
@@ -113,6 +117,13 @@ const focusPass = new FocusPass({
   reportError,
 });
 focusPass.start();
+
+const freeBytes = (): Promise<number | null> => freeStorageBytes(window.navigator.storage);
+const download = createDownloader({
+  document,
+  urls: browserObjectUrls,
+  scheduler: browserScheduler,
+});
 
 const services = {
   store,
@@ -153,8 +164,9 @@ const services = {
   now,
   deleteAbandonedMedia,
   log: logError,
-  freeBytes: () => freeStorageBytes(window.navigator.storage),
-  download: createDownloader({ document, urls: browserObjectUrls, scheduler: browserScheduler }),
+  freeBytes,
+  download,
+  videoExport: browserVideoExportDevice({ window, freeBytes, download, log: logError }),
   reload: () => window.location.reload(),
 };
 

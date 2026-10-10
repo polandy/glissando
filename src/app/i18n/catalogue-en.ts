@@ -3,6 +3,7 @@ import { enMusic } from "./catalogue-en-music";
 import { enTiming } from "./catalogue-en-timing";
 import { enTransitions } from "./catalogue-en-transitions";
 import { enImmich } from "./catalogue-en-immich";
+import { enVideo } from "./catalogue-en-video";
 import type { Catalogue } from "./messages";
 
 /** English UI copy; the type demands exactly the German catalogue's keys and message shapes. */
@@ -47,6 +48,7 @@ export const en: Catalogue = {
   "settings.languageGerman": "Deutsch",
   "settings.languageEnglish": "English",
   "settings.footnote": "Applies at once and is stored on this device.",
+  "settings.licenses": "Open-source licences",
 
   "slideshow.eyebrow": "Slideshow",
   "slideshow.dateRange": "{from} – {to}",
@@ -272,4 +274,5 @@ export const en: Catalogue = {
   ...enTransitions,
   ...enImmich,
   ...enMusic,
+  ...enVideo,
 };

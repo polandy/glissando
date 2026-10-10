@@ -10,6 +10,7 @@ export { MusicOutput } from "./browser/music-output";
 export { captionLength, MAX_CAPTION_LENGTH, normalizeCaption, withinCaptionLimit } from "./caption";
 export { CAPTION_GLIDE_MS } from "./caption-glide";
 export { captionStyles } from "./caption-style";
+export { createFramePlayer, type FramePlayer } from "./create-frame-player";
 export { createPlayer } from "./create-player";
 export { layerTransform } from "./dom/layer-transform";
 export { cropAt, cropRect, type KenBurnsAt, type Rect, type Size } from "./ken-burns";

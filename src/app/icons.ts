@@ -98,6 +98,9 @@ export const ICONS = {
   install: { shapes: [path("M12 4v11M7 10l5 5 5-5M5 20h14")] },
   refresh: { shapes: [path("M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7")] },
   share: { shapes: [path("M12 3v12M8 7l4-4 4 4"), path("M6 11v9h12v-9")] },
+  film: {
+    shapes: [rect(3, 5, 18, 14, 2.5), path("M3 9h18M3 15h18M8 5v4M16 5v4M8 15v4M16 15v4")],
+  },
   addToHome: { shapes: [rect(4, 4, 16, 16, 3), path("M12 8v8M8 12h8")] },
   menuDots: { shapes: [circle(12, 5, 1.2), circle(12, 12, 1.2), circle(12, 19, 1.2)] },
   check: { shapes: [path("M5 12.5l4.5 4.5L19 7.5")] },

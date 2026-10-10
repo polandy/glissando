@@ -27,6 +27,10 @@
   import { loadSlideshowScreen } from "./route-loading";
   import { deleteShownSlideshow } from "./slideshow-exits";
   import { MOUSE_POINTER_QUERY } from "../screens/slideshow/pointer";
+  import {
+    slideshowVideoExport,
+    type VideoExportDevice,
+  } from "../video-export/slideshow-video-export";
 
   let {
     store,
@@ -37,6 +41,7 @@
     slideshowId,
     exportProgress,
     onExport,
+    videoExport,
     playing,
     editingPictureId,
     editingMusic,
@@ -61,6 +66,8 @@
     /** The export running in the background, of this slideshow or another. */
     exportProgress: ExportProgress | null;
     onExport: () => void;
+    /** What "Save as video" needs of the browser. */
+    videoExport: VideoExportDevice;
     /** The player layer is open over the screen. */
     playing: boolean;
     /** The picture editor is open on this picture, in place of the screen. */
@@ -203,6 +210,13 @@
     );
   }
 
+  function newVideoExport() {
+    if (stored === null) {
+      throw new Error("a video export needs the slideshow loaded first");
+    }
+    return slideshowVideoExport(videoExport, store, stored);
+  }
+
   function deleteSlideshow(): void {
     deleteShownSlideshow(store, slideshowId, editor).then(onDeleted, onError);
   }
@@ -246,6 +260,7 @@
     exportState={exportMenuState(exportProgress, slideshowId, exportBytes)}
     {onExport}
     onMenuOpened={measureExport}
+    {newVideoExport}
     mousePointer={mousePointer.current}
     {saving}
   />

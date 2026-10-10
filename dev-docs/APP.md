@@ -35,7 +35,8 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
   preview of the first picture (tap plays) with the running time, then the pictures in play
   order, each with its order number and capture date, under "Sorted by capture date" or, once
   the user reordered, "Own order" (with "drag or tap", narrow: "tap to reorder"). Beside it an
-  info panel: title with a ✎ button, date range (earliest to latest capture), "Play" and the
+  info panel: title with a ✎ button, date range (earliest to latest capture), "Play", below it
+  "Save as video" (the video export sheet, `dev-docs/VIDEO_EXPORT.md`) and the
   facts — pictures, duration (with "· music 0:44" beside it, muted, when the slideshow does not
   end with the music's excerpt), music (with music a button spanning the row: the file name,
   below it "whole track", or once changed in the music editor "0:12–2:30 · fades in and out",
@@ -388,6 +389,8 @@ over real timers.
   no slideshow references is deleted — except every media id an import in progress or a
   still-undoable removal claims, in any tab, so a picture stored before its slideshow record is
   never lost and an Undo always finds its media.
+- **Video exports** left in the origin private file system by a crash or a closed tab are
+  deleted at startup (`sweepPrivateExports`, dev-docs/VIDEO_EXPORT.md).
 - **Persistent storage** is requested after the first slideshow a tab creates; a refusal shows
   the dialog "Glissando may not store anything permanently" ("Understood", and "Install as
   app" while installing is possible), once per device. Installing and offline follow below.
@@ -531,14 +534,18 @@ a route with its own history entry, so ✕, a tap on the scrim, Esc and the brow
 gesture all close it the same way: by going back. A native modal dialog (focus trapped, the page
 behind inert, focus back on the gear when closed): above 720 px viewport width a 380 px panel at
 the top right, narrower a bottom sheet. Two radio groups (`components/RadioGroup.svelte`: one tab
-stop, arrows and Home/End move the choice with the focus) and the footnote "Applies at once and
-is stored on this device":
+stop, arrows and Home/End move the choice with the focus), the Immich group, the footnote
+"Applies at once and is stored on this device" and the link "Open-source licences":
 
 - **Appearance**: "Same as device" (hint "Light or dark, following the system setting"),
   "Light", "Dark" — the theme preference below.
 - **Language**: "Same as browser" (hint "Currently German" or "Currently English", what the
   browser languages pick), "Deutsch", "English" — the language preference below.
 - **Immich** (`immich/ImmichSettingsGroup.svelte`): read-only, see Immich above.
+- **Open-source licences** opens `third-party-licenses.md` in a new tab: the name, version and
+  licence of every bundled dependency, among them mediabunny's MPL-2.0 (ADR-0015). The build
+  writes it, the service worker precaches it and answers a navigation to it with the file, so it
+  opens offline too.
 
 `settings/app-settings.ts` holds both preferences: a choice is stored at once and announced to
 its subscribers, a new subscriber gets the current state immediately. `main.ts` subscribes and

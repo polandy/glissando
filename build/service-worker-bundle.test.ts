@@ -47,6 +47,27 @@ describe("writeServiceWorker", () => {
     expect(sw.code).toBe(writePrecache(WORKER_CODE, expected));
   });
 
+  it("precaches the third-party licences, so they open offline", async () => {
+    const sw = worker();
+    const bundle: Record<string, BundleFile> = {
+      ...bundleWith(sw),
+      "third-party-licenses.md": {
+        type: "asset",
+        fileName: "third-party-licenses.md",
+        source: "# Licenses",
+      },
+    };
+    await writeServiceWorker(bundle, PUBLIC, ["third-party-licenses.md"]);
+    expect(sw.code).toContain("third-party-licenses.md");
+  });
+
+  it("fails the build when a file it must precache was not emitted before it", async () => {
+    const bundle = bundleWith(worker());
+    await expect(writeServiceWorker(bundle, PUBLIC, ["third-party-licenses.md"])).rejects.toThrow(
+      /third-party-licenses\.md/,
+    );
+  });
+
   it("fails the build when there is no sw.js", async () => {
     const bundle = bundleWith(worker());
     delete bundle["sw.js"];
