@@ -41,6 +41,8 @@ jobs:
           node-version-file: .node-version
           cache: npm
       - run: npm ci --no-fund --no-audit
+      - name: cold-start loop (temporary diagnosis)
+        run: for i in $(seq 40); do npx vitest run --project browser --browser=webkit src/html-export/browser/page-export.browser.test.ts 2>&1 | grep -E "DIAG|Failed Tests|Tests " ; done
       - run: npx vitest run --project browser
       - run: npx playwright test
       - if: failure()
