@@ -26,6 +26,8 @@
   import IntakeRoutes from "./routes/IntakeRoutes.svelte";
   import SlideshowRoute from "./routes/SlideshowRoute.svelte";
   import { leaveWithToast } from "./routes/slideshow-exits";
+  import { findSlideshowHome, serverRouteStore, type RouteStore } from "./routes/slideshow-home";
+  import type { SlideshowHome } from "./routes/slideshow-storage";
   import StartRoute from "./routes/StartRoute.svelte";
   import type { AppServices } from "./services";
   import type { SettingsState } from "./settings/app-settings";
@@ -59,6 +61,21 @@
     log: services.log,
     translator,
   });
+  // svelte-ignore state_referenced_locally
+  const serverRoute = serverRouteStore(services.serverLibrary.store);
+
+  /** A slideshow opened by id, with the store of where it lives. */
+  async function openedSlideshow(
+    slideshowId: string,
+  ): Promise<{ home: SlideshowHome; store: RouteStore }> {
+    try {
+      const home = await findSlideshowHome(slideshowId, store);
+      return { home, store: home === "device" ? store : serverRoute };
+    } catch (error) {
+      reportError(error);
+      throw error;
+    }
+  }
   // svelte-ignore state_referenced_locally
   let serverState = $state.raw<ServerLibraryState>(services.serverLibrary.availability.state);
 
@@ -243,41 +260,43 @@
 {:else if route.screen === "slideshow" || route.screen === "player" || route.screen === "picture" || route.screen === "music"}
   {@const slideshowId = route.slideshowId}
   {#key slideshowId}
-    <SlideshowRoute
-      {store}
-      focusPass={services.focusPass}
-      {toaster}
-      {newId}
-      {now}
-      {slideshowId}
-      {exportProgress}
-      onExport={() => void exportJob.start(slideshowId)}
-      videoExport={services.videoExport}
-      htmlExport={services.htmlExport}
-      playing={route.screen === "player"}
-      editingPictureId={route.screen === "picture" ? route.pictureId : null}
-      editingMusic={route.screen === "music"}
-      musicAudio={services.musicAudio}
-      musicOutput={services.musicOutput}
-      onBack={() => navigator.back()}
-      onPlay={() => {
-        // Within the Play gesture: the player starts the music only after its pictures load.
-        services.musicOutput.unlock();
-        navigator.open({ screen: "player", slideshowId });
-      }}
-      onAddPictures={(slideshow) => addFlow.open(slideshow)}
-      addedPictureIds={added?.slideshowId === slideshowId ? added.pictureIds : []}
-      onEdit={(pictureId) => navigator.open({ screen: "picture", slideshowId, pictureId })}
-      onEditMusic={() => navigator.open({ screen: "music", slideshowId })}
-      onDeleted={() => leaveWithToast({ navigator, toaster }, t("slideshow.deleted"))}
-      onGone={() => leaveWithToast({ navigator, toaster }, t("slideshow.gone"))}
-      onError={reportError}
-      log={services.log}
-      home="device"
-      serverOn={serverState.kind === "on"}
-      onKeepCopy={(slideshow) => void serverCopies.keepCopy(slideshow)}
-      onSaveOnServer={(slideshow) => void serverCopies.saveOnServer(slideshow)}
-    />
+    {#await openedSlideshow(slideshowId) then opened}
+      <SlideshowRoute
+        store={opened.store}
+        focusPass={services.focusPass}
+        {toaster}
+        {newId}
+        {now}
+        {slideshowId}
+        {exportProgress}
+        onExport={() => void exportJob.start(slideshowId, opened.store)}
+        videoExport={services.videoExport}
+        htmlExport={services.htmlExport}
+        playing={route.screen === "player"}
+        editingPictureId={route.screen === "picture" ? route.pictureId : null}
+        editingMusic={route.screen === "music"}
+        musicAudio={services.musicAudio}
+        musicOutput={services.musicOutput}
+        onBack={() => navigator.back()}
+        onPlay={() => {
+          // Within the Play gesture: the player starts the music only after its pictures load.
+          services.musicOutput.unlock();
+          navigator.open({ screen: "player", slideshowId });
+        }}
+        onAddPictures={(slideshow) => addFlow.open(slideshow)}
+        addedPictureIds={added?.slideshowId === slideshowId ? added.pictureIds : []}
+        onEdit={(pictureId) => navigator.open({ screen: "picture", slideshowId, pictureId })}
+        onEditMusic={() => navigator.open({ screen: "music", slideshowId })}
+        onDeleted={() => leaveWithToast({ navigator, toaster }, t("slideshow.deleted"))}
+        onGone={() => leaveWithToast({ navigator, toaster }, t("slideshow.gone"))}
+        onError={reportError}
+        log={services.log}
+        home={opened.home}
+        serverOn={serverState.kind === "on"}
+        onKeepCopy={(slideshow) => void serverCopies.keepCopy(slideshow)}
+        onSaveOnServer={(slideshow) => void serverCopies.saveOnServer(slideshow)}
+      />
+    {/await}
   {/key}
 {/if}
 

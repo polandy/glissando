@@ -1,18 +1,14 @@
 <script lang="ts">
   import { onDestroy, onMount } from "svelte";
   import { MediaQuery, SvelteSet } from "svelte/reactivity";
-  import {
-    SlideshowNotFoundError,
-    type LibraryStore,
-    type SlideshowStore,
-    type StoredSlideshow,
-  } from "../../library/stored-slideshow";
+  import { SlideshowNotFoundError, type StoredSlideshow } from "../../library/stored-slideshow";
   import type { FocusPass, FocusPassState } from "../../library/focus-pass";
   import type { PictureFocus } from "../../library/picture-focus";
   import type { SlideshowEditor } from "../editing/slideshow-editor";
   import { PictureMissingFromImmichError } from "../../server-library/server-slideshow-store";
   import { createScreenEditor } from "./screen-editor";
   import { slideshowStorage, type SlideshowHome } from "./slideshow-storage";
+  import type { RouteStore } from "./slideshow-home";
   import type { StorageAction } from "../screens/view-models";
   import { NO_FOCUS_KNOWN, picturesFocus } from "../focus/pictures-focus";
   import type { ExportProgress } from "../glissando-file/export-job";
@@ -70,7 +66,7 @@
     log,
   }: {
     /** Where the slideshow lives; a server slideshow's store spares no media and measures none. */
-    store: SlideshowStore & Pick<LibraryStore, "claimMedia" | "releaseClaim" | "mediaBytes">;
+    store: RouteStore;
     home: SlideshowHome;
     /** The server library is on: a device slideshow's screen tells where its pictures are from. */
     serverOn: boolean;
