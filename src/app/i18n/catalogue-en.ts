@@ -4,6 +4,7 @@ import { enMusic } from "./catalogue-en-music";
 import { enTiming } from "./catalogue-en-timing";
 import { enTransitions } from "./catalogue-en-transitions";
 import { enImmich } from "./catalogue-en-immich";
+import { enHtml } from "./catalogue-en-html";
 import { enVideo } from "./catalogue-en-video";
 import type { Catalogue } from "./messages";
 
@@ -277,4 +278,5 @@ export const en: Catalogue = {
   ...enImmich,
   ...enMusic,
   ...enVideo,
+  ...enHtml,
 };

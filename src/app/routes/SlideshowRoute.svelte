@@ -20,7 +20,7 @@
   import type { Toaster } from "../toast/toaster";
   import type { MusicEditorAudio } from "../music-editor/music-editor-audio";
   import { animationFrames, performanceClock, type MusicOutput } from "../../player";
-  import { REDUCED_MOTION_QUERY } from "../reduced-motion";
+  import { REDUCED_MOTION_QUERY } from "../../ui-kit/reduced-motion";
   import MusicEditorRoute from "./MusicEditorRoute.svelte";
   import PictureEditorRoute from "./PictureEditorRoute.svelte";
   import PlayerLayer from "./PlayerLayer.svelte";
@@ -31,6 +31,7 @@
     slideshowVideoExport,
     type VideoExportDevice,
   } from "../video-export/slideshow-video-export";
+  import { slideshowHtmlExport, type HtmlExportDevice } from "../html-export/slideshow-html-export";
 
   let {
     store,
@@ -42,6 +43,7 @@
     exportProgress,
     onExport,
     videoExport,
+    htmlExport,
     playing,
     editingPictureId,
     editingMusic,
@@ -70,6 +72,8 @@
     onExport: () => void;
     /** What "Save as video" needs of the browser. */
     videoExport: VideoExportDevice;
+    /** What "Save as web page" needs of the browser. */
+    htmlExport: HtmlExportDevice;
     /** The player layer is open over the screen. */
     playing: boolean;
     /** The picture editor is open on this picture, in place of the screen. */
@@ -223,12 +227,15 @@
     );
   }
 
-  function newVideoExport() {
+  /** The slideshow an export of the screen starts from; the screen shows only once it loaded. */
+  function loadedForExport(): StoredSlideshow {
     if (stored === null) {
-      throw new Error("a video export needs the slideshow loaded first");
+      throw new Error("an export needs the slideshow loaded first");
     }
-    return slideshowVideoExport(videoExport, store, stored);
+    return stored;
   }
+  const newVideoExport = () => slideshowVideoExport(videoExport, store, loadedForExport());
+  const newHtmlExport = () => slideshowHtmlExport(htmlExport, store, loadedForExport(), translator);
 
   function deleteSlideshow(): void {
     deleteShownSlideshow(store, slideshowId, editor).then(onDeleted, onError);
@@ -280,6 +287,7 @@
     {onExport}
     onMenuOpened={measureExport}
     {newVideoExport}
+    {newHtmlExport}
     mousePointer={mousePointer.current}
     {saving}
   />

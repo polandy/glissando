@@ -77,6 +77,11 @@ export async function exportSlideshow(
 
 /** A file name every system accepts, from the slideshow's title. */
 export function glissandoFileName(title: string): string {
+  return `${safeFileStem(title)}${GLISSANDO_FILE_EXTENSION}`;
+}
+
+/** The title with every character a file system refuses replaced, for any exported file. */
+export function safeFileStem(title: string): string {
   const safe = title.replace(FORBIDDEN_IN_FILE_NAMES, "-").replace(TRIMMED_AT_ENDS, "");
-  return `${safe === "" ? FALLBACK_FILE_NAME : safe}${GLISSANDO_FILE_EXTENSION}`;
+  return safe === "" ? FALLBACK_FILE_NAME : safe;
 }

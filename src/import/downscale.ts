@@ -61,7 +61,8 @@ export async function decodePicture(file: File): Promise<DecodedPicture> {
   }
 }
 
-async function encodeJpeg(bitmap: ImageBitmap, size: Size, quality: number): Promise<Blob> {
+/** Draws `bitmap` scaled to `size` and encodes it as JPEG; also used by the web page export. */
+export async function encodeJpeg(bitmap: ImageBitmap, size: Size, quality: number): Promise<Blob> {
   if (typeof OffscreenCanvas === "function") {
     const canvas = new OffscreenCanvas(size.width, size.height);
     drawScaled(canvas.getContext("2d"), bitmap, size);

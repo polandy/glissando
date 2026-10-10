@@ -11,6 +11,8 @@
   import StripHead from "./slideshow/StripHead.svelte";
   import TransitionsSheet from "./slideshow/TransitionsSheet.svelte";
   import VideoExportSheet from "./slideshow/VideoExportSheet.svelte";
+  import HtmlExportSheet from "./slideshow/HtmlExportSheet.svelte";
+  import type { HtmlExportSession } from "../html-export/html-export-session";
   import type { ExportPreview } from "../video-export/slideshow-video-export";
   import type { VideoExportSession } from "../video-export/video-export-session";
   import type { SlideshowDetails } from "./view-models";
@@ -38,6 +40,7 @@
     onExport,
     onMenuOpened,
     newVideoExport,
+    newHtmlExport,
     mousePointer,
     saving,
     selectedId = $bindable(null),
@@ -72,6 +75,8 @@
     onMenuOpened: () => void;
     /** A video export of the slideshow as it is now, for the sheet "Save as video". */
     newVideoExport: () => VideoExportSession<ExportPreview>;
+    /** A web page export of the slideshow as it is now, for the sheet "Save as web page". */
+    newHtmlExport: () => HtmlExportSession;
     /** The primary pointer is a mouse (hovers, fine): tiles can be dragged. */
     mousePointer: boolean;
     /** An edit is being stored. */
@@ -85,6 +90,7 @@
   let confirmingDelete = $state(false);
   let editingTransitions = $state(false);
   let videoExport = $state.raw<VideoExportSession<ExportPreview> | null>(null);
+  let htmlExport = $state.raw<HtmlExportSession | null>(null);
   // A selected picture that was removed meanwhile leaves no selection.
   const selectedIndex = $derived(
     slideshow.pictures.findIndex((picture) => picture.id === selectedId),
@@ -124,6 +130,12 @@
     // The modal dialog must be gone first: until then the page behind it is inert.
     flushSync();
     infoPanel?.focusSaveVideo();
+  }
+
+  function closeHtmlExport(): void {
+    htmlExport = null;
+    flushSync();
+    infoPanel?.focusSaveWebPage();
   }
 
   /** Keep or Esc: focus goes back to the ⋯ button the dialog was opened from. */
@@ -183,6 +195,7 @@
         {slideshow}
         {onPlay}
         onSaveVideo={() => (videoExport = newVideoExport())}
+        onSaveWebPage={() => (htmlExport = newHtmlExport())}
         {onRename}
         {onEditMusic}
         onEditTransitions={() => (editingTransitions = true)}
@@ -219,6 +232,15 @@
     session={videoExport}
     coverUrl={slideshow.coverUrl}
     onClose={closeVideoExport}
+  />
+{/if}
+
+{#if htmlExport !== null}
+  <HtmlExportSheet
+    session={htmlExport}
+    coverUrl={slideshow.coverUrl}
+    thumbnailUrls={slideshow.pictures.map((picture) => picture.thumbnailUrl)}
+    onClose={closeHtmlExport}
   />
 {/if}
 

@@ -1,4 +1,4 @@
-import type { Scheduler } from "../scheduler";
+import type { Scheduler } from "../../ui-kit/scheduler";
 import type { ObjectUrlPorts } from "../media/object-urls";
 
 /**

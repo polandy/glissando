@@ -1,0 +1,201 @@
+/* The exported page; the design tokens it uses are prepended at build time. */
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: var(--gl-player-bg);
+  color: var(--gl-player-text);
+  font-family: var(--gl-font-ui);
+  font-size: var(--gl-size-body);
+}
+
+[hidden] {
+  display: none !important;
+}
+
+noscript p {
+  max-width: 40ch;
+  margin: 15vh auto;
+  padding: 0 24px;
+  line-height: 1.5;
+}
+
+.stage {
+  position: fixed;
+  inset: 0;
+}
+
+.card {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  text-align: center;
+  background: var(--gl-player-scrim-end);
+}
+
+.start {
+  background: var(--gl-photo-veil);
+}
+
+.eyebrow {
+  font-size: var(--gl-size-small);
+  font-weight: var(--gl-weight-semibold);
+  letter-spacing: var(--gl-tracking-eyebrow);
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+
+.title {
+  margin: 6px 0 4px;
+  font-size: clamp(28px, 6vw, 52px);
+  font-weight: var(--gl-weight-semibold);
+  letter-spacing: var(--gl-tracking-title);
+}
+
+.summary {
+  margin: 0 0 22px;
+  font-size: var(--gl-size-label);
+  font-variant-numeric: tabular-nums;
+  opacity: 0.82;
+}
+
+.big-play {
+  display: inline-grid;
+  place-items: center;
+  width: 76px;
+  height: 76px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--gl-accent);
+  color: var(--gl-accent-ink);
+  box-shadow: var(--gl-photo-play-shadow);
+  cursor: pointer;
+  --gl-size-icon: 30px;
+}
+
+.made {
+  position: absolute;
+  inset: auto 0 16px;
+  font-size: var(--gl-size-small);
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.again {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border: 0;
+  border-radius: var(--gl-radius-pill);
+  background: var(--gl-accent);
+  color: var(--gl-accent-ink);
+  font: inherit;
+  font-weight: var(--gl-weight-semibold);
+  cursor: pointer;
+}
+
+.error {
+  margin: 18px 0 0;
+  padding: 10px 14px;
+  border-radius: var(--gl-radius);
+  background: var(--gl-photo-badge);
+}
+
+.controls {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: var(--gl-radius-large);
+  background: var(--gl-photo-badge);
+  backdrop-filter: blur(10px);
+  transition: opacity 0.3s;
+}
+
+[data-controls="hidden"] .controls {
+  opacity: 0;
+  pointer-events: none;
+}
+
+[data-controls="hidden"] body {
+  cursor: none;
+}
+
+.controls button {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: var(--gl-radius-tile);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.controls button:hover {
+  background: var(--gl-player-glass);
+}
+
+.time {
+  font-size: var(--gl-size-small);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.track {
+  position: relative;
+  flex: 1;
+  height: 20px;
+  cursor: pointer;
+  touch-action: none;
+}
+
+.track::before,
+.progress {
+  content: "";
+  position: absolute;
+  top: 8px;
+  left: 0;
+  height: 4px;
+  border-radius: var(--gl-radius-pill);
+}
+
+.track::before {
+  right: 0;
+  background: var(--gl-player-track);
+}
+
+.progress {
+  background: var(--gl-player-progress);
+}
+
+.icon {
+  width: var(--gl-size-icon);
+  height: var(--gl-size-icon);
+  fill: none;
+  stroke: currentColor;
+  stroke-width: var(--gl-icon-stroke);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.icon.filled {
+  fill: currentColor;
+  stroke: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .controls {
+    transition: none;
+  }
+}

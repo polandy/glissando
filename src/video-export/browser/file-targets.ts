@@ -2,8 +2,19 @@ import type { FileSink } from "../ports";
 
 /** The folder in the origin private file system that holds exports until the sheet closes. */
 export const PRIVATE_EXPORT_FOLDER = "video-export";
-const MP4_TYPE = "video/mp4";
-const MP4_EXTENSION = ".mp4";
+
+/** What the save picker offers to save as. */
+export interface SaveFileType {
+  readonly description: string;
+  readonly mimeType: string;
+  readonly extension: string;
+}
+
+export const MP4_FILE_TYPE: SaveFileType = {
+  description: "MP4",
+  mimeType: "video/mp4",
+  extension: ".mp4",
+};
 
 /** Where an export writes: a file the user picked or one in the origin private file system. */
 export interface ExportTarget extends FileSink {
@@ -36,9 +47,12 @@ export function canPickSaveFile(): boolean {
 
 /**
  * Asks where to save; call it in the click's user gesture. Null when the user dismissed the
- * picker. A cancelled or failed export empties the file, which a browser cannot delete.
+ * picker. A cancelled or failed export leaves the file as it was before.
  */
-export async function pickSaveTarget(suggestedName: string): Promise<ExportTarget | null> {
+export async function pickSaveTarget(
+  suggestedName: string,
+  fileType: SaveFileType = MP4_FILE_TYPE,
+): Promise<ExportTarget | null> {
   const picker = saveFilePicker();
   if (picker === null) {
     throw new Error("this browser has no showSaveFilePicker; use privateExportTarget instead");
@@ -47,7 +61,12 @@ export async function pickSaveTarget(suggestedName: string): Promise<ExportTarge
   try {
     handle = await picker({
       suggestedName,
-      types: [{ description: "MP4", accept: { [MP4_TYPE]: [MP4_EXTENSION] } }],
+      types: [
+        {
+          description: fileType.description,
+          accept: { [fileType.mimeType]: [fileType.extension] },
+        },
+      ],
     });
   } catch (error: unknown) {
     if (error instanceof DOMException && error.name === "AbortError") {
@@ -60,10 +79,9 @@ export async function pickSaveTarget(suggestedName: string): Promise<ExportTarge
     fileName: handle.name,
     open: () => handle.createWritable(),
     file: () => handle.getFile(),
-    discard: async () => {
-      const emptying = await handle.createWritable();
-      await emptying.close();
-    },
+    // An aborted writer has already left the file as it was: File System Access writes into a
+    // swap file that only `close()` commits. A browser cannot delete the file the picker created.
+    discard: () => Promise.resolve(),
   };
 }
 

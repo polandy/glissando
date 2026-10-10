@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { Snippet } from "svelte";
   import Icon from "../components/Icon.svelte";
-  import type { IconName } from "../icons";
+  import type { IconName } from "../../ui-kit/icons";
 
   /** A whole-view message in the Immich browser: loading, failing, empty, nothing matching. */
   let {

@@ -98,6 +98,9 @@ export function mountScreen(
     newVideoExport: () => {
       throw new Error("the video export sheet is not opened in these tests");
     },
+    newHtmlExport: () => {
+      throw new Error("the web page export sheet is not opened in these tests");
+    },
     mousePointer,
     saving,
   });

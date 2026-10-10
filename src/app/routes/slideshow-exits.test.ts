@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { SlideshowNotFoundError, type StoredSlideshow } from "../../library/stored-slideshow";
 import { MemoryLibraryStore } from "../../library/testing/memory-store";
 import { SlideshowEditor } from "../editing/slideshow-editor";
-import { FakeScheduler } from "../testing/fake-scheduler";
+import { FakeScheduler } from "../../ui-kit/testing/fake-scheduler";
 import { Toaster, type ToastMessage } from "../toast/toaster";
 import { deleteShownSlideshow, leaveWithToast } from "./slideshow-exits";
 

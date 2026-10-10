@@ -37,7 +37,8 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
   the user reordered, "Own order" (with "drag or tap", narrow: "tap to reorder"); right of the
   count "Add pictures" (narrow: "Add"; Adding pictures, below). Beside it an
   info panel: title with a ✎ button, date range (earliest to latest capture), "Play", below it
-  "Save as video" (the video export sheet, `dev-docs/VIDEO_EXPORT.md`) and the
+  the "Save as" row with "Video" (the video export sheet, `dev-docs/VIDEO_EXPORT.md`) and "Web
+  page" (the web page export sheet, `dev-docs/HTML_EXPORT.md`) side by side, and the
   facts — pictures, duration (with "· music 0:44" beside it, muted, when the slideshow does not
   end with the music's excerpt), music (with music a button spanning the row: the file name,
   below it "whole track", or once changed in the music editor "0:12–2:30 · fades in and out",
@@ -422,6 +423,10 @@ container's log, never in the app.
 IndexedDB library, and builds the `Navigator` over `window.history` and the `Toaster`
 over real timers.
 
+- **Shared UI helpers**: `src/ui-kit/` holds the framework-free pieces that both the app and the
+  exported web page's script (`src/export-player/`, HTML_EXPORT.md) use: the icon table, the
+  `Scheduler` port, the reduced-motion query, fullscreen, the controls' visibility and the caption
+  inset above them. Neither side imports the other.
 - **App shell** (ADR-0011): `index.html` paints the header bar with the brand, the logo where the
   start screen has its mark, and the status strip before any script runs. Once the app has
   mounted, `main.ts` hands over (`shell/app-shell.ts`): the shell fades out over the app in

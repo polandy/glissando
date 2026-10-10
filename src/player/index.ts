@@ -6,9 +6,17 @@ export {
   createMusicAudioContext,
   performanceClock,
 } from "./browser/platform";
-export { MusicOutput } from "./browser/music-output";
+export {
+  MusicOutput,
+  type CreateMusicAudioContext,
+  type GainNodeLike,
+  type MusicAudioContext,
+  type MusicVolume,
+  type VolumeElement,
+} from "./browser/music-output";
 export { captionLength, MAX_CAPTION_LENGTH, normalizeCaption, withinCaptionLimit } from "./caption";
 export { CAPTION_GLIDE_MS } from "./caption-glide";
+export { CAPTION_FONT_NAME, CAPTION_FONT_WEIGHT } from "./caption-layout";
 export { captionStyles } from "./caption-style";
 export { createFramePlayer, type FramePlayer } from "./create-frame-player";
 export { createPlayer } from "./create-player";

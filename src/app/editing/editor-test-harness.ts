@@ -6,7 +6,7 @@ import {
 } from "../../library/stored-slideshow";
 import type { PictureFocus } from "../../library/picture-focus";
 import { MemoryLibraryStore } from "../../library/testing/memory-store";
-import { FakeScheduler } from "../testing/fake-scheduler";
+import { FakeScheduler } from "../../ui-kit/testing/fake-scheduler";
 import { Toaster } from "../toast/toaster";
 import { SlideshowEditor } from "./slideshow-editor";
 

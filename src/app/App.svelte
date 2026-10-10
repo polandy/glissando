@@ -233,6 +233,7 @@
       {exportProgress}
       onExport={() => void exportJob.start(slideshowId)}
       videoExport={services.videoExport}
+      htmlExport={services.htmlExport}
       playing={route.screen === "player"}
       editingPictureId={route.screen === "picture" ? route.pictureId : null}
       editingMusic={route.screen === "music"}

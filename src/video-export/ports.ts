@@ -50,6 +50,6 @@ export interface MuxerPort {
 
 /** Where the file goes. */
 export interface FileSink {
-  /** Removes the partial file, or empties it where it cannot be removed. */
+  /** Removes a private partial file; a picked file keeps what it held, its writer aborted. */
   discard(): Promise<void>;
 }

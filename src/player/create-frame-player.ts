@@ -1,7 +1,8 @@
 import { BitmapLoader, type BitmapPicture } from "./browser/bitmap-loader";
 import type { OpenPicture } from "./browser/picture-loader";
 import { animationFrames, performanceClock } from "./browser/platform";
-import { startPictureDecodeWorker, WorkerPictureDecoder } from "./browser/worker-picture-decoder";
+import { startPictureDecodeWorker } from "./browser/start-picture-decode-worker";
+import { WorkerPictureDecoder } from "./browser/worker-picture-decoder";
 import type { Size } from "./ken-burns";
 import type { Slideshow } from "./slideshow";
 import { SlideshowPlayer } from "./slideshow-player";

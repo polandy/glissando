@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { Snippet } from "svelte";
   import Icon from "../components/Icon.svelte";
-  import type { IconName } from "../icons";
+  import type { IconName } from "../../ui-kit/icons";
   import { droppedFiles } from "./dropped-files";
 
   /** Dashed area that takes files dropped on it (desktop); the buttons inside open pickers. */

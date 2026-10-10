@@ -1,4 +1,4 @@
-import type { Scheduler } from "../scheduler";
+import type { Scheduler } from "./scheduler";
 
 export const CONTROLS_HIDE_DELAY_MS = 2500;
 
