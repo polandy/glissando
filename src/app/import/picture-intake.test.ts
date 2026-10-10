@@ -6,7 +6,30 @@ import { PictureIntake } from "./picture-intake";
 
 const KNOWN = { fileName: "beach.jpg", capturedAt: "2025-07-01T10:00:00Z" };
 
+const photo = (id: string) => ({
+  id,
+  fileName: `${id}.jpg`,
+  takenAt: "2025-07-03T10:00:00Z",
+  size: { width: 400, height: 300 },
+});
+
 describe("PictureIntake", () => {
+  it("links Immich photos without downloading them, skipping ones already in", () => {
+    const { ports } = fakeIntakePorts();
+    const known = { fileName: "x.jpg", capturedAt: "2025-01-01T00:00:00Z", immichAssetId: "a" };
+    const intake = new PictureIntake(ports, [known]);
+
+    intake.linkImmichPhotos([photo("a"), photo("b")]);
+    intake.linkImmichPhotos([photo("b"), photo("c")]);
+
+    expect(intake.pictures.state.pictures.map(({ id }) => id)).toEqual(["b", "c"]);
+    expect(intake.pictures.state.pictures[0]).toMatchObject({ immichAssetId: "b", width: 400 });
+    expect(intake.pictures.state.skipped).toEqual([
+      { fileName: "a.jpg", reason: "alreadyIn" },
+      { fileName: "b.jpg", reason: "chosenTwice" },
+    ]);
+  });
+
   it("skips a picture already known as a duplicate, before reading it", async () => {
     const { ports } = fakeIntakePorts();
     const intake = new PictureIntake(ports, [KNOWN]);

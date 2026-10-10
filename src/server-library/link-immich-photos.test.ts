@@ -51,7 +51,7 @@ describe("linkImmichPhotos", () => {
     });
   });
 
-  it("skips photos already in the slideshow or picked twice, and counts them (ADR-0016)", () => {
+  it("skips photos already in the slideshow or picked twice, and names them (ADR-0016)", () => {
     const existing = [
       { fileName: "x.jpg", capturedAt: "2025-01-01T00:00:00Z", immichAssetId: "asset-1" },
     ];
@@ -62,6 +62,9 @@ describe("linkImmichPhotos", () => {
     );
 
     expect(linked.pictures.map((picture) => picture.id)).toEqual(["asset-2"]);
-    expect(linked.skipped).toBe(2);
+    expect(linked.skipped).toEqual([
+      { fileName: "asset-1.jpg", reason: "alreadyIn" },
+      { fileName: "asset-2.jpg", reason: "chosenTwice" },
+    ]);
   });
 });

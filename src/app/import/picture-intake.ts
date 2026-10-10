@@ -8,6 +8,7 @@ import {
 import type { PictureSource } from "../../import/picture-source";
 import type { PictureIdentity } from "../../library/picture-identity";
 import type { LibraryStore } from "../../library/stored-slideshow";
+import { linkImmichPhotos } from "../../server-library/link-immich-photos";
 
 export interface PictureIntakePorts extends LocalPictureReaders {
   readonly store: Pick<
@@ -76,6 +77,16 @@ export class PictureIntake {
   addImmichPhotos(photos: readonly ImmichPhoto[]): void {
     this.pictures.add(photos.map((photo) => this.#ports.immichSource(photo)));
     this.#watchDrain();
+  }
+
+  /** Links Immich photos for a server slideshow: listed at once, nothing downloaded. */
+  linkImmichPhotos(photos: readonly ImmichPhoto[]): void {
+    const { pictures, skipped } = linkImmichPhotos(
+      photos,
+      this.#known,
+      this.pictures.state.pictures,
+    );
+    this.pictures.link(pictures, skipped);
   }
 
   /** Takes the pictures skipped as duplicates for `reason` in after all. */

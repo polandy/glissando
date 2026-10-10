@@ -184,7 +184,14 @@ const services = {
   focusPass,
   immich: { client: immichClient, availability: immichAvailability },
   serverLibrary,
-  newImportSession: () => new ImportSession({ ...intakePorts, store, probeMusic }),
+  newImportSession: () =>
+    new ImportSession({
+      ...intakePorts,
+      store,
+      probeMusic,
+      createOnServer: (slideshow, musicAudio) =>
+        serverLibrary.createSlideshow(slideshow, musicAudio),
+    }),
   newAddPicturesSession: (slideshow: StoredSlideshow) =>
     new AddPicturesSession(slideshow, { ...intakePorts, store }),
   newId,

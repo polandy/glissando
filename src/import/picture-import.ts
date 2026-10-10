@@ -136,6 +136,20 @@ export class PictureImport {
     );
   }
 
+  /**
+   * Lists pictures that are linked rather than stored, such as Immich photos of a server
+   * slideshow, with those skipped while linking them; nothing is read or written.
+   */
+  link(pictures: readonly StoredPicture[], skipped: readonly SkippedFile[]): void {
+    const count = pictures.length + skipped.length;
+    this.#update({
+      total: this.#state.total + count,
+      done: this.#state.done + count,
+      pictures: orderByCaptureDate([...this.#state.pictures, ...pictures]),
+      skipped: [...this.#state.skipped, ...skipped],
+    });
+  }
+
   #enqueue(entries: readonly Queued[], change: Partial<PictureImportState>): void {
     this.#queue.push(...entries);
     this.#update({

@@ -29,6 +29,7 @@ function session(): ImportSession {
       throw new Error("no Immich download in this test");
     },
     probeMusic: () => Promise.reject(new Error("no music in this test")),
+    createOnServer: () => Promise.reject(new Error("no server in this test")),
     newId: () => `id-${nextId++}`,
     now: () => new Date(0),
     onError: () => undefined,
