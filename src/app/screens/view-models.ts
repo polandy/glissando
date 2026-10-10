@@ -12,6 +12,13 @@ export interface SlideshowSummary {
   readonly hasMusic: boolean;
 }
 
+/** The library's section of server slideshows (`dev-docs/SERVER_LIBRARY.md`, Library). */
+export interface ServerShelf {
+  /** The device cannot reach the server: the cards show what it remembers, greyed out. */
+  readonly offline: boolean;
+  readonly slideshows: readonly SlideshowSummary[];
+}
+
 export interface PictureTile {
   readonly id: string;
   readonly thumbnailUrl: string;

@@ -9,11 +9,12 @@
   import type { OpenNotice as OpenNoticeModel } from "../glissando-file/open-flow";
   import OpenNotice from "../glissando-file/OpenNotice.svelte";
   import { getTranslator } from "../i18n/context";
-  import FocusSearchLine from "./FocusSearchLine.svelte";
-  import type { SlideshowSummary } from "./view-models";
+  import SlideshowCard from "./SlideshowCard.svelte";
+  import type { ServerShelf, SlideshowSummary } from "./view-models";
 
   let {
     slideshows,
+    server = null,
     focusSearches,
     onCreate,
     onOpen,
@@ -27,6 +28,8 @@
   }: {
     /** Newest first. */
     slideshows: readonly SlideshowSummary[];
+    /** The server's slideshows; null while the server library is off. */
+    server?: ServerShelf | null;
     /** The slideshows the background pass is still searching subjects in, by id. */
     focusSearches: ReadonlyMap<string, SlideshowSearch>;
     onCreate: () => void;
@@ -43,7 +46,7 @@
     statusBar: Snippet;
   } = $props();
 
-  const { t, formatDuration } = getTranslator();
+  const { t } = getTranslator();
   let picker: GlissandoFilePicker;
   let dragging = $state(false);
 </script>
@@ -63,7 +66,7 @@
       <Icon name="gear" />
     </button>
     <!-- An empty library has the large button in the hero instead. -->
-    {#if slideshows.length > 0}
+    {#if slideshows.length > 0 || server !== null}
       <button class="btn primary" type="button" onclick={onCreate}>
         <Icon name="plus" />{t("start.newSlideshow")}
       </button>
@@ -85,7 +88,7 @@
     {#if logo}
       <div class="logo">{@render logo()}</div>
     {/if}
-    {#if slideshows.length === 0}
+    {#if slideshows.length === 0 && server === null}
       <div class="hero">
         <h1 class="title">{t("start.heroTitle")}</h1>
         <p class="lead">{t("start.heroText")}</p>
@@ -100,7 +103,13 @@
       <div class="head">
         <div>
           <div class="eyebrow">{t("start.library")}</div>
-          <h1 class="title">{t("start.yourSlideshows")}</h1>
+          <h1 class="title" class:section={server !== null}>
+            {#if server === null}
+              {t("start.yourSlideshows")}
+            {:else}
+              <Icon name="device" />{t("server.sectionDevice")}
+            {/if}
+          </h1>
         </div>
         <button class="btn" type="button" onclick={() => picker.pick()}>
           <Icon name="open" />{t("glissandoFile.openFile")}
@@ -108,40 +117,44 @@
       </div>
       <ul class="grid">
         {#each slideshows as slideshow (slideshow.id)}
-          {@const search = focusSearches.get(slideshow.id)}
           <li>
-            <button class="show" type="button" onclick={() => onOpen(slideshow.id)}>
-              <span class="cover pictures-{slideshow.coverUrls.length}">
-                {#each slideshow.coverUrls as coverUrl, index (index)}
-                  <img src={coverUrl} alt="" />
-                {/each}
-              </span>
-              <span class="meta">
-                <span class="name">{slideshow.title}</span>
-                <span class="facts">
-                  <span class="mono">
-                    {t("units.pictures", { count: slideshow.pictureCount })}
-                  </span>
-                  <span class="mono">{formatDuration(slideshow.durationSeconds)}</span>
-                  {#if slideshow.hasMusic}
-                    <span class="music" role="img" aria-label={t("start.withMusic")}>
-                      <Icon name="music" />
-                    </span>
-                  {/if}
-                </span>
-                {#if search !== undefined}
-                  <FocusSearchLine {search} />
-                {/if}
-              </span>
-            </button>
+            <SlideshowCard {slideshow} search={focusSearches.get(slideshow.id)} {onOpen} />
           </li>
         {/each}
-        <li>
-          <button class="new" type="button" onclick={onCreate}>
-            <Icon name="plus" />{t("start.newSlideshow")}
-          </button>
-        </li>
+        {#if server === null}
+          <li>
+            <button class="new" type="button" onclick={onCreate}>
+              <Icon name="plus" />{t("start.newSlideshow")}
+            </button>
+          </li>
+        {/if}
       </ul>
+      {#if server !== null}
+        <section class="shelf" aria-labelledby="server-shelf">
+          <h2 class="title section" id="server-shelf">
+            <Icon name="server" />{t("server.sectionServer")}
+          </h2>
+          <p class="lead">
+            {#if server.offline}
+              <Icon name="cloudOff" />{t("server.sectionOffline")}
+            {:else}
+              {t("server.sectionLead")}
+            {/if}
+          </p>
+          <ul class="grid">
+            {#each server.slideshows as slideshow (slideshow.id)}
+              <li>
+                <SlideshowCard {slideshow} onServer offline={server.offline} {onOpen} />
+              </li>
+            {/each}
+            <li>
+              <button class="new" type="button" onclick={onCreate}>
+                <Icon name="plus" />{t("start.newSlideshow")}
+              </button>
+            </li>
+          </ul>
+        </section>
+      {/if}
     {/if}
     {#if dragging}
       <DropLayer />
@@ -188,71 +201,25 @@
   .grid li {
     display: grid;
   }
-  .show {
-    display: grid;
-    padding: 0;
-    overflow: hidden;
-    border: 1px solid var(--gl-line);
-    border-radius: var(--gl-radius-large);
-    background: var(--gl-surface);
-    color: inherit;
-    text-align: left;
-    cursor: pointer;
-    transition:
-      transform 0.15s,
-      box-shadow 0.15s;
-  }
-  .show:hover {
-    box-shadow: var(--gl-shadow);
-    transform: translateY(-1px);
-  }
-  /* One large picture and two small ones; fewer pictures take the free cells. */
-  .cover {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    grid-template-rows: 1fr 1fr;
-    gap: 2px;
-    aspect-ratio: 16 / 10;
-    background: var(--gl-line);
-  }
-  .cover img {
-    width: 100%;
-    height: 100%;
-    min-height: 0;
-    object-fit: cover;
-  }
-  .cover img:first-child {
-    grid-row: 1 / 3;
-  }
-  .pictures-1 img:first-child {
-    grid-column: 1 / 3;
-  }
-  .pictures-2 img:last-child {
-    grid-row: 1 / 3;
-  }
-  .meta {
-    display: grid;
-    gap: 4px;
-    padding: 12px 14px 14px;
-  }
-  .name {
-    overflow: hidden;
-    font-family: var(--gl-font-display);
-    font-weight: var(--gl-weight-title);
-    font-size: var(--gl-size-name);
-    letter-spacing: var(--gl-tracking-title);
-    white-space: nowrap;
-    text-overflow: ellipsis;
-  }
-  .facts {
+  .section {
     display: flex;
     align-items: center;
     gap: 10px;
+  }
+  .shelf {
+    display: grid;
+    gap: 12px;
+    margin-top: 16px;
+  }
+  .shelf .title,
+  .shelf .lead {
+    margin: 0;
+  }
+  .shelf .lead {
+    display: flex;
+    gap: 8px;
     color: var(--gl-muted);
     font-size: var(--gl-size-meta);
-  }
-  .music {
-    display: flex;
     --gl-icon-size: var(--gl-size-icon-small);
   }
   .new {
@@ -277,11 +244,6 @@
     .grid {
       grid-template-columns: 1fr;
       gap: 14px;
-    }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .show {
-      transition: none;
     }
   }
 </style>

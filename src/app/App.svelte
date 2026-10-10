@@ -168,6 +168,7 @@
 {#if route.screen === "start" || route.screen === "settings"}
   <StartRoute
     {store}
+    serverLibrary={services.serverLibrary}
     focusPass={services.focusPass}
     playStartAnimation={logoPlays}
     onError={reportError}

@@ -1,10 +1,12 @@
 import type { ImmichAvailabilityState } from "../immich/immich-availability";
 import { ServerLibraryUnavailableError, type ServerLibraryClient } from "./server-library-client";
+import type { ServerLibraryMemory } from "./server-library-memory";
 
 /**
  * Whether the app offers server slideshows (`dev-docs/SERVER_LIBRARY.md`, Availability):
  * - `on`: the server answers the library's discovery and Immich is available;
- * - `offline`: the device is offline, and the last answer this session was the discovery;
+ * - `offline`: the device is offline, and the last answer was the discovery — this session's, or
+ *   before it, the one this device remembers;
  * - `off`: otherwise; the app is as without server slideshows;
  * - `checking`: until Immich and the first discovery have answered.
  */
@@ -22,6 +24,8 @@ export interface ImmichAvailabilitySource {
 export interface ServerLibraryAvailabilityOptions {
   readonly client: Pick<ServerLibraryClient, "discover">;
   readonly immich: ImmichAvailabilitySource;
+  /** Whether the library was on, kept across app starts. */
+  readonly memory: Pick<ServerLibraryMemory, "wasOn" | "rememberOn">;
   /** Logs a discovery that failed unexpectedly. */
   log(error: unknown): void;
 }
@@ -39,6 +43,9 @@ const NOT_ASKING: ReadonlySet<ImmichAvailabilityState["kind"]> = new Set(["check
 export class ServerLibraryAvailability {
   readonly #client: Pick<ServerLibraryClient, "discover">;
   readonly #log: (error: unknown) => void;
+  readonly #memory: Pick<ServerLibraryMemory, "wasOn" | "rememberOn">;
+  /** The answer this device remembers from before this session; counts only while offline. */
+  readonly #remembered: Discovery;
   readonly #listeners = new Set<(state: ServerLibraryState) => void>();
   readonly #pending = new Set<Promise<void>>();
   readonly #stopFollowingImmich: () => void;
@@ -51,6 +58,8 @@ export class ServerLibraryAvailability {
   constructor(options: ServerLibraryAvailabilityOptions) {
     this.#client = options.client;
     this.#log = options.log;
+    this.#memory = options.memory;
+    this.#remembered = options.memory.wasOn() ? "discovered" : "unknown";
     this.#stopFollowingImmich = options.immich.subscribe((state) => {
       this.#immich = state;
       if (!NOT_ASKING.has(state.kind)) this.#ask();
@@ -90,7 +99,9 @@ export class ServerLibraryAvailability {
 
   async #discover(): Promise<Discovery> {
     try {
-      return (await this.#client.discover()) ? "discovered" : "absent";
+      const discovered = await this.#client.discover();
+      this.#memory.rememberOn(discovered);
+      return discovered ? "discovered" : "absent";
     } catch (error) {
       if (error instanceof ServerLibraryUnavailableError) {
         return this.#discovery === "unknown" ? "absent" : this.#discovery;
@@ -111,6 +122,9 @@ export class ServerLibraryAvailability {
     const immich = this.#immich.kind;
     if (immich === "checking" || (this.#discovery === "unknown" && this.#pending.size > 0)) {
       return { kind: "checking" };
+    }
+    if (immich === "offline" && this.#discovery === "unknown") {
+      return this.#remembered === "discovered" ? { kind: "offline" } : { kind: "off" };
     }
     if (this.#discovery !== "discovered") return { kind: "off" };
     if (immich === "available") return { kind: "on" };

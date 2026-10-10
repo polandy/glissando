@@ -5,12 +5,16 @@
   import { browserObjectUrls, ObjectUrls } from "../media/object-urls";
   import type { OpenNotice } from "../glissando-file/open-flow";
   import StartScreen from "../screens/StartScreen.svelte";
-  import type { SlideshowSummary } from "../screens/view-models";
+  import type { ServerShelf, SlideshowSummary } from "../screens/view-models";
+  import type { ServerLibrary } from "../../server-library/server-library";
+  import { PictureMissingFromImmichError } from "../../server-library/server-slideshow-store";
+  import { loadServerShelf } from "./server-shelf-loading";
   import StartLogo from "../start/StartLogo.svelte";
   import { loadStartSlideshows } from "./route-loading";
 
   let {
     store,
+    serverLibrary,
     focusPass,
     playStartAnimation,
     onError,
@@ -24,6 +28,8 @@
     statusBar,
   }: {
     store: LibraryStore;
+    /** Its slideshows show in their own section while it is on or offline. */
+    serverLibrary: Pick<ServerLibrary, "availability" | "store" | "memory">;
     /** Its progress per slideshow shows on the cards. */
     focusPass: Pick<FocusPass, "state" | "subscribe">;
     playStartAnimation: boolean;
@@ -50,6 +56,20 @@
     onError,
   });
 
+  let server = $state.raw<ServerShelf | null>(null);
+  /** Bumped by every availability change, so only the latest shelf load shows. */
+  let shelfLoads = 0;
+  // The server library is fixed for the screen's lifetime.
+  // svelte-ignore state_referenced_locally
+  const serverCovers = new ObjectUrls({
+    ...browserObjectUrls,
+    load: (id) => serverLibrary.store.thumbnailBlob(id),
+    // A picture no longer in Immich leaves its cover cell out; the slideshow's screen tells.
+    onError: (error) => {
+      if (!(error instanceof PictureMissingFromImmichError)) onError(error);
+    },
+  });
+
   const left = new AbortController();
 
   onMount(() => {
@@ -59,11 +79,25 @@
         slideshows = loaded;
       }
     }, onError);
-    return stopFocus;
+    const stopServer = serverLibrary.availability.subscribe(({ kind }) => {
+      const load = ++shelfLoads;
+      if (kind !== "on" && kind !== "offline") {
+        server = null;
+        return;
+      }
+      loadServerShelf(kind, serverLibrary, serverCovers, left.signal).then((loaded) => {
+        if (loaded !== null && load === shelfLoads) server = loaded;
+      }, onError);
+    });
+    return () => {
+      stopFocus();
+      stopServer();
+    };
   });
   onDestroy(() => {
     left.abort();
     covers.dispose();
+    serverCovers.dispose();
   });
 </script>
 
@@ -76,6 +110,7 @@
        first-launch animation even over a filled one. -->
   <StartScreen
     {slideshows}
+    {server}
     focusSearches={passState.slideshows}
     {onCreate}
     {onOpen}

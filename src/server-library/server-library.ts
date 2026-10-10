@@ -8,11 +8,14 @@ import {
   type ImmichAvailabilitySource,
 } from "./server-library-availability";
 import type { ServerLibraryClient } from "./server-library-client";
+import type { ServerLibraryMemory } from "./server-library-memory";
 import { ServerSlideshowStore } from "./server-slideshow-store";
 
 /** Slideshows on the Glissando server, as the app uses them (`dev-docs/SERVER_LIBRARY.md`). */
 export interface ServerLibrary {
   readonly availability: ServerLibraryAvailability;
+  /** What this device keeps of the library for when the server is away. */
+  readonly memory: ServerLibraryMemory;
   /** The server's slideshows behind the store slices the screens and the player use. */
   readonly store: ServerSlideshowStore;
   /** Creates a server slideshow (`createServerSlideshow`); its music's audio first. */
@@ -26,6 +29,7 @@ export interface ServerLibrary {
 export interface ServerLibraryDependencies {
   readonly client: ServerLibraryClient;
   readonly immichAvailability: ImmichAvailabilitySource;
+  readonly memory: ServerLibraryMemory;
   /** Reads Immich's pictures as the import does. */
   readonly immich: ImmichPictureReaders;
   /** The device's store: the music saved on the server comes from it, copies go into it. */
@@ -50,8 +54,10 @@ export function createServerLibrary(dependencies: ServerLibraryDependencies): Se
     availability: new ServerLibraryAvailability({
       client,
       immich: dependencies.immichAvailability,
+      memory: dependencies.memory,
       log,
     }),
+    memory: dependencies.memory,
     store,
     createSlideshow: (slideshow, musicAudio) =>
       createServerSlideshow(slideshow, musicAudio, client),

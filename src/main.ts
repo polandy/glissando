@@ -42,6 +42,7 @@ import { createStorageHintDismissalStore, PwaStatus } from "./pwa/pwa-status";
 import { sweepPrivateExports } from "./video-export";
 import { HttpServerLibraryClient } from "./server-library/http-server-library-client";
 import { createServerLibrary } from "./server-library/server-library";
+import { createStorageServerLibraryMemory } from "./server-library/server-library-memory";
 import { browserHtmlExportDevice } from "./app/html-export/browser-html-export-device";
 import { browserVideoExportDevice } from "./app/video-export/browser-video-export-device";
 
@@ -146,6 +147,7 @@ const serverLibrary = createServerLibrary({
     fetch: window.fetch.bind(window),
   }),
   immichAvailability,
+  memory: createStorageServerLibraryMemory(window.localStorage, logError),
   immich: immichReaders,
   deviceStore: store,
   newId,

@@ -3,6 +3,8 @@ import type { ImmichAvailabilityState } from "../immich/immich-availability";
 import type { ImmichStatus } from "../immich/immich-client";
 import { ServerLibraryAvailability, type ServerLibraryState } from "./server-library-availability";
 import { ServerLibraryUnavailableError } from "./server-library-client";
+import { createMemoryStorage } from "../app/testing/memory-storage";
+import { createStorageServerLibraryMemory, type ServerLibraryMemory } from "./server-library-memory";
 
 const AVAILABLE: ImmichStatus = { kind: "available", version: "3.3.1", albumCount: 2 };
 
@@ -52,13 +54,18 @@ class FakeDiscovery {
   };
 }
 
-function setUp() {
+function newMemory(): ServerLibraryMemory {
+  return createStorageServerLibraryMemory(createMemoryStorage(), () => undefined);
+}
+
+function setUp(memory: ServerLibraryMemory = newMemory()) {
   const immich = new FakeImmichAvailability();
   const client = new FakeDiscovery();
   const logged: unknown[] = [];
   const availability = new ServerLibraryAvailability({
     client,
     immich,
+    memory,
     log: (error) => logged.push(error),
   });
   const seen: ServerLibraryState["kind"][] = [];
@@ -138,6 +145,53 @@ describe("ServerLibraryAvailability", () => {
 
     expect(availability.state).toEqual({ kind: "off" });
     expect(client.calls).toBe(0);
+  });
+
+  it("is offline when the app starts offline on a device that last saw the library on", async () => {
+    const memory = newMemory();
+    memory.rememberOn(true);
+    const { availability, client, immichAnswers } = setUp(memory);
+
+    await immichAnswers({ kind: "offline" });
+
+    expect(availability.state).toEqual({ kind: "offline" });
+    expect(client.calls).toBe(0);
+  });
+
+  it("stays checking online until the discovery answers, even when the library was on", async () => {
+    const memory = newMemory();
+    memory.rememberOn(true);
+    const { availability, client, immich } = setUp(memory);
+    const answer = client.hold();
+
+    immich.publish(AVAILABLE);
+
+    expect(availability.state).toEqual({ kind: "checking" });
+    answer(true);
+    await availability.settled();
+    expect(availability.state).toEqual({ kind: "on" });
+  });
+
+  it("remembers on this device what the discovery answered", async () => {
+    const memory = newMemory();
+    const { client, immichAnswers } = setUp(memory);
+    client.answers.push(true, false);
+
+    await immichAnswers(AVAILABLE);
+    expect(memory.wasOn()).toBe(true);
+    await immichAnswers(AVAILABLE);
+    expect(memory.wasOn()).toBe(false);
+  });
+
+  it("keeps the memory when the server cannot be reached", async () => {
+    const memory = newMemory();
+    memory.rememberOn(true);
+    const { client, immichAnswers } = setUp(memory);
+    client.answers.push(new ServerLibraryUnavailableError("unreachable"));
+
+    await immichAnswers(AVAILABLE);
+
+    expect(memory.wasOn()).toBe(true);
   });
 
   it("asks again whenever Immich's availability is checked", async () => {
