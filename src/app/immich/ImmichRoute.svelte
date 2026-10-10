@@ -11,12 +11,23 @@
   import { browserEndObserver, type EndObserver } from "./end-observer";
   import type { BrowserTab, ImmichBrowser } from "./immich-browser";
   import ImmichFooter from "./ImmichFooter.svelte";
-  import { albumsWithSelection, filterAlbums, selectionSummary } from "./immich-view";
+  import {
+    albumsWithSelection,
+    filterAlbums,
+    NOTHING_ALREADY_IN,
+    selectionSummary,
+    type AlreadyIn,
+  } from "./immich-view";
   import PhotoFeedView from "./PhotoFeedView.svelte";
 
-  /** The Immich browser: All photos and Albums, or one album; picks join the import on Add. */
+  /**
+   * The Immich browser: All photos and Albums, or one album; picks join the pictures being taken
+   * in on Add.
+   */
   let {
     browser,
+    parentCrumbs,
+    alreadyIn = NOTHING_ALREADY_IN,
     albumId,
     thumbnailUrl,
     onBack,
@@ -27,6 +38,10 @@
     observeEnd = browserEndObserver,
   }: {
     browser: ImmichBrowser;
+    /** The crumbs of the screen it was opened from. */
+    parentCrumbs: readonly string[];
+    /** Photos already in the slideshow or already taken in: shown, never selected. */
+    alreadyIn?: AlreadyIn;
     /** One album's photos; the tabs without it. */
     albumId: string | null;
     thumbnailUrl: (photoId: string) => string;
@@ -58,8 +73,7 @@
     selectionSummary(selected.length, albumsWithSelection(browserState.membership, selectedIds)),
   );
   const crumbs = $derived([
-    t("import.crumb"),
-    t("import.crumbPictures"),
+    ...parentCrumbs,
     t("immich.name"),
     ...(album === null ? [] : [album.name]),
   ]);
@@ -74,7 +88,7 @@
   }
 
   function toggleAlbum(target: ImmichAlbum): void {
-    browser.toggleAlbum(target.id).catch(onError);
+    browser.toggleAlbum(target.id, alreadyIn).catch(onError);
   }
 
   function retryAlbums(): void {
@@ -92,6 +106,7 @@
   <PhotoFeedView
     {feed}
     {selectedIds}
+    {alreadyIn}
     {thumbnailUrl}
     {observeEnd}
     onToggle={(photo, shown) =>
@@ -114,6 +129,7 @@
           busy={browserState.busyAlbumIds.has(album.id)}
           failure={browserState.albumFailures.get(album.id) ?? null}
           {selectedIds}
+          {alreadyIn}
           onToggleAll={() => toggleAlbum(album)}
           {feedView}
         />
@@ -178,6 +194,7 @@
             busyAlbumIds={browserState.busyAlbumIds}
             albumFailures={browserState.albumFailures}
             {selectedIds}
+            {alreadyIn}
             {thumbnailUrl}
             onOpen={onOpenAlbum}
             onToggle={toggleAlbum}

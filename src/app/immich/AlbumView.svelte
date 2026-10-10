@@ -5,7 +5,12 @@
   import type { PhotoFeed } from "../../immich/photo-feed";
   import { getTranslator } from "../i18n/context";
   import BrowseState from "./BrowseState.svelte";
-  import { albumPick, browseFailureMessages, type AlbumMembership } from "./immich-view";
+  import {
+    albumPick,
+    browseFailureMessages,
+    type AlbumMembership,
+    type AlreadyIn,
+  } from "./immich-view";
 
   /** One album: its name, Select all n / Select none, then its photos by day. */
   let {
@@ -15,6 +20,7 @@
     busy,
     failure,
     selectedIds,
+    alreadyIn,
     onToggleAll,
     feedView,
   }: {
@@ -25,14 +31,15 @@
     /** Why the last Select all failed, or null; the button tries again. */
     failure: BrowseFailure | null;
     selectedIds: ReadonlySet<string>;
+    alreadyIn: AlreadyIn;
     onToggleAll: () => void;
     feedView: Snippet<[PhotoFeed]>;
   } = $props();
 
   const { t } = getTranslator();
-  const pick = $derived(albumPick(membership, selectedIds));
+  const pick = $derived(albumPick(membership, selectedIds, alreadyIn));
   /** Known once every page is read; until then the album's count still includes its videos. */
-  const photoCount = $derived(membership?.complete ? membership.photoIds.size : null);
+  const photoCount = $derived(membership?.complete ? membership.photos.size : null);
   const videosHidden = $derived(photoCount === null ? 0 : album.photoCount - photoCount);
   const empty = $derived(album.photoCount === 0 || photoCount === 0);
 </script>
@@ -45,12 +52,13 @@
     <span class="count">
       <span class="mono">{t("immich.photos", { count: photoCount ?? album.photoCount })}</span>
       {#if videosHidden > 0}· {t("immich.videosHidden", { count: videosHidden })}{/if}
+      {#if pick.alreadyIn > 0}· {t("immich.albumAlreadyIn", { count: pick.alreadyIn })}{/if}
     </span>
     <button class="btn small" type="button" disabled={busy} onclick={onToggleAll}>
       {#if pick.all}
         {t("immich.selectNone")}
       {:else if photoCount !== null}
-        {t("immich.selectAll", { count: photoCount })}
+        {t("immich.selectAll", { count: photoCount - pick.alreadyIn })}
       {:else}
         {t("immich.selectAllUncounted")}
       {/if}

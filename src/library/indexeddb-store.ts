@@ -32,6 +32,7 @@ import {
   upgradeLibraryDatabase,
   type StoreName,
 } from "./indexeddb-schema";
+import { editSlideshowRecord } from "./indexeddb-edit";
 import type { PictureFocus } from "./picture-focus";
 
 export { LIBRARY_DATABASE_NAME } from "./indexeddb-schema";
@@ -73,27 +74,15 @@ export class IndexedDbLibraryStore implements LibraryStore {
     });
   }
 
-  /** Reads and writes in one transaction, so a deletion in another tab cannot interleave. */
-  updateSlideshow(slideshow: StoredSlideshow): Promise<void> {
-    let found = true;
-    const updated = this.#update([SLIDESHOWS], (transaction) => {
-      const slideshows = transaction.objectStore(SLIDESHOWS);
-      const existing = slideshows.getKey(slideshow.id);
-      existing.onsuccess = () => {
-        if (existing.result === undefined) {
-          found = false;
-          return;
-        }
-        slideshows.put(slideshow);
-        // The last request is placed: commit before a reload can abort the edit.
-        transaction.commit();
-      };
-    });
-    return updated.then(() => {
-      if (!found) {
-        throw new SlideshowNotFoundError(slideshow.id);
-      }
-    });
+  async updateSlideshow(slideshow: StoredSlideshow): Promise<void> {
+    await this.updateSlideshowWith(slideshow.id, () => slideshow);
+  }
+
+  updateSlideshowWith(
+    id: string,
+    edit: (current: StoredSlideshow) => StoredSlideshow,
+  ): Promise<StoredSlideshow> {
+    return editSlideshowRecord(this.#database, id, edit);
   }
 
   async listSlideshows(): Promise<readonly StoredSlideshow[]> {

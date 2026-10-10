@@ -117,6 +117,20 @@ describe("writeGlissandoFile", () => {
     expect(automatic).not.toHaveProperty("transition");
   });
 
+  it("keeps each picture's origin, the Immich asset id or the file size", async () => {
+    const store = new MemoryLibraryStore();
+    const created = await writeGlissandoFile(await checked(), ports(store), {
+      existingTitles: [],
+      signal: new AbortController().signal,
+    });
+
+    const [withFileSize, withImmichId] = (await store.getSlideshow(created.id)).pictures;
+    expect(withImmichId).toMatchObject({ fileName: "a.jpg", immichAssetId: "asset-a1" });
+    expect(withImmichId).not.toHaveProperty("fileBytes");
+    expect(withFileSize).toMatchObject({ fileName: "b.jpg", fileBytes: 2_500_000 });
+    expect(withFileSize).not.toHaveProperty("immichAssetId");
+  });
+
   it("keeps the slideshow's default transition", async () => {
     const store = new MemoryLibraryStore();
     const created = await writeGlissandoFile(await checked(), ports(store), {

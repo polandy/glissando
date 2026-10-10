@@ -25,6 +25,17 @@ ADR-0003; file container: ADR-0004.
   Immich's `localDateTime` (wall time with `Z`, as above). A photo whose download fails (Immich or
   the server gone meanwhile) is skipped as _not downloaded_; the import goes on. Files and Immich
   photos are two `PictureSource` adapters of the one `PictureImport`.
+- **Origin** (ADR-0016): a picture keeps `immichAssetId` (from Immich) or `fileBytes` (a file's
+  size). **Duplicates**: before a picture is read, its identity (`PictureSource.identify()`: file
+  name, capture date and origin; a file reads only its EXIF for it) is compared by `isSamePicture`
+  with the pictures it is added to and those this import took in. A match with the former is
+  skipped as _alreadyIn_, one with the latter as _chosenTwice_; both are kept, so
+  `addDuplicates(reason)` can take those of one reason in after all.
+- **Adding to a slideshow**: the same import, given the slideshow's pictures as the known ones;
+  `addPictures` puts the stored ones into the record (by capture date, or at the end with
+  `ownOrder`; an id already in it is skipped) in one `updateSlideshowWith`, which reads and
+  writes the record in one transaction, and the import's claim is released after it. Once the
+  record is stored, a release that fails is reported and the adding still succeeds.
 
 ## Step 1 — the picture import
 
@@ -36,6 +47,8 @@ publishes a state with the Svelte store contract:
 - `pictures` lists the stored pictures in capture-date order as they arrive.
 - **Storage full** (`QuotaExceededError`): the import stops, keeps what is stored, drops the
   remaining files from `total` and reports `storageFull`. Adding files again tries again.
+- `skipped` names each skipped file with its reason (_unsupported_, _unreadable_, _not
+  downloaded_, _alreadyIn_, _chosenTwice_); a duplicate counts as done.
 - **Cancel** stops after the file in flight and clears the state.
 - Any other error ends the import as `failed`; it is never swallowed: `settled()` rejects with
   `PictureImportFailedError` (the error as its `cause`), which the app logs and shows as the
@@ -73,7 +86,8 @@ One IndexedDB database, `glissando` (schema version 3; version 1 lacked `imports
 
 Media is written while importing, the slideshow record last. Edits on the slideshow screen
 replace the record through `updateSlideshow`, which reads it in the same transaction and throws
-`SlideshowNotFoundError` when it is gone, so an edit (or an Undo) from a tab still showing a
+`SlideshowNotFoundError` when it is gone (`updateSlideshowWith(id, edit)` does the same with a pure
+edit of the record as stored), so an edit (or an Undo) from a tab still showing a
 slideshow deleted elsewhere never brings it back; that tab goes back to start with the toast
 "This slideshow no longer exists." `ownOrder` marks pictures the user reordered. A picture's
 optional `kenBurns` (`{ from, to }`, two framings as in the player's JSON: zoom 1 to
@@ -86,7 +100,8 @@ space, trimmed, at most 80 characters counted in graphemes; nothing left deletes
 picture's optional `durationMs` is how long it shows (whole ms, 2000 to 15000 in steps of 500)
 and its optional `transition` how it hands over to the next picture (one of
 `TRANSITION_CHOICES`: the player's six effects or `"cut"`); absent, each is automatic and no
-transition length is ever stored (ADR-0008). `setPictureDuration` and `setPictureTransition`
+transition length is ever stored (ADR-0008). A picture's optional `immichAssetId` or `fileBytes`
+(a positive whole number) is its origin (ADR-0016); records without them need no migration. `setPictureDuration` and `setPictureTransition`
 validate them (`checkOwnDurationMs`, `checkTransitionChoice`) and delete the field for
 `undefined`; records without them need no migration. The slideshow's optional `transition` is
 the default every picture without its own plays (one of `SLIDESHOW_TRANSITIONS`: a picture's
@@ -156,7 +171,7 @@ entries are stored, not compressed, so any unzip tool opens it; no ZIP64, so it 
 
 | Entry                  | Content                                                                |
 | ---------------------- | ---------------------------------------------------------------------- |
-| `glissando.json`       | always first: `format` "glissando", `formatVersion` 6, the `slideshow` |
+| `glissando.json`       | always first: `format` "glissando", `formatVersion` 7, the `slideshow` |
 | `pictures/0001.jpg` …  | the display renditions in play order, as stored (numbered from 0001)   |
 | `thumbnails/0001.jpg`… | their thumbnails, as stored                                            |
 | `music/track.<ext>`    | the music, extension from its file name (none when it has none)        |
@@ -164,12 +179,15 @@ entries are stored, not compressed, so any unzip tool opens it; no ZIP64, so it 
 `slideshow` is the stored record without device ids: `title`, `createdAt`, `secondsPerPicture`,
 `ownOrder` (only when true), `transition` (only when not the crossfade), `pictures` (`file`, `thumbnail`, `capturedAt`, `width`, `height`,
 `fileName`, `kenBurns` for a picture with an own motion, `caption` for one with a caption,
-`durationMs` and `transition` for one with an own duration or transition) and `music` (`file`, `fileName`, `durationMs` in whole ms, `mimeType`, and `trim`, `fadeInMs`, `fadeOutMs` where set). Picture types follow
+`durationMs` and `transition` for one with an own duration or transition, `immichAssetId` or
+`fileBytes` where known) and `music` (`file`, `fileName`, `durationMs` in whole ms, `mimeType`, and `trim`, `fadeInMs`, `fadeOutMs` where set). Picture types follow
 the extension (`jpg`, `png`, `webp`). No picture's focus travels in the file: the receiving
 device looks for it itself (ADR-0012). The manifest is read strictly: an unknown key or a value
 out of range makes the file damaged. Version 2 added `kenBurns`, version 3 `caption`, version 4
 `durationMs` and `transition`, version 5 the music's `trim`, `fadeInMs` and `fadeOutMs`,
-version 6 the slideshow's `transition`; files of versions 1 to 5 are still read (without
+version 6 the slideshow's `transition`, version 7 the pictures' `immichAssetId` or `fileBytes`
+(a picture carrying both is damaged, the reason names its path);
+files of versions 1 to 6 are still read (without
 `transition`: the crossfade), and a file carrying a field its version does not know is
 damaged. An own duration, transition, default transition, excerpt or fade is checked as on the edit; the reason
 names its path and value. A caption must be what `normalizeCaption` leaves (1 to 80 characters counted in graphemes, one line, no

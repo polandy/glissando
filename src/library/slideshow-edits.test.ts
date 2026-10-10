@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  addPictures,
+  takeOutPictures,
   LastPictureError,
   MAX_TITLE_LENGTH,
   movePicture,
@@ -189,5 +191,65 @@ describe("setPictureCaption", () => {
     const moved = movePicture(captioned, "a", 2);
 
     expect(moved.pictures[2]?.caption).toBe("Jetty");
+  });
+});
+
+describe("addPictures", () => {
+  const at = (id: string, capturedAt: string): StoredPicture => ({
+    ...picture(id),
+    capturedAt,
+  });
+  const sorted = (): StoredSlideshow =>
+    slideshow([], {
+      pictures: [at("a", "2025-07-01T10:00:00Z"), at("c", "2025-07-03T10:00:00Z")],
+    });
+
+  it("sorts the new pictures into their places by capture date while the slideshow is sorted", () => {
+    const added = addPictures(sorted(), [
+      at("d", "2025-07-04T10:00:00Z"),
+      at("b", "2025-07-02T10:00:00Z"),
+    ]);
+
+    expect(ids(added)).toEqual(["a", "b", "c", "d"]);
+    expect(added.ownOrder).toBeUndefined();
+  });
+
+  it("puts the new pictures at the end in capture order and keeps an own order", () => {
+    const own = {
+      ...sorted(),
+      pictures: [...sorted().pictures].reverse(),
+      ownOrder: true as const,
+    };
+
+    const added = addPictures(own, [
+      at("d", "2025-07-04T10:00:00Z"),
+      at("b", "2025-07-02T10:00:00Z"),
+    ]);
+
+    expect(ids(added)).toEqual(["c", "a", "b", "d"]);
+    expect(added.ownOrder).toBe(true);
+  });
+
+  it("skips a picture whose id is already in the slideshow, so adding twice adds once", () => {
+    const once = addPictures(sorted(), [at("b", "2025-07-02T10:00:00Z")]);
+
+    const twice = addPictures(once, [
+      at("b", "2025-07-02T10:00:00Z"),
+      at("d", "2025-07-04T10:00:00Z"),
+    ]);
+
+    expect(ids(twice)).toEqual(["a", "b", "c", "d"]);
+  });
+});
+
+describe("takeOutPictures", () => {
+  it("takes out the given pictures still in the slideshow and leaves the rest in order", () => {
+    const taken = takeOutPictures(slideshow(["a", "b", "c", "d"]), ["b", "d", "gone"]);
+
+    expect(ids(taken)).toEqual(["a", "c"]);
+  });
+
+  it("refuses to take out every picture: a slideshow keeps at least one", () => {
+    expect(() => takeOutPictures(slideshow(["a", "b"]), ["a", "b"])).toThrow(LastPictureError);
   });
 });

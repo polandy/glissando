@@ -28,6 +28,49 @@ export function describeEditing(currentStore: () => LibraryStore): void {
       expect((await store.listSlideshows()).map((listed) => listed.id)).toEqual(["kept"]);
     });
 
+    it("edits a stored slideshow with a function of the record as stored, and returns the result", async () => {
+      const store = currentStore();
+      await store.saveSlideshow(slideshow({ title: "July 2025" }));
+      await store.updateSlideshow(slideshow({ title: "Summer" }));
+
+      const edited = await store.updateSlideshowWith("show-1", (current) => ({
+        ...current,
+        title: `${current.title} at the lake`,
+      }));
+
+      expect(edited.title).toBe("Summer at the lake");
+      expect(await store.listSlideshows()).toEqual([slideshow({ title: "Summer at the lake" })]);
+    });
+
+    it("throws SlideshowNotFoundError when editing a deleted slideshow with a function, and does not bring it back", async () => {
+      const store = currentStore();
+      await store.saveSlideshow(slideshow({ id: "kept", createdAt: "2025-07-01T08:00:00Z" }));
+      await store.saveSlideshow(slideshow());
+      await store.deleteSlideshow("show-1");
+
+      const error = await rejection(
+        store.updateSlideshowWith("show-1", (current) => ({ ...current, title: "Edited" })),
+      );
+
+      expect(error).toBeInstanceOf(SlideshowNotFoundError);
+      expect((await store.listSlideshows()).map((listed) => listed.id)).toEqual(["kept"]);
+    });
+
+    it("rejects with the edit's own error and leaves the record as it was", async () => {
+      const store = currentStore();
+      await store.saveSlideshow(slideshow({ title: "July 2025" }));
+      const editFailed = new RangeError("the edit cannot be applied");
+
+      const error = await rejection(
+        store.updateSlideshowWith("show-1", () => {
+          throw editFailed;
+        }),
+      );
+
+      expect(error).toBe(editFailed);
+      expect(await store.listSlideshows()).toEqual([slideshow({ title: "July 2025" })]);
+    });
+
     it("spares a removed picture's media while the removal claims it, and deletes it once released", async () => {
       const store = currentStore();
       await store.putPicture("kept-picture", pictureBlobs("kept"));

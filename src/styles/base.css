@@ -161,8 +161,12 @@ button {
   background: transparent;
   cursor: pointer;
 }
-.icon-btn:hover {
+.icon-btn:hover:not(:disabled) {
   background: var(--gl-hover);
+}
+.icon-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
 }
 
 /* A spinning ring; never shown without a label next to it. */

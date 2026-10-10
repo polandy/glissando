@@ -55,6 +55,24 @@ describe("ImmichRoute, All photos", () => {
     expect(browser.selection.count).toBe(0);
   });
 
+  it("dims a photo already in, marks it and passes it over when selecting the day", async () => {
+    const client = new FakeImmichClient();
+    client.photoAnswers.push({ photos: [photo("a"), photo("in"), photo("b")], nextPage: null });
+    const { browser, target, button } = mountRoute(client, null, ({ id }) => id === "in");
+
+    await browser.library.loadMore();
+    flushSync();
+    expect(target.querySelectorAll("button.ph")).toHaveLength(2);
+    const marked = target.querySelector(".ph.in");
+    expect(marked?.getAttribute("aria-label")).toBe("in.jpg, already in");
+    expect(marked?.textContent).toContain("Already in");
+    button("Select day")?.click();
+    flushSync();
+
+    expect(browser.selection.photos().map(({ id }) => id)).toEqual(["a", "b"]);
+    expect(button("Deselect day")).toBeDefined();
+  });
+
   it("selects every photo between two with a shift-click, across days", async () => {
     const client = new FakeImmichClient();
     client.photoAnswers.push({

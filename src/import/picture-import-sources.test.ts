@@ -15,13 +15,13 @@ const readPicture = (fileName: string, focus: PictureFocus | null): ReadPicture 
     display: new Blob([`${fileName} display`]),
     thumbnail: new Blob([`${fileName} thumbnail`]),
   },
-  capturedAt: "2025-07-01T10:00:00Z",
   focus,
 });
 
 const source = (fileName: string, read: () => Promise<ReadPicture>): PictureSource => ({
   fileName,
   mimeType: "image/jpeg",
+  identify: () => Promise.resolve({ fileName, capturedAt: "2025-07-01T10:00:00Z" }),
   read,
 });
 
@@ -138,6 +138,8 @@ describe("PictureImport with a picture source", () => {
     const notes: PictureSource = {
       fileName: "notes.txt",
       mimeType: "text/plain",
+      identify: () =>
+        Promise.resolve({ fileName: "notes.txt", capturedAt: "2025-07-01T10:00:00Z" }),
       read: () => {
         read = true;
         return Promise.resolve(readPicture("notes.txt", null));

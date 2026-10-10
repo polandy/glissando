@@ -45,6 +45,23 @@ export class MemoryLibraryStore implements LibraryStore {
     return this.saveSlideshow(slideshow);
   }
 
+  updateSlideshowWith(
+    id: string,
+    edit: (current: StoredSlideshow) => StoredSlideshow,
+  ): Promise<StoredSlideshow> {
+    const current = this.#slideshows.get(id);
+    if (current === undefined) {
+      return Promise.reject(new SlideshowNotFoundError(id));
+    }
+    try {
+      const edited = edit(structuredClone(current));
+      this.#slideshows.set(id, structuredClone(edited));
+      return Promise.resolve(structuredClone(edited));
+    } catch (error) {
+      return Promise.reject(error as Error);
+    }
+  }
+
   listSlideshows(): Promise<readonly StoredSlideshow[]> {
     return Promise.resolve(
       newestFirst([...this.#slideshows.values()].map((s) => structuredClone(s))),

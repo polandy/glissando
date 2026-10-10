@@ -12,10 +12,11 @@ export const GLISSANDO_FORMAT_ID = "glissando";
 /**
  * Version 2 added a picture's own Ken Burns motion (ADR-0006), version 3 its caption, version 4
  * its own duration and transition (ADR-0008), version 5 the music's excerpt and fades
- * (ADR-0009), version 6 the slideshow's default transition (ADR-0010); files of every older
- * version are still read.
+ * (ADR-0009), version 6 the slideshow's default transition (ADR-0010), version 7 a picture's
+ * origin, `immichAssetId` or `fileBytes` (ADR-0016); files of every older version are still
+ * read.
  */
-export const GLISSANDO_FORMAT_VERSION = 6;
+export const GLISSANDO_FORMAT_VERSION = 7;
 export const OLDEST_READABLE_FORMAT_VERSION = 1;
 /** The first version that carries a picture's own motion. */
 export const OWN_KEN_BURNS_FROM_VERSION = 2;
@@ -27,6 +28,8 @@ export const OWN_TIMING_FROM_VERSION = 4;
 export const MUSIC_TRIM_FROM_VERSION = 5;
 /** The first version that carries the slideshow's default transition. */
 export const DEFAULT_TRANSITION_FROM_VERSION = 6;
+/** The first version that carries a picture's origin, `immichAssetId` or `fileBytes`. */
+export const ORIGIN_FROM_VERSION = 7;
 export const MANIFEST_ENTRY_NAME = "glissando.json";
 
 const PICTURE_EXTENSIONS: Readonly<Record<string, string>> = {
@@ -48,6 +51,10 @@ export interface ManifestPicture {
   readonly caption?: string;
   readonly durationMs?: number;
   readonly transition?: TransitionChoice;
+  /** Origin: the Immich asset it was downloaded from (see ADR-0016). */
+  readonly immichAssetId?: string;
+  /** Origin: the size of the original file in bytes (see ADR-0016). */
+  readonly fileBytes?: number;
 }
 
 export interface ManifestMusic {
@@ -129,6 +136,8 @@ export function manifestFor(
     ...(picture.caption === undefined ? {} : { caption: picture.caption }),
     ...(picture.durationMs === undefined ? {} : { durationMs: picture.durationMs }),
     ...(picture.transition === undefined ? {} : { transition: picture.transition }),
+    ...(picture.immichAssetId === undefined ? {} : { immichAssetId: picture.immichAssetId }),
+    ...(picture.fileBytes === undefined ? {} : { fileBytes: picture.fileBytes }),
   }));
   const { music } = slideshow;
   return {

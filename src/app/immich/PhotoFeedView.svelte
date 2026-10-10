@@ -5,12 +5,14 @@
   import { getTranslator } from "../i18n/context";
   import BrowseFailed from "./BrowseFailed.svelte";
   import type { EndObserver } from "./end-observer";
+  import type { AlreadyIn } from "./immich-view";
   import PhotoDays from "./PhotoDays.svelte";
 
   /** A feed's photos by day; the next page loads as its end nears (see `EndObserver`). */
   let {
     feed,
     selectedIds,
+    alreadyIn,
     thumbnailUrl,
     observeEnd,
     onToggle,
@@ -20,6 +22,7 @@
   }: {
     feed: PhotoFeed;
     selectedIds: ReadonlySet<string>;
+    alreadyIn: AlreadyIn;
     thumbnailUrl: (photoId: string) => string;
     observeEnd: EndObserver;
     onToggle: (photo: ImmichPhoto, shown: readonly ImmichPhoto[] | null) => void;
@@ -56,7 +59,7 @@
   }
 </script>
 
-<PhotoDays {days} {selectedIds} {thumbnailUrl} {onToggle} {onSelectDay} />
+<PhotoDays {days} {selectedIds} {alreadyIn} {thumbnailUrl} {onToggle} {onSelectDay} />
 
 {#if feedState.failure !== null}
   <BrowseFailed

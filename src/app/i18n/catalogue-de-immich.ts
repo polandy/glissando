@@ -56,6 +56,9 @@ export const deImmich = {
   "immich.selectAll": { one: "{count} wählen", other: "Alle {count} wählen" },
   "immich.selectAllUncounted": "Alle wählen",
   "immich.selectNone": "Keins wählen",
+  "immich.alreadyIn": "Schon drin",
+  "immich.alreadyInLabel": "{fileName}, schon drin",
+  "immich.albumAlreadyIn": { one: "{count} schon drin", other: "{count} schon drin" },
   "immich.videosHidden": {
     one: "{count} Video ausgeblendet",
     other: "{count} Videos ausgeblendet",

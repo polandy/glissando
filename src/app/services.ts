@@ -2,10 +2,11 @@ import type { FocusPass } from "../library/focus-pass";
 import type { ImmichAvailability } from "../immich/immich-availability";
 import type { ImmichClient } from "../immich/immich-client";
 import type { MusicOutput } from "../player";
-import type { LibraryStore } from "../library/stored-slideshow";
+import type { LibraryStore, StoredSlideshow } from "../library/stored-slideshow";
 import type { PwaStatus } from "../pwa/pwa-status";
 import type { ErrorReporter } from "./errors/error-reporter";
 import type { LaunchQueue } from "./glissando-file/launched-files";
+import type { AddPicturesSession } from "./add-pictures/add-pictures-session";
 import type { ImportSession } from "./import/import-session";
 import type { MusicEditorAudio } from "./music-editor/music-editor-audio";
 import type { Navigator } from "./navigation/navigator";
@@ -37,6 +38,7 @@ export interface AppServices {
   /** The address the app was opened at, e.g. `http://192.168.1.20:4173`. */
   readonly appAddress: string;
   newImportSession(): ImportSession;
+  newAddPicturesSession(slideshow: StoredSlideshow): AddPicturesSession;
   /** A new random id. */
   newId(): string;
   /** The current instant. */

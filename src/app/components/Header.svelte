@@ -9,12 +9,15 @@
   let {
     crumbs,
     onBack,
+    backDisabled = false,
     actions,
   }: {
     /** From the root; the last one is the current place. None on the start screen: the brand. */
     crumbs: readonly string[];
     /** Shows the back arrow; it should go back through history (see dev-docs/APP.md). */
     onBack?: () => void;
+    /** Greys the back arrow out while leaving would interrupt something under way. */
+    backDisabled?: boolean;
     /** The screen's own buttons, at the right end of the bar. */
     actions?: Snippet | undefined;
   } = $props();
@@ -30,6 +33,7 @@
       type="button"
       title={t("common.back")}
       aria-label={t("common.back")}
+      disabled={backDisabled}
       onclick={onBack}
     >
       <Icon name="back" />

@@ -45,6 +45,7 @@ async function mountRoute(pictureId: string) {
     onError: (error) => errors.push(error),
     onGone: () => {},
     removedText: () => "Bild entfernt",
+    addedText: () => "Bilder hinzugefügt",
     undoLabel: () => "Rückgängig",
     lastPictureText: () => "Das letzte Bild bleibt.",
     motionAutomaticText: () => "Bewegung wieder automatisch",

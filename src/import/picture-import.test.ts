@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { MediaNotFoundError, type PictureBlobs } from "../library/stored-slideshow";
+import type { PictureIdentity } from "../library/picture-identity";
 import { MemoryLibraryStore } from "../library/testing/memory-store";
 import type { DecodedPicture } from "./downscale";
 import { UnreadablePictureError } from "./unreadable-picture";
@@ -13,12 +14,16 @@ class FakeDecoder {
   readonly decoded: string[] = [];
   #gate: Promise<void> | null = null;
   #open: (() => void) | null = null;
+  #reach: (() => void) | null = null;
+  /** Settles once a decode waits behind `hold()`. */
+  reached: Promise<void> = Promise.resolve();
 
   constructor(private readonly unreadable: ReadonlySet<string> = new Set()) {}
 
   /** Holds every decode until `open()`, to act while a file is in flight. */
   hold(): void {
     this.#gate = new Promise((resolve) => (this.#open = resolve));
+    this.reached = new Promise((resolve) => (this.#reach = resolve));
   }
 
   open(): void {
@@ -28,6 +33,7 @@ class FakeDecoder {
 
   readonly decode = async (file: File): Promise<DecodedPicture> => {
     this.decoded.push(file.name);
+    this.#reach?.();
     await this.#gate;
     if (this.unreadable.has(file.name)) {
       throw new UnreadablePictureError(file.name);
@@ -73,6 +79,7 @@ function setUp(
     dates?: Record<string, string>;
     store?: MemoryLibraryStore;
     captureDate?: (file: File) => Promise<string>;
+    known?: readonly PictureIdentity[];
   } = {},
 ) {
   const decoder = options.decoder ?? new FakeDecoder();
@@ -80,6 +87,7 @@ function setUp(
   const pictureImport = new PictureImport({
     store,
     newId: sequentialIds(),
+    ...(options.known === undefined ? {} : { known: () => options.known ?? [] }),
   });
   const captureDate = options.captureDate ?? captureDates(options.dates ?? {});
   const addFiles = (files: readonly File[]): void => {
@@ -130,6 +138,7 @@ describe("PictureImport", () => {
           width: 300,
           height: 200,
           fileName: "a.jpg",
+          fileBytes: 5,
         },
       ],
       skipped: [],
@@ -169,6 +178,7 @@ describe("PictureImport", () => {
     decoder.hold();
 
     addFiles([picture("a.jpg"), picture("b.jpg")]);
+    await decoder.reached;
 
     expect(decoder.decoded).toEqual(["a.jpg"]);
     expect(pictureImport.state).toMatchObject({ total: 2, done: 0, busy: true });
@@ -199,6 +209,64 @@ describe("PictureImport", () => {
     await pictureImport.settled();
     expect(decoder.decoded).toEqual(["a.jpg"]);
     expect(pictureImport.state).toMatchObject({ total: 1, done: 1 });
+  });
+
+  it("skips a picture the slideshow already has as already in, without decoding it", async () => {
+    const { pictureImport, addFiles, decoder } = setUp({
+      dates: { "a.jpg": "2025-07-01T10:00:00Z" },
+      known: [{ fileName: "a.jpg", capturedAt: "2025-07-01T10:00:00Z", fileBytes: 5 }],
+    });
+
+    addFiles([picture("a.jpg"), picture("b.jpg")]);
+    await pictureImport.settled();
+
+    expect(fileNames(pictureImport.state)).toEqual(["b.jpg"]);
+    expect(pictureImport.state.skipped).toEqual([{ fileName: "a.jpg", reason: "alreadyIn" }]);
+    expect(pictureImport.state).toMatchObject({ total: 2, done: 2 });
+    expect(decoder.decoded).toEqual(["b.jpg"]);
+  });
+
+  it("skips a picture chosen twice in the same import as chosen twice", async () => {
+    const { pictureImport, addFiles } = setUp();
+
+    addFiles([picture("a.jpg")]);
+    addFiles([picture("a.jpg")]);
+    await pictureImport.settled();
+
+    expect(fileNames(pictureImport.state)).toEqual(["a.jpg"]);
+    expect(pictureImport.state.skipped).toEqual([{ fileName: "a.jpg", reason: "chosenTwice" }]);
+  });
+
+  it("takes the pictures skipped as already in after all on addDuplicates, keeping the other skips", async () => {
+    const { pictureImport, addFiles } = setUp({
+      decoder: new FakeDecoder(new Set(["broken.jpg"])),
+      known: [{ fileName: "a.jpg", capturedAt: "2025-07-01T10:00:00Z" }],
+    });
+    addFiles([picture("a.jpg"), picture("broken.jpg"), picture("b.jpg")]);
+    await pictureImport.settled();
+
+    pictureImport.addDuplicates("alreadyIn");
+    await pictureImport.settled();
+
+    expect(fileNames(pictureImport.state)).toEqual(["a.jpg", "b.jpg"]);
+    expect(pictureImport.state.skipped).toEqual([{ fileName: "broken.jpg", reason: "unreadable" }]);
+    expect(pictureImport.state).toMatchObject({ total: 3, done: 3, busy: false });
+  });
+
+  it("takes in only the duplicates of the reason asked for on addDuplicates", async () => {
+    const { pictureImport, addFiles } = setUp({
+      dates: { "a.jpg": "2025-07-01T10:00:00Z", "b.jpg": "2025-07-02T10:00:00Z" },
+      known: [{ fileName: "a.jpg", capturedAt: "2025-07-01T10:00:00Z" }],
+    });
+    addFiles([picture("a.jpg"), picture("b.jpg"), picture("b.jpg")]);
+    await pictureImport.settled();
+
+    pictureImport.addDuplicates("chosenTwice");
+    await pictureImport.settled();
+
+    expect(fileNames(pictureImport.state)).toEqual(["b.jpg", "b.jpg"]);
+    expect(pictureImport.state.skipped).toEqual([{ fileName: "a.jpg", reason: "alreadyIn" }]);
+    expect(pictureImport.state).toMatchObject({ total: 3, done: 3, busy: false });
   });
 
   it("skips a picture the browser cannot decode as unreadable and goes on", async () => {

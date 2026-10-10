@@ -1,9 +1,13 @@
 import { orderByCaptureDate } from "../compose";
+import { isSamePicture, type PictureIdentity } from "../library/picture-identity";
 import type { LibraryStore, StoredPicture } from "../library/stored-slideshow";
 import { PictureNotDownloadedError, type PictureSource, type ReadPicture } from "./picture-source";
 import { UnreadablePictureError } from "./unreadable-picture";
 
-export type SkipReason = "unsupported" | "unreadable" | "notDownloaded";
+/** Why a picture was skipped as a duplicate: one of the known ones, or one this import took in. */
+export type DuplicateReason = "alreadyIn" | "chosenTwice";
+
+export type SkipReason = "unsupported" | "unreadable" | "notDownloaded" | DuplicateReason;
 
 export interface SkippedFile {
   readonly fileName: string;
@@ -27,6 +31,14 @@ export interface PictureImportState {
 export interface PictureImportPorts {
   readonly store: Pick<LibraryStore, "putPicture" | "putPictureFocus">;
   newId(): string;
+  /** Pictures already there now, such as the slideshow's when adding to it; absent: none. */
+  known?(): readonly PictureIdentity[];
+}
+
+interface Queued {
+  readonly source: PictureSource;
+  /** False for a duplicate the user takes in after all. */
+  readonly skipDuplicate: boolean;
 }
 
 const PICTURE_TYPE_PREFIX = "image/";
@@ -56,15 +68,19 @@ export class PictureImportFailedError extends Error {
 }
 
 /**
- * Step 1 of creating a slideshow: pictures from files or Immich in, stored downscaled pictures
- * out. Pictures are processed one at a time so memory stays bounded on phones. Media stored by a
- * cancelled import is left unreferenced for `LibraryStore.deleteUnreferencedMedia`.
+ * Step 1 of creating a slideshow, or adding to one: pictures from files or Immich in, stored
+ * downscaled pictures out. Pictures are processed one at a time so memory stays bounded on phones.
+ * A picture the known ones or this import already have is skipped as a duplicate before it is
+ * read (ADR-0016). Media stored by a cancelled import is left unreferenced for
+ * `LibraryStore.deleteUnreferencedMedia`.
  */
 export class PictureImport {
   readonly #ports: PictureImportPorts;
   readonly #listeners = new Set<(state: PictureImportState) => void>();
   #state = EMPTY;
-  #queue: PictureSource[] = [];
+  #queue: Queued[] = [];
+  /** The sources skipped as duplicates, for `addDuplicates`. */
+  #duplicates: { readonly source: PictureSource; readonly reason: DuplicateReason }[] = [];
   #draining: Promise<void> = Promise.resolve();
   #isDraining = false;
   /** Bumped by `cancel()`, so the file in flight at that moment is discarded. */
@@ -95,10 +111,35 @@ export class PictureImport {
     const unsupported = sources
       .filter((source) => !isPicture(source))
       .map((source): SkippedFile => ({ fileName: source.fileName, reason: "unsupported" }));
-    this.#queue.push(...pictures);
+    this.#enqueue(
+      pictures.map((source) => ({ source, skipDuplicate: true })),
+      {
+        total: this.#state.total + pictures.length,
+        skipped: [...this.#state.skipped, ...unsupported],
+      },
+    );
+  }
+
+  /** Takes the pictures skipped as duplicates for `reason` in after all; they leave the skipped list. */
+  addDuplicates(reason: DuplicateReason): void {
+    if (this.#state.failed) {
+      throw new Error("the picture import failed; cancel it or start a new one to add files");
+    }
+    const taken = this.#duplicates.filter((duplicate) => duplicate.reason === reason);
+    this.#duplicates = this.#duplicates.filter((duplicate) => duplicate.reason !== reason);
+    this.#enqueue(
+      taken.map(({ source }) => ({ source, skipDuplicate: false })),
+      {
+        done: this.#state.done - taken.length,
+        skipped: this.#state.skipped.filter((skip) => skip.reason !== reason),
+      },
+    );
+  }
+
+  #enqueue(entries: readonly Queued[], change: Partial<PictureImportState>): void {
+    this.#queue.push(...entries);
     this.#update({
-      total: this.#state.total + pictures.length,
-      skipped: [...this.#state.skipped, ...unsupported],
+      ...change,
       storageFull: false,
       busy: this.#queue.length > 0 || this.#isDraining,
     });
@@ -120,6 +161,7 @@ export class PictureImport {
   cancel(): void {
     this.#generation += 1;
     this.#queue = [];
+    this.#duplicates = [];
     if (!this.#isDraining) {
       this.#draining = Promise.resolve();
     }
@@ -133,11 +175,12 @@ export class PictureImport {
   async #drain(): Promise<void> {
     let cancelledFileError: { readonly error: unknown } | null = null;
     try {
-      for (let source = this.#queue.shift(); source !== undefined; source = this.#queue.shift()) {
+      for (let entry = this.#queue.shift(); entry !== undefined; entry = this.#queue.shift()) {
         const generation = this.#generation;
+        const { source } = entry;
         let outcome: Outcome;
         try {
-          outcome = await this.#importOne(source);
+          outcome = await this.#importOne(entry);
         } catch (error) {
           if (generation === this.#generation) {
             throw error;
@@ -161,9 +204,15 @@ export class PictureImport {
     }
   }
 
-  async #importOne(source: PictureSource): Promise<Outcome> {
+  async #importOne({ source, skipDuplicate }: Queued): Promise<Outcome> {
+    let identity: PictureIdentity;
     let read: ReadPicture;
     try {
+      identity = await source.identify();
+      const duplicate = skipDuplicate ? this.#duplicateReason(identity) : null;
+      if (duplicate !== null) {
+        return { kind: "skipped", reason: duplicate };
+      }
       read = await source.read();
     } catch (error) {
       if (error instanceof UnreadablePictureError) {
@@ -174,7 +223,7 @@ export class PictureImport {
       }
       throw error;
     }
-    const { decoded, capturedAt, focus } = read;
+    const { decoded, focus } = read;
     const id = this.#ports.newId();
     try {
       await this.#ports.store.putPicture(id, {
@@ -191,8 +240,20 @@ export class PictureImport {
       throw error;
     }
     const { width, height } = decoded;
-    const fileName = source.fileName;
-    return { kind: "stored", picture: { id, capturedAt, width, height, fileName } };
+    const { fileName, capturedAt, immichAssetId, fileBytes } = identity;
+    const origin = {
+      ...(immichAssetId === undefined ? {} : { immichAssetId }),
+      ...(fileBytes === undefined ? {} : { fileBytes }),
+    };
+    return { kind: "stored", picture: { id, capturedAt, width, height, fileName, ...origin } };
+  }
+
+  #duplicateReason(identity: PictureIdentity): DuplicateReason | null {
+    const matches = (picture: PictureIdentity) => isSamePicture(picture, identity);
+    if ((this.#ports.known?.() ?? []).some(matches)) {
+      return "alreadyIn";
+    }
+    return this.#state.pictures.some(matches) ? "chosenTwice" : null;
   }
 
   #apply(source: PictureSource, outcome: Outcome): void {
@@ -207,6 +268,9 @@ export class PictureImport {
         });
         return;
       case "skipped":
+        if (outcome.reason === "alreadyIn" || outcome.reason === "chosenTwice") {
+          this.#duplicates.push({ source, reason: outcome.reason });
+        }
         this.#update({
           done,
           busy,

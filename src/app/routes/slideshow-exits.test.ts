@@ -47,6 +47,7 @@ function editorOver(store: MemoryLibraryStore, toaster: Toaster): SlideshowEdito
     },
     onGone: () => {},
     removedText: () => "Bild entfernt",
+    addedText: () => "Bilder hinzugefügt",
     undoLabel: () => "Rückgängig",
     lastPictureText: () => "Das letzte Bild bleibt.",
     motionAutomaticText: () => "Bewegung wieder automatisch",

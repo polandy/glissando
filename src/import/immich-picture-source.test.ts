@@ -86,13 +86,23 @@ describe("immichPictureSource", () => {
     expect(source.mimeType.startsWith("image/")).toBe(true);
   });
 
-  it("decodes the original, dated by Immich and aimed at the largest face", async () => {
+  it("is identified by its asset id, file name and Immich's date, without a download", async () => {
+    const client = new FakeImmichClient();
+
+    expect(await sourceFor(client).identify()).toEqual({
+      fileName: "IMG_0001.HEIC",
+      capturedAt: "2025-07-01T10:00:00Z",
+      immichAssetId: "asset-1",
+    });
+    expect(client.calls).toEqual([]);
+  });
+
+  it("decodes the original, aimed at the largest face", async () => {
     const client = new FakeImmichClient();
 
     const read = await sourceFor(client).read();
 
     expect(await read.decoded.display.text()).toBe("original bytes as IMG_0001.HEIC (image/heic)");
-    expect(read.capturedAt).toBe("2025-07-01T10:00:00Z");
     expect(read.focus).toEqual({
       kind: "subject",
       box: { x: 0.25, y: 0.1, width: 0.5, height: 0.4 },

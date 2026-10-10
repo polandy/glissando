@@ -83,6 +83,8 @@ export async function writeGlissandoFile(
         ...(picture.caption === undefined ? {} : { caption: picture.caption }),
         ...(picture.durationMs === undefined ? {} : { durationMs: picture.durationMs }),
         ...(picture.transition === undefined ? {} : { transition: picture.transition }),
+        ...(picture.immichAssetId === undefined ? {} : { immichAssetId: picture.immichAssetId }),
+        ...(picture.fileBytes === undefined ? {} : { fileBytes: picture.fileBytes }),
       });
     }
     const music = slideshow.music;

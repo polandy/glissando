@@ -75,6 +75,7 @@ export async function setUp(
     onError: (error) => errors.push(error),
     onGone: () => (gone += 1),
     removedText: (count) => (count === 1 ? "Bild entfernt" : `${count} Bilder entfernt`),
+    addedText: (count) => `${count} Bilder hinzugefügt`,
     undoLabel: () => "Rückgängig",
     lastPictureText: () => "Das letzte Bild bleibt.",
     motionAutomaticText: () => "Bewegung wieder automatisch",

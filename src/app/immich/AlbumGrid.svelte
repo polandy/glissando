@@ -3,7 +3,12 @@
   import type { ImmichAlbum } from "../../immich/immich-client";
   import Icon from "../components/Icon.svelte";
   import { getTranslator } from "../i18n/context";
-  import { albumPick, browseFailureMessages, type AlbumMembership } from "./immich-view";
+  import {
+    albumPick,
+    browseFailureMessages,
+    type AlbumMembership,
+    type AlreadyIn,
+  } from "./immich-view";
 
   /** Album covers: a tap opens the album, the circle on the cover picks all of its photos. */
   let {
@@ -12,6 +17,7 @@
     busyAlbumIds,
     albumFailures,
     selectedIds,
+    alreadyIn,
     thumbnailUrl,
     onOpen,
     onToggle,
@@ -23,6 +29,7 @@
     /** Why an album's last whole-album select failed. */
     albumFailures: ReadonlyMap<string, BrowseFailure>;
     selectedIds: ReadonlySet<string>;
+    alreadyIn: AlreadyIn;
     thumbnailUrl: (photoId: string) => string;
     onOpen: (album: ImmichAlbum) => void;
     onToggle: (album: ImmichAlbum) => void;
@@ -48,7 +55,7 @@
     {/each}
   {:else}
     {#each albums as album (album.id)}
-      {@const pick = albumPick(membership.get(album.id), selectedIds)}
+      {@const pick = albumPick(membership.get(album.id), selectedIds, alreadyIn)}
       {@const busy = busyAlbumIds.has(album.id)}
       {@const failure = albumFailures.get(album.id)}
       <li class="album" class:picked={pick.selected > 0}>

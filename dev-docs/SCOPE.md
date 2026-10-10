@@ -84,8 +84,9 @@ Usable end to end by a non-technical user, fully offline:
 - **Title** from the capture-date range of the pictures ("July 2025"), editable in place.
 - **Player**: fullscreen, play/pause/seek, the HTML5-video-style API over the slideshow JSON
   (which already carries the music track).
-- **Minimal editing**: remove and reorder pictures — nothing more. Removing is undone from a
-  toast, not confirmed up front; only deleting a slideshow asks first.
+- **Minimal editing**: add, remove and reorder pictures. Adding reuses the import's pictures
+  step and skips pictures already in; adding and removing are undone from a toast, not
+  confirmed up front; only deleting a slideshow asks first.
 - **Export/import** a slideshow as one `.glissando` file (the approved mockup:
   https://polandy.github.io/glissando-assets/mockups/glissando-file/, tab "Konzept"): export in
   the background, open as a new slideshow, checked whole before anything is stored.

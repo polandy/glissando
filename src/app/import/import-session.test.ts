@@ -39,6 +39,12 @@ function sessionWith(
     immichSource: (photo: ImmichPhoto) => ({
       fileName: photo.fileName,
       mimeType: "image/jpeg",
+      identify: () =>
+        Promise.resolve({
+          fileName: photo.fileName,
+          capturedAt: photo.takenAt,
+          immichAssetId: photo.id,
+        }),
       read: () =>
         Promise.resolve({
           decoded: {
@@ -47,7 +53,6 @@ function sessionWith(
             display: new Blob([`display ${photo.id}`]),
             thumbnail: new Blob([`thumbnail ${photo.id}`]),
           },
-          capturedAt: photo.takenAt,
           focus: FACE,
         }),
     }),

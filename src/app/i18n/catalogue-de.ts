@@ -1,3 +1,4 @@
+import { deAdd } from "./catalogue-de-add";
 import { deEditor } from "./catalogue-de-editor";
 import { deMusic } from "./catalogue-de-music";
 import { deTiming } from "./catalogue-de-timing";
@@ -272,6 +273,7 @@ export const de = {
   "player.pictureError": "Ein Bild konnte nicht geladen werden.",
   "player.playbackError": "Die Diashow konnte nicht abgespielt werden.",
   ...deEditor,
+  ...deAdd,
   ...deTiming,
   ...deTransitions,
   ...deImmich,
