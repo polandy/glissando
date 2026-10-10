@@ -28,6 +28,11 @@
   import { deleteShownSlideshow } from "./slideshow-exits";
   import { MOUSE_POINTER_QUERY } from "../screens/slideshow/pointer";
   import {
+    NO_SELECTION,
+    soleSelection,
+    type StripSelection,
+  } from "../screens/slideshow/strip-selection";
+  import {
     slideshowVideoExport,
     type VideoExportDevice,
   } from "../video-export/slideshow-video-export";
@@ -126,10 +131,10 @@
   let passState = $state.raw<FocusPassState>(focusPass.state);
   const focus = $derived(picturesFocus(storedFocus, passState));
   /** The selection survives the picture editor: back there, the edited picture is selected. */
-  let selectedId = $state<string | null>(null);
+  let selection = $state<StripSelection>(NO_SELECTION);
   $effect(() => {
     if (editingPictureId !== null) {
-      selectedId = editingPictureId;
+      selection = soleSelection(editingPictureId);
     }
   });
   const mousePointer = new MediaQuery(MOUSE_POINTER_QUERY);
@@ -246,14 +251,16 @@
   <MusicEditorRoute {store} {stored} {editor} audio={musicAudio} {saving} {onBack} {onError} />
 {:else if details !== null}
   <SlideshowScreen
-    bind:selectedId
+    bind:selection
     slideshow={details}
     {onBack}
     {onPlay}
     onAddPictures={() => stored !== null && onAddPictures(stored)}
     {newPictureIds}
     onRemove={(pictureId) => editor?.remove(pictureId)}
-    onMove={(pictureId, toIndex) => editor?.move(pictureId, toIndex)}
+    onShiftGroup={(pictureIds, offset) => editor?.shiftGroup(pictureIds, offset)}
+    onRemoveGroup={(pictureIds) => editor?.removeGroup(pictureIds)}
+    onMoveGroup={(pictureIds, insertion) => editor?.moveGroup(pictureIds, insertion)}
     onRename={(typed) => editor?.rename(typed)}
     {onEdit}
     {onEditMusic}

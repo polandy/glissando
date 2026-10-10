@@ -71,17 +71,46 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
     "Remove" looks disabled but stays focusable and clickable (`aria-disabled`), and it and
     Delete answer with the toast "The last picture stays. To get rid of it, delete the whole
     slideshow.", keeping the selection.
-  - **Select and reorder**: a tap on a tile selects it (outlined in the accent; another tap
-    deselects) and opens the selection bar at the bottom — "Picture 3 of 12" (a polite live
-    region, so every move is announced; visually hidden up to 720 px, where the bar spans the
-    width), "◀ Earlier", "Later ▶", "✎ Edit" (opens the picture editor, below), "Remove", "Done". At the ends Earlier or Later looks disabled
-    but stays focusable (`aria-disabled`) and does nothing. While the
+  - **Select and reorder** (mockup:
+    https://polandy.github.io/glissando-assets/mockups/move-together/): a tap on a tile selects
+    it (outlined in the accent, its number badge in the accent; another tap deselects) and opens
+    the selection bar at the bottom — "Picture 3 of 12" (a polite live region, so every move is
+    announced; visually hidden up to 720 px, where the bar spans the width), "◀ Earlier",
+    "Later ▶", "✎ Edit" (opens the picture editor, below), "Remove", "Done". At the ends Earlier
+    or Later looks disabled but stays focusable (`aria-disabled`) and does nothing. While the
     bar shows, the content keeps room below it for the bar, and the selected tile scrolls clear
-    of it. The bar's buttons highlight on hover only where the pointer hovers. Mouse: drag a
-    tile onto another (tiles are draggable only with a mouse, so a touch never starts a drag); a dashed lemon line before or after the target shows where it
-    lands. Keyboard: arrows move the focus (and a selection) through the grid, Shift+arrows move
-    the tile (up and down by a row), Enter or Space selects, Esc deselects. With a mouse, a
+    of it. The bar's buttons highlight on hover only where the pointer hovers. With a mouse, a
     double-click on a tile opens the picture editor too.
+  - **Selecting several**: "Select" (a toggle, `aria-pressed`) left of "Add pictures" in the
+    strip header, holding a tile on touch (450 ms, a short vibration where the device has
+    one), Ctrl/⌘+click, Shift+click or Ctrl+Space start it; a single selection stays in it
+    (holding another tile instead replaces it). Every tile then shows a circle top right (filled
+    in the accent with a check when selected; the ✕ and the grip give way to it), and a tap,
+    click, Space or Enter adds or removes a tile; Shift+click and Shift+Space add the range from
+    the last tile picked. The narrow hint adds "hold to select several". The bar's count reads
+    "3 selected" (with a contiguous group "3 selected · 4–6 of 12"; up to 720 px only the
+    number in an accent pill), shown on narrow screens too; Edit shows only while exactly one is
+    selected; with none selected (after "Select") Earlier, Later and Remove look disabled.
+    Done, Esc or "Select" again end it and deselect all; deselecting the last one ends it,
+    unless it was started with "Select".
+  - **Moving**: Earlier and Later move the whole selection one step and keep it selected; a
+    scattered selection first gathers where its first picture is (Earlier) or its last (Later),
+    as one block in play order, after that the block moves (ADR-0019). Earlier looks disabled
+    only when the selection is one block at the start, Later at the end. Drag (mouse: press and
+    move 8 px; touch: hold a tile until it lifts, then move — the held tile is selected first):
+    a dragged selected tile carries the whole selection, an unselected one only itself; a stack
+    of up to three thumbnails with the count follows the pointer, the dragged tiles fade, and a
+    dashed lemon line before or after the tile under the pointer shows where the group lands,
+    together, in play order; near the viewport's top or bottom edge the page scrolls along.
+    Letting go of a held tile in place only selects it. Keyboard: arrows move the focus (with a
+    single selection, the selection follows; while selecting several, only the focus),
+    Shift+arrows move the selection (up and down by a row; an unselected focused tile is
+    selected alone first), Esc deselects. Any move makes the order the user's own.
+  - **Removing several**: Remove or Delete (on a selected tile) removes the whole selection;
+    the toast counts them all ("3 pictures removed") and Undo puts each back where it was. At
+    least one picture stays: removing every picture is answered with the toast "At least one
+    picture stays. To get rid of all of them, delete the whole slideshow.", keeping the
+    selection.
   - **Adding pictures** (`add-pictures/`, route `{ screen: "add", slideshowId }`; mockup:
     https://polandy.github.io/glissando-assets/mockups/add-pictures/): the strip header's "Add
     pictures" opens the import's pictures step for this slideshow, under the crumbs "title / Add

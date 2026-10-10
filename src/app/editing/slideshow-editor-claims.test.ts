@@ -59,7 +59,7 @@ describe("SlideshowEditor removal batches and slideshows deleted meanwhile", () 
     const { editor, toaster, order, storedOrder, mediaSurvivesCleanUp } = await setUp();
     editor.remove("b");
 
-    editor.move("d", 0);
+    editor.moveGroup(["d"], 0);
 
     expect(order()).toEqual(["d", "a", "c"]);
     expect(toaster.current).toBeNull();

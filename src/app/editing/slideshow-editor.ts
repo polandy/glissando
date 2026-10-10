@@ -1,9 +1,11 @@
-import { pictureKenBurns } from "../../compose";
+import {
+  moveGroup as moveGroupInSlideshow,
+  shiftGroup as shiftGroupInSlideshow,
+} from "../../library/group-edits";
 import type { OwnKenBurns } from "../../library/own-ken-burns";
 import type { MusicTrim } from "../../library/own-music";
 import type { SlideshowTransition, TransitionChoice } from "../../library/own-timing";
 import {
-  movePicture,
   removePicture,
   renameSlideshow,
   restorePictures,
@@ -11,15 +13,11 @@ import {
   setMusicFadeOut,
   setMusicTrim,
   setPictureCaption,
-  setPictureDuration,
-  setPictureKenBurns,
-  setPictureTransition,
-  setSlideshowTransition,
 } from "../../library/slideshow-edits";
 import type { StoredSlideshow } from "../../library/stored-slideshow";
 import { EditSaver } from "./edit-saver";
 import { EditorUndos } from "./editor-undos";
-import type { ResettableSetting } from "./reset-undo";
+import { PictureSettingsEditor } from "./picture-settings-editor";
 import type { SlideshowEditorPorts } from "./slideshow-editor-ports";
 
 /**
@@ -35,6 +33,7 @@ export class SlideshowEditor {
   #slideshow: StoredSlideshow;
   readonly #undos: EditorUndos;
   readonly #saver: EditSaver;
+  readonly #pictureSettings: PictureSettingsEditor;
 
   constructor(initial: StoredSlideshow, ports: SlideshowEditorPorts) {
     this.#slideshow = initial;
@@ -57,6 +56,12 @@ export class SlideshowEditor {
       apply: (slideshow) => this.#apply(slideshow),
       track: (work) => this.#saver.track(work),
     });
+    this.#pictureSettings = new PictureSettingsEditor(
+      ports,
+      this.#undos.reset,
+      () => this.#slideshow,
+      (slideshow) => this.#apply(slideshow),
+    );
   }
 
   get slideshow(): StoredSlideshow {
@@ -80,11 +85,25 @@ export class SlideshowEditor {
       this.#ports.toaster.show({ text: this.#ports.lastPictureText(), tone: "info" });
       return;
     }
-    const { slideshow, removed } = removePicture(this.#slideshow, pictureId);
-    this.#undos.removal.add(removed, (removals) =>
-      this.#apply(restorePictures(this.#slideshow, removals)),
-    );
-    this.#apply(slideshow);
+    this.#removeOne(pictureId);
+  }
+
+  /**
+   * Removes the whole selection; at least one picture stays, so removing every picture is
+   * refused with a toast instead. A single id keeps `remove`'s own text for that case.
+   */
+  removeGroup(pictureIds: readonly string[]): void {
+    if (pictureIds.length === 1) {
+      this.remove(pictureIds[0] as string);
+      return;
+    }
+    if (new Set(pictureIds).size >= this.#slideshow.pictures.length) {
+      this.#ports.toaster.show({ text: this.#ports.everyPictureText(), tone: "info" });
+      return;
+    }
+    for (const pictureId of pictureIds) {
+      this.#removeOne(pictureId);
+    }
   }
 
   /** Pictures just added on the add screen: the toast's undo takes those still here out. */
@@ -92,11 +111,21 @@ export class SlideshowEditor {
     this.#undos.add.offer(pictureIds);
   }
 
-  move(pictureId: string, toIndex: number): void {
-    const moved = movePicture(this.#slideshow, pictureId, toIndex);
+  /** Moves the group contiguous to the slot before the picture at `insertion` (a drop). */
+  moveGroup(pictureIds: readonly string[], insertion: number): void {
+    const moved = moveGroupInSlideshow(this.#slideshow, pictureIds, insertion);
     if (moved !== this.#slideshow) {
       this.#undos.removal.end();
       this.#apply(moved);
+    }
+  }
+
+  /** Moves the group by `offset` steps (Earlier/Later or Shift+arrows), clamped to the ends. */
+  shiftGroup(pictureIds: readonly string[], offset: number): void {
+    const shifted = shiftGroupInSlideshow(this.#slideshow, pictureIds, offset);
+    if (shifted !== this.#slideshow) {
+      this.#undos.removal.end();
+      this.#apply(shifted);
     }
   }
 
@@ -105,93 +134,43 @@ export class SlideshowEditor {
     this.#apply(renameSlideshow(this.#slideshow, typed, automatic));
   }
 
-  /**
-   * The picture plays `kenBurns` from now on, wherever it moves. It ends a pending undo of
-   * that picture's reset, which would otherwise overwrite this newer motion.
-   */
+  // Ken Burns, duration and transition settings delegate to `PictureSettingsEditor`.
+
   setKenBurns(pictureId: string, kenBurns: OwnKenBurns): void {
-    this.#undos.reset.supersede(pictureId, "kenBurns");
-    this.#apply(setPictureKenBurns(this.#slideshow, pictureId, kenBurns));
+    this.#pictureSettings.setKenBurns(pictureId, kenBurns);
   }
 
-  /** Drops the picture's own motion without asking; the toast's undo brings it back. */
   resetKenBurns(pictureId: string): void {
-    const previous = this.#picture(pictureId).kenBurns;
-    if (previous === undefined) {
-      return;
-    }
-    this.#apply(setPictureKenBurns(this.#slideshow, pictureId, undefined));
-    this.#offerUndo(pictureId, "kenBurns", this.#ports.motionAutomaticText(), () =>
-      this.setKenBurns(pictureId, previous),
-    );
+    this.#pictureSettings.resetKenBurns(pictureId);
   }
 
-  /** The picture shows `durationMs` (validated) from now on, wherever it moves. */
   setDuration(pictureId: string, durationMs: number): void {
-    this.#undos.reset.supersede(pictureId, "durationMs");
-    this.#apply(setPictureDuration(this.#slideshow, pictureId, durationMs));
+    this.#pictureSettings.setDuration(pictureId, durationMs);
   }
 
-  /** Makes the picture's duration automatic without asking; the toast's undo brings it back. */
   resetDuration(pictureId: string): void {
-    const previous = this.#picture(pictureId).durationMs;
-    if (previous === undefined) {
-      return;
-    }
-    this.#apply(setPictureDuration(this.#slideshow, pictureId, undefined));
-    this.#offerUndo(pictureId, "durationMs", this.#ports.durationAutomaticText(), () =>
-      this.setDuration(pictureId, previous),
-    );
+    this.#pictureSettings.resetDuration(pictureId);
   }
 
-  /** The picture hands over to the next one with `transition` from now on, wherever it moves. */
   setTransition(pictureId: string, transition: TransitionChoice): void {
-    this.#undos.reset.supersede(pictureId, "transition");
-    this.#apply(setPictureTransition(this.#slideshow, pictureId, transition));
+    this.#pictureSettings.setTransition(pictureId, transition);
   }
 
-  /** Makes the picture's transition automatic without asking; the toast's undo brings it back. */
   resetTransition(pictureId: string): void {
-    const previous = this.#picture(pictureId).transition;
-    if (previous === undefined) {
-      return;
-    }
-    this.#apply(setPictureTransition(this.#slideshow, pictureId, undefined));
-    this.#offerUndo(pictureId, "transition", this.#ports.transitionAutomaticText(), () =>
-      this.setTransition(pictureId, previous),
-    );
+    this.#pictureSettings.resetTransition(pictureId);
   }
 
-  /** Every picture without its own transition hands over with `transition` from now on. */
   setSlideshowTransition(transition: SlideshowTransition): void {
-    this.#undos.reset.supersede(this.#slideshow.id, "slideshowTransition");
-    this.#apply(setSlideshowTransition(this.#slideshow, transition));
+    this.#pictureSettings.setSlideshowTransition(transition);
   }
 
-  /** Returns the default to crossfade without asking; the toast's undo brings it back. */
   resetSlideshowTransition(): void {
-    const previous = this.#slideshow.transition;
-    if (previous === undefined) {
-      return;
-    }
-    this.#apply(setSlideshowTransition(this.#slideshow, undefined));
-    this.#undos.reset.offer(
-      this.#slideshow.id,
-      "slideshowTransition",
-      this.#ports.slideshowTransitionResetText(),
-      () => this.setSlideshowTransition(previous),
-    );
+    this.#pictureSettings.resetSlideshowTransition();
   }
 
   /** Reverses the picture's motion; an automatic one becomes the picture's own. */
   swapKenBurns(pictureId: string): void {
-    const index = this.#slideshow.pictures.findIndex((picture) => picture.id === pictureId);
-    const { from, to } = pictureKenBurns(
-      index,
-      this.#picture(pictureId),
-      this.#ports.focusOf(pictureId),
-    );
-    this.setKenBurns(pictureId, { from: to, to: from });
+    this.#pictureSettings.swapKenBurns(pictureId);
   }
 
   /** Stores the caption as typed, normalised; a keystroke that changes nothing stores nothing. */
@@ -230,18 +209,13 @@ export class SlideshowEditor {
     this.#undos.end();
   }
 
-  /** The undo of a reset; a picture removed meanwhile has nothing to bring back. */
-  #offerUndo(
-    pictureId: string,
-    setting: ResettableSetting,
-    text: string,
-    restore: () => void,
-  ): void {
-    this.#undos.reset.offer(pictureId, setting, text, () => {
-      if (this.#slideshow.pictures.some((picture) => picture.id === pictureId)) {
-        restore();
-      }
-    });
+  /** Removes one picture at once, adding it to the shown removal batch. */
+  #removeOne(pictureId: string): void {
+    const { slideshow, removed } = removePicture(this.#slideshow, pictureId);
+    this.#undos.removal.add(removed, (removals) =>
+      this.#apply(restorePictures(this.#slideshow, removals)),
+    );
+    this.#apply(slideshow);
   }
 
   #picture(pictureId: string) {

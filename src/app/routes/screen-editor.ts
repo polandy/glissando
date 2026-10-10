@@ -30,6 +30,7 @@ export function createScreenEditor(
     addedText: (count) => t("add.added", { count }),
     undoLabel: () => t("slideshow.undo"),
     lastPictureText: () => t("slideshow.lastPictureStays"),
+    everyPictureText: () => t("slideshow.everyPictureStays"),
     motionAutomaticText: () => t("editor.motionAutomatic"),
     durationAutomaticText: () => t("editor.durationAutomatic"),
     transitionAutomaticText: () => t("editor.transitionAutomatic"),

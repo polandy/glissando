@@ -60,14 +60,78 @@ describe("SlideshowEditor", () => {
     expect(toaster.current?.action).toBeUndefined();
   });
 
-  it("moves a picture, stores the new order and marks it as the user's own", async () => {
+  it("moves a group contiguous to the drop slot, stores it and marks the order as own", async () => {
     const { editor, store, order, storedOrder } = await setUp();
 
-    editor.move("d", 0);
+    editor.moveGroup(["d"], 0);
 
     expect(order()).toEqual(["d", "a", "b", "c"]);
     expect(await storedOrder()).toEqual(["d", "a", "b", "c"]);
     expect((await store.getSlideshow("show")).ownOrder).toBe(true);
+  });
+
+  it("moves several pictures together, contiguous at the drop slot", async () => {
+    const { editor, order } = await setUp();
+
+    editor.moveGroup(["b", "d"], 0);
+
+    expect(order()).toEqual(["b", "d", "a", "c"]);
+  });
+
+  it("shifts a single picture by an offset, clamped to the ends, like the old move", async () => {
+    const { editor, order } = await setUp();
+
+    editor.shiftGroup(["a"], 1);
+
+    expect(order()).toEqual(["b", "a", "c", "d"]);
+  });
+
+  it("gathers a scattered group and then shifts the block as one on the next shift", async () => {
+    const { editor, order } = await setUp();
+
+    editor.shiftGroup(["a", "c"], 1);
+    expect(order()).toEqual(["b", "a", "c", "d"]);
+
+    editor.shiftGroup(["a", "c"], 1);
+    expect(order()).toEqual(["b", "d", "a", "c"]);
+  });
+
+  it("removes a selection together, stores it and offers one undo for all of them", async () => {
+    const { editor, toaster, order, storedOrder } = await setUp();
+
+    editor.removeGroup(["b", "d"]);
+
+    expect(order()).toEqual(["a", "c"]);
+    expect(await storedOrder()).toEqual(["a", "c"]);
+    expect(toaster.current?.text).toBe("2 Bilder entfernt");
+  });
+
+  it("keeps at least one picture of a selection and explains in a toast", async () => {
+    const { editor, toaster, order } = await setUp(["a", "b"]);
+
+    editor.removeGroup(["a", "b"]);
+
+    expect(order()).toEqual(["a", "b"]);
+    expect(toaster.current?.text).toBe("Mindestens ein Bild bleibt.");
+    expect(toaster.current?.action).toBeUndefined();
+  });
+
+  it("removing a selection of one keeps the single-picture text for the last picture", async () => {
+    const { editor, toaster, order } = await setUp(["a"]);
+
+    editor.removeGroup(["a"]);
+
+    expect(order()).toEqual(["a"]);
+    expect(toaster.current?.text).toBe("Das letzte Bild bleibt.");
+  });
+
+  it("undoing the removal of a scattered selection restores every picture to its own place", async () => {
+    const { editor, toaster, order } = await setUp(["a", "b", "c", "d", "e"]);
+
+    editor.removeGroup(["b", "d"]);
+    toaster.act();
+
+    expect(order()).toEqual(["a", "b", "c", "d", "e"]);
   });
 
   it("renames the slideshow; an empty title falls back to the automatic one", async () => {
@@ -84,7 +148,7 @@ describe("SlideshowEditor", () => {
     const seen: string[][] = [];
     editor.subscribe((slideshow) => seen.push(slideshow.pictures.map((picture) => picture.id)));
 
-    editor.move("a", 1);
+    editor.moveGroup(["a"], 2);
     editor.remove("c");
 
     expect(seen).toEqual([
@@ -99,7 +163,7 @@ describe("SlideshowEditor", () => {
     editor.subscribeSaving((isSaving) => saving.push(isSaving));
 
     editor.rename("Sommer am See");
-    editor.move("a", 2);
+    editor.shiftGroup(["a"], 1);
 
     expect(saving).toEqual([true]);
     await editor.settled();

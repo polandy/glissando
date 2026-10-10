@@ -4,14 +4,16 @@
   import { MILLISECONDS_PER_SECOND } from "../../../player";
   import type { PictureTile } from "../view-models";
   import StripTileBadges from "./StripTileBadges.svelte";
+  import StripTileCheck from "./StripTileCheck.svelte";
 
   /** One picture of the strip: its order number and date, and the marks a pointer reveals. */
   let {
     picture,
     number,
     selected,
+    selecting,
     isNew,
-    draggable,
+    mousePointer,
     dragging,
     drop,
     removable,
@@ -19,33 +21,28 @@
     onOpen,
     onKeydown,
     onRemove,
-    onDragStart,
-    onDragOver,
-    onDrop,
-    onDragEnd,
   }: {
     picture: PictureTile;
     /** The position in play order, from 1. */
     number: number;
     selected: boolean;
+    /** Selecting several (dev-docs/APP.md, Selecting several): every tile shows a check circle. */
+    selecting: boolean;
     /** Just added: outlined and badged while the screen is shown. */
     isNew: boolean;
-    /** Only a mouse drags: a native drag would take over a touch meant to scroll or select. */
-    draggable: boolean;
+    /** The primary pointer is a mouse: a double-click opens the picture editor. */
+    mousePointer: boolean;
+    /** Carried by the drag over the strip (ADR-0019): faded while it moves with the pointer. */
     dragging: boolean;
-    /** Where a dragged picture would land, beside this one. */
+    /** Where a dragged group would land, beside this one. */
     drop: "before" | "after" | null;
     /** False for the last picture, which stays. */
     removable: boolean;
-    onPick: () => void;
+    onPick: (event: MouseEvent) => void;
     /** A double-click with a mouse: opens the picture editor. */
     onOpen: () => void;
     onKeydown: (event: KeyboardEvent) => void;
     onRemove: () => void;
-    onDragStart: (event: DragEvent) => void;
-    onDragOver: (event: DragEvent) => void;
-    onDrop: (event: DragEvent) => void;
-    onDragEnd: () => void;
   } = $props();
 
   const { t, formatDate, formatSeconds } = getTranslator();
@@ -74,15 +71,11 @@
 <li
   class="tile"
   class:selected
+  class:selecting-mode={selecting}
   class:new={isNew}
   class:dragging
   class:drop-before={drop === "before"}
   class:drop-after={drop === "after"}
-  {draggable}
-  ondragstart={onDragStart}
-  ondragover={onDragOver}
-  ondrop={onDrop}
-  ondragend={onDragEnd}
 >
   <button
     class="pick"
@@ -92,7 +85,7 @@
     onclick={onPick}
     ondblclick={() => {
       // A double tap on a touch screen is two taps: it selects and deselects.
-      if (draggable) {
+      if (mousePointer) {
         onOpen();
       }
     }}
@@ -109,6 +102,7 @@
     {/if}
     <span class="date mono" aria-hidden="true">{date}</span>
   </button>
+  <StripTileCheck {selecting} {selected} />
   <span class="mark grab" aria-hidden="true"><Icon name="grip" /></span>
   <button
     class="mark remove"
@@ -170,6 +164,8 @@
     color: inherit;
     cursor: pointer;
     touch-action: manipulation;
+    -webkit-touch-callout: none;
+    user-select: none;
   }
   .pick:focus-visible {
     outline: 3px solid var(--gl-accent);
@@ -208,6 +204,11 @@
     padding: 1px 6px;
     border-radius: var(--gl-radius-small);
     background: var(--gl-photo-badge);
+  }
+  /* The selected tile's order number, in the accent (dev-docs/APP.md, Select and reorder). */
+  .tile.selected .number {
+    background: var(--gl-accent);
+    color: var(--gl-accent-ink);
   }
   .date {
     left: 0;
@@ -261,8 +262,24 @@
       opacity: 1;
     }
   }
+  /* Selecting several (dev-docs/APP.md, Selecting several): the check circle instead of the marks. */
+  .tile.selecting-mode .mark {
+    display: none;
+  }
+  /* While selecting several, the unpicked tiles step back and a picked picture sits inset. */
+  .tile.selecting-mode:not(.selected) .pick img {
+    filter: saturate(0.8) brightness(0.92);
+  }
+  .tile.selecting-mode .pick img {
+    transition: scale 0.12s;
+  }
+  .tile.selecting-mode.selected .pick img {
+    scale: 0.94;
+    border-radius: var(--gl-radius-small);
+  }
   @media (prefers-reduced-motion: reduce) {
-    .mark {
+    .mark,
+    .tile.selecting-mode .pick img {
       transition: none;
     }
   }

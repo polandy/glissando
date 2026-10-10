@@ -20,7 +20,7 @@ function tile(page: Page, number: number, date: string) {
 test("E2E-014 pictures are removed with undo, reordered and renamed across a reload, and the slideshow deleted", async ({
   page,
 }) => {
-  const selectionBar = page.getByRole("toolbar", { name: "Ausgewähltes Bild" });
+  const selectionBar = page.getByRole("toolbar", { name: "Auswahl" });
   await openApp(page);
   await createSlideshow(page, ["2025-07-12", "2025-07-14", "2025-07-20"], 2);
   await expect(page.getByText("Nach Aufnahmedatum sortiert")).toBeVisible();
