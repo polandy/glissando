@@ -45,10 +45,10 @@ are rejected.
   `ease-in-out` (cubic).
 - **Transitions**: `crossfade`, `push-left`, `wipe-right`, `circle-open`, `zoom-in`,
   `dissolve`. A missing `transitionToNext` is a hard cut; the last slide has none.
-- **Caption** (optional): one line of 1 to 80 characters (counted in graphemes, so an emoji, a flag or a
-  letter with a combining mark is one) without
-  leading, trailing or repeated whitespace, as `normalizeCaption` leaves typed text; absent
-  means none. Anything else is a `SlideshowFormatError` at `slides[i].caption`.
+- **Caption** (optional): one line of 1 to 80 characters (counted in graphemes, so an emoji, a
+  flag or a letter with a combining mark is one) without leading, trailing or repeated
+  whitespace, as `normalizeCaption` leaves typed text; absent means none. Anything else is a
+  `SlideshowFormatError` at `slides[i].caption`.
 - **Music** (version 2, ADR-0009): `startMs` is where in the track the slideshow's start falls,
   `endMs` where the music stops being heard, `fadeInMs` and `fadeOutMs` ramp the volume up from
   `startMs` and down to `endMs` (0: none); all whole milliseconds of the track, `endMs` after
@@ -92,9 +92,11 @@ picture comes on screen pays nothing for it (ADR-0014).
 `startDecodeWorker`: the exported web page starts the decode worker from a script inside itself
 (HTML_EXPORT.md). Its `mainThreadDecodeFallback` wraps the worker decoder in a
 `FallbackPictureDecoder`: once the worker fails a picture that the main thread decodes, or cannot
-start, every decode runs on the main thread; a picture both fail is broken and rejects. The app
-keeps the worker alone, so a broken picture is never decoded twice. It and its callers import the engine's modules directly, never the index, whose
-`createPlayer` would bring the worker in as a separate file.
+start, every decode runs on the main thread; a picture both fail is broken and rejects with an
+`AggregateError` of both errors. Once disposed it decodes nothing more on the main thread. The app
+keeps the worker alone, so a broken picture is never decoded twice. It and its callers import the
+engine's modules directly, never the index, whose `createPlayer` would bring the worker in as a
+separate file.
 
 `createFramePlayer(slideshow, size, openPicture?)` is the video export's: a silent player on a
 canvas in no document, drawn with WebGL2 at exactly `size` (pixel ratio 1, drawing buffer
@@ -113,12 +115,12 @@ The player:
   frame), `ended`, `error`.
 - `captionInset` (CSS pixels, ≥ 0, default 0) lifts every caption from the bottom, e.g. above
   controls laid over the player while they show. Setting it glides the captions there over
-  `CAPTION_GLIDE_MS` (300 ms, CSS `ease`; the app fades its controls in the same time), starting from where they are mid-glide; the getter
-  returns the target. Each drawn frame takes the glide's value at the player's clock: playback
-  frames carry it, and while paused (or waiting) the player requests frames of its own until the
-  glide ends, then draws no more. `jumpCaptionInset(cssPixels)` sets it at once and redraws, e.g.
-  under reduced motion. A `RangeError` refuses a negative or non-finite value. A video export
-  leaves it at 0.
+  `CAPTION_GLIDE_MS` (300 ms, CSS `ease`; the app fades its controls in the same time), starting
+  from where they are mid-glide; the getter returns the target. Each drawn frame takes the
+  glide's value at the player's clock: playback frames carry it, and while paused (or waiting)
+  the player requests frames of its own until the glide ends, then draws no more.
+  `jumpCaptionInset(cssPixels)` sets it at once and redraws, e.g. under reduced motion. A
+  `RangeError` refuses a negative or non-finite value. A video export leaves it at 0.
 - `redraw()` draws the current frame again; the renderers call it on resize.
 - `destroy()` frees pictures, textures, music and the drawing surface.
 

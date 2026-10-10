@@ -1,13 +1,16 @@
 import { describe, expect, it } from "vitest";
 import type { StoredPicture, StoredSlideshow } from "../library/stored-slideshow";
 import { parseSlideshow } from "../player";
+import { encodeBase64 } from "./base64";
 import {
   exportPage,
+  MEDIA_CHUNK_BYTES,
   PagePictureError,
   PlayerAssetError,
   type PageExportJob,
   type PageExportProgress,
 } from "./export-page";
+import { MEDIA_BLOCK_END } from "./page";
 import { FakeScaler, fixedPlayerAsset, MemoryPageSink } from "./testing/fakes";
 
 function picture(id: string, width: number, height: number): StoredPicture {
@@ -191,6 +194,40 @@ describe("exportPage", () => {
     expect(reads).toEqual(["big"]);
     expect(sink.aborted).toBe(true);
     expect(sink.closed).toBe(false);
+  });
+
+  it("does not commit the page when cancelled while the music is read", async () => {
+    const controller = new AbortController();
+    const music = new Blob(["bytes of m1"], { type: "audio/mpeg" });
+    const { job, sink } = run({ signal: controller.signal });
+    const failure = await exportPage({
+      ...job,
+      media: {
+        ...job.media,
+        musicBlob: () => {
+          controller.abort();
+          return Promise.resolve(music);
+        },
+      },
+    }).catch((error: unknown) => error);
+
+    expect(failure).toBe(controller.signal.reason);
+    expect(sink.aborted).toBe(true);
+    expect(sink.closed).toBe(false);
+  });
+
+  it("writes a medium in chunks, one write each, that together are its base64", async () => {
+    const bytes = new Uint8Array(MEDIA_CHUNK_BYTES * 2 + 5).map((_, index) => index % 251);
+    const music = new Blob([bytes], { type: "audio/mpeg" });
+    const { job, sink } = run();
+
+    await exportPage({ ...job, media: { ...job.media, musicBlob: () => Promise.resolve(music) } });
+
+    const start = sink.writes.findIndex((text) => text.includes('id="music"'));
+    const end = sink.writes.indexOf(MEDIA_BLOCK_END, start);
+    const chunks = sink.writes.slice(start + 1, end);
+    expect(chunks).toHaveLength(3);
+    expect(chunks.join("")).toBe(encodeBase64(bytes));
   });
 
   it("fails with PagePictureError naming the picture that could not be read, and drops the file", async () => {

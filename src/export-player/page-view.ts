@@ -13,11 +13,14 @@ export interface PageView {
   readonly bigPlay: HTMLButtonElement;
   readonly playAgain: HTMLButtonElement;
   readonly togglePlay: HTMLButtonElement;
-  readonly toggleMute: HTMLButtonElement;
+  /** Null for a slideshow without music. */
+  readonly toggleMute: HTMLButtonElement | null;
   /** Null where the browser has no element full screen (iPhone). */
   readonly fullScreen: HTMLButtonElement | null;
   readonly track: HTMLElement;
   readonly controls: HTMLElement;
+  /** The state last shown. */
+  readonly state: PageState;
   showState(state: PageState): void;
   showTime(currentSeconds: number, durationSeconds: number): void;
   showPaused(paused: boolean): void;
@@ -31,6 +34,7 @@ export interface PageViewOptions {
   readonly title: string;
   readonly copy: PageCopy;
   readonly withFullScreen: boolean;
+  readonly withMusic: boolean;
 }
 
 /** Builds the page inside `document.body`, start card showing. */
@@ -84,13 +88,16 @@ export function createPageView(document: Document, options: PageViewOptions): Pa
   track.setAttribute("role", "slider");
   track.setAttribute("aria-label", copy.timeline);
   track.setAttribute("aria-valuemin", "0");
-  const toggleMute = button("", copy.mute, icon("volume"));
+  track.tabIndex = 0;
+  const toggleMute = options.withMusic ? button("", copy.mute, icon("volume")) : null;
   const fullScreen = options.withFullScreen ? button("", copy.fullScreen, icon("expand")) : null;
-  const controls = make("div", "controls", togglePlay, time, track, toggleMute);
+  const controls = make("div", "controls", togglePlay, time, track);
+  if (toggleMute !== null) controls.append(toggleMute);
   if (fullScreen !== null) controls.append(fullScreen);
 
   document.body.append(stage, controls, start, end);
   const root = document.documentElement;
+  let state: PageState = "start";
 
   return {
     stage,
@@ -101,7 +108,11 @@ export function createPageView(document: Document, options: PageViewOptions): Pa
     fullScreen,
     track,
     controls,
-    showState(state) {
+    get state() {
+      return state;
+    },
+    showState(shown) {
+      state = shown;
       root.setAttribute(PAGE_STATE_ATTRIBUTE, state);
       start.hidden = state !== "start" && state !== "error";
       end.hidden = state !== "ended";
@@ -120,6 +131,7 @@ export function createPageView(document: Document, options: PageViewOptions): Pa
       togglePlay.replaceChildren(icon(paused ? "play" : "pause"));
     },
     showMuted(muted) {
+      if (toggleMute === null) return;
       toggleMute.setAttribute("aria-label", muted ? copy.unmute : copy.mute);
       toggleMute.replaceChildren(icon(muted ? "volumeOff" : "volume"));
     },

@@ -89,5 +89,5 @@ panels, dialogs), `--gl-radius-tile` 8 px (picture tiles), hairlines instead of 
 ## Icons
 
 Line icons on a 24-unit grid, stroke 1.7 with round caps and joins (play and pause filled), listed
-once in `src/ui-kit/icons.ts` and drawn by `src/app/components/Icon.svelte`. An icon next to a label is hidden
-from screen readers; an icon-only button carries an `aria-label`.
+once in `src/ui-kit/icons.ts` and drawn by `src/app/components/Icon.svelte`. An icon next to a
+label is hidden from screen readers; an icon-only button carries an `aria-label`.

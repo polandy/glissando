@@ -92,6 +92,18 @@ describe("WorkerPictureDecoder", () => {
     expect(starts).toBe(1);
   });
 
+  it("keeps the error that stopped the worker from starting as the decode error's cause", async () => {
+    const refused = new DOMException("refused", "SecurityError");
+    const decoder = new WorkerPictureDecoder(() => {
+      throw refused;
+    });
+
+    const error: unknown = await decoder.decode(BYTES).catch((rejection: unknown) => rejection);
+
+    expect(error).toBeInstanceOf(PictureDecodeError);
+    expect((error as PictureDecodeError).cause).toBe(refused);
+  });
+
   it("terminates a worker that crashed", () => {
     const worker = new FakeDecodeWorker();
     const decoder = new WorkerPictureDecoder(() => worker);

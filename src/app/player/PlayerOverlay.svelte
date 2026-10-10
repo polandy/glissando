@@ -14,6 +14,7 @@
   import Icon from "../components/Icon.svelte";
   import { browserScheduler, type Scheduler } from "../../ui-kit/scheduler";
   import PlayerCaption from "./PlayerCaption.svelte";
+  import PlayerCard, { type PlayerFailure } from "./PlayerCard.svelte";
   import { ControlsVisibility } from "../../ui-kit/controls-visibility";
   import {
     canFullscreen,
@@ -52,8 +53,6 @@
     scheduler?: Scheduler;
   } = $props();
 
-  type Failure = "picture" | "playback";
-
   const STATE_EVENTS: readonly PlayerEvent[] = ["timeupdate", "play", "pause", "seeked", "ended"];
   const SEEK_STEP_SECONDS = 0.1;
 
@@ -69,7 +68,7 @@
   let currentTime = $state(0);
   let paused = $state(true);
   let ended = $state(false);
-  let failure = $state<Failure | null>(null);
+  let failure = $state<PlayerFailure | null>(null);
   let controlsVisible = $state(true);
   // The scheduler is fixed for the overlay's lifetime.
   // svelte-ignore state_referenced_locally
@@ -117,7 +116,7 @@
   });
 
   /** A refused music start is no failure: the player pauses, and play retries with a gesture. */
-  function failureOf(error: Error | null): Failure | null {
+  function failureOf(error: Error | null): PlayerFailure | null {
     if (error instanceof MusicPlaybackError) {
       return null;
     }
@@ -282,24 +281,5 @@
     </div>
   </div>
 
-  {#if failure !== null}
-    <div class="card-layer" role="alert">
-      <div class="box">
-        <p>{failure === "picture" ? t("player.pictureError") : t("player.playbackError")}</p>
-        <button class="pill" type="button" onclick={onClose}>{t("common.close")}</button>
-      </div>
-    </div>
-  {:else if ended}
-    <div class="card-layer">
-      <div class="box">
-        <h2>{t("player.end")}</h2>
-        <div class="row">
-          <button class="pill light" type="button" onclick={togglePlay}>
-            <Icon name="replay" />{t("player.again")}
-          </button>
-          <button class="pill" type="button" onclick={onClose}>{t("common.close")}</button>
-        </div>
-      </div>
-    </div>
-  {/if}
+  <PlayerCard {failure} {ended} onPlayAgain={togglePlay} {onClose} />
 </div>

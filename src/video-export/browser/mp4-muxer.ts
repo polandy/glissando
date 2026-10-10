@@ -28,9 +28,10 @@ export async function createMp4Muxer({
   maxPackets,
 }: Mp4MuxerOptions): Promise<Mp4Muxer> {
   const mediabunny = await import("./mediabunny-writer");
+  const file = cancellableWritable(writable);
   const output = new mediabunny.Output({
     format: new mediabunny.Mp4OutputFormat({ fastStart: "reserve" }),
-    target: new mediabunny.StreamTarget(writable),
+    target: new mediabunny.StreamTarget(file.writable),
   });
   const video = new mediabunny.EncodedVideoPacketSource("avc");
   output.addVideoTrack(video, {
@@ -57,7 +58,7 @@ export async function createMp4Muxer({
         await written;
         await output.finalize();
       },
-      cancel: () => output.cancel(),
+      cancel: () => file.cancel(() => output.cancel()),
     },
     addVideo: (chunk, meta) =>
       enqueue(() => video.add(mediabunny.EncodedPacket.fromEncodedChunk(chunk), meta)),
@@ -66,5 +67,34 @@ export async function createMp4Muxer({
         ? null
         : (chunk, meta) =>
             enqueue(() => audio.add(mediabunny.EncodedPacket.fromEncodedChunk(chunk), meta)),
+  };
+}
+
+/**
+ * Passes mediabunny's writes through to `writable`, except that a cancelled output aborts it
+ * rather than closing it: mediabunny closes its target on cancel, and a `close()` would commit a
+ * half-written file over the one the user picked.
+ */
+function cancellableWritable(writable: WritableStream): {
+  readonly writable: WritableStream;
+  /** Runs mediabunny's own cancel, which closes its target, then aborts `writable`. */
+  cancel(cancelOutput: () => Promise<void>): Promise<void>;
+} {
+  const writer = writable.getWriter();
+  let cancelled = false;
+  return {
+    writable: new WritableStream({
+      write: (chunk) => writer.write(chunk),
+      close: () => (cancelled ? undefined : writer.close()),
+      abort: (reason) => writer.abort(reason),
+    }),
+    cancel: async (cancelOutput) => {
+      cancelled = true;
+      try {
+        await cancelOutput();
+      } finally {
+        await writer.abort();
+      }
+    },
   };
 }

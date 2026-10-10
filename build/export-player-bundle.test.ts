@@ -58,6 +58,18 @@ describe("bundleParts", () => {
     ).toThrow(/picture-decode-worker\.js/);
   });
 
+  it.each(["</script>", "</SCRIPT", "<!--"])(
+    "fails when the script holds %j, which would end or garble its inline <script> block",
+    (sequence) => {
+      const files = (code: string) => [
+        { type: "chunk", fileName: "main.js", code } as const,
+        { type: "asset", fileName: "style.css", source: ".a{}" } as const,
+      ];
+      expect(bundleParts(files("run()")).script).toBe("run()");
+      expect(() => bundleParts(files(`const html = "${sequence}";`))).toThrow(/cannot be inlined/);
+    },
+  );
+
   it("fails without a stylesheet", () => {
     expect(() => bundleParts([{ type: "chunk", fileName: "main.js", code: "run()" }])).toThrow(
       /stylesheet/,

@@ -87,9 +87,11 @@ size radios, file row and saved note are shared with the web page export.
 - While running, the screen is kept awake (`navigator.wakeLock`, requested again on
   `visibilitychange` when visible). A hidden page pauses the work, which the export's own time
   makes harmless.
-- "Abbrechen" stops at once: the encoders are closed, the muxer closes the writable, and the OPFS file is
-  deleted. With the picker, the half-written user file is truncated to empty. A browser cannot
-  delete it.
+- "Abbrechen" stops at once: the encoders are closed, the muxer aborts the writable, and the
+  OPFS file is deleted. With the picker, only the writer is aborted: File System Access writes
+  into a swap file that only `close()` commits, so a file the user chose to overwrite keeps its
+  old content and a new name stays the empty file the picker created, which a browser cannot
+  delete.
 - One export at a time; the sheet is modal while running. While running, ✕ reads "Abbrechen"
   and Esc cancels too; a tap on the scrim closes the sheet only where nothing is lost (not while
   running, not once done). Closed, focus goes back to "Video".

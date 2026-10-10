@@ -10,21 +10,23 @@ Glissando. The recipient opens it by double-click, from a mail attachment, from 
 the Files app, so it runs from `file://` or an Android `content://` URI, never from a server.
 
 Measured 2026-10-10 on a generated slideshow (50 photo-like 4000 × 3000 pictures, 3 min of music as
-MP3 at 192 kbit/s, 4.3 MB). Sizes:
+MP3 at 192 kbit/s, 4.3 MB). Sizes, all measured; 3840 px (4K) was not measured, its size is an
+estimate (below):
 
-| Pictures (JPEG q 0.85, long edge) | 1280 px       | 1920 px        | 2560 px        |
-| --------------------------------- | ------------- | -------------- | -------------- |
-| Pictures alone                    | 5.8 MB        | 15.8 MB        | 35.3 MB        |
-| Zip, stored / deflate             | 10.2 / 9.7 MB | 20.2 / 19.1 MB | 39.7 / 37.8 MB |
-| One `.html`, base64 inside        | 13.6 MB       | 27.0 MB        | 53.0 MB        |
-| That `.html` gzipped              |               | 19.3 MB        |                |
+| Pictures (JPEG q 0.85, long edge) | 1280 px       | 1920 px        | 2560 px (measured) |
+| --------------------------------- | ------------- | -------------- | ------------------ |
+| Pictures alone                    | 5.8 MB        | 15.8 MB        | 35.3 MB            |
+| Zip, stored / deflate             | 10.2 / 9.7 MB | 20.2 / 19.1 MB | 39.7 / 37.8 MB     |
+| One `.html`, base64 inside        | 13.6 MB       | 27.0 MB        | 53.0 MB            |
+| That `.html` gzipped              |               | 19.3 MB        |                    |
 
 The MP4 at 1080p for the same 250 s is 255 MB. WebP q 0.8 was 3–4 × smaller than JPEG on these
 generated pictures. Opened from `file://` in the pinned Playwright image (Chromium, Firefox
 without WebGL2, WebKit):
 
 - A picture beside the page shows, but Chromium and WebKit refuse it to WebGL (`texImage2D` throws
-  `SecurityError`). `fetch`/XHR of it fail there as well, and 2D canvases are tainted. Firefox allows all of these.
+  `SecurityError`). `fetch`/XHR of it fail there as well, and 2D canvases are tainted. Firefox
+  allows all of these.
 - A picture inside the page, as a `blob:` or `data:` URL, uploads to WebGL. Music plays either way.
 - WebKit's decode worker reads no Blob in a page from `file://` (`createImageBitmap` fails with
   "Cannot load blob:null/…"); the main thread decodes the same Blob.

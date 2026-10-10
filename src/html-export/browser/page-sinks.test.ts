@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { MemoryBlobSink, streamPageSink, type StreamTarget } from "./page-sinks";
 
-/** A file target writing into memory; `discarded` once emptied. */
+/** A file target writing into memory; `discarded` once something emptied or removed it. */
 class MemoryStreamTarget implements StreamTarget {
   readonly chunks: Uint8Array[] = [];
   opened = 0;
@@ -50,24 +50,25 @@ describe("streamPageSink", () => {
     expect(target.closed).toBe(true);
   });
 
-  it("aborts the stream and empties the file on abort", async () => {
+  it("only aborts the writer on abort, so the picked file keeps what it held", async () => {
     const target = new MemoryStreamTarget();
     const sink = streamPageSink(target);
     await sink.write("half a page");
 
     await sink.abort();
 
+    expect(target.opened).toBe(1);
     expect(target.aborted).toBe(true);
-    expect(target.discarded).toBe(true);
+    expect(target.discarded).toBe(false);
   });
 
-  it("empties the file on an abort before anything was written", async () => {
+  it("neither opens nor touches the file on an abort before anything was written", async () => {
     const target = new MemoryStreamTarget();
 
     await streamPageSink(target).abort();
 
-    expect(target.discarded).toBe(true);
     expect(target.opened).toBe(0);
+    expect(target.discarded).toBe(false);
   });
 });
 

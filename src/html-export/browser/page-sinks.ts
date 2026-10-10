@@ -3,27 +3,26 @@ import type { PageSink } from "../ports";
 /** The page's MIME type. */
 export const PAGE_TYPE = "text/html";
 
-/** The part of a picked or private file (`ExportTarget`) the page is streamed into. */
+/** The part of a picked file (`ExportTarget`) the page is streamed into. */
 export interface StreamTarget {
   /** Opens the file for writing from its start. */
   open(): Promise<WritableStream>;
-  /** Empties or removes the file. */
-  discard(): Promise<void>;
 }
 
 const utf8 = new TextEncoder();
 
-/** Streams the page into a file, so even a 4K page is never held in memory whole. */
+/**
+ * Streams the page into a picked file, so even a 4K page is never held in memory whole. An abort
+ * only aborts the writer: File System Access writes into a swap file that only `close()` commits,
+ * so the picked file keeps what it held before.
+ */
 export function streamPageSink(target: StreamTarget): PageSink {
   let writer: WritableStreamDefaultWriter | undefined;
   const opened = async () => (writer ??= (await target.open()).getWriter());
   return {
     write: async (text) => (await opened()).write(utf8.encode(text)),
     close: async () => (await opened()).close(),
-    abort: async () => {
-      await writer?.abort();
-      await target.discard();
-    },
+    abort: async () => writer?.abort(),
   };
 }
 

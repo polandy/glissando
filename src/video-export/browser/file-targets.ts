@@ -47,7 +47,7 @@ export function canPickSaveFile(): boolean {
 
 /**
  * Asks where to save; call it in the click's user gesture. Null when the user dismissed the
- * picker. A cancelled or failed export empties the file, which a browser cannot delete.
+ * picker. A cancelled or failed export leaves the file as it was before.
  */
 export async function pickSaveTarget(
   suggestedName: string,
@@ -79,10 +79,9 @@ export async function pickSaveTarget(
     fileName: handle.name,
     open: () => handle.createWritable(),
     file: () => handle.getFile(),
-    discard: async () => {
-      const emptying = await handle.createWritable();
-      await emptying.close();
-    },
+    // An aborted writer has already left the file as it was: File System Access writes into a
+    // swap file that only `close()` commits. A browser cannot delete the file the picker created.
+    discard: () => Promise.resolve(),
   };
 }
 

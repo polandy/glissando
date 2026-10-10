@@ -118,10 +118,13 @@ async function prepare(
           };
     return { kind: "ready", muxer, audio };
   } catch (error: unknown) {
+    // The outcome carries the first error; a cancel that fails as well must not keep a private
+    // file from being removed.
+    const ignore = () => undefined;
     if (muxer !== null) {
-      await muxer.port.cancel();
+      await muxer.port.cancel().catch(ignore);
     } else if (writable !== null) {
-      await writable.abort(error);
+      await writable.abort(error).catch(ignore);
     }
     await target.discard();
     return signal.aborted

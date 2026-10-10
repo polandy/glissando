@@ -44,7 +44,7 @@ export interface PageExportJob {
   readonly scaler: PictureScaler;
   readonly sink: PageSink;
   readonly playerAsset: PlayerAsset;
-  /** Checked before each picture. */
+  /** Checked before each picture, each medium's chunk and closing the page. */
   readonly signal?: AbortSignal;
   readonly onProgress?: (progress: PageExportProgress) => void;
 }
@@ -54,6 +54,12 @@ export interface PageExportResult {
 }
 
 const utf8 = new TextEncoder();
+
+/**
+ * The bytes of a picture or the music read, encoded and written at a time, so a medium is never
+ * held whole as a string. A multiple of 3, so only the last chunk's base64 is padded.
+ */
+export const MEDIA_CHUNK_BYTES = 3 * 256 * 1024;
 
 /**
  * Writes `stored` as one self-contained web page to the job's sink (dev-docs/HTML_EXPORT.md).
@@ -92,9 +98,13 @@ async function writePage(job: PageExportJob): Promise<PageExportResult> {
   const writeText = (text: string) => write(text, utf8.encode(text).length);
   const writeBlock = async (key: string, mimeType: string, blob: Blob) => {
     await writeText(mediaBlockStart(key, mimeType));
-    // Base64 is ASCII: one byte per character.
-    const base64 = encodeBase64(new Uint8Array(await blob.arrayBuffer()));
-    await write(base64, base64.length);
+    for (let start = 0; start < blob.size; start += MEDIA_CHUNK_BYTES) {
+      signal?.throwIfAborted();
+      const chunk = blob.slice(start, start + MEDIA_CHUNK_BYTES);
+      const base64 = encodeBase64(new Uint8Array(await chunk.arrayBuffer()));
+      // Base64 is ASCII: one byte per character.
+      await write(base64, base64.length);
+    }
     await writeText(MEDIA_BLOCK_END);
   };
   const report = (picturesDone: number) =>
@@ -123,6 +133,7 @@ async function writePage(job: PageExportJob): Promise<PageExportResult> {
     await writeBlock(MUSIC_KEY, stored.music.mimeType, await job.media.musicBlob(stored.music.id));
   }
   await writeText(pageTail(bundle.script));
+  signal?.throwIfAborted();
   await sink.close();
   report(stored.pictures.length);
   return { bytesWritten };

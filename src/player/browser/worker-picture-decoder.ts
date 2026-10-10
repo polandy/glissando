@@ -32,8 +32,8 @@ interface PendingDecode {
 
 /**
  * Decodes in one worker, started on the first picture. Once the worker could not be started, has
- * crashed or sent a reply that cannot be read, or was disposed, it is terminated and every decode rejects with
- * `PictureDecodeError`.
+ * crashed or sent a reply that cannot be read, or was disposed, it is terminated and every decode
+ * rejects with `PictureDecodeError`.
  */
 export class WorkerPictureDecoder implements PictureDecoder {
   readonly #startWorker: () => PictureDecodeWorker;
@@ -54,8 +54,8 @@ export class WorkerPictureDecoder implements PictureDecoder {
     let worker: PictureDecodeWorker;
     try {
       worker = this.#workerStarted();
-    } catch {
-      this.#goneWith("The picture decode worker could not be started");
+    } catch (error: unknown) {
+      this.#goneWith("The picture decode worker could not be started", { cause: error });
       return promise;
     }
     worker.postMessage({ id, bytes });
@@ -86,8 +86,8 @@ export class WorkerPictureDecoder implements PictureDecoder {
     else pending.resolve(reply.bitmap);
   }
 
-  #goneWith(message: string): void {
-    this.#gone ??= new PictureDecodeError(message);
+  #goneWith(message: string, options?: ErrorOptions): void {
+    this.#gone ??= new PictureDecodeError(message, options);
     this.#worker?.terminate();
     for (const pending of this.#pending.values()) pending.reject(this.#gone);
     this.#pending.clear();

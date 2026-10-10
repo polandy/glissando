@@ -129,11 +129,11 @@ describe("pageTail", () => {
     expect(pageTail("start()")).toBe("<script>start()</script>\n</body>\n</html>\n");
   });
 
-  it("keeps the player script from closing its block or opening a comment", () => {
-    const tail = pageTail('const a = "</script>"; const b = "<!--";');
-
-    expect(tail).toBe(
-      '<script>const a = "<\\/script>"; const b = "<\\!--";</script>\n</body>\n</html>\n',
-    );
-  });
+  it.each(["</script>", "</Script", "<!--"])(
+    "refuses a player script holding %j rather than rewriting the script",
+    (sequence) => {
+      expect(pageTail("start()")).toContain("start()");
+      expect(() => pageTail(`const html = "${sequence}";`)).toThrow(/cannot be inlined/);
+    },
+  );
 });

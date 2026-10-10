@@ -1,3 +1,5 @@
+import type { PageState } from "../html-export/page-contract";
+
 export type PageAction =
   "toggle-play" | "seek-back" | "seek-forward" | "toggle-mute" | "toggle-fullscreen";
 
@@ -22,4 +24,29 @@ export function pageActionForKey(press: KeyPress): PageAction | null {
     return null;
   }
   return ACTIONS_BY_KEY[press.key] ?? null;
+}
+
+/** What decides whether a shortcut acts. */
+export interface PageKeyContext {
+  readonly state: PageState;
+  readonly withMusic: boolean;
+  readonly withFullScreen: boolean;
+}
+
+/**
+ * The action a key press performs on the page: none while the start, end or error card shows,
+ * none for M without music, none for F without element full screen.
+ */
+export function pageKeyAction(press: KeyPress, page: PageKeyContext): PageAction | null {
+  if (page.state !== "playing" && page.state !== "paused") return null;
+  const action = pageActionForKey(press);
+  if (action === "toggle-mute" && !page.withMusic) return null;
+  if (action === "toggle-fullscreen" && !page.withFullScreen) return null;
+  return action;
+}
+
+/** The focused timeline slider's own keys: the page's seek arrows. */
+export function timelineKeyAction(press: KeyPress): "seek-back" | "seek-forward" | null {
+  const action = pageActionForKey(press);
+  return action === "seek-back" || action === "seek-forward" ? action : null;
 }

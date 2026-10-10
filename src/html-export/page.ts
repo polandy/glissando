@@ -7,6 +7,7 @@ import {
   SLIDESHOW_BLOCK_ID,
   type PageCopy,
 } from "./page-contract";
+import { assertInlineableScript } from "./inline-script";
 
 /**
  * The exported page as text, in the order it is written: `pageHead`, one media block per medium
@@ -68,8 +69,10 @@ export function mediaBlockStart(key: string, mimeType: string): string {
 
 export const MEDIA_BLOCK_END = "</script>\n";
 
+/** Throws on a player script that cannot be inlined unchanged (`assertInlineableScript`). */
 export function pageTail(playerScript: string): string {
-  return `<script>${escapeScript(playerScript)}</script>\n</body>\n</html>\n`;
+  assertInlineableScript(playerScript, "the player script");
+  return `<script>${playerScript}</script>\n</body>\n</html>\n`;
 }
 
 function jsonBlock(id: string, value: unknown): string {
@@ -88,14 +91,6 @@ const HTML_ESCAPES: Readonly<Record<string, string>> = {
 
 function escapeHtml(text: string): string {
   return text.replace(/[&<>"']/g, (character) => HTML_ESCAPES[character] ?? character);
-}
-
-/**
- * The bundled script has these sequences only inside strings and regular expressions, where a
- * backslash before `/` or `!` leaves the value unchanged.
- */
-function escapeScript(script: string): string {
-  return script.replace(/<\/(script)/gi, "<\\/$1").replaceAll("<!--", "<\\!--");
 }
 
 function escapeStyle(style: string): string {

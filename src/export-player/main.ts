@@ -6,7 +6,7 @@ import { ControlsVisibility } from "../ui-kit/controls-visibility";
 import { canFullscreen, toggleFullscreen } from "../ui-kit/fullscreen";
 import { REDUCED_MOTION_QUERY } from "../ui-kit/reduced-motion";
 import { browserScheduler } from "../ui-kit/scheduler";
-import { MEDIA_TYPE_ATTRIBUTE } from "../html-export/page-contract";
+import { MEDIA_TYPE_ATTRIBUTE, PAGE_STATE_ATTRIBUTE } from "../html-export/page-contract";
 import { createBrowserPlayer, type BrowserPlayer } from "../player/browser-player";
 import { createMusicAudioContext } from "../player/browser/platform";
 import DecodeWorker from "../player/browser/picture-decode-worker.ts?worker&inline";
@@ -14,7 +14,7 @@ import { CAPTION_FONT_FAMILY, CAPTION_FONT_WEIGHT } from "../player/caption-layo
 import { MusicPlaybackError } from "../player/ports";
 import type { Slideshow } from "../player/slideshow";
 import { MutableMusicOutput } from "./mutable-music-output";
-import { pageActionForKey, type PageAction } from "./page-keys";
+import { pageKeyAction, timelineKeyAction, type PageAction } from "./page-keys";
 import { readPageData, type PageBlock } from "./page-data";
 import { createPageView, type PageView } from "./page-view";
 import { SEEK_STEP_SECONDS, seekBy, timelineSeconds } from "./seek";
@@ -32,16 +32,18 @@ function readBlock(id: string): PageBlock | null {
 
 async function startPage(): Promise<void> {
   const data = readPageData(readBlock);
+  const slideshow = withMusicUrl(data.slideshow, data.music);
   const view = createPageView(document, {
     title: data.slideshow.title,
     copy: data.copy,
     withFullScreen: canFullscreen(),
+    withMusic: slideshow.music !== undefined,
   });
   view.showState("start");
   // Captions are drawn into the picture, so the font has to be there before the first frame.
   await document.fonts.load(`${CAPTION_FONT_WEIGHT} ${FONT_PROBE_SIZE} ${CAPTION_FONT_FAMILY}`);
   const music = new MutableMusicOutput(createMusicAudioContext);
-  const player = createBrowserPlayer(view.stage, withMusicUrl(data.slideshow, data.music), {
+  const player = createBrowserPlayer(view.stage, slideshow, {
     startDecodeWorker: () => new DecodeWorker(),
     mainThreadDecodeFallback: true,
     openPicture: data.openPicture,
@@ -133,14 +135,30 @@ function wire(view: PageView, player: BrowserPlayer, music: MutableMusicOutput):
   view.bigPlay.addEventListener("click", play);
   view.playAgain.addEventListener("click", play);
   view.togglePlay.addEventListener("click", () => perform("toggle-play"));
-  view.toggleMute.addEventListener("click", () => perform("toggle-mute"));
+  view.toggleMute?.addEventListener("click", () => perform("toggle-mute"));
   view.fullScreen?.addEventListener("click", () => perform("toggle-fullscreen"));
   view.stage.addEventListener("click", () => controls.toggle());
   wireTimeline(view.track, player, seek);
+  const keyContext = {
+    get state() {
+      return view.state;
+    },
+    withMusic: view.toggleMute !== null,
+    withFullScreen: view.fullScreen !== null,
+  };
+  view.track.addEventListener("keydown", (event) => {
+    const action = timelineKeyAction(event);
+    if (action === null) return;
+    // The slider handles its own arrows; the page's shortcut must not seek a second time.
+    event.preventDefault();
+    event.stopPropagation();
+    controls.reveal();
+    perform(action);
+  });
   document.addEventListener("pointermove", () => controls.reveal());
   document.addEventListener("keydown", (event) => {
-    const action = pageActionForKey(event);
-    if (action === null || player.ended || view.controls.hidden) return;
+    const action = pageKeyAction(event, keyContext);
+    if (action === null) return;
     event.preventDefault();
     controls.reveal();
     perform(action);
@@ -168,5 +186,5 @@ startPage().catch((error: unknown) => {
   const message = document.createElement("p");
   message.textContent = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
   document.body.append(message);
-  document.documentElement.setAttribute("data-state", "error");
+  document.documentElement.setAttribute(PAGE_STATE_ATTRIBUTE, "error");
 });

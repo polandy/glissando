@@ -42,16 +42,19 @@ https://polandy.github.io/glissando-assets/mockups/html-export/.
 - **The player** is the engine's own (`createBrowserPlayer` with WebGL2, else the DOM fallback),
   built as a standalone bundle with the decode worker inlined. Where the worker fails a picture
   the main thread decodes (WebKit's worker reads no Blob from `file://`), or cannot start, the
-  page decodes on the main thread from then on (`mainThreadDecodeFallback`). Trim, fades, captions and each picture's own
-  Ken Burns, duration and transition are exactly the app's.
+  page decodes on the main thread from then on (`mainThreadDecodeFallback`). Trim, fades,
+  captions and each picture's own Ken Burns, duration and transition are exactly the app's.
 - **Start card**: the first picture behind a dark veil, eyebrow "Diashow", the title, "50 Bilder ·
   4:10 · mit Musik" (or "ohne Musik"), a round peach Play button, and at the bottom "Erstellt mit
   Glissando · läuft offline". Play is the user gesture that unlocks the music (PLAYER.md).
 - **Playing**: the player full-bleed. Controls are laid over the bottom: play/pause, time
-  "0:12 / 4:10", a timeline (click or drag to seek, arrow keys ±5 s), mute, and full screen where
-  `requestFullscreen` exists. They hide 2.5 s after the last pointer move, tap or key while
+  "0:12 / 4:10", a timeline, mute where the slideshow has music, and full screen where
+  `requestFullscreen` exists. The timeline is a focusable `role="slider"` (`aria-valuenow` and
+  `aria-valuetext` in seconds and as "0:12 / 4:10"): click or drag to seek, and when focused it
+  handles ←/→ (±5 s) itself. The controls hide 2.5 s after the last pointer move, tap or key while
   playing, and show while paused. `captionInset` follows them as in the app. Keys: Space or K
-  play/pause, ←/→ seek ±5 s, M mute, F full screen.
+  play/pause, ←/→ seek ±5 s, M mute (with music only), F full screen (where it exists). Keys are
+  ignored while the start, end or error card shows (`pageKeyAction`).
 - **End card**: the title and "Nochmal abspielen".
 - **Error**: a player `error` shows "Diese Diashow lässt sich hier nicht abspielen." with the
   error's name, over the start card.
@@ -87,7 +90,8 @@ below 720 px. Its states follow the video sheet's (VIDEO_EXPORT.md):
   back from disk (`FileSystemFileHandle.getFile()`), a page built in memory is its Blob, so the
   page is never held twice. The URL is revoked when the sheet closes; a tab that has loaded the
   page keeps it.
-- "Abbrechen" stops before the next picture (an `AbortSignal`), and a picked file is truncated.
+- "Abbrechen" stops before the next picture (an `AbortSignal`), and a picked file
+  is left as it was: its writer is aborted, and File System Access commits only on `close()`.
   Esc and ✕ cancel while running; a tap on the scrim closes the sheet only in choose and failed.
   Closed, focus goes back to "Webseite".
 
@@ -96,9 +100,15 @@ below 720 px. Its states follow the video sheet's (VIDEO_EXPORT.md):
 - `src/html-export/`: pure logic and ports.
   - `plan.ts`: sizes, fitted size, estimate, file name.
   - `page.ts`: the page as text from its parts (slideshow JSON, media blocks, player script,
-    font, copy), with escaping of `</script` in JSON.
+    font, copy), with `<` escaped in JSON. The player script goes in unchanged:
+    `inline-script.ts` refuses one holding `</script` or `<!--`, at build time
+    (`build/export-player-bundle.ts`) and again when the page is written, since no escape is
+    safe everywhere in JavaScript.
   - `export-page.ts`: the run (downscale each picture through a port, progress, cancel, write the
-    parts to a sink in order, so a picked file is streamed rather than held whole).
+    parts to a sink in order, so a picked file is streamed rather than held whole). A medium is
+    read, encoded and written in slices of `MEDIA_CHUNK_BYTES` (768 KiB), so not even the music
+    is ever held whole as a string. The cancel is checked before each picture, each slice and
+    closing the page.
   - `page-contract.ts`: the block ids, keys, copy keys and states the page's script shares.
   - Ports: `PictureScaler`, `PageSink`, `PlayerAsset`.
 - `src/html-export/browser/`: the scaler (`createImageBitmap` + `OffscreenCanvas`, shared with
@@ -108,7 +118,8 @@ below 720 px. Its states follow the video sheet's (VIDEO_EXPORT.md):
   (`build/export-player-plugin.ts`, modelled on the service worker plugin) bundles it into one
   self-contained script with the decode worker inline. The app imports it as a virtual module and
   loads it on the first export, and the service worker precaches it.
-- `src/export-player/` imports only `src/player/`, `src/html-export/page-contract.ts` and
+- `src/export-player/` imports only `src/player/`, `src/html-export/page-contract.ts`,
+  `src/html-export/base64.ts` (the media blocks' encoding, the other half of that contract) and
   `src/ui-kit/` (icons, scheduler, controls visibility, caption inset, fullscreen), which the app
   shares (APP.md, Wiring).
 - `src/app/html-export/` drives the sheet: `html-export-session.ts` (the flow over the ports and

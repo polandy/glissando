@@ -1,4 +1,5 @@
 import { encodeBase64 } from "../src/html-export/base64.ts";
+import { assertInlineableScript } from "../src/html-export/inline-script.ts";
 
 const FONT_DATA_URL_PREFIX = "data:font/woff2;base64,";
 /** The design tokens' first `:root` block holds every token with its light value. */
@@ -42,7 +43,8 @@ export type BuiltPlayerFile =
 
 /**
  * The page's script and stylesheet from the export player's build, which must emit nothing
- * else: a further file (a worker, an image) would be missing from the self-contained page.
+ * else: a further file (a worker, an image) would be missing from the self-contained page. The
+ * build fails on a script that cannot be inlined unchanged (`assertInlineableScript`).
  */
 export function bundleParts(files: readonly BuiltPlayerFile[]): { script: string; style: string } {
   const chunks = files.filter((file) => file.type === "chunk");
@@ -60,6 +62,7 @@ export function bundleParts(files: readonly BuiltPlayerFile[]): { script: string
   if (chunk?.type !== "chunk" || style?.type !== "asset" || styles.length !== 1) {
     throw new Error("the export player's build emitted no stylesheet; import page.css in main.ts");
   }
+  assertInlineableScript(chunk.code, `the export player's ${chunk.fileName}`);
   const css =
     typeof style.source === "string" ? style.source : new TextDecoder().decode(style.source);
   return { script: chunk.code, style: css };

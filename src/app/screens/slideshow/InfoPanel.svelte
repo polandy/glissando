@@ -3,6 +3,7 @@
   import Icon from "../../components/Icon.svelte";
   import { getTranslator } from "../../i18n/context";
   import type { SlideshowDetails } from "../view-models";
+  import PanelActionRow from "./PanelActionRow.svelte";
   import SaveAsRow from "./SaveAsRow.svelte";
   import TitleEditor from "./TitleEditor.svelte";
 
@@ -31,7 +32,7 @@
     onEditTransitions: () => void;
   } = $props();
 
-  let transitionsRow: HTMLButtonElement;
+  let transitionsRow: PanelActionRow;
   let saveAs: SaveAsRow;
 
   /** The video export sheet closed: focus goes back to its button. */
@@ -133,14 +134,14 @@
       </div>
     {:else}
       <div class="action-row">
-        <button type="button" class="row-action music" onclick={onEditMusic}>
-          <span class="label">{t("slideshow.music")}</span>
-          <span class="value">
-            <b>{slideshow.musicTitle}</b>
-            <small>{musicSummary}</small>
-          </span>
-          <span class="go">{t("slideshow.edit")}<Icon name="chevronRight" /></span>
-        </button>
+        <PanelActionRow
+          name="music"
+          label={t("slideshow.music")}
+          value={slideshow.musicTitle}
+          summary={musicSummary}
+          action={t("slideshow.edit")}
+          onclick={onEditMusic}
+        />
       </div>
     {/if}
     <div>
@@ -164,19 +165,15 @@
       </dd>
     </div>
     <div class="action-row">
-      <button
+      <PanelActionRow
         bind:this={transitionsRow}
-        type="button"
-        class="row-action transitions"
+        name="transitions"
+        label={t("slideshow.transitions")}
+        value={t(`effect.${slideshow.transition}`)}
+        summary={transitionSummary}
+        action={t("slideshow.change")}
         onclick={onEditTransitions}
-      >
-        <span class="label">{t("slideshow.transitions")}</span>
-        <span class="value">
-          <b>{t(`effect.${slideshow.transition}`)}</b>
-          <small>{transitionSummary}</small>
-        </span>
-        <span class="go">{t("slideshow.change")}<Icon name="chevronRight" /></span>
-      </button>
+      />
     </div>
     <div>
       <dt>{t("slideshow.captions")}</dt>
@@ -234,55 +231,10 @@
     font-size: inherit;
     font-weight: var(--gl-weight-regular);
   }
-  /* The music and transitions rows open their editors: a button spanning the row. */
+  /* The music and transitions rows open their editors (PanelActionRow). */
   .rows .action-row {
     display: block;
     padding: 6px 0;
-  }
-  .row-action {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    align-items: center;
-    gap: 4px 14px;
-    width: calc(100% + 8px);
-    margin: 0 -4px;
-    padding: 9px 10px 9px 12px;
-    border: 1px solid var(--gl-line);
-    border-radius: var(--gl-radius);
-    background: var(--gl-raised);
-    color: var(--gl-ink);
-    font: inherit;
-    text-align: left;
-    cursor: pointer;
-  }
-  .row-action:hover {
-    background: var(--gl-hover);
-  }
-  .row-action .label {
-    color: var(--gl-muted);
-  }
-  .row-action .value {
-    display: grid;
-    gap: 2px;
-    min-width: 0;
-  }
-  .row-action .value b {
-    overflow: hidden;
-    font-weight: var(--gl-weight-medium);
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  .row-action .value small {
-    color: var(--gl-muted);
-    font-size: var(--gl-size-meta);
-  }
-  .row-action .go {
-    display: flex;
-    align-items: center;
-    gap: 2px;
-    color: var(--gl-muted);
-    font-size: var(--gl-size-meta);
-    font-weight: var(--gl-weight-semibold);
   }
   .pill {
     display: inline-flex;
