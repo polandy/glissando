@@ -5,6 +5,7 @@ import {
   NO_SELECTION,
   pick,
   selectedInOrder,
+  soleSelection,
   startSelecting,
   withoutRemoved,
   type StripSelection,
@@ -126,6 +127,17 @@ describe("withoutRemoved", () => {
   it("returns the same instance when nothing was removed", () => {
     const several = ctrl(plain(NO_SELECTION, "b"), "d");
     expect(withoutRemoved(several, ORDER)).toBe(several);
+  });
+});
+
+describe("soleSelection", () => {
+  it("selects only the given id, outside several", () => {
+    expect(soleSelection("c")).toEqual({
+      ids: new Set(["c"]),
+      several: false,
+      startedBySelect: false,
+      anchor: "c",
+    });
   });
 });
 

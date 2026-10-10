@@ -20,6 +20,11 @@ export const NO_SELECTION: StripSelection = {
   anchor: null,
 };
 
+/** `id` selected alone, outside several: what a plain pick of it from nothing leaves. */
+export function soleSelection(id: string): StripSelection {
+  return { ids: new Set([id]), several: false, startedBySelect: false, anchor: id };
+}
+
 function toggled(ids: ReadonlySet<string>, id: string): Set<string> {
   const next = new Set(ids);
   if (next.has(id)) {

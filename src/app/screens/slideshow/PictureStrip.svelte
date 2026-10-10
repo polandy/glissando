@@ -1,50 +1,120 @@
 <script lang="ts">
   import { tick } from "svelte";
+  import { animationFrames, type FrameScheduler } from "../../../player";
+  import { browserScheduler, type Scheduler } from "../../../ui-kit/scheduler";
   import type { PictureTile } from "../view-models";
+  import DragGhost from "./DragGhost.svelte";
   import StripTile from "./StripTile.svelte";
   import { stripKeyAction } from "./strip-keys";
+  import {
+    hold,
+    pick,
+    selectedInOrder,
+    soleSelection,
+    endSelecting,
+    type StripSelection,
+  } from "./strip-selection";
+  import { TileDrag, type DropTarget, type TileDragState } from "./tile-drag";
 
   /** The pictures in play order as tiles: select, remove, and reorder by drag or keyboard. */
   let {
     pictures,
     newPictureIds,
-    selectedId,
-    draggable,
-    onSelect,
+    selection,
+    mousePointer,
+    onSelectionChange,
     onOpen,
     onRemove,
-    onShift,
-    onMove,
+    onRemoveGroup,
+    onShiftGroup,
+    onMoveGroup,
+    holdScheduler = browserScheduler,
+    frameScheduler = animationFrames,
   }: {
     pictures: readonly PictureTile[];
     /** Pictures just added, marked as new. */
     newPictureIds: ReadonlySet<string>;
-    selectedId: string | null;
-    /** Tiles can be dragged: a mouse is the primary pointer. */
-    draggable: boolean;
-    onSelect: (pictureId: string | null) => void;
+    selection: StripSelection;
+    /** The primary pointer is a mouse: a mouse drags after 8 px, a double-click opens a picture. */
+    mousePointer: boolean;
+    onSelectionChange: (next: StripSelection) => void;
+    /** The tile's own ✕: removes just that picture, never the rest of the selection. */
+    onRemove: (pictureId: string) => void;
+    /** The selection bar's Remove, or Delete/Backspace on a focused (selected) tile. */
+    onRemoveGroup: (pictureIds: readonly string[]) => void;
+    /** Earlier/Later or Shift+arrows: moves the group by `offset` steps (ADR-0019). */
+    onShiftGroup: (pictureIds: readonly string[], offset: number) => void;
+    /** A drop: moves the group to the slot before the tile at `insertion`. */
+    onMoveGroup: (pictureIds: readonly string[], insertion: number) => void;
     /** Opens the picture editor. */
     onOpen: (pictureId: string) => void;
-    onRemove: (pictureId: string) => void;
-    /** Shift+arrows: moves the picture by `offset` steps (ADR-0019). */
-    onShift: (pictureId: string, offset: number) => void;
-    /** A drop: moves the picture to the slot before the tile at `insertion`. */
-    onMove: (pictureId: string, insertion: number) => void;
+    /** The 450 ms touch hold; a real timeout by default, faked in tests. */
+    holdScheduler?: Scheduler;
+    /** The auto-scroll's frames; real `requestAnimationFrame` by default, faked in tests. */
+    frameScheduler?: FrameScheduler;
   } = $props();
 
   let strip: HTMLOListElement;
-  let draggedId = $state<string | null>(null);
-  let dropMark = $state<{ readonly id: string; readonly after: boolean } | null>(null);
+  let dragState = $state<TileDragState>({
+    lifted: false,
+    groupIds: null,
+    ghost: null,
+    dropMark: null,
+  });
+  let suppressNextClick = false;
+  let lastPointerWasTouch = false;
   const lastPicture = $derived(pictures.length < 2);
+  const order = $derived(pictures.map((picture) => picture.id));
+  const tileById = $derived(new Map(pictures.map((picture) => [picture.id, picture])));
+
+  /** The tile under a viewport point, and whether a drop lands before or after it. */
+  function hitTest(x: number, y: number): DropTarget | null {
+    const tile = document.elementFromPoint(x, y)?.closest<HTMLElement>(".pick") ?? null;
+    const pictureId = tile?.dataset.pictureId;
+    if (tile === null || pictureId === undefined) {
+      return null;
+    }
+    const box = tile.getBoundingClientRect();
+    return { pictureId, after: x > box.left + box.width / 2 };
+  }
+
+  // Fixed for the strip's lifetime: a test passes its fakes once, at mount.
+  // svelte-ignore state_referenced_locally
+  const drag = new TileDrag({
+    holdScheduler,
+    frameScheduler,
+    hitTest,
+    viewportEdges: () => ({ top: 0, bottom: window.innerHeight }),
+    selection: () => selection.ids,
+    order: () => order,
+    onHold: (pictureId) => onSelectionChange(hold(selection, pictureId)),
+    onChange: () => (dragState = drag.state),
+    onScrollBy: (px) => window.scrollBy(0, px),
+    onDrop: (groupIds, insertion) => onMoveGroup(groupIds, insertion),
+    onSuppressClick: () => (suppressNextClick = true),
+  });
 
   // A selected tile stays in view, clear of the selection bar (the tiles' scroll margin).
   $effect(() => {
-    if (selectedId !== null) {
+    if (selection.ids.size === 1) {
+      const [id] = selection.ids;
       strip
-        .querySelector(`[data-picture-id="${selectedId}"]`)
+        .querySelector(`[data-picture-id="${id}"]`)
         ?.closest("li")
         ?.scrollIntoView({ block: "nearest" });
     }
+  });
+
+  // A lifted touch owns the finger: the page must not scroll under it (ADR-0019). The browser
+  // treats a window-level touchmove as passive by default, so this needs an explicit listener.
+  $effect(() => {
+    const preventWhileLifted = (event: TouchEvent): void => {
+      if (dragState.lifted) {
+        event.preventDefault();
+      }
+    };
+    window.addEventListener("touchmove", preventWhileLifted, { passive: false });
+    return () => window.removeEventListener("touchmove", preventWhileLifted);
   });
 
   /** The grid's column count, for moving up and down by a row. */
@@ -65,114 +135,140 @@
     event.preventDefault();
     switch (action.kind) {
       case "toggle":
-        onSelect(selectedId === pictureId ? null : pictureId);
+      case "addToggle":
+      case "range":
+        onSelectionChange(
+          pick(selection, pictureId, order, {
+            toggleKey: action.kind === "addToggle",
+            rangeKey: action.kind === "range",
+          }),
+        );
+        void focusTile(pictureId);
         break;
       case "deselect":
-        onSelect(null);
+        onSelectionChange(endSelecting());
         break;
       case "focus": {
         const next = pictures[action.index]?.id;
         if (next !== undefined) {
-          if (selectedId !== null) {
-            onSelect(next);
+          if (!selection.several && selection.ids.size === 1) {
+            onSelectionChange(soleSelection(next));
           }
           void focusTile(next);
         }
         break;
       }
-      case "shift":
-        onSelect(pictureId);
-        onShift(pictureId, action.offset);
+      case "shift": {
+        const selected = selection.ids.has(pictureId);
+        const ids = selected ? selectedInOrder(selection, order) : [pictureId];
+        if (!selected) {
+          onSelectionChange(soleSelection(pictureId));
+        }
+        onShiftGroup(ids, action.offset);
         void focusTile(pictureId);
         break;
+      }
       case "remove":
         removeByKey(pictureId, index);
         break;
-      case "addToggle":
-      case "range":
       case "none":
-        // Several-picture selection (dev-docs/APP.md, Selecting several) is not wired up yet.
         break;
     }
   }
 
-  /** The focus, and a selection, pass to the tile that takes the removed one's place. */
+  /** The focus passes to the first tile outside the removed group, after it in play order. */
   function removeByKey(pictureId: string, index: number): void {
-    if (lastPicture) {
-      // Answered with why it stays; the focus and selection stay too.
-      onRemove(pictureId);
-      return;
-    }
-    const neighbour = pictures[index + 1]?.id ?? pictures[index - 1]?.id ?? null;
-    const wasSelected = selectedId === pictureId;
-    onRemove(pictureId);
+    const ids = selection.ids.has(pictureId) ? selectedInOrder(selection, order) : [pictureId];
+    const removed = new Set(ids);
+    const neighbour =
+      pictures.find((picture, i) => i > index && !removed.has(picture.id))?.id ??
+      [...pictures]
+        .slice(0, index)
+        .reverse()
+        .find((picture) => !removed.has(picture.id))?.id ??
+      null;
+    onRemoveGroup(ids);
     if (neighbour !== null) {
-      if (wasSelected) {
-        onSelect(neighbour);
-      }
       void focusTile(neighbour);
     }
   }
 
-  function dragStart(event: DragEvent, pictureId: string): void {
-    draggedId = pictureId;
-    if (event.dataTransfer !== null) {
-      event.dataTransfer.effectAllowed = "move";
-      // Firefox starts a drag only with some data set.
-      event.dataTransfer.setData("text/plain", pictureId);
-    }
-  }
-
-  function dragOver(event: DragEvent, pictureId: string): void {
-    if (draggedId === null) {
+  function clickTile(event: MouseEvent, pictureId: string): void {
+    if (suppressNextClick) {
+      suppressNextClick = false;
       return;
     }
-    event.preventDefault();
-    const tile = event.currentTarget as HTMLElement;
-    const box = tile.getBoundingClientRect();
-    const after = event.clientX > box.left + box.width / 2;
-    dropMark = pictureId === draggedId ? null : { id: pictureId, after };
+    const toggleKey = !lastPointerWasTouch && (event.ctrlKey || event.metaKey);
+    const rangeKey = !lastPointerWasTouch && event.shiftKey;
+    onSelectionChange(pick(selection, pictureId, order, { toggleKey, rangeKey }));
   }
 
-  function drop(event: DragEvent, targetIndex: number): void {
-    if (draggedId === null) {
+  function openOnDoubleClick(pictureId: string): void {
+    // A double tap on a touch screen is two taps: it selects and deselects, not opening anything.
+    // Selecting several has its own use for every tap, so a double-click opens nothing there.
+    if (mousePointer && !selection.several) {
+      onOpen(pictureId);
+    }
+  }
+
+  function pointerDown(event: PointerEvent): void {
+    lastPointerWasTouch = event.pointerType !== "mouse";
+    const pictureId = (event.target as HTMLElement).closest<HTMLElement>(".pick")?.dataset
+      .pictureId;
+    if (pictureId === undefined) {
       return;
     }
-    event.preventDefault();
-    if (dropMark !== null) {
-      onMove(draggedId, targetIndex + (dropMark.after ? 1 : 0));
-    }
-    dragEnd();
+    drag.pointerDown({
+      pointerType: lastPointerWasTouch ? "touch" : "mouse",
+      x: event.clientX,
+      y: event.clientY,
+      pictureId,
+    });
   }
 
-  function dragEnd(): void {
-    draggedId = null;
-    dropMark = null;
+  function contextmenu(event: MouseEvent): void {
+    // A finger held on a tile no longer opens the browser's image menu (ADR-0019).
+    if (lastPointerWasTouch && (event.target as HTMLElement).closest(".pick") !== null) {
+      event.preventDefault();
+    }
   }
 </script>
 
-<ol class="strip" bind:this={strip}>
+<svelte:window
+  onpointermove={(event) => drag.pointerMove({ x: event.clientX, y: event.clientY })}
+  onpointerup={() => drag.pointerUp()}
+  onpointercancel={() => drag.pointerCancel()}
+/>
+
+<ol class="strip" bind:this={strip} onpointerdown={pointerDown} oncontextmenu={contextmenu}>
   {#each pictures as picture, index (picture.id)}
     <StripTile
       {picture}
       number={index + 1}
-      selected={picture.id === selectedId}
+      selected={selection.ids.has(picture.id)}
+      selecting={selection.several}
       isNew={newPictureIds.has(picture.id)}
-      {draggable}
-      dragging={picture.id === draggedId}
-      drop={dropMark?.id === picture.id ? (dropMark.after ? "after" : "before") : null}
+      {mousePointer}
+      dragging={dragState.groupIds?.includes(picture.id) ?? false}
+      drop={dragState.dropMark?.pictureId === picture.id
+        ? dragState.dropMark.after
+          ? "after"
+          : "before"
+        : null}
       removable={!lastPicture}
-      onPick={() => onSelect(picture.id === selectedId ? null : picture.id)}
-      onOpen={() => onOpen(picture.id)}
+      onPick={(event) => clickTile(event, picture.id)}
+      onOpen={() => openOnDoubleClick(picture.id)}
       onKeydown={(event) => keydown(event, picture.id, index)}
       onRemove={() => onRemove(picture.id)}
-      onDragStart={(event) => dragStart(event, picture.id)}
-      onDragOver={(event) => dragOver(event, picture.id)}
-      onDrop={(event) => drop(event, index)}
-      onDragEnd={dragEnd}
     />
   {/each}
 </ol>
+
+<DragGhost
+  groupIds={dragState.groupIds}
+  position={dragState.ghost}
+  thumbnailUrl={(pictureId) => tileById.get(pictureId)?.thumbnailUrl}
+/>
 
 <style>
   .strip {

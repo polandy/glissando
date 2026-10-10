@@ -10,8 +10,9 @@
     picture,
     number,
     selected,
+    selecting,
     isNew,
-    draggable,
+    mousePointer,
     dragging,
     drop,
     removable,
@@ -19,33 +20,28 @@
     onOpen,
     onKeydown,
     onRemove,
-    onDragStart,
-    onDragOver,
-    onDrop,
-    onDragEnd,
   }: {
     picture: PictureTile;
     /** The position in play order, from 1. */
     number: number;
     selected: boolean;
+    /** Selecting several (dev-docs/APP.md, Selecting several): every tile shows a check circle. */
+    selecting: boolean;
     /** Just added: outlined and badged while the screen is shown. */
     isNew: boolean;
-    /** Only a mouse drags: a native drag would take over a touch meant to scroll or select. */
-    draggable: boolean;
+    /** The primary pointer is a mouse: a double-click opens the picture editor. */
+    mousePointer: boolean;
+    /** Carried by the drag over the strip (ADR-0019): faded while it moves with the pointer. */
     dragging: boolean;
-    /** Where a dragged picture would land, beside this one. */
+    /** Where a dragged group would land, beside this one. */
     drop: "before" | "after" | null;
     /** False for the last picture, which stays. */
     removable: boolean;
-    onPick: () => void;
+    onPick: (event: MouseEvent) => void;
     /** A double-click with a mouse: opens the picture editor. */
     onOpen: () => void;
     onKeydown: (event: KeyboardEvent) => void;
     onRemove: () => void;
-    onDragStart: (event: DragEvent) => void;
-    onDragOver: (event: DragEvent) => void;
-    onDrop: (event: DragEvent) => void;
-    onDragEnd: () => void;
   } = $props();
 
   const { t, formatDate, formatSeconds } = getTranslator();
@@ -74,15 +70,11 @@
 <li
   class="tile"
   class:selected
+  class:selecting-mode={selecting}
   class:new={isNew}
   class:dragging
   class:drop-before={drop === "before"}
   class:drop-after={drop === "after"}
-  {draggable}
-  ondragstart={onDragStart}
-  ondragover={onDragOver}
-  ondrop={onDrop}
-  ondragend={onDragEnd}
 >
   <button
     class="pick"
@@ -92,7 +84,7 @@
     onclick={onPick}
     ondblclick={() => {
       // A double tap on a touch screen is two taps: it selects and deselects.
-      if (draggable) {
+      if (mousePointer) {
         onOpen();
       }
     }}
@@ -109,6 +101,7 @@
     {/if}
     <span class="date mono" aria-hidden="true">{date}</span>
   </button>
+  <span class="check" aria-hidden="true"><Icon name="check" /></span>
   <span class="mark grab" aria-hidden="true"><Icon name="grip" /></span>
   <button
     class="mark remove"
@@ -170,6 +163,8 @@
     color: inherit;
     cursor: pointer;
     touch-action: manipulation;
+    -webkit-touch-callout: none;
+    user-select: none;
   }
   .pick:focus-visible {
     outline: 3px solid var(--gl-accent);
@@ -208,6 +203,11 @@
     padding: 1px 6px;
     border-radius: var(--gl-radius-small);
     background: var(--gl-photo-badge);
+  }
+  /* The selected tile's order number, in the accent (dev-docs/APP.md, Select and reorder). */
+  .tile.selected .number {
+    background: var(--gl-accent);
+    color: var(--gl-accent-ink);
   }
   .date {
     left: 0;
@@ -260,6 +260,33 @@
     .tile:focus-within .mark {
       opacity: 1;
     }
+  }
+  /* Selecting several (dev-docs/APP.md, Selecting several): a check circle instead of the marks. */
+  .check {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    z-index: 2;
+    display: none;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    border: 2px solid var(--gl-on-photo);
+    border-radius: var(--gl-radius-pill);
+    background: var(--gl-photo-badge);
+    color: transparent;
+    --gl-icon-size: 13px;
+  }
+  .tile.selecting-mode .check {
+    display: grid;
+  }
+  .tile.selecting-mode .mark {
+    display: none;
+  }
+  .tile.selected .check {
+    border-color: var(--gl-accent);
+    background: var(--gl-accent);
+    color: var(--gl-accent-ink);
   }
   @media (prefers-reduced-motion: reduce) {
     .mark {

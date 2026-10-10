@@ -2,6 +2,7 @@
 import { flushSync } from "svelte";
 import type { SlideshowTransition } from "../../library/own-timing";
 import { FakeClock, FakeFrameScheduler } from "../../player/testing/fakes";
+import { FakeScheduler } from "../../ui-kit/testing/fake-scheduler";
 import { mountWithTranslator } from "../testing/mount-with-translator";
 import { reactiveProps } from "../testing/reactive-props.svelte";
 import SlideshowScreen from "./SlideshowScreen.svelte";
@@ -61,10 +62,13 @@ export function mountScreen(
 ) {
   const clock = new FakeClock();
   const frames = new FakeFrameScheduler();
+  const holdScheduler = new FakeScheduler();
+  const dragFrames = new FakeFrameScheduler();
   const calls = {
     removed: [] as string[],
-    shifted: [] as [string, number][],
-    moved: [] as [string, number][],
+    removedGroup: [] as string[][],
+    shifted: [] as [readonly string[], number][],
+    moved: [] as [readonly string[], number][],
     renamed: [] as string[],
     edited: [] as string[],
     musicEdits: 0,
@@ -82,8 +86,13 @@ export function mountScreen(
     onAddPictures: () => (calls.adds += 1),
     newPictureIds,
     onRemove: (pictureId: string) => calls.removed.push(pictureId),
-    onShift: (pictureId: string, offset: number) => calls.shifted.push([pictureId, offset]),
-    onMove: (pictureId: string, insertion: number) => calls.moved.push([pictureId, insertion]),
+    onShiftGroup: (pictureIds: readonly string[], offset: number) =>
+      calls.shifted.push([pictureIds, offset]),
+    onRemoveGroup: (pictureIds: readonly string[]) => calls.removedGroup.push([...pictureIds]),
+    onMoveGroup: (pictureIds: readonly string[], insertion: number) =>
+      calls.moved.push([pictureIds, insertion]),
+    holdScheduler,
+    frameScheduler: dragFrames,
     onRename: (typed: string) => calls.renamed.push(typed),
     onEdit: (pictureId: string) => calls.edited.push(pictureId),
     onEditMusic: () => (calls.musicEdits += 1),
@@ -118,7 +127,7 @@ export function mountScreen(
     english ? { current: createTranslator("en") } : undefined,
   );
   destroy = mounted.destroy;
-  return { target: mounted.target, calls, clock, frames };
+  return { target: mounted.target, calls, clock, frames, holdScheduler, dragFrames };
 }
 
 export function byLabel<T extends HTMLElement = HTMLButtonElement>(label: string): T {
@@ -152,5 +161,31 @@ export const selectionBar = () => document.querySelector('[role="toolbar"]');
 
 export function press(target: HTMLElement, key: string, shiftKey = false): void {
   target.dispatchEvent(new KeyboardEvent("keydown", { key, shiftKey, bubbles: true }));
+  flushSync();
+}
+
+export function click(
+  target: HTMLElement,
+  modifiers: { ctrlKey?: boolean; shiftKey?: boolean } = {},
+): void {
+  target.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, ...modifiers }));
+  flushSync();
+}
+
+/** A tile's drag, by mouse or touch (ADR-0019): `pointerdown` bubbles from its `.pick` button. */
+export function firePointer(
+  target: EventTarget,
+  type: "pointerdown" | "pointermove" | "pointerup" | "pointercancel",
+  { x = 0, y = 0, pointerType = "mouse" as "mouse" | "touch" } = {},
+): void {
+  target.dispatchEvent(
+    new PointerEvent(type, {
+      bubbles: true,
+      cancelable: true,
+      clientX: x,
+      clientY: y,
+      pointerType,
+    }),
+  );
   flushSync();
 }

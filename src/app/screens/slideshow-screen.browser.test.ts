@@ -39,7 +39,7 @@ describe("SlideshowScreen editing", () => {
     press(only, "Delete");
 
     // The editor answers both with a toast that says why the picture stays.
-    expect(calls.removed).toEqual(["a", "a"]);
+    expect(calls.removedGroup).toEqual([["a"], ["a"]]);
     expect(selectionBar()?.textContent).toContain("Bild 1 von 1");
     expect(document.body.textContent).not.toContain("Das letzte Bild bleibt.");
   });
@@ -68,8 +68,8 @@ describe("SlideshowScreen editing", () => {
     buttonNamed("Später").click();
 
     expect(calls.shifted).toEqual([
-      ["b", -1],
-      ["b", 1],
+      [["b"], -1],
+      [["b"], 1],
     ]);
   });
 
@@ -116,7 +116,7 @@ describe("SlideshowScreen editing", () => {
     buttonNamed("Entfernen").click();
     flushSync();
 
-    expect(calls.removed).toEqual(["c"]);
+    expect(calls.removedGroup).toEqual([["c"]]);
     expect(selectionBar()).toBeNull();
   });
 
@@ -126,52 +126,12 @@ describe("SlideshowScreen editing", () => {
     first.focus();
 
     press(first, "ArrowRight", true);
-    expect(calls.shifted).toEqual([["a", 1]]);
+    expect(calls.shifted).toEqual([[["a"], 1]]);
     expect(selectionBar()).not.toBeNull();
     press(first, "Escape");
     expect(selectionBar()).toBeNull();
     press(first, "Delete");
-    expect(calls.removed).toEqual(["a"]);
-  });
-
-  it("drops a dragged tile where the dashed mark showed it would land", () => {
-    const { calls } = mountScreen();
-    const items = [...document.querySelectorAll<HTMLElement>(".strip > li")];
-    const [first, , third] = items as [HTMLElement, HTMLElement, HTMLElement];
-    const box = third.getBoundingClientRect();
-    const drag = (type: string, target: HTMLElement) => {
-      target.dispatchEvent(
-        new DragEvent(type, {
-          bubbles: true,
-          cancelable: true,
-          clientX: box.right - 2,
-          clientY: box.top + 2,
-          dataTransfer: new DataTransfer(),
-        }),
-      );
-      flushSync();
-    };
-
-    drag("dragstart", first);
-    drag("dragover", third);
-    expect(third.classList.contains("drop-after")).toBe(true);
-    drag("drop", third);
-
-    expect(calls.moved).toEqual([["a", 3]]);
-    expect(third.classList.contains("drop-after")).toBe(false);
-  });
-
-  it("lets tiles be dragged with a mouse only, so touch never starts a native drag", () => {
-    mountScreen(details(["a", "b"]), { mousePointer: false });
-    const items = [...document.querySelectorAll<HTMLElement>(".strip > li")];
-
-    expect(items).toHaveLength(2);
-    expect(items.map((item) => item.draggable)).toEqual([false, false]);
-    unmountScreen();
-
-    mountScreen(details(["a", "b"]), { mousePointer: true });
-    const draggable = [...document.querySelectorAll<HTMLElement>(".strip > li")];
-    expect(draggable.map((item) => item.draggable)).toEqual([true, true]);
+    expect(calls.removedGroup).toEqual([["a"]]);
   });
 
   it("keeps a selected tile of the last row above the selection bar, scrolled to the end", () => {
