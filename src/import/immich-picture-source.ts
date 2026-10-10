@@ -29,36 +29,42 @@ export interface ImmichPictureReaders {
 }
 
 /**
- * A photo on Immich, downloaded and decoded like a local file; one the browser cannot decode
- * (e.g. HEIC) falls back to Immich's preview. Its faces give its focus (ADR-0013); without them
- * the on-device pass looks for it later.
+ * A photo's original decoded like a local file; Immich's preview where the browser cannot decode
+ * the original (e.g. HEIC). Rejects with the client's errors.
  */
+export async function decodeImmichPhoto(
+  photo: Pick<ImmichPhoto, "id" | "fileName">,
+  { client, decode }: Pick<ImmichPictureReaders, "client" | "decode">,
+): Promise<DecodedPicture> {
+  const decodeBlob = (blob: Blob): Promise<DecodedPicture> =>
+    decode(new File([blob], photo.fileName, { type: blob.type }));
+  try {
+    return await decodeBlob(await client.original(photo.id));
+  } catch (error) {
+    if (!(error instanceof UnreadablePictureError)) {
+      throw error;
+    }
+  }
+  return decodeBlob(await client.thumbnail(photo.id, FALLBACK_SIZE));
+}
+
 /** What tells the photo from other pictures (ADR-0016), known without downloading it. */
 export function immichPhotoIdentity(photo: ImmichPhoto): PictureIdentity {
   return { fileName: photo.fileName, capturedAt: photo.takenAt, immichAssetId: photo.id };
 }
 
+/**
+ * A photo on Immich, downloaded and decoded like a local file; one the browser cannot decode
+ * (e.g. HEIC) falls back to Immich's preview. Its faces give its focus (ADR-0013); without them
+ * the on-device pass looks for it later.
+ */
 export function immichPictureSource(
   photo: ImmichPhoto,
   { client, decode, reportUnavailable, log }: ImmichPictureReaders,
 ): PictureSource {
-  const decodeBlob = (blob: Blob): Promise<DecodedPicture> =>
-    decode(new File([blob], photo.fileName, { type: blob.type }));
-
-  const decodeOriginalOrPreview = async (): Promise<DecodedPicture> => {
-    try {
-      return await decodeBlob(await client.original(photo.id));
-    } catch (error) {
-      if (!(error instanceof UnreadablePictureError)) {
-        throw error;
-      }
-    }
-    return decodeBlob(await client.thumbnail(photo.id, FALLBACK_SIZE));
-  };
-
   const download = async (): Promise<DecodedPicture> => {
     try {
-      return await decodeOriginalOrPreview();
+      return await decodeImmichPhoto(photo, { client, decode });
     } catch (error) {
       if (error instanceof ImmichUnavailableError) reportUnavailable(error.kind);
       if (error instanceof ImmichUnavailableError || error instanceof ImmichRequestFailedError) {
