@@ -3,6 +3,7 @@
   import { getTranslator } from "../i18n/context";
   import { browserObjectUrls, ObjectUrls } from "../media/object-urls";
   import type { PlacementPreview } from "./after-adding";
+  import { reportUnlessMissingFromImmich } from "./missing-thumbnails";
 
   /** The play order after adding as small thumbnails, the new ones outlined, and their spots. */
   let {
@@ -18,7 +19,11 @@
   const { t } = getTranslator();
 
   // svelte-ignore state_referenced_locally
-  const thumbnails = new ObjectUrls({ ...browserObjectUrls, load: loadThumbnail, onError });
+  const thumbnails = new ObjectUrls({
+    ...browserObjectUrls,
+    load: loadThumbnail,
+    onError: reportUnlessMissingFromImmich(onError),
+  });
   onDestroy(() => thumbnails.dispose());
   let urls = $state.raw<ReadonlyMap<string, string>>(new Map());
   $effect(() => thumbnails.subscribe((next) => (urls = next)));
