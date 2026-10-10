@@ -8,6 +8,7 @@ import type { Translator } from "../i18n/translator";
 import type { HtmlExportPorts, HtmlExportSubject, PageRun } from "./html-export-state";
 import { HtmlExportSession } from "./html-export-session";
 import { pageWords } from "./page-copy";
+import type { SlideshowHome } from "../routes/slideshow-storage";
 
 /** Everything the sheet needs of the browser; the run and the estimate depend on the slideshow. */
 export type HtmlExportDevice = Omit<HtmlExportPorts, "weights" | "run"> & {
@@ -25,12 +26,14 @@ export function slideshowHtmlExport(
   store: Pick<LibraryStore, "pictureBlob" | "musicBlob" | "pictureFocus">,
   stored: StoredSlideshow,
   translator: Translator,
+  home: SlideshowHome,
 ): HtmlExportSession {
   const subject: HtmlExportSubject = {
     title: stored.title,
     durationMs: slideshowDurationMs(stored),
     withMusic: stored.music !== undefined,
     pictureCount: stored.pictures.length,
+    picturesFromImmich: home === "server",
   };
   const weights = async (): Promise<PageWeights> => {
     const [pictures, musicBytes, bundle] = await Promise.all([

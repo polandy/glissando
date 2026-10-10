@@ -11,6 +11,7 @@
   let {
     view,
     videoBytes,
+    fromImmich,
     onSelect,
     onStart,
     onCancel,
@@ -18,6 +19,8 @@
     view: Extract<HtmlExportState, { readonly kind: "choose" }>;
     /** The 1080p video's rough size, the comparison's full bar. */
     videoBytes: number;
+    /** A server slideshow's pictures are downloaded from Immich: the size line says so. */
+    fromImmich: boolean;
     onSelect: (sizeId: PageSizeId) => void;
     onStart: () => void;
     onCancel: () => void;
@@ -38,7 +41,11 @@
       id,
       name: t(`htmlExport.size-${id}`),
       detail: t("htmlExport.longEdge", { pixels: String(bound.longEdge) }),
-      size: view.estimates === null ? "" : about(view.estimates[id]),
+      size: fromImmich
+        ? t("server.exportFromImmich")
+        : view.estimates === null
+          ? ""
+          : about(view.estimates[id]),
       use: t(`htmlExport.use-${id}`),
       usable: true,
     })),

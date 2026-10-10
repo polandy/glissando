@@ -11,12 +11,15 @@
   let {
     view,
     estimate,
+    fromImmich,
     onSelect,
     onStart,
     onCancel,
   }: {
     view: Extract<ExportSheetState, { readonly kind: "choose" }>;
     estimate: (preset: PresetId) => number;
+    /** A server slideshow's pictures are downloaded from Immich: the size line says so. */
+    fromImmich: boolean;
     onSelect: (preset: PresetId) => void;
     onStart: () => void;
     onCancel: () => void;
@@ -34,6 +37,7 @@
   available={view.available}
   preset={view.preset}
   {estimate}
+  {fromImmich}
   {onSelect}
 />
 <div class="spec mono">

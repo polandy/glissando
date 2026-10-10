@@ -62,8 +62,12 @@ export class HtmlExportSession {
     return () => this.#listeners.delete(listener);
   }
 
-  /** Reads the stored sizes for the estimates. */
+  /**
+   * Reads the stored sizes for the estimates; pictures from Immich are not measured, as that
+   * would download them all.
+   */
   async open(): Promise<void> {
+    if (this.#subject.picturesFromImmich) return;
     let weights: PageWeights;
     try {
       weights = await this.#ports.weights();

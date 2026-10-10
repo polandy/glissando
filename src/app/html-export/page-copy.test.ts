@@ -2,7 +2,13 @@ import { describe, expect, it } from "vitest";
 import { createTranslator } from "../i18n/translator";
 import { pageWords } from "./page-copy";
 
-const SUBJECT = { title: "Sommer", durationMs: 250_000, withMusic: true, pictureCount: 50 };
+const SUBJECT = {
+  title: "Sommer",
+  durationMs: 250_000,
+  withMusic: true,
+  pictureCount: 50,
+  picturesFromImmich: false,
+};
 
 describe("pageWords", () => {
   it("writes the page's words in the app's language, the summary already formatted", () => {

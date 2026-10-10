@@ -92,6 +92,7 @@
     <PageChoose
       {view}
       videoBytes={session.videoBytes}
+      fromImmich={session.subject.picturesFromImmich}
       onSelect={(sizeId) => session.select(sizeId)}
       onStart={() => void session.start()}
       onCancel={close}

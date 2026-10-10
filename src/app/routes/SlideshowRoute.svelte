@@ -224,8 +224,9 @@
     }
     return stored;
   }
-  const newVideoExport = () => slideshowVideoExport(videoExport, store, loadedForExport());
-  const newHtmlExport = () => slideshowHtmlExport(htmlExport, store, loadedForExport(), translator);
+  const newVideoExport = () => slideshowVideoExport(videoExport, store, loadedForExport(), home);
+  const newHtmlExport = () =>
+    slideshowHtmlExport(htmlExport, store, loadedForExport(), translator, home);
 
   function deleteSlideshow(): void {
     deleteShownSlideshow(store, slideshowId, editor).then(onDeleted, onError);

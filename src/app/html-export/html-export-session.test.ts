@@ -9,9 +9,19 @@ const FILE_NAME = "Sommer am See.html";
 const DURATION_MS = 10_000;
 const PICTURES = 3;
 
-function session(ports: FakeHtmlExportPorts, withMusic = true): HtmlExportSession {
+function session(
+  ports: FakeHtmlExportPorts,
+  withMusic = true,
+  picturesFromImmich = false,
+): HtmlExportSession {
   return new HtmlExportSession(
-    { title: TITLE, durationMs: DURATION_MS, withMusic, pictureCount: PICTURES },
+    {
+      title: TITLE,
+      durationMs: DURATION_MS,
+      withMusic,
+      pictureCount: PICTURES,
+      picturesFromImmich,
+    },
     ports,
   );
 }
@@ -51,6 +61,21 @@ describe("HtmlExportSession — choose", () => {
         sharp: estimatePageBytes(weights, "sharp"),
         "4k": estimatePageBytes(weights, "4k"),
       },
+      starting: false,
+    });
+  });
+
+  it("measures nothing when the pictures come from Immich, as that would download them all", async () => {
+    const ports = new FakeHtmlExportPorts();
+    ports.weightsError = new Error("the pictures were read for an estimate");
+    const sheet = session(ports, true, true);
+
+    await sheet.open();
+
+    expect(sheet.state).toEqual({
+      kind: "choose",
+      sizeId: "small",
+      estimates: null,
       starting: false,
     });
   });

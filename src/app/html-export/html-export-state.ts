@@ -44,6 +44,8 @@ export interface HtmlExportSubject {
   readonly durationMs: number;
   readonly withMusic: boolean;
   readonly pictureCount: number;
+  /** A server slideshow's pictures, downloaded from Immich only as the page is made. */
+  readonly picturesFromImmich: boolean;
 }
 
 /** How a finished page reaches the user: already saved, the share sheet or a download. */
