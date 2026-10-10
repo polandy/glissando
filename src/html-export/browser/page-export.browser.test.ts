@@ -139,6 +139,22 @@ function progressReport({ step, page, seen }: PlayProgress): string {
   return `the exported page stopped while ${step}: ${JSON.stringify({ seen, ...details })}`;
 }
 
+/**
+ * WebKit runs no animation frame in a frame outside the window's viewport, so the page's clock
+ * would stand still there; the frame is scrolled back into view whenever it is no longer wholly
+ * in view. Wholly, since a frame just touching the viewport's edge still counts as intersecting.
+ */
+function keptInView(frame: HTMLIFrameElement): () => void {
+  const observer = new IntersectionObserver(
+    (entries) => {
+      if (entries.some((entry) => entry.intersectionRatio < 1)) frame.scrollIntoView();
+    },
+    { threshold: 1 },
+  );
+  observer.observe(frame);
+  return () => observer.disconnect();
+}
+
 function loaded(frame: HTMLIFrameElement): Promise<Document> {
   return new Promise((resolve, reject) => {
     frame.addEventListener("load", () => {
@@ -171,41 +187,63 @@ describe("an exported web page", () => {
     ]);
   });
 
-  it("opens from a blob: URL and plays from the start card to the end card", async () => {
+  /** Opens the exported page from a `blob:` URL, clicks Play and waits for the end card. */
+  async function playedToTheEndCard(
+    whilePlaying: () => void = () => {},
+  ): Promise<{ readonly pageDocument: Document; readonly seen: readonly PageState[] }> {
     const progress: PlayProgress = { step: "exporting", page: null, seen: [] };
     // A timeout alone says nothing; the report names where the page stopped.
     onTestFailed(() => console.error(progressReport(progress)));
     const url = URL.createObjectURL(await exportedPage());
     const frame = document.createElement("iframe");
-    Object.assign(frame.style, { width: "640px", height: "360px", border: "0" });
+    // Small enough to fit the test viewport wholly, as `keptInView` keeps it.
+    Object.assign(frame.style, { width: "320px", height: "180px", border: "0" });
     cleanups.push(() => {
       frame.remove();
       URL.revokeObjectURL(url);
     });
+
     progress.step = "loading the frame";
     const opened = loaded(frame);
     frame.src = url;
     document.body.append(frame);
+    cleanups.push(keptInView(frame));
     const pageDocument = await opened;
     progress.page = pageDocument;
     progress.step = "waiting for the start card";
     await stateReached(pageDocument, "start", progress.seen);
-
     expect(pageDocument.title).toBe("Generated <test>");
+
     progress.step = "clicking Play";
     await page
       .frameLocator(page.elementLocator(frame))
       .getByRole("button", { name: "Play" })
       .click();
     progress.step = "playing to the end card";
+    whilePlaying();
     await stateReached(pageDocument, "ended", progress.seen);
+    return { pageDocument, seen: progress.seen };
+  }
+
+  it("opens from a blob: URL and plays from the start card to the end card", async () => {
+    const { pageDocument, seen } = await playedToTheEndCard();
 
     // Whether "loading" is still seen depends on when the frame's load event lands.
-    expect(progress.seen.filter((state) => state !== "loading")).toEqual([
-      "start",
-      "playing",
-      "ended",
-    ]);
+    expect(seen.filter((state) => state !== "loading")).toEqual(["start", "playing", "ended"]);
+    expect(pageDocument.querySelector(".end")?.textContent).toContain("Play again");
+  });
+
+  it("plays to the end card when a frame above pushes this test's frame out of view", async () => {
+    // In a full run Vitest stacks each test file's frame below the ones that ran before it.
+    const testFrame = window.frameElement;
+    if (testFrame === null) throw new Error("the test runs in no frame");
+    const frameAbove = testFrame.ownerDocument.createElement("div");
+    frameAbove.style.height = "100%";
+    cleanups.push(() => frameAbove.remove());
+
+    const { pageDocument } = await playedToTheEndCard(() => testFrame.before(frameAbove));
+
+    expect(frameAbove.isConnected).toBe(true);
     expect(pageDocument.querySelector(".end")?.textContent).toContain("Play again");
   });
 });

@@ -201,3 +201,6 @@ transition, but stands still in screen space, unmoved by the Ken Burns motion. I
   upload call sends; the worker decode, EXIF orientation included, runs in all three engines.
   Headless Firefox in the CI image has no WebGL, so it tests the DOM fallback
   only.
+- A browser test that plays on real animation frames keeps its frame wholly in view: WebKit runs
+  no animation frame in a frame outside the window's viewport, and in a full run Vitest stacks
+  each test file's frame below the ones before it.

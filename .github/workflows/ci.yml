@@ -51,4 +51,6 @@ jobs:
             playwright-report/
             test-results/
             .vitest/
+          # The browser tests' failure screenshots are under the hidden .vitest/.
+          include-hidden-files: true
           retention-days: 7
