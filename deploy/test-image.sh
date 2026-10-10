@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Tests the self-hosted image's route rules against a fake Immich (ADR-0013): allowed reads
 # arrive with the server's key and none of the browser's credentials, everything else answers
-# 403 without reaching Immich, and invalid settings stop the start.
+# 403 without reaching Immich, and invalid settings stop the start. With a data volume the
+# library service answers /api/library and keeps what it stores across containers (ADR-0018).
 #
 #   deploy/test-image.sh            builds the image from this checkout, then tests it
 #   deploy/test-image.sh <image>    tests an image that already exists
@@ -26,6 +27,8 @@ readonly PROXY="$RUN-proxy"
 readonly UNSET="$RUN-unset"
 readonly KEY_FILE_PROXY="$RUN-keyfile"
 readonly STARTUP="$RUN-startup"
+readonly LIBRARY="$RUN-library"
+readonly VOLUME="$RUN-data"
 readonly IMMICH_URL="http://$UPSTREAM:2283"
 readonly KEY=TestServerKey0123456789abcdefXYZ
 readonly UUID=0b5a7c3e-1f2d-4e6a-9b8c-7d6e5f4a3b2c
@@ -40,13 +43,19 @@ readonly CLIENT_SECRETS=(client-key client-cookie client-token client-share clie
 # The fake's own sign-in cookie; the route drops it on the way back.
 readonly UPSTREAM_COOKIE=upstream-cookie
 readonly WAIT_SECONDS=60
+readonly DISCOVERY='{"service":"glissando-library","version":1}'
+readonly TITLE="Image test slideshow"
+document() { # title
+	printf '{"format":"glissando-server","formatVersion":1,"slideshow":{"title":"%s","createdAt":"2025-10-01T08:00:00Z","secondsPerPicture":5,"pictures":[{"capturedAt":"2025-09-30T10:00:00Z","width":1920,"height":1080,"fileName":"a.jpg","immichAssetId":"%s"}]}}' "$1" "$UUID"
+}
 
 WORK=$(mktemp -d)
 readonly WORK
 
 cleanup() {
-	docker rm --force "$UPSTREAM" "$PROXY" "$UNSET" "$KEY_FILE_PROXY" "$STARTUP" >/dev/null 2>&1 || true
+	docker rm --force "$UPSTREAM" "$PROXY" "$UNSET" "$KEY_FILE_PROXY" "$STARTUP" "$LIBRARY" >/dev/null 2>&1 || true
 	docker network rm "$NETWORK" >/dev/null 2>&1 || true
+	docker volume rm "$VOLUME" >/dev/null 2>&1 || true
 	rm -rf "$WORK"
 }
 trap cleanup EXIT
@@ -74,6 +83,13 @@ start_proxy() { # name, docker run arguments...
 	shift
 	docker run --detach --name "$name" --network "$NETWORK" --publish 127.0.0.1::8080 "$@" "$IMAGE" >/dev/null
 	wait_for_log "$name" "serving initial configuration"
+}
+
+start_library() { # a fresh container on the same data volume
+	docker rm --force "$LIBRARY" >/dev/null 2>&1 || true
+	start_proxy "$LIBRARY" --env IMMICH_URL="$IMMICH_URL" --env IMMICH_API_KEY="$KEY" \
+		--env GLISSANDO_DATA_DIR=/data --volume "$VOLUME:/data"
+	wait_for_log "$LIBRARY" "glissando-library: listening"
 }
 
 port_of() { docker port "$1" 8080/tcp | head -n 1 | sed 's/.*://'; }
@@ -203,6 +219,35 @@ grep -q -F "$KEY" "$WORK/responses" &&
 grep -q -F "$UPSTREAM_COOKIE" "$WORK/responses" &&
 	fail "a response carries Immich's cookie" || pass "no response carries Immich's cookie"
 
+echo "# slideshows on the server"
+request "$PROXY" GET /api/library
+expect_equal "without a data volume /api/library answers 404" 404 "$STATUS"
+start_library
+request "$LIBRARY" GET /api/library
+expect_equal "with a data volume /api/library answers the discovery" "200 $DISCOVERY" "$STATUS $(cat "$WORK/body")"
+request "$LIBRARY" POST /api/library/slideshows -H "Content-Type: application/json" --data-binary "$(document "$TITLE")"
+expect_equal "a slideshow is created" 201 "$STATUS"
+id=$(sed -n 's/^{"id":"\([0-9a-f-]*\)".*/\1/p' "$WORK/body")
+start_library
+request "$LIBRARY" GET "/api/library/slideshows/$id"
+expect_equal "the slideshow survives a new container on the same volume" 200 "$STATUS"
+grep -q -F "$TITLE" "$WORK/body" && pass "the slideshow read back is the one created" ||
+	fail "the slideshow read back is the one created: $(cat "$WORK/body")"
+request "$LIBRARY" PUT "/api/library/slideshows/$id" -H 'If-Match: "1"' --data-binary "$(document "Edited")"
+expect_equal "a PUT naming the current revision is accepted" 200 "$STATUS"
+request "$LIBRARY" PUT "/api/library/slideshows/$id" -H 'If-Match: "1"' --data-binary "$(document "Stale")"
+expect_equal "a PUT naming a stale revision answers 412" 412 "$STATUS"
+request "$LIBRARY" GET /api/library/unknown
+expect_equal "an unknown library path answers 404" 404 "$STATUS"
+docker logs "$LIBRARY" >"$WORK/log-library" 2>&1
+grep -q -F "glissando-library: PUT /api/library/slideshows/$id 412" "$WORK/log-library" &&
+	pass "the library service logs its requests" || fail "the library service logs its requests"
+grep -q -F "Stale" "$WORK/log-library" && fail "the library log has a body" ||
+	pass "the library log never has a body"
+docker exec "$LIBRARY" pkill -f glissando-library.mjs
+expect_equal "the container stops when the library service ends" stopped \
+	"$(timeout "$WAIT_SECONDS" docker wait "$LIBRARY" >/dev/null && echo stopped)"
+
 echo "# invalid settings stop the start"
 startup_fails() { # name, text the error must contain, docker run arguments...
 	local name=$1 expected=$2
@@ -227,6 +272,10 @@ startup_fails "an IMMICH_URL with a path fails" "IMMICH_URL=" \
 	--env IMMICH_URL="$IMMICH_URL/api" --env IMMICH_API_KEY="$KEY"
 startup_fails "an unknown setting fails, naming it" IMMICH_APIKEY \
 	--env IMMICH_URL="$IMMICH_URL" --env IMMICH_APIKEY="$KEY"
+startup_fails "GLISSANDO_DATA_DIR without IMMICH_URL fails, naming both" \
+	"GLISSANDO_DATA_DIR is set but IMMICH_URL is not" --env GLISSANDO_DATA_DIR=/data
+startup_fails "a data directory the container cannot write fails" "not a writable directory" \
+	--env IMMICH_URL="$IMMICH_URL" --env IMMICH_API_KEY="$KEY" --env GLISSANDO_DATA_DIR=/srv
 
 if [ "$failures" -ne 0 ]; then
 	echo "$failures check(s) failed"

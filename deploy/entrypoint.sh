@@ -1,13 +1,19 @@
 #!/bin/sh
 # Validates the container's environment, then starts Caddy with the matching Immich route
-# (ADR-0013). Any setting it does not understand stops the start, so a typo never leaves the
-# operator believing a setting is in effect.
+# (ADR-0013) and, with a data volume, the library service beside it (ADR-0018). Any setting it
+# does not understand stops the start, so a typo never leaves the operator believing a setting
+# is in effect.
 set -eu
 
-readonly SETTINGS="IMMICH_URL IMMICH_API_KEY IMMICH_API_KEY_FILE"
+readonly SETTINGS="IMMICH_URL IMMICH_API_KEY IMMICH_API_KEY_FILE GLISSANDO_DATA_DIR"
 readonly ROUTE_PROXY=/etc/caddy/immich-proxy.caddy
 readonly ROUTE_OFF=/etc/caddy/immich-off.caddy
 readonly EXAMPLE_URL=http://immich-server:2283
+readonly LIBRARY_ON=/etc/caddy/library-on.caddy
+readonly LIBRARY_OFF=/etc/caddy/library-off.caddy
+readonly LIBRARY_SERVICE=/usr/local/lib/glissando/glissando-library.mjs
+# Loopback only; Caddy forwards /api/library to it.
+readonly LIBRARY_PORT=8081
 
 fail() {
 	echo "glissando: $*" >&2
@@ -59,4 +65,31 @@ else
 fi
 
 export GLISSANDO_IMMICH_ROUTE
-exec caddy run --config /etc/caddy/Caddyfile --adapter caddyfile
+
+if [ -z "${GLISSANDO_DATA_DIR+set}" ]; then
+	export GLISSANDO_LIBRARY_ROUTE=$LIBRARY_OFF
+	exec caddy run --config /etc/caddy/Caddyfile --adapter caddyfile
+fi
+
+[ -n "${IMMICH_URL+set}" ] ||
+	fail "GLISSANDO_DATA_DIR is set but IMMICH_URL is not; slideshows on the server link photos from Immich, so set IMMICH_URL (e.g. $EXAMPLE_URL) or remove GLISSANDO_DATA_DIR"
+{ [ -d "$GLISSANDO_DATA_DIR" ] && [ -w "$GLISSANDO_DATA_DIR" ]; } ||
+	fail "GLISSANDO_DATA_DIR='$GLISSANDO_DATA_DIR' is not a writable directory (the container runs as uid $(id -u)); mount a volume there that this uid may write"
+export GLISSANDO_LIBRARY_ROUTE=$LIBRARY_ON GLISSANDO_LIBRARY_PORT=$LIBRARY_PORT
+echo "glissando: slideshows on the server are kept in $GLISSANDO_DATA_DIR"
+
+# The service gets its own two settings only, never the Immich key.
+env -i PATH="$PATH" GLISSANDO_DATA_DIR="$GLISSANDO_DATA_DIR" GLISSANDO_LIBRARY_PORT="$LIBRARY_PORT" \
+	node "$LIBRARY_SERVICE" &
+library=$!
+caddy run --config /etc/caddy/Caddyfile --adapter caddyfile &
+caddy=$!
+
+# Whichever ends first, or a stop signal, ends both: the container never runs half.
+trap 'kill -TERM "$library" "$caddy" 2>/dev/null' TERM INT
+status=0
+wait -n || status=$?
+echo "glissando: stopping (a process ended with status $status)" >&2
+kill -TERM "$library" "$caddy" 2>/dev/null || true
+wait
+exit "$status"

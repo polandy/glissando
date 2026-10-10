@@ -1,4 +1,5 @@
-# Started by entrypoint.sh, which validates the environment and chooses the Immich route.
+# Started by entrypoint.sh, which validates the environment and chooses the Immich and library
+# routes.
 
 # The credentials a client may send, in headers or in the query (see immich-proxy.caddy); no log
 # keeps them, the access log nor the error log of a failed request.
@@ -39,6 +40,8 @@
 
 	# immich-proxy.caddy or immich-off.caddy.
 	import {$GLISSANDO_IMMICH_ROUTE}
+	# library-on.caddy or library-off.caddy.
+	import {$GLISSANDO_LIBRARY_ROUTE}
 
 	handle {
 		root * /srv
