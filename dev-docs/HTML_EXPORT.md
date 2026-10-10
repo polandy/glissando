@@ -37,8 +37,9 @@ https://polandy.github.io/glissando-assets/mockups/html-export/.
   holds are ever unpacked. The music becomes one `blob:` URL when the page starts. The page's
   words sit in `<script type="application/json" id="copy">`, the start card's summary already
   formatted at export time, so the page itself formats nothing but the time.
-- **State**: `<html data-state>` is `start`, `playing`, `paused`, `ended` or `error`, so a test
-  waits on a mutation rather than on time.
+- **State**: `<html data-state>` is `loading`, `start`, `playing`, `paused`, `ended` or `error`,
+  so a test waits on a mutation rather than on time. `loading` already shows the start card;
+  `start` follows once Play is wired, so a click on Play after `start` is always heard.
 - **The player** is the engine's own (`createBrowserPlayer` with WebGL2, else the DOM fallback),
   built as a standalone bundle with the decode worker inlined. Where the worker fails a picture
   the main thread decodes (WebKit's worker reads no Blob from `file://`), or cannot start, the

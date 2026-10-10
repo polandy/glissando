@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, onTestFailed } from "vitest";
 import { page } from "vitest/browser";
 import { silentWav } from "../../import/testing/silent-wav";
 import type { StoredPicture, StoredSlideshow } from "../../library/stored-slideshow";
@@ -118,6 +118,27 @@ function stateReached(document: Document, wanted: PageState, seen: PageState[]):
   });
 }
 
+/** How far a run of the exported page got. */
+interface PlayProgress {
+  step: string;
+  page: Document | null;
+  readonly seen: PageState[];
+}
+
+function progressReport({ step, page, seen }: PlayProgress): string {
+  const details =
+    page === null
+      ? {}
+      : {
+          state: page.documentElement.getAttribute(PAGE_STATE_ATTRIBUTE),
+          time: page.querySelector(".time")?.textContent,
+          fonts: page.fonts.status,
+          canvases: page.querySelectorAll("canvas").length,
+          error: page.querySelector(".error")?.textContent,
+        };
+  return `the exported page stopped while ${step}: ${JSON.stringify({ seen, ...details })}`;
+}
+
 function loaded(frame: HTMLIFrameElement): Promise<Document> {
   return new Promise((resolve, reject) => {
     frame.addEventListener("load", () => {
@@ -151,6 +172,9 @@ describe("an exported web page", () => {
   });
 
   it("opens from a blob: URL and plays from the start card to the end card", async () => {
+    const progress: PlayProgress = { step: "exporting", page: null, seen: [] };
+    // A timeout alone says nothing; the report names where the page stopped.
+    onTestFailed(() => console.error(progressReport(progress)));
     const url = URL.createObjectURL(await exportedPage());
     const frame = document.createElement("iframe");
     Object.assign(frame.style, { width: "640px", height: "360px", border: "0" });
@@ -158,21 +182,30 @@ describe("an exported web page", () => {
       frame.remove();
       URL.revokeObjectURL(url);
     });
+    progress.step = "loading the frame";
     const opened = loaded(frame);
     frame.src = url;
     document.body.append(frame);
     const pageDocument = await opened;
-    const seen: PageState[] = [];
-    await stateReached(pageDocument, "start", seen);
+    progress.page = pageDocument;
+    progress.step = "waiting for the start card";
+    await stateReached(pageDocument, "start", progress.seen);
 
     expect(pageDocument.title).toBe("Generated <test>");
+    progress.step = "clicking Play";
     await page
       .frameLocator(page.elementLocator(frame))
       .getByRole("button", { name: "Play" })
       .click();
-    await stateReached(pageDocument, "ended", seen);
+    progress.step = "playing to the end card";
+    await stateReached(pageDocument, "ended", progress.seen);
 
-    expect(seen).toEqual(["start", "playing", "ended"]);
+    // Whether "loading" is still seen depends on when the frame's load event lands.
+    expect(progress.seen.filter((state) => state !== "loading")).toEqual([
+      "start",
+      "playing",
+      "ended",
+    ]);
     expect(pageDocument.querySelector(".end")?.textContent).toContain("Play again");
   });
 });

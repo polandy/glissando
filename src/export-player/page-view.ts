@@ -97,7 +97,15 @@ export function createPageView(document: Document, options: PageViewOptions): Pa
 
   document.body.append(stage, controls, start, end);
   const root = document.documentElement;
-  let state: PageState = "start";
+  let state: PageState = "loading";
+  const showState = (shown: PageState) => {
+    state = shown;
+    root.setAttribute(PAGE_STATE_ATTRIBUTE, state);
+    start.hidden = state !== "loading" && state !== "start" && state !== "error";
+    end.hidden = state !== "ended";
+    controls.hidden = state !== "playing" && state !== "paused";
+  };
+  showState(state);
 
   return {
     stage,
@@ -111,13 +119,7 @@ export function createPageView(document: Document, options: PageViewOptions): Pa
     get state() {
       return state;
     },
-    showState(shown) {
-      state = shown;
-      root.setAttribute(PAGE_STATE_ATTRIBUTE, state);
-      start.hidden = state !== "start" && state !== "error";
-      end.hidden = state !== "ended";
-      controls.hidden = state === "start" || state === "error" || state === "ended";
-    },
+    showState,
     showTime(currentSeconds, durationSeconds) {
       time.textContent = `${formatPlayTime(currentSeconds)} / ${formatPlayTime(durationSeconds)}`;
       const share = durationSeconds > 0 ? currentSeconds / durationSeconds : 0;
