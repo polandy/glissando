@@ -39,7 +39,6 @@ async function startPage(): Promise<void> {
     withFullScreen: canFullscreen(),
     withMusic: slideshow.music !== undefined,
   });
-  view.showState("start");
   // Captions are drawn into the picture, so the font has to be there before the first frame.
   await document.fonts.load(`${CAPTION_FONT_WEIGHT} ${FONT_PROBE_SIZE} ${CAPTION_FONT_FAMILY}`);
   const music = new MutableMusicOutput(createMusicAudioContext);
@@ -50,6 +49,8 @@ async function startPage(): Promise<void> {
     musicOutput: music,
   });
   wire(view, player, music);
+  // Only now is a click on Play heard; an error the player raised meanwhile stays shown.
+  if (view.state === "loading") view.showState("start");
 }
 
 /** The music becomes one `blob:` URL for the page's lifetime. */

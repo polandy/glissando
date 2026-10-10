@@ -172,7 +172,8 @@ describe("an exported web page", () => {
       .click();
     await stateReached(pageDocument, "ended", seen);
 
-    expect(seen).toEqual(["start", "playing", "ended"]);
+    // Whether "loading" is still seen depends on when the frame's load event lands.
+    expect(seen.filter((state) => state !== "loading")).toEqual(["start", "playing", "ended"]);
     expect(pageDocument.querySelector(".end")?.textContent).toContain("Play again");
   });
 });

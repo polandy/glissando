@@ -51,6 +51,15 @@ describe("createPageView", () => {
     expect(page.track.getAttribute("aria-valuetext")).toBe("1:05 / 2:00");
   });
 
+  it("shows the start card while loading, but announces only that it is loading", () => {
+    const { document, view: page } = view();
+
+    expect(document.querySelector<HTMLElement>(".start")?.hidden).toBe(false);
+    expect(page.controls.hidden).toBe(true);
+    expect(page.state).toBe("loading");
+    expect(document.documentElement.getAttribute("data-state")).toBe("loading");
+  });
+
   it("reports the state it shows", () => {
     const { view: page } = view();
 

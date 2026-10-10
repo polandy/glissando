@@ -21,10 +21,11 @@ export function pictureKey(index: number): string {
 
 /**
  * The page's state on `<html data-state>`, so a test can wait for "playing" or "ended" by a
- * mutation instead of by time.
+ * mutation instead of by time. "loading" shows the start card before Play is wired; "start"
+ * means a click on Play is heard.
  */
 export const PAGE_STATE_ATTRIBUTE = "data-state";
-export type PageState = "start" | "playing" | "paused" | "ended" | "error";
+export type PageState = "loading" | "start" | "playing" | "paused" | "ended" | "error";
 
 /** The page's words, in the app's language at export time; keys are the wire contract. */
 export interface PageCopy {
