@@ -2,7 +2,7 @@ import { UNEXPECTED_FAILURE, type BrowseFailure } from "../../immich/browse-fail
 import type { ImmichAvailabilityState } from "../../immich/immich-availability";
 import type { ImmichAlbum, ImmichPhoto, ImmichUnavailableKind } from "../../immich/immich-client";
 import { immichPhotoIdentity } from "../../import/immich-picture-source";
-import { isSamePicture, type PictureIdentity } from "../../library/picture-identity";
+import type { PictureIdentity } from "../../library/picture-identity";
 import type { MessageKey } from "../i18n/messages";
 
 /** An Immich problem the UI names in one line; "not set up" is no problem, Immich is just absent. */
@@ -120,12 +120,27 @@ export type AlreadyIn = (photo: ImmichPhoto) => boolean;
 
 export const NOTHING_ALREADY_IN: AlreadyIn = () => false;
 
-/** A photo is already in when it is the same picture (ADR-0016) as one of `pictures`. */
+/**
+ * A photo is already in when it is the same picture (ADR-0016) as one of `pictures`: one from
+ * the same Immich asset, or one of no known asset with the same name and capture date. The
+ * pictures are indexed once, so asking per photo stays cheap.
+ */
 export function alreadyInAmong(pictures: readonly PictureIdentity[]): AlreadyIn {
-  return (photo) => {
-    const identity = immichPhotoIdentity(photo);
-    return pictures.some((picture) => isSamePicture(picture, identity));
-  };
+  const assetIds = new Set<string>();
+  const namesAndDates = new Set<string>();
+  for (const picture of pictures) {
+    if (picture.immichAssetId === undefined) {
+      namesAndDates.add(nameAndDate(picture));
+    } else {
+      assetIds.add(picture.immichAssetId);
+    }
+  }
+  return (photo) =>
+    assetIds.has(photo.id) || namesAndDates.has(nameAndDate(immichPhotoIdentity(photo)));
+}
+
+function nameAndDate({ fileName, capturedAt }: PictureIdentity): string {
+  return JSON.stringify([fileName, capturedAt]);
 }
 
 /** A day heading's button over the photos not already in; null when there are none. */
