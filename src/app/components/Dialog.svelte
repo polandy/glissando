@@ -1,5 +1,5 @@
 <script lang="ts" module>
-  import type { IconName } from "../icons";
+  import type { IconName } from "../../ui-kit/icons";
 
   export interface DialogAction {
     readonly label: string;

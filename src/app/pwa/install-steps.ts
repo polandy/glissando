@@ -1,6 +1,6 @@
 import type { InstallGuide } from "../../pwa/install-guide";
 import type { MessageKey, MessageParams, ParamValue } from "../i18n/messages";
-import type { IconName } from "../icons";
+import type { IconName } from "../../ui-kit/icons";
 
 /** The messages with a `{key}` placeholder. */
 type StepTextKey = {

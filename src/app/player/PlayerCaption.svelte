@@ -1,9 +1,9 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { MediaQuery } from "svelte/reactivity";
-  import { REDUCED_MOTION_QUERY } from "../reduced-motion";
-  import type { Scheduler } from "../scheduler";
-  import { captionInset, captionInsetMotion } from "./caption-inset";
+  import { REDUCED_MOTION_QUERY } from "../../ui-kit/reduced-motion";
+  import type { Scheduler } from "../../ui-kit/scheduler";
+  import { captionInset, captionInsetMotion } from "../../ui-kit/caption-inset";
 
   /** What the caption needs from the player: where captions sit above the bottom edge. */
   interface CaptionInsetTarget {

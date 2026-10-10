@@ -70,8 +70,10 @@ duration })`, encode, close.
 
 ## Sheet
 
-The info panel's second button, "Als Video sichern" (film icon), below "Play" opens
-`VideoExportSheet`: a dialog on desktop, a bottom sheet below 720 px.
+"Video" (film icon) in the info panel's "Speichern als" row below "Play", beside "Webseite"
+(HTML_EXPORT.md), opens `VideoExportSheet`: a dialog on desktop, a bottom sheet below 720 px. The
+button's accessible name is "Als Video sichern". The sheet's frame (`export-sheet/ExportDialog`),
+size radios, file row and saved note are shared with the web page export.
 
 | State        | Content                                                                                                                                                                                                                                                                |
 | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -90,7 +92,7 @@ The info panel's second button, "Als Video sichern" (film icon), below "Play" op
   delete it.
 - One export at a time; the sheet is modal while running. While running, ✕ reads "Abbrechen"
   and Esc cancels too; a tap on the scrim closes the sheet only where nothing is lost (not while
-  running, not once done). Closed, focus goes back to "Als Video sichern".
+  running, not once done). Closed, focus goes back to "Video".
 - While the browser is being probed, the sheet shows "Glissando prüft, was dieses Gerät kann …".
   A probe or a target that fails shows as failed.
 - Below the done file row: with "Teilen …" the hint on the share menu, with "Herunterladen"
@@ -102,7 +104,8 @@ The info panel's second button, "Als Video sichern" (film icon), below "Play" op
 
 `src/video-export/` holds pure logic and ports. The browser adapters live in
 `src/video-export/browser/`, the sheet in `src/app/screens/slideshow/VideoExportSheet.svelte` with
-its states' parts in `screens/slideshow/video-export/`. `src/app/video-export/` drives it:
+its states' parts in `screens/slideshow/video-export/` and the parts it shares with the web page
+export in `screens/slideshow/export-sheet/`. `src/app/video-export/` drives it:
 `video-export-session.ts` (the sheet's flow over the ports and states in `export-sheet-state.ts`,
 unit-tested with fakes), `screen-awake.ts` (the wake lock), `slideshow-video-export.ts` (composes
 the stored slideshow for the run) and `browser-video-export-device.ts` (the browser ports, wired by `main.ts`).

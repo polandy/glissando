@@ -12,10 +12,15 @@
   } from "../../player";
   import { getTranslator } from "../i18n/context";
   import Icon from "../components/Icon.svelte";
-  import { browserScheduler, type Scheduler } from "../scheduler";
+  import { browserScheduler, type Scheduler } from "../../ui-kit/scheduler";
   import PlayerCaption from "./PlayerCaption.svelte";
-  import { ControlsVisibility } from "./controls-visibility";
-  import { canFullscreen, enterFullscreen, exitFullscreen, toggleFullscreen } from "./fullscreen";
+  import { ControlsVisibility } from "../../ui-kit/controls-visibility";
+  import {
+    canFullscreen,
+    enterFullscreen,
+    exitFullscreen,
+    toggleFullscreen,
+  } from "../../ui-kit/fullscreen";
   import { playerActionForKey, type PlayerAction } from "./player-keys";
   import {
     nextSlideStart,

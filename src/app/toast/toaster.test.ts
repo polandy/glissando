@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { FakeScheduler } from "../testing/fake-scheduler";
+import { FakeScheduler } from "../../ui-kit/testing/fake-scheduler";
 import { TOAST_DURATION_MS, Toaster, type ToastMessage } from "./toaster";
 
 const SAVED: ToastMessage = { text: "Diashow erstellt", tone: "info" };

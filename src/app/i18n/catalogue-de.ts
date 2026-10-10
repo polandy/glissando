@@ -4,6 +4,7 @@ import { deMusic } from "./catalogue-de-music";
 import { deTiming } from "./catalogue-de-timing";
 import { deTransitions } from "./catalogue-de-transitions";
 import { deImmich } from "./catalogue-de-immich";
+import { deHtml } from "./catalogue-de-html";
 import { deVideo } from "./catalogue-de-video";
 import type { Message } from "./messages";
 
@@ -279,4 +280,5 @@ export const de = {
   ...deImmich,
   ...deMusic,
   ...deVideo,
+  ...deHtml,
 } as const satisfies Record<string, Message>;

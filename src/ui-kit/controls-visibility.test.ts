@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { FakeScheduler } from "../testing/fake-scheduler";
+import { FakeScheduler } from "./testing/fake-scheduler";
 import { CONTROLS_HIDE_DELAY_MS, ControlsVisibility } from "./controls-visibility";
 
 function setUp() {

@@ -11,7 +11,7 @@ import { randomId } from "./app/random-id";
 import { AppSettings } from "./app/settings/app-settings";
 import { createStorageLanguagePreferenceStore } from "./app/settings/language";
 import { applyThemePreference, createStorageThemePreferenceStore } from "./app/settings/theme";
-import { browserScheduler } from "./app/scheduler";
+import { browserScheduler } from "./ui-kit/scheduler";
 import { handOverFromShell } from "./app/shell/app-shell";
 import { consumeFirstLaunch, createStorageFirstLaunchStore } from "./app/start/first-launch";
 import {
@@ -40,6 +40,7 @@ import { requestPersistentStorage } from "./library/persistent-storage";
 import { browserPwaPorts } from "./pwa/browser-pwa";
 import { createStorageHintDismissalStore, PwaStatus } from "./pwa/pwa-status";
 import { sweepPrivateExports } from "./video-export";
+import { browserHtmlExportDevice } from "./app/html-export/browser-html-export-device";
 import { browserVideoExportDevice } from "./app/video-export/browser-video-export-device";
 
 /** Same origin: the self-hosted Glissando's `/immich/` route sets the API key (ADR-0013). */
@@ -172,6 +173,7 @@ const services = {
   freeBytes,
   download,
   videoExport: browserVideoExportDevice({ window, freeBytes, download, log: logError }),
+  htmlExport: browserHtmlExportDevice({ window, download, log: logError }),
   reload: () => window.location.reload(),
 };
 

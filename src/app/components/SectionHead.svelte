@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { IconName } from "../icons";
+  import type { IconName } from "../../ui-kit/icons";
   import Icon from "./Icon.svelte";
 
   /** A panel section's eyebrow title and its state chip, accent-tinted when the user's own. */

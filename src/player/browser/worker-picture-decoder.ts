@@ -30,14 +30,9 @@ interface PendingDecode {
   reject(error: Error): void;
 }
 
-/** Starts the worker that decodes pictures off the main thread (ADR-0014). */
-export function startPictureDecodeWorker(): Worker {
-  return new Worker(new URL("./picture-decode-worker.ts", import.meta.url), { type: "module" });
-}
-
 /**
- * Decodes in one worker, started on the first picture. Once the worker has crashed or sent a
- * reply that cannot be read, or was disposed, it is terminated and every decode rejects with
+ * Decodes in one worker, started on the first picture. Once the worker could not be started, has
+ * crashed or sent a reply that cannot be read, or was disposed, it is terminated and every decode rejects with
  * `PictureDecodeError`.
  */
 export class WorkerPictureDecoder implements PictureDecoder {
@@ -56,7 +51,14 @@ export class WorkerPictureDecoder implements PictureDecoder {
     const id = this.#nextId++;
     const { promise, resolve, reject } = Promise.withResolvers<ImageBitmap>();
     this.#pending.set(id, { resolve, reject });
-    this.#workerStarted().postMessage({ id, bytes });
+    let worker: PictureDecodeWorker;
+    try {
+      worker = this.#workerStarted();
+    } catch {
+      this.#goneWith("The picture decode worker could not be started");
+      return promise;
+    }
+    worker.postMessage({ id, bytes });
     return promise;
   }
 

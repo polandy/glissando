@@ -1,11 +1,8 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { openingOnly, PICTURE_ID } from "../testing/opened-pictures";
 import { BitmapLoader } from "./bitmap-loader";
-import {
-  PictureDecodeError,
-  startPictureDecodeWorker,
-  WorkerPictureDecoder,
-} from "./worker-picture-decoder";
+import { startPictureDecodeWorker } from "./start-picture-decode-worker";
+import { PictureDecodeError, WorkerPictureDecoder } from "./worker-picture-decoder";
 
 const WIDE = { width: 32, height: 16 };
 

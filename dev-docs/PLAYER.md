@@ -88,6 +88,14 @@ picture comes on screen pays nothing for it (ADR-0014).
   decode, revoked when the picture is released or fails to decode. Without it, `src` is a URL.
 - `webGl2Context(canvas)` supplies the WebGL2 context; `null` selects the DOM fallback.
 
+`createBrowserPlayer` (`src/player/browser-player.ts`) is the same with a required
+`startDecodeWorker`: the exported web page starts the decode worker from a script inside itself
+(HTML_EXPORT.md). Its `mainThreadDecodeFallback` wraps the worker decoder in a
+`FallbackPictureDecoder`: once the worker fails a picture that the main thread decodes, or cannot
+start, every decode runs on the main thread; a picture both fail is broken and rejects. The app
+keeps the worker alone, so a broken picture is never decoded twice. It and its callers import the engine's modules directly, never the index, whose
+`createPlayer` would bring the worker in as a separate file.
+
 `createFramePlayer(slideshow, size, openPicture?)` is the video export's: a silent player on a
 canvas in no document, drawn with WebGL2 at exactly `size` (pixel ratio 1, drawing buffer
 preserved for `new VideoFrame(canvas)`), with `captionFontLoaded` to await before the first
@@ -153,7 +161,8 @@ transition, but stands still in screen space, unmoved by the Ken Burns motion. I
   `ShaderCompileError` carries the driver's log. The canvas follows its CSS size times the
   device pixel ratio, or keeps a fixed `drawingSize` (the video export's, with pixel ratio 1).
   Its pictures are `ImageBitmap`s decoded in a worker (`BitmapLoader`,
-  `WorkerPictureDecoder`), upright by their EXIF orientation; a released picture's bitmap is
+  `WorkerPictureDecoder`, which rejects every decode once its worker could not start, crashed or
+  was disposed), upright by their EXIF orientation; a released picture's bitmap is
   closed. Each becomes a mipmapped texture (`picture-textures.ts`), uploaded by `prepare` in
   steps: the storage for the whole mip chain with a first slice of rows, one slice of at most
   `UPLOAD_PIXELS_PER_FRAME` pixels per call, the mipmaps in a call of their own, then the

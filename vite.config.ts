@@ -1,6 +1,7 @@
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 import { playwright } from "@vitest/browser-playwright";
 import { defineConfig } from "vitest/config";
+import { exportPlayerPlugin } from "./build/export-player-plugin.ts";
 import { pinnedThemePlugin } from "./build/pinned-theme-script.ts";
 import { serviceWorkerPlugin } from "./build/service-worker-plugin.ts";
 import { THIRD_PARTY_LICENSES_FILE } from "./src/app/settings/third-party-licenses.ts";
@@ -12,7 +13,7 @@ export default defineConfig({
   base: "./",
   // Ships the licence of every bundled dependency, among them mediabunny's MPL-2.0 (ADR-0015).
   build: { license: { fileName: THIRD_PARTY_LICENSES_FILE } },
-  plugins: [svelte(), pinnedThemePlugin(), serviceWorkerPlugin()],
+  plugins: [svelte(), pinnedThemePlugin(), exportPlayerPlugin(), serviceWorkerPlugin()],
   test: {
     // e2e/ belongs to Playwright.
     projects: [

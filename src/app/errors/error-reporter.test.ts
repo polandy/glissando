@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { FakeScheduler } from "../testing/fake-scheduler";
+import { FakeScheduler } from "../../ui-kit/testing/fake-scheduler";
 import { Toaster } from "../toast/toaster";
 import { createErrorReporter } from "./error-reporter";
 

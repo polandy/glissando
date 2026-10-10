@@ -6,7 +6,7 @@
   import type { PicturesFocus } from "../focus/pictures-focus";
   import type { SlideshowEditor } from "../editing/slideshow-editor";
   import { browserObjectUrls, ObjectUrls } from "../media/object-urls";
-  import { REDUCED_MOTION_QUERY } from "../reduced-motion";
+  import { REDUCED_MOTION_QUERY } from "../../ui-kit/reduced-motion";
   import PictureEditorScreen from "../picture-editor/PictureEditorScreen.svelte";
   import { pictureEditorView } from "../picture-editor/picture-editor-view";
 

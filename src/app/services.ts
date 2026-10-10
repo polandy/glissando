@@ -13,6 +13,7 @@ import type { Navigator } from "./navigation/navigator";
 import type { AppSettings } from "./settings/app-settings";
 import type { PersistencePrompt } from "./storage/persistence-prompt";
 import type { Toaster } from "./toast/toaster";
+import type { HtmlExportDevice } from "./html-export/slideshow-html-export";
 import type { VideoExportDevice } from "./video-export/slideshow-video-export";
 
 /** What the composition root (`main.ts`) wires into the app. */
@@ -53,6 +54,8 @@ export interface AppServices {
   download(file: Blob, fileName: string): void;
   /** What the video export sheet needs of the browser (dev-docs/VIDEO_EXPORT.md). */
   readonly videoExport: VideoExportDevice;
+  /** What the web page export sheet needs of the browser (dev-docs/HTML_EXPORT.md). */
+  readonly htmlExport: HtmlExportDevice;
   /** Reloads the app, e.g. to get a newer version. */
   reload(): void;
 }

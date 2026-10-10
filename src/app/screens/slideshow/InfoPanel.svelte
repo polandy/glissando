@@ -3,16 +3,18 @@
   import Icon from "../../components/Icon.svelte";
   import { getTranslator } from "../../i18n/context";
   import type { SlideshowDetails } from "../view-models";
+  import SaveAsRow from "./SaveAsRow.svelte";
   import TitleEditor from "./TitleEditor.svelte";
 
   /**
-   * Beside the pictures: the title (renamed in place), "Play", "Save as video" and the
-   * slideshow's facts.
+   * Beside the pictures: the title (renamed in place), "Play", the "Save as" row (video, web
+   * page) and the slideshow's facts.
    */
   let {
     slideshow,
     onPlay,
     onSaveVideo,
+    onSaveWebPage,
     onRename,
     onEditMusic,
     onEditTransitions,
@@ -21,6 +23,8 @@
     onPlay: () => void;
     /** Opens the video export sheet. */
     onSaveVideo: () => void;
+    /** Opens the web page export sheet. */
+    onSaveWebPage: () => void;
     onRename: (typed: string) => void;
     onEditMusic: () => void;
     /** Opens the sheet of the slideshow's default transition. */
@@ -28,11 +32,16 @@
   } = $props();
 
   let transitionsRow: HTMLButtonElement;
-  let saveVideoButton: HTMLButtonElement;
+  let saveAs: SaveAsRow;
 
   /** The video export sheet closed: focus goes back to its button. */
   export function focusSaveVideo(): void {
-    saveVideoButton.focus();
+    saveAs.focusVideo();
+  }
+
+  /** The web page export sheet closed: focus goes back to its button. */
+  export function focusSaveWebPage(): void {
+    saveAs.focusWebPage();
   }
 
   /** The transitions sheet closed: focus goes back to the row it was opened from. */
@@ -99,9 +108,7 @@
     <button class="btn primary large" type="button" onclick={onPlay}>
       <Icon name="play" />{t("slideshow.play")}
     </button>
-    <button bind:this={saveVideoButton} class="btn large" type="button" onclick={onSaveVideo}>
-      <Icon name="film" />{t("slideshow.saveAsVideo")}
-    </button>
+    <SaveAsRow bind:this={saveAs} {onSaveVideo} {onSaveWebPage} />
   </div>
   <dl class="rows">
     <div>
@@ -194,7 +201,7 @@
   }
   .actions {
     display: grid;
-    gap: 8px;
+    gap: 10px;
   }
   .range {
     margin-top: 4px;

@@ -80,6 +80,18 @@ describe("WorkerPictureDecoder", () => {
     expect(worker.requests).toHaveLength(1);
   });
 
+  it("rejects the decode and every later one when the worker cannot be started", async () => {
+    let starts = 0;
+    const decoder = new WorkerPictureDecoder(() => {
+      starts++;
+      throw new DOMException("refused", "SecurityError");
+    });
+
+    await expect(decoder.decode(BYTES)).rejects.toBeInstanceOf(PictureDecodeError);
+    await expect(decoder.decode(BYTES)).rejects.toBeInstanceOf(PictureDecodeError);
+    expect(starts).toBe(1);
+  });
+
   it("terminates a worker that crashed", () => {
     const worker = new FakeDecodeWorker();
     const decoder = new WorkerPictureDecoder(() => worker);

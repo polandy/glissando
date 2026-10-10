@@ -127,7 +127,8 @@ Not in the MVP: per-slide settings, detection, Immich, video export, audio conve
    it directly (CORS, API key exposure) or through a thin server proxy is an ADR.
 4. **Video export** — the slideshow with its music rendered to a video file in the browser
    (WebCodecs encoding, client-side muxing; muxer choice is an ADR) — `dev-docs/VIDEO_EXPORT.md`,
-   ADR-0015.
+   ADR-0015. Beside it, the web page export: one self-contained `.html` file that plays offline
+   in any browser — `dev-docs/HTML_EXPORT.md`, ADR-0017.
 5. **Audio formats** — formats the browser cannot decode are converted client-side (WASM
    decoder; choice is an ADR).
 6. **Beat sync** — transitions land on the music's beats, detected in the browser.

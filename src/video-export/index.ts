@@ -37,6 +37,7 @@ export {
   canPickSaveFile,
   pickSaveTarget,
   privateExportTarget,
+  type SaveFileType,
   sweepPrivateExports,
   type ExportTarget,
 } from "./browser/file-targets";

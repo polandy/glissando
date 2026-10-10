@@ -6,7 +6,9 @@ import type { Size } from "./ken-burns";
  * the DOM fallback and the picture editor's preview. See ADR-0007.
  */
 
-export const CAPTION_FONT_FAMILY = '"Instrument Sans", sans-serif';
+/** The caption font's family name; the app and an exported page load it as a web font. */
+export const CAPTION_FONT_NAME = "Instrument Sans";
+export const CAPTION_FONT_FAMILY = `"${CAPTION_FONT_NAME}", sans-serif`;
 export const CAPTION_FONT_WEIGHT = 600;
 export const CAPTION_LINE_HEIGHT_EM = 1.22;
 export const CAPTION_LEFT_EM = 1.2;

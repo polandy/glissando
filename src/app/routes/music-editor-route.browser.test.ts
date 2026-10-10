@@ -5,7 +5,7 @@ import { MemoryLibraryStore } from "../../library/testing/memory-store";
 import { FakeClock, FakeFrameScheduler, FakeMusic } from "../../player/testing/fakes";
 import { SlideshowEditor } from "../editing/slideshow-editor";
 import type { MusicEditorAudio } from "../music-editor/music-editor-audio";
-import { FakeScheduler } from "../testing/fake-scheduler";
+import { FakeScheduler } from "../../ui-kit/testing/fake-scheduler";
 import { mountWithTranslator } from "../testing/mount-with-translator";
 import { Toaster } from "../toast/toaster";
 import MusicEditorRoute from "./MusicEditorRoute.svelte";

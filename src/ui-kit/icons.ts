@@ -43,6 +43,13 @@ export const ICONS = {
   close: { shapes: [path("M6 6l12 12M18 6L6 18")] },
   image: { shapes: [rect(3, 4.5, 18, 15, 2.5), circle(9, 10, 1.8), path("M21 16l-5-5-9 8.5")] },
   music: { shapes: [path("M9 18V6l11-2v12"), circle(6.5, 18, 2.5), circle(17.5, 16, 2.5)] },
+  volume: {
+    shapes: [
+      path("M4 9.5h3.5L12 6v12l-4.5-3.5H4z"),
+      path("M15.5 9.5a3.5 3.5 0 010 5M18 7a7 7 0 010 10"),
+    ],
+  },
+  volumeOff: { shapes: [path("M4 9.5h3.5L12 6v12l-4.5-3.5H4z"), path("M16 10l4 4M20 10l-4 4")] },
   folder: {
     shapes: [
       path(
@@ -100,6 +107,20 @@ export const ICONS = {
   share: { shapes: [path("M12 3v12M8 7l4-4 4 4"), path("M6 11v9h12v-9")] },
   film: {
     shapes: [rect(3, 5, 18, 14, 2.5), path("M3 9h18M3 15h18M8 5v4M16 5v4M8 15v4M16 15v4")],
+  },
+  /** A browser window with code brackets: the web page export. */
+  page: {
+    shapes: [
+      rect(3, 4, 18, 16, 2.5),
+      path("M3 8.5h18M10 12.5l-2.2 2.2L10 17M14 12.5l2.2 2.2L14 17"),
+    ],
+  },
+  /** Opens in a new tab. */
+  newTab: {
+    shapes: [
+      path("M14 4h6v6M20 4l-9 9"),
+      path("M18 14v4.5a1.5 1.5 0 01-1.5 1.5h-11A1.5 1.5 0 014 18.5v-11A1.5 1.5 0 015.5 6H10"),
+    ],
   },
   addToHome: { shapes: [rect(4, 4, 16, 16, 3), path("M12 8v8M8 12h8")] },
   menuDots: { shapes: [circle(12, 5, 1.2), circle(12, 12, 1.2), circle(12, 19, 1.2)] },

@@ -7,12 +7,13 @@ import { FakeFocusDetector } from "../../library/testing/fake-focus-detector";
 import { MemoryLibraryStore } from "../../library/testing/memory-store";
 import { MusicOutput } from "../../player";
 import { browserMusicEditorAudio } from "../music-editor/music-editor-audio";
-import { FakeScheduler } from "../testing/fake-scheduler";
+import { FakeScheduler } from "../../ui-kit/testing/fake-scheduler";
 import { mountWithTranslator } from "../testing/mount-with-translator";
 import { reactiveProps } from "../testing/reactive-props.svelte";
 import { whenRendered } from "../testing/when-rendered";
 import { Toaster } from "../toast/toaster";
 import SlideshowRoute from "./SlideshowRoute.svelte";
+import { fakeHtmlExportDevice } from "../html-export/testing/fake-html-export-ports";
 import { FakeExportPorts } from "../video-export/testing/fake-export-ports";
 
 const SHOW: StoredSlideshow = {
@@ -59,6 +60,7 @@ function mountRoute(store: MemoryLibraryStore, focusPass: FocusPass, editingPict
     exportProgress: null,
     onExport: () => {},
     videoExport: new FakeExportPorts(),
+    htmlExport: fakeHtmlExportDevice(),
     playing: false,
     editingPictureId,
     editingMusic: false,

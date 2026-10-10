@@ -1,4 +1,4 @@
-import type { Scheduler } from "../scheduler";
+import type { Scheduler } from "../../ui-kit/scheduler";
 
 export const TOAST_DURATION_MS = 6000;
 

@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { CAPTION_GLIDE_MS } from "../../player";
 import { oneSlideShow } from "../../player/testing/browser-pictures";
 import { OPENED_PICTURE_SHOW } from "../../player/testing/opened-pictures";
-import { FakeScheduler } from "../testing/fake-scheduler";
+import { FakeScheduler } from "../../ui-kit/testing/fake-scheduler";
 import { mountWithTranslator } from "../testing/mount-with-translator";
 import { whenRendered } from "../testing/when-rendered";
 import PlayerOverlay from "./PlayerOverlay.svelte";

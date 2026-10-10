@@ -7,7 +7,7 @@ import { FakeFocusDetector } from "../../library/testing/fake-focus-detector";
 import { MemoryLibraryStore } from "../../library/testing/memory-store";
 import { SlideshowEditor } from "../editing/slideshow-editor";
 import { NO_FOCUS_KNOWN, picturesFocus } from "../focus/pictures-focus";
-import { FakeScheduler } from "../testing/fake-scheduler";
+import { FakeScheduler } from "../../ui-kit/testing/fake-scheduler";
 import { mountWithTranslator } from "../testing/mount-with-translator";
 import { reactiveProps } from "../testing/reactive-props.svelte";
 import { Toaster } from "../toast/toaster";

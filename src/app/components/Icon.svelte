@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { ICONS, type IconDefinition, type IconName } from "../icons";
+  import { ICONS, type IconDefinition, type IconName } from "../../ui-kit/icons";
 
   let { name }: { name: IconName } = $props();
 
