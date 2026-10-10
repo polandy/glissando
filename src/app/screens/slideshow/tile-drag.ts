@@ -177,7 +177,6 @@ export class TileDrag {
       case "pendingHold":
         if (distance(phase, { x, y }) > MOVE_THRESHOLD_PX) {
           // The finger is scrolling, not holding still: the page scrolls as usual (ADR-0019).
-          phase.cancelHold();
           this.#endDrag();
         }
         return;
@@ -205,10 +204,7 @@ export class TileDrag {
       case "idle":
         return;
       case "pendingMouse":
-        this.#endDrag();
-        return;
       case "pendingHold":
-        phase.cancelHold();
         this.#endDrag();
         return;
       case "lifted":
@@ -235,9 +231,6 @@ export class TileDrag {
   pointerCancel(pointerId: number): void {
     if (pointerId !== this.#activePointerId) {
       return;
-    }
-    if (this.#phase.kind === "pendingHold") {
-      this.#phase.cancelHold();
     }
     const wasActive = this.#phase.kind === "lifted" || this.#phase.kind === "dragging";
     this.#endDrag();
@@ -302,7 +295,11 @@ export class TileDrag {
     return index === -1 ? null : index + (dropMark.after ? 1 : 0);
   }
 
+  /** Back to idle from any phase: a pending hold's timer and the auto-scroll loop stop too. */
   #endDrag(): void {
+    if (this.#phase.kind === "pendingHold") {
+      this.#phase.cancelHold();
+    }
     if (this.#frameHandle !== null) {
       this.#ports.frameScheduler.cancel(this.#frameHandle);
       this.#frameHandle = null;

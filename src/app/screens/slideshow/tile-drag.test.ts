@@ -296,6 +296,21 @@ describe("TileDrag, a touch hold", () => {
     expect(drag.state.lifted).toBe(false);
   });
 
+  it("restarts the hold on a new press whose release went unseen: the old timer lifts nothing", () => {
+    const { drag, holdScheduler, calls } = harness();
+    const press = { pointerType: "touch", pointerId: FINGER, button: PRIMARY_BUTTON, x: 0, y: 0 };
+    drag.pointerDown({ ...press, pictureId: "b" } as const);
+    holdScheduler.advance(300);
+
+    drag.pointerDown({ ...press, pictureId: "b" } as const);
+    holdScheduler.advance(HOLD_MS - 300);
+
+    expect(calls.held).toEqual([]);
+    expect(drag.state.lifted).toBe(false);
+    holdScheduler.advance(300);
+    expect(calls.held).toEqual(["b"]);
+  });
+
   it("cancels the hold on pointer cancel, leaving no selection", () => {
     const { drag, holdScheduler, calls } = harness();
     drag.pointerDown({
