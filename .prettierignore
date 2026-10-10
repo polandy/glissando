@@ -1,4 +1,5 @@
 dist/
+dist-server/
 package-lock.json
 assets/fonts/
 playwright-report/
