@@ -20,13 +20,17 @@ const summary = (id: string, title: string, coverUrls = [PIXEL]): SlideshowSumma
 let destroy = () => {};
 afterEach(() => destroy());
 
-function mountStart(server: ServerShelf | null) {
+function mountStart(
+  server: ServerShelf | null,
+  slideshows = [summary("lake", "Summer by the lake")],
+  language: "de" | "en" = "en",
+) {
   const opened: string[] = [];
   const created: true[] = [];
   const mounted = mountWithTranslator(
     StartScreen,
     {
-      slideshows: [summary("lake", "Summer by the lake")],
+      slideshows,
       server,
       focusSearches: new Map(),
       onCreate: () => created.push(true),
@@ -38,7 +42,7 @@ function mountStart(server: ServerShelf | null) {
       onReload: () => {},
       statusBar: createRawSnippet(() => ({ render: () => "<footer></footer>" })),
     },
-    { current: createTranslator("en") },
+    { current: createTranslator(language) },
   );
   destroy = mounted.destroy;
   return { target: mounted.target, opened, created };
@@ -95,6 +99,23 @@ describe("StartScreen, slideshows on the Glissando server", () => {
     items[0]?.querySelector<HTMLButtonElement>("button.new")?.click();
     expect(created).toEqual([true]);
   });
+
+  it.each([
+    { language: "en", line: "Nothing on this device yet." },
+    { language: "de", line: "Noch nichts auf diesem Gerät." },
+  ] as const)(
+    "says in $language that nothing is on this device yet when only the server has slideshows",
+    ({ language, line }) => {
+      const { target } = mountStart(
+        { offline: false, slideshows: [summary("iceland", "Iceland 2025")] },
+        [],
+        language,
+      );
+
+      expect(cardOf(serverSection(target), "Iceland 2025")).toBeDefined();
+      expect(target.querySelector(".head + .empty")?.textContent.trim()).toBe(line);
+    },
+  );
 
   it("greys offline server cards out, says they need the server and does not open them", () => {
     const { target, opened } = mountStart({

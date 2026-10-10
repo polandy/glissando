@@ -126,6 +126,8 @@ fail-soft (a device whose storage refuses remembers nothing):
   Glissando server. To take one along, open it and choose “Keep a copy on this device”." — the
   cards greyed out, not opening, with the line "Needs your Glissando server".
 - No server slideshow yet: the section shows only its heading, the line and the dashed card.
+- No slideshow on the device: under "On this device" the muted line "Nothing on this device
+  yet." instead of its grid.
 
 ### Where a new slideshow lives
 

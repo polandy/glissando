@@ -4,6 +4,7 @@ import type { Catalogue } from "./messages";
 /** English copy of slideshows on the Glissando server; typed to the German keys. */
 export const enServer: Pick<Catalogue, keyof typeof deServer> = {
   "server.sectionDevice": "On this device",
+  "server.sectionDeviceEmpty": "Nothing on this device yet.",
   "server.sectionServer": "On your Glissando server",
   "server.sectionLead": "Pictures stay in Immich. Shared by everyone who opens this Glissando.",
   "server.sectionOffline":

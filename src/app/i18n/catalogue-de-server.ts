@@ -3,6 +3,7 @@ import type { Message } from "./messages";
 /** German copy of slideshows on the Glissando server; part of the German catalogue. */
 export const deServer = {
   "server.sectionDevice": "Auf diesem Gerät",
+  "server.sectionDeviceEmpty": "Noch nichts auf diesem Gerät.",
   "server.sectionServer": "Auf deinem Glissando-Server",
   "server.sectionLead": "Die Bilder bleiben in Immich. Für alle, die dieses Glissando öffnen.",
   "server.sectionOffline":

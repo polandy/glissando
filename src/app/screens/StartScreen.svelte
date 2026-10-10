@@ -115,20 +115,24 @@
           <Icon name="open" />{t("glissandoFile.openFile")}
         </button>
       </div>
-      <ul class="grid">
-        {#each slideshows as slideshow (slideshow.id)}
-          <li>
-            <SlideshowCard {slideshow} search={focusSearches.get(slideshow.id)} {onOpen} />
-          </li>
-        {/each}
-        {#if server === null}
-          <li>
-            <button class="new" type="button" onclick={onCreate}>
-              <Icon name="plus" />{t("start.newSlideshow")}
-            </button>
-          </li>
-        {/if}
-      </ul>
+      {#if slideshows.length === 0}
+        <p class="empty">{t("server.sectionDeviceEmpty")}</p>
+      {:else}
+        <ul class="grid">
+          {#each slideshows as slideshow (slideshow.id)}
+            <li>
+              <SlideshowCard {slideshow} search={focusSearches.get(slideshow.id)} {onOpen} />
+            </li>
+          {/each}
+          {#if server === null}
+            <li>
+              <button class="new" type="button" onclick={onCreate}>
+                <Icon name="plus" />{t("start.newSlideshow")}
+              </button>
+            </li>
+          {/if}
+        </ul>
+      {/if}
       {#if server !== null}
         <section class="shelf" aria-labelledby="server-shelf">
           <h2 class="title section" id="server-shelf">
@@ -214,6 +218,11 @@
   .shelf .title,
   .shelf .lead {
     margin: 0;
+  }
+  .empty {
+    margin: 0;
+    color: var(--gl-muted);
+    font-size: var(--gl-size-meta);
   }
   .shelf .lead {
     display: flex;
