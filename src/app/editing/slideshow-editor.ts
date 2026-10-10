@@ -16,14 +16,12 @@ import {
   setPictureKenBurns,
   setPictureTransition,
   setSlideshowTransition,
-  takeOutPictures,
 } from "../../library/slideshow-edits";
 import type { LibraryStore, StoredSlideshow } from "../../library/stored-slideshow";
 import type { Toaster } from "../toast/toaster";
-import { AddUndo } from "./add-undo";
 import { EditSaver } from "./edit-saver";
-import { RemovalUndo } from "./removal-undo";
-import { ResetUndo, type ResettableSetting } from "./reset-undo";
+import { EditorUndos } from "./editor-undos";
+import type { ResettableSetting } from "./reset-undo";
 
 export interface SlideshowEditorPorts {
   readonly store: Pick<LibraryStore, "updateSlideshow" | "claimMedia" | "releaseClaim">;
@@ -66,34 +64,24 @@ export class SlideshowEditor {
   readonly #ports: SlideshowEditorPorts;
   readonly #listeners = new Set<(slideshow: StoredSlideshow) => void>();
   #slideshow: StoredSlideshow;
-  readonly #removalUndo: RemovalUndo;
-  readonly #resetUndo: ResetUndo;
-  readonly #addUndo: AddUndo;
+  readonly #undos: EditorUndos;
   readonly #saver: EditSaver;
 
   constructor(initial: StoredSlideshow, ports: SlideshowEditorPorts) {
     this.#slideshow = initial;
     this.#ports = ports;
-    this.#resetUndo = new ResetUndo(ports.toaster, ports.undoLabel);
     this.#saver = new EditSaver({
       store: ports.store,
       onError: ports.onError,
       onGone: () => {
-        this.#removalUndo.end();
+        this.#undos.removal.end();
         ports.onGone();
       },
     });
-    this.#removalUndo = new RemovalUndo({
-      ...ports,
+    this.#undos = new EditorUndos(ports, {
+      current: () => this.#slideshow,
+      apply: (slideshow) => this.#apply(slideshow),
       track: (work) => this.#saver.track(work),
-    });
-    this.#addUndo = new AddUndo({
-      ...ports,
-      takeOut: (pictureIds) => {
-        const takenOut = takeOutPictures(this.#slideshow, pictureIds);
-        this.#removalUndo.end();
-        this.#apply(takenOut);
-      },
     });
   }
 
@@ -119,7 +107,7 @@ export class SlideshowEditor {
       return;
     }
     const { slideshow, removed } = removePicture(this.#slideshow, pictureId);
-    this.#removalUndo.add(removed, (removals) =>
+    this.#undos.removal.add(removed, (removals) =>
       this.#apply(restorePictures(this.#slideshow, removals)),
     );
     this.#apply(slideshow);
@@ -127,13 +115,13 @@ export class SlideshowEditor {
 
   /** Pictures just added on the add screen: the toast's undo takes those still here out. */
   offerAddUndo(pictureIds: readonly string[]): void {
-    this.#addUndo.offer(pictureIds);
+    this.#undos.add.offer(pictureIds);
   }
 
   move(pictureId: string, toIndex: number): void {
     const moved = movePicture(this.#slideshow, pictureId, toIndex);
     if (moved !== this.#slideshow) {
-      this.#removalUndo.end();
+      this.#undos.removal.end();
       this.#apply(moved);
     }
   }
@@ -148,7 +136,7 @@ export class SlideshowEditor {
    * that picture's reset, which would otherwise overwrite this newer motion.
    */
   setKenBurns(pictureId: string, kenBurns: OwnKenBurns): void {
-    this.#resetUndo.supersede(pictureId, "kenBurns");
+    this.#undos.reset.supersede(pictureId, "kenBurns");
     this.#apply(setPictureKenBurns(this.#slideshow, pictureId, kenBurns));
   }
 
@@ -166,7 +154,7 @@ export class SlideshowEditor {
 
   /** The picture shows `durationMs` (validated) from now on, wherever it moves. */
   setDuration(pictureId: string, durationMs: number): void {
-    this.#resetUndo.supersede(pictureId, "durationMs");
+    this.#undos.reset.supersede(pictureId, "durationMs");
     this.#apply(setPictureDuration(this.#slideshow, pictureId, durationMs));
   }
 
@@ -184,7 +172,7 @@ export class SlideshowEditor {
 
   /** The picture hands over to the next one with `transition` from now on, wherever it moves. */
   setTransition(pictureId: string, transition: TransitionChoice): void {
-    this.#resetUndo.supersede(pictureId, "transition");
+    this.#undos.reset.supersede(pictureId, "transition");
     this.#apply(setPictureTransition(this.#slideshow, pictureId, transition));
   }
 
@@ -202,7 +190,7 @@ export class SlideshowEditor {
 
   /** Every picture without its own transition hands over with `transition` from now on. */
   setSlideshowTransition(transition: SlideshowTransition): void {
-    this.#resetUndo.supersede(this.#slideshow.id, "slideshowTransition");
+    this.#undos.reset.supersede(this.#slideshow.id, "slideshowTransition");
     this.#apply(setSlideshowTransition(this.#slideshow, transition));
   }
 
@@ -213,7 +201,7 @@ export class SlideshowEditor {
       return;
     }
     this.#apply(setSlideshowTransition(this.#slideshow, undefined));
-    this.#resetUndo.offer(
+    this.#undos.reset.offer(
       this.#slideshow.id,
       "slideshowTransition",
       this.#ports.slideshowTransitionResetText(),
@@ -265,9 +253,7 @@ export class SlideshowEditor {
 
   /** The screen closes: its undo toast would act on a slideshow no longer shown. */
   dispose(): void {
-    this.#removalUndo.end();
-    this.#resetUndo.end();
-    this.#addUndo.end();
+    this.#undos.end();
   }
 
   /** The undo of a reset; a picture removed meanwhile has nothing to bring back. */
@@ -277,7 +263,7 @@ export class SlideshowEditor {
     text: string,
     restore: () => void,
   ): void {
-    this.#resetUndo.offer(pictureId, setting, text, () => {
+    this.#undos.reset.offer(pictureId, setting, text, () => {
       if (this.#slideshow.pictures.some((picture) => picture.id === pictureId)) {
         restore();
       }
