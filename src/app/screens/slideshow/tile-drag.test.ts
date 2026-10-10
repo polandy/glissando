@@ -8,6 +8,7 @@ import {
   PRIMARY_BUTTON,
   TileDrag,
   type DropTarget,
+  type PointerDownInput,
   type TileDragPorts,
 } from "./tile-drag";
 
@@ -298,11 +299,18 @@ describe("TileDrag, a touch hold", () => {
 
   it("restarts the hold on a new press whose release went unseen: the old timer lifts nothing", () => {
     const { drag, holdScheduler, calls } = harness();
-    const press = { pointerType: "touch", pointerId: FINGER, button: PRIMARY_BUTTON, x: 0, y: 0 };
-    drag.pointerDown({ ...press, pictureId: "b" } as const);
+    const press: PointerDownInput = {
+      pointerType: "touch",
+      pointerId: FINGER,
+      button: PRIMARY_BUTTON,
+      x: 0,
+      y: 0,
+      pictureId: "b",
+    };
+    drag.pointerDown(press);
     holdScheduler.advance(300);
 
-    drag.pointerDown({ ...press, pictureId: "b" } as const);
+    drag.pointerDown(press);
     holdScheduler.advance(HOLD_MS - 300);
 
     expect(calls.held).toEqual([]);
