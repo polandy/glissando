@@ -1,7 +1,8 @@
 <script lang="ts">
-  import { onDestroy, type Snippet } from "svelte";
+  import { flushSync, onDestroy, type Snippet } from "svelte";
   import type { ImmichAvailabilityState } from "../../immich/immich-availability";
   import type { DuplicateReason } from "../../import/picture-import";
+  import Icon from "../components/Icon.svelte";
   import Notice from "../components/Notice.svelte";
   import { getTranslator } from "../i18n/context";
   import type { MessageKey } from "../i18n/messages";
@@ -51,6 +52,7 @@
     chosenTwice: "add.chosenTwice",
   } as const satisfies Record<DuplicateReason, MessageKey>;
   const FILE_NAME_SEPARATOR = ", ";
+  const REMOVE_KEYS: ReadonlySet<string> = new Set(["Delete", "Backspace"]);
   const { t, formatDate } = getTranslator();
 
   // The intake and the loader are fixed for the body's lifetime.
@@ -59,10 +61,14 @@
   let urls = $state<ReadonlyMap<string, string>>(new Map());
   let pickFiles: HTMLInputElement;
   let pickFolder: HTMLInputElement;
+  let strip: HTMLUListElement | undefined = $state();
+  let choosePictures: HTMLButtonElement | undefined = $state();
 
   // svelte-ignore state_referenced_locally
   const thumbnails = new ObjectUrls({ ...browserObjectUrls, load: loadThumbnail, onError });
   onDestroy(() => thumbnails.dispose());
+  // Leaving the step makes the removals final.
+  onDestroy(() => intake.endRemovals());
 
   $effect(() => intake.pictures.subscribe((next) => (importState = next)));
   $effect(() => thumbnails.subscribe((next) => (urls = next)));
@@ -77,6 +83,21 @@
     onFiles([...(event.currentTarget.files ?? [])]);
     // Cleared so that picking the same files again still reports a change.
     event.currentTarget.value = "";
+  }
+
+  /** Focus goes to the next picture's remove button, the previous one at the end, else Choose. */
+  function remove(index: number, pictureId: string): void {
+    intake.removePicture(pictureId);
+    flushSync();
+    const buttons = strip?.querySelectorAll<HTMLButtonElement>("button.remove") ?? [];
+    (buttons[Math.min(index, buttons.length - 1)] ?? choosePictures)?.focus();
+  }
+
+  function removeOnKey(event: KeyboardEvent, index: number, pictureId: string): void {
+    if (REMOVE_KEYS.has(event.key)) {
+      event.preventDefault();
+      remove(index, pictureId);
+    }
   }
 
   function chooseFewer(): void {
@@ -96,7 +117,12 @@
   </div>
 {:else if phase === "empty"}
   <DropZone icon="image" onFiles={(files) => onFiles(files)} {onError}>
-    <button class="btn primary" type="button" onclick={() => pickFiles.click()}>
+    <button
+      bind:this={choosePictures}
+      class="btn primary"
+      type="button"
+      onclick={() => pickFiles.click()}
+    >
       {t("import.pickPictures")}
     </button>
     <span>
@@ -175,13 +201,23 @@
 {/if}
 
 {#if importState.pictures.length > 0 || pending > 0}
-  <ul class="strip">
-    {#each importState.pictures as picture (picture.id)}
+  <ul class="strip" bind:this={strip}>
+    {#each importState.pictures as picture, index (picture.id)}
       <li class="tile" class:pending={!urls.has(picture.id)}>
         {#if urls.has(picture.id)}
           <img src={urls.get(picture.id)} alt="" />
         {/if}
         <span class="date mono">{formatDate(picture.capturedAt)}</span>
+        <button
+          class="remove"
+          type="button"
+          aria-label={t("import.removePicture", { date: formatDate(picture.capturedAt) })}
+          title={t("slideshow.remove")}
+          onclick={() => remove(index, picture.id)}
+          onkeydown={(event) => removeOnKey(event, index, picture.id)}
+        >
+          <Icon name="close" />
+        </button>
       </li>
     {/each}
     {#each { length: pending }, index (index)}
@@ -264,6 +300,45 @@
     color: var(--gl-on-photo);
     font-weight: var(--gl-weight-medium);
     font-size: var(--gl-size-caption);
+  }
+  /* Always shown for touch, which has no other way to remove; a mouse sees it on hover. */
+  .remove {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    z-index: 2;
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    border: 0;
+    border-radius: var(--gl-radius-small);
+    background: var(--gl-photo-badge);
+    color: var(--gl-on-photo);
+    backdrop-filter: blur(6px);
+    cursor: pointer;
+    --gl-icon-size: var(--gl-size-icon-small);
+  }
+  /* A touch target of 44 px around the 26 px mark. */
+  .remove::before {
+    content: "";
+    position: absolute;
+    inset: -9px;
+  }
+  .remove:hover {
+    background: var(--gl-coral);
+    color: var(--gl-coral-ink);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .remove {
+      opacity: 0;
+      transition: opacity 0.12s;
+    }
+    .tile:hover .remove,
+    .remove:focus-visible {
+      opacity: 1;
+    }
   }
   .tile.pending {
     background: var(--gl-hover);

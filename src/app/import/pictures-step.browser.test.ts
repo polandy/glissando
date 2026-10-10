@@ -1,6 +1,7 @@
 import { flushSync } from "svelte";
 import { afterEach, describe, expect, it } from "vitest";
 import { MemoryLibraryStore } from "../../library/testing/memory-store";
+import { fakeRemovalPorts } from "../testing/picture-intake-ports";
 import { mountWithTranslator } from "../testing/mount-with-translator";
 import { ImportSession } from "./import-session";
 import PicturesStep from "./PicturesStep.svelte";
@@ -30,6 +31,7 @@ function failingSession(): ImportSession {
   let nextId = 1;
   return new ImportSession({
     store: new MemoryLibraryStore(),
+    ...fakeRemovalPorts(),
     decode: (file) =>
       Promise.resolve({
         width: 300,

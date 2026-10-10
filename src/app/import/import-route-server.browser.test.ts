@@ -1,6 +1,7 @@
 import { flushSync } from "svelte";
 import { afterEach, describe, expect, it } from "vitest";
 import { MemoryLibraryStore } from "../../library/testing/memory-store";
+import { fakeRemovalPorts } from "../testing/picture-intake-ports";
 import { ServerLibraryUnavailableError } from "../../server-library/server-library-client";
 import { createTranslator } from "../i18n/translator";
 import { mountWithTranslator } from "../testing/mount-with-translator";
@@ -19,6 +20,7 @@ function session(createOnServer: ImportSessionPorts["createOnServer"]): ImportSe
   let nextId = 1;
   return new ImportSession({
     store: new MemoryLibraryStore(),
+    ...fakeRemovalPorts(),
     decode: (file) =>
       Promise.resolve({
         width: 300,

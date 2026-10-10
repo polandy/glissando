@@ -2,6 +2,7 @@ import { flushSync } from "svelte";
 import { afterEach, describe, expect, it } from "vitest";
 import type { ImmichAvailabilityState } from "../../immich/immich-availability";
 import { MemoryLibraryStore } from "../../library/testing/memory-store";
+import { fakeRemovalPorts } from "../testing/picture-intake-ports";
 import { createTranslator } from "../i18n/translator";
 import { mountWithTranslator } from "../testing/mount-with-translator";
 import { ImportSession } from "./import-session";
@@ -17,6 +18,7 @@ function session(): ImportSession {
   let nextId = 1;
   return new ImportSession({
     store: new MemoryLibraryStore(),
+    ...fakeRemovalPorts(),
     decode: (file) =>
       Promise.resolve({
         width: 300,

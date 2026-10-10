@@ -121,6 +121,7 @@ export const de = {
   },
   "import.dateRange": "{from} bis {to}",
   "import.addMore": "mehr hinzufügen",
+  "import.removePicture": "Bild vom {date} entfernen",
   "import.skipped": {
     one: "{count} Datei konnte nicht als Bild gelesen werden und wurde übersprungen:",
     other: "{count} Dateien konnten nicht als Bild gelesen werden und wurden übersprungen:",

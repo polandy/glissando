@@ -142,6 +142,32 @@ export class PictureImport {
     });
   }
 
+  /**
+   * Takes a stored picture out again; it leaves done and total, and no longer counts as a
+   * duplicate. Its media stays for `restore` until the import's media is cleaned up.
+   */
+  remove(pictureId: string): StoredPicture {
+    const removed = this.#state.pictures.find((stored) => stored.id === pictureId);
+    if (removed === undefined) {
+      throw new Error(`the import has no picture "${pictureId}" to remove`);
+    }
+    this.#update({
+      total: this.#state.total - 1,
+      done: this.#state.done - 1,
+      pictures: this.#state.pictures.filter((stored) => stored !== removed),
+    });
+    return removed;
+  }
+
+  /** Puts removed pictures back, in capture-date order like every picture. */
+  restore(pictures: readonly StoredPicture[]): void {
+    this.#update({
+      total: this.#state.total + pictures.length,
+      done: this.#state.done + pictures.length,
+      pictures: orderByCaptureDate([...this.#state.pictures, ...pictures]),
+    });
+  }
+
   #enqueue(entries: readonly Queued[], change: Partial<PictureImportState>): void {
     this.#queue.push(...entries);
     this.#update({
