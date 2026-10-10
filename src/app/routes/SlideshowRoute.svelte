@@ -25,6 +25,7 @@
   import MusicEditorRoute from "./MusicEditorRoute.svelte";
   import PictureEditorRoute from "./PictureEditorRoute.svelte";
   import PlayerLayer from "./PlayerLayer.svelte";
+  import ServerCopyConfirm from "./ServerCopyConfirm.svelte";
   import { loadSlideshowScreen } from "./route-loading";
   import { deleteShownSlideshow } from "./slideshow-exits";
   import { MOUSE_POINTER_QUERY } from "../screens/slideshow/pointer";
@@ -203,11 +204,12 @@
     return createScreenEditor(initial, ports, translator);
   }
 
+  /** The copy whose confirmation sheet is open. */
+  let confirmingCopy = $state<"keepCopy" | "saveOnServer" | null>(null);
+
   function storageAction(action: StorageAction): void {
-    if (stored === null) return;
-    if (action === "keepCopy") onKeepCopy(stored);
-    else if (action === "saveOnServer") onSaveOnServer(stored);
-    else for (const id of missingIds) editor?.remove(id);
+    if (action === "removeMissing") for (const id of missingIds) editor?.remove(id);
+    else confirmingCopy = action;
   }
 
   function measureExport(): void {
@@ -294,4 +296,15 @@
 {/if}
 {#if playing && stored !== null}
   <PlayerLayer {store} {stored} {musicOutput} onClose={onBack} {onError} {log} />
+{/if}
+{#if confirmingCopy !== null && stored !== null}
+  <ServerCopyConfirm
+    action={confirmingCopy}
+    {stored}
+    {store}
+    {onKeepCopy}
+    {onSaveOnServer}
+    onClose={() => (confirmingCopy = null)}
+    {onError}
+  />
 {/if}
