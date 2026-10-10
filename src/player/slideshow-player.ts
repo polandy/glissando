@@ -2,7 +2,6 @@ import { CaptionInset } from "./caption-inset";
 import { FramePictures } from "./frame-pictures";
 import type { Size } from "./ken-burns";
 import { MusicPlaybackError, type PlayerDependencies } from "./ports";
-import { renderFrame } from "./render-frame";
 import { MILLISECONDS_PER_SECOND, type Slideshow } from "./slideshow";
 import { TrimmedMusic } from "./trimmed-music";
 import { createTimeline, type Timeline, type TimelineFrame } from "./timeline";
@@ -14,7 +13,6 @@ import type { PlayerEvent } from "./player-events";
  * `duration` in seconds, and the media events in `PLAYER_EVENTS`.
  */
 export class SlideshowPlayer<Picture extends Size> extends EventTarget {
-  readonly #slideshow: Slideshow;
   readonly #timeline: Timeline;
   readonly #deps: PlayerDependencies<Picture>;
   readonly #pictures: FramePictures<Picture>;
@@ -34,7 +32,6 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
 
   constructor(slideshow: Slideshow, dependencies: PlayerDependencies<Picture>) {
     super();
-    this.#slideshow = slideshow;
     this.#timeline = createTimeline(slideshow.slides);
     this.#deps = dependencies;
     this.#music =
@@ -48,7 +45,7 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
       redraw: () => this.redraw(),
     });
     this.#pictures = new FramePictures(
-      slideshow.slides,
+      slideshow,
       () => this.#currentFrame(),
       dependencies.pictures,
       dependencies.renderer,
@@ -158,7 +155,7 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
     if (this.#destroyed || generation !== this.#generation) {
       throw new Error(`the frame at ${seconds} s was superseded before it was drawn`);
     }
-    this.#renderCurrentFrame();
+    this.#pictures.draw(this.#captionInset.current);
     this.#pictures.prepareUpcoming();
   }
 
@@ -287,7 +284,7 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
   }
 
   #draw(): void {
-    this.#renderCurrentFrame();
+    this.#pictures.draw(this.#captionInset.current);
     this.#pictures.loadAroundScreen().catch(() => {
       // The buffer retries a failed picture and reports it once the frame needs it.
     });
@@ -295,13 +292,6 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
       this.#ready = true;
       this.#emit("canplay");
     }
-  }
-
-  #renderCurrentFrame(): void {
-    this.#deps.renderer.setCaptionInset(this.#captionInset.current);
-    this.#deps.renderer.render(
-      renderFrame(this.#currentFrame(), this.#slideshow, (index) => this.#pictures.get(index)),
-    );
   }
 
   #emit(type: PlayerEvent): void {

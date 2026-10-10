@@ -1,30 +1,31 @@
 import type { Size } from "./ken-burns";
 import { PictureBuffer } from "./picture-buffer";
 import type { PictureLoader, SlideRenderer } from "./ports";
-import type { Slide } from "./slideshow";
+import { renderFrame } from "./render-frame";
+import type { Slideshow } from "./slideshow";
 import type { SlideAtTime, TimelineFrame } from "./timeline";
 
 /**
- * The pictures around the player's current frame: loads those on screen and the next ones, and
- * spreads the work to draw the next ones over the frames before they come on screen.
+ * The pictures around the player's current frame: loads those on screen and the next ones, draws
+ * the frame, and spreads the work to draw the next ones over the frames before they come on screen.
  */
 export class FramePictures<Picture extends Size> {
-  readonly #slides: readonly Slide[];
+  readonly #slideshow: Slideshow;
   readonly #currentFrame: () => TimelineFrame;
   readonly #renderer: SlideRenderer<Picture>;
   readonly #buffer: PictureBuffer<Picture>;
 
   constructor(
-    slides: readonly Slide[],
+    slideshow: Slideshow,
     currentFrame: () => TimelineFrame,
     loader: PictureLoader<Picture>,
     renderer: SlideRenderer<Picture>,
   ) {
-    this.#slides = slides;
+    this.#slideshow = slideshow;
     this.#currentFrame = currentFrame;
     this.#renderer = renderer;
     this.#buffer = new PictureBuffer(
-      slides.map((slide) => slide.image.src),
+      slideshow.slides.map((slide) => slide.image.src),
       loader,
       renderer,
     );
@@ -67,11 +68,19 @@ export class FramePictures<Picture extends Size> {
     );
   }
 
+  /** Draws the current frame; its pictures must be loaded. */
+  draw(captionInset: number): void {
+    this.#renderer.setCaptionInset(captionInset);
+    this.#renderer.render(
+      renderFrame(this.#currentFrame(), this.#slideshow, (index) => this.#buffer.get(index)),
+    );
+  }
+
   /** Hands the renderer the next step of preparing the loaded pictures after those on screen. */
   prepareUpcoming(): void {
     const onScreen = this.#onScreen().map((slide) => slide.index);
     for (const { index, picture } of this.#buffer.loadedAfter(onScreen)) {
-      const caption = this.#slides[index]?.caption;
+      const caption = this.#slideshow.slides[index]?.caption;
       this.#renderer.prepare(caption === undefined ? { picture } : { picture, caption });
     }
   }
