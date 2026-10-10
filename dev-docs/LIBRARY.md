@@ -185,7 +185,8 @@ the extension (`jpg`, `png`, `webp`). No picture's focus travels in the file: th
 device looks for it itself (ADR-0012). The manifest is read strictly: an unknown key or a value
 out of range makes the file damaged. Version 2 added `kenBurns`, version 3 `caption`, version 4
 `durationMs` and `transition`, version 5 the music's `trim`, `fadeInMs` and `fadeOutMs`,
-version 6 the slideshow's `transition`, version 7 the pictures' `immichAssetId` and `fileBytes`;
+version 6 the slideshow's `transition`, version 7 the pictures' `immichAssetId` or `fileBytes`
+(a picture carrying both is damaged, the reason names its path);
 files of versions 1 to 6 are still read (without
 `transition`: the crossfade), and a file carrying a field its version does not know is
 damaged. An own duration, transition, default transition, excerpt or fade is checked as on the edit; the reason

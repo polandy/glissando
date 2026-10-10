@@ -89,6 +89,14 @@ describe("a picture's origin in the .glissando file", () => {
     expect(readManifest(text).kind).toBe("damaged");
   });
 
+  it("takes a picture with both an Immich asset id and a file size for damaged, naming its path", () => {
+    expect(readManifest(withPicture(0, { fileBytes: 4_200_000 }))).toEqual({
+      kind: "damaged",
+      reason:
+        'glissando.json slideshow.pictures[0]: expected immichAssetId or fileBytes, not both, got {"immichAssetId":"asset-123","fileBytes":4200000}',
+    });
+  });
+
   it("names a bad Immich asset id's path and value", () => {
     expect(readManifest(withPicture(0, { immichAssetId: "" }))).toEqual({
       kind: "damaged",
