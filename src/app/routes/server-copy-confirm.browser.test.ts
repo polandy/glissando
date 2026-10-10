@@ -27,13 +27,19 @@ const SHOW: StoredSlideshow = {
 let destroy = () => {};
 afterEach(() => destroy());
 
-function mountConfirm(action: "keepCopy" | "saveOnServer") {
+type CopyAction = "keepCopy" | "saveOnServer";
+
+/** `afterClose`: the action the parent passes once the sheet asked it to close. */
+function mountConfirm(action: CopyAction, afterClose: CopyAction = action) {
   const ran: string[] = [];
   const closed: true[] = [];
   const mounted = mountWithTranslator(
     ServerCopyConfirm,
     {
-      action,
+      // A getter, as Svelte passes a parent's state: it reads the parent's value now.
+      get action() {
+        return closed.length === 0 ? action : afterClose;
+      },
       stored: SHOW,
       store: { musicBlob: () => Promise.resolve(new Blob(["x".repeat(3)])) },
       onKeepCopy: (slideshow: StoredSlideshow) => ran.push(`keep ${slideshow.id}`),
@@ -68,6 +74,15 @@ describe("ServerCopyConfirm", () => {
 
     expect(ran).toEqual(["keep show"]);
     expect(closed).toEqual([true]);
+  });
+
+  it("runs the copy it asked about, though closing it changes what the parent passes", () => {
+    const { ran } = mountConfirm("keepCopy", "saveOnServer");
+
+    buttonNamed("Download and keep").click();
+    flushSync();
+
+    expect(ran).toEqual(["keep show"]);
   });
 
   it("cancelling runs nothing", () => {

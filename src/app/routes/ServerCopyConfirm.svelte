@@ -46,9 +46,11 @@
   });
 
   function confirm(): void {
+    // Read before closing: closing lets the parent drop the action and the slideshow.
+    const confirmed = { action, stored };
     onClose();
-    if (action === "keepCopy") onKeepCopy(stored);
-    else onSaveOnServer(stored);
+    if (confirmed.action === "keepCopy") onKeepCopy(confirmed.stored);
+    else onSaveOnServer(confirmed.stored);
   }
 
   const actions = $derived.by((): DialogAction[] => {
