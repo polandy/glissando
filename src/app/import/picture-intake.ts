@@ -33,9 +33,8 @@ export interface PictureIntakePorts extends LocalPictureReaders {
  */
 export class PictureIntake {
   readonly pictures: PictureImport;
-  /** The pictures already there, such as the slideshow's being added to. */
-  readonly known: readonly PictureIdentity[];
   readonly #ports: PictureIntakePorts;
+  #known: readonly PictureIdentity[];
   #reporting: Promise<void> = Promise.resolve();
   #reportedDrain: Promise<void> | null = null;
   #claimId: string;
@@ -44,7 +43,7 @@ export class PictureIntake {
 
   constructor(ports: PictureIntakePorts, known: readonly PictureIdentity[] = []) {
     this.#ports = ports;
-    this.known = known;
+    this.#known = known;
     this.#claimId = ports.newId();
     this.pictures = new PictureImport({
       store: {
@@ -55,8 +54,18 @@ export class PictureIntake {
         putPictureFocus: (id, focus) => ports.store.putPictureFocus(id, focus),
       },
       newId: ports.newId,
-      known,
+      known: () => this.#known,
     });
+  }
+
+  /** The pictures already there, such as the slideshow's being added to. */
+  get known(): readonly PictureIdentity[] {
+    return this.#known;
+  }
+
+  /** The pictures already there now; the pictures read from here on are compared with them. */
+  replaceKnown(known: readonly PictureIdentity[]): void {
+    this.#known = known;
   }
 
   addPictures(files: readonly File[]): void {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { SlideshowNotFoundError } from "../../library/stored-slideshow";
+import { SlideshowNotFoundError, type StoredSlideshow } from "../../library/stored-slideshow";
 import { slideshow } from "../../library/testing/library-store-contract";
 import type { Route } from "../navigation/route";
 import type { ToastMessage } from "../toast/toaster";
@@ -22,6 +22,9 @@ class Deferred<T> {
 /** A session whose discard and commit settle only when the test says so. */
 class FakeSession {
   readonly slideshowId: string;
+  /** The records `refresh` was handed, by title. */
+  readonly refreshedWith: string[] = [];
+  discardCalls = 0;
   readonly #discard = new Deferred<void>();
   readonly #commit = new Deferred<readonly string[]>();
 
@@ -29,7 +32,12 @@ class FakeSession {
     this.slideshowId = slideshowId;
   }
 
+  refresh(slideshow: StoredSlideshow): void {
+    this.refreshedWith.push(slideshow.title);
+  }
+
   discard(): Promise<void> {
+    this.discardCalls += 1;
     return this.#discard.promise;
   }
 
@@ -103,6 +111,36 @@ describe("AddPicturesFlow", () => {
       { screen: "add", slideshowId: "s1" },
       { screen: "add", slideshowId: "s1" },
     ]);
+  });
+
+  it("reopening the same slideshow hands its session the record as stored now", () => {
+    const { flow, sessions } = setUp();
+    flow.open(SHOW_1);
+
+    flow.open({ ...SHOW_1, title: "Renamed" });
+
+    expect(sessions).toHaveLength(1);
+    expect(sessions[0]?.refreshedWith).toEqual(["Renamed"]);
+  });
+
+  it("ignores a discard while the pictures are being added, and navigates once", async () => {
+    const { flow, sessions, log, opened } = setUp();
+    flow.open(SHOW_1);
+    const commit = flow.commit();
+    expect(flow.committing).toBe(true);
+
+    void flow.discard(true);
+    sessions[0]?.committed(["p1"]);
+    await commit;
+
+    expect(flow.committing).toBe(false);
+    expect(flow.added).toEqual({ slideshowId: "s1", pictureIds: ["p1"] });
+    expect(opened).toEqual([
+      { screen: "add", slideshowId: "s1" },
+      { screen: "slideshow", slideshowId: "s1" },
+    ]);
+    expect(log).toEqual(["delete abandoned media", "look for focus"]);
+    expect(sessions[0]?.discardCalls).toBe(0);
   });
 
   it("discards the selection for another slideshow when adding to a new one, then cleans up", async () => {

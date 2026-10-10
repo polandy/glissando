@@ -87,7 +87,7 @@ function setUp(
   const pictureImport = new PictureImport({
     store,
     newId: sequentialIds(),
-    ...(options.known === undefined ? {} : { known: options.known }),
+    ...(options.known === undefined ? {} : { known: () => options.known ?? [] }),
   });
   const captureDate = options.captureDate ?? captureDates(options.dates ?? {});
   const addFiles = (files: readonly File[]): void => {

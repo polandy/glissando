@@ -31,8 +31,8 @@ export interface PictureImportState {
 export interface PictureImportPorts {
   readonly store: Pick<LibraryStore, "putPicture" | "putPictureFocus">;
   newId(): string;
-  /** Pictures already there, such as the slideshow's when adding to it; absent: none. */
-  readonly known?: readonly PictureIdentity[];
+  /** Pictures already there now, such as the slideshow's when adding to it; absent: none. */
+  known?(): readonly PictureIdentity[];
 }
 
 interface Queued {
@@ -250,7 +250,7 @@ export class PictureImport {
 
   #duplicateReason(identity: PictureIdentity): DuplicateReason | null {
     const matches = (picture: PictureIdentity) => isSamePicture(picture, identity);
-    if ((this.#ports.known ?? []).some(matches)) {
+    if ((this.#ports.known?.() ?? []).some(matches)) {
       return "alreadyIn";
     }
     return this.#state.pictures.some(matches) ? "chosenTwice" : null;

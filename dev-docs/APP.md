@@ -93,7 +93,8 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
     music "Each new picture gets 5 s; the slideshow gets longer." (the slideshow's seconds per
     picture). The bottom actions: "Cancel" and "Add n". Cancel and ← with new pictures ask
     "Discard selection?" as in the import; discarding goes back to the slideshow unchanged and
-    the clean-up deletes their media. "Add n" stores the record once (`addPictures` in
+    the clean-up deletes their media. While "Add n" stores, Cancel and ← are disabled and a
+    discard is ignored. "Add n" stores the record once (`addPictures` in
     `slideshow-edits.ts`, through `updateSlideshowWith`): sorted by capture date the new pictures
     take their places and the slideshow stays sorted; with own order they go at the end in
     capture order and `ownOrder` stays. The screen then returns to the slideshow, where the new
@@ -103,7 +104,9 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
     after an import. A slideshow deleted meanwhile ends it like an edit would: back to start
     with "This slideshow no longer exists.", the new media discarded. The selection lives in
     memory for the tab like the import's (history restores the screen only from the screen
-    itself or its Immich browser); opening "Add pictures" on another slideshow discards it.
+    itself or its Immich browser); opening "Add pictures" again on the same slideshow keeps it
+    and takes the slideshow as stored now (its title, order and pictures, the known ones for
+    Duplicates), on another slideshow discards it.
   - **Rename**: ✎ turns the title into a field (at most 80 characters): Enter or leaving it
     saves, Esc cancels, an empty title falls back to the automatic one from the capture dates.
   - **Transitions** (`slideshow/TransitionsSheet.svelte`, ADR-0010): the info panel's

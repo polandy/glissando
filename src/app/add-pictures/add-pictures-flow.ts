@@ -15,6 +15,8 @@ const SLIDESHOW_SCREENS: ReadonlySet<Route["screen"]> = new Set([
 
 interface AddingSession {
   readonly slideshowId: string;
+  /** Takes the slideshow as stored now, such as after an edit since the session began. */
+  refresh(slideshow: StoredSlideshow): void;
   /** Resolves once the store spares the discarded pictures' media no more. */
   discard(): Promise<void>;
   /** Resolves with the added pictures' ids. */
@@ -44,6 +46,8 @@ export interface AddPicturesFlowState<Session> {
   /** The adding the add screen shows; it outlives leaving that screen until it ends. */
   readonly session: Session | null;
   readonly added: AddedPictures | null;
+  /** The pictures are being stored into the slideshow; nothing can be discarded meanwhile. */
+  readonly committing: boolean;
 }
 
 /**
@@ -54,7 +58,7 @@ export interface AddPicturesFlowState<Session> {
 export class AddPicturesFlow<Session extends AddingSession> {
   readonly #ports: AddPicturesFlowPorts<Session>;
   readonly #listeners = new Set<(state: AddPicturesFlowState<Session>) => void>();
-  #state: AddPicturesFlowState<Session> = { session: null, added: null };
+  #state: AddPicturesFlowState<Session> = { session: null, added: null, committing: false };
   /** The discard of a session replaced by one for another slideshow, with its clean-up. */
   #replaced: Promise<void> = Promise.resolve();
 
@@ -70,16 +74,25 @@ export class AddPicturesFlow<Session extends AddingSession> {
     return this.#state.added;
   }
 
+  get committing(): boolean {
+    return this.#state.committing;
+  }
+
   subscribe(listener: (state: AddPicturesFlowState<Session>) => void): () => void {
     this.#listeners.add(listener);
     listener(this.#state);
     return () => this.#listeners.delete(listener);
   }
 
-  /** Opens the add screen for `slideshow`; a selection for another slideshow is discarded. */
+  /**
+   * Opens the add screen for `slideshow`; its session is kept and takes the record as stored now,
+   * a selection for another slideshow is discarded.
+   */
   open(slideshow: StoredSlideshow): void {
     const previous = this.#state.session;
-    if (previous?.slideshowId !== slideshow.id) {
+    if (previous?.slideshowId === slideshow.id) {
+      previous.refresh(slideshow);
+    } else {
       if (previous !== null) {
         this.#replaced = this.#discardAndCleanUp(previous);
       }
@@ -117,8 +130,12 @@ export class AddPicturesFlow<Session extends AddingSession> {
     }
   }
 
+  /** Throws the selection away, unless it is being added; `leave` also goes back. */
   async discard(leave: boolean): Promise<void> {
     const session = this.#state.session;
+    if (this.#state.committing) {
+      return;
+    }
     if (leave) {
       this.#publish({ session: null });
       this.#ports.navigator.back();
@@ -134,9 +151,11 @@ export class AddPicturesFlow<Session extends AddingSession> {
       throw new Error("cannot add pictures: no adding is in progress");
     }
     let pictureIds: readonly string[];
+    this.#publish({ committing: true });
     try {
       pictureIds = await session.commit();
     } catch (error) {
+      this.#publish({ committing: false });
       if (!(error instanceof SlideshowNotFoundError)) {
         this.#ports.reportError(error);
         return;
@@ -147,7 +166,7 @@ export class AddPicturesFlow<Session extends AddingSession> {
       return;
     }
     const { slideshowId } = session;
-    this.#publish({ session: null, added: { slideshowId, pictureIds } });
+    this.#publish({ session: null, added: { slideshowId, pictureIds }, committing: false });
     this.#ports.deleteAbandonedMedia();
     this.#ports.navigator.open({ screen: "slideshow", slideshowId });
     this.#ports.focusPass.start();

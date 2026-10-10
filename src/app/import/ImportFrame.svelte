@@ -16,12 +16,15 @@
     step,
     crumbs = null,
     onBack,
+    backDisabled = false,
     children,
     actions,
   }: {
     step: ImportStep | null;
     crumbs?: readonly string[] | null;
     onBack: () => void;
+    /** See `Header`. */
+    backDisabled?: boolean;
     children: Snippet;
     actions: Snippet;
   } = $props();
@@ -36,7 +39,11 @@
 </script>
 
 <div class="screen">
-  <Header crumbs={crumbs ?? [t("start.library"), t("import.crumb"), stepCrumb]} {onBack} />
+  <Header
+    crumbs={crumbs ?? [t("start.library"), t("import.crumb"), stepCrumb]}
+    {onBack}
+    {backDisabled}
+  />
   <main class="content">
     {#if step !== null}
       <!-- The crumbs name the step for assistive technology; this bar repeats it visually. -->

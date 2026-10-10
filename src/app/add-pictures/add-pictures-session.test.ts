@@ -112,6 +112,26 @@ describe("AddPicturesSession", () => {
     ]);
   });
 
+  it("refreshed after an edit, shows the record as stored now and skips its pictures as already in", async () => {
+    const { session } = await sessionFor();
+    const added = { ...picture("old-3"), capturedAt: "2025-07-05T10:00:00Z" };
+
+    session.refresh({
+      ...SHOW,
+      title: "Renamed",
+      ownOrder: true,
+      pictures: [...SHOW.pictures, added],
+    });
+    session.intake.addPictures([pictureFile("old-3.jpg", added.capturedAt)]);
+    await session.intake.pictures.settled();
+
+    expect(session.slideshow).toMatchObject({ title: "Renamed", ownOrder: true });
+    expect(session.intake.known).toHaveLength(3);
+    expect(session.intake.pictures.state.skipped).toEqual([
+      { fileName: "old-3.jpg", reason: "alreadyIn" },
+    ]);
+  });
+
   it("keeps the edits stored since it opened, such as a new title", async () => {
     const { session, store } = await sessionFor();
     await store.updateSlideshow({ ...SHOW, title: "Renamed" });

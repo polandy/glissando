@@ -11,15 +11,30 @@ export interface AddPicturesSessionPorts extends PictureIntakePorts {
  * duplicates. Nothing changes in the slideshow before `commit()`.
  */
 export class AddPicturesSession {
-  /** The slideshow as it was when adding began: its title, order and timing for the screen. */
-  readonly slideshow: StoredSlideshow;
   readonly intake: PictureIntake;
   readonly #ports: AddPicturesSessionPorts;
+  #slideshow: StoredSlideshow;
 
   constructor(slideshow: StoredSlideshow, ports: AddPicturesSessionPorts) {
-    this.slideshow = slideshow;
+    this.#slideshow = slideshow;
     this.#ports = ports;
     this.intake = new PictureIntake(ports, slideshow.pictures);
+  }
+
+  /** The slideshow as last opened: its title, order and timing for the screen. */
+  get slideshow(): StoredSlideshow {
+    return this.#slideshow;
+  }
+
+  /** Takes the slideshow as stored now; its pictures become the known ones. */
+  refresh(slideshow: StoredSlideshow): void {
+    if (slideshow.id !== this.#slideshow.id) {
+      throw new Error(
+        `cannot refresh the adding to slideshow ${this.#slideshow.id} with slideshow ${slideshow.id}`,
+      );
+    }
+    this.#slideshow = slideshow;
+    this.intake.replaceKnown(slideshow.pictures);
   }
 
   get slideshowId(): string {

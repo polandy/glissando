@@ -67,7 +67,12 @@
   }
 </script>
 
-<ImportFrame step={null} crumbs={[session.slideshow.title, t("add.title")]} onBack={leave}>
+<ImportFrame
+  step={null}
+  crumbs={[session.slideshow.title, t("add.title")]}
+  onBack={leave}
+  backDisabled={committing}
+>
   <div>
     <h1 class="title">{t("add.title")}</h1>
     <p class="lead">
@@ -95,7 +100,9 @@
   {/if}
 
   {#snippet actions()}
-    <button class="btn ghost" type="button" onclick={leave}>{t("common.cancel")}</button>
+    <button class="btn ghost" type="button" disabled={committing} onclick={leave}>
+      {t("common.cancel")}
+    </button>
     <button class="btn primary" type="button" disabled={!ready || committing} onclick={commit}>
       {ready ? t("add.add", { count: importState.pictures.length }) : t("add.titleShort")}
     </button>
