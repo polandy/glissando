@@ -114,5 +114,8 @@ the stored slideshow for the run) and `browser-video-export-device.ts` (the brow
   `Clock`.
 - Tests: units against fakes of every port, with no browser and no timing. A browser test exports a
   small generated slideshow in each engine and reads the MP4 back with mediabunny's reader (duration,
-  frame count, audio track). E2E-030 runs the sheet from the info panel to "done".
+  frame count, audio track). E2E-030 runs the sheet from the info panel to "done" at 720p,
+  downloads the file and reads it back (name, `ftyp`, size, both tracks' duration); Chromium
+  only, since Playwright's Firefox encodes no preset and its WebKit has no origin private file
+  system.
   All test pictures are generated or public domain.
