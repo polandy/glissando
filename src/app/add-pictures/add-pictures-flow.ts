@@ -2,6 +2,7 @@ import type { FocusPass } from "../../library/focus-pass";
 import { SlideshowNotFoundError, type StoredSlideshow } from "../../library/stored-slideshow";
 import type { Navigator } from "../navigation/navigator";
 import type { Route } from "../navigation/route";
+import type { SlideshowHome } from "../routes/slideshow-storage";
 import { leaveWithToast } from "../routes/slideshow-exits";
 import type { Toaster } from "../toast/toaster";
 
@@ -24,7 +25,7 @@ interface AddingSession {
 }
 
 export interface AddPicturesFlowPorts<Session extends AddingSession> {
-  newSession(slideshow: StoredSlideshow): Session;
+  newSession(slideshow: StoredSlideshow, home: SlideshowHome): Session;
   /** Deletes media no slideshow uses and no claim in any tab spares; reports failures. */
   deleteAbandonedMedia(): void;
   readonly navigator: Pick<Navigator, "open" | "back">;
@@ -85,10 +86,10 @@ export class AddPicturesFlow<Session extends AddingSession> {
   }
 
   /**
-   * Opens the add screen for `slideshow`; its session is kept and takes the record as stored now,
+   * Opens the add screen for `slideshow`, which lives at `home`; its session is kept and takes the record as stored now,
    * a selection for another slideshow is discarded.
    */
-  open(slideshow: StoredSlideshow): void {
+  open(slideshow: StoredSlideshow, home: SlideshowHome): void {
     const previous = this.#state.session;
     if (previous?.slideshowId === slideshow.id) {
       previous.refresh(slideshow);
@@ -96,7 +97,7 @@ export class AddPicturesFlow<Session extends AddingSession> {
       if (previous !== null) {
         this.#replaced = this.#discardAndCleanUp(previous);
       }
-      this.#publish({ session: this.#ports.newSession(slideshow) });
+      this.#publish({ session: this.#ports.newSession(slideshow, home) });
     }
     this.#ports.navigator.open({ screen: "add", slideshowId: slideshow.id });
   }

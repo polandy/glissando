@@ -8,6 +8,7 @@ import type { ServerLibrary } from "../server-library/server-library";
 import type { ErrorReporter } from "./errors/error-reporter";
 import type { LaunchQueue } from "./glissando-file/launched-files";
 import type { AddPicturesSession } from "./add-pictures/add-pictures-session";
+import type { SlideshowHome } from "./routes/slideshow-storage";
 import type { ImportSession } from "./import/import-session";
 import type { MusicEditorAudio } from "./music-editor/music-editor-audio";
 import type { Navigator } from "./navigation/navigator";
@@ -45,7 +46,7 @@ export interface AppServices {
   /** The address the app was opened at, e.g. `http://192.168.1.20:4173`. */
   readonly appAddress: string;
   newImportSession(): ImportSession;
-  newAddPicturesSession(slideshow: StoredSlideshow): AddPicturesSession;
+  newAddPicturesSession(slideshow: StoredSlideshow, home: SlideshowHome): AddPicturesSession;
   /** A new random id. */
   newId(): string;
   /** The current instant. */

@@ -1,22 +1,45 @@
+import type { ImmichPhoto } from "../../immich/immich-client";
 import { addPictures } from "../../library/slideshow-edits";
-import type { LibraryStore, StoredSlideshow } from "../../library/stored-slideshow";
+import type { LibraryStore, SlideshowStore, StoredSlideshow } from "../../library/stored-slideshow";
 import { PictureIntake, type PictureIntakePorts } from "../import/picture-intake";
+import type { SlideshowHome } from "../routes/slideshow-storage";
 
 export interface AddPicturesSessionPorts extends PictureIntakePorts {
   readonly store: PictureIntakePorts["store"] & Pick<LibraryStore, "updateSlideshowWith">;
 }
 
 /**
+ * The store adding to a server slideshow: edits go to the server; its photos are linked, so no
+ * media is written or claimed.
+ */
+export function serverAddingStore(
+  server: Pick<SlideshowStore, "updateSlideshowWith">,
+): AddPicturesSessionPorts["store"] {
+  const refused = (): Promise<void> =>
+    Promise.reject(new Error("a server slideshow links its photos from Immich: store none"));
+  return {
+    updateSlideshowWith: (id, edit) => server.updateSlideshowWith(id, edit),
+    putPicture: refused,
+    putPictureFocus: refused,
+    claimMedia: () => Promise.resolve(),
+    releaseClaim: () => Promise.resolve(),
+  };
+}
+
+/**
  * Pictures being added to one slideshow: its pictures are the known ones, so they are skipped as
- * duplicates. Nothing changes in the slideshow before `commit()`.
+ * duplicates. A server slideshow only links Immich photos (ADR-0018). Nothing changes in the
+ * slideshow before `commit()`.
  */
 export class AddPicturesSession {
   readonly intake: PictureIntake;
+  readonly home: SlideshowHome;
   readonly #ports: AddPicturesSessionPorts;
   #slideshow: StoredSlideshow;
 
-  constructor(slideshow: StoredSlideshow, ports: AddPicturesSessionPorts) {
+  constructor(slideshow: StoredSlideshow, home: SlideshowHome, ports: AddPicturesSessionPorts) {
     this.#slideshow = slideshow;
+    this.home = home;
     this.#ports = ports;
     this.intake = new PictureIntake(ports, slideshow.pictures);
   }
@@ -35,6 +58,19 @@ export class AddPicturesSession {
     }
     this.#slideshow = slideshow;
     this.intake.replaceKnown(slideshow.pictures);
+  }
+
+  addPictures(files: readonly File[]): void {
+    if (this.home === "server") {
+      throw new Error("a server slideshow only links photos from Immich: add none from the device");
+    }
+    this.intake.addPictures(files);
+  }
+
+  /** Downloaded for a device slideshow, linked for a server slideshow. */
+  addImmichPhotos(photos: readonly ImmichPhoto[]): void {
+    if (this.home === "server") this.intake.linkImmichPhotos(photos);
+    else this.intake.addImmichPhotos(photos);
   }
 
   get slideshowId(): string {

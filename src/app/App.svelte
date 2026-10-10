@@ -310,7 +310,7 @@
           services.musicOutput.unlock();
           navigator.open({ screen: "player", slideshowId });
         }}
-        onAddPictures={(slideshow) => addFlow.open(slideshow)}
+        onAddPictures={(slideshow) => addFlow.open(slideshow, opened.home)}
         addedPictureIds={added?.slideshowId === slideshowId ? added.pictureIds : []}
         onEdit={(pictureId) => navigator.open({ screen: "picture", slideshowId, pictureId })}
         onEditMusic={() => navigator.open({ screen: "music", slideshowId })}

@@ -44,6 +44,8 @@
 
   $effect(() => session.intake.pictures.subscribe((next) => (importState = next)));
 
+  // svelte-ignore state_referenced_locally
+  const linking = session.home === "server";
   const ready = $derived(canContinue(importState));
   const after = $derived(ready ? afterAdding(session.slideshow, importState.pictures) : null);
 
@@ -57,7 +59,7 @@
 
   function add(files: readonly File[]): void {
     if (files.length > 0) {
-      session.intake.addPictures(files);
+      session.addPictures(files);
     }
   }
 
@@ -77,7 +79,7 @@
     <h1 class="title">{t("add.title")}</h1>
     <p class="lead">
       {session.slideshow.ownOrder ? t("add.leadOwnOrder") : t("add.leadByDate")}
-      {t("add.leadDownscale")}
+      {#if !linking}{t("add.leadDownscale")}{/if}
     </p>
   </div>
 
@@ -86,6 +88,7 @@
     {loadThumbnail}
     {onError}
     onFiles={add}
+    {linking}
     onDiscard={() => onDiscard(false)}
     {immich}
     {onOpenImmich}

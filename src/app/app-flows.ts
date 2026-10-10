@@ -19,7 +19,7 @@ export function createAppFlows(
   });
   const addFlow = new AddPicturesFlow<AddPicturesSession>({
     ...services,
-    newSession: (slideshow) => services.newAddPicturesSession(slideshow),
+    newSession: (slideshow, home) => services.newAddPicturesSession(slideshow, home),
     goneText: () => t("slideshow.gone"),
   });
   const exportJob = new ExportJob({

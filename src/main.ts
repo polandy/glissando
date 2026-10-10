@@ -4,7 +4,7 @@ import { createErrorReporter } from "./app/errors/error-reporter";
 import { translatorContext } from "./app/i18n/context";
 import { createTranslator } from "./app/i18n/translator";
 import { TranslatorState } from "./app/i18n/translator-state.svelte";
-import { AddPicturesSession } from "./app/add-pictures/add-pictures-session";
+import { AddPicturesSession, serverAddingStore } from "./app/add-pictures/add-pictures-session";
 import { ImportSession } from "./app/import/import-session";
 import { createWindowHistory, Navigator } from "./app/navigation/navigator";
 import { randomId } from "./app/random-id";
@@ -30,6 +30,7 @@ import { immichPictureSource } from "./import/immich-picture-source";
 import { HttpImmichClient } from "./immich/http-immich-client";
 import type { ImmichPhoto, ImmichUnavailableKind } from "./immich/immich-client";
 import type { StoredSlideshow } from "./library/stored-slideshow";
+import type { SlideshowHome } from "./app/routes/slideshow-storage";
 import { browserNetworkStatus, ImmichAvailability } from "./immich/immich-availability";
 import { probeMusic } from "./import/music-probe";
 import { createMusicAudioContext, MusicOutput } from "./player";
@@ -192,8 +193,11 @@ const services = {
       createOnServer: (slideshow, musicAudio) =>
         serverLibrary.createSlideshow(slideshow, musicAudio),
     }),
-  newAddPicturesSession: (slideshow: StoredSlideshow) =>
-    new AddPicturesSession(slideshow, { ...intakePorts, store }),
+  newAddPicturesSession: (slideshow: StoredSlideshow, home: SlideshowHome) =>
+    new AddPicturesSession(slideshow, home, {
+      ...intakePorts,
+      store: home === "device" ? store : serverAddingStore(serverLibrary.store),
+    }),
   newId,
   now,
   deleteAbandonedMedia,

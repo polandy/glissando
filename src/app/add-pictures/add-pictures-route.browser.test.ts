@@ -4,6 +4,7 @@ import type { StoredSlideshow } from "../../library/stored-slideshow";
 import { picture, slideshow } from "../../library/testing/library-store-contract";
 import { MemoryLibraryStore } from "../../library/testing/memory-store";
 import { createTranslator } from "../i18n/translator";
+import type { SlideshowHome } from "../routes/slideshow-storage";
 import { mountWithTranslator } from "../testing/mount-with-translator";
 import { fakeIntakePorts, pictureFile } from "../testing/picture-intake-ports";
 import { AddPicturesSession } from "./add-pictures-session";
@@ -30,9 +31,13 @@ function deferred() {
   return { promise, resolve };
 }
 
-function mountRoute(shown: StoredSlideshow = SHOW, onCommit = () => Promise.resolve()) {
+function mountRoute(
+  shown: StoredSlideshow = SHOW,
+  onCommit = () => Promise.resolve(),
+  home: SlideshowHome = "device",
+) {
   const store = new MemoryLibraryStore();
-  const session = new AddPicturesSession(shown, { ...fakeIntakePorts(store).ports, store });
+  const session = new AddPicturesSession(shown, home, { ...fakeIntakePorts(store).ports, store });
   const discards: boolean[] = [];
   const route = mountWithTranslator(AddPicturesRoute, {
     session,
@@ -63,6 +68,25 @@ function button(target: HTMLElement, label: string): HTMLButtonElement {
   }
   return found;
 }
+
+describe("AddPicturesRoute, adding to a server slideshow", () => {
+  it("takes pictures from Immich only, the device's pictures shown as off", () => {
+    const { target } = mountRoute(SHOW, undefined, "server");
+
+    expect(target.querySelector(".device-off")?.textContent).toContain(
+      de.t("server.deviceDisabled"),
+    );
+    expect(target.textContent).not.toContain(de.t("import.pickPictures"));
+  });
+
+  it("says the pictures are linked, not downscaled", () => {
+    const { target } = mountRoute(SHOW, undefined, "server");
+
+    const lead = target.querySelector(".lead")?.textContent ?? "";
+    expect(lead).toContain(de.t("add.leadByDate"));
+    expect(lead).not.toContain(de.t("add.leadDownscale"));
+  });
+});
 
 describe("AddPicturesRoute", () => {
   it.each([
