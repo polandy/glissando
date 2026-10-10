@@ -213,6 +213,9 @@
 
   function pointerDown(event: PointerEvent): void {
     lastPointerWasTouch = event.pointerType !== "mouse";
+    // A drop over another tile, or a lifted touch, may send no click to a tile at all: a stale
+    // suppression must not swallow this new gesture's click.
+    suppressNextClick = false;
     const pictureId = (event.target as HTMLElement).closest<HTMLElement>(".pick")?.dataset
       .pictureId;
     if (pictureId === undefined) {
