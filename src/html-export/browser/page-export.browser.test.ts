@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, onTestFailed } from "vitest";
 import { page } from "vitest/browser";
 import { silentWav } from "../../import/testing/silent-wav";
 import type { StoredPicture, StoredSlideshow } from "../../library/stored-slideshow";
@@ -150,30 +150,50 @@ describe("an exported web page", () => {
     ]);
   });
 
-  it("opens from a blob: URL and plays from the start card to the end card", async () => {
-    const url = URL.createObjectURL(await exportedPage());
-    const frame = document.createElement("iframe");
-    Object.assign(frame.style, { width: "640px", height: "360px", border: "0" });
-    cleanups.push(() => {
-      frame.remove();
-      URL.revokeObjectURL(url);
-    });
-    const opened = loaded(frame);
-    frame.src = url;
-    document.body.append(frame);
-    const pageDocument = await opened;
-    const seen: PageState[] = [];
-    await stateReached(pageDocument, "start", seen);
+  it(
+    "opens from a blob: URL and plays from the start card to the end card",
+    { repeats: 10 },
+    async () => {
+      let step = "export";
+      const t0 = performance.now();
+      let diag = (): unknown => null;
+      onTestFailed(() => console.error("DIAG", step, JSON.stringify(diag())));
+      const url = URL.createObjectURL(await exportedPage());
+      const frame = document.createElement("iframe");
+      Object.assign(frame.style, { width: "640px", height: "360px", border: "0" });
+      cleanups.push(() => {
+        frame.remove();
+        URL.revokeObjectURL(url);
+      });
+      step = "load";
+      const opened = loaded(frame);
+      frame.src = url;
+      document.body.append(frame);
+      const pageDocument = await opened;
+      const seen: PageState[] = [];
+      diag = () => ({
+        seen,
+        state: pageDocument.documentElement.getAttribute("data-state"),
+        time: pageDocument.querySelector(".time")?.textContent,
+        fonts: pageDocument.fonts.status,
+        canvas: pageDocument.querySelectorAll("canvas").length,
+        ms: Math.round(performance.now() - t0),
+        body: pageDocument.body.innerText.slice(0, 300),
+      });
+      step = "start";
+      await stateReached(pageDocument, "start", seen);
 
-    expect(pageDocument.title).toBe("Generated <test>");
-    await page
-      .frameLocator(page.elementLocator(frame))
-      .getByRole("button", { name: "Play" })
-      .click();
-    await stateReached(pageDocument, "ended", seen);
+      expect(pageDocument.title).toBe("Generated <test>");
+      await page
+        .frameLocator(page.elementLocator(frame))
+        .getByRole("button", { name: "Play" })
+        .click();
+      step = "ended";
+      await stateReached(pageDocument, "ended", seen);
 
-    // Whether "loading" is still seen depends on when the frame's load event lands.
-    expect(seen.filter((state) => state !== "loading")).toEqual(["start", "playing", "ended"]);
-    expect(pageDocument.querySelector(".end")?.textContent).toContain("Play again");
-  });
+      // Whether "loading" is still seen depends on when the frame's load event lands.
+      expect(seen.filter((state) => state !== "loading")).toEqual(["start", "playing", "ended"]);
+      expect(pageDocument.querySelector(".end")?.textContent).toContain("Play again");
+    },
+  );
 });
