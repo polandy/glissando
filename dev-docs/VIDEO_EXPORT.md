@@ -85,7 +85,7 @@ The info panel's second button, "Als Video sichern" (film icon), below "Play" op
 - While running, the screen is kept awake (`navigator.wakeLock`, requested again on
   `visibilitychange` when visible). A hidden page pauses the work, which the export's own time
   makes harmless.
-- "Abbrechen" stops at once: the encoders are closed, the writable is aborted, and the OPFS file is
+- "Abbrechen" stops at once: the encoders are closed, the muxer closes the writable, and the OPFS file is
   deleted. With the picker, the half-written user file is truncated to empty. A browser cannot
   delete it.
 - One export at a time; the sheet is modal while running. While running, ✕ reads "Abbrechen"
