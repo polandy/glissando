@@ -117,6 +117,14 @@ app asks before deleting, but there is no sign-in of its own; protect it as desc
 from Glissando. Copy the volume while the container is stopped, or back up the whole directory
 including `library.sqlite-wal` together.
 
+Once the volume is set, the app shows the library in two sections, "On this device" and "On your
+Glissando server". A new slideshow asks "Where should it live?" (the device remembers your last
+choice); one on the server takes its pictures from Immich only. On a server slideshow's screen,
+⋯ offers "Keep a copy on this device" for playing it offline, and a slideshow on the device can be
+copied there with "Save on the server". Without a connection to your Glissando, its slideshows
+show greyed out until it is back. A photo deleted in Immich shows as "No longer in Immich" and is
+skipped when playing.
+
 ## Troubleshooting
 
 Glissando shows the state of its Immich connection in one line, in the pictures step and in the

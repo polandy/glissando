@@ -104,6 +104,17 @@ the discovery; otherwise **off**; **checking** until Immich and the first discov
 A discovery that cannot reach the server keeps the last answer; of two under way, the later one
 counts. Off, nothing below shows and the app is as without this feature.
 
+### What this device remembers
+
+`ServerLibraryMemory` (`src/server-library/server-library-memory.ts`) keeps in `localStorage`,
+fail-soft (a device whose storage refuses remembers nothing):
+
+- whether the server library was on at the last answer (`glissando.serverLibrary`), so a cold
+  start without the network shows the server section **offline** rather than hiding it;
+- the last server list's cards (id, title, picture count, duration, music), which that offline
+  section shows greyed out;
+- where the last new slideshow went (`glissando.newSlideshowHome`), the wizard's first choice.
+
 ### Library (start screen)
 
 - With the server library on or offline, the library has two sections: "On this device" (the
@@ -127,7 +138,8 @@ no group, the step as before.
 
 **Glissando server** chosen: the "From Immich" box comes first with "Open Immich" as the primary
 button; the device drop zone is disabled with "A server slideshow only links photos from Immich.
-Upload these to Immich first, or save this slideshow on this device." Picked photos join at once
+Upload these to Immich first, or save this slideshow on this device." The "Open file" box is not
+offered, and photos skipped as duplicates stay skipped (no "Add anyway"). Picked photos join at once
 (no downscaling; tiles are Immich thumbnails) with the mint notice "Linked from Immich. Nothing is
 downloaded now; playing loads the pictures from Immich." Duplicates are skipped as before
 (ADR-0016). The music step is unchanged; "Create slideshow" uploads the music (if any), then
@@ -146,7 +158,8 @@ wizard as it was with a coral toast naming it and "Try again".
   another device. Showing the latest version." 404: back to start with "This slideshow no longer
   exists." A network failure: the edit is not applied, the coral toast "Couldn't save. Your
   Glissando server isn't answering." and the screen keeps the last saved version.
-- **Adding pictures**: Immich only, as in the wizard's server mode.
+- **Adding pictures**: Immich only, linked, as in the wizard's server mode (the lead leaves out
+  downscaling); "Add" stores them with one edit at the revision last seen.
 - **Missing pictures**: a picture Immich answers 404 for (thumbnail or original) shows as a dashed
   tile "No longer in Immich"; below the strip the lemon notice "n pictures are no longer in Immich.
   They are skipped when playing." with "Remove them". The player skips it.
@@ -166,7 +179,8 @@ wizard as it was with a coral toast naming it and "Try again".
   as it is. The two copies are independent." — Cancel / "Save on the server". Some from the
   device: "n pictures are only on this device", listing their file names, "Upload them to Immich
   and add them from there, or save the slideshow without them." — Cancel / "Save without these
-  n". Done: toast "Saved on the server" with "Open".
+  n"; with no picture from Immich at all, the same sheet with Cancel only. Done: toast "Saved on
+  the server" with "Open".
 
 ### Playing and exporting
 
@@ -185,7 +199,11 @@ wizard as it was with a coral toast naming it and "Try again".
   `ImmichUnavailableError` (also reported to `ImmichAvailability`). Edits are applied one at a
   time, each naming the revision the one before left; one that failed leaves the last saved
   version as the one the next edit names.
-- The player prepares pictures ahead as for device slideshows (ADR-0014). A picture that fails
-  with a 404 is skipped; any other failure stops playing with "Immich isn't answering" and back.
+- The player prepares pictures ahead as for device slideshows (ADR-0014). It plays without the
+  pictures the screen already knows are missing; one that fails with a 404 while playing is added
+  to them and the player restarts without it, where its slide would have begun (`PlayerLayer`,
+  `server-playing.ts`). Any other failure stops playing with "Immich isn't answering"; its Close
+  goes back to the slideshow.
 - Video and web page export work the same way (the pictures are fetched as they are needed);
-  their size estimate says "pictures downloaded from Immich" instead of a number.
+  their size line says "pictures downloaded from Immich" instead of a number, and the web page
+  sheet measures no picture, as that would download them all.
