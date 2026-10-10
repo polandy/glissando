@@ -268,9 +268,12 @@ start_library
 docker exec "$LIBRARY" pkill -KILL -f glissando-library.mjs
 expect_equal "the container stops with the status of a library service that died" "$KILLED_STATUS" \
 	"$(timeout "$WAIT_SECONDS" docker wait "$LIBRARY")"
-docker logs "$LIBRARY" 2>&1 | grep -q -F "a process ended with status $KILLED_STATUS" &&
-	pass "the log names the status of the process that ended" ||
-	fail "the log names the status of the process that ended"
+if docker logs "$LIBRARY" 2>&1 | grep -q -F "a process ended with status $KILLED_STATUS"; then
+	pass "the log names the status of the process that ended"
+else
+	fail "the log names the status of the process that ended; its log ends:"
+	docker logs "$LIBRARY" 2>&1 | tail -n 5
+fi
 
 echo "# invalid settings stop the start"
 startup_fails() { # name, text the error must contain, docker run arguments...
