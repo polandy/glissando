@@ -1,7 +1,8 @@
 import { titleForCaptureRange } from "../../compose";
 import type { StoredSlideshow } from "../../library/stored-slideshow";
 import type { EditRefusal } from "../editing/edit-saver";
-import { SlideshowEditor, type SlideshowEditorPorts } from "../editing/slideshow-editor";
+import { SlideshowEditor } from "../editing/slideshow-editor";
+import type { SlideshowEditorPorts } from "../editing/slideshow-editor-ports";
 import type { Translator } from "../i18n/translator";
 
 /** What the slideshow route wires into its editor besides the copy. */
