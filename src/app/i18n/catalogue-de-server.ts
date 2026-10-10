@@ -99,5 +99,8 @@ export const deServer = {
   "server.savedOnServer": "Auf dem Server gespeichert",
   "server.saveOnServerFailed":
     "Nicht auf dem Server gespeichert. Dein Glissando-Server antwortet nicht.",
+  "server.musicTooLarge": "Nicht auf dem Server gespeichert: Die Musik ist größer als 200 MB.",
+  "server.slideshowTooLarge": "Nicht auf dem Server gespeichert: Die Diashow ist größer als 2 MB.",
+  "server.saveRefused": "Dein Glissando-Server hat die Diashow abgelehnt.",
   "server.exportFromImmich": "Bilder aus Immich heruntergeladen",
 } as const satisfies Record<string, Message>;

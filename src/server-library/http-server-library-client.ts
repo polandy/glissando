@@ -146,7 +146,8 @@ async function check(method: HttpMethod, path: string, response: Response): Prom
   const answer: unknown = isJson(response) ? await response.json() : {};
   const code = isRecord(answer) ? String(answer["error"]) : "unknown";
   const detail = isRecord(answer) ? String(answer["detail"]) : "";
-  throw new ServerLibraryRefusedError(request, response.status, code, detail);
+  const refused = path.startsWith(MUSIC_PATH) ? "music" : "slideshow";
+  throw new ServerLibraryRefusedError(request, response.status, code, detail, refused);
 }
 
 function readRecord(value: unknown, path: string): ServerSlideshowRecord {

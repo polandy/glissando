@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 import type { StoredSlideshow } from "../../library/stored-slideshow";
 import type { KeepCopyOptions } from "../../server-library/keep-copy";
-import { ServerLibraryUnavailableError } from "../../server-library/server-library-client";
+import {
+  ServerLibraryRefusedError,
+  ServerLibraryUnavailableError,
+} from "../../server-library/server-library-client";
 import { PictureMissingFromImmichError } from "../../server-library/server-slideshow-store";
 import { createTranslator } from "../i18n/translator";
 import type { ToastMessage } from "../toast/toaster";
@@ -112,4 +115,26 @@ describe("saving a device slideshow on the server", () => {
     ]);
     expect(errors).toEqual([]);
   });
+
+  it.each([
+    [413, "tooLarge", "music", "Couldn't save on the server: the music is larger than 200 MB."],
+    [
+      413,
+      "tooLarge",
+      "slideshow",
+      "Couldn't save on the server: the slideshow is larger than 2 MB.",
+    ],
+    [409, "musicMissing", "slideshow", "Your Glissando server refused the slideshow."],
+  ] as const)(
+    "tells when the server refuses with %i %s for the %s",
+    async (status, code, refused, text) => {
+      const { flows, toasts, saveAnswers, errors } = setUp();
+      saveAnswers.push(new ServerLibraryRefusedError("POST", status, code, "detail", refused));
+
+      await flows.saveOnServer(SHOW);
+
+      expect(toasts.map((toast) => [toast.text, toast.tone])).toEqual([[text, "error"]]);
+      expect(errors).toEqual([]);
+    },
+  );
 });

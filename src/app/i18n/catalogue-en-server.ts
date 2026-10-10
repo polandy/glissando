@@ -99,5 +99,8 @@ export const enServer: Pick<Catalogue, keyof typeof deServer> = {
   "server.savedOnServer": "Saved on the server",
   "server.saveOnServerFailed":
     "Couldn't save on the server. Your Glissando server isn't answering.",
+  "server.musicTooLarge": "Couldn't save on the server: the music is larger than 200 MB.",
+  "server.slideshowTooLarge": "Couldn't save on the server: the slideshow is larger than 2 MB.",
+  "server.saveRefused": "Your Glissando server refused the slideshow.",
   "server.exportFromImmich": "pictures downloaded from Immich",
 };

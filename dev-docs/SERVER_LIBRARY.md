@@ -189,7 +189,11 @@ wizard as it was with a coral toast naming it and "Try again".
   device: "n pictures are only on this device", listing their file names, "Upload them to Immich
   and add them from there, or save the slideshow without them." — Cancel / "Save without these
   n"; with no picture from Immich at all, the same sheet with Cancel only. Done: toast "Saved on
-  the server" with "Open".
+  the server" with "Open". Not answering: the coral toast "Couldn't save on the server. Your
+  Glissando server isn't answering." Refused, as the request the server refused names it: a 413
+  for the music "Couldn't save on the server: the music is larger than 200 MB.", a 413 for the
+  slideshow "… the slideshow is larger than 2 MB.", any other refusal "Your Glissando server
+  refused the slideshow." — each a coral toast, the refusal logged.
 
 ### Playing and exporting
 

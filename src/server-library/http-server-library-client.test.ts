@@ -127,7 +127,15 @@ describe("HttpServerLibraryClient", () => {
     );
 
     expect(error).toBeInstanceOf(ServerLibraryRefusedError);
-    expect(error).toMatchObject({ status: 409, code: "musicMissing" });
+    expect(error).toMatchObject({ status: 409, code: "musicMissing", refused: "slideshow" });
+  });
+
+  it("names music as what was refused when a music upload is refused", async () => {
+    const { client } = libraryServiceFetch();
+
+    const error = await rejection(client.uploadMusic(new Blob(["tune"]), "text/plain"));
+
+    expect(error).toMatchObject({ status: 415, code: "notAudio", refused: "music" });
   });
 
   it("uploads music and reads its bytes back with their type", async () => {

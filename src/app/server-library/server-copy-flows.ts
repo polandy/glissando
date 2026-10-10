@@ -1,7 +1,10 @@
 import { ImmichUnavailableError } from "../../immich/immich-client";
 import type { LibraryStore, StoredSlideshow } from "../../library/stored-slideshow";
 import type { ServerLibrary } from "../../server-library/server-library";
-import { ServerLibraryUnavailableError } from "../../server-library/server-library-client";
+import {
+  ServerLibraryRefusedError,
+  ServerLibraryUnavailableError,
+} from "../../server-library/server-library-client";
 import { PictureMissingFromImmichError } from "../../server-library/server-slideshow-store";
 import type { ExportProgress } from "../glissando-file/export-job";
 import type { Translator } from "../i18n/translator";
@@ -102,6 +105,11 @@ export class ServerCopyFlows {
         action: this.#opening(saved.id),
       });
     } catch (error) {
+      if (error instanceof ServerLibraryRefusedError) {
+        this.#ports.log(error);
+        toaster.show({ text: t(refusalMessage(error)), tone: "error" });
+        return;
+      }
       if (!isUnavailable(error)) {
         this.#ports.reportError(error);
         return;
@@ -120,4 +128,12 @@ export class ServerCopyFlows {
     this.#progress = progress;
     for (const listener of this.#listeners) listener(progress);
   }
+}
+
+const HTTP_TOO_LARGE = 413;
+
+/** What the user is told when the server refused saving a slideshow. */
+function refusalMessage(error: ServerLibraryRefusedError) {
+  if (error.status !== HTTP_TOO_LARGE) return "server.saveRefused";
+  return error.refused === "music" ? "server.musicTooLarge" : "server.slideshowTooLarge";
 }

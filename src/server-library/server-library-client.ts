@@ -63,6 +63,8 @@ export class ServerRevisionChangedError extends Error {
   }
 }
 
+export type RefusedContent = "slideshow" | "music";
+
 /** The server refused a request as invalid, e.g. `invalidDocument`, `musicMissing`, `tooLarge`. */
 export class ServerLibraryRefusedError extends Error {
   constructor(
@@ -70,6 +72,8 @@ export class ServerLibraryRefusedError extends Error {
     readonly status: number,
     readonly code: string,
     readonly detail: string,
+    /** What the refused request carried or asked for. */
+    readonly refused: RefusedContent,
   ) {
     super(`the Glissando server refused ${request} (${String(status)} ${code}): ${detail}`);
     this.name = "ServerLibraryRefusedError";
