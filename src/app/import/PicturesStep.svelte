@@ -11,6 +11,9 @@
   import type { ImportSession } from "./import-session";
   import { canContinue } from "./import-view";
   import PictureIntakeBody from "./PictureIntakeBody.svelte";
+  import WhereItLives from "./WhereItLives.svelte";
+  import type { SlideshowHome } from "../../server-library/server-library-memory";
+  import { untrack } from "svelte";
 
   let {
     session,
@@ -26,6 +29,9 @@
     immich,
     onOpenImmich,
     onImmichSettings,
+    serverOn,
+    rememberedHome,
+    onHomeChosen,
   }: {
     session: ImportSession;
     loadThumbnail: (pictureId: string) => Promise<Blob>;
@@ -45,6 +51,12 @@
     onOpenImmich: () => void;
     /** An Immich problem's details are in the settings. */
     onImmichSettings: () => void;
+    /** The server library is on: the step asks where the slideshow lives. */
+    serverOn: boolean;
+    /** Where this device put its last new slideshow. */
+    rememberedHome: SlideshowHome;
+    /** A home was chosen, to be remembered on this device. */
+    onHomeChosen: (home: SlideshowHome) => void;
   } = $props();
 
   const { t } = getTranslator();
@@ -54,7 +66,24 @@
   let importState = $state.raw(session.pictures.state);
   let pickGlissando: GlissandoFilePicker;
 
+  // svelte-ignore state_referenced_locally
+  let home = $state<SlideshowHome>(session.choices.current().home);
+  const locked = $derived(importState.pictures.length > 0 || importState.busy);
+
   $effect(() => session.pictures.subscribe((next) => (importState = next)));
+  $effect(() => session.choices.subscribe((next) => (home = next.home)));
+  // Without the server library a new slideshow lives on this device; a selection keeps its home.
+  $effect(() => {
+    const wanted = serverOn ? rememberedHome : "device";
+    untrack(() => {
+      if (!locked) session.chooseHome(wanted);
+    });
+  });
+
+  function chooseHome(chosen: SlideshowHome): void {
+    session.chooseHome(chosen);
+    onHomeChosen(chosen);
+  }
 
   function add(files: readonly File[]): void {
     const glissandoFile = singleGlissandoFile(files);
@@ -82,7 +111,12 @@
     <p class="lead">{t("import.picturesText")}</p>
   </div>
 
+  {#if serverOn}
+    <WhereItLives {home} {locked} onChoose={chooseHome} />
+  {/if}
+
   <PictureIntakeBody
+    linking={home === "server"}
     intake={session.intake}
     {loadThumbnail}
     {onError}
@@ -92,8 +126,15 @@
     {onOpenImmich}
   >
     {#snippet sources()}
-      <ImmichBox state={immich} onOpen={onOpenImmich} onSettings={onImmichSettings} />
-      <OpenFileBox onPick={() => pickGlissando.pick()} />
+      <ImmichBox
+        state={immich}
+        onOpen={onOpenImmich}
+        onSettings={onImmichSettings}
+        primary={home === "server"}
+      />
+      {#if home === "device"}
+        <OpenFileBox onPick={() => pickGlissando.pick()} />
+      {/if}
     {/snippet}
   </PictureIntakeBody>
 

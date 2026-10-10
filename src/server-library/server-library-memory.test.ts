@@ -78,4 +78,37 @@ describe("server library memory", () => {
     expect(memory.cards()).toEqual([]);
     expect(logged.length).toBeGreaterThan(0);
   });
+
+  it("remembers where the last new slideshow went, this device by default", () => {
+    const storage = createMemoryStorage();
+    const first = createStorageServerLibraryMemory(storage, () => undefined);
+    expect(first.newSlideshowHome()).toBe("device");
+
+    first.rememberNewSlideshowHome("server");
+
+    expect(createStorageServerLibraryMemory(storage, () => undefined).newSlideshowHome()).toBe(
+      "server",
+    );
+  });
+
+  it("keeps where new slideshows go when the server forgets its library", () => {
+    const memory = createStorageServerLibraryMemory(createMemoryStorage(), () => undefined);
+    memory.rememberNewSlideshowHome("server");
+
+    memory.rememberOn(false);
+
+    expect(memory.newSlideshowHome()).toBe("server");
+  });
+
+  it("takes this device for new slideshows where the device's storage refuses", () => {
+    const logged: unknown[] = [];
+    const memory = createStorageServerLibraryMemory(throwingStorage(), (error) =>
+      logged.push(error),
+    );
+
+    memory.rememberNewSlideshowHome("server");
+
+    expect(memory.newSlideshowHome()).toBe("device");
+    expect(logged).toHaveLength(2);
+  });
 });

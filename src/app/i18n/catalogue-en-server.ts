@@ -23,6 +23,7 @@ export const enServer: Pick<Catalogue, keyof typeof deServer> = {
     "Linked from Immich. Nothing is downloaded now; playing loads the pictures from Immich.",
   "server.creating": "Saving on your Glissando server …",
   "server.createFailed": "Couldn't create the slideshow. Your Glissando server isn't answering.",
+  "server.tryAgain": "Try again",
   "server.storageServerText": "Pictures linked from Immich · edits saved for everyone",
   "server.saved": "Saved",
   "server.savingEdit": "Saving …",

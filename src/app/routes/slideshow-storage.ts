@@ -1,8 +1,8 @@
 import type { StoredSlideshow } from "../../library/stored-slideshow";
+import type { SlideshowHome } from "../../server-library/server-library-memory";
 import type { SlideshowStorage } from "../screens/view-models";
 
-/** The store a slideshow lives in (`dev-docs/SERVER_LIBRARY.md`). */
-export type SlideshowHome = "device" | "server";
+export type { SlideshowHome } from "../../server-library/server-library-memory";
 
 export interface StorageFacts {
   /** The server library is on: a device slideshow's screen tells where its pictures came from. */

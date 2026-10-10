@@ -10,7 +10,14 @@
     state,
     onOpen,
     onSettings,
-  }: { state: ImmichAvailabilityState; onOpen: () => void; onSettings: () => void } = $props();
+    primary = false,
+  }: {
+    state: ImmichAvailabilityState;
+    onOpen: () => void;
+    onSettings: () => void;
+    /** "Open Immich" is the step's main way in, as for a server slideshow. */
+    primary?: boolean;
+  } = $props();
 
   const { t } = getTranslator();
   const box = $derived(immichBox(state));
@@ -30,7 +37,7 @@
       {/if}
     </div>
     {#if box.kind === "open"}
-      <button class="btn" type="button" onclick={onOpen}>
+      <button class="btn" class:primary type="button" onclick={onOpen}>
         {t("immich.open")}<Icon name="chevronRight" />
       </button>
     {:else if box.kind === "offline"}

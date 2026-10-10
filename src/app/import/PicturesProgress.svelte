@@ -16,7 +16,8 @@
     /** The capture dates of the stored pictures; null while none is stored. */
     range: { readonly from: string; readonly to: string } | null;
     onCancel: () => void;
-    onAddMore: () => void;
+    /** Null where no pictures come from the device, as for a server slideshow. */
+    onAddMore: (() => void) | null;
     /** Shown only while Immich can be opened. */
     onMoreFromImmich: (() => void) | null;
   } = $props();
@@ -50,9 +51,11 @@
             <Icon name="plus" />{t("immich.more")}
           </button>
         {/if}
-        <button class="btn ghost" type="button" onclick={onAddMore}>
-          <Icon name="plus" />{t("import.addMore")}
-        </button>
+        {#if onAddMore !== null}
+          <button class="btn ghost" type="button" onclick={onAddMore}>
+            <Icon name="plus" />{t("import.addMore")}
+          </button>
+        {/if}
       </span>
     {/if}
   </div>

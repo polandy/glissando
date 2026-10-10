@@ -1,5 +1,10 @@
 import type { KeyValueStorage } from "../app/start/first-launch";
 
+/** The store a slideshow lives in (`dev-docs/SERVER_LIBRARY.md`). */
+export type SlideshowHome = "device" | "server";
+
+const SLIDESHOW_HOMES: readonly SlideshowHome[] = ["device", "server"];
+
 /** What a server slideshow's card shows without its cover, kept for when the server is away. */
 export interface ServerSlideshowCard {
   readonly id: string;
@@ -19,9 +24,13 @@ export interface ServerLibraryMemory {
   rememberOn(on: boolean): void;
   cards(): readonly ServerSlideshowCard[];
   rememberCards(cards: readonly ServerSlideshowCard[]): void;
+  /** Where the wizard puts a new slideshow at first: the last choice, this device by default. */
+  newSlideshowHome(): SlideshowHome;
+  rememberNewSlideshowHome(home: SlideshowHome): void;
 }
 
 const MEMORY_KEY = "glissando.serverLibrary";
+const NEW_SLIDESHOW_HOME_KEY = "glissando.newSlideshowHome";
 
 interface Remembered {
   readonly on: boolean;
@@ -77,5 +86,21 @@ export function createStorageServerLibraryMemory(
     rememberOn: (on) => write(on ? { ...read(), on } : NOTHING_REMEMBERED),
     cards: () => read().cards,
     rememberCards: (cards) => write({ ...read(), cards }),
+    newSlideshowHome: () => {
+      try {
+        const stored = storage.getItem(NEW_SLIDESHOW_HOME_KEY);
+        return SLIDESHOW_HOMES.find((home) => home === stored) ?? "device";
+      } catch (error) {
+        log(error);
+        return "device";
+      }
+    },
+    rememberNewSlideshowHome: (home) => {
+      try {
+        storage.setItem(NEW_SLIDESHOW_HOME_KEY, home);
+      } catch (error) {
+        log(error);
+      }
+    },
   };
 }

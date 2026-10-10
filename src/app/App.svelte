@@ -184,6 +184,29 @@
     }
   }
 
+  // svelte-ignore state_referenced_locally
+  const serverMemory = services.serverLibrary.memory;
+  let rememberedHome = $state<SlideshowHome>(serverMemory.newSlideshowHome());
+
+  function homeChosen(home: SlideshowHome): void {
+    rememberedHome = home;
+    serverMemory.rememberNewSlideshowHome(home);
+  }
+
+  /** A server slideshow's pictures in the making are linked: their thumbnails are Immich's. */
+  function importThumbnail(pictureId: string): Promise<Blob> {
+    const home = importSession?.choices.current().home;
+    return (home === "server" ? serverRoute : store).thumbnailBlob(pictureId);
+  }
+
+  function createFailed(retry: () => void): void {
+    toaster.show({
+      text: t("server.createFailed"),
+      tone: "error",
+      action: { label: t("server.tryAgain"), run: retry },
+    });
+  }
+
   function musicUnreadable(retry: () => void): void {
     toaster.show({
       text: t("import.musicUnreadable"),
@@ -232,9 +255,13 @@
   <ImportRoute
     step={route.step}
     session={importSession}
-    loadThumbnail={(id) => store.thumbnailBlob(id)}
+    loadThumbnail={importThumbnail}
     onError={reportError}
     onMusicUnreadable={musicUnreadable}
+    serverOn={serverState.kind === "on"}
+    {rememberedHome}
+    onHomeChosen={homeChosen}
+    onCreateFailed={createFailed}
     onToMusic={() => navigator.open({ screen: "import", step: "music" })}
     onBack={() => navigator.back()}
     onDiscard={(leave) => void importFlow.discard(leave)}

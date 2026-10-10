@@ -23,6 +23,7 @@ export const deServer = {
     "Aus Immich verknüpft. Jetzt wird nichts heruntergeladen; beim Abspielen kommen die Bilder aus Immich.",
   "server.creating": "Wird auf deinem Glissando-Server gespeichert …",
   "server.createFailed": "Die Diashow wurde nicht erstellt. Dein Glissando-Server antwortet nicht.",
+  "server.tryAgain": "Erneut versuchen",
   "server.storageServerText": "Bilder aus Immich verknüpft · Änderungen für alle gespeichert",
   "server.saved": "Gespeichert",
   "server.savingEdit": "Wird gespeichert …",

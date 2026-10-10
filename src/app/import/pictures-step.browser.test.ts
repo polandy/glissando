@@ -60,6 +60,9 @@ describe("PicturesStep after a failed import", () => {
     const step = mountWithTranslator(PicturesStep, {
       session,
       loadThumbnail: () => Promise.resolve(new Blob()),
+      serverOn: false,
+      rememberedHome: "device",
+      onHomeChosen: () => undefined,
       onError: () => undefined,
       onLeave: () => undefined,
       onNext: () => undefined,
@@ -96,6 +99,9 @@ describe("PicturesStep and .glissando files", () => {
     const step = mountWithTranslator(PicturesStep, {
       session,
       loadThumbnail: () => Promise.resolve(new Blob()),
+      serverOn: false,
+      rememberedHome: "device",
+      onHomeChosen: () => undefined,
       onError: () => undefined,
       onLeave: () => undefined,
       onNext: () => undefined,
