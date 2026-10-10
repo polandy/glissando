@@ -78,18 +78,48 @@ fi
 export GLISSANDO_LIBRARY_ROUTE=$LIBRARY_ON GLISSANDO_LIBRARY_PORT=$LIBRARY_PORT
 echo "glissando: slideshows on the server are kept in $GLISSANDO_DATA_DIR"
 
+# Sets ended_status to the status of child process $1 once it has ended; a trapped signal that
+# interrupts the wait is waited through.
+wait_for() {
+	ended_status=0
+	wait "$1" || ended_status=$?
+	while kill -0 "$1" 2>/dev/null; do
+		ended_status=0
+		wait "$1" || ended_status=$?
+	done
+}
+
+# Runs a command and exits with its status; a TERM is passed on to it. Waiting on each process
+# by its pid, because BusyBox's `wait -n` misses a child killed by a signal and drops its status.
+# Ending on its own, the process tells the entrypoint (USR1) to end the other one too.
+supervise() {
+	stopping=false
+	trap 'stopping=true; kill -TERM "$child" 2>/dev/null' TERM
+	"$@" &
+	child=$!
+	wait_for "$child"
+	if [ "$stopping" = false ]; then
+		echo "glissando: stopping (a process ended with status $ended_status)" >&2
+		kill -USR1 $$
+	fi
+	exit "$ended_status"
+}
+
+# Whichever ends first, or a stop signal, ends both: the container never runs half. A stop
+# signal is an orderly end (status 0); a process ending on its own passes on its status.
+stop_requested=false
+trap 'stop_requested=true; kill -TERM "$library" "$caddy" 2>/dev/null' TERM INT
+trap 'kill -TERM "$library" "$caddy" 2>/dev/null' USR1
 # The service gets its own two settings only, never the Immich key.
-env -i PATH="$PATH" GLISSANDO_DATA_DIR="$GLISSANDO_DATA_DIR" GLISSANDO_LIBRARY_PORT="$LIBRARY_PORT" \
-	node "$LIBRARY_SERVICE" &
+supervise env -i PATH="$PATH" GLISSANDO_DATA_DIR="$GLISSANDO_DATA_DIR" \
+	GLISSANDO_LIBRARY_PORT="$LIBRARY_PORT" node "$LIBRARY_SERVICE" &
 library=$!
-caddy run --config /etc/caddy/Caddyfile --adapter caddyfile &
+supervise caddy run --config /etc/caddy/Caddyfile --adapter caddyfile &
 caddy=$!
 
-# Whichever ends first, or a stop signal, ends both: the container never runs half.
-trap 'kill -TERM "$library" "$caddy" 2>/dev/null' TERM INT
-status=0
-wait -n || status=$?
-echo "glissando: stopping (a process ended with status $status)" >&2
-kill -TERM "$library" "$caddy" 2>/dev/null || true
-wait
+wait_for "$library"
+status=$ended_status
+wait_for "$caddy"
+[ "$status" -ne 0 ] || status=$ended_status
+[ "$stop_requested" = false ] || status=0
 exit "$status"

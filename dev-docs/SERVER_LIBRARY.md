@@ -78,8 +78,9 @@ the server.
 - **Ports**: a `LibraryRepository` (the SQLite adapter and an in-memory fake run the same contract
   suite), a clock and an id source, all injected into the request handler, which is a pure
   function of request → response tested in-process without sockets.
-- **Request bodies** are read up to the path's limit (`maxBodyBytes`); a larger one, by
-  `Content-Length` or as it streams, answers 413 and closes the connection.
+- **Request bodies** are read up to the path's limit (`maxBodyBytes`); a larger one is read to
+  its end and dropped, then answers 413 and closes the connection, so the client receives the 413
+  rather than a reset connection.
 - **Log**: one line per request (`glissando-library: <method> <path> <status>`) to stdout; never
   a body. An unexpected failure answers 500 `internalError` and logs its stack to stderr.
 
@@ -91,10 +92,12 @@ the server.
 - The entrypoint starts the service when `GLISSANDO_DATA_DIR` is set and Immich is on (the
   library route `deploy/library-on.caddy`), else the route `deploy/library-off.caddy` answers 404.
   `GLISSANDO_DATA_DIR` without `IMMICH_URL` stops the start with a message naming both. It waits
-  on both processes and exits when either exits.
+  on both processes and exits when either exits, with that process's status; `docker stop`
+  (SIGTERM) ends both and exits 0.
 - `deploy/test-image.sh` adds: the discovery answers with a data volume and 404 without; a
   slideshow created survives a container restart on the same volume; a `PUT` with a stale
-  revision gets 412.
+  revision gets 412, one not `application/json` 415; a body over the document limit gets 413;
+  `docker stop` exits 0, a killed service stops the container with its status.
 
 ## In the app
 

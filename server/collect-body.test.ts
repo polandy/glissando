@@ -16,7 +16,7 @@ function chunks(...sizes: number[]) {
 describe("collectBody", () => {
   it("joins the chunks into the bytes received", async () => {
     const { body } = chunks(2, 3);
-    expect(await collectBody(body, 10, undefined)).toEqual({
+    expect(await collectBody(body, 10)).toEqual({
       kind: "received",
       bytes: new Uint8Array([2, 2, 3, 3, 3]),
     });
@@ -24,18 +24,12 @@ describe("collectBody", () => {
 
   it("receives a body of exactly the limit", async () => {
     const { body } = chunks(4, 6);
-    expect((await collectBody(body, 10, "10")).kind).toBe("received");
+    expect((await collectBody(body, 10)).kind).toBe("received");
   });
 
   it("is too large once the chunks pass the limit, still reading them all", async () => {
     const { body, reading } = chunks(6, 6, 6);
-    expect(await collectBody(body, 10, undefined)).toEqual({ kind: "tooLarge" });
+    expect(await collectBody(body, 10)).toEqual({ kind: "tooLarge" });
     expect(reading.read).toBe(3);
-  });
-
-  it("is too large when Content-Length says so, without reading a chunk", async () => {
-    const { body, reading } = chunks(1);
-    expect(await collectBody(body, 10, "11")).toEqual({ kind: "tooLarge" });
-    expect(reading.read).toBe(0);
   });
 });

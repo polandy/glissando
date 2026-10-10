@@ -54,7 +54,7 @@ async function serve(
   let answer: LibraryResponse;
   let closeAfter = false;
   try {
-    const body = await collectBody(request, maxBodyBytes(path), headers["content-length"]);
+    const body = await collectBody(request, maxBodyBytes(path));
     closeAfter = body.kind === "tooLarge";
     answer = handle({ method, path, headers, body });
   } catch (error) {
