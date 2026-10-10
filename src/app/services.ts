@@ -4,6 +4,7 @@ import type { ImmichClient } from "../immich/immich-client";
 import type { MusicOutput } from "../player";
 import type { LibraryStore, StoredSlideshow } from "../library/stored-slideshow";
 import type { PwaStatus } from "../pwa/pwa-status";
+import type { ServerLibrary } from "../server-library/server-library";
 import type { ErrorReporter } from "./errors/error-reporter";
 import type { LaunchQueue } from "./glissando-file/launched-files";
 import type { AddPicturesSession } from "./add-pictures/add-pictures-session";
@@ -34,6 +35,11 @@ export interface AppServices {
   readonly focusPass: FocusPass;
   /** Immich through the self-hosted Glissando (ADR-0013); checked as the app opens. */
   readonly immich: { readonly client: ImmichClient; readonly availability: ImmichAvailability };
+  /**
+   * Slideshows on the Glissando server (dev-docs/SERVER_LIBRARY.md); its availability is asked
+   * whenever Immich's answers.
+   */
+  readonly serverLibrary: ServerLibrary;
   /** Files the installed app was launched with; null where the browser has none. */
   readonly launchQueue: LaunchQueue | null;
   /** The address the app was opened at, e.g. `http://192.168.1.20:4173`. */

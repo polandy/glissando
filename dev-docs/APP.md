@@ -433,6 +433,9 @@ over real timers.
   0.18 s and is removed, at once with reduced motion. The app's stylesheets are linked by
   `index.html`, not imported by `main.ts`, so the shell is styled from the first paint.
 
+- **Server library** (SERVER_LIBRARY.md, In the app): `createServerLibrary` wires the
+  `./api/library` client, `ServerLibraryAvailability` (following Immich's availability), the
+  `ServerSlideshowStore` and its use-cases into `services.serverLibrary`.
 - **Abandoned imports**: at startup and whenever an import ends (created or discarded), media
   no slideshow references is deleted — except every media id an import in progress or a
   still-undoable removal claims, in any tab, so a picture stored before its slideshow record is
