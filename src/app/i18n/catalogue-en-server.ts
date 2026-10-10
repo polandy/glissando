@@ -95,6 +95,7 @@ export const enServer: Pick<Catalogue, keyof typeof deServer> = {
     "Upload them to Immich and add them from there, or save the slideshow without them.",
   "server.saveWithout": { one: "Save without this one", other: "Save without these {count}" },
   "server.savedOnServer": "Saved on the server",
-  "server.saveOnServerFailed": "Couldn't save on the server. Your Glissando server isn't answering.",
+  "server.saveOnServerFailed":
+    "Couldn't save on the server. Your Glissando server isn't answering.",
   "server.exportFromImmich": "pictures downloaded from Immich",
 };

@@ -2,7 +2,10 @@
   import { getTranslator } from "../i18n/context";
   import type { ExportProgress } from "./export-job";
 
-  /** The background export's place in the header: a progress ring, its label and a line below. */
+  /**
+   * The background export's, or a server slideshow's copy's, place in the header: a progress
+   * ring, its label and a line below.
+   */
   let { progress }: { progress: ExportProgress } = $props();
 
   const PERCENT = 100;
@@ -22,8 +25,12 @@
       stroke-dasharray="{progress.fraction * PERCENT} {PERCENT}"
     />
   </svg>
-  <span class="label">{t("glissandoFile.exportIndicator", { title: progress.title, percent })}</span
-  >
+  <span class="label">
+    {t(progress.copying ? "server.copying" : "glissandoFile.exportIndicator", {
+      title: progress.title,
+      percent,
+    })}
+  </span>
 </div>
 <span class="line" style:width="{progress.fraction * PERCENT}%" aria-hidden="true"></span>
 

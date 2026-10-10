@@ -8,6 +8,7 @@ import type { PictureFocus } from "../../library/picture-focus";
 import { MemoryLibraryStore } from "../../library/testing/memory-store";
 import { FakeScheduler } from "../../ui-kit/testing/fake-scheduler";
 import { Toaster } from "../toast/toaster";
+import type { EditRefusal } from "./edit-saver";
 import { SlideshowEditor } from "./slideshow-editor";
 
 export function stored(ids: readonly string[]): StoredSlideshow {
@@ -31,6 +32,8 @@ const EDITED_AT = new Date("2026-10-08T12:00:00Z");
 /** A memory store that records the editing calls, in the order they were made. */
 class RecordingStore extends MemoryLibraryStore {
   readonly calls: string[] = [];
+  /** The next updates fail with these, as a server can refuse an edit. */
+  readonly refusals: Error[] = [];
 
   override claimMedia(claimId: string, startedAt: Date, mediaId: string): Promise<void> {
     this.calls.push(`claim ${mediaId}`);
@@ -44,6 +47,8 @@ class RecordingStore extends MemoryLibraryStore {
 
   override updateSlideshow(slideshow: StoredSlideshow): Promise<void> {
     this.calls.push(`update ${slideshow.pictures.map((picture) => picture.id).join("")}`);
+    const refusal = this.refusals.shift();
+    if (refusal !== undefined) return Promise.reject(refusal);
     return super.updateSlideshow(slideshow);
   }
 }
@@ -58,6 +63,7 @@ export async function setUp(
   const store = new RecordingStore();
   const errors: unknown[] = [];
   let gone = 0;
+  const refused: EditRefusal[] = [];
   const initial = music === null ? stored(ids) : { ...stored(ids), music };
   for (const id of ids) {
     await store.putPicture(id, { display: new Blob([id]), thumbnail: new Blob([id]) });
@@ -74,6 +80,7 @@ export async function setUp(
     now: () => EDITED_AT,
     onError: (error) => errors.push(error),
     onGone: () => (gone += 1),
+    onRefused: (reason) => refused.push(reason),
     removedText: (count) => (count === 1 ? "Bild entfernt" : `${count} Bilder entfernt`),
     addedText: (count) => `${count} Bilder hinzugefügt`,
     undoLabel: () => "Rückgängig",
@@ -130,5 +137,6 @@ export async function setUp(
     storedPicture,
     mediaSurvivesCleanUp,
     goneCount,
+    refused,
   };
 }

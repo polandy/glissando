@@ -1,18 +1,23 @@
 <script lang="ts">
   import { onDestroy, onMount } from "svelte";
-  import { MediaQuery } from "svelte/reactivity";
-  import { titleForCaptureRange } from "../../compose";
+  import { MediaQuery, SvelteSet } from "svelte/reactivity";
   import {
     SlideshowNotFoundError,
     type LibraryStore,
+    type SlideshowStore,
     type StoredSlideshow,
   } from "../../library/stored-slideshow";
   import type { FocusPass, FocusPassState } from "../../library/focus-pass";
   import type { PictureFocus } from "../../library/picture-focus";
-  import { SlideshowEditor } from "../editing/slideshow-editor";
+  import type { SlideshowEditor } from "../editing/slideshow-editor";
+  import { PictureMissingFromImmichError } from "../../server-library/server-slideshow-store";
+  import { createScreenEditor } from "./screen-editor";
+  import { slideshowStorage, type SlideshowHome } from "./slideshow-storage";
+  import type { StorageAction } from "../screens/view-models";
   import { NO_FOCUS_KNOWN, picturesFocus } from "../focus/pictures-focus";
   import type { ExportProgress } from "../glissando-file/export-job";
-  import { exportMediaKey, exportMenuState } from "../glissando-file/export-menu";
+  import { exportMenuState } from "../glissando-file/export-menu";
+  import { ExportSize } from "../glissando-file/export-size.svelte";
   import { getTranslator } from "../i18n/context";
   import { slideshowDetails } from "../library-views";
   import { browserObjectUrls, ObjectUrls } from "../media/object-urls";
@@ -35,6 +40,10 @@
 
   let {
     store,
+    home,
+    serverOn,
+    onKeepCopy,
+    onSaveOnServer,
     focusPass,
     toaster,
     newId,
@@ -60,7 +69,15 @@
     onError,
     log,
   }: {
-    store: LibraryStore;
+    /** Where the slideshow lives; a server slideshow's store spares no media and measures none. */
+    store: SlideshowStore & Pick<LibraryStore, "claimMedia" | "releaseClaim" | "mediaBytes">;
+    home: SlideshowHome;
+    /** The server library is on: a device slideshow's screen tells where its pictures are from. */
+    serverOn: boolean;
+    /** "Keep a copy on this device" of a server slideshow, as shown. */
+    onKeepCopy: (slideshow: StoredSlideshow) => void;
+    /** "Save on the server" of a device slideshow, as shown. */
+    onSaveOnServer: (slideshow: StoredSlideshow) => void;
     /** What it finds updates the editors' automatic motions and focus marks as it goes. */
     focusPass: Pick<FocusPass, "state" | "subscribe">;
     toaster: Toaster;
@@ -120,21 +137,26 @@
       selectedId = editingPictureId;
     }
   });
-  /** Measured when the menu opens and the media changed since the last measure. */
-  let exportBytes = $state<number | null>(null);
-  /** The media the size is measured for; see `exportMediaKey`. */
-  let measuredMedia: string | null = null;
   const mousePointer = new MediaQuery(MOUSE_POINTER_QUERY);
   const reducedMotion = new MediaQuery(REDUCED_MOTION_QUERY);
   // The store is fixed for the screen's lifetime.
-  // svelte-ignore state_referenced_locally
   const thumbnails = new ObjectUrls({
     ...browserObjectUrls,
     load: (id) => store.thumbnailBlob(id),
-    onError,
+    onError: (error) => {
+      if (error instanceof PictureMissingFromImmichError) {
+        missingIds.add(error.pictureId);
+      } else {
+        onError(error);
+      }
+    },
   });
+  /** Pictures Immich answered 404 for; their tiles are dashed. */
+  const missingIds = new SvelteSet<string>();
 
   const left = new AbortController();
+  // svelte-ignore state_referenced_locally
+  const exportSize = new ExportSize(store, onError, left.signal);
 
   onMount(() => {
     const stopFocus = focusPass.subscribe((next) => (passState = next));
@@ -180,51 +202,21 @@
   }
 
   function createEditor(initial: StoredSlideshow): SlideshowEditor {
-    return new SlideshowEditor(initial, {
-      store,
-      focusOf: (pictureId) => focus.found.get(pictureId),
-      toaster,
-      newId,
-      now,
-      onError,
-      onGone,
-      removedText: (count) => translator.t("slideshow.removed", { count }),
-      addedText: (count) => translator.t("add.added", { count }),
-      undoLabel: () => translator.t("slideshow.undo"),
-      lastPictureText: () => translator.t("slideshow.lastPictureStays"),
-      motionAutomaticText: () => translator.t("editor.motionAutomatic"),
-      durationAutomaticText: () => translator.t("editor.durationAutomatic"),
-      transitionAutomaticText: () => translator.t("editor.transitionAutomatic"),
-      slideshowTransitionResetText: () => translator.t("transitions.resetDone"),
-      automaticTitle: (slideshow) =>
-        titleForCaptureRange(
-          slideshow.pictures.map((picture) => picture.capturedAt),
-          translator.language,
-        ),
-    });
+    const focusOf = (pictureId: string) => focus.found.get(pictureId);
+    const ports = { store, focusOf, toaster, newId, now, onError, onGone };
+    return createScreenEditor(initial, ports, translator);
+  }
+
+  function storageAction(action: StorageAction): void {
+    if (stored === null) return;
+    if (action === "keepCopy") onKeepCopy(stored);
+    else if (action === "saveOnServer") onSaveOnServer(stored);
+    else for (const id of missingIds) editor?.remove(id);
   }
 
   function measureExport(): void {
-    if (stored === null) {
-      return;
-    }
-    const media = exportMediaKey(stored);
-    if (media === measuredMedia) {
-      return;
-    }
-    measuredMedia = media;
-    exportBytes = null;
-    store.mediaBytes(stored).then(
-      (bytes) => {
-        if (!left.signal.aborted && measuredMedia === media) {
-          exportBytes = bytes;
-        }
-      },
-      (error: unknown) => {
-        measuredMedia = null;
-        onError(error);
-      },
-    );
+    // A server slideshow's size is not known before its pictures are downloaded.
+    if (stored !== null && home === "device") exportSize.measure(stored);
   }
 
   /** The slideshow an export of the screen starts from; the screen shows only once it loaded. */
@@ -246,9 +238,19 @@
   const newPictureIds: ReadonlySet<string> = new Set(addedPictureIds);
 
   // The thumbnails are loaded once, for every picture: an undo brings back ones already loaded.
-  const details = $derived(
-    stored === null ? null : slideshowDetails(stored, (id) => thumbnails.get(id) ?? ""),
-  );
+  const details = $derived.by(() => {
+    if (stored === null) return null;
+    const shown = slideshowDetails(stored, (id) => thumbnails.get(id) ?? "");
+    const pictures = shown.pictures.map((tile) =>
+      missingIds.has(tile.id) ? { ...tile, missing: true as const } : tile,
+    );
+    return { ...shown, pictures };
+  });
+  const storage = $derived.by(() => {
+    if (stored === null) return null;
+    const missingCount = stored.pictures.filter(({ id }) => missingIds.has(id)).length;
+    return slideshowStorage(home, stored, { serverOn, saving, missingCount });
+  });
 </script>
 
 {#if editingPictureId !== null && stored !== null && editor !== null}
@@ -283,13 +285,15 @@
     previewPorts={{ clock: performanceClock, frames: animationFrames }}
     reducedMotion={reducedMotion.current}
     onDelete={deleteSlideshow}
-    exportState={exportMenuState(exportProgress, slideshowId, exportBytes)}
+    exportState={exportMenuState(exportProgress, slideshowId, exportSize.bytes)}
     {onExport}
     onMenuOpened={measureExport}
     {newVideoExport}
     {newHtmlExport}
     mousePointer={mousePointer.current}
     {saving}
+    {storage}
+    onStorageAction={storageAction}
   />
 {/if}
 {#if playing && stored !== null}

@@ -97,7 +97,11 @@
     }}
     onkeydown={onKeydown}
   >
-    <img src={picture.thumbnailUrl} alt={label} draggable="false" />
+    {#if picture.missing}
+      <span class="missing" role="img" aria-label={label}>{t("server.missingTile")}</span>
+    {:else}
+      <img src={picture.thumbnailUrl} alt={label} draggable="false" />
+    {/if}
     <span class="number mono" aria-hidden="true">{number}</span>
     {#if isNew || picture.ownMotion || ownSeconds !== null || picture.ownTransition !== null}
       <span class="badges" aria-hidden="true">
@@ -188,6 +192,18 @@
   .pick:focus-visible {
     outline: 3px solid var(--gl-accent);
     outline-offset: 2px;
+  }
+  .missing {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 8px;
+    border: 1.5px dashed var(--gl-line);
+    border-radius: inherit;
+    color: var(--gl-muted);
+    font-size: var(--gl-size-small);
+    text-align: center;
   }
   .pick img {
     position: absolute;

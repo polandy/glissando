@@ -13,6 +13,8 @@ export interface ExportProgress {
   readonly title: string;
   /** From 0 to 1. */
   readonly fraction: number;
+  /** A server slideshow being copied to this device rather than exported. */
+  readonly copying?: true;
 }
 
 export interface ExportJobPorts {

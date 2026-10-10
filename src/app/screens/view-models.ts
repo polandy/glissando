@@ -19,9 +19,22 @@ export interface ServerShelf {
   readonly slideshows: readonly SlideshowSummary[];
 }
 
+/**
+ * Where a slideshow lives, as its screen tells it while the server library is on
+ * (`dev-docs/SERVER_LIBRARY.md`, A server slideshow's screen).
+ */
+export type SlideshowStorage =
+  | { readonly kind: "server"; readonly saving: boolean; readonly missingCount: number }
+  | { readonly kind: "device"; readonly fromImmich: number; readonly fromDevice: number };
+
+/** What the screen asks of its route about where the slideshow lives. */
+export type StorageAction = "keepCopy" | "saveOnServer" | "removeMissing";
+
 export interface PictureTile {
   readonly id: string;
   readonly thumbnailUrl: string;
+  /** Immich no longer has the picture: a dashed tile in place of its thumbnail. */
+  readonly missing?: true;
   /** ISO 8601 date-time. */
   readonly capturedAt: string;
   /** The picture plays a Ken Burns motion of the user's own. */

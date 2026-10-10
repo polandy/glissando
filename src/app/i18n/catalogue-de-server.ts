@@ -11,7 +11,8 @@ export const deServer = {
   "server.needsServer": "Braucht deinen Glissando-Server",
   "server.whereTitle": "Wo soll sie liegen?",
   "server.whereDevice": "Dieses Gerät",
-  "server.whereDeviceText": "Die Bilder werden heruntergeladen und hier gespeichert. Läuft offline.",
+  "server.whereDeviceText":
+    "Die Bilder werden heruntergeladen und hier gespeichert. Läuft offline.",
   "server.whereServer": "Glissando-Server",
   "server.whereServerText": "Die Bilder bleiben in Immich. Läuft auf jedem Gerät zu Hause, online.",
   "server.whereChosen": "Für diese Diashow gewählt. Entferne die Bilder, um es zu ändern.",
@@ -21,8 +22,7 @@ export const deServer = {
   "server.linked":
     "Aus Immich verknüpft. Jetzt wird nichts heruntergeladen; beim Abspielen kommen die Bilder aus Immich.",
   "server.creating": "Wird auf deinem Glissando-Server gespeichert …",
-  "server.createFailed":
-    "Die Diashow wurde nicht erstellt. Dein Glissando-Server antwortet nicht.",
+  "server.createFailed": "Die Diashow wurde nicht erstellt. Dein Glissando-Server antwortet nicht.",
   "server.storageServerText": "Bilder aus Immich verknüpft · Änderungen für alle gespeichert",
   "server.saved": "Gespeichert",
   "server.savingEdit": "Wird gespeichert …",

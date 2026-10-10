@@ -4,7 +4,10 @@ import type { ImmichStatus } from "../immich/immich-client";
 import { ServerLibraryAvailability, type ServerLibraryState } from "./server-library-availability";
 import { ServerLibraryUnavailableError } from "./server-library-client";
 import { createMemoryStorage } from "../app/testing/memory-storage";
-import { createStorageServerLibraryMemory, type ServerLibraryMemory } from "./server-library-memory";
+import {
+  createStorageServerLibraryMemory,
+  type ServerLibraryMemory,
+} from "./server-library-memory";
 
 const AVAILABLE: ImmichStatus = { kind: "available", version: "3.3.1", albumCount: 2 };
 

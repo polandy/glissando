@@ -19,7 +19,7 @@ import {
 } from "../../library/slideshow-edits";
 import type { LibraryStore, StoredSlideshow } from "../../library/stored-slideshow";
 import type { Toaster } from "../toast/toaster";
-import { EditSaver } from "./edit-saver";
+import { EditSaver, type EditRefusal } from "./edit-saver";
 import { EditorUndos } from "./editor-undos";
 import type { ResettableSetting } from "./reset-undo";
 
@@ -34,6 +34,8 @@ export interface SlideshowEditorPorts {
   readonly onError: (error: unknown) => void;
   /** The slideshow was deleted meanwhile, e.g. in another tab; edits are no longer stored. */
   readonly onGone: () => void;
+  /** A server slideshow's edit was not applied; the editor shows the store's version. */
+  readonly onRefused: (reason: EditRefusal) => void;
   /** The undo toast's text for `count` pictures removed. */
   readonly removedText: (count: number) => string;
   /** The undo toast's text for `count` pictures added. */
@@ -70,9 +72,14 @@ export class SlideshowEditor {
   constructor(initial: StoredSlideshow, ports: SlideshowEditorPorts) {
     this.#slideshow = initial;
     this.#ports = ports;
-    this.#saver = new EditSaver({
+    this.#saver = new EditSaver(initial, {
       store: ports.store,
       onError: ports.onError,
+      onRefused: (shown, reason) => {
+        this.#undos.removal.end();
+        this.#show(shown);
+        ports.onRefused(reason);
+      },
       onGone: () => {
         this.#undos.removal.end();
         ports.onGone();
@@ -282,8 +289,12 @@ export class SlideshowEditor {
     if (this.#saver.gone) {
       return;
     }
-    this.#slideshow = slideshow;
     this.#saver.save(slideshow);
+    this.#show(slideshow);
+  }
+
+  #show(slideshow: StoredSlideshow): void {
+    this.#slideshow = slideshow;
     for (const listener of this.#listeners) {
       listener(slideshow);
     }

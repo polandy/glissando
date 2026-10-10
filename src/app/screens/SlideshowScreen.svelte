@@ -1,6 +1,5 @@
 <script lang="ts">
   import { flushSync } from "svelte";
-  import Dialog from "../components/Dialog.svelte";
   import Header from "../components/Header.svelte";
   import { getTranslator } from "../i18n/context";
   import InfoPanel from "./slideshow/InfoPanel.svelte";
@@ -10,12 +9,13 @@
   import SelectionBar from "./slideshow/SelectionBar.svelte";
   import StripHead from "./slideshow/StripHead.svelte";
   import TransitionsSheet from "./slideshow/TransitionsSheet.svelte";
-  import VideoExportSheet from "./slideshow/VideoExportSheet.svelte";
-  import HtmlExportSheet from "./slideshow/HtmlExportSheet.svelte";
+  import ExportSheets from "./slideshow/ExportSheets.svelte";
   import type { HtmlExportSession } from "../html-export/html-export-session";
   import type { ExportPreview } from "../video-export/slideshow-video-export";
   import type { VideoExportSession } from "../video-export/video-export-session";
-  import type { SlideshowDetails } from "./view-models";
+  import MissingPicturesNotice from "./slideshow/MissingPicturesNotice.svelte";
+  import DeleteDialog from "./slideshow/DeleteDialog.svelte";
+  import type { SlideshowDetails, SlideshowStorage, StorageAction } from "./view-models";
   import type { SlideshowTransition } from "../../library/own-timing";
   import type { MotionPreviewPorts } from "../picture-editor/motion-preview";
   import type { ExportMenuState } from "../glissando-file/export-menu";
@@ -43,6 +43,8 @@
     newHtmlExport,
     mousePointer,
     saving,
+    storage = null,
+    onStorageAction,
     selectedId = $bindable(null),
   }: {
     slideshow: SlideshowDetails;
@@ -81,6 +83,9 @@
     mousePointer: boolean;
     /** An edit is being stored. */
     saving: boolean;
+    /** Where the slideshow lives; null while the server library is off. */
+    storage?: SlideshowStorage | null;
+    onStorageAction: (action: StorageAction) => void;
     /** The picture the selection bar acts on; kept by the parent across the picture editor. */
     selectedId?: string | null;
   } = $props();
@@ -89,8 +94,6 @@
 
   let confirmingDelete = $state(false);
   let editingTransitions = $state(false);
-  let videoExport = $state.raw<VideoExportSession<ExportPreview> | null>(null);
-  let htmlExport = $state.raw<HtmlExportSession | null>(null);
   // A selected picture that was removed meanwhile leaves no selection.
   const selectedIndex = $derived(
     slideshow.pictures.findIndex((picture) => picture.id === selectedId),
@@ -115,6 +118,7 @@
 
   let moreMenu = $state<MoreMenu>();
   let infoPanel = $state<InfoPanel>();
+  let exportSheets = $state<ExportSheets>();
 
   /** Focus goes back to the row the sheet was opened from. */
   function closeTransitions(): void {
@@ -122,20 +126,6 @@
     // The modal dialog must be gone first: until then the page behind it is inert.
     flushSync();
     infoPanel?.focusTransitions();
-  }
-
-  /** Focus goes back to the button the sheet was opened from. */
-  function closeVideoExport(): void {
-    videoExport = null;
-    // The modal dialog must be gone first: until then the page behind it is inert.
-    flushSync();
-    infoPanel?.focusSaveVideo();
-  }
-
-  function closeHtmlExport(): void {
-    htmlExport = null;
-    flushSync();
-    infoPanel?.focusSaveWebPage();
   }
 
   /** Keep or Esc: focus goes back to the ⋯ button the dialog was opened from. */
@@ -161,6 +151,9 @@
         {onExport}
         onOpened={onMenuOpened}
         onDelete={() => (confirmingDelete = true)}
+        {storage}
+        pictureCount={slideshow.pictures.length}
+        {onStorageAction}
       />
     {/snippet}
   </Header>
@@ -188,14 +181,21 @@
           {onRemove}
           {onMove}
         />
+        {#if storage?.kind === "server" && storage.missingCount > 0}
+          <MissingPicturesNotice
+            count={storage.missingCount}
+            onRemove={() => onStorageAction("removeMissing")}
+          />
+        {/if}
       </div>
 
       <InfoPanel
         bind:this={infoPanel}
         {slideshow}
         {onPlay}
-        onSaveVideo={() => (videoExport = newVideoExport())}
-        onSaveWebPage={() => (htmlExport = newHtmlExport())}
+        {storage}
+        onSaveVideo={() => exportSheets?.openVideo()}
+        onSaveWebPage={() => exportSheets?.openWebPage()}
         {onRename}
         {onEditMusic}
         onEditTransitions={() => (editingTransitions = true)}
@@ -227,32 +227,22 @@
   />
 {/if}
 
-{#if videoExport !== null}
-  <VideoExportSheet
-    session={videoExport}
-    coverUrl={slideshow.coverUrl}
-    onClose={closeVideoExport}
-  />
-{/if}
-
-{#if htmlExport !== null}
-  <HtmlExportSheet
-    session={htmlExport}
-    coverUrl={slideshow.coverUrl}
-    thumbnailUrls={slideshow.pictures.map((picture) => picture.thumbnailUrl)}
-    onClose={closeHtmlExport}
-  />
-{/if}
+<ExportSheets
+  bind:this={exportSheets}
+  {slideshow}
+  {newVideoExport}
+  {newHtmlExport}
+  onVideoClosed={() => infoPanel?.focusSaveVideo()}
+  onHtmlClosed={() => infoPanel?.focusSaveWebPage()}
+/>
 
 {#if confirmingDelete}
-  <Dialog
-    title={t("slideshow.deleteTitle", { title: slideshow.title })}
-    message={t("slideshow.deleteText", { count: slideshow.pictures.length })}
-    actions={[
-      { label: t("slideshow.keep"), onSelect: keepSlideshow },
-      { label: t("slideshow.deleteConfirm"), tone: "danger", onSelect: deleteConfirmed },
-    ]}
-    onCancel={keepSlideshow}
+  <DeleteDialog
+    title={slideshow.title}
+    pictureCount={slideshow.pictures.length}
+    onServer={storage?.kind === "server"}
+    onKeep={keepSlideshow}
+    onDelete={deleteConfirmed}
   />
 {/if}
 

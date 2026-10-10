@@ -60,7 +60,6 @@
   /** Bumped by every availability change, so only the latest shelf load shows. */
   let shelfLoads = 0;
   // The server library is fixed for the screen's lifetime.
-  // svelte-ignore state_referenced_locally
   const serverCovers = new ObjectUrls({
     ...browserObjectUrls,
     load: (id) => serverLibrary.store.thumbnailBlob(id),

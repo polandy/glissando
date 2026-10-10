@@ -44,6 +44,7 @@ async function mountRoute(pictureId: string) {
     now: () => new Date("2026-10-08T12:00:00Z"),
     onError: (error) => errors.push(error),
     onGone: () => {},
+    onRefused: () => {},
     removedText: () => "Bild entfernt",
     addedText: () => "Bilder hinzugefügt",
     undoLabel: () => "Rückgängig",

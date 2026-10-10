@@ -51,14 +51,26 @@ describe("loading the library's server section", () => {
       ],
     });
     expect(memory.cards()).toEqual([
-      { id: "iceland", title: "Iceland 2025", pictureCount: 2, durationSeconds: 10, hasMusic: false },
+      {
+        id: "iceland",
+        title: "Iceland 2025",
+        pictureCount: 2,
+        durationSeconds: 10,
+        hasMusic: false,
+      },
     ]);
   });
 
   it("shows the remembered cards without covers while offline", async () => {
     const { memory, covers, ports } = setUp(() => Promise.reject(new Error("not asked offline")));
     memory.rememberCards([
-      { id: "iceland", title: "Iceland 2025", pictureCount: 2, durationSeconds: 10, hasMusic: true },
+      {
+        id: "iceland",
+        title: "Iceland 2025",
+        pictureCount: 2,
+        durationSeconds: 10,
+        hasMusic: true,
+      },
     ]);
 
     const shelf = await loadServerShelf("offline", ports, covers, new AbortController().signal);
@@ -83,7 +95,13 @@ describe("loading the library's server section", () => {
       Promise.reject(new ServerLibraryUnavailableError("the list")),
     );
     memory.rememberCards([
-      { id: "iceland", title: "Iceland 2025", pictureCount: 2, durationSeconds: 10, hasMusic: true },
+      {
+        id: "iceland",
+        title: "Iceland 2025",
+        pictureCount: 2,
+        durationSeconds: 10,
+        hasMusic: true,
+      },
     ]);
 
     const shelf = await loadServerShelf("on", ports, covers, new AbortController().signal);

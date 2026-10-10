@@ -32,6 +32,8 @@
   import SettingsSheet from "./settings/SettingsSheet.svelte";
   import PersistRefusedDialog from "./storage/PersistRefusedDialog.svelte";
   import type { ToastMessage } from "./toast/toaster";
+  import { ServerCopyFlows } from "./server-library/server-copy-flows";
+  import type { ServerLibraryState } from "../server-library/server-library-availability";
 
   let { services, playStartAnimation }: { services: AppServices; playStartAnimation: boolean } =
     $props();
@@ -46,6 +48,19 @@
     services,
     translator,
   );
+
+  // svelte-ignore state_referenced_locally
+  const serverCopies = new ServerCopyFlows({
+    serverLibrary: services.serverLibrary,
+    deviceStore: store,
+    toaster,
+    open: (slideshowId) => navigator.open({ screen: "slideshow", slideshowId }),
+    reportError,
+    log: services.log,
+    translator,
+  });
+  // svelte-ignore state_referenced_locally
+  let serverState = $state.raw<ServerLibraryState>(services.serverLibrary.availability.state);
 
   let route = $state.raw<Route>(navigator.route);
   let exportProgress = $state.raw<ExportProgress | null>(null);
@@ -103,6 +118,9 @@
     });
     const stopPwa = pwa.subscribe((next) => (pwaState = next));
     const stopImmich = immich.availability.subscribe((next) => (immichState = next));
+    const stopServer = services.serverLibrary.availability.subscribe(
+      (next) => (serverState = next),
+    );
     // A double-clicked file starts a new window (`launch_handler`), so it opens from the library.
     openLaunchedFiles(services.launchQueue, {
       open: (file) => openFlow.open(file, "library"),
@@ -118,6 +136,7 @@
       stopOpen();
       stopPwa();
       stopImmich();
+      stopServer();
     };
   });
 
@@ -254,6 +273,10 @@
       onGone={() => leaveWithToast({ navigator, toaster }, t("slideshow.gone"))}
       onError={reportError}
       log={services.log}
+      home="device"
+      serverOn={serverState.kind === "on"}
+      onKeepCopy={(slideshow) => void serverCopies.keepCopy(slideshow)}
+      onSaveOnServer={(slideshow) => void serverCopies.saveOnServer(slideshow)}
     />
   {/key}
 {/if}

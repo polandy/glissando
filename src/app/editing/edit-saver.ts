@@ -1,11 +1,21 @@
 import { SlideshowNotFoundError, type LibraryStore } from "../../library/stored-slideshow";
 import type { StoredSlideshow } from "../../library/stored-slideshow";
+import { ServerLibraryUnavailableError } from "../../server-library/server-library-client";
+import { SlideshowChangedError } from "../../server-library/server-slideshow-store";
+
+/**
+ * Why a server slideshow's edit was not applied (`dev-docs/SERVER_LIBRARY.md`, A server
+ * slideshow's screen): it changed on another device, or the server is not answering.
+ */
+export type EditRefusal = "changed" | "unavailable";
 
 export interface EditSaverPorts {
   readonly store: Pick<LibraryStore, "updateSlideshow">;
   readonly onError: (error: unknown) => void;
   /** The slideshow was deleted meanwhile; called once, and nothing is stored after it. */
   readonly onGone: () => void;
+  /** An edit was not applied; the slideshow to show instead is the one the store has. */
+  readonly onRefused: (shown: StoredSlideshow, reason: EditRefusal) => void;
 }
 
 /**
@@ -18,8 +28,11 @@ export class EditSaver {
   #unsaved = 0;
   #saving: Promise<void> = Promise.resolve();
   #gone = false;
+  /** The version the store has, as far as this saver knows. */
+  #saved: StoredSlideshow;
 
-  constructor(ports: EditSaverPorts) {
+  constructor(initial: StoredSlideshow, ports: EditSaverPorts) {
+    this.#saved = initial;
     this.#ports = ports;
   }
 
@@ -45,9 +58,17 @@ export class EditSaver {
     // IndexedDB commits write transactions on one store in the order they were created.
     const saved = this.#ports.store
       .updateSlideshow(slideshow)
+      .then(() => {
+        this.#saved = slideshow;
+      })
       .catch((error: unknown) => {
         if (error instanceof SlideshowNotFoundError) {
           this.#goneMeanwhile();
+        } else if (error instanceof SlideshowChangedError) {
+          this.#saved = error.current;
+          this.#ports.onRefused(error.current, "changed");
+        } else if (error instanceof ServerLibraryUnavailableError) {
+          this.#ports.onRefused(this.#saved, "unavailable");
         } else {
           this.#ports.onError(error);
         }
