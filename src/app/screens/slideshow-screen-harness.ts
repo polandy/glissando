@@ -158,7 +158,8 @@ export function tile(number: number, date: string): HTMLButtonElement {
   }
   return button;
 }
-export const selectionBar = () => document.querySelector('[role="toolbar"]');
+/** The selection bar, by its toolbar name: it holds one picture or several. */
+export const selectionBar = () => document.querySelector('[role="toolbar"][aria-label="Auswahl"]');
 
 export function press(target: HTMLElement, key: string, shiftKey = false): void {
   target.dispatchEvent(new KeyboardEvent("keydown", { key, shiftKey, bubbles: true }));

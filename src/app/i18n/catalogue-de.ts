@@ -76,7 +76,7 @@ export const de = {
   "slideshow.removePicture": "Bild {number} entfernen",
   "slideshow.removed": { one: "Bild entfernt", other: "{count} Bilder entfernt" },
   "slideshow.undo": "Rückgängig",
-  "slideshow.selection": "Ausgewähltes Bild",
+  "slideshow.selection": "Auswahl",
   "slideshow.selectionCount": "Bild {number} von {total}",
   "slideshow.selectedCount": "{count} ausgewählt",
   "slideshow.selectedRange": "{count} ausgewählt · {from}–{to} von {total}",

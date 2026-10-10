@@ -40,7 +40,7 @@ async function dragOntoBefore(page: Page, from: Locator, dropBefore: Locator): P
 test("E2E-035 several pictures are selected and gathered by the bar, moved together by a mouse drag, removed with one undo, across a reload", async ({
   page,
 }) => {
-  const selectionBar = page.getByRole("toolbar", { name: "Ausgewähltes Bild" });
+  const selectionBar = page.getByRole("toolbar", { name: "Auswahl" });
   await openApp(page);
   await createSlideshow(
     page,

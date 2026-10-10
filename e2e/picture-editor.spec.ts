@@ -39,7 +39,7 @@ async function drag(
 test("E2E-020 a picture gets its own Ken Burns motion that is stored, and goes back to automatic with undo", async ({
   page,
 }) => {
-  const selectionBar = page.getByRole("toolbar", { name: "Ausgewähltes Bild" });
+  const selectionBar = page.getByRole("toolbar", { name: "Auswahl" });
   const automaticTile = page.getByRole("button", {
     name: "Bild 2, aufgenommen am 14.07.2025",
     exact: true,
@@ -119,7 +119,7 @@ test("E2E-020 a picture gets its own Ken Burns motion that is stored, and goes b
 test("E2E-022 a picture gets its own duration and transition, stored, and the transition goes back to automatic", async ({
   page,
 }) => {
-  const selectionBar = page.getByRole("toolbar", { name: "Ausgewähltes Bild" });
+  const selectionBar = page.getByRole("toolbar", { name: "Auswahl" });
   const automaticTile = page.getByRole("button", {
     name: "Bild 2, aufgenommen am 14.07.2025",
     exact: true,

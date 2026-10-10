@@ -73,7 +73,7 @@ export const en: Catalogue = {
   "slideshow.removePicture": "Remove picture {number}",
   "slideshow.removed": { one: "Picture removed", other: "{count} pictures removed" },
   "slideshow.undo": "Undo",
-  "slideshow.selection": "Selected picture",
+  "slideshow.selection": "Selection",
   "slideshow.selectionCount": "Picture {number} of {total}",
   "slideshow.selectedCount": "{count} selected",
   "slideshow.selectedRange": "{count} selected · {from}–{to} of {total}",

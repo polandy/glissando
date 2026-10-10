@@ -91,7 +91,7 @@ export function captionField(page: Page): Locator {
 }
 
 function selectionBar(page: Page): Locator {
-  return page.getByRole("toolbar", { name: "Ausgewähltes Bild" });
+  return page.getByRole("toolbar", { name: "Auswahl" });
 }
 
 /** Opens the picture editor of the picture whose tile is named `tile`; none may be selected. */
