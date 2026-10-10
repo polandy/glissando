@@ -1,11 +1,10 @@
 <script lang="ts">
   import { onDestroy, onMount } from "svelte";
-  import { MediaQuery, SvelteSet } from "svelte/reactivity";
+  import { MediaQuery } from "svelte/reactivity";
   import { SlideshowNotFoundError, type StoredSlideshow } from "../../library/stored-slideshow";
   import type { FocusPass, FocusPassState } from "../../library/focus-pass";
   import type { PictureFocus } from "../../library/picture-focus";
   import type { SlideshowEditor } from "../editing/slideshow-editor";
-  import { PictureMissingFromImmichError } from "../../server-library/server-slideshow-store";
   import { createScreenEditor } from "./screen-editor";
   import { slideshowStorage, type SlideshowHome } from "./slideshow-storage";
   import type { RouteStore } from "./slideshow-home";
@@ -15,8 +14,7 @@
   import { exportMenuState } from "../glissando-file/export-menu";
   import { ExportSize } from "../glissando-file/export-size.svelte";
   import { getTranslator } from "../i18n/context";
-  import { slideshowDetails } from "../library-views";
-  import { browserObjectUrls, ObjectUrls } from "../media/object-urls";
+  import { ScreenThumbnails } from "./screen-thumbnails.svelte";
   import SlideshowScreen from "../screens/SlideshowScreen.svelte";
   import type { Toaster } from "../toast/toaster";
   import type { MusicEditorAudio } from "../music-editor/music-editor-audio";
@@ -137,19 +135,10 @@
   const mousePointer = new MediaQuery(MOUSE_POINTER_QUERY);
   const reducedMotion = new MediaQuery(REDUCED_MOTION_QUERY);
   // The store is fixed for the screen's lifetime.
-  const thumbnails = new ObjectUrls({
-    ...browserObjectUrls,
-    load: (id) => store.thumbnailBlob(id),
-    onError: (error) => {
-      if (error instanceof PictureMissingFromImmichError) {
-        missingIds.add(error.pictureId);
-      } else {
-        onError(error);
-      }
-    },
-  });
-  /** Pictures Immich answered 404 for; their tiles are dashed. */
-  const missingIds = new SvelteSet<string>();
+  const thumbnails = new ScreenThumbnails(
+    (id) => store.thumbnailBlob(id),
+    (error) => onError(error),
+  );
 
   const left = new AbortController();
   // svelte-ignore state_referenced_locally
@@ -157,7 +146,7 @@
 
   onMount(() => {
     const stopFocus = focusPass.subscribe((next) => (passState = next));
-    loadSlideshowScreen(store, slideshowId, thumbnails, left.signal).then(
+    loadSlideshowScreen(store, slideshowId, thumbnails.urls, left.signal).then(
       (loaded) => {
         if (loaded !== null) {
           loadStoredFocus(loaded.stored);
@@ -171,11 +160,8 @@
         }
       },
       (error: unknown) => {
-        if (error instanceof SlideshowNotFoundError) {
-          onBack();
-        } else {
-          onError(error);
-        }
+        if (error instanceof SlideshowNotFoundError) onBack();
+        else onError(error);
       },
     );
     return stopFocus;
@@ -192,9 +178,7 @@
    */
   function loadStoredFocus(opened: StoredSlideshow): void {
     store.pictureFocus(opened.pictures.map((picture) => picture.id)).then((read) => {
-      if (!left.signal.aborted) {
-        storedFocus = read;
-      }
+      if (!left.signal.aborted) storedFocus = read;
     }, onError);
   }
 
@@ -208,7 +192,7 @@
   let confirmingCopy = $state<"keepCopy" | "saveOnServer" | null>(null);
 
   function storageAction(action: StorageAction): void {
-    if (action === "removeMissing") for (const id of missingIds) editor?.remove(id);
+    if (action === "removeMissing") for (const id of thumbnails.missing) editor?.remove(id);
     else confirmingCopy = action;
   }
 
@@ -219,9 +203,7 @@
 
   /** The slideshow an export of the screen starts from; the screen shows only once it loaded. */
   function loadedForExport(): StoredSlideshow {
-    if (stored === null) {
-      throw new Error("an export needs the slideshow loaded first");
-    }
+    if (stored === null) throw new Error("an export needs the slideshow loaded first");
     return stored;
   }
   const newVideoExport = () => slideshowVideoExport(videoExport, store, loadedForExport(), home);
@@ -236,20 +218,16 @@
   // svelte-ignore state_referenced_locally
   const newPictureIds: ReadonlySet<string> = new Set(addedPictureIds);
 
-  // The thumbnails are loaded once, for every picture: an undo brings back ones already loaded.
-  const details = $derived.by(() => {
-    if (stored === null) return null;
-    const shown = slideshowDetails(stored, (id) => thumbnails.get(id) ?? "");
-    const pictures = shown.pictures.map((tile) =>
-      missingIds.has(tile.id) ? { ...tile, missing: true as const } : tile,
-    );
-    return { ...shown, pictures };
-  });
-  const storage = $derived.by(() => {
-    if (stored === null) return null;
-    const missingCount = stored.pictures.filter(({ id }) => missingIds.has(id)).length;
-    return slideshowStorage(home, stored, { serverOn, saving, missingCount });
-  });
+  const details = $derived(stored === null ? null : thumbnails.details(stored));
+  const storage = $derived(
+    stored === null
+      ? null
+      : slideshowStorage(home, stored, {
+          serverOn,
+          saving,
+          missingCount: thumbnails.missingCount(stored),
+        }),
+  );
 </script>
 
 {#if editingPictureId !== null && stored !== null && editor !== null}
@@ -304,8 +282,8 @@
     {onError}
     {log}
     {home}
-    missing={missingIds}
-    onPictureMissing={(id) => missingIds.add(id)}
+    missing={thumbnails.missing}
+    onPictureMissing={(id) => thumbnails.missing.add(id)}
   />
 {/if}
 {#if confirmingCopy !== null && stored !== null}
