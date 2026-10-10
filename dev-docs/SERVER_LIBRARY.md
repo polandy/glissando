@@ -94,10 +94,11 @@ the server.
   `GLISSANDO_DATA_DIR` without `IMMICH_URL` stops the start with a message naming both. It waits
   on both processes and exits when either exits, with that process's status; `docker stop`
   (SIGTERM) ends both and exits 0.
-- `deploy/test-image.sh` adds: the discovery answers with a data volume and 404 without; a
-  slideshow created survives a container restart on the same volume; a `PUT` with a stale
-  revision gets 412, one not `application/json` 415; a body over the document limit gets 413;
-  `docker stop` exits 0, a killed service stops the container with its status.
+- `deploy/test-image-library.sh`, run by `deploy/test-image.sh`, checks: the discovery answers
+  with a data volume and 404 without; a slideshow created survives a container restart on the
+  same volume; a `PUT` with a stale revision gets 412, one not `application/json` 415; a body over
+  the document limit gets 413; `docker stop` exits 0, a killed service stops the container with
+  its status.
 
 ## In the app
 
