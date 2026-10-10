@@ -70,6 +70,7 @@ accounts, ADR-0013); the app reaches the server over plain HTTP on the LAN as we
   change or delete a server slideshow (confirmed in the app). The setup guide says so and
   recommends backing up the volume.
 - Playing a server slideshow moves every original over the LAN each time; a slow Wi-Fi shows as
-  a longer "Preparing" before the first picture, not as a jump (pictures are prepared ahead).
-- The app's store is a port with two adapters (IndexedDB, server); editors and the player do not
-  know which one they talk to.
+  a longer wait before the first picture, not as a jump (pictures are prepared ahead).
+- The app's store is a port with two adapters (IndexedDB, server); the editors and exports do not
+  know which one they talk to. Only the player knows where a slideshow lives, to skip a picture
+  Immich no longer has.

@@ -40,11 +40,13 @@ editing and video export (WebCodecs). Slideshows and media live on the device in
 - **Pictures are downscaled on import** to display resolution (about 4K); a slideshow needs no
   more, and the device's originals stay untouched.
 - **Moving between devices** is a file: a slideshow exports to and imports from one
-  `.glissando` file holding its pictures, music and settings.
+  `.glissando` file holding its pictures, music and settings. With the self-hosted Glissando
+  and Immich, a slideshow can also live on the server, its pictures linked from Immich; every
+  device at home plays it online (ADR-0018, `dev-docs/SERVER_LIBRARY.md`).
 
 **The server is optional.** Installing needs one load from any static HTTPS host; after that the
-app runs without it. A Glissando server only adds the network extras (Immich proxy, sync, TV
-control) and does no rendering or processing. A feature moves to the server only when the
+app runs without it. A Glissando server only adds the network extras (Immich proxy, slideshows
+stored on the server, TV control) and does no rendering or processing. A feature moves to the server only when the
 browser cannot do it, and that move is an ADR.
 
 ## PWA
@@ -125,6 +127,8 @@ Not in the MVP: per-slide settings, detection, Immich, video export, audio conve
    data, others get on-device detection in the browser.
 3. **Immich** — browse and pick albums and photos via the Immich API. Whether the browser calls
    it directly (CORS, API key exposure) or through a thin server proxy is an ADR.
+   Beside it, slideshows stored on the self-hosted Glissando with their pictures linked from
+   Immich — `dev-docs/SERVER_LIBRARY.md`, ADR-0018.
 4. **Video export** — the slideshow with its music rendered to a video file in the browser
    (WebCodecs encoding, client-side muxing; muxer choice is an ADR) — `dev-docs/VIDEO_EXPORT.md`,
    ADR-0015. Beside it, the web page export: one self-contained `.html` file that plays offline
