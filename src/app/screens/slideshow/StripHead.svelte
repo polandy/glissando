@@ -30,7 +30,9 @@
         >{t("slideshow.reorderHintNarrow")}</span
       >
     {:else}
-      {t("slideshow.sortedByDate")}<span class="narrow">{" · "}{t("slideshow.selectHintNarrow")}</span>
+      {t("slideshow.sortedByDate")}<span class="narrow"
+        >&nbsp;· {t("slideshow.selectHintNarrow")}</span
+      >
     {/if}
   </p>
   <span class="mono muted count">{count}</span>

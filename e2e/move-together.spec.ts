@@ -22,11 +22,7 @@ function tileRow(page: Page, number: number, date: string): Locator {
  * reads as "before" (`PictureStrip.hitTest`): press, move past the 8 px threshold, move to the
  * target, but stop short of releasing, so the caller can see the drop mark before it drops.
  */
-async function dragOntoBefore(
-  page: Page,
-  from: Locator,
-  dropBefore: Locator,
-): Promise<void> {
+async function dragOntoBefore(page: Page, from: Locator, dropBefore: Locator): Promise<void> {
   const fromBox = await from.boundingBox();
   const toBox = await dropBefore.boundingBox();
   if (fromBox === null || toBox === null) {
@@ -48,14 +44,7 @@ test("E2E-035 several pictures are selected and gathered by the bar, moved toget
   await openApp(page);
   await createSlideshow(
     page,
-    [
-      "2025-07-01",
-      "2025-07-02",
-      "2025-07-03",
-      "2025-07-04",
-      "2025-07-05",
-      "2025-07-06",
-    ],
+    ["2025-07-01", "2025-07-02", "2025-07-03", "2025-07-04", "2025-07-05", "2025-07-06"],
     2,
   );
 
@@ -76,11 +65,7 @@ test("E2E-035 several pictures are selected and gathered by the bar, moved toget
   await expect(tile(page, 6, "05.07.2025")).toBeVisible();
 
   // The gathered block (now at 2–4) is dragged as one onto the first tile, landing before it.
-  await dragOntoBefore(
-    page,
-    tile(page, 2, "02.07.2025"),
-    tile(page, 1, "01.07.2025"),
-  );
+  await dragOntoBefore(page, tile(page, 2, "02.07.2025"), tile(page, 1, "01.07.2025"));
   await expect(tileRow(page, 1, "01.07.2025")).toHaveClass(/drop-before/);
   await page.mouse.up();
   await expect(tile(page, 1, "02.07.2025")).toBeVisible();
