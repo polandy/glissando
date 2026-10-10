@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { ImmichUnavailableError, type ImmichFace } from "../immich/immich-client";
+import {
+  ImmichRequestFailedError,
+  ImmichUnavailableError,
+  type ImmichFace,
+} from "../immich/immich-client";
 import { MediaNotFoundError } from "../library/stored-slideshow";
 import { PictureMissingFromImmichError } from "./server-slideshow-store";
 import { UNDECODABLE } from "./testing/fake-immich-media";
@@ -98,18 +102,36 @@ describe("ServerSlideshowStore media", () => {
     expect(immich.calls).toEqual([]);
   });
 
-  it("logs faces Immich could not give, leaves the picture without focus and asks again later", async () => {
-    const { store, immich, logged } = serverStoreHarness();
+  it.each([
+    ["unavailable", new ImmichUnavailableError("unreachable")],
+    ["not found", new ImmichRequestFailedError("GET faces", 404)],
+  ])(
+    "logs faces Immich could not give (%s), leaves the picture without focus and asks again later",
+    async (_reason, failure) => {
+      const { store, immich, logged } = serverStoreHarness();
+      immich.add("asset-1", { faces: [LARGE_FACE] });
+      immich.facesError = failure;
+
+      const failed = await store.pictureFocus(["asset-1"]);
+      immich.facesError = null;
+      const asked = await store.pictureFocus(["asset-1"]);
+
+      expect(failed).toEqual(new Map());
+      expect(logged).toEqual([failure]);
+      expect(asked.get("asset-1")?.kind).toBe("subject");
+    },
+  );
+
+  it("rejects with any other failure asking for faces, and asks again later", async () => {
+    const { store, immich } = serverStoreHarness();
     immich.add("asset-1", { faces: [LARGE_FACE] });
-    const failure = new Error("faces failed");
+    const failure = new Error("the faces answer does not match the Immich API");
     immich.facesError = failure;
 
-    const failed = await store.pictureFocus(["asset-1"]);
+    await expect(store.pictureFocus(["asset-1"])).rejects.toBe(failure);
     immich.facesError = null;
     const asked = await store.pictureFocus(["asset-1"]);
 
-    expect(failed).toEqual(new Map());
-    expect(logged).toEqual([failure]);
     expect(asked.get("asset-1")?.kind).toBe("subject");
   });
 });

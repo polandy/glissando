@@ -207,13 +207,16 @@ export class ServerSlideshowStore implements SlideshowStore {
     return asking;
   }
 
+  /** The picture's focus; none while Immich cannot give its faces, asked again next time. */
   async #askFocus(id: string): Promise<PictureFocus | null> {
     try {
       return focusFromFaces(await this.#options.immich.faces(id));
     } catch (error) {
+      this.#focus.delete(id);
+      const notFound = error instanceof ImmichRequestFailedError && error.status === HTTP_NOT_FOUND;
+      if (!notFound && !(error instanceof ImmichUnavailableError)) throw error;
       if (error instanceof ImmichUnavailableError) this.#options.reportUnavailable(error.kind);
       this.#options.log(error);
-      this.#focus.delete(id);
       return null;
     }
   }
