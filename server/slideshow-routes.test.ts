@@ -86,6 +86,39 @@ describe("creating a slideshow", () => {
   });
 });
 
+describe("the media type of a written slideshow", () => {
+  const write = (method: "POST" | "PUT", headers: Record<string, string>) => {
+    const library = libraryHarness();
+    const path = method === "POST" ? SLIDESHOWS : at(library.create());
+    return library.handle({
+      method,
+      path,
+      headers: method === "PUT" ? { "if-match": '"1"', ...headers } : headers,
+      body: { kind: "received", bytes: new TextEncoder().encode(JSON.stringify(sampleDocument())) },
+    });
+  };
+
+  it.each([
+    ["POST", "text/plain"],
+    ["POST", "application/x-www-form-urlencoded"],
+    ["POST", undefined],
+    ["PUT", "text/plain"],
+    ["PUT", undefined],
+  ] as const)("%s with Content-Type %s answers 415 notJson", (method, type) => {
+    const response = write(method, type === undefined ? {} : { "content-type": type });
+    expect(response.status).toBe(415);
+    expect(response.json["error"]).toBe("notJson");
+  });
+
+  it.each([
+    ["POST", "application/json", 201],
+    ["POST", "application/json; charset=utf-8", 201],
+    ["PUT", "Application/JSON;charset=UTF-8", 200],
+  ] as const)("%s with Content-Type %s is accepted", (method, type, status) => {
+    expect(write(method, { "content-type": type }).status).toBe(status);
+  });
+});
+
 describe("listing slideshows", () => {
   it("answers every slideshow with id, revision and document, the newest created first", () => {
     const library = libraryHarness();

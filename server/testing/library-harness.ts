@@ -25,7 +25,12 @@ export function libraryHarness() {
         ? options.body
         : new TextEncoder().encode(options.body === undefined ? "" : JSON.stringify(options.body));
     return asTestResponse(
-      handle({ method, path, headers: options.headers ?? {}, body: { kind: "received", bytes } }),
+      handle({
+        method,
+        path,
+        headers: { "content-type": "application/json", ...options.headers },
+        body: { kind: "received", bytes },
+      }),
     );
   };
   return {

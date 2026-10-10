@@ -52,6 +52,15 @@ export function maxBodyBytes(path: string): number {
 
 const JSON_CONTENT_TYPE = "application/json";
 
+/**
+ * Whether `contentType` is JSON, parameters such as a charset allowed. A write demands it so a
+ * cross-site form or `text/plain` request, which a browser sends without asking, cannot write.
+ */
+export function isJsonContentType(contentType: string | undefined): boolean {
+  const mediaType = contentType?.split(";", 1)[0]?.trim().toLowerCase();
+  return mediaType === JSON_CONTENT_TYPE;
+}
+
 export function jsonResponse(
   status: number,
   value: unknown,
@@ -73,6 +82,7 @@ export type ErrorCode =
   | "revisionRequired"
   | "tooLarge"
   | "notAudio"
+  | "notJson"
   | "internalError";
 
 export function errorResponse(

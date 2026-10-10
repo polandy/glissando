@@ -5,6 +5,7 @@ import type { SlideshowRecord } from "./library-repository";
 import {
   errorResponse,
   HTTP_STATUS,
+  isJsonContentType,
   jsonResponse,
   MAX_DOCUMENT_BYTES,
   notFound,
@@ -14,6 +15,7 @@ import {
 
 const FIRST_REVISION = 1;
 const IF_MATCH = "if-match";
+const CONTENT_TYPE = "content-type";
 
 /** A revision's entity tag, as `ETag` answers it and `If-Match` names it. */
 const entityTag = (revision: number): string => `"${revision}"`;
@@ -139,6 +141,16 @@ function readDocument(request: LibraryRequest): DocumentReading {
         HTTP_STATUS.tooLarge,
         "tooLarge",
         `a slideshow document is at most ${MAX_DOCUMENT_BYTES} bytes`,
+      ),
+    );
+  }
+  const contentType = request.headers[CONTENT_TYPE];
+  if (!isJsonContentType(contentType)) {
+    return refused(
+      errorResponse(
+        HTTP_STATUS.unsupportedMediaType,
+        "notJson",
+        `Content-Type ${JSON.stringify(contentType ?? null)} is no application/json`,
       ),
     );
   }
