@@ -1,0 +1,119 @@
+import type { ImmichAvailabilityState } from "../immich/immich-availability";
+import { ServerLibraryUnavailableError, type ServerLibraryClient } from "./server-library-client";
+
+/**
+ * Whether the app offers server slideshows (`dev-docs/SERVER_LIBRARY.md`, Availability):
+ * - `on`: the server answers the library's discovery and Immich is available;
+ * - `offline`: the device is offline, and the last answer this session was the discovery;
+ * - `off`: otherwise; the app is as without server slideshows;
+ * - `checking`: until Immich and the first discovery have answered.
+ */
+export type ServerLibraryState =
+  | { readonly kind: "checking" }
+  | { readonly kind: "on" }
+  | { readonly kind: "offline" }
+  | { readonly kind: "off" };
+
+/** Immich's availability, replayed on subscribe (`ImmichAvailability`). */
+export interface ImmichAvailabilitySource {
+  subscribe(listener: (state: ImmichAvailabilityState) => void): () => void;
+}
+
+export interface ServerLibraryAvailabilityOptions {
+  readonly client: Pick<ServerLibraryClient, "discover">;
+  readonly immich: ImmichAvailabilitySource;
+  /** Logs a discovery that failed unexpectedly. */
+  log(error: unknown): void;
+}
+
+/** What the discovery answered last; `unknown` before its first answer. */
+type Discovery = "unknown" | "discovered" | "absent";
+
+/** Immich states that need no discovery: no answer yet, or the server out of reach. */
+const NOT_ASKING: ReadonlySet<ImmichAvailabilityState["kind"]> = new Set(["checking", "offline"]);
+
+/**
+ * Asks the discovery whenever Immich's availability answers, and publishes the server library's
+ * state with the Svelte store contract.
+ */
+export class ServerLibraryAvailability {
+  readonly #client: Pick<ServerLibraryClient, "discover">;
+  readonly #log: (error: unknown) => void;
+  readonly #listeners = new Set<(state: ServerLibraryState) => void>();
+  readonly #pending = new Set<Promise<void>>();
+  readonly #stopFollowingImmich: () => void;
+  #immich: ImmichAvailabilityState = { kind: "checking" };
+  #discovery: Discovery = "unknown";
+  #state: ServerLibraryState = { kind: "checking" };
+  /** Bumped by every discovery started, so only the latest one's answer counts. */
+  #generation = 0;
+
+  constructor(options: ServerLibraryAvailabilityOptions) {
+    this.#client = options.client;
+    this.#log = options.log;
+    this.#stopFollowingImmich = options.immich.subscribe((state) => {
+      this.#immich = state;
+      if (!NOT_ASKING.has(state.kind)) this.#ask();
+      this.#update();
+    });
+  }
+
+  get state(): ServerLibraryState {
+    return this.#state;
+  }
+
+  subscribe(listener: (state: ServerLibraryState) => void): () => void {
+    this.#listeners.add(listener);
+    listener(this.#state);
+    return () => this.#listeners.delete(listener);
+  }
+
+  /** Resolves once every discovery under way has answered. */
+  async settled(): Promise<void> {
+    while (this.#pending.size > 0) await Promise.all(this.#pending);
+  }
+
+  dispose(): void {
+    this.#stopFollowingImmich();
+  }
+
+  #ask(): void {
+    const generation = ++this.#generation;
+    const asking = this.#discover().then((discovery) => {
+      if (generation !== this.#generation) return;
+      this.#discovery = discovery;
+      this.#update();
+    });
+    this.#pending.add(asking);
+    void asking.finally(() => this.#pending.delete(asking));
+  }
+
+  async #discover(): Promise<Discovery> {
+    try {
+      return (await this.#client.discover()) ? "discovered" : "absent";
+    } catch (error) {
+      if (error instanceof ServerLibraryUnavailableError) {
+        return this.#discovery === "unknown" ? "absent" : this.#discovery;
+      }
+      this.#log(error);
+      return "absent";
+    }
+  }
+
+  #update(): void {
+    const state = this.#derive();
+    if (state.kind === this.#state.kind) return;
+    this.#state = state;
+    for (const listener of this.#listeners) listener(state);
+  }
+
+  #derive(): ServerLibraryState {
+    const immich = this.#immich.kind;
+    if (immich === "checking" || (this.#discovery === "unknown" && this.#pending.size > 0)) {
+      return { kind: "checking" };
+    }
+    if (this.#discovery !== "discovered") return { kind: "off" };
+    if (immich === "available") return { kind: "on" };
+    return immich === "offline" ? { kind: "offline" } : { kind: "off" };
+  }
+}

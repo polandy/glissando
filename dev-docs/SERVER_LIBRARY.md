@@ -96,10 +96,13 @@ the server.
 
 ### Availability
 
-`ServerLibraryAvailability` asks `./api/library` whenever Immich's availability is checked. The
-server library is **on** when that answers the discovery and Immich is available; **offline** when
-the device is offline and the last answer was the discovery; otherwise **off**. Off, nothing below
-shows and the app is as without this feature.
+`ServerLibraryAvailability` (`src/server-library/`) asks `./api/library` whenever Immich's
+availability answers (not while it is `checking` or `offline`). The server library is **on** when
+that answers the discovery and Immich is available; **offline** when the device is offline
+(Immich's `offline`: the Glissando server is out of reach) and the last answer this session was
+the discovery; otherwise **off**; **checking** until Immich and the first discovery have answered.
+A discovery that cannot reach the server keeps the last answer; of two under way, the later one
+counts. Off, nothing below shows and the app is as without this feature.
 
 ### Library (start screen)
 
