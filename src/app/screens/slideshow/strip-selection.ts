@@ -101,7 +101,7 @@ export function pick(
 }
 
 /**
- * A tile held (a mouse press, or a touch hold once it lifts): enters several. Outside several
+ * A tile held on touch until it lifts (450 ms): enters several. Outside several
  * the selection becomes just `id`; inside, `id` is added if missing, never toggled off.
  */
 export function hold(selection: StripSelection, id: string): StripSelection {
