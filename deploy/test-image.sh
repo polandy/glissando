@@ -8,7 +8,8 @@
 #   deploy/test-image.sh <image>    tests an image that already exists
 #
 # Every wait is on a log line the awaited state writes, never on a timer; the timeout only
-# bounds a hang.
+# bounds a hang. A log piped into grep is read to its end (never `grep -q`): with pipefail, a
+# grep that stops at the first match fails the pipeline whenever more of the log follows.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -198,7 +199,7 @@ docker stop "$UPSTREAM" >/dev/null
 request "$PROXY" GET "/immich/api/albums?apiKey=client-query" "${CLIENT_CREDENTIALS[@]}"
 expect_equal "with Immich down an allowed read answers 502" 502 "$STATUS"
 wait_for_log "$PROXY" '"status":502'
-docker logs "$PROXY" 2>&1 | grep '"level":"error"' | grep -q "$UPSTREAM" &&
+docker logs "$PROXY" 2>&1 | grep '"level":"error"' | grep "$UPSTREAM" >/dev/null &&
 	pass "the failure to reach Immich is in the container's log" ||
 	fail "the failure to reach Immich is in the container's log"
 
@@ -260,7 +261,7 @@ grep -q -F "Stale" "$WORK/log-library" && fail "the library log has a body" ||
 docker stop "$LIBRARY" >/dev/null
 expect_equal "docker stop ends the container with status 0" 0 \
 	"$(docker inspect --format '{{.State.ExitCode}}' "$LIBRARY")"
-docker logs "$LIBRARY" 2>&1 | grep -q -F "a process ended" &&
+docker logs "$LIBRARY" 2>&1 | grep -F "a process ended" >/dev/null &&
 	fail "docker stop logs a process ending" || pass "docker stop logs no process ending"
 docker run --rm --entrypoint sh --volume "$PWD/deploy/test-supervise.sh:/test-supervise.sh:ro" \
 	"$IMAGE" /test-supervise.sh /usr/local/lib/glissando/supervise.sh || failures=$((failures + 1))
@@ -268,12 +269,9 @@ start_library
 docker exec "$LIBRARY" pkill -KILL -f glissando-library.mjs
 expect_equal "the container stops with the status of a library service that died" "$KILLED_STATUS" \
 	"$(timeout "$WAIT_SECONDS" docker wait "$LIBRARY")"
-if docker logs "$LIBRARY" 2>&1 | grep -q -F "a process ended with status $KILLED_STATUS"; then
-	pass "the log names the status of the process that ended"
-else
-	fail "the log names the status of the process that ended; its log ends:"
-	docker logs "$LIBRARY" 2>&1 | tail -n 5
-fi
+docker logs "$LIBRARY" 2>&1 | grep -F "a process ended with status $KILLED_STATUS" >/dev/null &&
+	pass "the log names the status of the process that ended" ||
+	fail "the log names the status of the process that ended"
 
 echo "# invalid settings stop the start"
 startup_fails() { # name, text the error must contain, docker run arguments...
