@@ -10,10 +10,7 @@ const DURATION_MS = 10_000;
 const FRAMES = 300;
 
 function session(ports: FakeExportPorts, withMusic = true): VideoExportSession<FakePreview> {
-  return new VideoExportSession(
-    { title: TITLE, durationMs: DURATION_MS, withMusic, picturesFromImmich: false },
-    ports,
-  );
+  return new VideoExportSession({ title: TITLE, durationMs: DURATION_MS, withMusic }, ports);
 }
 
 async function opened(ports = new FakeExportPorts(), withMusic = true) {

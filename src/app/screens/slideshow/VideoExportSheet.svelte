@@ -101,7 +101,6 @@
     <ExportChoose
       {view}
       estimate={(preset) => session.estimate(preset)}
-      fromImmich={session.subject.picturesFromImmich}
       onSelect={(preset) => session.select(preset)}
       onStart={() => void session.start()}
       onCancel={close}

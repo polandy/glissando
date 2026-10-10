@@ -206,6 +206,7 @@ wizard as it was with a coral toast naming it and "Try again".
   to them and the player restarts without it, where its slide would have begun (`PlayerLayer`,
   `server-playing.ts`). Any other failure stops playing with "Immich isn't answering"; its Close
   goes back to the slideshow.
-- Video and web page export work the same way (the pictures are fetched as they are needed);
-  their size line says "pictures downloaded from Immich" instead of a number, and the web page
-  sheet measures no picture, as that would download them all.
+- Video and web page export work the same way (the pictures are fetched as they are needed).
+  The video sheet's estimate does not depend on the pictures and shows as for a device
+  slideshow; the web page sheet measures no picture, as that would download them all, and its
+  size line says "pictures downloaded from Immich" instead of a number.

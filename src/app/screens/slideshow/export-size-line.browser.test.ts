@@ -10,12 +10,11 @@ const ESTIMATE_BYTES = 12_000_000;
 let destroy = () => {};
 afterEach(() => destroy());
 
-function presetRadios(fromImmich: boolean) {
+function presetRadios() {
   const mounted = mountWithTranslator(PresetRadios, {
     available: ["720p", "1080p", "4k"],
     preset: "1080p",
     estimate: () => ESTIMATE_BYTES,
-    fromImmich,
     onSelect: () => {},
   });
   destroy = mounted.destroy;
@@ -43,20 +42,21 @@ function pageChoose(fromImmich: boolean) {
 }
 
 describe("the export sheets' size line", () => {
-  it.each([
-    { sheet: "video", mount: presetRadios },
-    { sheet: "web page", mount: pageChoose },
-  ])("of the $sheet says a server slideshow's pictures are downloaded from Immich", ({ mount }) => {
-    const target = mount(true);
+  it("of the web page says a server slideshow's pictures are downloaded from Immich", () => {
+    const target = pageChoose(true);
 
     expect(target.textContent).toContain(de.t("server.exportFromImmich"));
   });
 
-  it.each([
-    { sheet: "video", mount: presetRadios },
-    { sheet: "web page", mount: pageChoose },
-  ])("of the $sheet gives a device slideshow's estimate", ({ mount }) => {
-    const target = mount(false);
+  it("of the video gives the estimate, for a server slideshow too, as pictures don't change it", () => {
+    const target = presetRadios();
+
+    expect(target.textContent).toContain(de.formatBytes(ESTIMATE_BYTES));
+    expect(target.textContent).not.toContain(de.t("server.exportFromImmich"));
+  });
+
+  it("of the web page gives a device slideshow's estimate", () => {
+    const target = pageChoose(false);
 
     expect(target.textContent).toContain(de.formatBytes(ESTIMATE_BYTES));
     expect(target.textContent).not.toContain(de.t("server.exportFromImmich"));

@@ -41,8 +41,6 @@ export interface ExportSubject {
   readonly title: string;
   readonly durationMs: number;
   readonly withMusic: boolean;
-  /** A server slideshow's pictures, downloaded from Immich only as the video is made. */
-  readonly picturesFromImmich: boolean;
 }
 
 export interface SpaceShortage {

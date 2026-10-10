@@ -8,14 +8,11 @@
     available,
     preset,
     estimate,
-    fromImmich,
     onSelect,
   }: {
     available: readonly PresetId[];
     preset: PresetId;
     estimate: (preset: PresetId) => number;
-    /** A server slideshow's pictures are downloaded from Immich: the size line says so. */
-    fromImmich: boolean;
     onSelect: (preset: PresetId) => void;
   } = $props();
 
@@ -37,11 +34,7 @@
           width: String(size.width),
           height: String(size.height),
         }),
-        size: !usable
-          ? ""
-          : fromImmich
-            ? t("server.exportFromImmich")
-            : t("videoExport.about", { size: formatBytes(estimate(id)) }),
+        size: usable ? t("videoExport.about", { size: formatBytes(estimate(id)) }) : "",
         use: usable ? t(`videoExport.use-${id}`) : t("videoExport.cannotEncode"),
         usable,
       };

@@ -2,7 +2,6 @@ import { composeSlideshow, slideshowDurationMs } from "../../compose";
 import type { LibraryStore, StoredSlideshow } from "../../library/stored-slideshow";
 import { runVideoExport } from "../../video-export";
 import { NO_FOCUS_KNOWN } from "../focus/pictures-focus";
-import type { SlideshowHome } from "../routes/slideshow-storage";
 import type { ExportRun, VideoExportPorts } from "./export-sheet-state";
 import { VideoExportSession } from "./video-export-session";
 
@@ -20,7 +19,6 @@ export function slideshowVideoExport(
   device: VideoExportDevice,
   store: Pick<LibraryStore, "pictureBlob" | "musicBlob" | "pictureFocus">,
   stored: StoredSlideshow,
-  home: SlideshowHome,
 ): VideoExportSession<ExportPreview> {
   const run = async (job: ExportRun<ExportPreview>) => {
     const [focus, musicFile] = await Promise.all([
@@ -49,7 +47,6 @@ export function slideshowVideoExport(
       title: stored.title,
       durationMs: slideshowDurationMs(stored),
       withMusic: stored.music !== undefined,
-      picturesFromImmich: home === "server",
     },
     { ...device, run },
   );

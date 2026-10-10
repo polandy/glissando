@@ -206,7 +206,7 @@
     if (stored === null) throw new Error("an export needs the slideshow loaded first");
     return stored;
   }
-  const newVideoExport = () => slideshowVideoExport(videoExport, store, loadedForExport(), home);
+  const newVideoExport = () => slideshowVideoExport(videoExport, store, loadedForExport());
   const newHtmlExport = () =>
     slideshowHtmlExport(htmlExport, store, loadedForExport(), translator, home);
 
