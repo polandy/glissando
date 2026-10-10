@@ -1,7 +1,11 @@
 import { slideDurationsMs } from "../../compose";
 import { musicExcerptMs } from "../../compose/music-excerpt";
 import { addPictures } from "../../library/slideshow-edits";
-import type { StoredPicture, StoredSlideshow } from "../../library/stored-slideshow";
+import {
+  MIN_SECONDS_PER_PICTURE,
+  type StoredPicture,
+  type StoredSlideshow,
+} from "../../library/stored-slideshow";
 import { MILLISECONDS_PER_SECOND } from "../../player";
 
 export interface BeforeAfter {
@@ -13,7 +17,7 @@ export interface BeforeAfter {
 export type AfterAddingNote =
   | { readonly kind: "noMusic"; readonly secondsPerPicture: number }
   | { readonly kind: "sharesMusic" }
-  /** The share fell below the floor, so the slideshow outlasts the music's excerpt. */
+  /** The automatic share fell below the floor, so the slideshow outlasts the music's excerpt. */
   | { readonly kind: "musicTooShort"; readonly musicSeconds: number };
 
 /** The add screen's "After adding" box. */
@@ -44,35 +48,44 @@ export function afterAdding(
       excerptMs === undefined || before.shareMs === null || after.shareMs === null
         ? null
         : { before: toSeconds(before.shareMs), after: toSeconds(after.shareMs) },
-    note: noteFor(slideshow, excerptMs, after.totalMs),
+    note: noteFor(slideshow, excerptMs, after.shareAtFloor),
   };
 }
 
 function noteFor(
   slideshow: StoredSlideshow,
   excerptMs: number | undefined,
-  totalMs: number,
+  shareAtFloor: boolean,
 ): AfterAddingNote {
   if (excerptMs === undefined) {
     return { kind: "noMusic", secondsPerPicture: slideshow.secondsPerPicture };
   }
-  return totalMs > excerptMs
+  return shareAtFloor
     ? { kind: "musicTooShort", musicSeconds: excerptMs / MILLISECONDS_PER_SECOND }
     : { kind: "sharesMusic" };
 }
 
-/** The total and the average automatic picture's duration, null when every picture has its own. */
+/**
+ * The total and the average automatic picture's duration, null when every picture has its own;
+ * whether the music's share for the automatic pictures fell below the floor they are kept at.
+ */
 function timing(
   slideshow: StoredSlideshow,
   excerptMs: number | undefined,
-): { readonly totalMs: number; readonly shareMs: number | null } {
+): { readonly totalMs: number; readonly shareMs: number | null; readonly shareAtFloor: boolean } {
   const durationsMs = slideDurationsMs(slideshow.pictures, excerptMs, slideshow.secondsPerPicture);
   const automaticMs = durationsMs.filter(
     (_, index) => slideshow.pictures[index]?.durationMs === undefined,
   );
   const sum = (values: readonly number[]) => values.reduce((total, value) => total + value, 0);
+  const ownMs = sum(durationsMs) - sum(automaticMs);
+  const shareAtFloor =
+    excerptMs !== undefined &&
+    automaticMs.length > 0 &&
+    (excerptMs - ownMs) / automaticMs.length < MIN_SECONDS_PER_PICTURE * MILLISECONDS_PER_SECOND;
   return {
     totalMs: sum(durationsMs),
     shareMs: automaticMs.length === 0 ? null : sum(automaticMs) / automaticMs.length,
+    shareAtFloor,
   };
 }
