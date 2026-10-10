@@ -156,7 +156,8 @@ wizard as it was with a coral toast naming it and "Try again".
 - **Keep a copy**: a sheet "Keep a copy on this device?" — "Downloads n pictures from Immich and
   the music. The copy plays offline and appears under “On this device”." / "Later edits to either
   one stay in that one." — Cancel / "Download and keep". It runs like an import (originals
-  through `decodePicture`, claims, all or nothing, title made unique), the header progress
+  through `decodePicture`, Immich's faces as focus, claims, all or nothing, title made unique;
+  a picture no longer in Immich fails the copy — `keepCopyOnDevice`), the header progress
   "Copying “title” … 34 %"; done: toast "Copied to this device" with "Open".
 - A device slideshow's ⋯ menu adds (server library on) "Save on the server" ("A copy for every
   device at home"). All pictures from Immich: the sheet "Save on the server?" — "Every device that
