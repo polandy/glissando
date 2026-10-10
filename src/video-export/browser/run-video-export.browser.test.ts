@@ -19,6 +19,11 @@ const SLIDE_MS = 1500;
 /** Two 1.5 s slides: 90 frames at 30 per second. */
 const EXPECTED_FRAMES = 90;
 const PICTURE_SIZE = { width: 640, height: 480 };
+/**
+ * A ceiling, not a wait: a real software encode of 90 frames on a shared CI runner takes up to
+ * about 20 s, past vitest's default of 15 s.
+ */
+const REAL_EXPORT_CEILING_MS = 60_000;
 
 /** A generated picture, so no photo of anyone ever lands in a test. */
 async function generatedPicture(colour: string, label: string): Promise<Blob> {
@@ -136,59 +141,67 @@ async function privateExportNames(): Promise<string[]> {
 }
 
 describe("runVideoExport", () => {
-  it("writes a 720p MP4 with every frame and the music track the browser can encode", async () => {
-    const progress: ExportProgress[] = [];
+  it(
+    "writes a 720p MP4 with every frame and the music track the browser can encode",
+    async () => {
+      const progress: ExportProgress[] = [];
 
-    const { result, target, capabilities } = await exportGenerated(
-      new AbortController().signal,
-      (update) => progress.push(update),
-    );
+      const { result, target, capabilities } = await exportGenerated(
+        new AbortController().signal,
+        (update) => progress.push(update),
+      );
 
-    if (result.kind !== "done") {
-      throw new Error(`the export ended ${result.kind}`, {
-        cause: result.kind === "failed" ? result.error : result,
-      });
-    }
-    expect(progress.at(-1)).toMatchObject({
-      framesDone: EXPECTED_FRAMES,
-      framesTotal: EXPECTED_FRAMES,
-    });
-    const input = new Input({ source: new BlobSource(result.file), formats: ALL_FORMATS });
-    const video = await input.getPrimaryVideoTrack();
-    const audio = await input.getPrimaryAudioTrack();
-    expect(video?.codec).toBe("avc");
-    expect([video?.displayWidth, video?.displayHeight]).toEqual([1280, 720]);
-    if (video === null) {
-      throw new Error("the file has no video track");
-    }
-    const sink = new EncodedPacketSink(video);
-    let packets = 0;
-    for (let packet = await sink.getFirstPacket(); packet !== null;) {
-      packets += 1;
-      packet = await sink.getNextPacket(packet);
-    }
-    expect(packets).toBe(EXPECTED_FRAMES);
-    expect(audio?.codec).toBe(capabilities.audioCodec);
-    expect(await input.computeDuration()).toBeCloseTo(3, 1);
-    input.dispose();
-    await target.discard();
-  });
-
-  it("stops at once on abort and leaves no file behind", async () => {
-    const controller = new AbortController();
-    const progress: ExportProgress[] = [];
-
-    const { result } = await exportGenerated(controller.signal, (update) => {
-      progress.push(update);
-      if (update.framesDone === 10) {
-        controller.abort();
+      if (result.kind !== "done") {
+        throw new Error(`the export ended ${result.kind}`, {
+          cause: result.kind === "failed" ? result.error : result,
+        });
       }
-    });
+      expect(progress.at(-1)).toMatchObject({
+        framesDone: EXPECTED_FRAMES,
+        framesTotal: EXPECTED_FRAMES,
+      });
+      const input = new Input({ source: new BlobSource(result.file), formats: ALL_FORMATS });
+      const video = await input.getPrimaryVideoTrack();
+      const audio = await input.getPrimaryAudioTrack();
+      expect(video?.codec).toBe("avc");
+      expect([video?.displayWidth, video?.displayHeight]).toEqual([1280, 720]);
+      if (video === null) {
+        throw new Error("the file has no video track");
+      }
+      const sink = new EncodedPacketSink(video);
+      let packets = 0;
+      for (let packet = await sink.getFirstPacket(); packet !== null;) {
+        packets += 1;
+        packet = await sink.getNextPacket(packet);
+      }
+      expect(packets).toBe(EXPECTED_FRAMES);
+      expect(audio?.codec).toBe(capabilities.audioCodec);
+      expect(await input.computeDuration()).toBeCloseTo(3, 1);
+      input.dispose();
+      await target.discard();
+    },
+    REAL_EXPORT_CEILING_MS,
+  );
 
-    expect(result).toEqual({ kind: "cancelled" });
-    expect(progress.at(-1)?.framesDone).toBe(10);
-    if (server.browser !== "webkit") {
-      expect(await privateExportNames()).toEqual([]);
-    }
-  });
+  it(
+    "stops at once on abort and leaves no file behind",
+    async () => {
+      const controller = new AbortController();
+      const progress: ExportProgress[] = [];
+
+      const { result } = await exportGenerated(controller.signal, (update) => {
+        progress.push(update);
+        if (update.framesDone === 10) {
+          controller.abort();
+        }
+      });
+
+      expect(result).toEqual({ kind: "cancelled" });
+      expect(progress.at(-1)?.framesDone).toBe(10);
+      if (server.browser !== "webkit") {
+        expect(await privateExportNames()).toEqual([]);
+      }
+    },
+    REAL_EXPORT_CEILING_MS,
+  );
 });
