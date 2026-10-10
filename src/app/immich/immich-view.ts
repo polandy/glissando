@@ -1,6 +1,8 @@
 import { UNEXPECTED_FAILURE, type BrowseFailure } from "../../immich/browse-failure";
 import type { ImmichAvailabilityState } from "../../immich/immich-availability";
 import type { ImmichAlbum, ImmichPhoto, ImmichUnavailableKind } from "../../immich/immich-client";
+import { immichPhotoIdentity } from "../../import/immich-picture-source";
+import { isSamePicture, type PictureIdentity } from "../../library/picture-identity";
 import type { MessageKey } from "../i18n/messages";
 
 /** An Immich problem the UI names in one line; "not set up" is no problem, Immich is just absent. */
@@ -113,33 +115,59 @@ export function selectionSummary(count: number, albumCount: number): SelectionSu
   return { kind: "count", count, albums: albumCount >= ALBUMS_NAMED_FROM ? albumCount : null };
 }
 
-export function isWholeDaySelected(
-  photos: readonly ImmichPhoto[],
-  isSelected: (photoId: string) => boolean,
-): boolean {
-  return photos.every(({ id }) => isSelected(id));
+/** Whether a photo is already in what the browser adds to; such a photo cannot be selected. */
+export type AlreadyIn = (photo: ImmichPhoto) => boolean;
+
+export const NOTHING_ALREADY_IN: AlreadyIn = () => false;
+
+/** A photo is already in when it is the same picture (ADR-0016) as one of `pictures`. */
+export function alreadyInAmong(pictures: readonly PictureIdentity[]): AlreadyIn {
+  return (photo) => {
+    const identity = immichPhotoIdentity(photo);
+    return pictures.some((picture) => isSamePicture(picture, identity));
+  };
 }
 
-/** The photos known to be in an album; `complete` once all of its pages have been read. */
+/** A day heading's button over the photos not already in; null when there are none. */
+export function dayToggle(
+  photos: readonly ImmichPhoto[],
+  isSelected: (photoId: string) => boolean,
+  alreadyIn: AlreadyIn,
+): "select" | "deselect" | null {
+  const selectable = photos.filter((photo) => !alreadyIn(photo));
+  if (selectable.length === 0) return null;
+  return selectable.every(({ id }) => isSelected(id)) ? "deselect" : "select";
+}
+
+/** The photos known to be in an album, by id; `complete` once all of its pages have been read. */
 export interface AlbumMembership {
-  readonly photoIds: ReadonlySet<string>;
+  readonly photos: ReadonlyMap<string, ImmichPhoto>;
   readonly complete: boolean;
 }
 
 export interface AlbumPick {
   readonly selected: number;
+  /** Every photo not already in is selected. */
   readonly all: boolean;
+  /** Known photos already in, which a whole album passes over. */
+  readonly alreadyIn: number;
 }
 
 export function albumPick(
   membership: AlbumMembership | undefined,
   selectedIds: ReadonlySet<string>,
+  alreadyIn: AlreadyIn,
 ): AlbumPick {
-  if (membership === undefined) return { selected: 0, all: false };
+  if (membership === undefined) return { selected: 0, all: false, alreadyIn: 0 };
   let selected = 0;
-  for (const id of membership.photoIds) if (selectedIds.has(id)) selected += 1;
-  const all = membership.complete && selected > 0 && selected === membership.photoIds.size;
-  return { selected, all };
+  let alreadyInCount = 0;
+  for (const photo of membership.photos.values()) {
+    if (alreadyIn(photo)) alreadyInCount += 1;
+    else if (selectedIds.has(photo.id)) selected += 1;
+  }
+  const selectable = membership.photos.size - alreadyInCount;
+  const all = membership.complete && selected > 0 && selected === selectable;
+  return { selected, all, alreadyIn: alreadyInCount };
 }
 
 /** How many albums hold at least one selected photo, as far as their photos are known. */
@@ -149,7 +177,7 @@ export function albumsWithSelection(
 ): number {
   let albums = 0;
   for (const known of membership.values()) {
-    if (albumPick(known, selectedIds).selected > 0) albums += 1;
+    if (albumPick(known, selectedIds, NOTHING_ALREADY_IN).selected > 0) albums += 1;
   }
   return albums;
 }

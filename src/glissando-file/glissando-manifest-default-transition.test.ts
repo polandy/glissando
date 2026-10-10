@@ -33,7 +33,6 @@ function written(
 
 describe("the slideshow's default transition in the .glissando file", () => {
   it("is written as format version 6, the version that carries it", () => {
-    expect(GLISSANDO_FORMAT_VERSION).toBe(6);
     expect(DEFAULT_TRANSITION_FROM_VERSION).toBe(6);
     expect(manifestFor(alternating, [JPEG]).slideshow.transition).toBe("alternate");
   });

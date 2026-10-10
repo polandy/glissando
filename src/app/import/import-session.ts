@@ -1,28 +1,18 @@
 import { buildStoredSlideshow } from "../../compose";
 import type { ImmichPhoto } from "../../immich/immich-client";
-import { localPictureSource, type LocalPictureReaders } from "../../import/local-picture-source";
 import type { MusicProbe } from "../../import/music-probe";
-import { PictureImport, PictureImportFailedError } from "../../import/picture-import";
-import type { PictureSource } from "../../import/picture-source";
+import type { PictureImport } from "../../import/picture-import";
 import {
   DEFAULT_SECONDS_PER_PICTURE,
   type LibraryStore,
   type StoredMusic,
   type StoredSlideshow,
 } from "../../library/stored-slideshow";
+import { PictureIntake, type PictureIntakePorts } from "./picture-intake";
 
-export interface ImportSessionPorts extends LocalPictureReaders {
+export interface ImportSessionPorts extends PictureIntakePorts {
   readonly store: LibraryStore;
-  /** A photo picked in the Immich browser, read through the composition root's client. */
-  immichSource(photo: ImmichPhoto): PictureSource;
   probeMusic(file: File): Promise<MusicProbe>;
-  /** Import, media and slideshow ids. */
-  newId(): string;
-  now(): Date;
-  /** An unexpected error of the picture import, which runs on without a caller to throw to. */
-  onError(error: unknown): void;
-  /** Records an error the user already sees, such as a failed import shown by step 1. */
-  log(error: unknown): void;
 }
 
 export interface ChosenMusic {
@@ -44,35 +34,22 @@ const INITIAL_CHOICES: ImportChoices = {
 /**
  * One "new slideshow" in the making: the pictures of step 1, the choices of step 2 and the
  * creation. It lives as long as the tab keeps it, so leaving the wizard by the back gesture
- * keeps the selection. Every media id is claimed for the import in the store before the media is
- * written, so a clean-up in any tab spares it until the import is created or discarded.
+ * keeps the selection. Its media, the music too, is claimed by the intake until the import is
+ * created or discarded.
  */
 export class ImportSession {
+  readonly intake: PictureIntake;
   readonly pictures: PictureImport;
   readonly #ports: ImportSessionPorts;
   readonly #choiceListeners = new Set<(choices: ImportChoices) => void>();
   #choices = INITIAL_CHOICES;
-  #reporting: Promise<void> = Promise.resolve();
-  #reportedDrain: Promise<void> | null = null;
   /** Bumped by every music pick, so only the latest pick's probe may set the choice. */
   #musicPick = 0;
-  #importId: string;
-  /** Set by the first claim; an import that stores nothing is never recorded. */
-  #startedAt: Date | null = null;
 
   constructor(ports: ImportSessionPorts) {
     this.#ports = ports;
-    this.#importId = ports.newId();
-    this.pictures = new PictureImport({
-      store: {
-        putPicture: async (id, blobs) => {
-          await this.#claim(id);
-          await ports.store.putPicture(id, blobs);
-        },
-        putPictureFocus: (id, focus) => ports.store.putPictureFocus(id, focus),
-      },
-      newId: ports.newId,
-    });
+    this.intake = new PictureIntake(ports);
+    this.pictures = this.intake.pictures;
   }
 
   /** The Svelte store contract over step 2's choices. */
@@ -86,29 +63,16 @@ export class ImportSession {
   };
 
   addPictures(files: readonly File[]): void {
-    this.#add(files.map((file) => localPictureSource(file, this.#ports)));
+    this.intake.addPictures(files);
   }
 
   addImmichPhotos(photos: readonly ImmichPhoto[]): void {
-    this.#add(photos.map((photo) => this.#ports.immichSource(photo)));
-  }
-
-  #add(sources: readonly PictureSource[]): void {
-    this.pictures.add(sources);
-    const drain = this.pictures.settled();
-    if (drain !== this.#reportedDrain) {
-      this.#reportedDrain = drain;
-      this.#reporting = drain.catch((error: unknown) =>
-        error instanceof PictureImportFailedError
-          ? this.#ports.log(error)
-          : this.#ports.onError(error),
-      );
-    }
+    this.intake.addImmichPhotos(photos);
   }
 
   /** Resolves once an unexpected picture-import error, if any, has been reported or logged. */
   reported(): Promise<void> {
-    return this.#reporting;
+    return this.intake.reported();
   }
 
   /**
@@ -157,7 +121,7 @@ export class ImportSession {
       locale,
     });
     await this.#ports.store.saveSlideshow(slideshow);
-    await this.#endImport();
+    await this.intake.endClaim();
     return slideshow;
   }
 
@@ -166,22 +130,9 @@ export class ImportSession {
    * media no longer, so the clean-up that follows deletes it.
    */
   discard(): Promise<void> {
-    this.pictures.cancel();
     this.#musicPick += 1;
     this.#setChoices(INITIAL_CHOICES);
-    return this.#endImport();
-  }
-
-  #claim(mediaId: string): Promise<void> {
-    this.#startedAt ??= this.#ports.now();
-    return this.#ports.store.claimMedia(this.#importId, this.#startedAt, mediaId);
-  }
-
-  #endImport(): Promise<void> {
-    const ended = this.#importId;
-    this.#importId = this.#ports.newId();
-    this.#startedAt = null;
-    return this.#ports.store.releaseClaim(ended);
+    return this.intake.discard();
   }
 
   async #storeMusic(): Promise<StoredMusic | undefined> {
@@ -190,7 +141,7 @@ export class ImportSession {
       return undefined;
     }
     const id = this.#ports.newId();
-    await this.#claim(id);
+    await this.intake.claim(id);
     await this.#ports.store.putMusic(id, chosen.file);
     return {
       id,

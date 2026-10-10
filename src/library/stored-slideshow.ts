@@ -34,6 +34,10 @@ export interface StoredPicture {
    * not applied there (see ADR-0008).
    */
   readonly transition?: TransitionChoice;
+  /** Origin: the Immich asset it was downloaded from (see ADR-0016). */
+  readonly immichAssetId?: string;
+  /** Origin: the size of the original file in bytes (see ADR-0016). */
+  readonly fileBytes?: number;
 }
 
 export interface StoredMusic {

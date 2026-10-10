@@ -3,6 +3,7 @@ import type { FakeImmichClient } from "../../../immich/testing/fake-immich-clien
 import { createTranslator } from "../../i18n/translator";
 import { mountWithTranslator } from "../../testing/mount-with-translator";
 import type { EndObserver } from "../end-observer";
+import { NOTHING_ALREADY_IN, type AlreadyIn } from "../immich-view";
 import { ImmichBrowser } from "../immich-browser";
 import ImmichRoute from "../ImmichRoute.svelte";
 
@@ -52,7 +53,11 @@ export function until<State>(
   return met.finally(() => stop());
 }
 
-export function mountRoute(client: FakeImmichClient, albumId: string | null = null) {
+export function mountRoute(
+  client: FakeImmichClient,
+  albumId: string | null = null,
+  alreadyIn: AlreadyIn = NOTHING_ALREADY_IN,
+) {
   const browser = new ImmichBrowser({ client, reportUnavailable: () => undefined });
   const end = fakeEndObserver();
   const added: (readonly ImmichPhoto[])[] = [];
@@ -62,6 +67,8 @@ export function mountRoute(client: FakeImmichClient, albumId: string | null = nu
     ImmichRoute,
     {
       browser,
+      parentCrumbs: ["New slideshow", "Pictures"],
+      alreadyIn,
       albumId,
       thumbnailUrl: (id: string) => `data:,${id}`,
       onBack: () => (calls.back += 1),

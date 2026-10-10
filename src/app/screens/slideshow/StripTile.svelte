@@ -9,6 +9,7 @@
     picture,
     number,
     selected,
+    isNew,
     draggable,
     dragging,
     drop,
@@ -26,6 +27,8 @@
     /** The position in play order, from 1. */
     number: number;
     selected: boolean;
+    /** Just added: outlined and badged while the screen is shown. */
+    isNew: boolean;
     /** Only a mouse drags: a native drag would take over a touch meant to scroll or select. */
     draggable: boolean;
     dragging: boolean;
@@ -51,7 +54,7 @@
       ? null
       : formatSeconds(picture.ownDurationMs / MILLISECONDS_PER_SECOND),
   );
-  const label = $derived(
+  const ownLabel = $derived(
     [
       picture.ownMotion
         ? t("slideshow.pictureLabelOwnMotion", { number, date })
@@ -64,11 +67,13 @@
           }),
     ].join(""),
   );
+  const label = $derived(isNew ? t("add.newLabel", { label: ownLabel }) : ownLabel);
 </script>
 
 <li
   class="tile"
   class:selected
+  class:new={isNew}
   class:dragging
   class:drop-before={drop === "before"}
   class:drop-after={drop === "after"}
@@ -94,8 +99,11 @@
   >
     <img src={picture.thumbnailUrl} alt={label} draggable="false" />
     <span class="number mono" aria-hidden="true">{number}</span>
-    {#if picture.ownMotion || ownSeconds !== null || picture.ownTransition !== null}
+    {#if isNew || picture.ownMotion || ownSeconds !== null || picture.ownTransition !== null}
       <span class="badges" aria-hidden="true">
+        {#if isNew}
+          <span class="badge new-badge">{t("add.newBadge")}</span>
+        {/if}
         {#if picture.ownMotion}
           <span class="badge"><Icon name="frame" />{t("slideshow.ownMotionBadge")}</span>
         {/if}
@@ -136,6 +144,14 @@
   .tile.selected {
     outline: 3px solid var(--gl-accent);
     outline-offset: 2px;
+  }
+  .tile.new:not(.selected) {
+    outline: 2px solid var(--gl-accent);
+    outline-offset: 2px;
+  }
+  .badge.new-badge {
+    background: var(--gl-accent);
+    color: var(--gl-accent-ink);
   }
   .tile.dragging {
     opacity: 0.35;

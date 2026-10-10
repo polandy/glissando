@@ -49,6 +49,8 @@
     musicOutput,
     onBack,
     onPlay,
+    onAddPictures,
+    addedPictureIds,
     onEdit,
     onEditMusic,
     onDeleted,
@@ -80,6 +82,10 @@
     /** Also taken when the slideshow is no longer on this device. */
     onBack: () => void;
     onPlay: () => void;
+    /** "Add pictures", with the slideshow as shown. */
+    onAddPictures: (slideshow: StoredSlideshow) => void;
+    /** Pictures just added: marked as new, and the toast's undo takes them out. */
+    addedPictureIds: readonly string[];
     /** Opens the picture editor on a picture, from the screen or from the editor itself. */
     onEdit: (pictureId: string) => void;
     onEditMusic: () => void;
@@ -136,6 +142,9 @@
           editor = createEditor(loaded.stored);
           editor.subscribe((edited) => (stored = edited));
           editor.subscribeSaving((isSaving) => (saving = isSaving));
+          if (addedPictureIds.length > 0) {
+            editor.offerAddUndo(addedPictureIds);
+          }
         }
       },
       (error: unknown) => {
@@ -154,7 +163,10 @@
     thumbnails.dispose();
   });
 
-  /** Edits never add pictures, so the focus of those opened with is all the screen needs. */
+  /**
+   * Edits never add pictures (adding has its own screen, which reopens this one), so the focus of
+   * those opened with is all the screen needs.
+   */
   function loadStoredFocus(opened: StoredSlideshow): void {
     store.pictureFocus(opened.pictures.map((picture) => picture.id)).then((read) => {
       if (!left.signal.aborted) {
@@ -173,6 +185,7 @@
       onError,
       onGone,
       removedText: (count) => translator.t("slideshow.removed", { count }),
+      addedText: (count) => translator.t("add.added", { count }),
       undoLabel: () => translator.t("slideshow.undo"),
       lastPictureText: () => translator.t("slideshow.lastPictureStays"),
       motionAutomaticText: () => translator.t("editor.motionAutomatic"),
@@ -221,6 +234,10 @@
     deleteShownSlideshow(store, slideshowId, editor).then(onDeleted, onError);
   }
 
+  // The ids are handed over once, when the screen opens after adding.
+  // svelte-ignore state_referenced_locally
+  const newPictureIds: ReadonlySet<string> = new Set(addedPictureIds);
+
   // The thumbnails are loaded once, for every picture: an undo brings back ones already loaded.
   const details = $derived(
     stored === null ? null : slideshowDetails(stored, (id) => thumbnails.get(id) ?? ""),
@@ -247,6 +264,8 @@
     slideshow={details}
     {onBack}
     {onPlay}
+    onAddPictures={() => stored !== null && onAddPictures(stored)}
+    {newPictureIds}
     onRemove={(pictureId) => editor?.remove(pictureId)}
     onMove={(pictureId, toIndex) => editor?.move(pictureId, toIndex)}
     onRename={(typed) => editor?.rename(typed)}

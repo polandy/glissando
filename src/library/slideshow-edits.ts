@@ -1,3 +1,4 @@
+import { orderByCaptureDate } from "../compose/order-by-capture-date";
 import { normalizeCaption } from "../player/caption";
 import { checkOwnKenBurns, type OwnKenBurns } from "./own-ken-burns";
 import { checkMusicFadeMs, checkMusicTrim, type MusicTrim } from "./own-music";
@@ -12,7 +13,7 @@ import {
 import type { StoredMusic, StoredPicture, StoredSlideshow } from "./stored-slideshow";
 
 /**
- * The editing of a slideshow (dev-docs/SCOPE.md): remove, reorder, rename, a picture's own Ken
+ * The editing of a slideshow (dev-docs/SCOPE.md): add, remove, reorder, rename, a picture's own Ken
  * Burns motion, duration and transition, its caption, and the music's excerpt and fades. Pure
  * functions over the stored record; the caller stores the result.
  */
@@ -62,6 +63,33 @@ export function restorePictures(
   const pictures = [...slideshow.pictures];
   for (const { picture, index } of [...removals].reverse()) {
     pictures.splice(index, 0, picture);
+  }
+  return { ...slideshow, pictures };
+}
+
+/**
+ * New pictures go into their places by capture date while the slideshow keeps that order, and
+ * at the end in capture order once the order is the user's own, which stays.
+ */
+export function addPictures(
+  slideshow: StoredSlideshow,
+  added: readonly StoredPicture[],
+): StoredSlideshow {
+  const pictures = slideshow.ownOrder
+    ? [...slideshow.pictures, ...orderByCaptureDate(added)]
+    : orderByCaptureDate([...slideshow.pictures, ...added]);
+  return { ...slideshow, pictures };
+}
+
+/** Undoes an adding: the given pictures still in the slideshow leave it; one always stays. */
+export function takeOutPictures(
+  slideshow: StoredSlideshow,
+  pictureIds: readonly string[],
+): StoredSlideshow {
+  const taken = new Set(pictureIds);
+  const pictures = slideshow.pictures.filter((picture) => !taken.has(picture.id));
+  if (pictures.length === 0) {
+    throw new LastPictureError(slideshow.id);
   }
   return { ...slideshow, pictures };
 }

@@ -7,6 +7,7 @@
   /** The pictures in play order as tiles: select, remove, and reorder by drag or keyboard. */
   let {
     pictures,
+    newPictureIds,
     selectedId,
     draggable,
     onSelect,
@@ -15,6 +16,8 @@
     onMove,
   }: {
     pictures: readonly PictureTile[];
+    /** Pictures just added, marked as new. */
+    newPictureIds: ReadonlySet<string>;
     selectedId: string | null;
     /** Tiles can be dragged: a mouse is the primary pointer. */
     draggable: boolean;
@@ -148,6 +151,7 @@
       {picture}
       number={index + 1}
       selected={picture.id === selectedId}
+      isNew={newPictureIds.has(picture.id)}
       {draggable}
       dragging={picture.id === draggedId}
       drop={dropMark?.id === picture.id ? (dropMark.after ? "after" : "before") : null}

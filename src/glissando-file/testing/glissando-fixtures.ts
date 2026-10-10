@@ -6,9 +6,9 @@ import { StoredZipWriter } from "../stored-zip";
 export const MODIFIED_AT = new Date("2025-10-01T08:00:00Z");
 
 /**
- * Two pictures in an own order, the first with a caption and its own duration and transition, the
- * second with its own motion, an alternating default transition, and music, as stored on the
- * exporting device.
+ * Two pictures in an own order, the first with a caption, its own duration and transition and a
+ * file size of origin, the second with its own motion, an Immich asset id of origin, an
+ * alternating default transition, and music, as stored on the exporting device.
  */
 export const EXPORTED_SLIDESHOW: StoredSlideshow = {
   id: "source-show",
@@ -24,6 +24,7 @@ export const EXPORTED_SLIDESHOW: StoredSlideshow = {
       caption: "Am Steg",
       durationMs: 8000,
       transition: "dissolve",
+      fileBytes: 2_500_000,
     },
     {
       id: "src-p1",
@@ -31,6 +32,7 @@ export const EXPORTED_SLIDESHOW: StoredSlideshow = {
       width: 40,
       height: 30,
       fileName: "a.jpg",
+      immichAssetId: "asset-a1",
       kenBurns: {
         from: { zoom: 2, centerX: 0.25, centerY: 0.5 },
         to: { zoom: 1.25, centerX: 0.6, centerY: 0.4 },

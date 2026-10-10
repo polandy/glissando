@@ -8,21 +8,22 @@
     type StatusBarAction,
   } from "../pwa/status-bar-view";
   import type { ImmichAvailabilityState } from "../immich/immich-availability";
-  import { ImmichBrowser } from "./immich/immich-browser";
-  import ImmichRoute from "./immich/ImmichRoute.svelte";
-  import { ExportJob, type ExportProgress } from "./glissando-file/export-job";
+  import type { AddedPictures } from "./add-pictures/add-pictures-flow";
+  import type { AddPicturesSession } from "./add-pictures/add-pictures-session";
+  import { createAppFlows } from "./app-flows";
+  import type { ExportProgress } from "./glissando-file/export-job";
   import { setExportStatus } from "./glissando-file/export-status";
   import { openLaunchedFiles } from "./glissando-file/launched-files";
-  import { OpenFlow, type OpenFlowState, type OpenOrigin } from "./glissando-file/open-flow";
+  import type { OpenFlowState, OpenOrigin } from "./glissando-file/open-flow";
   import OpeningOverlay from "./glissando-file/OpeningOverlay.svelte";
   import Toast from "./components/Toast.svelte";
   import { getTranslator } from "./i18n/context";
-  import { ImportFlow } from "./import/import-flow";
   import ImportRoute from "./import/ImportRoute.svelte";
   import type { ImportSession } from "./import/import-session";
   import type { Route } from "./navigation/route";
   import PwaSheet, { type PwaSheetContent } from "./pwa/PwaSheet.svelte";
   import StatusBar from "./pwa/StatusBar.svelte";
+  import IntakeRoutes from "./routes/IntakeRoutes.svelte";
   import SlideshowRoute from "./routes/SlideshowRoute.svelte";
   import { leaveWithToast } from "./routes/slideshow-exits";
   import StartRoute from "./routes/StartRoute.svelte";
@@ -38,29 +39,13 @@
   // The services are wired once, by the composition root.
   // svelte-ignore state_referenced_locally
   const { store, navigator, toaster, reportError, settings, newId, now, pwa, immich } = services;
-  const { t, formatBytes } = getTranslator();
+  const translator = getTranslator();
+  const { t } = translator;
   // svelte-ignore state_referenced_locally
-  const importFlow = new ImportFlow<ImportSession>({
-    ...services,
-    createdText: () => t("import.created"),
-  });
-
-  // svelte-ignore state_referenced_locally
-  const exportJob = new ExportJob({
-    ...services,
-    downloadedText: (fileName, bytes) =>
-      t("glissandoFile.downloaded", { fileName, size: formatBytes(bytes) }),
-    failedText: () => t("glissandoFile.exportFailed"),
-    tryAgainLabel: () => t("glissandoFile.tryAgain"),
-  });
-  // svelte-ignore state_referenced_locally
-  const openFlow = new OpenFlow({
-    ...services,
-    afterCreate: () => void importFlow.afterCreate(),
-    openedText: (title) => t("glissandoFile.opened", { title }),
-    openedAsText: (title, original) => t("glissandoFile.openedAs", { title, original }),
-    cancelledText: () => t("glissandoFile.cancelled"),
-  });
+  const { importFlow, addFlow, exportJob, openFlow, immichBrowsers } = createAppFlows(
+    services,
+    translator,
+  );
 
   let route = $state.raw<Route>(navigator.route);
   let exportProgress = $state.raw<ExportProgress | null>(null);
@@ -73,8 +58,8 @@
   let toast = $state.raw<ToastMessage | null>(toaster.current);
   let settingsState = $state.raw<SettingsState>(settings.state);
   let importSession = $state.raw<ImportSession | null>(null);
-  /** The Immich browser's selection and lists belong to the import session they feed. */
-  let immichBrowser = $state.raw<ImmichBrowser | null>(null);
+  let addSession = $state.raw<AddPicturesSession | null>(null);
+  let added = $state.raw<AddedPictures | null>(null);
   let immichState = $state.raw<ImmichAvailabilityState>(immich.availability.state);
   let persistRefused = $state(false);
   let pwaState = $state.raw<PwaState>(pwa.state);
@@ -88,10 +73,11 @@
       if (next.screen !== "start" && next.screen !== "settings") {
         logoPlays = false;
       }
-      if (next.screen === "import" || next.screen === "immich") {
+      if (next.screen === "import" || (next.screen === "immich" && next.slideshowId === null)) {
         importFlow.ensureSession();
       }
-      if (next.screen === "import" && next.step === "pictures") {
+      addFlow.follow(next);
+      if ((next.screen === "import" && next.step === "pictures") || next.screen === "add") {
         immich.availability.check().catch(reportError);
       }
       // A refused file's notice belongs to the screen it was opened from.
@@ -104,16 +90,11 @@
     const stopSettings = settings.subscribe((next) => (settingsState = next));
     const stopExport = exportJob.subscribe((next) => (exportProgress = next));
     const stopOpen = openFlow.subscribe((next) => (openState = next));
+    const stopAdd = addFlow.subscribe((next) => {
+      addSession = next.session;
+      added = next.added;
+    });
     const stopImport = importFlow.subscribe((next) => {
-      if (next.session !== importSession) {
-        immichBrowser =
-          next.session === null
-            ? null
-            : new ImmichBrowser({
-                client: immich.client,
-                reportUnavailable: (kind) => immich.availability.report(kind),
-              });
-      }
       importSession = next.session;
       persistRefused = next.persistRefused;
       if (next.persistRefused) {
@@ -132,6 +113,7 @@
       stopToast();
       stopSettings();
       stopImport();
+      stopAdd();
       stopExport();
       stopOpen();
       stopPwa();
@@ -225,23 +207,18 @@
     onDismissNotice={() => openFlow.dismissNotice()}
     onReload={services.reload}
     immich={immichState}
-    onOpenImmich={() => navigator.open({ screen: "immich", albumId: null })}
+    onOpenImmich={() => navigator.open({ screen: "immich", albumId: null, slideshowId: null })}
     onImmichSettings={() => navigator.open({ screen: "settings" })}
   />
-{:else if route.screen === "immich" && importSession !== null && immichBrowser !== null}
-  {@const session = importSession}
-  <ImmichRoute
-    browser={immichBrowser}
-    albumId={route.albumId}
-    thumbnailUrl={(photoId) => immich.client.thumbnailUrl(photoId)}
-    onBack={() => navigator.back()}
-    onOpenAlbum={(album) => navigator.open({ screen: "immich", albumId: album.id })}
-    onAdd={(photos) => {
-      session.addImmichPhotos(photos);
-      navigator.open({ screen: "import", step: "pictures" });
-    }}
-    onError={reportError}
-    onReload={services.reload}
+{:else if route.screen === "add" || route.screen === "immich"}
+  <IntakeRoutes
+    {route}
+    {importSession}
+    {addSession}
+    {addFlow}
+    {immichBrowsers}
+    {services}
+    {immichState}
   />
 {:else if route.screen === "slideshow" || route.screen === "player" || route.screen === "picture" || route.screen === "music"}
   {@const slideshowId = route.slideshowId}
@@ -267,6 +244,8 @@
         services.musicOutput.unlock();
         navigator.open({ screen: "player", slideshowId });
       }}
+      onAddPictures={(slideshow) => addFlow.open(slideshow)}
+      addedPictureIds={added?.slideshowId === slideshowId ? added.pictureIds : []}
       onEdit={(pictureId) => navigator.open({ screen: "picture", slideshowId, pictureId })}
       onEditMusic={() => navigator.open({ screen: "music", slideshowId })}
       onDeleted={() => leaveWithToast({ navigator, toaster }, t("slideshow.deleted"))}

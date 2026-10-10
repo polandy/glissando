@@ -12,10 +12,11 @@ export function localPictureSource(file: File, readers: LocalPictureReaders): Pi
   return {
     fileName: file.name,
     mimeType: file.type,
-    read: async () => {
-      const decoded = await readers.decode(file);
-      const capturedAt = await readers.captureDate(file);
-      return { decoded, capturedAt, focus: null };
-    },
+    identify: async () => ({
+      fileName: file.name,
+      capturedAt: await readers.captureDate(file),
+      fileBytes: file.size,
+    }),
+    read: async () => ({ decoded: await readers.decode(file), focus: null }),
   };
 }

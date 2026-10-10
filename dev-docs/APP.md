@@ -34,7 +34,8 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
   …"; a 16:9
   preview of the first picture (tap plays) with the running time, then the pictures in play
   order, each with its order number and capture date, under "Sorted by capture date" or, once
-  the user reordered, "Own order" (with "drag or tap", narrow: "tap to reorder"). Beside it an
+  the user reordered, "Own order" (with "drag or tap", narrow: "tap to reorder"); right of the
+  count "Add pictures" (narrow: "Add"; Adding pictures, below). Beside it an
   info panel: title with a ✎ button, date range (earliest to latest capture), "Play", below it
   "Save as video" (the video export sheet, `dev-docs/VIDEO_EXPORT.md`) and the
   facts — pictures, duration (with "· music 0:44" beside it, muted, when the slideshow does not
@@ -73,6 +74,36 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
     lands. Keyboard: arrows move the focus (and a selection) through the grid, Shift+arrows move
     the tile (up and down by a row), Enter or Space selects, Esc deselects. With a mouse, a
     double-click on a tile opens the picture editor too.
+  - **Adding pictures** (`add-pictures/`, route `{ screen: "add", slideshowId }`; mockup:
+    https://polandy.github.io/glissando-assets/mockups/add-pictures/): the strip header's "Add
+    pictures" opens the import's pictures step for this slideshow, under the crumbs "title / Add
+    pictures", without the step bar, the music step and the "Slideshow from another device?"
+    box. Its lead: "They go into place by capture date." (with own order: "They go at the end, in
+    capture order; your own order stays."), then "Glissando downscales them for this device;
+    your originals stay untouched." The drop zone, the Immich box (its browser opens for this
+    slideshow, Immich below), the progress, the tiles and the notices are the import's; pictures
+    already in the slideshow are skipped (Duplicates, Import wizard). Once at least one new
+    picture is stored and nothing is in flight, a box "After adding" shows pictures "24 → 32",
+    duration "5:40 → 5:40" and, when automatic pictures share the music, per picture "14.2 s →
+    10.6 s" — the composition rules (`src/compose/`, ADR-0008) on the slideshow with the new
+    pictures, so own durations stay. With music a line "The pictures keep sharing the music;
+    each gets a little shorter. Pictures with their own duration keep it.", or, when the share
+    would fall below the 2 s floor, a lemon notice "The music is too short for all pictures: no
+    picture shows for less than 2 s, so the slideshow runs 7:28 and the music 5:40."; without
+    music "Each new picture gets 5 s; the slideshow gets longer." (the slideshow's seconds per
+    picture). The bottom actions: "Cancel" and "Add n". Cancel and ← with new pictures ask
+    "Discard selection?" as in the import; discarding goes back to the slideshow unchanged and
+    the clean-up deletes their media. "Add n" stores the record once (`addPictures` in
+    `slideshow-edits.ts`, through `updateSlideshow`): sorted by capture date the new pictures
+    take their places and the slideshow stays sorted; with own order they go at the end in
+    capture order and `ownOrder` stays. The screen then returns to the slideshow, where the new
+    tiles carry an accent outline and a "new" badge while it is shown (label adds "new"), and
+    the toast "8 pictures added" with "Undo" takes out those of them still in the slideshow
+    (the next clean-up deletes their media). The focus pass starts for the new pictures, as
+    after an import. A slideshow deleted meanwhile ends it like an edit would: back to start
+    with "This slideshow no longer exists.", the new media discarded. The selection lives in
+    memory for the tab like the import's (history restores the screen only from the screen
+    itself or its Immich browser); opening "Add pictures" on another slideshow discards it.
   - **Rename**: ✎ turns the title into a field (at most 80 characters): Enter or leaving it
     saves, Esc cancels, an empty title falls back to the automatic one from the capture dates.
   - **Transitions** (`slideshow/TransitionsSheet.svelte`, ADR-0010): the info panel's
@@ -300,7 +331,11 @@ gesture (which cannot be stopped) keeps it, and "New slideshow" resumes it.
   Cancel and ← with a selection ask "Discard selection?" (Keep choosing / Discard). While the
   drop zone shows, a box below it offers "Slideshow from another device?" with "Open file"; a
   single .glissando file chosen or dropped on the drop zone opens it (above) instead of being
-  imported as a picture. Above that box, when this Glissando offers Immich (below), a box "From
+  imported as a picture. **Duplicates** (ADR-0016): a picture already in the slideshow being
+  added to, or already taken in by this import, is skipped before it is downscaled and counts
+  as done; a lemon notice names them, "2 pictures are already in the slideshow and were skipped:
+  names." (a new slideshow: "2 pictures were chosen twice and were skipped: names."), with "Add
+  anyway", which takes them in after all. Above that box, when this Glissando offers Immich (below), a box "From
   Immich" with "Open Immich" opens the Immich browser; offline it is greyed out ("Offline — Immich
   needs a connection to your Glissando server …"), with an Immich problem it names it and offers
   "Settings". Photos added from Immich join the same import: the same progress ("n / m pictures
@@ -331,10 +366,12 @@ not match Immich's API, the error is reported and the status stays "checking". A
 meets while browsing or importing is published at once (`report(kind)`); the next check may clear
 it.
 
-`immich/ImmichRoute.svelte`, under the crumbs "New slideshow / Pictures / Immich" (an album adds
-its name), opened from the pictures step; ← goes back a level (album → albums → pictures step),
+`immich/ImmichRoute.svelte`, under the crumbs "New slideshow / Pictures / Immich" (adding
+pictures: "title / Add pictures / Immich"; an album adds its name), opened from the pictures step
+(route `{ screen: "immich", albumId, slideshowId }`, `slideshowId` null for a new slideshow); ← goes back a level (album → albums → pictures step),
 keeping the selection. `immich/immich-browser.ts` holds the selection, the tab, the albums and the
-feeds read so far for as long as the import session lives (`App.svelte` makes one per session):
+feeds read so far for as long as the intake it feeds lives (`immich-browsers.ts` keeps one per
+intake, the import's or the adding's):
 
 - **Tabs** "All photos" (first) and "Albums".
 - **All photos**: the library's photos newest first, grouped by day (heading "Sat, 12 July 2025",
@@ -349,6 +386,9 @@ feeds read so far for as long as the import session lives (`App.svelte` makes on
   of photos, "Select all n" and "n videos hidden" are exact once all of its pages are read (the
   first page of a small album; until then "n photos" is Immich's count and the button "Select
   all"), and the badge counts only photos already read from that album.
+- **Already in**: a photo already in the slideshow being added to, or already taken in by the
+  import, shows dimmed with a check chip "Already in", cannot be selected and is passed over by
+  "Select day", "Select all" and a whole album; the album view says "n already in".
 - **Selection** spans both tabs and several albums. A tile toggles with a tap (check circle, the
   photo inset on a peach tint). A shift-click gives every photo shown from the last tapped one to
   this one the last tapped one's state (selected or not), across days; the next shift-click

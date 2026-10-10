@@ -7,19 +7,28 @@
   import type { MessageKey } from "../i18n/messages";
   import { IMPORT_STEPS, type ImportStep } from "../navigation/route";
 
-  /** The wizard's frame: crumbs with the step, the step bar, the body and the bottom actions. */
+  /**
+   * The wizard's frame: crumbs with the step, the step bar, the body and the bottom actions.
+   * Adding pictures to a slideshow uses it without a step (and so without the bar), under its own
+   * crumbs.
+   */
   let {
     step,
+    crumbs = null,
     onBack,
     children,
     actions,
-  }: { step: ImportStep; onBack: () => void; children: Snippet; actions: Snippet } = $props();
+  }: {
+    step: ImportStep | null;
+    crumbs?: readonly string[] | null;
+    onBack: () => void;
+    children: Snippet;
+    actions: Snippet;
+  } = $props();
 
   const { t } = getTranslator();
-  const stepCrumb = $derived(
-    step === "pictures" ? t("import.crumbPictures") : t("import.crumbMusic"),
-  );
-  const stepIndex = $derived(IMPORT_STEPS.indexOf(step));
+  const stepCrumb = $derived(step === "music" ? t("import.crumbMusic") : t("import.crumbPictures"));
+  const stepIndex = $derived(step === null ? -1 : IMPORT_STEPS.indexOf(step));
   const STEP_LABELS: Readonly<Record<ImportStep, MessageKey>> = {
     pictures: "import.crumbPictures",
     music: "import.crumbMusic",
@@ -27,20 +36,22 @@
 </script>
 
 <div class="screen">
-  <Header crumbs={[t("start.library"), t("import.crumb"), stepCrumb]} {onBack} />
+  <Header crumbs={crumbs ?? [t("start.library"), t("import.crumb"), stepCrumb]} {onBack} />
   <main class="content">
-    <!-- The crumbs name the step for assistive technology; this bar repeats it visually. -->
-    <ol class="steps" aria-hidden="true">
-      {#each IMPORT_STEPS as known, index (known)}
-        {#if index > 0}<li class="line"></li>{/if}
-        <li class="step" class:on={index === stepIndex} class:done={index < stepIndex}>
-          <span class="num mono">
-            {#if index < stepIndex}<Icon name="check" />{:else}{index + 1}{/if}
-          </span>
-          {t(STEP_LABELS[known])}
-        </li>
-      {/each}
-    </ol>
+    {#if step !== null}
+      <!-- The crumbs name the step for assistive technology; this bar repeats it visually. -->
+      <ol class="steps" aria-hidden="true">
+        {#each IMPORT_STEPS as known, index (known)}
+          {#if index > 0}<li class="line"></li>{/if}
+          <li class="step" class:on={index === stepIndex} class:done={index < stepIndex}>
+            <span class="num mono">
+              {#if index < stepIndex}<Icon name="check" />{:else}{index + 1}{/if}
+            </span>
+            {t(STEP_LABELS[known])}
+          </li>
+        {/each}
+      </ol>
+    {/if}
     {@render children()}
   </main>
   <div class="actions" use:keepToastsClear>{@render actions()}</div>

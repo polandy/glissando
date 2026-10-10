@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { ImmichAlbum } from "../../immich/immich-client";
+import type { ImmichAlbum, ImmichPhoto } from "../../immich/immich-client";
 import { photo } from "../../immich/testing/fake-immich-client";
 import {
   albumPick,
@@ -8,10 +8,21 @@ import {
   filterAlbums,
   immichBox,
   immichSettings,
-  isWholeDaySelected,
+  alreadyInAmong,
+  dayToggle,
   selectionSummary,
   type AlbumMembership,
 } from "./immich-view";
+
+/** An album's membership as far as its photos `ids` are known. */
+function known(ids: readonly string[], complete: boolean): AlbumMembership {
+  return { photos: new Map(ids.map((id) => [id, photo(id)])), complete };
+}
+
+const alreadyInOf =
+  (...ids: string[]) =>
+  (candidate: ImmichPhoto): boolean =>
+    ids.includes(candidate.id);
 
 function album(id: string, name: string): ImmichAlbum {
   return { id, name, photoCount: 3, coverId: null, startDate: null, endDate: null };
@@ -80,43 +91,98 @@ describe("selectionSummary, the browser footer", () => {
   });
 });
 
-describe("isWholeDaySelected", () => {
-  const day = [photo("a"), photo("b")];
+describe("alreadyInAmong", () => {
+  const isIn = alreadyInAmong([
+    { fileName: "beach.jpg", capturedAt: "2025-07-12T14:30:00.000Z", fileBytes: 1000 },
+    { fileName: "x.jpg", capturedAt: "2020-01-01T00:00:00Z", immichAssetId: "asset-1" },
+  ]);
 
-  it("is true only when every photo of the day is selected", () => {
-    expect(isWholeDaySelected(day, (id) => id === "a")).toBe(false);
-    expect(isWholeDaySelected(day, () => true)).toBe(true);
+  it("finds a photo by its asset id, or by file name and capture date", () => {
+    expect(isIn(photo("asset-1"))).toBe(true);
+    expect(
+      isIn({ id: "asset-9", fileName: "beach.jpg", takenAt: "2025-07-12T14:30:00.000Z" }),
+    ).toBe(true);
+  });
+
+  it("passes a photo that is no picture there", () => {
+    expect(isIn(photo("asset-2"))).toBe(false);
+  });
+});
+
+describe("dayToggle, a day heading's button", () => {
+  const day = [photo("a"), photo("b"), photo("c")];
+  const nothingIn = alreadyInOf();
+
+  it("selects the day until every photo of it is selected, then deselects it", () => {
+    expect(dayToggle(day, (id) => id === "a", nothingIn)).toBe("select");
+    expect(dayToggle(day, () => true, nothingIn)).toBe("deselect");
+  });
+
+  it("passes over the photos already in", () => {
+    expect(dayToggle(day, (id) => id !== "c", alreadyInOf("c"))).toBe("deselect");
+  });
+
+  it("offers nothing on a day whose photos are all already in", () => {
+    expect(dayToggle(day, () => false, alreadyInOf("a", "b", "c"))).toBeNull();
   });
 });
 
 describe("albumPick, an album card's selection", () => {
-  const complete: AlbumMembership = { photoIds: new Set(["a", "b"]), complete: true };
+  const complete = known(["a", "b"], true);
+  const nothingIn = alreadyInOf();
 
   it("is nothing while none of the album's known photos is selected", () => {
-    expect(albumPick(complete, new Set(["x"]))).toEqual({ selected: 0, all: false });
-    expect(albumPick(undefined, new Set(["a"]))).toEqual({ selected: 0, all: false });
+    expect(albumPick(complete, new Set(["x"]), nothingIn)).toEqual({
+      selected: 0,
+      all: false,
+      alreadyIn: 0,
+    });
+    expect(albumPick(undefined, new Set(["a"]), nothingIn)).toEqual({
+      selected: 0,
+      all: false,
+      alreadyIn: 0,
+    });
   });
 
   it("counts the album's selected photos", () => {
-    expect(albumPick(complete, new Set(["a", "x"]))).toEqual({ selected: 1, all: false });
+    expect(albumPick(complete, new Set(["a", "x"]), nothingIn)).toEqual({
+      selected: 1,
+      all: false,
+      alreadyIn: 0,
+    });
   });
 
   it("is all once every photo of a fully known album is selected", () => {
-    expect(albumPick(complete, new Set(["a", "b"]))).toEqual({ selected: 2, all: true });
+    expect(albumPick(complete, new Set(["a", "b"]), nothingIn)).toEqual({
+      selected: 2,
+      all: true,
+      alreadyIn: 0,
+    });
+  });
+
+  it("is all once every photo not already in is selected, and counts those already in", () => {
+    expect(albumPick(complete, new Set(["a"]), alreadyInOf("b"))).toEqual({
+      selected: 1,
+      all: true,
+      alreadyIn: 1,
+    });
   });
 
   it("is never all while the album is only partly known", () => {
-    const partial: AlbumMembership = { photoIds: new Set(["a"]), complete: false };
-    expect(albumPick(partial, new Set(["a"]))).toEqual({ selected: 1, all: false });
+    expect(albumPick(known(["a"], false), new Set(["a"]), nothingIn)).toEqual({
+      selected: 1,
+      all: false,
+      alreadyIn: 0,
+    });
   });
 });
 
 describe("albumsWithSelection", () => {
   it("counts the albums with at least one selected photo", () => {
     const membership = new Map<string, AlbumMembership>([
-      ["lake", { photoIds: new Set(["a", "b"]), complete: true }],
-      ["hike", { photoIds: new Set(["c"]), complete: false }],
-      ["party", { photoIds: new Set(["d"]), complete: true }],
+      ["lake", known(["a", "b"], true)],
+      ["hike", known(["c"], false)],
+      ["party", known(["d"], true)],
     ]);
 
     expect(albumsWithSelection(membership, new Set(["b", "c", "x"]))).toBe(2);

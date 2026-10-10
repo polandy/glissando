@@ -14,6 +14,7 @@ import {
   GLISSANDO_FORMAT_ID,
   GLISSANDO_FORMAT_VERSION,
   OLDEST_READABLE_FORMAT_VERSION,
+  ORIGIN_FROM_VERSION,
   OWN_KEN_BURNS_FROM_VERSION,
   MUSIC_TRIM_FROM_VERSION,
   OWN_TIMING_FROM_VERSION,
@@ -135,11 +136,14 @@ function readPicture(value: unknown, path: string, version: number): ManifestPic
     ...(version >= OWN_KEN_BURNS_FROM_VERSION ? ["kenBurns"] : []),
     ...(version >= CAPTION_FROM_VERSION ? ["caption"] : []),
     ...(version >= OWN_TIMING_FROM_VERSION ? ["durationMs", "transition"] : []),
+    ...(version >= ORIGIN_FROM_VERSION ? ["immichAssetId", "fileBytes"] : []),
   ]);
   const kenBurns = picture["kenBurns"];
   const caption = picture["caption"];
   const durationMs = picture["durationMs"];
   const transition = picture["transition"];
+  const immichAssetId = picture["immichAssetId"];
+  const fileBytes = picture["fileBytes"];
   return {
     file: readText(picture["file"], `${path}.file`),
     thumbnail: readText(picture["thumbnail"], `${path}.thumbnail`),
@@ -155,6 +159,12 @@ function readPicture(value: unknown, path: string, version: number): ManifestPic
     ...(transition === undefined
       ? {}
       : { transition: readOwnTiming(checkTransitionChoice, transition, path) }),
+    ...(immichAssetId === undefined
+      ? {}
+      : { immichAssetId: readText(immichAssetId, `${path}.immichAssetId`) }),
+    ...(fileBytes === undefined
+      ? {}
+      : { fileBytes: readPositiveInteger(fileBytes, `${path}.fileBytes`) }),
   };
 }
 
@@ -281,7 +291,7 @@ function readDateTime(value: unknown, path: string): string {
 }
 
 function readPositiveInteger(value: unknown, path: string): number {
-  if (typeof value !== "number" || !Number.isInteger(value) || value <= 0) {
+  if (typeof value !== "number" || !Number.isSafeInteger(value) || value <= 0) {
     throw new ManifestFormatError(path, "a positive whole number", value);
   }
   return value;

@@ -4,6 +4,7 @@ import { createErrorReporter } from "./app/errors/error-reporter";
 import { translatorContext } from "./app/i18n/context";
 import { createTranslator } from "./app/i18n/translator";
 import { TranslatorState } from "./app/i18n/translator-state.svelte";
+import { AddPicturesSession } from "./app/add-pictures/add-pictures-session";
 import { ImportSession } from "./app/import/import-session";
 import { createWindowHistory, Navigator } from "./app/navigation/navigator";
 import { randomId } from "./app/random-id";
@@ -27,6 +28,8 @@ import { decodePicture } from "./import/downscale";
 import { captureDate } from "./import/exif-capture-date";
 import { immichPictureSource } from "./import/immich-picture-source";
 import { HttpImmichClient } from "./immich/http-immich-client";
+import type { ImmichPhoto } from "./immich/immich-client";
+import type { StoredSlideshow } from "./library/stored-slideshow";
 import { browserNetworkStatus, ImmichAvailability } from "./immich/immich-availability";
 import { probeMusic } from "./import/music-probe";
 import { createMusicAudioContext, MusicOutput } from "./player";
@@ -125,6 +128,23 @@ const download = createDownloader({
   scheduler: browserScheduler,
 });
 
+/** What every picture intake reads with, for a new slideshow and for adding to one. */
+const intakePorts = {
+  decode: decodePicture,
+  captureDate,
+  immichSource: (photo: ImmichPhoto) =>
+    immichPictureSource(photo, {
+      client: immichClient,
+      decode: decodePicture,
+      reportUnavailable: (kind) => immichAvailability.report(kind),
+      log: logError,
+    }),
+  newId,
+  now,
+  onError: reportError,
+  log: logError,
+};
+
 const services = {
   store,
   navigator: new Navigator(createWindowHistory(window)),
@@ -142,24 +162,9 @@ const services = {
   musicAudio: browserMusicEditorAudio(musicOutput),
   focusPass,
   immich: { client: immichClient, availability: immichAvailability },
-  newImportSession: () =>
-    new ImportSession({
-      store,
-      decode: decodePicture,
-      captureDate,
-      immichSource: (photo) =>
-        immichPictureSource(photo, {
-          client: immichClient,
-          decode: decodePicture,
-          reportUnavailable: (kind) => immichAvailability.report(kind),
-          log: logError,
-        }),
-      probeMusic,
-      newId,
-      now,
-      onError: reportError,
-      log: logError,
-    }),
+  newImportSession: () => new ImportSession({ ...intakePorts, store, probeMusic }),
+  newAddPicturesSession: (slideshow: StoredSlideshow) =>
+    new AddPicturesSession(slideshow, { ...intakePorts, store }),
   newId,
   now,
   deleteAbandonedMedia,

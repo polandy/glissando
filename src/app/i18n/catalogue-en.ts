@@ -1,3 +1,4 @@
+import { enAdd } from "./catalogue-en-add";
 import { enEditor } from "./catalogue-en-editor";
 import { enMusic } from "./catalogue-en-music";
 import { enTiming } from "./catalogue-en-timing";
@@ -270,6 +271,7 @@ export const en: Catalogue = {
   "player.pictureError": "A picture could not be loaded.",
   "player.playbackError": "The slideshow could not be played.",
   ...enEditor,
+  ...enAdd,
   ...enTiming,
   ...enTransitions,
   ...enImmich,

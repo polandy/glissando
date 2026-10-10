@@ -7,7 +7,7 @@ import {
 import type { ImmichAlbum, ImmichClient, ImmichPhoto } from "../../immich/immich-client";
 import { PhotoFeed } from "../../immich/photo-feed";
 import { allAlbumPhotos, PhotoSelection } from "../../immich/photo-selection";
-import type { AlbumMembership } from "./immich-view";
+import { NOTHING_ALREADY_IN, type AlbumMembership, type AlreadyIn } from "./immich-view";
 
 export type BrowserTab = "photos" | "albums";
 
@@ -104,14 +104,15 @@ export class ImmichBrowser {
   }
 
   /**
-   * Selects every photo of the album, or deselects them when all already are. A toggle while the
-   * album's photos are being fetched is ignored; a photo deselected meanwhile stays deselected.
+   * Selects every photo of the album not already in, or deselects them when all already are. A
+   * toggle while the album's photos are being fetched is ignored; a photo deselected meanwhile
+   * stays deselected.
    */
-  async toggleAlbum(albumId: string): Promise<void> {
+  async toggleAlbum(albumId: string, alreadyIn: AlreadyIn = NOTHING_ALREADY_IN): Promise<void> {
     if (this.#state.busyAlbumIds.has(albumId)) return;
     const known = this.#albumPhotos.get(albumId);
     if (this.#completeAlbums.has(albumId) && known !== undefined) {
-      const photos = [...known.values()];
+      const photos = [...known.values()].filter((photo) => !alreadyIn(photo));
       if (photos.every(({ id }) => this.selection.has(id))) {
         this.selection.deselectAll(photos);
       } else {
@@ -125,7 +126,9 @@ export class ImmichBrowser {
     try {
       const photos = await allAlbumPhotos(this.#client, albumId);
       this.#learn(albumId, photos, true);
-      this.selection.selectAll(photos.filter(({ id }) => !deselected.ids.has(id)));
+      this.selection.selectAll(
+        photos.filter((photo) => !deselected.ids.has(photo.id) && !alreadyIn(photo)),
+      );
     } catch (error) {
       const failure = browseFailureOf(error, this.#reportUnavailable);
       this.#setAlbumFailure(albumId, failure);
@@ -158,7 +161,7 @@ export class ImmichBrowser {
     if (known.size === before && wasComplete === this.#completeAlbums.has(albumId)) return;
     const membership = new Map(this.#state.membership);
     membership.set(albumId, {
-      photoIds: new Set(known.keys()),
+      photos: new Map(known),
       complete: this.#completeAlbums.has(albumId),
     });
     this.#publish({ ...this.#state, membership });

@@ -1,5 +1,5 @@
 import { slideDurationsMs } from "../../compose";
-import type { PictureImportState, SkippedFile } from "../../import/picture-import";
+import type { PictureImportState, SkipReason, SkippedFile } from "../../import/picture-import";
 import type { StoredPicture } from "../../library/stored-slideshow";
 import { MILLISECONDS_PER_SECOND } from "../../player";
 
@@ -40,14 +40,18 @@ export interface SkippedNotices {
   readonly unreadable: readonly string[];
   /** Photos Immich could not deliver. */
   readonly notDownloaded: readonly string[];
+  /** Pictures already there, which "Add anyway" takes in after all. */
+  readonly duplicate: readonly string[];
 }
 
 export function skippedNotices(skipped: readonly SkippedFile[]): SkippedNotices {
-  const namesFor = (isNotDownloaded: boolean): string[] =>
-    skipped
-      .filter((file) => (file.reason === "notDownloaded") === isNotDownloaded)
-      .map((file) => file.fileName);
-  return { unreadable: namesFor(false), notDownloaded: namesFor(true) };
+  const namesFor = (matches: (reason: SkipReason) => boolean): string[] =>
+    skipped.filter((file) => matches(file.reason)).map((file) => file.fileName);
+  return {
+    unreadable: namesFor((reason) => reason === "unsupported" || reason === "unreadable"),
+    notDownloaded: namesFor((reason) => reason === "notDownloaded"),
+    duplicate: namesFor((reason) => reason === "duplicate"),
+  };
 }
 
 /** First and last capture date of pictures already in capture order. */

@@ -5,8 +5,8 @@ import { parentOf, parseRoute } from "./route";
 
 const START: Route = { screen: "start" };
 const PICTURES: Route = { screen: "import", step: "pictures" };
-const IMMICH: Route = { screen: "immich", albumId: null };
-const ALBUM: Route = { screen: "immich", albumId: "a1" };
+const IMMICH: Route = { screen: "immich", albumId: null, slideshowId: null };
+const ALBUM: Route = { screen: "immich", albumId: "a1", slideshowId: null };
 
 describe("Navigator, the Immich browser", () => {
   it("opens the browser below the pictures step and an album below the browser", () => {
@@ -43,9 +43,9 @@ describe("Navigator, the Immich browser", () => {
   });
 
   it("reads the browser's routes back and rejects an album id that is not one", () => {
-    expect(parseRoute({ screen: "immich", albumId: null })).toEqual(IMMICH);
-    expect(parseRoute({ screen: "immich", albumId: "a1" })).toEqual(ALBUM);
-    expect(parseRoute({ screen: "immich", albumId: 7 })).toBeNull();
-    expect(parseRoute({ screen: "immich" })).toBeNull();
+    expect(parseRoute({ screen: "immich", albumId: null, slideshowId: null })).toEqual(IMMICH);
+    expect(parseRoute({ screen: "immich", albumId: "a1", slideshowId: null })).toEqual(ALBUM);
+    expect(parseRoute({ screen: "immich", albumId: 7, slideshowId: null })).toBeNull();
+    expect(parseRoute({ screen: "immich", slideshowId: null })).toBeNull();
   });
 });

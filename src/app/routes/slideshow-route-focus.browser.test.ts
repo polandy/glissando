@@ -66,6 +66,8 @@ function mountRoute(store: MemoryLibraryStore, focusPass: FocusPass, editingPict
     musicOutput,
     onBack: () => {},
     onPlay: () => {},
+    onAddPictures: () => {},
+    addedPictureIds: [],
     onEdit: () => {},
     onEditMusic: () => {},
     onDeleted: () => {},

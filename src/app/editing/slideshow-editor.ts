@@ -16,9 +16,11 @@ import {
   setPictureKenBurns,
   setPictureTransition,
   setSlideshowTransition,
+  takeOutPictures,
 } from "../../library/slideshow-edits";
 import type { LibraryStore, StoredSlideshow } from "../../library/stored-slideshow";
 import type { Toaster } from "../toast/toaster";
+import { AddUndo } from "./add-undo";
 import { EditSaver } from "./edit-saver";
 import { RemovalUndo } from "./removal-undo";
 import { ResetUndo, type ResettableSetting } from "./reset-undo";
@@ -36,6 +38,8 @@ export interface SlideshowEditorPorts {
   readonly onGone: () => void;
   /** The undo toast's text for `count` pictures removed. */
   readonly removedText: (count: number) => string;
+  /** The undo toast's text for `count` pictures added. */
+  readonly addedText: (count: number) => string;
   readonly undoLabel: () => string;
   /** Why the last picture stays, and how to discard the whole slideshow instead. */
   readonly lastPictureText: () => string;
@@ -64,6 +68,7 @@ export class SlideshowEditor {
   #slideshow: StoredSlideshow;
   readonly #removalUndo: RemovalUndo;
   readonly #resetUndo: ResetUndo;
+  readonly #addUndo: AddUndo;
   readonly #saver: EditSaver;
 
   constructor(initial: StoredSlideshow, ports: SlideshowEditorPorts) {
@@ -81,6 +86,14 @@ export class SlideshowEditor {
     this.#removalUndo = new RemovalUndo({
       ...ports,
       track: (work) => this.#saver.track(work),
+    });
+    this.#addUndo = new AddUndo({
+      ...ports,
+      takeOut: (pictureIds) => {
+        const takenOut = takeOutPictures(this.#slideshow, pictureIds);
+        this.#removalUndo.end();
+        this.#apply(takenOut);
+      },
     });
   }
 
@@ -110,6 +123,11 @@ export class SlideshowEditor {
       this.#apply(restorePictures(this.#slideshow, removals)),
     );
     this.#apply(slideshow);
+  }
+
+  /** Pictures just added on the add screen: the toast's undo takes those still here out. */
+  offerAddUndo(pictureIds: readonly string[]): void {
+    this.#addUndo.offer(pictureIds);
   }
 
   move(pictureId: string, toIndex: number): void {
@@ -249,6 +267,7 @@ export class SlideshowEditor {
   dispose(): void {
     this.#removalUndo.end();
     this.#resetUndo.end();
+    this.#addUndo.end();
   }
 
   /** The undo of a reset; a picture removed meanwhile has nothing to bring back. */

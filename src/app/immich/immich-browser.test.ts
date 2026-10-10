@@ -84,7 +84,10 @@ describe("ImmichBrowser", () => {
     expect(browser.albumFeed("lake")).toBe(feed);
     expect(client.photoQueries).toEqual([{ page: 1, albumId: "lake" }]);
     expect(browser.state.membership.get("lake")).toEqual({
-      photoIds: new Set(["p1", "p2"]),
+      photos: new Map([
+        ["p1", photo("p1")],
+        ["p2", photo("p2")],
+      ]),
       complete: true,
     });
   });
@@ -106,6 +109,19 @@ describe("ImmichBrowser", () => {
 
     await browser.toggleAlbum("lake");
 
+    expect(browser.selection.count).toBe(0);
+  });
+
+  it("passes over the photos already in when it selects and deselects a whole album", async () => {
+    const client = new FakeImmichClient();
+    client.photoAnswers.push({ photos: [photo("p1"), photo("in"), photo("p2")], nextPage: null });
+    const { browser } = browserWith(client);
+    const alreadyIn = (candidate: { readonly id: string }) => candidate.id === "in";
+
+    await browser.toggleAlbum("lake", alreadyIn);
+    expect(browser.selection.photos().map(({ id }) => id)).toEqual(["p1", "p2"]);
+
+    await browser.toggleAlbum("lake", alreadyIn);
     expect(browser.selection.count).toBe(0);
   });
 

@@ -49,7 +49,12 @@ export function details(ids: readonly string[], overrides: Partial<SlideshowDeta
 
 export function mountScreen(
   slideshow: SlideshowDetails = details(["a", "b", "c"]),
-  { mousePointer = true, saving = false, reducedMotion = false } = {},
+  {
+    mousePointer = true,
+    saving = false,
+    reducedMotion = false,
+    newPictureIds = new Set<string>(),
+  } = {},
 ) {
   const clock = new FakeClock();
   const frames = new FakeFrameScheduler();
@@ -62,12 +67,15 @@ export function mountScreen(
     transitions: [] as SlideshowTransition[],
     transitionResets: 0,
     deletes: 0,
+    adds: 0,
   };
   // The transitions sheet's picks and resets come back as the parent would show them.
   const props = reactiveProps({
     slideshow,
     onBack: () => {},
     onPlay: () => {},
+    onAddPictures: () => (calls.adds += 1),
+    newPictureIds,
     onRemove: (pictureId: string) => calls.removed.push(pictureId),
     onMove: (pictureId: string, toIndex: number) => calls.moved.push([pictureId, toIndex]),
     onRename: (typed: string) => calls.renamed.push(typed),

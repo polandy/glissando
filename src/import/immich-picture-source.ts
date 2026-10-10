@@ -7,6 +7,7 @@ import {
 } from "../immich/immich-client";
 import { focusFromFaces } from "../immich/immich-focus";
 import type { PictureFocus } from "../library/picture-focus";
+import type { PictureIdentity } from "../library/picture-identity";
 import type { DecodedPicture } from "./downscale";
 import { PictureNotDownloadedError, type PictureSource } from "./picture-source";
 import { UnreadablePictureError } from "./unreadable-picture";
@@ -32,6 +33,11 @@ export interface ImmichPictureReaders {
  * (e.g. HEIC) falls back to Immich's preview. Its faces give its focus (ADR-0013); without them
  * the on-device pass looks for it later.
  */
+/** What tells the photo from other pictures (ADR-0016), known without downloading it. */
+export function immichPhotoIdentity(photo: ImmichPhoto): PictureIdentity {
+  return { fileName: photo.fileName, capturedAt: photo.takenAt, immichAssetId: photo.id };
+}
+
 export function immichPictureSource(
   photo: ImmichPhoto,
   { client, decode, reportUnavailable, log }: ImmichPictureReaders,
@@ -75,9 +81,10 @@ export function immichPictureSource(
   return {
     fileName: photo.fileName,
     mimeType: IMMICH_PHOTO_TYPE,
+    identify: () => Promise.resolve(immichPhotoIdentity(photo)),
     read: async () => {
       const decoded = await download();
-      return { decoded, capturedAt: photo.takenAt, focus: await focus() };
+      return { decoded, focus: await focus() };
     },
   };
 }

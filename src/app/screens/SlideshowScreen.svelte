@@ -8,6 +8,7 @@
   import PictureStrip from "./slideshow/PictureStrip.svelte";
   import PlayPreview from "./slideshow/PlayPreview.svelte";
   import SelectionBar from "./slideshow/SelectionBar.svelte";
+  import StripHead from "./slideshow/StripHead.svelte";
   import TransitionsSheet from "./slideshow/TransitionsSheet.svelte";
   import VideoExportSheet from "./slideshow/VideoExportSheet.svelte";
   import type { ExportPreview } from "../video-export/slideshow-video-export";
@@ -21,6 +22,8 @@
     slideshow,
     onBack,
     onPlay,
+    onAddPictures,
+    newPictureIds = new Set(),
     onRemove,
     onMove,
     onRename,
@@ -42,6 +45,10 @@
     slideshow: SlideshowDetails;
     onBack: () => void;
     onPlay: () => void;
+    /** "Add pictures" in the strip header. */
+    onAddPictures: () => void;
+    /** The pictures just added, marked as new while the screen is shown. */
+    newPictureIds?: ReadonlySet<string>;
     onRemove: (pictureId: string) => void;
     onMove: (pictureId: string, toIndex: number) => void;
     onRename: (typed: string) => void;
@@ -154,20 +161,14 @@
           {onPlay}
         />
 
-        <div class="strip-head">
-          <div>
-            <h2 class="eyebrow">{t("slideshow.pictures")}</h2>
-            <p class="muted sorted">
-              {slideshow.ownOrder ? t("slideshow.ownOrder") : t("slideshow.sortedByDate")} ·
-              <span class="wide-hint">{t("slideshow.reorderHintWide")}</span><span
-                class="narrow-hint">{t("slideshow.reorderHintNarrow")}</span
-              >
-            </p>
-          </div>
-          <span class="mono muted">{slideshow.pictures.length}</span>
-        </div>
+        <StripHead
+          count={slideshow.pictures.length}
+          ownOrder={slideshow.ownOrder}
+          onAdd={onAddPictures}
+        />
         <PictureStrip
           pictures={slideshow.pictures}
+          {newPictureIds}
           {selectedId}
           draggable={mousePointer}
           onSelect={(pictureId) => (selectedId = pictureId)}
@@ -244,18 +245,6 @@
     display: grid;
     gap: 20px;
   }
-  .strip-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    gap: 12px;
-  }
-  .strip-head h2 {
-    margin: 0;
-  }
-  .sorted {
-    margin: 3px 0 0;
-  }
   /*
    * Room below the content for the selection bar fixed over it, so the last row scrolls clear;
    * a tile scrolled into view keeps the same distance (StripTile's scroll margin).
@@ -273,9 +262,6 @@
   .screen.selecting .content {
     padding-bottom: var(--selection-clearance);
   }
-  .narrow-hint {
-    display: none;
-  }
   @container (max-width: 720px) {
     /* A container query styles descendants only: the bar and the content inherit this. */
     .screen > :global(*) {
@@ -283,12 +269,6 @@
     }
     .detail {
       grid-template-columns: 1fr;
-    }
-    .wide-hint {
-      display: none;
-    }
-    .narrow-hint {
-      display: inline;
     }
   }
 </style>
