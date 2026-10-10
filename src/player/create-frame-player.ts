@@ -14,6 +14,8 @@ export interface FramePlayer {
   readonly canvas: HTMLCanvasElement;
   /** Settles once captions can be drawn; wait for it before the first frame. */
   readonly captionFontLoaded: Promise<void>;
+  /** Destroys the player and gives the WebGL context back: a page holds only a few at once. */
+  dispose(): void;
 }
 
 /**
@@ -48,5 +50,13 @@ export function createFramePlayer(
     clock: performanceClock,
     frames: animationFrames,
   });
-  return { player, canvas, captionFontLoaded: renderer.captionFontLoaded };
+  return {
+    player,
+    canvas,
+    captionFontLoaded: renderer.captionFontLoaded,
+    dispose: () => {
+      player.destroy();
+      gl.getExtension("WEBGL_lose_context")?.loseContext();
+    },
+  };
 }

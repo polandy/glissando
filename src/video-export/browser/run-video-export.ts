@@ -68,7 +68,7 @@ export async function runVideoExport(options: RunVideoExportOptions): Promise<Vi
     });
     return outcome.kind === "done" ? { ...outcome, file: await target.file() } : outcome;
   } finally {
-    framePlayer.player.destroy();
+    framePlayer.dispose();
   }
 }
 
