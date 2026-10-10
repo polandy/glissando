@@ -118,6 +118,27 @@ function stateReached(document: Document, wanted: PageState, seen: PageState[]):
   });
 }
 
+/** How far a run of the exported page got. */
+interface PlayProgress {
+  step: string;
+  page: Document | null;
+  readonly seen: PageState[];
+}
+
+function progressReport({ step, page, seen }: PlayProgress): string {
+  const details =
+    page === null
+      ? {}
+      : {
+          state: page.documentElement.getAttribute(PAGE_STATE_ATTRIBUTE),
+          time: page.querySelector(".time")?.textContent,
+          fonts: page.fonts.status,
+          canvases: page.querySelectorAll("canvas").length,
+          error: page.querySelector(".error")?.textContent,
+        };
+  return `the exported page stopped while ${step}: ${JSON.stringify({ seen, ...details })}`;
+}
+
 function loaded(frame: HTMLIFrameElement): Promise<Document> {
   return new Promise((resolve, reject) => {
     frame.addEventListener("load", () => {
@@ -151,10 +172,9 @@ describe("an exported web page", () => {
   });
 
   it("opens from a blob: URL and plays from the start card to the end card", async () => {
-    let step = "export";
-    const t0 = performance.now();
-    let diag = (): unknown => null;
-    onTestFailed(() => console.error("DIAG", step, JSON.stringify(diag())));
+    const progress: PlayProgress = { step: "exporting", page: null, seen: [] };
+    // A timeout alone says nothing; the report names where the page stopped.
+    onTestFailed(() => console.error(progressReport(progress)));
     const url = URL.createObjectURL(await exportedPage());
     const frame = document.createElement("iframe");
     Object.assign(frame.style, { width: "640px", height: "360px", border: "0" });
@@ -162,34 +182,30 @@ describe("an exported web page", () => {
       frame.remove();
       URL.revokeObjectURL(url);
     });
-    step = "load";
+    progress.step = "loading the frame";
     const opened = loaded(frame);
     frame.src = url;
     document.body.append(frame);
     const pageDocument = await opened;
-    const seen: PageState[] = [];
-    diag = () => ({
-      seen,
-      state: pageDocument.documentElement.getAttribute("data-state"),
-      time: pageDocument.querySelector(".time")?.textContent,
-      fonts: pageDocument.fonts.status,
-      canvas: pageDocument.querySelectorAll("canvas").length,
-      ms: Math.round(performance.now() - t0),
-      body: pageDocument.body.innerText.slice(0, 300),
-    });
-    step = "start";
-    await stateReached(pageDocument, "start", seen);
+    progress.page = pageDocument;
+    progress.step = "waiting for the start card";
+    await stateReached(pageDocument, "start", progress.seen);
 
     expect(pageDocument.title).toBe("Generated <test>");
+    progress.step = "clicking Play";
     await page
       .frameLocator(page.elementLocator(frame))
       .getByRole("button", { name: "Play" })
       .click();
-    step = "ended";
-    await stateReached(pageDocument, "ended", seen);
+    progress.step = "playing to the end card";
+    await stateReached(pageDocument, "ended", progress.seen);
 
     // Whether "loading" is still seen depends on when the frame's load event lands.
-    expect(seen.filter((state) => state !== "loading")).toEqual(["start", "playing", "ended"]);
+    expect(progress.seen.filter((state) => state !== "loading")).toEqual([
+      "start",
+      "playing",
+      "ended",
+    ]);
     expect(pageDocument.querySelector(".end")?.textContent).toContain("Play again");
   });
 });
