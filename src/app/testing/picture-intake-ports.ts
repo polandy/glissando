@@ -2,6 +2,8 @@ import type { ImmichPhoto } from "../../immich/immich-client";
 import type { PictureSource } from "../../import/picture-source";
 import { MemoryLibraryStore } from "../../library/testing/memory-store";
 import type { PictureIntakePorts } from "../import/picture-intake";
+import { Toaster } from "../toast/toaster";
+import { FakeScheduler } from "../../ui-kit/testing/fake-scheduler";
 
 export const INTAKE_NOW = new Date("2026-10-08T12:00:00Z");
 
@@ -33,6 +35,16 @@ export function fakeImmichSource(photo: ImmichPhoto): PictureSource {
   };
 }
 
+/** The undo toast of removed pictures, on a toaster whose time only moves when told. */
+export function fakeRemovalPorts() {
+  return {
+    toaster: new Toaster(new FakeScheduler()),
+    removedText: (count: number) =>
+      count === 1 ? "1 picture removed" : `${count} pictures removed`,
+    undoLabel: () => "Undo",
+  };
+}
+
 /** Ports for a picture intake over an in-memory store; ids count up from `id-1`. */
 export function fakeIntakePorts(
   store = new MemoryLibraryStore(),
@@ -41,8 +53,10 @@ export function fakeIntakePorts(
   let nextId = 0;
   const errors: unknown[] = [];
   const logged: unknown[] = [];
+  const removal = fakeRemovalPorts();
   const ports: PictureIntakePorts = {
     store,
+    ...removal,
     decode: (file) =>
       Promise.resolve({
         width: 300,
@@ -58,5 +72,5 @@ export function fakeIntakePorts(
     log: (error) => logged.push(error),
     ...overrides,
   };
-  return { ports, store, errors, logged };
+  return { ports, store, errors, logged, toaster: removal.toaster };
 }

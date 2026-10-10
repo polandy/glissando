@@ -99,3 +99,37 @@ test.describe("Abbrechen with pictures chosen", () => {
     await expect(page.getByRole("heading", { name: "Deine Diashows" })).toBeHidden();
   });
 });
+
+test.describe("Removing chosen pictures", () => {
+  test.beforeEach(async ({ page }) => {
+    await openImport(page);
+    await choosePictures(
+      page,
+      await picturesTakenOn(page, ["2025-07-12", "2025-07-13", "2025-07-14"]),
+      3,
+    );
+  });
+
+  test("E2E-037 a removed picture stays out of the created slideshow, and Undo puts removals back", async ({
+    page,
+  }) => {
+    const tiles = page.getByRole("listitem");
+    await page.getByRole("button", { name: "Bild vom 13.07.2025 entfernen" }).click();
+    await expect(page.getByRole("status")).toContainText("Bild entfernt");
+    await expect(page.getByText("2 Bilder", { exact: true })).toBeVisible();
+
+    await page.getByRole("button", { name: "Bild vom 14.07.2025 entfernen" }).press("Delete");
+    await expect(page.getByRole("status")).toContainText("2 Bilder entfernt");
+    await expect(tiles).toHaveText(["12.07.2025"]);
+    await page.getByRole("status").getByRole("button", { name: "Rückgängig" }).click();
+    await expect(tiles).toHaveText(["12.07.2025", "13.07.2025", "14.07.2025"]);
+
+    await page.getByRole("button", { name: "Bild vom 12.07.2025 entfernen" }).click();
+    await page.getByRole("button", { name: "Weiter" }).click();
+    await page.getByRole("button", { name: "Ohne Musik erstellen" }).click();
+
+    await expect(page.getByRole("status")).toHaveText(CREATED_TOAST);
+    await expect(definitionOf(page, "Bilder")).toHaveText("2");
+    await expect(page.getByText("13.07.2025 – 14.07.2025")).toBeVisible();
+  });
+});

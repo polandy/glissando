@@ -118,7 +118,7 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
     box. Its lead: "They go into place by capture date." (with own order: "Your own order stays;
     choose below where the new pictures go."), then "Glissando downscales them for this device;
     your originals stay untouched." The drop zone, the Immich box (its browser opens for this
-    slideshow, Immich below), the progress, the tiles and the notices are the import's; pictures
+    slideshow, Immich below), the progress, the tiles (with their ✕, Removing) and the notices are the import's; pictures
     already in the slideshow are skipped (Duplicates, Import wizard). Once at least one new
     picture is stored and nothing is in flight, with own order a box "Where they go" (mockup:
     https://polandy.github.io/glissando-assets/mockups/sort-added-by-date/) offers a radio group
@@ -373,7 +373,16 @@ new slideshow lives).
   folder", and drag-and-drop on desktop (folders read recursively). While downscaling: "k of N
   pictures are being downscaled …" with a mono counter, Cancel and a mint meter; a shimmering
   placeholder per file still in flight; the tiles appear in capture order as
-  they are stored. Then "n pictures · from – to" and "add more". Skipped files are a lemon
+  they are stored. Then "n pictures · from – to" and "add more". **Removing** (mockup:
+  https://polandy.github.io/glissando-assets/mockups/remove-import-pictures/): a stored tile has
+  a ✕ ("Remove picture from <date>"), always shown on touch, on hover or keyboard focus for a
+  mouse; a click, a tap, or Enter, Space, Delete or Backspace on it removes the picture at once,
+  never confirmed, and focus moves to the next tile's ✕ (the previous one at the end, "Choose
+  pictures" when none is left). The toast "Picture removed" with "Undo" follows; removals while
+  it shows add up ("3 pictures removed") and one Undo puts them all back. Choosing more pictures,
+  discarding, or leaving the step (Next, Cancel, ←) ends the undo and dismisses the toast. A
+  removed picture leaves the count and no longer counts as a duplicate; its media is cleaned up
+  with the import's (`PictureIntake`, `picture-removals.ts`). Skipped files are a lemon
   notice "n files could not be read as pictures and were skipped: names. The other m pictures
   are in." (photos that could not be downloaded from Immich get their own sentence "n photos
   could not be downloaded from Immich and were skipped: names." in the same notice), full storage a coral one with "Choose fewer pictures" (discards and reopens the

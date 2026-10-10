@@ -9,8 +9,10 @@ import type { PictureSource } from "../../import/picture-source";
 import type { PictureIdentity } from "../../library/picture-identity";
 import type { LibraryStore } from "../../library/stored-slideshow";
 import { linkImmichPhotos } from "../../server-library/link-immich-photos";
+import { PictureRemovals, type PictureRemovalsPorts } from "./picture-removals";
 
-export interface PictureIntakePorts extends LocalPictureReaders {
+export interface PictureIntakePorts
+  extends LocalPictureReaders, Omit<PictureRemovalsPorts, "pictures"> {
   readonly store: Pick<
     LibraryStore,
     "putPicture" | "putPictureFocus" | "claimMedia" | "releaseClaim"
@@ -35,6 +37,7 @@ export interface PictureIntakePorts extends LocalPictureReaders {
 export class PictureIntake {
   readonly pictures: PictureImport;
   readonly #ports: PictureIntakePorts;
+  readonly #removals: PictureRemovals;
   #known: readonly PictureIdentity[];
   #reporting: Promise<void> = Promise.resolve();
   #reportedDrain: Promise<void> | null = null;
@@ -57,6 +60,7 @@ export class PictureIntake {
       newId: ports.newId,
       known: () => this.#known,
     });
+    this.#removals = new PictureRemovals({ ...ports, pictures: this.pictures });
   }
 
   /** The pictures already there, such as the slideshow's being added to. */
@@ -70,17 +74,20 @@ export class PictureIntake {
   }
 
   addPictures(files: readonly File[]): void {
+    this.#removals.end();
     this.pictures.add(files.map((file) => localPictureSource(file, this.#ports)));
     this.#watchDrain();
   }
 
   addImmichPhotos(photos: readonly ImmichPhoto[]): void {
+    this.#removals.end();
     this.pictures.add(photos.map((photo) => this.#ports.immichSource(photo)));
     this.#watchDrain();
   }
 
   /** Links Immich photos for a server slideshow: listed at once, nothing downloaded. */
   linkImmichPhotos(photos: readonly ImmichPhoto[]): void {
+    this.#removals.end();
     const { pictures, skipped } = linkImmichPhotos(
       photos,
       this.#known,
@@ -91,8 +98,22 @@ export class PictureIntake {
 
   /** Takes the pictures skipped as duplicates for `reason` in after all. */
   addDuplicates(reason: DuplicateReason): void {
+    this.#removals.end();
     this.pictures.addDuplicates(reason);
     this.#watchDrain();
+  }
+
+  /**
+   * Takes a chosen picture out at once, with an undo toast; removals while it shows add up.
+   * Choosing more pictures ends the undo, as `endRemovals` does.
+   */
+  removePicture(pictureId: string): void {
+    this.#removals.remove(pictureId);
+  }
+
+  /** The removals become final and their toast goes, such as on leaving the pictures step. */
+  endRemovals(): void {
+    this.#removals.end();
   }
 
   /** Resolves once an unexpected picture-import error, if any, has been reported or logged. */
@@ -119,6 +140,7 @@ export class PictureIntake {
    * so the clean-up that follows deletes it.
    */
   discard(): Promise<void> {
+    this.#removals.end();
     this.pictures.cancel();
     return this.endClaim();
   }

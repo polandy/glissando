@@ -3,6 +3,7 @@ import type { PictureBlobs, StoredSlideshow } from "../../../library/stored-slid
 import { MemoryLibraryStore } from "../../../library/testing/memory-store";
 import type { ImmichPhoto } from "../../../immich/immich-client";
 import type { PictureFocus } from "../../../library/picture-focus";
+import { fakeRemovalPorts } from "../../testing/picture-intake-ports";
 import { ImportSession, type ImportChoices, type ImportSessionPorts } from "../import-session";
 
 export const CREATED_AT = new Date("2026-10-08T12:00:00Z");
@@ -23,8 +24,10 @@ export function sessionWith(
   const errors: unknown[] = [];
   const logged: unknown[] = [];
   const onServer: { slideshow: StoredSlideshow; musicAudio: Blob | null }[] = [];
+  const removal = fakeRemovalPorts();
   const ports: ImportSessionPorts = {
     store,
+    ...removal,
     decode: (file) =>
       Promise.resolve({
         width: 300,
@@ -67,7 +70,14 @@ export function sessionWith(
     },
     ...overrides,
   };
-  return { session: new ImportSession(ports), store, errors, logged, onServer };
+  return {
+    session: new ImportSession(ports),
+    store,
+    errors,
+    logged,
+    onServer,
+    toaster: removal.toaster,
+  };
 }
 
 export async function withTwoPictures() {

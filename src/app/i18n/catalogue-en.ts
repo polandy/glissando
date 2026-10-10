@@ -119,6 +119,7 @@ export const en: Catalogue = {
   },
   "import.dateRange": "{from} to {to}",
   "import.addMore": "add more",
+  "import.removePicture": "Remove picture from {date}",
   "import.skipped": {
     one: "{count} file could not be read as a picture and was skipped:",
     other: "{count} files could not be read as pictures and were skipped:",

@@ -165,6 +165,9 @@ const intakePorts = {
   now,
   onError: reportError,
   log: logError,
+  toaster,
+  removedText: (count: number) => translator.current.t("slideshow.removed", { count }),
+  undoLabel: () => translator.current.t("slideshow.undo"),
 };
 
 const services = {
