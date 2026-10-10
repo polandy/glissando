@@ -153,3 +153,53 @@ describe("AddPicturesRoute", () => {
     expect(document.querySelector("dialog")).toBeNull();
   });
 });
+
+describe("AddPicturesRoute, adding to a slideshow in its own order", () => {
+  const OWN: StoredSlideshow = {
+    ...SHOW,
+    ownOrder: true,
+    pictures: [...SHOW.pictures, { ...picture("old-2"), capturedAt: "2025-07-03T10:00:00Z" }],
+  };
+  const choice = (target: HTMLElement) =>
+    target.querySelector<HTMLElement>(
+      `[role="radiogroup"][aria-label="${de.t("add.placementTitle")}"]`,
+    );
+  const checked = (target: HTMLElement) =>
+    choice(target)?.querySelector('[aria-checked="true"]')?.textContent.trim();
+  const spots = (target: HTMLElement) =>
+    [...target.querySelectorAll(".spots li")].map((spot) => spot.textContent.trim());
+
+  it("offers where the new pictures go, by capture date chosen, and shows where that is", async () => {
+    const { session, target } = mountRoute(OWN);
+    await choosePicture(session);
+
+    expect(target.textContent).toContain(de.t("add.leadOwnOrder"));
+    expect(checked(target)).toContain(de.t("add.placementByDate"));
+    expect(spots(target)).toEqual([de.t("add.spotAfter", { count: 1, number: 1 })]);
+    expect(target.querySelectorAll(".placement .mini")).toHaveLength(3);
+  });
+
+  it("puts them at the end once chosen, the preview following", async () => {
+    const { session, target } = mountRoute(OWN);
+    await choosePicture(session);
+
+    const atEnd = [...(choice(target)?.querySelectorAll<HTMLElement>('[role="radio"]') ?? [])].find(
+      (radio) => radio.textContent.includes(de.t("add.placementAtEnd")),
+    );
+    atEnd?.click();
+    flushSync();
+
+    expect(session.placement).toBe("atEnd");
+    expect(checked(target)).toContain(de.t("add.placementAtEnd"));
+    expect(spots(target)).toEqual([de.t("add.spotAfter", { count: 1, number: 2 })]);
+  });
+
+  it("offers no choice for a slideshow sorted by capture date", async () => {
+    const { session, target } = mountRoute(SHOW);
+    await choosePicture(session);
+
+    expect(target.querySelector(".after")).not.toBeNull();
+    expect(choice(target)).toBeNull();
+    expect(target.querySelector(".placement")).toBeNull();
+  });
+});

@@ -32,8 +32,8 @@ ADR-0003; file container: ADR-0004.
   skipped as _alreadyIn_, one with the latter as _chosenTwice_; both are kept, so
   `addDuplicates(reason)` can take those of one reason in after all.
 - **Adding to a slideshow**: the same import, given the slideshow's pictures as the known ones;
-  `addPictures` puts the stored ones into the record (by capture date, or at the end with
-  `ownOrder`; an id already in it is skipped) in one `updateSlideshowWith`, which reads and
+  `addPictures` puts the stored ones into the record (by capture date; with `ownOrder` as the
+  user chose, sorted in by capture date or at the end; an id already in it is skipped) in one `updateSlideshowWith`, which reads and
   writes the record in one transaction, and the import's claim is released after it. Once the
   record is stored, a release that fails is reported and the adding still succeeds.
 

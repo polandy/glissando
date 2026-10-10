@@ -23,6 +23,7 @@ const cases: readonly {
       durationSeconds: { before: 20, after: 30 },
       perPictureSeconds: null,
       note: { kind: "noMusic", secondsPerPicture: 5 },
+      placement: null,
     },
   },
   {
@@ -34,6 +35,7 @@ const cases: readonly {
       durationSeconds: { before: 60, after: 60 },
       perPictureSeconds: { before: 15, after: 10 },
       note: { kind: "sharesMusic" },
+      placement: null,
     },
   },
   {
@@ -48,6 +50,7 @@ const cases: readonly {
       durationSeconds: { before: 60, after: 60 },
       perPictureSeconds: { before: 20, after: 10 },
       note: { kind: "sharesMusic" },
+      placement: null,
     },
   },
   {
@@ -59,6 +62,7 @@ const cases: readonly {
       durationSeconds: { before: 50, after: 60 },
       perPictureSeconds: { before: 2.5, after: 2 },
       note: { kind: "musicTooShort", musicSeconds: 50 },
+      placement: null,
     },
   },
   {
@@ -70,6 +74,7 @@ const cases: readonly {
       durationSeconds: { before: 10, after: 60 },
       perPictureSeconds: null,
       note: { kind: "sharesMusic" },
+      placement: null,
     },
   },
   {
@@ -81,6 +86,7 @@ const cases: readonly {
       durationSeconds: { before: 70, after: 70 },
       perPictureSeconds: null,
       note: { kind: "sharesMusic" },
+      placement: null,
     },
   },
   {
@@ -92,12 +98,64 @@ const cases: readonly {
       durationSeconds: { before: 60, after: 60 },
       perPictureSeconds: { before: 3, after: 2 },
       note: { kind: "sharesMusic" },
+      placement: null,
     },
   },
 ];
 
 describe("afterAdding", () => {
   it.each(cases)("$name", ({ show, added, expected }) => {
-    expect(afterAdding(show, pictures(added, "new"))).toEqual(expected);
+    expect(afterAdding(show, pictures(added, "new"), "byCaptureDate")).toEqual(expected);
+  });
+});
+
+describe("afterAdding, where the new pictures go in an own order", () => {
+  const at = (id: string, capturedAt: string): StoredPicture => ({ ...picture(id), capturedAt });
+  const own = slideshow({
+    ownOrder: true,
+    pictures: [
+      at("sunset", "2025-07-08T19:40:00Z"),
+      at("arrival", "2025-07-02T10:00:00Z"),
+      at("lake", "2025-07-03T10:00:00Z"),
+    ],
+  });
+  const eve = at("eve", "2025-07-01T18:00:00Z");
+  const added = [eve, at("evening", "2025-07-08T21:00:00Z"), at("ferry", "2025-07-03T12:00:00Z")];
+
+  it("shows the play order with the new pictures sorted in, and after which picture they go", () => {
+    expect(afterAdding(own, added, "byCaptureDate").placement).toEqual({
+      order: [
+        { id: "sunset", isNew: false },
+        { id: "evening", isNew: true },
+        { id: "eve", isNew: true },
+        { id: "arrival", isNew: false },
+        { id: "lake", isNew: false },
+        { id: "ferry", isNew: true },
+      ],
+      spots: [
+        { afterNumber: 1, count: 2 },
+        { afterNumber: 3, count: 1 },
+      ],
+    });
+  });
+
+  it("shows them all after the last picture when they go at the end", () => {
+    expect(afterAdding(own, added, "atEnd").placement?.spots).toEqual([
+      { afterNumber: 3, count: 3 },
+    ]);
+  });
+
+  it("names the start as after picture 0 for pictures going before the first", () => {
+    const later = slideshow({ ownOrder: true, pictures: [at("arrival", "2025-07-02T10:00:00Z")] });
+
+    expect(afterAdding(later, [eve], "byCaptureDate").placement?.spots).toEqual([
+      { afterNumber: 0, count: 1 },
+    ]);
+  });
+
+  it("has no placement to show for a slideshow sorted by capture date", () => {
+    const sorted = slideshow({ pictures: own.pictures });
+
+    expect(afterAdding(sorted, added, "byCaptureDate").placement).toBeNull();
   });
 });

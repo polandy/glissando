@@ -17,6 +17,7 @@ const SHARING: AfterAdding = {
   durationSeconds: { before: 340, after: 340 },
   perPictureSeconds: { before: 14.2, after: 10.6 },
   note: { kind: "sharesMusic" },
+  placement: null,
 };
 
 function mountBox(after: AfterAdding): HTMLElement {
