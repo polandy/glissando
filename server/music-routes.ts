@@ -10,7 +10,7 @@ import {
 } from "./library-http";
 
 /** Music uploaded but named by no slideshow this long is deleted on the next upload. */
-export const UNREFERENCED_MUSIC_GRACE_MS = 60 * 60 * 1000;
+const UNREFERENCED_MUSIC_GRACE_MS = 60 * 60 * 1000;
 
 const CONTENT_TYPE = "content-type";
 const AUDIO_MEDIA_TYPE = /^audio\/[^\s;/]+$/;
