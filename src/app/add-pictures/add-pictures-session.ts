@@ -1,4 +1,5 @@
 import type { ImmichPhoto } from "../../immich/immich-client";
+import { DEFAULT_ADDED_PLACEMENT, type AddedPlacement } from "../../library/added-placement";
 import { addPictures } from "../../library/slideshow-edits";
 import type { LibraryStore, SlideshowStore, StoredSlideshow } from "../../library/stored-slideshow";
 import { PictureIntake, type PictureIntakePorts } from "../import/picture-intake";
@@ -34,6 +35,8 @@ export function serverAddingStore(
 export class AddPicturesSession {
   readonly intake: PictureIntake;
   readonly home: SlideshowHome;
+  /** Where the new pictures go if the slideshow is in its own order; kept for the selection. */
+  placement: AddedPlacement = DEFAULT_ADDED_PLACEMENT;
   readonly #ports: AddPicturesSessionPorts;
   #slideshow: StoredSlideshow;
 
@@ -92,7 +95,7 @@ export class AddPicturesSession {
       throw new Error("cannot add no pictures: import at least one first");
     }
     await this.#ports.store.updateSlideshowWith(this.slideshowId, (current) =>
-      addPictures(current, state.pictures),
+      addPictures(current, state.pictures, this.placement),
     );
     try {
       await this.intake.endClaim();

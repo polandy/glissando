@@ -1,11 +1,12 @@
 <script lang="ts">
+  import type { Snippet } from "svelte";
   import { MIN_SECONDS_PER_PICTURE } from "../../library/stored-slideshow";
   import Notice from "../components/Notice.svelte";
   import { getTranslator } from "../i18n/context";
   import type { AfterAdding } from "./after-adding";
 
   /** "After adding": the slideshow's pictures, duration and share before → after. */
-  let { after }: { after: AfterAdding } = $props();
+  let { after, children }: { after: AfterAdding; children?: Snippet } = $props();
 
   const { t, formatDuration, formatSeconds, formatTenthSeconds } = getTranslator();
 </script>
@@ -54,6 +55,7 @@
   {:else}
     <p class="note">{t("add.noMusic", { seconds: formatSeconds(after.note.secondsPerPicture) })}</p>
   {/if}
+  {@render children?.()}
 </section>
 
 <style>

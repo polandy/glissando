@@ -1,6 +1,7 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import {
   choosePictures,
+  createSlideshow,
   CREATED_TOAST,
   definitionOf,
   GERMAN_BROWSER,
@@ -77,4 +78,44 @@ test("E2E-032 adding pictures skips a duplicate and sorts the new ones in by cap
   await expect(tile(page, 2, "14.07.2025")).toBeVisible();
   await expect(tile(page, 3, "20.07.2025")).toBeVisible();
   await expect(page.getByRole("button", { name: ANY_TILE })).toHaveCount(3);
+});
+
+test("E2E-036 adding to a slideshow in its own order sorts the new pictures in by capture date, or puts them at the end", async ({
+  page,
+}) => {
+  await createSlideshow(page, ["2025-07-12", "2025-07-14", "2025-07-20"], 2);
+  const selectionBar = page.getByRole("toolbar", { name: "Auswahl" });
+  await tile(page, 3, "20.07.2025").click();
+  await selectionBar.getByRole("button", { name: "Früher" }).click();
+  await selectionBar.getByRole("button", { name: "Früher" }).click();
+  await selectionBar.getByRole("button", { name: "Fertig" }).click();
+  await expect(page.getByText("Eigene Reihenfolge")).toBeVisible();
+  await expect(tile(page, 1, "20.07.2025")).toBeVisible();
+
+  await page.getByRole("button", { name: "Bilder hinzufügen" }).click();
+  const between = await pictureTakenOn(page, "picture-13th.jpg", "2025-07-13", "#4db6ac");
+  const later = await pictureTakenOn(page, "picture-21st.jpg", "2025-07-21", "#ffd54f");
+  await choosePictures(page, [between, later], 2);
+
+  const where = page.getByRole("radiogroup", { name: "Wohin sie kommen" });
+  await expect(where.getByRole("radio", { name: "Nach Aufnahmedatum" })).toBeChecked();
+  const spots = page.locator(".spots li");
+  await expect(spots).toHaveText(["1 hinter Bild 1", "1 hinter Bild 2"]);
+
+  await where.getByRole("radio", { name: "Ans Ende" }).click();
+  await expect(spots).toHaveText(["2 hinter Bild 3"]);
+  await where.getByRole("radio", { name: "Nach Aufnahmedatum" }).click();
+  await expect(spots).toHaveText(["1 hinter Bild 1", "1 hinter Bild 2"]);
+
+  await page.getByRole("button", { name: "2 hinzufügen", exact: true }).click();
+
+  await expect(page.getByRole("status").filter({ hasText: "hinzugefügt" })).toContainText(
+    "2 Bilder hinzugefügt",
+  );
+  await expect(page.getByText("Eigene Reihenfolge")).toBeVisible();
+  await expect(tile(page, 1, "20.07.2025")).toBeVisible();
+  await expect(tile(page, 2, "21.07.2025", true)).toBeVisible();
+  await expect(tile(page, 3, "12.07.2025")).toBeVisible();
+  await expect(tile(page, 4, "13.07.2025", true)).toBeVisible();
+  await expect(tile(page, 5, "14.07.2025")).toBeVisible();
 });

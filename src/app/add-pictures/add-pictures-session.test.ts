@@ -148,6 +148,40 @@ describe("AddPicturesSession", () => {
     expect(added).toEqual([stored.pictures[1]?.id]);
   });
 
+  it("sorts the new pictures into an own order by capture date unless told otherwise", async () => {
+    const own = { ...SHOW, pictures: [...SHOW.pictures].reverse(), ownOrder: true as const };
+    const { session, store } = await sessionFor(own);
+    session.intake.addPictures([pictureFile("middle.jpg", "2025-07-02T10:00:00Z")]);
+    await session.intake.pictures.settled();
+
+    await session.commit();
+
+    const stored = await store.getSlideshow(SHOW.id);
+    expect(session.placement).toBe("byCaptureDate");
+    expect(stored.pictures.map(({ fileName }) => fileName)).toEqual([
+      "old-2.jpg",
+      "old-1.jpg",
+      "middle.jpg",
+    ]);
+  });
+
+  it("puts the new pictures at the end of an own order when chosen", async () => {
+    const own = { ...SHOW, pictures: [...SHOW.pictures].reverse(), ownOrder: true as const };
+    const { session, store } = await sessionFor(own);
+    session.intake.addPictures([pictureFile("early.jpg", "2025-06-30T10:00:00Z")]);
+    await session.intake.pictures.settled();
+
+    session.placement = "atEnd";
+    await session.commit();
+
+    const stored = await store.getSlideshow(SHOW.id);
+    expect(stored.pictures.map(({ fileName }) => fileName)).toEqual([
+      "old-2.jpg",
+      "old-1.jpg",
+      "early.jpg",
+    ]);
+  });
+
   it("ends the claim once stored, the slideshow keeping the new media from a clean-up", async () => {
     const { session, store } = await sessionFor();
     session.intake.addPictures([pictureFile("new.jpg", "2025-07-02T10:00:00Z")]);

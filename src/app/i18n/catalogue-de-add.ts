@@ -6,8 +6,17 @@ export const deAdd = {
   "add.titleShort": "Hinzufügen",
   "add.leadByDate": "Sie kommen nach Aufnahmedatum an ihren Platz.",
   "add.leadOwnOrder":
-    "Sie kommen ans Ende, in Aufnahme-Reihenfolge; deine eigene Reihenfolge bleibt.",
+    "Deine eigene Reihenfolge bleibt; wähle unten, wohin die neuen Bilder kommen.",
   "add.leadDownscale": "Glissando verkleinert sie fürs Gerät, die Originale bleiben unberührt.",
+  "add.placementTitle": "Wohin sie kommen",
+  "add.placementByDate": "Nach Aufnahmedatum",
+  "add.placementByDateHint":
+    "Jedes kommt direkt hinter das Bild, das kurz davor aufgenommen wurde.",
+  "add.placementAtEnd": "Ans Ende",
+  "add.placementAtEndHint": "Hinter Bild {number}, in Aufnahme-Reihenfolge.",
+  "add.spotAfter": { one: "{count} hinter Bild {number}", other: "{count} hinter Bild {number}" },
+  "add.spotStart": { one: "{count} vor Bild 1", other: "{count} vor Bild 1" },
+  "add.placementOrder": "Reihenfolge nach dem Hinzufügen",
   "add.afterTitle": "Danach",
   "add.afterPictures": "Bilder",
   "add.afterDuration": "Dauer",

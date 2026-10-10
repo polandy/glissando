@@ -1,4 +1,5 @@
 import { orderByCaptureDate } from "../compose/order-by-capture-date";
+import { placeByCaptureDate, type AddedPlacement } from "./added-placement";
 import { normalizeCaption } from "../player/caption";
 import { checkOwnKenBurns, type OwnKenBurns } from "./own-ken-burns";
 import { checkMusicFadeMs, checkMusicTrim, type MusicTrim } from "./own-music";
@@ -68,18 +69,24 @@ export function restorePictures(
 }
 
 /**
- * New pictures go into their places by capture date while the slideshow keeps that order, and
- * at the end in capture order once the order is the user's own, which stays. A picture whose id
- * is already in the slideshow is skipped, so an add applied twice adds once.
+ * New pictures go into their places by capture date while the slideshow keeps that order. Once
+ * the order is the user's own, which stays, `placement` decides: sorted in by capture date
+ * (`placeByCaptureDate`) or at the end in capture order. A picture whose id is already in the
+ * slideshow is skipped, so an add applied twice adds once.
  */
 export function addPictures(
   slideshow: StoredSlideshow,
   added: readonly StoredPicture[],
+  placement: AddedPlacement,
 ): StoredSlideshow {
   const present = new Set(slideshow.pictures.map(({ id }) => id));
   const fresh = added.filter(({ id }) => !present.has(id));
+  const intoOwnOrder =
+    placement === "byCaptureDate"
+      ? placeByCaptureDate(slideshow.pictures, fresh)
+      : [...slideshow.pictures, ...orderByCaptureDate(fresh)];
   const pictures = slideshow.ownOrder
-    ? [...slideshow.pictures, ...orderByCaptureDate(fresh)]
+    ? intoOwnOrder
     : orderByCaptureDate([...slideshow.pictures, ...fresh]);
   return { ...slideshow, pictures };
 }

@@ -205,38 +205,58 @@ describe("addPictures", () => {
     });
 
   it("sorts the new pictures into their places by capture date while the slideshow is sorted", () => {
-    const added = addPictures(sorted(), [
-      at("d", "2025-07-04T10:00:00Z"),
-      at("b", "2025-07-02T10:00:00Z"),
-    ]);
+    const added = addPictures(
+      sorted(),
+      [at("d", "2025-07-04T10:00:00Z"), at("b", "2025-07-02T10:00:00Z")],
+      "byCaptureDate",
+    );
 
     expect(ids(added)).toEqual(["a", "b", "c", "d"]);
     expect(added.ownOrder).toBeUndefined();
   });
 
-  it("puts the new pictures at the end in capture order and keeps an own order", () => {
-    const own = {
-      ...sorted(),
-      pictures: [...sorted().pictures].reverse(),
-      ownOrder: true as const,
-    };
+  const own = (): StoredSlideshow => ({
+    ...sorted(),
+    pictures: [...sorted().pictures].reverse(),
+    ownOrder: true,
+  });
 
-    const added = addPictures(own, [
-      at("d", "2025-07-04T10:00:00Z"),
-      at("b", "2025-07-02T10:00:00Z"),
-    ]);
+  it("puts the new pictures at the end in capture order and keeps an own order", () => {
+    const added = addPictures(
+      own(),
+      [at("d", "2025-07-04T10:00:00Z"), at("b", "2025-07-02T10:00:00Z")],
+      "atEnd",
+    );
 
     expect(ids(added)).toEqual(["c", "a", "b", "d"]);
     expect(added.ownOrder).toBe(true);
   });
 
-  it("skips a picture whose id is already in the slideshow, so adding twice adds once", () => {
-    const once = addPictures(sorted(), [at("b", "2025-07-02T10:00:00Z")]);
+  it("sorts the new pictures into an own order by capture date and keeps it", () => {
+    const added = addPictures(
+      own(),
+      [at("d", "2025-07-04T10:00:00Z"), at("b", "2025-07-02T10:00:00Z")],
+      "byCaptureDate",
+    );
 
-    const twice = addPictures(once, [
-      at("b", "2025-07-02T10:00:00Z"),
-      at("d", "2025-07-04T10:00:00Z"),
-    ]);
+    expect(ids(added)).toEqual(["c", "d", "a", "b"]);
+    expect(added.ownOrder).toBe(true);
+  });
+
+  it("keeps a sorted slideshow sorted whatever the placement for an own order", () => {
+    const added = addPictures(sorted(), [at("b", "2025-07-02T10:00:00Z")], "atEnd");
+
+    expect(ids(added)).toEqual(["a", "b", "c"]);
+  });
+
+  it("skips a picture whose id is already in the slideshow, so adding twice adds once", () => {
+    const once = addPictures(sorted(), [at("b", "2025-07-02T10:00:00Z")], "byCaptureDate");
+
+    const twice = addPictures(
+      once,
+      [at("b", "2025-07-02T10:00:00Z"), at("d", "2025-07-04T10:00:00Z")],
+      "byCaptureDate",
+    );
 
     expect(ids(twice)).toEqual(["a", "b", "c", "d"]);
   });

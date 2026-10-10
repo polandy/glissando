@@ -1,6 +1,8 @@
 <script lang="ts">
   import type { ImmichAvailabilityState } from "../../immich/immich-availability";
+  import type { AddedPlacement } from "../../library/added-placement";
   import Dialog from "../components/Dialog.svelte";
+  import RadioGroup from "../components/RadioGroup.svelte";
   import ImmichBox from "../immich/ImmichBox.svelte";
   import { getTranslator } from "../i18n/context";
   import ImportFrame from "../import/ImportFrame.svelte";
@@ -9,6 +11,7 @@
   import type { AddPicturesSession } from "./add-pictures-session";
   import { afterAdding } from "./after-adding";
   import AfterAddingBox from "./AfterAddingBox.svelte";
+  import PlacementPreview from "./PlacementPreview.svelte";
 
   /** Adding pictures to a slideshow: the import's pictures step without its steps and music. */
   let {
@@ -41,13 +44,22 @@
   let importState = $state.raw(session.intake.pictures.state);
   let confirmingDiscard = $state(false);
   let committing = $state(false);
+  // svelte-ignore state_referenced_locally
+  let placement = $state(session.placement);
 
   $effect(() => session.intake.pictures.subscribe((next) => (importState = next)));
 
   // svelte-ignore state_referenced_locally
   const linking = session.home === "server";
   const ready = $derived(canContinue(importState));
-  const after = $derived(ready ? afterAdding(session.slideshow, importState.pictures) : null);
+  const after = $derived(
+    ready ? afterAdding(session.slideshow, importState.pictures, placement) : null,
+  );
+
+  function place(chosen: AddedPlacement): void {
+    session.placement = chosen;
+    placement = chosen;
+  }
 
   function leave(): void {
     if (hasSelection(importState)) {
@@ -98,8 +110,35 @@
     {/snippet}
   </PictureIntakeBody>
 
+  {#if after?.placement}
+    <section class="card where">
+      <h2 class="eyebrow">{t("add.placementTitle")}</h2>
+      <RadioGroup
+        label={t("add.placementTitle")}
+        options={[
+          {
+            value: "byCaptureDate",
+            label: t("add.placementByDate"),
+            hint: t("add.placementByDateHint"),
+          },
+          {
+            value: "atEnd",
+            label: t("add.placementAtEnd"),
+            hint: t("add.placementAtEndHint", { number: after.pictures.before }),
+          },
+        ]}
+        value={placement}
+        onSelect={place}
+      />
+    </section>
+  {/if}
+
   {#if after !== null}
-    <AfterAddingBox {after} />
+    <AfterAddingBox {after}>
+      {#if after.placement}
+        <PlacementPreview preview={after.placement} {loadThumbnail} {onError} />
+      {/if}
+    </AfterAddingBox>
   {/if}
 
   {#snippet actions()}
@@ -130,3 +169,13 @@
     ]}
   />
 {/if}
+
+<style>
+  .where {
+    display: grid;
+    gap: 10px;
+  }
+  .where h2 {
+    margin: 0;
+  }
+</style>
