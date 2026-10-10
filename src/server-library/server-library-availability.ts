@@ -33,6 +33,11 @@ export interface ServerLibraryAvailabilityOptions {
 /** What the discovery answered last; `unknown` before its first answer. */
 type Discovery = "unknown" | "discovered" | "absent";
 
+/** A discovery that could not reach the server, which keeps the last answer. */
+const UNREACHABLE = Symbol("unreachable");
+/** A discovery that failed unexpectedly, which counts as no library. */
+const FAILED = Symbol("failed");
+
 /** Immich states that need no discovery: no answer yet, or the server out of reach. */
 const NOT_ASKING: ReadonlySet<ImmichAvailabilityState["kind"]> = new Set(["checking", "offline"]);
 
@@ -88,26 +93,30 @@ export class ServerLibraryAvailability {
 
   #ask(): void {
     const generation = ++this.#generation;
-    const asking = this.#discover().then((discovery) => {
+    const asking = this.#discover().then((answer) => {
       if (generation !== this.#generation) return;
-      this.#discovery = discovery;
+      if (answer === UNREACHABLE) {
+        if (this.#discovery === "unknown") this.#discovery = "absent";
+      } else if (answer === FAILED) {
+        this.#discovery = "absent";
+      } else {
+        this.#memory.rememberOn(answer);
+        this.#discovery = answer ? "discovered" : "absent";
+      }
       this.#update();
     });
     this.#pending.add(asking);
     void asking.finally(() => this.#pending.delete(asking));
   }
 
-  async #discover(): Promise<Discovery> {
+  /** Whether the server answered the discovery, or why it did not answer. */
+  async #discover(): Promise<boolean | typeof UNREACHABLE | typeof FAILED> {
     try {
-      const discovered = await this.#client.discover();
-      this.#memory.rememberOn(discovered);
-      return discovered ? "discovered" : "absent";
+      return await this.#client.discover();
     } catch (error) {
-      if (error instanceof ServerLibraryUnavailableError) {
-        return this.#discovery === "unknown" ? "absent" : this.#discovery;
-      }
+      if (error instanceof ServerLibraryUnavailableError) return UNREACHABLE;
       this.#log(error);
-      return "absent";
+      return FAILED;
     }
   }
 

@@ -231,6 +231,22 @@ describe("ServerLibraryAvailability", () => {
     expect(availability.state).toEqual({ kind: "off" });
   });
 
+  it("remembers the latest discovery's answer, not an earlier one answering later", async () => {
+    const memory = newMemory();
+    const { availability, client, immich } = setUp(memory);
+    const answerFirst = client.hold();
+    immich.publish(AVAILABLE);
+    const answerLatest = client.hold();
+    immich.publish(AVAILABLE);
+
+    answerLatest(false);
+    answerFirst(true);
+    await availability.settled();
+
+    expect(availability.state).toEqual({ kind: "off" });
+    expect(memory.wasOn()).toBe(false);
+  });
+
   it("logs a discovery failing unexpectedly and is off", async () => {
     const { availability, client, immichAnswers, logged } = setUp();
     const failure = new Error("unexpected");
