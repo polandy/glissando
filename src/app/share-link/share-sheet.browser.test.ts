@@ -114,6 +114,13 @@ describe("The share row and sheet (SHARE_LINK.md, In the app)", () => {
     expect(row()?.textContent).toContain("Per Link geteilt");
   });
 
+  it("says when the link was made, in the app's date format", async () => {
+    const { openSheet, dialog } = await mountControl({ shared: LINK });
+    await openSheet();
+
+    expect(dialog()?.querySelector(".since")?.textContent).toContain("Erstellt am 11.10.2026");
+  });
+
   it("reads Kopiert for 2 s after copying, then Kopieren again", async () => {
     const { openSheet, click, button, scheduler } = await mountControl({ shared: LINK });
     await openSheet();

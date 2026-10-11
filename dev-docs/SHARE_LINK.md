@@ -156,8 +156,9 @@ the same contract suite.
   - **Shared**: the link (read-only, mono; a tap or click selects all of it) with "Copy" where
     the browser offers the clipboard, so not over plain `http:` (then "Copied" for 2 s, from the
     injected scheduler), "Share …" where `navigator.share` exists, "Open as viewer" (a new tab), and
-    "QR code", which shows or hides the link's QR code. Below that, "Created 11 Oct 2026 · works
-    until you turn it off", then "Turn off link" (destructive text button) and "Done".
+    "QR code", which shows or hides the link's QR code. Below that, "Created <date> · works until
+    you turn it off", the date in the app's date format (`formatDate`, "11.10.2026" in German),
+    then "Turn off link" (destructive text button) and "Done".
   - **Turn off?**: "Turn off the link?", "Anyone who has it can no longer watch “<title>”. If you
     share it again, it gets a new link and this one stays off.", then "Cancel" and "Turn off
     link" (coral). Afterwards the sheet closes and a toast says "Link turned off".
