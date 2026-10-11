@@ -1,3 +1,4 @@
+import { NO_BEATS } from "../../beats";
 import { composeSlideshow, slideshowDurationMs } from "../../compose";
 import type { LibraryStore, StoredSlideshow } from "../../library/stored-slideshow";
 import { runVideoExport } from "../../video-export";
@@ -30,7 +31,12 @@ export function slideshowVideoExport(
       stored.music === undefined ? null : store.musicBlob(stored.music.id),
     ]);
     // The export reads media by id, so the sources stay ids.
-    const slideshow = composeSlideshow(stored, { picture: (id) => id, music: (id) => id }, focus);
+    const slideshow = composeSlideshow(
+      stored,
+      { picture: (id) => id, music: (id) => id },
+      focus,
+      NO_BEATS,
+    );
     return runVideoExport({
       slideshow,
       openPicture: (id) => store.pictureBlob(id),

@@ -15,7 +15,14 @@ I/O, no subject detection.
   excerpt (`musicExcerptMs`: the trim, or the whole track; ADR-0009) evenly (the remainder
   milliseconds go to the first of them, so the sum matches the excerpt exactly) — unless that share would fall below `MIN_SECONDS_PER_PICTURE` (or nothing is left),
   in which case each of them gets the minimum and the slideshow outlasts the music. When every
-  picture has an own duration, the music plays no part in the timing.
+  picture has an own duration, the music plays no part in the timing. **On the beat**
+  (ADR-0021): with the music's beats (`MusicBeats` from `src/beats/`, passed to
+  `composeSlideshow`; `excerptBeatsMs` keeps those inside the excerpt, measured from its start)
+  each boundary between two automatic slides then moves to the nearest beat that leaves both
+  slides at least `MIN_SECONDS_PER_PICTURE` (`snapToBeats`), else stays. The excerpt's end and
+  both sides of a picture with an own duration never move, so own durations stay exact and the
+  total is unchanged. Without a clear beat, or with `StoredMusic.pictureChanges` `"even"`, the
+  even share stands.
 - **Ken Burns**: zoom alternates in/out by slide index between `MIN_KEN_BURNS_ZOOM` and 1.2; a
   gentle horizontal pan alternates direction with it. The motion swings around the picture's
   focus — the centre of the subject box the on-device detection found (`PictureFocus`,
@@ -34,7 +41,10 @@ I/O, no subject detection.
   transition. A picture's own transition (`StoredPicture.transition`, ADR-0008) replaces it wherever
   the picture sits; `"cut"` composes a slide without `transitionToNext`. The last slide has none
   (ADR-0002), even with an own one stored. A transition's duration, own effect or automatic, is
-  30% of its slide's duration, capped at 1000 ms (`transitionDurationMs`).
+  30% of its slide's duration, capped at 1000 ms (`transitionDurationMs`). A slide that ends on a
+  beat hands over with the most whole beats, counted back along the beats found, that fit that
+  duration, so the transition starts on a beat too; when one beat is longer, the usual duration
+  stays (`beatTransitionDurationMs`).
 
 - **Music** (`resolveMusicTiming`, ADR-0009): the music plays from the excerpt's start and is
   heard until the excerpt's end or the slideshow's, whichever comes first (`audibleEndMs`): a
@@ -42,7 +52,8 @@ I/O, no subject detection.
   own fade (`StoredMusic.fadeInMs`, `fadeOutMs`, 0 being off) is kept; an automatic one is short
   (2 s) where the music is cut and off where the track starts or ends by itself: fade-in iff the
   excerpt starts after 0, fade-out iff the music stops before the track's end. Fades that
-  together outlast what is heard are scaled down in proportion.
+  together outlast what is heard are scaled down in proportion. Changing the pictures on the beat
+  moves no music: the excerpt and its fades stay as they are.
 
 ## Entry points
 

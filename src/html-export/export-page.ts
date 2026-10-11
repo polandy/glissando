@@ -1,3 +1,4 @@
+import { NO_BEATS } from "../beats";
 import { composeSlideshow } from "../compose";
 import type { PictureFocus } from "../library/picture-focus";
 import type { LibraryStore, StoredPicture, StoredSlideshow } from "../library/stored-slideshow";
@@ -89,6 +90,7 @@ async function writePage(job: PageExportJob): Promise<PageExportResult> {
     stored,
     { picture: (id) => keys.get(id) ?? id, music: () => MUSIC_KEY },
     job.focus,
+    NO_BEATS,
   );
   let bytesWritten = 0;
   const write = async (text: string, bytes: number) => {

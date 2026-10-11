@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onDestroy, onMount } from "svelte";
+  import { NO_BEATS } from "../../beats";
   import { composeSlideshow } from "../../compose";
   import type { LibraryStore, StoredSlideshow } from "../../library/stored-slideshow";
   import type { MusicOutput } from "../../player";
@@ -71,6 +72,7 @@
             },
           },
           loaded.focus,
+          NO_BEATS,
         ),
   );
 
