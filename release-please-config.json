@@ -5,7 +5,8 @@
       "release-type": "node",
       "package-name": "glissando",
       "bump-minor-pre-major": true,
-      "bump-patch-for-minor-pre-major": true
+      "bump-patch-for-minor-pre-major": true,
+      "initial-version": "0.0.1"
     }
   }
 }
