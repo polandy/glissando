@@ -2,7 +2,10 @@
   import type { BeatTick } from "./picture-changes-view";
   import { percentOf } from "./waveform-scale";
 
-  /** The beats the pictures change on, along the waveform's foot; every fourth one taller. */
+  /**
+   * The beats the pictures change on, hanging from the waveform's foot into the gap above the
+   * ruler; every fourth one longer.
+   */
   let { ticks, durationMs }: { ticks: readonly BeatTick[]; durationMs: number } = $props();
 </script>
 
@@ -15,20 +18,24 @@
 {/if}
 
 <style>
+  /* The ruler keeps an 8 px gap below the waveform; the ticks fill it. */
   .beat-ticks {
     position: absolute;
-    inset: 0;
+    top: 100%;
+    right: 0;
+    left: 0;
+    height: 8px;
     pointer-events: none;
   }
   .beat-ticks i {
     position: absolute;
-    bottom: 0;
+    top: 0;
     width: 1px;
-    height: 8px;
-    background: color-mix(in srgb, var(--gl-ink) 22%, transparent);
+    height: 4px;
+    background: color-mix(in srgb, var(--gl-ink) 30%, transparent);
   }
   .beat-ticks i.bar {
-    height: 14px;
-    background: color-mix(in srgb, var(--gl-ink) 45%, transparent);
+    height: 8px;
+    background: color-mix(in srgb, var(--gl-ink) 60%, transparent);
   }
 </style>
