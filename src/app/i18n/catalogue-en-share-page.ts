@@ -13,7 +13,6 @@ export const enSharePage: Pick<Catalogue, keyof typeof deSharePage> = {
   "sharePage.unreachableTitle": "Can't reach the slideshow right now",
   "sharePage.unreachableText":
     "The server it lives on isn't answering. It may be restarting; try again in a moment.",
-  "sharePage.tryAgain": "Try again",
   "sharePage.noscript":
     "This slideshow needs JavaScript. Open the link in a browser such as Safari, Chrome or Firefox.",
 };

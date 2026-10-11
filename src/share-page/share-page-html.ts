@@ -1,18 +1,29 @@
-import { captionFontFace, escapeHtml, escapeStyle, jsonBlock } from "../html-export/page";
+import {
+  captionFontFace,
+  escapeHtml,
+  escapeStyle,
+  jsonBlock,
+  PAGE_CONTENT_SECURITY_POLICY,
+} from "../html-export/page";
 import { assertInlineableScript } from "../html-export/inline-script";
 import { SHARE_WORDS_BLOCK_ID } from "./share-page-contract";
 import type { SharePageLanguages } from "./share-page-words";
 
-/**
- * The page a share link opens, `share.html` in the build: the same for every token, with its
- * style, font, words and script inline (dev-docs/SHARE_LINK.md, The recipient's page).
- */
+const SELF = "'self'";
+const DIRECTIVE_SEPARATOR = "; ";
+
+/** The sources the share page adds to the export page's policy, by directive. */
+const SHARE_PAGE_SOURCES: Readonly<Record<string, readonly string[]>> = {
+  "connect-src": [SELF, "blob:"],
+  "img-src": [SELF],
+  "media-src": [SELF],
+};
 
 /** The export page's policy, plus the page's own origin for the slideshow, pictures and songs. */
-export const SHARE_PAGE_CONTENT_SECURITY_POLICY =
-  "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; " +
-  "connect-src 'self' blob:; img-src 'self' data: blob:; media-src 'self' data: blob:; " +
-  "font-src data:; worker-src blob:";
+export const SHARE_PAGE_CONTENT_SECURITY_POLICY = withSources(
+  PAGE_CONTENT_SECURITY_POLICY,
+  SHARE_PAGE_SOURCES,
+);
 
 /** Shown until the page knows the recipient's language. */
 const DEFAULT_LANG = "en";
@@ -26,7 +37,11 @@ export interface SharePageParts {
   readonly script: string;
 }
 
-/** Throws on a script that cannot be inlined unchanged (`assertInlineableScript`). */
+/**
+ * The page a share link opens, `share.html` in the build: the same for every token, with its
+ * style, font, words and script inline (dev-docs/SHARE_LINK.md, The recipient's page). Throws on
+ * a script that cannot be inlined unchanged (`assertInlineableScript`).
+ */
 export function sharePageHtml(parts: SharePageParts): string {
   assertInlineableScript(parts.script, "the share page's script");
   const noscript = Object.values(parts.languages)
@@ -52,4 +67,21 @@ export function sharePageHtml(parts: SharePageParts): string {
     "</html>",
     "",
   ].join("\n");
+}
+
+/** `policy` with `added` put in front of each directive's sources, a missing directive appended. */
+function withSources(policy: string, added: Readonly<Record<string, readonly string[]>>): string {
+  const directives = policy.split(DIRECTIVE_SEPARATOR).map((directive) => directive.split(" "));
+  const named = new Set(directives.map(([name]) => name));
+  const widened = directives.map(([name = "", ...sources]) => [
+    name,
+    ...(added[name] ?? []),
+    ...sources,
+  ]);
+  const appended = Object.entries(added)
+    .filter(([name]) => !named.has(name))
+    .map(([name, sources]) => [name, ...sources]);
+  return [...widened, ...appended]
+    .map((directive) => directive.join(" "))
+    .join(DIRECTIVE_SEPARATOR);
 }

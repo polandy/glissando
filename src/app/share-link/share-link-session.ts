@@ -89,6 +89,8 @@ export class ShareLinkSession {
   readonly #listeners = new Set<(state: ShareLinkState) => void>();
   #state: ShareLinkState = INITIAL_STATE;
   #cancelCopied: (() => void) | null = null;
+  /** Counts the sheet's closings, so a copy that lands after one says nothing. */
+  #closings = 0;
 
   constructor(slideshowId: string, ports: ShareLinkSessionPorts) {
     this.#slideshowId = slideshowId;
@@ -133,6 +135,7 @@ export class ShareLinkSession {
   }
 
   close(): void {
+    this.#closings += 1;
     this.#stopCopied();
     this.#set({ sheet: "closed", qrCodeShown: false, unanswered: null });
   }
@@ -148,12 +151,14 @@ export class ShareLinkSession {
     const url = this.#url();
     const clipboard = this.#ports.clipboard;
     if (clipboard === null) throw new Error("this browser offers no clipboard to copy the link to");
+    const closings = this.#closings;
     try {
       await clipboard.writeText(url);
     } catch (error) {
       this.#ports.onError(error);
       return;
     }
+    if (closings !== this.#closings) return;
     this.#stopCopied();
     this.#cancelCopied = this.#ports.scheduler.after(COPIED_FEEDBACK_MS, () => {
       this.#cancelCopied = null;
@@ -193,6 +198,7 @@ export class ShareLinkSession {
   turnOff(): Promise<void> {
     return this.#request("turnOff", async () => {
       await this.#ports.api.unshare(this.#slideshowId);
+      this.#closings += 1;
       this.#stopCopied();
       this.#set({ link: null, sheet: "closed", qrCodeShown: false });
       this.#ports.onTurnedOff();
@@ -215,6 +221,7 @@ export class ShareLinkSession {
 
   /** The screen closed: nothing is scheduled any more. */
   dispose(): void {
+    this.#closings += 1;
     this.#stopCopied();
     this.#listeners.clear();
   }

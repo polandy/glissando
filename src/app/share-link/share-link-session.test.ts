@@ -16,6 +16,8 @@ function harness({
   origin = ORIGIN,
   withShareSheet = true,
   withClipboard = true,
+  writeText = (() => Promise.resolve()) as (text: string) => Promise<void>,
+  shareSheet = (() => Promise.resolve()) as (data: { title: string; url: string }) => Promise<void>,
 } = {}) {
   const api = new FakeShareLinkApi("show", shared);
   const scheduler = new FakeScheduler();
@@ -28,10 +30,8 @@ function harness({
     api,
     origin,
     scheduler,
-    clipboard: withClipboard
-      ? { writeText: (text) => (copied.push(text), Promise.resolve()) }
-      : null,
-    shareSheet: withShareSheet ? (data) => (sharedVia.push(data), Promise.resolve()) : null,
+    clipboard: withClipboard ? { writeText: (text) => (copied.push(text), writeText(text)) } : null,
+    shareSheet: withShareSheet ? (data) => (sharedVia.push(data), shareSheet(data)) : null,
     openTab: (url) => tabs.push(url),
     onTurnedOff: () => turnedOff.push("toast"),
     onError: (error) => errors.push(error),
@@ -138,6 +138,44 @@ describe("ShareLinkSession (SHARE_LINK.md, In the app)", () => {
     expect(scheduler.pending).toBe(0);
   });
 
+  it("hands a clipboard that refuses the link on to the app, without saying Copied", async () => {
+    const refused = new DOMException("Write permission denied.", "NotAllowedError");
+    const { session, errors, scheduler } = harness({
+      shared: LINK,
+      writeText: () => Promise.reject(refused),
+    });
+    await session.load();
+    session.open();
+
+    await session.copy();
+
+    expect(errors).toEqual([refused]);
+    expect(session.state.copied).toBe(false);
+    expect(scheduler.pending).toBe(0);
+  });
+
+  it.each([
+    { what: "the sheet closed", end: (session: ShareLinkSession) => session.close() },
+    { what: "the screen closed", end: (session: ShareLinkSession) => session.dispose() },
+  ])("says nothing of a copy that lands after $what", async ({ end }) => {
+    const write = Promise.withResolvers<undefined>();
+    const { session, copied, scheduler } = harness({
+      shared: LINK,
+      writeText: () => write.promise,
+    });
+    await session.load();
+    session.open();
+    const copying = session.copy();
+    expect(copied).toEqual([URL_OF_LINK]);
+
+    end(session);
+    write.resolve(undefined);
+    await copying;
+
+    expect(session.state.copied).toBe(false);
+    expect(scheduler.pending).toBe(0);
+  });
+
   it("shows and hides the QR code", async () => {
     const { session } = harness({ shared: LINK });
     await session.load();
@@ -168,6 +206,32 @@ describe("ShareLinkSession (SHARE_LINK.md, In the app)", () => {
       expect(harness({ withClipboard }).session.canCopy).toBe(canCopy);
     },
   );
+
+  it("takes a dismissed share sheet as no failure", async () => {
+    const { session, sharedVia, errors } = harness({
+      shared: LINK,
+      shareSheet: () => Promise.reject(new DOMException("Share canceled", "AbortError")),
+    });
+    await session.load();
+
+    await session.shareVia("Summer 2025");
+
+    expect(sharedVia).toHaveLength(1);
+    expect(errors).toEqual([]);
+  });
+
+  it("hands any other share sheet failure on to the app", async () => {
+    const refused = new DOMException("Not allowed", "NotAllowedError");
+    const { session, errors } = harness({
+      shared: LINK,
+      shareSheet: () => Promise.reject(refused),
+    });
+    await session.load();
+
+    await session.shareVia("Summer 2025");
+
+    expect(errors).toEqual([refused]);
+  });
 
   it("offers no share sheet where the browser has none", () => {
     const { session } = harness({ withShareSheet: false });

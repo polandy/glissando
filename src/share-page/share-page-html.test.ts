@@ -53,6 +53,14 @@ describe("sharePageHtml", () => {
     }
   });
 
+  it("keeps every source of the export page's policy and adds only the page's own origin", () => {
+    expect(SHARE_PAGE_CONTENT_SECURITY_POLICY).toBe(
+      "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; " +
+        "img-src 'self' data: blob:; media-src 'self' data: blob:; font-src data:; " +
+        "worker-src blob:; connect-src 'self' blob:",
+    );
+  });
+
   it("holds both languages' words, with no word able to end its block", () => {
     expect(PAGE).toContain('<script type="application/json" id="share-words">');
     expect(PAGE).toContain("\\u003c/script>\\u003cb>");

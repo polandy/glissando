@@ -9,9 +9,6 @@ export const deShare = {
   "share.deviceHint": "Speichere sie auf deinem Glissando-Server, um sie per Link zu teilen.",
   "share.title": "Per Link teilen",
   "share.summary": "{title} · {pictures} · {duration} · {music}",
-  "share.pictureCount": { one: "{count} Bild", other: "{count} Bilder" },
-  "share.withMusic": "mit Musik",
-  "share.withoutMusic": "ohne Musik",
   "share.anyoneStrong": "Alle mit dem Link können zuschauen",
   "share.anyoneAfter": " – im Browser, ohne Anmeldung und ohne etwas zu installieren.",
   "share.privateBefore": "Sie sehen die Diashow in 4K mit Musik und Bildtiteln. ",
@@ -42,8 +39,10 @@ export const deShare = {
   "share.homeNetworkStrong": "Dieser Link funktioniert nur in deinem Heimnetz.",
   "share.homeNetworkAfter":
     " Glissando ist hier über eine Adresse im Heimnetz geöffnet. Um mit jemandem außerhalb zu teilen, öffne Glissando über seine öffentliche Adresse und teile von dort.",
-  "share.loadFailed": "Der Link wurde nicht gelesen. Dein Glissando-Server antwortet nicht.",
-  "share.createFailed": "Der Link wurde nicht erstellt. Dein Glissando-Server antwortet nicht.",
+  "share.loadFailed":
+    "Der Link konnte nicht gelesen werden. Dein Glissando-Server antwortet nicht.",
+  "share.createFailed":
+    "Der Link konnte nicht erstellt werden. Dein Glissando-Server antwortet nicht.",
   "share.turnOffFailed":
-    "Der Link wurde nicht ausgeschaltet. Dein Glissando-Server antwortet nicht.",
+    "Der Link konnte nicht ausgeschaltet werden. Dein Glissando-Server antwortet nicht.",
 } as const satisfies Record<string, Message>;

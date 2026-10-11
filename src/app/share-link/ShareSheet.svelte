@@ -47,9 +47,9 @@
   const summary = $derived(
     t("share.summary", {
       title: subject.title,
-      pictures: t("share.pictureCount", { count: subject.pictureCount }),
+      pictures: t("units.pictures", { count: subject.pictureCount }),
       duration: formatDuration(subject.durationSeconds),
-      music: subject.hasMusic ? t("share.withMusic") : t("share.withoutMusic"),
+      music: subject.hasMusic ? t("htmlExport.withMusic") : t("htmlExport.withoutMusic"),
     }),
   );
 </script>

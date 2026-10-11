@@ -40,14 +40,16 @@ export function createShareApi(fetch: FetchPort, token: string): ShareApi {
   const base = `${SHARE_API_PATH}${encodeURIComponent(token)}`;
   return {
     async answer() {
-      const response = await get(fetch, base);
-      return readShareAnswer(await response.json());
+      const body = await bodyOf(base, await get(fetch, base), (response) => response.text());
+      return readShareAnswer(JSON.parse(body));
     },
     async picture(revision, index) {
-      return (await get(fetch, `${base}/${revision}/pictures/${index}`)).blob();
+      const url = `${base}/${revision}/pictures/${index}`;
+      return bodyOf(url, await get(fetch, url), (response) => response.blob());
     },
     async song(index) {
-      return (await get(fetch, `${base}/songs/${index}`)).blob();
+      const url = `${base}/songs/${index}`;
+      return bodyOf(url, await get(fetch, url), (response) => response.blob());
     },
   };
 }
@@ -66,7 +68,7 @@ async function get(fetch: FetchPort, url: string): Promise<Response> {
   if (response.status !== NOT_FOUND) {
     throw new ShareAnswerError(`${url} answered ${response.status}, expected 200 or 404`);
   }
-  const code = await errorCode(response);
+  const code = errorCode(await bodyOf(url, response, (notFound) => notFound.text()));
   if (code !== null && MISSING_MEDIUM_CODES.includes(code)) {
     throw new ShareMediumMissingError(`${url} answered 404 ${code}`);
   }
@@ -74,14 +76,29 @@ async function get(fetch: FetchPort, url: string): Promise<Response> {
   throw new ShareGoneError(`${url} answered 404 ${code ?? "without an error code"}`);
 }
 
-async function errorCode(response: Response): Promise<string | null> {
+/** Reads `response`'s body; a connection dropped meanwhile is the server not answering. */
+async function bodyOf<T>(
+  url: string,
+  response: Response,
+  read: (response: Response) => Promise<T>,
+): Promise<T> {
   try {
-    const body: unknown = await response.json();
-    const code: unknown =
-      typeof body === "object" && body !== null ? Reflect.get(body, "error") : undefined;
-    return typeof code === "string" ? code : null;
-  } catch {
-    // A 404 page that is no JSON names no code.
-    return null;
+    return await read(response);
+  } catch (cause: unknown) {
+    throw new ShareUnreachableError(`${url} broke off while its answer was read`, { cause });
   }
+}
+
+function errorCode(body: string): string | null {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(body);
+  } catch (error: unknown) {
+    // A 404 page that is no JSON names no code.
+    if (error instanceof SyntaxError) return null;
+    throw error;
+  }
+  const code: unknown =
+    typeof parsed === "object" && parsed !== null ? Reflect.get(parsed, "error") : undefined;
+  return typeof code === "string" ? code : null;
 }

@@ -131,6 +131,9 @@ the same contract suite.
     `waiting` event, until `playing`), a "Loading" chip shows at the top right.
   - **Gone**: "This link doesn't work any more" and "Whoever shared the slideshow has turned the
     link off. Ask them for a new one." No title, no picture.
+    A picture answering `notShared` while the slideshow plays stops the player and shows this
+    card. Songs are fetched before playing, so a song's `notShared` shows it on Play or "Play
+    again".
   - **Unreachable**: "Can't reach the slideshow right now", "The server it lives on isn't
     answering. It may be restarting; try again in a moment." and "Try again", which reloads the
     page.
@@ -163,14 +166,16 @@ the same contract suite.
   - **Shared**: the link (read-only, mono; a tap or click selects all of it) with "Copy" where
     the browser offers the clipboard, so not over plain `http:` (then "Copied" for 2 s, from the
     injected scheduler), "Share …" where `navigator.share` exists, "Open as viewer" (a new tab), and
-    "QR code", which shows or hides the link's QR code. Below that, "Created 11 Oct 2026 · works
-    until you turn it off", then "Turn off link" (destructive text button) and "Done".
+    "QR code", which shows or hides the link's QR code. Below that, "Created <date> · works until
+    you turn it off", the date in the app's date format (`formatDate`, "11.10.2026" in German),
+    then "Turn off link" (destructive text button) and "Done".
   - **Turn off?**: "Turn off the link?", "Anyone who has it can no longer watch “<title>”. If you
     share it again, it gets a new link and this one stays off.", then "Cancel" and "Turn off
     link" (coral). Afterwards the sheet closes and a toast says "Link turned off".
   - **Home network note** (lemon), in both states, when the app's origin is a home network
-    address: plain `http:`, a `localhost`, `.local` or `.lan` name, or a private, loopback or
-    link-local IP (`isHomeNetworkOrigin`, a pure function). The note reads: "This link only works
+    address: plain `http:`, a `localhost`, `.local`, `.lan` or `.home.arpa` name, or a private,
+    shared (100.64.0.0/10, e.g. Tailscale's), loopback or link-local IP (`isHomeNetworkOrigin`, a
+    pure function). The note reads: "This link only works
     on your home network. Glissando is open at a home address here. To share with someone
     elsewhere, open Glissando through its public address and share from there."
   - **Failures**: the server not answering shows the server sheet's usual error with "Try again".
@@ -194,8 +199,9 @@ the same contract suite.
   header but the allowed ones, and the same URL answers 404 once the link is turned off.
 - A browser test opens `share.html` at `/s/<token>` against a fake share API (Playwright
   routing, as Vitest browser commands in `src/share-page/testing/`) and plays a generated three-picture slideshow
-  to `ended`, also with a late picture (the chip) and a missing one (skipped), and shows `gone`
-  and `unreachable` (then "Try again").
+  to `ended`, also with a late picture (the chip) and a missing one (skipped), plays a new
+  revision on "Play again", and shows `gone` (at the start, from a picture while playing, from a
+  song on "Play again") and `unreachable` (then "Try again").
 - E2E-043 shares a server slideshow from the info panel, opens the link in a second page,
   presses Play and waits for `playing`, then turns the link off and sees `gone` on reload. The
   fake server (`e2e/support/fake-glissando-server.ts`) answers `/s/` with the built `share.html`

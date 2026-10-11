@@ -42,7 +42,7 @@
   height: 52px;
   border-radius: 50%;
   background: var(--gl-player-glass);
-  --gl-size-icon: 26px;
+  --gl-size-icon: var(--gl-size-icon-large);
 }
 
 .starting {

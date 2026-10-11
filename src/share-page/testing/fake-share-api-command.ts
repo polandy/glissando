@@ -45,6 +45,8 @@ export const serveFakeShareApi: BrowserCommand<[fake: FakeShareApi]> = async (co
     if (path === base) return route.fulfill({ json: fake.answer });
     const picture = /\/\d+\/pictures\/(\d+)$/.exec(path);
     const song = /\/songs\/(\d+)$/.exec(path);
+    if (picture && Number(picture[1]) === fake.gonePicture) return notFound("notShared");
+    if (song && fake.goneSongs === true) return notFound("notShared");
     const medium = picture
       ? Number(picture[1]) === fake.missingPicture
         ? undefined

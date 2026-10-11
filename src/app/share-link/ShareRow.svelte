@@ -116,7 +116,7 @@
     gap: 5px;
     padding: 2px 8px;
     border-radius: var(--gl-radius-pill);
-    background: color-mix(in srgb, var(--gl-mint) 24%, var(--gl-surface));
+    background: var(--gl-mint-tint);
     color: var(--gl-ink);
     font-size: var(--gl-size-small);
     font-weight: var(--gl-weight-semibold);

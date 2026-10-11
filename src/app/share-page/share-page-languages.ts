@@ -33,7 +33,7 @@ function sharePageWords(catalogue: Catalogue): SharePageWords {
     goneText: catalogue["sharePage.goneText"],
     unreachableTitle: catalogue["sharePage.unreachableTitle"],
     unreachableText: catalogue["sharePage.unreachableText"],
-    tryAgain: catalogue["sharePage.tryAgain"],
+    tryAgain: catalogue["server.tryAgain"],
     noscript: catalogue["sharePage.noscript"],
   };
 }

@@ -67,7 +67,7 @@ async function mountControl({
     row()?.click();
     await settle();
   };
-  return { target, api, scheduler, toasts, dialog, button, click, row, openSheet };
+  return { target, api, session, scheduler, toasts, dialog, button, click, row, openSheet };
 }
 
 describe("The share row and sheet (SHARE_LINK.md, In the app)", () => {
@@ -114,6 +114,13 @@ describe("The share row and sheet (SHARE_LINK.md, In the app)", () => {
     expect(row()?.textContent).toContain("Per Link geteilt");
   });
 
+  it("says when the link was made, in the app's date format", async () => {
+    const { openSheet, dialog } = await mountControl({ shared: LINK });
+    await openSheet();
+
+    expect(dialog()?.querySelector(".since")?.textContent).toContain("Erstellt am 11.10.2026");
+  });
+
   it("reads Kopiert for 2 s after copying, then Kopieren again", async () => {
     const { openSheet, click, button, scheduler } = await mountControl({ shared: LINK });
     await openSheet();
@@ -124,6 +131,18 @@ describe("The share row and sheet (SHARE_LINK.md, In the app)", () => {
     flushSync();
 
     expect(button("Kopieren")).toBeTruthy();
+  });
+
+  it("leaves the session to the screen that owns it when the row goes", async () => {
+    const { openSheet, click, session, scheduler } = await mountControl({ shared: LINK });
+    await openSheet();
+    await click("Kopieren");
+
+    destroy?.();
+    destroy = null;
+
+    expect(session.state.copied).toBe(true);
+    expect(scheduler.pending).toBe(1);
   });
 
   it("leaves Kopieren out where the browser has no clipboard, the link still selectable", async () => {
@@ -200,7 +219,7 @@ describe("The share row and sheet (SHARE_LINK.md, In the app)", () => {
 
     await click("Link erstellen");
     expect(dialog()?.querySelector('[role="alert"]')?.textContent).toContain(
-      "Der Link wurde nicht erstellt. Dein Glissando-Server antwortet nicht.",
+      "Der Link konnte nicht erstellt werden. Dein Glissando-Server antwortet nicht.",
     );
     api.down = false;
     await click("Erneut versuchen");

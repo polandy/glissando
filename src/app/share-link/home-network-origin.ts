@@ -13,8 +13,8 @@ export function isHomeNetworkOrigin(origin: string): boolean {
 }
 
 const PLAIN_HTTP = "http:";
-/** `localhost` and the names home routers and mDNS hand out. */
-const HOME_NAMES: readonly string[] = ["localhost", "local", "lan"];
+/** `localhost`, the names home routers and mDNS hand out, and home.arpa (RFC 8375). */
+const HOME_NAMES: readonly string[] = ["localhost", "local", "lan", "home.arpa"];
 const IPV6_BRACKET = "[";
 
 interface Ipv4Range {
@@ -23,11 +23,12 @@ interface Ipv4Range {
   readonly prefixLength: number;
 }
 
-/** Private (RFC 1918), loopback and link-local. */
+/** Private (RFC 1918), shared CGNAT (RFC 6598, e.g. Tailscale's), loopback and link-local. */
 const HOME_IPV4_RANGES: readonly Ipv4Range[] = [
   { first: [10, 0], prefixLength: 8 },
   { first: [172, 16], prefixLength: 12 },
   { first: [192, 168], prefixLength: 16 },
+  { first: [100, 64], prefixLength: 10 },
   { first: [127, 0], prefixLength: 8 },
   { first: [169, 254], prefixLength: 16 },
 ];
