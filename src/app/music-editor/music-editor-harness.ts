@@ -1,6 +1,6 @@
 /** Shared set-up of the music editor's browser tests. */
 import { flushSync } from "svelte";
-import type { MusicTrim, PictureChanges } from "../../library/own-music";
+import type { BetweenSongs, MusicTrim, PictureChanges } from "../../library/own-music";
 import type { PictureLength } from "../../library/picture-length";
 import type { StoredMusic, StoredPicture, StoredSlideshow } from "../../library/stored-slideshow";
 import type { BeatsStatus } from "../beats/music-beats-known";
@@ -9,6 +9,7 @@ import { mountWithTranslator } from "../testing/mount-with-translator";
 import { reactiveProps } from "../testing/reactive-props.svelte";
 import type { ListenKind, ListenState } from "./listen-preview";
 import MusicEditorScreen from "./MusicEditorScreen.svelte";
+import type { PendingSong } from "./song-intake";
 
 export const TRACK_MS = 204_000;
 
@@ -43,6 +44,19 @@ export function slideshowWith(
   };
 }
 
+/** A song of `durationMs` named `<id>.mp3`. */
+export function song(id: string, durationMs: number, own: Partial<StoredMusic> = {}): StoredMusic {
+  return { id, fileName: `${id}.mp3`, durationMs, mimeType: "audio/mpeg", ...own };
+}
+
+/** `slideshowWith`'s pictures playing the playlist `songs`. */
+export function slideshowOfSongs(
+  songs: readonly StoredMusic[],
+  { count = 24, ...own }: { count?: number } & Partial<StoredSlideshow> = {},
+): StoredSlideshow {
+  return { ...slideshowWith({}, { count }), songs, ...own };
+}
+
 let destroy: (() => void) | null = null;
 
 export function unmountEditor(): void {
@@ -67,14 +81,21 @@ export function mountEditor(
     pictureChanges: [] as (PictureChanges | undefined)[],
     pictureLength: [] as (PictureLength | undefined)[],
     secondsPerPicture: [] as number[],
+    selected: [] as string[],
+    moves: [] as string[],
+    removed: [] as string[],
+    added: [] as string[],
+    dismissed: [] as number[],
+    betweenSongs: [] as (BetweenSongs | undefined)[],
   };
-  const songId = slideshow.songs[0]?.id ?? "";
+  const songId = slideshow.songs[0]?.id ?? null;
   const props = reactiveProps({
     slideshow,
-    songId,
-    beats: new Map([[songId, beats]]) as SongsBeatsStatus,
+    selectedSongId: songId,
+    beats: new Map(slideshow.songs.map(({ id }) => [id, beats])) as SongsBeatsStatus,
     peaks: Float32Array.from({ length: 1000 }, (_, index) => (index % 10) / 10),
     listening: null as ListenState | null,
+    pending: [] as readonly PendingSong[],
     onBack: () => {},
     onTrim: (trim: MusicTrim | undefined) => calls.trims.push(trim),
     onFadeIn: (fadeMs: number | undefined) => calls.fadesIn.push(fadeMs),
@@ -84,6 +105,12 @@ export function mountEditor(
     onSecondsPerPicture: (seconds: number) => calls.secondsPerPicture.push(seconds),
     onListen: (kind: ListenKind) => calls.listens.push(kind),
     onStopListening: () => (calls.stops += 1),
+    onSelectSong: (id: string) => calls.selected.push(id),
+    onMoveSong: (id: string, toIndex: number) => calls.moves.push(`${id} → ${toIndex}`),
+    onRemoveSong: (id: string) => calls.removed.push(id),
+    onAddSongs: (files: readonly File[]) => calls.added.push(...files.map((file) => file.name)),
+    onDismissPending: (key: number) => calls.dismissed.push(key),
+    onBetweenSongs: (between: BetweenSongs | undefined) => calls.betweenSongs.push(between),
     saving: false,
   });
   const mounted = mountWithTranslator(MusicEditorScreen, props);

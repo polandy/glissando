@@ -237,6 +237,7 @@
         editingMusic={route.screen === "music"}
         musicAudio={services.musicAudio}
         musicOutput={services.musicOutput}
+        songIntake={services.songIntake(opened.home)}
         onBack={() => navigator.back()}
         onPlay={() => {
           // Within the Play gesture: the player starts the music only after its pictures load.

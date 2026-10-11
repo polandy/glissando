@@ -12,6 +12,7 @@ import type { AddPicturesSession } from "./add-pictures/add-pictures-session";
 import type { SlideshowHome } from "./routes/slideshow-storage";
 import type { ImportSession } from "./import/import-session";
 import type { MusicEditorAudio } from "./music-editor/music-editor-audio";
+import type { SongIntakeDevice } from "./music-editor/song-intake";
 import type { Navigator } from "./navigation/navigator";
 import type { AppSettings } from "./settings/app-settings";
 import type { PersistencePrompt } from "./storage/persistence-prompt";
@@ -52,6 +53,8 @@ export interface AppServices {
   readonly appAddress: string;
   newImportSession(): ImportSession;
   newAddPicturesSession(slideshow: StoredSlideshow, home: SlideshowHome): AddPicturesSession;
+  /** Reads songs picked in the music editor and stores their audio where the slideshow lives. */
+  songIntake(home: SlideshowHome): SongIntakeDevice;
   /** A new random id. */
   newId(): string;
   /** The current instant. */

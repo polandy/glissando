@@ -1,33 +1,39 @@
 <script lang="ts">
-  import type { MusicTrim, PictureChanges } from "../../library/own-music";
+  import type { BetweenSongs, MusicTrim, PictureChanges } from "../../library/own-music";
   import type { PictureLength } from "../../library/picture-length";
   import { setMusicTrim } from "../../library/slideshow-edits-music";
   import type { StoredSlideshow } from "../../library/stored-slideshow";
-  import { MILLISECONDS_PER_SECOND } from "../../player";
   import Header from "../components/Header.svelte";
   import Icon from "../components/Icon.svelte";
-  import PictureLengthSection from "../components/PictureLengthSection.svelte";
   import { getTranslator } from "../i18n/context";
-  import FadeSection from "./FadeSection.svelte";
   import type { ListenKind, ListenState } from "./listen-preview";
+  import MusicEditorPanel from "./MusicEditorPanel.svelte";
   import { musicEditorView, type SongsBeatsStatus } from "./music-editor-view";
-  import MusicWaveform from "./MusicWaveform.svelte";
-  import PictureChangesSection from "./PictureChangesSection.svelte";
-  import SlideshowLane from "./SlideshowLane.svelte";
-  import TimingNote from "./TimingNote.svelte";
-  import TrimSection from "./TrimSection.svelte";
+  import PlaylistLane from "./PlaylistLane.svelte";
+  import { playlistView } from "./playlist-view";
+  import SelectedSong from "./SelectedSong.svelte";
+  import type { PendingSong } from "./song-intake";
+  import SongList from "./SongList.svelte";
 
   /**
-   * The music editor: the track's excerpt on its waveform, its fades and how the pictures meet
-   * it, on its beats or evenly. Every change goes to its callback and is stored at once.
+   * The music editor: the playlist's songs and how they meet the slideshow; the selected song's
+   * excerpt on its waveform, its fades and how the pictures meet it, on its beats or evenly. Every
+   * change goes to its callback and is stored at once. Without songs, it offers to add one.
    */
   let {
     slideshow,
-    songId,
+    selectedSongId,
     beats,
     peaks,
     listening,
+    pending,
     onBack,
+    onSelectSong,
+    onAddSongs,
+    onRemoveSong,
+    onMoveSong,
+    onDismissPending,
+    onBetweenSongs,
     onTrim,
     onFadeIn,
     onFadeOut,
@@ -38,16 +44,24 @@
     onStopListening,
     saving,
   }: {
-    /** The slideshow, which has music. */
     slideshow: StoredSlideshow;
-    /** The song edited. */
-    songId: string;
+    /** The song edited; the first while none is chosen or the chosen one is gone. */
+    selectedSongId: string | null;
     /** What is known of the songs' beats, updated as the background pass listens. */
     beats: SongsBeatsStatus;
-    /** Fine peaks of the whole track, 0..1; null while the track is decoded. */
+    /** Fine peaks of the selected song's whole track, 0..1; null while it is decoded. */
     peaks: Float32Array | null;
     listening: ListenState | null;
+    /** Picked files on their way into the playlist, or found unusable. */
+    pending: readonly PendingSong[];
     onBack: () => void;
+    onSelectSong: (songId: string) => void;
+    onAddSongs: (files: readonly File[]) => void;
+    onRemoveSong: (songId: string) => void;
+    onMoveSong: (songId: string, toIndex: number) => void;
+    onDismissPending: (key: number) => void;
+    /** `undefined`: the songs crossfade. */
+    onBetweenSongs: (between: BetweenSongs | undefined) => void;
     /** `undefined`: the whole track. */
     onTrim: (trim: MusicTrim | undefined) => void;
     /** `undefined`: automatic. */
@@ -64,105 +78,121 @@
     saving: boolean;
   } = $props();
 
-  const { t, formatDuration, formatTenths } = getTranslator();
-  const LISTENS = [
-    { kind: "start", label: "music.listenStart", at: "music.listenFrom" },
-    { kind: "end", label: "music.listenEnd", at: "music.listenUntil" },
-  ] as const;
+  const { t } = getTranslator();
+  const MUSIC_TYPES = "audio/*";
 
+  let pickSongs = $state<HTMLInputElement>();
   /** The excerpt while a handle is dragged; stored on release. */
   let draft = $state.raw<MusicTrim | null>(null);
-  const music = $derived(
-    musicEditorView(
-      draft === null ? slideshow : setMusicTrim(slideshow, songId, draft),
-      beats,
-      songId,
-    ),
+  const songId = $derived(
+    slideshow.songs.find((song) => song.id === selectedSongId)?.id ?? slideshow.songs[0]?.id,
   );
-  const seconds = (ms: number) => ms / MILLISECONDS_PER_SECOND;
+  const edited = $derived(
+    draft === null || songId === undefined ? slideshow : setMusicTrim(slideshow, songId, draft),
+  );
+  const music = $derived(songId === undefined ? null : musicEditorView(edited, beats, songId));
+  const playlist = $derived(playlistView(edited, beats));
 
-  function commit(trim: MusicTrim): void {
+  function trimmed(trim: MusicTrim | undefined): void {
     draft = null;
     onTrim(trim);
   }
+
+  function picked(event: Event & { currentTarget: HTMLInputElement }): void {
+    onAddSongs([...(event.currentTarget.files ?? [])]);
+    // Cleared so that picking the same file again still reports a change.
+    event.currentTarget.value = "";
+  }
 </script>
+
+<input bind:this={pickSongs} type="file" accept={MUSIC_TYPES} multiple hidden onchange={picked} />
 
 <div class="screen" aria-busy={saving}>
   <Header crumbs={[t("start.library"), slideshow.title, t("music.crumb")]} {onBack} />
-  <main class="edit">
-    <div class="main-column">
-      <div class="head">
-        <span class="disc"><Icon name="music" /></span>
-        <div>
-          <b>{music.fileName}</b>
-          <span class="muted mono">
-            {music.trimmed
-              ? t("music.trimmedTo", {
-                  duration: formatDuration(seconds(music.durationMs)),
-                  excerpt: formatDuration(seconds(music.endMs - music.startMs)),
-                })
-              : formatDuration(seconds(music.durationMs))}
-          </span>
+  {#if music === null}
+    <main class="edit empty-edit">
+      <div class="main-column">
+        <div class="empty">
+          <span class="disc"><Icon name="music" /></span>
+          <b>{t("music.noMusicYet")}</b>
+          <p>{t("music.noMusicWhy")}</p>
+          <button class="primary" type="button" onclick={() => pickSongs?.click()}>
+            <Icon name="plus" />{t("music.addSong")}
+          </button>
         </div>
+        {#if pending.length > 0}
+          <SongList
+            {playlist}
+            selectedSongId=""
+            {pending}
+            onSelect={onSelectSong}
+            onMove={onMoveSong}
+            onRemove={onRemoveSong}
+            onDismiss={onDismissPending}
+          />
+        {/if}
       </div>
-      <div class="wavebox">
-        <MusicWaveform
+    </main>
+  {:else}
+    <main class="edit">
+      <div class="main-column">
+        <SongList
+          {playlist}
+          selectedSongId={music.songId}
+          {pending}
+          onSelect={onSelectSong}
+          onMove={onMoveSong}
+          onRemove={onRemoveSong}
+          onDismiss={onDismissPending}
+        />
+        <button class="add" type="button" onclick={() => pickSongs?.click()}>
+          <Icon name="plus" />{t("music.addSong")}
+        </button>
+        <PlaylistLane {playlist} />
+        <SelectedSong
           {music}
           {peaks}
-          playheadMs={listening?.positionMs ?? null}
+          {listening}
           onDraft={(trim) => (draft = trim)}
-          onCommit={commit}
-          onGrab={onStopListening}
+          onCommit={trimmed}
+          {onStopListening}
+          {onListen}
         />
-        <SlideshowLane {music} />
       </div>
-      <div class="listen">
-        {#each LISTENS as listen (listen.kind)}
-          {@const playing = listening?.kind === listen.kind}
-          <button
-            class="listen-btn"
-            type="button"
-            aria-pressed={playing}
-            onclick={() => onListen(listen.kind)}
-          >
-            <span class="round"><Icon name={playing ? "pause" : "play"} /></span>
-            <b>{t(listen.label)}</b>
-            <small class="mono">
-              {t(listen.at, {
-                time: formatTenths(
-                  seconds(listen.kind === "start" ? music.startMs : music.audibleEndMs),
-                ),
-              })}
-            </small>
-          </button>
-        {/each}
-      </div>
-      <p class="hint">{t("music.hint")}</p>
-    </div>
-    <div class="panel">
-      <TrimSection {music} onTrim={commit} onReset={() => onTrim(undefined)} />
-      <PictureLengthSection {...music.pictureLength} {onPictureLength} {onSecondsPerPicture} />
-      <PictureChangesSection view={music.pictureChanges} {onPictureChanges} />
-      <TimingNote note={music.note} />
-      <FadeSection
-        direction="in"
-        fade={music.fadeIn}
-        audibleEndMs={music.audibleEndMs}
-        onFade={onFadeIn}
-        onReset={() => onFadeIn(undefined)}
+      <MusicEditorPanel
+        {music}
+        {playlist}
+        onTrim={trimmed}
+        {onFadeIn}
+        {onFadeOut}
+        {onPictureChanges}
+        {onPictureLength}
+        {onSecondsPerPicture}
+        {onBetweenSongs}
       />
-      <FadeSection
-        direction="out"
-        fade={music.fadeOut}
-        audibleEndMs={music.audibleEndMs}
-        onFade={onFadeOut}
-        onReset={() => onFadeOut(undefined)}
-      />
-    </div>
-  </main>
+    </main>
+  {/if}
 </div>
 
 <style>
+  .add {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px;
+    border: 1px dashed var(--gl-line);
+    border-radius: var(--gl-radius);
+    background: transparent;
+    color: var(--gl-ink);
+    font: inherit;
+    font-size: var(--gl-size-label);
+    font-weight: var(--gl-weight-medium);
+    cursor: pointer;
+  }
+  .add:hover {
+    background: var(--gl-hover);
+  }
   /* A zero basis: the screen keeps the viewport's height and each column scrolls inside it. */
   .edit {
     flex: 1 1 0;
@@ -178,105 +208,54 @@
     padding: 22px;
     overflow: auto;
   }
-  .head {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  .head div {
+  .empty {
     display: grid;
-    gap: 2px;
-    min-width: 0;
+    justify-items: center;
+    gap: 10px;
+    padding: 28px;
+    border: 1px dashed var(--gl-line);
+    border-radius: var(--gl-radius-large);
+    color: var(--gl-muted);
+    text-align: center;
   }
-  .head b {
+  .empty b {
+    color: var(--gl-ink);
     font-family: var(--gl-font-display);
     font-size: var(--gl-size-name);
-    letter-spacing: var(--gl-tracking-title);
-    overflow-wrap: anywhere;
   }
-  .head span.muted {
-    font-size: var(--gl-size-meta);
+  .empty p {
+    max-width: 44ch;
+    margin: 0;
   }
   .disc {
-    flex: none;
     display: grid;
     place-items: center;
     width: 44px;
     height: 44px;
-    border-radius: var(--gl-radius);
+    border-radius: 50%;
     background: color-mix(in srgb, var(--gl-accent) 30%, var(--gl-surface));
     color: var(--gl-ink);
   }
-  .wavebox {
-    display: grid;
-    gap: 8px;
-    padding: 42px 16px 12px;
-    border: 1px solid var(--gl-line);
-    border-radius: var(--gl-radius-large);
-    background: var(--gl-surface);
-  }
-  .listen {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-  }
-  .listen-btn {
-    display: grid;
-    grid-template-columns: auto 1fr;
+  .primary {
+    display: flex;
     align-items: center;
-    gap: 2px 10px;
-    padding: 10px 12px;
-    border: 1px solid var(--gl-line);
-    border-radius: var(--gl-radius);
-    background: var(--gl-surface);
-    color: var(--gl-ink);
+    gap: 6px;
+    padding: 10px 18px;
+    border: 0;
+    border-radius: var(--gl-radius-pill);
+    background: var(--gl-accent);
+    color: var(--gl-accent-ink);
     font: inherit;
-    font-size: var(--gl-size-label);
-    text-align: left;
+    font-size: var(--gl-size-body);
+    font-weight: var(--gl-weight-semibold);
     cursor: pointer;
   }
-  .listen-btn:hover {
-    background: var(--gl-hover);
+  .primary:hover {
+    background: var(--gl-accent-hover);
   }
-  .listen-btn[aria-pressed="true"] {
-    border-color: var(--gl-accent);
-    box-shadow: 0 0 0 1px var(--gl-accent) inset;
-  }
-  .listen-btn b {
-    font-weight: var(--gl-weight-semibold);
-  }
-  .listen-btn small {
-    color: var(--gl-muted);
-    font-size: var(--gl-size-meta);
-  }
-  .round {
-    grid-row: span 2;
-    display: grid;
-    place-items: center;
-    width: 34px;
-    height: 34px;
-    border-radius: 50%;
-    background: var(--gl-inverse-bg);
-    color: var(--gl-inverse-text);
-  }
-  .hint {
-    margin: 0;
-    color: var(--gl-muted);
-    font-size: var(--gl-size-meta);
-  }
-  .panel {
-    display: grid;
-    align-content: start;
-    gap: 18px;
-    min-height: 0;
-    padding: 20px;
-    overflow: auto;
-    border-left: 1px solid var(--gl-line);
-    background: var(--gl-surface);
-  }
-  .panel > :global(* + section) {
-    padding-top: 18px;
-    border-top: 1px solid var(--gl-line);
+  .empty-edit {
+    grid-template-columns: minmax(0, 720px);
+    justify-content: center;
   }
   @container (max-width: 720px) {
     /* The phone layout scrolls as one: the waveform on top, the panel below. */
@@ -287,18 +266,6 @@
     .main-column {
       padding: 16px;
       overflow: visible;
-    }
-    .wavebox {
-      padding: 40px 12px 10px;
-    }
-    .listen {
-      gap: 8px;
-    }
-    .panel {
-      padding: 16px;
-      overflow: visible;
-      border-top: 1px solid var(--gl-line);
-      border-left: 0;
     }
   }
 </style>

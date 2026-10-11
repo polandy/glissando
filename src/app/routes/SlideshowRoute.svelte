@@ -18,6 +18,7 @@
   import { animationFrames, performanceClock, type MusicOutput } from "../../player";
   import { REDUCED_MOTION_QUERY } from "../../ui-kit/reduced-motion";
   import MusicEditorRoute from "./MusicEditorRoute.svelte";
+  import type { SongIntakeDevice } from "../music-editor/song-intake";
   import PictureEditorRoute from "./PictureEditorRoute.svelte";
   import PlayerLayer from "./PlayerLayer.svelte";
   import ServerCopyConfirm from "./ServerCopyConfirm.svelte";
@@ -55,6 +56,7 @@
     editingMusic,
     musicAudio,
     musicOutput,
+    songIntake,
     onBack,
     onPlay,
     onAddPictures,
@@ -99,6 +101,8 @@
     musicAudio: MusicEditorAudio;
     /** Where the player's music sounds. */
     musicOutput: MusicOutput;
+    /** Reads songs picked in the music editor and stores their audio where the slideshow lives. */
+    songIntake: SongIntakeDevice;
     /** Also taken when the slideshow is no longer on this device. */
     onBack: () => void;
     onPlay: () => void;
@@ -238,6 +242,7 @@
     {editor}
     {beatPass}
     audio={musicAudio}
+    {songIntake}
     {saving}
     {onBack}
     {onError}
