@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { musicGainRamps } from "./music-ramps";
+import { musicGainRamps, trackGainRamps } from "./music-ramps";
 
 /** Heard from 10 s to 70 s of the track: 60 s, fading in 2 s and out 4 s. */
 const MUSIC = { startMs: 10_000, endMs: 70_000, fadeInMs: 2000, fadeOutMs: 4000 };
@@ -58,6 +58,39 @@ describe("musicGainRamps", () => {
     expect(musicGainRamps(music, 30_000, 60_000)).toEqual([
       { atMs: 0, gain: 1, kind: "set" },
       { atMs: 30_000, gain: 1, kind: "ramp" },
+    ]);
+  });
+});
+
+describe("trackGainRamps (slideshow time; the track starts at its atMs)", () => {
+  it("follows the track's own envelope from its place", () => {
+    expect(trackGainRamps({ ...MUSIC, atMs: 60_000 }, 60_000, 90_000)).toEqual(
+      musicGainRamps(MUSIC, 0, 30_000),
+    );
+  });
+
+  it("is silent up to its place, then jumps to its envelope there", () => {
+    const track = { ...MUSIC, atMs: 10_000, fadeInMs: 0 };
+
+    expect(trackGainRamps(track, 0, 30_000)).toEqual([
+      { atMs: 0, gain: 0, kind: "set" },
+      { atMs: 10_000, gain: 1, kind: "set" },
+      { atMs: 30_000, gain: 1, kind: "ramp" },
+    ]);
+  });
+
+  it("starts its fade-in at its place, inside the window", () => {
+    expect(trackGainRamps({ ...MUSIC, atMs: 10_000 }, 0, 30_000)).toEqual([
+      { atMs: 0, gain: 0, kind: "set" },
+      { atMs: 10_000, gain: 0, kind: "set" },
+      { atMs: 12_000, gain: 1, kind: "ramp" },
+      { atMs: 30_000, gain: 1, kind: "ramp" },
+    ]);
+  });
+
+  it("is silent in a window ending where it starts", () => {
+    expect(trackGainRamps({ ...MUSIC, atMs: 30_000, fadeInMs: 0 }, 0, 30_000)).toEqual([
+      { atMs: 0, gain: 0, kind: "set" },
     ]);
   });
 });

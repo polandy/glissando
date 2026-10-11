@@ -46,10 +46,14 @@ duration })`, encode, close.
 
 ## Music
 
-- The video carries the first track of the slideshow's music (PLAYER.md). Its bytes are decoded once (`decodeAudioData`), then rendered in 30 s segments, each in its
-  own `OfflineAudioContext` (2 channels, 48 kHz): the source starts at `startMs / 1000` plus the
-  segment's start, and its gain follows `musicGainAt` (ADR-0009) as linear ramps between the fade
-  boundaries. So the export holds the decoded track plus one segment, never the whole mix.
+- The video carries every track of the slideshow's music (PLAYER.md), mixed into one audio
+  stream. `runVideoExport` reads each song by a track's `src` through `openMusic`, and each
+  distinct song is decoded once (`decodeAudioData`). The mix is rendered in 30 s segments, each in
+  its own `OfflineAudioContext` (2 channels, 48 kHz): every track heard in the segment gets a
+  source started at its place (`atMs`) or, when it began before the segment, at `startMs` plus
+  the time since its place; its own gain follows `trackGainAt` (ADR-0009, ADR-0023) as linear
+  ramps between its fade boundaries (`trackGainRamps`), silent before its place. In a crossfade
+  two tracks sum. So the export holds the decoded songs plus one segment, never the whole mix.
 - The audio track is exactly as long as the video; after the audible end it is silence.
 - Each segment goes to the `AudioEncoder` as `f32-planar` `AudioData` once the video reaches the
   segment's start, so the muxer gets both tracks interleaved.

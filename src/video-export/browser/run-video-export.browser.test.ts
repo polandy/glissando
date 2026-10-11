@@ -120,7 +120,8 @@ async function exportGenerated(
         ? Promise.reject(new Error(`no generated picture ${src}`))
         : Promise.resolve(picture);
     },
-    musicFile: generatedTone(),
+    openMusic: (src) =>
+      src === "tone" ? Promise.resolve(generatedTone()) : Promise.reject(new Error(src)),
     preset: "720p",
     audioCodec: capabilities.audioCodec,
     target,

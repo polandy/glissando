@@ -12,14 +12,14 @@ import { WebCodecsAudioEncoder, WebCodecsVideoEncoder } from "./encoders";
 import type { ExportTarget } from "./file-targets";
 import { CanvasFrameSource } from "./frame-source";
 import { createMp4Muxer, type Mp4Muxer } from "./mp4-muxer";
-import { MusicRenderer } from "./music-renderer";
+import { MusicRenderer, type OpenMusic } from "./music-renderer";
 
 export interface RunVideoExportOptions {
   /** As composed for the player: `image.src` is what `openPicture` reads. */
   readonly slideshow: Slideshow;
   readonly openPicture: OpenPicture;
-  /** The music's file; required exactly when `slideshow.music` is set. */
-  readonly musicFile: Blob | null;
+  /** Reads a song's file by a track's `src`; each distinct song is read once. */
+  readonly openMusic: OpenMusic;
   readonly preset: PresetId;
   /** From `probeVideoExport`; null exactly when there is no music. */
   readonly audioCodec: AudioCodecChoice | null;
@@ -38,10 +38,7 @@ export type VideoExportResult =
 export async function runVideoExport(options: RunVideoExportOptions): Promise<VideoExportResult> {
   const { slideshow, target, signal } = options;
   const preset = presetById(options.preset);
-  if ((slideshow.music === undefined) !== (options.musicFile === null)) {
-    throw new Error("runVideoExport needs musicFile exactly when slideshow.music is set");
-  }
-  if ((options.musicFile === null) !== (options.audioCodec === null)) {
+  if ((slideshow.music === undefined) !== (options.audioCodec === null)) {
     throw new Error("runVideoExport needs an audioCodec exactly when there is music");
   }
   const framePlayer = createFramePlayer(slideshow, preset.size, options.openPicture);
@@ -88,18 +85,15 @@ type Prepared =
  * behind either.
  */
 async function prepare(
-  { slideshow, musicFile, audioCodec, target, signal }: RunVideoExportOptions,
+  { slideshow, openMusic, audioCodec, target, signal }: RunVideoExportOptions,
   framePlayer: FramePlayer,
   durationMs: number,
 ): Promise<Prepared> {
   let writable: WritableStream | null = null;
   let muxer: Mp4Muxer | null = null;
   try {
-    const envelope = slideshow.music?.[0];
     const [music] = await Promise.all([
-      envelope === undefined || musicFile === null
-        ? null
-        : musicFile.arrayBuffer().then((bytes) => MusicRenderer.decode(bytes, envelope)),
+      slideshow.music === undefined ? null : MusicRenderer.decode(slideshow.music, openMusic),
       framePlayer.captionFontLoaded,
     ]);
     signal.throwIfAborted();
