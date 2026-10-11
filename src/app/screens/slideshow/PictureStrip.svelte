@@ -14,7 +14,8 @@
     endSelecting,
     type StripSelection,
   } from "./strip-selection";
-  import { TileDrag, type DropTarget, type TileDragState } from "./tile-drag";
+  import { TileDrag } from "./tile-drag";
+  import type { DropTarget, TileDragState } from "./tile-drag-types";
 
   /** The pictures in play order as tiles: select, remove, and reorder by drag or keyboard. */
   let {

@@ -7,6 +7,7 @@ cd "$(dirname "$0")/.."
 steps=(
   "format:npx prettier --check ."
   "doc-sizes:scripts/doc-sizes.sh"
+  "source-sizes:scripts/source-sizes.sh"
   "lint:npx eslint ."
   "typecheck:npx svelte-check --fail-on-warnings"
   "typecheck-sw:npx tsc -p src/sw/tsconfig.json"

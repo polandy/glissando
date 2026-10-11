@@ -2,7 +2,7 @@
   import { MIN_OWN_DURATION_MS } from "../../library/own-timing";
   import { MILLISECONDS_PER_SECOND } from "../../player";
   import { getTranslator } from "../i18n/context";
-  import type { TimingNote } from "./music-editor-view";
+  import type { TimingNote } from "./music-timing-note";
 
   /** How the pictures' times meet the excerpt; a warning when the slideshow outlasts it. */
   let { note }: { note: TimingNote } = $props();
