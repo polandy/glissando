@@ -70,4 +70,22 @@ export const deMusic = {
   "music.noteEndsEarly":
     "Jedes Bild hat eine eigene Dauer. Die Diashow endet nach {time}, die Musik blendet dort aus.",
   "music.noteEndsWithMusic": "Jedes Bild hat eine eigene Dauer. Die Diashow endet mit der Musik.",
+  "music.pictureChanges": "Bildwechsel",
+  "music.beatsPerMinute": "{bpm} BPM",
+  "music.onTheBeat": "Im Takt",
+  "music.evenly": "Gleichmäßig",
+  "music.onTheBeatHint":
+    "Jeder automatische Wechsel landet auf einem Schlag der Musik; ein Übergang dauert ganze Schläge.",
+  "music.ownDurationsOffBeat": {
+    one: "Bild {pictures} behält seine eigene Dauer, darum können die Wechsel davor und danach zwischen die Schläge fallen.",
+    other:
+      "Die Bilder {pictures} behalten ihre eigene Dauer, darum können die Wechsel davor und danach zwischen die Schläge fallen.",
+  },
+  "music.evenlyHint": "Die Bilder teilen sich die Musik gleichmäßig, unabhängig von ihrem Takt.",
+  "music.listeningForBeat":
+    "Glissando hört den Takt heraus\u00a0… Bis dahin teilen sich die Bilder die Musik gleichmäßig.",
+  "music.noSteadyBeat":
+    "In dieser Musik ist kein gleichmäßiger Takt zu finden. Die Bilder teilen sie sich gleichmäßig.",
+  "music.beatUnknown":
+    "Der Takt dieser Musik ließ sich nicht bestimmen. Die Bilder teilen sie sich gleichmäßig.",
 } as const satisfies Record<string, Message>;

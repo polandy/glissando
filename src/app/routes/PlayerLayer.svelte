@@ -1,11 +1,12 @@
 <script lang="ts">
   import { onDestroy, onMount } from "svelte";
-  import { NO_BEATS } from "../../beats";
+  import type { MusicBeats } from "../../beats";
   import { composeSlideshow } from "../../compose";
   import type { LibraryStore, StoredSlideshow } from "../../library/stored-slideshow";
   import type { MusicOutput } from "../../player";
   import type { PictureFocus } from "../../library/picture-focus";
   import { browserObjectUrls } from "../media/object-urls";
+  import { storedMusicBeats } from "../beats/music-beats-known";
   import { NO_FOCUS_KNOWN } from "../focus/pictures-focus";
   import type { PlayerFailure } from "../player/player-failure";
   import PlayerOverlay from "../player/PlayerOverlay.svelte";
@@ -31,12 +32,12 @@
     missing,
     onPictureMissing,
   }: {
-    store: Pick<LibraryStore, "pictureBlob" | "musicBlob" | "pictureFocus">;
+    store: Pick<LibraryStore, "pictureBlob" | "musicBlob" | "pictureFocus" | "musicBeats">;
     stored: StoredSlideshow;
     musicOutput: MusicOutput;
     onClose: () => void;
     onError: (error: unknown) => void;
-    /** Logs a focus that could not be read: play goes on without it. */
+    /** Logs a focus or beats that could not be read: play goes on without them. */
     log: (error: unknown) => void;
     home: SlideshowHome;
     /** Pictures Immich answered 404 for, as the screen knows them when playing begins. */
@@ -47,6 +48,7 @@
   interface Loaded {
     readonly musicUrl: string | null;
     readonly focus: ReadonlyMap<string, PictureFocus>;
+    readonly beats: MusicBeats;
   }
 
   let loaded = $state.raw<Loaded | null>(null);
@@ -72,7 +74,7 @@
             },
           },
           loaded.focus,
-          NO_BEATS,
+          loaded.beats,
         ),
   );
 
@@ -91,20 +93,22 @@
   const closed = new AbortController();
 
   onMount(() => {
-    // Play waits on reading the focus found so far, never on the search for the rest. Focus only
-    // aims the automatic motions: unread, they aim at the middle and play goes on.
+    // Play waits on reading the focus and beats found so far, never on the search for the rest.
+    // Both only place automatic choices: unread, the motions aim at the middle, the pictures
+    // share the music evenly and play goes on.
     Promise.all([
       loadPlayerMusic(store, stored, browserObjectUrls.create, closed.signal),
       store.pictureFocus(stored.pictures.map((picture) => picture.id)).catch((error: unknown) => {
         log(error);
         return NO_FOCUS_KNOWN.found;
       }),
-    ]).then(([music, focus]) => {
+      storedMusicBeats(store, stored, log),
+    ]).then(([music, focus, beats]) => {
       if (music === null) {
         return;
       }
       musicUrl = music.url;
-      loaded = { musicUrl: music.url, focus };
+      loaded = { musicUrl: music.url, focus, beats };
     }, onError);
   });
   onDestroy(() => {

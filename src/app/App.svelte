@@ -223,6 +223,7 @@
       <SlideshowRoute
         store={opened.store}
         focusPass={services.focusPass}
+        beatPass={services.beatPass}
         {toaster}
         {newId}
         {now}

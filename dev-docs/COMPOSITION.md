@@ -60,8 +60,12 @@ I/O, no subject detection.
 - `buildStoredSlideshow` applies the order and title to a fresh import.
 - `composeSlideshow` turns a stored slideshow into the player's JSON, resolving picture and
   music ids to URLs through an injected `SlideshowSources`; the pictures' focus comes in as a
-  map by picture id (`LibraryStore.pictureFocus`), read when the player opens — play never waits
-  on the search for the rest.
+  map by picture id (`LibraryStore.pictureFocus`), the music's beats as `MusicBeats`
+  (`LibraryStore.musicBeats`, `NO_BEATS` until a result exists), both read when the player or
+  an export starts — play never waits on the search for the rest.
+- `slideDurationsMs` with `excerptBeatsMs` gives the editors the same timing: the music
+  editor's lane and the picture editor's duration and transition (`beatTransitionDurationMs`)
+  follow the beats as the background pass finds them.
 - `slideshowDurationMs` sums a stored slideshow's slide durations, own ones included, for a
   "12 pictures · 1:00" summary.
 

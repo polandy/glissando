@@ -51,4 +51,12 @@ describe("the server store as the slideshow route uses it", () => {
       /not measured/,
     );
   });
+
+  it("knows no beats of a server slideshow's music, which is not listened to on the device", async () => {
+    const server = new MemoryLibraryStore();
+    await server.putMusic("music", new Blob(["music"]));
+    await server.putMusicBeats("music", { kind: "beats", beatsMs: [500], beatsPerMinute: 120 });
+
+    await expect(serverRouteStore(server).musicBeats("music")).resolves.toBeUndefined();
+  });
 });

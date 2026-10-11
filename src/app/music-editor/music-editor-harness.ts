@@ -1,7 +1,8 @@
 /** Shared set-up of the music editor's browser tests. */
 import { flushSync } from "svelte";
-import type { MusicTrim } from "../../library/own-music";
+import type { MusicTrim, PictureChanges } from "../../library/own-music";
 import type { StoredMusic, StoredPicture, StoredSlideshow } from "../../library/stored-slideshow";
+import type { BeatsStatus } from "../beats/music-beats-known";
 import { mountWithTranslator } from "../testing/mount-with-translator";
 import { reactiveProps } from "../testing/reactive-props.svelte";
 import type { ListenKind, ListenState } from "./listen-preview";
@@ -45,23 +46,32 @@ export function unmountEditor(): void {
   destroy = null;
 }
 
-/** Mounts the editor on `slideshow`; its props can be changed afterwards, as the route does. */
-export function mountEditor(slideshow: StoredSlideshow = slideshowWith()) {
+/**
+ * Mounts the editor on `slideshow` with what is known of its beats; its props can be changed
+ * afterwards, as the route does.
+ */
+export function mountEditor(
+  slideshow: StoredSlideshow = slideshowWith(),
+  beats: BeatsStatus = { kind: "listening" },
+) {
   const calls = {
     trims: [] as (MusicTrim | undefined)[],
     fadesIn: [] as (number | undefined)[],
     fadesOut: [] as (number | undefined)[],
     listens: [] as ListenKind[],
     stops: 0,
+    pictureChanges: [] as (PictureChanges | undefined)[],
   };
   const props = reactiveProps({
     slideshow,
+    beats,
     peaks: Float32Array.from({ length: 1000 }, (_, index) => (index % 10) / 10),
     listening: null as ListenState | null,
     onBack: () => {},
     onTrim: (trim: MusicTrim | undefined) => calls.trims.push(trim),
     onFadeIn: (fadeMs: number | undefined) => calls.fadesIn.push(fadeMs),
     onFadeOut: (fadeMs: number | undefined) => calls.fadesOut.push(fadeMs),
+    onPictureChanges: (changes: PictureChanges | undefined) => calls.pictureChanges.push(changes),
     onListen: (kind: ListenKind) => calls.listens.push(kind),
     onStopListening: () => (calls.stops += 1),
     saving: false,

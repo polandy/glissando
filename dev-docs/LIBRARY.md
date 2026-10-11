@@ -76,8 +76,8 @@ Records without them need no migration.
 
 ## Storage layout
 
-One IndexedDB database, `glissando` (schema version 3; version 1 lacked `imports`, version 2
-`focus` — each upgrade only adds its store, existing data stays as it is):
+One IndexedDB database, `glissando` (schema version 4; version 1 lacked `imports`, version 2
+`focus`, version 3 `beats` — each upgrade only adds its store, existing data stays as it is):
 
 | Object store | Key      | Value                                                                    |
 | ------------ | -------- | ------------------------------------------------------------------------ |
@@ -86,6 +86,7 @@ One IndexedDB database, `glissando` (schema version 3; version 1 lacked `imports
 | `music`      | media id | the music file, bytes + type                                             |
 | `imports`    | `id`     | a claim (import in progress or undoable removal): `startedAt`, media ids |
 | `focus`      | media id | a picture's `PictureFocus`: its subject box, or none found (ADR-0012)    |
+| `beats`      | media id | a track's `MusicBeats`: its beat times and tempo, or none (ADR-0021)     |
 
 Media is written while importing, the slideshow record last. Edits on the slideshow screen
 replace the record through `updateSlideshow`, which reads it in the same transaction and throws
@@ -114,13 +115,15 @@ validates it (`checkSlideshowTransition`) and deletes the field for `undefined` 
 measures what a slideshow's pictures (both renditions) and music take, in one read-only
 transaction, for the export's size estimate. `deleteSlideshow` deletes the
 record and, in the same transaction, the media no other slideshow references, those pictures'
-focus with it.
+focus and that music's beats with it.
 
 A picture's focus lives beside its media, not on the record: the editors save whole records
 from their copy, which would erase a focus found meanwhile. `putPictureFocus` checks for the
 picture's media in the same transaction and keeps nothing without it, so a detection finishing
 after its slideshow was deleted resurrects nothing; `pictureFocus(ids)` returns a map in which a
-picture not looked at yet is absent.
+picture not looked at yet is absent. A track's beats live beside its media the same way:
+`putMusicBeats` keeps nothing without the music, `musicBeats(id)` is `undefined` for a track not
+listened to yet.
 
 ## Looking for the focus
 
@@ -143,6 +146,23 @@ state, with the Svelte store contract: `running`; per slideshow with pictures le
 `found`, every focus it stored since the app opened. The slideshow screen merges `found` into
 the focus it read on opening, so the editors' automatic motions and focus marks follow at once.
 
+## Listening for the beats
+
+`BeatPass` (`library/beat-pass.ts`) listens, in the background, for the beats of every stored
+track without a result (ADR-0021), the pattern of the focus pass: one track at a time, a track
+two slideshows share once, its file through the `BeatDetector` into the store — the beats found
+or `{kind: "none"}` for music without a clear beat. The detector (`beats/worker-beat-detector.ts`)
+decodes on the main thread (`decodeMusicWithWebAudio`: `OfflineAudioContext` at 11 025 Hz, the
+channels mixed to mono) and hands the samples over to a worker (`beats/beat-worker.ts`) that runs
+`detectBeats`. The pass starts when the app opens, whenever a slideshow is created (an import, an
+opened file) and when the music editor opens (music kept from the server since). Music deleted
+meanwhile is skipped; music that cannot be decoded is logged (`BeatDetectionFailedError`), keeps
+no result and is tried again on the next pass; a crashed worker (`BeatDetectorGoneError`) ends the
+pass and is reported once. Its state: `running`; `listening`, the tracks still to come; and
+`found`, every result stored since the app opened. The player and both exports read the stored
+beats once when they start (`storedMusicBeats`); the picture and music editors follow the pass
+as it finds them (`TrackBeats`). `.glissando` files carry no beats: the receiver listens again.
+
 A write commits its transaction explicitly (`commit()`) as soon as its last request is placed —
 right away for a plain write, in the read's callback for one that reads first. Chromium aborts a
 transaction still open when the page unloads, so an edit followed at once by a reload would
@@ -163,7 +183,7 @@ id in `imports` (`claimMedia`) before writing the media, and its claim is releas
 in any tab — spares its media. An undoable removal claims its media the same way (above). A record older
 than one day (`CLAIM_SPARED_FOR_MS`, from a tab that crashed) is dropped and its media deleted.
 The clean-up reads the references and claims and deletes in one transaction, a deleted
-picture's focus included. Web Locks would
+picture's focus and a deleted track's beats included. Web Locks would
 need a secure context, which the app over plain HTTP on the LAN lacks.
 
 ## The .glissando file

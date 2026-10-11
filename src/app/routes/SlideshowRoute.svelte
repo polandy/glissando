@@ -2,6 +2,7 @@
   import { onDestroy, onMount } from "svelte";
   import { MediaQuery } from "svelte/reactivity";
   import { SlideshowNotFoundError, type StoredSlideshow } from "../../library/stored-slideshow";
+  import type { BeatPass } from "../../library/beat-pass";
   import type { FocusPass, FocusPassState } from "../../library/focus-pass";
   import type { PictureFocus } from "../../library/picture-focus";
   import type { SlideshowEditor } from "../editing/slideshow-editor";
@@ -45,6 +46,7 @@
     onKeepCopy,
     onSaveOnServer,
     focusPass,
+    beatPass,
     toaster,
     newId,
     now,
@@ -80,6 +82,8 @@
     onSaveOnServer: (slideshow: StoredSlideshow) => void;
     /** What it finds updates the editors' automatic motions and focus marks as it goes. */
     focusPass: Pick<FocusPass, "state" | "subscribe">;
+    /** What it finds puts the editors' automatic changes on the music's beats as it goes. */
+    beatPass: Pick<BeatPass, "subscribe" | "start">;
     toaster: Toaster;
     newId: () => string;
     now: () => Date;
@@ -240,15 +244,27 @@
     {store}
     {stored}
     {focus}
+    {beatPass}
     {editor}
     pictureId={editingPictureId}
     {saving}
     {onBack}
     onOpen={onEdit}
     {onError}
+    {log}
   />
 {:else if editingMusic && stored !== null && editor !== null}
-  <MusicEditorRoute {store} {stored} {editor} audio={musicAudio} {saving} {onBack} {onError} />
+  <MusicEditorRoute
+    {store}
+    {stored}
+    {editor}
+    {beatPass}
+    audio={musicAudio}
+    {saving}
+    {onBack}
+    {onError}
+    {log}
+  />
 {:else if details !== null}
   <SlideshowScreen
     bind:selection

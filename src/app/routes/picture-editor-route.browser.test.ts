@@ -1,3 +1,4 @@
+import { beatPassFindingNone } from "../../library/testing/beat-pass-finding-none";
 import { flushSync } from "svelte";
 import { afterEach, describe, expect, it } from "vitest";
 import { FocusPass, type FocusPassState } from "../../library/focus-pass";
@@ -62,12 +63,14 @@ async function mountRoute(pictureId: string) {
     store,
     stored: SHOW,
     focus: NO_FOCUS_KNOWN,
+    beatPass: beatPassFindingNone(store),
     editor,
     pictureId,
     saving: false,
     onBack: () => (backs += 1),
     onOpen: () => {},
     onError: (error: unknown) => errors.push(error),
+    log: (error: unknown) => errors.push(error),
   });
   const mounted = mountWithTranslator(PictureEditorRoute, props);
   destroy = mounted.destroy;

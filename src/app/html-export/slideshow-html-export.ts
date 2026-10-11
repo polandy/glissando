@@ -3,6 +3,7 @@ import { exportPage } from "../../html-export/export-page";
 import { playerBundleBytes, type PageWeights } from "../../html-export/plan";
 import type { PictureScaler, PlayerAsset } from "../../html-export/ports";
 import type { LibraryStore, StoredSlideshow } from "../../library/stored-slideshow";
+import { storedMusicBeats } from "../beats/music-beats-known";
 import { NO_FOCUS_KNOWN } from "../focus/pictures-focus";
 import type { Translator } from "../i18n/translator";
 import type { HtmlExportPorts, HtmlExportSubject, PageRun } from "./html-export-state";
@@ -23,7 +24,7 @@ export type HtmlExportDevice = Omit<HtmlExportPorts, "weights" | "run"> & {
  */
 export function slideshowHtmlExport(
   device: HtmlExportDevice,
-  store: Pick<LibraryStore, "pictureBlob" | "musicBlob" | "pictureFocus">,
+  store: Pick<LibraryStore, "pictureBlob" | "musicBlob" | "pictureFocus" | "musicBeats">,
   stored: StoredSlideshow,
   translator: Translator,
   home: SlideshowHome,
@@ -51,17 +52,19 @@ export function slideshowHtmlExport(
     return { pictures, musicBytes, pageBytes: playerBundleBytes(bundle) };
   };
   const run = async (job: PageRun): Promise<void> => {
-    const focus = await store
-      .pictureFocus(stored.pictures.map((picture) => picture.id))
-      .catch((error: unknown) => {
+    const [focus, beats] = await Promise.all([
+      store.pictureFocus(stored.pictures.map((picture) => picture.id)).catch((error: unknown) => {
         // Focus only aims the automatic motions: unread, they aim at the middle.
         device.log(error);
         return NO_FOCUS_KNOWN.found;
-      });
+      }),
+      storedMusicBeats(store, stored, (error) => device.log(error)),
+    ]);
     const words = pageWords(translator, subject);
     await exportPage({
       stored,
       focus,
+      beats,
       sizeId: job.sizeId,
       lang: words.lang,
       copy: words.copy,

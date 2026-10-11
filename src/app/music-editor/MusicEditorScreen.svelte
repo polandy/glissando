@@ -1,8 +1,9 @@
 <script lang="ts">
-  import type { MusicTrim } from "../../library/own-music";
+  import type { MusicTrim, PictureChanges } from "../../library/own-music";
   import { setMusicTrim } from "../../library/slideshow-edits-music";
   import type { StoredSlideshow } from "../../library/stored-slideshow";
   import { MILLISECONDS_PER_SECOND } from "../../player";
+  import type { BeatsStatus } from "../beats/music-beats-known";
   import Header from "../components/Header.svelte";
   import Icon from "../components/Icon.svelte";
   import { getTranslator } from "../i18n/context";
@@ -10,28 +11,33 @@
   import type { ListenKind, ListenState } from "./listen-preview";
   import { musicEditorView } from "./music-editor-view";
   import MusicWaveform from "./MusicWaveform.svelte";
+  import PictureChangesSection from "./PictureChangesSection.svelte";
   import SlideshowLane from "./SlideshowLane.svelte";
   import TimingNote from "./TimingNote.svelte";
   import TrimSection from "./TrimSection.svelte";
 
   /**
    * The music editor: the track's excerpt on its waveform, its fades and how the pictures meet
-   * it. Every change goes to its callback and is stored at once.
+   * it, on its beats or evenly. Every change goes to its callback and is stored at once.
    */
   let {
     slideshow,
+    beats,
     peaks,
     listening,
     onBack,
     onTrim,
     onFadeIn,
     onFadeOut,
+    onPictureChanges,
     onListen,
     onStopListening,
     saving,
   }: {
     /** The slideshow, which has music. */
     slideshow: StoredSlideshow;
+    /** What is known of the music's beats, updated as the background pass listens. */
+    beats: BeatsStatus;
     /** Fine peaks of the whole track, 0..1; null while the track is decoded. */
     peaks: Float32Array | null;
     listening: ListenState | null;
@@ -41,6 +47,8 @@
     /** `undefined`: automatic. */
     onFadeIn: (fadeMs: number | undefined) => void;
     onFadeOut: (fadeMs: number | undefined) => void;
+    /** `undefined`: on the beat. */
+    onPictureChanges: (changes: PictureChanges | undefined) => void;
     onListen: (kind: ListenKind) => void;
     onStopListening: () => void;
     /** An edit is being stored. */
@@ -56,7 +64,7 @@
   /** The excerpt while a handle is dragged; stored on release. */
   let draft = $state.raw<MusicTrim | null>(null);
   const music = $derived(
-    musicEditorView(draft === null ? slideshow : setMusicTrim(slideshow, draft)),
+    musicEditorView(draft === null ? slideshow : setMusicTrim(slideshow, draft), beats),
   );
   const seconds = (ms: number) => ms / MILLISECONDS_PER_SECOND;
 
@@ -134,6 +142,7 @@
         onFade={onFadeOut}
         onReset={() => onFadeOut(undefined)}
       />
+      <PictureChangesSection view={music.pictureChanges} {onPictureChanges} />
       <TimingNote note={music.note} />
     </div>
   </main>

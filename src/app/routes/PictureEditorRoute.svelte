@@ -1,8 +1,11 @@
 <script lang="ts">
-  import { onDestroy } from "svelte";
+  import { onDestroy, onMount } from "svelte";
+  import type { BeatPass } from "../../library/beat-pass";
   import { MediaQuery } from "svelte/reactivity";
   import type { LibraryStore, StoredSlideshow } from "../../library/stored-slideshow";
   import { animationFrames, performanceClock } from "../../player";
+  import { composedBeats, type BeatsStatus } from "../beats/music-beats-known";
+  import { TrackBeats } from "../beats/track-beats";
   import type { PicturesFocus } from "../focus/pictures-focus";
   import type { SlideshowEditor } from "../editing/slideshow-editor";
   import { browserObjectUrls, ObjectUrls } from "../media/object-urls";
@@ -15,23 +18,29 @@
     store,
     stored,
     focus,
+    beatPass,
     editor,
     pictureId,
     saving,
     onBack,
     onOpen,
     onError,
+    log,
   }: {
-    store: Pick<LibraryStore, "pictureBlob">;
+    store: Pick<LibraryStore, "pictureBlob" | "musicBeats">;
     stored: StoredSlideshow;
     /** The pictures' focus, updated as the background pass finds it. */
     focus: PicturesFocus;
+    /** What it finds puts the automatic changes on the music's beats as it goes. */
+    beatPass: Pick<BeatPass, "subscribe">;
     editor: SlideshowEditor;
     pictureId: string;
     saving: boolean;
     onBack: () => void;
     onOpen: (pictureId: string) => void;
     onError: (error: unknown) => void;
+    /** Logs beats that could not be read: the pictures share the music evenly meanwhile. */
+    log: (error: unknown) => void;
   } = $props();
 
   const reducedMotion = new MediaQuery(REDUCED_MOTION_QUERY);
@@ -49,8 +58,19 @@
     pictures.dispose();
   });
 
+  let beats = $state.raw<BeatsStatus>({ kind: "listening" });
+  onMount(() => {
+    if (stored.music === undefined) return;
+    const track = new TrackBeats(stored.music.id, { store, pass: beatPass, log }, (status) => {
+      beats = status;
+    });
+    return () => track.dispose();
+  });
+
   const present = $derived(stored.pictures.some((picture) => picture.id === pictureId));
-  const view = $derived(present ? pictureEditorView(stored, pictureId, focus) : null);
+  const view = $derived(
+    present ? pictureEditorView(stored, pictureId, focus, composedBeats(beats)) : null,
+  );
   // The neighbours load ahead, so ‹ and › show their picture at once.
   $effect(() =>
     pictures.sync(

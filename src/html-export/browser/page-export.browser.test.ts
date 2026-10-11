@@ -82,6 +82,7 @@ async function exportedPage(): Promise<Blob> {
   await exportPage({
     stored: STORED,
     focus: new Map(),
+    beats: { kind: "none" },
     sizeId: "small",
     lang: "en",
     copy: COPY,

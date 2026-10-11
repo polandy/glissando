@@ -1,6 +1,9 @@
 <script lang="ts">
   import { onDestroy, onMount } from "svelte";
+  import type { BeatPass } from "../../library/beat-pass";
   import type { LibraryStore, StoredSlideshow } from "../../library/stored-slideshow";
+  import type { BeatsStatus } from "../beats/music-beats-known";
+  import { TrackBeats } from "../beats/track-beats";
   import type { SlideshowEditor } from "../editing/slideshow-editor";
   import type { MusicEditorAudio } from "../music-editor/music-editor-audio";
   import { ListenPreview, type ListenState } from "../music-editor/listen-preview";
@@ -12,22 +15,29 @@
     store,
     stored,
     editor,
+    beatPass,
     audio,
     saving,
     onBack,
     onError,
+    log,
   }: {
-    store: Pick<LibraryStore, "musicBlob">;
+    store: Pick<LibraryStore, "musicBlob" | "musicBeats">;
     stored: StoredSlideshow;
     editor: SlideshowEditor;
+    /** What it finds puts the automatic changes on the music's beats as it goes. */
+    beatPass: Pick<BeatPass, "subscribe" | "start">;
     audio: MusicEditorAudio;
     saving: boolean;
     onBack: () => void;
     onError: (error: unknown) => void;
+    /** Logs beats that could not be read: the pictures share the music evenly meanwhile. */
+    log: (error: unknown) => void;
   } = $props();
 
   let peaks = $state.raw<Float32Array | null>(null);
   let listening = $state.raw<ListenState | null>(null);
+  let beats = $state.raw<BeatsStatus>({ kind: "listening" });
   let preview: ListenPreview | null = null;
   let musicUrl: string | null = null;
   const left = new AbortController();
@@ -37,6 +47,11 @@
     if (music === undefined) {
       return;
     }
+    const track = new TrackBeats(music.id, { store, pass: beatPass, log }, (status) => {
+      beats = status;
+    });
+    // Music kept from elsewhere since the app opened is listened to now.
+    beatPass.start();
     store.musicBlob(music.id).then((blob) => {
       if (left.signal.aborted) {
         return;
@@ -52,6 +67,7 @@
         }
       }, onError);
     }, onError);
+    return () => track.dispose();
   });
   onDestroy(() => {
     left.abort();
@@ -71,13 +87,15 @@
 {#if stored.music !== undefined}
   <MusicEditorScreen
     slideshow={stored}
+    {beats}
     {peaks}
     {listening}
     {onBack}
     onTrim={(trim) => editor.setMusicTrim(trim)}
     onFadeIn={(fadeMs) => editor.setMusicFadeIn(fadeMs)}
     onFadeOut={(fadeMs) => editor.setMusicFadeOut(fadeMs)}
-    onListen={(kind) => preview?.toggle(kind, musicEditorView(stored).timing)}
+    onPictureChanges={(changes) => editor.setMusicPictureChanges(changes)}
+    onListen={(kind) => preview?.toggle(kind, musicEditorView(stored, beats).timing)}
     onStopListening={() => preview?.stop()}
     {saving}
   />

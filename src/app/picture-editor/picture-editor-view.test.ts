@@ -1,3 +1,4 @@
+import { NO_BEATS, type MusicBeats } from "../../beats";
 import { describe, expect, it } from "vitest";
 import { autoKenBurns } from "../../compose";
 import type { StoredPicture, StoredSlideshow } from "../../library/stored-slideshow";
@@ -44,6 +45,13 @@ function music(durationMs: number) {
   return { id: "m", fileName: "m.mp3", durationMs, mimeType: "audio/mpeg" };
 }
 
+/** A beat every 400 ms from 100 ms on, across a 30 s track. */
+const STEADY_BEATS: MusicBeats = {
+  kind: "beats",
+  beatsMs: Array.from({ length: 75 }, (_, beat) => 100 + beat * 400),
+  beatsPerMinute: 150,
+};
+
 describe("pictureEditorView", () => {
   it("aims an automatic picture's motion, and the next one's, at their focus", () => {
     const [first, second, third] = stored.pictures as [StoredPicture, StoredPicture, StoredPicture];
@@ -55,8 +63,8 @@ describe("pictureEditorView", () => {
       searching: new Set<string>(),
     };
 
-    const view = pictureEditorView(stored, "p1", focus);
-    const next = pictureEditorView(stored, "p2", focus).next;
+    const view = pictureEditorView(stored, "p1", focus, NO_BEATS);
+    const next = pictureEditorView(stored, "p2", focus, NO_BEATS).next;
 
     const aimed = autoKenBurns(0, first, FACES);
     expect(view.motion).toEqual({ from: aimed.from, to: aimed.to });
@@ -74,13 +82,13 @@ describe("pictureEditorView", () => {
     ],
     ["the search", { found: new Map(), searching: new Set(["p1"]) }, { kind: "searching" }],
   ])("shows %s for the picture's focus", (_, focus, status) => {
-    expect(pictureEditorView(stored, "p1", focus).focus).toEqual(status);
+    expect(pictureEditorView(stored, "p1", focus, NO_BEATS).focus).toEqual(status);
   });
 
   it("shows an automatic picture's motion for its position, its place and neighbours", () => {
     const automatic = autoKenBurns(0, stored.pictures[0] as StoredPicture);
 
-    const view = pictureEditorView(stored, "p1", NO_FOCUS_KNOWN);
+    const view = pictureEditorView(stored, "p1", NO_FOCUS_KNOWN, NO_BEATS);
 
     expect(view).toEqual({
       id: "p1",
@@ -115,7 +123,7 @@ describe("pictureEditorView", () => {
   });
 
   it("shows a picture's own motion", () => {
-    const view = pictureEditorView(stored, "p2", NO_FOCUS_KNOWN);
+    const view = pictureEditorView(stored, "p2", NO_FOCUS_KNOWN, NO_BEATS);
 
     expect(view.motion).toEqual(own);
     expect(view.ownMotion).toBe(true);
@@ -123,7 +131,7 @@ describe("pictureEditorView", () => {
   });
 
   it("shows a picture's caption", () => {
-    expect(pictureEditorView(stored, "p2", NO_FOCUS_KNOWN).caption).toBe("Am Steg");
+    expect(pictureEditorView(stored, "p2", NO_FOCUS_KNOWN, NO_BEATS).caption).toBe("Am Steg");
   });
 
   it("plays the slide's real duration, as the music sets it", () => {
@@ -132,13 +140,23 @@ describe("pictureEditorView", () => {
       music: { id: "m", fileName: "m.mp3", durationMs: 30_000, mimeType: "audio/mpeg" },
     };
 
-    expect(pictureEditorView(withMusic, "p3", NO_FOCUS_KNOWN).durationMs).toBe(10_000);
+    expect(pictureEditorView(withMusic, "p3", NO_FOCUS_KNOWN, NO_BEATS).durationMs).toBe(10_000);
+  });
+
+  it("plays an automatic slide to the beat, its transition lasting whole beats", () => {
+    const withMusic = { ...stored, music: music(30_000) };
+
+    const first = pictureEditorView(withMusic, "p1", NO_FOCUS_KNOWN, STEADY_BEATS);
+    const second = pictureEditorView(withMusic, "p2", NO_FOCUS_KNOWN, STEADY_BEATS);
+
+    expect([first.durationMs, second.durationMs]).toEqual([10_100, 10_000]);
+    expect(first.transition.durationMs).toBe(800);
   });
 
   it("shows an own duration and still names the automatic one", () => {
     const timed = withPicture(1, { durationMs: 8000 });
 
-    const view = pictureEditorView(timed, "p2", NO_FOCUS_KNOWN);
+    const view = pictureEditorView(timed, "p2", NO_FOCUS_KNOWN, NO_BEATS);
 
     expect(view.durationMs).toBe(8000);
     expect(view.ownDuration).toBe(true);
@@ -148,13 +166,13 @@ describe("pictureEditorView", () => {
   it("with music, counts the pictures sharing the rest and names their share", () => {
     const timed = { ...withPicture(1, { durationMs: 8000 }), music: music(30_000) };
 
-    expect(pictureEditorView(timed, "p2", NO_FOCUS_KNOWN).durationBasis).toEqual({
+    expect(pictureEditorView(timed, "p2", NO_FOCUS_KNOWN, NO_BEATS).durationBasis).toEqual({
       kind: "music",
       automaticCount: 2,
       shareMs: 11_000,
       clamped: false,
     });
-    expect(pictureEditorView(timed, "p1", NO_FOCUS_KNOWN).durationBasis).toEqual({
+    expect(pictureEditorView(timed, "p1", NO_FOCUS_KNOWN, NO_BEATS).durationBasis).toEqual({
       kind: "music",
       automaticCount: 2,
       shareMs: 11_000,
@@ -169,7 +187,7 @@ describe("pictureEditorView", () => {
       music: music(30_000),
     };
 
-    expect(pictureEditorView(all, "p1", NO_FOCUS_KNOWN).durationBasis).toEqual({
+    expect(pictureEditorView(all, "p1", NO_FOCUS_KNOWN, NO_BEATS).durationBasis).toEqual({
       kind: "music",
       automaticCount: 0,
       shareMs: null,
@@ -180,7 +198,7 @@ describe("pictureEditorView", () => {
   it("with music, marks the automatic pictures clamped once the own durations use it up", () => {
     const outlasted = { ...withPicture(1, { durationMs: 15_000 }), music: music(17_000) };
 
-    expect(pictureEditorView(outlasted, "p1", NO_FOCUS_KNOWN).durationBasis).toEqual({
+    expect(pictureEditorView(outlasted, "p1", NO_FOCUS_KNOWN, NO_BEATS).durationBasis).toEqual({
       kind: "music",
       automaticCount: 2,
       shareMs: 2000,
@@ -194,7 +212,7 @@ describe("pictureEditorView", () => {
       music: { ...music(60_000), trim: { startMs: 10_000, endMs: 40_000 } },
     };
 
-    expect(pictureEditorView(trimmed, "p1", NO_FOCUS_KNOWN).durationBasis).toMatchObject({
+    expect(pictureEditorView(trimmed, "p1", NO_FOCUS_KNOWN, NO_BEATS).durationBasis).toMatchObject({
       shareMs: 11_000,
     });
   });
@@ -205,7 +223,7 @@ describe("pictureEditorView", () => {
       music: { ...music(60_000), trim: { startMs: 0, endMs: 17_000 } },
     };
 
-    expect(pictureEditorView(trimmed, "p1", NO_FOCUS_KNOWN).durationBasis).toMatchObject({
+    expect(pictureEditorView(trimmed, "p1", NO_FOCUS_KNOWN, NO_BEATS).durationBasis).toMatchObject({
       clamped: true,
     });
   });
@@ -213,7 +231,7 @@ describe("pictureEditorView", () => {
   it("shows an own transition beside the automatic one, its length from the duration", () => {
     const timed = withPicture(1, { transition: "dissolve", durationMs: 2000 });
 
-    expect(pictureEditorView(timed, "p2", NO_FOCUS_KNOWN).transition).toEqual({
+    expect(pictureEditorView(timed, "p2", NO_FOCUS_KNOWN, NO_BEATS).transition).toEqual({
       choice: "dissolve",
       own: true,
       automatic: "crossfade",
@@ -223,7 +241,12 @@ describe("pictureEditorView", () => {
   });
 
   it("plays the slideshow's default while the picture has no transition of its own", () => {
-    const view = pictureEditorView({ ...stored, transition: "circle-open" }, "p2", NO_FOCUS_KNOWN);
+    const view = pictureEditorView(
+      { ...stored, transition: "circle-open" },
+      "p2",
+      NO_FOCUS_KNOWN,
+      NO_BEATS,
+    );
 
     expect(view.transition).toEqual({
       choice: "circle-open",
@@ -235,7 +258,12 @@ describe("pictureEditorView", () => {
   });
 
   it("plays the effect for the position while the slideshow alternates", () => {
-    const view = pictureEditorView({ ...stored, transition: "alternate" }, "p2", NO_FOCUS_KNOWN);
+    const view = pictureEditorView(
+      { ...stored, transition: "alternate" },
+      "p2",
+      NO_FOCUS_KNOWN,
+      NO_BEATS,
+    );
 
     expect(view.transition).toMatchObject({
       choice: "push-left",
@@ -246,7 +274,12 @@ describe("pictureEditorView", () => {
   });
 
   it("gives an automatic cut no length while the slideshow cuts", () => {
-    const view = pictureEditorView({ ...stored, transition: "cut" }, "p1", NO_FOCUS_KNOWN);
+    const view = pictureEditorView(
+      { ...stored, transition: "cut" },
+      "p1",
+      NO_FOCUS_KNOWN,
+      NO_BEATS,
+    );
 
     expect(view.transition).toMatchObject({ choice: "cut", automatic: "cut", durationMs: 0 });
   });
@@ -254,7 +287,7 @@ describe("pictureEditorView", () => {
   it("gives a cut no length", () => {
     const cut = withPicture(0, { transition: "cut" });
 
-    expect(pictureEditorView(cut, "p1", NO_FOCUS_KNOWN).transition).toMatchObject({
+    expect(pictureEditorView(cut, "p1", NO_FOCUS_KNOWN, NO_BEATS).transition).toMatchObject({
       choice: "cut",
       durationMs: 0,
     });
@@ -263,7 +296,7 @@ describe("pictureEditorView", () => {
   it("at the last picture, keeps a stored transition but plays none and has no next", () => {
     const last = withPicture(2, { transition: "zoom-in" });
 
-    const view = pictureEditorView(last, "p3", NO_FOCUS_KNOWN);
+    const view = pictureEditorView(last, "p3", NO_FOCUS_KNOWN, NO_BEATS);
 
     expect(view.transition).toEqual({
       choice: "zoom-in",
@@ -276,6 +309,6 @@ describe("pictureEditorView", () => {
   });
 
   it("refuses a picture the slideshow does not hold", () => {
-    expect(() => pictureEditorView(stored, "gone", NO_FOCUS_KNOWN)).toThrow(/gone/);
+    expect(() => pictureEditorView(stored, "gone", NO_FOCUS_KNOWN, NO_BEATS)).toThrow(/gone/);
   });
 });

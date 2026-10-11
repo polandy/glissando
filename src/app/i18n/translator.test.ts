@@ -88,6 +88,14 @@ describe("formatters", () => {
   });
 
   it.each([
+    ["de", ["5"], "5"],
+    ["de", ["5", "12"], "5 und 12"],
+    ["en", ["5", "12", "20"], "5, 12 and 20"],
+  ] as const)("in %s lists %j as %s", (language, items, expected) => {
+    expect(createTranslator(language).formatList(items)).toBe(expected);
+  });
+
+  it.each([
     ["de", 1.2, "1,20×"],
     ["en", 2.345, "2.35×"],
     ["de", 3, "3,00×"],

@@ -1,4 +1,4 @@
-import { NO_BEATS } from "../beats";
+import type { MusicBeats } from "../beats";
 import { composeSlideshow } from "../compose";
 import type { PictureFocus } from "../library/picture-focus";
 import type { LibraryStore, StoredPicture, StoredSlideshow } from "../library/stored-slideshow";
@@ -36,6 +36,8 @@ export interface PageExportJob {
   readonly stored: StoredSlideshow;
   /** The focus found so far, by picture id; it aims the automatic motions. */
   readonly focus: ReadonlyMap<string, PictureFocus>;
+  /** The music's beats found so far; the automatic picture changes land on them (ADR-0021). */
+  readonly beats: MusicBeats;
   readonly sizeId: PageSizeId;
   /** The app's language at export time. */
   readonly lang: string;
@@ -90,7 +92,7 @@ async function writePage(job: PageExportJob): Promise<PageExportResult> {
     stored,
     { picture: (id) => keys.get(id) ?? id, music: () => MUSIC_KEY },
     job.focus,
-    NO_BEATS,
+    job.beats,
   );
   let bytesWritten = 0;
   const write = async (text: string, bytes: number) => {

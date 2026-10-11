@@ -19,6 +19,7 @@ export { buildStoredSlideshow, type BuildStoredSlideshowInput } from "./build-st
 export { composeSlideshow, type SlideshowSources } from "./compose-slideshow";
 export { slideshowDurationMs } from "./slideshow-duration-ms";
 export { excerptBeatsMs } from "./excerpt-beats";
+export { beatTransitionDurationMs } from "./beat-transition";
 export {
   AUTOMATIC_MUSIC_FADE_MS,
   audibleEndMs,
