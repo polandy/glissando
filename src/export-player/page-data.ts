@@ -32,7 +32,7 @@ export interface PageData {
   readonly songs: ReadonlyMap<string, Blob>;
 }
 
-/** Reads the exported page's data blocks (dev-docs/HTML_EXPORT.md, "The page"). */
+/** Reads the exported page's data blocks (dev-docs/html_export/THE_PAGE.md). */
 export function readPageData(read: ReadBlock): PageData {
   const slideshow = parseSlideshow(parseJson(read, SLIDESHOW_BLOCK_ID));
   const copy = readCopy(parseJson(read, COPY_BLOCK_ID));

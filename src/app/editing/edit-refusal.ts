@@ -5,7 +5,7 @@ import type { Translator } from "../i18n/translator";
 import type { ToastMessage } from "../toast/toaster";
 
 /**
- * Why a server slideshow's edit was not applied (`dev-docs/SERVER_LIBRARY.md`, A server
+ * Why a server slideshow's edit was not applied (`dev-docs/server_library/IN_THE_APP.md`,
  * slideshow's screen): it changed on another device, or the server is not answering.
  */
 export type EditRefusal = "changed" | "unavailable";

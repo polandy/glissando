@@ -1,5 +1,5 @@
-import type { Catalogue } from "./messages";
-import type { deVideo } from "./catalogue-de-video";
+import type { Catalogue } from "./messages.ts";
+import type { deVideo } from "./catalogue-de-video.ts";
 
 /** English copy of the video export; typed to the German keys. */
 export const enVideo: Pick<Catalogue, keyof typeof deVideo> = {

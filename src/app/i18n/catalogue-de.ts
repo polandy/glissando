@@ -1,17 +1,17 @@
-import { deAdd } from "./catalogue-de-add";
-import { deEditor } from "./catalogue-de-editor";
-import { deMusic } from "./catalogue-de-music";
-import { deTiming } from "./catalogue-de-timing";
-import { deTransitions } from "./catalogue-de-transitions";
-import { deImmich } from "./catalogue-de-immich";
-import { deHtml } from "./catalogue-de-html";
-import { deSharePage } from "./catalogue-de-share-page";
-import { deVideo } from "./catalogue-de-video";
-import { deServer } from "./catalogue-de-server";
-import { deShare } from "./catalogue-de-share";
-import { dePlaylist } from "./catalogue-de-playlist";
-import { deCulling } from "./catalogue-de-culling";
-import type { Message } from "./messages";
+import { deAdd } from "./catalogue-de-add.ts";
+import { deEditor } from "./catalogue-de-editor.ts";
+import { deMusic } from "./catalogue-de-music.ts";
+import { deTiming } from "./catalogue-de-timing.ts";
+import { deTransitions } from "./catalogue-de-transitions.ts";
+import { deImmich } from "./catalogue-de-immich.ts";
+import { deHtml } from "./catalogue-de-html.ts";
+import { deSharePage } from "./catalogue-de-share-page.ts";
+import { deVideo } from "./catalogue-de-video.ts";
+import { deServer } from "./catalogue-de-server.ts";
+import { deShare } from "./catalogue-de-share.ts";
+import { dePlaylist } from "./catalogue-de-playlist.ts";
+import { deCulling } from "./catalogue-de-culling.ts";
+import type { Message } from "./messages.ts";
 
 /**
  * German UI copy. Its keys are the key set of every catalogue; `{name}` is a placeholder and a

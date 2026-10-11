@@ -3,7 +3,7 @@ import { ServerLibraryUnavailableError, type ServerLibraryClient } from "./serve
 import type { ServerLibraryMemory } from "./server-library-memory";
 
 /**
- * Whether the app offers server slideshows (`dev-docs/SERVER_LIBRARY.md`, Availability):
+ * Whether the app offers server slideshows (`dev-docs/server_library/IN_THE_APP.md`):
  * - `on`: the server answers the library's discovery and Immich is available;
  * - `offline`: the device is offline, and the last answer was the discovery — this session's, or
  *   before it, the one this device remembers;

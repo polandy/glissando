@@ -1,6 +1,6 @@
 // The player wiring the exported page and the share page have in common: the controls, keys,
 // cards and the player behind them. Each page brings its data (`PlayablePage`) and its own
-// reactions (`PagePlayerHooks`); see dev-docs/HTML_EXPORT.md, "Code".
+// reactions (`PagePlayerHooks`); see dev-docs/html_export/CODE.md.
 import { captionInset, captionInsetMotion } from "../ui-kit/caption-inset";
 import { ControlsVisibility } from "../ui-kit/controls-visibility";
 import { toggleFullscreen } from "../ui-kit/fullscreen";

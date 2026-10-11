@@ -1,5 +1,5 @@
-import type { Catalogue } from "./messages";
-import type { deCulling } from "./catalogue-de-culling";
+import type { Catalogue } from "./messages.ts";
+import type { deCulling } from "./catalogue-de-culling.ts";
 
 /** English copy of culling; typed to the German keys. */
 export const enCulling: Pick<Catalogue, keyof typeof deCulling> = {

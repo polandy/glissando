@@ -31,7 +31,7 @@ interface LibraryRecord {
   readonly id: string;
   revision: number;
   document: ServerDocument;
-  /** Its link (SHARE_LINK.md, Private); null while it is not shared. */
+  /** Its link (share_link/HTTP_API.md, Private); null while it is not shared. */
   share: { readonly token: string; readonly createdAt: string } | null;
 }
 
@@ -51,7 +51,7 @@ const IMMICH_ROUTE = /\/immich\/(.*)$/;
 const LIBRARY_ROUTE = /\/api\/library(\/.*)?$/;
 const ASSET_IMAGE = /^api\/assets\/([^/]+)\/(thumbnail|original)$/;
 const SLIDESHOW_PATH = /^\/slideshows\/([^/]+)(\/share)?$/;
-/** The recipient's page and the public share API (SHARE_LINK.md, Public). */
+/** The recipient's page and the public share API (share_link/HTTP_API.md, Public). */
 const SHARE_PAGE_ROUTE = /\/s\/[^/]+$/;
 const SHARE_API_ROUTE = /\/api\/share\/.*$/;
 const SHARE_API_PATH = /^\/api\/share\/([^/]+)(?:\/(\d+)\/pictures\/(\d+))?$/;

@@ -1,5 +1,5 @@
-import type { Catalogue } from "./messages";
-import type { deTiming } from "./catalogue-de-timing";
+import type { Catalogue } from "./messages.ts";
+import type { deTiming } from "./catalogue-de-timing.ts";
 
 /** English copy of a picture's own duration and transition; typed to the German keys. */
 export const enTiming: Pick<Catalogue, keyof typeof deTiming> = {

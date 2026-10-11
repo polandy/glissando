@@ -2,8 +2,8 @@ import type { MusicBeats } from "../beats";
 import type { ServerDocument } from "./server-document";
 
 /**
- * The Glissando server's library API as the app uses it (`dev-docs/SERVER_LIBRARY.md`, The HTTP
- * API). Every method rejects with `ServerLibraryUnavailableError` when the server cannot be
+ * The Glissando server's library API as the app uses it (`dev-docs/server_library/HTTP_API.md`).
+ * Every method rejects with `ServerLibraryUnavailableError` when the server cannot be
  * reached or fails, `ServerLibraryNotFoundError` for an unknown id, and
  * `ServerLibraryRefusedError` for a request it refuses.
  */
@@ -37,7 +37,7 @@ export interface ServerSlideshowRecord {
   readonly document: ServerDocument;
 }
 
-/** A slideshow's link as the private API answers it (SHARE_LINK.md, Private). */
+/** A slideshow's link as the private API answers it (share_link/HTTP_API.md, Private). */
 export interface ShareLink {
   /** 22 characters of base64url: the link's last path segment. */
   readonly token: string;

@@ -37,7 +37,7 @@ async function rejection(promise: Promise<unknown>): Promise<unknown> {
   );
 }
 
-describe("HttpServerLibraryClient's share link (SHARE_LINK.md, Private)", () => {
+describe("HttpServerLibraryClient's share link (share_link/HTTP_API.md, Private)", () => {
   it("reads a slideshow's link from its share field", async () => {
     const { client, seen } = answering(() =>
       Response.json({ id: "a b", revision: 2, document: {}, share: LINK }),

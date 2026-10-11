@@ -5,7 +5,7 @@
 ## Context
 
 On an iPad the Ken Burns motion held a frame once per picture and then caught up: the motion
-follows the clock (`dev-docs/PLAYER.md`, Timing), so any long frame shows as a jump. Measured
+follows the clock (`dev-docs/player/TIMING.md`), so any long frame shows as a jump. Measured
 in Playwright WebKit with 3840×2160 JPEGs and a frame-by-frame trace of the player:
 
 - The first frame of each transition uploaded the incoming picture: `texImage2D` from the

@@ -12,7 +12,7 @@ export interface SlideshowSummary {
   readonly hasMusic: boolean;
 }
 
-/** The library's section of server slideshows (`dev-docs/SERVER_LIBRARY.md`, Library). */
+/** The library's section of server slideshows (`dev-docs/server_library/IN_THE_APP.md`). */
 export interface ServerShelf {
   /** The device cannot reach the server: the cards show what it remembers, greyed out. */
   readonly offline: boolean;
@@ -21,7 +21,7 @@ export interface ServerShelf {
 
 /**
  * Where a slideshow lives, as its screen tells it while the server library is on
- * (`dev-docs/SERVER_LIBRARY.md`, A server slideshow's screen).
+ * (`dev-docs/server_library/IN_THE_APP.md`).
  */
 export type SlideshowStorage =
   | { readonly kind: "server"; readonly saving: boolean; readonly missingCount: number }

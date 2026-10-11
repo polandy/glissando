@@ -5,7 +5,7 @@
   import type { ShareLinkSession, ShareLinkState } from "./share-link-session";
 
   /**
-   * The share row and the sheet it opens (SHARE_LINK.md, In the app). A device slideshow has no
+   * The share row and the sheet it opens (share_link/IN_THE_APP.md). A device slideshow has no
    * session: its row only says how to share it. The screen owns the session and ends it.
    */
   let { session, subject }: { session: ShareLinkSession | null; subject: ShareSubject } = $props();

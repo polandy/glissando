@@ -5,8 +5,8 @@ Pictures | Music" and a numbered two-step bar (a done step shows a mint check); 
 (`import/import-session.ts`) holds the selection for the tab: leaving by the browser back
 gesture (which cannot be stopped) keeps it, and "New slideshow" resumes it. With the server
 library on, the pictures step starts with "Where should it live?"; a server slideshow links its
-Immich photos, offers no "Open file" and is created on the server (SERVER_LIBRARY.md, Where a
-new slideshow lives).
+Immich photos, offers no "Open file" and is created on the server
+(server_library/IN_THE_APP.md).
 
 - **Pictures**: a drop zone with "Choose pictures" (several files, `image/*`), "choose a
   folder", and drag-and-drop on desktop (folders read recursively). While downscaling: "k of N

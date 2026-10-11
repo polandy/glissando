@@ -4,10 +4,10 @@ import {
   escapeStyle,
   jsonBlock,
   PAGE_CONTENT_SECURITY_POLICY,
-} from "../html-export/page";
-import { assertInlineableScript } from "../html-export/inline-script";
-import { SHARE_WORDS_BLOCK_ID } from "./share-page-contract";
-import type { SharePageLanguages } from "./share-page-words";
+} from "../html-export/page.ts";
+import { assertInlineableScript } from "../html-export/inline-script.ts";
+import { SHARE_WORDS_BLOCK_ID } from "./share-page-contract.ts";
+import type { SharePageLanguages } from "./share-page-words.ts";
 
 const SELF = "'self'";
 const DIRECTIVE_SEPARATOR = "; ";
@@ -39,7 +39,7 @@ export interface SharePageParts {
 
 /**
  * The page a share link opens, `share.html` in the build: the same for every token, with its
- * style, font, words and script inline (dev-docs/SHARE_LINK.md, The recipient's page). Throws on
+ * style, font, words and script inline (dev-docs/share_link/RECIPIENTS_PAGE.md). Throws on
  * a script that cannot be inlined unchanged (`assertInlineableScript`).
  */
 export function sharePageHtml(parts: SharePageParts): string {

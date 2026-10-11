@@ -13,7 +13,7 @@ export type ScreenEditorPorts = Pick<
 
 /**
  * The slideshow screen's editor with its copy; a server slideshow's refused edit is told in a
- * toast (`dev-docs/SERVER_LIBRARY.md`, A server slideshow's screen).
+ * toast (`dev-docs/server_library/IN_THE_APP.md`).
  */
 export function createScreenEditor(
   initial: StoredSlideshow,

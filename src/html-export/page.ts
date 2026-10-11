@@ -1,4 +1,5 @@
-import { CAPTION_FONT_NAME, type Slideshow } from "../player";
+import { CAPTION_FONT_NAME } from "../player/caption-layout.ts";
+import type { Slideshow } from "../player/slideshow.ts";
 import {
   COPY_BLOCK_ID,
   JSON_BLOCK_TYPE,
@@ -6,13 +7,13 @@ import {
   MEDIA_TYPE_ATTRIBUTE,
   SLIDESHOW_BLOCK_ID,
   type PageCopy,
-} from "./page-contract";
-import { assertInlineableScript } from "./inline-script";
+} from "./page-contract.ts";
+import { assertInlineableScript } from "./inline-script.ts";
 
 /**
  * The exported page as text, in the order it is written: `pageHead`, one media block per medium
  * (`mediaBlockStart`, its base64, `MEDIA_BLOCK_END`), then `pageTail` with the player script, so
- * the script finds every block when it runs. See dev-docs/HTML_EXPORT.md, "The page".
+ * the script finds every block when it runs. See dev-docs/html_export/THE_PAGE.md.
  */
 
 /** Nothing loads from outside the file; the decode worker starts from a `blob:` URL. */

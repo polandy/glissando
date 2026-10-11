@@ -1,5 +1,5 @@
 /**
- * What share.html and its script agree on (dev-docs/SHARE_LINK.md, The recipient's page); the
+ * What share.html and its script agree on (dev-docs/share_link/RECIPIENTS_PAGE.md); the
  * script imports only this, never the page builder.
  */
 

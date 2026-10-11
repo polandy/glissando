@@ -1,4 +1,4 @@
-import type { Message } from "./messages";
+import type { Message } from "./messages.ts";
 
 /** German copy of the video export (dev-docs/VIDEO_EXPORT.md); part of the German catalogue. */
 export const deVideo = {

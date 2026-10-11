@@ -17,7 +17,7 @@ export interface ExportRun<Preview> {
   onProgress(progress: ExportProgress, preview: Preview): void;
 }
 
-/** What the sheet needs of the browser and the export (VIDEO_EXPORT.md, Sheet). */
+/** What the sheet needs of the browser and the export (video_export/SHEET.md). */
 export interface VideoExportPorts<Preview> {
   probe(withMusic: boolean): Promise<ExportCapabilities>;
   /** Quota minus usage of the origin's storage; null where the browser cannot tell. */

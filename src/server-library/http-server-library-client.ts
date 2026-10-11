@@ -22,7 +22,7 @@ const JSON_MEDIA_TYPE = "application/json";
 const HTTP_NOT_FOUND = 404;
 const HTTP_PRECONDITION_FAILED = 412;
 const HTTP_SERVER_ERROR = 500;
-/** Under a slideshow's path: its link (SHARE_LINK.md, Private). */
+/** Under a slideshow's path: its link (share_link/HTTP_API.md, Private). */
 const SHARE_SUFFIX = "/share";
 /** The 404 code of a link that is already off. */
 const NOT_SHARED = "notShared";

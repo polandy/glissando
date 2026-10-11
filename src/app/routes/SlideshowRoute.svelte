@@ -79,7 +79,7 @@
     onKeepCopy: (slideshow: StoredSlideshow) => void;
     /** "Save on the server" of a device slideshow, as shown. */
     onSaveOnServer: (slideshow: StoredSlideshow) => void;
-    /** A server slideshow's link, for its share row (SHARE_LINK.md, In the app). */
+    /** A server slideshow's link, for its share row (share_link/IN_THE_APP.md). */
     newShareLinkSession: (slideshowId: string) => ShareLinkSession;
     /** What it finds updates the editors' automatic motions and focus marks as it goes. */
     focusPass: Pick<FocusPass, "state" | "subscribe">;

@@ -2,7 +2,7 @@ import { PAGE_STATE_ATTRIBUTE, type PageState } from "../html-export/page-contra
 import { iconSvg, type PageView } from "../export-player/page-view";
 import type { SharePageWords } from "./share-page-words";
 
-/** What the share page adds to the player page (dev-docs/SHARE_LINK.md, States). */
+/** What the share page adds to the player page (dev-docs/share_link/RECIPIENTS_PAGE.md, States). */
 export interface ShareParts {
   /** On the "unreachable" card. */
   readonly tryAgain: HTMLButtonElement;
