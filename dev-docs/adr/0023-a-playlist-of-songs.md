@@ -15,12 +15,14 @@ what the player and the exports are told.
 - **An ordered list of songs**: `StoredSlideshow.songs` (`readonly StoredMusic[]`, empty for no
   music) replaces `music`. Each song keeps its own excerpt, fades and picture changes (ADR-0009,
   ADR-0021), which travel with it through reorder. Nothing reads the single `music` any more:
-  there is no installation to carry over, so a local database from before is deleted.
+  there is no installation to carry over, so a local database holding a slideshow with a
+  single `music` is cleared by hand (the browser's site data); the app does not read it.
 - **The hand-over is the slideshow's**: `StoredSlideshow.betweenSongs` absent crossfades,
   `"sequence"` plays one after another. In a crossfade the next song starts while the previous
   one fades out: the two overlap by the outgoing song's fade-out as played, and an automatic
   fade on either side of a join is 3 s (`CROSSFADE_MS`); an own fade is kept, so an own fade-out
-  of "off" makes a hard cut. One after another, the next song starts at the previous one's end,
+  of "off" leaves no overlap: the next song starts as the previous one stops, still fading in
+  automatically. One after another, the next song starts at the previous one's end,
   and each song's automatic fades follow ADR-0009 (short only where the song is cut). The
   playlist's start and its end follow ADR-0009 as for one song.
 - **The pictures meet the playlist as they met one song** (ADR-0022): "Fill the music" fills the

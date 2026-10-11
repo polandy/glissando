@@ -88,7 +88,9 @@ crossfade). A removed song's media goes with the clean-up of unreferenced media.
 ## Storage layout
 
 One IndexedDB database, `glissando` (schema version 4; version 1 lacked `imports`, version 2
-`focus`, version 3 `beats` — each upgrade only adds its store, existing data stays as it is):
+`focus`, version 3 `beats` — each upgrade only adds its store, existing data stays as it is). A slideshow record holds
+`songs` (ADR-0023); one holding a single `music` is not read, and such a database is cleared
+by hand:
 
 | Object store | Key      | Value                                                                    |
 | ------------ | -------- | ------------------------------------------------------------------------ |
