@@ -12,7 +12,7 @@ test.beforeEach(async ({ page }) => {
   await openApp(page);
 });
 
-test("E2E-038 music a browser cannot play becomes a FLAC copy; an unreadable file shows a notice", async ({
+test("E2E-038 music a browser cannot play becomes a FLAC copy; an unreadable file is marked unusable", async ({
   page,
 }) => {
   await page.setViewportSize(PHONE);
@@ -30,23 +30,24 @@ test("E2E-038 music a browser cannot play becomes a FLAC copy; an unreadable fil
   await chooseFiles(page, page.getByRole("button", { name: "Choose music" }), [
     textFile("Concert.mp3"),
   ]);
-  await expect(page.getByRole("alert")).toContainText("This file can't be used");
-  await expect(page.getByRole("alert")).toContainText("Glissando can't read “Concert.mp3”.");
+  const songs = page.getByRole("list", { name: "Songs" });
+  await expect(songs.getByRole("listitem")).toHaveText(/Concert\.mp3\s*This file can't be used/);
   await expect(page.getByRole("button", { name: "Create without music" })).toBeEnabled();
-  // The notice and the seconds panel fit the phone's width.
+  // The song list and the seconds panel fit the phone's width.
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= document.documentElement.clientWidth,
     ),
   ).toBe(true);
 
-  await chooseFiles(page, page.getByRole("button", { name: "Choose other music" }), [
+  await page.getByRole("button", { name: "Remove Concert.mp3" }).click();
+  await chooseFiles(page, page.getByRole("button", { name: "Choose music" }), [
     toneTrack("Evening Walk.m4a", "alac.m4a"),
   ]);
   await expect(page.getByText("Converted from Apple Lossless on this device")).toBeVisible();
   await expect(page.getByText("Evening Walk.m4a", { exact: true })).toBeVisible();
   await expect(page.getByText(/· FLAC$/)).toBeVisible();
-  await expect(page.getByRole("alert")).toHaveCount(0);
+  await expect(songs.getByRole("listitem")).toHaveCount(1);
   await expect(definitionOf(page, "Pictures")).toHaveText("2");
 
   await page.getByRole("button", { name: "Create slideshow" }).click();
