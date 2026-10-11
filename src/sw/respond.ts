@@ -19,26 +19,30 @@ const NAVIGATION: RequestMode = "navigate";
 const GET = "GET";
 /** The self-hosted install's route to Immich, relative to the app (ADR-0013). */
 const IMMICH_ROUTE = "immich/";
-/** The self-hosted install's library service, relative to the app (ADR-0018). */
-const LIBRARY_ROUTE = "api/library";
+/**
+ * The self-hosted install's server routes, relative to the app: the library service (ADR-0018)
+ * and the public share API under `api/`, and the shared slideshows' page under `s/` (ADR-0025).
+ */
+const SERVER_ROUTES = ["api", "s"] as const;
 
 /**
  * Only the app's own reads are answered; any other request goes to the network untouched.
  * A navigation to a path outside the app but inside the scope gets the app too: the scope is
- * the app's directory, so nothing else lives there — except the Immich and library routes, which
- * are live data and never come from or go into a cache (ADR-0013, ADR-0018).
+ * the app's directory, so nothing else lives there — except the Immich and server routes, which
+ * are live data and never come from or go into a cache (ADR-0013, ADR-0018, ADR-0025).
  */
 export function answersRequest(request: Pick<Request, "method" | "url">, scope: string): boolean {
   const url = new URL(request.url);
   const immichRoute = new URL(IMMICH_ROUTE, scope);
-  const libraryRoute = new URL(LIBRARY_ROUTE, scope);
-  const isLibrary =
-    url.pathname === libraryRoute.pathname || url.pathname.startsWith(`${libraryRoute.pathname}/`);
+  const isServerRoute = SERVER_ROUTES.some((route) => {
+    const { pathname } = new URL(route, scope);
+    return url.pathname === pathname || url.pathname.startsWith(`${pathname}/`);
+  });
   return (
     request.method === GET &&
     url.origin === immichRoute.origin &&
     !url.pathname.startsWith(immichRoute.pathname) &&
-    !isLibrary
+    !isServerRoute
   );
 }
 
