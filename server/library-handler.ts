@@ -53,6 +53,13 @@ export function createLibraryHandler(dependencies: LibraryHandlerDependencies): 
         DELETE: () => slideshows.remove(slideshowId),
       };
     }
+    const beatsMusicId = idUnderBeats(MUSIC_PATH, path);
+    if (beatsMusicId !== undefined) {
+      return {
+        GET: () => music.readBeats(beatsMusicId),
+        PUT: (request) => music.replaceBeats(beatsMusicId, request),
+      };
+    }
     const musicId = idUnder(MUSIC_PATH, path);
     return musicId === undefined ? {} : { GET: () => music.read(musicId) };
   };
@@ -75,4 +82,14 @@ function idUnder(base: string, path: string): string | undefined {
   }
   const id = path.slice(prefix.length);
   return id === "" || id.includes("/") ? undefined : id;
+}
+
+const BEATS_SUFFIX = "/beats";
+
+/** The single path segment between `base` and the literal `/beats`, if `path` is one. */
+function idUnderBeats(base: string, path: string): string | undefined {
+  if (!path.endsWith(BEATS_SUFFIX)) {
+    return undefined;
+  }
+  return idUnder(base, path.slice(0, -BEATS_SUFFIX.length));
 }

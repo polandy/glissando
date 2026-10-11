@@ -1,3 +1,4 @@
+import type { BeatPass } from "../library/beat-pass";
 import type { FocusPass } from "../library/focus-pass";
 import type { ImmichAvailability } from "../immich/immich-availability";
 import type { ImmichClient } from "../immich/immich-client";
@@ -34,6 +35,10 @@ export interface AppServices {
   readonly musicAudio: MusicEditorAudio;
   /** Looks for the pictures' focus in the background (ADR-0012); started as the app opens. */
   readonly focusPass: FocusPass;
+  /** Listens for the music's beats in the background (ADR-0021); started as the app opens. */
+  readonly beatPass: BeatPass;
+  /** Listens for a server slideshow's beats as it opens and keeps them on the server (ADR-0021). */
+  readonly serverBeatPass: BeatPass;
   /** Immich through the self-hosted Glissando (ADR-0013); checked as the app opens. */
   readonly immich: { readonly client: ImmichClient; readonly availability: ImmichAvailability };
   /**

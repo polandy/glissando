@@ -41,3 +41,16 @@ describe("SlideshowEditor, the music's excerpt and fades", () => {
     expect(await storedMusic()).toEqual(MUSIC);
   });
 });
+
+describe("SlideshowEditor, the music's picture changes", () => {
+  it("stores even picture changes at once, and back on the beat drops them", async () => {
+    const { editor, storedMusic } = await setUp(["a"], MUSIC);
+
+    editor.setMusicPictureChanges("even");
+    expect(editor.slideshow.music?.pictureChanges).toBe("even");
+    expect(await storedMusic()).toEqual({ ...MUSIC, pictureChanges: "even" });
+
+    editor.setMusicPictureChanges(undefined);
+    expect(await storedMusic()).toEqual(MUSIC);
+  });
+});

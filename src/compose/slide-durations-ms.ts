@@ -1,5 +1,6 @@
 import { MIN_SECONDS_PER_PICTURE, type StoredPicture } from "../library/stored-slideshow";
 import { MILLISECONDS_PER_SECOND } from "../player/slideshow";
+import { snapToBeats } from "./snap-to-beats";
 
 const MIN_SLIDE_DURATION_MS = MIN_SECONDS_PER_PICTURE * MILLISECONDS_PER_SECOND;
 
@@ -11,13 +12,16 @@ export type TimedPicture = Pick<StoredPicture, "durationMs">;
  * pictures show `secondsPerPicture` each; with music they share the rest of its excerpt evenly (the
  * remainder going to the first of them so the sum matches exactly). A share below
  * `MIN_SECONDS_PER_PICTURE` is rejected in favour of the minimum, so the slideshow outlasts a
- * excerpt too short for it. See ADR-0008 and ADR-0009.
+ * excerpt too short for it. With the excerpt's beats, each boundary ending an automatic slide then
+ * moves to the nearest beat (`snapToBeats`). See ADR-0008, ADR-0009 and ADR-0021.
  */
 export function slideDurationsMs(
   pictures: readonly TimedPicture[],
   /** The length of the music's excerpt (`musicExcerptMs`); absent without music. */
   musicExcerptMs: number | undefined,
   secondsPerPicture: number,
+  /** The beats to change on, in ms of the excerpt (`excerptBeatsMs`); absent: none. */
+  excerptBeatsMs?: readonly number[],
 ): number[] {
   if (pictures.length < 1) {
     throw new RangeError(`pictures: expected at least 1, got ${pictures.length}`);
@@ -29,7 +33,14 @@ export function slideDurationsMs(
       : evenSplitMs(automaticCount, musicExcerptMs - ownTotalMs(pictures));
   let nextAutomatic = 0;
   // automaticMs holds exactly one entry per picture without an own duration.
-  return pictures.map((picture) => picture.durationMs ?? (automaticMs[nextAutomatic++] as number));
+  const durationsMs = pictures.map(
+    (picture) => picture.durationMs ?? (automaticMs[nextAutomatic++] as number),
+  );
+  if (musicExcerptMs === undefined || excerptBeatsMs === undefined) {
+    return durationsMs;
+  }
+  const automatic = pictures.map((picture) => picture.durationMs === undefined);
+  return snapToBeats(durationsMs, automatic, excerptBeatsMs, MIN_SLIDE_DURATION_MS);
 }
 
 function ownTotalMs(pictures: readonly TimedPicture[]): number {

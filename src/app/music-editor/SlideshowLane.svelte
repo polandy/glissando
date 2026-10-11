@@ -5,8 +5,9 @@
   import { percentOf } from "./waveform-scale";
 
   /**
-   * Under the waveform: where the pictures play against the track, a tick per slide change, and
-   * the time they play on in silence past the excerpt's end.
+   * Under the waveform: where the pictures play against the track, a tick per slide change (one
+   * off the beat stands out while the pictures change on the beat), and the time they play on in
+   * silence past the excerpt's end.
    */
   let { music }: { music: MusicEditorView } = $props();
 
@@ -27,8 +28,11 @@
     style:left={pct(music.startMs)}
     style:width="calc({pct(runEndMs)} - {pct(music.startMs)})"
   >
-    {#each music.slideChangesMs as changeMs (changeMs)}
-      <i style:left="{((changeMs - music.startMs) / (runEndMs - music.startMs)) * 100}%"></i>
+    {#each music.slideChanges as change (change.atMs)}
+      <i
+        class:off-beat={change.offBeat}
+        style:left="{((change.atMs - music.startMs) / (runEndMs - music.startMs)) * 100}%"
+      ></i>
     {/each}
   </div>
   {#if outlastsExcerpt}
@@ -68,6 +72,10 @@
     bottom: 5px;
     width: 1px;
     background: color-mix(in srgb, var(--gl-ink) 35%, transparent);
+  }
+  .runs i.off-beat {
+    width: 2px;
+    background: var(--gl-coral);
   }
   /* The pictures that play on after the music. */
   .over {

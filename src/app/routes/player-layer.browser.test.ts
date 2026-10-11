@@ -42,6 +42,7 @@ describe("the player layer", () => {
     await store.putPicture("a", { display: new Blob([]), thumbnail: new Blob([]) });
     const reported: unknown[] = [];
     const logged: unknown[] = [];
+    const listenedFor: string[] = [];
     const mounted = mountWithTranslator(PlayerLayer, {
       store,
       stored: SHOW,
@@ -49,6 +50,7 @@ describe("the player layer", () => {
       onClose: () => {},
       onError: (error: unknown) => reported.push(error),
       log: (error: unknown) => logged.push(error),
+      beatPass: { listenFor: (musicId: string) => listenedFor.push(musicId) },
       home: "device",
       missing: new SvelteSet<string>(),
       onPictureMissing: () => {},
@@ -60,6 +62,31 @@ describe("the player layer", () => {
     expect(counter.textContent).toBe("1 / 1");
     expect(logged).toEqual([new Error("the focus could not be read")]);
     expect(reported).toEqual([]);
+    expect(listenedFor).toEqual([]);
+  });
+
+  it("listens for the beats of the music as it opens, for the next time it plays", async () => {
+    const store = new MemoryLibraryStore();
+    await store.putPicture("a", { display: new Blob([]), thumbnail: new Blob([]) });
+    const listenedFor: string[] = [];
+    const mounted = mountWithTranslator(PlayerLayer, {
+      store,
+      stored: {
+        ...SHOW,
+        music: { id: "tune", fileName: "tune.mp3", durationMs: 5000, mimeType: "audio/mpeg" },
+      },
+      musicOutput: new MusicOutput(() => null),
+      onClose: () => {},
+      onError: () => {},
+      log: () => {},
+      beatPass: { listenFor: (musicId: string) => listenedFor.push(musicId) },
+      home: "server",
+      missing: new SvelteSet<string>(),
+      onPictureMissing: () => {},
+    });
+    destroy = mounted.destroy;
+
+    expect(listenedFor).toEqual(["tune"]);
   });
 });
 
@@ -96,6 +123,7 @@ function mountServerLayer(store: MemoryLibraryStore, missing = new SvelteSet<str
     onClose: () => {},
     onError: () => {},
     log: () => {},
+    beatPass: { listenFor: () => {} },
     home: "server",
     missing,
     onPictureMissing: (id: string) => missing.add(id),

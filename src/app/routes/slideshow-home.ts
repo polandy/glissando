@@ -7,7 +7,7 @@ import type { SlideshowHome } from "./slideshow-storage";
 
 /** The store the slideshow route reads and edits through, of either home. */
 export type RouteStore = SlideshowStore &
-  Pick<LibraryStore, "claimMedia" | "releaseClaim" | "mediaBytes">;
+  Pick<LibraryStore, "claimMedia" | "releaseClaim" | "mediaBytes" | "musicBeats">;
 
 /**
  * Where a slideshow opened by id lives: the device is asked first, as it answers offline too; a
@@ -30,7 +30,9 @@ export async function findSlideshowHome(
  * The server store with the device-only slices the route needs: the server keeps no media of its
  * own to spare from clean-up, and a server slideshow's size is not known before downloading.
  */
-export function serverRouteStore(server: SlideshowStore): RouteStore {
+export function serverRouteStore(
+  server: SlideshowStore & Pick<LibraryStore, "musicBeats">,
+): RouteStore {
   return {
     listSlideshows: () => server.listSlideshows(),
     getSlideshow: (id) => server.getSlideshow(id),
@@ -44,6 +46,7 @@ export function serverRouteStore(server: SlideshowStore): RouteStore {
     putPictureFocus: (id, focus) => server.putPictureFocus(id, focus),
     claimMedia: () => Promise.resolve(),
     releaseClaim: () => Promise.resolve(),
+    musicBeats: (id) => server.musicBeats(id),
     mediaBytes: () =>
       Promise.reject(new Error("a server slideshow's size is not measured before downloading")),
   };

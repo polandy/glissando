@@ -1,36 +1,11 @@
-import { expect, test, type Page } from "@playwright/test";
-import {
-  CREATED_TOAST,
-  chooseFiles,
-  choosePictures,
-  editsStored,
-  GERMAN_BROWSER,
-  openImport,
-  picturesTakenOn,
-} from "./support/app";
+import { expect, test } from "@playwright/test";
+import { createSlideshowWithMusic, editsStored, GERMAN_BROWSER } from "./support/app";
 import { openApp } from "./support/browser";
 import { silentTrack } from "./support/media";
 
 test.use(GERMAN_BROWSER);
 
 const TRACK_SECONDS = 20;
-
-/** Imports three pictures with a silent track and waits on the created slideshow's screen. */
-async function createSlideshowWithMusic(page: Page): Promise<void> {
-  await openImport(page);
-  await choosePictures(
-    page,
-    await picturesTakenOn(page, ["2025-07-12", "2025-07-14", "2025-07-20"]),
-    3,
-  );
-  await page.getByRole("button", { name: "Weiter" }).click();
-  await chooseFiles(page, page.getByRole("button", { name: "Musik auswählen" }), [
-    silentTrack("Sommerwind.wav", TRACK_SECONDS),
-  ]);
-  await expect(page.getByText("Sommerwind.wav", { exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "Diashow erstellen" }).click();
-  await expect(page.getByRole("status")).toHaveText(CREATED_TOAST);
-}
 
 test("E2E-023 the music gets its own excerpt and fade-in, stored, summed up in the music row, and goes back to the whole track", async ({
   page,
@@ -46,7 +21,7 @@ test("E2E-023 the music gets its own excerpt and fade-in, stored, summed up in t
   const longFadeIn = fadeIn.getByRole("radio", { name: /^Lang/ });
   const back = page.getByRole("button", { name: "Zurück", exact: true });
   await openApp(page);
-  await createSlideshowWithMusic(page);
+  await createSlideshowWithMusic(page, silentTrack("Sommerwind.wav", TRACK_SECONDS));
 
   await page.getByRole("button", { name: "Musik Sommerwind.wav ganzer Titel Bearbeiten" }).click();
   await expect(

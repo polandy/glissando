@@ -11,6 +11,7 @@
     type TrimEdge,
   } from "./trim-edges";
   import { percentOf, rulerTicksMs } from "./waveform-scale";
+  import BeatTicks from "./BeatTicks.svelte";
   import WaveformBars from "./WaveformBars.svelte";
 
   /**
@@ -135,6 +136,7 @@
 
 <div class="wave" bind:this={wave} bind:clientWidth={width} {onpointerdown} role="presentation">
   <WaveformBars {music} {peaks} {width} />
+  <BeatTicks ticks={music.beatTicks} durationMs={music.durationMs} />
   <div class="out" style:left="0" style:width={pct(music.startMs)}></div>
   <div class="out" style:left={pct(music.endMs)} style:right="0"></div>
   {#if music.audibleEndMs < music.endMs}

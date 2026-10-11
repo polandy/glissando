@@ -1,4 +1,6 @@
 import type { DatabaseSync, SQLOutputValue } from "node:sqlite";
+import type { MusicBeats } from "../src/beats/music-beats";
+import { parseMusicBeats } from "../src/beats/music-beats-json";
 import { readServerDocument } from "../src/server-library/server-document";
 import type { LibraryRepository, MusicRecord, SlideshowRecord } from "./library-repository";
 
@@ -15,6 +17,10 @@ const SCHEMA = `
     content_type TEXT NOT NULL,
     bytes BLOB NOT NULL,
     uploaded_at INTEGER NOT NULL
+  );
+  CREATE TABLE IF NOT EXISTS music_beats (
+    music_id TEXT PRIMARY KEY,
+    beats TEXT NOT NULL
   );
 `;
 const MUSIC_ID_OF_DOCUMENT = "json_extract(document, '$.slideshow.music.musicId')";
@@ -44,6 +50,12 @@ export function openSqliteRepository(database: DatabaseSync): LibraryRepository 
     "INSERT INTO music (id, content_type, bytes, uploaded_at) VALUES (?, ?, ?, ?)",
   );
   const deleteMusic = statement("DELETE FROM music WHERE id = ?");
+  const findMusicBeats = statement("SELECT beats FROM music_beats WHERE music_id = ?");
+  const putMusicBeats = statement(
+    `INSERT INTO music_beats (music_id, beats) VALUES (?, ?)
+       ON CONFLICT (music_id) DO UPDATE SET beats = excluded.beats`,
+  );
+  const deleteMusicBeats = statement("DELETE FROM music_beats WHERE music_id = ?");
   const musicReference = statement(`SELECT 1 FROM slideshows WHERE ${MUSIC_ID_OF_DOCUMENT} = ?`);
   const unreferencedMusic = statement(
     `SELECT id FROM music WHERE uploaded_at < ? AND id NOT IN
@@ -86,6 +98,14 @@ export function openSqliteRepository(database: DatabaseSync): LibraryRepository 
     },
     deleteMusic(id) {
       deleteMusic.run(id);
+      deleteMusicBeats.run(id);
+    },
+    findMusicBeats(id) {
+      const row = findMusicBeats.get(id);
+      return row === undefined ? undefined : musicBeatsOf(row);
+    },
+    putMusicBeats(id, beats) {
+      putMusicBeats.run(id, JSON.stringify(beats));
     },
     isMusicReferenced: (id) => musicReference.get(id) !== undefined,
     unreferencedMusicUploadedBefore: (time) =>
@@ -114,6 +134,16 @@ function musicOf(row: Row): MusicRecord {
     bytes,
     uploadedAt: integer(row, "uploaded_at"),
   };
+}
+
+function musicBeatsOf(row: Row): MusicBeats {
+  const stored = text(row, "beats");
+  const beats = parseMusicBeats(JSON.parse(stored));
+  // What the database holds was validated on the way in; reading it again fails loud on damage.
+  if (beats === undefined) {
+    throw new Error(`database column beats holds ${stored}, not valid MusicBeats`);
+  }
+  return beats;
 }
 
 function text(row: Row, column: string): string {

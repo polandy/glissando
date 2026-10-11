@@ -1,3 +1,4 @@
+import { beatPassFindingNone } from "../../library/testing/beat-pass-finding-none";
 import { flushSync } from "svelte";
 import { afterEach, describe, expect, it } from "vitest";
 import type { StoredSlideshow } from "../../library/stored-slideshow";
@@ -101,10 +102,12 @@ async function mountRoute(stored: StoredSlideshow = SHOW) {
     store,
     stored,
     editor,
+    beatPass: beatPassFindingNone(store),
     audio: fake.audio,
     saving: false,
     onBack: () => (backs += 1),
     onError: (error: unknown) => errors.push(error),
+    log: (error: unknown) => errors.push(error),
   });
   destroy = mounted.destroy;
   return { ...fake, target: mounted.target, backs: () => backs, store, editor, errors };

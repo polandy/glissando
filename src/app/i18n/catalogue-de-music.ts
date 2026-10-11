@@ -59,6 +59,11 @@ export const deMusic = {
     other:
       "{count} Bilder ohne eigene Dauer teilen sich den Ausschnitt: je {share}. Die Diashow endet mit der Musik.",
   },
+  "music.noteSharedOnTheBeat": {
+    one: "Das Bild ohne eigene Dauer bekommt den Ausschnitt: {share}. Die Diashow endet mit der Musik.",
+    other:
+      "{count} Bilder ohne eigene Dauer teilen sich den Ausschnitt: je etwa {share}. Die Diashow endet mit der Musik.",
+  },
   "music.noteOutlasts": "Die Diashow läuft {over} länger als die Musik.",
   "music.noteOutlastsWhy": {
     one: "Das Bild ohne eigene Dauer bekommt das Minimum von {min}; nach der Ausblende laufen die letzten Bilder still. Ein längerer Ausschnitt behebt das.",
@@ -70,4 +75,22 @@ export const deMusic = {
   "music.noteEndsEarly":
     "Jedes Bild hat eine eigene Dauer. Die Diashow endet nach {time}, die Musik blendet dort aus.",
   "music.noteEndsWithMusic": "Jedes Bild hat eine eigene Dauer. Die Diashow endet mit der Musik.",
+  "music.pictureChanges": "Bildwechsel",
+  "music.beatsPerMinute": "{bpm} BPM",
+  "music.onTheBeat": "Im Takt",
+  "music.evenly": "Gleichmäßig",
+  "music.onTheBeatHint":
+    "Jeder automatische Wechsel landet auf einem Schlag der Musik; ein Übergang dauert ganze Schläge.",
+  "music.ownDurationsOffBeat": {
+    one: "Bild {pictures} behält seine eigene Dauer, darum kann der Wechsel danach zwischen die Schläge fallen.",
+    other:
+      "Die Bilder {pictures} behalten ihre eigene Dauer, darum kann der Wechsel nach jedem zwischen die Schläge fallen.",
+  },
+  "music.evenlyHint": "Die Bilder teilen sich die Musik gleichmäßig, unabhängig von ihrem Takt.",
+  "music.listeningForBeat":
+    "Glissando hört den Takt heraus\u00a0… Bis dahin teilen sich die Bilder die Musik gleichmäßig.",
+  "music.noSteadyBeat":
+    "In dieser Musik ist kein gleichmäßiger Takt zu finden. Die Bilder teilen sie sich gleichmäßig.",
+  "music.musicUndecodable":
+    "Glissando konnte den Takt dieser Musik nicht heraushören. Die Bilder teilen sie sich gleichmäßig.",
 } as const satisfies Record<string, Message>;

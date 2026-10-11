@@ -67,14 +67,17 @@ never changed. `StoredMusic.trim` (`{ startMs, endMs }`, whole ms, `0 ≤ startM
 `endMs ≤ durationMs`, at least `MIN_MUSIC_EXCERPT_MS` = 5000 long) is the part that plays;
 absent, the whole track. `fadeInMs` and `fadeOutMs` are own fades in whole ms, 0 to 10000 in
 steps of 500, 0 being off (the editor offers off, 2000 and 5000); absent, automatic.
-`setMusicTrim` deletes the field for `undefined` or the whole track, `setMusicFadeIn` and
-`setMusicFadeOut` for `undefined`; all three validate (`checkMusicTrim`, `checkMusicFadeMs`).
+`pictureChanges` `"even"` has the pictures share the music evenly; absent, they change on the
+beat when one was found (ADR-0021).
+`setMusicTrim` deletes the field for `undefined` or the whole track, `setMusicFadeIn`,
+`setMusicFadeOut` and `setMusicPictureChanges` for `undefined` (`src/library/slideshow-edits-music.ts`);
+all validate (`checkMusicTrim`, `checkMusicFadeMs`, `checkPictureChanges`).
 Records without them need no migration.
 
 ## Storage layout
 
-One IndexedDB database, `glissando` (schema version 3; version 1 lacked `imports`, version 2
-`focus` — each upgrade only adds its store, existing data stays as it is):
+One IndexedDB database, `glissando` (schema version 4; version 1 lacked `imports`, version 2
+`focus`, version 3 `beats` — each upgrade only adds its store, existing data stays as it is):
 
 | Object store | Key      | Value                                                                    |
 | ------------ | -------- | ------------------------------------------------------------------------ |
@@ -83,6 +86,7 @@ One IndexedDB database, `glissando` (schema version 3; version 1 lacked `imports
 | `music`      | media id | the music file, bytes + type                                             |
 | `imports`    | `id`     | a claim (import in progress or undoable removal): `startedAt`, media ids |
 | `focus`      | media id | a picture's `PictureFocus`: its subject box, or none found (ADR-0012)    |
+| `beats`      | media id | a track's `MusicBeats`: its beat times and tempo, or none (ADR-0021)     |
 
 Media is written while importing, the slideshow record last. Edits on the slideshow screen
 replace the record through `updateSlideshow`, which reads it in the same transaction and throws
@@ -111,13 +115,15 @@ validates it (`checkSlideshowTransition`) and deletes the field for `undefined` 
 measures what a slideshow's pictures (both renditions) and music take, in one read-only
 transaction, for the export's size estimate. `deleteSlideshow` deletes the
 record and, in the same transaction, the media no other slideshow references, those pictures'
-focus with it.
+focus and that music's beats with it.
 
 A picture's focus lives beside its media, not on the record: the editors save whole records
 from their copy, which would erase a focus found meanwhile. `putPictureFocus` checks for the
 picture's media in the same transaction and keeps nothing without it, so a detection finishing
 after its slideshow was deleted resurrects nothing; `pictureFocus(ids)` returns a map in which a
-picture not looked at yet is absent.
+picture not looked at yet is absent. A track's beats live beside its media the same way:
+`putMusicBeats` keeps nothing without the music, `musicBeats(id)` is `undefined` for a track not
+listened to yet.
 
 ## Looking for the focus
 
@@ -140,6 +146,31 @@ state, with the Svelte store contract: `running`; per slideshow with pictures le
 `found`, every focus it stored since the app opened. The slideshow screen merges `found` into
 the focus it read on opening, so the editors' automatic motions and focus marks follow at once.
 
+## Listening for the beats
+
+`BeatPass` (`library/beat-pass.ts`) listens, in the background, for the beats of every stored
+track without a result (ADR-0021), the pattern of the focus pass: one track at a time, a track
+two slideshows share once, its file through the `BeatDetector` into the store — the beats found
+or `{kind: "none"}` for music without a clear beat. The detector (`beats/worker-beat-detector.ts`)
+decodes on the main thread (`decodeMusicWithWebAudio`: `OfflineAudioContext` at 11 025 Hz, the
+channels mixed to mono) and hands the samples over to a worker (`beats/beat-worker.ts`) that runs
+`detectBeats`. The pass starts when the app opens and whenever a slideshow is created (an import,
+an opened file); opening the music editor or the player asks it for that one track
+(`listenFor`), which goes ahead of the queue unless a result is stored. Music deleted meanwhile is
+skipped; a failed detection is logged (`BeatDetectionFailedError`), keeps no result and is tried
+again on the next pass; music the device cannot decode (`MusicUndecodableError`) is marked
+`undecodable` until it is found after all; a crashed worker (`BeatDetectorGoneError`) ends the
+pass and is reported once; later passes meeting it only log it. Its state: `running`; `listening`, the tracks still to come; `found`,
+every result stored since the app opened; and `undecodable`.
+
+A second `BeatPass` over the server store (`serverBeatPass`) does the same for server
+slideshows, asked only by `listenFor`: the first device to open one in the player or the music
+editor listens and keeps the result on the server beside the music
+(`dev-docs/SERVER_LIBRARY.md`), where every other device reads it. It shares the device's
+detector; a server out of reach is only logged. The player and both exports read the stored
+beats once when they start (`storedMusicBeats`); the picture and music editors follow the pass
+as it finds them (`TrackBeats`). `.glissando` files carry no beats: the receiver listens again.
+
 A write commits its transaction explicitly (`commit()`) as soon as its last request is placed —
 right away for a plain write, in the read's callback for one that reads first. Chromium aborts a
 transaction still open when the page unloads, so an edit followed at once by a reload would
@@ -160,7 +191,7 @@ id in `imports` (`claimMedia`) before writing the media, and its claim is releas
 in any tab — spares its media. An undoable removal claims its media the same way (above). A record older
 than one day (`CLAIM_SPARED_FOR_MS`, from a tab that crashed) is dropped and its media deleted.
 The clean-up reads the references and claims and deletes in one transaction, a deleted
-picture's focus included. Web Locks would
+picture's focus and a deleted track's beats included. Web Locks would
 need a secure context, which the app over plain HTTP on the LAN lacks.
 
 ## The .glissando file
@@ -171,7 +202,7 @@ entries are stored, not compressed, so any unzip tool opens it; no ZIP64, so it 
 
 | Entry                  | Content                                                                |
 | ---------------------- | ---------------------------------------------------------------------- |
-| `glissando.json`       | always first: `format` "glissando", `formatVersion` 7, the `slideshow` |
+| `glissando.json`       | always first: `format` "glissando", `formatVersion` 8, the `slideshow` |
 | `pictures/0001.jpg` …  | the display renditions in play order, as stored (numbered from 0001)   |
 | `thumbnails/0001.jpg`… | their thumbnails, as stored                                            |
 | `music/track.<ext>`    | the music, extension from its file name (none when it has none)        |
@@ -180,16 +211,16 @@ entries are stored, not compressed, so any unzip tool opens it; no ZIP64, so it 
 `ownOrder` (only when true), `transition` (only when not the crossfade), `pictures` (`file`, `thumbnail`, `capturedAt`, `width`, `height`,
 `fileName`, `kenBurns` for a picture with an own motion, `caption` for one with a caption,
 `durationMs` and `transition` for one with an own duration or transition, `immichAssetId` or
-`fileBytes` where known) and `music` (`file`, `fileName`, `durationMs` in whole ms, `mimeType`, and `trim`, `fadeInMs`, `fadeOutMs` where set). Picture types follow
+`fileBytes` where known) and `music` (`file`, `fileName`, `durationMs` in whole ms, `mimeType`, and `trim`, `fadeInMs`, `fadeOutMs`, `pictureChanges` where set). Picture types follow
 the extension (`jpg`, `png`, `webp`). No picture's focus travels in the file: the receiving
 device looks for it itself (ADR-0012). The manifest is read strictly: an unknown key or a value
 out of range makes the file damaged. Version 2 added `kenBurns`, version 3 `caption`, version 4
 `durationMs` and `transition`, version 5 the music's `trim`, `fadeInMs` and `fadeOutMs`,
 version 6 the slideshow's `transition`, version 7 the pictures' `immichAssetId` or `fileBytes`
-(a picture carrying both is damaged, the reason names its path);
-files of versions 1 to 6 are still read (without
+(a picture carrying both is damaged, the reason names its path), version 8 the music's
+`pictureChanges`; files of versions 1 to 7 are still read (without
 `transition`: the crossfade), and a file carrying a field its version does not know is
-damaged. An own duration, transition, default transition, excerpt or fade is checked as on the edit; the reason
+damaged. An own duration, transition, default transition, excerpt, fade or picture changes is checked as on the edit; the reason
 names its path and value. A caption must be what `normalizeCaption` leaves (1 to 80 characters counted in graphemes, one line, no
 leading, trailing or repeated whitespace); the reason names its path and value.
 

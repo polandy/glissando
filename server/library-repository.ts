@@ -1,3 +1,4 @@
+import type { MusicBeats } from "../src/beats/music-beats";
 import type { ServerDocument } from "../src/server-library/server-document";
 
 /**
@@ -32,7 +33,12 @@ export interface LibraryRepository {
   deleteSlideshow(id: string): void;
   findMusic(id: string): MusicRecord | undefined;
   insertMusic(record: MusicRecord): void;
+  /** Deletes the music `id` and the beats found for it, if any. */
   deleteMusic(id: string): void;
+  /** The beats found for the music `id`, or `undefined` while no device has listened yet. */
+  findMusicBeats(id: string): MusicBeats | undefined;
+  /** Replaces the beats found for the music `id` (two devices may race; same detector, same answer). */
+  putMusicBeats(id: string, beats: MusicBeats): void;
   /** Whether a slideshow's document names the music `id`. */
   isMusicReferenced(id: string): boolean;
   /** The ids of music no slideshow names, uploaded before `time`. */

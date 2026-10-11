@@ -1,10 +1,13 @@
+import { parseMusicBeats } from "../src/beats/music-beats-json";
 import type { LibraryHandlerDependencies } from "./library-handler";
 import {
   errorResponse,
   HTTP_STATUS,
   jsonResponse,
+  MAX_DOCUMENT_BYTES,
   MAX_MUSIC_BYTES,
   notFound,
+  readJsonBody,
   type LibraryRequest,
   type LibraryResponse,
 } from "./library-http";
@@ -56,6 +59,35 @@ export function musicRoutes({ repository, now, newId }: LibraryHandlerDependenci
             headers: { [CONTENT_TYPE]: music.contentType },
             body: music.bytes,
           };
+    },
+
+    readBeats(id: string): LibraryResponse {
+      if (repository.findMusic(id) === undefined) {
+        return notFound();
+      }
+      return jsonResponse(HTTP_STATUS.ok, { beats: repository.findMusicBeats(id) ?? null });
+    },
+
+    replaceBeats(id: string, request: LibraryRequest): LibraryResponse {
+      const read = readJsonBody(
+        request,
+        `music beats are at most ${MAX_DOCUMENT_BYTES} bytes`,
+        "invalidBeats",
+      );
+      if (read.kind === "refused") {
+        return read.response;
+      }
+      const beats = parseMusicBeats(read.value);
+      if (beats === undefined) {
+        return errorResponse(HTTP_STATUS.badRequest, "invalidBeats", "no valid MusicBeats");
+      }
+      return repository.inTransaction(() => {
+        if (repository.findMusic(id) === undefined) {
+          return notFound();
+        }
+        repository.putMusicBeats(id, beats);
+        return { status: HTTP_STATUS.noContent, headers: {}, body: "" };
+      });
     },
   };
 }

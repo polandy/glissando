@@ -1,3 +1,5 @@
+import type { MusicBeats } from "../beats";
+import { parseMusicBeats } from "../beats/music-beats-json";
 import { readServerDocument, type ServerDocument } from "./server-document";
 import {
   ServerLibraryNotFoundError,
@@ -12,6 +14,8 @@ import {
 const LIBRARY_PATH = "api/library";
 const SLIDESHOWS_PATH = `${LIBRARY_PATH}/slideshows`;
 const MUSIC_PATH = `${LIBRARY_PATH}/music`;
+/** Under a music's path: the beats a device found in it. */
+const BEATS_SUFFIX = "/beats";
 const DISCOVERY_SERVICE = "glissando-library";
 const JSON_MEDIA_TYPE = "application/json";
 const HTTP_NOT_FOUND = 404;
@@ -91,10 +95,28 @@ export class HttpServerLibraryClient implements ServerLibraryClient {
   }
 
   async music(musicId: string): Promise<Blob> {
-    const path = `${MUSIC_PATH}/${encodeURIComponent(musicId)}`;
+    const path = musicPath(musicId);
     const response = await this.#send("GET", path);
     await check("GET", path, response);
     return response.blob();
+  }
+
+  async musicBeats(musicId: string): Promise<MusicBeats | undefined> {
+    const path = `${musicPath(musicId)}${BEATS_SUFFIX}`;
+    const answer = field(await this.#json("GET", path), "beats", path);
+    if (answer === null) return undefined;
+    const beats = parseMusicBeats(answer);
+    if (beats === undefined) throw mismatch(path, "beats", "the beats of a piece of music", answer);
+    return beats;
+  }
+
+  async putMusicBeats(musicId: string, beats: MusicBeats): Promise<void> {
+    const path = `${musicPath(musicId)}${BEATS_SUFFIX}`;
+    const response = await this.#send("PUT", path, {
+      body: JSON.stringify(beats),
+      headers: { "content-type": JSON_MEDIA_TYPE },
+    });
+    await check("PUT", path, response);
   }
 
   async #json(method: HttpMethod, path: string, init: RequestInit = {}): Promise<unknown> {
@@ -125,6 +147,10 @@ export class HttpServerLibraryClient implements ServerLibraryClient {
       throw error;
     }
   }
+}
+
+function musicPath(id: string): string {
+  return `${MUSIC_PATH}/${encodeURIComponent(id)}`;
 }
 
 function slideshowPath(id: string): string {

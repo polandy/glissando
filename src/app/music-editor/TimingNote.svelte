@@ -26,7 +26,7 @@
     <b>{t("music.pictureTimes")}</b>
     <span>
       {#if note.kind === "shared"}
-        {t("music.noteShared", {
+        {t(note.onTheBeat ? "music.noteSharedOnTheBeat" : "music.noteShared", {
           count: note.automaticCount,
           share: formatTenthSeconds(seconds(note.shareMs)),
         })}

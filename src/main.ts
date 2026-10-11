@@ -35,9 +35,12 @@ import { browserNetworkStatus, ImmichAvailability } from "./immich/immich-availa
 import { convertMusic } from "./import/browser/convert-music";
 import { probeMusic } from "./import/music-probe";
 import { createMusicAudioContext, MusicOutput } from "./player";
+import { BeatPass } from "./library/beat-pass";
 import { FocusPass } from "./library/focus-pass";
 import { openLibraryStore } from "./library/indexeddb-store";
 import { startFocusWorker, WorkerFocusDetector } from "./focus/worker-focus-detector";
+import { decodeMusicWithWebAudio } from "./beats/decode-music";
+import { startBeatWorker, WorkerBeatDetector } from "./beats/worker-beat-detector";
 import { requestPersistentStorage } from "./library/persistent-storage";
 import { browserPwaPorts } from "./pwa/browser-pwa";
 import { createStorageHintDismissalStore, PwaStatus } from "./pwa/pwa-status";
@@ -127,6 +130,15 @@ const focusPass = new FocusPass({
 });
 focusPass.start();
 
+const beatDetector = new WorkerBeatDetector(decodeMusicWithWebAudio, startBeatWorker);
+const beatPass = new BeatPass({
+  store,
+  detector: beatDetector,
+  log: logError,
+  reportError,
+});
+beatPass.start();
+
 const freeBytes = (): Promise<number | null> => freeStorageBytes(window.navigator.storage);
 const download = createDownloader({
   document,
@@ -155,6 +167,16 @@ const serverLibrary = createServerLibrary({
   newId,
   now,
   log: logError,
+});
+
+// The first device to open a server slideshow listens for its music's beats and keeps them on
+// the server for the others (ADR-0021). A server out of reach ends the pass without a message:
+// the pictures share the music evenly, and the next opening tries again.
+const serverBeatPass = new BeatPass({
+  store: serverLibrary.store,
+  detector: beatDetector,
+  log: logError,
+  reportError: logError,
 });
 
 /** What every picture intake reads with, for a new slideshow and for adding to one. */
@@ -187,6 +209,8 @@ const services = {
   musicOutput,
   musicAudio: browserMusicEditorAudio(musicOutput),
   focusPass,
+  beatPass,
+  serverBeatPass,
   immich: { client: immichClient, availability: immichAvailability },
   serverLibrary,
   newImportSession: () =>

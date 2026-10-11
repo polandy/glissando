@@ -1,3 +1,4 @@
+import { beatPassFindingNone } from "../../library/testing/beat-pass-finding-none";
 import type { FocusPass } from "../../library/focus-pass";
 import type { StoredSlideshow } from "../../library/stored-slideshow";
 import { MemoryLibraryStore } from "../../library/testing/memory-store";
@@ -56,6 +57,7 @@ export function mountRoute(
   const props = reactiveProps({
     store,
     focusPass,
+    beatPass: beatPassFindingNone(store),
     toaster,
     newId: () => "claim-1",
     now: () => new Date("2026-10-08T12:00:00Z"),

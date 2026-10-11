@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import type { MusicBeats } from "../src/beats/music-beats";
 import type { ServerDocument } from "../src/server-library/server-document";
 import type { LibraryRepository, MusicRecord, SlideshowRecord } from "./library-repository";
 
@@ -70,6 +71,40 @@ export function describeLibraryRepositoryContract(
       repository.deleteMusic("music-a");
       expect(repository.findMusic("music-b")).toBeDefined();
       expect(repository.findMusic("music-a")).toBeUndefined();
+    });
+
+    it("finds no beats for music no device has listened to yet", () => {
+      const repository = createRepository();
+      repository.insertMusic(music("music-a", 1000));
+      expect(repository.findMusicBeats("music-a")).toBeUndefined();
+    });
+
+    it("finds the beats put for a music", () => {
+      const repository = createRepository();
+      repository.insertMusic(music("music-a", 1000));
+      const beats: MusicBeats = { kind: "beats", beatsMs: [0, 500, 1000], beatsPerMinute: 120 };
+      repository.putMusicBeats("music-a", beats);
+      expect(repository.findMusicBeats("music-a")).toEqual(beats);
+    });
+
+    it("replaces a music's beats on a later put", () => {
+      const repository = createRepository();
+      repository.insertMusic(music("music-a", 1000));
+      repository.putMusicBeats("music-a", {
+        kind: "beats",
+        beatsMs: [0, 500],
+        beatsPerMinute: 120,
+      });
+      repository.putMusicBeats("music-a", { kind: "none" });
+      expect(repository.findMusicBeats("music-a")).toEqual({ kind: "none" });
+    });
+
+    it("deletes a music's beats with the music", () => {
+      const repository = createRepository();
+      repository.insertMusic(music("music-a", 1000));
+      repository.putMusicBeats("music-a", { kind: "none" });
+      repository.deleteMusic("music-a");
+      expect(repository.findMusicBeats("music-a")).toBeUndefined();
     });
 
     it("knows music is referenced while a slideshow's document names it", () => {

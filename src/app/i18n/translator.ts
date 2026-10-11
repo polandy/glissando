@@ -59,12 +59,15 @@ export interface Translator {
   formatTenths(seconds: number): string;
   /** A file size in whole MB, from 1 GB in GB with one decimal: "184 MB", "2,1 GB". */
   formatBytes(bytes: number): string;
+  /** Items joined as the locale does: "5 und 12", "5, 12 and 20". */
+  formatList(items: readonly string[]): string;
 }
 
 export function createTranslator(language: Language): Translator {
   const catalogue = CATALOGUES[language];
   const locale = LOCALES[language];
   const plurals = new Intl.PluralRules(locale);
+  const lists = new Intl.ListFormat(locale, { type: "conjunction" });
   const numbers = new Intl.NumberFormat(locale);
   const decimals = new Intl.NumberFormat(locale, {
     maximumFractionDigits: SECONDS_FRACTION_DIGITS,
@@ -166,6 +169,9 @@ export function createTranslator(language: Language): Translator {
       // A file under 1 MB still takes some: it never reads as 0 MB.
       const shown = bytes > 0 ? Math.max(1, Math.round(megabytes)) : 0;
       return t("units.megabytes", { size: numbers.format(shown) });
+    },
+    formatList(items) {
+      return lists.format(items);
     },
   };
 }

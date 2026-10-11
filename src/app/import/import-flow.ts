@@ -1,3 +1,4 @@
+import type { BeatPass } from "../../library/beat-pass";
 import type { FocusPass } from "../../library/focus-pass";
 import type { Navigator } from "../navigation/navigator";
 import type { PersistencePrompt } from "../storage/persistence-prompt";
@@ -17,6 +18,8 @@ export interface ImportFlowPorts<Session extends DiscardableSession> {
   readonly persistencePrompt: Pick<PersistencePrompt, "afterCreate">;
   /** Looks for the new slideshow's pictures' focus in the background. */
   readonly focusPass: Pick<FocusPass, "start">;
+  /** Listens for the new slideshow's music's beats in the background. */
+  readonly beatPass: Pick<BeatPass, "start">;
   reportError(error: unknown): void;
   createdText(): string;
 }
@@ -95,11 +98,12 @@ export class ImportFlow<Session extends DiscardableSession> {
   }
 
   /**
-   * A slideshow was created, here or from a file: its pictures' focus is looked for, and
-   * persistent storage asked for once.
+   * A slideshow was created, here or from a file: its pictures' focus and its music's beats are
+   * looked for, and persistent storage asked for once.
    */
   async afterCreate(): Promise<void> {
     this.#ports.focusPass.start();
+    this.#ports.beatPass.start();
     try {
       if (await this.#ports.persistencePrompt.afterCreate()) {
         this.#publish({ persistRefused: true });

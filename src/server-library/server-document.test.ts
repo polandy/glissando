@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { StoredPicture, StoredSlideshow } from "../library/stored-slideshow";
+import type { StoredMusic, StoredPicture, StoredSlideshow } from "../library/stored-slideshow";
 import { DocumentFormatError } from "../glissando-file/document-values";
 import {
   readServerDocument,
@@ -140,6 +140,21 @@ describe("readServerDocument", () => {
     ["an unknown key", { extra: true }, "extra: expected one of format, formatVersion, slideshow"],
   ])("refuses %s at the root, naming path and value", (_case, change, reason) => {
     expect(readFails({ ...document(), ...change })).toContain(reason);
+  });
+
+  it("keeps the music's even picture changes through writing and reading", () => {
+    const music: StoredMusic = {
+      id: MUSIC_ID,
+      fileName: "Walzer.m4a",
+      durationMs: 240000,
+      mimeType: "audio/mp4",
+      pictureChanges: "even",
+    };
+    const even: StoredSlideshow = { ...slideshow, music };
+    const written = serverDocumentFor(even);
+
+    expect(written.slideshow.music).toMatchObject({ pictureChanges: "even" });
+    expect(storedSlideshowFrom("server-show-1", readServerDocument(written)).music).toEqual(music);
   });
 
   it("refuses a document that is no object", () => {

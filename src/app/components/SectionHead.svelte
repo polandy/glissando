@@ -2,21 +2,24 @@
   import type { IconName } from "../../ui-kit/icons";
   import Icon from "./Icon.svelte";
 
-  /** A panel section's eyebrow title and its state chip, accent-tinted when the user's own. */
+  /**
+   * A panel section's eyebrow title and its state chip, accent-tinted when the user's own; no chip
+   * without a state.
+   */
   let {
     id,
     title,
     stateText,
     own,
     icon,
-  }: { id: string; title: string; stateText: string; own: boolean; icon?: IconName } = $props();
+  }: { id: string; title: string; stateText?: string; own: boolean; icon?: IconName } = $props();
 </script>
 
 <div class="row">
   <h2 class="eyebrow" {id}>
     {#if icon}<Icon name={icon} />{/if}{title}
   </h2>
-  <span class="state" class:own>{stateText}</span>
+  {#if stateText !== undefined}<span class="state" class:own>{stateText}</span>{/if}
 </div>
 
 <style>

@@ -60,6 +60,11 @@ export const enMusic: Pick<Catalogue, keyof typeof deMusic> = {
     other:
       "{count} pictures without their own duration share the excerpt: {share} each. The slideshow ends with the music.",
   },
+  "music.noteSharedOnTheBeat": {
+    one: "The picture without its own duration gets the excerpt: {share}. The slideshow ends with the music.",
+    other:
+      "{count} pictures without their own duration share the excerpt: about {share} each. The slideshow ends with the music.",
+  },
   "music.noteOutlasts": "The slideshow runs {over} longer than the music.",
   "music.noteOutlastsWhy": {
     one: "The picture without its own duration gets the minimum of {min}; after the fade-out the last pictures play in silence. A longer excerpt fixes that.",
@@ -72,4 +77,21 @@ export const enMusic: Pick<Catalogue, keyof typeof deMusic> = {
     "Every picture has its own duration. The slideshow ends after {time}; the music fades out there.",
   "music.noteEndsWithMusic":
     "Every picture has its own duration. The slideshow ends with the music.",
+  "music.pictureChanges": "Picture changes",
+  "music.beatsPerMinute": "{bpm} BPM",
+  "music.onTheBeat": "On the beat",
+  "music.evenly": "Evenly",
+  "music.onTheBeatHint":
+    "Every automatic change lands on a beat of the music; a transition lasts whole beats.",
+  "music.ownDurationsOffBeat": {
+    one: "Picture {pictures} keeps its own duration, so the change after it can fall between beats.",
+    other:
+      "Pictures {pictures} keep their own duration, so the change after each can fall between beats.",
+  },
+  "music.evenlyHint": "The pictures share the music evenly, regardless of its beat.",
+  "music.listeningForBeat":
+    "Listening for the beat… Until then the pictures share the music evenly.",
+  "music.noSteadyBeat": "No steady beat found in this music. The pictures share it evenly.",
+  "music.musicUndecodable":
+    "Glissando could not listen to this music's beat. The pictures share it evenly.",
 };

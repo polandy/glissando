@@ -1,5 +1,8 @@
+import type { MusicBeats } from "../../beats";
 import {
   automaticTransition,
+  beatTransitionDurationMs,
+  excerptBeatsMs,
   musicExcerpt,
   musicExcerptMs,
   pictureKenBurns,
@@ -79,11 +82,15 @@ export interface PictureEditorView {
   readonly next: NextPictureView | null;
 }
 
-/** `focus`: the automatic motions aim at it, so the preview plays what the player will. */
+/**
+ * `focus`: the automatic motions aim at it; `beats`: the automatic changes land on them
+ * (ADR-0021). So the preview plays what the player will.
+ */
 export function pictureEditorView(
   stored: StoredSlideshow,
   pictureId: string,
   focus: PicturesFocus,
+  beats: MusicBeats,
 ): PictureEditorView {
   const { pictures } = stored;
   const index = pictures.findIndex((picture) => picture.id === pictureId);
@@ -91,10 +98,12 @@ export function pictureEditorView(
   if (picture === undefined) {
     throw new Error(`slideshow "${stored.id}" holds no picture "${pictureId}"`);
   }
+  const beatsMs = excerptBeatsMs(stored.music, beats);
   const durationsMs = slideDurationsMs(
     pictures,
     musicExcerptMs(stored.music),
     stored.secondsPerPicture,
+    beatsMs,
   );
   // One duration per picture: every index below is in range.
   const durationAt = (at: number) => durationsMs[at] as number;
@@ -126,7 +135,14 @@ export function pictureEditorView(
       own: picture.transition !== undefined,
       automatic,
       slideshowTransition: defaultTransition,
-      durationMs: transition?.durationMs ?? 0,
+      durationMs:
+        transition === undefined
+          ? 0
+          : beatTransitionDurationMs(
+              sum(durationsMs.slice(0, index + 1)),
+              transition.durationMs,
+              beatsMs ?? [],
+            ),
     },
     caption: picture.caption ?? "",
     previousId: pictures[index - 1]?.id ?? null,
@@ -174,4 +190,8 @@ function durationBasis(stored: StoredSlideshow, durationsMs: readonly number[]):
     shareMs: automatic[0] ?? null,
     clamped: idealShareMs < MIN_OWN_DURATION_MS,
   };
+}
+
+function sum(values: readonly number[]): number {
+  return values.reduce((total, value) => total + value, 0);
 }

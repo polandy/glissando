@@ -58,7 +58,7 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
   pictures and its own ⋯ menu, and its edits are saved on the server (SERVER_LIBRARY.md, A server
   slideshow's screen).
 - **Editing the slideshow** (`editing/slideshow-editor.ts`; pure operations in
-  `src/library/slideshow-edits.ts`): every edit applies at once and is stored; the screen is
+  `src/library/slideshow-edits.ts`, the music's in `slideshow-edits-music.ts`): every edit applies at once and is stored; the screen is
   `aria-busy` from an edit until every edit so far is stored.
   - **Remove**: a ✕ on a tile, "Remove" in the selection bar, or Delete/Backspace on a focused
     tile — never confirmed. The ✕ and the drag grip are for a mouse only (`(hover: hover) and
@@ -300,8 +300,9 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
     “Dissolve” stays saved and applies again once a picture follows." and an enabled "Back to
     automatic".
 - **Music editor** (`music-editor/`, route `routes/MusicEditorRoute.svelte`; mockup:
-  https://polandy.github.io/glissando-assets/mockups/music-trim/, ADR-0009): the music's
-  excerpt and fades. Bar: back and "Library / title / Music". Desktop: a main column and a
+  https://polandy.github.io/glissando-assets/mockups/music-trim/ and
+  https://polandy.github.io/glissando-assets/mockups/beat-sync/, ADR-0009, ADR-0021): the music's
+  excerpt, fades and whether the pictures change on its beats. Bar: back and "Library / title / Music". Desktop: a main column and a
   340 px panel on the right; up to 720 px stacked. Every change is stored at once, with no undo
   toast: "Whole track" and "Back to automatic" restore anything in one tap.
   - **Main column**: a music tile, the file name and "3:24" (trimmed: "3:24 · trimmed to 2:18").
@@ -311,9 +312,12 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
     and "End" carry their time ("0:12,0"); dragging one, or grabbing the waveform anywhere (the
     nearer handle follows, keeping the grab's offset), moves it in tenths of a second, live,
     and stores it on release; as sliders the arrow keys move a tenth, with Shift a second. The
-    excerpt stays at least 5 s; a track shorter than that stays whole. A time ruler below. Then the lane "Slideshow, 24 pictures" with
+    excerpt stays at least 5 s; a track shorter than that stays whole. While the pictures change
+    on the beat, a tick per beat along the waveform's foot, every fourth taller. A time ruler
+    below. Then the lane "Slideshow, 24 pictures" with
     its length: a mint bar from the excerpt's start for as long as the slideshow plays, a tick
-    per picture change, lemon hatching past the excerpt's end when the pictures play on in
+    per picture change (on the beat, a change that falls between beats — e.g. the one after a picture with an
+    own duration — is a wider coral tick), lemon hatching past the excerpt's end when the pictures play on in
     silence; when the slideshow ends earlier, the waveform is hatched from there to the
     excerpt's end. "Listen to the start" (the excerpt's first 8 s with the fade-in, "from
     0:12,0") and "Listen to the end" (the last 8 s before the music stops being heard, with the
@@ -328,8 +332,23 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
     as the track plays from its start" / "short, as the slideshow ends at 2:00" / "short, as the
     excerpt stops before the track ends" / "off, as the track ends by itself". Any step makes it
     own; "Back to automatic" follows.
+  - **Picture changes** (`PictureChangesSection.svelte`, view `picture-changes-view.ts`; the
+    beats come from the background pass, `src/app/beats/track-beats.ts`): a transition icon and,
+    once a beat is found, the tempo "124 BPM" as its state. Until the pass has a result, a
+    breathing accent dot and "Listening for the beat… Until then the pictures share the music
+    evenly." With a beat, "On the beat" (the default) and "Evenly" as a radiogroup (arrows move
+    the choice), stored with the music at once; on the beat "Every automatic change lands on a
+    beat of the music; a transition lasts whole beats.", with own durations followed by
+    "Pictures 5 and 12 keep their own duration, so the change after each can fall between
+    beats."; evenly "The pictures share the music evenly, regardless of its beat."
+    Music without a clear beat: "No steady beat found in this music. The pictures share it
+    evenly.", no choice. Only music this device cannot decode reads "Glissando could not listen
+    to this music's beat. The pictures share it evenly."; a detection that failed otherwise
+    reads as still listening, as the next pass tries again. Opening the editor listens for the
+    track next (`BeatPass.listenFor`), so music kept since the app opened and a server
+    slideshow's music are listened to as well.
   - **Picture times**: "23 pictures without their own duration share the excerpt: 5.7 s each.
-    The slideshow ends with the music.", or on lemon "The slideshow runs 0:14 longer than the
+    The slideshow ends with the music." (on the beat, where the shares vary: "about 5.7 s each"), or on lemon "The slideshow runs 0:14 longer than the
     music." with why, or with every picture timed "… The slideshow ends after 2:00; the music
     fades out there." The rules: `dev-docs/COMPOSITION.md`.
 - **Export** (`glissando-file/export-job.ts`): runs in the background, one at a time; the app

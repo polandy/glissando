@@ -2,6 +2,7 @@ import {
   audibleEndMs,
   automaticFadeInMs,
   automaticFadeOutMs,
+  excerptBeatsMs,
   musicExcerpt,
   musicExcerptMs,
   resolveMusicTiming,
@@ -9,6 +10,13 @@ import {
   type MusicTiming,
 } from "../../compose";
 import type { StoredMusic, StoredSlideshow } from "../../library/stored-slideshow";
+import { composedBeats, type BeatsStatus } from "../beats/music-beats-known";
+import {
+  beatTicks,
+  pictureChangesView,
+  type BeatTick,
+  type PictureChangesView,
+} from "./picture-changes-view";
 
 /** Why an automatic fade-in is what it is. */
 export type FadeInReason = "excerpt-starts-mid-track" | "track-starts";
@@ -25,8 +33,16 @@ export interface FadeView<Reason> {
 
 /** How the pictures' times meet the excerpt. */
 export type TimingNote =
-  /** The pictures without an own duration share the excerpt, `shareMs` each. */
-  | { readonly kind: "shared"; readonly automaticCount: number; readonly shareMs: number }
+  /**
+   * The pictures without an own duration share the excerpt, `shareMs` each on average; on the beat
+   * their shares vary around it.
+   */
+  | {
+      readonly kind: "shared";
+      readonly automaticCount: number;
+      readonly shareMs: number;
+      readonly onTheBeat: boolean;
+    }
   /** The slideshow plays on in silence for `overMs` after the music. */
   | { readonly kind: "outlasts"; readonly overMs: number; readonly automaticCount: number }
   /** Every picture is timed; the slideshow, and with it the music, ends at `endsAtMs`. */
@@ -45,8 +61,11 @@ export interface MusicEditorView {
   readonly slideshowMs: number;
   /** Where in the track the music stops being heard. */
   readonly audibleEndMs: number;
-  /** Track times of the slide changes, within the track. */
-  readonly slideChangesMs: readonly number[];
+  /** The slide changes within the track. */
+  readonly slideChanges: readonly SlideChange[];
+  /** The beats the pictures change on, while they do. */
+  readonly beatTicks: readonly BeatTick[];
+  readonly pictureChanges: PictureChangesView;
   readonly fadeIn: FadeView<FadeInReason>;
   readonly fadeOut: FadeView<FadeOutReason>;
   /** The excerpt and fades as the player plays them. */
@@ -54,18 +73,28 @@ export interface MusicEditorView {
   readonly note: TimingNote;
 }
 
-/** What the music editor shows of `stored`, which has music. */
-export function musicEditorView(stored: StoredSlideshow): MusicEditorView {
+export interface SlideChange {
+  /** Track time. */
+  readonly atMs: number;
+  /** The pictures change on the beat, but this change falls between beats (an own duration). */
+  readonly offBeat: boolean;
+}
+
+/** What the music editor shows of `stored`, which has music, with what is known of its beats. */
+export function musicEditorView(stored: StoredSlideshow, beats: BeatsStatus): MusicEditorView {
   const music = stored.music;
   if (music === undefined) {
     throw new Error(`slideshow "${stored.id}" has no music to edit`);
   }
   const { startMs, endMs } = musicExcerpt(music);
+  const beatsMs = excerptBeatsMs(music, composedBeats(beats));
   const durationsMs = slideDurationsMs(
     stored.pictures,
     musicExcerptMs(music),
     stored.secondsPerPicture,
+    beatsMs,
   );
+  const pictureChanges = pictureChangesView(stored, beats);
   const slideshowMs = sum(durationsMs);
   return {
     fileName: music.fileName,
@@ -76,7 +105,9 @@ export function musicEditorView(stored: StoredSlideshow): MusicEditorView {
     pictureCount: stored.pictures.length,
     slideshowMs,
     audibleEndMs: audibleEndMs(music, slideshowMs),
-    slideChangesMs: slideChanges(durationsMs, startMs, music.durationMs),
+    slideChanges: slideChanges(durationsMs, startMs, music.durationMs, beatsMs),
+    beatTicks: beatTicks(pictureChanges, beats),
+    pictureChanges,
     fadeIn: {
       ms: music.fadeInMs ?? automaticFadeInMs(music),
       own: music.fadeInMs !== undefined,
@@ -88,7 +119,7 @@ export function musicEditorView(stored: StoredSlideshow): MusicEditorView {
       reason: fadeOutReason(music, slideshowMs),
     },
     timing: resolveMusicTiming(music, slideshowMs),
-    note: timingNote(stored, durationsMs, endMs - startMs),
+    note: timingNote(stored, durationsMs, endMs - startMs, beatsMs !== undefined),
   };
 }
 
@@ -100,13 +131,21 @@ function fadeOutReason(music: StoredMusic, slideshowMs: number): FadeOutReason {
   return heardUntilMs < music.durationMs ? "excerpt-ends-early" : "track-ends";
 }
 
-function slideChanges(durationsMs: readonly number[], startMs: number, trackMs: number): number[] {
-  const changes: number[] = [];
-  let atMs = startMs;
+function slideChanges(
+  durationsMs: readonly number[],
+  startMs: number,
+  trackMs: number,
+  /** In ms of the excerpt; absent while the pictures do not change on the beat. */
+  beatsMs: readonly number[] | undefined,
+): SlideChange[] {
+  const onBeats = new Set(beatsMs);
+  const changes: SlideChange[] = [];
+  let excerptMs = 0;
   for (const durationMs of durationsMs.slice(0, -1)) {
-    atMs += durationMs;
+    excerptMs += durationMs;
+    const atMs = startMs + excerptMs;
     if (atMs < trackMs) {
-      changes.push(atMs);
+      changes.push({ atMs, offBeat: beatsMs !== undefined && !onBeats.has(excerptMs) });
     }
   }
   return changes;
@@ -116,6 +155,7 @@ function timingNote(
   stored: StoredSlideshow,
   durationsMs: readonly number[],
   excerptMs: number,
+  onTheBeat: boolean,
 ): TimingNote {
   const slideshowMs = sum(durationsMs);
   const automaticMs = durationsMs.filter(
@@ -132,7 +172,9 @@ function timingNote(
     return {
       kind: "shared",
       automaticCount: automaticMs.length,
-      shareMs: Math.min(...automaticMs),
+      // The mean, rounded down: evenly, the smallest share.
+      shareMs: Math.floor(sum(automaticMs) / automaticMs.length),
+      onTheBeat,
     };
   }
   return slideshowMs < excerptMs

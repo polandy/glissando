@@ -1,10 +1,4 @@
-import {
-  claimsAt,
-  mediaOnlyIn,
-  newestFirst,
-  referencedMediaIds,
-  withClaimedMedia,
-} from "./slideshow-queries";
+import { mediaOnlyIn, newestFirst, withClaimedMedia } from "./slideshow-queries";
 import {
   MediaNotFoundError,
   SlideshowNotFoundError,
@@ -22,6 +16,7 @@ import {
   type StoredPictureMedia,
 } from "./indexeddb-records";
 import {
+  BEATS,
   FOCUS,
   IMPORTS,
   LIBRARY_DATABASE_NAME,
@@ -33,6 +28,8 @@ import {
   type StoreName,
 } from "./indexeddb-schema";
 import { editSlideshowRecord } from "./indexeddb-edit";
+import { CLEAN_UP_STORES, deleteUnreferenced, measureMediaBytes } from "./indexeddb-media";
+import type { MusicBeats } from "../beats";
 import type { PictureFocus } from "./picture-focus";
 
 export { LIBRARY_DATABASE_NAME } from "./indexeddb-schema";
@@ -101,7 +98,7 @@ export class IndexedDbLibraryStore implements LibraryStore {
   /** Reads the other records and deletes in one transaction, so a concurrent save cannot interleave. */
   deleteSlideshow(id: string): Promise<void> {
     let found = true;
-    const deleted = this.#update([SLIDESHOWS, PICTURES, MUSIC, FOCUS], (transaction) => {
+    const deleted = this.#update([SLIDESHOWS, PICTURES, MUSIC, FOCUS, BEATS], (transaction) => {
       const slideshows = transaction.objectStore(SLIDESHOWS);
       const all = slideshows.getAll();
       all.onsuccess = () => {
@@ -114,7 +111,7 @@ export class IndexedDbLibraryStore implements LibraryStore {
         slideshows.delete(id);
         const remaining = records.filter((slideshow) => slideshow.id !== id);
         for (const mediaId of mediaOnlyIn(record, remaining)) {
-          for (const name of [PICTURES, FOCUS, MUSIC]) {
+          for (const name of [PICTURES, FOCUS, MUSIC, BEATS]) {
             transaction.objectStore(name).delete(mediaId);
           }
         }
@@ -173,26 +170,28 @@ export class IndexedDbLibraryStore implements LibraryStore {
     return completed(transaction, () => found, "reading the pictures' focus");
   }
 
+  /** Checks for the media and writes in one transaction, so a concurrent deletion cannot interleave. */
+  putMusicBeats(musicId: string, beats: MusicBeats): Promise<void> {
+    return this.#update([MUSIC, BEATS], (transaction) => {
+      const media = transaction.objectStore(MUSIC).getKey(musicId);
+      media.onsuccess = () => {
+        if (media.result !== undefined) {
+          transaction.objectStore(BEATS).put(beats, musicId);
+          transaction.commit();
+        }
+      };
+    });
+  }
+
+  async musicBeats(musicId: string): Promise<MusicBeats | undefined> {
+    return (await this.#read(BEATS, (store) => store.get(musicId))) as MusicBeats | undefined;
+  }
+
   /** One read-only transaction; each record is dropped once measured, so memory stays bounded. */
   mediaBytes(slideshow: StoredSlideshow): Promise<number> {
     const transaction = this.#database.transaction([PICTURES, MUSIC], "readonly");
-    let bytes = 0;
-    const measure = (name: StoreName, id: string, size: (media: unknown) => number): void => {
-      const request = transaction.objectStore(name).get(id);
-      request.onsuccess = () => {
-        bytes += request.result === undefined ? 0 : size(request.result);
-      };
-    };
-    for (const picture of slideshow.pictures) {
-      measure(PICTURES, picture.id, (media) => {
-        const { display, thumbnail } = media as StoredPictureMedia;
-        return display.bytes.byteLength + thumbnail.bytes.byteLength;
-      });
-    }
-    if (slideshow.music !== undefined) {
-      measure(MUSIC, slideshow.music.id, (media) => (media as StoredMedia).bytes.byteLength);
-    }
-    return completed(transaction, () => bytes, "measuring the media");
+    const bytes = measureMediaBytes(transaction, slideshow);
+    return completed(transaction, () => bytes.total, "measuring the media");
   }
 
   claimMedia(claimId: string, startedAt: Date, mediaId: string): Promise<void> {
@@ -217,28 +216,7 @@ export class IndexedDbLibraryStore implements LibraryStore {
    * claim cannot interleave.
    */
   deleteUnreferencedMedia(now: Date): Promise<void> {
-    return this.#update([SLIDESHOWS, PICTURES, MUSIC, IMPORTS, FOCUS], (transaction) => {
-      const slideshows = transaction.objectStore(SLIDESHOWS).getAll();
-      const importStore = transaction.objectStore(IMPORTS);
-      const imports = importStore.getAll();
-      imports.onsuccess = () => {
-        const referenced = referencedMediaIds(slideshows.result as StoredSlideshow[]);
-        const { sparedMediaIds, staleClaimIds } = claimsAt(imports.result as MediaClaim[], now);
-        staleClaimIds.forEach((id) => importStore.delete(id));
-        // A focus is media too: one kept for a picture whose media went goes with it.
-        for (const name of [PICTURES, MUSIC, FOCUS]) {
-          const media = transaction.objectStore(name);
-          const keys = media.getAllKeys();
-          keys.onsuccess = () => {
-            for (const key of keys.result) {
-              if (typeof key === "string" && !referenced.has(key) && !sparedMediaIds.has(key)) {
-                media.delete(key);
-              }
-            }
-          };
-        }
-      };
-    });
+    return this.#update(CLEAN_UP_STORES, (transaction) => deleteUnreferenced(transaction, now));
   }
 
   async #picture(id: string): Promise<StoredPictureMedia> {

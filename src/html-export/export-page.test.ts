@@ -66,6 +66,7 @@ function run(overrides: Partial<PageExportJob> = {}): Run {
   const job: PageExportJob = {
     stored: STORED,
     focus: new Map(),
+    beats: { kind: "none" },
     sizeId: "small",
     lang: "de",
     copy: COPY,
@@ -124,6 +125,17 @@ describe("exportPage", () => {
     expect(slideshow.music?.src).toBe("music");
     expect(sink.text).toContain('id="music" data-type="audio/mpeg"');
     expect(decoded(sink.text, "music")).toBe("bytes of m1");
+  });
+
+  it("changes the pictures on the music's beats it was given", async () => {
+    const { job, sink } = run({
+      beats: { kind: "beats", beatsMs: [19_500, 40_500], beatsPerMinute: 60 },
+    });
+
+    await exportPage(job);
+
+    const slideshow = parseSlideshow(JSON.parse(block(sink.text, "slideshow") ?? "null"));
+    expect(slideshow.slides.map((slide) => slide.durationMs)).toEqual([19_500, 21_000, 19_500]);
   });
 
   it("scales a picture larger than the size down to fit it, as JPEG q 0.85", async () => {
