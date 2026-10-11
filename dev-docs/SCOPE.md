@@ -133,8 +133,9 @@ Not in the MVP: per-slide settings, detection, Immich, video export, audio conve
    (WebCodecs encoding, client-side muxing; muxer choice is an ADR) — `dev-docs/VIDEO_EXPORT.md`,
    ADR-0015. Beside it, the web page export: one self-contained `.html` file that plays offline
    in any browser — `dev-docs/HTML_EXPORT.md`, ADR-0017.
-5. **Audio formats** — formats the browser cannot decode are converted client-side (WASM
-   decoder; choice is an ADR).
+5. **Audio formats** — formats the browser cannot decode are converted client-side to FLAC by
+   an own libav.js build (ADR-0020). Mockup:
+   https://polandy.github.io/glissando-assets/mockups/audio-formats/.
 6. **Beat sync** — transitions land on the music's beats, detected in the browser.
 7. **Culling** — near-duplicate burst shots and blurry pictures are skipped automatically.
 8. **Portrait layouts** — two portrait pictures side by side, or one over a blurred fill,

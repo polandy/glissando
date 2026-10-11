@@ -1,6 +1,9 @@
 import { buildStoredSlideshow } from "../../compose";
 import type { ImmichPhoto } from "../../immich/immich-client";
-import type { MusicProbe } from "../../import/music-probe";
+import type { ConvertMusic } from "../../import/music-conversion";
+import { UnconvertibleMusicError } from "../../import/music-conversion";
+import { recogniseMusicFormat, type ConvertibleSource } from "../../import/music-format";
+import { UnreadableMusicError, type MusicProbe } from "../../import/music-probe";
 import type { PictureImport } from "../../import/picture-import";
 import {
   DEFAULT_SECONDS_PER_PICTURE,
@@ -14,20 +17,45 @@ import { PictureIntake, type PictureIntakePorts } from "./picture-intake";
 export interface ImportSessionPorts extends PictureIntakePorts {
   readonly store: LibraryStore;
   probeMusic(file: File): Promise<MusicProbe>;
+  readonly convertMusic: ConvertMusic;
   /** Creates a server slideshow with its music's audio (`ServerLibrary.createSlideshow`). */
   createOnServer(slideshow: StoredSlideshow, musicAudio: Blob | null): Promise<StoredSlideshow>;
 }
 
+/** Music ready for the slideshow: the picked file, or its FLAC copy (ADR-0020). */
 export interface ChosenMusic {
+  readonly kind: "chosen";
   readonly file: File;
+  readonly pickedName: string;
   readonly durationMs: number;
+  readonly convertedFrom: ConvertibleSource | null;
+}
+
+/** Step 2's music, from the pick until it is chosen or found unusable. */
+export type MusicChoice =
+  | ChosenMusic
+  | {
+      readonly kind: "converting";
+      readonly pickedName: string;
+      readonly source: ConvertibleSource;
+      /** From 0 to 1. */
+      readonly progress: number;
+    }
+  | {
+      readonly kind: "unusable";
+      readonly pickedName: string;
+      readonly reason: "unreadable" | "protected";
+    };
+
+export function chosenMusic(choices: ImportChoices): ChosenMusic | null {
+  return choices.music?.kind === "chosen" ? choices.music : null;
 }
 
 /** Where the slideshow lives (step 1) and step 2's choices. */
 export interface ImportChoices {
   /** A server slideshow links Immich photos and is created on the server (ADR-0018). */
   readonly home: SlideshowHome;
-  readonly music: ChosenMusic | null;
+  readonly music: MusicChoice | null;
   readonly secondsPerPicture: number;
 }
 
@@ -51,6 +79,7 @@ export class ImportSession {
   #choices = INITIAL_CHOICES;
   /** Bumped by every music pick, so only the latest pick's probe may set the choice. */
   #musicPick = 0;
+  #conversion = new AbortController();
 
   constructor(ports: ImportSessionPorts) {
     this.#ports = ports;
@@ -96,26 +125,73 @@ export class ImportSession {
   }
 
   /**
-   * Rejects with `UnreadableMusicError` and keeps the previous choice. A pick overtaken by a
-   * later pick or a removal settles without effect.
+   * Chooses the file, or its FLAC copy when a target browser cannot decode it; music that cannot
+   * be read becomes `unusable`. A pick overtaken by a later pick or a removal settles without
+   * effect and cancels its conversion.
    */
   async chooseMusic(file: File): Promise<void> {
-    const pick = (this.#musicPick += 1);
+    const pick = this.#startMusicPick();
+    const isCurrent = (): boolean => pick === this.#musicPick;
+    const signal = this.#conversion.signal;
+    const unusable = (reason: "unreadable" | "protected"): void => {
+      if (isCurrent())
+        this.#setChoices({ music: { kind: "unusable", pickedName: file.name, reason } });
+    };
     try {
-      const { durationMs } = await this.#ports.probeMusic(file);
-      if (pick === this.#musicPick) {
-        this.#setChoices({ music: { file, durationMs } });
+      const format = await recogniseMusicFormat(file);
+      if (format.kind === "protected") return unusable("protected");
+      let playable = file;
+      if (format.kind === "convertible") {
+        const converting = (progress: number): MusicChoice => ({
+          kind: "converting",
+          pickedName: file.name,
+          source: format.source,
+          progress,
+        });
+        if (isCurrent()) this.#setChoices({ music: converting(0) });
+        playable = await this.#ports.convertMusic(
+          file,
+          (progress) => {
+            if (isCurrent()) this.#setChoices({ music: converting(progress) });
+          },
+          signal,
+        );
+      }
+      const { durationMs } = await this.#ports.probeMusic(playable);
+      if (isCurrent()) {
+        const convertedFrom = format.kind === "convertible" ? format.source : null;
+        this.#setChoices({
+          music: {
+            kind: "chosen",
+            file: playable,
+            pickedName: file.name,
+            durationMs,
+            convertedFrom,
+          },
+        });
       }
     } catch (error) {
-      if (pick === this.#musicPick) {
-        throw error;
+      if (!isCurrent()) return;
+      if (error instanceof UnconvertibleMusicError) {
+        // The decoder's reason stays in the log; the user sees the file is unusable.
+        this.#ports.log(error);
+        return unusable("unreadable");
       }
+      if (error instanceof UnreadableMusicError) return unusable("unreadable");
+      throw error;
     }
   }
 
   removeMusic(): void {
-    this.#musicPick += 1;
+    this.#startMusicPick();
     this.#setChoices({ music: null });
+  }
+
+  /** Overtakes every earlier pick and cancels its conversion. */
+  #startMusicPick(): number {
+    this.#conversion.abort();
+    this.#conversion = new AbortController();
+    return (this.#musicPick += 1);
   }
 
   setSecondsPerPicture(secondsPerPicture: number): void {
@@ -134,6 +210,9 @@ export class ImportSession {
     if (state.pictures.length === 0) {
       throw new Error("cannot create a slideshow with no pictures: import at least one first");
     }
+    if (this.#choices.music?.kind === "converting") {
+      throw new Error("cannot create the slideshow: the music is still converting");
+    }
     const onServer = this.#choices.home === "server";
     const music = onServer ? this.#musicOnServer() : await this.#storeMusic();
     const slideshow = buildStoredSlideshow({
@@ -145,7 +224,7 @@ export class ImportSession {
       locale,
     });
     if (onServer) {
-      return this.#ports.createOnServer(slideshow, this.#choices.music?.file ?? null);
+      return this.#ports.createOnServer(slideshow, chosenMusic(this.#choices)?.file ?? null);
     }
     await this.#ports.store.saveSlideshow(slideshow);
     await this.intake.endClaim();
@@ -154,7 +233,7 @@ export class ImportSession {
 
   /** The music record of a server slideshow; its audio is uploaded with the slideshow. */
   #musicOnServer(): StoredMusic | undefined {
-    const chosen = this.#choices.music;
+    const chosen = chosenMusic(this.#choices);
     if (chosen === null) return undefined;
     return {
       id: this.#ports.newId(),
@@ -169,13 +248,13 @@ export class ImportSession {
    * media no longer, so the clean-up that follows deletes it.
    */
   discard(): Promise<void> {
-    this.#musicPick += 1;
+    this.#startMusicPick();
     this.#setChoices(INITIAL_CHOICES);
     return this.intake.discard();
   }
 
   async #storeMusic(): Promise<StoredMusic | undefined> {
-    const chosen = this.#choices.music;
+    const chosen = chosenMusic(this.#choices);
     if (chosen === null) {
       return undefined;
     }

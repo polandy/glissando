@@ -1,6 +1,5 @@
 <script lang="ts">
   import { onDestroy } from "svelte";
-  import { UnreadableMusicError } from "../../import/music-probe";
   import { DEFAULT_SECONDS_PER_PICTURE } from "../../library/stored-slideshow";
   import { MILLISECONDS_PER_SECOND } from "../../player";
   import SecondsStepper from "../components/SecondsStepper.svelte";
@@ -9,8 +8,15 @@
   import { browserObjectUrls, ObjectUrls } from "../media/object-urls";
   import DropZone from "./DropZone.svelte";
   import ImportFrame from "./ImportFrame.svelte";
-  import type { ImportSession } from "./import-session";
-  import { importSlideDurationsMs, importTiming, musicFormatLabel } from "./import-view";
+  import { chosenMusic, type ImportSession } from "./import-session";
+  import {
+    convertibleSourceLabel,
+    importSlideDurationsMs,
+    importTiming,
+    musicFormatLabel,
+  } from "./import-view";
+  import MusicConversion from "./MusicConversion.svelte";
+  import MusicUnusable from "./MusicUnusable.svelte";
 
   let {
     session,
@@ -18,15 +24,12 @@
     onBack,
     onCreate,
     onError,
-    onMusicUnreadable,
   }: {
     session: ImportSession;
     loadThumbnail: (pictureId: string) => Promise<Blob>;
     onBack: () => void;
     onCreate: () => void;
     onError: (error: unknown) => void;
-    /** `retry` opens the music picker again. */
-    onMusicUnreadable: (retry: () => void) => void;
   } = $props();
 
   const MUSIC_TYPES = "audio/*";
@@ -49,28 +52,23 @@
     session.pictures.subscribe((next) => (pictureIds = next.pictures.map((picture) => picture.id))),
   );
   $effect(() => thumbnails.subscribe((next) => (urls = next)));
-  $effect(() => thumbnails.sync(choices.music ? pictureIds : []));
+  const chosen = $derived(chosenMusic(choices));
+  $effect(() => thumbnails.sync(chosen ? pictureIds : []));
 
   const pictureCount = $derived(pictureIds.length);
   const timing = $derived(
-    importTiming(pictureCount, choices.music?.durationMs, choices.secondsPerPicture),
+    importTiming(pictureCount, chosen?.durationMs, choices.secondsPerPicture),
   );
   // Each picture's share of the track, by the rule the slideshow is composed with.
   const segmentsMs = $derived(
-    importSlideDurationsMs(pictureCount, choices.music?.durationMs, choices.secondsPerPicture),
+    importSlideDurationsMs(pictureCount, chosen?.durationMs, choices.secondsPerPicture),
   );
   function choose(files: readonly File[]): void {
     const file = files[0];
     if (file === undefined) {
       return;
     }
-    session.chooseMusic(file).catch((error: unknown) => {
-      if (error instanceof UnreadableMusicError) {
-        onMusicUnreadable(() => pickMusic.click());
-      } else {
-        onError(error);
-      }
-    });
+    session.chooseMusic(file).catch(onError);
   }
 
   function picked(event: Event & { currentTarget: HTMLInputElement }): void {
@@ -90,19 +88,24 @@
     </p>
   </div>
 
-  {#if choices.music}
-    {@const file = choices.music.file}
+  {#if chosen}
+    {@const file = chosen.file}
     <div class="panel">
       <div class="track">
         <span class="art"><Icon name="music" /></span>
         <div class="text">
-          <b>{file.name}</b>
+          <b class="name">{chosen.pickedName}</b>
           <span class="muted mono meta">
             {t("import.trackMeta", {
-              duration: formatDuration(choices.music.durationMs / MILLISECONDS_PER_SECOND),
+              duration: formatDuration(chosen.durationMs / MILLISECONDS_PER_SECOND),
               format: musicFormatLabel(file.name, file.type),
             })}
           </span>
+          {#if chosen.convertedFrom}
+            <span class="muted meta origin">
+              {t("import.convertedFrom", { format: convertibleSourceLabel(chosen.convertedFrom) })}
+            </span>
+          {/if}
         </div>
         <button
           class="icon-btn"
@@ -136,13 +139,19 @@
         </div>
       </div>
     </div>
+  {:else if choices.music?.kind === "converting"}
+    <MusicConversion music={choices.music} onCancel={() => session.removeMusic()} />
   {:else}
-    <DropZone icon="music" onFiles={choose} {onError}>
-      <button class="btn primary" type="button" onclick={() => pickMusic.click()}>
-        {t("import.pickMusic")}
-      </button>
-      <span class="formats">{t("import.musicFormats")}</span>
-    </DropZone>
+    {#if choices.music?.kind === "unusable"}
+      <MusicUnusable music={choices.music} onPickOther={() => pickMusic.click()} />
+    {:else}
+      <DropZone icon="music" onFiles={choose} {onError}>
+        <button class="btn primary" type="button" onclick={() => pickMusic.click()}>
+          {t("import.pickMusic")}
+        </button>
+        <span class="formats">{t("import.musicFormats")}</span>
+      </DropZone>
+    {/if}
     <div class="panel track">
       <div class="text">
         <b>{t("import.secondsTitle")}</b>
@@ -176,9 +185,13 @@
     <button class="btn" type="button" onclick={onBack}>
       <Icon name="back" />{t("import.backToPictures")}
     </button>
-    <button class="btn primary" type="button" onclick={onCreate}>
-      {choices.music ? t("import.create") : t("import.createWithoutMusic")}
-    </button>
+    {#if choices.music?.kind === "converting"}
+      <button class="btn primary" type="button" disabled>{t("import.convertingButton")}</button>
+    {:else}
+      <button class="btn primary" type="button" onclick={onCreate}>
+        {chosen ? t("import.create") : t("import.createWithoutMusic")}
+      </button>
+    {/if}
   {/snippet}
 </ImportFrame>
 
@@ -206,13 +219,20 @@
   }
   .text b {
     display: block;
-    overflow: hidden;
     font-weight: var(--gl-weight-semibold);
+  }
+  /* Only the file name is cut short; the seconds panel's title wraps. */
+  .text b.name {
+    overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
   }
   .meta {
     font-size: var(--gl-size-meta);
+  }
+  .origin {
+    display: block;
+    margin-top: 3px;
   }
   .art {
     display: grid;

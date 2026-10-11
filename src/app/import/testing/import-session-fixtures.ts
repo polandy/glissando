@@ -60,6 +60,10 @@ export function sessionWith(
       file.name.endsWith(".broken")
         ? Promise.reject(new UnreadableMusicError(file.name))
         : Promise.resolve({ durationMs: MUSIC_MS }),
+    convertMusic: (file) =>
+      Promise.resolve(
+        new File([`flac copy of ${file.name}`], "converted.flac", { type: "audio/flac" }),
+      ),
     newId: () => `id-${(nextId += 1)}`,
     now: () => CREATED_AT,
     onError: (error) => errors.push(error),
@@ -80,8 +84,8 @@ export function sessionWith(
   };
 }
 
-export async function withTwoPictures() {
-  const setup = sessionWith();
+export async function withTwoPictures(overrides: Partial<ImportSessionPorts> = {}) {
+  const setup = sessionWith(new MemoryLibraryStore(), overrides);
   setup.session.addPictures([
     pictureFile("late.jpg", "2025-08-02T10:00:00Z"),
     pictureFile("early.jpg", "2025-07-01T10:00:00Z"),

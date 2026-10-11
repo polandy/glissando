@@ -407,9 +407,18 @@ new slideshow lives).
   it is kept without a focus (the on-device pass looks for one) and the error is logged. An Immich
   problem met on the way (e.g. a rejected key) is reported to `ImmichAvailability`, so the Immich
   box and the settings name it.
-- **Music** (optional): a drop zone with "Choose music" (`audio/*`); a file the browser cannot
-  play is a coral toast with "Retry", which reopens the picker. Chosen music is a card (music icon, file
-  name, m:ss · format, a close button removes it, and a strip of the pictures' thumbnails
+- **Music** (optional): a drop zone with "Choose music" (`audio/*`, hint "MP3, M4A, FLAC, WAV,
+  Ogg, AIFF, WMA …"). The format is recognised from the file's first bytes
+  (`src/import/music-format.ts`). MP3, AAC, FLAC, Opus and PCM WAV are kept as they are. ALAC,
+  AIFF, CAF, AC-3/E-AC-3, WMA, AMR and Ogg Vorbis, which a target browser cannot decode, are
+  converted on the device to a FLAC copy, and only the copy is stored (ADR-0020). While it
+  converts, the card shows "Apple Lossless · converting on this device", a progress bar with
+  "Converting to FLAC" and the percentage, and why. Its ✕ cancels the conversion, and the primary
+  button is disabled as "Converting …". A converted track's card adds "Converted from … on this
+  device". A file that cannot be read or converted, or is copy-protected (an iTunes `drms`
+  track), replaces the drop zone with a coral notice "This file can't be used" naming the file,
+  with "Choose other music" and the format hint. Chosen music is a card (music icon, the picked
+  file's name, m:ss · format, a close button removes it, and a strip of the pictures' thumbnails
   splitting the track as they share it; no waveform, as only the duration is probed); without music a card with the seconds per picture
   (default 5 s). The row "n pictures | x s per picture | m:ss total" follows the composition
   rules (`src/compose/`). "Pictures" goes back; "Create slideshow" (or "Create without

@@ -1,7 +1,21 @@
 import type { Message } from "./messages";
 
-/** German copy of the music editor; part of the German catalogue. */
+/** German copy of music: its import and the music editor; part of the German catalogue. */
 export const deMusic = {
+  "import.musicConverting": "{format} · wird auf diesem Gerät umgewandelt",
+  "import.convertingToFlac": "Wird in FLAC umgewandelt",
+  "import.convertPercent": "{percent}\u00a0%",
+  "import.convertingWhy":
+    "Nicht jeder Browser spielt {format} ab, darum macht Glissando eine FLAC-Kopie. Nichts verlässt dieses Gerät.",
+  "import.cancelConversion": "Umwandlung abbrechen",
+  "import.convertingButton": "Wird umgewandelt\u00a0…",
+  "import.convertedFrom": "Auf diesem Gerät aus {format} umgewandelt",
+  "import.musicUnusable": "Diese Datei lässt sich nicht verwenden",
+  "import.musicUnreadableText":
+    "Glissando kann „{name}“ nicht lesen. Sie ist vielleicht beschädigt oder in einem Format, das Glissando nicht kennt.",
+  "import.musicProtectedText":
+    "„{name}“ ist kopiergeschützt (ein Kauf im iTunes Store mit DRM). Geschützte Musik kann Glissando nicht abspielen.",
+  "import.pickOtherMusic": "Andere Musik wählen",
   "slideshow.musicWholeTrack": "ganzer Titel",
   "slideshow.musicExcerpt": "{from}–{to}",
   "slideshow.musicFades-in-and-out": "blendet ein und aus",

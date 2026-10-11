@@ -4,3 +4,7 @@ package-lock.json
 assets/fonts/
 playwright-report/
 test-results/
+# The music decoder, built by scripts/build-audio-decoder.sh (ADR-0020).
+src/import/libav/*.mjs
+src/import/libav/*.wasm
+src/import/libav/LICENSE.md

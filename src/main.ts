@@ -32,6 +32,7 @@ import type { ImmichPhoto, ImmichUnavailableKind } from "./immich/immich-client"
 import type { StoredSlideshow } from "./library/stored-slideshow";
 import type { SlideshowHome } from "./app/routes/slideshow-storage";
 import { browserNetworkStatus, ImmichAvailability } from "./immich/immich-availability";
+import { convertMusic } from "./import/browser/convert-music";
 import { probeMusic } from "./import/music-probe";
 import { createMusicAudioContext, MusicOutput } from "./player";
 import { FocusPass } from "./library/focus-pass";
@@ -193,6 +194,7 @@ const services = {
       ...intakePorts,
       store,
       probeMusic,
+      convertMusic,
       createOnServer: (slideshow, musicAudio) =>
         serverLibrary.createSlideshow(slideshow, musicAudio),
     }),
