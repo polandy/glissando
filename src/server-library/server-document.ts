@@ -61,8 +61,8 @@ export function readServerDocument(json: unknown): ServerDocument {
     );
   }
   const path = "slideshow";
-  // A document from before the playlist (ADR-0023) carried the single `music`, not `songs`; it
-  // is refused here as an unknown key, like any other field this version does not carry.
+  // A single `music` is refused as an unknown key, like any other field this version does not
+  // carry (ADR-0023).
   const show = readObject(root["slideshow"], path, slideshowKeys(MANIFEST_FIELDS_VERSION));
   const pictures = readPictures(show, path, readPicture);
   refuseRepeatedAssets(pictures, path);
