@@ -12,7 +12,7 @@
   }: {
     count: number;
     ownOrder: boolean;
-    /** Selecting several is on (dev-docs/app/SLIDESHOW_EDITING.md, Selecting several). */
+    /** Selecting several is on (dev-docs/app/slideshow-editing/SELECTING_SEVERAL.md, Selecting several). */
     selecting: boolean;
     onToggleSelect: () => void;
     onAdd: () => void;
