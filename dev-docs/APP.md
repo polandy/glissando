@@ -559,8 +559,9 @@ over real timers.
   none is swallowed.
 - **Object URLs**: thumbnails and covers exist while their screen shows them; a screen left
   before its data arrived drops the late result (`routes/route-loading.ts`). The player reads
-  each display picture by media id only when it buffers it (`openPicture`), and the music when
-  it opens; the music's URL is revoked when it closes. The player shows the music's file name.
+  each display picture by media id only when it buffers it (`openPicture`), and every song when
+  it opens; the songs' URLs are revoked when it closes. The player shows the first song's file
+  name.
 - **Import flow** (`import/import-flow.ts`): the import session, the clean-up when an import
   ends and, after creating (also after opening a file), the search for the new pictures' focus
   and the persistence prompt.
