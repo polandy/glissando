@@ -41,6 +41,11 @@ export interface LibraryRepository {
   putMusicBeats(id: string, beats: MusicBeats): void;
   /** Whether a slideshow's document names the music `id`. */
   isMusicReferenced(id: string): boolean;
-  /** The ids of music no slideshow names, uploaded before `time`. */
+  /**
+   * Starts the grace period of the music `id` again at `time`, as though it were uploaded then:
+   * music a slideshow just dropped lives as long as unreferenced fresh uploads.
+   */
+  restartMusicGrace(id: string, time: number): void;
+  /** The ids of music no slideshow names, uploaded (or its grace restarted) before `time`. */
   unreferencedMusicUploadedBefore(time: number): string[];
 }

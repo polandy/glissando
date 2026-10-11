@@ -53,6 +53,7 @@ export function openSqliteRepository(database: DatabaseSync): LibraryRepository 
     "INSERT INTO music (id, content_type, bytes, uploaded_at) VALUES (?, ?, ?, ?)",
   );
   const deleteMusic = statement("DELETE FROM music WHERE id = ?");
+  const restartMusicGrace = statement("UPDATE music SET uploaded_at = ? WHERE id = ?");
   const findMusicBeats = statement("SELECT beats FROM music_beats WHERE music_id = ?");
   const putMusicBeats = statement(
     `INSERT INTO music_beats (music_id, beats) VALUES (?, ?)
@@ -108,6 +109,9 @@ export function openSqliteRepository(database: DatabaseSync): LibraryRepository 
     },
     putMusicBeats(id, beats) {
       putMusicBeats.run(id, JSON.stringify(beats));
+    },
+    restartMusicGrace(id, time) {
+      restartMusicGrace.run(time, id);
     },
     isMusicReferenced: (id) => musicReference.get(id) !== undefined,
     unreferencedMusicUploadedBefore: (time) =>

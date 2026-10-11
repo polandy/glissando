@@ -130,6 +130,14 @@ export function describeLibraryRepositoryContract(
       expect(repository.unreferencedMusicUploadedBefore(5000)).toEqual(["unreferenced-old"]);
     });
 
+    it("names music whose grace period restarted only once it is idle again before a time", () => {
+      const repository = createRepository();
+      repository.insertMusic(music("released", 1000));
+      repository.restartMusicGrace("released", 5000);
+      expect(repository.unreferencedMusicUploadedBefore(5000)).toEqual([]);
+      expect(repository.unreferencedMusicUploadedBefore(5001)).toEqual(["released"]);
+    });
+
     it("keeps every write of a transaction that completes and returns its result", () => {
       const repository = createRepository();
       const result = repository.inTransaction(() => {

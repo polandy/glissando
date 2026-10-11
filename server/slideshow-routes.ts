@@ -36,12 +36,15 @@ export function slideshowRoutes({ repository, now, newId }: LibraryHandlerDepend
         );
   };
 
-  /** Deletes every song's music `before` named that no slideshow names any more. */
-  const dropUnreferencedMusic = (before: ServerDocument, after?: ServerDocument): void => {
+  /**
+   * Restarts the grace period of every song's music `before` named that no slideshow names any
+   * more: the upload sweep deletes it later, so an undo naming it again still finds it.
+   */
+  const releaseUnreferencedMusic = (before: ServerDocument, after?: ServerDocument): void => {
     const afterIds = new Set(after?.slideshow.songs.map((song) => song.musicId) ?? []);
     for (const { musicId } of before.slideshow.songs) {
       if (!afterIds.has(musicId) && !repository.isMusicReferenced(musicId)) {
-        repository.deleteMusic(musicId);
+        repository.restartMusicGrace(musicId, now());
       }
     }
   };
@@ -107,7 +110,7 @@ export function slideshowRoutes({ repository, now, newId }: LibraryHandlerDepend
         }
         const revision = current.revision + 1;
         repository.updateSlideshow(id, revision, document);
-        dropUnreferencedMusic(current.document, document);
+        releaseUnreferencedMusic(current.document, document);
         return jsonResponse(HTTP_STATUS.ok, { revision });
       });
     },
@@ -119,7 +122,7 @@ export function slideshowRoutes({ repository, now, newId }: LibraryHandlerDepend
           return notFound();
         }
         repository.deleteSlideshow(id);
-        dropUnreferencedMusic(current.document);
+        releaseUnreferencedMusic(current.document);
         return { status: HTTP_STATUS.noContent, headers: {}, body: "" };
       });
     },

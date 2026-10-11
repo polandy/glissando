@@ -57,6 +57,12 @@ export function createMemoryRepository(): LibraryRepository {
     putMusicBeats(id, beats) {
       musicBeats.set(id, beats);
     },
+    restartMusicGrace(id, time) {
+      const record = music.get(id);
+      if (record !== undefined) {
+        music.set(id, { ...record, uploadedAt: time });
+      }
+    },
     isMusicReferenced,
     unreferencedMusicUploadedBefore: (time) =>
       [...music.values()]
