@@ -167,3 +167,11 @@ describe("culling blurry pictures", () => {
     expect(cull([])).toEqual({ setAside: new Map(), similarGroups: [] });
   });
 });
+
+describe("culling a candidate without a readable capture date", () => {
+  it("throws, naming the picture, rather than grouping it by an unknown time", () => {
+    const unreadable = { ...candidate("unreadable", 0), capturedAt: "not a date" };
+
+    expect(() => cull([candidate("a", 0), unreadable])).toThrow(/unreadable.*not a date/);
+  });
+});

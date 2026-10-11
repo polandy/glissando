@@ -43,8 +43,10 @@ export const BLURRY_SHARE_OF_MEDIAN = 1 / 3;
  * itself, so some picture always stays. See ADR-0024.
  */
 export function cull(candidates: readonly CullCandidate[]): CullResult {
+  // Checked up front: sorting never compares a lone candidate.
+  for (const candidate of candidates) captureTime(candidate);
   const byCaptureTime = [...candidates].sort(
-    (first, second) => Date.parse(first.capturedAt) - Date.parse(second.capturedAt),
+    (first, second) => captureTime(first) - captureTime(second),
   );
   const setAside = new Map<string, SetAsideReason>();
   const similarGroups: SimilarGroup[] = [];
@@ -93,7 +95,18 @@ function similarGroupsOf(byCaptureTime: readonly CullCandidate[]): CullCandidate
 }
 
 function withinWindow(first: CullCandidate, later: CullCandidate): boolean {
-  return Date.parse(later.capturedAt) - Date.parse(first.capturedAt) <= SIMILAR_SHOTS_WINDOW_MS;
+  return captureTime(later) - captureTime(first) <= SIMILAR_SHOTS_WINDOW_MS;
+}
+
+/** Milliseconds since the epoch; throws on a capture date that is not ISO 8601. */
+function captureTime({ id, capturedAt }: CullCandidate): number {
+  const time = Date.parse(capturedAt);
+  if (Number.isNaN(time)) {
+    throw new RangeError(
+      `cannot cull picture "${id}": capture date "${capturedAt}" is not ISO 8601`,
+    );
+  }
+  return time;
 }
 
 function medianSharpness(candidates: readonly CullCandidate[]): number {
