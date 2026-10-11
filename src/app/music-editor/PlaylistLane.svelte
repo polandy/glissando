@@ -20,6 +20,9 @@
   const duration = (ms: number) => formatDuration(ms / MILLISECONDS_PER_SECOND);
   const endsEarly = $derived(playlist.slideshowMs < playlist.playlistMs);
   const outlasts = $derived(playlist.slideshowMs > playlist.playlistMs);
+  /** How long a song starting at `atMs` overlaps the one before; its number follows the overlap. */
+  const overlapIntoMs = (atMs: number) =>
+    playlist.crossfades.find((crossfade) => crossfade.atMs === atMs)?.ms ?? 0;
 </script>
 
 <div class="playlist-timeline">
@@ -41,7 +44,12 @@
         class:unreached={!song.reached}
         style:left={pct(song.atMs)}
         style:width={pct(song.excerptMs)}
-        style:background={songColour(song.number)}>{song.number}</span
+        style:background={songColour(song.number)}
+        ><span
+          class="number"
+          style:margin-left={percentOf(overlapIntoMs(song.atMs), song.excerptMs)}
+          >{song.number}</span
+        ></span
       >
     {/each}
     {#each playlist.crossfades as crossfade (crossfade.atMs)}
