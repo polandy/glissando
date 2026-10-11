@@ -219,8 +219,8 @@ const services = {
       store,
       probeMusic,
       convertMusic,
-      createOnServer: (slideshow, musicAudio) =>
-        serverLibrary.createSlideshow(slideshow, musicAudio === null ? [] : [musicAudio]),
+      createOnServer: (slideshow, songsAudio) =>
+        serverLibrary.createSlideshow(slideshow, songsAudio),
     }),
   newAddPicturesSession: (slideshow: StoredSlideshow, home: SlideshowHome) =>
     new AddPicturesSession(slideshow, home, {

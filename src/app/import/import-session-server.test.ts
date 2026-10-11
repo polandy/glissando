@@ -41,7 +41,7 @@ describe("ImportSession, a slideshow on the Glissando server", () => {
     expect(choicesOf(session).home).toBe("device");
   });
 
-  it("creates it on the server with the music's audio, storing nothing on the device", async () => {
+  it("creates it on the server with its songs' audio, storing nothing on the device", async () => {
     const { session, store, onServer } = sessionWith();
     session.chooseHome("server");
     session.addImmichPhotos([immichPhoto("asset-1", "2025-07-01T10:00:00Z")]);
@@ -51,9 +51,20 @@ describe("ImportSession, a slideshow on the Glissando server", () => {
     const created = await session.create("de");
 
     expect(onServer.map(({ slideshow }) => slideshow.id)).toEqual([created.id]);
-    expect(onServer[0]?.musicAudio).toBe(music);
+    expect(onServer[0]?.songsAudio).toEqual([music]);
     expect(created.pictures.map(({ id }) => id)).toEqual(["asset-1"]);
     expect(await store.listSlideshows()).toEqual([]);
+  });
+
+  it("creates it on the server with no songs' audio when it has no music", async () => {
+    const { session, onServer } = sessionWith();
+    session.chooseHome("server");
+    session.addImmichPhotos([immichPhoto("asset-1", "2025-07-01T10:00:00Z")]);
+
+    const created = await session.create("de");
+
+    expect(onServer.map(({ slideshow }) => slideshow.id)).toEqual([created.id]);
+    expect(onServer[0]?.songsAudio).toEqual([]);
   });
 
   it("keeps its pictures when creating on the server fails, to try again", async () => {

@@ -19,8 +19,11 @@ export interface ImportSessionPorts extends PictureIntakePorts {
   readonly store: LibraryStore;
   probeMusic(file: File): Promise<MusicProbe>;
   readonly convertMusic: ConvertMusic;
-  /** Creates a server slideshow with its music's audio (`ServerLibrary.createSlideshow`). */
-  createOnServer(slideshow: StoredSlideshow, musicAudio: Blob | null): Promise<StoredSlideshow>;
+  /**
+   * Creates a server slideshow with its songs' audio, one blob per song in playlist order
+   * (`ServerLibrary.createSlideshow`).
+   */
+  createOnServer(slideshow: StoredSlideshow, songsAudio: readonly Blob[]): Promise<StoredSlideshow>;
 }
 
 /** Music ready for the slideshow: the picked file, or its FLAC copy (ADR-0020). */
@@ -236,7 +239,8 @@ export class ImportSession {
       locale,
     });
     if (onServer) {
-      return this.#ports.createOnServer(slideshow, chosenMusic(this.#choices)?.file ?? null);
+      const chosen = chosenMusic(this.#choices);
+      return this.#ports.createOnServer(slideshow, chosen === null ? [] : [chosen.file]);
     }
     await this.#ports.store.saveSlideshow(slideshow);
     await this.intake.endClaim();
