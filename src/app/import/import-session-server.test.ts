@@ -41,17 +41,21 @@ describe("ImportSession, a slideshow on the Glissando server", () => {
     expect(choicesOf(session).home).toBe("device");
   });
 
-  it("creates it on the server with its songs' audio, storing nothing on the device", async () => {
+  it("creates it on the server with every song's audio in order, storing nothing on the device", async () => {
     const { session, store, onServer } = sessionWith();
     session.chooseHome("server");
     session.addImmichPhotos([immichPhoto("asset-1", "2025-07-01T10:00:00Z")]);
-    const music = new File(["tune"], "Sommer.mp3", { type: "audio/mpeg" });
-    await session.chooseMusic(music);
+    const songs = [
+      new File(["tune"], "Sommer.mp3", { type: "audio/mpeg" }),
+      new File(["other tune"], "Herbst.mp3", { type: "audio/mpeg" }),
+    ];
+    await session.addSongs(songs);
 
     const created = await session.create("de");
 
     expect(onServer.map(({ slideshow }) => slideshow.id)).toEqual([created.id]);
-    expect(onServer[0]?.songsAudio).toEqual([music]);
+    expect(onServer[0]?.songsAudio).toEqual(songs);
+    expect(created.songs.map((song) => song.fileName)).toEqual(["Sommer.mp3", "Herbst.mp3"]);
     expect(created.pictures.map(({ id }) => id)).toEqual(["asset-1"]);
     expect(await store.listSlideshows()).toEqual([]);
   });

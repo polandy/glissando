@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
 import type { PictureImportState } from "../../import/picture-import";
 import type { StoredPicture } from "../../library/stored-slideshow";
+import type { ChosenSong } from "./import-session";
 import {
   canContinue,
   captureRange,
   hasSelection,
+  importPlaylist,
   importTiming,
   musicFormatLabel,
   pendingPictureCount,
@@ -131,6 +133,38 @@ describe("importTiming", () => {
       totalSeconds: 20,
       music: { kind: "silent-after", seconds: 5 },
     });
+  });
+});
+
+describe("importPlaylist", () => {
+  const song = (key: number, durationMs: number): ChosenSong => ({
+    key,
+    kind: "chosen",
+    file: new File(["tune"], `song ${String(key)}.mp3`, { type: "audio/mpeg" }),
+    pickedName: `song ${String(key)}.mp3`,
+    durationMs,
+    convertedFrom: null,
+  });
+
+  it("places the songs one after another, each crossfading into the next, numbered from 1", () => {
+    const playlist = importPlaylist([song(4, 60_000), song(2, 60_000), song(7, 60_000)], 200_000);
+
+    expect(playlist.songs.map(({ id, number, atMs }) => ({ id, number, atMs }))).toEqual([
+      { id: "4", number: 1, atMs: 0 },
+      { id: "2", number: 2, atMs: 57_000 },
+      { id: "7", number: 3, atMs: 114_000 },
+    ]);
+    expect(playlist.playlistMs).toBe(174_000);
+  });
+
+  it("marks a song starting at or after the slideshow's end as not reached", () => {
+    const playlist = importPlaylist([song(1, 60_000), song(2, 60_000), song(3, 60_000)], 114_000);
+
+    expect(playlist.songs.map(({ reached }) => reached)).toEqual([true, true, false]);
+  });
+
+  it("is empty without songs", () => {
+    expect(importPlaylist([], 10_000)).toEqual({ songs: [], playlistMs: 0 });
   });
 });
 

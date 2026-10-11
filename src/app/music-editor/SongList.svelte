@@ -1,29 +1,35 @@
 <script lang="ts">
+  import type { Snippet } from "svelte";
   import { MILLISECONDS_PER_SECOND } from "../../player";
   import Icon from "../components/Icon.svelte";
   import { getTranslator } from "../i18n/context";
-  import type { PlaylistView } from "./playlist-view";
+  import type { PlaylistSongView } from "./playlist-view";
   import { songColour } from "./song-colour";
   import { SongDrag, songIndexAfterKey, type SongDragState } from "./song-drag";
   import type { PendingSong } from "./song-intake";
 
   /**
-   * The playlist's songs in play order: a row selects its song for editing, its grip reorders it
-   * (dragged, or the arrow keys while focused), its × removes it. Songs on their way in follow.
+   * The playlist's songs in play order: a row selects its song for editing where songs are
+   * edited, its grip reorders it (dragged, or the arrow keys while focused), its × removes it.
+   * Songs on their way in follow.
    */
   let {
-    playlist,
+    songs,
     selectedSongId,
     pending,
     onSelect,
+    detail,
     onMove,
     onRemove,
     onDismiss,
   }: {
-    playlist: PlaylistView;
-    selectedSongId: string;
+    songs: readonly PlaylistSongView[];
+    /** Without it, a row selects nothing. */
+    selectedSongId?: string;
     pending: readonly PendingSong[];
-    onSelect: (songId: string) => void;
+    onSelect?: (songId: string) => void;
+    /** The line under a song's name; by default its length and excerpt. */
+    detail?: Snippet<[PlaylistSongView]>;
     onMove: (songId: string, toIndex: number) => void;
     onRemove: (songId: string) => void;
     /** Takes an unusable file's row away. */
@@ -45,14 +51,14 @@
   /** A song moved by its keys keeps the focus on its grip once it has moved. */
   let refocus = $state.raw<{ songId: string; toIndex: number } | null>(null);
   $effect(() => {
-    if (refocus !== null && playlist.songs[refocus.toIndex]?.id === refocus.songId) {
+    if (refocus !== null && songs[refocus.toIndex]?.id === refocus.songId) {
       grips[refocus.songId]?.focus();
       refocus = null;
     }
   });
 
   function onGripKey(event: KeyboardEvent, songId: string, index: number): void {
-    const toIndex = songIndexAfterKey(event.key, index, playlist.songs.length);
+    const toIndex = songIndexAfterKey(event.key, index, songs.length);
     if (toIndex === null) return;
     event.preventDefault();
     refocus = { songId, toIndex };
@@ -72,8 +78,30 @@
   onpointercancel={() => track(() => drag.cancel())}
 />
 
+{#snippet songLabel(song: PlaylistSongView)}
+  <span class="number mono" style:background={songColour(song.number)}>{song.number}</span>
+  <span class="name">
+    <b>{song.fileName}</b>
+    {#if detail === undefined}
+      <small class="mono">
+        {song.trimmed
+          ? t("music.trimmedTo", {
+              duration: duration(song.durationMs),
+              excerpt: duration(song.excerptMs),
+            })
+          : duration(song.durationMs)}
+      </small>
+    {:else}
+      {@render detail(song)}
+    {/if}
+  </span>
+  <span class="tag mono">
+    {song.reached ? t("music.songFrom", { time: duration(song.atMs) }) : t("music.notReached")}
+  </span>
+{/snippet}
+
 <ol class="songs" aria-label={t("music.songs")}>
-  {#each playlist.songs as song, index (song.id)}
+  {#each songs as song, index (song.id)}
     <li
       bind:this={rowElements[index]}
       class="song"
@@ -99,30 +127,18 @@
       >
         <Icon name="grip" />
       </button>
-      <button
-        class="pick"
-        type="button"
-        aria-pressed={song.id === selectedSongId}
-        onclick={() => onSelect(song.id)}
-      >
-        <span class="number mono" style:background={songColour(song.number)}>{song.number}</span>
-        <span class="name">
-          <b>{song.fileName}</b>
-          <small class="mono">
-            {song.trimmed
-              ? t("music.trimmedTo", {
-                  duration: duration(song.durationMs),
-                  excerpt: duration(song.excerptMs),
-                })
-              : duration(song.durationMs)}
-          </small>
-        </span>
-        <span class="tag mono">
-          {song.reached
-            ? t("music.songFrom", { time: duration(song.atMs) })
-            : t("music.notReached")}
-        </span>
-      </button>
+      {#if onSelect === undefined}
+        <div class="pick">{@render songLabel(song)}</div>
+      {:else}
+        <button
+          class="pick"
+          type="button"
+          aria-pressed={song.id === selectedSongId}
+          onclick={() => onSelect(song.id)}
+        >
+          {@render songLabel(song)}
+        </button>
+      {/if}
       <button
         class="remove"
         type="button"
@@ -238,6 +254,8 @@
     color: var(--gl-ink);
     font: inherit;
     text-align: left;
+  }
+  button.pick {
     cursor: pointer;
   }
   .number {
@@ -261,7 +279,7 @@
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  .name small,
+  .name :global(small),
   .tag {
     color: var(--gl-muted);
     font-size: var(--gl-size-small);

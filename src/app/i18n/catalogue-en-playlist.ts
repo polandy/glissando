@@ -12,7 +12,6 @@ export const enPlaylist: Pick<Catalogue, keyof typeof dePlaylist> = {
   "music.moveSong": "Move {name}",
   "music.removeSong": "Remove {name}",
   "music.addSong": "Add a song",
-  "music.addSongs": "Add songs",
   "music.songConverting": "Converting to FLAC\u00a0· {percent}\u00a0%",
   "music.songUnusable": "This file can't be used",
   "music.playlistLane": {

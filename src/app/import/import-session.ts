@@ -1,10 +1,6 @@
 import { OWN_SECONDS_PICTURE_LENGTH, type PictureLength } from "../../library/picture-length";
 import { buildStoredSlideshow } from "../../compose";
 import type { ImmichPhoto } from "../../immich/immich-client";
-import type { ConvertMusic } from "../../import/music-conversion";
-import { UnconvertibleMusicError } from "../../import/music-conversion";
-import { recogniseMusicFormat, type ConvertibleSource } from "../../import/music-format";
-import { UnreadableMusicError, type MusicProbe } from "../../import/music-probe";
 import type { PictureImport } from "../../import/picture-import";
 import {
   DEFAULT_SECONDS_PER_PICTURE,
@@ -13,12 +9,16 @@ import {
   type StoredSlideshow,
 } from "../../library/stored-slideshow";
 import type { SlideshowHome } from "../routes/slideshow-storage";
+import {
+  readPickedMusic,
+  type ChosenMusic,
+  type MusicPickPorts,
+  type PendingSong,
+} from "./music-pick";
 import { PictureIntake, type PictureIntakePorts } from "./picture-intake";
 
-export interface ImportSessionPorts extends PictureIntakePorts {
+export interface ImportSessionPorts extends PictureIntakePorts, MusicPickPorts {
   readonly store: LibraryStore;
-  probeMusic(file: File): Promise<MusicProbe>;
-  readonly convertMusic: ConvertMusic;
   /**
    * Creates a server slideshow with its songs' audio, one blob per song in playlist order
    * (`ServerLibrary.createSlideshow`).
@@ -26,40 +26,22 @@ export interface ImportSessionPorts extends PictureIntakePorts {
   createOnServer(slideshow: StoredSlideshow, songsAudio: readonly Blob[]): Promise<StoredSlideshow>;
 }
 
-/** Music ready for the slideshow: the picked file, or its FLAC copy (ADR-0020). */
-export interface ChosenMusic {
-  readonly kind: "chosen";
-  readonly file: File;
-  readonly pickedName: string;
-  readonly durationMs: number;
-  readonly convertedFrom: ConvertibleSource | null;
-}
+/** A song of step 2's list: chosen, or still pending; `key` names its row. */
+export type ImportSong = PendingSong | ({ readonly key: number } & ChosenMusic);
 
-/** Step 2's music, from the pick until it is chosen or found unusable. */
-export type MusicChoice =
-  | ChosenMusic
-  | {
-      readonly kind: "converting";
-      readonly pickedName: string;
-      readonly source: ConvertibleSource;
-      /** From 0 to 1. */
-      readonly progress: number;
-    }
-  | {
-      readonly kind: "unusable";
-      readonly pickedName: string;
-      readonly reason: "unreadable" | "protected";
-    };
+export type ChosenSong = Extract<ImportSong, { kind: "chosen" }>;
 
-export function chosenMusic(choices: ImportChoices): ChosenMusic | null {
-  return choices.music?.kind === "chosen" ? choices.music : null;
+/** The songs the slideshow is created with, in the list's order. */
+export function chosenSongs(choices: ImportChoices): ChosenSong[] {
+  return choices.songs.filter((song): song is ChosenSong => song.kind === "chosen");
 }
 
 /** Where the slideshow lives (step 1) and step 2's choices. */
 export interface ImportChoices {
   /** A server slideshow links Immich photos and is created on the server (ADR-0018). */
   readonly home: SlideshowHome;
-  readonly music: MusicChoice | null;
+  /** Played one after another in this order (ADR-0023). */
+  readonly songs: readonly ImportSong[];
   readonly secondsPerPicture: number;
   /** With music, the pictures last their seconds (the default) or, `undefined`, fill it. */
   readonly pictureLength: PictureLength | undefined;
@@ -67,7 +49,7 @@ export interface ImportChoices {
 
 const INITIAL_CHOICES: ImportChoices = {
   home: "device",
-  music: null,
+  songs: [],
   secondsPerPicture: DEFAULT_SECONDS_PER_PICTURE,
   pictureLength: OWN_SECONDS_PICTURE_LENGTH,
 };
@@ -75,7 +57,7 @@ const INITIAL_CHOICES: ImportChoices = {
 /**
  * One "new slideshow" in the making: the pictures of step 1, the choices of step 2 and the
  * creation. It lives as long as the tab keeps it, so leaving the wizard by the back gesture
- * keeps the selection. Its media, the music too, is claimed by the intake until the import is
+ * keeps the selection. Its media, the songs too, are claimed by the intake until the import is
  * created or discarded.
  */
 export class ImportSession {
@@ -84,9 +66,11 @@ export class ImportSession {
   readonly #ports: ImportSessionPorts;
   readonly #choiceListeners = new Set<(choices: ImportChoices) => void>();
   #choices = INITIAL_CHOICES;
-  /** Bumped by every music pick, so only the latest pick's probe may set the choice. */
-  #musicPick = 0;
-  #conversion = new AbortController();
+  #nextSongKey = 0;
+  /** Per song in the list, by key: cancels its reading when it is removed. */
+  readonly #songReads = new Map<number, AbortController>();
+  /** Songs are read one at a time, in the order picked: a conversion takes the device's power. */
+  #songQueue: Promise<void> = Promise.resolve();
 
   constructor(ports: ImportSessionPorts) {
     this.#ports = ports;
@@ -132,73 +116,78 @@ export class ImportSession {
   }
 
   /**
-   * Chooses the file, or its FLAC copy when a target browser cannot decode it; music that cannot
-   * be read becomes `unusable`. A pick overtaken by a later pick or a removal settles without
-   * effect and cancels its conversion.
+   * Appends the files to the song list, each read in turn: chosen as it is or as its FLAC copy
+   * when a target browser cannot decode it (ADR-0020), or found unusable. Resolves once all are
+   * read, rejecting with the first unexpected error.
    */
-  async chooseMusic(file: File): Promise<void> {
-    const pick = this.#startMusicPick();
-    const isCurrent = (): boolean => pick === this.#musicPick;
-    const signal = this.#conversion.signal;
-    const unusable = (reason: "unreadable" | "protected"): void => {
-      if (isCurrent())
-        this.#setChoices({ music: { kind: "unusable", pickedName: file.name, reason } });
-    };
+  async addSongs(files: readonly File[]): Promise<void> {
+    const keyed = files.map((file) => ({ file, key: (this.#nextSongKey += 1) }));
+    this.#setChoices({
+      songs: [
+        ...this.#choices.songs,
+        ...keyed.map(({ file, key }) => ({ key, kind: "reading" as const, pickedName: file.name })),
+      ],
+    });
+    for (const { key } of keyed) this.#songReads.set(key, new AbortController());
+    const reads = keyed.map(({ file, key }) => {
+      const read = this.#songQueue.then(() => this.#readSong(file, key));
+      // The next read waits for this one's end; its failure is the caller's, through `reads`.
+      this.#songQueue = read.catch(() => undefined);
+      return read;
+    });
+    await Promise.all(reads);
+  }
+
+  /** Takes the song out of the list, cancelling its conversion. */
+  removeSong(key: number): void {
+    this.#songReads.get(key)?.abort();
+    this.#songReads.delete(key);
+    this.#setChoices({ songs: this.#choices.songs.filter((song) => song.key !== key) });
+  }
+
+  /**
+   * Moves the song to `toIndex` among the chosen songs, the places the list offers; a pending one
+   * keeps its place among the others.
+   */
+  moveSong(key: number, toIndex: number): void {
+    const songs = this.#choices.songs;
+    const song = songs.find((candidate) => candidate.key === key);
+    const target = chosenSongs(this.#choices)[toIndex];
+    if (song === undefined || target === undefined) {
+      throw new Error(
+        `cannot move song ${String(key)} to place ${String(toIndex)}: no such song or place`,
+      );
+    }
+    // Inserted where the target stood: before it moving up, after it moving down.
+    const at = songs.indexOf(target);
+    const others = songs.filter((candidate) => candidate !== song);
+    this.#setChoices({ songs: [...others.slice(0, at), song, ...others.slice(at)] });
+  }
+
+  async #readSong(file: File, key: number): Promise<void> {
+    const signal = this.#songReads.get(key)?.signal;
+    if (signal === undefined || signal.aborted) return;
     try {
-      const format = await recogniseMusicFormat(file);
-      if (format.kind === "protected") return unusable("protected");
-      let playable = file;
-      if (format.kind === "convertible") {
-        const converting = (progress: number): MusicChoice => ({
-          kind: "converting",
-          pickedName: file.name,
-          source: format.source,
-          progress,
-        });
-        if (isCurrent()) this.#setChoices({ music: converting(0) });
-        playable = await this.#ports.convertMusic(
-          file,
-          (progress) => {
-            if (isCurrent()) this.#setChoices({ music: converting(progress) });
-          },
-          signal,
-        );
-      }
-      const { durationMs } = await this.#ports.probeMusic(playable);
-      if (isCurrent()) {
-        const convertedFrom = format.kind === "convertible" ? format.source : null;
-        this.#setChoices({
-          music: {
-            kind: "chosen",
-            file: playable,
-            pickedName: file.name,
-            durationMs,
-            convertedFrom,
-          },
-        });
-      }
+      const read = await readPickedMusic(
+        file,
+        this.#ports,
+        (converting) => this.#replaceSong(key, { key, ...converting }),
+        signal,
+      );
+      this.#replaceSong(key, { key, ...read });
     } catch (error) {
-      if (!isCurrent()) return;
-      if (error instanceof UnconvertibleMusicError) {
-        // The decoder's reason stays in the log; the user sees the file is unusable.
-        this.#ports.log(error);
-        return unusable("unreadable");
-      }
-      if (error instanceof UnreadableMusicError) return unusable("unreadable");
+      if (signal.aborted) return;
+      this.removeSong(key);
       throw error;
     }
   }
 
-  removeMusic(): void {
-    this.#startMusicPick();
-    this.#setChoices({ music: null });
-  }
-
-  /** Overtakes every earlier pick and cancels its conversion. */
-  #startMusicPick(): number {
-    this.#conversion.abort();
-    this.#conversion = new AbortController();
-    return (this.#musicPick += 1);
+  /** Updates a song still in the list; one removed meanwhile stays out. */
+  #replaceSong(key: number, song: ImportSong): void {
+    if (this.#songReads.get(key)?.signal.aborted !== false) return;
+    this.#setChoices({
+      songs: this.#choices.songs.map((candidate) => (candidate.key === key ? song : candidate)),
+    });
   }
 
   setSecondsPerPicture(secondsPerPicture: number): void {
@@ -211,7 +200,7 @@ export class ImportSession {
   }
 
   /**
-   * Stores the music and the slideshow record, last, or creates it on the server; `locale` writes
+   * Stores every chosen song and the slideshow record, last, or creates it on the server; `locale` writes
    * the title's month. A failure keeps the session as it was.
    */
   async create(locale: string): Promise<StoredSlideshow> {
@@ -222,16 +211,19 @@ export class ImportSession {
     if (state.pictures.length === 0) {
       throw new Error("cannot create a slideshow with no pictures: import at least one first");
     }
-    if (this.#choices.music?.kind === "converting") {
-      throw new Error("cannot create the slideshow: the music is still converting");
+    if (this.#choices.songs.some((song) => song.kind === "reading" || song.kind === "converting")) {
+      throw new Error("cannot create the slideshow: a song is still being read or converted");
     }
     const onServer = this.#choices.home === "server";
-    const music = onServer ? this.#musicOnServer() : await this.#storeMusic();
+    const chosen = chosenSongs(this.#choices);
+    const songs = onServer
+      ? chosen.map((song) => this.#songRecord(this.#ports.newId(), song))
+      : await this.#storeSongs(chosen);
     const slideshow = buildStoredSlideshow({
       id: this.#ports.newId(),
       createdAt: this.#ports.now().toISOString(),
       pictures: state.pictures,
-      songs: music === undefined ? [] : [music],
+      songs,
       secondsPerPicture: this.#choices.secondsPerPicture,
       ...(this.#choices.pictureLength === undefined
         ? {}
@@ -239,24 +231,14 @@ export class ImportSession {
       locale,
     });
     if (onServer) {
-      const chosen = chosenMusic(this.#choices);
-      return this.#ports.createOnServer(slideshow, chosen === null ? [] : [chosen.file]);
+      return this.#ports.createOnServer(
+        slideshow,
+        chosen.map((song) => song.file),
+      );
     }
     await this.#ports.store.saveSlideshow(slideshow);
     await this.intake.endClaim();
     return slideshow;
-  }
-
-  /** The music record of a server slideshow; its audio is uploaded with the slideshow. */
-  #musicOnServer(): StoredMusic | undefined {
-    const chosen = chosenMusic(this.#choices);
-    if (chosen === null) return undefined;
-    return {
-      id: this.#ports.newId(),
-      fileName: chosen.file.name,
-      durationMs: chosen.durationMs,
-      mimeType: chosen.file.type,
-    };
   }
 
   /**
@@ -264,25 +246,26 @@ export class ImportSession {
    * media no longer, so the clean-up that follows deletes it.
    */
   discard(): Promise<void> {
-    this.#startMusicPick();
+    for (const read of this.#songReads.values()) read.abort();
+    this.#songReads.clear();
     this.#setChoices(INITIAL_CHOICES);
     return this.intake.discard();
   }
 
-  async #storeMusic(): Promise<StoredMusic | undefined> {
-    const chosen = chosenMusic(this.#choices);
-    if (chosen === null) {
-      return undefined;
+  /** Claimed for the import before written, one after another in the list's order. */
+  async #storeSongs(songs: readonly ChosenSong[]): Promise<StoredMusic[]> {
+    const stored: StoredMusic[] = [];
+    for (const song of songs) {
+      const id = this.#ports.newId();
+      await this.intake.claim(id);
+      await this.#ports.store.putMusic(id, song.file);
+      stored.push(this.#songRecord(id, song));
     }
-    const id = this.#ports.newId();
-    await this.intake.claim(id);
-    await this.#ports.store.putMusic(id, chosen.file);
-    return {
-      id,
-      fileName: chosen.file.name,
-      durationMs: chosen.durationMs,
-      mimeType: chosen.file.type,
-    };
+    return stored;
+  }
+
+  #songRecord(id: string, song: ChosenSong): StoredMusic {
+    return { id, fileName: song.file.name, durationMs: song.durationMs, mimeType: song.file.type };
   }
 
   #setChoices(change: Partial<ImportChoices>): void {

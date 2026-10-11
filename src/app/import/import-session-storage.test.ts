@@ -15,7 +15,7 @@ describe("ImportSession, how it claims and stores its media", () => {
     const { session } = sessionWith(store);
     session.addPictures([pictureFile("a.jpg", "2025-07-01T10:00:00Z")]);
     await session.pictures.settled();
-    await session.chooseMusic(new File(["tune"], "Sommer.mp3", { type: "audio/mpeg" }));
+    await session.addSongs([new File(["tune"], "Sommer.mp3", { type: "audio/mpeg" })]);
 
     await session.create("de");
 

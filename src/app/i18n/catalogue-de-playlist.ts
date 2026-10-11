@@ -11,7 +11,6 @@ export const dePlaylist = {
   "music.moveSong": "{name} verschieben",
   "music.removeSong": "{name} entfernen",
   "music.addSong": "Song hinzufügen",
-  "music.addSongs": "Songs hinzufügen",
   "music.songConverting": "Wird in FLAC umgewandelt\u00a0· {percent}\u00a0%",
   "music.songUnusable": "Diese Datei lässt sich nicht verwenden",
   "music.playlistLane": {

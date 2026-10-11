@@ -1,12 +1,9 @@
 import type { LibraryStore, StoredMusic } from "../../library/stored-slideshow";
 import type { ServerLibrary } from "../../server-library/server-library";
 import type { SlideshowEditor } from "../editing/slideshow-editor";
-import {
-  readPickedMusic,
-  type ConvertingMusic,
-  type MusicPickPorts,
-  type UnusableMusic,
-} from "../import/music-pick";
+import { readPickedMusic, type MusicPickPorts, type PendingSong } from "../import/music-pick";
+
+export type { PendingSong } from "../import/music-pick";
 
 /** A song's audio, stored where its slideshow lives. */
 export interface StoredSongAudio {
@@ -30,11 +27,6 @@ export interface SongIntakePorts extends SongIntakeDevice {
   readonly editor: Pick<SlideshowEditor, "addSongs" | "settled">;
   onError(error: unknown): void;
 }
-
-/** A picked file on its way into the playlist, or found unusable. */
-export type PendingSong = { readonly key: number } & (
-  { readonly kind: "reading"; readonly pickedName: string } | ConvertingMusic | UnusableMusic
-);
 
 /**
  * The device's store: the audio is claimed before it is written, so a clean-up in any tab spares

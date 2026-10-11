@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { UnconvertibleMusicError } from "../../import/music-conversion";
 import { MemoryLibraryStore } from "../../library/testing/memory-store";
 import { ascii, concat, m4a, ogg } from "../../import/testing/music-headers";
-import { chosenMusic } from "./import-session";
+import { chosenSongs } from "./import-session";
 import {
   MUSIC_MS,
   choicesOf,
@@ -40,36 +40,42 @@ function heldConversion() {
   };
 }
 
-describe("ImportSession, music a target browser cannot play", () => {
+describe("ImportSession, songs a target browser cannot play", () => {
   it("shows a format every browser plays as chosen at once, unconverted", async () => {
     const { session } = await withTwoPictures();
     const mp3 = new File([concat(ascii("ID3"), new Uint8Array(20))], "Sommer.mp3");
 
-    await session.chooseMusic(mp3);
+    await session.addSongs([mp3]);
 
-    expect(choicesOf(session).music).toEqual({
-      kind: "chosen",
-      file: mp3,
-      pickedName: "Sommer.mp3",
-      durationMs: MUSIC_MS,
-      convertedFrom: null,
-    });
+    expect(choicesOf(session).songs).toEqual([
+      {
+        key: 1,
+        kind: "chosen",
+        file: mp3,
+        pickedName: "Sommer.mp3",
+        durationMs: MUSIC_MS,
+        convertedFrom: null,
+      },
+    ]);
   });
 
   it("shows the conversion's progress while it converts", async () => {
     const conversion = heldConversion();
     const { session } = sessionWith(new MemoryLibraryStore(), conversion);
 
-    const chosen = session.chooseMusic(appleLossless());
+    const chosen = session.addSongs([appleLossless()]);
     await conversion.started;
     conversion.report(0.42);
 
-    expect(choicesOf(session).music).toEqual({
-      kind: "converting",
-      pickedName: "Evening Walk.m4a",
-      source: "alac",
-      progress: 0.42,
-    });
+    expect(choicesOf(session).songs).toEqual([
+      {
+        key: 1,
+        kind: "converting",
+        pickedName: "Evening Walk.m4a",
+        source: "alac",
+        progress: 0.42,
+      },
+    ]);
     conversion.finish(flacCopy());
     await chosen;
   });
@@ -78,16 +84,19 @@ describe("ImportSession, music a target browser cannot play", () => {
     const copy = flacCopy();
     const { session, store } = await withTwoPictures({ convertMusic: () => Promise.resolve(copy) });
 
-    await session.chooseMusic(appleLossless());
+    await session.addSongs([appleLossless()]);
     const created = await session.create("de");
 
-    expect(choicesOf(session).music).toEqual({
-      kind: "chosen",
-      file: copy,
-      pickedName: "Evening Walk.m4a",
-      durationMs: MUSIC_MS,
-      convertedFrom: "alac",
-    });
+    expect(chosenSongs(choicesOf(session))).toEqual([
+      {
+        key: 1,
+        kind: "chosen",
+        file: copy,
+        pickedName: "Evening Walk.m4a",
+        durationMs: MUSIC_MS,
+        convertedFrom: "alac",
+      },
+    ]);
     expect(created.songs[0]).toMatchObject({
       fileName: "Evening Walk.flac",
       mimeType: "audio/flac",
@@ -101,29 +110,30 @@ describe("ImportSession, music a target browser cannot play", () => {
       convertMusic: () => Promise.reject(failure),
     });
 
-    await session.chooseMusic(appleLossless());
+    await session.addSongs([appleLossless()]);
 
     expect(logged).toEqual([failure]);
-
-    expect(choicesOf(session).music).toEqual({
-      kind: "unusable",
-      pickedName: "Evening Walk.m4a",
-      reason: "unreadable",
-    });
+    expect(choicesOf(session).songs).toEqual([
+      { key: 1, kind: "unusable", pickedName: "Evening Walk.m4a", reason: "unreadable" },
+    ]);
   });
 
-  it("marks music the browser cannot read as unusable instead of keeping the previous choice", async () => {
+  it("marks a song the browser cannot read as unusable and creates the slideshow without it", async () => {
     const { session } = await withTwoPictures();
-    await session.chooseMusic(new File(["tune"], "Sommer.mp3"));
 
-    await session.chooseMusic(new File(["x"], "Concert.broken"));
+    await session.addSongs([
+      new File(["tune"], "Sommer.mp3", { type: "audio/mpeg" }),
+      new File(["x"], "Concert.broken"),
+    ]);
 
-    expect(choicesOf(session).music).toEqual({
+    expect(choicesOf(session).songs[1]).toEqual({
+      key: 2,
       kind: "unusable",
       pickedName: "Concert.broken",
       reason: "unreadable",
     });
-    expect((await session.create("de")).songs[0]).toBeUndefined();
+    const created = await session.create("de");
+    expect(created.songs.map((song) => song.fileName)).toEqual(["Sommer.mp3"]);
   });
 
   it("marks copy-protected music as unusable without trying to convert it", async () => {
@@ -131,48 +141,51 @@ describe("ImportSession, music a target browser cannot play", () => {
       convertMusic: () => Promise.reject(new Error("must not convert protected music")),
     });
 
-    await session.chooseMusic(new File([m4a("drms")], "Song.m4p"));
+    await session.addSongs([new File([m4a("drms")], "Song.m4p")]);
 
-    expect(choicesOf(session).music).toEqual({
-      kind: "unusable",
-      pickedName: "Song.m4p",
-      reason: "protected",
-    });
+    expect(choicesOf(session).songs).toEqual([
+      { key: 1, kind: "unusable", pickedName: "Song.m4p", reason: "protected" },
+    ]);
   });
 
-  it("cancels the conversion when the music is removed", async () => {
+  it("cancels a song's conversion when it is removed and reads the songs after it", async () => {
     const conversion = heldConversion();
     const { session } = sessionWith(new MemoryLibraryStore(), conversion);
-    const chosen = session.chooseMusic(appleLossless());
+    const added = session.addSongs([
+      appleLossless(),
+      new File([ogg(ascii("OpusHead"))], "Later.opus"),
+    ]);
     await conversion.started;
 
-    session.removeMusic();
+    session.removeSong(1);
     conversion.fail(new DOMException("cancelled", "AbortError"));
-    await chosen;
+    await added;
 
     expect(conversion.aborted()).toBe(true);
-    expect(choicesOf(session).music).toBeNull();
+    expect(chosenSongs(choicesOf(session)).map((song) => song.pickedName)).toEqual(["Later.opus"]);
+    expect(choicesOf(session).songs).toHaveLength(1);
   });
 
-  it("keeps a later pick when an earlier conversion finishes after it", async () => {
+  it("cancels every conversion under way when the import is discarded", async () => {
     const conversion = heldConversion();
     const { session } = sessionWith(new MemoryLibraryStore(), conversion);
-    const first = session.chooseMusic(appleLossless());
+    const added = session.addSongs([appleLossless()]);
     await conversion.started;
 
-    await session.chooseMusic(new File([ogg(ascii("OpusHead"))], "Later.opus"));
-    conversion.finish(flacCopy());
-    await first;
+    await session.discard();
+    conversion.fail(new DOMException("cancelled", "AbortError"));
+    await added;
 
-    expect(chosenMusic(choicesOf(session))?.pickedName).toBe("Later.opus");
+    expect(conversion.aborted()).toBe(true);
+    expect(choicesOf(session).songs).toEqual([]);
   });
 
-  it("refuses to create while the music is still converting", async () => {
+  it("refuses to create while a song is still converting", async () => {
     const conversion = heldConversion();
     const { session } = await withTwoPictures(conversion);
-    void session.chooseMusic(appleLossless());
+    void session.addSongs([appleLossless()]);
     await conversion.started;
 
-    await expect(session.create("de")).rejects.toThrow(/still converting/);
+    await expect(session.create("de")).rejects.toThrow(/still being read/);
   });
 });

@@ -35,6 +35,17 @@ export interface ConvertingMusic {
   readonly progress: number;
 }
 
+/** A picked file whose format is not known yet. */
+export interface ReadingMusic {
+  readonly kind: "reading";
+  readonly pickedName: string;
+}
+
+/** A picked file on its way into a playlist, or found unusable; `key` names its row. */
+export type PendingSong = { readonly key: number } & (
+  ReadingMusic | ConvertingMusic | UnusableMusic
+);
+
 /**
  * Reads a picked file as music: the file itself, or its FLAC copy when a target browser cannot
  * decode it, telling `onConverting` how far the conversion is; music that cannot be read is

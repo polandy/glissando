@@ -1,8 +1,10 @@
 import type { ConvertibleSource } from "../../import/music-format";
-import { slideDurationsMs } from "../../compose";
+import { musicExcerptMs, placeSongs, playlistMs, slideDurationsMs } from "../../compose";
 import type { PictureImportState, SkipReason, SkippedFile } from "../../import/picture-import";
 import type { StoredPicture } from "../../library/stored-slideshow";
 import { MILLISECONDS_PER_SECOND } from "../../player";
+import type { PlaylistSongView } from "../music-editor/playlist-view";
+import type { ChosenSong } from "./import-session";
 
 /**
  * What step 1 shows: the drop zone, the live progress, the chosen pictures, or a failed import,
@@ -127,6 +129,41 @@ function musicFit(slideshowMs: number, musicMs: number): ImportMusicFit {
     return "silent-after";
   }
   return slideshowMs < musicMs ? "fades-out" : "ends-with";
+}
+
+/** Step 2's songs as the slideshow will play them; a song's id is its key. */
+export interface ImportPlaylist {
+  readonly songs: readonly PlaylistSongView[];
+  /** What "Fill the music" fills; 0 without songs. */
+  readonly playlistMs: number;
+}
+
+/**
+ * The chosen songs placed as the composer places them, crossfading (ADR-0023), against a
+ * slideshow `slideshowMs` long.
+ */
+export function importPlaylist(songs: readonly ChosenSong[], slideshowMs: number): ImportPlaylist {
+  const playlist = {
+    songs: songs.map((song) => ({
+      id: String(song.key),
+      fileName: song.pickedName,
+      durationMs: song.durationMs,
+      mimeType: song.file.type,
+    })),
+  };
+  return {
+    songs: placeSongs(playlist).map(({ song, atMs }, index) => ({
+      id: song.id,
+      number: index + 1,
+      fileName: song.fileName,
+      durationMs: song.durationMs,
+      excerptMs: musicExcerptMs(song),
+      trimmed: false,
+      atMs,
+      reached: atMs < slideshowMs,
+    })),
+    playlistMs: playlistMs(playlist) ?? 0,
+  };
 }
 
 /** A short format name for the track card: the file extension, else the type's subtype. */

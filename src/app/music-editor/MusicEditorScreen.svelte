@@ -122,7 +122,7 @@
         </div>
         {#if pending.length > 0}
           <SongList
-            {playlist}
+            songs={playlist.songs}
             selectedSongId=""
             {pending}
             onSelect={onSelectSong}
@@ -137,7 +137,7 @@
     <main class="edit">
       <div class="main-column">
         <SongList
-          {playlist}
+          songs={playlist.songs}
           selectedSongId={music.songId}
           {pending}
           onSelect={onSelectSong}
