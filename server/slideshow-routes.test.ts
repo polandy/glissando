@@ -42,6 +42,7 @@ describe("creating a slideshow", () => {
       id: "00000000-0000-4000-8000-000000000001",
       revision: 1,
       document: sampleDocument(),
+      share: null,
     });
   });
 
@@ -120,15 +121,15 @@ describe("the media type of a written slideshow", () => {
 });
 
 describe("listing slideshows", () => {
-  it("answers every slideshow with id, revision and document, the newest created first", () => {
+  it("answers every slideshow with id, revision, document and share link, the newest created first", () => {
     const library = libraryHarness();
     const older = library.create(sampleDocument("Older"));
     library.advanceClock(1000);
     const newer = library.create(sampleDocument("Newer"));
     expect(library.send("GET", SLIDESHOWS).json).toEqual({
       slideshows: [
-        { id: newer, revision: 1, document: sampleDocument("Newer") },
-        { id: older, revision: 1, document: sampleDocument("Older") },
+        { id: newer, revision: 1, document: sampleDocument("Newer"), share: null },
+        { id: older, revision: 1, document: sampleDocument("Older"), share: null },
       ],
     });
   });
@@ -164,7 +165,7 @@ describe("replacing a slideshow", () => {
     expect(stale.json["error"]).toBe("revisionChanged");
     const current = { id, revision: 2, document: sampleDocument("First edit") };
     expect(stale.json["current"]).toEqual(current);
-    expect(library.send("GET", at(id)).json).toEqual(current);
+    expect(library.send("GET", at(id)).json).toEqual({ ...current, share: null });
   });
 
   it.each(["1", "*", '"x"', 'W/"1"'])("treats If-Match %s as not the current revision", (tag) => {

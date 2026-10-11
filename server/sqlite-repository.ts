@@ -4,8 +4,10 @@ import { parseMusicBeats } from "../src/beats/music-beats-json";
 import { readServerDocument } from "../src/server-library/server-document";
 import type { LibraryRepository, MusicRecord, SlideshowRecord } from "./library-repository";
 
+// Foreign keys are off in SQLite unless a connection turns them on; share_links needs its cascade.
 const SCHEMA = `
   PRAGMA journal_mode = WAL;
+  PRAGMA foreign_keys = ON;
   CREATE TABLE IF NOT EXISTS slideshows (
     id TEXT PRIMARY KEY,
     revision INTEGER NOT NULL,
@@ -21,6 +23,11 @@ const SCHEMA = `
   CREATE TABLE IF NOT EXISTS music_beats (
     music_id TEXT PRIMARY KEY,
     beats TEXT NOT NULL
+  );
+  CREATE TABLE IF NOT EXISTS share_links (
+    slideshow_id TEXT PRIMARY KEY REFERENCES slideshows (id) ON DELETE CASCADE,
+    token TEXT NOT NULL UNIQUE,
+    created_at INTEGER NOT NULL
   );
   -- Every musicId the playlist's songs name (ADR-0023).
   CREATE VIEW IF NOT EXISTS document_music_ids AS
@@ -46,6 +53,17 @@ export function openSqliteRepository(database: DatabaseSync): LibraryRepository 
     "UPDATE slideshows SET revision = ?, document = ? WHERE id = ?",
   );
   const deleteSlideshow = statement("DELETE FROM slideshows WHERE id = ?");
+  const insertShareLink = statement(
+    "INSERT INTO share_links (slideshow_id, token, created_at) VALUES (?, ?, ?)",
+  );
+  const deleteShareLink = statement("DELETE FROM share_links WHERE slideshow_id = ?");
+  const findShareLink = statement(
+    "SELECT token, created_at FROM share_links WHERE slideshow_id = ?",
+  );
+  const findSlideshowByShareToken = statement(
+    `SELECT ${SLIDESHOW_COLUMNS} FROM slideshows
+     WHERE id = (SELECT slideshow_id FROM share_links WHERE token = ?)`,
+  );
   const findMusic = statement(
     "SELECT id, content_type, bytes, uploaded_at FROM music WHERE id = ?",
   );
@@ -91,6 +109,22 @@ export function openSqliteRepository(database: DatabaseSync): LibraryRepository 
     },
     deleteSlideshow(id) {
       deleteSlideshow.run(id);
+    },
+    share(id, { token, createdAt }) {
+      insertShareLink.run(id, token, createdAt);
+    },
+    unshare(id) {
+      deleteShareLink.run(id);
+    },
+    shareOf(id) {
+      const row = findShareLink.get(id);
+      return row === undefined
+        ? undefined
+        : { token: text(row, "token"), createdAt: integer(row, "created_at") };
+    },
+    slideshowByShareToken(token) {
+      const row = findSlideshowByShareToken.get(token);
+      return row === undefined ? undefined : slideshowOf(row);
     },
     findMusic(id) {
       const row = findMusic.get(id);

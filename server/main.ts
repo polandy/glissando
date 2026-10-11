@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { randomBytes, randomUUID } from "node:crypto";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { join } from "node:path";
 import process from "node:process";
@@ -7,6 +7,7 @@ import { collectBody } from "./collect-body";
 import { InvalidLibraryConfigError, parseLibraryConfig } from "./config";
 import { createLibraryHandler, type LibraryHandler } from "./library-handler";
 import { errorResponse, HTTP_STATUS, maxBodyBytes, type LibraryResponse } from "./library-http";
+import { redactShareTokens } from "./share-token";
 import { openSqliteRepository } from "./sqlite-repository";
 
 /**
@@ -29,6 +30,7 @@ function start(): void {
     repository: openSqliteRepository(database),
     now: () => Date.now(),
     newId: randomUUID,
+    randomBytes,
     log,
   });
   const server = createServer((request, response) => void serve(handle, request, response));
@@ -58,7 +60,9 @@ async function serve(
     closeAfter = body.kind === "tooLarge";
     answer = handle({ method, path, headers, body });
   } catch (error) {
-    process.stderr.write(`${LOG_PREFIX} ${method} ${path} failed: ${describe(error)}\n`);
+    process.stderr.write(
+      `${LOG_PREFIX} ${method} ${redactShareTokens(path)} failed: ${describe(error)}\n`,
+    );
     answer = errorResponse(
       HTTP_STATUS.internalError,
       "internalError",

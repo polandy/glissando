@@ -10,6 +10,10 @@ export const MAX_DOCUMENT_BYTES = 2 * MIB;
 export const LIBRARY_PATH = "/api/library";
 export const SLIDESHOWS_PATH = `${LIBRARY_PATH}/slideshows`;
 export const MUSIC_PATH = `${LIBRARY_PATH}/music`;
+/** The public share API, no sign-in (`dev-docs/SHARE_LINK.md`). */
+export const SHARE_PATH = "/api/share";
+/** Asked by Caddy's forward_auth on loopback only; Caddy routes no outside request here. */
+export const SHARE_PICTURE_CHECK_PATH = "/internal/share-picture";
 
 export const HTTP_STATUS = {
   ok: 200,
@@ -84,6 +88,9 @@ export type ErrorCode =
   | "notAudio"
   | "notJson"
   | "invalidBeats"
+  | "notShared"
+  | "noSuchPicture"
+  | "noSuchSong"
   | "internalError";
 
 export function errorResponse(
