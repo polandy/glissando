@@ -24,6 +24,7 @@ export interface TestFile {
 
 const PICTURE_WIDTH = 64;
 const PICTURE_HEIGHT = 48;
+const STRIPE_WIDTH = 4;
 const JPEG_START_OF_IMAGE_LENGTH = 2;
 const SEGMENT_MARKER_LENGTH = 2;
 
@@ -51,6 +52,40 @@ export async function pictureTakenOn(
       return canvas.toDataURL("image/jpeg").split(",")[1] ?? "";
     },
     { width: PICTURE_WIDTH, height: PICTURE_HEIGHT, fill: colour },
+  );
+  return {
+    name,
+    mimeType: "image/jpeg",
+    buffer: withCaptureDay(Buffer.from(encoded, "base64"), day),
+  };
+}
+
+/**
+ * Like `pictureTakenOn`, but in stripes of `colour` and white: sharp edges and no face, a picture
+ * the culling check keeps next to a sharp one, where a plain-coloured one counts as blurry.
+ */
+export async function stripedPictureTakenOn(
+  page: Page,
+  name: string,
+  day: string,
+  colour: string,
+): Promise<TestFile> {
+  const encoded = await page.evaluate(
+    ({ width, height, fill, stripe }) => {
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const context = canvas.getContext("2d");
+      if (context === null) {
+        throw new Error("no 2D canvas context to draw a test picture");
+      }
+      context.fillStyle = "#ffffff";
+      context.fillRect(0, 0, width, height);
+      context.fillStyle = fill;
+      for (let x = 0; x < width; x += 2 * stripe) context.fillRect(x, 0, stripe, height);
+      return canvas.toDataURL("image/jpeg").split(",")[1] ?? "";
+    },
+    { width: PICTURE_WIDTH, height: PICTURE_HEIGHT, fill: colour, stripe: STRIPE_WIDTH },
   );
   return {
     name,
