@@ -3,12 +3,14 @@ import { page } from "vitest/browser";
 import { silentWav } from "../../import/testing/silent-wav";
 import type { StoredPicture, StoredSlideshow } from "../../library/stored-slideshow";
 import { exportPage } from "../export-page";
-import { PAGE_STATE_ATTRIBUTE, type PageCopy, type PageState } from "../page-contract";
+import type { PageCopy, PageState } from "../page-contract";
 import {
   drawnJpeg,
   keptInView,
   loaded,
   stateReached,
+  watchPage,
+  type PageWatch,
 } from "../../export-player/testing/page-frame";
 import { bundledPlayerAsset } from "./bundled-player-asset";
 import { canvasPictureScaler } from "./canvas-picture-scaler";
@@ -93,27 +95,23 @@ async function exportedPage(): Promise<Blob> {
 /** How far a run of the exported page got. */
 interface PlayProgress {
   step: string;
-  page: Document | null;
+  watch: PageWatch | null;
   readonly seen: PageState[];
 }
 
-function progressReport({ step, page, seen }: PlayProgress): string {
-  const details =
-    page === null
-      ? {}
-      : {
-          state: page.documentElement.getAttribute(PAGE_STATE_ATTRIBUTE),
-          time: page.querySelector(".time")?.textContent,
-          fonts: page.fonts.status,
-          canvases: page.querySelectorAll("canvas").length,
-          error: page.querySelector(".error")?.textContent,
-        };
-  return `the exported page stopped while ${step}: ${JSON.stringify({ seen, ...details })}`;
+function progressReport({ step, watch, seen }: PlayProgress): string {
+  return `the exported page stopped while ${step}: ${JSON.stringify({ seen, ...watch?.report() })}`;
 }
 
 describe("an exported web page", () => {
   const cleanups: (() => void)[] = [];
-  afterEach(() => cleanups.splice(0).forEach((cleanup) => cleanup()));
+  // Last in, first out: a watch keeps its report before its frame is removed.
+  afterEach(() =>
+    cleanups
+      .splice(0)
+      .reverse()
+      .forEach((cleanup) => cleanup()),
+  );
 
   it("holds each picture fitted within the size, never scaled up", async () => {
     const text = await (await exportedPage()).text();
@@ -137,7 +135,7 @@ describe("an exported web page", () => {
   async function playedToTheEndCard(
     whilePlaying: () => void = () => {},
   ): Promise<{ readonly pageDocument: Document; readonly seen: readonly PageState[] }> {
-    const progress: PlayProgress = { step: "exporting", page: null, seen: [] };
+    const progress: PlayProgress = { step: "exporting", watch: null, seen: [] };
     // A timeout alone says nothing; the report names where the page stopped.
     onTestFailed(() => console.error(progressReport(progress)));
     const url = URL.createObjectURL(await exportedPage());
@@ -155,7 +153,8 @@ describe("an exported web page", () => {
     document.body.append(frame);
     cleanups.push(keptInView(frame));
     const pageDocument = await opened;
-    progress.page = pageDocument;
+    progress.watch = watchPage(frame);
+    cleanups.push(() => progress.watch?.stop());
     progress.step = "waiting for the start card";
     await stateReached(pageDocument, "start", progress.seen);
     expect(pageDocument.title).toBe("Generated <test>");
