@@ -1,4 +1,5 @@
-import { MILLISECONDS_PER_SECOND, type Slideshow } from "../../player";
+// Deep, not the engine's index: the index brings in `createPlayer` and its worker file.
+import { MILLISECONDS_PER_SECOND, type Slideshow } from "../../player/slideshow";
 
 /** Within this many seconds of a slide's start, "previous" goes to the slide before. */
 export const RESTART_SLIDE_AFTER_SECONDS = 1;

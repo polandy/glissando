@@ -102,21 +102,32 @@ the same contract suite.
   URL, and each song is fetched once into a `blob:` URL before Play is wired.
 - **Language**: German when `navigator.language` starts with `de`, else English. The page's words
   come from the catalogue (`sharePage.*`), with both languages built into the page.
-- **States** (`<html data-state>`): those of the export page, plus `gone` (404 `notShared`) and
-  `unreachable` (the document fetch fails or answers 5xx).
+- **Live**: Play and "Play again" fetch the document again first. The same revision plays on
+  as loaded; a new one is composed and its songs fetched before it plays.
+- **States** (`<html data-state>`): those of the export page, plus `starting` (after Play, until
+  the player plays), `gone` (404 `notShared`, also from a picture or song) and `unreachable` (no
+  network, or a 5xx). Any other answer is a fault and shows as `error`.
   - **Start card**: the first picture behind the veil, eyebrow "Shared slideshow", the title,
     "50 pictures · 4:10 · with music", Play, and "Shared with Glissando" at the bottom.
   - **Loading**: after Play, "Loading the first pictures …" with a ring until the player is
     playing.
-  - **A late picture**: while the player waits for a picture it hasn't prepared yet, a
-    "Loading" chip shows at the top right.
+  - **A late picture**: while the player waits for a picture it hasn't prepared yet (its
+    `waiting` event, until `playing`), a "Loading" chip shows at the top right.
   - **Gone**: "This link doesn't work any more" and "Whoever shared the slideshow has turned the
     link off. Ask them for a new one." No title, no picture.
   - **Unreachable**: "Can't reach the slideshow right now", "The server it lives on isn't
-    answering. It may be restarting; try again in a moment." and "Try again".
+    answering. It may be restarting; try again in a moment." and "Try again", which reloads the
+    page.
   - A picture that fails to load (Immich no longer has it) is skipped, as in the app
     (SERVER_LIBRARY.md, Playing and exporting).
 - The app's service worker never answers `/s/` or `/api/` navigations (ADR-0005).
+- **Code**: `src/share-page/` holds the page's script (`main.ts`), the API client
+  (`share-api.ts`, its failures as `ShareGoneError`, `ShareUnreachableError`,
+  `ShareMediumMissingError`), the answer's reader (`share-answer.ts`, failing loud on any field
+  the share document doesn't have; pictures and songs become `pictureKey(n)` and `songKey(n)`),
+  the loaded slideshow with its skips (`shared-show.ts`), the words (`share-page-words.ts`) and
+  the page's own parts (`share-parts.ts`, `share-page.css`). `build/share-page-plugin.ts` builds
+  `share.html` into the build with `src/app/share-page/share-page-languages.ts`.
 
 ## In the app
 
@@ -159,7 +170,10 @@ the same contract suite.
 - `deploy/test-image-library.sh`: a slideshow shared through the private API plays its document
   through `/api/share/<token>`, a picture comes back from the fake Immich through Caddy with no
   header but the allowed ones, and the same URL answers 404 once the link is turned off.
-- A browser test opens `share.html` against a fake server and plays to `ended`.
+- A browser test opens `share.html` at `/s/<token>` against a fake share API (Playwright
+  routing, as Vitest browser commands in `src/share-page/testing/`) and plays a generated three-picture slideshow
+  to `ended`, also with a late picture (the chip) and a missing one (skipped), and shows `gone`
+  and `unreachable` (then "Try again").
 - An e2e case (written after the owner's OK on the built change) shares a slideshow from the
   info panel, opens the link in a second page, presses Play and waits for `playing`, then turns
   the link off and sees `gone` on reload. All test pictures are generated.

@@ -158,6 +158,9 @@ export const ICONS = {
   },
   device: { shapes: [rect(6, 3, 12, 18, 2), path("M11 18h2")] },
   upload: { shapes: [path("M12 20V9M7 14l5-5 5 5M5 4h14")] },
+  linkOff: {
+    shapes: [path("M3 3l18 18"), path("M9 17H7A5 5 0 017 7M15 7h2a5 5 0 014 8"), path("M8 12h4")],
+  },
 } as const satisfies Record<string, IconDefinition>;
 
 export type IconName = keyof typeof ICONS;

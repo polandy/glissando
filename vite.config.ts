@@ -5,6 +5,12 @@ import { exportPlayerPlugin } from "./build/export-player-plugin.ts";
 import { libavLicensePlugin } from "./build/libav-license.ts";
 import { pinnedThemePlugin } from "./build/pinned-theme-script.ts";
 import { serviceWorkerPlugin } from "./build/service-worker-plugin.ts";
+import { sharePagePlugin } from "./build/share-page-plugin.ts";
+import {
+  releaseFakeSharePicture,
+  serveFakeShareApi,
+  stopFakeShareApi,
+} from "./src/share-page/testing/fake-share-api-command.ts";
 import { THIRD_PARTY_LICENSES_FILE } from "./src/app/settings/third-party-licenses.ts";
 
 const BROWSER_TESTS = "src/**/*.browser.test.ts";
@@ -18,6 +24,7 @@ export default defineConfig({
     svelte(),
     pinnedThemePlugin(),
     exportPlayerPlugin(),
+    sharePagePlugin(),
     libavLicensePlugin(),
     serviceWorkerPlugin(),
   ],
@@ -42,6 +49,7 @@ export default defineConfig({
             enabled: true,
             headless: true,
             provider: playwright(),
+            commands: { serveFakeShareApi, stopFakeShareApi, releaseFakeSharePicture },
             instances: [
               { browser: "chromium" },
               // Headless Firefox in the CI image has no WebGL at all, whatever its prefs; it
