@@ -30,7 +30,8 @@ https://polandy.github.io/glissando-assets/mockups/share-link/.
 | `DELETE /api/library/slideshows/{id}/share`               | 204; 404 `notFound` (no such slideshow) or `notShared`                                               |
 
 - `GET /api/library/slideshows` (each entry) and `GET /api/library/slideshows/{id}` also carry
-  `"share": { "token", "createdAt" }` or `"share": null`.
+  `"share": { "token", "createdAt" }` or `"share": null`. `createdAt` is an ISO 8601 date-time
+  in UTC.
 - `POST` needs `Content-Type: application/json`, like every other write, so another site can't
   turn a link on through the owner's browser (SERVER_LIBRARY.md, Media type).
 
@@ -57,6 +58,8 @@ https://polandy.github.io/glissando-assets/mockups/share-link/.
 - **Unknown token** and a turned-off link answer the same 404 `notShared`, so the API never
   says whether a token ever existed.
 - Every other method or path under `/api/share/` answers 404.
+- Without slideshows on the server (no data volume, `deploy/library-off.caddy`), `/api/share/` and
+  `/s/` answer 404.
 
 ### How a picture is served
 
@@ -66,10 +69,14 @@ to `GET /internal/share-picture/{token}/{n}` on loopback; this path is never rou
 outside):
 
 - The service answers 200 with `X-Glissando-Immich-Asset: <uuid>`, or 404 `notShared` /
-  `noSuchPicture`. Caddy passes a non-2xx answer on to the client as it is.
+  `noSuchPicture` (also for an asset id that is no UUID, so nothing else lands in Immich's path).
+  Caddy passes a non-2xx answer on to the client as it is. Caddy answers every other
+  `/internal/` request 404.
 - On 200, Caddy fetches `GET /api/assets/<uuid>/thumbnail?size=preview` from Immich with the key.
   Before the response goes to the recipient, Caddy drops every response header except
-  `Content-Type`, `Content-Length` and `ETag`, and sets the cache header above.
+  `Content-Type`, `Content-Length` and `ETag` (the last two only when Immich sends both), and
+  sets the cache header above. A non-2xx answer from Immich reaches the recipient as its status
+  only, with no body and no header.
 - **Picture size**: Immich's preview has its short edge at Immich's "Preview resolution"
   setting (1440 by default). At 2160, it covers what a 3840×2160 frame shows. The self-hosting
   guide recommends 2160 for a TV. The preview carries no GPS, camera or capture date, and its
@@ -78,14 +85,16 @@ outside):
 ### Logs
 
 The token is a secret. The service logs `/api/share/<token>/…` and `/s/<token>` with the token
-replaced by `…`, and Caddy's log filter does the same. The owner's own proxy logs are theirs to
+replaced by `…`, and Caddy's log filter does the same: the share routes log to their own
+logger (`log_name share`, its errors too), which also drops the query and the `Referer`. The owner's own proxy logs are theirs to
 configure, and the self-hosting guide says so.
 
 ## Storage
 
 The table is `share_links(slideshow_id PRIMARY KEY REFERENCES slideshows ON DELETE CASCADE,
-token UNIQUE, created_at)`. The `LibraryRepository` contract gains `share(id)`, `unshare(id)`,
-`shareOf(id)` and `slideshowByShareToken(token)`. The SQLite adapter and the in-memory fake run
+token UNIQUE, created_at)`. The `LibraryRepository` contract gains `share(id, { token, createdAt })`,
+`unshare(id)`, `shareOf(id)` and `slideshowByShareToken(token)`; the service makes the token.
+The SQLite adapter turns foreign keys on for the cascade. The SQLite adapter and the in-memory fake run
 the same contract suite.
 
 ## The recipient's page

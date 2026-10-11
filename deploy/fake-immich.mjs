@@ -1,7 +1,7 @@
 // A stand-in for Immich, in one of three modes (the first argument):
 //   echo (default)   for deploy/test-image.sh: answers every request with what arrived —
 //                    method, path and the credential headers — plus a sign-in cookie of its own,
-//                    as Immich sets on a login, and logs one line per request.
+//                    as Immich sets on a login, and an ETag; logs one line per request.
 //   gallery          for scripts/serve-server-library.sh: the reads Glissando makes, answered
 //                    like Immich 3.3.1 over a generated library — albums, photos over several
 //                    days, faces, and PNG images drawn at startup (never real photos). One asset
@@ -20,6 +20,8 @@ const mode = process.argv[2] ?? "echo";
 
 const SIGN_IN_COOKIE = "immich_access_token=upstream-cookie; Path=/; HttpOnly";
 const ECHOED_HEADERS = ["x-api-key", "cookie", "authorization", "x-immich-share-key"];
+// As Immich tags an asset's file, so a test sees which of its headers pass.
+const ECHO_ETAG = '"echo-etag"';
 
 function echo(request, response) {
   const received = {
@@ -31,7 +33,12 @@ function echo(request, response) {
   };
   const body = JSON.stringify(received);
   console.log(`request ${body}`);
-  response.writeHead(200, { ...JSON_TYPE, "set-cookie": SIGN_IN_COOKIE });
+  response.writeHead(200, {
+    ...JSON_TYPE,
+    "set-cookie": SIGN_IN_COOKIE,
+    etag: ECHO_ETAG,
+    "content-length": Buffer.byteLength(body),
+  });
   response.end(body);
 }
 
