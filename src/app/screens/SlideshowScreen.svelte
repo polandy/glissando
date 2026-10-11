@@ -13,6 +13,7 @@
   import type { VideoExportSession } from "../video-export/video-export-session";
   import DeleteDialog from "./slideshow/DeleteDialog.svelte";
   import type { SlideshowDetails, SlideshowStorage, StorageAction } from "./view-models";
+  import type { ShareLinkSession } from "../share-link/share-link-session";
   import type { SlideshowTransition } from "../../library/own-timing";
   import type { MotionPreviewPorts } from "../picture-editor/motion-preview";
   import type { ExportMenuState } from "../glissando-file/export-menu";
@@ -51,6 +52,7 @@
     mousePointer,
     saving,
     storage = null,
+    shareLink = null,
     onStorageAction,
     selection = $bindable(NO_SELECTION),
     holdScheduler = browserScheduler,
@@ -100,6 +102,8 @@
     saving: boolean;
     /** Where the slideshow lives; null while the server library is off. */
     storage?: SlideshowStorage | null;
+    /** A server slideshow's link (SHARE_LINK.md, In the app); null for a device slideshow. */
+    shareLink?: ShareLinkSession | null;
     onStorageAction: (action: StorageAction) => void;
     /** The selection bar acts on this; kept by the parent across the picture editor. */
     selection?: StripSelection;
@@ -203,6 +207,7 @@
         {slideshow}
         {onPlay}
         {storage}
+        {shareLink}
         onSaveVideo={() => exportSheets?.openVideo()}
         onSaveWebPage={() => exportSheets?.openWebPage()}
         {onRename}

@@ -29,6 +29,8 @@ interface LibraryRecord {
   readonly id: string;
   revision: number;
   document: ServerDocument;
+  /** Its link (SHARE_LINK.md, Private); null while it is not shared. */
+  share: { readonly token: string; readonly createdAt: string } | null;
 }
 
 /** The server document, read only as far as the cases look into it. */
@@ -49,7 +51,13 @@ export interface FakeGlissandoServer {
 const IMMICH_ROUTE = /\/immich\/(.*)$/;
 const LIBRARY_ROUTE = /\/api\/library(\/.*)?$/;
 const ASSET_IMAGE = /^api\/assets\/([^/]+)\/(thumbnail|original)$/;
-const SLIDESHOW_PATH = /^\/slideshows\/([^/]+)$/;
+const SLIDESHOW_PATH = /^\/slideshows\/([^/]+)(\/share)?$/;
+/** Every link the fake makes, as a real token looks: 22 characters of base64url. */
+const FAKE_SHARE_TOKEN = "fakeShareToken00000000";
+/** When the fake made every link: a fixed instant, so nothing reads the clock. */
+const FAKE_SHARE_CREATED_AT = "2026-10-11T09:30:00.000Z";
+const HTTP_OK = 200;
+const HTTP_NO_CONTENT = 204;
 const HTTP_CREATED = 201;
 const HTTP_NOT_FOUND = 404;
 const HTTP_PRECONDITION_FAILED = 412;
@@ -104,6 +112,7 @@ function answerLibrary(route: Route, server: FakeGlissandoServer) {
       id: `server-slideshow-${String(server.slideshows.length + 1)}`,
       revision: 1,
       document: request.postDataJSON() as ServerDocument,
+      share: null,
     };
     server.slideshows.push(record);
     return route.fulfill({
@@ -111,11 +120,12 @@ function answerLibrary(route: Route, server: FakeGlissandoServer) {
       json: { id: record.id, revision: record.revision },
     });
   }
-  const id = path.match(SLIDESHOW_PATH)?.[1];
+  const [, id, share] = path.match(SLIDESHOW_PATH) ?? [];
   const record = server.slideshows.find((slideshow) => slideshow.id === id);
   if (record === undefined) {
     return route.fulfill({ status: HTTP_NOT_FOUND, json: { error: "notFound", detail: path } });
   }
+  if (share !== undefined) return answerShare(route, record, path);
   if (method === "GET") return route.fulfill({ json: record });
   if (method === "PUT") {
     if (request.headers()["if-match"] !== `"${String(record.revision)}"`) {
@@ -127,6 +137,23 @@ function answerLibrary(route: Route, server: FakeGlissandoServer) {
     record.revision += 1;
     record.document = request.postDataJSON() as ServerDocument;
     return route.fulfill({ json: { revision: record.revision } });
+  }
+  return route.fulfill({ status: HTTP_NOT_FOUND, json: { error: "notFound", detail: path } });
+}
+
+function answerShare(route: Route, record: LibraryRecord, path: string) {
+  const method = route.request().method();
+  if (method === "POST") {
+    const created = record.share === null;
+    record.share ??= { token: FAKE_SHARE_TOKEN, createdAt: FAKE_SHARE_CREATED_AT };
+    return route.fulfill({ status: created ? HTTP_CREATED : HTTP_OK, json: record.share });
+  }
+  if (method === "DELETE") {
+    if (record.share === null) {
+      return route.fulfill({ status: HTTP_NOT_FOUND, json: { error: "notShared", detail: path } });
+    }
+    record.share = null;
+    return route.fulfill({ status: HTTP_NO_CONTENT });
   }
   return route.fulfill({ status: HTTP_NOT_FOUND, json: { error: "notFound", detail: path } });
 }

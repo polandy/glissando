@@ -87,6 +87,8 @@
   }
   .sheet {
     display: grid;
+    /* A long line that does not wrap, such as a link, ellipsizes instead of widening the sheet. */
+    grid-template-columns: minmax(0, 1fr);
     gap: 16px;
     padding: 20px;
   }

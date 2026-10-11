@@ -37,6 +37,14 @@ export interface ServerSlideshowRecord {
   readonly document: ServerDocument;
 }
 
+/** A slideshow's link as the private API answers it (SHARE_LINK.md, Private). */
+export interface ShareLink {
+  /** 22 characters of base64url: the link's last path segment. */
+  readonly token: string;
+  /** ISO 8601 date-time. */
+  readonly createdAt: string;
+}
+
 export interface ServerSlideshowCreated {
   readonly id: string;
   readonly revision: number;

@@ -151,6 +151,11 @@ the same contract suite.
   algorithm.
 - `src/app/share-link/`: the session (`share-link-session.ts`, its states and the calls through a
   `ShareLinkApi` port, unit-tested with a fake), the origin check, and the sheet's parts.
+- **Reading the link**: the screen of a server slideshow asks `GET /api/library/slideshows/{id}`
+  for its `share` as it opens; until it answers, the row reads as not shared and the sheet says
+  "Reading the link …". `DELETE` answering 404 `notShared` counts as turned off.
+- The QR code is drawn as one SVG path in `--gl-qr-dark` on `--gl-qr-light`, dark on white in
+  both themes, with medium error correction and a two-module quiet zone.
 
 ## End to end
 
