@@ -4,6 +4,7 @@
   import Icon from "../components/Icon.svelte";
   import { getTranslator } from "../i18n/context";
   import type { SetAsideGroup } from "./picture-culling";
+  import { byCaptureTime, latestCaptured } from "./set-aside-view";
 
   /**
    * The pictures the check set aside, below the strip: per similar group with its kept picture, then the
@@ -36,15 +37,6 @@
 
   const keptPicture = (keptId: string): StoredPicture | undefined =>
     pictures.find((picture) => picture.id === keptId);
-
-  /** The group's shown pictures, kept or set aside, from the earliest to the latest. */
-  const byCaptureTime = (
-    kept: StoredPicture | undefined,
-    similar: readonly StoredPicture[],
-  ): StoredPicture[] =>
-    [...(kept === undefined ? [] : [kept]), ...similar].sort(
-      (first, second) => Date.parse(first.capturedAt) - Date.parse(second.capturedAt),
-    );
 
   const WHEN_MARK = "\u{E000}";
 
@@ -81,15 +73,7 @@
   }
 
   function takeAllIn(): void {
-    const latest = groups
-      .flatMap(({ pictures: setAside }) => setAside)
-      .reduce<StoredPicture | undefined>(
-        (found, picture) =>
-          found === undefined || Date.parse(picture.capturedAt) > Date.parse(found.capturedAt)
-            ? picture
-            : found,
-        undefined,
-      );
+    const latest = latestCaptured(groups.flatMap(({ pictures: setAside }) => setAside));
     onTakeAllIn();
     flushSync();
     if (latest !== undefined) onEmptied(latest.id);

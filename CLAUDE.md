@@ -33,7 +33,7 @@ Every tool result is re-read, and paid for, on every later turn.
   a few lines. Judgement and spec writing stay with you.
 - **Output hygiene**: change an existing file with `Edit`, never by rewriting it whole; an analysis
   run more than once becomes a script under `scripts/`; mechanical sessions run at lower effort.
-- **Split a source file past ~300 lines** before it grows further.
+- **Source files stay at or under 300 lines** — `scripts/source-sizes.sh` (in `npm run verify`) enforces it; split before it fails.
 
 ## Where things live
 
