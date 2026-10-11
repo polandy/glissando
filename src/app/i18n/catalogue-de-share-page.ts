@@ -1,4 +1,4 @@
-import type { Message } from "./messages";
+import type { Message } from "./messages.ts";
 
 /**
  * German copy of the page a shared slideshow's link opens (dev-docs/SHARE_LINK.md), built into

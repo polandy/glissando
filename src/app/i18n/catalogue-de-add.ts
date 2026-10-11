@@ -1,4 +1,4 @@
-import type { Message } from "./messages";
+import type { Message } from "./messages.ts";
 
 /** German copy of adding pictures to a slideshow and of duplicates; part of the German catalogue. */
 export const deAdd = {

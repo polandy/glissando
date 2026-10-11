@@ -1,5 +1,5 @@
-import type { Catalogue } from "./messages";
-import type { dePlaylist } from "./catalogue-de-playlist";
+import type { Catalogue } from "./messages.ts";
+import type { dePlaylist } from "./catalogue-de-playlist.ts";
 
 /** English copy of the playlist; typed to the German keys. */
 export const enPlaylist: Pick<Catalogue, keyof typeof dePlaylist> = {

@@ -1,5 +1,5 @@
-import type { deServer } from "./catalogue-de-server";
-import type { Catalogue } from "./messages";
+import type { deServer } from "./catalogue-de-server.ts";
+import type { Catalogue } from "./messages.ts";
 
 /** English copy of slideshows on the Glissando server; typed to the German keys. */
 export const enServer: Pick<Catalogue, keyof typeof deServer> = {

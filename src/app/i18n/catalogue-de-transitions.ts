@@ -1,4 +1,4 @@
-import type { Message } from "./messages";
+import type { Message } from "./messages.ts";
 
 /** German copy of the slideshow's default transition; part of the German catalogue. */
 export const deTransitions = {

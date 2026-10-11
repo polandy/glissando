@@ -1,17 +1,17 @@
-import { enAdd } from "./catalogue-en-add";
-import { enEditor } from "./catalogue-en-editor";
-import { enMusic } from "./catalogue-en-music";
-import { enTiming } from "./catalogue-en-timing";
-import { enTransitions } from "./catalogue-en-transitions";
-import { enImmich } from "./catalogue-en-immich";
-import { enHtml } from "./catalogue-en-html";
-import { enSharePage } from "./catalogue-en-share-page";
-import { enVideo } from "./catalogue-en-video";
-import { enServer } from "./catalogue-en-server";
-import { enShare } from "./catalogue-en-share";
-import { enPlaylist } from "./catalogue-en-playlist";
-import { enCulling } from "./catalogue-en-culling";
-import type { Catalogue } from "./messages";
+import { enAdd } from "./catalogue-en-add.ts";
+import { enEditor } from "./catalogue-en-editor.ts";
+import { enMusic } from "./catalogue-en-music.ts";
+import { enTiming } from "./catalogue-en-timing.ts";
+import { enTransitions } from "./catalogue-en-transitions.ts";
+import { enImmich } from "./catalogue-en-immich.ts";
+import { enHtml } from "./catalogue-en-html.ts";
+import { enSharePage } from "./catalogue-en-share-page.ts";
+import { enVideo } from "./catalogue-en-video.ts";
+import { enServer } from "./catalogue-en-server.ts";
+import { enShare } from "./catalogue-en-share.ts";
+import { enPlaylist } from "./catalogue-en-playlist.ts";
+import { enCulling } from "./catalogue-en-culling.ts";
+import type { Catalogue } from "./messages.ts";
 
 /** English UI copy; the type demands exactly the German catalogue's keys and message shapes. */
 export const en: Catalogue = {

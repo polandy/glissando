@@ -1,5 +1,5 @@
-import type { deHtml } from "./catalogue-de-html";
-import type { Catalogue } from "./messages";
+import type { deHtml } from "./catalogue-de-html.ts";
+import type { Catalogue } from "./messages.ts";
 
 /** English copy of the web page export; typed to the German keys. */
 export const enHtml: Pick<Catalogue, keyof typeof deHtml> = {

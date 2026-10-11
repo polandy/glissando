@@ -6,6 +6,7 @@ import { libavLicensePlugin } from "./build/libav-license.ts";
 import { pinnedThemePlugin } from "./build/pinned-theme-script.ts";
 import { serviceWorkerPlugin } from "./build/service-worker-plugin.ts";
 import { sharePagePlugin } from "./build/share-page-plugin.ts";
+// Every module this config loads imports with explicit file extensions (ADR-0026).
 import {
   releaseFakeSharePicture,
   serveFakeShareApi,

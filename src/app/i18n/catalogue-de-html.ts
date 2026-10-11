@@ -1,4 +1,4 @@
-import type { Message } from "./messages";
+import type { Message } from "./messages.ts";
 
 /**
  * German copy of the web page export (dev-docs/HTML_EXPORT.md): the sheet, and the exported

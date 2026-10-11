@@ -1,4 +1,4 @@
-import type { Message } from "./messages";
+import type { Message } from "./messages.ts";
 
 /** German copy of the picture editor; part of the German catalogue, which defines the keys. */
 export const deEditor = {

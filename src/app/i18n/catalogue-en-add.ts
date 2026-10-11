@@ -1,5 +1,5 @@
-import type { deAdd } from "./catalogue-de-add";
-import type { Catalogue } from "./messages";
+import type { deAdd } from "./catalogue-de-add.ts";
+import type { Catalogue } from "./messages.ts";
 
 /** English copy of adding pictures to a slideshow and of duplicates; typed to the German keys. */
 export const enAdd: Pick<Catalogue, keyof typeof deAdd> = {

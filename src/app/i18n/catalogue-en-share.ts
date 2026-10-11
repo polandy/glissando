@@ -1,5 +1,5 @@
-import type { deShare } from "./catalogue-de-share";
-import type { Catalogue } from "./messages";
+import type { deShare } from "./catalogue-de-share.ts";
+import type { Catalogue } from "./messages.ts";
 
 /** English copy of sharing a server slideshow by link; typed to the German keys. */
 export const enShare: Pick<Catalogue, keyof typeof deShare> = {

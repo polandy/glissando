@@ -1,4 +1,5 @@
-import { CAPTION_FONT_NAME, type Slideshow } from "../player";
+import { CAPTION_FONT_NAME } from "../player/caption-layout.ts";
+import type { Slideshow } from "../player/slideshow.ts";
 import {
   COPY_BLOCK_ID,
   JSON_BLOCK_TYPE,
@@ -6,8 +7,8 @@ import {
   MEDIA_TYPE_ATTRIBUTE,
   SLIDESHOW_BLOCK_ID,
   type PageCopy,
-} from "./page-contract";
-import { assertInlineableScript } from "./inline-script";
+} from "./page-contract.ts";
+import { assertInlineableScript } from "./inline-script.ts";
 
 /**
  * The exported page as text, in the order it is written: `pageHead`, one media block per medium

@@ -1,5 +1,5 @@
-import type { Catalogue } from "./messages";
-import type { deTransitions } from "./catalogue-de-transitions";
+import type { Catalogue } from "./messages.ts";
+import type { deTransitions } from "./catalogue-de-transitions.ts";
 
 /** English copy of the slideshow's default transition; typed to the German keys. */
 export const enTransitions: Pick<Catalogue, keyof typeof deTransitions> = {

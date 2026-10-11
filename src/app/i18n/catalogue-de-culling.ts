@@ -1,4 +1,4 @@
-import type { Message } from "./messages";
+import type { Message } from "./messages.ts";
 
 /** German copy of culling: similar shots and blurry pictures set aside in the pictures step. */
 export const deCulling = {

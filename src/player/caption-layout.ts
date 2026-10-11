@@ -1,5 +1,5 @@
-import { graphemes } from "./caption";
-import type { Size } from "./ken-burns";
+import { graphemes } from "./caption.ts";
+import type { Size } from "./ken-burns.ts";
 
 /**
  * Where a caption sits and how it breaks, in the pixels it is drawn in; the same numbers style

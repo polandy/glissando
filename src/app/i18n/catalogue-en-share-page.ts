@@ -1,5 +1,5 @@
-import type { deSharePage } from "./catalogue-de-share-page";
-import type { Catalogue } from "./messages";
+import type { deSharePage } from "./catalogue-de-share-page.ts";
+import type { Catalogue } from "./messages.ts";
 
 /** English copy of the page a shared slideshow's link opens; typed to the German keys. */
 export const enSharePage: Pick<Catalogue, keyof typeof deSharePage> = {

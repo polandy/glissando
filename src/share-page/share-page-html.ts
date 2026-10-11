@@ -4,10 +4,10 @@ import {
   escapeStyle,
   jsonBlock,
   PAGE_CONTENT_SECURITY_POLICY,
-} from "../html-export/page";
-import { assertInlineableScript } from "../html-export/inline-script";
-import { SHARE_WORDS_BLOCK_ID } from "./share-page-contract";
-import type { SharePageLanguages } from "./share-page-words";
+} from "../html-export/page.ts";
+import { assertInlineableScript } from "../html-export/inline-script.ts";
+import { SHARE_WORDS_BLOCK_ID } from "./share-page-contract.ts";
+import type { SharePageLanguages } from "./share-page-words.ts";
 
 const SELF = "'self'";
 const DIRECTIVE_SEPARATOR = "; ";

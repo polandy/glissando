@@ -1,4 +1,4 @@
-import type { Message } from "./messages";
+import type { Message } from "./messages.ts";
 
 /** German copy of the playlist: its songs in the panel, the music editor and the import. */
 export const dePlaylist = {

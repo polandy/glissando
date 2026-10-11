@@ -1,5 +1,5 @@
-import type { Catalogue } from "./messages";
-import type { deEditor } from "./catalogue-de-editor";
+import type { Catalogue } from "./messages.ts";
+import type { deEditor } from "./catalogue-de-editor.ts";
 
 /** English copy of the picture editor; typed to the German keys. */
 export const enEditor: Pick<Catalogue, keyof typeof deEditor> = {
