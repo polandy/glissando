@@ -85,6 +85,10 @@ export interface MusicEditorView {
   readonly songNumber: number;
   /** The slideshow plays it; a song starting after the slideshow's end is not heard. */
   readonly reached: boolean;
+  /** Where in the slideshow it starts. */
+  readonly atMs: number;
+  /** The playlist's last song: past its end the pictures play on in silence. */
+  readonly last: boolean;
   readonly fileName: string;
   readonly durationMs: number;
   readonly startMs: number;
@@ -176,6 +180,8 @@ export function musicEditorView(
     songId,
     songNumber: index + 1,
     reached,
+    atMs,
+    last: index === stored.songs.length - 1,
     fileName: music.fileName,
     durationMs: music.durationMs,
     startMs,

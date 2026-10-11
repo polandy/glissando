@@ -191,3 +191,22 @@ describe("MusicEditorScreen without music", () => {
     expect(calls.added).toEqual(["Low Tide.mp3"]);
   });
 });
+
+describe("MusicEditorScreen, the pictures under the selected song", () => {
+  it("draws no pictures under a song the slideshow never reaches", () => {
+    const { set } = mountEditor(
+      slideshowOfSongs(THREE, { count: 4, pictureLength: OWN_SECONDS_PICTURE_LENGTH }),
+    );
+    set({ selectedSongId: "c" });
+
+    expect(text(".song-heading")).toBe("Song 3 · c.mp3");
+    expect(document.querySelector(".wavebox .runs")).toBeNull();
+  });
+
+  it("runs the pictures under a song on into the next song, with no silence", () => {
+    mountEditor(slideshowOfSongs(THREE, { count: 30, pictureLength: OWN_SECONDS_PICTURE_LENGTH }));
+
+    expect(document.querySelector<HTMLElement>(".wavebox .runs")?.style.width).toContain("100%");
+    expect(document.querySelector(".wavebox .over")).toBeNull();
+  });
+});
