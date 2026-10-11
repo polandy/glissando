@@ -20,6 +20,7 @@ async function mountControl({
   shared = null as ShareLink | null,
   origin = "https://photos.example.org",
   withShareSheet = true,
+  withClipboard = true,
   device = false,
 } = {}) {
   const api = new FakeShareLinkApi("show", shared);
@@ -29,7 +30,7 @@ async function mountControl({
     api,
     origin,
     scheduler,
-    clipboard: { writeText: () => Promise.resolve() },
+    clipboard: withClipboard ? { writeText: () => Promise.resolve() } : null,
     shareSheet: withShareSheet ? () => Promise.resolve() : null,
     openTab: () => {},
     onTurnedOff: () => toasts.push("Link ausgeschaltet"),
@@ -123,6 +124,18 @@ describe("The share row and sheet (SHARE_LINK.md, In the app)", () => {
     flushSync();
 
     expect(button("Kopieren")).toBeTruthy();
+  });
+
+  it("leaves Kopieren out where the browser has no clipboard, the link still selectable", async () => {
+    const { openSheet, dialog } = await mountControl({ shared: LINK, withClipboard: false });
+    await openSheet();
+
+    const output = dialog()?.querySelector("output");
+    expect(output?.textContent).toContain("/s/q7Rk2vN8xT4mWp1Lc9Hb3A");
+    expect(output === null || output === undefined ? "" : getComputedStyle(output).userSelect).toBe(
+      "all",
+    );
+    expect(dialog()?.textContent).not.toContain("Kopieren");
   });
 
   it("shows the link's QR code on QR-Code and hides it again", async () => {

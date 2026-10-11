@@ -16,17 +16,11 @@ export function browserShareLinkDevice(
     api,
     origin: window.location.origin,
     scheduler,
-    clipboard: {
-      writeText: (text) => {
-        // Browsers offer the clipboard only to a secure context: https or localhost.
-        if (!("clipboard" in navigator)) {
-          return Promise.reject(
-            new Error("this browser offers no clipboard here; open Glissando over https to copy"),
-          );
-        }
-        return navigator.clipboard.writeText(text);
-      },
-    },
+    // Browsers offer the clipboard only to a secure context: https or localhost.
+    clipboard:
+      "clipboard" in navigator
+        ? { writeText: (text) => navigator.clipboard.writeText(text) }
+        : null,
     shareSheet: "share" in navigator ? (data) => navigator.share(data) : null,
     openTab: (url) => {
       window.open(url, NEW_TAB, NEW_TAB_FEATURES);

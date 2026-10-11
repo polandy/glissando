@@ -15,6 +15,7 @@ function harness({
   shared = null as ShareLink | null,
   origin = ORIGIN,
   withShareSheet = true,
+  withClipboard = true,
 } = {}) {
   const api = new FakeShareLinkApi("show", shared);
   const scheduler = new FakeScheduler();
@@ -27,7 +28,9 @@ function harness({
     api,
     origin,
     scheduler,
-    clipboard: { writeText: (text) => (copied.push(text), Promise.resolve()) },
+    clipboard: withClipboard
+      ? { writeText: (text) => (copied.push(text), Promise.resolve()) }
+      : null,
     shareSheet: withShareSheet ? (data) => (sharedVia.push(data), Promise.resolve()) : null,
     openTab: (url) => tabs.push(url),
     onTurnedOff: () => turnedOff.push("toast"),
@@ -155,6 +158,16 @@ describe("ShareLinkSession (SHARE_LINK.md, In the app)", () => {
 
     expect(sharedVia).toEqual([{ title: "Summer 2025", url: URL_OF_LINK }]);
   });
+
+  it.each([
+    { withClipboard: true, canCopy: true },
+    { withClipboard: false, canCopy: false },
+  ])(
+    "offers Copy only where the browser has a clipboard ($withClipboard)",
+    ({ withClipboard, canCopy }) => {
+      expect(harness({ withClipboard }).session.canCopy).toBe(canCopy);
+    },
+  );
 
   it("offers no share sheet where the browser has none", () => {
     const { session } = harness({ withShareSheet: false });

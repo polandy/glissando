@@ -133,8 +133,9 @@ the same contract suite.
     lines (anyone with the link can watch in a browser, without signing in or installing
     anything; they see the slideshow in 4K with its music and captions, and nothing else; edits
     show up, and it works until you turn it off), then "Cancel" and "Create link".
-  - **Shared**: the link (read-only, mono) with "Copy" (then "Copied" for 2 s, from the injected
-    scheduler), "Share …" where `navigator.share` exists, "Open as viewer" (a new tab), and
+  - **Shared**: the link (read-only, mono; a tap or click selects all of it) with "Copy" where
+    the browser offers the clipboard, so not over plain `http:` (then "Copied" for 2 s, from the
+    injected scheduler), "Share …" where `navigator.share` exists, "Open as viewer" (a new tab), and
     "QR code", which shows or hides the link's QR code. Below that, "Created 11 Oct 2026 · works
     until you turn it off", then "Turn off link" (destructive text button) and "Done".
   - **Turn off?**: "Turn off the link?", "Anyone who has it can no longer watch “<title>”. If you

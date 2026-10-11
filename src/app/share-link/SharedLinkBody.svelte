@@ -25,9 +25,11 @@
 
 <div class="link-box">
   <output class="mono" aria-label={t("share.link")}>{link.url}</output>
-  <button class="btn" class:copied type="button" onclick={() => void session.copy()}>
-    <Icon name={copied ? "check" : "copy"} />{copied ? t("share.copied") : t("share.copy")}
-  </button>
+  {#if session.canCopy}
+    <button class="btn" class:copied type="button" onclick={() => void session.copy()}>
+      <Icon name={copied ? "check" : "copy"} />{copied ? t("share.copied") : t("share.copy")}
+    </button>
+  {/if}
 </div>
 <div class="ways">
   {#if session.canUseShareSheet}

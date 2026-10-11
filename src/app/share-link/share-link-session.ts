@@ -32,7 +32,8 @@ export interface ShareLinkDevice {
   /** The origin the app is open at, e.g. `https://photos.example.org`. */
   readonly origin: string;
   readonly scheduler: Scheduler;
-  readonly clipboard: { writeText(text: string): Promise<void> };
+  /** Null where the browser offers none, e.g. over plain http: the link stays selectable. */
+  readonly clipboard: { writeText(text: string): Promise<void> } | null;
   /** The browser's share sheet (`navigator.share`); null where it has none. */
   readonly shareSheet: ((data: { title: string; url: string }) => Promise<void>) | null;
   /** Opens a URL in a new tab. */
@@ -103,6 +104,11 @@ export class ShareLinkSession {
     return isHomeNetworkOrigin(this.#ports.origin);
   }
 
+  /** "Copy" shows only where the browser offers the clipboard. */
+  get canCopy(): boolean {
+    return this.#ports.clipboard !== null;
+  }
+
   /** "Share …" shows only where the browser has a share sheet. */
   get canUseShareSheet(): boolean {
     return this.#ports.shareSheet !== null;
@@ -140,8 +146,10 @@ export class ShareLinkSession {
 
   async copy(): Promise<void> {
     const url = this.#url();
+    const clipboard = this.#ports.clipboard;
+    if (clipboard === null) throw new Error("this browser offers no clipboard to copy the link to");
     try {
-      await this.#ports.clipboard.writeText(url);
+      await clipboard.writeText(url);
     } catch (error) {
       this.#ports.onError(error);
       return;
