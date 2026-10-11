@@ -231,4 +231,45 @@ describe("PictureIntake, culling similar shots and blurry pictures", () => {
     ]);
     expect(intake.culling.state).toMatchObject({ groups: [], setAsideCount: 0 });
   });
+
+  it("takes a set-aside picture in while a new batch is still being checked", async () => {
+    const { intake, checker } = intakeWith({ ...SIMILAR_SHOTS, "d.jpg": sharpness(300) });
+    intake.addPictures(similarShotFiles());
+    await intake.settled();
+    const setAsideC = intake.culling.state.groups[0]?.pictures[1];
+    checker.hold();
+    intake.addPictures([pictureFile("d.jpg", at(13))]);
+    await intake.pictures.settled();
+
+    intake.culling.takeIn(setAsideC?.id ?? "");
+    expect(intake.culling.state.checking).toEqual({ checked: 0, total: 1 });
+    checker.release();
+    await intake.settled();
+
+    expect(names(intake)).toEqual(["b.jpg", "c.jpg", "later.jpg"]);
+    expect(intake.culling.state.groups[0]?.pictures.map(({ fileName }) => fileName)).toEqual([
+      "a.jpg",
+      "d.jpg",
+    ]);
+  });
+
+  it("takes every set-aside picture in while a new batch is still downscaling", async () => {
+    const { intake } = intakeWith({ ...SIMILAR_SHOTS, "d.jpg": sharpness(300) });
+    intake.addPictures(similarShotFiles());
+    await intake.settled();
+
+    intake.addPictures([pictureFile("d.jpg", at(13))]);
+    expect(intake.pictures.state.busy).toBe(true);
+    intake.culling.takeAllIn();
+    await intake.settled();
+
+    expect(names(intake)).toEqual(["a.jpg", "b.jpg", "c.jpg", "later.jpg"]);
+    expect(intake.culling.state.groups).toEqual([
+      {
+        kind: "similar",
+        keptId: intake.pictures.state.pictures[1]?.id,
+        pictures: [expect.objectContaining({ fileName: "d.jpg" })],
+      },
+    ]);
+  });
 });
