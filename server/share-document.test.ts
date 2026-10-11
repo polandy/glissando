@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest";
-import type {
-  ServerMusic,
-  ServerPicture,
-  ServerSlideshow,
+import {
+  SERVER_MUSIC_KEYS,
+  SERVER_PICTURE_KEYS,
+  SERVER_SLIDESHOW_KEYS,
+  type ServerMusic,
+  type ServerPicture,
+  type ServerSlideshow,
 } from "../src/server-library/server-document";
 import { shareDocumentOf } from "./share-document";
 
@@ -28,7 +31,7 @@ const song = (overrides: Partial<ServerMusic> = {}): ServerMusic => ({
 
 const slideshow = (overrides: Partial<ServerSlideshow> = {}): ServerSlideshow => ({
   title: "Herbst in Wien",
-  createdAt: "2025-10-01T08:00:00.000Z",
+  createdAt: "2025-10-14T08:00:00.000Z",
   secondsPerPicture: 5,
   pictures: [picture()],
   songs: [song()],
@@ -36,13 +39,13 @@ const slideshow = (overrides: Partial<ServerSlideshow> = {}): ServerSlideshow =>
 });
 
 describe("the share document", () => {
-  it("keeps the slideshow's own settings as they are", () => {
+  it("keeps the slideshow's own settings as they are, its creation date cut to its month", () => {
     const shared = shareDocumentOf(
       slideshow({ ownOrder: true, transition: "cut", betweenSongs: "sequence" }),
     );
     expect(shared).toMatchObject({
       title: "Herbst in Wien",
-      createdAt: "2025-10-01T08:00:00.000Z",
+      createdAt: "2025-10-01T00:00:00.000Z",
       secondsPerPicture: 5,
       ownOrder: true,
       transition: "cut",
@@ -94,6 +97,65 @@ describe("the share document", () => {
       ).toBe(shared);
     },
   );
+
+  it("cuts the slideshow's creation date down to the first day of its month in UTC", () => {
+    expect(shareDocumentOf(slideshow({ createdAt: "2025-11-01T00:30:00+01:00" })).createdAt).toBe(
+      "2025-10-01T00:00:00.000Z",
+    );
+  });
+
+  it("drops a key the format does not know, at every level", () => {
+    const unknown = { unknownField: "secret" };
+    const shared = shareDocumentOf({
+      ...slideshow({
+        pictures: [{ ...picture(), ...unknown }],
+        songs: [{ ...song(), ...unknown }],
+      }),
+      ...unknown,
+    });
+    expect(shared.title).toBe("Herbst in Wien");
+    expect(JSON.stringify(shared)).not.toContain("unknownField");
+  });
+
+  describe("shares every key of the server document unless it is deliberately removed", () => {
+    const MARKER = "marker";
+    const removed = {
+      slideshow: new Set<string>(),
+      picture: new Set(["immichAssetId", "fileName"]),
+      song: new Set(["musicId", "fileName"]),
+    };
+    /** `value` with every one of `keys` set: its own value, or a marker. */
+    const withEvery = <Value extends object>(value: Value, keys: readonly string[]): Value =>
+      ({
+        ...Object.fromEntries(keys.map((key) => [key, MARKER])),
+        ...value,
+      }) as Value;
+    const shared = shareDocumentOf(
+      withEvery(
+        slideshow({
+          pictures: [withEvery(picture(), SERVER_PICTURE_KEYS)],
+          songs: [withEvery(song(), SERVER_MUSIC_KEYS)],
+        }),
+        SERVER_SLIDESHOW_KEYS,
+      ),
+    );
+    const sharedKeys = {
+      slideshow: Object.keys(shared),
+      picture: Object.keys(shared.pictures[0] ?? {}),
+      song: Object.keys(shared.songs[0] ?? {}),
+    };
+    it.each([
+      ...SERVER_SLIDESHOW_KEYS.map((key) => ["slideshow", key] as const),
+      ...SERVER_PICTURE_KEYS.map((key) => ["picture", key] as const),
+      ...SERVER_MUSIC_KEYS.map((key) => ["song", key] as const),
+    ])("the %s's %s", (level, key) => {
+      if (removed[level].has(key)) {
+        expect(sharedKeys[level]).not.toContain(key);
+      } else {
+        expect(sharedKeys[level]).toContain(key);
+      }
+    });
+  });
 
   it("keeps the pictures and songs in their order, so a position addresses each", () => {
     const shared = shareDocumentOf(

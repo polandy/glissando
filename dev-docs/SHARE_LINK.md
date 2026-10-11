@@ -24,10 +24,10 @@ https://polandy.github.io/glissando-assets/mockups/share-link/.
 
 ### Private (under `/api/library/`, behind the owner's sign-in)
 
-| Request                                                   | Answer                                                                                               |
-| --------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| `POST /api/library/slideshows/{id}/share`, JSON body `{}` | 201 `{ "token", "createdAt" }`; 200 with the same when already shared; 404 `notFound`; 415 `notJson` |
-| `DELETE /api/library/slideshows/{id}/share`               | 204; 404 `notFound` (no such slideshow) or `notShared`                                               |
+| Request                                                            | Answer                                                                                               |
+| ------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
+| `POST /api/library/slideshows/{id}/share`, any JSON body (ignored) | 201 `{ "token", "createdAt" }`; 200 with the same when already shared; 404 `notFound`; 415 `notJson` |
+| `DELETE /api/library/slideshows/{id}/share`                        | 204; 404 `notFound` (no such slideshow) or `notShared`                                               |
 
 - `GET /api/library/slideshows` (each entry) and `GET /api/library/slideshows/{id}` also carry
   `"share": { "token", "createdAt" }` or `"share": null`. `createdAt` is an ISO 8601 date-time
@@ -44,11 +44,14 @@ https://polandy.github.io/glissando-assets/mockups/share-link/.
 | `GET /api/share/{token}/songs/{n}`               | 200 the song's bytes with their `Content-Type`; 404 `notShared` or `noSuchSong`                                  |
 
 - **The share document** is the server document's `slideshow` with the following changes, made
-  by a pure function (`server/share-document.ts`). Everything else stays.
+  by a pure function (`server/share-document.ts`). It keeps only the keys it names (an allow-list
+  at each level), so a key added to the format stays on the server until it is named; a test
+  fails for any key of the server document that is neither shared nor deliberately removed.
   - Each picture's `immichAssetId` and any name are removed. Pictures are addressed by their
     position `n` (0-based).
-  - Each picture's `capturedAt` is cut down to the first day of its month (UTC). The title
-    fallback (COMPOSITION.md, Title) still works, and no exact date leaks.
+  - The slideshow's `createdAt` and each picture's `capturedAt` are cut down to the first day of
+    their month (UTC). The title fallback (COMPOSITION.md, Title) still works, and no exact date
+    leaks.
   - Each song's `musicId` and file name are removed. Songs are addressed by their position in
     the playlist.
 - **`{revision}` in a picture URL is only there for the cache**, so a reorder never serves a

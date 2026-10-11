@@ -143,7 +143,7 @@ describe("the shared document", () => {
       revision: 1,
       slideshow: {
         title: "Herbst in Wien",
-        createdAt: "2025-10-01T08:00:00.000Z",
+        createdAt: "2025-10-01T00:00:00.000Z",
         secondsPerPicture: 5,
         pictures: [
           { capturedAt: "2025-09-01T00:00:00.000Z", width: 1920, height: 1080 },
