@@ -4,6 +4,7 @@ import { MemoryLibraryStore } from "../../../library/testing/memory-store";
 import type { ImmichPhoto } from "../../../immich/immich-client";
 import type { PictureFocus } from "../../../library/picture-focus";
 import { fakeRemovalPorts } from "../../testing/picture-intake-ports";
+import { FakePictureChecker } from "../../../culling/testing/fake-picture-checker";
 import { ImportSession, type ImportChoices, type ImportSessionPorts } from "../import-session";
 
 export const CREATED_AT = new Date("2026-10-08T12:00:00Z");
@@ -56,6 +57,7 @@ export function sessionWith(
           focus: FACE,
         }),
     }),
+    checker: new FakePictureChecker(),
     probeMusic: (file): Promise<MusicProbe> =>
       file.name.endsWith(".broken")
         ? Promise.reject(new UnreadableMusicError(file.name))
@@ -90,7 +92,7 @@ export async function withTwoPictures(overrides: Partial<ImportSessionPorts> = {
     pictureFile("late.jpg", "2025-08-02T10:00:00Z"),
     pictureFile("early.jpg", "2025-07-01T10:00:00Z"),
   ]);
-  await setup.session.pictures.settled();
+  await setup.session.intake.settled();
   return setup;
 }
 

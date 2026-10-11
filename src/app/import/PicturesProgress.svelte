@@ -3,16 +3,22 @@
   import { getTranslator } from "../i18n/context";
   import type { PictureImportState } from "../../import/picture-import";
   import { picturesPhase } from "./import-view";
+  import type { CullingState } from "./picture-culling";
 
-  /** Step 1's count and meter: downscaling with Cancel, or what is in with "add more". */
+  /**
+   * Step 1's count and meter: downscaling, then checking for bursts and blur, with Cancel, or
+   * what is in with "add more".
+   */
   let {
     state,
+    checking,
     range,
     onCancel,
     onAddMore,
     onMoreFromImmich,
   }: {
     state: PictureImportState;
+    checking: CullingState["checking"];
     /** The capture dates of the stored pictures; null while none is stored. */
     range: { readonly from: string; readonly to: string } | null;
     onCancel: () => void;
@@ -24,6 +30,11 @@
 
   const { t, formatDate } = getTranslator();
   const importing = $derived(picturesPhase(state) === "importing");
+  const share = $derived.by(() => {
+    if (importing) return state.total > 0 ? state.done / state.total : 0;
+    if (checking !== null) return checking.total > 0 ? checking.checked / checking.total : 0;
+    return 1;
+  });
 </script>
 
 <div class="progress">
@@ -34,6 +45,16 @@
           {t("import.progressCount", { done: state.done, count: state.total })}
         </span>
         {t("import.progressLabel", { count: state.total })}
+      </span>
+      <button class="btn ghost" type="button" onclick={onCancel}>
+        {t("common.cancel")}
+      </button>
+    {:else if checking !== null}
+      <span>
+        <span class="mono">
+          {t("import.progressCount", { done: checking.checked, count: checking.total })}
+        </span>
+        {t("cull.checkingLabel")}
       </span>
       <button class="btn ghost" type="button" onclick={onCancel}>
         {t("common.cancel")}
@@ -60,7 +81,7 @@
     {/if}
   </div>
   <div class="meter">
-    <i style:width="{state.total > 0 ? (state.done / state.total) * 100 : 0}%"></i>
+    <i style:width="{share * 100}%"></i>
   </div>
 </div>
 

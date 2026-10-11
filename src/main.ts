@@ -42,6 +42,7 @@ import { openLibraryStore } from "./library/indexeddb-store";
 import { startFocusWorker, WorkerFocusDetector } from "./focus/worker-focus-detector";
 import { decodeMusicWithWebAudio } from "./beats/decode-music";
 import { startBeatWorker, WorkerBeatDetector } from "./beats/worker-beat-detector";
+import { startCheckWorker, WorkerPictureChecker } from "./culling/worker-picture-checker";
 import { requestPersistentStorage } from "./library/persistent-storage";
 import { browserPwaPorts } from "./pwa/browser-pwa";
 import { createStorageHintDismissalStore, PwaStatus } from "./pwa/pwa-status";
@@ -185,6 +186,7 @@ const intakePorts = {
   decode: decodePicture,
   captureDate,
   immichSource: (photo: ImmichPhoto) => immichPictureSource(photo, immichReaders),
+  checker: new WorkerPictureChecker(startCheckWorker),
   newId,
   now,
   onError: reportError,

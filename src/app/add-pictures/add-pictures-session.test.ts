@@ -124,7 +124,7 @@ describe("AddPicturesSession, to a slideshow on this device", () => {
     const { session } = await sessionFor();
 
     session.addImmichPhotos([immichPhoto("asset-1", "2025-07-02T10:00:00Z")]);
-    await session.intake.pictures.settled();
+    await session.intake.settled();
 
     expect(session.intake.pictures.state.pictures).toHaveLength(1);
     expect(session.intake.pictures.state.pictures[0]?.id).not.toBe("asset-1");
@@ -135,7 +135,7 @@ describe("AddPicturesSession", () => {
   it("stores the new pictures into the slideshow by capture date and returns their ids", async () => {
     const { session, store } = await sessionFor();
     session.intake.addPictures([pictureFile("middle.jpg", "2025-07-02T10:00:00Z")]);
-    await session.intake.pictures.settled();
+    await session.intake.settled();
 
     const added = await session.commit();
 
@@ -152,7 +152,7 @@ describe("AddPicturesSession", () => {
     const own = { ...SHOW, pictures: [...SHOW.pictures].reverse(), ownOrder: true as const };
     const { session, store } = await sessionFor(own);
     session.intake.addPictures([pictureFile("middle.jpg", "2025-07-02T10:00:00Z")]);
-    await session.intake.pictures.settled();
+    await session.intake.settled();
 
     await session.commit();
 
@@ -169,7 +169,7 @@ describe("AddPicturesSession", () => {
     const own = { ...SHOW, pictures: [...SHOW.pictures].reverse(), ownOrder: true as const };
     const { session, store } = await sessionFor(own);
     session.intake.addPictures([pictureFile("early.jpg", "2025-06-30T10:00:00Z")]);
-    await session.intake.pictures.settled();
+    await session.intake.settled();
 
     session.placement = "atEnd";
     await session.commit();
@@ -185,7 +185,7 @@ describe("AddPicturesSession", () => {
   it("ends the claim once stored, the slideshow keeping the new media from a clean-up", async () => {
     const { session, store } = await sessionFor();
     session.intake.addPictures([pictureFile("new.jpg", "2025-07-02T10:00:00Z")]);
-    await session.intake.pictures.settled();
+    await session.intake.settled();
 
     const [added] = await session.commit();
     await store.deleteUnreferencedMedia(INTAKE_NOW);
@@ -197,7 +197,7 @@ describe("AddPicturesSession", () => {
   it("stores the pictures in one read-and-write edit of the record, never a separate read", async () => {
     const { session, store } = await sessionFor();
     session.intake.addPictures([pictureFile("new.jpg", "2025-07-02T10:00:00Z")]);
-    await session.intake.pictures.settled();
+    await session.intake.settled();
 
     await session.commit();
 
@@ -207,7 +207,7 @@ describe("AddPicturesSession", () => {
   it("still resolves with the ids once stored when ending the claim fails, and reports it", async () => {
     const { session, store, errors } = await sessionFor(SHOW, new UnreleasingStore());
     session.intake.addPictures([pictureFile("new.jpg", "2025-07-02T10:00:00Z")]);
-    await session.intake.pictures.settled();
+    await session.intake.settled();
 
     const added = await session.commit();
 
@@ -220,7 +220,7 @@ describe("AddPicturesSession", () => {
     const { session } = await sessionFor();
 
     session.intake.addPictures([pictureFile("old-1.jpg", "2025-07-01T10:00:00Z")]);
-    await session.intake.pictures.settled();
+    await session.intake.settled();
 
     expect(session.intake.pictures.state.skipped).toEqual([
       { fileName: "old-1.jpg", reason: "alreadyIn" },
@@ -238,7 +238,7 @@ describe("AddPicturesSession", () => {
       pictures: [...SHOW.pictures, added],
     });
     session.intake.addPictures([pictureFile("old-3.jpg", added.capturedAt)]);
-    await session.intake.pictures.settled();
+    await session.intake.settled();
 
     expect(session.slideshow).toMatchObject({ title: "Renamed", ownOrder: true });
     expect(session.intake.known).toHaveLength(3);
@@ -251,7 +251,7 @@ describe("AddPicturesSession", () => {
     const { session, store } = await sessionFor();
     await store.updateSlideshow({ ...SHOW, title: "Renamed" });
     session.intake.addPictures([pictureFile("new.jpg", "2025-07-02T10:00:00Z")]);
-    await session.intake.pictures.settled();
+    await session.intake.settled();
 
     await session.commit();
 
@@ -261,7 +261,7 @@ describe("AddPicturesSession", () => {
   it("fails with SlideshowNotFoundError when the slideshow was deleted meanwhile", async () => {
     const { session, store } = await sessionFor();
     session.intake.addPictures([pictureFile("new.jpg", "2025-07-02T10:00:00Z")]);
-    await session.intake.pictures.settled();
+    await session.intake.settled();
     await store.deleteSlideshow(SHOW.id);
 
     await expect(session.commit()).rejects.toBeInstanceOf(SlideshowNotFoundError);

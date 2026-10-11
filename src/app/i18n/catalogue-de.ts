@@ -8,6 +8,7 @@ import { deHtml } from "./catalogue-de-html";
 import { deVideo } from "./catalogue-de-video";
 import { deServer } from "./catalogue-de-server";
 import { dePlaylist } from "./catalogue-de-playlist";
+import { deCulling } from "./catalogue-de-culling";
 import type { Message } from "./messages";
 
 /**
@@ -297,4 +298,5 @@ export const de = {
   ...deHtml,
   ...deServer,
   ...dePlaylist,
+  ...deCulling,
 } as const satisfies Record<string, Message>;

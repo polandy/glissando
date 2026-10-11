@@ -5,6 +5,7 @@ import type { StoredPicture } from "../../library/stored-slideshow";
 import { MILLISECONDS_PER_SECOND } from "../../player";
 import type { PlaylistSongView } from "../music-editor/playlist-view";
 import type { ChosenSong } from "./import-session";
+import type { CullingState } from "./picture-culling";
 
 /**
  * What step 1 shows: the drop zone, the live progress, the chosen pictures, or a failed import,
@@ -27,9 +28,12 @@ export function pendingPictureCount(state: PictureImportState): number {
   return state.busy ? state.total - state.done : 0;
 }
 
-/** "Next" waits until every picture is downscaled (dev-docs/SCOPE.md, interaction rules). */
-export function canContinue(state: PictureImportState): boolean {
-  return !state.busy && !state.failed && state.pictures.length > 0;
+/**
+ * "Next" waits until every picture is downscaled and checked for bursts and blur
+ * (dev-docs/SCOPE.md, interaction rules).
+ */
+export function canContinue(state: PictureImportState, culling: CullingState): boolean {
+  return !state.busy && culling.checking === null && !state.failed && state.pictures.length > 0;
 }
 
 /** Whether leaving step 1 would throw away something the user chose. */

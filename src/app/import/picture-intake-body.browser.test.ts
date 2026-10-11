@@ -35,7 +35,7 @@ function mountBody(known: readonly PictureIdentity[]) {
 }
 
 async function settle(intake: PictureIntake): Promise<void> {
-  await intake.pictures.settled();
+  await intake.settled();
   flushSync();
 }
 

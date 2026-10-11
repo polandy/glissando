@@ -18,7 +18,7 @@ export interface Queued {
 }
 
 export type Outcome =
-  | { readonly kind: "stored"; readonly picture: StoredPicture }
+  | { readonly kind: "stored"; readonly picture: StoredPicture; readonly thumbnail: Blob }
   | { readonly kind: "skipped"; readonly reason: SkipReason }
   | { readonly kind: "storageFull" };
 
@@ -81,5 +81,9 @@ export async function importOne(
     ...(immichAssetId === undefined ? {} : { immichAssetId }),
     ...(fileBytes === undefined ? {} : { fileBytes }),
   };
-  return { kind: "stored", picture: { id, capturedAt, width, height, fileName, ...origin } };
+  return {
+    kind: "stored",
+    picture: { id, capturedAt, width, height, fileName, ...origin },
+    thumbnail: decoded.thumbnail,
+  };
 }

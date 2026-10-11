@@ -4,7 +4,11 @@ import type { PictureBlobs } from "../../library/stored-slideshow";
 import type { DecodedPicture } from "../downscale";
 import { UnreadablePictureError } from "../unreadable-picture";
 import { localPictureSource } from "../local-picture-source";
-import { PictureImport, type PictureImportState } from "../picture-import";
+import {
+  PictureImport,
+  type PictureImportState,
+  type StoredWithThumbnail,
+} from "../picture-import";
 
 export const picture = (name: string, type = "image/jpeg"): File =>
   new File([name], name, { type });
@@ -84,9 +88,11 @@ export function setUp(
 ) {
   const decoder = options.decoder ?? new FakeDecoder();
   const store = options.store ?? new MemoryLibraryStore();
+  const stored: StoredWithThumbnail[] = [];
   const pictureImport = new PictureImport({
     store,
     newId: sequentialIds(),
+    stored: (picture) => stored.push(picture),
     ...(options.known === undefined ? {} : { known: () => options.known ?? [] }),
   });
   const captureDate = options.captureDate ?? captureDates(options.dates ?? {});
@@ -97,7 +103,7 @@ export function setUp(
   };
   const states: PictureImportState[] = [];
   pictureImport.subscribe((state) => states.push(state));
-  return { pictureImport, addFiles, decoder, store, states };
+  return { pictureImport, addFiles, decoder, store, states, stored };
 }
 
 export const fileNames = (state: PictureImportState): string[] =>

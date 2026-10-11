@@ -1,6 +1,7 @@
 import type { ImmichPhoto } from "../../immich/immich-client";
 import type { PictureSource } from "../../import/picture-source";
 import { MemoryLibraryStore } from "../../library/testing/memory-store";
+import { FakePictureChecker } from "../../culling/testing/fake-picture-checker";
 import type { PictureIntakePorts } from "../import/picture-intake";
 import { Toaster } from "../toast/toaster";
 import { FakeScheduler } from "../../ui-kit/testing/fake-scheduler";
@@ -66,6 +67,7 @@ export function fakeIntakePorts(
       }),
     captureDate: (file) => Promise.resolve((file as File & { capturedAt: string }).capturedAt),
     immichSource: fakeImmichSource,
+    checker: new FakePictureChecker(),
     newId: () => `id-${(nextId += 1)}`,
     now: () => INTAKE_NOW,
     onError: (error) => errors.push(error),

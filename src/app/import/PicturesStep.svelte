@@ -71,6 +71,9 @@
   const locked = $derived(importState.pictures.length > 0 || importState.busy);
 
   $effect(() => session.pictures.subscribe((next) => (importState = next)));
+  // svelte-ignore state_referenced_locally
+  let cullingState = $state.raw(session.intake.culling.state);
+  $effect(() => session.intake.culling.subscribe((next) => (cullingState = next)));
   $effect(() => session.choices.subscribe((next) => (home = next.home)));
   // Without the server library a new slideshow lives on this device; a selection keeps its home.
   $effect(() => {
@@ -140,7 +143,12 @@
 
   {#snippet actions()}
     <button class="btn ghost" type="button" onclick={onLeave}>{t("common.cancel")}</button>
-    <button class="btn primary" type="button" disabled={!canContinue(importState)} onclick={onNext}>
+    <button
+      class="btn primary"
+      type="button"
+      disabled={!canContinue(importState, cullingState)}
+      onclick={onNext}
+    >
       {t("common.next")}
     </button>
   {/snippet}

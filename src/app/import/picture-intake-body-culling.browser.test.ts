@@ -1,0 +1,140 @@
+import { createRawSnippet, flushSync } from "svelte";
+import { afterEach, describe, expect, it } from "vitest";
+import type { PictureMeasure } from "../../culling/picture-checker";
+import { FakePictureChecker } from "../../culling/testing/fake-picture-checker";
+import { mountWithTranslator } from "../testing/mount-with-translator";
+import { fakeIntakePorts, pictureFile } from "../testing/picture-intake-ports";
+import { PictureIntake } from "./picture-intake";
+import PictureIntakeBody from "./PictureIntakeBody.svelte";
+
+const NO_SOURCES = createRawSnippet(() => ({ render: () => "<div></div>" }));
+const SCENE = 0x0f0f_0f0f_0f0f_0f0fn;
+const measure = (sharpness: number, hash = SCENE): PictureMeasure => ({ sharpness, hash });
+
+let unmounts: (() => void)[] = [];
+afterEach(() => {
+  for (const unmount of unmounts) unmount();
+  unmounts = [];
+});
+
+function mountBody(checker: FakePictureChecker) {
+  const intake = new PictureIntake(fakeIntakePorts(undefined, { checker }).ports);
+  const body = mountWithTranslator(PictureIntakeBody, {
+    intake,
+    loadThumbnail: () => Promise.resolve(new Blob()),
+    onError: () => undefined,
+    onFiles: () => undefined,
+    onDiscard: () => undefined,
+    immich: { kind: "notSetUp" },
+    onOpenImmich: () => undefined,
+    sources: NO_SOURCES,
+  });
+  unmounts.push(body.destroy);
+  return { intake, target: body.target };
+}
+
+/** A burst of a, b (the sharpest) and c, and one blurry picture among sharp ones. */
+function burstAndBlurry() {
+  const checker = new FakePictureChecker({
+    "thumbnail a.jpg": measure(240),
+    "thumbnail b.jpg": measure(455),
+    "thumbnail c.jpg": measure(120),
+    "thumbnail soft.jpg": measure(5, 1n),
+    "thumbnail x.jpg": measure(900, 2n),
+    "thumbnail y.jpg": measure(900, 3n),
+  });
+  const files = [
+    pictureFile("a.jpg", "2025-07-02T14:02:10Z"),
+    pictureFile("b.jpg", "2025-07-02T14:02:11Z"),
+    pictureFile("c.jpg", "2025-07-02T14:02:12Z"),
+    pictureFile("x.jpg", "2025-07-03T09:00:00Z"),
+    pictureFile("soft.jpg", "2025-07-03T11:05:00Z"),
+    pictureFile("y.jpg", "2025-07-04T13:30:00Z"),
+  ];
+  return { checker, files };
+}
+
+const text = (element: Element | null | undefined): string =>
+  (element?.textContent ?? "").replace(/\s+/g, " ").trim();
+const stripTiles = (target: HTMLElement) => target.querySelectorAll(".strip .tile").length;
+const takeButtons = (target: HTMLElement) => [
+  ...target.querySelectorAll<HTMLButtonElement>("button.take"),
+];
+
+describe("PictureIntakeBody, the set-aside pictures", () => {
+  it("counts the checks with a meter while pictures are checked", async () => {
+    const { checker, files } = burstAndBlurry();
+    checker.hold();
+    const { intake, target } = mountBody(checker);
+
+    intake.addPictures(files);
+    await intake.pictures.settled();
+    flushSync();
+
+    expect(text(target.querySelector(".progress-row"))).toContain(
+      "0 / 6 auf Serien und Unschärfe geprüft",
+    );
+    expect(target.querySelector(".aside")).toBeNull();
+  });
+
+  it("groups a burst with its kept picture and the blurry ones below the strip", async () => {
+    const { checker, files } = burstAndBlurry();
+    const { intake, target } = mountBody(checker);
+
+    intake.addPictures(files);
+    await intake.settled();
+    flushSync();
+
+    expect(stripTiles(target)).toBe(3);
+    const aside = target.querySelector(".aside");
+    expect(text(aside?.querySelector("h2"))).toBe("Beiseitegelegt · 3");
+    const [burst, blurry] = [...(aside?.querySelectorAll(".group") ?? [])];
+    expect(text(burst?.querySelector("h3"))).toBe(
+      "Serie 02.07.2025 14:02:10 · das schärfste bleibt",
+    );
+    expect([...(burst?.querySelectorAll(".chip") ?? [])].map(text)).toEqual([
+      "Behalten",
+      "Ähnlich",
+      "Ähnlich",
+    ]);
+    expect(text(blurry?.querySelector("h3"))).toBe("Unscharf");
+    expect(takeButtons(target).map((button) => button.getAttribute("aria-label"))).toEqual([
+      "Bild vom 02.07.2025 um 14:02:10 übernehmen",
+      "Bild vom 02.07.2025 um 14:02:12 übernehmen",
+      "Bild vom 03.07.2025 um 11:05:00 übernehmen",
+    ]);
+  });
+
+  it("moves a picture into the strip with its +, focusing the next +", async () => {
+    const { checker, files } = burstAndBlurry();
+    const { intake, target } = mountBody(checker);
+    intake.addPictures(files);
+    await intake.settled();
+    flushSync();
+
+    takeButtons(target)[0]?.click();
+    flushSync();
+
+    expect(stripTiles(target)).toBe(4);
+    expect(text(target.querySelector(".aside h2"))).toBe("Beiseitegelegt · 2");
+    expect(document.activeElement?.getAttribute("aria-label")).toBe(
+      "Bild vom 02.07.2025 um 14:02:12 übernehmen",
+    );
+  });
+
+  it("takes all in, and the section goes", async () => {
+    const { checker, files } = burstAndBlurry();
+    const { intake, target } = mountBody(checker);
+    intake.addPictures(files);
+    await intake.settled();
+    flushSync();
+
+    [...target.querySelectorAll<HTMLButtonElement>(".aside button")]
+      .find((button) => text(button) === "Alle übernehmen")
+      ?.click();
+    flushSync();
+
+    expect(stripTiles(target)).toBe(6);
+    expect(target.querySelector(".aside")).toBeNull();
+  });
+});

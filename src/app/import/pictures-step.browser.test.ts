@@ -1,4 +1,5 @@
 import { flushSync } from "svelte";
+import { FakePictureChecker } from "../../culling/testing/fake-picture-checker";
 import { afterEach, describe, expect, it } from "vitest";
 import { MemoryLibraryStore } from "../../library/testing/memory-store";
 import { fakeRemovalPorts } from "../testing/picture-intake-ports";
@@ -32,6 +33,7 @@ function failingSession(): ImportSession {
   return new ImportSession({
     store: new MemoryLibraryStore(),
     ...fakeRemovalPorts(),
+    checker: new FakePictureChecker(),
     decode: (file) =>
       Promise.resolve({
         width: 300,

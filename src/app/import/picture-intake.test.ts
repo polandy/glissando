@@ -38,7 +38,7 @@ describe("PictureIntake", () => {
       pictureFile("beach.jpg", KNOWN.capturedAt),
       pictureFile("hill.jpg", "2025-07-02T10:00:00Z"),
     ]);
-    await intake.pictures.settled();
+    await intake.settled();
 
     expect(intake.pictures.state.pictures.map(({ fileName }) => fileName)).toEqual(["hill.jpg"]);
     expect(intake.pictures.state.skipped).toEqual([{ fileName: "beach.jpg", reason: "alreadyIn" }]);
@@ -48,10 +48,10 @@ describe("PictureIntake", () => {
     const { ports, store } = fakeIntakePorts();
     const intake = new PictureIntake(ports, [KNOWN]);
     intake.addPictures([pictureFile("beach.jpg", KNOWN.capturedAt)]);
-    await intake.pictures.settled();
+    await intake.settled();
 
     intake.addDuplicates("alreadyIn");
-    await intake.pictures.settled();
+    await intake.settled();
 
     const [picture] = intake.pictures.state.pictures;
     expect(picture?.fileName).toBe("beach.jpg");
@@ -63,7 +63,7 @@ describe("PictureIntake", () => {
     const { ports, store } = fakeIntakePorts(new MemoryLibraryStore());
     const intake = new PictureIntake(ports);
     intake.addPictures([pictureFile("a.jpg", "2025-07-01T10:00:00Z")]);
-    await intake.pictures.settled();
+    await intake.settled();
     const [picture] = intake.pictures.state.pictures;
 
     await intake.discard();

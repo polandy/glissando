@@ -14,7 +14,7 @@ describe("ImportSession, how it claims and stores its media", () => {
     const store = new LoggingStore();
     const { session } = sessionWith(store);
     session.addPictures([pictureFile("a.jpg", "2025-07-01T10:00:00Z")]);
-    await session.pictures.settled();
+    await session.intake.settled();
     await session.addSongs([new File(["tune"], "Sommer.mp3", { type: "audio/mpeg" })]);
 
     await session.create("de");
@@ -36,7 +36,7 @@ describe("ImportSession, how it claims and stores its media", () => {
     session.addImmichPhotos([
       { id: "asset-1", fileName: "IMG_0001.HEIC", takenAt: "2025-06-01T10:00:00Z", size: null },
     ]);
-    await session.pictures.settled();
+    await session.intake.settled();
 
     expect(session.pictures.state.pictures.map((picture) => picture.fileName)).toEqual([
       "IMG_0001.HEIC",
@@ -72,7 +72,7 @@ describe("ImportSession, how it claims and stores its media", () => {
     const { session } = sessionWith(store);
     await session.discard();
     session.addPictures([pictureFile("a.jpg", "2025-07-01T10:00:00Z")]);
-    await session.pictures.settled();
+    await session.intake.settled();
 
     await session.discard();
 

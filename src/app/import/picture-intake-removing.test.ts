@@ -9,7 +9,7 @@ async function intakeWithTwo() {
     pictureFile("beach.jpg", "2025-07-01T10:00:00Z"),
     pictureFile("hill.jpg", "2025-07-02T10:00:00Z"),
   ]);
-  await intake.pictures.settled();
+  await intake.settled();
   const idOf = (name: string): string => {
     const found = intake.pictures.state.pictures.find((stored) => stored.fileName === name);
     if (found === undefined) {
@@ -40,7 +40,7 @@ describe("PictureIntake, removing chosen pictures", () => {
     intake.removePicture(idOf("beach.jpg"));
 
     intake.addPictures([pictureFile("lake.jpg", "2025-07-03T10:00:00Z")]);
-    await intake.pictures.settled();
+    await intake.settled();
 
     expect(names(intake)).toEqual(["hill.jpg", "lake.jpg"]);
     expect(toaster.current).toBeNull();

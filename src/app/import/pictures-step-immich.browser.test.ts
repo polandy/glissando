@@ -1,4 +1,5 @@
 import { flushSync } from "svelte";
+import { FakePictureChecker } from "../../culling/testing/fake-picture-checker";
 import { afterEach, describe, expect, it } from "vitest";
 import type { ImmichAvailabilityState } from "../../immich/immich-availability";
 import { MemoryLibraryStore } from "../../library/testing/memory-store";
@@ -19,6 +20,7 @@ function session(): ImportSession {
   return new ImportSession({
     store: new MemoryLibraryStore(),
     ...fakeRemovalPorts(),
+    checker: new FakePictureChecker(),
     decode: (file) =>
       Promise.resolve({
         width: 300,
@@ -120,7 +122,7 @@ describe("PicturesStep, the Immich box", () => {
     );
 
     importSession.addPictures([new File(["a"], "a.jpg", { type: "image/jpeg" })]);
-    await importSession.reported();
+    await importSession.intake.settled();
     flushSync();
 
     expect(button("add more")).toBeDefined();

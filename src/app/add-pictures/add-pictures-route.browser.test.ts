@@ -55,7 +55,7 @@ function mountRoute(
 
 async function choosePicture(session: AddPicturesSession): Promise<void> {
   session.intake.addPictures([pictureFile("new.jpg", "2025-07-02T10:00:00Z")]);
-  await session.intake.pictures.settled();
+  await session.intake.settled();
   flushSync();
 }
 
@@ -107,7 +107,7 @@ describe("AddPicturesRoute", () => {
     flushSync();
 
     expect(button(target, de.t("add.titleShort")).disabled).toBe(true);
-    await session.intake.pictures.settled();
+    await session.intake.settled();
     flushSync();
     expect(button(target, de.t("add.add", { count: 1 })).disabled).toBe(false);
   });

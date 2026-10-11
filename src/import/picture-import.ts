@@ -34,9 +34,19 @@ export interface PictureImportState {
   readonly failed: boolean;
 }
 
+/** A picture just stored, with the thumbnail it was stored with. */
+export interface StoredWithThumbnail {
+  readonly picture: StoredPicture;
+  readonly thumbnail: Blob;
+  /** A duplicate the user took in after all. */
+  readonly takenInAnyway: boolean;
+}
+
 export interface PictureImportPorts extends OutcomePorts {
   /** Pictures already there now, such as the slideshow's when adding to it; absent: none. */
   known?(): readonly PictureIdentity[];
+  /** Told of each picture this import stores, before it is listed; absent: no one is told. */
+  stored?(stored: StoredWithThumbnail): void;
 }
 
 const PICTURE_TYPE_PREFIX = "image/";
@@ -209,7 +219,6 @@ export class PictureImport {
     try {
       for (let entry = this.#queue.shift(); entry !== undefined; entry = this.#queue.shift()) {
         const generation = this.#generation;
-        const { source } = entry;
         let outcome: Outcome;
         try {
           outcome = await this.#importOne(entry);
@@ -221,7 +230,7 @@ export class PictureImport {
           continue;
         }
         if (generation === this.#generation) {
-          this.#apply(source, outcome);
+          this.#apply(entry, outcome);
         }
       }
     } catch (error) {
@@ -242,11 +251,16 @@ export class PictureImport {
     );
   }
 
-  #apply(source: PictureSource, outcome: Outcome): void {
+  #apply({ source, skipDuplicate }: Queued, outcome: Outcome): void {
     const done = this.#state.done + 1;
     const busy = this.#queue.length > 0;
     switch (outcome.kind) {
       case "stored":
+        this.#ports.stored?.({
+          picture: outcome.picture,
+          thumbnail: outcome.thumbnail,
+          takenInAnyway: !skipDuplicate,
+        });
         this.#update({
           done,
           busy,
