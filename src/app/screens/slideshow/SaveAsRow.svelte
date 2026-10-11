@@ -2,7 +2,7 @@
   import Icon from "../../components/Icon.svelte";
   import { getTranslator } from "../../i18n/context";
 
-  /** "Save as": video and web page side by side (VIDEO_EXPORT.md and HTML_EXPORT.md, Sheet). */
+  /** "Save as": video and web page side by side (video_export/SHEET.md and html_export/SHEET.md). */
   let { onSaveVideo, onSaveWebPage }: { onSaveVideo: () => void; onSaveWebPage: () => void } =
     $props();
 

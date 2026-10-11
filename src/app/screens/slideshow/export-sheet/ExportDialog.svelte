@@ -3,7 +3,7 @@
   import Icon from "../../../components/Icon.svelte";
 
   /**
-   * The export sheets' frame (VIDEO_EXPORT.md and HTML_EXPORT.md, Sheet): a modal dialog on
+   * The export sheets' frame (video_export/SHEET.md and html_export/SHEET.md): a modal dialog on
    * desktop, a bottom sheet on a phone, with the heading and ✕. Esc and ✕ call `onClose`.
    */
   let {

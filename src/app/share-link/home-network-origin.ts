@@ -1,6 +1,6 @@
 /**
- * Whether the app is open at an address only the home network reaches (SHARE_LINK.md, In the
- * app): a link made there would not work for someone elsewhere.
+ * Whether the app is open at an address only the home network reaches (share_link/IN_THE_APP.md):
+ * a link made there would not work for someone elsewhere.
  */
 export function isHomeNetworkOrigin(origin: string): boolean {
   const url = parseOrigin(origin);

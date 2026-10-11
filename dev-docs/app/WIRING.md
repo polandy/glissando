@@ -14,7 +14,7 @@ over real timers.
   0.18 s and is removed, at once with reduced motion. The app's stylesheets are linked by
   `index.html`, not imported by `main.ts`, so the shell is styled from the first paint.
 
-- **Server library** (SERVER_LIBRARY.md, In the app): `createServerLibrary` wires the
+- **Server library** (server_library/IN_THE_APP.md): `createServerLibrary` wires the
   `./api/library` client, `ServerLibraryAvailability` (following Immich's availability), the
   `ServerSlideshowStore`, its use-cases and the per-device `ServerLibraryMemory` into
   `services.serverLibrary`. `App.svelte` hands the slideshow route the store of where the
@@ -41,7 +41,7 @@ over real timers.
   ends and, after creating (also after opening a file), the search for the new pictures' focus
   and the persistence prompt.
 - **Focus** (ADR-0012): the composition root builds the `FocusPass` over the store and the
-  worker's detector and starts it as the app opens (dev-docs/LIBRARY.md, Looking for the focus).
+  worker's detector and starts it as the app opens (dev-docs/library/FOCUS_SEARCH.md).
   The start screen subscribes to it for the cards' progress; the slideshow screen subscribes to
   it while shown: the picture editor's view carries the
   picture's focus status (`subject`, `none`, `searching`, `not-looked-at`), and its motion and

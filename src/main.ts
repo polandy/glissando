@@ -123,7 +123,7 @@ function deleteAbandonedMedia(): void {
   store.deleteUnreferencedMedia(now()).catch(reportError);
 }
 deleteAbandonedMedia();
-// Exports a crash or a closed tab left behind (VIDEO_EXPORT.md, Clean-up).
+// Exports a crash or a closed tab left behind (video_export/WRITING_THE_FILE.md).
 sweepPrivateExports().catch(logError);
 
 const focusPass = new FocusPass({

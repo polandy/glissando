@@ -72,7 +72,7 @@ export interface AppServices {
   readonly videoExport: VideoExportDevice;
   /** What the web page export sheet needs of the browser (dev-docs/HTML_EXPORT.md). */
   readonly htmlExport: HtmlExportDevice;
-  /** A server slideshow's link and its share sheet (dev-docs/SHARE_LINK.md, In the app). */
+  /** A server slideshow's link and its share sheet (dev-docs/share_link/IN_THE_APP.md). */
   newShareLinkSession(slideshowId: string): ShareLinkSession;
   /** Reloads the app, e.g. to get a newer version. */
   reload(): void;

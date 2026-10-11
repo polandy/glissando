@@ -5,7 +5,7 @@ import type {
 } from "../src/server-library/server-document";
 
 /**
- * The slideshow as a share link's recipient gets it (`dev-docs/SHARE_LINK.md`, The HTTP API):
+ * The slideshow as a share link's recipient gets it (`dev-docs/share_link/HTTP_API.md`):
  * only the keys named here are shared, so a field added to the format stays on the server until
  * it is named. Pictures and songs are addressed by their position, so no Immich asset id, music
  * id or file name leaves the server, and no exact date either.

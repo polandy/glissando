@@ -16,7 +16,7 @@ export interface LinkedPhotos {
 
 /**
  * Picked Immich photos as pictures of a server slideshow, linked, not downloaded
- * (`dev-docs/SERVER_LIBRARY.md`, The server document): each picture's id is its asset id and its
+ * (`dev-docs/server_library/SERVER_DOCUMENT.md`): each picture's id is its asset id and its
  * size Immich's fitted into the display bound.
  */
 export function linkImmichPhotos(

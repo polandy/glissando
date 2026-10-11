@@ -18,7 +18,7 @@ import {
 /**
  * A slideshow on the Glissando server: the .glissando manifest's slideshow with every picture
  * linked from Immich and the playlist's songs each named by the server's id
- * (`dev-docs/SERVER_LIBRARY.md`, The server document). Shared by the app and the server.
+ * (`dev-docs/server_library/SERVER_DOCUMENT.md`). Shared by the app and the server.
  */
 
 export const SERVER_DOCUMENT_FORMAT_ID = "glissando-server";

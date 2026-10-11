@@ -14,7 +14,7 @@
   card grid —
   a cover of the first three pictures (one large, two small), the title, "12 pictures · 1:00" and a
   music icon — ending in a dashed "New slideshow" card. While the background search for the
-  focus (dev-docs/LIBRARY.md, Looking for the focus) has pictures of a slideshow left, its card
+  focus (dev-docs/library/FOCUS_SEARCH.md) has pictures of a slideshow left, its card
   adds the line "Looking for subjects · 12 of 40" over a 2 px mint hairline filling with the
   progress (`screens/FocusSearchLine.svelte`); both go once the slideshow is done, and the card
   stays fully usable meanwhile. A status bar at the bottom
@@ -22,8 +22,8 @@
   [Installing and offline](INSTALLING_AND_OFFLINE.md) says. A file dragged over the library shows
   the layer "Drop to open the slideshow"; dropped, it opens (below). With the server library on
   or offline, the library splits into "On this device" and "On your Glissando server", the
-  server cards from the last list this device remembers while offline (SERVER_LIBRARY.md,
-  Library).
+  server cards from the last list this device remembers while offline
+  (server_library/IN_THE_APP.md).
 - **Slideshow** (`screens/SlideshowScreen.svelte`, parts in `screens/slideshow/`): breadcrumb
   "Library / title" and a ⋯ "More" button whose menu holds "Export" (subtitle "A .glissando
   file, about 184 MB", measured when the menu opens, again only after its pictures or music changed), a separator and "Delete slideshow
@@ -48,8 +48,8 @@
   the last picture; its label adds "own motion", "own duration 8 s", "own transition Circle". The info panel and the player always use the edited picture list.
   A slideshow opened by id is looked up on the device first, then taken for a server slideshow
   (`routes/slideshow-home.ts`); a server slideshow's screen adds where it lives, its missing
-  pictures and its own ⋯ menu, and its edits are saved on the server (SERVER_LIBRARY.md, A server
-  slideshow's screen).
+  pictures and its own ⋯ menu, and its edits are saved on the server
+  (server_library/IN_THE_APP.md).
 - **Export** (`glissando-file/export-job.ts`): runs in the background, one at a time; the app
   stays usable, also on other screens. While it runs, the menu item is `aria-disabled` and reads
   "Exporting … 34 %" (for another slideshow: "Export", subtitle "Once the running export is

@@ -21,7 +21,7 @@
 	}
 }
 
-# A share link's token is a secret (dev-docs/SHARE_LINK.md, Logs): the share routes (log_name
+# A share link's token is a secret (dev-docs/share_link/HTTP_API.md, Logs): the share routes (log_name
 # share) log their requests and errors with the token replaced by … and without the query, which
 # those routes never use.
 (share_log_filters) {

@@ -3,7 +3,7 @@ import { readShareAnswer, type ShareAnswer } from "./share-answer";
 /** `fetch` as the page uses it: a GET of a URL on the page's own origin. */
 export type FetchPort = (url: string) => Promise<Response>;
 
-/** The public share API (dev-docs/SHARE_LINK.md, Public), its failures as the page tells them. */
+/** The public share API (dev-docs/share_link/HTTP_API.md, Public), its failures as the page tells them. */
 export interface ShareApi {
   answer(): Promise<ShareAnswer>;
   /** Picture `index` of the slideshow; `revision` only keeps a reorder out of the cache. */

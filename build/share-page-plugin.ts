@@ -14,7 +14,7 @@ const SHARE_PAGE_ENTRY = "src/share-page/main.ts";
 /**
  * Builds the page a share link opens into the build as `share.html`: the export player's page
  * with the share page's script, both languages' words, and everything inline
- * (dev-docs/SHARE_LINK.md, The recipient's page). It also serves the page as
+ * (dev-docs/share_link/RECIPIENTS_PAGE.md). It also serves the page as
  * `virtual:glissando-share-page`, which only its browser test imports.
  */
 export function sharePagePlugin(): Plugin {

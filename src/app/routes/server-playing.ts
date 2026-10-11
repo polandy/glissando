@@ -19,7 +19,7 @@ export type PictureFailure =
 /**
  * What playing makes of a picture that failed to load: a server picture Immich no longer has is
  * skipped; any other failure of a server picture means Immich isn't answering
- * (`dev-docs/SERVER_LIBRARY.md`, Playing and exporting).
+ * (`dev-docs/server_library/IN_THE_APP.md`).
  */
 export function pictureFailureFor(home: SlideshowHome, cause: unknown): PictureFailure {
   if (home === "device") return { kind: "stop", failure: "picture" };

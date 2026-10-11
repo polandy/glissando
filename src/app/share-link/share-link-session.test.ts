@@ -39,7 +39,7 @@ function harness({
   return { api, scheduler, session, copied, sharedVia, tabs, turnedOff, errors };
 }
 
-describe("ShareLinkSession (SHARE_LINK.md, In the app)", () => {
+describe("ShareLinkSession (share_link/IN_THE_APP.md)", () => {
   it("knows nothing of the link until the server answered", () => {
     const { session } = harness();
 

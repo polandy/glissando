@@ -45,7 +45,7 @@ interface SeenSlideshow {
 
 /**
  * Server slideshows behind the store slices the app shows and plays them with
- * (`dev-docs/SERVER_LIBRARY.md`, Playing and exporting). Every edit names the revision last seen
+ * (`dev-docs/server_library/IN_THE_APP.md`). Every edit names the revision last seen
  * and edits are applied one at a time, so a conflict loses at most that edit (ADR-0018).
  * Pictures are Immich assets: the display rendition is made on the device, nothing is kept.
  */

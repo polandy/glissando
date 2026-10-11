@@ -21,7 +21,7 @@ import { pictureKey, songKey } from "../html-export/page-contract";
 import type { StoredMusic, StoredPicture, StoredSlideshow } from "../library/stored-slideshow";
 
 /**
- * `GET /api/share/{token}` read as the page plays it (dev-docs/SHARE_LINK.md, Public): the share
+ * `GET /api/share/{token}` read as the page plays it (dev-docs/share_link/HTTP_API.md, Public): the share
  * document as a stored slideshow whose pictures and songs are named by their position
  * (`pictureKey`, `songKey`), and the beats by song.
  */

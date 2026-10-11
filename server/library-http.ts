@@ -77,7 +77,7 @@ export function jsonResponse(
   };
 }
 
-/** The error codes the API answers (`dev-docs/SERVER_LIBRARY.md`, The HTTP API). */
+/** The error codes the API answers (`dev-docs/server_library/HTTP_API.md`). */
 export type ErrorCode =
   | "notFound"
   | "invalidDocument"
