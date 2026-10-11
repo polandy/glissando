@@ -1,11 +1,11 @@
 <script lang="ts">
-  import { onDestroy, onMount } from "svelte";
+  import { onDestroy } from "svelte";
   import type { BeatPass } from "../../library/beat-pass";
   import { MediaQuery } from "svelte/reactivity";
   import type { LibraryStore, StoredSlideshow } from "../../library/stored-slideshow";
   import { animationFrames, performanceClock } from "../../player";
   import { composedBeats, type BeatsStatus } from "../beats/music-beats-known";
-  import { TrackBeats } from "../beats/track-beats";
+  import { PlaylistBeats } from "../beats/playlist-beats";
   import type { PicturesFocus } from "../focus/pictures-focus";
   import type { SlideshowEditor } from "../editing/slideshow-editor";
   import { browserObjectUrls, ObjectUrls } from "../media/object-urls";
@@ -32,7 +32,7 @@
     /** The pictures' focus, updated as the background pass finds it. */
     focus: PicturesFocus;
     /** What it finds puts the automatic changes on the music's beats as it goes. */
-    beatPass: Pick<BeatPass, "subscribe">;
+    beatPass: Pick<BeatPass, "subscribe" | "listenFor">;
     editor: SlideshowEditor;
     pictureId: string;
     saving: boolean;
@@ -58,21 +58,23 @@
     pictures.dispose();
   });
 
-  let beats = $state.raw<BeatsStatus>({ kind: "listening" });
-  onMount(() => {
-    // The picture editor follows the first song's beats, as the music editor edits that one.
-    const song = stored.songs[0];
-    if (song === undefined) return;
-    const track = new TrackBeats(song.id, { store, pass: beatPass, log }, (status) => {
-      beats = status;
-    });
-    return () => track.dispose();
+  let beats = $state.raw<ReadonlyMap<string, BeatsStatus>>(new Map());
+  // The ports are fixed for the route's lifetime.
+  // svelte-ignore state_referenced_locally
+  const playlistBeats = new PlaylistBeats({ store, pass: beatPass, log }, (status) => {
+    beats = status;
   });
+  onDestroy(() => playlistBeats.dispose());
+  const songIds = $derived(stored.songs.map(({ id }) => id));
+  $effect(() => {
+    playlistBeats.follow(songIds).catch(onError);
+  });
+  const songBeats = $derived(
+    new Map([...beats].map(([songId, status]) => [songId, composedBeats(status)])),
+  );
 
   const present = $derived(stored.pictures.some((picture) => picture.id === pictureId));
-  const view = $derived(
-    present ? pictureEditorView(stored, pictureId, focus, composedBeats(beats)) : null,
-  );
+  const view = $derived(present ? pictureEditorView(stored, pictureId, focus, songBeats) : null);
   // The neighbours load ahead, so ‹ and › show their picture at once.
   $effect(() =>
     pictures.sync(

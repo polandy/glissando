@@ -40,9 +40,12 @@ export function music(durationMs: number) {
   return { id: "m", fileName: "m.mp3", durationMs, mimeType: "audio/mpeg" };
 }
 
+export const STEADY_FIRST_BEAT_MS = 100;
+export const STEADY_BEAT_MS = 400;
+
 /** A beat every 400 ms from 100 ms on, across a 30 s track. */
 export const STEADY_BEATS: MusicBeats = {
   kind: "beats",
-  beatsMs: Array.from({ length: 75 }, (_, beat) => 100 + beat * 400),
+  beatsMs: Array.from({ length: 75 }, (_, beat) => STEADY_FIRST_BEAT_MS + beat * STEADY_BEAT_MS),
   beatsPerMinute: 150,
 };

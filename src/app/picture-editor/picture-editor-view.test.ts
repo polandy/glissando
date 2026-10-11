@@ -1,4 +1,4 @@
-import { NO_BEATS } from "../../beats";
+import { NO_SONG_BEATS } from "../../compose";
 import { describe, expect, it } from "vitest";
 import { autoKenBurns } from "../../compose";
 import type { StoredPicture } from "../../library/stored-slideshow";
@@ -20,8 +20,8 @@ describe("pictureEditorView", () => {
       searching: new Set<string>(),
     };
 
-    const view = pictureEditorView(stored, "p1", focus, NO_BEATS);
-    const next = pictureEditorView(stored, "p2", focus, NO_BEATS).next;
+    const view = pictureEditorView(stored, "p1", focus, NO_SONG_BEATS);
+    const next = pictureEditorView(stored, "p2", focus, NO_SONG_BEATS).next;
 
     const aimed = autoKenBurns(0, first, FACES);
     expect(view.motion).toEqual({ from: aimed.from, to: aimed.to });
@@ -39,13 +39,13 @@ describe("pictureEditorView", () => {
     ],
     ["the search", { found: new Map(), searching: new Set(["p1"]) }, { kind: "searching" }],
   ])("shows %s for the picture's focus", (_, focus, status) => {
-    expect(pictureEditorView(stored, "p1", focus, NO_BEATS).focus).toEqual(status);
+    expect(pictureEditorView(stored, "p1", focus, NO_SONG_BEATS).focus).toEqual(status);
   });
 
   it("shows an automatic picture's motion for its position, its place and neighbours", () => {
     const automatic = autoKenBurns(0, stored.pictures[0] as StoredPicture);
 
-    const view = pictureEditorView(stored, "p1", NO_FOCUS_KNOWN, NO_BEATS);
+    const view = pictureEditorView(stored, "p1", NO_FOCUS_KNOWN, NO_SONG_BEATS);
 
     expect(view).toEqual({
       id: "p1",
@@ -80,7 +80,7 @@ describe("pictureEditorView", () => {
   });
 
   it("shows a picture's own motion", () => {
-    const view = pictureEditorView(stored, "p2", NO_FOCUS_KNOWN, NO_BEATS);
+    const view = pictureEditorView(stored, "p2", NO_FOCUS_KNOWN, NO_SONG_BEATS);
 
     expect(view.motion).toEqual(own);
     expect(view.ownMotion).toBe(true);
@@ -88,13 +88,13 @@ describe("pictureEditorView", () => {
   });
 
   it("shows a picture's caption", () => {
-    expect(pictureEditorView(stored, "p2", NO_FOCUS_KNOWN, NO_BEATS).caption).toBe("Am Steg");
+    expect(pictureEditorView(stored, "p2", NO_FOCUS_KNOWN, NO_SONG_BEATS).caption).toBe("Am Steg");
   });
 
   it("shows an own transition beside the automatic one, its length from the duration", () => {
     const timed = withPicture(1, { transition: "dissolve", durationMs: 2000 });
 
-    expect(pictureEditorView(timed, "p2", NO_FOCUS_KNOWN, NO_BEATS).transition).toEqual({
+    expect(pictureEditorView(timed, "p2", NO_FOCUS_KNOWN, NO_SONG_BEATS).transition).toEqual({
       choice: "dissolve",
       own: true,
       automatic: "crossfade",
@@ -108,7 +108,7 @@ describe("pictureEditorView", () => {
       { ...stored, transition: "circle-open" },
       "p2",
       NO_FOCUS_KNOWN,
-      NO_BEATS,
+      NO_SONG_BEATS,
     );
 
     expect(view.transition).toEqual({
@@ -125,7 +125,7 @@ describe("pictureEditorView", () => {
       { ...stored, transition: "alternate" },
       "p2",
       NO_FOCUS_KNOWN,
-      NO_BEATS,
+      NO_SONG_BEATS,
     );
 
     expect(view.transition).toMatchObject({
@@ -141,7 +141,7 @@ describe("pictureEditorView", () => {
       { ...stored, transition: "cut" },
       "p1",
       NO_FOCUS_KNOWN,
-      NO_BEATS,
+      NO_SONG_BEATS,
     );
 
     expect(view.transition).toMatchObject({ choice: "cut", automatic: "cut", durationMs: 0 });
@@ -150,7 +150,7 @@ describe("pictureEditorView", () => {
   it("gives a cut no length", () => {
     const cut = withPicture(0, { transition: "cut" });
 
-    expect(pictureEditorView(cut, "p1", NO_FOCUS_KNOWN, NO_BEATS).transition).toMatchObject({
+    expect(pictureEditorView(cut, "p1", NO_FOCUS_KNOWN, NO_SONG_BEATS).transition).toMatchObject({
       choice: "cut",
       durationMs: 0,
     });
@@ -159,7 +159,7 @@ describe("pictureEditorView", () => {
   it("at the last picture, keeps a stored transition but plays none and has no next", () => {
     const last = withPicture(2, { transition: "zoom-in" });
 
-    const view = pictureEditorView(last, "p3", NO_FOCUS_KNOWN, NO_BEATS);
+    const view = pictureEditorView(last, "p3", NO_FOCUS_KNOWN, NO_SONG_BEATS);
 
     expect(view.transition).toEqual({
       choice: "zoom-in",
@@ -172,6 +172,6 @@ describe("pictureEditorView", () => {
   });
 
   it("refuses a picture the slideshow does not hold", () => {
-    expect(() => pictureEditorView(stored, "gone", NO_FOCUS_KNOWN, NO_BEATS)).toThrow(/gone/);
+    expect(() => pictureEditorView(stored, "gone", NO_FOCUS_KNOWN, NO_SONG_BEATS)).toThrow(/gone/);
   });
 });

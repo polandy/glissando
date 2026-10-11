@@ -1,15 +1,14 @@
-import type { MusicBeats } from "../../beats";
 import {
   automaticTransition,
   beatTransitionDurationMs,
   filledMusicMs,
-  NO_SONG_BEATS,
   pictureKenBurns,
   playlistBeatsMs,
   playlistMs,
   pictureTransition,
   slideDurationsMs,
   slideshowTransition,
+  type SongBeats,
 } from "../../compose";
 import type { OwnKenBurns } from "../../library/own-ken-burns";
 import {
@@ -84,14 +83,14 @@ export interface PictureEditorView {
 }
 
 /**
- * `focus`: the automatic motions aim at it; `beats`: the automatic changes land on them
- * (ADR-0021). So the preview plays what the player will.
+ * `focus`: the automatic motions aim at it; `beats`: each song's beats found so far, which the
+ * automatic changes land on (ADR-0021, ADR-0023). So the preview plays what the player will.
  */
 export function pictureEditorView(
   stored: StoredSlideshow,
   pictureId: string,
   focus: PicturesFocus,
-  beats: MusicBeats,
+  beats: SongBeats,
 ): PictureEditorView {
   const { pictures } = stored;
   const index = pictures.findIndex((picture) => picture.id === pictureId);
@@ -99,9 +98,7 @@ export function pictureEditorView(
   if (picture === undefined) {
     throw new Error(`slideshow "${stored.id}" holds no picture "${pictureId}"`);
   }
-  const firstSong = stored.songs[0];
-  const songBeats = firstSong === undefined ? NO_SONG_BEATS : new Map([[firstSong.id, beats]]);
-  const beatsMs = playlistBeatsMs(stored, songBeats);
+  const beatsMs = playlistBeatsMs(stored, beats);
   const durationsMs = slideDurationsMs(
     pictures,
     filledMusicMs(stored),
