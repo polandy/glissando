@@ -162,8 +162,9 @@ the same contract suite.
     share it again, it gets a new link and this one stays off.", then "Cancel" and "Turn off
     link" (coral). Afterwards the sheet closes and a toast says "Link turned off".
   - **Home network note** (lemon), in both states, when the app's origin is a home network
-    address: plain `http:`, a `localhost`, `.local` or `.lan` name, or a private, loopback or
-    link-local IP (`isHomeNetworkOrigin`, a pure function). The note reads: "This link only works
+    address: plain `http:`, a `localhost`, `.local`, `.lan` or `.home.arpa` name, or a private,
+    shared (100.64.0.0/10, e.g. Tailscale's), loopback or link-local IP (`isHomeNetworkOrigin`, a
+    pure function). The note reads: "This link only works
     on your home network. Glissando is open at a home address here. To share with someone
     elsewhere, open Glissando through its public address and share from there."
   - **Failures**: the server not answering shows the server sheet's usual error with "Try again".
