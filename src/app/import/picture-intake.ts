@@ -71,6 +71,7 @@ export class PictureIntake {
       checker: ports.checker,
       pictures: this.pictures,
       log: ports.log,
+      onError: ports.onError,
     });
     this.#removals = new PictureRemovals({ ...ports, pictures: this.pictures });
   }

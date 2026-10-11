@@ -20,8 +20,8 @@ function intakeWith(
     ),
     unmeasurable.map(thumbnailOf),
   );
-  const { ports, logged, store } = fakeIntakePorts(undefined, { checker });
-  return { intake: new PictureIntake(ports), checker, logged, store };
+  const { ports, logged, errors, store } = fakeIntakePorts(undefined, { checker });
+  return { intake: new PictureIntake(ports), checker, logged, errors, store };
 }
 
 const names = (intake: PictureIntake) =>
@@ -164,5 +164,18 @@ describe("PictureIntake, culling similar shots and blurry pictures", () => {
 
     expect(intake.culling.state).toEqual({ checking: null, groups: [], setAsideCount: 0 });
     expect(intake.pictures.state.pictures).toEqual([]);
+  });
+
+  it("ends the check when the cull fails, reporting the error and leaving every picture in", async () => {
+    const { intake, errors } = intakeWith(SIMILAR_SHOTS);
+
+    intake.addPictures([pictureFile("a.jpg", at(10)), pictureFile("b.jpg", "not a date")]);
+    await intake.settled();
+
+    expect(names(intake)).toEqual(["a.jpg", "b.jpg"]);
+    expect(intake.culling.state.checking).toBeNull();
+    expect(errors).toEqual([
+      expect.objectContaining({ message: expect.stringMatching(/not a date/) }),
+    ]);
   });
 });

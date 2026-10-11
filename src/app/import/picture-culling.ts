@@ -8,6 +8,8 @@ export interface PictureCullingPorts {
   readonly pictures: Pick<PictureImport, "state" | "subscribe" | "remove" | "restore">;
   /** A picture the check could not measure; it simply stays in. */
   log(error: unknown): void;
+  /** An unexpected error of the cull, which runs without a caller to throw to. */
+  onError(error: unknown): void;
 }
 
 /** Set-aside pictures as step 1 shows them, each in capture order. */
@@ -150,9 +152,15 @@ export class PictureCulling {
     const due = this.#measuredSinceCull;
     this.#measuredSinceCull = false;
     this.#batch = { checked: 0, total: 0 };
-    if (due) this.#cull();
-    this.#publish();
-    idle.resolve(undefined);
+    try {
+      if (due) this.#cull();
+    } catch (error) {
+      this.#ports.onError(error);
+    } finally {
+      // The check ends either way, so the step's Next is never held by a failed cull.
+      this.#publish();
+      idle.resolve(undefined);
+    }
   }
 
   /** Culls every checked picture of the import again, those set aside so far included. */
