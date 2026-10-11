@@ -143,7 +143,7 @@ export class HttpServerLibraryClient implements ServerLibraryClient {
   async unshare(id: string): Promise<void> {
     const path = `${slideshowPath(id)}${SHARE_SUFFIX}`;
     const response = await this.#send("DELETE", path);
-    if (response.status === HTTP_NOT_FOUND && (await errorCode(response)) === NOT_SHARED) return;
+    if (response.status === HTTP_NOT_FOUND && (await refusal(response)).code === NOT_SHARED) return;
     await check("DELETE", path, response);
   }
 
@@ -197,19 +197,18 @@ async function check(method: HttpMethod, path: string, response: Response): Prom
     throw new ServerLibraryUnavailableError(`${request} (${String(response.status)})`);
   }
   if (response.status === HTTP_NOT_FOUND) throw new ServerLibraryNotFoundError(request);
-  const answer: unknown = isJson(response) ? await response.json() : {};
-  const code = isRecord(answer) ? String(answer["error"]) : UNKNOWN_CODE;
-  const detail = isRecord(answer) ? String(answer["detail"]) : "";
+  const { code, detail } = await refusal(response);
   const refused = path.startsWith(MUSIC_PATH) ? "music" : "slideshow";
   throw new ServerLibraryRefusedError(request, response.status, code, detail, refused);
 }
 
 const UNKNOWN_CODE = "unknown";
 
-/** The `error` code a refusal names; reads the body. */
-async function errorCode(response: Response): Promise<string> {
+/** The `error` code and `detail` a refusal names; reads the body. */
+async function refusal(response: Response): Promise<{ code: string; detail: string }> {
   const answer: unknown = isJson(response) ? await response.json() : {};
-  return isRecord(answer) ? String(answer["error"]) : UNKNOWN_CODE;
+  if (!isRecord(answer)) return { code: UNKNOWN_CODE, detail: "" };
+  return { code: String(answer["error"]), detail: String(answer["detail"]) };
 }
 
 function readShareLink(value: unknown, path: string): ShareLink {
