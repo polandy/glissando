@@ -1,5 +1,10 @@
 import type { MusicBeats } from "../src/beats/music-beats";
-import type { LibraryRepository, MusicRecord, SlideshowRecord } from "./library-repository";
+import type {
+  LibraryRepository,
+  MusicRecord,
+  ShareLink,
+  SlideshowRecord,
+} from "./library-repository";
 
 /** A `LibraryRepository` in memory, for the handler's tests. */
 export function createMemoryRepository(): LibraryRepository {
@@ -7,6 +12,7 @@ export function createMemoryRepository(): LibraryRepository {
   let slideshows = new Map<string, SlideshowRecord>();
   let music = new Map<string, MusicRecord>();
   let musicBeats = new Map<string, MusicBeats>();
+  let shareLinks = new Map<string, ShareLink>();
 
   const isMusicReferenced = (id: string): boolean =>
     [...slideshows.values()].some(({ document }) =>
@@ -19,6 +25,7 @@ export function createMemoryRepository(): LibraryRepository {
         slideshows: new Map(slideshows),
         music: new Map(music),
         musicBeats: new Map(musicBeats),
+        shareLinks: new Map(shareLinks),
       };
       try {
         return work();
@@ -26,6 +33,7 @@ export function createMemoryRepository(): LibraryRepository {
         slideshows = before.slideshows;
         music = before.music;
         musicBeats = before.musicBeats;
+        shareLinks = before.shareLinks;
         throw error;
       }
     },
@@ -44,6 +52,18 @@ export function createMemoryRepository(): LibraryRepository {
     },
     deleteSlideshow(id) {
       slideshows.delete(id);
+      shareLinks.delete(id);
+    },
+    share(id, link) {
+      shareLinks.set(id, link);
+    },
+    unshare(id) {
+      shareLinks.delete(id);
+    },
+    shareOf: (id) => shareLinks.get(id),
+    slideshowByShareToken(token) {
+      const shared = [...shareLinks].find(([, link]) => link.token === token);
+      return shared === undefined ? undefined : slideshows.get(shared[0]);
     },
     findMusic: (id) => music.get(id),
     insertMusic(record) {

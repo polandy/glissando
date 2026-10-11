@@ -6,9 +6,8 @@
   import type { FocusPass } from "../../library/focus-pass";
   import type { SlideshowEditor } from "../editing/slideshow-editor";
   import { createScreenEditor } from "./screen-editor";
-  import { slideshowStorage, type SlideshowHome } from "./slideshow-storage";
+  import type { SlideshowHome } from "./slideshow-storage";
   import type { RouteStore } from "./slideshow-home";
-  import type { StorageAction } from "../screens/view-models";
   import type { ExportProgress } from "../glissando-file/export-job";
   import { getTranslator } from "../i18n/context";
   import { ScreenThumbnails } from "./screen-thumbnails.svelte";
@@ -34,6 +33,8 @@
   import type { HtmlExportDevice } from "../html-export/slideshow-html-export";
   import { ScreenExports } from "./screen-exports.svelte";
   import { ScreenFocus } from "./screen-focus.svelte";
+  import type { ShareLinkSession } from "../share-link/share-link-session";
+  import { ScreenStorage } from "./screen-storage.svelte";
 
   let {
     store,
@@ -41,6 +42,7 @@
     serverOn,
     onKeepCopy,
     onSaveOnServer,
+    newShareLinkSession,
     focusPass,
     beatPass,
     toaster,
@@ -77,6 +79,8 @@
     onKeepCopy: (slideshow: StoredSlideshow) => void;
     /** "Save on the server" of a device slideshow, as shown. */
     onSaveOnServer: (slideshow: StoredSlideshow) => void;
+    /** A server slideshow's link, for its share row (SHARE_LINK.md, In the app). */
+    newShareLinkSession: (slideshowId: string) => ShareLinkSession;
     /** What it finds updates the editors' automatic motions and focus marks as it goes. */
     focusPass: Pick<FocusPass, "state" | "subscribe">;
     /** What it finds puts the editors' automatic changes on the music's beats as it goes. */
@@ -130,9 +134,7 @@
   /** The selection survives the picture editor: back there, the edited picture is selected. */
   let selection = $state<StripSelection>(NO_SELECTION);
   $effect(() => {
-    if (editingPictureId !== null) {
-      selection = soleSelection(editingPictureId);
-    }
+    if (editingPictureId !== null) selection = soleSelection(editingPictureId);
   });
   const mousePointer = new MediaQuery(MOUSE_POINTER_QUERY);
   const reducedMotion = new MediaQuery(REDUCED_MOTION_QUERY);
@@ -169,9 +171,7 @@
           editor = createEditor(loaded.stored);
           editor.subscribe((edited) => (stored = edited));
           editor.subscribeSaving((isSaving) => (saving = isSaving));
-          if (addedPictureIds.length > 0) {
-            editor.offerAddUndo(addedPictureIds);
-          }
+          if (addedPictureIds.length > 0) editor.offerAddUndo(addedPictureIds);
         }
       },
       (error: unknown) => {
@@ -185,6 +185,7 @@
     left.abort();
     editor?.dispose();
     thumbnails.dispose();
+    screenStorage.dispose();
   });
 
   function createEditor(initial: StoredSlideshow): SlideshowEditor {
@@ -193,32 +194,22 @@
     return createScreenEditor(initial, ports, translator);
   }
 
-  /** The copy whose confirmation sheet is open. */
-  let confirmingCopy = $state<"keepCopy" | "saveOnServer" | null>(null);
-
-  function storageAction(action: StorageAction): void {
-    if (action === "removeMissing") for (const id of thumbnails.missing) editor?.remove(id);
-    else confirmingCopy = action;
-  }
-
-  function deleteSlideshow(): void {
-    deleteShownSlideshow(store, slideshowId, editor).then(onDeleted, onError);
-  }
+  // The slideshow and where it lives are fixed for the screen's lifetime.
+  // svelte-ignore state_referenced_locally
+  const screenStorage = new ScreenStorage({
+    home,
+    slideshowId,
+    newShareLinkSession,
+    thumbnails,
+    editor: () => editor,
+  });
 
   // The ids are handed over once, when the screen opens after adding.
   // svelte-ignore state_referenced_locally
   const newPictureIds: ReadonlySet<string> = new Set(addedPictureIds);
 
   const details = $derived(stored === null ? null : thumbnails.details(stored));
-  const storage = $derived(
-    stored === null
-      ? null
-      : slideshowStorage(home, stored, {
-          serverOn,
-          saving,
-          missingCount: thumbnails.missingCount(stored),
-        }),
-  );
+  const storage = $derived(stored === null ? null : screenStorage.of(stored, { serverOn, saving }));
 </script>
 
 {#if editingPictureId !== null && stored !== null && editor !== null}
@@ -267,7 +258,7 @@
     onResetTransition={() => editor?.resetSlideshowTransition()}
     previewPorts={{ clock: performanceClock, frames: animationFrames }}
     reducedMotion={reducedMotion.current}
-    onDelete={deleteSlideshow}
+    onDelete={() => deleteShownSlideshow(store, slideshowId, editor).then(onDeleted, onError)}
     exportState={exports.menuState(exportProgress, slideshowId)}
     {onExport}
     onMenuOpened={exports.measure}
@@ -276,7 +267,8 @@
     mousePointer={mousePointer.current}
     {saving}
     {storage}
-    onStorageAction={storageAction}
+    shareLink={screenStorage.shareLink}
+    onStorageAction={screenStorage.act}
   />
 {/if}
 {#if playing && stored !== null}
@@ -293,14 +285,14 @@
     onPictureMissing={(id) => thumbnails.missing.add(id)}
   />
 {/if}
-{#if confirmingCopy !== null && stored !== null}
+{#if screenStorage.confirmingCopy !== null && stored !== null}
   <ServerCopyConfirm
-    action={confirmingCopy}
+    action={screenStorage.confirmingCopy}
     {stored}
     {store}
     {onKeepCopy}
     {onSaveOnServer}
-    onClose={() => (confirmingCopy = null)}
+    onClose={screenStorage.closeCopy}
     {onError}
   />
 {/if}

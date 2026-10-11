@@ -30,7 +30,18 @@ export function pictureKey(index: number): string {
  * means a click on Play is heard.
  */
 export const PAGE_STATE_ATTRIBUTE = "data-state";
-export type PageState = "loading" | "start" | "playing" | "paused" | "ended" | "error";
+export type PageState =
+  | "loading"
+  | "start"
+  | "playing"
+  | "paused"
+  | "ended"
+  | "error"
+  // The share page's own (dev-docs/SHARE_LINK.md): after Play until playing, the link turned
+  // off, the server not answering.
+  | "starting"
+  | "gone"
+  | "unreachable";
 
 /** The page's words, in the app's language at export time; keys are the wire contract. */
 export interface PageCopy {

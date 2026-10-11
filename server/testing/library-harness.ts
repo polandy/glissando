@@ -3,16 +3,22 @@ import { createLibraryHandler } from "../library-handler";
 import type { LibraryRequest, LibraryResponse } from "../library-http";
 import { createMemoryRepository } from "../memory-repository";
 
-/** The handler on an in-memory repository, a clock the test moves and ids made in sequence. */
+/**
+ * The handler on an in-memory repository, a clock the test moves, and ids and random bytes made
+ * in sequence.
+ */
 export function libraryHarness() {
   const repository = createMemoryRepository();
   const logged: string[] = [];
   let now = START_TIME;
   let ids = 0;
+  let randomCalls = 0;
   const handle = createLibraryHandler({
     repository,
     now: () => now,
     newId: () => `00000000-0000-4000-8000-${String(++ids).padStart(12, "0")}`,
+    // Each call's bytes differ, so each token does.
+    randomBytes: (count) => new Uint8Array(count).fill(++randomCalls),
     log: (line) => logged.push(line),
   });
   const send = (

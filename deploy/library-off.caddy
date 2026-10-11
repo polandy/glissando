@@ -3,3 +3,10 @@
 handle @library {
 	respond 404
 }
+
+# Without slideshows on the server, nothing is shared by link (ADR-0025).
+@share path /api/share/* /s/*
+handle @share {
+	log_name share
+	respond 404
+}

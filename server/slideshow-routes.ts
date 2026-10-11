@@ -2,6 +2,7 @@ import { DocumentFormatError } from "../src/glissando-file/document-values";
 import { readServerDocument, type ServerDocument } from "../src/server-library/server-document";
 import type { LibraryHandlerDependencies } from "./library-handler";
 import type { SlideshowRecord } from "./library-repository";
+import { shareLinkJson } from "./share-routes";
 import {
   errorResponse,
   HTTP_STATUS,
@@ -49,15 +50,21 @@ export function slideshowRoutes({ repository, now, newId }: LibraryHandlerDepend
     }
   };
 
+  /** A slideshow as its GETs answer it: the version and its share link (SHARE_LINK.md). */
+  const asListed = (record: SlideshowRecord) => ({
+    ...asVersion(record),
+    share: shareLinkJson(repository.shareOf(record.id)),
+  });
+
   return {
     list: (): LibraryResponse =>
-      jsonResponse(HTTP_STATUS.ok, { slideshows: repository.listSlideshows().map(asVersion) }),
+      jsonResponse(HTTP_STATUS.ok, { slideshows: repository.listSlideshows().map(asListed) }),
 
     read(id: string): LibraryResponse {
       const record = repository.findSlideshow(id);
       return record === undefined
         ? notFound()
-        : jsonResponse(HTTP_STATUS.ok, asVersion(record), { etag: entityTag(record.revision) });
+        : jsonResponse(HTTP_STATUS.ok, asListed(record), { etag: entityTag(record.revision) });
     },
 
     create(request: LibraryRequest): LibraryResponse {

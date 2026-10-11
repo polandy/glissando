@@ -112,27 +112,27 @@ function readBetweenSongs(value: unknown, path: string): BetweenSongs {
 export function readSongs<Song>(
   show: JsonObject,
   path: string,
-  readSong: (value: unknown, path: string) => Song,
+  readSong: (value: unknown, path: string, index: number) => Song,
 ): Song[] {
   const songs = show["songs"];
   if (!Array.isArray(songs)) {
     throw new DocumentFormatError(`${path}.songs`, "an array of songs", songs);
   }
-  return songs.map((song: unknown, index) => readSong(song, `${path}.songs[${index}]`));
+  return songs.map((song: unknown, index) => readSong(song, `${path}.songs[${index}]`, index));
 }
 
 /** The slideshow's pictures, at least one, each read by `readPicture`. */
 export function readPictures<Picture>(
   show: JsonObject,
   path: string,
-  readPicture: (value: unknown, path: string) => Picture,
+  readPicture: (value: unknown, path: string, index: number) => Picture,
 ): Picture[] {
   const pictures = show["pictures"];
   if (!Array.isArray(pictures) || pictures.length === 0) {
     throw new DocumentFormatError(`${path}.pictures`, "at least one picture", pictures);
   }
   return pictures.map((picture: unknown, index) =>
-    readPicture(picture, `${path}.pictures[${index}]`),
+    readPicture(picture, `${path}.pictures[${index}]`, index),
   );
 }
 

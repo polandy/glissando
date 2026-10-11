@@ -36,6 +36,11 @@ describe("tokenDeclarations", () => {
   it("leaves a token the page's CSS sets itself to the page", () => {
     expect(tokenDeclarations(TOKENS, ".a{--gl-own:2px;width:var(--gl-own)}")).toBe(":root{}");
   });
+  it("declares a design token the page's CSS overrides in one rule, for every other rule", () => {
+    expect(tokenDeclarations(TOKENS, ".big{--gl-accent:red;}.a{color:var(--gl-accent)}")).toBe(
+      ":root{--gl-accent:#ff9f7f}",
+    );
+  });
 });
 
 describe("bundleParts", () => {

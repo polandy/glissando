@@ -25,6 +25,16 @@ export const SERVER_DOCUMENT_FORMAT_ID = "glissando-server";
 export const SERVER_DOCUMENT_FORMAT_VERSION = 1;
 /** The manifest format version whose slideshow fields a server document carries. */
 const MANIFEST_FIELDS_VERSION = 10;
+/** Every key a server document's slideshow, each picture and each song may carry. */
+export const SERVER_SLIDESHOW_KEYS: readonly string[] = slideshowKeys(MANIFEST_FIELDS_VERSION);
+export const SERVER_PICTURE_KEYS: readonly string[] = [
+  ...pictureKeys(MANIFEST_FIELDS_VERSION),
+  "immichAssetId",
+];
+export const SERVER_MUSIC_KEYS: readonly string[] = [
+  ...musicKeys(MANIFEST_FIELDS_VERSION),
+  "musicId",
+];
 
 export interface ServerPicture extends PictureFields {
   readonly immichAssetId: string;
@@ -63,7 +73,7 @@ export function readServerDocument(json: unknown): ServerDocument {
   const path = "slideshow";
   // A single `music` is refused as an unknown key, like any other field this version does not
   // carry (ADR-0023).
-  const show = readObject(root["slideshow"], path, slideshowKeys(MANIFEST_FIELDS_VERSION));
+  const show = readObject(root["slideshow"], path, SERVER_SLIDESHOW_KEYS);
   const pictures = readPictures(show, path, readPicture);
   refuseRepeatedAssets(pictures, path);
   const songs = readSongs(show, path, readMusic);
@@ -94,10 +104,7 @@ function refuseRepeatedMusicIds(songs: readonly ServerMusic[], path: string): vo
 }
 
 function readPicture(value: unknown, path: string): ServerPicture {
-  const picture = readObject(value, path, [
-    ...pictureKeys(MANIFEST_FIELDS_VERSION),
-    "immichAssetId",
-  ]);
+  const picture = readObject(value, path, SERVER_PICTURE_KEYS);
   return {
     ...readPictureFields(picture, path),
     immichAssetId: readText(picture["immichAssetId"], `${path}.immichAssetId`),
@@ -119,7 +126,7 @@ function refuseRepeatedAssets(pictures: readonly ServerPicture[], path: string):
 }
 
 function readMusic(value: unknown, path: string): ServerMusic {
-  const music = readObject(value, path, [...musicKeys(MANIFEST_FIELDS_VERSION), "musicId"]);
+  const music = readObject(value, path, SERVER_MUSIC_KEYS);
   return {
     ...readMusicFields(music, path),
     musicId: readText(music["musicId"], `${path}.musicId`),

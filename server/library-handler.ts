@@ -5,11 +5,15 @@ import {
   LIBRARY_PATH,
   MUSIC_PATH,
   notFound,
+  SHARE_PATH,
+  SHARE_PICTURE_CHECK_PATH,
   SLIDESHOWS_PATH,
   type LibraryRequest,
   type LibraryResponse,
 } from "./library-http";
 import { musicRoutes } from "./music-routes";
+import { shareRoutes } from "./share-routes";
+import { redactShareTokens, type RandomBytes } from "./share-token";
 import { slideshowRoutes } from "./slideshow-routes";
 
 export interface LibraryHandlerDependencies {
@@ -18,7 +22,9 @@ export interface LibraryHandlerDependencies {
   readonly now: () => number;
   /** A new, unique id for a slideshow or music. */
   readonly newId: () => string;
-  /** One line per request. */
+  /** The source of share tokens (`server/share-token.ts`). */
+  readonly randomBytes: RandomBytes;
+  /** One line per request, never with a share token. */
   readonly log: (line: string) => void;
 }
 
@@ -33,6 +39,7 @@ const DISCOVERY = { service: "glissando-library", version: 1 } as const;
 export function createLibraryHandler(dependencies: LibraryHandlerDependencies): LibraryHandler {
   const slideshows = slideshowRoutes(dependencies);
   const music = musicRoutes(dependencies);
+  const share = shareRoutes(dependencies);
 
   const discovery = () => jsonResponse(HTTP_STATUS.ok, DISCOVERY);
   const routesFor = (path: string): MethodRoutes => {
@@ -45,23 +52,45 @@ export function createLibraryHandler(dependencies: LibraryHandlerDependencies): 
     if (path === MUSIC_PATH) {
       return { POST: music.upload };
     }
-    const slideshowId = idUnder(SLIDESHOWS_PATH, path);
-    if (slideshowId !== undefined) {
+    const [slideshowId, slideshowPart, ...beyondSlideshow] = segmentsUnder(SLIDESHOWS_PATH, path);
+    if (slideshowId !== undefined && slideshowPart === undefined) {
       return {
         GET: () => slideshows.read(slideshowId),
         PUT: (request) => slideshows.replace(slideshowId, request),
         DELETE: () => slideshows.remove(slideshowId),
       };
     }
-    const beatsMusicId = idUnderBeats(MUSIC_PATH, path);
-    if (beatsMusicId !== undefined) {
+    if (slideshowId !== undefined && slideshowPart === SHARE_PART && beyondSlideshow.length === 0) {
       return {
-        GET: () => music.readBeats(beatsMusicId),
-        PUT: (request) => music.replaceBeats(beatsMusicId, request),
+        POST: (request) => share.share(slideshowId, request),
+        DELETE: () => share.unshare(slideshowId),
       };
     }
-    const musicId = idUnder(MUSIC_PATH, path);
-    return musicId === undefined ? {} : { GET: () => music.read(musicId) };
+    const [musicId, musicPart, ...beyondMusic] = segmentsUnder(MUSIC_PATH, path);
+    if (musicId !== undefined && musicPart === undefined) {
+      return { GET: () => music.read(musicId) };
+    }
+    if (musicId !== undefined && musicPart === BEATS_PART && beyondMusic.length === 0) {
+      return {
+        GET: () => music.readBeats(musicId),
+        PUT: (request) => music.replaceBeats(musicId, request),
+      };
+    }
+    const [token, sharePart, songPosition, ...beyondShare] = segmentsUnder(SHARE_PATH, path);
+    if (token !== undefined && sharePart === undefined) {
+      return { GET: () => share.document(token) };
+    }
+    if (token !== undefined && sharePart === SONGS_PART && songPosition !== undefined) {
+      return beyondShare.length === 0 ? { GET: () => share.song(token, songPosition) } : {};
+    }
+    const [checkedToken, picturePosition, ...beyondCheck] = segmentsUnder(
+      SHARE_PICTURE_CHECK_PATH,
+      path,
+    );
+    if (checkedToken !== undefined && picturePosition !== undefined && beyondCheck.length === 0) {
+      return { GET: () => share.pictureCheck(checkedToken, picturePosition) };
+    }
+    return {};
   };
 
   return (request) => {
@@ -69,27 +98,21 @@ export function createLibraryHandler(dependencies: LibraryHandlerDependencies): 
     // Own keys only: a method named like an Object.prototype member is no route.
     const chosen = Object.hasOwn(routes, request.method) ? routes[request.method] : undefined;
     const response = chosen ? chosen(request) : notFound();
-    dependencies.log(`${request.method} ${request.path} ${response.status}`);
+    dependencies.log(`${request.method} ${redactShareTokens(request.path)} ${response.status}`);
     return response;
   };
 }
 
-/** The single path segment after `base`, if `path` is one. */
-function idUnder(base: string, path: string): string | undefined {
+const SHARE_PART = "share";
+const BEATS_PART = "beats";
+const SONGS_PART = "songs";
+
+/** The path segments after `base`, or none when `path` is not under it or has an empty one. */
+function segmentsUnder(base: string, path: string): string[] {
   const prefix = `${base}/`;
   if (!path.startsWith(prefix)) {
-    return undefined;
+    return [];
   }
-  const id = path.slice(prefix.length);
-  return id === "" || id.includes("/") ? undefined : id;
-}
-
-const BEATS_SUFFIX = "/beats";
-
-/** The single path segment between `base` and the literal `/beats`, if `path` is one. */
-function idUnderBeats(base: string, path: string): string | undefined {
-  if (!path.endsWith(BEATS_SUFFIX)) {
-    return undefined;
-  }
-  return idUnder(base, path.slice(0, -BEATS_SUFFIX.length));
+  const segments = path.slice(prefix.length).split("/");
+  return segments.includes("") ? [] : segments;
 }

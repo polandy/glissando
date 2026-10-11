@@ -57,6 +57,74 @@ export function describeLibraryRepositoryContract(
       expect(repository.listSlideshows().map(({ id }) => id)).toEqual(["show-b"]);
     });
 
+    it("finds no share link for a slideshow never shared", () => {
+      const repository = createRepository();
+      repository.insertSlideshow(slideshow("show-a", 1000));
+      expect(repository.findSlideshow("show-a")).toBeDefined();
+      expect(repository.shareOf("show-a")).toBeUndefined();
+    });
+
+    it("finds a slideshow's share link by the slideshow and the slideshow by its token", () => {
+      const repository = createRepository();
+      repository.insertSlideshow(slideshow("show-a", 1000));
+      repository.insertSlideshow(slideshow("show-b", 2000));
+      repository.share("show-a", { token: TOKEN_A, createdAt: 5000 });
+      expect(repository.shareOf("show-a")).toEqual({ token: TOKEN_A, createdAt: 5000 });
+      expect(repository.shareOf("show-b")).toBeUndefined();
+      expect(repository.slideshowByShareToken(TOKEN_A)).toEqual(slideshow("show-a", 1000));
+      expect(repository.slideshowByShareToken(TOKEN_B)).toBeUndefined();
+    });
+
+    it("finds the slideshow by its token with its current revision and document", () => {
+      const repository = createRepository();
+      repository.insertSlideshow(slideshow("show-a", 1000));
+      repository.share("show-a", { token: TOKEN_A, createdAt: 5000 });
+      repository.updateSlideshow("show-a", 2, documentTitled("Edited"));
+      expect(repository.slideshowByShareToken(TOKEN_A)).toMatchObject({
+        revision: 2,
+        document: documentTitled("Edited"),
+      });
+    });
+
+    it("deletes a share link on unshare, keeping the slideshow and other links", () => {
+      const repository = createRepository();
+      repository.insertSlideshow(slideshow("show-a", 1000));
+      repository.insertSlideshow(slideshow("show-b", 2000));
+      repository.share("show-a", { token: TOKEN_A, createdAt: 5000 });
+      repository.share("show-b", { token: TOKEN_B, createdAt: 5000 });
+      repository.unshare("show-a");
+      expect(repository.findSlideshow("show-a")).toBeDefined();
+      expect(repository.shareOf("show-b")).toBeDefined();
+      expect(repository.shareOf("show-a")).toBeUndefined();
+      expect(repository.slideshowByShareToken(TOKEN_A)).toBeUndefined();
+    });
+
+    it("deletes a slideshow's share link with the slideshow", () => {
+      const repository = createRepository();
+      repository.insertSlideshow(slideshow("show-a", 1000));
+      repository.insertSlideshow(slideshow("show-b", 2000));
+      repository.share("show-a", { token: TOKEN_A, createdAt: 5000 });
+      repository.share("show-b", { token: TOKEN_B, createdAt: 5000 });
+      repository.deleteSlideshow("show-a");
+      expect(repository.slideshowByShareToken(TOKEN_B)).toBeDefined();
+      expect(repository.slideshowByShareToken(TOKEN_A)).toBeUndefined();
+      repository.insertSlideshow(slideshow("show-a", 1000));
+      expect(repository.shareOf("show-a")).toBeUndefined();
+    });
+
+    it("undoes a share link made in a transaction that throws", () => {
+      const repository = createRepository();
+      repository.insertSlideshow(slideshow("show-a", 1000));
+      expect(() =>
+        repository.inTransaction(() => {
+          repository.share("show-a", { token: TOKEN_A, createdAt: 5000 });
+          throw new Error("work failed");
+        }),
+      ).toThrow("work failed");
+      expect(repository.findSlideshow("show-a")).toBeDefined();
+      expect(repository.shareOf("show-a")).toBeUndefined();
+    });
+
     it("keeps music's bytes and content type", () => {
       const repository = createRepository();
       repository.insertMusic(music("music-a", 1000));
@@ -168,6 +236,9 @@ export function describeLibraryRepositoryContract(
     });
   });
 }
+
+const TOKEN_A = "AAAAAAAAAAAAAAAAAAAAAA";
+const TOKEN_B = "BBBBBBBBBBBBBBBBBBBBBB";
 
 function documentTitled(title: string): ServerDocument {
   return {
