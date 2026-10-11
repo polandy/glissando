@@ -38,6 +38,12 @@
     }
   }
 
+  /** Focuses the ✕ of `pictureId`, such as a picture just taken in from the set-aside ones. */
+  export function focusRemove(pictureId: string): void {
+    const buttons = strip?.querySelectorAll<HTMLButtonElement>("button.remove") ?? [];
+    [...buttons].find((button) => button.dataset["pictureId"] === pictureId)?.focus();
+  }
+
   function removeOnKey(event: KeyboardEvent, index: number, pictureId: string): void {
     if (REMOVE_KEYS.has(event.key)) {
       event.preventDefault();
@@ -56,6 +62,7 @@
       <button
         class="remove"
         type="button"
+        data-picture-id={picture.id}
         aria-label={t("import.removePicture", { date: formatDate(picture.capturedAt) })}
         title={t("slideshow.remove")}
         onclick={() => remove(index, picture.id)}

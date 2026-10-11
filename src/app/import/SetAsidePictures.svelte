@@ -16,6 +16,7 @@
     urls,
     onTakeIn,
     onTakeAllIn,
+    onEmptied,
   }: {
     groups: readonly SetAsideGroup[];
     count: number;
@@ -25,6 +26,8 @@
     urls: ReadonlyMap<string, string>;
     onTakeIn: (pictureId: string) => void;
     onTakeAllIn: () => void;
+    /** The last set-aside picture was taken in, `pictureId` the latest: no + is left to focus. */
+    onEmptied: (pictureId: string) => void;
   } = $props();
 
   const { t, formatDate, formatTime, formatMinuteRange } = getTranslator();
@@ -50,7 +53,27 @@
     onTakeIn(pictureId);
     flushSync();
     const left = section?.querySelectorAll<HTMLButtonElement>("button.take") ?? [];
-    left[Math.min(index, left.length - 1)]?.focus();
+    const next = left[Math.min(index, left.length - 1)];
+    if (next === undefined) {
+      onEmptied(pictureId);
+    } else {
+      next.focus();
+    }
+  }
+
+  function takeAllIn(): void {
+    const latest = groups
+      .flatMap(({ pictures: setAside }) => setAside)
+      .reduce<StoredPicture | undefined>(
+        (found, picture) =>
+          found === undefined || Date.parse(picture.capturedAt) > Date.parse(found.capturedAt)
+            ? picture
+            : found,
+        undefined,
+      );
+    onTakeAllIn();
+    flushSync();
+    if (latest !== undefined) onEmptied(latest.id);
   }
 </script>
 
@@ -85,7 +108,7 @@
 <section class="aside" aria-labelledby={HEADING_ID} bind:this={section}>
   <div class="head">
     <h2 id={HEADING_ID}>{t("cull.setAside", { count })}</h2>
-    <button class="link" type="button" onclick={onTakeAllIn}>{t("cull.takeAllIn")}</button>
+    <button class="link" type="button" onclick={takeAllIn}>{t("cull.takeAllIn")}</button>
     <span class="why">{t("cull.why")}</span>
   </div>
   {#each groups as group (group.kind === "similar" ? group.keptId : group.kind)}

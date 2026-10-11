@@ -64,6 +64,7 @@
   let pickFiles: HTMLInputElement;
   let pickFolder: HTMLInputElement;
   let choosePictures: HTMLButtonElement | undefined = $state();
+  let strip: ReturnType<typeof ChosenPicturesStrip> | undefined = $state();
 
   // svelte-ignore state_referenced_locally
   const thumbnails = new ObjectUrls({ ...browserObjectUrls, load: loadThumbnail, onError });
@@ -195,6 +196,7 @@
 
 {#if importState.pictures.length > 0 || pending > 0}
   <ChosenPicturesStrip
+    bind:this={strip}
     pictures={importState.pictures}
     {urls}
     {pending}
@@ -211,6 +213,7 @@
     {urls}
     onTakeIn={(pictureId) => intake.culling.takeIn(pictureId)}
     onTakeAllIn={() => intake.culling.takeAllIn()}
+    onEmptied={(pictureId) => strip?.focusRemove(pictureId)}
   />
 {/if}
 

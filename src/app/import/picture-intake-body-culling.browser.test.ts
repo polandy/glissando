@@ -57,6 +57,9 @@ function similarAndBlurry() {
 const text = (element: Element | null | undefined): string =>
   (element?.textContent ?? "").replace(/\s+/g, " ").trim();
 const stripTiles = (target: HTMLElement) => target.querySelectorAll(".strip .tile").length;
+/** The strip's tiles; soft.jpg, the latest set aside, is the fifth once every picture is in. */
+const tiles = (target: HTMLElement) => [...target.querySelectorAll(".strip .tile")];
+const SOFT_TILE = 4;
 const takeButtons = (target: HTMLElement) => [
   ...target.querySelectorAll<HTMLButtonElement>("button.take"),
 ];
@@ -135,6 +138,37 @@ describe("PictureIntakeBody, the set-aside pictures", () => {
     flushSync();
 
     expect(stripTiles(target)).toBe(6);
+    expect(document.activeElement).toBe(tiles(target)[SOFT_TILE]?.querySelector("button.remove"));
     expect(target.querySelector(".aside")).toBeNull();
+  });
+
+  it("moves the focus to the ✕ in the strip of the picture the last + took in", async () => {
+    const { checker, files } = similarAndBlurry();
+    const { intake, target } = mountBody(checker);
+    intake.addPictures(files);
+    await intake.settled();
+    flushSync();
+
+    while (takeButtons(target).length > 0) {
+      takeButtons(target)[0]?.click();
+      flushSync();
+    }
+
+    expect(stripTiles(target)).toBe(6);
+    expect(document.activeElement).toBe(tiles(target)[SOFT_TILE]?.querySelector("button.remove"));
+    expect(target.querySelector(".aside")).toBeNull();
+  });
+
+  it("names a group whose kept picture was removed without the sharpest being kept", async () => {
+    const { checker, files } = similarAndBlurry();
+    const { intake, target } = mountBody(checker);
+    intake.addPictures(files);
+    await intake.settled();
+    const kept = intake.culling.state.groups[0];
+
+    intake.removePicture(kept?.kind === "similar" ? kept.keptId : "");
+    flushSync();
+
+    expect(text(target.querySelector(".aside .group h3"))).toBe("Ähnlich · 02.07.2025 14:02–14:03");
   });
 });
