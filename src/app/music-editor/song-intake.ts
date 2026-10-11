@@ -121,10 +121,13 @@ export class SongIntake {
         durationMs: read.durationMs,
         mimeType: read.file.type,
       };
-      this.#ports.editor.addSongs([song]);
-      this.dismiss(key);
-      await this.#ports.editor.settled();
-      await audio.release();
+      try {
+        this.#ports.editor.addSongs([song]);
+        this.dismiss(key);
+        await this.#ports.editor.settled();
+      } finally {
+        await audio.release();
+      }
     } catch (error) {
       this.dismiss(key);
       if (!signal.aborted) this.#ports.onError(error);

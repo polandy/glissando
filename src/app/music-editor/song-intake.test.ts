@@ -164,6 +164,23 @@ describe("SongIntake", () => {
     ]);
   });
 
+  it("releases a stored song's media when the editor fails to add it, and reports the failure", async () => {
+    const failure = new Error("editor gone");
+    const { intake, log, errors } = intakeWith({
+      editor: {
+        addSongs: () => {
+          throw failure;
+        },
+        settled: () => Promise.resolve(),
+      },
+    });
+
+    await intake.add([mp3("Morning Drive.mp3")]);
+
+    expect(errors).toEqual([failure]);
+    expect(log).toEqual(["store Morning Drive.mp3 as song-1", "release song-1"]);
+  });
+
   it("reports a song that could not be stored and drops its pending row", async () => {
     const failure = new Error("disk full");
     const { intake, editor, errors, shown } = intakeWith({
