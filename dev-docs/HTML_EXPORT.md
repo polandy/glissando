@@ -31,7 +31,7 @@ https://polandy.github.io/glissando-assets/mockups/html-export/.
   media.
 - **Data**: the slideshow JSON (as composed for the player, `parseSlideshow` format) sits in
   `<script type="application/json" id="slideshow">`. Each picture's `image.src` is a key `p<n>`,
-  the music's `src` the key `music`. Each medium is a
+  every track's `src` the key `music`, which holds the first song: the page plays the first track. Each medium is a
   `<script type="application/octet-stream" id="<key>" data-type="<mime>">` holding its base64. The
   page's `openPicture(key)` decodes a block into a Blob on demand, so only the pictures the player
   holds are ever unpacked. The music becomes one `blob:` URL when the page starts. The page's

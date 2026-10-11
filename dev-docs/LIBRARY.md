@@ -58,12 +58,13 @@ publishes a state with the Svelte store contract:
 
 ## Music
 
-One file the browser plays natively. Its duration is read from the file's metadata; a file the
+A slideshow plays a playlist (ADR-0023): `StoredSlideshow.songs`, in play order, empty without
+music. Each song is one file the browser plays natively. Its duration is read from the file's metadata; a file the
 browser cannot load, or one without a finite duration (a live stream), is rejected as
 unreadable.
 
-The music editor sets an excerpt and fades on the stored music (ADR-0009); the file itself is
-never changed. `StoredMusic.trim` (`{ startMs, endMs }`, whole ms, `0 ≤ startMs`,
+The music editor sets an excerpt and fades on a song (ADR-0009); the file itself is never
+changed. The music editor edits the playlist's first song. `StoredMusic.trim` (`{ startMs, endMs }`, whole ms, `0 ≤ startMs`,
 `endMs ≤ durationMs`, at least `MIN_MUSIC_EXCERPT_MS` = 5000 long) is the part that plays;
 absent, the whole track. `fadeInMs` and `fadeOutMs` are own fades in whole ms, 0 to 10000 in
 steps of 500, 0 being off (the editor offers off, 2000 and 5000); absent, automatic.
@@ -75,9 +76,14 @@ fill the music (ADR-0022). A new slideshow is created with `"seconds"` unless th
 `checkPictureLength`) and `setSecondsPerPicture` (half seconds, 2 to 15) are in
 `src/library/slideshow-edits-timing.ts`.
 `setMusicTrim` deletes the field for `undefined` or the whole track, `setMusicFadeIn`,
-`setMusicFadeOut` and `setMusicPictureChanges` for `undefined` (`src/library/slideshow-edits-music.ts`);
-all validate (`checkMusicTrim`, `checkMusicFadeMs`, `checkPictureChanges`).
-Records without them need no migration.
+`setMusicFadeOut` and `setMusicPictureChanges` for `undefined`; each addresses its song by id
+and throws for one the slideshow does not play (`src/library/slideshow-edits-music.ts`); all
+validate (`checkMusicTrim`, `checkMusicFadeMs`, `checkPictureChanges`). The playlist's own
+edits are in `src/library/slideshow-edits-songs.ts`: `addSongs` appends (refusing a song it
+already has, validating each song's own fields), `removeSong`, `moveSong` (a song with its own
+settings to another place) and `setBetweenSongs` (`StoredSlideshow.betweenSongs` `"sequence"`
+plays the songs one after another, `checkBetweenSongs`; `undefined` deletes the field, so they
+crossfade). A removed song's media goes with the clean-up of unreferenced media.
 
 ## Storage layout
 
@@ -117,10 +123,10 @@ the default every picture without its own plays (one of `SLIDESHOW_TRANSITIONS`:
 choices or `"alternate"`); absent, it is the crossfade (ADR-0010). `setSlideshowTransition`
 validates it (`checkSlideshowTransition`) and deletes the field for `undefined` or
 `"crossfade"`; records without it need no migration. `mediaBytes`
-measures what a slideshow's pictures (both renditions) and music take, in one read-only
+measures what a slideshow's pictures (both renditions) and songs take, in one read-only
 transaction, for the export's size estimate. `deleteSlideshow` deletes the
 record and, in the same transaction, the media no other slideshow references, those pictures'
-focus and that music's beats with it.
+focus and those songs' beats with it.
 
 A picture's focus lives beside its media, not on the record: the editors save whole records
 from their copy, which would erase a focus found meanwhile. `putPictureFocus` checks for the
@@ -153,8 +159,8 @@ the focus it read on opening, so the editors' automatic motions and focus marks 
 
 ## Listening for the beats
 
-`BeatPass` (`library/beat-pass.ts`) listens, in the background, for the beats of every stored
-track without a result (ADR-0021), the pattern of the focus pass: one track at a time, a track
+`BeatPass` (`library/beat-pass.ts`) listens, in the background, for the beats of every song
+of every stored slideshow without a result (ADR-0021), the pattern of the focus pass: one track at a time, a track
 two slideshows share once, its file through the `BeatDetector` into the store — the beats found
 or `{kind: "none"}` for music without a clear beat. The detector (`beats/worker-beat-detector.ts`)
 decodes on the main thread (`decodeMusicWithWebAudio`: `OfflineAudioContext` at 11 025 Hz, the
@@ -173,8 +179,8 @@ slideshows, asked only by `listenFor`: the first device to open one in the playe
 editor listens and keeps the result on the server beside the music
 (`dev-docs/SERVER_LIBRARY.md`), where every other device reads it. It shares the device's
 detector; a server out of reach is only logged. The player and both exports read the stored
-beats once when they start (`storedMusicBeats`); the picture and music editors follow the pass
-as it finds them (`TrackBeats`). `.glissando` files carry no beats: the receiver listens again.
+beats of every song once when they start (`storedSongBeats`); the picture and music editors
+follow the pass as it finds the first song's (`TrackBeats`). `.glissando` files carry no beats: the receiver listens again.
 
 A write commits its transaction explicitly (`commit()`) as soon as its last request is placed —
 right away for a plain write, in the read's callback for one that reads first. Chromium aborts a
@@ -205,28 +211,22 @@ One slideshow as one file, to move it between devices (`src/glissando-file/`). A
 entries are stored, not compressed, so any unzip tool opens it; no ZIP64, so it stays under
 4 GiB and 65,535 entries (ADR-0004):
 
-| Entry                  | Content                                                                |
-| ---------------------- | ---------------------------------------------------------------------- |
-| `glissando.json`       | always first: `format` "glissando", `formatVersion` 8, the `slideshow` |
-| `pictures/0001.jpg` …  | the display renditions in play order, as stored (numbered from 0001)   |
-| `thumbnails/0001.jpg`… | their thumbnails, as stored                                            |
-| `music/track.<ext>`    | the music, extension from its file name (none when it has none)        |
+| Entry                   | Content                                                                                 |
+| ----------------------- | --------------------------------------------------------------------------------------- |
+| `glissando.json`        | always first: `format` "glissando", `formatVersion` 10, the `slideshow`                 |
+| `pictures/0001.jpg` …   | the display renditions in play order, as stored (numbered from 0001)                    |
+| `thumbnails/0001.jpg`…  | their thumbnails, as stored                                                             |
+| `music/track-<n>.<ext>` | the playlist's n-th song (from 1), extension from its file name (none when it has none) |
 
 `slideshow` is the stored record without device ids: `title`, `createdAt`, `secondsPerPicture`,
 `pictureLength` (only when set), `ownOrder` (only when true), `transition` (only when not the crossfade), `pictures` (`file`, `thumbnail`, `capturedAt`, `width`, `height`,
 `fileName`, `kenBurns` for a picture with an own motion, `caption` for one with a caption,
 `durationMs` and `transition` for one with an own duration or transition, `immichAssetId` or
-`fileBytes` where known) and `music` (`file`, `fileName`, `durationMs` in whole ms, `mimeType`, and `trim`, `fadeInMs`, `fadeOutMs`, `pictureChanges` where set). Picture types follow
+`fileBytes` where known), `songs` (in play order, empty without music; each `file`, `fileName`, `durationMs` in whole ms, `mimeType`, and `trim`, `fadeInMs`, `fadeOutMs`, `pictureChanges` where set) and `betweenSongs` (only when set). Picture types follow
 the extension (`jpg`, `png`, `webp`). No picture's focus travels in the file: the receiving
 device looks for it itself (ADR-0012). The manifest is read strictly: an unknown key or a value
-out of range makes the file damaged. Version 2 added `kenBurns`, version 3 `caption`, version 4
-`durationMs` and `transition`, version 5 the music's `trim`, `fadeInMs` and `fadeOutMs`,
-version 6 the slideshow's `transition`, version 7 the pictures' `immichAssetId` or `fileBytes`
-(a picture carrying both is damaged, the reason names its path), version 8 the music's
-`pictureChanges`, version 9 the slideshow's `pictureLength`; files of versions 1 to 8 are still
-read (without `transition`: the crossfade; without `pictureLength`: the pictures fill the
-music), and a file carrying a field its version does not know is
-damaged. An own duration, transition, default transition, excerpt, fade or picture changes is checked as on the edit; the reason
+out of range makes the file damaged. Only version 10, the playlist's (ADR-0023), is read; a file
+of an older version is damaged. An own duration, transition, default transition, excerpt, fade or picture changes is checked as on the edit; the reason
 names its path and value. A caption must be what `normalizeCaption` leaves (1 to 80 characters counted in graphemes, one line, no
 leading, trailing or repeated whitespace); the reason names its path and value.
 

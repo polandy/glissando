@@ -46,7 +46,7 @@ duration })`, encode, close.
 
 ## Music
 
-- The music's bytes are decoded once (`decodeAudioData`), then rendered in 30 s segments, each in its
+- The video carries the first track of the slideshow's music (PLAYER.md). Its bytes are decoded once (`decodeAudioData`), then rendered in 30 s segments, each in its
   own `OfflineAudioContext` (2 channels, 48 kHz): the source starts at `startMs / 1000` plus the
   segment's start, and its gain follows `musicGainAt` (ADR-0009) as linear ramps between the fade
   boundaries. So the export holds the decoded track plus one segment, never the whole mix.

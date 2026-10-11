@@ -11,15 +11,26 @@ are rejected.
 
 ```json
 {
-  "formatVersion": 2,
+  "formatVersion": 3,
   "title": "July 2025",
-  "music": {
-    "src": "music/summer.mp3",
-    "startMs": 12000,
-    "endMs": 150000,
-    "fadeInMs": 2000,
-    "fadeOutMs": 2000
-  },
+  "music": [
+    {
+      "src": "music/summer.mp3",
+      "atMs": 0,
+      "startMs": 12000,
+      "endMs": 150000,
+      "fadeInMs": 2000,
+      "fadeOutMs": 3000
+    },
+    {
+      "src": "music/autumn.mp3",
+      "atMs": 135000,
+      "startMs": 0,
+      "endMs": 90000,
+      "fadeInMs": 3000,
+      "fadeOutMs": 2000
+    }
+  ],
   "slides": [
     {
       "image": { "src": "pictures/1.jpg", "capturedAt": "2025-07-01T10:00:00Z" },
@@ -49,12 +60,14 @@ are rejected.
   flag or a letter with a combining mark is one) without leading, trailing or repeated
   whitespace, as `normalizeCaption` leaves typed text; absent means none. Anything else is a
   `SlideshowFormatError` at `slides[i].caption`.
-- **Music** (version 2, ADR-0009): `startMs` is where in the track the slideshow's start falls,
-  `endMs` where the music stops being heard, `fadeInMs` and `fadeOutMs` ramp the volume up from
-  `startMs` and down to `endMs` (0: none); all whole milliseconds of the track, `endMs` after
-  `startMs`, the two fades together at most `endMs − startMs`. The composer resolves them: the
-  player knows no "automatic" and no "whole track". A version 1 slideshow is still read; its
-  `music`, `{ src }` only, plays as the whole track without fades (`endMs` absent).
+- **Music** (version 3, ADR-0009, ADR-0023): a non-empty list of tracks in order of `atMs`, the
+  slideshow time where each starts; two overlap in a crossfade. Per track, `startMs` is where in
+  the track playing starts, `endMs` where it stops being heard, `fadeInMs` and `fadeOutMs` ramp
+  the volume up from `startMs` and down to `endMs` (0: none); all whole milliseconds of the
+  track, `endMs` after `startMs`, the two fades together at most `endMs − startMs`. The composer
+  resolves them, leaving out the songs the slideshow never reaches: the player knows no
+  "automatic", no "whole track" and no crossfade rule. Errors name the track, e.g.
+  `music[1].atMs`. Only version 3 is read.
 
 ## Timing
 
@@ -126,10 +139,10 @@ The player:
 
 Behaviour:
 
-- **Music** follows the player: it starts at `startMs` plus `currentTime` on play and after a
-  seek, pauses on pause, while waiting, at the end and once play time passes `endMs`, and stays
+- **Music** follows the player, which sounds the first track: it starts at `startMs` plus
+  `currentTime` on play and after a seek, pauses on pause, while waiting, at the end and once play time passes `endMs`, and stays
   silent when played beyond it. Its volume is a pure function of play time (`musicGainAt`:
-  linear fades), set before every start and on every frame, so pause, resume and seek land on
+  linear fades; `trackGainAt` gives a placed track's from slideshow time, silent outside it), set before every start and on every frame, so pause, resume and seek land on
   the envelope without a jump. The volume is set on a Web Audio gain node at the context's
   current time (`MusicOutput`, one `AudioContext` per page), since iOS ignores a media element's
   `volume`; without Web Audio it falls back to the element's volume. iOS lets the context sound

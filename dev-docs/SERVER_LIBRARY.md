@@ -13,11 +13,12 @@ app and the server):
 { "format": "glissando-server", "formatVersion": 1, "slideshow": { … } }
 ```
 
-`slideshow` is the `.glissando` manifest's `slideshow` of format version 9 (`dev-docs/LIBRARY.md`,
+`slideshow` is the `.glissando` manifest's `slideshow` of format version 10 (`dev-docs/LIBRARY.md`,
 The .glissando file) with two differences:
 
 - every picture has `immichAssetId` (required) and neither `file`, `thumbnail` nor `fileBytes`;
-- `music`, when present, has `musicId` (the server's id of the uploaded file) instead of `file`.
+- each song of `songs` (the playlist, ADR-0023) has `musicId` (the server's id of the uploaded
+  file) instead of `file`; `betweenSongs` as in the manifest.
 
 It is read as strictly as the manifest, with the same field checks (one implementation, shared
 with `read-manifest.ts`): an unknown key, a value out of range, a missing `immichAssetId` or two
@@ -26,12 +27,12 @@ pictures with the same one make it invalid; the reason names the path and value.
 (`fitWithin`, `DISPLAY_BOUND`); the rendition decoded at play time is authoritative for drawing.
 
 `formatVersion` changes only for an incompatible change. A field the manifest gains as optional
-(e.g. `music.pictureChanges`, manifest version 8, or `pictureLength`, version 9) keeps it at 1: the service and the app ship in
+(e.g. `pictureLength`, manifest version 9, or `betweenSongs`, version 10) keeps it at 1: the service and the app ship in
 one image, so a document with the field is always read by an app that knows it; only an app still
 cached from before the update refuses it as invalid, until it updates.
 
 In the app a server slideshow is a `StoredSlideshow` whose pictures' `id` is their
-`immichAssetId` and whose music's `id` is its `musicId`.
+`immichAssetId` and whose songs' `id` is their `musicId`.
 
 ## The HTTP API
 
@@ -55,7 +56,8 @@ the server.
 - **Revision**: a positive whole number, 1 on create, +1 on every accepted `PUT`. Compared in the
   same transaction as the write. An `If-Match` other than the
   current `"<revision>"` (also `*` or a weak tag) is a stale one: 412.
-- **Music**: a document naming a `musicId` the server does not have is refused (409). Music no
+- **Music**: a document naming, in any song, a `musicId` the server does not have is refused
+  (409). Music no
   document references any more is deleted in the transaction that dropped the last reference;
   music uploaded but never referenced is deleted after `UNREFERENCED_MUSIC_GRACE_MS` (1 h, the
   service's injected clock, checked on every upload); its beats are deleted with it.
@@ -162,7 +164,7 @@ Upload these to Immich first, or save this slideshow on this device." The "Open 
 offered, and photos skipped as duplicates stay skipped (no "Add anyway"). Picked photos join at once
 (no downscaling; tiles are Immich thumbnails) with the mint notice "Linked from Immich. Nothing is
 downloaded now; playing loads the pictures from Immich." Duplicates are skipped as before
-(ADR-0016). The music step is unchanged; "Create slideshow" uploads the music (if any), then
+(ADR-0016). The music step is unchanged; "Create slideshow" uploads each song's music, then
 creates the document, under the overlay "Saving on your Glissando server …". A failure keeps the
 wizard as it was with a coral toast naming it and "Try again".
 
