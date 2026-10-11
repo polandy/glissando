@@ -15,7 +15,6 @@ export const deSharePage = {
   "sharePage.unreachableTitle": "Die Diashow ist gerade nicht erreichbar",
   "sharePage.unreachableText":
     "Der Server, auf dem sie liegt, antwortet nicht. Vielleicht startet er gerade neu; versuch es gleich noch einmal.",
-  "sharePage.tryAgain": "Nochmal versuchen",
   "sharePage.noscript":
     "Diese Diashow braucht JavaScript. Öffne den Link in einem Browser wie Safari, Chrome oder Firefox.",
 } as const satisfies Record<string, Message>;

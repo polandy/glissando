@@ -212,7 +212,7 @@ describe("The share row and sheet (SHARE_LINK.md, In the app)", () => {
 
     await click("Link erstellen");
     expect(dialog()?.querySelector('[role="alert"]')?.textContent).toContain(
-      "Der Link wurde nicht erstellt. Dein Glissando-Server antwortet nicht.",
+      "Der Link konnte nicht erstellt werden. Dein Glissando-Server antwortet nicht.",
     );
     api.down = false;
     await click("Erneut versuchen");
