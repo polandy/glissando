@@ -1,5 +1,7 @@
 import type { Page } from "@playwright/test";
 import { readFileSync } from "node:fs";
+import { pcmWav } from "../../src/beats/testing/pcm-wav";
+import { clickTrack } from "../../src/beats/testing/synthetic-music";
 import { silentWav } from "../../src/import/testing/silent-wav";
 import { syntheticJpeg } from "../../src/import/testing/synthetic-jpeg";
 
@@ -125,6 +127,12 @@ export function silentTrack(name: string, seconds: number): TestFile {
     mimeType: "audio/wav",
     buffer: Buffer.from(silentWav(seconds * millisecondsPerSecond)),
   };
+}
+
+/** A generated WAV track with a click on every beat, at a steady tempo. */
+export function clickTrackWav(name: string, seconds: number, beatsPerMinute: number): TestFile {
+  const { samples, sampleRate } = clickTrack(seconds, beatsPerMinute);
+  return { name, mimeType: "audio/wav", buffer: Buffer.from(pcmWav(samples, sampleRate)) };
 }
 
 /**
