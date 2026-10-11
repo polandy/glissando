@@ -8,7 +8,37 @@ on:
 permissions:
   contents: read
 
+# A new push to a pull request supersedes its running checks; main runs every push to the end.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
+  # Whether a pull request touches anything besides documentation. Browsers, e2e and the image
+  # cannot be affected by docs alone; when in doubt (main, an unreadable diff) everything runs.
+  changes:
+    runs-on: ubuntu-24.04
+    permissions:
+      pull-requests: read
+    outputs:
+      code: ${{ steps.diff.outputs.code }}
+    steps:
+      - id: diff
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT: ${{ github.event_name }}
+          PR: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+          DOCS_ONLY: ^(dev-docs/|docs/|\.claude/|[^/]+\.md$)
+        run: |
+          if [ "$EVENT" != pull_request ] || ! files="$(gh pr diff "$PR" --repo "$REPO" --name-only)"; then
+            echo code=true >>"$GITHUB_OUTPUT"
+          elif grep -qvE "$DOCS_ONLY" <<<"$files"; then
+            echo code=true >>"$GITHUB_OUTPUT"
+          else
+            echo code=false >>"$GITHUB_OUTPUT"
+          fi
+
   verify:
     runs-on: ubuntu-24.04
     steps:
@@ -21,12 +51,24 @@ jobs:
       - run: npm run verify
 
   image:
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - run: deploy/test-image.sh
 
-  e2e:
+  # Each engine runs in its own job, the Vitest browser tests apart from the Playwright cases,
+  # so the slowest of the six bounds the run instead of their sum.
+  browser:
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: [chromium, firefox, webkit]
+        suite: [vitest, playwright]
+    name: ${{ matrix.suite }} (${{ matrix.engine }})
     runs-on: ubuntu-24.04
     container:
       image: mcr.microsoft.com/playwright@sha256:eff16c30e6f3f4af0a03fa4b706120d5e9b0891c344a27d64559aff5900a4a27 # v1.63.0-noble, matches @playwright/test
@@ -41,12 +83,14 @@ jobs:
           node-version-file: .node-version
           cache: npm
       - run: npm ci --no-fund --no-audit
-      - run: npx vitest run --project browser
-      - run: npx playwright test
+      - if: matrix.suite == 'vitest'
+        run: npx vitest run --project "browser (${{ matrix.engine }})"
+      - if: matrix.suite == 'playwright'
+        run: npx playwright test --project ${{ matrix.engine }}
       - if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: playwright-report
+          name: report-${{ matrix.suite }}-${{ matrix.engine }}
           path: |
             playwright-report/
             test-results/
