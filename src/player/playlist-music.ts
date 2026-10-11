@@ -23,14 +23,18 @@ export class PlaylistMusic {
     }));
   }
 
-  /** Plays every track heard at slideshow time `timeMs` and cues the ones still to come. */
+  /**
+   * Plays every track heard at slideshow time `timeMs` and primes every other one at its start.
+   * Call it in the user's play gesture: iOS lets an element play outside a gesture (a track
+   * reaching its place on a frame) only once it has played inside one.
+   */
   play(timeMs: number): Promise<void> {
     const starts: Promise<void>[] = [];
     for (const placed of this.#tracks) {
       if (isTrackHeardAt(placed.track, timeMs)) {
         starts.push(start(placed, timeMs));
-      } else if (placed.track.atMs > timeMs) {
-        placed.playback.cue(trackSecondsAt(placed.track, placed.track.atMs));
+      } else if (!placed.sounding) {
+        starts.push(prime(placed));
       }
     }
     return Promise.all(starts).then(() => undefined);
@@ -76,6 +80,14 @@ function start(placed: PlacedTrack, timeMs: number): Promise<void> {
   placed.playback.setVolume(trackGainAt(placed.track, timeMs));
   placed.sounding = true;
   return placed.playback.play(trackSecondsAt(placed.track, timeMs));
+}
+
+/** Starts and at once pauses the track at its start, silent, so it counts as user-started. */
+function prime({ track, playback }: PlacedTrack): Promise<void> {
+  playback.setVolume(0);
+  const started = playback.play(trackSecondsAt(track, track.atMs));
+  playback.pause();
+  return started;
 }
 
 function pause(placed: PlacedTrack): void {

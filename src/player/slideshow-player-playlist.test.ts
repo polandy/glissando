@@ -79,14 +79,15 @@ function setUp() {
 }
 
 describe("SlideshowPlayer with a playlist of placed tracks", () => {
-  it("starts only the tracks heard at play time and cues the next one at its start", async () => {
+  it("starts the tracks heard at play time and primes the next one silently at its start in the play gesture", async () => {
     const { player, summer, autumn, ready } = setUp();
     await ready();
 
     player.play();
 
     expect(summer.calls).toEqual(["play@10"]);
-    expect(autumn.calls).toEqual(["cue@0"]);
+    expect(autumn.calls).toEqual(["play@0", "pause"]);
+    expect(autumn.volumesAtPlay).toEqual([0]);
   });
 
   it("starts the next track at its start once play time reaches its place", async () => {
@@ -96,7 +97,7 @@ describe("SlideshowPlayer with a playlist of placed tracks", () => {
 
     advance(4000);
 
-    expect(autumn.calls).toEqual(["cue@0", "play@0"]);
+    expect(autumn.calls).toEqual(["play@0", "pause", "play@0"]);
     expect(autumn.volume).toBe(0);
   });
 
@@ -120,7 +121,7 @@ describe("SlideshowPlayer with a playlist of placed tracks", () => {
 
     advance(2500);
 
-    expect(autumn.calls).toEqual(["cue@0", "play@0"]);
+    expect(autumn.calls).toEqual(["play@0", "pause", "play@0"]);
     expect(summer.calls).toEqual(["play@10", "pause"]);
   });
 
@@ -137,7 +138,7 @@ describe("SlideshowPlayer with a playlist of placed tracks", () => {
     expect(autumn.volume).toBeCloseTo(0.5);
   });
 
-  it("leaves a track that is over silent when seeking past it", async () => {
+  it("only primes a track that is over, silently, when playing past it", async () => {
     const { player, summer, autumn, ready } = setUp();
     await ready();
 
@@ -145,7 +146,8 @@ describe("SlideshowPlayer with a playlist of placed tracks", () => {
     player.play();
 
     expect(autumn.calls).toEqual(["play@3"]);
-    expect(summer.calls).toEqual([]);
+    expect(summer.calls).toEqual(["play@10", "pause"]);
+    expect(summer.volumesAtPlay).toEqual([0]);
   });
 
   it("pauses every sounding track on pause", async () => {

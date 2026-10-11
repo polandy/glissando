@@ -171,21 +171,21 @@ export class FakeMusic implements MusicPlayback {
   readonly calls: string[] = [];
   /** The last volume set; kept apart from `calls`, which it would flood once per frame. */
   volume: number | undefined;
+  /** The volume at each `play`, in order. */
+  readonly volumesAtPlay: (number | undefined)[] = [];
   #refusal: Error | null = null;
   refuseNextPlay(error: Error): void {
     this.#refusal = error;
   }
   play(atSeconds: number): Promise<void> {
     this.calls.push(`play@${atSeconds}`);
+    this.volumesAtPlay.push(this.volume);
     const refusal = this.#refusal;
     this.#refusal = null;
     return refusal ? Promise.reject(refusal) : Promise.resolve();
   }
   setVolume(volume: number): void {
     this.volume = volume;
-  }
-  cue(atSeconds: number): void {
-    this.calls.push(`cue@${atSeconds}`);
   }
   pause(): void {
     this.calls.push("pause");

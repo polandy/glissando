@@ -59,8 +59,6 @@ export interface MusicPlayback {
   play(atSeconds: number): Promise<void>;
   /** From 0 (silent) to 1 (as recorded). */
   setVolume(volume: number): void;
-  /** Moves to `atSeconds` without playing, so a later `play` there starts on loaded sound. */
-  cue(atSeconds: number): void;
   pause(): void;
   dispose(): void;
 }

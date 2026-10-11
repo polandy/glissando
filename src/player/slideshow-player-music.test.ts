@@ -127,7 +127,7 @@ describe("SlideshowPlayer with trimmed, faded music", () => {
     expect(music.calls).toEqual(["play@10", "pause"]);
   });
 
-  it("stays silent when played past the music's end", async () => {
+  it("only primes the music, silently, when played past its end", async () => {
     const { player, music, pictures, ready } = setUp();
     await ready();
     const playing = new Promise((resolve) =>
@@ -140,6 +140,7 @@ describe("SlideshowPlayer with trimmed, faded music", () => {
     await playing;
 
     expect(player.currentTime).toBe(8);
-    expect(music.calls).toEqual([]);
+    expect(music.calls).toEqual(["play@10", "pause"]);
+    expect(music.volumesAtPlay).toEqual([0]);
   });
 });

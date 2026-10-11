@@ -45,10 +45,6 @@ export class AudioElementMusic implements MusicPlayback {
     this.#volume.set(volume);
   }
 
-  cue(atSeconds: number): void {
-    this.#audio.currentTime = atSeconds;
-  }
-
   pause(): void {
     this.#audio.pause();
   }

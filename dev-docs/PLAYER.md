@@ -144,15 +144,17 @@ Behaviour:
   `startMs + (t − atMs)` in the track: on play and after a seek every track heard at that moment
   starts there, and one whose place play time reaches starts on that frame; every sounding track
   pauses on pause, while waiting and at the end, and a track pauses once play time passes its end
-  while the others play on. In a crossfade two sound at once. On play, every track still to come
-  is cued at its `startMs`, so it starts on loaded sound. Each track's volume is a pure function
+  while the others play on. In a crossfade two sound at once. On play, every track not heard then
+  is primed: started at its `startMs` at volume 0 and paused again at once, so it starts on loaded
+  sound and, on iOS, counts as started in the Play gesture. Each track's volume is a pure function
   of play time (`trackGainAt`: linear fades, silent outside the track), set before every start
   and on every frame, so pause, resume and seek land on every envelope without a jump. The volume
   is set on a Web Audio gain node per element at the context's current time (`MusicOutput`, one
   `AudioContext` per page that every track routes through), since iOS ignores a media element's
   `volume`; without Web Audio it falls back to the element's volume. iOS lets the context sound
-  only when it is resumed synchronously in a user gesture, and resuming the one context lets
-  every track sound: the app unlocks it in the Play tap that opens the player, in the player's
+  only when it is resumed synchronously in a user gesture, and lets a media element play outside
+  a gesture (a track reaching its place on a frame) only once it has played inside one, hence the
+  priming: the app unlocks the context in the Play tap that opens the player, in the player's
   play control, and every `play()` of a track unlocks it too. A refused `play()` of any track is
   an `error` and pauses; a start interrupted by a pause (a quick seek) is not a refusal.
 - **Pictures** are loaded for the slides on screen plus the next one; all others are released,
