@@ -95,20 +95,50 @@ interface PlayProgress {
   step: string;
   page: Document | null;
   readonly seen: PageState[];
+  /** Animation frames run since Play, in the page's frame and in the test's own. */
+  readonly animationFrames: { page: number; test: number };
 }
 
-function progressReport({ step, page, seen }: PlayProgress): string {
+/** Where `element` sits in its window's viewport, so a frame scrolled out of view shows. */
+function placeInView(element: Element | null | undefined): string {
+  if (element === null || element === undefined) return "none";
+  const { top, bottom } = element.getBoundingClientRect();
+  const view = element.ownerDocument.defaultView;
+  return `${Math.round(top)}..${Math.round(bottom)} of ${view?.innerHeight ?? "?"}`;
+}
+
+function progressReport({ step, page, seen, animationFrames }: PlayProgress): string {
   const details =
     page === null
       ? {}
       : {
           state: page.documentElement.getAttribute(PAGE_STATE_ATTRIBUTE),
           time: page.querySelector(".time")?.textContent,
+          progress: page.querySelector<HTMLElement>(".progress")?.style.width,
           fonts: page.fonts.status,
           canvases: page.querySelectorAll("canvas").length,
           error: page.querySelector(".error")?.textContent,
+          visibility: page.visibilityState,
+          animationFrames,
+          pageFrame: placeInView(page.defaultView?.frameElement),
+          testFrame: placeInView(window.frameElement),
         };
   return `the exported page stopped while ${step}: ${JSON.stringify({ seen, ...details })}`;
+}
+
+/** Counts `window`'s animation frames into `counts[key]` until the returned stop is called. */
+function countAnimationFrames(
+  window: Window,
+  counts: PlayProgress["animationFrames"],
+  key: keyof PlayProgress["animationFrames"],
+): () => void {
+  let handle = 0;
+  const tick = () => {
+    counts[key] += 1;
+    handle = window.requestAnimationFrame(tick);
+  };
+  handle = window.requestAnimationFrame(tick);
+  return () => window.cancelAnimationFrame(handle);
 }
 
 describe("an exported web page", () => {
@@ -137,7 +167,12 @@ describe("an exported web page", () => {
   async function playedToTheEndCard(
     whilePlaying: () => void = () => {},
   ): Promise<{ readonly pageDocument: Document; readonly seen: readonly PageState[] }> {
-    const progress: PlayProgress = { step: "exporting", page: null, seen: [] };
+    const progress: PlayProgress = {
+      step: "exporting",
+      page: null,
+      seen: [],
+      animationFrames: { page: 0, test: 0 },
+    };
     // A timeout alone says nothing; the report names where the page stopped.
     onTestFailed(() => console.error(progressReport(progress)));
     const url = URL.createObjectURL(await exportedPage());
@@ -166,6 +201,11 @@ describe("an exported web page", () => {
       .getByRole("button", { name: "Play" })
       .click();
     progress.step = "playing to the end card";
+    const pageWindow = pageDocument.defaultView;
+    if (pageWindow !== null) {
+      cleanups.push(countAnimationFrames(pageWindow, progress.animationFrames, "page"));
+    }
+    cleanups.push(countAnimationFrames(window, progress.animationFrames, "test"));
     whilePlaying();
     await stateReached(pageDocument, "ended", progress.seen);
     return { pageDocument, seen: progress.seen };
