@@ -11,7 +11,7 @@ it could not read gave the toast "The music could not be read". A file `<audio>`
 export (ADR-0015).
 
 Measured in the pinned Playwright image (v1.63.0, Linux) on 2026-10-10, with `decodeAudioData`
-and `<audio>` on generated 440 Hz sine tones (`scripts/audio-decode-probe.sh`):
+on generated 440 Hz sine tones (`scripts/audio-decode-probe.sh`):
 
 | Format                                       | Chromium 153 | Firefox 155 | WebKit 26.6 (GStreamer) |
 | -------------------------------------------- | ------------ | ----------- | ----------------------- |
@@ -50,7 +50,8 @@ Decoders weighed (npm, 2026-10-10):
 - **Into FLAC**, lossless, which all three engines decode (also Safari 11+) and mediabunny,
   `decodeAudioData` and `<audio>` all read. Only the copy is stored, named after the original with
   `.flac`. An Opus copy would be about a fifth of the size, but Safari plays Opus in Ogg only from
-  18.4, so it was not chosen.
+  18.4, so it was not chosen. An Opus original is still kept as it is: converting it would
+  multiply its size for the few Safari versions before 18.4.
 - **The decoder is an own libav.js build** (Yahweasel/libav.js, LGPL-2.1, tag `v6.10.9.0`),
   configured from its fragments with only `avformat`, `avcodec`, `decoder-alac`, `demuxer-aiff`
   (with the big-endian PCM decoders), `demuxer-mp4`, `demuxer-caf`, `decoder-ac3`, `demuxer-ac3`,

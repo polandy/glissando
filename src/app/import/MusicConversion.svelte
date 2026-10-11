@@ -1,8 +1,8 @@
 <script lang="ts">
-  import Icon from "../components/Icon.svelte";
   import { getTranslator } from "../i18n/context";
   import type { MusicChoice } from "./import-session";
   import { convertibleSourceLabel } from "./import-view";
+  import TrackHead from "./TrackHead.svelte";
 
   /** The picked music while its FLAC copy is made (ADR-0020). */
   let {
@@ -20,22 +20,12 @@
 </script>
 
 <div class="panel">
-  <div class="track">
-    <span class="art"><Icon name="music" /></span>
-    <div class="text">
-      <b>{music.pickedName}</b>
-      <span class="muted mono meta">{t("import.musicConverting", { format })}</span>
-    </div>
-    <button
-      class="icon-btn"
-      type="button"
-      title={t("import.cancelConversion")}
-      aria-label={t("import.cancelConversion")}
-      onclick={onCancel}
-    >
-      <Icon name="close" />
-    </button>
-  </div>
+  <TrackHead
+    name={music.pickedName}
+    meta={t("import.musicConverting", { format })}
+    closeLabel={t("import.cancelConversion")}
+    onClose={onCancel}
+  />
   <div class="convert">
     <div
       class="progress"
@@ -63,35 +53,6 @@
     border: 1px solid var(--gl-line);
     border-radius: var(--gl-radius-large);
     background: var(--gl-surface);
-  }
-  .track {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  .text {
-    flex: 1;
-    min-width: 0;
-  }
-  .text b {
-    display: block;
-    overflow: hidden;
-    font-weight: var(--gl-weight-semibold);
-    white-space: nowrap;
-    text-overflow: ellipsis;
-  }
-  .meta {
-    font-size: var(--gl-size-meta);
-  }
-  .art {
-    display: grid;
-    place-items: center;
-    flex: none;
-    width: 44px;
-    height: 44px;
-    border-radius: var(--gl-radius);
-    background: linear-gradient(135deg, var(--gl-lemon), var(--gl-logo-peach));
-    color: var(--gl-art-ink);
   }
   .convert {
     display: grid;

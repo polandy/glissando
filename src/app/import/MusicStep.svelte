@@ -17,6 +17,7 @@
   } from "./import-view";
   import MusicConversion from "./MusicConversion.svelte";
   import MusicUnusable from "./MusicUnusable.svelte";
+  import TrackHead from "./TrackHead.svelte";
 
   let {
     session,
@@ -91,32 +92,18 @@
   {#if chosen}
     {@const file = chosen.file}
     <div class="panel">
-      <div class="track">
-        <span class="art"><Icon name="music" /></span>
-        <div class="text">
-          <b class="name">{chosen.pickedName}</b>
-          <span class="muted mono meta">
-            {t("import.trackMeta", {
-              duration: formatDuration(chosen.durationMs / MILLISECONDS_PER_SECOND),
-              format: musicFormatLabel(file.name, file.type),
-            })}
-          </span>
-          {#if chosen.convertedFrom}
-            <span class="muted meta origin">
-              {t("import.convertedFrom", { format: convertibleSourceLabel(chosen.convertedFrom) })}
-            </span>
-          {/if}
-        </div>
-        <button
-          class="icon-btn"
-          type="button"
-          title={t("import.removeMusic")}
-          aria-label={t("import.removeMusic")}
-          onclick={() => session.removeMusic()}
-        >
-          <Icon name="close" />
-        </button>
-      </div>
+      <TrackHead
+        name={chosen.pickedName}
+        meta={t("import.trackMeta", {
+          duration: formatDuration(chosen.durationMs / MILLISECONDS_PER_SECOND),
+          format: musicFormatLabel(file.name, file.type),
+        })}
+        note={chosen.convertedFrom === null
+          ? undefined
+          : t("import.convertedFrom", { format: convertibleSourceLabel(chosen.convertedFrom) })}
+        closeLabel={t("import.removeMusic")}
+        onClose={() => session.removeMusic()}
+      />
       <div class="fit" aria-hidden="true">
         <div class="segments">
           {#each pictureIds as id, index (id)}
@@ -221,28 +208,8 @@
     display: block;
     font-weight: var(--gl-weight-semibold);
   }
-  /* Only the file name is cut short; the seconds panel's title wraps. */
-  .text b.name {
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-  }
   .meta {
     font-size: var(--gl-size-meta);
-  }
-  .origin {
-    display: block;
-    margin-top: 3px;
-  }
-  .art {
-    display: grid;
-    place-items: center;
-    flex: none;
-    width: 44px;
-    height: 44px;
-    border-radius: var(--gl-radius);
-    background: linear-gradient(135deg, var(--gl-lemon), var(--gl-logo-peach));
-    color: var(--gl-art-ink);
   }
   .fit {
     display: grid;
