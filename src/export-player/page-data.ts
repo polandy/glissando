@@ -90,3 +90,28 @@ function readCopy(input: unknown): PageCopy {
   });
   return Object.fromEntries(entries) as Record<keyof PageCopy, string>;
 }
+
+/**
+ * `slideshow` with each track's `src` the URL `createUrl` makes of its song: one per song, shared
+ * by its tracks.
+ */
+export function withSongUrls(
+  slideshow: Slideshow,
+  songs: ReadonlyMap<string, Blob>,
+  createUrl: (song: Blob) => string,
+): Slideshow {
+  if (slideshow.music === undefined) {
+    return slideshow;
+  }
+  const urls = new Map([...songs].map(([src, blob]) => [src, createUrl(blob)]));
+  return {
+    ...slideshow,
+    music: slideshow.music.map((track) => {
+      const url = urls.get(track.src);
+      if (url === undefined) {
+        throw new PageDataError(`the page holds no song ${JSON.stringify(track.src)} for a track`);
+      }
+      return { ...track, src: url };
+    }),
+  };
+}

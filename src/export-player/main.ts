@@ -12,10 +12,9 @@ import { createMusicAudioContext } from "../player/browser/platform";
 import DecodeWorker from "../player/browser/picture-decode-worker.ts?worker&inline";
 import { CAPTION_FONT_FAMILY, CAPTION_FONT_WEIGHT } from "../player/caption-layout";
 import { MusicPlaybackError } from "../player/ports";
-import type { Slideshow } from "../player/slideshow";
 import { MutableMusicOutput } from "./mutable-music-output";
 import { pageKeyAction, timelineKeyAction, type PageAction } from "./page-keys";
-import { readPageData, type PageBlock } from "./page-data";
+import { readPageData, withSongUrls, type PageBlock } from "./page-data";
 import { createPageView, type PageView } from "./page-view";
 import { SEEK_STEP_SECONDS, seekBy, timelineSeconds } from "./seek";
 import "./page.css";
@@ -32,7 +31,8 @@ function readBlock(id: string): PageBlock | null {
 
 async function startPage(): Promise<void> {
   const data = readPageData(readBlock);
-  const slideshow = withSongUrls(data.slideshow, data.songs);
+  // Each embedded song becomes one `blob:` URL for the page's lifetime.
+  const slideshow = withSongUrls(data.slideshow, data.songs, (song) => URL.createObjectURL(song));
   const view = createPageView(document, {
     title: data.slideshow.title,
     copy: data.copy,
@@ -51,18 +51,6 @@ async function startPage(): Promise<void> {
   wire(view, player, music);
   // Only now is a click on Play heard; an error the player raised meanwhile stays shown.
   if (view.state === "loading") view.showState("start");
-}
-
-/** Each embedded song becomes one `blob:` URL for the page's lifetime, shared by its tracks. */
-function withSongUrls(slideshow: Slideshow, songs: ReadonlyMap<string, Blob>): Slideshow {
-  if (slideshow.music === undefined) {
-    return slideshow;
-  }
-  const urls = new Map([...songs].map(([src, blob]) => [src, URL.createObjectURL(blob)]));
-  return {
-    ...slideshow,
-    music: slideshow.music.map((track) => ({ ...track, src: urls.get(track.src) ?? track.src })),
-  };
 }
 
 function wire(view: PageView, player: BrowserPlayer, music: MutableMusicOutput): void {

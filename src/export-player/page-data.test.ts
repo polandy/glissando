@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { PageCopy } from "../html-export/page-contract";
 import { SLIDESHOW_FORMAT_VERSION, type Slideshow } from "../player";
-import { PageDataError, readPageData, type PageBlock } from "./page-data";
+import { PageDataError, readPageData, withSongUrls, type PageBlock } from "./page-data";
 
 const COPY: PageCopy = {
   eyebrow: "Diashow",
@@ -38,6 +38,15 @@ const SLIDESHOW: Slideshow = {
   music: [
     { src: "s0", atMs: 0, startMs: 0, endMs: 3000, fadeInMs: 0, fadeOutMs: 1000 },
     { src: "s1", atMs: 2000, startMs: 0, endMs: 1000, fadeInMs: 1000, fadeOutMs: 0 },
+  ],
+};
+
+/** Two tracks of the one song `m0`. */
+const TWO_TRACK_SLIDESHOW: Slideshow = {
+  ...SILENT_SLIDESHOW,
+  music: [
+    { src: "m0", atMs: 0, startMs: 0, endMs: 3000, fadeInMs: 0, fadeOutMs: 1000 },
+    { src: "m0", atMs: 2000, startMs: 0, endMs: 1000, fadeInMs: 1000, fadeOutMs: 0 },
   ],
 };
 
@@ -109,5 +118,26 @@ describe("readPageData", () => {
 
     expect(() => broken(withoutPlay)).toThrow(/"play"/);
     expect(() => broken({ ...COPY, extra: "x" })).toThrow(/"extra"/);
+  });
+});
+
+describe("withSongUrls", () => {
+  it("gives every track its song's URL, one per song", () => {
+    const songs = new Map([["m0", new Blob(["song"])]]);
+    const created: string[] = [];
+
+    const playing = withSongUrls(TWO_TRACK_SLIDESHOW, songs, () => {
+      created.push("blob:m0");
+      return "blob:m0";
+    });
+
+    expect(playing.music?.map(({ src }) => src)).toEqual(["blob:m0", "blob:m0"]);
+    expect(created).toEqual(["blob:m0"]);
+  });
+
+  it("throws PageDataError naming a track whose song the page does not hold", () => {
+    expect(() => withSongUrls(TWO_TRACK_SLIDESHOW, new Map(), () => "blob:x")).toThrow(
+      new PageDataError('the page holds no song "m0" for a track'),
+    );
   });
 });
