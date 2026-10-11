@@ -53,6 +53,7 @@ the server.
 | `GET /api/library/music/{musicId}/beats`                         | 200 `{ "beats": <MusicBeats> }` or `{ "beats": null }` while no device has listened yet; 404                                                                                         |
 | `PUT /api/library/music/{musicId}/beats` body: a `MusicBeats`    | 204; 400 `invalidBeats`; 404; 413 `tooLarge`; 415 `notJson`                                                                                                                          |
 
+- **Share links** add `…/slideshows/{id}/share` and the public `/api/share/` (`dev-docs/SHARE_LINK.md`).
 - **Revision**: a positive whole number, 1 on create, +1 on every accepted `PUT`. Compared in the
   same transaction as the write. An `If-Match` other than the
   current `"<revision>"` (also `*` or a weak tag) is a stale one: 412.
@@ -84,17 +85,18 @@ the server.
   start (the entrypoint already does this; `GLISSANDO_DATA_DIR` joins its known settings). The
   entrypoint hands the service these two settings only, never the Immich key.
 - **Storage** (`node:sqlite`): tables `slideshows(id, revision, created_at, document)`,
-  `music(id, content_type, bytes, uploaded_at)` and `music_beats(music_id, beats)`, times in
+  `music(id, content_type, bytes, uploaded_at)`, `music_beats(music_id, beats)` and
+  `share_links(slideshow_id, token, created_at)` (SHARE_LINK.md, Storage), times in
   milliseconds since the epoch; WAL mode; every write in one transaction. Whether music is
   referenced is read from the documents (`json_extract`), so no second record of it can drift.
 - **Ports**: a `LibraryRepository` (the SQLite adapter and an in-memory fake run the same contract
-  suite), a clock and an id source, all injected into the request handler, which is a pure
+  suite), a clock, an id source and a random source (for share tokens), all injected into the request handler, which is a pure
   function of request → response tested in-process without sockets.
 - **Request bodies** are read up to the path's limit (`maxBodyBytes`); a larger one is read to
   its end and dropped, then answers 413 and closes the connection, so the client receives the 413
   rather than a reset connection.
 - **Log**: one line per request (`glissando-library: <method> <path> <status>`) to stdout; never
-  a body. An unexpected failure answers 500 `internalError` and logs its stack to stderr.
+  a body, and never a share token (SHARE_LINK.md, Logs). An unexpected failure answers 500 `internalError` and logs its stack to stderr.
 
 ## The image
 
@@ -109,8 +111,8 @@ the server.
 - `deploy/test-image-library.sh`, run by `deploy/test-image.sh`, checks: the discovery answers
   with a data volume and 404 without; a slideshow created survives a container restart on the
   same volume; a `PUT` with a stale revision gets 412, one not `application/json` 415; a body over
-  the document limit gets 413; `docker stop` exits 0, a killed service stops the container with
-  its status.
+  the document limit gets 413; a slideshow shared by link plays (SHARE_LINK.md, End to end);
+  `docker stop` exits 0, a killed service stops the container with its status.
 
 ## In the app
 

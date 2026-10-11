@@ -125,6 +125,47 @@ copied there with "Save on the server". Without a connection to your Glissando, 
 show greyed out until it is back. A photo deleted in Immich shows as "No longer in Immich" and is
 skipped when playing.
 
+## 4. Optional: share a slideshow by link
+
+A slideshow on the server can get a link that anyone can open in a browser to watch it, without
+signing in: "Share link" in the slideshow's info panel, then "Create link". Whoever has the link
+sees that slideshow with its music and captions, and nothing else: not your Immich, not your
+other slideshows, no file names or places. Your edits show up behind the link, and it works until
+you turn it off in the same sheet. Turning it off and sharing again makes a new link.
+
+**Let the link past your sign-in.** Links live under two paths, `/s/` (the page) and
+`/api/share/` (what the page loads); everything else stays behind your sign-in. With Authelia,
+add one rule for your Glissando's domain above the rule that protects it:
+
+```yaml
+access_control:
+  rules:
+    - domain: glissando.example.org
+      resources:
+        - "^/s/[A-Za-z0-9_-]{22}$"
+        - "^/api/share/[A-Za-z0-9_-]{22}(/[0-9]+/pictures/[0-9]+|/songs/[0-9]+)?$"
+      policy: bypass
+    # … the rule that protects glissando.example.org follows …
+```
+
+Your Traefik (or other proxy) configuration stays as it is: the forward auth still asks Authelia,
+which now lets exactly these paths through. With another sign-in, exempt the same paths, as
+exactly as it allows: a rule that only matches the prefixes also lets paths through that are
+not a link's. Glissando answers 404 to any other path under `/s/` and `/api/share/`, and to one
+that holds `%` or `..`.
+Share from Glissando opened at its public address: a link made at a home address (plain `http:`,
+a `.local` or `.lan` name, a private IP) only works at home, and the app says so.
+
+**The link is the key.** Anyone who has it can watch until you turn it off. Glissando writes
+`…` in place of the link's token in its own logs, but your proxy's access logs contain the full
+paths, tokens included, unless you filter them there.
+
+**For 4K on a TV**: shared slideshows show Immich's preview of each photo, which is 1440 pixels
+on its short edge by default. In Immich, go to Administration → Settings → Image Settings →
+Preview, set the resolution to 2160, and run "Generate thumbnails → All" once. The previews then
+take roughly twice the space. Without it, shared slideshows use 1440,
+sharp on phones and laptops but soft on a 4K TV.
+
 ## Troubleshooting
 
 Glissando shows the state of its Immich connection in one line, in the pictures step and in the

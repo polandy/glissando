@@ -14,7 +14,7 @@ declare module "node:sqlite" {
   }
 
   export class DatabaseSync {
-    constructor(path: string);
+    constructor(path: string, options?: { readonly enableForeignKeyConstraints?: boolean });
     exec(sql: string): void;
     prepare(sql: string): StatementSync;
     close(): void;
@@ -46,6 +46,7 @@ declare module "node:http" {
 
 declare module "node:crypto" {
   export function randomUUID(): string;
+  export function randomBytes(size: number): Uint8Array;
 }
 
 declare module "node:path" {

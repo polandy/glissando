@@ -1,0 +1,46 @@
+import type { deShare } from "./catalogue-de-share";
+import type { Catalogue } from "./messages";
+
+/** English copy of sharing a server slideshow by link; typed to the German keys. */
+export const enShare: Pick<Catalogue, keyof typeof deShare> = {
+  "share.rowTitle": "Share link",
+  "share.rowText": "Anyone with the link can watch",
+  "share.rowSharedTitle": "Shared by link",
+  "share.on": "On",
+  "share.deviceHint": "Save it on your Glissando server to share it by link.",
+  "share.title": "Share by link",
+  "share.summary": "{title} · {pictures} · {duration} · {music}",
+  "share.anyoneStrong": "Anyone with the link can watch",
+  "share.anyoneAfter": " in a browser, without signing in and without installing anything.",
+  "share.privateBefore": "They see the slideshow in 4K with its music and captions. ",
+  "share.privateStrong": "Nothing else",
+  "share.privateAfter": ": not your Immich, your other slideshows, file names or places.",
+  "share.liveBefore": "Your edits show up in the link. ",
+  "share.liveStrong": "It works until you turn it off.",
+  "share.create": "Create link",
+  "share.loading": "Reading the link …",
+  "share.link": "Link",
+  "share.copy": "Copy",
+  "share.copied": "Copied",
+  "share.shareVia": "Share …",
+  "share.openAsViewer": "Open as viewer",
+  "share.qrCode": "QR code",
+  "share.qrCodeLabel": "QR code of the link",
+  "share.qrStrong": "Scan with a phone",
+  "share.qrAfter":
+    " to watch there, for example when the TV is busy or a guest wants it on their own phone.",
+  "share.created": "Created {date}",
+  "share.untilOff": "works until you turn it off",
+  "share.turnOff": "Turn off link",
+  "share.done": "Done",
+  "share.confirmTitle": "Turn off the link?",
+  "share.confirmText":
+    "Anyone who has it can no longer watch “{title}”. If you share it again, it gets a new link and this one stays off.",
+  "share.turnedOff": "Link turned off",
+  "share.homeNetworkStrong": "This link only works on your home network.",
+  "share.homeNetworkAfter":
+    " Glissando is open at a home address here. To share with someone elsewhere, open Glissando through its public address and share from there.",
+  "share.loadFailed": "Couldn't read the link. Your Glissando server isn't answering.",
+  "share.createFailed": "Couldn't create the link. Your Glissando server isn't answering.",
+  "share.turnOffFailed": "Couldn't turn off the link. Your Glissando server isn't answering.",
+};

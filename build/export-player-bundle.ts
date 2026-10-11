@@ -23,8 +23,10 @@ export function tokenDeclarations(tokensCss: string, pageCss: string): string {
   const wanted: string[] = [];
   const want = (css: string) => {
     for (const [, name] of css.matchAll(TOKEN_USE)) {
-      if (name === undefined || ownTokens.has(name) || wanted.includes(name)) continue;
+      if (name === undefined || wanted.includes(name)) continue;
       const value = defined.get(name);
+      // A design token the page overrides in one rule still needs its value for the others.
+      if (value === undefined && ownTokens.has(name)) continue;
       if (value === undefined) {
         throw new Error(`the page's CSS uses ${name}, which src/styles/tokens.css does not define`);
       }
@@ -77,7 +79,12 @@ export function playerBundleModule(parts: {
   const bundle = {
     script: parts.script,
     style: parts.style,
-    captionFontDataUrl: `${FONT_DATA_URL_PREFIX}${encodeBase64(parts.fontBytes)}`,
+    captionFontDataUrl: captionFontDataUrl(parts.fontBytes),
   };
   return `export default ${JSON.stringify(bundle)};\n`;
+}
+
+/** The caption font as a `data:` URL, for the page's `@font-face`. */
+export function captionFontDataUrl(fontBytes: Uint8Array): string {
+  return `${FONT_DATA_URL_PREFIX}${encodeBase64(fontBytes)}`;
 }

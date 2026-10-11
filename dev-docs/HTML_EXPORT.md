@@ -117,11 +117,16 @@ below 720 px. Its states follow the video sheet's (VIDEO_EXPORT.md):
   - Ports: `PictureScaler`, `PageSink`, `PlayerAsset`.
 - `src/html-export/browser/`: the scaler (`createImageBitmap` + `OffscreenCanvas`, shared with
   import's `encodeJpeg`), the sinks (file picker writable, in-memory Blob), the player asset.
-- `src/export-player/`: the page's script. It reads the data blocks, creates the player, and
-  runs the start card, controls and end card in plain TypeScript, never Svelte. A Vite plugin
+- `src/export-player/`: the page's script, in plain TypeScript, never Svelte. `main.ts` reads
+  the data blocks (`page-data.ts`); `page-player.ts` is the part the share page
+  (`dev-docs/SHARE_LINK.md`) shares: it creates the player from a `PlayablePage` (the slideshow
+  and its `openPicture`) and runs the start card, controls and end card, with hooks for what a
+  page does differently (what Play does, a picture that failed, the player waiting for one).
+  `show` replaces the player, so a page can play a changed slideshow on. A Vite plugin
   (`build/export-player-plugin.ts`, modelled on the service worker plugin) bundles it into one
-  self-contained script with the decode worker inline. The app imports it as a virtual module and
-  loads it on the first export, and the service worker precaches it.
+  self-contained script with the decode worker inline (`buildPlayerPage`, which the share page's
+  plugin uses too). The app imports it as a virtual module and loads it on the first export, and
+  the service worker precaches it.
 - `src/export-player/` imports only `src/player/`, `src/html-export/page-contract.ts`,
   `src/html-export/base64.ts` (the media blocks' encoding, the other half of that contract) and
   `src/ui-kit/` (icons, scheduler, controls visibility, caption inset, fullscreen), which the app

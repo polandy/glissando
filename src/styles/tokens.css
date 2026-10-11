@@ -46,6 +46,8 @@
   /* Status colours: mint for done and progress, lemon for warnings, coral for errors. */
   --gl-mint: #6fcfb4;
   --gl-mint-ink: #16302a;
+  /* Mint as a quiet fill on the surface: a state that is on or done, e.g. the "On" pill. */
+  --gl-mint-tint: color-mix(in srgb, var(--gl-mint) 24%, var(--gl-surface));
   --gl-lemon: #f5c94a;
   --gl-warn-icon: #b8890f;
   --gl-coral: #f2786b;
@@ -69,6 +71,10 @@
   --gl-logo-mint: #8fd9c4;
   --gl-logo-lemon: #ffd95a;
   --gl-logo-outline: #2a2340;
+
+  /* A QR code: dark modules on white in both themes, as scanners expect. */
+  --gl-qr-dark: #14111c;
+  --gl-qr-light: #ffffff;
 
   /* Over a picture: white marks on a dark veil, in both themes. */
   --gl-on-photo: #ffffff;

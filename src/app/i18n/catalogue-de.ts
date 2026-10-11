@@ -5,8 +5,10 @@ import { deTiming } from "./catalogue-de-timing";
 import { deTransitions } from "./catalogue-de-transitions";
 import { deImmich } from "./catalogue-de-immich";
 import { deHtml } from "./catalogue-de-html";
+import { deSharePage } from "./catalogue-de-share-page";
 import { deVideo } from "./catalogue-de-video";
 import { deServer } from "./catalogue-de-server";
+import { deShare } from "./catalogue-de-share";
 import { dePlaylist } from "./catalogue-de-playlist";
 import { deCulling } from "./catalogue-de-culling";
 import type { Message } from "./messages";
@@ -296,7 +298,9 @@ export const de = {
   ...deMusic,
   ...deVideo,
   ...deHtml,
+  ...deSharePage,
   ...deServer,
+  ...deShare,
   ...dePlaylist,
   ...deCulling,
 } as const satisfies Record<string, Message>;

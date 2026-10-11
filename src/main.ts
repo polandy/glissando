@@ -48,6 +48,8 @@ import { browserPwaPorts } from "./pwa/browser-pwa";
 import { createStorageHintDismissalStore, PwaStatus } from "./pwa/pwa-status";
 import { sweepPrivateExports } from "./video-export";
 import { HttpServerLibraryClient } from "./server-library/http-server-library-client";
+import { ShareLinkSession } from "./app/share-link/share-link-session";
+import { browserShareLinkDevice } from "./app/share-link/browser-share-link-device";
 import { createServerLibrary } from "./server-library/server-library";
 import { createStorageServerLibraryMemory } from "./server-library/server-library-memory";
 import { browserHtmlExportDevice } from "./app/html-export/browser-html-export-device";
@@ -157,11 +159,12 @@ const immichReaders = {
 };
 
 // Same origin: the self-hosted Glissando routes ./api/library to its library service (ADR-0018).
+const serverLibraryClient = new HttpServerLibraryClient({
+  appUrl: new URL("./", window.location.href),
+  fetch: window.fetch.bind(window),
+});
 const serverLibrary = createServerLibrary({
-  client: new HttpServerLibraryClient({
-    appUrl: new URL("./", window.location.href),
-    fetch: window.fetch.bind(window),
-  }),
+  client: serverLibraryClient,
   immichAvailability,
   memory: createStorageServerLibraryMemory(window.localStorage, logError),
   immich: immichReaders,
@@ -195,6 +198,8 @@ const intakePorts = {
   removedText: (count: number) => translator.current.t("slideshow.removed", { count }),
   undoLabel: () => translator.current.t("slideshow.undo"),
 };
+
+const shareLinkDevice = browserShareLinkDevice(window, serverLibraryClient, browserScheduler);
 
 const services = {
   store,
@@ -247,6 +252,13 @@ const services = {
   download,
   videoExport: browserVideoExportDevice({ window, freeBytes, download, log: logError }),
   htmlExport: browserHtmlExportDevice({ window, download, log: logError }),
+  newShareLinkSession: (slideshowId: string) =>
+    new ShareLinkSession(slideshowId, {
+      ...shareLinkDevice,
+      onTurnedOff: () =>
+        toaster.show({ text: translator.current.t("share.turnedOff"), tone: "info" }),
+      onError: reportError,
+    }),
   reload: () => window.location.reload(),
 };
 

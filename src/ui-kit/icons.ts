@@ -105,6 +105,54 @@ export const ICONS = {
   install: { shapes: [path("M12 4v11M7 10l5 5 5-5M5 20h14")] },
   refresh: { shapes: [path("M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7")] },
   share: { shapes: [path("M12 3v12M8 7l4-4 4 4"), path("M6 11v9h12v-9")] },
+  link: {
+    shapes: [
+      path("M10 14a4 4 0 005.7 0l3-3a4 4 0 00-5.7-5.7l-1 1"),
+      path("M14 10a4 4 0 00-5.7 0l-3 3a4 4 0 005.7 5.7l1-1"),
+    ],
+  },
+  unlink: {
+    shapes: [
+      path("M10 14a4 4 0 005.7 0l3-3a4 4 0 00-5.7-5.7l-1 1"),
+      path("M14 10a4 4 0 00-5.7 0l-3 3a4 4 0 005.7 5.7l1-1"),
+      path("M4 4l16 16"),
+    ],
+  },
+  copy: {
+    shapes: [
+      rect(8, 8, 12, 12, 2.5),
+      path("M16 8V5.5A1.5 1.5 0 0014.5 4h-9A1.5 1.5 0 004 5.5v9A1.5 1.5 0 005.5 16H8"),
+    ],
+  },
+  qrCode: {
+    shapes: [
+      rect(4, 4, 6, 6, 1),
+      rect(14, 4, 6, 6, 1),
+      rect(4, 14, 6, 6, 1),
+      path("M14 14h2v2h-2zM18 18h2v2h-2zM14 18h2M18 14h2"),
+    ],
+  },
+  eye: {
+    shapes: [
+      path("M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"),
+      circle(12, 12, 3),
+    ],
+  },
+  globe: {
+    shapes: [
+      circle(12, 12, 9),
+      path(
+        "M3 12h18M12 3c2.6 2.6 3.8 5.6 3.8 9s-1.2 6.4-3.8 9c-2.6-2.6-3.8-5.6-3.8-9S9.4 5.6 12 3z",
+      ),
+    ],
+  },
+  lock: { shapes: [rect(5, 10.5, 14, 10, 2.5), path("M8 10.5V8a4 4 0 018 0v2.5")] },
+  sync: {
+    shapes: [
+      path("M20 11a8 8 0 00-14.3-4.3L4 8.5M4 4v4.5h4.5"),
+      path("M4 13a8 8 0 0014.3 4.3l1.7-1.8M20 20v-4.5h-4.5"),
+    ],
+  },
   film: {
     shapes: [rect(3, 5, 18, 14, 2.5), path("M3 9h18M3 15h18M8 5v4M16 5v4M8 15v4M16 15v4")],
   },
@@ -158,6 +206,9 @@ export const ICONS = {
   },
   device: { shapes: [rect(6, 3, 12, 18, 2), path("M11 18h2")] },
   upload: { shapes: [path("M12 20V9M7 14l5-5 5 5M5 4h14")] },
+  linkOff: {
+    shapes: [path("M3 3l18 18"), path("M9 17H7A5 5 0 017 7M15 7h2a5 5 0 014 8"), path("M8 12h4")],
+  },
 } as const satisfies Record<string, IconDefinition>;
 
 export type IconName = keyof typeof ICONS;
