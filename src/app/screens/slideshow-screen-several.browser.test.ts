@@ -1,6 +1,6 @@
 import { flushSync } from "svelte";
 import { afterEach, describe, expect, it } from "vitest";
-import { HOLD_MS } from "./slideshow/tile-drag";
+import { HOLD_MS } from "./slideshow/tile-drag-types";
 import {
   buttonNamed,
   byLabel,

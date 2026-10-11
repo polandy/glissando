@@ -1,4 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { FocusDetectionFailedError } from "./focus-pass";
+import { FocusDetectorGoneError } from "./focus-detector";
+import { FakeFocusDetector } from "./testing/fake-focus-detector";
 import { FACES, NOTHING, storeWith, answersBy, passOver } from "./focus-pass-fixtures";
 
 describe("FocusPass, a failing detection", () => {

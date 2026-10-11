@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import type { PictureFocus } from "./picture-focus";
+import { FakeFocusDetector } from "./testing/fake-focus-detector";
 import {
   FACES,
   NOTHING,

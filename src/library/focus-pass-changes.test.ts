@@ -1,4 +1,8 @@
 import { describe, expect, it } from "vitest";
+import type { FocusPassPorts } from "./focus-pass";
+import { FakeFocusDetector } from "./testing/fake-focus-detector";
+import type { LibraryStore, StoredSlideshow } from "./stored-slideshow";
+import { picture, slideshow } from "./testing/library-store-contract";
 import {
   FACES,
   NOTHING,

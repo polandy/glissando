@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import type { StoredPicture } from "../library/stored-slideshow";
 import { SEQUENCE_BETWEEN_SONGS } from "../library/own-music";
 import { serverDocumentFor } from "./server-document";
 import {

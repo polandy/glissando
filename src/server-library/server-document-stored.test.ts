@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import type { StoredSlideshow } from "../library/stored-slideshow";
+import { serverDocumentFor } from "./server-document";
 import { storedSlideshowFrom } from "./server-document";
 import {
   ASSET_A,

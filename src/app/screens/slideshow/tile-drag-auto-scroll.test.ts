@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import type { TileDrag } from "./tile-drag";
 import { MAX_SCROLL_STEP_PX, MOVE_THRESHOLD_PX, PRIMARY_BUTTON } from "./tile-drag-types";
 import { FINGER, VIEWPORT, harness } from "./tile-drag-harness";
 

@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import type { StoredSlideshow } from "../library/stored-slideshow";
+import { storedSlideshowFrom } from "./server-document";
 import { SEQUENCE_BETWEEN_SONGS } from "../library/own-music";
 import { readServerDocument, serverDocumentFor } from "./server-document";
 import {

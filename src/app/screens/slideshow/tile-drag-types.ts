@@ -48,6 +48,13 @@ export interface TileDragState {
   readonly dropMark: DropTarget | null;
 }
 
+export const IDLE_STATE: TileDragState = {
+  lifted: false,
+  groupIds: null,
+  ghost: null,
+  dropMark: null,
+};
+
 export interface TileDragPorts {
   readonly holdScheduler: Scheduler;
   readonly frameScheduler: FrameScheduler;

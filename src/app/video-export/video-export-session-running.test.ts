@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import type { FakePreview } from "./testing/fake-export-ports";
 import { FakeExportPorts, fakeTarget } from "./testing/fake-export-ports";
 import { FRAMES, opened, running } from "./video-export-session-fixtures";
 
