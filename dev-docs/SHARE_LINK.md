@@ -142,8 +142,9 @@ the same contract suite.
     lines (anyone with the link can watch in a browser, without signing in or installing
     anything; they see the slideshow in 4K with its music and captions, and nothing else; edits
     show up, and it works until you turn it off), then "Cancel" and "Create link".
-  - **Shared**: the link (read-only, mono) with "Copy" (then "Copied" for 2 s, from the injected
-    scheduler), "Share …" where `navigator.share` exists, "Open as viewer" (a new tab), and
+  - **Shared**: the link (read-only, mono; a tap or click selects all of it) with "Copy" where
+    the browser offers the clipboard, so not over plain `http:` (then "Copied" for 2 s, from the
+    injected scheduler), "Share …" where `navigator.share` exists, "Open as viewer" (a new tab), and
     "QR code", which shows or hides the link's QR code. Below that, "Created 11 Oct 2026 · works
     until you turn it off", then "Turn off link" (destructive text button) and "Done".
   - **Turn off?**: "Turn off the link?", "Anyone who has it can no longer watch “<title>”. If you
@@ -160,6 +161,11 @@ the same contract suite.
   algorithm.
 - `src/app/share-link/`: the session (`share-link-session.ts`, its states and the calls through a
   `ShareLinkApi` port, unit-tested with a fake), the origin check, and the sheet's parts.
+- **Reading the link**: the screen of a server slideshow asks `GET /api/library/slideshows/{id}`
+  for its `share` as it opens; until it answers, the row reads as not shared and the sheet says
+  "Reading the link …". `DELETE` answering 404 `notShared` counts as turned off.
+- The QR code is drawn as one SVG path in `--gl-qr-dark` on `--gl-qr-light`, dark on white in
+  both themes, with medium error correction and a two-module quiet zone.
 
 ## End to end
 

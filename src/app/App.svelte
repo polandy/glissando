@@ -256,6 +256,7 @@
         serverOn={serverState.kind === "on"}
         onKeepCopy={(slideshow) => void serverCopies.keepCopy(slideshow)}
         onSaveOnServer={(slideshow) => void serverCopies.saveOnServer(slideshow)}
+        newShareLinkSession={services.newShareLinkSession}
       />
     {/await}
   {/key}

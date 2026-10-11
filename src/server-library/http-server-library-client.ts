@@ -9,6 +9,7 @@ import {
   type ServerLibraryClient,
   type ServerSlideshowCreated,
   type ServerSlideshowRecord,
+  type ShareLink,
 } from "./server-library-client";
 
 const LIBRARY_PATH = "api/library";
@@ -21,6 +22,12 @@ const JSON_MEDIA_TYPE = "application/json";
 const HTTP_NOT_FOUND = 404;
 const HTTP_PRECONDITION_FAILED = 412;
 const HTTP_SERVER_ERROR = 500;
+/** Under a slideshow's path: its link (SHARE_LINK.md, Private). */
+const SHARE_SUFFIX = "/share";
+/** The 404 code of a link that is already off. */
+const NOT_SHARED = "notShared";
+/** 16 random bytes as base64url without padding. */
+const SHARE_TOKEN = /^[A-Za-z0-9_-]{22}$/;
 
 type HttpMethod = "GET" | "POST" | "PUT" | "DELETE";
 
@@ -119,6 +126,27 @@ export class HttpServerLibraryClient implements ServerLibraryClient {
     await check("PUT", path, response);
   }
 
+  /** The slideshow's link; null while it is not shared. */
+  async shareOf(id: string): Promise<ShareLink | null> {
+    const path = slideshowPath(id);
+    const share = field(await this.#json("GET", path), "share", path);
+    return share === null ? null : readShareLink(share, path);
+  }
+
+  /** Makes the slideshow's link, or answers the one it has. */
+  async share(id: string): Promise<ShareLink> {
+    const path = `${slideshowPath(id)}${SHARE_SUFFIX}`;
+    return readShareLink(await this.#json("POST", path, jsonBody({})), path);
+  }
+
+  /** Deletes the slideshow's link; a link already off stays off. */
+  async unshare(id: string): Promise<void> {
+    const path = `${slideshowPath(id)}${SHARE_SUFFIX}`;
+    const response = await this.#send("DELETE", path);
+    if (response.status === HTTP_NOT_FOUND && (await errorCode(response)) === NOT_SHARED) return;
+    await check("DELETE", path, response);
+  }
+
   async #json(method: HttpMethod, path: string, init: RequestInit = {}): Promise<unknown> {
     const response = await this.#send(method, path, init);
     await check(method, path, response);
@@ -157,7 +185,7 @@ function slideshowPath(id: string): string {
   return `${SLIDESHOWS_PATH}/${encodeURIComponent(id)}`;
 }
 
-function jsonBody(document: ServerDocument): RequestInit {
+function jsonBody(document: ServerDocument | Record<string, never>): RequestInit {
   return { body: JSON.stringify(document), headers: { "content-type": JSON_MEDIA_TYPE } };
 }
 
@@ -170,10 +198,28 @@ async function check(method: HttpMethod, path: string, response: Response): Prom
   }
   if (response.status === HTTP_NOT_FOUND) throw new ServerLibraryNotFoundError(request);
   const answer: unknown = isJson(response) ? await response.json() : {};
-  const code = isRecord(answer) ? String(answer["error"]) : "unknown";
+  const code = isRecord(answer) ? String(answer["error"]) : UNKNOWN_CODE;
   const detail = isRecord(answer) ? String(answer["detail"]) : "";
   const refused = path.startsWith(MUSIC_PATH) ? "music" : "slideshow";
   throw new ServerLibraryRefusedError(request, response.status, code, detail, refused);
+}
+
+const UNKNOWN_CODE = "unknown";
+
+/** The `error` code a refusal names; reads the body. */
+async function errorCode(response: Response): Promise<string> {
+  const answer: unknown = isJson(response) ? await response.json() : {};
+  return isRecord(answer) ? String(answer["error"]) : UNKNOWN_CODE;
+}
+
+function readShareLink(value: unknown, path: string): ShareLink {
+  const token = text(value, "token", path);
+  if (!SHARE_TOKEN.test(token)) throw mismatch(path, "token", "22 characters of base64url", token);
+  const createdAt = text(value, "createdAt", path);
+  if (Number.isNaN(Date.parse(createdAt))) {
+    throw mismatch(path, "createdAt", "an ISO 8601 date-time", createdAt);
+  }
+  return { token, createdAt };
 }
 
 function readRecord(value: unknown, path: string): ServerSlideshowRecord {

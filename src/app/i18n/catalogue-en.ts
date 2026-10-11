@@ -7,6 +7,7 @@ import { enImmich } from "./catalogue-en-immich";
 import { enHtml } from "./catalogue-en-html";
 import { enVideo } from "./catalogue-en-video";
 import { enServer } from "./catalogue-en-server";
+import { enShare } from "./catalogue-en-share";
 import { enPlaylist } from "./catalogue-en-playlist";
 import { enCulling } from "./catalogue-en-culling";
 import type { Catalogue } from "./messages";
@@ -295,6 +296,7 @@ export const en: Catalogue = {
   ...enVideo,
   ...enHtml,
   ...enServer,
+  ...enShare,
   ...enPlaylist,
   ...enCulling,
 };

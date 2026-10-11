@@ -88,6 +88,9 @@ export function mountRoute(
     serverOn: false,
     onKeepCopy: () => {},
     onSaveOnServer: () => {},
+    newShareLinkSession: (): never => {
+      throw new Error("a device slideshow has no link to share");
+    },
   });
   const mounted = mountWithTranslator(SlideshowRoute, props);
   destroy = mounted.destroy;

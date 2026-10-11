@@ -34,6 +34,7 @@
   import type { HtmlExportDevice } from "../html-export/slideshow-html-export";
   import { ScreenExports } from "./screen-exports.svelte";
   import { ScreenFocus } from "./screen-focus.svelte";
+  import type { ShareLinkSession } from "../share-link/share-link-session";
 
   let {
     store,
@@ -41,6 +42,7 @@
     serverOn,
     onKeepCopy,
     onSaveOnServer,
+    newShareLinkSession,
     focusPass,
     beatPass,
     toaster,
@@ -77,6 +79,8 @@
     onKeepCopy: (slideshow: StoredSlideshow) => void;
     /** "Save on the server" of a device slideshow, as shown. */
     onSaveOnServer: (slideshow: StoredSlideshow) => void;
+    /** A server slideshow's link, for its share row (SHARE_LINK.md, In the app). */
+    newShareLinkSession: (slideshowId: string) => ShareLinkSession;
     /** What it finds updates the editors' automatic motions and focus marks as it goes. */
     focusPass: Pick<FocusPass, "state" | "subscribe">;
     /** What it finds puts the editors' automatic changes on the music's beats as it goes. */
@@ -205,6 +209,10 @@
     deleteShownSlideshow(store, slideshowId, editor).then(onDeleted, onError);
   }
 
+  // The slideshow and where it lives are fixed for the screen's lifetime.
+  // svelte-ignore state_referenced_locally
+  const shareLink = home === "server" ? newShareLinkSession(slideshowId) : null;
+
   // The ids are handed over once, when the screen opens after adding.
   // svelte-ignore state_referenced_locally
   const newPictureIds: ReadonlySet<string> = new Set(addedPictureIds);
@@ -276,6 +284,7 @@
     mousePointer={mousePointer.current}
     {saving}
     {storage}
+    {shareLink}
     onStorageAction={storageAction}
   />
 {/if}

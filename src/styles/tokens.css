@@ -70,6 +70,10 @@
   --gl-logo-lemon: #ffd95a;
   --gl-logo-outline: #2a2340;
 
+  /* A QR code: dark modules on white in both themes, as scanners expect. */
+  --gl-qr-dark: #14111c;
+  --gl-qr-light: #ffffff;
+
   /* Over a picture: white marks on a dark veil, in both themes. */
   --gl-on-photo: #ffffff;
   --gl-photo-badge: rgb(0 0 0 / 0.45);
