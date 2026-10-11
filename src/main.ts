@@ -35,9 +35,12 @@ import { browserNetworkStatus, ImmichAvailability } from "./immich/immich-availa
 import { convertMusic } from "./import/browser/convert-music";
 import { probeMusic } from "./import/music-probe";
 import { createMusicAudioContext, MusicOutput } from "./player";
+import { BeatPass } from "./library/beat-pass";
 import { FocusPass } from "./library/focus-pass";
 import { openLibraryStore } from "./library/indexeddb-store";
 import { startFocusWorker, WorkerFocusDetector } from "./focus/worker-focus-detector";
+import { decodeMusicWithWebAudio } from "./beats/decode-music";
+import { startBeatWorker, WorkerBeatDetector } from "./beats/worker-beat-detector";
 import { requestPersistentStorage } from "./library/persistent-storage";
 import { browserPwaPorts } from "./pwa/browser-pwa";
 import { createStorageHintDismissalStore, PwaStatus } from "./pwa/pwa-status";
@@ -127,6 +130,14 @@ const focusPass = new FocusPass({
 });
 focusPass.start();
 
+const beatPass = new BeatPass({
+  store,
+  detector: new WorkerBeatDetector(decodeMusicWithWebAudio, startBeatWorker),
+  log: logError,
+  reportError,
+});
+beatPass.start();
+
 const freeBytes = (): Promise<number | null> => freeStorageBytes(window.navigator.storage);
 const download = createDownloader({
   document,
@@ -187,6 +198,7 @@ const services = {
   musicOutput,
   musicAudio: browserMusicEditorAudio(musicOutput),
   focusPass,
+  beatPass,
   immich: { client: immichClient, availability: immichAvailability },
   serverLibrary,
   newImportSession: () =>

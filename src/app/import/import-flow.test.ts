@@ -47,6 +47,7 @@ function setUp(persistRefused: Promise<boolean> = Promise.resolve(false)) {
     toaster: { show: (toast) => toasts.push(toast) },
     persistencePrompt: { afterCreate: () => persistRefused },
     focusPass: { start: () => log.push("look for focus") },
+    beatPass: { start: () => log.push("listen for beats") },
     reportError: (error) => errors.push(error),
     createdText: () => CREATED_TEXT,
   });
@@ -114,17 +115,17 @@ describe("ImportFlow", () => {
 
     expect(sessions).toHaveLength(1);
     expect(flow.session).toBeNull();
-    expect(log).toEqual(["delete abandoned media", "look for focus"]);
+    expect(log).toEqual(["delete abandoned media", "look for focus", "listen for beats"]);
     expect(opened.at(-1)).toEqual({ screen: "slideshow", slideshowId: "show-1" });
     expect(toasts).toEqual([{ text: CREATED_TEXT, tone: "info" }]);
   });
 
-  it("looks for the focus of a slideshow created from a file", async () => {
+  it("looks for the focus and listens for the beats of a slideshow created from a file", async () => {
     const { flow, log } = setUp();
 
     await flow.afterCreate();
 
-    expect(log).toEqual(["look for focus"]);
+    expect(log).toEqual(["look for focus", "listen for beats"]);
   });
 
   it("shows the persistence notice when the browser refused persistent storage after creating", async () => {
