@@ -118,8 +118,10 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
     box. Its lead: "They go into place by capture date." (with own order: "Your own order stays;
     choose below where the new pictures go."), then "Glissando downscales them for this device;
     your originals stay untouched." The drop zone, the Immich box (its browser opens for this
-    slideshow, Immich below), the progress, the tiles (with their ✕, Removing) and the notices are the import's; pictures
-    already in the slideshow are skipped (Duplicates, Import wizard). Once at least one new
+    slideshow, Immich below), the progress, the tiles (with their ✕, Removing), the set-aside
+    pictures (Culling, Import wizard; bursts are found among the new pictures only) and the
+    notices are the import's; pictures already in the slideshow are skipped (Duplicates, Import
+    wizard), and "Add n" waits for the check as "Next" does. Once at least one new
     picture is stored and nothing is in flight, with own order a box "Where they go" (mockup:
     https://polandy.github.io/glissando-assets/mockups/sort-added-by-date/) offers a radio group
     "By capture date" ("Each goes right after the picture taken just before it.", chosen at
@@ -459,7 +461,7 @@ new slideshow lives).
   picker). A failed import is a coral notice "The import failed. No more pictures can be added."
   with "Start over" (discards the selection and shows the empty drop zone); the drop zone and
   "add more" stay hidden until then. Its error is logged; the notice is its only message (no
-  "unexpected error" toast besides). "Next" is enabled once nothing is in flight and at least one picture is stored.
+  "unexpected error" toast besides). "Next" is enabled once nothing is in flight, every picture is checked (Culling) and at least one picture is stored.
   Cancel and ← with a selection ask "Discard selection?" (Keep choosing / Discard). While the
   drop zone shows, a box below it offers "Slideshow from another device?" with "Open file"; a
   single .glissando file chosen or dropped on the drop zone opens it (above) instead of being
@@ -467,7 +469,22 @@ new slideshow lives).
   added to, or already taken in by this import, is skipped before it is downscaled and counts
   as done; a lemon notice per kind names them, "2 pictures are already in the slideshow and were
   skipped: names." and "2 pictures were chosen twice and were skipped: names.", each with "Add
-  anyway", which takes that kind in after all. Above that box, when this Glissando offers Immich (below), a box "From
+  anyway", which takes that kind in after all. **Culling** (ADR-0024, mockup:
+  https://polandy.github.io/glissando-assets/mockups/culling/): each picture stored is checked
+  in a worker on its 480 px thumbnail (`src/culling/`, `import/picture-culling.ts`); once the
+  downscale is done the progress reads "k / N checked for bursts and blur …" with Cancel and the
+  mint meter, and "Next" waits for it. Once every picture is checked and nothing is in flight,
+  all but the sharpest of each burst and the blurry ones leave the strip for a section "Set aside
+  · n" below it, with "Take all in" and "These are not in the slideshow. Take one in with +.": a
+  group per burst ("Burst <date> <time> · the sharpest is kept", the kept picture first with a
+  mint "Kept" chip, the others "Similar"), then "Blurry"; set-aside tiles are dimmed and show
+  their time to the second. A tile's + ("Take in picture from <date> at <time>", a 44 px target)
+  puts it back into the strip at its capture-date place and focus moves to the next +; from then
+  on it is an ordinary picture (✕ removes it) and never set aside again; "Take all in" takes all
+  back. Set-aside pictures are not kept: the slideshow never references them, so the clean-up
+  after Next deletes their media. Exact duplicates are skipped before the check, and duplicates
+  taken in by "Add anyway" are never set aside. Linked photos of a server slideshow are not
+  downloaded, so they are not checked. Above that box, when this Glissando offers Immich (below), a box "From
   Immich" with "Open Immich" opens the Immich browser; offline it is greyed out ("Offline — Immich
   needs a connection to your Glissando server …"), with an Immich problem it names it and offers
   "Settings". Photos added from Immich join the same import: the same progress ("n / m pictures
