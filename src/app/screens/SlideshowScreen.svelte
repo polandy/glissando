@@ -102,7 +102,7 @@
     saving: boolean;
     /** Where the slideshow lives; null while the server library is off. */
     storage?: SlideshowStorage | null;
-    /** A server slideshow's link (SHARE_LINK.md, In the app); null for a device slideshow. */
+    /** A server slideshow's link (share_link/IN_THE_APP.md); null for a device slideshow. */
     shareLink?: ShareLinkSession | null;
     onStorageAction: (action: StorageAction) => void;
     /** The selection bar acts on this; kept by the parent across the picture editor. */

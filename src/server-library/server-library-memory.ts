@@ -15,9 +15,9 @@ export interface ServerSlideshowCard {
 }
 
 /**
- * What this device remembers of the server library between app starts (`dev-docs/
- * SERVER_LIBRARY.md`, Availability): whether it was on, and the last list's cards. Fail-soft: a
- * device whose storage refuses remembers nothing.
+ * What this device remembers of the server library between app starts
+ * (`dev-docs/server_library/IN_THE_APP.md`): whether it was on, and the last list's cards.
+ * Fail-soft: a device whose storage refuses remembers nothing.
  */
 export interface ServerLibraryMemory {
   wasOn(): boolean;

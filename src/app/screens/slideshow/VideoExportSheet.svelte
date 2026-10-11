@@ -13,7 +13,7 @@
   import ExportDialog from "./export-sheet/ExportDialog.svelte";
 
   /**
-   * "Save as video" (dev-docs/VIDEO_EXPORT.md, Sheet): a dialog on desktop, a bottom sheet on a
+   * "Save as video" (dev-docs/video_export/SHEET.md): a dialog on desktop, a bottom sheet on a
    * phone. Closing it, Esc included, cancels a running export and discards a private file.
    */
   let {

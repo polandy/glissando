@@ -80,7 +80,7 @@ const INITIAL_STATE: ShareLinkState = {
 };
 
 /**
- * A server slideshow's link (SHARE_LINK.md, In the app): the share row's state and its sheet's,
+ * A server slideshow's link (share_link/IN_THE_APP.md): the share row's state and its sheet's,
  * with the calls to the private API behind them.
  */
 export class ShareLinkSession {

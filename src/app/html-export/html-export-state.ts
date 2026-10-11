@@ -18,7 +18,7 @@ export interface PageRun {
   onProgress(progress: PageExportProgress): void;
 }
 
-/** What the sheet needs of the browser and the export (HTML_EXPORT.md, Sheet). */
+/** What the sheet needs of the browser and the export (html_export/SHEET.md). */
 export interface HtmlExportPorts {
   /** The stored pictures' sizes and bytes, the music's and the page's own, for the estimate. */
   weights(): Promise<PageWeights>;

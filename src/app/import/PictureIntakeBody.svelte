@@ -41,7 +41,7 @@
     sources: Snippet;
     /**
      * A server slideshow's pictures: linked from Immich, whose box comes first, none from the
-     * device (`dev-docs/SERVER_LIBRARY.md`, Where a new slideshow lives).
+     * device (`dev-docs/server_library/IN_THE_APP.md`).
      */
     linking?: boolean;
   } = $props();

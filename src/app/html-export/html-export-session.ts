@@ -20,8 +20,9 @@ const COMPARED_VIDEO_PRESET: PresetId = "1080p";
 const SHARE_DISMISSED = "AbortError";
 
 /**
- * The web page export sheet's flow, from choosing a size to the finished file (HTML_EXPORT.md,
- * Sheet). Closing it cancels a running export, which aborts and so empties a picked file.
+ * The web page export sheet's flow, from choosing a size to the finished file
+ * (html_export/SHEET.md). Closing it cancels a running export, which aborts and so empties a
+ * picked file.
  */
 export class HtmlExportSession {
   readonly #subject: HtmlExportSubject;

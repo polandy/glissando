@@ -32,7 +32,7 @@ function screenStorage(home: SlideshowHome) {
   return { storage, sessions };
 }
 
-describe("the slideshow screen's storage and share link (SHARE_LINK.md, In the app)", () => {
+describe("the slideshow screen's storage and share link (share_link/IN_THE_APP.md)", () => {
   it("gives a server slideshow its share link session, a device slideshow none", () => {
     const server = screenStorage("server");
     const device = screenStorage("device");

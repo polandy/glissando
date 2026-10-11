@@ -1,4 +1,4 @@
-// The share page's script (dev-docs/SHARE_LINK.md, The recipient's page): loads the shared
+// The share page's script (dev-docs/share_link/RECIPIENTS_PAGE.md): loads the shared
 // slideshow from the share API and plays it with the web page export's player page. Built into
 // share.html by build/share-page-plugin.ts; never imports Svelte.
 import { createMusicAudioContext } from "../player/browser/platform";
@@ -75,7 +75,7 @@ async function startSharePage(): Promise<void> {
   const pagePlayer = createPagePlayer(view, music, {
     start(play) {
       view.showState("starting");
-      // Live: each start plays the slideshow as it is now (dev-docs/SHARE_LINK.md, The link).
+      // Live: each start plays the slideshow as it is now (dev-docs/share_link/THE_LINK.md).
       loadSharedShow(api, createUrl, show).then((now) => {
         if (now !== show) {
           for (const url of show.songUrls.values()) URL.revokeObjectURL(url);

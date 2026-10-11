@@ -1,6 +1,7 @@
 /**
- * What the exported page's markup and its player script agree on (dev-docs/HTML_EXPORT.md,
- * "The page"). Both sides import it, so a renamed id cannot leave the page unreadable.
+ * What the exported page's markup and its player script agree on
+ * (dev-docs/html_export/THE_PAGE.md). Both sides import it, so a renamed id cannot leave the page
+ * unreadable.
  */
 
 /** `<script type="application/json">` holding the slideshow in `parseSlideshow` format. */

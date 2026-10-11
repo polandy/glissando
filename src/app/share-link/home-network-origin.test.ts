@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { isHomeNetworkOrigin } from "./home-network-origin";
 
-describe("isHomeNetworkOrigin (SHARE_LINK.md, In the app: Home network note)", () => {
+describe("isHomeNetworkOrigin (share_link/IN_THE_APP.md: Home network note)", () => {
   it.each([
     { origin: "http://photos.example.org", why: "plain http" },
     { origin: "https://localhost:5173", why: "localhost" },

@@ -20,7 +20,7 @@
   import type { ShareLinkRequest, ShareLinkSession, ShareLinkState } from "./share-link-session";
 
   /**
-   * "Share by link" (SHARE_LINK.md, In the app): a dialog on desktop, a bottom sheet on a phone,
+   * "Share by link" (share_link/IN_THE_APP.md): a dialog on desktop, a bottom sheet on a phone,
    * from not shared through shared to "Turn off the link?".
    */
   let {

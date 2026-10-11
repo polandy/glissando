@@ -70,7 +70,7 @@ async function mountControl({
   return { target, api, session, scheduler, toasts, dialog, button, click, row, openSheet };
 }
 
-describe("The share row and sheet (SHARE_LINK.md, In the app)", () => {
+describe("The share row and sheet (share_link/IN_THE_APP.md)", () => {
   it("offers a server slideshow that is not shared to be shared", async () => {
     const { row } = await mountControl();
 

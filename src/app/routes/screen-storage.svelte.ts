@@ -22,7 +22,7 @@ export interface ScreenStoragePorts {
 }
 
 /**
- * Where the shown slideshow lives (SERVER_LIBRARY.md) and its link (SHARE_LINK.md, In the app):
+ * Where the shown slideshow lives (SERVER_LIBRARY.md) and its link (share_link/IN_THE_APP.md):
  * the storage row's actions and the share link session the screen owns.
  */
 export class ScreenStorage {

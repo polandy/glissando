@@ -44,7 +44,7 @@ export interface WriteOptions {
  * Stores a checked file as a new slideshow with fresh ids; it never replaces one. All or
  * nothing: every media id is claimed before its media is written and the record is saved last,
  * so a cancel or a failure (e.g. `QuotaExceededError`) releases the claim and deletes what was
- * written (see dev-docs/LIBRARY.md, "Abandoned imports and claims").
+ * written (see dev-docs/library/ABANDONED_IMPORTS.md).
  */
 export async function writeGlissandoFile(
   contents: CheckedGlissandoFile,

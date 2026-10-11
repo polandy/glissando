@@ -20,7 +20,7 @@ const holds = new Map<
 /**
  * Browser commands (run by Vitest in Node) that answer the share link and the share API for a
  * token in the test's browser page, frames included, with Playwright's routing: the share page's browser test plays
- * against them (dev-docs/SHARE_LINK.md, End to end).
+ * against them (dev-docs/share_link/END_TO_END.md).
  */
 export const serveFakeShareApi: BrowserCommand<[fake: FakeShareApi]> = async (context, fake) => {
   if (!("page" in context)) throw new Error("the fake share API needs the Playwright provider");

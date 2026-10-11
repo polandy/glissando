@@ -12,7 +12,7 @@
   import PageRunning from "./html-export/PageRunning.svelte";
 
   /**
-   * "Save as web page" (dev-docs/HTML_EXPORT.md, Sheet): a dialog on desktop, a bottom sheet on
+   * "Save as web page" (dev-docs/html_export/SHEET.md): a dialog on desktop, a bottom sheet on
    * a phone. Closing it, Esc included, cancels a running export.
    */
   let {

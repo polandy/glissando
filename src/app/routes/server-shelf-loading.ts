@@ -23,7 +23,7 @@ function rememberedShelf(cards: readonly ServerSlideshowCard[]): ServerShelf {
 }
 
 /**
- * The library's server section (`dev-docs/SERVER_LIBRARY.md`, Library): on, the server's list
+ * The library's server section (`dev-docs/server_library/IN_THE_APP.md`): on, the server's list
  * with the covers Immich could give, remembered for offline; offline, or once the server stops
  * answering, the remembered cards. Null once `left` aborted (see `loadStartSlideshows`).
  */

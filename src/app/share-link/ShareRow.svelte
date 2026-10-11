@@ -3,7 +3,7 @@
   import { getTranslator } from "../i18n/context";
 
   /**
-   * The info panel's row under the server row (SHARE_LINK.md, In the app): opens the share sheet
+   * The info panel's row under the server row (share_link/IN_THE_APP.md): opens the share sheet
    * of a server slideshow; a device slideshow's row only says how it could be shared.
    */
   let {

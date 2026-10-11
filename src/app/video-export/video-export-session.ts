@@ -24,7 +24,7 @@ const SHARE_DISMISSED = "AbortError";
 type ChooseState = Extract<ExportSheetState, { readonly kind: "choose" }>;
 
 /**
- * The video export sheet's flow, from probing to the finished file (VIDEO_EXPORT.md, Sheet).
+ * The video export sheet's flow, from probing to the finished file (video_export/SHEET.md).
  * Closing it cancels a running export and discards a private file.
  */
 export class VideoExportSession<Preview> {
