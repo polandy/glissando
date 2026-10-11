@@ -124,6 +124,9 @@ the same contract suite.
     `waiting` event, until `playing`), a "Loading" chip shows at the top right.
   - **Gone**: "This link doesn't work any more" and "Whoever shared the slideshow has turned the
     link off. Ask them for a new one." No title, no picture.
+    A picture answering `notShared` while the slideshow plays stops the player and shows this
+    card. Songs are fetched before playing, so a song's `notShared` shows it on Play or "Play
+    again".
   - **Unreachable**: "Can't reach the slideshow right now", "The server it lives on isn't
     answering. It may be restarting; try again in a moment." and "Try again", which reloads the
     page.
@@ -189,8 +192,9 @@ the same contract suite.
   header but the allowed ones, and the same URL answers 404 once the link is turned off.
 - A browser test opens `share.html` at `/s/<token>` against a fake share API (Playwright
   routing, as Vitest browser commands in `src/share-page/testing/`) and plays a generated three-picture slideshow
-  to `ended`, also with a late picture (the chip) and a missing one (skipped), and shows `gone`
-  and `unreachable` (then "Try again").
+  to `ended`, also with a late picture (the chip) and a missing one (skipped), plays a new
+  revision on "Play again", and shows `gone` (at the start, from a picture while playing, from a
+  song on "Play again") and `unreachable` (then "Try again").
 - E2E-043 shares a server slideshow from the info panel, opens the link in a second page,
   presses Play and waits for `playing`, then turns the link off and sees `gone` on reload. The
   fake server (`e2e/support/fake-glissando-server.ts`) answers `/s/` with the built `share.html`

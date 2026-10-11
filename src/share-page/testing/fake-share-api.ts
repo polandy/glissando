@@ -19,6 +19,12 @@ export interface FakeShareApi {
   readonly heldPicture?: number;
   /** A picture answered 404 `noSuchPicture`, as one Immich no longer has. */
   readonly missingPicture?: number;
+  /**
+   * A picture, or every song, answered 404 `notShared` while the document still answers, as
+   * when the link is turned off while the page plays.
+   */
+  readonly gonePicture?: number;
+  readonly goneSongs?: boolean;
 }
 
 declare module "vitest/browser" {

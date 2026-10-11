@@ -20,20 +20,30 @@ async function medium(blob: Blob): Promise<FakeMedium> {
   return { base64: encodeBase64(new Uint8Array(await blob.arrayBuffer())), type: blob.type };
 }
 
-/** A generated three-picture slideshow with one song, as the share API answers it. */
-async function sharedSlideshow(token: string): Promise<FakeShareApi> {
+/**
+ * A generated slideshow with one song, as the share API answers it: three pictures at revision 1
+ * unless told otherwise.
+ */
+async function sharedSlideshow(
+  token: string,
+  {
+    revision = 1,
+    pictureCount = PICTURE_SIZES.length,
+  }: { revision?: number; pictureCount?: number } = {},
+): Promise<FakeShareApi> {
+  const sizes = PICTURE_SIZES.slice(0, pictureCount);
   return {
     token,
     sharePage,
     mode: "shared",
     answer: {
-      revision: 1,
+      revision,
       slideshow: {
         title: "Generated <test>",
         createdAt: "2026-07-02T10:00:00Z",
         secondsPerPicture: 3,
         transition: "cut",
-        pictures: PICTURE_SIZES.map(([width, height]) => ({
+        pictures: sizes.map(([width, height]) => ({
           capturedAt: "2026-07-01T00:00:00Z",
           width,
           height,
@@ -44,7 +54,7 @@ async function sharedSlideshow(token: string): Promise<FakeShareApi> {
       beats: [null],
     },
     pictures: await Promise.all(
-      PICTURE_SIZES.map(async ([width, height], index) =>
+      sizes.map(async ([width, height], index) =>
         medium(await drawnJpeg(width, height, index * 90)),
       ),
     ),
@@ -62,6 +72,12 @@ function shown(element: HTMLElement): Promise<void> {
     });
     observer.observe(element, { attributes: true, attributeFilter: ["hidden"] });
   });
+}
+
+/** The text of the notice card the page shows; null when it shows none. */
+function shownNotice(shareDocument: Document): string | null {
+  const notices = [...shareDocument.querySelectorAll<HTMLElement>(".notice")];
+  return notices.find((notice) => !notice.hidden)?.textContent ?? null;
 }
 
 describe("the share page", () => {
@@ -154,6 +170,64 @@ describe("the share page", () => {
 
     expect(shareDocument.querySelector(".end")?.textContent).toContain("Play again");
     expect(shareDocument.querySelector(".time")?.textContent).toBe("0:04 / 0:04");
+  });
+
+  it("plays the slideshow as it is now on Play again: a new revision with fewer pictures", async () => {
+    const { frame, shareDocument, seen } = await opened(await sharedSlideshow("live"));
+    await stateReached(shareDocument, "start", seen);
+    const player = page.frameLocator(page.elementLocator(frame));
+    const firstEnd = stateReached(shareDocument, "ended", seen);
+    await player.getByRole("button", { name: "Play" }).click();
+    await firstEnd;
+    expect(shareDocument.querySelector(".time")?.textContent).toBe("0:06 / 0:06");
+
+    await commands.serveFakeShareApi(
+      await sharedSlideshow("live", { revision: 2, pictureCount: 2 }),
+    );
+    seen.length = 0;
+    // The page still shows `ended`: the second end is only watched for once it started again.
+    const restarted = stateReached(shareDocument, "starting", seen);
+    await player.getByRole("button", { name: "Play again" }).click();
+    await restarted;
+    await stateReached(shareDocument, "ended", seen);
+
+    expect(seen).toEqual(["ended", "starting", "playing", "ended"]);
+    expect(shareDocument.querySelector(".time")?.textContent).toBe("0:04 / 0:04");
+  });
+
+  it("shows the gone card when a picture says the link was turned off while it plays", async () => {
+    const fake = { ...(await sharedSlideshow("gone-picture")), gonePicture: 1 };
+    const { frame, shareDocument, seen } = await opened(fake);
+    await stateReached(shareDocument, "start", seen);
+
+    const gone = stateReached(shareDocument, "gone", seen);
+    await page
+      .frameLocator(page.elementLocator(frame))
+      .getByRole("button", { name: "Play" })
+      .click();
+    await gone;
+
+    expect(seen).toContain("playing");
+    expect(shownNotice(shareDocument)).toContain("This link doesn't work any more");
+  });
+
+  it("shows the gone card when Play again finds the songs turned off", async () => {
+    const { frame, shareDocument, seen } = await opened(await sharedSlideshow("gone-song"));
+    await stateReached(shareDocument, "start", seen);
+    const player = page.frameLocator(page.elementLocator(frame));
+    const ended = stateReached(shareDocument, "ended", seen);
+    await player.getByRole("button", { name: "Play" }).click();
+    await ended;
+
+    await commands.serveFakeShareApi({
+      ...(await sharedSlideshow("gone-song", { revision: 2 })),
+      goneSongs: true,
+    });
+    const gone = stateReached(shareDocument, "gone", seen);
+    await player.getByRole("button", { name: "Play again" }).click();
+    await gone;
+
+    expect(shownNotice(shareDocument)).toContain("This link doesn't work any more");
   });
 
   it("says the link no longer works, without the slideshow's title, once it is turned off", async () => {
