@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { Music, Slide, Slideshow } from "./slideshow";
+import type { MusicTrack, Slide, Slideshow } from "./slideshow";
 import { SlideshowPlayer } from "./slideshow-player";
 import {
   FakeClock,
@@ -22,7 +22,8 @@ function slide(src: string, durationMs: number): Slide {
 }
 
 /** Heard from 10 s to 16 s of the track: 6 s of the 12 s slideshow, fading in 2 s and out 2 s. */
-const MUSIC: Music = {
+const MUSIC: MusicTrack = {
+  atMs: 0,
   src: "summer.mp3",
   startMs: 10_000,
   endMs: 16_000,
@@ -32,9 +33,9 @@ const MUSIC: Music = {
 
 function setUp() {
   const slideshow: Slideshow = {
-    formatVersion: 2,
+    formatVersion: 3,
     title: "July 2025",
-    music: MUSIC,
+    music: [MUSIC],
     slides: [slide("a.jpg", 4000), slide("b.jpg", 4000), slide("c.jpg", 4000)],
   };
   const clock = new FakeClock();
@@ -46,7 +47,7 @@ function setUp() {
     pictures,
     clock,
     frames,
-    music,
+    openMusic: () => music,
   });
   return {
     player,
@@ -126,7 +127,7 @@ describe("SlideshowPlayer with trimmed, faded music", () => {
     expect(music.calls).toEqual(["play@10", "pause"]);
   });
 
-  it("stays silent when played past the music's end", async () => {
+  it("only primes the music, silently, when played past its end", async () => {
     const { player, music, pictures, ready } = setUp();
     await ready();
     const playing = new Promise((resolve) =>
@@ -139,6 +140,7 @@ describe("SlideshowPlayer with trimmed, faded music", () => {
     await playing;
 
     expect(player.currentTime).toBe(8);
-    expect(music.calls).toEqual([]);
+    expect(music.calls).toEqual(["play@10", "pause"]);
+    expect(music.volumesAtPlay).toEqual([0]);
   });
 });

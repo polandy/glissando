@@ -1,11 +1,16 @@
-import type { LibraryStore, StoredPicture, StoredSlideshow } from "../library/stored-slideshow";
+import type {
+  LibraryStore,
+  StoredMusic,
+  StoredPicture,
+  StoredSlideshow,
+} from "../library/stored-slideshow";
 import type { CheckedGlissandoFile } from "./check-glissando-file";
 import { ownMusicFields } from "./glissando-manifest";
 import { uniqueTitle } from "./unique-title";
 
 export type OpenStep = (
   | { readonly kind: "picture"; readonly number: number; readonly count: number }
-  | { readonly kind: "music" }
+  | { readonly kind: "music"; readonly number: number; readonly count: number }
 ) & {
   /** The share of the media files written before this step, from 0 to 1. */
   readonly fraction: number;
@@ -51,7 +56,8 @@ export async function writeGlissandoFile(
   const startedAt = ports.now();
   const { slideshow } = contents.manifest;
   const count = slideshow.pictures.length;
-  const files = count * 2 + (slideshow.music === undefined ? 0 : 1);
+  const songCount = slideshow.songs.length;
+  const files = count * 2 + songCount;
   let written = 0;
 
   const claimed = async (write: (id: string) => Promise<void>): Promise<string> => {
@@ -87,18 +93,23 @@ export async function writeGlissandoFile(
         ...(picture.fileBytes === undefined ? {} : { fileBytes: picture.fileBytes }),
       });
     }
-    const music = slideshow.music;
-    let storedMusic: StoredSlideshow["music"];
-    if (music !== undefined) {
-      options.onStep?.({ kind: "music", fraction: written / files });
-      const id = await claimed((musicId) => store.putMusic(musicId, contents.media(music.file)));
-      storedMusic = {
+    const songs: StoredMusic[] = [];
+    for (const [index, song] of slideshow.songs.entries()) {
+      options.onStep?.({
+        kind: "music",
+        number: index + 1,
+        count: songCount,
+        fraction: written / files,
+      });
+      const id = await claimed((musicId) => store.putMusic(musicId, contents.media(song.file)));
+      written += 1;
+      songs.push({
         id,
-        fileName: music.fileName,
-        durationMs: music.durationMs,
-        mimeType: music.mimeType,
-        ...ownMusicFields(music),
-      };
+        fileName: song.fileName,
+        durationMs: song.durationMs,
+        mimeType: song.mimeType,
+        ...ownMusicFields(song),
+      });
     }
     options.signal.throwIfAborted();
     const created: StoredSlideshow = {
@@ -108,7 +119,8 @@ export async function writeGlissandoFile(
       pictures,
       ...(slideshow.ownOrder ? { ownOrder: true } : {}),
       ...(slideshow.transition === undefined ? {} : { transition: slideshow.transition }),
-      ...(storedMusic === undefined ? {} : { music: storedMusic }),
+      songs,
+      ...(slideshow.betweenSongs === undefined ? {} : { betweenSongs: slideshow.betweenSongs }),
       secondsPerPicture: slideshow.secondsPerPicture,
     };
     await store.saveSlideshow(created);

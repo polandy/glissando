@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { StoredPicture, StoredSlideshow } from "../library/stored-slideshow";
-import { slideshowDetails, slideshowSummary } from "./library-views";
+import { playingMusic, slideshowDetails, slideshowSummary } from "./library-views";
 
 const stored: StoredSlideshow = {
   id: "show",
@@ -10,10 +10,11 @@ const stored: StoredSlideshow = {
     { id: "p1", capturedAt: "2025-07-01T10:00:00Z", width: 300, height: 200, fileName: "a.jpg" },
     { id: "p2", capturedAt: "2025-07-02T10:00:00Z", width: 300, height: 200, fileName: "b.jpg" },
   ],
+  songs: [],
   secondsPerPicture: 4,
 };
 const music = { id: "m", fileName: "Sommer.mp3", durationMs: 30_000, mimeType: "audio/mpeg" };
-const withMusic: StoredSlideshow = { ...stored, music };
+const withMusic: StoredSlideshow = { ...stored, songs: [music] };
 const urlOf = (id: string) => `url:${id}`;
 
 describe("slideshowSummary", () => {
@@ -50,6 +51,7 @@ describe("slideshowDetails", () => {
       title: "Juli 2025",
       coverUrl: "url:p1",
       durationSeconds: 8,
+      songCount: 0,
       musicTitle: null,
       musicSeconds: null,
       musicSummary: null,
@@ -110,7 +112,7 @@ describe("slideshowDetails", () => {
   it("sums up an excerpt with the fades it plays, and its length as the music's", () => {
     const trimmed: StoredSlideshow = {
       ...withMusic,
-      music: { ...music, trim: { startMs: 2000, endMs: 22_000 } },
+      songs: [{ ...music, trim: { startMs: 2000, endMs: 22_000 } }],
     };
 
     const details = slideshowDetails(trimmed, urlOf);
@@ -124,13 +126,24 @@ describe("slideshowDetails", () => {
   });
 
   it("names the fades once one is the user's own", () => {
-    const faded: StoredSlideshow = { ...withMusic, music: { ...music, fadeInMs: 5000 } };
+    const faded: StoredSlideshow = { ...withMusic, songs: [{ ...music, fadeInMs: 5000 }] };
 
     expect(slideshowDetails(faded, urlOf).musicSummary).toEqual({ excerpt: null, fades: "in" });
   });
 
   it("names the music by its file name", () => {
     expect(slideshowDetails(withMusic, urlOf).musicTitle).toBe("Sommer.mp3");
+  });
+
+  it("counts several songs and gives the playlist's length, less the crossfade, without a summary", () => {
+    const second = { ...music, id: "m2", fileName: "Herbst.mp3" };
+    const playlist: StoredSlideshow = { ...withMusic, songs: [music, second] };
+
+    const details = slideshowDetails(playlist, urlOf);
+
+    expect(details.songCount).toBe(2);
+    expect(details.musicSeconds).toBe(57);
+    expect(details.musicSummary).toBeNull();
   });
 
   it("tells an order of the user's own, and covers it first with its first picture", () => {
@@ -187,4 +200,19 @@ describe("slideshowDetails", () => {
     expect(slideshowDetails(fewer, urlOf).durationSeconds).toBe(30);
     expect(slideshowDetails(fewer, urlOf).pictures).toHaveLength(1);
   });
+});
+
+describe("playingMusic", () => {
+  const song = (id: string) => ({ ...music, id, fileName: `${id}.mp3` });
+
+  it.each([
+    { songs: [], expected: null },
+    { songs: [song("one")], expected: { kind: "song", fileName: "one.mp3" } },
+    { songs: [song("one"), song("two"), song("three")], expected: { kind: "songs", count: 3 } },
+  ] as const)(
+    "names one song by its file, several by their count ($songs.length songs)",
+    ({ songs, expected }) => {
+      expect(playingMusic({ ...stored, songs })).toEqual(expected);
+    },
+  );
 });

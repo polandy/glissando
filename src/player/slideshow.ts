@@ -3,10 +3,8 @@
  * play in array order, which starts as capture order and follows the user's reordering.
  */
 
-/** Version 2 added the music's excerpt and fades (ADR-0009). */
-export const SLIDESHOW_FORMAT_VERSION = 2;
-/** Still read: its music, `{ src }` only, plays as the whole track without fades. */
-export const FIRST_SLIDESHOW_FORMAT_VERSION = 1;
+/** Version 3: the music is a playlist of tracks, each placed in the slideshow (ADR-0023). */
+export const SLIDESHOW_FORMAT_VERSION = 3;
 
 /** Durations in the format are milliseconds; the player's clock speaks seconds. */
 export const MILLISECONDS_PER_SECOND = 1000;
@@ -59,13 +57,18 @@ export interface Slide {
   readonly transitionToNext?: Transition;
 }
 
-/** The music as it plays, resolved by the composer: times are ms of the track. See ADR-0009. */
-export interface Music {
+/**
+ * A track as it plays, resolved by the composer: `atMs` is slideshow time, the other times are
+ * ms of the track. See ADR-0009 and ADR-0023.
+ */
+export interface MusicTrack {
   readonly src: string;
-  /** Where in the track the slideshow's start falls. */
+  /** Where in the slideshow the track starts. */
+  readonly atMs: number;
+  /** Where in the track playing starts. */
   readonly startMs: number;
-  /** Where the music stops being heard; absent (a version 1 slideshow): the track's end. */
-  readonly endMs?: number;
+  /** Where the track stops being heard. */
+  readonly endMs: number;
   /** Ramps the volume up from `startMs`; 0: none. */
   readonly fadeInMs: number;
   /** Ramps the volume down to `endMs`; 0: none. */
@@ -75,6 +78,7 @@ export interface Music {
 export interface Slideshow {
   readonly formatVersion: typeof SLIDESHOW_FORMAT_VERSION;
   readonly title: string;
-  readonly music?: Music;
+  /** In order of `atMs`, never empty; at most two sound at once, in a crossfade. Absent: silence. */
+  readonly music?: readonly MusicTrack[];
   readonly slides: readonly Slide[];
 }

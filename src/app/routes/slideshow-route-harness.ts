@@ -1,3 +1,4 @@
+import { songIntakeStoringIn } from "../music-editor/testing/song-intake-device";
 import { beatPassFindingNone } from "../../library/testing/beat-pass-finding-none";
 import type { FocusPass } from "../../library/focus-pass";
 import type { StoredSlideshow } from "../../library/stored-slideshow";
@@ -25,6 +26,7 @@ export const SHOW: StoredSlideshow = {
     fileName: `${id}.jpg`,
   })),
   secondsPerPicture: 5,
+  songs: [],
 };
 
 let destroy = () => {};
@@ -71,6 +73,7 @@ export function mountRoute(
     editingMusic: false,
     musicAudio: browserMusicEditorAudio(musicOutput),
     musicOutput,
+    songIntake: songIntakeStoringIn(store, (error) => errors.push(error)),
     onBack: () => {},
     onPlay: () => {},
     onAddPictures: () => {},

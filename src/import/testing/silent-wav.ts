@@ -1,5 +1,20 @@
 /** A mono 16-bit PCM WAV file of silence lasting `durationMs`, built byte by byte. */
 export function silentWav(durationMs: number, sampleRate = 8000): Uint8Array<ArrayBuffer> {
+  return levelWav(durationMs, 0, sampleRate);
+}
+
+/** Largest positive 16-bit sample. */
+const FULL_SCALE = 0x7fff;
+
+/**
+ * A mono 16-bit PCM WAV file holding one constant `level` (−1..1) for `durationMs`, so a mix of
+ * several reads back as their sum.
+ */
+export function levelWav(
+  durationMs: number,
+  level: number,
+  sampleRate = 8000,
+): Uint8Array<ArrayBuffer> {
   const bytesPerSample = 2;
   const dataLength = Math.round((sampleRate * durationMs) / 1000) * bytesPerSample;
   const headerLength = 44;
@@ -20,5 +35,9 @@ export function silentWav(durationMs: number, sampleRate = 8000): Uint8Array<Arr
   view.setUint16(34, bytesPerSample * 8, true);
   ascii(36, "data");
   view.setUint32(40, dataLength, true);
+  const sample = Math.round(level * FULL_SCALE);
+  for (let at = headerLength; at < bytes.length; at += bytesPerSample) {
+    view.setInt16(at, sample, true);
+  }
   return bytes;
 }

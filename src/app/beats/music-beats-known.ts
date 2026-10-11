@@ -1,26 +1,30 @@
 import { NO_BEATS, type MusicBeats } from "../../beats";
+import type { SongBeats } from "../../compose";
 import type { BeatPassState } from "../../library/beat-pass";
 import type { LibraryStore, StoredSlideshow } from "../../library/stored-slideshow";
 
 /**
- * The beats found so far for the slideshow's music, which the player and the exports compose with
- * (ADR-0021). None while not listened to yet; beats that cannot be read are logged and play goes
- * on evenly, as the beats only place the automatic changes.
+ * The beats found so far for each song of the slideshow, which the player and the exports compose
+ * with (ADR-0021, ADR-0023). A song not listened to yet is absent; beats that cannot be read are
+ * logged and that song plays evenly, as the beats only place the automatic changes.
  */
-export async function storedMusicBeats(
+export async function storedSongBeats(
   store: Pick<LibraryStore, "musicBeats">,
   stored: StoredSlideshow,
   log: (error: unknown) => void,
-): Promise<MusicBeats> {
-  if (stored.music === undefined) {
-    return NO_BEATS;
-  }
-  try {
-    return (await store.musicBeats(stored.music.id)) ?? NO_BEATS;
-  } catch (error) {
-    log(error);
-    return NO_BEATS;
-  }
+): Promise<SongBeats> {
+  const found = await Promise.all(
+    stored.songs.map(async ({ id }): Promise<[string, MusicBeats] | undefined> => {
+      try {
+        const beats = await store.musicBeats(id);
+        return beats === undefined ? undefined : [id, beats];
+      } catch (error) {
+        log(error);
+        return undefined;
+      }
+    }),
+  );
+  return new Map(found.filter((entry) => entry !== undefined));
 }
 
 /**

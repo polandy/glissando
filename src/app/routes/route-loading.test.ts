@@ -12,6 +12,7 @@ const STORED: StoredSlideshow = {
   pictures: [
     { id: "picture-1", capturedAt: "2025-07-01T10:00:00Z", width: 3, height: 2, fileName: "a" },
   ],
+  songs: [],
   secondsPerPicture: 5,
 };
 
@@ -142,30 +143,38 @@ describe("loadSlideshowScreen", () => {
 });
 
 describe("loadPlayerMusic", () => {
-  const WITH_MUSIC: StoredSlideshow = {
-    ...STORED,
-    music: { id: "music-1", fileName: "song.mp3", durationMs: 1000, mimeType: "audio/mpeg" },
-  };
+  const song = (id: string) => ({
+    id,
+    fileName: `${id}.mp3`,
+    durationMs: 1000,
+    mimeType: "audio/mpeg",
+  });
+  const WITH_MUSIC: StoredSlideshow = { ...STORED, songs: [song("music-1"), song("music-22")] };
   const urlOf = (blob: Blob) => `url:${String(blob.size)}`;
 
-  it("opens an object URL for the slideshow's music", async () => {
+  it("opens an object URL for every song, by music id", async () => {
     const store = new MemoryLibraryStore();
     await store.putMusic("music-1", musicBlob("music-1"));
+    await store.putMusic("music-22", musicBlob("music-22"));
 
     await expect(loadPlayerMusic(store, WITH_MUSIC, urlOf, signal())).resolves.toEqual({
-      url: urlOf(musicBlob("music-1")),
+      urls: new Map([
+        ["music-1", urlOf(musicBlob("music-1"))],
+        ["music-22", urlOf(musicBlob("music-22"))],
+      ]),
     });
   });
 
   it("has no URL for a slideshow without music", async () => {
     await expect(
       loadPlayerMusic(new MemoryLibraryStore(), STORED, urlOf, signal()),
-    ).resolves.toEqual({ url: null });
+    ).resolves.toEqual({ urls: new Map() });
   });
 
   it("resolves to null and opens no URL when the player closed before the music arrived", async () => {
     const store = new MemoryLibraryStore();
     await store.putMusic("music-1", musicBlob("music-1"));
+    await store.putMusic("music-22", musicBlob("music-22"));
     const opened: Blob[] = [];
     const closing = new AbortController();
     const loading = loadPlayerMusic(

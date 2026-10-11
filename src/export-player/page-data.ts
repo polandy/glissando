@@ -1,7 +1,6 @@
 import { decodeBase64 } from "../html-export/base64";
 import {
   COPY_BLOCK_ID,
-  MUSIC_KEY,
   PAGE_COPY_KEYS,
   SLIDESHOW_BLOCK_ID,
   type PageCopy,
@@ -29,8 +28,8 @@ export interface PageData {
   readonly copy: PageCopy;
   /** Unpacks a picture only when the player asks for it. */
   readonly openPicture: OpenPicture;
-  /** Null when the slideshow has no music. */
-  readonly music: Blob | null;
+  /** Each song the tracks play, by the tracks' `src`; empty without music. */
+  readonly songs: ReadonlyMap<string, Blob>;
 }
 
 /** Reads the exported page's data blocks (dev-docs/HTML_EXPORT.md, "The page"). */
@@ -55,7 +54,9 @@ export function readPageData(read: ReadBlock): PageData {
         return Promise.reject(error instanceof Error ? error : new Error(String(error)));
       }
     },
-    music: slideshow.music === undefined ? null : media(MUSIC_KEY),
+    songs: new Map(
+      [...new Set(slideshow.music?.map(({ src }) => src))].map((src) => [src, media(src)]),
+    ),
   };
 }
 
@@ -88,4 +89,29 @@ function readCopy(input: unknown): PageCopy {
     return [key, value] as const;
   });
   return Object.fromEntries(entries) as Record<keyof PageCopy, string>;
+}
+
+/**
+ * `slideshow` with each track's `src` the URL `createUrl` makes of its song: one per song, shared
+ * by its tracks.
+ */
+export function withSongUrls(
+  slideshow: Slideshow,
+  songs: ReadonlyMap<string, Blob>,
+  createUrl: (song: Blob) => string,
+): Slideshow {
+  if (slideshow.music === undefined) {
+    return slideshow;
+  }
+  const urls = new Map([...songs].map(([src, blob]) => [src, createUrl(blob)]));
+  return {
+    ...slideshow,
+    music: slideshow.music.map((track) => {
+      const url = urls.get(track.src);
+      if (url === undefined) {
+        throw new PageDataError(`the page holds no song ${JSON.stringify(track.src)} for a track`);
+      }
+      return { ...track, src: url };
+    }),
+  };
 }

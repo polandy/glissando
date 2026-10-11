@@ -1,0 +1,45 @@
+import type { Catalogue } from "./messages";
+import type { dePlaylist } from "./catalogue-de-playlist";
+
+/** English copy of the playlist; typed to the German keys. */
+export const enPlaylist: Pick<Catalogue, keyof typeof dePlaylist> = {
+  "slideshow.addMusic": "Add music",
+  "music.reason-crossfade-from-previous": "the crossfade from the previous song",
+  "music.reason-crossfade-into-next": "the crossfade into the next song",
+  "music.songs": "Songs",
+  "music.songFrom": "from {time}",
+  "music.notReached": "Not reached",
+  "music.moveSong": "Move {name}",
+  "music.removeSong": "Remove {name}",
+  "music.addSong": "Add a song",
+  "music.songConverting": "Converting to FLAC\u00a0· {percent}\u00a0%",
+  "music.songUnusable": "This file can't be used",
+  "music.playlistLane": {
+    one: "Playlist, 1 song · {duration}",
+    other: "Playlist, {count} songs · {duration}",
+  },
+  "music.crossfadesHatched": "Crossfades hatched",
+  "music.slideshowLaneTotal": {
+    one: "Slideshow, 1 picture · {duration}",
+    other: "Slideshow, {count} pictures · {duration}",
+  },
+  "music.laneFadesOut": "Music fades out with the last picture",
+  "music.laneSilent": "Last pictures in silence",
+  "music.laneEndsWith": "Ends with the music",
+  "music.slideshowEnds": "Slideshow ends",
+  "music.sectionSlideshow": "Slideshow",
+  "music.sectionSong": "Song {number}",
+  "music.songHeading": "Song {number} · {name}",
+  "music.betweenSongs": "Between songs",
+  "music.crossfade": "Crossfade",
+  "music.sequence": "One after another",
+  "music.crossfadeWhy": "The next song starts while the previous one fades out.",
+  "music.sequenceWhy": "The next song starts once the previous one has faded out.",
+  "music.noMusicYet": "No music yet",
+  "music.noMusicWhy":
+    "Add one song or several; they play one after another and the pictures change on their beat.",
+  "music.songNotReached":
+    "The slideshow ends before this song starts; it plays once the slideshow grows.",
+  "music.songRemoved": "Song removed",
+  "slideshow.songCount": { one: "1 song", other: "{count} songs" },
+};

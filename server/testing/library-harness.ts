@@ -92,9 +92,10 @@ export function sampleDocument(title = "Herbst in Wien", musicId?: string): Serv
           immichAssetId: "0b5a7c3e-1f2d-4e6a-9b8c-7d6e5f4a3b2c",
         },
       ],
-      ...(musicId === undefined
-        ? {}
-        : { music: { musicId, fileName: "track.m4a", durationMs: 60000, mimeType: "audio/mp4" } }),
+      songs:
+        musicId === undefined
+          ? []
+          : [{ musicId, fileName: "track.m4a", durationMs: 60000, mimeType: "audio/mp4" }],
     },
   };
 }

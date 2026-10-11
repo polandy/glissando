@@ -171,12 +171,15 @@ export class FakeMusic implements MusicPlayback {
   readonly calls: string[] = [];
   /** The last volume set; kept apart from `calls`, which it would flood once per frame. */
   volume: number | undefined;
+  /** The volume at each `play`, in order. */
+  readonly volumesAtPlay: (number | undefined)[] = [];
   #refusal: Error | null = null;
   refuseNextPlay(error: Error): void {
     this.#refusal = error;
   }
   play(atSeconds: number): Promise<void> {
     this.calls.push(`play@${atSeconds}`);
+    this.volumesAtPlay.push(this.volume);
     const refusal = this.#refusal;
     this.#refusal = null;
     return refusal ? Promise.reject(refusal) : Promise.resolve();
@@ -189,5 +192,22 @@ export class FakeMusic implements MusicPlayback {
   }
   dispose(): void {
     this.calls.push("dispose");
+  }
+}
+
+/** Opens a `FakeMusic` per track, found again by its `src`. */
+export class FakeMusicTracks {
+  readonly #opened = new Map<string, FakeMusic>();
+  readonly open = (src: string): FakeMusic => {
+    const music = new FakeMusic();
+    this.#opened.set(src, music);
+    return music;
+  };
+  of(src: string): FakeMusic {
+    const music = this.#opened.get(src);
+    if (music === undefined) {
+      throw new Error(`no music was opened for ${src}`);
+    }
+    return music;
   }
 }

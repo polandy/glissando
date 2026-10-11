@@ -1,10 +1,13 @@
 <script lang="ts">
   import { getTranslator } from "../i18n/context";
+  import type { PlaylistSongView } from "../music-editor/playlist-view";
+  import { songColour } from "../music-editor/song-colour";
   import type { ImportTiming } from "./import-view";
 
   /**
-   * The pictures against the chosen music, both to one scale: each picture's segment by the rule
-   * the slideshow is composed with, the music under them, and how the two meet (ADR-0022).
+   * The pictures against the chosen songs, both to one scale: each picture's segment by the rule
+   * the slideshow is composed with, the songs under them, dimmed where the slideshow does not
+   * reach them, and how the two meet (ADR-0022, ADR-0023).
    */
   let {
     pictureIds,
@@ -12,7 +15,7 @@
     segmentsMs,
     timing,
     music,
-    ownSeconds,
+    songs,
   }: {
     pictureIds: readonly string[];
     /** Thumbnail URLs by picture id, as far as loaded. */
@@ -21,17 +24,20 @@
     timing: ImportTiming;
     /** `timing.music`, which the step only shows the fit for. */
     music: NonNullable<ImportTiming["music"]>;
-    /** The pictures last their own seconds, changing on the beat once it is known. */
-    ownSeconds: boolean;
+    /** In play order. */
+    songs: readonly PlaylistSongView[];
   } = $props();
 
-  const { t, formatDuration, formatSeconds } = getTranslator();
+  const { t, formatDuration } = getTranslator();
   const PERCENT = 100;
 
   const spanSeconds = $derived(Math.max(timing.totalSeconds, music.seconds));
   const percentOf = (seconds: number) => `${(seconds / spanSeconds) * PERCENT}%`;
-  // Within the music bar: where the slideshow ends and the music fades out.
-  const endInMusic = $derived(`${(timing.totalSeconds / music.seconds) * PERCENT}%`);
+  /** How long each song leads, until the next one starts: together the playlist's length. */
+  const leadsMs = $derived(
+    songs.map((song, index) => (songs[index + 1]?.atMs ?? song.atMs + song.excerptMs) - song.atMs),
+  );
+  const someNotReached = $derived(songs.some((song) => !song.reached));
 </script>
 
 <div class="fit" aria-hidden="true">
@@ -44,27 +50,31 @@
       ></i>
     {/each}
   </div>
-  <div class="music" style:width={percentOf(music.seconds)}>
-    {#if music.kind === "fades-out"}<i class="after" style:left={endInMusic}></i>{/if}
+  <div class="songs" style:width={percentOf(music.seconds)}>
+    {#each songs as song, index (song.id)}
+      <i
+        class="mono"
+        class:unreached={!song.reached}
+        style:flex-grow={leadsMs[index]}
+        style:background={songColour(song.number)}>{song.number}</i
+      >
+    {/each}
   </div>
   <div class="fitline mono">
-    <span>{formatDuration(0)}</span>
     <span>
-      {t(ownSeconds ? "import.fitPerPictureAbout" : "import.fitPerPicture", {
+      {t("import.fitPictures", {
         count: pictureIds.length,
-        seconds: formatSeconds(timing.perPictureSeconds),
+        time: formatDuration(timing.totalSeconds),
       })}
     </span>
-    <span>{formatDuration(spanSeconds)}</span>
+    <span>{t("import.fitMusic", { time: formatDuration(music.seconds) })}</span>
   </div>
 </div>
 <p class="note">
   {#if music.kind === "fades-out"}
-    {t("import.fitFadesOut", { time: formatDuration(timing.totalSeconds) })}
+    {t(someNotReached ? "import.fitFadesOutNotReached" : "import.fitFadesOut")}
   {:else if music.kind === "silent-after"}
-    {t("import.fitSilentAfter", {
-      over: formatDuration(timing.totalSeconds - music.seconds),
-    })}
+    {t("import.fitSilentAfter")}
   {:else}
     {t("import.fitEndsWithMusic")}
   {/if}
@@ -88,20 +98,26 @@
     background-position: center;
     background-size: cover;
   }
-  /* The music to the same scale; washed out after the slideshow's end, where it has faded out. */
-  .music {
-    position: relative;
-    height: 6px;
+  /* The songs to the same scale, each as long as it leads; one never reached is dimmed. */
+  .songs {
+    display: flex;
+    gap: 2px;
+    height: 22px;
+  }
+  .songs i {
+    display: grid;
+    flex-basis: 0;
+    place-items: center;
+    min-width: 2px;
     overflow: hidden;
     border-radius: 3px;
-    background: var(--gl-accent);
+    color: var(--gl-song-ink);
+    font-size: var(--gl-size-small);
+    font-style: normal;
+    font-weight: var(--gl-weight-semibold);
   }
-  .music .after {
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    background: color-mix(in srgb, var(--gl-surface) 75%, transparent);
+  .songs i.unreached {
+    opacity: 0.35;
   }
   .fitline {
     display: flex;

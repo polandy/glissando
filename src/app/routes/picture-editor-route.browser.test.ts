@@ -26,6 +26,7 @@ const SHOW: StoredSlideshow = {
     fileName: `${id}.jpg`,
   })),
   secondsPerPicture: 5,
+  songs: [],
 };
 
 let destroy = () => {};
@@ -55,6 +56,7 @@ async function mountRoute(pictureId: string) {
     durationAutomaticText: () => "Dauer wieder automatisch",
     transitionAutomaticText: () => "Übergang wieder automatisch",
     slideshowTransitionResetText: () => "Übergänge wieder auf Überblenden",
+    songRemovedText: () => "Song entfernt",
     automaticTitle: () => "Juli 2025",
     focusOf: () => undefined,
   });

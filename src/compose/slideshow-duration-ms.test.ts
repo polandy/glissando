@@ -13,6 +13,7 @@ describe("slideshowDurationMs", () => {
       title: "July 2025",
       createdAt: "2025-07-21T00:00:00Z",
       pictures: [picture("a", "2025-07-01T10:00:00Z"), picture("b", "2025-07-02T10:00:00Z")],
+      songs: [],
       secondsPerPicture: 5,
     };
 
@@ -29,7 +30,7 @@ describe("slideshowDurationMs", () => {
         picture("b", "2025-07-02T10:00:00Z"),
         picture("c", "2025-07-03T10:00:00Z"),
       ],
-      music: { id: "m1", fileName: "song.mp3", durationMs: 10_000, mimeType: "audio/mpeg" },
+      songs: [{ id: "m1", fileName: "song.mp3", durationMs: 10_000, mimeType: "audio/mpeg" }],
       secondsPerPicture: 5,
     };
 
@@ -45,7 +46,7 @@ describe("slideshowDurationMs", () => {
         { ...picture("a", "2025-07-01T10:00:00Z"), durationMs: 15_000 },
         picture("b", "2025-07-02T10:00:00Z"),
       ],
-      music: { id: "m1", fileName: "song.mp3", durationMs: 10_000, mimeType: "audio/mpeg" },
+      songs: [{ id: "m1", fileName: "song.mp3", durationMs: 10_000, mimeType: "audio/mpeg" }],
       secondsPerPicture: 5,
     };
 
@@ -58,13 +59,15 @@ describe("slideshowDurationMs", () => {
       title: "July 2025",
       createdAt: "2025-07-21T00:00:00Z",
       pictures: [picture("a", "2025-07-01T10:00:00Z"), picture("b", "2025-07-02T10:00:00Z")],
-      music: {
-        id: "m1",
-        fileName: "song.mp3",
-        durationMs: 60_000,
-        mimeType: "audio/mpeg",
-        trim: { startMs: 5000, endMs: 15_000 },
-      },
+      songs: [
+        {
+          id: "m1",
+          fileName: "song.mp3",
+          durationMs: 60_000,
+          mimeType: "audio/mpeg",
+          trim: { startMs: 5000, endMs: 15_000 },
+        },
+      ],
       secondsPerPicture: 5,
     };
 

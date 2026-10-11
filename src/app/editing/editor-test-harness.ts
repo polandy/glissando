@@ -24,6 +24,7 @@ export function stored(ids: readonly string[]): StoredSlideshow {
       fileName: `${id}.jpg`,
     })),
     secondsPerPicture: 5,
+    songs: [],
   };
 }
 
@@ -56,7 +57,7 @@ class RecordingStore extends MemoryLibraryStore {
 /** An editor over a stored slideshow whose pictures' media is stored too. */
 export async function setUp(
   ids: readonly string[] = ["a", "b", "c", "d"],
-  music: StoredMusic | null = null,
+  music: StoredMusic | readonly StoredMusic[] | null = null,
 ) {
   const scheduler = new FakeScheduler();
   const toaster = new Toaster(scheduler);
@@ -64,7 +65,11 @@ export async function setUp(
   const errors: unknown[] = [];
   let gone = 0;
   const refused: EditRefusal[] = [];
-  const initial = music === null ? stored(ids) : { ...stored(ids), music };
+  const songs = music === null ? [] : "id" in music ? [music] : music;
+  const initial = { ...stored(ids), songs };
+  for (const song of songs) {
+    await store.putMusic(song.id, new Blob([song.id]));
+  }
   for (const id of ids) {
     await store.putPicture(id, { display: new Blob([id]), thumbnail: new Blob([id]) });
   }
@@ -90,6 +95,7 @@ export async function setUp(
     durationAutomaticText: () => "Dauer wieder automatisch",
     transitionAutomaticText: () => "Übergang wieder automatisch",
     slideshowTransitionResetText: () => "Übergänge wieder auf Überblenden",
+    songRemovedText: () => "Song entfernt",
     automaticTitle: () => "Juli 2025",
   });
   const order = () => editor.slideshow.pictures.map((picture) => picture.id);
@@ -115,10 +121,24 @@ export async function setUp(
       throw error;
     }
   };
+  /** Whether a clean-up, as any tab runs it, leaves the music's media in place. */
+  const musicSurvivesCleanUp = async (id: string) => {
+    await editor.settled();
+    await store.deleteUnreferencedMedia(EDITED_AT);
+    try {
+      await store.musicBlob(id);
+      return true;
+    } catch (error) {
+      if (error instanceof MediaNotFoundError) {
+        return false;
+      }
+      throw error;
+    }
+  };
   const goneCount = () => gone;
   const storedMusic = async () => {
     await editor.settled();
-    return (await store.getSlideshow("show")).music;
+    return (await store.getSlideshow("show")).songs[0];
   };
   const storedPicture = async (id: string) => {
     await editor.settled();
@@ -137,6 +157,7 @@ export async function setUp(
     storedMusic,
     storedPicture,
     mediaSurvivesCleanUp,
+    musicSurvivesCleanUp,
     goneCount,
     refused,
   };

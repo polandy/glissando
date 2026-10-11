@@ -5,17 +5,19 @@
   import { percentOf } from "./waveform-scale";
 
   /**
-   * Under the waveform: where the pictures play against the track, a tick per slide change (one
-   * off the beat stands out while the pictures change on the beat), and the time they play on in
-   * silence past the excerpt's end.
+   * Under the waveform: where the pictures play against the song's track, a tick per slide change
+   * (one off the beat stands out while the pictures change on the beat), and, past the last song's
+   * excerpt, the time they play on in silence. A song the slideshow never reaches has none.
    */
   let { music }: { music: MusicEditorView } = $props();
 
   const { t, formatDuration } = getTranslator();
 
   const pct = (ms: number) => percentOf(ms, music.durationMs);
-  const runEndMs = $derived(Math.min(music.durationMs, music.startMs + music.slideshowMs));
-  const outlastsExcerpt = $derived(music.startMs + music.slideshowMs > music.endMs);
+  /** Where the slideshow ends, in the song's track time. */
+  const slideshowEndMs = $derived(music.startMs + music.slideshowMs - music.atMs);
+  const runEndMs = $derived(Math.min(music.durationMs, slideshowEndMs));
+  const outlastsExcerpt = $derived(music.last && slideshowEndMs > music.endMs);
 </script>
 
 <div class="label">
@@ -23,18 +25,20 @@
   <span class="mono">{formatDuration(music.slideshowMs / MILLISECONDS_PER_SECOND)}</span>
 </div>
 <div class="lane" aria-hidden="true">
-  <div
-    class="runs"
-    style:left={pct(music.startMs)}
-    style:width="calc({pct(runEndMs)} - {pct(music.startMs)})"
-  >
-    {#each music.slideChanges as change (change.atMs)}
-      <i
-        class:off-beat={change.offBeat}
-        style:left="{((change.atMs - music.startMs) / (runEndMs - music.startMs)) * 100}%"
-      ></i>
-    {/each}
-  </div>
+  {#if music.reached}
+    <div
+      class="runs"
+      style:left={pct(music.startMs)}
+      style:width="calc({pct(runEndMs)} - {pct(music.startMs)})"
+    >
+      {#each music.slideChanges as change (change.atMs)}
+        <i
+          class:off-beat={change.offBeat}
+          style:left="{((change.atMs - music.startMs) / (runEndMs - music.startMs)) * 100}%"
+        ></i>
+      {/each}
+    </div>
+  {/if}
   {#if outlastsExcerpt}
     <div
       class="over"

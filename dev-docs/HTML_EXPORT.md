@@ -1,6 +1,6 @@
 # Web page export
 
-The slideshow as one self-contained `.html` file: pictures scaled down, the music, the caption
+The slideshow as one self-contained `.html` file: pictures scaled down, the songs it plays, the caption
 font and Glissando's player engine inside it. It plays offline in a browser, without Glissando,
 at a tenth of the MP4's size (ADR-0017). Approved mockup:
 https://polandy.github.io/glissando-assets/mockups/html-export/.
@@ -18,7 +18,7 @@ https://polandy.github.io/glissando-assets/mockups/html-export/.
   its bytes as they are, and so does any size the stored picture already fits.
 - The default is Small.
 - The estimate beside a size is
-  `(Σ picture bytes × min(1, fitted pixels / stored pixels) + music bytes + page bytes) × 4 / 3`,
+  `(Σ picture bytes × min(1, fitted pixels / stored pixels) + song bytes + page bytes) × 4 / 3`,
   shown as "ca. 16 MB". "Page bytes" are the player bundle, font and markup.
 - With 4K selected, a lemon note shows: "Zu groß für eine E-Mail. …"
 
@@ -31,10 +31,12 @@ https://polandy.github.io/glissando-assets/mockups/html-export/.
   media.
 - **Data**: the slideshow JSON (as composed for the player, `parseSlideshow` format) sits in
   `<script type="application/json" id="slideshow">`. Each picture's `image.src` is a key `p<n>`,
-  the music's `src` the key `music`. Each medium is a
-  `<script type="application/octet-stream" id="<key>" data-type="<mime>">` holding its base64. The
-  page's `openPicture(key)` decodes a block into a Blob on demand, so only the pictures the player
-  holds are ever unpacked. The music becomes one `blob:` URL when the page starts. The page's
+  every track's `src` the key `s<n>` of its song: each song the composed JSON plays is embedded
+  once, numbered in playlist order, and a song the slideshow never reaches is left out. Each
+  medium is a `<script type="application/octet-stream" id="<key>" data-type="<mime>">` holding its
+  base64. The page's `openPicture(key)` decodes a block into a Blob on demand, so only the
+  pictures the player holds are ever unpacked. Each song becomes one `blob:` URL when the page
+  starts, shared by its tracks, and the page plays every track as the app does (PLAYER.md). The page's
   words sit in `<script type="application/json" id="copy">`, the start card's summary already
   formatted at export time, so the page itself formats nothing but the time.
 - **State**: `<html data-state>` is `loading`, `start`, `playing`, `paused`, `ended` or `error`,
@@ -79,7 +81,8 @@ below 720 px. Its states follow the video sheet's (VIDEO_EXPORT.md):
 | failed  | Coral note with the error; "Schließen"                                                                                                                                                                                                                                                                                                   |
 
 - **Estimate**: each stored display picture's byte count is its Blob's size, which IndexedDB
-  knows without reading the bytes; the music's likewise. The page bytes are the player bundle's
+  knows without reading the bytes; every song's likewise, also one the slideshow may not reach,
+  so the estimate errs on the large side. The page bytes are the player bundle's
   (`playerBundleBytes`), so opening the sheet loads the bundle, which also fetches it before the
   start. Until both are known the sizes show no estimate; if either fails, the sheet shows
   failed. The comparison's full bar is the 1080p video's estimate (VIDEO_EXPORT.md).
@@ -107,7 +110,7 @@ below 720 px. Its states follow the video sheet's (VIDEO_EXPORT.md):
     safe everywhere in JavaScript.
   - `export-page.ts`: the run (downscale each picture through a port, progress, cancel, write the
     parts to a sink in order, so a picked file is streamed rather than held whole). A medium is
-    read, encoded and written in slices of `MEDIA_CHUNK_BYTES` (768 KiB), so not even the music
+    read, encoded and written in slices of `MEDIA_CHUNK_BYTES` (768 KiB), so not even a song
     is ever held whole as a string. The cancel is checked before each picture, each slice and
     closing the page.
   - `page-contract.ts`: the block ids, keys, copy keys and states the page's script shares.

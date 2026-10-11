@@ -89,7 +89,7 @@ export function createBrowserPlayer(
   const playback = {
     clock: performanceClock,
     frames: animationFrames,
-    ...(slideshow.music ? { music: new AudioElementMusic(slideshow.music.src, musicOutput) } : {}),
+    openMusic: (src: string) => new AudioElementMusic(src, musicOutput),
   };
   player =
     drawing.kind === "webgl"

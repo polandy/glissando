@@ -31,7 +31,7 @@ const cases: readonly {
     name: "with music whose pictures last their own seconds each new picture adds them too",
     show: slideshow({
       pictures: pictures(4, "old"),
-      music: MUSIC,
+      songs: [MUSIC],
       secondsPerPicture: 5,
       pictureLength: OWN_SECONDS_PICTURE_LENGTH,
     }),
@@ -46,7 +46,7 @@ const cases: readonly {
   },
   {
     name: "with music the automatic pictures keep sharing it, each a little shorter",
-    show: slideshow({ pictures: pictures(4, "old"), music: MUSIC }),
+    show: slideshow({ pictures: pictures(4, "old"), songs: [MUSIC] }),
     added: 2,
     expected: {
       pictures: { before: 4, after: 6 },
@@ -60,7 +60,7 @@ const cases: readonly {
     name: "a picture's own duration stays out of the share",
     show: slideshow({
       pictures: [{ ...picture("own"), durationMs: 20_000 }, ...pictures(2, "old")],
-      music: MUSIC,
+      songs: [MUSIC],
     }),
     added: 2,
     expected: {
@@ -73,7 +73,7 @@ const cases: readonly {
   },
   {
     name: "below the 2 s floor the slideshow outlasts the music, which is too short",
-    show: slideshow({ pictures: pictures(20, "old"), music: { ...MUSIC, durationMs: 50_000 } }),
+    show: slideshow({ pictures: pictures(20, "old"), songs: [{ ...MUSIC, durationMs: 50_000 }] }),
     added: 10,
     expected: {
       pictures: { before: 20, after: 30 },
@@ -85,7 +85,7 @@ const cases: readonly {
   },
   {
     name: "with every old picture timed by hand there is no share to compare",
-    show: slideshow({ pictures: [{ ...picture("own"), durationMs: 10_000 }], music: MUSIC }),
+    show: slideshow({ pictures: [{ ...picture("own"), durationMs: 10_000 }], songs: [MUSIC] }),
     added: 1,
     expected: {
       pictures: { before: 1, after: 2 },
@@ -97,7 +97,7 @@ const cases: readonly {
   },
   {
     name: "own durations alone outlasting the music, with no automatic picture, are not the floor",
-    show: slideshow({ pictures: [{ ...picture("own"), durationMs: 70_000 }], music: MUSIC }),
+    show: slideshow({ pictures: [{ ...picture("own"), durationMs: 70_000 }], songs: [MUSIC] }),
     added: 0,
     expected: {
       pictures: { before: 1, after: 1 },
@@ -109,7 +109,7 @@ const cases: readonly {
   },
   {
     name: "a share of exactly 2 s fits the music",
-    show: slideshow({ pictures: pictures(20, "old"), music: MUSIC }),
+    show: slideshow({ pictures: pictures(20, "old"), songs: [MUSIC] }),
     added: 10,
     expected: {
       pictures: { before: 20, after: 30 },

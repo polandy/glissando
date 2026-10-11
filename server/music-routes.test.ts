@@ -143,29 +143,50 @@ describe("body limits", () => {
 });
 
 describe("music no slideshow references", () => {
-  it("is deleted when a PUT drops the last reference, and kept while another slideshow names it", () => {
+  it("is kept when a PUT drops the last reference, so a PUT naming it again within the grace succeeds", () => {
     const library = libraryHarness();
-    const shared = library.uploadMusic();
-    const first = library.create(sampleDocument("First", shared));
-    const second = library.create(sampleDocument("Second", shared));
-    const headers = { "if-match": '"1"' };
+    const song = library.uploadMusic();
+    library.advanceClock(2 * HOUR_MS);
+    const id = library.create(sampleDocument("Undone", song));
 
-    library.send("PUT", `/api/library/slideshows/${first}`, { body: sampleDocument(), headers });
-    expect(library.send("GET", `${MUSIC}/${shared}`).status).toBe(200);
+    const dropped = library.send("PUT", `/api/library/slideshows/${id}`, {
+      body: sampleDocument("Undone"),
+      headers: { "if-match": '"1"' },
+    });
+    expect(dropped.status).toBe(200);
+    library.advanceClock(HOUR_MS);
+    library.uploadMusic();
+    expect(library.send("GET", `${MUSIC}/${song}`).status).toBe(200);
 
-    library.send("PUT", `/api/library/slideshows/${second}`, { body: sampleDocument(), headers });
-    expect(library.send("GET", `${MUSIC}/${shared}`).status).toBe(404);
+    const restored = library.send("PUT", `/api/library/slideshows/${id}`, {
+      body: sampleDocument("Undone", song),
+      headers: { "if-match": '"2"' },
+    });
+    expect(restored.status).toBe(200);
   });
 
-  it("is deleted with the last slideshow that named it", () => {
+  it("is deleted on an upload once the grace period after a PUT dropped it has passed", () => {
     const library = libraryHarness();
-    const kept = library.uploadMusic();
-    const dropped = library.uploadMusic();
-    library.create(sampleDocument("Keeps", kept));
-    const id = library.create(sampleDocument("Drops", dropped));
+    const song = library.uploadMusic();
+    const id = library.create(sampleDocument("Drops", song));
+    library.send("PUT", `/api/library/slideshows/${id}`, {
+      body: sampleDocument("Drops"),
+      headers: { "if-match": '"1"' },
+    });
+    library.advanceClock(HOUR_MS + 1);
+    const later = library.uploadMusic();
+    expect(library.send("GET", `${MUSIC}/${later}`).status).toBe(200);
+    expect(library.send("GET", `${MUSIC}/${song}`).status).toBe(404);
+  });
+
+  it("is kept within the grace period after the last slideshow naming it is deleted", () => {
+    const library = libraryHarness();
+    const song = library.uploadMusic();
+    library.advanceClock(2 * HOUR_MS);
+    const id = library.create(sampleDocument("Deleted", song));
     library.send("DELETE", `/api/library/slideshows/${id}`);
-    expect(library.send("GET", `${MUSIC}/${kept}`).status).toBe(200);
-    expect(library.send("GET", `${MUSIC}/${dropped}`).status).toBe(404);
+    library.uploadMusic();
+    expect(library.send("GET", `${MUSIC}/${song}`).status).toBe(200);
   });
 
   it("is deleted on an upload once it is older than the grace period, never before", () => {

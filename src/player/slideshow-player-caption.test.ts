@@ -18,7 +18,7 @@ function slide(src: string, caption?: string): Slide {
 }
 
 const SLIDESHOW: Slideshow = {
-  formatVersion: 2,
+  formatVersion: 3,
   title: "July 2025",
   slides: [
     {

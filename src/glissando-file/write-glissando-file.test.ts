@@ -32,6 +32,7 @@ async function storeWithOtherShow(): Promise<MemoryLibraryStore> {
     pictures: [
       { id: "kept", capturedAt: "2025-01-01T00:00:00Z", width: 1, height: 1, fileName: "k" },
     ],
+    songs: [],
     secondsPerPicture: 5,
   });
   return store;
@@ -60,9 +61,9 @@ describe("writeGlissandoFile", () => {
     const [first] = saved.pictures;
     expect(first && (await (await store.pictureBlob(first.id)).text())).toBe("display two");
     expect(first && (await store.thumbnailBlob(first.id)).type).toBe("image/jpeg");
-    const music = saved.music;
-    expect(music && (await (await store.musicBlob(music.id)).text())).toBe("music bytes");
-    expect(music?.fileName).toBe("Walzer.m4a");
+    const [song] = saved.songs;
+    expect(song && (await (await store.musicBlob(song.id)).text())).toBe("music bytes");
+    expect(song?.fileName).toBe("Walzer.m4a");
   });
 
   it("keeps the music's excerpt and own fades, and leaves the other fade automatic", async () => {
@@ -72,9 +73,10 @@ describe("writeGlissandoFile", () => {
       signal: new AbortController().signal,
     });
 
-    expect(created.music?.trim).toEqual({ startMs: 12_000, endMs: 200_000 });
-    expect(created.music?.fadeOutMs).toBe(5000);
-    expect(created.music).not.toHaveProperty("fadeInMs");
+    const [song] = created.songs;
+    expect(song?.trim).toEqual({ startMs: 12_000, endMs: 200_000 });
+    expect(song?.fadeOutMs).toBe(5000);
+    expect(song).not.toHaveProperty("fadeInMs");
   });
 
   it("keeps each picture's own motion and leaves the automatic ones automatic", async () => {
@@ -161,7 +163,7 @@ describe("writeGlissandoFile", () => {
     expect(steps).toEqual([
       { kind: "picture", number: 1, count: 2, fraction: 0 },
       { kind: "picture", number: 2, count: 2, fraction: 0.4 },
-      { kind: "music", fraction: 0.8 },
+      { kind: "music", number: 1, count: 1, fraction: 0.8 },
     ]);
   });
 

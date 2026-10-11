@@ -1,5 +1,5 @@
 import { slideDurationsMs } from "../../compose";
-import { filledMusicMs } from "../../compose/music-excerpt";
+import { filledMusicMs } from "../../compose/playlist";
 import type { AddedPlacement } from "../../library/added-placement";
 import { addPictures } from "../../library/slideshow-edits";
 import {

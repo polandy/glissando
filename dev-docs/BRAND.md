@@ -72,6 +72,7 @@ mint, lemon and coral are status only. Tokens in `src/styles/tokens.css`:
 | `--gl-coral`                    | Errors, destructive buttons           | `#F2786B`             | same                  |
 | `--gl-coral-hover` / `-ink`     | Destructive button hover / its text   | `#FF8F84` / `#2A1A14` | same                  |
 | `--gl-danger-text`              | A destructive menu item's label       | `#C4473A`             | `--gl-coral`          |
+| `--gl-song-1` … `-6`, `-ink`    | A playlist's songs in turn; text on   | Sorbet + lilac, blue  | same                  |
 | `--gl-logo-*`                   | Logo cards and outline                | Sorbet                | outline `#171223`     |
 | `--gl-photo-*`, `--gl-player-*` | Marks over pictures; the black player | white on black alphas | same                  |
 

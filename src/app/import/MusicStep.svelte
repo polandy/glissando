@@ -7,19 +7,20 @@
   import { getTranslator } from "../i18n/context";
   import Icon from "../components/Icon.svelte";
   import { browserObjectUrls, ObjectUrls } from "../media/object-urls";
+  import type { PlaylistSongView } from "../music-editor/playlist-view";
+  import SongList from "../music-editor/SongList.svelte";
   import DropZone from "./DropZone.svelte";
   import ImportFrame from "./ImportFrame.svelte";
-  import { chosenMusic, type ImportSession } from "./import-session";
+  import { chosenSongs, type ImportSession } from "./import-session";
   import {
     convertibleSourceLabel,
+    importPlaylist,
     importSlideDurationsMs,
     importTiming,
     musicFormatLabel,
   } from "./import-view";
-  import MusicConversion from "./MusicConversion.svelte";
   import MusicFit from "./MusicFit.svelte";
-  import MusicUnusable from "./MusicUnusable.svelte";
-  import TrackHead from "./TrackHead.svelte";
+  import type { PendingSong } from "./music-pick";
 
   let {
     session,
@@ -55,35 +56,60 @@
     session.pictures.subscribe((next) => (pictureIds = next.pictures.map((picture) => picture.id))),
   );
   $effect(() => thumbnails.subscribe((next) => (urls = next)));
-  const chosen = $derived(chosenMusic(choices));
-  $effect(() => thumbnails.sync(chosen ? pictureIds : []));
+  const chosen = $derived(chosenSongs(choices));
+  const pending = $derived(
+    choices.songs.filter((song): song is PendingSong => song.kind !== "chosen"),
+  );
+  const reading = $derived(
+    pending.some((song) => song.kind === "reading" || song.kind === "converting"),
+  );
+  $effect(() => thumbnails.sync(chosen.length > 0 ? pictureIds : []));
 
   const pictureCount = $derived(pictureIds.length);
   const ownSeconds = $derived(choices.pictureLength !== undefined);
+  const musicMs = $derived(importPlaylist(chosen, 0).playlistMs);
   const music = $derived(
-    chosen === null ? undefined : { durationMs: chosen.durationMs, filled: !ownSeconds },
+    chosen.length === 0 ? undefined : { durationMs: musicMs, filled: !ownSeconds },
   );
   const timing = $derived(importTiming(pictureCount, music, choices.secondsPerPicture));
   // Each picture's segment, by the rule the slideshow is composed with.
   const segmentsMs = $derived(
     importSlideDurationsMs(pictureCount, music, choices.secondsPerPicture),
   );
-  function choose(files: readonly File[]): void {
-    const file = files[0];
-    if (file === undefined) {
-      return;
-    }
-    session.chooseMusic(file).catch(onError);
+  const playlist = $derived(importPlaylist(chosen, timing.totalSeconds * MILLISECONDS_PER_SECOND));
+
+  function add(files: readonly File[]): void {
+    if (files.length > 0) session.addSongs(files).catch(onError);
   }
 
   function picked(event: Event & { currentTarget: HTMLInputElement }): void {
-    choose([...(event.currentTarget.files ?? [])]);
+    add([...(event.currentTarget.files ?? [])]);
     // Cleared so that picking the same file again still reports a change.
     event.currentTarget.value = "";
   }
+
+  /** A song's view carries its key as its id. */
+  const keyOf = (song: PlaylistSongView): number => Number(song.id);
 </script>
 
-<input bind:this={pickMusic} type="file" accept={MUSIC_TYPES} hidden onchange={picked} />
+<input bind:this={pickMusic} type="file" accept={MUSIC_TYPES} multiple hidden onchange={picked} />
+
+{#snippet songDetail(song: PlaylistSongView)}
+  {@const picked = chosen.find((candidate) => candidate.key === keyOf(song))}
+  {#if picked !== undefined}
+    <small class="mono">
+      {t("import.trackMeta", {
+        duration: formatDuration(picked.durationMs / MILLISECONDS_PER_SECOND),
+        format: musicFormatLabel(picked.file.name, picked.file.type),
+      })}
+    </small>
+    {#if picked.convertedFrom !== null}
+      <small>
+        {t("import.convertedFrom", { format: convertibleSourceLabel(picked.convertedFrom) })}
+      </small>
+    {/if}
+  {/if}
+{/snippet}
 
 <ImportFrame step="music" {onBack}>
   <div>
@@ -93,44 +119,45 @@
     </p>
   </div>
 
-  {#if chosen}
-    {@const file = chosen.file}
+  {#if choices.songs.length > 0}
+    <SongList
+      songs={playlist.songs}
+      {pending}
+      detail={songDetail}
+      onMove={(songId, toIndex) => session.moveSong(Number(songId), toIndex)}
+      onRemove={(songId) => session.removeSong(Number(songId))}
+      onDismiss={(key) => session.removeSong(key)}
+    />
+    <button class="add" type="button" onclick={() => pickMusic.click()}>
+      <Icon name="plus" />{t("import.addAnotherSong")}
+    </button>
+  {:else}
+    <DropZone icon="music" onFiles={add} {onError}>
+      <button class="btn primary" type="button" onclick={() => pickMusic.click()}>
+        {t("import.pickMusic")}
+      </button>
+      <span class="formats">{t("import.musicFormats")}</span>
+    </DropZone>
+  {/if}
+
+  {#if timing.music !== null}
     <div class="panel">
-      <TrackHead
-        name={chosen.pickedName}
-        meta={t("import.trackMeta", {
-          duration: formatDuration(chosen.durationMs / MILLISECONDS_PER_SECOND),
-          format: musicFormatLabel(file.name, file.type),
-        })}
-        note={chosen.convertedFrom === null
-          ? undefined
-          : t("import.convertedFrom", { format: convertibleSourceLabel(chosen.convertedFrom) })}
-        closeLabel={t("import.removeMusic")}
-        onClose={() => session.removeMusic()}
-      />
       <PictureLengthSection
         {ownSeconds}
         secondsPerPicture={choices.secondsPerPicture}
         onPictureLength={(length) => session.setPictureLength(length)}
         onSecondsPerPicture={(seconds) => session.setSecondsPerPicture(seconds)}
       />
-      {#if timing.music !== null}
-        <MusicFit {pictureIds} {urls} {segmentsMs} {timing} music={timing.music} {ownSeconds} />
-      {/if}
+      <MusicFit
+        {pictureIds}
+        {urls}
+        {segmentsMs}
+        {timing}
+        music={timing.music}
+        songs={playlist.songs}
+      />
     </div>
-  {:else if choices.music?.kind === "converting"}
-    <MusicConversion music={choices.music} onCancel={() => session.removeMusic()} />
   {:else}
-    {#if choices.music?.kind === "unusable"}
-      <MusicUnusable music={choices.music} onPickOther={() => pickMusic.click()} />
-    {:else}
-      <DropZone icon="music" onFiles={choose} {onError}>
-        <button class="btn primary" type="button" onclick={() => pickMusic.click()}>
-          {t("import.pickMusic")}
-        </button>
-        <span class="formats">{t("import.musicFormats")}</span>
-      </DropZone>
-    {/if}
     <div class="panel track">
       <div class="text">
         <b>{t("import.secondsTitle")}</b>
@@ -164,17 +191,35 @@
     <button class="btn" type="button" onclick={onBack}>
       <Icon name="back" />{t("import.backToPictures")}
     </button>
-    {#if choices.music?.kind === "converting"}
+    {#if reading}
       <button class="btn primary" type="button" disabled>{t("import.convertingButton")}</button>
     {:else}
       <button class="btn primary" type="button" onclick={onCreate}>
-        {chosen ? t("import.create") : t("import.createWithoutMusic")}
+        {chosen.length > 0 ? t("import.create") : t("import.createWithoutMusic")}
       </button>
     {/if}
   {/snippet}
 </ImportFrame>
 
 <style>
+  .add {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px;
+    border: 1px dashed var(--gl-line);
+    border-radius: var(--gl-radius);
+    background: transparent;
+    color: var(--gl-ink);
+    font: inherit;
+    font-size: var(--gl-size-label);
+    font-weight: var(--gl-weight-medium);
+    cursor: pointer;
+  }
+  .add:hover {
+    background: var(--gl-hover);
+  }
   .formats {
     font-size: var(--gl-size-small);
     color: var(--gl-faint);

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { MusicBeats } from "../../beats";
 import type { StoredMusic, StoredPicture, StoredSlideshow } from "../../library/stored-slideshow";
 import type { BeatsStatus } from "../beats/music-beats-known";
-import { musicEditorView } from "./music-editor-view";
+import { firstSongView } from "./testing/first-song-view";
 
 const TRACK_MS = 30_000;
 /** A beat every 400 ms (150 BPM) from 100 ms on, across the track. */
@@ -31,20 +31,22 @@ function slideshow(
     createdAt: "2025-07-02T00:00:00Z",
     pictures,
     secondsPerPicture: 5,
-    music: {
-      id: "m1",
-      fileName: "drums.wav",
-      durationMs: TRACK_MS,
-      mimeType: "audio/wav",
-      trim: { startMs: 4000, endMs: 24_000 },
-      ...music,
-    },
+    songs: [
+      {
+        id: "m1",
+        fileName: "drums.wav",
+        durationMs: TRACK_MS,
+        mimeType: "audio/wav",
+        trim: { startMs: 4000, endMs: 24_000 },
+        ...music,
+      },
+    ],
   };
 }
 
 describe("musicEditorView, the picture changes", () => {
   it("puts the automatic changes on the nearest beats, all on the beat", () => {
-    const view = musicEditorView(slideshow({}), FOUND);
+    const view = firstSongView(slideshow({}), FOUND);
 
     expect(view.slideChanges).toEqual([
       { atMs: 8900, offBeat: false },
@@ -54,7 +56,7 @@ describe("musicEditorView, the picture changes", () => {
   });
 
   it("ticks every beat of the track, every fourth taller, while on the beat", () => {
-    const view = musicEditorView(slideshow({}), FOUND);
+    const view = firstSongView(slideshow({}), FOUND);
 
     expect(view.beatTicks).toHaveLength(75);
     expect(view.beatTicks.slice(0, 5)).toEqual([
@@ -67,7 +69,7 @@ describe("musicEditorView, the picture changes", () => {
   });
 
   it("offers the choice on the beat with the rounded tempo", () => {
-    expect(musicEditorView(slideshow({}), FOUND).pictureChanges).toEqual({
+    expect(firstSongView(slideshow({}), FOUND).pictureChanges).toEqual({
       kind: "beats",
       beatsPerMinute: 150,
       onTheBeat: true,
@@ -76,7 +78,7 @@ describe("musicEditorView, the picture changes", () => {
   });
 
   it("with even picture changes, shares the excerpt and ticks no beats", () => {
-    const view = musicEditorView(slideshow({ pictureChanges: "even" }), FOUND);
+    const view = firstSongView(slideshow({ pictureChanges: "even" }), FOUND);
 
     expect(view.slideChanges.map((change) => change.atMs)).toEqual([9000, 14_000, 19_000]);
     expect(view.slideChanges.every((change) => !change.offBeat)).toBe(true);
@@ -91,7 +93,7 @@ describe("musicEditorView, the picture changes", () => {
   });
 
   it("notes the shares as varying while the pictures change on the beat", () => {
-    expect(musicEditorView(slideshow({}), FOUND).note).toEqual({
+    expect(firstSongView(slideshow({}), FOUND).note).toEqual({
       kind: "shared",
       automaticCount: 4,
       shareMs: 5000,
@@ -100,7 +102,7 @@ describe("musicEditorView, the picture changes", () => {
   });
 
   it("puts the change before an own duration on the beat, marks only the one after it off the beat, and names that picture", () => {
-    const view = musicEditorView(slideshow({}, [undefined, 3000, undefined, undefined]), FOUND);
+    const view = firstSongView(slideshow({}, [undefined, 3000, undefined, undefined]), FOUND);
 
     expect(view.slideChanges).toEqual([
       { atMs: 9700, offBeat: false },
@@ -115,7 +117,7 @@ describe("musicEditorView, the picture changes", () => {
     ["undecodable", { kind: "undecodable" }, { kind: "undecodable" }],
     ["no clear beat", { kind: "known", beats: { kind: "none" } }, { kind: "none" }],
   ] as const)("while %s, shares the excerpt evenly without ticks", (_, status, expected) => {
-    const view = musicEditorView(slideshow({}), status);
+    const view = firstSongView(slideshow({}), status);
 
     expect(view.pictureChanges).toEqual(expected);
     expect(view.slideChanges.map((change) => change.atMs)).toEqual([9000, 14_000, 19_000]);

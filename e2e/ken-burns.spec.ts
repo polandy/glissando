@@ -44,6 +44,7 @@ const AGAINST_THE_EDGE: StoredSlideshow = {
     },
   ],
   transition: "crossfade",
+  songs: [],
   secondsPerPicture: SECONDS_PER_PICTURE,
 };
 

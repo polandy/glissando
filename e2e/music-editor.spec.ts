@@ -48,7 +48,9 @@ test("E2E-023 the music gets its own excerpt and fade-in, stored, summed up in t
   await endHandle.press("Shift+ArrowLeft");
   await expect(endHandle).toHaveAttribute("aria-valuenow", "17000");
   await expect(endValue).toHaveText("0:17,0");
-  await expect(page.getByText("0:20 · gekürzt auf 0:16")).toBeVisible();
+  await expect(
+    page.getByRole("list", { name: "Songs" }).getByText("0:20 · gekürzt auf 0:16"),
+  ).toBeVisible();
 
   await longFadeIn.click();
   await expect(longFadeIn).toHaveAttribute("aria-checked", "true");

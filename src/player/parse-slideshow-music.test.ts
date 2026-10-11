@@ -11,15 +11,24 @@ const SLIDE = {
   },
 };
 
-const MUSIC = {
+const TRACK = {
   src: "music/summer.mp3",
   startMs: 12_000,
   endMs: 150_000,
   fadeInMs: 2000,
   fadeOutMs: 5000,
 };
+const MUSIC = { ...TRACK, atMs: 0 };
+const NEXT = {
+  src: "music/autumn.mp3",
+  atMs: 135_000,
+  startMs: 0,
+  endMs: 60_000,
+  fadeInMs: 3000,
+  fadeOutMs: 0,
+};
 
-function withMusic(music: unknown, formatVersion = 2): unknown {
+function withMusic(music: unknown, formatVersion = 3): unknown {
   return { formatVersion, title: "July 2025", music, slides: [SLIDE] };
 }
 
@@ -36,44 +45,61 @@ function parseError(input: unknown): SlideshowFormatError {
 }
 
 describe("parseSlideshow music", () => {
-  it("reads version 2's excerpt and fades unchanged", () => {
-    expect(parseSlideshow(withMusic(MUSIC)).music).toEqual(MUSIC);
+  it("reads version 3's tracks, each with its place, excerpt and fades, unchanged", () => {
+    expect(parseSlideshow(withMusic([MUSIC, NEXT])).music).toEqual([MUSIC, NEXT]);
   });
 
-  it("reads a version 1 slideshow's music as the whole track without fades", () => {
-    const parsed = parseSlideshow(withMusic({ src: "music/summer.mp3" }, 1));
+  it.each([1, 2])("refuses a version %s slideshow, naming the version to set", (formatVersion) => {
+    const error = parseError(withMusic(TRACK, formatVersion));
 
-    expect(parsed.formatVersion).toBe(2);
-    expect(parsed.music).toEqual({
-      src: "music/summer.mp3",
-      startMs: 0,
-      fadeInMs: 0,
-      fadeOutMs: 0,
-    });
-  });
-
-  it("refuses version 2 fields in a version 1 slideshow", () => {
-    expect(parseError(withMusic(MUSIC, 1)).path).toBe("music.startMs");
+    expect(error.path).toBe("formatVersion");
+    expect(error.message).toContain("expected 3");
   });
 
   it.each([
-    ["a missing start", { ...MUSIC, startMs: undefined }, "music.startMs", "a whole number ≥ 0"],
-    ["a negative start", { ...MUSIC, startMs: -1 }, "music.startMs", "a whole number ≥ 0"],
+    ["a single track not in a list", MUSIC, "music", "an array with at least one track"],
+    ["an empty list", [], "music", "an array with at least one track"],
+    [
+      "a missing place",
+      [MUSIC, { ...NEXT, atMs: undefined }],
+      "music[1].atMs",
+      "a whole number ≥ 0",
+    ],
+    [
+      "a track starting before the one before it",
+      [
+        { ...NEXT, atMs: 1000 },
+        { ...MUSIC, atMs: 0 },
+      ],
+      "music[1].atMs",
+      "at least the previous track's atMs (1000)",
+    ],
+    ["an empty source", [MUSIC, { ...NEXT, src: "" }], "music[1].src", "a non-empty string"],
+  ])("rejects %s in version 3, naming the path", (_case, music, path, expected) => {
+    const error = parseError(withMusic(music));
+
+    expect(error.path).toBe(path);
+    expect(error.message).toContain(expected);
+  });
+
+  it.each([
+    ["a missing start", { ...MUSIC, startMs: undefined }, "music[0].startMs", "a whole number ≥ 0"],
+    ["a negative start", { ...MUSIC, startMs: -1 }, "music[0].startMs", "a whole number ≥ 0"],
     [
       "an end before the start",
       { ...MUSIC, endMs: 12_000 },
-      "music.endMs",
+      "music[0].endMs",
       "after startMs (12000)",
     ],
-    ["a fractional fade", { ...MUSIC, fadeInMs: 0.5 }, "music.fadeInMs", "a whole number ≥ 0"],
+    ["a fractional fade", { ...MUSIC, fadeInMs: 0.5 }, "music[0].fadeInMs", "a whole number ≥ 0"],
     [
       "fades outlasting the excerpt",
       { ...MUSIC, endMs: 18_000 },
-      "music.fadeOutMs",
+      "music[0].fadeOutMs",
       "fadeInMs + fadeOutMs at most endMs − startMs (6000)",
     ],
-  ])("rejects %s, naming the path and what to set", (_case, music, path, expected) => {
-    const error = parseError(withMusic(music));
+  ])("rejects a track with %s, naming the path and what to set", (_case, music, path, expected) => {
+    const error = parseError(withMusic([music]));
 
     expect(error.path).toBe(path);
     expect(error.message).toContain(expected);

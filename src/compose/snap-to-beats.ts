@@ -10,7 +10,7 @@ export function snapToBeats(
   durationsMs: readonly number[],
   /** Per slide: whether its duration is automatic, and so may change. */
   automatic: readonly boolean[],
-  /** In ms of the excerpt, ascending. */
+  /** In ms of the playlist, ascending. */
   beatsMs: readonly number[],
   minSlideMs: number,
   /** The last automatic slide may end on a beat: the pictures do not fill the music. */

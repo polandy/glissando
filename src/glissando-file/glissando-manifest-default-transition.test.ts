@@ -14,6 +14,7 @@ const crossfading: StoredSlideshow = {
   pictures: [
     { id: "p1", capturedAt: "2025-09-30T10:00:00Z", width: 40, height: 30, fileName: "a.jpg" },
   ],
+  songs: [],
   secondsPerPicture: 5,
 };
 const alternating: StoredSlideshow = { ...crossfading, transition: "alternate" };
@@ -48,14 +49,7 @@ describe("the slideshow's default transition in the .glissando file", () => {
     expect(readManifest(asText(manifest))).toEqual({ kind: "ok", manifest });
   });
 
-  it("reads a version 5 file, which knows no default transition, as the crossfade", () => {
-    const reading = readManifest(written(crossfading, {}, 5));
-
-    expect(reading.kind === "ok" && reading.manifest.slideshow.title).toBe("Herbst in Wien");
-    expect(reading.kind === "ok" && reading.manifest.slideshow).not.toHaveProperty("transition");
-  });
-
-  it("takes a default transition in a version 5 file for a damaged file", () => {
+  it("refuses a version 5 file, older than this app still reads (ADR-0023)", () => {
     expect(readManifest(written(alternating, {}, 5)).kind).toBe("damaged");
   });
 

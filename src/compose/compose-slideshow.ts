@@ -1,10 +1,8 @@
-import type { MusicBeats } from "../beats";
 import type { PictureFocus } from "../library/picture-focus";
 import type { StoredSlideshow } from "../library/stored-slideshow";
 import { SLIDESHOW_FORMAT_VERSION, type Slide, type Slideshow } from "../player/slideshow";
 import { beatTransitionDurationMs } from "./beat-transition";
-import { excerptBeatsMs } from "./excerpt-beats";
-import { filledMusicMs, resolveMusicTiming } from "./music-excerpt";
+import { filledMusicMs, playlistBeatsMs, resolvePlaylist, type SongBeats } from "./playlist";
 import { pictureKenBurns } from "./picture-ken-burns";
 import { pictureTransition, slideshowTransition } from "./picture-transition";
 import { slideDurationsMs } from "./slide-durations-ms";
@@ -19,17 +17,17 @@ export interface SlideshowSources {
  * Composes the playable slideshow JSON from a stored slideshow, applying the automatic choices
  * wherever the user made none of their own. An automatic motion aims at the picture's `focus`,
  * by picture id; a picture absent from it was not looked at yet. The pictures change on the
- * music's `beats` found so far, `NO_BEATS` until there is a result (ADR-0021).
+ * songs' `beats` found so far, by music id; a song absent from it gives none (ADR-0021, ADR-0023).
  */
 export function composeSlideshow(
   stored: StoredSlideshow,
   sources: SlideshowSources,
   focus: ReadonlyMap<string, PictureFocus>,
-  beats: MusicBeats,
+  beats: SongBeats,
 ): Slideshow {
   const slideCount = stored.pictures.length;
   const defaultTransition = slideshowTransition(stored);
-  const beatsMs = excerptBeatsMs(stored.music, beats);
+  const beatsMs = playlistBeatsMs(stored, beats);
   const durationsMs = slideDurationsMs(
     stored.pictures,
     filledMusicMs(stored),
@@ -65,17 +63,12 @@ export function composeSlideshow(
     return { ...slide, transitionToNext: { ...transitionToNext, durationMs: onBeatMs } };
   });
 
-  if (stored.music === undefined) {
-    return { formatVersion: SLIDESHOW_FORMAT_VERSION, title: stored.title, slides };
-  }
   const slideshowMs = durationsMs.reduce((sum, durationMs) => sum + durationMs, 0);
-  return {
-    formatVersion: SLIDESHOW_FORMAT_VERSION,
-    title: stored.title,
-    music: {
-      src: sources.music(stored.music.id),
-      ...resolveMusicTiming(stored.music, slideshowMs),
-    },
-    slides,
-  };
+  const music = resolvePlaylist(stored, slideshowMs).map(({ song, ...timing }) => ({
+    src: sources.music(song.id),
+    ...timing,
+  }));
+  return music.length === 0
+    ? { formatVersion: SLIDESHOW_FORMAT_VERSION, title: stored.title, slides }
+    : { formatVersion: SLIDESHOW_FORMAT_VERSION, title: stored.title, music, slides };
 }

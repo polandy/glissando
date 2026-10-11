@@ -9,7 +9,9 @@ export function createMemoryRepository(): LibraryRepository {
   let musicBeats = new Map<string, MusicBeats>();
 
   const isMusicReferenced = (id: string): boolean =>
-    [...slideshows.values()].some(({ document }) => document.slideshow.music?.musicId === id);
+    [...slideshows.values()].some(({ document }) =>
+      document.slideshow.songs.some((song) => song.musicId === id),
+    );
 
   return {
     inTransaction(work) {
@@ -54,6 +56,12 @@ export function createMemoryRepository(): LibraryRepository {
     findMusicBeats: (id) => musicBeats.get(id),
     putMusicBeats(id, beats) {
       musicBeats.set(id, beats);
+    },
+    restartMusicGrace(id, time) {
+      const record = music.get(id);
+      if (record !== undefined) {
+        music.set(id, { ...record, uploadedAt: time });
+      }
     },
     isMusicReferenced,
     unreferencedMusicUploadedBefore: (time) =>

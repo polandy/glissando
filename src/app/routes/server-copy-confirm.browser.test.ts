@@ -21,7 +21,7 @@ const SHOW: StoredSlideshow = {
   createdAt: "2025-07-02T08:00:00Z",
   pictures: [picture("a", "x"), picture("IMG_9")],
   secondsPerPicture: 5,
-  music: { id: "m", fileName: "song.mp3", durationMs: 1000, mimeType: "audio/mpeg" },
+  songs: [{ id: "m", fileName: "song.mp3", durationMs: 1000, mimeType: "audio/mpeg" }],
 };
 
 let destroy = () => {};

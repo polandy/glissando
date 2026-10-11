@@ -64,9 +64,9 @@ export function describeMusicBeats(
         await store.putMusic(id, musicBlob(id));
         await store.putMusicBeats(id, ON_THE_BEAT);
       }
-      await store.saveSlideshow(slideshow({ music: music("own-music") }));
-      await store.saveSlideshow(slideshow({ id: "other", music: music("shared-music") }));
-      await store.saveSlideshow(slideshow({ id: "third", music: music("shared-music") }));
+      await store.saveSlideshow(slideshow({ songs: [music("own-music")] }));
+      await store.saveSlideshow(slideshow({ id: "other", songs: [music("shared-music")] }));
+      await store.saveSlideshow(slideshow({ id: "third", songs: [music("shared-music")] }));
 
       await store.deleteSlideshow("show-1");
       await store.deleteSlideshow("other");
@@ -81,7 +81,7 @@ export function describeMusicBeats(
         await store.putMusic(id, musicBlob(id));
         await store.putMusicBeats(id, NO_CLEAR_BEAT);
       }
-      await store.saveSlideshow(slideshow({ music: music("referenced-music") }));
+      await store.saveSlideshow(slideshow({ songs: [music("referenced-music")] }));
 
       await store.deleteUnreferencedMedia(CLEAN_UP_AT);
 

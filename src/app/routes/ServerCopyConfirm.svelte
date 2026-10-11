@@ -37,11 +37,12 @@
       sheet = keepCopySheet(translator, stored);
       return;
     }
-    const music = stored.music;
     const musicBytes =
-      music === undefined
+      stored.songs.length === 0
         ? Promise.resolve(null)
-        : store.musicBlob(music.id).then((blob) => blob.size);
+        : Promise.all(stored.songs.map(({ id }) => store.musicBlob(id))).then((blobs) =>
+            blobs.reduce((sum, blob) => sum + blob.size, 0),
+          );
     musicBytes.then((bytes) => (sheet = saveOnServerSheet(translator, stored, bytes)), onError);
   });
 

@@ -24,6 +24,7 @@ import {
   readPictureFields,
   readPictures,
   readSlideshowFields,
+  readSongs,
   slideshowKeys,
 } from "./slideshow-fields";
 
@@ -75,6 +76,8 @@ function readValidManifest(input: JsonObject): GlissandoManifest {
   }
   const path = "slideshow";
   const show = readObject(root["slideshow"], path, slideshowKeys(version));
+  const songs = readSongs(show, path, (song, songPath) => readMusic(song, songPath, version));
+  refuseRepeatedSongPaths(songs, path);
   return {
     format: GLISSANDO_FORMAT_ID,
     formatVersion: version,
@@ -83,11 +86,24 @@ function readValidManifest(input: JsonObject): GlissandoManifest {
       pictures: readPictures(show, path, (picture, picturePath) =>
         readPicture(picture, picturePath, version),
       ),
-      ...(show["music"] === undefined
-        ? {}
-        : { music: readMusic(show["music"], `${path}.music`, version) }),
+      songs,
     },
   };
+}
+
+/** Refuses two songs at the same path in the container, naming the second and its path. */
+function refuseRepeatedSongPaths(songs: readonly ManifestMusic[], path: string): void {
+  const seen = new Set<string>();
+  for (const [index, song] of songs.entries()) {
+    if (seen.has(song.file)) {
+      throw new DocumentFormatError(
+        `${path}.songs[${index}].file`,
+        "a path no other song uses",
+        song.file,
+      );
+    }
+    seen.add(song.file);
+  }
 }
 
 function readPicture(value: unknown, path: string, version: number): ManifestPicture {

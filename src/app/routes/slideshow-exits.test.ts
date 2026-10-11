@@ -17,6 +17,7 @@ const SHOW: StoredSlideshow = {
     height: 100,
     fileName: `${id}.jpg`,
   })),
+  songs: [],
   secondsPerPicture: 5,
 };
 
@@ -56,6 +57,7 @@ function editorOver(store: MemoryLibraryStore, toaster: Toaster): SlideshowEdito
     durationAutomaticText: () => "Dauer wieder automatisch",
     transitionAutomaticText: () => "Übergang wieder automatisch",
     slideshowTransitionResetText: () => "Übergänge wieder auf Überblenden",
+    songRemovedText: () => "Song entfernt",
     automaticTitle: () => "Juli 2025",
     focusOf: () => undefined,
   });

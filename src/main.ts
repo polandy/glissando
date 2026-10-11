@@ -23,6 +23,7 @@ import { createDownloader } from "./app/glissando-file/download-file";
 import { browserLaunchQueue } from "./app/glissando-file/launched-files";
 import { browserObjectUrls } from "./app/media/object-urls";
 import { browserMusicEditorAudio } from "./app/music-editor/music-editor-audio";
+import { deviceSongStorage, serverSongStorage } from "./app/music-editor/song-intake";
 import { freeStorageBytes } from "./library/free-storage";
 import { decodePicture } from "./import/downscale";
 import { captureDate } from "./import/exif-capture-date";
@@ -219,14 +220,23 @@ const services = {
       store,
       probeMusic,
       convertMusic,
-      createOnServer: (slideshow, musicAudio) =>
-        serverLibrary.createSlideshow(slideshow, musicAudio),
+      createOnServer: (slideshow, songsAudio) =>
+        serverLibrary.createSlideshow(slideshow, songsAudio),
     }),
   newAddPicturesSession: (slideshow: StoredSlideshow, home: SlideshowHome) =>
     new AddPicturesSession(slideshow, home, {
       ...intakePorts,
       store: home === "device" ? store : serverAddingStore(serverLibrary.store),
     }),
+  songIntake: (home: SlideshowHome) => ({
+    probeMusic,
+    convertMusic,
+    log: logError,
+    storage:
+      home === "device"
+        ? deviceSongStorage({ store, newId, now })
+        : serverSongStorage(serverLibrary),
+  }),
   newId,
   now,
   deleteAbandonedMedia,

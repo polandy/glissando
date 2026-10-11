@@ -13,17 +13,17 @@ describe("SlideshowEditor, the music's excerpt and fades", () => {
   it("stores the excerpt at once", async () => {
     const { editor, storedMusic } = await setUp(["a"], MUSIC);
 
-    editor.setMusicTrim({ startMs: 12_000, endMs: 150_000 });
+    editor.setMusicTrim("m1", { startMs: 12_000, endMs: 150_000 });
 
-    expect(editor.slideshow.music?.trim).toEqual({ startMs: 12_000, endMs: 150_000 });
+    expect(editor.slideshow.songs[0]?.trim).toEqual({ startMs: 12_000, endMs: 150_000 });
     expect((await storedMusic())?.trim).toEqual({ startMs: 12_000, endMs: 150_000 });
   });
 
   it("back to the whole track drops the excerpt, without an undo toast", async () => {
     const { editor, toaster, storedMusic } = await setUp(["a"], MUSIC);
-    editor.setMusicTrim({ startMs: 12_000, endMs: 150_000 });
+    editor.setMusicTrim("m1", { startMs: 12_000, endMs: 150_000 });
 
-    editor.setMusicTrim(undefined);
+    editor.setMusicTrim("m1", undefined);
 
     expect(await storedMusic()).toEqual(MUSIC);
     expect(toaster.current).toBeNull();
@@ -32,12 +32,12 @@ describe("SlideshowEditor, the music's excerpt and fades", () => {
   it("stores own fades, and back to automatic drops them", async () => {
     const { editor, storedMusic } = await setUp(["a"], MUSIC);
 
-    editor.setMusicFadeIn(5000);
-    editor.setMusicFadeOut(0);
+    editor.setMusicFadeIn("m1", 5000);
+    editor.setMusicFadeOut("m1", 0);
     expect(await storedMusic()).toEqual({ ...MUSIC, fadeInMs: 5000, fadeOutMs: 0 });
 
-    editor.setMusicFadeIn(undefined);
-    editor.setMusicFadeOut(undefined);
+    editor.setMusicFadeIn("m1", undefined);
+    editor.setMusicFadeOut("m1", undefined);
     expect(await storedMusic()).toEqual(MUSIC);
   });
 });
@@ -46,11 +46,11 @@ describe("SlideshowEditor, the music's picture changes", () => {
   it("stores even picture changes at once, and back on the beat drops them", async () => {
     const { editor, storedMusic } = await setUp(["a"], MUSIC);
 
-    editor.setMusicPictureChanges("even");
-    expect(editor.slideshow.music?.pictureChanges).toBe("even");
+    editor.setMusicPictureChanges("m1", "even");
+    expect(editor.slideshow.songs[0]?.pictureChanges).toBe("even");
     expect(await storedMusic()).toEqual({ ...MUSIC, pictureChanges: "even" });
 
-    editor.setMusicPictureChanges(undefined);
+    editor.setMusicPictureChanges("m1", undefined);
     expect(await storedMusic()).toEqual(MUSIC);
   });
 });

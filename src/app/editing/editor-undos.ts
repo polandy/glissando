@@ -3,8 +3,11 @@ import type { StoredSlideshow } from "../../library/stored-slideshow";
 import { AddUndo, type AddUndoPorts } from "./add-undo";
 import { RemovalUndo, type RemovalUndoPorts } from "./removal-undo";
 import { ResetUndo } from "./reset-undo";
+import { SongRemovalUndo, type SongRemovalUndoPorts } from "./song-removal-undo";
 
-export type EditorUndosPorts = Omit<RemovalUndoPorts, "track"> & Omit<AddUndoPorts, "takeOut">;
+export type EditorUndosPorts = Omit<RemovalUndoPorts, "track"> &
+  Omit<AddUndoPorts, "takeOut"> &
+  Pick<SongRemovalUndoPorts, "songRemovedText">;
 
 /** The slideshow the undos act on, as the editor holds it. */
 interface EditedSlideshow {
@@ -15,17 +18,19 @@ interface EditedSlideshow {
 }
 
 /**
- * The editor's undo toasts: of removals, of resets and of an adding. Taking added pictures out
+ * The editor's undo toasts: of removals, of a song's removal, of resets and of an adding. Taking added pictures out
  * ends a pending batch of removals, as any other edit does.
  */
 export class EditorUndos {
   readonly removal: RemovalUndo;
   readonly reset: ResetUndo;
   readonly add: AddUndo;
+  readonly songRemoval: SongRemovalUndo;
 
   constructor(ports: EditorUndosPorts, edited: EditedSlideshow) {
     this.reset = new ResetUndo(ports.toaster, ports.undoLabel);
     this.removal = new RemovalUndo({ ...ports, track: (work) => edited.track(work) });
+    this.songRemoval = new SongRemovalUndo({ ...ports, track: (work) => edited.track(work) });
     this.add = new AddUndo({
       ...ports,
       takeOut: (pictureIds) => {
@@ -41,5 +46,6 @@ export class EditorUndos {
     this.removal.end();
     this.reset.end();
     this.add.end();
+    this.songRemoval.end();
   }
 }

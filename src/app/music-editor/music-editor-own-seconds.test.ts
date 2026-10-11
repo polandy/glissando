@@ -4,7 +4,7 @@ import { OWN_SECONDS_PICTURE_LENGTH } from "../../library/picture-length";
 import { setPictureLength } from "../../library/slideshow-edits-timing";
 import type { StoredPicture, StoredSlideshow } from "../../library/stored-slideshow";
 import type { BeatsStatus } from "../beats/music-beats-known";
-import { musicEditorView } from "./music-editor-view";
+import { firstSongView } from "./testing/first-song-view";
 
 /** A beat every 400 ms (150 BPM) from 100 ms on, across a minute. */
 const STEADY: MusicBeats = {
@@ -30,19 +30,19 @@ function slideshow(trackMs: number, own: Partial<StoredSlideshow> = {}): StoredS
     pictures,
     secondsPerPicture: 5,
     pictureLength: OWN_SECONDS_PICTURE_LENGTH,
-    music: { id: "m1", fileName: "generated.wav", durationMs: trackMs, mimeType: "audio/wav" },
+    songs: [{ id: "m1", fileName: "generated.wav", durationMs: trackMs, mimeType: "audio/wav" }],
     ...own,
   };
 }
 
 describe("musicEditorView, pictures lasting their own seconds with music", () => {
   it("offers the picture length with its seconds, and filling the music as the other choice", () => {
-    expect(musicEditorView(slideshow(60_000), FOUND).pictureLength).toEqual({
+    expect(firstSongView(slideshow(60_000), FOUND).pictureLength).toEqual({
       ownSeconds: true,
       secondsPerPicture: 5,
     });
     const filling = setPictureLength(slideshow(60_000), undefined);
-    expect(musicEditorView(filling, FOUND).pictureLength).toEqual({
+    expect(firstSongView(filling, FOUND).pictureLength).toEqual({
       ownSeconds: false,
       secondsPerPicture: 5,
     });
@@ -51,7 +51,7 @@ describe("musicEditorView, pictures lasting their own seconds with music", () =>
   it("ends the slideshow on the beat nearest its pictures' length, fading a longer song out there", () => {
     // The changes would fall at 5000, 10 000 and 15 000 and the end at 20 000; the nearest beats
     // are 4900, 10 100, 14 900 and 20 100.
-    const view = musicEditorView(slideshow(60_000), FOUND);
+    const view = firstSongView(slideshow(60_000), FOUND);
 
     expect(view.slideChanges.map((change) => change.atMs)).toEqual([4900, 10_100, 14_900]);
     expect(view.slideshowMs).toBe(20_100);
@@ -66,18 +66,18 @@ describe("musicEditorView, pictures lasting their own seconds with music", () =>
   });
 
   it("names the seconds in the picture changes' texts, which no longer speak of sharing", () => {
-    expect(musicEditorView(slideshow(60_000), FOUND).pictureChanges).toMatchObject({
+    expect(firstSongView(slideshow(60_000), FOUND).pictureChanges).toMatchObject({
       kind: "beats",
       secondsPerPicture: 5,
     });
-    expect(musicEditorView(slideshow(60_000), LISTENING).pictureChanges).toEqual({
+    expect(firstSongView(slideshow(60_000), LISTENING).pictureChanges).toEqual({
       kind: "listening",
       secondsPerPicture: 5,
     });
   });
 
   it("warns that a shorter song leaves the last pictures in silence, because of their seconds", () => {
-    const view = musicEditorView(slideshow(12_000), LISTENING);
+    const view = firstSongView(slideshow(12_000), LISTENING);
 
     expect(view.note).toEqual({
       kind: "outlasts",

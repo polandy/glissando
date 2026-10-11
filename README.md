@@ -5,7 +5,7 @@
   </picture>
 </p>
 
-Glissando turns your photos and a piece of music into a beautiful slideshow — gliding Ken Burns
+Glissando turns your photos and a song or several into a beautiful slideshow — gliding Ken Burns
 moves and smooth transitions, chosen for you. It is a web app you install like an app (PWA), made
 for offline use: your pictures stay on your device, and no server or internet connection is
 needed once it is installed.

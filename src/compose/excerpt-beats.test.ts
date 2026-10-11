@@ -26,8 +26,7 @@ describe("excerptBeatsMs", () => {
     expect(excerptBeatsMs(trimmed, BEATS)).toEqual([1000, 5000]);
   });
 
-  it("has no beats to snap to without music, without a clear beat, or for even picture changes", () => {
-    expect(excerptBeatsMs(undefined, BEATS)).toBeUndefined();
+  it("has no beats to snap to without a clear beat, or for even picture changes", () => {
     expect(excerptBeatsMs(MUSIC, NO_BEATS)).toBeUndefined();
     expect(excerptBeatsMs({ ...MUSIC, pictureChanges: "even" }, BEATS)).toBeUndefined();
   });

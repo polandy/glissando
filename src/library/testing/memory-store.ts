@@ -137,8 +137,8 @@ export class MemoryLibraryStore implements LibraryStore {
       const blobs = this.#pictures.get(picture.id);
       bytes += (blobs?.display.size ?? 0) + (blobs?.thumbnail.size ?? 0);
     }
-    if (slideshow.music !== undefined) {
-      bytes += this.#music.get(slideshow.music.id)?.size ?? 0;
+    for (const song of slideshow.songs) {
+      bytes += this.#music.get(song.id)?.size ?? 0;
     }
     return Promise.resolve(bytes);
   }

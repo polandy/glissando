@@ -11,15 +11,26 @@ are rejected.
 
 ```json
 {
-  "formatVersion": 2,
+  "formatVersion": 3,
   "title": "July 2025",
-  "music": {
-    "src": "music/summer.mp3",
-    "startMs": 12000,
-    "endMs": 150000,
-    "fadeInMs": 2000,
-    "fadeOutMs": 2000
-  },
+  "music": [
+    {
+      "src": "music/summer.mp3",
+      "atMs": 0,
+      "startMs": 12000,
+      "endMs": 150000,
+      "fadeInMs": 2000,
+      "fadeOutMs": 3000
+    },
+    {
+      "src": "music/autumn.mp3",
+      "atMs": 135000,
+      "startMs": 0,
+      "endMs": 90000,
+      "fadeInMs": 3000,
+      "fadeOutMs": 2000
+    }
+  ],
   "slides": [
     {
       "image": { "src": "pictures/1.jpg", "capturedAt": "2025-07-01T10:00:00Z" },
@@ -49,12 +60,14 @@ are rejected.
   flag or a letter with a combining mark is one) without leading, trailing or repeated
   whitespace, as `normalizeCaption` leaves typed text; absent means none. Anything else is a
   `SlideshowFormatError` at `slides[i].caption`.
-- **Music** (version 2, ADR-0009): `startMs` is where in the track the slideshow's start falls,
-  `endMs` where the music stops being heard, `fadeInMs` and `fadeOutMs` ramp the volume up from
-  `startMs` and down to `endMs` (0: none); all whole milliseconds of the track, `endMs` after
-  `startMs`, the two fades together at most `endMs − startMs`. The composer resolves them: the
-  player knows no "automatic" and no "whole track". A version 1 slideshow is still read; its
-  `music`, `{ src }` only, plays as the whole track without fades (`endMs` absent).
+- **Music** (version 3, ADR-0009, ADR-0023): a non-empty list of tracks in order of `atMs`, the
+  slideshow time where each starts; two overlap in a crossfade. Per track, `startMs` is where in
+  the track playing starts, `endMs` where it stops being heard, `fadeInMs` and `fadeOutMs` ramp
+  the volume up from `startMs` and down to `endMs` (0: none); all whole milliseconds of the
+  track, `endMs` after `startMs`, the two fades together at most `endMs − startMs`. The composer
+  resolves them, leaving out the songs the slideshow never reaches: the player knows no
+  "automatic", no "whole track" and no crossfade rule. Errors name the track, e.g.
+  `music[1].atMs`. Only version 3 is read.
 
 ## Timing
 
@@ -126,17 +139,24 @@ The player:
 
 Behaviour:
 
-- **Music** follows the player: it starts at `startMs` plus `currentTime` on play and after a
-  seek, pauses on pause, while waiting, at the end and once play time passes `endMs`, and stays
-  silent when played beyond it. Its volume is a pure function of play time (`musicGainAt`:
-  linear fades), set before every start and on every frame, so pause, resume and seek land on
-  the envelope without a jump. The volume is set on a Web Audio gain node at the context's
-  current time (`MusicOutput`, one `AudioContext` per page), since iOS ignores a media element's
+- **Music** follows the player, one playback per track (`PlaylistMusic`; in the browser one audio
+  element each). A track sounds while play time is in `[atMs, atMs + endMs − startMs)`, at
+  `startMs + (t − atMs)` in the track: on play and after a seek every track heard at that moment
+  starts there, and one whose place play time reaches starts on that frame; every sounding track
+  pauses on pause, while waiting and at the end, and a track pauses once play time passes its end
+  while the others play on. In a crossfade two sound at once. On play, every track not heard then
+  is primed: started at its `startMs` at volume 0 and paused again at once, so it starts on loaded
+  sound and, on iOS, counts as started in the Play gesture. Each track's volume is a pure function
+  of play time (`trackGainAt`: linear fades, silent outside the track), set before every start
+  and on every frame, so pause, resume and seek land on every envelope without a jump. The volume
+  is set on a Web Audio gain node per element at the context's current time (`MusicOutput`, one
+  `AudioContext` per page that every track routes through), since iOS ignores a media element's
   `volume`; without Web Audio it falls back to the element's volume. iOS lets the context sound
-  only when it is resumed synchronously in a user gesture: the app unlocks it in the Play tap
-  that opens the player, in the player's play control, and every `play()` of the music unlocks
-  it too. A refused `play()` is an `error` and pauses; a start interrupted by a pause (a quick
-  seek) is not a refusal.
+  only when it is resumed synchronously in a user gesture, and lets a media element play outside
+  a gesture (a track reaching its place on a frame) only once it has played inside one, hence the
+  priming: the app unlocks the context in the Play tap that opens the player, in the player's
+  play control, and every `play()` of a track unlocks it too. A refused `play()` of any track is
+  an `error` and pauses; a start interrupted by a pause (a quick seek) is not a refusal.
 - **Pictures** are loaded for the slides on screen plus the next one; all others are released,
   so memory stays bounded. When a frame needs a picture that is not loaded yet, time stops,
   `waiting` fires, and playback goes on from the same moment with `playing`.

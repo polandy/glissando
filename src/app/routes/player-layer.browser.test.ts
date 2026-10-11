@@ -24,6 +24,7 @@ const SHOW: StoredSlideshow = {
     },
   ],
   secondsPerPicture: 5,
+  songs: [],
 };
 
 /** A store whose focus cannot be read, as when the browser's database refuses the read. */
@@ -73,7 +74,7 @@ describe("the player layer", () => {
       store,
       stored: {
         ...SHOW,
-        music: { id: "tune", fileName: "tune.mp3", durationMs: 5000, mimeType: "audio/mpeg" },
+        songs: [{ id: "tune", fileName: "tune.mp3", durationMs: 5000, mimeType: "audio/mpeg" }],
       },
       musicOutput: new MusicOutput(() => null),
       onClose: () => {},

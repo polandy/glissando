@@ -3,12 +3,10 @@ import {
   audibleEndMs,
   automaticFadeInMs,
   automaticFadeOutMs,
-  filledMusicMs,
   musicExcerpt,
   musicExcerptMs,
   resolveMusicTiming,
 } from "./music-excerpt";
-import { OWN_SECONDS_PICTURE_LENGTH } from "../library/picture-length";
 import type { StoredMusic } from "../library/stored-slideshow";
 
 const TRACK_MS = 204_000;
@@ -31,10 +29,6 @@ describe("musicExcerpt", () => {
 
   it("is the trim when there is one", () => {
     expect(musicExcerptMs(trimmed(12_000, 150_000))).toBe(138_000);
-  });
-
-  it("is absent without music", () => {
-    expect(musicExcerptMs(undefined)).toBeUndefined();
   });
 });
 
@@ -107,22 +101,5 @@ describe("resolveMusicTiming", () => {
     const music = trimmed(10_000, 20_000, { fadeInMs: 10_000, fadeOutMs: 5000 });
 
     expect(resolveMusicTiming(music, 6000)).toMatchObject({ fadeInMs: 4000, fadeOutMs: 2000 });
-  });
-});
-
-describe("filledMusicMs", () => {
-  it("is the excerpt's length when the pictures fill the music", () => {
-    expect(filledMusicMs({ music: trimmed(4000, 64_000) })).toBe(60_000);
-  });
-
-  it("is absent when the pictures last their own seconds with music", () => {
-    expect(filledMusicMs({ music: WHOLE })).toBe(TRACK_MS);
-    expect(
-      filledMusicMs({ music: WHOLE, pictureLength: OWN_SECONDS_PICTURE_LENGTH }),
-    ).toBeUndefined();
-  });
-
-  it("is absent without music", () => {
-    expect(filledMusicMs({})).toBeUndefined();
   });
 });

@@ -8,11 +8,11 @@ export const DRUMS: MusicBeats = { kind: "beats", beatsMs: [500, 1000, 1500], be
 export const NO_CLEAR_BEAT: MusicBeats = { kind: "none" };
 
 /**
- * A store holding a slideshow per entry with the music named, each created a day after the one
+ * A store holding a slideshow per entry with the songs named, each created a day after the one
  * before; each music file is the blob returned.
  */
 export async function storeWith(
-  shows: Record<string, string>,
+  shows: Record<string, string | readonly string[]>,
 ): Promise<{ store: MemoryLibraryStore; files: Map<string, Blob> }> {
   const store = new MemoryLibraryStore();
   const files = new Map<string, Blob>();
@@ -26,20 +26,23 @@ export async function addShow(
   store: MemoryLibraryStore,
   files: Map<string, Blob>,
   id: string,
-  musicId: string,
+  musicIds: string | readonly string[],
   day: number,
 ): Promise<void> {
-  const file = files.get(musicId) ?? musicBlob(musicId);
-  files.set(musicId, file);
-  await store.putMusic(musicId, file);
+  const songs = [];
+  for (const musicId of typeof musicIds === "string" ? [musicIds] : musicIds) {
+    const file = files.get(musicId) ?? musicBlob(musicId);
+    files.set(musicId, file);
+    await store.putMusic(musicId, file);
+    songs.push({
+      id: musicId,
+      fileName: `${musicId}.mp3`,
+      durationMs: 2000,
+      mimeType: "audio/mpeg",
+    });
+  }
   const createdAt = new Date(Date.UTC(2025, 6, 1 + day)).toISOString();
-  const music = {
-    id: musicId,
-    fileName: `${musicId}.mp3`,
-    durationMs: 2000,
-    mimeType: "audio/mpeg",
-  };
-  await store.saveSlideshow(slideshow({ id, createdAt, music }));
+  await store.saveSlideshow(slideshow({ id, createdAt, songs }));
 }
 
 /** Answers by which music file it is given; throws for one it does not know. */

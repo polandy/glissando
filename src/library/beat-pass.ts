@@ -144,7 +144,7 @@ export class BeatPass {
   /** Queues every track without a result that this pass has not taken up yet, newest slideshow first. */
   async #scan(): Promise<void> {
     const slideshows = await this.#ports.store.listSlideshows();
-    const musicIds = new Set(slideshows.flatMap((show) => (show.music ? [show.music.id] : [])));
+    const musicIds = new Set(slideshows.flatMap((show) => show.songs.map((song) => song.id)));
     for (const musicId of musicIds) {
       if (this.#takenUp.has(musicId) || (await this.#ports.store.musicBeats(musicId))) {
         continue;

@@ -22,8 +22,8 @@ const slideshow = (pictures: StoredPicture[], withMusic = true): StoredSlideshow
   title: "July",
   createdAt: "2025-07-02T08:00:00Z",
   pictures,
+  songs: withMusic ? [MUSIC] : [],
   secondsPerPicture: 5,
-  ...(withMusic ? { music: MUSIC } : {}),
 });
 
 describe("the sheet confirming “Keep a copy on this device”", () => {

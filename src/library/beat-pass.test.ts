@@ -36,6 +36,20 @@ describe("BeatPass", () => {
     expect([...logged, ...reported]).toEqual([]);
   });
 
+  it("stores what the detector finds for every song of a playlist", async () => {
+    const { store, files } = await storeWith({ "show-1": ["drums", "ambient"] });
+    const detector = new FakeBeatDetector(
+      answersBy(files, { drums: DRUMS, ambient: NO_CLEAR_BEAT }),
+    );
+    const { pass } = passOver(store, detector);
+
+    pass.start();
+    await pass.settled();
+
+    expect(await store.musicBeats("drums")).toEqual(DRUMS);
+    expect(await store.musicBeats("ambient")).toEqual(NO_CLEAR_BEAT);
+  });
+
   it("listens once to music two slideshows share, and not again to music with stored beats", async () => {
     const { store, files } = await storeWith({
       "show-1": "shared",

@@ -34,6 +34,8 @@ export interface SlideshowEditorPorts {
   readonly transitionAutomaticText: () => string;
   /** The undo toast's text after the slideshow's default transition went back to crossfade. */
   readonly slideshowTransitionResetText: () => string;
+  /** The undo toast's text after a song was removed. */
+  readonly songRemovedText: () => string;
   /** The title from the capture dates, which an emptied title falls back to. */
   readonly automaticTitle: (slideshow: StoredSlideshow) => string;
 }

@@ -24,7 +24,12 @@ export { layerTransform } from "./dom/layer-transform";
 export { cropAt, cropRect, type KenBurnsAt, type Rect, type Size } from "./ken-burns";
 export { parseSlideshow, SlideshowFormatError } from "./parse-slideshow";
 export { SlideshowLoadError } from "./picture-buffer";
-export { musicGainAt, type MusicEnvelope } from "./music-gain";
+export {
+  musicGainAt,
+  trackGainAt,
+  type MusicEnvelope,
+  type PlacedMusicEnvelope,
+} from "./music-gain";
 export { MusicPlaybackError, type Clock, type FrameScheduler, type MusicPlayback } from "./ports";
 export { easeTransition } from "./render-frame";
 export { PLAYER_EVENTS, type PlayerEvent } from "./player-events";
@@ -38,7 +43,7 @@ export {
   type Easing,
   type Framing,
   type KenBurns,
-  type Music,
+  type MusicTrack,
   type Slide,
   type Slideshow,
   type Transition,

@@ -1,14 +1,14 @@
-import type { MusicBeats } from "../../beats";
 import {
   automaticTransition,
   beatTransitionDurationMs,
-  excerptBeatsMs,
-  musicExcerpt,
   filledMusicMs,
   pictureKenBurns,
+  playlistBeatsMs,
+  playlistMs,
   pictureTransition,
   slideDurationsMs,
   slideshowTransition,
+  type SongBeats,
 } from "../../compose";
 import type { OwnKenBurns } from "../../library/own-ken-burns";
 import {
@@ -83,14 +83,14 @@ export interface PictureEditorView {
 }
 
 /**
- * `focus`: the automatic motions aim at it; `beats`: the automatic changes land on them
- * (ADR-0021). So the preview plays what the player will.
+ * `focus`: the automatic motions aim at it; `beats`: each song's beats found so far, which the
+ * automatic changes land on (ADR-0021, ADR-0023). So the preview plays what the player will.
  */
 export function pictureEditorView(
   stored: StoredSlideshow,
   pictureId: string,
   focus: PicturesFocus,
-  beats: MusicBeats,
+  beats: SongBeats,
 ): PictureEditorView {
   const { pictures } = stored;
   const index = pictures.findIndex((picture) => picture.id === pictureId);
@@ -98,7 +98,7 @@ export function pictureEditorView(
   if (picture === undefined) {
     throw new Error(`slideshow "${stored.id}" holds no picture "${pictureId}"`);
   }
-  const beatsMs = excerptBeatsMs(stored.music, beats);
+  const beatsMs = playlistBeatsMs(stored, beats);
   const durationsMs = slideDurationsMs(
     pictures,
     filledMusicMs(stored),
@@ -169,7 +169,8 @@ function motionOf(index: number, picture: StoredPicture, focus: PicturesFocus): 
 }
 
 function durationBasis(stored: StoredSlideshow, durationsMs: readonly number[]): DurationBasis {
-  if (stored.music === undefined) {
+  const musicMs = playlistMs(stored);
+  if (musicMs === undefined) {
     return {
       kind: "seconds-per-picture",
       automaticMs: stored.secondsPerPicture * MILLISECONDS_PER_SECOND,
@@ -182,8 +183,7 @@ function durationBasis(stored: StoredSlideshow, durationsMs: readonly number[]):
     return { kind: "music", automaticCount: 0, shareMs: null, clamped: false };
   }
   const ownTotalMs = stored.pictures.reduce((sum, picture) => sum + (picture.durationMs ?? 0), 0);
-  const { startMs, endMs } = musicExcerpt(stored.music);
-  const idealShareMs = Math.floor((endMs - startMs - ownTotalMs) / automatic.length);
+  const idealShareMs = Math.floor((musicMs - ownTotalMs) / automatic.length);
   return {
     kind: "music",
     automaticCount: automatic.length,

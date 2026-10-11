@@ -10,7 +10,7 @@ readonly OVERSIZED_DOCUMENT_BYTES=$((2 * 1024 * 1024 + 1))
 # A process killed by SIGKILL: 128 + 9.
 readonly KILLED_STATUS=137
 document() { # title
-	printf '{"format":"glissando-server","formatVersion":1,"slideshow":{"title":"%s","createdAt":"2025-10-01T08:00:00Z","secondsPerPicture":5,"pictures":[{"capturedAt":"2025-09-30T10:00:00Z","width":1920,"height":1080,"fileName":"a.jpg","immichAssetId":"%s"}]}}' "$1" "$UUID"
+	printf '{"format":"glissando-server","formatVersion":1,"slideshow":{"title":"%s","createdAt":"2025-10-01T08:00:00Z","secondsPerPicture":5,"songs":[],"pictures":[{"capturedAt":"2025-09-30T10:00:00Z","width":1920,"height":1080,"fileName":"a.jpg","immichAssetId":"%s"}]}}' "$1" "$UUID"
 }
 
 start_library() { # a fresh container on the same data volume

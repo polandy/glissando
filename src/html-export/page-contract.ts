@@ -11,8 +11,13 @@ export const JSON_BLOCK_TYPE = "application/json";
 export const MEDIA_BLOCK_TYPE = "application/octet-stream";
 /** The attribute of a media block naming its MIME type. */
 export const MEDIA_TYPE_ATTRIBUTE = "data-type";
-/** The music's `src` and the id of its media block. */
-export const MUSIC_KEY = "music";
+/**
+ * The `src` of every track playing the `index`th of the distinct songs the slideshow plays, and
+ * the id of that song's media block.
+ */
+export function songKey(index: number): string {
+  return `s${index}`;
+}
 
 /** The `image.src` of the slide at `index` and the id of its media block. */
 export function pictureKey(index: number): string {

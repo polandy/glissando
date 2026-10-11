@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 import { composeSlideshow } from "./compose-slideshow";
 import { slideshowDurationMs } from "./slideshow-duration-ms";
 import { AUTOMATIC_MUSIC_FADE_MS } from "./music-excerpt";
-import { NO_BEATS, type MusicBeats } from "../beats";
+import type { MusicBeats } from "../beats";
+import { NO_SONG_BEATS } from "./playlist";
 import type { PictureFocus } from "../library/picture-focus";
 import { OWN_SECONDS_PICTURE_LENGTH } from "../library/picture-length";
 import { setPictureLength } from "../library/slideshow-edits-timing";
@@ -33,32 +34,34 @@ const OWN_SECONDS: StoredSlideshow = {
   pictures: [picture("a"), picture("b"), picture("c"), picture("d")],
   secondsPerPicture: 5,
   pictureLength: OWN_SECONDS_PICTURE_LENGTH,
-  music: SONG,
+  songs: [SONG],
 };
 
 describe("composeSlideshow when the pictures last their own seconds with music", () => {
   it("keeps the picture length instead of stretching the pictures to the music", () => {
-    const slideshow = composeSlideshow(OWN_SECONDS, sources, NO_FOCUS, NO_BEATS);
+    const slideshow = composeSlideshow(OWN_SECONDS, sources, NO_FOCUS, NO_SONG_BEATS);
 
     expect(slideshow.slides.map((slide) => slide.durationMs)).toEqual([5000, 5000, 5000, 5000]);
     expect(slideshowDurationMs(OWN_SECONDS)).toBe(20_000);
   });
 
   it("changes the pictures and ends on the beats nearest each picture length", () => {
-    const slideshow = composeSlideshow(OWN_SECONDS, sources, NO_FOCUS, BEATS);
+    const slideshow = composeSlideshow(OWN_SECONDS, sources, NO_FOCUS, new Map([[SONG.id, BEATS]]));
 
     expect(slideshow.slides.map((slide) => slide.durationMs)).toEqual([4900, 4900, 4900, 5600]);
   });
 
   it("fades a longer song out as the slideshow ends", () => {
-    const { music } = composeSlideshow(OWN_SECONDS, sources, NO_FOCUS, NO_BEATS);
+    const { music } = composeSlideshow(OWN_SECONDS, sources, NO_FOCUS, NO_SONG_BEATS);
 
-    expect(music).toMatchObject({ startMs: 0, endMs: 20_000, fadeOutMs: AUTOMATIC_MUSIC_FADE_MS });
+    expect(music).toMatchObject([
+      { atMs: 0, startMs: 0, endMs: 20_000, fadeOutMs: AUTOMATIC_MUSIC_FADE_MS },
+    ]);
   });
 
   it("fills the music when the slideshow has no picture length of its own", () => {
     const filling = setPictureLength(OWN_SECONDS, undefined);
-    const slideshow = composeSlideshow(filling, sources, NO_FOCUS, NO_BEATS);
+    const slideshow = composeSlideshow(filling, sources, NO_FOCUS, NO_SONG_BEATS);
 
     expect(slideshow.slides.map((slide) => slide.durationMs)).toEqual([
       15_000, 15_000, 15_000, 15_000,

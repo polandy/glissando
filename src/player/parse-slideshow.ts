@@ -1,14 +1,13 @@
 import { CAPTION_RULE, isCaption } from "./caption";
 import {
   EASINGS,
-  FIRST_SLIDESHOW_FORMAT_VERSION,
   MIN_KEN_BURNS_ZOOM,
   SLIDESHOW_FORMAT_VERSION,
   TRANSITION_EFFECTS,
   type Easing,
   type Framing,
   type KenBurns,
-  type Music,
+  type MusicTrack,
   type Slide,
   type Slideshow,
   type Transition,
@@ -35,12 +34,8 @@ type JsonObject = Readonly<Record<string, unknown>>;
 export function parseSlideshow(input: unknown): Slideshow {
   const root = readObject(input, "", ["formatVersion", "title", "music", "slides"]);
   const version = root.formatVersion;
-  if (version !== FIRST_SLIDESHOW_FORMAT_VERSION && version !== SLIDESHOW_FORMAT_VERSION) {
-    throw new SlideshowFormatError(
-      "formatVersion",
-      `${FIRST_SLIDESHOW_FORMAT_VERSION} or ${SLIDESHOW_FORMAT_VERSION}`,
-      version,
-    );
+  if (version !== SLIDESHOW_FORMAT_VERSION) {
+    throw new SlideshowFormatError("formatVersion", `${SLIDESHOW_FORMAT_VERSION}`, version);
   }
   const slides = readSlides(root.slides);
   const title = readString(root.title, "title");
@@ -49,38 +44,51 @@ export function parseSlideshow(input: unknown): Slideshow {
     : {
         formatVersion: SLIDESHOW_FORMAT_VERSION,
         title,
-        music:
-          version === FIRST_SLIDESHOW_FORMAT_VERSION
-            ? readFirstVersionMusic(root.music)
-            : readMusic(root.music),
+        music: readTracks(root.music),
         slides,
       };
 }
 
-/** Version 1 music is the whole track without fades. */
-function readFirstVersionMusic(value: unknown): Music {
-  const music = readObject(value, "music", ["src"]);
-  return { src: readNonEmptyString(music.src, "music.src"), startMs: 0, fadeInMs: 0, fadeOutMs: 0 };
+const TRACK_TIMES = ["startMs", "endMs", "fadeInMs", "fadeOutMs"] as const;
+
+function readTracks(value: unknown): readonly MusicTrack[] {
+  if (!Array.isArray(value) || value.length === 0) {
+    throw new SlideshowFormatError("music", "an array with at least one track", value);
+  }
+  let previousAtMs = 0;
+  return value.map((item: unknown, index) => {
+    const path = `music[${index}]`;
+    const fields = readObject(item, path, ["src", "atMs", ...TRACK_TIMES]);
+    const atMs = readNonNegativeInteger(fields.atMs, `${path}.atMs`);
+    if (atMs < previousAtMs) {
+      throw new SlideshowFormatError(
+        `${path}.atMs`,
+        `at least the previous track's atMs (${previousAtMs})`,
+        atMs,
+      );
+    }
+    previousAtMs = atMs;
+    return { ...readTrack(fields, path), atMs };
+  });
 }
 
-function readMusic(value: unknown): Music {
-  const music = readObject(value, "music", ["src", "startMs", "endMs", "fadeInMs", "fadeOutMs"]);
-  const startMs = readNonNegativeInteger(music.startMs, "music.startMs");
-  const endMs = readNonNegativeInteger(music.endMs, "music.endMs");
+function readTrack(track: JsonObject, path: string): Omit<MusicTrack, "atMs"> {
+  const startMs = readNonNegativeInteger(track.startMs, `${path}.startMs`);
+  const endMs = readNonNegativeInteger(track.endMs, `${path}.endMs`);
   if (endMs <= startMs) {
-    throw new SlideshowFormatError("music.endMs", `a time after startMs (${startMs})`, endMs);
+    throw new SlideshowFormatError(`${path}.endMs`, `a time after startMs (${startMs})`, endMs);
   }
-  const fadeInMs = readNonNegativeInteger(music.fadeInMs, "music.fadeInMs");
-  const fadeOutMs = readNonNegativeInteger(music.fadeOutMs, "music.fadeOutMs");
+  const fadeInMs = readNonNegativeInteger(track.fadeInMs, `${path}.fadeInMs`);
+  const fadeOutMs = readNonNegativeInteger(track.fadeOutMs, `${path}.fadeOutMs`);
   const heardMs = endMs - startMs;
   if (fadeInMs + fadeOutMs > heardMs) {
     throw new SlideshowFormatError(
-      "music.fadeOutMs",
+      `${path}.fadeOutMs`,
       `fadeInMs + fadeOutMs at most endMs − startMs (${heardMs})`,
       fadeOutMs,
     );
   }
-  return { src: readNonEmptyString(music.src, "music.src"), startMs, endMs, fadeInMs, fadeOutMs };
+  return { src: readNonEmptyString(track.src, `${path}.src`), startMs, endMs, fadeInMs, fadeOutMs };
 }
 
 function readSlides(value: unknown): readonly Slide[] {

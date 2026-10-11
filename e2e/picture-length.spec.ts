@@ -32,9 +32,7 @@ test("E2E-040 with music the pictures keep their own length on the beat, set in 
   await chooseFiles(page, page.getByRole("button", { name: "Musik auswählen" }), [track]);
 
   await expect(ownSeconds("5 s")).toHaveAttribute("aria-checked", "true");
-  await expect(
-    page.getByText("Die Diashow dauert 0:15, die Musik blendet dort aus."),
-  ).toBeVisible();
+  await expect(page.getByText("Die Musik blendet mit dem letzten Bild aus.")).toBeVisible();
   await lengthSection.getByRole("button", { name: "Länger" }).click();
   await expect(ownSeconds("5,5 s")).toHaveAttribute("aria-checked", "true");
   await page.getByRole("button", { name: "Diashow erstellen" }).click();

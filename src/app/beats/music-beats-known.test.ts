@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { NO_BEATS, type MusicBeats } from "../../beats";
 import type { BeatPassState } from "../../library/beat-pass";
 import type { StoredSlideshow } from "../../library/stored-slideshow";
-import { beatsStatus, composedBeats, storedMusicBeats } from "./music-beats-known";
+import { beatsStatus, composedBeats, storedSongBeats } from "./music-beats-known";
 
 const DRUMS: MusicBeats = { kind: "beats", beatsMs: [500, 1000], beatsPerMinute: 120 };
 const WITHOUT_MUSIC: StoredSlideshow = {
@@ -10,12 +10,16 @@ const WITHOUT_MUSIC: StoredSlideshow = {
   title: "July",
   createdAt: "2025-07-02T08:00:00Z",
   pictures: [],
+  songs: [],
   secondsPerPicture: 5,
 };
-const WITH_MUSIC: StoredSlideshow = {
-  ...WITHOUT_MUSIC,
-  music: { id: "drums", fileName: "drums.mp3", durationMs: 2000, mimeType: "audio/mpeg" },
-};
+const song = (id: string) => ({
+  id,
+  fileName: `${id}.mp3`,
+  durationMs: 2000,
+  mimeType: "audio/mpeg",
+});
+const WITH_MUSIC: StoredSlideshow = { ...WITHOUT_MUSIC, songs: [song("drums"), song("ambient")] };
 const IDLE: BeatPassState = {
   running: false,
   listening: new Set(),
@@ -23,33 +27,45 @@ const IDLE: BeatPassState = {
   undecodable: new Set(),
 };
 
-describe("storedMusicBeats", () => {
-  it("reads the stored beats of the slideshow's music", async () => {
+describe("storedSongBeats", () => {
+  it("reads the stored beats of every song, by music id", async () => {
     const logged: unknown[] = [];
     const store = {
-      musicBeats: (id: string) => Promise.resolve(id === "drums" ? DRUMS : undefined),
+      musicBeats: (id: string) => Promise.resolve(id === "drums" ? DRUMS : NO_BEATS),
     };
 
-    await expect(storedMusicBeats(store, WITH_MUSIC, (e) => logged.push(e))).resolves.toEqual(
-      DRUMS,
+    await expect(storedSongBeats(store, WITH_MUSIC, (e) => logged.push(e))).resolves.toEqual(
+      new Map([
+        ["drums", DRUMS],
+        ["ambient", NO_BEATS],
+      ]),
     );
     expect(logged).toEqual([]);
   });
 
-  it("is no beats for music not listened to yet, and for a slideshow without music", async () => {
-    const store = { musicBeats: () => Promise.resolve(undefined) };
+  it("leaves out a song not listened to yet, and has none without music", async () => {
+    const store = {
+      musicBeats: (id: string) => Promise.resolve(id === "drums" ? DRUMS : undefined),
+    };
 
-    await expect(storedMusicBeats(store, WITH_MUSIC, () => undefined)).resolves.toBe(NO_BEATS);
-    await expect(storedMusicBeats(store, WITHOUT_MUSIC, () => undefined)).resolves.toBe(NO_BEATS);
+    await expect(storedSongBeats(store, WITH_MUSIC, () => undefined)).resolves.toEqual(
+      new Map([["drums", DRUMS]]),
+    );
+    await expect(storedSongBeats(store, WITHOUT_MUSIC, () => undefined)).resolves.toEqual(
+      new Map(),
+    );
   });
 
-  it("logs beats that cannot be read and goes on without them", async () => {
+  it("logs beats that cannot be read and goes on without that song's", async () => {
     const failure = new Error("the database is gone");
     const logged: unknown[] = [];
-    const store = { musicBeats: () => Promise.reject(failure) };
+    const store = {
+      musicBeats: (id: string) =>
+        id === "drums" ? Promise.resolve(DRUMS) : Promise.reject(failure),
+    };
 
-    await expect(storedMusicBeats(store, WITH_MUSIC, (e) => logged.push(e))).resolves.toBe(
-      NO_BEATS,
+    await expect(storedSongBeats(store, WITH_MUSIC, (e) => logged.push(e))).resolves.toEqual(
+      new Map([["drums", DRUMS]]),
     );
     expect(logged).toEqual([failure]);
   });

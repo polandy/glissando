@@ -8,7 +8,8 @@ export interface BuildStoredSlideshowInput {
   /** ISO 8601 date-time. */
   readonly createdAt: string;
   readonly pictures: readonly StoredPicture[];
-  readonly music?: StoredMusic;
+  /** The playlist, in play order; empty without music. */
+  readonly songs: readonly StoredMusic[];
   readonly secondsPerPicture: number;
   /** Absent: the pictures fill the music (ADR-0022). */
   readonly pictureLength?: PictureLength;
@@ -24,13 +25,13 @@ export function buildStoredSlideshow(input: BuildStoredSlideshowInput): StoredSl
     input.locale,
   );
 
-  const base = {
+  return {
     id: input.id,
     title,
     createdAt: input.createdAt,
     pictures,
+    songs: input.songs,
     secondsPerPicture: input.secondsPerPicture,
     ...(input.pictureLength === undefined ? {} : { pictureLength: input.pictureLength }),
   };
-  return input.music === undefined ? base : { ...base, music: input.music };
 }

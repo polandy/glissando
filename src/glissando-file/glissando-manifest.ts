@@ -1,6 +1,6 @@
 import type { OwnKenBurns } from "../library/own-ken-burns";
 import type { PictureLength } from "../library/picture-length";
-import type { MusicTrim, PictureChanges } from "../library/own-music";
+import type { BetweenSongs, MusicTrim, PictureChanges } from "../library/own-music";
 import type { SlideshowTransition, TransitionChoice } from "../library/own-timing";
 import type { StoredSlideshow } from "../library/stored-slideshow";
 
@@ -15,11 +15,13 @@ export const GLISSANDO_FORMAT_ID = "glissando";
  * its own duration and transition (ADR-0008), version 5 the music's excerpt and fades
  * (ADR-0009), version 6 the slideshow's default transition (ADR-0010), version 7 a picture's
  * origin, `immichAssetId` or `fileBytes` (ADR-0016), version 8 the music's picture changes
- * (ADR-0021), version 9 the slideshow's picture length (ADR-0022); files of every older version
- * are still read.
+ * (ADR-0021), version 9 the slideshow's picture length (ADR-0022), version 10 the playlist,
+ * `songs` and `betweenSongs` replacing the single `music` (ADR-0023). A file older than version
+ * 10 carried `music`, not `songs`, with no automatic way to tell the two apart in a document that
+ * also predates other fields; such a file is reported like any other unsupported version.
  */
-export const GLISSANDO_FORMAT_VERSION = 9;
-export const OLDEST_READABLE_FORMAT_VERSION = 1;
+export const GLISSANDO_FORMAT_VERSION = 10;
+export const OLDEST_READABLE_FORMAT_VERSION = 10;
 /** The first version that carries a picture's own motion. */
 export const OWN_KEN_BURNS_FROM_VERSION = 2;
 /** The first version that carries a picture's caption. */
@@ -82,7 +84,10 @@ export interface ManifestSlideshow {
   readonly ownOrder?: true;
   readonly transition?: SlideshowTransition;
   readonly pictures: readonly ManifestPicture[];
-  readonly music?: ManifestMusic;
+  /** The playlist, in play order; empty for no music (ADR-0023). */
+  readonly songs: readonly ManifestMusic[];
+  /** `"sequence"`: one after another; absent: crossfade (ADR-0023). */
+  readonly betweenSongs?: BetweenSongs;
 }
 
 export interface GlissandoManifest {
@@ -110,10 +115,14 @@ export function picturePaths(
   };
 }
 
-/** The music keeps its file's extension, so an unzipped file opens in any player. */
-export function musicPath(fileName: string): string {
+/**
+ * Where song `index` (from 0) of the playlist sits in the container: its own path, keeping its
+ * file's extension so an unzipped file opens in any player.
+ */
+export function songPath(index: number, fileName: string): string {
+  const base = `music/track-${index + 1}`;
   const extension = MUSIC_EXTENSION.exec(fileName)?.[1];
-  return extension === undefined ? "music/track" : `music/track.${extension.toLowerCase()}`;
+  return extension === undefined ? base : `${base}.${extension.toLowerCase()}`;
 }
 
 /** A picture's MIME type from its path's extension; null for one the format does not use. */
@@ -147,7 +156,13 @@ export function manifestFor(
     ...(picture.immichAssetId === undefined ? {} : { immichAssetId: picture.immichAssetId }),
     ...(picture.fileBytes === undefined ? {} : { fileBytes: picture.fileBytes }),
   }));
-  const { music } = slideshow;
+  const songs = slideshow.songs.map((song, index) => ({
+    file: songPath(index, song.fileName),
+    fileName: song.fileName,
+    durationMs: song.durationMs,
+    mimeType: song.mimeType,
+    ...ownMusicFields(song),
+  }));
   return {
     format: GLISSANDO_FORMAT_ID,
     formatVersion: GLISSANDO_FORMAT_VERSION,
@@ -159,17 +174,8 @@ export function manifestFor(
       ...(slideshow.ownOrder ? { ownOrder: true } : {}),
       ...(slideshow.transition === undefined ? {} : { transition: slideshow.transition }),
       pictures,
-      ...(music === undefined
-        ? {}
-        : {
-            music: {
-              file: musicPath(music.fileName),
-              fileName: music.fileName,
-              durationMs: music.durationMs,
-              mimeType: music.mimeType,
-              ...ownMusicFields(music),
-            },
-          }),
+      songs,
+      ...(slideshow.betweenSongs === undefined ? {} : { betweenSongs: slideshow.betweenSongs }),
     },
   };
 }

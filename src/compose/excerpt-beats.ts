@@ -5,18 +5,14 @@ import { musicExcerpt } from "./music-excerpt";
 
 /**
  * The beats the pictures change on, in ms of the music's excerpt: those strictly inside it.
- * Absent without music, without a clear beat, or when the music's picture changes are even
+ * Absent without a clear beat, or when the music's picture changes are even
  * (ADR-0021).
  */
 export function excerptBeatsMs(
-  music: StoredMusic | undefined,
+  music: StoredMusic,
   beats: MusicBeats,
 ): readonly number[] | undefined {
-  if (
-    music === undefined ||
-    beats.kind === "none" ||
-    music.pictureChanges === EVEN_PICTURE_CHANGES
-  ) {
+  if (beats.kind === "none" || music.pictureChanges === EVEN_PICTURE_CHANGES) {
     return undefined;
   }
   const { startMs, endMs } = musicExcerpt(music);

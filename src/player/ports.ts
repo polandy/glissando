@@ -76,5 +76,6 @@ export interface PlayerDependencies<Picture extends Size> {
   readonly pictures: PictureLoader<Picture>;
   readonly clock: Clock;
   readonly frames: FrameScheduler;
-  readonly music?: MusicPlayback;
+  /** Opens one playback per track of the slideshow's music. */
+  readonly openMusic?: (src: string) => MusicPlayback;
 }

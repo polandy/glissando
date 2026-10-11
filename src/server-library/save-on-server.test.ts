@@ -28,34 +28,35 @@ describe("createServerSlideshow", () => {
   it("creates the slideshow on the server and answers it as the server keeps it", async () => {
     const { client } = libraryServiceFetch();
 
-    const created = await createServerSlideshow(serverSlideshow({ title: "Lake" }), null, client);
+    const created = await createServerSlideshow(serverSlideshow({ title: "Lake" }), [], client);
 
     expect(await client.listSlideshows()).toHaveLength(1);
     expect(created).toEqual({ ...serverSlideshow({ title: "Lake" }), id: created.id });
     expect((await client.getSlideshow(created.id)).document.slideshow.title).toBe("Lake");
   });
 
-  it("uploads the music first and names it by the server's id", async () => {
+  it("uploads every song first, in play order, and names each by the server's id", async () => {
     const { client } = libraryServiceFetch();
 
     const created = await createServerSlideshow(
-      serverSlideshow({ music: MUSIC }),
-      new Blob(["tune"]),
+      serverSlideshow({ songs: [MUSIC] }),
+      [new Blob(["tune"])],
       client,
     );
 
-    expect(created.music).toEqual({ ...MUSIC, id: created.music?.id });
-    expect(created.music?.id).not.toBe(MUSIC.id);
-    const music = await client.music(created.music?.id ?? "");
+    const [song] = created.songs;
+    expect(song).toEqual({ ...MUSIC, id: song?.id });
+    expect(song?.id).not.toBe(MUSIC.id);
+    const music = await client.music(song?.id ?? "");
     expect(await music.text()).toBe("tune");
     expect(music.type).toBe("audio/mp4");
   });
 
-  it("refuses music without its audio, before anything reaches the server", async () => {
+  it("refuses a playlist without every song's audio, before anything reaches the server", async () => {
     const { client } = libraryServiceFetch();
 
     await expect(
-      createServerSlideshow(serverSlideshow({ music: MUSIC }), null, client),
+      createServerSlideshow(serverSlideshow({ songs: [MUSIC] }), [], client),
     ).rejects.toThrow(/audio/);
     expect(await client.listSlideshows()).toEqual([]);
   });
@@ -88,20 +89,21 @@ describe("saveOnServer", () => {
     expect((await client.getSlideshow(saved.id)).document.slideshow.pictures).toHaveLength(1);
   });
 
-  it("uploads the music from the device's store", async () => {
+  it("uploads the playlist's songs from the device's store", async () => {
     const { client } = libraryServiceFetch();
     const store = new MemoryLibraryStore();
     await store.putMusic(MUSIC.id, new Blob(["device tune"], { type: "audio/mp4" }));
 
     const saved = await saveOnServer(
-      serverSlideshow({ pictures: [linkedPicture("asset-1")], music: MUSIC }),
+      serverSlideshow({ pictures: [linkedPicture("asset-1")], songs: [MUSIC] }),
       {
         client,
         store,
       },
     );
 
-    expect(await (await client.music(saved.music?.id ?? "")).text()).toBe("device tune");
+    const [song] = saved.songs;
+    expect(await (await client.music(song?.id ?? "")).text()).toBe("device tune");
   });
 
   it("refuses a slideshow without a picture from Immich, as a slideshow is never empty", async () => {

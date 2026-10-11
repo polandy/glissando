@@ -23,7 +23,7 @@ export function sessionWith(
   let nextId = 0;
   const errors: unknown[] = [];
   const logged: unknown[] = [];
-  const onServer: { slideshow: StoredSlideshow; musicAudio: Blob | null }[] = [];
+  const onServer: { slideshow: StoredSlideshow; songsAudio: readonly Blob[] }[] = [];
   const removal = fakeRemovalPorts();
   const ports: ImportSessionPorts = {
     store,
@@ -68,8 +68,8 @@ export function sessionWith(
     now: () => CREATED_AT,
     onError: (error) => errors.push(error),
     log: (error) => logged.push(error),
-    createOnServer: (slideshow, musicAudio) => {
-      onServer.push({ slideshow, musicAudio });
+    createOnServer: (slideshow, songsAudio) => {
+      onServer.push({ slideshow, songsAudio });
       return Promise.resolve(slideshow);
     },
     ...overrides,

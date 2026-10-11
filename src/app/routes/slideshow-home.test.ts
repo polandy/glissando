@@ -8,6 +8,7 @@ const SLIDESHOW: StoredSlideshow = {
   title: "July",
   createdAt: "2025-07-02T08:00:00Z",
   pictures: [],
+  songs: [],
   secondsPerPicture: 5,
 };
 

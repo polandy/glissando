@@ -1,5 +1,5 @@
 import { EVEN_PICTURE_CHANGES } from "../../library/own-music";
-import type { StoredSlideshow } from "../../library/stored-slideshow";
+import type { StoredMusic, StoredSlideshow } from "../../library/stored-slideshow";
 import type { BeatsStatus } from "../beats/music-beats-known";
 
 /** What the music editor's "Picture changes" section shows (ADR-0021). */
@@ -40,8 +40,10 @@ export interface BeatTick {
 /** Every fourth beat, counted from the track's first, is drawn taller. */
 const BEATS_PER_BAR = 4;
 
+/** The "Picture changes" of `song`, one of the slideshow's, with what is known of its beats. */
 export function pictureChangesView(
   stored: StoredSlideshow,
+  song: StoredMusic,
   status: BeatsStatus,
 ): PictureChangesView {
   const ownSeconds =
@@ -52,7 +54,7 @@ export function pictureChangesView(
   if (status.beats.kind === "none") {
     return { kind: "none", ...ownSeconds };
   }
-  const onTheBeat = stored.music?.pictureChanges !== EVEN_PICTURE_CHANGES;
+  const onTheBeat = song.pictureChanges !== EVEN_PICTURE_CHANGES;
   const handingOver = stored.pictures.slice(0, -1);
   return {
     kind: "beats",

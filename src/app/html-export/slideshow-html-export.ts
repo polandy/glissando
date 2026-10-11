@@ -3,7 +3,7 @@ import { exportPage } from "../../html-export/export-page";
 import { playerBundleBytes, type PageWeights } from "../../html-export/plan";
 import type { PictureScaler, PlayerAsset } from "../../html-export/ports";
 import type { LibraryStore, StoredSlideshow } from "../../library/stored-slideshow";
-import { storedMusicBeats } from "../beats/music-beats-known";
+import { storedSongBeats } from "../beats/music-beats-known";
 import { NO_FOCUS_KNOWN } from "../focus/pictures-focus";
 import type { Translator } from "../i18n/translator";
 import type { HtmlExportPorts, HtmlExportSubject, PageRun } from "./html-export-state";
@@ -19,8 +19,8 @@ export type HtmlExportDevice = Omit<HtmlExportPorts, "weights" | "run"> & {
 
 /**
  * A sheet session exporting `stored` as it is now, in the translator's language at the time of
- * the run. The estimate takes each stored display picture's byte count from its Blob, which
- * storage knows without reading the bytes.
+ * the run. The estimate takes each stored display picture's and song's byte count from its Blob,
+ * which storage knows without reading the bytes.
  */
 export function slideshowHtmlExport(
   device: HtmlExportDevice,
@@ -32,7 +32,7 @@ export function slideshowHtmlExport(
   const subject: HtmlExportSubject = {
     title: stored.title,
     durationMs: slideshowDurationMs(stored),
-    withMusic: stored.music !== undefined,
+    withMusic: stored.songs.length > 0,
     pictureCount: stored.pictures.length,
     picturesFromImmich: home === "server",
   };
@@ -45,7 +45,10 @@ export function slideshowHtmlExport(
           bytes: (await store.pictureBlob(id)).size,
         })),
       ),
-      stored.music === undefined ? 0 : store.musicBlob(stored.music.id).then((blob) => blob.size),
+      // Every song, also one the slideshow may not reach: an estimate errs on the large side.
+      Promise.all(stored.songs.map(async ({ id }) => (await store.musicBlob(id)).size)).then(
+        (sizes) => sizes.reduce((total, size) => total + size, 0),
+      ),
       // Loading the bundle here also fetches it before "Webseite erstellen".
       device.playerAsset.load(),
     ]);
@@ -58,7 +61,7 @@ export function slideshowHtmlExport(
         device.log(error);
         return NO_FOCUS_KNOWN.found;
       }),
-      storedMusicBeats(store, stored, (error) => device.log(error)),
+      storedSongBeats(store, stored, (error) => device.log(error)),
     ]);
     const words = pageWords(translator, subject);
     await exportPage({

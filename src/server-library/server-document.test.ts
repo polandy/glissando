@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { StoredMusic, StoredPicture, StoredSlideshow } from "../library/stored-slideshow";
+import { SEQUENCE_BETWEEN_SONGS } from "../library/own-music";
+import type { StoredPicture, StoredSlideshow } from "../library/stored-slideshow";
 import { DocumentFormatError } from "../glissando-file/document-values";
 import {
   readServerDocument,
@@ -11,6 +12,7 @@ import {
 const ASSET_A = "0b5a7c3e-1f2d-4e6a-9b8c-7d6e5f4a3b2c";
 const ASSET_B = "1c6b8d4f-2a3e-4f7b-8c9d-8e7f6a5b4c3d";
 const MUSIC_ID = "2d7c9e5a-3b4f-4a8c-9dae-9f8a7b6c5d4e";
+const MUSIC_ID_2 = "3e8daf6b-4c5a-4b9d-aebf-af9b8c7d6e5f";
 
 const slideshow: StoredSlideshow = {
   id: "server-show-1",
@@ -43,13 +45,15 @@ const slideshow: StoredSlideshow = {
   ],
   ownOrder: true,
   transition: "alternate",
-  music: {
-    id: MUSIC_ID,
-    fileName: "Walzer.m4a",
-    durationMs: 240000,
-    mimeType: "audio/mp4",
-    fadeInMs: 2000,
-  },
+  songs: [
+    {
+      id: MUSIC_ID,
+      fileName: "Walzer.m4a",
+      durationMs: 240000,
+      mimeType: "audio/mp4",
+      fadeInMs: 2000,
+    },
+  ],
   secondsPerPicture: 5,
 };
 
@@ -100,14 +104,26 @@ describe("serverDocumentFor", () => {
     });
   });
 
-  it("names the music by its musicId, the stored music's id", () => {
-    expect(document().slideshow.music).toEqual({
-      musicId: MUSIC_ID,
-      fileName: "Walzer.m4a",
-      durationMs: 240000,
-      mimeType: "audio/mp4",
-      fadeInMs: 2000,
-    });
+  it("names each song of the playlist by its musicId, the stored music's id", () => {
+    expect(document().slideshow.songs).toEqual([
+      {
+        musicId: MUSIC_ID,
+        fileName: "Walzer.m4a",
+        durationMs: 240000,
+        mimeType: "audio/mp4",
+        fadeInMs: 2000,
+      },
+    ]);
+  });
+
+  it("writes an empty playlist, not an absent one, for a slideshow without music", () => {
+    expect(serverDocumentFor({ ...slideshow, songs: [] }).slideshow.songs).toEqual([]);
+  });
+
+  it("carries betweenSongs only when the slideshow plays its songs one after another", () => {
+    const written = serverDocumentFor({ ...slideshow, betweenSongs: SEQUENCE_BETWEEN_SONGS });
+    expect(written.slideshow.betweenSongs).toBe("sequence");
+    expect(document().slideshow).not.toHaveProperty("betweenSongs");
   });
 
   it("leaves out a picture's file size, which a linked picture does not have", () => {
@@ -143,18 +159,19 @@ describe("readServerDocument", () => {
   });
 
   it("keeps the music's even picture changes through writing and reading", () => {
-    const music: StoredMusic = {
+    const song = {
       id: MUSIC_ID,
       fileName: "Walzer.m4a",
       durationMs: 240000,
       mimeType: "audio/mp4",
-      pictureChanges: "even",
     };
-    const even: StoredSlideshow = { ...slideshow, music };
+    const even: StoredSlideshow = { ...slideshow, songs: [{ ...song, pictureChanges: "even" }] };
     const written = serverDocumentFor(even);
 
-    expect(written.slideshow.music).toMatchObject({ pictureChanges: "even" });
-    expect(storedSlideshowFrom("server-show-1", readServerDocument(written)).music).toEqual(music);
+    expect(written.slideshow.songs[0]).toMatchObject({ pictureChanges: "even" });
+    expect(storedSlideshowFrom("server-show-1", readServerDocument(written)).songs).toEqual(
+      even.songs,
+    );
   });
 
   it("keeps the slideshow's own picture length through writing and reading", () => {
@@ -164,6 +181,15 @@ describe("readServerDocument", () => {
     expect(written.slideshow).toMatchObject({ pictureLength: "seconds" });
     expect(storedSlideshowFrom("server-show-1", readServerDocument(written)).pictureLength).toBe(
       "seconds",
+    );
+  });
+
+  it("keeps betweenSongs through writing and reading", () => {
+    const sequence: StoredSlideshow = { ...slideshow, betweenSongs: SEQUENCE_BETWEEN_SONGS };
+    const written = serverDocumentFor(sequence);
+
+    expect(storedSlideshowFrom("server-show-1", readServerDocument(written)).betweenSongs).toBe(
+      "sequence",
     );
   });
 
@@ -191,16 +217,31 @@ describe("readServerDocument", () => {
     );
   });
 
-  it("refuses music without a musicId", () => {
-    const unnamed = without(document().slideshow.music ?? {}, "musicId");
-    expect(readFails(withSlideshow({ music: unnamed }))).toBe(
-      "slideshow.music.musicId: expected a non-empty string, got undefined",
+  it("refuses a song without a musicId", () => {
+    const [song] = document().slideshow.songs;
+    const unnamed = without(song ?? {}, "musicId");
+    expect(readFails(withSlideshow({ songs: [unnamed] }))).toBe(
+      "slideshow.songs[0].musicId: expected a non-empty string, got undefined",
     );
   });
 
-  it("refuses music named by a file", () => {
-    const music = { ...document().slideshow.music, file: "music/track.m4a" };
-    expect(readFails(withSlideshow({ music }))).toContain("slideshow.music.file: expected one of");
+  it("refuses a song named by a file", () => {
+    const [song] = document().slideshow.songs;
+    expect(readFails(withSlideshow({ songs: [{ ...song, file: "music/track-1.m4a" }] }))).toContain(
+      "slideshow.songs[0].file: expected one of",
+    );
+  });
+
+  it("refuses two songs with the same musicId, naming the second and the id", () => {
+    const [song] = document().slideshow.songs;
+    expect(readFails(withSlideshow({ songs: [song, song] }))).toBe(
+      `slideshow.songs[1].musicId: expected a music no other song has, got "${MUSIC_ID}"`,
+    );
+  });
+
+  it("refuses a document that carries both music and songs, as an unknown key", () => {
+    const [song] = document().slideshow.songs;
+    expect(readFails(withSlideshow({ music: song }))).toContain("slideshow.music");
   });
 
   it.each([
@@ -219,6 +260,28 @@ describe("readServerDocument", () => {
       "slideshow.pictures[0].durationMs: expected whole milliseconds from 2000 to 15000",
     );
   });
+
+  it("refuses a document from before the playlist, naming its single music as an unknown key", () => {
+    const written = document();
+    const [song] = written.slideshow.songs;
+    const legacy = JSON.parse(
+      JSON.stringify({
+        ...written,
+        slideshow: { ...written.slideshow, songs: undefined, music: song },
+      }),
+    );
+
+    expect(readFails(legacy)).toContain("slideshow.music");
+  });
+
+  it("refuses a document from before the playlist with no music, missing the required songs", () => {
+    const written = serverDocumentFor({ ...slideshow, songs: [] });
+    const legacy = JSON.parse(
+      JSON.stringify({ ...written, slideshow: { ...written.slideshow, songs: undefined } }),
+    );
+
+    expect(readFails(legacy)).toContain("slideshow.songs");
+  });
 });
 
 describe("storedSlideshowFrom", () => {
@@ -228,7 +291,21 @@ describe("storedSlideshowFrom", () => {
     expect(stored).toEqual(slideshow);
   });
 
-  it("gives the music the id of its musicId", () => {
-    expect(storedSlideshowFrom("server-show-1", document()).music?.id).toBe(MUSIC_ID);
+  it("gives each song the id of its musicId", () => {
+    expect(storedSlideshowFrom("server-show-1", document()).songs.map((song) => song.id)).toEqual([
+      MUSIC_ID,
+    ]);
+  });
+
+  it("gives several songs their own musicId, in play order", () => {
+    const withTwoSongs: StoredSlideshow = {
+      ...slideshow,
+      songs: slideshow.songs.flatMap((song) => [song, { ...song, id: MUSIC_ID_2 }]),
+    };
+    const written = serverDocumentFor(withTwoSongs);
+
+    const stored = storedSlideshowFrom("server-show-1", written);
+
+    expect(stored.songs.map((song) => song.id)).toEqual([MUSIC_ID, MUSIC_ID_2]);
   });
 });

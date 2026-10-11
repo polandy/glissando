@@ -16,7 +16,7 @@ const STORED: StoredSlideshow = {
     { id: "a", capturedAt: "2025-07-12T10:00:00Z", width: 3840, height: 2160, fileName: "a.jpg" },
     { id: "b", capturedAt: "2025-07-12T11:00:00Z", width: 1000, height: 800, fileName: "b.jpg" },
   ],
-  music: { id: "m", fileName: "m.mp3", durationMs: 60_000, mimeType: "audio/mpeg" },
+  songs: [{ id: "m", fileName: "m.mp3", durationMs: 60_000, mimeType: "audio/mpeg" }],
 };
 
 async function storeWithMedia(): Promise<MemoryLibraryStore> {
@@ -66,6 +66,34 @@ describe("slideshowHtmlExport", () => {
         small: estimatePageBytes(weights, "small"),
         "4k": estimatePageBytes(weights, "4k"),
       },
+    });
+  });
+
+  it("counts every song of the playlist in the estimate", async () => {
+    const store = await storeWithMedia();
+    await store.putMusic("n", new Blob(["n".repeat(200)]));
+    const second = { id: "n", fileName: "n.mp3", durationMs: 60_000, mimeType: "audio/mpeg" };
+    const sheet = slideshowHtmlExport(
+      fakeHtmlExportDevice(),
+      store,
+      { ...STORED, songs: [...STORED.songs, second] },
+      createTranslator("de"),
+      "device",
+    );
+
+    await sheet.open();
+
+    const weights = {
+      pictures: [
+        { width: 3840, height: 2160, bytes: 900 },
+        { width: 1000, height: 800, bytes: 300 },
+      ],
+      musicBytes: 700,
+      pageBytes: playerBundleBytes(FAKE_BUNDLE),
+    };
+    expect(sheet.state).toMatchObject({
+      kind: "choose",
+      estimates: { small: estimatePageBytes(weights, "small") },
     });
   });
 

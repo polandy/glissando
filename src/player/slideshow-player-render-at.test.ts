@@ -24,9 +24,9 @@ function slide(src: string, durationMs: number): Slide {
 }
 
 const SLIDESHOW: Slideshow = {
-  formatVersion: 2,
+  formatVersion: 3,
   title: "July 2025",
-  music: { src: "summer.mp3", startMs: 0, fadeInMs: 0, fadeOutMs: 0 },
+  music: [{ src: "summer.mp3", atMs: 0, startMs: 0, endMs: 600_000, fadeInMs: 0, fadeOutMs: 0 }],
   slides: [
     { ...slide("a.jpg", 4000), transitionToNext: { effect: "crossfade", durationMs: 1000 } },
     slide("b.jpg", 4000),
@@ -44,7 +44,7 @@ function setUp() {
     pictures,
     clock: new FakeClock(),
     frames,
-    music,
+    openMusic: () => music,
   });
   const events: string[] = [];
   for (const type of PLAYER_EVENTS) {

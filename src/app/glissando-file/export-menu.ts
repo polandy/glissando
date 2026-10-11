@@ -25,5 +25,8 @@ export function exportMenuState(
  * when this changes, since measuring reads every media record.
  */
 export function exportMediaKey(slideshow: StoredSlideshow): string {
-  return JSON.stringify([slideshow.pictures.map((picture) => picture.id), slideshow.music?.id]);
+  return JSON.stringify([
+    slideshow.pictures.map((picture) => picture.id),
+    slideshow.songs.map((song) => song.id),
+  ]);
 }

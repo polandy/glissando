@@ -17,6 +17,7 @@ const SHOW: StoredSlideshow = {
   pictures: [
     { id: "asset-1", capturedAt: "2025-07-01T10:00:00Z", width: 3, height: 2, fileName: "a" },
   ],
+  songs: [],
   secondsPerPicture: 5,
 };
 

@@ -1,7 +1,7 @@
 import { composeSlideshow, slideshowDurationMs } from "../../compose";
 import type { LibraryStore, StoredSlideshow } from "../../library/stored-slideshow";
 import { runVideoExport } from "../../video-export";
-import { storedMusicBeats } from "../beats/music-beats-known";
+import { storedSongBeats } from "../beats/music-beats-known";
 import { NO_FOCUS_KNOWN } from "../focus/pictures-focus";
 import type { ExportRun, VideoExportPorts } from "./export-sheet-state";
 import { VideoExportSession } from "./video-export-session";
@@ -14,7 +14,7 @@ export type VideoExportDevice = Omit<VideoExportPorts<ExportPreview>, "run">;
 
 /**
  * A sheet session exporting `stored` as it is now. The run reads the focus and beats found so
- * far, the music and each picture by media id, as the player does.
+ * far, each song and each picture by media id, as the player does.
  */
 export function slideshowVideoExport(
   device: VideoExportDevice,
@@ -22,14 +22,13 @@ export function slideshowVideoExport(
   stored: StoredSlideshow,
 ): VideoExportSession<ExportPreview> {
   const run = async (job: ExportRun<ExportPreview>) => {
-    const [focus, beats, musicFile] = await Promise.all([
+    const [focus, beats] = await Promise.all([
       store.pictureFocus(stored.pictures.map((picture) => picture.id)).catch((error: unknown) => {
         // Focus only aims the automatic motions: unread, they aim at the middle.
         device.log(error);
         return NO_FOCUS_KNOWN.found;
       }),
-      storedMusicBeats(store, stored, device.log),
-      stored.music === undefined ? null : store.musicBlob(stored.music.id),
+      storedSongBeats(store, stored, device.log),
     ]);
     // The export reads media by id, so the sources stay ids.
     const slideshow = composeSlideshow(
@@ -41,7 +40,7 @@ export function slideshowVideoExport(
     return runVideoExport({
       slideshow,
       openPicture: (id) => store.pictureBlob(id),
-      musicFile,
+      openMusic: (id) => store.musicBlob(id),
       preset: job.preset,
       audioCodec: job.audioCodec,
       target: job.target,
@@ -53,7 +52,7 @@ export function slideshowVideoExport(
     {
       title: stored.title,
       durationMs: slideshowDurationMs(stored),
-      withMusic: stored.music !== undefined,
+      withMusic: stored.songs.length > 0,
     },
     { ...device, run },
   );

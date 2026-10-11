@@ -7,10 +7,12 @@ import {
   InvalidOwnTimingError,
 } from "../library/own-timing";
 import {
+  checkBetweenSongs,
   checkMusicFadeMs,
   checkMusicTrim,
   checkPictureChanges,
   InvalidOwnMusicError,
+  type BetweenSongs,
 } from "../library/own-music";
 import {
   checkPictureLength,
@@ -45,8 +47,8 @@ import {
  * media; `version` is the manifest format version whose fields are read.
  */
 
-/** A slideshow's own settings, without its pictures and music. */
-export type SlideshowFields = Omit<ManifestSlideshow, "pictures" | "music">;
+/** A slideshow's own settings, without its pictures and its playlist. */
+export type SlideshowFields = Omit<ManifestSlideshow, "pictures" | "songs">;
 /** A picture's settings, without the keys that say where its bytes are. */
 export type PictureFields = Omit<
   ManifestPicture,
@@ -62,7 +64,8 @@ export function slideshowKeys(version: number): string[] {
     "secondsPerPicture",
     "ownOrder",
     "pictures",
-    "music",
+    "songs",
+    "betweenSongs",
     ...(version >= DEFAULT_TRANSITION_FROM_VERSION ? ["transition"] : []),
     ...(version >= PICTURE_LENGTH_FROM_VERSION ? ["pictureLength"] : []),
   ];
@@ -95,7 +98,27 @@ export function readSlideshowFields(show: JsonObject, path: string): SlideshowFi
     ...(show["transition"] === undefined
       ? {}
       : { transition: readOwnTiming(checkSlideshowTransition, show["transition"], path) }),
+    ...(show["betweenSongs"] === undefined
+      ? {}
+      : { betweenSongs: readBetweenSongs(show["betweenSongs"], path) }),
   };
+}
+
+function readBetweenSongs(value: unknown, path: string): BetweenSongs {
+  return readOwnMusic(path, () => checkBetweenSongs(value, path));
+}
+
+/** The slideshow's playlist, each song read by `readSong`; may be empty. */
+export function readSongs<Song>(
+  show: JsonObject,
+  path: string,
+  readSong: (value: unknown, path: string) => Song,
+): Song[] {
+  const songs = show["songs"];
+  if (!Array.isArray(songs)) {
+    throw new DocumentFormatError(`${path}.songs`, "an array of songs", songs);
+  }
+  return songs.map((song: unknown, index) => readSong(song, `${path}.songs[${index}]`));
 }
 
 /** The slideshow's pictures, at least one, each read by `readPicture`. */

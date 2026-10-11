@@ -14,6 +14,7 @@ function slideshow(ids: readonly string[]): StoredSlideshow {
       height: 100,
       fileName: `${id}.jpg`,
     })),
+    songs: [],
     secondsPerPicture: 5,
   };
 }

@@ -27,6 +27,7 @@ export function details(ids: readonly string[], overrides: Partial<SlideshowDeta
     title: "Sommer am See",
     coverUrl: PIXEL,
     durationSeconds: 60,
+    songCount: 0,
     musicTitle: null,
     musicSeconds: null,
     musicSummary: null,

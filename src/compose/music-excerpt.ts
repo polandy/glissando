@@ -1,5 +1,5 @@
 import { MUSIC_FADE_OFF_MS, MUSIC_FADE_SHORT_MS, type MusicTrim } from "../library/own-music";
-import type { StoredMusic, StoredSlideshow } from "../library/stored-slideshow";
+import type { StoredMusic } from "../library/stored-slideshow";
 
 /**
  * Where the music plays and how it fades, resolved from the stored music and the slideshow's
@@ -23,26 +23,10 @@ export function musicExcerpt(music: StoredMusic): MusicTrim {
   return music.trim ?? { startMs: 0, endMs: music.durationMs };
 }
 
-/** How long the excerpt is; what the slides share (ADR-0008). Absent without music. */
-export function musicExcerptMs(music: StoredMusic): number;
-export function musicExcerptMs(music: StoredMusic | undefined): number | undefined;
-export function musicExcerptMs(music: StoredMusic | undefined): number | undefined {
-  if (music === undefined) {
-    return undefined;
-  }
+/** How long the excerpt is: the song's part of the playlist (ADR-0008, ADR-0023). */
+export function musicExcerptMs(music: StoredMusic): number {
   const { startMs, endMs } = musicExcerpt(music);
   return endMs - startMs;
-}
-
-/**
- * The length the pictures without an own duration share: the music's excerpt while they fill it
- * (`StoredSlideshow.pictureLength` absent, ADR-0022). Absent without music, or when they last
- * their own seconds.
- */
-export function filledMusicMs(
-  slideshow: Pick<StoredSlideshow, "music" | "pictureLength">,
-): number | undefined {
-  return slideshow.pictureLength === undefined ? musicExcerptMs(slideshow.music) : undefined;
 }
 
 /** Where in the track the music stops being heard: a shorter slideshow ends it early. */
@@ -72,16 +56,19 @@ export function resolveMusicTiming(music: StoredMusic, slideshowMs: number): Mus
   const endMs = audibleEndMs(music, slideshowMs);
   const fadeInMs = music.fadeInMs ?? automaticFadeInMs(music);
   const fadeOutMs = music.fadeOutMs ?? automaticFadeOutMs(music, slideshowMs);
-  const heardMs = endMs - startMs;
+  return { startMs, endMs, ...scaledFades(endMs - startMs, fadeInMs, fadeOutMs) };
+}
+
+/** The fades, scaled down in proportion when together they outlast the `heardMs`. */
+export function scaledFades(
+  heardMs: number,
+  fadeInMs: number,
+  fadeOutMs: number,
+): Pick<MusicTiming, "fadeInMs" | "fadeOutMs"> {
   const fadesMs = fadeInMs + fadeOutMs;
   if (fadesMs <= heardMs) {
-    return { startMs, endMs, fadeInMs, fadeOutMs };
+    return { fadeInMs, fadeOutMs };
   }
   const scale = heardMs / fadesMs;
-  return {
-    startMs,
-    endMs,
-    fadeInMs: Math.floor(fadeInMs * scale),
-    fadeOutMs: Math.floor(fadeOutMs * scale),
-  };
+  return { fadeInMs: Math.floor(fadeInMs * scale), fadeOutMs: Math.floor(fadeOutMs * scale) };
 }

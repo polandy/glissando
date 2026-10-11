@@ -55,6 +55,15 @@
   --gl-danger-text: #c4473a;
   --gl-art-ink: #3a2a10;
 
+  /* A playlist's songs, in turn by their place: chips and lane blocks, with ink on them. */
+  --gl-song-1: #ff9f7f;
+  --gl-song-2: #6fcfb4;
+  --gl-song-3: #f5c94a;
+  --gl-song-4: #b9a6f2;
+  --gl-song-5: #f2786b;
+  --gl-song-6: #7fb8ff;
+  --gl-song-ink: #221d33;
+
   /* The brand palette of the logo and the start animation. */
   --gl-logo-peach: #ffb59a;
   --gl-logo-mint: #8fd9c4;

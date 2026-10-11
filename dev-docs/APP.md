@@ -184,8 +184,9 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
   own Ken Burns motion (mockup: https://polandy.github.io/glissando-assets/mockups/editor/) and
   its caption (mockup: https://polandy.github.io/glissando-assets/mockups/captions/), its own
   duration and transition into the next picture (mockup:
-  https://polandy.github.io/glissando-assets/mockups/slide-timing/, ADR-0008).
-  Breadcrumb "Library / title / Picture 3"; header right ‹ previous picture, "3 / 8" (mono, hidden
+  https://polandy.github.io/glissando-assets/mockups/slide-timing/, ADR-0008). Its times are the
+  player's: the automatic changes land on the beats of whichever song plays
+  (`beats/playlist-beats.ts`, ADR-0023). Breadcrumb "Library / title / Picture 3"; header right ‹ previous picture, "3 / 8" (mono, hidden
   up to 720 px), › next picture (looking disabled at the ends). Back (arrow or browser) returns to
   the slideshow screen with that picture selected. Desktop: a dark well with the whole picture
   left, a 340 px panel right; up to 720 px the well spans the width on top (as high as the
@@ -302,13 +303,41 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
 - **Music editor** (`music-editor/`, route `routes/MusicEditorRoute.svelte`; mockup:
   https://polandy.github.io/glissando-assets/mockups/music-trim/ and
   https://polandy.github.io/glissando-assets/mockups/beat-sync/ and
-  https://polandy.github.io/glissando-assets/mockups/beat-durations/, ADR-0009, ADR-0021,
-  ADR-0022): the music's excerpt, how long the pictures last, whether they change on its beats,
-  and its fades. Bar: back and "Library / title / Music". Desktop: a main column and a
-  340 px panel on the right; up to 720 px stacked. Every change is stored at once, with no undo
-  toast: "Whole track" and "Back to automatic" restore anything in one tap.
-  - **Main column**: a music tile, the file name and "3:24" (trimmed: "3:24 · trimmed to 2:18").
-    The waveform of the whole track (decoded once with Web Audio into 1000 peaks, drawn as a bar
+  https://polandy.github.io/glissando-assets/mockups/beat-durations/ and
+  https://polandy.github.io/glissando-assets/mockups/playlist/, ADR-0009, ADR-0021, ADR-0022,
+  ADR-0023): the playlist's songs, how long the pictures last and how one song hands over to the
+  next; for the selected song its excerpt, whether the pictures change on its beats, and its
+  fades. Bar: back and "Library / title / Music". Desktop: a main column and a 340 px panel on
+  the right; up to 720 px stacked. Every change is stored at once; only a removed song has an
+  undo toast ("Song removed"): "Whole track" and "Back to automatic" restore the rest in one
+  tap.
+  - **No music yet**: for a slideshow without songs (the panel's "Add music" opens it), a dashed
+    card with a music disc, "No music yet", "Add one song or several; they play one after
+    another and the pictures change on their beat." and the accent button "Add a song".
+  - **Songs** (`SongList.svelte`): a row per song in play order — a grip, its number on the
+    song's colour (`--gl-song-1` … `-6` in turn), the file name over "3:24" (trimmed "3:24 ·
+    trimmed to 2:18"), "from 0:57" where it starts in the slideshow, and × (removes it, with
+    the undo toast). A song starting after the slideshow's end is dimmed and reads "Not
+    reached"; it stays and plays once the slideshow grows. Tapping a row selects the song; the
+    first is selected on opening and when the selected one goes. The grip
+    (`song-drag.ts`, ADR-0019's pattern) drags the song onto another row, which a dashed accent
+    outline marks, or moves it up and down with the arrow keys while focused. Then "+ Add a
+    song", a dashed button picking one file or several (`song-intake.ts`): each is read as in
+    the import's music step (converted to FLAC where a target browser cannot play it,
+    ADR-0020), its audio stored where the slideshow lives (on this device claimed until the
+    playlist with it is stored; on the server uploaded), and appended in the order picked.
+    Until then it is a dashed row with its name ("Converting to FLAC · 42 %" while converting);
+    a file that cannot be used stays as a coral row "This file can't be used" until its ×.
+  - **Playlist lane** (`PlaylistLane.svelte`): "Playlist, 3 songs · 2:54" with "Crossfades
+    hatched" (or "One after another"), then the songs as numbered blocks in their colours from
+    where each starts, a crossfade hatched where two overlap (the next song's number after the
+    hatching), songs not reached faded, and a
+    coral mark "Slideshow ends" where the slideshow ends first. Below on the same scale
+    "Slideshow, 24 pictures · 2:00" with "Music fades out with the last picture", "Last
+    pictures in silence" or "Ends with the music": a mint bar with a tick per picture change,
+    lemon hatching where pictures play in silence; and a scale "0:00 … 2:54".
+  - **Selected song** (`SelectedSong.svelte`): "Song 2 · name" and its length, then the
+    waveform of the whole track (decoded once with Web Audio into 1000 peaks, drawn as a bar
     every 5 px), dimmed outside the excerpt; an accent line over it is the volume, ramping
     through the fades, and the bars inside a fade shrink with it. Two accent handles "Start"
     and "End" carry their time ("0:12,0"); dragging one, or grabbing the waveform anywhere (the
@@ -317,10 +346,11 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
     excerpt stays at least 5 s; a track shorter than that stays whole. While the pictures change
     on the beat, a tick per beat along the waveform's foot, every fourth taller. A time ruler
     below. Then the lane "Slideshow, 24 pictures" with
-    its length: a mint bar from the excerpt's start for as long as the slideshow plays, a tick
+    its length: a mint bar from the excerpt's start for as long as the slideshow plays this song
+    (none for a song not reached), a tick
     per picture change (on the beat, a change that falls between beats — e.g. the one after a picture with an
-    own duration — is a wider coral tick), lemon hatching past the excerpt's end when the pictures play on in
-    silence; when the slideshow ends earlier, the waveform is hatched from there to the
+    own duration — is a wider coral tick), lemon hatching past the last song's excerpt end when the pictures play on
+    in silence; when the slideshow ends earlier, the waveform is hatched from there to the
     excerpt's end. "Listen to the start" (the excerpt's first 8 s with the fade-in, "from
     0:12,0") and "Listen to the end" (the last 8 s before the music stops being heard, with the
     fade-out, "until 2:30,0") toggle to pause; a playhead runs over the waveform; grabbing a
@@ -336,10 +366,11 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
     Short (2 s), Long (5 s) as a radiogroup (arrows move the choice); the automatic choice is
     outlined dashed and explained: "Automatic: short, as the excerpt starts mid-track." / "off,
     as the track plays from its start" / "short, as the slideshow ends at 2:00" / "short, as the
-    excerpt stops before the track ends" / "off, as the track ends by itself". Any step makes it
-    own; "Back to automatic" follows.
+    excerpt stops before the track ends" / "off, as the track ends by itself"; in a crossfade 3 s,
+    as "the crossfade from the previous song" / "the crossfade into the next song". Any step
+    makes it own; "Back to automatic" follows.
   - **Picture changes** (`PictureChangesSection.svelte`, view `picture-changes-view.ts`; the
-    beats come from the background pass, `src/app/beats/track-beats.ts`): a transition icon and,
+    beats come from the background pass, `src/app/beats/playlist-beats.ts`, per song): a transition icon and,
     once a beat is found, the tempo "124 BPM" as its state. Until the pass has a result, a
     breathing accent dot and "Listening for the beat… Until then the pictures share the music
     evenly." (pictures lasting their seconds: "… Until then each picture stays exactly 5 s.").
@@ -353,9 +384,9 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
     evenly." (or "… Each picture stays exactly 5 s."), no choice. Only music this device cannot
     decode reads "Glissando could not listen to this music's beat. The pictures share it
     evenly." (or "… Each picture stays exactly 5 s."); a detection that failed otherwise
-    reads as still listening, as the next pass tries again. Opening the editor listens for the
-    track next (`BeatPass.listenFor`), so music kept since the app opened and a server
-    slideshow's music are listened to as well.
+    reads as still listening, as the next pass tries again. Opening the editor, and adding a song,
+    listens for each song next (`BeatPass.listenFor`), so music kept since the app opened and a
+    server slideshow's music are listened to as well.
   - **Picture times**: "23 pictures without their own duration share the excerpt: 5.7 s each.
     The slideshow ends with the music." (on the beat, where the shares vary: "about 5.7 s each"), or on lemon "The slideshow runs 0:14 longer than the
     music." with why, or with every picture timed "… The slideshow ends after 2:00; the music
@@ -364,8 +395,13 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
     music fades out there." (off the beat "stays 5 s."), or on lemon the slideshow running
     longer with "Each picture without its own duration stays 5 s; after the fade-out the last
     pictures play in silence. Shorter pictures, longer music or “Fill the music” fix that."
-    The panel's order: Excerpt, Picture length, Picture changes, Picture times, Fade in, Fade
-    out. The rules: `dev-docs/COMPOSITION.md`.
+  - **Between songs** (`BetweenSongsSection.svelte`, only with two songs or more): "Crossfade"
+    (the default; "The next song starts while the previous one fades out.") and "One after
+    another" ("The next song starts once the previous one has faded out.") as a radiogroup.
+    The panel (`MusicEditorPanel.svelte`) is in two groups: "Slideshow" with Picture length and
+    Between songs, then "Song 2" — for a song not reached first the lemon note "The slideshow
+    ends before this song starts; it plays once the slideshow grows." — with Excerpt, Picture
+    changes, Picture times, Fade in, Fade out. The rules: `dev-docs/COMPOSITION.md`.
 - **Export** (`glissando-file/export-job.ts`): runs in the background, one at a time; the app
   stays usable, also on other screens. While it runs, the menu item is `aria-disabled` and reads
   "Exporting … 34 %" (for another slideshow: "Export", subtitle "Once the running export is
@@ -441,28 +477,37 @@ new slideshow lives).
   it is kept without a focus (the on-device pass looks for one) and the error is logged. An Immich
   problem met on the way (e.g. a rejected key) is reported to `ImmichAvailability`, so the Immich
   box and the settings name it.
-- **Music** (optional): a drop zone with "Choose music" (`audio/*`, hint "MP3, M4A, FLAC, WAV,
-  Ogg, AIFF, WMA …"). The format is recognised from the file's first bytes
-  (`src/import/music-format.ts`). MP3, AAC, FLAC, Opus and PCM WAV are kept as they are. ALAC,
-  AIFF, CAF, AC-3/E-AC-3, WMA, AMR and Ogg Vorbis, which a target browser cannot decode, are
-  converted on the device to a FLAC copy, and only the copy is stored (ADR-0020). While it
-  converts, the card shows "Apple Lossless · converting on this device", a progress bar with
-  "Converting to FLAC" and the percentage, and why. Its ✕ cancels the conversion, and the primary
-  button is disabled as "Converting …". A converted track's card adds "Converted from … on this
-  device". A file that cannot be read or converted, or is copy-protected (an iTunes `drms`
-  track), replaces the drop zone with a coral notice "This file can't be used" naming the file,
-  with "Choose other music" and the format hint. Chosen music is a card (music icon, the picked
-  file's name, m:ss · format, a close button removes it, then the **Picture length** choice —
-  "About 5 s each" (the default) with its stepper, or "Fill the music" — and a strip of the
-  pictures' thumbnails over a thin accent bar of the music, both to one scale, washed out where
-  the music fades out after the slideshow; under it "0:00 · 24 × about 5 s · 0:45" (filling:
-  "24 × 8 s") and "The slideshow lasts 2:00; the music fades out there." / "The slideshow runs
-  0:30 longer than the music; its last pictures play in silence." / "The pictures share the
-  music; the slideshow ends with it." No waveform, as only the duration is probed. Without music
-  a card "Time per picture" with the seconds per picture (default 5 s). The row "n pictures | x s per picture | m:ss total" follows the composition
-  rules (`src/compose/`). "Pictures" goes back; "Create slideshow" (or "Create without
-  music") stores the music and then the slideshow record under the blocking overlay "Creating
-  slideshow …", opens the slideshow and shows the toast "Slideshow created — tap Play".
+- **Music** (optional): the intro "One song or several — they play one after another and the
+  pictures change on their beat. Without music each picture stays 5 s.", then a drop zone with
+  "Choose music" (`audio/*`, several at once; hint "One or more files · MP3, M4A, FLAC, WAV, Ogg,
+  AIFF, WMA …"). Picked or dropped files join `ImportChoices.songs`, a keyed list, after the
+  songs already in it, and are read one at a time in the order picked by
+  `import/music-pick.ts` (`readPickedMusic`, the music editor's too): the format is recognised
+  from the file's first bytes (`src/import/music-format.ts`); MP3, AAC, FLAC, Opus and PCM WAV are
+  kept as they are; ALAC, AIFF, CAF, AC-3/E-AC-3, WMA, AMR and Ogg Vorbis, which a target browser
+  cannot decode, are converted on the device to a FLAC copy, and only the copy is stored
+  (ADR-0020). Once a song is in, the drop zone gives way to the song list, the music editor's
+  (`SongList.svelte`, without selecting): per song a grip, its number in its colour, the picked
+  name, "1:00 · WAV" (a converted one adds "Converted from Apple Lossless on this device"), "from
+  0:57" where it starts in the slideshow or, dimmed, "Not reached", and × removing it (cancelling
+  its conversion). The grip drags the song onto another row or moves it with the arrow keys while
+  focused (ADR-0019's pattern). A song being read is a dashed row with its name ("Converting to
+  FLAC · 42 %" while converting); a file that cannot be read or converted, or is copy-protected
+  (an iTunes `drms` track), is a coral row "This file can't be used" until its ×. A dashed "+ Add
+  another song" follows the list. The songs are placed as the slideshow will play them, each
+  crossfading into the next (ADR-0023). With a song chosen, a panel holds the **Picture length**
+  choice — "About 5 s each" (the default) with its stepper, or "Fill the music" — and a strip of
+  the pictures' thumbnails over the songs as numbered blocks in their colours, both to one scale,
+  a song not reached dimmed; under it "24 pictures · 2:00" and "Music 2:54", and "The music fades
+  out with the last picture." (with a song not reached "…; the dimmed songs are not reached.") /
+  "The last pictures play in silence." / "The slideshow ends with the music." No waveform, as
+  only the duration is probed. Without a chosen song a card "Time per picture" with the seconds
+  per picture (default 5 s). The row "n pictures | x s per picture | m:ss total" follows the
+  composition rules (`src/compose/`). "Pictures" goes back; while a song is read the primary
+  button is disabled as "Converting …"; otherwise "Create slideshow" (or "Create without music")
+  stores every chosen song in the list's order and then the slideshow record under the blocking
+  overlay "Creating slideshow …", opens the slideshow and shows the toast "Slideshow created —
+  tap Play".
 
 ## Immich
 
@@ -559,8 +604,9 @@ over real timers.
   none is swallowed.
 - **Object URLs**: thumbnails and covers exist while their screen shows them; a screen left
   before its data arrived drops the late result (`routes/route-loading.ts`). The player reads
-  each display picture by media id only when it buffers it (`openPicture`), and the music when
-  it opens; the music's URL is revoked when it closes. The player shows the music's file name.
+  each display picture by media id only when it buffers it (`openPicture`), and every song when
+  it opens; the songs' URLs are revoked when it closes. The player shows the first song's file
+  name.
 - **Import flow** (`import/import-flow.ts`): the import session, the clean-up when an import
   ends and, after creating (also after opening a file), the search for the new pictures' focus
   and the persistence prompt.

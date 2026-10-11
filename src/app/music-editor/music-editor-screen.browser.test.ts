@@ -29,7 +29,7 @@ describe("MusicEditorScreen, the excerpt", () => {
   it("shows the whole track, its length, and says the slideshow uses all of it", () => {
     mountEditor();
 
-    expect(text(".head")).toBe("Sommerwind.mp3 3:24");
+    expect(text(".head")).toBe("Song 1 · Sommerwind.mp3 3:24");
     expect(text("#music-excerpt + .state")).toBe("Ganzer Titel");
     expect(text(".panel")).toContain("Die Diashow nutzt den ganzen Titel, 3:24.");
     expect(handle("Anfang").getAttribute("aria-valuetext")).toBe("0:00,0");
@@ -39,7 +39,7 @@ describe("MusicEditorScreen, the excerpt", () => {
   it("names a trimmed excerpt's length and offers the whole track back", () => {
     const { calls } = mountEditor(slideshowWith(TRIMMED));
 
-    expect(text(".head")).toBe("Sommerwind.mp3 3:24 · gekürzt auf 2:18");
+    expect(text(".head")).toBe("Song 1 · Sommerwind.mp3 3:24 · gekürzt auf 2:18");
     buttonNamed("Ganzer Titel").click();
 
     expect(calls.trims).toEqual([undefined]);
@@ -71,7 +71,7 @@ describe("MusicEditorScreen, the excerpt", () => {
     flushSync();
 
     expect(handle("Anfang").getAttribute("aria-valuetext")).toBe("0:30,0");
-    expect(text(".head")).toBe("Sommerwind.mp3 3:24 · gekürzt auf 2:00");
+    expect(text(".head")).toBe("Song 1 · Sommerwind.mp3 3:24 · gekürzt auf 2:00");
     expect(calls.trims).toEqual([]);
     window.dispatchEvent(new PointerEvent("pointerup", at(30_000)));
     expect(calls.trims).toEqual([{ startMs: 30_000, endMs: 150_000 }]);
