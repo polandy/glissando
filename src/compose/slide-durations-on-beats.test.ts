@@ -43,14 +43,33 @@ describe("slideDurationsMs on the music's beats", () => {
     expect(slideDurationsMs(automatic(2), 4000, 5, [1900])).toEqual([2000, 2000]);
   });
 
-  it("does not move a boundary next to a picture with an own duration, which stays exact", () => {
+  it("does not move the boundary after a picture with an own duration, which stays exact", () => {
     // The own 3000 ms picture comes first; the automatic ones share 10 000 ms, meeting at 8000.
     const pictures = [{ durationMs: 3000 }, {}, {}];
 
     expect(slideDurationsMs(pictures, 13_000, 5, [2800, 3200, 7900])).toEqual([3000, 4900, 5100]);
   });
 
-  it("does not move the boundary before a picture with an own duration either", () => {
+  it("moves the boundary ending an automatic slide onto the beat, so the own-duration picture after it starts there, and snaps the next automatic boundaries again", () => {
+    // Shares of 3334, 3000 (own), 3333 and 3333 end at 3334, 6334, 9667 and 13 000. The first
+    // boundary takes the beat at 3000, the own picture keeps its 3000 ms, the slide after it
+    // takes up the difference, and the boundary at 9667 takes the beat at 9500.
+    const pictures = [{}, { durationMs: 3000 }, {}, {}];
+
+    expect(slideDurationsMs(pictures, 13_000, 5, [3000, 9500])).toEqual([3000, 3000, 3500, 3500]);
+  });
+
+  it("keeps the slide after an own-duration picture at the minimum: it takes the nearest beat that does", () => {
+    // Shares of 3000 each, the third picture's own. The second boundary's nearest beat, 7100,
+    // would leave the last slide at 1900 ms, so it takes 4600.
+    const pictures = [{}, {}, { durationMs: 3000 }, {}];
+    const durations = slideDurationsMs(pictures, 12_000, 5, [2400, 4600, 7100]);
+
+    expect(durations).toEqual([2400, 2200, 3000, 4400]);
+    expect(Math.min(...durations)).toBeGreaterThanOrEqual(MIN_MS);
+  });
+
+  it("does not move the boundary before own-duration pictures that end the slideshow, which ends with the music", () => {
     const pictures = [{}, {}, { durationMs: 3000 }];
 
     expect(slideDurationsMs(pictures, 13_000, 5, [4900, 9800])).toEqual([4900, 5100, 3000]);

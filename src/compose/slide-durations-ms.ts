@@ -12,8 +12,8 @@ export type TimedPicture = Pick<StoredPicture, "durationMs">;
  * pictures show `secondsPerPicture` each; with music they share the rest of its excerpt evenly (the
  * remainder going to the first of them so the sum matches exactly). A share below
  * `MIN_SECONDS_PER_PICTURE` is rejected in favour of the minimum, so the slideshow outlasts a
- * excerpt too short for it. With the excerpt's beats, each boundary between two automatic slides
- * then moves to the nearest beat (`snapToBeats`). See ADR-0008, ADR-0009 and ADR-0021.
+ * excerpt too short for it. With the excerpt's beats, each boundary ending an automatic slide then
+ * moves to the nearest beat (`snapToBeats`). See ADR-0008, ADR-0009 and ADR-0021.
  */
 export function slideDurationsMs(
   pictures: readonly TimedPicture[],

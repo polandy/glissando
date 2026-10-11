@@ -59,6 +59,11 @@ export const deMusic = {
     other:
       "{count} Bilder ohne eigene Dauer teilen sich den Ausschnitt: je {share}. Die Diashow endet mit der Musik.",
   },
+  "music.noteSharedOnTheBeat": {
+    one: "Das Bild ohne eigene Dauer bekommt den Ausschnitt: {share}. Die Diashow endet mit der Musik.",
+    other:
+      "{count} Bilder ohne eigene Dauer teilen sich den Ausschnitt: je etwa {share}. Die Diashow endet mit der Musik.",
+  },
   "music.noteOutlasts": "Die Diashow läuft {over} länger als die Musik.",
   "music.noteOutlastsWhy": {
     one: "Das Bild ohne eigene Dauer bekommt das Minimum von {min}; nach der Ausblende laufen die letzten Bilder still. Ein längerer Ausschnitt behebt das.",
@@ -77,9 +82,9 @@ export const deMusic = {
   "music.onTheBeatHint":
     "Jeder automatische Wechsel landet auf einem Schlag der Musik; ein Übergang dauert ganze Schläge.",
   "music.ownDurationsOffBeat": {
-    one: "Bild {pictures} behält seine eigene Dauer, darum können die Wechsel davor und danach zwischen die Schläge fallen.",
+    one: "Bild {pictures} behält seine eigene Dauer, darum kann der Wechsel danach zwischen die Schläge fallen.",
     other:
-      "Die Bilder {pictures} behalten ihre eigene Dauer, darum können die Wechsel davor und danach zwischen die Schläge fallen.",
+      "Die Bilder {pictures} behalten ihre eigene Dauer, darum kann der Wechsel nach jedem zwischen die Schläge fallen.",
   },
   "music.evenlyHint": "Die Bilder teilen sich die Musik gleichmäßig, unabhängig von ihrem Takt.",
   "music.listeningForBeat":

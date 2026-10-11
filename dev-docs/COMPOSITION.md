@@ -18,10 +18,12 @@ I/O, no subject detection.
   picture has an own duration, the music plays no part in the timing. **On the beat**
   (ADR-0021): with the music's beats (`MusicBeats` from `src/beats/`, passed to
   `composeSlideshow`; `excerptBeatsMs` keeps those inside the excerpt, measured from its start)
-  each boundary between two automatic slides then moves to the nearest beat that leaves both
-  slides at least `MIN_SECONDS_PER_PICTURE` (`snapToBeats`), else stays. The excerpt's end and
-  both sides of a picture with an own duration never move, so own durations stay exact and the
-  total is unchanged. Without a clear beat, or with `StoredMusic.pictureChanges` `"even"`, the
+  each boundary that ends an automatic slide then moves to the nearest beat that leaves that
+  slide and the next automatic one at least `MIN_SECONDS_PER_PICTURE` (`snapToBeats`), else
+  stays. Pictures with an own duration between the two move along, so the first of them starts
+  on the beat and each keeps its duration exactly; the boundary after them is not snapped, and
+  the next automatic slide takes up the difference. The excerpt's end, and a boundary followed by
+  own durations only, never move, so the total is unchanged. Without a clear beat, or with `StoredMusic.pictureChanges` `"even"`, the
   even share stands.
 - **Ken Burns**: zoom alternates in/out by slide index between `MIN_KEN_BURNS_ZOOM` and 1.2; a
   gentle horizontal pan alternates direction with it. The motion swings around the picture's

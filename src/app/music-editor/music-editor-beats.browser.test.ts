@@ -75,12 +75,25 @@ describe("MusicEditorScreen, the picture changes", () => {
     expect(document.activeElement).toBe(radio("Gleichmäßig"));
   });
 
-  it("names the pictures with an own duration and marks the changes beside them off the beat", () => {
-    mountEditor(slideshowWith({}, { count: 6, durations: { 1: 7000, 4: 9000 } }), FOUND);
+  it("names the pictures with an own duration and marks only the change after each off the beat", () => {
+    mountEditor(slideshowWith({}, { count: 6, durations: { 1: 7300, 4: 9100 } }), FOUND);
 
-    expect(section().textContent).toContain("Die Bilder 2 und 5 behalten ihre eigene Dauer");
+    expect(section().textContent).toContain(
+      "Die Bilder 2 und 5 behalten ihre eigene Dauer, darum kann der Wechsel nach jedem zwischen die Schläge fallen.",
+    );
     expect(document.querySelectorAll(".runs i").length).toBe(5);
-    expect(document.querySelectorAll(".runs i.off-beat").length).toBeGreaterThan(0);
+    // Off the beat by 300 and 100 ms once the change before each lands on one.
+    expect(document.querySelectorAll(".runs i.off-beat").length).toBe(2);
+  });
+
+  it("names the shares as approximate while the pictures change on the beat, exact when even", () => {
+    const { set } = mountEditor(slideshowWith({}, { count: 4 }), FOUND);
+
+    expect(text(".note")).toContain("teilen sich den Ausschnitt: je etwa ");
+
+    set({ slideshow: slideshowWith(EVEN, { count: 4 }) });
+    expect(text(".note")).toContain("teilen sich den Ausschnitt: je ");
+    expect(text(".note")).not.toContain("etwa");
   });
 
   it("says when the music has no steady beat, offering no choice", () => {

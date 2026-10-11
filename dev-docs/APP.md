@@ -316,7 +316,7 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
     on the beat, a tick per beat along the waveform's foot, every fourth taller. A time ruler
     below. Then the lane "Slideshow, 24 pictures" with
     its length: a mint bar from the excerpt's start for as long as the slideshow plays, a tick
-    per picture change (on the beat, a change between beats — either side of a picture with an
+    per picture change (on the beat, a change between beats — the one after a picture with an
     own duration — is a wider coral tick), lemon hatching past the excerpt's end when the pictures play on in
     silence; when the slideshow ends earlier, the waveform is hatched from there to the
     excerpt's end. "Listen to the start" (the excerpt's first 8 s with the fade-in, "from
@@ -339,8 +339,8 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
     evenly." With a beat, "On the beat" (the default) and "Evenly" as a radiogroup (arrows move
     the choice), stored with the music at once; on the beat "Every automatic change lands on a
     beat of the music; a transition lasts whole beats.", with own durations followed by
-    "Pictures 5 and 12 keep their own duration, so the changes before and after each can fall
-    between beats."; evenly "The pictures share the music evenly, regardless of its beat."
+    "Pictures 5 and 12 keep their own duration, so the change after each can fall between
+    beats."; evenly "The pictures share the music evenly, regardless of its beat."
     Music without a clear beat: "No steady beat found in this music. The pictures share it
     evenly.", no choice. Music the pass could not decode: "Glissando could not listen to this
     music's beat. The pictures share it evenly." Opening the editor starts the pass, so music
@@ -348,7 +348,7 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
     music is not listened to (`serverRouteStore`): its pictures share it evenly and the section
     reads as for music that could not be decoded.
   - **Picture times**: "23 pictures without their own duration share the excerpt: 5.7 s each.
-    The slideshow ends with the music.", or on lemon "The slideshow runs 0:14 longer than the
+    The slideshow ends with the music." (on the beat, where the shares vary: "about 5.7 s each"), or on lemon "The slideshow runs 0:14 longer than the
     music." with why, or with every picture timed "… The slideshow ends after 2:00; the music
     fades out there." The rules: `dev-docs/COMPOSITION.md`.
 - **Export** (`glissando-file/export-job.ts`): runs in the background, one at a time; the app

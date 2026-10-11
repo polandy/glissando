@@ -33,8 +33,16 @@ export interface FadeView<Reason> {
 
 /** How the pictures' times meet the excerpt. */
 export type TimingNote =
-  /** The pictures without an own duration share the excerpt, `shareMs` each. */
-  | { readonly kind: "shared"; readonly automaticCount: number; readonly shareMs: number }
+  /**
+   * The pictures without an own duration share the excerpt, `shareMs` each on average; on the beat
+   * their shares vary around it.
+   */
+  | {
+      readonly kind: "shared";
+      readonly automaticCount: number;
+      readonly shareMs: number;
+      readonly onTheBeat: boolean;
+    }
   /** The slideshow plays on in silence for `overMs` after the music. */
   | { readonly kind: "outlasts"; readonly overMs: number; readonly automaticCount: number }
   /** Every picture is timed; the slideshow, and with it the music, ends at `endsAtMs`. */
@@ -111,7 +119,7 @@ export function musicEditorView(stored: StoredSlideshow, beats: BeatsStatus): Mu
       reason: fadeOutReason(music, slideshowMs),
     },
     timing: resolveMusicTiming(music, slideshowMs),
-    note: timingNote(stored, durationsMs, endMs - startMs),
+    note: timingNote(stored, durationsMs, endMs - startMs, beatsMs !== undefined),
   };
 }
 
@@ -147,6 +155,7 @@ function timingNote(
   stored: StoredSlideshow,
   durationsMs: readonly number[],
   excerptMs: number,
+  onTheBeat: boolean,
 ): TimingNote {
   const slideshowMs = sum(durationsMs);
   const automaticMs = durationsMs.filter(
@@ -163,7 +172,9 @@ function timingNote(
     return {
       kind: "shared",
       automaticCount: automaticMs.length,
-      shareMs: Math.min(...automaticMs),
+      // The mean, rounded down: evenly, the smallest share.
+      shareMs: Math.floor(sum(automaticMs) / automaticMs.length),
+      onTheBeat,
     };
   }
   return slideshowMs < excerptMs

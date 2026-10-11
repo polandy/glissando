@@ -82,12 +82,31 @@ describe("musicEditorView, the picture changes", () => {
     expect(view.slideChanges.every((change) => !change.offBeat)).toBe(true);
     expect(view.beatTicks).toEqual([]);
     expect(view.pictureChanges).toMatchObject({ kind: "beats", onTheBeat: false });
+    expect(view.note).toEqual({
+      kind: "shared",
+      automaticCount: 4,
+      shareMs: 5000,
+      onTheBeat: false,
+    });
   });
 
-  it("marks the changes either side of an own duration off the beat and names those pictures", () => {
+  it("notes the shares as varying while the pictures change on the beat", () => {
+    expect(musicEditorView(slideshow({}), FOUND).note).toEqual({
+      kind: "shared",
+      automaticCount: 4,
+      shareMs: 5000,
+      onTheBeat: true,
+    });
+  });
+
+  it("puts the change before an own duration on the beat, marks only the one after it off the beat, and names that picture", () => {
     const view = musicEditorView(slideshow({}, [undefined, 3000, undefined, undefined]), FOUND);
 
-    expect(view.slideChanges.map((change) => change.offBeat)).toEqual([true, true, false]);
+    expect(view.slideChanges).toEqual([
+      { atMs: 9700, offBeat: false },
+      { atMs: 12_700, offBeat: true },
+      { atMs: 18_500, offBeat: false },
+    ]);
     expect(view.pictureChanges).toMatchObject({ ownDurationNumbers: [2] });
   });
 
