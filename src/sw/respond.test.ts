@@ -113,6 +113,30 @@ describe("answersRequest", () => {
       answers: false,
     },
     {
+      what: "a GET of the public share route",
+      method: "GET",
+      url: `${ORIGIN}/app/api/share/AbCdEfGhIjKlMnOpQrStUv`,
+      answers: false,
+    },
+    {
+      what: "a GET of any other route under the app's api/",
+      method: "GET",
+      url: `${ORIGIN}/app/api/health`,
+      answers: false,
+    },
+    {
+      what: "a navigation to a shared slideshow's page",
+      method: "GET",
+      url: `${ORIGIN}/app/s/AbCdEfGhIjKlMnOpQrStUv`,
+      answers: false,
+    },
+    {
+      what: "a GET of a file whose name merely starts with s",
+      method: "GET",
+      url: `${ORIGIN}/app/sw.js`,
+      answers: true,
+    },
+    {
       what: "a navigation to the app's Immich route itself",
       method: "GET",
       url: `${ORIGIN}/app/immich/`,

@@ -149,7 +149,7 @@ export function createPageView(document: Document, options: PageViewOptions): Pa
 }
 
 /** One of the app's icons as inline SVG; decorative, the button carries the name. */
-function iconSvg(document: Document, name: IconName): SVGSVGElement {
+export function iconSvg(document: Document, name: IconName): SVGSVGElement {
   const definition: IconDefinition = ICONS[name];
   const svg = document.createElementNS(SVG_NAMESPACE, "svg");
   svg.setAttribute("viewBox", "0 0 24 24");

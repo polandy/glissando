@@ -38,10 +38,16 @@ export interface PageFrame {
   readonly captionFontDataUrl: string;
 }
 
-export function pageHead(frame: PageFrame): string {
-  const fontFace =
+/** The caption font as an `@font-face` rule from its `data:` URL. */
+export function captionFontFace(captionFontDataUrl: string): string {
+  return (
     `@font-face{font-family:"${CAPTION_FONT_NAME}";font-weight:${CAPTION_FONT_WEIGHTS};` +
-    `src:url(${frame.captionFontDataUrl}) format("woff2")}`;
+    `src:url(${captionFontDataUrl}) format("woff2")}`
+  );
+}
+
+export function pageHead(frame: PageFrame): string {
+  const fontFace = captionFontFace(frame.captionFontDataUrl);
   return [
     "<!doctype html>",
     `<html lang="${escapeHtml(frame.lang)}">`,
@@ -75,7 +81,7 @@ export function pageTail(playerScript: string): string {
   return `<script>${playerScript}</script>\n</body>\n</html>\n`;
 }
 
-function jsonBlock(id: string, value: unknown): string {
+export function jsonBlock(id: string, value: unknown): string {
   // `<` is still JSON, and no `<` means no `</script` or `<!--` can end the block early.
   const json = JSON.stringify(value).replaceAll("<", "\\u003c");
   return `<script type="${JSON_BLOCK_TYPE}" id="${id}">${json}</script>`;
@@ -89,10 +95,10 @@ const HTML_ESCAPES: Readonly<Record<string, string>> = {
   "'": "&#39;",
 };
 
-function escapeHtml(text: string): string {
+export function escapeHtml(text: string): string {
   return text.replace(/[&<>"']/g, (character) => HTML_ESCAPES[character] ?? character);
 }
 
-function escapeStyle(style: string): string {
+export function escapeStyle(style: string): string {
   return style.replace(/<\/(style)/gi, "<\\/$1");
 }

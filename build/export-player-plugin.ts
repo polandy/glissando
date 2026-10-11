@@ -33,20 +33,36 @@ export function exportPlayerPlugin(): Plugin {
       if (id !== RESOLVED_EXPORT_PLAYER_MODULE) {
         return null;
       }
-      const { script, style } = bundleParts(await buildExportPlayer(root));
-      const tokens = await this.fs.readFile(`${root}/${DESIGN_TOKENS}`, { encoding: "utf8" });
-      const fontBytes = await this.fs.readFile(`${root}/${CAPTION_FONT}`);
-      return playerBundleModule({
-        script,
-        style: `${tokenDeclarations(tokens, style)}\n${style}`,
-        fontBytes,
-      });
+      const readFile = (path: string) => this.fs.readFile(path);
+      return playerBundleModule(await buildPlayerPage(root, EXPORT_PLAYER_ENTRY, readFile));
     },
   };
 }
 
+/** A player page's parts: its script, its stylesheet with the design tokens, the caption font. */
+export interface PlayerPageParts {
+  readonly script: string;
+  readonly style: string;
+  readonly fontBytes: Uint8Array;
+}
+
+/**
+ * Builds the player page whose script starts at `entry` (`src/export-player/main.ts`, or the
+ * share page's) into one self-contained script and stylesheet.
+ */
+export async function buildPlayerPage(
+  root: string,
+  entry: string,
+  readFile: (path: string) => Promise<Uint8Array>,
+): Promise<PlayerPageParts> {
+  const { script, style } = bundleParts(await buildPlayerScript(root, entry));
+  const tokens = new TextDecoder().decode(await readFile(`${root}/${DESIGN_TOKENS}`));
+  const fontBytes = await readFile(`${root}/${CAPTION_FONT}`);
+  return { script, style: `${tokenDeclarations(tokens, style)}\n${style}`, fontBytes };
+}
+
 /** A separate build: the page's script must not share chunks with the app. */
-async function buildExportPlayer(root: string): Promise<BuiltPlayerFile[]> {
+async function buildPlayerScript(root: string, entry: string): Promise<BuiltPlayerFile[]> {
   const result = await build({
     configFile: false,
     root,
@@ -61,7 +77,7 @@ async function buildExportPlayer(root: string): Promise<BuiltPlayerFile[]> {
       modulePreload: false,
       reportCompressedSize: false,
       rolldownOptions: {
-        input: `${root}/${EXPORT_PLAYER_ENTRY}`,
+        input: `${root}/${entry}`,
         output: { format: "iife" },
       },
     },

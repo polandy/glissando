@@ -5,6 +5,7 @@ import { enTiming } from "./catalogue-en-timing";
 import { enTransitions } from "./catalogue-en-transitions";
 import { enImmich } from "./catalogue-en-immich";
 import { enHtml } from "./catalogue-en-html";
+import { enSharePage } from "./catalogue-en-share-page";
 import { enVideo } from "./catalogue-en-video";
 import { enServer } from "./catalogue-en-server";
 import { enShare } from "./catalogue-en-share";
@@ -295,6 +296,7 @@ export const en: Catalogue = {
   ...enMusic,
   ...enVideo,
   ...enHtml,
+  ...enSharePage,
   ...enServer,
   ...enShare,
   ...enPlaylist,
