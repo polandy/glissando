@@ -3,17 +3,13 @@
   import { MediaQuery } from "svelte/reactivity";
   import { SlideshowNotFoundError, type StoredSlideshow } from "../../library/stored-slideshow";
   import type { BeatPass } from "../../library/beat-pass";
-  import type { FocusPass, FocusPassState } from "../../library/focus-pass";
-  import type { PictureFocus } from "../../library/picture-focus";
+  import type { FocusPass } from "../../library/focus-pass";
   import type { SlideshowEditor } from "../editing/slideshow-editor";
   import { createScreenEditor } from "./screen-editor";
   import { slideshowStorage, type SlideshowHome } from "./slideshow-storage";
   import type { RouteStore } from "./slideshow-home";
   import type { StorageAction } from "../screens/view-models";
-  import { NO_FOCUS_KNOWN, picturesFocus } from "../focus/pictures-focus";
   import type { ExportProgress } from "../glissando-file/export-job";
-  import { exportMenuState } from "../glissando-file/export-menu";
-  import { ExportSize } from "../glissando-file/export-size.svelte";
   import { getTranslator } from "../i18n/context";
   import { ScreenThumbnails } from "./screen-thumbnails.svelte";
   import SlideshowScreen from "../screens/SlideshowScreen.svelte";
@@ -33,11 +29,10 @@
     soleSelection,
     type StripSelection,
   } from "../screens/slideshow/strip-selection";
-  import {
-    slideshowVideoExport,
-    type VideoExportDevice,
-  } from "../video-export/slideshow-video-export";
-  import { slideshowHtmlExport, type HtmlExportDevice } from "../html-export/slideshow-html-export";
+  import type { VideoExportDevice } from "../video-export/slideshow-video-export";
+  import type { HtmlExportDevice } from "../html-export/slideshow-html-export";
+  import { ScreenExports } from "./screen-exports.svelte";
+  import { ScreenFocus } from "./screen-focus.svelte";
 
   let {
     store,
@@ -128,12 +123,6 @@
   let stored = $state.raw<StoredSlideshow | null>(null);
   let editor = $state.raw<SlideshowEditor | null>(null);
   let saving = $state(false);
-  /** As stored when the slideshow was opened; the pass's state adds what it found since. */
-  let storedFocus = $state.raw<ReadonlyMap<string, PictureFocus>>(NO_FOCUS_KNOWN.found);
-  // The pass is fixed for the screen's lifetime.
-  // svelte-ignore state_referenced_locally
-  let passState = $state.raw<FocusPassState>(focusPass.state);
-  const focus = $derived(picturesFocus(storedFocus, passState));
   /** The selection survives the picture editor: back there, the edited picture is selected. */
   let selection = $state<StripSelection>(NO_SELECTION);
   $effect(() => {
@@ -150,15 +139,28 @@
   );
 
   const left = new AbortController();
+  // The pass, the store and the export ports are fixed for the screen's lifetime.
   // svelte-ignore state_referenced_locally
-  const exportSize = new ExportSize(store, onError, left.signal);
+  const screenFocus = new ScreenFocus(focusPass, store, onError, left.signal);
+  const focus = $derived(screenFocus.current);
+  // svelte-ignore state_referenced_locally
+  const exports = new ScreenExports({
+    store,
+    home,
+    videoExport,
+    htmlExport,
+    translator,
+    shown: () => stored,
+    onError,
+    left: left.signal,
+  });
 
   onMount(() => {
-    const stopFocus = focusPass.subscribe((next) => (passState = next));
+    const stopFocus = screenFocus.follow();
     loadSlideshowScreen(store, slideshowId, thumbnails.urls, left.signal).then(
       (loaded) => {
         if (loaded !== null) {
-          loadStoredFocus(loaded.stored);
+          screenFocus.load(loaded.stored);
           stored = loaded.stored;
           editor = createEditor(loaded.stored);
           editor.subscribe((edited) => (stored = edited));
@@ -181,16 +183,6 @@
     thumbnails.dispose();
   });
 
-  /**
-   * Edits never add pictures (adding has its own screen, which reopens this one), so the focus of
-   * those opened with is all the screen needs.
-   */
-  function loadStoredFocus(opened: StoredSlideshow): void {
-    store.pictureFocus(opened.pictures.map((picture) => picture.id)).then((read) => {
-      if (!left.signal.aborted) storedFocus = read;
-    }, onError);
-  }
-
   function createEditor(initial: StoredSlideshow): SlideshowEditor {
     const focusOf = (pictureId: string) => focus.found.get(pictureId);
     const ports = { store, focusOf, toaster, newId, now, onError, onGone };
@@ -204,20 +196,6 @@
     if (action === "removeMissing") for (const id of thumbnails.missing) editor?.remove(id);
     else confirmingCopy = action;
   }
-
-  function measureExport(): void {
-    // A server slideshow's size is not known before its pictures are downloaded.
-    if (stored !== null && home === "device") exportSize.measure(stored);
-  }
-
-  /** The slideshow an export of the screen starts from; the screen shows only once it loaded. */
-  function loadedForExport(): StoredSlideshow {
-    if (stored === null) throw new Error("an export needs the slideshow loaded first");
-    return stored;
-  }
-  const newVideoExport = () => slideshowVideoExport(videoExport, store, loadedForExport());
-  const newHtmlExport = () =>
-    slideshowHtmlExport(htmlExport, store, loadedForExport(), translator, home);
 
   function deleteSlideshow(): void {
     deleteShownSlideshow(store, slideshowId, editor).then(onDeleted, onError);
@@ -285,11 +263,11 @@
     previewPorts={{ clock: performanceClock, frames: animationFrames }}
     reducedMotion={reducedMotion.current}
     onDelete={deleteSlideshow}
-    exportState={exportMenuState(exportProgress, slideshowId, exportSize.bytes)}
+    exportState={exports.menuState(exportProgress, slideshowId)}
     {onExport}
-    onMenuOpened={measureExport}
-    {newVideoExport}
-    {newHtmlExport}
+    onMenuOpened={exports.measure}
+    newVideoExport={exports.newVideoExport}
+    newHtmlExport={exports.newHtmlExport}
     mousePointer={mousePointer.current}
     {saving}
     {storage}
