@@ -122,7 +122,7 @@ describe("exportPage", () => {
 
     const slideshow = parseSlideshow(JSON.parse(block(sink.text, "slideshow") ?? "null"));
     expect(slideshow.slides.map((slide) => slide.image.src)).toEqual(["p0", "p1", "p2"]);
-    expect(slideshow.music?.src).toBe("music");
+    expect(slideshow.music?.[0]?.src).toBe("music");
     expect(sink.text).toContain('id="music" data-type="audio/mpeg"');
     expect(decoded(sink.text, "music")).toBe("bytes of m1");
   });

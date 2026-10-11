@@ -1,17 +1,17 @@
 import { isMusicHeardAt, musicGainAt, musicTrackSeconds } from "./music-gain";
 import type { MusicPlayback } from "./ports";
-import type { Music } from "./slideshow";
+import type { MusicTrack } from "./slideshow";
 
 /**
  * Plays the music's excerpt along slideshow time: from its start, at the volume of its fade
  * envelope, and not at all once it is no longer heard. See ADR-0009.
  */
 export class TrimmedMusic {
-  readonly #music: Music;
+  readonly #music: MusicTrack;
   readonly #playback: MusicPlayback;
   #sounding = false;
 
-  constructor(music: Music, playback: MusicPlayback) {
+  constructor(music: MusicTrack, playback: MusicPlayback) {
     this.#music = music;
     this.#playback = playback;
   }

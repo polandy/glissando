@@ -53,12 +53,13 @@ async function startPage(): Promise<void> {
   if (view.state === "loading") view.showState("start");
 }
 
-/** The music becomes one `blob:` URL for the page's lifetime. */
+/** The page's one embedded song, its first track, becomes a `blob:` URL for the page's lifetime. */
 function withMusicUrl(slideshow: Slideshow, music: Blob | null): Slideshow {
-  if (slideshow.music === undefined || music === null) {
+  const firstTrack = slideshow.music?.[0];
+  if (firstTrack === undefined || music === null) {
     return slideshow;
   }
-  return { ...slideshow, music: { ...slideshow.music, src: URL.createObjectURL(music) } };
+  return { ...slideshow, music: [{ ...firstTrack, src: URL.createObjectURL(music) }] };
 }
 
 function wire(view: PageView, player: BrowserPlayer, music: MutableMusicOutput): void {

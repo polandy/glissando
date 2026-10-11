@@ -84,9 +84,9 @@ function slide(src: string, caption?: string): Slide {
 }
 
 const SLIDESHOW: Slideshow = {
-  formatVersion: 2,
+  formatVersion: 3,
   title: "Generated",
-  music: { src: "tone", startMs: 500, fadeInMs: 500, fadeOutMs: 0 },
+  music: [{ src: "tone", atMs: 0, startMs: 500, fadeInMs: 500, fadeOutMs: 0 }],
   slides: [
     { ...slide("first", "A caption"), transitionToNext: { effect: "crossfade", durationMs: 500 } },
     slide("second"),

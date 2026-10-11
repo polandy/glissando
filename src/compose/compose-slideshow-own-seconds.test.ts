@@ -53,7 +53,9 @@ describe("composeSlideshow when the pictures last their own seconds with music",
   it("fades a longer song out as the slideshow ends", () => {
     const { music } = composeSlideshow(OWN_SECONDS, sources, NO_FOCUS, NO_BEATS);
 
-    expect(music).toMatchObject({ startMs: 0, endMs: 20_000, fadeOutMs: AUTOMATIC_MUSIC_FADE_MS });
+    expect(music).toMatchObject([
+      { atMs: 0, startMs: 0, endMs: 20_000, fadeOutMs: AUTOMATIC_MUSIC_FADE_MS },
+    ]);
   });
 
   it("fills the music when the slideshow has no picture length of its own", () => {

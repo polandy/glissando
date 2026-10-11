@@ -35,7 +35,7 @@ const SILENT_SLIDESHOW: Slideshow = {
 
 const SLIDESHOW: Slideshow = {
   ...SILENT_SLIDESHOW,
-  music: { src: "music", startMs: 0, endMs: 4000, fadeInMs: 0, fadeOutMs: 0 },
+  music: [{ src: "music", atMs: 0, startMs: 0, endMs: 4000, fadeInMs: 0, fadeOutMs: 0 }],
 };
 
 function page(blocks: Partial<Record<string, PageBlock>>): (id: string) => PageBlock | null {

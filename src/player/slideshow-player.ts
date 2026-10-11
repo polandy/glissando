@@ -34,10 +34,11 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
     super();
     this.#timeline = createTimeline(slideshow.slides);
     this.#deps = dependencies;
+    const firstTrack = slideshow.music?.[0];
     this.#music =
-      slideshow.music === undefined || dependencies.music === undefined
+      firstTrack === undefined || dependencies.music === undefined
         ? null
-        : new TrimmedMusic(slideshow.music, dependencies.music);
+        : new TrimmedMusic(firstTrack, dependencies.music);
     this.#captionInset = new CaptionInset({
       clock: dependencies.clock,
       frames: dependencies.frames,

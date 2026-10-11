@@ -95,7 +95,7 @@ async function prepare(
   let writable: WritableStream | null = null;
   let muxer: Mp4Muxer | null = null;
   try {
-    const envelope = slideshow.music;
+    const envelope = slideshow.music?.[0];
     const [music] = await Promise.all([
       envelope === undefined || musicFile === null
         ? null

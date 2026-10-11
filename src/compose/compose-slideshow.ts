@@ -72,10 +72,13 @@ export function composeSlideshow(
   return {
     formatVersion: SLIDESHOW_FORMAT_VERSION,
     title: stored.title,
-    music: {
-      src: sources.music(stored.music.id),
-      ...resolveMusicTiming(stored.music, slideshowMs),
-    },
+    music: [
+      {
+        src: sources.music(stored.music.id),
+        atMs: 0,
+        ...resolveMusicTiming(stored.music, slideshowMs),
+      },
+    ],
     slides,
   };
 }
