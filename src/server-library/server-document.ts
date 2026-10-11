@@ -23,7 +23,7 @@ import {
 export const SERVER_DOCUMENT_FORMAT_ID = "glissando-server";
 export const SERVER_DOCUMENT_FORMAT_VERSION = 1;
 /** The manifest format version whose slideshow fields a server document carries. */
-const MANIFEST_FIELDS_VERSION = 7;
+const MANIFEST_FIELDS_VERSION = 8;
 
 export interface ServerPicture extends PictureFields {
   readonly immichAssetId: string;

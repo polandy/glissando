@@ -21,18 +21,18 @@ waltz, drums accelerating from 100 to 112 BPM, 124 BPM drums with a 10 s drumles
 beatless ambient pad. Scores are the F-measure of the beats found against the true ones (±70 ms);
 times are Chromium on a desktop, then with 6× CPU throttling as a stand-in for a phone.
 
-| Track             | Own detector     | web-audio-beat-detector | music-tempo      | realtime-bpm-analyzer |
-| ----------------- | ---------------- | ----------------------- | ---------------- | --------------------- |
-| click 120         | 120, F 0.99      | error: no beats         | 120, F 1.00      | none                  |
-| drums 96          | 96, F 0.99       | 96, F 0.99              | 192, F 0.67      | 96                    |
-| syncopated 140    | 140, F 0.99      | 140, F 0.99             | 140, F 1.00      | 93                    |
-| ballad 72         | 72, F 1.00       | 144, F 0.66             | 72, F 1.00       | 144                   |
-| noisy drums 110   | 110, F 0.99      | 110, F 0.99             | 110, F 0.99      | 110                   |
-| waltz 90          | 90, F 0.99       | 120, F 0.29             | 90, F 1.00       | 120                   |
-| 100 → 112 BPM     | 107, F 0.99      | 110, F 0.46             | 107, F 1.00      | 103                   |
-| break 124         | 124, F 0.99      | 124, F 0.99             | error: no beats  | 124                   |
-| ambient, no beat  | "no clear beat"  | 114                     | 180              | 114                   |
-| 3 min, desktop/6× | 0.28 s / 1.6 s   | 0.10 s (worker)         | 0.9 s / 6.0 s    | 0.08 s / 0.17 s       |
+| Track             | Own detector    | web-audio-beat-detector | music-tempo     | realtime-bpm-analyzer |
+| ----------------- | --------------- | ----------------------- | --------------- | --------------------- |
+| click 120         | 120, F 0.99     | error: no beats         | 120, F 1.00     | none                  |
+| drums 96          | 96, F 0.99      | 96, F 0.99              | 192, F 0.67     | 96                    |
+| syncopated 140    | 140, F 0.99     | 140, F 0.99             | 140, F 1.00     | 93                    |
+| ballad 72         | 72, F 1.00      | 144, F 0.66             | 72, F 1.00      | 144                   |
+| noisy drums 110   | 110, F 0.99     | 110, F 0.99             | 110, F 0.99     | 110                   |
+| waltz 90          | 90, F 0.99      | 120, F 0.29             | 90, F 1.00      | 120                   |
+| 100 → 112 BPM     | 107, F 0.99     | 110, F 0.46             | 107, F 1.00     | 103                   |
+| break 124         | 124, F 0.99     | 124, F 0.99             | error: no beats | 124                   |
+| ambient, no beat  | "no clear beat" | 114                     | 180             | 114                   |
+| 3 min, desktop/6× | 0.28 s / 1.6 s  | 0.10 s (worker)         | 0.9 s / 6.0 s   | 0.08 s / 0.17 s       |
 
 The own detector's beats sit within ±6 ms of the true ones once its constant 10 ms lag is taken
 off; its pulse clarity is 4.3 to 38 on the tracks with a beat and 1.1 on the ambient pad.

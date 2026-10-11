@@ -6,7 +6,12 @@ import {
   checkTransitionChoice,
   InvalidOwnTimingError,
 } from "../library/own-timing";
-import { checkMusicFadeMs, checkMusicTrim, InvalidOwnMusicError } from "../library/own-music";
+import {
+  checkMusicFadeMs,
+  checkMusicTrim,
+  checkPictureChanges,
+  InvalidOwnMusicError,
+} from "../library/own-music";
 import { MAX_SECONDS_PER_PICTURE, MIN_SECONDS_PER_PICTURE } from "../library/stored-slideshow";
 import {
   CAPTION_FROM_VERSION,
@@ -14,6 +19,7 @@ import {
   MUSIC_TRIM_FROM_VERSION,
   OWN_KEN_BURNS_FROM_VERSION,
   OWN_TIMING_FROM_VERSION,
+  PICTURE_CHANGES_FROM_VERSION,
   type ManifestMusic,
   type ManifestPicture,
   type ManifestSlideshow,
@@ -132,6 +138,7 @@ export function musicKeys(version: number): string[] {
     "durationMs",
     "mimeType",
     ...(version >= MUSIC_TRIM_FROM_VERSION ? ["trim", "fadeInMs", "fadeOutMs"] : []),
+    ...(version >= PICTURE_CHANGES_FROM_VERSION ? ["pictureChanges"] : []),
   ];
 }
 
@@ -144,7 +151,7 @@ export function readMusicFields(music: JsonObject, path: string): MusicFields {
       durationMs,
     );
   }
-  const { trim, fadeInMs, fadeOutMs } = music;
+  const { trim, fadeInMs, fadeOutMs, pictureChanges } = music;
   return {
     fileName: readText(music["fileName"], `${path}.fileName`),
     durationMs,
@@ -155,6 +162,9 @@ export function readMusicFields(music: JsonObject, path: string): MusicFields {
       ...(fadeOutMs === undefined
         ? {}
         : { fadeOutMs: checkMusicFadeMs(fadeOutMs, "fadeOutMs", path) }),
+      ...(pictureChanges === undefined
+        ? {}
+        : { pictureChanges: checkPictureChanges(pictureChanges, path) }),
     })),
   };
 }

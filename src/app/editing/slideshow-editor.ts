@@ -9,11 +9,9 @@ import {
   removePicture,
   renameSlideshow,
   restorePictures,
-  setMusicFadeIn,
-  setMusicFadeOut,
-  setMusicTrim,
   setPictureCaption,
 } from "../../library/slideshow-edits";
+import { setMusicFadeIn, setMusicFadeOut, setMusicTrim } from "../../library/slideshow-edits-music";
 import type { StoredSlideshow } from "../../library/stored-slideshow";
 import { EditSaver } from "./edit-saver";
 import { EditorUndos } from "./editor-undos";

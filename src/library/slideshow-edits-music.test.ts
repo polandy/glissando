@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { InvalidOwnMusicError } from "./own-music";
-import { setMusicFadeIn, setMusicFadeOut, setMusicTrim } from "./slideshow-edits";
+import { EVEN_PICTURE_CHANGES, InvalidOwnMusicError } from "./own-music";
+import {
+  setMusicFadeIn,
+  setMusicFadeOut,
+  setMusicPictureChanges,
+  setMusicTrim,
+} from "./slideshow-edits-music";
 import type { StoredMusic, StoredSlideshow } from "./stored-slideshow";
 
 const MUSIC: StoredMusic = {
@@ -81,5 +86,26 @@ describe("setMusicFadeIn and setMusicFadeOut", () => {
   it("refuse a fade off the half-second grid", () => {
     expect(() => setMusicFadeIn(slideshow(), 1200)).toThrow("fadeInMs");
     expect(() => setMusicFadeOut(slideshow(), 1200)).toThrow("fadeOutMs");
+  });
+});
+
+describe("setMusicPictureChanges", () => {
+  it("stores even picture changes, which ignore the beats", () => {
+    expect(setMusicPictureChanges(slideshow(), EVEN_PICTURE_CHANGES).music?.pictureChanges).toBe(
+      "even",
+    );
+  });
+
+  it("on the beat makes them automatic again: the field is gone", () => {
+    const even = setMusicPictureChanges(slideshow(), EVEN_PICTURE_CHANGES);
+
+    expect(setMusicPictureChanges(even, undefined).music).toEqual(MUSIC);
+  });
+
+  it("refuses a value that is not a choice, naming the field", () => {
+    const unknownChoice = "sometimes" as typeof EVEN_PICTURE_CHANGES;
+
+    expect(() => setMusicPictureChanges(slideshow(), unknownChoice)).toThrow(InvalidOwnMusicError);
+    expect(() => setMusicPictureChanges(slideshow(), unknownChoice)).toThrow("pictureChanges");
   });
 });

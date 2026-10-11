@@ -1,8 +1,9 @@
 import { MILLISECONDS_PER_SECOND } from "../player/slideshow";
 
 /**
- * The music's own excerpt and fades, set in the music editor. Absent fields mean the whole track
- * and automatic fades; the music file itself is never changed. See ADR-0009.
+ * The music's own excerpt, fades and picture changes, set in the music editor. Absent fields mean
+ * the whole track, automatic fades and picture changes on the beat; the music file itself is
+ * never changed. See ADR-0009 and ADR-0021.
  */
 
 /** The part of the track that plays, in whole ms of the track. */
@@ -26,8 +27,12 @@ export const MUSIC_FADE_CHOICES_MS = [
 export const MAX_MUSIC_FADE_MS = 10 * MILLISECONDS_PER_SECOND;
 export const MUSIC_FADE_STEP_MS = MILLISECONDS_PER_SECOND / 2;
 
+/** The pictures change evenly, ignoring the beats; absent: on the beat when one was found. */
+export const EVEN_PICTURE_CHANGES = "even";
+export type PictureChanges = typeof EVEN_PICTURE_CHANGES;
+
 /** The music's fields this module checks. */
-export type OwnMusicField = "trim" | "fadeInMs" | "fadeOutMs";
+export type OwnMusicField = "trim" | "fadeInMs" | "fadeOutMs" | "pictureChanges";
 
 const TRIM_KEYS: readonly string[] = ["startMs", "endMs"];
 
@@ -69,7 +74,7 @@ export function checkMusicTrim(value: unknown, durationMs: number, where: string
 /** `value` as an own fade; throws `InvalidOwnMusicError` naming `field` and `where`. */
 export function checkMusicFadeMs(
   value: unknown,
-  field: Exclude<OwnMusicField, "trim">,
+  field: Extract<OwnMusicField, "fadeInMs" | "fadeOutMs">,
   where: string,
 ): number {
   if (
@@ -82,6 +87,19 @@ export function checkMusicFadeMs(
       where,
       field,
       `whole milliseconds from ${MUSIC_FADE_OFF_MS} to ${MAX_MUSIC_FADE_MS} in steps of ${MUSIC_FADE_STEP_MS}`,
+      value,
+    );
+  }
+  return value;
+}
+
+/** `value` as an own choice of picture changes; throws `InvalidOwnMusicError` naming `where`. */
+export function checkPictureChanges(value: unknown, where: string): PictureChanges {
+  if (value !== EVEN_PICTURE_CHANGES) {
+    throw new InvalidOwnMusicError(
+      where,
+      "pictureChanges",
+      JSON.stringify(EVEN_PICTURE_CHANGES),
       value,
     );
   }

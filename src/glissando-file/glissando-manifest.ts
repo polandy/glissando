@@ -1,5 +1,5 @@
 import type { OwnKenBurns } from "../library/own-ken-burns";
-import type { MusicTrim } from "../library/own-music";
+import type { MusicTrim, PictureChanges } from "../library/own-music";
 import type { SlideshowTransition, TransitionChoice } from "../library/own-timing";
 import type { StoredSlideshow } from "../library/stored-slideshow";
 
@@ -13,10 +13,10 @@ export const GLISSANDO_FORMAT_ID = "glissando";
  * Version 2 added a picture's own Ken Burns motion (ADR-0006), version 3 its caption, version 4
  * its own duration and transition (ADR-0008), version 5 the music's excerpt and fades
  * (ADR-0009), version 6 the slideshow's default transition (ADR-0010), version 7 a picture's
- * origin, `immichAssetId` or `fileBytes` (ADR-0016); files of every older version are still
- * read.
+ * origin, `immichAssetId` or `fileBytes` (ADR-0016), version 8 the music's picture changes
+ * (ADR-0021); files of every older version are still read.
  */
-export const GLISSANDO_FORMAT_VERSION = 7;
+export const GLISSANDO_FORMAT_VERSION = 8;
 export const OLDEST_READABLE_FORMAT_VERSION = 1;
 /** The first version that carries a picture's own motion. */
 export const OWN_KEN_BURNS_FROM_VERSION = 2;
@@ -30,6 +30,8 @@ export const MUSIC_TRIM_FROM_VERSION = 5;
 export const DEFAULT_TRANSITION_FROM_VERSION = 6;
 /** The first version that carries a picture's origin, `immichAssetId` or `fileBytes`. */
 export const ORIGIN_FROM_VERSION = 7;
+/** The first version that carries the music's picture changes. */
+export const PICTURE_CHANGES_FROM_VERSION = 8;
 export const MANIFEST_ENTRY_NAME = "glissando.json";
 
 const PICTURE_EXTENSIONS: Readonly<Record<string, string>> = {
@@ -65,6 +67,7 @@ export interface ManifestMusic {
   readonly trim?: MusicTrim;
   readonly fadeInMs?: number;
   readonly fadeOutMs?: number;
+  readonly pictureChanges?: PictureChanges;
 }
 
 export interface ManifestSlideshow {
@@ -165,14 +168,18 @@ export function manifestFor(
   };
 }
 
-/** The music's own excerpt and fades, those it has; shared by both directions of the file. */
-export function ownMusicFields(
-  music: Pick<ManifestMusic, "trim" | "fadeInMs" | "fadeOutMs">,
-): Pick<ManifestMusic, "trim" | "fadeInMs" | "fadeOutMs"> {
+type OwnMusicFields = Pick<ManifestMusic, "trim" | "fadeInMs" | "fadeOutMs" | "pictureChanges">;
+
+/**
+ * The music's own excerpt, fades and picture changes, those it has; shared by both directions of
+ * the file.
+ */
+export function ownMusicFields(music: OwnMusicFields): OwnMusicFields {
   return {
     ...(music.trim === undefined ? {} : { trim: music.trim }),
     ...(music.fadeInMs === undefined ? {} : { fadeInMs: music.fadeInMs }),
     ...(music.fadeOutMs === undefined ? {} : { fadeOutMs: music.fadeOutMs }),
+    ...(music.pictureChanges === undefined ? {} : { pictureChanges: music.pictureChanges }),
   };
 }
 

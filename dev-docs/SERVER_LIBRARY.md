@@ -13,7 +13,7 @@ app and the server):
 { "format": "glissando-server", "formatVersion": 1, "slideshow": { … } }
 ```
 
-`slideshow` is the `.glissando` manifest's `slideshow` of format version 7 (`dev-docs/LIBRARY.md`,
+`slideshow` is the `.glissando` manifest's `slideshow` of format version 8 (`dev-docs/LIBRARY.md`,
 The .glissando file) with two differences:
 
 - every picture has `immichAssetId` (required) and neither `file`, `thumbnail` nor `fileBytes`;

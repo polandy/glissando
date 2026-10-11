@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { MusicTrim } from "../../library/own-music";
-  import { setMusicTrim } from "../../library/slideshow-edits";
+  import { setMusicTrim } from "../../library/slideshow-edits-music";
   import type { StoredSlideshow } from "../../library/stored-slideshow";
   import { MILLISECONDS_PER_SECOND } from "../../player";
   import Header from "../components/Header.svelte";

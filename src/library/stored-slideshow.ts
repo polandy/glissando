@@ -1,6 +1,6 @@
 import type { OwnKenBurns } from "./own-ken-burns";
 import type { PictureFocus } from "./picture-focus";
-import type { MusicTrim } from "./own-music";
+import type { MusicTrim, PictureChanges } from "./own-music";
 import type { SlideshowTransition, TransitionChoice } from "./own-timing";
 
 /**
@@ -51,6 +51,11 @@ export interface StoredMusic {
   readonly fadeInMs?: number;
   /** Own fade-out in whole ms, 0 being off (`checkMusicFadeMs`); absent: automatic. */
   readonly fadeOutMs?: number;
+  /**
+   * `"even"`: the pictures share the music evenly (`checkPictureChanges`); absent: automatic, on
+   * the beat when one was found (ADR-0021).
+   */
+  readonly pictureChanges?: PictureChanges;
 }
 
 export interface StoredSlideshow {
