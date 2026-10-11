@@ -27,32 +27,32 @@ function intakeWith(
 const names = (intake: PictureIntake) =>
   intake.pictures.state.pictures.map(({ fileName }) => fileName);
 
-/** A burst of three, b the sharpest, and a picture of another scene an hour later. */
-const BURST = {
+/** Similar shots, three of them, b the sharpest, and a picture of another scene an hour later. */
+const SIMILAR_SHOTS = {
   "a.jpg": sharpness(240),
   "b.jpg": sharpness(455),
   "c.jpg": sharpness(120),
   "later.jpg": sharpness(400, OTHER_SCENE),
 };
-const burstFiles = () => [
+const similarShotFiles = () => [
   pictureFile("a.jpg", at(10)),
   pictureFile("b.jpg", at(11)),
   pictureFile("c.jpg", at(12)),
   pictureFile("later.jpg", at(3600)),
 ];
 
-describe("PictureIntake, culling bursts and blurry pictures", () => {
-  it("keeps the sharpest of a burst once every picture is checked and sets the rest aside", async () => {
-    const { intake } = intakeWith(BURST);
+describe("PictureIntake, culling similar shots and blurry pictures", () => {
+  it("keeps the sharpest of similar shots once every picture is checked and sets the rest aside", async () => {
+    const { intake } = intakeWith(SIMILAR_SHOTS);
 
-    intake.addPictures(burstFiles());
+    intake.addPictures(similarShotFiles());
     await intake.settled();
 
     expect(names(intake)).toEqual(["b.jpg", "later.jpg"]);
     const [kept] = intake.pictures.state.pictures;
     expect(intake.culling.state.groups).toEqual([
       {
-        kind: "burst",
+        kind: "similar",
         keptId: kept?.id,
         pictures: [
           expect.objectContaining({ fileName: "a.jpg" }),
@@ -64,10 +64,10 @@ describe("PictureIntake, culling bursts and blurry pictures", () => {
   });
 
   it("counts the checks until they are done, setting nothing aside before", async () => {
-    const { intake, checker } = intakeWith(BURST);
+    const { intake, checker } = intakeWith(SIMILAR_SHOTS);
     checker.hold();
 
-    intake.addPictures(burstFiles());
+    intake.addPictures(similarShotFiles());
     await intake.pictures.settled();
 
     expect(names(intake)).toEqual(["a.jpg", "b.jpg", "c.jpg", "later.jpg"]);
@@ -99,8 +99,8 @@ describe("PictureIntake, culling bursts and blurry pictures", () => {
   });
 
   it("takes a set-aside picture in at its capture-date place, never to be set aside again", async () => {
-    const { intake } = intakeWith({ ...BURST, "d.jpg": sharpness(300) });
-    intake.addPictures(burstFiles());
+    const { intake } = intakeWith({ ...SIMILAR_SHOTS, "d.jpg": sharpness(300) });
+    intake.addPictures(similarShotFiles());
     await intake.settled();
     const setAsideC = intake.culling.state.groups[0]?.pictures[1];
 
@@ -116,8 +116,8 @@ describe("PictureIntake, culling bursts and blurry pictures", () => {
   });
 
   it("takes every set-aside picture in at once", async () => {
-    const { intake } = intakeWith(BURST);
-    intake.addPictures(burstFiles());
+    const { intake } = intakeWith(SIMILAR_SHOTS);
+    intake.addPictures(similarShotFiles());
     await intake.settled();
 
     intake.culling.takeAllIn();
@@ -152,9 +152,9 @@ describe("PictureIntake, culling bursts and blurry pictures", () => {
   });
 
   it("forgets the check on discard, a measurement still in flight too", async () => {
-    const { intake, checker } = intakeWith(BURST);
+    const { intake, checker } = intakeWith(SIMILAR_SHOTS);
     checker.hold();
-    intake.addPictures(burstFiles());
+    intake.addPictures(similarShotFiles());
     await intake.pictures.settled();
 
     const discarded = intake.discard();

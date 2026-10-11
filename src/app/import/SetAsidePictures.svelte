@@ -6,7 +6,7 @@
   import type { SetAsideGroup } from "./picture-culling";
 
   /**
-   * The pictures the check set aside, below the strip: per burst with its kept picture, then the
+   * The pictures the check set aside, below the strip: per similar group with its kept picture, then the
    * blurry ones. Each + takes one in; "Take all in" undoes the whole cull.
    */
   let {
@@ -19,7 +19,7 @@
   }: {
     groups: readonly SetAsideGroup[];
     count: number;
-    /** The import's pictures, where a burst's kept one is unless it was removed. */
+    /** The import's pictures, where a similar group's kept one is unless it was removed. */
     pictures: readonly StoredPicture[];
     /** Thumbnail URLs by picture id; a tile without one shimmers. */
     urls: ReadonlyMap<string, string>;
@@ -27,24 +27,20 @@
     onTakeAllIn: () => void;
   } = $props();
 
-  const { t, formatDate, formatTime } = getTranslator();
+  const { t, formatDate, formatTime, formatMinuteRange } = getTranslator();
   const HEADING_ID = "set-aside-heading";
   let section: HTMLElement | undefined = $state();
 
   const keptPicture = (keptId: string): StoredPicture | undefined =>
     pictures.find((picture) => picture.id === keptId);
 
-  /** When the burst began: its earliest picture, kept or set aside. */
-  const burstStart = (
+  /** The group's shown pictures, kept or set aside, from the earliest to the latest. */
+  const byCaptureTime = (
     kept: StoredPicture | undefined,
     similar: readonly StoredPicture[],
-  ): StoredPicture | undefined =>
-    [...(kept === undefined ? [] : [kept]), ...similar].reduce<StoredPicture | undefined>(
-      (earliest, picture) =>
-        earliest === undefined || Date.parse(picture.capturedAt) < Date.parse(earliest.capturedAt)
-          ? picture
-          : earliest,
-      undefined,
+  ): StoredPicture[] =>
+    [...(kept === undefined ? [] : [kept]), ...similar].sort(
+      (first, second) => Date.parse(first.capturedAt) - Date.parse(second.capturedAt),
     );
 
   /** Focus goes to the next picture's +, the previous one at the end. */
@@ -92,17 +88,19 @@
     <button class="link" type="button" onclick={onTakeAllIn}>{t("cull.takeAllIn")}</button>
     <span class="why">{t("cull.why")}</span>
   </div>
-  {#each groups as group (group.kind === "burst" ? group.keptId : group.kind)}
+  {#each groups as group (group.kind === "similar" ? group.keptId : group.kind)}
     <div class="group">
-      {#if group.kind === "burst"}
+      {#if group.kind === "similar"}
         {@const kept = keptPicture(group.keptId)}
-        {@const first = burstStart(kept, group.pictures)}
+        {@const shown = byCaptureTime(kept, group.pictures)}
+        {@const first = shown[0]}
+        {@const last = shown.at(-1)}
         <h3>
-          {t("cull.burst")}
-          {#if first !== undefined}
+          {t("cull.similarGroup")}
+          {#if first !== undefined && last !== undefined}
             <span class="when mono">
               {formatDate(first.capturedAt)}
-              {formatTime(first.capturedAt)}
+              {formatMinuteRange(first.capturedAt, last.capturedAt)}
             </span>
           {/if}
           {#if kept !== undefined}{t("cull.sharpestKept")}{/if}

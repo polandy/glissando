@@ -125,6 +125,18 @@ describe("formatters", () => {
     },
   );
 
+  it("formats the minutes two capture times span as hours and minutes in UTC", () => {
+    expect(
+      createTranslator("en").formatMinuteRange("2025-07-12T14:02:11Z", "2025-07-12T14:03:40Z"),
+    ).toBe("14:02–14:03");
+  });
+
+  it("formats capture times within one minute as that minute alone", () => {
+    expect(
+      createTranslator("de").formatMinuteRange("2025-07-12T14:02:11Z", "2025-07-12T14:02:59Z"),
+    ).toBe("14:02");
+  });
+
   it("rejects a date it cannot read, naming the value", () => {
     expect(() => createTranslator("de").formatDate("yesterday")).toThrow(/"yesterday"/);
   });

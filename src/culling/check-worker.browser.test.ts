@@ -13,9 +13,9 @@ const workers: Worker[] = [];
 const HUES = [195, 22, 160] as const;
 /** Drawn six times smaller and scaled up: clearly out of focus on a 480 px thumbnail. */
 const OUT_OF_FOCUS = 6;
-/** A burst's camera drift, 0.5 % and 1 % of the picture's width. */
-const BURST_DRIFTS = [6, 12] as const;
-/** Slightly soft, as one frame of a burst can be. */
+/** The camera drift between similar shots, 0.5 % and 1 % of the picture's width. */
+const SIMILAR_SHOT_DRIFTS = [6, 12] as const;
+/** Slightly soft, as one of several similar shots can be. */
 const SLIGHTLY_SOFT = 2;
 const TIMEOUT_MS = 60_000;
 
@@ -61,14 +61,14 @@ describe("the check worker on generated thumbnails", () => {
   );
 
   it(
-    "hashes the frames of a burst as one scene and other scenes apart",
+    "hashes similar shots of a scene as one scene and other scenes apart",
     { timeout: TIMEOUT_MS },
     async () => {
       const pictureChecker = checker();
       for (const hue of HUES) {
         const first = await measured(pictureChecker, { hue });
         const frames = [
-          ...BURST_DRIFTS.map((drift) => ({ hue, drift })),
+          ...SIMILAR_SHOT_DRIFTS.map((drift) => ({ hue, drift })),
           { hue, softness: SLIGHTLY_SOFT },
         ];
         for (const frame of frames) {
@@ -84,7 +84,7 @@ describe("the check worker on generated thumbnails", () => {
   );
 
   it(
-    "keeps the sharp frame of a generated burst and sets the soft and blurry ones aside",
+    "keeps the sharp one of generated similar shots and sets the soft and blurry ones aside",
     { timeout: TIMEOUT_MS },
     async () => {
       const pictureChecker = checker();

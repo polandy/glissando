@@ -36,12 +36,14 @@ ADR-0003; file container: ADR-0004.
   (`src/culling/`): the grey 480 px thumbnail's _sharpness_ (variance of the 4-neighbour
   Laplacian) and a 64-bit _difference hash_ (9 × 8 cell means, one bit per horizontal pair).
   Once every picture handed over is measured and the import is idle, `cull` runs over the
-  import's measured pictures: a **burst** is a run of pictures, each at most 2 s after the one
-  before (`BURST_GAP_MS`) with hashes at most 10 bits apart (`SAME_SCENE_MAX_HASH_DISTANCE`); its
+  import's measured pictures: in capture order a picture joins a **similar group** when it was
+  taken at most 2 minutes after the group's first picture (`SIMILAR_SHOTS_WINDOW_MS`) and its hash
+  is at most 10 bits from that first picture's (`SAME_SCENE_MAX_HASH_DISTANCE`) — the nearest such
+  group, the later-started on a tie, else it starts one; a group's
   sharpest picture is kept (ties to the earliest) and the others are set aside as _similar_. A
   picture is _blurry_ below a sharpness of 50 (`BLURRY_SHARPNESS_FLOOR`) and below a third of the
-  import's median (`BLURRY_SHARE_OF_MEDIAN`), so a set shot all soft is not emptied; a burst's
-  kept picture is never blurry, and the median picture is never below a third of itself, so some
+  import's median (`BLURRY_SHARE_OF_MEDIAN`), so a set shot all soft is not emptied; a similar
+  group's kept picture is never blurry, and the median picture is never below a third of itself, so some
   picture always stays. The constants are calibrated on generated scenes in every engine
   (`check-worker.browser.test.ts`). A set-aside picture leaves the import's pictures
   (`remove`) and is kept by `PictureCulling`; taking it in `restore`s it and exempts it from

@@ -1,4 +1,4 @@
-import { cull, type Burst, type SetAsideReason } from "../../culling/cull";
+import { cull, type SimilarGroup, type SetAsideReason } from "../../culling/cull";
 import type { PictureChecker, PictureMeasure } from "../../culling/picture-checker";
 import type { PictureImport, StoredWithThumbnail } from "../../import/picture-import";
 import type { StoredPicture } from "../../library/stored-slideshow";
@@ -13,8 +13,8 @@ export interface PictureCullingPorts {
 /** Set-aside pictures as step 1 shows them, each in capture order. */
 export type SetAsideGroup =
   | {
-      readonly kind: "burst";
-      /** The burst's sharpest picture, in the strip unless the user removed it. */
+      readonly kind: "similar";
+      /** The group's sharpest picture, in the strip unless the user removed it. */
       readonly keptId: string;
       readonly pictures: readonly StoredPicture[];
     }
@@ -23,7 +23,7 @@ export type SetAsideGroup =
 export interface CullingState {
   /** The checks since the last cull; null once every picture taken in is checked. */
   readonly checking: { readonly checked: number; readonly total: number } | null;
-  /** Bursts in capture order, then the blurry pictures. */
+  /** Similar groups in capture order, then the blurry pictures. */
   readonly groups: readonly SetAsideGroup[];
   readonly setAsideCount: number;
 }
@@ -32,7 +32,7 @@ const EMPTY: CullingState = { checking: null, groups: [], setAsideCount: 0 };
 
 /**
  * Checks each picture an import stores and, once every one is checked and the import is idle,
- * sets aside all but the sharpest of each burst and the blurry ones (ADR-0024). A set-aside
+ * sets aside all but the sharpest of each similar group and the blurry ones (ADR-0024). A set-aside
  * picture leaves the import's pictures, so it is neither in the slideshow nor kept; taken in, it
  * is an ordinary picture from then on and never set aside again.
  */
@@ -47,7 +47,7 @@ export class PictureCulling {
     string,
     { readonly picture: StoredPicture; readonly reason: SetAsideReason }
   >();
-  #bursts: readonly Burst[] = [];
+  #similarGroups: readonly SimilarGroup[] = [];
   readonly #pending = new Set<string>();
   #batch = { checked: 0, total: 0 };
   /** New measures since the last cull. */
@@ -121,7 +121,7 @@ export class PictureCulling {
     this.#measures.clear();
     this.#exempt.clear();
     this.#setAside.clear();
-    this.#bursts = [];
+    this.#similarGroups = [];
     this.#pending.clear();
     this.#batch = { checked: 0, total: 0 };
     this.#measuredSinceCull = false;
@@ -166,7 +166,7 @@ export class PictureCulling {
         ? []
         : [{ id: picture.id, capturedAt: picture.capturedAt, ...measure }];
     });
-    const { setAside, bursts } = cull(candidates);
+    const { setAside, similarGroups } = cull(candidates);
     const back = [...this.#setAside.values()]
       .filter(({ picture }) => !setAside.has(picture.id))
       .map(({ picture }) => picture);
@@ -177,7 +177,7 @@ export class PictureCulling {
       const picture = already?.picture ?? this.#ports.pictures.remove(id);
       this.#setAside.set(id, { picture, reason });
     }
-    this.#bursts = bursts;
+    this.#similarGroups = similarGroups;
   }
 
   #publish(): void {
@@ -195,14 +195,14 @@ export class PictureCulling {
       const entry = this.#setAside.get(id);
       return entry?.reason === reason ? [entry.picture] : [];
     };
-    const bursts = this.#bursts.flatMap(({ keptId, similarIds }): SetAsideGroup[] => {
+    const similar = this.#similarGroups.flatMap(({ keptId, similarIds }): SetAsideGroup[] => {
       const pictures = similarIds.flatMap((id) => aside(id, "similar"));
-      return pictures.length === 0 ? [] : [{ kind: "burst", keptId, pictures }];
+      return pictures.length === 0 ? [] : [{ kind: "similar", keptId, pictures }];
     });
     const blurry = [...this.#setAside.values()]
       .filter(({ reason }) => reason === "blurry")
       .map(({ picture }) => picture)
       .sort((first, second) => Date.parse(first.capturedAt) - Date.parse(second.capturedAt));
-    return blurry.length === 0 ? bursts : [...bursts, { kind: "blurry", pictures: blurry }];
+    return blurry.length === 0 ? similar : [...similar, { kind: "blurry", pictures: blurry }];
   }
 }

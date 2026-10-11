@@ -36,7 +36,7 @@ export interface PictureIntakePorts
  * The pictures being taken in, for a new slideshow or one being added to: files and Immich photos
  * in, stored pictures out, those already `known` skipped as duplicates (ADR-0016). Every media id
  * is claimed in the store before the media is written, so a clean-up in any tab spares it until
- * the claim ends. Each stored picture is checked for bursts and blur; a set-aside one stays
+ * the claim ends. Each stored picture is checked for similar shots and blur; a set-aside one stays
  * claimed until the import ends, then nothing references it.
  */
 export class PictureIntake {

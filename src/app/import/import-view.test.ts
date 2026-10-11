@@ -72,7 +72,7 @@ describe("canContinue", () => {
     expect(canContinue(state, culled)).toBe(expected);
   });
 
-  it("does not continue while pictures are being checked for bursts and blur", () => {
+  it("does not continue while pictures are being checked for similar shots and blur", () => {
     expect(canContinue(oneStored, { ...culled, checking: { checked: 0, total: 1 } })).toBe(false);
   });
 });

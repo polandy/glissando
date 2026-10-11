@@ -6,7 +6,7 @@
   import type { CullingState } from "./picture-culling";
 
   /**
-   * Step 1's count and meter: downscaling, then checking for bursts and blur, with Cancel, or
+   * Step 1's count and meter: downscaling, then checking for similar shots and blur, with Cancel, or
    * what is in with "add more".
    */
   let {

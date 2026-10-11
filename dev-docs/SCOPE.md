@@ -105,7 +105,7 @@ https://polandy.github.io/glissando-assets/mockups/studio-look/):
 - **Three levels, never more**: start → slideshow → (import steps | player). The player is a
   modal fullscreen layer, not a place in the navigation; back arrow and browser back do the same.
 - **Import is a two-step wizard** (pictures, then optional music); "Next" is enabled only once
-  every picture is downscaled and checked for bursts and blur.
+  every picture is downscaled and checked for similar shots and blur.
 - **Waiting has three forms**: inline progress with a count where the work belongs to the screen;
   a global indicator in the header for non-blocking background work; a blocking overlay only when
   the next screen cannot exist without the result. Never a spinner without a label.
@@ -137,7 +137,7 @@ Not in the MVP: per-slide settings, detection, Immich, video export, audio conve
    an own libav.js build (ADR-0020). Mockup:
    https://polandy.github.io/glissando-assets/mockups/audio-formats/.
 6. **Beat sync** — transitions land on the music's beats, detected in the browser.
-7. **Culling** — near-duplicate burst shots and blurry pictures are set aside at import, below
+7. **Culling** — similar shots (e.g. bursts) and blurry pictures are set aside at import, below
    the pictures step's strip, and one tap takes one in again — ADR-0024. Mockup:
    https://polandy.github.io/glissando-assets/mockups/culling/.
 8. **Portrait layouts** — two portrait pictures side by side, or one over a blurred fill,

@@ -11,8 +11,8 @@ export interface CullCandidate {
 
 export type SetAsideReason = "similar" | "blurry";
 
-/** Pictures of one scene taken in quick succession: the sharpest is kept. */
-export interface Burst {
+/** Similar shots of one scene taken within a few minutes: the sharpest is kept. */
+export interface SimilarGroup {
   readonly keptId: string;
   /** In capture order. */
   readonly similarIds: readonly string[];
@@ -21,11 +21,11 @@ export interface Burst {
 export interface CullResult {
   readonly setAside: ReadonlyMap<string, SetAsideReason>;
   /** In capture order. */
-  readonly bursts: readonly Burst[];
+  readonly similarGroups: readonly SimilarGroup[];
 }
 
-/** Two pictures at most this far apart in time can belong to one burst; a burst chains them. */
-export const BURST_GAP_MS = 2000;
+/** A picture joins a similar group taken at most this long after the group's first picture. */
+export const SIMILAR_SHOTS_WINDOW_MS = 120_000;
 /** Difference hashes at most this many bits apart show the same scene. */
 export const SAME_SCENE_MAX_HASH_DISTANCE = 10;
 /**
@@ -37,7 +37,7 @@ export const BLURRY_SHARPNESS_FLOOR = 50;
 export const BLURRY_SHARE_OF_MEDIAN = 1 / 3;
 
 /**
- * Which pictures of one import are set aside: of each burst all but the sharpest (ties go to
+ * Which pictures of one import are set aside: of each similar group all but the sharpest (ties go to
  * the earliest), and blurry ones. Blurry needs both the fixed floor and the import's own median,
  * so a set shot in dim light is not emptied; the median picture is never below a third of
  * itself, so some picture always stays. See ADR-0024.
@@ -47,14 +47,14 @@ export function cull(candidates: readonly CullCandidate[]): CullResult {
     (first, second) => Date.parse(first.capturedAt) - Date.parse(second.capturedAt),
   );
   const setAside = new Map<string, SetAsideReason>();
-  const bursts: Burst[] = [];
+  const similarGroups: SimilarGroup[] = [];
   const kept = new Set<string>();
-  for (const group of burstsOf(byCaptureTime)) {
+  for (const group of similarGroupsOf(byCaptureTime)) {
     const sharpest = group.reduce((best, next) => (next.sharpness > best.sharpness ? next : best));
     const similar = group.filter((picture) => picture !== sharpest);
     for (const picture of similar) setAside.set(picture.id, "similar");
     kept.add(sharpest.id);
-    bursts.push({ keptId: sharpest.id, similarIds: similar.map(({ id }) => id) });
+    similarGroups.push({ keptId: sharpest.id, similarIds: similar.map(({ id }) => id) });
   }
   const blurryBelow = Math.min(
     BLURRY_SHARPNESS_FLOOR,
@@ -65,30 +65,35 @@ export function cull(candidates: readonly CullCandidate[]): CullResult {
       setAside.set(picture.id, "blurry");
     }
   }
-  return { setAside, bursts };
+  return { setAside, similarGroups };
 }
 
-/** Runs of two or more pictures, each close in time and scene to the one before. */
-function burstsOf(byCaptureTime: readonly CullCandidate[]): CullCandidate[][] {
-  const runs: CullCandidate[][] = [];
-  let run: CullCandidate[] = [];
+/**
+ * Groups of two or more pictures, each within the window and the same scene as its group's
+ * first picture. Comparing with the first picture, not the one before, keeps a slow pan from
+ * chaining into one group. A picture that fits several groups joins the one whose first picture
+ * is nearest in hash, the later-started one on a tie; one that fits none starts a group.
+ */
+function similarGroupsOf(byCaptureTime: readonly CullCandidate[]): CullCandidate[][] {
+  const groups: CullCandidate[][] = [];
   for (const picture of byCaptureTime) {
-    const previous = run.at(-1);
-    if (previous === undefined || !sameMoment(previous, picture)) {
-      if (run.length > 1) runs.push(run);
-      run = [];
+    let nearest: { group: CullCandidate[]; distance: number } | undefined;
+    for (const group of groups) {
+      const [first] = group;
+      if (first === undefined || !withinWindow(first, picture)) continue;
+      const distance = hashDistance(first.hash, picture.hash);
+      if (distance <= SAME_SCENE_MAX_HASH_DISTANCE && distance <= (nearest?.distance ?? distance)) {
+        nearest = { group, distance };
+      }
     }
-    run.push(picture);
+    if (nearest === undefined) groups.push([picture]);
+    else nearest.group.push(picture);
   }
-  if (run.length > 1) runs.push(run);
-  return runs;
+  return groups.filter((group) => group.length > 1);
 }
 
-function sameMoment(earlier: CullCandidate, later: CullCandidate): boolean {
-  return (
-    Date.parse(later.capturedAt) - Date.parse(earlier.capturedAt) <= BURST_GAP_MS &&
-    hashDistance(earlier.hash, later.hash) <= SAME_SCENE_MAX_HASH_DISTANCE
-  );
+function withinWindow(first: CullCandidate, later: CullCandidate): boolean {
+  return Date.parse(later.capturedAt) - Date.parse(first.capturedAt) <= SIMILAR_SHOTS_WINDOW_MS;
 }
 
 function medianSharpness(candidates: readonly CullCandidate[]): number {

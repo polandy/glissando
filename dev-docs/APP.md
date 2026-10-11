@@ -119,7 +119,7 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
     choose below where the new pictures go."), then "Glissando downscales them for this device;
     your originals stay untouched." The drop zone, the Immich box (its browser opens for this
     slideshow, Immich below), the progress, the tiles (with their ✕, Removing), the set-aside
-    pictures (Culling, Import wizard; bursts are found among the new pictures only) and the
+    pictures (Culling, Import wizard; similar shots are found among the new pictures only) and the
     notices are the import's; pictures already in the slideshow are skipped (Duplicates, Import
     wizard), and "Add n" waits for the check as "Next" does. Once at least one new
     picture is stored and nothing is in flight, with own order a box "Where they go" (mockup:
@@ -472,11 +472,13 @@ new slideshow lives).
   anyway", which takes that kind in after all. **Culling** (ADR-0024, mockup:
   https://polandy.github.io/glissando-assets/mockups/culling/): each picture stored is checked
   in a worker on its 480 px thumbnail (`src/culling/`, `import/picture-culling.ts`); once the
-  downscale is done the progress reads "k / N checked for bursts and blur …" with Cancel and the
+  downscale is done the progress reads "k / N checked for similar shots and blur …" with Cancel and the
   mint meter, and "Next" waits for it. Once every picture is checked and nothing is in flight,
-  all but the sharpest of each burst and the blurry ones leave the strip for a section "Set aside
+  all but the sharpest of each similar group (shots of the same scene within 2 minutes of the
+  group's first) and the blurry ones leave the strip for a section "Set aside
   · n" below it, with "Take all in" and "These are not in the slideshow. Take one in with +.": a
-  group per burst ("Burst <date> <time> · the sharpest is kept", the kept picture first with a
+  group per similar group ("Similar · <date> <start>–<end> · the sharpest is kept", hours and
+  minutes, one time when both fall in the same minute; the kept picture first with a
   mint "Kept" chip, the others "Similar"), then "Blurry"; set-aside tiles are dimmed and show
   their time to the second. A tile's + ("Take in picture from <date> at <time>", a 44 px target)
   puts it back into the strip at its capture-date place and focus moves to the next +; from then

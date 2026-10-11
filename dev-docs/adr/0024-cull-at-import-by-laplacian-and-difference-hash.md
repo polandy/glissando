@@ -1,14 +1,15 @@
-# ADR-0024: Bursts and blurry pictures are set aside at import, found by Laplacian variance and a difference hash
+# ADR-0024: Similar shots and blurry pictures are set aside at import, found by Laplacian variance and a difference hash
 
 **Status:** accepted
 
 ## Context
 
 Roadmap 7 (`dev-docs/SCOPE.md`; mockup: https://polandy.github.io/glissando-assets/mockups/culling/):
-of a burst — several shots of one moment — only the best should play, and blurry shots should
+of similar shots — several shots of one scene taken within a few minutes, a burst among them —
+only the best should play, and blurry shots should
 not play at all. It has to work offline, in the browser, on a phone, on every picture of an
 import, without a model download. Two questions: _where_ culling lives (at import, or as a mark
-in the slideshow), and _how_ bursts and blur are found.
+in the slideshow), and _how_ similar shots and blur are found.
 
 ## Measurement
 
@@ -33,7 +34,7 @@ bits, 1 % 6 bits, 2 % 12 – 13 bits, soft ×2 0 – 7 bits; different scenes 18
 
 **At import.** Each picture the import stores is measured right after its downscale, in a worker,
 on its 480 px thumbnail; "Next" (or "Add n") waits for the check as it waits for the downscale.
-Once all are checked, all but the sharpest of each burst and the blurry ones leave the strip
+Once all are checked, all but the sharpest of each similar group and the blurry ones leave the strip
 for a "Set aside" section below it, where + takes one in and "Take all in" undoes the cull. A
 set-aside picture is never part of the slideshow: its media is deleted with the import's
 leftovers, and neither the slideshow model nor the `.glissando` format changes.
@@ -44,11 +45,17 @@ leftovers, and neither the slideshow model nor the `.glissando` format changes.
 - _Same scene_: a 64-bit difference hash (9 × 8 cell means, one bit per horizontal pair); at
   most 10 bits apart is the same scene. This keeps frames up to about 1 % of camera drift and a
   slightly soft frame together, and different scenes well apart.
-- _Burst_: a run of pictures, each at most 2 s after the one before and of the same scene; the
-  sharpest is kept, ties to the earliest.
+- _Similar group_: in capture order, a picture joins a group when it was taken at most 2 minutes
+  after the group's first picture and is the same scene as that first picture; fitting several
+  groups, it joins the one whose first picture is nearest in hash (the later-started one on a
+  tie), fitting none, it starts a group. Of a group of two or more the sharpest is kept, ties to
+  the earliest. Two minutes covers a burst as well as the same view shot again after a step
+  aside, and a different shot in between does not split the group; comparing with the first
+  picture rather than the one before keeps a slow pan, each frame close to the last, from
+  chaining into one group that would keep a single picture of the whole sweep.
 - _Blurry_: sharpness below 50 **and** below a third of the import's median. 50 sits between the
   out-of-focus scenes (≤ 31) and the sharp ones (≥ 161) in every engine; the median rule keeps a
-  set shot all soft, in dim light say, from being emptied. A burst's kept picture is never
+  set shot all soft, in dim light say, from being emptied. A similar group's kept picture is never
   blurry, and the median picture is never below a third of itself, so some picture always stays.
 
 ## Options weighed
@@ -58,13 +65,19 @@ leftovers, and neither the slideshow model nor the `.glissando` format changes.
   change (the flag in the record and the `.glissando` file, and the player, export and editor
   honouring it), for a decision people make once, right at import. Rejected; "Take all in" is the
   way out, per import, and there is no settings switch.
-- **Culling slideshows made before** — a "Find bursts and blurry shots" action: not now.
+- **Culling slideshows made before** — a "Find similar and blurry shots" action: not now.
 - **A learned quality model** (aesthetic or blur score): a model download of megabytes, slower
   on a phone, and no better at the two narrow questions asked here.
-- **Perceptual hash by DCT (pHash)**: more robust to edits, but a burst is not edited; the
+- **Perceptual hash by DCT (pHash)**: more robust to edits, but similar shots are not edited; the
   difference hash is a few lines and needs no transform.
-- **Capture time alone for bursts**: two different shots a second apart (turning from the view
-  to the people) would be culled; the hash keeps them.
+- **Capture time alone**: two different shots a second apart (turning from the view to the
+  people) would be culled; the hash keeps them.
+- **Bursts only** (a gap of at most 2 s between neighbours): misses the same view shot again a
+  minute later, which is where most near-duplicates of a holiday come from.
+- **Chaining to the picture before** instead of the group's first: a slow pan or a walk, each
+  picture close to the last, would collapse into one group and keep a single picture.
+- **A longer window**: the same view revisited later in the day is a deliberate second shot;
+  two minutes keeps it.
 - **Blur by a fixed floor alone**: an import shot all in dim light would lose most of its
   pictures; the median share prevents it.
 

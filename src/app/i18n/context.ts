@@ -29,6 +29,7 @@ export function getTranslator(): Translator {
     formatDay: (day) => source.current.formatDay(day),
     formatDayRange: (from, to) => source.current.formatDayRange(from, to),
     formatTime: (isoDateTime) => source.current.formatTime(isoDateTime),
+    formatMinuteRange: (from, to) => source.current.formatMinuteRange(from, to),
     formatBytes: (bytes) => source.current.formatBytes(bytes),
     formatZoom: (zoom) => source.current.formatZoom(zoom),
     formatTenths: (seconds) => source.current.formatTenths(seconds),

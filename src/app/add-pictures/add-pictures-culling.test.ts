@@ -10,7 +10,7 @@ const SHOW = slideshow({
   pictures: [{ ...picture("old"), fileName: "old.jpg", capturedAt: "2025-07-02T14:02:09Z" }],
 });
 
-async function sessionWithBurstChecker() {
+async function sessionWithSimilarShotsChecker() {
   const store = new MemoryLibraryStore();
   await store.saveSlideshow(SHOW);
   const checker = new FakePictureChecker({
@@ -21,24 +21,24 @@ async function sessionWithBurstChecker() {
   return { session: new AddPicturesSession(SHOW, "device", { ...ports, store }), checker, store };
 }
 
-const burst = () => [
+const similarShots = () => [
   pictureFile("a.jpg", "2025-07-02T14:02:10Z"),
   pictureFile("b.jpg", "2025-07-02T14:02:11Z"),
 ];
 
 describe("AddPicturesSession, culling", () => {
   it("refuses to add while the new pictures are still being checked", async () => {
-    const { session, checker } = await sessionWithBurstChecker();
+    const { session, checker } = await sessionWithSimilarShotsChecker();
     checker.hold();
-    session.addPictures(burst());
+    session.addPictures(similarShots());
     await session.intake.pictures.settled();
 
     await expect(session.commit()).rejects.toThrow(/checked/);
   });
 
-  it("adds the new pictures without the set-aside ones, bursts found among the new pictures only", async () => {
-    const { session, store } = await sessionWithBurstChecker();
-    session.addPictures(burst());
+  it("adds the new pictures without the set-aside ones, similar shots found among the new pictures only", async () => {
+    const { session, store } = await sessionWithSimilarShotsChecker();
+    session.addPictures(similarShots());
     await session.intake.settled();
 
     await session.commit();

@@ -33,8 +33,8 @@ function mountBody(checker: FakePictureChecker) {
   return { intake, target: body.target };
 }
 
-/** A burst of a, b (the sharpest) and c, and one blurry picture among sharp ones. */
-function burstAndBlurry() {
+/** Similar shots a, b (the sharpest) and c over two minutes, and one blurry picture among sharp ones. */
+function similarAndBlurry() {
   const checker = new FakePictureChecker({
     "thumbnail a.jpg": measure(240),
     "thumbnail b.jpg": measure(455),
@@ -46,7 +46,7 @@ function burstAndBlurry() {
   const files = [
     pictureFile("a.jpg", "2025-07-02T14:02:10Z"),
     pictureFile("b.jpg", "2025-07-02T14:02:11Z"),
-    pictureFile("c.jpg", "2025-07-02T14:02:12Z"),
+    pictureFile("c.jpg", "2025-07-02T14:03:30Z"),
     pictureFile("x.jpg", "2025-07-03T09:00:00Z"),
     pictureFile("soft.jpg", "2025-07-03T11:05:00Z"),
     pictureFile("y.jpg", "2025-07-04T13:30:00Z"),
@@ -63,7 +63,7 @@ const takeButtons = (target: HTMLElement) => [
 
 describe("PictureIntakeBody, the set-aside pictures", () => {
   it("counts the checks with a meter while pictures are checked", async () => {
-    const { checker, files } = burstAndBlurry();
+    const { checker, files } = similarAndBlurry();
     checker.hold();
     const { intake, target } = mountBody(checker);
 
@@ -72,13 +72,13 @@ describe("PictureIntakeBody, the set-aside pictures", () => {
     flushSync();
 
     expect(text(target.querySelector(".progress-row"))).toContain(
-      "0 / 6 auf Serien und Unschärfe geprüft",
+      "0 / 6 auf ähnliche Aufnahmen und Unschärfe geprüft",
     );
     expect(target.querySelector(".aside")).toBeNull();
   });
 
-  it("groups a burst with its kept picture and the blurry ones below the strip", async () => {
-    const { checker, files } = burstAndBlurry();
+  it("groups similar shots with their kept picture and the blurry ones below the strip", async () => {
+    const { checker, files } = similarAndBlurry();
     const { intake, target } = mountBody(checker);
 
     intake.addPictures(files);
@@ -88,11 +88,11 @@ describe("PictureIntakeBody, the set-aside pictures", () => {
     expect(stripTiles(target)).toBe(3);
     const aside = target.querySelector(".aside");
     expect(text(aside?.querySelector("h2"))).toBe("Beiseitegelegt · 3");
-    const [burst, blurry] = [...(aside?.querySelectorAll(".group") ?? [])];
-    expect(text(burst?.querySelector("h3"))).toBe(
-      "Serie 02.07.2025 14:02:10 · das schärfste bleibt",
+    const [similar, blurry] = [...(aside?.querySelectorAll(".group") ?? [])];
+    expect(text(similar?.querySelector("h3"))).toBe(
+      "Ähnlich · 02.07.2025 14:02–14:03 · das schärfste bleibt",
     );
-    expect([...(burst?.querySelectorAll(".chip") ?? [])].map(text)).toEqual([
+    expect([...(similar?.querySelectorAll(".chip") ?? [])].map(text)).toEqual([
       "Behalten",
       "Ähnlich",
       "Ähnlich",
@@ -100,13 +100,13 @@ describe("PictureIntakeBody, the set-aside pictures", () => {
     expect(text(blurry?.querySelector("h3"))).toBe("Unscharf");
     expect(takeButtons(target).map((button) => button.getAttribute("aria-label"))).toEqual([
       "Bild vom 02.07.2025 um 14:02:10 übernehmen",
-      "Bild vom 02.07.2025 um 14:02:12 übernehmen",
+      "Bild vom 02.07.2025 um 14:03:30 übernehmen",
       "Bild vom 03.07.2025 um 11:05:00 übernehmen",
     ]);
   });
 
   it("moves a picture into the strip with its +, focusing the next +", async () => {
-    const { checker, files } = burstAndBlurry();
+    const { checker, files } = similarAndBlurry();
     const { intake, target } = mountBody(checker);
     intake.addPictures(files);
     await intake.settled();
@@ -118,12 +118,12 @@ describe("PictureIntakeBody, the set-aside pictures", () => {
     expect(stripTiles(target)).toBe(4);
     expect(text(target.querySelector(".aside h2"))).toBe("Beiseitegelegt · 2");
     expect(document.activeElement?.getAttribute("aria-label")).toBe(
-      "Bild vom 02.07.2025 um 14:02:12 übernehmen",
+      "Bild vom 02.07.2025 um 14:03:30 übernehmen",
     );
   });
 
   it("takes all in, and the section goes", async () => {
-    const { checker, files } = burstAndBlurry();
+    const { checker, files } = similarAndBlurry();
     const { intake, target } = mountBody(checker);
     intake.addPictures(files);
     await intake.settled();

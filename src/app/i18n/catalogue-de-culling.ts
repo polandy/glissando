@@ -1,12 +1,12 @@
 import type { Message } from "./messages";
 
-/** German copy of culling: bursts and blurry pictures set aside in the pictures step. */
+/** German copy of culling: similar shots and blurry pictures set aside in the pictures step. */
 export const deCulling = {
-  "cull.checkingLabel": "auf Serien und Unschärfe geprüft …",
+  "cull.checkingLabel": "auf ähnliche Aufnahmen und Unschärfe geprüft …",
   "cull.setAside": "Beiseitegelegt · {count}",
   "cull.takeAllIn": "Alle übernehmen",
   "cull.why": "Diese sind nicht in der Diashow. Mit + übernimmst du eins.",
-  "cull.burst": "Serie",
+  "cull.similarGroup": "Ähnlich ·",
   "cull.sharpestKept": "· das schärfste bleibt",
   "cull.blurry": "Unscharf",
   "cull.kept": "Behalten",
