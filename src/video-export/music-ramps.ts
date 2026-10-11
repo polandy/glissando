@@ -71,7 +71,7 @@ export function trackGainRamps(
 
 /** Where a fade-in still under full volume meets the fade-out; none when they do not. */
 function fadesCrossAt(music: MusicEnvelope, heardMs: number): number {
-  if (music.fadeInMs <= 0 || music.fadeOutMs <= 0 || !Number.isFinite(heardMs)) {
+  if (music.fadeInMs <= 0 || music.fadeOutMs <= 0) {
     return Number.NaN;
   }
   const crossMs = (music.fadeInMs * heardMs) / (music.fadeInMs + music.fadeOutMs);
