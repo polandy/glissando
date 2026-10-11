@@ -113,4 +113,45 @@ describe("PictureImport, storing pictures", () => {
 
     expect(seen).toEqual([0, 1]);
   });
+
+  it("hands each stored picture on with its thumbnail before it is listed", async () => {
+    const { pictureImport, addFiles, stored } = setUp();
+    const listedWhenStored: number[] = [];
+    pictureImport.subscribe(() => listedWhenStored.push(stored.length));
+
+    addFiles([picture("a.jpg")]);
+    await pictureImport.settled();
+
+    expect(stored).toHaveLength(1);
+    expect(stored[0]?.picture).toEqual(pictureImport.state.pictures[0]);
+    expect(await stored[0]?.thumbnail.text()).toBe("a.jpg thumbnail");
+    expect(stored[0]?.takenInAnyway).toBe(false);
+    expect(listedWhenStored.at(-1)).toBe(1);
+  });
+
+  it("tells a duplicate taken in anyway apart", async () => {
+    const { pictureImport, addFiles, stored } = setUp();
+    addFiles([picture("a.jpg"), picture("a.jpg")]);
+    await pictureImport.settled();
+
+    pictureImport.addDuplicates("chosenTwice");
+    await pictureImport.settled();
+
+    expect(stored.map((entry) => entry.takenInAnyway)).toEqual([false, true]);
+  });
+
+  it("hands on nothing of a picture whose import was cancelled in flight", async () => {
+    const decoder = new FakeDecoder();
+    const { pictureImport, addFiles, stored } = setUp({ decoder });
+    decoder.hold();
+    addFiles([picture("a.jpg")]);
+    await decoder.reached;
+
+    pictureImport.cancel();
+    decoder.open();
+    await pictureImport.settled();
+
+    expect(pictureImport.state.pictures).toEqual([]);
+    expect(stored).toEqual([]);
+  });
 });

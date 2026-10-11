@@ -48,10 +48,13 @@
   let placement = $state(session.placement);
 
   $effect(() => session.intake.pictures.subscribe((next) => (importState = next)));
+  // svelte-ignore state_referenced_locally
+  let cullingState = $state.raw(session.intake.culling.state);
+  $effect(() => session.intake.culling.subscribe((next) => (cullingState = next)));
 
   // svelte-ignore state_referenced_locally
   const linking = session.home === "server";
-  const ready = $derived(canContinue(importState));
+  const ready = $derived(canContinue(importState, cullingState));
   const after = $derived(
     ready ? afterAdding(session.slideshow, importState.pictures, placement) : null,
   );

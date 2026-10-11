@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { PictureImportState } from "../../import/picture-import";
 import type { StoredPicture } from "../../library/stored-slideshow";
 import type { ChosenSong } from "./import-session";
+import type { CullingState } from "./picture-culling";
 import {
   canContinue,
   captureRange,
@@ -59,6 +60,8 @@ describe("pendingPictureCount", () => {
   });
 });
 
+const culled: CullingState = { checking: null, groups: [], setAsideCount: 0 };
+
 describe("canContinue", () => {
   it.each([
     ["with a stored picture and nothing in flight", oneStored, true],
@@ -66,7 +69,11 @@ describe("canContinue", () => {
     ["not while pictures are being downscaled", { ...oneStored, total: 2, busy: true }, false],
     ["not after the import failed", { ...oneStored, failed: true }, false],
   ] as const)("continues %s: %s", (_, state, expected) => {
-    expect(canContinue(state)).toBe(expected);
+    expect(canContinue(state, culled)).toBe(expected);
+  });
+
+  it("does not continue while pictures are being checked for similar shots and blur", () => {
+    expect(canContinue(oneStored, { ...culled, checking: { checked: 0, total: 1 } })).toBe(false);
   });
 });
 

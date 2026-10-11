@@ -30,7 +30,7 @@ async function mountWithPictures(...names: string[]) {
   });
   unmounts.push(body.destroy);
   intake.addPictures(names.map((name, day) => pictureFile(name, `2025-07-0${day + 1}T10:00:00Z`)));
-  await intake.pictures.settled();
+  await intake.settled();
   flushSync();
   return { intake, toaster, target: body.target, destroy: body.destroy };
 }

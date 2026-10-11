@@ -208,6 +208,9 @@ export class ImportSession {
     if (state.busy) {
       throw new Error("cannot create the slideshow: pictures are still being imported");
     }
+    if (this.intake.culling.state.checking !== null) {
+      throw new Error("cannot create the slideshow: pictures are still being checked");
+    }
     if (state.pictures.length === 0) {
       throw new Error("cannot create a slideshow with no pictures: import at least one first");
     }

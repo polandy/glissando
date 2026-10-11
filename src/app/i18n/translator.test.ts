@@ -115,6 +115,28 @@ describe("formatters", () => {
     expect(createTranslator("de").formatDate("2025-07-12T23:30:00Z")).toBe("12.07.2025");
   });
 
+  it.each([
+    ["de", "14:02:11"],
+    ["en", "14:02:11"],
+  ] as const)(
+    "in %s formats a capture time with its seconds in UTC as %s",
+    (language, expected) => {
+      expect(createTranslator(language).formatTime("2025-07-12T14:02:11Z")).toBe(expected);
+    },
+  );
+
+  it("formats the minutes two capture times span as hours and minutes in UTC", () => {
+    expect(
+      createTranslator("en").formatMinuteRange("2025-07-12T14:02:11Z", "2025-07-12T14:03:40Z"),
+    ).toBe("14:02–14:03");
+  });
+
+  it("formats capture times within one minute as that minute alone", () => {
+    expect(
+      createTranslator("de").formatMinuteRange("2025-07-12T14:02:11Z", "2025-07-12T14:02:59Z"),
+    ).toBe("14:02");
+  });
+
   it("rejects a date it cannot read, naming the value", () => {
     expect(() => createTranslator("de").formatDate("yesterday")).toThrow(/"yesterday"/);
   });

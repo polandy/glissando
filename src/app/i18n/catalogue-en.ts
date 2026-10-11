@@ -8,6 +8,7 @@ import { enHtml } from "./catalogue-en-html";
 import { enVideo } from "./catalogue-en-video";
 import { enServer } from "./catalogue-en-server";
 import { enPlaylist } from "./catalogue-en-playlist";
+import { enCulling } from "./catalogue-en-culling";
 import type { Catalogue } from "./messages";
 
 /** English UI copy; the type demands exactly the German catalogue's keys and message shapes. */
@@ -295,4 +296,5 @@ export const en: Catalogue = {
   ...enHtml,
   ...enServer,
   ...enPlaylist,
+  ...enCulling,
 };

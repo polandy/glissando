@@ -9,6 +9,8 @@ import type { PictureSource } from "../../import/picture-source";
 import type { PictureIdentity } from "../../library/picture-identity";
 import type { LibraryStore } from "../../library/stored-slideshow";
 import { linkImmichPhotos } from "../../server-library/link-immich-photos";
+import type { PictureChecker } from "../../culling/picture-checker";
+import { PictureCulling } from "./picture-culling";
 import { PictureRemovals, type PictureRemovalsPorts } from "./picture-removals";
 
 export interface PictureIntakePorts
@@ -17,6 +19,8 @@ export interface PictureIntakePorts
     LibraryStore,
     "putPicture" | "putPictureFocus" | "claimMedia" | "releaseClaim"
   >;
+  /** Measures each stored picture's thumbnail for culling (ADR-0024). */
+  readonly checker: PictureChecker;
   /** A photo picked in the Immich browser, read through the composition root's client. */
   immichSource(photo: ImmichPhoto): PictureSource;
   /** Claim and media ids. */
@@ -32,10 +36,12 @@ export interface PictureIntakePorts
  * The pictures being taken in, for a new slideshow or one being added to: files and Immich photos
  * in, stored pictures out, those already `known` skipped as duplicates (ADR-0016). Every media id
  * is claimed in the store before the media is written, so a clean-up in any tab spares it until
- * the claim ends.
+ * the claim ends. Each stored picture is checked for similar shots and blur; a set-aside one stays
+ * claimed until the import ends, then nothing references it.
  */
 export class PictureIntake {
   readonly pictures: PictureImport;
+  readonly culling: PictureCulling;
   readonly #ports: PictureIntakePorts;
   readonly #removals: PictureRemovals;
   #known: readonly PictureIdentity[];
@@ -59,6 +65,13 @@ export class PictureIntake {
       },
       newId: ports.newId,
       known: () => this.#known,
+      stored: (stored) => this.culling.check(stored),
+    });
+    this.culling = new PictureCulling({
+      checker: ports.checker,
+      pictures: this.pictures,
+      log: ports.log,
+      onError: ports.onError,
     });
     this.#removals = new PictureRemovals({ ...ports, pictures: this.pictures });
   }
@@ -116,6 +129,15 @@ export class PictureIntake {
     this.#removals.end();
   }
 
+  /**
+   * Resolves once every picture queued now is imported and checked, and the cull applied;
+   * rejects as `PictureImport.settled` does.
+   */
+  async settled(): Promise<void> {
+    await this.pictures.settled();
+    await this.culling.settled();
+  }
+
   /** Resolves once an unexpected picture-import error, if any, has been reported or logged. */
   reported(): Promise<void> {
     return this.#reporting;
@@ -142,6 +164,7 @@ export class PictureIntake {
   discard(): Promise<void> {
     this.#removals.end();
     this.pictures.cancel();
+    this.culling.reset();
     return this.endClaim();
   }
 

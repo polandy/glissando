@@ -24,8 +24,14 @@ export interface TestFile {
 
 const PICTURE_WIDTH = 64;
 const PICTURE_HEIGHT = 48;
+const STRIPE_WIDTH = 4;
 const JPEG_START_OF_IMAGE_LENGTH = 2;
 const SEGMENT_MARKER_LENGTH = 2;
+/** The capture time a test picture has unless a case names one. */
+const NOON = "12:00:00";
+/** A scene's white lines: this many pixels wide, one every `SCENE_LINE_PERIOD` rows. */
+const SCENE_LINE_WIDTH = 2;
+const SCENE_LINE_PERIOD = 6;
 
 /**
  * A real, decodable JPEG whose EXIF says it was taken on `day` ("YYYY-MM-DD", at noon): the
@@ -56,6 +62,85 @@ export async function pictureTakenOn(
     name,
     mimeType: "image/jpeg",
     buffer: withCaptureDay(Buffer.from(encoded, "base64"), day),
+  };
+}
+
+/**
+ * Like `pictureTakenOn`, but in stripes of `colour` and white: sharp edges and no face, a picture
+ * the culling check keeps next to a sharp one, where a plain-coloured one counts as blurry.
+ */
+export async function stripedPictureTakenOn(
+  page: Page,
+  name: string,
+  day: string,
+  colour: string,
+): Promise<TestFile> {
+  const encoded = await page.evaluate(
+    ({ width, height, fill, stripe }) => {
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const context = canvas.getContext("2d");
+      if (context === null) {
+        throw new Error("no 2D canvas context to draw a test picture");
+      }
+      context.fillStyle = "#ffffff";
+      context.fillRect(0, 0, width, height);
+      context.fillStyle = fill;
+      for (let x = 0; x < width; x += 2 * stripe) context.fillRect(x, 0, stripe, height);
+      return canvas.toDataURL("image/jpeg").split(",")[1] ?? "";
+    },
+    { width: PICTURE_WIDTH, height: PICTURE_HEIGHT, fill: colour, stripe: STRIPE_WIDTH },
+  );
+  return {
+    name,
+    mimeType: "image/jpeg",
+    buffer: withCaptureDay(Buffer.from(encoded, "base64"), day),
+  };
+}
+
+/**
+ * A scene taken on `day` at `time` ("HH:MM:SS"): a fade from `colour` at the left edge to white at
+ * the right, crossed by sharp white lines. Two scenes differing in colour only are similar shots for
+ * the culling check, and the one with the darker colour has the more contrast, so it is the sharper.
+ */
+export async function sceneTakenAt(
+  page: Page,
+  name: string,
+  day: string,
+  time: string,
+  colour: string,
+): Promise<TestFile> {
+  const encoded = await page.evaluate(
+    ({ width, height, fill, lineWidth, linePeriod }) => {
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const context = canvas.getContext("2d");
+      if (context === null) {
+        throw new Error("no 2D canvas context to draw a test picture");
+      }
+      const fade = context.createLinearGradient(0, 0, width, 0);
+      fade.addColorStop(0, fill);
+      fade.addColorStop(1, "#ffffff");
+      context.fillStyle = fade;
+      context.fillRect(0, 0, width, height);
+      context.fillStyle = "#ffffff";
+      for (let y = 0; y < height; y += linePeriod) context.fillRect(0, y, width, lineWidth);
+      return canvas.toDataURL("image/jpeg").split(",")[1] ?? "";
+    },
+    {
+      width: PICTURE_WIDTH,
+      height: PICTURE_HEIGHT,
+      fill: colour,
+      lineWidth: SCENE_LINE_WIDTH,
+      linePeriod: SCENE_LINE_PERIOD,
+    },
+  );
+  return {
+    name,
+    mimeType: "image/jpeg",
+    buffer: withCaptureDay(Buffer.from(encoded, "base64"), day, time),
   };
 }
 
@@ -100,9 +185,9 @@ export function portraitTakenOn(name: string, day: string): TestFile {
   return { name, mimeType: "image/jpeg", buffer: withCaptureDay(portrait, day) };
 }
 
-/** `jpeg` with an EXIF segment saying it was taken on `day` (at noon), spliced in after its start. */
-function withCaptureDay(jpeg: Uint8Array, day: string): Uint8Array {
-  const exifDate = `${day.replaceAll("-", ":")} 12:00:00`;
+/** `jpeg` with an EXIF segment saying it was taken on `day` at `time`, spliced in after its start. */
+function withCaptureDay(jpeg: Uint8Array, day: string, time = NOON): Uint8Array {
+  const exifDate = `${day.replaceAll("-", ":")} ${time}`;
   const exifSource = syntheticJpeg({ byteOrder: "little", dateTimeOriginal: exifDate }).bytes;
   const app1Start = JPEG_START_OF_IMAGE_LENGTH;
   const app1Length = SEGMENT_MARKER_LENGTH + ((exifSource[4] ?? 0) << 8) + (exifSource[5] ?? 0);

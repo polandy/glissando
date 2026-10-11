@@ -8,7 +8,7 @@ import {
   openImport,
 } from "./support/app";
 import { openApp } from "./support/browser";
-import { pictureTakenOn, portraitTakenOn } from "./support/media";
+import { portraitTakenOn, stripedPictureTakenOn } from "./support/media";
 
 test.use(GERMAN_BROWSER);
 
@@ -27,7 +27,7 @@ test("E2E-028 the automatic motion's focus is found in the background: a face is
     page,
     [
       portraitTakenOn("portrait.jpg", "2025-07-12"),
-      await pictureTakenOn(page, "plain.jpg", "2025-07-14", "#4db6ac"),
+      await stripedPictureTakenOn(page, "stripes.jpg", "2025-07-14", "#4db6ac"),
     ],
     2,
   );

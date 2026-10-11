@@ -9,6 +9,7 @@
   import ChosenPicturesStrip from "./ChosenPicturesStrip.svelte";
   import DropZone from "./DropZone.svelte";
   import PicturesProgress from "./PicturesProgress.svelte";
+  import SetAsidePictures from "./SetAsidePictures.svelte";
   import type { PictureIntake } from "./picture-intake";
   import { captureRange, pendingPictureCount, picturesPhase, skippedNotices } from "./import-view";
 
@@ -57,10 +58,13 @@
   // The intake and the loader are fixed for the body's lifetime.
   // svelte-ignore state_referenced_locally
   let importState = $state.raw(intake.pictures.state);
+  // svelte-ignore state_referenced_locally
+  let cullingState = $state.raw(intake.culling.state);
   let urls = $state<ReadonlyMap<string, string>>(new Map());
   let pickFiles: HTMLInputElement;
   let pickFolder: HTMLInputElement;
   let choosePictures: HTMLButtonElement | undefined = $state();
+  let strip: ReturnType<typeof ChosenPicturesStrip> | undefined = $state();
 
   // svelte-ignore state_referenced_locally
   const thumbnails = new ObjectUrls({ ...browserObjectUrls, load: loadThumbnail, onError });
@@ -69,8 +73,14 @@
   onDestroy(() => intake.endRemovals());
 
   $effect(() => intake.pictures.subscribe((next) => (importState = next)));
+  $effect(() => intake.culling.subscribe((next) => (cullingState = next)));
   $effect(() => thumbnails.subscribe((next) => (urls = next)));
-  $effect(() => thumbnails.sync(importState.pictures.map((picture) => picture.id)));
+  $effect(() =>
+    thumbnails.sync([
+      ...importState.pictures.map((picture) => picture.id),
+      ...cullingState.groups.flatMap((group) => group.pictures.map((picture) => picture.id)),
+    ]),
+  );
 
   const phase = $derived(picturesPhase(importState));
   const range = $derived(captureRange(importState.pictures));
@@ -138,9 +148,10 @@
   </Notice>
 {/if}
 
-{#if phase === "importing" || (phase === "done" && range !== null)}
+{#if phase === "importing" || cullingState.checking !== null || (phase === "done" && range !== null)}
   <PicturesProgress
     state={importState}
+    checking={cullingState.checking}
     {range}
     onCancel={onDiscard}
     onAddMore={linking ? null : () => pickFiles.click()}
@@ -185,11 +196,24 @@
 
 {#if importState.pictures.length > 0 || pending > 0}
   <ChosenPicturesStrip
+    bind:this={strip}
     pictures={importState.pictures}
     {urls}
     {pending}
     onRemove={(pictureId) => intake.removePicture(pictureId)}
     onEmptied={() => choosePictures?.focus()}
+  />
+{/if}
+
+{#if cullingState.setAsideCount > 0}
+  <SetAsidePictures
+    groups={cullingState.groups}
+    count={cullingState.setAsideCount}
+    pictures={importState.pictures}
+    {urls}
+    onTakeIn={(pictureId) => intake.culling.takeIn(pictureId)}
+    onTakeAllIn={() => intake.culling.takeAllIn()}
+    onEmptied={(pictureId) => strip?.focusRemove(pictureId)}
   />
 {/if}
 

@@ -49,6 +49,13 @@ export interface Translator {
   formatTenthSeconds(seconds: number): string;
   /** A date-time as dd.mm.yyyy (or the locale's order), read in UTC. */
   formatDate(isoDateTime: string): string;
+  /** The time of a date-time with its seconds, read in UTC: "14:02:11". */
+  formatTime(isoDateTime: string): string;
+  /**
+   * Hours and minutes from one date-time to another, read in UTC: "14:02–14:03", or "14:02"
+   * when both fall in one minute.
+   */
+  formatMinuteRange(fromIsoDateTime: string, toIsoDateTime: string): string;
   /** A day heading from `YYYY-MM-DD`, with the weekday: "Sat, 12 July 2025". */
   formatDay(day: string): string;
   /** The days between two date-times, read in UTC, as compact as the locale allows. */
@@ -88,6 +95,19 @@ export function createTranslator(language: Language): Translator {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
+    timeZone: "UTC",
+  });
+  const minutes = new Intl.DateTimeFormat(locale, {
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+    timeZone: "UTC",
+  });
+  const times = new Intl.DateTimeFormat(locale, {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hourCycle: "h23",
     timeZone: "UTC",
   });
 
@@ -154,6 +174,14 @@ export function createTranslator(language: Language): Translator {
     },
     formatDate(isoDateTime) {
       return dates.format(parseDate(isoDateTime));
+    },
+    formatTime(isoDateTime) {
+      return times.format(parseDate(isoDateTime));
+    },
+    formatMinuteRange(fromIsoDateTime, toIsoDateTime) {
+      const from = minutes.format(parseDate(fromIsoDateTime));
+      const to = minutes.format(parseDate(toIsoDateTime));
+      return from === to ? from : `${from}–${to}`;
     },
     formatDay(day) {
       return days.format(parseDate(day));

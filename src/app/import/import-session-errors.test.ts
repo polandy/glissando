@@ -11,7 +11,7 @@ describe("ImportSession, reporting a failed import", () => {
     const { session, errors, logged } = sessionWith(store);
 
     session.addPictures([pictureFile("a.jpg", "2025-07-01T10:00:00Z")]);
-    await session.pictures.settled().catch(() => undefined);
+    await session.intake.settled().catch(() => undefined);
     await session.reported();
 
     expect(session.pictures.state.failed).toBe(true);
@@ -28,7 +28,7 @@ describe("ImportSession, reporting a failed import", () => {
     session.addPictures([pictureFile("a.jpg", "2025-07-01T10:00:00Z")]);
     session.addPictures([pictureFile("b.jpg", "2025-07-01T10:00:00Z")]);
     session.addPictures([pictureFile("c.jpg", "2025-07-01T10:00:00Z")]);
-    await session.pictures.settled().catch(() => undefined);
+    await session.intake.settled().catch(() => undefined);
     await session.reported();
 
     expect(session.pictures.state.failed).toBe(true);
@@ -53,7 +53,7 @@ describe("ImportSession, reporting a failed import", () => {
     session.addPictures([pictureFile("a.jpg", "2025-07-01T10:00:00Z")]);
     session.pictures.cancel();
     release();
-    await session.pictures.settled().catch(() => undefined);
+    await session.intake.settled().catch(() => undefined);
     failing = false;
     await session.reported();
 
