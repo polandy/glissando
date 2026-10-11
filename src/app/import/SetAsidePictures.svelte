@@ -46,6 +46,25 @@
       (first, second) => Date.parse(first.capturedAt) - Date.parse(second.capturedAt),
     );
 
+  const WHEN_MARK = "\u{E000}";
+
+  /**
+   * A similar group's heading around its time range, which is set in the mono face: the message
+   * places `{when}`, so the text before and after it follow each language's word order.
+   */
+  function headingParts(
+    sharpestKept: boolean,
+    first: StoredPicture,
+    last: StoredPicture,
+  ): { before: string; when: string; after: string } {
+    const message = t(sharpestKept ? "cull.similarGroupSharpestKept" : "cull.similarGroup", {
+      when: WHEN_MARK,
+    });
+    const [before = "", after = ""] = message.split(WHEN_MARK);
+    const when = `${formatDate(first.capturedAt)} ${formatMinuteRange(first.capturedAt, last.capturedAt)}`;
+    return { before, when, after };
+  }
+
   /** Focus goes to the next picture's +, the previous one at the end. */
   function takeIn(pictureId: string): void {
     const buttons = [...(section?.querySelectorAll<HTMLButtonElement>("button.take") ?? [])];
@@ -118,16 +137,12 @@
         {@const shown = byCaptureTime(kept, group.pictures)}
         {@const first = shown[0]}
         {@const last = shown.at(-1)}
-        <h3>
-          {t("cull.similarGroup")}
-          {#if first !== undefined && last !== undefined}
-            <span class="when mono">
-              {formatDate(first.capturedAt)}
-              {formatMinuteRange(first.capturedAt, last.capturedAt)}
-            </span>
-          {/if}
-          {#if kept !== undefined}{t("cull.sharpestKept")}{/if}
-        </h3>
+        {#if first !== undefined && last !== undefined}
+          {@const heading = headingParts(kept !== undefined, first, last)}
+          <h3>
+            {heading.before}<span class="when mono">{heading.when}</span>{heading.after}
+          </h3>
+        {/if}
         <ul class="set">
           {#if kept !== undefined}{@render tile(kept, t("cull.kept"), true)}{/if}
           {#each group.pictures as picture (picture.id)}
