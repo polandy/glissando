@@ -29,7 +29,7 @@ export interface AppServices {
   readonly reportError: ErrorReporter;
   readonly settings: AppSettings;
   readonly persistencePrompt: PersistencePrompt;
-  /** Installing, offline use and updates (dev-docs/APP.md, Installing and offline). */
+  /** Installing, offline use and updates (dev-docs/app/INSTALLING_AND_OFFLINE.md). */
   readonly pwa: PwaStatus;
   /** Where the music sounds, in the player and the music editor; unlocked by a user gesture. */
   readonly musicOutput: MusicOutput;

@@ -6,7 +6,7 @@
   import { isContiguous, selectedInOrder, type StripSelection } from "./strip-selection";
 
   /**
-   * What the selection offers, fixed to the bottom of the viewport (dev-docs/APP.md, Select and
+   * What the selection offers, fixed to the bottom of the viewport (dev-docs/app/SLIDESHOW_EDITING.md, Select and
    * reorder; Selecting several). Its height and inset come from the screen, which keeps that
    * much room below its content.
    */
@@ -171,7 +171,7 @@
     font-size: var(--gl-size-small);
     white-space: nowrap;
   }
-  /* Selecting several (dev-docs/APP.md, Selecting several): the count in the accent. */
+  /* Selecting several (dev-docs/app/SLIDESHOW_EDITING.md, Selecting several): the count in the accent. */
   .count.several {
     color: var(--gl-ink);
     font-weight: var(--gl-weight-medium);

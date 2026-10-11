@@ -2,7 +2,7 @@
 
 Slideshows stored by the self-hosted Glissando, their pictures linked from Immich (ADR-0018).
 The approved mockup: https://claude.ai/artifact/LMg64KXScDNzDHzuJTHx6B. Immich itself:
-`dev-docs/APP.md`, Immich, and ADR-0013.
+`dev-docs/app/IMMICH.md` and ADR-0013.
 
 ## The server document
 

@@ -83,7 +83,7 @@ Rules:
 - The logo keeps the Sorbet palette: peach `#FFB59A`, mint `#8FD9C4`, lemon `#FFD95A`, outline
   plum `#2A2340`; in dark mode the cards are outlined in `#171223` (sticker look).
 - The theme follows `prefers-color-scheme`; `data-theme="light|dark"` on `<html>` pins one (see
-  [APP.md](APP.md#themes)).
+  [app/THEMES.md](app/THEMES.md)).
 
 Shape: `--gl-radius` 10 px (buttons, notices, summary cells), `--gl-radius-large` 14 px (cards,
 panels, dialogs), `--gl-radius-tile` 8 px (picture tiles), hairlines instead of shadows.

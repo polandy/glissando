@@ -26,7 +26,7 @@
     /** The position in play order, from 1. */
     number: number;
     selected: boolean;
-    /** Selecting several (dev-docs/APP.md, Selecting several): every tile shows a check circle. */
+    /** Selecting several (dev-docs/app/SLIDESHOW_EDITING.md, Selecting several): every tile shows a check circle. */
     selecting: boolean;
     /** Just added: outlined and badged while the screen is shown. */
     isNew: boolean;
@@ -205,7 +205,7 @@
     border-radius: var(--gl-radius-small);
     background: var(--gl-photo-badge);
   }
-  /* The selected tile's order number, in the accent (dev-docs/APP.md, Select and reorder). */
+  /* The selected tile's order number, in the accent (dev-docs/app/SLIDESHOW_EDITING.md, Select and reorder). */
   .tile.selected .number {
     background: var(--gl-accent);
     color: var(--gl-accent-ink);
@@ -262,7 +262,7 @@
       opacity: 1;
     }
   }
-  /* Selecting several (dev-docs/APP.md, Selecting several): the check circle instead of the marks. */
+  /* Selecting several (dev-docs/app/SLIDESHOW_EDITING.md, Selecting several): the check circle instead of the marks. */
   .tile.selecting-mode .mark {
     display: none;
   }

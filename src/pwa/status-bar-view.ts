@@ -29,7 +29,7 @@ export interface StatusBarView {
   readonly action: StatusBarAction;
 }
 
-/** The status line and its one action; the rules and their precedence are in dev-docs/APP.md. */
+/** The status line and its one action; the rules and their precedence are in dev-docs/app/INSTALLING_AND_OFFLINE.md. */
 export function statusBarView(state: PwaState): StatusBarView {
   return { status: statusOf(state), action: actionOf(state) };
 }

@@ -1,7 +1,7 @@
 import { orderByCaptureDate } from "../compose/order-by-capture-date";
 import type { StoredPicture } from "./stored-slideshow";
 
-/** Where pictures added to a slideshow in its own order go (dev-docs/APP.md, Adding pictures). */
+/** Where pictures added to a slideshow in its own order go (dev-docs/app/SLIDESHOW_EDITING.md, Adding pictures). */
 export type AddedPlacement = "byCaptureDate" | "atEnd";
 
 export const DEFAULT_ADDED_PLACEMENT: AddedPlacement = "byCaptureDate";
