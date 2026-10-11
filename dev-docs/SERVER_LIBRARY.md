@@ -53,6 +53,7 @@ the server.
 | `GET /api/library/music/{musicId}/beats`                         | 200 `{ "beats": <MusicBeats> }` or `{ "beats": null }` while no device has listened yet; 404                                                                                         |
 | `PUT /api/library/music/{musicId}/beats` body: a `MusicBeats`    | 204; 400 `invalidBeats`; 404; 413 `tooLarge`; 415 `notJson`                                                                                                                          |
 
+- **Share links** add `…/slideshows/{id}/share` and the public `/api/share/` (`dev-docs/SHARE_LINK.md`).
 - **Revision**: a positive whole number, 1 on create, +1 on every accepted `PUT`. Compared in the
   same transaction as the write. An `If-Match` other than the
   current `"<revision>"` (also `*` or a weak tag) is a stale one: 412.

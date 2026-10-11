@@ -42,7 +42,8 @@ editing and video export (WebCodecs). Slideshows and media live on the device in
 - **Moving between devices** is a file: a slideshow exports to and imports from one
   `.glissando` file holding its pictures, music and settings. With the self-hosted Glissando
   and Immich, a slideshow can also live on the server, its pictures linked from Immich; every
-  device at home plays it online (ADR-0018, `dev-docs/SERVER_LIBRARY.md`).
+  device at home plays it online (ADR-0018, `dev-docs/SERVER_LIBRARY.md`). Such a slideshow can also
+  be shared by a link that anyone can watch in a browser (ADR-0025, `dev-docs/SHARE_LINK.md`).
 
 **The server is optional.** Installing needs one load from any static HTTPS host; after that the
 app runs without it. A Glissando server only adds the network extras (Immich proxy, slideshows
