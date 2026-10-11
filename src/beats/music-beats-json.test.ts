@@ -11,13 +11,12 @@ describe("parseMusicBeats", () => {
     expect(parseMusicBeats(value)).toEqual(value);
   });
 
-  it("keeps only the known fields, dropping an extra one", () => {
-    const value = { kind: "beats", beatsMs: [0, 500], beatsPerMinute: 120, extra: "drop me" };
-    expect(parseMusicBeats(value)).toEqual({
-      kind: "beats",
-      beatsMs: [0, 500],
-      beatsPerMinute: 120,
-    });
+  it("refuses a field it does not know, as the server documents do", () => {
+    const valid = { kind: "beats", beatsMs: [0, 500], beatsPerMinute: 120 };
+    expect(parseMusicBeats(valid)).toEqual(valid);
+
+    expect(parseMusicBeats({ ...valid, extra: "unknown" })).toBeUndefined();
+    expect(parseMusicBeats({ kind: "none", extra: "unknown" })).toBeUndefined();
   });
 
   it.each([

@@ -28,9 +28,7 @@ export function detectBeats(samples: Float32Array, sampleRate: number): MusicBea
       ((frame * HOP_SAMPLES + FRAME_SAMPLES / 2) / sampleRate) * MILLISECONDS_PER_SECOND +
         DETECTION_LEAD_MS,
     );
-  const beatsMs = trackBeats(strengths, tempo.periodFrames)
-    .map(frameToMs)
-    .filter((beatMs) => beatMs >= 0);
+  const beatsMs = trackBeats(strengths, tempo.periodFrames).map(frameToMs);
   if (beatsMs.length === 0) {
     return NO_BEATS;
   }

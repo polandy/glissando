@@ -25,6 +25,11 @@ pictures with the same one make it invalid; the reason names the path and value.
 `width` and `height` are Immich's (the asset's `width`/`height`) fitted into the display bound
 (`fitWithin`, `DISPLAY_BOUND`); the rendition decoded at play time is authoritative for drawing.
 
+`formatVersion` changes only for an incompatible change. A field the manifest gains as optional
+(e.g. `music.pictureChanges`, manifest version 8) keeps it at 1: the service and the app ship in
+one image, so a document with the field is always read by an app that knows it; only an app still
+cached from before the update refuses it as invalid, until it updates.
+
 In the app a server slideshow is a `StoredSlideshow` whose pictures' `id` is their
 `immichAssetId` and whose music's `id` is its `musicId`.
 

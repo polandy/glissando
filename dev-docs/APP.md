@@ -316,7 +316,7 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
     on the beat, a tick per beat along the waveform's foot, every fourth taller. A time ruler
     below. Then the lane "Slideshow, 24 pictures" with
     its length: a mint bar from the excerpt's start for as long as the slideshow plays, a tick
-    per picture change (on the beat, a change between beats — the one after a picture with an
+    per picture change (on the beat, a change that falls between beats — e.g. the one after a picture with an
     own duration — is a wider coral tick), lemon hatching past the excerpt's end when the pictures play on in
     silence; when the slideshow ends earlier, the waveform is hatched from there to the
     excerpt's end. "Listen to the start" (the excerpt's first 8 s with the fade-in, "from

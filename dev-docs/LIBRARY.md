@@ -160,7 +160,7 @@ an opened file); opening the music editor or the player asks it for that one tra
 skipped; a failed detection is logged (`BeatDetectionFailedError`), keeps no result and is tried
 again on the next pass; music the device cannot decode (`MusicUndecodableError`) is marked
 `undecodable` until it is found after all; a crashed worker (`BeatDetectorGoneError`) ends the
-pass and is reported once. Its state: `running`; `listening`, the tracks still to come; `found`,
+pass and is reported once; later passes meeting it only log it. Its state: `running`; `listening`, the tracks still to come; `found`,
 every result stored since the app opened; and `undecodable`.
 
 A second `BeatPass` over the server store (`serverBeatPass`) does the same for server

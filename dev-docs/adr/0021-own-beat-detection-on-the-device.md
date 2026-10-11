@@ -34,7 +34,7 @@ times are Chromium on a desktop, then with 6× CPU throttling as a stand-in for 
 | ambient, no beat  | "no clear beat" | 114                     | 180             | 114                   |
 | 3 min, desktop/6× | 0.28 s / 1.6 s  | 0.10 s (worker)         | 0.9 s / 6.0 s   | 0.08 s / 0.17 s       |
 
-The own detector's beats sit within ±6 ms of the true ones once its constant 10 ms lag is taken
+The own detector's beats sit within ±6 ms of the true ones once its constant 10 ms lead is taken
 off; its pulse clarity is 4.3 to 38 on the tracks with a beat and 1.1 on the ambient pad.
 Decoding at 11 025 Hz takes about 0.14 s for 3 minutes and is native code.
 
@@ -55,14 +55,16 @@ Decoding at 11 025 Hz takes about 0.14 s for 3 minutes and is native code.
 - **The choice** is the music's: `StoredMusic.pictureChanges` absent means automatic (on the beat
   when a beat was found), `"even"` keeps the even share. It travels with the track like the trim
   (ADR-0009); `.glissando` goes to version 8.
-- **Composing**: the even shares are computed as before; then each boundary between two automatic
-  slides moves to the nearest beat inside the excerpt, never below `MIN_SECONDS_PER_PICTURE` on
-  either side. The last boundary stays at the excerpt's end, so the slideshow still ends with the
+- **Composing**: the even shares are computed as before; then each boundary that ends an
+  automatic slide moves to the nearest beat inside the excerpt, never leaving that slide or the
+  next automatic one below `MIN_SECONDS_PER_PICTURE`. The last boundary stays at the excerpt's end, so the slideshow still ends with the
   music. A transition into a slide on the beat lasts the largest whole number of beats that fits
   its usual duration (30 % of the slide, at most 1 s), so it starts on a beat too; one beat longer
   than that keeps the usual duration.
-- **Own durations stay exact** (ADR-0008): a boundary after a picture with an own duration is not
-  moved; the following automatic boundaries snap again.
+- **Own durations stay exact** (ADR-0008): pictures with an own duration between two automatic
+  slides move along with the boundary before them; the boundary after a picture with an own
+  duration is not moved, nor is one followed by own durations only; the following automatic
+  boundaries snap again.
 - **The same timing everywhere**: player, video export and web page export compose with the beats
   found so far; until a result exists the even share plays.
 

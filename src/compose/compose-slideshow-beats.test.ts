@@ -61,7 +61,7 @@ describe("composeSlideshow on the music's beats", () => {
     expect(last?.transitionToNext).toBeUndefined();
   });
 
-  it("shares the music evenly without a clear beat, as before", () => {
+  it("shares the music evenly without a clear beat", () => {
     const even = compose(MUSIC, NO_BEATS);
 
     expect(even.slides.map((slide) => slide.durationMs)).toEqual([4000, 4000, 4000]);

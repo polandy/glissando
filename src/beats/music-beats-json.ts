@@ -1,5 +1,8 @@
 import type { MusicBeats } from "./music-beats";
 
+const NONE_KEYS: ReadonlySet<string> = new Set(["kind"]);
+const BEATS_KEYS: ReadonlySet<string> = new Set(["kind", "beatsMs", "beatsPerMinute"]);
+
 /**
  * The boundary check of a `MusicBeats` read from JSON (ADR-0021): the server and the client both
  * read it from storage they do not fully trust, so both go through this one check.
@@ -10,9 +13,9 @@ export function parseMusicBeats(value: unknown): MusicBeats | undefined {
   }
   const { kind } = value as Record<string, unknown>;
   if (kind === "none") {
-    return { kind: "none" };
+    return hasOnlyKeys(value, NONE_KEYS) ? { kind: "none" } : undefined;
   }
-  if (kind !== "beats") {
+  if (kind !== "beats" || !hasOnlyKeys(value, BEATS_KEYS)) {
     return undefined;
   }
   const { beatsMs, beatsPerMinute } = value as Record<string, unknown>;
@@ -33,4 +36,8 @@ function isAscendingBeatMs(ms: unknown, index: number, beatsMs: readonly unknown
 
 function isPositiveTempo(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value) && value > 0;
+}
+
+function hasOnlyKeys(value: object, known: ReadonlySet<string>): boolean {
+  return Object.keys(value).every((key) => known.has(key));
 }

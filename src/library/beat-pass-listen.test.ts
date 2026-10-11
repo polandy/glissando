@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MusicUndecodableError } from "./beat-detector";
+import { BeatDetectorGoneError, MusicUndecodableError } from "./beat-detector";
 import { BeatDetectionFailedError } from "./beat-pass";
 import { answersBy, DRUMS, NO_CLEAR_BEAT, passOver, storeWith } from "./testing/beat-pass-fixtures";
 import { FakeBeatDetector } from "./testing/fake-beat-detector";
@@ -111,5 +111,24 @@ describe("BeatPass with music it cannot decode", () => {
 
     expect(pass.state.found.get("drums")).toEqual(DRUMS);
     expect(pass.state.undecodable).toEqual(new Set());
+  });
+});
+
+describe("BeatPass with its detector gone", () => {
+  it("reports the gone detector once, and only logs it on every later pass", async () => {
+    const { store } = await storeWith({ "show-1": "drums" });
+    const detector = new FakeBeatDetector(() => {
+      throw new BeatDetectorGoneError("the beat worker crashed");
+    });
+    const { pass, logged, reported } = passOver(store, detector);
+    pass.start();
+    await pass.settled();
+
+    pass.listenFor("drums");
+    await pass.settled();
+
+    expect(detector.calls).toBe(2);
+    expect(reported).toEqual([expect.any(BeatDetectorGoneError)]);
+    expect(logged).toEqual([expect.any(BeatDetectorGoneError)]);
   });
 });

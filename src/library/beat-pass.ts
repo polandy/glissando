@@ -10,7 +10,7 @@ export interface BeatPassPorts {
   readonly detector: BeatDetector;
   /** A detection failed for one track: logged, the pass carries on. */
   log(error: unknown): void;
-  /** An unexpected error, or the detector gone, ended the pass. */
+  /** An unexpected error, or the detector gone (told once; later passes log it), ended the pass. */
   reportError(error: unknown): void;
 }
 
@@ -59,6 +59,8 @@ export class BeatPass {
   readonly #takenUp = new Set<string>();
   #rescanRequested = false;
   #isRunning = false;
+  /** A gone detector stays gone: told once, as every later pass meets it again. */
+  #goneReported = false;
   #running: Promise<void> = Promise.resolve();
 
   constructor(ports: BeatPassPorts) {
@@ -124,7 +126,12 @@ export class BeatPass {
         this.#publish({ listening: new Set(this.#queue) });
       }
     } catch (error) {
-      this.#ports.reportError(error);
+      if (error instanceof BeatDetectorGoneError && this.#goneReported) {
+        this.#ports.log(error);
+      } else {
+        this.#goneReported ||= error instanceof BeatDetectorGoneError;
+        this.#ports.reportError(error);
+      }
     } finally {
       this.#queue = [];
       this.#asked = [];
