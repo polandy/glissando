@@ -1,5 +1,5 @@
 /**
- * Moving several pictures together over the play order as an array of ids (dev-docs/app/SLIDESHOW_EDITING.md,
+ * Moving several pictures together over the play order as an array of ids (dev-docs/app/slideshow-editing/REMOVE_SELECT_REORDER.md,
  * Select and reorder; ADR-0019). Pure functions over ids and index numbers; the wrappers over a
  * stored slideshow are in `group-edits.ts`.
  */

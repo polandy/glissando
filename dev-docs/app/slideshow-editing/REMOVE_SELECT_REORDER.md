@@ -1,0 +1,23 @@
+# Remove, select and reorder
+
+- **Remove**: a ✕ on a tile, "Remove" in the selection bar, or Delete/Backspace on a focused
+  tile — never confirmed. The ✕ and the drag grip are for a mouse only (`(hover: hover) and
+(pointer: fine)`): shown on hover and on the selected tile; touch has neither and uses the
+  selection bar. A toast "Picture removed" with "Undo" follows; removals made while it is
+  shown add up ("3 pictures removed") and one Undo puts them all back where they were. Any move
+  ends that batch and dismisses the toast, so Undo never puts pictures back at positions that
+  shifted meanwhile; leaving the screen dismisses it too. While the toast shows, the removed
+  pictures' media is claimed against the clean-up (`dev-docs/LIBRARY.md`). The last picture stays: its ✕ is disabled (titled with the reason);
+  "Remove" looks disabled but stays focusable and clickable (`aria-disabled`), and it and
+  Delete answer with the toast "The last picture stays. To get rid of it, delete the whole
+  slideshow.", keeping the selection.
+- **Select and reorder** (mockup:
+  https://polandy.github.io/glissando-assets/mockups/move-together/): a tap on a tile selects
+  it (outlined in the accent, its number badge in the accent; another tap deselects) and opens
+  the selection bar at the bottom — "Picture 3 of 12" (a polite live region, so every move is
+  announced; visually hidden up to 720 px, where the bar spans the width), "◀ Earlier",
+  "Later ▶", "✎ Edit" (opens the picture editor, [PICTURE_EDITOR.md](../PICTURE_EDITOR.md)), "Remove", "Done". At the ends Earlier
+  or Later looks disabled but stays focusable (`aria-disabled`) and does nothing. While the
+  bar shows, the content keeps room below it for the bar, and the selected tile scrolls clear
+  of it. The bar's buttons highlight on hover only where the pointer hovers. With a mouse, a
+  double-click on a tile opens the picture editor too.

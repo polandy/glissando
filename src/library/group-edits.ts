@@ -2,7 +2,7 @@ import { orderWithGroupAt, orderWithGroupShifted } from "./group-order";
 import type { StoredPicture, StoredSlideshow } from "./stored-slideshow";
 
 /**
- * Moving several pictures together in a stored slideshow (dev-docs/app/SLIDESHOW_EDITING.md, Select and reorder;
+ * Moving several pictures together in a stored slideshow (dev-docs/app/slideshow-editing/REMOVE_SELECT_REORDER.md, Select and reorder;
  * ADR-0019): the pure order logic is in `group-order.ts`, applied here to the stored pictures.
  */
 

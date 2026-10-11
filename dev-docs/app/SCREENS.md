@@ -31,7 +31,7 @@
   preview of the first picture (tap plays) with the running time, then the pictures in play
   order, each with its order number and capture date, under "Sorted by capture date" or, once
   the user reordered, "Own order" (with "drag or tap", narrow: "tap to reorder"); right of the
-  count "Add pictures" (narrow: "Add"; [SLIDESHOW_EDITING.md](SLIDESHOW_EDITING.md), Adding pictures). Beside it an
+  count "Add pictures" (narrow: "Add"; [ADDING_PICTURES.md](slideshow-editing/ADDING_PICTURES.md), Adding pictures). Beside it an
   info panel: title with a ✎ button, date range (earliest to latest capture), "Play", below it
   the "Save as" row with "Video" (the video export sheet, `dev-docs/VIDEO_EXPORT.md`) and "Web
   page" (the web page export sheet, `dev-docs/HTML_EXPORT.md`) side by side, and the
@@ -42,7 +42,7 @@
   own"), Ken Burns "automatic" (with own motions "automatic, 2 own"), transitions (a button
   spanning the row like the music's: the effect, e.g. "Crossfade" or "Alternating", below it
   "default" or "own choice", with own transitions "· 2 own" — a last picture's stored one does
-  not count — and "Change ›"; it opens the transitions sheet ([SLIDESHOW_EDITING.md](SLIDESHOW_EDITING.md), Transitions)), captions "3 of 8" (pictures with a caption of all; none: "0 of 8"). A tile carries small
+  not count — and "Change ›"; it opens the transitions sheet ([RENAME_TRANSITIONS_DELETE.md](slideshow-editing/RENAME_TRANSITIONS_DELETE.md), Transitions)), captions "3 of 8" (pictures with a caption of all; none: "0 of 8"). A tile carries small
   badges bottom right: a frame "own" for an own motion, a clock with "8 s" for an own duration
   and a transition mark (titled with the effect, e.g. "Circle") for an own transition, except on
   the last picture; its label adds "own motion", "own duration 8 s", "own transition Circle". The info panel and the player always use the edited picture list.
