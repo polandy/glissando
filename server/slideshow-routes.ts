@@ -24,25 +24,25 @@ const asVersion = ({ id, revision, document }: SlideshowRecord) => ({ id, revisi
 /** The routes under `/api/library/slideshows`. */
 export function slideshowRoutes({ repository, now, newId }: LibraryHandlerDependencies) {
   const musicMissing = (document: ServerDocument): LibraryResponse | undefined => {
-    const musicId = document.slideshow.music?.musicId;
-    return musicId === undefined || repository.findMusic(musicId) !== undefined
+    const missing = document.slideshow.songs.find(
+      (song) => repository.findMusic(song.musicId) === undefined,
+    );
+    return missing === undefined
       ? undefined
       : errorResponse(
           HTTP_STATUS.conflict,
           "musicMissing",
-          `slideshow.music.musicId ${JSON.stringify(musicId)} is no music on this server; upload it first`,
+          `slideshow.songs musicId ${JSON.stringify(missing.musicId)} is no music on this server; upload it first`,
         );
   };
 
-  /** Deletes the music `before` named if no slideshow names it any more. */
+  /** Deletes every song's music `before` named that no slideshow names any more. */
   const dropUnreferencedMusic = (before: ServerDocument, after?: ServerDocument): void => {
-    const musicId = before.slideshow.music?.musicId;
-    if (
-      musicId !== undefined &&
-      musicId !== after?.slideshow.music?.musicId &&
-      !repository.isMusicReferenced(musicId)
-    ) {
-      repository.deleteMusic(musicId);
+    const afterIds = new Set(after?.slideshow.songs.map((song) => song.musicId) ?? []);
+    for (const { musicId } of before.slideshow.songs) {
+      if (!afterIds.has(musicId) && !repository.isMusicReferenced(musicId)) {
+        repository.deleteMusic(musicId);
+      }
     }
   };
 

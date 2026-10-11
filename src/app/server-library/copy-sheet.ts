@@ -22,7 +22,7 @@ export function keepCopySheet(
 ): CopySheet {
   const count = serverSlideshow.pictures.length;
   const text =
-    serverSlideshow.music === undefined ? "server.keepCopyTextNoMusic" : "server.keepCopyText";
+    serverSlideshow.songs.length === 0 ? "server.keepCopyTextNoMusic" : "server.keepCopyText";
   return {
     title: t("server.keepCopyTitle"),
     message: [t(text, { count }), t("server.keepCopyIndependent")],

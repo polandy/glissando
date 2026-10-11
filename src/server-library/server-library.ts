@@ -18,8 +18,11 @@ export interface ServerLibrary {
   readonly memory: ServerLibraryMemory;
   /** The server's slideshows behind the store slices the screens and the player use. */
   readonly store: ServerSlideshowStore;
-  /** Creates a server slideshow (`createServerSlideshow`); its music's audio first. */
-  createSlideshow(slideshow: StoredSlideshow, musicAudio: Blob | null): Promise<StoredSlideshow>;
+  /** Creates a server slideshow (`createServerSlideshow`); every song's audio first, in order. */
+  createSlideshow(
+    slideshow: StoredSlideshow,
+    songsAudio: readonly Blob[],
+  ): Promise<StoredSlideshow>;
   /** "Save on the server" for a device slideshow (`saveOnServer`). */
   saveOnServer(deviceSlideshow: StoredSlideshow): Promise<StoredSlideshow>;
   /** "Keep a copy on this device" for a server slideshow (`keepCopyOnDevice`). */

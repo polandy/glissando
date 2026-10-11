@@ -30,13 +30,15 @@ export function slideshowWith(
     createdAt: "2025-07-02T00:00:00Z",
     pictures,
     secondsPerPicture: 5,
-    music: {
-      id: "m1",
-      fileName: "Sommerwind.mp3",
-      durationMs: TRACK_MS,
-      mimeType: "audio/mpeg",
-      ...music,
-    },
+    songs: [
+      {
+        id: "m1",
+        fileName: "Sommerwind.mp3",
+        durationMs: TRACK_MS,
+        mimeType: "audio/mpeg",
+        ...music,
+      },
+    ],
   };
 }
 

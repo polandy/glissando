@@ -1,9 +1,7 @@
 import { CAPTION_RULE, isCaption } from "./caption";
 import {
   EASINGS,
-  FIRST_SLIDESHOW_FORMAT_VERSION,
   MIN_KEN_BURNS_ZOOM,
-  ONE_TRACK_SLIDESHOW_FORMAT_VERSION,
   SLIDESHOW_FORMAT_VERSION,
   TRANSITION_EFFECTS,
   type Easing,
@@ -36,16 +34,8 @@ type JsonObject = Readonly<Record<string, unknown>>;
 export function parseSlideshow(input: unknown): Slideshow {
   const root = readObject(input, "", ["formatVersion", "title", "music", "slides"]);
   const version = root.formatVersion;
-  if (
-    version !== FIRST_SLIDESHOW_FORMAT_VERSION &&
-    version !== ONE_TRACK_SLIDESHOW_FORMAT_VERSION &&
-    version !== SLIDESHOW_FORMAT_VERSION
-  ) {
-    throw new SlideshowFormatError(
-      "formatVersion",
-      `${FIRST_SLIDESHOW_FORMAT_VERSION}, ${ONE_TRACK_SLIDESHOW_FORMAT_VERSION} or ${SLIDESHOW_FORMAT_VERSION}`,
-      version,
-    );
+  if (version !== SLIDESHOW_FORMAT_VERSION) {
+    throw new SlideshowFormatError("formatVersion", `${SLIDESHOW_FORMAT_VERSION}`, version);
   }
   const slides = readSlides(root.slides);
   const title = readString(root.title, "title");
@@ -54,31 +44,9 @@ export function parseSlideshow(input: unknown): Slideshow {
     : {
         formatVersion: SLIDESHOW_FORMAT_VERSION,
         title,
-        music: readMusicOfVersion(root.music, version),
+        music: readTracks(root.music),
         slides,
       };
-}
-
-function readMusicOfVersion(value: unknown, version: number): readonly MusicTrack[] {
-  if (version === FIRST_SLIDESHOW_FORMAT_VERSION) {
-    return [readFirstVersionMusic(value)];
-  }
-  if (version === ONE_TRACK_SLIDESHOW_FORMAT_VERSION) {
-    return [{ ...readTrack(value, "music", ["src", ...TRACK_TIMES]), atMs: 0 }];
-  }
-  return readTracks(value);
-}
-
-/** Version 1 music is the whole track without fades. */
-function readFirstVersionMusic(value: unknown): MusicTrack {
-  const music = readObject(value, "music", ["src"]);
-  return {
-    src: readNonEmptyString(music.src, "music.src"),
-    atMs: 0,
-    startMs: 0,
-    fadeInMs: 0,
-    fadeOutMs: 0,
-  };
 }
 
 const TRACK_TIMES = ["startMs", "endMs", "fadeInMs", "fadeOutMs"] as const;
@@ -100,16 +68,11 @@ function readTracks(value: unknown): readonly MusicTrack[] {
       );
     }
     previousAtMs = atMs;
-    return { ...readTrack(fields, path, ["src", "atMs", ...TRACK_TIMES]), atMs };
+    return { ...readTrack(fields, path), atMs };
   });
 }
 
-function readTrack(
-  value: unknown,
-  path: string,
-  knownKeys: readonly string[],
-): Omit<MusicTrack, "atMs"> {
-  const track = readObject(value, path, knownKeys);
+function readTrack(track: JsonObject, path: string): Omit<MusicTrack, "atMs"> {
   const startMs = readNonNegativeInteger(track.startMs, `${path}.startMs`);
   const endMs = readNonNegativeInteger(track.endMs, `${path}.endMs`);
   if (endMs <= startMs) {

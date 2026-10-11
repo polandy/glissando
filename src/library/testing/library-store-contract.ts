@@ -36,6 +36,7 @@ export function slideshow(overrides: Partial<StoredSlideshow> = {}): StoredSlide
     title: "July 2025",
     createdAt: "2025-07-02T08:00:00Z",
     pictures: [picture("picture-1")],
+    songs: [],
     secondsPerPicture: 5,
     ...overrides,
   };
@@ -80,12 +81,14 @@ export function describeLibraryStoreContract(
 
     it("returns a saved slideshow by id", async () => {
       const saved = slideshow({
-        music: {
-          id: "music-1",
-          fileName: "summer.mp3",
-          durationMs: 180_000,
-          mimeType: "audio/mpeg",
-        },
+        songs: [
+          {
+            id: "music-1",
+            fileName: "summer.mp3",
+            durationMs: 180_000,
+            mimeType: "audio/mpeg",
+          },
+        ],
       });
       await store.saveSlideshow(saved);
 
@@ -139,7 +142,7 @@ export function describeLibraryStoreContract(
       await store.putMusic("music-1", musicBlob("one"));
       const music = { id: "music-1", fileName: "a.mp3", durationMs: 1000, mimeType: "audio/mpeg" };
 
-      const bytes = await store.mediaBytes(slideshow({ music }));
+      const bytes = await store.mediaBytes(slideshow({ songs: [music] }));
 
       expect(bytes).toBe("one display".length + "one thumbnail".length + "one music".length);
     });
@@ -159,12 +162,14 @@ export function describeLibraryStoreContract(
       await store.putPicture("picture-1", pictureBlobs("one"));
       await store.putMusic("music-1", musicBlob("one"));
       const saved = slideshow({
-        music: {
-          id: "music-1",
-          fileName: "summer.mp3",
-          durationMs: 180_000,
-          mimeType: "audio/mpeg",
-        },
+        songs: [
+          {
+            id: "music-1",
+            fileName: "summer.mp3",
+            durationMs: 180_000,
+            mimeType: "audio/mpeg",
+          },
+        ],
       });
       await store.saveSlideshow(saved);
 
@@ -184,12 +189,14 @@ export function describeLibraryStoreContract(
       await store.saveSlideshow(
         slideshow({
           pictures: [picture("referenced-picture")],
-          music: {
-            id: "referenced-music",
-            fileName: "summer.mp3",
-            durationMs: 180_000,
-            mimeType: "audio/mpeg",
-          },
+          songs: [
+            {
+              id: "referenced-music",
+              fileName: "summer.mp3",
+              durationMs: 180_000,
+              mimeType: "audio/mpeg",
+            },
+          ],
         }),
       );
 
@@ -217,7 +224,10 @@ export function describeLibraryStoreContract(
       }
       await store.putMusic("music-1", musicBlob("one"));
       await store.saveSlideshow(
-        slideshow({ pictures: [picture("own-picture"), picture("shared-picture")], music }),
+        slideshow({
+          pictures: [picture("own-picture"), picture("shared-picture")],
+          songs: [music],
+        }),
       );
       await store.saveSlideshow(
         slideshow({ id: "other", pictures: [picture("shared-picture"), picture("other-picture")] }),

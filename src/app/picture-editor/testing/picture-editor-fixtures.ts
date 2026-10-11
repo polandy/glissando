@@ -24,6 +24,7 @@ export const stored: StoredSlideshow = {
     { id: "p3", capturedAt: "2025-07-03T10:00:00Z", width: 200, height: 300, fileName: "c.jpg" },
   ],
   secondsPerPicture: 4,
+  songs: [],
 };
 
 export function withPicture(index: number, changes: Partial<StoredPicture>): StoredSlideshow {

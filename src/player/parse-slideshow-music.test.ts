@@ -49,28 +49,11 @@ describe("parseSlideshow music", () => {
     expect(parseSlideshow(withMusic([MUSIC, NEXT])).music).toEqual([MUSIC, NEXT]);
   });
 
-  it("reads a version 2 slideshow's music as one track at the start", () => {
-    const parsed = parseSlideshow(withMusic(TRACK, 2));
+  it.each([1, 2])("refuses a version %s slideshow, naming the version to set", (formatVersion) => {
+    const error = parseError(withMusic(TRACK, formatVersion));
 
-    expect(parsed.formatVersion).toBe(3);
-    expect(parsed.music).toEqual([MUSIC]);
-  });
-
-  it("reads a version 1 slideshow's music as one whole track at the start without fades", () => {
-    const parsed = parseSlideshow(withMusic({ src: "music/summer.mp3" }, 1));
-
-    expect(parsed.formatVersion).toBe(3);
-    expect(parsed.music).toEqual([
-      { src: "music/summer.mp3", atMs: 0, startMs: 0, fadeInMs: 0, fadeOutMs: 0 },
-    ]);
-  });
-
-  it("refuses version 2 fields in a version 1 slideshow", () => {
-    expect(parseError(withMusic(TRACK, 1)).path).toBe("music.startMs");
-  });
-
-  it("refuses a version 2 track without its version 3 list", () => {
-    expect(parseError(withMusic(MUSIC, 2)).path).toBe("music.atMs");
+    expect(error.path).toBe("formatVersion");
+    expect(error.message).toContain("expected 3");
   });
 
   it.each([

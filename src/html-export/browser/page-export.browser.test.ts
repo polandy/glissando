@@ -64,7 +64,7 @@ const STORED: StoredSlideshow = {
   title: "Generated <test>",
   createdAt: "2026-07-02T10:00:00Z",
   pictures: PICTURES,
-  music: { id: "tone", fileName: "silence.wav", durationMs: MUSIC_MS, mimeType: "audio/wav" },
+  songs: [{ id: "tone", fileName: "silence.wav", durationMs: MUSIC_MS, mimeType: "audio/wav" }],
   secondsPerPicture: 3,
   transition: "cut",
 };
@@ -82,7 +82,7 @@ async function exportedPage(): Promise<Blob> {
   await exportPage({
     stored: STORED,
     focus: new Map(),
-    beats: { kind: "none" },
+    beats: new Map(),
     sizeId: "small",
     lang: "en",
     copy: COPY,

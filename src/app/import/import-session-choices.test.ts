@@ -49,7 +49,7 @@ describe("ImportSession, its choices of music and seconds per picture", () => {
 
     expect(choicesOf(session).pictureLength).toBeUndefined();
     const created = await session.create("de");
-    expect(created.music).toBeDefined();
+    expect(created.songs[0]).toBeDefined();
     expect(created).not.toHaveProperty("pictureLength");
   });
 
@@ -63,7 +63,7 @@ describe("ImportSession, its choices of music and seconds per picture", () => {
     expect(created.title).toBe("Juli–August 2025");
     expect(created.secondsPerPicture).toBe(4.5);
     expect(created.createdAt).toBe(CREATED_AT.toISOString());
-    expect(created.music).toBeUndefined();
+    expect(created.songs[0]).toBeUndefined();
     expect(await store.getSlideshow(created.id)).toEqual(created);
   });
 
@@ -74,13 +74,13 @@ describe("ImportSession, its choices of music and seconds per picture", () => {
 
     const created = await session.create("de");
 
-    expect(created.music).toEqual({
+    expect(created.songs[0]).toEqual({
       id: expect.any(String) as string,
       fileName: "Sommer.mp3",
       durationMs: MUSIC_MS,
       mimeType: "audio/mpeg",
     });
-    const musicId = created.music?.id ?? "";
+    const musicId = created.songs[0]?.id ?? "";
     expect(await (await store.musicBlob(musicId)).text()).toBe("tune");
   });
 
@@ -90,7 +90,7 @@ describe("ImportSession, its choices of music and seconds per picture", () => {
     session.removeMusic();
 
     expect(choicesOf(session).music).toBeNull();
-    expect((await session.create("de")).music).toBeUndefined();
+    expect((await session.create("de")).songs[0]).toBeUndefined();
   });
 
   it("refuses to create while pictures are still being downscaled", async () => {

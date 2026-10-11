@@ -1,13 +1,12 @@
 <script lang="ts">
   import { onDestroy, onMount } from "svelte";
-  import type { MusicBeats } from "../../beats";
   import type { BeatPass } from "../../library/beat-pass";
-  import { composeSlideshow } from "../../compose";
+  import { composeSlideshow, type SongBeats } from "../../compose";
   import type { LibraryStore, StoredSlideshow } from "../../library/stored-slideshow";
   import type { MusicOutput } from "../../player";
   import type { PictureFocus } from "../../library/picture-focus";
   import { browserObjectUrls } from "../media/object-urls";
-  import { storedMusicBeats } from "../beats/music-beats-known";
+  import { storedSongBeats } from "../beats/music-beats-known";
   import { NO_FOCUS_KNOWN } from "../focus/pictures-focus";
   import type { PlayerFailure } from "../player/player-failure";
   import PlayerOverlay from "../player/PlayerOverlay.svelte";
@@ -50,14 +49,14 @@
   } = $props();
 
   interface Loaded {
-    readonly musicUrl: string | null;
+    readonly musicUrls: ReadonlyMap<string, string>;
     readonly focus: ReadonlyMap<string, PictureFocus>;
-    readonly beats: MusicBeats;
+    readonly beats: SongBeats;
   }
 
   let loaded = $state.raw<Loaded | null>(null);
   let startAt = $state(0);
-  let musicUrl: string | null = null;
+  let musicUrls: ReadonlyMap<string, string> = new Map();
   /** The pictures known missing when playing began, and those skipped since. */
   // svelte-ignore state_referenced_locally
   let skipped = $state.raw<ReadonlySet<string>>(new Set(missing));
@@ -69,10 +68,12 @@
           played,
           {
             picture: (id) => id,
-            music: () => {
-              const url = loaded?.musicUrl ?? null;
-              if (url === null) {
-                throw new Error(`slideshow "${stored.id}" has music but none was loaded`);
+            music: (id) => {
+              const url = loaded?.musicUrls.get(id);
+              if (url === undefined) {
+                throw new Error(
+                  `slideshow "${stored.id}" plays song "${id}" but it was not loaded`,
+                );
               }
               return url;
             },
@@ -97,8 +98,8 @@
   const closed = new AbortController();
 
   onMount(() => {
-    if (stored.music !== undefined) {
-      beatPass.listenFor(stored.music.id);
+    for (const song of stored.songs) {
+      beatPass.listenFor(song.id);
     }
     // Play waits on reading the focus and beats found so far, never on the search for the rest.
     // Both only place automatic choices: unread, the motions aim at the middle, the pictures
@@ -109,19 +110,19 @@
         log(error);
         return NO_FOCUS_KNOWN.found;
       }),
-      storedMusicBeats(store, stored, log),
+      storedSongBeats(store, stored, log),
     ]).then(([music, focus, beats]) => {
       if (music === null) {
         return;
       }
-      musicUrl = music.url;
-      loaded = { musicUrl: music.url, focus, beats };
+      musicUrls = music.urls;
+      loaded = { musicUrls: music.urls, focus, beats };
     }, onError);
   });
   onDestroy(() => {
     closed.abort();
-    if (musicUrl !== null) {
-      browserObjectUrls.revoke(musicUrl);
+    for (const url of musicUrls.values()) {
+      browserObjectUrls.revoke(url);
     }
   });
 </script>
@@ -130,7 +131,7 @@
   {#key slideshow}
     <PlayerOverlay
       {slideshow}
-      musicTitle={stored.music?.fileName ?? null}
+      musicTitle={stored.songs[0]?.fileName ?? null}
       slideDates={played.pictures.map((picture) => picture.capturedAt)}
       openPicture={(id) => store.pictureBlob(id)}
       {musicOutput}

@@ -228,7 +228,7 @@ export class ImportSession {
       id: this.#ports.newId(),
       createdAt: this.#ports.now().toISOString(),
       pictures: state.pictures,
-      ...(music === undefined ? {} : { music }),
+      songs: music === undefined ? [] : [music],
       secondsPerPicture: this.#choices.secondsPerPicture,
       ...(this.#choices.pictureLength === undefined
         ? {}

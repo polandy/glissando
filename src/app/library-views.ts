@@ -39,7 +39,7 @@ export function slideshowSummary(
       .map((picture) => thumbnailUrl(picture.id)),
     pictureCount: stored.pictures.length,
     durationSeconds: slideshowDurationMs(stored) / MILLISECONDS_PER_SECOND,
-    hasMusic: stored.music !== undefined,
+    hasMusic: stored.songs.length > 0,
   };
 }
 
@@ -54,6 +54,7 @@ export function slideshowDetails(
   thumbnailUrl: ThumbnailUrl,
 ): SlideshowDetails {
   const span = captureSpan(stored);
+  const firstSong = stored.songs[0];
   const lastIndex = stored.pictures.length - 1;
   const tiles = stored.pictures.map((picture, index) => ({
     id: picture.id,
@@ -68,11 +69,11 @@ export function slideshowDetails(
     title: stored.title,
     coverUrl: thumbnailUrl(coverId(stored)),
     durationSeconds: slideshowDurationMs(stored) / MILLISECONDS_PER_SECOND,
-    musicTitle: stored.music?.fileName ?? null,
+    musicTitle: firstSong?.fileName ?? null,
     musicSeconds:
-      stored.music === undefined ? null : musicExcerptMs(stored.music) / MILLISECONDS_PER_SECOND,
+      firstSong === undefined ? null : musicExcerptMs(firstSong) / MILLISECONDS_PER_SECOND,
     musicSummary:
-      stored.music === undefined ? null : musicSummary(stored.music, slideshowDurationMs(stored)),
+      firstSong === undefined ? null : musicSummary(firstSong, slideshowDurationMs(stored)),
     ownOrder: stored.ownOrder === true,
     ownMotionCount: stored.pictures.filter((picture) => picture.kenBurns !== undefined).length,
     ownDurationCount: tiles.filter((tile) => tile.ownDurationMs !== null).length,

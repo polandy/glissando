@@ -18,14 +18,23 @@ export { titleForCaptureRange } from "./title-for-capture-range";
 export { buildStoredSlideshow, type BuildStoredSlideshowInput } from "./build-stored-slideshow";
 export { composeSlideshow, type SlideshowSources } from "./compose-slideshow";
 export { slideshowDurationMs } from "./slideshow-duration-ms";
-export { excerptBeatsMs } from "./excerpt-beats";
 export { beatTransitionDurationMs } from "./beat-transition";
+export {
+  CROSSFADE_MS,
+  NO_SONG_BEATS,
+  filledMusicMs,
+  playlistBeatsMs,
+  playlistMs,
+  resolvePlaylist,
+  type Playlist,
+  type PlaylistTrack,
+  type SongBeats,
+} from "./playlist";
 export {
   AUTOMATIC_MUSIC_FADE_MS,
   audibleEndMs,
   automaticFadeInMs,
   automaticFadeOutMs,
-  filledMusicMs,
   musicExcerpt,
   musicExcerptMs,
   resolveMusicTiming,

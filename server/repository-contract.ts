@@ -178,6 +178,7 @@ function documentTitled(title: string): ServerDocument {
           immichAssetId: "0b5a7c3e-1f2d-4e6a-9b8c-7d6e5f4a3b2c",
         },
       ],
+      songs: [],
     },
   };
 }
@@ -185,7 +186,7 @@ function documentTitled(title: string): ServerDocument {
 function withMusic(musicId: string): ServerDocument {
   const document = documentTitled("With music");
   const trackMusic = { musicId, fileName: "track.m4a", durationMs: 60000, mimeType: "audio/mp4" };
-  return { ...document, slideshow: { ...document.slideshow, music: trackMusic } };
+  return { ...document, slideshow: { ...document.slideshow, songs: [trackMusic] } };
 }
 
 function slideshow(id: string, createdAt: number): SlideshowRecord {

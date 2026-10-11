@@ -12,17 +12,17 @@ export type TimedPicture = Pick<StoredPicture, "durationMs">;
  * `secondsPerPicture` each, unless they fill the music: then they share the rest of its excerpt
  * evenly (the remainder going to the first of them so the sum matches exactly). A share below
  * `MIN_SECONDS_PER_PICTURE` is rejected in favour of the minimum, so the slideshow outlasts a
- * excerpt too short for it. With the excerpt's beats, each boundary ending an automatic slide then
+ * excerpt too short for it. With the playlist's beats, each boundary ending an automatic slide then
  * moves to the nearest beat (`snapToBeats`), and so does the slideshow's end unless the pictures
- * fill the music. See ADR-0008, ADR-0009, ADR-0021 and ADR-0022.
+ * fill the music. See ADR-0008, ADR-0009, ADR-0021, ADR-0022 and ADR-0023.
  */
 export function slideDurationsMs(
   pictures: readonly TimedPicture[],
   /** The length the pictures fill (`filledMusicMs`); absent: they last their seconds. */
   filledMs: number | undefined,
   secondsPerPicture: number,
-  /** The beats to change on, in ms of the excerpt (`excerptBeatsMs`); absent: none. */
-  excerptBeatsMs?: readonly number[],
+  /** The beats to change on, in ms of the playlist (`playlistBeatsMs`); absent: none. */
+  beatsMs?: readonly number[],
 ): number[] {
   if (pictures.length < 1) {
     throw new RangeError(`pictures: expected at least 1, got ${pictures.length}`);
@@ -37,12 +37,12 @@ export function slideDurationsMs(
   const durationsMs = pictures.map(
     (picture) => picture.durationMs ?? (automaticMs[nextAutomatic++] as number),
   );
-  if (excerptBeatsMs === undefined) {
+  if (beatsMs === undefined) {
     return durationsMs;
   }
   const automatic = pictures.map((picture) => picture.durationMs === undefined);
   const endOnBeat = filledMs === undefined;
-  return snapToBeats(durationsMs, automatic, excerptBeatsMs, MIN_SLIDE_DURATION_MS, endOnBeat);
+  return snapToBeats(durationsMs, automatic, beatsMs, MIN_SLIDE_DURATION_MS, endOnBeat);
 }
 
 function ownTotalMs(pictures: readonly TimedPicture[]): number {

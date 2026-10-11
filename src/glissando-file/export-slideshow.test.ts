@@ -15,7 +15,7 @@ const slideshow: StoredSlideshow = {
     { id: "p2", capturedAt: "2025-09-30T11:00:00Z", width: 40, height: 30, fileName: "b.jpg" },
     { id: "p1", capturedAt: "2025-09-30T10:00:00Z", width: 40, height: 30, fileName: "a.jpg" },
   ],
-  music: { id: "m1", fileName: "Walzer.m4a", durationMs: 240000, mimeType: "audio/mp4" },
+  songs: [{ id: "m1", fileName: "Walzer.m4a", durationMs: 240000, mimeType: "audio/mp4" }],
   secondsPerPicture: 5,
 };
 
@@ -49,13 +49,31 @@ describe("exportSlideshow", () => {
       "thumbnails/0001.jpg",
       "pictures/0002.jpg",
       "thumbnails/0002.jpg",
-      "music/track.m4a",
+      "music/track-1.m4a",
     ]);
     expect(read["pictures/0001.jpg"]).toBe("display two");
     expect(read["thumbnails/0002.jpg"]).toBe("thumb one");
-    expect(read["music/track.m4a"]).toBe("music bytes");
+    expect(read["music/track-1.m4a"]).toBe("music bytes");
     const manifest = readManifest(read["glissando.json"] ?? "");
     expect(manifest.kind === "ok" && manifest.manifest.slideshow.title).toBe("Herbst in Wien");
+  });
+
+  it("writes every song of the playlist at its own path, in play order", async () => {
+    const withTwoSongs: StoredSlideshow = {
+      ...slideshow,
+      songs: [
+        { id: "m1", fileName: "Walzer.m4a", durationMs: 240000, mimeType: "audio/mp4" },
+        { id: "m2", fileName: "Polka.mp3", durationMs: 180000, mimeType: "audio/mpeg" },
+      ],
+    };
+    const store = await storeWithMedia();
+    await store.putMusic("m2", new Blob(["polka bytes"], { type: "audio/mpeg" }));
+
+    const file = await exportSlideshow(withTwoSongs, store, { modifiedAt: MODIFIED });
+
+    const read = await contents(file);
+    expect(read["music/track-1.m4a"]).toBe("music bytes");
+    expect(read["music/track-2.mp3"]).toBe("polka bytes");
   });
 
   it("carries no picture's focus, even one stored on this device (ADR-0012)", async () => {

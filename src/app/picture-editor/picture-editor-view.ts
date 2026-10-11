@@ -2,10 +2,11 @@ import type { MusicBeats } from "../../beats";
 import {
   automaticTransition,
   beatTransitionDurationMs,
-  excerptBeatsMs,
-  musicExcerpt,
   filledMusicMs,
+  NO_SONG_BEATS,
   pictureKenBurns,
+  playlistBeatsMs,
+  playlistMs,
   pictureTransition,
   slideDurationsMs,
   slideshowTransition,
@@ -98,7 +99,9 @@ export function pictureEditorView(
   if (picture === undefined) {
     throw new Error(`slideshow "${stored.id}" holds no picture "${pictureId}"`);
   }
-  const beatsMs = excerptBeatsMs(stored.music, beats);
+  const firstSong = stored.songs[0];
+  const songBeats = firstSong === undefined ? NO_SONG_BEATS : new Map([[firstSong.id, beats]]);
+  const beatsMs = playlistBeatsMs(stored, songBeats);
   const durationsMs = slideDurationsMs(
     pictures,
     filledMusicMs(stored),
@@ -169,7 +172,8 @@ function motionOf(index: number, picture: StoredPicture, focus: PicturesFocus): 
 }
 
 function durationBasis(stored: StoredSlideshow, durationsMs: readonly number[]): DurationBasis {
-  if (stored.music === undefined) {
+  const musicMs = playlistMs(stored);
+  if (musicMs === undefined) {
     return {
       kind: "seconds-per-picture",
       automaticMs: stored.secondsPerPicture * MILLISECONDS_PER_SECOND,
@@ -182,8 +186,7 @@ function durationBasis(stored: StoredSlideshow, durationsMs: readonly number[]):
     return { kind: "music", automaticCount: 0, shareMs: null, clamped: false };
   }
   const ownTotalMs = stored.pictures.reduce((sum, picture) => sum + (picture.durationMs ?? 0), 0);
-  const { startMs, endMs } = musicExcerpt(stored.music);
-  const idealShareMs = Math.floor((endMs - startMs - ownTotalMs) / automatic.length);
+  const idealShareMs = Math.floor((musicMs - ownTotalMs) / automatic.length);
   return {
     kind: "music",
     automaticCount: automatic.length,

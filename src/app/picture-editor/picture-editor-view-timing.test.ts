@@ -8,14 +8,14 @@ describe("pictureEditorView timing", () => {
   it("plays the slide's real duration, as the music sets it", () => {
     const withMusic = {
       ...stored,
-      music: { id: "m", fileName: "m.mp3", durationMs: 30_000, mimeType: "audio/mpeg" },
+      songs: [{ id: "m", fileName: "m.mp3", durationMs: 30_000, mimeType: "audio/mpeg" }],
     };
 
     expect(pictureEditorView(withMusic, "p3", NO_FOCUS_KNOWN, NO_BEATS).durationMs).toBe(10_000);
   });
 
   it("plays an automatic slide to the beat, its transition lasting whole beats", () => {
-    const withMusic = { ...stored, music: music(30_000) };
+    const withMusic = { ...stored, songs: [music(30_000)] };
 
     const first = pictureEditorView(withMusic, "p1", NO_FOCUS_KNOWN, STEADY_BEATS);
     const second = pictureEditorView(withMusic, "p2", NO_FOCUS_KNOWN, STEADY_BEATS);
@@ -35,7 +35,7 @@ describe("pictureEditorView timing", () => {
   });
 
   it("with music, counts the pictures sharing the rest and names their share", () => {
-    const timed = { ...withPicture(1, { durationMs: 8000 }), music: music(30_000) };
+    const timed = { ...withPicture(1, { durationMs: 8000 }), songs: [music(30_000)] };
 
     expect(pictureEditorView(timed, "p2", NO_FOCUS_KNOWN, NO_BEATS).durationBasis).toEqual({
       kind: "music",
@@ -55,7 +55,7 @@ describe("pictureEditorView timing", () => {
     const all = {
       ...stored,
       pictures: stored.pictures.map((picture) => ({ ...picture, durationMs: 3000 })),
-      music: music(30_000),
+      songs: [music(30_000)],
     };
 
     expect(pictureEditorView(all, "p1", NO_FOCUS_KNOWN, NO_BEATS).durationBasis).toEqual({
@@ -67,7 +67,7 @@ describe("pictureEditorView timing", () => {
   });
 
   it("with music, marks the automatic pictures clamped once the own durations use it up", () => {
-    const outlasted = { ...withPicture(1, { durationMs: 15_000 }), music: music(17_000) };
+    const outlasted = { ...withPicture(1, { durationMs: 15_000 }), songs: [music(17_000)] };
 
     expect(pictureEditorView(outlasted, "p1", NO_FOCUS_KNOWN, NO_BEATS).durationBasis).toEqual({
       kind: "music",
@@ -80,7 +80,7 @@ describe("pictureEditorView timing", () => {
   it("with trimmed music, shares the excerpt rather than the whole track", () => {
     const trimmed = {
       ...withPicture(1, { durationMs: 8000 }),
-      music: { ...music(60_000), trim: { startMs: 10_000, endMs: 40_000 } },
+      songs: [{ ...music(60_000), trim: { startMs: 10_000, endMs: 40_000 } }],
     };
 
     expect(pictureEditorView(trimmed, "p1", NO_FOCUS_KNOWN, NO_BEATS).durationBasis).toMatchObject({
@@ -91,7 +91,7 @@ describe("pictureEditorView timing", () => {
   it("with trimmed music, marks the pictures clamped against the excerpt", () => {
     const trimmed = {
       ...withPicture(1, { durationMs: 15_000 }),
-      music: { ...music(60_000), trim: { startMs: 0, endMs: 17_000 } },
+      songs: [{ ...music(60_000), trim: { startMs: 0, endMs: 17_000 } }],
     };
 
     expect(pictureEditorView(trimmed, "p1", NO_FOCUS_KNOWN, NO_BEATS).durationBasis).toMatchObject({

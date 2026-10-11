@@ -24,6 +24,7 @@ export function stored(ids: readonly string[]): StoredSlideshow {
       fileName: `${id}.jpg`,
     })),
     secondsPerPicture: 5,
+    songs: [],
   };
 }
 
@@ -64,7 +65,7 @@ export async function setUp(
   const errors: unknown[] = [];
   let gone = 0;
   const refused: EditRefusal[] = [];
-  const initial = music === null ? stored(ids) : { ...stored(ids), music };
+  const initial = music === null ? stored(ids) : { ...stored(ids), songs: [music] };
   for (const id of ids) {
     await store.putPicture(id, { display: new Blob([id]), thumbnail: new Blob([id]) });
   }
@@ -118,7 +119,7 @@ export async function setUp(
   const goneCount = () => gone;
   const storedMusic = async () => {
     await editor.settled();
-    return (await store.getSlideshow("show")).music;
+    return (await store.getSlideshow("show")).songs[0];
   };
   const storedPicture = async (id: string) => {
     await editor.settled();

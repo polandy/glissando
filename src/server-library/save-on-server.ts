@@ -5,38 +5,43 @@ import type { ServerLibraryClient } from "./server-library-client";
 type CreatingClient = Pick<ServerLibraryClient, "uploadMusic" | "createSlideshow">;
 
 /**
- * Creates `slideshow` on the server (its id and its music's id are ignored): uploads the music
- * first, then the document. Answers the slideshow as the server keeps it.
+ * Creates `slideshow` on the server (its id and its songs' ids are ignored): uploads every
+ * song's audio first, in play order, then the document. Answers the slideshow as the server
+ * keeps it.
  */
 export async function createServerSlideshow(
   slideshow: StoredSlideshow,
-  musicAudio: Blob | null,
+  songsAudio: readonly Blob[],
   client: CreatingClient,
 ): Promise<StoredSlideshow> {
   const document = serverDocumentFor({
     ...slideshow,
-    ...(await uploadedMusic(slideshow, musicAudio, client)),
+    songs: await uploadedSongs(slideshow, songsAudio, client),
   });
   const { id } = await client.createSlideshow(document);
   return storedSlideshowFrom(id, document);
 }
 
-/** The slideshow's music named by the server's id once its audio is uploaded; none without. */
-async function uploadedMusic(
-  { music }: StoredSlideshow,
-  musicAudio: Blob | null,
+/** The playlist named by the server's id once every song's audio is uploaded. */
+async function uploadedSongs(
+  { songs }: StoredSlideshow,
+  songsAudio: readonly Blob[],
   client: CreatingClient,
-): Promise<Pick<StoredSlideshow, "music">> {
-  if (music === undefined) {
-    if (musicAudio !== null) {
-      throw new Error("audio was given for a slideshow without music; pass null");
+): Promise<StoredSlideshow["songs"]> {
+  if (songsAudio.length !== songs.length) {
+    throw new Error(
+      `the playlist has ${songs.length} song(s) but ${songsAudio.length} audio blob(s) were given`,
+    );
+  }
+  const uploaded: StoredSlideshow["songs"][number][] = [];
+  for (const [index, song] of songs.entries()) {
+    const audio = songsAudio[index];
+    if (audio === undefined) {
+      throw new Error(`song ${index} ("${song.fileName}") needs its audio to be uploaded`);
     }
-    return {};
+    uploaded.push({ ...song, id: await client.uploadMusic(audio, song.mimeType) });
   }
-  if (musicAudio === null) {
-    throw new Error(`the music "${music.fileName}" needs its audio to be uploaded; pass its blob`);
-  }
-  return { music: { ...music, id: await client.uploadMusic(musicAudio, music.mimeType) } };
+  return uploaded;
 }
 
 export interface ServerPartition {
@@ -61,7 +66,7 @@ export interface SaveOnServerPorts {
 
 /**
  * "Save on the server": an independent copy of a device slideshow with its pictures from Immich,
- * those only on this device left out (`partitionForServer`), and its music uploaded.
+ * those only on this device left out (`partitionForServer`), and its playlist uploaded.
  */
 export async function saveOnServer(
   slideshow: StoredSlideshow,
@@ -73,7 +78,6 @@ export async function saveOnServer(
       `slideshow "${slideshow.title}" has no picture from Immich; a server slideshow needs at least one`,
     );
   }
-  const musicAudio =
-    slideshow.music === undefined ? null : await store.musicBlob(slideshow.music.id);
-  return createServerSlideshow({ ...slideshow, pictures: linked }, musicAudio, client);
+  const songsAudio = await Promise.all(slideshow.songs.map((song) => store.musicBlob(song.id)));
+  return createServerSlideshow({ ...slideshow, pictures: linked }, songsAudio, client);
 }

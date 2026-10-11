@@ -10,7 +10,7 @@ const SLIDESHOW: StoredSlideshow = {
   pictures: [
     { id: "a", capturedAt: "2025-07-01T10:00:00Z", width: 1, height: 1, fileName: "a.jpg" },
   ],
-  music: { id: "m1", fileName: "generated.mp3", durationMs: 204_000, mimeType: "audio/mpeg" },
+  songs: [{ id: "m1", fileName: "generated.mp3", durationMs: 204_000, mimeType: "audio/mpeg" }],
   secondsPerPicture: 5,
 };
 

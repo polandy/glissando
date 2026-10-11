@@ -16,7 +16,7 @@ const STORED: StoredSlideshow = {
     { id: "a", capturedAt: "2025-07-12T10:00:00Z", width: 3840, height: 2160, fileName: "a.jpg" },
     { id: "b", capturedAt: "2025-07-12T11:00:00Z", width: 1000, height: 800, fileName: "b.jpg" },
   ],
-  music: { id: "m", fileName: "m.mp3", durationMs: 60_000, mimeType: "audio/mpeg" },
+  songs: [{ id: "m", fileName: "m.mp3", durationMs: 60_000, mimeType: "audio/mpeg" }],
 };
 
 async function storeWithMedia(): Promise<MemoryLibraryStore> {

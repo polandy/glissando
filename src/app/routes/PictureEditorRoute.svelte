@@ -60,8 +60,10 @@
 
   let beats = $state.raw<BeatsStatus>({ kind: "listening" });
   onMount(() => {
-    if (stored.music === undefined) return;
-    const track = new TrackBeats(stored.music.id, { store, pass: beatPass, log }, (status) => {
+    // The picture editor follows the first song's beats, as the music editor edits that one.
+    const song = stored.songs[0];
+    if (song === undefined) return;
+    const track = new TrackBeats(song.id, { store, pass: beatPass, log }, (status) => {
       beats = status;
     });
     return () => track.dispose();

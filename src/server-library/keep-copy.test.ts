@@ -85,6 +85,7 @@ describe("keepCopyOnDevice", () => {
         },
       ],
       ownOrder: true,
+      songs: [],
       secondsPerPicture: 5,
     });
     expect(await store.listSlideshows()).toEqual([copy]);
@@ -115,9 +116,9 @@ describe("keepCopyOnDevice", () => {
       mimeType: "audio/mp4",
     };
 
-    const copy = await keep(serverSlideshow({ music }));
+    const copy = await keep(serverSlideshow({ songs: [music] }));
 
-    expect(copy.music).toEqual({ ...music, id: "id-3" });
+    expect(copy.songs).toEqual([{ ...music, id: "id-3" }]);
     expect(await (await store.musicBlob("id-3")).text()).toBe("tune");
   });
 
@@ -130,7 +131,7 @@ describe("keepCopyOnDevice", () => {
     await keep(
       serverSlideshow({
         pictures,
-        music: { id: "m", fileName: "t.m4a", durationMs: 1000, mimeType: "audio/mp4" },
+        songs: [{ id: "m", fileName: "t.m4a", durationMs: 1000, mimeType: "audio/mp4" }],
       }),
     );
 

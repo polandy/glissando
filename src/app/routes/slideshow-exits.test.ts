@@ -17,6 +17,7 @@ const SHOW: StoredSlideshow = {
     height: 100,
     fileName: `${id}.jpg`,
   })),
+  songs: [],
   secondsPerPicture: 5,
 };
 

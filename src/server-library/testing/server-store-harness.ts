@@ -23,6 +23,7 @@ export function serverSlideshow(overrides: Partial<StoredSlideshow> = {}): Store
     title: "July 2025",
     createdAt: "2025-07-02T08:00:00Z",
     pictures: [linkedPicture("asset-1")],
+    songs: [],
     secondsPerPicture: 5,
     ...overrides,
   };

@@ -21,7 +21,7 @@ export function musicGainRamps(
   fromMs: number,
   toMs: number,
 ): readonly GainPoint[] {
-  const heardMs = (music.endMs ?? Number.POSITIVE_INFINITY) - music.startMs;
+  const heardMs = music.endMs - music.startMs;
   const breakpoints = [
     music.fadeInMs,
     heardMs - music.fadeOutMs,

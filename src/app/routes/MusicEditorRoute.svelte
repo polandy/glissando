@@ -38,12 +38,14 @@
   let peaks = $state.raw<Float32Array | null>(null);
   let listening = $state.raw<ListenState | null>(null);
   let beats = $state.raw<BeatsStatus>({ kind: "listening" });
+  /** The song edited: the playlist's first. */
+  const song = $derived(stored.songs[0]);
   let preview: ListenPreview | null = null;
   let musicUrl: string | null = null;
   const left = new AbortController();
 
   onMount(() => {
-    const music = stored.music;
+    const music = stored.songs[0];
     if (music === undefined) {
       return;
     }
@@ -78,23 +80,23 @@
   });
   // Music removed meanwhile, e.g. in another tab, has nothing left to edit.
   $effect(() => {
-    if (stored.music === undefined) {
+    if (song === undefined) {
       onBack();
     }
   });
 </script>
 
-{#if stored.music !== undefined}
+{#if song !== undefined}
   <MusicEditorScreen
     slideshow={stored}
     {beats}
     {peaks}
     {listening}
     {onBack}
-    onTrim={(trim) => editor.setMusicTrim(trim)}
-    onFadeIn={(fadeMs) => editor.setMusicFadeIn(fadeMs)}
-    onFadeOut={(fadeMs) => editor.setMusicFadeOut(fadeMs)}
-    onPictureChanges={(changes) => editor.setMusicPictureChanges(changes)}
+    onTrim={(trim) => editor.setMusicTrim(song.id, trim)}
+    onFadeIn={(fadeMs) => editor.setMusicFadeIn(song.id, fadeMs)}
+    onFadeOut={(fadeMs) => editor.setMusicFadeOut(song.id, fadeMs)}
+    onPictureChanges={(changes) => editor.setMusicPictureChanges(song.id, changes)}
     onPictureLength={(length) => editor.setPictureLength(length)}
     onSecondsPerPicture={(seconds) => editor.setSecondsPerPicture(seconds)}
     onListen={(kind) => preview?.toggle(kind, musicEditorView(stored, beats).timing)}

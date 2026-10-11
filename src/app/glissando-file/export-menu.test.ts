@@ -27,7 +27,7 @@ describe("exportMediaKey", () => {
       { id: "p1", capturedAt: "2025-07-01T10:00:00.000Z", width: 4, height: 3, fileName: "a.jpg" },
       { id: "p2", capturedAt: "2025-07-01T10:00:00.000Z", width: 4, height: 3, fileName: "b.jpg" },
     ],
-    music: { id: "m", fileName: "song.mp3", durationMs: 1000, mimeType: "audio/mpeg" },
+    songs: [{ id: "m", fileName: "song.mp3", durationMs: 1000, mimeType: "audio/mpeg" }],
     secondsPerPicture: 5,
   };
 
@@ -42,7 +42,7 @@ describe("exportMediaKey", () => {
 
   it("changes when the music is removed", () => {
     const { id, title, createdAt, pictures, secondsPerPicture } = slideshow;
-    const withoutMusic = { id, title, createdAt, pictures, secondsPerPicture };
+    const withoutMusic = { id, title, createdAt, pictures, songs: [], secondsPerPicture };
     expect(exportMediaKey(withoutMusic)).not.toBe(exportMediaKey(slideshow));
   });
 });

@@ -92,6 +92,7 @@ describe("IndexedDbLibraryStore saves", () => {
             fileName: "a.jpg",
           },
         ],
+        songs: [],
         secondsPerPicture: 5,
       });
 
@@ -143,6 +144,7 @@ describe("IndexedDbLibraryStore schema upgrade", () => {
           fileName: "a.jpg",
         },
       ],
+      songs: [],
       secondsPerPicture: 5,
     };
     await openVersionOneWithSlideshow(saved);
@@ -202,6 +204,7 @@ describe("IndexedDbLibraryStore focus upgrade", () => {
           fileName: "a.jpg",
         },
       ],
+      songs: [],
       secondsPerPicture: 5,
     };
     await openVersionTwoWithSlideshow(saved);
@@ -252,8 +255,8 @@ describe("IndexedDbLibraryStore beats upgrade", () => {
       title: "July 2025",
       createdAt: "2025-07-02T08:00:00Z",
       pictures: [],
+      songs: [{ id: "saved-music", fileName: "a.mp3", durationMs: 1000, mimeType: "audio/mpeg" }],
       secondsPerPicture: 5,
-      music: { id: "saved-music", fileName: "a.mp3", durationMs: 1000, mimeType: "audio/mpeg" },
     };
     await openVersionThreeWithSlideshow(saved);
 

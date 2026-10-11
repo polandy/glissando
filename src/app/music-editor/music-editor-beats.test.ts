@@ -31,14 +31,16 @@ function slideshow(
     createdAt: "2025-07-02T00:00:00Z",
     pictures,
     secondsPerPicture: 5,
-    music: {
-      id: "m1",
-      fileName: "drums.wav",
-      durationMs: TRACK_MS,
-      mimeType: "audio/wav",
-      trim: { startMs: 4000, endMs: 24_000 },
-      ...music,
-    },
+    songs: [
+      {
+        id: "m1",
+        fileName: "drums.wav",
+        durationMs: TRACK_MS,
+        mimeType: "audio/wav",
+        trim: { startMs: 4000, endMs: 24_000 },
+        ...music,
+      },
+    ],
   };
 }
 

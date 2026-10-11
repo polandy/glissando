@@ -15,7 +15,7 @@ const MUSIC: StoredMusic = {
   mimeType: "audio/mpeg",
 };
 
-function slideshow(music: StoredMusic | null = MUSIC): StoredSlideshow {
+function slideshow(...songs: readonly StoredMusic[]): StoredSlideshow {
   return {
     id: "show",
     title: "July 2025",
@@ -23,89 +23,103 @@ function slideshow(music: StoredMusic | null = MUSIC): StoredSlideshow {
     pictures: [
       { id: "a", capturedAt: "2025-07-01T10:00:00Z", width: 1, height: 1, fileName: "a.jpg" },
     ],
+    songs: songs.length === 0 ? [MUSIC] : songs,
     secondsPerPicture: 5,
-    ...(music === null ? {} : { music }),
   };
 }
 
 describe("setMusicTrim", () => {
   it("stores the excerpt on the music", () => {
-    const edited = setMusicTrim(slideshow(), { startMs: 12_000, endMs: 150_000 });
+    const edited = setMusicTrim(slideshow(), "m1", { startMs: 12_000, endMs: 150_000 });
 
-    expect(edited.music).toEqual({ ...MUSIC, trim: { startMs: 12_000, endMs: 150_000 } });
+    expect(edited.songs[0]).toEqual({ ...MUSIC, trim: { startMs: 12_000, endMs: 150_000 } });
   });
 
   it("set back to the whole track deletes the field", () => {
-    const trimmed = setMusicTrim(slideshow(), { startMs: 12_000, endMs: 150_000 });
+    const trimmed = setMusicTrim(slideshow(), "m1", { startMs: 12_000, endMs: 150_000 });
 
-    const whole = setMusicTrim(trimmed, { startMs: 0, endMs: MUSIC.durationMs });
+    const whole = setMusicTrim(trimmed, "m1", { startMs: 0, endMs: MUSIC.durationMs });
 
-    expect(whole.music?.id).toBe("m1");
-    expect(whole.music).not.toHaveProperty("trim");
+    expect(whole.songs[0]?.id).toBe("m1");
+    expect(whole.songs[0]).not.toHaveProperty("trim");
   });
 
   it("without an excerpt deletes the field", () => {
-    const trimmed = setMusicTrim(slideshow(), { startMs: 12_000, endMs: 150_000 });
+    const trimmed = setMusicTrim(slideshow(), "m1", { startMs: 12_000, endMs: 150_000 });
 
-    expect(setMusicTrim(trimmed, undefined).music).toEqual(MUSIC);
+    expect(setMusicTrim(trimmed, "m1", undefined).songs[0]).toEqual(MUSIC);
   });
 
   it("refuses an excerpt shorter than 5 s, so no invalid record is stored", () => {
-    expect(() => setMusicTrim(slideshow(), { startMs: 0, endMs: 4000 })).toThrow(
+    expect(() => setMusicTrim(slideshow(), "m1", { startMs: 0, endMs: 4000 })).toThrow(
       InvalidOwnMusicError,
     );
   });
 
-  it("refuses a slideshow without music, naming it", () => {
-    expect(() => setMusicTrim(slideshow(null), { startMs: 0, endMs: 9000 })).toThrow(
-      'slideshow "show" has no music',
+  it("refuses a song the slideshow does not play, naming both", () => {
+    expect(() => setMusicTrim(slideshow(), "gone", { startMs: 0, endMs: 9000 })).toThrow(
+      'slideshow "show" has no song "gone"',
     );
+  });
+});
+
+describe("editing a song of several", () => {
+  it("changes only the song addressed, in its place", () => {
+    const other: StoredMusic = { ...MUSIC, id: "m2", fileName: "Herbst.mp3" };
+
+    const edited = setMusicFadeOut(slideshow(MUSIC, other), "m2", 5000);
+
+    expect(edited.songs).toEqual([MUSIC, { ...other, fadeOutMs: 5000 }]);
   });
 });
 
 describe("setMusicFadeIn and setMusicFadeOut", () => {
   it("store their own fade and leave the other automatic", () => {
-    const edited = setMusicFadeIn(slideshow(), 5000);
+    const edited = setMusicFadeIn(slideshow(), "m1", 5000);
 
-    expect(edited.music?.fadeInMs).toBe(5000);
-    expect(edited.music).not.toHaveProperty("fadeOutMs");
+    expect(edited.songs[0]?.fadeInMs).toBe(5000);
+    expect(edited.songs[0]).not.toHaveProperty("fadeOutMs");
   });
 
   it("store an own fade of 0, which is off, not automatic", () => {
-    expect(setMusicFadeOut(slideshow(), 0).music?.fadeOutMs).toBe(0);
+    expect(setMusicFadeOut(slideshow(), "m1", 0).songs[0]?.fadeOutMs).toBe(0);
   });
 
   it("without a fade make it automatic again: the field is gone", () => {
-    const own = setMusicFadeOut(setMusicFadeIn(slideshow(), 2000), 5000);
+    const own = setMusicFadeOut(setMusicFadeIn(slideshow(), "m1", 2000), "m1", 5000);
 
-    const automatic = setMusicFadeOut(setMusicFadeIn(own, undefined), undefined);
+    const automatic = setMusicFadeOut(setMusicFadeIn(own, "m1", undefined), "m1", undefined);
 
-    expect(automatic.music).toEqual(MUSIC);
+    expect(automatic.songs[0]).toEqual(MUSIC);
   });
 
   it("refuse a fade off the half-second grid", () => {
-    expect(() => setMusicFadeIn(slideshow(), 1200)).toThrow("fadeInMs");
-    expect(() => setMusicFadeOut(slideshow(), 1200)).toThrow("fadeOutMs");
+    expect(() => setMusicFadeIn(slideshow(), "m1", 1200)).toThrow("fadeInMs");
+    expect(() => setMusicFadeOut(slideshow(), "m1", 1200)).toThrow("fadeOutMs");
   });
 });
 
 describe("setMusicPictureChanges", () => {
   it("stores even picture changes, which ignore the beats", () => {
-    expect(setMusicPictureChanges(slideshow(), EVEN_PICTURE_CHANGES).music?.pictureChanges).toBe(
-      "even",
-    );
+    expect(
+      setMusicPictureChanges(slideshow(), "m1", EVEN_PICTURE_CHANGES).songs[0]?.pictureChanges,
+    ).toBe("even");
   });
 
   it("on the beat makes them automatic again: the field is gone", () => {
-    const even = setMusicPictureChanges(slideshow(), EVEN_PICTURE_CHANGES);
+    const even = setMusicPictureChanges(slideshow(), "m1", EVEN_PICTURE_CHANGES);
 
-    expect(setMusicPictureChanges(even, undefined).music).toEqual(MUSIC);
+    expect(setMusicPictureChanges(even, "m1", undefined).songs[0]).toEqual(MUSIC);
   });
 
   it("refuses a value that is not a choice, naming the field", () => {
     const unknownChoice = "sometimes" as typeof EVEN_PICTURE_CHANGES;
 
-    expect(() => setMusicPictureChanges(slideshow(), unknownChoice)).toThrow(InvalidOwnMusicError);
-    expect(() => setMusicPictureChanges(slideshow(), unknownChoice)).toThrow("pictureChanges");
+    expect(() => setMusicPictureChanges(slideshow(), "m1", unknownChoice)).toThrow(
+      InvalidOwnMusicError,
+    );
+    expect(() => setMusicPictureChanges(slideshow(), "m1", unknownChoice)).toThrow(
+      "pictureChanges",
+    );
   });
 });

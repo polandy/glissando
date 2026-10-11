@@ -26,6 +26,7 @@ const SHOW: StoredSlideshow = {
     fileName: `${id}.jpg`,
   })),
   secondsPerPicture: 5,
+  songs: [],
 };
 
 let destroy = () => {};

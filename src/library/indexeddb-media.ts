@@ -35,8 +35,8 @@ export function measureMediaBytes(
       return display.bytes.byteLength + thumbnail.bytes.byteLength;
     });
   }
-  if (slideshow.music !== undefined) {
-    measure(MUSIC, slideshow.music.id, (media) => (media as StoredMedia).bytes.byteLength);
+  for (const song of slideshow.songs) {
+    measure(MUSIC, song.id, (media) => (media as StoredMedia).bytes.byteLength);
   }
   return bytes;
 }

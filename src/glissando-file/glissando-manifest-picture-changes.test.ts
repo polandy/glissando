@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { PICTURE_CHANGES_FROM_VERSION, manifestFor } from "./glissando-manifest";
+import {
+  GLISSANDO_FORMAT_VERSION,
+  PICTURE_CHANGES_FROM_VERSION,
+  manifestFor,
+} from "./glissando-manifest";
 import { readManifest } from "./read-manifest";
 import type { StoredMusic, StoredSlideshow } from "../library/stored-slideshow";
 
@@ -18,7 +22,7 @@ function slideshow(music: StoredMusic): StoredSlideshow {
     pictures: [
       { id: "p1", capturedAt: "2025-09-30T10:00:00Z", width: 40, height: 30, fileName: "a.jpg" },
     ],
-    music,
+    songs: [music],
     secondsPerPicture: 5,
   };
 }
@@ -27,15 +31,16 @@ const JPEG = { display: "image/jpeg", thumbnail: "image/jpeg" };
 const evenManifest = () => manifestFor(slideshow({ ...MUSIC, pictureChanges: "even" }), [JPEG]);
 
 /** The written manifest of even picture changes, with `formatVersion` and the value set. */
-function withPictureChanges(formatVersion: number, pictureChanges: unknown = "even"): string {
+function withPictureChanges(
+  pictureChanges: unknown,
+  formatVersion = GLISSANDO_FORMAT_VERSION,
+): string {
   const written = evenManifest();
+  const [song] = written.slideshow.songs;
   return JSON.stringify({
     ...written,
     formatVersion,
-    slideshow: {
-      ...written.slideshow,
-      music: { ...written.slideshow.music, pictureChanges },
-    },
+    slideshow: { ...written.slideshow, songs: [{ ...song, pictureChanges }] },
   });
 }
 
@@ -43,11 +48,11 @@ describe("the music's picture changes in the .glissando file", () => {
   it("are written from format version 8, the version that carries them", () => {
     expect(PICTURE_CHANGES_FROM_VERSION).toBe(8);
     expect(evenManifest().formatVersion).toBeGreaterThanOrEqual(8);
-    expect(evenManifest().slideshow.music).toMatchObject({ pictureChanges: "even" });
+    expect(evenManifest().slideshow.songs).toMatchObject([{ pictureChanges: "even" }]);
   });
 
   it("are absent while the pictures change on the beat", () => {
-    expect(manifestFor(slideshow(MUSIC), [JPEG]).slideshow.music).not.toHaveProperty(
+    expect(manifestFor(slideshow(MUSIC), [JPEG]).slideshow.songs[0]).not.toHaveProperty(
       "pictureChanges",
     );
   });
@@ -59,17 +64,14 @@ describe("the music's picture changes in the .glissando file", () => {
     });
   });
 
-  it("make a version 7 file that carries them damaged", () => {
-    expect(readManifest(withPictureChanges(7))).toEqual({
-      kind: "damaged",
-      reason: expect.stringContaining("pictureChanges") as unknown,
-    });
+  it("refuses a version 7 file, older than this app still reads (ADR-0023)", () => {
+    expect(readManifest(withPictureChanges("even", 7)).kind).toBe("damaged");
   });
 
   it("name a value that is no choice, its path and what is expected", () => {
-    expect(readManifest(withPictureChanges(8, "sometimes"))).toEqual({
+    expect(readManifest(withPictureChanges("sometimes"))).toEqual({
       kind: "damaged",
-      reason: 'glissando.json slideshow.music.pictureChanges: expected "even", got "sometimes"',
+      reason: 'glissando.json slideshow.songs[0].pictureChanges: expected "even", got "sometimes"',
     });
   });
 });

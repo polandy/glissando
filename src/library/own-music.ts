@@ -1,4 +1,5 @@
 import { MILLISECONDS_PER_SECOND } from "../player/slideshow";
+import type { StoredMusic } from "./stored-slideshow";
 
 /**
  * The music's own excerpt, fades and picture changes, set in the music editor. Absent fields mean
@@ -31,8 +32,12 @@ export const MUSIC_FADE_STEP_MS = MILLISECONDS_PER_SECOND / 2;
 export const EVEN_PICTURE_CHANGES = "even";
 export type PictureChanges = typeof EVEN_PICTURE_CHANGES;
 
+/** The songs play one after another; absent: each crossfades into the next (ADR-0023). */
+export const SEQUENCE_BETWEEN_SONGS = "sequence";
+export type BetweenSongs = typeof SEQUENCE_BETWEEN_SONGS;
+
 /** The music's fields this module checks. */
-export type OwnMusicField = "trim" | "fadeInMs" | "fadeOutMs" | "pictureChanges";
+export type OwnMusicField = "trim" | "fadeInMs" | "fadeOutMs" | "pictureChanges" | "betweenSongs";
 
 const TRIM_KEYS: readonly string[] = ["startMs", "endMs"];
 
@@ -100,6 +105,30 @@ export function checkPictureChanges(value: unknown, where: string): PictureChang
       where,
       "pictureChanges",
       JSON.stringify(EVEN_PICTURE_CHANGES),
+      value,
+    );
+  }
+  return value;
+}
+
+/**
+ * Checks a song's own fields as `checkMusicTrim`, `checkMusicFadeMs` and `checkPictureChanges` do;
+ * throws `InvalidOwnMusicError` naming `where`.
+ */
+export function checkOwnMusicFields(song: StoredMusic, where: string): void {
+  if (song.trim !== undefined) checkMusicTrim(song.trim, song.durationMs, where);
+  if (song.fadeInMs !== undefined) checkMusicFadeMs(song.fadeInMs, "fadeInMs", where);
+  if (song.fadeOutMs !== undefined) checkMusicFadeMs(song.fadeOutMs, "fadeOutMs", where);
+  if (song.pictureChanges !== undefined) checkPictureChanges(song.pictureChanges, where);
+}
+
+/** `value` as the slideshow's own hand-over between songs; throws `InvalidOwnMusicError`. */
+export function checkBetweenSongs(value: unknown, where: string): BetweenSongs {
+  if (value !== SEQUENCE_BETWEEN_SONGS) {
+    throw new InvalidOwnMusicError(
+      where,
+      "betweenSongs",
+      JSON.stringify(SEQUENCE_BETWEEN_SONGS),
       value,
     );
   }

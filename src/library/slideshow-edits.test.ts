@@ -24,6 +24,7 @@ function slideshow(ids: readonly string[], overrides: Partial<StoredSlideshow> =
     title: "July 2025",
     createdAt: "2025-07-02T00:00:00Z",
     pictures: ids.map(picture),
+    songs: [],
     secondsPerPicture: 5,
   };
   return { ...base, ...overrides };

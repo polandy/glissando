@@ -46,6 +46,7 @@ const existing: StoredSlideshow = {
   pictures: [
     { id: "kept", capturedAt: "2025-01-01T00:00:00Z", width: 1, height: 1, fileName: "k" },
   ],
+  songs: [],
   secondsPerPicture: 5,
 };
 
@@ -72,7 +73,7 @@ describe("OpenFlow", () => {
     expect(lines.filter((line) => line.kind !== "checking")).toEqual([
       { kind: "picture", number: 1, count: 2 },
       { kind: "picture", number: 2, count: 2 },
-      { kind: "music" },
+      { kind: "music", number: 1, count: 1 },
     ]);
     const fractions = states.flatMap((state) => (state.opening ? [state.opening.fraction] : []));
     expect(fractions).toEqual([...fractions].sort((a, b) => a - b));
@@ -99,7 +100,7 @@ describe("OpenFlow", () => {
       "newer",
       async () =>
         new File(
-          [await zipWith({ "glissando.json": '{"format":"glissando","formatVersion":10}' })],
+          [await zipWith({ "glissando.json": '{"format":"glissando","formatVersion":11}' })],
           "x.glissando",
         ),
     ],

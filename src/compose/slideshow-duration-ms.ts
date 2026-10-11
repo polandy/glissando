@@ -1,5 +1,5 @@
 import type { StoredSlideshow } from "../library/stored-slideshow";
-import { filledMusicMs } from "./music-excerpt";
+import { filledMusicMs } from "./playlist";
 import { slideDurationsMs } from "./slide-durations-ms";
 
 /** How long the slideshow plays in total, e.g. for a "12 pictures · 1:00" summary. */

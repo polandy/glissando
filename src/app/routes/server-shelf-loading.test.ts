@@ -14,6 +14,7 @@ const ICELAND: StoredSlideshow = {
     { id: "asset-1", capturedAt: "2025-07-01T10:00:00Z", width: 3, height: 2, fileName: "a" },
     { id: "asset-gone", capturedAt: "2025-07-01T11:00:00Z", width: 3, height: 2, fileName: "b" },
   ],
+  songs: [],
   secondsPerPicture: 5,
 };
 

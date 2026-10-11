@@ -30,8 +30,7 @@ export async function exportSlideshow(
   media: ExportMedia,
   options: ExportOptions,
 ): Promise<Blob> {
-  const music = slideshow.music;
-  const mediaCount = slideshow.pictures.length * 2 + (music === undefined ? 0 : 1);
+  const mediaCount = slideshow.pictures.length * 2 + slideshow.songs.length;
   // Each media file is read once and checksummed once.
   const steps = mediaCount * 2;
   let done = 0;
@@ -45,8 +44,9 @@ export async function exportSlideshow(
     step();
     pictures.push({ display, thumbnail });
   }
-  const musicBlob = music === undefined ? undefined : await media.musicBlob(music.id);
-  if (musicBlob !== undefined) {
+  const songBlobs: Blob[] = [];
+  for (const song of slideshow.songs) {
+    songBlobs.push(await media.musicBlob(song.id));
     step();
   }
 
@@ -67,9 +67,12 @@ export async function exportSlideshow(
     await zip.add(picture.thumbnail, blobs.thumbnail);
     step();
   }
-  const manifestMusic = manifest.slideshow.music;
-  if (manifestMusic !== undefined && musicBlob !== undefined) {
-    await zip.add(manifestMusic.file, musicBlob);
+  for (const [index, song] of manifest.slideshow.songs.entries()) {
+    const blob = songBlobs[index];
+    if (blob === undefined) {
+      throw new Error(`song ${index} of the manifest was never read`);
+    }
+    await zip.add(song.file, blob);
     step();
   }
   return zip.finish();

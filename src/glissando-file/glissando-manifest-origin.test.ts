@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ORIGIN_FROM_VERSION, manifestFor } from "./glissando-manifest";
+import { GLISSANDO_FORMAT_VERSION, ORIGIN_FROM_VERSION, manifestFor } from "./glissando-manifest";
 import { readManifest } from "./read-manifest";
 import type { StoredSlideshow } from "../library/stored-slideshow";
 
@@ -25,6 +25,7 @@ const slideshow: StoredSlideshow = {
       fileBytes: 4_200_000,
     },
   ],
+  songs: [],
   secondsPerPicture: 5,
 };
 
@@ -36,7 +37,7 @@ const asText = (value: unknown): string => JSON.stringify(value);
 function withPicture(
   index: 0 | 1,
   change: Record<string, unknown>,
-  formatVersion = ORIGIN_FROM_VERSION,
+  formatVersion = GLISSANDO_FORMAT_VERSION,
 ): string {
   const written = manifest();
   const pictures = written.slideshow.pictures.map((picture, i) =>
@@ -58,7 +59,7 @@ describe("a picture's origin in the .glissando file", () => {
     expect(readManifest(asText(manifest()))).toEqual({ kind: "ok", manifest: manifest() });
   });
 
-  it("reads a version 6 file, which knows no origin", () => {
+  it("refuses a version 6 file, older than this app still reads (ADR-0023)", () => {
     const written = manifest();
     const pictures = written.slideshow.pictures.map((picture) => ({
       ...picture,
@@ -71,15 +72,7 @@ describe("a picture's origin in the .glissando file", () => {
       slideshow: { ...written.slideshow, pictures },
     };
 
-    const reading = readManifest(asText(versionSix));
-
-    expect(reading.kind === "ok" && reading.manifest.slideshow.pictures[0]?.fileName).toBe("a.jpg");
-    expect(reading.kind === "ok" && reading.manifest.slideshow.pictures[0]).not.toHaveProperty(
-      "immichAssetId",
-    );
-    expect(reading.kind === "ok" && reading.manifest.slideshow.pictures[1]).not.toHaveProperty(
-      "fileBytes",
-    );
+    expect(readManifest(asText(versionSix)).kind).toBe("damaged");
   });
 
   it.each([

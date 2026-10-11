@@ -11,7 +11,7 @@
   import { getTranslator } from "../i18n/context";
   import FadeSection from "./FadeSection.svelte";
   import type { ListenKind, ListenState } from "./listen-preview";
-  import { musicEditorView } from "./music-editor-view";
+  import { editedSong, musicEditorView } from "./music-editor-view";
   import MusicWaveform from "./MusicWaveform.svelte";
   import PictureChangesSection from "./PictureChangesSection.svelte";
   import SlideshowLane from "./SlideshowLane.svelte";
@@ -71,7 +71,10 @@
   /** The excerpt while a handle is dragged; stored on release. */
   let draft = $state.raw<MusicTrim | null>(null);
   const music = $derived(
-    musicEditorView(draft === null ? slideshow : setMusicTrim(slideshow, draft), beats),
+    musicEditorView(
+      draft === null ? slideshow : setMusicTrim(slideshow, editedSong(slideshow).id, draft),
+      beats,
+    ),
   );
   const seconds = (ms: number) => ms / MILLISECONDS_PER_SECOND;
 

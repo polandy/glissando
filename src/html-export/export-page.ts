@@ -1,5 +1,4 @@
-import type { MusicBeats } from "../beats";
-import { composeSlideshow } from "../compose";
+import { composeSlideshow, type SongBeats } from "../compose";
 import type { PictureFocus } from "../library/picture-focus";
 import type { LibraryStore, StoredPicture, StoredSlideshow } from "../library/stored-slideshow";
 import { encodeBase64 } from "./base64";
@@ -36,8 +35,8 @@ export interface PageExportJob {
   readonly stored: StoredSlideshow;
   /** The focus found so far, by picture id; it aims the automatic motions. */
   readonly focus: ReadonlyMap<string, PictureFocus>;
-  /** The music's beats found so far; the automatic picture changes land on them (ADR-0021). */
-  readonly beats: MusicBeats;
+  /** The songs' beats found so far, by music id; the automatic picture changes land on them (ADR-0021). */
+  readonly beats: SongBeats;
   readonly sizeId: PageSizeId;
   /** The app's language at export time. */
   readonly lang: string;
@@ -133,8 +132,9 @@ async function writePage(job: PageExportJob): Promise<PageExportResult> {
     report(index + 1);
   }
   signal?.throwIfAborted();
-  if (stored.music !== undefined) {
-    await writeBlock(MUSIC_KEY, stored.music.mimeType, await job.media.musicBlob(stored.music.id));
+  const firstSong = stored.songs[0];
+  if (firstSong !== undefined) {
+    await writeBlock(MUSIC_KEY, firstSong.mimeType, await job.media.musicBlob(firstSong.id));
   }
   await writeText(pageTail(bundle.script));
   signal?.throwIfAborted();

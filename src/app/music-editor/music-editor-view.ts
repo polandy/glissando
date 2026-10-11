@@ -2,7 +2,7 @@ import {
   audibleEndMs,
   automaticFadeInMs,
   automaticFadeOutMs,
-  excerptBeatsMs,
+  playlistBeatsMs,
   musicExcerpt,
   filledMusicMs,
   resolveMusicTiming,
@@ -106,14 +106,20 @@ export interface SlideChange {
   readonly offBeat: boolean;
 }
 
-/** What the music editor shows of `stored`, which has music, with what is known of its beats. */
-export function musicEditorView(stored: StoredSlideshow, beats: BeatsStatus): MusicEditorView {
-  const music = stored.music;
-  if (music === undefined) {
+/** The song the music editor edits: the playlist's first; throws when there is none. */
+export function editedSong(stored: StoredSlideshow): StoredMusic {
+  const song = stored.songs[0];
+  if (song === undefined) {
     throw new Error(`slideshow "${stored.id}" has no music to edit`);
   }
+  return song;
+}
+
+/** What the music editor shows of `stored`, which has music, with what is known of its beats. */
+export function musicEditorView(stored: StoredSlideshow, beats: BeatsStatus): MusicEditorView {
+  const music = editedSong(stored);
   const { startMs, endMs } = musicExcerpt(music);
-  const beatsMs = excerptBeatsMs(music, composedBeats(beats));
+  const beatsMs = playlistBeatsMs(stored, new Map([[music.id, composedBeats(beats)]]));
   const durationsMs = slideDurationsMs(
     stored.pictures,
     filledMusicMs(stored),

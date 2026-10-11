@@ -187,26 +187,26 @@ export class SlideshowEditor {
     }
   }
 
-  // The music's edits offer no undo: one tap on "whole track" or "automatic" restores them.
+  // The songs' edits offer no undo: one tap on "whole track" or "automatic" restores them.
 
-  /** Plays only `trim` of the music; `undefined` or the whole track plays all of it. */
-  setMusicTrim(trim: MusicTrim | undefined): void {
-    this.#apply(setMusicTrim(this.#slideshow, trim));
+  /** Plays only `trim` of the song; `undefined` or the whole track plays all of it. */
+  setMusicTrim(songId: string, trim: MusicTrim | undefined): void {
+    this.#apply(setMusicTrim(this.#slideshow, songId, trim));
   }
 
-  /** The music's own fade-in in ms, 0 being off; `undefined` makes it automatic. */
-  setMusicFadeIn(fadeInMs: number | undefined): void {
-    this.#apply(setMusicFadeIn(this.#slideshow, fadeInMs));
+  /** The song's own fade-in in ms, 0 being off; `undefined` makes it automatic. */
+  setMusicFadeIn(songId: string, fadeInMs: number | undefined): void {
+    this.#apply(setMusicFadeIn(this.#slideshow, songId, fadeInMs));
   }
 
-  /** The music's own fade-out in ms, 0 being off; `undefined` makes it automatic. */
-  setMusicFadeOut(fadeOutMs: number | undefined): void {
-    this.#apply(setMusicFadeOut(this.#slideshow, fadeOutMs));
+  /** The song's own fade-out in ms, 0 being off; `undefined` makes it automatic. */
+  setMusicFadeOut(songId: string, fadeOutMs: number | undefined): void {
+    this.#apply(setMusicFadeOut(this.#slideshow, songId, fadeOutMs));
   }
 
-  /** `"even"` shares the music evenly; `undefined` changes the pictures on the beat (ADR-0021). */
-  setMusicPictureChanges(pictureChanges: PictureChanges | undefined): void {
-    this.#apply(setMusicPictureChanges(this.#slideshow, pictureChanges));
+  /** `"even"` shares the song evenly; `undefined` changes the pictures on the beat (ADR-0021). */
+  setMusicPictureChanges(songId: string, pictureChanges: PictureChanges | undefined): void {
+    this.#apply(setMusicPictureChanges(this.#slideshow, songId, pictureChanges));
   }
 
   /** `"seconds"`: the pictures last their seconds with music too; `undefined`: they fill it. */

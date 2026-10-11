@@ -53,7 +53,7 @@ describe("musicGainRamps", () => {
   });
 
   it("holds full volume for music heard to its end without fades", () => {
-    const music = { startMs: 0, fadeInMs: 0, fadeOutMs: 0 };
+    const music = { startMs: 0, endMs: 3_600_000, fadeInMs: 0, fadeOutMs: 0 };
 
     expect(musicGainRamps(music, 30_000, 60_000)).toEqual([
       { atMs: 0, gain: 1, kind: "set" },

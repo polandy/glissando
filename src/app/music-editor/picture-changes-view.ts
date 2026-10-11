@@ -52,7 +52,7 @@ export function pictureChangesView(
   if (status.beats.kind === "none") {
     return { kind: "none", ...ownSeconds };
   }
-  const onTheBeat = stored.music?.pictureChanges !== EVEN_PICTURE_CHANGES;
+  const onTheBeat = stored.songs[0]?.pictureChanges !== EVEN_PICTURE_CHANGES;
   const handingOver = stored.pictures.slice(0, -1);
   return {
     kind: "beats",

@@ -30,12 +30,12 @@ function storedSlideshow(music: StoredMusic): StoredSlideshow {
     createdAt: "2025-07-21T00:00:00Z",
     pictures: [picture("a"), picture("b"), picture("c")],
     secondsPerPicture: 5,
-    music,
+    songs: [music],
   };
 }
 
 const compose = (music: StoredMusic, beats: MusicBeats) =>
-  composeSlideshow(storedSlideshow(music), sources, NO_FOCUS, beats);
+  composeSlideshow(storedSlideshow(music), sources, NO_FOCUS, new Map([[music.id, beats]]));
 const durationsOf = (music: StoredMusic, beats: MusicBeats) =>
   compose(music, beats).slides.map((slide) => slide.durationMs);
 

@@ -18,13 +18,15 @@ const SHOW: StoredSlideshow = {
   pictures: [
     { id: "a", capturedAt: "2025-07-01T10:00:00Z", width: 1, height: 1, fileName: "a.jpg" },
   ],
-  music: {
-    id: "m1",
-    fileName: "Sommerwind.mp3",
-    durationMs: 60_000,
-    mimeType: "audio/mpeg",
-    trim: { startMs: 12_000, endMs: 40_000 },
-  },
+  songs: [
+    {
+      id: "m1",
+      fileName: "Sommerwind.mp3",
+      durationMs: 60_000,
+      mimeType: "audio/mpeg",
+      trim: { startMs: 12_000, endMs: 40_000 },
+    },
+  ],
   secondsPerPicture: 5,
 };
 
@@ -143,7 +145,7 @@ describe("the music editor route", () => {
     fadeIn?.querySelectorAll("button")[2]?.click();
     await editor.settled();
 
-    expect((await store.getSlideshow("show")).music?.fadeInMs).toBe(5000);
+    expect((await store.getSlideshow("show")).songs[0]?.fadeInMs).toBe(5000);
   });
 
   it("lets go of the track's audio and address when left", async () => {
@@ -164,6 +166,7 @@ describe("the music editor route", () => {
       createdAt,
       pictures,
       secondsPerPicture,
+      songs: [],
     });
 
     expect(target.querySelector(".wave")).toBeNull();

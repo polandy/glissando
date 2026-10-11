@@ -2,7 +2,7 @@ import type { MusicBeats } from "../beats";
 import type { OwnKenBurns } from "./own-ken-burns";
 import type { PictureFocus } from "./picture-focus";
 import type { PictureLength } from "./picture-length";
-import type { MusicTrim, PictureChanges } from "./own-music";
+import type { BetweenSongs, MusicTrim, PictureChanges } from "./own-music";
 import type { SlideshowTransition, TransitionChoice } from "./own-timing";
 
 /**
@@ -72,7 +72,13 @@ export interface StoredSlideshow {
   readonly pictures: readonly StoredPicture[];
   /** The user reordered the pictures; absent while they keep the capture-date order. */
   readonly ownOrder?: true;
-  readonly music?: StoredMusic;
+  /** The playlist, in play order; empty without music (ADR-0023). */
+  readonly songs: readonly StoredMusic[];
+  /**
+   * `"sequence"`: each song starts at the previous one's end (`checkBetweenSongs`); absent: they
+   * crossfade (ADR-0023).
+   */
+  readonly betweenSongs?: BetweenSongs;
   readonly secondsPerPicture: number;
   /**
    * `"seconds"`: with music too, the pictures last `secondsPerPicture` each, on the beat

@@ -1,7 +1,7 @@
 import { composeSlideshow, slideshowDurationMs } from "../../compose";
 import type { LibraryStore, StoredSlideshow } from "../../library/stored-slideshow";
 import { runVideoExport } from "../../video-export";
-import { storedMusicBeats } from "../beats/music-beats-known";
+import { storedSongBeats } from "../beats/music-beats-known";
 import { NO_FOCUS_KNOWN } from "../focus/pictures-focus";
 import type { ExportRun, VideoExportPorts } from "./export-sheet-state";
 import { VideoExportSession } from "./video-export-session";
@@ -28,8 +28,8 @@ export function slideshowVideoExport(
         device.log(error);
         return NO_FOCUS_KNOWN.found;
       }),
-      storedMusicBeats(store, stored, device.log),
-      stored.music === undefined ? null : store.musicBlob(stored.music.id),
+      storedSongBeats(store, stored, device.log),
+      stored.songs[0] === undefined ? null : store.musicBlob(stored.songs[0].id),
     ]);
     // The export reads media by id, so the sources stay ids.
     const slideshow = composeSlideshow(
@@ -53,7 +53,7 @@ export function slideshowVideoExport(
     {
       title: stored.title,
       durationMs: slideshowDurationMs(stored),
-      withMusic: stored.music !== undefined,
+      withMusic: stored.songs.length > 0,
     },
     { ...device, run },
   );

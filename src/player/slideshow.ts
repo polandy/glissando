@@ -5,10 +5,6 @@
 
 /** Version 3: the music is a playlist of tracks, each placed in the slideshow (ADR-0023). */
 export const SLIDESHOW_FORMAT_VERSION = 3;
-/** Still read: its one track, with excerpt and fades (ADR-0009), plays from the start. */
-export const ONE_TRACK_SLIDESHOW_FORMAT_VERSION = 2;
-/** Still read: its music, `{ src }` only, plays as the whole track from the start without fades. */
-export const FIRST_SLIDESHOW_FORMAT_VERSION = 1;
 
 /** Durations in the format are milliseconds; the player's clock speaks seconds. */
 export const MILLISECONDS_PER_SECOND = 1000;
@@ -71,8 +67,8 @@ export interface MusicTrack {
   readonly atMs: number;
   /** Where in the track playing starts. */
   readonly startMs: number;
-  /** Where the music stops being heard; absent (a version 1 slideshow): the track's end. */
-  readonly endMs?: number;
+  /** Where the track stops being heard. */
+  readonly endMs: number;
   /** Ramps the volume up from `startMs`; 0: none. */
   readonly fadeInMs: number;
   /** Ramps the volume down to `endMs`; 0: none. */

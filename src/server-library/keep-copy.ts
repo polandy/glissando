@@ -4,6 +4,7 @@ import { immichPictureSource, type ImmichPictureReaders } from "../import/immich
 import type {
   LibraryStore,
   SlideshowStore,
+  StoredMusic,
   StoredPicture,
   StoredSlideshow,
 } from "../library/stored-slideshow";
@@ -54,7 +55,7 @@ export async function keepCopyOnDevice(
   const { store } = ports;
   const claimId = ports.newId();
   const startedAt = ports.now();
-  const steps = slideshow.pictures.length + (slideshow.music === undefined ? 0 : 1);
+  const steps = slideshow.pictures.length + slideshow.songs.length;
   let done = 0;
   const stepDone = () => options.onProgress?.(++done / steps);
 
@@ -78,11 +79,11 @@ export async function keepCopyOnDevice(
       });
       pictures.push({ ...picture, id, width: decoded.width, height: decoded.height });
     }
-    const { music } = slideshow;
-    let copiedMusic: StoredSlideshow["music"];
-    if (music !== undefined) {
-      const audio = await ports.server.musicBlob(music.id);
-      copiedMusic = { ...music, id: await claimed((musicId) => store.putMusic(musicId, audio)) };
+    const songs: StoredMusic[] = [];
+    for (const song of slideshow.songs) {
+      const audio = await ports.server.musicBlob(song.id);
+      const id = await claimed((musicId) => store.putMusic(musicId, audio));
+      songs.push({ ...song, id });
     }
     options.signal.throwIfAborted();
     const copy: StoredSlideshow = {
@@ -91,7 +92,7 @@ export async function keepCopyOnDevice(
       title: uniqueTitle(slideshow.title, options.existingTitles),
       createdAt: ports.now().toISOString(),
       pictures,
-      ...(copiedMusic === undefined ? {} : { music: copiedMusic }),
+      songs,
     };
     await store.saveSlideshow(copy);
     await store.releaseClaim(claimId);

@@ -9,7 +9,9 @@ export function createMemoryRepository(): LibraryRepository {
   let musicBeats = new Map<string, MusicBeats>();
 
   const isMusicReferenced = (id: string): boolean =>
-    [...slideshows.values()].some(({ document }) => document.slideshow.music?.musicId === id);
+    [...slideshows.values()].some(({ document }) =>
+      document.slideshow.songs.some((song) => song.musicId === id),
+    );
 
   return {
     inTransaction(work) {

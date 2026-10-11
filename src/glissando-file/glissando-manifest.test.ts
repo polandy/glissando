@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
   GLISSANDO_FORMAT_VERSION,
+  OLDEST_READABLE_FORMAT_VERSION,
   manifestFor,
-  musicPath,
   picturePaths,
+  songPath,
   typeOfPicturePath,
   type GlissandoManifest,
 } from "./glissando-manifest";
@@ -36,7 +37,7 @@ const slideshow: StoredSlideshow = {
     },
   ],
   ownOrder: true,
-  music: { id: "m1", fileName: "Walzer.m4a", durationMs: 240000, mimeType: "audio/mp4" },
+  songs: [{ id: "m1", fileName: "Walzer.m4a", durationMs: 240000, mimeType: "audio/mp4" }],
   secondsPerPicture: 5,
 };
 
@@ -55,7 +56,7 @@ describe("manifestFor", () => {
   it("names the format and its version and keeps the slideshow without device ids", () => {
     const written = manifest();
     expect(written.format).toBe("glissando");
-    expect(written.formatVersion).toBe(9);
+    expect(written.formatVersion).toBe(10);
     expect(written.slideshow.pictures[0]).toEqual({
       file: "pictures/0001.jpg",
       thumbnail: "thumbnails/0001.jpg",
@@ -65,12 +66,14 @@ describe("manifestFor", () => {
       fileName: "a.jpg",
       caption: "Am Steg",
     });
-    expect(written.slideshow.music).toEqual({
-      file: "music/track.m4a",
-      fileName: "Walzer.m4a",
-      durationMs: 240000,
-      mimeType: "audio/mp4",
-    });
+    expect(written.slideshow.songs).toEqual([
+      {
+        file: "music/track-1.m4a",
+        fileName: "Walzer.m4a",
+        durationMs: 240000,
+        mimeType: "audio/mp4",
+      },
+    ]);
     expect(written.slideshow.pictures[1]?.kenBurns).toEqual(slideshow.pictures[1]?.kenBurns);
     expect(written.slideshow.pictures[1]).not.toHaveProperty("caption");
     expect(asText(written)).not.toContain("show-1");
@@ -87,11 +90,12 @@ describe("media paths", () => {
   });
 
   it.each([
-    ["Walzer.M4A", "music/track.m4a"],
-    ["no extension", "music/track"],
-    ["odd.ex t", "music/track"],
-  ])("puts music %j at %j", (fileName, expected) => {
-    expect(musicPath(fileName)).toBe(expected);
+    [0, "Walzer.M4A", "music/track-1.m4a"],
+    [0, "no extension", "music/track-1"],
+    [0, "odd.ex t", "music/track-1"],
+    [2, "Walzer.m4a", "music/track-3.m4a"],
+  ])("puts song %j at %j, by its index in the playlist", (index, fileName, expected) => {
+    expect(songPath(index, fileName)).toBe(expected);
   });
 
   it("refuses to write a picture type it has no extension for", () => {
@@ -111,51 +115,18 @@ describe("readManifest", () => {
     expect(readManifest(asText(manifest()))).toEqual({ kind: "ok", manifest: manifest() });
   });
 
-  it("reads a version 1 file, which knows no own motions", () => {
-    const written = manifest();
-    const [first, second] = written.slideshow.pictures;
-    const versionOne = {
-      ...written,
-      formatVersion: 1,
-      slideshow: {
-        ...written.slideshow,
-        pictures: [
-          { ...first, caption: undefined },
-          { ...second, kenBurns: undefined },
-        ],
-      },
-    };
+  it.each([1, 2, 9])(
+    "refuses a version %d file, older than this app still reads (ADR-0023)",
+    (formatVersion) => {
+      const written = manifest();
+      const text = asText({ ...written, formatVersion });
 
-    const reading = readManifest(asText(versionOne));
-
-    expect(reading.kind).toBe("ok");
-    expect(reading.kind === "ok" && reading.manifest.slideshow.pictures[1]).toEqual({
-      ...second,
-      kenBurns: undefined,
-    });
-    expect(reading.kind === "ok" && reading.manifest.slideshow.pictures[1]).not.toHaveProperty(
-      "kenBurns",
-    );
-  });
-
-  it("reads a version 2 file, which knows no captions", () => {
-    const written = manifest();
-    const [first, second] = written.slideshow.pictures;
-    const versionTwo = {
-      ...written,
-      formatVersion: 2,
-      slideshow: { ...written.slideshow, pictures: [{ ...first, caption: undefined }, second] },
-    };
-
-    const reading = readManifest(asText(versionTwo));
-
-    expect(reading.kind === "ok" && reading.manifest.slideshow.pictures[1]?.kenBurns).toEqual(
-      slideshow.pictures[1]?.kenBurns,
-    );
-    expect(reading.kind === "ok" && reading.manifest.slideshow.pictures[0]).not.toHaveProperty(
-      "caption",
-    );
-  });
+      expect(readManifest(text)).toEqual({
+        kind: "damaged",
+        reason: `glissando.json formatVersion: expected a whole number from ${OLDEST_READABLE_FORMAT_VERSION} to ${GLISSANDO_FORMAT_VERSION}, got ${formatVersion}`,
+      });
+    },
+  );
 
   it.each([
     ["another format id", asText({ ...manifest(), format: "zip-of-photos" })],
@@ -186,8 +157,10 @@ describe("readManifest", () => {
       withSlideshow({ pictures: [{ ...manifest().slideshow.pictures[0], width: 0 }] }),
     ],
     [
-      "music without duration",
-      withSlideshow({ music: { ...manifest().slideshow.music, durationMs: -1 } }),
+      "a song without duration",
+      withSlideshow({
+        songs: [{ ...manifest().slideshow.songs[0], durationMs: -1 }],
+      }),
     ],
     ["ownOrder other than true", withSlideshow({ ownOrder: false })],
     [

@@ -31,7 +31,7 @@ function slideshow(
     createdAt: "2025-07-02T00:00:00Z",
     pictures,
     secondsPerPicture: 5,
-    music: { ...MUSIC, ...music },
+    songs: [{ ...MUSIC, ...music }],
   };
 }
 

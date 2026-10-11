@@ -11,8 +11,7 @@ export type PlacedMusicEnvelope = MusicEnvelope & Pick<MusicTrack, "atMs">;
  * play, pause and seek all land on the same envelope without a jump. See ADR-0009.
  */
 export function musicGainAt(music: MusicEnvelope, timeMs: number): number {
-  const endMs = music.endMs ?? Number.POSITIVE_INFINITY;
-  const heardMs = endMs - music.startMs;
+  const heardMs = music.endMs - music.startMs;
   if (timeMs < 0 || timeMs >= heardMs) {
     return 0;
   }
@@ -36,5 +35,5 @@ export function musicTrackSeconds(music: MusicEnvelope, timeMs: number): number 
 
 /** Whether the music is still heard at slideshow time `timeMs`. */
 export function isMusicHeardAt(music: MusicEnvelope, timeMs: number): boolean {
-  return music.endMs === undefined || music.startMs + timeMs < music.endMs;
+  return music.startMs + timeMs < music.endMs;
 }

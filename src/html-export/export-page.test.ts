@@ -28,12 +28,13 @@ const WITHOUT_MUSIC: StoredSlideshow = {
   title: "Rom",
   createdAt: "2026-07-02T10:00:00Z",
   pictures: [picture("big", 3840, 2160), picture("fits", 1000, 600), picture("tall", 2160, 3840)],
+  songs: [],
   secondsPerPicture: 4,
 };
 
 const STORED: StoredSlideshow = {
   ...WITHOUT_MUSIC,
-  music: { id: "m1", fileName: "song.mp3", durationMs: 60_000, mimeType: "audio/mpeg" },
+  songs: [{ id: "m1", fileName: "song.mp3", durationMs: 60_000, mimeType: "audio/mpeg" }],
 };
 
 const COPY = {
@@ -66,7 +67,7 @@ function run(overrides: Partial<PageExportJob> = {}): Run {
   const job: PageExportJob = {
     stored: STORED,
     focus: new Map(),
-    beats: { kind: "none" },
+    beats: new Map(),
     sizeId: "small",
     lang: "de",
     copy: COPY,
@@ -129,7 +130,7 @@ describe("exportPage", () => {
 
   it("changes the pictures on the music's beats it was given", async () => {
     const { job, sink } = run({
-      beats: { kind: "beats", beatsMs: [19_500, 40_500], beatsPerMinute: 60 },
+      beats: new Map([["m1", { kind: "beats", beatsMs: [19_500, 40_500], beatsPerMinute: 60 }]]),
     });
 
     await exportPage(job);

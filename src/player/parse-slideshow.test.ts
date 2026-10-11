@@ -69,7 +69,7 @@ describe("parseSlideshow", () => {
 
   it.each([
     ["not an object", "a slideshow", "", "an object"],
-    [{ ...validSlideshow(), formatVersion: 4 }, "formatVersion", "formatVersion", "1, 2 or 3"],
+    [{ ...validSlideshow(), formatVersion: 4 }, "formatVersion", "formatVersion", "3"],
     [validSlideshow({ title: 7 }), "title", "title", "a string"],
     [validSlideshow({ slides: [] }), "no slides", "slides", "at least one slide"],
     [

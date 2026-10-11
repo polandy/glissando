@@ -22,8 +22,11 @@ const SCHEMA = `
     music_id TEXT PRIMARY KEY,
     beats TEXT NOT NULL
   );
+  -- Every musicId the playlist's songs name (ADR-0023).
+  CREATE VIEW IF NOT EXISTS document_music_ids AS
+    SELECT json_extract(je.value, '$.musicId') AS music_id
+    FROM slideshows, json_each(slideshows.document, '$.slideshow.songs') AS je;
 `;
-const MUSIC_ID_OF_DOCUMENT = "json_extract(document, '$.slideshow.music.musicId')";
 const SLIDESHOW_COLUMNS = "id, revision, created_at, document";
 
 type Row = Record<string, SQLOutputValue>;
@@ -56,10 +59,9 @@ export function openSqliteRepository(database: DatabaseSync): LibraryRepository 
        ON CONFLICT (music_id) DO UPDATE SET beats = excluded.beats`,
   );
   const deleteMusicBeats = statement("DELETE FROM music_beats WHERE music_id = ?");
-  const musicReference = statement(`SELECT 1 FROM slideshows WHERE ${MUSIC_ID_OF_DOCUMENT} = ?`);
+  const musicReference = statement("SELECT 1 FROM document_music_ids WHERE music_id = ?");
   const unreferencedMusic = statement(
-    `SELECT id FROM music WHERE uploaded_at < ? AND id NOT IN
-       (SELECT ${MUSIC_ID_OF_DOCUMENT} FROM slideshows WHERE ${MUSIC_ID_OF_DOCUMENT} IS NOT NULL)
+    `SELECT id FROM music WHERE uploaded_at < ? AND id NOT IN (SELECT music_id FROM document_music_ids)
      ORDER BY uploaded_at, id`,
   );
 

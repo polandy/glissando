@@ -30,7 +30,7 @@ function slideshow(trackMs: number, own: Partial<StoredSlideshow> = {}): StoredS
     pictures,
     secondsPerPicture: 5,
     pictureLength: OWN_SECONDS_PICTURE_LENGTH,
-    music: { id: "m1", fileName: "generated.wav", durationMs: trackMs, mimeType: "audio/wav" },
+    songs: [{ id: "m1", fileName: "generated.wav", durationMs: trackMs, mimeType: "audio/wav" }],
     ...own,
   };
 }

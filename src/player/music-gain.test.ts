@@ -18,12 +18,6 @@ describe("musicGainAt (slideshow time; 0 is the excerpt's start)", () => {
   it("is full from the start without a fade-in", () => {
     expect(musicGainAt({ ...MUSIC, fadeInMs: 0 }, 0)).toBe(1);
   });
-
-  it("is full to the track's end for a version 1 slideshow's music, which has no end", () => {
-    const whole = { src: "m.mp3", startMs: 0, fadeInMs: 0, fadeOutMs: 0 };
-
-    expect(musicGainAt(whole, 3_600_000)).toBe(1);
-  });
 });
 
 describe("musicTrackSeconds", () => {

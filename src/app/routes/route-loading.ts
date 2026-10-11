@@ -65,7 +65,7 @@ export async function loadSlideshowScreen(
 }
 
 /**
- * The music's object URL for one playing, read when the player opens; `url` is null without
+ * Each song's object URL for one playing, by music id, read when the player opens; none without
  * music. Resolves to null once `closed` aborted, having opened no URL that nobody would revoke.
  */
 export async function loadPlayerMusic(
@@ -73,10 +73,12 @@ export async function loadPlayerMusic(
   stored: StoredSlideshow,
   createUrl: (blob: Blob) => string,
   closed: AbortSignal,
-): Promise<{ readonly url: string | null } | null> {
-  if (stored.music === undefined) {
-    return { url: null };
+): Promise<{ readonly urls: ReadonlyMap<string, string> } | null> {
+  const blobs = await Promise.all(
+    stored.songs.map(async ({ id }) => [id, await store.musicBlob(id)] as const),
+  );
+  if (closed.aborted) {
+    return null;
   }
-  const blob = await store.musicBlob(stored.music.id);
-  return closed.aborted ? null : { url: createUrl(blob) };
+  return { urls: new Map(blobs.map(([id, blob]) => [id, createUrl(blob)])) };
 }

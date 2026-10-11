@@ -88,8 +88,11 @@ describe("ImportSession, music a target browser cannot play", () => {
       durationMs: MUSIC_MS,
       convertedFrom: "alac",
     });
-    expect(created.music).toMatchObject({ fileName: "Evening Walk.flac", mimeType: "audio/flac" });
-    expect(await (await store.musicBlob(created.music?.id ?? "")).text()).toBe("flac copy");
+    expect(created.songs[0]).toMatchObject({
+      fileName: "Evening Walk.flac",
+      mimeType: "audio/flac",
+    });
+    expect(await (await store.musicBlob(created.songs[0]?.id ?? "")).text()).toBe("flac copy");
   });
 
   it("marks music it cannot convert as unusable and logs why", async () => {
@@ -120,7 +123,7 @@ describe("ImportSession, music a target browser cannot play", () => {
       pickedName: "Concert.broken",
       reason: "unreadable",
     });
-    expect((await session.create("de")).music).toBeUndefined();
+    expect((await session.create("de")).songs[0]).toBeUndefined();
   });
 
   it("marks copy-protected music as unusable without trying to convert it", async () => {
