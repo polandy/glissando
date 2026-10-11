@@ -221,3 +221,52 @@ describe("IndexedDbLibraryStore focus upgrade", () => {
     }
   });
 });
+
+describe("IndexedDbLibraryStore beats upgrade", () => {
+  /** A library as schema version 3 left it: a slideshow with its music, no beats store. */
+  function openVersionThreeWithSlideshow(slideshow: StoredSlideshow): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open(LIBRARY_DATABASE_NAME, 3);
+      request.onupgradeneeded = () => {
+        const database = request.result;
+        database.createObjectStore("slideshows", { keyPath: "id" }).put(slideshow);
+        database.createObjectStore("pictures");
+        database
+          .createObjectStore("music")
+          .put({ bytes: new ArrayBuffer(1), type: "audio/mpeg" }, "saved-music");
+        database.createObjectStore("imports", { keyPath: "id" });
+        database.createObjectStore("focus");
+      };
+      request.onsuccess = () => {
+        request.result.close();
+        resolve();
+      };
+      request.onerror = () => reject(request.error ?? new Error("opening version 3 failed"));
+    });
+  }
+
+  it("keeps a version 3 library's slideshows and music and stores beats after upgrading", async () => {
+    await deleteLibraryDatabase();
+    const saved: StoredSlideshow = {
+      id: "show-1",
+      title: "July 2025",
+      createdAt: "2025-07-02T08:00:00Z",
+      pictures: [],
+      secondsPerPicture: 5,
+      music: { id: "saved-music", fileName: "a.mp3", durationMs: 1000, mimeType: "audio/mpeg" },
+    };
+    await openVersionThreeWithSlideshow(saved);
+
+    const store = await openLibraryStore(indexedDB);
+    try {
+      expect(await store.getSlideshow("show-1")).toEqual(saved);
+      expect((await store.musicBlob("saved-music")).size).toBe(1);
+      expect(await store.musicBeats("saved-music")).toBeUndefined();
+      await store.putMusicBeats("saved-music", { kind: "none" });
+      expect(await store.musicBeats("saved-music")).toEqual({ kind: "none" });
+    } finally {
+      store.close();
+      await deleteLibraryDatabase();
+    }
+  });
+});

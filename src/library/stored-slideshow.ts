@@ -1,3 +1,4 @@
+import type { MusicBeats } from "../beats";
 import type { OwnKenBurns } from "./own-ken-burns";
 import type { PictureFocus } from "./picture-focus";
 import type { MusicTrim, PictureChanges } from "./own-music";
@@ -112,8 +113,8 @@ export interface LibraryStore {
   /** Throws `SlideshowNotFoundError` for an unknown id. */
   getSlideshow(id: string): Promise<StoredSlideshow>;
   /**
-   * Deletes the record and, in the same transaction, the media only it references and those
-   * pictures' focus. Throws `SlideshowNotFoundError` for an unknown id.
+   * Deletes the record and, in the same transaction, the media only it references, those
+   * pictures' focus and that music's beats. Throws `SlideshowNotFoundError` for an unknown id.
    */
   deleteSlideshow(id: string): Promise<void>;
   pictureBlob(id: string): Promise<Blob>;
@@ -126,6 +127,13 @@ export interface LibraryStore {
   putPictureFocus(pictureId: string, focus: PictureFocus): Promise<void>;
   /** The stored focus of each picture asked for; a picture not looked at yet is absent. */
   pictureFocus(pictureIds: readonly string[]): Promise<ReadonlyMap<string, PictureFocus>>;
+  /**
+   * Stores the beats the detection found in a track, beside its media (ADR-0021). A track whose
+   * media is not stored (any more) keeps nothing, so a late detection cannot resurrect it.
+   */
+  putMusicBeats(musicId: string, beats: MusicBeats): Promise<void>;
+  /** The stored beats of a track; `undefined` while it was not listened to yet. */
+  musicBeats(musicId: string): Promise<MusicBeats | undefined>;
   /** The bytes the slideshow's pictures (both renditions) and music take; missing media counts 0. */
   mediaBytes(slideshow: StoredSlideshow): Promise<number>;
   /**
@@ -137,7 +145,7 @@ export interface LibraryStore {
   /** The import was created or discarded, the removal undone or final: its media is spared no longer. */
   releaseClaim(claimId: string): Promise<void>;
   /**
-   * Deletes media (pictures with their focus) no saved slideshow references, sparing that of
+   * Deletes media (pictures with their focus, music with its beats) no saved slideshow references, sparing that of
    * claims made less than `CLAIM_SPARED_FOR_MS` before `now`; older claims are taken for crashed
    * and forgotten.
    */

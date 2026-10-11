@@ -3,7 +3,7 @@ import {
   shiftGroup as shiftGroupInSlideshow,
 } from "../../library/group-edits";
 import type { OwnKenBurns } from "../../library/own-ken-burns";
-import type { MusicTrim } from "../../library/own-music";
+import type { MusicTrim, PictureChanges } from "../../library/own-music";
 import type { SlideshowTransition, TransitionChoice } from "../../library/own-timing";
 import {
   removePicture,
@@ -11,7 +11,12 @@ import {
   restorePictures,
   setPictureCaption,
 } from "../../library/slideshow-edits";
-import { setMusicFadeIn, setMusicFadeOut, setMusicTrim } from "../../library/slideshow-edits-music";
+import {
+  setMusicFadeIn,
+  setMusicFadeOut,
+  setMusicPictureChanges,
+  setMusicTrim,
+} from "../../library/slideshow-edits-music";
 import type { StoredSlideshow } from "../../library/stored-slideshow";
 import { EditSaver } from "./edit-saver";
 import { EditorUndos } from "./editor-undos";
@@ -195,6 +200,11 @@ export class SlideshowEditor {
   /** The music's own fade-out in ms, 0 being off; `undefined` makes it automatic. */
   setMusicFadeOut(fadeOutMs: number | undefined): void {
     this.#apply(setMusicFadeOut(this.#slideshow, fadeOutMs));
+  }
+
+  /** `"even"` shares the music evenly; `undefined` changes the pictures on the beat (ADR-0021). */
+  setMusicPictureChanges(pictureChanges: PictureChanges | undefined): void {
+    this.#apply(setMusicPictureChanges(this.#slideshow, pictureChanges));
   }
 
   /** Resolves once every edit made so far is stored (or reported as failed). */
