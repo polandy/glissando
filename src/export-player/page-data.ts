@@ -1,7 +1,6 @@
 import { decodeBase64 } from "../html-export/base64";
 import {
   COPY_BLOCK_ID,
-  MUSIC_KEY,
   PAGE_COPY_KEYS,
   SLIDESHOW_BLOCK_ID,
   type PageCopy,
@@ -29,8 +28,8 @@ export interface PageData {
   readonly copy: PageCopy;
   /** Unpacks a picture only when the player asks for it. */
   readonly openPicture: OpenPicture;
-  /** Null when the slideshow has no music. */
-  readonly music: Blob | null;
+  /** Each song the tracks play, by the tracks' `src`; empty without music. */
+  readonly songs: ReadonlyMap<string, Blob>;
 }
 
 /** Reads the exported page's data blocks (dev-docs/HTML_EXPORT.md, "The page"). */
@@ -55,7 +54,9 @@ export function readPageData(read: ReadBlock): PageData {
         return Promise.reject(error instanceof Error ? error : new Error(String(error)));
       }
     },
-    music: slideshow.music === undefined ? null : media(MUSIC_KEY),
+    songs: new Map(
+      [...new Set(slideshow.music?.map(({ src }) => src))].map((src) => [src, media(src)]),
+    ),
   };
 }
 

@@ -19,8 +19,8 @@ export type HtmlExportDevice = Omit<HtmlExportPorts, "weights" | "run"> & {
 
 /**
  * A sheet session exporting `stored` as it is now, in the translator's language at the time of
- * the run. The estimate takes each stored display picture's byte count from its Blob, which
- * storage knows without reading the bytes.
+ * the run. The estimate takes each stored display picture's and song's byte count from its Blob,
+ * which storage knows without reading the bytes.
  */
 export function slideshowHtmlExport(
   device: HtmlExportDevice,
@@ -45,9 +45,10 @@ export function slideshowHtmlExport(
           bytes: (await store.pictureBlob(id)).size,
         })),
       ),
-      stored.songs[0] === undefined
-        ? 0
-        : store.musicBlob(stored.songs[0].id).then((blob) => blob.size),
+      // Every song, also one the slideshow may not reach: an estimate errs on the large side.
+      Promise.all(stored.songs.map(async ({ id }) => (await store.musicBlob(id)).size)).then(
+        (sizes) => sizes.reduce((total, size) => total + size, 0),
+      ),
       // Loading the bundle here also fetches it before "Webseite erstellen".
       device.playerAsset.load(),
     ]);

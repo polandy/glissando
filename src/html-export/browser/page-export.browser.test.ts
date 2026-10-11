@@ -64,7 +64,10 @@ const STORED: StoredSlideshow = {
   title: "Generated <test>",
   createdAt: "2026-07-02T10:00:00Z",
   pictures: PICTURES,
-  songs: [{ id: "tone", fileName: "silence.wav", durationMs: MUSIC_MS, mimeType: "audio/wav" }],
+  songs: [
+    { id: "first", fileName: "first.wav", durationMs: MUSIC_MS, mimeType: "audio/wav" },
+    { id: "second", fileName: "second.wav", durationMs: MUSIC_MS, mimeType: "audio/wav" },
+  ],
   secondsPerPicture: 3,
   transition: "cut",
 };
@@ -226,9 +229,10 @@ describe("an exported web page", () => {
     return { pageDocument, seen: progress.seen };
   }
 
-  it("opens from a blob: URL and plays from the start card to the end card", async () => {
+  it("opens from a blob: URL and plays both songs from the start card to the end card", async () => {
     const { pageDocument, seen } = await playedToTheEndCard();
 
+    expect(pageDocument.getElementById("s1")).not.toBeNull();
     // Whether "loading" is still seen depends on when the frame's load event lands.
     expect(seen.filter((state) => state !== "loading")).toEqual(["start", "playing", "ended"]);
     expect(pageDocument.querySelector(".end")?.textContent).toContain("Play again");

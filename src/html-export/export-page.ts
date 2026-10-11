@@ -1,9 +1,15 @@
 import { composeSlideshow, type SongBeats } from "../compose";
 import type { PictureFocus } from "../library/picture-focus";
-import type { LibraryStore, StoredPicture, StoredSlideshow } from "../library/stored-slideshow";
+import type {
+  LibraryStore,
+  StoredMusic,
+  StoredPicture,
+  StoredSlideshow,
+} from "../library/stored-slideshow";
+import type { Slideshow } from "../player";
 import { encodeBase64 } from "./base64";
 import { MEDIA_BLOCK_END, mediaBlockStart, pageHead, pageTail } from "./page";
-import { MUSIC_KEY, pictureKey, type PageCopy } from "./page-contract";
+import { pictureKey, songKey, type PageCopy } from "./page-contract";
 import { PAGE_JPEG_QUALITY, pictureRendition, type PageSizeId } from "./plan";
 import type { PageSink, PictureScaler, PlayerAsset, PlayerBundle } from "./ports";
 
@@ -87,12 +93,14 @@ async function writePage(job: PageExportJob): Promise<PageExportResult> {
   const { stored, sink, signal } = job;
   const bundle = await loadBundle(job.playerAsset);
   const keys = new Map(stored.pictures.map((picture, index) => [picture.id, pictureKey(index)]));
-  const slideshow = composeSlideshow(
+  const composed = composeSlideshow(
     stored,
-    { picture: (id) => keys.get(id) ?? id, music: () => MUSIC_KEY },
+    { picture: (id) => keys.get(id) ?? id, music: (id) => id },
     job.focus,
     job.beats,
   );
+  const songs = playedSongs(stored, composed);
+  const slideshow = withSongKeys(composed, songs);
   let bytesWritten = 0;
   const write = async (text: string, bytes: number) => {
     await sink.write(text);
@@ -132,15 +140,39 @@ async function writePage(job: PageExportJob): Promise<PageExportResult> {
     report(index + 1);
   }
   signal?.throwIfAborted();
-  const firstSong = stored.songs[0];
-  if (firstSong !== undefined) {
-    await writeBlock(MUSIC_KEY, firstSong.mimeType, await job.media.musicBlob(firstSong.id));
+  for (const [index, song] of songs.entries()) {
+    signal?.throwIfAborted();
+    await writeBlock(songKey(index), song.mimeType, await job.media.musicBlob(song.id));
   }
   await writeText(pageTail(bundle.script));
   signal?.throwIfAborted();
   await sink.close();
   report(stored.pictures.length);
   return { bytesWritten };
+}
+
+/** The songs the composed slideshow plays, each once, in playlist order. */
+function playedSongs(stored: StoredSlideshow, slideshow: Slideshow): readonly StoredMusic[] {
+  const played = new Set(slideshow.music?.map((track) => track.src));
+  return stored.songs.filter((song) => played.has(song.id));
+}
+
+/** Points every track at its song's block. */
+function withSongKeys(slideshow: Slideshow, songs: readonly StoredMusic[]): Slideshow {
+  if (slideshow.music === undefined) {
+    return slideshow;
+  }
+  const keys = new Map(songs.map((song, index) => [song.id, songKey(index)]));
+  return {
+    ...slideshow,
+    music: slideshow.music.map((track) => {
+      const key = keys.get(track.src);
+      if (key === undefined) {
+        throw new Error(`the track's song ${track.src} is not in the slideshow's songs`);
+      }
+      return { ...track, src: key };
+    }),
+  };
 }
 
 async function loadBundle(asset: PlayerAsset): Promise<PlayerBundle> {

@@ -69,6 +69,34 @@ describe("slideshowHtmlExport", () => {
     });
   });
 
+  it("counts every song of the playlist in the estimate", async () => {
+    const store = await storeWithMedia();
+    await store.putMusic("n", new Blob(["n".repeat(200)]));
+    const second = { id: "n", fileName: "n.mp3", durationMs: 60_000, mimeType: "audio/mpeg" };
+    const sheet = slideshowHtmlExport(
+      fakeHtmlExportDevice(),
+      store,
+      { ...STORED, songs: [...STORED.songs, second] },
+      createTranslator("de"),
+      "device",
+    );
+
+    await sheet.open();
+
+    const weights = {
+      pictures: [
+        { width: 3840, height: 2160, bytes: 900 },
+        { width: 1000, height: 800, bytes: 300 },
+      ],
+      musicBytes: 700,
+      pageBytes: playerBundleBytes(FAKE_BUNDLE),
+    };
+    expect(sheet.state).toMatchObject({
+      kind: "choose",
+      estimates: { small: estimatePageBytes(weights, "small") },
+    });
+  });
+
   it("writes the page in the translator's language at the time of the run", async () => {
     const ports = fakeHtmlExportDevice();
     const sheet = slideshowHtmlExport(

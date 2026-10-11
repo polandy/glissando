@@ -31,7 +31,7 @@ export interface PageFrame {
   /** Shown by a browser without JavaScript. */
   readonly noscript: string;
   readonly copy: PageCopy;
-  /** Its pictures' `src` are `pictureKey(n)`, the music's `MUSIC_KEY`. */
+  /** Its pictures' `src` are `pictureKey(n)`, its tracks' `songKey(n)`. */
   readonly slideshow: Slideshow;
   /** The page's CSS. */
   readonly style: string;

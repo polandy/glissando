@@ -32,7 +32,7 @@ function readBlock(id: string): PageBlock | null {
 
 async function startPage(): Promise<void> {
   const data = readPageData(readBlock);
-  const slideshow = withMusicUrl(data.slideshow, data.music);
+  const slideshow = withSongUrls(data.slideshow, data.songs);
   const view = createPageView(document, {
     title: data.slideshow.title,
     copy: data.copy,
@@ -53,13 +53,16 @@ async function startPage(): Promise<void> {
   if (view.state === "loading") view.showState("start");
 }
 
-/** The page's one embedded song, its first track, becomes a `blob:` URL for the page's lifetime. */
-function withMusicUrl(slideshow: Slideshow, music: Blob | null): Slideshow {
-  const firstTrack = slideshow.music?.[0];
-  if (firstTrack === undefined || music === null) {
+/** Each embedded song becomes one `blob:` URL for the page's lifetime, shared by its tracks. */
+function withSongUrls(slideshow: Slideshow, songs: ReadonlyMap<string, Blob>): Slideshow {
+  if (slideshow.music === undefined) {
     return slideshow;
   }
-  return { ...slideshow, music: [{ ...firstTrack, src: URL.createObjectURL(music) }] };
+  const urls = new Map([...songs].map(([src, blob]) => [src, URL.createObjectURL(blob)]));
+  return {
+    ...slideshow,
+    music: slideshow.music.map((track) => ({ ...track, src: urls.get(track.src) ?? track.src })),
+  };
 }
 
 function wire(view: PageView, player: BrowserPlayer, music: MutableMusicOutput): void {

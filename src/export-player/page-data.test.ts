@@ -35,7 +35,10 @@ const SILENT_SLIDESHOW: Slideshow = {
 
 const SLIDESHOW: Slideshow = {
   ...SILENT_SLIDESHOW,
-  music: [{ src: "music", atMs: 0, startMs: 0, endMs: 4000, fadeInMs: 0, fadeOutMs: 0 }],
+  music: [
+    { src: "s0", atMs: 0, startMs: 0, endMs: 3000, fadeInMs: 0, fadeOutMs: 1000 },
+    { src: "s1", atMs: 2000, startMs: 0, endMs: 1000, fadeInMs: 1000, fadeOutMs: 0 },
+  ],
 };
 
 function page(blocks: Partial<Record<string, PageBlock>>): (id: string) => PageBlock | null {
@@ -46,7 +49,8 @@ const BLOCKS: Record<string, PageBlock> = {
   slideshow: { text: JSON.stringify(SLIDESHOW), mimeType: null },
   copy: { text: JSON.stringify(COPY), mimeType: null },
   p0: { text: btoa("jpeg bytes"), mimeType: "image/jpeg" },
-  music: { text: btoa("wav bytes"), mimeType: "audio/wav" },
+  s0: { text: btoa("wav bytes"), mimeType: "audio/wav" },
+  s1: { text: btoa("ogg bytes"), mimeType: "audio/ogg" },
 };
 
 describe("readPageData", () => {
@@ -70,11 +74,18 @@ describe("readPageData", () => {
     );
   });
 
-  it("holds the music as one Blob when the slideshow has music", async () => {
-    const music = readPageData(page(BLOCKS)).music;
+  it("holds every song the tracks play as one Blob each, by the tracks' src", async () => {
+    const { songs } = readPageData(page(BLOCKS));
 
-    expect(music?.type).toBe("audio/wav");
-    expect(await music?.text()).toBe("wav bytes");
+    expect([...songs.keys()]).toEqual(["s0", "s1"]);
+    expect(songs.get("s0")?.type).toBe("audio/wav");
+    expect(await songs.get("s1")?.text()).toBe("ogg bytes");
+  });
+
+  it("fails loud on a track whose song has no block", () => {
+    expect(() => readPageData(page({ ...BLOCKS, s1: undefined }))).toThrow(
+      new PageDataError('the page holds no media block "s1"'),
+    );
   });
 
   it("has no music when the slideshow has none", () => {
@@ -83,7 +94,7 @@ describe("readPageData", () => {
     );
 
     expect(data.slideshow.slides).toHaveLength(1);
-    expect(data.music).toBeNull();
+    expect(data.songs.size).toBe(0);
   });
 
   it("fails loud on a page without its slideshow block", () => {
