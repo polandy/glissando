@@ -1,5 +1,7 @@
 import type { Page, Route } from "@playwright/test";
 import { readFileSync } from "node:fs";
+import { shareDocumentOf } from "../../server/share-document";
+import type { ServerDocument } from "../../src/server-library/server-document";
 
 /** A recorded answer of a real Immich (`src/immich/fixtures`). */
 export function immichFixture<Answer>(name: string): Answer {
@@ -33,11 +35,6 @@ interface LibraryRecord {
   share: { readonly token: string; readonly createdAt: string } | null;
 }
 
-/** The server document, read only as far as the cases look into it. */
-interface ServerDocument {
-  readonly slideshow: { readonly title: string; readonly pictures: { immichAssetId: string }[] };
-}
-
 /** What the fake self-hosted Glissando saw and holds; the case changes `goneFromImmich`. */
 export interface FakeGlissandoServer {
   /** The library service's slideshows, oldest first. */
@@ -52,6 +49,12 @@ const IMMICH_ROUTE = /\/immich\/(.*)$/;
 const LIBRARY_ROUTE = /\/api\/library(\/.*)?$/;
 const ASSET_IMAGE = /^api\/assets\/([^/]+)\/(thumbnail|original)$/;
 const SLIDESHOW_PATH = /^\/slideshows\/([^/]+)(\/share)?$/;
+/** The recipient's page and the public share API (SHARE_LINK.md, Public). */
+const SHARE_PAGE_ROUTE = /\/s\/[^/]+$/;
+const SHARE_API_ROUTE = /\/api\/share\/.*$/;
+const SHARE_API_PATH = /^\/api\/share\/([^/]+)(?:\/(\d+)\/pictures\/(\d+))?$/;
+/** The built page Caddy answers every `/s/<token>` with, as `vite preview` serves it. */
+const SHARE_PAGE_FILE = "/share.html";
 /** Every link the fake makes, as a real token looks: 22 characters of base64url. */
 const FAKE_SHARE_TOKEN = "fakeShareToken00000000";
 /** When the fake made every link: a fixed instant, so nothing reads the clock. */
@@ -65,7 +68,10 @@ const HTTP_PRECONDITION_FAILED = 412;
 /**
  * Answers the self-hosted Glissando's `/immich/` route like Immich behind it (every photo is
  * `photo()`) and its `/api/library` route like the library service, in memory: both answer at once
- * from the state the case set, so nothing a case waits on depends on timing.
+ * from the state the case set, so nothing a case waits on depends on timing. A share link's
+ * `/s/<token>` and `/api/share/` answer in every page of the page's browser context, so a second
+ * page can open the link; pictures come straight from the fake, where the real server fetches
+ * them from Immich through Caddy.
  */
 export async function fakeGlissandoServer(
   page: Page,
@@ -78,6 +84,11 @@ export async function fakeGlissandoServer(
   };
   await page.route(IMMICH_ROUTE, (route) => answerImmich(route, server, photo));
   await page.route(LIBRARY_ROUTE, (route) => answerLibrary(route, server));
+  await page.context().route(SHARE_PAGE_ROUTE, async (route) => {
+    const sharePage = new URL(SHARE_PAGE_FILE, route.request().url()).href;
+    await route.fulfill({ response: await route.fetch({ url: sharePage }) });
+  });
+  await page.context().route(SHARE_API_ROUTE, (route) => answerShareApi(route, server, photo));
   return server;
 }
 
@@ -156,4 +167,32 @@ function answerShare(route: Route, record: LibraryRecord, path: string) {
     return route.fulfill({ status: HTTP_NO_CONTENT });
   }
   return route.fulfill({ status: HTTP_NOT_FOUND, json: { error: "notFound", detail: path } });
+}
+
+/** The document and the pictures; no songs, as no case shares a slideshow with music. */
+function answerShareApi(route: Route, server: FakeGlissandoServer, photo: () => Uint8Array) {
+  const path = new URL(route.request().url()).pathname;
+  const notFound = (error: string) =>
+    route.fulfill({ status: HTTP_NOT_FOUND, json: { error, detail: path } });
+  const match = path.match(SHARE_API_PATH);
+  if (match === null) return notFound("notFound");
+  const [, token, revision, position] = match;
+  const record = server.slideshows.find((slideshow) => slideshow.share?.token === token);
+  if (route.request().method() !== "GET" || record === undefined) return notFound("notShared");
+  const { slideshow } = record.document;
+  if (revision === undefined) {
+    return route.fulfill({
+      json: {
+        revision: record.revision,
+        slideshow: shareDocumentOf(slideshow),
+        beats: slideshow.songs.map(() => null),
+      },
+    });
+  }
+  const picture = slideshow.pictures[Number(position)];
+  if (picture === undefined) return notFound("noSuchPicture");
+  if (server.goneFromImmich.has(picture.immichAssetId)) {
+    return route.fulfill({ status: HTTP_NOT_FOUND });
+  }
+  return route.fulfill({ contentType: "image/jpeg", body: photo() });
 }

@@ -189,6 +189,8 @@ the same contract suite.
   routing, as Vitest browser commands in `src/share-page/testing/`) and plays a generated three-picture slideshow
   to `ended`, also with a late picture (the chip) and a missing one (skipped), and shows `gone`
   and `unreachable` (then "Try again").
-- An e2e case (written after the owner's OK on the built change) shares a slideshow from the
-  info panel, opens the link in a second page, presses Play and waits for `playing`, then turns
-  the link off and sees `gone` on reload. All test pictures are generated.
+- E2E-043 shares a server slideshow from the info panel, opens the link in a second page,
+  presses Play and waits for `playing`, then turns the link off and sees `gone` on reload. The
+  fake server (`e2e/support/fake-glissando-server.ts`) answers `/s/` with the built `share.html`
+  and the public API from its own state, the pictures straight from the fake rather than through
+  Caddy. All test pictures are generated.
