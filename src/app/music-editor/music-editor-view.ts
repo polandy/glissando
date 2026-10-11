@@ -5,6 +5,7 @@ import {
   placeSongs,
   playlistBeatsMs,
   playlistMs,
+  resolvePlaylist,
   scaledFades,
   slideDurationsMs,
   type MusicTiming,
@@ -168,8 +169,15 @@ export function musicEditorView(
   const { beatsMs, durationsMs, slideshowMs } = slideshowTimes(stored, beats);
   const status = songBeatsStatus(beats, songId);
   const pictureChanges = pictureChangesView(stored, music, status);
-  const reached = atMs < slideshowMs;
-  const heardEndMs = reached ? Math.min(endMs, startMs + slideshowMs - atMs) : endMs;
+  // The songs the slideshow reaches come first, so the index is the same among them.
+  const resolved = resolvePlaylist(stored, slideshowMs)[index];
+  const reached = resolved !== undefined;
+  const timing: MusicTiming = resolved ?? {
+    startMs,
+    endMs,
+    ...scaledFades(endMs - startMs, fadeInMs, fadeOutMs),
+  };
+  const heardEndMs = timing.endMs;
   const cutBySlideshow = heardEndMs < endMs;
   const automaticFadeOutMs = cutBySlideshow ? AUTOMATIC_MUSIC_FADE_MS : fadeOutMs;
   const playlistLengthMs = playlistMs(stored) ?? 0;
@@ -217,11 +225,7 @@ export function musicEditorView(
             ? "excerpt-ends-early"
             : "track-ends",
     },
-    timing: {
-      startMs,
-      endMs: heardEndMs,
-      ...scaledFades(heardEndMs - startMs, fadeInMs, music.fadeOutMs ?? automaticFadeOutMs),
-    },
+    timing: { startMs, endMs: heardEndMs, fadeInMs: timing.fadeInMs, fadeOutMs: timing.fadeOutMs },
     note: timingNote(stored, durationsMs, playlistLengthMs, beatsMs !== undefined),
   };
 }
