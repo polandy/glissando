@@ -86,7 +86,7 @@
   }
   .link-box .copied {
     border-color: transparent;
-    background: color-mix(in srgb, var(--gl-mint) 26%, var(--gl-surface));
+    background: var(--gl-mint-tint);
   }
   /* On a narrow phone, a long label wraps the row rather than squeezing its neighbours. */
   .ways {
