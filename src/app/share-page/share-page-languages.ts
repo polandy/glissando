@@ -1,7 +1,7 @@
-import type { SharePageLanguages, SharePageWords } from "../../share-page/share-page-words";
-import { de } from "../i18n/catalogue-de";
-import { en } from "../i18n/catalogue-en";
-import type { Catalogue } from "../i18n/messages";
+import type { SharePageLanguages, SharePageWords } from "../../share-page/share-page-words.ts";
+import { de } from "../i18n/catalogue-de.ts";
+import { en } from "../i18n/catalogue-en.ts";
+import type { Catalogue } from "../i18n/messages.ts";
 
 /**
  * The share page's words in both languages, from the catalogue; the build writes them into the

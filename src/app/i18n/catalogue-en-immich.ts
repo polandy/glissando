@@ -1,5 +1,5 @@
-import type { Catalogue } from "./messages";
-import type { deImmich } from "./catalogue-de-immich";
+import type { Catalogue } from "./messages.ts";
+import type { deImmich } from "./catalogue-de-immich.ts";
 
 /** English copy of the Immich box, browser and settings group; typed to the German keys. */
 export const enImmich: Pick<Catalogue, keyof typeof deImmich> = {

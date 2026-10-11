@@ -1,4 +1,4 @@
-import type { KeyValueStorage } from "../start/first-launch";
+import type { KeyValueStorage } from "../start/first-launch.ts";
 
 /** One of a fixed set of choices, kept on this device. */
 export interface StoredChoice<Choice extends string> {

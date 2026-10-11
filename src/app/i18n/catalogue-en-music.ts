@@ -1,5 +1,5 @@
-import type { Catalogue } from "./messages";
-import type { deMusic } from "./catalogue-de-music";
+import type { Catalogue } from "./messages.ts";
+import type { deMusic } from "./catalogue-de-music.ts";
 
 /** English copy of music: its import and the music editor; typed to the German keys. */
 export const enMusic: Pick<Catalogue, keyof typeof deMusic> = {

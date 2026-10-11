@@ -1,4 +1,4 @@
-import type { Message } from "./messages";
+import type { Message } from "./messages.ts";
 
 /** German copy of a picture's own duration and transition; part of the German catalogue. */
 export const deTiming = {

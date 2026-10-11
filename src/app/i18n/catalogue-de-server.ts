@@ -1,4 +1,4 @@
-import type { Message } from "./messages";
+import type { Message } from "./messages.ts";
 
 /** German copy of slideshows on the Glissando server; part of the German catalogue. */
 export const deServer = {

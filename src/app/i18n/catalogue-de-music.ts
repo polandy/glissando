@@ -1,4 +1,4 @@
-import type { Message } from "./messages";
+import type { Message } from "./messages.ts";
 
 /** German copy of music: its import and the music editor; part of the German catalogue. */
 export const deMusic = {

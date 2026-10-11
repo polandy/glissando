@@ -1,4 +1,4 @@
-import type { Message } from "./messages";
+import type { Message } from "./messages.ts";
 
 /** German copy of sharing a server slideshow by link; part of the German catalogue. */
 export const deShare = {

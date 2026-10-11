@@ -1,5 +1,5 @@
 import type { BrowserCommand } from "vitest/node";
-import type { FakeShareApi } from "./fake-share-api";
+import type { FakeShareApi } from "./fake-share-api.ts";
 
 /** Node's `Buffer`, which Playwright answers bytes with; the tsconfig carries no Node types. */
 declare const Buffer: { from(base64: string, encoding: "base64"): Uint8Array };

@@ -1,4 +1,4 @@
-import type { Message } from "./messages";
+import type { Message } from "./messages.ts";
 
 /** German copy of the Immich box, browser and settings group; part of the German catalogue. */
 export const deImmich = {

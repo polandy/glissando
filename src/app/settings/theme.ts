@@ -1,5 +1,5 @@
-import type { KeyValueStorage } from "../start/first-launch";
-import { createStoredChoice, type StoredChoice } from "./stored-choice";
+import type { KeyValueStorage } from "../start/first-launch.ts";
+import { createStoredChoice, type StoredChoice } from "./stored-choice.ts";
 
 /** "system" follows the device's light or dark setting; the others pin a theme. */
 export const THEME_PREFERENCES = ["system", "light", "dark"] as const;
