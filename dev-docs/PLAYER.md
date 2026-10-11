@@ -216,7 +216,7 @@ transition, but stands still in screen space, unmoved by the Ken Burns motion. I
   renderer can charge the fake clock for uploads — a whole one for drawing an unprepared
   picture, a slice per `prepare` — so tests bound every frame's step in show time.
 - Renderers run as Vitest browser tests (`*.browser.test.ts`) in real engines
-  (`scripts/browser-tests.sh`, CI job `e2e`). WebGL output is checked by reading pixels in
+  (`scripts/browser-tests.sh`, CI jobs `vitest (<engine>)`). WebGL output is checked by reading pixels in
   Chromium and WebKit, where the sliced upload is also checked by counting the pixels each
   upload call sends; the worker decode, EXIF orientation included, runs in all three engines.
   Headless Firefox in the CI image has no WebGL, so it tests the DOM fallback
