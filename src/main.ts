@@ -130,9 +130,10 @@ const focusPass = new FocusPass({
 });
 focusPass.start();
 
+const beatDetector = new WorkerBeatDetector(decodeMusicWithWebAudio, startBeatWorker);
 const beatPass = new BeatPass({
   store,
-  detector: new WorkerBeatDetector(decodeMusicWithWebAudio, startBeatWorker),
+  detector: beatDetector,
   log: logError,
   reportError,
 });
@@ -168,6 +169,16 @@ const serverLibrary = createServerLibrary({
   log: logError,
 });
 
+// The first device to open a server slideshow listens for its music's beats and keeps them on
+// the server for the others (ADR-0021). A server out of reach ends the pass without a message:
+// the pictures share the music evenly, and the next opening tries again.
+const serverBeatPass = new BeatPass({
+  store: serverLibrary.store,
+  detector: beatDetector,
+  log: logError,
+  reportError: logError,
+});
+
 /** What every picture intake reads with, for a new slideshow and for adding to one. */
 const intakePorts = {
   decode: decodePicture,
@@ -199,6 +210,7 @@ const services = {
   musicAudio: browserMusicEditorAudio(musicOutput),
   focusPass,
   beatPass,
+  serverBeatPass,
   immich: { client: immichClient, availability: immichAvailability },
   serverLibrary,
   newImportSession: () =>

@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onDestroy, onMount } from "svelte";
   import type { MusicBeats } from "../../beats";
+  import type { BeatPass } from "../../library/beat-pass";
   import { composeSlideshow } from "../../compose";
   import type { LibraryStore, StoredSlideshow } from "../../library/stored-slideshow";
   import type { MusicOutput } from "../../player";
@@ -28,6 +29,7 @@
     onClose,
     onError,
     log,
+    beatPass,
     home,
     missing,
     onPictureMissing,
@@ -39,6 +41,8 @@
     onError: (error: unknown) => void;
     /** Logs a focus or beats that could not be read: play goes on without them. */
     log: (error: unknown) => void;
+    /** Listens for the music's beats if none are known yet, for the next time it plays. */
+    beatPass: Pick<BeatPass, "listenFor">;
     home: SlideshowHome;
     /** Pictures Immich answered 404 for, as the screen knows them when playing begins. */
     missing: ReadonlySet<string>;
@@ -93,6 +97,9 @@
   const closed = new AbortController();
 
   onMount(() => {
+    if (stored.music !== undefined) {
+      beatPass.listenFor(stored.music.id);
+    }
     // Play waits on reading the focus and beats found so far, never on the search for the rest.
     // Both only place automatic choices: unread, the motions aim at the middle, the pictures
     // share the music evenly and play goes on.

@@ -1,4 +1,8 @@
-import { BeatDetectorGoneError, type BeatDetector } from "../library/beat-detector";
+import {
+  BeatDetectorGoneError,
+  MusicUndecodableError,
+  type BeatDetector,
+} from "../library/beat-detector";
 import type { BeatReply, BeatRequest } from "./beat-worker-protocol";
 import type { MusicBeats } from "./music-beats";
 
@@ -54,7 +58,9 @@ export class WorkerBeatDetector implements BeatDetector {
 
   async detect(music: Blob): Promise<MusicBeats> {
     if (this.#gone) throw this.#gone;
-    const { samples, sampleRate } = await this.#decode(music);
+    const { samples, sampleRate } = await this.#decode(music).catch((error: unknown) => {
+      throw new MusicUndecodableError({ cause: error });
+    });
     if (this.#gone) throw this.#gone;
     const id = this.#nextId++;
     const { promise, resolve, reject } = Promise.withResolvers<MusicBeats>();

@@ -10,7 +10,12 @@ const NO_CLEAR_BEAT: MusicBeats = { kind: "none" };
 /** A pass whose state the test sets; it tells its subscribers like the real one. */
 class FakePass {
   #listeners = new Set<(state: BeatPassState) => void>();
-  state: BeatPassState = { running: true, listening: new Set(["drums"]), found: new Map() };
+  state: BeatPassState = {
+    running: true,
+    listening: new Set(["drums"]),
+    found: new Map(),
+    undecodable: new Set(),
+  };
 
   subscribe(listener: (state: BeatPassState) => void): () => void {
     this.#listeners.add(listener);
@@ -56,18 +61,24 @@ describe("TrackBeats", () => {
       running: false,
       listening: new Set(),
       found: new Map([["drums", NO_CLEAR_BEAT]]),
+      undecodable: new Set(),
     });
 
     expect(statuses.at(-1)).toEqual({ kind: "known", beats: NO_CLEAR_BEAT });
   });
 
-  it("is unknown once the pass ended without a result for the track", async () => {
+  it("is undecodable once the pass could not decode the track", async () => {
     const { track, pass, statuses } = watch(Promise.resolve(undefined));
     await track.read;
 
-    pass.publish({ running: false, listening: new Set(), found: new Map() });
+    pass.publish({
+      running: false,
+      listening: new Set(),
+      found: new Map(),
+      undecodable: new Set(["drums"]),
+    });
 
-    expect(statuses.at(-1)).toEqual({ kind: "unknown" });
+    expect(statuses.at(-1)).toEqual({ kind: "undecodable" });
   });
 
   it("logs stored beats that cannot be read and goes on with what the pass tells", async () => {
@@ -75,7 +86,12 @@ describe("TrackBeats", () => {
     const { track, pass, statuses, logged } = watch(Promise.reject(failure));
     await track.read;
 
-    pass.publish({ running: false, listening: new Set(), found: new Map([["drums", DRUMS]]) });
+    pass.publish({
+      running: false,
+      listening: new Set(),
+      found: new Map([["drums", DRUMS]]),
+      undecodable: new Set(),
+    });
 
     expect(logged).toEqual([failure]);
     expect(statuses.at(-1)).toEqual({ kind: "known", beats: DRUMS });

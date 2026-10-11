@@ -78,7 +78,7 @@
     /** What it finds updates the editors' automatic motions and focus marks as it goes. */
     focusPass: Pick<FocusPass, "state" | "subscribe">;
     /** What it finds puts the editors' automatic changes on the music's beats as it goes. */
-    beatPass: Pick<BeatPass, "subscribe" | "start">;
+    beatPass: Pick<BeatPass, "subscribe" | "listenFor">;
     toaster: Toaster;
     newId: () => string;
     now: () => Date;
@@ -282,6 +282,7 @@
     onClose={onBack}
     {onError}
     {log}
+    {beatPass}
     {home}
     missing={thumbnails.missing}
     onPictureMissing={(id) => thumbnails.missing.add(id)}

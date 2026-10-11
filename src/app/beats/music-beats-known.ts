@@ -24,13 +24,14 @@ export async function storedMusicBeats(
 }
 
 /**
- * What the music editor knows of a track's beats: found (beats or none), still being listened
- * for, or unknown (its detection failed; the next pass tries again).
+ * What the music editor knows of a track's beats: found (beats or none), undecodable on this
+ * device, or still being listened for — also when a detection failed otherwise, as the next pass
+ * tries again.
  */
 export type BeatsStatus =
   | { readonly kind: "known"; readonly beats: MusicBeats }
   | { readonly kind: "listening" }
-  | { readonly kind: "unknown" };
+  | { readonly kind: "undecodable" };
 
 /** While the stored beats are read. */
 export const READING_BEATS = "reading";
@@ -45,7 +46,7 @@ export function beatsStatus(
   if (beats !== undefined) {
     return { kind: "known", beats };
   }
-  return stored === READING_BEATS || pass.running ? { kind: "listening" } : { kind: "unknown" };
+  return pass.undecodable.has(musicId) ? { kind: "undecodable" } : { kind: "listening" };
 }
 
 /** The beats an editor composes with: until a result is known, the pictures share the music evenly. */

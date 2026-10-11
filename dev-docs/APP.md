@@ -342,11 +342,11 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
     "Pictures 5 and 12 keep their own duration, so the change after each can fall between
     beats."; evenly "The pictures share the music evenly, regardless of its beat."
     Music without a clear beat: "No steady beat found in this music. The pictures share it
-    evenly.", no choice. Music the pass could not decode: "Glissando could not listen to this
-    music's beat. The pictures share it evenly." Opening the editor starts the pass, so music
-    kept from the server since the app opened is listened to as well; a server slideshow's
-    music is not listened to (`serverRouteStore`): its pictures share it evenly and the section
-    reads as for music that could not be decoded.
+    evenly.", no choice. Only music this device cannot decode reads "Glissando could not listen
+    to this music's beat. The pictures share it evenly."; a detection that failed otherwise
+    reads as still listening, as the next pass tries again. Opening the editor listens for the
+    track next (`BeatPass.listenFor`), so music kept since the app opened and a server
+    slideshow's music are listened to as well.
   - **Picture times**: "23 pictures without their own duration share the excerpt: 5.7 s each.
     The slideshow ends with the music." (on the beat, where the shares vary: "about 5.7 s each"), or on lemon "The slideshow runs 0:14 longer than the
     music." with why, or with every picture timed "… The slideshow ends after 2:00; the music

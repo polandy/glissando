@@ -4,6 +4,7 @@ import {
   type ImmichClient,
   type ImmichUnavailableKind,
 } from "../immich/immich-client";
+import type { MusicBeats } from "../beats";
 import { focusFromFaces } from "../immich/immich-focus";
 import type { DecodedPicture } from "../import/downscale";
 import { decodeImmichPhoto } from "../import/immich-picture-source";
@@ -112,6 +113,25 @@ export class ServerSlideshowStore implements SlideshowStore {
     } catch (error) {
       if (error instanceof ServerLibraryNotFoundError) throw new MediaNotFoundError(id);
       throw error;
+    }
+  }
+
+  /** The beats a device found in the server's music; none for music the server does not have. */
+  async musicBeats(musicId: string): Promise<MusicBeats | undefined> {
+    try {
+      return await this.#options.client.musicBeats(musicId);
+    } catch (error) {
+      if (error instanceof ServerLibraryNotFoundError) return undefined;
+      throw error;
+    }
+  }
+
+  /** Keeps the beats beside the server's music for every device; nothing for music deleted meanwhile. */
+  async putMusicBeats(musicId: string, beats: MusicBeats): Promise<void> {
+    try {
+      await this.#options.client.putMusicBeats(musicId, beats);
+    } catch (error) {
+      if (!(error instanceof ServerLibraryNotFoundError)) throw error;
     }
   }
 

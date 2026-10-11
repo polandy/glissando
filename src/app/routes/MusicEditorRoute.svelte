@@ -26,7 +26,7 @@
     stored: StoredSlideshow;
     editor: SlideshowEditor;
     /** What it finds puts the automatic changes on the music's beats as it goes. */
-    beatPass: Pick<BeatPass, "subscribe" | "start">;
+    beatPass: Pick<BeatPass, "subscribe" | "listenFor">;
     audio: MusicEditorAudio;
     saving: boolean;
     onBack: () => void;
@@ -50,8 +50,8 @@
     const track = new TrackBeats(music.id, { store, pass: beatPass, log }, (status) => {
       beats = status;
     });
-    // Music kept from elsewhere since the app opened is listened to now.
-    beatPass.start();
+    // Music not listened to yet, e.g. a server slideshow's or one kept since the app opened, now.
+    beatPass.listenFor(music.id);
     store.musicBlob(music.id).then((blob) => {
       if (left.signal.aborted) {
         return;

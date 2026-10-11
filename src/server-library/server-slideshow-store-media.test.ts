@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import type { MusicBeats } from "../beats";
 import {
   ImmichRequestFailedError,
   ImmichUnavailableError,
@@ -9,6 +10,7 @@ import { PictureMissingFromImmichError } from "./server-slideshow-store";
 import { UNDECODABLE } from "./testing/fake-immich-media";
 import { serverStoreHarness } from "./testing/server-store-harness";
 
+const DRUMS: MusicBeats = { kind: "beats", beatsMs: [500, 1000], beatsPerMinute: 120 };
 const SMALL_FACE: ImmichFace = { imageWidth: 100, imageHeight: 50, x1: 0, y1: 0, x2: 10, y2: 10 };
 const LARGE_FACE: ImmichFace = { imageWidth: 100, imageHeight: 50, x1: 25, y1: 5, x2: 75, y2: 25 };
 
@@ -75,6 +77,27 @@ describe("ServerSlideshowStore media", () => {
 
     expect(await (await store.musicBlob(musicId)).text()).toBe("tune");
     expect(await rejection(store.musicBlob("unknown"))).toBeInstanceOf(MediaNotFoundError);
+  });
+
+  it("keeps the beats a device found beside the server's music, for every device to read", async () => {
+    const { store, client } = serverStoreHarness();
+    const musicId = await client.uploadMusic(new Blob(["generated tone"]), "audio/mp4");
+    expect(await store.musicBeats(musicId)).toBeUndefined();
+
+    await store.putMusicBeats(musicId, DRUMS);
+
+    expect(await client.musicBeats(musicId)).toEqual(DRUMS);
+    expect(await store.musicBeats(musicId)).toEqual(DRUMS);
+  });
+
+  it("reads no beats for music the server does not have, and keeps none put for it", async () => {
+    const { store, client } = serverStoreHarness();
+    const musicId = await client.uploadMusic(new Blob(["generated tone"]), "audio/mp4");
+
+    await store.putMusicBeats("deleted-meanwhile", DRUMS);
+
+    expect(await store.musicBeats(musicId)).toBeUndefined();
+    expect(await store.musicBeats("deleted-meanwhile")).toBeUndefined();
   });
 
   it("aims a picture at its largest Immich face, asking Immich once per picture for the session", async () => {

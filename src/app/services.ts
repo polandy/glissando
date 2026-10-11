@@ -37,6 +37,8 @@ export interface AppServices {
   readonly focusPass: FocusPass;
   /** Listens for the music's beats in the background (ADR-0021); started as the app opens. */
   readonly beatPass: BeatPass;
+  /** Listens for a server slideshow's beats as it opens and keeps them on the server (ADR-0021). */
+  readonly serverBeatPass: BeatPass;
   /** Immich through the self-hosted Glissando (ADR-0013); checked as the app opens. */
   readonly immich: { readonly client: ImmichClient; readonly availability: ImmichAvailability };
   /**

@@ -26,7 +26,7 @@
   ] as const;
   const STATUS_TEXTS = {
     listening: "music.listeningForBeat",
-    unknown: "music.beatUnknown",
+    undecodable: "music.musicUndecodable",
     none: "music.noSteadyBeat",
   } as const;
 

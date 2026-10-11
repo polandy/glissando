@@ -154,12 +154,20 @@ two slideshows share once, its file through the `BeatDetector` into the store â€
 or `{kind: "none"}` for music without a clear beat. The detector (`beats/worker-beat-detector.ts`)
 decodes on the main thread (`decodeMusicWithWebAudio`: `OfflineAudioContext` at 11 025 Hz, the
 channels mixed to mono) and hands the samples over to a worker (`beats/beat-worker.ts`) that runs
-`detectBeats`. The pass starts when the app opens, whenever a slideshow is created (an import, an
-opened file) and when the music editor opens (music kept from the server since). Music deleted
-meanwhile is skipped; music that cannot be decoded is logged (`BeatDetectionFailedError`), keeps
-no result and is tried again on the next pass; a crashed worker (`BeatDetectorGoneError`) ends the
-pass and is reported once. Its state: `running`; `listening`, the tracks still to come; and
-`found`, every result stored since the app opened. The player and both exports read the stored
+`detectBeats`. The pass starts when the app opens and whenever a slideshow is created (an import,
+an opened file); opening the music editor or the player asks it for that one track
+(`listenFor`), which goes ahead of the queue unless a result is stored. Music deleted meanwhile is
+skipped; a failed detection is logged (`BeatDetectionFailedError`), keeps no result and is tried
+again on the next pass; music the device cannot decode (`MusicUndecodableError`) is marked
+`undecodable` until it is found after all; a crashed worker (`BeatDetectorGoneError`) ends the
+pass and is reported once. Its state: `running`; `listening`, the tracks still to come; `found`,
+every result stored since the app opened; and `undecodable`.
+
+A second `BeatPass` over the server store (`serverBeatPass`) does the same for server
+slideshows, asked only by `listenFor`: the first device to open one in the player or the music
+editor listens and keeps the result on the server beside the music
+(`dev-docs/SERVER_LIBRARY.md`), where every other device reads it. It shares the device's
+detector; a server out of reach is only logged. The player and both exports read the stored
 beats once when they start (`storedMusicBeats`); the picture and music editors follow the pass
 as it finds them (`TrackBeats`). `.glissando` files carry no beats: the receiver listens again.
 

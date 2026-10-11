@@ -112,7 +112,7 @@ describe("musicEditorView, the picture changes", () => {
 
   it.each([
     ["listening", { kind: "listening" }, { kind: "listening" }],
-    ["unknown", { kind: "unknown" }, { kind: "unknown" }],
+    ["undecodable", { kind: "undecodable" }, { kind: "undecodable" }],
     ["no clear beat", { kind: "known", beats: { kind: "none" } }, { kind: "none" }],
   ] as const)("while %s, shares the excerpt evenly without ticks", (_, status, expected) => {
     const view = musicEditorView(slideshow({}), status);

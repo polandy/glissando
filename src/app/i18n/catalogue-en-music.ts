@@ -92,6 +92,6 @@ export const enMusic: Pick<Catalogue, keyof typeof deMusic> = {
   "music.listeningForBeat":
     "Listening for the beat… Until then the pictures share the music evenly.",
   "music.noSteadyBeat": "No steady beat found in this music. The pictures share it evenly.",
-  "music.beatUnknown":
+  "music.musicUndecodable":
     "Glissando could not listen to this music's beat. The pictures share it evenly.",
 };

@@ -28,10 +28,11 @@ export async function findSlideshowHome(
 
 /**
  * The server store with the device-only slices the route needs: the server keeps no media of its
- * own to spare from clean-up, a server slideshow's size is not known before downloading, and its
- * music is not listened to for beats, so its pictures share it evenly (ADR-0021).
+ * own to spare from clean-up, and a server slideshow's size is not known before downloading.
  */
-export function serverRouteStore(server: SlideshowStore): RouteStore {
+export function serverRouteStore(
+  server: SlideshowStore & Pick<LibraryStore, "musicBeats">,
+): RouteStore {
   return {
     listSlideshows: () => server.listSlideshows(),
     getSlideshow: (id) => server.getSlideshow(id),
@@ -45,7 +46,7 @@ export function serverRouteStore(server: SlideshowStore): RouteStore {
     putPictureFocus: (id, focus) => server.putPictureFocus(id, focus),
     claimMedia: () => Promise.resolve(),
     releaseClaim: () => Promise.resolve(),
-    musicBeats: () => Promise.resolve(undefined),
+    musicBeats: (id) => server.musicBeats(id),
     mediaBytes: () =>
       Promise.reject(new Error("a server slideshow's size is not measured before downloading")),
   };

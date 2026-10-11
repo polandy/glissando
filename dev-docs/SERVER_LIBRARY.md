@@ -44,6 +44,8 @@ the server.
 | `DELETE /api/library/slideshows/{id}`                            | 204; 404                                                                                                                                                                             |
 | `POST /api/library/music` body: the audio bytes, `Content-Type`  | 201 `{ "musicId" }`; 413 `tooLarge` over `MAX_MUSIC_BYTES` (200 MiB); 415 `notAudio` not `audio/*`                                                                                   |
 | `GET /api/library/music/{musicId}`                               | 200 the bytes with their stored `Content-Type`; 404                                                                                                                                  |
+| `GET /api/library/music/{musicId}/beats`                         | 200 `{ "beats": <MusicBeats> }` or `{ "beats": null }` while no device has listened yet; 404                                                                                         |
+| `PUT /api/library/music/{musicId}/beats` body: a `MusicBeats`    | 204; 400 `invalidBeats`; 404; 413 `tooLarge`; 415 `notJson`                                                                                                                          |
 
 - **Revision**: a positive whole number, 1 on create, +1 on every accepted `PUT`. Compared in the
   same transaction as the write. An `If-Match` other than the
@@ -51,7 +53,10 @@ the server.
 - **Music**: a document naming a `musicId` the server does not have is refused (409). Music no
   document references any more is deleted in the transaction that dropped the last reference;
   music uploaded but never referenced is deleted after `UNREFERENCED_MUSIC_GRACE_MS` (1 h, the
-  service's injected clock, checked on every upload).
+  service's injected clock, checked on every upload); its beats are deleted with it.
+- **Beats** (`MusicBeats`, `src/beats/music-beats.ts`, ADR-0021): a device `PUT`s what it found so
+  later devices read it instead of detecting again; a later `PUT` replaces the stored result
+  (two devices may race, but the same detector gives the same answer).
 - **Media type**: a `POST` or `PUT` of a slideshow carries `Content-Type: application/json`
   (parameters such as `charset` allowed), anything else answers 415 `notJson`. A cross-site page
   can make a browser send a form or `text/plain` request without asking, but not a JSON one, so
@@ -71,10 +76,10 @@ the server.
   (loopback port, set by the entrypoint). Unknown `GLISSANDO_*`/`IMMICH_*` settings stop the
   start (the entrypoint already does this; `GLISSANDO_DATA_DIR` joins its known settings). The
   entrypoint hands the service these two settings only, never the Immich key.
-- **Storage** (`node:sqlite`): tables `slideshows(id, revision, created_at, document)` and
-  `music(id, content_type, bytes, uploaded_at)`, times in milliseconds since the epoch; WAL mode;
-  every write in one transaction. Whether music is referenced is read from the documents
-  (`json_extract`), so no second record of it can drift.
+- **Storage** (`node:sqlite`): tables `slideshows(id, revision, created_at, document)`,
+  `music(id, content_type, bytes, uploaded_at)` and `music_beats(music_id, beats)`, times in
+  milliseconds since the epoch; WAL mode; every write in one transaction. Whether music is
+  referenced is read from the documents (`json_extract`), so no second record of it can drift.
 - **Ports**: a `LibraryRepository` (the SQLite adapter and an in-memory fake run the same contract
   suite), a clock and an id source, all injected into the request handler, which is a pure
   function of request → response tested in-process without sockets.
@@ -207,7 +212,9 @@ wizard as it was with a coral toast naming it and "Try again".
   original cannot be decoded, as on import); `thumbnailBlob` is Immich's thumbnail; `musicBlob`
   the server's music; `pictureFocus` the largest Immich face box (ADR-0013's rule), asked once per
   picture and kept for the session (faces Immich could not give are logged and asked again
-  later); `putPictureFocus` keeps it for the session only. Both stores share the type
+  later); `putPictureFocus` keeps it for the session only; `musicBeats`/`putMusicBeats` read and
+  keep the beats beside the server's music, listened for by the first device that opens the
+  slideshow in the player or the music editor (`serverBeatPass`, ADR-0021). Both stores share the type
   `SlideshowStore` (`src/library/stored-slideshow.ts`).
 - Errors the screens tell apart: an unknown slideshow is `SlideshowNotFoundError` as on the
   device; an edit at a stale revision `SlideshowChangedError` carrying the current slideshow; a

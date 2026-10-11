@@ -223,7 +223,7 @@
       <SlideshowRoute
         store={opened.store}
         focusPass={services.focusPass}
-        beatPass={services.beatPass}
+        beatPass={opened.home === "device" ? services.beatPass : services.serverBeatPass}
         {toaster}
         {newId}
         {now}

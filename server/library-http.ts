@@ -83,6 +83,7 @@ export type ErrorCode =
   | "tooLarge"
   | "notAudio"
   | "notJson"
+  | "invalidBeats"
   | "internalError";
 
 export function errorResponse(
@@ -96,4 +97,51 @@ export function errorResponse(
 
 export function notFound(): LibraryResponse {
   return errorResponse(HTTP_STATUS.notFound, "notFound", "no such slideshow, music or route");
+}
+
+const CONTENT_TYPE = "content-type";
+
+/** The request's body read as JSON, or the response refusing it. */
+export type JsonBodyReading =
+  | { readonly kind: "json"; readonly value: unknown }
+  | { readonly kind: "refused"; readonly response: LibraryResponse };
+
+/**
+ * `request`'s body as JSON, refusing a body over `maxBytes` (413 `tooLarge`), not
+ * `application/json` (415 `notJson`) or no valid JSON (400 `badJsonCode`); shared by every
+ * writing route so a body is handled the same way everywhere.
+ */
+export function readJsonBody(
+  request: LibraryRequest,
+  tooLargeDetail: string,
+  badJsonCode: ErrorCode,
+): JsonBodyReading {
+  if (request.body.kind === "tooLarge") {
+    return {
+      kind: "refused",
+      response: errorResponse(HTTP_STATUS.tooLarge, "tooLarge", tooLargeDetail),
+    };
+  }
+  const contentType = request.headers[CONTENT_TYPE];
+  if (!isJsonContentType(contentType)) {
+    return {
+      kind: "refused",
+      response: errorResponse(
+        HTTP_STATUS.unsupportedMediaType,
+        "notJson",
+        `Content-Type ${JSON.stringify(contentType ?? null)} is no application/json`,
+      ),
+    };
+  }
+  try {
+    return { kind: "json", value: JSON.parse(new TextDecoder().decode(request.body.bytes)) };
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      return {
+        kind: "refused",
+        response: errorResponse(HTTP_STATUS.badRequest, badJsonCode, `no JSON: ${error.message}`),
+      };
+    }
+    throw error;
+  }
 }

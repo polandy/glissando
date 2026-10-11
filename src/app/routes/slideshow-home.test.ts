@@ -52,11 +52,12 @@ describe("the server store as the slideshow route uses it", () => {
     );
   });
 
-  it("knows no beats of a server slideshow's music, which is not listened to on the device", async () => {
+  it("reads the beats of a server slideshow's music from the server", async () => {
     const server = new MemoryLibraryStore();
     await server.putMusic("music", new Blob(["music"]));
-    await server.putMusicBeats("music", { kind: "beats", beatsMs: [500], beatsPerMinute: 120 });
+    const beats = { kind: "beats", beatsMs: [500], beatsPerMinute: 120 } as const;
+    await server.putMusicBeats("music", beats);
 
-    await expect(serverRouteStore(server).musicBeats("music")).resolves.toBeUndefined();
+    await expect(serverRouteStore(server).musicBeats("music")).resolves.toEqual(beats);
   });
 });

@@ -5,17 +5,16 @@ import type { SlideshowRecord } from "./library-repository";
 import {
   errorResponse,
   HTTP_STATUS,
-  isJsonContentType,
   jsonResponse,
   MAX_DOCUMENT_BYTES,
   notFound,
+  readJsonBody,
   type LibraryRequest,
   type LibraryResponse,
 } from "./library-http";
 
 const FIRST_REVISION = 1;
 const IF_MATCH = "if-match";
-const CONTENT_TYPE = "content-type";
 
 /** A revision's entity tag, as `ETag` answers it and `If-Match` names it. */
 const entityTag = (revision: number): string => `"${revision}"`;
@@ -135,38 +134,16 @@ const refused = (response: LibraryResponse): DocumentReading => ({ kind: "refuse
 
 /** The request's document, or the response refusing it. */
 function readDocument(request: LibraryRequest): DocumentReading {
-  if (request.body.kind === "tooLarge") {
-    return refused(
-      errorResponse(
-        HTTP_STATUS.tooLarge,
-        "tooLarge",
-        `a slideshow document is at most ${MAX_DOCUMENT_BYTES} bytes`,
-      ),
-    );
-  }
-  const contentType = request.headers[CONTENT_TYPE];
-  if (!isJsonContentType(contentType)) {
-    return refused(
-      errorResponse(
-        HTTP_STATUS.unsupportedMediaType,
-        "notJson",
-        `Content-Type ${JSON.stringify(contentType ?? null)} is no application/json`,
-      ),
-    );
-  }
-  let json: unknown;
-  try {
-    json = JSON.parse(new TextDecoder().decode(request.body.bytes));
-  } catch (error) {
-    if (error instanceof SyntaxError) {
-      return refused(
-        errorResponse(HTTP_STATUS.badRequest, "invalidDocument", `no JSON: ${error.message}`),
-      );
-    }
-    throw error;
+  const read = readJsonBody(
+    request,
+    `a slideshow document is at most ${MAX_DOCUMENT_BYTES} bytes`,
+    "invalidDocument",
+  );
+  if (read.kind === "refused") {
+    return refused(read.response);
   }
   try {
-    return { kind: "document", document: readServerDocument(json) };
+    return { kind: "document", document: readServerDocument(read.value) };
   } catch (error) {
     if (error instanceof DocumentFormatError) {
       return refused(errorResponse(HTTP_STATUS.badRequest, "invalidDocument", error.message));

@@ -1,3 +1,4 @@
+import type { MusicBeats } from "../beats";
 import type { ServerDocument } from "./server-document";
 
 /**
@@ -22,6 +23,10 @@ export interface ServerLibraryClient {
   /** Stores the audio and answers its `musicId`. */
   uploadMusic(audio: Blob, mimeType: string): Promise<string>;
   music(musicId: string): Promise<Blob>;
+  /** The beats a device found in the music (ADR-0021); `undefined` while none has listened yet. */
+  musicBeats(musicId: string): Promise<MusicBeats | undefined>;
+  /** Keeps the beats found beside the music, replacing any found before. */
+  putMusicBeats(musicId: string, beats: MusicBeats): Promise<void>;
 }
 
 /** A slideshow as the server keeps it. */

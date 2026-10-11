@@ -91,6 +91,6 @@ export const deMusic = {
     "Glissando hört den Takt heraus\u00a0… Bis dahin teilen sich die Bilder die Musik gleichmäßig.",
   "music.noSteadyBeat":
     "In dieser Musik ist kein gleichmäßiger Takt zu finden. Die Bilder teilen sie sich gleichmäßig.",
-  "music.beatUnknown":
-    "Der Takt dieser Musik ließ sich nicht bestimmen. Die Bilder teilen sie sich gleichmäßig.",
+  "music.musicUndecodable":
+    "Glissando konnte den Takt dieser Musik nicht heraushören. Die Bilder teilen sie sich gleichmäßig.",
 } as const satisfies Record<string, Message>;

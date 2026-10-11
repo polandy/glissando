@@ -6,8 +6,8 @@ import type { BeatsStatus } from "../beats/music-beats-known";
 export type PictureChangesView =
   /** The beats are still being listened for; the pictures share the music evenly meanwhile. */
   | { readonly kind: "listening" }
-  /** The beats could not be found (the music could not be decoded); the next pass tries again. */
-  | { readonly kind: "unknown" }
+  /** This device cannot decode the music; the next pass tries again. */
+  | { readonly kind: "undecodable" }
   /** The music has no clear beat: the pictures share it evenly, no choice offered. */
   | { readonly kind: "none" }
   | {

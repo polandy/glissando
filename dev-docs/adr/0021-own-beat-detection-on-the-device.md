@@ -82,6 +82,17 @@ Decoding at 11 025 Hz takes about 0.14 s for 3 minutes and is native code.
   room for a derived result and freezes today's detector into every file.
 - _Snap own durations too_ — rejected: the user set them to the half second.
 
+## Addendum: server slideshows
+
+A slideshow on the Glissando server (ADR-0018) keeps its beats on the server, beside its music:
+the first device that opens it in the player or the music editor listens with the same decode,
+detector and worker and stores the result there (`PUT /api/library/music/{id}/beats`); every
+other device reads it instead of listening again. The server only stores and validates the
+result, it never decodes music itself — that would put an audio decoder in the service image.
+Two devices opening the same slideshow at once may both listen; the later result replaces the
+earlier, and the same detector gives the same answer. Music a device cannot decode keeps no result
+anywhere, so a device that can decode it listens later.
+
 ## Consequences
 
 - A phone spends about 1.5 s of worker time per 3 minutes of music, once per track; the main

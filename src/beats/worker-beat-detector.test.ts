@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { BeatDetectorGoneError } from "../library/beat-detector";
+import { BeatDetectorGoneError, MusicUndecodableError } from "../library/beat-detector";
 import type { BeatReply, BeatRequest } from "./beat-worker-protocol";
 import type { MusicBeats } from "./music-beats";
 import {
@@ -118,10 +118,15 @@ describe("WorkerBeatDetector", () => {
     expect(workers).toHaveLength(1);
   });
 
-  it("rejects music it cannot decode, without asking the worker", async () => {
+  it("rejects music it cannot decode as undecodable, without asking the worker", async () => {
     const { detector, firstWorker } = detectorWithFakeWorker();
 
-    await expect(detector.detect(new Blob(["not music"]))).rejects.toThrow("not music");
+    const undecodable = detector.detect(new Blob(["not music"]));
+    await expect(undecodable).rejects.toThrow(MusicUndecodableError);
+    await expect(undecodable).rejects.toHaveProperty(
+      "cause.message",
+      expect.stringContaining("not music"),
+    );
     const fine = detector.detect(new Blob(["3"]));
     const worker = await firstWorker;
     await worker.received(1);

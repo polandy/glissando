@@ -16,7 +16,12 @@ const WITH_MUSIC: StoredSlideshow = {
   ...WITHOUT_MUSIC,
   music: { id: "drums", fileName: "drums.mp3", durationMs: 2000, mimeType: "audio/mpeg" },
 };
-const IDLE: BeatPassState = { running: false, listening: new Set(), found: new Map() };
+const IDLE: BeatPassState = {
+  running: false,
+  listening: new Set(),
+  found: new Map(),
+  undecodable: new Set(),
+};
 
 describe("storedMusicBeats", () => {
   it("reads the stored beats of the slideshow's music", async () => {
@@ -68,15 +73,25 @@ describe("beatsStatus", () => {
     expect(beatsStatus("drums", "reading", IDLE)).toEqual({ kind: "listening" });
   });
 
-  it("is unknown once a pass ended without a result for the music", () => {
-    expect(beatsStatus("drums", undefined, IDLE)).toEqual({ kind: "unknown" });
+  it("is undecodable while the pass could not decode the music, until its beats are known", () => {
+    const failed = { ...IDLE, undecodable: new Set(["drums"]) };
+
+    expect(beatsStatus("drums", undefined, failed)).toEqual({ kind: "undecodable" });
+    expect(beatsStatus("drums", undefined, { ...failed, running: true })).toEqual({
+      kind: "undecodable",
+    });
+    expect(beatsStatus("drums", DRUMS, failed)).toEqual({ kind: "known", beats: DRUMS });
+  });
+
+  it("is still listening once a pass ended without a result for another reason", () => {
+    expect(beatsStatus("drums", undefined, IDLE)).toEqual({ kind: "listening" });
   });
 });
 
 describe("composedBeats", () => {
-  it("composes with the beats known, and with none while listening or unknown", () => {
+  it("composes with the beats known, and with none while listening or undecodable", () => {
     expect(composedBeats({ kind: "known", beats: DRUMS })).toEqual(DRUMS);
     expect(composedBeats({ kind: "listening" })).toBe(NO_BEATS);
-    expect(composedBeats({ kind: "unknown" })).toBe(NO_BEATS);
+    expect(composedBeats({ kind: "undecodable" })).toBe(NO_BEATS);
   });
 });
