@@ -184,8 +184,9 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
   own Ken Burns motion (mockup: https://polandy.github.io/glissando-assets/mockups/editor/) and
   its caption (mockup: https://polandy.github.io/glissando-assets/mockups/captions/), its own
   duration and transition into the next picture (mockup:
-  https://polandy.github.io/glissando-assets/mockups/slide-timing/, ADR-0008).
-  Breadcrumb "Library / title / Picture 3"; header right ‹ previous picture, "3 / 8" (mono, hidden
+  https://polandy.github.io/glissando-assets/mockups/slide-timing/, ADR-0008). Its times are the
+  player's: the automatic changes land on the beats of whichever song plays
+  (`beats/playlist-beats.ts`, ADR-0023). Breadcrumb "Library / title / Picture 3"; header right ‹ previous picture, "3 / 8" (mono, hidden
   up to 720 px), › next picture (looking disabled at the ends). Back (arrow or browser) returns to
   the slideshow screen with that picture selected. Desktop: a dark well with the whole picture
   left, a 340 px panel right; up to 720 px the well spans the width on top (as high as the
@@ -329,7 +330,8 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
     a file that cannot be used stays as a coral row "This file can't be used" until its ×.
   - **Playlist lane** (`PlaylistLane.svelte`): "Playlist, 3 songs · 2:54" with "Crossfades
     hatched" (or "One after another"), then the songs as numbered blocks in their colours from
-    where each starts, a crossfade hatched where two overlap, songs not reached faded, and a
+    where each starts, a crossfade hatched where two overlap (the next song's number after the
+    hatching), songs not reached faded, and a
     coral mark "Slideshow ends" where the slideshow ends first. Below on the same scale
     "Slideshow, 24 pictures · 2:00" with "Music fades out with the last picture", "Last
     pictures in silence" or "Ends with the music": a mint bar with a tick per picture change,
@@ -475,28 +477,37 @@ new slideshow lives).
   it is kept without a focus (the on-device pass looks for one) and the error is logged. An Immich
   problem met on the way (e.g. a rejected key) is reported to `ImmichAvailability`, so the Immich
   box and the settings name it.
-- **Music** (optional): a drop zone with "Choose music" (`audio/*`, hint "MP3, M4A, FLAC, WAV,
-  Ogg, AIFF, WMA …"). The format is recognised from the file's first bytes
-  (`src/import/music-format.ts`). MP3, AAC, FLAC, Opus and PCM WAV are kept as they are. ALAC,
-  AIFF, CAF, AC-3/E-AC-3, WMA, AMR and Ogg Vorbis, which a target browser cannot decode, are
-  converted on the device to a FLAC copy, and only the copy is stored (ADR-0020). While it
-  converts, the card shows "Apple Lossless · converting on this device", a progress bar with
-  "Converting to FLAC" and the percentage, and why. Its ✕ cancels the conversion, and the primary
-  button is disabled as "Converting …". A converted track's card adds "Converted from … on this
-  device". A file that cannot be read or converted, or is copy-protected (an iTunes `drms`
-  track), replaces the drop zone with a coral notice "This file can't be used" naming the file,
-  with "Choose other music" and the format hint. Chosen music is a card (music icon, the picked
-  file's name, m:ss · format, a close button removes it, then the **Picture length** choice —
-  "About 5 s each" (the default) with its stepper, or "Fill the music" — and a strip of the
-  pictures' thumbnails over a thin accent bar of the music, both to one scale, washed out where
-  the music fades out after the slideshow; under it "0:00 · 24 × about 5 s · 0:45" (filling:
-  "24 × 8 s") and "The slideshow lasts 2:00; the music fades out there." / "The slideshow runs
-  0:30 longer than the music; its last pictures play in silence." / "The pictures share the
-  music; the slideshow ends with it." No waveform, as only the duration is probed. Without music
-  a card "Time per picture" with the seconds per picture (default 5 s). The row "n pictures | x s per picture | m:ss total" follows the composition
-  rules (`src/compose/`). "Pictures" goes back; "Create slideshow" (or "Create without
-  music") stores the music and then the slideshow record under the blocking overlay "Creating
-  slideshow …", opens the slideshow and shows the toast "Slideshow created — tap Play".
+- **Music** (optional): the intro "One song or several — they play one after another and the
+  pictures change on their beat. Without music each picture stays 5 s.", then a drop zone with
+  "Choose music" (`audio/*`, several at once; hint "One or more files · MP3, M4A, FLAC, WAV, Ogg,
+  AIFF, WMA …"). Picked or dropped files join `ImportChoices.songs`, a keyed list, after the
+  songs already in it, and are read one at a time in the order picked by
+  `import/music-pick.ts` (`readPickedMusic`, the music editor's too): the format is recognised
+  from the file's first bytes (`src/import/music-format.ts`); MP3, AAC, FLAC, Opus and PCM WAV are
+  kept as they are; ALAC, AIFF, CAF, AC-3/E-AC-3, WMA, AMR and Ogg Vorbis, which a target browser
+  cannot decode, are converted on the device to a FLAC copy, and only the copy is stored
+  (ADR-0020). Once a song is in, the drop zone gives way to the song list, the music editor's
+  (`SongList.svelte`, without selecting): per song a grip, its number in its colour, the picked
+  name, "1:00 · WAV" (a converted one adds "Converted from Apple Lossless on this device"), "from
+  0:57" where it starts in the slideshow or, dimmed, "Not reached", and × removing it (cancelling
+  its conversion). The grip drags the song onto another row or moves it with the arrow keys while
+  focused (ADR-0019's pattern). A song being read is a dashed row with its name ("Converting to
+  FLAC · 42 %" while converting); a file that cannot be read or converted, or is copy-protected
+  (an iTunes `drms` track), is a coral row "This file can't be used" until its ×. A dashed "+ Add
+  another song" follows the list. The songs are placed as the slideshow will play them, each
+  crossfading into the next (ADR-0023). With a song chosen, a panel holds the **Picture length**
+  choice — "About 5 s each" (the default) with its stepper, or "Fill the music" — and a strip of
+  the pictures' thumbnails over the songs as numbered blocks in their colours, both to one scale,
+  a song not reached dimmed; under it "24 pictures · 2:00" and "Music 2:54", and "The music fades
+  out with the last picture." (with a song not reached "…; the dimmed songs are not reached.") /
+  "The last pictures play in silence." / "The slideshow ends with the music." No waveform, as
+  only the duration is probed. Without a chosen song a card "Time per picture" with the seconds
+  per picture (default 5 s). The row "n pictures | x s per picture | m:ss total" follows the
+  composition rules (`src/compose/`). "Pictures" goes back; while a song is read the primary
+  button is disabled as "Converting …"; otherwise "Create slideshow" (or "Create without music")
+  stores every chosen song in the list's order and then the slideshow record under the blocking
+  overlay "Creating slideshow …", opens the slideshow and shows the toast "Slideshow created —
+  tap Play".
 
 ## Immich
 
