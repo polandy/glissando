@@ -1,3 +1,4 @@
+import type { ConvertibleSource } from "../../import/music-format";
 import { slideDurationsMs } from "../../compose";
 import type { PictureImportState, SkipReason, SkippedFile } from "../../import/picture-import";
 import type { StoredPicture } from "../../library/stored-slideshow";
@@ -100,4 +101,20 @@ export function musicFormatLabel(fileName: string, mimeType: string): string {
   const extension = dot < 0 ? "" : fileName.slice(dot + 1);
   const subtype = mimeType.split("/")[1] ?? "";
   return (extension || subtype).toUpperCase();
+}
+
+/** Format names, the same in every language. */
+const CONVERTIBLE_SOURCE_LABELS: Readonly<Record<ConvertibleSource, string>> = {
+  alac: "Apple Lossless",
+  aiff: "AIFF",
+  caf: "CAF",
+  ac3: "AC-3",
+  eac3: "E-AC-3",
+  wma: "WMA",
+  amr: "AMR",
+  vorbis: "Ogg Vorbis",
+};
+
+export function convertibleSourceLabel(source: ConvertibleSource): string {
+  return CONVERTIBLE_SOURCE_LABELS[source];
 }

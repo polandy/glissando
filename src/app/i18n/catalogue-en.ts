@@ -145,7 +145,7 @@ export const en: Catalogue = {
   "import.musicText":
     "One piece is enough — the pictures share its length. Without music each picture stays {seconds}.",
   "import.pickMusic": "Choose music",
-  "import.musicFormats": "MP3, M4A, Ogg, FLAC, WAV\u00a0…",
+  "import.musicFormats": "MP3, M4A, FLAC, WAV, Ogg, AIFF, WMA\u00a0…",
   "import.removeMusic": "Remove music",
   "import.trackMeta": "{duration} · {format}",
   "import.secondsTitle": "Without music: time per picture",
@@ -163,7 +163,6 @@ export const en: Catalogue = {
   "import.discardText": "The chosen pictures will not be saved.",
   "import.keepChoosing": "Keep choosing",
   "import.discard": "Discard",
-  "import.musicUnreadable": "The music could not be read",
   "import.creatingTitle": "Creating slideshow\u00a0…",
   "import.creatingText": "Order by capture date · Ken Burns · transitions",
   "import.created": "Slideshow created — tap Play",

@@ -1,8 +1,22 @@
 import type { Catalogue } from "./messages";
 import type { deMusic } from "./catalogue-de-music";
 
-/** English copy of the music editor; typed to the German keys. */
+/** English copy of music: its import and the music editor; typed to the German keys. */
 export const enMusic: Pick<Catalogue, keyof typeof deMusic> = {
+  "import.musicConverting": "{format} · converting on this device",
+  "import.convertingToFlac": "Converting to FLAC",
+  "import.convertPercent": "{percent}\u00a0%",
+  "import.convertingWhy":
+    "Not every browser plays {format}, so Glissando makes a FLAC copy. Nothing leaves this device.",
+  "import.cancelConversion": "Cancel conversion",
+  "import.convertingButton": "Converting\u00a0…",
+  "import.convertedFrom": "Converted from {format} on this device",
+  "import.musicUnusable": "This file can't be used",
+  "import.musicUnreadableText":
+    "Glissando can't read “{name}”. It may be damaged, or in a format Glissando doesn't know.",
+  "import.musicProtectedText":
+    "“{name}” is copy-protected (an iTunes Store purchase with DRM). Glissando can't play protected music.",
+  "import.pickOtherMusic": "Choose other music",
   "slideshow.musicWholeTrack": "whole track",
   "slideshow.musicExcerpt": "{from}–{to}",
   "slideshow.musicFades-in-and-out": "fades in and out",

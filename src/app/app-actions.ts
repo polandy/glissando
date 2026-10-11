@@ -15,12 +15,11 @@ export interface AppActions {
   install(offer: InstallOffer): void;
   statusBarAction(action: StatusBarAction): void;
   createFailed(retry: () => void): void;
-  musicUnreadable(retry: () => void): void;
 }
 
 /**
- * The status bar's install/update actions, and the toasts offering a retry after a failed
- * server create or an unreadable music file.
+ * The status bar's install/update actions, and the toast offering a retry after a failed
+ * server create.
  */
 export function createAppActions(
   ports: AppActionPorts,
@@ -58,13 +57,5 @@ export function createAppActions(
     });
   }
 
-  function musicUnreadable(retry: () => void): void {
-    ports.toaster.show({
-      text: t("import.musicUnreadable"),
-      tone: "error",
-      action: { label: t("common.retry"), run: retry },
-    });
-  }
-
-  return { install, statusBarAction, createFailed, musicUnreadable };
+  return { install, statusBarAction, createFailed };
 }

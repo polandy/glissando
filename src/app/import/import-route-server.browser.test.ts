@@ -33,6 +33,7 @@ function session(createOnServer: ImportSessionPorts["createOnServer"]): ImportSe
       throw new Error("no Immich download in this test");
     },
     probeMusic: () => Promise.reject(new Error("no music in this test")),
+    convertMusic: () => Promise.reject(new Error("no music in this test")),
     createOnServer,
     newId: () => `id-${nextId++}`,
     now: () => new Date(0),
@@ -55,7 +56,6 @@ function mountMusicStep(importSession: ImportSession) {
       onError: (error: unknown) => {
         throw error;
       },
-      onMusicUnreadable: () => undefined,
       onToMusic: () => undefined,
       onBack: () => undefined,
       onDiscard: () => undefined,

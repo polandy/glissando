@@ -147,7 +147,7 @@ export const de = {
   "import.musicText":
     "Ein Stück genügt — die Bilder teilen sich seine Länge. Ohne Musik läuft jedes Bild {seconds}.",
   "import.pickMusic": "Musik auswählen",
-  "import.musicFormats": "MP3, M4A, Ogg, FLAC, WAV\u00a0…",
+  "import.musicFormats": "MP3, M4A, FLAC, WAV, Ogg, AIFF, WMA\u00a0…",
   "import.removeMusic": "Musik entfernen",
   "import.trackMeta": "{duration} · {format}",
   "import.secondsTitle": "Ohne Musik: Dauer je Bild",
@@ -165,7 +165,6 @@ export const de = {
   "import.discardText": "Die gewählten Bilder werden nicht gespeichert.",
   "import.keepChoosing": "Weiter auswählen",
   "import.discard": "Verwerfen",
-  "import.musicUnreadable": "Musik konnte nicht gelesen werden",
   "import.creatingTitle": "Diashow wird erzeugt\u00a0…",
   "import.creatingText": "Reihenfolge nach Aufnahmedatum · Ken Burns · Übergänge",
   "import.created": "Diashow erstellt — tippe auf Abspielen",

@@ -18,7 +18,6 @@
     session,
     loadThumbnail,
     onError,
-    onMusicUnreadable,
     onToMusic,
     onBack,
     onDiscard,
@@ -39,7 +38,6 @@
     session: ImportSession;
     loadThumbnail: (pictureId: string) => Promise<Blob>;
     onError: (error: unknown) => void;
-    onMusicUnreadable: (retry: () => void) => void;
     onToMusic: () => void;
     /** One step up, keeping the selection. */
     onBack: () => void;
@@ -109,7 +107,7 @@
     {onHomeChosen}
   />
 {:else}
-  <MusicStep {session} {loadThumbnail} {onBack} onCreate={create} {onError} {onMusicUnreadable} />
+  <MusicStep {session} {loadThumbnail} {onBack} onCreate={create} {onError} />
 {/if}
 
 {#if confirmingDiscard}

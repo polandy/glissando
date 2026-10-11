@@ -127,7 +127,7 @@
   }
 
   // svelte-ignore state_referenced_locally
-  const { install, statusBarAction, createFailed, musicUnreadable } = createAppActions(
+  const { install, statusBarAction, createFailed } = createAppActions(
     { pwa, toaster, reportError, appAddress: services.appAddress },
     t,
     (sheet) => (pwaSheet = sheet),
@@ -190,7 +190,6 @@
     session={importSession}
     loadThumbnail={importThumbnail}
     onError={reportError}
-    onMusicUnreadable={musicUnreadable}
     serverOn={serverState.kind === "on"}
     {rememberedHome}
     onHomeChosen={homeChosen}

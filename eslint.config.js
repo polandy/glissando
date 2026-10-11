@@ -3,7 +3,17 @@ import svelte from "eslint-plugin-svelte";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  { ignores: ["dist/", "dist-server/", "playwright-report/", "test-results/"] },
+  {
+    // src/import/libav/ is the built music decoder (ADR-0020).
+    ignores: [
+      "dist/",
+      "dist-server/",
+      "playwright-report/",
+      "test-results/",
+      "src/import/libav/*.mjs",
+      "src/import/libav/*.wasm",
+    ],
+  },
   js.configs.recommended,
   ...tseslint.configs.strict,
   ...svelte.configs.recommended,

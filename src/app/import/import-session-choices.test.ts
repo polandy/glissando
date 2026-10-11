@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { UnreadableMusicError, type MusicProbe } from "../../import/music-probe";
+import type { MusicProbe } from "../../import/music-probe";
 import { DEFAULT_SECONDS_PER_PICTURE } from "../../library/stored-slideshow";
 import { MemoryLibraryStore } from "../../library/testing/memory-store";
-import type { ImportChoices } from "./import-session";
+import { chosenMusic, type ImportChoices } from "./import-session";
 import {
   CREATED_AT,
   MUSIC_MS,
@@ -64,17 +64,6 @@ describe("ImportSession, its choices of music and seconds per picture", () => {
     expect(await (await store.musicBlob(musicId)).text()).toBe("tune");
   });
 
-  it("keeps the previous choice when music cannot be read", async () => {
-    const { session } = await withTwoPictures();
-    await session.chooseMusic(new File(["tune"], "Sommer.mp3", { type: "audio/mpeg" }));
-
-    await expect(
-      session.chooseMusic(new File(["x"], "noise.broken", { type: "audio/mpeg" })),
-    ).rejects.toBeInstanceOf(UnreadableMusicError);
-
-    expect(choicesOf(session).music?.file.name).toBe("Sommer.mp3");
-  });
-
   it("forgets removed music", async () => {
     const { session } = await withTwoPictures();
     await session.chooseMusic(new File(["tune"], "Sommer.mp3", { type: "audio/mpeg" }));
@@ -98,18 +87,25 @@ describe("ImportSession, its choices of music and seconds per picture", () => {
 
   it("keeps the last music picked when an earlier pick is probed later", async () => {
     const probes = new Map<string, (probe: MusicProbe) => void>();
+    let bothProbing: () => void = () => undefined;
+    const probing = new Promise<void>((resolve) => (bothProbing = resolve));
     const { session } = sessionWith(new MemoryLibraryStore(), {
-      probeMusic: (file) => new Promise((resolve) => probes.set(file.name, resolve)),
+      probeMusic: (file) =>
+        new Promise((resolve) => {
+          probes.set(file.name, resolve);
+          if (probes.size === 2) bothProbing();
+        }),
     });
     const first = session.chooseMusic(new File(["a"], "first.mp3", { type: "audio/mpeg" }));
     const second = session.chooseMusic(new File(["b"], "second.mp3", { type: "audio/mpeg" }));
+    await probing;
 
     probes.get("second.mp3")?.({ durationMs: MUSIC_MS });
     await second;
     probes.get("first.mp3")?.({ durationMs: MUSIC_MS });
     await first;
 
-    expect(choicesOf(session).music?.file.name).toBe("second.mp3");
+    expect(chosenMusic(choicesOf(session))?.file.name).toBe("second.mp3");
   });
 
   it("discarding clears the pictures and the choices", async () => {
