@@ -86,11 +86,10 @@ export function createBrowserPlayer(
       : workerDecoder;
   };
   const drawing = createDrawing(container, redraw, webGl2Context, openPicture, createDecoder);
-  const firstTrack = slideshow.music?.[0];
   const playback = {
     clock: performanceClock,
     frames: animationFrames,
-    ...(firstTrack ? { music: new AudioElementMusic(firstTrack.src, musicOutput) } : {}),
+    openMusic: (src: string) => new AudioElementMusic(src, musicOutput),
   };
   player =
     drawing.kind === "webgl"

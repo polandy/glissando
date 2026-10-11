@@ -47,7 +47,7 @@ function setUp() {
     pictures,
     clock,
     frames,
-    music,
+    openMusic: () => music,
   });
   return {
     player,

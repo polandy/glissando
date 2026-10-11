@@ -29,11 +29,12 @@ export function trackGainAt(track: PlacedMusicEnvelope, timeMs: number): number 
 }
 
 /** Where in the track slideshow time `timeMs` plays, in seconds. */
-export function musicTrackSeconds(music: MusicEnvelope, timeMs: number): number {
-  return (music.startMs + timeMs) / MILLISECONDS_PER_SECOND;
+export function trackSecondsAt(track: PlacedMusicEnvelope, timeMs: number): number {
+  return (track.startMs + timeMs - track.atMs) / MILLISECONDS_PER_SECOND;
 }
 
-/** Whether the music is still heard at slideshow time `timeMs`. */
-export function isMusicHeardAt(music: MusicEnvelope, timeMs: number): boolean {
-  return music.startMs + timeMs < music.endMs;
+/** Whether the track is heard at slideshow time `timeMs`: from its `atMs` until its end. */
+export function isTrackHeardAt(track: PlacedMusicEnvelope, timeMs: number): boolean {
+  const intoTrackMs = timeMs - track.atMs;
+  return intoTrackMs >= 0 && intoTrackMs < track.endMs - track.startMs;
 }

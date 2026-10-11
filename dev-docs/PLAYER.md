@@ -139,17 +139,22 @@ The player:
 
 Behaviour:
 
-- **Music** follows the player, which sounds the first track: it starts at `startMs` plus
-  `currentTime` on play and after a seek, pauses on pause, while waiting, at the end and once play time passes `endMs`, and stays
-  silent when played beyond it. Its volume is a pure function of play time (`musicGainAt`:
-  linear fades; `trackGainAt` gives a placed track's from slideshow time, silent outside it), set before every start and on every frame, so pause, resume and seek land on
-  the envelope without a jump. The volume is set on a Web Audio gain node at the context's
-  current time (`MusicOutput`, one `AudioContext` per page), since iOS ignores a media element's
+- **Music** follows the player, one playback per track (`PlaylistMusic`; in the browser one audio
+  element each). A track sounds while play time is in `[atMs, atMs + endMs − startMs)`, at
+  `startMs + (t − atMs)` in the track: on play and after a seek every track heard at that moment
+  starts there, and one whose place play time reaches starts on that frame; every sounding track
+  pauses on pause, while waiting and at the end, and a track pauses once play time passes its end
+  while the others play on. In a crossfade two sound at once. On play, every track still to come
+  is cued at its `startMs`, so it starts on loaded sound. Each track's volume is a pure function
+  of play time (`trackGainAt`: linear fades, silent outside the track), set before every start
+  and on every frame, so pause, resume and seek land on every envelope without a jump. The volume
+  is set on a Web Audio gain node per element at the context's current time (`MusicOutput`, one
+  `AudioContext` per page that every track routes through), since iOS ignores a media element's
   `volume`; without Web Audio it falls back to the element's volume. iOS lets the context sound
-  only when it is resumed synchronously in a user gesture: the app unlocks it in the Play tap
-  that opens the player, in the player's play control, and every `play()` of the music unlocks
-  it too. A refused `play()` is an `error` and pauses; a start interrupted by a pause (a quick
-  seek) is not a refusal.
+  only when it is resumed synchronously in a user gesture, and resuming the one context lets
+  every track sound: the app unlocks it in the Play tap that opens the player, in the player's
+  play control, and every `play()` of a track unlocks it too. A refused `play()` of any track is
+  an `error` and pauses; a start interrupted by a pause (a quick seek) is not a refusal.
 - **Pictures** are loaded for the slides on screen plus the next one; all others are released,
   so memory stays bounded. When a frame needs a picture that is not loaded yet, time stops,
   `waiting` fires, and playback goes on from the same moment with `playing`.

@@ -43,7 +43,13 @@ function setUp() {
   const pictures = new FakePictureLoader();
   const renderer = new FakeRenderer();
   const music = new FakeMusic();
-  const player = new SlideshowPlayer(SLIDESHOW, { renderer, pictures, clock, frames, music });
+  const player = new SlideshowPlayer(SLIDESHOW, {
+    renderer,
+    pictures,
+    clock,
+    frames,
+    openMusic: () => music,
+  });
   const events: string[] = [];
   for (const type of PLAYER_EVENTS) {
     if (type !== "timeupdate") {

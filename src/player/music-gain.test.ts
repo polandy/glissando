@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { musicGainAt, musicTrackSeconds, trackGainAt } from "./music-gain";
+import { isTrackHeardAt, musicGainAt, trackGainAt, trackSecondsAt } from "./music-gain";
 
 const MUSIC = { src: "m.mp3", startMs: 10_000, endMs: 30_000, fadeInMs: 2000, fadeOutMs: 4000 };
 
@@ -20,9 +20,22 @@ describe("musicGainAt (slideshow time; 0 is the excerpt's start)", () => {
   });
 });
 
-describe("musicTrackSeconds", () => {
-  it("maps slideshow time into the track from the excerpt's start", () => {
-    expect(musicTrackSeconds(MUSIC, 2500)).toBe(12.5);
+describe("trackSecondsAt", () => {
+  it("maps slideshow time into the track from its place and its excerpt's start", () => {
+    expect(trackSecondsAt({ ...MUSIC, atMs: 4000 }, 6500)).toBe(12.5);
+  });
+});
+
+describe("isTrackHeardAt (the track sounds from its atMs for the excerpt's length)", () => {
+  const PLACED = { ...MUSIC, atMs: 60_000 };
+
+  it.each([
+    ["not before its place", 59_999, false],
+    ["at its place", 60_000, true],
+    ["until just before its end", 79_999, true],
+    ["not at its end", 80_000, false],
+  ])("is heard %s", (_, timeMs, heard) => {
+    expect(isTrackHeardAt(PLACED, timeMs)).toBe(heard);
   });
 });
 

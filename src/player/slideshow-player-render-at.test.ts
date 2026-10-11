@@ -44,7 +44,7 @@ function setUp() {
     pictures,
     clock: new FakeClock(),
     frames,
-    music,
+    openMusic: () => music,
   });
   const events: string[] = [];
   for (const type of PLAYER_EVENTS) {

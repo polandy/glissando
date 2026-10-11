@@ -184,10 +184,30 @@ export class FakeMusic implements MusicPlayback {
   setVolume(volume: number): void {
     this.volume = volume;
   }
+  cue(atSeconds: number): void {
+    this.calls.push(`cue@${atSeconds}`);
+  }
   pause(): void {
     this.calls.push("pause");
   }
   dispose(): void {
     this.calls.push("dispose");
+  }
+}
+
+/** Opens a `FakeMusic` per track, found again by its `src`. */
+export class FakeMusicTracks {
+  readonly #opened = new Map<string, FakeMusic>();
+  readonly open = (src: string): FakeMusic => {
+    const music = new FakeMusic();
+    this.#opened.set(src, music);
+    return music;
+  };
+  of(src: string): FakeMusic {
+    const music = this.#opened.get(src);
+    if (music === undefined) {
+      throw new Error(`no music was opened for ${src}`);
+    }
+    return music;
   }
 }
