@@ -1,12 +1,19 @@
 import { cull, type SimilarGroup, type SetAsideReason } from "../../culling/cull";
-import type { PictureChecker, PictureMeasure } from "../../culling/picture-checker";
+import {
+  PictureCheckerGoneError,
+  type PictureChecker,
+  type PictureMeasure,
+} from "../../culling/picture-checker";
 import type { PictureImport, StoredWithThumbnail } from "../../import/picture-import";
 import type { StoredPicture } from "../../library/stored-slideshow";
 
 export interface PictureCullingPorts {
   readonly checker: PictureChecker;
   readonly pictures: Pick<PictureImport, "state" | "subscribe" | "remove" | "restore">;
-  /** A picture the check could not measure; it simply stays in. */
+  /**
+   * A picture the check could not measure; it simply stays in. A gone checker is logged once,
+   * and every picture from then on stays in unchecked.
+   */
   log(error: unknown): void;
   /** An unexpected error of the cull, which runs without a caller to throw to. */
   onError(error: unknown): void;
@@ -57,6 +64,7 @@ export class PictureCulling {
   #idle: PromiseWithResolvers<undefined> | null = null;
   /** Bumped by `reset()`, so a measurement in flight at that moment is ignored. */
   #generation = 0;
+  #checkerGoneLogged = false;
 
   constructor(ports: PictureCullingPorts) {
     this.#ports = ports;
@@ -96,7 +104,7 @@ export class PictureCulling {
         (measure) => {
           if (generation === this.#generation) this.#measures.set(picture.id, measure);
         },
-        (error: unknown) => this.#ports.log(error),
+        (error: unknown) => this.#logFailedCheck(error),
       )
       .finally(() => {
         if (generation !== this.#generation) return;
@@ -142,6 +150,14 @@ export class PictureCulling {
     });
     this.#ports.pictures.restore(taken);
     this.#publish();
+  }
+
+  #logFailedCheck(error: unknown): void {
+    if (error instanceof PictureCheckerGoneError) {
+      if (this.#checkerGoneLogged) return;
+      this.#checkerGoneLogged = true;
+    }
+    this.#ports.log(error);
   }
 
   #cullOnceIdle(): void {

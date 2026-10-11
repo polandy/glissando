@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { PictureMeasure } from "../../culling/picture-checker";
+import { PictureCheckerGoneError, type PictureMeasure } from "../../culling/picture-checker";
 import { FakePictureChecker } from "../../culling/testing/fake-picture-checker";
 import { fakeIntakePorts, pictureFile } from "../testing/picture-intake-ports";
 import { PictureIntake } from "./picture-intake";
@@ -177,5 +177,19 @@ describe("PictureIntake, culling similar shots and blurry pictures", () => {
     expect(errors).toEqual([
       expect.objectContaining({ message: expect.stringMatching(/not a date/) }),
     ]);
+  });
+
+  it("leaves the pictures in unchecked once the checker is gone, logging that once", async () => {
+    const { intake, checker, logged } = intakeWith(SIMILAR_SHOTS);
+    intake.addPictures([pictureFile("first.jpg", at(0))]);
+    await intake.settled();
+
+    checker.goAway();
+    intake.addPictures(similarShotFiles());
+    await intake.settled();
+
+    expect(names(intake)).toEqual(["first.jpg", "a.jpg", "b.jpg", "c.jpg", "later.jpg"]);
+    expect(intake.culling.state).toEqual({ checking: null, groups: [], setAsideCount: 0 });
+    expect(logged).toEqual([expect.any(PictureCheckerGoneError)]);
   });
 });

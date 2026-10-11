@@ -485,8 +485,10 @@ new slideshow lives).
   on it is an ordinary picture (✕ removes it) and never set aside again; "Take all in" takes all
   back. Set-aside pictures are not kept: the slideshow never references them, so the clean-up
   after Next deletes their media. Exact duplicates are skipped before the check, and duplicates
-  taken in by "Add anyway" are never set aside. Linked photos of a server slideshow are not
-  downloaded, so they are not checked. Above that box, when this Glissando offers Immich (below), a box "From
+  taken in by "Add anyway" are never set aside. A picture the check cannot measure stays in;
+  once the check worker is gone (crashed, or a reply it cannot read) every picture from then on
+  stays in unchecked, the error logged once, and "Next" is not held. Linked photos of a server
+  slideshow are not downloaded, so they are not checked. Above that box, when this Glissando offers Immich (below), a box "From
   Immich" with "Open Immich" opens the Immich browser; offline it is greyed out ("Offline — Immich
   needs a connection to your Glissando server …"), with an Immich problem it names it and offers
   "Settings". Photos added from Immich join the same import: the same progress ("n / m pictures

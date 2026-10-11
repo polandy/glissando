@@ -86,7 +86,13 @@ leftovers, and neither the slideshow model nor the `.glissando` format changes.
 - The check costs one worker pass per picture on its thumbnail, beside the downscale of the
   next; the import's progress shows it as its own line.
 - A flat picture — a plain-coloured graphic, a picture of fog — has almost no Laplacian and is
-  set aside as blurry next to sharp photos; + takes it in.
+  set aside as blurry next to sharp photos; + takes it in. Its difference hash is all zeros as
+  well, so two plain-coloured pictures (title cards, fog) taken within 2 minutes are always
+  grouped as similar.
+- A failed check leaves its picture unchecked, so it stays in; once the worker is gone every
+  picture after it stays in unchecked, logged once, and the import goes on.
+- The check has no timeout: a worker that neither answers nor errors is not expected, and
+  Cancel is the way out of a check that never ends.
 - Linked photos of a server slideshow are not downloaded, so they are not checked.
 - The constants live in `src/culling/cull.ts`; the browser test fails when a change to the
   measurement moves the generated scenes across them.

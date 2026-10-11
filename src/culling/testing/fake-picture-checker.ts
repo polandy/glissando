@@ -1,4 +1,9 @@
-import { PictureCheckError, type PictureChecker, type PictureMeasure } from "../picture-checker";
+import {
+  PictureCheckError,
+  PictureCheckerGoneError,
+  type PictureChecker,
+  type PictureMeasure,
+} from "../picture-checker";
 
 const SHARP = 1000;
 const FNV_OFFSET = 0xcbf2_9ce4_8422_2325n;
@@ -10,7 +15,8 @@ const MIX_SECOND = 0x94d0_49bb_1331_11ebn;
 /**
  * Measures a thumbnail by its text, as the fakes write thumbnails: a picture named in `measures`
  * gets that measure, any other one a sharp measure with a hash of its own (FNV-1a of the text,
- * mixed like SplitMix64, so no two pictures look alike). `hold()` keeps every measurement waiting.
+ * mixed like SplitMix64, so no two pictures look alike). `hold()` keeps every measurement waiting;
+ * after `goAway()` every measurement rejects as a crashed worker's does.
  */
 export class FakePictureChecker implements PictureChecker {
   /** The thumbnail texts asked for, in order. */
@@ -18,6 +24,7 @@ export class FakePictureChecker implements PictureChecker {
   readonly #measures: ReadonlyMap<string, PictureMeasure>;
   readonly #unmeasurable: ReadonlySet<string>;
   #gate: PromiseWithResolvers<undefined> | null = null;
+  #gone = false;
 
   constructor(
     measures: Readonly<Record<string, PictureMeasure>> = {},
@@ -36,10 +43,15 @@ export class FakePictureChecker implements PictureChecker {
     this.#gate = null;
   }
 
+  goAway(): void {
+    this.#gone = true;
+  }
+
   async measure(thumbnail: Blob): Promise<PictureMeasure> {
     const text = await thumbnail.text();
     this.asked.push(text);
     await this.#gate?.promise;
+    if (this.#gone) throw new PictureCheckerGoneError("The fake checker is gone");
     if (this.#unmeasurable.has(text)) throw new PictureCheckError(`cannot decode "${text}"`);
     return this.#measures.get(text) ?? { sharpness: SHARP, hash: fnv1a(text) };
   }
