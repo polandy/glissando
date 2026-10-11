@@ -24,9 +24,11 @@ export {
   NO_SONG_BEATS,
   filledMusicMs,
   playlistBeatsMs,
+  placeSongs,
   playlistMs,
   resolvePlaylist,
   type Playlist,
+  type PlacedSong,
   type PlaylistTrack,
   type SongBeats,
 } from "./playlist";
@@ -38,5 +40,6 @@ export {
   musicExcerpt,
   musicExcerptMs,
   resolveMusicTiming,
+  scaledFades,
   type MusicTiming,
 } from "./music-excerpt";

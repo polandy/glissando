@@ -4,14 +4,13 @@
   import { setMusicTrim } from "../../library/slideshow-edits-music";
   import type { StoredSlideshow } from "../../library/stored-slideshow";
   import { MILLISECONDS_PER_SECOND } from "../../player";
-  import type { BeatsStatus } from "../beats/music-beats-known";
   import Header from "../components/Header.svelte";
   import Icon from "../components/Icon.svelte";
   import PictureLengthSection from "../components/PictureLengthSection.svelte";
   import { getTranslator } from "../i18n/context";
   import FadeSection from "./FadeSection.svelte";
   import type { ListenKind, ListenState } from "./listen-preview";
-  import { editedSong, musicEditorView } from "./music-editor-view";
+  import { musicEditorView, type SongsBeatsStatus } from "./music-editor-view";
   import MusicWaveform from "./MusicWaveform.svelte";
   import PictureChangesSection from "./PictureChangesSection.svelte";
   import SlideshowLane from "./SlideshowLane.svelte";
@@ -24,6 +23,7 @@
    */
   let {
     slideshow,
+    songId,
     beats,
     peaks,
     listening,
@@ -40,8 +40,10 @@
   }: {
     /** The slideshow, which has music. */
     slideshow: StoredSlideshow;
-    /** What is known of the music's beats, updated as the background pass listens. */
-    beats: BeatsStatus;
+    /** The song edited. */
+    songId: string;
+    /** What is known of the songs' beats, updated as the background pass listens. */
+    beats: SongsBeatsStatus;
     /** Fine peaks of the whole track, 0..1; null while the track is decoded. */
     peaks: Float32Array | null;
     listening: ListenState | null;
@@ -72,8 +74,9 @@
   let draft = $state.raw<MusicTrim | null>(null);
   const music = $derived(
     musicEditorView(
-      draft === null ? slideshow : setMusicTrim(slideshow, editedSong(slideshow).id, draft),
+      draft === null ? slideshow : setMusicTrim(slideshow, songId, draft),
       beats,
+      songId,
     ),
   );
   const seconds = (ms: number) => ms / MILLISECONDS_PER_SECOND;

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { StoredMusic, StoredPicture, StoredSlideshow } from "../../library/stored-slideshow";
 import type { BeatsStatus } from "../beats/music-beats-known";
-import { musicEditorView } from "./music-editor-view";
+import { firstSongView } from "./testing/first-song-view";
 
 const LISTENING: BeatsStatus = { kind: "listening" };
 
@@ -37,7 +37,7 @@ function slideshow(
 
 describe("musicEditorView", () => {
   it("shows the whole track, automatic fades off, with the pictures sharing it", () => {
-    const view = musicEditorView(slideshow({}), LISTENING);
+    const view = firstSongView(slideshow({}), LISTENING);
 
     expect(view).toMatchObject({
       fileName: "Sommerwind.mp3",
@@ -55,10 +55,7 @@ describe("musicEditorView", () => {
   });
 
   it("explains short automatic fades where the excerpt cuts the track", () => {
-    const view = musicEditorView(
-      slideshow({ trim: { startMs: 12_000, endMs: 150_000 } }),
-      LISTENING,
-    );
+    const view = firstSongView(slideshow({ trim: { startMs: 12_000, endMs: 150_000 } }), LISTENING);
 
     expect(view.trimmed).toBe(true);
     expect(view.fadeIn).toEqual({ ms: 2000, own: false, reason: "excerpt-starts-mid-track" });
@@ -66,20 +63,20 @@ describe("musicEditorView", () => {
   });
 
   it("shows own fades as own, 0 included", () => {
-    const view = musicEditorView(slideshow({ fadeInMs: 0, fadeOutMs: 5000 }), LISTENING);
+    const view = firstSongView(slideshow({ fadeInMs: 0, fadeOutMs: 5000 }), LISTENING);
 
     expect(view.fadeIn).toMatchObject({ ms: 0, own: true });
     expect(view.fadeOut).toMatchObject({ ms: 5000, own: true });
   });
 
   it("marks where the slide changes fall in the track, from the excerpt's start", () => {
-    const view = musicEditorView(slideshow({ trim: { startMs: 4000, endMs: 24_000 } }), LISTENING);
+    const view = firstSongView(slideshow({ trim: { startMs: 4000, endMs: 24_000 } }), LISTENING);
 
     expect(view.slideChanges.map((change) => change.atMs)).toEqual([9000, 14_000, 19_000]);
   });
 
   it("warns when the slideshow outlasts the excerpt, naming by how much", () => {
-    const view = musicEditorView(
+    const view = firstSongView(
       slideshow({ trim: { startMs: 0, endMs: 10_000 } }, [8000, undefined, undefined, undefined]),
       LISTENING,
     );
@@ -90,7 +87,7 @@ describe("musicEditorView", () => {
   });
 
   it("with every picture timed and a shorter slideshow, ends the music with it", () => {
-    const view = musicEditorView(slideshow({}, [5000, 5000]), LISTENING);
+    const view = firstSongView(slideshow({}, [5000, 5000]), LISTENING);
 
     expect(view.audibleEndMs).toBe(10_000);
     expect(view.fadeOut).toEqual({ ms: 2000, own: false, reason: "slideshow-ends" });
@@ -98,7 +95,7 @@ describe("musicEditorView", () => {
   });
 
   it("with every picture timed to the excerpt exactly, ends with the music", () => {
-    const view = musicEditorView(
+    const view = firstSongView(
       slideshow({ trim: { startMs: 0, endMs: 10_000 } }, [5000, 5000]),
       LISTENING,
     );
@@ -107,10 +104,7 @@ describe("musicEditorView", () => {
   });
 
   it("resolves the envelope the player plays", () => {
-    const view = musicEditorView(
-      slideshow({ trim: { startMs: 12_000, endMs: 150_000 } }),
-      LISTENING,
-    );
+    const view = firstSongView(slideshow({ trim: { startMs: 12_000, endMs: 150_000 } }), LISTENING);
 
     expect(view.timing).toEqual({
       startMs: 12_000,

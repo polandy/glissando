@@ -4,6 +4,7 @@ import type { MusicTrim, PictureChanges } from "../../library/own-music";
 import type { PictureLength } from "../../library/picture-length";
 import type { StoredMusic, StoredPicture, StoredSlideshow } from "../../library/stored-slideshow";
 import type { BeatsStatus } from "../beats/music-beats-known";
+import type { SongsBeatsStatus } from "./music-editor-view";
 import { mountWithTranslator } from "../testing/mount-with-translator";
 import { reactiveProps } from "../testing/reactive-props.svelte";
 import type { ListenKind, ListenState } from "./listen-preview";
@@ -67,9 +68,11 @@ export function mountEditor(
     pictureLength: [] as (PictureLength | undefined)[],
     secondsPerPicture: [] as number[],
   };
+  const songId = slideshow.songs[0]?.id ?? "";
   const props = reactiveProps({
     slideshow,
-    beats,
+    songId,
+    beats: new Map([[songId, beats]]) as SongsBeatsStatus,
     peaks: Float32Array.from({ length: 1000 }, (_, index) => (index % 10) / 10),
     listening: null as ListenState | null,
     onBack: () => {},

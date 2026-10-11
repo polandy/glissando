@@ -3,7 +3,7 @@ import {
   shiftGroup as shiftGroupInSlideshow,
 } from "../../library/group-edits";
 import type { OwnKenBurns } from "../../library/own-ken-burns";
-import type { MusicTrim, PictureChanges } from "../../library/own-music";
+import type { BetweenSongs, MusicTrim, PictureChanges } from "../../library/own-music";
 import type { SlideshowTransition, TransitionChoice } from "../../library/own-timing";
 import {
   removePicture,
@@ -17,9 +17,16 @@ import {
   setMusicPictureChanges,
   setMusicTrim,
 } from "../../library/slideshow-edits-music";
+import {
+  addSongs,
+  moveSong,
+  removeSong,
+  setBetweenSongs,
+  songIndex,
+} from "../../library/slideshow-edits-songs";
 import { setPictureLength, setSecondsPerPicture } from "../../library/slideshow-edits-timing";
 import type { PictureLength } from "../../library/picture-length";
-import type { StoredSlideshow } from "../../library/stored-slideshow";
+import type { StoredMusic, StoredSlideshow } from "../../library/stored-slideshow";
 import { EditSaver } from "./edit-saver";
 import { EditorUndos } from "./editor-undos";
 import { PictureSettingsEditor } from "./picture-settings-editor";
@@ -185,6 +192,35 @@ export class SlideshowEditor {
     if (edited.pictures[index]?.caption !== this.#picture(pictureId).caption) {
       this.#apply(edited);
     }
+  }
+
+  /** Appends `songs`, their media already stored, to the playlist (ADR-0023). */
+  addSongs(songs: readonly StoredMusic[]): void {
+    this.#apply(addSongs(this.#slideshow, songs));
+  }
+
+  /**
+   * Takes the song out of the playlist; its toast puts it back. While the toast is shown, the
+   * song's media is claimed, so a clean-up in any tab spares it.
+   */
+  removeSong(songId: string): void {
+    const index = songIndex(this.#slideshow, songId);
+    const song = this.#slideshow.songs[index] as StoredMusic;
+    this.#undos.songRemoval.add(song, index, (removed, at) => {
+      const restored = addSongs(this.#slideshow, [removed]);
+      this.#apply(moveSong(restored, removed.id, Math.min(at, restored.songs.length - 1)));
+    });
+    this.#apply(removeSong(this.#slideshow, songId));
+  }
+
+  /** Moves the song to `toIndex` of the playlist. */
+  moveSong(songId: string, toIndex: number): void {
+    this.#apply(moveSong(this.#slideshow, songId, toIndex));
+  }
+
+  /** `"sequence"`: one song after another; `undefined`: they crossfade. */
+  setBetweenSongs(betweenSongs: BetweenSongs | undefined): void {
+    this.#apply(setBetweenSongs(this.#slideshow, betweenSongs));
   }
 
   // The songs' edits offer no undo: one tap on "whole track" or "automatic" restores them.

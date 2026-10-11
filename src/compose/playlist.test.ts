@@ -3,7 +3,13 @@ import { NO_BEATS, type MusicBeats } from "../beats";
 import { SEQUENCE_BETWEEN_SONGS } from "../library/own-music";
 import type { StoredMusic, StoredSlideshow } from "../library/stored-slideshow";
 import { OWN_SECONDS_PICTURE_LENGTH } from "../library/picture-length";
-import { filledMusicMs, playlistBeatsMs, playlistMs, resolvePlaylist } from "./playlist";
+import {
+  filledMusicMs,
+  placeSongs,
+  playlistBeatsMs,
+  playlistMs,
+  resolvePlaylist,
+} from "./playlist";
 
 const LONG_SLIDESHOW_MS = 3_600_000;
 
@@ -192,5 +198,16 @@ describe("playlistBeatsMs (ADR-0023)", () => {
     const playlist = crossfading(song("a", 20_000, { pictureChanges: "even" }), song("c", 20_000));
 
     expect(playlistBeatsMs(playlist, new Map([["c", NO_BEATS]]))).toBeUndefined();
+  });
+});
+
+describe("placeSongs (ADR-0023)", () => {
+  it("places every song, also those a short slideshow never reaches, with its fades unscaled", () => {
+    const playlist = crossfading(song("a", 60_000), song("b", 60_000, { fadeInMs: 0 }));
+
+    expect(placeSongs(playlist).map(({ song: { id }, ...rest }) => ({ id, ...rest }))).toEqual([
+      { id: "a", atMs: 0, fadeInMs: 0, fadeOutMs: 3000 },
+      { id: "b", atMs: 57_000, fadeInMs: 0, fadeOutMs: 0 },
+    ]);
   });
 });

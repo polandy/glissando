@@ -36,7 +36,7 @@ export interface PlaylistTrack extends MusicTiming {
 }
 
 /** A song placed in the whole playlist, before the slideshow's end cuts it. */
-interface PlacedSong {
+export interface PlacedSong {
   readonly song: StoredMusic;
   readonly atMs: number;
   /** The fades over the whole excerpt, own or automatic, not yet scaled. */
@@ -115,7 +115,7 @@ export function playlistBeatsMs(
  * end one after another. An overlap is capped so that no song outlasts the next and at most two
  * sound at once.
  */
-function placeSongs({ songs, betweenSongs }: Playlist): PlacedSong[] {
+export function placeSongs({ songs, betweenSongs }: Playlist): PlacedSong[] {
   const crossfade = betweenSongs !== SEQUENCE_BETWEEN_SONGS;
   const placed: PlacedSong[] = [];
   let atMs = 0;

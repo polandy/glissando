@@ -57,7 +57,7 @@ class RecordingStore extends MemoryLibraryStore {
 /** An editor over a stored slideshow whose pictures' media is stored too. */
 export async function setUp(
   ids: readonly string[] = ["a", "b", "c", "d"],
-  music: StoredMusic | null = null,
+  music: StoredMusic | readonly StoredMusic[] | null = null,
 ) {
   const scheduler = new FakeScheduler();
   const toaster = new Toaster(scheduler);
@@ -65,7 +65,11 @@ export async function setUp(
   const errors: unknown[] = [];
   let gone = 0;
   const refused: EditRefusal[] = [];
-  const initial = music === null ? stored(ids) : { ...stored(ids), songs: [music] };
+  const songs = music === null ? [] : "id" in music ? [music] : music;
+  const initial = { ...stored(ids), songs };
+  for (const song of songs) {
+    await store.putMusic(song.id, new Blob([song.id]));
+  }
   for (const id of ids) {
     await store.putPicture(id, { display: new Blob([id]), thumbnail: new Blob([id]) });
   }
@@ -91,6 +95,7 @@ export async function setUp(
     durationAutomaticText: () => "Dauer wieder automatisch",
     transitionAutomaticText: () => "Übergang wieder automatisch",
     slideshowTransitionResetText: () => "Übergänge wieder auf Überblenden",
+    songRemovedText: () => "Song entfernt",
     automaticTitle: () => "Juli 2025",
   });
   const order = () => editor.slideshow.pictures.map((picture) => picture.id);
@@ -108,6 +113,20 @@ export async function setUp(
     await store.deleteUnreferencedMedia(EDITED_AT);
     try {
       await store.pictureBlob(id);
+      return true;
+    } catch (error) {
+      if (error instanceof MediaNotFoundError) {
+        return false;
+      }
+      throw error;
+    }
+  };
+  /** Whether a clean-up, as any tab runs it, leaves the music's media in place. */
+  const musicSurvivesCleanUp = async (id: string) => {
+    await editor.settled();
+    await store.deleteUnreferencedMedia(EDITED_AT);
+    try {
+      await store.musicBlob(id);
       return true;
     } catch (error) {
       if (error instanceof MediaNotFoundError) {
@@ -138,6 +157,7 @@ export async function setUp(
     storedMusic,
     storedPicture,
     mediaSurvivesCleanUp,
+    musicSurvivesCleanUp,
     goneCount,
     refused,
   };

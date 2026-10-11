@@ -89,7 +89,8 @@
 {#if song !== undefined}
   <MusicEditorScreen
     slideshow={stored}
-    {beats}
+    songId={song.id}
+    beats={new Map([[song.id, beats]])}
     {peaks}
     {listening}
     {onBack}
@@ -99,7 +100,8 @@
     onPictureChanges={(changes) => editor.setMusicPictureChanges(song.id, changes)}
     onPictureLength={(length) => editor.setPictureLength(length)}
     onSecondsPerPicture={(seconds) => editor.setSecondsPerPicture(seconds)}
-    onListen={(kind) => preview?.toggle(kind, musicEditorView(stored, beats).timing)}
+    onListen={(kind) =>
+      preview?.toggle(kind, musicEditorView(stored, new Map([[song.id, beats]]), song.id).timing)}
     onStopListening={() => preview?.stop()}
     {saving}
   />

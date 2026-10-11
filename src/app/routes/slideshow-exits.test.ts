@@ -57,6 +57,7 @@ function editorOver(store: MemoryLibraryStore, toaster: Toaster): SlideshowEdito
     durationAutomaticText: () => "Dauer wieder automatisch",
     transitionAutomaticText: () => "Übergang wieder automatisch",
     slideshowTransitionResetText: () => "Übergänge wieder auf Überblenden",
+    songRemovedText: () => "Song entfernt",
     automaticTitle: () => "Juli 2025",
     focusOf: () => undefined,
   });
