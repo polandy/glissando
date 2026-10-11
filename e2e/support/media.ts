@@ -127,6 +127,15 @@ export function silentTrack(name: string, seconds: number): TestFile {
   };
 }
 
+/**
+ * A generated sine tone in a format some browser cannot play, from the conversion's fixtures
+ * (scripts/make-audio-fixtures.sh), e.g. `alac.m4a`.
+ */
+export function toneTrack(name: string, fixture: string): TestFile {
+  const bytes = readFileSync(new URL(`../../src/import/testing/audio/${fixture}`, import.meta.url));
+  return { name, mimeType: "audio/mp4", buffer: Buffer.from(bytes) };
+}
+
 /** `blob` as a file chooser takes it, under `name`. */
 export async function blobFile(name: string, blob: Blob): Promise<TestFile> {
   return {
