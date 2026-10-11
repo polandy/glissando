@@ -67,7 +67,7 @@ async function mountControl({
     row()?.click();
     await settle();
   };
-  return { target, api, scheduler, toasts, dialog, button, click, row, openSheet };
+  return { target, api, session, scheduler, toasts, dialog, button, click, row, openSheet };
 }
 
 describe("The share row and sheet (SHARE_LINK.md, In the app)", () => {
@@ -124,6 +124,18 @@ describe("The share row and sheet (SHARE_LINK.md, In the app)", () => {
     flushSync();
 
     expect(button("Kopieren")).toBeTruthy();
+  });
+
+  it("leaves the session to the screen that owns it when the row goes", async () => {
+    const { openSheet, click, session, scheduler } = await mountControl({ shared: LINK });
+    await openSheet();
+    await click("Kopieren");
+
+    destroy?.();
+    destroy = null;
+
+    expect(session.state.copied).toBe(true);
+    expect(scheduler.pending).toBe(1);
   });
 
   it("leaves Kopieren out where the browser has no clipboard, the link still selectable", async () => {
