@@ -85,3 +85,80 @@ export function loaded(frame: HTMLIFrameElement): Promise<Document> {
     });
   });
 }
+
+/** Counts a window's animation frames until stopped; `report` says how many, the last when. */
+function countAnimationFrames(window: Window): { report(): string; stop(): void } {
+  let count = 0;
+  // On the window's own clock: each window's `performance` has its own time origin.
+  let lastAtMs: number | null = null;
+  let handle = 0;
+  const tick = (atMs: number) => {
+    count += 1;
+    lastAtMs = atMs;
+    handle = window.requestAnimationFrame(tick);
+  };
+  handle = window.requestAnimationFrame(tick);
+  return {
+    report: () =>
+      lastAtMs === null
+        ? "none"
+        : `${count}, the last ${Math.round(window.performance.now() - lastAtMs)} ms ago`,
+    stop: () => window.cancelAnimationFrame(handle),
+  };
+}
+
+/** Where `element` sits in its window's viewport, so a frame scrolled out of view shows. */
+function placeInView(element: Element | null): string {
+  if (element === null) return "none";
+  const { top, bottom } = element.getBoundingClientRect();
+  const view = element.ownerDocument.defaultView;
+  return `${Math.round(top)}..${Math.round(bottom)} of ${view?.innerHeight ?? "?"}`;
+}
+
+export interface PageWatch {
+  /**
+   * What the page in the frame shows, and whether its animation frames still run: now, or as
+   * `stop` found it.
+   */
+  report(): Record<string, unknown>;
+  /** Stops counting and keeps the report as it is now; call it before the frame is removed. */
+  stop(): void;
+}
+
+/**
+ * Watches the player page in `frame` from now on, so a test that times out can name where the
+ * page stopped: its state and time, and whether animation frames still run in the page's window
+ * and in the test's own, with both frames' places in their viewports. WebKit runs none in a frame
+ * it holds to be out of view, which leaves the page's clock standing.
+ */
+export function watchPage(frame: HTMLIFrameElement): PageWatch {
+  const testFrames = countAnimationFrames(window);
+  const pageFrames =
+    frame.contentWindow === null ? null : countAnimationFrames(frame.contentWindow);
+  const report = () => {
+    const page = frame.contentDocument;
+    return {
+      state: page?.documentElement.getAttribute(PAGE_STATE_ATTRIBUTE),
+      time: page?.querySelector(".time")?.textContent,
+      progress: page?.querySelector<HTMLElement>(".progress")?.style.width,
+      fonts: page?.fonts.status,
+      canvases: page?.querySelectorAll("canvas").length,
+      error: page?.querySelector(".error")?.textContent,
+      visibility: page?.visibilityState,
+      pageAnimationFrames: pageFrames?.report() ?? "no window",
+      testAnimationFrames: testFrames.report(),
+      pageFrame: placeInView(frame),
+      testFrame: placeInView(window.frameElement),
+    };
+  };
+  let kept: Record<string, unknown> | null = null;
+  return {
+    report: () => kept ?? report(),
+    stop() {
+      if (kept !== null) return;
+      kept = report();
+      testFrames.stop();
+      pageFrames?.stop();
+    },
+  };
+}

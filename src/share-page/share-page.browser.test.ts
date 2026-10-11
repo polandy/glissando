@@ -1,6 +1,12 @@
 import { afterEach, describe, expect, it, onTestFailed } from "vitest";
 import { commands, page } from "vitest/browser";
-import { drawnJpeg, keptInView, loaded, stateReached } from "../export-player/testing/page-frame";
+import {
+  drawnJpeg,
+  keptInView,
+  loaded,
+  stateReached,
+  watchPage,
+} from "../export-player/testing/page-frame";
 import { encodeBase64 } from "../html-export/base64";
 import { PAGE_STATE_ATTRIBUTE, type PageState } from "../html-export/page-contract";
 import { silentWav } from "../import/testing/silent-wav";
@@ -89,7 +95,8 @@ function shownNotice(shareDocument: Document): string | null {
 describe("the share page", () => {
   const cleanups: (() => Promise<void> | void)[] = [];
   afterEach(async () => {
-    for (const cleanup of cleanups.splice(0)) await cleanup();
+    // Last in, first out: a watch keeps its report before its frame is removed.
+    for (const cleanup of cleanups.splice(0).reverse()) await cleanup();
   });
 
   /** Serves `fake` and opens its link in a frame, kept in view so its clock runs. */
@@ -107,9 +114,11 @@ describe("the share page", () => {
     document.body.append(frame);
     cleanups.push(keptInView(frame));
     const shareDocument = await first;
+    const watch = watchPage(frame);
+    cleanups.push(() => watch.stop());
+    // A timeout alone says nothing; the report names where the page stopped.
     onTestFailed(() => {
-      const state = frame.contentDocument?.documentElement.getAttribute(PAGE_STATE_ATTRIBUTE);
-      console.error(`the share page stopped at ${state}: ${JSON.stringify(seen)}`);
+      console.error(`the share page stopped: ${JSON.stringify({ seen, ...watch.report() })}`);
     });
     return { frame, shareDocument, seen };
   }
