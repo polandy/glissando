@@ -8,3 +8,6 @@ test-results/
 src/import/libav/*.mjs
 src/import/libav/*.wasm
 src/import/libav/LICENSE.md
+# Written by release-please, which does not format them.
+CHANGELOG.md
+.release-please-manifest.json
