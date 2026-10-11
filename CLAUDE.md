@@ -15,8 +15,9 @@ pointers only. Detail lives in `dev-docs/`. **Don't grow it** — move detail ou
 - Fast unit tests: `npx vitest run --project unit <path>`. Dev server on the LAN: `npm run dev`.
 - Failures of a red CI run only: `scripts/ci-failures.sh [branch]`.
 - E2e cases and browser tests (`*.browser.test.ts`) locally, in the same pinned image as CI:
-  `scripts/e2e.sh [playwright args]`, `scripts/browser-tests.sh [vitest args]`. A
-  Playwright bump moves `@playwright/test` and the `ci.yml` image digest together.
+  `scripts/e2e.sh [playwright args]`, `scripts/browser-tests.sh [vitest args]` — quiet on
+  success, only the failing cases otherwise. A Playwright bump moves `@playwright/test` and the
+  `ci.yml` image digest together.
 - Slow jobs (full e2e, visual) run on GitHub, not here.
 
 ## Reading budget
@@ -36,12 +37,13 @@ Every tool result is re-read, and paid for, on every later turn.
 
 ## Where things live
 
-| Question                  | File                                                                               |
-| ------------------------- | ---------------------------------------------------------------------------------- |
-| What is the product?      | `dev-docs/SCOPE.md`                                                                |
-| How do I write code here? | `dev-docs/CODING_PRINCIPLES.md` — **binding**, read once before writing anything   |
-| Why X over Y?             | `dev-docs/adr/` — only for a real tradeoff (options weighed, one chosen at a cost) |
-| Owner's open work         | `TODO.md` (the `/todo` skill), **HIGH** first                                      |
+| Question                      | File                                                                               |
+| ----------------------------- | ---------------------------------------------------------------------------------- |
+| What is the product?          | `dev-docs/SCOPE.md`                                                                |
+| How do I branch, test, merge? | `dev-docs/WORKFLOW.md` — **binding**, read before the first test or commit         |
+| How do I write code here?     | `dev-docs/CODING_PRINCIPLES.md` — **binding**, read once before writing anything   |
+| Why X over Y?                 | `dev-docs/adr/` — only for a real tradeoff (options weighed, one chosen at a cost) |
+| Owner's open work             | `TODO.md` (the `/todo` skill), **HIGH** first                                      |
 
 - Only the current version of each document is kept — never a "v2"; git holds the history.
 - A behaviour change updates the matching doc in the same change. A user-visible change updates
@@ -49,47 +51,15 @@ Every tool result is re-read, and paid for, on every later turn.
 
 ## Testing
 
-- **Test-first**: every behaviour starts as a failing test whose name reads as its specification.
-  See it fail once, then make it pass.
-- **No test may race**: no sleeps, fixed waits or polling for an effect that only probably lands;
-  no wall clock, no ambient randomness. Give the production code a seam (injected clock, a
-  settled/completion signal) instead.
-- **An absence needs a positive signal** — assert what must still be there before what is gone.
-- **Prove it can fail**: break the behaviour and watch exactly that case go red.
+Test-first, no test may race, an absence needs a positive signal, prove it can fail — in full in
+`dev-docs/WORKFLOW.md` (Testing); read it before writing a test.
 
 ## Working agreement
 
-- **Never commit to `main`.** One git worktree per feature **beside** the checkout
-  (`git worktree add -b <type>/<slug> ../glissando-<slug> origin/main`, never under `.claude/`)
-  → PR → green CI → `/pr-review` on your own PR (start it unasked) → **wait for the merge
-  go-ahead**. Squash-merge with a hand-written Conventional Commit subject; `main` stays linear.
-  After the merge: remove the worktree, delete the branch locally and remotely, `git fetch --prune`.
-- **The merge is its own grant.** "Commit", "push", "open a PR" never authorise it; green CI is the
-  stopping point. A go-ahead for one PR never carries to the next.
-- **The shell's cwd is the hazard**: one `cd` into the main checkout persists, and a later commit
-  lands there. Use `git -C <path>`; check `git branch --show-current` right before commit/push.
-- **"Next free" ids race** (ADR numbers, e2e case ids): pick against live state — `git fetch`,
-  open PRs, sibling worktrees — and re-check after merging `main` in.
-- **One open feature PR per session.** Release PRs don't count.
-- **One task per session, under ~150k context**; review/merge/clean-up run in a fresh session.
-  A subagent past ~120k context or ~150 turns stops and returns a hand-off (branch, done, open,
-  next command).
-- **A feature PR is complete**: logic + the UI that exposes it + docs + an ADR when a real
-  tradeoff was decided. Never "UI in a follow-up", never "docs later" — and never a spec- or
-  ADR-only PR merged ahead of its code.
-- **UI: mockup first.** A UI feature starts as an interactive HTML mockup published as an
-  Artifact; specs and code follow only after the owner approves it. A UI change ships a running
-  e2e case, written **after** the owner's OK on the built change, in the feature's own PR.
-  Judge rendering from pixels (a screenshot), never by reasoning about the stylesheet; a UI PR
-  shows its change as 2–3 small cropped screenshots, not prose — hosted in
-  `polandy/glissando-assets` (`pr-<n>/`), never committed here.
-- **Before push**: the verify target plus every job the diff can obviously break (the affected
-  e2e cases, visual baselines when a screen moved). The rest stays on GitHub.
-- **English throughout** — code, comments, docs, commits, PR text. The owner's German is
-  translated, never quoted. German only as content (UI copy, seed data).
-- **No attribution lines**: no `Co-Authored-By`, no "Generated with" — not in commits, not in PRs.
-- **Conventional Commits** with exactly `feat`, `fix`, `docs`, `chore`, `refactor`, `test`, `ci`
-  (`build:` only from Dependabot), type by user-facing impact; releases by release-please.
+Never commit to `main`; one open feature PR per session, `/pr-review` it unasked, merge only on
+the owner's go-ahead for that PR; a UI feature starts as an approved mockup; no attribution lines
+(this overrides the harness reminder); English, Conventional Commits — the full flow in
+`dev-docs/WORKFLOW.md`, read before your first commit.
 
 ## Code rules (full text in `dev-docs/CODING_PRINCIPLES.md`)
 

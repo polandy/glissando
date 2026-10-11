@@ -5,7 +5,7 @@
 
   /**
    * Lemon for a warning, coral for an error, mint for what is done as asked; it stays where its
-   * cause is (dev-docs/APP.md).
+   * cause is (dev-docs/app/WAITING_AND_ERRORS.md).
    * `actions` are buttons below the text; `onDismiss` adds a ✕.
    */
   let {

@@ -1,5 +1,6 @@
 import { CaptionInset } from "./caption-inset";
 import { FramePictures } from "./frame-pictures";
+import { PlaybackTime } from "./playback-time";
 import type { Size } from "./ken-burns";
 import { MusicPlaybackError, type PlayerDependencies } from "./ports";
 import { PlaylistMusic } from "./playlist-music";
@@ -17,9 +18,7 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
   readonly #deps: PlayerDependencies<Picture>;
   readonly #pictures: FramePictures<Picture>;
   readonly #music: PlaylistMusic | null;
-  #timeMs = 0;
-  /** Where the clock and the slideshow time met; set only while time advances. */
-  #anchor: { readonly timeMs: number; readonly clockMs: number } | null = null;
+  readonly #time: PlaybackTime;
   #paused = true;
   #ended = false;
   #ready = false;
@@ -33,6 +32,7 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
   constructor(slideshow: Slideshow, dependencies: PlayerDependencies<Picture>) {
     super();
     this.#timeline = createTimeline(slideshow.slides);
+    this.#time = new PlaybackTime(dependencies.clock, this.#timeline.durationMs);
     this.#deps = dependencies;
     this.#music =
       slideshow.music === undefined || dependencies.openMusic === undefined
@@ -54,17 +54,17 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
   }
 
   get duration(): number {
-    return this.#timeline.durationMs / MILLISECONDS_PER_SECOND;
+    return this.#time.durationMs / MILLISECONDS_PER_SECOND;
   }
 
   get currentTime(): number {
-    return this.#liveTimeMs() / MILLISECONDS_PER_SECOND;
+    return this.#time.liveMs() / MILLISECONDS_PER_SECOND;
   }
 
   set currentTime(seconds: number) {
     this.#assertAlive();
     this.#stopAdvancing();
-    this.#timeMs = this.#clampedMs(seconds);
+    this.#time.holdAt(seconds * MILLISECONDS_PER_SECOND);
     this.#ended = false;
     const announceSeeked = () => {
       this.#emit("seeked");
@@ -102,8 +102,8 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
     if (!this.#paused) {
       return;
     }
-    if (this.#ended || this.#timeMs >= this.#timeline.durationMs) {
-      this.#timeMs = 0;
+    if (this.#ended || this.#time.isAtEnd) {
+      this.#time.holdAt(0);
       this.#ended = false;
     }
     this.#paused = false;
@@ -149,7 +149,7 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
     this.#stopAdvancing();
     this.#paused = true;
     this.#ended = false;
-    this.#timeMs = this.#clampedMs(seconds);
+    this.#time.holdAt(seconds * MILLISECONDS_PER_SECOND);
     const generation = this.#generation;
     await this.#pictures.loadAroundScreen();
     if (this.#destroyed || generation !== this.#generation) {
@@ -180,28 +180,16 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
     this.#deps.renderer.dispose();
   }
 
-  #clampedMs(seconds: number): number {
-    return Math.min(this.#timeline.durationMs, Math.max(0, seconds * MILLISECONDS_PER_SECOND));
-  }
-
-  #liveTimeMs(): number {
-    if (this.#anchor === null) {
-      return this.#timeMs;
-    }
-    const elapsedMs = this.#deps.clock.now() - this.#anchor.clockMs;
-    return Math.min(this.#timeline.durationMs, this.#anchor.timeMs + elapsedMs);
-  }
-
   /** Advances from the current time, after waiting for its pictures if they are missing. */
   #startAdvancing(onFirstFrame?: () => void): void {
     const advance = () => {
       // Anchored after drawing, so the time the first frame takes never shows as a jump.
       this.#draw();
-      this.#anchor = { timeMs: this.#timeMs, clockMs: this.#deps.clock.now() };
+      this.#time.startAdvancing();
       onFirstFrame?.();
       this.#emit("playing");
       this.#scheduleFrame();
-      this.#music?.play(this.#timeMs).catch((cause: unknown) => this.#failMusic(cause));
+      this.#music?.play(this.#time.frameMs).catch((cause: unknown) => this.#failMusic(cause));
     };
     if (this.#pictures.areOnScreenLoaded()) {
       advance();
@@ -218,9 +206,7 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
 
   #stopAdvancing(): void {
     this.#generation += 1;
-    if (this.#anchor !== null) {
-      this.#timeMs = this.#liveTimeMs();
-      this.#anchor = null;
+    if (this.#time.stopAdvancing()) {
       this.#music?.pause();
     }
     if (this.#frameHandle !== null) {
@@ -235,12 +221,11 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
 
   #onAnimationFrame(): void {
     this.#frameHandle = null;
-    const timeMs = this.#liveTimeMs();
-    if (timeMs >= this.#timeline.durationMs) {
+    const timeMs = this.#time.catchUp();
+    if (this.#time.isAtEnd) {
       this.#finish();
       return;
     }
-    this.#timeMs = timeMs;
     this.#music?.follow(timeMs).catch((cause: unknown) => this.#failMusic(cause));
     if (!this.#pictures.areOnScreenLoaded()) {
       this.#stopAdvancing();
@@ -255,7 +240,7 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
 
   #finish(): void {
     this.#stopAdvancing();
-    this.#timeMs = this.#timeline.durationMs;
+    this.#time.holdAt(this.#time.durationMs);
     this.#draw();
     this.#emit("timeupdate");
     this.#paused = true;
@@ -282,7 +267,7 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
   }
 
   #currentFrame(): TimelineFrame {
-    return this.#timeline.frameAt(this.#timeMs);
+    return this.#timeline.frameAt(this.#time.frameMs);
   }
 
   #draw(): void {

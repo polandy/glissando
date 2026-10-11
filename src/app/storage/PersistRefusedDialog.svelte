@@ -18,7 +18,7 @@
   const understood = $derived({ label: t("common.understood"), onSelect: onUnderstood });
 </script>
 
-<!-- Installing is the remedy wherever it is possible (dev-docs/APP.md). -->
+<!-- Installing is the remedy wherever it is possible (dev-docs/app/INSTALLING_AND_OFFLINE.md). -->
 {#if offer === null}
   <Dialog
     title={t("storage.persistRefusedTitle")}

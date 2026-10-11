@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onDestroy } from "svelte";
-  import { KEN_BURNS_EASING, transitionDurationMs } from "../../compose";
+  import { KEN_BURNS_EASING } from "../../compose";
   import type { OwnKenBurns } from "../../library/own-ken-burns";
   import type { TransitionChoice } from "../../library/own-timing";
   import { normalizeCaption, type Framing } from "../../player";
@@ -15,8 +15,8 @@
   import MotionPreviewScreen from "./MotionPreviewScreen.svelte";
   import PictureNavigation from "./PictureNavigation.svelte";
   import TransitionSection from "./TransitionSection.svelte";
+  import { EditorPreview } from "./editor-preview";
   import { MotionPreview, type MotionPreviewPorts } from "./motion-preview";
-  import { previewPlan, transitionHoldMs, transitionLeadInMs } from "./timing/preview-timeline";
   import { FRAME_KEYS, type FrameKey } from "./frame-keys";
   import type { PictureEditorView } from "./picture-editor-view";
 
@@ -90,15 +90,15 @@
   let previewState = $state.raw(previewClock.state);
   previewClock.subscribe((state) => (previewState = state));
   onDestroy(() => previewClock.dispose());
+  // svelte-ignore state_referenced_locally
+  const editorPreview = new EditorPreview(previewClock, reducedMotion);
 
   // svelte-ignore state_referenced_locally
   let previewedDurationMs = picture.durationMs;
-  /** A new duration plays from the start. */
   $effect(() => {
     if (picture.durationMs !== previewedDurationMs) {
       previewedDurationMs = picture.durationMs;
-      previewClock.retime(picture.durationMs);
-      replay();
+      editorPreview.retime(picture.durationMs);
     }
   });
 
@@ -112,51 +112,19 @@
     ),
   );
 
-  /** Editing a frame shows its end in the preview: the start at 0, the end at 1. */
-  function holdOn(key: FrameKey): void {
-    previewClock.holdAt(key === "from" ? 0 : 1);
-  }
-
   function activate(key: FrameKey): void {
     active = key;
-    holdOn(key);
+    editorPreview.showFrame(key);
   }
 
   function frameChanged(key: FrameKey, framing: Framing, final: boolean): void {
     const changed = { ...motion, [key]: framing };
-    holdOn(key);
+    editorPreview.showFrame(key);
     if (final) {
       draft = null;
       onChange(changed);
     } else {
       draft = changed;
-    }
-  }
-
-  /** After a swap or a reset the whole new motion plays, unless motion is reduced. */
-  function replay(): void {
-    if (reducedMotion) {
-      previewClock.holdAt(0);
-    } else {
-      previewClock.restart();
-    }
-  }
-
-  /**
-   * A transition picked (or reset) plays from a moment before it, or rests half-way through.
-   * Built from `choice` explicitly, not the picture prop: right after `onTransition` fires, it
-   * may not carry the new transition yet.
-   */
-  function showTransition(choice: TransitionChoice): void {
-    const plan = previewPlan({
-      durationMs: picture.durationMs,
-      transition: { choice, durationMs: transitionDurationMs(picture.durationMs) },
-      next: picture.next,
-    });
-    if (reducedMotion) {
-      previewClock.restAt(transitionHoldMs(plan));
-    } else {
-      previewClock.playFrom(transitionLeadInMs(plan));
     }
   }
 </script>
@@ -194,12 +162,12 @@
       onActivate={activate}
       onSwap={() => {
         onSwap();
-        replay();
+        editorPreview.replay();
       }}
       onReset={() => {
         if (picture.ownMotion) {
           onReset();
-          replay();
+          editorPreview.replay();
         }
       }}
       bind:caption
@@ -227,11 +195,11 @@
           {reducedMotion}
           onTransition={(choice) => {
             onTransition(choice);
-            showTransition(choice);
+            editorPreview.showTransition(choice, picture);
           }}
           onReset={() => {
             onResetTransition();
-            showTransition(picture.transition.automatic);
+            editorPreview.showTransition(picture.transition.automatic, picture);
           }}
         />
       {/snippet}

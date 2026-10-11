@@ -12,7 +12,8 @@ Stack-specific conventions are in §7; the stack itself is ADR-0001.
 2. **Readability over cleverness.** If a construct needs explaining, rewrite it before commenting.
 3. **English everywhere** — identifiers, tests, comments, commits, docs.
 4. **Comments justify _why_, never _what_.** They describe the current state only — no history,
-   no provenance, no commented-out code; git holds the past.
+   no provenance ("used to", "no longer", "(owner, date)"), no commented-out code; git holds the
+   past. Such lines in a file a change touches are cleaned up in that change.
 5. **Clear responsibilities.** Every module has one reason to exist and one to change; dependencies
    point inward, never sideways into a sibling's internals.
 6. **No magic strings or numbers** (§4).

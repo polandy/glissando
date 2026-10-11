@@ -28,7 +28,7 @@
     onReload: () => void;
     onTheme: (theme: ThemePreference) => void;
     onLanguage: (language: LanguagePreference) => void;
-    /** ✕, the scrim, Esc; it should go back through history (see dev-docs/APP.md). */
+    /** ✕, the scrim, Esc; it should go back through history (see dev-docs/app/NAVIGATION.md). */
     onClose: () => void;
   } = $props();
 

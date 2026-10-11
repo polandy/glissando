@@ -4,7 +4,7 @@
 
 ## Context
 
-Pictures can be added to an existing slideshow (`dev-docs/APP.md`, Adding pictures). Adding a
+Pictures can be added to an existing slideshow (`dev-docs/app/SLIDESHOW_EDITING.md`, Adding pictures). Adding a
 picture that is already in it, from the device or from Immich, should skip it and say so; the
 Immich browser should mark photos already in. That needs an identity per picture that survives
 downscaling, is known before a picture is downscaled (so a duplicate costs nothing) and works on

@@ -6,7 +6,7 @@
 
 The slideshow screen's tiles were dragged with the browser's native drag and drop, for a mouse
 only: a native drag never starts from a finger on Android or iOS, so touch reordered with the
-selection bar's Earlier and Later alone. Moving several pictures together (dev-docs/APP.md,
+selection bar's Earlier and Later alone. Moving several pictures together (dev-docs/app/SLIDESHOW_EDITING.md,
 Select and reorder) adds a group drag, and the owner asked for it on the phone too: hold a
 tile, then drag. Native drag and drop cannot do that, so the touch drag needs its own code.
 

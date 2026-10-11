@@ -42,7 +42,7 @@
     onDismissNotice: () => void;
     onReload: () => void;
     logo?: Snippet | undefined;
-    /** The status line at the bottom (dev-docs/APP.md, Installing and offline). */
+    /** The status line at the bottom (dev-docs/app/INSTALLING_AND_OFFLINE.md). */
     statusBar: Snippet;
   } = $props();
 

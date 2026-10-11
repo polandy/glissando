@@ -20,7 +20,7 @@ export interface InstallSteps {
   readonly after: readonly MessageKey[];
 }
 
-/** The steps of each browser without an install prompt (dev-docs/APP.md, Installing and offline). */
+/** The steps of each browser without an install prompt (dev-docs/app/INSTALLING_AND_OFFLINE.md). */
 export const INSTALL_STEPS: Readonly<Record<InstallGuide, InstallSteps>> = {
   ios: {
     title: "pwa.guideTitle",

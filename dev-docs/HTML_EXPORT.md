@@ -125,7 +125,7 @@ below 720 px. Its states follow the video sheet's (VIDEO_EXPORT.md):
 - `src/export-player/` imports only `src/player/`, `src/html-export/page-contract.ts`,
   `src/html-export/base64.ts` (the media blocks' encoding, the other half of that contract) and
   `src/ui-kit/` (icons, scheduler, controls visibility, caption inset, fullscreen), which the app
-  shares (APP.md, Wiring).
+  shares (app/WIRING.md).
 - `src/app/html-export/` drives the sheet: `html-export-session.ts` (the flow over the ports and
   states in `html-export-state.ts`, unit-tested with fakes), `page-copy.ts` (the page's words
   from the catalogue, `htmlPage.*`), `slideshow-html-export.ts` (estimate and run for the stored

@@ -2,7 +2,7 @@
   import Icon from "../../components/Icon.svelte";
 
   /**
-   * A strip tile's check circle (dev-docs/APP.md, Selecting several): shown only while selecting
+   * A strip tile's check circle (dev-docs/app/SLIDESHOW_EDITING.md, Selecting several): shown only while selecting
    * several, filled in the accent once the tile is picked.
    */
   let { selecting, selected }: { selecting: boolean; selected: boolean } = $props();

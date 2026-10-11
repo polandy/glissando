@@ -28,7 +28,7 @@ export interface LaunchedFiles {
 
 /**
  * Opens the `.glissando` files the installed app was launched with (a double-click on the
- * desktop), one after another, as if each were picked in the library (dev-docs/APP.md).
+ * desktop), one after another, as if each were picked in the library (dev-docs/app/SCREENS.md).
  */
 export function openLaunchedFiles(
   queue: LaunchQueue | null,

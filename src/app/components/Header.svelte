@@ -14,7 +14,7 @@
   }: {
     /** From the root; the last one is the current place. None on the start screen: the brand. */
     crumbs: readonly string[];
-    /** Shows the back arrow; it should go back through history (see dev-docs/APP.md). */
+    /** Shows the back arrow; it should go back through history (see dev-docs/app/NAVIGATION.md). */
     onBack?: () => void;
     /** Greys the back arrow out while leaving would interrupt something under way. */
     backDisabled?: boolean;

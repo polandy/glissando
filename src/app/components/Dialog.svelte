@@ -17,7 +17,7 @@
   import { onMount, type Snippet } from "svelte";
   import Icon from "./Icon.svelte";
 
-  /** Only when the user must decide or would otherwise lose data (dev-docs/APP.md). */
+  /** Only when the user must decide or would otherwise lose data (dev-docs/app/WAITING_AND_ERRORS.md). */
   let {
     title,
     message,

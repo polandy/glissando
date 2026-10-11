@@ -48,7 +48,7 @@ test("E2E-035 several pictures are selected and gathered by the bar, moved toget
     2,
   );
 
-  // Selecting several: three scattered tiles (dev-docs/APP.md, Selecting several).
+  // Selecting several: three scattered tiles (dev-docs/app/SLIDESHOW_EDITING.md, Selecting several).
   await page.getByRole("button", { name: "Auswählen" }).click();
   await tile(page, 2, "02.07.2025").click();
   await tile(page, 4, "04.07.2025").click();
