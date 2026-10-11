@@ -75,6 +75,15 @@ export const deMusic = {
   "music.noteEndsEarly":
     "Jedes Bild hat eine eigene Dauer. Die Diashow endet nach {time}, die Musik blendet dort aus.",
   "music.noteEndsWithMusic": "Jedes Bild hat eine eigene Dauer. Die Diashow endet mit der Musik.",
+  "music.noteOwnSeconds":
+    "Jedes Bild ohne eigene Dauer bleibt {seconds}. Die Diashow dauert {time}, die Musik blendet dort aus.",
+  "music.noteOwnSecondsOnTheBeat":
+    "Jedes Bild ohne eigene Dauer bleibt etwa {seconds}, jeder Wechsel auf dem nächsten Schlag. Die Diashow dauert {time}, die Musik blendet dort aus.",
+  "music.noteOutlastsOwnSeconds":
+    "Jedes Bild ohne eigene Dauer bleibt {seconds}; nach der Ausblende laufen die letzten Bilder still. Kürzere Bilder, längere Musik oder „Musik füllen“ beheben das.",
+  "music.pictureLength": "Bilddauer",
+  "music.aboutSecondsEach": "Je etwa {seconds}",
+  "music.fillTheMusic": "Musik füllen",
   "music.pictureChanges": "Bildwechsel",
   "music.beatsPerMinute": "{bpm} BPM",
   "music.onTheBeat": "Im Takt",
@@ -87,8 +96,15 @@ export const deMusic = {
       "Die Bilder {pictures} behalten ihre eigene Dauer, darum kann der Wechsel nach jedem zwischen die Schläge fallen.",
   },
   "music.evenlyHint": "Die Bilder teilen sich die Musik gleichmäßig, unabhängig von ihrem Takt.",
+  "music.evenlyHintSeconds": "Jedes Bild bleibt genau {seconds}, unabhängig vom Takt.",
   "music.listeningForBeat":
     "Glissando hört den Takt heraus\u00a0… Bis dahin teilen sich die Bilder die Musik gleichmäßig.",
+  "music.listeningForBeatSeconds":
+    "Glissando hört den Takt heraus\u00a0… Bis dahin bleibt jedes Bild genau {seconds}.",
+  "music.noSteadyBeatSeconds":
+    "In dieser Musik ist kein gleichmäßiger Takt zu finden. Jedes Bild bleibt genau {seconds}.",
+  "music.musicUndecodableSeconds":
+    "Glissando konnte den Takt dieser Musik nicht heraushören. Jedes Bild bleibt genau {seconds}.",
   "music.noSteadyBeat":
     "In dieser Musik ist kein gleichmäßiger Takt zu finden. Die Bilder teilen sie sich gleichmäßig.",
   "music.musicUndecodable":

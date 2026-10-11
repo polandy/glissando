@@ -21,7 +21,9 @@ test("E2E-023 the music gets its own excerpt and fade-in, stored, summed up in t
   const longFadeIn = fadeIn.getByRole("radio", { name: /^Lang/ });
   const back = page.getByRole("button", { name: "Zurück", exact: true });
   await openApp(page);
-  await createSlideshowWithMusic(page, silentTrack("Sommerwind.wav", TRACK_SECONDS));
+  await createSlideshowWithMusic(page, silentTrack("Sommerwind.wav", TRACK_SECONDS), {
+    fill: true,
+  });
 
   await page.getByRole("button", { name: "Musik Sommerwind.wav ganzer Titel Bearbeiten" }).click();
   await expect(

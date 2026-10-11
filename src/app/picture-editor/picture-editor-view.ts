@@ -4,7 +4,7 @@ import {
   beatTransitionDurationMs,
   excerptBeatsMs,
   musicExcerpt,
-  musicExcerptMs,
+  filledMusicMs,
   pictureKenBurns,
   pictureTransition,
   slideDurationsMs,
@@ -101,7 +101,7 @@ export function pictureEditorView(
   const beatsMs = excerptBeatsMs(stored.music, beats);
   const durationsMs = slideDurationsMs(
     pictures,
-    musicExcerptMs(stored.music),
+    filledMusicMs(stored),
     stored.secondsPerPicture,
     beatsMs,
   );

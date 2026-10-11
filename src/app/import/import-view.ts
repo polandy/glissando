@@ -69,30 +69,64 @@ export function captureRange(
     : { from: first.capturedAt, to: last.capturedAt };
 }
 
-/** The slide durations of a slideshow about to be created: none of its pictures has an own one. */
+/** The chosen music of a slideshow about to be created, and whether its pictures fill it. */
+export interface ImportMusic {
+  readonly durationMs: number;
+  readonly filled: boolean;
+}
+
+/** How the music meets the slideshow: it ends with it, fades out at its end, or ends first. */
+export type ImportMusicFit = "ends-with" | "fades-out" | "silent-after";
+
+export interface ImportTiming {
+  readonly perPictureSeconds: number;
+  readonly totalSeconds: number;
+  /** The music's length and how it meets the slideshow; null without music. */
+  readonly music: { readonly kind: ImportMusicFit; readonly seconds: number } | null;
+}
+
+/**
+ * The slide durations of a slideshow about to be created: none of its pictures has an own one,
+ * and the music's beats are not known yet.
+ */
 export function importSlideDurationsMs(
   pictureCount: number,
-  musicDurationMs: number | undefined,
+  music: ImportMusic | undefined,
   secondsPerPicture: number,
 ): number[] {
   const pictures = Array.from({ length: pictureCount }, () => ({}));
-  return slideDurationsMs(pictures, musicDurationMs, secondsPerPicture);
+  const filledMs = music?.filled === true ? music.durationMs : undefined;
+  return slideDurationsMs(pictures, filledMs, secondsPerPicture);
 }
 
 /** Step 2's timing row, by the same rule the slideshow is composed with. */
 export function importTiming(
   pictureCount: number,
-  musicDurationMs: number | undefined,
+  music: ImportMusic | undefined,
   secondsPerPicture: number,
-): { readonly perPictureSeconds: number; readonly totalSeconds: number } {
-  const totalMs = importSlideDurationsMs(pictureCount, musicDurationMs, secondsPerPicture).reduce(
+): ImportTiming {
+  const totalMs = importSlideDurationsMs(pictureCount, music, secondsPerPicture).reduce(
     (sum, durationMs) => sum + durationMs,
     0,
   );
   return {
     perPictureSeconds: totalMs / pictureCount / MILLISECONDS_PER_SECOND,
     totalSeconds: totalMs / MILLISECONDS_PER_SECOND,
+    music:
+      music === undefined
+        ? null
+        : {
+            kind: musicFit(totalMs, music.durationMs),
+            seconds: music.durationMs / MILLISECONDS_PER_SECOND,
+          },
   };
+}
+
+function musicFit(slideshowMs: number, musicMs: number): ImportMusicFit {
+  if (slideshowMs > musicMs) {
+    return "silent-after";
+  }
+  return slideshowMs < musicMs ? "fades-out" : "ends-with";
 }
 
 /** A short format name for the track card: the file extension, else the type's subtype. */

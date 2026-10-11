@@ -1,3 +1,4 @@
+import { OWN_SECONDS_PICTURE_LENGTH, type PictureLength } from "../../library/picture-length";
 import { buildStoredSlideshow } from "../../compose";
 import type { ImmichPhoto } from "../../immich/immich-client";
 import type { ConvertMusic } from "../../import/music-conversion";
@@ -57,12 +58,15 @@ export interface ImportChoices {
   readonly home: SlideshowHome;
   readonly music: MusicChoice | null;
   readonly secondsPerPicture: number;
+  /** With music, the pictures last their seconds (the default) or, `undefined`, fill it. */
+  readonly pictureLength: PictureLength | undefined;
 }
 
 const INITIAL_CHOICES: ImportChoices = {
   home: "device",
   music: null,
   secondsPerPicture: DEFAULT_SECONDS_PER_PICTURE,
+  pictureLength: OWN_SECONDS_PICTURE_LENGTH,
 };
 
 /**
@@ -198,6 +202,11 @@ export class ImportSession {
     this.#setChoices({ secondsPerPicture });
   }
 
+  /** `undefined`: the pictures fill the music (ADR-0022). */
+  setPictureLength(pictureLength: PictureLength | undefined): void {
+    this.#setChoices({ pictureLength });
+  }
+
   /**
    * Stores the music and the slideshow record, last, or creates it on the server; `locale` writes
    * the title's month. A failure keeps the session as it was.
@@ -221,6 +230,9 @@ export class ImportSession {
       pictures: state.pictures,
       ...(music === undefined ? {} : { music }),
       secondsPerPicture: this.#choices.secondsPerPicture,
+      ...(this.#choices.pictureLength === undefined
+        ? {}
+        : { pictureLength: this.#choices.pictureLength }),
       locale,
     });
     if (onServer) {

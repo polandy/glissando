@@ -12,6 +12,12 @@ import {
   checkPictureChanges,
   InvalidOwnMusicError,
 } from "../library/own-music";
+import {
+  checkPictureLength,
+  InvalidPictureLengthError,
+  OWN_SECONDS_PICTURE_LENGTH,
+  type PictureLength,
+} from "../library/picture-length";
 import { MAX_SECONDS_PER_PICTURE, MIN_SECONDS_PER_PICTURE } from "../library/stored-slideshow";
 import {
   CAPTION_FROM_VERSION,
@@ -20,6 +26,7 @@ import {
   OWN_KEN_BURNS_FROM_VERSION,
   OWN_TIMING_FROM_VERSION,
   PICTURE_CHANGES_FROM_VERSION,
+  PICTURE_LENGTH_FROM_VERSION,
   type ManifestMusic,
   type ManifestPicture,
   type ManifestSlideshow,
@@ -57,6 +64,7 @@ export function slideshowKeys(version: number): string[] {
     "pictures",
     "music",
     ...(version >= DEFAULT_TRANSITION_FROM_VERSION ? ["transition"] : []),
+    ...(version >= PICTURE_LENGTH_FROM_VERSION ? ["pictureLength"] : []),
   ];
 }
 
@@ -80,6 +88,9 @@ export function readSlideshowFields(show: JsonObject, path: string): SlideshowFi
     title: readText(show["title"], `${path}.title`),
     createdAt: readDateTime(show["createdAt"], `${path}.createdAt`),
     secondsPerPicture,
+    ...(show["pictureLength"] === undefined
+      ? {}
+      : { pictureLength: readPictureLength(show["pictureLength"], path) }),
     ...(show["ownOrder"] === true ? { ownOrder: true } : {}),
     ...(show["transition"] === undefined
       ? {}
@@ -167,6 +178,21 @@ export function readMusicFields(music: JsonObject, path: string): MusicFields {
         : { pictureChanges: checkPictureChanges(pictureChanges, path) }),
     })),
   };
+}
+
+function readPictureLength(value: unknown, path: string): PictureLength {
+  try {
+    return checkPictureLength(value, path);
+  } catch (error) {
+    if (error instanceof InvalidPictureLengthError) {
+      throw new DocumentFormatError(
+        `${path}.pictureLength`,
+        JSON.stringify(OWN_SECONDS_PICTURE_LENGTH),
+        error.actual,
+      );
+    }
+    throw error;
+  }
 }
 
 function readOwnTiming<Value>(

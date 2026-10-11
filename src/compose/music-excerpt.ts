@@ -1,5 +1,5 @@
 import { MUSIC_FADE_OFF_MS, MUSIC_FADE_SHORT_MS, type MusicTrim } from "../library/own-music";
-import type { StoredMusic } from "../library/stored-slideshow";
+import type { StoredMusic, StoredSlideshow } from "../library/stored-slideshow";
 
 /**
  * Where the music plays and how it fades, resolved from the stored music and the slideshow's
@@ -32,6 +32,17 @@ export function musicExcerptMs(music: StoredMusic | undefined): number | undefin
   }
   const { startMs, endMs } = musicExcerpt(music);
   return endMs - startMs;
+}
+
+/**
+ * The length the pictures without an own duration share: the music's excerpt while they fill it
+ * (`StoredSlideshow.pictureLength` absent, ADR-0022). Absent without music, or when they last
+ * their own seconds.
+ */
+export function filledMusicMs(
+  slideshow: Pick<StoredSlideshow, "music" | "pictureLength">,
+): number | undefined {
+  return slideshow.pictureLength === undefined ? musicExcerptMs(slideshow.music) : undefined;
 }
 
 /** Where in the track the music stops being heard: a shorter slideshow ends it early. */

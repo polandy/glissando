@@ -42,7 +42,7 @@ function withPictureChanges(formatVersion: number, pictureChanges: unknown = "ev
 describe("the music's picture changes in the .glissando file", () => {
   it("are written from format version 8, the version that carries them", () => {
     expect(PICTURE_CHANGES_FROM_VERSION).toBe(8);
-    expect(evenManifest().formatVersion).toBe(8);
+    expect(evenManifest().formatVersion).toBeGreaterThanOrEqual(8);
     expect(evenManifest().slideshow.music).toMatchObject({ pictureChanges: "even" });
   });
 

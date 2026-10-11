@@ -25,6 +25,7 @@ export {
   audibleEndMs,
   automaticFadeInMs,
   automaticFadeOutMs,
+  filledMusicMs,
   musicExcerpt,
   musicExcerptMs,
   resolveMusicTiming,

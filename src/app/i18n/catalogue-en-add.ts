@@ -29,7 +29,7 @@ export const enAdd: Pick<Catalogue, keyof typeof deAdd> = {
   "add.musicTooShort": "The music is too short for all pictures:",
   "add.musicTooShortText":
     "no picture shows for less than {seconds}, so the slideshow runs {total} and the music {music}.",
-  "add.noMusic": "Each new picture gets {seconds}; the slideshow gets longer.",
+  "add.ownSeconds": "Each new picture gets {seconds}; the slideshow gets longer.",
   "add.add": { one: "Add {count}", other: "Add {count}" },
   "add.added": { one: "{count} picture added", other: "{count} pictures added" },
   "add.newBadge": "new",

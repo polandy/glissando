@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { OWN_SECONDS_PICTURE_LENGTH } from "../../library/picture-length";
 import type { StoredPicture, StoredSlideshow } from "../../library/stored-slideshow";
 import { picture, slideshow } from "../../library/testing/library-store-contract";
 import { afterAdding, type AfterAdding } from "./after-adding";
@@ -22,7 +23,24 @@ const cases: readonly {
       pictures: { before: 4, after: 6 },
       durationSeconds: { before: 20, after: 30 },
       perPictureSeconds: null,
-      note: { kind: "noMusic", secondsPerPicture: 5 },
+      note: { kind: "ownSeconds", secondsPerPicture: 5 },
+      placement: null,
+    },
+  },
+  {
+    name: "with music whose pictures last their own seconds each new picture adds them too",
+    show: slideshow({
+      pictures: pictures(4, "old"),
+      music: MUSIC,
+      secondsPerPicture: 5,
+      pictureLength: OWN_SECONDS_PICTURE_LENGTH,
+    }),
+    added: 2,
+    expected: {
+      pictures: { before: 4, after: 6 },
+      durationSeconds: { before: 20, after: 30 },
+      perPictureSeconds: null,
+      note: { kind: "ownSeconds", secondsPerPicture: 5 },
       placement: null,
     },
   },

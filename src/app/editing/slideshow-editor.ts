@@ -17,6 +17,8 @@ import {
   setMusicPictureChanges,
   setMusicTrim,
 } from "../../library/slideshow-edits-music";
+import { setPictureLength, setSecondsPerPicture } from "../../library/slideshow-edits-timing";
+import type { PictureLength } from "../../library/picture-length";
 import type { StoredSlideshow } from "../../library/stored-slideshow";
 import { EditSaver } from "./edit-saver";
 import { EditorUndos } from "./editor-undos";
@@ -205,6 +207,16 @@ export class SlideshowEditor {
   /** `"even"` shares the music evenly; `undefined` changes the pictures on the beat (ADR-0021). */
   setMusicPictureChanges(pictureChanges: PictureChanges | undefined): void {
     this.#apply(setMusicPictureChanges(this.#slideshow, pictureChanges));
+  }
+
+  /** `"seconds"`: the pictures last their seconds with music too; `undefined`: they fill it. */
+  setPictureLength(pictureLength: PictureLength | undefined): void {
+    this.#apply(setPictureLength(this.#slideshow, pictureLength));
+  }
+
+  /** How long each picture without an own duration stays, in half-second steps. */
+  setSecondsPerPicture(seconds: number): void {
+    this.#apply(setSecondsPerPicture(this.#slideshow, seconds));
   }
 
   /** Resolves once every edit made so far is stored (or reported as failed). */

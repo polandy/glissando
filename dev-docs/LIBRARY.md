@@ -68,7 +68,12 @@ never changed. `StoredMusic.trim` (`{ startMs, endMs }`, whole ms, `0 ≤ startM
 absent, the whole track. `fadeInMs` and `fadeOutMs` are own fades in whole ms, 0 to 10000 in
 steps of 500, 0 being off (the editor offers off, 2000 and 5000); absent, automatic.
 `pictureChanges` `"even"` has the pictures share the music evenly; absent, they change on the
-beat when one was found (ADR-0021).
+beat when one was found (ADR-0021). `StoredSlideshow.pictureLength` `"seconds"` has the
+pictures without an own duration last `secondsPerPicture` each with music too; absent, they
+fill the music (ADR-0022). A new slideshow is created with `"seconds"` unless the user picks
+"Fill the music". `setPictureLength` (deleting the field for `undefined`, validated by
+`checkPictureLength`) and `setSecondsPerPicture` (half seconds, 2 to 15) are in
+`src/library/slideshow-edits-timing.ts`.
 `setMusicTrim` deletes the field for `undefined` or the whole track, `setMusicFadeIn`,
 `setMusicFadeOut` and `setMusicPictureChanges` for `undefined` (`src/library/slideshow-edits-music.ts`);
 all validate (`checkMusicTrim`, `checkMusicFadeMs`, `checkPictureChanges`).
@@ -208,7 +213,7 @@ entries are stored, not compressed, so any unzip tool opens it; no ZIP64, so it 
 | `music/track.<ext>`    | the music, extension from its file name (none when it has none)        |
 
 `slideshow` is the stored record without device ids: `title`, `createdAt`, `secondsPerPicture`,
-`ownOrder` (only when true), `transition` (only when not the crossfade), `pictures` (`file`, `thumbnail`, `capturedAt`, `width`, `height`,
+`pictureLength` (only when set), `ownOrder` (only when true), `transition` (only when not the crossfade), `pictures` (`file`, `thumbnail`, `capturedAt`, `width`, `height`,
 `fileName`, `kenBurns` for a picture with an own motion, `caption` for one with a caption,
 `durationMs` and `transition` for one with an own duration or transition, `immichAssetId` or
 `fileBytes` where known) and `music` (`file`, `fileName`, `durationMs` in whole ms, `mimeType`, and `trim`, `fadeInMs`, `fadeOutMs`, `pictureChanges` where set). Picture types follow
@@ -218,8 +223,9 @@ out of range makes the file damaged. Version 2 added `kenBurns`, version 3 `capt
 `durationMs` and `transition`, version 5 the music's `trim`, `fadeInMs` and `fadeOutMs`,
 version 6 the slideshow's `transition`, version 7 the pictures' `immichAssetId` or `fileBytes`
 (a picture carrying both is damaged, the reason names its path), version 8 the music's
-`pictureChanges`; files of versions 1 to 7 are still read (without
-`transition`: the crossfade), and a file carrying a field its version does not know is
+`pictureChanges`, version 9 the slideshow's `pictureLength`; files of versions 1 to 8 are still
+read (without `transition`: the crossfade; without `pictureLength`: the pictures fill the
+music), and a file carrying a field its version does not know is
 damaged. An own duration, transition, default transition, excerpt, fade or picture changes is checked as on the edit; the reason
 names its path and value. A caption must be what `normalizeCaption` leaves (1 to 80 characters counted in graphemes, one line, no
 leading, trailing or repeated whitespace); the reason names its path and value.

@@ -46,6 +46,8 @@ async function createSlideshowWithMusic(page: Page): Promise<void> {
     silentTrack("Sommerwind.wav", TRACK_SECONDS),
   ]);
   await expect(page.getByText("Sommerwind.wav", { exact: true })).toBeVisible();
+  // The pictures fill the music, so the video lasts exactly as long as the track.
+  await page.getByRole("radio", { name: "Musik füllen" }).click();
   await page.getByRole("button", { name: "Diashow erstellen" }).click();
   await expect(page.getByRole("status")).toHaveText(CREATED_TOAST);
 }

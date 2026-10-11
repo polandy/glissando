@@ -157,6 +157,16 @@ describe("readServerDocument", () => {
     expect(storedSlideshowFrom("server-show-1", readServerDocument(written)).music).toEqual(music);
   });
 
+  it("keeps the slideshow's own picture length through writing and reading", () => {
+    const ownSeconds: StoredSlideshow = { ...slideshow, pictureLength: "seconds" };
+    const written = serverDocumentFor(ownSeconds);
+
+    expect(written.slideshow).toMatchObject({ pictureLength: "seconds" });
+    expect(storedSlideshowFrom("server-show-1", readServerDocument(written)).pictureLength).toBe(
+      "seconds",
+    );
+  });
+
   it("refuses a document that is no object", () => {
     expect(readFails([])).toBe("root: expected an object, got []");
   });

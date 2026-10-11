@@ -27,7 +27,7 @@ export const deAdd = {
   "add.musicTooShort": "Die Musik reicht nicht für alle Bilder.",
   "add.musicTooShortText":
     "Kürzer als {seconds} zeigt Glissando kein Bild; die Diashow dauert {total}, die Musik {music}.",
-  "add.noMusic": "Ohne Musik bekommt jedes neue Bild {seconds}; die Diashow wird länger.",
+  "add.ownSeconds": "Jedes neue Bild bekommt {seconds}; die Diashow wird länger.",
   "add.add": { one: "{count} hinzufügen", other: "{count} hinzufügen" },
   "add.added": { one: "{count} Bild hinzugefügt", other: "{count} Bilder hinzugefügt" },
   "add.newBadge": "neu",

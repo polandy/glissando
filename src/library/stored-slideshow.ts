@@ -1,6 +1,7 @@
 import type { MusicBeats } from "../beats";
 import type { OwnKenBurns } from "./own-ken-burns";
 import type { PictureFocus } from "./picture-focus";
+import type { PictureLength } from "./picture-length";
 import type { MusicTrim, PictureChanges } from "./own-music";
 import type { SlideshowTransition, TransitionChoice } from "./own-timing";
 
@@ -10,7 +11,10 @@ import type { SlideshowTransition, TransitionChoice } from "./own-timing";
  * automatic choice follows the current rules.
  */
 
-/** Without music each picture stays this long; the user changes it in half-second steps. */
+/**
+ * Each picture without an own duration stays this long, without music or with music the pictures
+ * do not fill (`StoredSlideshow.pictureLength`); the user changes it in half-second steps.
+ */
 export const DEFAULT_SECONDS_PER_PICTURE = 5;
 export const SECONDS_PER_PICTURE_STEP = 0.5;
 export const MIN_SECONDS_PER_PICTURE = 2;
@@ -70,6 +74,11 @@ export interface StoredSlideshow {
   readonly ownOrder?: true;
   readonly music?: StoredMusic;
   readonly secondsPerPicture: number;
+  /**
+   * `"seconds"`: with music too, the pictures last `secondsPerPicture` each, on the beat
+   * (`checkPictureLength`); absent: they fill the music (ADR-0022).
+   */
+  readonly pictureLength?: PictureLength;
   /**
    * The transition every picture without its own hands over with; absent: the crossfade
    * (`DEFAULT_SLIDESHOW_TRANSITION`, see ADR-0010).

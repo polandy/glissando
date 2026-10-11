@@ -4,7 +4,7 @@ import type { StoredSlideshow } from "../library/stored-slideshow";
 import { SLIDESHOW_FORMAT_VERSION, type Slide, type Slideshow } from "../player/slideshow";
 import { beatTransitionDurationMs } from "./beat-transition";
 import { excerptBeatsMs } from "./excerpt-beats";
-import { musicExcerptMs, resolveMusicTiming } from "./music-excerpt";
+import { filledMusicMs, resolveMusicTiming } from "./music-excerpt";
 import { pictureKenBurns } from "./picture-ken-burns";
 import { pictureTransition, slideshowTransition } from "./picture-transition";
 import { slideDurationsMs } from "./slide-durations-ms";
@@ -32,7 +32,7 @@ export function composeSlideshow(
   const beatsMs = excerptBeatsMs(stored.music, beats);
   const durationsMs = slideDurationsMs(
     stored.pictures,
-    musicExcerptMs(stored.music),
+    filledMusicMs(stored),
     stored.secondsPerPicture,
     beatsMs,
   );

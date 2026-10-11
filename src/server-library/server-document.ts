@@ -23,7 +23,7 @@ import {
 export const SERVER_DOCUMENT_FORMAT_ID = "glissando-server";
 export const SERVER_DOCUMENT_FORMAT_VERSION = 1;
 /** The manifest format version whose slideshow fields a server document carries. */
-const MANIFEST_FIELDS_VERSION = 8;
+const MANIFEST_FIELDS_VERSION = 9;
 
 export interface ServerPicture extends PictureFields {
   readonly immichAssetId: string;
@@ -119,6 +119,7 @@ export function serverDocumentFor(slideshow: StoredSlideshow): ServerDocument {
       title: slideshow.title,
       createdAt: slideshow.createdAt,
       secondsPerPicture: slideshow.secondsPerPicture,
+      ...(slideshow.pictureLength === undefined ? {} : { pictureLength: slideshow.pictureLength }),
       ...(slideshow.ownOrder ? { ownOrder: true } : {}),
       ...(slideshow.transition === undefined ? {} : { transition: slideshow.transition }),
       pictures: slideshow.pictures.map(serverPictureFor),

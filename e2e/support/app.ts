@@ -123,8 +123,15 @@ export async function captionPicture(page: Page, tile: string, caption: string):
   await leaveEditor(page);
 }
 
-/** Imports three pictures with `track` and waits on the created slideshow's screen. */
-export async function createSlideshowWithMusic(page: Page, track: TestFile): Promise<void> {
+/**
+ * Imports three pictures with `track` and waits on the created slideshow's screen; with `fill`
+ * the pictures fill the music, otherwise they last the default 5 s each.
+ */
+export async function createSlideshowWithMusic(
+  page: Page,
+  track: TestFile,
+  { fill = false } = {},
+): Promise<void> {
   await openImport(page);
   await choosePictures(
     page,
@@ -134,6 +141,9 @@ export async function createSlideshowWithMusic(page: Page, track: TestFile): Pro
   await page.getByRole("button", { name: "Weiter" }).click();
   await chooseFiles(page, page.getByRole("button", { name: "Musik auswählen" }), [track]);
   await expect(page.getByText(track.name, { exact: true })).toBeVisible();
+  if (fill) {
+    await page.getByRole("radio", { name: "Musik füllen" }).click();
+  }
   await page.getByRole("button", { name: "Diashow erstellen" }).click();
   await expect(page.getByRole("status")).toHaveText(CREATED_TOAST);
 }

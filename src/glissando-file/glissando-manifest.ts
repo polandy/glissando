@@ -1,4 +1,5 @@
 import type { OwnKenBurns } from "../library/own-ken-burns";
+import type { PictureLength } from "../library/picture-length";
 import type { MusicTrim, PictureChanges } from "../library/own-music";
 import type { SlideshowTransition, TransitionChoice } from "../library/own-timing";
 import type { StoredSlideshow } from "../library/stored-slideshow";
@@ -14,9 +15,10 @@ export const GLISSANDO_FORMAT_ID = "glissando";
  * its own duration and transition (ADR-0008), version 5 the music's excerpt and fades
  * (ADR-0009), version 6 the slideshow's default transition (ADR-0010), version 7 a picture's
  * origin, `immichAssetId` or `fileBytes` (ADR-0016), version 8 the music's picture changes
- * (ADR-0021); files of every older version are still read.
+ * (ADR-0021), version 9 the slideshow's picture length (ADR-0022); files of every older version
+ * are still read.
  */
-export const GLISSANDO_FORMAT_VERSION = 8;
+export const GLISSANDO_FORMAT_VERSION = 9;
 export const OLDEST_READABLE_FORMAT_VERSION = 1;
 /** The first version that carries a picture's own motion. */
 export const OWN_KEN_BURNS_FROM_VERSION = 2;
@@ -32,6 +34,8 @@ export const DEFAULT_TRANSITION_FROM_VERSION = 6;
 export const ORIGIN_FROM_VERSION = 7;
 /** The first version that carries the music's picture changes. */
 export const PICTURE_CHANGES_FROM_VERSION = 8;
+/** The first version that carries the slideshow's picture length. */
+export const PICTURE_LENGTH_FROM_VERSION = 9;
 export const MANIFEST_ENTRY_NAME = "glissando.json";
 
 const PICTURE_EXTENSIONS: Readonly<Record<string, string>> = {
@@ -74,6 +78,7 @@ export interface ManifestSlideshow {
   readonly title: string;
   readonly createdAt: string;
   readonly secondsPerPicture: number;
+  readonly pictureLength?: PictureLength;
   readonly ownOrder?: true;
   readonly transition?: SlideshowTransition;
   readonly pictures: readonly ManifestPicture[];
@@ -150,6 +155,7 @@ export function manifestFor(
       title: slideshow.title,
       createdAt: slideshow.createdAt,
       secondsPerPicture: slideshow.secondsPerPicture,
+      ...(slideshow.pictureLength === undefined ? {} : { pictureLength: slideshow.pictureLength }),
       ...(slideshow.ownOrder ? { ownOrder: true } : {}),
       ...(slideshow.transition === undefined ? {} : { transition: slideshow.transition }),
       pictures,

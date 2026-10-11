@@ -18,16 +18,17 @@
     onPictureChanges: (changes: PictureChanges | undefined) => void;
   } = $props();
 
-  const { t, formatList } = getTranslator();
+  const { t, formatList, formatSeconds } = getTranslator();
   const HEAD_ID = "music-picture-changes";
   const CHOICES = [
     { changes: undefined, label: "music.onTheBeat" },
     { changes: EVEN_PICTURE_CHANGES, label: "music.evenly" },
   ] as const;
+  /** While the pictures fill the music, and while they last their own seconds. */
   const STATUS_TEXTS = {
-    listening: "music.listeningForBeat",
-    undecodable: "music.musicUndecodable",
-    none: "music.noSteadyBeat",
+    listening: ["music.listeningForBeat", "music.listeningForBeatSeconds"],
+    undecodable: ["music.musicUndecodable", "music.musicUndecodableSeconds"],
+    none: ["music.noSteadyBeat", "music.noSteadyBeatSeconds"],
   } as const;
 
   const radios: HTMLButtonElement[] = $state([]);
@@ -81,14 +82,20 @@
             pictures: formatList(view.ownDurationNumbers.map(String)),
           })}
         {/if}
-      {:else}
+      {:else if view.secondsPerPicture === undefined}
         {t("music.evenlyHint")}
+      {:else}
+        {t("music.evenlyHintSeconds", { seconds: formatSeconds(view.secondsPerPicture) })}
       {/if}
     </p>
   {:else}
     <p class="hint">
       {#if view.kind === "listening"}<span class="pulse" aria-hidden="true"></span>{/if}
-      {t(STATUS_TEXTS[view.kind])}
+      {#if view.secondsPerPicture === undefined}
+        {t(STATUS_TEXTS[view.kind][0])}
+      {:else}
+        {t(STATUS_TEXTS[view.kind][1], { seconds: formatSeconds(view.secondsPerPicture) })}
+      {/if}
     </p>
   {/if}
 </section>
