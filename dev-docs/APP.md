@@ -483,7 +483,8 @@ new slideshow lives).
   their time to the second. A tile's + ("Take in picture from <date> at <time>", a 44 px target)
   puts it back into the strip at its capture-date place and focus moves to the next +; from then
   on it is an ordinary picture (✕ removes it) and never set aside again; "Take all in" takes all
-  back. Set-aside pictures are not kept: the slideshow never references them, so the clean-up
+  back. Once none is left set aside, focus moves to the ✕ in the strip of the picture taken in
+  last (for "Take all in", the latest of them). Set-aside pictures are not kept: the slideshow never references them, so the clean-up
   after Next deletes their media. Exact duplicates are skipped before the check, and duplicates
   taken in by "Add anyway" are never set aside. A picture the check cannot measure stays in;
   once the check worker is gone (crashed, or a reply it cannot read) every picture from then on
