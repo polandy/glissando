@@ -1,11 +1,13 @@
 <script lang="ts">
   import type { MusicTrim, PictureChanges } from "../../library/own-music";
+  import type { PictureLength } from "../../library/picture-length";
   import { setMusicTrim } from "../../library/slideshow-edits-music";
   import type { StoredSlideshow } from "../../library/stored-slideshow";
   import { MILLISECONDS_PER_SECOND } from "../../player";
   import type { BeatsStatus } from "../beats/music-beats-known";
   import Header from "../components/Header.svelte";
   import Icon from "../components/Icon.svelte";
+  import PictureLengthSection from "../components/PictureLengthSection.svelte";
   import { getTranslator } from "../i18n/context";
   import FadeSection from "./FadeSection.svelte";
   import type { ListenKind, ListenState } from "./listen-preview";
@@ -30,6 +32,8 @@
     onFadeIn,
     onFadeOut,
     onPictureChanges,
+    onPictureLength,
+    onSecondsPerPicture,
     onListen,
     onStopListening,
     saving,
@@ -49,6 +53,9 @@
     onFadeOut: (fadeMs: number | undefined) => void;
     /** `undefined`: on the beat. */
     onPictureChanges: (changes: PictureChanges | undefined) => void;
+    /** `undefined`: the pictures fill the music. */
+    onPictureLength: (length: PictureLength | undefined) => void;
+    onSecondsPerPicture: (seconds: number) => void;
     onListen: (kind: ListenKind) => void;
     onStopListening: () => void;
     /** An edit is being stored. */
@@ -128,6 +135,9 @@
     </div>
     <div class="panel">
       <TrimSection {music} onTrim={commit} onReset={() => onTrim(undefined)} />
+      <PictureLengthSection {...music.pictureLength} {onPictureLength} {onSecondsPerPicture} />
+      <PictureChangesSection view={music.pictureChanges} {onPictureChanges} />
+      <TimingNote note={music.note} />
       <FadeSection
         direction="in"
         fade={music.fadeIn}
@@ -142,8 +152,6 @@
         onFade={onFadeOut}
         onReset={() => onFadeOut(undefined)}
       />
-      <PictureChangesSection view={music.pictureChanges} {onPictureChanges} />
-      <TimingNote note={music.note} />
     </div>
   </main>
 </div>

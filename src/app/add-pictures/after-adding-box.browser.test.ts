@@ -56,9 +56,9 @@ describe("AfterAddingBox", () => {
       expected: de.t("add.sharesMusic"),
     },
     {
-      note: "noMusic",
-      after: { ...SHARING, note: { kind: "noMusic", secondsPerPicture: 5 } } as const,
-      expected: de.t("add.noMusic", { seconds: de.formatSeconds(5) }),
+      note: "ownSeconds",
+      after: { ...SHARING, note: { kind: "ownSeconds", secondsPerPicture: 5 } } as const,
+      expected: de.t("add.ownSeconds", { seconds: de.formatSeconds(5) }),
     },
     {
       note: "musicTooShort",

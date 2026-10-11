@@ -139,7 +139,7 @@ describe("the music editor route", () => {
   it("stores a fade picked", async () => {
     const { target, store, editor } = await mountRoute();
 
-    const fadeIn = target.querySelectorAll<HTMLButtonElement>('[role="radiogroup"]')[0];
+    const fadeIn = target.querySelector('[role="radiogroup"][aria-labelledby="music-fade-in"]');
     fadeIn?.querySelectorAll("button")[2]?.click();
     await editor.settled();
 

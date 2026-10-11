@@ -128,12 +128,12 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
     date. Below it, a box "After adding" shows pictures "24 → 32",
     duration "5:40 → 5:40" and, when automatic pictures share the music, per picture "14.2 s →
     10.6 s" — the composition rules (`src/compose/`, ADR-0008) on the slideshow with the new
-    pictures, so own durations stay. With music a line "The pictures keep sharing the music;
+    pictures, so own durations stay. With music the pictures fill, a line "The pictures keep sharing the music;
     each gets a little shorter. Pictures with their own duration keep it.", or, when the
     automatic pictures' share would fall below the 2 s floor, a lemon notice "The music is too short for all pictures: no
     picture shows for less than 2 s, so the slideshow runs 7:28 and the music 5:40."; without
-    music "Each new picture gets 5 s; the slideshow gets longer." (the slideshow's seconds per
-    picture). With own order the box ends with the play order after adding as small numbered
+    music, or with music whose pictures last their own seconds (ADR-0022), "Each new picture gets
+    5 s; the slideshow gets longer." (the slideshow's seconds per picture). With own order the box ends with the play order after adding as small numbered
     thumbnails, the new ones outlined, and their spots, e.g. "2 after picture 1 · 1 after
     picture 6" ("before picture 1" at the very start); both follow the choice. The bottom actions: "Cancel" and "Add n". Cancel and ← with new pictures ask
     "Discard selection?" as in the import; discarding goes back to the slideshow unchanged and
@@ -301,8 +301,10 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
     automatic".
 - **Music editor** (`music-editor/`, route `routes/MusicEditorRoute.svelte`; mockup:
   https://polandy.github.io/glissando-assets/mockups/music-trim/ and
-  https://polandy.github.io/glissando-assets/mockups/beat-sync/, ADR-0009, ADR-0021): the music's
-  excerpt, fades and whether the pictures change on its beats. Bar: back and "Library / title / Music". Desktop: a main column and a
+  https://polandy.github.io/glissando-assets/mockups/beat-sync/ and
+  https://polandy.github.io/glissando-assets/mockups/beat-durations/, ADR-0009, ADR-0021,
+  ADR-0022): the music's excerpt, how long the pictures last, whether they change on its beats,
+  and its fades. Bar: back and "Library / title / Music". Desktop: a main column and a
   340 px panel on the right; up to 720 px stacked. Every change is stored at once, with no undo
   toast: "Whole track" and "Back to automatic" restore anything in one tap.
   - **Main column**: a music tile, the file name and "3:24" (trimmed: "3:24 · trimmed to 2:18").
@@ -326,6 +328,10 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
   - **Excerpt**: the state "Whole track" or "Trimmed" (accent-tinted), Start and End as
     "0:12,0" with − and + for half seconds, then "Whole track" (resets) or, untrimmed, "The
     slideshow uses the whole track, 3:24."
+  - **Picture length** (`components/PictureLengthSection.svelte`, also in the new slideshow's
+    music step): a clock icon, "About 5 s each" and "Fill the music" as a radiogroup (arrows move
+    the choice), stored at once; with the first, the seconds stepper (− and + for half seconds, 2
+    to 15 s) below it.
   - **Fade in** and **Fade out**: a ramp icon, the state "Automatic" or "Own", three steps Off,
     Short (2 s), Long (5 s) as a radiogroup (arrows move the choice); the automatic choice is
     outlined dashed and explained: "Automatic: short, as the excerpt starts mid-track." / "off,
@@ -336,21 +342,30 @@ props; `App.svelte` and the route components in `routes/` load data and wire the
     beats come from the background pass, `src/app/beats/track-beats.ts`): a transition icon and,
     once a beat is found, the tempo "124 BPM" as its state. Until the pass has a result, a
     breathing accent dot and "Listening for the beat… Until then the pictures share the music
-    evenly." With a beat, "On the beat" (the default) and "Evenly" as a radiogroup (arrows move
+    evenly." (pictures lasting their seconds: "… Until then each picture stays exactly 5 s.").
+    With a beat, "On the beat" (the default) and "Evenly" as a radiogroup (arrows move
     the choice), stored with the music at once; on the beat "Every automatic change lands on a
     beat of the music; a transition lasts whole beats.", with own durations followed by
     "Pictures 5 and 12 keep their own duration, so the change after each can fall between
-    beats."; evenly "The pictures share the music evenly, regardless of its beat."
+    beats."; evenly "The pictures share the music evenly, regardless of its beat." (or "Each
+    picture stays exactly 5 s, regardless of the beat.").
     Music without a clear beat: "No steady beat found in this music. The pictures share it
-    evenly.", no choice. Only music this device cannot decode reads "Glissando could not listen
-    to this music's beat. The pictures share it evenly."; a detection that failed otherwise
+    evenly." (or "… Each picture stays exactly 5 s."), no choice. Only music this device cannot
+    decode reads "Glissando could not listen to this music's beat. The pictures share it
+    evenly." (or "… Each picture stays exactly 5 s."); a detection that failed otherwise
     reads as still listening, as the next pass tries again. Opening the editor listens for the
     track next (`BeatPass.listenFor`), so music kept since the app opened and a server
     slideshow's music are listened to as well.
   - **Picture times**: "23 pictures without their own duration share the excerpt: 5.7 s each.
     The slideshow ends with the music." (on the beat, where the shares vary: "about 5.7 s each"), or on lemon "The slideshow runs 0:14 longer than the
     music." with why, or with every picture timed "… The slideshow ends after 2:00; the music
-    fades out there." The rules: `dev-docs/COMPOSITION.md`.
+    fades out there." With pictures lasting their seconds: "Each picture without its own
+    duration stays about 5 s, each change on the nearest beat. The slideshow lasts 2:00; the
+    music fades out there." (off the beat "stays 5 s."), or on lemon the slideshow running
+    longer with "Each picture without its own duration stays 5 s; after the fade-out the last
+    pictures play in silence. Shorter pictures, longer music or “Fill the music” fix that."
+    The panel's order: Excerpt, Picture length, Picture changes, Picture times, Fade in, Fade
+    out. The rules: `dev-docs/COMPOSITION.md`.
 - **Export** (`glissando-file/export-job.ts`): runs in the background, one at a time; the app
   stays usable, also on other screens. While it runs, the menu item is `aria-disabled` and reads
   "Exporting … 34 %" (for another slideshow: "Export", subtitle "Once the running export is
@@ -437,9 +452,14 @@ new slideshow lives).
   device". A file that cannot be read or converted, or is copy-protected (an iTunes `drms`
   track), replaces the drop zone with a coral notice "This file can't be used" naming the file,
   with "Choose other music" and the format hint. Chosen music is a card (music icon, the picked
-  file's name, m:ss · format, a close button removes it, and a strip of the pictures' thumbnails
-  splitting the track as they share it; no waveform, as only the duration is probed); without music a card with the seconds per picture
-  (default 5 s). The row "n pictures | x s per picture | m:ss total" follows the composition
+  file's name, m:ss · format, a close button removes it, then the **Picture length** choice —
+  "About 5 s each" (the default) with its stepper, or "Fill the music" — and a strip of the
+  pictures' thumbnails over a thin accent bar of the music, both to one scale, washed out where
+  the music fades out after the slideshow; under it "0:00 · 24 × about 5 s · 0:45" (filling:
+  "24 × 8 s") and "The slideshow lasts 2:00; the music fades out there." / "The slideshow runs
+  0:30 longer than the music; its last pictures play in silence." / "The pictures share the
+  music; the slideshow ends with it." No waveform, as only the duration is probed. Without music
+  a card "Time per picture" with the seconds per picture (default 5 s). The row "n pictures | x s per picture | m:ss total" follows the composition
   rules (`src/compose/`). "Pictures" goes back; "Create slideshow" (or "Create without
   music") stores the music and then the slideshow record under the blocking overlay "Creating
   slideshow …", opens the slideshow and shows the toast "Slideshow created — tap Play".

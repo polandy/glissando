@@ -54,3 +54,29 @@ describe("SlideshowEditor, the music's picture changes", () => {
     expect(await storedMusic()).toEqual(MUSIC);
   });
 });
+
+describe("SlideshowEditor, the pictures' length with music", () => {
+  it("stores the pictures lasting their own seconds, and filling the music again drops it", async () => {
+    const { editor, store } = await setUp(["a"], MUSIC);
+    const stored = async () => {
+      await editor.settled();
+      return store.getSlideshow("show");
+    };
+
+    editor.setPictureLength("seconds");
+    expect(editor.slideshow.pictureLength).toBe("seconds");
+    expect((await stored()).pictureLength).toBe("seconds");
+
+    editor.setPictureLength(undefined);
+    expect(await stored()).not.toHaveProperty("pictureLength");
+  });
+
+  it("stores how long each picture stays", async () => {
+    const { editor, store } = await setUp(["a"], MUSIC);
+
+    editor.setSecondsPerPicture(7.5);
+    await editor.settled();
+
+    expect((await store.getSlideshow("show")).secondsPerPicture).toBe(7.5);
+  });
+});

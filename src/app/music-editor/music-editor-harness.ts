@@ -1,6 +1,7 @@
 /** Shared set-up of the music editor's browser tests. */
 import { flushSync } from "svelte";
 import type { MusicTrim, PictureChanges } from "../../library/own-music";
+import type { PictureLength } from "../../library/picture-length";
 import type { StoredMusic, StoredPicture, StoredSlideshow } from "../../library/stored-slideshow";
 import type { BeatsStatus } from "../beats/music-beats-known";
 import { mountWithTranslator } from "../testing/mount-with-translator";
@@ -61,6 +62,8 @@ export function mountEditor(
     listens: [] as ListenKind[],
     stops: 0,
     pictureChanges: [] as (PictureChanges | undefined)[],
+    pictureLength: [] as (PictureLength | undefined)[],
+    secondsPerPicture: [] as number[],
   };
   const props = reactiveProps({
     slideshow,
@@ -72,6 +75,8 @@ export function mountEditor(
     onFadeIn: (fadeMs: number | undefined) => calls.fadesIn.push(fadeMs),
     onFadeOut: (fadeMs: number | undefined) => calls.fadesOut.push(fadeMs),
     onPictureChanges: (changes: PictureChanges | undefined) => calls.pictureChanges.push(changes),
+    onPictureLength: (length: PictureLength | undefined) => calls.pictureLength.push(length),
+    onSecondsPerPicture: (seconds: number) => calls.secondsPerPicture.push(seconds),
     onListen: (kind: ListenKind) => calls.listens.push(kind),
     onStopListening: () => (calls.stops += 1),
     saving: false,

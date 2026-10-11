@@ -53,7 +53,9 @@
   {:else if after.note.kind === "sharesMusic"}
     <p class="note">{t("add.sharesMusic")}</p>
   {:else}
-    <p class="note">{t("add.noMusic", { seconds: formatSeconds(after.note.secondsPerPicture) })}</p>
+    <p class="note">
+      {t("add.ownSeconds", { seconds: formatSeconds(after.note.secondsPerPicture) })}
+    </p>
   {/if}
   {@render children?.()}
 </section>

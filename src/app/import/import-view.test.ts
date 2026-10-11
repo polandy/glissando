@@ -94,15 +94,43 @@ describe("captureRange", () => {
 
 describe("importTiming", () => {
   it("without music every picture stays the chosen seconds", () => {
-    expect(importTiming(12, undefined, 4.5)).toEqual({ perPictureSeconds: 4.5, totalSeconds: 54 });
+    expect(importTiming(12, undefined, 4.5)).toEqual({
+      perPictureSeconds: 4.5,
+      totalSeconds: 54,
+      music: null,
+    });
   });
 
-  it("with music the pictures share the track's length", () => {
-    expect(importTiming(4, 60_000, 5)).toEqual({ perPictureSeconds: 15, totalSeconds: 60 });
+  it("with music the pictures stay their seconds, and a longer song fades out with them", () => {
+    expect(importTiming(4, { durationMs: 60_000, filled: false }, 5)).toEqual({
+      perPictureSeconds: 5,
+      totalSeconds: 20,
+      music: { kind: "fades-out", seconds: 60 },
+    });
   });
 
-  it("with music too short for the pictures every picture gets the minimum", () => {
-    expect(importTiming(10, 5_000, 5)).toEqual({ perPictureSeconds: 2, totalSeconds: 20 });
+  it("with a song shorter than the pictures' seconds, the last pictures play in silence", () => {
+    expect(importTiming(4, { durationMs: 12_000, filled: false }, 5)).toEqual({
+      perPictureSeconds: 5,
+      totalSeconds: 20,
+      music: { kind: "silent-after", seconds: 12 },
+    });
+  });
+
+  it("with music the pictures fill, they share the track's length", () => {
+    expect(importTiming(4, { durationMs: 60_000, filled: true }, 5)).toEqual({
+      perPictureSeconds: 15,
+      totalSeconds: 60,
+      music: { kind: "ends-with", seconds: 60 },
+    });
+  });
+
+  it("with music too short for the pictures that fill it every picture gets the minimum", () => {
+    expect(importTiming(10, { durationMs: 5_000, filled: true }, 5)).toEqual({
+      perPictureSeconds: 2,
+      totalSeconds: 20,
+      music: { kind: "silent-after", seconds: 5 },
+    });
   });
 });
 

@@ -3,7 +3,7 @@
   import Icon from "./Icon.svelte";
   import { canStep, stepSeconds, type StepDirection } from "./seconds-step";
 
-  /** Seconds per picture without music, in half-second steps within the allowed range. */
+  /** Seconds per picture, in half-second steps within the allowed range. */
   let { seconds, onChange }: { seconds: number; onChange: (seconds: number) => void } = $props();
 
   const { t, formatSeconds } = getTranslator();

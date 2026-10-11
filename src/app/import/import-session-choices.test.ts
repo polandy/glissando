@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { MusicProbe } from "../../import/music-probe";
+import { OWN_SECONDS_PICTURE_LENGTH } from "../../library/picture-length";
 import { DEFAULT_SECONDS_PER_PICTURE } from "../../library/stored-slideshow";
 import { MemoryLibraryStore } from "../../library/testing/memory-store";
 import { chosenMusic, type ImportChoices } from "./import-session";
@@ -30,7 +31,26 @@ describe("ImportSession, its choices of music and seconds per picture", () => {
       home: "device",
       music: null,
       secondsPerPicture: DEFAULT_SECONDS_PER_PICTURE,
+      pictureLength: OWN_SECONDS_PICTURE_LENGTH,
     });
+  });
+
+  it("creates a slideshow whose pictures last their own seconds with music too", async () => {
+    const { session } = await withTwoPictures();
+    await session.chooseMusic(new File(["tune"], "Sommer.mp3", { type: "audio/mpeg" }));
+
+    expect((await session.create("de")).pictureLength).toBe(OWN_SECONDS_PICTURE_LENGTH);
+  });
+
+  it("creates a slideshow whose pictures fill the music when chosen", async () => {
+    const { session } = await withTwoPictures();
+    await session.chooseMusic(new File(["tune"], "Sommer.mp3", { type: "audio/mpeg" }));
+    session.setPictureLength(undefined);
+
+    expect(choicesOf(session).pictureLength).toBeUndefined();
+    const created = await session.create("de");
+    expect(created.music).toBeDefined();
+    expect(created).not.toHaveProperty("pictureLength");
   });
 
   it("creates a slideshow of the imported pictures in capture order, titled by their range", async () => {

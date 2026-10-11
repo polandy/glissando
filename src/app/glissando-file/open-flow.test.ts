@@ -99,7 +99,7 @@ describe("OpenFlow", () => {
       "newer",
       async () =>
         new File(
-          [await zipWith({ "glissando.json": '{"format":"glissando","formatVersion":9}' })],
+          [await zipWith({ "glissando.json": '{"format":"glissando","formatVersion":10}' })],
           "x.glissando",
         ),
     ],

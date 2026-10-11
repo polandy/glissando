@@ -26,7 +26,7 @@ test("E2E-039 the music editor finds the music's beat, changes the pictures on i
   await evenly.click();
   await expect(evenly).toHaveAttribute("aria-checked", "true");
   await expect(
-    section.getByText("Die Bilder teilen sich die Musik gleichmäßig, unabhängig von ihrem Takt."),
+    section.getByText("Jedes Bild bleibt genau 5 s, unabhängig vom Takt."),
   ).toBeVisible();
   await editsStored(page);
 

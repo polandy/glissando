@@ -1,5 +1,5 @@
 import { slideDurationsMs } from "../../compose";
-import { musicExcerptMs } from "../../compose/music-excerpt";
+import { filledMusicMs } from "../../compose/music-excerpt";
 import type { AddedPlacement } from "../../library/added-placement";
 import { addPictures } from "../../library/slideshow-edits";
 import {
@@ -16,7 +16,7 @@ export interface BeforeAfter {
 
 /** The line below the facts: how the new pictures are timed. */
 export type AfterAddingNote =
-  | { readonly kind: "noMusic"; readonly secondsPerPicture: number }
+  | { readonly kind: "ownSeconds"; readonly secondsPerPicture: number }
   | { readonly kind: "sharesMusic" }
   /** The automatic share fell below the floor, so the slideshow outlasts the music's excerpt. */
   | { readonly kind: "musicTooShort"; readonly musicSeconds: number };
@@ -50,7 +50,7 @@ export function afterAdding(
   added: readonly StoredPicture[],
   placement: AddedPlacement,
 ): AfterAdding {
-  const excerptMs = musicExcerptMs(slideshow.music);
+  const excerptMs = filledMusicMs(slideshow);
   const withAdded = addPictures(slideshow, added, placement);
   const before = timing(slideshow, excerptMs);
   const after = timing(withAdded, excerptMs);
@@ -94,7 +94,7 @@ function noteFor(
   shareAtFloor: boolean,
 ): AfterAddingNote {
   if (excerptMs === undefined) {
-    return { kind: "noMusic", secondsPerPicture: slideshow.secondsPerPicture };
+    return { kind: "ownSeconds", secondsPerPicture: slideshow.secondsPerPicture };
   }
   return shareAtFloor
     ? { kind: "musicTooShort", musicSeconds: excerptMs / MILLISECONDS_PER_SECOND }

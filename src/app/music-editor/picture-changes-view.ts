@@ -3,12 +3,20 @@ import type { StoredSlideshow } from "../../library/stored-slideshow";
 import type { BeatsStatus } from "../beats/music-beats-known";
 
 /** What the music editor's "Picture changes" section shows (ADR-0021). */
-export type PictureChangesView =
-  /** The beats are still being listened for; the pictures share the music evenly meanwhile. */
+export type PictureChangesView = PictureChangesState & {
+  /**
+   * How long each automatic picture stays when they last their own seconds (ADR-0022), so off the
+   * beat they stay exactly that; absent while they fill the music, sharing it evenly off the beat.
+   */
+  readonly secondsPerPicture?: number;
+};
+
+type PictureChangesState =
+  /** The beats are still being listened for; the pictures change evenly meanwhile. */
   | { readonly kind: "listening" }
   /** This device cannot decode the music; the next pass tries again. */
   | { readonly kind: "undecodable" }
-  /** The music has no clear beat: the pictures share it evenly, no choice offered. */
+  /** The music has no clear beat: the pictures change evenly, no choice offered. */
   | { readonly kind: "none" }
   | {
       readonly kind: "beats";
@@ -36,16 +44,19 @@ export function pictureChangesView(
   stored: StoredSlideshow,
   status: BeatsStatus,
 ): PictureChangesView {
+  const ownSeconds =
+    stored.pictureLength === undefined ? {} : { secondsPerPicture: stored.secondsPerPicture };
   if (status.kind !== "known") {
-    return status;
+    return { ...status, ...ownSeconds };
   }
   if (status.beats.kind === "none") {
-    return { kind: "none" };
+    return { kind: "none", ...ownSeconds };
   }
   const onTheBeat = stored.music?.pictureChanges !== EVEN_PICTURE_CHANGES;
   const handingOver = stored.pictures.slice(0, -1);
   return {
     kind: "beats",
+    ...ownSeconds,
     beatsPerMinute: Math.round(status.beats.beatsPerMinute),
     onTheBeat,
     ownDurationNumbers: onTheBeat

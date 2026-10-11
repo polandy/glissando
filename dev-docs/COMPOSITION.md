@@ -10,8 +10,9 @@ I/O, no subject detection.
 - **Title**: the month, or month range, the pictures were captured in, formatted with
   `Intl.DateTimeFormat(locale, …).formatRange`; a title the user emptied falls back to it.
 - **Durations** (`slideDurationsMs`): a picture's own duration (`StoredPicture.durationMs`,
-  ADR-0008) is kept exactly. Without music, every other slide gets `secondsPerPicture`. With
-  music, the pictures without an own duration share what the own durations leave of the music's
+  ADR-0008) is kept exactly. Without music, and with music when `StoredSlideshow.pictureLength`
+  is `"seconds"` (ADR-0022), every other slide gets `secondsPerPicture`. When the pictures fill
+  the music (`pictureLength` absent; `filledMusicMs`), the pictures without an own duration share what the own durations leave of the music's
   excerpt (`musicExcerptMs`: the trim, or the whole track; ADR-0009) evenly (the remainder
   milliseconds go to the first of them, so the sum matches the excerpt exactly) — unless that share would fall below `MIN_SECONDS_PER_PICTURE` (or nothing is left),
   in which case each of them gets the minimum and the slideshow outlasts the music. When every
@@ -23,7 +24,10 @@ I/O, no subject detection.
   stays. Pictures with an own duration between the two move along, so the first of them starts
   on the beat and each keeps its duration exactly; the boundary after them is not snapped, and
   the next automatic slide takes up the difference. The excerpt's end, and a boundary followed by
-  own durations only, never move, so the total is unchanged. Without a clear beat, or with `StoredMusic.pictureChanges` `"even"`, the
+  own durations only, never move, so the total is unchanged. When the pictures last their
+  seconds, the boundaries snap the same way and the last automatic slide's end moves too, to the
+  nearest beat within its slack above the minimum, with the own durations after it following:
+  the slideshow ends on a beat, about as long as its pictures. Without a clear beat, or with `StoredMusic.pictureChanges` `"even"`, the
   even share stands.
 - **Ken Burns**: zoom alternates in/out by slide index between `MIN_KEN_BURNS_ZOOM` and 1.2; a
   gentle horizontal pan alternates direction with it. The motion swings around the picture's
@@ -50,7 +54,8 @@ I/O, no subject detection.
 
 - **Music** (`resolveMusicTiming`, ADR-0009): the music plays from the excerpt's start and is
   heard until the excerpt's end or the slideshow's, whichever comes first (`audibleEndMs`): a
-  longer slideshow plays its last pictures in silence, a shorter one ends the music with it. An
+  longer slideshow plays its last pictures in silence, a shorter one ends the music with it —
+  the usual case when the pictures last their own seconds. An
   own fade (`StoredMusic.fadeInMs`, `fadeOutMs`, 0 being off) is kept; an automatic one is short
   (2 s) where the music is cut and off where the track starts or ends by itself: fade-in iff the
   excerpt starts after 0, fade-out iff the music stops before the track's end. Fades that
@@ -69,7 +74,8 @@ I/O, no subject detection.
   editor's lane and the picture editor's duration and transition (`beatTransitionDurationMs`)
   follow the beats as the background pass finds them.
 - `slideshowDurationMs` sums a stored slideshow's slide durations, own ones included, for a
-  "12 pictures · 1:00" summary.
+  "12 pictures · 1:00" summary; without the beats, so with pictures lasting their seconds it can
+  differ from the played length by part of a beat.
 
 See `dev-docs/adr/0002-transitions-inside-slide-durations.md` for why a transition runs inside
 its slide's duration, and `dev-docs/PLAYER.md` for the JSON contract these functions produce.

@@ -15,12 +15,14 @@
   {#if note.kind === "outlasts"}
     <b>{t("music.noteOutlasts", { over: formatDuration(seconds(note.overMs)) })}</b>
     <span>
-      {note.automaticCount > 0
-        ? t("music.noteOutlastsWhy", {
-            count: note.automaticCount,
-            min: formatSeconds(seconds(MIN_OWN_DURATION_MS)),
-          })
-        : t("music.noteOutlastsAllOwn")}
+      {note.secondsPerPicture !== undefined
+        ? t("music.noteOutlastsOwnSeconds", { seconds: formatSeconds(note.secondsPerPicture) })
+        : note.automaticCount > 0
+          ? t("music.noteOutlastsWhy", {
+              count: note.automaticCount,
+              min: formatSeconds(seconds(MIN_OWN_DURATION_MS)),
+            })
+          : t("music.noteOutlastsAllOwn")}
     </span>
   {:else}
     <b>{t("music.pictureTimes")}</b>
@@ -29,6 +31,11 @@
         {t(note.onTheBeat ? "music.noteSharedOnTheBeat" : "music.noteShared", {
           count: note.automaticCount,
           share: formatTenthSeconds(seconds(note.shareMs)),
+        })}
+      {:else if note.kind === "own-seconds"}
+        {t(note.onTheBeat ? "music.noteOwnSecondsOnTheBeat" : "music.noteOwnSeconds", {
+          seconds: formatSeconds(note.secondsPerPicture),
+          time: formatDuration(seconds(note.slideshowMs)),
         })}
       {:else if note.kind === "ends-early"}
         {t("music.noteEndsEarly", { time: formatDuration(seconds(note.endsAtMs)) })}

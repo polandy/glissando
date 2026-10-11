@@ -95,6 +95,8 @@
     onFadeIn={(fadeMs) => editor.setMusicFadeIn(fadeMs)}
     onFadeOut={(fadeMs) => editor.setMusicFadeOut(fadeMs)}
     onPictureChanges={(changes) => editor.setMusicPictureChanges(changes)}
+    onPictureLength={(length) => editor.setPictureLength(length)}
+    onSecondsPerPicture={(seconds) => editor.setSecondsPerPicture(seconds)}
     onListen={(kind) => preview?.toggle(kind, musicEditorView(stored, beats).timing)}
     onStopListening={() => preview?.stop()}
     {saving}

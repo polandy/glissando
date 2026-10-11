@@ -77,6 +77,15 @@ export const enMusic: Pick<Catalogue, keyof typeof deMusic> = {
     "Every picture has its own duration. The slideshow ends after {time}; the music fades out there.",
   "music.noteEndsWithMusic":
     "Every picture has its own duration. The slideshow ends with the music.",
+  "music.noteOwnSeconds":
+    "Each picture without its own duration stays {seconds}. The slideshow lasts {time}; the music fades out there.",
+  "music.noteOwnSecondsOnTheBeat":
+    "Each picture without its own duration stays about {seconds}, each change on the nearest beat. The slideshow lasts {time}; the music fades out there.",
+  "music.noteOutlastsOwnSeconds":
+    "Each picture without its own duration stays {seconds}; after the fade-out the last pictures play in silence. Shorter pictures, longer music or “Fill the music” fix that.",
+  "music.pictureLength": "Picture length",
+  "music.aboutSecondsEach": "About {seconds} each",
+  "music.fillTheMusic": "Fill the music",
   "music.pictureChanges": "Picture changes",
   "music.beatsPerMinute": "{bpm} BPM",
   "music.onTheBeat": "On the beat",
@@ -89,9 +98,16 @@ export const enMusic: Pick<Catalogue, keyof typeof deMusic> = {
       "Pictures {pictures} keep their own duration, so the change after each can fall between beats.",
   },
   "music.evenlyHint": "The pictures share the music evenly, regardless of its beat.",
+  "music.evenlyHintSeconds": "Each picture stays exactly {seconds}, regardless of the beat.",
   "music.listeningForBeat":
     "Listening for the beat… Until then the pictures share the music evenly.",
+  "music.listeningForBeatSeconds":
+    "Listening for the beat… Until then each picture stays exactly {seconds}.",
   "music.noSteadyBeat": "No steady beat found in this music. The pictures share it evenly.",
+  "music.noSteadyBeatSeconds":
+    "No steady beat found in this music. Each picture stays exactly {seconds}.",
   "music.musicUndecodable":
     "Glissando could not listen to this music's beat. The pictures share it evenly.",
+  "music.musicUndecodableSeconds":
+    "Glissando could not listen to this music's beat. Each picture stays exactly {seconds}.",
 };

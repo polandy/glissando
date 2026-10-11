@@ -1,3 +1,4 @@
+import type { PictureLength } from "../library/picture-length";
 import type { StoredMusic, StoredPicture, StoredSlideshow } from "../library/stored-slideshow";
 import { orderByCaptureDate } from "./order-by-capture-date";
 import { titleForCaptureRange } from "./title-for-capture-range";
@@ -9,6 +10,8 @@ export interface BuildStoredSlideshowInput {
   readonly pictures: readonly StoredPicture[];
   readonly music?: StoredMusic;
   readonly secondsPerPicture: number;
+  /** Absent: the pictures fill the music (ADR-0022). */
+  readonly pictureLength?: PictureLength;
   /** Locale the title's month name is written in. */
   readonly locale: string;
 }
@@ -27,6 +30,7 @@ export function buildStoredSlideshow(input: BuildStoredSlideshowInput): StoredSl
     createdAt: input.createdAt,
     pictures,
     secondsPerPicture: input.secondsPerPicture,
+    ...(input.pictureLength === undefined ? {} : { pictureLength: input.pictureLength }),
   };
   return input.music === undefined ? base : { ...base, music: input.music };
 }

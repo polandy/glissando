@@ -4,7 +4,7 @@ import {
   automaticFadeOutMs,
   excerptBeatsMs,
   musicExcerpt,
-  musicExcerptMs,
+  filledMusicMs,
   resolveMusicTiming,
   slideDurationsMs,
   type MusicTiming,
@@ -43,12 +43,37 @@ export type TimingNote =
       readonly shareMs: number;
       readonly onTheBeat: boolean;
     }
-  /** The slideshow plays on in silence for `overMs` after the music. */
-  | { readonly kind: "outlasts"; readonly overMs: number; readonly automaticCount: number }
+  /**
+   * The slideshow plays on in silence for `overMs` after the music: the automatic pictures last
+   * their own `secondsPerPicture`, or (absent) the share fell to the minimum.
+   */
+  | {
+      readonly kind: "outlasts";
+      readonly overMs: number;
+      readonly automaticCount: number;
+      readonly secondsPerPicture?: number;
+    }
+  /**
+   * The pictures without an own duration last their own seconds, about that on the beat; the
+   * slideshow, and with it the music, ends at `slideshowMs`.
+   */
+  | {
+      readonly kind: "own-seconds";
+      readonly secondsPerPicture: number;
+      readonly onTheBeat: boolean;
+      readonly slideshowMs: number;
+    }
   /** Every picture is timed; the slideshow, and with it the music, ends at `endsAtMs`. */
   | { readonly kind: "ends-early"; readonly endsAtMs: number }
   /** Every picture is timed, together exactly as long as the excerpt. */
   | { readonly kind: "ends-with-music" };
+
+/** How long the pictures without an own duration last (ADR-0022). */
+export interface PictureLengthView {
+  /** They last `secondsPerPicture` each; otherwise they fill the music. */
+  readonly ownSeconds: boolean;
+  readonly secondsPerPicture: number;
+}
 
 export interface MusicEditorView {
   readonly fileName: string;
@@ -65,6 +90,7 @@ export interface MusicEditorView {
   readonly slideChanges: readonly SlideChange[];
   /** The beats the pictures change on, while they do. */
   readonly beatTicks: readonly BeatTick[];
+  readonly pictureLength: PictureLengthView;
   readonly pictureChanges: PictureChangesView;
   readonly fadeIn: FadeView<FadeInReason>;
   readonly fadeOut: FadeView<FadeOutReason>;
@@ -90,7 +116,7 @@ export function musicEditorView(stored: StoredSlideshow, beats: BeatsStatus): Mu
   const beatsMs = excerptBeatsMs(music, composedBeats(beats));
   const durationsMs = slideDurationsMs(
     stored.pictures,
-    musicExcerptMs(music),
+    filledMusicMs(stored),
     stored.secondsPerPicture,
     beatsMs,
   );
@@ -107,6 +133,10 @@ export function musicEditorView(stored: StoredSlideshow, beats: BeatsStatus): Mu
     audibleEndMs: audibleEndMs(music, slideshowMs),
     slideChanges: slideChanges(durationsMs, startMs, music.durationMs, beatsMs),
     beatTicks: beatTicks(pictureChanges, beats),
+    pictureLength: {
+      ownSeconds: stored.pictureLength !== undefined,
+      secondsPerPicture: stored.secondsPerPicture,
+    },
     pictureChanges,
     fadeIn: {
       ms: music.fadeInMs ?? automaticFadeInMs(music),
@@ -161,11 +191,21 @@ function timingNote(
   const automaticMs = durationsMs.filter(
     (_, index) => stored.pictures[index]?.durationMs === undefined,
   );
+  const ownSeconds = stored.pictureLength !== undefined && automaticMs.length > 0;
   if (slideshowMs > excerptMs) {
     return {
       kind: "outlasts",
       overMs: slideshowMs - excerptMs,
       automaticCount: automaticMs.length,
+      ...(ownSeconds ? { secondsPerPicture: stored.secondsPerPicture } : {}),
+    };
+  }
+  if (ownSeconds) {
+    return {
+      kind: "own-seconds",
+      secondsPerPicture: stored.secondsPerPicture,
+      onTheBeat,
+      slideshowMs,
     };
   }
   if (automaticMs.length > 0) {

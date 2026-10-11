@@ -2,6 +2,7 @@
   import { onDestroy } from "svelte";
   import { DEFAULT_SECONDS_PER_PICTURE } from "../../library/stored-slideshow";
   import { MILLISECONDS_PER_SECOND } from "../../player";
+  import PictureLengthSection from "../components/PictureLengthSection.svelte";
   import SecondsStepper from "../components/SecondsStepper.svelte";
   import { getTranslator } from "../i18n/context";
   import Icon from "../components/Icon.svelte";
@@ -16,6 +17,7 @@
     musicFormatLabel,
   } from "./import-view";
   import MusicConversion from "./MusicConversion.svelte";
+  import MusicFit from "./MusicFit.svelte";
   import MusicUnusable from "./MusicUnusable.svelte";
   import TrackHead from "./TrackHead.svelte";
 
@@ -57,12 +59,14 @@
   $effect(() => thumbnails.sync(chosen ? pictureIds : []));
 
   const pictureCount = $derived(pictureIds.length);
-  const timing = $derived(
-    importTiming(pictureCount, chosen?.durationMs, choices.secondsPerPicture),
+  const ownSeconds = $derived(choices.pictureLength !== undefined);
+  const music = $derived(
+    chosen === null ? undefined : { durationMs: chosen.durationMs, filled: !ownSeconds },
   );
-  // Each picture's share of the track, by the rule the slideshow is composed with.
+  const timing = $derived(importTiming(pictureCount, music, choices.secondsPerPicture));
+  // Each picture's segment, by the rule the slideshow is composed with.
   const segmentsMs = $derived(
-    importSlideDurationsMs(pictureCount, chosen?.durationMs, choices.secondsPerPicture),
+    importSlideDurationsMs(pictureCount, music, choices.secondsPerPicture),
   );
   function choose(files: readonly File[]): void {
     const file = files[0];
@@ -104,27 +108,15 @@
         closeLabel={t("import.removeMusic")}
         onClose={() => session.removeMusic()}
       />
-      <div class="fit" aria-hidden="true">
-        <div class="segments">
-          {#each pictureIds as id, index (id)}
-            {@const url = urls.get(id)}
-            <i
-              style:flex-grow={segmentsMs[index]}
-              style:background-image={url === undefined ? undefined : `url("${url}")`}
-            ></i>
-          {/each}
-        </div>
-        <div class="fitline mono">
-          <span>{formatDuration(0)}</span>
-          <span>
-            {t("import.fitPerPicture", {
-              count: pictureCount,
-              seconds: formatSeconds(timing.perPictureSeconds),
-            })}
-          </span>
-          <span>{formatDuration(timing.totalSeconds)}</span>
-        </div>
-      </div>
+      <PictureLengthSection
+        {ownSeconds}
+        secondsPerPicture={choices.secondsPerPicture}
+        onPictureLength={(length) => session.setPictureLength(length)}
+        onSecondsPerPicture={(seconds) => session.setSecondsPerPicture(seconds)}
+      />
+      {#if timing.music !== null}
+        <MusicFit {pictureIds} {urls} {segmentsMs} {timing} music={timing.music} {ownSeconds} />
+      {/if}
     </div>
   {:else if choices.music?.kind === "converting"}
     <MusicConversion music={choices.music} onCancel={() => session.removeMusic()} />
@@ -210,29 +202,6 @@
   }
   .meta {
     font-size: var(--gl-size-meta);
-  }
-  .fit {
-    display: grid;
-    gap: 6px;
-  }
-  .segments {
-    display: flex;
-    gap: 2px;
-    height: 26px;
-  }
-  .segments i {
-    flex-basis: 0;
-    min-width: 0;
-    border-radius: 3px;
-    background-color: var(--gl-hover);
-    background-position: center;
-    background-size: cover;
-  }
-  .fitline {
-    display: flex;
-    justify-content: space-between;
-    color: var(--gl-muted);
-    font-size: var(--gl-size-small);
   }
   .timing {
     display: grid;
