@@ -5,6 +5,7 @@ import {
   ShareGoneError,
   ShareUnreachableError,
   type FetchPort,
+  type ShareApi,
 } from "./share-api";
 
 const TOKEN = "AbCdEfGhIjKlMnOpQrStUv";
@@ -42,6 +43,16 @@ function json(status: number, body: unknown): Response {
 
 const offline = () => Promise.reject(new TypeError("Failed to fetch"));
 
+/** A response whose connection drops while its body is read, as `fetch` reports it. */
+function dropped(status: number): Response {
+  const body = new ReadableStream({
+    start(controller) {
+      controller.error(new TypeError("network error"));
+    },
+  });
+  return new Response(body, { status });
+}
+
 describe("the share API as the page uses it", () => {
   it("reads the slideshow from /api/share/{token}", async () => {
     const { fetch, asked } = fakeFetch({ [`/api/share/${TOKEN}`]: () => json(200, ANSWER) });
@@ -70,6 +81,32 @@ describe("the share API as the page uses it", () => {
     const { fetch } = fakeFetch({ [`/api/share/${TOKEN}`]: response });
 
     await expect(createShareApi(fetch, TOKEN).answer()).rejects.toThrow(ShareUnreachableError);
+  });
+
+  it.each([
+    { what: "the document", url: `/api/share/${TOKEN}`, fetchIt: (api: ShareApi) => api.answer() },
+    {
+      what: "a picture",
+      url: `/api/share/${TOKEN}/3/pictures/0`,
+      fetchIt: (api: ShareApi) => api.picture(3, 0),
+    },
+    { what: "a song", url: `/api/share/${TOKEN}/songs/0`, fetchIt: (api: ShareApi) => api.song(0) },
+  ])(
+    "reports the server unreachable when the connection drops while $what downloads",
+    async ({ url, fetchIt }) => {
+      const api = createShareApi(fakeFetch({ [url]: () => dropped(200) }).fetch, TOKEN);
+
+      await expect(fetchIt(api)).rejects.toThrow(ShareUnreachableError);
+    },
+  );
+
+  it("reports the server unreachable, not the link gone, when a 404's body drops", async () => {
+    const api = createShareApi(
+      fakeFetch({ [`/api/share/${TOKEN}`]: () => dropped(404) }).fetch,
+      TOKEN,
+    );
+
+    await expect(api.answer()).rejects.toThrow(ShareUnreachableError);
   });
 
   it("fails loud on an answer that is no share answer, e.g. a sign-in page", async () => {
