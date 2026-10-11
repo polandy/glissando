@@ -60,7 +60,11 @@ https://polandy.github.io/glissando-assets/mockups/share-link/.
   document answers with `no-store`.
 - **Unknown token** and a turned-off link answer the same 404 `notShared`, so the API never
   says whether a token ever existed.
-- Every other method or path under `/api/share/` answers 404.
+- Every other method or path under `/api/share/` and `/s/` answers 404. Caddy routes only `GET`
+  and `HEAD` of the exact shapes above, the token being 22 base64url characters, and answers 404
+  to a request whose raw URI under `/s/` or `/api/share/` holds `%` or `..`: unescaped and
+  cleaned, such a path could match another route than the share path the owner's sign-in let
+  through.
 - Without slideshows on the server (no data volume, `deploy/library-off.caddy`), `/api/share/` and
   `/s/` answer 404.
 
@@ -88,7 +92,7 @@ outside):
 ### Logs
 
 The token is a secret. The service logs `/api/share/<token>/…` and `/s/<token>` with the token
-replaced by `…`, and Caddy's log filter does the same: the share routes log to their own
+replaced by `…` (the prefix in any case), and Caddy's log filter does the same: the share routes log to their own
 logger (`log_name share`, its errors too), which also drops the query and the `Referer`. The owner's own proxy logs are theirs to
 configure, and the self-hosting guide says so.
 
@@ -102,7 +106,7 @@ the same contract suite.
 
 ## The recipient's page
 
-- Caddy answers `GET /s/<anything>` with `/srv/share.html` (`Cache-Control: no-cache`) and a
+- Caddy answers `GET /s/<token>` with `/srv/share.html` (`Cache-Control: no-cache`) and a
   `Referrer-Policy: no-referrer`. The page is the same for every token: it reads its token from
   `location.pathname` and asks `/api/share/{token}`. Everything the page needs is inline, as in
   the web page export (HTML_EXPORT.md, The page), so `/s/` and `/api/share/` are the only public

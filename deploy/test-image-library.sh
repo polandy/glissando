@@ -102,6 +102,39 @@ expect_equal "a song the slideshow does not have answers 404 noSuchSong" "404 no
 	"$STATUS $(sed -n 's/.*"error":"\([a-zA-Z]*\)".*/\1/p' "$WORK/body")"
 request "$LIBRARY" GET "/internal/share-picture/$token/0"
 expect_equal "the service's picture check is not routed from outside" 404 "$STATUS"
+# Escaped or dotted paths would reach Immich or another route if Caddy unescaped and cleaned them
+# first; a probe query shows up in the fake's log if one ever arrives there.
+share_probes=(
+	"GET /api/share/%2e%2e/%2e%2e/immich/api/albums?probe=escaped-dots"
+	"GET /api/share/../../immich/api/albums?probe=dots"
+	"GET /s/%2e%2e/immich/api/albums?probe=escaped-dots-under-s"
+	"GET /s/$token/../../immich/api/albums?probe=dots-after-a-token"
+	"GET /api/share/$token/2/pictures/%30"
+	"GET /api/share/$token/2/pictures/0/extra"
+	"GET /api/share/${token}A"
+	"GET /api/share/$token/unknown"
+	"GET /API/SHARE/$token"
+	"GET /S/$token"
+	"POST /api/share/$token/2/pictures/0"
+	"PUT /api/share/$token/songs/0"
+	"DELETE /api/share/$token"
+	"POST /s/$token"
+)
+previews_before=$(docker logs "$UPSTREAM" 2>&1 | grep -c '/thumbnail?size=preview' || true)
+for case in "${share_probes[@]}"; do
+	read -r method path <<<"$case"
+	request "$LIBRARY" "$method" "$path" "${CLIENT_CREDENTIALS[@]}"
+	expect_equal "$method $path answers 404" 404 "$STATUS"
+done
+# A request after the probes that does arrive: until it is logged, an absence proves nothing.
+request "$LIBRARY" GET "/immich/api/server/version?sentinel=after-the-share-probes"
+wait_for_log "$UPSTREAM" "after-the-share-probes"
+docker logs "$UPSTREAM" >"$WORK/log-immich-share-probes" 2>&1
+grep -q -F "probe=" "$WORK/log-immich-share-probes" &&
+	fail "a share probe reached Immich: $(grep -F "probe=" "$WORK/log-immich-share-probes")" ||
+	pass "no share probe reaches Immich"
+expect_equal "no share probe fetches a preview from Immich" "$previews_before" \
+	"$(grep -c '/thumbnail?size=preview' "$WORK/log-immich-share-probes" || true)"
 request "$LIBRARY" GET "/s/$token"
 expect_equal "the recipient's page answers with Referrer-Policy no-referrer" no-referrer \
 	"$(header_value Referrer-Policy)"
@@ -111,6 +144,13 @@ if docker run --rm --entrypoint test "$IMAGE" -f /srv/share.html; then
 else
 	echo "skip /s/<token> answers share.html: this build has no share.html yet (answered $STATUS)"
 fi
+docker stop "$UPSTREAM" >/dev/null
+request "$LIBRARY" GET "/api/share/$token/2/pictures/0"
+expect_equal "with Immich down a shared picture answers 502" 502 "$STATUS"
+wait_for_log "$LIBRARY" '"status":502'
+docker logs "$LIBRARY" 2>&1 | grep '"level":"error"' | grep -F '/api/share/…/2/pictures/0' >/dev/null &&
+	pass "the failure to fetch a shared picture is in the error log, its token replaced" ||
+	fail "the failure to fetch a shared picture is in the error log, its token replaced"
 request "$LIBRARY" DELETE "/api/library/slideshows/$id/share"
 expect_equal "turning the link off answers 204" 204 "$STATUS"
 request "$LIBRARY" GET "/api/share/$token/2/pictures/0"

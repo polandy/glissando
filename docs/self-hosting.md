@@ -142,14 +142,17 @@ access_control:
   rules:
     - domain: glissando.example.org
       resources:
-        - "^/s/"
-        - "^/api/share/"
+        - "^/s/[A-Za-z0-9_-]{22}$"
+        - "^/api/share/[A-Za-z0-9_-]{22}(/[0-9]+/pictures/[0-9]+|/songs/[0-9]+)?$"
       policy: bypass
     # … the rule that protects glissando.example.org follows …
 ```
 
 Your Traefik (or other proxy) configuration stays as it is: the forward auth still asks Authelia,
-which now lets these two paths through. With another sign-in, exempt the same two path prefixes.
+which now lets exactly these paths through. With another sign-in, exempt the same paths, as
+exactly as it allows: a rule that only matches the prefixes also lets paths through that are
+not a link's. Glissando answers 404 to any other path under `/s/` and `/api/share/`, and to one
+that holds `%` or `..`.
 Share from Glissando opened at its public address: a link made at a home address (plain `http:`,
 a `.local` or `.lan` name, a private IP) only works at home, and the app says so.
 

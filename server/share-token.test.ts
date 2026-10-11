@@ -38,6 +38,8 @@ describe("redacting share tokens from a logged path", () => {
     ["/s/AQEBAQEBAQEBAQEBAQEBAQ", "/s/…"],
     ["/internal/share-picture/AQEBAQEBAQEBAQEBAQEBAQ/0", "/internal/share-picture/…/0"],
     ["/api/share/", "/api/share/…"],
+    ["/API/Share/AQEBAQEBAQEBAQEBAQEBAQ", "/API/Share/…"],
+    ["/S/AQEBAQEBAQEBAQEBAQEBAQ", "/S/…"],
     ["/api/library/slideshows/abc/share", "/api/library/slideshows/abc/share"],
     ["/api/shared/AQEBAQEBAQEBAQEBAQEBAQ", "/api/shared/AQEBAQEBAQEBAQEBAQEBAQ"],
   ])("logs %s as %s", (path, logged) => {

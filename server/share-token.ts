@@ -20,8 +20,8 @@ export function newShareToken(randomBytes: RandomBytes): string {
 }
 
 const REDACTED = "…";
-/** Every path whose first segment after the prefix is a token. */
-const TOKEN_IN_PATH = /^(\/api\/share\/|\/s\/|\/internal\/share-picture\/)[^/]*/;
+/** Every path whose first segment after the prefix, in any case, is a token. */
+const TOKEN_IN_PATH = /^(\/api\/share\/|\/s\/|\/internal\/share-picture\/)[^/]*/i;
 
 /** `path` with the share token it carries, if any, replaced by `…`. */
 export function redactShareTokens(path: string): string {

@@ -34,7 +34,7 @@
 			request>headers>X-Immich-Share-Key delete
 			request>headers>Referer delete
 			request>uri multi_regexp {
-				regexp ^(/api/share/|/s/|/internal/share-picture/)[^/?]* "${1}…"
+				regexp (?i)^(/api/share/|/s/|/internal/share-picture/)[^/?]* "${1}…"
 				regexp \?.*$ ""
 			}
 		}
@@ -67,6 +67,12 @@
 		output stdout
 		import share_log_filters
 	}
+
+	# A share path whose raw URI holds an escape or a dot segment could, once Caddy unescaped and
+	# cleaned it, match another route than the share path the owner's sign-in let through: it is
+	# sent to a path that answers 404 before any route sees it.
+	@shareEscape vars_regexp {http.request.uri} (?i)^/(s|api/share)/.*(%|\.\.)
+	rewrite @shareEscape /internal/share-escape
 
 	# immich-proxy.caddy or immich-off.caddy.
 	import {$GLISSANDO_IMMICH_ROUTE}
