@@ -192,4 +192,43 @@ describe("PictureIntake, culling similar shots and blurry pictures", () => {
     expect(intake.culling.state).toEqual({ checking: null, groups: [], setAsideCount: 0 });
     expect(logged).toEqual([expect.any(PictureCheckerGoneError)]);
   });
+
+  it("returns a set-aside picture to the strip when a later batch's cull no longer sets it aside", async () => {
+    const dim = sharpness(10);
+    const { intake } = intakeWith({
+      "x.jpg": sharpness(900, 1n),
+      "soft.jpg": sharpness(5),
+      "y.jpg": sharpness(900, 2n),
+      "dim-1.jpg": dim,
+      "dim-2.jpg": dim,
+      "dim-3.jpg": dim,
+      "dim-4.jpg": dim,
+    });
+    intake.addPictures([
+      pictureFile("x.jpg", at(0)),
+      pictureFile("soft.jpg", at(600)),
+      pictureFile("y.jpg", at(1200)),
+    ]);
+    await intake.settled();
+    expect(names(intake)).toEqual(["x.jpg", "y.jpg"]);
+
+    // Shot in dim light: the median drops so far that soft.jpg is no longer blurry.
+    intake.addPictures(
+      ["dim-1.jpg", "dim-2.jpg", "dim-3.jpg", "dim-4.jpg"].map((name, index) =>
+        pictureFile(name, at(1800 + 600 * index)),
+      ),
+    );
+    await intake.settled();
+
+    expect(names(intake)).toEqual([
+      "x.jpg",
+      "soft.jpg",
+      "y.jpg",
+      "dim-1.jpg",
+      "dim-2.jpg",
+      "dim-3.jpg",
+      "dim-4.jpg",
+    ]);
+    expect(intake.culling.state).toMatchObject({ groups: [], setAsideCount: 0 });
+  });
 });
