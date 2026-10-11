@@ -20,7 +20,7 @@ async function createServerSlideshow(page: Page): Promise<void> {
   await expect(page.getByRole("status").filter({ hasText: CREATED_TOAST })).toBeVisible();
 }
 
-test("E2E-043 a server slideshow shared from its info panel plays from its link in another page, and the link shows as gone once turned off", async ({
+test("E2E-043 a server slideshow shared from its info panel plays from its link in another page, and the link shows as gone once turned off, and sharing again makes a new link", async ({
   page,
 }) => {
   let jpeg: Uint8Array | null = null;
@@ -60,4 +60,11 @@ test("E2E-043 a server slideshow shared from its info panel plays from its link 
   await expect(recipient.locator("html")).toHaveAttribute("data-state", "gone");
   await expect(recipient.getByText("Dieser Link funktioniert nicht mehr")).toBeVisible();
   await expect(recipient.getByRole("button", { name: "Abspielen" })).toHaveCount(0);
+
+  await page.getByRole("button", { name: /^Link teilen/ }).click();
+  await sheet.getByRole("button", { name: "Link erstellen" }).click();
+  await expect(link).toHaveText(/\/s\/[\w-]{22}$/);
+  await expect(link).not.toHaveText(url);
+  await recipient.reload();
+  await expect(recipient.locator("html")).toHaveAttribute("data-state", "gone");
 });

@@ -43,6 +43,8 @@ export interface FakeGlissandoServer {
   readonly originalsAsked: string[];
   /** Assets Immich answers 404 for, as for a photo deleted in Immich. */
   readonly goneFromImmich: Set<string>;
+  /** Links made so far; each one's token ends in its count, so sharing again makes a new link. */
+  linksMade: number;
 }
 
 const IMMICH_ROUTE = /\/immich\/(.*)$/;
@@ -56,7 +58,8 @@ const SHARE_API_PATH = /^\/api\/share\/([^/]+)(?:\/(\d+)\/pictures\/(\d+))?$/;
 /** The built page Caddy answers every `/s/<token>` with, as `vite preview` serves it. */
 const SHARE_PAGE_FILE = "/share.html";
 /** Every link the fake makes, as a real token looks: 22 characters of base64url. */
-const FAKE_SHARE_TOKEN = "fakeShareToken00000000";
+const FAKE_SHARE_TOKEN_PREFIX = "fakeShareToken";
+const FAKE_SHARE_TOKEN_COUNT_DIGITS = 8;
 /** When the fake made every link: a fixed instant, so nothing reads the clock. */
 const FAKE_SHARE_CREATED_AT = "2026-10-11T09:30:00.000Z";
 const HTTP_OK = 200;
@@ -81,6 +84,7 @@ export async function fakeGlissandoServer(
     slideshows: [],
     originalsAsked: [],
     goneFromImmich: new Set(),
+    linksMade: 0,
   };
   await page.route(IMMICH_ROUTE, (route) => answerImmich(route, server, photo));
   await page.route(LIBRARY_ROUTE, (route) => answerLibrary(route, server));
@@ -136,7 +140,7 @@ function answerLibrary(route: Route, server: FakeGlissandoServer) {
   if (record === undefined) {
     return route.fulfill({ status: HTTP_NOT_FOUND, json: { error: "notFound", detail: path } });
   }
-  if (share !== undefined) return answerShare(route, record, path);
+  if (share !== undefined) return answerShare(route, server, record, path);
   if (method === "GET") return route.fulfill({ json: record });
   if (method === "PUT") {
     if (request.headers()["if-match"] !== `"${String(record.revision)}"`) {
@@ -152,11 +156,20 @@ function answerLibrary(route: Route, server: FakeGlissandoServer) {
   return route.fulfill({ status: HTTP_NOT_FOUND, json: { error: "notFound", detail: path } });
 }
 
-function answerShare(route: Route, record: LibraryRecord, path: string) {
+function answerShare(
+  route: Route,
+  server: FakeGlissandoServer,
+  record: LibraryRecord,
+  path: string,
+) {
   const method = route.request().method();
   if (method === "POST") {
     const created = record.share === null;
-    record.share ??= { token: FAKE_SHARE_TOKEN, createdAt: FAKE_SHARE_CREATED_AT };
+    if (created) {
+      server.linksMade += 1;
+      const count = String(server.linksMade).padStart(FAKE_SHARE_TOKEN_COUNT_DIGITS, "0");
+      record.share = { token: FAKE_SHARE_TOKEN_PREFIX + count, createdAt: FAKE_SHARE_CREATED_AT };
+    }
     return route.fulfill({ status: created ? HTTP_CREATED : HTTP_OK, json: record.share });
   }
   if (method === "DELETE") {
