@@ -17,6 +17,7 @@
     name: string;
     label: string;
     value: string;
+    /** Empty: the value stands alone. */
     summary: string;
     action: string;
     onclick: () => void;
@@ -33,7 +34,9 @@
   <span class="label">{label}</span>
   <span class="value">
     <b>{value}</b>
-    <small>{summary}</small>
+    {#if summary !== ""}
+      <small>{summary}</small>
+    {/if}
   </span>
   <span class="go">{action}<Icon name="chevronRight" /></span>
 </button>

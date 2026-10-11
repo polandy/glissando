@@ -5,7 +5,12 @@ import type { SlideshowDetails } from "./view-models";
 afterEach(() => unmountScreen());
 
 const withMusic = (musicSummary: SlideshowDetails["musicSummary"]) =>
-  details(["a", "b"], { musicTitle: "Sommerwind.mp3", musicSeconds: 204, musicSummary });
+  details(["a", "b"], {
+    songCount: 1,
+    musicTitle: "Sommerwind.mp3",
+    musicSeconds: 204,
+    musicSummary,
+  });
 
 const musicRow = () => document.querySelector<HTMLButtonElement>(".rows button.music");
 
@@ -34,10 +39,23 @@ describe("SlideshowScreen, the music row", () => {
     expect(musicRow()?.querySelector("small")?.textContent).toBe("blendet aus");
   });
 
-  it("stays a plain fact without music, offering nothing to edit", () => {
-    mountScreen(details(["a", "b"]));
+  it("names the count of several songs with the playlist's length", () => {
+    mountScreen(
+      details(["a", "b"], { songCount: 3, musicTitle: "Sommerwind.mp3", musicSeconds: 523 }),
+    );
 
-    expect(document.querySelector(".rows")?.textContent).toContain("Ohne Musik");
-    expect(musicRow()).toBeNull();
+    expect(musicRow()?.textContent?.replace(/\s+/g, " ").trim()).toBe(
+      "Musik 3 Songs 8:43 Bearbeiten",
+    );
+  });
+
+  it("offers to add music to a slideshow without any", () => {
+    const { calls } = mountScreen(details(["a", "b"]));
+
+    const row = musicRow();
+    expect(row?.textContent?.replace(/\s+/g, " ").trim()).toBe("Musik Ohne Musik Musik hinzufügen");
+    row?.click();
+
+    expect(calls.musicEdits).toBe(1);
   });
 });

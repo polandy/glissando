@@ -59,11 +59,13 @@ export interface SlideshowDetails {
   readonly title: string;
   readonly coverUrl: string;
   readonly durationSeconds: number;
-  /** The music file's name, or null without music. */
+  /** How many songs the playlist has; 0 without music. */
+  readonly songCount: number;
+  /** The first song's file name, or null without music. */
   readonly musicTitle: string | null;
-  /** The length of the music's excerpt, or null without music. */
+  /** How long the playlist plays, or null without music. */
   readonly musicSeconds: number | null;
-  /** What the music editor changed, or null without music. */
+  /** What the music editor changed of the only song; null without music or with several songs. */
   readonly musicSummary: MusicSummary | null;
   /** The user reordered the pictures; otherwise they are in capture-date order. */
   readonly ownOrder: boolean;

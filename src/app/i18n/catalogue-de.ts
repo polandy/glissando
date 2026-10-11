@@ -7,6 +7,7 @@ import { deImmich } from "./catalogue-de-immich";
 import { deHtml } from "./catalogue-de-html";
 import { deVideo } from "./catalogue-de-video";
 import { deServer } from "./catalogue-de-server";
+import { dePlaylist } from "./catalogue-de-playlist";
 import type { Message } from "./messages";
 
 /**
@@ -294,4 +295,5 @@ export const de = {
   ...deVideo,
   ...deHtml,
   ...deServer,
+  ...dePlaylist,
 } as const satisfies Record<string, Message>;

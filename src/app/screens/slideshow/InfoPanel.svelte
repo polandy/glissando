@@ -71,7 +71,16 @@
       ? slideshow.musicSeconds
       : null,
   );
+  /** One song by its name, several by their count; the playlist's length sums several up. */
+  const musicValue = $derived(
+    slideshow.songCount > 1
+      ? t("slideshow.songCount", { count: slideshow.songCount })
+      : (slideshow.musicTitle ?? t("slideshow.noMusic")),
+  );
   const musicSummary = $derived.by(() => {
+    if (slideshow.songCount > 1 && slideshow.musicSeconds !== null) {
+      return formatDuration(slideshow.musicSeconds);
+    }
     const summary = slideshow.musicSummary;
     if (summary === null) {
       return "";
@@ -134,23 +143,16 @@
         {/if}
       </dd>
     </div>
-    {#if slideshow.musicTitle === null}
-      <div>
-        <dt>{t("slideshow.music")}</dt>
-        <dd>{t("slideshow.noMusic")}</dd>
-      </div>
-    {:else}
-      <div class="action-row">
-        <PanelActionRow
-          name="music"
-          label={t("slideshow.music")}
-          value={slideshow.musicTitle}
-          summary={musicSummary}
-          action={t("slideshow.edit")}
-          onclick={onEditMusic}
-        />
-      </div>
-    {/if}
+    <div class="action-row">
+      <PanelActionRow
+        name="music"
+        label={t("slideshow.music")}
+        value={musicValue}
+        summary={musicSummary}
+        action={slideshow.songCount === 0 ? t("slideshow.addMusic") : t("slideshow.edit")}
+        onclick={onEditMusic}
+      />
+    </div>
     <div>
       <dt>{t("slideshow.pictureTimes")}</dt>
       <dd>

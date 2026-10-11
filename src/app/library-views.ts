@@ -1,5 +1,5 @@
 import {
-  musicExcerptMs,
+  playlistMs,
   resolveMusicTiming,
   slideshowDurationMs,
   slideshowTransition,
@@ -55,6 +55,8 @@ export function slideshowDetails(
 ): SlideshowDetails {
   const span = captureSpan(stored);
   const firstSong = stored.songs[0];
+  const onlySong = stored.songs.length === 1 ? firstSong : undefined;
+  const musicMs = playlistMs(stored);
   const lastIndex = stored.pictures.length - 1;
   const tiles = stored.pictures.map((picture, index) => ({
     id: picture.id,
@@ -69,11 +71,11 @@ export function slideshowDetails(
     title: stored.title,
     coverUrl: thumbnailUrl(coverId(stored)),
     durationSeconds: slideshowDurationMs(stored) / MILLISECONDS_PER_SECOND,
+    songCount: stored.songs.length,
     musicTitle: firstSong?.fileName ?? null,
-    musicSeconds:
-      firstSong === undefined ? null : musicExcerptMs(firstSong) / MILLISECONDS_PER_SECOND,
+    musicSeconds: musicMs === undefined ? null : musicMs / MILLISECONDS_PER_SECOND,
     musicSummary:
-      firstSong === undefined ? null : musicSummary(firstSong, slideshowDurationMs(stored)),
+      onlySong === undefined ? null : musicSummary(onlySong, slideshowDurationMs(stored)),
     ownOrder: stored.ownOrder === true,
     ownMotionCount: stored.pictures.filter((picture) => picture.kenBurns !== undefined).length,
     ownDurationCount: tiles.filter((tile) => tile.ownDurationMs !== null).length,
@@ -110,4 +112,19 @@ function fadesPlayed(fadesIn: boolean, fadesOut: boolean): MusicFades | null {
     return "in";
   }
   return fadesOut ? "out" : null;
+}
+
+/** What the player names as playing: the only song, or a playlist by its count. */
+export type PlayingMusic =
+  | { readonly kind: "song"; readonly fileName: string }
+  | { readonly kind: "songs"; readonly count: number };
+
+export function playingMusic(stored: Pick<StoredSlideshow, "songs">): PlayingMusic | null {
+  const [first] = stored.songs;
+  if (first === undefined) {
+    return null;
+  }
+  return stored.songs.length === 1
+    ? { kind: "song", fileName: first.fileName }
+    : { kind: "songs", count: stored.songs.length };
 }

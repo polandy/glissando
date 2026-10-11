@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { StoredPicture, StoredSlideshow } from "../library/stored-slideshow";
-import { slideshowDetails, slideshowSummary } from "./library-views";
+import { playingMusic, slideshowDetails, slideshowSummary } from "./library-views";
 
 const stored: StoredSlideshow = {
   id: "show",
@@ -51,6 +51,7 @@ describe("slideshowDetails", () => {
       title: "Juli 2025",
       coverUrl: "url:p1",
       durationSeconds: 8,
+      songCount: 0,
       musicTitle: null,
       musicSeconds: null,
       musicSummary: null,
@@ -134,6 +135,17 @@ describe("slideshowDetails", () => {
     expect(slideshowDetails(withMusic, urlOf).musicTitle).toBe("Sommer.mp3");
   });
 
+  it("counts several songs and gives the playlist's length, less the crossfade, without a summary", () => {
+    const second = { ...music, id: "m2", fileName: "Herbst.mp3" };
+    const playlist: StoredSlideshow = { ...withMusic, songs: [music, second] };
+
+    const details = slideshowDetails(playlist, urlOf);
+
+    expect(details.songCount).toBe(2);
+    expect(details.musicSeconds).toBe(57);
+    expect(details.musicSummary).toBeNull();
+  });
+
   it("tells an order of the user's own, and covers it first with its first picture", () => {
     const reordered: StoredSlideshow = {
       ...stored,
@@ -188,4 +200,19 @@ describe("slideshowDetails", () => {
     expect(slideshowDetails(fewer, urlOf).durationSeconds).toBe(30);
     expect(slideshowDetails(fewer, urlOf).pictures).toHaveLength(1);
   });
+});
+
+describe("playingMusic", () => {
+  const song = (id: string) => ({ ...music, id, fileName: `${id}.mp3` });
+
+  it.each([
+    { songs: [], expected: null },
+    { songs: [song("one")], expected: { kind: "song", fileName: "one.mp3" } },
+    { songs: [song("one"), song("two"), song("three")], expected: { kind: "songs", count: 3 } },
+  ] as const)(
+    "names one song by its file, several by their count ($songs.length songs)",
+    ({ songs, expected }) => {
+      expect(playingMusic({ ...stored, songs })).toEqual(expected);
+    },
+  );
 });

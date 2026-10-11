@@ -5,6 +5,8 @@
   import type { LibraryStore, StoredSlideshow } from "../../library/stored-slideshow";
   import type { MusicOutput } from "../../player";
   import type { PictureFocus } from "../../library/picture-focus";
+  import { getTranslator } from "../i18n/context";
+  import { playingMusic } from "../library-views";
   import { browserObjectUrls } from "../media/object-urls";
   import { storedSongBeats } from "../beats/music-beats-known";
   import { NO_FOCUS_KNOWN } from "../focus/pictures-focus";
@@ -47,6 +49,16 @@
     missing: ReadonlySet<string>;
     onPictureMissing: (pictureId: string) => void;
   } = $props();
+
+  const { t } = getTranslator();
+  /** The only song by its name; a playlist by its count of songs. */
+  const musicTitle = $derived.by(() => {
+    const music = playingMusic(stored);
+    if (music === null) return null;
+    return music.kind === "song"
+      ? music.fileName
+      : t("slideshow.songCount", { count: music.count });
+  });
 
   interface Loaded {
     readonly musicUrls: ReadonlyMap<string, string>;
@@ -131,7 +143,7 @@
   {#key slideshow}
     <PlayerOverlay
       {slideshow}
-      musicTitle={stored.songs[0]?.fileName ?? null}
+      {musicTitle}
       slideDates={played.pictures.map((picture) => picture.capturedAt)}
       openPicture={(id) => store.pictureBlob(id)}
       {musicOutput}
