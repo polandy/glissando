@@ -23,6 +23,8 @@ export interface ServerLibrary {
     slideshow: StoredSlideshow,
     songsAudio: readonly Blob[],
   ): Promise<StoredSlideshow>;
+  /** Stores a song's audio on the server and answers its id there. */
+  uploadMusic(audio: Blob, mimeType: string): Promise<string>;
   /** "Save on the server" for a device slideshow (`saveOnServer`). */
   saveOnServer(deviceSlideshow: StoredSlideshow): Promise<StoredSlideshow>;
   /** "Keep a copy on this device" for a server slideshow (`keepCopyOnDevice`). */
@@ -64,6 +66,7 @@ export function createServerLibrary(dependencies: ServerLibraryDependencies): Se
     store,
     createSlideshow: (slideshow, musicAudio) =>
       createServerSlideshow(slideshow, musicAudio, client),
+    uploadMusic: (audio, mimeType) => client.uploadMusic(audio, mimeType),
     saveOnServer: (deviceSlideshow) =>
       saveOnServer(deviceSlideshow, { client, store: deviceStore }),
     keepCopy: (serverSlideshow, options) =>
