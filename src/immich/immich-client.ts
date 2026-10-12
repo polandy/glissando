@@ -97,7 +97,9 @@ export interface ImmichClient {
   photos(query: { readonly page: number; readonly albumId?: string }): Promise<ImmichPhotoPage>;
   /** Same origin and keyless, so an `<img src>` can load it lazily. */
   thumbnailUrl(photoId: string): string;
-  thumbnail(photoId: string, size: ImmichThumbnailSize): Promise<Blob>;
-  original(photoId: string): Promise<Blob>;
+  /** `signal` cancels the download; it then rejects with the signal's reason. */
+  thumbnail(photoId: string, size: ImmichThumbnailSize, signal?: AbortSignal): Promise<Blob>;
+  /** `signal` cancels the download; it then rejects with the signal's reason. */
+  original(photoId: string, signal?: AbortSignal): Promise<Blob>;
   faces(photoId: string): Promise<readonly ImmichFace[]>;
 }

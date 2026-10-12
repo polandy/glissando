@@ -75,6 +75,19 @@ describe("HttpImmichClient.status", () => {
     expect(fake.requests.map((request) => request.redirect)).toEqual(["manual"]);
   });
 
+  it("cancels downloading a picture with the caller's signal", async () => {
+    const fake = new FakeFetch()
+      .answer("GET", "api/assets/a/original", () => new Response("original"))
+      .answer("GET", "api/assets/a/thumbnail?size=preview", () => new Response("preview"));
+    const cancel = new AbortController();
+
+    await clientWith(fake).original("a", cancel.signal);
+    await clientWith(fake).thumbnail("a", "preview", cancel.signal);
+
+    expect(fake.requests.map((request) => request.url)).toHaveLength(2);
+    expect(fake.requests.map((request) => request.signal)).toEqual([cancel.signal, cancel.signal]);
+  });
+
   it("fails loud on a version answer that is not Immich's shape", async () => {
     const fake = new FakeFetch().answer("GET", "api/server/version", json({ major: "3" }));
 

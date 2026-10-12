@@ -63,6 +63,8 @@ export interface AppServices {
   newId(): string;
   /** The current instant. */
   now(): Date;
+  /** This screen's short edge in device pixels, what the automatic playback quality goes by. */
+  screenShortEdge(): number;
   /** Deletes media no slideshow uses and no claim in any tab spares; reports failures. */
   deleteAbandonedMedia(): void;
   /** Logs an error the user was told about in other words, or need not be. */

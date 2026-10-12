@@ -3,8 +3,6 @@
   import {
     CAPTION_GLIDE_MS,
     createPlayer,
-    MusicPlaybackError,
-    SlideshowLoadError,
     type MusicOutput,
     type OpenPicture,
     type PlayerEvent,
@@ -16,6 +14,7 @@
   import PlayerCaption from "./PlayerCaption.svelte";
   import PlayerCard from "./PlayerCard.svelte";
   import type { PlayerFailure } from "./player-failure";
+  import { failureOfPlayerError } from "./player-error";
   import { ControlsVisibility } from "../../ui-kit/controls-visibility";
   import {
     canFullscreen,
@@ -41,6 +40,7 @@
     startAt = 0,
     picturesAhead,
     pictureFailure = () => "picture",
+    onSlide,
     onClose,
     scheduler = browserScheduler,
   }: {
@@ -59,6 +59,8 @@
     picturesAhead?: number;
     /** The card for a picture that failed to load with `cause`; null: the caller handles it. */
     pictureFailure?: (cause: unknown) => PlayerFailure | null;
+    /** Told the index of each slide as it comes on screen. */
+    onSlide?: (index: number) => void;
     onClose: () => void;
     scheduler?: Scheduler;
   } = $props();
@@ -87,6 +89,7 @@
 
   const slideCount = $derived(boundaries.starts.length);
   const slideNumber = $derived(slideIndexAt(boundaries, currentTime) + 1);
+  $effect(() => onSlide?.(slideNumber - 1));
   const slideDate = $derived(slideDates[slideNumber - 1]);
   const slideCaption = $derived(slideshow.slides[slideNumber - 1]?.caption ?? "");
   const progress = $derived(boundaries.duration > 0 ? currentTime / boundaries.duration : 0);
@@ -118,7 +121,7 @@
     }
     created.addEventListener("error", () => {
       sync();
-      failure = failureOf(created.error);
+      failure = failureOfPlayerError(created.error, pictureFailure);
     });
     created.play();
     enterFullscreen(root);
@@ -129,18 +132,6 @@
       exitFullscreen();
     };
   });
-
-  /** A refused music start is no failure: the player pauses, and play retries with a gesture. */
-  function failureOf(error: Error | null): PlayerFailure | null {
-    if (error instanceof MusicPlaybackError) {
-      return null;
-    }
-    if (error instanceof SlideshowLoadError) {
-      return pictureFailure(error.cause);
-    }
-    console.error("the player failed", error);
-    return "playback";
-  }
 
   function seek(seconds: number): void {
     if (player !== null) {

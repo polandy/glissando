@@ -50,6 +50,19 @@ describe("ServerSlideshowStore media", () => {
     expect(immich.calls).toEqual(["preview asset-1"]);
   });
 
+  it("cancels downloading a picture with the caller's signal", async () => {
+    const { store, immich } = serverStoreHarness();
+    immich.add("asset-1");
+    const cancel = new AbortController();
+
+    await store.pictureBlob("asset-1", cancel.signal);
+    await store.playbackPictureBlob("asset-1", cancel.signal);
+
+    expect(immich.calls).toEqual(["original asset-1", "preview asset-1"]);
+    expect(immich.signals.get("original asset-1")).toBe(cancel.signal);
+    expect(immich.signals.get("preview asset-1")).toBe(cancel.signal);
+  });
+
   it("rejects playing a picture Immich no longer has with PictureMissingFromImmichError", async () => {
     const { store, immich } = serverStoreHarness();
     immich.add("asset-kept");

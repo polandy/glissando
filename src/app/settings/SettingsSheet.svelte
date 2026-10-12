@@ -10,6 +10,11 @@
   import type { SettingsState } from "./app-settings";
   import type { BuildInfo } from "./build-info";
   import type { LanguagePreference } from "./language";
+  import {
+    effectivePlaybackQuality,
+    type PlaybackQuality,
+    type PlaybackQualityPreference,
+  } from "./playback-quality";
   import type { ThemePreference } from "./theme";
   import { THIRD_PARTY_LICENSES_FILE } from "./third-party-licenses";
   import VersionGroup from "./VersionGroup.svelte";
@@ -22,6 +27,9 @@
     onUpdate,
     onTheme,
     onLanguage,
+    serverOn,
+    screenShortEdge,
+    onPlaybackQuality,
     onCheckImmich,
     onReload,
     onClose,
@@ -38,6 +46,11 @@
     onReload: () => void;
     onTheme: (theme: ThemePreference) => void;
     onLanguage: (language: LanguagePreference) => void;
+    /** The server library is on: its slideshows' quality can be chosen. */
+    serverOn: boolean;
+    /** This screen's short edge in device pixels, what "auto" decides by. */
+    screenShortEdge: number;
+    onPlaybackQuality: (quality: PlaybackQualityPreference) => void;
     /** ✕, the scrim, Esc; it should go back through history (see dev-docs/app/NAVIGATION.md). */
     onClose: () => void;
   } = $props();
@@ -67,6 +80,32 @@
     },
     { value: "de", label: t("settings.languageGerman") },
     { value: "en", label: t("settings.languageEnglish") },
+  ]);
+
+  const QUALITY_NAME: Readonly<Record<PlaybackQuality, MessageKey>> = {
+    "1440": "prepare.quality1440",
+    "4k": "prepare.quality4k",
+  };
+  const playbackQualities: readonly RadioOption<PlaybackQualityPreference>[] = $derived([
+    {
+      value: "auto",
+      label: t("settings.playbackQualityAuto"),
+      hint: t("settings.playbackQualityAutoHint", {
+        quality: t(QUALITY_NAME[effectivePlaybackQuality("auto", screenShortEdge)]),
+        // A pixel count reads like the options' "1440", without a thousands separator.
+        pixels: String(screenShortEdge),
+      }),
+    },
+    {
+      value: "1440",
+      label: t("settings.playbackQuality1440"),
+      hint: t("settings.playbackQuality1440Hint"),
+    },
+    {
+      value: "4k",
+      label: t("settings.playbackQuality4k"),
+      hint: t("settings.playbackQuality4kHint"),
+    },
   ]);
 
   let dialog: HTMLDialogElement;
@@ -128,6 +167,17 @@
         onSelect={onLanguage}
       />
     </section>
+    {#if serverOn}
+      <section class="group">
+        <div class="eyebrow">{t("settings.playbackQuality")}</div>
+        <RadioGroup
+          label={t("settings.playbackQuality")}
+          options={playbackQualities}
+          value={state.playbackQuality}
+          onSelect={onPlaybackQuality}
+        />
+      </section>
+    {/if}
     <ImmichSettingsGroup state={immich} onCheck={onCheckImmich} {onReload} />
     <VersionGroup {build} {updateWaiting} {onUpdate} />
     <p class="footnote">{t("settings.footnote")}</p>

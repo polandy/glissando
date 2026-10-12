@@ -2,7 +2,12 @@ import { describe, expect, it } from "vitest";
 import { ImmichUnavailableError } from "../../immich/immich-client";
 import { picture, slideshow } from "../../library/testing/library-store-contract";
 import { PictureMissingFromImmichError } from "../../server-library/server-slideshow-store";
-import { picturesAheadFor, playedPictures, pictureFailureFor } from "./server-playing";
+import {
+  picturesAheadFor,
+  playedPictures,
+  pictureFailureFor,
+  serverRenditionFor,
+} from "./server-playing";
 
 describe("the pictures a slideshow plays", () => {
   it("leaves out the pictures Immich no longer has, keeping the order of the rest", () => {
@@ -51,5 +56,30 @@ describe("how many pictures playing loads ahead of the screen", () => {
     ["device", 1],
   ] as const)("loads a %s slideshow %i picture(s) ahead", (home, ahead) => {
     expect(picturesAheadFor(home)).toBe(ahead);
+  });
+});
+
+describe("the rendition a server slideshow plays in", () => {
+  it.each([
+    ["1440", "preview a"],
+    ["4k", "display of a"],
+  ] as const)("plays %s from %j", async (quality, rendition) => {
+    const cancel = new AbortController();
+    const signals: (AbortSignal | undefined)[] = [];
+    const store = {
+      pictureBlob: (id: string, signal?: AbortSignal) => {
+        signals.push(signal);
+        return Promise.resolve(new Blob([`display of ${id}`]));
+      },
+      playbackPictureBlob: (id: string, signal?: AbortSignal) => {
+        signals.push(signal);
+        return Promise.resolve(new Blob([`preview ${id}`]));
+      },
+    };
+
+    const blob = await serverRenditionFor(store, quality)("a", cancel.signal);
+
+    expect(await blob.text()).toBe(rendition);
+    expect(signals).toEqual([cancel.signal]);
   });
 });

@@ -1,6 +1,8 @@
-import type { StoredSlideshow } from "../../library/stored-slideshow";
+import type { LibraryStore, StoredSlideshow } from "../../library/stored-slideshow";
 import { PictureMissingFromImmichError } from "../../server-library/server-slideshow-store";
 import type { PlayerFailure } from "../player/player-failure";
+import type { PrepareRendition } from "../player/prepare/prepared-pictures";
+import type { PlaybackQuality } from "../settings/playback-quality";
 import type { SlideshowHome } from "./slideshow-storage";
 
 /** The slideshow as played: the pictures Immich no longer has are skipped. */
@@ -13,9 +15,9 @@ export function playedPictures(
 }
 
 /**
- * Slides loaded beyond the last one on screen: a server picture is a download from Immich, so a
- * few more are on their way; a device picture is read from storage, so one keeps memory low on
- * phones.
+ * Slides loaded beyond the last one on screen: a server picture's rendition may be a large one
+ * made from the original, so a few more are decoded in time; a device picture is read from
+ * storage, so one keeps memory low on phones.
  */
 const PICTURES_AHEAD: Readonly<Record<SlideshowHome, number>> = { server: 3, device: 1 };
 
@@ -38,4 +40,17 @@ export function pictureFailureFor(home: SlideshowHome, cause: unknown): PictureF
   return cause instanceof PictureMissingFromImmichError
     ? { kind: "skip", pictureId: cause.pictureId }
     : { kind: "stop", failure: "immich" };
+}
+
+/**
+ * Where a server slideshow's pictures come from in `quality` (ADR-0027): 1440 is Immich's
+ * preview, 4K the display rendition made on the device from the original.
+ */
+export function serverRenditionFor(
+  store: Pick<LibraryStore, "pictureBlob" | "playbackPictureBlob">,
+  quality: PlaybackQuality,
+): PrepareRendition {
+  return quality === "4k"
+    ? (id, signal) => store.pictureBlob(id, signal)
+    : (id, signal) => store.playbackPictureBlob(id, signal);
 }

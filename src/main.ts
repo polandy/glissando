@@ -10,6 +10,10 @@ import { createWindowHistory, Navigator } from "./app/navigation/navigator";
 import { randomId } from "./app/random-id";
 import { AppSettings } from "./app/settings/app-settings";
 import { createStorageLanguagePreferenceStore } from "./app/settings/language";
+import {
+  createStoragePlaybackQualityStore,
+  screenShortEdge,
+} from "./app/settings/playback-quality";
 import { applyThemePreference, createStorageThemePreferenceStore } from "./app/settings/theme";
 import { browserScheduler } from "./ui-kit/scheduler";
 import { handOverFromShell } from "./app/shell/app-shell";
@@ -67,6 +71,7 @@ const immichAvailability = new ImmichAvailability({
 
 const settings = new AppSettings({
   themes: createStorageThemePreferenceStore(window.localStorage),
+  playbackQualities: createStoragePlaybackQualityStore(window.localStorage),
   languages: createStorageLanguagePreferenceStore(window.localStorage),
   browserLanguages: window.navigator.languages,
 });
@@ -247,6 +252,12 @@ const services = {
   }),
   newId,
   now,
+  screenShortEdge: () =>
+    screenShortEdge({
+      width: window.screen.width,
+      height: window.screen.height,
+      devicePixelRatio: window.devicePixelRatio,
+    }),
   deleteAbandonedMedia,
   log: logError,
   freeBytes,

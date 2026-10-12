@@ -3,7 +3,7 @@
   import type { BeatPass } from "../../library/beat-pass";
   import { composeSlideshow, type SongBeats } from "../../compose";
   import type { LibraryStore, StoredSlideshow } from "../../library/stored-slideshow";
-  import type { MusicOutput } from "../../player";
+  import { performanceClock, type MusicOutput } from "../../player";
   import type { PictureFocus } from "../../library/picture-focus";
   import { getTranslator } from "../i18n/context";
   import { playingMusic } from "../library-views";
@@ -12,17 +12,27 @@
   import { NO_FOCUS_KNOWN } from "../focus/pictures-focus";
   import type { PlayerFailure } from "../player/player-failure";
   import PlayerOverlay from "../player/PlayerOverlay.svelte";
+  import PlayerCard from "../player/PlayerCard.svelte";
+  import PreparePictures from "../player/PreparePictures.svelte";
+  import { PrepareFlow, type PrepareView } from "../player/prepare/prepare-flow";
+  import type { PlaybackQuality } from "../settings/playback-quality";
   import { slideBoundaries } from "../player/slide-boundaries";
   import { loadPlayerMusic } from "./route-loading";
-  import { pictureFailureFor, picturesAheadFor, playedPictures } from "./server-playing";
+  import {
+    pictureFailureFor,
+    picturesAheadFor,
+    playedPictures,
+    serverRenditionFor,
+  } from "./server-playing";
   import type { SlideshowHome } from "./slideshow-storage";
 
   /**
    * The player over its slideshow. Pictures are read by media id, in their playback rendition, as
    * the player buffers them, a server slideshow's further ahead (ADR-0018);
-   * the music's object URL lives exactly as long as the layer. A server slideshow plays without
-   * the pictures Immich no longer has: one found missing while playing restarts the player
-   * without it, where its slide would have begun.
+   * the music's object URL lives exactly as long as the layer. A server slideshow is prepared in
+   * `playbackQuality` before it plays (ADR-0027) and plays without the pictures Immich no longer
+   * has: one found missing while playing restarts the player without it, where its slide would
+   * have begun.
    */
   let {
     store,
@@ -35,8 +45,13 @@
     home,
     missing,
     onPictureMissing,
+    playbackQuality,
+    clock = performanceClock.now,
   }: {
-    store: Pick<LibraryStore, "playbackPictureBlob" | "musicBlob" | "pictureFocus" | "musicBeats">;
+    store: Pick<
+      LibraryStore,
+      "pictureBlob" | "playbackPictureBlob" | "musicBlob" | "pictureFocus" | "musicBeats"
+    >;
     stored: StoredSlideshow;
     musicOutput: MusicOutput;
     onClose: () => void;
@@ -49,6 +64,10 @@
     /** Pictures Immich answered 404 for, as the screen knows them when playing begins. */
     missing: ReadonlySet<string>;
     onPictureMissing: (pictureId: string) => void;
+    /** The quality a server slideshow plays in, as this device's setting picks it. */
+    playbackQuality: PlaybackQuality;
+    /** Monotonic milliseconds, for timing the pictures prepared. */
+    clock?: () => number;
   } = $props();
 
   const { t } = getTranslator();
@@ -96,6 +115,43 @@
         ),
   );
 
+  // svelte-ignore state_referenced_locally
+  const flow =
+    home === "server"
+      ? new PrepareFlow({
+          ids: played.pictures.map(({ id }) => id),
+          quality: playbackQuality,
+          renditionFor: (quality) => serverRenditionFor(store, quality),
+          clock,
+          onMissing: (id) => {
+            onPictureMissing(id);
+            skipped = new Set([...skipped, id]);
+          },
+        })
+      : null;
+  let prepareView = $state.raw<PrepareView | null>(flow?.view ?? null);
+  /** The prepare screen's view while the flow measures or prepares. */
+  const preparing = $derived.by(() => {
+    const view = prepareView;
+    if (view === null || view.stage === "playing" || view.stage === "failed") return null;
+    return view;
+  });
+  $effect(() => {
+    if (flow !== null && slideshow !== null) flow.setSlides(slideBoundaries(slideshow));
+  });
+  const openPicture = (id: string): Promise<Blob> =>
+    flow === null ? store.playbackPictureBlob(id) : flow.openPicture(id);
+
+  function prepareFailure(error: unknown): PlayerFailure {
+    const outcome = pictureFailureFor("server", error);
+    return outcome.kind === "stop" ? outcome.failure : "picture";
+  }
+
+  function close(): void {
+    flow?.close();
+    onClose();
+  }
+
   function pictureFailure(cause: unknown): PlayerFailure | null {
     const outcome = pictureFailureFor(home, cause);
     if (outcome.kind === "stop") return outcome.failure;
@@ -111,6 +167,10 @@
   const closed = new AbortController();
 
   onMount(() => {
+    const unsubscribe = flow?.subscribe((view) => {
+      if (view.stage === "failed") log(view.error);
+      prepareView = view;
+    });
     for (const song of stored.songs) {
       beatPass.listenFor(song.id);
     }
@@ -131,27 +191,50 @@
       musicUrls = music.urls;
       loaded = { musicUrls: music.urls, focus, beats };
     }, onError);
+    return unsubscribe;
   });
   onDestroy(() => {
     closed.abort();
+    flow?.close();
     for (const url of musicUrls.values()) {
       browserObjectUrls.revoke(url);
     }
   });
 </script>
 
-{#if slideshow !== null}
+{#if preparing !== null}
+  <PreparePictures
+    title={stored.title}
+    view={preparing}
+    onStartNow={() => flow?.startNow()}
+    onPlayInPreview={() => flow?.playInPreview()}
+    onClose={close}
+  />
+{:else if prepareView?.stage === "failed"}
+  <div class="player" role="dialog" aria-modal="true" aria-label={stored.title}>
+    <PlayerCard
+      failure={prepareFailure(prepareView.error)}
+      ended={false}
+      onPlayAgain={close}
+      onClose={close}
+    />
+  </div>
+{:else if slideshow !== null}
   {#key slideshow}
     <PlayerOverlay
       {slideshow}
       {musicTitle}
       slideDates={played.pictures.map((picture) => picture.capturedAt)}
-      openPicture={(id) => store.playbackPictureBlob(id)}
+      {openPicture}
       picturesAhead={picturesAheadFor(home)}
+      onSlide={(index) => {
+        const picture = played.pictures[index];
+        if (picture !== undefined) flow?.slidePassed(picture.id);
+      }}
       {musicOutput}
       {startAt}
       {pictureFailure}
-      {onClose}
+      onClose={close}
     />
   {/key}
 {/if}

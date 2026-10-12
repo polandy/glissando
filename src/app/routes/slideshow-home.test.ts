@@ -52,6 +52,27 @@ describe("the server store as the slideshow route uses it", () => {
     expect(await picture.text()).toBe("preview a");
   });
 
+  it("passes the caller's signal on to the server store's picture downloads", async () => {
+    const signals: (AbortSignal | undefined)[] = [];
+    class SignalServer extends MemoryLibraryStore {
+      override pictureBlob(_id: string, signal?: AbortSignal): Promise<Blob> {
+        signals.push(signal);
+        return Promise.resolve(new Blob());
+      }
+      override playbackPictureBlob(_id: string, signal?: AbortSignal): Promise<Blob> {
+        signals.push(signal);
+        return Promise.resolve(new Blob());
+      }
+    }
+    const cancel = new AbortController();
+    const route = serverRouteStore(new SignalServer());
+
+    await route.pictureBlob("a", cancel.signal);
+    await route.playbackPictureBlob("a", cancel.signal);
+
+    expect(signals).toEqual([cancel.signal, cancel.signal]);
+  });
+
   it("spares no media: claims and their release do nothing", async () => {
     const route = serverRouteStore(new MemoryLibraryStore());
 

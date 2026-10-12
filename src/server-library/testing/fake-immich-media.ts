@@ -20,6 +20,8 @@ const HTTP_NOT_FOUND = 404;
  */
 export class FakeImmichMedia implements Pick<ImmichClient, "original" | "thumbnail" | "faces"> {
   readonly calls: string[] = [];
+  /** The signal each download was asked with, by call. */
+  readonly signals = new Map<string, AbortSignal | undefined>();
   readonly #originals = new Map<string, string>();
   readonly #faces = new Map<string, readonly ImmichFace[]>();
   /** Every request rejects with this kind while set. */
@@ -33,11 +35,19 @@ export class FakeImmichMedia implements Pick<ImmichClient, "original" | "thumbna
     return this;
   }
 
-  readonly original = (assetId: string): Promise<Blob> =>
-    this.#answer(`original ${assetId}`, assetId, (original) => new Blob([original]));
+  readonly original = (assetId: string, signal?: AbortSignal): Promise<Blob> => {
+    this.signals.set(`original ${assetId}`, signal);
+    return this.#answer(`original ${assetId}`, assetId, (original) => new Blob([original]));
+  };
 
-  readonly thumbnail = (assetId: string, size: ImmichThumbnailSize): Promise<Blob> =>
-    this.#answer(`${size} ${assetId}`, assetId, () => new Blob([`${size} ${assetId}`]));
+  readonly thumbnail = (
+    assetId: string,
+    size: ImmichThumbnailSize,
+    signal?: AbortSignal,
+  ): Promise<Blob> => {
+    this.signals.set(`${size} ${assetId}`, signal);
+    return this.#answer(`${size} ${assetId}`, assetId, () => new Blob([`${size} ${assetId}`]));
+  };
 
   readonly faces = (assetId: string): Promise<readonly ImmichFace[]> => {
     if (this.facesError !== null) {

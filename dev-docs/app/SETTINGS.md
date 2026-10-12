@@ -4,14 +4,22 @@
 a route with its own history entry, so ✕, a tap on the scrim, Esc and the browser or phone back
 gesture all close it the same way: by going back. A native modal dialog (focus trapped, the page
 behind inert, focus back on the gear when closed): above 720 px viewport width a 380 px panel at
-the top right, narrower a bottom sheet. Two radio groups (`components/RadioGroup.svelte`: one tab
-stop, arrows and Home/End move the choice with the focus), the Immich group, the version group, the footnote
+the top right, narrower a bottom sheet. Radio groups, three with the server library on, else two
+(`components/RadioGroup.svelte`: one tab stop, arrows and Home/End move the choice with the
+focus), the Immich group, the version group, the footnote
 "Applies at once and is stored on this device" and the link "Open-source licences":
 
 - **Appearance**: "Same as device" (hint "Light or dark, following the system setting"),
   "Light", "Dark" — the theme preference ([THEMES.md](THEMES.md)).
 - **Language**: "Same as browser" (hint "Currently German" or "Currently English", what the
   browser languages pick), "Deutsch", "English" — the language preference ([LANGUAGES.md](LANGUAGES.md)).
+- **Quality of server slideshows**, only while the server library is on: "Automatic" (hint
+  "Currently 1440 · this screen has 1280 pixels on its short edge" — what it picks now and why),
+  "1440 pixels" ("Starts at once, sharp on phones and laptops"), "4K" ("Sharp on large screens;
+  prepares pictures before it starts"). Automatic plays 4K only when the screen's short edge in
+  device pixels (screen size × `devicePixelRatio`, `screenShortEdge` in
+  `settings/playback-quality.ts`) is larger than 1440. What a server slideshow then does before
+  it plays: [PREPARING.md](PREPARING.md), ADR-0027.
 - **Immich** (`immich/ImmichSettingsGroup.svelte`): read-only, see [IMMICH.md](IMMICH.md).
 - **Version** (`settings/VersionGroup.svelte`): "Glissando 0.0.2" and below it, in mono, the
   abbreviated commit and its date ("416d018 · 12/10/2026"). While a new version waits the box
@@ -27,6 +35,6 @@ stop, arrows and Home/End move the choice with the focus), the Immich group, the
   writes it, the service worker precaches it and answers a navigation to it with the file, so it
   opens offline too.
 
-`settings/app-settings.ts` holds both preferences: a choice is stored at once and announced to
+`settings/app-settings.ts` holds the three preferences: a choice is stored at once and announced to
 its subscribers, a new subscriber gets the current state immediately. `main.ts` subscribes and
 applies them — the theme on `<html>`, the language as `<html lang>` and the translator in effect.

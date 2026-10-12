@@ -35,17 +35,18 @@ export interface ImmichPictureReaders {
 export async function decodeImmichPhoto(
   photo: Pick<ImmichPhoto, "id" | "fileName">,
   { client, decode }: Pick<ImmichPictureReaders, "client" | "decode">,
+  signal?: AbortSignal,
 ): Promise<DecodedPicture> {
   const decodeBlob = (blob: Blob): Promise<DecodedPicture> =>
     decode(new File([blob], photo.fileName, { type: blob.type }));
   try {
-    return await decodeBlob(await client.original(photo.id));
+    return await decodeBlob(await client.original(photo.id, signal));
   } catch (error) {
     if (!(error instanceof UnreadablePictureError)) {
       throw error;
     }
   }
-  return decodeBlob(await client.thumbnail(photo.id, FALLBACK_SIZE));
+  return decodeBlob(await client.thumbnail(photo.id, FALLBACK_SIZE, signal));
 }
 
 /** What tells the photo from other pictures (ADR-0016), known without downloading it. */
