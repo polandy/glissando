@@ -5,4 +5,5 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 image="$(sed -n 's/^ *image: *\(mcr\.microsoft\.com\/playwright@[^ ]*\).*/\1/p' .github/workflows/ci.yml)"
 exec docker run --rm --init --ipc=host --user "$(id -u):$(id -g)" -e HOME=/tmp \
+  -e GLISSANDO_COMMIT="$(git rev-parse HEAD)" -e GLISSANDO_COMMIT_DATE="$(git log -1 --format=%cI)" \
   -v "$PWD:/work" -w /work "$image" "$@"

@@ -39,6 +39,16 @@ const statusCases: readonly {
     state: { installed: true, storageRefused: true },
     status: "installed",
   },
+  {
+    rule: "a waiting version says a new version is ready",
+    state: { updateWaiting: true },
+    status: "updateReady",
+  },
+  {
+    rule: "a waiting version wins over every other status",
+    state: { updateWaiting: true, installed: true, storageRefused: true, secureContext: false },
+    status: "updateReady",
+  },
 ];
 
 const actionCases: readonly {

@@ -59,6 +59,10 @@ export const de = {
   "settings.languageEnglish": "English",
   "settings.footnote": "Gilt sofort und wird auf diesem Gerät gespeichert.",
   "settings.licenses": "Open-Source-Lizenzen",
+  "settings.version": "Version",
+  "settings.versionName": "Glissando {version}",
+  "settings.update": "Neu laden zum Aktualisieren",
+  "settings.openUpdateReady": "Einstellungen · neue Version bereit",
 
   "slideshow.eyebrow": "Diashow",
   "slideshow.dateRange": "{from} – {to}",
@@ -183,6 +187,9 @@ export const de = {
   "storage.persistRefusedText":
     "Der Browser hat dauerhaften Speicher abgelehnt. Deine Diashow funktioniert jetzt, kann aber nach einem Neustart fehlen.",
 
+  "pwa.status.updateReady":
+    "Neue Version bereit · neu laden zum Wechseln, deine Diashows bleiben, wie sie sind",
+  "pwa.status.updateReadyNarrow": "Neue Version bereit",
   "pwa.status.offline": "Offline · gespeichert auf diesem Gerät",
   "pwa.status.offlineNarrow": "Offline · auf diesem Gerät",
   "pwa.status.insecure":
@@ -195,7 +202,7 @@ export const de = {
   "pwa.why": "Warum?",
   "pwa.installApp": "App installieren",
   "pwa.installAsApp": "Als App installieren",
-  "pwa.reload": "Neue Version · Neu laden",
+  "pwa.reload": "Jetzt neu laden",
   "pwa.hideHint": "Hinweis ausblenden",
   "pwa.installedKeepsMore": "Als installierte App behält der Browser deine Diashows eher.",
   "pwa.whyTitle": "Warum nur online?",

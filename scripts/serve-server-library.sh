@@ -67,7 +67,7 @@ wait_for_log() { # container, fixed string
 }
 
 echo "building the image from deploy/Dockerfile"
-docker build --quiet --tag "$IMAGE" --file deploy/Dockerfile . >/dev/null
+deploy/build-image.sh --quiet --tag "$IMAGE" >/dev/null
 
 docker network create "$NETWORK" >/dev/null
 docker volume create "$VOLUME" >/dev/null

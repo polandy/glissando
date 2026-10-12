@@ -40,6 +40,11 @@ const NONE: StatusBarAction = { kind: "none" };
 describe("StatusBar", () => {
   it.each([
     {
+      status: "updateReady",
+      wide: "Neue Version bereit · neu laden zum Wechseln, deine Diashows bleiben, wie sie sind",
+      narrow: "Neue Version bereit",
+    },
+    {
       status: "offline",
       wide: "Offline · gespeichert auf diesem Gerät",
       narrow: "Offline · auf diesem Gerät",
@@ -73,7 +78,7 @@ describe("StatusBar", () => {
   });
 
   it.each([
-    { action: { kind: "reload" }, label: "Neue Version · Neu laden" },
+    { action: { kind: "reload" }, label: "Jetzt neu laden" },
     { action: { kind: "why" }, label: "Warum?" },
     { action: { kind: "installPrompt", dismissible: true }, label: "App installieren" },
     {

@@ -26,7 +26,8 @@ tab or in another one. Every dependency is pinned and weighed (`CODING_PRINCIPLE
   one host never touch each other's caches.
 - **No automatic takeover.** A new version installs in the background and waits (no
   `skipWaiting` on install). It takes over by itself once every Glissando window is closed, so
-  the next launch runs it. Meanwhile the start screen's footer offers "Reload"; only that click
+  the next launch runs it. Meanwhile the start screen's footer turns into a "New version ready"
+  strip offering "Reload now", and the settings offer "Reload to update"; only such a click
   asks the waiting worker to take over, and only the tab that clicked reloads. The footer exists
   only on the start screen, so the offer never shows during playback or an import.
 - **Only in a secure context and only in the production build.** Over `http://<lan-ip>` the

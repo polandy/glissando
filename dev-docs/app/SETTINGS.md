@@ -5,7 +5,7 @@ a route with its own history entry, so ✕, a tap on the scrim, Esc and the brow
 gesture all close it the same way: by going back. A native modal dialog (focus trapped, the page
 behind inert, focus back on the gear when closed): above 720 px viewport width a 380 px panel at
 the top right, narrower a bottom sheet. Two radio groups (`components/RadioGroup.svelte`: one tab
-stop, arrows and Home/End move the choice with the focus), the Immich group, the footnote
+stop, arrows and Home/End move the choice with the focus), the Immich group, the version group, the footnote
 "Applies at once and is stored on this device" and the link "Open-source licences":
 
 - **Appearance**: "Same as device" (hint "Light or dark, following the system setting"),
@@ -13,6 +13,15 @@ stop, arrows and Home/End move the choice with the focus), the Immich group, the
 - **Language**: "Same as browser" (hint "Currently German" or "Currently English", what the
   browser languages pick), "Deutsch", "English" — the language preference ([LANGUAGES.md](LANGUAGES.md)).
 - **Immich** (`immich/ImmichSettingsGroup.svelte`): read-only, see [IMMICH.md](IMMICH.md).
+- **Version** (`settings/VersionGroup.svelte`): "Glissando 0.0.2" and below it, in mono, the
+  abbreviated commit and its date ("416d018 · 12/10/2026"). While a new version waits the box
+  turns peach and offers "Reload to update", the same as the status bar's "Reload now"
+  ([INSTALLING_AND_OFFLINE.md](INSTALLING_AND_OFFLINE.md)). The build puts the version from
+  `package.json` and the commit into the app (`build/build-info.ts`): from
+  `GLISSANDO_COMMIT` and `GLISSANDO_COMMIT_DATE` where both are set, otherwise from git; a build
+  that can name neither fails. The image's build context leaves `.git` out, so
+  `deploy/build-image.sh` passes both as build arguments, and `scripts/ci-image.sh` as
+  environment.
 - **Open-source licences** opens `third-party-licenses.md` in a new tab: the name, version and
   licence of every bundled dependency, among them mediabunny's MPL-2.0 (ADR-0015). The build
   writes it, the service worker precaches it and answers a navigation to it with the file, so it

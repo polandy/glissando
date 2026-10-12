@@ -213,6 +213,7 @@ const services = {
   ),
   pwa,
   appAddress: window.location.origin,
+  build: __GLISSANDO_BUILD_INFO__,
   launchQueue: browserLaunchQueue(window),
   musicOutput,
   musicAudio: browserMusicEditorAudio(musicOutput),

@@ -37,6 +37,10 @@
   --gl-accent: #ff9f7f;
   --gl-accent-ink: #2a1a14;
   --gl-accent-hover: #ff8f6b;
+  /* The accent as a quiet fill, its edge and a glow around a dot: a waiting new version. */
+  --gl-accent-tint: color-mix(in srgb, var(--gl-accent) 22%, var(--gl-surface));
+  --gl-accent-line: color-mix(in srgb, var(--gl-accent) 55%, var(--gl-line));
+  --gl-accent-halo: color-mix(in srgb, var(--gl-accent) 30%, transparent);
   --gl-scrim: rgb(34 29 51 / 0.04);
   --gl-shadow: 0 1px 2px rgb(34 29 51 / 0.06), 0 6px 18px rgb(34 29 51 / 0.06);
   --gl-backdrop: rgb(10 8 18 / 0.38);
