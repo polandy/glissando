@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.2](https://github.com/polandy/glissando/compare/glissando-v0.0.1...glissando-v0.0.2) (2026-10-12)
+
+
+### Bug Fixes
+
+* play server slideshows from Immich's preview, three pictures ahead ([#50](https://github.com/polandy/glissando/issues/50)) ([944fae1](https://github.com/polandy/glissando/commit/944fae1e0abb4c9e186c7df577b46dd7a8b3ced5))
+
 ## 0.0.1 (2026-10-11)
 
 
