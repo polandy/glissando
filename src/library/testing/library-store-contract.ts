@@ -131,6 +131,12 @@ export function describeLibraryStoreContract(
       expect(await (await store.thumbnailBlob("picture-1")).text()).toBe("one thumbnail");
     });
 
+    it("plays a picture from its stored display rendition", async () => {
+      await store.putPicture("picture-1", pictureBlobs("one"));
+
+      expect(await (await store.playbackPictureBlob("picture-1")).text()).toBe("one display");
+    });
+
     it("returns stored music", async () => {
       await store.putMusic("music-1", musicBlob("one"));
 
@@ -150,6 +156,7 @@ export function describeLibraryStoreContract(
     it.each([
       ["pictureBlob", (s: LibraryStore) => s.pictureBlob("missing")],
       ["thumbnailBlob", (s: LibraryStore) => s.thumbnailBlob("missing")],
+      ["playbackPictureBlob", (s: LibraryStore) => s.playbackPictureBlob("missing")],
       ["musicBlob", (s: LibraryStore) => s.musicBlob("missing")],
     ])("%s throws MediaNotFoundError for an unknown media id", async (_, read) => {
       const error = await rejection(read(store));

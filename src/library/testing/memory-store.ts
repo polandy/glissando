@@ -93,6 +93,10 @@ export class MemoryLibraryStore implements LibraryStore {
     return found(id, this.#pictures.get(id)?.display);
   }
 
+  playbackPictureBlob(id: string): Promise<Blob> {
+    return found(id, this.#pictures.get(id)?.display);
+  }
+
   thumbnailBlob(id: string): Promise<Blob> {
     return found(id, this.#pictures.get(id)?.thumbnail);
   }

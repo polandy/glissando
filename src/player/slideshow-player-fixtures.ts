@@ -36,7 +36,7 @@ export function nextEvent(target: EventTarget, type: string): Promise<Event> {
   return new Promise((resolve) => target.addEventListener(type, resolve, { once: true }));
 }
 
-export function setUp() {
+export function setUp(options: { readonly picturesAhead?: number } = {}) {
   const clock = new FakeClock();
   const frames = new FakeFrameScheduler();
   const pictures = new FakePictureLoader();
@@ -48,6 +48,7 @@ export function setUp() {
     clock,
     frames,
     openMusic: () => music,
+    ...options,
   });
   const events: string[] = [];
   for (const type of PLAYER_EVENTS) {

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { ImmichUnavailableError } from "../../immich/immich-client";
 import { picture, slideshow } from "../../library/testing/library-store-contract";
 import { PictureMissingFromImmichError } from "../../server-library/server-slideshow-store";
-import { playedPictures, pictureFailureFor } from "./server-playing";
+import { picturesAheadFor, playedPictures, pictureFailureFor } from "./server-playing";
 
 describe("the pictures a slideshow plays", () => {
   it("leaves out the pictures Immich no longer has, keeping the order of the rest", () => {
@@ -42,5 +42,14 @@ describe("what playing makes of a picture that failed to load", () => {
     },
   ])("$case", ({ home, cause, failure }) => {
     expect(pictureFailureFor(home, cause)).toEqual(failure);
+  });
+});
+
+describe("how many pictures playing loads ahead of the screen", () => {
+  it.each([
+    ["server", 3],
+    ["device", 1],
+  ] as const)("loads a %s slideshow %i picture(s) ahead", (home, ahead) => {
+    expect(picturesAheadFor(home)).toBe(ahead);
   });
 });

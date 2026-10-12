@@ -160,11 +160,11 @@ a `.local` or `.lan` name, a private IP) only works at home, and the app says so
 `…` in place of the link's token in its own logs, but your proxy's access logs contain the full
 paths, tokens included, unless you filter them there.
 
-**For 4K on a TV**: shared slideshows show Immich's preview of each photo, which is 1440 pixels
-on its short edge by default. In Immich, go to Administration → Settings → Image Settings →
-Preview, set the resolution to 2160, and run "Generate thumbnails → All" once. The previews then
-take roughly twice the space. Without it, shared slideshows use 1440,
-sharp on phones and laptops but soft on a 4K TV.
+**For 4K on a TV**: shared slideshows, and server slideshows played in the app, show Immich's
+preview of each photo, which is 1440 pixels on its short edge by default. In Immich, go to
+Administration → Settings → Image Settings → Preview, set the resolution to 2160, and run
+"Generate thumbnails → All" once. The previews then take roughly twice the space. Without it,
+both use 1440, sharp on phones and laptops but soft on a 4K TV.
 
 ## Troubleshooting
 

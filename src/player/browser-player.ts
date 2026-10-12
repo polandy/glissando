@@ -39,6 +39,8 @@ export interface BrowserPlayerOptions {
   readonly openPicture?: OpenPicture;
   /** Where the music sounds; without it, at the audio element's own volume. */
   readonly musicOutput?: MusicOutput;
+  /** Slides loaded beyond the last one on screen; `DEFAULT_PICTURES_AHEAD` without it. */
+  readonly picturesAhead?: number;
 }
 
 const browserObjectUrls = {
@@ -75,6 +77,7 @@ export function createBrowserPlayer(
     webGl2Context = defaultWebGl2Context,
     openPicture,
     musicOutput,
+    picturesAhead,
   }: BrowserPlayerOptions,
 ): BrowserPlayer {
   let player: BrowserPlayer | null = null;
@@ -90,6 +93,7 @@ export function createBrowserPlayer(
     clock: performanceClock,
     frames: animationFrames,
     openMusic: (src: string) => new AudioElementMusic(src, musicOutput),
+    ...(picturesAhead === undefined ? {} : { picturesAhead }),
   };
   player =
     drawing.kind === "webgl"

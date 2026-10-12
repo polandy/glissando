@@ -20,6 +20,7 @@ export class FramePictures<Picture extends Size> {
     currentFrame: () => TimelineFrame,
     loader: PictureLoader<Picture>,
     renderer: SlideRenderer<Picture>,
+    picturesAhead?: number,
   ) {
     this.#slideshow = slideshow;
     this.#currentFrame = currentFrame;
@@ -28,6 +29,7 @@ export class FramePictures<Picture extends Size> {
       slideshow.slides.map((slide) => slide.image.src),
       loader,
       renderer,
+      picturesAhead,
     );
   }
 

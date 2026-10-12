@@ -107,8 +107,8 @@ const TWO_PICTURES: StoredSlideshow = {
 /** A server slideshow's store: `failing` fails with `failure`, the other pictures load. */
 async function serverStore(failing: string, failure: Error) {
   class FailingStore extends MemoryLibraryStore {
-    override pictureBlob(id: string): Promise<Blob> {
-      return id === failing ? Promise.reject(failure) : super.pictureBlob(id);
+    override playbackPictureBlob(id: string): Promise<Blob> {
+      return id === failing ? Promise.reject(failure) : super.playbackPictureBlob(id);
     }
   }
   const store = new FailingStore();
@@ -165,5 +165,57 @@ describe("the player layer of a server slideshow", () => {
     const alert = await whenRendered(target, "[role=alert]");
 
     expect(alert.textContent).toContain("Immich antwortet nicht");
+  });
+});
+
+/** A store recording the pictures the player asks for; only the playback rendition answers. */
+class PlaybackRecordingStore extends MemoryLibraryStore {
+  readonly played: string[] = [];
+  readonly #firstPlayed = Promise.withResolvers<undefined>();
+  /** Resolves once the player asked for its first picture, with every request of that step made. */
+  readonly firstPlayed = this.#firstPlayed.promise;
+
+  override pictureBlob(id: string): Promise<Blob> {
+    return Promise.reject(new Error(`playing read the stored rendition of "${id}"`));
+  }
+
+  override playbackPictureBlob(id: string): Promise<Blob> {
+    this.played.push(id);
+    this.#firstPlayed.resolve(undefined);
+    return super.playbackPictureBlob(id);
+  }
+}
+
+const FIVE_PICTURES: StoredSlideshow = {
+  ...SHOW,
+  pictures: ["p1", "p2", "p3", "p4", "p5"].map((id) => ({ ...PICTURE, id, fileName: `${id}.jpg` })),
+};
+
+describe("the pictures the player layer loads ahead", () => {
+  it.each([
+    ["server", ["p1", "p2", "p3", "p4"]],
+    ["device", ["p1", "p2"]],
+  ] as const)("plays a %s slideshow's playback renditions, %j first", async (home, first) => {
+    const store = new PlaybackRecordingStore();
+    for (const { id } of FIVE_PICTURES.pictures) {
+      await store.putPicture(id, { display: new Blob([]), thumbnail: new Blob([]) });
+    }
+    const mounted = mountWithTranslator(PlayerLayer, {
+      store,
+      stored: FIVE_PICTURES,
+      musicOutput: new MusicOutput(() => null),
+      onClose: () => {},
+      onError: () => {},
+      log: () => {},
+      beatPass: { listenFor: () => {} },
+      home,
+      missing: new SvelteSet<string>(),
+      onPictureMissing: () => {},
+    });
+    destroy = mounted.destroy;
+
+    await store.firstPlayed;
+
+    expect(store.played).toEqual(first);
   });
 });

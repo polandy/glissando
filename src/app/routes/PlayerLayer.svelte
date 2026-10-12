@@ -14,11 +14,12 @@
   import PlayerOverlay from "../player/PlayerOverlay.svelte";
   import { slideBoundaries } from "../player/slide-boundaries";
   import { loadPlayerMusic } from "./route-loading";
-  import { pictureFailureFor, playedPictures } from "./server-playing";
+  import { pictureFailureFor, picturesAheadFor, playedPictures } from "./server-playing";
   import type { SlideshowHome } from "./slideshow-storage";
 
   /**
-   * The player over its slideshow. Pictures are read by media id as the player buffers them;
+   * The player over its slideshow. Pictures are read by media id, in their playback rendition, as
+   * the player buffers them, a server slideshow's further ahead (ADR-0018);
    * the music's object URL lives exactly as long as the layer. A server slideshow plays without
    * the pictures Immich no longer has: one found missing while playing restarts the player
    * without it, where its slide would have begun.
@@ -35,7 +36,7 @@
     missing,
     onPictureMissing,
   }: {
-    store: Pick<LibraryStore, "pictureBlob" | "musicBlob" | "pictureFocus" | "musicBeats">;
+    store: Pick<LibraryStore, "playbackPictureBlob" | "musicBlob" | "pictureFocus" | "musicBeats">;
     stored: StoredSlideshow;
     musicOutput: MusicOutput;
     onClose: () => void;
@@ -145,7 +146,8 @@
       {slideshow}
       {musicTitle}
       slideDates={played.pictures.map((picture) => picture.capturedAt)}
-      openPicture={(id) => store.pictureBlob(id)}
+      openPicture={(id) => store.playbackPictureBlob(id)}
+      picturesAhead={picturesAheadFor(home)}
       {musicOutput}
       {startAt}
       {pictureFailure}

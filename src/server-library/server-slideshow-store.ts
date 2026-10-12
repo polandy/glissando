@@ -25,6 +25,8 @@ import {
 
 const HTTP_NOT_FOUND = 404;
 const THUMBNAIL_SIZE = "thumbnail";
+/** Immich's display-size JPEG, upright; playing it spares downloading and decoding the original. */
+const PLAYBACK_SIZE = "preview";
 
 export interface ServerSlideshowStoreOptions {
   readonly client: ServerLibraryClient;
@@ -47,7 +49,8 @@ interface SeenSlideshow {
  * Server slideshows behind the store slices the app shows and plays them with
  * (`dev-docs/server_library/IN_THE_APP.md`). Every edit names the revision last seen
  * and edits are applied one at a time, so a conflict loses at most that edit (ADR-0018).
- * Pictures are Immich assets: the display rendition is made on the device, nothing is kept.
+ * Pictures are Immich assets, nothing is kept: playing shows Immich's preview, everything else
+ * makes the display rendition on the device from the original.
  */
 export class ServerSlideshowStore implements SlideshowStore {
   readonly #options: ServerSlideshowStoreOptions;
@@ -101,6 +104,11 @@ export class ServerSlideshowStore implements SlideshowStore {
       decodeImmichPhoto({ id, fileName: id }, { client: immich, decode }),
     );
     return decoded.display;
+  }
+
+  /** Immich's preview: an original is too large to fetch and decode within a slide (ADR-0018). */
+  playbackPictureBlob(id: string): Promise<Blob> {
+    return this.#fromImmich(id, () => this.#options.immich.thumbnail(id, PLAYBACK_SIZE));
   }
 
   thumbnailBlob(id: string): Promise<Blob> {

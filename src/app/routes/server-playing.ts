@@ -12,6 +12,18 @@ export function playedPictures(
   return { ...stored, pictures: stored.pictures.filter(({ id }) => !missing.has(id)) };
 }
 
+/**
+ * Slides loaded beyond the last one on screen: a server picture is a download from Immich, so a
+ * few more are on their way; a device picture is read from storage, so one keeps memory low on
+ * phones.
+ */
+const PICTURES_AHEAD: Readonly<Record<SlideshowHome, number>> = { server: 3, device: 1 };
+
+/** How many slides playing loads beyond the last one on screen. */
+export function picturesAheadFor(home: SlideshowHome): number {
+  return PICTURES_AHEAD[home];
+}
+
 export type PictureFailure =
   | { readonly kind: "skip"; readonly pictureId: string }
   | { readonly kind: "stop"; readonly failure: PlayerFailure };
