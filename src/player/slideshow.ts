@@ -3,8 +3,12 @@
  * play in array order, which starts as capture order and follows the user's reordering.
  */
 
-/** Version 3: the music is a playlist of tracks, each placed in the slideshow (ADR-0023). */
-export const SLIDESHOW_FORMAT_VERSION = 3;
+/**
+ * Version 3: the music is a playlist of tracks, each placed in the slideshow (ADR-0023). Version
+ * 4 added a slide's `partner`, a second picture drawn beside or below the first, and `fit`,
+ * which turns the blurred fill off for the slide (ADR-0028).
+ */
+export const SLIDESHOW_FORMAT_VERSION = 4;
 
 /** Durations in the format are milliseconds; the player's clock speaks seconds. */
 export const MILLISECONDS_PER_SECOND = 1000;
@@ -51,8 +55,18 @@ export interface Slide {
   readonly image: { readonly src: string; readonly capturedAt: string };
   readonly durationMs: number;
   readonly kenBurns: KenBurns;
+  /**
+   * The second picture of a composed portrait pair, drawn right of `image` on a landscape
+   * screen and below it on a portrait one, each cropped to cover its half (ADR-0028).
+   */
+  readonly partner?: {
+    readonly image: { readonly src: string; readonly capturedAt: string };
+    readonly kenBurns: KenBurns;
+  };
   /** Shown bottom left with the slide; absent: none. Rules in `caption.ts`, see ADR-0007. */
   readonly caption?: string;
+  /** `"cover"` turns the blurred fill off; absent: whole picture over a blurred fill if needed. */
+  readonly fit?: "cover";
   /** Absent: a hard cut. Never on the last slide. */
   readonly transitionToNext?: Transition;
 }

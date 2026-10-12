@@ -29,12 +29,14 @@ export function autoKenBurns(
   index: number,
   picture: Size,
   focus: PictureFocus | undefined = undefined,
+  /** False for a composed pair's half, so the two halves never drift apart (ADR-0028). */
+  pansHorizontally = true,
 ): KenBurns {
   const zoomsIn = index % 2 === 0;
   const pansRight = index % 2 === 0;
   const center = restingCenter(picture, focus);
 
-  const halfPan = (pansRight ? 1 : -1) * (PAN_OFFSET / 2);
+  const halfPan = pansHorizontally ? (pansRight ? 1 : -1) * (PAN_OFFSET / 2) : 0;
   const startCenterX = clampToPicture(center.x - halfPan);
   const endCenterX = clampToPicture(center.x + halfPan);
 

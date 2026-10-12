@@ -6,7 +6,7 @@ are rejected.
 
 ```json
 {
-  "formatVersion": 3,
+  "formatVersion": 4,
   "title": "July 2025",
   "music": [
     {
@@ -35,7 +35,16 @@ are rejected.
         "to": { "zoom": 1.2, "centerX": 0.4, "centerY": 0.6 },
         "easing": "ease-in-out"
       },
+      "partner": {
+        "image": { "src": "pictures/2.jpg", "capturedAt": "2025-07-01T11:00:00Z" },
+        "kenBurns": {
+          "from": { "zoom": 1, "centerX": 0.5, "centerY": 0.4 },
+          "to": { "zoom": 1.2, "centerX": 0.5, "centerY": 0.4 },
+          "easing": "linear"
+        }
+      },
       "caption": "Evening on the jetty",
+      "fit": "cover",
       "transitionToNext": { "effect": "crossfade", "durationMs": 1000 }
     }
   ]
@@ -62,4 +71,15 @@ are rejected.
   track, `endMs` after `startMs`, the two fades together at most `endMs − startMs`. The composer
   resolves them, leaving out the songs the slideshow never reaches: the player knows no
   "automatic", no "whole track" and no crossfade rule. Errors name the track, e.g.
-  `music[1].atMs`. Only version 3 is read.
+  `music[1].atMs`.
+- **`partner`** (version 4, ADR-0028, optional): the second picture of a composed portrait pair,
+  drawn right of `image` on a landscape screen and below it on a portrait one, each cropped to
+  cover its half; its own `kenBurns` moves within its own half, never panning horizontally
+  relative to the first (`from.centerX` equals `to.centerX` on both). Validated strictly, like
+  `image` and `kenBurns`; errors name the field, e.g. `slides[i].partner.image.src`.
+- **`fit`** (version 4, ADR-0028, optional): `"cover"` turns the blurred fill off for the slide,
+  so every picture crops as a single picture always did; absent, a whole picture that covering
+  would crop too much of is drawn over a blurred, darkened copy of itself instead. No other value
+  is accepted.
+- Only version 4 is read; version 3 (without `partner` and `fit`) is refused, not upgraded — no
+  instance holds slideshows older than this app.

@@ -2,6 +2,7 @@ import type { MusicBeats } from "../beats";
 import type { OwnKenBurns } from "./own-ken-burns";
 import type { PictureFocus } from "./picture-focus";
 import type { PictureLength } from "./picture-length";
+import type { PortraitPictures } from "./portrait-pictures";
 import type { BetweenSongs, MusicTrim, PictureChanges } from "./own-music";
 import type { SlideshowTransition, TransitionChoice } from "./own-timing";
 
@@ -43,6 +44,8 @@ export interface StoredPicture {
   readonly immichAssetId?: string;
   /** Origin: the size of the original file in bytes (see ADR-0016). */
   readonly fileBytes?: number;
+  /** Never composed into a portrait pair, even automatically; absent: it may be (ADR-0028). */
+  readonly alone?: true;
 }
 
 export interface StoredMusic {
@@ -90,6 +93,11 @@ export interface StoredSlideshow {
    * (`DEFAULT_SLIDESHOW_TRANSITION`, see ADR-0010).
    */
   readonly transition?: SlideshowTransition;
+  /**
+   * How portrait pictures lay out (`checkPortraitPictures`); absent: automatic, pairs and a
+   * blurred fill for a whole picture that would otherwise lose too much to the crop (ADR-0028).
+   */
+  readonly portraitPictures?: PortraitPictures;
 }
 
 /** A picture's two stored renditions. */

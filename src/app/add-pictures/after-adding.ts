@@ -1,4 +1,4 @@
-import { slideDurationsMs } from "../../compose";
+import { pictureDurationsMs } from "../../compose";
 import { filledMusicMs } from "../../compose/playlist";
 import type { AddedPlacement } from "../../library/added-placement";
 import { addPictures } from "../../library/slideshow-edits";
@@ -109,7 +109,12 @@ function timing(
   slideshow: StoredSlideshow,
   excerptMs: number | undefined,
 ): { readonly totalMs: number; readonly shareMs: number | null; readonly shareAtFloor: boolean } {
-  const durationsMs = slideDurationsMs(slideshow.pictures, excerptMs, slideshow.secondsPerPicture);
+  const durationsMs = pictureDurationsMs(
+    slideshow.pictures,
+    slideshow.portraitPictures,
+    excerptMs,
+    slideshow.secondsPerPicture,
+  );
   const automaticMs = durationsMs.filter(
     (_, index) => slideshow.pictures[index]?.durationMs === undefined,
   );

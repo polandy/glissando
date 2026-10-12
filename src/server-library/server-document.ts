@@ -24,7 +24,7 @@ import {
 export const SERVER_DOCUMENT_FORMAT_ID = "glissando-server";
 export const SERVER_DOCUMENT_FORMAT_VERSION = 1;
 /** The manifest format version whose slideshow fields a server document carries. */
-const MANIFEST_FIELDS_VERSION = 10;
+const MANIFEST_FIELDS_VERSION = 11;
 /** Every key a server document's slideshow, each picture and each song may carry. */
 export const SERVER_SLIDESHOW_KEYS: readonly string[] = slideshowKeys(MANIFEST_FIELDS_VERSION);
 export const SERVER_PICTURE_KEYS: readonly string[] = [
@@ -148,6 +148,9 @@ export function serverDocumentFor(slideshow: StoredSlideshow): ServerDocument {
       ...(slideshow.pictureLength === undefined ? {} : { pictureLength: slideshow.pictureLength }),
       ...(slideshow.ownOrder ? { ownOrder: true } : {}),
       ...(slideshow.transition === undefined ? {} : { transition: slideshow.transition }),
+      ...(slideshow.portraitPictures === undefined
+        ? {}
+        : { portraitPictures: slideshow.portraitPictures }),
       pictures: slideshow.pictures.map(serverPictureFor),
       songs: slideshow.songs.map((song) => ({
         musicId: song.id,
@@ -180,6 +183,7 @@ function pictureFieldsOf(picture: PictureFields): PictureFields {
     ...(picture.caption === undefined ? {} : { caption: picture.caption }),
     ...(picture.durationMs === undefined ? {} : { durationMs: picture.durationMs }),
     ...(picture.transition === undefined ? {} : { transition: picture.transition }),
+    ...(picture.alone ? { alone: true } : {}),
   };
 }
 

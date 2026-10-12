@@ -2,11 +2,11 @@ import {
   automaticTransition,
   beatTransitionDurationMs,
   filledMusicMs,
+  pictureDurationsMs,
   pictureKenBurns,
   playlistBeatsMs,
   playlistMs,
   pictureTransition,
-  slideDurationsMs,
   slideshowTransition,
   type SongBeats,
 } from "../../compose";
@@ -99,13 +99,15 @@ export function pictureEditorView(
     throw new Error(`slideshow "${stored.id}" holds no picture "${pictureId}"`);
   }
   const beatsMs = playlistBeatsMs(stored, beats);
-  const durationsMs = slideDurationsMs(
+  const durationsMs = pictureDurationsMs(
     pictures,
+    stored.portraitPictures,
     filledMusicMs(stored),
     stored.secondsPerPicture,
     beatsMs,
   );
-  // One duration per picture: every index below is in range.
+  // One duration per picture, a paired picture showing its pair's (ADR-0028); every index below
+  // is in range.
   const durationAt = (at: number) => durationsMs[at] as number;
   const nextPicture = pictures[index + 1];
   const defaultTransition = slideshowTransition(stored);

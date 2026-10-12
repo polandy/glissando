@@ -101,26 +101,30 @@ function readSlides(value: unknown): readonly Slide[] {
   );
 }
 
+const FIT_COVER = "cover";
+
 function readSlide(value: unknown, path: string, isLast: boolean): Slide {
   const slide = readObject(value, path, [
     "image",
     "durationMs",
     "kenBurns",
+    "partner",
     "caption",
+    "fit",
     "transitionToNext",
   ]);
-  const image = readObject(slide.image, `${path}.image`, ["src", "capturedAt"]);
   const durationMs = readPositiveInteger(slide.durationMs, `${path}.durationMs`);
   const read: Slide = {
-    image: {
-      src: readNonEmptyString(image.src, `${path}.image.src`),
-      capturedAt: readIsoDate(image.capturedAt, `${path}.image.capturedAt`),
-    },
+    image: readSlideImage(slide.image, `${path}.image`),
     durationMs,
     kenBurns: readKenBurns(slide.kenBurns, `${path}.kenBurns`),
+    ...(slide.partner === undefined
+      ? {}
+      : { partner: readPartner(slide.partner, `${path}.partner`) }),
     ...(slide.caption === undefined
       ? {}
       : { caption: readCaption(slide.caption, `${path}.caption`) }),
+    ...(slide.fit === undefined ? {} : { fit: readFit(slide.fit, `${path}.fit`) }),
   };
   if (slide.transitionToNext === undefined) {
     return read;
@@ -140,6 +144,29 @@ function readSlide(value: unknown, path: string, isLast: boolean): Slide {
       durationMs,
     ),
   };
+}
+
+function readSlideImage(value: unknown, path: string): Slide["image"] {
+  const image = readObject(value, path, ["src", "capturedAt"]);
+  return {
+    src: readNonEmptyString(image.src, `${path}.src`),
+    capturedAt: readIsoDate(image.capturedAt, `${path}.capturedAt`),
+  };
+}
+
+function readPartner(value: unknown, path: string): NonNullable<Slide["partner"]> {
+  const partner = readObject(value, path, ["image", "kenBurns"]);
+  return {
+    image: readSlideImage(partner.image, `${path}.image`),
+    kenBurns: readKenBurns(partner.kenBurns, `${path}.kenBurns`),
+  };
+}
+
+function readFit(value: unknown, path: string): "cover" {
+  if (value !== FIT_COVER) {
+    throw new SlideshowFormatError(path, `"${FIT_COVER}"`, value);
+  }
+  return value;
 }
 
 function readCaption(value: unknown, path: string): string {

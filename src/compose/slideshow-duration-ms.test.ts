@@ -73,4 +73,24 @@ describe("slideshowDurationMs", () => {
 
     expect(slideshowDurationMs(stored)).toBe(10_000);
   });
+
+  it("counts a composed portrait pair as 1.5 slides, not two (ADR-0028)", () => {
+    const portrait = (id: string): StoredPicture => ({
+      id,
+      capturedAt: "2025-07-01T10:00:00Z",
+      fileName: `${id}.jpg`,
+      width: 300,
+      height: 400,
+    });
+    const stored: StoredSlideshow = {
+      id: "s1",
+      title: "July 2025",
+      createdAt: "2025-07-21T00:00:00Z",
+      pictures: [portrait("a"), portrait("b")],
+      songs: [],
+      secondsPerPicture: 5,
+    };
+
+    expect(slideshowDurationMs(stored)).toBe(7500);
+  });
 });

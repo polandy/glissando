@@ -16,3 +16,21 @@ export function pictureKenBurns(
     ? autoKenBurns(index, picture, focus)
     : { ...picture.kenBurns, easing: KEN_BURNS_EASING };
 }
+
+/**
+ * The motion each half of a composed portrait pair plays at `index`: automatic, aimed at its own
+ * focus, with no horizontal pan so the two halves stay in step (ADR-0028). A paired picture never
+ * has an own motion (see `slideUnits`).
+ */
+export function pairKenBurns(
+  index: number,
+  first: StoredPicture,
+  firstFocus: PictureFocus | undefined,
+  second: StoredPicture,
+  secondFocus: PictureFocus | undefined,
+): { readonly first: KenBurns; readonly second: KenBurns } {
+  return {
+    first: autoKenBurns(index, first, firstFocus, false),
+    second: autoKenBurns(index, second, secondFocus, false),
+  };
+}

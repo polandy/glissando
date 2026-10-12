@@ -8,6 +8,8 @@ import {
   resolvePlaylist,
   scaledFades,
   slideDurationsMs,
+  slideUnits,
+  timedUnit,
   type MusicTiming,
   type PlacedSong,
 } from "../../compose";
@@ -94,7 +96,11 @@ export function songBeatsStatus(beats: SongsBeatsStatus, songId: string): BeatsS
   return beats.get(songId) ?? LISTENING;
 }
 
-/** The pictures' times over the whole playlist, with what is known of the songs' beats. */
+/**
+ * The slides' times over the whole playlist, with what is known of the songs' beats; one entry
+ * per slide, a composed pair counting as one (ADR-0028), which is what the timeline's slide
+ * changes are positioned on.
+ */
 export interface SlideshowTimes {
   /** In ms of the playlist; absent while no song gives beats to change on. */
   readonly beatsMs: readonly number[] | undefined;
@@ -107,8 +113,9 @@ export function slideshowTimes(stored: StoredSlideshow, beats: SongsBeatsStatus)
     stored.songs.map(({ id }) => [id, composedBeats(songBeatsStatus(beats, id))]),
   );
   const beatsMs = playlistBeatsMs(stored, found);
+  const units = slideUnits(stored.pictures, stored.portraitPictures);
   const durationsMs = slideDurationsMs(
-    stored.pictures,
+    units.map((unit) => timedUnit(stored.pictures, unit)),
     filledMusicMs(stored),
     stored.secondsPerPicture,
     beatsMs,

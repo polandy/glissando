@@ -2,11 +2,7 @@ import { describe, expect, it } from "vitest";
 import { setBetweenSongs } from "../library/slideshow-edits-songs";
 import { SEQUENCE_BETWEEN_SONGS } from "../library/own-music";
 import type { StoredSlideshow } from "../library/stored-slideshow";
-import {
-  GLISSANDO_FORMAT_VERSION,
-  OLDEST_READABLE_FORMAT_VERSION,
-  manifestFor,
-} from "./glissando-manifest";
+import { GLISSANDO_FORMAT_VERSION, manifestFor } from "./glissando-manifest";
 import { readManifest } from "./read-manifest";
 
 const JPEG = { display: "image/jpeg", thumbnail: "image/jpeg" };
@@ -35,10 +31,9 @@ const manifest = (slideshow: StoredSlideshow) => manifestFor(slideshow, [JPEG]);
 const asText = (value: unknown): string => JSON.stringify(value);
 
 describe("the playlist in the .glissando file (ADR-0023)", () => {
-  it("is written from format version 10, the oldest version this app still reads", () => {
-    expect(GLISSANDO_FORMAT_VERSION).toBe(10);
-    expect(OLDEST_READABLE_FORMAT_VERSION).toBe(10);
-    expect(manifest(playlist).formatVersion).toBe(10);
+  it("is written from format version 10, carried forward by this app's current version", () => {
+    expect(GLISSANDO_FORMAT_VERSION).toBeGreaterThanOrEqual(10);
+    expect(manifest(playlist).formatVersion).toBe(GLISSANDO_FORMAT_VERSION);
   });
 
   it("gives each song a path unique to its place in the playlist", () => {
@@ -73,7 +68,7 @@ describe("the playlist in the .glissando file (ADR-0023)", () => {
 
     expect(readManifest(text)).toEqual({
       kind: "damaged",
-      reason: "glissando.json formatVersion: expected a whole number from 10 to 10, got 9",
+      reason: `glissando.json formatVersion: expected a whole number from ${GLISSANDO_FORMAT_VERSION} to ${GLISSANDO_FORMAT_VERSION}, got 9`,
     });
   });
 
@@ -91,9 +86,9 @@ describe("the playlist in the .glissando file (ADR-0023)", () => {
     });
   });
 
-  it("make an older app report a version 11 file as newer", () => {
-    expect(readManifest(asText({ ...manifest(playlist), formatVersion: 11 }))).toEqual({
-      kind: "newer",
-    });
+  it("makes an older app report a newer file as newer", () => {
+    const text = asText({ ...manifest(playlist), formatVersion: GLISSANDO_FORMAT_VERSION + 1 });
+
+    expect(readManifest(text)).toEqual({ kind: "newer" });
   });
 });
