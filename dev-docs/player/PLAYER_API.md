@@ -66,7 +66,7 @@ Behaviour:
   play control, and every `play()` of a track unlocks it too. A refused `play()` of any track is
   an `error` and pauses; a start interrupted by a pause (a quick seek) is not a refusal.
 - **Pictures** are loaded for the slides on screen plus the next `picturesAhead`; all others are
-  released, so memory stays bounded. When a frame needs a picture that is not loaded yet, time stops,
-  `waiting` fires, and playback goes on from the same moment with `playing`.
+  released, so memory stays bounded. When a frame needs a picture that is not loaded yet, time
+  stops, `waiting` fires, and playback goes on from the same moment with `playing`.
 - A picture that fails to load or open is an `error` (`SlideshowLoadError`) and pauses.
 - `play()` after the end starts from the beginning.

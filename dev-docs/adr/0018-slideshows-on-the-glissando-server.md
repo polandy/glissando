@@ -35,11 +35,11 @@ accounts, ADR-0013); the app reaches the server over plain HTTP on the LAN as we
 - **Playback shows Immich's preview, three pictures ahead.** The player asks a picture source
   for bytes: for a server picture it fetches Immich's preview (≤ 1440 px, already upright)
   through `/immich/`, and loads three slides beyond the screen to ride out a slow download (a
-  device slideshow loads one, keeping memory low on phones; ADR-0014). Video, web page and `.glissando` export, the picture editor and "Keep a copy
-  on this device" fetch the original and make the display rendition with the import's decode,
-  so their quality is a device slideshow's. Thumbnails are Immich's. Nothing of it is stored;
-  the browser's HTTP cache may keep what it fetched. A photo Immich no longer has is shown as
-  missing and skipped when playing.
+  device slideshow loads one, keeping memory low on phones; ADR-0014). Video, web page and
+  `.glissando` export, the picture editor and "Keep a copy on this device" fetch the original and
+  make the display rendition with the import's decode, so their quality is a device slideshow's.
+  Thumbnails are Immich's. Nothing of it is stored; the browser's HTTP cache may keep what it
+  fetched. A photo Immich no longer has is shown as missing and skipped when playing.
 - **Copies, not sync.** "Keep a copy on this device" downloads a server slideshow into an ordinary
   device slideshow; "Save on the server" copies a device slideshow of Immich photos to the server.
   The copies are independent afterwards.
