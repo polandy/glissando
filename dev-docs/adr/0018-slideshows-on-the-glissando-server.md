@@ -32,11 +32,14 @@ accounts, ADR-0013); the app reaches the server over plain HTTP on the LAN as we
   `If-Match` replaces it only if that is still the current one, else 412 with the current
   document. The app applies its edits one at a time (as on the device), so a conflict loses at
   most one edit: the app reloads the newest version and says "Changed on another device".
-- **Playback fetches originals and downscales on the device.** The player asks a picture source
-  for bytes: for a server picture it fetches Immich's original through `/immich/` and makes the
-  display rendition with the import's decode, a few pictures ahead (ADR-0014). Thumbnails are
-  Immich's. Nothing of it is stored; the browser's HTTP cache may keep what it fetched. A photo
-  Immich no longer has is shown as missing and skipped when playing.
+- **Playback shows Immich's preview, three pictures ahead.** The player asks a picture source
+  for bytes: for a server picture it fetches Immich's preview (≤ 1440 px, already upright)
+  through `/immich/`, and loads three slides beyond the screen to ride out a slow download (a
+  device slideshow loads one, keeping memory low on phones; ADR-0014). Video, web page and
+  `.glissando` export, the picture editor and "Keep a copy on this device" fetch the original and
+  make the display rendition with the import's decode, so their quality is a device slideshow's.
+  Thumbnails are Immich's. Nothing of it is stored; the browser's HTTP cache may keep what it
+  fetched. A photo Immich no longer has is shown as missing and skipped when playing.
 - **Copies, not sync.** "Keep a copy on this device" downloads a server slideshow into an ordinary
   device slideshow; "Save on the server" copies a device slideshow of Immich photos to the server.
   The copies are independent afterwards.
@@ -55,8 +58,10 @@ accounts, ADR-0013); the app reaches the server over plain HTTP on the LAN as we
   state, eviction and storage handling on every device for what an explicit copy already gives.
 - **Edit offline and merge later** — real sync: a queue, merge rules per field and their tests,
   for a household that edits at home anyway.
-- **Immich's preview (≤ 1440 px) for playback** — lighter, but soft on a 4K TV; the device
-  slideshow's quality is the bar.
+- **Immich's original for playback**, downscaled on the device as on import — a device
+  slideshow's quality, but a camera original (25 MB, 40 MP) takes seconds to fetch and to decode
+  and re-encode on the device, longer than a slide is shown: playing stalls at nearly every
+  picture.
 - **JSON files instead of SQLite** — readable, but atomic multi-record writes (slideshow + music)
   and revision checks would be hand-built; `node:sqlite` ships with the runtime.
 - **A separate container for the service** — cleaner process model, but a second service in the
@@ -69,8 +74,9 @@ accounts, ADR-0013); the app reaches the server over plain HTTP on the LAN as we
 - Access to Glissando is now also write access to the shared library: anyone who opens it can
   change or delete a server slideshow (confirmed in the app). The setup guide says so and
   recommends backing up the volume.
-- Playing a server slideshow moves every original over the LAN each time; a slow Wi-Fi shows as
-  a longer wait before the first picture, not as a jump (pictures are prepared ahead).
+- Playing a server slideshow is soft on a 4K TV unless Immich's preview resolution is raised to
+  2160 (the setup guide says how). It moves every preview over the LAN each time; a slow Wi-Fi
+  shows as a longer wait before the first picture, not as a jump (pictures are prepared ahead).
 - The app's store is a port with two adapters (IndexedDB, server); the editors and exports do not
   know which one they talk to. Only the player knows where a slideshow lives, to skip a picture
   Immich no longer has.

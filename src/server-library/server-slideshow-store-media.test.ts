@@ -40,6 +40,38 @@ describe("ServerSlideshowStore media", () => {
     expect(await picture.text()).toBe("display of preview asset-1");
   });
 
+  it("plays a picture from Immich's preview, never downloading the original", async () => {
+    const { store, immich } = serverStoreHarness();
+    immich.add("asset-1");
+
+    const picture = await store.playbackPictureBlob("asset-1");
+
+    expect(await picture.text()).toBe("preview asset-1");
+    expect(immich.calls).toEqual(["preview asset-1"]);
+  });
+
+  it("rejects playing a picture Immich no longer has with PictureMissingFromImmichError", async () => {
+    const { store, immich } = serverStoreHarness();
+    immich.add("asset-kept");
+
+    const error = await rejection(store.playbackPictureBlob("asset-gone"));
+
+    expect(await (await store.playbackPictureBlob("asset-kept")).text()).toBe("preview asset-kept");
+    expect(error).toBeInstanceOf(PictureMissingFromImmichError);
+    expect((error as PictureMissingFromImmichError).pictureId).toBe("asset-gone");
+  });
+
+  it("tells the app why Immich cannot be used when playing a picture fails", async () => {
+    const { store, immich, reported } = serverStoreHarness();
+    immich.add("asset-1");
+    immich.unavailable = "unreachable";
+
+    const error = await rejection(store.playbackPictureBlob("asset-1"));
+
+    expect(error).toBeInstanceOf(ImmichUnavailableError);
+    expect(reported).toEqual(["unreachable"]);
+  });
+
   it("gives Immich's thumbnail as a picture's thumbnail", async () => {
     const { store, immich } = serverStoreHarness();
     immich.add("asset-1");

@@ -1,12 +1,13 @@
 # Player API
 
-`createPlayer(container, slideshow, { webGl2Context?, openPicture? })` fills a positioned
-`container` and returns a `SlideshowPlayer`, modelled on an HTML video element. Options:
+`createPlayer(container, slideshow, { webGl2Context?, openPicture?, picturesAhead? })` fills a
+positioned `container` and returns a `SlideshowPlayer`, modelled on an HTML video element. Options:
 
 - `openPicture(src): Promise<Blob>` reads a slide's picture when the player loads it, so
   `image.src` can be a key such as a stored media id. Each blob gets an object URL for its
   decode, revoked when the picture is released or fails to decode. Without it, `src` is a URL.
 - `webGl2Context(canvas)` supplies the WebGL2 context; `null` selects the DOM fallback.
+- `picturesAhead` is how many slides are loaded beyond the last one on screen, 1 without it.
 
 `createBrowserPlayer` (`src/player/browser-player.ts`) is the same with a required
 `startDecodeWorker`: the exported web page starts the decode worker from a script inside itself
@@ -64,8 +65,8 @@ Behaviour:
   priming: the app unlocks the context in the Play tap that opens the player, in the player's
   play control, and every `play()` of a track unlocks it too. A refused `play()` of any track is
   an `error` and pauses; a start interrupted by a pause (a quick seek) is not a refusal.
-- **Pictures** are loaded for the slides on screen plus the next one; all others are released,
-  so memory stays bounded. When a frame needs a picture that is not loaded yet, time stops,
-  `waiting` fires, and playback goes on from the same moment with `playing`.
+- **Pictures** are loaded for the slides on screen plus the next `picturesAhead`; all others are
+  released, so memory stays bounded. When a frame needs a picture that is not loaded yet, time
+  stops, `waiting` fires, and playback goes on from the same moment with `playing`.
 - A picture that fails to load or open is an `error` (`SlideshowLoadError`) and pauses.
 - `play()` after the end starts from the beginning.

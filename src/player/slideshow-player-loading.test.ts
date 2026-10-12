@@ -38,6 +38,17 @@ describe("SlideshowPlayer, loading, errors and destroy", () => {
     expect(pictures.released).toEqual(["a.jpg"]);
   });
 
+  it("preloads as many slides ahead as it is told", async () => {
+    const { pictures, ready } = setUp({ picturesAhead: 2 });
+    await ready();
+
+    expect(pictures.requested).toEqual(["a.jpg", "b.jpg", "c.jpg"]);
+  });
+
+  it.each([-1, 1.5])("refuses to preload %s slides ahead", (picturesAhead) => {
+    expect(() => setUp({ picturesAhead })).toThrow(RangeError);
+  });
+
   it("releases a picture that arrives after the player moved past it", async () => {
     const { player, pictures } = setUp();
     const seeked = nextEvent(player, "seeked");

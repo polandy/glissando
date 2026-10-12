@@ -78,4 +78,6 @@ export interface PlayerDependencies<Picture extends Size> {
   readonly frames: FrameScheduler;
   /** Opens one playback per track of the slideshow's music. */
   readonly openMusic?: (src: string) => MusicPlayback;
+  /** Slides loaded beyond the last one on screen; `DEFAULT_PICTURES_AHEAD` without it. */
+  readonly picturesAhead?: number;
 }

@@ -130,6 +130,11 @@ export class IndexedDbLibraryStore implements LibraryStore {
     return toBlob((await this.#picture(id)).display);
   }
 
+  /** The display rendition: a picture on the device plays as it was stored. */
+  async playbackPictureBlob(id: string): Promise<Blob> {
+    return toBlob((await this.#picture(id)).display);
+  }
+
   async thumbnailBlob(id: string): Promise<Blob> {
     return toBlob((await this.#picture(id)).thumbnail);
   }

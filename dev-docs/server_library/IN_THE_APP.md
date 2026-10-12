@@ -102,7 +102,9 @@ wizard as it was with a coral toast naming it and "Try again".
 - `ServerSlideshowStore` (`src/server-library/`) implements the slices of `LibraryStore` the
   slideshow screen, editors, player and exports use: `pictureBlob(assetId)` fetches the original
   through `/immich/` and makes the display rendition on the device (Immich's preview where the
-  original cannot be decoded, as on import); `thumbnailBlob` is Immich's thumbnail; `musicBlob`
+  original cannot be decoded, as on import), for the editors, exports and the copy;
+  `playbackPictureBlob` is Immich's preview, what the player shows (ADR-0018; on the device it is
+  the stored display rendition); `thumbnailBlob` is Immich's thumbnail; `musicBlob`
   the server's music; `pictureFocus` the largest Immich face box (ADR-0013's rule), asked once per
   picture and kept for the session (faces Immich could not give are logged and asked again
   later); `putPictureFocus` keeps it for the session only; `musicBeats`/`putMusicBeats` read and
@@ -116,7 +118,8 @@ wizard as it was with a coral toast naming it and "Try again".
   `ImmichUnavailableError` (also reported to `ImmichAvailability`). Edits are applied one at a
   time, each naming the revision the one before left; one that failed leaves the last saved
   version as the one the next edit names.
-- The player prepares pictures ahead as for device slideshows (ADR-0014). It plays without the
+- The player prepares pictures ahead as for device slideshows (ADR-0014), three slides beyond the
+  screen instead of one (`picturesAheadFor` in `server-playing.ts`). It plays without the
   pictures the screen already knows are missing; one that fails with a 404 while playing is added
   to them and the player restarts without it, where its slide would have begun (`PlayerLayer`,
   `server-playing.ts`). Any other failure stops playing with "Immich isn't answering"; its Close

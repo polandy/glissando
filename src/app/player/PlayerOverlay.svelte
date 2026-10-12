@@ -39,6 +39,7 @@
     openPicture,
     musicOutput,
     startAt = 0,
+    picturesAhead,
     pictureFailure = () => "picture",
     onClose,
     scheduler = browserScheduler,
@@ -54,6 +55,8 @@
     musicOutput?: MusicOutput;
     /** Where on the time line playing starts, in seconds. */
     startAt?: number;
+    /** Slides loaded beyond the last one on screen; the player's default without it. */
+    picturesAhead?: number;
     /** The card for a picture that failed to load with `cause`; null: the caller handles it. */
     pictureFailure?: (cause: unknown) => PlayerFailure | null;
     onClose: () => void;
@@ -98,6 +101,7 @@
     const created = createPlayer(stage, slideshow, {
       ...(openPicture === undefined ? {} : { openPicture }),
       ...(musicOutput === undefined ? {} : { musicOutput }),
+      ...(picturesAhead === undefined ? {} : { picturesAhead }),
     });
     player = created;
     if (startAt > 0) {

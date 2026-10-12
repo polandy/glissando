@@ -1,8 +1,8 @@
 import type { Size } from "./ken-burns";
 import type { PictureLoader, SlideRenderer } from "./ports";
 
-/** Slides loaded beyond the last one on screen. */
-const SLIDES_PRELOADED_AHEAD = 1;
+/** Slides loaded beyond the last one on screen, unless the player is told otherwise. */
+export const DEFAULT_PICTURES_AHEAD = 1;
 
 export class SlideshowLoadError extends Error {
   constructor(src: string, cause: unknown) {
@@ -19,6 +19,7 @@ export class PictureBuffer<Picture extends Size> {
   readonly #sources: readonly string[];
   readonly #loader: PictureLoader<Picture>;
   readonly #renderer: SlideRenderer<Picture>;
+  readonly #picturesAhead: number;
   readonly #loading = new Map<number, Promise<void>>();
   readonly #loaded = new Map<number, Picture>();
   #wanted = new Set<number>();
@@ -27,10 +28,17 @@ export class PictureBuffer<Picture extends Size> {
     sources: readonly string[],
     loader: PictureLoader<Picture>,
     renderer: SlideRenderer<Picture>,
+    picturesAhead = DEFAULT_PICTURES_AHEAD,
   ) {
+    if (!Number.isInteger(picturesAhead) || picturesAhead < 0) {
+      throw new RangeError(
+        `picturesAhead is ${picturesAhead}; set a whole number of slides, 0 or more`,
+      );
+    }
     this.#sources = sources;
     this.#loader = loader;
     this.#renderer = renderer;
+    this.#picturesAhead = picturesAhead;
   }
 
   get(index: number): Picture | undefined {
@@ -54,7 +62,7 @@ export class PictureBuffer<Picture extends Size> {
    */
   keep(onScreen: readonly number[]): Promise<void> {
     const first = Math.min(...onScreen);
-    const last = Math.min(this.#sources.length - 1, Math.max(...onScreen) + SLIDES_PRELOADED_AHEAD);
+    const last = Math.min(this.#sources.length - 1, Math.max(...onScreen) + this.#picturesAhead);
     this.#wanted = new Set(Array.from({ length: last - first + 1 }, (_, offset) => first + offset));
     for (const index of [...this.#loaded.keys()].filter((loaded) => !this.#wanted.has(loaded))) {
       this.#unload(index);

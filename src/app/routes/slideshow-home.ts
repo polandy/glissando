@@ -40,6 +40,7 @@ export function serverRouteStore(
     updateSlideshowWith: (id, edit) => server.updateSlideshowWith(id, edit),
     deleteSlideshow: (id) => server.deleteSlideshow(id),
     pictureBlob: (id) => server.pictureBlob(id),
+    playbackPictureBlob: (id) => server.playbackPictureBlob(id),
     thumbnailBlob: (id) => server.thumbnailBlob(id),
     musicBlob: (id) => server.musicBlob(id),
     pictureFocus: (ids) => server.pictureFocus(ids),

@@ -49,6 +49,7 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
       () => this.#currentFrame(),
       dependencies.pictures,
       dependencies.renderer,
+      dependencies.picturesAhead,
     );
     this.#whenDrawable(() => this.#draw());
   }

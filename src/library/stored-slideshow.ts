@@ -133,6 +133,8 @@ export interface LibraryStore {
    */
   deleteSlideshow(id: string): Promise<void>;
   pictureBlob(id: string): Promise<Blob>;
+  /** The picture as the player shows it: on the device, its display rendition. */
+  playbackPictureBlob(id: string): Promise<Blob>;
   thumbnailBlob(id: string): Promise<Blob>;
   musicBlob(id: string): Promise<Blob>;
   /**
@@ -179,6 +181,7 @@ export type SlideshowStore = Pick<
   | "updateSlideshowWith"
   | "deleteSlideshow"
   | "pictureBlob"
+  | "playbackPictureBlob"
   | "thumbnailBlob"
   | "musicBlob"
   | "pictureFocus"

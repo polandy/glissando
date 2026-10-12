@@ -40,6 +40,18 @@ describe("the server store as the slideshow route uses it", () => {
     await expect(serverRouteStore(server).getSlideshow("show")).resolves.toEqual(SLIDESHOW);
   });
 
+  it("plays a picture from the server store's playback rendition", async () => {
+    class PlaybackServer extends MemoryLibraryStore {
+      override playbackPictureBlob(id: string): Promise<Blob> {
+        return Promise.resolve(new Blob([`preview ${id}`]));
+      }
+    }
+
+    const picture = await serverRouteStore(new PlaybackServer()).playbackPictureBlob("a");
+
+    expect(await picture.text()).toBe("preview a");
+  });
+
   it("spares no media: claims and their release do nothing", async () => {
     const route = serverRouteStore(new MemoryLibraryStore());
 
