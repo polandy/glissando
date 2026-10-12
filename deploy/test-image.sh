@@ -15,7 +15,7 @@ cd "$(dirname "$0")/.."
 
 readonly IMAGE=${1:-glissando:test}
 if [ $# -eq 0 ]; then
-	docker build --quiet --tag "$IMAGE" --file deploy/Dockerfile . >/dev/null
+	deploy/build-image.sh --quiet --tag "$IMAGE" >/dev/null
 fi
 # The fake runs on the build's own Node image, so the test pulls nothing unpinned.
 NODE_IMAGE=$(sed -n 's/^FROM \(node:[^ ]*\) AS build$/\1/p' deploy/Dockerfile)

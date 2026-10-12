@@ -1,6 +1,7 @@
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 import { playwright } from "@vitest/browser-playwright";
 import { defineConfig } from "vitest/config";
+import { buildInfoPlugin } from "./build/build-info.ts";
 import { exportPlayerPlugin } from "./build/export-player-plugin.ts";
 import { libavLicensePlugin } from "./build/libav-license.ts";
 import { pinnedThemePlugin } from "./build/pinned-theme-script.ts";
@@ -23,6 +24,7 @@ export default defineConfig({
   build: { license: { fileName: THIRD_PARTY_LICENSES_FILE } },
   plugins: [
     svelte(),
+    buildInfoPlugin(),
     pinnedThemePlugin(),
     exportPlayerPlugin(),
     sharePagePlugin(),

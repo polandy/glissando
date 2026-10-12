@@ -20,6 +20,7 @@
     onError,
     onCreate,
     onOpen,
+    updateWaiting,
     onSettings,
     onOpenFile,
     notice,
@@ -36,6 +37,8 @@
     onError: (error: unknown) => void;
     onCreate: () => void;
     onOpen: (slideshowId: string) => void;
+    /** A new version waits to take over: the gear carries a dot. */
+    updateWaiting: boolean;
     onSettings: () => void;
     onOpenFile: (file: File) => void;
     notice: OpenNotice | null;
@@ -113,6 +116,7 @@
     focusSearches={passState.slideshows}
     {onCreate}
     {onOpen}
+    {updateWaiting}
     {onSettings}
     {onOpenFile}
     {notice}

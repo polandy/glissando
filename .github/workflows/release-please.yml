@@ -35,10 +35,10 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - run: >-
-          docker build --file deploy/Dockerfile
+          deploy/build-image.sh
           --label org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
           --label org.opencontainers.image.version="$VERSION"
-          --tag "$IMAGE:$VERSION" --tag "$IMAGE:latest" .
+          --tag "$IMAGE:$VERSION" --tag "$IMAGE:latest"
       - run: deploy/test-image.sh "$IMAGE:$VERSION"
       - run: echo "$GITHUB_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
         env:

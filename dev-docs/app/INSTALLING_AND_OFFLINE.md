@@ -6,8 +6,15 @@ its update rule: ADR-0005; it leaves the Immich route (`immich/`) and the librar
 manifest and icons in `public/`; the PNG icons come from `scripts/brand/icons.sh`.
 
 - **Where**: only the start screen's status bar. Left a dot and a status line, right at most one
-  action — never a banner or a pop-up of our own.
+  action — never a banner or a pop-up of our own. A waiting new version is the one exception to
+  its quiet look (approved mockup:
+  https://polandy.github.io/glissando-assets/mockups/version-and-update/, variant A).
 - **Status line** (one of, first match):
+  - _a new version waits_ (ADR-0005): the whole bar turns peach (`--gl-accent-tint`, taller,
+    semibold), a peach dot with a halo, "New version ready · reload to switch, your slideshows
+    stay as they are" (narrow: "New version ready"). The gear in the header carries a peach dot
+    and is named "Settings · new version ready"; the settings repeat the offer at the version
+    ([SETTINGS.md](SETTINGS.md)).
   - _insecure context_ (`http://<lan-ip>`, no service worker possible): lemon dot, "Online only ·
     no offline mode and no installing at this address" (narrow: "Online only · no offline
     mode"); action "Why?" opens a sheet: browsers allow offline use and installing only over a
@@ -20,7 +27,7 @@ manifest and icons in `public/`; the PNG icons come from `scripts/brand/icons.sh
   - _running installed_ (display mode standalone, or iOS `navigator.standalone`): mint dot,
     "Installed · ready offline · stored on this device" (narrow: "Installed · ready offline").
   - otherwise mint dot, "Offline · stored on this device" (narrow: "Offline · on this device").
-- **Action** (first match): "New version · Reload" while a new version waits (ADR-0005);
+- **Action** (first match): the filled accent button "Reload now" while a new version waits;
   otherwise the install hint while installing is possible, the app is not running installed and
   the hint is not dismissed — or storage was refused, then it shows again and has no ✕.
 - **Install hint**: a small button with the install icon plus a ✕ ("Hide hint", remembered per
@@ -39,7 +46,7 @@ manifest and icons in `public/`; the PNG icons come from `scripts/brand/icons.sh
   hint) while installing is possible.
 - **Running installed with a told refusal**: at startup storage is requested again, since
   browsers grant it to installed apps without asking.
-- **Updates**: "Reload" asks the waiting version to take over, then this tab reloads into the
+- **Updates**: "Reload now" (or "Reload to update" in the settings) asks the waiting version to take over, then this tab reloads into the
   new version; other tabs keep running their version until their next start.
 
 - **Double-click on a .glissando file** (`glissando-file/launched-files.ts`): the installed app

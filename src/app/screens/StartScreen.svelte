@@ -18,6 +18,7 @@
     focusSearches,
     onCreate,
     onOpen,
+    updateWaiting,
     onSettings,
     onOpenFile,
     notice,
@@ -34,6 +35,8 @@
     focusSearches: ReadonlyMap<string, SlideshowSearch>;
     onCreate: () => void;
     onOpen: (slideshowId: string) => void;
+    /** A new version waits to take over: the gear carries a dot. */
+    updateWaiting: boolean;
     onSettings: () => void;
     /** A .glissando file was chosen or dropped. */
     onOpenFile: (file: File) => void;
@@ -49,6 +52,7 @@
   const { t } = getTranslator();
   let picker: GlissandoFilePicker;
   let dragging = $state(false);
+  const gearLabel = $derived(updateWaiting ? "settings.openUpdateReady" : "settings.open");
 </script>
 
 <GlissandoFilePicker bind:this={picker} onFile={onOpenFile} />
@@ -57,13 +61,14 @@
   <Header crumbs={[]} {actions} />
   {#snippet actions()}
     <button
-      class="icon-btn"
+      class="icon-btn gear"
       type="button"
-      title={t("settings.open")}
-      aria-label={t("settings.open")}
+      title={t(gearLabel)}
+      aria-label={t(gearLabel)}
       onclick={onSettings}
     >
       <Icon name="gear" />
+      {#if updateWaiting}<span class="badge"></span>{/if}
     </button>
     <!-- An empty library has the large button in the hero instead. -->
     {#if slideshows.length > 0 || server !== null}
@@ -168,6 +173,19 @@
 </div>
 
 <style>
+  .gear {
+    position: relative;
+  }
+  .badge {
+    position: absolute;
+    top: 7px;
+    right: 7px;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--gl-accent);
+    box-shadow: 0 0 0 2px var(--gl-surface);
+  }
   main {
     position: relative;
   }

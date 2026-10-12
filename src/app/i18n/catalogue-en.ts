@@ -56,6 +56,10 @@ export const en: Catalogue = {
   "settings.languageEnglish": "English",
   "settings.footnote": "Applies at once and is stored on this device.",
   "settings.licenses": "Open-source licences",
+  "settings.version": "Version",
+  "settings.versionName": "Glissando {version}",
+  "settings.update": "Reload to update",
+  "settings.openUpdateReady": "Settings · new version ready",
 
   "slideshow.eyebrow": "Slideshow",
   "slideshow.dateRange": "{from} – {to}",
@@ -181,6 +185,9 @@ export const en: Catalogue = {
   "storage.persistRefusedText":
     "The browser refused permanent storage. Your slideshow works now but may be gone after a restart.",
 
+  "pwa.status.updateReady":
+    "New version ready · reload to switch, your slideshows stay as they are",
+  "pwa.status.updateReadyNarrow": "New version ready",
   "pwa.status.offline": "Offline · stored on this device",
   "pwa.status.offlineNarrow": "Offline · on this device",
   "pwa.status.insecure": "Online only · no offline mode and no installing at this address",
@@ -192,7 +199,7 @@ export const en: Catalogue = {
   "pwa.why": "Why?",
   "pwa.installApp": "Install app",
   "pwa.installAsApp": "Install as app",
-  "pwa.reload": "New version · Reload",
+  "pwa.reload": "Reload now",
   "pwa.hideHint": "Hide hint",
   "pwa.installedKeepsMore":
     "As an installed app, the browser is more likely to keep your slideshows.",

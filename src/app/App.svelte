@@ -166,6 +166,7 @@
     onError={reportError}
     onCreate={() => importFlow.open()}
     onOpen={(slideshowId) => navigator.open({ screen: "slideshow", slideshowId })}
+    updateWaiting={pwaState.updateWaiting}
     onSettings={() => navigator.open({ screen: "settings" })}
     onOpenFile={(file) => void openFlow.open(file, "library")}
     notice={noticeFor("library")}
@@ -177,6 +178,9 @@
     <SettingsSheet
       state={settingsState}
       immich={immichState}
+      build={services.build}
+      updateWaiting={pwaState.updateWaiting}
+      onUpdate={() => pwa.reload()}
       onCheckImmich={() => immich.availability.check().catch(reportError)}
       onReload={services.reload}
       onTheme={(theme) => settings.setTheme(theme)}

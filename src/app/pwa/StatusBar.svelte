@@ -19,6 +19,7 @@
   const STATUS_TEXT: Readonly<
     Record<StatusBarView["status"], { readonly wide: MessageKey; readonly narrow: MessageKey }>
   > = {
+    updateReady: { wide: "pwa.status.updateReady", narrow: "pwa.status.updateReadyNarrow" },
     insecure: { wide: "pwa.status.insecure", narrow: "pwa.status.insecureNarrow" },
     storageRefused: {
       wide: "pwa.status.storageRefused",
@@ -36,14 +37,14 @@
   const action = $derived(view.action);
 </script>
 
-<footer class="status">
+<footer class="status" class:update={view.status === "updateReady"}>
   <span class="text">
     <span class="dot" class:warning={WARNING_STATUSES.has(view.status)}></span>
     <span class="wide">{t(text.wide)}</span>
     <span class="narrow">{t(text.narrow)}</span>
   </span>
   {#if action.kind === "reload"}
-    <button class="btn small" type="button" onclick={() => onAction(action)}>
+    <button class="btn primary small" type="button" onclick={() => onAction(action)}>
       <Icon name="refresh" />{t("pwa.reload")}
     </button>
   {:else if action.kind === "why"}
@@ -102,6 +103,19 @@
   .dot.warning {
     background: var(--gl-lemon);
   }
+  /* A waiting version tints the whole bar, so it is seen from anywhere on the screen. */
+  .status.update {
+    min-height: 56px;
+    border-top-color: var(--gl-accent-line);
+    background: var(--gl-accent-tint);
+    color: var(--gl-ink);
+    font-size: var(--gl-size-body);
+    font-weight: var(--gl-weight-semibold);
+  }
+  .status.update .dot {
+    background: var(--gl-accent);
+    box-shadow: 0 0 0 4px var(--gl-accent-halo);
+  }
   .narrow {
     display: none;
   }
@@ -110,10 +124,10 @@
     align-items: center;
     gap: 2px;
   }
-  .btn.small:not(.ghost) {
+  .btn.small:not(.ghost, .primary) {
     color: var(--gl-ink);
   }
-  .btn.small:not(.ghost) :global(.icon) {
+  .btn.small:not(.ghost, .primary) :global(.icon) {
     color: var(--gl-accent);
   }
   @container (max-width: 720px) {

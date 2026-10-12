@@ -8,13 +8,18 @@
   import type { MessageKey } from "../i18n/messages";
   import type { Language } from "../i18n/translator";
   import type { SettingsState } from "./app-settings";
+  import type { BuildInfo } from "./build-info";
   import type { LanguagePreference } from "./language";
   import type { ThemePreference } from "./theme";
   import { THIRD_PARTY_LICENSES_FILE } from "./third-party-licenses";
+  import VersionGroup from "./VersionGroup.svelte";
 
   let {
     state,
     immich,
+    build,
+    updateWaiting,
+    onUpdate,
     onTheme,
     onLanguage,
     onCheckImmich,
@@ -23,6 +28,11 @@
   }: {
     state: SettingsState;
     immich: ImmichAvailabilityState;
+    build: BuildInfo;
+    /** A new version waits to take over (ADR-0005). */
+    updateWaiting: boolean;
+    /** Lets the waiting version take over and reloads. */
+    onUpdate: () => void;
     onCheckImmich: () => void;
     /** Reloads the app, e.g. so the owner's proxy can ask for a new sign-in. */
     onReload: () => void;
@@ -119,6 +129,7 @@
       />
     </section>
     <ImmichSettingsGroup state={immich} onCheck={onCheckImmich} {onReload} />
+    <VersionGroup {build} {updateWaiting} {onUpdate} />
     <p class="footnote">{t("settings.footnote")}</p>
     <a class="licenses" href={THIRD_PARTY_LICENSES_FILE} target="_blank" rel="noopener">
       {t("settings.licenses")}

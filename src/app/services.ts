@@ -20,6 +20,7 @@ import type { Toaster } from "./toast/toaster";
 import type { HtmlExportDevice } from "./html-export/slideshow-html-export";
 import type { VideoExportDevice } from "./video-export/slideshow-video-export";
 import type { ShareLinkSession } from "./share-link/share-link-session";
+import type { BuildInfo } from "./settings/build-info";
 
 /** What the composition root (`main.ts`) wires into the app. */
 export interface AppServices {
@@ -52,6 +53,8 @@ export interface AppServices {
   readonly launchQueue: LaunchQueue | null;
   /** The address the app was opened at, e.g. `http://192.168.1.20:4173`. */
   readonly appAddress: string;
+  /** Which build is running, shown in the settings. */
+  readonly build: BuildInfo;
   newImportSession(): ImportSession;
   newAddPicturesSession(slideshow: StoredSlideshow, home: SlideshowHome): AddPicturesSession;
   /** Reads songs picked in the music editor and stores their audio where the slideshow lives. */

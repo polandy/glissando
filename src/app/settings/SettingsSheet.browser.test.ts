@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import type { LanguagePreference } from "./language";
 import type { ThemePreference } from "./theme";
 import type { SettingsState } from "./app-settings";
+import type { BuildInfo } from "./build-info";
 import { mountWithTranslator } from "../testing/mount-with-translator";
 import SettingsSheet from "./SettingsSheet.svelte";
 
@@ -16,11 +17,21 @@ const STATE: SettingsState = {
   effectiveLanguage: "de",
 };
 
-function mountSheet(state: SettingsState = STATE) {
+const BUILD: BuildInfo = {
+  version: "0.0.2",
+  commit: "87dd486",
+  commitDate: "2026-10-12T16:30:00.000Z",
+};
+
+function mountSheet(state: SettingsState = STATE, { updateWaiting = false } = {}) {
   const chosen = { themes: [] as ThemePreference[], languages: [] as LanguagePreference[] };
   let closes = 0;
+  let updates = 0;
   const mounted = mountWithTranslator(SettingsSheet, {
     state,
+    build: BUILD,
+    updateWaiting,
+    onUpdate: () => (updates += 1),
     immich: { kind: "notSetUp" },
     onCheckImmich: () => undefined,
     onReload: () => undefined,
@@ -33,7 +44,7 @@ function mountSheet(state: SettingsState = STATE) {
   if (dialog === null) {
     throw new Error("the settings sheet is not a dialog");
   }
-  return { dialog, chosen, closes: () => closes };
+  return { dialog, chosen, closes: () => closes, updates: () => updates };
 }
 
 function radios(dialog: HTMLElement, group: string): HTMLElement[] {
@@ -108,5 +119,30 @@ describe("SettingsSheet", () => {
     dialog.dispatchEvent(new MouseEvent("click", { bubbles: true }));
 
     expect(closes()).toBe(1);
+  });
+
+  it("names the running build: version, commit and the commit's date", () => {
+    const { dialog } = mountSheet();
+    const version = dialog.querySelector('[aria-labelledby="settings-version"]');
+    expect(version?.textContent?.replace(/\s+/g, " ").trim()).toBe(
+      "Version Glissando 0.0.2 87dd486 · 12.10.2026",
+    );
+  });
+
+  it("offers no update at the version while none waits", () => {
+    const { dialog } = mountSheet();
+    expect(dialog.textContent).toContain("Glissando 0.0.2");
+    expect([...dialog.querySelectorAll("button")].map((b) => b.textContent?.trim())).not.toContain(
+      "Neu laden zum Aktualisieren",
+    );
+  });
+
+  it("offers the update at the version while a new version waits", () => {
+    const { dialog, updates } = mountSheet(STATE, { updateWaiting: true });
+    const button = [...dialog.querySelectorAll("button")].find(
+      (candidate) => candidate.textContent?.trim() === "Neu laden zum Aktualisieren",
+    );
+    button?.click();
+    expect(updates()).toBe(1);
   });
 });

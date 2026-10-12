@@ -38,3 +38,12 @@ test("E2E-013 the browser back gesture closes the settings", async ({ page }) =>
   await expect(page.getByRole("button", { name: "Einstellungen" })).toBeVisible();
   await expect(settingsDialog(page)).toBeHidden();
 });
+
+test("E2E-044 the settings name the running build: version, commit and its date", async ({
+  page,
+}) => {
+  const version = settingsDialog(page).getByRole("region", { name: "Version" });
+
+  await expect(version.getByText(/^Glissando \d+\.\d+\.\d+$/)).toBeVisible();
+  await expect(version.getByText(/^[0-9a-f]{7} · \d{2}\.\d{2}\.\d{4}$/)).toBeVisible();
+});

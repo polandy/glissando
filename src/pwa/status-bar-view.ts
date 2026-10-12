@@ -25,7 +25,7 @@ export type StatusBarAction =
   | (InstallOffer & { readonly dismissible: boolean });
 
 export interface StatusBarView {
-  readonly status: "insecure" | "storageRefused" | "installed" | "offline";
+  readonly status: "updateReady" | "insecure" | "storageRefused" | "installed" | "offline";
   readonly action: StatusBarAction;
 }
 
@@ -46,6 +46,9 @@ export function installOffer(state: PwaState): InstallOffer | null {
 }
 
 function statusOf(state: PwaState): StatusBarView["status"] {
+  if (state.updateWaiting) {
+    return "updateReady";
+  }
   if (!state.secureContext) {
     return "insecure";
   }
