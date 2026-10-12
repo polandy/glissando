@@ -26,15 +26,15 @@ export class FramePictures<Picture extends Size> {
     this.#currentFrame = currentFrame;
     this.#renderer = renderer;
     this.#buffer = new PictureBuffer(
-      slideshow.slides.map((slide) => slide.image.src),
+      slideshow.slides.map((slide) =>
+        slide.partner === undefined
+          ? [slide.image.src]
+          : [slide.image.src, slide.partner.image.src],
+      ),
       loader,
       renderer,
       picturesAhead,
     );
-  }
-
-  get(index: number): Picture | undefined {
-    return this.#buffer.get(index);
   }
 
   /** True once every picture on screen is loaded. */
@@ -81,9 +81,15 @@ export class FramePictures<Picture extends Size> {
   /** Hands the renderer the next step of preparing the loaded pictures after those on screen. */
   prepareUpcoming(): void {
     const onScreen = this.#onScreen().map((slide) => slide.index);
-    for (const { index, picture } of this.#buffer.loadedAfter(onScreen)) {
+    for (const { index, pictures } of this.#buffer.loadedAfter(onScreen)) {
       const caption = this.#slideshow.slides[index]?.caption;
-      this.#renderer.prepare(caption === undefined ? { picture } : { picture, caption });
+      const [picture, partnerPicture] = pictures;
+      if (picture !== undefined) {
+        this.#renderer.prepare(caption === undefined ? { picture } : { picture, caption });
+      }
+      if (partnerPicture !== undefined) {
+        this.#renderer.prepare({ picture: partnerPicture });
+      }
     }
   }
 

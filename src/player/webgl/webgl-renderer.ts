@@ -1,7 +1,8 @@
 import type { BitmapPicture } from "../browser/bitmap-loader";
-import { cropAt, type Size } from "../ken-burns";
+import type { Size } from "../ken-burns";
 import type { PreparedSlide, RenderFrame, SlideLayer, SlideRenderer } from "../ports";
 import { TRANSITION_EFFECTS, type TransitionEffect } from "../slideshow";
+import { bindLayer, fromUniforms, toUniforms } from "./bind-layer";
 import { CaptionTextures, type CaptionFonts } from "./caption-textures";
 import { PictureTextures } from "./picture-textures";
 import { fragmentShader, VERTEX_SHADER } from "./transition-shaders";
@@ -16,6 +17,8 @@ const FROM_TEXTURE_UNIT = 0;
 const TO_TEXTURE_UNIT = 1;
 const FROM_CAPTION_TEXTURE_UNIT = 2;
 const TO_CAPTION_TEXTURE_UNIT = 3;
+const FROM_PARTNER_TEXTURE_UNIT = 4;
+const TO_PARTNER_TEXTURE_UNIT = 5;
 
 export class ShaderCompileError extends Error {
   constructor(effect: TransitionEffect, log: string) {
@@ -32,8 +35,18 @@ interface EffectProgram {
 const UNIFORM_NAMES = [
   "fromPicture",
   "toPicture",
+  "fromPartner",
+  "toPartner",
+  "fromLayout",
+  "toLayout",
   "fromCrop",
   "toCrop",
+  "fromSecondCrop",
+  "toSecondCrop",
+  "fromRect",
+  "toRect",
+  "fromRect2",
+  "toRect2",
   "fromCaption",
   "toCaption",
   "progress",
@@ -133,8 +146,24 @@ export class WebGlRenderer implements SlideRenderer<BitmapPicture> {
         : [frame.effect, frame.progress, frame.from, frame.to];
     const { program, uniforms } = this.#program(effect);
     gl.useProgram(program);
-    this.#bindLayer(FROM_TEXTURE_UNIT, from, uniforms.fromPicture, uniforms.fromCrop, viewport);
-    this.#bindLayer(TO_TEXTURE_UNIT, to, uniforms.toPicture, uniforms.toCrop, viewport);
+    bindLayer(
+      gl,
+      this.#pictures,
+      FROM_TEXTURE_UNIT,
+      FROM_PARTNER_TEXTURE_UNIT,
+      from,
+      fromUniforms(uniforms),
+      viewport,
+    );
+    bindLayer(
+      gl,
+      this.#pictures,
+      TO_TEXTURE_UNIT,
+      TO_PARTNER_TEXTURE_UNIT,
+      to,
+      toUniforms(uniforms),
+      viewport,
+    );
     this.#bindCaption(FROM_CAPTION_TEXTURE_UNIT, from, uniforms.fromCaption, viewport);
     this.#bindCaption(TO_CAPTION_TEXTURE_UNIT, to, uniforms.toCaption, viewport);
     gl.uniform1f(uniforms.progress, progress);
@@ -200,21 +229,6 @@ export class WebGlRenderer implements SlideRenderer<BitmapPicture> {
       this.#canvas.height = height;
     }
     return { width, height };
-  }
-
-  #bindLayer(
-    unit: number,
-    { picture, motion }: SlideLayer<BitmapPicture>,
-    sampler: WebGLUniformLocation | null,
-    cropUniform: WebGLUniformLocation | null,
-    viewport: Size,
-  ): void {
-    const gl = this.#gl;
-    gl.activeTexture(gl.TEXTURE0 + unit);
-    this.#pictures.texture(picture);
-    gl.uniform1i(sampler, unit);
-    const crop = cropAt(motion, picture, viewport);
-    gl.uniform4f(cropUniform, crop.x, crop.y, crop.width, crop.height);
   }
 
   #bindCaption(

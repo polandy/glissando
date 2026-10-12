@@ -29,3 +29,20 @@
   CSS transform, followed by its caption element (`[data-caption]`, styled by `captionStyles`)
   outside that transform; every transition becomes a crossfade, the caption fading with its slide.
   Two lines are clamped with CSS.
+- **Layouts (ADR-0028)**: `slide-layout.ts` is the one place that decides, per viewport, whether a
+  slide covers, is drawn whole over a blurred fill, or splits into a pair's two halves; both
+  renderers call it, so a transition's `from` and `to` can each have their own layout. A pair's
+  `Slide.partner` loads as a second picture per slide (`frame-pictures.ts`,
+  `picture-buffer.ts`), carried on `SlideLayer.partner`.
+  - **WebGL**: each layer gets a layout uniform, a partner sampler and crop, and the rects a pair
+    or a blurred fill's front picture draw in; `layer-uniforms.ts` turns a `SlideLayout` into
+    those uniforms, `bind-layer.ts` binds them, and `layerColor` in the fragment shader prelude
+    switches on the layout inside `fromColor`/`toColor`, so every transition effect carries it.
+    The blurred fill's backdrop is a `textureLod` at a coarse mip level, darkened in the shader;
+    the textures already carry mipmaps.
+  - **DOM**: `dom-layer-placement.ts` places a pair's two pictures each in their own wrapper,
+    clipped (`overflow: hidden`) to their half; a blurred fill wraps the front picture the same
+    way and draws a second, cloned `<img>` behind it with `filter: blur(...) brightness(...)`.
+    A caption, which only a single, unpaired slide ever carries, follows the layer's top-level
+    node (the picture itself when covering, its wrapper for the blurred fill) so it stays
+    screen-space regardless of layout.

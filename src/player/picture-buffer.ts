@@ -16,16 +16,17 @@ export class SlideshowLoadError extends Error {
  * slideshows of any length.
  */
 export class PictureBuffer<Picture extends Size> {
-  readonly #sources: readonly string[];
+  /** One or two sources per slide: its own picture, and its partner's if it is paired. */
+  readonly #sources: readonly (readonly string[])[];
   readonly #loader: PictureLoader<Picture>;
   readonly #renderer: SlideRenderer<Picture>;
   readonly #picturesAhead: number;
   readonly #loading = new Map<number, Promise<void>>();
-  readonly #loaded = new Map<number, Picture>();
+  readonly #loaded = new Map<number, readonly Picture[]>();
   #wanted = new Set<number>();
 
   constructor(
-    sources: readonly string[],
+    sources: readonly (readonly string[])[],
     loader: PictureLoader<Picture>,
     renderer: SlideRenderer<Picture>,
     picturesAhead = DEFAULT_PICTURES_AHEAD,
@@ -41,19 +42,20 @@ export class PictureBuffer<Picture extends Size> {
     this.#picturesAhead = picturesAhead;
   }
 
-  get(index: number): Picture | undefined {
+  /** A slide's own picture, and its partner's if it is paired; undefined until both are loaded. */
+  get(index: number): readonly Picture[] | undefined {
     return this.#loaded.get(index);
   }
 
   /** The loaded pictures of the slides after the last one `onScreen`, nearest first. */
   loadedAfter(
     onScreen: readonly number[],
-  ): { readonly index: number; readonly picture: Picture }[] {
+  ): { readonly index: number; readonly pictures: readonly Picture[] }[] {
     const lastOnScreen = Math.max(...onScreen);
     return [...this.#loaded]
       .filter(([index]) => index > lastOnScreen)
       .sort(([left], [right]) => left - right)
-      .map(([index, picture]) => ({ index, picture }));
+      .map(([index, pictures]) => ({ index, pictures }));
   }
 
   /**
@@ -85,36 +87,42 @@ export class PictureBuffer<Picture extends Size> {
     if (existing !== undefined) {
       return existing;
     }
-    const src = this.#sources[index];
-    if (src === undefined) {
+    const srcs = this.#sources[index];
+    if (srcs === undefined) {
       throw new RangeError(`no slide at index ${index}`);
     }
-    const loading = this.#loader.load(src).then(
-      (picture) => {
+    const loading = Promise.all(srcs.map((src) => this.#loadOne(src))).then(
+      (pictures) => {
         if (this.#wanted.has(index)) {
-          this.#loaded.set(index, picture);
+          this.#loaded.set(index, pictures);
         } else {
           this.#loading.delete(index);
-          this.#loader.release(picture);
+          pictures.forEach((picture) => this.#loader.release(picture));
         }
       },
-      (cause: unknown) => {
+      (error: unknown) => {
         this.#loading.delete(index);
-        throw new SlideshowLoadError(src, cause);
+        throw error;
       },
     );
     this.#loading.set(index, loading);
     return loading;
   }
 
+  #loadOne(src: string): Promise<Picture> {
+    return this.#loader.load(src).catch((cause: unknown) => {
+      throw new SlideshowLoadError(src, cause);
+    });
+  }
+
   #unload(index: number): void {
-    const picture = this.#loaded.get(index);
+    const pictures = this.#loaded.get(index);
     this.#loaded.delete(index);
     this.#loading.delete(index);
-    if (picture !== undefined) {
+    pictures?.forEach((picture) => {
       this.#renderer.forget(picture);
       this.#loader.release(picture);
-    }
+    });
   }
 }
 

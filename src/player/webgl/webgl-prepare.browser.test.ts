@@ -76,11 +76,13 @@ function setUp() {
   return { renderer, uploads, captionUploads, drawAndRead };
 }
 
+/** `fit: "cover"`, since this suite is about upload mechanics, not the picture's layout. */
 function wholePicture(picture: BitmapPicture, caption?: string): RenderFrame<BitmapPicture> {
   const motion = standingStill({ zoom: 1, centerX: 0.5, centerY: 0.5 });
+  const fit = "cover" as const;
   return {
     kind: "slide",
-    slide: caption === undefined ? { picture, motion } : { picture, motion, caption },
+    slide: caption === undefined ? { picture, motion, fit } : { picture, motion, caption, fit },
   };
 }
 

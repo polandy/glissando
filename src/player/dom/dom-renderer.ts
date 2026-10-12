@@ -1,29 +1,32 @@
 import type { BrowserPicture } from "../browser/picture-loader";
 import { captionStyles } from "../caption-style";
-import { cropAt, type Size } from "../ken-burns";
+import type { Size } from "../ken-burns";
 import type { RenderFrame, SlideLayer, SlideRenderer } from "../ports";
-import { layerTransform } from "./layer-transform";
+import { slideLayout, type SlideLayout } from "../slide-layout";
+import { LayerPlacement } from "./dom-layer-placement";
 
 const OPAQUE = 1;
 
-/** Marks a caption element, the band right after its slide's picture. */
+/** Marks a caption element, the band right after its slide's picture or pair/blurred-fill node. */
 const CAPTION_ATTRIBUTE = "data-caption";
 
 /**
- * The fallback without WebGL2: each slide is its picture element, framed by a CSS transform, and
- * its caption element right after it, outside that transform. Every transition effect becomes a
- * crossfade.
+ * The fallback without WebGL2: each slide is its picture element (or, paired or blurred-filled,
+ * a few, see `dom-layer-placement.ts`), framed by a CSS transform, and its caption element right
+ * after it, outside that transform. Every transition effect becomes a crossfade (ADR-0028).
  */
 export class DomRenderer implements SlideRenderer<BrowserPicture> {
   readonly #host: HTMLElement;
   readonly #resizeObserver: ResizeObserver;
   readonly #captions = new Map<HTMLImageElement, HTMLElement>();
+  readonly #placement: LayerPlacement;
   #captionInsetCssPixels = 0;
 
   constructor(container: HTMLElement, onResize: () => void) {
     this.#host = document.createElement("div");
     Object.assign(this.#host.style, { position: "absolute", inset: "0", overflow: "hidden" });
     container.append(this.#host);
+    this.#placement = new LayerPlacement(this.#host);
     this.#resizeObserver = new ResizeObserver(onResize);
     this.#resizeObserver.observe(this.#host);
   }
@@ -36,25 +39,16 @@ export class DomRenderer implements SlideRenderer<BrowserPicture> {
             { layer: frame.from, opacity: OPAQUE },
             { layer: frame.to, opacity: frame.progress },
           ];
-    const shown = new Set(layers.map(({ layer }) => layer.picture.element));
-    const shownCaptions = new Set(
-      layers.flatMap(({ layer }) =>
-        layer.caption === undefined ? [] : [this.#captions.get(layer.picture.element)],
-      ),
-    );
-    for (const child of [...this.#host.children]) {
-      const kept =
-        child instanceof HTMLImageElement
-          ? shown.has(child)
-          : shownCaptions.has(child as HTMLElement);
-      if (!kept) {
-        child.remove();
-      }
-    }
     const viewport = { width: this.#host.clientWidth, height: this.#host.clientHeight };
-    for (const { layer, opacity } of layers) {
-      this.#place(layer, opacity, viewport);
-      this.#placeCaption(layer, opacity, viewport);
+    const placed = layers.map(({ layer, opacity }) => ({
+      layer,
+      opacity,
+      layout: slideLayout(layer, viewport),
+    }));
+    this.#sweep(placed);
+    for (const { layer, opacity, layout } of placed) {
+      const anchor = this.#placement.place(layer, opacity, layout, viewport);
+      this.#placeCaption(layer, anchor, opacity, viewport);
     }
   }
 
@@ -71,6 +65,7 @@ export class DomRenderer implements SlideRenderer<BrowserPicture> {
     picture.element.remove();
     this.#captions.get(picture.element)?.remove();
     this.#captions.delete(picture.element);
+    this.#placement.forget(picture.element);
   }
 
   dispose(): void {
@@ -78,27 +73,45 @@ export class DomRenderer implements SlideRenderer<BrowserPicture> {
     this.#host.remove();
   }
 
-  /** A new layer is appended, so the incoming slide lies on top of the outgoing one. */
-  #place({ picture, motion }: SlideLayer<BrowserPicture>, opacity: number, viewport: Size): void {
-    const crop = cropAt(motion, picture, viewport);
-    Object.assign(picture.element.style, {
-      position: "absolute",
-      left: "0",
-      top: "0",
-      width: `${picture.width}px`,
-      height: `${picture.height}px`,
-      maxWidth: "none",
-      transformOrigin: "0 0",
-      transform: layerTransform(crop, picture, viewport),
-      opacity: String(opacity),
-    });
-    if (picture.element.parentElement !== this.#host) {
-      this.#host.append(picture.element);
+  /** Drops every picture, wrapper, backdrop and caption not drawn by `placed`'s layers this frame. */
+  #sweep(
+    placed: { readonly layer: SlideLayer<BrowserPicture>; readonly layout: SlideLayout }[],
+  ): void {
+    const shown = new Set(
+      placed.flatMap(({ layer }) =>
+        layer.partner === undefined
+          ? [layer.picture.element]
+          : [layer.picture.element, layer.partner.picture.element],
+      ),
+    );
+    const blurredFillFronts = new Set(
+      placed
+        .filter(({ layout }) => layout.kind === "blurred-fill")
+        .map(({ layer }) => layer.picture.element),
+    );
+    const shownCaptions = new Set(
+      placed.flatMap(({ layer }) =>
+        layer.caption === undefined ? [] : [this.#captions.get(layer.picture.element)],
+      ),
+    );
+    for (const child of [...this.#host.children]) {
+      if (this.#placement.isExtra(child)) {
+        continue;
+      }
+      const kept =
+        child instanceof HTMLImageElement
+          ? shown.has(child)
+          : shownCaptions.has(child as HTMLElement);
+      if (!kept) {
+        child.remove();
+      }
     }
+    this.#placement.sweep(shown, blurredFillFronts);
   }
 
   #placeCaption(
     { picture, caption }: SlideLayer<BrowserPicture>,
+    anchor: HTMLElement,
     opacity: number,
     viewport: Size,
   ): void {
@@ -114,8 +127,8 @@ export class DomRenderer implements SlideRenderer<BrowserPicture> {
     if (text.textContent !== caption) {
       text.textContent = caption;
     }
-    if (band.previousElementSibling !== picture.element) {
-      picture.element.after(band);
+    if (band.previousElementSibling !== anchor) {
+      anchor.after(band);
     }
   }
 

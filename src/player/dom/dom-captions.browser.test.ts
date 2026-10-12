@@ -4,6 +4,8 @@ import { DomRenderer } from "./dom-renderer";
 
 const VIEWPORT = { width: 160, height: 90 };
 const MOTION = standingStill({ zoom: 1.5, centerX: 0.4, centerY: 0.6 });
+/** This suite is about caption placement, not the picture layout, which a 64x64 picture on a 160x90 viewport would otherwise switch to the blurred fill. */
+const FIT = "cover" as const;
 const CAPTION = "Evening on the jetty";
 
 let box: HTMLElement;
@@ -25,7 +27,7 @@ describe("DomRenderer captions", () => {
 
     renderer.render({
       kind: "slide",
-      slide: { picture: outgoing, motion: MOTION, caption: CAPTION },
+      slide: { picture: outgoing, motion: MOTION, caption: CAPTION, fit: FIT },
     });
 
     const [caption] = captionElements();
@@ -42,8 +44,8 @@ describe("DomRenderer captions", () => {
       kind: "transition",
       effect: "crossfade",
       progress: 0.25,
-      from: { picture: outgoing, motion: MOTION },
-      to: { picture: incoming, motion: MOTION, caption: CAPTION },
+      from: { picture: outgoing, motion: MOTION, fit: FIT },
+      to: { picture: incoming, motion: MOTION, caption: CAPTION, fit: FIT },
     });
 
     const [caption] = captionElements();
@@ -55,10 +57,10 @@ describe("DomRenderer captions", () => {
     const { renderer, outgoing, incoming } = await setUp();
     renderer.render({
       kind: "slide",
-      slide: { picture: outgoing, motion: MOTION, caption: CAPTION },
+      slide: { picture: outgoing, motion: MOTION, caption: CAPTION, fit: FIT },
     });
 
-    renderer.render({ kind: "slide", slide: { picture: incoming, motion: MOTION } });
+    renderer.render({ kind: "slide", slide: { picture: incoming, motion: MOTION, fit: FIT } });
 
     expect(incoming.element.isConnected).toBe(true);
     expect(captionElements()).toEqual([]);
@@ -70,7 +72,7 @@ describe("DomRenderer captions", () => {
 
     renderer.render({
       kind: "slide",
-      slide: { picture: outgoing, motion: MOTION, caption: CAPTION },
+      slide: { picture: outgoing, motion: MOTION, caption: CAPTION, fit: FIT },
     });
 
     const [caption] = captionElements();

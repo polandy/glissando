@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { layerTransform } from "./layer-transform";
+import { layerTransform, toPixelRect } from "./layer-transform";
 
 describe("layerTransform", () => {
   it("scales the crop to the viewport and moves its corner to the origin", () => {
@@ -16,5 +16,18 @@ describe("layerTransform", () => {
     expect(layerTransform(crop, { width: 1000, height: 1000 }, { width: 1000, height: 1000 })).toBe(
       "translate(0px, -1000px) scale(2)",
     );
+  });
+});
+
+describe("toPixelRect", () => {
+  it("scales a fractional, viewport-relative rect to CSS pixels", () => {
+    const rect = { x: 0.25, y: 0.1, width: 0.5, height: 0.2 };
+
+    expect(toPixelRect(rect, { width: 1000, height: 500 })).toEqual({
+      left: 250,
+      top: 50,
+      width: 500,
+      height: 100,
+    });
   });
 });

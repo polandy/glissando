@@ -6,6 +6,8 @@ import { layerTransform } from "./layer-transform";
 
 const VIEWPORT = { width: 160, height: 90 };
 const MOTION = standingStill({ zoom: 1.5, centerX: 0.4, centerY: 0.6 });
+/** This suite is about placement mechanics, not the picture layout, which a 64x64 picture on a 160x90 viewport would otherwise switch to the blurred fill. */
+const FIT = "cover" as const;
 
 let box: HTMLElement;
 afterEach(() => box.remove());
@@ -20,7 +22,7 @@ describe("DomRenderer", () => {
   it("shows a slide's picture opaque, framed by its Ken Burns crop", async () => {
     const { renderer, outgoing } = await setUp();
 
-    renderer.render({ kind: "slide", slide: { picture: outgoing, motion: MOTION } });
+    renderer.render({ kind: "slide", slide: { picture: outgoing, motion: MOTION, fit: FIT } });
 
     expect(outgoing.element.isConnected).toBe(true);
     expect(outgoing.element.style.opacity).toBe("1");
@@ -35,14 +37,14 @@ describe("DomRenderer", () => {
 
   it("crossfades: the incoming picture on top with the transition's progress as opacity", async () => {
     const { renderer, outgoing, incoming } = await setUp();
-    renderer.render({ kind: "slide", slide: { picture: outgoing, motion: MOTION } });
+    renderer.render({ kind: "slide", slide: { picture: outgoing, motion: MOTION, fit: FIT } });
 
     renderer.render({
       kind: "transition",
       effect: "circle-open",
       progress: 0.25,
-      from: { picture: outgoing, motion: MOTION },
-      to: { picture: incoming, motion: MOTION },
+      from: { picture: outgoing, motion: MOTION, fit: FIT },
+      to: { picture: incoming, motion: MOTION, fit: FIT },
     });
 
     expect(outgoing.element.style.opacity).toBe("1");
@@ -52,9 +54,9 @@ describe("DomRenderer", () => {
 
   it("removes the outgoing picture once the transition is over", async () => {
     const { renderer, outgoing, incoming } = await setUp();
-    renderer.render({ kind: "slide", slide: { picture: outgoing, motion: MOTION } });
+    renderer.render({ kind: "slide", slide: { picture: outgoing, motion: MOTION, fit: FIT } });
 
-    renderer.render({ kind: "slide", slide: { picture: incoming, motion: MOTION } });
+    renderer.render({ kind: "slide", slide: { picture: incoming, motion: MOTION, fit: FIT } });
 
     expect(incoming.element.isConnected).toBe(true);
     expect(outgoing.element.isConnected).toBe(false);
@@ -62,7 +64,7 @@ describe("DomRenderer", () => {
 
   it("leaves the container empty when disposed", async () => {
     const { renderer, outgoing } = await setUp();
-    renderer.render({ kind: "slide", slide: { picture: outgoing, motion: MOTION } });
+    renderer.render({ kind: "slide", slide: { picture: outgoing, motion: MOTION, fit: FIT } });
     expect(box.childElementCount).toBe(1);
 
     renderer.dispose();
