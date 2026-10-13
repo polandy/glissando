@@ -60,6 +60,7 @@ import { createServerLibrary } from "./server-library/server-library";
 import { createStorageServerLibraryMemory } from "./server-library/server-library-memory";
 import { browserHtmlExportDevice } from "./app/html-export/browser-html-export-device";
 import { browserVideoExportDevice } from "./app/video-export/browser-video-export-device";
+import { createFrameServices } from "./app/frame/frame-services";
 
 /** Same origin: the self-hosted Glissando's `/immich/` route sets the API key (ADR-0013). */
 const immichClient = new HttpImmichClient({
@@ -207,6 +208,7 @@ const intakePorts = {
 };
 
 const shareLinkDevice = browserShareLinkDevice(window, serverLibraryClient, browserScheduler);
+const frame = createFrameServices(window, browserScheduler, logError);
 
 // Read before the navigator exists, so its own first route is never raced by this one.
 const deepLinkedFrameAlbumId = parseFrameDeepLink(window.location.hash);
@@ -281,6 +283,7 @@ const services = {
       onError: reportError,
     }),
   reload: () => window.location.reload(),
+  ...frame,
 };
 
 const playStartAnimation = consumeFirstLaunch(createStorageFirstLaunchStore(window.localStorage));

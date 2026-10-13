@@ -21,6 +21,8 @@ import type { HtmlExportDevice } from "./html-export/slideshow-html-export";
 import type { VideoExportDevice } from "./video-export/slideshow-video-export";
 import type { ShareLinkSession } from "./share-link/share-link-session";
 import type { BuildInfo } from "./settings/build-info";
+import type { FrameDevice } from "./frame/browser-frame-device";
+import type { FramePreferences } from "./frame/frame-preferences";
 
 /** What the composition root (`main.ts`) wires into the app. */
 export interface AppServices {
@@ -81,4 +83,8 @@ export interface AppServices {
   newShareLinkSession(slideshowId: string): ShareLinkSession;
   /** Reloads the app, e.g. to get a newer version. */
   reload(): void;
+  /** The picture frame's set-up choices, kept on this device (`dev-docs/app/FRAME.md`). */
+  readonly framePreferences: FramePreferences;
+  /** What the picture frame needs of the browser beyond Immich and storage. */
+  readonly frameDevice: FrameDevice;
 }
