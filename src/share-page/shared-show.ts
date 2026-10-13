@@ -1,5 +1,5 @@
 import { slideBoundaries } from "../app/player/slide-boundaries";
-import { composeSlideshow, type SongBeats } from "../compose";
+import { composeSlideshow, slideOfPicture, slideUnits, type SongBeats } from "../compose";
 import type { PlayablePage } from "../export-player/page-player";
 import type { PictureFocus } from "../library/picture-focus";
 import type { StoredSlideshow } from "../library/stored-slideshow";
@@ -98,13 +98,23 @@ export function skipMissingPicture(
   key: string,
 ): { readonly skipped: ReadonlySet<string>; readonly atSeconds: number } | null {
   const after = new Set([...skipped, key]);
-  const left = show.stored.pictures.filter(({ id }) => !after.has(id));
-  if (left.length === 0) return null;
-  const position = show.stored.pictures
-    .filter(({ id }) => !skipped.has(id))
-    .findIndex(({ id }) => id === key);
+  const remaining = show.stored.pictures.filter(({ id }) => !after.has(id));
+  if (remaining.length === 0) return null;
   const boundaries = slideBoundaries(composed(show, after));
-  return { skipped: after, atSeconds: boundaries.starts[position] ?? boundaries.duration };
+  // The picture right after the missing one, among those still playing: a pair can turn into a
+  // single slide once its partner goes missing, so its slide index no longer matches its
+  // picture index (ADR-0028) and is looked up through the new slide units instead.
+  const keyIndex = show.stored.pictures.findIndex(({ id }) => id === key);
+  const next = show.stored.pictures.slice(keyIndex + 1).find(({ id }) => !after.has(id));
+  if (next === undefined) {
+    return { skipped: after, atSeconds: boundaries.duration };
+  }
+  const units = slideUnits(remaining, show.stored.portraitPictures);
+  const slideIndex = slideOfPicture(
+    units,
+    remaining.findIndex(({ id }) => id === next.id),
+  );
+  return { skipped: after, atSeconds: boundaries.starts[slideIndex] ?? boundaries.duration };
 }
 
 function composed(show: SharedShow, skipped: ReadonlySet<string>): Slideshow {
