@@ -206,7 +206,7 @@
     position: fixed;
     inset: 0;
     z-index: 20;
-    background: #000;
+    background: var(--gl-player-bg);
     overflow: hidden;
   }
   .centered {
@@ -221,7 +221,7 @@
   }
   .quiet {
     margin: 0;
-    color: var(--gl-on-photo-muted, #ccc);
+    color: var(--gl-player-muted);
   }
   .stage {
     position: absolute;
@@ -233,7 +233,7 @@
   .bar {
     position: absolute;
     z-index: 1;
-    color: #fff;
+    color: var(--gl-player-text);
     transition: opacity 0.2s;
   }
   .idle ~ .exit,
@@ -259,8 +259,8 @@
     padding: 8px 14px;
     border: 0;
     border-radius: var(--gl-radius-pill);
-    background: rgb(0 0 0 / 0.45);
-    color: #fff;
+    background: var(--gl-photo-badge);
+    color: var(--gl-player-text);
     font: inherit;
     cursor: pointer;
   }
@@ -271,7 +271,7 @@
     gap: 6px;
     padding: 8px;
     border-radius: var(--gl-radius-pill);
-    background: rgb(0 0 0 / 0.45);
+    background: var(--gl-photo-badge);
     transform: translateX(-50%);
   }
   .bar button {
@@ -279,11 +279,11 @@
     border: 0;
     border-radius: var(--gl-radius-pill);
     background: transparent;
-    color: #fff;
+    color: var(--gl-player-text);
     font: inherit;
     cursor: pointer;
   }
   .bar button:hover {
-    background: rgb(255 255 255 / 0.15);
+    background: var(--gl-player-glass);
   }
 </style>
