@@ -88,6 +88,8 @@
   }
   .tile {
     position: relative;
+    /* Keeps the date and the remove mark below the sticky action bar. */
+    isolation: isolate;
     aspect-ratio: 4 / 3;
     overflow: hidden;
     border-radius: var(--gl-radius-tile);
