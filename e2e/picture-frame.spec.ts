@@ -26,19 +26,22 @@ function albumTile(page: Page, name: string): Locator {
 }
 
 /**
- * Clicks `locator` once the tap controls are confirmed visible, re-tapping the stage first if
- * they already auto-hid again (`tap-controls.ts`'s real 4 s timeout, which a slow CI machine can
- * let elapse between an earlier reveal and this click): once hidden, pointer-events:none on the
- * bar means Playwright refuses to dispatch the click at all (the stage, not the button, is
- * topmost), so nothing would ever re-reveal them without this.
+ * Clicks `locator` once the tap controls are visible, re-tapping the stage first if they already
+ * auto-hid again (`tap-controls.ts`'s real 4 s timeout, which a slow CI machine can let elapse
+ * between an earlier reveal and this click). Once hidden, pointer-events:none on the bar means
+ * Playwright refuses to even dispatch the click (the stage, not the button, is topmost), so a
+ * single reveal-then-click can still lose the race if the timeout lands in between; retrying the
+ * whole reveal-and-click as one unit (`toPass`), rather than waiting a fixed time, is what finally
+ * makes it land regardless of how slow the machine is.
  */
 async function clickWithControlsVisible(page: Page, locator: Locator): Promise<void> {
-  const opacity = await exitButton(page).evaluate((el) => getComputedStyle(el).opacity);
-  if (opacity !== "1") {
-    await page.locator(".stage").click();
-    await expect(exitButton(page)).toHaveCSS("opacity", "1");
-  }
-  await locator.click();
+  await expect(async () => {
+    const opacity = await exitButton(page).evaluate((el) => getComputedStyle(el).opacity);
+    if (opacity !== "1") {
+      await page.locator(".stage").click();
+    }
+    await locator.click({ timeout: 1000 });
+  }).toPass({ timeout: 15000 });
 }
 
 /** The clock/date switches, which carry no accessible name of their own: found by their row. */
