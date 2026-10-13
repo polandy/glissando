@@ -58,4 +58,5 @@ Caddyfile snippet `immich_preview`), and answers 404 under `/api/tv/`, `/tv` and
 anything else. `/tv` serves `share.html` and `/r/{remoteSecret}` serves `remote.html`, both
 `no-cache` and `no-referrer`. Caddy's access log replaces every segment that may be a key or
 secret with `…`, but keeps `/api/tv/sessions`, `/api/tv/remote` and `/api/library/tv/claim`
-readable. Without the library (`library-off.caddy`) all of these answer 404.
+readable; a path holding an escape or a dot segment keeps only its first segment. The proxy's
+own messages (a TV or remote leaving its stream) go through the same filter. Without the library (`library-off.caddy`) all of these answer 404.

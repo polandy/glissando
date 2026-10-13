@@ -11,8 +11,11 @@ json_field() { # name: its string value in $WORK/body
 }
 
 open_stream() { # path, file: the stream's events land in the file as they arrive
-	curl --silent --no-buffer --max-time "$WAIT_SECONDS" \
-		"http://127.0.0.1:$(port_of "$LIBRARY")$1" >"$2" &
+	local url
+	url="http://127.0.0.1:$(port_of "$LIBRARY")$1"
+	# The file exists before curl starts, so stream_carries can follow it at once.
+	: >"$2"
+	curl --silent --no-buffer --max-time "$WAIT_SECONDS" "$url" >>"$2" &
 }
 
 stream_carries() { # name, file, fixed string: passes once the stream has written the string

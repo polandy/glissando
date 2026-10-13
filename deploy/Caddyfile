@@ -25,7 +25,8 @@
 # and a remote's secret (dev-docs/tv_remote/HTTP_API.md): the share and TV routes (log_name share)
 # log their requests and errors with each replaced by … and without the query, which those routes
 # never use. Under /api/tv/ and /api/library/tv/ a segment shorter than any key or secret is a
-# route's name (sessions, remote, claim) and stays.
+# route's name (sessions, remote, claim) and stays. A path holding an escape or a dot segment
+# (@shareEscape below) loses everything after its first segment, as it may hide a token anywhere.
 (share_log_filters) {
 	format filter {
 		wrap json
@@ -36,6 +37,7 @@
 			request>headers>X-Immich-Share-Key delete
 			request>headers>Referer delete
 			request>uri multi_regexp {
+				regexp (?i)^(/(?:s|r|tv|api/share|api/tv|api/library/tv)/)[^?]*(?:%|\.\.)[^?]* "${1}…"
 				regexp (?i)^(/api/share/|/s/|/internal/share-picture/|/internal/tv-picture/|/r/|/api/tv/remote/)[^/?]* "${1}…"
 				regexp (?i)^(/api/tv/)[^/?]{9,} "${1}…"
 				regexp (?i)^(/api/library/tv/)[^/?]{6,} "${1}…"
@@ -106,12 +108,14 @@
 	log {
 		output stdout
 		import credential_log_filters
-		exclude http.log.error.share
+		exclude http.log.error.share http.handlers.reverse_proxy
 	}
+	# The proxy's own messages (a stream the client left, an upstream that failed) name the
+	# request's URI, which may be a share or TV path.
 	log share_errors {
 		output stdout
 		import share_log_filters
-		include http.log.error.share
+		include http.log.error.share http.handlers.reverse_proxy
 	}
 }
 
