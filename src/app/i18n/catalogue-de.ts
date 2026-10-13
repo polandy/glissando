@@ -139,6 +139,10 @@ export const de = {
     one: "{count} Datei konnte nicht als Bild gelesen werden und wurde übersprungen:",
     other: "{count} Dateien konnten nicht als Bild gelesen werden und wurden übersprungen:",
   },
+  "import.undecodable": {
+    one: "{count} Bild konnte nicht dekodiert werden und wurde übersprungen:",
+    other: "{count} Bilder konnten nicht dekodiert werden und wurden übersprungen:",
+  },
   "import.notDownloaded": {
     one: "{count} Foto konnte nicht von Immich geladen werden und wurde übersprungen:",
     other: "{count} Fotos konnten nicht von Immich geladen werden und wurden übersprungen:",

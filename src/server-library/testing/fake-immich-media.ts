@@ -72,7 +72,7 @@ export class FakeImmichMedia implements Pick<ImmichClient, "original" | "thumbna
 /** Decodes a file into renditions naming its bytes; bytes holding `UNDECODABLE` fail. */
 export async function decodeAsText(file: File): Promise<DecodedPicture> {
   const bytes = await file.text();
-  if (bytes.includes(UNDECODABLE)) throw new UnreadablePictureError(file.name);
+  if (bytes.includes(UNDECODABLE)) throw new UnreadablePictureError(file.name, "decode");
   return {
     width: 300,
     height: 200,

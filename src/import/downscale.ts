@@ -43,7 +43,7 @@ export async function decodePicture(file: File): Promise<DecodedPicture> {
   try {
     bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
   } catch (error) {
-    throw new UnreadablePictureError(file.name, { cause: error });
+    throw new UnreadablePictureError(file.name, "decode", { cause: error });
   }
   try {
     const display = fitWithin(bitmap, DISPLAY_BOUND);

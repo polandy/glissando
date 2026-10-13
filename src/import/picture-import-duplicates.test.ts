@@ -51,7 +51,9 @@ describe("PictureImport, skipping and taking in duplicates", () => {
     await pictureImport.settled();
 
     expect(fileNames(pictureImport.state)).toEqual(["a.jpg", "b.jpg"]);
-    expect(pictureImport.state.skipped).toEqual([{ fileName: "broken.jpg", reason: "unreadable" }]);
+    expect(pictureImport.state.skipped).toEqual([
+      { fileName: "broken.jpg", reason: "undecodable" },
+    ]);
     expect(pictureImport.state).toMatchObject({ total: 3, done: 3, busy: false });
   });
 

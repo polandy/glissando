@@ -12,7 +12,7 @@ import {
 } from "./testing/picture-import-fixtures";
 
 describe("PictureImport, failures: unreadable files, full storage, cancel", () => {
-  it("skips a picture the browser cannot decode as unreadable and goes on", async () => {
+  it("skips a picture the browser cannot decode as undecodable and goes on", async () => {
     const { pictureImport, addFiles } = setUp({
       decoder: new FakeDecoder(new Set(["broken.jpg"])),
     });
@@ -24,7 +24,7 @@ describe("PictureImport, failures: unreadable files, full storage, cancel", () =
     expect(pictureImport.state).toMatchObject({
       total: 2,
       done: 2,
-      skipped: [{ fileName: "broken.jpg", reason: "unreadable" }],
+      skipped: [{ fileName: "broken.jpg", reason: "undecodable" }],
     });
   });
 
@@ -32,7 +32,7 @@ describe("PictureImport, failures: unreadable files, full storage, cancel", () =
     const { pictureImport, addFiles } = setUp({
       captureDate: (file) =>
         file.name === "lapsed.jpg"
-          ? Promise.reject(new UnreadablePictureError(file.name))
+          ? Promise.reject(new UnreadablePictureError(file.name, "read"))
           : Promise.resolve("2025-07-01T10:00:00Z"),
     });
 
@@ -46,6 +46,21 @@ describe("PictureImport, failures: unreadable files, full storage, cancel", () =
       skipped: [{ fileName: "lapsed.jpg", reason: "unreadable" }],
       failed: false,
     });
+  });
+
+  it("logs why a picture was skipped, keeping the original cause", async () => {
+    const lapsed = new DOMException("the file could not be read", "NotReadableError");
+    const { pictureImport, addFiles, logged } = setUp({
+      captureDate: (file) =>
+        Promise.reject(new UnreadablePictureError(file.name, "read", { cause: lapsed })),
+    });
+
+    addFiles([picture("lapsed.jpg")]);
+    await pictureImport.settled();
+
+    expect(logged).toHaveLength(1);
+    expect(logged[0]).toBeInstanceOf(UnreadablePictureError);
+    expect((logged[0] as UnreadablePictureError).cause).toBe(lapsed);
   });
 
   it("stops at full storage, keeping what was stored and dropping the rest from the total", async () => {

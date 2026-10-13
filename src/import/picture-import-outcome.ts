@@ -9,6 +9,8 @@ const QUOTA_EXCEEDED = "QuotaExceededError";
 export interface OutcomePorts {
   readonly store: Pick<LibraryStore, "putPicture" | "putPictureFocus">;
   newId(): string;
+  /** Told why a picture was skipped as unreadable or undecodable; absent: no one is told. */
+  log?(error: unknown): void;
 }
 
 export interface Queued {
@@ -52,7 +54,8 @@ export async function importOne(
     read = await source.read();
   } catch (error) {
     if (error instanceof UnreadablePictureError) {
-      return { kind: "skipped", reason: "unreadable" };
+      ports.log?.(error);
+      return { kind: "skipped", reason: error.stage === "read" ? "unreadable" : "undecodable" };
     }
     if (error instanceof PictureNotDownloadedError) {
       return { kind: "skipped", reason: "notDownloaded" };
