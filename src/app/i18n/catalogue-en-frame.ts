@@ -31,6 +31,8 @@ export const enFrame: Pick<Catalogue, keyof typeof deFrame> = {
   "frame.unavailableText": "The Glissando server cannot reach Immich.",
   "frame.emptyAlbumText": "{album} has no photos yet. Videos are not shown.",
   "frame.backToAlbums": "Back to albums",
+  "frame.preparingTitle": "Getting the frame ready",
+  "frame.preparingDetail": "Loading the album's pictures …",
   "frame.exit": "‹ Exit frame",
   "frame.pause": "Pause",
   "frame.resume": "Resume",

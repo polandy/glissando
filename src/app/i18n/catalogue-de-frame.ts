@@ -30,6 +30,8 @@ export const deFrame = {
   "frame.unavailableText": "Der Glissando-Server erreicht Immich nicht.",
   "frame.emptyAlbumText": "{album} hat noch keine Fotos. Videos werden nicht gezeigt.",
   "frame.backToAlbums": "Zurück zu den Alben",
+  "frame.preparingTitle": "Rahmen wird vorbereitet",
+  "frame.preparingDetail": "Lädt die Bilder des Albums …",
   "frame.exit": "‹ Rahmen verlassen",
   "frame.pause": "Pause",
   "frame.resume": "Weiter",
