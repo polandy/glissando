@@ -2,6 +2,7 @@ import type { Page, Route } from "@playwright/test";
 import { readFileSync } from "node:fs";
 import { shareDocumentOf } from "../../server/share-document";
 import type { ServerDocument } from "../../src/server-library/server-document";
+import { attachTvApi } from "./fake-tv-api";
 
 /** A recorded answer of a real Immich (`src/immich/fixtures`). */
 export function immichFixture<Answer>(name: string): Answer {
@@ -47,6 +48,14 @@ export interface FakeGlissandoServer {
   readonly goneFromImmich: Set<string>;
   /** Links made so far; each one's token ends in its count, so sharing again makes a new link. */
   linksMade: number;
+  /**
+   * Routes this fake's share page/API and TV API (`/tv`, `/r/<secret>` included) on `page` too:
+   * a route registered only through the browser context (or through its `"page"` event, for a
+   * page opened later) can miss a request a page sends very soon after it opens, observed for
+   * way B's `POST .../tv`, sent right after a new page's first paint. Every page the case opens
+   * itself — the TV, a guest, a remote — must call this before it navigates.
+   */
+  attachPage(page: Page): void;
 }
 
 const IMMICH_ROUTE = /\/immich\/(.*)$/;
@@ -57,8 +66,6 @@ const SLIDESHOW_PATH = /^\/slideshows\/([^/]+)(\/share)?$/;
 const SHARE_PAGE_ROUTE = /\/s\/[^/]+$/;
 const SHARE_API_ROUTE = /\/api\/share\/.*$/;
 const SHARE_API_PATH = /^\/api\/share\/([^/]+)(?:\/(\d+)\/pictures\/(\d+))?$/;
-/** The built page Caddy answers every `/s/<token>` with, as `vite preview` serves it. */
-const SHARE_PAGE_FILE = "/share.html";
 /** Every link the fake makes, as a real token looks: 22 characters of base64url. */
 const FAKE_SHARE_TOKEN_PREFIX = "fakeShareToken";
 const FAKE_SHARE_TOKEN_COUNT_DIGITS = 8;
@@ -74,9 +81,9 @@ const HTTP_PRECONDITION_FAILED = 412;
  * Answers the self-hosted Glissando's `/immich/` route like Immich behind it (every photo is
  * `photo()`) and its `/api/library` route like the library service, in memory: both answer at once
  * from the state the case set, so nothing a case waits on depends on timing. A share link's
- * `/s/<token>` and `/api/share/` answer in every page of the page's browser context, so a second
- * page can open the link; pictures come straight from the fake, where the real server fetches
- * them from Immich through Caddy.
+ * `/s/<token>` and `/api/share/` answer on `page`, and on every further page the case passes to
+ * the returned `attachPage`, so a second page can open the link; pictures come straight from the
+ * fake, where the real server fetches them from Immich through Caddy.
  */
 export async function fakeGlissandoServer(
   page: Page,
@@ -88,14 +95,29 @@ export async function fakeGlissandoServer(
     previewsAsked: [],
     goneFromImmich: new Set(),
     linksMade: 0,
+    attachPage: () => {
+      throw new Error("fakeGlissandoServer has not finished setting itself up yet");
+    },
   };
   await page.route(IMMICH_ROUTE, (route) => answerImmich(route, server, photo));
   await page.route(LIBRARY_ROUTE, (route) => answerLibrary(route, server));
-  await page.context().route(SHARE_PAGE_ROUTE, async (route) => {
-    const sharePage = new URL(SHARE_PAGE_FILE, route.request().url()).href;
-    await route.fulfill({ response: await route.fetch({ url: sharePage }) });
-  });
-  await page.context().route(SHARE_API_ROUTE, (route) => answerShareApi(route, server, photo));
+  const tvApi = attachTvApi(page, server, photo);
+  const attachShareRoutes = (target: Page) => {
+    void target.route(SHARE_PAGE_ROUTE, (route) =>
+      route.fulfill({
+        status: HTTP_OK,
+        headers: { "cache-control": "no-cache", "referrer-policy": "no-referrer" },
+        contentType: "text/html",
+        body: readFileSync(new URL("../../dist/share.html", import.meta.url)),
+      }),
+    );
+    void target.route(SHARE_API_ROUTE, (route) => answerShareApi(route, server, photo));
+  };
+  attachShareRoutes(page);
+  server.attachPage = (target: Page) => {
+    attachShareRoutes(target);
+    tvApi.attachTo(target);
+  };
   return server;
 }
 
@@ -122,6 +144,8 @@ function answerLibrary(route: Route, server: FakeGlissandoServer) {
   const request = route.request();
   const method = request.method();
   const path = new URL(request.url()).pathname.match(LIBRARY_ROUTE)?.[1] ?? "";
+  // The TV remote's private routes (dev-docs/tv_remote/HTTP_API.md); fakeTvApi answers them.
+  if (path.startsWith("/tv/")) return route.fallback();
   if (path === "" && method === "GET") {
     return route.fulfill({ json: { service: "glissando-library", version: 1 } });
   }

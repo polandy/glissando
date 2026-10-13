@@ -8,6 +8,7 @@ import { pinnedThemePlugin } from "./build/pinned-theme-script.ts";
 import { remotePagePlugin } from "./build/remote-page-plugin.ts";
 import { serviceWorkerPlugin } from "./build/service-worker-plugin.ts";
 import { sharePagePlugin } from "./build/share-page-plugin.ts";
+import { tvStreamPlugin } from "./e2e/support/tv-stream-plugin.ts";
 // Every module this config loads imports with explicit file extensions (ADR-0026).
 import {
   fakeRemoteStreamPlugin,
@@ -45,6 +46,8 @@ export default defineConfig({
     remotePagePlugin(),
     libavLicensePlugin(),
     serviceWorkerPlugin(),
+    // Only its configurePreviewServer hook does anything; e2e/support/fake-tv-api.ts needs it.
+    tvStreamPlugin(),
   ],
   test: {
     // e2e/ belongs to Playwright.

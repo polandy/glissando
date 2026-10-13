@@ -1,30 +1,17 @@
-import { expect, test, type Page } from "@playwright/test";
-import { CREATED_TOAST, GERMAN_BROWSER, openImport } from "./support/app";
+import { expect, test } from "@playwright/test";
+import { GERMAN_BROWSER } from "./support/app";
 import { openApp } from "./support/browser";
-import { fakeGlissandoServer, LIBRARY_PAGE } from "./support/fake-glissando-server";
+import { fakeGlissandoServer } from "./support/fake-glissando-server";
 import { pictureTakenOn } from "./support/media";
+import { createServerSlideshow } from "./support/server-slideshow";
 
 test.use(GERMAN_BROWSER);
-
-/** Makes a slideshow on the fake server from its Immich photos, and stays on its screen. */
-async function createServerSlideshow(page: Page): Promise<void> {
-  await openImport(page);
-  await page.getByRole("button", { name: /^Glissando-Server/ }).click();
-  await page.getByRole("button", { name: "Immich öffnen" }).click();
-  for (const { originalFileName } of LIBRARY_PAGE.assets.items) {
-    await page.getByRole("button", { name: originalFileName, exact: true }).click();
-  }
-  await page.locator(".actions").getByRole("button", { name: "3 hinzufügen" }).click();
-  await page.getByRole("button", { name: "Weiter" }).click();
-  await page.getByRole("button", { name: "Ohne Musik erstellen" }).click();
-  await expect(page.getByRole("status").filter({ hasText: CREATED_TOAST })).toBeVisible();
-}
 
 test("E2E-043 a server slideshow shared from its info panel plays from its link in another page, and the link shows as gone once turned off, and sharing again makes a new link", async ({
   page,
 }) => {
   let jpeg: Uint8Array | null = null;
-  await fakeGlissandoServer(page, () => {
+  const server = await fakeGlissandoServer(page, () => {
     if (jpeg === null) throw new Error("a photo was asked for before the case made one");
     return jpeg;
   });
@@ -42,6 +29,7 @@ test("E2E-043 a server slideshow shared from its info panel plays from its link 
   await expect(page.getByRole("button", { name: /^Per Link geteilt/ })).toBeVisible();
 
   const recipient = await page.context().newPage();
+  server.attachPage(recipient);
   await recipient.goto(url);
   await expect(recipient.locator("html")).toHaveAttribute("data-state", "start");
   await recipient.getByRole("button", { name: "Abspielen" }).click();
