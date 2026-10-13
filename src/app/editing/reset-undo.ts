@@ -2,11 +2,14 @@ import type { StoredPicture } from "../../library/stored-slideshow";
 import type { Toaster, ToastMessage } from "../toast/toaster";
 
 /**
- * The settings a reset drops: a picture's own ones ("Back to automatic") and the slideshow's
- * default transition ("Back to crossfade").
+ * The settings a reset drops: a picture's own ones ("Back to automatic"), the slideshow's
+ * default transition ("Back to crossfade") and its portrait pictures setting (ADR-0028, "Back
+ * to automatic").
  */
 export type ResettableSetting =
-  keyof Pick<StoredPicture, "kenBurns" | "durationMs" | "transition"> | "slideshowTransition";
+  | keyof Pick<StoredPicture, "kenBurns" | "durationMs" | "transition">
+  | "slideshowTransition"
+  | "portraitPictures";
 
 interface PendingReset {
   readonly toast: ToastMessage;

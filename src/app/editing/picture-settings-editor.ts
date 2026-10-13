@@ -2,10 +2,12 @@ import { pictureKenBurns } from "../../compose";
 import type { OwnKenBurns } from "../../library/own-ken-burns";
 import type { PictureFocus } from "../../library/picture-focus";
 import type { SlideshowTransition, TransitionChoice } from "../../library/own-timing";
+import type { PortraitPictures } from "../../library/portrait-pictures";
 import {
   setPictureDuration,
   setPictureKenBurns,
   setPictureTransition,
+  setPortraitPictures as setPortraitPicturesEdit,
   setSlideshowTransition,
 } from "../../library/slideshow-edits";
 import type { StoredSlideshow } from "../../library/stored-slideshow";
@@ -19,6 +21,8 @@ export interface PictureSettingsPorts {
   readonly durationAutomaticText: () => string;
   readonly transitionAutomaticText: () => string;
   readonly slideshowTransitionResetText: () => string;
+  /** The undo toast's text after the portrait pictures setting went back to automatic. */
+  readonly portraitPicturesResetText: () => string;
 }
 
 /**
@@ -120,6 +124,28 @@ export class PictureSettingsEditor {
       "slideshowTransition",
       this.#ports.slideshowTransitionResetText(),
       () => this.setSlideshowTransition(previous),
+    );
+  }
+
+  /** How portrait pictures lay out from now on (ADR-0028). */
+  setPortraitPictures(portraitPictures: PortraitPictures): void {
+    this.#reset.supersede(this.#current().id, "portraitPictures");
+    this.#apply(setPortraitPicturesEdit(this.#current(), portraitPictures));
+  }
+
+  /** Makes it automatic without asking; the toast's undo brings the previous choice back. */
+  resetPortraitPictures(): void {
+    const slideshow = this.#current();
+    const previous = slideshow.portraitPictures;
+    if (previous === undefined) {
+      return;
+    }
+    this.#apply(setPortraitPicturesEdit(slideshow, undefined));
+    this.#reset.offer(
+      slideshow.id,
+      "portraitPictures",
+      this.#ports.portraitPicturesResetText(),
+      () => this.setPortraitPictures(previous),
     );
   }
 

@@ -5,10 +5,12 @@ import {
 import type { OwnKenBurns } from "../../library/own-ken-burns";
 import type { BetweenSongs, MusicTrim, PictureChanges } from "../../library/own-music";
 import type { SlideshowTransition, TransitionChoice } from "../../library/own-timing";
+import type { PortraitPictures } from "../../library/portrait-pictures";
 import {
   removePicture,
   renameSlideshow,
   restorePictures,
+  setPictureAlone as setPictureAloneEdit,
   setPictureCaption,
 } from "../../library/slideshow-edits";
 import {
@@ -178,6 +180,19 @@ export class SlideshowEditor {
 
   resetSlideshowTransition(): void {
     this.#pictureSettings.resetSlideshowTransition();
+  }
+
+  setPortraitPictures(portraitPictures: PortraitPictures): void {
+    this.#pictureSettings.setPortraitPictures(portraitPictures);
+  }
+
+  resetPortraitPictures(): void {
+    this.#pictureSettings.resetPortraitPictures();
+  }
+
+  /** Marks the picture never to be composed into a portrait pair, or lets it be again. */
+  setPictureAlone(pictureId: string, alone: boolean): void {
+    this.#apply(setPictureAloneEdit(this.#slideshow, pictureId, alone));
   }
 
   /** Reverses the picture's motion; an automatic one becomes the picture's own. */
