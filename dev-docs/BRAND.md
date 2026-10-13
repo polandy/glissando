@@ -87,6 +87,8 @@ Rules:
 
 Shape: `--gl-radius` 10 px (buttons, notices, summary cells), `--gl-radius-large` 14 px (cards,
 panels, dialogs), `--gl-radius-tile` 8 px (picture tiles), hairlines instead of shadows.
+Layer: `--gl-layer-bar` (5) puts a sticky bottom bar above the content that scrolls under it; a tile
+isolates its own marks, so their z-index stays local.
 
 ## Icons
 

@@ -113,6 +113,7 @@
   .actions {
     position: sticky;
     bottom: 0;
+    z-index: var(--gl-layer-bar);
     display: flex;
     gap: 10px;
     justify-content: flex-end;
