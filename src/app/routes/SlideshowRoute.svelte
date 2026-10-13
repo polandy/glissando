@@ -131,7 +131,6 @@
   } = $props();
 
   const translator = getTranslator();
-
   let stored = $state.raw<StoredSlideshow | null>(null);
   let editor = $state.raw<SlideshowEditor | null>(null);
   let saving = $state(false);
