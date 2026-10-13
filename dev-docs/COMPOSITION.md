@@ -16,7 +16,8 @@ I/O, no subject detection.
   pairs; `"fill-screen"` composes no pairs and gives every slide `Slide.fit` `"cover"`; absent is
   automatic (pairs, and a blurred fill for a whole picture the player draws instead of cropping
   it). `slideOfPicture` maps a picture's index to the slide unit that holds it, for UI that shows
-  a picture's own timing; a paired picture shows its pair's.
+  a picture's own timing; a paired picture shows its pair's. E2E-045 plays a pair side by side
+  and splits it with "always alone" and the "fill the screen" setting.
 - **Durations** (`slideDurationsMs`): works per slide unit, not per picture. A composed pair
   counts as `PAIR_WEIGHT` (1.5) of a single slide's share; a pair is always automatic, since a
   picture with any own setting is never paired. A picture's own duration (`StoredPicture.durationMs`,
