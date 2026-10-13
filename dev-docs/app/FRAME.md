@@ -20,7 +20,9 @@ next frame opens the same way:
 - **Album** — a grid of the Immich albums the server can see, each a cover thumbnail and name; no
   album chosen yet.
 - **Interval** — 10 s, 30 s, 1 m or 5 m per picture; default 30 s.
-- **Order** — Shuffled, Newest first or Oldest first; default Shuffled.
+- **Order** — Shuffled, Newest first or Oldest first; default Shuffled — the mockup calls the
+  third choice "By date, then repeat"; "Oldest first" says the same thing more plainly and matches
+  "Newest first"'s phrasing.
 - **Clock** and **date** — shown over the running frame; both on by default.
 
 A footer carries "Copy frame link" (`#frame=<albumId>`, below) and "Start frame", disabled until
@@ -33,11 +35,14 @@ albums".
 
 Fullscreen, no chrome by default. A tap reveals, for `CONTROLS_VISIBLE_MS` (4 s,
 `src/frame/tap-controls.ts`): an exit pill (also Esc) and a bottom bar with pause/resume and
-next; a further tap hides them again at once. The clock (if on) sits top-right, the date and
-album name (if the date is on) bottom-left — the mockup's copy says "date and place", but place
-comes from Immich's reverse geocoding, which this screen does not read, so only the date and the
-album's own name are shown; a future iteration may add place once Immich exposes it to the
-client. The screen is kept awake for as long as the frame runs
+next; a further tap hides them again at once. The mockup's bottom bar also carries a "Settings"
+button back to the set-up screen; this build omits it; exiting the frame (back to the set-up
+screen) covers the same need until a dedicated in-frame settings path is worth its own screen.
+The clock (if on) sits top-right, the date and album name (if the date is on) bottom-left — the
+mockup's copy says "date and place", but place comes from Immich's reverse geocoding, which this
+screen does not read, so only the date and the album's own name are shown; a future iteration may
+add place once Immich exposes it to the client. The screen is kept awake for as long as the frame
+runs
 (`keepScreenAwake`, `src/app/video-export/screen-awake.ts` — despite its path, generic). Ken
 Burns and transitions are the player's usual automatic choices (`src/compose`); there is no
 music.
@@ -48,7 +53,10 @@ music.
 `src/app/frame/frame-deep-link.ts` parses and builds it. It is the app's first URL-driven entry
 point; every other route lives only in `history.state` (`dev-docs/app/NAVIGATION.md`), because a
 picture frame is often opened once and left running, or sent to a TV browser by a link rather
-than operated there.
+than operated there. A linked album Immich no longer has shows the same "Immich isn't answering"
+notice as an unreachable server (`frame.unavailableTitle`/`frame.unavailableText`); the two causes
+are told apart in the log, not in the owner-facing copy, since either way the fix is the same —
+check the server and the album, then exit back to set-up.
 
 ## Endless playback
 
