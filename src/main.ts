@@ -7,6 +7,8 @@ import { TranslatorState } from "./app/i18n/translator-state.svelte";
 import { AddPicturesSession, serverAddingStore } from "./app/add-pictures/add-pictures-session";
 import { ImportSession } from "./app/import/import-session";
 import { createWindowHistory, Navigator } from "./app/navigation/navigator";
+import { parseFrameDeepLink } from "./app/frame/frame-deep-link";
+import { openDeepLinkedFrame } from "./app/frame/frame-startup-deep-link";
 import { randomId } from "./app/random-id";
 import { AppSettings } from "./app/settings/app-settings";
 import { createStorageLanguagePreferenceStore } from "./app/settings/language";
@@ -206,9 +208,16 @@ const intakePorts = {
 
 const shareLinkDevice = browserShareLinkDevice(window, serverLibraryClient, browserScheduler);
 
+// Read before the navigator exists, so its own first route is never raced by this one.
+const deepLinkedFrameAlbumId = parseFrameDeepLink(window.location.hash);
+const navigator = new Navigator(createWindowHistory(window));
+if (deepLinkedFrameAlbumId !== null) {
+  openDeepLinkedFrame(deepLinkedFrameAlbumId, serverLibrary.availability, navigator);
+}
+
 const services = {
   store,
-  navigator: new Navigator(createWindowHistory(window)),
+  navigator,
   toaster,
   reportError,
   settings,
