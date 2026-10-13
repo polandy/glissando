@@ -30,9 +30,10 @@ shown whole, and how the renderer draws two pictures and a blurred backdrop in o
   pairs and gives every slide `fit: "cover"`, today's crop.
 - **The WebGL renderer stays one pass**: each layer of the transition shader gets a layout
   (cover, whole over blur, pair across, pair stacked), a second picture sampler and crop, and
-  the rect the whole picture is drawn in. The blur is a lookup at a coarse mipmap level of the
-  picture texture, which the textures already have. The DOM fallback draws the backdrop as a
-  second, CSS-filtered element and a pair as two clipped ones.
+  the rect the whole picture is drawn in. The blur averages 32 taps spread over a disc of 8% of
+  the screen height, Gaussian-weighted, each read from the mip level whose texels are about as
+  wide as the taps lie apart, which the textures already have. The DOM fallback draws the
+  backdrop as a second, CSS-filtered element and a pair as two clipped ones.
 - Player JSON goes to version 4, `.glissando` and the server document to version 11. Older
   versions are refused, not read: no instance holds slideshows yet.
 
@@ -43,9 +44,10 @@ shown whole, and how the renderer draws two pictures and a blurred backdrop in o
   and an own duration would no longer line up with one composed timeline.
 - _Pairs as one collage image made at import_ — rejected: it is bound to one screen orientation,
   stores every portrait picture twice and breaks a picture's identity in the editor.
-- _A separable Gaussian blur in a framebuffer pass_ — rejected for now: two extra passes and
-  render targets per layer for a backdrop that is darkened and out of focus anyway; the coarse
-  mipmap is one lookup. Revisit if the backdrop shows blocky steps on a large screen.
+- _A separable Gaussian blur in a framebuffer pass_ — rejected: two extra passes and render
+  targets per layer, where the tap disc over matching mip levels is as soft for a darkened
+  backdrop at 32 lookups per backdrop pixel.
+- _One lookup at a coarse mip level_ — rejected: on the screen its texels show as blocky steps.
 - _Reorder pictures to form more pairs_ — rejected: the order is the user's (or capture order).
 
 ## Consequences
