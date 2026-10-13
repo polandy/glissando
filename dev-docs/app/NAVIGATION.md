@@ -2,9 +2,11 @@
 
 Routes: `start`, `settings`, `slideshow(id)`, `import(pictures | music)`, `immich(albumId | null)`
 (below the pictures step; an album below the browser), `player(slideshowId)`,
-`picture(slideshowId, pictureId)`, `music(slideshowId)` — four levels at most (start → import →
-Immich browser → album); the player is a modal
-layer over its slideshow, the settings sheet one over start, the picture and music editors
+`picture(slideshowId, pictureId)`, `music(slideshowId)`, `frameSetup`, `frame(albumId)` — four
+levels at most (start → import →
+Immich browser → album); the player and the running picture frame are modal
+layers over their slideshow or start, the settings sheet and the frame set-up screen ones over
+start, the picture and music editors
 screens below their slideshow
 (‹ and › replace its history entry with the neighbour's, so back still leads to the slideshow). `navigation/navigator.ts`:
 
@@ -15,3 +17,7 @@ screens below their slideshow
 - History never restores what is gone: after a reload, or on browser forward, an import step
   or the Immich browser returns to start (its selection lived in memory), the player to its slideshow (music needs
   a user gesture) and the settings sheet to start (a closed overlay stays closed).
+- **`#frame=<albumId>`** (`dev-docs/app/FRAME.md`) is the one route with a real URL, not just
+  history state: opening the app on that hash goes straight to `frame(albumId)`, skipping start
+  and set-up, for a link sent to a tablet or TV browser. Every other route still lives only in
+  `history.state`.
