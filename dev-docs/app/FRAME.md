@@ -10,12 +10,14 @@ https://polandy.github.io/glissando-assets/mockups/picture-frame/. Roadmap item 
 A "Picture frame" card on the start screen, only while `serverState.kind === "on"`
 (`dev-docs/SERVER_LIBRARY.md`): the frame reads an Immich album through the same server proxy as
 the rest of the server library, so it needs the server exactly as that does. The card is absent
-while the server is off or unreachable.
+while the server is off or unreachable (E2E-050).
 
 ## Set-up screen
 
-Fields and their defaults, all device-persisted (`src/app/frame/frame-preferences.ts`) so the
-next frame opens the same way:
+E2E-047 sets up and runs a frame from the start screen, including the regression where this
+screen once rendered below the start screen, outside the viewport; E2E-048 reloads mid-way and
+finds the choices kept. Fields and their defaults, all device-persisted
+(`src/app/frame/frame-preferences.ts`) so the next frame opens the same way:
 
 - **Album** — a grid of the Immich albums the server can see, each a cover thumbnail and name; no
   album chosen yet.
@@ -49,7 +51,7 @@ music.
 
 ## Deep link
 
-`#frame=<albumId>` opens the frame directly on that album, skipping the set-up screen —
+`#frame=<albumId>` opens the frame directly on that album, skipping the set-up screen (E2E-049) —
 `src/app/frame/frame-deep-link.ts` parses and builds it. It is the app's first URL-driven entry
 point; every other route lives only in `history.state` (`dev-docs/app/NAVIGATION.md`), because a
 picture frame is often opened once and left running, or sent to a TV browser by a link rather
