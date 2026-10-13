@@ -6,6 +6,7 @@ import { ShareMediumMissingError, ShareUnreachableError, type ShareApi } from ".
 import {
   loadSharedShow,
   playableShow,
+  shareSummary,
   SharedPictureMissingError,
   skipMissingPicture,
 } from "./shared-show";
@@ -174,6 +175,30 @@ describe("skipMissingPicture", () => {
     expect(skip).toEqual({
       skipped: new Set([pictureKey(2)]),
       atSeconds: (SLIDE_MS / 1000) * 1.5,
+    });
+  });
+});
+
+describe("shareSummary", () => {
+  it("counts the pictures, two on a paired slide, and sums the slides' durations", async () => {
+    // Four portrait pictures, automatically paired two by two: two slides of 1.5 times the seconds.
+    const portraitStored: StoredSlideshow = {
+      ...stored(0),
+      pictures: [0, 1, 2, 3].map((index) => ({
+        id: pictureKey(index),
+        capturedAt: "2026-07-01T00:00:00Z",
+        width: 900,
+        height: 1600,
+        fileName: pictureKey(index),
+      })),
+    };
+    const { api } = fakeApi([{ revision: 2, slideshow: portraitStored, beats: new Map() }]);
+    const show = await loadSharedShow(api, countedUrl, null);
+
+    expect(shareSummary(show, playableShow(show, api, new Set()).slideshow)).toEqual({
+      pictureCount: 4,
+      durationMs: 2 * SLIDE_MS * 1.5,
+      withMusic: false,
     });
   });
 });

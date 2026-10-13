@@ -15,6 +15,7 @@ import { createShareParts, withShareParts } from "./share-parts";
 import {
   loadSharedShow,
   playableShow,
+  shareSummary,
   SharedPictureMissingError,
   skipMissingPicture,
   type SharedShow,
@@ -59,11 +60,7 @@ async function startSharePage(): Promise<void> {
   const view = withShareParts(
     createPageView(document, {
       title: show.stored.title,
-      copy: pageCopyFor(words, language, {
-        pictureCount: first.slideshow.slides.length,
-        durationMs: first.slideshow.slides.reduce((sum, { durationMs }) => sum + durationMs, 0),
-        withMusic: first.slideshow.music !== undefined,
-      }),
+      copy: pageCopyFor(words, language, shareSummary(show, first.slideshow)),
       withFullScreen: canFullscreen(),
       withMusic: first.slideshow.music !== undefined,
     }),

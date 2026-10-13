@@ -5,6 +5,7 @@ import type { PictureFocus } from "../library/picture-focus";
 import type { StoredSlideshow } from "../library/stored-slideshow";
 import type { Slideshow } from "../player/slideshow";
 import { ShareMediumMissingError, type ShareApi } from "./share-api";
+import type { ShareSummary } from "./share-page-words";
 
 /** A shared slideshow as loaded at one revision, with its songs ready to play. */
 export interface SharedShow {
@@ -61,6 +62,18 @@ export async function loadSharedShow(
     stored: answer.slideshow,
     beats: answer.beats,
     songUrls: new Map(songUrls),
+  };
+}
+
+/**
+ * What the start card sums up for `show` played as `slideshow`: every stored picture, two on a
+ * paired slide (ADR-0028), and the slides' durations.
+ */
+export function shareSummary(show: SharedShow, slideshow: Slideshow): ShareSummary {
+  return {
+    pictureCount: show.stored.pictures.length,
+    durationMs: slideshow.slides.reduce((sum, { durationMs }) => sum + durationMs, 0),
+    withMusic: slideshow.music !== undefined,
   };
 }
 

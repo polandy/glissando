@@ -127,6 +127,37 @@ describe("afterAdding", () => {
   });
 });
 
+const portraits = (count: number, prefix: string): StoredPicture[] =>
+  pictures(count, prefix).map((each) => ({ ...each, width: 2160, height: 3240 }));
+
+describe("afterAdding with portrait pictures composed into pairs", () => {
+  it("counts a pair's duration once, at 1.5 times a single slide", () => {
+    const show = slideshow({ pictures: portraits(4, "old"), secondsPerPicture: 5 });
+
+    const after = afterAdding(show, portraits(2, "new"), "byCaptureDate");
+
+    expect(after.pictures).toEqual({ before: 4, after: 6 });
+    expect(after.durationSeconds).toEqual({ before: 15, after: 22.5 });
+  });
+
+  it("shares the music by weight, a single slide's share being the per-picture seconds", () => {
+    const show = slideshow({ pictures: portraits(4, "old"), songs: [MUSIC] });
+
+    const after = afterAdding(show, portraits(2, "new"), "byCaptureDate");
+
+    expect(after.durationSeconds).toEqual({ before: 60, after: 60 });
+    expect(after.perPictureSeconds).toEqual({ before: 20, after: 60 / 4.5 });
+    expect(after.note).toEqual({ kind: "sharesMusic" });
+  });
+
+  it("finds the floor by the single slide's weighted share, not the picture count", () => {
+    // 20 pairs share 60 s by weight 30: 2 s a single slide, 3 s a pair, so it fits the music.
+    const show = slideshow({ pictures: portraits(40, "old"), songs: [MUSIC] });
+
+    expect(afterAdding(show, [], "byCaptureDate").note).toEqual({ kind: "sharesMusic" });
+  });
+});
+
 describe("afterAdding, where the new pictures go in an own order", () => {
   const at = (id: string, capturedAt: string): StoredPicture => ({ ...picture(id), capturedAt });
   const own = slideshow({
