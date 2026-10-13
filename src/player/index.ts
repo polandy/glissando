@@ -25,12 +25,6 @@ export { cropAt, cropRect, type KenBurnsAt, type Rect, type Size } from "./ken-b
 export { parseSlideshow, SlideshowFormatError } from "./parse-slideshow";
 export { SlideshowLoadError } from "./picture-buffer";
 export {
-  slideLayout,
-  type LayoutInput,
-  type LayoutPicture,
-  type SlideLayout,
-} from "./slide-layout";
-export {
   musicGainAt,
   trackGainAt,
   type MusicEnvelope,

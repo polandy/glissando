@@ -1,6 +1,10 @@
 import { FILL_SCREEN_PORTRAIT_PICTURES, type PortraitPictures } from "../library/portrait-pictures";
 import type { StoredPicture } from "../library/stored-slideshow";
-import { slideLayout, type Framing, type KenBurnsAt, type Size } from "../player";
+// Leaf imports, not the player's barrel: that one also reaches the browser player and its
+// worker, which a bundle built around `compose` (e.g. the share page) must not pull in.
+import type { KenBurnsAt, Size } from "../player/ken-burns";
+import { slideLayout } from "../player/slide-layout";
+import type { Framing } from "../player/slideshow";
 import { KEN_BURNS_EASING } from "./auto-ken-burns";
 import { slideUnits } from "./slide-units";
 

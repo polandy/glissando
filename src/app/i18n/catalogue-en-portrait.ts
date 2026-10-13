@@ -29,9 +29,8 @@ export const enPortrait: Pick<Catalogue, keyof typeof dePortrait> = {
   "editor.alwaysAlone": "Always alone",
   "editor.alwaysAloneHint": "This picture never shares a slide with another one.",
   "editor.layoutPaired": "Shares a slide with picture {number}",
-  "editor.layoutBlurredFill":
-    "Shown alone over a blurred copy of itself on a wide screen.",
+  "editor.layoutBlurredFill": "Shown alone over a blurred copy of itself on a wide screen.",
   "editor.layoutAlone": "Shown alone.",
   "editor.layoutSettingOverrides":
-    "Has no effect while the slideshow is set to \"{setting}\" — there, every picture is shown alone.",
+    'Has no effect while the slideshow is set to "{setting}" — there, every picture is shown alone.',
 };
