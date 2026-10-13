@@ -227,6 +227,7 @@ function seedDocument(title, createdAt, members, extraPictures = []) {
       createdAt,
       secondsPerPicture: SEED_SECONDS_PER_PICTURE,
       pictures: [...pictures, ...extraPictures],
+      songs: [],
     },
   };
 }
