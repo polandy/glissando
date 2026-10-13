@@ -32,7 +32,10 @@ function albumTile(page: Page, name: string): Locator {
  * Playwright refuses to even dispatch the click (the stage, not the button, is topmost), so a
  * single reveal-then-click can still lose the race if the timeout lands in between; retrying the
  * whole reveal-and-click as one unit (`toPass`), rather than waiting a fixed time, is what finally
- * makes it land regardless of how slow the machine is.
+ * makes it land regardless of how slow the machine is. The per-attempt click timeout is generous
+ * (not a tight 1 s): on a contended CI runner, resolving `getByRole` alone can take most of a
+ * second, so a short timeout starved the actionability check every attempt and never gave the
+ * click itself a chance to land, independent of the auto-hide race this helper exists for.
  */
 async function clickWithControlsVisible(page: Page, locator: Locator): Promise<void> {
   await expect(async () => {
@@ -40,8 +43,8 @@ async function clickWithControlsVisible(page: Page, locator: Locator): Promise<v
     if (opacity !== "1") {
       await page.locator(".stage").click();
     }
-    await locator.click({ timeout: 1000 });
-  }).toPass({ timeout: 15000 });
+    await locator.click({ timeout: 8000 });
+  }).toPass({ timeout: 25000 });
 }
 
 /** The clock/date switches, which carry no accessible name of their own: found by their row. */
