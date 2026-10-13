@@ -34,9 +34,12 @@
   - A picture that fails to load (Immich no longer has it) is skipped, as in the app
     (server_library/IN_THE_APP.md).
 - The app's service worker never answers `/s/` or `/api/` navigations (ADR-0005).
-- **Code**: `src/share-page/` holds the page's script (`main.ts`), the API client
-  (`share-api.ts`, its failures as `ShareGoneError`, `ShareUnreachableError`,
-  `ShareMediumMissingError`), the answer's reader (`share-answer.ts`, failing loud on any field
+- The same page is the TV page at `/tv`, and offers phone control on `/s/<token>`
+  (tv_remote/TV_PAGE.md).
+- **Code**: `src/share-page/` holds the page's script (`main.ts`, which picks this page,
+  `share-link-page.ts`, or the TV page), the API client (`share-api.ts`: `createShareApi` for a
+  token, `createShowApi` for any base the same routes hang under; its failures as
+  `ShareGoneError`, `ShareUnreachableError`, `ShareMediumMissingError`), the answer's reader (`share-answer.ts`, failing loud on any field
   the share document doesn't have; pictures and songs become `pictureKey(n)` and `songKey(n)`),
   the loaded slideshow with its skips (`shared-show.ts`), the words (`share-page-words.ts`) and
   the page's own parts (`share-parts.ts`, `share-page.css`). `build/share-page-plugin.ts` builds

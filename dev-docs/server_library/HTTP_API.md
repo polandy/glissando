@@ -18,6 +18,7 @@ the server.
 | `PUT /api/library/music/{musicId}/beats` body: a `MusicBeats`    | 204; 400 `invalidBeats`; 404; 413 `tooLarge`; 415 `notJson`                                                                                                                          |
 
 - **Share links** add `…/slideshows/{id}/share` and the public `/api/share/` (`dev-docs/SHARE_LINK.md`).
+- **TV remote** adds `/api/library/tv/`, the public `/api/tv/` and `/api/share/{token}/tv`, served by `server/tv/` beside the library (`dev-docs/TV_REMOTE.md`).
 - **Revision**: a positive whole number, 1 on create, +1 on every accepted `PUT`. Compared in the
   same transaction as the write. An `If-Match` other than the
   current `"<revision>"` (also `*` or a weak tag) is a stale one: 412.

@@ -1,7 +1,7 @@
 # Sessions
 
 One session is one TV page and the remote(s) controlling it. `server/tv/tv-hub.ts` holds them
-in memory as a pure class (clock, random bytes and the id source injected, no sockets); the
+in memory, pure (clock and random bytes injected, no sockets, no timer); the
 database never sees them, and a restart of the service ends them all.
 
 - **`tvKey`**: 22 base64url characters (128 bit), the TV's credential for its stream, its state
@@ -15,17 +15,22 @@ database never sees them, and a restart of the service ends them all.
   (`slideshowId`); way B is bound to a share token for its whole life and never changes it.
 - **Presence**: `tvPresent` is true while the TV's event stream is open. Each remote stream is
   counted; a session needs neither once it is made.
-- **Lifetime**: a session ends when `disconnect` arrives, or `SESSION_IDLE_MS` (15 min) after the
-  TV's stream last closed (or after the session was made, when the TV never opened one). The
-  hub checks lazily on each request; there is no timer. At most `MAX_SESSIONS` (100) live; one
-  more drops the session whose TV has been away the longest, else the oldest.
-- **What the hub does**: `create`/`createBound(token)`, `claim(code)`, `show(secret,
-  slideshowId)`, `connectTv(tvKey, sink)` (replays a `snapshot` first), `connectRemote(secret,
-  sink)` (replays a `snapshot` first), `command(secret, command)`, `report(tvKey, state)`,
-  `end(...)`. A sink is `{ send(event) }` with a `close` returned to the caller; the HTTP
-  layer maps them onto `text/event-stream`. State is replayed on connect, never only sent as an
-  event, so neither side depends on which connected first.
+- **Lifetime**: a session ends when `disconnect` arrives (also while the TV is away), or
+  `SESSION_IDLE_MS` (15 min) after the TV's stream last closed (or after the session was made,
+  when the TV never opened one). The hub checks lazily on each request; there is no timer. At
+  most `MAX_SESSIONS` (100) live; one more drops the session whose TV has been away the longest,
+  else the oldest.
+- **What the hub does**: `create`/`createBound(token)`, `claim(code)`,
+  `show(secret, slideshowId)`, `connectTv(tvKey, sink)` (replays a `snapshot` first),
+  `connectRemote(secret, sink)` (replays a `snapshot` first), `command(secret, command)`,
+  `report(tvKey, state)`, and the lookups `sourceOf(tvKey)` and `hasRemoteSecret(secret)`. A
+  sink is `{ send(event), close() }`; the hub closes it when the session ends or the TV opens a
+  second stream, and `connect…` returns the idempotent close the HTTP layer calls when the
+  client goes. The HTTP
+  layer maps sinks onto `text/event-stream`. State is replayed on connect, never only sent as an
+  event, so neither side depends on which connected first. A way B session is claimed and
+  showing from the start.
 - **Playback state** (`PlaybackState`, as the TV last reported it): `playing`, `ended`,
   `needsTvOk`, `positionSeconds`, `durationSeconds`, `pictureIndex`, `pictureCount`, `volume`
-  (0 to 1) and `title`. The hub validates it (finite numbers, ranges) and refuses a bad one with
-  400 `invalidState`.
+  (0 to 1) and `title`. `readPlaybackState` (`src/tv-remote/tv-protocol.ts`) validates it
+  (finite numbers, ranges); the route refuses a bad one with 400 `invalidState`.
