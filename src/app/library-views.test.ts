@@ -60,6 +60,8 @@ describe("slideshowDetails", () => {
       ownDurationCount: 0,
       ownTransitionCount: 0,
       transition: "crossfade",
+      portraitPictures: "automatic",
+      pairCount: 0,
       captionCount: 0,
       capturedFrom: "2025-07-01T10:00:00Z",
       capturedTo: "2025-07-02T10:00:00Z",
@@ -71,6 +73,9 @@ describe("slideshowDetails", () => {
           ownMotion: false,
           ownDurationMs: null,
           ownTransition: null,
+          pairedWithNumber: null,
+          blurredFill: false,
+          alone: false,
         },
         {
           id: "p2",
@@ -79,9 +84,80 @@ describe("slideshowDetails", () => {
           ownMotion: false,
           ownDurationMs: null,
           ownTransition: null,
+          pairedWithNumber: null,
+          blurredFill: false,
+          alone: false,
         },
       ],
     });
+  });
+
+  it("pairs two consecutive portrait pictures and counts the pair (ADR-0028)", () => {
+    const portrait: StoredSlideshow = {
+      ...stored,
+      pictures: [
+        {
+          id: "p1",
+          capturedAt: "2025-07-01T10:00:00Z",
+          width: 300,
+          height: 400,
+          fileName: "a.jpg",
+        },
+        {
+          id: "p2",
+          capturedAt: "2025-07-02T10:00:00Z",
+          width: 300,
+          height: 400,
+          fileName: "b.jpg",
+        },
+      ],
+    };
+
+    const details = slideshowDetails(portrait, urlOf);
+
+    expect(details.pairCount).toBe(1);
+    expect(details.pictures.map((picture) => picture.pairedWithNumber)).toEqual([2, 1]);
+  });
+
+  it("gives a lone portrait picture a blurred fill against the 16:9 reference screen", () => {
+    const lone: StoredSlideshow = {
+      ...stored,
+      pictures: [
+        {
+          id: "p1",
+          capturedAt: "2025-07-01T10:00:00Z",
+          width: 300,
+          height: 200,
+          fileName: "a.jpg",
+        },
+        {
+          id: "p2",
+          capturedAt: "2025-07-02T10:00:00Z",
+          width: 300,
+          height: 400,
+          fileName: "b.jpg",
+        },
+      ],
+    };
+
+    expect(slideshowDetails(lone, urlOf).pictures.map((picture) => picture.blurredFill)).toEqual([
+      false,
+      true,
+    ]);
+  });
+
+  it("marks a picture set to always alone, and names the setting as resolved", () => {
+    const [first, second] = stored.pictures;
+    const edited: StoredSlideshow = {
+      ...stored,
+      pictures: [first, { ...second, alone: true }] as StoredSlideshow["pictures"],
+      portraitPictures: "one-at-a-time",
+    };
+
+    const details = slideshowDetails(edited, urlOf);
+
+    expect(details.portraitPictures).toBe("one-at-a-time");
+    expect(details.pictures.map((picture) => picture.alone)).toEqual([false, true]);
   });
 
   it("marks the pictures with an own motion and counts them", () => {

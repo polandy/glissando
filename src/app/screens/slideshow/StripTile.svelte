@@ -1,10 +1,10 @@
 <script lang="ts">
-  import Icon from "../../components/Icon.svelte";
   import { getTranslator } from "../../i18n/context";
   import { MILLISECONDS_PER_SECOND } from "../../../player";
   import type { PictureTile } from "../view-models";
   import StripTileBadges from "./StripTileBadges.svelte";
   import StripTileCheck from "./StripTileCheck.svelte";
+  import StripTileMarks from "./StripTileMarks.svelte";
 
   /** One picture of the strip: its order number and date, and the marks a pointer reveals. */
   let {
@@ -63,6 +63,11 @@
         : t("slideshow.pictureLabelOwnTransition", {
             effect: t(`effect.${picture.ownTransition}`),
           }),
+      picture.pairedWithNumber === null
+        ? ""
+        : t("slideshow.pairedWith", { number: picture.pairedWithNumber }),
+      picture.alone ? t("slideshow.pictureLabelAlone") : "",
+      picture.blurredFill ? t("slideshow.pictureLabelBlurredFill") : "",
     ].join(""),
   );
   const label = $derived(isNew ? t("add.newLabel", { label: ownLabel }) : ownLabel);
@@ -76,6 +81,8 @@
   class:dragging
   class:drop-before={drop === "before"}
   class:drop-after={drop === "after"}
+  class:paired-first={picture.pairedWithNumber !== null && picture.pairedWithNumber > number}
+  class:paired-second={picture.pairedWithNumber !== null && picture.pairedWithNumber < number}
 >
   <button
     class="pick"
@@ -97,23 +104,13 @@
       <img src={picture.thumbnailUrl} alt={label} draggable="false" />
     {/if}
     <span class="number mono" aria-hidden="true">{number}</span>
-    {#if isNew || picture.ownMotion || ownSeconds !== null || picture.ownTransition !== null}
+    {#if isNew || picture.ownMotion || ownSeconds !== null || picture.ownTransition !== null || picture.alone || picture.blurredFill}
       <StripTileBadges {picture} {isNew} {ownSeconds} />
     {/if}
     <span class="date mono" aria-hidden="true">{date}</span>
   </button>
   <StripTileCheck {selecting} {selected} />
-  <span class="mark grab" aria-hidden="true"><Icon name="grip" /></span>
-  <button
-    class="mark remove"
-    type="button"
-    aria-label={t("slideshow.removePicture", { number })}
-    title={removable ? t("slideshow.remove") : t("slideshow.lastPictureStays")}
-    disabled={!removable}
-    onclick={onRemove}
-  >
-    <Icon name="close" />
-  </button>
+  <StripTileMarks {number} {removable} {onRemove} />
 </li>
 
 <style>
@@ -135,6 +132,23 @@
   }
   .tile.dragging {
     opacity: 0.35;
+  }
+  /* A pair's two tiles (ADR-0028): a continuous bar under both, each drawing its own half. */
+  .tile.paired-first::after,
+  .tile.paired-second::after {
+    content: "";
+    position: absolute;
+    bottom: -4px;
+    height: 2px;
+    background: var(--gl-accent);
+  }
+  .tile.paired-first::after {
+    left: 50%;
+    right: -5px;
+  }
+  .tile.paired-second::after {
+    left: -5px;
+    right: 50%;
   }
   /* Where a dragged picture lands: a dashed mark in the gap before or after the tile. */
   .tile.drop-before::before,
@@ -217,55 +231,7 @@
     padding: 14px 7px 5px;
     background: linear-gradient(transparent, var(--gl-photo-fade));
   }
-  .mark {
-    position: absolute;
-    top: 5px;
-    z-index: 2;
-    display: none;
-    place-items: center;
-    width: 26px;
-    height: 26px;
-    padding: 0;
-    border: 0;
-    border-radius: var(--gl-radius-small);
-    background: var(--gl-photo-badge);
-    color: var(--gl-on-photo);
-    backdrop-filter: blur(6px);
-    opacity: 0;
-    transition: opacity 0.12s;
-    --gl-icon-size: var(--gl-size-icon-small);
-  }
-  .remove {
-    right: 5px;
-    cursor: pointer;
-  }
-  .remove:hover:not(:disabled) {
-    background: var(--gl-coral);
-    color: var(--gl-coral-ink);
-  }
-  .remove:disabled {
-    cursor: not-allowed;
-  }
-  .grab {
-    right: 35px;
-    cursor: grab;
-    pointer-events: none;
-  }
-  /* Marks for a mouse only; touch selects a tile and uses the selection bar. */
-  @media (hover: hover) and (pointer: fine) {
-    .mark {
-      display: grid;
-    }
-    .tile:hover .mark,
-    .tile.selected .mark,
-    .tile:focus-within .mark {
-      opacity: 1;
-    }
-  }
   /* Selecting several (dev-docs/app/slideshow-editing/SELECTING_SEVERAL.md, Selecting several): the check circle instead of the marks. */
-  .tile.selecting-mode .mark {
-    display: none;
-  }
   /* While selecting several, the unpicked tiles step back and a picked picture sits inset. */
   .tile.selecting-mode:not(.selected) .pick img {
     filter: saturate(0.8) brightness(0.92);
@@ -278,7 +244,6 @@
     border-radius: var(--gl-radius-small);
   }
   @media (prefers-reduced-motion: reduce) {
-    .mark,
     .tile.selecting-mode .pick img {
       transition: none;
     }

@@ -12,10 +12,10 @@
 
   const line = $derived.by(() => {
     const duration = seconds(picture.durationMs);
-    const next = picture.number + 1;
     if (picture.next === null) {
       return t("editor.previewEnd", { duration });
     }
+    const next = picture.next.number;
     const { choice, durationMs } = picture.transition;
     if (choice === CUT_TRANSITION) {
       return t("editor.previewCut", { duration, next });

@@ -106,6 +106,7 @@
       onResetDuration={() => editor.resetDuration(view.id)}
       onTransition={(choice) => editor.setTransition(view.id, choice)}
       onResetTransition={() => editor.resetTransition(view.id)}
+      onAlone={(alone) => editor.setPictureAlone(view.id, alone)}
       previewPorts={{ clock: performanceClock, frames: animationFrames }}
       reducedMotion={reducedMotion.current}
       {saving}

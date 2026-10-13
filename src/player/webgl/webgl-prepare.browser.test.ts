@@ -76,11 +76,13 @@ function setUp() {
   return { renderer, uploads, captionUploads, drawAndRead };
 }
 
+/** `fit: "cover"`, since this suite is about upload mechanics, not the picture's layout. */
 function wholePicture(picture: BitmapPicture, caption?: string): RenderFrame<BitmapPicture> {
   const motion = standingStill({ zoom: 1, centerX: 0.5, centerY: 0.5 });
+  const fit = "cover" as const;
   return {
     kind: "slide",
-    slide: caption === undefined ? { picture, motion } : { picture, motion, caption },
+    slide: caption === undefined ? { picture, motion, fit } : { picture, motion, caption, fit },
   };
 }
 
@@ -116,8 +118,8 @@ describe("WebGlRenderer.prepare", () => {
     const { renderer, uploads, captionUploads, drawAndRead } = setUp();
     await renderer.captionFontLoaded;
     const picture = await twoBandPicture();
-    // The picture's steps as the first case counts them, then one for the caption.
-    const pictureSteps = Math.ceil((PICTURE.width * PICTURE.height) / UPLOAD_PIXELS_PER_FRAME) + 1;
+    // The picture's slices, its mipmaps and its backdrop, then one step for the caption.
+    const pictureSteps = Math.ceil((PICTURE.width * PICTURE.height) / UPLOAD_PIXELS_PER_FRAME) + 2;
 
     for (let step = 0; step < pictureSteps + 1; step += 1) {
       renderer.prepare({ picture, caption: CAPTION });

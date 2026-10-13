@@ -1,4 +1,5 @@
 import type { BitmapPicture } from "../browser/bitmap-loader";
+import { createBackdropTexture } from "./backdrop-texture";
 
 /** Pixels uploaded by one `prepare` step: a few milliseconds of a frame in WebKit (ADR-0014). */
 export const UPLOAD_PIXELS_PER_FRAME = 1_048_576;
@@ -7,12 +8,16 @@ interface PictureTexture {
   readonly texture: WebGLTexture;
   rowsUploaded: number;
   mipmapped: boolean;
+  /** The blurred fill's backdrop, made in a step after the mipmaps. */
+  backdrop: WebGLTexture | null;
 }
 
 /**
- * One texture per picture, with mipmaps so a 4K picture shrinks to the screen smoothly. It is
- * uploaded in steps (`prepareStep`): the storage with a first slice of rows, one slice per later
- * step, then the mipmaps in a step of their own. `texture` finishes whatever is left at once.
+ * One texture per picture, with mipmaps so a 4K picture shrinks to the screen smoothly, and a
+ * small blurred backdrop texture for the blurred fill (`backdrop-texture.ts`). They are uploaded
+ * in steps (`prepareStep`): the storage with a first slice of rows, one slice per later step,
+ * the mipmaps in a step of their own, then the backdrop. `texture` and `backdrop` finish
+ * whatever their texture still lacks at once.
  */
 export class PictureTextures {
   readonly #gl: WebGL2RenderingContext;
@@ -23,7 +28,7 @@ export class PictureTextures {
   }
 
   isComplete(picture: BitmapPicture): boolean {
-    return this.#textures.get(picture)?.mipmapped ?? false;
+    return (this.#textures.get(picture)?.backdrop ?? null) !== null;
   }
 
   /** Does the next bounded step of the upload, if any is left. */
@@ -33,6 +38,8 @@ export class PictureTextures {
       this.#uploadRows(picture, entry, rowsPerSlice(picture));
     } else if (!entry.mipmapped) {
       this.#generateMipmap(entry);
+    } else if (entry.backdrop === null) {
+      entry.backdrop = createBackdropTexture(this.#gl, picture);
     }
   }
 
@@ -49,10 +56,19 @@ export class PictureTextures {
     return entry.texture;
   }
 
+  /** The picture's blurred backdrop texture, bound to the active unit. */
+  backdrop(picture: BitmapPicture): WebGLTexture {
+    const entry = this.#entry(picture);
+    entry.backdrop ??= createBackdropTexture(this.#gl, picture);
+    this.#gl.bindTexture(this.#gl.TEXTURE_2D, entry.backdrop);
+    return entry.backdrop;
+  }
+
   forget(picture: BitmapPicture): void {
     const entry = this.#textures.get(picture);
     if (entry !== undefined) {
       this.#gl.deleteTexture(entry.texture);
+      this.#gl.deleteTexture(entry.backdrop);
       this.#textures.delete(picture);
     }
   }
@@ -63,7 +79,10 @@ export class PictureTextures {
   }
 
   dispose(): void {
-    this.#textures.forEach(({ texture }) => this.#gl.deleteTexture(texture));
+    this.#textures.forEach(({ texture, backdrop }) => {
+      this.#gl.deleteTexture(texture);
+      this.#gl.deleteTexture(backdrop);
+    });
     this.#textures.clear();
   }
 
@@ -81,7 +100,7 @@ export class PictureTextures {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    const entry = { texture, rowsUploaded: 0, mipmapped: false };
+    const entry: PictureTexture = { texture, rowsUploaded: 0, mipmapped: false, backdrop: null };
     this.#textures.set(picture, entry);
     return entry;
   }

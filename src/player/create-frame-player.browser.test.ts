@@ -3,7 +3,7 @@ import { createFramePlayer } from "./create-frame-player";
 import type { Slideshow } from "./slideshow";
 
 const SLIDESHOW: Slideshow = {
-  formatVersion: 3,
+  formatVersion: 4,
   title: "Generated",
   slides: [
     {

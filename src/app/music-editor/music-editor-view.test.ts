@@ -103,6 +103,35 @@ describe("musicEditorView", () => {
     expect(view.note).toEqual({ kind: "ends-with-music" });
   });
 
+  it("counts every automatic picture sharing the music, a paired one included (ADR-0028)", () => {
+    // Four portrait pictures, automatically paired two by two: a pair's duration is one slide's,
+    // shown by both of its pictures (ADR-0028), so all four are automatic, not just two.
+    const pictures: StoredPicture[] = [0, 1, 2, 3].map((index) => ({
+      id: `p${index}`,
+      capturedAt: "2025-07-01T10:00:00Z",
+      width: 900,
+      height: 1600,
+      fileName: `p${index}.jpg`,
+    }));
+    const stored: StoredSlideshow = {
+      id: "show",
+      title: "Sommer am See",
+      createdAt: "2025-07-02T00:00:00Z",
+      pictures,
+      secondsPerPicture: 5,
+      songs: [MUSIC],
+    };
+
+    const view = firstSongView(stored, LISTENING);
+
+    expect(view.note).toEqual({
+      kind: "shared",
+      automaticCount: 4,
+      shareMs: 102_000,
+      onTheBeat: false,
+    });
+  });
+
   it("resolves the envelope the player plays", () => {
     const view = firstSongView(slideshow({ trim: { startMs: 12_000, endMs: 150_000 } }), LISTENING);
 

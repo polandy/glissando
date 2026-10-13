@@ -20,6 +20,12 @@ import {
   OWN_SECONDS_PICTURE_LENGTH,
   type PictureLength,
 } from "../library/picture-length";
+import {
+  checkPortraitPictures,
+  InvalidPortraitPicturesError,
+  PORTRAIT_PICTURES_CHOICES,
+  type PortraitPictures,
+} from "../library/portrait-pictures";
 import { MAX_SECONDS_PER_PICTURE, MIN_SECONDS_PER_PICTURE } from "../library/stored-slideshow";
 import {
   CAPTION_FROM_VERSION,
@@ -68,6 +74,7 @@ export function slideshowKeys(version: number): string[] {
     "betweenSongs",
     ...(version >= DEFAULT_TRANSITION_FROM_VERSION ? ["transition"] : []),
     ...(version >= PICTURE_LENGTH_FROM_VERSION ? ["pictureLength"] : []),
+    "portraitPictures",
   ];
 }
 
@@ -101,7 +108,25 @@ export function readSlideshowFields(show: JsonObject, path: string): SlideshowFi
     ...(show["betweenSongs"] === undefined
       ? {}
       : { betweenSongs: readBetweenSongs(show["betweenSongs"], path) }),
+    ...(show["portraitPictures"] === undefined
+      ? {}
+      : { portraitPictures: readPortraitPictures(show["portraitPictures"], path) }),
   };
+}
+
+function readPortraitPictures(value: unknown, path: string): PortraitPictures {
+  try {
+    return checkPortraitPictures(value, path);
+  } catch (error) {
+    if (error instanceof InvalidPortraitPicturesError) {
+      throw new DocumentFormatError(
+        `${path}.portraitPictures`,
+        `one of ${PORTRAIT_PICTURES_CHOICES.join(", ")}`,
+        error.actual,
+      );
+    }
+    throw error;
+  }
 }
 
 function readBetweenSongs(value: unknown, path: string): BetweenSongs {
@@ -145,11 +170,15 @@ export function pictureKeys(version: number): string[] {
     ...(version >= OWN_KEN_BURNS_FROM_VERSION ? ["kenBurns"] : []),
     ...(version >= CAPTION_FROM_VERSION ? ["caption"] : []),
     ...(version >= OWN_TIMING_FROM_VERSION ? ["durationMs", "transition"] : []),
+    "alone",
   ];
 }
 
 export function readPictureFields(picture: JsonObject, path: string): PictureFields {
-  const { kenBurns, caption, durationMs, transition } = picture;
+  const { kenBurns, caption, durationMs, transition, alone } = picture;
+  if (alone !== undefined && alone !== true) {
+    throw new DocumentFormatError(`${path}.alone`, "true or absent", alone);
+  }
   return {
     capturedAt: readDateTime(picture["capturedAt"], `${path}.capturedAt`),
     width: readPositiveInteger(picture["width"], `${path}.width`),
@@ -163,6 +192,7 @@ export function readPictureFields(picture: JsonObject, path: string): PictureFie
     ...(transition === undefined
       ? {}
       : { transition: readOwnTiming(checkTransitionChoice, transition, path) }),
+    ...(alone === true ? { alone: true } : {}),
   };
 }
 

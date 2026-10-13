@@ -20,3 +20,4 @@
 | [Caption](picture-editor/CAPTION.md)                           | The caption field                                |
 | [Duration](picture-editor/DURATION.md)                         | A picture's own duration                         |
 | [Transition](picture-editor/TRANSITION.md)                     | The transition into the next picture             |
+| [Layout](picture-editor/LAYOUT.md)                             | The "Always alone" switch (ADR-0028)             |

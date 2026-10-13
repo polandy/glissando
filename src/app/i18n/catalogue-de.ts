@@ -3,6 +3,7 @@ import { deEditor } from "./catalogue-de-editor.ts";
 import { deMusic } from "./catalogue-de-music.ts";
 import { deTiming } from "./catalogue-de-timing.ts";
 import { deTransitions } from "./catalogue-de-transitions.ts";
+import { dePortrait } from "./catalogue-de-portrait.ts";
 import { deImmich } from "./catalogue-de-immich.ts";
 import { deHtml } from "./catalogue-de-html.ts";
 import { deSharePage } from "./catalogue-de-share-page.ts";
@@ -301,6 +302,7 @@ export const de = {
   ...deAdd,
   ...deTiming,
   ...deTransitions,
+  ...dePortrait,
   ...deImmich,
   ...deMusic,
   ...deVideo,

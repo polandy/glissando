@@ -8,8 +8,8 @@
   was disposed), upright by their EXIF orientation; a released picture's bitmap is
   closed. Each becomes a mipmapped texture (`picture-textures.ts`), uploaded by `prepare` in
   steps: the storage for the whole mip chain with a first slice of rows, one slice of at most
-  `UPLOAD_PIXELS_PER_FRAME` pixels per call, the mipmaps in a call of their own, then the
-  caption. Drawing a picture not fully prepared (after a seek) uploads the rest at once
+  `UPLOAD_PIXELS_PER_FRAME` pixels per call, the mipmaps in a call of their own, the blurred
+  fill's small backdrop texture in another, then the caption. Drawing a picture not fully prepared (after a seek) uploads the rest at once
   (ADR-0014).
 - **Captions in WebGL**: once the caption font has loaded (`document.fonts.load`, an injected port;
   until then slides draw without captions, then a redraw follows), each loaded slide with a caption
@@ -29,3 +29,26 @@
   CSS transform, followed by its caption element (`[data-caption]`, styled by `captionStyles`)
   outside that transform; every transition becomes a crossfade, the caption fading with its slide.
   Two lines are clamped with CSS.
+- **Layouts (ADR-0028)**: `slide-layout.ts` is the one place that decides, per viewport, whether a
+  slide covers, is drawn whole over a blurred fill, or splits into a pair's two halves; both
+  renderers call it, so a transition's `from` and `to` can each have their own layout. A pair's
+  `Slide.partner` loads as a second picture per slide (`frame-pictures.ts`,
+  `picture-buffer.ts`), carried on `SlideLayer.partner`.
+  - **WebGL**: each layer gets a layout uniform, a partner sampler and crop, and the rects a pair
+    or a blurred fill's front picture draw in; `layer-uniforms.ts` turns a `SlideLayout` into
+    those uniforms, `bind-layer.ts` binds them, and `layerColor` in the fragment shader prelude
+    switches on the layout inside `fromColor`/`toColor`, so every transition effect carries it.
+    The blurred fill's backdrop (`blurredDarkened`) reads the layer's backdrop texture (bound by
+    `bind-layer.ts` for a blurred fill only) at the same crop and darkens it: the picture shrunk
+    to `BACKDROP_LONG_SIDE` pixels and blurred once when prepared (`backdrop-texture.ts`,
+    `backdrop-blur.ts`, three box passes per axis), magnified smoothly without mipmaps.
+  - **DOM**: `dom-layer-placement.ts` places a pair's two pictures each in their own wrapper,
+    clipped (`overflow: hidden`) to their half; a blurred fill wraps the front picture the same
+    way and draws a second, cloned `<img>` behind it with `filter: blur(...) brightness(...)`.
+    The blur radius is `BACKDROP_BLUR_RADIUS_SHARE` of the picture's long side, set in the
+    backdrop's own pixels so its transform scales it with the picture, as the WebGL backdrop's
+    blur is. The backdrop and the front's wrapper sit in one group node that carries the layer's
+    opacity, so a crossfade blends the layer as a whole, as WebGL does, and the backdrop never
+    shows through a half-transparent front. A caption, which only a single, unpaired slide ever
+    carries, follows the layer's top-level node (the picture itself when covering, its group for
+    the blurred fill) so it stays screen-space regardless of layout.

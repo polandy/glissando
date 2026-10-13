@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { StoredPicture } from "../library/stored-slideshow";
 import { autoKenBurns } from "./auto-ken-burns";
-import { pictureKenBurns } from "./picture-ken-burns";
+import { pairKenBurns, pictureKenBurns } from "./picture-ken-burns";
 
 const automatic: StoredPicture = {
   id: "a",
@@ -10,6 +10,8 @@ const automatic: StoredPicture = {
   height: 300,
   fileName: "a.jpg",
 };
+const portraitA: StoredPicture = { ...automatic, id: "a", width: 300, height: 400 };
+const portraitB: StoredPicture = { ...automatic, id: "b", width: 300, height: 400 };
 const own = {
   from: { zoom: 2.5, centerX: 0.3, centerY: 0.7 },
   to: { zoom: 1, centerX: 0.5, centerY: 0.5 },
@@ -40,5 +42,27 @@ describe("pictureKenBurns", () => {
 
   it("aims the automatic motion at the picture's focus", () => {
     expect(pictureKenBurns(0, automatic, FOCUS).from.centerY).toBeCloseTo(0.2);
+  });
+});
+
+describe("pairKenBurns", () => {
+  it("gives each half its own automatic motion, aimed at its own focus", () => {
+    const { first, second } = pairKenBurns(0, portraitA, FOCUS, portraitB, undefined);
+
+    expect(first.from.centerY).toBeCloseTo(0.2);
+    expect(second).toEqual(autoKenBurns(0, portraitB, undefined, false));
+  });
+
+  it("never pans horizontally, so the two halves stay in step", () => {
+    const { first, second } = pairKenBurns(1, portraitA, undefined, portraitB, undefined);
+
+    expect(first.from.centerX).toBe(first.to.centerX);
+    expect(second.from.centerX).toBe(second.to.centerX);
+  });
+
+  it("zooms both halves the same direction", () => {
+    const { first, second } = pairKenBurns(0, portraitA, undefined, portraitB, undefined);
+
+    expect(first.from.zoom < first.to.zoom).toBe(second.from.zoom < second.to.zoom);
   });
 });

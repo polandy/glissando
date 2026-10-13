@@ -2,6 +2,7 @@ import { orderByCaptureDate } from "../compose/order-by-capture-date";
 import { placeByCaptureDate, type AddedPlacement } from "./added-placement";
 import { normalizeCaption } from "../player/caption";
 import { checkOwnKenBurns, type OwnKenBurns } from "./own-ken-burns";
+import { checkPortraitPictures, type PortraitPictures } from "./portrait-pictures";
 import {
   DEFAULT_SLIDESHOW_TRANSITION,
   checkOwnDurationMs,
@@ -207,6 +208,35 @@ export function setSlideshowTransition(
   return checked === DEFAULT_SLIDESHOW_TRANSITION
     ? withoutTransition
     : { ...withoutTransition, transition: checked };
+}
+
+/** Sets the slideshow's portrait layout; `undefined` makes it automatic again (ADR-0028). */
+export function setPortraitPictures(
+  slideshow: StoredSlideshow,
+  portraitPictures: PortraitPictures | undefined,
+): StoredSlideshow {
+  const withoutSetting: { -readonly [Key in keyof StoredSlideshow]: StoredSlideshow[Key] } = {
+    ...slideshow,
+  };
+  delete withoutSetting.portraitPictures;
+  return portraitPictures === undefined
+    ? withoutSetting
+    : {
+        ...withoutSetting,
+        portraitPictures: checkPortraitPictures(portraitPictures, `slideshow "${slideshow.id}"`),
+      };
+}
+
+/** Marks the picture never to be composed into a portrait pair; `false` lets it be again. */
+export function setPictureAlone(
+  slideshow: StoredSlideshow,
+  pictureId: string,
+  alone: boolean,
+): StoredSlideshow {
+  return editPicture(slideshow, pictureId, (picture) => {
+    delete picture.alone;
+    return alone ? { ...picture, alone: true } : picture;
+  });
 }
 
 /** `edit` receives a mutable copy of the picture. */

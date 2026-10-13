@@ -3,7 +3,10 @@
   import { getTranslator } from "../../i18n/context";
   import type { PictureTile } from "../view-models";
 
-  /** The small marks on a strip tile: just added, own motion, own duration, own transition. */
+  /**
+   * The small marks on a strip tile: just added, own motion, own duration, own transition, always
+   * alone and shown over a blurred fill (ADR-0028).
+   */
   let {
     picture,
     isNew,
@@ -33,14 +36,27 @@
       ><Icon name="transition" /></span
     >
   {/if}
+  {#if picture.alone}
+    <span class="badge timing-badge alone-badge" title={t("slideshow.aloneBadge")}
+      ><Icon name="soloFrame" /></span
+    >
+  {/if}
+  {#if picture.blurredFill}
+    <span class="badge timing-badge" title={t("slideshow.blurredFillBadge")}
+      ><Icon name="blurredFill" /></span
+    >
+  {/if}
 </span>
 
 <style>
   .badges {
     position: absolute;
+    left: 6px;
     right: 6px;
     bottom: 22px;
     display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
     gap: 4px;
   }
   .badge {
@@ -58,5 +74,8 @@
   .badge.new-badge {
     background: var(--gl-accent);
     color: var(--gl-accent-ink);
+  }
+  .badge.alone-badge {
+    background: var(--gl-photo-accent-badge);
   }
 </style>

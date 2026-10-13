@@ -20,10 +20,13 @@ function css([red, green, blue]: Rgb): string {
   return `rgb(${red} ${green} ${blue})`;
 }
 
-function canvasOf(draw: (context: CanvasRenderingContext2D) => void): HTMLCanvasElement {
+function canvasOf(
+  draw: (context: CanvasRenderingContext2D) => void,
+  size = { width: PICTURE_SIZE, height: PICTURE_SIZE },
+): HTMLCanvasElement {
   const canvas = document.createElement("canvas");
-  canvas.width = PICTURE_SIZE;
-  canvas.height = PICTURE_SIZE;
+  canvas.width = size.width;
+  canvas.height = size.height;
   const context = canvas.getContext("2d");
   if (context === null) {
     throw new Error("no 2D canvas context to draw a test picture");
@@ -83,6 +86,25 @@ export function quadrantBitmap(): Promise<BitmapPicture> {
   return bitmapFrom(fillQuadrants);
 }
 
+/** A solid-colour picture of `size`, to test layouts that depend on the picture's aspect ratio. */
+export async function solidBitmapOfSize(
+  colour: Rgb,
+  size: { width: number; height: number },
+): Promise<BitmapPicture> {
+  const bitmap = await createImageBitmap(canvasOf(fillSolidAt(colour, size), size));
+  return { bitmap, width: bitmap.width, height: bitmap.height };
+}
+
+function fillSolidAt(
+  colour: Rgb,
+  size: { width: number; height: number },
+): (context: CanvasRenderingContext2D) => void {
+  return (context) => {
+    context.fillStyle = css(colour);
+    context.fillRect(0, 0, size.width, size.height);
+  };
+}
+
 /** A positioned box of `size` CSS pixels in the page. */
 export function viewportBox(size: { width: number; height: number }): HTMLElement {
   const box = document.createElement("div");
@@ -99,7 +121,7 @@ export function viewportBox(size: { width: number; height: number }): HTMLElemen
 export async function oneSlideShow(): Promise<Slideshow> {
   const picture = await solidPicture(RED);
   return {
-    formatVersion: 3,
+    formatVersion: 4,
     title: "July 2025",
     slides: [
       {

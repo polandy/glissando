@@ -124,4 +124,18 @@ describe("autoKenBurns", () => {
   it("uses linear easing", () => {
     expect(autoKenBurns(0, LANDSCAPE).easing).toBe("linear");
   });
+
+  describe("without a horizontal pan, for a composed pair (ADR-0028)", () => {
+    it("keeps the centre's x the same from start to end", () => {
+      const { from, to } = autoKenBurns(0, LANDSCAPE, undefined, false);
+
+      expect(from.centerX).toBe(to.centerX);
+    });
+
+    it("still zooms, in the direction the index picks", () => {
+      const { from, to } = autoKenBurns(0, LANDSCAPE, undefined, false);
+
+      expect(from.zoom).toBeLessThan(to.zoom);
+    });
+  });
 });

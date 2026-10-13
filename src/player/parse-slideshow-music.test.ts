@@ -28,7 +28,7 @@ const NEXT = {
   fadeOutMs: 0,
 };
 
-function withMusic(music: unknown, formatVersion = 3): unknown {
+function withMusic(music: unknown, formatVersion = 4): unknown {
   return { formatVersion, title: "July 2025", music, slides: [SLIDE] };
 }
 
@@ -45,16 +45,19 @@ function parseError(input: unknown): SlideshowFormatError {
 }
 
 describe("parseSlideshow music", () => {
-  it("reads version 3's tracks, each with its place, excerpt and fades, unchanged", () => {
+  it("reads version 4's tracks, each with its place, excerpt and fades, unchanged", () => {
     expect(parseSlideshow(withMusic([MUSIC, NEXT])).music).toEqual([MUSIC, NEXT]);
   });
 
-  it.each([1, 2])("refuses a version %s slideshow, naming the version to set", (formatVersion) => {
-    const error = parseError(withMusic(TRACK, formatVersion));
+  it.each([1, 2, 3])(
+    "refuses a version %s slideshow, naming the version to set",
+    (formatVersion) => {
+      const error = parseError(withMusic(TRACK, formatVersion));
 
-    expect(error.path).toBe("formatVersion");
-    expect(error.message).toContain("expected 3");
-  });
+      expect(error.path).toBe("formatVersion");
+      expect(error.message).toContain("expected 4");
+    },
+  );
 
   it.each([
     ["a single track not in a list", MUSIC, "music", "an array with at least one track"],
@@ -75,7 +78,7 @@ describe("parseSlideshow music", () => {
       "at least the previous track's atMs (1000)",
     ],
     ["an empty source", [MUSIC, { ...NEXT, src: "" }], "music[1].src", "a non-empty string"],
-  ])("rejects %s in version 3, naming the path", (_case, music, path, expected) => {
+  ])("rejects %s in version 4, naming the path", (_case, music, path, expected) => {
     const error = parseError(withMusic(music));
 
     expect(error.path).toBe(path);

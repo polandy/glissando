@@ -1,3 +1,4 @@
+import { slideUnits } from "../../compose";
 import type { StoredSlideshow } from "../../library/stored-slideshow";
 
 /** How the pictures' times meet the excerpt. */
@@ -45,8 +46,14 @@ export function timingNote(
   onTheBeat: boolean,
 ): TimingNote {
   const slideshowMs = sum(durationsMs);
-  const automaticMs = durationsMs.filter(
-    (_, index) => stored.pictures[index]?.durationMs === undefined,
+  // One entry per picture without an own duration, `durationsMs` indexed by slide: a paired
+  // picture's slide holds two pictures sharing its one duration (ADR-0028), so counting by
+  // picture index into `durationsMs` would miss one of every pair once pairs are composed.
+  const units = slideUnits(stored.pictures, stored.portraitPictures);
+  const automaticMs = units.flatMap((unit, slideIndex) =>
+    unit.pictureIndices
+      .filter((pictureIndex) => stored.pictures[pictureIndex]?.durationMs === undefined)
+      .map(() => durationsMs[slideIndex] as number),
   );
   const ownSeconds = stored.pictureLength !== undefined && automaticMs.length > 0;
   if (slideshowMs > excerptMs) {

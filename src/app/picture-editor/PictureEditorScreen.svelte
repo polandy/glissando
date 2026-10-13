@@ -11,6 +11,7 @@
   import FrameWell from "./FrameWell.svelte";
   import { playheadRect } from "./frame-geometry";
   import DurationSection from "./DurationSection.svelte";
+  import LayoutSection from "./LayoutSection.svelte";
   import MotionPanel from "./MotionPanel.svelte";
   import MotionPreviewScreen from "./MotionPreviewScreen.svelte";
   import PictureNavigation from "./PictureNavigation.svelte";
@@ -40,6 +41,7 @@
     onResetDuration,
     onTransition,
     onResetTransition,
+    onAlone,
     previewPorts,
     reducedMotion,
     saving,
@@ -63,6 +65,8 @@
     onResetDuration: () => void;
     onTransition: (choice: TransitionChoice) => void;
     onResetTransition: () => void;
+    /** "Always alone" was toggled (ADR-0028). */
+    onAlone: (alone: boolean) => void;
     previewPorts: MotionPreviewPorts;
     /** The preview starts paused. */
     reducedMotion: boolean;
@@ -202,6 +206,7 @@
             editorPreview.showTransition(picture.transition.automatic, picture);
           }}
         />
+        <LayoutSection {picture} {onAlone} />
       {/snippet}
     </MotionPanel>
   </main>

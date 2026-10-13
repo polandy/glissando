@@ -135,7 +135,10 @@ export class FakeRenderer implements SlideRenderer<FakePicture> {
     this.onRender?.();
     this.frames.push(frame);
     const layers = frame.kind === "slide" ? [frame.slide] : [frame.from, frame.to];
-    for (const { picture } of layers) {
+    const pictures = layers.flatMap(({ picture, partner }) =>
+      partner === undefined ? [picture] : [picture, partner.picture],
+    );
+    for (const picture of pictures) {
       if (this.#costs !== null && !this.#isPrepared(picture)) {
         this.#costs.clock.advance(this.#costs.fullUploadMs);
         this.#slicesDone.set(picture.src, this.#costs.slicesPerPicture);

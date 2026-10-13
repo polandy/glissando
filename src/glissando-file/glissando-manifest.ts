@@ -1,5 +1,6 @@
 import type { OwnKenBurns } from "../library/own-ken-burns";
 import type { PictureLength } from "../library/picture-length";
+import type { PortraitPictures } from "../library/portrait-pictures";
 import type { BetweenSongs, MusicTrim, PictureChanges } from "../library/own-music";
 import type { SlideshowTransition, TransitionChoice } from "../library/own-timing";
 import type { StoredSlideshow } from "../library/stored-slideshow";
@@ -16,12 +17,13 @@ export const GLISSANDO_FORMAT_ID = "glissando";
  * (ADR-0009), version 6 the slideshow's default transition (ADR-0010), version 7 a picture's
  * origin, `immichAssetId` or `fileBytes` (ADR-0016), version 8 the music's picture changes
  * (ADR-0021), version 9 the slideshow's picture length (ADR-0022), version 10 the playlist,
- * `songs` and `betweenSongs` replacing the single `music` (ADR-0023). A file older than version
- * 10 carried `music`, not `songs`, with no automatic way to tell the two apart in a document that
- * also predates other fields; such a file is reported like any other unsupported version.
+ * `songs` and `betweenSongs` replacing the single `music` (ADR-0023), version 11 the slideshow's
+ * `portraitPictures` and a picture's `alone` (ADR-0028). A file older than version 10 carried
+ * `music`, not `songs`, with no automatic way to tell the two apart in a document that also
+ * predates other fields; such a file is reported like any other unsupported version.
  */
-export const GLISSANDO_FORMAT_VERSION = 10;
-export const OLDEST_READABLE_FORMAT_VERSION = 10;
+export const GLISSANDO_FORMAT_VERSION = 11;
+export const OLDEST_READABLE_FORMAT_VERSION = 11;
 /** The first version that carries a picture's own motion. */
 export const OWN_KEN_BURNS_FROM_VERSION = 2;
 /** The first version that carries a picture's caption. */
@@ -63,6 +65,8 @@ export interface ManifestPicture {
   readonly immichAssetId?: string;
   /** Origin: the size of the original file in bytes (see ADR-0016). */
   readonly fileBytes?: number;
+  /** Never composed into a portrait pair, even automatically; absent: it may be (ADR-0028). */
+  readonly alone?: true;
 }
 
 export interface ManifestMusic {
@@ -83,6 +87,8 @@ export interface ManifestSlideshow {
   readonly pictureLength?: PictureLength;
   readonly ownOrder?: true;
   readonly transition?: SlideshowTransition;
+  /** How portrait pictures lay out; absent: automatic, pairs and a blurred fill (ADR-0028). */
+  readonly portraitPictures?: PortraitPictures;
   readonly pictures: readonly ManifestPicture[];
   /** The playlist, in play order; empty for no music (ADR-0023). */
   readonly songs: readonly ManifestMusic[];
@@ -143,7 +149,7 @@ export function manifestFor(
   slideshow: StoredSlideshow,
   pictureTypes: readonly PictureTypes[],
 ): GlissandoManifest {
-  const pictures = slideshow.pictures.map((picture, index) => ({
+  const pictures = slideshow.pictures.map((picture, index): ManifestPicture => ({
     ...picturePaths(index, typesAt(pictureTypes, index)),
     capturedAt: picture.capturedAt,
     width: picture.width,
@@ -155,6 +161,7 @@ export function manifestFor(
     ...(picture.transition === undefined ? {} : { transition: picture.transition }),
     ...(picture.immichAssetId === undefined ? {} : { immichAssetId: picture.immichAssetId }),
     ...(picture.fileBytes === undefined ? {} : { fileBytes: picture.fileBytes }),
+    ...(picture.alone === true ? { alone: true } : {}),
   }));
   const songs = slideshow.songs.map((song, index) => ({
     file: songPath(index, song.fileName),
@@ -173,6 +180,9 @@ export function manifestFor(
       ...(slideshow.pictureLength === undefined ? {} : { pictureLength: slideshow.pictureLength }),
       ...(slideshow.ownOrder ? { ownOrder: true } : {}),
       ...(slideshow.transition === undefined ? {} : { transition: slideshow.transition }),
+      ...(slideshow.portraitPictures === undefined
+        ? {}
+        : { portraitPictures: slideshow.portraitPictures }),
       pictures,
       songs,
       ...(slideshow.betweenSongs === undefined ? {} : { betweenSongs: slideshow.betweenSongs }),

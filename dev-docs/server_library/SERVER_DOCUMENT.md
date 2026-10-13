@@ -7,7 +7,7 @@ app and the server):
 { "format": "glissando-server", "formatVersion": 1, "slideshow": { … } }
 ```
 
-`slideshow` is the `.glissando` manifest's `slideshow` of format version 10
+`slideshow` is the `.glissando` manifest's `slideshow` of format version 11
 (`dev-docs/library/GLISSANDO_FILE.md`) with two differences:
 
 - every picture has `immichAssetId` (required) and neither `file`, `thumbnail` nor `fileBytes`;
@@ -21,7 +21,8 @@ pictures with the same one make it invalid; the reason names the path and value.
 (`fitWithin`, `DISPLAY_BOUND`); the rendition decoded at play time is authoritative for drawing.
 
 `formatVersion` changes only for an incompatible change. A field the manifest gains as optional
-(e.g. `pictureLength`, manifest version 9, or `betweenSongs`, version 10) keeps it at 1: the service and the app ship in
+(e.g. `pictureLength`, manifest version 9, `betweenSongs`, version 10, or `portraitPictures` and
+a picture's `alone`, version 11) keeps it at 1: the service and the app ship in
 one image, so a document with the field is always read by an app that knows it; only an app still
 cached from before the update refuses it as invalid, until it updates.
 

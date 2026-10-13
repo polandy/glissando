@@ -19,6 +19,7 @@ const SHARED_SLIDESHOW_KEYS = [
   "betweenSongs",
   "transition",
   "pictureLength",
+  "portraitPictures",
 ] as const satisfies readonly (keyof ServerSlideshow)[];
 const SHARED_PICTURE_KEYS = [
   "capturedAt",
@@ -28,6 +29,7 @@ const SHARED_PICTURE_KEYS = [
   "caption",
   "durationMs",
   "transition",
+  "alone",
 ] as const satisfies readonly (keyof ServerPicture)[];
 const SHARED_SONG_KEYS = [
   "durationMs",

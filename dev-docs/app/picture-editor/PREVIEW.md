@@ -18,3 +18,7 @@
   motion from the start, and so does a new duration. Picking a transition (or its "Back to
   automatic") plays from 1.2 s before the transition. With reduced motion it starts paused; a
   swap, reset or new duration holds it at the start, a picked transition half-way through it.
+- A picture composed into a portrait pair (ADR-0028) previews as its half of the pair's slide:
+  the pair's duration and its half's motion (no sideways pan), and on either half the slide's
+  one transition into the slide after the pair — "…into picture 6" for pictures 4 and 5. The
+  automatic transition and motion follow the slide's position, not the picture's.

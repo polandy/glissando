@@ -1,6 +1,7 @@
 /** Shared set-up of the `SlideshowScreen` browser tests. */
 import { flushSync } from "svelte";
 import type { SlideshowTransition } from "../../library/own-timing";
+import type { ResolvedPortraitPictures } from "../../library/portrait-pictures";
 import { FakeClock, FakeFrameScheduler } from "../../player/testing/fakes";
 import { FakeScheduler } from "../../ui-kit/testing/fake-scheduler";
 import { mountWithTranslator } from "../testing/mount-with-translator";
@@ -36,6 +37,8 @@ export function details(ids: readonly string[], overrides: Partial<SlideshowDeta
     ownDurationCount: 0,
     ownTransitionCount: 0,
     transition: "crossfade",
+    portraitPictures: "automatic",
+    pairCount: 0,
     captionCount: 0,
     capturedFrom: "2025-07-01T10:00:00Z",
     capturedTo: "2025-07-03T10:00:00Z",
@@ -46,6 +49,9 @@ export function details(ids: readonly string[], overrides: Partial<SlideshowDeta
       ownMotion: false,
       ownDurationMs: null,
       ownTransition: null,
+      pairedWithNumber: null,
+      blurredFill: false,
+      alone: false,
     })),
   };
   return { ...base, ...overrides };
@@ -76,6 +82,8 @@ export function mountScreen(
     musicEdits: 0,
     transitions: [] as SlideshowTransition[],
     transitionResets: 0,
+    portraitPictureChoices: [] as ResolvedPortraitPictures[],
+    portraitPictureResets: 0,
     deletes: 0,
     adds: 0,
     storageActions: [] as StorageAction[],
@@ -105,6 +113,14 @@ export function mountScreen(
     onResetTransition: () => {
       calls.transitionResets += 1;
       props.slideshow = { ...props.slideshow, transition: "crossfade" };
+    },
+    onPortraitPictures: (choice: ResolvedPortraitPictures) => {
+      calls.portraitPictureChoices.push(choice);
+      props.slideshow = { ...props.slideshow, portraitPictures: choice };
+    },
+    onResetPortraitPictures: () => {
+      calls.portraitPictureResets += 1;
+      props.slideshow = { ...props.slideshow, portraitPictures: "automatic" };
     },
     previewPorts: { clock, frames },
     reducedMotion,

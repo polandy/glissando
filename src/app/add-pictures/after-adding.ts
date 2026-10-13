@@ -1,4 +1,4 @@
-import { slideDurationsMs } from "../../compose";
+import { slideDurationsMs, slideUnits, timedUnit } from "../../compose";
 import { filledMusicMs } from "../../compose/playlist";
 import type { AddedPlacement } from "../../library/added-placement";
 import { addPictures } from "../../library/slideshow-edits";
@@ -8,6 +8,9 @@ import {
   type StoredSlideshow,
 } from "../../library/stored-slideshow";
 import { MILLISECONDS_PER_SECOND } from "../../player";
+
+/** A single slide's weight; a composed pair weighs `PAIR_WEIGHT`. */
+const SINGLE_WEIGHT = 1;
 
 export interface BeforeAfter {
   readonly before: number;
@@ -37,7 +40,10 @@ export interface PlacementPreview {
 export interface AfterAdding {
   readonly pictures: BeforeAfter;
   readonly durationSeconds: BeforeAfter;
-  /** The automatic pictures' share of the music; null without music or nothing shared before. */
+  /**
+   * A single automatic slide's share of the music (a pair gets `PAIR_WEIGHT` times it); null
+   * without music or nothing shared before.
+   */
   readonly perPictureSeconds: BeforeAfter | null;
   readonly note: AfterAddingNote;
   /** Null for a slideshow sorted by capture date, where the new pictures take their places. */
@@ -102,26 +108,36 @@ function noteFor(
 }
 
 /**
- * The total and the average automatic picture's duration, null when every picture has its own;
- * whether the music's share for the automatic pictures fell below the floor they are kept at.
+ * The total and a single automatic slide's share (a pair weighs `PAIR_WEIGHT`), null when every
+ * slide has its own duration; whether the music's share for the automatic slides fell below the
+ * floor they are kept at.
  */
 function timing(
   slideshow: StoredSlideshow,
   excerptMs: number | undefined,
 ): { readonly totalMs: number; readonly shareMs: number | null; readonly shareAtFloor: boolean } {
-  const durationsMs = slideDurationsMs(slideshow.pictures, excerptMs, slideshow.secondsPerPicture);
-  const automaticMs = durationsMs.filter(
-    (_, index) => slideshow.pictures[index]?.durationMs === undefined,
+  const timed = slideUnits(slideshow.pictures, slideshow.portraitPictures).map((unit) =>
+    timedUnit(slideshow.pictures, unit),
+  );
+  const durationsMs = slideDurationsMs(timed, excerptMs, slideshow.secondsPerPicture);
+  const automatic = timed.flatMap((slide, index) =>
+    slide.durationMs === undefined
+      ? [{ weight: slide.weight ?? SINGLE_WEIGHT, durationMs: durationsMs[index] as number }]
+      : [],
   );
   const sum = (values: readonly number[]) => values.reduce((total, value) => total + value, 0);
-  const ownMs = sum(durationsMs) - sum(automaticMs);
+  const totalMs = sum(durationsMs);
+  const automaticMs = sum(automatic.map(({ durationMs }) => durationMs));
+  const automaticWeight = sum(automatic.map(({ weight }) => weight));
+  const lightestWeight = Math.min(...automatic.map(({ weight }) => weight));
   const shareAtFloor =
     excerptMs !== undefined &&
-    automaticMs.length > 0 &&
-    (excerptMs - ownMs) / automaticMs.length < MIN_SECONDS_PER_PICTURE * MILLISECONDS_PER_SECOND;
+    automatic.length > 0 &&
+    ((excerptMs - (totalMs - automaticMs)) * lightestWeight) / automaticWeight <
+      MIN_SECONDS_PER_PICTURE * MILLISECONDS_PER_SECOND;
   return {
-    totalMs: sum(durationsMs),
-    shareMs: automaticMs.length === 0 ? null : sum(automaticMs) / automaticMs.length,
+    totalMs,
+    shareMs: automatic.length === 0 ? null : automaticMs / automaticWeight,
     shareAtFloor,
   };
 }

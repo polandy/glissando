@@ -4,17 +4,26 @@ import { snapToBeats } from "./snap-to-beats";
 
 const MIN_SLIDE_DURATION_MS = MIN_SECONDS_PER_PICTURE * MILLISECONDS_PER_SECOND;
 
-/** What the durations are computed from: a picture's own duration, if it has one. */
-export type TimedPicture = Pick<StoredPicture, "durationMs">;
+/**
+ * What the durations are computed from: a slide's own duration, if it has one, and its weight —
+ * a composed portrait pair counts as `PAIR_WEIGHT` slides, a single picture as 1 (ADR-0028).
+ */
+export interface TimedPicture extends Pick<StoredPicture, "durationMs"> {
+  /** Absent: 1, a single picture's weight. */
+  readonly weight?: number;
+}
+
+const DEFAULT_WEIGHT = 1;
 
 /**
- * The slide durations in play order. An own duration is kept exactly. The other pictures show
- * `secondsPerPicture` each, unless they fill the music: then they share the rest of its excerpt
- * evenly (the remainder going to the first of them so the sum matches exactly). A share below
- * `MIN_SECONDS_PER_PICTURE` is rejected in favour of the minimum, so the slideshow outlasts a
- * excerpt too short for it. With the playlist's beats, each boundary ending an automatic slide then
- * moves to the nearest beat (`snapToBeats`), and so does the slideshow's end unless the pictures
- * fill the music. See ADR-0008, ADR-0009, ADR-0021, ADR-0022 and ADR-0023.
+ * The slide durations in play order. An own duration is kept exactly. The other slides show
+ * `secondsPerPicture` each, scaled by weight, unless they fill the music: then they share the
+ * rest of its excerpt by weight (the remainder going to the first of them so the sum matches
+ * exactly). A share below `MIN_SECONDS_PER_PICTURE`, unweighted, is rejected in favour of the
+ * minimum, so the slideshow outlasts a excerpt too short for it. With the playlist's beats, each
+ * boundary ending an automatic slide then moves to the nearest beat (`snapToBeats`), and so does
+ * the slideshow's end unless the pictures fill the music. See ADR-0008, ADR-0009, ADR-0021,
+ * ADR-0022, ADR-0023 and ADR-0028.
  */
 export function slideDurationsMs(
   pictures: readonly TimedPicture[],
@@ -27,11 +36,13 @@ export function slideDurationsMs(
   if (pictures.length < 1) {
     throw new RangeError(`pictures: expected at least 1, got ${pictures.length}`);
   }
-  const automaticCount = pictures.filter((picture) => picture.durationMs === undefined).length;
+  const automaticWeights = pictures
+    .filter((picture) => picture.durationMs === undefined)
+    .map((picture) => picture.weight ?? DEFAULT_WEIGHT);
   const automaticMs =
     filledMs === undefined
-      ? Array<number>(automaticCount).fill(secondsPerPicture * MILLISECONDS_PER_SECOND)
-      : evenSplitMs(automaticCount, filledMs - ownTotalMs(pictures));
+      ? automaticWeights.map((weight) => secondsPerPicture * MILLISECONDS_PER_SECOND * weight)
+      : evenSplitMs(automaticWeights, filledMs - ownTotalMs(pictures));
   let nextAutomatic = 0;
   // automaticMs holds exactly one entry per picture without an own duration.
   const durationsMs = pictures.map(
@@ -49,17 +60,25 @@ function ownTotalMs(pictures: readonly TimedPicture[]): number {
   return pictures.reduce((sum, picture) => sum + (picture.durationMs ?? 0), 0);
 }
 
-/** `restMs` in `count` even shares, the remainder on the first; the minimum if a share falls below. */
-function evenSplitMs(count: number, restMs: number): number[] {
-  if (count === 0) {
+/**
+ * `restMs` shared in proportion to `weights`, the remainder of whole ms on the first slides so
+ * the sum matches exactly; the minimum, unweighted, if a share would fall below it.
+ */
+function evenSplitMs(weights: readonly number[], restMs: number): number[] {
+  if (weights.length === 0) {
     return [];
   }
-  const evenShare = Math.floor(restMs / count);
-  if (evenShare < MIN_SLIDE_DURATION_MS) {
-    return Array<number>(count).fill(MIN_SLIDE_DURATION_MS);
+  const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
+  const floorShares = weights.map((weight) => Math.floor((restMs * weight) / totalWeight));
+  if (floorShares.some((share) => share < MIN_SLIDE_DURATION_MS)) {
+    return weights.map(() => MIN_SLIDE_DURATION_MS);
   }
-  const remainderMs = restMs - evenShare * count;
-  return Array.from({ length: count }, (_, index) =>
-    index < remainderMs ? evenShare + 1 : evenShare,
-  );
+  let remainderMs = restMs - floorShares.reduce((sum, share) => sum + share, 0);
+  return floorShares.map((share) => {
+    if (remainderMs > 0) {
+      remainderMs -= 1;
+      return share + 1;
+    }
+    return share;
+  });
 }

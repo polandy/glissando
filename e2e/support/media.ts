@@ -24,6 +24,10 @@ export interface TestFile {
 
 const PICTURE_WIDTH = 64;
 const PICTURE_HEIGHT = 48;
+/** The size a test picture has unless a case names one: landscape, 4:3. */
+export const LANDSCAPE_PICTURE = { width: PICTURE_WIDTH, height: PICTURE_HEIGHT } as const;
+/** A test picture turned upright: portrait, 3:4. */
+export const PORTRAIT_PICTURE = { width: PICTURE_HEIGHT, height: PICTURE_WIDTH } as const;
 const STRIPE_WIDTH = 4;
 const JPEG_START_OF_IMAGE_LENGTH = 2;
 const SEGMENT_MARKER_LENGTH = 2;
@@ -34,14 +38,15 @@ const SCENE_LINE_WIDTH = 2;
 const SCENE_LINE_PERIOD = 6;
 
 /**
- * A real, decodable JPEG whose EXIF says it was taken on `day` ("YYYY-MM-DD", at noon): the
- * browser encodes a plain-coloured canvas, and the EXIF segment is spliced in after its start.
+ * A real, decodable JPEG of `size` whose EXIF says it was taken on `day` ("YYYY-MM-DD", at noon):
+ * the browser encodes a plain-coloured canvas, and the EXIF segment is spliced in after its start.
  */
 export async function pictureTakenOn(
   page: Page,
   name: string,
   day: string,
   colour: string,
+  size: { readonly width: number; readonly height: number } = LANDSCAPE_PICTURE,
 ): Promise<TestFile> {
   const encoded = await page.evaluate(
     ({ width, height, fill }) => {
@@ -56,7 +61,7 @@ export async function pictureTakenOn(
       context.fillRect(0, 0, width, height);
       return canvas.toDataURL("image/jpeg").split(",")[1] ?? "";
     },
-    { width: PICTURE_WIDTH, height: PICTURE_HEIGHT, fill: colour },
+    { width: size.width, height: size.height, fill: colour },
   );
   return {
     name,

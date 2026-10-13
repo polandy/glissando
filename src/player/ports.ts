@@ -1,15 +1,24 @@
 import type { TransitionEffect } from "./slideshow";
 import type { KenBurnsAt, Size } from "./ken-burns";
 
-/** A slide's picture with its Ken Burns motion at the moment drawn, and its caption if it has one. */
+/**
+ * A slide's picture with its Ken Burns motion at the moment drawn, its caption if it has one,
+ * its partner if it is composed as a pair, and `fit` (ADR-0028).
+ */
 export interface SlideLayer<Picture> {
   readonly picture: Picture;
   readonly motion: KenBurnsAt;
+  readonly partner?: { readonly picture: Picture; readonly motion: KenBurnsAt };
+  /** `"cover"` turns the blurred fill off; absent: whole picture over a fill if needed. */
+  readonly fit?: "cover";
   readonly caption?: string;
 }
 
-/** A picture to draw later, with the caption it will be drawn with. */
-export type PreparedSlide<Picture> = Omit<SlideLayer<Picture>, "motion">;
+/** A picture to draw later, with the caption it will be drawn with. A pair prepares each picture on its own call. */
+export interface PreparedSlide<Picture> {
+  readonly picture: Picture;
+  readonly caption?: string;
+}
 
 export type RenderFrame<Picture> =
   | { readonly kind: "slide"; readonly slide: SlideLayer<Picture> }

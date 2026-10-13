@@ -1,4 +1,5 @@
 import type { SlideshowTransition, TransitionChoice } from "../../library/own-timing";
+import type { ResolvedPortraitPictures } from "../../library/portrait-pictures";
 
 /** What the screens show; the composition root derives these from the stored slideshows. */
 
@@ -43,6 +44,12 @@ export interface PictureTile {
   readonly ownDurationMs: number | null;
   /** The own transition it plays into the next picture; null while automatic and at the end. */
   readonly ownTransition: TransitionChoice | null;
+  /** The pair partner's number (1-based), when the picture shares a slide with it (ADR-0028). */
+  readonly pairedWithNumber: number | null;
+  /** Shown whole over a blurred copy of itself because a wide screen would crop too much of it. */
+  readonly blurredFill: boolean;
+  /** Marked never to be composed into a pair. */
+  readonly alone: boolean;
 }
 
 /** Which fades the music plays: named in its summary once the user changed the music. */
@@ -77,6 +84,10 @@ export interface SlideshowDetails {
   readonly ownTransitionCount: number;
   /** The transition of every picture without its own. */
   readonly transition: SlideshowTransition;
+  /** How portrait pictures lay out; `"automatic"` for the slideshow's absent setting (ADR-0028). */
+  readonly portraitPictures: ResolvedPortraitPictures;
+  /** How many slides compose two portrait pictures into one pair. */
+  readonly pairCount: number;
   /** How many pictures have a caption. */
   readonly captionCount: number;
   /** The earliest and the latest capture date, ISO 8601. */

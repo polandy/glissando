@@ -1,4 +1,6 @@
+import { BACKDROP_BRIGHTNESS } from "../slide-layout";
 import type { TransitionEffect } from "../slideshow";
+import { LAYOUT_CODE } from "./layer-uniforms";
 
 export const VERTEX_SHADER = `#version 300 es
 in vec2 position;
@@ -13,6 +15,10 @@ void main() {
  * picture coordinates from the top left, which is also the texture's row order. Each slide's
  * caption band (premultiplied) lies over its picture in screen space, unmoved by the Ken Burns
  * crop, so every effect carries it with the slide (ADR-0007).
+ *
+ * A layer's layout (cover, whole picture over a blurred fill, or a pair) is one of
+ * `LAYOUT_COVER`/`LAYOUT_BLURRED_FILL`/`LAYOUT_PAIR`; a stacked pair reuses `LAYOUT_PAIR`, since
+ * `rect`/`rect2` already place the halves where they belong (`layer-uniforms.ts`, ADR-0028).
  */
 const FRAGMENT_PRELUDE = `#version 300 es
 precision highp float;
@@ -20,8 +26,20 @@ in vec2 uv;
 out vec4 fragColor;
 uniform sampler2D fromPicture;
 uniform sampler2D toPicture;
+uniform sampler2D fromPartner;
+uniform sampler2D toPartner;
+uniform sampler2D fromBackdrop;
+uniform sampler2D toBackdrop;
+uniform int fromLayout;
+uniform int toLayout;
 uniform vec4 fromCrop;
 uniform vec4 toCrop;
+uniform vec4 fromSecondCrop;
+uniform vec4 toSecondCrop;
+uniform vec4 fromRect;
+uniform vec4 toRect;
+uniform vec4 fromRect2;
+uniform vec4 toRect2;
 uniform sampler2D fromCaption;
 uniform sampler2D toCaption;
 uniform float progress;
@@ -32,12 +50,60 @@ uniform float captionInset;
 /** Width of the blend between both pictures at a moving edge, in screen heights. */
 const float SOFT_EDGE = 0.04;
 const float DISSOLVE_CELL_PIXELS = 4.0;
+const int LAYOUT_COVER = ${LAYOUT_CODE.cover};
+const int LAYOUT_BLURRED_FILL = ${LAYOUT_CODE["blurred-fill"]};
+const int LAYOUT_PAIR = ${LAYOUT_CODE["pair-across"]};
+/** The blurred fill's backdrop is darkened to this fraction of its brightness (ADR-0028). */
+const float BACKDROP_BRIGHTNESS = ${glslFloat(BACKDROP_BRIGHTNESS)};
 /** A per-cell pseudo-random value in 0..1 (the well-known sin-hash). */
 float cellNoise(vec2 cell) {
   return fract(sin(dot(cell, vec2(12.9898, 78.233))) * 43758.5453);
 }
 vec4 pictureColor(sampler2D picture, vec4 crop, vec2 p) {
   return texture(picture, crop.xy + vec2(p.x, 1.0 - p.y) * crop.zw);
+}
+/** The layer's backdrop, its picture blurred once when prepared, darkened (ADR-0028). */
+vec4 blurredDarkened(sampler2D backdrop, vec4 crop, vec2 p) {
+  return vec4(pictureColor(backdrop, crop, p).rgb * BACKDROP_BRIGHTNESS, 1.0);
+}
+bool insideRect(vec2 p, vec4 rect) {
+  return p.x >= rect.x && p.x <= rect.x + rect.z && p.y >= rect.y && p.y <= rect.y + rect.w;
+}
+vec2 intoRect(vec2 p, vec4 rect) {
+  return (p - rect.xy) / rect.zw;
+}
+/**
+ * A layer's colour at \`p\`: one picture covering the screen, a pair's two halves (and the gap
+ * between them, black) side by side across \`rect\`/\`rect2\`, or the front picture over \`rect\`
+ * with the same picture, blurred and darkened, behind it.
+ */
+vec4 layerColor(
+  int layoutKind,
+  sampler2D picture,
+  sampler2D partner,
+  sampler2D backdrop,
+  vec4 crop,
+  vec4 secondCrop,
+  vec4 rect,
+  vec4 rect2,
+  vec2 p
+) {
+  if (layoutKind == LAYOUT_PAIR) {
+    if (insideRect(p, rect)) {
+      return pictureColor(picture, crop, intoRect(p, rect));
+    }
+    if (insideRect(p, rect2)) {
+      return pictureColor(partner, secondCrop, intoRect(p, rect2));
+    }
+    return vec4(0.0, 0.0, 0.0, 1.0);
+  }
+  if (layoutKind == LAYOUT_BLURRED_FILL) {
+    if (insideRect(p, rect)) {
+      return pictureColor(picture, secondCrop, intoRect(p, rect));
+    }
+    return blurredDarkened(backdrop, crop, p);
+  }
+  return pictureColor(picture, crop, p);
 }
 vec4 withCaption(vec4 picture, sampler2D caption, vec2 p) {
   float bandY = (p.y - captionInset) / captionBand;
@@ -48,10 +114,12 @@ vec4 withCaption(vec4 picture, sampler2D caption, vec2 p) {
   return vec4(band.rgb + picture.rgb * (1.0 - band.a), 1.0);
 }
 vec4 fromColor(vec2 p) {
-  return withCaption(pictureColor(fromPicture, fromCrop, p), fromCaption, p);
+  vec4 colour = layerColor(fromLayout, fromPicture, fromPartner, fromBackdrop, fromCrop, fromSecondCrop, fromRect, fromRect2, p);
+  return withCaption(colour, fromCaption, p);
 }
 vec4 toColor(vec2 p) {
-  return withCaption(pictureColor(toPicture, toCrop, p), toCaption, p);
+  vec4 colour = layerColor(toLayout, toPicture, toPartner, toBackdrop, toCrop, toSecondCrop, toRect, toRect2, p);
+  return withCaption(colour, toCaption, p);
 }
 /** 0 where the reveal has not reached \`position\` yet, 1 behind it, soft in between. */
 float revealed(float position, float extent) {
@@ -83,4 +151,9 @@ const EFFECT_BODIES: Readonly<Record<TransitionEffect, string>> = {
 
 export function fragmentShader(effect: TransitionEffect): string {
   return `${FRAGMENT_PRELUDE}\nvoid main() {${EFFECT_BODIES[effect]}\n}`;
+}
+
+/** `value` as a GLSL float literal, which needs a decimal point even when whole. */
+function glslFloat(value: number): string {
+  return Number.isInteger(value) ? value.toFixed(1) : String(value);
 }

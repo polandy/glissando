@@ -4,9 +4,16 @@
  */
 
 export { orderByCaptureDate } from "./order-by-capture-date";
-export { slideDurationsMs } from "./slide-durations-ms";
+export { slideDurationsMs, type TimedPicture } from "./slide-durations-ms";
+export { pictureDurationsMs } from "./picture-durations-ms";
+export { PAIR_WEIGHT, slideOfPicture, slideUnits, timedUnit, type SlideUnit } from "./slide-units";
+export {
+  LAYOUT_REFERENCE_VIEWPORT,
+  pictureLayoutSummaries,
+  type PictureLayoutSummary,
+} from "./picture-layout-summary";
 export { autoKenBurns, KEN_BURNS_EASING } from "./auto-ken-burns";
-export { pictureKenBurns } from "./picture-ken-burns";
+export { pairKenBurns, pictureKenBurns } from "./picture-ken-burns";
 export {
   autoTransitionEffect,
   transitionDurationMs,

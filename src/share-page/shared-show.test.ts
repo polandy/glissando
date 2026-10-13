@@ -6,6 +6,7 @@ import { ShareMediumMissingError, ShareUnreachableError, type ShareApi } from ".
 import {
   loadSharedShow,
   playableShow,
+  shareSummary,
   SharedPictureMissingError,
   skipMissingPicture,
 } from "./shared-show";
@@ -148,5 +149,56 @@ describe("skipMissingPicture", () => {
     const skip = skipMissingPicture(show, new Set([pictureKey(0), pictureKey(1)]), pictureKey(2));
 
     expect(skip).toBeNull();
+  });
+
+  it("goes on at the slide its pair's survivor moves to, a picture index no longer matching a slide index (ADR-0028)", async () => {
+    // Four portrait pictures, automatically paired two by two: (0,1) and (2,3).
+    const portraitStored: StoredSlideshow = {
+      ...stored(0),
+      pictures: [0, 1, 2, 3].map((index) => ({
+        id: pictureKey(index),
+        capturedAt: "2026-07-01T00:00:00Z",
+        width: 900,
+        height: 1600,
+        fileName: pictureKey(index),
+      })),
+    };
+    const { api } = fakeApi([{ revision: 2, slideshow: portraitStored, beats: new Map() }]);
+    const show = await loadSharedShow(api, countedUrl, null);
+
+    // Picture 2 going missing leaves picture 3 without a partner: it plays alone, on the slide
+    // right after the surviving pair (0, 1) — not at the pair's own slide index (1), which a
+    // picture-indexed lookup into the slide starts would wrongly use.
+    const skip = skipMissingPicture(show, new Set(), pictureKey(2));
+
+    // The pair (0, 1) lasts 1.5 times a single slide's seconds (ADR-0028).
+    expect(skip).toEqual({
+      skipped: new Set([pictureKey(2)]),
+      atSeconds: (SLIDE_MS / 1000) * 1.5,
+    });
+  });
+});
+
+describe("shareSummary", () => {
+  it("counts the pictures, two on a paired slide, and sums the slides' durations", async () => {
+    // Four portrait pictures, automatically paired two by two: two slides of 1.5 times the seconds.
+    const portraitStored: StoredSlideshow = {
+      ...stored(0),
+      pictures: [0, 1, 2, 3].map((index) => ({
+        id: pictureKey(index),
+        capturedAt: "2026-07-01T00:00:00Z",
+        width: 900,
+        height: 1600,
+        fileName: pictureKey(index),
+      })),
+    };
+    const { api } = fakeApi([{ revision: 2, slideshow: portraitStored, beats: new Map() }]);
+    const show = await loadSharedShow(api, countedUrl, null);
+
+    expect(shareSummary(show, playableShow(show, api, new Set()).slideshow)).toEqual({
+      pictureCount: 4,
+      durationMs: 2 * SLIDE_MS * 1.5,
+      withMusic: false,
+    });
   });
 });

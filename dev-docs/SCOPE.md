@@ -142,7 +142,8 @@ Not in the MVP: per-slide settings, detection, Immich, video export, audio conve
    the pictures step's strip, and one tap takes one in again — ADR-0024. Mockup:
    https://polandy.github.io/glissando-assets/mockups/culling/.
 8. **Portrait layouts** — two portrait pictures side by side, or one over a blurred fill,
-   instead of a hard crop.
+   instead of a hard crop — ADR-0028. Mockup:
+   https://polandy.github.io/glissando-assets/mockups/portrait-layouts/.
 9. **Picture frame mode** — an endless, varied slideshow from an album (e.g. Immich) on an old
    tablet or a TV browser.
 10. **On the TV, controlled from the phone** — open a slideshow on the TV via link or QR code and
