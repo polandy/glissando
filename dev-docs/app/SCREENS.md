@@ -42,10 +42,15 @@
   own"), Ken Burns "automatic" (with own motions "automatic, 2 own"), transitions (a button
   spanning the row like the music's: the effect, e.g. "Crossfade" or "Alternating", below it
   "default" or "own choice", with own transitions "· 2 own" — a last picture's stored one does
-  not count — and "Change ›"; it opens the transitions sheet ([RENAME_TRANSITIONS_DELETE.md](slideshow-editing/RENAME_TRANSITIONS_DELETE.md), Transitions)), captions "3 of 8" (pictures with a caption of all; none: "0 of 8"). A tile carries small
-  badges bottom right: a frame "own" for an own motion, a clock with "8 s" for an own duration
-  and a transition mark (titled with the effect, e.g. "Circle") for an own transition, except on
-  the last picture; its label adds "own motion", "own duration 8 s", "own transition Circle". The info panel and the player always use the edited picture list.
+  not count — and "Change ›"; it opens the transitions sheet ([RENAME_TRANSITIONS_DELETE.md](slideshow-editing/RENAME_TRANSITIONS_DELETE.md), Transitions)), portrait pictures (a button spanning the row: "Automatic", "One at a time" or "Fill
+  the screen", below it "· 2 pairs" once any slide pairs two portrait pictures, and "Change ›";
+  it opens the portrait pictures sheet ([RENAME_TRANSITIONS_DELETE.md](slideshow-editing/RENAME_TRANSITIONS_DELETE.md), Portrait pictures), ADR-0028), captions "3 of 8" (pictures with a caption of all; none: "0 of 8"). A tile carries small
+  badges bottom right: a frame "own" for an own motion, a clock with "8 s" for an own duration,
+  a transition mark (titled with the effect, e.g. "Circle") for an own transition, except on
+  the last picture, "shown alone" for a picture set never to pair and "blurred fill" for one
+  shown whole over a blurred copy of itself; a pair's two tiles are joined by a peach bar below
+  them (ADR-0028). Its label adds "own motion", "own duration 8 s", "own transition Circle" and,
+  paired, "shown as a pair with picture 4". The info panel and the player always use the edited picture list.
   A slideshow opened by id is looked up on the device first, then taken for a server slideshow
   (`routes/slideshow-home.ts`); a server slideshow's screen adds where it lives, its missing
   pictures and its own ⋯ menu, and its edits are saved on the server
