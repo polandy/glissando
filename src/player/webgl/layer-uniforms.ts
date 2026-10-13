@@ -2,7 +2,7 @@ import type { Rect } from "../ken-burns";
 import type { SlideLayout } from "../slide-layout";
 
 /**
- * The shader's layout case per `SlideLayout.kind` (matches the `LAYOUT_*` consts in
+ * The shader's layout case per `SlideLayout.kind` (the source of the `LAYOUT_*` consts in
  * `transition-shaders.ts`): a stacked pair gets the same code as a side-by-side one, because
  * `layerUniformRects` already places the halves where the rects say to.
  */

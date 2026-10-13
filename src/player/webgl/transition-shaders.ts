@@ -1,4 +1,6 @@
+import { BACKDROP_BRIGHTNESS } from "../slide-layout";
 import type { TransitionEffect } from "../slideshow";
+import { LAYOUT_CODE } from "./layer-uniforms";
 
 export const VERTEX_SHADER = `#version 300 es
 in vec2 position;
@@ -48,11 +50,11 @@ uniform float captionInset;
 /** Width of the blend between both pictures at a moving edge, in screen heights. */
 const float SOFT_EDGE = 0.04;
 const float DISSOLVE_CELL_PIXELS = 4.0;
-const int LAYOUT_COVER = 0;
-const int LAYOUT_BLURRED_FILL = 1;
-const int LAYOUT_PAIR = 2;
+const int LAYOUT_COVER = ${LAYOUT_CODE.cover};
+const int LAYOUT_BLURRED_FILL = ${LAYOUT_CODE["blurred-fill"]};
+const int LAYOUT_PAIR = ${LAYOUT_CODE["pair-across"]};
 /** The blurred fill's backdrop is darkened to this fraction of its brightness (ADR-0028). */
-const float BACKDROP_BRIGHTNESS = 0.55;
+const float BACKDROP_BRIGHTNESS = ${glslFloat(BACKDROP_BRIGHTNESS)};
 /** A per-cell pseudo-random value in 0..1 (the well-known sin-hash). */
 float cellNoise(vec2 cell) {
   return fract(sin(dot(cell, vec2(12.9898, 78.233))) * 43758.5453);
@@ -149,4 +151,9 @@ const EFFECT_BODIES: Readonly<Record<TransitionEffect, string>> = {
 
 export function fragmentShader(effect: TransitionEffect): string {
   return `${FRAGMENT_PRELUDE}\nvoid main() {${EFFECT_BODIES[effect]}\n}`;
+}
+
+/** `value` as a GLSL float literal, which needs a decimal point even when whole. */
+function glslFloat(value: number): string {
+  return Number.isInteger(value) ? value.toFixed(1) : String(value);
 }
