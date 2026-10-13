@@ -1,4 +1,11 @@
-# No GLISSANDO_DATA_DIR: the app reads a 404 as "no slideshows on the server" (ADR-0018).
+# No GLISSANDO_DATA_DIR: the app reads a 404 as "no slideshows on the server" (ADR-0018). A
+# TV path carries a key or secret, so it logs through the share logger, which redacts it.
+@libraryTv path /api/library/tv/*
+handle @libraryTv {
+	log_name share
+	respond 404
+}
+
 @library path /api/library /api/library/*
 handle @library {
 	respond 404
@@ -7,6 +14,13 @@ handle @library {
 # Without slideshows on the server, nothing is shared by link (ADR-0025).
 @share path /api/share/* /s/*
 handle @share {
+	log_name share
+	respond 404
+}
+
+# Without slideshows on the server, no TV is controlled from a phone (ADR-0031).
+@tv path /api/tv /api/tv/* /tv /tv/* /r /r/*
+handle @tv {
 	log_name share
 	respond 404
 }

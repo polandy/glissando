@@ -1,4 +1,12 @@
 # GLISSANDO_DATA_DIR set: the library service on loopback answers /api/library (ADR-0018).
+# The TV remote's claim and show (dev-docs/tv_remote/HTTP_API.md) carry a remote's secret in the
+# path, so they log through the share logger, which redacts it.
+@libraryTv path /api/library/tv/*
+handle @libraryTv {
+	log_name share
+	reverse_proxy 127.0.0.1:{$GLISSANDO_LIBRARY_PORT}
+}
+
 @library path /api/library /api/library/*
 handle @library {
 	reverse_proxy 127.0.0.1:{$GLISSANDO_LIBRARY_PORT}
@@ -14,54 +22,7 @@ handle @library {
 	path_regexp sharePicture ^/api/share/([A-Za-z0-9_-]{22})/[0-9]+/pictures/([0-9]+)$
 }
 handle @sharePicture {
-	log_name share
-	header Referrer-Policy no-referrer
-	# Deferred to the response, after Caddy's own.
-	header -Server
-	header -Via
-	# In this order: the check names the asset the rewrite fetches.
-	route {
-		# A non-2xx answer (notShared, noSuchPicture) goes to the client as it is.
-		forward_auth 127.0.0.1:{$GLISSANDO_LIBRARY_PORT} {
-			uri /internal/share-picture/{re.sharePicture.1}/{re.sharePicture.2}
-			copy_headers X-Glissando-Immich-Asset
-		}
-		# The query is replaced whole, so no credential a client adds reaches Immich.
-		rewrite * /api/assets/{http.request.header.X-Glissando-Immich-Asset}/thumbnail?size=preview
-		reverse_proxy {$IMMICH_URL} {
-			header_up -Authorization
-			header_up -Cookie
-			header_up -X-Immich-*
-			header_up -X-Glissando-Immich-Asset
-			header_up X-Api-Key {env.GLISSANDO_IMMICH_API_KEY}
-			# Only the picture's own headers reach the recipient, nothing about Immich: every
-			# header is dropped, then the allowed ones are set again.
-			header_down -*
-			# Immich answers a preview with both; a placeholder of a header that is missing
-			# would be sent as its literal text.
-			@sizedPreview {
-				status 2xx
-				header Content-Length *
-				header Etag *
-			}
-			handle_response @sizedPreview {
-				header Content-Type {rp.header.Content-Type}
-				header Content-Length {rp.header.Content-Length}
-				header Etag {rp.header.Etag}
-				header Cache-Control "private, max-age=86400"
-				copy_response
-			}
-			@preview status 2xx
-			handle_response @preview {
-				header Content-Type {rp.header.Content-Type}
-				header Cache-Control "private, max-age=86400"
-				copy_response
-			}
-			handle_response {
-				respond "" {rp.status_code}
-			}
-		}
-	}
+	import immich_preview /internal/share-picture/{re.sharePicture.1}/{re.sharePicture.2}
 }
 
 @shareApi {
@@ -86,6 +47,95 @@ handle @sharePage {
 	root * /srv
 	rewrite * /share.html
 	file_server
+}
+
+# The TV remote: public, no sign-in (ADR-0031, dev-docs/tv_remote/HTTP_API.md). A TV's key and a
+# remote's secret are 22 base64url characters in the path, like a share token; only the exact
+# shapes and methods below reach the service, and any other request under /api/tv/, /tv or /r/
+# answers 404 here. A way B session is made under /api/share/, so it comes before shareOther.
+@tvPicture {
+	method GET HEAD
+	path_regexp tvPicture ^/api/tv/([A-Za-z0-9_-]{22})/show/[0-9]+/pictures/([0-9]+)$
+}
+handle @tvPicture {
+	import immich_preview /internal/tv-picture/{re.tvPicture.1}/{re.tvPicture.2}
+}
+
+# The two streams: every event is passed on as it comes, never buffered.
+@tvStream {
+	method GET
+	path_regexp ^/api/tv/(remote/)?[A-Za-z0-9_-]{22}/events$
+}
+handle @tvStream {
+	log_name share
+	header Referrer-Policy no-referrer
+	reverse_proxy 127.0.0.1:{$GLISSANDO_LIBRARY_PORT} {
+		flush_interval -1
+	}
+}
+
+@tvRead {
+	method GET HEAD
+	path_regexp ^/api/tv/[A-Za-z0-9_-]{22}/show(/songs/[0-9]+)?$
+}
+handle @tvRead {
+	log_name share
+	header Referrer-Policy no-referrer
+	reverse_proxy 127.0.0.1:{$GLISSANDO_LIBRARY_PORT}
+}
+
+@tvPost {
+	method POST
+	path_regexp ^/api/(tv/sessions|tv/remote/[A-Za-z0-9_-]{22}/command|share/[A-Za-z0-9_-]{22}/tv)$
+}
+handle @tvPost {
+	log_name share
+	header Referrer-Policy no-referrer
+	reverse_proxy 127.0.0.1:{$GLISSANDO_LIBRARY_PORT}
+}
+
+@tvPut {
+	method PUT
+	path_regexp ^/api/tv/[A-Za-z0-9_-]{22}/state$
+}
+handle @tvPut {
+	log_name share
+	header Referrer-Policy no-referrer
+	reverse_proxy 127.0.0.1:{$GLISSANDO_LIBRARY_PORT}
+}
+
+# The TV's page is the recipient's page (dev-docs/tv_remote/TV_PAGE.md); the remote's page reads
+# its secret from its own path.
+@tvPage {
+	method GET HEAD
+	path /tv
+}
+handle @tvPage {
+	log_name share
+	header Referrer-Policy no-referrer
+	header Cache-Control no-cache
+	root * /srv
+	rewrite * /share.html
+	file_server
+}
+
+@remotePage {
+	method GET HEAD
+	path_regexp ^/r/[A-Za-z0-9_-]{22}$
+}
+handle @remotePage {
+	log_name share
+	header Referrer-Policy no-referrer
+	header Cache-Control no-cache
+	root * /srv
+	rewrite * /remote.html
+	file_server
+}
+
+@tvOther path /api/tv /api/tv/* /tv /tv/* /r /r/*
+handle @tvOther {
+	log_name share
+	respond 404
 }
 
 @shareOther path /api/share/* /s/*

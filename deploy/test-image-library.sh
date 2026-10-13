@@ -2,7 +2,8 @@
 # volume the library service answers /api/library and keeps what it stores across containers
 # (ADR-0018); docker stop ends the container cleanly, a dead service stops it with its status.
 # Without a data volume, /api/library answers 404. A slideshow shared by link plays through
-# /api/share/ and its picture comes from Immich's preview through Caddy (ADR-0025).
+# /api/share/ and its picture comes from Immich's preview through Caddy (ADR-0025); the TV remote's
+# checks are in deploy/test-image-tv.sh.
 
 readonly DISCOVERY='{"service":"glissando-library","version":1}'
 readonly TITLE="Image test slideshow"
@@ -144,6 +145,7 @@ if docker run --rm --entrypoint test "$IMAGE" -f /srv/share.html; then
 else
 	echo "skip /s/<token> answers share.html: this build has no share.html yet (answered $STATUS)"
 fi
+source deploy/test-image-tv.sh
 docker stop "$UPSTREAM" >/dev/null
 request "$LIBRARY" GET "/api/share/$token/2/pictures/0"
 expect_equal "with Immich down a shared picture answers 502" 502 "$STATUS"

@@ -21,9 +21,11 @@
 	}
 }
 
-# A share link's token is a secret (dev-docs/share_link/HTTP_API.md, Logs): the share routes (log_name
-# share) log their requests and errors with the token replaced by … and without the query, which
-# those routes never use.
+# A share link's token is a secret (dev-docs/share_link/HTTP_API.md, Logs), and so are a TV's key
+# and a remote's secret (dev-docs/tv_remote/HTTP_API.md): the share and TV routes (log_name share)
+# log their requests and errors with each replaced by … and without the query, which those routes
+# never use. Under /api/tv/ and /api/library/tv/ a segment shorter than any key or secret is a
+# route's name (sessions, remote, claim) and stays.
 (share_log_filters) {
 	format filter {
 		wrap json
@@ -34,8 +36,64 @@
 			request>headers>X-Immich-Share-Key delete
 			request>headers>Referer delete
 			request>uri multi_regexp {
-				regexp (?i)^(/api/share/|/s/|/internal/share-picture/)[^/?]* "${1}…"
+				regexp (?i)^(/api/share/|/s/|/internal/share-picture/|/internal/tv-picture/|/r/|/api/tv/remote/)[^/?]* "${1}…"
+				regexp (?i)^(/api/tv/)[^/?]{9,} "${1}…"
+				regexp (?i)^(/api/library/tv/)[^/?]{6,} "${1}…"
 				regexp \?.*$ ""
+			}
+		}
+	}
+}
+
+# A shared picture: the library service names its Immich asset (forward_auth to the check at
+# args[0]), and Caddy fetches the preview with the server's key (ADR-0025). Used for share links
+# and for a TV's session (library-on.caddy).
+(immich_preview) {
+	log_name share
+	header Referrer-Policy no-referrer
+	# Deferred to the response, after Caddy's own.
+	header -Server
+	header -Via
+	# In this order: the check names the asset the rewrite fetches.
+	route {
+		# A non-2xx answer (notShared, notShown, noSuchPicture) goes to the client as it is.
+		forward_auth 127.0.0.1:{$GLISSANDO_LIBRARY_PORT} {
+			uri {args[0]}
+			copy_headers X-Glissando-Immich-Asset
+		}
+		# The query is replaced whole, so no credential a client adds reaches Immich.
+		rewrite * /api/assets/{http.request.header.X-Glissando-Immich-Asset}/thumbnail?size=preview
+		reverse_proxy {$IMMICH_URL} {
+			header_up -Authorization
+			header_up -Cookie
+			header_up -X-Immich-*
+			header_up -X-Glissando-Immich-Asset
+			header_up X-Api-Key {env.GLISSANDO_IMMICH_API_KEY}
+			# Only the picture's own headers reach the recipient, nothing about Immich: every
+			# header is dropped, then the allowed ones are set again.
+			header_down -*
+			# Immich answers a preview with both; a placeholder of a header that is missing
+			# would be sent as its literal text.
+			@sizedPreview {
+				status 2xx
+				header Content-Length *
+				header Etag *
+			}
+			handle_response @sizedPreview {
+				header Content-Type {rp.header.Content-Type}
+				header Content-Length {rp.header.Content-Length}
+				header Etag {rp.header.Etag}
+				header Cache-Control "private, max-age=86400"
+				copy_response
+			}
+			@preview status 2xx
+			handle_response @preview {
+				header Content-Type {rp.header.Content-Type}
+				header Cache-Control "private, max-age=86400"
+				copy_response
+			}
+			handle_response {
+				respond "" {rp.status_code}
 			}
 		}
 	}
@@ -68,10 +126,10 @@
 		import share_log_filters
 	}
 
-	# A share path whose raw URI holds an escape or a dot segment could, once Caddy unescaped and
-	# cleaned it, match another route than the share path the owner's sign-in let through: it is
-	# sent to a path that answers 404 before any route sees it.
-	@shareEscape vars_regexp {http.request.uri} (?i)^/(s|api/share)/.*(%|\.\.)
+	# A share or TV path whose raw URI holds an escape or a dot segment could, once Caddy unescaped
+	# and cleaned it, match another route than the public path the owner's sign-in let through: it
+	# is sent to a path that answers 404 before any route sees it.
+	@shareEscape vars_regexp {http.request.uri} (?i)^/(s|r|tv|api/share|api/tv)/.*(%|\.\.)
 	rewrite @shareEscape /internal/share-escape
 
 	# immich-proxy.caddy or immich-off.caddy.
