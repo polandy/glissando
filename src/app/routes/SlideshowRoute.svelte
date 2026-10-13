@@ -256,6 +256,8 @@
     {onEditMusic}
     onTransition={(transition) => editor?.setSlideshowTransition(transition)}
     onResetTransition={() => editor?.resetSlideshowTransition()}
+    onPortraitPictures={(choice) => editor?.setPortraitPictures(choice)}
+    onResetPortraitPictures={() => editor?.resetPortraitPictures()}
     previewPorts={{ clock: performanceClock, frames: animationFrames }}
     reducedMotion={reducedMotion.current}
     onDelete={() => deleteShownSlideshow(store, slideshowId, editor).then(onDeleted, onError)}

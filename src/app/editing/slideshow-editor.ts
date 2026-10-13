@@ -13,24 +13,11 @@ import {
   setPictureAlone as setPictureAloneEdit,
   setPictureCaption,
 } from "../../library/slideshow-edits";
-import {
-  setMusicFadeIn,
-  setMusicFadeOut,
-  setMusicPictureChanges,
-  setMusicTrim,
-} from "../../library/slideshow-edits-music";
-import {
-  addSongs,
-  moveSong,
-  removeSong,
-  setBetweenSongs,
-  songIndex,
-} from "../../library/slideshow-edits-songs";
-import { setPictureLength, setSecondsPerPicture } from "../../library/slideshow-edits-timing";
 import type { PictureLength } from "../../library/picture-length";
 import type { StoredMusic, StoredSlideshow } from "../../library/stored-slideshow";
 import { EditSaver } from "./edit-saver";
 import { EditorUndos } from "./editor-undos";
+import { MusicSettingsEditor } from "./music-settings-editor";
 import { PictureSettingsEditor } from "./picture-settings-editor";
 import type { SlideshowEditorPorts } from "./slideshow-editor-ports";
 
@@ -48,6 +35,7 @@ export class SlideshowEditor {
   readonly #undos: EditorUndos;
   readonly #saver: EditSaver;
   readonly #pictureSettings: PictureSettingsEditor;
+  readonly #musicSettings: MusicSettingsEditor;
 
   constructor(initial: StoredSlideshow, ports: SlideshowEditorPorts) {
     this.#slideshow = initial;
@@ -73,6 +61,11 @@ export class SlideshowEditor {
     this.#pictureSettings = new PictureSettingsEditor(
       ports,
       this.#undos.reset,
+      () => this.#slideshow,
+      (slideshow) => this.#apply(slideshow),
+    );
+    this.#musicSettings = new MusicSettingsEditor(
+      this.#undos.songRemoval,
       () => this.#slideshow,
       (slideshow) => this.#apply(slideshow),
     );
@@ -209,65 +202,47 @@ export class SlideshowEditor {
     }
   }
 
-  /** Appends `songs`, their media already stored, to the playlist (ADR-0023). */
+  // The playlist and timing settings delegate to `MusicSettingsEditor`; the songs' edits offer
+  // no undo, since one tap on "whole track" or "automatic" restores them.
+
   addSongs(songs: readonly StoredMusic[]): void {
-    this.#apply(addSongs(this.#slideshow, songs));
+    this.#musicSettings.addSongs(songs);
   }
 
-  /**
-   * Takes the song out of the playlist; its toast puts it back. While the toast is shown, the
-   * song's media is claimed, so a clean-up in any tab spares it.
-   */
   removeSong(songId: string): void {
-    const index = songIndex(this.#slideshow, songId);
-    const song = this.#slideshow.songs[index] as StoredMusic;
-    this.#undos.songRemoval.add(song, index, (removed, at) => {
-      const restored = addSongs(this.#slideshow, [removed]);
-      this.#apply(moveSong(restored, removed.id, Math.min(at, restored.songs.length - 1)));
-    });
-    this.#apply(removeSong(this.#slideshow, songId));
+    this.#musicSettings.removeSong(songId);
   }
 
-  /** Moves the song to `toIndex` of the playlist. */
   moveSong(songId: string, toIndex: number): void {
-    this.#apply(moveSong(this.#slideshow, songId, toIndex));
+    this.#musicSettings.moveSong(songId, toIndex);
   }
 
-  /** `"sequence"`: one song after another; `undefined`: they crossfade. */
   setBetweenSongs(betweenSongs: BetweenSongs | undefined): void {
-    this.#apply(setBetweenSongs(this.#slideshow, betweenSongs));
+    this.#musicSettings.setBetweenSongs(betweenSongs);
   }
 
-  // The songs' edits offer no undo: one tap on "whole track" or "automatic" restores them.
-
-  /** Plays only `trim` of the song; `undefined` or the whole track plays all of it. */
   setMusicTrim(songId: string, trim: MusicTrim | undefined): void {
-    this.#apply(setMusicTrim(this.#slideshow, songId, trim));
+    this.#musicSettings.setMusicTrim(songId, trim);
   }
 
-  /** The song's own fade-in in ms, 0 being off; `undefined` makes it automatic. */
   setMusicFadeIn(songId: string, fadeInMs: number | undefined): void {
-    this.#apply(setMusicFadeIn(this.#slideshow, songId, fadeInMs));
+    this.#musicSettings.setMusicFadeIn(songId, fadeInMs);
   }
 
-  /** The song's own fade-out in ms, 0 being off; `undefined` makes it automatic. */
   setMusicFadeOut(songId: string, fadeOutMs: number | undefined): void {
-    this.#apply(setMusicFadeOut(this.#slideshow, songId, fadeOutMs));
+    this.#musicSettings.setMusicFadeOut(songId, fadeOutMs);
   }
 
-  /** `"even"` shares the song evenly; `undefined` changes the pictures on the beat (ADR-0021). */
   setMusicPictureChanges(songId: string, pictureChanges: PictureChanges | undefined): void {
-    this.#apply(setMusicPictureChanges(this.#slideshow, songId, pictureChanges));
+    this.#musicSettings.setMusicPictureChanges(songId, pictureChanges);
   }
 
-  /** `"seconds"`: the pictures last their seconds with music too; `undefined`: they fill it. */
   setPictureLength(pictureLength: PictureLength | undefined): void {
-    this.#apply(setPictureLength(this.#slideshow, pictureLength));
+    this.#musicSettings.setPictureLength(pictureLength);
   }
 
-  /** How long each picture without an own duration stays, in half-second steps. */
   setSecondsPerPicture(seconds: number): void {
-    this.#apply(setSecondsPerPicture(this.#slideshow, seconds));
+    this.#musicSettings.setSecondsPerPicture(seconds);
   }
 
   /** Resolves once every edit made so far is stored (or reported as failed). */

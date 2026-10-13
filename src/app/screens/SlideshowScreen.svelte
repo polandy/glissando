@@ -6,7 +6,7 @@
   import MoreMenu from "./slideshow/MoreMenu.svelte";
   import PicturesColumn from "./slideshow/PicturesColumn.svelte";
   import SelectionBar from "./slideshow/SelectionBar.svelte";
-  import TransitionsSheet from "./slideshow/TransitionsSheet.svelte";
+  import SlideshowEditSheets from "./slideshow/SlideshowEditSheets.svelte";
   import ExportSheets from "./slideshow/ExportSheets.svelte";
   import type { HtmlExportSession } from "../html-export/html-export-session";
   import type { ExportPreview } from "../video-export/slideshow-video-export";
@@ -15,6 +15,7 @@
   import type { SlideshowDetails, SlideshowStorage, StorageAction } from "./view-models";
   import type { ShareLinkSession } from "../share-link/share-link-session";
   import type { SlideshowTransition } from "../../library/own-timing";
+  import type { PortraitPictures } from "../../library/portrait-pictures";
   import type { MotionPreviewPorts } from "../picture-editor/motion-preview";
   import type { ExportMenuState } from "../glissando-file/export-menu";
   import {
@@ -41,6 +42,8 @@
     onEditMusic,
     onTransition,
     onResetTransition,
+    onPortraitPictures,
+    onResetPortraitPictures,
     previewPorts,
     reducedMotion,
     onDelete,
@@ -82,6 +85,10 @@
     onTransition: (transition: SlideshowTransition) => void;
     /** "Back to crossfade" in the transitions sheet. */
     onResetTransition: () => void;
+    /** A choice was picked in the portrait pictures sheet. */
+    onPortraitPictures: (choice: PortraitPictures) => void;
+    /** "Back to automatic" in the portrait pictures sheet. */
+    onResetPortraitPictures: () => void;
     /** The transitions sheet's tiles loop on these. */
     previewPorts: MotionPreviewPorts;
     /** The transitions sheet's tiles stand still. */
@@ -116,7 +123,6 @@
   const { t } = getTranslator();
 
   let confirmingDelete = $state(false);
-  let editingTransitions = $state(false);
   const order = $derived(slideshow.pictures.map((picture) => picture.id));
   // A selected picture that was removed meanwhile leaves no selection (and, unless "Select"
   // started it, leaves selecting several too): kept in sync should the pictures prop change for
@@ -143,15 +149,8 @@
 
   let moreMenu = $state<MoreMenu>();
   let infoPanel = $state<InfoPanel>();
+  let editSheets = $state<SlideshowEditSheets>();
   let exportSheets = $state<ExportSheets>();
-
-  /** Focus goes back to the row the sheet was opened from. */
-  function closeTransitions(): void {
-    editingTransitions = false;
-    // The modal dialog must be gone first: until then the page behind it is inert.
-    flushSync();
-    infoPanel?.focusTransitions();
-  }
 
   /** Keep or Esc: focus goes back to the ⋯ button the dialog was opened from. */
   function keepSlideshow(): void {
@@ -212,7 +211,8 @@
         onSaveWebPage={() => exportSheets?.openWebPage()}
         {onRename}
         {onEditMusic}
-        onEditTransitions={() => (editingTransitions = true)}
+        onEditTransitions={() => editSheets?.openTransitions()}
+        onEditPortraitPictures={() => editSheets?.openPortraitPictures()}
       />
     </div>
   </main>
@@ -229,16 +229,18 @@
   {/if}
 </div>
 
-{#if editingTransitions}
-  <TransitionsSheet
-    {slideshow}
-    ports={previewPorts}
-    {reducedMotion}
-    {onTransition}
-    onReset={onResetTransition}
-    onClose={closeTransitions}
-  />
-{/if}
+<SlideshowEditSheets
+  bind:this={editSheets}
+  {slideshow}
+  {previewPorts}
+  {reducedMotion}
+  {onTransition}
+  {onResetTransition}
+  {onPortraitPictures}
+  {onResetPortraitPictures}
+  onTransitionsClosed={() => infoPanel?.focusTransitions()}
+  onPortraitPicturesClosed={() => infoPanel?.focusPortraitPictures()}
+/>
 
 <ExportSheets
   bind:this={exportSheets}
