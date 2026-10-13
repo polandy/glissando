@@ -20,7 +20,7 @@ export function songKey(index: number): string {
   return `s${index}`;
 }
 
-/** The `image.src` of the slide at `index` and the id of its media block. */
+/** The `image.src` of the picture at `index` and its media block's id; a pair slide has two. */
 export function pictureKey(index: number): string {
   return `p${index}`;
 }

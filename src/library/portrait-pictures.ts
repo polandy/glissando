@@ -2,7 +2,7 @@
  * How portrait pictures lay out, set on the slideshow (ADR-0028): absent is automatic, pairs
  * of consecutive portrait pictures and a blurred fill behind a whole picture the crop would
  * otherwise lose too much of; `one-at-a-time` composes no pairs; `fill-screen` composes no pairs
- * and crops every picture, today's layout.
+ * and crops every picture to cover the screen.
  */
 
 export const ONE_AT_A_TIME_PORTRAIT_PICTURES = "one-at-a-time";

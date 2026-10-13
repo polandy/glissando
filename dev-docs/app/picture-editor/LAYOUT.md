@@ -2,7 +2,7 @@
 
 - **Layout** (`LayoutSection.svelte`, ADR-0028): the eyebrow "Layout" and a switch "Always
   alone" (`role="switch"`), its hint "This picture never shares a slide with another one.",
-  and a status line that always says what actually happens:
+  and a status line (announced politely) that always says what actually happens:
   - the slideshow's portrait pictures setting is not automatic: "Has no effect while the
     slideshow is set to \"One at a time\"/\"Fill the screen\" — there, every picture is shown
     alone." The switch still toggles the picture's own flag, kept for when the setting goes
