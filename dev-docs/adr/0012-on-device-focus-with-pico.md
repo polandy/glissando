@@ -66,8 +66,9 @@ is the share of pictures whose chosen focus point lies inside a tagged face (box
 
 - Small faces are the weak spot: 4 of 15 pictures with only small faces are hit. The automatic
   motion zooms gently (at most 1.2×), so a missed face is not cut off, only not aimed at.
-- In a group the motion aims at the face with the largest score-weighted area, not the group's middle; aiming at the union
-  of all detections hit less often in the measurement.
+- In a group the stored box starts at the face with the largest score-weighted area (aiming at
+  the union of all detections hit less often in the measurement); ADR-0029 widens it to the faces
+  of similar size.
 - The picture editor marks the focus and the library shows the pass's progress (mockup:
   https://polandy.github.io/glissando-assets/mockups/automatic-focus/).
 - A better detector later reaches every picture by clearing the `focus` store in a

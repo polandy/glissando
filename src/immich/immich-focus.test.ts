@@ -42,9 +42,9 @@ describe("focusFromFaces", () => {
       box: { x: 329 / 1280, y: 242 / 1649, width: 516 / 1280, height: 788 / 1649 },
     },
     {
-      name: "the largest face of a recorded group, which is not the first listed",
+      name: "all three faces of a recorded group as one box",
       faces: recorded(facesGroup),
-      box: { x: 100 / 1280, y: 487 / 926, width: 37 / 1280, height: 46 / 926 },
+      box: { x: 60 / 1280, y: 441 / 926, width: 150 / 1280, height: 92 / 926 },
     },
     {
       name: "a recorded EXIF-rotated photo, in display orientation",
@@ -52,9 +52,19 @@ describe("focusFromFaces", () => {
       box: { x: 148 / 520, y: 137 / 671, width: 221 / 520, height: 312 / 671 },
     },
     {
-      name: "the larger by area, not by width",
-      faces: [face(0, 0, 40, 5), face(50, 10, 70, 40)],
+      name: "the larger by area, not by width, leaving out a much smaller face",
+      faces: [face(0, 0, 40, 1), face(50, 10, 70, 40)],
       box: { x: 0.5, y: 0.2, width: 0.2, height: 0.6 },
+    },
+    {
+      name: "two faces of similar size as one group",
+      faces: [face(10, 10, 30, 30), face(60, 15, 80, 35)],
+      box: { x: 0.1, y: 0.2, width: 0.7, height: 0.5 },
+    },
+    {
+      name: "a face in the background left out of the group",
+      faces: [face(10, 10, 30, 30), face(60, 15, 80, 35), face(90, 40, 93, 43)],
+      box: { x: 0.1, y: 0.2, width: 0.7, height: 0.5 },
     },
     {
       name: "a box reaching past the image, clamped inside it",

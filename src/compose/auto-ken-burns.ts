@@ -20,10 +20,16 @@ const PAN_OFFSET = 0.1;
  */
 const PORTRAIT_CENTER_Y = 0.4;
 
+/** The group's box grown by this factor is the room its frame keeps around the people. */
+const GROUP_MARGIN = 1.15;
+
 /**
  * A simple framing rule: zoom alternates in/out by slide index and pans gently sideways in a
  * direction that alternates too, swinging around the picture's focus. Without one it swings
- * around the middle, raised on a portrait picture toward where faces usually are.
+ * around the middle, raised on a portrait picture toward where faces usually are. A focus box
+ * wider or taller than the frame at the largest zoom lowers that zoom until the box fits
+ * (ADR-0029); the frame is taken as 1/zoom of the picture on both axes, and the pan is small
+ * enough to leave the box inside it.
  */
 export function autoKenBurns(
   index: number,
@@ -35,6 +41,7 @@ export function autoKenBurns(
   const zoomsIn = index % 2 === 0;
   const pansRight = index % 2 === 0;
   const center = restingCenter(picture, focus);
+  const maxZoom = largestZoomShowing(focus);
 
   const halfPan = pansHorizontally ? (pansRight ? 1 : -1) * (PAN_OFFSET / 2) : 0;
   const startCenterX = clampToPicture(center.x - halfPan);
@@ -42,17 +49,23 @@ export function autoKenBurns(
 
   return {
     from: {
-      zoom: zoomsIn ? MIN_KEN_BURNS_ZOOM : MAX_ZOOM,
+      zoom: zoomsIn ? MIN_KEN_BURNS_ZOOM : maxZoom,
       centerX: startCenterX,
       centerY: center.y,
     },
     to: {
-      zoom: zoomsIn ? MAX_ZOOM : MIN_KEN_BURNS_ZOOM,
+      zoom: zoomsIn ? maxZoom : MIN_KEN_BURNS_ZOOM,
       centerX: endCenterX,
       centerY: center.y,
     },
     easing: KEN_BURNS_EASING,
   };
+}
+
+function largestZoomShowing(focus: PictureFocus | undefined): number {
+  if (focus?.kind !== "subject") return MAX_ZOOM;
+  const extent = Math.max(focus.box.width, focus.box.height) * GROUP_MARGIN;
+  return Math.min(MAX_ZOOM, Math.max(MIN_KEN_BURNS_ZOOM, 1 / extent));
 }
 
 function restingCenter(

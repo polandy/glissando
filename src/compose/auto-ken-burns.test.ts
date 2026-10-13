@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { autoKenBurns } from "./auto-ken-burns";
+import { cropRect } from "../player/ken-burns";
 import { MIN_KEN_BURNS_ZOOM } from "../player/slideshow";
 
 const LANDSCAPE = { width: 400, height: 300 };
@@ -114,6 +115,72 @@ describe("autoKenBurns", () => {
         expect(framing.centerX).toBeLessThanOrEqual(1);
         expect(framing.centerY).toBeGreaterThanOrEqual(0);
       }
+    });
+
+    describe("framing a group", () => {
+      const GROUP_FITS_AT_FULL_ZOOM = { x: 0.35, y: 0.3, width: 0.3, height: 0.2 };
+      const GROUP_NEEDS_LESS_ZOOM = { x: 0.1, y: 0.3, width: 0.78, height: 0.2 };
+      const GROUP_ACROSS_THE_PICTURE = { x: 0, y: 0.3, width: 1, height: 0.2 };
+      const GROUP_AT_THE_EDGE = { x: 0.2, y: 0.3, width: 0.8, height: 0.2 };
+
+      /** The crop on a screen of the picture's own shape, where the window is 1/zoom of it. */
+      const cropsAround = (box: typeof GROUP_FITS_AT_FULL_ZOOM, index: number) => {
+        const { from, to } = autoKenBurns(index, LANDSCAPE, subject(box));
+        return [from, to].map((framing) => cropRect(framing, LANDSCAPE, LANDSCAPE));
+      };
+
+      it.each([0, 1])(
+        "keeps the full zoom for a group that fits the window at index %d",
+        (index) => {
+          const { from, to } = autoKenBurns(index, LANDSCAPE, subject(GROUP_FITS_AT_FULL_ZOOM));
+
+          expect(Math.max(from.zoom, to.zoom)).toBe(1.2);
+        },
+      );
+
+      it.each([0, 1])(
+        "zooms less than that for a group wider than the window at index %d",
+        (index) => {
+          const { from, to } = autoKenBurns(index, LANDSCAPE, subject(GROUP_NEEDS_LESS_ZOOM));
+
+          expect(Math.max(from.zoom, to.zoom)).toBeLessThan(1.2);
+          expect(Math.min(from.zoom, to.zoom)).toBe(MIN_KEN_BURNS_ZOOM);
+        },
+      );
+
+      it.each([
+        ["a group wider than the full-zoom window", GROUP_NEEDS_LESS_ZOOM],
+        ["a group at the picture's edge", GROUP_AT_THE_EDGE],
+        ["a group that fits", GROUP_FITS_AT_FULL_ZOOM],
+      ])("shows all of %s at both ends of the motion", (_name, box) => {
+        for (const index of [0, 1, 2, 3]) {
+          for (const crop of cropsAround(box, index)) {
+            expect(crop.x).toBeLessThanOrEqual(box.x);
+            expect(crop.x + crop.width).toBeGreaterThanOrEqual(box.x + box.width);
+            expect(crop.y).toBeLessThanOrEqual(box.y);
+            expect(crop.y + crop.height).toBeGreaterThanOrEqual(box.y + box.height);
+          }
+        }
+      });
+
+      it("stays at zoom 1 for a group across the whole picture", () => {
+        const { from, to } = autoKenBurns(0, LANDSCAPE, subject(GROUP_ACROSS_THE_PICTURE));
+
+        expect([from.zoom, to.zoom]).toEqual([MIN_KEN_BURNS_ZOOM, MIN_KEN_BURNS_ZOOM]);
+      });
+
+      it("centres the motion on the group, not on one face of it", () => {
+        const { from, to } = autoKenBurns(0, LANDSCAPE, subject(GROUP_FITS_AT_FULL_ZOOM));
+
+        expect((from.centerX + to.centerX) / 2).toBeCloseTo(0.5);
+        expect(from.centerY).toBeCloseTo(0.4);
+      });
+
+      it("still pans when the group leaves room beside it", () => {
+        const { from, to } = autoKenBurns(0, LANDSCAPE, subject(GROUP_FITS_AT_FULL_ZOOM));
+
+        expect(to.centerX).toBeGreaterThan(from.centerX);
+      });
     });
 
     it("moves as without one when the detection found nothing", () => {

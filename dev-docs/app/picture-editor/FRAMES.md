@@ -15,7 +15,7 @@
   the whole hit area stays on screen). A dashed line joins
   the two centres; while the preview plays, a peach outline runs over the picture with it.
 - **Focus** (`focus-indication.ts`, `FocusMarker.svelte`, `FocusLine.svelte`): with the
-  automatic motion, accent corner brackets mark the subject box it aims at, with a small
+  automatic motion, accent corner brackets mark the subject box (the group) it aims at, with a small
   "Focus" chip above it (below a box at the picture's top, right-aligned at its right edge);
   over the frames, never in the way of a drag. Found while the editor is open, the marker
   settles in (fades in from slightly larger; at once with reduced motion); a focus already

@@ -1,3 +1,4 @@
+import { groupFocusBox } from "../library/group-focus-box";
 import type { FocusBox, PictureFocus } from "../library/picture-focus";
 import type { GreyImage } from "./grey-image";
 import {
@@ -15,8 +16,9 @@ const CLUSTER_OVERLAP = 0.2;
 const MIN_FACE_SCORE = 5;
 
 /**
- * Where to aim in a picture: the face with the largest score-weighted area, as a box in picture
- * coordinates; nothing when no face scores high enough (ADR-0012).
+ * Where to aim in a picture: the face with the largest score-weighted area together with every
+ * face not much smaller than it, as one box in picture coordinates; nothing when no face scores
+ * high enough (ADR-0012, ADR-0029).
  */
 export function findFocus(image: GreyImage, cascade: Cascade): PictureFocus {
   const faces = clusterDetections(runCascade(image, cascade, SCAN), CLUSTER_OVERLAP).filter(
@@ -26,9 +28,9 @@ export function findFocus(image: GreyImage, cascade: Cascade): PictureFocus {
     (best, face) => (best === undefined || weight(face) > weight(best) ? face : best),
     undefined,
   );
-  return strongest === undefined
-    ? { kind: "none" }
-    : { kind: "subject", box: boxOf(strongest, image) };
+  if (strongest === undefined) return { kind: "none" };
+  const others = faces.filter((face) => face !== strongest).map((face) => boxOf(face, image));
+  return { kind: "subject", box: groupFocusBox(boxOf(strongest, image), others) };
 }
 
 function weight(face: Detection): number {

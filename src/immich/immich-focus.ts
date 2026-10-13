@@ -1,3 +1,4 @@
+import { groupFocusBox } from "../library/group-focus-box";
 import type { FocusBox, PictureFocus } from "../library/picture-focus";
 import type { ImmichFace } from "./immich-client";
 
@@ -15,7 +16,7 @@ function normalisedBox(face: ImmichFace): FocusBox {
 
 /**
  * The focus Immich's faces give a picture: its largest face box by area, as Immich gives no
- * score. Null for no faces, which may mean "not scanned yet", so the on-device pass still looks
+ * score, together with every face not much smaller than it (ADR-0029). Null for no faces, which may mean "not scanned yet", so the on-device pass still looks
  * (ADR-0013).
  */
 export function focusFromFaces(faces: readonly ImmichFace[]): PictureFocus | null {
@@ -25,5 +26,7 @@ export function focusFromFaces(faces: readonly ImmichFace[]): PictureFocus | nul
       largest = face;
     }
   }
-  return largest === null ? null : { kind: "subject", box: normalisedBox(largest) };
+  if (largest === null) return null;
+  const others = faces.filter((face) => face !== largest).map(normalisedBox);
+  return { kind: "subject", box: groupFocusBox(normalisedBox(largest), others) };
 }
