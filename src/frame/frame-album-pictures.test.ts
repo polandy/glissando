@@ -15,7 +15,9 @@ describe("fetchAlbumPictures", () => {
     const client = {
       photos: ({ page }: { page: number }) => {
         requested.push(page);
-        return Promise.resolve(pages[page - 1]!);
+        const found = pages[page - 1];
+        if (found === undefined) throw new Error("test bug: unexpected page requested");
+        return Promise.resolve(found);
       },
     };
 
