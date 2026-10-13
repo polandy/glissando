@@ -8,7 +8,6 @@ export const deFrame = {
   "frame.title": "Bilderrahmen",
   "frame.intro": "Wähle ein Album. Neue Fotos, die in Immich dazukommen, erscheinen von selbst.",
   "frame.albumLabel": "Album",
-  "frame.albumMeta": "{pictures} · {range}",
   "frame.intervalLabel": "Bild wechseln alle",
   "frame.interval10": "10 s",
   "frame.interval30": "30 s",

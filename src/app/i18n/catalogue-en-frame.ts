@@ -9,7 +9,6 @@ export const enFrame: Pick<Catalogue, keyof typeof deFrame> = {
   "frame.title": "Picture frame",
   "frame.intro": "Pick an album. New photos added to it in Immich appear on their own.",
   "frame.albumLabel": "Album",
-  "frame.albumMeta": "{pictures} · {range}",
   "frame.intervalLabel": "Change picture every",
   "frame.interval10": "10 s",
   "frame.interval30": "30 s",
