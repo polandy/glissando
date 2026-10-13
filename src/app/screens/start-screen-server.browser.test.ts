@@ -40,6 +40,7 @@ function mountStart(
       notice: null,
       onDismissNotice: () => {},
       onReload: () => {},
+      onSetUpFrame: () => {},
       updateWaiting: false,
       statusBar: createRawSnippet(() => ({ render: () => "<footer></footer>" })),
     },

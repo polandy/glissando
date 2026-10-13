@@ -33,6 +33,7 @@ function mountStart(focusSearches: ReadonlyMap<string, SlideshowSearch>) {
     notice: null,
     onDismissNotice: () => {},
     onReload: () => {},
+    onSetUpFrame: () => {},
     updateWaiting: false,
     statusBar: createRawSnippet(() => ({ render: () => "<footer></footer>" })),
   });

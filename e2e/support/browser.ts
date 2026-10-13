@@ -5,12 +5,15 @@ import type { Page } from "@playwright/test";
  * policy: persistent storage is granted (headless engines grant or refuse it by their own
  * heuristics, and a refusal opens a dialog), and fullscreen is refused (an engine in
  * fullscreen may take Esc to leave it instead of handing it to the page).
+ *
+ * `path` is the first navigation, so it is the only way to land on it with a `#frame=` deep link
+ * already in the URL (`dev-docs/app/FRAME.md` reads the hash once, at startup).
  */
-export async function openApp(page: Page): Promise<void> {
+export async function openApp(page: Page, path = "/"): Promise<void> {
   await page.addInitScript(() => {
     StorageManager.prototype.persisted = () => Promise.resolve(true);
     Element.prototype.requestFullscreen = () =>
       Promise.reject(new TypeError("fullscreen is refused in the e2e browser"));
   });
-  await page.goto("/");
+  await page.goto(path);
 }

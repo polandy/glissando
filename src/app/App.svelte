@@ -1,22 +1,22 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { installOffer, statusBarView, type PwaState } from "../pwa/status-bar-view";
+  import { statusBarView, type PwaState } from "../pwa/status-bar-view";
   import type { ImmichAvailabilityState } from "../immich/immich-availability";
   import { createAppActions } from "./app-actions";
   import type { AddedPictures } from "./add-pictures/add-pictures-flow";
   import type { AddPicturesSession } from "./add-pictures/add-pictures-session";
   import { createAppFlows } from "./app-flows";
   import { subscribeAppState } from "./app-subscriptions";
+  import AppOverlays from "./AppOverlays.svelte";
   import type { ExportProgress } from "./glissando-file/export-job";
   import { setExportStatus } from "./glissando-file/export-status";
   import type { OpenFlowState, OpenOrigin } from "./glissando-file/open-flow";
-  import OpeningOverlay from "./glissando-file/OpeningOverlay.svelte";
-  import Toast from "./components/Toast.svelte";
   import { getTranslator } from "./i18n/context";
   import ImportRoute from "./import/ImportRoute.svelte";
   import type { ImportSession } from "./import/import-session";
   import type { Route } from "./navigation/route";
-  import PwaSheet, { type PwaSheetContent } from "./pwa/PwaSheet.svelte";
+  import FrameRoutes from "./frame/FrameRoutes.svelte";
+  import type { PwaSheetContent } from "./pwa/PwaSheet.svelte";
   import StatusBar from "./pwa/StatusBar.svelte";
   import IntakeRoutes from "./routes/IntakeRoutes.svelte";
   import SlideshowRoute from "./routes/SlideshowRoute.svelte";
@@ -28,7 +28,6 @@
   import type { SettingsState } from "./settings/app-settings";
   import { effectivePlaybackQuality } from "./settings/playback-quality";
   import SettingsSheet from "./settings/SettingsSheet.svelte";
-  import PersistRefusedDialog from "./storage/PersistRefusedDialog.svelte";
   import type { ToastMessage } from "./toast/toaster";
   import { ServerCopyFlows } from "./server-library/server-copy-flows";
   import type { ServerLibraryState } from "../server-library/server-library-availability";
@@ -158,7 +157,7 @@
   />
 {/snippet}
 
-{#if route.screen === "start" || route.screen === "settings"}
+{#if route.screen === "start" || route.screen === "settings" || route.screen === "frame"}
   <StartRoute
     {store}
     serverLibrary={services.serverLibrary}
@@ -174,7 +173,10 @@
     onDismissNotice={() => openFlow.dismissNotice()}
     onReload={services.reload}
     {statusBar}
+    serverOn={serverState.kind === "on"}
+    onSetUpFrame={() => navigator.open({ screen: "frameSetup" })}
   />
+  <FrameRoutes {route} {services} {navigator} />
   {#if route.screen === "settings"}
     <SettingsSheet
       state={settingsState}
@@ -192,6 +194,8 @@
       onClose={() => navigator.back()}
     />
   {/if}
+{:else if route.screen === "frameSetup"}
+  <FrameRoutes {route} {services} {navigator} />
 {:else if route.screen === "import" && importSession !== null}
   <ImportRoute
     step={route.step}
@@ -274,22 +278,16 @@
   {/key}
 {/if}
 
-{#if openState.opening !== null}
-  <OpeningOverlay opening={openState.opening} onCancel={() => openFlow.cancel()} />
-{/if}
-
-{#if toast !== null}
-  <Toast {toast} onAction={() => toaster.act()} onDismiss={() => toaster.dismiss()} />
-{/if}
-
-{#if persistRefused}
-  <PersistRefusedDialog
-    offer={installOffer(pwaState)}
-    onUnderstood={() => importFlow.dismissPersistNotice()}
-    onInstall={install}
-  />
-{/if}
-
-{#if pwaSheet !== null}
-  <PwaSheet sheet={pwaSheet} onClose={() => (pwaSheet = null)} />
-{/if}
+<AppOverlays
+  {openState}
+  {toast}
+  {persistRefused}
+  {pwaSheet}
+  {pwaState}
+  onCancelOpen={() => openFlow.cancel()}
+  onToastAction={() => toaster.act()}
+  onDismissToast={() => toaster.dismiss()}
+  onPersistUnderstood={() => importFlow.dismissPersistNotice()}
+  onInstall={install}
+  onClosePwaSheet={() => (pwaSheet = null)}
+/>

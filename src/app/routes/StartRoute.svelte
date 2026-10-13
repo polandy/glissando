@@ -27,6 +27,8 @@
     onDismissNotice,
     onReload,
     statusBar,
+    serverOn,
+    onSetUpFrame,
   }: {
     store: LibraryStore;
     /** Its slideshows show in their own section while it is on or offline. */
@@ -45,6 +47,9 @@
     onDismissNotice: () => void;
     onReload: () => void;
     statusBar: Snippet;
+    /** The picture frame card shows only while the server library is on (`dev-docs/app/FRAME.md`). */
+    serverOn: boolean;
+    onSetUpFrame: () => void;
   } = $props();
 
   let slideshows = $state.raw<readonly SlideshowSummary[] | null>(null);
@@ -123,6 +128,8 @@
     {onDismissNotice}
     {onReload}
     {statusBar}
+    {serverOn}
+    {onSetUpFrame}
     logo={slideshows.length === 0 || playStartAnimation ? startLogo : undefined}
   />
 {/if}
