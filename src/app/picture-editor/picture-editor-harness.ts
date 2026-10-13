@@ -42,6 +42,7 @@ export function view(overrides: Partial<PictureEditorView> = {}): PictureEditorV
     previousId: "a",
     nextId: "c",
     next: { size: { width: 300, height: 400 }, motion: AUTOMATIC, durationMs: 5000, caption: "" },
+    layout: { alone: false, pairedWithNumber: null, blurredFill: false, settingOverride: null },
     ...overrides,
   };
 }
@@ -85,6 +86,7 @@ export function mountEditor(shown: PictureEditorView = view(), { reducedMotion =
     durationResets: 0,
     transitions: [] as TransitionChoice[],
     transitionResets: 0,
+    alones: [] as boolean[],
   };
   /** Shows the picture as stored after an edit, e.g. with its new duration. */
   const update = (changed: PictureEditorView): void => {
@@ -113,6 +115,10 @@ export function mountEditor(shown: PictureEditorView = view(), { reducedMotion =
     onResetTransition: () => {
       calls.transitionResets += 1;
       update(transitionedView(current, current.transition.automatic, false));
+    },
+    onAlone: (alone: boolean) => {
+      calls.alones.push(alone);
+      update({ ...current, layout: { ...current.layout, alone } });
     },
     previewPorts: { clock, frames },
     reducedMotion,

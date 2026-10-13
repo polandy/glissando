@@ -76,6 +76,66 @@ describe("pictureEditorView", () => {
         durationMs: 4000,
         caption: "Am Steg",
       },
+      layout: { alone: false, pairedWithNumber: null, blurredFill: false, settingOverride: null },
+    });
+  });
+
+  describe("layout (ADR-0028)", () => {
+    it("names the pair partner by number", () => {
+      const portraitPair: typeof stored = {
+        ...stored,
+        pictures: [
+          {
+            id: "p1",
+            capturedAt: "2025-07-01T10:00:00Z",
+            width: 300,
+            height: 400,
+            fileName: "a.jpg",
+          },
+          {
+            id: "p2",
+            capturedAt: "2025-07-02T10:00:00Z",
+            width: 300,
+            height: 400,
+            fileName: "b.jpg",
+          },
+        ],
+      };
+
+      const view = pictureEditorView(portraitPair, "p1", NO_FOCUS_KNOWN, NO_SONG_BEATS);
+
+      expect(view.layout).toEqual({
+        alone: false,
+        pairedWithNumber: 2,
+        blurredFill: false,
+        settingOverride: null,
+      });
+    });
+
+    it("gives a lone portrait picture a blurred fill against the reference screen", () => {
+      const view = pictureEditorView(stored, "p3", NO_FOCUS_KNOWN, NO_SONG_BEATS);
+
+      expect(view.layout).toEqual({
+        alone: false,
+        pairedWithNumber: null,
+        blurredFill: true,
+        settingOverride: null,
+      });
+    });
+
+    it("carries the picture's own alone flag", () => {
+      const alone = withPicture(0, { alone: true });
+
+      expect(pictureEditorView(alone, "p1", NO_FOCUS_KNOWN, NO_SONG_BEATS).layout.alone).toBe(true);
+    });
+
+    it("names the slideshow's setting once it is not automatic", () => {
+      const fillScreen: typeof stored = { ...stored, portraitPictures: "fill-screen" };
+
+      const view = pictureEditorView(fillScreen, "p1", NO_FOCUS_KNOWN, NO_SONG_BEATS);
+
+      expect(view.layout.settingOverride).toBe("fill-screen");
+      expect(view.layout.blurredFill).toBe(false);
     });
   });
 

@@ -4,6 +4,8 @@ import {
   filledMusicMs,
   pictureDurationsMs,
   pictureKenBurns,
+  pictureLayoutSummaries,
+  type PictureLayoutSummary,
   playlistBeatsMs,
   playlistMs,
   pictureTransition,
@@ -16,6 +18,7 @@ import {
   type SlideshowTransition,
   type TransitionChoice,
 } from "../../library/own-timing";
+import type { PortraitPictures } from "../../library/portrait-pictures";
 import type { StoredPicture, StoredSlideshow } from "../../library/stored-slideshow";
 import { MILLISECONDS_PER_SECOND, type Size } from "../../player";
 import { focusStatus, type PictureFocusStatus, type PicturesFocus } from "../focus/pictures-focus";
@@ -42,6 +45,18 @@ export interface TransitionView {
   readonly slideshowTransition: SlideshowTransition;
   /** How long it runs at the end of the picture; 0 for a cut and at the last picture. */
   readonly durationMs: number;
+}
+
+/** A picture's layout (ADR-0028), for the picture editor's "Always alone" section. */
+export interface PictureLayoutView {
+  /** The switch's own state: never composed into a pair. */
+  readonly alone: boolean;
+  /** The pair partner's number (1-based), when the picture shares a slide with it. */
+  readonly pairedWithNumber: number | null;
+  /** Shown whole over a blurred copy of itself because a wide screen would crop too much. */
+  readonly blurredFill: boolean;
+  /** The slideshow's setting when it is not automatic, where the switch has no effect. */
+  readonly settingOverride: PortraitPictures | null;
 }
 
 /** The picture after this one, as the preview shows it after the transition. */
@@ -80,6 +95,7 @@ export interface PictureEditorView {
   readonly previousId: string | null;
   readonly nextId: string | null;
   readonly next: NextPictureView | null;
+  readonly layout: PictureLayoutView;
 }
 
 /**
@@ -158,6 +174,23 @@ export function pictureEditorView(
             durationMs: durationAt(index + 1),
             caption: nextPicture.caption ?? "",
           },
+    layout: layoutOf(picture, index, pictures, stored.portraitPictures),
+  };
+}
+
+function layoutOf(
+  picture: StoredPicture,
+  index: number,
+  pictures: readonly StoredPicture[],
+  portraitPictures: PortraitPictures | undefined,
+): PictureLayoutView {
+  // One summary per picture (`pictureLayoutSummaries`'s contract); `index` is always in range.
+  const summary = pictureLayoutSummaries(pictures, portraitPictures)[index] as PictureLayoutSummary;
+  return {
+    alone: picture.alone === true,
+    pairedWithNumber: summary.pairedWithNumber,
+    blurredFill: summary.blurredFill,
+    settingOverride: portraitPictures ?? null,
   };
 }
 
