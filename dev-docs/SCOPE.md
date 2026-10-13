@@ -46,7 +46,7 @@ editing and video export (WebCodecs). Slideshows and media live on the device in
   be shared by a link that anyone can watch in a browser (ADR-0025, `dev-docs/SHARE_LINK.md`).
 
 **The server is optional.** Installing needs one load from any static HTTPS host; after that the
-app runs without it. A Glissando server only adds the network extras (Immich proxy, slideshows
+app runs without it. Every release is public at https://polandy.github.io/glissando/. A Glissando server only adds the network extras (Immich proxy, slideshows
 stored on the server, TV control) and does no rendering or processing. A feature moves to the server only when the
 browser cannot do it, and that move is an ADR.
 

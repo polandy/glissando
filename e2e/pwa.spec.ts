@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { createSlideshow, GERMAN_BROWSER } from "./support/app";
+import { BELOW_PATH, BELOW_PATH_URL } from "./support/below-path";
 import { openApp } from "./support/browser";
 
 test.use(GERMAN_BROWSER);
@@ -13,11 +14,7 @@ function statusBar(page: Page) {
 test.describe("with the service worker", () => {
   test.use({ serviceWorkers: "allow" });
 
-  test("E2E-018 after one load the app starts offline with its library", async ({
-    page,
-    context,
-    browserName,
-  }) => {
+  test.beforeEach(({ browserName }) => {
     test.skip(
       browserName === "webkit",
       "Playwright's WebKit fails an offline navigation before its service worker can answer it",
@@ -26,13 +23,14 @@ test.describe("with the service worker", () => {
       browserName === "firefox",
       "Playwright's Firefox answers offline from its HTTP cache, so the case passes without the service worker's cache",
     );
+  });
+
+  test("E2E-018 after one load the app starts offline with its library", async ({
+    page,
+    context,
+  }) => {
     await openApp(page);
-    // The first load installs the service worker; it controls the page from the next one on.
-    await page.evaluate(async () => {
-      await navigator.serviceWorker.ready;
-    });
-    await page.reload();
-    expect(await page.evaluate(() => navigator.serviceWorker.controller !== null)).toBe(true);
+    await installServiceWorker(page);
     await createSlideshow(page, ["2025-07-12", "2025-07-14"], 2);
     await page.getByRole("button", { name: "Zurück" }).click();
     await expect(page.getByRole("heading", { name: "Deine Diashows" })).toBeVisible();
@@ -44,7 +42,33 @@ test.describe("with the service worker", () => {
     await expect(page.getByRole("button", { name: /Juli 2025/ })).toBeVisible();
     await expect(statusBar(page)).toContainText(OFFLINE_STATUS);
   });
+
+  test("E2E-053 below a path, as on GitHub Pages, the app installs there and starts offline", async ({
+    page,
+    context,
+  }) => {
+    await openApp(page, BELOW_PATH_URL);
+    const scope = await installServiceWorker(page);
+    expect(new URL(scope).pathname).toBe(BELOW_PATH);
+
+    await context.setOffline(true);
+    await page.reload();
+
+    await expect(page.getByRole("heading", { name: "Bilder rein, Diashow raus." })).toBeVisible();
+    await expect(statusBar(page)).toContainText(OFFLINE_STATUS);
+  });
 });
+
+/**
+ * Waits for the first load's service worker, which controls the page from the next load on, and
+ * reloads into it; returns the worker's scope.
+ */
+async function installServiceWorker(page: Page): Promise<string> {
+  const scope = await page.evaluate(async () => (await navigator.serviceWorker.ready).scope);
+  await page.reload();
+  expect(await page.evaluate(() => navigator.serviceWorker.controller !== null)).toBe(true);
+  return scope;
+}
 
 test("E2E-019 the start screen footer offers the install guide where the browser has no install prompt", async ({
   page,
