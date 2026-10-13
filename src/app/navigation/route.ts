@@ -24,7 +24,10 @@ export type Route =
   | { readonly screen: "add"; readonly slideshowId: string }
   | { readonly screen: "player"; readonly slideshowId: string }
   | { readonly screen: "music"; readonly slideshowId: string }
-  | { readonly screen: "picture"; readonly slideshowId: string; readonly pictureId: string };
+  | { readonly screen: "picture"; readonly slideshowId: string; readonly pictureId: string }
+  | { readonly screen: "frameSetup" }
+  /** The running picture frame (`dev-docs/app/FRAME.md`); over start, not over its set-up screen. */
+  | { readonly screen: "frame"; readonly albumId: string };
 
 export const START_ROUTE: Route = { screen: "start" };
 
@@ -35,6 +38,8 @@ export function parentOf(route: Route): Route | null {
       return null;
     case "settings":
     case "slideshow":
+    case "frameSetup":
+    case "frame":
       return START_ROUTE;
     case "import":
       return route.step === "music" ? { screen: "import", step: "pictures" } : START_ROUTE;
@@ -65,6 +70,7 @@ export function isRestorable(route: Route, from: Route | null): boolean {
   switch (route.screen) {
     case "player":
     case "settings":
+    case "frame":
       return false;
     case "import":
     case "immich":
@@ -97,6 +103,12 @@ export function parseRoute(state: unknown): Route | null {
       return START_ROUTE;
     case "settings":
       return { screen: "settings" };
+    case "frameSetup":
+      return { screen: "frameSetup" };
+    case "frame": {
+      const albumId = state["albumId"];
+      return isId(albumId) ? { screen: "frame", albumId } : null;
+    }
     case "slideshow":
     case "player":
     case "music":
