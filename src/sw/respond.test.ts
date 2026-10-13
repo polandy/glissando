@@ -137,6 +137,30 @@ describe("answersRequest", () => {
       answers: true,
     },
     {
+      what: "a navigation to a TV remote's page",
+      method: "GET",
+      url: `${ORIGIN}/app/r/AbCdEfGhIjKlMnOpQrStUv`,
+      answers: false,
+    },
+    {
+      what: "a GET of a file whose name merely starts with r",
+      method: "GET",
+      url: `${ORIGIN}/app/robots.txt`,
+      answers: true,
+    },
+    {
+      what: "a navigation to the TV page",
+      method: "GET",
+      url: `${ORIGIN}/app/tv`,
+      answers: false,
+    },
+    {
+      what: "a GET of a file whose name merely starts with tv",
+      method: "GET",
+      url: `${ORIGIN}/app/tv-logo.svg`,
+      answers: true,
+    },
+    {
       what: "a navigation to the app's Immich route itself",
       method: "GET",
       url: `${ORIGIN}/app/immich/`,
