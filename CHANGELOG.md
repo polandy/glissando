@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.5](https://github.com/polandy/glissando/compare/glissando-v0.0.4...glissando-v0.0.5) (2026-10-13)
+
+
+### Bug Fixes
+
+* retry a failed picture read or decode once and tell the two apart ([91d99b0](https://github.com/polandy/glissando/commit/91d99b0ef78e8cf84b8c495a55dff080214867d6))
+
 ## [0.0.4](https://github.com/polandy/glissando/compare/glissando-v0.0.3...glissando-v0.0.4) (2026-10-13)
 
 
