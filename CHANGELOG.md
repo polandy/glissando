@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.0.3](https://github.com/polandy/glissando/compare/glissando-v0.0.2...glissando-v0.0.3) (2026-10-13)
+
+
+### Features
+
+* choose the quality of server slideshows and prepare 4K before playing ([#52](https://github.com/polandy/glissando/issues/52)) ([5ff0fbb](https://github.com/polandy/glissando/commit/5ff0fbb9b9f13e1a48f6b3c43bc9352a4280d5bf))
+* frame every person in a group with the automatic Ken Burns ([8d1e873](https://github.com/polandy/glissando/commit/8d1e8731014eb807f9008446baed390aeaa2ebd5))
+* pair portrait pictures and show a lone one whole over a blurred fill ([#56](https://github.com/polandy/glissando/issues/56)) ([4803105](https://github.com/polandy/glissando/commit/4803105ce905bb5c2625a1eaa41f0f2da09786eb))
+* show an Immich album as an endless picture frame ([#59](https://github.com/polandy/glissando/issues/59)) ([398fd49](https://github.com/polandy/glissando/commit/398fd49c9ce06eff87ec1298162e3175c823db78))
+* show the running version in the settings and make a waiting update stand out ([#53](https://github.com/polandy/glissando/issues/53)) ([199394e](https://github.com/polandy/glissando/commit/199394e79923e454715c76b10f506331a4917c2d))
+
+
+### Bug Fixes
+
+* keep import tiles' remove marks and dates under the bottom action bar ([a88163b](https://github.com/polandy/glissando/commit/a88163b84dd7fc0387cd803722f3e4daa0564280))
+
 ## [0.0.2](https://github.com/polandy/glissando/compare/glissando-v0.0.1...glissando-v0.0.2) (2026-10-12)
 
 
