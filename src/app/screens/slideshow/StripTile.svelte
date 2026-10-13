@@ -66,6 +66,8 @@
       picture.pairedWithNumber === null
         ? ""
         : t("slideshow.pairedWith", { number: picture.pairedWithNumber }),
+      picture.alone ? t("slideshow.pictureLabelAlone") : "",
+      picture.blurredFill ? t("slideshow.pictureLabelBlurredFill") : "",
     ].join(""),
   );
   const label = $derived(isNew ? t("add.newLabel", { label: ownLabel }) : ownLabel);

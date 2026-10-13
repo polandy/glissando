@@ -87,10 +87,21 @@ describe("StripTile, the alone and blurred fill badges (ADR-0028)", () => {
     expect(target.querySelector(BLURRED_FILL)).not.toBeNull();
   });
 
+  it("names both in the picture's accessible label", () => {
+    const label = (overrides: Partial<PictureTile>) =>
+      mountTile(overrides).querySelector("img")?.getAttribute("alt") ?? "";
+
+    expect(label({ alone: true }).endsWith(", allein gezeigt")).toBe(true);
+    destroy?.();
+    expect(label({ blurredFill: true }).endsWith(", über einer unscharfen Füllung")).toBe(true);
+  });
+
   it("shows neither badge for a plain covered picture", () => {
     const target = mountTile();
 
     expect(target.querySelector("img")).not.toBeNull();
+    expect(target.querySelector("img")?.getAttribute("alt")).toMatch(/^Bild 1, aufgenommen am /);
+    expect(target.querySelector("img")?.getAttribute("alt")).not.toMatch(/allein|Füllung/);
     expect(target.querySelector(ALONE)).toBeNull();
     expect(target.querySelector(BLURRED_FILL)).toBeNull();
   });

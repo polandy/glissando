@@ -24,6 +24,8 @@ export const dePortrait = {
   "slideshow.pairedWith": ", gezeigt als Paar mit Bild {number}",
   "slideshow.blurredFillBadge": "Unscharfe Füllung",
   "slideshow.aloneBadge": "Allein gezeigt",
+  "slideshow.pictureLabelAlone": ", allein gezeigt",
+  "slideshow.pictureLabelBlurredFill": ", über einer unscharfen Füllung",
   "editor.layoutTitle": "Layout",
   "editor.alwaysAlone": "Immer allein",
   "editor.alwaysAloneHint": "Dieses Bild wird nie mit einem anderen auf einem Dia gezeigt.",

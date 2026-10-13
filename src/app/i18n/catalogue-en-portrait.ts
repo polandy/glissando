@@ -25,6 +25,8 @@ export const enPortrait: Pick<Catalogue, keyof typeof dePortrait> = {
   "slideshow.pairedWith": ", shown as a pair with picture {number}",
   "slideshow.blurredFillBadge": "Blurred fill",
   "slideshow.aloneBadge": "Shown alone",
+  "slideshow.pictureLabelAlone": ", shown alone",
+  "slideshow.pictureLabelBlurredFill": ", over a blurred fill",
   "editor.layoutTitle": "Layout",
   "editor.alwaysAlone": "Always alone",
   "editor.alwaysAloneHint": "This picture never shares a slide with another one.",

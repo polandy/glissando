@@ -83,6 +83,8 @@
   /* Over a picture: white marks on a dark veil, in both themes. */
   --gl-on-photo: #ffffff;
   --gl-photo-badge: rgb(0 0 0 / 0.45);
+  /* An accent badge over a picture, darkened to carry white marks: "Shown alone". */
+  --gl-photo-accent-badge: color-mix(in srgb, var(--gl-accent) 65%, black 25%);
   --gl-photo-fade: rgb(0 0 0 / 0.55);
   --gl-photo-vignette: rgb(0 0 0 / 0.22);
   --gl-photo-play-bg: rgb(255 255 255 / 0.92);

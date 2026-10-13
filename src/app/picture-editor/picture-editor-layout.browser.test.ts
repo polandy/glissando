@@ -20,6 +20,13 @@ describe("PictureEditorScreen layout (ADR-0028)", () => {
     expect(text(layoutSection())).toContain("Wird allein gezeigt.");
   });
 
+  it("announces the status line politely and leaves the switch's state to the checkbox", () => {
+    mountEditor(view());
+
+    expect(element(".layout .status").getAttribute("aria-live")).toBe("polite");
+    expect(switchInput().hasAttribute("aria-checked")).toBe(false);
+  });
+
   it("names the pair partner", () => {
     mountEditor(
       view({

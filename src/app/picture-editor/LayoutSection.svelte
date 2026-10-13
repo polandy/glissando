@@ -39,7 +39,6 @@
       <input
         type="checkbox"
         role="switch"
-        aria-checked={picture.layout.alone}
         checked={picture.layout.alone}
         onchange={(event) => onAlone(event.currentTarget.checked)}
       />
@@ -48,7 +47,7 @@
     </label>
   </div>
   <p class="hint">{t("editor.alwaysAloneHint")}</p>
-  <p class="status">{status}</p>
+  <p class="status" aria-live="polite">{status}</p>
 </section>
 
 <style>

@@ -3,7 +3,10 @@
   import { getTranslator } from "../../i18n/context";
   import type { PictureTile } from "../view-models";
 
-  /** The small marks on a strip tile: just added, own motion, own duration, own transition. */
+  /**
+   * The small marks on a strip tile: just added, own motion, own duration, own transition, always
+   * alone and shown over a blurred fill (ADR-0028).
+   */
   let {
     picture,
     isNew,
@@ -73,6 +76,6 @@
     color: var(--gl-accent-ink);
   }
   .badge.alone-badge {
-    background: color-mix(in srgb, var(--gl-accent) 65%, black 25%);
+    background: var(--gl-photo-accent-badge);
   }
 </style>
