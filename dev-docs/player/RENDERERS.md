@@ -45,6 +45,10 @@
   - **DOM**: `dom-layer-placement.ts` places a pair's two pictures each in their own wrapper,
     clipped (`overflow: hidden`) to their half; a blurred fill wraps the front picture the same
     way and draws a second, cloned `<img>` behind it with `filter: blur(...) brightness(...)`.
-    A caption, which only a single, unpaired slide ever carries, follows the layer's top-level
-    node (the picture itself when covering, its wrapper for the blurred fill) so it stays
-    screen-space regardless of layout.
+    The blur radius is `BACKDROP_BLUR_RADIUS_SHARE` of the picture's long side, set in the
+    backdrop's own pixels so its transform scales it with the picture, as the WebGL backdrop's
+    blur is. The backdrop and the front's wrapper sit in one group node that carries the layer's
+    opacity, so a crossfade blends the layer as a whole, as WebGL does, and the backdrop never
+    shows through a half-transparent front. A caption, which only a single, unpaired slide ever
+    carries, follows the layer's top-level node (the picture itself when covering, its group for
+    the blurred fill) so it stays screen-space regardless of layout.
