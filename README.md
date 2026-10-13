@@ -10,7 +10,10 @@ moves and smooth transitions, chosen for you. It is a web app you install like a
 for offline use: your pictures stay on your device, and no server or internet connection is
 needed once it is installed.
 
-**Status:** early development — nothing to use yet. What is planned, and in which order, is in
+**Try it:** <https://polandy.github.io/glissando/> — open it once, install it if you like, and it
+keeps working offline. Your pictures never leave your device.
+
+**Status:** early development. What is planned, and in which order, is in
 [`dev-docs/SCOPE.md`](dev-docs/SCOPE.md).
 
 Runs in current Chrome, Edge, Firefox and Safari (including iPhone and iPad), in German and

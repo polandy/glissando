@@ -5,6 +5,12 @@ its update rule: ADR-0005; it leaves the Immich route (`immich/`) and the librar
 (`api/library`, SERVER_LIBRARY.md) to the network, never caching their live data. Web app
 manifest and icons in `public/`; the PNG icons come from `scripts/brand/icons.sh`.
 
+- **The public installation**: every release (`release-please.yml`, job `pages`) publishes the
+  build to GitHub Pages, https://polandy.github.io/glissando/ — a release, not every merge, so an
+  installed app only offers released versions as updates. There is no server below it: Immich,
+  server slideshows, share links and the TV remote never show (ADR-0013). It runs below a path,
+  which E2E-053 covers with a second preview at `/glissando/`.
+
 - **Where**: only the start screen's status bar. Left a dot and a status line, right at most one
   action — never a banner or a pop-up of our own. A waiting new version is the one exception to
   its quiet look (approved mockup:
