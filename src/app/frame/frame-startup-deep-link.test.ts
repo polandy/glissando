@@ -1,7 +1,7 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { Route } from "../navigation/route";
 import type { ServerLibraryState } from "../../server-library/server-library-availability";
-import { openDeepLinkedFrame } from "./frame-startup-deep-link";
+import { browserClearDeepLinkHash, openDeepLinkedFrame } from "./frame-startup-deep-link";
 
 /** A server availability a test can push states through. */
 class FakeAvailability {
@@ -39,7 +39,7 @@ describe("openDeepLinkedFrame", () => {
   it("opens the set-up screen then the frame once the server library is already on", () => {
     const navigator = new FakeNavigator();
 
-    openDeepLinkedFrame("album-1", new FakeAvailability({ kind: "on" }), navigator);
+    openDeepLinkedFrame("album-1", new FakeAvailability({ kind: "on" }), navigator, vi.fn());
 
     expect(navigator.opened).toEqual([
       { screen: "frameSetup" },
@@ -51,7 +51,7 @@ describe("openDeepLinkedFrame", () => {
     const navigator = new FakeNavigator();
     const availability = new FakeAvailability({ kind: "checking" });
 
-    openDeepLinkedFrame("album-1", availability, navigator);
+    openDeepLinkedFrame("album-1", availability, navigator, vi.fn());
     expect(navigator.opened).toEqual([]);
 
     availability.set({ kind: "on" });
@@ -66,7 +66,7 @@ describe("openDeepLinkedFrame", () => {
     const navigator = new FakeNavigator();
     const availability = new FakeAvailability({ kind: "checking" });
 
-    openDeepLinkedFrame("album-1", availability, navigator);
+    openDeepLinkedFrame("album-1", availability, navigator, vi.fn());
     availability.set({ kind: "off" });
 
     expect(navigator.opened).toEqual([]);
@@ -76,7 +76,7 @@ describe("openDeepLinkedFrame", () => {
     const navigator = new FakeNavigator();
     const availability = new FakeAvailability({ kind: "on" });
 
-    openDeepLinkedFrame("album-1", availability, navigator);
+    openDeepLinkedFrame("album-1", availability, navigator, vi.fn());
     availability.set({ kind: "off" });
     availability.set({ kind: "on" });
 
@@ -90,10 +90,64 @@ describe("openDeepLinkedFrame", () => {
     const navigator = new FakeNavigator();
     const availability = new FakeAvailability({ kind: "checking" });
 
-    openDeepLinkedFrame("album-1", availability, navigator);
+    openDeepLinkedFrame("album-1", availability, navigator, vi.fn());
     navigator.route = { screen: "settings" };
     availability.set({ kind: "on" });
 
     expect(navigator.opened).toEqual([]);
+  });
+
+  it("clears the deep link hash once resolved, so a later reload cannot replay it", () => {
+    const navigator = new FakeNavigator();
+    const clearDeepLinkHash = vi.fn();
+
+    openDeepLinkedFrame(
+      "album-1",
+      new FakeAvailability({ kind: "on" }),
+      navigator,
+      clearDeepLinkHash,
+    );
+
+    expect(clearDeepLinkHash).toHaveBeenCalledOnce();
+  });
+
+  it("clears the deep link hash even if the user already navigated elsewhere", () => {
+    const navigator = new FakeNavigator();
+    const availability = new FakeAvailability({ kind: "checking" });
+    const clearDeepLinkHash = vi.fn();
+
+    openDeepLinkedFrame("album-1", availability, navigator, clearDeepLinkHash);
+    navigator.route = { screen: "settings" };
+    availability.set({ kind: "on" });
+
+    expect(clearDeepLinkHash).toHaveBeenCalledOnce();
+    expect(navigator.opened).toEqual([]);
+  });
+
+  it("does not clear the hash again if availability flaps after it already resolved", () => {
+    const navigator = new FakeNavigator();
+    const availability = new FakeAvailability({ kind: "on" });
+    const clearDeepLinkHash = vi.fn();
+
+    openDeepLinkedFrame("album-1", availability, navigator, clearDeepLinkHash);
+    availability.set({ kind: "off" });
+    availability.set({ kind: "on" });
+
+    expect(clearDeepLinkHash).toHaveBeenCalledOnce();
+  });
+});
+
+describe("browserClearDeepLinkHash", () => {
+  it("drops the hash from the address bar without replacing history.state", () => {
+    const state = { screen: "frame", albumId: "album-1" };
+    const replaceState = vi.fn();
+    const fakeWindow = {
+      location: { pathname: "/", search: "", hash: "#frame=album-1" },
+      history: { state, replaceState },
+    } as unknown as Window;
+
+    browserClearDeepLinkHash(fakeWindow)();
+
+    expect(replaceState).toHaveBeenCalledWith(state, "", "/");
   });
 });

@@ -8,7 +8,7 @@ import { AddPicturesSession, serverAddingStore } from "./app/add-pictures/add-pi
 import { ImportSession } from "./app/import/import-session";
 import { createWindowHistory, Navigator } from "./app/navigation/navigator";
 import { parseFrameDeepLink } from "./app/frame/frame-deep-link";
-import { openDeepLinkedFrame } from "./app/frame/frame-startup-deep-link";
+import { browserClearDeepLinkHash, openDeepLinkedFrame } from "./app/frame/frame-startup-deep-link";
 import { randomId } from "./app/random-id";
 import { AppSettings } from "./app/settings/app-settings";
 import { createStorageLanguagePreferenceStore } from "./app/settings/language";
@@ -214,7 +214,12 @@ const frame = createFrameServices(window, browserScheduler, logError);
 const deepLinkedFrameAlbumId = parseFrameDeepLink(window.location.hash);
 const navigator = new Navigator(createWindowHistory(window));
 if (deepLinkedFrameAlbumId !== null) {
-  openDeepLinkedFrame(deepLinkedFrameAlbumId, serverLibrary.availability, navigator);
+  openDeepLinkedFrame(
+    deepLinkedFrameAlbumId,
+    serverLibrary.availability,
+    navigator,
+    browserClearDeepLinkHash(window),
+  );
 }
 
 const services = {

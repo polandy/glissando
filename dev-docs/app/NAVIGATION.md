@@ -20,4 +20,7 @@ screens below their slideshow
 - **`#frame=<albumId>`** (`dev-docs/app/FRAME.md`) is the one route with a real URL, not just
   history state: opening the app on that hash goes straight to `frame(albumId)`, skipping start
   and set-up, for a link sent to a tablet or TV browser. Every other route still lives only in
-  `history.state`.
+  `history.state`. The hash is cleared once resolved (whether or not it ended up opening the
+  frame): left in the address bar it is outside `history.state` and outside every "history never
+  restores what is gone" rule above, so a later reload would replay the same deep link even after
+  the user explicitly exited the frame.
