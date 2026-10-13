@@ -1,10 +1,13 @@
 import {
+  pictureLayoutSummaries,
   playlistMs,
   resolveMusicTiming,
+  slideUnits,
   slideshowDurationMs,
   slideshowTransition,
 } from "../compose";
 import { MILLISECONDS_PER_SECOND } from "../player";
+import { resolvePortraitPictures } from "../library/portrait-pictures";
 import type { StoredMusic, StoredSlideshow } from "../library/stored-slideshow";
 import type {
   MusicFades,
@@ -58,6 +61,9 @@ export function slideshowDetails(
   const onlySong = stored.songs.length === 1 ? firstSong : undefined;
   const musicMs = playlistMs(stored);
   const lastIndex = stored.pictures.length - 1;
+  const layouts = pictureLayoutSummaries(stored.pictures, stored.portraitPictures);
+  // One summary per picture (`pictureLayoutSummaries`'s contract); every index below is in range.
+  const layoutAt = (index: number) => layouts[index] as (typeof layouts)[number];
   const tiles = stored.pictures.map((picture, index) => ({
     id: picture.id,
     thumbnailUrl: thumbnailUrl(picture.id),
@@ -66,6 +72,9 @@ export function slideshowDetails(
     ownDurationMs: picture.durationMs ?? null,
     // The last picture plays no transition; one stored there waits for a picture to follow.
     ownTransition: index === lastIndex ? null : (picture.transition ?? null),
+    pairedWithNumber: layoutAt(index).pairedWithNumber,
+    blurredFill: layoutAt(index).blurredFill,
+    alone: picture.alone === true,
   }));
   return {
     title: stored.title,
@@ -81,6 +90,10 @@ export function slideshowDetails(
     ownDurationCount: tiles.filter((tile) => tile.ownDurationMs !== null).length,
     ownTransitionCount: tiles.filter((tile) => tile.ownTransition !== null).length,
     transition: slideshowTransition(stored),
+    portraitPictures: resolvePortraitPictures(stored.portraitPictures),
+    pairCount: slideUnits(stored.pictures, stored.portraitPictures).filter(
+      (unit) => unit.pictureIndices.length === 2,
+    ).length,
     captionCount: stored.pictures.filter((picture) => picture.caption !== undefined).length,
     capturedFrom: span.from,
     capturedTo: span.to,

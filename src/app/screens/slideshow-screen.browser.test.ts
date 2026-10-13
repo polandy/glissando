@@ -143,6 +143,9 @@ describe("SlideshowScreen editing", () => {
       ownMotion: false,
       ownDurationMs: null,
       ownTransition: null,
+      pairedWithNumber: null,
+      blurredFill: false,
+      alone: false,
     }));
     mountScreen(details(ids, { pictures }));
     const last = document.querySelector<HTMLElement>(".strip > li:last-child button.pick");

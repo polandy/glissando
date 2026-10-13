@@ -13,6 +13,23 @@ export const PORTRAIT_PICTURES_CHOICES = [
 ] as const;
 export type PortraitPictures = (typeof PORTRAIT_PICTURES_CHOICES)[number];
 
+/** `StoredSlideshow.portraitPictures` absent, named for the screens that show it as a choice. */
+export const AUTOMATIC_PORTRAIT_PICTURES = "automatic";
+
+/** The three choices the slideshow screen's sheet offers, automatic first. */
+export const RESOLVED_PORTRAIT_PICTURES_CHOICES = [
+  AUTOMATIC_PORTRAIT_PICTURES,
+  ...PORTRAIT_PICTURES_CHOICES,
+] as const;
+export type ResolvedPortraitPictures = (typeof RESOLVED_PORTRAIT_PICTURES_CHOICES)[number];
+
+/** `portraitPictures` as shown: its absence resolved to `"automatic"`. */
+export function resolvePortraitPictures(
+  portraitPictures: PortraitPictures | undefined,
+): ResolvedPortraitPictures {
+  return portraitPictures ?? AUTOMATIC_PORTRAIT_PICTURES;
+}
+
 export class InvalidPortraitPicturesError extends Error {
   constructor(
     where: string,
