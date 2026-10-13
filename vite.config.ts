@@ -5,14 +5,29 @@ import { buildInfoPlugin } from "./build/build-info.ts";
 import { exportPlayerPlugin } from "./build/export-player-plugin.ts";
 import { libavLicensePlugin } from "./build/libav-license.ts";
 import { pinnedThemePlugin } from "./build/pinned-theme-script.ts";
+import { remotePagePlugin } from "./build/remote-page-plugin.ts";
 import { serviceWorkerPlugin } from "./build/service-worker-plugin.ts";
 import { sharePagePlugin } from "./build/share-page-plugin.ts";
+import { tvStreamPlugin } from "./e2e/support/tv-stream-plugin.ts";
 // Every module this config loads imports with explicit file extensions (ADR-0026).
+import {
+  fakeRemoteStreamPlugin,
+  nextFakeRemoteCommand,
+  sendFakeRemoteEvent,
+  serveFakeRemoteApi,
+  stopFakeRemoteApi,
+} from "./src/remote-page/testing/fake-remote-api-command.ts";
 import {
   releaseFakeSharePicture,
   serveFakeShareApi,
   stopFakeShareApi,
 } from "./src/share-page/testing/fake-share-api-command.ts";
+import {
+  nextFakeTvReport,
+  sendFakeTvEvent,
+  serveFakeTvApi,
+  stopFakeTvApi,
+} from "./src/share-page/testing/fake-tv-api-command.ts";
 import { THIRD_PARTY_LICENSES_FILE } from "./src/app/settings/third-party-licenses.ts";
 
 const BROWSER_TESTS = "src/**/*.browser.test.ts";
@@ -28,8 +43,11 @@ export default defineConfig({
     pinnedThemePlugin(),
     exportPlayerPlugin(),
     sharePagePlugin(),
+    remotePagePlugin(),
     libavLicensePlugin(),
     serviceWorkerPlugin(),
+    // Only its configurePreviewServer hook does anything; e2e/support/fake-tv-api.ts needs it.
+    tvStreamPlugin(),
   ],
   test: {
     // e2e/ belongs to Playwright.
@@ -45,6 +63,7 @@ export default defineConfig({
       {
         // WebGL and the DOM only exist in a browser; these run in each engine CI supports.
         extends: true,
+        plugins: [fakeRemoteStreamPlugin()],
         test: {
           name: "browser",
           include: [BROWSER_TESTS],
@@ -52,7 +71,19 @@ export default defineConfig({
             enabled: true,
             headless: true,
             provider: playwright(),
-            commands: { serveFakeShareApi, stopFakeShareApi, releaseFakeSharePicture },
+            commands: {
+              serveFakeShareApi,
+              stopFakeShareApi,
+              releaseFakeSharePicture,
+              serveFakeTvApi,
+              sendFakeTvEvent,
+              nextFakeTvReport,
+              stopFakeTvApi,
+              serveFakeRemoteApi,
+              sendFakeRemoteEvent,
+              nextFakeRemoteCommand,
+              stopFakeRemoteApi,
+            },
             instances: [
               { browser: "chromium" },
               // Headless Firefox in the CI image has no WebGL at all, whatever its prefs; it

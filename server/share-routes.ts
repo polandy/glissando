@@ -1,5 +1,5 @@
 import type { LibraryHandlerDependencies } from "./library-handler";
-import type { ShareLink, SlideshowRecord } from "./library-repository";
+import type { LibraryRepository, ShareLink, SlideshowRecord } from "./library-repository";
 import {
   errorResponse,
   HTTP_STATUS,
@@ -31,7 +31,7 @@ export const shareLinkJson = (link: ShareLink | undefined) =>
     ? null
     : { token: link.token, createdAt: new Date(link.createdAt).toISOString() };
 
-const notShared = () =>
+export const notShared = () =>
   errorResponse(HTTP_STATUS.notFound, "notShared", "no slideshow is shared by this link");
 
 /** The item at `position` of `items`, if `position` names one. */
@@ -92,42 +92,57 @@ export function shareRoutes({ repository, now, randomBytes }: LibraryHandlerDepe
     },
 
     document: (token: string): LibraryResponse =>
-      sharedBy(token, ({ revision, document: { slideshow } }) =>
-        jsonResponse(
-          HTTP_STATUS.ok,
-          {
-            revision,
-            slideshow: shareDocumentOf(slideshow),
-            beats: slideshow.songs.map((song) => repository.findMusicBeats(song.musicId) ?? null),
-          },
-          { [CACHE_CONTROL]: DOCUMENT_CACHE_CONTROL },
-        ),
-      ),
+      sharedBy(token, (record) => shareDocumentAnswer(repository, record)),
 
     song: (token: string, position: string): LibraryResponse =>
-      sharedBy(token, ({ document }) => {
-        const song = at(document.slideshow.songs, position);
-        const music = song === undefined ? undefined : repository.findMusic(song.musicId);
-        return music === undefined
-          ? errorResponse(HTTP_STATUS.notFound, "noSuchSong", "the slideshow has no such song")
-          : {
-              status: HTTP_STATUS.ok,
-              headers: { [CONTENT_TYPE]: music.contentType, [CACHE_CONTROL]: MEDIA_CACHE_CONTROL },
-              body: music.bytes,
-            };
-      }),
+      sharedBy(token, (record) => shareSongAnswer(repository, record, position)),
 
     /** Caddy fetches the named asset's preview from Immich with the key (ADR-0025). */
     pictureCheck: (token: string, position: string): LibraryResponse =>
-      sharedBy(token, ({ document }) => {
-        const assetId = at(document.slideshow.pictures, position)?.immichAssetId;
-        return assetId === undefined || !IMMICH_ASSET_ID.test(assetId)
-          ? errorResponse(
-              HTTP_STATUS.notFound,
-              "noSuchPicture",
-              "the slideshow has no such picture",
-            )
-          : { status: HTTP_STATUS.ok, headers: { [IMMICH_ASSET_HEADER]: assetId }, body: "" };
-      }),
+      sharedBy(token, (record) => sharePictureCheckAnswer(record, position)),
   };
+}
+
+/** A shown slideshow's document, as a recipient's page or a TV reads it. */
+export function shareDocumentAnswer(
+  repository: LibraryRepository,
+  { revision, document: { slideshow } }: SlideshowRecord,
+): LibraryResponse {
+  return jsonResponse(
+    HTTP_STATUS.ok,
+    {
+      revision,
+      slideshow: shareDocumentOf(slideshow),
+      beats: slideshow.songs.map((song) => repository.findMusicBeats(song.musicId) ?? null),
+    },
+    { [CACHE_CONTROL]: DOCUMENT_CACHE_CONTROL },
+  );
+}
+
+/** The bytes of the song at `position` of a shown slideshow. */
+export function shareSongAnswer(
+  repository: LibraryRepository,
+  { document }: SlideshowRecord,
+  position: string,
+): LibraryResponse {
+  const song = at(document.slideshow.songs, position);
+  const music = song === undefined ? undefined : repository.findMusic(song.musicId);
+  return music === undefined
+    ? errorResponse(HTTP_STATUS.notFound, "noSuchSong", "the slideshow has no such song")
+    : {
+        status: HTTP_STATUS.ok,
+        headers: { [CONTENT_TYPE]: music.contentType, [CACHE_CONTROL]: MEDIA_CACHE_CONTROL },
+        body: music.bytes,
+      };
+}
+
+/** The Immich asset of the picture at `position`, as a header Caddy copies (ADR-0025). */
+export function sharePictureCheckAnswer(
+  { document }: SlideshowRecord,
+  position: string,
+): LibraryResponse {
+  const assetId = at(document.slideshow.pictures, position)?.immichAssetId;
+  return assetId === undefined || !IMMICH_ASSET_ID.test(assetId)
+    ? errorResponse(HTTP_STATUS.notFound, "noSuchPicture", "the slideshow has no such picture")
+    : { status: HTTP_STATUS.ok, headers: { [IMMICH_ASSET_HEADER]: assetId }, body: "" };
 }

@@ -1,0 +1,179 @@
+/*
+ * The TV page's parts (dev-docs/tv_remote/TV_PAGE.md), read from across the room: every size is
+ * a design token times `--tv-scale`, which grows with the screen.
+ */
+:root {
+  --tv-scale: 1;
+  --tv-gap: calc(24px * var(--tv-scale));
+  --tv-qr-size: calc(240px * var(--tv-scale));
+  --tv-chip-qr-size: calc(84px * var(--tv-scale));
+}
+
+@media (min-width: 1280px) {
+  :root {
+    --tv-scale: 1.25;
+  }
+}
+
+@media (min-width: 1800px) {
+  :root {
+    --tv-scale: 1.6;
+  }
+}
+
+/* Over the player's own cards and the share page's. */
+.tv-card,
+.tv-note,
+.tv-chip {
+  z-index: 2;
+}
+
+.tv-card {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: calc(var(--tv-gap) * 2);
+  background: radial-gradient(circle at 30% 30%, var(--gl-player-glass), var(--gl-player-bg) 70%);
+  text-align: start;
+}
+
+.tv-card[hidden],
+.tv-note[hidden],
+.tv-chip[hidden] {
+  display: none;
+}
+
+.tv-text {
+  display: grid;
+  gap: calc(var(--tv-gap) / 2);
+  max-width: 34ch;
+}
+
+.wordmark {
+  font-family: var(--gl-font-wordmark);
+  font-weight: var(--gl-weight-wordmark);
+  font-size: calc(var(--gl-size-display) * var(--tv-scale));
+  color: var(--gl-accent);
+}
+
+.tv-card .title {
+  margin: 0;
+  font-family: var(--gl-font-display);
+  font-size: calc(var(--gl-size-display) * 1.2 * var(--tv-scale));
+  font-weight: var(--gl-weight-title);
+  text-wrap: balance;
+}
+
+.tv-card p {
+  margin: 0;
+  font-size: calc(var(--gl-size-panel-title) * var(--tv-scale));
+  line-height: 1.4;
+  color: var(--gl-player-muted);
+}
+
+.tv-code {
+  font-family: var(--gl-font-mono);
+  font-size: calc(var(--gl-size-display) * 1.9 * var(--tv-scale));
+  letter-spacing: 0.18em;
+  color: var(--gl-accent);
+}
+
+.tv-card .again {
+  justify-self: start;
+  font-size: calc(var(--gl-size-panel-title) * var(--tv-scale));
+  padding: calc(12px * var(--tv-scale)) calc(24px * var(--tv-scale));
+}
+
+/* The focus a TV remote's arrows move must be seen from the sofa. */
+.tv-card .again:focus-visible,
+.phone-offer:focus-visible,
+.controls button:focus-visible {
+  outline: calc(4px * var(--tv-scale)) solid var(--gl-accent);
+  outline-offset: calc(4px * var(--tv-scale));
+}
+
+.qr-frame {
+  padding: calc(14px * var(--tv-scale));
+  border-radius: var(--gl-radius-large);
+  background: var(--gl-qr-light);
+  line-height: 0;
+}
+
+.qr {
+  width: var(--tv-qr-size);
+  height: var(--tv-qr-size);
+  fill: var(--gl-qr-dark);
+}
+
+.tv-note {
+  position: fixed;
+  top: calc(var(--tv-gap) + env(safe-area-inset-top));
+  left: 50%;
+  transform: translateX(-50%);
+  padding: calc(10px * var(--tv-scale)) calc(22px * var(--tv-scale));
+  border-radius: var(--gl-radius-pill);
+  background: var(--gl-photo-badge);
+  backdrop-filter: blur(8px);
+  font-size: calc(var(--gl-size-heading) * var(--tv-scale));
+  font-weight: var(--gl-weight-semibold);
+  pointer-events: none;
+}
+
+.tv-chip {
+  position: fixed;
+  right: var(--tv-gap);
+  bottom: calc(var(--tv-gap) * 4);
+  display: flex;
+  align-items: center;
+  gap: calc(12px * var(--tv-scale));
+  padding: calc(10px * var(--tv-scale));
+  border-radius: var(--gl-radius-large);
+  background: var(--gl-photo-badge);
+  backdrop-filter: blur(8px);
+  font-size: calc(var(--gl-size-title) * var(--tv-scale));
+}
+
+.tv-chip .qr-frame {
+  padding: calc(6px * var(--tv-scale));
+  border-radius: var(--gl-radius-small);
+}
+
+.tv-chip .qr {
+  width: var(--tv-chip-qr-size);
+  height: var(--tv-chip-qr-size);
+}
+
+.phone-offer {
+  margin-top: 14px;
+  background: var(--gl-player-glass);
+  color: var(--gl-player-text);
+}
+
+.phone-link {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.phone-link p {
+  max-width: 30ch;
+  margin: 0;
+  color: var(--gl-player-muted);
+}
+
+.phone-link .qr {
+  width: calc(var(--tv-qr-size) * 0.75);
+  height: calc(var(--tv-qr-size) * 0.75);
+}
+
+@media (max-width: 720px) {
+  .tv-card {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .tv-card .again {
+    justify-self: center;
+  }
+}

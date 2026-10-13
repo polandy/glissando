@@ -91,6 +91,14 @@ export type ErrorCode =
   | "notShared"
   | "noSuchPicture"
   | "noSuchSong"
+  | "noSuchCode"
+  | "invalidCode"
+  | "noSuchTv"
+  | "notShown"
+  | "boundToLink"
+  | "tvAway"
+  | "invalidState"
+  | "invalidCommand"
   | "internalError";
 
 export function errorResponse(
@@ -107,6 +115,16 @@ export function notFound(): LibraryResponse {
 }
 
 const CONTENT_TYPE = "content-type";
+
+/** The path segments after `base`, or none when `path` is not under it or has an empty one. */
+export function segmentsUnder(base: string, path: string): string[] {
+  const prefix = `${base}/`;
+  if (!path.startsWith(prefix)) {
+    return [];
+  }
+  const segments = path.slice(prefix.length).split("/");
+  return segments.includes("") ? [] : segments;
+}
 
 /** The request's body read as JSON, or the response refusing it. */
 export type JsonBodyReading =

@@ -20,9 +20,17 @@ interface MasterGain<Element extends VolumeElement> {
 const SILENT = 0;
 const FULL = 1;
 
+/** An element's own volume as the player last set it, before the master volume. */
+interface ScaledVolume {
+  readonly inner: MusicVolume;
+  own: number;
+}
+
 /**
  * The page's music output with a mute: a master gain in front of the speakers, because the
  * player sets each element's own gain every frame; without Web Audio, the element's `muted`.
+ * Its master volume (0 to 1, the TV remote's) scales each element's own volume, so it works
+ * with and without Web Audio and holds while the player is paused.
  */
 export class MutableMusicOutput<
   Element extends MutableElement = HTMLMediaElement,
@@ -30,7 +38,9 @@ export class MutableMusicOutput<
   readonly #elements: Element[] = [];
   /** The one master gain, once the context exists. */
   readonly #masters: readonly MasterGain<Element>[];
+  readonly #volumes = new Set<ScaledVolume>();
   #muted = false;
+  #volume = FULL;
 
   constructor(createContext: CreateMusicAudioContext<Element>) {
     const master: MasterGain<Element>[] = [];
@@ -61,10 +71,33 @@ export class MutableMusicOutput<
     }
   }
 
+  get volume(): number {
+    return this.#volume;
+  }
+
+  set volume(volume: number) {
+    if (!(volume >= SILENT && volume <= FULL)) {
+      throw new RangeError(`the music's volume must be from 0 to 1, not ${volume}`);
+    }
+    this.#volume = volume;
+    for (const scaled of this.#volumes) scaled.inner.set(scaled.own * volume);
+  }
+
   override route(element: Element): MusicVolume {
     this.#elements.push(element);
     element.muted = this.#muted;
-    return super.route(element);
+    const scaled: ScaledVolume = { inner: super.route(element), own: FULL };
+    this.#volumes.add(scaled);
+    return {
+      set: (own) => {
+        scaled.own = own;
+        scaled.inner.set(own * this.#volume);
+      },
+      dispose: () => {
+        this.#volumes.delete(scaled);
+        scaled.inner.dispose();
+      },
+    };
   }
 }
 

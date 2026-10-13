@@ -5,6 +5,7 @@ import {
   LIBRARY_PATH,
   MUSIC_PATH,
   notFound,
+  segmentsUnder,
   SHARE_PATH,
   SHARE_PICTURE_CHECK_PATH,
   SLIDESHOWS_PATH,
@@ -106,13 +107,3 @@ export function createLibraryHandler(dependencies: LibraryHandlerDependencies): 
 const SHARE_PART = "share";
 const BEATS_PART = "beats";
 const SONGS_PART = "songs";
-
-/** The path segments after `base`, or none when `path` is not under it or has an empty one. */
-function segmentsUnder(base: string, path: string): string[] {
-  const prefix = `${base}/`;
-  if (!path.startsWith(prefix)) {
-    return [];
-  }
-  const segments = path.slice(prefix.length).split("/");
-  return segments.includes("") ? [] : segments;
-}

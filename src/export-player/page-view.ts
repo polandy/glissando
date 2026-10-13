@@ -28,6 +28,8 @@ export interface PageView {
   showControls(visible: boolean): void;
   /** Over the start card: the copy's message with the error's name. */
   showError(errorName: string): void;
+  /** Takes the page's elements out of the document, for a page that shows another slideshow. */
+  remove(): void;
 }
 
 export interface PageViewOptions {
@@ -144,6 +146,9 @@ export function createPageView(document: Document, options: PageViewOptions): Pa
       error.textContent = `${copy.cannotPlay} (${errorName})`;
       error.hidden = false;
       bigPlay.hidden = true;
+    },
+    remove() {
+      for (const element of [stage, controls, start, end]) element.remove();
     },
   };
 }

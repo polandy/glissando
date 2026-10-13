@@ -31,7 +31,10 @@ declare module "node:http" {
 
   export interface ServerResponse {
     writeHead(status: number, headers: Readonly<Record<string, string>>): void;
+    write(chunk: string): boolean;
     end(body?: Uint8Array | string): void;
+    /** "close": the response ended, or the client went away before. */
+    once(event: "close", listener: () => void): void;
   }
 
   export interface Server {

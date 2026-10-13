@@ -149,7 +149,8 @@ Not in the MVP: per-slide settings, detection, Immich, video export, audio conve
    https://polandy.github.io/glissando-assets/mockups/picture-frame/; behaviour spec
    `dev-docs/app/FRAME.md`, ADR-0030.
 10. **On the TV, controlled from the phone** — open a slideshow on the TV via link or QR code and
-    control it from the phone; the cross-device channel is an ADR.
+    control it from the phone; the channel is the Glissando server, ADR-0031. Mockup:
+    https://polandy.github.io/glissando-assets/mockups/tv-remote/; `dev-docs/TV_REMOTE.md`.
 11. **Videos as slides.**
 
 Each step goes through the UI flow in `CLAUDE.md` (mockup first, owner OK, then specs and code).

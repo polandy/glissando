@@ -76,6 +76,50 @@ describe("MutableMusicOutput", () => {
     expect(music.muted).toBe(true);
   });
 
+  it("plays at full volume until told otherwise", () => {
+    const output = new MutableMusicOutput<FakeElement>(() => null);
+    const music = element();
+    output.route(music).set(0.5);
+
+    expect(output.volume).toBe(1);
+    expect(music.volume).toBe(0.5);
+  });
+
+  it("scales every element's own volume by the master volume, at once and from then on", () => {
+    const output = new MutableMusicOutput<FakeElement>(() => null);
+    const music = element();
+    const volume = output.route(music);
+    volume.set(0.5);
+
+    output.volume = 0.4;
+    expect(music.volume).toBeCloseTo(0.2);
+    volume.set(1);
+    expect(music.volume).toBeCloseTo(0.4);
+  });
+
+  it("scales the element's gain through Web Audio, and keeps the volume apart from mute", () => {
+    const context = new FakeContext();
+    const output = new MutableMusicOutput<FakeElement>(() => context);
+    output.route(element()).set(0.5);
+
+    output.volume = 0.6;
+    output.muted = true;
+    output.muted = false;
+
+    const [master, elementGain] = context.gains;
+    expect(master?.value).toBe(1);
+    expect(elementGain?.value).toBeCloseTo(0.3);
+    expect(output.volume).toBe(0.6);
+  });
+
+  it.each([-0.1, 1.1, Number.NaN])("refuses a master volume of %s", (wrong) => {
+    const output = new MutableMusicOutput<FakeElement>(() => null);
+
+    expect(() => {
+      output.volume = wrong;
+    }).toThrow(RangeError);
+  });
+
   it("starts an element routed while muted silent", () => {
     const output = new MutableMusicOutput<FakeElement>(() => null);
     output.muted = true;

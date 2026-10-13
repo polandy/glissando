@@ -56,7 +56,7 @@ async function playTheServerShow(page: Page): Promise<void> {
     .getByRole("region", { name: "Auf deinem Glissando-Server" })
     .getByRole("button", { name: new RegExp(TITLE) })
     .click();
-  await page.getByRole("button", { name: "Abspielen" }).last().click();
+  await page.getByRole("button", { name: "Abspielen", exact: true }).last().click();
 }
 
 test("E2E-046 a server slideshow plays Immich's previews at 1440 and prepares the originals at 4K", async ({

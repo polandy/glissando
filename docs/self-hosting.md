@@ -173,6 +173,29 @@ Administration → Settings → Image Settings → Preview, set the resolution t
 "Generate thumbnails → All" once. The previews then take roughly twice the space; server
 slideshows played in 1440 use the sharper preview too.
 
+## 5. Optional: show on a TV, controlled from the phone
+
+Open `/tv` in the TV's browser: it shows a four-letter code and a QR code. On the phone, open a
+server slideshow, tap "Show on TV", scan or type the code, and choose the slideshow; the phone
+becomes the remote. A TV playing a share link offers the same remote behind "Control with your
+phone". The TV and the remote talk through your Glissando server, so both need to reach it.
+
+**Let the TV and the remote past your sign-in**, as for share links. Choosing a slideshow
+(`/api/library/tv/`) stays behind it. With Authelia, add these to the bypass rule above:
+
+```yaml
+- "^/tv$"
+- "^/r/[A-Za-z0-9_-]{22}$"
+- "^/api/tv/sessions$"
+- "^/api/share/[A-Za-z0-9_-]{22}/tv$"
+- "^/api/tv/[A-Za-z0-9_-]{22}/(events|state|show(/[0-9]+/pictures/[0-9]+|/songs/[0-9]+)?)$"
+- "^/api/tv/remote/[A-Za-z0-9_-]{22}/(events|command)$"
+```
+
+The TV and the remote hold a connection open to the server; a proxy in front must not buffer it
+(Traefik and Caddy don't). Whoever holds the TV's page or the remote's address can see and
+control only that TV, until it is closed or "Disconnect" is pressed.
+
 ## Troubleshooting
 
 Glissando shows the state of its Immich connection in one line, in the pictures step and in the

@@ -3,7 +3,8 @@
   import { getTranslator } from "../../i18n/context";
   import type { SlideshowDetails, SlideshowStorage } from "../view-models";
   import ShareLinkControl from "../../share-link/ShareLinkControl.svelte";
-  import type { ShareLinkSession } from "../../share-link/share-link-session";
+  import type { ServerSlideshowRows } from "../../server-library/server-slideshow-sessions";
+  import TvControl from "../../tv-remote/TvControl.svelte";
   import InfoPanelRows from "./InfoPanelRows.svelte";
   import StorageRow from "./StorageRow.svelte";
   import SaveAsRow from "./SaveAsRow.svelte";
@@ -11,13 +12,13 @@
 
   /**
    * Beside the pictures: the title (renamed in place), "Play", the "Save as" row (video, web
-   * page), where it lives and its link, and the slideshow's facts (`InfoPanelRows`).
+   * page), where it lives, its link and "Show on TV", and the slideshow's facts (`InfoPanelRows`).
    */
   let {
     slideshow,
     onPlay,
     storage = null,
-    shareLink = null,
+    serverRows = null,
     onSaveVideo,
     onSaveWebPage,
     onRename,
@@ -29,8 +30,8 @@
     onPlay: () => void;
     /** Where the slideshow lives; null while the server library is off. */
     storage?: SlideshowStorage | null;
-    /** A server slideshow's link; null for a device slideshow. */
-    shareLink?: ShareLinkSession | null;
+    /** A server slideshow's link and "Show on TV"; null for a device slideshow. */
+    serverRows?: ServerSlideshowRows | null;
     /** Opens the video export sheet. */
     onSaveVideo: () => void;
     /** Opens the web page export sheet. */
@@ -88,9 +89,9 @@
     <SaveAsRow bind:this={saveAs} {onSaveVideo} {onSaveWebPage} />
     {#if storage !== null}
       <StorageRow {storage} />
-      {#if storage.kind === "device" || shareLink !== null}
+      {#if storage.kind === "device" || serverRows !== null}
         <ShareLinkControl
-          session={storage.kind === "server" ? shareLink : null}
+          session={storage.kind === "server" ? (serverRows?.shareLink ?? null) : null}
           subject={{
             title: slideshow.title,
             pictureCount: slideshow.pictures.length,
@@ -98,6 +99,9 @@
             hasMusic: slideshow.songCount > 0,
           }}
         />
+      {/if}
+      {#if storage.kind === "server" && serverRows !== null}
+        <TvControl session={serverRows.tv} />
       {/if}
     {/if}
   </div>

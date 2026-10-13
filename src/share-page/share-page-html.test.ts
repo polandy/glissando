@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { shareToken } from "./share-page-contract";
+import { isTvPath, shareToken } from "./share-page-contract";
 import { SHARE_PAGE_CONTENT_SECURITY_POLICY, sharePageHtml } from "./share-page-html";
 import type { SharePageWords } from "./share-page-words";
 
@@ -28,6 +28,25 @@ function words(noscript: string): SharePageWords {
     unreachableText: word,
     tryAgain: word,
     noscript,
+    appName: word,
+    tvPairTitle: word,
+    tvPairText: word,
+    tvAllowSound: word,
+    tvSoundAllowed: word,
+    tvConnectedTitle: word,
+    tvConnectedText: word,
+    tvEndedTitle: word,
+    tvEndedText: word,
+    tvUnreachableTitle: word,
+    tvUnreachableText: word,
+    tvControlWithPhone: word,
+    tvScanToControl: word,
+    tvQrCode: word,
+    tvNotePlaying: word,
+    tvNotePaused: word,
+    tvNoteNext: word,
+    tvNotePrevious: word,
+    tvNoteVolume: word,
   };
 }
 
@@ -88,5 +107,17 @@ describe("shareToken", () => {
     { path: "/share.html", token: null },
   ])("reads $token from $path", ({ path, token }) => {
     expect(shareToken(path)).toBe(token);
+  });
+});
+
+describe("isTvPath", () => {
+  it.each([
+    { path: "/tv", tv: true },
+    { path: "/tv/", tv: true },
+    { path: "/tv/x", tv: false },
+    { path: "/s/tv", tv: false },
+    { path: "/tvs", tv: false },
+  ])("tells $path is the TV page: $tv", ({ path, tv }) => {
+    expect(isTvPath(path)).toBe(tv);
   });
 });

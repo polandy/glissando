@@ -13,7 +13,7 @@
   import type { VideoExportSession } from "../video-export/video-export-session";
   import DeleteDialog from "./slideshow/DeleteDialog.svelte";
   import type { SlideshowDetails, SlideshowStorage, StorageAction } from "./view-models";
-  import type { ShareLinkSession } from "../share-link/share-link-session";
+  import type { ServerSlideshowRows } from "../server-library/server-slideshow-sessions";
   import type { SlideshowTransition } from "../../library/own-timing";
   import type { PortraitPictures } from "../../library/portrait-pictures";
   import type { MotionPreviewPorts } from "../picture-editor/motion-preview";
@@ -55,7 +55,7 @@
     mousePointer,
     saving,
     storage = null,
-    shareLink = null,
+    serverRows = null,
     onStorageAction,
     selection = $bindable(NO_SELECTION),
     holdScheduler = browserScheduler,
@@ -110,7 +110,7 @@
     /** Where the slideshow lives; null while the server library is off. */
     storage?: SlideshowStorage | null;
     /** A server slideshow's link (share_link/IN_THE_APP.md); null for a device slideshow. */
-    shareLink?: ShareLinkSession | null;
+    serverRows?: ServerSlideshowRows | null;
     onStorageAction: (action: StorageAction) => void;
     /** The selection bar acts on this; kept by the parent across the picture editor. */
     selection?: StripSelection;
@@ -206,7 +206,7 @@
         {slideshow}
         {onPlay}
         {storage}
-        {shareLink}
+        {serverRows}
         onSaveVideo={() => exportSheets?.openVideo()}
         onSaveWebPage={() => exportSheets?.openWebPage()}
         {onRename}

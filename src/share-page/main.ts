@@ -1,110 +1,37 @@
-// The share page's script (dev-docs/share_link/RECIPIENTS_PAGE.md): loads the shared
-// slideshow from the share API and plays it with the web page export's player page. Built into
-// share.html by build/share-page-plugin.ts; never imports Svelte.
-import { createMusicAudioContext } from "../player/browser/platform";
-import { MutableMusicOutput } from "../export-player/mutable-music-output";
-import { createPagePlayer, loadCaptionFont, showStartFailure } from "../export-player/page-player";
-import { createPageView } from "../export-player/page-view";
+// The share page's script (dev-docs/share_link/RECIPIENTS_PAGE.md), also the TV page's
+// (dev-docs/tv_remote/TV_PAGE.md): picks the page by its path. Built into share.html by
+// build/share-page-plugin.ts; never imports Svelte.
+import { showStartFailure } from "../export-player/page-start";
 import "../export-player/page.css";
-import { canFullscreen } from "../ui-kit/fullscreen";
-import { createShareApi, ShareGoneError, ShareUnreachableError } from "./share-api";
-import { SHARE_WORDS_BLOCK_ID, shareToken } from "./share-page-contract";
+import { browserScheduler } from "../ui-kit/scheduler";
+import { createTvApi } from "../tv-remote/tv-api";
 import { readShareWords } from "./read-share-words";
-import { pageCopyFor, shareLanguage } from "./share-page-words";
-import { createShareParts, withShareParts } from "./share-parts";
-import {
-  loadSharedShow,
-  playableShow,
-  shareSummary,
-  SharedPictureMissingError,
-  skipMissingPicture,
-  type SharedShow,
-} from "./shared-show";
+import { isTvPath, SHARE_WORDS_BLOCK_ID } from "./share-page-contract";
+import { startShareLinkPage } from "./share-link-page";
+import { shareLanguage } from "./share-page-words";
+import { startTvPairingPage } from "./tv-pairing-page";
 import "./share-page.css";
+import "./tv-page.css";
 
-async function startSharePage(): Promise<void> {
+async function startPage(): Promise<void> {
   const languages = readShareWords(
     document.getElementById(SHARE_WORDS_BLOCK_ID)?.textContent ?? null,
   );
   const language = shareLanguage(navigator.language);
-  const words = languages[language];
   document.documentElement.lang = language;
-  const parts = createShareParts(document, words);
-  // The page starts over as it opened, with the slideshow as it is now.
-  parts.tryAgain.addEventListener("click", () => location.reload());
-  /** The link's own failures are states of the page; anything else is a bug and fails loud. */
-  let showState = parts.showState;
-  const failed = (error: unknown) => {
-    if (error instanceof ShareGoneError) showState("gone");
-    else if (error instanceof ShareUnreachableError) showState("unreachable");
-    else showStartFailure(error);
+  const ports = {
+    api: createTvApi((url, init) => fetch(url, init)),
+    openEvents: (url: string) => new EventSource(url),
+    scheduler: browserScheduler,
   };
-
-  const token = shareToken(location.pathname);
-  if (token === null) {
-    showState("gone");
-    return;
+  if (!isTvPath(location.pathname)) {
+    return startShareLinkPage(languages[language], language, ports);
   }
-  const api = createShareApi((url) => fetch(url), token);
-  const createUrl = (song: Blob) => URL.createObjectURL(song);
-  let show: SharedShow;
-  try {
-    show = await loadSharedShow(api, createUrl, null);
-  } catch (error: unknown) {
-    failed(error);
-    return;
-  }
-  let skipped: ReadonlySet<string> = new Set();
-  const first = playableShow(show, api, skipped);
-  document.title = show.stored.title;
-  const view = withShareParts(
-    createPageView(document, {
-      title: show.stored.title,
-      copy: pageCopyFor(words, language, shareSummary(show, first.slideshow)),
-      withFullScreen: canFullscreen(),
-      withMusic: first.slideshow.music !== undefined,
-    }),
-    parts,
-  );
-  showState = view.showState;
-  await loadCaptionFont();
-  const music = new MutableMusicOutput(createMusicAudioContext);
-  const pagePlayer = createPagePlayer(view, music, {
-    start(play) {
-      view.showState("starting");
-      // Live: each start plays the slideshow as it is now (dev-docs/share_link/THE_LINK.md).
-      loadSharedShow(api, createUrl, show).then((now) => {
-        if (now !== show) {
-          for (const url of show.songUrls.values()) URL.revokeObjectURL(url);
-          show = now;
-          skipped = new Set();
-          pagePlayer.show(playableShow(show, api, skipped));
-        }
-        play();
-      }, failed);
-    },
-    pictureFailed(cause) {
-      if (cause instanceof SharedPictureMissingError) {
-        const skip = skipMissingPicture(show, skipped, cause.pictureKey);
-        if (skip === null) return false;
-        skipped = skip.skipped;
-        pagePlayer.show(playableShow(show, api, skipped), {
-          atSeconds: skip.atSeconds,
-          play: true,
-        });
-        return true;
-      }
-      if (cause instanceof ShareGoneError || cause instanceof ShareUnreachableError) {
-        failed(cause);
-        return true;
-      }
-      return false;
-    },
-    waiting: (waiting) => parts.showLate(waiting),
+  return startTvPairingPage(languages[language], language, {
+    ...ports,
+    fetch: (url) => fetch(url),
+    origin: location.origin,
   });
-  pagePlayer.show(first);
-  // Only now is a click on Play heard; an error the player raised meanwhile stays shown.
-  if (view.state === "loading") view.showState("start");
 }
 
-startSharePage().catch(showStartFailure);
+startPage().catch(showStartFailure);

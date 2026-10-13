@@ -19,13 +19,16 @@ import type { PersistencePrompt } from "./storage/persistence-prompt";
 import type { Toaster } from "./toast/toaster";
 import type { HtmlExportDevice } from "./html-export/slideshow-html-export";
 import type { VideoExportDevice } from "./video-export/slideshow-video-export";
-import type { ShareLinkSession } from "./share-link/share-link-session";
+import type { ServerSlideshowSessions } from "./server-library/server-slideshow-sessions";
 import type { BuildInfo } from "./settings/build-info";
 import type { FrameDevice } from "./frame/browser-frame-device";
 import type { FramePreferences } from "./frame/frame-preferences";
 
-/** What the composition root (`main.ts`) wires into the app. */
-export interface AppServices {
+/**
+ * What the composition root (`main.ts`) wires into the app; a server slideshow's share link and
+ * "Show on TV" sheets come from `ServerSlideshowSessions` (share_link/ and tv_remote/IN_THE_APP.md).
+ */
+export interface AppServices extends ServerSlideshowSessions {
   readonly store: LibraryStore;
   readonly navigator: Navigator;
   readonly toaster: Toaster;
@@ -79,8 +82,6 @@ export interface AppServices {
   readonly videoExport: VideoExportDevice;
   /** What the web page export sheet needs of the browser (dev-docs/HTML_EXPORT.md). */
   readonly htmlExport: HtmlExportDevice;
-  /** A server slideshow's link and its share sheet (dev-docs/share_link/IN_THE_APP.md). */
-  newShareLinkSession(slideshowId: string): ShareLinkSession;
   /** Reloads the app, e.g. to get a newer version. */
   reload(): void;
   /** The picture frame's set-up choices, kept on this device (`dev-docs/app/FRAME.md`). */

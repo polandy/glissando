@@ -89,8 +89,13 @@ export function mountRoute(
     serverOn: false,
     onKeepCopy: () => {},
     onSaveOnServer: () => {},
-    newShareLinkSession: (): never => {
-      throw new Error("a device slideshow has no link to share");
+    serverSessions: {
+      newShareLinkSession: (): never => {
+        throw new Error("a device slideshow has no link to share");
+      },
+      newTvSession: (): never => {
+        throw new Error("a device slideshow is not shown on a TV from its screen");
+      },
     },
   });
   const mounted = mountWithTranslator(SlideshowRoute, props);

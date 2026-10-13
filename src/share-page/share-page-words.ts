@@ -1,13 +1,14 @@
 import type { PageCopy } from "../html-export/page-contract";
 import { MILLISECONDS_PER_SECOND } from "../player/slideshow";
 import { formatPlayTime } from "../export-player/play-time";
+import { TV_TEXT_KEYS, type TvPageWords } from "./tv-page-words";
 
 /**
  * The share page's words in one language, as the catalogue holds them (`sharePage.*` and the
  * export page's `htmlPage.*`): built into the page for both languages, and filled in by the
  * page, which only learns the slideshow once it has loaded (dev-docs/SHARE_LINK.md).
  */
-export interface SharePageWords {
+export interface SharePageWords extends TvPageWords {
   readonly eyebrow: string;
   /** "{pictures} · {duration} · {music}". */
   readonly summary: string;
@@ -59,6 +60,7 @@ export const SHARE_TEXT_KEYS = [
   "unreachableText",
   "tryAgain",
   "noscript",
+  ...TV_TEXT_KEYS,
 ] as const satisfies readonly Exclude<keyof SharePageWords, "pictures">[];
 
 export const SHARE_PAGE_LANGUAGES = ["de", "en"] as const;
@@ -113,7 +115,8 @@ export function pageCopyFor(
   };
 }
 
-function fill(template: string, values: Readonly<Record<string, string>>): string {
+/** `template` with each `{name}` replaced by `values[name]`. */
+export function fill(template: string, values: Readonly<Record<string, string>>): string {
   return template.replace(PLACEHOLDER, (placeholder, name: string) => {
     const value = values[name];
     if (value === undefined) {

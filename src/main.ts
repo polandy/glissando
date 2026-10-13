@@ -54,8 +54,7 @@ import { browserPwaPorts } from "./pwa/browser-pwa";
 import { createStorageHintDismissalStore, PwaStatus } from "./pwa/pwa-status";
 import { sweepPrivateExports } from "./video-export";
 import { HttpServerLibraryClient } from "./server-library/http-server-library-client";
-import { ShareLinkSession } from "./app/share-link/share-link-session";
-import { browserShareLinkDevice } from "./app/share-link/browser-share-link-device";
+import { serverSlideshowSessions } from "./app/server-library/server-slideshow-sessions";
 import { createServerLibrary } from "./server-library/server-library";
 import { createStorageServerLibraryMemory } from "./server-library/server-library-memory";
 import { browserHtmlExportDevice } from "./app/html-export/browser-html-export-device";
@@ -207,7 +206,14 @@ const intakePorts = {
   undoLabel: () => translator.current.t("slideshow.undo"),
 };
 
-const shareLinkDevice = browserShareLinkDevice(window, serverLibraryClient, browserScheduler);
+const serverSessions = serverSlideshowSessions(window, {
+  shareApi: serverLibraryClient,
+  slideshows: serverLibrary.store,
+  scheduler: browserScheduler,
+  onTurnedOff: () => toaster.show({ text: translator.current.t("share.turnedOff"), tone: "info" }),
+  onError: reportError,
+  log: logError,
+});
 const frame = createFrameServices(window, browserScheduler, logError);
 
 // Read before the navigator exists, so its own first route is never raced by this one.
@@ -280,13 +286,7 @@ const services = {
   download,
   videoExport: browserVideoExportDevice({ window, freeBytes, download, log: logError }),
   htmlExport: browserHtmlExportDevice({ window, download, log: logError }),
-  newShareLinkSession: (slideshowId: string) =>
-    new ShareLinkSession(slideshowId, {
-      ...shareLinkDevice,
-      onTurnedOff: () =>
-        toaster.show({ text: translator.current.t("share.turnedOff"), tone: "info" }),
-      onError: reportError,
-    }),
+  ...serverSessions,
   reload: () => window.location.reload(),
   ...frame,
 };

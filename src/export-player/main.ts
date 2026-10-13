@@ -6,7 +6,8 @@ import { MEDIA_TYPE_ATTRIBUTE } from "../html-export/page-contract";
 import { createMusicAudioContext } from "../player/browser/platform";
 import { MutableMusicOutput } from "./mutable-music-output";
 import { readPageData, withSongUrls, type PageBlock } from "./page-data";
-import { createPagePlayer, loadCaptionFont, showStartFailure } from "./page-player";
+import { createPagePlayer } from "./page-player";
+import { loadCaptionFont, showStartFailure } from "./page-start";
 import { createPageView } from "./page-view";
 import "./page.css";
 
