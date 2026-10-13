@@ -33,6 +33,12 @@
       ><Icon name="transition" /></span
     >
   {/if}
+  {#if picture.alone}
+    <span class="badge alone-badge"><Icon name="soloFrame" />{t("slideshow.aloneBadge")}</span>
+  {/if}
+  {#if picture.blurredFill}
+    <span class="badge"><Icon name="blurredFill" />{t("slideshow.blurredFillBadge")}</span>
+  {/if}
 </span>
 
 <style>
@@ -58,5 +64,8 @@
   .badge.new-badge {
     background: var(--gl-accent);
     color: var(--gl-accent-ink);
+  }
+  .badge.alone-badge {
+    background: color-mix(in srgb, var(--gl-accent) 65%, black 25%);
   }
 </style>

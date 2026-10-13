@@ -76,6 +76,12 @@ export const ICONS = {
   },
   pencil: { shapes: [path("M4 20h4L19 9l-4-4L4 16z")] },
   frame: { shapes: [rect(3, 6, 13, 9, 1), rect(8, 9, 13, 9, 1)] },
+  /** A picture shown alone, never sharing a slide with another one (ADR-0028). */
+  soloFrame: { shapes: [rect(5, 5, 14, 14, 2)] },
+  /** A picture over its own blurred, darkened backdrop (ADR-0028). */
+  blurredFill: {
+    shapes: [rect(4, 5, 16, 14, 2), path("M8 9.5h8M8 12.5h8M8 15.5h5")],
+  },
   transition: {
     shapes: [
       rect(3, 6, 10, 12, 1.5),
