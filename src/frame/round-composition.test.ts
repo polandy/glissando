@@ -12,7 +12,13 @@ describe("composeRound", () => {
       ["b", picture("b", "2024-01-02T00:00:00Z")],
     ]);
 
-    const slideshow = composeRound("Summer", ["b", "a"], picturesById, 30_000, (id) => `/pic/${id}`);
+    const slideshow = composeRound(
+      "Summer",
+      ["b", "a"],
+      picturesById,
+      30_000,
+      (id) => `/pic/${id}`,
+    );
 
     expect(slideshow.slides.map((slide) => slide.image.src)).toEqual(["/pic/b", "/pic/a"]);
     expect(slideshow.slides.map((slide) => slide.image.capturedAt)).toEqual([
