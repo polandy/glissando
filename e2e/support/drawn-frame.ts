@@ -11,8 +11,10 @@ const SAMPLE_SIZE = 4;
 
 /**
  * Keeps what the player's WebGL canvas drew until it draws again, so a case reads the last drawn
- * frame from the canvas itself rather than from the screen: WebKit puts a frame drawn while
- * paused on screen only once the canvas draws again.
+ * frame from the canvas itself rather than from the screen: headless WebKit puts a frame drawn
+ * while paused on screen only once the canvas draws again, when the context has
+ * `antialias: false`. Safari on a real device shows that frame on time, antialiased or not, so
+ * this is a quirk of the test browser, not of the player.
  */
 export async function keepDrawnFrames(page: Page): Promise<void> {
   await page.addInitScript(() => {
