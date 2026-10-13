@@ -159,7 +159,7 @@
   />
 {/snippet}
 
-{#if route.screen === "start" || route.screen === "settings" || route.screen === "frameSetup" || route.screen === "frame"}
+{#if route.screen === "start" || route.screen === "settings" || route.screen === "frame"}
   <StartRoute
     {store}
     serverLibrary={services.serverLibrary}
@@ -196,6 +196,8 @@
       onClose={() => navigator.back()}
     />
   {/if}
+{:else if route.screen === "frameSetup"}
+  <FrameRoutes {route} {services} {navigator} />
 {:else if route.screen === "import" && importSession !== null}
   <ImportRoute
     step={route.step}
