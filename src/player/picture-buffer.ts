@@ -91,20 +91,23 @@ export class PictureBuffer<Picture extends Size> {
     if (srcs === undefined) {
       throw new RangeError(`no slide at index ${index}`);
     }
-    const loading = Promise.all(srcs.map((src) => this.#loadOne(src))).then(
-      (pictures) => {
-        if (this.#wanted.has(index)) {
-          this.#loaded.set(index, pictures);
-        } else {
-          this.#loading.delete(index);
-          pictures.forEach((picture) => this.#loader.release(picture));
-        }
-      },
-      (error: unknown) => {
-        this.#loading.delete(index);
-        throw error;
-      },
-    );
+    // Settles every load before deciding, so a pair whose partner fails still releases the
+    // picture that did load.
+    const loading = Promise.allSettled(srcs.map((src) => this.#loadOne(src))).then((results) => {
+      const pictures = results.flatMap((result) =>
+        result.status === "fulfilled" ? [result.value] : [],
+      );
+      const failure = results.find((result) => result.status === "rejected");
+      if (failure === undefined && this.#wanted.has(index)) {
+        this.#loaded.set(index, pictures);
+        return;
+      }
+      this.#loading.delete(index);
+      pictures.forEach((picture) => this.#loader.release(picture));
+      if (failure !== undefined) {
+        throw failure.reason;
+      }
+    });
     this.#loading.set(index, loading);
     return loading;
   }
