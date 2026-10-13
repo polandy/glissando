@@ -71,6 +71,7 @@ describe("pictureEditorView", () => {
       previousId: null,
       nextId: "p2",
       next: {
+        number: 2,
         size: { width: 300, height: 200 },
         motion: own,
         durationMs: 4000,

@@ -18,6 +18,15 @@ describe("PictureEditorScreen preview of the timing", () => {
     expect(element(".transition-zone").style.width).toBe("20%");
   });
 
+  it("on the first half of a pair, names the picture after the pair as the next (ADR-0028)", () => {
+    const { next } = view();
+    mountEditor(view({ number: 2, next: next === null ? null : { ...next, number: 4 } }));
+
+    expect(text(element(".preview-line"))).toBe(
+      "Bild 2 · 5,0 s, darin Überblenden 1,0 s zu Bild 4",
+    );
+  });
+
   it("shows this picture alone, then both during the transition, then the next", () => {
     const { advance } = mountEditor();
     advance(3000);

@@ -41,7 +41,13 @@ export function view(overrides: Partial<PictureEditorView> = {}): PictureEditorV
     caption: "",
     previousId: "a",
     nextId: "c",
-    next: { size: { width: 300, height: 400 }, motion: AUTOMATIC, durationMs: 5000, caption: "" },
+    next: {
+      number: 3,
+      size: { width: 300, height: 400 },
+      motion: AUTOMATIC,
+      durationMs: 5000,
+      caption: "",
+    },
     layout: { alone: false, pairedWithNumber: null, blurredFill: false, settingOverride: null },
     ...overrides,
   };
