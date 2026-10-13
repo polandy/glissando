@@ -32,7 +32,8 @@ describe("readPlaybackState", () => {
   });
 
   it("refuses a missing key by name", () => {
-    const { title: _title, ...without } = state;
+    const without: Record<string, unknown> = { ...state };
+    delete without.title;
     expect(() => readPlaybackState(without)).toThrow(/title/);
   });
 });

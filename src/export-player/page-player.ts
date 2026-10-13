@@ -12,12 +12,11 @@ import type { OpenPicture } from "../player/browser/picture-loader";
 import { SlideshowLoadError } from "../player/picture-buffer";
 import { MusicPlaybackError } from "../player/ports";
 import type { Slideshow } from "../player/slideshow";
-import { CAPTION_FONT_FAMILY, CAPTION_FONT_WEIGHT } from "../player/caption-layout";
-import { PAGE_STATE_ATTRIBUTE } from "../html-export/page-contract";
 import type { MutableMusicOutput } from "./mutable-music-output";
 import { pageKeyAction, timelineKeyAction, type PageAction } from "./page-keys";
+import { startsOf, wireTimeline } from "./page-timeline";
 import type { PageView } from "./page-view";
-import { SEEK_STEP_SECONDS, seekBy, timelineSeconds } from "./seek";
+import { SEEK_STEP_SECONDS, seekBy } from "./seek";
 
 /** What the page plays: the slideshow, its tracks' `src` playable URLs, and its pictures. */
 export interface PlayablePage {
@@ -35,28 +34,35 @@ export interface PagePlayerHooks {
   readonly pictureFailed?: (cause: unknown, atSeconds: number) => boolean;
   /** The player waits for a picture it hasn't prepared yet, or has stopped waiting. */
   readonly waiting?: (waiting: boolean) => void;
+  /** The playback changed, for a page that reports it (the TV page). */
+  readonly changed?: (change: PageChange) => void;
 }
 
+/** `time` covers every frame and seek; `refused` is the browser refusing to start the music. */
+export type PageChange = "playing" | "pause" | "ended" | "time" | "refused";
+
+/**
+ * Plays the page's slideshow. Beyond `show`, the TV page drives it with the rest
+ * (dev-docs/tv_remote/TV_PAGE.md); those throw before the first `show`.
+ */
 export interface PagePlayer {
   /** Plays `page` from now on: from `atSeconds` (0), at once when `play`, else paused. */
   show(page: PlayablePage, from?: { readonly atSeconds: number; readonly play: boolean }): void;
-}
-
-/** Any size: `document.fonts.load` only needs a font shorthand. */
-const FONT_PROBE_SIZE = "16px";
-
-/** Captions are drawn into the picture, so the font has to be there before the first frame. */
-export async function loadCaptionFont(): Promise<void> {
-  await document.fonts.load(`${CAPTION_FONT_WEIGHT} ${FONT_PROBE_SIZE} ${CAPTION_FONT_FAMILY}`);
-}
-
-/** A page that could not start: the error in plain text, and the state `error`. */
-export function showStartFailure(error: unknown): void {
-  console.error("the slideshow page could not start", error);
-  const message = document.createElement("p");
-  message.textContent = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
-  document.body.append(message);
-  document.documentElement.setAttribute(PAGE_STATE_ATTRIBUTE, "error");
+  readonly paused: boolean;
+  readonly ended: boolean;
+  readonly currentTime: number;
+  readonly duration: number;
+  /** Where each picture of the shown slideshow starts, in seconds. */
+  readonly pictureStarts: readonly number[];
+  /** The music's master volume, 0 to 1. */
+  volume: number;
+  /** The browser refused to start the music, since the last attempt to play. */
+  readonly playRefused: boolean;
+  play(): void;
+  pause(): void;
+  seek(seconds: number): void;
+  /** Stops the player and the page's listeners for good; the view stays the caller's. */
+  dispose(): void;
 }
 
 const PLAYING_EVENTS = ["play", "pause", "playing", "ended"] as const;
@@ -70,6 +76,10 @@ export function createPagePlayer(
   hooks: PagePlayerHooks = {},
 ): PagePlayer {
   let shown: { readonly player: BrowserPlayer; readonly detach: AbortController } | null = null;
+  let pictureStarts: readonly number[] = [];
+  let playRefused = false;
+  const pageListeners = new AbortController();
+  const listening = { signal: pageListeners.signal };
   const player = (): BrowserPlayer => {
     if (shown === null) throw new Error("the page has no player yet; show a slideshow first");
     return shown.player;
@@ -145,6 +155,17 @@ export function createPagePlayer(
       });
     }
     for (const event of TIME_EVENTS) on(event, showTime);
+    on("play", () => {
+      playRefused = false;
+    });
+    const changed = hooks.changed;
+    if (changed !== undefined) {
+      on("playing", () => changed("playing"));
+      // The end pauses the player too; `ended` tells it once.
+      on("pause", () => shownPlayer.ended || changed("pause"));
+      on("ended", () => changed("ended"));
+      on("timeupdate", () => changed("time"));
+    }
     if (hooks.waiting !== undefined) {
       const waiting = hooks.waiting;
       on("waiting", () => waiting(true));
@@ -153,7 +174,11 @@ export function createPagePlayer(
     on("error", () => {
       const error = shownPlayer.error;
       // A refused music start is no failure: the player pauses, and Play retries with a gesture.
-      if (error instanceof MusicPlaybackError) return;
+      if (error instanceof MusicPlaybackError) {
+        playRefused = true;
+        hooks.changed?.("refused");
+        return;
+      }
       if (
         error instanceof SlideshowLoadError &&
         hooks.pictureFailed?.(error.cause, shownPlayer.currentTime) === true
@@ -189,23 +214,32 @@ export function createPagePlayer(
     controls.reveal();
     perform(action);
   });
-  document.addEventListener("pointermove", () => controls.reveal());
-  document.addEventListener("keydown", (event) => {
-    const action = pageKeyAction(event, keyContext);
-    if (action === null) return;
-    event.preventDefault();
-    controls.reveal();
-    perform(action);
-  });
-  window.addEventListener("resize", () => placeCaptions(controls.visible));
+  document.addEventListener("pointermove", () => controls.reveal(), listening);
+  document.addEventListener(
+    "keydown",
+    (event) => {
+      const action = pageKeyAction(event, keyContext);
+      if (action === null) return;
+      event.preventDefault();
+      controls.reveal();
+      perform(action);
+    },
+    listening,
+  );
+  window.addEventListener("resize", () => placeCaptions(controls.visible), listening);
   view.showMuted(music.muted);
+
+  const takeDown = () => {
+    if (shown === null) return;
+    shown.detach.abort();
+    shown.player.destroy();
+    shown = null;
+  };
 
   return {
     show(page, from = { atSeconds: 0, play: false }) {
-      if (shown !== null) {
-        shown.detach.abort();
-        shown.player.destroy();
-      }
+      takeDown();
+      pictureStarts = startsOf(page.slideshow);
       const created = createBrowserPlayer(view.stage, page.slideshow, {
         startDecodeWorker: () => new DecodeWorker(),
         mainThreadDecodeFallback: true,
@@ -220,22 +254,36 @@ export function createPagePlayer(
       showTime();
       if (from.play) created.play();
     },
+    get paused() {
+      return player().paused;
+    },
+    get ended() {
+      return player().ended;
+    },
+    get currentTime() {
+      return player().currentTime;
+    },
+    get duration() {
+      return player().duration;
+    },
+    get pictureStarts() {
+      return pictureStarts;
+    },
+    get volume() {
+      return music.volume;
+    },
+    set volume(volume) {
+      music.volume = volume;
+    },
+    get playRefused() {
+      return playRefused;
+    },
+    play,
+    pause: () => player().pause(),
+    seek,
+    dispose() {
+      pageListeners.abort();
+      takeDown();
+    },
   };
-}
-
-/** Click or drag along the timeline to seek. */
-function wireTimeline(
-  track: HTMLElement,
-  player: () => BrowserPlayer,
-  seek: (s: number) => void,
-): void {
-  const seekTo = (event: PointerEvent) =>
-    seek(timelineSeconds(event.clientX, track.getBoundingClientRect(), player().duration));
-  track.addEventListener("pointerdown", (event) => {
-    track.setPointerCapture(event.pointerId);
-    seekTo(event);
-  });
-  track.addEventListener("pointermove", (event) => {
-    if (track.hasPointerCapture(event.pointerId)) seekTo(event);
-  });
 }

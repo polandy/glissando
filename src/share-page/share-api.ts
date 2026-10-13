@@ -37,7 +37,14 @@ const FIRST_SERVER_ERROR = 500;
 const MISSING_MEDIUM_CODES: readonly string[] = ["noSuchPicture", "noSuchSong"];
 
 export function createShareApi(fetch: FetchPort, token: string): ShareApi {
-  const base = `${SHARE_API_PATH}${encodeURIComponent(token)}`;
+  return createShowApi(fetch, `${SHARE_API_PATH}${encodeURIComponent(token)}`);
+}
+
+/**
+ * The same client under `base`, any path that answers as a share link does: the TV's chosen
+ * slideshow at `/api/tv/{tvKey}/show` (dev-docs/tv_remote/HTTP_API.md).
+ */
+export function createShowApi(fetch: FetchPort, base: string): ShareApi {
   return {
     async answer() {
       const body = await bodyOf(base, await get(fetch, base), (response) => response.text());

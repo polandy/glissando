@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   createShareApi,
+  createShowApi,
   ShareMediumMissingError,
   ShareGoneError,
   ShareUnreachableError,
@@ -150,6 +151,21 @@ describe("the share API as the page uses it", () => {
 
     await expect(fetchIt(missing)).rejects.toThrow(ShareMediumMissingError);
     await expect(fetchIt(off)).rejects.toThrow(ShareGoneError);
+  });
+
+  it("reads a slideshow, its pictures and songs under any path that answers as a link does", async () => {
+    const base = "/api/tv/TvKeyTvKeyTvKeyTvKey12/show";
+    const { fetch, asked } = fakeFetch({
+      [base]: () => json(200, ANSWER),
+      [`${base}/3/pictures/0`]: () => new Response(new Blob(["jpeg"])),
+      [`${base}/songs/0`]: () => json(404, { error: "notShown" }),
+    });
+    const api = createShowApi(fetch, base);
+
+    expect((await api.answer()).slideshow.title).toBe("Lake Garda");
+    expect(await (await api.picture(3, 0)).text()).toBe("jpeg");
+    await expect(api.song(0)).rejects.toThrow(ShareGoneError);
+    expect(asked).toEqual([base, `${base}/3/pictures/0`, `${base}/songs/0`]);
   });
 
   it("puts the token into the path escaped", async () => {

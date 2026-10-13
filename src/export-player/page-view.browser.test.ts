@@ -67,4 +67,14 @@ describe("createPageView", () => {
 
     expect(page.state).toBe("paused");
   });
+
+  it("takes all of its elements out of the document, and only its own", () => {
+    const { document, view: page } = view();
+    const other = document.createElement("div");
+    document.body.append(other);
+
+    page.remove();
+
+    expect([...document.body.children]).toEqual([other]);
+  });
 });

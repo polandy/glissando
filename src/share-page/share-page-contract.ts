@@ -7,8 +7,14 @@
 export const SHARE_WORDS_BLOCK_ID = "share-words";
 
 const SHARE_PATH = /^\/s\/([^/]+)\/?$/;
+const TV_PATH = /^\/tv\/?$/;
 
 /** The token of a share link's path, `/s/<token>`; null for any other path. */
 export function shareToken(pathname: string): string | null {
   return SHARE_PATH.exec(pathname)?.[1] ?? null;
+}
+
+/** The TV page's own path, `/tv` (dev-docs/tv_remote/TV_PAGE.md, way A). */
+export function isTvPath(pathname: string): boolean {
+  return TV_PATH.test(pathname);
 }
