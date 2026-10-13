@@ -35,7 +35,7 @@ test("E2E-028 the automatic motion's focus is found in the background: a face is
   await page.getByRole("button", { name: "Ohne Musik erstellen" }).click();
   await expect(page.getByRole("status")).toHaveText(CREATED_TOAST);
 
-  await editPicture(page, "Bild 1, aufgenommen am 12.07.2025");
+  await editPicture(page, "Bild 1, aufgenommen am 12.07.2025, über einer unscharfen Füllung");
   await expect(picture).toBeVisible();
   await expect(state).toHaveText("Automatisch");
   await expect(marker).toBeVisible();
