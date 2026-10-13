@@ -51,6 +51,7 @@ describe("FrameSetupRoute", () => {
       immich: fakeImmich([album("lake", "Sommer am See"), album("hike", "Wanderung")]),
       preferences,
       device: fakeDevice(() => Promise.resolve()),
+      log: () => {},
       onBack: () => {},
       onStart: () => {},
     });
@@ -68,6 +69,7 @@ describe("FrameSetupRoute", () => {
       immich: fakeImmich([album("lake", "Sommer am See")]),
       preferences,
       device: fakeDevice(() => Promise.resolve()),
+      log: () => {},
       onBack: () => {},
       onStart: (albumId) => (started = albumId),
     });
@@ -97,6 +99,7 @@ describe("FrameSetupRoute", () => {
         copied.push(text);
         return Promise.resolve();
       }),
+      log: () => {},
       onBack: () => {},
       onStart: () => {},
     });
@@ -109,5 +112,64 @@ describe("FrameSetupRoute", () => {
     copyButton?.click();
 
     expect(copied).toEqual(["https://frame.example/#frame=lake"]);
+  });
+
+  it("logs a clipboard write failure instead of swallowing it", async () => {
+    const preferences = new FramePreferences(
+      createStorageFramePreferences(createMemoryStorage({ "glissando.frame.album": "lake" })),
+    );
+    const logged: unknown[] = [];
+    const refusal = new Error("clipboard refused");
+    const writeTextCall: { promise: Promise<void> | null } = { promise: null };
+    const mounted = mountWithTranslator(FrameSetupRoute, {
+      immich: fakeImmich([album("lake", "Sommer am See")]),
+      preferences,
+      device: fakeDevice(() => (writeTextCall.promise = Promise.reject(refusal))),
+      log: (error) => logged.push(error),
+      onBack: () => {},
+      onStart: () => {},
+    });
+    destroy = mounted.destroy;
+
+    await whenRendered(mounted.target, "button.album");
+    const copyButton = [...mounted.target.querySelectorAll<HTMLButtonElement>("button")].find(
+      (candidate) => candidate.textContent?.includes("Rahmen-Link kopieren"),
+    );
+    copyButton?.click();
+    await writeTextCall.promise?.catch(() => undefined);
+
+    expect(logged).toEqual([refusal]);
+  });
+
+  it("logs an unexpected album-load failure instead of swallowing it", async () => {
+    const preferences = new FramePreferences(createStorageFramePreferences(createMemoryStorage()));
+    const logged: unknown[] = [];
+    const bug = new Error("the album request threw something that isn't an Immich problem");
+    const albumsCall: { promise: Promise<never> | null } = { promise: null };
+    const immich = {
+      client: {
+        thumbnailUrl: () => "",
+        albums: () => (albumsCall.promise = Promise.reject(bug)),
+      } as unknown as ImmichClient,
+      availability: { report: () => {} } as unknown as ImmichAvailability,
+    };
+    const mounted = mountWithTranslator(FrameSetupRoute, {
+      immich,
+      preferences,
+      device: fakeDevice(() => Promise.resolve()),
+      log: (error) => logged.push(error),
+      onBack: () => {},
+      onStart: () => {},
+    });
+    destroy = mounted.destroy;
+
+    await albumsCall.promise?.catch(() => undefined);
+    // `FrameAlbums#fetch`'s rethrow reaches this route's own catch through its `finally` and the
+    // `load()` promise it returns: a couple of microtask hops past the rejection above.
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(logged).toEqual([bug]);
   });
 });

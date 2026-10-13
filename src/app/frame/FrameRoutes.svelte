@@ -22,6 +22,7 @@
     immich={services.immich}
     preferences={services.framePreferences}
     device={services.frameDevice}
+    log={services.log}
     onBack={() => navigator.back()}
     onStart={(albumId) => navigator.open({ screen: "frame", albumId })}
   />

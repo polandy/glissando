@@ -14,12 +14,14 @@
     immich,
     preferences,
     device,
+    log,
     onBack,
     onStart,
   }: {
     immich: { readonly client: ImmichClient; readonly availability: ImmichAvailability };
     preferences: FramePreferences;
     device: FrameDevice;
+    log: (error: unknown) => void;
     onBack: () => void;
     onStart: (albumId: string) => void;
   } = $props();
@@ -42,7 +44,9 @@
   onMount(() => {
     const stopAlbums = albums.subscribe((next) => (albumsState = next));
     const stopPrefs = preferences.subscribe((next) => (prefs = next));
-    albums.load().catch(() => undefined);
+    // Immich problems already surface as `albumsState.failure`; anything else is a bug (see
+    // `FrameAlbums#fetch`), which must reach the log, not vanish as an unhandled rejection.
+    albums.load().catch(log);
     return () => {
       stopAlbums();
       stopPrefs();
@@ -72,7 +76,7 @@
           linkCopied = false;
         });
       })
-      .catch(() => undefined);
+      .catch(log);
   }
 
   function start(): void {
