@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { createMemoryStorage } from "../testing/memory-storage";
 import { AppSettings, type SettingsState } from "./app-settings";
 import { createStorageLanguagePreferenceStore } from "./language";
+import { createStoragePlaybackQualityStore } from "./playback-quality";
 import { createStorageThemePreferenceStore } from "./theme";
 
 function createSettings(stored: Record<string, string> = {}, browserLanguages = ["de-DE"]) {
@@ -9,6 +10,7 @@ function createSettings(stored: Record<string, string> = {}, browserLanguages = 
   const settings = new AppSettings({
     themes: createStorageThemePreferenceStore(storage),
     languages: createStorageLanguagePreferenceStore(storage),
+    playbackQualities: createStoragePlaybackQualityStore(storage),
     browserLanguages,
   });
   return { settings, storage };
@@ -16,11 +18,16 @@ function createSettings(stored: Record<string, string> = {}, browserLanguages = 
 
 describe("AppSettings", () => {
   it("starts from the stored preferences", () => {
-    const { settings } = createSettings({ "glissando.theme": "dark", "glissando.language": "en" });
+    const { settings } = createSettings({
+      "glissando.theme": "dark",
+      "glissando.language": "en",
+      "glissando.playbackQuality": "4k",
+    });
 
     expect(settings.state).toEqual<SettingsState>({
       theme: "dark",
       language: "en",
+      playbackQuality: "4k",
       browserLanguage: "de",
       effectiveLanguage: "en",
     });
@@ -63,6 +70,17 @@ describe("AppSettings", () => {
 
     expect(seen.map((state) => state.effectiveLanguage)).toEqual(["de", "en"]);
     expect(storage.getItem("glissando.language")).toBe("en");
+  });
+
+  it("stores a chosen playback quality and tells its subscribers", () => {
+    const { settings, storage } = createSettings();
+    const seen: SettingsState[] = [];
+    settings.subscribe((state) => seen.push(state));
+
+    settings.setPlaybackQuality("1440");
+
+    expect(seen.map((state) => state.playbackQuality)).toEqual(["auto", "1440"]);
+    expect(storage.getItem("glissando.playbackQuality")).toBe("1440");
   });
 
   it("does not tell subscribers about a choice that changes nothing", () => {

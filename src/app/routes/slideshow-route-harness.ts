@@ -63,6 +63,7 @@ export function mountRoute(
     toaster,
     newId: () => "claim-1",
     now: () => new Date("2026-10-08T12:00:00Z"),
+    playbackQuality: "1440" as const,
     slideshowId: SHOW.id,
     exportProgress: null,
     onExport: () => {},

@@ -1,6 +1,7 @@
 import { flushSync } from "svelte";
 import { afterEach, describe, expect, it } from "vitest";
 import type { LanguagePreference } from "./language";
+import type { PlaybackQualityPreference } from "./playback-quality";
 import type { ThemePreference } from "./theme";
 import type { SettingsState } from "./app-settings";
 import type { BuildInfo } from "./build-info";
@@ -13,6 +14,7 @@ afterEach(() => destroy());
 const STATE: SettingsState = {
   theme: "system",
   language: "auto",
+  playbackQuality: "auto",
   browserLanguage: "de",
   effectiveLanguage: "de",
 };
@@ -23,8 +25,15 @@ const BUILD: BuildInfo = {
   commitDate: "2026-10-12T16:30:00.000Z",
 };
 
-function mountSheet(state: SettingsState = STATE, { updateWaiting = false } = {}) {
-  const chosen = { themes: [] as ThemePreference[], languages: [] as LanguagePreference[] };
+function mountSheet(
+  state: SettingsState = STATE,
+  { updateWaiting = false, serverOn = false, screenShortEdge = 1280 } = {},
+) {
+  const chosen = {
+    themes: [] as ThemePreference[],
+    languages: [] as LanguagePreference[],
+    qualities: [] as PlaybackQualityPreference[],
+  };
   let closes = 0;
   let updates = 0;
   const mounted = mountWithTranslator(SettingsSheet, {
@@ -37,6 +46,9 @@ function mountSheet(state: SettingsState = STATE, { updateWaiting = false } = {}
     onReload: () => undefined,
     onTheme: (theme: ThemePreference) => chosen.themes.push(theme),
     onLanguage: (language: LanguagePreference) => chosen.languages.push(language),
+    serverOn,
+    screenShortEdge,
+    onPlaybackQuality: (quality: PlaybackQualityPreference) => chosen.qualities.push(quality),
     onClose: () => (closes += 1),
   });
   destroy = mounted.destroy;
@@ -52,7 +64,51 @@ function radios(dialog: HTMLElement, group: string): HTMLElement[] {
   return [...(radiogroup?.querySelectorAll<HTMLElement>('[role="radio"]') ?? [])];
 }
 
+const QUALITY_GROUP = "Bildqualität von Server-Diashows";
+
+function radioTexts(radios: readonly HTMLElement[]): (string | undefined)[] {
+  return radios.map((radio) => radio.textContent?.replace(/\s+/g, " ").trim());
+}
+
 describe("SettingsSheet", () => {
+  it("offers the quality of server slideshows only with the server library on", () => {
+    const off = mountSheet(STATE, { serverOn: false });
+    expect(radios(off.dialog, "Sprache")).toHaveLength(3);
+    expect(radios(off.dialog, QUALITY_GROUP)).toEqual([]);
+    destroy();
+
+    const on = mountSheet(STATE, { serverOn: true });
+    expect(radios(on.dialog, QUALITY_GROUP)).toHaveLength(3);
+  });
+
+  it("names the quality Automatic picks for this screen and why", () => {
+    const { dialog } = mountSheet(STATE, { serverOn: true, screenShortEdge: 1280 });
+
+    expect(radioTexts(radios(dialog, QUALITY_GROUP))).toEqual([
+      "Automatisch Zurzeit 1440 · dieser Bildschirm hat 1280 Pixel an der kurzen Kante",
+      "1440 Pixel Startet sofort, scharf auf Handy und Laptop",
+      "4K Scharf auf großen Bildschirmen; lädt vor dem Start Bilder vor",
+    ]);
+    expect(radios(dialog, QUALITY_GROUP)[0]?.getAttribute("aria-checked")).toBe("true");
+  });
+
+  it("picks 4K automatically on a screen sharper than the preview", () => {
+    const { dialog } = mountSheet(STATE, { serverOn: true, screenShortEdge: 2160 });
+
+    expect(radioTexts(radios(dialog, QUALITY_GROUP))[0]).toBe(
+      "Automatisch Zurzeit 4K · dieser Bildschirm hat 2160 Pixel an der kurzen Kante",
+    );
+  });
+
+  it("tells the chosen quality", () => {
+    const { dialog, chosen } = mountSheet(STATE, { serverOn: true });
+
+    radios(dialog, QUALITY_GROUP)[2]?.click();
+    flushSync();
+
+    expect(chosen.qualities).toEqual(["4k"]);
+  });
+
   it("offers the theme and the language as radio groups with the current choice checked", () => {
     const { dialog } = mountSheet();
 

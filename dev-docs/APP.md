@@ -20,6 +20,7 @@ One file per section in `app/`; open only the one a change touches.
 | [Navigation](app/NAVIGATION.md)                         | Routes and history                                                    |
 | [Waiting and errors](app/WAITING_AND_ERRORS.md)         | Blocking overlay, notices, dialogs                                    |
 | [Player overlay](app/PLAYER_OVERLAY.md)                 | The player's controls over the slideshow                              |
+| [Preparing](app/PREPARING.md)                           | The screen before a server slideshow plays, measuring and preparing   |
 | [Settings](app/SETTINGS.md)                             | The settings sheet                                                    |
 | [Themes](app/THEMES.md)                                 | Light, dark, system                                                   |
 | [Languages](app/LANGUAGES.md)                           | German, English, the browser's pick                                   |

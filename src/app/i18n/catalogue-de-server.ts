@@ -103,4 +103,28 @@ export const deServer = {
   "server.slideshowTooLarge": "Nicht auf dem Server gespeichert: Die Diashow ist größer als 2 MB.",
   "server.saveRefused": "Dein Glissando-Server hat die Diashow abgelehnt.",
   "server.exportFromImmich": "Bilder aus Immich heruntergeladen",
+  "settings.playbackQuality": "Bildqualität von Server-Diashows",
+  "settings.playbackQualityAuto": "Automatisch",
+  "settings.playbackQualityAutoHint":
+    "Zurzeit {quality} · dieser Bildschirm hat {pixels} Pixel an der kurzen Kante",
+  "settings.playbackQuality1440": "1440 Pixel",
+  "settings.playbackQuality1440Hint": "Startet sofort, scharf auf Handy und Laptop",
+  "settings.playbackQuality4k": "4K",
+  "settings.playbackQuality4kHint": "Scharf auf großen Bildschirmen; lädt vor dem Start Bilder vor",
+  "prepare.quality1440": "1440",
+  "prepare.quality4k": "4K",
+  "prepare.measuringTitle": "Prüfe die Verbindung …",
+  "prepare.measuringLine":
+    "Lädt die ersten {count} Bilder in {quality}, um zu messen, wie lange eins braucht.",
+  "prepare.measuring": "Messung",
+  "prepare.ofMeasuring": "von {total}",
+  "prepare.preparingTitle": "Bereite Bilder vor",
+  "prepare.preparingLine":
+    "{quality} · ein Bild braucht hier ~{picture}, gezeigt wird es {slide}. Damit die Diashow ohne Anhalten läuft, lädt Glissando {target} von {count} Bildern vor.",
+  "prepare.progressLabel": "Vorbereitete Bilder",
+  "prepare.ofPictures": "von {total} Bildern",
+  "prepare.startsIn": "startet in",
+  "prepare.startNow": "Jetzt starten",
+  "prepare.playInPreview": "In 1440 abspielen",
+  "prepare.footnote": "Startet von selbst, sobald genug Bilder bereit sind.",
 } as const satisfies Record<string, Message>;

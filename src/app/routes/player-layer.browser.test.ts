@@ -55,6 +55,8 @@ describe("the player layer", () => {
       home: "device",
       missing: new SvelteSet<string>(),
       onPictureMissing: () => {},
+      playbackQuality: "1440",
+      clock: () => 0,
     });
     destroy = mounted.destroy;
 
@@ -84,6 +86,8 @@ describe("the player layer", () => {
       home: "server",
       missing: new SvelteSet<string>(),
       onPictureMissing: () => {},
+      playbackQuality: "1440",
+      clock: () => 0,
     });
     destroy = mounted.destroy;
 
@@ -128,6 +132,8 @@ function mountServerLayer(store: MemoryLibraryStore, missing = new SvelteSet<str
     home: "server",
     missing,
     onPictureMissing: (id: string) => missing.add(id),
+    playbackQuality: "1440",
+    clock: () => 0,
   });
   destroy = mounted.destroy;
   return { ...mounted, missing };
@@ -193,7 +199,7 @@ const FIVE_PICTURES: StoredSlideshow = {
 
 describe("the pictures the player layer loads ahead", () => {
   it.each([
-    ["server", ["p1", "p2", "p3", "p4"]],
+    ["server", ["p1"]],
     ["device", ["p1", "p2"]],
   ] as const)("plays a %s slideshow's playback renditions, %j first", async (home, first) => {
     const store = new PlaybackRecordingStore();
@@ -211,6 +217,8 @@ describe("the pictures the player layer loads ahead", () => {
       home,
       missing: new SvelteSet<string>(),
       onPictureMissing: () => {},
+      playbackQuality: "1440",
+      clock: () => 0,
     });
     destroy = mounted.destroy;
 

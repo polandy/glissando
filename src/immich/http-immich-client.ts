@@ -120,12 +120,12 @@ export class HttpImmichClient implements ImmichClient {
     return this.#url(thumbnailPath(photoId, LIST_THUMBNAIL_SIZE)).href;
   }
 
-  async thumbnail(photoId: string, size: ImmichThumbnailSize): Promise<Blob> {
-    return (await this.#request("GET", thumbnailPath(photoId, size))).blob();
+  async thumbnail(photoId: string, size: ImmichThumbnailSize, signal?: AbortSignal): Promise<Blob> {
+    return (await this.#download(thumbnailPath(photoId, size), signal)).blob();
   }
 
-  async original(photoId: string): Promise<Blob> {
-    return (await this.#request("GET", `${assetPath(photoId)}/original`)).blob();
+  async original(photoId: string, signal?: AbortSignal): Promise<Blob> {
+    return (await this.#download(`${assetPath(photoId)}/original`, signal)).blob();
   }
 
   async faces(photoId: string): Promise<readonly ImmichFace[]> {
@@ -177,12 +177,24 @@ export class HttpImmichClient implements ImmichClient {
     return response;
   }
 
-  async #send(method: HttpMethod, path: string, body?: object): Promise<Response> {
+  async #download(path: string, signal: AbortSignal | undefined): Promise<Response> {
+    const response = await this.#send("GET", path, undefined, signal);
+    this.#check("GET", path, response);
+    return response;
+  }
+
+  async #send(
+    method: HttpMethod,
+    path: string,
+    body?: object,
+    signal?: AbortSignal,
+  ): Promise<Response> {
     try {
       return await this.#fetch(this.#url(path).href, {
         method,
         // A redirect is the owner's forward auth asking for a new sign-in, never an answer.
         redirect: "manual",
+        ...(signal === undefined ? {} : { signal }),
         ...(body === undefined
           ? {}
           : { headers: { "content-type": JSON_MEDIA_TYPE }, body: JSON.stringify(body) }),

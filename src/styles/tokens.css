@@ -103,6 +103,8 @@
   --gl-player-text: #ffffff;
   --gl-player-glass: rgb(255 255 255 / 0.14);
   --gl-player-track: rgb(255 255 255 / 0.25);
+  --gl-player-muted: rgb(255 255 255 / 0.7);
+  --gl-player-outline: rgb(255 255 255 / 0.5);
   --gl-player-progress: #ffb59a;
   --gl-player-tick: rgb(0 0 0 / 0.45);
   --gl-player-knob-shadow: 0 1px 4px rgb(0 0 0 / 0.4);
@@ -144,6 +146,7 @@
   --gl-icon-stroke: 1.7;
 
   --gl-layer-bar: 5;
+  --gl-radius-tiny: 3px;
   --gl-radius-small: 6px;
   --gl-radius-tile: 8px;
   --gl-radius: 10px;

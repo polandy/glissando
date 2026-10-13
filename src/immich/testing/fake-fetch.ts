@@ -9,6 +9,7 @@ export interface RecordedRequest {
   readonly body: unknown;
   readonly headers: Headers;
   readonly redirect: RequestRedirect | undefined;
+  readonly signal: AbortSignal | null | undefined;
 }
 
 export type FakeAnswer = () => Response;
@@ -33,6 +34,7 @@ export class FakeFetch {
       body,
       headers: new Headers(init?.headers),
       redirect: init?.redirect,
+      signal: init?.signal,
     });
     const answer = this.#answers.get(`${method} ${url}`);
     if (answer === undefined) {

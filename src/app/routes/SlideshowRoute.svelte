@@ -18,6 +18,7 @@
   import { REDUCED_MOTION_QUERY } from "../../ui-kit/reduced-motion";
   import MusicEditorRoute from "./MusicEditorRoute.svelte";
   import type { SongIntakeDevice } from "../music-editor/song-intake";
+  import type { PlaybackQuality } from "../settings/playback-quality";
   import PictureEditorRoute from "./PictureEditorRoute.svelte";
   import PlayerLayer from "./PlayerLayer.svelte";
   import ServerCopyConfirm from "./ServerCopyConfirm.svelte";
@@ -54,6 +55,7 @@
     videoExport,
     htmlExport,
     playing,
+    playbackQuality,
     editingPictureId,
     editingMusic,
     musicAudio,
@@ -98,6 +100,8 @@
     htmlExport: HtmlExportDevice;
     /** The player layer is open over the screen. */
     playing: boolean;
+    /** The quality a server slideshow plays in on this device. */
+    playbackQuality: PlaybackQuality;
     /** The picture editor is open on this picture, in place of the screen. */
     editingPictureId: string | null;
     /** The music editor is open, in place of the screen. */
@@ -127,7 +131,6 @@
   } = $props();
 
   const translator = getTranslator();
-
   let stored = $state.raw<StoredSlideshow | null>(null);
   let editor = $state.raw<SlideshowEditor | null>(null);
   let saving = $state(false);
@@ -168,7 +171,9 @@
         if (loaded !== null) {
           screenFocus.load(loaded.stored);
           stored = loaded.stored;
-          editor = createEditor(loaded.stored);
+          const focusOf = (pictureId: string) => focus.found.get(pictureId);
+          const ports = { store, focusOf, toaster, newId, now, onError, onGone };
+          editor = createScreenEditor(loaded.stored, ports, translator);
           editor.subscribe((edited) => (stored = edited));
           editor.subscribeSaving((isSaving) => (saving = isSaving));
           if (addedPictureIds.length > 0) editor.offerAddUndo(addedPictureIds);
@@ -187,12 +192,6 @@
     thumbnails.dispose();
     screenStorage.dispose();
   });
-
-  function createEditor(initial: StoredSlideshow): SlideshowEditor {
-    const focusOf = (pictureId: string) => focus.found.get(pictureId);
-    const ports = { store, focusOf, toaster, newId, now, onError, onGone };
-    return createScreenEditor(initial, ports, translator);
-  }
 
   // The slideshow and where it lives are fixed for the screen's lifetime.
   // svelte-ignore state_referenced_locally
@@ -283,6 +282,7 @@
     {log}
     {beatPass}
     {home}
+    {playbackQuality}
     missing={thumbnails.missing}
     onPictureMissing={(id) => thumbnails.missing.add(id)}
   />

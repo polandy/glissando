@@ -32,7 +32,8 @@ accounts, ADR-0013); the app reaches the server over plain HTTP on the LAN as we
   `If-Match` replaces it only if that is still the current one, else 412 with the current
   document. The app applies its edits one at a time (as on the device), so a conflict loses at
   most one edit: the app reloads the newest version and says "Changed on another device".
-- **Playback shows Immich's preview, three pictures ahead.** The player asks a picture source
+- **Playback shows Immich's preview, three pictures ahead** (by default; ADR-0027 adds 4K from the
+  original and prepares before playing). The player asks a picture source
   for bytes: for a server picture it fetches Immich's preview (≤ 1440 px, already upright)
   through `/immich/`, and loads three slides beyond the screen to ride out a slow download (a
   device slideshow loads one, keeping memory low on phones; ADR-0014). Video, web page and
@@ -74,8 +75,8 @@ accounts, ADR-0013); the app reaches the server over plain HTTP on the LAN as we
 - Access to Glissando is now also write access to the shared library: anyone who opens it can
   change or delete a server slideshow (confirmed in the app). The setup guide says so and
   recommends backing up the volume.
-- Playing a server slideshow is soft on a 4K TV unless Immich's preview resolution is raised to
-  2160 (the setup guide says how). It moves every preview over the LAN each time; a slow Wi-Fi
+- Playing a server slideshow in 1440 is soft on a 4K TV unless Immich's preview resolution is
+  raised to 2160 (the setup guide says how); ADR-0027's 4K setting is the in-app alternative. It moves every preview over the LAN each time; a slow Wi-Fi
   shows as a longer wait before the first picture, not as a jump (pictures are prepared ahead).
 - The app's store is a port with two adapters (IndexedDB, server); the editors and exports do not
   know which one they talk to. Only the player knows where a slideshow lives, to skip a picture

@@ -103,4 +103,28 @@ export const enServer: Pick<Catalogue, keyof typeof deServer> = {
   "server.slideshowTooLarge": "Couldn't save on the server: the slideshow is larger than 2 MB.",
   "server.saveRefused": "Your Glissando server refused the slideshow.",
   "server.exportFromImmich": "pictures downloaded from Immich",
+  "settings.playbackQuality": "Quality of server slideshows",
+  "settings.playbackQualityAuto": "Automatic",
+  "settings.playbackQualityAutoHint":
+    "Currently {quality} · this screen has {pixels} pixels on its short edge",
+  "settings.playbackQuality1440": "1440 pixels",
+  "settings.playbackQuality1440Hint": "Starts at once, sharp on phones and laptops",
+  "settings.playbackQuality4k": "4K",
+  "settings.playbackQuality4kHint": "Sharp on large screens; prepares pictures before it starts",
+  "prepare.quality1440": "1440",
+  "prepare.quality4k": "4K",
+  "prepare.measuringTitle": "Checking the connection …",
+  "prepare.measuringLine":
+    "Loading the first {count} pictures in {quality} to measure how long one takes.",
+  "prepare.measuring": "Measuring",
+  "prepare.ofMeasuring": "of {total}",
+  "prepare.preparingTitle": "Preparing pictures",
+  "prepare.preparingLine":
+    "{quality} · a picture takes ~{picture} here and is shown for {slide}. So the slideshow plays without stopping, Glissando prepares {target} of {count} pictures first.",
+  "prepare.progressLabel": "Prepared pictures",
+  "prepare.ofPictures": "of {total} pictures",
+  "prepare.startsIn": "starts in",
+  "prepare.startNow": "Start now",
+  "prepare.playInPreview": "Play in 1440",
+  "prepare.footnote": "Starts by itself once enough pictures are ready.",
 };

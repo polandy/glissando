@@ -26,6 +26,7 @@
   import StartRoute from "./routes/StartRoute.svelte";
   import type { AppServices } from "./services";
   import type { SettingsState } from "./settings/app-settings";
+  import { effectivePlaybackQuality } from "./settings/playback-quality";
   import SettingsSheet from "./settings/SettingsSheet.svelte";
   import PersistRefusedDialog from "./storage/PersistRefusedDialog.svelte";
   import type { ToastMessage } from "./toast/toaster";
@@ -185,6 +186,9 @@
       onReload={services.reload}
       onTheme={(theme) => settings.setTheme(theme)}
       onLanguage={(language) => settings.setLanguage(language)}
+      serverOn={serverState.kind === "on"}
+      screenShortEdge={services.screenShortEdge()}
+      onPlaybackQuality={(quality) => settings.setPlaybackQuality(quality)}
       onClose={() => navigator.back()}
     />
   {/if}
@@ -237,6 +241,10 @@
         videoExport={services.videoExport}
         htmlExport={services.htmlExport}
         playing={route.screen === "player"}
+        playbackQuality={effectivePlaybackQuality(
+          settingsState.playbackQuality,
+          services.screenShortEdge(),
+        )}
         editingPictureId={route.screen === "picture" ? route.pictureId : null}
         editingMusic={route.screen === "music"}
         musicAudio={services.musicAudio}

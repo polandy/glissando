@@ -41,6 +41,8 @@ export interface FakeGlissandoServer {
   readonly slideshows: LibraryRecord[];
   /** Immich assets whose originals the app asked for. */
   readonly originalsAsked: string[];
+  /** Immich assets whose preview (the 1440-pixel rendition) the app asked for. */
+  readonly previewsAsked: string[];
   /** Assets Immich answers 404 for, as for a photo deleted in Immich. */
   readonly goneFromImmich: Set<string>;
   /** Links made so far; each one's token ends in its count, so sharing again makes a new link. */
@@ -83,6 +85,7 @@ export async function fakeGlissandoServer(
   const server: FakeGlissandoServer = {
     slideshows: [],
     originalsAsked: [],
+    previewsAsked: [],
     goneFromImmich: new Set(),
     linksMade: 0,
   };
@@ -108,6 +111,9 @@ function answerImmich(route: Route, server: FakeGlissandoServer, photo: () => Ui
   if (image === null) return route.fulfill({ status: HTTP_NOT_FOUND });
   const [, assetId = "", kind] = image;
   if (kind === "original") server.originalsAsked.push(assetId);
+  if (kind === "thumbnail" && new URL(request.url()).searchParams.get("size") === "preview") {
+    server.previewsAsked.push(assetId);
+  }
   if (server.goneFromImmich.has(assetId)) return route.fulfill({ status: HTTP_NOT_FOUND });
   return route.fulfill({ contentType: "image/jpeg", body: photo() });
 }

@@ -107,6 +107,26 @@ describe("PlayerOverlay", () => {
     expect(stage?.childElementCount).toBe(0);
   });
 
+  it("tells each slide as it comes on screen", () => {
+    const slide = OPENED_PICTURE_SHOW.slides[0];
+    if (slide === undefined) throw new Error("the fixture has no slide");
+    const told: number[] = [];
+    const mounted = mountWithTranslator(PlayerOverlay, {
+      slideshow: { ...OPENED_PICTURE_SHOW, slides: [slide, slide, slide] },
+      openPicture: () => new Promise<Blob>(() => undefined),
+      onSlide: (index: number) => told.push(index),
+      onClose: () => undefined,
+      scheduler: new FakeScheduler(),
+    });
+    destroy = mounted.destroy;
+    flushSync();
+
+    press("ArrowRight");
+
+    expect(mounted.target.querySelector(".counter")?.textContent).toBe("2 / 3");
+    expect(told).toEqual([0, 1]);
+  });
+
   it("says a picture could not be loaded when opening it fails", async () => {
     const opened: string[] = [];
     const mounted = mountWithTranslator(PlayerOverlay, {

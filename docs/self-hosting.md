@@ -160,11 +160,18 @@ a `.local` or `.lan` name, a private IP) only works at home, and the app says so
 `…` in place of the link's token in its own logs, but your proxy's access logs contain the full
 paths, tokens included, unless you filter them there.
 
-**For 4K on a TV**: shared slideshows, and server slideshows played in the app, show Immich's
-preview of each photo, which is 1440 pixels on its short edge by default. In Immich, go to
+**For 4K on a TV**: server slideshows played in the app follow the setting "Quality of server
+slideshows" on each device. On a screen sharper than 1440 pixels, "Automatic" plays 4K: Glissando
+downloads each original from Immich and makes it into a 4K picture on the device. That takes
+longer than a slide is shown, so before the slideshow starts, Glissando prepares as many pictures
+as it needs to never stop on the way, and shows how long that takes; "Start now" or "Play in 1440"
+skip the wait. Nothing needs to change in Immich for this.
+
+Shared slideshows always show Immich's preview of each photo, which is 1440 pixels on its short
+edge by default: sharp on phones and laptops, soft on a 4K TV. For 4K there, in Immich, go to
 Administration → Settings → Image Settings → Preview, set the resolution to 2160, and run
-"Generate thumbnails → All" once. The previews then take roughly twice the space. Without it,
-both use 1440, sharp on phones and laptops but soft on a 4K TV.
+"Generate thumbnails → All" once. The previews then take roughly twice the space; server
+slideshows played in 1440 use the sharper preview too.
 
 ## Troubleshooting
 

@@ -140,9 +140,10 @@ export interface LibraryStore {
    * pictures' focus and that music's beats. Throws `SlideshowNotFoundError` for an unknown id.
    */
   deleteSlideshow(id: string): Promise<void>;
-  pictureBlob(id: string): Promise<Blob>;
+  /** `signal` cancels a download where reading the picture needs one. */
+  pictureBlob(id: string, signal?: AbortSignal): Promise<Blob>;
   /** The picture as the player shows it: on the device, its display rendition. */
-  playbackPictureBlob(id: string): Promise<Blob>;
+  playbackPictureBlob(id: string, signal?: AbortSignal): Promise<Blob>;
   thumbnailBlob(id: string): Promise<Blob>;
   musicBlob(id: string): Promise<Blob>;
   /**

@@ -97,18 +97,18 @@ export class ServerSlideshowStore implements SlideshowStore {
     this.#seen.delete(id);
   }
 
-  async pictureBlob(id: string): Promise<Blob> {
+  async pictureBlob(id: string, signal?: AbortSignal): Promise<Blob> {
     const { immich, decode } = this.#options;
     // The asset id names the file: the store knows no file name by picture id.
     const decoded = await this.#fromImmich(id, () =>
-      decodeImmichPhoto({ id, fileName: id }, { client: immich, decode }),
+      decodeImmichPhoto({ id, fileName: id }, { client: immich, decode }, signal),
     );
     return decoded.display;
   }
 
   /** Immich's preview: an original is too large to fetch and decode within a slide (ADR-0018). */
-  playbackPictureBlob(id: string): Promise<Blob> {
-    return this.#fromImmich(id, () => this.#options.immich.thumbnail(id, PLAYBACK_SIZE));
+  playbackPictureBlob(id: string, signal?: AbortSignal): Promise<Blob> {
+    return this.#fromImmich(id, () => this.#options.immich.thumbnail(id, PLAYBACK_SIZE, signal));
   }
 
   thumbnailBlob(id: string): Promise<Blob> {
