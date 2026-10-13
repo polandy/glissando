@@ -34,19 +34,26 @@
     >
   {/if}
   {#if picture.alone}
-    <span class="badge alone-badge"><Icon name="soloFrame" />{t("slideshow.aloneBadge")}</span>
+    <span class="badge timing-badge alone-badge" title={t("slideshow.aloneBadge")}
+      ><Icon name="soloFrame" /></span
+    >
   {/if}
   {#if picture.blurredFill}
-    <span class="badge"><Icon name="blurredFill" />{t("slideshow.blurredFillBadge")}</span>
+    <span class="badge timing-badge" title={t("slideshow.blurredFillBadge")}
+      ><Icon name="blurredFill" /></span
+    >
   {/if}
 </span>
 
 <style>
   .badges {
     position: absolute;
+    left: 6px;
     right: 6px;
     bottom: 22px;
     display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
     gap: 4px;
   }
   .badge {
