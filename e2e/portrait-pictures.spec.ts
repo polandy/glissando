@@ -34,6 +34,7 @@ const DOMINANCE = 100;
 
 const SECOND_TILE = "Bild 2, aufgenommen am 14.07.2025";
 const PAIRED_SECOND_TILE = `${SECOND_TILE}, gezeigt als Paar mit Bild 3`;
+const ALONE_SECOND_TILE = `${SECOND_TILE}, allein gezeigt, über einer unscharfen Füllung`;
 
 /** "red" or "blue" when that channel clearly leads in the frame around `point`, else "other". */
 async function colourAt(page: Page, player: Locator, point: FramePoint): Promise<string> {
@@ -96,7 +97,7 @@ test("E2E-045 two portrait pictures in a row share a slide; a picture's “alway
   await leaveEditor(page);
   const unpaired = async (): Promise<void> => {
     await expect(portraitRow(page, "Automatisch")).toBeVisible();
-    await expect(page.getByRole("button", { name: SECOND_TILE, exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: ALONE_SECOND_TILE, exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: /gezeigt als Paar/ })).toHaveCount(0);
   };
   await unpaired();
