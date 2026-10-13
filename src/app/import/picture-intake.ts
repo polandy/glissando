@@ -64,6 +64,7 @@ export class PictureIntake {
         putPictureFocus: (id, focus) => ports.store.putPictureFocus(id, focus),
       },
       newId: ports.newId,
+      log: ports.log,
       known: () => this.#known,
       stored: (stored) => this.culling.check(stored),
     });

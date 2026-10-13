@@ -13,7 +13,9 @@ import type { PictureSource } from "./picture-source";
 /** Why a picture was skipped as a duplicate: one of the known ones, or one this import took in. */
 export type DuplicateReason = "alreadyIn" | "chosenTwice";
 
-export type SkipReason = "unsupported" | "unreadable" | "notDownloaded" | DuplicateReason;
+/** "unreadable": the bytes could not be read; "undecodable": they could not be decoded into pixels. */
+export type SkipReason =
+  "unsupported" | "unreadable" | "undecodable" | "notDownloaded" | DuplicateReason;
 
 export interface SkippedFile {
   readonly fileName: string;

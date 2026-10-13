@@ -137,6 +137,10 @@ export const en: Catalogue = {
     one: "{count} file could not be read as a picture and was skipped:",
     other: "{count} files could not be read as pictures and were skipped:",
   },
+  "import.undecodable": {
+    one: "{count} picture could not be decoded and was skipped:",
+    other: "{count} pictures could not be decoded and were skipped:",
+  },
   "import.notDownloaded": {
     one: "{count} photo could not be downloaded from Immich and was skipped:",
     other: "{count} photos could not be downloaded from Immich and were skipped:",

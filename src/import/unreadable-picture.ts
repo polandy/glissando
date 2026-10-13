@@ -1,10 +1,14 @@
-/** A picture file the browser cannot read or decode; the import skips it as unreadable. */
+/** Which step of taking a picture in failed: reading its bytes, or decoding them into pixels. */
+export type PictureFailureStage = "read" | "decode";
+
+/** A picture file the browser cannot read or decode; the import skips it. */
 export class UnreadablePictureError extends Error {
   constructor(
     readonly fileName: string,
+    readonly stage: PictureFailureStage,
     options?: ErrorOptions,
   ) {
-    super(`the browser cannot read or decode the picture "${fileName}"`, options);
+    super(`the browser cannot ${stage} the picture "${fileName}"`, options);
     this.name = "UnreadablePictureError";
   }
 }
@@ -21,7 +25,7 @@ export async function readPictureHead(file: File, byteCount: number): Promise<Ar
     return await file.slice(0, byteCount).arrayBuffer();
   } catch (error) {
     if (error instanceof DOMException && error.name === NOT_READABLE) {
-      throw new UnreadablePictureError(file.name, { cause: error });
+      throw new UnreadablePictureError(file.name, "read", { cause: error });
     }
     throw error;
   }

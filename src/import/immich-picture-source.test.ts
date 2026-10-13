@@ -55,7 +55,7 @@ class FakeImmichClient {
 async function decode(file: File): Promise<DecodedPicture> {
   const bytes = await file.text();
   if (bytes.includes(UNDECODABLE)) {
-    throw new UnreadablePictureError(file.name);
+    throw new UnreadablePictureError(file.name, "decode");
   }
   return {
     width: 300,

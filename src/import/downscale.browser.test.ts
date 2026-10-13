@@ -57,5 +57,6 @@ describe("decodePicture", () => {
 
     expect(error).toBeInstanceOf(UnreadablePictureError);
     expect((error as UnreadablePictureError).fileName).toBe("broken.jpg");
+    expect((error as UnreadablePictureError).stage).toBe("decode");
   });
 });

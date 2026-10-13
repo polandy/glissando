@@ -134,6 +134,7 @@ describe("captureDate", () => {
 
     expect(error).toBeInstanceOf(UnreadablePictureError);
     expect((error as UnreadablePictureError).fileName).toBe("lapsed.jpg");
+    expect((error as UnreadablePictureError).stage).toBe("read");
     expect((error as UnreadablePictureError).cause).toBe(notReadable);
   });
 

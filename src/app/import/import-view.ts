@@ -45,6 +45,8 @@ export function hasSelection(state: PictureImportState): boolean {
 export interface SkippedNotices {
   /** Not a picture, or one the browser cannot read. */
   readonly unreadable: readonly string[];
+  /** Pictures the browser read but cannot decode. */
+  readonly undecodable: readonly string[];
   /** Photos Immich could not deliver. */
   readonly notDownloaded: readonly string[];
   /** Pictures already in the slideshow being added to, which "Add anyway" takes in after all. */
@@ -58,6 +60,7 @@ export function skippedNotices(skipped: readonly SkippedFile[]): SkippedNotices 
     skipped.filter((file) => matches(file.reason)).map((file) => file.fileName);
   return {
     unreadable: namesFor((reason) => reason === "unsupported" || reason === "unreadable"),
+    undecodable: namesFor((reason) => reason === "undecodable"),
     notDownloaded: namesFor((reason) => reason === "notDownloaded"),
     alreadyIn: namesFor((reason) => reason === "alreadyIn"),
     chosenTwice: namesFor((reason) => reason === "chosenTwice"),

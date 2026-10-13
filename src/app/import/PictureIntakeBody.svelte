@@ -159,11 +159,15 @@
   />
 {/if}
 
-{#if !importState.busy && (skipped.unreadable.length > 0 || skipped.notDownloaded.length > 0)}
+{#if !importState.busy && (skipped.unreadable.length > 0 || skipped.undecodable.length > 0 || skipped.notDownloaded.length > 0)}
   <Notice tone="warn">
     {#if skipped.unreadable.length > 0}
       <b>{t("import.skipped", { count: skipped.unreadable.length })}</b>
       {t("import.skippedFiles", { files: skipped.unreadable.join(FILE_NAME_SEPARATOR) })}
+    {/if}
+    {#if skipped.undecodable.length > 0}
+      <b>{t("import.undecodable", { count: skipped.undecodable.length })}</b>
+      {t("import.skippedFiles", { files: skipped.undecodable.join(FILE_NAME_SEPARATOR) })}
     {/if}
     {#if skipped.notDownloaded.length > 0}
       <b>{t("import.notDownloaded", { count: skipped.notDownloaded.length })}</b>

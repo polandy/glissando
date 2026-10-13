@@ -40,7 +40,7 @@ export class FakeDecoder {
     this.#reach?.();
     await this.#gate;
     if (this.unreadable.has(file.name)) {
-      throw new UnreadablePictureError(file.name);
+      throw new UnreadablePictureError(file.name, "decode");
     }
     return {
       width: 300,
@@ -89,8 +89,10 @@ export function setUp(
   const decoder = options.decoder ?? new FakeDecoder();
   const store = options.store ?? new MemoryLibraryStore();
   const stored: StoredWithThumbnail[] = [];
+  const logged: unknown[] = [];
   const pictureImport = new PictureImport({
     store,
+    log: (error) => logged.push(error),
     newId: sequentialIds(),
     stored: (picture) => stored.push(picture),
     ...(options.known === undefined ? {} : { known: () => options.known ?? [] }),
@@ -103,7 +105,7 @@ export function setUp(
   };
   const states: PictureImportState[] = [];
   pictureImport.subscribe((state) => states.push(state));
-  return { pictureImport, addFiles, decoder, store, states, stored };
+  return { pictureImport, addFiles, decoder, store, states, stored, logged };
 }
 
 export const fileNames = (state: PictureImportState): string[] =>
