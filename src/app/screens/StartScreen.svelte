@@ -5,6 +5,7 @@
   import Icon from "../components/Icon.svelte";
   import DropLayer from "../glissando-file/DropLayer.svelte";
   import { fileDrop } from "../glissando-file/file-drop";
+  import FrameCard from "../frame/FrameCard.svelte";
   import GlissandoFilePicker from "../glissando-file/GlissandoFilePicker.svelte";
   import type { OpenNotice as OpenNoticeModel } from "../glissando-file/open-flow";
   import OpenNotice from "../glissando-file/OpenNotice.svelte";
@@ -26,6 +27,8 @@
     onReload,
     logo,
     statusBar,
+    serverOn = false,
+    onSetUpFrame,
   }: {
     /** Newest first. */
     slideshows: readonly SlideshowSummary[];
@@ -47,6 +50,9 @@
     logo?: Snippet | undefined;
     /** The status line at the bottom (dev-docs/app/INSTALLING_AND_OFFLINE.md). */
     statusBar: Snippet;
+    /** The picture frame card shows only while the server library is on (`dev-docs/app/FRAME.md`). */
+    serverOn?: boolean;
+    onSetUpFrame: () => void;
   } = $props();
 
   const { t } = getTranslator();
@@ -92,6 +98,9 @@
     {/if}
     {#if logo}
       <div class="logo">{@render logo()}</div>
+    {/if}
+    {#if serverOn}
+      <FrameCard onSetUp={onSetUpFrame} />
     {/if}
     {#if slideshows.length === 0 && server === null}
       <div class="hero">

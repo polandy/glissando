@@ -18,6 +18,7 @@ function gear(updateWaiting: boolean): HTMLButtonElement {
     notice: null,
     onDismissNotice: () => {},
     onReload: () => {},
+    onSetUpFrame: () => {},
     statusBar: createRawSnippet(() => ({ render: () => "<footer></footer>" })),
   });
   destroy = mounted.destroy;

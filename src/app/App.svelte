@@ -16,6 +16,7 @@
   import ImportRoute from "./import/ImportRoute.svelte";
   import type { ImportSession } from "./import/import-session";
   import type { Route } from "./navigation/route";
+  import FrameRoutes from "./frame/FrameRoutes.svelte";
   import PwaSheet, { type PwaSheetContent } from "./pwa/PwaSheet.svelte";
   import StatusBar from "./pwa/StatusBar.svelte";
   import IntakeRoutes from "./routes/IntakeRoutes.svelte";
@@ -158,7 +159,7 @@
   />
 {/snippet}
 
-{#if route.screen === "start" || route.screen === "settings"}
+{#if route.screen === "start" || route.screen === "settings" || route.screen === "frameSetup" || route.screen === "frame"}
   <StartRoute
     {store}
     serverLibrary={services.serverLibrary}
@@ -174,7 +175,10 @@
     onDismissNotice={() => openFlow.dismissNotice()}
     onReload={services.reload}
     {statusBar}
+    serverOn={serverState.kind === "on"}
+    onSetUpFrame={() => navigator.open({ screen: "frameSetup" })}
   />
+  <FrameRoutes {route} {services} {navigator} />
   {#if route.screen === "settings"}
     <SettingsSheet
       state={settingsState}
