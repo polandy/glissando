@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.4](https://github.com/polandy/glissando/compare/glissando-v0.0.3...glissando-v0.0.4) (2026-10-13)
+
+
+### Features
+
+* publish every release on GitHub Pages for anyone to install ([#62](https://github.com/polandy/glissando/issues/62)) ([31fdeb1](https://github.com/polandy/glissando/commit/31fdeb1f9ae45d2bca525222344c03d09fb27739))
+* show a server slideshow on the TV, controlled from the phone ([#60](https://github.com/polandy/glissando/issues/60)) ([c319296](https://github.com/polandy/glissando/commit/c319296d0d756f953fd1181af5776d81aa1f4970))
+
 ## [0.0.3](https://github.com/polandy/glissando/compare/glissando-v0.0.2...glissando-v0.0.3) (2026-10-13)
 
 
