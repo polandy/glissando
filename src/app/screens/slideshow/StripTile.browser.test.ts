@@ -72,22 +72,26 @@ describe("StripTile, a portrait pair (ADR-0028)", () => {
 });
 
 describe("StripTile, the alone and blurred fill badges (ADR-0028)", () => {
+  const ALONE = '[title="Allein gezeigt"]';
+  const BLURRED_FILL = '[title="Unscharfe Füllung"]';
+
   it("badges a picture set to always alone", () => {
     const target = mountTile({ alone: true });
 
-    expect(target.textContent).toContain("Allein gezeigt");
+    expect(target.querySelector(ALONE)).not.toBeNull();
   });
 
   it("badges a picture shown over a blurred fill", () => {
     const target = mountTile({ blurredFill: true });
 
-    expect(target.textContent).toContain("Unscharfe Füllung");
+    expect(target.querySelector(BLURRED_FILL)).not.toBeNull();
   });
 
   it("shows neither badge for a plain covered picture", () => {
     const target = mountTile();
 
-    expect(target.textContent).not.toContain("Allein gezeigt");
-    expect(target.textContent).not.toContain("Unscharfe Füllung");
+    expect(target.querySelector("img")).not.toBeNull();
+    expect(target.querySelector(ALONE)).toBeNull();
+    expect(target.querySelector(BLURRED_FILL)).toBeNull();
   });
 });
