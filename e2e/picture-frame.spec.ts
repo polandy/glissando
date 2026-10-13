@@ -25,6 +25,22 @@ function albumTile(page: Page, name: string): Locator {
   return page.getByRole("button", { name: new RegExp(name) });
 }
 
+/**
+ * Clicks `locator` once the tap controls are confirmed visible, re-tapping the stage first if
+ * they already auto-hid again (`tap-controls.ts`'s real 4 s timeout, which a slow CI machine can
+ * let elapse between an earlier reveal and this click): once hidden, pointer-events:none on the
+ * bar means Playwright refuses to dispatch the click at all (the stage, not the button, is
+ * topmost), so nothing would ever re-reveal them without this.
+ */
+async function clickWithControlsVisible(page: Page, locator: Locator): Promise<void> {
+  const opacity = await exitButton(page).evaluate((el) => getComputedStyle(el).opacity);
+  if (opacity !== "1") {
+    await page.locator(".stage").click();
+    await expect(exitButton(page)).toHaveCSS("opacity", "1");
+  }
+  await locator.click();
+}
+
 /** The clock/date switches, which carry no accessible name of their own: found by their row. */
 function settingSwitch(page: Page, label: string): Locator {
   return page
@@ -97,7 +113,7 @@ test("E2E-047 the picture frame is set up from the start screen, runs full scree
   const pauseButton = page.getByRole("button", { name: "Pause" });
   await expect(pauseButton).toBeVisible();
   await expect(page.getByRole("button", { name: "Weiter ›" })).toBeVisible();
-  await pauseButton.click();
+  await clickWithControlsVisible(page, pauseButton);
   await expect(page.getByRole("button", { name: "Weiter", exact: true })).toBeVisible();
 
   // Exit (the running frame sits over the start screen, not its set-up screen: `src/app/navigation/route.ts`).
