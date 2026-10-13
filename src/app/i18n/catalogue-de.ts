@@ -12,6 +12,7 @@ import { deServer } from "./catalogue-de-server.ts";
 import { deShare } from "./catalogue-de-share.ts";
 import { dePlaylist } from "./catalogue-de-playlist.ts";
 import { deCulling } from "./catalogue-de-culling.ts";
+import { deFrame } from "./catalogue-de-frame.ts";
 import type { Message } from "./messages.ts";
 
 /**
@@ -312,4 +313,5 @@ export const de = {
   ...deShare,
   ...dePlaylist,
   ...deCulling,
+  ...deFrame,
 } as const satisfies Record<string, Message>;

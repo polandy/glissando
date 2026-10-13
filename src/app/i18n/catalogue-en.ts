@@ -12,6 +12,7 @@ import { enServer } from "./catalogue-en-server.ts";
 import { enShare } from "./catalogue-en-share.ts";
 import { enPlaylist } from "./catalogue-en-playlist.ts";
 import { enCulling } from "./catalogue-en-culling.ts";
+import { enFrame } from "./catalogue-en-frame.ts";
 import type { Catalogue } from "./messages.ts";
 
 /** English UI copy; the type demands exactly the German catalogue's keys and message shapes. */
@@ -310,4 +311,5 @@ export const en: Catalogue = {
   ...enShare,
   ...enPlaylist,
   ...enCulling,
+  ...enFrame,
 };
