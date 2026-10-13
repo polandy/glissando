@@ -79,8 +79,8 @@ What the feature needs, with the API key's permission:
 - **One import, two sources.** `PictureImport` reads pictures from a source port instead of
   `File`s; local files and Immich assets are its two adapters. Ordering, downscaling, storage
   limits and error reporting stay in one place.
-- **Immich's faces become the focus at import.** The largest face box (area; Immich gives no score),
-  divided by `imageWidth`/`imageHeight`, is stored as `{kind: "subject"}` in the `focus` store
+- **Immich's faces become the focus at import.** The largest face box (area; Immich gives no score)
+  with the faces of similar size (ADR-0029), divided by `imageWidth`/`imageHeight`, is stored as `{kind: "subject"}` in the `focus` store
   (ADR-0012), so the on-device pass skips the picture. An empty face list stores nothing: it may
   mean "not scanned yet", and pico on the thumbnail is cheap, so the on-device pass decides.
 - **Offline**: the Immich source is shown but disabled without a connection to the server; local

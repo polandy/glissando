@@ -70,14 +70,26 @@ describe("findFocus", () => {
     expect(focus.box.width).toBeLessThan(0.35);
   });
 
-  it("aims at the larger of two faces", () => {
-    const enlarged = doubled(astronaut);
+  it("leaves out a face far smaller than the largest, which is background", () => {
+    const enlarged = enlargedBy(astronaut, 3);
     const focus = findFocus(sideBySide(enlarged, astronaut), cascade);
 
     expect(focus.kind).toBe("subject");
     if (focus.kind !== "subject") return;
-    const centreX = focus.box.x + focus.box.width / 2;
-    expect(centreX).toBeLessThan(enlarged.width / (enlarged.width + astronaut.width));
+    const pictureWidth = enlarged.width + astronaut.width;
+    expect(focus.box.x + focus.box.width).toBeLessThan(enlarged.width / pictureWidth);
+  });
+
+  it("frames two faces of similar size as one group", () => {
+    const enlarged = enlargedBy(astronaut, 2);
+    const focus = findFocus(sideBySide(enlarged, astronaut), cascade);
+
+    expect(focus.kind).toBe("subject");
+    if (focus.kind !== "subject") return;
+    const pictureWidth = enlarged.width + astronaut.width;
+    const smallFaceCentre = (enlarged.width + astronaut.width * 0.42) / pictureWidth;
+    expect(focus.box.x).toBeLessThan(0.5 * (enlarged.width / pictureWidth));
+    expect(focus.box.x + focus.box.width).toBeGreaterThan(smallFaceCentre);
   });
 
   it("keeps the box inside the picture for a face near its edge", () => {
@@ -116,14 +128,15 @@ function astronautShiftedLeft(columns: number): GreyImage {
   return { width, height: FIXTURE_SIZE, pixels };
 }
 
-/** The picture at twice its size, each pixel repeated. */
-function doubled(image: GreyImage): GreyImage {
-  const width = image.width * 2;
-  const height = image.height * 2;
+/** The picture at `factor` times its size, each pixel repeated. */
+function enlargedBy(image: GreyImage, factor: number): GreyImage {
+  const width = image.width * factor;
+  const height = image.height * factor;
   const pixels = new Uint8Array(width * height);
   for (let row = 0; row < height; row++) {
     for (let column = 0; column < width; column++) {
-      pixels[row * width + column] = image.pixels[(row >> 1) * image.width + (column >> 1)] ?? 0;
+      pixels[row * width + column] =
+        image.pixels[Math.floor(row / factor) * image.width + Math.floor(column / factor)] ?? 0;
     }
   }
   return { width, height, pixels };

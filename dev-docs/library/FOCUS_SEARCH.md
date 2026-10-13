@@ -5,8 +5,8 @@ picture without one (ADR-0012): newest slideshow first, one picture at a time, i
 through the `FocusDetector` (a worker) into the store. It starts when the app opens and again
 whenever a slideshow is created (an import, an opened file); a start while it runs only takes up
 the slideshows created since, so two never run at once. A picture from Immich with faces already
-has its focus when it is stored: the largest of Immich's face boxes (by area; Immich gives no
-score), divided by its `imageWidth`/`imageHeight` (Immich's preview in display orientation),
+has its focus when it is stored: the box around the largest of Immich's faces (by area; Immich gives no
+score) and those of similar size (ADR-0029), divided by its `imageWidth`/`imageHeight` (Immich's preview in display orientation),
 stored as `{kind: "subject"}`. An empty face list stores nothing — it may mean "not scanned yet" —
 so the pass looks at that picture like any other. A picture whose media is gone meanwhile
 is skipped; one whose detection fails is logged (`FocusDetectionFailedError`), keeps no focus and
