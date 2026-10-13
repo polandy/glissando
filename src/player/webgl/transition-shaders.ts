@@ -26,6 +26,8 @@ uniform sampler2D fromPicture;
 uniform sampler2D toPicture;
 uniform sampler2D fromPartner;
 uniform sampler2D toPartner;
+uniform sampler2D fromBackdrop;
+uniform sampler2D toBackdrop;
 uniform int fromLayout;
 uniform int toLayout;
 uniform vec4 fromCrop;
@@ -51,13 +53,6 @@ const int LAYOUT_BLURRED_FILL = 1;
 const int LAYOUT_PAIR = 2;
 /** The blurred fill's backdrop is darkened to this fraction of its brightness (ADR-0028). */
 const float BACKDROP_BRIGHTNESS = 0.55;
-/** The backdrop's blur radius, in screen heights (ADR-0028). */
-const float BACKDROP_BLUR_RADIUS = 0.08;
-/** Taps of the blur, spread evenly over its disc (a golden-angle spiral). */
-const int BACKDROP_BLUR_TAPS = 32;
-const float GOLDEN_ANGLE = 2.39996323;
-/** The Gaussian's spread, as a share of the radius. */
-const float BACKDROP_BLUR_SIGMA = 0.5;
 /** A per-cell pseudo-random value in 0..1 (the well-known sin-hash). */
 float cellNoise(vec2 cell) {
   return fract(sin(dot(cell, vec2(12.9898, 78.233))) * 43758.5453);
@@ -65,27 +60,9 @@ float cellNoise(vec2 cell) {
 vec4 pictureColor(sampler2D picture, vec4 crop, vec2 p) {
   return texture(picture, crop.xy + vec2(p.x, 1.0 - p.y) * crop.zw);
 }
-/**
- * A Gaussian-weighted average over a disc of screen-space taps, each read from the mip level
- * whose texels are about as wide as the taps lie apart, so the taps blend into each other
- * instead of showing the coarse texels of one far mip level.
- */
-vec4 blurredDarkened(sampler2D picture, vec4 crop, vec2 p) {
-  vec2 pictureTexels = vec2(textureSize(picture, 0)) * abs(crop.zw);
-  float tapSpacing = BACKDROP_BLUR_RADIUS / sqrt(float(BACKDROP_BLUR_TAPS));
-  float lod = max(0.0, log2(tapSpacing * pictureTexels.y));
-  vec3 sum = vec3(0.0);
-  float weights = 0.0;
-  for (int tap = 0; tap < BACKDROP_BLUR_TAPS; tap++) {
-    float distance = sqrt((float(tap) + 0.5) / float(BACKDROP_BLUR_TAPS));
-    float angle = float(tap) * GOLDEN_ANGLE;
-    vec2 offset = vec2(cos(angle) / aspect, sin(angle)) * distance * BACKDROP_BLUR_RADIUS;
-    vec2 q = clamp(p + offset, 0.0, 1.0);
-    float weight = exp(-0.5 * pow(distance / BACKDROP_BLUR_SIGMA, 2.0));
-    sum += textureLod(picture, crop.xy + vec2(q.x, 1.0 - q.y) * crop.zw, lod).rgb * weight;
-    weights += weight;
-  }
-  return vec4(sum / weights * BACKDROP_BRIGHTNESS, 1.0);
+/** The layer's backdrop, its picture blurred once when prepared, darkened (ADR-0028). */
+vec4 blurredDarkened(sampler2D backdrop, vec4 crop, vec2 p) {
+  return vec4(pictureColor(backdrop, crop, p).rgb * BACKDROP_BRIGHTNESS, 1.0);
 }
 bool insideRect(vec2 p, vec4 rect) {
   return p.x >= rect.x && p.x <= rect.x + rect.z && p.y >= rect.y && p.y <= rect.y + rect.w;
@@ -102,6 +79,7 @@ vec4 layerColor(
   int layoutKind,
   sampler2D picture,
   sampler2D partner,
+  sampler2D backdrop,
   vec4 crop,
   vec4 secondCrop,
   vec4 rect,
@@ -121,7 +99,7 @@ vec4 layerColor(
     if (insideRect(p, rect)) {
       return pictureColor(picture, secondCrop, intoRect(p, rect));
     }
-    return blurredDarkened(picture, crop, p);
+    return blurredDarkened(backdrop, crop, p);
   }
   return pictureColor(picture, crop, p);
 }
@@ -134,11 +112,11 @@ vec4 withCaption(vec4 picture, sampler2D caption, vec2 p) {
   return vec4(band.rgb + picture.rgb * (1.0 - band.a), 1.0);
 }
 vec4 fromColor(vec2 p) {
-  vec4 colour = layerColor(fromLayout, fromPicture, fromPartner, fromCrop, fromSecondCrop, fromRect, fromRect2, p);
+  vec4 colour = layerColor(fromLayout, fromPicture, fromPartner, fromBackdrop, fromCrop, fromSecondCrop, fromRect, fromRect2, p);
   return withCaption(colour, fromCaption, p);
 }
 vec4 toColor(vec2 p) {
-  vec4 colour = layerColor(toLayout, toPicture, toPartner, toCrop, toSecondCrop, toRect, toRect2, p);
+  vec4 colour = layerColor(toLayout, toPicture, toPartner, toBackdrop, toCrop, toSecondCrop, toRect, toRect2, p);
   return withCaption(colour, toCaption, p);
 }
 /** 0 where the reveal has not reached \`position\` yet, 1 behind it, soft in between. */

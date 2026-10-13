@@ -2,7 +2,7 @@ import type { BitmapPicture } from "../browser/bitmap-loader";
 import type { Size } from "../ken-burns";
 import type { PreparedSlide, RenderFrame, SlideLayer, SlideRenderer } from "../ports";
 import { TRANSITION_EFFECTS, type TransitionEffect } from "../slideshow";
-import { bindLayer, fromUniforms, toUniforms } from "./bind-layer";
+import { bindLayer, fromUniforms, toUniforms, type LayerTextureUnits } from "./bind-layer";
 import { CaptionTextures, type CaptionFonts } from "./caption-textures";
 import { PictureTextures } from "./picture-textures";
 import { fragmentShader, VERTEX_SHADER } from "./transition-shaders";
@@ -13,12 +13,10 @@ const FULL_SCREEN_TRIANGLE_STRIP = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]
 const VERTEX_COUNT = 4;
 const POSITION_ATTRIBUTE = 0;
 const COORDINATES_PER_VERTEX = 2;
-const FROM_TEXTURE_UNIT = 0;
-const TO_TEXTURE_UNIT = 1;
+const FROM_TEXTURE_UNITS: LayerTextureUnits = { picture: 0, partner: 4, backdrop: 6 };
+const TO_TEXTURE_UNITS: LayerTextureUnits = { picture: 1, partner: 5, backdrop: 7 };
 const FROM_CAPTION_TEXTURE_UNIT = 2;
 const TO_CAPTION_TEXTURE_UNIT = 3;
-const FROM_PARTNER_TEXTURE_UNIT = 4;
-const TO_PARTNER_TEXTURE_UNIT = 5;
 
 export class ShaderCompileError extends Error {
   constructor(effect: TransitionEffect, log: string) {
@@ -37,6 +35,8 @@ const UNIFORM_NAMES = [
   "toPicture",
   "fromPartner",
   "toPartner",
+  "fromBackdrop",
+  "toBackdrop",
   "fromLayout",
   "toLayout",
   "fromCrop",
@@ -146,24 +146,8 @@ export class WebGlRenderer implements SlideRenderer<BitmapPicture> {
         : [frame.effect, frame.progress, frame.from, frame.to];
     const { program, uniforms } = this.#program(effect);
     gl.useProgram(program);
-    bindLayer(
-      gl,
-      this.#pictures,
-      FROM_TEXTURE_UNIT,
-      FROM_PARTNER_TEXTURE_UNIT,
-      from,
-      fromUniforms(uniforms),
-      viewport,
-    );
-    bindLayer(
-      gl,
-      this.#pictures,
-      TO_TEXTURE_UNIT,
-      TO_PARTNER_TEXTURE_UNIT,
-      to,
-      toUniforms(uniforms),
-      viewport,
-    );
+    bindLayer(gl, this.#pictures, FROM_TEXTURE_UNITS, from, fromUniforms(uniforms), viewport);
+    bindLayer(gl, this.#pictures, TO_TEXTURE_UNITS, to, toUniforms(uniforms), viewport);
     this.#bindCaption(FROM_CAPTION_TEXTURE_UNIT, from, uniforms.fromCaption, viewport);
     this.#bindCaption(TO_CAPTION_TEXTURE_UNIT, to, uniforms.toCaption, viewport);
     gl.uniform1f(uniforms.progress, progress);
@@ -176,7 +160,7 @@ export class WebGlRenderer implements SlideRenderer<BitmapPicture> {
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, VERTEX_COUNT);
   }
 
-  /** One upload step of the picture per call, then its caption (see `PictureTextures`). */
+  /** One upload step of the picture (and its backdrop) per call, then its caption (see `PictureTextures`). */
   prepare({ picture, caption }: PreparedSlide<BitmapPicture>): void {
     if (this.#contextLost) {
       return;

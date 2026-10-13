@@ -8,8 +8,8 @@
   was disposed), upright by their EXIF orientation; a released picture's bitmap is
   closed. Each becomes a mipmapped texture (`picture-textures.ts`), uploaded by `prepare` in
   steps: the storage for the whole mip chain with a first slice of rows, one slice of at most
-  `UPLOAD_PIXELS_PER_FRAME` pixels per call, the mipmaps in a call of their own, then the
-  caption. Drawing a picture not fully prepared (after a seek) uploads the rest at once
+  `UPLOAD_PIXELS_PER_FRAME` pixels per call, the mipmaps in a call of their own, the blurred
+  fill's small backdrop texture in another, then the caption. Drawing a picture not fully prepared (after a seek) uploads the rest at once
   (ADR-0014).
 - **Captions in WebGL**: once the caption font has loaded (`document.fonts.load`, an injected port;
   until then slides draw without captions, then a redraw follows), each loaded slide with a caption
@@ -38,9 +38,10 @@
     or a blurred fill's front picture draw in; `layer-uniforms.ts` turns a `SlideLayout` into
     those uniforms, `bind-layer.ts` binds them, and `layerColor` in the fragment shader prelude
     switches on the layout inside `fromColor`/`toColor`, so every transition effect carries it.
-    The blurred fill's backdrop (`blurredDarkened`) averages 32 Gaussian-weighted taps over a
-    disc of 8% of the screen height, each read with `textureLod` from the mip level whose texels
-    match the taps' spacing, and darkens the result; the textures already carry mipmaps.
+    The blurred fill's backdrop (`blurredDarkened`) reads the layer's backdrop texture (bound by
+    `bind-layer.ts` for a blurred fill only) at the same crop and darkens it: the picture shrunk
+    to `BACKDROP_LONG_SIDE` pixels and blurred once when prepared (`backdrop-texture.ts`,
+    `backdrop-blur.ts`, three box passes per axis), magnified smoothly without mipmaps.
   - **DOM**: `dom-layer-placement.ts` places a pair's two pictures each in their own wrapper,
     clipped (`overflow: hidden`) to their half; a blurred fill wraps the front picture the same
     way and draws a second, cloned `<img>` behind it with `filter: blur(...) brightness(...)`.

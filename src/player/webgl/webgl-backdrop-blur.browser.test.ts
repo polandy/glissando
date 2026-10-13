@@ -7,24 +7,38 @@ const SCREEN = { width: 1920, height: 1080 };
 /** Portrait, so the 16:9 screen shows it whole over its blurred fill (ADR-0028). */
 const PICTURE = { width: 600, height: 800 };
 const STRIPES = 8;
-/** The backdrop's left band, beside the front picture, read in one row. */
-const ROW_PIXELS = 600;
+/** The backdrop's left band, left of the front picture (which starts 555 pixels in), in one row. */
+const ROW_PIXELS = 540;
 /** Compares the slope over this many pixels with the next ones: kinks of an upscaled coarse
  * image show as jumps in it, a soft blur changes it gradually. */
 const SLOPE_STRIDE = 4;
 /**
- * The soft blur changes its slope by about 3 between strides, 8-bit rounding included; the
- * same backdrop read from one coarse mip level jumps by 7 at its texel edges.
+ * The soft blur changes its slope by at most 2 between strides, 8-bit rounding included; the
+ * same backdrop read from one coarse mip level (texels 16 picture pixels wide) jumps by 7 at its
+ * texel edges.
  */
-const MAX_SLOPE_CHANGE = 5;
+const MAX_SLOPE_CHANGE = 3;
 /** A blurred stripe pattern still varies across the row: the blur is not a flat colour. */
 const MIN_RANGE = 10;
+/**
+ * A small bright dot left of the front picture, on the row `backdropRow` reads, far enough from
+ * the picture's edge that its glow does not reach it.
+ */
+const DOT = { x: 90, y: PICTURE.height / 2, size: 24 };
+/** The dot still lights its surroundings visibly once blurred and darkened. */
+const MIN_DOT_PEAK = 4;
+/**
+ * A round glow is as bright at the same distance either side of its centre, 8-bit rounding
+ * aside (1 measured); a disc of blur taps puts ghost copies of the dot off to one side, which
+ * show there as a difference of 6 and a second rise.
+ */
+const MAX_ASYMMETRY = 2;
 
 let box: HTMLElement;
 
 afterEach(() => box.remove());
 
-async function stripedBitmap(): Promise<BitmapPicture> {
+async function bitmapOf(draw: (context: CanvasRenderingContext2D) => void): Promise<BitmapPicture> {
   const canvas = document.createElement("canvas");
   canvas.width = PICTURE.width;
   canvas.height = PICTURE.height;
@@ -32,13 +46,29 @@ async function stripedBitmap(): Promise<BitmapPicture> {
   if (context === null) {
     throw new Error("no 2D canvas context to draw a test picture");
   }
-  const stripe = PICTURE.width / STRIPES;
-  for (let index = 0; index < STRIPES; index += 1) {
-    context.fillStyle = index % 2 === 0 ? "black" : "white";
-    context.fillRect(index * stripe, 0, stripe, PICTURE.height);
-  }
+  draw(context);
   const bitmap = await createImageBitmap(canvas);
   return { bitmap, width: bitmap.width, height: bitmap.height };
+}
+
+function stripedBitmap(): Promise<BitmapPicture> {
+  return bitmapOf((context) => {
+    const stripe = PICTURE.width / STRIPES;
+    for (let index = 0; index < STRIPES; index += 1) {
+      context.fillStyle = index % 2 === 0 ? "black" : "white";
+      context.fillRect(index * stripe, 0, stripe, PICTURE.height);
+    }
+  });
+}
+
+/** Black, with one small white dot. */
+function dotBitmap(): Promise<BitmapPicture> {
+  return bitmapOf((context) => {
+    context.fillStyle = "black";
+    context.fillRect(0, 0, PICTURE.width, PICTURE.height);
+    context.fillStyle = "white";
+    context.fillRect(DOT.x - DOT.size / 2, DOT.y - DOT.size / 2, DOT.size, DOT.size);
+  });
 }
 
 function backdropRow(picture: BitmapPicture): number[] {
@@ -74,5 +104,26 @@ describe("WebGlRenderer: the blurred fill's backdrop (ADR-0028)", () => {
 
     expect(Math.max(...row) - Math.min(...row)).toBeGreaterThanOrEqual(MIN_RANGE);
     expect(Math.max(...slopeChanges)).toBeLessThanOrEqual(MAX_SLOPE_CHANGE);
+  });
+
+  it("spreads a bright dot into one round glow that fades steadily away from it, without ghost copies", async () => {
+    const row = backdropRow(await dotBitmap());
+    const brightest = Math.max(...row);
+    const peak = Math.round((row.indexOf(brightest) + row.lastIndexOf(brightest)) / 2);
+
+    const rightSide = row.slice(peak);
+    const leftSide = row.slice(0, peak + 1).reverse();
+    const rises = [leftSide, rightSide].flatMap((side) =>
+      side.slice(1).filter((value, index) => value > (side[index] ?? 0)),
+    );
+
+    expect(row[peak]).toBeGreaterThanOrEqual(MIN_DOT_PEAK);
+    expect(row[ROW_PIXELS - 1]).toBeLessThan(row[peak] ?? 0);
+    const asymmetry = rightSide.map((value, distance) =>
+      Math.abs(value - (leftSide[distance] ?? 0)),
+    );
+
+    expect(rises).toEqual([]);
+    expect(Math.max(...asymmetry.slice(0, leftSide.length))).toBeLessThanOrEqual(MAX_ASYMMETRY);
   });
 });

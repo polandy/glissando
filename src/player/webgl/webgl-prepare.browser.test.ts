@@ -118,8 +118,8 @@ describe("WebGlRenderer.prepare", () => {
     const { renderer, uploads, captionUploads, drawAndRead } = setUp();
     await renderer.captionFontLoaded;
     const picture = await twoBandPicture();
-    // The picture's steps as the first case counts them, then one for the caption.
-    const pictureSteps = Math.ceil((PICTURE.width * PICTURE.height) / UPLOAD_PIXELS_PER_FRAME) + 1;
+    // The picture's slices, its mipmaps and its backdrop, then one step for the caption.
+    const pictureSteps = Math.ceil((PICTURE.width * PICTURE.height) / UPLOAD_PIXELS_PER_FRAME) + 2;
 
     for (let step = 0; step < pictureSteps + 1; step += 1) {
       renderer.prepare({ picture, caption: CAPTION });

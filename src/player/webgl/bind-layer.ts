@@ -9,6 +9,7 @@ import type { PictureTextures } from "./picture-textures";
 export interface LayerUniforms {
   readonly picture: WebGLUniformLocation | null;
   readonly partner: WebGLUniformLocation | null;
+  readonly backdrop: WebGLUniformLocation | null;
   readonly layout: WebGLUniformLocation | null;
   readonly crop: WebGLUniformLocation | null;
   readonly secondCrop: WebGLUniformLocation | null;
@@ -22,6 +23,8 @@ export interface PairedLayerUniforms {
   readonly toPicture: WebGLUniformLocation | null;
   readonly fromPartner: WebGLUniformLocation | null;
   readonly toPartner: WebGLUniformLocation | null;
+  readonly fromBackdrop: WebGLUniformLocation | null;
+  readonly toBackdrop: WebGLUniformLocation | null;
   readonly fromLayout: WebGLUniformLocation | null;
   readonly toLayout: WebGLUniformLocation | null;
   readonly fromCrop: WebGLUniformLocation | null;
@@ -38,6 +41,7 @@ export function fromUniforms(uniforms: PairedLayerUniforms): LayerUniforms {
   return {
     picture: uniforms.fromPicture,
     partner: uniforms.fromPartner,
+    backdrop: uniforms.fromBackdrop,
     layout: uniforms.fromLayout,
     crop: uniforms.fromCrop,
     secondCrop: uniforms.fromSecondCrop,
@@ -50,6 +54,7 @@ export function toUniforms(uniforms: PairedLayerUniforms): LayerUniforms {
   return {
     picture: uniforms.toPicture,
     partner: uniforms.toPartner,
+    backdrop: uniforms.toBackdrop,
     layout: uniforms.toLayout,
     crop: uniforms.toCrop,
     secondCrop: uniforms.toSecondCrop,
@@ -58,28 +63,42 @@ export function toUniforms(uniforms: PairedLayerUniforms): LayerUniforms {
   };
 }
 
+/** The texture units one layer's picture, partner picture and backdrop are bound to. */
+export interface LayerTextureUnits {
+  readonly picture: number;
+  readonly partner: number;
+  readonly backdrop: number;
+}
+
 /**
- * Binds a layer's picture, its layout (cover, blurred fill or pair) and the partner picture its
- * pair layout needs, to the texture units and uniforms `uniforms` names (ADR-0028).
+ * Binds a layer's picture, its layout (cover, blurred fill or pair), the partner picture its
+ * pair layout needs and the backdrop its blurred fill needs, to the texture units and uniforms
+ * `units` and `uniforms` name (ADR-0028).
  */
 export function bindLayer(
   gl: WebGL2RenderingContext,
   pictures: PictureTextures,
-  unit: number,
-  partnerUnit: number,
+  units: LayerTextureUnits,
   layer: SlideLayer<BitmapPicture>,
   uniforms: LayerUniforms,
   viewport: Size,
 ): void {
-  gl.activeTexture(gl.TEXTURE0 + unit);
+  gl.activeTexture(gl.TEXTURE0 + units.picture);
   pictures.texture(layer.picture);
-  gl.uniform1i(uniforms.picture, unit);
-  // A cover or blurred-fill layer never reads the partner sampler; bind the front picture so the
-  // unit still holds a complete texture.
-  gl.activeTexture(gl.TEXTURE0 + partnerUnit);
+  gl.uniform1i(uniforms.picture, units.picture);
+  // A layer reads only the samplers its layout needs; every other one gets the front picture, so
+  // its unit still holds a complete texture.
+  gl.activeTexture(gl.TEXTURE0 + units.partner);
   pictures.texture(layer.partner?.picture ?? layer.picture);
-  gl.uniform1i(uniforms.partner, partnerUnit);
+  gl.uniform1i(uniforms.partner, units.partner);
   const layout = slideLayout(layer, viewport);
+  gl.activeTexture(gl.TEXTURE0 + units.backdrop);
+  if (layout.kind === "blurred-fill") {
+    pictures.backdrop(layer.picture);
+  } else {
+    pictures.texture(layer.picture);
+  }
+  gl.uniform1i(uniforms.backdrop, units.backdrop);
   gl.uniform1i(uniforms.layout, LAYOUT_CODE[layout.kind]);
   const rects = layerUniformRects(layout);
   setRect(gl, uniforms.crop, rects.crop);

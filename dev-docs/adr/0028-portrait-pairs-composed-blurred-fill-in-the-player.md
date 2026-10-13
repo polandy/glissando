@@ -30,10 +30,11 @@ shown whole, and how the renderer draws two pictures and a blurred backdrop in o
   pairs and gives every slide `fit: "cover"`, today's crop.
 - **The WebGL renderer stays one pass**: each layer of the transition shader gets a layout
   (cover, whole over blur, pair across, pair stacked), a second picture sampler and crop, and
-  the rect the whole picture is drawn in. The blur averages 32 taps spread over a disc of 8% of
-  the screen height, Gaussian-weighted, each read from the mip level whose texels are about as
-  wide as the taps lie apart, which the textures already have. The DOM fallback draws the
-  backdrop as a second, CSS-filtered element and a pair as two clipped ones.
+  the rect the whole picture is drawn in. The backdrop does not move on its own, so it is blurred
+  once per picture: when the picture is prepared, a copy shrunk to 96 pixels on its long side is
+  blurred on the CPU (three box passes per axis, a near-Gaussian) and uploaded as a small texture
+  of its own, which the shader reads with one smoothly magnified lookup and darkens. The DOM
+  fallback draws the backdrop as a second, CSS-filtered element and a pair as two clipped ones.
 - Player JSON goes to version 4, `.glissando` and the server document to version 11. Older
   versions are refused, not read: no instance holds slideshows yet.
 
@@ -45,9 +46,13 @@ shown whole, and how the renderer draws two pictures and a blurred backdrop in o
 - _Pairs as one collage image made at import_ — rejected: it is bound to one screen orientation,
   stores every portrait picture twice and breaks a picture's identity in the editor.
 - _A separable Gaussian blur in a framebuffer pass_ — rejected: two extra passes and render
-  targets per layer, where the tap disc over matching mip levels is as soft for a darkened
-  backdrop at 32 lookups per backdrop pixel.
+  targets per layer and frame, for a backdrop that never changes.
 - _One lookup at a coarse mip level_ — rejected: on the screen its texels show as blocky steps.
+- _A disc of taps in the shader, each over a matching mip level_ — rejected: its fixed tap
+  pattern shows bright spots as ball-shaped ghost copies.
+- _A small picture blurred once on the CPU when prepared, uploaded as its own texture_ — chosen:
+  soft and free of patterns, one lookup per backdrop pixel, and a bounded prepare step of its own
+  (ADR-0014); it costs one small extra texture per picture.
 - _Reorder pictures to form more pairs_ — rejected: the order is the user's (or capture order).
 
 ## Consequences
