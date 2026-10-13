@@ -1,7 +1,10 @@
 import type { StoredSlideshow } from "../../library/stored-slideshow";
 import type { SlideshowEditor } from "../editing/slideshow-editor";
 import type { SlideshowStorage, StorageAction } from "../screens/view-models";
-import type { ShareLinkSession } from "../share-link/share-link-session";
+import type {
+  ServerSlideshowRows,
+  ServerSlideshowSessions,
+} from "../server-library/server-slideshow-sessions";
 import { slideshowStorage, type SlideshowHome, type StorageFacts } from "./slideshow-storage";
 
 /** A copy to the other home, confirmed in its own sheet. */
@@ -11,7 +14,7 @@ export type StorageCopy = Exclude<StorageAction, "removeMissing">;
 export interface ScreenStoragePorts {
   readonly home: SlideshowHome;
   readonly slideshowId: string;
-  readonly newShareLinkSession: (slideshowId: string) => ShareLinkSession;
+  readonly sessions: Pick<ServerSlideshowSessions, "newShareLinkSession" | "newTvSession">;
   readonly thumbnails: {
     /** Pictures Immich no longer has. */
     readonly missing: ReadonlySet<string>;
@@ -22,19 +25,26 @@ export interface ScreenStoragePorts {
 }
 
 /**
- * Where the shown slideshow lives (SERVER_LIBRARY.md) and its link (share_link/IN_THE_APP.md):
- * the storage row's actions and the share link session the screen owns.
+ * Where the shown slideshow lives (SERVER_LIBRARY.md), its link (share_link/IN_THE_APP.md) and
+ * "Show on TV" (tv_remote/IN_THE_APP.md): the storage row's actions and the sessions the screen owns.
  */
 export class ScreenStorage {
   /** The copy whose confirmation sheet is open. */
   confirmingCopy = $state<StorageCopy | null>(null);
-  /** A server slideshow's link; a device slideshow has none. */
-  readonly shareLink: ShareLinkSession | null;
+  /** A server slideshow's link and "Show on TV"; a device slideshow has neither. */
+  readonly serverRows: ServerSlideshowRows | null;
   readonly #ports: ScreenStoragePorts;
 
   constructor(ports: ScreenStoragePorts) {
     this.#ports = ports;
-    this.shareLink = ports.home === "server" ? ports.newShareLinkSession(ports.slideshowId) : null;
+    const { home, slideshowId, sessions } = ports;
+    this.serverRows =
+      home === "server"
+        ? {
+            shareLink: sessions.newShareLinkSession(slideshowId),
+            tv: sessions.newTvSession(slideshowId),
+          }
+        : null;
   }
 
   /** The storage row as it shows `stored`. */
@@ -56,6 +66,7 @@ export class ScreenStorage {
 
   /** The screen closed. */
   dispose(): void {
-    this.shareLink?.dispose();
+    this.serverRows?.shareLink.dispose();
+    this.serverRows?.tv.dispose();
   }
 }

@@ -1,5 +1,9 @@
 import { flushSync } from "svelte";
 import { afterEach, describe, expect, it } from "vitest";
+import { ShareLinkSession } from "../share-link/share-link-session";
+import { FakeShareLinkApi } from "../share-link/testing/fake-share-link-api";
+import { harness } from "../tv-remote/tv-session-fixtures";
+import { FakeScheduler } from "../../ui-kit/testing/fake-scheduler";
 import { buttonNamed, details, mountScreen, unmountScreen } from "./slideshow-screen-harness";
 
 afterEach(() => unmountScreen());
@@ -19,6 +23,25 @@ const itemNamed = (items: HTMLElement[], name: string): HTMLElement => {
 };
 
 const SERVER = { kind: "server", saving: false, missingCount: 0 } as const;
+
+/** A server slideshow's share link and "Show on TV" sessions. */
+function serverRows() {
+  const shareLink = new ShareLinkSession("show", {
+    api: new FakeShareLinkApi("show", null),
+    origin: "https://photos.example.org",
+    scheduler: new FakeScheduler(),
+    clipboard: null,
+    shareSheet: null,
+    openTab: () => {},
+    onTurnedOff: () => {},
+    onError: (error) => {
+      throw error;
+    },
+  });
+  return { shareLink, tv: harness({ openedFrom: "show" }).session };
+}
+
+const tvRow = () => document.querySelector(".tv-row");
 
 describe("SlideshowScreen, where the slideshow lives", () => {
   it("tells nothing about it while the server library is off", () => {
@@ -44,6 +67,22 @@ describe("SlideshowScreen, where the slideshow lives", () => {
 
     expect(storageRow()?.textContent).toContain("Saving\u00a0…");
     expect(storageRow()?.textContent).not.toContain("Saved");
+  });
+
+  it("offers a server slideshow on the TV, below its share row", () => {
+    mountScreen(details(["a", "b"]), { english: true, storage: SERVER, serverRows: serverRows() });
+
+    expect(tvRow()?.textContent).toContain("Show on TV");
+    const shareRow = tvRow()?.previousElementSibling;
+    expect(shareRow?.textContent).toContain("Share link");
+  });
+
+  it("offers a device slideshow nothing to show on a TV", () => {
+    const device = { kind: "device", fromImmich: 2, fromDevice: 0 } as const;
+    mountScreen(details(["a", "b"]), { english: true, storage: device });
+
+    expect(storageRow()?.textContent).toContain("On this device");
+    expect(tvRow()).toBeNull();
   });
 
   it.each([

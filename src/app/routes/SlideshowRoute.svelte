@@ -34,7 +34,7 @@
   import type { HtmlExportDevice } from "../html-export/slideshow-html-export";
   import { ScreenExports } from "./screen-exports.svelte";
   import { ScreenFocus } from "./screen-focus.svelte";
-  import type { ShareLinkSession } from "../share-link/share-link-session";
+  import type { ServerSlideshowSessions } from "../server-library/server-slideshow-sessions";
   import { ScreenStorage } from "./screen-storage.svelte";
 
   let {
@@ -43,7 +43,7 @@
     serverOn,
     onKeepCopy,
     onSaveOnServer,
-    newShareLinkSession,
+    serverSessions,
     focusPass,
     beatPass,
     toaster,
@@ -81,8 +81,8 @@
     onKeepCopy: (slideshow: StoredSlideshow) => void;
     /** "Save on the server" of a device slideshow, as shown. */
     onSaveOnServer: (slideshow: StoredSlideshow) => void;
-    /** A server slideshow's link, for its share row (share_link/IN_THE_APP.md). */
-    newShareLinkSession: (slideshowId: string) => ShareLinkSession;
+    /** A server slideshow's share link and "Show on TV" rows (share_link/, tv_remote/). */
+    serverSessions: Pick<ServerSlideshowSessions, "newShareLinkSession" | "newTvSession">;
     /** What it finds updates the editors' automatic motions and focus marks as it goes. */
     focusPass: Pick<FocusPass, "state" | "subscribe">;
     /** What it finds puts the editors' automatic changes on the music's beats as it goes. */
@@ -198,7 +198,7 @@
   const screenStorage = new ScreenStorage({
     home,
     slideshowId,
-    newShareLinkSession,
+    sessions: serverSessions,
     thumbnails,
     editor: () => editor,
   });
@@ -268,7 +268,7 @@
     mousePointer={mousePointer.current}
     {saving}
     {storage}
-    shareLink={screenStorage.shareLink}
+    serverRows={screenStorage.serverRows}
     onStorageAction={screenStorage.act}
   />
 {/if}

@@ -7,9 +7,12 @@ import { dePortrait } from "./catalogue-de-portrait.ts";
 import { deImmich } from "./catalogue-de-immich.ts";
 import { deHtml } from "./catalogue-de-html.ts";
 import { deSharePage } from "./catalogue-de-share-page.ts";
+import { deTvPage } from "./catalogue-de-tv-page.ts";
+import { deRemotePage } from "./catalogue-de-remote-page.ts";
 import { deVideo } from "./catalogue-de-video.ts";
 import { deServer } from "./catalogue-de-server.ts";
 import { deShare } from "./catalogue-de-share.ts";
+import { deTvSheet } from "./catalogue-de-tv-sheet.ts";
 import { dePlaylist } from "./catalogue-de-playlist.ts";
 import { deCulling } from "./catalogue-de-culling.ts";
 import { deFrame } from "./catalogue-de-frame.ts";
@@ -309,8 +312,11 @@ export const de = {
   ...deVideo,
   ...deHtml,
   ...deSharePage,
+  ...deTvPage,
+  ...deRemotePage,
   ...deServer,
   ...deShare,
+  ...deTvSheet,
   ...dePlaylist,
   ...deCulling,
   ...deFrame,

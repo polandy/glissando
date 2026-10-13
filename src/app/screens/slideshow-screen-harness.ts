@@ -10,6 +10,7 @@ import SlideshowScreen from "./SlideshowScreen.svelte";
 import type { ExportMenuState } from "../glissando-file/export-menu";
 import type { SlideshowDetails, SlideshowStorage, StorageAction } from "./view-models";
 import { createTranslator } from "../i18n/translator";
+import type { ServerSlideshowRows } from "../server-library/server-slideshow-sessions";
 
 let destroy = () => {};
 
@@ -65,6 +66,7 @@ export function mountScreen(
     reducedMotion = false,
     newPictureIds = new Set<string>(),
     storage = null as SlideshowStorage | null,
+    serverRows = null as ServerSlideshowRows | null,
     english = false,
   } = {},
 ) {
@@ -137,6 +139,7 @@ export function mountScreen(
     mousePointer,
     saving,
     storage,
+    serverRows,
     onStorageAction: (action: StorageAction) => calls.storageActions.push(action),
   });
   const mounted = mountWithTranslator(

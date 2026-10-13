@@ -7,9 +7,12 @@ import { enPortrait } from "./catalogue-en-portrait.ts";
 import { enImmich } from "./catalogue-en-immich.ts";
 import { enHtml } from "./catalogue-en-html.ts";
 import { enSharePage } from "./catalogue-en-share-page.ts";
+import { enTvPage } from "./catalogue-en-tv-page.ts";
+import { enRemotePage } from "./catalogue-en-remote-page.ts";
 import { enVideo } from "./catalogue-en-video.ts";
 import { enServer } from "./catalogue-en-server.ts";
 import { enShare } from "./catalogue-en-share.ts";
+import { enTvSheet } from "./catalogue-en-tv-sheet.ts";
 import { enPlaylist } from "./catalogue-en-playlist.ts";
 import { enCulling } from "./catalogue-en-culling.ts";
 import { enFrame } from "./catalogue-en-frame.ts";
@@ -307,8 +310,11 @@ export const en: Catalogue = {
   ...enVideo,
   ...enHtml,
   ...enSharePage,
+  ...enTvPage,
+  ...enRemotePage,
   ...enServer,
   ...enShare,
+  ...enTvSheet,
   ...enPlaylist,
   ...enCulling,
   ...enFrame,

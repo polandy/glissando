@@ -272,7 +272,7 @@
         serverOn={serverState.kind === "on"}
         onKeepCopy={(slideshow) => void serverCopies.keepCopy(slideshow)}
         onSaveOnServer={(slideshow) => void serverCopies.saveOnServer(slideshow)}
-        newShareLinkSession={services.newShareLinkSession}
+        serverSessions={services}
       />
     {/await}
   {/key}
@@ -290,4 +290,5 @@
   onPersistUnderstood={() => importFlow.dismissPersistNotice()}
   onInstall={install}
   onClosePwaSheet={() => (pwaSheet = null)}
+  tvAtStart={services.tvAtStart}
 />

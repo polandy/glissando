@@ -20,6 +20,14 @@ describe("sharePageLanguages", () => {
     expect(languages.en.tryAgain).toBe(en["server.tryAgain"]);
   });
 
+  it("brings the TV page's words, its wordmark the app's name", () => {
+    const languages = sharePageLanguages();
+
+    expect(languages.en.tvPairTitle).toBe(en["tvPage.pairTitle"]);
+    expect(languages.de.tvNoteVolume).toBe(de["tvPage.noteVolume"]);
+    expect(languages.de.appName).toBe(de["app.name"]);
+  });
+
   it("leaves no word empty in either language", () => {
     for (const words of Object.values(sharePageLanguages())) {
       const empty = Object.entries(words).filter(([, word]) => word === "");
