@@ -6,9 +6,10 @@
 /**
  * Version 3: the music is a playlist of tracks, each placed in the slideshow (ADR-0023). Version
  * 4 added a slide's `partner`, a second picture drawn beside or below the first, and `fit`,
- * which turns the blurred fill off for the slide (ADR-0028).
+ * which turns the blurred fill off for the slide (ADR-0028). Version 5 added the title card
+ * (ADR-0032): a slide's `card`, a ground slide in place of a picture, and the show's `endFadeMs`.
  */
-export const SLIDESHOW_FORMAT_VERSION = 4;
+export const SLIDESHOW_FORMAT_VERSION = 5;
 
 /** Durations in the format are milliseconds; the player's clock speaks seconds. */
 export const MILLISECONDS_PER_SECOND = 1000;
@@ -51,7 +52,38 @@ export interface Transition {
   readonly durationMs: number;
 }
 
-export interface Slide {
+/** The card's typographic treatment; the look of each lives in `card-layout.ts`. */
+export const CARD_STYLES = ["modern", "quiet", "bold", "classic"] as const;
+export type CardStyle = (typeof CARD_STYLES)[number];
+
+/** Where the card's text block sits; see `card-layout.ts` for the exact placement. */
+export const CARD_POSITIONS = ["centre", "bottom-left"] as const;
+export type CardPosition = (typeof CARD_POSITIONS)[number];
+
+/** The card's text colour; the composer picks it for contrast, the player does not guess. */
+export const CARD_INKS = ["light", "dark"] as const;
+export type CardInk = (typeof CARD_INKS)[number];
+
+/**
+ * The title or closing text the player draws over a slide (ADR-0032). Timing lives with
+ * `card-timing.ts`, look with `card-layout.ts`; see `dev-docs/player/TITLE_CARDS.md`.
+ */
+export interface Card {
+  readonly title: string;
+  readonly subtitle?: string;
+  readonly style: CardStyle;
+  readonly position: CardPosition;
+  readonly ink: CardInk;
+  /** Darkens and desaturates the picture behind the card; picture slides only. */
+  readonly veil?: { readonly amount: number; readonly tint: string };
+  /** Where the card starts, in slide time; default 0. */
+  readonly enterAtMs?: number;
+  /** Where the text dissolves and the veil lifts, in slide time; picture slides only. */
+  readonly revealAtMs?: number;
+}
+
+/** A slide with a picture, as every slide was before version 5. */
+export interface PictureSlide {
   readonly image: { readonly src: string; readonly capturedAt: string };
   readonly durationMs: number;
   readonly kenBurns: KenBurns;
@@ -67,8 +99,27 @@ export interface Slide {
   readonly caption?: string;
   /** `"cover"` turns the blurred fill off; absent: whole picture over a blurred fill if needed. */
   readonly fit?: "cover";
+  /** The slideshow's title or closing card, drawn over this picture (ADR-0032). */
+  readonly card?: Card;
   /** Absent: a hard cut. Never on the last slide. */
   readonly transitionToNext?: Transition;
+}
+
+/** A slide with a solid colour instead of a picture, drawn behind a title or closing card. */
+export interface GroundSlide {
+  /** `#RRGGBB`. */
+  readonly ground: string;
+  readonly durationMs: number;
+  readonly card: Card;
+  /** Absent: a hard cut. Never on the last slide. */
+  readonly transitionToNext?: Transition;
+}
+
+export type Slide = PictureSlide | GroundSlide;
+
+/** True for a slide drawn over a solid colour rather than a picture. */
+export function isGroundSlide(slide: Slide): slide is GroundSlide {
+  return "ground" in slide;
 }
 
 /**
@@ -95,4 +146,6 @@ export interface Slideshow {
   /** In order of `atMs`, never empty; at most two sound at once, in a crossfade. Absent: silence. */
   readonly music?: readonly MusicTrack[];
   readonly slides: readonly Slide[];
+  /** Over the last `endFadeMs` of the show, the frame mixes to black (ADR-0032). Absent: none. */
+  readonly endFadeMs?: number;
 }
