@@ -73,6 +73,7 @@
   }
   // svelte-ignore state_referenced_locally
   let serverState = $state.raw<ServerLibraryState>(services.serverLibrary.availability.state);
+  // svelte-ignore state_referenced_locally
   let frameCardShown = $state(services.frameCardPreference.shown);
 
   let route = $state.raw<Route>(navigator.route);
