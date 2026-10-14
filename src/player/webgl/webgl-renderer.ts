@@ -1,9 +1,10 @@
 import type { BitmapPicture } from "../browser/bitmap-loader";
+import type { Fonts } from "../fonts";
 import type { Size } from "../ken-burns";
 import type { PreparedSlide, RenderFrame, SlideLayer, SlideRenderer } from "../ports";
 import { TRANSITION_EFFECTS, type TransitionEffect } from "../slideshow";
 import { bindLayer, fromUniforms, toUniforms, type LayerTextureUnits } from "./bind-layer";
-import { CaptionTextures, type CaptionFonts } from "./caption-textures";
+import { CaptionTextures } from "./caption-textures";
 import { PictureTextures } from "./picture-textures";
 import { fragmentShader, VERTEX_SHADER } from "./transition-shaders";
 
@@ -60,7 +61,7 @@ export interface WebGlRendererOptions {
   /** Device pixels per CSS pixel. */
   readonly pixelRatio?: () => number;
   /** Loads the caption font; captions are drawn once it has. */
-  readonly fonts?: CaptionFonts;
+  readonly fonts?: Fonts;
   /** A fixed drawing buffer, e.g. a video's frame size, instead of the CSS size × pixel ratio. */
   readonly drawingSize?: Size;
 }

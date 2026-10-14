@@ -10,7 +10,7 @@ import {
   viewportBox,
   type Rgb,
 } from "../testing/browser-pictures";
-import type { CaptionFonts } from "./caption-textures";
+import type { Fonts } from "../fonts";
 import { WebGlRenderer } from "./webgl-renderer";
 
 const VIEWPORT = { width: 100, height: 100 };
@@ -27,7 +27,7 @@ const CAPTION = "HH";
 let box: HTMLElement;
 
 /** Fonts the test lets load when it wants; `load` records each font asked for. */
-class ControlledFonts implements CaptionFonts {
+class ControlledFonts implements Fonts {
   readonly requested: string[] = [];
   #resolve: () => void = () => undefined;
   readonly #loaded = new Promise<void>((resolve) => (this.#resolve = resolve));
