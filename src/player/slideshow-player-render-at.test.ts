@@ -90,7 +90,9 @@ describe("SlideshowPlayer.renderAt", () => {
 
     await player.renderAt(1);
 
-    expect(renderer.prepared.map(({ picture }) => picture.src)).toContain("b.jpg");
+    expect(renderer.prepared.map((p) => ("picture" in p ? p.picture.src : undefined))).toContain(
+      "b.jpg",
+    );
   });
 
   it("emits no events, not even the first frame's canplay", async () => {

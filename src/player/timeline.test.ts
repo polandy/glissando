@@ -29,7 +29,8 @@ describe("createTimeline", () => {
 
     expect(timeline.frameAt(2000)).toEqual({
       kind: "slide",
-      slide: { index: 0, kenBurnsProgress: 0.5 },
+      slide: { index: 0, kenBurnsProgress: 0.5, slideTimeMs: 2000 },
+      showTimeMs: 2000,
     });
   });
 
@@ -40,8 +41,9 @@ describe("createTimeline", () => {
       kind: "transition",
       effect: "crossfade",
       progress: 0.5,
-      from: { index: 0, kenBurnsProgress: 3500 / 4000 },
-      to: { index: 1, kenBurnsProgress: 500 / 6000 },
+      from: { index: 0, kenBurnsProgress: 3500 / 4000, slideTimeMs: 3500 },
+      to: { index: 1, kenBurnsProgress: 500 / 6000, slideTimeMs: 0 },
+      showTimeMs: 3500,
     });
   });
 
@@ -56,7 +58,8 @@ describe("createTimeline", () => {
 
     expect(timeline.frameAt(8999)).toEqual({
       kind: "slide",
-      slide: { index: 1, kenBurnsProgress: 5999 / 6000 },
+      slide: { index: 1, kenBurnsProgress: 5999 / 6000, slideTimeMs: 4999 },
+      showTimeMs: 8999,
     });
   });
 
@@ -66,17 +69,22 @@ describe("createTimeline", () => {
     expect(timeline.frameAt(3999)).toMatchObject({ kind: "slide", slide: { index: 0 } });
     expect(timeline.frameAt(4000)).toEqual({
       kind: "slide",
-      slide: { index: 1, kenBurnsProgress: 0 },
+      slide: { index: 1, kenBurnsProgress: 0, slideTimeMs: 0 },
+      showTimeMs: 4000,
     });
   });
 
   it.each([
-    [-100, { index: 0, kenBurnsProgress: 0 }],
-    [9000, { index: 1, kenBurnsProgress: 1 }],
-    [20000, { index: 1, kenBurnsProgress: 1 }],
-  ])("clamps %d ms to the slideshow", (timeMs, expected) => {
+    [-100, { index: 0, kenBurnsProgress: 0, slideTimeMs: 0 }, 0],
+    [9000, { index: 1, kenBurnsProgress: 1, slideTimeMs: 5000 }, 9000],
+    [20000, { index: 1, kenBurnsProgress: 1, slideTimeMs: 5000 }, 9000],
+  ])("clamps %d ms to the slideshow", (timeMs, expectedSlide, showTimeMs) => {
     const timeline = createTimeline([slide(4000), slide(5000)]);
 
-    expect(timeline.frameAt(timeMs)).toEqual({ kind: "slide", slide: expected });
+    expect(timeline.frameAt(timeMs)).toEqual({
+      kind: "slide",
+      slide: expectedSlide,
+      showTimeMs,
+    });
   });
 });

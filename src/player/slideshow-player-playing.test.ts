@@ -21,9 +21,11 @@ describe("SlideshowPlayer, playing, pausing and drawing", () => {
     expect(renderer.lastFrame).toEqual({
       kind: "slide",
       slide: {
+        kind: "picture",
         picture: { src: "a.jpg", width: 1600, height: 900 },
         motion: { kenBurns: slide("a.jpg", 4000).kenBurns, progress: 0 },
       },
+      endFade: 0,
     });
   });
 

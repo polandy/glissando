@@ -1,6 +1,7 @@
 import { ease } from "./easing";
-import type { RenderFrame, SlideLayer } from "./ports";
-import { isGroundSlide, type Easing, type PictureSlide, type Slideshow } from "./slideshow";
+import { cardTimingAt, endFadeAmount } from "./card-timing";
+import type { CardVisual, PictureSlideLayer, RenderFrame, SlideLayer } from "./ports";
+import { isGroundSlide, type Card, type Easing, type PictureSlide, type Slideshow } from "./slideshow";
 import type { SlideAtTime, TimelineFrame } from "./timeline";
 
 const TRANSITION_EASING: Easing = "ease-in-out";
@@ -10,13 +11,22 @@ export function easeTransition(progress: number): number {
   return ease(TRANSITION_EASING, progress);
 }
 
+/** What `renderFrame` needs beyond the timeline frame itself, read fresh for each call. */
+export interface RenderFrameContext {
+  /** The whole show's length, for the end fade (ADR-0032). */
+  readonly showDurationMs: number;
+  readonly reducedMotion: boolean;
+}
+
 /**
  * What the renderer draws for `frame`; `picturesAt` holds the loaded pictures of the slide on
- * it, its own picture first and its partner's second if it is paired (ADR-0028).
+ * it, its own picture first and its partner's second if it is paired (ADR-0028). A card's
+ * timing (ADR-0032) is computed here, once, from `cardTimingAt`, so no renderer repeats it.
  */
 export function renderFrame<Picture>(
   frame: TimelineFrame,
   slideshow: Slideshow,
+  context: RenderFrameContext,
   picturesAt: (index: number) => readonly Picture[] | undefined,
 ): RenderFrame<Picture> {
   const layer = (slideAtTime: SlideAtTime): SlideLayer<Picture> => {
@@ -24,8 +34,12 @@ export function renderFrame<Picture>(
     if (slide === undefined) {
       throw new Error(`slide ${slideAtTime.index} is drawn before its picture loaded`);
     }
+    const cardVisual = cardVisualFor(slide.card, slideAtTime.slideTimeMs, context.reducedMotion);
     if (isGroundSlide(slide)) {
-      throw new Error("ground slides are drawn in step B");
+      if (cardVisual === undefined) {
+        throw new Error(`ground slide ${slideAtTime.index} has no card`);
+      }
+      return { kind: "ground", ground: slide.ground, card: cardVisual };
     }
     const pictures = picturesAt(slideAtTime.index);
     const picture = pictures?.[0];
@@ -35,15 +49,23 @@ export function renderFrame<Picture>(
     const progress = slideAtTime.kenBurnsProgress;
     const partner = partnerLayer(slide, pictures, progress);
     return {
+      kind: "picture",
       picture,
       motion: { kenBurns: slide.kenBurns, progress },
       ...(partner === undefined ? {} : { partner }),
       ...(slide.fit === undefined ? {} : { fit: slide.fit }),
       ...(slide.caption === undefined ? {} : { caption: slide.caption }),
+      ...(cardVisual === undefined
+        ? {}
+        : { card: cardVisual, captionOpacity: 1 - cardVisual.textOpacity }),
     };
   };
+  const endFade =
+    slideshow.endFadeMs === undefined
+      ? 0
+      : endFadeAmount(slideshow.endFadeMs, context.showDurationMs, frame.showTimeMs);
   if (frame.kind === "slide") {
-    return { kind: "slide", slide: layer(frame.slide) };
+    return { kind: "slide", slide: layer(frame.slide), endFade };
   }
   return {
     kind: "transition",
@@ -51,6 +73,24 @@ export function renderFrame<Picture>(
     progress: easeTransition(frame.progress),
     from: layer(frame.from),
     to: layer(frame.to),
+    endFade,
+  };
+}
+
+function cardVisualFor(
+  card: Card | undefined,
+  slideTimeMs: number,
+  reducedMotion: boolean,
+): CardVisual | undefined {
+  if (card === undefined) {
+    return undefined;
+  }
+  const timing = cardTimingAt(card, slideTimeMs, reducedMotion);
+  return {
+    card,
+    textOpacity: timing.textOpacity,
+    driftEm: timing.driftEm,
+    veilAmount: timing.veilAmount,
   };
 }
 
@@ -58,7 +98,7 @@ function partnerLayer<Picture>(
   slide: PictureSlide,
   pictures: readonly Picture[],
   progress: number,
-): SlideLayer<Picture>["partner"] {
+): PictureSlideLayer<Picture>["partner"] {
   if (slide.partner === undefined) {
     return undefined;
   }

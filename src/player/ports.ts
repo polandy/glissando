@@ -1,27 +1,60 @@
-import type { TransitionEffect } from "./slideshow";
+import type { Card, TransitionEffect } from "./slideshow";
 import type { KenBurnsAt, Size } from "./ken-burns";
 
 /**
- * A slide's picture with its Ken Burns motion at the moment drawn, its caption if it has one,
- * its partner if it is composed as a pair, and `fit` (ADR-0028).
+ * A card's look at the moment drawn (ADR-0032): the card itself plus `cardTimingAt`'s numbers,
+ * so the renderers never recompute the timing.
  */
-export interface SlideLayer<Picture> {
+export interface CardVisual {
+  readonly card: Card;
+  readonly textOpacity: number;
+  readonly driftEm: number;
+  readonly veilAmount: number;
+}
+
+/**
+ * A slide's picture with its Ken Burns motion at the moment drawn, its caption if it has one,
+ * its partner if it is composed as a pair, `fit` (ADR-0028), and its card if it has one
+ * (ADR-0032). `captionOpacity` is the caption's extra fade while a card shares the slide; absent
+ * is opaque.
+ */
+export interface PictureSlideLayer<Picture> {
+  readonly kind: "picture";
   readonly picture: Picture;
   readonly motion: KenBurnsAt;
   readonly partner?: { readonly picture: Picture; readonly motion: KenBurnsAt };
   /** `"cover"` turns the blurred fill off; absent: whole picture over a fill if needed. */
   readonly fit?: "cover";
   readonly caption?: string;
+  readonly captionOpacity?: number;
+  readonly card?: CardVisual;
 }
 
-/** A picture to draw later, with the caption it will be drawn with. A pair prepares each picture on its own call. */
-export interface PreparedSlide<Picture> {
-  readonly picture: Picture;
-  readonly caption?: string;
+/** A ground slide: a solid colour behind its card (ADR-0032); always carries a card. */
+export interface GroundSlideLayer {
+  readonly kind: "ground";
+  /** `#RRGGBB`. */
+  readonly ground: string;
+  readonly card: CardVisual;
 }
+
+export type SlideLayer<Picture> = PictureSlideLayer<Picture> | GroundSlideLayer;
+
+/**
+ * What to prepare ahead of a slide coming on screen: its picture and caption, or a ground
+ * slide's card texture alone. A pair prepares each picture on its own call.
+ */
+export type PreparedSlide<Picture> =
+  | { readonly picture: Picture; readonly caption?: string; readonly card?: Card }
+  | { readonly ground: string; readonly card: Card };
 
 export type RenderFrame<Picture> =
-  | { readonly kind: "slide"; readonly slide: SlideLayer<Picture> }
+  | {
+      readonly kind: "slide";
+      readonly slide: SlideLayer<Picture>;
+      /** 0 clear .. 1 black, mixed over the whole frame at the show's end (ADR-0032). */
+      readonly endFade: number;
+    }
   | {
       readonly kind: "transition";
       readonly effect: TransitionEffect;
@@ -29,6 +62,7 @@ export type RenderFrame<Picture> =
       readonly progress: number;
       readonly from: SlideLayer<Picture>;
       readonly to: SlideLayer<Picture>;
+      readonly endFade: number;
     };
 
 /** Draws frames into its viewport; WebGL2 or the DOM fallback. */
@@ -89,4 +123,6 @@ export interface PlayerDependencies<Picture extends Size> {
   readonly openMusic?: (src: string) => MusicPlayback;
   /** Slides loaded beyond the last one on screen; `DEFAULT_PICTURES_AHEAD` without it. */
   readonly picturesAhead?: number;
+  /** Read fresh for each frame; a card's drift and fades shorten under it (ADR-0032). Absent: false. */
+  readonly reducedMotion?: () => boolean;
 }

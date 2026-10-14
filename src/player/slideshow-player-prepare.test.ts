@@ -113,6 +113,8 @@ describe("SlideshowPlayer preparing pictures", () => {
       picture: expect.objectContaining({ src: "b.jpg" }),
       caption: "Sunset at the lake",
     });
-    expect(renderer.prepared.map(({ picture }) => picture.src)).not.toContain("a.jpg");
+    expect(
+      renderer.prepared.map((p) => ("picture" in p ? p.picture.src : undefined)),
+    ).not.toContain("a.jpg");
   });
 });
