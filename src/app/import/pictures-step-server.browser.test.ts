@@ -117,10 +117,13 @@ describe("PicturesStep, where a new slideshow lives", () => {
     expect(text).not.toContain("Choose pictures");
   });
 
-  it("fixes the choice once a picture is linked, and says the pictures stay in Immich", () => {
+  it("fixes the choice once a picture is linked, and says the pictures stay in Immich", async () => {
     const { target, option, session } = mountStep(true, "server");
 
     session.addImmichPhotos([PHOTO]);
+    // Linking reads the photo's colours off its thumbnail (ADR-0033), so it settles later than
+    // the synchronous call above.
+    await session.intake.settled();
     flushSync();
 
     expect(option("This device")?.disabled).toBe(true);

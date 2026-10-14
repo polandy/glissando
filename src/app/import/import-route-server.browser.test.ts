@@ -98,6 +98,9 @@ describe("ImportRoute, creating a server slideshow", () => {
     });
     importSession.chooseHome("server");
     importSession.addImmichPhotos([PHOTO]);
+    // Linking reads the photo's colours off its thumbnail (ADR-0033), so it settles later than
+    // the synchronous call above.
+    await importSession.intake.settled();
     const { target, failed, created, toldFailure, createButton } = mountMusicStep(importSession);
 
     createButton()?.click();
