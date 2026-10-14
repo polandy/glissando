@@ -4,8 +4,10 @@
   import SectionHead from "../../../components/SectionHead.svelte";
   import { getTranslator } from "../../../i18n/context";
   import type { MotionPreviewPorts } from "../../../picture-editor/motion-preview";
+  import type { CardEntrance } from "../../../../player/slideshow";
   import type { PictureTile } from "../../view-models";
   import CardBackgroundPicker from "./CardBackgroundPicker.svelte";
+  import CardEntrancePicker from "./CardEntrancePicker.svelte";
   import CardPreview from "./CardPreview.svelte";
   import CardStylePicker from "./CardStylePicker.svelte";
   import CardTitleFields from "./CardTitleFields.svelte";
@@ -58,6 +60,15 @@
     onChange(next);
   }
 
+  // Picking an entrance is the one edit that replays the preview's enter phase (TITLE_SLIDES.md);
+  // bumping this token tells CardPreview to play instead of jumping straight to settled.
+  let entranceReplayToken = $state(0);
+
+  function updateEntrance(entrance: CardEntrance): void {
+    entranceReplayToken += 1;
+    update({ ...card, entrance });
+  }
+
   function cancel(event: Event): void {
     event.preventDefault();
     onClose();
@@ -102,7 +113,7 @@
   <div class="sheet">
     <SectionHead id="card-sheet-title" title={sheetTitle} own={false} />
 
-    <CardPreview {card} {pictures} {previewPorts} {reducedMotion} />
+    <CardPreview {card} {pictures} {previewPorts} {reducedMotion} {entranceReplayToken} />
 
     <CardTitleFields
       {kind}
@@ -114,6 +125,8 @@
     />
 
     <CardStylePicker style={card.style} onChange={(style) => update({ ...card, style })} />
+
+    <CardEntrancePicker entrance={card.entrance} onChange={updateEntrance} />
 
     <CardBackgroundPicker
       background={card.background}

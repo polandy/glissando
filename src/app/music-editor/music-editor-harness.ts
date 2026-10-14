@@ -24,6 +24,7 @@ export function slideshowWith(
     width: 1,
     height: 1,
     fileName: `p${index}.jpg`,
+    colours: { veil: "#404040", accent: "#C0C0C0" },
     ...(durations[index] === undefined ? {} : { durationMs: durations[index] }),
   }));
   return {

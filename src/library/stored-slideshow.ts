@@ -1,7 +1,8 @@
 import type { MusicBeats } from "../beats";
 import type { CardSwatchId } from "../player/card-palette";
-import type { CardPosition, CardStyle } from "../player/slideshow";
+import type { CardEntrance, CardPosition, CardStyle } from "../player/slideshow";
 import type { OwnKenBurns } from "./own-ken-burns";
+import type { PictureColours } from "./picture-colours";
 import type { PictureFocus } from "./picture-focus";
 import type { PictureLength } from "./picture-length";
 import type { PortraitPictures } from "./portrait-pictures";
@@ -48,16 +49,25 @@ export interface StoredPicture {
   readonly fileBytes?: number;
   /** Never composed into a portrait pair, even automatically; absent: it may be (ADR-0028). */
   readonly alone?: true;
+  /** Worked out once when the picture is added (`pictureColours`, ADR-0033). */
+  readonly colours: PictureColours;
 }
+
+/** A card's own ground or veil colour: one of the fixed swatches, or a picture's hex. */
+export type CardColour = CardSwatchId | string;
+
+/** The veil's tint over a card's picture background (TITLE_CARDS.md § Composition). */
+export type CardTint = "picture" | "light" | "dark";
 
 /** Where a title or closing card sits behind its text (ADR-0032, TITLE_SLIDES.md). */
 export type StoredCardBackground =
-  | { readonly kind: "colour"; readonly colour: CardSwatchId }
+  | { readonly kind: "colour"; readonly colour: CardColour }
   | {
       readonly kind: "picture";
       readonly pictureId: string;
       /** 0 to 100 in steps of 5; the veil amount is `fade / 100`. */
       readonly fade: number;
+      readonly tint: CardTint;
     };
 
 /**
@@ -70,6 +80,7 @@ export interface StoredCard {
   readonly subtitle?: string | undefined;
   readonly style: CardStyle;
   readonly position: CardPosition;
+  readonly entrance: CardEntrance;
   readonly background: StoredCardBackground;
   readonly motion: boolean;
 }

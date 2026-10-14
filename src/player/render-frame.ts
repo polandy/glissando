@@ -97,6 +97,8 @@ function cardVisualFor(
     textOpacity: timing.textOpacity,
     driftEm: timing.driftEm,
     veilAmount: timing.veilAmount,
+    slideTimeMs,
+    reducedMotion,
   };
 }
 

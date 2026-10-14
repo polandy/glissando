@@ -44,7 +44,14 @@ const existing: StoredSlideshow = {
   title: "Herbst in Wien",
   createdAt: "2025-01-01T00:00:00Z",
   pictures: [
-    { id: "kept", capturedAt: "2025-01-01T00:00:00Z", width: 1, height: 1, fileName: "k" },
+    {
+      id: "kept",
+      capturedAt: "2025-01-01T00:00:00Z",
+      width: 1,
+      height: 1,
+      fileName: "k",
+      colours: { veil: "#404040", accent: "#C0C0C0" },
+    },
   ],
   songs: [],
   secondsPerPicture: 5,
@@ -100,7 +107,7 @@ describe("OpenFlow", () => {
       "newer",
       async () =>
         new File(
-          [await zipWith({ "glissando.json": '{"format":"glissando","formatVersion":13}' })],
+          [await zipWith({ "glissando.json": '{"format":"glissando","formatVersion":14}' })],
           "x.glissando",
         ),
     ],

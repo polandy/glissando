@@ -8,6 +8,7 @@ import {
 import { canvasCardMeasure, withLetterSpacing } from "../card-measure";
 import type { Size } from "../ken-burns";
 import type { Card } from "../slideshow";
+import { downscaledBlurPlan, gaussianBlur } from "./box-blur";
 
 type Shadow = NonNullable<(typeof CARD_INK_COLORS)[keyof typeof CARD_INK_COLORS]["shadow"]>;
 
@@ -39,6 +40,32 @@ export function rasterizeCard(canvas: HTMLCanvasElement, card: Card, viewport: S
   drawLines(context, layout.subtitleLines, spec.subtitle, layout.align, ink.color, ink.shadow);
 
   return layout.titleLines[0]?.fontSizePx ?? spec.title.sizeFractionOfHeight * viewport.height;
+}
+
+/**
+ * Draws `sharp` (a `rasterizeCard` raster) into `target` with a static Gaussian blur of `sigmaPx`
+ * pixels at `sharp`'s size: the `focus` entrance's cross-fade copy, made once, never per frame
+ * (ADR-0032). `target` is scaled down per `downscaledBlurPlan`, so the copy costs milliseconds even
+ * at a phone's full resolution; it is sampled by fractions of its size, so its own size is free.
+ * Our own `gaussianBlur` rather than `CanvasRenderingContext2D.filter`: Safari/WebKit, a real PWA
+ * target, does not support that property, which would otherwise silently draw the copy sharp.
+ */
+export function blurCardRaster(
+  sharp: HTMLCanvasElement,
+  target: HTMLCanvasElement,
+  sigmaPx: number,
+): void {
+  const plan = downscaledBlurPlan({ width: sharp.width, height: sharp.height }, sigmaPx);
+  target.width = plan.size.width;
+  target.height = plan.size.height;
+  const context = target.getContext("2d");
+  if (context === null) {
+    throw new Error("this browser has no 2D canvas to blur title cards with");
+  }
+  context.imageSmoothingQuality = "high";
+  context.drawImage(sharp, 0, 0, target.width, target.height);
+  const blurred = gaussianBlur(context.getImageData(0, 0, target.width, target.height), plan.sigma);
+  context.putImageData(new ImageData(blurred.data, blurred.width, blurred.height), 0, 0);
 }
 
 function drawLines(

@@ -1,6 +1,7 @@
 import { CAPTION_RULE, isCaption } from "../player/caption";
 import { checkOwnKenBurns, InvalidOwnKenBurnsError, motionPath } from "../library/own-ken-burns";
 import { checkOwnDurationMs, checkTransitionChoice } from "../library/own-timing";
+import { isHexColour, type PictureColours } from "../library/picture-colours";
 import {
   checkMusicFadeMs,
   checkMusicTrim,
@@ -17,6 +18,7 @@ import {
 import {
   DocumentFormatError,
   readDateTime,
+  readObject,
   readPositiveInteger,
   readText,
   type JsonObject,
@@ -31,6 +33,7 @@ export function pictureKeys(version: number): string[] {
     "width",
     "height",
     "fileName",
+    "colours",
     ...(version >= OWN_KEN_BURNS_FROM_VERSION ? ["kenBurns"] : []),
     ...(version >= CAPTION_FROM_VERSION ? ["caption"] : []),
     ...(version >= OWN_TIMING_FROM_VERSION ? ["durationMs", "transition"] : []),
@@ -48,6 +51,7 @@ export function readPictureFields(picture: JsonObject, path: string): PictureFie
     width: readPositiveInteger(picture["width"], `${path}.width`),
     height: readPositiveInteger(picture["height"], `${path}.height`),
     fileName: readText(picture["fileName"], `${path}.fileName`),
+    colours: readPictureColours(picture["colours"], `${path}.colours`),
     ...(kenBurns === undefined ? {} : { kenBurns: readOwnKenBurns(kenBurns, path) }),
     ...(caption === undefined ? {} : { caption: readCaption(caption, `${path}.caption`) }),
     ...(durationMs === undefined
@@ -95,6 +99,20 @@ export function readMusicFields(music: JsonObject, path: string): MusicFields {
         : { pictureChanges: checkPictureChanges(pictureChanges, path) }),
     })),
   };
+}
+
+/** `value` as a picture's stored colours; throws `DocumentFormatError` naming the bad field. */
+function readPictureColours(value: unknown, path: string): PictureColours {
+  const colours = readObject(value, path, ["veil", "accent"]);
+  const veil = colours["veil"];
+  const accent = colours["accent"];
+  if (!isHexColour(veil)) {
+    throw new DocumentFormatError(`${path}.veil`, "a #RRGGBB colour", veil);
+  }
+  if (!isHexColour(accent)) {
+    throw new DocumentFormatError(`${path}.accent`, "a #RRGGBB colour", accent);
+  }
+  return { veil, accent };
 }
 
 function readCaption(value: unknown, path: string): string {

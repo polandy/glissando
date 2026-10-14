@@ -41,6 +41,7 @@ function storedPicture(id: string, width: number, height: number): StoredPicture
     height,
     fileName: `${id}.jpg`,
     durationMs: SLIDE_MS,
+    colours: { veil: "#404040", accent: "#C0C0C0" },
   };
 }
 

@@ -14,6 +14,7 @@ function slideshow(songs: StoredMusic[], count: number, own: Partial<StoredSlide
     width: 1,
     height: 1,
     fileName: `p${index}.jpg`,
+    colours: { veil: "#404040", accent: "#C0C0C0" },
   }));
   return {
     id: "show",

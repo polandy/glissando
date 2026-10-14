@@ -95,6 +95,7 @@ describe("layoutCard", () => {
       style: "modern",
       position: "centre",
       ink: "light",
+      entrance: "rise",
       ...overrides,
     };
   }

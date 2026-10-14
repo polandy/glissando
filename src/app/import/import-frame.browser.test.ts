@@ -54,6 +54,7 @@ const MANY_PICTURES: readonly StoredPicture[] = Array.from({ length: 80 }, (_, i
   width: 400,
   height: 300,
   fileName: `picture-${index}.jpg`,
+  colours: { veil: "#404040", accent: "#C0C0C0" },
 }));
 
 function mountStripInto(frame: HTMLElement): void {

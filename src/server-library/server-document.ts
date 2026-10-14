@@ -25,10 +25,14 @@ import {
  */
 
 export const SERVER_DOCUMENT_FORMAT_ID = "glissando-server";
-/** Version 2 added the slideshow's `openingCard` and `closingCard` (ADR-0032). */
-export const SERVER_DOCUMENT_FORMAT_VERSION = 2;
+/**
+ * Version 2 added the slideshow's `openingCard` and `closingCard` (ADR-0032), version 3 a
+ * picture's `colours` and a card's picture background `tint` (ADR-0033). Only version 3 is read:
+ * there is no production instance yet, so an older document is refused rather than migrated.
+ */
+export const SERVER_DOCUMENT_FORMAT_VERSION = 3;
 /** The manifest format version whose slideshow fields a server document carries. */
-const MANIFEST_FIELDS_VERSION = 12;
+const MANIFEST_FIELDS_VERSION = 13;
 /** Every key a server document's slideshow, each picture and each song may carry. */
 export const SERVER_SLIDESHOW_KEYS: readonly string[] = slideshowKeys(MANIFEST_FIELDS_VERSION);
 export const SERVER_PICTURE_KEYS: readonly string[] = [
@@ -188,6 +192,7 @@ function pictureFieldsOf(picture: PictureFields): PictureFields {
     width: picture.width,
     height: picture.height,
     fileName: picture.fileName,
+    colours: picture.colours,
     ...(picture.kenBurns === undefined ? {} : { kenBurns: picture.kenBurns }),
     ...(picture.caption === undefined ? {} : { caption: picture.caption }),
     ...(picture.durationMs === undefined ? {} : { durationMs: picture.durationMs }),

@@ -10,6 +10,7 @@ function heldCard(overrides: Partial<Card> = {}): Card {
     style: "modern",
     position: "centre",
     ink: "light",
+    entrance: "rise",
     ...overrides,
   };
 }
@@ -40,7 +41,7 @@ function slideFrame(index: number, slideTimeMs: number, showTimeMs = slideTimeMs
 describe("renderFrame: ground slides (ADR-0032)", () => {
   it("draws a ground slide as a ground layer carrying its hex colour", () => {
     const slideshow: Slideshow = {
-      formatVersion: 5,
+      formatVersion: 6,
       title: "Opening",
       slides: [groundSlide(heldCard())],
     };
@@ -55,7 +56,7 @@ describe("renderFrame: ground slides (ADR-0032)", () => {
   it("computes the ground slide's card timing the same way cardTimingAt does", () => {
     const card = heldCard({ enterAtMs: 0 });
     const slideshow: Slideshow = {
-      formatVersion: 5,
+      formatVersion: 6,
       title: "Opening",
       slides: [groundSlide(card)],
     };
@@ -68,12 +69,14 @@ describe("renderFrame: ground slides (ADR-0032)", () => {
       textOpacity: expected.textOpacity,
       driftEm: expected.driftEm,
       veilAmount: expected.veilAmount,
+      slideTimeMs: 400,
+      reducedMotion: false,
     });
   });
 
   it("never loads a picture for a ground slide: picturesAt is never asked", () => {
     const slideshow: Slideshow = {
-      formatVersion: 5,
+      formatVersion: 6,
       title: "Opening",
       slides: [groundSlide(heldCard())],
     };
@@ -94,7 +97,7 @@ describe("renderFrame: a picture slide's card (ADR-0032)", () => {
   it("carries the card's timing and discounts the caption by the text opacity", () => {
     const card = heldCard({ enterAtMs: 0 });
     const slideshow: Slideshow = {
-      formatVersion: 5,
+      formatVersion: 6,
       title: "Lake",
       slides: [pictureSlide({ card, caption: "At the lake" })],
     };
@@ -115,7 +118,7 @@ describe("renderFrame: a picture slide's card (ADR-0032)", () => {
 
   it("leaves card and captionOpacity absent on a slide without a card", () => {
     const slideshow: Slideshow = {
-      formatVersion: 5,
+      formatVersion: 6,
       title: "Lake",
       slides: [pictureSlide({ caption: "At the lake" })],
     };
@@ -133,7 +136,7 @@ describe("renderFrame: a picture slide's card (ADR-0032)", () => {
   it("shortens the card's drift under reduced motion, unlike the default motion", () => {
     const card = heldCard({ enterAtMs: 0 });
     const slideshow: Slideshow = {
-      formatVersion: 5,
+      formatVersion: 6,
       title: "Lake",
       slides: [pictureSlide({ card })],
     };
@@ -162,7 +165,7 @@ describe("renderFrame: a picture slide's card (ADR-0032)", () => {
 describe("renderFrame: the end fade (ADR-0032)", () => {
   it("is 0 when the show has no endFadeMs, even at the very end", () => {
     const slideshow: Slideshow = {
-      formatVersion: 5,
+      formatVersion: 6,
       title: "Lake",
       slides: [pictureSlide()],
     };
@@ -179,7 +182,7 @@ describe("renderFrame: the end fade (ADR-0032)", () => {
 
   it("mixes to black over the show's last endFadeMs, reaching 1 at the very end", () => {
     const slideshow: Slideshow = {
-      formatVersion: 5,
+      formatVersion: 6,
       title: "Lake",
       endFadeMs: 1000,
       slides: [pictureSlide()],

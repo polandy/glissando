@@ -20,6 +20,7 @@ function picture(overrides: Partial<PictureTile> = {}): PictureTile {
     pairedWithNumber: null,
     blurredFill: false,
     alone: false,
+    colours: { veil: "#404040", accent: "#C0C0C0" },
     ...overrides,
   };
 }

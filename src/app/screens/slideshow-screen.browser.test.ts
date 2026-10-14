@@ -146,6 +146,7 @@ describe("SlideshowScreen editing", () => {
       pairedWithNumber: null,
       blurredFill: false,
       alone: false,
+      colours: { veil: "#404040", accent: "#C0C0C0" },
     }));
     mountScreen(details(ids, { pictures }));
     // The strip's actual last child is the closing slide tile (TITLE_SLIDES.md), not a picture.

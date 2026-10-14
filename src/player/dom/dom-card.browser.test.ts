@@ -21,6 +21,7 @@ function groundCard(overrides: Partial<Card> = {}): Card {
     style: "modern",
     position: "centre",
     ink: "light",
+    entrance: "rise",
     ...overrides,
   };
 }
@@ -36,7 +37,14 @@ describe("DomRenderer: title cards (ADR-0032)", () => {
       slide: {
         kind: "ground",
         ground: GROUND,
-        card: { card, textOpacity: 1, driftEm: 0, veilAmount: 0 },
+        card: {
+          card,
+          textOpacity: 1,
+          driftEm: 0,
+          veilAmount: 0,
+          slideTimeMs: 800,
+          reducedMotion: false,
+        },
       },
     });
 
@@ -63,7 +71,14 @@ describe("DomRenderer: title cards (ADR-0032)", () => {
         picture,
         motion: MOTION,
         fit: "cover",
-        card: { card, textOpacity: 1, driftEm: 0, veilAmount: 0.5 },
+        card: {
+          card,
+          textOpacity: 1,
+          driftEm: 0,
+          veilAmount: 0.5,
+          slideTimeMs: 800,
+          reducedMotion: false,
+        },
       },
     });
 
@@ -85,7 +100,14 @@ describe("DomRenderer: title cards (ADR-0032)", () => {
         picture,
         motion: MOTION,
         fit: "cover",
-        card: { card, textOpacity: 1, driftEm: 0, veilAmount: 0 },
+        card: {
+          card,
+          textOpacity: 1,
+          driftEm: 0,
+          veilAmount: 0,
+          slideTimeMs: 800,
+          reducedMotion: false,
+        },
       },
     });
 
@@ -106,5 +128,62 @@ describe("DomRenderer: title cards (ADR-0032)", () => {
     const overlay = box.querySelector<HTMLElement>("[data-end-fade]");
     expect(getComputedStyle(overlay as Element).backgroundColor).toBe("rgb(0, 0, 0)");
     expect(overlay?.style.opacity).toBe("1");
+  });
+});
+
+describe("DomRenderer: title card entrances (ADR-0032)", () => {
+  it("under words, mid-enter draws the first word more opaque than the last", () => {
+    const { renderer } = setUp();
+    const card = groundCard({ title: "Summer Lake", entrance: "words" });
+
+    renderer.render({
+      kind: "slide",
+      endFade: 0,
+      slide: {
+        kind: "ground",
+        ground: GROUND,
+        card: {
+          card,
+          textOpacity: 1,
+          driftEm: 0,
+          veilAmount: 0,
+          slideTimeMs: 300,
+          reducedMotion: false,
+        },
+      },
+    });
+
+    const items = [...box.querySelectorAll<HTMLElement>("[data-card-item]")];
+    expect(items).toHaveLength(2);
+    const opacities = items.map((item) => Number(getComputedStyle(item).opacity));
+    expect(opacities[0]).toBeGreaterThan(opacities[1] ?? 1);
+  });
+
+  it("under focus, mid-enter shows the blurred copy cross-fading with the sharp one", () => {
+    const { renderer } = setUp();
+    const card = groundCard({ entrance: "focus" });
+
+    renderer.render({
+      kind: "slide",
+      endFade: 0,
+      slide: {
+        kind: "ground",
+        ground: GROUND,
+        card: {
+          card,
+          textOpacity: 1,
+          driftEm: 0,
+          veilAmount: 0,
+          slideTimeMs: 500,
+          reducedMotion: false,
+        },
+      },
+    });
+
+    const sharp = box.querySelector<HTMLElement>("[data-card-block-sharp]");
+    const blur = box.querySelector<HTMLElement>("[data-card-block-blur]");
+    expect(Number(getComputedStyle(sharp as Element).opacity)).toBeGreaterThan(0);
+    expect(Number(getComputedStyle(blur as Element).opacity)).toBeGreaterThan(0);
+    expect((blur as HTMLElement).style.filter).toContain("blur(");
   });
 });

@@ -67,6 +67,7 @@ describe("AddPicturesSession, to a slideshow on the Glissando server", () => {
     const { session } = await sessionFor(SHOW, new LoggingStore(), "server");
 
     session.addImmichPhotos([immichPhoto("asset-1", "2025-07-02T10:00:00Z")]);
+    await session.intake.settled();
 
     expect(session.intake.pictures.state.pictures).toEqual([
       expect.objectContaining({ id: "asset-1", immichAssetId: "asset-1" }),
@@ -85,6 +86,7 @@ describe("AddPicturesSession, to a slideshow on the Glissando server", () => {
   it("stores the linked photos into the slideshow by capture date", async () => {
     const { session, store } = await sessionFor(SHOW, new LoggingStore(), "server");
     session.addImmichPhotos([immichPhoto("asset-1", "2025-07-02T10:00:00Z")]);
+    await session.intake.settled();
 
     await session.commit();
 

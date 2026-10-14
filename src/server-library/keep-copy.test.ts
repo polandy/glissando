@@ -81,6 +81,7 @@ describe("keepCopyOnDevice", () => {
           fileName: "asset-1.jpg",
           caption: "Morning",
           durationMs: 4000,
+          colours: { veil: "#404040", accent: "#C0C0C0" },
           immichAssetId: "asset-1",
         },
       ],

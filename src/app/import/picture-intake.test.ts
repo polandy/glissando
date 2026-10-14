@@ -14,13 +14,13 @@ const photo = (id: string) => ({
 });
 
 describe("PictureIntake", () => {
-  it("links Immich photos without downloading them, skipping ones already in", () => {
+  it("links Immich photos without downloading them, skipping ones already in", async () => {
     const { ports } = fakeIntakePorts();
     const known = { fileName: "x.jpg", capturedAt: "2025-01-01T00:00:00Z", immichAssetId: "a" };
     const intake = new PictureIntake(ports, [known]);
 
-    intake.linkImmichPhotos([photo("a"), photo("b")]);
-    intake.linkImmichPhotos([photo("b"), photo("c")]);
+    await intake.linkImmichPhotos([photo("a"), photo("b")]);
+    await intake.linkImmichPhotos([photo("b"), photo("c")]);
 
     expect(intake.pictures.state.pictures.map(({ id }) => id)).toEqual(["b", "c"]);
     expect(intake.pictures.state.pictures[0]).toMatchObject({ immichAssetId: "b", width: 400 });

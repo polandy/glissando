@@ -258,6 +258,7 @@ function documentTitled(title: string): ServerDocument {
           height: 1080,
           fileName: "a.jpg",
           immichAssetId: "0b5a7c3e-1f2d-4e6a-9b8c-7d6e5f4a3b2c",
+          colours: { veil: "#404040", accent: "#C0C0C0" },
         },
       ],
       songs: [],
