@@ -47,26 +47,33 @@ export interface PlacedSong {
 /**
  * The tracks the slideshow plays, `slideshowMs` long: every song it reaches, the one heard at its
  * end cut there and fading out (own fade-out, or automatic as in ADR-0009). Fades that together
- * outlast what is heard of a song are scaled down in proportion.
+ * outlast what is heard of a song are scaled down in proportion. `minEndFadeMs` (a closing card's
+ * `endFadeMs`, `TITLE_CARDS.md` § Composition) raises the last track's fade-out so it lasts at
+ * least that long into the show's end.
  */
-export function resolvePlaylist(playlist: Playlist, slideshowMs: number): PlaylistTrack[] {
-  return placeSongs(playlist)
-    .filter(({ atMs }) => atMs < slideshowMs)
-    .map(({ song, atMs, fadeInMs, fadeOutMs }) => {
-      const excerpt = musicExcerpt(song);
-      const endMs = Math.min(excerpt.endMs, excerpt.startMs + slideshowMs - atMs);
-      const cutBySlideshowEnd = endMs < excerpt.endMs;
-      const heardFadeOutMs = cutBySlideshowEnd
-        ? (song.fadeOutMs ?? AUTOMATIC_MUSIC_FADE_MS)
-        : fadeOutMs;
-      return {
-        song,
-        atMs,
-        startMs: excerpt.startMs,
-        endMs,
-        ...scaledFades(endMs - excerpt.startMs, fadeInMs, heardFadeOutMs),
-      };
-    });
+export function resolvePlaylist(
+  playlist: Playlist,
+  slideshowMs: number,
+  minEndFadeMs?: number,
+): PlaylistTrack[] {
+  const tracks = placeSongs(playlist).filter(({ atMs }) => atMs < slideshowMs);
+  return tracks.map(({ song, atMs, fadeInMs, fadeOutMs }, index) => {
+    const excerpt = musicExcerpt(song);
+    const endMs = Math.min(excerpt.endMs, excerpt.startMs + slideshowMs - atMs);
+    const cutBySlideshowEnd = endMs < excerpt.endMs;
+    const floorMs = index === tracks.length - 1 ? (minEndFadeMs ?? 0) : 0;
+    const heardFadeOutMs = Math.max(
+      cutBySlideshowEnd ? (song.fadeOutMs ?? AUTOMATIC_MUSIC_FADE_MS) : fadeOutMs,
+      floorMs,
+    );
+    return {
+      song,
+      atMs,
+      startMs: excerpt.startMs,
+      endMs,
+      ...scaledFades(endMs - excerpt.startMs, fadeInMs, heardFadeOutMs),
+    };
+  });
 }
 
 /**

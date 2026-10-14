@@ -1,4 +1,7 @@
-import type { ServerDocument } from "../../src/server-library/server-document";
+import {
+  SERVER_DOCUMENT_FORMAT_VERSION,
+  type ServerDocument,
+} from "../../src/server-library/server-document";
 import { createLibraryHandler } from "../library-handler";
 import type { LibraryRequest, LibraryResponse } from "../library-http";
 import { createMemoryRepository } from "../memory-repository";
@@ -84,7 +87,7 @@ function asTestResponse(response: LibraryResponse): TestResponse {
 export function sampleDocument(title = "Herbst in Wien", musicId?: string): ServerDocument {
   return {
     format: "glissando-server",
-    formatVersion: 1,
+    formatVersion: SERVER_DOCUMENT_FORMAT_VERSION,
     slideshow: {
       title,
       createdAt: "2025-10-01T08:00:00.000Z",

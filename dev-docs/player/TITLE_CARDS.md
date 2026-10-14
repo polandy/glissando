@@ -97,8 +97,9 @@ of the music, as for any slide with its own duration.
   the first picture is the slideshow's transition.
 - **Title slide on a picture, with reveal:** `revealAtMs` is the beat at or after
   `CARD_HOLD_MS` (2500). The **lead** is `revealAtMs + CARD_REVEAL_MS`.
-  - If the picture is the first picture in the show's order, the first slide carries the card,
-    and the lead is added to its own duration.
+  - If the picture is the first picture in the show's order **and** is not paired into a
+    portrait slide with another one, the first slide carries the card, and the lead is added to
+    its own duration.
   - Otherwise, a slide of that picture comes first, with its automatic Ken Burns. Its duration
     is the lead plus `CARD_ALONE_MS` (1500).
 - **Title slide on a picture, without reveal:** a slide of that picture lasting
@@ -106,12 +107,14 @@ of the music, as for any slide with its own duration.
 - **Closing slide on a colour:** a ground slide of `CARD_SLIDE_MS + CARD_END_FADE_MS` (1500),
   with `endFadeMs = CARD_END_FADE_MS`.
 - **Closing slide on a picture, fade in on:**
-  - If the picture is the last picture, the last slide carries the card. Its `enterAtMs` is the
-    slide's own duration. `CARD_SLIDE_MS + CARD_END_FADE_MS` is added to the slide.
-  - Otherwise, a slide of that picture comes last, with `enterAtMs` = `CARD_ALONE_MS`.
+  - If the picture is the last picture **and** is not paired into a portrait slide, the last
+    slide carries the card. Its `enterAtMs` is the slide's own duration.
+    `CARD_SLIDE_MS + CARD_END_FADE_MS` is added to the slide.
+  - Otherwise, a slide of that picture comes last, with `enterAtMs` = `CARD_ALONE_MS` and a
+    duration of `CARD_ALONE_MS + CARD_SLIDE_MS + CARD_END_FADE_MS`.
 
   In both cases the show gets `endFadeMs`. **Fade in off:** the veil and the text are there
-  from the slide's start.
+  from the slide's start (`enterAtMs` 0), and the added duration drops `CARD_ALONE_MS`.
 
 - **Music** with a closing slide: the last track's fade-out ends at the show's end and lasts at
   least `endFadeMs`.

@@ -4,6 +4,7 @@ import type { PortraitPictures } from "../library/portrait-pictures";
 import type { BetweenSongs, MusicTrim, PictureChanges } from "../library/own-music";
 import type { SlideshowTransition, TransitionChoice } from "../library/own-timing";
 import type { StoredSlideshow } from "../library/stored-slideshow";
+import { cardToManifest, type ManifestCard } from "./manifest-card";
 
 /**
  * `glissando.json`, the first entry of a .glissando file: the format's id and version and the
@@ -18,12 +19,13 @@ export const GLISSANDO_FORMAT_ID = "glissando";
  * origin, `immichAssetId` or `fileBytes` (ADR-0016), version 8 the music's picture changes
  * (ADR-0021), version 9 the slideshow's picture length (ADR-0022), version 10 the playlist,
  * `songs` and `betweenSongs` replacing the single `music` (ADR-0023), version 11 the slideshow's
- * `portraitPictures` and a picture's `alone` (ADR-0028). A file older than version 10 carried
- * `music`, not `songs`, with no automatic way to tell the two apart in a document that also
- * predates other fields; such a file is reported like any other unsupported version.
+ * `portraitPictures` and a picture's `alone` (ADR-0028), version 12 the slideshow's `openingCard`
+ * and `closingCard` (ADR-0032). A file older than version 10 carried `music`, not `songs`, with
+ * no automatic way to tell the two apart in a document that also predates other fields; such a
+ * file is reported like any other unsupported version.
  */
-export const GLISSANDO_FORMAT_VERSION = 11;
-export const OLDEST_READABLE_FORMAT_VERSION = 11;
+export const GLISSANDO_FORMAT_VERSION = 12;
+export const OLDEST_READABLE_FORMAT_VERSION = 12;
 /** The first version that carries a picture's own motion. */
 export const OWN_KEN_BURNS_FROM_VERSION = 2;
 /** The first version that carries a picture's caption. */
@@ -94,6 +96,10 @@ export interface ManifestSlideshow {
   readonly songs: readonly ManifestMusic[];
   /** `"sequence"`: one after another; absent: crossfade (ADR-0023). */
   readonly betweenSongs?: BetweenSongs;
+  /** The title slide; absent: none (ADR-0032). */
+  readonly openingCard?: ManifestCard;
+  /** The closing slide; absent: none. */
+  readonly closingCard?: ManifestCard;
 }
 
 export interface GlissandoManifest {
@@ -170,6 +176,9 @@ export function manifestFor(
     mimeType: song.mimeType,
     ...ownMusicFields(song),
   }));
+  const pictureIds = slideshow.pictures.map((picture) => picture.id);
+  const openingCard = cardToManifest(slideshow.openingCard, pictureIds);
+  const closingCard = cardToManifest(slideshow.closingCard, pictureIds);
   return {
     format: GLISSANDO_FORMAT_ID,
     formatVersion: GLISSANDO_FORMAT_VERSION,
@@ -186,6 +195,8 @@ export function manifestFor(
       pictures,
       songs,
       ...(slideshow.betweenSongs === undefined ? {} : { betweenSongs: slideshow.betweenSongs }),
+      ...(openingCard === undefined ? {} : { openingCard }),
+      ...(closingCard === undefined ? {} : { closingCard }),
     },
   };
 }

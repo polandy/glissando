@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import type { MusicBeats } from "../src/beats/music-beats";
-import type { ServerDocument } from "../src/server-library/server-document";
+import {
+  SERVER_DOCUMENT_FORMAT_VERSION,
+  type ServerDocument,
+} from "../src/server-library/server-document";
 import type { LibraryRepository, MusicRecord, SlideshowRecord } from "./library-repository";
 
 /** The behaviour every `LibraryRepository` adapter shares; each adapter's test runs it. */
@@ -243,7 +246,7 @@ const TOKEN_B = "BBBBBBBBBBBBBBBBBBBBBB";
 function documentTitled(title: string): ServerDocument {
   return {
     format: "glissando-server",
-    formatVersion: 1,
+    formatVersion: SERVER_DOCUMENT_FORMAT_VERSION,
     slideshow: {
       title,
       createdAt: "2025-10-01T08:00:00.000Z",

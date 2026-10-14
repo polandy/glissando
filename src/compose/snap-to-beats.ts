@@ -48,6 +48,15 @@ export function snapToBeats(
   return snappedMs;
 }
 
+/**
+ * The beat at or after `minMs`, else `minMs` itself: without beats, or none reaches that far
+ * (`TITLE_CARDS.md` § Composition, Beats).
+ */
+export function snapToNextBeat(beatsMs: readonly number[] | undefined, minMs: number): number {
+  const next = beatsMs?.find((beatMs) => beatMs >= minMs);
+  return next ?? minMs;
+}
+
 function sum(durationsMs: readonly number[]): number {
   return durationsMs.reduce((total, durationMs) => total + durationMs, 0);
 }

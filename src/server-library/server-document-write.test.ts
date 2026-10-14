@@ -11,10 +11,10 @@ import {
 } from "./server-document-fixtures";
 
 describe("serverDocumentFor", () => {
-  it("names the server format and version 1 and links every picture by its Immich asset", () => {
+  it("names the server format and version 2 and links every picture by its Immich asset", () => {
     const written = document();
     expect(written.format).toBe("glissando-server");
-    expect(written.formatVersion).toBe(1);
+    expect(written.formatVersion).toBe(2);
     expect(written.slideshow.pictures[0]).toEqual({
       capturedAt: "2025-09-30T10:00:00Z",
       width: 3840,

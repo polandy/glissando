@@ -25,7 +25,7 @@ describe("readServerDocument", () => {
       { format: "glissando" },
       'format: expected "glissando-server", got "glissando"',
     ],
-    ["another version", { formatVersion: 2 }, "formatVersion: expected 1, got 2"],
+    ["another version", { formatVersion: 1 }, "formatVersion: expected 2, got 1"],
     ["an unknown key", { extra: true }, "extra: expected one of format, formatVersion, slideshow"],
   ])("refuses %s at the root, naming path and value", (_case, change, reason) => {
     expect(readFails({ ...document(), ...change })).toContain(reason);

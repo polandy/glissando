@@ -7,16 +7,19 @@ import {
   readObject,
   type JsonObject,
 } from "../glissando-file/document-values";
+import { cardFromManifest } from "../glissando-file/manifest-card";
 import {
-  musicKeys,
-  pictureKeys,
-  readMusicFields,
-  readPictureFields,
   readPictures,
   readSlideshowFields,
   readSongs,
   slideshowKeys,
 } from "../glissando-file/slideshow-fields";
+import {
+  musicKeys,
+  pictureKeys,
+  readMusicFields,
+  readPictureFields,
+} from "../glissando-file/slideshow-fields-media";
 import { pictureKey, songKey } from "../html-export/page-contract";
 import type { StoredMusic, StoredPicture, StoredSlideshow } from "../library/stored-slideshow";
 
@@ -46,13 +49,19 @@ export function readShareAnswer(json: unknown): ShareAnswer {
   const show = readObject(root["slideshow"], path, slideshowKeys(GLISSANDO_FORMAT_VERSION));
   const pictures = readPictures(show, path, readPicture);
   const songs = readSongs(show, path, readSong);
+  const { openingCard, closingCard, ...fields } = readSlideshowFields(show, path, pictures.length);
+  const pictureIds = pictures.map((picture) => picture.id);
+  const resolvedOpeningCard = cardFromManifest(openingCard, pictureIds);
+  const resolvedClosingCard = cardFromManifest(closingCard, pictureIds);
   return {
     revision,
     slideshow: {
-      ...readSlideshowFields(show, path),
+      ...fields,
       id: SHARED_SLIDESHOW_ID,
       pictures,
       songs,
+      ...(resolvedOpeningCard === undefined ? {} : { openingCard: resolvedOpeningCard }),
+      ...(resolvedClosingCard === undefined ? {} : { closingCard: resolvedClosingCard }),
     },
     beats: readBeats(root["beats"], songs.length),
   };
