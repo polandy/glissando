@@ -42,6 +42,7 @@ const COLOUR_CARD: StoredCard = {
   title: "Summer at the Lake",
   style: "modern",
   position: "centre",
+  entrance: "rise",
   background: { kind: "colour", colour: "plum" },
   motion: true,
 };
@@ -51,6 +52,7 @@ function pictureCard(pictureId: string, motion: boolean): StoredCard {
     title: "Summer at the Lake",
     style: "modern",
     position: "centre",
+    entrance: "rise",
     background: { kind: "picture", pictureId, fade: 60 },
     motion,
   };

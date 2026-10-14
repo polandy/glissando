@@ -55,6 +55,7 @@ function faceOf(
     style: card.style,
     position: card.position,
     ink,
+    entrance: card.entrance,
     ...(extra.veil === undefined ? {} : { veil: extra.veil }),
     ...(extra.revealAtMs === undefined ? {} : { revealAtMs: extra.revealAtMs }),
   };

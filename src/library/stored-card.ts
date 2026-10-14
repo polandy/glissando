@@ -1,8 +1,10 @@
 import { CAPTION_RULE, isCaption } from "../player/caption";
 import { CARD_SWATCHES, type CardSwatchId } from "../player/card-palette";
 import {
+  CARD_ENTRANCES,
   CARD_POSITIONS,
   CARD_STYLES,
+  type CardEntrance,
   type CardPosition,
   type CardStyle,
 } from "../player/slideshow";
@@ -63,6 +65,15 @@ export function checkCardPosition(value: unknown, where: string): CardPosition {
   return position;
 }
 
+/** `value` as a card's entrance; throws `InvalidCardError` naming `where`. */
+export function checkCardEntrance(value: unknown, where: string): CardEntrance {
+  const entrance = CARD_ENTRANCES.find((candidate) => candidate === value);
+  if (entrance === undefined) {
+    throw new InvalidCardError(where, "entrance", `one of ${CARD_ENTRANCES.join(", ")}`, value);
+  }
+  return entrance;
+}
+
 /** `value` as a card's veil fade; throws `InvalidCardError` naming `where`. */
 export function checkCardFade(value: unknown, where: string): number {
   if (
@@ -109,6 +120,7 @@ export interface CardInput {
   readonly subtitle?: unknown;
   readonly style: unknown;
   readonly position: unknown;
+  readonly entrance: unknown;
   readonly background: {
     readonly kind: unknown;
     readonly colour?: unknown;
@@ -129,6 +141,7 @@ export function checkStoredCard(
     input.subtitle === undefined ? undefined : checkCardText(input.subtitle, where, "subtitle");
   const style = checkCardStyle(input.style, where);
   const position = checkCardPosition(input.position, where);
+  const entrance = checkCardEntrance(input.entrance, where);
   const motion = checkCardMotion(input.motion, where);
   const background = checkCardBackground(input.background, pictureIds, where);
   return {
@@ -136,6 +149,7 @@ export function checkStoredCard(
     ...(subtitle === undefined ? {} : { subtitle }),
     style,
     position,
+    entrance,
     background,
     motion,
   };
@@ -187,6 +201,7 @@ export function defaultOpeningCard(slideshow: StoredSlideshow, locale: string): 
     subtitle,
     style: "modern",
     position: "centre",
+    entrance: "rise",
     background: { kind: "picture", pictureId: firstPicture.id, fade: DEFAULT_CARD_FADE },
     motion: true,
   };
@@ -205,6 +220,7 @@ export function defaultClosingCard(slideshow: StoredSlideshow): StoredCard {
     title: "",
     style: "modern",
     position: "centre",
+    entrance: "rise",
     background: { kind: "picture", pictureId: lastPicture.id, fade: DEFAULT_CARD_FADE },
     motion: true,
   };

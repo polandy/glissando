@@ -27,6 +27,7 @@ const CARD_ON_P1: CardInput = {
   title: "Title",
   style: "modern",
   position: "centre",
+  entrance: "rise",
   background: { kind: "picture", pictureId: "p1", fade: 60 },
   motion: true,
 };

@@ -21,6 +21,7 @@ const VALID_INPUT: CardInput = {
   title: "Herbst in Wien",
   style: "modern",
   position: "centre",
+  entrance: "rise",
   background: { kind: "colour", colour: "plum" },
   motion: true,
 };
@@ -162,6 +163,7 @@ describe("cardWithoutPicture", () => {
     title: "Title",
     style: "modern",
     position: "centre",
+    entrance: "rise",
     background: { kind: "picture", pictureId, fade: 60 },
     motion: true,
   });

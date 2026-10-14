@@ -8,8 +8,9 @@
  * 4 added a slide's `partner`, a second picture drawn beside or below the first, and `fit`,
  * which turns the blurred fill off for the slide (ADR-0028). Version 5 added the title card
  * (ADR-0032): a slide's `card`, a ground slide in place of a picture, and the show's `endFadeMs`.
+ * Version 6 makes a card's `entrance` required.
  */
-export const SLIDESHOW_FORMAT_VERSION = 5;
+export const SLIDESHOW_FORMAT_VERSION = 6;
 
 /** Durations in the format are milliseconds; the player's clock speaks seconds. */
 export const MILLISECONDS_PER_SECOND = 1000;
@@ -64,6 +65,10 @@ export type CardPosition = (typeof CARD_POSITIONS)[number];
 export const CARD_INKS = ["light", "dark"] as const;
 export type CardInk = (typeof CARD_INKS)[number];
 
+/** How the card's text comes in and goes out; see `card-items.ts` and `card-timing.ts`. */
+export const CARD_ENTRANCES = ["rise", "words", "letters", "focus", "slow-fade"] as const;
+export type CardEntrance = (typeof CARD_ENTRANCES)[number];
+
 /**
  * The title or closing text the player draws over a slide (ADR-0032). Timing lives with
  * `card-timing.ts`, look with `card-layout.ts`; see `dev-docs/player/TITLE_CARDS.md`.
@@ -74,6 +79,7 @@ export interface Card {
   readonly style: CardStyle;
   readonly position: CardPosition;
   readonly ink: CardInk;
+  readonly entrance: CardEntrance;
   /** Darkens and desaturates the picture behind the card; picture slides only. */
   readonly veil?: { readonly amount: number; readonly tint: string };
   /** Where the card starts, in slide time; default 0. */

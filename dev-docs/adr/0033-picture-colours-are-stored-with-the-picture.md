@@ -8,7 +8,7 @@ A title or closing card over a picture tints its veil (ADR-0032). The tint was a
 which looks foreign on a warm sunset or a green forest. The card sheet also offers colour
 grounds, and colours from the slideshow's own pictures suit it better than the six fixed
 swatches alone. Both need colours taken from a picture's pixels
-([TITLE_CARDS § Picture colours](../player/TITLE_CARDS.md#picture-colours)). The composer that
+([TITLE_CARD_COLOURS](../player/TITLE_CARD_COLOURS.md)). The composer that
 turns a stored card into a player card is pure and synchronous, and it runs for every target:
 playback, the video export, the HTML export, the share page and the TV.
 

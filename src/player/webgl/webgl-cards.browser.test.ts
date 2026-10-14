@@ -36,7 +36,14 @@ class ControlledFonts implements Fonts {
 }
 
 function baseCard(overrides: Partial<Card> = {}): Card {
-  return { title: "HELLO", style: "modern", position: "centre", ink: "light", ...overrides };
+  return {
+    title: "HELLO",
+    style: "modern",
+    position: "centre",
+    ink: "light",
+    entrance: "rise",
+    ...overrides,
+  };
 }
 
 /** Text opacity 0 unless overridden, so a card irrelevant to the test draws nothing. */

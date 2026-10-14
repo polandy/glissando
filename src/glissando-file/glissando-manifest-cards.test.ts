@@ -8,6 +8,7 @@ const OPENING: StoredCard = {
   subtitle: "2025",
   style: "modern",
   position: "centre",
+  entrance: "rise",
   background: { kind: "picture", pictureId: "p2", fade: 60 },
   motion: true,
 };
@@ -15,6 +16,7 @@ const CLOSING: StoredCard = {
   title: "",
   style: "modern",
   position: "centre",
+  entrance: "rise",
   background: { kind: "colour", colour: "night" },
   motion: false,
 };
@@ -44,6 +46,7 @@ describe("openingCard and closingCard in the .glissando file (ADR-0032)", () => 
       subtitle: "2025",
       style: "modern",
       position: "centre",
+      entrance: "rise",
       background: { kind: "picture", pictureIndex: 1, fade: 60 },
       motion: true,
     });
@@ -128,7 +131,7 @@ describe("openingCard and closingCard in the .glissando file (ADR-0032)", () => 
     expect(readManifest(text)).toEqual({
       kind: "damaged",
       reason:
-        'glissando.json slideshow.closingCard.extra: expected one of title, subtitle, style, position, background, motion, got "extra"',
+        'glissando.json slideshow.closingCard.extra: expected one of title, subtitle, style, position, entrance, background, motion, got "extra"',
     });
   });
 

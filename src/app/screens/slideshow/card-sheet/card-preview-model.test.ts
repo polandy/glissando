@@ -8,6 +8,7 @@ const PICTURE_CARD: StoredCard = {
   subtitle: "1.–14. Juli",
   style: "modern",
   position: "centre",
+  entrance: "rise",
   background: { kind: "picture", pictureId: "a", fade: 60 },
   motion: true,
 };

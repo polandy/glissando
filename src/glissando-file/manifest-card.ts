@@ -1,5 +1,6 @@
 import {
   checkCardColour,
+  checkCardEntrance,
   checkCardFade,
   checkCardMotion,
   checkCardPosition,
@@ -9,7 +10,7 @@ import {
 } from "../library/stored-card";
 import type { StoredCard, StoredCardBackground } from "../library/stored-slideshow";
 import type { CardSwatchId } from "../player/card-palette";
-import type { CardPosition, CardStyle } from "../player/slideshow";
+import type { CardEntrance, CardPosition, CardStyle } from "../player/slideshow";
 import { DocumentFormatError, readObject } from "./document-values";
 
 /**
@@ -31,6 +32,7 @@ export interface ManifestCard {
   readonly subtitle?: string;
   readonly style: CardStyle;
   readonly position: CardPosition;
+  readonly entrance: CardEntrance;
   readonly background: ManifestCardBackground;
   readonly motion: boolean;
 }
@@ -48,6 +50,7 @@ export function cardToManifest(
     ...(card.subtitle === undefined ? {} : { subtitle: card.subtitle }),
     style: card.style,
     position: card.position,
+    entrance: card.entrance,
     background: backgroundToManifest(card.background, pictureIds),
     motion: card.motion,
   };
@@ -82,6 +85,7 @@ export function cardFromManifest(
     ...(card.subtitle === undefined ? {} : { subtitle: card.subtitle }),
     style: card.style,
     position: card.position,
+    entrance: card.entrance,
     background: backgroundFromManifest(card.background, pictureIds),
     motion: card.motion,
   };
@@ -108,6 +112,7 @@ export function readManifestCard(value: unknown, path: string, pictureCount: num
     "subtitle",
     "style",
     "position",
+    "entrance",
     "background",
     "motion",
   ]);
@@ -116,6 +121,7 @@ export function readManifestCard(value: unknown, path: string, pictureCount: num
     card["subtitle"] === undefined ? undefined : readCardText(card["subtitle"], path, "subtitle");
   const style = readCardCheck(checkCardStyle, card["style"], path);
   const position = readCardCheck(checkCardPosition, card["position"], path);
+  const entrance = readCardCheck(checkCardEntrance, card["entrance"], path);
   const motion = readCardCheck(checkCardMotion, card["motion"], path);
   const background = readCardBackground(card["background"], path, pictureCount);
   return {
@@ -123,6 +129,7 @@ export function readManifestCard(value: unknown, path: string, pictureCount: num
     ...(subtitle === undefined ? {} : { subtitle }),
     style,
     position,
+    entrance,
     background,
     motion,
   };

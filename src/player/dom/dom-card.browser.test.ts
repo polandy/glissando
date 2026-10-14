@@ -21,6 +21,7 @@ function groundCard(overrides: Partial<Card> = {}): Card {
     style: "modern",
     position: "centre",
     ink: "light",
+    entrance: "rise",
     ...overrides,
   };
 }

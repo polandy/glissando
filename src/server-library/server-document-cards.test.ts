@@ -12,6 +12,7 @@ const OPENING: StoredCard = {
   title: "Herbst in Wien",
   style: "modern",
   position: "centre",
+  entrance: "rise",
   background: { kind: "picture", pictureId: ASSET_B, fade: 60 },
   motion: true,
 };
@@ -19,6 +20,7 @@ const CLOSING: StoredCard = {
   title: "",
   style: "modern",
   position: "centre",
+  entrance: "rise",
   background: { kind: "colour", colour: "night" },
   motion: false,
 };
@@ -32,6 +34,7 @@ describe("openingCard and closingCard in the server document (ADR-0032)", () => 
       title: "Herbst in Wien",
       style: "modern",
       position: "centre",
+      entrance: "rise",
       background: { kind: "picture", pictureIndex: 1, fade: 60 },
       motion: true,
     });

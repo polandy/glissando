@@ -247,6 +247,7 @@ function cardFace(
     ...(card.subtitle === undefined ? {} : { subtitle: card.subtitle }),
     style: card.style,
     position: card.position,
+    entrance: card.entrance,
     ink,
     ...(extra.veil === undefined ? {} : { veil: extra.veil }),
     ...(extra.enterAtMs === undefined ? {} : { enterAtMs: extra.enterAtMs }),

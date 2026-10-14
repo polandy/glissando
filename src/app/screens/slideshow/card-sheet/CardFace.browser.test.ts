@@ -12,6 +12,7 @@ const CARD: Card = {
   style: "modern",
   position: "centre",
   ink: "light",
+  entrance: "rise",
 };
 
 let destroy: (() => void) | null = null;

@@ -1,10 +1,9 @@
 # Title cards
 
-A **card** is the title or closing text that the player draws over a slide (ADR-0032). It is
-drawn in screen space and does not move with the Ken Burns motion, like a caption (ADR-0007).
-Its look and timing live with the player (`card-layout.ts`, `card-timing.ts`). Both renderers
-and the editor's preview use the same numbers. Mockup:
-https://polandy.github.io/glissando-assets/mockups/title-slides/.
+A **card** is the title or closing text the player draws over a slide (ADR-0032), in screen
+space, not moving with the Ken Burns motion, like a caption (ADR-0007). Its look and timing
+live with the player (`card-layout.ts`, `card-timing.ts`), shared by both renderers and the
+editor's preview. Mockup: https://polandy.github.io/glissando-assets/mockups/title-slides/.
 
 ## Contract
 
@@ -58,11 +57,10 @@ A **ground slide** has `"ground": "#2A2340"` (a `#RRGGBB` colour) in place of `i
 | reveal | `revealAtMs` … `+ CARD_REVEAL_MS` (1400) | the text goes out by its entrance, reversed; veil → 0                                 |
 | end    | last `endFadeMs` of the show             | the frame mixes to black                                                              |
 
-The card's **presence** is the enter progress times one minus the reveal progress, each over
-its whole phase. A caption on a slide with a card has opacity `1 − presence`, so it appears once
-the reveal has run and fades out as a closing card comes in. Under reduced motion, every
-entrance is a plain fade: no drift, no stagger, no blur, no scale, and every fade (enter, veil,
-reveal) takes `CARD_REDUCED_FADE_MS` (400).
+The card's **presence** is the enter progress times one minus the reveal progress. A caption on
+a slide with a card has opacity `1 − presence`, so it appears after the reveal and fades as a
+closing card enters. Under reduced motion, every entrance is a plain fade: no drift, no stagger,
+no blur, no scale, and every fade (enter, veil, reveal) takes `CARD_REDUCED_FADE_MS` (400).
 
 ## Entrances
 
@@ -88,8 +86,7 @@ entrance is longer than `CARD_ENTER_MAX_MS` (2000), which is less than `CARD_HOL
 - **Focus** draws the card twice: the sharp text, and a copy rasterised once with a blur of
   0.012 h. At progress `p`, the sharp text has opacity `p` and the blurred copy
   `min(1, 2p) × (1 − p)`. This is a cross-fade, not a blur per frame (ADR-0032).
-- No entrance animates letter spacing or blur per frame: both would need the text rasterised
-  again on every frame.
+- No entrance animates letter spacing or blur per frame: both need re-rasterising per frame.
 
 ## Look
 
@@ -154,24 +151,6 @@ of the music, as for any slide with its own duration.
 - **Ink:** `light` unless the ground (or the veil's tint at full amount) has a relative
   luminance above 0.5.
 - **Tint** by the stored card's `tint`: `picture` takes the background picture's veil colour
-  ([Picture colours](#picture-colours)), `light` is cream `#FFF3E2`, `dark` is plum `#2A2340`.
+  ([picture colours](TITLE_CARD_COLOURS.md)), `light` is cream `#FFF3E2`, `dark` is plum
+  `#2A2340`.
 - **Entrance:** the stored card's, unchanged.
-
-## Picture colours
-
-Each stored picture carries two colours, worked out once when it is added (ADR-0033):
-`veil`, a dark, muted tone of the picture to tint a veil, and `accent`, a light, clearer tone
-for a colour ground. `pictureColours` is pure: it takes the pixels of the stored, downscaled
-picture, sampled to at most 64 × 64, and returns both as `#RRGGBB`.
-
-1. Each pixel goes to OKLCH. Pixels with a lightness below 0.08 or above 0.97 are skipped.
-2. The hues go into 24 bins of 15°, each pixel weighted by its chroma, so grey counts little.
-3. The **dominant** hue is the bin whose weight, added to its two neighbours', is largest. Its
-   hue is the weighted circular mean over those three bins, its chroma their weighted mean
-   chroma. A picture whose total weight is below 0.02 per sampled pixel counts as grey: chroma
-   0, hue 0.
-4. The **second** hue is found the same way among the bins at least 60° from the dominant
-   hue. It counts only if its weight is at least a quarter of the dominant's. Otherwise it is
-   the dominant hue.
-5. `veil` = OKLCH(0.27, min(chroma, 0.05), dominant hue). `accent` = OKLCH(0.80,
-   min(chroma × 1.2, 0.12), second hue). A colour outside sRGB loses chroma until it fits.

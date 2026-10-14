@@ -20,6 +20,7 @@ const DEFAULT_OPENING_CARD: StoredCard = {
   subtitle: "1.–3. Juli 2025",
   style: "modern",
   position: "centre",
+  entrance: "rise",
   background: { kind: "picture", pictureId: "a", fade: 60 },
   motion: true,
 };
@@ -29,6 +30,7 @@ const DEFAULT_CLOSING_CARD: StoredCard = {
   title: "",
   style: "modern",
   position: "centre",
+  entrance: "rise",
   background: { kind: "picture", pictureId: "a", fade: 60 },
   motion: true,
 };

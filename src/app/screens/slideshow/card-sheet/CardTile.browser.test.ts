@@ -11,6 +11,7 @@ const CARD: StoredCard = {
   title: "Juli 2025",
   style: "modern",
   position: "centre",
+  entrance: "rise",
   background: { kind: "picture", pictureId: "a", fade: 60 },
   motion: true,
 };

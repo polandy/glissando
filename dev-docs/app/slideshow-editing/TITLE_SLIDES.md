@@ -25,7 +25,7 @@ Mockup: https://polandy.github.io/glissando-assets/mockups/title-slides/. Player
 - The swatches are `plum` `#2A2340`, `night` `#14111C`, `cream` `#FFF3E2`, `peach`
   `#FFB59A`, `mint` `#8FD9C4` and `lemon` `#FFD95A` (BRAND.md, card palette).
 - Every stored picture has `colours: { veil, accent }`, worked out when it is added
-  ([TITLE_CARDS § Picture colours](../../player/TITLE_CARDS.md#picture-colours), ADR-0033).
+  ([TITLE_CARD_COLOURS](../../player/TITLE_CARD_COLOURS.md), ADR-0033).
 - When a card's picture is removed from the slideshow, its background moves to the first
   picture (opening) or the last picture (closing), keeping its fade and tint. If no picture is
   left, it becomes `plum`.

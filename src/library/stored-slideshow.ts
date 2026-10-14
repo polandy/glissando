@@ -1,6 +1,6 @@
 import type { MusicBeats } from "../beats";
 import type { CardSwatchId } from "../player/card-palette";
-import type { CardPosition, CardStyle } from "../player/slideshow";
+import type { CardEntrance, CardPosition, CardStyle } from "../player/slideshow";
 import type { OwnKenBurns } from "./own-ken-burns";
 import type { PictureFocus } from "./picture-focus";
 import type { PictureLength } from "./picture-length";
@@ -70,6 +70,7 @@ export interface StoredCard {
   readonly subtitle?: string | undefined;
   readonly style: CardStyle;
   readonly position: CardPosition;
+  readonly entrance: CardEntrance;
   readonly background: StoredCardBackground;
   readonly motion: boolean;
 }

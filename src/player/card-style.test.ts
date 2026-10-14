@@ -8,7 +8,7 @@ const monospace = (text: string, scale: number): number => [...text].length * 10
 const STAGE = { width: 1000, height: 1000 };
 
 function card(style: CardStyle, position: CardPosition): Card {
-  return { title: "Summer", subtitle: "June", style, position, ink: "light" };
+  return { title: "Summer", subtitle: "June", style, position, ink: "light", entrance: "rise" };
 }
 
 describe("cardStyles", () => {
@@ -69,7 +69,13 @@ describe("cardStyles", () => {
   });
 
   it("has no subtitle lines without a subtitle", () => {
-    const titleOnly: Card = { title: "Summer", style: "modern", position: "centre", ink: "light" };
+    const titleOnly: Card = {
+      title: "Summer",
+      style: "modern",
+      position: "centre",
+      ink: "light",
+      entrance: "rise",
+    };
     const result = cardStyles(titleOnly, STAGE, monospace, monospace);
 
     expect(result.subtitleLines).toEqual([]);
