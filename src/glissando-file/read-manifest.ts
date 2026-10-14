@@ -17,16 +17,13 @@ import {
   readText,
   type JsonObject,
 } from "./document-values";
+import { readPictures, readSlideshowFields, readSongs, slideshowKeys } from "./slideshow-fields";
 import {
   musicKeys,
   pictureKeys,
   readMusicFields,
   readPictureFields,
-  readPictures,
-  readSlideshowFields,
-  readSongs,
-  slideshowKeys,
-} from "./slideshow-fields";
+} from "./slideshow-fields-media";
 
 /** Untrusted manifest text: foreign, from a newer version, damaged or a valid manifest. */
 export function readManifest(text: string): ManifestReading {
@@ -76,16 +73,17 @@ function readValidManifest(input: JsonObject): GlissandoManifest {
   }
   const path = "slideshow";
   const show = readObject(root["slideshow"], path, slideshowKeys(version));
+  const pictures = readPictures(show, path, (picture, picturePath) =>
+    readPicture(picture, picturePath, version),
+  );
   const songs = readSongs(show, path, (song, songPath) => readMusic(song, songPath, version));
   refuseRepeatedSongPaths(songs, path);
   return {
     format: GLISSANDO_FORMAT_ID,
     formatVersion: version,
     slideshow: {
-      ...readSlideshowFields(show, path),
-      pictures: readPictures(show, path, (picture, picturePath) =>
-        readPicture(picture, picturePath, version),
-      ),
+      ...readSlideshowFields(show, path, pictures.length),
+      pictures,
       songs,
     },
   };

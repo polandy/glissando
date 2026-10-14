@@ -33,6 +33,17 @@ describe("TapControls", () => {
     expect(CONTROLS_VISIBLE_MS).toBe(4000);
   });
 
+  it("uses an injected visible duration instead of the default, so an e2e case can keep the controls up", () => {
+    const scheduler = new FakeScheduler();
+    const controls = new TapControls(scheduler, 60_000);
+    controls.tap();
+
+    scheduler.advance(CONTROLS_VISIBLE_MS);
+    expect(controls.visible).toBe(true);
+    scheduler.advance(60_000 - CONTROLS_VISIBLE_MS);
+    expect(controls.visible).toBe(false);
+  });
+
   it("hides on a second tap instead of waiting out the timer", () => {
     const { controls } = setUp();
     controls.tap();

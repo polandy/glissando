@@ -2,9 +2,10 @@
 
 - `<!doctype html>`, `lang` and the start card's copy in the app's language at export time, and
   `<title>` set to the slideshow's title. CSS and the player script are inline, and the caption
-  font is an `@font-face` with a `data:` URL. Nothing loads from outside the file, and the page
-  sets a CSP `default-src 'none'` that allows only inline script, inline style and `data:`/`blob:`
-  media.
+  font is an `@font-face` with a `data:` URL, as is every font a card on the slideshow uses beyond
+  it (ADR-0032: `cardFontFilesUsedBy` picks only the fonts the slideshow's cards need). Nothing
+  loads from outside the file, and the page sets a CSP `default-src 'none'` that allows only
+  inline script, inline style and `data:`/`blob:` media.
 - **Data**: the slideshow JSON (as composed for the player, `parseSlideshow` format) sits in
   `<script type="application/json" id="slideshow">`. Each picture's `image.src` is a key `p<n>`,
   every track's `src` the key `s<n>` of its song: each song the composed JSON plays is embedded

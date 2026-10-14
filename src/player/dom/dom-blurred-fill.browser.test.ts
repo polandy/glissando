@@ -38,10 +38,11 @@ describe("DomRenderer: the blurred fill (ADR-0028)", () => {
 
     renderer.render({
       kind: "transition",
+      endFade: 0,
       effect: "crossfade",
       progress: 0.5,
-      from: { picture: red, motion: STILL, fit: "cover" },
-      to: { picture: blue, motion: STILL },
+      from: { kind: "picture", picture: red, motion: STILL, fit: "cover" },
+      to: { kind: "picture", picture: blue, motion: STILL },
     });
 
     const wrapper = blue.element.parentElement;
@@ -57,7 +58,11 @@ describe("DomRenderer: the blurred fill (ADR-0028)", () => {
   it("blurs the backdrop by the same share of the picture's long side as the WebGL renderer", async () => {
     const { renderer, red } = await setUp();
 
-    renderer.render({ kind: "slide", slide: { picture: red, motion: STILL } });
+    renderer.render({
+      kind: "slide",
+      endFade: 0,
+      slide: { kind: "picture", picture: red, motion: STILL },
+    });
 
     const radius = BACKDROP_BLUR_RADIUS_SHARE * Math.max(red.width, red.height);
     expect(backdropOf(red.element)?.style.filter).toContain(`blur(${radius}px)`);
@@ -66,7 +71,11 @@ describe("DomRenderer: the blurred fill (ADR-0028)", () => {
   it("puts a blurred-fill slide's caption after its whole group", async () => {
     const { renderer, red } = await setUp();
 
-    renderer.render({ kind: "slide", slide: { picture: red, motion: STILL, caption: "Lake" } });
+    renderer.render({
+      kind: "slide",
+      endFade: 0,
+      slide: { kind: "picture", picture: red, motion: STILL, caption: "Lake" },
+    });
 
     const caption = box.querySelector("[data-caption]");
     expect(caption?.textContent).toBe("Lake");
@@ -76,10 +85,18 @@ describe("DomRenderer: the blurred fill (ADR-0028)", () => {
 
   it("removes the wrapper and backdrop once the next slide covers the screen", async () => {
     const { renderer, red, blue } = await setUp();
-    renderer.render({ kind: "slide", slide: { picture: red, motion: STILL } });
+    renderer.render({
+      kind: "slide",
+      endFade: 0,
+      slide: { kind: "picture", picture: red, motion: STILL },
+    });
     expect(box.querySelector("img[data-backdrop]")).not.toBeNull();
 
-    renderer.render({ kind: "slide", slide: { picture: blue, motion: STILL, fit: "cover" } });
+    renderer.render({
+      kind: "slide",
+      endFade: 0,
+      slide: { kind: "picture", picture: blue, motion: STILL, fit: "cover" },
+    });
 
     expect(blue.element.isConnected).toBe(true);
     expect(red.element.isConnected).toBe(false);
@@ -89,7 +106,11 @@ describe("DomRenderer: the blurred fill (ADR-0028)", () => {
 
   it("removes the wrapper and backdrop of a forgotten picture", async () => {
     const { renderer, red } = await setUp();
-    renderer.render({ kind: "slide", slide: { picture: red, motion: STILL } });
+    renderer.render({
+      kind: "slide",
+      endFade: 0,
+      slide: { kind: "picture", picture: red, motion: STILL },
+    });
     expect(box.querySelector("img[data-backdrop]")).not.toBeNull();
 
     renderer.forget(red);
@@ -103,10 +124,16 @@ describe("DomRenderer: the blurred fill (ADR-0028)", () => {
 
     renderer.render({
       kind: "transition",
+      endFade: 0,
       effect: "crossfade",
       progress: 0.5,
-      from: { picture: red, motion: STILL, partner: { picture: green, motion: STILL } },
-      to: { picture: blue, motion: STILL },
+      from: {
+        kind: "picture",
+        picture: red,
+        motion: STILL,
+        partner: { picture: green, motion: STILL },
+      },
+      to: { kind: "picture", picture: blue, motion: STILL },
     });
 
     for (const element of [red.element, green.element, blue.element]) {

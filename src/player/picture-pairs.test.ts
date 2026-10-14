@@ -77,46 +77,68 @@ describe("PictureBuffer, a paired slide (ADR-0028)", () => {
 describe("renderFrame, a paired slide (ADR-0028)", () => {
   it("draws the partner picture with the partner's own Ken Burns motion", () => {
     const slideshow: Slideshow = {
-      formatVersion: 4,
+      formatVersion: 5,
       title: "Pairs",
       slides: [paired("a.jpg", "b.jpg")],
     };
     const own = { src: "a.jpg", width: 900, height: 1600 };
     const partner = { src: "b.jpg", width: 900, height: 1600 };
-    const frame: TimelineFrame = { kind: "slide", slide: { index: 0, kenBurnsProgress: 0.25 } };
+    const frame: TimelineFrame = {
+      kind: "slide",
+      slide: { index: 0, kenBurnsProgress: 0.25, slideTimeMs: 1000 },
+      showTimeMs: 1000,
+    };
+    const context = { showDurationMs: 4000, reducedMotion: false };
 
-    const drawn = renderFrame(frame, slideshow, () => [own, partner]);
+    const drawn = renderFrame(frame, slideshow, context, () => [own, partner]);
 
-    expect(drawn.kind === "slide" && drawn.slide.picture).toBe(own);
-    expect(drawn.kind === "slide" && drawn.slide.partner).toEqual({
-      picture: partner,
-      motion: { kenBurns: PARTNER_KEN_BURNS, progress: 0.25 },
-    });
+    expect(drawn.kind === "slide" && drawn.slide.kind === "picture" && drawn.slide.picture).toBe(
+      own,
+    );
+    expect(drawn.kind === "slide" && drawn.slide.kind === "picture" && drawn.slide.partner).toEqual(
+      {
+        picture: partner,
+        motion: { kenBurns: PARTNER_KEN_BURNS, progress: 0.25 },
+      },
+    );
   });
 });
 
 describe("FramePictures, a paired slide (ADR-0028)", () => {
   it("prepares both pictures of an upcoming paired slide", async () => {
     const slideshow: Slideshow = {
-      formatVersion: 4,
+      formatVersion: 5,
       title: "Pairs",
       slides: [slide("c.jpg", 4000), paired("a.jpg", "b.jpg")],
     };
     const loader = new FakePictureLoader();
     const renderer = new FakeRenderer();
-    let frame: TimelineFrame = { kind: "slide", slide: { index: 1, kenBurnsProgress: 0 } };
-    const pictures = new FramePictures(slideshow, () => frame, loader, renderer, 1);
+    let frame: TimelineFrame = {
+      kind: "slide",
+      slide: { index: 1, kenBurnsProgress: 0, slideTimeMs: 0 },
+      showTimeMs: 4000,
+    };
+    const context = () => ({ showDurationMs: 8000, reducedMotion: false });
+    const pictures = new FramePictures(slideshow, () => frame, context, loader, renderer, 1);
     const pairLoaded = pictures.loadAroundScreen();
     loader.complete("a.jpg");
     loader.complete("b.jpg");
     await pairLoaded;
-    frame = { kind: "slide", slide: { index: 0, kenBurnsProgress: 0 } };
+    frame = {
+      kind: "slide",
+      slide: { index: 0, kenBurnsProgress: 0, slideTimeMs: 0 },
+      showTimeMs: 0,
+    };
     const firstLoaded = pictures.loadAroundScreen();
     loader.complete("c.jpg");
     await firstLoaded;
 
     pictures.prepareUpcoming();
 
-    expect(renderer.prepared.map(({ picture }) => picture.src)).toEqual(["a.jpg", "b.jpg"]);
+    expect(
+      renderer.prepared.map((prepared) =>
+        "picture" in prepared ? prepared.picture.src : undefined,
+      ),
+    ).toEqual(["a.jpg", "b.jpg"]);
   });
 });

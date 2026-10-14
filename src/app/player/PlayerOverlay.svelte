@@ -3,6 +3,7 @@
   import {
     CAPTION_GLIDE_MS,
     createPlayer,
+    isGroundSlide,
     type MusicOutput,
     type OpenPicture,
     type PlayerEvent,
@@ -91,7 +92,10 @@
   const slideNumber = $derived(slideIndexAt(boundaries, currentTime) + 1);
   $effect(() => onSlide?.(slideNumber - 1));
   const slideDate = $derived(slideDates[slideNumber - 1]);
-  const slideCaption = $derived(slideshow.slides[slideNumber - 1]?.caption ?? "");
+  const slideCaption = $derived.by(() => {
+    const slide = slideshow.slides[slideNumber - 1];
+    return slide === undefined || isGroundSlide(slide) ? "" : (slide.caption ?? "");
+  });
   const progress = $derived(boundaries.duration > 0 ? currentTime / boundaries.duration : 0);
   const KEY_HINTS = [
     "player.keyPlay",

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { pictureKey, songKey } from "../html-export/page-contract";
 import type { StoredSlideshow } from "../library/stored-slideshow";
+import { pictureSlide } from "../player/testing/picture-slide";
 import type { ShareAnswer } from "./share-answer";
 import { ShareMediumMissingError, ShareUnreachableError, type ShareApi } from "./share-api";
 import {
@@ -111,7 +112,7 @@ describe("playableShow", () => {
     const played = playableShow(show, api, new Set([pictureKey(0)]));
     await played.openPicture(pictureKey(2));
 
-    expect(played.slideshow.slides.map(({ image }) => image.src)).toEqual([
+    expect(played.slideshow.slides.map((slide) => pictureSlide(slide).image.src)).toEqual([
       pictureKey(1),
       pictureKey(2),
     ]);

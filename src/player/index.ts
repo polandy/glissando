@@ -18,6 +18,13 @@ export { captionLength, MAX_CAPTION_LENGTH, normalizeCaption, withinCaptionLimit
 export { CAPTION_GLIDE_MS } from "./caption-glide";
 export { CAPTION_FONT_NAME, CAPTION_FONT_WEIGHT } from "./caption-layout";
 export { captionStyles } from "./caption-style";
+export {
+  CARD_FONT_FILES,
+  cardFontFaceRule,
+  cardFontFilesUsedBy,
+  cardStylesUsedBy,
+  type CardFontFile,
+} from "./card-fonts";
 export { createFramePlayer, type FramePlayer } from "./create-frame-player";
 export { createPlayer } from "./create-player";
 export { layerTransform } from "./dom/layer-transform";
@@ -36,14 +43,18 @@ export { PLAYER_EVENTS, type PlayerEvent } from "./player-events";
 export { SlideshowPlayer } from "./slideshow-player";
 export {
   EASINGS,
+  isGroundSlide,
   MILLISECONDS_PER_SECOND,
   MIN_KEN_BURNS_ZOOM,
   SLIDESHOW_FORMAT_VERSION,
   TRANSITION_EFFECTS,
+  type Card,
   type Easing,
   type Framing,
+  type GroundSlide,
   type KenBurns,
   type MusicTrack,
+  type PictureSlide,
   type Slide,
   type Slideshow,
   type Transition,

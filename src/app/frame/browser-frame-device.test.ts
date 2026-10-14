@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { browserFrameDevice } from "./browser-frame-device";
+import { CONTROLS_VISIBLE_MS } from "../../frame/tap-controls";
 import type { ScreenAwakePorts } from "../video-export/screen-awake";
 
 const noopScheduler = { after: () => () => {} };
@@ -10,12 +11,16 @@ const noopScreenAwake: ScreenAwakePorts = {
   log: () => {},
 };
 
-function fakeWindow(options: { hasClipboard: boolean }): Window {
+function fakeWindow(options: { hasClipboard: boolean; search?: string }): Window {
   return {
     navigator: options.hasClipboard
       ? { clipboard: { writeText: (text: string) => Promise.resolve(text).then(() => undefined) } }
       : {},
-    location: { origin: "https://frame.example", pathname: "/app/" },
+    location: {
+      origin: "https://frame.example",
+      pathname: "/app/",
+      search: options.search ?? "",
+    },
   } as unknown as Window;
 }
 
@@ -59,5 +64,33 @@ describe("browserFrameDevice", () => {
 
     expect(device.scheduler).toBe(noopScheduler);
     expect(device.screenAwake).toBe(noopScreenAwake);
+  });
+
+  it("keeps the tap controls' default visible time outside of e2e", () => {
+    const device = browserFrameDevice(
+      fakeWindow({ hasClipboard: true }),
+      noopScheduler,
+      noopScreenAwake,
+    );
+
+    expect(device.controlsVisibleMs).toBe(CONTROLS_VISIBLE_MS);
+  });
+
+  it("reads a longer visible time from ?controlsVisibleMs, for an e2e case to click through", () => {
+    const device = browserFrameDevice(
+      fakeWindow({ hasClipboard: true, search: "?controlsVisibleMs=60000" }),
+      noopScheduler,
+      noopScreenAwake,
+    );
+
+    expect(device.controlsVisibleMs).toBe(60_000);
+  });
+
+  it.each(["abc", "", "-5", "0", "1.5"])("refuses ?controlsVisibleMs=%s by name", (value) => {
+    const window = fakeWindow({ hasClipboard: true, search: `?controlsVisibleMs=${value}` });
+
+    expect(() => browserFrameDevice(window, noopScheduler, noopScreenAwake)).toThrow(
+      /controlsVisibleMs/,
+    );
   });
 });

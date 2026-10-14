@@ -47,6 +47,7 @@ describe("SlideshowEditor on a server slideshow, the playlist (ADR-0023)", () =>
       portraitPicturesResetText: () => "Hochformatbilder wieder automatisch",
       songRemovedText: () => "Song entfernt",
       automaticTitle: () => "Juli 2025",
+      locale: () => "de-DE",
     });
 
     editor.removeSong(removed.id);

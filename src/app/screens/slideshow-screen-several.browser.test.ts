@@ -18,12 +18,17 @@ afterEach(() => unmountScreen());
 describe("SlideshowScreen, dragging a tile (ADR-0019)", () => {
   it("drags a tile with a mouse and drops it where the dashed mark showed", () => {
     const { calls } = mountScreen();
-    const items = [...document.querySelectorAll<HTMLElement>(".strip > li")];
+    // The strip also holds the title and closing slide tiles (TITLE_SLIDES.md), neither a picture.
+    const items = [...document.querySelectorAll<HTMLElement>(".strip > li")].filter(
+      (item) => item.querySelector(".pick") !== null,
+    );
     const [first, , third] = items as [HTMLElement, HTMLElement, HTMLElement];
     const pick = first.querySelector<HTMLElement>(".pick");
     if (pick === null) {
       throw new Error("the first tile has no pick button");
     }
+    // The title and closing tiles push this tile below the fold on a short viewport.
+    third.scrollIntoView();
     const box = third.getBoundingClientRect();
 
     firePointer(pick, "pointerdown", { x: 0, y: 0, pointerType: "mouse" });
@@ -41,12 +46,17 @@ describe("SlideshowScreen, dragging a tile (ADR-0019)", () => {
 
   it("a click after a drop that sent its own click to no tile selects as usual", () => {
     mountScreen();
-    const items = [...document.querySelectorAll<HTMLElement>(".strip > li")];
+    // The strip also holds the title and closing slide tiles (TITLE_SLIDES.md), neither a picture.
+    const items = [...document.querySelectorAll<HTMLElement>(".strip > li")].filter(
+      (item) => item.querySelector(".pick") !== null,
+    );
     const [first, , third] = items as [HTMLElement, HTMLElement, HTMLElement];
     const pick = first.querySelector<HTMLElement>(".pick");
     if (pick === null) {
       throw new Error("the first tile has no pick button");
     }
+    // The title and closing tiles push this tile below the fold on a short viewport.
+    third.scrollIntoView();
     const box = third.getBoundingClientRect();
     // Released over another tile, the browser sends the click to their common ancestor.
     firePointer(pick, "pointerdown", { x: 0, y: 0, pointerType: "mouse" });
@@ -63,12 +73,17 @@ describe("SlideshowScreen, dragging a tile (ADR-0019)", () => {
 
   it("drags by a touch hold once it fires, the held tile selected first", () => {
     const { calls, holdScheduler } = mountScreen();
-    const items = [...document.querySelectorAll<HTMLElement>(".strip > li")];
+    // The strip also holds the title and closing slide tiles (TITLE_SLIDES.md), neither a picture.
+    const items = [...document.querySelectorAll<HTMLElement>(".strip > li")].filter(
+      (item) => item.querySelector(".pick") !== null,
+    );
     const [first, , third] = items as [HTMLElement, HTMLElement, HTMLElement];
     const pick = first.querySelector<HTMLElement>(".pick");
     if (pick === null) {
       throw new Error("the first tile has no pick button");
     }
+    // The title and closing tiles push this tile below the fold on a short viewport.
+    third.scrollIntoView();
     const box = third.getBoundingClientRect();
 
     firePointer(pick, "pointerdown", { x: 0, y: 0, pointerType: "touch" });

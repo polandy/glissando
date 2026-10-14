@@ -24,7 +24,7 @@ function slide(src: string, durationMs: number): Slide {
 }
 
 const SLIDESHOW: Slideshow = {
-  formatVersion: 4,
+  formatVersion: 5,
   title: "July 2025",
   music: [{ src: "summer.mp3", atMs: 0, startMs: 0, endMs: 600_000, fadeInMs: 0, fadeOutMs: 0 }],
   slides: [
@@ -90,7 +90,9 @@ describe("SlideshowPlayer.renderAt", () => {
 
     await player.renderAt(1);
 
-    expect(renderer.prepared.map(({ picture }) => picture.src)).toContain("b.jpg");
+    expect(renderer.prepared.map((p) => ("picture" in p ? p.picture.src : undefined))).toContain(
+      "b.jpg",
+    );
   });
 
   it("emits no events, not even the first frame's canplay", async () => {

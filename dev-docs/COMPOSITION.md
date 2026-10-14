@@ -87,6 +87,11 @@ I/O, no subject detection.
   song are scaled down in proportion. Changing the pictures on the beat moves no music: the
   excerpts and their fades stay as they are.
 
+## Title and closing cards
+
+The stored title and closing slides become cards, ground slides and merged first or last
+slides with fixed durations: [player/TITLE_CARDS.md](player/TITLE_CARDS.md#composition-stored--slides).
+
 ## Entry points
 
 - `buildStoredSlideshow` applies the order and title to a fresh import.

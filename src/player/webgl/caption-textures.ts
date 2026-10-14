@@ -1,14 +1,13 @@
-import { captionFont, captionMetrics } from "../caption-layout";
+import { CAPTION_FONT_FAMILY, CAPTION_FONT_WEIGHT, captionMetrics } from "../caption-layout";
+import { loadFonts, type FontSpec, type Fonts } from "../fonts";
 import type { Size } from "../ken-burns";
 import { rasterizeCaption } from "./caption-raster";
 
-/** Loads a font before text is drawn with it; `document.fonts` is one. */
-export interface CaptionFonts {
-  load(font: string): Promise<unknown>;
-}
-
-/** Any size loads the face; the caption's own size changes with the screen. */
-const FONT_LOAD_SIZE_PX = 16;
+const CAPTION_FONT_SPEC: FontSpec = {
+  family: CAPTION_FONT_FAMILY,
+  weight: CAPTION_FONT_WEIGHT,
+  style: "normal",
+};
 const TRANSPARENT_PIXEL = new Uint8Array([0, 0, 0, 0]);
 
 interface CaptionTexture {
@@ -36,15 +35,14 @@ export class CaptionTextures {
 
   constructor(
     gl: WebGL2RenderingContext,
-    fonts: CaptionFonts,
+    fonts: Fonts,
     pixelRatio: () => number,
     onFontLoaded: () => void,
   ) {
     this.#gl = gl;
     this.#pixelRatio = pixelRatio;
     this.#transparent = this.#createTransparent();
-    this.fontLoaded = fonts
-      .load(captionFont(FONT_LOAD_SIZE_PX))
+    this.fontLoaded = loadFonts(fonts, [CAPTION_FONT_SPEC])
       .catch((error: unknown) => {
         console.error("the caption font did not load; captions use a fallback font", error);
       })
@@ -116,7 +114,9 @@ export class CaptionTextures {
   }
 }
 
-function setLinearClamped(gl: WebGL2RenderingContext): void {
+/** Linear filtering, clamped edges: used by every texture rasterised from a canvas or kept as a
+ * 1x1 placeholder (shared with `card-textures.ts`). */
+export function setLinearClamped(gl: WebGL2RenderingContext): void {
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);

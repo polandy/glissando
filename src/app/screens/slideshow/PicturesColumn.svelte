@@ -21,6 +21,8 @@
     onRemoveGroup,
     onShiftGroup,
     onMoveGroup,
+    onOpenOpeningCard,
+    onOpenClosingCard,
     storage,
     onStorageAction,
     holdScheduler,
@@ -38,11 +40,24 @@
     onRemoveGroup: (pictureIds: readonly string[]) => void;
     onShiftGroup: (pictureIds: readonly string[], offset: number) => void;
     onMoveGroup: (pictureIds: readonly string[], insertion: number) => void;
+    /** Opens the title slide / closing slide sheet (TITLE_SLIDES.md). */
+    onOpenOpeningCard: () => void;
+    onOpenClosingCard: () => void;
     storage: SlideshowStorage | null;
     onStorageAction: (action: StorageAction) => void;
     holdScheduler: Scheduler;
     frameScheduler: FrameScheduler;
   } = $props();
+
+  let strip = $state<PictureStrip>();
+
+  export function focusOpeningCard(): void {
+    strip?.focusOpeningCard();
+  }
+
+  export function focusClosingCard(): void {
+    strip?.focusClosingCard();
+  }
 </script>
 
 <div class="pictures">
@@ -57,6 +72,7 @@
     onAdd={onAddPictures}
   />
   <PictureStrip
+    bind:this={strip}
     pictures={slideshow.pictures}
     {newPictureIds}
     {selection}
@@ -67,6 +83,10 @@
     {onRemoveGroup}
     {onShiftGroup}
     {onMoveGroup}
+    openingCard={slideshow.openingCard}
+    closingCard={slideshow.closingCard}
+    {onOpenOpeningCard}
+    {onOpenClosingCard}
     {holdScheduler}
     {frameScheduler}
   />

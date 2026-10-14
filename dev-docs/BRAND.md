@@ -43,6 +43,7 @@ beside them), fetched from a pinned commit of google/fonts and hash-verified by
 | Bricolage Grotesque 700 (`--gl-font-display`)  | Titles only: screen headings, slideshow names            |
 | Geist Mono 400/500 (`--gl-font-mono`, `.mono`) | Times, counts, dates — with tabular figures so they hold |
 | Baloo 2 800 (`--gl-font-wordmark`)             | The "Glissando" wordmark in the header and the logo      |
+| Instrument Serif 400, italic (card only)       | The "Classic" title card style (ADR-0032), nowhere else  |
 
 Baloo 2 is for the brand alone: the header wordmark and the logo / start animation (whose
 wordmark is outlined to paths). Sizes come from the `--gl-size-*` scale: caption 11, small 12,
@@ -76,6 +77,11 @@ mint, lemon and coral are status only. Tokens in `src/styles/tokens.css`:
 | `--gl-logo-*`                   | Logo cards and outline                | Sorbet                | outline `#171223`     |
 | `--gl-qr-dark` / `-light`       | A QR code's modules / its ground      | `#14111C` / `#FFFFFF` | same                  |
 | `--gl-photo-*`, `--gl-player-*` | Marks over pictures; the black player | white on black alphas | same                  |
+
+Title cards (ADR-0032) are drawn by the player and take their colours from the **card
+palette** in `card-palette.ts`, not from the tokens: `plum` `#2A2340`, `night` `#14111C`, `cream`
+`#FFF3E2`, `peach` `#FFB59A`, `mint` `#8FD9C4`, `lemon` `#FFD95A`; light ink `#FFFFFF`, dark ink
+`#2A2340`.
 
 Rules:
 

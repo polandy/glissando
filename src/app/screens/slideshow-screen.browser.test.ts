@@ -148,8 +148,9 @@ describe("SlideshowScreen editing", () => {
       alone: false,
     }));
     mountScreen(details(ids, { pictures }));
-    const last = document.querySelector<HTMLElement>(".strip > li:last-child button.pick");
-    if (last === null) {
+    // The strip's actual last child is the closing slide tile (TITLE_SLIDES.md), not a picture.
+    const last = [...document.querySelectorAll<HTMLElement>(".strip > li button.pick")].at(-1);
+    if (last === undefined) {
       throw new Error("no last tile");
     }
     window.scrollTo(0, document.documentElement.scrollHeight);

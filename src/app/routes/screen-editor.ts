@@ -42,5 +42,6 @@ export function createScreenEditor(
         slideshow.pictures.map((picture) => picture.capturedAt),
         translator.language,
       ),
+    locale: () => translator.language,
   });
 }

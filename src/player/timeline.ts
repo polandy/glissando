@@ -1,13 +1,23 @@
 import type { Slide, TransitionEffect } from "./slideshow";
 
-/** A slide on screen and how far its Ken Burns has run (linear, 0..1). */
+/**
+ * A slide on screen: how far its Ken Burns has run (linear, 0..1, over the span it is visible,
+ * including an incoming transition's lead-in) and its own elapsed time (0..`durationMs`, from
+ * its own start, for a card's timing, ADR-0032).
+ */
 export interface SlideAtTime {
   readonly index: number;
   readonly kenBurnsProgress: number;
+  readonly slideTimeMs: number;
 }
 
 export type TimelineFrame =
-  | { readonly kind: "slide"; readonly slide: SlideAtTime }
+  | {
+      readonly kind: "slide";
+      readonly slide: SlideAtTime;
+      /** Clamped show time, for the end fade (ADR-0032). */
+      readonly showTimeMs: number;
+    }
   | {
       readonly kind: "transition";
       readonly effect: TransitionEffect;
@@ -15,6 +25,7 @@ export type TimelineFrame =
       readonly progress: number;
       readonly from: SlideAtTime;
       readonly to: SlideAtTime;
+      readonly showTimeMs: number;
     };
 
 export interface Timeline {
@@ -54,7 +65,18 @@ export function createTimeline(slides: readonly Slide[]): Timeline {
   function slideAt(index: number, timeMs: number): SlideAtTime {
     const span = spanAt(index);
     const progress = (timeMs - span.visibleFromMs) / (span.endMs - span.visibleFromMs);
-    return { index, kenBurnsProgress: Math.min(1, Math.max(0, progress)) };
+    const durationMs = slideDurationAt(index);
+    const startMs = span.endMs - durationMs;
+    const slideTimeMs = Math.min(durationMs, Math.max(0, timeMs - startMs));
+    return { index, kenBurnsProgress: Math.min(1, Math.max(0, progress)), slideTimeMs };
+  }
+
+  function slideDurationAt(index: number): number {
+    const slide = slides[index];
+    if (slide === undefined) {
+      throw new RangeError(`no slide at index ${index}`);
+    }
+    return slide.durationMs;
   }
 
   function spanAt(index: number): SlideSpan {
@@ -74,7 +96,7 @@ export function createTimeline(slides: readonly Slide[]): Timeline {
       const span = spanAt(index);
       const transition = slides[index]?.transitionToNext;
       if (transition === undefined || clampedMs < span.transitionFromMs || found === -1) {
-        return { kind: "slide", slide: slideAt(index, clampedMs) };
+        return { kind: "slide", slide: slideAt(index, clampedMs), showTimeMs: clampedMs };
       }
       return {
         kind: "transition",
@@ -82,6 +104,7 @@ export function createTimeline(slides: readonly Slide[]): Timeline {
         progress: (clampedMs - span.transitionFromMs) / transition.durationMs,
         from: slideAt(index, clampedMs),
         to: slideAt(index + 1, clampedMs),
+        showTimeMs: clampedMs,
       };
     },
   };

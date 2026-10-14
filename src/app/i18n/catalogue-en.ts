@@ -16,6 +16,7 @@ import { enTvSheet } from "./catalogue-en-tv-sheet.ts";
 import { enPlaylist } from "./catalogue-en-playlist.ts";
 import { enCulling } from "./catalogue-en-culling.ts";
 import { enFrame } from "./catalogue-en-frame.ts";
+import { enCards } from "./catalogue-en-cards.ts";
 import type { Catalogue } from "./messages.ts";
 
 /** English UI copy; the type demands exactly the German catalogue's keys and message shapes. */
@@ -322,4 +323,5 @@ export const en: Catalogue = {
   ...enPlaylist,
   ...enCulling,
   ...enFrame,
+  ...enCards,
 };

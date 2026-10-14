@@ -25,7 +25,7 @@ function slide(src: string, durationMs: number, extra: Partial<Slide> = {}): Sli
 
 /** a: 0–4 s, wipe into b from 3 s; b: 4–9 s; c: 9–12 s. */
 const SLIDESHOW: Slideshow = {
-  formatVersion: 4,
+  formatVersion: 5,
   title: "July 2025",
   slides: [
     slide("a.jpg", 4000, { transitionToNext: { effect: "wipe-right", durationMs: 1000 } }),
@@ -113,6 +113,8 @@ describe("SlideshowPlayer preparing pictures", () => {
       picture: expect.objectContaining({ src: "b.jpg" }),
       caption: "Sunset at the lake",
     });
-    expect(renderer.prepared.map(({ picture }) => picture.src)).not.toContain("a.jpg");
+    expect(
+      renderer.prepared.map((p) => ("picture" in p ? p.picture.src : undefined)),
+    ).not.toContain("a.jpg");
   });
 });

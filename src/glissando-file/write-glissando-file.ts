@@ -6,6 +6,7 @@ import type {
 } from "../library/stored-slideshow";
 import type { CheckedGlissandoFile } from "./check-glissando-file";
 import { ownMusicFields } from "./glissando-manifest";
+import { cardFromManifest } from "./manifest-card";
 import { uniqueTitle } from "./unique-title";
 
 export type OpenStep = (
@@ -112,6 +113,9 @@ export async function writeGlissandoFile(
       });
     }
     options.signal.throwIfAborted();
+    const pictureIds = pictures.map((picture) => picture.id);
+    const openingCard = cardFromManifest(slideshow.openingCard, pictureIds);
+    const closingCard = cardFromManifest(slideshow.closingCard, pictureIds);
     const created: StoredSlideshow = {
       id: ports.newId(),
       title: uniqueTitle(slideshow.title, options.existingTitles),
@@ -122,6 +126,8 @@ export async function writeGlissandoFile(
       songs,
       ...(slideshow.betweenSongs === undefined ? {} : { betweenSongs: slideshow.betweenSongs }),
       secondsPerPicture: slideshow.secondsPerPicture,
+      ...(openingCard === undefined ? {} : { openingCard }),
+      ...(closingCard === undefined ? {} : { closingCard }),
     };
     await store.saveSlideshow(created);
     await store.releaseClaim(claimId);

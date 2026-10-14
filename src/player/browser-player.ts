@@ -17,6 +17,9 @@ import type { Slideshow } from "./slideshow";
 import { SlideshowPlayer } from "./slideshow-player";
 import { WebGlRenderer } from "./webgl/webgl-renderer";
 
+/** Mirrors `ui-kit/reduced-motion`'s query; the player engine imports nothing from the app. */
+const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
+
 type WebGl2Context = (canvas: HTMLCanvasElement) => WebGL2RenderingContext | null;
 
 const defaultWebGl2Context: WebGl2Context = (canvas) =>
@@ -93,6 +96,7 @@ export function createBrowserPlayer(
     clock: performanceClock,
     frames: animationFrames,
     openMusic: (src: string) => new AudioElementMusic(src, musicOutput),
+    reducedMotion: () => window.matchMedia(REDUCED_MOTION_QUERY).matches,
     ...(picturesAhead === undefined ? {} : { picturesAhead }),
   };
   player =

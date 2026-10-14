@@ -20,6 +20,8 @@ const SHARED_SLIDESHOW_KEYS = [
   "transition",
   "pictureLength",
   "portraitPictures",
+  "openingCard",
+  "closingCard",
 ] as const satisfies readonly (keyof ServerSlideshow)[];
 const SHARED_PICTURE_KEYS = [
   "capturedAt",

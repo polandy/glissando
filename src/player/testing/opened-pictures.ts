@@ -28,7 +28,7 @@ export function openingOnly(id: string, blob: Blob): (src: string) => Promise<Bl
 
 /** A one-slide slideshow whose picture `src` is the media id `PICTURE_ID`. */
 export const OPENED_PICTURE_SHOW: Slideshow = {
-  formatVersion: 4,
+  formatVersion: 5,
   title: "July 2025",
   slides: [
     {

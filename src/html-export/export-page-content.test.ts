@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { StoredSlideshow } from "../library/stored-slideshow";
-import { parseSlideshow } from "../player";
+import { isGroundSlide, parseSlideshow } from "../player";
 import { exportPage } from "./export-page";
 import { WITHOUT_MUSIC, STORED, TWO_SONGS, run, block, decoded } from "./export-page-fixtures";
 
@@ -27,7 +27,14 @@ describe("exportPage, what the page holds", () => {
     await exportPage(job);
 
     const slideshow = parseSlideshow(JSON.parse(block(sink.text, "slideshow") ?? "null"));
-    expect(slideshow.slides.map((slide) => slide.image.src)).toEqual(["p0", "p1", "p2"]);
+    expect(
+      slideshow.slides.map((slide) => {
+        if (isGroundSlide(slide)) {
+          throw new Error("expected a picture slide");
+        }
+        return slide.image.src;
+      }),
+    ).toEqual(["p0", "p1", "p2"]);
     expect(slideshow.music?.map((track) => track.src)).toEqual(["s0"]);
     expect(sink.text).toContain('id="s0" data-type="audio/mpeg"');
     expect(decoded(sink.text, "s0")).toBe("bytes of m1");

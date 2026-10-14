@@ -44,9 +44,11 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
       isPlaybackDrawing: () => this.#frameHandle !== null,
       redraw: () => this.redraw(),
     });
+    const reducedMotion = dependencies.reducedMotion ?? (() => false);
     this.#pictures = new FramePictures(
       slideshow,
       () => this.#currentFrame(),
+      () => ({ showDurationMs: this.#timeline.durationMs, reducedMotion: reducedMotion() }),
       dependencies.pictures,
       dependencies.renderer,
       dependencies.picturesAhead,

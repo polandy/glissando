@@ -50,10 +50,15 @@ function words(noscript: string): SharePageWords {
   };
 }
 
+const CARD_FONT_FACE_RULE =
+  '@font-face{font-family:"Bricolage Grotesque";font-weight:700;font-style:normal;' +
+  'src:url(data:font/woff2;base64,BBBB) format("woff2")}';
+
 const PAGE = sharePageHtml({
   languages: { de: words("Braucht JavaScript."), en: words("Needs JavaScript.") },
   style: ".stage{inset:0}",
   captionFontDataUrl: "data:font/woff2;base64,AAAA",
+  cardFontFaceRules: [CARD_FONT_FACE_RULE],
   script: "console.log('share page');",
 });
 
@@ -95,6 +100,10 @@ describe("sharePageHtml", () => {
     expect(PAGE).toContain("<script>console.log('share page');</script>");
     expect(PAGE).toContain("url(data:font/woff2;base64,AAAA)");
     expect(PAGE).not.toMatch(/\s(src|href)=/);
+  });
+
+  it("inlines every card font face rule it is given, since any card style may be shown", () => {
+    expect(PAGE).toContain(CARD_FONT_FACE_RULE);
   });
 });
 

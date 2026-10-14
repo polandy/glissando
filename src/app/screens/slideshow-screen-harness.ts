@@ -2,6 +2,8 @@
 import { flushSync } from "svelte";
 import type { SlideshowTransition } from "../../library/own-timing";
 import type { ResolvedPortraitPictures } from "../../library/portrait-pictures";
+import type { StoredCard } from "../../library/stored-slideshow";
+import type { CardInput } from "../../library/stored-card";
 import { FakeClock, FakeFrameScheduler } from "../../player/testing/fakes";
 import { FakeScheduler } from "../../ui-kit/testing/fake-scheduler";
 import { mountWithTranslator } from "../testing/mount-with-translator";
@@ -11,6 +13,25 @@ import type { ExportMenuState } from "../glissando-file/export-menu";
 import type { SlideshowDetails, SlideshowStorage, StorageAction } from "./view-models";
 import { createTranslator } from "../i18n/translator";
 import type { ServerSlideshowRows } from "../server-library/server-slideshow-sessions";
+
+/** The title slide a bare `ensureOpeningCard` call creates, for tests that don't care about it. */
+const DEFAULT_OPENING_CARD: StoredCard = {
+  title: "Sommer am See",
+  subtitle: "1.–3. Juli 2025",
+  style: "modern",
+  position: "centre",
+  background: { kind: "picture", pictureId: "a", fade: 60 },
+  motion: true,
+};
+
+/** The closing slide a bare `ensureClosingCard` call creates, for tests that don't care about it. */
+const DEFAULT_CLOSING_CARD: StoredCard = {
+  title: "",
+  style: "modern",
+  position: "centre",
+  background: { kind: "picture", pictureId: "a", fade: 60 },
+  motion: true,
+};
 
 let destroy = () => {};
 
@@ -58,6 +79,26 @@ export function details(ids: readonly string[], overrides: Partial<SlideshowDeta
   return { ...base, ...overrides };
 }
 
+/** `slideshow` with its title slide set, or removed when `card` is undefined. */
+function withOpeningCard(
+  slideshow: SlideshowDetails,
+  card: StoredCard | undefined,
+): SlideshowDetails {
+  const { openingCard, ...rest } = slideshow;
+  void openingCard;
+  return card === undefined ? rest : { ...rest, openingCard: card };
+}
+
+/** `slideshow` with its closing slide set, or removed when `card` is undefined. */
+function withClosingCard(
+  slideshow: SlideshowDetails,
+  card: StoredCard | undefined,
+): SlideshowDetails {
+  const { closingCard, ...rest } = slideshow;
+  void closingCard;
+  return card === undefined ? rest : { ...rest, closingCard: card };
+}
+
 export function mountScreen(
   slideshow: SlideshowDetails = details(["a", "b", "c"]),
   {
@@ -89,6 +130,12 @@ export function mountScreen(
     deletes: 0,
     adds: 0,
     storageActions: [] as StorageAction[],
+    openingCardsEnsured: 0,
+    openingCards: [] as CardInput[],
+    openingCardsRemoved: 0,
+    closingCardsEnsured: 0,
+    closingCards: [] as CardInput[],
+    closingCardsRemoved: 0,
   };
   // The transitions sheet's picks and resets come back as the parent would show them.
   const props = reactiveProps({
@@ -123,6 +170,34 @@ export function mountScreen(
     onResetPortraitPictures: () => {
       calls.portraitPictureResets += 1;
       props.slideshow = { ...props.slideshow, portraitPictures: "automatic" };
+    },
+    onEnsureOpeningCard: () => {
+      calls.openingCardsEnsured += 1;
+      const created = props.slideshow.openingCard ?? DEFAULT_OPENING_CARD;
+      props.slideshow = withOpeningCard(props.slideshow, created);
+      return created;
+    },
+    onOpeningCard: (card: CardInput) => {
+      calls.openingCards.push(card);
+      props.slideshow = withOpeningCard(props.slideshow, card as StoredCard);
+    },
+    onRemoveOpeningCard: () => {
+      calls.openingCardsRemoved += 1;
+      props.slideshow = withOpeningCard(props.slideshow, undefined);
+    },
+    onEnsureClosingCard: () => {
+      calls.closingCardsEnsured += 1;
+      const created = props.slideshow.closingCard ?? DEFAULT_CLOSING_CARD;
+      props.slideshow = withClosingCard(props.slideshow, created);
+      return created;
+    },
+    onClosingCard: (card: CardInput) => {
+      calls.closingCards.push(card);
+      props.slideshow = withClosingCard(props.slideshow, card as StoredCard);
+    },
+    onRemoveClosingCard: () => {
+      calls.closingCardsRemoved += 1;
+      props.slideshow = withClosingCard(props.slideshow, undefined);
     },
     previewPorts: { clock, frames },
     reducedMotion,

@@ -83,7 +83,12 @@ function backdropRow(picture: BitmapPicture): number[] {
   const renderer = new WebGlRenderer(canvas, gl, () => undefined, { pixelRatio: () => 1 });
   renderer.render({
     kind: "slide",
-    slide: { picture, motion: standingStill({ zoom: 1, centerX: 0.5, centerY: 0.5 }) },
+    slide: {
+      kind: "picture",
+      picture,
+      motion: standingStill({ zoom: 1, centerX: 0.5, centerY: 0.5 }),
+    },
+    endFade: 0,
   });
   const pixels = new Uint8Array(ROW_PIXELS * 4);
   gl.readPixels(0, canvas.height / 2, ROW_PIXELS, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixels);

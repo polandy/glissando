@@ -1,5 +1,6 @@
 import type { SlideshowTransition, TransitionChoice } from "../../library/own-timing";
 import type { ResolvedPortraitPictures } from "../../library/portrait-pictures";
+import type { StoredCard } from "../../library/stored-slideshow";
 
 /** What the screens show; the composition root derives these from the stored slideshows. */
 
@@ -95,4 +96,8 @@ export interface SlideshowDetails {
   readonly capturedTo: string;
   /** In play order; never empty. */
   readonly pictures: readonly PictureTile[];
+  /** The opening title slide; absent until the editor creates it (TITLE_SLIDES.md). */
+  readonly openingCard?: StoredCard;
+  /** The closing slide; absent until the editor creates it (TITLE_SLIDES.md). */
+  readonly closingCard?: StoredCard;
 }

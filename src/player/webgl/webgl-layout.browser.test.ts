@@ -57,11 +57,12 @@ describe("WebGlRenderer: pairs and the blurred fill (ADR-0028)", () => {
     const red = await solidBitmap(RED);
     const blue = await solidBitmap(BLUE);
     const layer: SlideLayer<BitmapPicture> = {
+      kind: "picture",
       picture: red,
       motion: STILL,
       partner: { picture: blue, motion: STILL },
     };
-    const frame: RenderFrame<BitmapPicture> = { kind: "slide", slide: layer };
+    const frame: RenderFrame<BitmapPicture> = { kind: "slide", slide: layer, endFade: 0 };
 
     expect(drawAndRead(frame, 0.2, 0.5)).toEqual(RED);
     expect(drawAndRead(frame, 0.8, 0.5)).toEqual(BLUE);
@@ -73,11 +74,12 @@ describe("WebGlRenderer: pairs and the blurred fill (ADR-0028)", () => {
     const red = await solidBitmap(RED);
     const blue = await solidBitmap(BLUE);
     const layer: SlideLayer<BitmapPicture> = {
+      kind: "picture",
       picture: red,
       motion: STILL,
       partner: { picture: blue, motion: STILL },
     };
-    const frame: RenderFrame<BitmapPicture> = { kind: "slide", slide: layer };
+    const frame: RenderFrame<BitmapPicture> = { kind: "slide", slide: layer, endFade: 0 };
 
     expect(drawAndRead(frame, 0.5, 0.2)).toEqual(RED);
     expect(drawAndRead(frame, 0.5, 0.8)).toEqual(BLUE);
@@ -89,7 +91,8 @@ describe("WebGlRenderer: pairs and the blurred fill (ADR-0028)", () => {
     const picture = await solidBitmapOfSize(RED, { width: 300, height: 400 });
     const frame: RenderFrame<BitmapPicture> = {
       kind: "slide",
-      slide: { picture, motion: STILL },
+      slide: { kind: "picture", picture, motion: STILL },
+      endFade: 0,
     };
 
     const middle = drawAndRead(frame, 0.5, 0.5);
@@ -107,7 +110,8 @@ describe("WebGlRenderer: pairs and the blurred fill (ADR-0028)", () => {
     const picture = await solidBitmapOfSize(RED, { width: 300, height: 400 });
     const frame: RenderFrame<BitmapPicture> = {
       kind: "slide",
-      slide: { picture, motion: STILL, fit: "cover" },
+      slide: { kind: "picture", picture, motion: STILL, fit: "cover" },
+      endFade: 0,
     };
 
     expect(drawAndRead(frame, 0.02, 0.5)).toEqual(RED);
@@ -119,7 +123,8 @@ describe("WebGlRenderer: pairs and the blurred fill (ADR-0028)", () => {
     const picture = await solidBitmapOfSize(RED, { width: 400, height: 300 });
     const frame: RenderFrame<BitmapPicture> = {
       kind: "slide",
-      slide: { picture, motion: STILL },
+      slide: { kind: "picture", picture, motion: STILL },
+      endFade: 0,
     };
 
     expect(drawAndRead(frame, 0.02, 0.5)).toEqual(RED);

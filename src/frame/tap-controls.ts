@@ -9,12 +9,16 @@ export const CONTROLS_VISIBLE_MS = 4000;
  */
 export class TapControls {
   readonly #scheduler: Scheduler;
+  readonly #visibleMs: number;
   readonly #listeners = new Set<(visible: boolean) => void>();
   #visible = false;
   #cancelTimeout: (() => void) | null = null;
 
-  constructor(scheduler: Scheduler) {
+  /** `visibleMs` defaults to `CONTROLS_VISIBLE_MS`; a longer value lets an e2e case work through
+   * several steps without racing the real auto-hide (`browser-frame-device.ts`). */
+  constructor(scheduler: Scheduler, visibleMs: number = CONTROLS_VISIBLE_MS) {
     this.#scheduler = scheduler;
+    this.#visibleMs = visibleMs;
   }
 
   get visible(): boolean {
@@ -27,7 +31,7 @@ export class TapControls {
       this.hide();
       return;
     }
-    this.#cancelTimeout = this.#scheduler.after(CONTROLS_VISIBLE_MS, () => this.hide());
+    this.#cancelTimeout = this.#scheduler.after(this.#visibleMs, () => this.hide());
     this.#set(true);
   }
 

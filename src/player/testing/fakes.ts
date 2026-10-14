@@ -1,3 +1,4 @@
+import type { Fonts } from "../fonts";
 import type { Size } from "../ken-burns";
 import type {
   Clock,
@@ -135,9 +136,12 @@ export class FakeRenderer implements SlideRenderer<FakePicture> {
     this.onRender?.();
     this.frames.push(frame);
     const layers = frame.kind === "slide" ? [frame.slide] : [frame.from, frame.to];
-    const pictures = layers.flatMap(({ picture, partner }) =>
-      partner === undefined ? [picture] : [picture, partner.picture],
-    );
+    const pictures = layers.flatMap((layer) => {
+      if (layer.kind === "ground") {
+        return [];
+      }
+      return layer.partner === undefined ? [layer.picture] : [layer.picture, layer.partner.picture];
+    });
     for (const picture of pictures) {
       if (this.#costs !== null && !this.#isPrepared(picture)) {
         this.#costs.clock.advance(this.#costs.fullUploadMs);
@@ -147,10 +151,11 @@ export class FakeRenderer implements SlideRenderer<FakePicture> {
   }
   prepare(slide: PreparedSlide<FakePicture>): void {
     this.prepared.push(slide);
-    if (this.#costs !== null && !this.#isPrepared(slide.picture)) {
-      this.#costs.clock.advance(this.#costs.sliceMs);
-      this.#slicesDone.set(slide.picture.src, (this.#slicesDone.get(slide.picture.src) ?? 0) + 1);
+    if (!("picture" in slide) || this.#costs === null || this.#isPrepared(slide.picture)) {
+      return;
     }
+    this.#costs.clock.advance(this.#costs.sliceMs);
+    this.#slicesDone.set(slide.picture.src, (this.#slicesDone.get(slide.picture.src) ?? 0) + 1);
   }
   setCaptionInset(cssPixels: number): void {
     this.captionInset = cssPixels;
@@ -212,5 +217,21 @@ export class FakeMusicTracks {
       throw new Error(`no music was opened for ${src}`);
     }
     return music;
+  }
+}
+
+/** Settles every `load` only when the test calls `resolve`, never on its own. */
+export class FakeFonts implements Fonts {
+  #resolve: (() => void) | null = null;
+  readonly #ready = new Promise<void>((resolve) => {
+    this.#resolve = resolve;
+  });
+
+  load(): Promise<unknown> {
+    return this.#ready;
+  }
+
+  resolve(): void {
+    this.#resolve?.();
   }
 }

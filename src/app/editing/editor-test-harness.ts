@@ -98,6 +98,7 @@ export async function setUp(
     portraitPicturesResetText: () => "Hochformatbilder wieder automatisch",
     songRemovedText: () => "Song entfernt",
     automaticTitle: () => "Juli 2025",
+    locale: () => "de-DE",
   });
   const order = () => editor.slideshow.pictures.map((picture) => picture.id);
   const storedOrder = async () => {

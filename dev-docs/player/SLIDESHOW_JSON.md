@@ -6,7 +6,7 @@ are rejected.
 
 ```json
 {
-  "formatVersion": 4,
+  "formatVersion": 5,
   "title": "July 2025",
   "music": [
     {
@@ -81,5 +81,8 @@ are rejected.
   so every picture crops as a single picture always did; absent, a whole picture that covering
   would crop too much of is drawn over a blurred, darkened copy of itself instead. No other value
   is accepted.
-- Only version 4 is read; version 3 (without `partner` and `fit`) is refused, not upgraded — no
+- **`card`, `ground`, `endFadeMs`** (version 5, ADR-0032, optional): a title or closing card
+  drawn over the slide; a ground slide (a `#RRGGBB` colour instead of `image` and `kenBurns`)
+  carrying one; the show's fade to black. Contract and timing in [TITLE_CARDS.md](TITLE_CARDS.md).
+- Only version 5 is read; version 4 (without cards) is refused, not upgraded — no
   instance holds slideshows older than this app.

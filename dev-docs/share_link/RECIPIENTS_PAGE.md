@@ -5,7 +5,9 @@
   `location.pathname` and asks `/api/share/{token}`. Everything the page needs is inline, as in
   the web page export (html_export/THE_PAGE.md), so `/s/` and `/api/share/` are the only public
   paths. Its CSP allows `connect-src`, `img-src` and `media-src` to `'self'` and `blob:`, on
-  top of the export's.
+  top of the export's. Unlike the web page export, which embeds only the card fonts the given
+  slideshow's cards use, `share.html` is built once for every slideshow it may ever show, so it
+  embeds every card font (ADR-0032) unconditionally.
 - **The player** is the web page export's (`src/export-player/`), with its page data read from
   the API instead of from inline blocks. It composes the share document with the app's
   `composeSlideshow` and the given beats, in the recipient's language. `openPicture(n)` fetches the picture

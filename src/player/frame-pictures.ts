@@ -1,8 +1,8 @@
 import type { Size } from "./ken-burns";
 import { PictureBuffer } from "./picture-buffer";
 import type { PictureLoader, SlideRenderer } from "./ports";
-import { renderFrame } from "./render-frame";
-import type { Slideshow } from "./slideshow";
+import { renderFrame, type RenderFrameContext } from "./render-frame";
+import { isGroundSlide, type Slideshow } from "./slideshow";
 import type { SlideAtTime, TimelineFrame } from "./timeline";
 
 /**
@@ -12,25 +12,31 @@ import type { SlideAtTime, TimelineFrame } from "./timeline";
 export class FramePictures<Picture extends Size> {
   readonly #slideshow: Slideshow;
   readonly #currentFrame: () => TimelineFrame;
+  readonly #context: () => RenderFrameContext;
   readonly #renderer: SlideRenderer<Picture>;
   readonly #buffer: PictureBuffer<Picture>;
 
   constructor(
     slideshow: Slideshow,
     currentFrame: () => TimelineFrame,
+    context: () => RenderFrameContext,
     loader: PictureLoader<Picture>,
     renderer: SlideRenderer<Picture>,
     picturesAhead?: number,
   ) {
     this.#slideshow = slideshow;
     this.#currentFrame = currentFrame;
+    this.#context = context;
     this.#renderer = renderer;
     this.#buffer = new PictureBuffer(
-      slideshow.slides.map((slide) =>
-        slide.partner === undefined
+      slideshow.slides.map((slide) => {
+        if (isGroundSlide(slide)) {
+          return [];
+        }
+        return slide.partner === undefined
           ? [slide.image.src]
-          : [slide.image.src, slide.partner.image.src],
-      ),
+          : [slide.image.src, slide.partner.image.src];
+      }),
       loader,
       renderer,
       picturesAhead,
@@ -74,7 +80,9 @@ export class FramePictures<Picture extends Size> {
   draw(captionInset: number): void {
     this.#renderer.setCaptionInset(captionInset);
     this.#renderer.render(
-      renderFrame(this.#currentFrame(), this.#slideshow, (index) => this.#buffer.get(index)),
+      renderFrame(this.#currentFrame(), this.#slideshow, this.#context(), (index) =>
+        this.#buffer.get(index),
+      ),
     );
   }
 
@@ -82,10 +90,21 @@ export class FramePictures<Picture extends Size> {
   prepareUpcoming(): void {
     const onScreen = this.#onScreen().map((slide) => slide.index);
     for (const { index, pictures } of this.#buffer.loadedAfter(onScreen)) {
-      const caption = this.#slideshow.slides[index]?.caption;
+      const slide = this.#slideshow.slides[index];
+      if (slide === undefined) {
+        continue;
+      }
+      if (isGroundSlide(slide)) {
+        this.#renderer.prepare({ ground: slide.ground, card: slide.card });
+        continue;
+      }
       const [picture, partnerPicture] = pictures;
       if (picture !== undefined) {
-        this.#renderer.prepare(caption === undefined ? { picture } : { picture, caption });
+        this.#renderer.prepare({
+          picture,
+          ...(slide.caption === undefined ? {} : { caption: slide.caption }),
+          ...(slide.card === undefined ? {} : { card: slide.card }),
+        });
       }
       if (partnerPicture !== undefined) {
         this.#renderer.prepare({ picture: partnerPicture });

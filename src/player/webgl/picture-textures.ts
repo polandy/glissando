@@ -1,8 +1,13 @@
 import type { BitmapPicture } from "../browser/bitmap-loader";
 import { createBackdropTexture } from "./backdrop-texture";
+import { setLinearClamped } from "./caption-textures";
 
 /** Pixels uploaded by one `prepare` step: a few milliseconds of a frame in WebKit (ADR-0014). */
 export const UPLOAD_PIXELS_PER_FRAME = 1_048_576;
+
+/** A ground layer's colour comes from a uniform, not a texture; its sampler units still need a
+ * complete texture bound, so every layer binds one of these (ADR-0032). */
+const PLACEHOLDER_PIXEL = new Uint8Array([0, 0, 0, 255]);
 
 interface PictureTexture {
   readonly texture: WebGLTexture;
@@ -22,9 +27,17 @@ interface PictureTexture {
 export class PictureTextures {
   readonly #gl: WebGL2RenderingContext;
   readonly #textures = new Map<BitmapPicture, PictureTexture>();
+  #placeholder: WebGLTexture;
 
   constructor(gl: WebGL2RenderingContext) {
     this.#gl = gl;
+    this.#placeholder = createPlaceholder(gl);
+  }
+
+  /** The 1x1 texture a ground layer's unused picture/partner/backdrop samplers bind to. */
+  placeholder(): WebGLTexture {
+    this.#gl.bindTexture(this.#gl.TEXTURE_2D, this.#placeholder);
+    return this.#placeholder;
   }
 
   isComplete(picture: BitmapPicture): boolean {
@@ -76,6 +89,7 @@ export class PictureTextures {
   /** The context was restored: every texture is gone with the old one and is uploaded anew. */
   recreate(): void {
     this.#textures.clear();
+    this.#placeholder = createPlaceholder(this.#gl);
   }
 
   dispose(): void {
@@ -84,6 +98,7 @@ export class PictureTextures {
       this.#gl.deleteTexture(backdrop);
     });
     this.#textures.clear();
+    this.#gl.deleteTexture(this.#placeholder);
   }
 
   /** The picture's texture, its storage allocated for the whole mip chain on first use. */
@@ -131,6 +146,14 @@ export class PictureTextures {
     this.#gl.generateMipmap(this.#gl.TEXTURE_2D);
     entry.mipmapped = true;
   }
+}
+
+function createPlaceholder(gl: WebGL2RenderingContext): WebGLTexture {
+  const texture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, PLACEHOLDER_PIXEL);
+  setLinearClamped(gl);
+  return texture;
 }
 
 function rowsPerSlice({ width }: BitmapPicture): number {

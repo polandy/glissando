@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { composeSlideshow } from "./compose-slideshow";
 import { parseSlideshow } from "../player/parse-slideshow";
+import { pictureSlide } from "../player/testing/picture-slide";
 import type { PictureFocus } from "../library/picture-focus";
 import type { StoredPicture, StoredSlideshow } from "../library/stored-slideshow";
 import { autoKenBurns } from "./auto-ken-burns";
@@ -36,7 +37,7 @@ describe("composeSlideshow", () => {
     const result = composeSlideshow(stored, sources, NO_FOCUS, NO_SONG_BEATS);
 
     expect(result.title).toBe("July 2025");
-    expect(result.slides.map((slide) => slide.image.src)).toEqual([
+    expect(result.slides.map((slide) => pictureSlide(slide).image.src)).toEqual([
       "pictures/a.jpg",
       "pictures/b.jpg",
     ]);
@@ -184,9 +185,10 @@ describe("composeSlideshow with an own motion", () => {
 
     const slides = composeSlideshow(stored, sources, NO_FOCUS, NO_SONG_BEATS).slides;
 
-    expect(slides[1]?.kenBurns).toEqual({ ...own, easing: "linear" });
-    expect(slides[0]?.kenBurns).toEqual(
-      composeSlideshow(storedSlideshow(), sources, NO_FOCUS, NO_SONG_BEATS).slides[0]?.kenBurns,
+    expect(pictureSlide(slides[1]).kenBurns).toEqual({ ...own, easing: "linear" });
+    expect(pictureSlide(slides[0]).kenBurns).toEqual(
+      pictureSlide(composeSlideshow(storedSlideshow(), sources, NO_FOCUS, NO_SONG_BEATS).slides[0])
+        .kenBurns,
     );
   });
 });
@@ -210,9 +212,9 @@ describe("composeSlideshow with the pictures' focus", () => {
 
     const slides = composeSlideshow(stored, sources, focus, NO_SONG_BEATS).slides;
 
-    expect(slides[0]?.kenBurns).toEqual(autoKenBurns(0, first, faces));
-    expect(slides[0]?.kenBurns).not.toEqual(autoKenBurns(0, first, undefined));
-    expect(slides[1]?.kenBurns).toEqual({ ...own, easing: "linear" });
+    expect(pictureSlide(slides[0]).kenBurns).toEqual(autoKenBurns(0, first, faces));
+    expect(pictureSlide(slides[0]).kenBurns).not.toEqual(autoKenBurns(0, first, undefined));
+    expect(pictureSlide(slides[1]).kenBurns).toEqual({ ...own, easing: "linear" });
   });
 });
 
@@ -223,7 +225,7 @@ describe("composeSlideshow with a caption", () => {
 
     const slides = composeSlideshow(stored, sources, NO_FOCUS, NO_SONG_BEATS).slides;
 
-    expect(slides[1]?.caption).toBe("Jetty");
+    expect(pictureSlide(slides[1]).caption).toBe("Jetty");
     expect(slides[0]).toBeDefined();
     expect(slides[0]).not.toHaveProperty("caption");
   });

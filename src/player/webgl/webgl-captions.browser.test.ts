@@ -10,7 +10,7 @@ import {
   viewportBox,
   type Rgb,
 } from "../testing/browser-pictures";
-import type { CaptionFonts } from "./caption-textures";
+import type { Fonts } from "../fonts";
 import { WebGlRenderer } from "./webgl-renderer";
 
 const VIEWPORT = { width: 100, height: 100 };
@@ -27,7 +27,7 @@ const CAPTION = "HH";
 let box: HTMLElement;
 
 /** Fonts the test lets load when it wants; `load` records each font asked for. */
-class ControlledFonts implements CaptionFonts {
+class ControlledFonts implements Fonts {
   readonly requested: string[] = [];
   #resolve: () => void = () => undefined;
   readonly #loaded = new Promise<void>((resolve) => (this.#resolve = resolve));
@@ -93,12 +93,12 @@ function isColour(actual: Rgb, expected: Rgb): boolean {
 async function layer(colour: Rgb, caption?: string): Promise<SlideLayer<BitmapPicture>> {
   const picture = await solidBitmap(colour);
   return caption === undefined
-    ? { picture, motion: standingStill(WHOLE_PICTURE) }
-    : { picture, motion: standingStill(WHOLE_PICTURE), caption };
+    ? { kind: "picture", picture, motion: standingStill(WHOLE_PICTURE) }
+    : { kind: "picture", picture, motion: standingStill(WHOLE_PICTURE), caption };
 }
 
 async function slideFrame(colour: Rgb, caption?: string): Promise<RenderFrame<BitmapPicture>> {
-  return { kind: "slide", slide: await layer(colour, caption) };
+  return { kind: "slide", slide: await layer(colour, caption), endFade: 0 };
 }
 
 /** Resolves once `type` fires on `target`. */
@@ -165,6 +165,7 @@ describe("WebGlRenderer captions", () => {
       progress: 0.5,
       from: await layer(RED),
       to: await layer(BLUE, CAPTION),
+      endFade: 0,
     };
 
     expect(drawAndRead(frame, GRADIENT_CORNER)).toEqual(RED);
@@ -181,6 +182,7 @@ describe("WebGlRenderer captions", () => {
       progress: 1,
       from: await layer(RED, CAPTION),
       to: await layer(BLUE),
+      endFade: 0,
     };
 
     expect(drawAndRead(frame, GRADIENT_CORNER)).toEqual(BLUE);
@@ -223,7 +225,7 @@ describe("WebGlRenderer captions", () => {
     expect(created.length).toBeGreaterThan(0);
     expect(created.every((texture) => gl.isTexture(texture))).toBe(true);
 
-    if (frame.kind === "slide") {
+    if (frame.kind === "slide" && frame.slide.kind === "picture") {
       renderer.forget(frame.slide.picture);
     }
 

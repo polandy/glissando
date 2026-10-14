@@ -128,6 +128,7 @@ async function mountRoute(stored: StoredSlideshow = SHOW) {
     portraitPicturesResetText: () => "Hochformatbilder wieder automatisch",
     songRemovedText: () => "Song entfernt",
     automaticTitle: () => "Juli 2025",
+    locale: () => "de-DE",
     focusOf: () => undefined,
   });
   const fake = fakeAudio();

@@ -49,7 +49,7 @@
     endOfPictures: false,
   });
   // svelte-ignore state_referenced_locally
-  const controls = new TapControls(device.scheduler);
+  const controls = new TapControls(device.scheduler, device.controlsVisibleMs);
   let controlsVisible = $state(false);
   let now = $state(new Date());
   let cancelClock: (() => void) | null = null;

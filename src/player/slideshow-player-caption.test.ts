@@ -18,7 +18,7 @@ function slide(src: string, caption?: string): Slide {
 }
 
 const SLIDESHOW: Slideshow = {
-  formatVersion: 4,
+  formatVersion: 5,
   title: "July 2025",
   slides: [
     {
@@ -52,7 +52,9 @@ describe("SlideshowPlayer captions", () => {
 
     const frame = renderer.lastFrame;
     expect(frame?.kind).toBe("transition");
-    expect(frame?.kind === "transition" && frame.from.caption).toBe("Evening on the jetty");
+    expect(
+      frame?.kind === "transition" && frame.from.kind === "picture" && frame.from.caption,
+    ).toBe("Evening on the jetty");
     expect(frame?.kind === "transition" && frame.to).not.toHaveProperty("caption");
   });
 

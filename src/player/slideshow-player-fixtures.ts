@@ -1,4 +1,4 @@
-import type { Slide, Slideshow } from "./slideshow";
+import type { PictureSlide, Slideshow } from "./slideshow";
 import { PLAYER_EVENTS } from "./player-events";
 import { SlideshowPlayer } from "./slideshow-player";
 import {
@@ -9,8 +9,8 @@ import {
   FakeRenderer,
 } from "./testing/fakes";
 
-export function slide(src: string, durationMs: number, transitionMs?: number): Slide {
-  const base: Slide = {
+export function slide(src: string, durationMs: number, transitionMs?: number): PictureSlide {
+  const base: PictureSlide = {
     image: { src, capturedAt: "2025-07-01T10:00:00Z" },
     durationMs,
     kenBurns: {
@@ -26,7 +26,7 @@ export function slide(src: string, durationMs: number, transitionMs?: number): S
 
 /** a: 0–4 s, wipe into b from 3 s; b: 4–9 s; c: 9–12 s. */
 const SLIDESHOW: Slideshow = {
-  formatVersion: 4,
+  formatVersion: 5,
   title: "July 2025",
   music: [{ src: "summer.mp3", atMs: 0, startMs: 0, endMs: 600_000, fadeInMs: 0, fadeOutMs: 0 }],
   slides: [slide("a.jpg", 4000, 1000), slide("b.jpg", 5000), slide("c.jpg", 3000)],

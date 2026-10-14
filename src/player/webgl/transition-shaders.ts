@@ -1,3 +1,4 @@
+import { VEIL_CONTRAST_SHARE, VEIL_SATURATION_SHARE, VEIL_TINT_OPACITY_SHARE } from "../card-veil";
 import { BACKDROP_BRIGHTNESS } from "../slide-layout";
 import type { TransitionEffect } from "../slideshow";
 import { LAYOUT_CODE } from "./layer-uniforms";
@@ -42,11 +43,30 @@ uniform vec4 fromRect2;
 uniform vec4 toRect2;
 uniform sampler2D fromCaption;
 uniform sampler2D toCaption;
+uniform float fromCaptionOpacity;
+uniform float toCaptionOpacity;
+uniform int fromIsGround;
+uniform int toIsGround;
+uniform vec3 fromGroundColor;
+uniform vec3 toGroundColor;
+uniform float fromVeilAmount;
+uniform float toVeilAmount;
+uniform vec3 fromVeilTint;
+uniform vec3 toVeilTint;
+uniform sampler2D fromCard;
+uniform sampler2D toCard;
+uniform float fromCardOpacity;
+uniform float toCardOpacity;
+/** The card's drift, as a fraction of the screen height (positive: down). */
+uniform float fromCardDrift;
+uniform float toCardDrift;
 uniform float progress;
 uniform float aspect;
 /** The caption band's height and its lift from the bottom, as shares of the screen height. */
 uniform float captionBand;
 uniform float captionInset;
+/** 0 clear .. 1 black, mixed over the whole frame at the show's end (ADR-0032). */
+uniform float endFade;
 /** Width of the blend between both pictures at a moving edge, in screen heights. */
 const float SOFT_EDGE = 0.04;
 const float DISSOLVE_CELL_PIXELS = 4.0;
@@ -55,6 +75,10 @@ const int LAYOUT_BLURRED_FILL = ${LAYOUT_CODE["blurred-fill"]};
 const int LAYOUT_PAIR = ${LAYOUT_CODE["pair-across"]};
 /** The blurred fill's backdrop is darkened to this fraction of its brightness (ADR-0028). */
 const float BACKDROP_BRIGHTNESS = ${glslFloat(BACKDROP_BRIGHTNESS)};
+/** The veil's three shares (ADR-0032, \`dev-docs/player/TITLE_CARDS.md\` § Look). */
+const float VEIL_SATURATION_SHARE = ${glslFloat(VEIL_SATURATION_SHARE)};
+const float VEIL_CONTRAST_SHARE = ${glslFloat(VEIL_CONTRAST_SHARE)};
+const float VEIL_TINT_OPACITY_SHARE = ${glslFloat(VEIL_TINT_OPACITY_SHARE)};
 /** A per-cell pseudo-random value in 0..1 (the well-known sin-hash). */
 float cellNoise(vec2 cell) {
   return fract(sin(dot(cell, vec2(12.9898, 78.233))) * 43758.5453);
@@ -105,21 +129,60 @@ vec4 layerColor(
   }
   return pictureColor(picture, crop, p);
 }
-vec4 withCaption(vec4 picture, sampler2D caption, vec2 p) {
+vec4 withCaption(vec4 picture, sampler2D caption, float captionOpacity, vec2 p) {
   float bandY = (p.y - captionInset) / captionBand;
   if (bandY < 0.0 || bandY > 1.0) {
     return picture;
   }
-  vec4 band = texture(caption, vec2(p.x, 1.0 - bandY));
+  vec4 band = texture(caption, vec2(p.x, 1.0 - bandY)) * captionOpacity;
   return vec4(band.rgb + picture.rgb * (1.0 - band.a), 1.0);
 }
+/**
+ * The veil's look at \`amount\` (ADR-0032, \`dev-docs/player/TITLE_CARDS.md\` § Look): mix toward
+ * the layer's own blurred backdrop, desaturate, pull contrast toward mid-grey, then mix toward
+ * the card's tint, each step scaled by its share times \`amount\`. Unchanged at amount 0.
+ */
+vec4 applyVeil(vec4 colour, sampler2D backdrop, vec4 crop, vec2 p, float amount, vec3 tint) {
+  if (amount <= 0.0) {
+    return colour;
+  }
+  vec3 blurred = blurredDarkened(backdrop, crop, p).rgb;
+  vec3 mixed = mix(colour.rgb, blurred, amount);
+  float grey = dot(mixed, vec3(0.299, 0.587, 0.114));
+  vec3 desaturated = mix(mixed, vec3(grey), VEIL_SATURATION_SHARE * amount);
+  vec3 contrasted = mix(desaturated, vec3(0.5), VEIL_CONTRAST_SHARE * amount);
+  vec3 tinted = mix(contrasted, tint, VEIL_TINT_OPACITY_SHARE * amount);
+  return vec4(tinted, colour.a);
+}
+/** The card's title/subtitle texture (premultiplied), composited like \`withCaption\` but over the
+ * whole screen and lifted by \`drift\` (ADR-0032). Unchanged, and never sampling \`card\`, at
+ * opacity 0 — the case of nearly every fragment of a slideshow without a title or closing card. */
+vec4 withCard(vec4 picture, sampler2D card, float opacity, float drift, vec2 p) {
+  if (opacity <= 0.0) {
+    return picture;
+  }
+  float v = 1.0 - p.y - drift;
+  if (v < 0.0 || v > 1.0) {
+    return picture;
+  }
+  vec4 text = texture(card, vec2(p.x, v)) * opacity;
+  return vec4(text.rgb + picture.rgb * (1.0 - text.a), 1.0);
+}
 vec4 fromColor(vec2 p) {
-  vec4 colour = layerColor(fromLayout, fromPicture, fromPartner, fromBackdrop, fromCrop, fromSecondCrop, fromRect, fromRect2, p);
-  return withCaption(colour, fromCaption, p);
+  vec4 colour = fromIsGround == 1
+    ? vec4(fromGroundColor, 1.0)
+    : layerColor(fromLayout, fromPicture, fromPartner, fromBackdrop, fromCrop, fromSecondCrop, fromRect, fromRect2, p);
+  vec4 veiled = applyVeil(colour, fromBackdrop, fromCrop, p, fromVeilAmount, fromVeilTint);
+  vec4 captioned = withCaption(veiled, fromCaption, fromCaptionOpacity, p);
+  return withCard(captioned, fromCard, fromCardOpacity, fromCardDrift, p);
 }
 vec4 toColor(vec2 p) {
-  vec4 colour = layerColor(toLayout, toPicture, toPartner, toBackdrop, toCrop, toSecondCrop, toRect, toRect2, p);
-  return withCaption(colour, toCaption, p);
+  vec4 colour = toIsGround == 1
+    ? vec4(toGroundColor, 1.0)
+    : layerColor(toLayout, toPicture, toPartner, toBackdrop, toCrop, toSecondCrop, toRect, toRect2, p);
+  vec4 veiled = applyVeil(colour, toBackdrop, toCrop, p, toVeilAmount, toVeilTint);
+  vec4 captioned = withCaption(veiled, toCaption, toCaptionOpacity, p);
+  return withCard(captioned, toCard, toCardOpacity, toCardDrift, p);
 }
 /** 0 where the reveal has not reached \`position\` yet, 1 behind it, soft in between. */
 float revealed(float position, float extent) {
@@ -150,7 +213,8 @@ const EFFECT_BODIES: Readonly<Record<TransitionEffect, string>> = {
 };
 
 export function fragmentShader(effect: TransitionEffect): string {
-  return `${FRAGMENT_PRELUDE}\nvoid main() {${EFFECT_BODIES[effect]}\n}`;
+  return `${FRAGMENT_PRELUDE}\nvoid main() {${EFFECT_BODIES[effect]}
+  fragColor = mix(fragColor, vec4(0.0, 0.0, 0.0, 1.0), endFade);\n}`;
 }
 
 /** `value` as a GLSL float literal, which needs a decimal point even when whole. */

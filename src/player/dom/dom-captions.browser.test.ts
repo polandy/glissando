@@ -27,7 +27,8 @@ describe("DomRenderer captions", () => {
 
     renderer.render({
       kind: "slide",
-      slide: { picture: outgoing, motion: MOTION, caption: CAPTION, fit: FIT },
+      endFade: 0,
+      slide: { kind: "picture", picture: outgoing, motion: MOTION, caption: CAPTION, fit: FIT },
     });
 
     const [caption] = captionElements();
@@ -42,10 +43,11 @@ describe("DomRenderer captions", () => {
 
     renderer.render({
       kind: "transition",
+      endFade: 0,
       effect: "crossfade",
       progress: 0.25,
-      from: { picture: outgoing, motion: MOTION, fit: FIT },
-      to: { picture: incoming, motion: MOTION, caption: CAPTION, fit: FIT },
+      from: { kind: "picture", picture: outgoing, motion: MOTION, fit: FIT },
+      to: { kind: "picture", picture: incoming, motion: MOTION, caption: CAPTION, fit: FIT },
     });
 
     const [caption] = captionElements();
@@ -57,10 +59,15 @@ describe("DomRenderer captions", () => {
     const { renderer, outgoing, incoming } = await setUp();
     renderer.render({
       kind: "slide",
-      slide: { picture: outgoing, motion: MOTION, caption: CAPTION, fit: FIT },
+      endFade: 0,
+      slide: { kind: "picture", picture: outgoing, motion: MOTION, caption: CAPTION, fit: FIT },
     });
 
-    renderer.render({ kind: "slide", slide: { picture: incoming, motion: MOTION, fit: FIT } });
+    renderer.render({
+      kind: "slide",
+      endFade: 0,
+      slide: { kind: "picture", picture: incoming, motion: MOTION, fit: FIT },
+    });
 
     expect(incoming.element.isConnected).toBe(true);
     expect(captionElements()).toEqual([]);
@@ -72,7 +79,8 @@ describe("DomRenderer captions", () => {
 
     renderer.render({
       kind: "slide",
-      slide: { picture: outgoing, motion: MOTION, caption: CAPTION, fit: FIT },
+      endFade: 0,
+      slide: { kind: "picture", picture: outgoing, motion: MOTION, caption: CAPTION, fit: FIT },
     });
 
     const [caption] = captionElements();

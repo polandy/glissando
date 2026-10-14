@@ -1,10 +1,14 @@
 import type { Size } from "../../import/downscale";
+import { CARD_FONT_FILES } from "../../player";
 import type { PageSink, PictureScaler, PlayerAsset, PlayerBundle } from "../ports";
 
 export const FAKE_BUNDLE: PlayerBundle = {
   script: "startPage()",
   style: "body{margin:0}",
   captionFontDataUrl: "data:font/woff2;base64,AAAA",
+  cardFontDataUrls: Object.fromEntries(
+    CARD_FONT_FILES.map((file, index) => [file.assetPath, `data:font/woff2;base64,BBB${index}`]),
+  ),
 };
 
 export function fixedPlayerAsset(bundle: PlayerBundle = FAKE_BUNDLE): PlayerAsset {

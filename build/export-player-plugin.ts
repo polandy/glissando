@@ -1,4 +1,5 @@
 import { build, type Plugin, type Rolldown } from "vite";
+import { CARD_FONT_FILES } from "../src/player/card-fonts.ts";
 import {
   bundleParts,
   playerBundleModule,
@@ -39,11 +40,17 @@ export function exportPlayerPlugin(): Plugin {
   };
 }
 
-/** A player page's parts: its script, its stylesheet with the design tokens, the caption font. */
+/**
+ * A player page's parts: its script, its stylesheet with the design tokens, the caption font,
+ * and every card font beyond it (ADR-0032), by asset path. A page embeds only the card fonts its
+ * own cards use (`cardFontFilesUsedBy`); the share and TV page embeds them all, since it is
+ * built once for every slideshow it may ever show.
+ */
 export interface PlayerPageParts {
   readonly script: string;
   readonly style: string;
   readonly fontBytes: Uint8Array;
+  readonly cardFontBytes: Readonly<Record<string, Uint8Array>>;
 }
 
 /**
@@ -58,7 +65,19 @@ export async function buildPlayerPage(
   const { script, style } = bundleParts(await buildPlayerScript(root, entry));
   const tokens = new TextDecoder().decode(await readFile(`${root}/${DESIGN_TOKENS}`));
   const fontBytes = await readFile(`${root}/${CAPTION_FONT}`);
-  return { script, style: `${tokenDeclarations(tokens, style)}\n${style}`, fontBytes };
+  const cardFontBytes = Object.fromEntries(
+    await Promise.all(
+      CARD_FONT_FILES.map(
+        async (file) => [file.assetPath, await readFile(`${root}/${file.assetPath}`)] as const,
+      ),
+    ),
+  );
+  return {
+    script,
+    style: `${tokenDeclarations(tokens, style)}\n${style}`,
+    fontBytes,
+    cardFontBytes,
+  };
 }
 
 /** A separate build: the page's script must not share chunks with the app. */

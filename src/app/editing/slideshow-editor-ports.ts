@@ -40,4 +40,6 @@ export interface SlideshowEditorPorts {
   readonly songRemovedText: () => string;
   /** The title from the capture dates, which an emptied title falls back to. */
   readonly automaticTitle: (slideshow: StoredSlideshow) => string;
+  /** The BCP 47 language the title slide's default subtitle (a capture range) is worded in. */
+  readonly locale: () => string;
 }

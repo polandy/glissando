@@ -75,7 +75,11 @@ def reloaded(font: TTFont) -> TTFont:
 
 
 def build_webfont(source: FontSource, data: bytes, unicodes: list[int], font_dir: Path) -> None:
-    font = reloaded(instantiateVariableFont(TTFont(io.BytesIO(data)), source.axis_limits))
+    font = TTFont(io.BytesIO(data))
+    # A static source (one face per file, no fvar table) has no axis to instance; a variable
+    # source is instanced and re-parsed so the subsetter sees fully rebuilt tables.
+    if "fvar" in font:
+        font = reloaded(instantiateVariableFont(font, source.axis_limits))
     options = Options()
     options.flavor = "woff2"
     options.layout_features = ["*"]

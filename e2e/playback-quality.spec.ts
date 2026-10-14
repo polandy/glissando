@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { SERVER_DOCUMENT_FORMAT_VERSION } from "../src/server-library/server-document";
 import { GERMAN_BROWSER } from "./support/app";
 import { openApp } from "./support/browser";
 import { fakeGlissandoServer, LIBRARY_PAGE } from "./support/fake-glissando-server";
@@ -21,7 +22,7 @@ async function serverShowOnTheServer(page: Page) {
     share: null,
     document: {
       format: "glissando-server",
-      formatVersion: 1,
+      formatVersion: SERVER_DOCUMENT_FORMAT_VERSION,
       slideshow: {
         title: TITLE,
         createdAt: "2025-07-01T10:00:00Z",
