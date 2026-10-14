@@ -1,7 +1,8 @@
 import type { Plugin } from "vite";
 import { sharePageLanguages } from "../src/app/share-page/share-page-languages.ts";
+import { CARD_FONT_FILES, cardFontFaceRule } from "../src/player/card-fonts.ts";
 import { sharePageHtml } from "../src/share-page/share-page-html.ts";
-import { captionFontDataUrl } from "./export-player-bundle.ts";
+import { captionFontDataUrl, fontDataUrl } from "./export-player-bundle.ts";
 import { buildPlayerPage } from "./export-player-plugin.ts";
 
 /** Caddy answers every `/s/<token>` with this file (dev-docs/SHARE_LINK.md). */
@@ -43,11 +44,24 @@ async function sharePage(
   root: string,
   readFile: (path: string) => Promise<Uint8Array>,
 ): Promise<string> {
-  const { script, style, fontBytes } = await buildPlayerPage(root, SHARE_PAGE_ENTRY, readFile);
+  const { script, style, fontBytes, cardFontBytes } = await buildPlayerPage(
+    root,
+    SHARE_PAGE_ENTRY,
+    readFile,
+  );
   return sharePageHtml({
     languages: sharePageLanguages(),
     style,
     captionFontDataUrl: captionFontDataUrl(fontBytes),
+    // The share and TV page cannot know ahead which style a shown slideshow's cards use, so it
+    // embeds every card font, unlike the HTML export, which embeds only the ones it needs.
+    cardFontFaceRules: CARD_FONT_FILES.map((file) => {
+      const bytes = cardFontBytes[file.assetPath];
+      if (bytes === undefined) {
+        throw new Error(`the export player did not bundle the card font ${file.assetPath}`);
+      }
+      return cardFontFaceRule(file, fontDataUrl(bytes));
+    }),
     script,
   });
 }

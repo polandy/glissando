@@ -37,6 +37,9 @@ export interface PageFrame {
   /** The page's CSS. */
   readonly style: string;
   readonly captionFontDataUrl: string;
+  /** `@font-face` rules for the fonts this slideshow's cards use, beyond the caption font
+   * (ADR-0032); empty without a card. */
+  readonly cardFontFaceRules: readonly string[];
 }
 
 /** The caption font as an `@font-face` rule from its `data:` URL. */
@@ -48,7 +51,9 @@ export function captionFontFace(captionFontDataUrl: string): string {
 }
 
 export function pageHead(frame: PageFrame): string {
-  const fontFace = captionFontFace(frame.captionFontDataUrl);
+  const fontFace = [captionFontFace(frame.captionFontDataUrl), ...frame.cardFontFaceRules].join(
+    "\n",
+  );
   return [
     "<!doctype html>",
     `<html lang="${escapeHtml(frame.lang)}">`,

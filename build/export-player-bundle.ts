@@ -75,16 +75,28 @@ export function playerBundleModule(parts: {
   readonly script: string;
   readonly style: string;
   readonly fontBytes: Uint8Array;
+  readonly cardFontBytes: Readonly<Record<string, Uint8Array>>;
 }): string {
   const bundle = {
     script: parts.script,
     style: parts.style,
     captionFontDataUrl: captionFontDataUrl(parts.fontBytes),
+    cardFontDataUrls: Object.fromEntries(
+      Object.entries(parts.cardFontBytes).map(([assetPath, bytes]) => [
+        assetPath,
+        fontDataUrl(bytes),
+      ]),
+    ),
   };
   return `export default ${JSON.stringify(bundle)};\n`;
 }
 
+/** Any font's bytes as a `data:` URL, for an `@font-face` rule. */
+export function fontDataUrl(fontBytes: Uint8Array): string {
+  return `${FONT_DATA_URL_PREFIX}${encodeBase64(fontBytes)}`;
+}
+
 /** The caption font as a `data:` URL, for the page's `@font-face`. */
 export function captionFontDataUrl(fontBytes: Uint8Array): string {
-  return `${FONT_DATA_URL_PREFIX}${encodeBase64(fontBytes)}`;
+  return fontDataUrl(fontBytes);
 }

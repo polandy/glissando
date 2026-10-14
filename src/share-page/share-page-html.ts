@@ -34,6 +34,9 @@ export interface SharePageParts {
   /** The page's CSS, design tokens included. */
   readonly style: string;
   readonly captionFontDataUrl: string;
+  /** `@font-face` rules for every card font beyond the caption font (ADR-0032): the page cannot
+   * know ahead which style a shown slideshow's cards use, so it carries them all. */
+  readonly cardFontFaceRules: readonly string[];
   readonly script: string;
 }
 
@@ -57,7 +60,8 @@ export function sharePageHtml(parts: SharePageParts): string {
     // The token is in the page's URL; no request may carry it on.
     '<meta name="referrer" content="no-referrer">',
     `<title>${DEFAULT_TITLE}</title>`,
-    `<style>${captionFontFace(parts.captionFontDataUrl)}\n${escapeStyle(parts.style)}</style>`,
+    `<style>${captionFontFace(parts.captionFontDataUrl)}\n${parts.cardFontFaceRules.join("\n")}\n` +
+      `${escapeStyle(parts.style)}</style>`,
     "</head>",
     "<body>",
     `<noscript>${noscript}</noscript>`,

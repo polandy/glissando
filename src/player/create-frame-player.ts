@@ -3,6 +3,7 @@ import type { OpenPicture } from "./browser/picture-loader";
 import { animationFrames, performanceClock } from "./browser/platform";
 import { startPictureDecodeWorker } from "./browser/start-picture-decode-worker";
 import { WorkerPictureDecoder } from "./browser/worker-picture-decoder";
+import { cardStylesUsedBy } from "./card-fonts";
 import type { Size } from "./ken-burns";
 import type { Slideshow } from "./slideshow";
 import { SlideshowPlayer } from "./slideshow-player";
@@ -15,6 +16,9 @@ export interface FramePlayer {
   readonly canvas: HTMLCanvasElement;
   /** Settles once captions can be drawn; wait for it before the first frame. */
   readonly captionFontLoaded: Promise<void>;
+  /** Settles once every style the slideshow's cards use can be drawn; wait for it, alongside
+   * `captionFontLoaded`, before the first frame (ADR-0032). Settles at once without a card. */
+  readonly cardFontsLoaded: Promise<void>;
   /** Destroys the player and gives the WebGL context back: a page holds only a few at once. */
   dispose(): void;
 }
@@ -51,10 +55,14 @@ export function createFramePlayer(
     clock: performanceClock,
     frames: animationFrames,
   });
+  const cardFontsLoaded = Promise.all(
+    cardStylesUsedBy(slideshow).map((style) => renderer.cardFontLoaded(style)),
+  ).then(() => undefined);
   return {
     player,
     canvas,
     captionFontLoaded: renderer.captionFontLoaded,
+    cardFontsLoaded,
     dispose: () => {
       player.destroy();
       gl.getExtension("WEBGL_lose_context")?.loseContext();
