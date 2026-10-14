@@ -47,12 +47,12 @@ A **ground slide** has `"ground": "#2A2340"` (a `#RRGGBB` colour) in place of `i
 
 ## Timing (slide time `t`, eased cubic in-out unless named)
 
-| Phase  | When                                     | What                                                |
-| ------ | ---------------------------------------- | --------------------------------------------------- |
-| enter  | `enterAtMs` … `+ CARD_ENTER_MS` (800)    | text opacity 0 → 1, drift 0.4 em → 0 (ease-out)     |
-| veil   | with enter if it veils in, else from 0   | veil 0 → `amount` over `CARD_VEIL_MS` (1400)        |
-| reveal | `revealAtMs` … `+ CARD_REVEAL_MS` (1400) | text opacity 1 → 0 with drift 0 → −0.3 em; veil → 0 |
-| end    | last `endFadeMs` of the show             | the frame mixes to black                            |
+| Phase  | When                                     | What                                                                                  |
+| ------ | ---------------------------------------- | ------------------------------------------------------------------------------------- |
+| enter  | `enterAtMs` … `+ CARD_ENTER_MS` (800)    | text opacity 0 → 1, drift 0.4 em → 0 (ease-out)                                       |
+| veil   | with enter if it veils in, else at 0     | veils in: 0 → `amount` over `CARD_VEIL_MS` (1400); else `amount` from the first frame |
+| reveal | `revealAtMs` … `+ CARD_REVEAL_MS` (1400) | text opacity 1 → 0 with drift 0 → −0.3 em; veil → 0                                   |
+| end    | last `endFadeMs` of the show             | the frame mixes to black                                                              |
 
 A caption on a slide with a card has opacity `1 − text opacity`, so it appears once the reveal
 has run and fades out as a closing card comes in. Under reduced motion, the drift is 0 and every

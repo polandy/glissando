@@ -64,11 +64,13 @@ function veilAmountAt(
     return 0;
   }
   const enterAtMs = card.enterAtMs ?? 0;
+  // A card from the slide's start shows its picture veiled from the first frame; one that starts
+  // later veils in with its text.
+  if (enterAtMs === 0) {
+    return card.veil.amount * (1 - revealProgress);
+  }
   const veilMs = reducedMotion ? CARD_REDUCED_FADE_MS : CARD_VEIL_MS;
-  // Veils in with the card once it starts after the slide's own start; otherwise it is already
-  // settling in from the slide's first frame.
-  const veilStartMs = enterAtMs > 0 ? enterAtMs : 0;
-  const veilInProgress = ease("ease-in-out", windowProgress(slideTimeMs, veilStartMs, veilMs));
+  const veilInProgress = ease("ease-in-out", windowProgress(slideTimeMs, enterAtMs, veilMs));
   return veilInProgress * card.veil.amount * (1 - revealProgress);
 }
 

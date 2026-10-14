@@ -54,11 +54,11 @@ describe("cardTimingAt: veil", () => {
     expect(cardTimingAt(heldCard(), 5000, false).veilAmount).toBe(0);
   });
 
-  it("ramps from 0 at the slide's start when the card starts at 0", () => {
+  it("is at its full amount from the slide's first frame when the card starts at 0", () => {
     const card = heldCard({ veil: { amount: 0.6, tint: "#2A2340" } });
 
-    expect(cardTimingAt(card, 0, false).veilAmount).toBe(0);
-    expect(cardTimingAt(card, CARD_VEIL_MS, false).veilAmount).toBeCloseTo(0.6);
+    expect(cardTimingAt(card, 0, false).veilAmount).toBeCloseTo(0.6);
+    expect(cardTimingAt(card, CARD_VEIL_MS / 2, false).veilAmount).toBeCloseTo(0.6);
   });
 
   it("veils in with the card when it starts after 0", () => {
