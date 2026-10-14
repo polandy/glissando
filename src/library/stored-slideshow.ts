@@ -1,4 +1,6 @@
 import type { MusicBeats } from "../beats";
+import type { CardSwatchId } from "../player/card-palette";
+import type { CardPosition, CardStyle } from "../player/slideshow";
 import type { OwnKenBurns } from "./own-ken-burns";
 import type { PictureFocus } from "./picture-focus";
 import type { PictureLength } from "./picture-length";
@@ -46,6 +48,30 @@ export interface StoredPicture {
   readonly fileBytes?: number;
   /** Never composed into a portrait pair, even automatically; absent: it may be (ADR-0028). */
   readonly alone?: true;
+}
+
+/** Where a title or closing card sits behind its text (ADR-0032, TITLE_SLIDES.md). */
+export type StoredCardBackground =
+  | { readonly kind: "colour"; readonly colour: CardSwatchId }
+  | {
+      readonly kind: "picture";
+      readonly pictureId: string;
+      /** 0 to 100 in steps of 5; the veil amount is `fade / 100`. */
+      readonly fade: number;
+    };
+
+/**
+ * The slideshow's title slide (`openingCard`) or closing slide (`closingCard`), ADR-0032. An
+ * empty `title` means the slide is not shown (`TITLE_SLIDES.md`); `motion` is the title slide's
+ * reveal or the closing slide's fade in, and only applies on a picture background.
+ */
+export interface StoredCard {
+  readonly title: string;
+  readonly subtitle?: string;
+  readonly style: CardStyle;
+  readonly position: CardPosition;
+  readonly background: StoredCardBackground;
+  readonly motion: boolean;
 }
 
 export interface StoredMusic {
@@ -98,6 +124,10 @@ export interface StoredSlideshow {
    * blurred fill for a whole picture that would otherwise lose too much to the crop (ADR-0028).
    */
   readonly portraitPictures?: PortraitPictures;
+  /** The title slide; absent: none (ADR-0032). */
+  readonly openingCard?: StoredCard;
+  /** The closing slide; absent: none. */
+  readonly closingCard?: StoredCard;
 }
 
 /** A picture's two stored renditions. */

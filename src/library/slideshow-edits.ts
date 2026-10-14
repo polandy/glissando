@@ -3,6 +3,7 @@ import { placeByCaptureDate, type AddedPlacement } from "./added-placement";
 import { normalizeCaption } from "../player/caption";
 import { checkOwnKenBurns, type OwnKenBurns } from "./own-ken-burns";
 import { checkPortraitPictures, type PortraitPictures } from "./portrait-pictures";
+import { withPicturesAfterCardRemoval } from "./slideshow-edits-cards";
 import {
   DEFAULT_SLIDESHOW_TRANSITION,
   checkOwnDurationMs,
@@ -53,7 +54,10 @@ export function removePicture(
   }
   const pictures = slideshow.pictures.filter((_, at) => at !== index);
   const picture = slideshow.pictures[index] as StoredPicture;
-  return { slideshow: { ...slideshow, pictures }, removed: { picture, index } };
+  return {
+    slideshow: withPicturesAfterCardRemoval(slideshow, pictures, new Set([pictureId])),
+    removed: { picture, index },
+  };
 }
 
 /** Undoes removals given in the order they happened: the latest goes back first. */
@@ -101,7 +105,7 @@ export function takeOutPictures(
   if (pictures.length === 0) {
     throw new LastPictureError(slideshow.id);
   }
-  return { ...slideshow, pictures };
+  return withPicturesAfterCardRemoval(slideshow, pictures, taken);
 }
 
 /** Moves a picture to `toIndex` in play order; any move makes the order the user's own. */
