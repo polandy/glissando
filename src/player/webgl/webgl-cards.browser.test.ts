@@ -3,143 +3,29 @@ import type { BitmapPicture } from "../browser/bitmap-loader";
 import { CARD_STYLE_SPECS, layoutCard } from "../card-layout";
 import { cardItemSlices } from "../card-item-layout";
 import { canvasCardMeasure } from "../card-measure";
-import type { Fonts } from "../fonts";
-import type { CardVisual, GroundSlideLayer, PictureSlideLayer, RenderFrame } from "../ports";
-import type { Card } from "../slideshow";
+import type { PictureSlideLayer, RenderFrame } from "../ports";
+import { BLUE, solidBitmap, standingStill, RED, type Rgb } from "../testing/browser-pictures";
 import {
-  BLUE,
-  solidBitmap,
-  standingStill,
-  viewportBox,
-  RED,
-  type Rgb,
-} from "../testing/browser-pictures";
-import { WebGlRenderer } from "./webgl-renderer";
-
-const VIEWPORT = { width: 200, height: 200 };
-const WHOLE_PICTURE = { zoom: 1, centerX: 0.5, centerY: 0.5 } as const;
-/** `#101010`. */
-const GROUND_COLOUR: Rgb = [16, 16, 16];
-const GROUND_HEX = "#101010";
-const COLOUR_TOLERANCE = 8;
+  baseCard,
+  cardVisual,
+  everyPixelIsGround,
+  groundLayer,
+  GROUND_COLOUR,
+  isColour,
+  maxBrightnessInColumns,
+  saturationSpread,
+  setUpCardRenderer,
+  VIEWPORT,
+  WHOLE_PICTURE,
+} from "./testing/card-render-fixtures";
 
 let box: HTMLElement;
 afterEach(() => box.remove());
 
-/** Fonts the test lets load when it wants (`webgl-captions.browser.test.ts`'s pattern). */
-class ControlledFonts implements Fonts {
-  #resolve: () => void = () => undefined;
-  readonly #loaded = new Promise<void>((resolve) => (this.#resolve = resolve));
-  load(): Promise<unknown> {
-    return this.#loaded;
-  }
-  finishLoading(): void {
-    this.#resolve();
-  }
-}
-
-function baseCard(overrides: Partial<Card> = {}): Card {
-  return {
-    title: "HELLO",
-    style: "modern",
-    position: "centre",
-    ink: "light",
-    entrance: "rise",
-    ...overrides,
-  };
-}
-
-/** Text opacity 0 unless overridden, so a card irrelevant to the test draws nothing. */
-function cardVisual(card: Card, overrides: Partial<CardVisual> = {}): CardVisual {
-  return {
-    card,
-    textOpacity: 0,
-    driftEm: 0,
-    veilAmount: 0,
-    slideTimeMs: 0,
-    reducedMotion: false,
-    ...overrides,
-  };
-}
-
-function groundLayer(card: CardVisual): GroundSlideLayer {
-  return { kind: "ground", ground: GROUND_HEX, card };
-}
-
-function setUp({ fontsLoaded = true } = {}) {
-  box = viewportBox(VIEWPORT);
-  const canvas = document.createElement("canvas");
-  Object.assign(canvas.style, { width: "100%", height: "100%", display: "block" });
-  box.append(canvas);
-  const gl = canvas.getContext("webgl2", { alpha: false, antialias: false });
-  if (gl === null) {
-    throw new Error("this browser has no WebGL2");
-  }
-  const fonts = new ControlledFonts();
-  const renderer = new WebGlRenderer(canvas, gl, () => undefined, { pixelRatio: () => 1, fonts });
-  if (fontsLoaded) {
-    fonts.finishLoading();
-  }
-  /** Reads one pixel straight after drawing, before the browser presents and clears the frame. */
-  function readPixel(frame: RenderFrame<BitmapPicture>, [x, y]: readonly [number, number]): Rgb {
-    renderer.render(frame);
-    const pixel = new Uint8Array(4);
-    gl?.readPixels(
-      Math.floor(x * canvas.width),
-      Math.floor((1 - y) * canvas.height),
-      1,
-      1,
-      gl.RGBA,
-      gl.UNSIGNED_BYTE,
-      pixel,
-    );
-    return [pixel[0] ?? 0, pixel[1] ?? 0, pixel[2] ?? 0];
-  }
-  /** Every pixel of the frame, as `[r, g, b, a, r, g, b, a, ...]`. */
-  function readAllPixels(frame: RenderFrame<BitmapPicture>): Uint8Array {
-    renderer.render(frame);
-    const pixels = new Uint8Array(canvas.width * canvas.height * 4);
-    gl?.readPixels(0, 0, canvas.width, canvas.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
-    return pixels;
-  }
-  return { renderer, fonts, readPixel, readAllPixels };
-}
-
-function isColour(actual: Rgb, expected: Rgb): boolean {
-  return actual.every(
-    (channel, index) => Math.abs(channel - (expected[index] ?? 0)) <= COLOUR_TOLERANCE,
-  );
-}
-
-/** True if every pixel is within tolerance of `ground`: nothing but the ground was drawn. */
-function everyPixelIsGround(pixels: Uint8Array, ground: Rgb): boolean {
-  for (let index = 0; index < pixels.length; index += 4) {
-    const pixel: Rgb = [pixels[index] ?? 0, pixels[index + 1] ?? 0, pixels[index + 2] ?? 0];
-    if (!isColour(pixel, ground)) {
-      return false;
-    }
-  }
-  return true;
-}
-
-function saturationSpread([red, green, blue]: Rgb): number {
-  return Math.max(red, green, blue) - Math.min(red, green, blue);
-}
-
-/** The brightest pixel within columns `[x0, x1)`, summed over its three channels. */
-function maxBrightnessInColumns(pixels: Uint8Array, width: number, x0: number, x1: number): number {
-  let max = 0;
-  for (let index = 0; index < pixels.length; index += 4) {
-    const x = (index / 4) % width;
-    if (x < x0 || x >= x1) {
-      continue;
-    }
-    const brightness = (pixels[index] ?? 0) + (pixels[index + 1] ?? 0) + (pixels[index + 2] ?? 0);
-    if (brightness > max) {
-      max = brightness;
-    }
-  }
-  return max;
+function setUp(options: { readonly fontsLoaded?: boolean } = {}) {
+  const support = setUpCardRenderer(options);
+  box = support.box;
+  return support;
 }
 
 describe("WebGlRenderer ground slides", () => {

@@ -6,7 +6,8 @@ import type { CardStyle, TransitionEffect } from "../slideshow";
 import { bindCaption } from "./bind-overlays";
 import { bindLayer, fromUniforms, toUniforms, type LayerTextureUnits } from "./bind-layer";
 import { CaptionTextures } from "./caption-textures";
-import { drawCardPass } from "./card-pass";
+import { CardRenderTarget } from "./card-render-target";
+import { renderCardLayer } from "./card-pass";
 import { CardItemProgram } from "./card-item-program";
 import { CardTextures } from "./card-textures";
 import { PictureTextures } from "./picture-textures";
@@ -22,6 +23,8 @@ const FROM_TEXTURE_UNITS: LayerTextureUnits = { picture: 0, partner: 4, backdrop
 const TO_TEXTURE_UNITS: LayerTextureUnits = { picture: 1, partner: 5, backdrop: 7 };
 const FROM_CAPTION_TEXTURE_UNIT = 2;
 const TO_CAPTION_TEXTURE_UNIT = 3;
+const FROM_CARD_TEXTURE_UNIT = 8;
+const TO_CARD_TEXTURE_UNIT = 9;
 
 export interface WebGlRendererOptions {
   /** Device pixels per CSS pixel. */
@@ -44,8 +47,13 @@ export class WebGlRenderer implements SlideRenderer<BitmapPicture> {
   /** Kept for the renderer's lifetime: a slideshow carries at most an opening and a closing card
    * (`dev-docs/player/TITLE_CARDS.md`), so never released per slide (ADR-0032). */
   readonly #cards: CardTextures;
-  /** Draws a card's per-item quads (ADR-0032 § Entrances), a second pass over the full-screen one. */
+  /** Draws a card's per-item quads (ADR-0032 § Entrances) into a `CardRenderTarget`. */
   #cardItems!: CardItemProgram;
+  /** The `from`/`to` layers' own card, rasterised into a screen-sized texture each frame, so the
+   * transition shader carries it exactly as it carries that layer's picture (ADR-0032). Reused
+   * for the renderer's lifetime; never reallocated per frame (`card-render-target.ts`). */
+  readonly #fromCardTarget: CardRenderTarget;
+  readonly #toCardTarget: CardRenderTarget;
   #mainBuffer!: WebGLBuffer;
   #captionInsetCssPixels = 0;
   readonly #drawingSize: Size | undefined;
@@ -73,6 +81,8 @@ export class WebGlRenderer implements SlideRenderer<BitmapPicture> {
     this.#pictures = new PictureTextures(gl);
     this.#captions = new CaptionTextures(gl, fonts, pixelRatio, onResize);
     this.#cards = new CardTextures(gl, fonts, onResize);
+    this.#fromCardTarget = new CardRenderTarget(gl);
+    this.#toCardTarget = new CardRenderTarget(gl);
     canvas.addEventListener("webglcontextlost", this.#handleContextLost);
     canvas.addEventListener("webglcontextrestored", this.#handleContextRestored);
     this.#resizeObserver = drawingSize === undefined ? new ResizeObserver(onResize) : null;
@@ -111,6 +121,8 @@ export class WebGlRenderer implements SlideRenderer<BitmapPicture> {
     this.#setUpGlResources();
     this.#captions.recreate();
     this.#cards.recreate();
+    this.#fromCardTarget.recreate();
+    this.#toCardTarget.recreate();
     this.#contextLost = false;
     this.#onResize();
   };
@@ -126,6 +138,8 @@ export class WebGlRenderer implements SlideRenderer<BitmapPicture> {
       frame.kind === "slide"
         ? [SINGLE_SLIDE_EFFECT, 0, frame.slide, frame.slide]
         : [frame.effect, frame.progress, frame.from, frame.to];
+    renderCardLayer(gl, this.#cardItems, this.#cards, this.#fromCardTarget, from, viewport);
+    renderCardLayer(gl, this.#cardItems, this.#cards, this.#toCardTarget, to, viewport);
     const { program, uniforms } = this.#program(effect);
     gl.useProgram(program);
     bindLayer(gl, this.#pictures, FROM_TEXTURE_UNITS, from, fromUniforms(uniforms), viewport);
@@ -148,6 +162,8 @@ export class WebGlRenderer implements SlideRenderer<BitmapPicture> {
       uniforms.toCaptionOpacity,
       viewport,
     );
+    this.#bindCardTexture(FROM_CARD_TEXTURE_UNIT, this.#fromCardTarget, uniforms.fromCard);
+    this.#bindCardTexture(TO_CARD_TEXTURE_UNIT, this.#toCardTarget, uniforms.toCard);
     gl.uniform1f(uniforms.progress, progress);
     gl.uniform1f(uniforms.aspect, viewport.width / viewport.height);
     gl.uniform1f(uniforms.captionBand, this.#captions.bandShare(viewport));
@@ -159,7 +175,19 @@ export class WebGlRenderer implements SlideRenderer<BitmapPicture> {
     gl.bindBuffer(gl.ARRAY_BUFFER, this.#mainBuffer);
     gl.vertexAttribPointer(POSITION_ATTRIBUTE, COORDINATES_PER_VERTEX, gl.FLOAT, false, 0, 0);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, VERTEX_COUNT);
-    drawCardPass(gl, this.#cardItems, this.#cards, from, 1 - progress, to, progress, viewport);
+  }
+
+  /** Binds a layer's rendered card texture (or none, drawn transparent by `renderCardLayer`) to
+   * the main program's `sampler` uniform. */
+  #bindCardTexture(
+    unit: number,
+    target: CardRenderTarget,
+    sampler: WebGLUniformLocation | null,
+  ): void {
+    const gl = this.#gl;
+    gl.activeTexture(gl.TEXTURE0 + unit);
+    gl.bindTexture(gl.TEXTURE_2D, target.texture);
+    gl.uniform1i(sampler, unit);
   }
 
   /** One upload step of the picture (and its backdrop) per call, then its caption and card, or a
@@ -209,6 +237,8 @@ export class WebGlRenderer implements SlideRenderer<BitmapPicture> {
     this.#captions.dispose();
     this.#cards.dispose();
     this.#cardItems.dispose();
+    this.#fromCardTarget.dispose();
+    this.#toCardTarget.dispose();
     this.#programs.forEach(({ program }) => this.#gl.deleteProgram(program));
     this.#canvas.remove();
   }

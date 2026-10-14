@@ -37,6 +37,8 @@ const UNIFORM_NAMES = [
   "toVeilAmount",
   "fromVeilTint",
   "toVeilTint",
+  "fromCard",
+  "toCard",
   "progress",
   "aspect",
   "captionBand",
