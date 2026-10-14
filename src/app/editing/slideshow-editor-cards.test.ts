@@ -103,4 +103,17 @@ describe("SlideshowEditor's title slide and closing slide (ADR-0032, TITLE_SLIDE
     const stored = await store.getSlideshow("show");
     expect(stored.closingCard?.title).toBe("Danke fürs Zuschauen");
   });
+
+  it("cuts a card title and subtitle longer than 80 graphemes down to 80", async () => {
+    const { editor, store } = await setUp(["a", "b"]);
+    const card = editor.ensureOpeningCard();
+    await editor.settled();
+
+    editor.setOpeningCard({ ...card, title: "é".repeat(81), subtitle: "👍".repeat(90) });
+    await editor.settled();
+
+    const stored = await store.getSlideshow("show");
+    expect(stored.openingCard?.title).toBe("é".repeat(80));
+    expect(stored.openingCard?.subtitle).toBe("👍".repeat(80));
+  });
 });
