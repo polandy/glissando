@@ -2,7 +2,7 @@ import type { BitmapPicture } from "../browser/bitmap-loader";
 import type { Fonts } from "../fonts";
 import type { Size } from "../ken-burns";
 import type { PreparedSlide, RenderFrame, SlideRenderer } from "../ports";
-import type { CardStyle, TransitionEffect } from "../slideshow";
+import type { Card, CardStyle, TransitionEffect } from "../slideshow";
 import { bindCaption } from "./bind-overlays";
 import { bindLayer, fromUniforms, toUniforms, type LayerTextureUnits } from "./bind-layer";
 import { CaptionTextures } from "./caption-textures";
@@ -244,6 +244,11 @@ export class WebGlRenderer implements SlideRenderer<BitmapPicture> {
   /** Settles once `style`'s card fonts can be drawn, after asking the player for a redraw. */
   cardFontLoaded(style: CardStyle): Promise<void> {
     return this.#cards.fontLoaded(style);
+  }
+
+  /** The port's `cardReady`: `card`'s own style loaded, the only thing its texture waits on. */
+  cardReady(card: Card): Promise<void> {
+    return this.cardFontLoaded(card.style);
   }
 
   forget(picture: BitmapPicture): void {

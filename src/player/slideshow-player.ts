@@ -183,7 +183,7 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
     this.#deps.renderer.dispose();
   }
 
-  /** Advances from the current time, after waiting for its pictures if they are missing. */
+  /** Advances from the current time; at time 0, also holds for the opening slide's own card. */
   #startAdvancing(onFirstFrame?: () => void): void {
     const advance = () => {
       // Anchored after drawing, so the time the first frame takes never shows as a jump.
@@ -194,13 +194,14 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
       this.#scheduleFrame();
       this.#music?.play(this.#time.frameMs).catch((cause: unknown) => this.#failMusic(cause));
     };
-    if (this.#pictures.areOnScreenLoaded()) {
+    const openingCards = this.#time.frameMs === 0 ? this.#pictures.onScreenCards() : [];
+    if (this.#pictures.areOnScreenLoaded() && openingCards.length === 0) {
       advance();
       return;
     }
     this.#music?.pause();
     this.#emit("waiting");
-    this.#whenDrawable(advance);
+    this.#whenDrawable(advance, openingCards.length > 0);
   }
 
   #failMusic(cause: unknown): void {
@@ -259,14 +260,17 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
     this.#emit("error");
   }
 
-  /** Runs `action` once the current frame's pictures are loaded, unless the state moved on. */
-  #whenDrawable(action: () => void): void {
+  /** Runs `action` once drawable, unless the state moved on; `includeCards` also waits for the card. */
+  #whenDrawable(action: () => void, includeCards = false): void {
     const generation = this.#generation;
-    this.#pictures.whenOnScreenLoaded({
-      isWanted: () => generation === this.#generation && !this.#destroyed,
-      onLoaded: action,
-      onError: (error) => this.#fail(error),
-    });
+    this.#pictures.whenOnScreenLoaded(
+      {
+        isWanted: () => generation === this.#generation && !this.#destroyed,
+        onLoaded: action,
+        onError: (error) => this.#fail(error),
+      },
+      includeCards,
+    );
   }
 
   #currentFrame(): TimelineFrame {

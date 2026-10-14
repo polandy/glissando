@@ -155,14 +155,12 @@ function createDrawing(
 }
 
 /**
- * The opening slide's own colour, painted into the canvas the instant it exists (`WebGlRenderer`'s
- * `initialBackground`): a ground slide's colour, or a picture slide's veil tint. Undefined for a
- * picture slide with no veil, which has no flat colour to paint ahead of the picture itself.
+ * A ground opening slide's own colour, painted into the canvas the instant it exists
+ * (`WebGlRenderer`'s `initialBackground`): that colour is the real first frame. Undefined for a
+ * picture slide, which has no flat colour of its own — a veil tint over no picture would not mean
+ * anything, so playback instead waits for the picture and card before drawing (`SlideshowPlayer`).
  */
 function openingSlideColour(slideshow: Slideshow): string | undefined {
   const opening = slideshow.slides[0];
-  if (opening === undefined) {
-    return undefined;
-  }
-  return isGroundSlide(opening) ? opening.ground : opening.card?.veil?.tint;
+  return opening !== undefined && isGroundSlide(opening) ? opening.ground : undefined;
 }

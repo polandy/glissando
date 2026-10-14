@@ -9,6 +9,7 @@ import type {
   RenderFrame,
   SlideRenderer,
 } from "../ports";
+import type { Card } from "../slideshow";
 
 export interface FakePicture extends Size {
   readonly src: string;
@@ -127,9 +128,32 @@ export class FakeRenderer implements SlideRenderer<FakePicture> {
   onRender: (() => void) | null = null;
   readonly #costs: FakeRenderCosts | null;
   readonly #slicesDone = new Map<string, number>();
+  /** Held until the test calls `completeCard`, as a real font load would be pending. */
+  readonly #cardReady = new Map<Card, { readonly promise: Promise<void>; resolve(): void }>();
 
   constructor(costs: FakeRenderCosts | null = null) {
     this.#costs = costs;
+  }
+
+  cardReady(card: Card): Promise<void> {
+    return this.#cardEntry(card).promise;
+  }
+
+  /** Settles every pending `cardReady` for `card`, as its font finishing load would. */
+  completeCard(card: Card): void {
+    this.#cardEntry(card).resolve();
+  }
+
+  #cardEntry(card: Card): { readonly promise: Promise<void>; resolve(): void } {
+    const existing = this.#cardReady.get(card);
+    if (existing !== undefined) {
+      return existing;
+    }
+    let resolve = (): void => undefined;
+    const promise = new Promise<void>((settle) => (resolve = settle));
+    const entry = { promise, resolve };
+    this.#cardReady.set(card, entry);
+    return entry;
   }
 
   render(frame: RenderFrame<FakePicture>): void {

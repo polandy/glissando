@@ -181,26 +181,30 @@ describe("playing a title slide from the start", () => {
     expect(setup.readPixel([0.95, 0.95])).not.toEqual([0, 0, 0]);
   });
 
-  it("shows the picture before its card's font has loaded", async () => {
-    const setup = setUp([pictureTitleSlide(6000), nextSlide()], { fontsLoaded: false });
+  // The opening slide's own card always has its font loaded before playback starts
+  // (`SlideshowPlayer`'s opening-card gating), so a card whose font is still loading only
+  // happens on a later slide; these two reach one by playing a plain slide first.
+
+  it("shows the picture before its card's font has loaded, on a slide after the opening one", async () => {
+    const setup = setUp([nextSlide(), pictureTitleSlide(6000)], { fontsLoaded: false });
     box = setup.box;
 
     const playing = nextEvent(setup.player, "playing");
     setup.player.play();
     await playing;
-    setup.advance(500);
+    setup.advance(3500);
 
     expect(setup.readPixel([0.95, 0.95])).not.toEqual([0, 0, 0]);
   });
 
-  it("keeps the ground colour once its card's font finishes loading mid-slide", async () => {
-    const setup = setUp([groundTitleSlide(4000), nextSlide()], { fontsLoaded: false });
+  it("keeps the ground colour once its card's font finishes loading mid-slide, on a slide after the opening one", async () => {
+    const setup = setUp([nextSlide(), groundTitleSlide(4000)], { fontsLoaded: false });
     box = setup.box;
 
     const playing = nextEvent(setup.player, "playing");
     setup.player.play();
     await playing;
-    setup.advance(500);
+    setup.advance(3500);
 
     expect(setup.readPixel([0.9, 0.9])).toSatisfy((pixel: Rgb) => isColour(pixel, GROUND_COLOUR));
 

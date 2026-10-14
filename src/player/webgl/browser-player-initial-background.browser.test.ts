@@ -88,7 +88,7 @@ describe("the opening slide's colour, right as the player is created", () => {
     expect(centrePixel()).toEqual(TINT_RGB);
   });
 
-  it("shows the card's veil tint before a picture title slide's own picture has decoded", () => {
+  it("stays plain black for a picture title slide, which has no flat colour of its own", () => {
     box = viewportBox({ width: 160, height: 90 });
     const slideshow: Slideshow = {
       formatVersion: 6,
@@ -98,7 +98,7 @@ describe("the opening slide's colour, right as the player is created", () => {
 
     createPlayer(box, slideshow);
 
-    expect(centrePixel()).toEqual(TINT_RGB);
+    expect(centrePixel()).toEqual([0, 0, 0]);
   });
 
   it("stays plain black for a slideshow with no title card on its opening slide", () => {
