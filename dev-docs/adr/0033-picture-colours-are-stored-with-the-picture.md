@@ -28,7 +28,9 @@ Options weighed:
 
 Option 3. Every stored picture carries `colours: { veil, accent }`, worked out by the pure
 `pictureColours` from the stored, downscaled picture's pixels as it is added, on every path
-that adds a picture (files, Immich, a `.glissando` import, the server). The composer reads the
+that adds a picture (files, Immich, a `.glissando` import, the server). An Immich picture that
+is linked, not downloaded, has no stored copy; its colours come from Immich's thumbnail. The
+composer reads the
 card picture's `veil` for a `picture` tint, and the sheet offers the first or last picture's
 `veil` and `accent` as colour swatches. A swatch that was picked is stored as its hex.
 
