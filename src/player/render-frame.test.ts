@@ -54,7 +54,11 @@ describe("renderFrame: ground slides (ADR-0032)", () => {
 
   it("computes the ground slide's card timing the same way cardTimingAt does", () => {
     const card = heldCard({ enterAtMs: 0 });
-    const slideshow: Slideshow = { formatVersion: 5, title: "Opening", slides: [groundSlide(card)] };
+    const slideshow: Slideshow = {
+      formatVersion: 5,
+      title: "Opening",
+      slides: [groundSlide(card)],
+    };
 
     const drawn = renderFrame(slideFrame(0, 400), slideshow, NO_FADE, () => undefined);
 
@@ -98,9 +102,9 @@ describe("renderFrame: a picture slide's card (ADR-0032)", () => {
     const drawn = renderFrame(slideFrame(0, 400), slideshow, NO_FADE, () => [picture]);
 
     const expectedTextOpacity = cardTimingAt(card, 400, false).textOpacity;
-    expect(drawn.kind === "slide" && drawn.slide.kind === "picture" && drawn.slide.card?.textOpacity).toBe(
-      expectedTextOpacity,
-    );
+    expect(
+      drawn.kind === "slide" && drawn.slide.kind === "picture" && drawn.slide.card?.textOpacity,
+    ).toBe(expectedTextOpacity);
     expect(
       drawn.kind === "slide" && drawn.slide.kind === "picture" && drawn.slide.captionOpacity,
     ).toBe(1 - expectedTextOpacity);
@@ -118,7 +122,9 @@ describe("renderFrame: a picture slide's card (ADR-0032)", () => {
 
     const drawn = renderFrame(slideFrame(0, 400), slideshow, NO_FADE, () => [picture]);
 
-    expect(drawn.kind === "slide" && drawn.slide.kind === "picture" && drawn.slide.card).toBeUndefined();
+    expect(
+      drawn.kind === "slide" && drawn.slide.kind === "picture" && drawn.slide.card,
+    ).toBeUndefined();
     expect(
       drawn.kind === "slide" && drawn.slide.kind === "picture" && drawn.slide.captionOpacity,
     ).toBeUndefined();
@@ -141,9 +147,13 @@ describe("renderFrame: a picture slide's card (ADR-0032)", () => {
     );
 
     const normalDrift =
-      normal.kind === "slide" && normal.slide.kind === "picture" ? normal.slide.card?.driftEm : undefined;
+      normal.kind === "slide" && normal.slide.kind === "picture"
+        ? normal.slide.card?.driftEm
+        : undefined;
     const reducedDrift =
-      reduced.kind === "slide" && reduced.slide.kind === "picture" ? reduced.slide.card?.driftEm : undefined;
+      reduced.kind === "slide" && reduced.slide.kind === "picture"
+        ? reduced.slide.card?.driftEm
+        : undefined;
     expect(normalDrift).toBeCloseTo(0.4);
     expect(reducedDrift).toBe(0);
   });

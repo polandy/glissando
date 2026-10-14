@@ -110,8 +110,16 @@ describe("WebGlRenderer", () => {
         kind: "transition",
         effect,
         progress,
-        from: { kind: "picture", picture: await solidBitmap(RED), motion: standingStill(WHOLE_PICTURE) },
-        to: { kind: "picture", picture: await solidBitmap(BLUE), motion: standingStill(WHOLE_PICTURE) },
+        from: {
+          kind: "picture",
+          picture: await solidBitmap(RED),
+          motion: standingStill(WHOLE_PICTURE),
+        },
+        to: {
+          kind: "picture",
+          picture: await solidBitmap(BLUE),
+          motion: standingStill(WHOLE_PICTURE),
+        },
         endFade: 0,
       };
     }

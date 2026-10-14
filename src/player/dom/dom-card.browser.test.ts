@@ -16,7 +16,13 @@ function setUp(): { renderer: DomRenderer } {
 }
 
 function groundCard(overrides: Partial<Card> = {}): Card {
-  return { title: "Summer at the Lake", style: "modern", position: "centre", ink: "light", ...overrides };
+  return {
+    title: "Summer at the Lake",
+    style: "modern",
+    position: "centre",
+    ink: "light",
+    ...overrides,
+  };
 }
 
 describe("DomRenderer: title cards (ADR-0032)", () => {
@@ -27,7 +33,11 @@ describe("DomRenderer: title cards (ADR-0032)", () => {
     renderer.render({
       kind: "slide",
       endFade: 0,
-      slide: { kind: "ground", ground: GROUND, card: { card, textOpacity: 1, driftEm: 0, veilAmount: 0 } },
+      slide: {
+        kind: "ground",
+        ground: GROUND,
+        card: { card, textOpacity: 1, driftEm: 0, veilAmount: 0 },
+      },
     });
 
     const corner = document.elementFromPoint(

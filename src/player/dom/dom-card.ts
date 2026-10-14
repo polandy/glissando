@@ -72,7 +72,8 @@ export class CardOverlay {
       this.#veilTints.delete(card);
       return undefined;
     }
-    const blurPx = BACKDROP_BLUR_RADIUS_SHARE * Math.max(layer.picture.width, layer.picture.height) * amount;
+    const blurPx =
+      BACKDROP_BLUR_RADIUS_SHARE * Math.max(layer.picture.width, layer.picture.height) * amount;
     anchor.style.filter = `blur(${blurPx}px) saturate(${1 - VEIL_SATURATION_SHARE * amount}) contrast(${1 - VEIL_CONTRAST_SHARE * amount})`;
     const tintElement = this.#elementFor(this.#veilTints, card, VEIL_TINT_ATTRIBUTE);
     Object.assign(tintElement.style, {
@@ -152,7 +153,11 @@ export class CardOverlay {
 
   #stylesFor(card: Card, stage: Size): CardStyles {
     const cached = this.#layoutCache.get(card);
-    if (cached !== undefined && cached.stage.width === stage.width && cached.stage.height === stage.height) {
+    if (
+      cached !== undefined &&
+      cached.stage.width === stage.width &&
+      cached.stage.height === stage.height
+    ) {
       return cached.styles;
     }
     const spec = CARD_STYLE_SPECS[card.style];

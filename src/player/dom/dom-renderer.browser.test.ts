@@ -22,7 +22,11 @@ describe("DomRenderer", () => {
   it("shows a slide's picture opaque, framed by its Ken Burns crop", async () => {
     const { renderer, outgoing } = await setUp();
 
-    renderer.render({ kind: "slide", endFade: 0, slide: { kind: "picture", picture: outgoing, motion: MOTION, fit: FIT } });
+    renderer.render({
+      kind: "slide",
+      endFade: 0,
+      slide: { kind: "picture", picture: outgoing, motion: MOTION, fit: FIT },
+    });
 
     expect(outgoing.element.isConnected).toBe(true);
     expect(outgoing.element.style.opacity).toBe("1");
@@ -37,7 +41,11 @@ describe("DomRenderer", () => {
 
   it("crossfades: the incoming picture on top with the transition's progress as opacity", async () => {
     const { renderer, outgoing, incoming } = await setUp();
-    renderer.render({ kind: "slide", endFade: 0, slide: { kind: "picture", picture: outgoing, motion: MOTION, fit: FIT } });
+    renderer.render({
+      kind: "slide",
+      endFade: 0,
+      slide: { kind: "picture", picture: outgoing, motion: MOTION, fit: FIT },
+    });
 
     renderer.render({
       kind: "transition",
@@ -55,9 +63,17 @@ describe("DomRenderer", () => {
 
   it("removes the outgoing picture once the transition is over", async () => {
     const { renderer, outgoing, incoming } = await setUp();
-    renderer.render({ kind: "slide", endFade: 0, slide: { kind: "picture", picture: outgoing, motion: MOTION, fit: FIT } });
+    renderer.render({
+      kind: "slide",
+      endFade: 0,
+      slide: { kind: "picture", picture: outgoing, motion: MOTION, fit: FIT },
+    });
 
-    renderer.render({ kind: "slide", endFade: 0, slide: { kind: "picture", picture: incoming, motion: MOTION, fit: FIT } });
+    renderer.render({
+      kind: "slide",
+      endFade: 0,
+      slide: { kind: "picture", picture: incoming, motion: MOTION, fit: FIT },
+    });
 
     expect(incoming.element.isConnected).toBe(true);
     expect(outgoing.element.isConnected).toBe(false);
@@ -65,7 +81,11 @@ describe("DomRenderer", () => {
 
   it("leaves the container empty when disposed", async () => {
     const { renderer, outgoing } = await setUp();
-    renderer.render({ kind: "slide", endFade: 0, slide: { kind: "picture", picture: outgoing, motion: MOTION, fit: FIT } });
+    renderer.render({
+      kind: "slide",
+      endFade: 0,
+      slide: { kind: "picture", picture: outgoing, motion: MOTION, fit: FIT },
+    });
     expect(box.childElementCount).toBe(1);
 
     renderer.dispose();

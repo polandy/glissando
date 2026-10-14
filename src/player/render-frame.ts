@@ -1,7 +1,13 @@
 import { ease } from "./easing";
 import { cardTimingAt, endFadeAmount } from "./card-timing";
 import type { CardVisual, PictureSlideLayer, RenderFrame, SlideLayer } from "./ports";
-import { isGroundSlide, type Card, type Easing, type PictureSlide, type Slideshow } from "./slideshow";
+import {
+  isGroundSlide,
+  type Card,
+  type Easing,
+  type PictureSlide,
+  type Slideshow,
+} from "./slideshow";
 import type { SlideAtTime, TimelineFrame } from "./timeline";
 
 const TRANSITION_EASING: Easing = "ease-in-out";

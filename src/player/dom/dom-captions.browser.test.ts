@@ -63,7 +63,11 @@ describe("DomRenderer captions", () => {
       slide: { kind: "picture", picture: outgoing, motion: MOTION, caption: CAPTION, fit: FIT },
     });
 
-    renderer.render({ kind: "slide", endFade: 0, slide: { kind: "picture", picture: incoming, motion: MOTION, fit: FIT } });
+    renderer.render({
+      kind: "slide",
+      endFade: 0,
+      slide: { kind: "picture", picture: incoming, motion: MOTION, fit: FIT },
+    });
 
     expect(incoming.element.isConnected).toBe(true);
     expect(captionElements()).toEqual([]);

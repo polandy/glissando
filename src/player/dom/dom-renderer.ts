@@ -105,12 +105,10 @@ export class DomRenderer implements SlideRenderer<BrowserPicture> {
     viewport: Size,
   ): void {
     const veil = this.#veilFor(anchor, layer);
-    const captionOpacity = layer.kind === "picture" ? layer.captionOpacity ?? CAPTION_OPAQUE : 0;
+    const captionOpacity = layer.kind === "picture" ? (layer.captionOpacity ?? CAPTION_OPAQUE) : 0;
     const caption = this.#captionFor(layer, opacity * captionOpacity, viewport);
     const card =
-      layer.card === undefined
-        ? undefined
-        : this.#cards.placeText(layer.card, opacity, viewport);
+      layer.card === undefined ? undefined : this.#cards.placeText(layer.card, opacity, viewport);
     anchor.after(
       ...[veil, caption, card].filter((node): node is HTMLElement => node !== undefined),
     );

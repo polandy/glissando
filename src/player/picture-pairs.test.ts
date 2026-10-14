@@ -95,10 +95,12 @@ describe("renderFrame, a paired slide (ADR-0028)", () => {
     expect(drawn.kind === "slide" && drawn.slide.kind === "picture" && drawn.slide.picture).toBe(
       own,
     );
-    expect(drawn.kind === "slide" && drawn.slide.kind === "picture" && drawn.slide.partner).toEqual({
-      picture: partner,
-      motion: { kenBurns: PARTNER_KEN_BURNS, progress: 0.25 },
-    });
+    expect(drawn.kind === "slide" && drawn.slide.kind === "picture" && drawn.slide.partner).toEqual(
+      {
+        picture: partner,
+        motion: { kenBurns: PARTNER_KEN_BURNS, progress: 0.25 },
+      },
+    );
   });
 });
 
@@ -133,9 +135,10 @@ describe("FramePictures, a paired slide (ADR-0028)", () => {
 
     pictures.prepareUpcoming();
 
-    expect(renderer.prepared.map((prepared) => ("picture" in prepared ? prepared.picture.src : undefined))).toEqual([
-      "a.jpg",
-      "b.jpg",
-    ]);
+    expect(
+      renderer.prepared.map((prepared) =>
+        "picture" in prepared ? prepared.picture.src : undefined,
+      ),
+    ).toEqual(["a.jpg", "b.jpg"]);
   });
 });

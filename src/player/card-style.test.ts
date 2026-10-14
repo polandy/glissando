@@ -26,7 +26,9 @@ describe("cardStyles", () => {
     expect(titleLine?.declarations.fontFamily).toBe(spec.title.fontFamily);
     expect(titleLine?.declarations.fontWeight).toBe(String(spec.title.fontWeight));
     expect(titleLine?.declarations.letterSpacing).toBe(`${spec.title.trackingEm}em`);
-    expect(titleLine?.declarations.fontSize).toBe(`${spec.title.sizeFractionOfHeight * STAGE.height}px`);
+    expect(titleLine?.declarations.fontSize).toBe(
+      `${spec.title.sizeFractionOfHeight * STAGE.height}px`,
+    );
 
     const subtitleLine = result.subtitleLines[0];
     expect(subtitleLine?.declarations.fontFamily).toBe(spec.subtitle.fontFamily);

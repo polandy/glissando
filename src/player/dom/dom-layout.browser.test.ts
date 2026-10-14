@@ -20,7 +20,12 @@ describe("DomRenderer: pairs and the blurred fill (ADR-0028)", () => {
     renderer.render({
       kind: "slide",
       endFade: 0,
-      slide: { kind: "picture", picture: first, motion: STILL, partner: { picture: second, motion: STILL } },
+      slide: {
+        kind: "picture",
+        picture: first,
+        motion: STILL,
+        partner: { picture: second, motion: STILL },
+      },
     });
 
     const firstBox = first.element.parentElement?.getBoundingClientRect();
@@ -36,7 +41,12 @@ describe("DomRenderer: pairs and the blurred fill (ADR-0028)", () => {
     renderer.render({
       kind: "slide",
       endFade: 0,
-      slide: { kind: "picture", picture: first, motion: STILL, partner: { picture: second, motion: STILL } },
+      slide: {
+        kind: "picture",
+        picture: first,
+        motion: STILL,
+        partner: { picture: second, motion: STILL },
+      },
     });
 
     const firstBox = first.element.parentElement?.getBoundingClientRect();
@@ -51,7 +61,11 @@ describe("DomRenderer: pairs and the blurred fill (ADR-0028)", () => {
     // drawn whole over a blurred, darkened backdrop (ADR-0028).
     const { renderer, first } = await setUp({ width: 1920, height: 1080 });
 
-    renderer.render({ kind: "slide", endFade: 0, slide: { kind: "picture", picture: first, motion: STILL } });
+    renderer.render({
+      kind: "slide",
+      endFade: 0,
+      slide: { kind: "picture", picture: first, motion: STILL },
+    });
 
     const wrapper = first.element.parentElement;
     expect(wrapper?.hasAttribute("data-layer-wrapper")).toBe(true);
@@ -65,7 +79,11 @@ describe("DomRenderer: pairs and the blurred fill (ADR-0028)", () => {
   it("covers the whole screen with no backdrop when fit is cover", async () => {
     const { renderer, first } = await setUp({ width: 1920, height: 1080 });
 
-    renderer.render({ kind: "slide", endFade: 0, slide: { kind: "picture", picture: first, motion: STILL, fit: "cover" } });
+    renderer.render({
+      kind: "slide",
+      endFade: 0,
+      slide: { kind: "picture", picture: first, motion: STILL, fit: "cover" },
+    });
 
     expect(first.element.parentElement?.hasAttribute("data-layer-wrapper")).toBe(false);
     expect(box.querySelector("img[data-backdrop]")).toBeNull();
