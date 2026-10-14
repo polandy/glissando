@@ -34,7 +34,8 @@ leading, trailing or repeated whitespace); the reason names its path and value.
   minus usage; else _too large_, skipped where the browser cannot tell, e.g. over plain HTTP).
   Last, every media file's CRC-32 is checked (else _damaged_): one damaged picture refuses the
   whole file. Each media file is read as a slice of the file, never all at once.
-- **Write** (`writeGlissandoFile`): always a new slideshow with fresh ids, created now; a title
+- **Write** (`writeGlissandoFile`): always a new slideshow with fresh ids, created now, keeping
+  every setting the file carries (picture length, portrait pictures, each picture's `alone` mark); a title
   the library already has gets the first free " (2)", " (3)" …. All or nothing: it claims each
   media id in `imports` before writing that media and saves the record last. Cancelled, or
   failing midway (e.g. `QuotaExceededError`), it releases its claim and deletes the unreferenced
