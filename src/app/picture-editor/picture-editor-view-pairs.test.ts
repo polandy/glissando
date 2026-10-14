@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 import { composeSlideshow, NO_SONG_BEATS, type SongBeats } from "../../compose";
 import { ALTERNATE_TRANSITION } from "../../library/own-timing";
 import type { StoredPicture, StoredSlideshow } from "../../library/stored-slideshow";
-import type { KenBurns, Slide } from "../../player";
+import { isGroundSlide, type KenBurns, type Slide } from "../../player";
+import { pictureSlide } from "../../player/testing/picture-slide";
 import { NO_FOCUS_KNOWN } from "../focus/pictures-focus";
 import { pictureEditorView } from "./picture-editor-view";
 import { music, STEADY_BEATS, stored } from "./testing/picture-editor-fixtures";
@@ -44,11 +45,15 @@ function played(slideshow: StoredSlideshow, pictureId: string, beats: SongBeats)
     new Map(),
     beats,
   );
-  const slideIndex = slides.findIndex(
-    (slide) => slide.image.src === pictureId || slide.partner?.image.src === pictureId,
-  );
-  const slide = slides[slideIndex] as Slide;
-  const nextSlide = slides[slideIndex + 1];
+  const slideIndex = slides.findIndex((raw) => {
+    if (isGroundSlide(raw)) {
+      return false;
+    }
+    return raw.image.src === pictureId || raw.partner?.image.src === pictureId;
+  });
+  const slide = pictureSlide(slides[slideIndex] as Slide);
+  const rawNextSlide = slides[slideIndex + 1];
+  const nextSlide = rawNextSlide === undefined ? undefined : pictureSlide(rawNextSlide);
   const numberOf = (id: string) => slideshow.pictures.findIndex((each) => each.id === id) + 1;
   return {
     motion: motion(

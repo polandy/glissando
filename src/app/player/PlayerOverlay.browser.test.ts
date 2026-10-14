@@ -1,6 +1,6 @@
 import { flushSync } from "svelte";
 import { afterEach, describe, expect, it } from "vitest";
-import { CAPTION_GLIDE_MS, MILLISECONDS_PER_SECOND } from "../../player";
+import { CAPTION_GLIDE_MS, isGroundSlide, MILLISECONDS_PER_SECOND } from "../../player";
 import { oneSlideShow } from "../../player/testing/browser-pictures";
 import { OPENED_PICTURE_SHOW } from "../../player/testing/opened-pictures";
 import { FakeScheduler } from "../../ui-kit/testing/fake-scheduler";
@@ -142,7 +142,10 @@ describe("PlayerOverlay", () => {
 
     const alert = await whenRendered(mounted.target, "[role=alert]");
 
-    expect(opened).toContain(OPENED_PICTURE_SHOW.slides[0]?.image.src);
+    const firstSlide = OPENED_PICTURE_SHOW.slides[0];
+    expect(opened).toContain(
+      firstSlide !== undefined && !isGroundSlide(firstSlide) ? firstSlide.image.src : undefined,
+    );
     expect(alert.textContent).toContain("Ein Bild konnte nicht geladen werden.");
   });
 

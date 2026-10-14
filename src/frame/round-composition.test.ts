@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { composeRound, type RoundPicture } from "./round-composition";
+import { pictureSlide } from "../player/testing/picture-slide";
 
 function picture(id: string, takenAt: string, size: RoundPicture["size"] = null): RoundPicture {
   return { id, takenAt, size };
@@ -20,8 +21,11 @@ describe("composeRound", () => {
       (id) => `/pic/${id}`,
     );
 
-    expect(slideshow.slides.map((slide) => slide.image.src)).toEqual(["/pic/b", "/pic/a"]);
-    expect(slideshow.slides.map((slide) => slide.image.capturedAt)).toEqual([
+    expect(slideshow.slides.map((slide) => pictureSlide(slide).image.src)).toEqual([
+      "/pic/b",
+      "/pic/a",
+    ]);
+    expect(slideshow.slides.map((slide) => pictureSlide(slide).image.capturedAt)).toEqual([
       "2024-01-02T00:00:00Z",
       "2024-01-01T00:00:00Z",
     ]);
@@ -54,7 +58,7 @@ describe("composeRound", () => {
 
     const slideshow = composeRound("Summer", ["a"], picturesById, 30_000, (id) => id);
 
-    expect(slideshow.slides[0]?.caption).toBeUndefined();
+    expect(pictureSlide(slideshow.slides[0]).caption).toBeUndefined();
   });
 
   it("fails loud for a picture id the album's own list does not know", () => {

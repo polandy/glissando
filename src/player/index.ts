@@ -36,14 +36,18 @@ export { PLAYER_EVENTS, type PlayerEvent } from "./player-events";
 export { SlideshowPlayer } from "./slideshow-player";
 export {
   EASINGS,
+  isGroundSlide,
   MILLISECONDS_PER_SECOND,
   MIN_KEN_BURNS_ZOOM,
   SLIDESHOW_FORMAT_VERSION,
   TRANSITION_EFFECTS,
+  type Card,
   type Easing,
   type Framing,
+  type GroundSlide,
   type KenBurns,
   type MusicTrack,
+  type PictureSlide,
   type Slide,
   type Slideshow,
   type Transition,

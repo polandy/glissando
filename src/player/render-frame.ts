@@ -1,6 +1,6 @@
 import { ease } from "./easing";
 import type { RenderFrame, SlideLayer } from "./ports";
-import type { Easing, Slide, Slideshow } from "./slideshow";
+import { isGroundSlide, type Easing, type PictureSlide, type Slideshow } from "./slideshow";
 import type { SlideAtTime, TimelineFrame } from "./timeline";
 
 const TRANSITION_EASING: Easing = "ease-in-out";
@@ -20,10 +20,16 @@ export function renderFrame<Picture>(
   picturesAt: (index: number) => readonly Picture[] | undefined,
 ): RenderFrame<Picture> {
   const layer = (slideAtTime: SlideAtTime): SlideLayer<Picture> => {
-    const pictures = picturesAt(slideAtTime.index);
     const slide = slideshow.slides[slideAtTime.index];
+    if (slide === undefined) {
+      throw new Error(`slide ${slideAtTime.index} is drawn before its picture loaded`);
+    }
+    if (isGroundSlide(slide)) {
+      throw new Error("ground slides are drawn in step B");
+    }
+    const pictures = picturesAt(slideAtTime.index);
     const picture = pictures?.[0];
-    if (pictures === undefined || picture === undefined || slide === undefined) {
+    if (pictures === undefined || picture === undefined) {
       throw new Error(`slide ${slideAtTime.index} is drawn before its picture loaded`);
     }
     const progress = slideAtTime.kenBurnsProgress;
@@ -49,7 +55,7 @@ export function renderFrame<Picture>(
 }
 
 function partnerLayer<Picture>(
-  slide: Slide,
+  slide: PictureSlide,
   pictures: readonly Picture[],
   progress: number,
 ): SlideLayer<Picture>["partner"] {
