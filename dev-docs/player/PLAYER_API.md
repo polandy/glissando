@@ -21,9 +21,10 @@ separate file.
 
 `createFramePlayer(slideshow, size, openPicture?)` is the video export's: a silent player on a
 canvas in no document, drawn with WebGL2 at exactly `size` (pixel ratio 1, drawing buffer
-preserved for `new VideoFrame(canvas)`), with `captionFontLoaded` to await before the first
-`renderAt`, and `dispose()`, which destroys the player and loses the WebGL context on purpose,
-since a page holds only a few; `null` without WebGL2.
+preserved for `new VideoFrame(canvas)`), with `captionFontLoaded` and `cardFontsLoaded` (settled at
+once without a card) to await before the first `renderAt`, and `dispose()`, which destroys the
+player and loses the WebGL context on purpose, since a page holds only a few; `null` without
+WebGL2.
 
 The player:
 

@@ -52,6 +52,7 @@ function frame(overrides: Partial<PageFrame> = {}): PageFrame {
     slideshow: SLIDESHOW,
     style: "body{margin:0}",
     captionFontDataUrl: "data:font/woff2;base64,AAAA",
+    cardFontFaceRules: [],
     ...overrides,
   };
 }
@@ -89,6 +90,24 @@ describe("pageHead", () => {
     expect(head).toContain(
       '@font-face{font-family:"Instrument Sans";font-weight:400 600;' +
         'src:url(data:font/woff2;base64,AAAA) format("woff2")}',
+    );
+  });
+
+  it("inlines a card's font face rules after the caption font, none without a card", () => {
+    expect(pageHead(frame())).not.toContain('@font-face{font-family:"Bricolage');
+
+    const head = pageHead(
+      frame({
+        cardFontFaceRules: [
+          '@font-face{font-family:"Bricolage Grotesque";font-weight:700;font-style:normal;' +
+            'src:url(data:font/woff2;base64,BBBB) format("woff2")}',
+        ],
+      }),
+    );
+
+    expect(head).toContain(
+      '@font-face{font-family:"Bricolage Grotesque";font-weight:700;font-style:normal;' +
+        'src:url(data:font/woff2;base64,BBBB) format("woff2")}',
     );
   });
 

@@ -78,7 +78,12 @@ describe("pageFileName", () => {
 
 describe("playerBundleBytes", () => {
   it("counts the bundle's script, style and font in UTF-8 bytes", () => {
-    const bundle = { script: "play()", style: "a{content:'é'}", captionFontDataUrl: "data:x" };
+    const bundle = {
+      script: "play()",
+      style: "a{content:'é'}",
+      captionFontDataUrl: "data:x",
+      cardFontDataUrls: {},
+    };
 
     expect(playerBundleBytes(bundle)).toBe(6 + 15 + 6);
   });

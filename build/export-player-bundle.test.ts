@@ -88,6 +88,7 @@ describe("playerBundleModule", () => {
       script: 'run("</script>")',
       style: ".a{}",
       fontBytes: new Uint8Array([0, 1, 2]),
+      cardFontBytes: {},
     });
     const url = `data:text/javascript;base64,${btoa(source)}`;
     const module = (await import(/* @vite-ignore */ url)) as { default: unknown };
@@ -96,6 +97,24 @@ describe("playerBundleModule", () => {
       script: 'run("</script>")',
       style: ".a{}",
       captionFontDataUrl: "data:font/woff2;base64,AAEC",
+      cardFontDataUrls: {},
+    });
+  });
+
+  it("exports every card font given, each as its own data: URL by asset path", async () => {
+    const source = playerBundleModule({
+      script: "run()",
+      style: ".a{}",
+      fontBytes: new Uint8Array([0, 1, 2]),
+      cardFontBytes: { "assets/fonts/bricolagegrotesque-latin-wght700.woff2": new Uint8Array([9]) },
+    });
+    const url = `data:text/javascript;base64,${btoa(source)}`;
+    const module = (await import(/* @vite-ignore */ url)) as {
+      default: { cardFontDataUrls: Record<string, string> };
+    };
+
+    expect(module.default.cardFontDataUrls).toEqual({
+      "assets/fonts/bricolagegrotesque-latin-wght700.woff2": "data:font/woff2;base64,CQ==",
     });
   });
 });

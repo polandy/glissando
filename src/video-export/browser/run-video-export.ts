@@ -81,8 +81,8 @@ type Prepared =
   | Extract<ExportOutcome, { readonly kind: "failed" | "cancelled" }>;
 
 /**
- * Decodes the music, loads the caption font and starts the file. A failure here leaves no file
- * behind either.
+ * Decodes the music, loads the caption font and the show's card fonts, and starts the file. A
+ * failure here leaves no file behind either.
  */
 async function prepare(
   { slideshow, openMusic, audioCodec, target, signal }: RunVideoExportOptions,
@@ -95,6 +95,7 @@ async function prepare(
     const [music] = await Promise.all([
       slideshow.music === undefined ? null : MusicRenderer.decode(slideshow.music, openMusic),
       framePlayer.captionFontLoaded,
+      framePlayer.cardFontsLoaded,
     ]);
     signal.throwIfAborted();
     writable = await target.open();

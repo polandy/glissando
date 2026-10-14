@@ -22,6 +22,9 @@ export interface PlayerBundle {
   readonly style: string;
   /** The caption font as a `data:font/woff2;base64,…` URL. */
   readonly captionFontDataUrl: string;
+  /** Every card font beyond the caption font, by its asset path, as `data:` URLs (ADR-0032); a
+   * page embeds only the ones its own cards use (`cardFontFilesUsedBy`). */
+  readonly cardFontDataUrls: Readonly<Record<string, string>>;
 }
 
 /** Loads the player bundle; the app loads it on the first export. */
