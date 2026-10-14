@@ -6,7 +6,7 @@ entries are stored, not compressed, so any unzip tool opens it; no ZIP64, so it 
 
 | Entry                   | Content                                                                                 |
 | ----------------------- | --------------------------------------------------------------------------------------- |
-| `glissando.json`        | always first: `format` "glissando", `formatVersion` 12, the `slideshow`                 |
+| `glissando.json`        | always first: `format` "glissando", `formatVersion` 13, the `slideshow`                 |
 | `pictures/0001.jpg` …   | the display renditions in play order, as stored (numbered from 0001)                    |
 | `thumbnails/0001.jpg`…  | their thumbnails, as stored                                                             |
 | `music/track-<n>.<ext>` | the playlist's n-th song (from 1), extension from its file name (none when it has none) |
