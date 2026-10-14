@@ -67,7 +67,7 @@ export type StoredCardBackground =
  */
 export interface StoredCard {
   readonly title: string;
-  readonly subtitle?: string;
+  readonly subtitle?: string | undefined;
   readonly style: CardStyle;
   readonly position: CardPosition;
   readonly background: StoredCardBackground;

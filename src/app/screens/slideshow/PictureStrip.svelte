@@ -1,19 +1,14 @@
 <script lang="ts">
-  import { tick } from "svelte";
+  import type { StoredCard } from "../../../library/stored-slideshow";
   import { animationFrames, type FrameScheduler } from "../../../player";
   import { browserScheduler, type Scheduler } from "../../../ui-kit/scheduler";
+  import { getTranslator } from "../../i18n/context";
   import type { PictureTile } from "../view-models";
+  import CardTile from "./card-sheet/CardTile.svelte";
   import DragGhost from "./DragGhost.svelte";
   import StripTile from "./StripTile.svelte";
-  import { stripKeyAction } from "./strip-keys";
-  import {
-    hold,
-    pick,
-    selectedInOrder,
-    soleSelection,
-    endSelecting,
-    type StripSelection,
-  } from "./strip-selection";
+  import { hold, pick, type StripSelection } from "./strip-selection";
+  import { StripKeydown } from "./strip-keydown";
   import { TileDrag } from "./tile-drag";
   import type { DropTarget, TileDragState } from "./tile-drag-types";
 
@@ -29,6 +24,10 @@
     onRemoveGroup,
     onShiftGroup,
     onMoveGroup,
+    openingCard,
+    closingCard,
+    onOpenOpeningCard,
+    onOpenClosingCard,
     holdScheduler = browserScheduler,
     frameScheduler = animationFrames,
   }: {
@@ -49,11 +48,29 @@
     onMoveGroup: (pictureIds: readonly string[], insertion: number) => void;
     /** Opens the picture editor. */
     onOpen: (pictureId: string) => void;
+    /** The title slide; absent until the editor creates it (TITLE_SLIDES.md). */
+    openingCard?: StoredCard | undefined;
+    /** The closing slide; absent until the editor creates it (TITLE_SLIDES.md). */
+    closingCard?: StoredCard | undefined;
+    onOpenOpeningCard: () => void;
+    onOpenClosingCard: () => void;
     /** The 450 ms touch hold; a real timeout by default, faked in tests. */
     holdScheduler?: Scheduler;
     /** The auto-scroll's frames; real `requestAnimationFrame` by default, faked in tests. */
     frameScheduler?: FrameScheduler;
   } = $props();
+
+  const { t } = getTranslator();
+  let openingTile = $state<CardTile>();
+  let closingTile = $state<CardTile>();
+
+  export function focusOpeningCard(): void {
+    openingTile?.focus();
+  }
+
+  export function focusClosingCard(): void {
+    closingTile?.focus();
+  }
 
   let strip: HTMLOListElement;
   let dragState = $state<TileDragState>({
@@ -118,80 +135,20 @@
     return () => window.removeEventListener("touchmove", preventWhileLifted);
   });
 
-  /** The grid's column count, for moving up and down by a row. */
-  function columns(): number {
-    return getComputedStyle(strip).gridTemplateColumns.split(" ").length;
-  }
-
-  async function focusTile(pictureId: string): Promise<void> {
-    await tick();
-    strip.querySelector<HTMLElement>(`[data-picture-id="${pictureId}"]`)?.focus();
-  }
+  // Fixed for the strip's lifetime: the props it reads are read fresh, by reference, on every key.
+  // svelte-ignore state_referenced_locally
+  const keydownHandler = new StripKeydown({
+    strip: () => strip,
+    pictures: () => pictures,
+    selection: () => selection,
+    order: () => order,
+    onSelectionChange,
+    onShiftGroup,
+    onRemoveGroup,
+  });
 
   function keydown(event: KeyboardEvent, pictureId: string, index: number): void {
-    const action = stripKeyAction(event, index, pictures.length, columns());
-    if (action === null) {
-      return;
-    }
-    event.preventDefault();
-    switch (action.kind) {
-      case "toggle":
-      case "addToggle":
-      case "range":
-        onSelectionChange(
-          pick(selection, pictureId, order, {
-            toggleKey: action.kind === "addToggle",
-            rangeKey: action.kind === "range",
-          }),
-        );
-        void focusTile(pictureId);
-        break;
-      case "deselect":
-        onSelectionChange(endSelecting());
-        break;
-      case "focus": {
-        const next = pictures[action.index]?.id;
-        if (next !== undefined) {
-          if (!selection.several && selection.ids.size === 1) {
-            onSelectionChange(soleSelection(next));
-          }
-          void focusTile(next);
-        }
-        break;
-      }
-      case "shift": {
-        const selected = selection.ids.has(pictureId);
-        const ids = selected ? selectedInOrder(selection, order) : [pictureId];
-        if (!selected) {
-          onSelectionChange(soleSelection(pictureId));
-        }
-        onShiftGroup(ids, action.offset);
-        void focusTile(pictureId);
-        break;
-      }
-      case "remove":
-        removeByKey(pictureId, index);
-        break;
-      case "none":
-        break;
-    }
-  }
-
-  /** The focus passes to the first tile outside the removed group, after it in play order. */
-  function removeByKey(pictureId: string, index: number): void {
-    const ids = selection.ids.has(pictureId) ? selectedInOrder(selection, order) : [pictureId];
-    const removed = new Set(ids);
-    const neighbour =
-      pictures.find((picture, i) => i > index && !removed.has(picture.id))?.id ??
-      [...pictures]
-        .slice(0, index)
-        .reverse()
-        .find((picture) => !removed.has(picture.id))?.id ??
-      null;
-    onRemoveGroup(ids);
-    if (neighbour !== null) {
-      void focusTile(neighbour);
-    }
+    keydownHandler.keydown(event, pictureId, index);
   }
 
   function clickTile(event: MouseEvent, pictureId: string): void {
@@ -251,6 +208,13 @@
 />
 
 <ol class="strip" bind:this={strip} onpointerdown={pointerDown} oncontextmenu={contextmenu}>
+  <CardTile
+    bind:this={openingTile}
+    card={openingCard}
+    {pictures}
+    label={t("cards.openingTile")}
+    onOpen={onOpenOpeningCard}
+  />
   {#each pictures as picture, index (picture.id)}
     <StripTile
       {picture}
@@ -272,6 +236,13 @@
       onRemove={() => onRemove(picture.id)}
     />
   {/each}
+  <CardTile
+    bind:this={closingTile}
+    card={closingCard}
+    {pictures}
+    label={t("cards.closingTile")}
+    onOpen={onOpenClosingCard}
+  />
 </ol>
 
 <DragGhost

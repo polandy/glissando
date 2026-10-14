@@ -16,6 +16,7 @@ import { deTvSheet } from "./catalogue-de-tv-sheet.ts";
 import { dePlaylist } from "./catalogue-de-playlist.ts";
 import { deCulling } from "./catalogue-de-culling.ts";
 import { deFrame } from "./catalogue-de-frame.ts";
+import { deCards } from "./catalogue-de-cards.ts";
 import type { Message } from "./messages.ts";
 
 /**
@@ -324,4 +325,5 @@ export const de = {
   ...dePlaylist,
   ...deCulling,
   ...deFrame,
+  ...deCards,
 } as const satisfies Record<string, Message>;

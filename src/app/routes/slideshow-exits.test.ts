@@ -60,6 +60,7 @@ function editorOver(store: MemoryLibraryStore, toaster: Toaster): SlideshowEdito
     portraitPicturesResetText: () => "Hochformatbilder wieder automatisch",
     songRemovedText: () => "Song entfernt",
     automaticTitle: () => "Juli 2025",
+    locale: () => "de-DE",
     focusOf: () => undefined,
   });
 }

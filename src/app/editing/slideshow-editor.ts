@@ -1,23 +1,16 @@
-import {
-  moveGroup as moveGroupInSlideshow,
-  shiftGroup as shiftGroupInSlideshow,
-} from "../../library/group-edits";
 import type { OwnKenBurns } from "../../library/own-ken-burns";
 import type { BetweenSongs, MusicTrim, PictureChanges } from "../../library/own-music";
 import type { SlideshowTransition, TransitionChoice } from "../../library/own-timing";
 import type { PortraitPictures } from "../../library/portrait-pictures";
-import {
-  removePicture,
-  renameSlideshow,
-  restorePictures,
-  setPictureAlone as setPictureAloneEdit,
-  setPictureCaption,
-} from "../../library/slideshow-edits";
+import { setPictureAlone as setPictureAloneEdit } from "../../library/slideshow-edits";
 import type { PictureLength } from "../../library/picture-length";
-import type { StoredMusic, StoredSlideshow } from "../../library/stored-slideshow";
+import type { StoredCard, StoredMusic, StoredSlideshow } from "../../library/stored-slideshow";
+import type { CardInput } from "../../library/stored-card";
+import { CardSettingsEditor } from "./card-settings-editor";
 import { EditSaver } from "./edit-saver";
 import { EditorUndos } from "./editor-undos";
 import { MusicSettingsEditor } from "./music-settings-editor";
+import { PictureListEditor } from "./picture-list-editor";
 import { PictureSettingsEditor } from "./picture-settings-editor";
 import type { SlideshowEditorPorts } from "./slideshow-editor-ports";
 
@@ -29,17 +22,17 @@ import type { SlideshowEditorPorts } from "./slideshow-editor-ports";
  * spares it.
  */
 export class SlideshowEditor {
-  readonly #ports: SlideshowEditorPorts;
   readonly #listeners = new Set<(slideshow: StoredSlideshow) => void>();
   #slideshow: StoredSlideshow;
   readonly #undos: EditorUndos;
   readonly #saver: EditSaver;
   readonly #pictureSettings: PictureSettingsEditor;
+  readonly #pictureList: PictureListEditor;
   readonly #musicSettings: MusicSettingsEditor;
+  readonly #cardSettings: CardSettingsEditor;
 
   constructor(initial: StoredSlideshow, ports: SlideshowEditorPorts) {
     this.#slideshow = initial;
-    this.#ports = ports;
     this.#saver = new EditSaver(initial, {
       store: ports.store,
       onError: ports.onError,
@@ -64,8 +57,19 @@ export class SlideshowEditor {
       () => this.#slideshow,
       (slideshow) => this.#apply(slideshow),
     );
+    this.#pictureList = new PictureListEditor(
+      ports,
+      this.#undos,
+      () => this.#slideshow,
+      (slideshow) => this.#apply(slideshow),
+    );
     this.#musicSettings = new MusicSettingsEditor(
       this.#undos.songRemoval,
+      () => this.#slideshow,
+      (slideshow) => this.#apply(slideshow),
+    );
+    this.#cardSettings = new CardSettingsEditor(
+      ports,
       () => this.#slideshow,
       (slideshow) => this.#apply(slideshow),
     );
@@ -86,13 +90,11 @@ export class SlideshowEditor {
     return this.#saver.subscribeSaving(listener);
   }
 
+  // The picture list's shape and the slideshow's title delegate to `PictureListEditor`.
+
   /** The last picture stays; asking to remove it explains why in a toast. */
   remove(pictureId: string): void {
-    if (this.#slideshow.pictures.length < 2) {
-      this.#ports.toaster.show({ text: this.#ports.lastPictureText(), tone: "info" });
-      return;
-    }
-    this.#removeOne(pictureId);
+    this.#pictureList.remove(pictureId);
   }
 
   /**
@@ -100,45 +102,26 @@ export class SlideshowEditor {
    * refused with a toast instead. A single id keeps `remove`'s own text for that case.
    */
   removeGroup(pictureIds: readonly string[]): void {
-    if (pictureIds.length === 1) {
-      this.remove(pictureIds[0] as string);
-      return;
-    }
-    if (new Set(pictureIds).size >= this.#slideshow.pictures.length) {
-      this.#ports.toaster.show({ text: this.#ports.everyPictureText(), tone: "info" });
-      return;
-    }
-    for (const pictureId of pictureIds) {
-      this.#removeOne(pictureId);
-    }
+    this.#pictureList.removeGroup(pictureIds);
   }
 
   /** Pictures just added on the add screen: the toast's undo takes those still here out. */
   offerAddUndo(pictureIds: readonly string[]): void {
-    this.#undos.add.offer(pictureIds);
+    this.#pictureList.offerAddUndo(pictureIds);
   }
 
   /** Moves the group contiguous to the slot before the picture at `insertion` (a drop). */
   moveGroup(pictureIds: readonly string[], insertion: number): void {
-    const moved = moveGroupInSlideshow(this.#slideshow, pictureIds, insertion);
-    if (moved !== this.#slideshow) {
-      this.#undos.removal.end();
-      this.#apply(moved);
-    }
+    this.#pictureList.moveGroup(pictureIds, insertion);
   }
 
   /** Moves the group by `offset` steps (Earlier/Later or Shift+arrows), clamped to the ends. */
   shiftGroup(pictureIds: readonly string[], offset: number): void {
-    const shifted = shiftGroupInSlideshow(this.#slideshow, pictureIds, offset);
-    if (shifted !== this.#slideshow) {
-      this.#undos.removal.end();
-      this.#apply(shifted);
-    }
+    this.#pictureList.shiftGroup(pictureIds, offset);
   }
 
   rename(typed: string): void {
-    const automatic = this.#ports.automaticTitle(this.#slideshow);
-    this.#apply(renameSlideshow(this.#slideshow, typed, automatic));
+    this.#pictureList.rename(typed);
   }
 
   // Ken Burns, duration and transition settings delegate to `PictureSettingsEditor`.
@@ -195,11 +178,7 @@ export class SlideshowEditor {
 
   /** Stores the caption as typed, normalised; a keystroke that changes nothing stores nothing. */
   setCaption(pictureId: string, typed: string): void {
-    const edited = setPictureCaption(this.#slideshow, pictureId, typed);
-    const index = this.#slideshow.pictures.findIndex((picture) => picture.id === pictureId);
-    if (edited.pictures[index]?.caption !== this.#picture(pictureId).caption) {
-      this.#apply(edited);
-    }
+    this.#pictureList.setCaption(pictureId, typed);
   }
 
   // The playlist and timing settings delegate to `MusicSettingsEditor`; the songs' edits offer
@@ -245,6 +224,32 @@ export class SlideshowEditor {
     this.#musicSettings.setSecondsPerPicture(seconds);
   }
 
+  // The title slide and closing slide (ADR-0032, TITLE_SLIDES.md) delegate to `CardSettingsEditor`.
+
+  ensureOpeningCard(): StoredCard {
+    return this.#cardSettings.ensureOpeningCard();
+  }
+
+  setOpeningCard(card: CardInput): void {
+    this.#cardSettings.setOpeningCard(card);
+  }
+
+  removeOpeningCard(): void {
+    this.#cardSettings.removeOpeningCard();
+  }
+
+  ensureClosingCard(): StoredCard {
+    return this.#cardSettings.ensureClosingCard();
+  }
+
+  setClosingCard(card: CardInput): void {
+    this.#cardSettings.setClosingCard(card);
+  }
+
+  removeClosingCard(): void {
+    this.#cardSettings.removeClosingCard();
+  }
+
   /** Resolves once every edit made so far is stored (or reported as failed). */
   settled(): Promise<void> {
     return this.#saver.settled();
@@ -253,23 +258,6 @@ export class SlideshowEditor {
   /** The screen closes: its undo toast would act on a slideshow no longer shown. */
   dispose(): void {
     this.#undos.end();
-  }
-
-  /** Removes one picture at once, adding it to the shown removal batch. */
-  #removeOne(pictureId: string): void {
-    const { slideshow, removed } = removePicture(this.#slideshow, pictureId);
-    this.#undos.removal.add(removed, (removals) =>
-      this.#apply(restorePictures(this.#slideshow, removals)),
-    );
-    this.#apply(slideshow);
-  }
-
-  #picture(pictureId: string) {
-    const picture = this.#slideshow.pictures.find((candidate) => candidate.id === pictureId);
-    if (picture === undefined) {
-      throw new Error(`slideshow "${this.#slideshow.id}" holds no picture "${pictureId}"`);
-    }
-    return picture;
   }
 
   #apply(slideshow: StoredSlideshow): void {

@@ -98,6 +98,8 @@ export function slideshowDetails(
     capturedFrom: span.from,
     capturedTo: span.to,
     pictures: tiles,
+    ...(stored.openingCard === undefined ? {} : { openingCard: stored.openingCard }),
+    ...(stored.closingCard === undefined ? {} : { closingCard: stored.closingCard }),
   };
 }
 

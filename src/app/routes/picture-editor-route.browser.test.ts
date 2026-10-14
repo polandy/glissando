@@ -59,6 +59,7 @@ async function mountRoute(pictureId: string) {
     portraitPicturesResetText: () => "Hochformatbilder wieder automatisch",
     songRemovedText: () => "Song entfernt",
     automaticTitle: () => "Juli 2025",
+    locale: () => "de-DE",
     focusOf: () => undefined,
   });
   let backs = 0;
