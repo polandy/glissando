@@ -10,6 +10,7 @@ import { CardRenderTarget } from "./card-render-target";
 import { renderCardLayer } from "./card-pass";
 import { CardItemProgram } from "./card-item-program";
 import { CardTextures } from "./card-textures";
+import { hexToRgb01 } from "./hex-color";
 import { PictureTextures } from "./picture-textures";
 import { compilePrograms, type EffectProgram } from "./shader-programs";
 
@@ -33,6 +34,13 @@ export interface WebGlRendererOptions {
   readonly fonts?: Fonts;
   /** A fixed drawing buffer, e.g. a video's frame size, instead of the CSS size × pixel ratio. */
   readonly drawingSize?: Size;
+  /**
+   * The opening slide's own colour (`#RRGGBB`), painted the instant the canvas exists. Without
+   * it, a freshly created WebGL2 canvas shows solid black until the first real frame draws —
+   * visible for as long as that frame's own picture takes to decode (ADR-0032's "black title
+   * card" bug).
+   */
+  readonly initialBackground?: string;
 }
 
 /** Draws slides and the GLSL transitions into a canvas that fills its container. */
@@ -70,6 +78,7 @@ export class WebGlRenderer implements SlideRenderer<BitmapPicture> {
       pixelRatio = () => devicePixelRatio,
       fonts = document.fonts,
       drawingSize,
+      initialBackground,
     }: WebGlRendererOptions = {},
   ) {
     this.#canvas = canvas;
@@ -87,6 +96,19 @@ export class WebGlRenderer implements SlideRenderer<BitmapPicture> {
     canvas.addEventListener("webglcontextrestored", this.#handleContextRestored);
     this.#resizeObserver = drawingSize === undefined ? new ResizeObserver(onResize) : null;
     this.#resizeObserver?.observe(canvas);
+    if (initialBackground !== undefined) {
+      this.#paintInitialBackground(initialBackground);
+    }
+  }
+
+  /** Clears the canvas to `hex` right away, so the opening slide's own colour shows instead of
+   * the canvas's default black for however long its first real frame takes to become drawable. */
+  #paintInitialBackground(hex: string): void {
+    this.#fitCanvasToDisplay();
+    const gl = this.#gl;
+    const [red, green, blue] = hexToRgb01(hex);
+    gl.clearColor(red, green, blue, 1);
+    gl.clear(gl.COLOR_BUFFER_BIT);
   }
 
   /** The vertex buffer, its attribute binding, every transition's shader program, and the card

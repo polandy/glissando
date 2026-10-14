@@ -13,7 +13,7 @@ import {
 import { WorkerPictureDecoder, type PictureDecodeWorker } from "./browser/worker-picture-decoder";
 import { DomRenderer } from "./dom/dom-renderer";
 import type { PictureLoader, SlideRenderer } from "./ports";
-import type { Slideshow } from "./slideshow";
+import { isGroundSlide, type Slideshow } from "./slideshow";
 import { SlideshowPlayer } from "./slideshow-player";
 import { WebGlRenderer } from "./webgl/webgl-renderer";
 
@@ -91,7 +91,14 @@ export function createBrowserPlayer(
       ? new FallbackPictureDecoder(workerDecoder, mainThreadPictureDecoder)
       : workerDecoder;
   };
-  const drawing = createDrawing(container, redraw, webGl2Context, openPicture, createDecoder);
+  const drawing = createDrawing(
+    container,
+    redraw,
+    webGl2Context,
+    openPicture,
+    createDecoder,
+    openingSlideColour(slideshow),
+  );
   const playback = {
     clock: performanceClock,
     frames: animationFrames,
@@ -120,6 +127,7 @@ function createDrawing(
   webGl2Context: WebGl2Context,
   openPicture: OpenPicture | undefined,
   createDecoder: () => PictureDecoder,
+  initialBackground: string | undefined,
 ): Drawing {
   const canvas = document.createElement("canvas");
   Object.assign(canvas.style, { position: "absolute", inset: "0", width: "100%", height: "100%" });
@@ -136,7 +144,25 @@ function createDrawing(
   container.append(canvas);
   return {
     kind: "webgl",
-    renderer: new WebGlRenderer(canvas, gl, onResize),
+    renderer: new WebGlRenderer(
+      canvas,
+      gl,
+      onResize,
+      initialBackground === undefined ? {} : { initialBackground },
+    ),
     pictures: new BitmapLoader(createDecoder(), openPicture),
   };
+}
+
+/**
+ * The opening slide's own colour, painted into the canvas the instant it exists (`WebGlRenderer`'s
+ * `initialBackground`): a ground slide's colour, or a picture slide's veil tint. Undefined for a
+ * picture slide with no veil, which has no flat colour to paint ahead of the picture itself.
+ */
+function openingSlideColour(slideshow: Slideshow): string | undefined {
+  const opening = slideshow.slides[0];
+  if (opening === undefined) {
+    return undefined;
+  }
+  return isGroundSlide(opening) ? opening.ground : opening.card?.veil?.tint;
 }
