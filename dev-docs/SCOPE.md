@@ -151,6 +151,11 @@ Not in the MVP: per-slide settings, detection, Immich, video export, audio conve
 10. **On the TV, controlled from the phone** — open a slideshow on the TV via link or QR code and
     control it from the phone; the channel is the Glissando server, ADR-0031. Mockup:
     https://polandy.github.io/glissando-assets/mockups/tv-remote/; `dev-docs/TV_REMOTE.md`.
-11. **Videos as slides.**
+11. **Title slide and closing slide** — a title over a colour or a veiled picture that the
+    reveal hands over to the show, and a closing slide that fades to black; four styles. Drawn
+    by the player, ADR-0032. Mockup:
+    https://polandy.github.io/glissando-assets/mockups/title-slides/; `dev-docs/player/TITLE_CARDS.md`.
+    A second PR adds picture-derived colours and the entrance variants.
+12. **Videos as slides.**
 
 Each step goes through the UI flow in `CLAUDE.md` (mockup first, owner OK, then specs and code).

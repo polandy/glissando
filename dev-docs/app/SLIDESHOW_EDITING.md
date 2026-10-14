@@ -10,3 +10,4 @@
 | [Selecting several, moving, removing several](slideshow-editing/SELECTING_SEVERAL.md)               | Select mode and moving or removing a group                        |
 | [Adding pictures](slideshow-editing/ADDING_PICTURES.md)                                             | Adding pictures to an existing slideshow                          |
 | [Rename, transitions, portrait pictures and delete](slideshow-editing/RENAME_TRANSITIONS_DELETE.md) | The title, the transitions and portrait pictures sheets, deleting |
+| [Title slide and closing slide](slideshow-editing/TITLE_SLIDES.md)                                  | The two card tiles, the card sheet, defaults, what is stored      |
