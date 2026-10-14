@@ -1,7 +1,9 @@
 import { flushSync } from "svelte";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { StoredCard } from "../../../../library/stored-slideshow";
+import { FakeFonts } from "../../../../player/testing/fakes";
 import { mountWithTranslator } from "../../../testing/mount-with-translator";
+import { whenRendered } from "../../../testing/when-rendered";
 import type { PictureTile } from "../../view-models";
 import CardTile from "./CardTile.svelte";
 
@@ -33,13 +35,14 @@ afterEach(() => {
   destroy = null;
 });
 
-function setUp(card: StoredCard | undefined) {
+function setUp(card: StoredCard | undefined, fonts: FakeFonts = new FakeFonts()) {
   const onOpen = vi.fn();
   const mounted = mountWithTranslator(CardTile, {
     card,
     pictures: PICTURES,
     label: "Title slide",
     onOpen,
+    fonts,
   });
   destroy = mounted.destroy;
   return { target: mounted.target, onOpen };
@@ -61,14 +64,28 @@ describe("CardTile", () => {
     expect(target.querySelector(".card-tile")?.classList.contains("empty")).toBe(true);
   });
 
-  it("shows a still of the card when it has a title", async () => {
+  it("shows a still of the card when it has a title", () => {
     const { target } = setUp(CARD);
-    flushSync();
-    await new Promise((resolve) => setTimeout(resolve, 50));
     flushSync();
 
     expect(target.querySelector(".card-tile")?.classList.contains("empty")).toBe(false);
     expect(target.querySelector("[data-testid='card-face']")).not.toBeNull();
+  });
+
+  it("shows no card text while its fonts have not settled yet", () => {
+    const { target } = setUp(CARD);
+    flushSync();
+
+    expect(target.querySelector(".text")).toBeNull();
+  });
+
+  it("shows the card text once its fonts settle", async () => {
+    const fonts = new FakeFonts();
+    const { target } = setUp(CARD, fonts);
+
+    fonts.resolve();
+
+    await expect(whenRendered(target, ".text")).resolves.not.toBeNull();
   });
 
   it("calls onOpen when tapped", () => {

@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { StoredCard } from "../../../../library/stored-slideshow";
+  import type { Fonts } from "../../../../player/fonts";
   import Icon from "../../../components/Icon.svelte";
   import type { PictureTile } from "../../view-models";
   import CardFace from "./CardFace.svelte";
@@ -10,17 +11,21 @@
    * an absent card or one with no title, otherwise a still of the card at the end of its enter
    * phase. Deliberately without the `.pick` class or `data-picture-id` (PictureStrip.svelte's
    * `hitTest`/`pointerDown` gate drag, select and reorder on those), so it takes no part in them.
+   * `fonts` defaults to the real `document.fonts`; a test passes a fake it settles on its own
+   * terms.
    */
   let {
     card,
     pictures,
     label,
     onOpen,
+    fonts = document.fonts,
   }: {
     card: StoredCard | undefined;
     pictures: readonly PictureTile[];
     label: string;
     onOpen: () => void;
+    fonts?: Fonts;
   } = $props();
 
   const empty = $derived(card === undefined || card.title === "");
@@ -44,6 +49,7 @@
           ground={face.ground}
           {pictureUrl}
           elapsedMs={CARD_PREVIEW_SETTLED_MS}
+          {fonts}
         />
       </div>
     {:else}

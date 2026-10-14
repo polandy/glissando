@@ -6,7 +6,7 @@
   import { CARD_STYLE_SPECS, type CardTextSpec } from "../../../../player/card-style-table";
   import { cardTimingAt } from "../../../../player/card-timing";
   import { VEIL_CONTRAST_SHARE, VEIL_SATURATION_SHARE } from "../../../../player/card-veil";
-  import { loadFonts, type FontSpec } from "../../../../player/fonts";
+  import { loadFonts, type FontSpec, type Fonts } from "../../../../player/fonts";
   import type { Card } from "../../../../player/slideshow";
   import { styleAttr, withDrift } from "./card-preview-model";
 
@@ -14,7 +14,9 @@
    * One title/closing card at `elapsedMs` into its timing (TITLE_SLIDES.md): the ground or
    * picture background, the veil, and the title/subtitle text, laid out and styled exactly as
    * `card-style.ts`/`card-timing.ts` draw it for the player. Pure presentation: the sheet's
-   * sticky preview and the strip's tile still both mount this at their own size.
+   * sticky preview and the strip's tile still both mount this at their own size. `fonts` is the
+   * style's face loader, injected so a test can settle it on its own terms instead of waiting
+   * on a real font fetch.
    */
   let {
     card,
@@ -22,12 +24,14 @@
     pictureUrl,
     elapsedMs,
     reducedMotion = false,
+    fonts,
   }: {
     card: Card;
     ground?: string | undefined;
     pictureUrl?: string | undefined;
     elapsedMs: number;
     reducedMotion?: boolean;
+    fonts: Fonts;
   } = $props();
 
   let host: HTMLDivElement;
@@ -55,7 +59,7 @@
     loadedStyle = style;
     fontsReady = false;
     const spec = CARD_STYLE_SPECS[style];
-    loadFonts(document.fonts, [toFontSpec(spec.title), toFontSpec(spec.subtitle)])
+    loadFonts(fonts, [toFontSpec(spec.title), toFontSpec(spec.subtitle)])
       .catch((error: unknown) => {
         console.error(`the ${style} card font did not load; it draws with a fallback font`, error);
       })

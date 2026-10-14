@@ -3,6 +3,7 @@
   import type { StoredCard } from "../../../../library/stored-slideshow";
   import { getTranslator } from "../../../i18n/context";
   import type { MotionPreviewPorts } from "../../../picture-editor/motion-preview";
+  import type { Fonts } from "../../../../player/fonts";
   import type { PictureTile } from "../../view-models";
   import CardFace from "./CardFace.svelte";
   import {
@@ -16,18 +17,21 @@
   /**
    * The card sheet's sticky 16:9 preview (TITLE_SLIDES.md): its enter phase plays once when the
    * sheet opens; afterwards an edit shows the settled state at once, never replayed. Play alone
-   * runs the full timing again.
+   * runs the full timing again. `fonts` defaults to the real `document.fonts`; a test passes a
+   * fake it settles on its own terms.
    */
   let {
     card,
     pictures,
     previewPorts,
     reducedMotion,
+    fonts = document.fonts,
   }: {
     card: StoredCard;
     pictures: readonly PictureTile[];
     previewPorts: MotionPreviewPorts;
     reducedMotion: boolean;
+    fonts?: Fonts;
   } = $props();
 
   const { t } = getTranslator();
@@ -80,7 +84,14 @@
 
 <div class="preview">
   <div class="stage">
-    <CardFace card={face.card} ground={face.ground} {pictureUrl} {elapsedMs} {reducedMotion} />
+    <CardFace
+      card={face.card}
+      ground={face.ground}
+      {pictureUrl}
+      {elapsedMs}
+      {reducedMotion}
+      {fonts}
+    />
   </div>
   <button class="btn small ghost play" type="button" disabled={playing} onclick={play}>
     {t("player.play")}

@@ -1,3 +1,4 @@
+import type { Fonts } from "../fonts";
 import type { Size } from "../ken-burns";
 import type {
   Clock,
@@ -216,5 +217,21 @@ export class FakeMusicTracks {
       throw new Error(`no music was opened for ${src}`);
     }
     return music;
+  }
+}
+
+/** Settles every `load` only when the test calls `resolve`, never on its own. */
+export class FakeFonts implements Fonts {
+  #resolve: (() => void) | null = null;
+  readonly #ready = new Promise<void>((resolve) => {
+    this.#resolve = resolve;
+  });
+
+  load(): Promise<unknown> {
+    return this.#ready;
+  }
+
+  resolve(): void {
+    this.#resolve?.();
   }
 }
