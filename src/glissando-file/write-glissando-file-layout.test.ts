@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   FILL_SCREEN_PORTRAIT_PICTURES,
   ONE_AT_A_TIME_PORTRAIT_PICTURES,
+  type PortraitPictures,
 } from "../library/portrait-pictures";
 import { OWN_SECONDS_PICTURE_LENGTH } from "../library/picture-length";
 import type { StoredSlideshow } from "../library/stored-slideshow";
@@ -49,7 +50,7 @@ describe("writeGlissandoFile layout settings", () => {
     expect(other).not.toHaveProperty("alone");
   });
 
-  it.each([ONE_AT_A_TIME_PORTRAIT_PICTURES, FILL_SCREEN_PORTRAIT_PICTURES])(
+  it.each<PortraitPictures>([ONE_AT_A_TIME_PORTRAIT_PICTURES, FILL_SCREEN_PORTRAIT_PICTURES])(
     "keeps the portrait pictures choice %s",
     async (portraitPictures) => {
       const imported = await importedAfterExport({ ...EXPORTED_SLIDESHOW, portraitPictures });
