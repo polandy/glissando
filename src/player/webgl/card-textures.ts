@@ -3,7 +3,7 @@ import { CARD_STYLE_SPECS, type CardTextSpec } from "../card-layout";
 import { loadFonts, type FontSpec, type Fonts } from "../fonts";
 import type { Size } from "../ken-burns";
 import type { Card, CardStyle } from "../slideshow";
-import { rasterizeCard } from "./card-raster";
+import { blurCardRaster, rasterizeCard } from "./card-raster";
 import { setLinearClamped } from "./caption-textures";
 
 const TRANSPARENT_PIXEL = new Uint8Array([0, 0, 0, 0]);
@@ -101,7 +101,9 @@ export class CardTextures {
     }
     const gl = this.#gl;
     const texture = existing?.texture ?? gl.createTexture();
-    rasterizeCard(this.#blurCanvas, card, viewport, CARD_FOCUS_BLUR_SHARE * viewport.height);
+    // `#canvas` is only scratch once its own texture is uploaded: the sharp raster to blur from.
+    rasterizeCard(this.#canvas, card, viewport);
+    blurCardRaster(this.#canvas, this.#blurCanvas, CARD_FOCUS_BLUR_SHARE * viewport.height);
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.#blurCanvas);

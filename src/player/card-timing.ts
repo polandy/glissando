@@ -213,7 +213,7 @@ export function cardItemTimingAt(
     ? 0
     : (1 - enterProgress) * spec.enterDriftEm + revealProgress * spec.revealDriftEm;
 
-  if (card.entrance === "focus" && !reducedMotion) {
+  if (drawsBlurredCopy(card.entrance, reducedMotion)) {
     return {
       opacity: presence,
       driftEm: 0,
@@ -252,4 +252,10 @@ export function endFadeAmount(
 ): number {
   const startMs = showDurationMs - endFadeMs;
   return ease("ease-in-out", windowProgress(showTimeMs, startMs, endFadeMs));
+}
+
+/** Whether `entrance` cross-fades from a blurred copy of the card (only `focus`, and only in
+ * motion), so the renderer builds that costly copy for it alone. */
+export function drawsBlurredCopy(entrance: CardEntrance, reducedMotion: boolean): boolean {
+  return entrance === "focus" && !reducedMotion;
 }

@@ -8,6 +8,7 @@ import {
   cardEnterMs,
   cardItemTimingAt,
   cardTimingAt,
+  drawsBlurredCopy,
   endFadeAmount,
 } from "./card-timing";
 import type { Card } from "./slideshow";
@@ -255,4 +256,20 @@ describe("endFadeAmount", () => {
     expect(amount).toBeGreaterThan(0);
     expect(amount).toBeLessThan(1);
   });
+});
+
+describe("drawsBlurredCopy", () => {
+  it.each([
+    ["rise", false, false],
+    ["words", false, false],
+    ["letters", false, false],
+    ["slow-fade", false, false],
+    ["focus", false, true],
+    ["focus", true, false],
+  ] as const)(
+    "%s (reduced motion %s) needs a blurred cross-fade copy: %s",
+    (entrance, reducedMotion, expected) => {
+      expect(drawsBlurredCopy(entrance, reducedMotion)).toBe(expected);
+    },
+  );
 });

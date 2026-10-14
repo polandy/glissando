@@ -1,3 +1,5 @@
+import type { Size } from "../ken-burns";
+
 /** A rectangular RGBA buffer, row-major, four bytes per pixel: the shape `ImageData` already
  * has, kept separate so this module stays pure and testable without a browser. */
 export interface PixelBuffer {
@@ -10,6 +12,31 @@ export interface PixelBuffer {
  * (ADR-0032), and run the same way in every engine — unlike `CanvasRenderingContext2D.filter`,
  * which Safari/WebKit (a real PWA target) does not support. */
 const BOX_BLUR_PASSES = 3;
+
+/** A blur wider than this many pixels is computed on a raster scaled down until it is this wide:
+ * its cost grows with the raster's area and the box width, and a blur's output has no detail a
+ * linearly filtered upscale would lose. */
+const WORKING_SIGMA_PX = 3;
+
+/** Where to compute a blur of `sigma` pixels over a raster of `size`: the scaled-down size and
+ * the sigma at that size. */
+export interface BlurPlan {
+  readonly size: Size;
+  readonly sigma: number;
+}
+
+/** `size` and `sigma` scaled down so the blur runs at `WORKING_SIGMA_PX`, or unchanged when it is
+ * already that narrow. */
+export function downscaledBlurPlan(size: Size, sigma: number): BlurPlan {
+  if (sigma <= WORKING_SIGMA_PX) {
+    return { size: { width: size.width, height: size.height }, sigma };
+  }
+  const scale = WORKING_SIGMA_PX / sigma;
+  return {
+    size: { width: Math.ceil(size.width * scale), height: Math.ceil(size.height * scale) },
+    sigma: WORKING_SIGMA_PX,
+  };
+}
 
 /**
  * `pixels` blurred by a Gaussian of standard deviation `sigma` pixels, approximated by

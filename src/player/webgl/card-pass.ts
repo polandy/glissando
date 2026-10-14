@@ -1,8 +1,7 @@
 import { CARD_STYLE_SPECS, layoutCard } from "../card-layout";
 import { cardItemSlices } from "../card-item-layout";
-import { itemGranularity } from "../card-items";
 import { canvasCardMeasure } from "../card-measure";
-import { cardItemTimingAt } from "../card-timing";
+import { cardItemTimingAt, drawsBlurredCopy } from "../card-timing";
 import type { BitmapPicture } from "../browser/bitmap-loader";
 import type { Size } from "../ken-burns";
 import type { SlideLayer } from "../ports";
@@ -59,8 +58,9 @@ function drawCardItems(
   const layout = layoutCard(card, viewport, measureTitle, measureSubtitle);
   const slices = cardItemSlices(card, layout, viewport, measureTitle, measureSubtitle);
   const texture = cards.texture(card, viewport);
-  const blurred =
-    itemGranularity(card.entrance) === "block" ? cards.blurredTexture(card, viewport) : undefined;
+  const blurred = drawsBlurredCopy(card.entrance, visual.reducedMotion)
+    ? cards.blurredTexture(card, viewport)
+    : undefined;
   slices.forEach((slice, index) => {
     const item = cardItemTimingAt(
       card,

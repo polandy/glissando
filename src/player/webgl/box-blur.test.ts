@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { gaussianBlur, type PixelBuffer } from "./box-blur";
+import { downscaledBlurPlan, gaussianBlur, type PixelBuffer } from "./box-blur";
 
 /** A single opaque white pixel at `x`, transparent black everywhere else, one row tall. */
 function spike(width: number, x: number): PixelBuffer {
@@ -62,5 +62,20 @@ describe("gaussianBlur", () => {
     const blurred = gaussianBlur(sharp, 0);
 
     expect(Array.from(blurred.data)).toEqual(Array.from(sharp.data));
+  });
+});
+
+describe("downscaledBlurPlan", () => {
+  it("blurs a wide blur on a raster scaled down to a small, fixed working sigma", () => {
+    const plan = downscaledBlurPlan({ width: 1082, height: 2202 }, 26.4);
+
+    expect(plan.sigma).toBeCloseTo(3);
+    expect(plan.size).toEqual({ width: 123, height: 251 });
+  });
+
+  it("keeps a blur already at or under the working sigma at full size", () => {
+    const plan = downscaledBlurPlan({ width: 400, height: 300 }, 2);
+
+    expect(plan).toEqual({ size: { width: 400, height: 300 }, sigma: 2 });
   });
 });

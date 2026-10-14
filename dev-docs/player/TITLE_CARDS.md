@@ -85,7 +85,9 @@ entrance is longer than `CARD_ENTER_MAX_MS` (2000), which is less than `CARD_HOL
   once, as for `rise`. An item's motion moves only its slice.
 - **Focus** draws the card twice: the sharp text, and a copy rasterised once with a blur of
   0.012 h. At progress `p`, the sharp text has opacity `p` and the blurred copy
-  `min(1, 2p) × (1 − p)`. This is a cross-fade, not a blur per frame (ADR-0032).
+  `min(1, 2p) × (1 − p)`. This is a cross-fade, not a blur per frame (ADR-0032). The blur is
+  computed on a copy scaled down until its sigma is 3 px, so it takes milliseconds even at a
+  phone's full resolution; only `focus`, and only in motion, builds that copy at all.
 - No entrance animates letter spacing or blur per frame: both need re-rasterising per frame.
 
 ## Look
