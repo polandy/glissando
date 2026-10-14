@@ -1,11 +1,8 @@
 import type { StoredPicture, StoredSlideshow } from "../library/stored-slideshow";
 import { ownMusicFields } from "../glissando-file/glissando-manifest";
+import { cardFromManifest, cardToManifest } from "../glissando-file/manifest-card";
 import { DocumentFormatError, readObject, readText } from "../glissando-file/document-values";
 import {
-  musicKeys,
-  pictureKeys,
-  readMusicFields,
-  readPictureFields,
   readPictures,
   readSlideshowFields,
   readSongs,
@@ -14,6 +11,12 @@ import {
   type PictureFields,
   type SlideshowFields,
 } from "../glissando-file/slideshow-fields";
+import {
+  musicKeys,
+  pictureKeys,
+  readMusicFields,
+  readPictureFields,
+} from "../glissando-file/slideshow-fields-media";
 
 /**
  * A slideshow on the Glissando server: the .glissando manifest's slideshow with every picture
@@ -22,9 +25,10 @@ import {
  */
 
 export const SERVER_DOCUMENT_FORMAT_ID = "glissando-server";
-export const SERVER_DOCUMENT_FORMAT_VERSION = 1;
+/** Version 2 added the slideshow's `openingCard` and `closingCard` (ADR-0032). */
+export const SERVER_DOCUMENT_FORMAT_VERSION = 2;
 /** The manifest format version whose slideshow fields a server document carries. */
-const MANIFEST_FIELDS_VERSION = 11;
+const MANIFEST_FIELDS_VERSION = 12;
 /** Every key a server document's slideshow, each picture and each song may carry. */
 export const SERVER_SLIDESHOW_KEYS: readonly string[] = slideshowKeys(MANIFEST_FIELDS_VERSION);
 export const SERVER_PICTURE_KEYS: readonly string[] = [
@@ -82,7 +86,7 @@ export function readServerDocument(json: unknown): ServerDocument {
     format: SERVER_DOCUMENT_FORMAT_ID,
     formatVersion: SERVER_DOCUMENT_FORMAT_VERSION,
     slideshow: {
-      ...readSlideshowFields(show, path),
+      ...readSlideshowFields(show, path, pictures.length),
       pictures,
       songs,
     },
@@ -138,6 +142,9 @@ function readMusic(value: unknown, path: string): ServerMusic {
  * playlist's songs are each named by the server's `musicId`.
  */
 export function serverDocumentFor(slideshow: StoredSlideshow): ServerDocument {
+  const pictureIds = slideshow.pictures.map((picture) => picture.id);
+  const openingCard = cardToManifest(slideshow.openingCard, pictureIds);
+  const closingCard = cardToManifest(slideshow.closingCard, pictureIds);
   return {
     format: SERVER_DOCUMENT_FORMAT_ID,
     formatVersion: SERVER_DOCUMENT_FORMAT_VERSION,
@@ -160,6 +167,8 @@ export function serverDocumentFor(slideshow: StoredSlideshow): ServerDocument {
         ...ownMusicFields(song),
       })),
       ...(slideshow.betweenSongs === undefined ? {} : { betweenSongs: slideshow.betweenSongs }),
+      ...(openingCard === undefined ? {} : { openingCard }),
+      ...(closingCard === undefined ? {} : { closingCard }),
     },
   };
 }
@@ -189,15 +198,25 @@ function pictureFieldsOf(picture: PictureFields): PictureFields {
 
 /** The server slideshow `id` as the app keeps it: each picture's id is its `immichAssetId`. */
 export function storedSlideshowFrom(id: string, document: ServerDocument): StoredSlideshow {
-  const { pictures, songs, ...settings } = document.slideshow;
+  const {
+    pictures,
+    songs,
+    openingCard: manifestOpeningCard,
+    closingCard: manifestClosingCard,
+    ...settings
+  } = document.slideshow;
+  const storedPictures = pictures.map((picture) => ({
+    id: picture.immichAssetId,
+    ...pictureFieldsOf(picture),
+    immichAssetId: picture.immichAssetId,
+  }));
+  const pictureIds = storedPictures.map((picture) => picture.id);
+  const openingCard = cardFromManifest(manifestOpeningCard, pictureIds);
+  const closingCard = cardFromManifest(manifestClosingCard, pictureIds);
   return {
     id,
     ...settings,
-    pictures: pictures.map((picture) => ({
-      id: picture.immichAssetId,
-      ...pictureFieldsOf(picture),
-      immichAssetId: picture.immichAssetId,
-    })),
+    pictures: storedPictures,
     songs: songs.map((song) => ({
       id: song.musicId,
       fileName: song.fileName,
@@ -205,5 +224,7 @@ export function storedSlideshowFrom(id: string, document: ServerDocument): Store
       mimeType: song.mimeType,
       ...ownMusicFields(song),
     })),
+    ...(openingCard === undefined ? {} : { openingCard }),
+    ...(closingCard === undefined ? {} : { closingCard }),
   };
 }
