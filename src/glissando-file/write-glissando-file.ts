@@ -86,6 +86,7 @@ export async function writeGlissandoFile(
         width: picture.width,
         height: picture.height,
         fileName: picture.fileName,
+        colours: picture.colours,
         ...(picture.kenBurns === undefined ? {} : { kenBurns: picture.kenBurns }),
         ...(picture.caption === undefined ? {} : { caption: picture.caption }),
         ...(picture.durationMs === undefined ? {} : { durationMs: picture.durationMs }),

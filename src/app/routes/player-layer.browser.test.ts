@@ -21,6 +21,7 @@ const SHOW: StoredSlideshow = {
       width: 100,
       height: 100,
       fileName: "a.jpg",
+      colours: { veil: "#404040", accent: "#C0C0C0" },
     },
   ],
   secondsPerPicture: 5,
@@ -99,6 +100,7 @@ const PICTURE = {
   capturedAt: "2025-07-01T10:00:00Z",
   width: 100,
   height: 100,
+  colours: { veil: "#404040", accent: "#C0C0C0" },
 };
 const TWO_PICTURES: StoredSlideshow = {
   ...SHOW,

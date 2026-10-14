@@ -25,6 +25,7 @@ export const EXPORTED_SLIDESHOW: StoredSlideshow = {
       durationMs: 8000,
       transition: "dissolve",
       fileBytes: 2_500_000,
+      colours: { veil: "#404040", accent: "#C0C0C0" },
     },
     {
       id: "src-p1",
@@ -37,6 +38,7 @@ export const EXPORTED_SLIDESHOW: StoredSlideshow = {
         from: { zoom: 2, centerX: 0.25, centerY: 0.5 },
         to: { zoom: 1.25, centerX: 0.6, centerY: 0.4 },
       },
+      colours: { veil: "#404040", accent: "#C0C0C0" },
     },
   ],
   ownOrder: true,

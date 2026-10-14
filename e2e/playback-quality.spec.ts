@@ -34,6 +34,7 @@ async function serverShowOnTheServer(page: Page) {
           height: 1365,
           fileName: asset.originalFileName,
           immichAssetId: asset.id,
+          colours: { veil: "#404040", accent: "#C0C0C0" },
         })),
       },
     },

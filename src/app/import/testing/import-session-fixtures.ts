@@ -58,6 +58,8 @@ export function sessionWith(
         }),
     }),
     checker: new FakePictureChecker(),
+    pixels: () => Promise.resolve([]),
+    immichColours: () => Promise.resolve({ veil: "#404040", accent: "#C0C0C0" }),
     probeMusic: (file): Promise<MusicProbe> =>
       file.name.endsWith(".broken")
         ? Promise.reject(new UnreadableMusicError(file.name))

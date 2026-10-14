@@ -1,4 +1,5 @@
 import type { PictureIdentity } from "../../library/picture-identity";
+import type { RgbPixel } from "../../library/picture-colours";
 import { MemoryLibraryStore } from "../../library/testing/memory-store";
 import type { PictureBlobs } from "../../library/stored-slideshow";
 import type { DecodedPicture } from "../downscale";
@@ -84,6 +85,8 @@ export function setUp(
     store?: MemoryLibraryStore;
     captureDate?: (file: File) => Promise<string>;
     known?: readonly PictureIdentity[];
+    /** The decoded display blob's pixels for `pictureColours`; a picture with no colour by default. */
+    pixels?: (blob: Blob) => Promise<readonly RgbPixel[]>;
   } = {},
 ) {
   const decoder = options.decoder ?? new FakeDecoder();
@@ -92,6 +95,7 @@ export function setUp(
   const logged: unknown[] = [];
   const pictureImport = new PictureImport({
     store,
+    pixels: options.pixels ?? (() => Promise.resolve([])),
     log: (error) => logged.push(error),
     newId: sequentialIds(),
     stored: (picture) => stored.push(picture),

@@ -81,7 +81,8 @@ export async function encodeJpeg(bitmap: ImageBitmap, size: Size, quality: numbe
   return blob;
 }
 
-function drawScaled(
+/** Draws `bitmap` scaled to `size` onto `context`; also used to sample a picture's colours. */
+export function drawScaled(
   context: OffscreenCanvasRenderingContext2D | CanvasRenderingContext2D | null,
   bitmap: ImageBitmap,
   size: Size,

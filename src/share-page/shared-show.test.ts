@@ -13,6 +13,7 @@ import {
 } from "./shared-show";
 
 const SLIDE_MS = 3000;
+const COLOURS = { veil: "#404040", accent: "#C0C0C0" };
 
 function stored(songCount: number): StoredSlideshow {
   return {
@@ -27,6 +28,7 @@ function stored(songCount: number): StoredSlideshow {
       height: 900,
       fileName: pictureKey(index),
       durationMs: SLIDE_MS,
+      colours: COLOURS,
     })),
     songs: Array.from({ length: songCount }, (_, index) => ({
       id: songKey(index),
@@ -162,6 +164,7 @@ describe("skipMissingPicture", () => {
         width: 900,
         height: 1600,
         fileName: pictureKey(index),
+        colours: COLOURS,
       })),
     };
     const { api } = fakeApi([{ revision: 2, slideshow: portraitStored, beats: new Map() }]);
@@ -191,6 +194,7 @@ describe("shareSummary", () => {
         width: 900,
         height: 1600,
         fileName: pictureKey(index),
+        colours: COLOURS,
       })),
     };
     const { api } = fakeApi([{ revision: 2, slideshow: portraitStored, beats: new Map() }]);

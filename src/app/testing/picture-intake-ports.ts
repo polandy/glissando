@@ -1,10 +1,14 @@
 import type { ImmichPhoto } from "../../immich/immich-client";
 import type { PictureSource } from "../../import/picture-source";
+import type { PictureColours } from "../../library/picture-colours";
 import { MemoryLibraryStore } from "../../library/testing/memory-store";
 import { FakePictureChecker } from "../../culling/testing/fake-picture-checker";
 import type { PictureIntakePorts } from "../import/picture-intake";
 import { Toaster } from "../toast/toaster";
 import { FakeScheduler } from "../../ui-kit/testing/fake-scheduler";
+
+/** A picture with no detected colour, for ports a test does not care about colours. */
+export const NO_COLOURS: PictureColours = { veil: "#404040", accent: "#C0C0C0" };
 
 export const INTAKE_NOW = new Date("2026-10-08T12:00:00Z");
 
@@ -67,6 +71,8 @@ export function fakeIntakePorts(
       }),
     captureDate: (file) => Promise.resolve((file as File & { capturedAt: string }).capturedAt),
     immichSource: fakeImmichSource,
+    pixels: () => Promise.resolve([]),
+    immichColours: () => Promise.resolve(NO_COLOURS),
     checker: new FakePictureChecker(),
     newId: () => `id-${(nextId += 1)}`,
     now: () => INTAKE_NOW,

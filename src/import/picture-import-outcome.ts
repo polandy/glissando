@@ -1,4 +1,5 @@
 import { isSamePicture, type PictureIdentity } from "../library/picture-identity";
+import { pictureColours, type RgbPixel } from "../library/picture-colours";
 import type { LibraryStore, StoredPicture } from "../library/stored-slideshow";
 import type { DuplicateReason, SkipReason } from "./picture-import";
 import { PictureNotDownloadedError, type PictureSource, type ReadPicture } from "./picture-source";
@@ -8,6 +9,8 @@ const QUOTA_EXCEEDED = "QuotaExceededError";
 
 export interface OutcomePorts {
   readonly store: Pick<LibraryStore, "putPicture" | "putPictureFocus">;
+  /** The stored display rendition's pixels, sampled for `pictureColours` (ADR-0033). */
+  pixels(blob: Blob): Promise<readonly RgbPixel[]>;
   newId(): string;
   /** Told why a picture was skipped as unreadable or undecodable; absent: no one is told. */
   log?(error: unknown): void;
@@ -84,9 +87,10 @@ export async function importOne(
     ...(immichAssetId === undefined ? {} : { immichAssetId }),
     ...(fileBytes === undefined ? {} : { fileBytes }),
   };
+  const colours = pictureColours(await ports.pixels(decoded.display));
   return {
     kind: "stored",
-    picture: { id, capturedAt, width, height, fileName, ...origin },
+    picture: { id, capturedAt, width, height, fileName, colours, ...origin },
     thumbnail: decoded.thumbnail,
   };
 }

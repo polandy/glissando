@@ -9,7 +9,14 @@ import { removePicture, takeOutPictures } from "./slideshow-edits";
 import type { StoredPicture, StoredSlideshow } from "./stored-slideshow";
 
 function picture(id: string): StoredPicture {
-  return { id, capturedAt: "2025-09-30T10:00:00Z", width: 10, height: 10, fileName: `${id}.jpg` };
+  return {
+    id,
+    capturedAt: "2025-09-30T10:00:00Z",
+    width: 10,
+    height: 10,
+    fileName: `${id}.jpg`,
+    colours: { veil: "#404040", accent: "#C0C0C0" },
+  };
 }
 
 function slideshowWith(ids: readonly string[]): StoredSlideshow {
@@ -28,7 +35,7 @@ const CARD_ON_P1: CardInput = {
   style: "modern",
   position: "centre",
   entrance: "rise",
-  background: { kind: "picture", pictureId: "p1", fade: 60 },
+  background: { kind: "picture", pictureId: "p1", fade: 60, tint: "picture" },
   motion: true,
 };
 
@@ -73,7 +80,7 @@ describe("withPicturesAfterCardRemoval", () => {
   it("moves the closing card to the last remaining picture when its own leaves", () => {
     const slideshow = setClosingCard(slideshowWith(["p1", "p2", "p3"]), {
       ...CARD_ON_P1,
-      background: { kind: "picture", pictureId: "p3", fade: 60 },
+      background: { kind: "picture", pictureId: "p3", fade: 60, tint: "picture" },
     });
     const pictures = slideshow.pictures.filter((p) => p.id !== "p3");
     const result = withPicturesAfterCardRemoval(slideshow, pictures, new Set(["p3"]));

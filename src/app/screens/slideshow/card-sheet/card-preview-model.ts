@@ -1,5 +1,5 @@
-import type { StoredCard } from "../../../../library/stored-slideshow";
-import { CARD_SWATCHES, inkFor } from "../../../../player/card-palette";
+import type { CardColour, CardTint, StoredCard } from "../../../../library/stored-slideshow";
+import { CARD_SWATCHES, type CardSwatchId, inkFor } from "../../../../player/card-palette";
 import type { CardDeclarations } from "../../../../player/card-style";
 import { CARD_ENTER_MS, CARD_REVEAL_MS, CARD_VEIL_MS } from "../../../../player/card-timing";
 import type { Card, CardInk } from "../../../../player/slideshow";
@@ -10,9 +10,6 @@ import type { PictureTile } from "../../view-models";
  * preview and tile still read it at (TITLE_SLIDES.md, "A change updates the preview in place").
  * Pure: no DOM, no canvas, so it is unit-tested directly.
  */
-
-/** The veil's tint over a picture background is fixed, as it is for every composed card. */
-const PICTURE_VEIL_TINT = CARD_SWATCHES.plum;
 
 /** The card has fully entered and its veil has fully settled, before any reveal starts. */
 export const CARD_PREVIEW_SETTLED_MS = Math.max(CARD_ENTER_MS, CARD_VEIL_MS);
@@ -29,19 +26,55 @@ export interface PreviewFace {
 }
 
 /** `card` as the player draws it, and what fills behind it: a colour or one of the pictures. */
-export function previewFace(card: StoredCard): PreviewFace {
+export function previewFace(card: StoredCard, pictures: readonly PictureTile[]): PreviewFace {
   if (card.background.kind === "colour") {
-    const ground = CARD_SWATCHES[card.background.colour];
+    const ground = groundColourOf(card.background.colour);
     return { card: faceOf(card, inkFor(ground), {}), ground };
   }
-  const veil = { amount: card.background.fade / 100, tint: PICTURE_VEIL_TINT };
+  const { pictureId, fade, tint } = card.background;
+  const veilColour = veilColourFor(tint, pictures, pictureId);
+  const veil = { amount: fade / 100, tint: veilColour };
   const extra: Partial<Pick<Card, "veil" | "revealAtMs">> = card.motion
     ? { veil, revealAtMs: CARD_PREVIEW_HOLD_MS }
     : { veil };
   return {
-    card: faceOf(card, inkFor(PICTURE_VEIL_TINT), extra),
-    pictureId: card.background.pictureId,
+    card: faceOf(card, inkFor(veilColour), extra),
+    pictureId,
   };
+}
+
+/** A colour background's ground: a swatch's hex by id, or a picture-derived hex used as-is. */
+function groundColourOf(colour: CardColour): string {
+  return isCardSwatchId(colour) ? CARD_SWATCHES[colour] : colour;
+}
+
+function isCardSwatchId(colour: CardColour): colour is CardSwatchId {
+  return colour in CARD_SWATCHES;
+}
+
+/**
+ * A picture background's veil tint (TITLE_CARDS.md § Composition). The card sheet only ever
+ * previews a card whose pictures are already loaded, so a `picture` tint whose `pictureId` is
+ * not among `pictures` is an impossible state, not a style to fall back from.
+ */
+function veilColourFor(
+  tint: CardTint,
+  pictures: readonly PictureTile[],
+  pictureId: string,
+): string {
+  switch (tint) {
+    case "picture": {
+      const picture = pictures.find((candidate) => candidate.id === pictureId);
+      if (picture === undefined) {
+        throw new Error(`card background names picture "${pictureId}", not one of the preview's`);
+      }
+      return picture.colours.veil;
+    }
+    case "light":
+      return CARD_SWATCHES.cream;
+    case "dark":
+      return CARD_SWATCHES.plum;
+  }
 }
 
 function faceOf(

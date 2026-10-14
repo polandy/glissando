@@ -76,7 +76,7 @@
     playTo(card.motion ? CARD_PREVIEW_PLAY_MS : CARD_PREVIEW_SETTLED_MS);
   }
 
-  const face = $derived(previewFace(card));
+  const face = $derived(previewFace(card, pictures));
   const pictureUrl = $derived(
     face.pictureId === undefined ? undefined : pictureUrlFor(pictures, face.pictureId),
   );

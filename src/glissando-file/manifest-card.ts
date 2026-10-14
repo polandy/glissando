@@ -6,10 +6,15 @@ import {
   checkCardPosition,
   checkCardStyle,
   checkCardText,
+  checkCardTint,
   InvalidCardError,
 } from "../library/stored-card";
-import type { StoredCard, StoredCardBackground } from "../library/stored-slideshow";
-import type { CardSwatchId } from "../player/card-palette";
+import type {
+  CardColour,
+  CardTint,
+  StoredCard,
+  StoredCardBackground,
+} from "../library/stored-slideshow";
 import type { CardEntrance, CardPosition, CardStyle } from "../player/slideshow";
 import { DocumentFormatError, readObject } from "./document-values";
 
@@ -24,8 +29,13 @@ import { DocumentFormatError, readObject } from "./document-values";
 export const TITLE_CARDS_FROM_VERSION = 12;
 
 export type ManifestCardBackground =
-  | { readonly kind: "colour"; readonly colour: CardSwatchId }
-  | { readonly kind: "picture"; readonly pictureIndex: number; readonly fade: number };
+  | { readonly kind: "colour"; readonly colour: CardColour }
+  | {
+      readonly kind: "picture";
+      readonly pictureIndex: number;
+      readonly fade: number;
+      readonly tint: CardTint;
+    };
 
 export interface ManifestCard {
   readonly title: string;
@@ -69,7 +79,7 @@ function backgroundToManifest(
       `card background names picture "${background.pictureId}", not one of this slideshow's`,
     );
   }
-  return { kind: "picture", pictureIndex, fade: background.fade };
+  return { kind: "picture", pictureIndex, fade: background.fade, tint: background.tint };
 }
 
 /** `card`'s background picture named by `pictureIds[pictureIndex]`; `undefined` stays so. */
@@ -102,7 +112,7 @@ function backgroundFromManifest(
   if (pictureId === undefined) {
     throw new Error(`card background's pictureIndex ${background.pictureIndex} is out of range`);
   }
-  return { kind: "picture", pictureId, fade: background.fade };
+  return { kind: "picture", pictureId, fade: background.fade, tint: background.tint };
 }
 
 /** `value` as a `ManifestCard` at `path`; throws `DocumentFormatError` naming the bad field. */
@@ -145,6 +155,7 @@ function readCardBackground(
     "colour",
     "pictureIndex",
     "fade",
+    "tint",
   ]);
   if (background["kind"] === "colour") {
     return {
@@ -170,6 +181,7 @@ function readCardBackground(
       kind: "picture",
       pictureIndex,
       fade: readCardCheck(checkCardFade, background["fade"], `${path}.background`),
+      tint: readCardCheck(checkCardTint, background["tint"], `${path}.background`),
     };
   }
   throw new DocumentFormatError(

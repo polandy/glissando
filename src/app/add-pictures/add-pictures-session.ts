@@ -72,8 +72,11 @@ export class AddPicturesSession {
 
   /** Downloaded for a device slideshow, linked for a server slideshow. */
   addImmichPhotos(photos: readonly ImmichPhoto[]): void {
-    if (this.home === "server") this.intake.linkImmichPhotos(photos);
-    else this.intake.addImmichPhotos(photos);
+    if (this.home === "server") {
+      this.intake.linkImmichPhotos(photos).catch((error: unknown) => this.#ports.onError(error));
+    } else {
+      this.intake.addImmichPhotos(photos);
+    }
   }
 
   get slideshowId(): string {

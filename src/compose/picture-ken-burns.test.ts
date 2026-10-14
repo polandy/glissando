@@ -9,6 +9,7 @@ const automatic: StoredPicture = {
   width: 400,
   height: 300,
   fileName: "a.jpg",
+  colours: { veil: "#404040", accent: "#C0C0C0" },
 };
 const portraitA: StoredPicture = { ...automatic, id: "a", width: 300, height: 400 };
 const portraitB: StoredPicture = { ...automatic, id: "b", width: 300, height: 400 };

@@ -17,7 +17,14 @@ const ANSWER = {
     title: "Lake Garda",
     createdAt: "2026-07-02T10:00:00Z",
     secondsPerPicture: 4,
-    pictures: [{ capturedAt: "2026-07-01T00:00:00Z", width: 1600, height: 900 }],
+    pictures: [
+      {
+        capturedAt: "2026-07-01T00:00:00Z",
+        width: 1600,
+        height: 900,
+        colours: { veil: "#404040", accent: "#C0C0C0" },
+      },
+    ],
     songs: [],
   },
   beats: [],

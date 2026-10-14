@@ -21,7 +21,7 @@ const DEFAULT_OPENING_CARD: StoredCard = {
   style: "modern",
   position: "centre",
   entrance: "rise",
-  background: { kind: "picture", pictureId: "a", fade: 60 },
+  background: { kind: "picture", pictureId: "a", fade: 60, tint: "picture" },
   motion: true,
 };
 
@@ -31,7 +31,7 @@ const DEFAULT_CLOSING_CARD: StoredCard = {
   style: "modern",
   position: "centre",
   entrance: "rise",
-  background: { kind: "picture", pictureId: "a", fade: 60 },
+  background: { kind: "picture", pictureId: "a", fade: 60, tint: "picture" },
   motion: true,
 };
 
@@ -76,6 +76,7 @@ export function details(ids: readonly string[], overrides: Partial<SlideshowDeta
       pairedWithNumber: null,
       blurredFill: false,
       alone: false,
+      colours: { veil: "#404040", accent: "#C0C0C0" },
     })),
   };
   return { ...base, ...overrides };

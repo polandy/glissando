@@ -12,7 +12,14 @@ const noSongs: StoredSlideshow = {
   title: "Herbst in Wien",
   createdAt: "2025-10-01T08:00:00.000Z",
   pictures: [
-    { id: "p1", capturedAt: "2025-09-30T10:00:00Z", width: 40, height: 30, fileName: "a.jpg" },
+    {
+      id: "p1",
+      capturedAt: "2025-09-30T10:00:00Z",
+      width: 40,
+      height: 30,
+      fileName: "a.jpg",
+      colours: { veil: "#404040", accent: "#C0C0C0" },
+    },
   ],
   songs: [],
   secondsPerPicture: 5,

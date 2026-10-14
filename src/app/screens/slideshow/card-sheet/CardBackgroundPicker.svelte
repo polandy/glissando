@@ -4,8 +4,9 @@
     MAX_CARD_FADE,
     MIN_CARD_FADE,
     DEFAULT_CARD_FADE,
+    DEFAULT_CARD_TINT,
   } from "../../../../library/stored-card";
-  import type { StoredCardBackground } from "../../../../library/stored-slideshow";
+  import type { CardColour, StoredCardBackground } from "../../../../library/stored-slideshow";
   import { CARD_SWATCHES, type CardSwatchId } from "../../../../player/card-palette";
   import SectionHead from "../../../components/SectionHead.svelte";
   import { getTranslator } from "../../../i18n/context";
@@ -36,7 +37,7 @@
   const { t } = getTranslator();
   const swatchIds = Object.keys(CARD_SWATCHES) as CardSwatchId[];
 
-  function pickColour(colour: CardSwatchId): void {
+  function pickColour(colour: CardColour): void {
     onChange({ kind: "colour", colour });
   }
 
@@ -45,6 +46,7 @@
       kind: "picture",
       pictureId,
       fade: background.kind === "picture" ? background.fade : DEFAULT_CARD_FADE,
+      tint: background.kind === "picture" ? background.tint : DEFAULT_CARD_TINT,
     });
   }
 

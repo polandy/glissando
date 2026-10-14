@@ -9,7 +9,14 @@ import {
   type CardStyle,
 } from "../player/slideshow";
 import { titleForCaptureRange } from "../compose/title-for-capture-range";
-import type { StoredCard, StoredCardBackground, StoredSlideshow } from "./stored-slideshow";
+import { isHexColour } from "./picture-colours";
+import type {
+  CardColour,
+  CardTint,
+  StoredCard,
+  StoredCardBackground,
+  StoredSlideshow,
+} from "./stored-slideshow";
 
 /**
  * A title or closing card's own rules (ADR-0032, TITLE_SLIDES.md): the caption rule for its
@@ -23,6 +30,9 @@ export const MAX_CARD_FADE = 100;
 export const CARD_FADE_STEP = 5;
 /** The fade a new card starts with (TITLE_SLIDES.md, "In the editor"). */
 export const DEFAULT_CARD_FADE = 60;
+export const CARD_TINTS: readonly CardTint[] = ["picture", "light", "dark"];
+/** The tint a new picture background starts with. */
+export const DEFAULT_CARD_TINT: CardTint = "picture";
 
 /** The swatch a card's background falls back to once its picture is gone (TITLE_SLIDES.md). */
 export const FALLBACK_CARD_SWATCH: CardSwatchId = "plum";
@@ -93,17 +103,29 @@ export function checkCardFade(value: unknown, where: string): number {
   return value;
 }
 
-/** `value` as a card's colour swatch; throws `InvalidCardError` naming `where`. */
-export function checkCardColour(value: unknown, where: string): CardSwatchId {
+/** `value` as a card's colour, a swatch id or a `#RRGGBB`; throws `InvalidCardError`. */
+export function checkCardColour(value: unknown, where: string): CardColour {
   if (typeof value === "string" && value in CARD_SWATCHES) {
     return value as CardSwatchId;
+  }
+  if (isHexColour(value)) {
+    return value;
   }
   throw new InvalidCardError(
     where,
     "colour",
-    `one of ${Object.keys(CARD_SWATCHES).join(", ")}`,
+    `one of ${Object.keys(CARD_SWATCHES).join(", ")} or a #RRGGBB colour`,
     value,
   );
+}
+
+/** `value` as a picture background's tint; throws `InvalidCardError` naming `where`. */
+export function checkCardTint(value: unknown, where: string): CardTint {
+  const tint = CARD_TINTS.find((candidate) => candidate === value);
+  if (tint === undefined) {
+    throw new InvalidCardError(where, "tint", `one of ${CARD_TINTS.join(", ")}`, value);
+  }
+  return tint;
 }
 
 /** `value` as a card's motion flag; throws `InvalidCardError` naming `where`. */
@@ -126,6 +148,7 @@ export interface CardInput {
     readonly colour?: unknown;
     readonly pictureId?: unknown;
     readonly fade?: unknown;
+    readonly tint?: unknown;
   };
   readonly motion: unknown;
 }
@@ -173,7 +196,12 @@ function checkCardBackground(
         pictureId,
       );
     }
-    return { kind: "picture", pictureId, fade: checkCardFade(background.fade, where) };
+    return {
+      kind: "picture",
+      pictureId,
+      fade: checkCardFade(background.fade, where),
+      tint: checkCardTint(background.tint, where),
+    };
   }
   throw new InvalidCardError(
     where,
@@ -202,7 +230,12 @@ export function defaultOpeningCard(slideshow: StoredSlideshow, locale: string): 
     style: "modern",
     position: "centre",
     entrance: "rise",
-    background: { kind: "picture", pictureId: firstPicture.id, fade: DEFAULT_CARD_FADE },
+    background: {
+      kind: "picture",
+      pictureId: firstPicture.id,
+      fade: DEFAULT_CARD_FADE,
+      tint: DEFAULT_CARD_TINT,
+    },
     motion: true,
   };
 }
@@ -221,7 +254,12 @@ export function defaultClosingCard(slideshow: StoredSlideshow): StoredCard {
     style: "modern",
     position: "centre",
     entrance: "rise",
-    background: { kind: "picture", pictureId: lastPicture.id, fade: DEFAULT_CARD_FADE },
+    background: {
+      kind: "picture",
+      pictureId: lastPicture.id,
+      fade: DEFAULT_CARD_FADE,
+      tint: DEFAULT_CARD_TINT,
+    },
     motion: true,
   };
 }
@@ -246,6 +284,11 @@ export function cardWithoutPicture(
   const background: StoredCardBackground =
     fallbackPictureId === undefined
       ? { kind: "colour", colour: FALLBACK_CARD_SWATCH }
-      : { kind: "picture", pictureId: fallbackPictureId, fade: card.background.fade };
+      : {
+          kind: "picture",
+          pictureId: fallbackPictureId,
+          fade: card.background.fade,
+          tint: card.background.tint,
+        };
   return { ...card, background };
 }

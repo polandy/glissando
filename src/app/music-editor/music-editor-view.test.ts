@@ -23,6 +23,7 @@ function slideshow(
     width: 1,
     height: 1,
     fileName: `p${index}.jpg`,
+    colours: { veil: "#404040", accent: "#C0C0C0" },
     ...(durationMs === undefined ? {} : { durationMs }),
   }));
   return {
@@ -112,6 +113,7 @@ describe("musicEditorView", () => {
       width: 900,
       height: 1600,
       fileName: `p${index}.jpg`,
+      colours: { veil: "#404040", accent: "#C0C0C0" },
     }));
     const stored: StoredSlideshow = {
       id: "show",

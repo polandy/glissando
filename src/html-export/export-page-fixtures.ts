@@ -9,6 +9,7 @@ export function picture(id: string, width: number, height: number): StoredPictur
     width,
     height,
     fileName: `${id}.jpg`,
+    colours: { veil: "#404040", accent: "#C0C0C0" },
   };
 }
 

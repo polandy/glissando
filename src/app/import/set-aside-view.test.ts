@@ -8,6 +8,7 @@ const picture = (id: string, capturedAt: string): StoredPicture => ({
   width: 4,
   height: 3,
   fileName: `${id}.jpg`,
+  colours: { veil: "#404040", accent: "#C0C0C0" },
 });
 
 const NOON = picture("noon", "2026-07-01T12:00:00Z");

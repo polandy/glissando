@@ -13,7 +13,7 @@ const OPENING: StoredCard = {
   style: "modern",
   position: "centre",
   entrance: "rise",
-  background: { kind: "picture", pictureId: ASSET_B, fade: 60 },
+  background: { kind: "picture", pictureId: ASSET_B, fade: 60, tint: "picture" },
   motion: true,
 };
 const CLOSING: StoredCard = {
@@ -35,7 +35,7 @@ describe("openingCard and closingCard in the server document (ADR-0032)", () => 
       style: "modern",
       position: "centre",
       entrance: "rise",
-      background: { kind: "picture", pictureIndex: 1, fade: 60 },
+      background: { kind: "picture", pictureIndex: 1, fade: 60, tint: "picture" },
       motion: true,
     });
     expect(written.slideshow.closingCard).toEqual(CLOSING);

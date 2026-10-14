@@ -7,13 +7,14 @@ import {
   checkCardPosition,
   checkCardStyle,
   checkCardText,
+  checkCardTint,
   checkStoredCard,
   defaultClosingCard,
   defaultOpeningCard,
   InvalidCardError,
   type CardInput,
 } from "./stored-card";
-import type { StoredCard, StoredSlideshow } from "./stored-slideshow";
+import type { CardTint, StoredCard, StoredSlideshow } from "./stored-slideshow";
 
 const PICTURE_IDS = new Set(["p1", "p2"]);
 
@@ -69,6 +70,17 @@ describe("checkCardFade", () => {
   });
 });
 
+describe("checkCardTint", () => {
+  it.each(["picture", "light", "dark"] as const)("accepts %s", (value) => {
+    expect(checkCardTint(value, "card")).toBe(value);
+  });
+
+  it("rejects anything outside the fixed list", () => {
+    expect(() => checkCardTint("plum", "card")).toThrow(InvalidCardError);
+    expect(() => checkCardTint(undefined, "card")).toThrow(InvalidCardError);
+  });
+});
+
 describe("checkCardColour", () => {
   it("accepts a swatch id", () => {
     expect(checkCardColour("plum", "card")).toBe("plum");
@@ -87,7 +99,7 @@ describe("checkStoredCard", () => {
   it("accepts a picture background whose pictureId is in the slideshow", () => {
     const input: CardInput = {
       ...VALID_INPUT,
-      background: { kind: "picture", pictureId: "p1", fade: 60 },
+      background: { kind: "picture", pictureId: "p1", fade: 60, tint: "picture" },
     };
     expect(checkStoredCard(input, PICTURE_IDS, "card")).toEqual(input);
   });
@@ -95,7 +107,15 @@ describe("checkStoredCard", () => {
   it("rejects a picture background whose pictureId is not in the slideshow", () => {
     const input: CardInput = {
       ...VALID_INPUT,
-      background: { kind: "picture", pictureId: "unknown", fade: 60 },
+      background: { kind: "picture", pictureId: "unknown", fade: 60, tint: "picture" },
+    };
+    expect(() => checkStoredCard(input, PICTURE_IDS, "card")).toThrow(InvalidCardError);
+  });
+
+  it("rejects a picture background whose tint is not one of the fixed list", () => {
+    const input: CardInput = {
+      ...VALID_INPUT,
+      background: { kind: "picture", pictureId: "p1", fade: 60, tint: "sepia" },
     };
     expect(() => checkStoredCard(input, PICTURE_IDS, "card")).toThrow(InvalidCardError);
   });
@@ -124,6 +144,7 @@ function slideshowWith(pictureIds: readonly string[]): StoredSlideshow {
       width: 10,
       height: 10,
       fileName: `${id}.jpg`,
+      colours: { veil: "#404040", accent: "#C0C0C0" },
     })),
     songs: [],
     secondsPerPicture: 5,
@@ -159,12 +180,12 @@ describe("defaultClosingCard", () => {
 });
 
 describe("cardWithoutPicture", () => {
-  const cardOn = (pictureId: string): StoredCard => ({
+  const cardOn = (pictureId: string, tint: CardTint = "picture"): StoredCard => ({
     title: "Title",
     style: "modern",
     position: "centre",
     entrance: "rise",
-    background: { kind: "picture", pictureId, fade: 60 },
+    background: { kind: "picture", pictureId, fade: 60, tint },
     motion: true,
   });
 
@@ -182,11 +203,19 @@ describe("cardWithoutPicture", () => {
     expect(cardWithoutPicture(undefined, new Set(["p1"]), "p3")).toBeUndefined();
   });
 
-  it("moves to the fallback picture, keeping the fade, when its picture is removed", () => {
+  it("moves to the fallback picture, keeping the fade and tint, when its picture is removed", () => {
     const card = cardOn("p1");
     expect(cardWithoutPicture(card, new Set(["p1"]), "p3")).toEqual({
       ...card,
-      background: { kind: "picture", pictureId: "p3", fade: 60 },
+      background: { kind: "picture", pictureId: "p3", fade: 60, tint: "picture" },
+    });
+  });
+
+  it("keeps a non-default tint too, when its picture is removed", () => {
+    const card = cardOn("p1", "dark");
+    expect(cardWithoutPicture(card, new Set(["p1"]), "p3")).toEqual({
+      ...card,
+      background: { kind: "picture", pictureId: "p3", fade: 60, tint: "dark" },
     });
   });
 

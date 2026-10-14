@@ -20,6 +20,7 @@ export const slideshow: StoredSlideshow = {
       fileName: "a.jpg",
       caption: "Am Steg",
       immichAssetId: ASSET_A,
+      colours: { veil: "#404040", accent: "#C0C0C0" },
     },
     {
       id: ASSET_B,
@@ -34,6 +35,7 @@ export const slideshow: StoredSlideshow = {
         to: { zoom: 1, centerX: 0.5, centerY: 0.5 },
       },
       immichAssetId: ASSET_B,
+      colours: { veil: "#404040", accent: "#C0C0C0" },
     },
   ],
   ownOrder: true,

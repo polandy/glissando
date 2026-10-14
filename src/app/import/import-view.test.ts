@@ -21,6 +21,7 @@ const picture = (id: string, capturedAt: string): StoredPicture => ({
   width: 300,
   height: 200,
   fileName: `${id}.jpg`,
+  colours: { veil: "#404040", accent: "#C0C0C0" },
 });
 
 const idle: PictureImportState = {

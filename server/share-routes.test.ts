@@ -26,6 +26,7 @@ function sharedLibrary() {
           height: 1920,
           fileName: "b.jpg",
           immichAssetId: SECOND_ASSET,
+          colours: { veil: "#404040", accent: "#C0C0C0" },
         },
       ],
       songs: [
@@ -146,8 +147,18 @@ describe("the shared document", () => {
         createdAt: "2025-10-01T00:00:00.000Z",
         secondsPerPicture: 5,
         pictures: [
-          { capturedAt: "2025-09-01T00:00:00.000Z", width: 1920, height: 1080 },
-          { capturedAt: "2025-10-01T00:00:00.000Z", width: 1080, height: 1920 },
+          {
+            capturedAt: "2025-09-01T00:00:00.000Z",
+            width: 1920,
+            height: 1080,
+            colours: { veil: "#404040", accent: "#C0C0C0" },
+          },
+          {
+            capturedAt: "2025-10-01T00:00:00.000Z",
+            width: 1080,
+            height: 1920,
+            colours: { veil: "#404040", accent: "#C0C0C0" },
+          },
         ],
         songs: [
           { durationMs: 60000, mimeType: "audio/mp4" },

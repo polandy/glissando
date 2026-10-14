@@ -1,7 +1,13 @@
 import type { PictureFocus } from "../library/picture-focus";
 import { CUT_TRANSITION, type SlideshowTransition } from "../library/own-timing";
-import type { StoredCard, StoredPicture, StoredSlideshow } from "../library/stored-slideshow";
-import { CARD_SWATCHES, inkFor } from "../player/card-palette";
+import type {
+  CardColour,
+  CardTint,
+  StoredCard,
+  StoredPicture,
+  StoredSlideshow,
+} from "../library/stored-slideshow";
+import { CARD_SWATCHES, type CardSwatchId, inkFor } from "../player/card-palette";
 import { CARD_REVEAL_MS } from "../player/card-timing";
 import type {
   Card,
@@ -83,7 +89,7 @@ function composeOpening(
     return slides;
   }
   if (card.background.kind === "colour") {
-    const ground = CARD_SWATCHES[card.background.colour];
+    const ground = groundColourOf(card.background.colour);
     const groundSlide: GroundSlide = {
       ground,
       durationMs: CARD_SLIDE_MS,
@@ -93,12 +99,13 @@ function composeOpening(
     return [groundSlide, ...slides];
   }
 
-  const { pictureId, fade } = card.background;
+  const { pictureId, fade, tint } = card.background;
   const picture = pictureOf(pictures, pictureId);
   const unitIndex = slideOfPicture(units, pictures.indexOf(picture));
   const mergeable = unitIndex === 0 && units[0]?.pictureIndices.length === 1;
-  const veil = { amount: fade / 100, tint: CARD_SWATCHES.plum };
-  const ink = inkFor(CARD_SWATCHES.plum);
+  const veilColour = veilColourFor(tint, picture);
+  const veil = { amount: fade / 100, tint: veilColour };
+  const ink = inkFor(veilColour);
 
   if (!card.motion) {
     const leadSlide = pictureSlide(picture, 0, sources, focus, CARD_SLIDE_MS, {
@@ -140,7 +147,7 @@ function composeClosing(
     return { slides };
   }
   if (card.background.kind === "colour") {
-    const ground = CARD_SWATCHES[card.background.colour];
+    const ground = groundColourOf(card.background.colour);
     const groundSlide: GroundSlide = {
       ground,
       durationMs: CARD_SLIDE_MS + CARD_END_FADE_MS,
@@ -152,12 +159,13 @@ function composeClosing(
     };
   }
 
-  const { pictureId, fade } = card.background;
+  const { pictureId, fade, tint } = card.background;
   const picture = pictureOf(pictures, pictureId);
   const unitIndex = slideOfPicture(units, pictures.indexOf(picture));
   const isLast = unitIndex === units.length - 1 && units[unitIndex]?.pictureIndices.length === 1;
-  const veil = { amount: fade / 100, tint: CARD_SWATCHES.plum };
-  const ink = inkFor(CARD_SWATCHES.plum);
+  const veilColour = veilColourFor(tint, picture);
+  const veil = { amount: fade / 100, tint: veilColour };
+  const ink = inkFor(veilColour);
   const aloneMs = card.motion ? CARD_ALONE_MS : 0;
 
   if (isLast) {
@@ -211,6 +219,27 @@ function transitionInto(
 
 function withTransition(transition: Transition | undefined): { transitionToNext?: Transition } {
   return transition === undefined ? {} : { transitionToNext: transition };
+}
+
+/** A colour background's ground: a swatch's hex by id, or a picture-derived hex used as-is. */
+function groundColourOf(colour: CardColour): string {
+  return isCardSwatchId(colour) ? CARD_SWATCHES[colour] : colour;
+}
+
+function isCardSwatchId(colour: CardColour): colour is CardSwatchId {
+  return colour in CARD_SWATCHES;
+}
+
+/** A picture background's veil tint (TITLE_CARDS.md § Composition). */
+function veilColourFor(tint: CardTint, picture: StoredPicture): string {
+  switch (tint) {
+    case "picture":
+      return picture.colours.veil;
+    case "light":
+      return CARD_SWATCHES.cream;
+    case "dark":
+      return CARD_SWATCHES.plum;
+  }
 }
 
 function pictureOf(pictures: readonly StoredPicture[], id: string): StoredPicture {

@@ -14,7 +14,7 @@ const CARD: StoredCard = {
   style: "modern",
   position: "centre",
   entrance: "rise",
-  background: { kind: "picture", pictureId: "a", fade: 60 },
+  background: { kind: "picture", pictureId: "a", fade: 60, tint: "picture" },
   motion: true,
 };
 
@@ -29,6 +29,7 @@ const PICTURES: PictureTile[] = [
     pairedWithNumber: null,
     blurredFill: false,
     alone: false,
+    colours: { veil: "#404040", accent: "#C0C0C0" },
   },
 ];
 

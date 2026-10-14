@@ -22,6 +22,7 @@ export function stored(ids: readonly string[]): StoredSlideshow {
       width: 100,
       height: 100,
       fileName: `${id}.jpg`,
+      colours: { veil: "#404040", accent: "#C0C0C0" },
     })),
     secondsPerPicture: 5,
     songs: [],

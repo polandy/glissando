@@ -23,6 +23,8 @@ function session(createOnServer: ImportSessionPorts["createOnServer"]): ImportSe
     store: new MemoryLibraryStore(),
     ...fakeRemovalPorts(),
     checker: new FakePictureChecker(),
+    pixels: () => Promise.resolve([]),
+    immichColours: () => Promise.resolve({ veil: "#404040", accent: "#C0C0C0" }),
     decode: (file) =>
       Promise.resolve({
         width: 300,
