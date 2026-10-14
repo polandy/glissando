@@ -16,21 +16,24 @@
 
   /**
    * The card sheet's sticky 16:9 preview (TITLE_SLIDES.md): its enter phase plays once when the
-   * sheet opens; afterwards an edit shows the settled state at once, never replayed. Play alone
-   * runs the full timing again. `fonts` defaults to the real `document.fonts`; a test passes a
-   * fake it settles on its own terms.
+   * sheet opens; afterwards an edit shows the settled state at once, never replayed, except for
+   * picking an entrance, which plays the enter phase once more. The sheet reports that one case
+   * by bumping `entranceReplayToken`. Play alone runs the full timing again. `fonts` defaults to
+   * the real `document.fonts`; a test passes a fake it settles on its own terms.
    */
   let {
     card,
     pictures,
     previewPorts,
     reducedMotion,
+    entranceReplayToken = 0,
     fonts = document.fonts,
   }: {
     card: StoredCard;
     pictures: readonly PictureTile[];
     previewPorts: MotionPreviewPorts;
     reducedMotion: boolean;
+    entranceReplayToken?: number;
     fonts?: Fonts;
   } = $props();
 
@@ -41,6 +44,11 @@
   // Fixed for the sheet's lifetime; a test passes its own fake ports once, at mount.
   const player = new PreviewPlayer();
   let firstCardEffect = true;
+  // Plain bookkeeping, not $state: writing it from inside the effect that reads it must not
+  // retrigger that same effect, which a reactive variable here would do. Only the initial value
+  // matters: the effect below keeps it in step with entranceReplayToken on every later run.
+  // svelte-ignore state_referenced_locally
+  let lastEntranceReplayToken = entranceReplayToken;
 
   function playTo(targetMs: number): void {
     if (reducedMotion) {
@@ -60,11 +68,17 @@
   onDestroy(() => player.stop());
 
   // An edit to the card jumps the preview straight back to its settled look, never replayed;
-  // the very first run (the sheet opening) is the mount's own job, played above instead.
+  // the very first run (the sheet opening) is the mount's own job, played above instead. Picking
+  // an entrance is the one exception: the sheet bumps entranceReplayToken, and this plays again.
   $effect(() => {
     void card;
     if (firstCardEffect) {
       firstCardEffect = false;
+      return;
+    }
+    if (entranceReplayToken !== lastEntranceReplayToken) {
+      lastEntranceReplayToken = entranceReplayToken;
+      playTo(CARD_PREVIEW_SETTLED_MS);
       return;
     }
     player.stop();

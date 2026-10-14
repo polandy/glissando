@@ -84,6 +84,16 @@ describe("CardSheet", () => {
     expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ title: "Juli  am See " }));
   });
 
+  it("calls onChange with the picked entrance", () => {
+    const { target, onChange } = setUp(CARD);
+
+    const chips = target.querySelectorAll<HTMLButtonElement>(".chip");
+    const words = Array.from(chips).find((chip) => chip.textContent === "Wort für Wort");
+    words?.click();
+
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ entrance: "words" }));
+  });
+
   it("calls onRemove and onClose when Remove is clicked", () => {
     const { target, onRemove, onClose } = setUp(CARD);
 

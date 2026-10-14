@@ -6,11 +6,16 @@
     DEFAULT_CARD_FADE,
     DEFAULT_CARD_TINT,
   } from "../../../../library/stored-card";
-  import type { CardColour, StoredCardBackground } from "../../../../library/stored-slideshow";
+  import type {
+    CardColour,
+    CardTint,
+    StoredCardBackground,
+  } from "../../../../library/stored-slideshow";
   import { CARD_SWATCHES, type CardSwatchId } from "../../../../player/card-palette";
   import SectionHead from "../../../components/SectionHead.svelte";
   import { getTranslator } from "../../../i18n/context";
   import type { PictureTile } from "../../view-models";
+  import CardTintPicker from "./CardTintPicker.svelte";
 
   /**
    * The card sheet's Background section (TITLE_SLIDES.md): Colour | Picture, the six swatches or
@@ -56,8 +61,26 @@
     }
   }
 
+  function setTint(tint: CardTint): void {
+    if (background.kind === "picture") {
+      onChange({ ...background, tint });
+    }
+  }
+
   const motionLabel = $derived(
     kind === "opening" ? t("cards.revealLabel") : t("cards.fadeInLabel"),
+  );
+
+  // The two picture swatches (TITLE_SLIDES.md): the veil and accent of the first picture for the
+  // title slide, the last picture for the closing slide; absent with no picture in the show.
+  const edgePicture = $derived(kind === "opening" ? pictures[0] : pictures.at(-1));
+  const pictureSwatches = $derived(
+    edgePicture === undefined
+      ? []
+      : [
+          { hex: edgePicture.colours.veil, label: t("cards.swatchPictureVeil") },
+          { hex: edgePicture.colours.accent, label: t("cards.swatchPictureAccent") },
+        ],
   );
 </script>
 
@@ -88,14 +111,27 @@
   </div>
 
   {#if background.kind === "colour"}
-    <div class="swatches" role="radiogroup" aria-label={t("cards.backgroundColour")}>
+    <div class="swatches" role="group" aria-label={t("cards.backgroundColour")}>
+      {#each pictureSwatches as swatch (swatch.hex)}
+        <button
+          class="swatch"
+          class:checked={background.colour === swatch.hex}
+          type="button"
+          aria-pressed={background.colour === swatch.hex}
+          aria-label={swatch.label}
+          style:background={swatch.hex}
+          onclick={() => pickColour(swatch.hex)}
+        ></button>
+      {/each}
+      {#if pictureSwatches.length > 0}
+        <span class="hairline" aria-hidden="true"></span>
+      {/if}
       {#each swatchIds as swatchId (swatchId)}
         <button
           class="swatch"
           class:checked={background.colour === swatchId}
           type="button"
-          role="radio"
-          aria-checked={background.colour === swatchId}
+          aria-pressed={background.colour === swatchId}
           aria-label={t(`cards.colour-${swatchId}`)}
           style:background={CARD_SWATCHES[swatchId]}
           onclick={() => pickColour(swatchId)}
@@ -136,6 +172,8 @@
       </div>
     </div>
 
+    <CardTintPicker tint={background.tint} onChange={setTint} />
+
     <label class="motion">
       <input
         type="checkbox"
@@ -170,20 +208,27 @@
     background: color-mix(in srgb, var(--gl-accent) 14%, var(--gl-raised));
   }
   .swatches {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
+    display: flex;
+    flex-wrap: wrap;
     gap: 8px;
   }
   .swatch {
-    aspect-ratio: 1;
+    width: 34px;
+    height: 34px;
     border: 2px solid var(--gl-line);
-    border-radius: var(--gl-radius);
+    border-radius: var(--gl-radius-small);
     cursor: pointer;
   }
   .swatch.checked {
     border-color: var(--gl-accent);
     outline: 2px solid var(--gl-accent);
     outline-offset: 2px;
+  }
+  .hairline {
+    width: 1px;
+    align-self: stretch;
+    margin: 0 2px;
+    background: var(--gl-line);
   }
   .pictures {
     display: grid;
