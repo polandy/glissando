@@ -7,6 +7,7 @@ import { createMemoryStorage } from "../testing/memory-storage";
 import { whenRendered } from "../testing/when-rendered";
 import { FramePreferences, createStorageFramePreferences } from "./frame-preferences";
 import type { FrameDevice } from "./browser-frame-device";
+import { CONTROLS_VISIBLE_MS } from "../../frame/tap-controls";
 import FrameSetupRoute from "./FrameSetupRoute.svelte";
 
 function album(id: string, name: string): ImmichAlbum {
@@ -28,6 +29,7 @@ const noopScheduler = { after: () => () => {} };
 function fakeDevice(writeText: (text: string) => Promise<void>): FrameDevice {
   return {
     scheduler: noopScheduler,
+    controlsVisibleMs: CONTROLS_VISIBLE_MS,
     clipboard: { writeText },
     screenAwake: {
       request: () => new Promise(() => {}),

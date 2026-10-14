@@ -25,28 +25,6 @@ function albumTile(page: Page, name: string): Locator {
   return page.getByRole("button", { name: new RegExp(name) });
 }
 
-/**
- * Clicks `locator` once the tap controls are visible, re-tapping the stage first if they already
- * auto-hid again (`tap-controls.ts`'s real 4 s timeout, which a slow CI machine can let elapse
- * between an earlier reveal and this click). Once hidden, pointer-events:none on the bar means
- * Playwright refuses to even dispatch the click (the stage, not the button, is topmost), so a
- * single reveal-then-click can still lose the race if the timeout lands in between; retrying the
- * whole reveal-and-click as one unit (`toPass`), rather than waiting a fixed time, is what finally
- * makes it land regardless of how slow the machine is. The per-attempt click timeout is generous
- * (not a tight 1 s): on a contended CI runner, resolving `getByRole` alone can take most of a
- * second, so a short timeout starved the actionability check every attempt and never gave the
- * click itself a chance to land, independent of the auto-hide race this helper exists for.
- */
-async function clickWithControlsVisible(page: Page, locator: Locator): Promise<void> {
-  await expect(async () => {
-    const opacity = await exitButton(page).evaluate((el) => getComputedStyle(el).opacity);
-    if (opacity !== "1") {
-      await page.locator(".stage").click();
-    }
-    await locator.click({ timeout: 8000 });
-  }).toPass({ timeout: 25000 });
-}
-
 /** The clock/date switches, which carry no accessible name of their own: found by their row. */
 function settingSwitch(page: Page, label: string): Locator {
   return page
@@ -68,20 +46,23 @@ function toggleSwitch(page: Page, label: string): Promise<void> {
 }
 
 /** Registers the fake server and loads the app, with a photo ready for every picture asked for. */
-async function openAppWithServer(page: Page): Promise<void> {
+async function openAppWithServer(page: Page, path = "/"): Promise<void> {
   let jpeg: Uint8Array | null = null;
   await fakeGlissandoServer(page, () => {
     if (jpeg === null) throw new Error("a photo was asked for before the case made one");
     return jpeg;
   });
-  await openApp(page);
+  await openApp(page, path);
   jpeg = (await pictureTakenOn(page, "photo.jpg", "2019-07-02", "#4db6ac")).buffer;
 }
 
 test("E2E-047 the picture frame is set up from the start screen, runs full screen and its tap controls exit back to the start screen on both the button and Esc", async ({
   page,
 }) => {
-  await openAppWithServer(page);
+  // A long `controlsVisibleMs` (`browser-frame-device.ts`) keeps the tap controls up for every
+  // step below, instead of racing their real 4 s auto-hide (`tap-controls.ts`); that auto-hide
+  // itself is proven deterministically at the unit level (`tap-controls.test.ts`).
+  await openAppWithServer(page, "/?controlsVisibleMs=60000");
 
   await expect(page.getByText("Bilderrahmen", { exact: true })).toBeVisible();
   await setUpCard(page).click();
@@ -119,12 +100,11 @@ test("E2E-047 the picture frame is set up from the start screen, runs full scree
   const pauseButton = page.getByRole("button", { name: "Pause" });
   await expect(pauseButton).toBeVisible();
   await expect(page.getByRole("button", { name: "Weiter ›" })).toBeVisible();
-  await clickWithControlsVisible(page, pauseButton);
+  await pauseButton.click();
   await expect(page.getByRole("button", { name: "Weiter", exact: true })).toBeVisible();
 
   // Exit (the running frame sits over the start screen, not its set-up screen: `src/app/navigation/route.ts`).
-  // Same auto-hide race as `pauseButton` above: the controls can have hidden again by now.
-  await clickWithControlsVisible(page, exitButton(page));
+  await exitButton(page).click();
   await expect(setUpCard(page)).toBeVisible();
   await expect(exitButton(page)).toHaveCount(0);
 
