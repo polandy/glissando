@@ -93,7 +93,37 @@ GEIST_MONO_SOURCE = FontSource(
     output_name=f"geistmono-latin-wght{GEIST_MONO_WEIGHT_RANGE[0]}-{GEIST_MONO_WEIGHT_RANGE[1]}.woff2",
 )
 
-FONT_SOURCES = [BALOO2_SOURCE, INSTRUMENT_SANS_SOURCE, BRICOLAGE_GROTESQUE_SOURCE, GEIST_MONO_SOURCE]
+# Title cards (ADR-0032): a static weight with upright and italic faces, so each face is its
+# own static source file rather than one variable font instanced into a range.
+INSTRUMENT_SERIF_WEIGHT = 400
+INSTRUMENT_SERIF_LICENSE = "OFL-instrument-serif.txt"
+INSTRUMENT_SERIF_SOURCE = FontSource(
+    family_dir="instrumentserif",
+    source_commit=WEBFONT_SOURCE_COMMIT,
+    source_file="InstrumentSerif-Regular.ttf",
+    source_sha256="498efd461f6ddfcb7a111bf9a565709d2085d48201d501ead960d93e84ffbb88",
+    license_name=INSTRUMENT_SERIF_LICENSE,
+    axis_limits={},
+    output_name=f"instrumentserif-latin-wght{INSTRUMENT_SERIF_WEIGHT}.woff2",
+)
+INSTRUMENT_SERIF_ITALIC_SOURCE = FontSource(
+    family_dir="instrumentserif",
+    source_commit=WEBFONT_SOURCE_COMMIT,
+    source_file="InstrumentSerif-Italic.ttf",
+    source_sha256="08939b8bdf534afec24ae0ef5e03f948940cd9a8fe08e7fecbad040e62327385",
+    license_name=INSTRUMENT_SERIF_LICENSE,
+    axis_limits={},
+    output_name=f"instrumentserif-italic-latin-wght{INSTRUMENT_SERIF_WEIGHT}.woff2",
+)
+
+FONT_SOURCES = [
+    BALOO2_SOURCE,
+    INSTRUMENT_SANS_SOURCE,
+    BRICOLAGE_GROTESQUE_SOURCE,
+    GEIST_MONO_SOURCE,
+    INSTRUMENT_SERIF_SOURCE,
+    INSTRUMENT_SERIF_ITALIC_SOURCE,
+]
 
 WORDMARK_TEXT = "Glissando"
 WORDMARK_SIZE = 76

@@ -23,6 +23,20 @@
   font-weight: 600 800;
   font-display: swap;
 }
+@font-face {
+  font-family: "Instrument Serif";
+  src: url("../../assets/fonts/instrumentserif-latin-wght400.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Instrument Serif";
+  src: url("../../assets/fonts/instrumentserif-italic-latin-wght400.woff2") format("woff2");
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
 
 /* Light is the bare root; the dark values below replace the theme-dependent ones. */
 :root {
