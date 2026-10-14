@@ -2,15 +2,13 @@ import { BACKDROP_BLUR_RADIUS_SHARE } from "../backdrop-blur";
 import { canvasCardMeasure } from "../card-measure";
 import { cardStyles, type CardStyles } from "../card-style";
 import { CARD_STYLE_SPECS } from "../card-style-table";
+import { VEIL_CONTRAST_SHARE, VEIL_SATURATION_SHARE, VEIL_TINT_OPACITY_SHARE } from "../card-veil";
 import type { Size } from "../ken-burns";
 import type { CardVisual, PictureSlideLayer } from "../ports";
 import type { Card } from "../slideshow";
 
 /** Veil amounts below this draw nothing: no filter, no tint (ADR-0032). */
 const VEIL_NEGLIGIBLE_AMOUNT = 0;
-const VEIL_SATURATION_SHARE = 0.6;
-const VEIL_CONTRAST_SHARE = 0.35;
-const VEIL_TINT_OPACITY_SHARE = 0.35;
 
 const GROUND_ATTRIBUTE = "data-ground";
 const VEIL_TINT_ATTRIBUTE = "data-veil-tint";

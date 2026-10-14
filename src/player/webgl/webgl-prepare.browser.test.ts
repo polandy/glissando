@@ -82,7 +82,11 @@ function wholePicture(picture: BitmapPicture, caption?: string): RenderFrame<Bit
   const fit = "cover" as const;
   return {
     kind: "slide",
-    slide: caption === undefined ? { picture, motion, fit } : { picture, motion, caption, fit },
+    slide:
+      caption === undefined
+        ? { kind: "picture", picture, motion, fit }
+        : { kind: "picture", picture, motion, caption, fit },
+    endFade: 0,
   };
 }
 

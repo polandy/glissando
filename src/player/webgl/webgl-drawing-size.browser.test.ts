@@ -31,10 +31,12 @@ async function captionTextBox(drawingSize: Size) {
   renderer.render({
     kind: "slide",
     slide: {
+      kind: "picture",
       picture,
       motion: standingStill({ zoom: 1, centerX: 0.5, centerY: 0.5 }),
       caption: CAPTION,
     },
+    endFade: 0,
   });
   const { width, height } = canvas;
   const pixels = new Uint8Array(width * height * 4);

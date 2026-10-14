@@ -114,7 +114,9 @@ export class CaptionTextures {
   }
 }
 
-function setLinearClamped(gl: WebGL2RenderingContext): void {
+/** Linear filtering, clamped edges: used by every texture rasterised from a canvas or kept as a
+ * 1x1 placeholder (shared with `card-textures.ts`). */
+export function setLinearClamped(gl: WebGL2RenderingContext): void {
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);

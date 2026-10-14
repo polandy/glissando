@@ -26,6 +26,6 @@ function measuringContext(): CanvasRenderingContext2D {
 }
 
 /** `letterSpacing` is a newer `CanvasRenderingContext2D` property; harmless where it is absent. */
-function withLetterSpacing(context: CanvasRenderingContext2D, px: number): void {
+export function withLetterSpacing(context: CanvasRenderingContext2D, px: number): void {
   (context as CanvasRenderingContext2D & { letterSpacing?: string }).letterSpacing = `${px}px`;
 }
