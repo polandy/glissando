@@ -13,7 +13,7 @@ import {
 import { WorkerPictureDecoder, type PictureDecodeWorker } from "./browser/worker-picture-decoder";
 import { DomRenderer } from "./dom/dom-renderer";
 import type { PictureLoader, SlideRenderer } from "./ports";
-import { isGroundSlide, type Slideshow } from "./slideshow";
+import type { Slideshow } from "./slideshow";
 import { SlideshowPlayer } from "./slideshow-player";
 import { WebGlRenderer } from "./webgl/webgl-renderer";
 
@@ -91,14 +91,7 @@ export function createBrowserPlayer(
       ? new FallbackPictureDecoder(workerDecoder, mainThreadPictureDecoder)
       : workerDecoder;
   };
-  const drawing = createDrawing(
-    container,
-    redraw,
-    webGl2Context,
-    openPicture,
-    createDecoder,
-    openingSlideColour(slideshow),
-  );
+  const drawing = createDrawing(container, redraw, webGl2Context, openPicture, createDecoder);
   const playback = {
     clock: performanceClock,
     frames: animationFrames,
@@ -127,7 +120,6 @@ function createDrawing(
   webGl2Context: WebGl2Context,
   openPicture: OpenPicture | undefined,
   createDecoder: () => PictureDecoder,
-  initialBackground: string | undefined,
 ): Drawing {
   const canvas = document.createElement("canvas");
   Object.assign(canvas.style, { position: "absolute", inset: "0", width: "100%", height: "100%" });
@@ -144,23 +136,7 @@ function createDrawing(
   container.append(canvas);
   return {
     kind: "webgl",
-    renderer: new WebGlRenderer(
-      canvas,
-      gl,
-      onResize,
-      initialBackground === undefined ? {} : { initialBackground },
-    ),
+    renderer: new WebGlRenderer(canvas, gl, onResize),
     pictures: new BitmapLoader(createDecoder(), openPicture),
   };
-}
-
-/**
- * A ground opening slide's own colour, painted into the canvas the instant it exists
- * (`WebGlRenderer`'s `initialBackground`): that colour is the real first frame. Undefined for a
- * picture slide, which has no flat colour of its own — a veil tint over no picture would not mean
- * anything, so playback instead waits for the picture and card before drawing (`SlideshowPlayer`).
- */
-function openingSlideColour(slideshow: Slideshow): string | undefined {
-  const opening = slideshow.slides[0];
-  return opening !== undefined && isGroundSlide(opening) ? opening.ground : undefined;
 }

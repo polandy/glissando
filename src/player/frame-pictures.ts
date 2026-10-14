@@ -2,7 +2,7 @@ import type { Size } from "./ken-burns";
 import { PictureBuffer } from "./picture-buffer";
 import type { PictureLoader, SlideRenderer } from "./ports";
 import { renderFrame, type RenderFrameContext } from "./render-frame";
-import { isGroundSlide, type Card, type Slideshow } from "./slideshow";
+import { isGroundSlide, type Slideshow } from "./slideshow";
 import type { SlideAtTime, TimelineFrame } from "./timeline";
 
 /**
@@ -55,27 +55,25 @@ export class FramePictures<Picture extends Size> {
 
   /**
    * Calls `onLoaded` once the pictures on screen are loaded, or `onError` if one of them fails;
-   * neither once `isWanted` turned false meanwhile. With `includeCards`, also waits for the
-   * on-screen slides' own cards to be drawable (font loaded, texture built) — not just their
-   * pictures: used once, to hold the very first frame of playback so the opening slide's whole
-   * card, including its entrance, is seen from its true start (ADR-0032's "black title card"
-   * bug). Elsewhere a card already draws its slide's flat colour until its font catches up
-   * (`WebGlRenderer`'s `initialBackground`), which is fine once the show is already running.
+   * neither once `isWanted` turned false meanwhile.
    */
-  whenOnScreenLoaded(
-    callbacks: {
-      readonly isWanted: () => boolean;
-      readonly onLoaded: () => void;
-      readonly onError: (error: Error) => void;
-    },
-    includeCards = false,
-  ): void {
-    const cardsReady = includeCards
-      ? Promise.all(
-          this.onScreenCards().map((card) => this.#renderer.cardReady?.(card) ?? Promise.resolve()),
-        )
-      : Promise.resolve();
-    this.#settle(Promise.all([this.loadAroundScreen(), cardsReady]), callbacks);
+  whenOnScreenLoaded(callbacks: {
+    readonly isWanted: () => boolean;
+    readonly onLoaded: () => void;
+    readonly onError: (error: Error) => void;
+  }): void {
+    this.loadAroundScreen().then(
+      () => {
+        if (callbacks.isWanted() && this.areOnScreenLoaded()) {
+          callbacks.onLoaded();
+        }
+      },
+      (error: unknown) => {
+        if (callbacks.isWanted()) {
+          callbacks.onError(error instanceof Error ? error : new Error(String(error)));
+        }
+      },
+    );
   }
 
   /** Draws the current frame; its pictures must be loaded. */
@@ -116,37 +114,6 @@ export class FramePictures<Picture extends Size> {
 
   clear(): void {
     this.#buffer.clear();
-  }
-
-  /** The cards of the slides currently on screen, so a caller can tell whether there is one to
-   * wait for before passing `includeCards` to `whenOnScreenLoaded`. */
-  onScreenCards(): readonly Card[] {
-    return this.#onScreen().flatMap((slide) => {
-      const found = this.#slideshow.slides[slide.index];
-      return found?.card === undefined ? [] : [found.card];
-    });
-  }
-
-  #settle(
-    ready: Promise<unknown>,
-    callbacks: {
-      readonly isWanted: () => boolean;
-      readonly onLoaded: () => void;
-      readonly onError: (error: Error) => void;
-    },
-  ): void {
-    ready.then(
-      () => {
-        if (callbacks.isWanted() && this.areOnScreenLoaded()) {
-          callbacks.onLoaded();
-        }
-      },
-      (error: unknown) => {
-        if (callbacks.isWanted()) {
-          callbacks.onError(error instanceof Error ? error : new Error(String(error)));
-        }
-      },
-    );
   }
 
   #onScreen(): readonly SlideAtTime[] {

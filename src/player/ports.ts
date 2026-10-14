@@ -73,14 +73,6 @@ export type RenderFrame<Picture> =
 export interface SlideRenderer<Picture extends Size> {
   render(frame: RenderFrame<Picture>): void;
   /**
-   * Settles once `card`'s title and subtitle can actually be drawn (its font loaded, its texture
-   * built). Absent, or settled already, for a renderer with nothing to wait for, e.g. the DOM
-   * fallback, which lays the card out as real DOM text. Used to hold the very first frame of
-   * playback until the opening slide's own card is truly drawable, so its whole entrance is seen
-   * from its true start (ADR-0032).
-   */
-  cardReady?(card: Card): Promise<void>;
-  /**
    * Does a bounded part of the work to draw this slide later, e.g. one slice of a texture upload,
    * so no single frame pays for all of it; drawing it unprepared finishes the rest at once.
    */

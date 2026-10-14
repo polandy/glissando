@@ -71,5 +71,3 @@ Behaviour:
   stops, `waiting` fires, and playback goes on from the same moment with `playing`.
 - A picture that fails to load or open is an `error` (`SlideshowLoadError`) and pauses.
 - `play()` after the end starts from the beginning.
-- Starting from time 0 also waits for the opening slide's own card (font and texture), not just
-  its picture, so the whole card and its entrance play from their true start.
