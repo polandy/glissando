@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { parseSlideshow, SlideshowFormatError } from "./parse-slideshow";
+import { pictureSlide } from "./testing/picture-slide";
 
 function validSlide(overrides: Record<string, unknown> = {}): Record<string, unknown> {
   return {
@@ -16,7 +17,7 @@ function validSlide(overrides: Record<string, unknown> = {}): Record<string, unk
 
 function validSlideshow(overrides: Record<string, unknown> = {}): Record<string, unknown> {
   return {
-    formatVersion: 4,
+    formatVersion: 5,
     title: "July 2025",
     music: [
       { src: "music/summer.mp3", atMs: 0, startMs: 0, endMs: 10_000, fadeInMs: 0, fadeOutMs: 0 },
@@ -58,7 +59,7 @@ describe("parseSlideshow", () => {
   it("accepts a slide's caption", () => {
     const input = validSlideshow({ slides: [validSlide({ caption: "Evening on the jetty" })] });
 
-    expect(parseSlideshow(input).slides[0]?.caption).toBe("Evening on the jetty");
+    expect(pictureSlide(parseSlideshow(input).slides[0]).caption).toBe("Evening on the jetty");
   });
 
   it("accepts a slide without a transition as a hard cut", () => {
@@ -69,7 +70,7 @@ describe("parseSlideshow", () => {
 
   it.each([
     ["not an object", "a slideshow", "", "an object"],
-    [{ ...validSlideshow(), formatVersion: 3 }, "formatVersion", "formatVersion", "4"],
+    [{ ...validSlideshow(), formatVersion: 4 }, "formatVersion", "formatVersion", "5"],
     [validSlideshow({ title: 7 }), "title", "title", "a string"],
     [validSlideshow({ slides: [] }), "no slides", "slides", "at least one slide"],
     [

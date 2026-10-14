@@ -1,4 +1,18 @@
-import { CAPTION_RULE, isCaption } from "./caption";
+import { readCard } from "./parse-card";
+import {
+  readHexColor,
+  readIsoDate,
+  readNonEmptyString,
+  readNonNegativeInteger,
+  readObject,
+  readOneOf,
+  readPositiveInteger,
+  readCaptionLike,
+  readString,
+  readUnitInterval,
+  SlideshowFormatError,
+  type JsonObject,
+} from "./parse-primitives";
 import {
   EASINGS,
   MIN_KEN_BURNS_ZOOM,
@@ -6,47 +20,55 @@ import {
   TRANSITION_EFFECTS,
   type Easing,
   type Framing,
+  type GroundSlide,
   type KenBurns,
   type MusicTrack,
+  type PictureSlide,
   type Slide,
   type Slideshow,
   type Transition,
   type TransitionEffect,
 } from "./slideshow";
 
-/** The slideshow JSON broke the format at `path`; the message says what to set instead. */
-export class SlideshowFormatError extends Error {
-  constructor(
-    readonly path: string,
-    expected: string,
-    actual: unknown,
-  ) {
-    super(`${path || "slideshow"}: expected ${expected}, got ${JSON.stringify(actual)}`);
-    this.name = "SlideshowFormatError";
-  }
-}
-
-const ISO_8601_DATE = /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:\d{2})?)?$/;
-
-type JsonObject = Readonly<Record<string, unknown>>;
+export { SlideshowFormatError };
 
 /** Validates untrusted JSON as a slideshow; throws `SlideshowFormatError` on the first fault. */
 export function parseSlideshow(input: unknown): Slideshow {
-  const root = readObject(input, "", ["formatVersion", "title", "music", "slides"]);
+  const root = readObject(input, "", ["formatVersion", "title", "music", "slides", "endFadeMs"]);
   const version = root.formatVersion;
   if (version !== SLIDESHOW_FORMAT_VERSION) {
     throw new SlideshowFormatError("formatVersion", `${SLIDESHOW_FORMAT_VERSION}`, version);
   }
   const slides = readSlides(root.slides);
   const title = readString(root.title, "title");
-  return root.music === undefined
-    ? { formatVersion: SLIDESHOW_FORMAT_VERSION, title, slides }
-    : {
-        formatVersion: SLIDESHOW_FORMAT_VERSION,
-        title,
-        music: readTracks(root.music),
-        slides,
-      };
+  return {
+    formatVersion: SLIDESHOW_FORMAT_VERSION,
+    title,
+    ...(root.music === undefined ? {} : { music: readTracks(root.music) }),
+    slides,
+    ...(root.endFadeMs === undefined
+      ? {}
+      : {
+          endFadeMs: readEndFadeMs(
+            root.endFadeMs,
+            "endFadeMs",
+            // `readSlides` never returns an empty array, so the show always has a last slide.
+            (slides.at(-1) as Slide).durationMs,
+          ),
+        }),
+  };
+}
+
+function readEndFadeMs(value: unknown, path: string, lastSlideDurationMs: number): number {
+  const endFadeMs = readPositiveInteger(value, path);
+  if (endFadeMs > lastSlideDurationMs) {
+    throw new SlideshowFormatError(
+      path,
+      `at most the last slide's durationMs (${lastSlideDurationMs})`,
+      endFadeMs,
+    );
+  }
+  return endFadeMs;
 }
 
 const TRACK_TIMES = ["startMs", "endMs", "fadeInMs", "fadeOutMs"] as const;
@@ -104,17 +126,49 @@ function readSlides(value: unknown): readonly Slide[] {
 const FIT_COVER = "cover";
 
 function readSlide(value: unknown, path: string, isLast: boolean): Slide {
-  const slide = readObject(value, path, [
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    throw new SlideshowFormatError(path, "an object", value);
+  }
+  return "ground" in value
+    ? readGroundSlide(value as JsonObject, path, isLast)
+    : readPictureSlide(value as JsonObject, path, isLast);
+}
+
+/** The optional `transitionToNext`, common to both slide kinds. */
+function readTransitionField(
+  raw: JsonObject,
+  path: string,
+  isLast: boolean,
+  durationMs: number,
+): { transitionToNext?: Transition } {
+  if (raw.transitionToNext === undefined) {
+    return {};
+  }
+  if (isLast) {
+    throw new SlideshowFormatError(
+      `${path}.transitionToNext`,
+      "it absent on the last slide",
+      raw.transitionToNext,
+    );
+  }
+  return {
+    transitionToNext: readTransition(raw.transitionToNext, `${path}.transitionToNext`, durationMs),
+  };
+}
+
+function readPictureSlide(raw: JsonObject, path: string, isLast: boolean): PictureSlide {
+  const slide = readObject(raw, path, [
     "image",
     "durationMs",
     "kenBurns",
     "partner",
     "caption",
     "fit",
+    "card",
     "transitionToNext",
   ]);
   const durationMs = readPositiveInteger(slide.durationMs, `${path}.durationMs`);
-  const read: Slide = {
+  const read: PictureSlide = {
     image: readSlideImage(slide.image, `${path}.image`),
     durationMs,
     kenBurns: readKenBurns(slide.kenBurns, `${path}.kenBurns`),
@@ -123,30 +177,34 @@ function readSlide(value: unknown, path: string, isLast: boolean): Slide {
       : { partner: readPartner(slide.partner, `${path}.partner`) }),
     ...(slide.caption === undefined
       ? {}
-      : { caption: readCaption(slide.caption, `${path}.caption`) }),
+      : { caption: readCaptionLike(slide.caption, `${path}.caption`) }),
     ...(slide.fit === undefined ? {} : { fit: readFit(slide.fit, `${path}.fit`) }),
+    ...(slide.card === undefined
+      ? {}
+      : { card: readCard(slide.card, `${path}.card`, durationMs, true) }),
   };
-  if (slide.transitionToNext === undefined) {
-    return read;
-  }
-  if (isLast) {
-    throw new SlideshowFormatError(
-      `${path}.transitionToNext`,
-      "it absent on the last slide",
-      slide.transitionToNext,
-    );
-  }
-  return {
-    ...read,
-    transitionToNext: readTransition(
-      slide.transitionToNext,
-      `${path}.transitionToNext`,
-      durationMs,
-    ),
-  };
+  return { ...read, ...readTransitionField(slide, path, isLast, durationMs) };
 }
 
-function readSlideImage(value: unknown, path: string): Slide["image"] {
+function readGroundSlide(raw: JsonObject, path: string, isLast: boolean): GroundSlide {
+  const slide = readObject(raw, path, ["ground", "durationMs", "card", "transitionToNext"]);
+  const durationMs = readPositiveInteger(slide.durationMs, `${path}.durationMs`);
+  if (slide.card === undefined) {
+    throw new SlideshowFormatError(
+      `${path}.card`,
+      "a card (every ground slide carries one)",
+      slide.card,
+    );
+  }
+  const read: GroundSlide = {
+    ground: readHexColor(slide.ground, `${path}.ground`),
+    durationMs,
+    card: readCard(slide.card, `${path}.card`, durationMs, false),
+  };
+  return { ...read, ...readTransitionField(slide, path, isLast, durationMs) };
+}
+
+function readSlideImage(value: unknown, path: string): PictureSlide["image"] {
   const image = readObject(value, path, ["src", "capturedAt"]);
   return {
     src: readNonEmptyString(image.src, `${path}.src`),
@@ -154,7 +212,7 @@ function readSlideImage(value: unknown, path: string): Slide["image"] {
   };
 }
 
-function readPartner(value: unknown, path: string): NonNullable<Slide["partner"]> {
+function readPartner(value: unknown, path: string): NonNullable<PictureSlide["partner"]> {
   const partner = readObject(value, path, ["image", "kenBurns"]);
   return {
     image: readSlideImage(partner.image, `${path}.image`),
@@ -165,13 +223,6 @@ function readPartner(value: unknown, path: string): NonNullable<Slide["partner"]
 function readFit(value: unknown, path: string): "cover" {
   if (value !== FIT_COVER) {
     throw new SlideshowFormatError(path, `"${FIT_COVER}"`, value);
-  }
-  return value;
-}
-
-function readCaption(value: unknown, path: string): string {
-  if (!isCaption(value)) {
-    throw new SlideshowFormatError(path, CAPTION_RULE, value);
   }
   return value;
 }
@@ -214,69 +265,4 @@ function readTransition(value: unknown, path: string, slideDurationMs: number): 
     );
   }
   return { effect, durationMs };
-}
-
-function readObject(value: unknown, path: string, knownKeys: readonly string[]): JsonObject {
-  if (typeof value !== "object" || value === null || Array.isArray(value)) {
-    throw new SlideshowFormatError(path, "an object", value);
-  }
-  const unknownKey = Object.keys(value).find((key) => !knownKeys.includes(key));
-  if (unknownKey !== undefined) {
-    const keyPath = path ? `${path}.${unknownKey}` : unknownKey;
-    throw new SlideshowFormatError(
-      keyPath,
-      `no unknown key (allowed: ${knownKeys.join(", ")})`,
-      unknownKey,
-    );
-  }
-  return value as JsonObject;
-}
-
-function readString(value: unknown, path: string): string {
-  if (typeof value !== "string") {
-    throw new SlideshowFormatError(path, "a string", value);
-  }
-  return value;
-}
-
-function readNonEmptyString(value: unknown, path: string): string {
-  if (typeof value !== "string" || value === "") {
-    throw new SlideshowFormatError(path, "a non-empty string", value);
-  }
-  return value;
-}
-
-function readIsoDate(value: unknown, path: string): string {
-  if (typeof value !== "string" || !ISO_8601_DATE.test(value) || Number.isNaN(Date.parse(value))) {
-    throw new SlideshowFormatError(path, "an ISO 8601 date such as 2025-07-01T10:00:00Z", value);
-  }
-  return value;
-}
-
-function readPositiveInteger(value: unknown, path: string): number {
-  if (typeof value !== "number" || !Number.isInteger(value) || value <= 0) {
-    throw new SlideshowFormatError(path, "a positive integer", value);
-  }
-  return value;
-}
-
-function readNonNegativeInteger(value: unknown, path: string): number {
-  if (typeof value !== "number" || !Number.isInteger(value) || value < 0) {
-    throw new SlideshowFormatError(path, "a whole number ≥ 0", value);
-  }
-  return value;
-}
-
-function readUnitInterval(value: unknown, path: string): number {
-  if (typeof value !== "number" || !(value >= 0 && value <= 1)) {
-    throw new SlideshowFormatError(path, "a number from 0 to 1", value);
-  }
-  return value;
-}
-
-function readOneOf<T extends string>(value: unknown, path: string, allowed: readonly T[]): T {
-  if (typeof value !== "string" || !allowed.some((option) => option === value)) {
-    throw new SlideshowFormatError(path, `one of ${allowed.join(", ")}`, value);
-  }
-  return value as T;
 }

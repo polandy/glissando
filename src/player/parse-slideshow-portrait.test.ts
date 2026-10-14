@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { parseSlideshow, SlideshowFormatError } from "./parse-slideshow";
+import { pictureSlide } from "./testing/picture-slide";
 
 const KEN_BURNS = {
   from: { zoom: 1, centerX: 0.5, centerY: 0.5 },
@@ -18,7 +19,7 @@ function validSlide(overrides: Record<string, unknown> = {}): Record<string, unk
 
 function validSlideshow(overrides: Record<string, unknown> = {}): Record<string, unknown> {
   return {
-    formatVersion: 4,
+    formatVersion: 5,
     title: "July 2025",
     slides: [validSlide()],
     ...overrides,
@@ -45,13 +46,13 @@ describe("a slide's partner and fit (ADR-0028)", () => {
     };
     const input = validSlideshow({ slides: [validSlide({ partner })] });
 
-    expect(parseSlideshow(input).slides[0]?.partner).toEqual(partner);
+    expect(pictureSlide(parseSlideshow(input).slides[0]).partner).toEqual(partner);
   });
 
   it('accepts fit "cover", which turns the blurred fill off', () => {
     const input = validSlideshow({ slides: [validSlide({ fit: "cover" })] });
 
-    expect(parseSlideshow(input).slides[0]?.fit).toBe("cover");
+    expect(pictureSlide(parseSlideshow(input).slides[0]).fit).toBe("cover");
   });
 
   it("leaves partner and fit absent when the slide has neither", () => {
@@ -89,6 +90,6 @@ describe("a slide's partner and fit (ADR-0028)", () => {
     const error = parseError(validSlideshow({ formatVersion: 3 }));
 
     expect(error.path).toBe("formatVersion");
-    expect(error.message).toContain("expected 4, got 3");
+    expect(error.message).toContain("expected 5, got 3");
   });
 });
