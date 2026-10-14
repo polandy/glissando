@@ -53,13 +53,6 @@ uniform float fromVeilAmount;
 uniform float toVeilAmount;
 uniform vec3 fromVeilTint;
 uniform vec3 toVeilTint;
-uniform sampler2D fromCard;
-uniform sampler2D toCard;
-uniform float fromCardOpacity;
-uniform float toCardOpacity;
-/** The card's drift, as a fraction of the screen height (positive: down). */
-uniform float fromCardDrift;
-uniform float toCardDrift;
 uniform float progress;
 uniform float aspect;
 /** The caption band's height and its lift from the bottom, as shares of the screen height. */
@@ -154,35 +147,19 @@ vec4 applyVeil(vec4 colour, sampler2D backdrop, vec4 crop, vec2 p, float amount,
   vec3 tinted = mix(contrasted, tint, VEIL_TINT_OPACITY_SHARE * amount);
   return vec4(tinted, colour.a);
 }
-/** The card's title/subtitle texture (premultiplied), composited like \`withCaption\` but over the
- * whole screen and lifted by \`drift\` (ADR-0032). Unchanged, and never sampling \`card\`, at
- * opacity 0 — the case of nearly every fragment of a slideshow without a title or closing card. */
-vec4 withCard(vec4 picture, sampler2D card, float opacity, float drift, vec2 p) {
-  if (opacity <= 0.0) {
-    return picture;
-  }
-  float v = 1.0 - p.y - drift;
-  if (v < 0.0 || v > 1.0) {
-    return picture;
-  }
-  vec4 text = texture(card, vec2(p.x, v)) * opacity;
-  return vec4(text.rgb + picture.rgb * (1.0 - text.a), 1.0);
-}
 vec4 fromColor(vec2 p) {
   vec4 colour = fromIsGround == 1
     ? vec4(fromGroundColor, 1.0)
     : layerColor(fromLayout, fromPicture, fromPartner, fromBackdrop, fromCrop, fromSecondCrop, fromRect, fromRect2, p);
   vec4 veiled = applyVeil(colour, fromBackdrop, fromCrop, p, fromVeilAmount, fromVeilTint);
-  vec4 captioned = withCaption(veiled, fromCaption, fromCaptionOpacity, p);
-  return withCard(captioned, fromCard, fromCardOpacity, fromCardDrift, p);
+  return withCaption(veiled, fromCaption, fromCaptionOpacity, p);
 }
 vec4 toColor(vec2 p) {
   vec4 colour = toIsGround == 1
     ? vec4(toGroundColor, 1.0)
     : layerColor(toLayout, toPicture, toPartner, toBackdrop, toCrop, toSecondCrop, toRect, toRect2, p);
   vec4 veiled = applyVeil(colour, toBackdrop, toCrop, p, toVeilAmount, toVeilTint);
-  vec4 captioned = withCaption(veiled, toCaption, toCaptionOpacity, p);
-  return withCard(captioned, toCard, toCardOpacity, toCardDrift, p);
+  return withCaption(veiled, toCaption, toCaptionOpacity, p);
 }
 /** 0 where the reveal has not reached \`position\` yet, 1 behind it, soft in between. */
 float revealed(float position, float extent) {

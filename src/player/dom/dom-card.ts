@@ -1,8 +1,13 @@
 import { BACKDROP_BLUR_RADIUS_SHARE } from "../backdrop-blur";
+import { cardItemSlices } from "../card-item-layout";
+import { itemGranularity } from "../card-items";
 import { canvasCardMeasure } from "../card-measure";
+import { layoutCard } from "../card-layout";
 import { cardStyles, type CardStyles } from "../card-style";
 import { CARD_STYLE_SPECS } from "../card-style-table";
+import { CARD_FOCUS_BLUR_SHARE, cardItemTimingAt } from "../card-timing";
 import { VEIL_CONTRAST_SHARE, VEIL_SATURATION_SHARE, VEIL_TINT_OPACITY_SHARE } from "../card-veil";
+import { placeItemText } from "./dom-card-items";
 import type { Size } from "../ken-burns";
 import type { CardVisual, PictureSlideLayer } from "../ports";
 import type { Card } from "../slideshow";
@@ -13,6 +18,15 @@ const VEIL_NEGLIGIBLE_AMOUNT = 0;
 const GROUND_ATTRIBUTE = "data-ground";
 const VEIL_TINT_ATTRIBUTE = "data-veil-tint";
 const CARD_ATTRIBUTE = "data-card";
+const BLOCK_SHARP_ATTRIBUTE = "data-card-block-sharp";
+const BLOCK_BLUR_ATTRIBUTE = "data-card-block-blur";
+
+interface CachedLayout {
+  readonly stage: Size;
+  readonly styles: CardStyles;
+  /** The tight box's centre around every line, `focus`'s scale pivot (ADR-0032). */
+  readonly pivot: { readonly x: number; readonly y: number };
+}
 
 /**
  * The DOM elements a title card draws beyond its slide's own picture or ground (ADR-0032,
@@ -25,7 +39,7 @@ export class CardOverlay {
   readonly #grounds = new Map<Card, HTMLElement>();
   readonly #veilTints = new Map<Card, HTMLElement>();
   readonly #cardNodes = new Map<Card, HTMLElement>();
-  readonly #layoutCache = new Map<Card, { readonly stage: Size; readonly styles: CardStyles }>();
+  readonly #layoutCache = new Map<Card, CachedLayout>();
 
   constructor(host: HTMLElement) {
     this.#host = host;
@@ -85,19 +99,70 @@ export class CardOverlay {
     return tintElement;
   }
 
-  /** The title/subtitle lines, faded and drifted per `cardVisual`, for the caller to order on screen. */
+  /**
+   * The card's text, faded, drifted and (for `words`/`letters`) staggered per item, for the
+   * caller to order on screen (ADR-0032, `dev-docs/player/TITLE_CARDS.md` § Entrances).
+   */
   placeText(cardVisual: CardVisual, layerOpacity: number, stage: Size): HTMLElement {
     const container = this.#elementFor(this.#cardNodes, cardVisual.card, CARD_ATTRIBUTE);
-    Object.assign(container.style, {
+    Object.assign(container.style, { position: "absolute", inset: "0", pointerEvents: "none" });
+    if (itemGranularity(cardVisual.card.entrance) === "block") {
+      this.#placeBlockText(container, cardVisual, layerOpacity, stage);
+    } else {
+      placeItemText(container, cardVisual, layerOpacity, stage);
+    }
+    return container;
+  }
+
+  /**
+   * `rise`/`focus`/`slow-fade`'s single item: the existing per-line nodes, scaled about the
+   * text's own tight box, plus (`focus` only) a second copy with a static blur filter, cross-
+   * faded in as the sharp copy fades out.
+   */
+  #placeBlockText(
+    container: HTMLElement,
+    cardVisual: CardVisual,
+    layerOpacity: number,
+    stage: Size,
+  ): void {
+    const card = cardVisual.card;
+    const visual = cardItemTimingAt(card, 0, 1, cardVisual.slideTimeMs, cardVisual.reducedMotion);
+    const { styles, pivot } = this.#stylesFor(card, stage);
+    const origin = `${pivot.x}px ${pivot.y}px`;
+
+    const sharp = this.#blockNode(container, BLOCK_SHARP_ATTRIBUTE);
+    Object.assign(sharp.style, {
       position: "absolute",
       inset: "0",
-      pointerEvents: "none",
-      opacity: String(cardVisual.textOpacity * layerOpacity),
+      opacity: String(visual.opacity * layerOpacity),
+      transform: `scale(${visual.scale})`,
+      transformOrigin: origin,
     });
-    const styles = this.#stylesFor(cardVisual.card, stage);
-    this.#fillLines(container, styles.titleLines, cardVisual.driftEm, "title");
-    this.#fillLines(container, styles.subtitleLines, cardVisual.driftEm, "subtitle");
-    return container;
+    this.#fillLines(sharp, styles.titleLines, visual.driftEm, "title");
+    this.#fillLines(sharp, styles.subtitleLines, visual.driftEm, "subtitle");
+
+    const blur = this.#blockNode(container, BLOCK_BLUR_ATTRIBUTE);
+    Object.assign(blur.style, {
+      position: "absolute",
+      inset: "0",
+      opacity: String(visual.blurOpacity * layerOpacity),
+      transform: `scale(${visual.scale})`,
+      transformOrigin: origin,
+      filter: `blur(${CARD_FOCUS_BLUR_SHARE * stage.height}px)`,
+    });
+    this.#fillLines(blur, styles.titleLines, visual.driftEm, "title");
+    this.#fillLines(blur, styles.subtitleLines, visual.driftEm, "subtitle");
+  }
+
+  #blockNode(container: HTMLElement, attribute: string): HTMLElement {
+    const existing = container.querySelector<HTMLElement>(`[${attribute}]`);
+    if (existing !== null) {
+      return existing;
+    }
+    const element = document.createElement("div");
+    element.setAttribute(attribute, "");
+    container.append(element);
+    return element;
   }
 
   /** Drops every ground, veil tint and card kept for a `Card` not in `shown`. */
@@ -151,24 +216,28 @@ export class CardOverlay {
     return element;
   }
 
-  #stylesFor(card: Card, stage: Size): CardStyles {
+  #stylesFor(card: Card, stage: Size): CachedLayout {
     const cached = this.#layoutCache.get(card);
     if (
       cached !== undefined &&
       cached.stage.width === stage.width &&
       cached.stage.height === stage.height
     ) {
-      return cached.styles;
+      return cached;
     }
     const spec = CARD_STYLE_SPECS[card.style];
-    const styles = cardStyles(
-      card,
-      stage,
-      canvasCardMeasure(spec.title, stage),
-      canvasCardMeasure(spec.subtitle, stage),
-    );
-    this.#layoutCache.set(card, { stage, styles });
-    return styles;
+    const measureTitle = canvasCardMeasure(spec.title, stage);
+    const measureSubtitle = canvasCardMeasure(spec.subtitle, stage);
+    const styles = cardStyles(card, stage, measureTitle, measureSubtitle);
+    const layout = layoutCard(card, stage, measureTitle, measureSubtitle);
+    const [block] = cardItemSlices(card, layout, stage, measureTitle, measureSubtitle);
+    const pivot = {
+      x: (block?.x ?? 0) + (block?.width ?? 0) / 2,
+      y: (block?.y ?? 0) + (block?.height ?? 0) / 2,
+    };
+    const result: CachedLayout = { stage, styles, pivot };
+    this.#layoutCache.set(card, result);
+    return result;
   }
 
   #elementFor(map: Map<Card, HTMLElement>, card: Card, attribute: string): HTMLElement {

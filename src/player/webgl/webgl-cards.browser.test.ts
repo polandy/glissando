@@ -1,5 +1,8 @@
 import { afterEach, describe, expect, it } from "vitest";
 import type { BitmapPicture } from "../browser/bitmap-loader";
+import { CARD_STYLE_SPECS, layoutCard } from "../card-layout";
+import { cardItemSlices } from "../card-item-layout";
+import { canvasCardMeasure } from "../card-measure";
 import type { Fonts } from "../fonts";
 import type { CardVisual, GroundSlideLayer, PictureSlideLayer, RenderFrame } from "../ports";
 import type { Card } from "../slideshow";
@@ -48,7 +51,15 @@ function baseCard(overrides: Partial<Card> = {}): Card {
 
 /** Text opacity 0 unless overridden, so a card irrelevant to the test draws nothing. */
 function cardVisual(card: Card, overrides: Partial<CardVisual> = {}): CardVisual {
-  return { card, textOpacity: 0, driftEm: 0, veilAmount: 0, ...overrides };
+  return {
+    card,
+    textOpacity: 0,
+    driftEm: 0,
+    veilAmount: 0,
+    slideTimeMs: 0,
+    reducedMotion: false,
+    ...overrides,
+  };
 }
 
 function groundLayer(card: CardVisual): GroundSlideLayer {
@@ -115,6 +126,22 @@ function saturationSpread([red, green, blue]: Rgb): number {
   return Math.max(red, green, blue) - Math.min(red, green, blue);
 }
 
+/** The brightest pixel within columns `[x0, x1)`, summed over its three channels. */
+function maxBrightnessInColumns(pixels: Uint8Array, width: number, x0: number, x1: number): number {
+  let max = 0;
+  for (let index = 0; index < pixels.length; index += 4) {
+    const x = (index / 4) % width;
+    if (x < x0 || x >= x1) {
+      continue;
+    }
+    const brightness = (pixels[index] ?? 0) + (pixels[index + 1] ?? 0) + (pixels[index + 2] ?? 0);
+    if (brightness > max) {
+      max = brightness;
+    }
+  }
+  return max;
+}
+
 describe("WebGlRenderer ground slides", () => {
   it("fills a ground slide's corner with its own colour, not a picture's", () => {
     const { readPixel } = setUp();
@@ -160,7 +187,7 @@ describe("WebGlRenderer title cards", () => {
     const { renderer, fonts, readAllPixels } = setUp({ fontsLoaded: false });
     const frame: RenderFrame<BitmapPicture> = {
       kind: "slide",
-      slide: groundLayer(cardVisual(baseCard(), { textOpacity: 1 })),
+      slide: groundLayer(cardVisual(baseCard(), { textOpacity: 1, slideTimeMs: 800 })),
       endFade: 0,
     };
 
@@ -170,6 +197,39 @@ describe("WebGlRenderer title cards", () => {
     await renderer.cardFontLoaded("modern");
 
     expect(everyPixelIsGround(readAllPixels(frame), GROUND_COLOUR)).toBe(false);
+  });
+
+  it("under words, mid-enter draws the first word more opaque than the last", async () => {
+    const { renderer, readAllPixels } = setUp();
+    await renderer.cardFontLoaded("modern");
+    const card = baseCard({ title: "Summer Lake", entrance: "words" });
+    const frame: RenderFrame<BitmapPicture> = {
+      kind: "slide",
+      slide: groundLayer(cardVisual(card, { textOpacity: 1, slideTimeMs: 300 })),
+      endFade: 0,
+    };
+    // The two words' own slices, to split the canvas between them rather than down the middle,
+    // which would let the first word's own trailing pixels leak into the second word's half.
+    const measureTitle = canvasCardMeasure(CARD_STYLE_SPECS.modern.title, VIEWPORT);
+    const measureSubtitle = canvasCardMeasure(CARD_STYLE_SPECS.modern.subtitle, VIEWPORT);
+    const layout = layoutCard(card, VIEWPORT, measureTitle, measureSubtitle);
+    const [firstSlice, lastSlice] = cardItemSlices(
+      card,
+      layout,
+      VIEWPORT,
+      measureTitle,
+      measureSubtitle,
+    );
+    if (firstSlice === undefined || lastSlice === undefined) {
+      throw new Error("expected two word slices for a two-word title");
+    }
+    const split = (firstSlice.x + firstSlice.width + lastSlice.x) / 2;
+
+    const pixels = readAllPixels(frame);
+    const firstWord = maxBrightnessInColumns(pixels, VIEWPORT.width, 0, split);
+    const lastWord = maxBrightnessInColumns(pixels, VIEWPORT.width, split, VIEWPORT.width);
+
+    expect(firstWord).toBeGreaterThan(lastWord);
   });
 });
 

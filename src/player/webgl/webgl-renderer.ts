@@ -3,9 +3,11 @@ import type { Fonts } from "../fonts";
 import type { Size } from "../ken-burns";
 import type { PreparedSlide, RenderFrame, SlideRenderer } from "../ports";
 import type { CardStyle, TransitionEffect } from "../slideshow";
-import { bindCaption, bindCard } from "./bind-overlays";
+import { bindCaption } from "./bind-overlays";
 import { bindLayer, fromUniforms, toUniforms, type LayerTextureUnits } from "./bind-layer";
 import { CaptionTextures } from "./caption-textures";
+import { drawCardPass } from "./card-pass";
+import { CardItemProgram } from "./card-item-program";
 import { CardTextures } from "./card-textures";
 import { PictureTextures } from "./picture-textures";
 import { compilePrograms, type EffectProgram } from "./shader-programs";
@@ -20,8 +22,6 @@ const FROM_TEXTURE_UNITS: LayerTextureUnits = { picture: 0, partner: 4, backdrop
 const TO_TEXTURE_UNITS: LayerTextureUnits = { picture: 1, partner: 5, backdrop: 7 };
 const FROM_CAPTION_TEXTURE_UNIT = 2;
 const TO_CAPTION_TEXTURE_UNIT = 3;
-const FROM_CARD_TEXTURE_UNIT = 8;
-const TO_CARD_TEXTURE_UNIT = 9;
 
 export interface WebGlRendererOptions {
   /** Device pixels per CSS pixel. */
@@ -44,6 +44,9 @@ export class WebGlRenderer implements SlideRenderer<BitmapPicture> {
   /** Kept for the renderer's lifetime: a slideshow carries at most an opening and a closing card
    * (`dev-docs/player/TITLE_CARDS.md`), so never released per slide (ADR-0032). */
   readonly #cards: CardTextures;
+  /** Draws a card's per-item quads (ADR-0032 § Entrances), a second pass over the full-screen one. */
+  #cardItems!: CardItemProgram;
+  #mainBuffer!: WebGLBuffer;
   #captionInsetCssPixels = 0;
   readonly #drawingSize: Size | undefined;
   /** None with a fixed drawing size, which no layout changes. */
@@ -76,14 +79,21 @@ export class WebGlRenderer implements SlideRenderer<BitmapPicture> {
     this.#resizeObserver?.observe(canvas);
   }
 
-  /** The vertex buffer, its attribute binding and every transition's shader program. */
+  /** The vertex buffer, its attribute binding, every transition's shader program, and the card
+   * item program — all GL objects a lost context destroys and `#handleContextRestored` rebuilds. */
   #setUpGlResources(): void {
     const gl = this.#gl;
-    gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+    const buffer = gl.createBuffer();
+    if (buffer === null) {
+      throw new Error("createBuffer returned null for the full-screen quad");
+    }
+    this.#mainBuffer = buffer;
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
     gl.bufferData(gl.ARRAY_BUFFER, FULL_SCREEN_TRIANGLE_STRIP, gl.STATIC_DRAW);
     gl.enableVertexAttribArray(POSITION_ATTRIBUTE);
     gl.vertexAttribPointer(POSITION_ATTRIBUTE, COORDINATES_PER_VERTEX, gl.FLOAT, false, 0, 0);
     this.#programs = compilePrograms(gl, POSITION_ATTRIBUTE);
+    this.#cardItems = new CardItemProgram(gl);
   }
 
   readonly #handleContextLost = (event: Event): void => {
@@ -138,26 +148,6 @@ export class WebGlRenderer implements SlideRenderer<BitmapPicture> {
       uniforms.toCaptionOpacity,
       viewport,
     );
-    bindCard(
-      gl,
-      this.#cards,
-      FROM_CARD_TEXTURE_UNIT,
-      from,
-      uniforms.fromCard,
-      uniforms.fromCardOpacity,
-      uniforms.fromCardDrift,
-      viewport,
-    );
-    bindCard(
-      gl,
-      this.#cards,
-      TO_CARD_TEXTURE_UNIT,
-      to,
-      uniforms.toCard,
-      uniforms.toCardOpacity,
-      uniforms.toCardDrift,
-      viewport,
-    );
     gl.uniform1f(uniforms.progress, progress);
     gl.uniform1f(uniforms.aspect, viewport.width / viewport.height);
     gl.uniform1f(uniforms.captionBand, this.#captions.bandShare(viewport));
@@ -166,7 +156,10 @@ export class WebGlRenderer implements SlideRenderer<BitmapPicture> {
       (this.#captionInsetCssPixels * this.#pixelRatio()) / viewport.height,
     );
     gl.uniform1f(uniforms.endFade, frame.endFade);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.#mainBuffer);
+    gl.vertexAttribPointer(POSITION_ATTRIBUTE, COORDINATES_PER_VERTEX, gl.FLOAT, false, 0, 0);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, VERTEX_COUNT);
+    drawCardPass(gl, this.#cardItems, this.#cards, from, 1 - progress, to, progress, viewport);
   }
 
   /** One upload step of the picture (and its backdrop) per call, then its caption and card, or a
@@ -215,6 +208,7 @@ export class WebGlRenderer implements SlideRenderer<BitmapPicture> {
     this.#pictures.dispose();
     this.#captions.dispose();
     this.#cards.dispose();
+    this.#cardItems.dispose();
     this.#programs.forEach(({ program }) => this.#gl.deleteProgram(program));
     this.#canvas.remove();
   }

@@ -16,9 +16,15 @@ type Shadow = NonNullable<(typeof CARD_INK_COLORS)[keyof typeof CARD_INK_COLORS]
  * for the shaders (ADR-0032). Layout matches the DOM renderer's (`card-layout.ts`'s
  * `layoutCard`), measured through `card-measure.ts`'s own throwaway context so sizing never
  * depends on drawing order. Returns the title's rendered font size in px, which the renderer
- * needs to turn the card's drift from em into a screen-space fraction.
+ * needs to turn the card's drift from em into a screen-space fraction. `blurPx` rasterises a
+ * `focus` entrance's cross-fade copy once with a static blur, never per frame (ADR-0032).
  */
-export function rasterizeCard(canvas: HTMLCanvasElement, card: Card, viewport: Size): number {
+export function rasterizeCard(
+  canvas: HTMLCanvasElement,
+  card: Card,
+  viewport: Size,
+  blurPx = 0,
+): number {
   canvas.width = viewport.width;
   canvas.height = viewport.height;
   const context = canvas.getContext("2d");
@@ -26,6 +32,7 @@ export function rasterizeCard(canvas: HTMLCanvasElement, card: Card, viewport: S
     throw new Error("this browser has no 2D canvas to draw title cards with");
   }
   context.clearRect(0, 0, canvas.width, canvas.height);
+  context.filter = blurPx > 0 ? `blur(${blurPx}px)` : "none";
 
   const spec = CARD_STYLE_SPECS[card.style];
   const layout = layoutCard(

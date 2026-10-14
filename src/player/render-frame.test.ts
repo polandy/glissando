@@ -69,6 +69,8 @@ describe("renderFrame: ground slides (ADR-0032)", () => {
       textOpacity: expected.textOpacity,
       driftEm: expected.driftEm,
       veilAmount: expected.veilAmount,
+      slideTimeMs: 400,
+      reducedMotion: false,
     });
   });
 

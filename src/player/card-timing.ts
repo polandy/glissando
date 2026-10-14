@@ -96,6 +96,9 @@ const ENTRANCE_SPECS: Readonly<Record<CardEntrance, EntranceSpec>> = {
 /** The scale `focus` draws its sharp text at when fully hidden (blurred, at the start/end). */
 const FOCUS_SCALE_DELTA = 0.04;
 
+/** `focus`'s blurred copy is rasterised once with a blur radius this fraction of the stage height. */
+export const CARD_FOCUS_BLUR_SHARE = 0.012;
+
 export interface CardTiming {
   readonly textOpacity: number;
   readonly driftEm: number;

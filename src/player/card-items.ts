@@ -22,16 +22,46 @@ function granularityOf(entrance: CardEntrance): ItemGranularity {
   }
 }
 
-/** `text` split into its word-like segments; punctuation-only and whitespace segments drop out. */
-export function words(text: string): readonly string[] {
+/** A segment of `text` with its own start offset, in UTF-16 code units from the start. */
+export interface TextSegment {
+  readonly text: string;
+  readonly index: number;
+}
+
+/**
+ * `text`'s word-like segments with their start offset, punctuation-only and whitespace segments
+ * dropped; `card-layout.ts`'s item slices read the offsets to find each word in its line.
+ */
+export function wordSegments(text: string): readonly TextSegment[] {
   return Array.from(wordSegmenter.segment(text))
     .filter((segment) => segment.isWordLike)
-    .map((segment) => segment.segment);
+    .map((segment) => ({ text: segment.segment, index: segment.index }));
+}
+
+/**
+ * `text`'s non-space graphemes with their start offset; a space is never an item, but still
+ * advances the offset so the following grapheme's slice starts in the right place.
+ */
+export function letterSegments(text: string): readonly TextSegment[] {
+  const segments: TextSegment[] = [];
+  let index = 0;
+  for (const grapheme of graphemes(text)) {
+    if (grapheme !== " ") {
+      segments.push({ text: grapheme, index });
+    }
+    index += grapheme.length;
+  }
+  return segments;
+}
+
+/** `text` split into its word-like segments; punctuation-only and whitespace segments drop out. */
+export function words(text: string): readonly string[] {
+  return wordSegments(text).map((segment) => segment.text);
 }
 
 /** `text` split into graphemes, spaces excluded since a space is never an item. */
 export function letters(text: string): readonly string[] {
-  return graphemes(text).filter((grapheme) => grapheme !== " ");
+  return letterSegments(text).map((segment) => segment.text);
 }
 
 /** `card`'s texts in reading order: the title, then the subtitle if it has one. */
