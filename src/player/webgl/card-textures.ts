@@ -1,7 +1,7 @@
 import { CARD_STYLE_SPECS, type CardTextSpec } from "../card-layout";
 import { loadFonts, type FontSpec, type Fonts } from "../fonts";
 import type { Size } from "../ken-burns";
-import { CARD_STYLES, type Card, type CardStyle } from "../slideshow";
+import type { Card, CardStyle } from "../slideshow";
 import { rasterizeCard } from "./card-raster";
 import { setLinearClamped } from "./caption-textures";
 
@@ -14,7 +14,24 @@ interface CardTexture {
 }
 
 function toFontSpec(spec: CardTextSpec): FontSpec {
-  return { family: spec.fontFamily, weight: spec.fontWeight, style: spec.italic ? "italic" : "normal" };
+  return {
+    family: spec.fontFamily,
+    weight: spec.fontWeight,
+    style: spec.italic ? "italic" : "normal",
+  };
+}
+
+/**
+ * A card's drift (`CardVisual.driftEm`, relative to its title's rendered font size) as a
+ * fraction of the viewport's height, which is what the shader's screen-space `withCard` uniform
+ * needs (ADR-0032).
+ */
+export function cardDriftFraction(
+  driftEm: number,
+  titleFontSizePx: number,
+  viewportHeightPx: number,
+): number {
+  return (driftEm * titleFontSizePx) / viewportHeightPx;
 }
 
 /**
@@ -29,28 +46,29 @@ export class CardTextures {
   readonly #canvas = document.createElement("canvas");
   readonly #textures = new Map<Card, CardTexture>();
   readonly #loadedStyles = new Set<CardStyle>();
-  readonly #loaded: ReadonlyMap<CardStyle, Promise<void>>;
+  readonly #loading = new Map<CardStyle, Promise<void>>();
+  readonly #fonts: Fonts;
+  readonly #onFontLoaded: () => void;
   #transparent: WebGLTexture;
 
   constructor(gl: WebGL2RenderingContext, fonts: Fonts, onFontLoaded: () => void) {
     this.#gl = gl;
+    this.#fonts = fonts;
+    this.#onFontLoaded = onFontLoaded;
     this.#transparent = this.#createTransparent();
-    this.#loaded = new Map(
-      CARD_STYLES.map((style) => [style, this.#loadStyle(style, fonts, onFontLoaded)]),
-    );
   }
 
-  /** Settles once `style`'s title and subtitle fonts can be drawn. */
+  /**
+   * Settles once `style`'s title and subtitle fonts can be drawn. Starts loading them on first
+   * call, not sooner: most slideshows never show a card, let alone every style.
+   */
   fontLoaded(style: CardStyle): Promise<void> {
-    const promise = this.#loaded.get(style);
-    if (promise === undefined) {
-      throw new Error(`no font spec for the ${style} card style`);
-    }
-    return promise;
+    return this.#ensureLoading(style);
   }
 
   /** `card`'s rasterised texture, or a transparent one before its style's fonts have loaded. */
   texture(card: Card, viewport: Size): WebGLTexture {
+    this.#ensureLoading(card.style);
     if (!this.#loadedStyles.has(card.style)) {
       return this.#transparent;
     }
@@ -96,15 +114,25 @@ export class CardTextures {
     this.#gl.deleteTexture(this.#transparent);
   }
 
-  #loadStyle(style: CardStyle, fonts: Fonts, onFontLoaded: () => void): Promise<void> {
+  #ensureLoading(style: CardStyle): Promise<void> {
+    const existing = this.#loading.get(style);
+    if (existing !== undefined) {
+      return existing;
+    }
+    const promise = this.#loadStyle(style);
+    this.#loading.set(style, promise);
+    return promise;
+  }
+
+  #loadStyle(style: CardStyle): Promise<void> {
     const spec = CARD_STYLE_SPECS[style];
-    return loadFonts(fonts, [toFontSpec(spec.title), toFontSpec(spec.subtitle)])
+    return loadFonts(this.#fonts, [toFontSpec(spec.title), toFontSpec(spec.subtitle)])
       .catch((error: unknown) => {
         console.error(`the ${style} card font did not load; it draws with a fallback font`, error);
       })
       .then(() => {
         this.#loadedStyles.add(style);
-        onFontLoaded();
+        this.#onFontLoaded();
       });
   }
 

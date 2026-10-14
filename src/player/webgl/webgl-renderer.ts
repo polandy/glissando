@@ -1,13 +1,14 @@
 import type { BitmapPicture } from "../browser/bitmap-loader";
 import type { Fonts } from "../fonts";
 import type { Size } from "../ken-burns";
-import type { PictureSlideLayer, PreparedSlide, RenderFrame, SlideLayer, SlideRenderer } from "../ports";
-import { TRANSITION_EFFECTS, type CardStyle, type TransitionEffect } from "../slideshow";
+import type { PreparedSlide, RenderFrame, SlideRenderer } from "../ports";
+import type { CardStyle, TransitionEffect } from "../slideshow";
+import { bindCaption, bindCard } from "./bind-overlays";
 import { bindLayer, fromUniforms, toUniforms, type LayerTextureUnits } from "./bind-layer";
 import { CaptionTextures } from "./caption-textures";
 import { CardTextures } from "./card-textures";
 import { PictureTextures } from "./picture-textures";
-import { fragmentShader, VERTEX_SHADER } from "./transition-shaders";
+import { compilePrograms, type EffectProgram } from "./shader-programs";
 
 /** A single slide is a crossfade that has not started. */
 const SINGLE_SLIDE_EFFECT: TransitionEffect = "crossfade";
@@ -21,66 +22,6 @@ const FROM_CAPTION_TEXTURE_UNIT = 2;
 const TO_CAPTION_TEXTURE_UNIT = 3;
 const FROM_CARD_TEXTURE_UNIT = 8;
 const TO_CARD_TEXTURE_UNIT = 9;
-/** A layer without a caption, so its band draws nothing regardless of this opacity. */
-const OPAQUE_CAPTION = 1;
-/** A layer without a card, so `withCard` draws nothing regardless of this drift. */
-const NO_CARD_OPACITY = 0;
-const NO_DRIFT = 0;
-
-export class ShaderCompileError extends Error {
-  constructor(effect: TransitionEffect, log: string) {
-    super(`the ${effect} shader does not compile or link: ${log}`);
-    this.name = "ShaderCompileError";
-  }
-}
-
-interface EffectProgram {
-  readonly program: WebGLProgram;
-  readonly uniforms: Readonly<Record<UniformName, WebGLUniformLocation | null>>;
-}
-
-const UNIFORM_NAMES = [
-  "fromPicture",
-  "toPicture",
-  "fromPartner",
-  "toPartner",
-  "fromBackdrop",
-  "toBackdrop",
-  "fromLayout",
-  "toLayout",
-  "fromCrop",
-  "toCrop",
-  "fromSecondCrop",
-  "toSecondCrop",
-  "fromRect",
-  "toRect",
-  "fromRect2",
-  "toRect2",
-  "fromCaption",
-  "toCaption",
-  "fromCaptionOpacity",
-  "toCaptionOpacity",
-  "fromIsGround",
-  "toIsGround",
-  "fromGroundColor",
-  "toGroundColor",
-  "fromVeilAmount",
-  "toVeilAmount",
-  "fromVeilTint",
-  "toVeilTint",
-  "fromCard",
-  "toCard",
-  "fromCardOpacity",
-  "toCardOpacity",
-  "fromCardDrift",
-  "toCardDrift",
-  "progress",
-  "aspect",
-  "captionBand",
-  "captionInset",
-  "endFade",
-] as const;
-type UniformName = (typeof UNIFORM_NAMES)[number];
 
 export interface WebGlRendererOptions {
   /** Device pixels per CSS pixel. */
@@ -142,7 +83,7 @@ export class WebGlRenderer implements SlideRenderer<BitmapPicture> {
     gl.bufferData(gl.ARRAY_BUFFER, FULL_SCREEN_TRIANGLE_STRIP, gl.STATIC_DRAW);
     gl.enableVertexAttribArray(POSITION_ATTRIBUTE);
     gl.vertexAttribPointer(POSITION_ATTRIBUTE, COORDINATES_PER_VERTEX, gl.FLOAT, false, 0, 0);
-    this.#programs = new Map(TRANSITION_EFFECTS.map((effect) => [effect, this.#compile(effect)]));
+    this.#programs = compilePrograms(gl, POSITION_ATTRIBUTE);
   }
 
   readonly #handleContextLost = (event: Event): void => {
@@ -179,10 +120,44 @@ export class WebGlRenderer implements SlideRenderer<BitmapPicture> {
     gl.useProgram(program);
     bindLayer(gl, this.#pictures, FROM_TEXTURE_UNITS, from, fromUniforms(uniforms), viewport);
     bindLayer(gl, this.#pictures, TO_TEXTURE_UNITS, to, toUniforms(uniforms), viewport);
-    this.#bindCaption(FROM_CAPTION_TEXTURE_UNIT, from, uniforms.fromCaption, uniforms.fromCaptionOpacity, viewport);
-    this.#bindCaption(TO_CAPTION_TEXTURE_UNIT, to, uniforms.toCaption, uniforms.toCaptionOpacity, viewport);
-    this.#bindCard(FROM_CARD_TEXTURE_UNIT, from, uniforms.fromCard, uniforms.fromCardOpacity, uniforms.fromCardDrift, viewport);
-    this.#bindCard(TO_CARD_TEXTURE_UNIT, to, uniforms.toCard, uniforms.toCardOpacity, uniforms.toCardDrift, viewport);
+    bindCaption(
+      gl,
+      this.#captions,
+      FROM_CAPTION_TEXTURE_UNIT,
+      from,
+      uniforms.fromCaption,
+      uniforms.fromCaptionOpacity,
+      viewport,
+    );
+    bindCaption(
+      gl,
+      this.#captions,
+      TO_CAPTION_TEXTURE_UNIT,
+      to,
+      uniforms.toCaption,
+      uniforms.toCaptionOpacity,
+      viewport,
+    );
+    bindCard(
+      gl,
+      this.#cards,
+      FROM_CARD_TEXTURE_UNIT,
+      from,
+      uniforms.fromCard,
+      uniforms.fromCardOpacity,
+      uniforms.fromCardDrift,
+      viewport,
+    );
+    bindCard(
+      gl,
+      this.#cards,
+      TO_CARD_TEXTURE_UNIT,
+      to,
+      uniforms.toCard,
+      uniforms.toCardOpacity,
+      uniforms.toCardDrift,
+      viewport,
+    );
     gl.uniform1f(uniforms.progress, progress);
     gl.uniform1f(uniforms.aspect, viewport.width / viewport.height);
     gl.uniform1f(uniforms.captionBand, this.#captions.bandShare(viewport));
@@ -263,48 +238,6 @@ export class WebGlRenderer implements SlideRenderer<BitmapPicture> {
     return { width, height };
   }
 
-  /** A picture layer's own caption; a ground layer never has one (ports.ts). */
-  #bindCaption(
-    unit: number,
-    layer: SlideLayer<BitmapPicture>,
-    sampler: WebGLUniformLocation | null,
-    opacityUniform: WebGLUniformLocation | null,
-    viewport: Size,
-  ): void {
-    const gl = this.#gl;
-    const { owner, caption, opacity } = captionTarget(layer);
-    gl.activeTexture(gl.TEXTURE0 + unit);
-    gl.bindTexture(gl.TEXTURE_2D, this.#captions.texture(owner, caption, viewport));
-    gl.uniform1i(sampler, unit);
-    gl.uniform1f(opacityUniform, opacity);
-  }
-
-  /** A layer's card text, drawn over its picture or ground (ADR-0032); nothing if it has none. */
-  #bindCard(
-    unit: number,
-    layer: SlideLayer<BitmapPicture>,
-    sampler: WebGLUniformLocation | null,
-    opacityUniform: WebGLUniformLocation | null,
-    driftUniform: WebGLUniformLocation | null,
-    viewport: Size,
-  ): void {
-    const gl = this.#gl;
-    const visual = layer.card;
-    gl.activeTexture(gl.TEXTURE0 + unit);
-    if (visual === undefined) {
-      gl.bindTexture(gl.TEXTURE_2D, this.#cards.transparent());
-      gl.uniform1i(sampler, unit);
-      gl.uniform1f(opacityUniform, NO_CARD_OPACITY);
-      gl.uniform1f(driftUniform, NO_DRIFT);
-      return;
-    }
-    gl.bindTexture(gl.TEXTURE_2D, this.#cards.texture(visual.card, viewport));
-    gl.uniform1i(sampler, unit);
-    gl.uniform1f(opacityUniform, visual.textOpacity);
-    const titleFontSizePx = this.#cards.titleFontSizePx(visual.card);
-    gl.uniform1f(driftUniform, (visual.driftEm * titleFontSizePx) / viewport.height);
-  }
-
   #program(effect: TransitionEffect): EffectProgram {
     const program = this.#programs.get(effect);
     if (program === undefined) {
@@ -312,46 +245,4 @@ export class WebGlRenderer implements SlideRenderer<BitmapPicture> {
     }
     return program;
   }
-
-  #compile(effect: TransitionEffect): EffectProgram {
-    const gl = this.#gl;
-    const program = gl.createProgram();
-    for (const [type, source] of [
-      [gl.VERTEX_SHADER, VERTEX_SHADER],
-      [gl.FRAGMENT_SHADER, fragmentShader(effect)],
-    ] as const) {
-      const shader = gl.createShader(type);
-      if (shader === null) {
-        throw new ShaderCompileError(effect, "createShader returned null");
-      }
-      gl.shaderSource(shader, source);
-      gl.compileShader(shader);
-      if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-        throw new ShaderCompileError(effect, gl.getShaderInfoLog(shader) ?? "no log");
-      }
-      gl.attachShader(program, shader);
-      gl.deleteShader(shader);
-    }
-    gl.bindAttribLocation(program, POSITION_ATTRIBUTE, "position");
-    gl.linkProgram(program);
-    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-      throw new ShaderCompileError(effect, gl.getProgramInfoLog(program) ?? "no log");
-    }
-    const uniforms = Object.fromEntries(
-      UNIFORM_NAMES.map((name) => [name, gl.getUniformLocation(program, name)]),
-    ) as Record<UniformName, WebGLUniformLocation | null>;
-    return { program, uniforms };
-  }
-}
-
-/** A picture layer's caption, keyed by its own picture, opaque unless shared with a card; a
- * ground layer has none (ports.ts). */
-function captionTarget(
-  layer: SlideLayer<BitmapPicture>,
-): { readonly owner: object; readonly caption: string | undefined; readonly opacity: number } {
-  if (layer.kind === "ground") {
-    return { owner: layer.card.card, caption: undefined, opacity: OPAQUE_CAPTION };
-  }
-  const { picture, caption }: PictureSlideLayer<BitmapPicture> = layer;
-  return { owner: picture, caption, opacity: layer.captionOpacity ?? OPAQUE_CAPTION };
 }
