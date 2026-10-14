@@ -27,13 +27,15 @@ const BUILD: BuildInfo = {
 
 function mountSheet(
   state: SettingsState = STATE,
-  { updateWaiting = false, serverOn = false, screenShortEdge = 1280 } = {},
+  { updateWaiting = false, serverOn = false, screenShortEdge = 1280, frameCardShown = true } = {},
 ) {
   const chosen = {
     themes: [] as ThemePreference[],
     languages: [] as LanguagePreference[],
     qualities: [] as PlaybackQualityPreference[],
+    frameCardShown: [] as boolean[],
   };
+  let frameSetUps = 0;
   let closes = 0;
   let updates = 0;
   const mounted = mountWithTranslator(SettingsSheet, {
@@ -49,6 +51,9 @@ function mountSheet(
     serverOn,
     screenShortEdge,
     onPlaybackQuality: (quality: PlaybackQualityPreference) => chosen.qualities.push(quality),
+    frameCardShown,
+    onSetUpFrame: () => (frameSetUps += 1),
+    onFrameCardShown: (shown: boolean) => chosen.frameCardShown.push(shown),
     onClose: () => (closes += 1),
   });
   destroy = mounted.destroy;
@@ -56,7 +61,13 @@ function mountSheet(
   if (dialog === null) {
     throw new Error("the settings sheet is not a dialog");
   }
-  return { dialog, chosen, closes: () => closes, updates: () => updates };
+  return {
+    dialog,
+    chosen,
+    closes: () => closes,
+    updates: () => updates,
+    frameSetUps: () => frameSetUps,
+  };
 }
 
 function radios(dialog: HTMLElement, group: string): HTMLElement[] {
@@ -70,7 +81,64 @@ function radioTexts(radios: readonly HTMLElement[]): (string | undefined)[] {
   return radios.map((radio) => radio.textContent?.replace(/\s+/g, " ").trim());
 }
 
+const FRAME_SET_UP = "Bilderrahmen einrichten";
+
+function frameSection(dialog: HTMLElement): HTMLElement | null {
+  return dialog.querySelector('[aria-label="Bilderrahmen"]');
+}
+
+function frameSwitch(dialog: HTMLElement): HTMLInputElement {
+  const toggle = frameSection(dialog)?.querySelector<HTMLInputElement>('[role="switch"]');
+  if (toggle === null || toggle === undefined) {
+    throw new Error("the picture frame section has no switch");
+  }
+  return toggle;
+}
+
 describe("SettingsSheet", () => {
+  it("offers the picture frame section only with the server library on", () => {
+    const off = mountSheet(STATE, { serverOn: false });
+    expect(radios(off.dialog, "Sprache")).toHaveLength(3);
+    expect(frameSection(off.dialog)).toBeNull();
+    destroy();
+
+    const on = mountSheet(STATE, { serverOn: true });
+    expect(frameSection(on.dialog)?.textContent).toContain(FRAME_SET_UP);
+  });
+
+  it("opens the frame's set-up screen from the picture frame section", () => {
+    const { dialog, frameSetUps } = mountSheet(STATE, { serverOn: true });
+
+    [...(frameSection(dialog)?.querySelectorAll("button") ?? [])]
+      .find((button) => button.textContent?.includes(FRAME_SET_UP))
+      ?.click();
+
+    expect(frameSetUps()).toBe(1);
+  });
+
+  it("says the card is shown above the slideshows while its switch is on", () => {
+    const { dialog } = mountSheet(STATE, { serverOn: true, frameCardShown: true });
+
+    expect(frameSwitch(dialog).checked).toBe(true);
+    expect(frameSection(dialog)?.textContent).toContain("Steht über deinen Diashows");
+  });
+
+  it("says the card is hidden in this browser while its switch is off", () => {
+    const { dialog } = mountSheet(STATE, { serverOn: true, frameCardShown: false });
+
+    expect(frameSwitch(dialog).checked).toBe(false);
+    expect(frameSection(dialog)?.textContent).toContain("In diesem Browser ausgeblendet");
+  });
+
+  it("tells the choice when the card's switch is flipped", () => {
+    const { dialog, chosen } = mountSheet(STATE, { serverOn: true, frameCardShown: false });
+
+    frameSwitch(dialog).click();
+    flushSync();
+
+    expect(chosen.frameCardShown).toEqual([true]);
+  });
+
   it("offers the quality of server slideshows only with the server library on", () => {
     const off = mountSheet(STATE, { serverOn: false });
     expect(radios(off.dialog, "Sprache")).toHaveLength(3);

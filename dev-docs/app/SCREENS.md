@@ -79,7 +79,8 @@
     storage running full while writing ends the same way, after everything written is removed.
 - **Import** (`import/`, [IMPORT_WIZARD.md](IMPORT_WIZARD.md)) and the **player** ([PLAYER_OVERLAY.md](PLAYER_OVERLAY.md)) open from these.
 - **Picture frame** (`frame/`, [FRAME.md](FRAME.md)): a "Picture frame" card on the start screen
-  while the server library is on, its set-up screen and the fullscreen running frame.
+  while the server library is on (it can be hidden with its ✕ and is brought back in Settings),
+  its set-up screen and the fullscreen running frame.
 
 Up to 720 px wide (a container query on `.screen`) the layout narrows: one card column, the
 info panel below the preview, three tiles per row.

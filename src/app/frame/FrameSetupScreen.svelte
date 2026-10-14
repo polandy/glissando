@@ -6,6 +6,7 @@
   import FrameAlbumPicker from "./FrameAlbumPicker.svelte";
   import Header from "../components/Header.svelte";
   import Notice from "../components/Notice.svelte";
+  import Switch from "../components/Switch.svelte";
   import { getTranslator } from "../i18n/context";
   import type { MessageKey } from "../i18n/messages";
 
@@ -124,30 +125,14 @@
           <b>{t("frame.showClock")}</b>
           <small>{t("frame.showClockHint")}</small>
         </div>
-        <label class="switch">
-          <input
-            type="checkbox"
-            role="switch"
-            checked={showClock}
-            onchange={(event) => onShowClock(event.currentTarget.checked)}
-          />
-          <span class="track" aria-hidden="true"></span>
-        </label>
+        <Switch checked={showClock} label={t("frame.showClock")} onChange={onShowClock} />
       </div>
       <div class="row">
         <div>
           <b>{t("frame.showDate")}</b>
           <small>{t("frame.showDateHint")}</small>
         </div>
-        <label class="switch">
-          <input
-            type="checkbox"
-            role="switch"
-            checked={showDate}
-            onchange={(event) => onShowDate(event.currentTarget.checked)}
-          />
-          <span class="track" aria-hidden="true"></span>
-        </label>
+        <Switch checked={showDate} label={t("frame.showDate")} onChange={onShowDate} />
       </div>
     {/if}
   </main>
@@ -240,38 +225,6 @@
     display: block;
     margin-top: 2px;
     color: var(--gl-muted);
-  }
-  .switch input {
-    position: absolute;
-    opacity: 0;
-    pointer-events: none;
-  }
-  .track {
-    position: relative;
-    display: block;
-    width: 38px;
-    height: 22px;
-    border-radius: var(--gl-radius-pill);
-    background: var(--gl-line);
-    transition: background-color 0.15s;
-  }
-  .track::after {
-    content: "";
-    position: absolute;
-    top: 2px;
-    left: 2px;
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    background: var(--gl-surface);
-    box-shadow: var(--gl-shadow);
-    transition: transform 0.15s;
-  }
-  .switch input:checked + .track {
-    background: var(--gl-accent);
-  }
-  .switch input:checked + .track::after {
-    transform: translateX(16px);
   }
   .foot {
     display: flex;

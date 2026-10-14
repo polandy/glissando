@@ -3,6 +3,7 @@
   import type { ImmichAvailabilityState } from "../../immich/immich-availability";
   import ImmichSettingsGroup from "../immich/ImmichSettingsGroup.svelte";
   import Icon from "../components/Icon.svelte";
+  import FrameSettingsGroup from "./FrameSettingsGroup.svelte";
   import RadioGroup, { type RadioOption } from "../components/RadioGroup.svelte";
   import { getTranslator } from "../i18n/context";
   import type { MessageKey } from "../i18n/messages";
@@ -30,6 +31,9 @@
     serverOn,
     screenShortEdge,
     onPlaybackQuality,
+    frameCardShown,
+    onSetUpFrame,
+    onFrameCardShown,
     onCheckImmich,
     onReload,
     onClose,
@@ -51,6 +55,10 @@
     /** This screen's short edge in device pixels, what "auto" decides by. */
     screenShortEdge: number;
     onPlaybackQuality: (quality: PlaybackQualityPreference) => void;
+    /** The start screen offers the picture frame card (`dev-docs/app/FRAME.md`). */
+    frameCardShown: boolean;
+    onSetUpFrame: () => void;
+    onFrameCardShown: (shown: boolean) => void;
     /** ✕, the scrim, Esc; it should go back through history (see dev-docs/app/NAVIGATION.md). */
     onClose: () => void;
   } = $props();
@@ -177,6 +185,11 @@
           onSelect={onPlaybackQuality}
         />
       </section>
+      <FrameSettingsGroup
+        cardShown={frameCardShown}
+        onSetUp={onSetUpFrame}
+        onCardShown={onFrameCardShown}
+      />
     {/if}
     <ImmichSettingsGroup state={immich} onCheck={onCheckImmich} {onReload} />
     <VersionGroup {build} {updateWaiting} {onUpdate} />

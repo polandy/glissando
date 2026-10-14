@@ -73,6 +73,7 @@
   }
   // svelte-ignore state_referenced_locally
   let serverState = $state.raw<ServerLibraryState>(services.serverLibrary.availability.state);
+  let frameCardShown = $state(services.frameCardPreference.shown);
 
   let route = $state.raw<Route>(navigator.route);
   let exportProgress = $state.raw<ExportProgress | null>(null);
@@ -117,6 +118,7 @@
         setPwaState: (next) => (pwaState = next),
         setImmichState: (next) => (immichState = next),
         setServerState: (next) => (serverState = next),
+        setFrameCardShown: (next) => (frameCardShown = next),
       },
       () => route,
     ),
@@ -127,11 +129,7 @@
   }
 
   // svelte-ignore state_referenced_locally
-  const { install, statusBarAction, createFailed } = createAppActions(
-    { pwa, toaster, reportError, appAddress: services.appAddress },
-    t,
-    (sheet) => (pwaSheet = sheet),
-  );
+  const actions = createAppActions(services, t, (sheet) => (pwaSheet = sheet));
 
   // svelte-ignore state_referenced_locally
   const serverMemory = services.serverLibrary.memory;
@@ -152,7 +150,7 @@
 {#snippet statusBar()}
   <StatusBar
     view={statusBarView(pwaState)}
-    onAction={statusBarAction}
+    onAction={actions.statusBarAction}
     onDismissHint={() => pwa.dismissHint()}
   />
 {/snippet}
@@ -175,6 +173,8 @@
     {statusBar}
     serverOn={serverState.kind === "on"}
     onSetUpFrame={() => navigator.open({ screen: "frameSetup" })}
+    onHideFrameCard={actions.hideFrameCard}
+    {frameCardShown}
   />
   <FrameRoutes {route} {services} {navigator} />
   {#if route.screen === "settings"}
@@ -191,6 +191,9 @@
       serverOn={serverState.kind === "on"}
       screenShortEdge={services.screenShortEdge()}
       onPlaybackQuality={(quality) => settings.setPlaybackQuality(quality)}
+      {frameCardShown}
+      onSetUpFrame={() => navigator.open({ screen: "frameSetup" })}
+      onFrameCardShown={(shown) => services.frameCardPreference.setShown(shown)}
       onClose={() => navigator.back()}
     />
   {/if}
@@ -205,7 +208,7 @@
     serverOn={serverState.kind === "on"}
     {rememberedHome}
     onHomeChosen={homeChosen}
-    onCreateFailed={createFailed}
+    onCreateFailed={actions.createFailed}
     onToMusic={() => navigator.open({ screen: "import", step: "music" })}
     onBack={() => navigator.back()}
     onDiscard={(leave) => void importFlow.discard(leave)}
@@ -288,7 +291,7 @@
   onToastAction={() => toaster.act()}
   onDismissToast={() => toaster.dismiss()}
   onPersistUnderstood={() => importFlow.dismissPersistNotice()}
-  onInstall={install}
+  onInstall={actions.install}
   onClosePwaSheet={() => (pwaSheet = null)}
   tvAtStart={services.tvAtStart}
 />
