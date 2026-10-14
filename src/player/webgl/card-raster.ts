@@ -8,6 +8,7 @@ import {
 import { canvasCardMeasure, withLetterSpacing } from "../card-measure";
 import type { Size } from "../ken-burns";
 import type { Card } from "../slideshow";
+import { gaussianBlur } from "./box-blur";
 
 type Shadow = NonNullable<(typeof CARD_INK_COLORS)[keyof typeof CARD_INK_COLORS]["shadow"]>;
 
@@ -17,7 +18,9 @@ type Shadow = NonNullable<(typeof CARD_INK_COLORS)[keyof typeof CARD_INK_COLORS]
  * `layoutCard`), measured through `card-measure.ts`'s own throwaway context so sizing never
  * depends on drawing order. Returns the title's rendered font size in px, which the renderer
  * needs to turn the card's drift from em into a screen-space fraction. `blurPx` rasterises a
- * `focus` entrance's cross-fade copy once with a static blur, never per frame (ADR-0032).
+ * `focus` entrance's cross-fade copy once with a static blur, never per frame (ADR-0032), using
+ * our own `gaussianBlur` rather than `CanvasRenderingContext2D.filter`: Safari/WebKit, a real PWA
+ * target, does not support that property, which would otherwise silently draw the copy sharp.
  */
 export function rasterizeCard(
   canvas: HTMLCanvasElement,
@@ -32,7 +35,6 @@ export function rasterizeCard(
     throw new Error("this browser has no 2D canvas to draw title cards with");
   }
   context.clearRect(0, 0, canvas.width, canvas.height);
-  context.filter = blurPx > 0 ? `blur(${blurPx}px)` : "none";
 
   const spec = CARD_STYLE_SPECS[card.style];
   const layout = layoutCard(
@@ -44,6 +46,12 @@ export function rasterizeCard(
   const ink = CARD_INK_COLORS[card.ink];
   drawLines(context, layout.titleLines, spec.title, layout.align, ink.color, ink.shadow);
   drawLines(context, layout.subtitleLines, spec.subtitle, layout.align, ink.color, ink.shadow);
+
+  if (blurPx > 0) {
+    const sharp = context.getImageData(0, 0, canvas.width, canvas.height);
+    const blurred = gaussianBlur(sharp, blurPx);
+    context.putImageData(new ImageData(blurred.data, blurred.width, blurred.height), 0, 0);
+  }
 
   return layout.titleLines[0]?.fontSizePx ?? spec.title.sizeFractionOfHeight * viewport.height;
 }

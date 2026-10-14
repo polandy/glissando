@@ -47,13 +47,6 @@ describe("rasterizeCard", () => {
     const sharpEdge = partialAlphaCount(sharpCanvas);
     const blurredEdge = partialAlphaCount(blurredCanvas);
 
-    // Playwright's WebKit build has no CanvasRenderingContext2D filter: the blur silently does
-    // not apply there, and the "blurred" copy comes out identical to the sharp one. The focus
-    // cross-fade still draws readable text in that case, just without the blur (ADR-0032).
-    if ("filter" in CanvasRenderingContext2D.prototype) {
-      expect(blurredEdge).toBeGreaterThan(sharpEdge);
-    } else {
-      expect(blurredEdge).toBe(sharpEdge);
-    }
+    expect(blurredEdge).toBeGreaterThan(sharpEdge);
   });
 });
