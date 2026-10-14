@@ -37,7 +37,9 @@ albums".
 
 Fullscreen, no chrome by default. A tap reveals, for `CONTROLS_VISIBLE_MS` (4 s,
 `src/frame/tap-controls.ts`): an exit pill (also Esc) and a bottom bar with pause/resume and
-next; a further tap hides them again at once. The mockup's bottom bar also carries a "Settings"
+next; a further tap hides them again at once. An e2e case can lengthen that time with
+`?controlsVisibleMs=<ms>` on the app's URL (a whole number above 0, else the app refuses to
+start), so it clicks through the controls without racing the timer. The mockup's bottom bar also carries a "Settings"
 button back to the set-up screen; this build omits it; exiting the frame (back to the set-up
 screen) covers the same need until a dedicated in-frame settings path is worth its own screen.
 The clock (if on) sits top-right, the date and album name (if the date is on) bottom-left — the

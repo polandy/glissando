@@ -43,5 +43,15 @@ export function browserFrameDevice(
  */
 function controlsVisibleMsOverride(search: string): number | null {
   const value = new URLSearchParams(search).get(CONTROLS_VISIBLE_MS_PARAM);
-  return value === null ? null : Number(value);
+  if (value === null) {
+    return null;
+  }
+  const ms = Number(value);
+  if (value === "" || !Number.isInteger(ms) || ms <= 0) {
+    throw new Error(
+      `?${CONTROLS_VISIBLE_MS_PARAM}=${value} is not a whole number of milliseconds above 0; ` +
+        `set e.g. ?${CONTROLS_VISIBLE_MS_PARAM}=60000, or leave it out for ${CONTROLS_VISIBLE_MS}`,
+    );
+  }
+  return ms;
 }

@@ -85,4 +85,12 @@ describe("browserFrameDevice", () => {
 
     expect(device.controlsVisibleMs).toBe(60_000);
   });
+
+  it.each(["abc", "", "-5", "0", "1.5"])("refuses ?controlsVisibleMs=%s by name", (value) => {
+    const window = fakeWindow({ hasClipboard: true, search: `?controlsVisibleMs=${value}` });
+
+    expect(() => browserFrameDevice(window, noopScheduler, noopScreenAwake)).toThrow(
+      /controlsVisibleMs/,
+    );
+  });
 });
