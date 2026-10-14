@@ -1,7 +1,7 @@
 import type { BrowserPicture } from "../browser/picture-loader";
 import type { Rect, Size } from "../ken-burns";
 import { BACKDROP_BLUR_RADIUS_SHARE } from "../backdrop-blur";
-import type { SlideLayer } from "../ports";
+import type { PictureSlideLayer } from "../ports";
 import { BACKDROP_BRIGHTNESS, type SlideLayout } from "../slide-layout";
 import { layerTransform, toPixelRect } from "./layer-transform";
 
@@ -48,7 +48,7 @@ export class LayerPlacement {
 
   /** Places the layer's picture(s); returns the top-level node its caption, if any, follows. */
   place(
-    layer: SlideLayer<BrowserPicture>,
+    layer: PictureSlideLayer<BrowserPicture>,
     opacity: number,
     layout: SlideLayout,
     viewport: Size,
