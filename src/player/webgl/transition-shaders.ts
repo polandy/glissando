@@ -155,8 +155,12 @@ vec4 applyVeil(vec4 colour, sampler2D backdrop, vec4 crop, vec2 p, float amount,
   return vec4(tinted, colour.a);
 }
 /** The card's title/subtitle texture (premultiplied), composited like \`withCaption\` but over the
- * whole screen and lifted by \`drift\` (ADR-0032). */
+ * whole screen and lifted by \`drift\` (ADR-0032). Unchanged, and never sampling \`card\`, at
+ * opacity 0 — the case of nearly every fragment of a slideshow without a title or closing card. */
 vec4 withCard(vec4 picture, sampler2D card, float opacity, float drift, vec2 p) {
+  if (opacity <= 0.0) {
+    return picture;
+  }
   float v = 1.0 - p.y - drift;
   if (v < 0.0 || v > 1.0) {
     return picture;
