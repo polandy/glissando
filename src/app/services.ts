@@ -22,6 +22,7 @@ import type { VideoExportDevice } from "./video-export/slideshow-video-export";
 import type { ServerSlideshowSessions } from "./server-library/server-slideshow-sessions";
 import type { BuildInfo } from "./settings/build-info";
 import type { FrameDevice } from "./frame/browser-frame-device";
+import type { FrameCardPreference } from "./frame/frame-card-preference";
 import type { FramePreferences } from "./frame/frame-preferences";
 
 /**
@@ -86,6 +87,8 @@ export interface AppServices extends ServerSlideshowSessions {
   reload(): void;
   /** The picture frame's set-up choices, kept on this device (`dev-docs/app/FRAME.md`). */
   readonly framePreferences: FramePreferences;
+  /** Whether the start screen offers the picture frame card, kept on this device. */
+  readonly frameCardPreference: FrameCardPreference;
   /** What the picture frame needs of the browser beyond Immich and storage. */
   readonly frameDevice: FrameDevice;
 }

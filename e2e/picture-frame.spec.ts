@@ -168,6 +168,48 @@ test("E2E-049 a #frame= link starts the frame directly, skipping set-up", async 
   await expect(page.locator(".stamp")).toHaveText("Landscapes Lab");
 });
 
+test("E2E-057 the picture frame card is hidden with its close button, stays hidden after a reload, the frame is still set up from Settings and the card is brought back there", async ({
+  page,
+}) => {
+  await openAppWithServer(page);
+  await expect(setUpCard(page)).toBeVisible();
+
+  await page.getByRole("button", { name: "Bilderrahmen-Karte ausblenden" }).click();
+  await expect(
+    page.getByText("Bilderrahmen ausgeblendet. In den Einstellungen holst du ihn zurück."),
+  ).toBeVisible();
+  await expect(setUpCard(page)).toHaveCount(0);
+
+  await page.reload();
+  await expect(page.getByRole("button", { name: "Neue Diashow" })).toBeVisible();
+  await expect(setUpCard(page)).toHaveCount(0);
+
+  await page.getByRole("button", { name: "Einstellungen" }).click();
+  await expect(page.getByText("In diesem Browser ausgeblendet", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Bilderrahmen einrichten" }).click();
+  await expect(startFrameButton(page)).toBeInViewport();
+
+  await page.goBack();
+  await page.getByRole("button", { name: "Einstellungen" }).click();
+  await expect(page.getByText("In diesem Browser ausgeblendet", { exact: true })).toBeVisible();
+  await toggleSwitch(page, "Karte auf der Startseite zeigen");
+  await expect(page.getByText("Steht über deinen Diashows", { exact: true })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(setUpCard(page)).toBeVisible();
+});
+
+test("E2E-058 the picture frame card's undo toast brings the card back at once", async ({
+  page,
+}) => {
+  await openAppWithServer(page);
+
+  await page.getByRole("button", { name: "Bilderrahmen-Karte ausblenden" }).click();
+  await expect(setUpCard(page)).toHaveCount(0);
+  await page.getByRole("button", { name: "Rückgängig" }).click();
+
+  await expect(setUpCard(page)).toBeVisible();
+});
+
 test("E2E-050 the picture frame card is absent while Immich cannot be reached", async ({
   page,
 }) => {

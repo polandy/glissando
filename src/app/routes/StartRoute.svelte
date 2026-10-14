@@ -29,6 +29,8 @@
     statusBar,
     serverOn,
     onSetUpFrame,
+    onHideFrameCard,
+    frameCardShown,
   }: {
     store: LibraryStore;
     /** Its slideshows show in their own section while it is on or offline. */
@@ -50,6 +52,8 @@
     /** The picture frame card shows only while the server library is on (`dev-docs/app/FRAME.md`). */
     serverOn: boolean;
     onSetUpFrame: () => void;
+    onHideFrameCard: () => void;
+    frameCardShown: boolean;
   } = $props();
 
   let slideshows = $state.raw<readonly SlideshowSummary[] | null>(null);
@@ -130,6 +134,8 @@
     {statusBar}
     {serverOn}
     {onSetUpFrame}
+    {onHideFrameCard}
+    {frameCardShown}
     logo={slideshows.length === 0 || playStartAnimation ? startLogo : undefined}
   />
 {/if}

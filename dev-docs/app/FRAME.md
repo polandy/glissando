@@ -12,9 +12,18 @@ A "Picture frame" card on the start screen, only while `serverState.kind === "on
 the rest of the server library, so it needs the server exactly as that does. The card is absent
 while the server is off or unreachable (E2E-050).
 
+The card carries a ✕ ("Hide the picture frame card") that hides it. The choice is kept in this
+browser (`src/app/frame/frame-card-preference.ts`) and survives a reload. Hiding shows the toast
+"Picture frame hidden. Bring it back in Settings." with "Undo". Settings has a "Picture frame"
+section, again only while the server is on, with two rows: "Set up a picture frame" opens the
+set-up screen, and the switch "Show the card on the start page" (sub-line "Shown above your
+slideshows" or "Hidden in this browser") brings the card back. Hiding the card changes neither
+the set-up screen nor the deep link below. E2E-057 hides the card, reloads, sets the frame up
+from Settings and brings the card back with the switch; E2E-058 covers the toast's Undo.
+
 ## Set-up screen
 
-E2E-047 sets up and runs a frame from the start screen, including the regression where this
+E2E-047 sets up and runs a frame from the start screen and, after hiding the card, from Settings, including the regression where this
 screen once rendered below the start screen, outside the viewport; E2E-048 reloads mid-way and
 finds the choices kept. Fields and their defaults, all device-persisted
 (`src/app/frame/frame-preferences.ts`) so the next frame opens the same way:
