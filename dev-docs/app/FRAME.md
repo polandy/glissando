@@ -18,7 +18,8 @@ browser (`src/app/frame/frame-card-preference.ts`) and survives a reload. Hiding
 section, again only while the server is on, with two rows: "Set up a picture frame" opens the
 set-up screen, and the switch "Show the card on the start page" (sub-line "Shown above your
 slideshows" or "Hidden in this browser") brings the card back. Hiding the card changes neither
-the set-up screen nor the deep link below.
+the set-up screen nor the deep link below. E2E-057 hides the card, reloads, sets the frame up
+from Settings and brings the card back with the switch; E2E-058 covers the toast's Undo.
 
 ## Set-up screen
 
