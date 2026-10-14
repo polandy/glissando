@@ -2,6 +2,7 @@ import type { PictureFocus } from "../library/picture-focus";
 import type { StoredPicture, StoredSlideshow } from "../library/stored-slideshow";
 import { SLIDESHOW_FORMAT_VERSION, type Slide, type Slideshow } from "../player/slideshow";
 import { beatTransitionDurationMs } from "./beat-transition";
+import { composeCards } from "./compose-cards";
 import { filledMusicMs, playlistBeatsMs, resolvePlaylist, type SongBeats } from "./playlist";
 import { pairKenBurns, pictureKenBurns } from "./picture-ken-burns";
 import { pictureTransition, slideshowTransition } from "./picture-transition";
@@ -65,14 +66,18 @@ export function composeSlideshow(
     return { ...slide, transitionToNext: { ...transitionToNext, durationMs: onBeatMs } };
   });
 
-  const slideshowMs = durationsMs.reduce((sum, durationMs) => sum + durationMs, 0);
-  const music = resolvePlaylist(stored, slideshowMs).map(({ song, ...timing }) => ({
-    src: sources.music(song.id),
-    ...timing,
-  }));
-  return music.length === 0
-    ? { formatVersion: SLIDESHOW_FORMAT_VERSION, title: stored.title, slides }
-    : { formatVersion: SLIDESHOW_FORMAT_VERSION, title: stored.title, music, slides };
+  const withCards = composeCards(stored, units, slides, sources, focus, defaultTransition, beatsMs);
+  const slideshowMs = withCards.slides.reduce((sum, finalSlide) => sum + finalSlide.durationMs, 0);
+  const music = resolvePlaylist(stored, slideshowMs, withCards.endFadeMs).map(
+    ({ song, ...timing }) => ({ src: sources.music(song.id), ...timing }),
+  );
+  return {
+    formatVersion: SLIDESHOW_FORMAT_VERSION,
+    title: stored.title,
+    ...(music.length === 0 ? {} : { music }),
+    slides: withCards.slides,
+    ...(withCards.endFadeMs === undefined ? {} : { endFadeMs: withCards.endFadeMs }),
+  };
 }
 
 function pictureOf(pictures: readonly StoredPicture[], index: number): StoredPicture {
