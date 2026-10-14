@@ -123,7 +123,8 @@ test("E2E-047 the picture frame is set up from the start screen, runs full scree
   await expect(page.getByRole("button", { name: "Weiter", exact: true })).toBeVisible();
 
   // Exit (the running frame sits over the start screen, not its set-up screen: `src/app/navigation/route.ts`).
-  await exitButton(page).click();
+  // Same auto-hide race as `pauseButton` above: the controls can have hidden again by now.
+  await clickWithControlsVisible(page, exitButton(page));
   await expect(setUpCard(page)).toBeVisible();
   await expect(exitButton(page)).toHaveCount(0);
 
