@@ -9,6 +9,7 @@ import {
   type ManifestPicture,
   type ManifestReading,
 } from "./glissando-manifest";
+import { readManifestVideo, refuseClipsOfTwoTypes, VIDEO_FROM_VERSION } from "./manifest-video";
 import {
   DocumentFormatError,
   isObject,
@@ -78,6 +79,7 @@ function readValidManifest(input: JsonObject): GlissandoManifest {
   );
   const songs = readSongs(show, path, (song, songPath) => readMusic(song, songPath, version));
   refuseRepeatedSongPaths(songs, path);
+  refuseClipsOfTwoTypes(pictures, path);
   return {
     format: GLISSANDO_FORMAT_ID,
     formatVersion: version,
@@ -110,8 +112,9 @@ function readPicture(value: unknown, path: string, version: number): ManifestPic
     "thumbnail",
     ...pictureKeys(version),
     ...(version >= ORIGIN_FROM_VERSION ? ["immichAssetId", "fileBytes"] : []),
+    ...(version >= VIDEO_FROM_VERSION ? ["video"] : []),
   ]);
-  const { immichAssetId, fileBytes } = picture;
+  const { immichAssetId, fileBytes, video } = picture;
   if (immichAssetId !== undefined && fileBytes !== undefined) {
     const both = { immichAssetId, fileBytes };
     throw new DocumentFormatError(path, "immichAssetId or fileBytes, not both", both);
@@ -126,6 +129,7 @@ function readPicture(value: unknown, path: string, version: number): ManifestPic
     ...(fileBytes === undefined
       ? {}
       : { fileBytes: readPositiveInteger(fileBytes, `${path}.fileBytes`) }),
+    ...(video === undefined ? {} : { video: readManifestVideo(video, `${path}.video`) }),
   };
 }
 

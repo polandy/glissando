@@ -24,7 +24,8 @@ export interface OpenNotice {
 export type OpeningLine =
   | { readonly kind: "checking" }
   | { readonly kind: "picture"; readonly number: number; readonly count: number }
-  | { readonly kind: "music" };
+  | { readonly kind: "music" }
+  | { readonly kind: "video"; readonly number: number; readonly count: number };
 
 /** What the blocking overlay shows while a file opens. */
 export interface Opening {

@@ -35,7 +35,7 @@ export type SlideshowFields = Omit<ManifestSlideshow, "pictures" | "songs">;
 /** A picture's settings, without the keys that say where its bytes are. */
 export type PictureFields = Omit<
   ManifestPicture,
-  "file" | "thumbnail" | "immichAssetId" | "fileBytes"
+  "file" | "thumbnail" | "immichAssetId" | "fileBytes" | "video"
 >;
 /** The music's settings, without the key that says where its bytes are. */
 export type MusicFields = Omit<ManifestMusic, "file">;

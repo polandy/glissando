@@ -270,6 +270,7 @@ export const en: Catalogue = {
   "glissandoFile.checking": "Checking file\u00a0…",
   "glissandoFile.picture": "Picture {number} of {count}",
   "glissandoFile.music": "Music",
+  "glissandoFile.video": "Video {number} of {count}",
   "glissandoFile.opened": "“{title}” opened",
   "glissandoFile.openedAs": "Opened as “{title}”, “{original}” stays unchanged.",
   "glissandoFile.cancelled": "Opening cancelled, nothing saved.",

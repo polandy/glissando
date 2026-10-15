@@ -89,3 +89,41 @@ export async function withBytesReplaced(file: Blob, from: string, to: string): P
   bytes.set(new TextEncoder().encode(to), at);
   return new Blob([bytes]);
 }
+
+/** The poster pictures `a` and `b` play the clip `src-c1` (the first with its own excerpt), `c` plays `src-c2`. */
+export const VIDEO_SLIDESHOW: StoredSlideshow = {
+  id: "video-show",
+  title: "Mit Clips",
+  createdAt: "2025-10-01T08:00:00.000Z",
+  secondsPerPicture: 5,
+  songs: [],
+  pictures: ["a", "b", "c"].map((name, index) => ({
+    id: `src-${name}`,
+    capturedAt: "2025-09-30T10:00:00Z",
+    width: 40,
+    height: 30,
+    fileName: `${name}.jpg`,
+    colours: { veil: "#404040", accent: "#C0C0C0" },
+    video: {
+      mediaId: index < 2 ? "src-c1" : "src-c2",
+      sourceMs: 20_000,
+      startMs: index === 1 ? 4000 : 1000,
+      endMs: index === 1 ? 9000 : 6000,
+      ...(index === 0 ? { volume: 60, duckMusic: false as const } : {}),
+    },
+  })),
+};
+
+/** A .glissando file of `VIDEO_SLIDESHOW`, its two clips in the store as `src-c1` and `src-c2`. */
+export async function exportedVideoFile(): Promise<Blob> {
+  const store = new MemoryLibraryStore();
+  for (const name of ["a", "b", "c"]) {
+    await store.putPicture(`src-${name}`, {
+      display: jpeg(`display ${name}`),
+      thumbnail: jpeg(`thumb ${name}`),
+    });
+  }
+  await store.putVideo("src-c1", new Blob(["clip one"], { type: "video/mp4" }));
+  await store.putVideo("src-c2", new Blob(["clip two"], { type: "video/webm" }));
+  return exportSlideshow(VIDEO_SLIDESHOW, store, { modifiedAt: MODIFIED_AT });
+}

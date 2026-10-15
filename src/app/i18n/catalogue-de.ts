@@ -272,6 +272,7 @@ export const de = {
   "glissandoFile.checking": "Datei wird geprüft\u00a0…",
   "glissandoFile.picture": "Bild {number} von {count}",
   "glissandoFile.music": "Musik",
+  "glissandoFile.video": "Video {number} von {count}",
   "glissandoFile.opened": "„{title}“ geöffnet",
   "glissandoFile.openedAs": "Geöffnet als „{title}“, „{original}“ bleibt unverändert.",
   "glissandoFile.cancelled": "Öffnen abgebrochen, nichts gespeichert.",

@@ -110,13 +110,13 @@ The slide clock leads; the clip follows it, never the other way round.
 
 ## Targets
 
-| Target             | Behaviour                                                                                    |
-| ------------------ | -------------------------------------------------------------------------------------------- |
-| App player         | `<video>` per clip, frames uploaded to the slide's texture each frame (WebGL) or shown (DOM) |
-| Video export (MP4) | Frame-accurate decode with mediabunny; the clip sound is mixed with the music, ducked        |
-| HTML export        | The clip's bytes embedded in the file; the export sheet names the size beforehand            |
-| `.glissando` file  | Format 7 holds `videos/<id>` entries (stored, ADR-0004); versions below 7 are still read     |
-| Server slideshow   | The server keeps the clip; a device downloads it whole and stores it (ADR-0018)              |
-| Share link         | The clip is fetched whole before the show starts, with progress; never streamed              |
-| Immich             | The clip is downloaded as Immich's playable version and then lives on the device (ADR-0013)  |
-| TV remote          | Unchanged                                                                                    |
+| Target             | Behaviour                                                                                              |
+| ------------------ | ------------------------------------------------------------------------------------------------------ |
+| App player         | `<video>` per clip, frames uploaded to the slide's texture each frame (WebGL) or shown (DOM)           |
+| Video export (MP4) | Frame-accurate decode with mediabunny; the clip sound is mixed with the music, ducked                  |
+| HTML export        | The clip's bytes embedded in the file; the export sheet names the size beforehand                      |
+| `.glissando` file  | Format 14 holds `videos/clip-<n>` entries (stored, ADR-0004) and a picture's `video`; 13 is still read |
+| Server slideshow   | The server keeps the clip; a device downloads it whole and stores it (ADR-0018)                        |
+| Share link         | The clip is fetched whole before the show starts, with progress; never streamed                        |
+| Immich             | The clip is downloaded as Immich's playable version and then lives on the device (ADR-0013)            |
+| TV remote          | Unchanged                                                                                              |

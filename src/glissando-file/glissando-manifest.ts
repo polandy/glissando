@@ -4,8 +4,16 @@ import type { PictureLength } from "../library/picture-length";
 import type { PortraitPictures } from "../library/portrait-pictures";
 import type { BetweenSongs, MusicTrim, PictureChanges } from "../library/own-music";
 import type { SlideshowTransition, TransitionChoice } from "../library/own-timing";
+import type { StoredVideo } from "../library/own-video";
 import type { StoredSlideshow } from "../library/stored-slideshow";
 import { cardToManifest, type ManifestCard } from "./manifest-card";
+import {
+  clipMimeType,
+  clipPath,
+  distinctClipIds,
+  videoToManifest,
+  type ManifestVideo,
+} from "./manifest-video";
 
 /**
  * `glissando.json`, the first entry of a .glissando file: the format's id and version and the
@@ -22,12 +30,13 @@ export const GLISSANDO_FORMAT_ID = "glissando";
  * `songs` and `betweenSongs` replacing the single `music` (ADR-0023), version 11 the slideshow's
  * `portraitPictures` and a picture's `alone` (ADR-0028), version 12 the slideshow's `openingCard`
  * and `closingCard` (ADR-0032), version 13 a picture's `colours` and a card's picture background
- * `tint` (ADR-0033). A file older than version 10 carried `music`, not `songs`, with no automatic
+ * `tint` (ADR-0033), version 14 a picture's `video` and the `videos/` entries (ADR-0034). A file older than version 10 carried `music`, not `songs`, with no automatic
  * way to tell the two apart in a document that also predates other fields; such a file is
- * reported like any other unsupported version. Only version 13 is read: there is no production
- * instance yet, so an older file is refused rather than migrated.
+ * reported like any other unsupported version. Versions 13 and 14 are read (a version 13 file
+ * holds no clips); there is no production instance yet, so an older file is refused rather than
+ * migrated.
  */
-export const GLISSANDO_FORMAT_VERSION = 13;
+export const GLISSANDO_FORMAT_VERSION = 14;
 export const OLDEST_READABLE_FORMAT_VERSION = 13;
 /** The first version that carries a picture's own motion. */
 export const OWN_KEN_BURNS_FROM_VERSION = 2;
@@ -74,6 +83,8 @@ export interface ManifestPicture {
   readonly alone?: true;
   /** Worked out once when the picture is added (ADR-0033). */
   readonly colours: PictureColours;
+  /** The clip the slide plays; the picture is its poster (ADR-0034). */
+  readonly video?: ManifestVideo;
 }
 
 export interface ManifestMusic {
@@ -159,7 +170,14 @@ export interface PictureTypes {
 export function manifestFor(
   slideshow: StoredSlideshow,
   pictureTypes: readonly PictureTypes[],
+  clipTypes: ReadonlyMap<string, string> = new Map(),
 ): GlissandoManifest {
+  const clipFiles = new Map(
+    distinctClipIds(slideshow.pictures).map((mediaId, index) => {
+      const mimeType = clipMimeType(clipTypes.get(mediaId) ?? "");
+      return [mediaId, { file: clipPath(index, mimeType), mimeType }] as const;
+    }),
+  );
   const pictures = slideshow.pictures.map((picture, index): ManifestPicture => ({
     ...picturePaths(index, typesAt(pictureTypes, index)),
     capturedAt: picture.capturedAt,
@@ -174,6 +192,7 @@ export function manifestFor(
     ...(picture.immichAssetId === undefined ? {} : { immichAssetId: picture.immichAssetId }),
     ...(picture.fileBytes === undefined ? {} : { fileBytes: picture.fileBytes }),
     ...(picture.alone === true ? { alone: true } : {}),
+    ...(picture.video === undefined ? {} : { video: manifestVideo(picture.video, clipFiles) }),
   }));
   const songs = slideshow.songs.map((song, index) => ({
     file: songPath(index, song.fileName),
@@ -205,6 +224,17 @@ export function manifestFor(
       ...(closingCard === undefined ? {} : { closingCard }),
     },
   };
+}
+
+function manifestVideo(
+  video: StoredVideo,
+  clipFiles: ReadonlyMap<string, { readonly file: string; readonly mimeType: string }>,
+): ManifestVideo {
+  const clip = clipFiles.get(video.mediaId);
+  if (clip === undefined) {
+    throw new Error(`clip ${video.mediaId} was never read: pass its type`);
+  }
+  return videoToManifest(video, clip.file, clip.mimeType);
 }
 
 type OwnMusicFields = Pick<ManifestMusic, "trim" | "fadeInMs" | "fadeOutMs" | "pictureChanges">;
