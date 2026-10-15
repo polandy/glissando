@@ -21,6 +21,7 @@ export class MemoryLibraryStore implements LibraryStore {
   readonly #slideshows = new Map<string, StoredSlideshow>();
   readonly #pictures = new Map<string, PictureBlobs>();
   readonly #music = new Map<string, Blob>();
+  readonly #videos = new Map<string, Blob>();
   readonly #imports = new Map<string, MediaClaim>();
   readonly #focus = new Map<string, PictureFocus>();
   readonly #beats = new Map<string, MusicBeats>();
@@ -32,6 +33,11 @@ export class MemoryLibraryStore implements LibraryStore {
 
   putMusic(id: string, blob: Blob): Promise<void> {
     this.#music.set(id, blob);
+    return Promise.resolve();
+  }
+
+  putVideo(id: string, blob: Blob): Promise<void> {
+    this.#videos.set(id, blob);
     return Promise.resolve();
   }
 
@@ -105,6 +111,10 @@ export class MemoryLibraryStore implements LibraryStore {
     return found(id, this.#music.get(id));
   }
 
+  videoBlob(id: string): Promise<Blob> {
+    return found(id, this.#videos.get(id));
+  }
+
   putPictureFocus(pictureId: string, focus: PictureFocus): Promise<void> {
     if (this.#pictures.has(pictureId)) {
       this.#focus.set(pictureId, structuredClone(focus));
@@ -140,6 +150,8 @@ export class MemoryLibraryStore implements LibraryStore {
     for (const picture of slideshow.pictures) {
       const blobs = this.#pictures.get(picture.id);
       bytes += (blobs?.display.size ?? 0) + (blobs?.thumbnail.size ?? 0);
+      bytes +=
+        picture.video === undefined ? 0 : (this.#videos.get(picture.video.mediaId)?.size ?? 0);
     }
     for (const song of slideshow.songs) {
       bytes += this.#music.get(song.id)?.size ?? 0;
@@ -163,9 +175,9 @@ export class MemoryLibraryStore implements LibraryStore {
     const { sparedMediaIds, staleClaimIds } = claimsAt([...this.#imports.values()], now);
     staleClaimIds.forEach((id) => this.#imports.delete(id));
     // Focus and beats are media too: one kept for media that went goes with it.
-    const mediaIds = [this.#pictures, this.#music, this.#focus, this.#beats].flatMap((media) => [
-      ...media.keys(),
-    ]);
+    const mediaIds = [this.#pictures, this.#music, this.#videos, this.#focus, this.#beats].flatMap(
+      (media) => [...media.keys()],
+    );
     for (const id of mediaIds) {
       if (!referenced.has(id) && !sparedMediaIds.has(id)) {
         this.#deleteMedia(id);
@@ -178,6 +190,7 @@ export class MemoryLibraryStore implements LibraryStore {
     this.#pictures.delete(id);
     this.#focus.delete(id);
     this.#music.delete(id);
+    this.#videos.delete(id);
     this.#beats.delete(id);
   }
 }

@@ -2,6 +2,7 @@ import type { MusicBeats } from "../beats";
 import type { CardSwatchId } from "../player/card-palette";
 import type { CardEntrance, CardPosition, CardStyle } from "../player/slideshow";
 import type { OwnKenBurns } from "./own-ken-burns";
+import type { StoredVideo } from "./own-video";
 import type { PictureColours } from "./picture-colours";
 import type { PictureFocus } from "./picture-focus";
 import type { PictureLength } from "./picture-length";
@@ -49,6 +50,8 @@ export interface StoredPicture {
   readonly fileBytes?: number;
   /** Never composed into a portrait pair, even automatically; absent: it may be (ADR-0028). */
   readonly alone?: true;
+  /** The clip this picture is the poster of; absent: a plain picture (ADR-0034). */
+  readonly video?: StoredVideo;
   /** Worked out once when the picture is added (`pictureColours`, ADR-0033). */
   readonly colours: PictureColours;
 }
@@ -156,6 +159,8 @@ export interface PictureBlobs {
 export interface LibraryStore {
   putPicture(id: string, blobs: PictureBlobs): Promise<void>;
   putMusic(id: string, blob: Blob): Promise<void>;
+  /** Stores a video's original file under its media id (`StoredVideo.mediaId`). */
+  putVideo(id: string, blob: Blob): Promise<void>;
   /** Writes the record atomically; replaces one with the same id. */
   saveSlideshow(slideshow: StoredSlideshow): Promise<void>;
   /**
@@ -177,8 +182,8 @@ export interface LibraryStore {
   /** Throws `SlideshowNotFoundError` for an unknown id. */
   getSlideshow(id: string): Promise<StoredSlideshow>;
   /**
-   * Deletes the record and, in the same transaction, the media only it references, those
-   * pictures' focus and that music's beats. Throws `SlideshowNotFoundError` for an unknown id.
+   * Deletes the record and, in the same transaction, the media (pictures, music, videos) only it
+   * references, those pictures' focus and that music's beats. Throws `SlideshowNotFoundError` for an unknown id.
    */
   deleteSlideshow(id: string): Promise<void>;
   /** `signal` cancels a download where reading the picture needs one. */
@@ -187,6 +192,8 @@ export interface LibraryStore {
   playbackPictureBlob(id: string, signal?: AbortSignal): Promise<Blob>;
   thumbnailBlob(id: string): Promise<Blob>;
   musicBlob(id: string): Promise<Blob>;
+  /** Throws `MediaNotFoundError` for an unknown media id. */
+  videoBlob(id: string): Promise<Blob>;
   /**
    * Stores what the detection found in a picture, beside its media (ADR-0012). A picture whose
    * media is not stored (any more) keeps nothing, so a late detection cannot resurrect it.
@@ -201,7 +208,7 @@ export interface LibraryStore {
   putMusicBeats(musicId: string, beats: MusicBeats): Promise<void>;
   /** The stored beats of a track; `undefined` while it was not listened to yet. */
   musicBeats(musicId: string): Promise<MusicBeats | undefined>;
-  /** The bytes the slideshow's pictures (both renditions) and music take; missing media counts 0. */
+  /** The bytes the slideshow's pictures (both renditions), music and videos take; missing media counts 0. */
   mediaBytes(slideshow: StoredSlideshow): Promise<number>;
   /**
    * Claims a media id no saved slideshow references (yet or any more), so a clean-up in any tab
@@ -212,7 +219,7 @@ export interface LibraryStore {
   /** The import was created or discarded, the removal undone or final: its media is spared no longer. */
   releaseClaim(claimId: string): Promise<void>;
   /**
-   * Deletes media (pictures with their focus, music with its beats) no saved slideshow references, sparing that of
+   * Deletes media (pictures with their focus, music with its beats, videos) no saved slideshow references, sparing that of
    * claims made less than `CLAIM_SPARED_FOR_MS` before `now`; older claims are taken for crashed
    * and forgotten.
    */

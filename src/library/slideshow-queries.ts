@@ -14,6 +14,9 @@ export function referencedMediaIds(slideshows: readonly StoredSlideshow[]): Set<
   for (const slideshow of slideshows) {
     for (const picture of slideshow.pictures) {
       ids.add(picture.id);
+      if (picture.video !== undefined) {
+        ids.add(picture.video.mediaId);
+      }
     }
     for (const song of slideshow.songs) {
       ids.add(song.id);

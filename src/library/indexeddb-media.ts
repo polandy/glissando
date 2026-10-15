@@ -8,15 +8,24 @@ import {
   MUSIC,
   PICTURES,
   SLIDESHOWS,
+  VIDEOS,
   type StoreName,
 } from "./indexeddb-schema";
 
 /** The stores `deleteUnreferenced` reads and writes in its one transaction. */
-export const CLEAN_UP_STORES: StoreName[] = [SLIDESHOWS, PICTURES, MUSIC, IMPORTS, FOCUS, BEATS];
+export const CLEAN_UP_STORES: StoreName[] = [
+  SLIDESHOWS,
+  PICTURES,
+  MUSIC,
+  VIDEOS,
+  IMPORTS,
+  FOCUS,
+  BEATS,
+];
 
 /**
- * Adds up the stored bytes of a slideshow's media inside `transaction` (over `PICTURES` and
- * `MUSIC`); `total` is complete once the transaction is.
+ * Adds up the stored bytes of a slideshow's media inside `transaction` (over `PICTURES`,
+ * `MUSIC` and `VIDEOS`); `total` is complete once the transaction is.
  */
 export function measureMediaBytes(
   transaction: IDBTransaction,
@@ -30,6 +39,9 @@ export function measureMediaBytes(
     };
   };
   for (const picture of slideshow.pictures) {
+    if (picture.video !== undefined) {
+      measure(VIDEOS, picture.video.mediaId, (media) => (media as StoredMedia).bytes.byteLength);
+    }
     measure(PICTURES, picture.id, (media) => {
       const { display, thumbnail } = media as StoredPictureMedia;
       return display.bytes.byteLength + thumbnail.bytes.byteLength;
@@ -54,7 +66,7 @@ export function deleteUnreferenced(transaction: IDBTransaction, now: Date): void
     const { sparedMediaIds, staleClaimIds } = claimsAt(imports.result as MediaClaim[], now);
     staleClaimIds.forEach((id) => importStore.delete(id));
     // Focus and beats are media too: one kept for media that went goes with it.
-    for (const name of [PICTURES, MUSIC, FOCUS, BEATS]) {
+    for (const name of [PICTURES, MUSIC, VIDEOS, FOCUS, BEATS]) {
       const media = transaction.objectStore(name);
       const keys = media.getAllKeys();
       keys.onsuccess = () => {
