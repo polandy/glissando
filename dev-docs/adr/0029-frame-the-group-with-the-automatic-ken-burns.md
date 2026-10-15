@@ -20,8 +20,9 @@ window, and whether small background faces count.
   surrounds the group.
 - **A group that does not fit lowers the zoom.** `autoKenBurns` takes the larger side of the box,
   grown by 15%, as the window the largest zoom must show: the motion's end zoom is
-  `min(1.2, 1 / that)`, never below `MIN_KEN_BURNS_ZOOM`. A group across the whole picture
-  therefore gets zoom 1 at both ends and only the pan. The window is taken as 1/zoom of the
+  `min(1.2, 1 / that)`, never below `SMALLEST_ZOOM_TRAVEL` (1.05, so no picture stands still). A
+  group across the whole picture therefore zooms 1 ↔ 1.05 and pans, its edge cut a little. The
+  window is taken as 1/zoom of the
   picture on both axes, since the screen is not known when the slideshow is composed; with a
   picture and a screen of different shapes the cover crop is tighter than that on one axis.
 - **Everything else stays**: centre on the box's centre, the alternating zoom and pan, the pair

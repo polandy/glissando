@@ -8,6 +8,12 @@ export const KEN_BURNS_EASING: Easing = "linear";
 /** Largest zoom the automatic framing reaches; `MIN_KEN_BURNS_ZOOM` is the smallest. */
 const MAX_ZOOM = 1.2;
 
+/**
+ * The end zoom never falls below this, so a picture is never still: a subject as large as the
+ * picture still gets a slight push in or pull out, at the cost of cutting its edge a little.
+ */
+export const SMALLEST_ZOOM_TRAVEL = 1.05;
+
 /** Centre of an unbiased picture; also the resting point a pan swings around. */
 const BASE_CENTER = 0.5;
 
@@ -65,7 +71,7 @@ export function autoKenBurns(
 function largestZoomShowing(focus: PictureFocus | undefined): number {
   if (focus?.kind !== "subject") return MAX_ZOOM;
   const extent = Math.max(focus.box.width, focus.box.height) * GROUP_MARGIN;
-  return Math.min(MAX_ZOOM, Math.max(MIN_KEN_BURNS_ZOOM, 1 / extent));
+  return Math.min(MAX_ZOOM, Math.max(SMALLEST_ZOOM_TRAVEL, 1 / extent));
 }
 
 function restingCenter(
