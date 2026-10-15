@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { VideoPlaybackError } from "../ports";
 import type { MusicVolume } from "./music-output";
-import { VIDEO_DRIFT_MS, VideoElementPlayback, type VideoOutput } from "./video-playback";
+import {
+  VIDEO_RATE_TOLERANCE_MS,
+  VIDEO_SEEK_DRIFT_MS,
+  VideoElementPlayback,
+  type VideoOutput,
+} from "./video-playback";
 
 const HAVE_NOTHING = 0;
 const HAVE_CURRENT_DATA = 2;
@@ -12,6 +17,7 @@ class FakeElement extends EventTarget {
   muted = false;
   volume = 1;
   playsInline = false;
+  playbackRate = 1;
   preload = "";
   readyState = HAVE_CURRENT_DATA;
   seeking = false;
@@ -144,16 +150,49 @@ describe("VideoElementPlayback", () => {
     expect(element.currentTime).toBe(5);
   });
 
-  it("follows by seeking only once the clip drifted beyond the threshold, keeping its frame", () => {
+  it("catches up a clip behind the clock by playing faster, without a seek", () => {
     const { element, playback } = setUp();
     element.readyState = HAVE_FUTURE_DATA;
     element.currentTime = 10;
-    playback.follow(10_000 + VIDEO_DRIFT_MS);
+
+    playback.follow(10_000 + VIDEO_RATE_TOLERANCE_MS + 1);
+
+    expect(element.currentTime).toBe(10);
+    expect(element.playbackRate).toBeGreaterThan(1);
+  });
+
+  it("lets a clip ahead of the clock play slower", () => {
+    const { element, playback } = setUp();
+    element.readyState = HAVE_FUTURE_DATA;
+    element.currentTime = 10.4;
+
+    playback.follow(10_000);
+
+    expect(element.playbackRate).toBeLessThan(1);
+  });
+
+  it("plays at the normal rate once close enough to the clock", () => {
+    const { element, playback } = setUp();
+    element.readyState = HAVE_FUTURE_DATA;
+    element.currentTime = 10;
+    playback.follow(10_400);
+
+    playback.follow(10_000 + VIDEO_RATE_TOLERANCE_MS);
+
+    expect(element.playbackRate).toBe(1);
+  });
+
+  it("seeks, keeping its frame, only once the clip is further off than catching up can mend", () => {
+    const { element, playback } = setUp();
+    element.readyState = HAVE_FUTURE_DATA;
+    element.currentTime = 10;
+    playback.follow(10_000 + VIDEO_SEEK_DRIFT_MS);
     expect(element.currentTime).toBe(10);
 
-    playback.follow(10_000 + VIDEO_DRIFT_MS + 1);
+    playback.follow(10_000 + VIDEO_SEEK_DRIFT_MS + 1);
 
-    expect(element.currentTime).toBeCloseTo(10.251, 6);
+    expect(element.currentTime).toBeCloseTo(12.001, 6);
+    expect(element.playbackRate).toBe(1);
     expect(playback.frame()).toBe(element);
   });
 

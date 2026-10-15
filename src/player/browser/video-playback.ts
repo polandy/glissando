@@ -1,8 +1,14 @@
 import { VideoPlaybackError, type LiveFrame, type VideoPlayback } from "../ports";
 import type { MusicVolume } from "./music-output";
 
-/** A clip further than this from where the slide clock puts it is seeked; closer, it plays on. */
-export const VIDEO_DRIFT_MS = 250;
+/** A clip further than this from where the slide clock puts it is seeked. */
+export const VIDEO_SEEK_DRIFT_MS = 2000;
+/** A clip closer than this to the clock plays at its normal rate. */
+export const VIDEO_RATE_TOLERANCE_MS = 60;
+/** Between the two, a clip catches up by playing faster or slower, which a seek would stall. */
+const MIN_CATCH_UP_RATE = 0.8;
+const MAX_CATCH_UP_RATE = 1.25;
+const CATCH_UP_WINDOW_MS = 1000;
 
 const MS_PER_SECOND = 1000;
 /** Closer than this, the clip already is at the requested time. */
@@ -64,6 +70,7 @@ export class VideoElementPlayback implements VideoPlayback {
   }
 
   seek(clipMs: number): void {
+    this.#element.playbackRate = 1;
     this.#hardSeekPending = true;
     this.#moveTo(clipMs);
   }
@@ -96,9 +103,15 @@ export class VideoElementPlayback implements VideoPlayback {
     ) {
       return;
     }
-    const driftMs = Math.abs(this.#element.currentTime * MS_PER_SECOND - clipMs);
-    if (driftMs > VIDEO_DRIFT_MS) {
+    const aheadMs = this.#element.currentTime * MS_PER_SECOND - clipMs;
+    if (Math.abs(aheadMs) > VIDEO_SEEK_DRIFT_MS) {
+      this.#element.playbackRate = 1;
       this.#moveTo(clipMs);
+    } else if (Math.abs(aheadMs) > VIDEO_RATE_TOLERANCE_MS) {
+      const rate = 1 - aheadMs / CATCH_UP_WINDOW_MS;
+      this.#element.playbackRate = Math.min(MAX_CATCH_UP_RATE, Math.max(MIN_CATCH_UP_RATE, rate));
+    } else {
+      this.#element.playbackRate = 1;
     }
   }
 
