@@ -14,6 +14,17 @@ The renderers and the picture editor's preview and playhead all draw this path. 
 a motion that starts past a picture's edge and checks, frame by seeked frame, that the view's
 centre moves one way only.
 
+## Video clips
+
+The slide clock leads and a clip follows (`video-clip-plan.ts`, `video-clips.ts`). A video slide's
+clip time is `max(0, startMs + slide time)`; the slide time is negative during the transition into
+it, so the clip plays from the start of that transition, and a transition out keeps it playing. A
+clip is opened `VIDEO_PRELOAD_MS` before that lead-in and released once out of range. Each frame
+`follow` seeks the playing clip only when it drifted by more than `VIDEO_DRIFT_MS` (250 ms); a
+stalled clip holds its last frame. Seeking the show, or a clip not yet playing, is a hard `seek`:
+the poster shows until the frame is ready. The clip's sound is audible only for its slide's own
+duration. The music's volume is multiplied each frame by `duckFactorAt` (`playlist-music.ts`).
+
 Show time follows the clock from an anchor set when playing starts or resumes, **after** that
 first frame is drawn, so the time it takes never shows as a jump in the motion. While playing,
 every animation frame is drawn first, then `SlideRenderer.prepare` is called for each buffered
