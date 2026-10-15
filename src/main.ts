@@ -1,3 +1,4 @@
+import { openClipInVideoElement } from "./import/browser/video-clip";
 import { mount } from "svelte";
 import App from "./app/App.svelte";
 import { createErrorReporter } from "./app/errors/error-reporter";
@@ -163,6 +164,11 @@ const immichReaders = {
   log: logError,
 };
 
+const intakeImmichReaders = {
+  ...immichReaders,
+  videos: { client: immichClient, openClip: openClipInVideoElement },
+};
+
 // Same origin: the self-hosted Glissando routes ./api/library to its library service (ADR-0018).
 const serverLibraryClient = new HttpServerLibraryClient({
   appUrl: new URL("./", window.location.href),
@@ -191,7 +197,7 @@ const serverBeatPass = new BeatPass({
 
 const intakePorts = browserIntakePorts({
   immichClient,
-  immichReaders,
+  immichReaders: intakeImmichReaders,
   newId,
   now,
   onError: reportError,

@@ -28,6 +28,8 @@ export interface ImmichBrowserState {
 export interface ImmichBrowserOptions {
   readonly client: ImmichClient;
   readonly reportUnavailable: ReportUnavailable;
+  /** Videos are listed and can be picked: a device slideshow downloads them. */
+  readonly withVideos?: boolean;
 }
 
 /**
@@ -40,6 +42,7 @@ export class ImmichBrowser {
   readonly library: PhotoFeed;
   readonly #client: ImmichClient;
   readonly #reportUnavailable: ReportUnavailable;
+  readonly #withVideos: boolean;
   readonly #listeners = new Set<(state: ImmichBrowserState) => void>();
   readonly #albumFeeds = new Map<string, PhotoFeed>();
   readonly #albumPhotos = new Map<string, Map<string, ImmichPhoto>>();
@@ -57,6 +60,7 @@ export class ImmichBrowser {
   constructor(options: ImmichBrowserOptions) {
     this.#client = options.client;
     this.#reportUnavailable = options.reportUnavailable;
+    this.#withVideos = options.withVideos === true;
     this.library = new PhotoFeed(options);
   }
 
@@ -96,6 +100,7 @@ export class ImmichBrowser {
         client: this.#client,
         reportUnavailable: this.#reportUnavailable,
         albumId,
+        withVideos: this.#withVideos,
       });
       this.#albumFeeds.set(albumId, feed);
       feed.subscribe(({ photos, done }) => this.#learn(albumId, photos, done));
@@ -124,7 +129,7 @@ export class ImmichBrowser {
     this.#setAlbumFailure(albumId, null);
     const deselected = this.selection.watchDeselections();
     try {
-      const photos = await allAlbumPhotos(this.#client, albumId);
+      const photos = await allAlbumPhotos(this.#client, albumId, this.#withVideos);
       this.#learn(albumId, photos, true);
       this.selection.selectAll(
         photos.filter((photo) => !deselected.ids.has(photo.id) && !alreadyIn(photo)),

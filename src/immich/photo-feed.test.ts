@@ -19,6 +19,19 @@ function setUp(albumId?: string) {
 }
 
 describe("PhotoFeed", () => {
+  it("asks for videos too only when told to", async () => {
+    const client = new FakeImmichClient();
+    client.photoAnswers.push({ photos: [], nextPage: null });
+
+    await new PhotoFeed({
+      client,
+      reportUnavailable: () => undefined,
+      withVideos: true,
+    }).loadMore();
+
+    expect(client.photoQueries).toEqual([{ page: 1, withVideos: true }]);
+  });
+
   it("starts empty, not loading, and tells a subscriber at once", () => {
     const { feed, seen } = setUp();
 

@@ -79,6 +79,75 @@ describe("HttpImmichClient reading the library", () => {
     expect(page.nextPage).toBeNull();
   });
 
+  describe("with videos", () => {
+    const withAssets = (...items: object[]) => json({ assets: { items, nextPage: null } });
+    const asset = (id: string, type: string, extra: object = {}) => ({
+      id,
+      type,
+      originalFileName: `${id}.x`,
+      localDateTime: "2025-07-12T14:30:00.000Z",
+      width: 1920,
+      height: 1080,
+      ...extra,
+    });
+
+    it("asks for every kind of asset and marks a video with its length", async () => {
+      const fake = new FakeFetch().answer(
+        "POST",
+        "api/search/metadata",
+        withAssets(
+          asset("p", "IMAGE"),
+          asset("v", "VIDEO", { duration: "0:01:05.250000" }),
+          asset("a", "AUDIO"),
+        ),
+      );
+
+      const page = await clientWith(fake).photos({ page: 1, withVideos: true });
+
+      expect(fake.requests[0]?.body).not.toHaveProperty("type");
+      expect(page.photos.map(({ id }) => id)).toEqual(["p", "v"]);
+      expect(page.photos[0]).not.toHaveProperty("video");
+      expect(page.photos[1]?.video).toEqual({ durationMs: 65250 });
+    });
+
+    it.each(["0:00:00.00000", undefined, "soon"])(
+      "gives a video whose length is %s no length",
+      async (duration) => {
+        const fake = new FakeFetch().answer(
+          "POST",
+          "api/search/metadata",
+          withAssets(asset("v", "VIDEO", { duration })),
+        );
+
+        const page = await clientWith(fake).photos({ page: 1, withVideos: true });
+
+        expect(page.photos[0]?.video).toEqual({ durationMs: null });
+      },
+    );
+
+    it("drops a video Immich returns although only photos were asked for", async () => {
+      const fake = new FakeFetch().answer(
+        "POST",
+        "api/search/metadata",
+        withAssets(asset("p", "IMAGE"), asset("v", "VIDEO")),
+      );
+
+      const page = await clientWith(fake).photos({ page: 1 });
+
+      expect(page.photos.map(({ id }) => id)).toEqual(["p"]);
+    });
+  });
+
+  it("downloads a video's playable version as a blob", async () => {
+    const fake = new FakeFetch().answer(
+      "GET",
+      "api/assets/clip-1/video/playback",
+      () => new Response(new Uint8Array([1, 2, 3, 4]), { status: 200 }),
+    );
+
+    expect((await clientWith(fake).video("clip-1")).size).toBe(4);
+  });
+
   it("reads an empty last page", async () => {
     const fake = new FakeFetch().answer("POST", "api/search/metadata", json(searchLastPage));
 

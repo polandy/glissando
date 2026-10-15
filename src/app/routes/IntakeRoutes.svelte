@@ -50,11 +50,13 @@
           intake: importSession.intake,
           addPhotos: (photos: readonly ImmichPhoto[]) => importSession.addImmichPhotos(photos),
           crumbs: [t("import.crumb"), t("import.crumbPictures")],
+          withVideos: importSession.choices.current().home === "device",
         }
       : adding && {
           intake: adding.intake,
           addPhotos: (photos: readonly ImmichPhoto[]) => adding.addImmichPhotos(photos),
           crumbs: [adding.slideshow.title, t("add.title")],
+          withVideos: adding.home === "device",
         },
   );
 </script>
@@ -78,7 +80,7 @@
     <ImmichIntakeRoute
       intake={feed.intake}
       addPhotos={feed.addPhotos}
-      browser={immichBrowsers.for(feed.intake)}
+      browser={immichBrowsers.for(feed.intake, feed.withVideos)}
       parentCrumbs={feed.crumbs}
       {albumId}
       thumbnailUrl={(photoId) => immich.client.thumbnailUrl(photoId)}

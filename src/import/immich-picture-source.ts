@@ -11,15 +11,24 @@ import type { PictureIdentity } from "../library/picture-identity";
 import type { DecodedPicture } from "./downscale";
 import { PictureNotDownloadedError, type PictureSource } from "./picture-source";
 import { UnreadablePictureError } from "./unreadable-picture";
+import { VideoRefusedError } from "./video-refusal";
+import { readVideoFile, type VideoReaders } from "./video-read";
 
-/** Immich lists photos only, so every photo is a picture whatever its format. */
+/** Immich lists photos, so every one is a picture whatever its format. */
 const IMMICH_PHOTO_TYPE = "image/*";
+const IMMICH_VIDEO_TYPE = "video/*";
 
 /** The thumbnail size Immich renders as JPEG at up to 1440 px, decodable by every browser. */
 const FALLBACK_SIZE = "preview";
 
+/** What reading a video needs beyond a photo's; only a device import brings it. */
+export interface ImmichVideoReaders extends Pick<VideoReaders, "openClip"> {
+  readonly client: Pick<ImmichClient, "video">;
+}
+
 export interface ImmichPictureReaders {
   readonly client: Pick<ImmichClient, "original" | "thumbnail" | "faces">;
+  readonly videos?: ImmichVideoReaders;
   /** Rejects with `UnreadablePictureError` for a file it cannot decode. */
   decode(file: File): Promise<DecodedPicture>;
   /** Tells the app why Immich cannot be used, e.g. a key Immich rejects (`ImmichAvailability`). */
@@ -55,14 +64,46 @@ export function immichPhotoIdentity(photo: ImmichPhoto): PictureIdentity {
 }
 
 /**
+ * A video on Immich: its playable version downloaded whole, then read like a local video file. A
+ * download that fails is a `PictureNotDownloadedError`.
+ */
+function immichVideoSource(video: ImmichPhoto, readers: ImmichPictureReaders): PictureSource {
+  const { reportUnavailable, videos } = readers;
+  return {
+    fileName: video.fileName,
+    mimeType: IMMICH_VIDEO_TYPE,
+    identify: () => Promise.resolve(immichPhotoIdentity(video)),
+    read: async () => {
+      if (videos === undefined) throw new VideoRefusedError(video.fileName, "videoUnplayable");
+      let blob: Blob;
+      try {
+        blob = await videos.client.video(video.id);
+      } catch (error) {
+        if (error instanceof ImmichUnavailableError) reportUnavailable(error.kind);
+        if (error instanceof ImmichUnavailableError || error instanceof ImmichRequestFailedError) {
+          throw new PictureNotDownloadedError(video.fileName, { cause: error });
+        }
+        throw error;
+      }
+      return readVideoFile(new File([blob], video.fileName, { type: blob.type }), {
+        openClip: videos.openClip,
+        decode: readers.decode,
+      });
+    },
+  };
+}
+
+/**
  * A photo on Immich, downloaded and decoded like a local file; one the browser cannot decode
  * (e.g. HEIC) falls back to Immich's preview. Its faces give its focus (ADR-0013); without them
  * the on-device pass looks for it later.
  */
 export function immichPictureSource(
   photo: ImmichPhoto,
-  { client, decode, reportUnavailable, log }: ImmichPictureReaders,
+  readers: ImmichPictureReaders,
 ): PictureSource {
+  if (photo.video !== undefined) return immichVideoSource(photo, readers);
+  const { client, decode, reportUnavailable, log } = readers;
   const download = async (): Promise<DecodedPicture> => {
     try {
       return await decodeImmichPhoto(photo, { client, decode });

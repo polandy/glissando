@@ -21,13 +21,17 @@ intake, the import's or the adding's):
 - **All photos**: the library's photos newest first, grouped by day (heading "Sat, 12 July 2025",
   mono count, "Select day" / "Deselect day"), square tiles from Immich's thumbnails loaded lazily.
   The next 60 load when the list nears its end (shimmering tiles meanwhile); after the last page
-  "That's all · n photos". Videos are not listed.
+  "That's all · n photos". Videos are listed with a play glyph and their length in the corner of
+  the tile when the slideshow lives on the device; a server slideshow links photos only and does
+  not list them. A picked video is downloaded whole — Immich's playable version (its transcoded
+  copy, else the original), never streamed — and becomes a video slide (dev-docs/player/VIDEO_SLIDES.md);
+  its tile shows the wait, and a failed download names the video at its tile like a photo's.
 - **Albums**: a grid of covers with name and "n photos · date range" (mono), a filter field
   (by name; "No album matches"), shimmering cards while loading. The circle on a cover selects the
   whole album (all its photos, fetched page by page), a badge counts what is selected in it. An
   album opens to its photos by day, with "Select all n" / "Select none"; "n videos hidden" when it
-  has any; an empty album says so. Immich counts an album's videos with its photos, so the count
-  of photos, "Select all n" and "n videos hidden" are exact once all of its pages are read (the
+  has any that are not listed (a server slideshow); an empty album says so. Immich counts an
+  album's videos with its photos, so the count of photos, "Select all n" and "n videos hidden" are exact once all of its pages are read (the
   first page of a small album; until then "n photos" is Immich's count and the button "Select
   all"), and the badge counts only photos already read from that album.
 - **Already in**: a photo already in the slideshow being added to, or already taken in by the

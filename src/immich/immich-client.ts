@@ -21,6 +21,8 @@ export interface ImmichPhoto {
   readonly takenAt: string;
   /** Immich's `width`/`height` in pixels; null while Immich has not read them. */
   readonly size: { readonly width: number; readonly height: number } | null;
+  /** Present for a video (only listed with `withVideos`); its length when Immich knows it. */
+  readonly video?: { readonly durationMs: number | null };
 }
 
 /** One page of photos, newest first; `nextPage` is null on the last one. */
@@ -93,13 +95,25 @@ export class ImmichRequestFailedError extends Error {
 export interface ImmichClient {
   status(): Promise<ImmichStatus>;
   albums(): Promise<readonly ImmichAlbum[]>;
-  /** Photos only (no videos), newest first; all of the library, or of one album. */
-  photos(query: { readonly page: number; readonly albumId?: string }): Promise<ImmichPhotoPage>;
+  /**
+   * Photos newest first, with videos only when `withVideos` is set; all of the library, or of one
+   * album.
+   */
+  photos(query: {
+    readonly page: number;
+    readonly albumId?: string;
+    readonly withVideos?: boolean;
+  }): Promise<ImmichPhotoPage>;
   /** Same origin and keyless, so an `<img src>` can load it lazily. */
   thumbnailUrl(photoId: string): string;
   /** `signal` cancels the download; it then rejects with the signal's reason. */
   thumbnail(photoId: string, size: ImmichThumbnailSize, signal?: AbortSignal): Promise<Blob>;
   /** `signal` cancels the download; it then rejects with the signal's reason. */
   original(photoId: string, signal?: AbortSignal): Promise<Blob>;
+  /**
+   * A video's playable version, as Immich plays it (its transcoded copy, else the original),
+   * downloaded whole. `signal` cancels it; it then rejects with the signal's reason.
+   */
+  video(photoId: string, signal?: AbortSignal): Promise<Blob>;
   faces(photoId: string): Promise<readonly ImmichFace[]>;
 }

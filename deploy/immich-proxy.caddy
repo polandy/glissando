@@ -1,6 +1,6 @@
 # Only the reads Glissando makes reach Immich, with the server's key; the rest answers 403
 # (ADR-0013). The patterns are anchored, so an encoded or dotted path matches none of them.
-@immichAllowed expression `(method('GET') && path_regexp('^/immich/api/(server/version|albums|faces|assets/[0-9a-fA-F-]{36}/(thumbnail|original))$')) || (method('POST') && path('/immich/api/search/metadata'))`
+@immichAllowed expression `(method('GET') && path_regexp('^/immich/api/(server/version|albums|faces|assets/[0-9a-fA-F-]{36}/(thumbnail|original|video/playback))$')) || (method('POST') && path('/immich/api/search/metadata'))`
 
 handle @immichAllowed {
 	uri strip_prefix /immich

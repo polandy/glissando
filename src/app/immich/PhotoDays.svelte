@@ -2,6 +2,7 @@
   import type { ImmichPhoto } from "../../immich/immich-client";
   import type { PhotoDay } from "../../immich/photo-days";
   import Icon from "../components/Icon.svelte";
+  import VideoBadge from "../components/VideoBadge.svelte";
   import { getTranslator } from "../i18n/context";
   import { dayToggle, type AlreadyIn } from "./immich-view";
 
@@ -63,6 +64,9 @@
               aria-label={t("immich.alreadyInLabel", { fileName: photo.fileName })}
             >
               <img src={thumbnailUrl(photo.id)} alt="" loading="lazy" decoding="async" />
+              {#if photo.video !== undefined}
+                <span class="video-mark"><VideoBadge durationMs={photo.video.durationMs} /></span>
+              {/if}
               <span class="in-chip"><Icon name="check" />{t("immich.alreadyIn")}</span>
             </span>
           {:else}
@@ -75,6 +79,9 @@
               onclick={(event) => onToggle(photo, event.shiftKey ? shown : null)}
             >
               <img src={thumbnailUrl(photo.id)} alt="" loading="lazy" decoding="async" />
+              {#if photo.video !== undefined}
+                <span class="video-mark"><VideoBadge durationMs={photo.video.durationMs} /></span>
+              {/if}
               <span class="check"><Icon name="check" /></span>
             </button>
           {/if}
@@ -161,6 +168,12 @@
     background: var(--gl-photo-badge);
     color: transparent;
     opacity: 0;
+  }
+  .video-mark {
+    position: absolute;
+    z-index: 1;
+    right: 6px;
+    bottom: 6px;
   }
   .ph.in {
     cursor: default;

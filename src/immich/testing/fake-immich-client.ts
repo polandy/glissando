@@ -80,6 +80,10 @@ export class FakeImmichClient implements ImmichClient {
     return Promise.resolve(new Blob());
   }
 
+  video(): Promise<Blob> {
+    return Promise.resolve(new Blob());
+  }
+
   faces(): Promise<readonly ImmichFace[]> {
     return Promise.resolve([]);
   }
