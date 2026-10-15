@@ -130,20 +130,20 @@ describe.skipIf(server.browser === "webkit")("the clip's sound in the audio mix"
 
   it("ducks the music under the clip", async () => {
     const sound = new ClipSound(clipAudioSlides(slides as never), openClip);
-    const music = { src: "level", atMs: 0, startMs: 0, endMs: 4000, fadeInMs: 0, fadeOutMs: 0 };
+    const music = { src: "level", atMs: 0, startMs: 0, endMs: 6000, fadeInMs: 0, fadeOutMs: 0 };
     const mixer = await AudioMixer.decode(
       [music],
       () =>
-        Promise.resolve(new Blob([levelWav(4000, 0.5, AUDIO_SAMPLE_RATE)], { type: "audio/wav" })),
+        Promise.resolve(new Blob([levelWav(6000, 0.5, AUDIO_SAMPLE_RATE)], { type: "audio/wav" })),
       { sound, duckSpans: [{ startMs: 2000, endMs: 3000 }] },
     );
 
-    const samples = await mixSamples(mixer, 4);
+    const samples = await mixSamples(mixer, 6);
     sound.dispose();
 
     expect(mean(samples, 0.1, 0.5)).toBeCloseTo(0.5, 1);
     expect(mean(samples, 2.3, 2.9)).toBeCloseTo(0.5 * 0.15, 1);
-    expect(mean(samples, 3.6, 3.9)).toBeCloseTo(0.5, 1);
+    expect(mean(samples, 4.6, 4.9)).toBeCloseTo(0.5, 1);
   });
 });
 
