@@ -76,6 +76,21 @@ export function quadrantPicture(): Promise<BrowserPicture> {
   return pictureFrom(fillQuadrants);
 }
 
+/** A live clip frame stand-in: a canvas of one colour, which a test repaints for the next frame. */
+export function solidCanvas(colour: Rgb): HTMLCanvasElement {
+  return canvasOf(fillSolid(colour));
+}
+
+/** `quadrantPicture` as a live clip frame stand-in. */
+export function quadrantCanvas(): HTMLCanvasElement {
+  return canvasOf(fillQuadrants);
+}
+
+/** Paints `canvas` in one colour, as the next frame of a clip. */
+export function repaint(canvas: HTMLCanvasElement, colour: Rgb): void {
+  fillSolid(colour)(canvas.getContext("2d") as CanvasRenderingContext2D);
+}
+
 /** `solidPicture` as the WebGL renderer draws it. */
 export function solidBitmap(colour: Rgb): Promise<BitmapPicture> {
   return bitmapFrom(fillSolid(colour));

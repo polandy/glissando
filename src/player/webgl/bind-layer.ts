@@ -125,13 +125,26 @@ function bindPictureLayer(
   uniforms: LayerUniforms,
   viewport: Size,
 ): void {
+  // A video slide's clip frame stands in for its poster; the poster still sets the layout and
+  // the backdrop (ADR-0035).
+  const front = (): void => {
+    if (layer.live === undefined) {
+      pictures.texture(layer.picture);
+    } else {
+      pictures.live(layer.picture, layer.live);
+    }
+  };
   gl.activeTexture(gl.TEXTURE0 + units.picture);
-  pictures.texture(layer.picture);
+  front();
   gl.uniform1i(uniforms.picture, units.picture);
   // A layer reads only the samplers its layout needs; every other one gets the front picture, so
   // its unit still holds a complete texture.
   gl.activeTexture(gl.TEXTURE0 + units.partner);
-  pictures.texture(layer.partner?.picture ?? layer.picture);
+  if (layer.partner === undefined) {
+    front();
+  } else {
+    pictures.texture(layer.partner.picture);
+  }
   gl.uniform1i(uniforms.partner, units.partner);
   gl.activeTexture(gl.TEXTURE0 + units.backdrop);
   pictures.backdrop(layer.picture);

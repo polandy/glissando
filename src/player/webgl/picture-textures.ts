@@ -1,4 +1,5 @@
 import type { BitmapPicture } from "../browser/bitmap-loader";
+import type { LiveFrame } from "../ports";
 import { createBackdropTexture } from "./backdrop-texture";
 import { setLinearClamped } from "./caption-textures";
 
@@ -17,16 +18,26 @@ interface PictureTexture {
   backdrop: WebGLTexture | null;
 }
 
+interface LiveTexture {
+  readonly texture: WebGLTexture;
+  /** The `beginFrame` count it was last uploaded in, so a layer drawn twice uploads once. */
+  uploadedInFrame: number;
+}
+
 /**
  * One texture per picture, with mipmaps so a 4K picture shrinks to the screen smoothly, and a
  * small blurred backdrop texture for the blurred fill (`backdrop-texture.ts`). They are uploaded
  * in steps (`prepareStep`): the storage with a first slice of rows, one slice per later step,
  * the mipmaps in a step of their own, then the backdrop. `texture` and `backdrop` finish
- * whatever their texture still lacks at once.
+ * whatever their texture still lacks at once. A video slide's clip frame has a texture of its
+ * own, keyed by the slide's poster picture and uploaded anew every frame (`live`): without
+ * mipmaps, which a texture replaced 30 times a second cannot afford.
  */
 export class PictureTextures {
   readonly #gl: WebGL2RenderingContext;
   readonly #textures = new Map<BitmapPicture, PictureTexture>();
+  readonly #live = new Map<BitmapPicture, LiveTexture>();
+  #frame = 0;
   #placeholder: WebGLTexture;
 
   constructor(gl: WebGL2RenderingContext) {
@@ -69,6 +80,23 @@ export class PictureTextures {
     return entry.texture;
   }
 
+  /** Starts a drawn frame, in which each live texture is uploaded at most once. */
+  beginFrame(): void {
+    this.#frame += 1;
+  }
+
+  /** The clip's current `frame` as the texture standing for `poster`, bound to the active unit. */
+  live(poster: BitmapPicture, frame: LiveFrame): WebGLTexture {
+    const gl = this.#gl;
+    const entry = this.#liveEntry(poster);
+    gl.bindTexture(gl.TEXTURE_2D, entry.texture);
+    if (entry.uploadedInFrame !== this.#frame) {
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, frame);
+      entry.uploadedInFrame = this.#frame;
+    }
+    return entry.texture;
+  }
+
   /** The picture's blurred backdrop texture, bound to the active unit. */
   backdrop(picture: BitmapPicture): WebGLTexture {
     const entry = this.#entry(picture);
@@ -84,11 +112,17 @@ export class PictureTextures {
       this.#gl.deleteTexture(entry.backdrop);
       this.#textures.delete(picture);
     }
+    const live = this.#live.get(picture);
+    if (live !== undefined) {
+      this.#gl.deleteTexture(live.texture);
+      this.#live.delete(picture);
+    }
   }
 
   /** The context was restored: every texture is gone with the old one and is uploaded anew. */
   recreate(): void {
     this.#textures.clear();
+    this.#live.clear();
     this.#placeholder = createPlaceholder(this.#gl);
   }
 
@@ -98,7 +132,23 @@ export class PictureTextures {
       this.#gl.deleteTexture(backdrop);
     });
     this.#textures.clear();
+    this.#live.forEach(({ texture }) => this.#gl.deleteTexture(texture));
+    this.#live.clear();
     this.#gl.deleteTexture(this.#placeholder);
+  }
+
+  #liveEntry(poster: BitmapPicture): LiveTexture {
+    const existing = this.#live.get(poster);
+    if (existing !== undefined) {
+      return existing;
+    }
+    const gl = this.#gl;
+    const texture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    setLinearClamped(gl);
+    const entry = { texture, uploadedInFrame: -1 };
+    this.#live.set(poster, entry);
+    return entry;
   }
 
   /** The picture's texture, its storage allocated for the whole mip chain on first use. */
