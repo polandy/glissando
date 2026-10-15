@@ -73,4 +73,5 @@ is the share of pictures whose chosen focus point lies inside a tagged face (box
   https://polandy.github.io/glissando-assets/mockups/automatic-focus/).
 - A better detector later reaches every picture by clearing the `focus` store in a
   database upgrade; nothing else stores the result.
+- Pictures without a face are searched for animals by the same pass (ADR-0036).
 - Immich's face data (roadmap 3) can fill the same store for Immich photos.
