@@ -59,7 +59,9 @@ function targetOf(clip: PlacedClip, timeMs: number): readonly ClipTarget[] {
     return [];
   }
   const { video, index } = clip;
-  if (timeMs < onScreenFromMs) {
+  // Before the file's first frame there is nothing to play on: held, it does not drift off the clock.
+  const isBeforeFile = video.startMs + slideTimeMs < 0;
+  if (timeMs < onScreenFromMs || isBeforeFile) {
     return [
       {
         index,

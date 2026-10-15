@@ -49,9 +49,12 @@ describe("the clip plan", () => {
     expect(target).toMatchObject({ phase: "playing", clipMs: 4000, soundOn: false });
   });
 
-  it("never puts a clip before its own start of the file", () => {
-    const [target] = createClipPlan([picture(10_000, 3000), clip(1000, 5000)])(7000);
-    expect(target?.clipMs).toBe(0);
+  it("holds a clip at the start of its file while the lead-in reaches back before it", () => {
+    const slides = [picture(10_000, 3000), clip(1000, 5000)];
+
+    expect(createClipPlan(slides)(7000)).toMatchObject([{ phase: "waiting", clipMs: 0 }]);
+    expect(createClipPlan(slides)(9000)).toMatchObject([{ phase: "playing", clipMs: 0 }]);
+    expect(createClipPlan(slides)(9500)).toMatchObject([{ phase: "playing", clipMs: 500 }]);
   });
 
   it("keeps the clip playing, with its sound, through the transition out of its slide", () => {

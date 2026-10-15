@@ -82,7 +82,8 @@ The slide clock leads; the clip follows it, never the other way round.
 - Slide time `t` shows clip time `startMs + t`. A transition into a video slide starts the clip at
   the start of the transition; a transition out of it shows the clip's last frames while it plays.
 - While the slide time is negative (the lead-in), the clip time is `startMs + slide time` clamped
-  at 0, so frames before the excerpt can show during the transition into the clip.
+  at 0. Where that would be before the file's first frame the clip is held paused at 0 and starts
+  playing when its time reaches 0, so it never plays ahead of the clock and is seeked back.
 - Seeking the show puts the clip at `startMs + t` (the poster is drawn until the frame is ready).
 - A clip that cannot keep up (stalled decoder, slow network source) holds its last frame and
   catches up by seeking; the show's time is never stretched.
