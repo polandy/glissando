@@ -92,7 +92,7 @@ The slide clock leads; the clip follows it, never the other way round.
 
 - A slide's clip sound is audible for the slide's own duration, at `volume`.
 - The music volume is multiplied by the **duck factor**: 1 outside a clip with sound; `0.15`
-  (`VIDEO_DUCK_VOLUME`) inside it, with linear ramps: `VIDEO_DUCK_RAMP_DOWN_MS` = 400 ms
+  (`VIDEO_DUCK_VOLUME`) inside it, with linear ramps: `VIDEO_DUCK_RAMP_DOWN_MS` = 1000 ms
   before the slide so the music is already low when the clip starts, and a slower
   `VIDEO_DUCK_RAMP_UP_MS` = 1500 ms after it so the music swells back instead of jumping. Pure
   function `duckFactorAt(timeMs, spans)` in `src/player/`; the music's own

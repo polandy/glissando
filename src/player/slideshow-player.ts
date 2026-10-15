@@ -201,7 +201,7 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
       this.#scheduleFrame();
       this.#media.play(this.#time.frameMs);
     };
-    if (this.#pictures.areOnScreenLoaded()) {
+    if (this.#pictures.isOnScreenPlayable()) {
       advance();
       return;
     }

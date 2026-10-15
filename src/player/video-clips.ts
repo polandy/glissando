@@ -59,23 +59,26 @@ export class VideoClips {
    * stalling, so a show never starts its clock ahead of a clip that is still loading.
    */
   whenReady(timeMs: number): Promise<void> {
-    this.place(timeMs);
-    const onScreen = this.#plan(timeMs)
-      .filter((target) => target.phase === "playing")
-      .map((target) => target.index);
-    const isPending = () => onScreen.some((index) => !this.#open.get(index)?.playback.isReady());
-    if (!isPending()) {
+    if (this.isReady(timeMs)) {
       return Promise.resolve();
     }
     return new Promise((resolve) => {
       const check = () => {
-        if (!isPending()) {
+        if (this.isReady(timeMs)) {
           this.#readyChecks.delete(check);
           resolve();
         }
       };
       this.#readyChecks.add(check);
     });
+  }
+
+  /** Puts the clips at `timeMs` and tells whether those on screen there can play on. */
+  isReady(timeMs: number): boolean {
+    this.place(timeMs);
+    return this.#plan(timeMs)
+      .filter((target) => target.phase === "playing")
+      .every((target) => this.#open.get(target.index)?.playback.isReady() === true);
   }
 
   /** Plays the clips on screen from `timeMs`; call it in the user's play gesture (Safari). */

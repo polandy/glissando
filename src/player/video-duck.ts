@@ -3,7 +3,7 @@ import { isGroundSlide, type Slide } from "./slideshow";
 /** The music's volume factor while a clip with sound plays (ADR-0035). */
 export const VIDEO_DUCK_VOLUME = 0.15;
 /** The linear ramp down before a clip's slide: quick, so the clip's sound is heard clearly. */
-export const VIDEO_DUCK_RAMP_DOWN_MS = 400;
+export const VIDEO_DUCK_RAMP_DOWN_MS = 1000;
 /** The linear ramp up after it: slow, so the music swells back instead of jumping. */
 export const VIDEO_DUCK_RAMP_UP_MS = 1500;
 

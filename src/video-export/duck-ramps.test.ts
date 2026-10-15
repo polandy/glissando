@@ -13,13 +13,13 @@ describe("duckGainRamps", () => {
   });
 
   it("ramps down before the span, holds, and ramps up after it", () => {
-    expect(duckGainRamps([SPAN], 9000, 16_000)).toEqual([
+    expect(duckGainRamps([SPAN], 8000, 16_000)).toEqual([
       { atMs: 0, gain: 1, kind: "set" },
-      { atMs: 600, gain: 1, kind: "ramp" },
-      { atMs: 1000, gain: VIDEO_DUCK_VOLUME, kind: "ramp" },
-      { atMs: 5000, gain: VIDEO_DUCK_VOLUME, kind: "ramp" },
-      { atMs: 6500, gain: 1, kind: "ramp" },
-      { atMs: 7000, gain: 1, kind: "ramp" },
+      { atMs: 1000, gain: 1, kind: "ramp" },
+      { atMs: 2000, gain: VIDEO_DUCK_VOLUME, kind: "ramp" },
+      { atMs: 6000, gain: VIDEO_DUCK_VOLUME, kind: "ramp" },
+      { atMs: 7500, gain: 1, kind: "ramp" },
+      { atMs: 8000, gain: 1, kind: "ramp" },
     ]);
   });
 

@@ -10,7 +10,7 @@ import {
   FakePictureLoader,
   FakeRenderer,
 } from "./testing/fakes";
-import { VIDEO_DUCK_VOLUME } from "./video-duck";
+import { VIDEO_DUCK_RAMP_DOWN_MS, VIDEO_DUCK_VOLUME } from "./video-duck";
 
 const STILL = {
   from: { zoom: 1, centerX: 0.5, centerY: 0.5 },
@@ -127,6 +127,26 @@ describe("a player with video slides", () => {
     ]);
   });
 
+  it("starts the clock only once a clip that was put in place is ready to play", async () => {
+    const run = setUp();
+    run.player.currentTime = 5;
+    await run.showing("v.jpg");
+    const video = run.videos.only();
+    video.ready = false;
+
+    run.player.play();
+    run.advance(1000);
+    expect(run.player.currentTime).toBe(5);
+
+    const playing = new Promise((resolve) =>
+      run.player.addEventListener("playing", resolve, { once: true }),
+    );
+    video.becomeReady();
+    await playing;
+    run.advance(1000);
+    expect(run.player.currentTime).toBe(6);
+  });
+
   it("pauses the clip when the show pauses", async () => {
     const run = setUp();
     run.player.currentTime = 5;
@@ -174,11 +194,11 @@ describe("a player with video slides", () => {
 
   it("multiplies the music's volume by the duck factor while the clip's sound plays", async () => {
     const run = setUp();
-    run.player.currentTime = 3.8;
+    run.player.currentTime = (4000 - VIDEO_DUCK_RAMP_DOWN_MS / 2) / 1000;
     await run.showing("a.jpg", "v.jpg");
     run.player.play();
     expect(run.music.volume).toBeCloseTo((1 + VIDEO_DUCK_VOLUME) / 2, 5);
-    run.advance(700);
+    run.advance(VIDEO_DUCK_RAMP_DOWN_MS);
     expect(run.music.volume).toBe(VIDEO_DUCK_VOLUME);
   });
 

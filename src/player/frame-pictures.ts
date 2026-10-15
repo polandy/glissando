@@ -8,6 +8,7 @@ import type { SlideAtTime, TimelineFrame } from "./timeline";
 /** The clip frames of the video slides: placed at the show time before each draw. */
 export interface LiveSlideFrames {
   place(timeMs: number): void;
+  isReady(timeMs: number): boolean;
   whenReady(timeMs: number): Promise<void>;
   frameAt(index: number): LiveFrame | undefined;
 }
@@ -56,6 +57,13 @@ export class FramePictures<Picture extends Size> {
   /** True once every picture on screen is loaded. */
   areOnScreenLoaded(): boolean {
     return this.#onScreen().every((slide) => this.#buffer.get(slide.index) !== undefined);
+  }
+
+  /** True once the pictures on screen are loaded and the clips on screen can play on. */
+  isOnScreenPlayable(): boolean {
+    return (
+      this.areOnScreenLoaded() && (this.#live?.isReady(this.#currentFrame().showTimeMs) ?? true)
+    );
   }
 
   /** Loads the pictures on screen and the next ones; resolves once those on screen are loaded. */
