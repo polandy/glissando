@@ -133,11 +133,14 @@ export class VideoElementPlayback implements VideoPlayback {
     this.#release();
   }
 
-  #moveIfAway(clipMs: number): void {
+  /** Seeks unless the clip already is at `clipMs`; tells whether it did. */
+  #moveIfAway(clipMs: number): boolean {
     this.#wantedMs = clipMs;
-    if (Math.abs(this.#element.currentTime * MS_PER_SECOND - clipMs) > SAME_TIME_MS) {
-      this.#element.currentTime = clipMs / MS_PER_SECOND;
+    if (Math.abs(this.#element.currentTime * MS_PER_SECOND - clipMs) <= SAME_TIME_MS) {
+      return false;
     }
+    this.#element.currentTime = clipMs / MS_PER_SECOND;
+    return true;
   }
 
   #moveTo(clipMs: number): void {
@@ -146,6 +149,9 @@ export class VideoElementPlayback implements VideoPlayback {
   }
 
   #applyWanted(): void {
-    this.#moveIfAway(this.#wantedMs);
+    if (!this.#moveIfAway(this.#wantedMs)) {
+      // No seek happens, so no `seeked` comes to end the wait for the requested place.
+      this.#hardSeekPending = false;
+    }
   }
 }

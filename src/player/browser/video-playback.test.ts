@@ -174,6 +174,15 @@ describe("VideoElementPlayback", () => {
     expect(element.currentTime).toBe(3);
   });
 
+  it("shows the clip's frame once its metadata is there when it already is at the requested start", () => {
+    const { element, playback } = setUp();
+    element.readyState = HAVE_NOTHING;
+    playback.seek(0);
+    element.readyState = HAVE_CURRENT_DATA;
+    element.fire("loadedmetadata");
+    expect(playback.frame()).toBe(element);
+  });
+
   it("pauses, and on dispose frees the element, the routing and the object URL", () => {
     const { element, playback, disposed, released } = setUp();
     playback.pause();
