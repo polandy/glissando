@@ -90,7 +90,7 @@ describe("animalFocus", () => {
 });
 
 describe("decodeAnimals", () => {
-  const WHOLE = { width: 416, height: 416, ratio: 1 };
+  const WHOLE = { ratio: 1 };
 
   it("places a box at its grid cell and size, in picture pixels", () => {
     const output = outputWith([

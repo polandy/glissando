@@ -23,8 +23,6 @@ export interface AnimalDetection {
 
 /** How a picture sits in the network's square input: scaled by `ratio`, the rest padded. */
 export interface Letterbox {
-  readonly width: number;
-  readonly height: number;
   readonly ratio: number;
 }
 
@@ -38,8 +36,7 @@ const CLASS_OFFSET = 5;
 // COCO classes 14..23: bird, cat, dog, horse, sheep, cow, elephant, bear, zebra, giraffe.
 const FIRST_ANIMAL_CLASS = 14;
 const LAST_ANIMAL_CLASS = 23;
-// Objectness times class score: where the cat of the test picture, seen from a phone-sized
-// thumbnail, still scores above it and cars, chairs and clouds do not (ADR-0036).
+// Objectness times class score; below it the detections are mostly clutter (ADR-0036).
 const MIN_ANIMAL_SCORE = 0.35;
 const NMS_OVERLAP = 0.45;
 
@@ -148,7 +145,7 @@ function letterboxed(image: RgbaImage): { input: Tensor; letterbox: Letterbox } 
   }
   return {
     input: { dims: [1, 3, INPUT_SIZE, INPUT_SIZE], data },
-    letterbox: { width, height, ratio },
+    letterbox: { ratio },
   };
 }
 
