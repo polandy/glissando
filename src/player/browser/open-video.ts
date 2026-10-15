@@ -47,8 +47,6 @@ export function openVideoElement(
     }
     element.src = url;
   });
-  // A failure surfaces through `play`; unobserved until then it only leaves the poster.
-  sourceReady.catch(() => undefined);
   return new VideoElementPlayback(element, volume, output, sourceReady, () => {
     disposed = true;
     revoke();

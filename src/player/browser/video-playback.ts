@@ -38,7 +38,9 @@ export class VideoElementPlayback implements VideoPlayback {
   readonly #output: VideoOutput;
   readonly #listeners = new Set<() => void>();
   #wantedMs = 0;
+  readonly #failureListeners = new Set<(error: Error) => void>();
   #hardSeekPending = false;
+  #disposed = false;
 
   /**
    * `sourceReady` settles when the element has its `src`; `release` frees what that took (an
@@ -64,6 +66,8 @@ export class VideoElementPlayback implements VideoPlayback {
       this.#hardSeekPending = false;
     });
     element.addEventListener("loadedmetadata", () => this.#applyWanted());
+    element.addEventListener("error", () => this.#fail(element.error));
+    sourceReady.catch((cause: unknown) => this.#fail(cause));
     for (const type of READY_EVENTS) {
       element.addEventListener(type, () => this.#listeners.forEach((listener) => listener()));
     }
@@ -82,6 +86,9 @@ export class VideoElementPlayback implements VideoPlayback {
       await this.#sourceReady;
     } catch (error) {
       throw new VideoPlaybackError(error);
+    }
+    if (this.#disposed) {
+      return;
     }
     try {
       await this.#element.play();
@@ -137,13 +144,24 @@ export class VideoElementPlayback implements VideoPlayback {
     this.#listeners.add(listener);
   }
 
+  onFailure(listener: (error: Error) => void): void {
+    this.#failureListeners.add(listener);
+  }
+
   dispose(): void {
+    this.#disposed = true;
     this.#listeners.clear();
+    this.#failureListeners.clear();
     this.#volume?.dispose();
     this.#element.pause();
     this.#element.removeAttribute("src");
     this.#element.load();
     this.#release();
+  }
+
+  #fail(cause: unknown): void {
+    const error = new VideoPlaybackError(cause);
+    this.#failureListeners.forEach((listener) => listener(error));
   }
 
   /** Seeks unless the clip already is at `clipMs`; tells whether it did. */

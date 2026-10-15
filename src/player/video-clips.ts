@@ -28,6 +28,7 @@ export class VideoClips {
   readonly #open = new Map<number, OpenClip>();
   readonly #readyChecks = new Set<() => void>();
   #playing = false;
+  #failed = false;
 
   constructor(
     slides: readonly Slide[],
@@ -116,6 +117,14 @@ export class VideoClips {
     this.#readyChecks.clear();
   }
 
+  /** A failed clip is reported once, however many paths notice it. */
+  #report(error: Error): void {
+    if (!this.#failed) {
+      this.#failed = true;
+      this.#listeners.onError(error);
+    }
+  }
+
   #clipFor({ index, video }: ClipTarget): OpenClip {
     const existing = this.#open.get(index);
     if (existing !== undefined) {
@@ -126,6 +135,7 @@ export class VideoClips {
       this.#listeners.onFrameReady();
       [...this.#readyChecks].forEach((check) => check());
     });
+    playback.onFailure((error) => this.#report(error));
     const clip = { playback, started: false, placedAtMs: null };
     this.#open.set(index, clip);
     return clip;
@@ -142,7 +152,7 @@ export class VideoClips {
     } else {
       clip.started = true;
       playback.play(target.clipMs).catch((cause: unknown) => {
-        this.#listeners.onError(new VideoPlaybackError(cause));
+        this.#report(new VideoPlaybackError(cause));
       });
     }
     clip.placedAtMs = target.clipMs;

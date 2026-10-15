@@ -17,6 +17,7 @@ export class FakeVideo implements VideoPlayback {
   ready = true;
   #frame: LiveFrame | null = null;
   #listener: (() => void) | null = null;
+  #failureListener: ((error: Error) => void) | null = null;
   #refusal: Error | null = null;
   constructor(
     readonly src: string,
@@ -52,9 +53,16 @@ export class FakeVideo implements VideoPlayback {
   onFrameReady(listener: () => void): void {
     this.#listener = listener;
   }
+  onFailure(listener: (error: Error) => void): void {
+    this.#failureListener = listener;
+  }
   dispose(): void {
     this.disposed = true;
     this.calls.push("dispose");
+  }
+  /** The clip could not load, and tells the player's listener. */
+  fail(error: Error): void {
+    this.#failureListener?.(error);
   }
   /** The clip became able to play on, and tells the player's listener. */
   becomeReady(): void {

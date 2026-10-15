@@ -146,6 +146,8 @@ export interface VideoPlayback {
   isReady(): boolean;
   /** Calls `listener` whenever a frame became ready, so a paused show can draw it. */
   onFrameReady(listener: () => void): void;
+  /** Calls `listener` when the clip cannot load, e.g. its bytes are missing or not playable. */
+  onFailure(listener: (error: Error) => void): void;
   dispose(): void;
 }
 

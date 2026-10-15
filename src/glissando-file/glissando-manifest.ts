@@ -30,11 +30,11 @@ export const GLISSANDO_FORMAT_ID = "glissando";
  * `songs` and `betweenSongs` replacing the single `music` (ADR-0023), version 11 the slideshow's
  * `portraitPictures` and a picture's `alone` (ADR-0028), version 12 the slideshow's `openingCard`
  * and `closingCard` (ADR-0032), version 13 a picture's `colours` and a card's picture background
- * `tint` (ADR-0033), version 14 a picture's `video` and the `videos/` entries (ADR-0034). A file older than version 10 carried `music`, not `songs`, with no automatic
- * way to tell the two apart in a document that also predates other fields; such a file is
- * reported like any other unsupported version. Versions 13 and 14 are read (a version 13 file
- * holds no clips); there is no production instance yet, so an older file is refused rather than
- * migrated.
+ * `tint` (ADR-0033), version 14 a picture's `video` and the `videos/` entries (ADR-0034).
+ *
+ * Versions 13 and 14 are read (a version 13 file holds no clips). Any older file is refused
+ * rather than migrated, as there is no production instance yet; before version 10 a file carried
+ * `music`, not `songs`, which cannot be told apart from the rest of such a document.
  */
 export const GLISSANDO_FORMAT_VERSION = 14;
 export const OLDEST_READABLE_FORMAT_VERSION = 13;

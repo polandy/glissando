@@ -232,6 +232,46 @@ describe("VideoElementPlayback", () => {
     expect(released).toEqual(["release"]);
   });
 
+  it("tells its failure listener when the clip's bytes could not be read, without a play", async () => {
+    const failures: Error[] = [];
+    const playback = new VideoElementPlayback(
+      new FakeElement() as unknown as HTMLVideoElement,
+      1,
+      { unlock: () => undefined, route: () => ({ set() {}, dispose() {} }) },
+      Promise.reject(new Error("missing")),
+      () => undefined,
+    );
+    playback.onFailure((error) => failures.push(error));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(failures).toHaveLength(1);
+    expect(failures[0]).toBeInstanceOf(VideoPlaybackError);
+  });
+
+  it("tells its failure listener when the element cannot play the clip", () => {
+    const { element, playback } = setUp();
+    const failures: Error[] = [];
+    playback.onFailure((error) => failures.push(error));
+    element.fire("error");
+    expect(failures).toHaveLength(1);
+  });
+
+  it("does not start a clip that was disposed while its bytes were still being read", async () => {
+    let ready: () => void = () => undefined;
+    const element = new FakeElement();
+    const playback = new VideoElementPlayback(
+      element as unknown as HTMLVideoElement,
+      1,
+      { unlock: () => undefined, route: () => ({ set() {}, dispose() {} }) },
+      new Promise<void>((resolve) => (ready = resolve)),
+      () => undefined,
+    );
+    const playing = playback.play(0);
+    playback.dispose();
+    ready();
+    await playing;
+    expect(element.playCalls).toBe(0);
+  });
+
   it("rejects play when the clip's bytes could not be read", async () => {
     const element = new FakeElement();
     const output: VideoOutput = {

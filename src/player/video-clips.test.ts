@@ -40,6 +40,15 @@ function setUp(slides: readonly Slide[] = SLIDES) {
 }
 
 describe("video clips", () => {
+  it("reports a clip that cannot load before it ever plays, once", () => {
+    const { clips, videos, errors } = setUp();
+    clips.place(8000);
+    const failure = new VideoPlaybackError(new Error("missing"));
+    videos.only().fail(failure);
+    videos.only().fail(failure);
+    expect(errors).toEqual([failure]);
+  });
+
   it("opens no playback before a clip is near", () => {
     const { clips, videos } = setUp();
     clips.place(1000);

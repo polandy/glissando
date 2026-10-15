@@ -100,7 +100,7 @@ The slide clock leads; the clip follows it, never the other way round.
   trim and fades (ADR-0009) multiply on top.
 - Two clips closer together than a ramp up plus a ramp down stay ducked between them.
 - Safari starts sound only after a user gesture; the player's play button is that gesture.
-  A refused clip sound is a `MusicPlaybackError`-style player error (`VideoPlaybackError`).
+  A refused clip sound is a `MusicPlaybackError`-style player error (`VideoPlaybackError`). A clip whose bytes are missing or that the browser cannot decode raises the same error when it loads, so a show never waits for it.
 
 ## Composition
 
