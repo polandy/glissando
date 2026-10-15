@@ -12,8 +12,8 @@ export interface RgbaImage {
   readonly data: Uint8ClampedArray;
 }
 
-/** An animal in picture pixels. */
-export interface AnimalDetection {
+/** An object (a person, an animal, a thing) in picture pixels. */
+export interface ObjectDetection {
   readonly centreX: number;
   readonly centreY: number;
   readonly width: number;
@@ -33,44 +33,43 @@ const STRIDES = [8, 16, 32];
 const VALUES_PER_ANCHOR = 85;
 const OBJECTNESS_OFFSET = 4;
 const CLASS_OFFSET = 5;
-// COCO classes 14..23: bird, cat, dog, horse, sheep, cow, elephant, bear, zebra, giraffe.
-const FIRST_ANIMAL_CLASS = 14;
-const LAST_ANIMAL_CLASS = 23;
+// The 80 COCO classes, person to toothbrush: anything the network names can be the subject.
+const CLASS_COUNT = 80;
 // Objectness times class score; below it the detections are mostly clutter (ADR-0036).
-const MIN_ANIMAL_SCORE = 0.35;
+const MIN_OBJECT_SCORE = 0.35;
 const NMS_OVERLAP = 0.45;
 
 /**
- * Where to aim in a picture of animals: the one with the largest score-weighted area together
+ * Where to aim in a picture of objects: the one with the largest score-weighted area together
  * with every one not much smaller than it, as one box in picture coordinates; nothing when no
- * animal scores high enough (ADR-0036, ADR-0029).
+ * object scores high enough (ADR-0036, ADR-0029).
  */
-export function animalFocus(image: RgbaImage, network: OnnxGraph): PictureFocus {
+export function objectFocus(image: RgbaImage, network: OnnxGraph): PictureFocus {
   const { input, letterbox } = letterboxed(image);
-  const animals = decodeAnimals(runOnnx(network, input), letterbox);
-  const strongest = animals.reduce<AnimalDetection | undefined>(
-    (best, animal) => (best === undefined || weight(animal) > weight(best) ? animal : best),
+  const objects = decodeObjects(runOnnx(network, input), letterbox);
+  const strongest = objects.reduce<ObjectDetection | undefined>(
+    (best, object) => (best === undefined || weight(object) > weight(best) ? object : best),
     undefined,
   );
   if (strongest === undefined) return { kind: "none" };
-  const others = animals.filter((animal) => animal !== strongest).map((a) => boxOf(a, image));
+  const others = objects.filter((object) => object !== strongest).map((o) => boxOf(o, image));
   return { kind: "subject", box: groupFocusBox(boxOf(strongest, image), others) };
 }
 
 /**
- * The animals the network found, best first, each place found once. `output` is the raw
+ * The objects the network found, best first, each place found once. `output` is the raw
  * network output: per grid cell the box offset and size (log scale), objectness and class scores.
  */
-export function decodeAnimals(output: Tensor, { ratio }: Letterbox): AnimalDetection[] {
-  const found: AnimalDetection[] = [];
+export function decodeObjects(output: Tensor, { ratio }: Letterbox): ObjectDetection[] {
+  const found: ObjectDetection[] = [];
   let anchor = 0;
   for (const stride of STRIDES) {
     const cells = INPUT_SIZE / stride;
     for (let row = 0; row < cells; row++) {
       for (let column = 0; column < cells; column++, anchor++) {
         const at = anchor * VALUES_PER_ANCHOR;
-        const score = animalScore(output.data, at);
-        if (score < MIN_ANIMAL_SCORE) continue;
+        const score = objectScore(output.data, at);
+        if (score < MIN_OBJECT_SCORE) continue;
         found.push({
           centreX: ((item(output.data, at) + column) * stride) / ratio,
           centreY: ((item(output.data, at + 1) + row) * stride) / ratio,
@@ -84,24 +83,24 @@ export function decodeAnimals(output: Tensor, { ratio }: Letterbox): AnimalDetec
   return withoutOverlaps(found.sort((a, b) => b.score - a.score));
 }
 
-function animalScore(data: Float32Array, at: number): number {
+function objectScore(data: Float32Array, at: number): number {
   let best = 0;
-  for (let id = FIRST_ANIMAL_CLASS; id <= LAST_ANIMAL_CLASS; id++) {
+  for (let id = 0; id < CLASS_COUNT; id++) {
     best = Math.max(best, item(data, at + CLASS_OFFSET + id));
   }
   return item(data, at + OBJECTNESS_OFFSET) * best;
 }
 
 // Greedy non-maximum suppression over detections sorted best first.
-function withoutOverlaps(sorted: readonly AnimalDetection[]): AnimalDetection[] {
-  const kept: AnimalDetection[] = [];
+function withoutOverlaps(sorted: readonly ObjectDetection[]): ObjectDetection[] {
+  const kept: ObjectDetection[] = [];
   for (const candidate of sorted) {
     if (kept.every((other) => overlap(candidate, other) <= NMS_OVERLAP)) kept.push(candidate);
   }
   return kept;
 }
 
-function overlap(a: AnimalDetection, b: AnimalDetection): number {
+function overlap(a: ObjectDetection, b: ObjectDetection): number {
   const across =
     Math.min(a.centreX + a.width / 2, b.centreX + b.width / 2) -
     Math.max(a.centreX - a.width / 2, b.centreX - b.width / 2);
@@ -113,14 +112,14 @@ function overlap(a: AnimalDetection, b: AnimalDetection): number {
   return shared / (a.width * a.height + b.width * b.height - shared);
 }
 
-const weight = (animal: AnimalDetection): number => animal.width * animal.height * animal.score;
+const weight = (object: ObjectDetection): number => object.width * object.height * object.score;
 
 // Clamped into the picture: the network's boxes may reach past its edge.
-function boxOf(animal: AnimalDetection, image: RgbaImage): FocusBox {
-  const left = Math.max(0, (animal.centreX - animal.width / 2) / image.width);
-  const top = Math.max(0, (animal.centreY - animal.height / 2) / image.height);
-  const right = Math.min(1, (animal.centreX + animal.width / 2) / image.width);
-  const bottom = Math.min(1, (animal.centreY + animal.height / 2) / image.height);
+function boxOf(object: ObjectDetection, image: RgbaImage): FocusBox {
+  const left = Math.max(0, (object.centreX - object.width / 2) / image.width);
+  const top = Math.max(0, (object.centreY - object.height / 2) / image.height);
+  const right = Math.min(1, (object.centreX + object.width / 2) / image.width);
+  const bottom = Math.min(1, (object.centreY + object.height / 2) / image.height);
   return { x: left, y: top, width: right - left, height: bottom - top };
 }
 

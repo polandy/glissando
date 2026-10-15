@@ -1,5 +1,5 @@
 import { beforeAll, describe, expect, it } from "vitest";
-import { animalFocus, decodeAnimals, type AnimalDetection, type RgbaImage } from "./animal-focus";
+import { decodeObjects, objectFocus, type ObjectDetection, type RgbaImage } from "./object-focus";
 import modelDataUrl from "./yolox-nano.bin?url&inline";
 import { item } from "./onnx/item";
 import type { OnnxGraph } from "./onnx/onnx-model";
@@ -18,6 +18,8 @@ const VALUES_PER_ANCHOR = 85;
 const CLASS_OFFSET = 5;
 const CAT = 15;
 const CAR = 2;
+const PERSON = 0;
+const LAST_CLASS = 79;
 const STRIDE_8_GRID = 52;
 
 let network: OnnxGraph;
@@ -59,9 +61,9 @@ function outputWith(
 }
 
 // Float32 output: whole pixels, the rounding noise dropped.
-const sizeOf = (animal: AnimalDetection | undefined): number[] => {
-  if (!animal) throw new Error("expected a detection");
-  return [animal.centreX, animal.centreY, animal.width, animal.height].map(Math.round);
+const sizeOf = (object: ObjectDetection | undefined): number[] => {
+  if (!object) throw new Error("expected a detection");
+  return [object.centreX, object.centreY, object.width, object.height].map(Math.round);
 };
 
 const cellAt = (column: number, row: number): number => row * STRIDE_8_GRID + column;
@@ -72,9 +74,9 @@ beforeAll(async () => {
   chelsea = rgbaFromPpm(ppm, CHELSEA.width, CHELSEA.height);
 });
 
-describe("animalFocus", () => {
+describe("objectFocus", () => {
   it("aims at the cat that fills the picture", () => {
-    const focus = animalFocus(chelsea, network);
+    const focus = objectFocus(chelsea, network);
 
     if (focus.kind !== "subject") throw new Error("expected the cat to be found");
     const { x, y, width, height } = focus.box;
@@ -85,11 +87,11 @@ describe("animalFocus", () => {
   });
 
   it("finds nothing to aim at in a blank picture", () => {
-    expect(animalFocus(blank(160, 120), network)).toEqual({ kind: "none" });
+    expect(objectFocus(blank(160, 120), network)).toEqual({ kind: "none" });
   });
 });
 
-describe("decodeAnimals", () => {
+describe("decodeObjects", () => {
   const WHOLE = { ratio: 1 };
 
   it("places a box at its grid cell and size, in picture pixels", () => {
@@ -97,9 +99,9 @@ describe("decodeAnimals", () => {
       { cell: cellAt(10, 20), box: [0.5, 0.5, 64, 32], objectness: 0.9, classId: CAT, score: 0.9 },
     ]);
 
-    const [animal] = decodeAnimals(output, WHOLE);
+    const [object] = decodeObjects(output, WHOLE);
 
-    expect(sizeOf(animal)).toEqual([84, 164, 64, 32]);
+    expect(sizeOf(object)).toEqual([84, 164, 64, 32]);
   });
 
   it("scales the box back by the letterbox ratio", () => {
@@ -107,18 +109,22 @@ describe("decodeAnimals", () => {
       { cell: cellAt(10, 20), box: [0, 0, 64, 32], objectness: 1, classId: CAT, score: 1 },
     ]);
 
-    const [animal] = decodeAnimals(output, { ...WHOLE, ratio: 0.5 });
+    const [object] = decodeObjects(output, { ...WHOLE, ratio: 0.5 });
 
-    expect(sizeOf(animal)).toEqual([160, 320, 128, 64]);
+    expect(sizeOf(object)).toEqual([160, 320, 128, 64]);
   });
 
-  it("ignores things that are not animals", () => {
+  it.each([
+    ["a person", PERSON],
+    ["a car", CAR],
+    ["a cat", CAT],
+    ["an object of the last class", LAST_CLASS],
+  ])("finds %s", (_name, classId) => {
     const output = outputWith([
-      { cell: cellAt(5, 5), box: [0, 0, 40, 40], objectness: 1, classId: CAR, score: 1 },
-      { cell: cellAt(30, 30), box: [0, 0, 40, 40], objectness: 1, classId: CAT, score: 1 },
+      { cell: cellAt(5, 5), box: [0, 0, 40, 40], objectness: 1, classId, score: 1 },
     ]);
 
-    expect(decodeAnimals(output, WHOLE).map((animal) => animal.centreX)).toEqual([240]);
+    expect(decodeObjects(output, WHOLE).map((object) => object.centreX)).toEqual([40]);
   });
 
   it("drops weak detections", () => {
@@ -126,7 +132,7 @@ describe("decodeAnimals", () => {
       { cell: cellAt(5, 5), box: [0, 0, 40, 40], objectness: 0.5, classId: CAT, score: 0.5 },
     ]);
 
-    expect(decodeAnimals(output, WHOLE)).toEqual([]);
+    expect(decodeObjects(output, WHOLE)).toEqual([]);
   });
 
   it("keeps only the best of detections on top of each other", () => {
@@ -135,7 +141,7 @@ describe("decodeAnimals", () => {
       { cell: cellAt(11, 10), box: [0, 0, 64, 64], objectness: 0.9, classId: CAT, score: 0.9 },
     ]);
 
-    expect(decodeAnimals(output, WHOLE)).toHaveLength(1);
-    expect(decodeAnimals(output, WHOLE)[0]?.score).toBeCloseTo(0.81, 5);
+    expect(decodeObjects(output, WHOLE)).toHaveLength(1);
+    expect(decodeObjects(output, WHOLE)[0]?.score).toBeCloseTo(0.81, 5);
   });
 });
