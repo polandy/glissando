@@ -1,0 +1,96 @@
+import { flushSync } from "svelte";
+import { server } from "vitest/browser";
+import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
+import type { StoredVideo } from "../../library/own-video";
+import { generatedClip } from "../../video-export/testing/generated-clip";
+import { view } from "../picture-editor/picture-editor-harness";
+import { mountWithTranslator } from "../testing/mount-with-translator";
+import { reactiveProps } from "../testing/reactive-props.svelte";
+import ClipEditorScreen from "./ClipEditorScreen.svelte";
+
+const CLIP_MS = 4000;
+const CLIP: StoredVideo = { mediaId: "v", sourceMs: CLIP_MS, startMs: 1000, endMs: 3000 };
+const PIXEL = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+/** A software encode of a short clip can take a while on a shared runner; a ceiling, not a wait. */
+const GENERATION_CEILING_MS = 60_000;
+const SCRUB_AT_MS = 1500;
+const SCRUBBED_CLIP_SECONDS = (CLIP.startMs + SCRUB_AT_MS) / 1000;
+
+let clipBlob: Blob;
+let destroy = () => {};
+let url = "";
+beforeAll(async () => {
+  clipBlob = await generatedClip("#ff0000", CLIP_MS, 0.5);
+}, GENERATION_CEILING_MS);
+afterEach(() => {
+  destroy();
+  URL.revokeObjectURL(url);
+});
+
+function mountPlayable() {
+  url = URL.createObjectURL(clipBlob);
+  const props = reactiveProps({
+    slide: view(),
+    video: CLIP,
+    slideshowTitle: "Sommer am See",
+    posterUrl: PIXEL,
+    videoUrl: url,
+    saving: false,
+    onBack: () => {},
+    onOpen: () => {},
+    onExcerpt: () => {},
+    onVolume: () => {},
+    onDuckMusic: () => {},
+    onReset: () => {},
+  });
+  destroy = mountWithTranslator(ClipEditorScreen, props).destroy;
+  const scrub = document.querySelector<HTMLInputElement>(
+    'input[aria-label="Position im Ausschnitt"]',
+  ) as HTMLInputElement;
+  const clip = document.querySelector("video") as HTMLVideoElement;
+  return {
+    clip,
+    scrubTo(ms: number) {
+      scrub.value = String(ms);
+      scrub.dispatchEvent(new Event("input", { bubbles: true }));
+    },
+  };
+}
+
+describe("scrubbing a clip in the editor", () => {
+  it("moves the clip to the slider's place within the excerpt", async () => {
+    const { clip, scrubTo } = mountPlayable();
+    await vi.waitFor(() => expect(clip.readyState).toBeGreaterThan(1));
+
+    scrubTo(SCRUB_AT_MS);
+
+    await vi.waitFor(() => expect(clip.currentTime).toBeCloseTo(SCRUBBED_CLIP_SECONDS, 1));
+  });
+
+  // WebKit's AAC encoder stamps every packet 0, so a seek in a clip it wrote never completes.
+  it.skipIf(server.browser === "webkit")(
+    "leaves a paused clip where the viewer put it",
+    async () => {
+      const { clip, scrubTo } = mountPlayable();
+      await vi.waitFor(() => expect(clip.readyState).toBeGreaterThan(1));
+      scrubTo(SCRUB_AT_MS);
+      await vi.waitFor(() => {
+        expect(clip.seeking).toBe(false);
+        expect(clip.currentTime).toBeCloseTo(SCRUBBED_CLIP_SECONDS, 1);
+      });
+      const assigned: number[] = [];
+      const original = Object.getOwnPropertyDescriptor(HTMLMediaElement.prototype, "currentTime");
+      Object.defineProperty(clip, "currentTime", {
+        get: () => original?.get?.call(clip) as number,
+        set: (seconds: number) => assigned.push(seconds),
+      });
+
+      clip.dispatchEvent(new Event("play"));
+      flushSync();
+      clip.dispatchEvent(new Event("pause"));
+      flushSync();
+
+      expect(assigned).toEqual([]);
+    },
+  );
+});

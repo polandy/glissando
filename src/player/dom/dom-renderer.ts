@@ -6,6 +6,7 @@ import type { Card } from "../slideshow";
 import { slideLayout } from "../slide-layout";
 import { CardOverlay } from "./dom-card";
 import { LayerPlacement } from "./dom-layer-placement";
+import { LiveVideos } from "./dom-live-video";
 
 const OPAQUE = 1;
 /** No caption fade from a card sharing the slide: fully shown. */
@@ -35,6 +36,7 @@ export class DomRenderer implements SlideRenderer<BrowserPicture> {
   readonly #captions = new Map<HTMLImageElement, HTMLElement>();
   readonly #placement: LayerPlacement;
   readonly #cards: CardOverlay;
+  readonly #videos = new LiveVideos();
   readonly #endFade: HTMLElement;
   #captionInsetCssPixels = 0;
 
@@ -62,6 +64,9 @@ export class DomRenderer implements SlideRenderer<BrowserPicture> {
     const placed = layers.map(({ layer, opacity }) => this.#placeLayer(layer, opacity, viewport));
     for (const { layer, opacity, anchor } of placed) {
       this.#placeCardAndCaption(layer, anchor, opacity, viewport);
+      if (layer.kind === "picture") {
+        this.#videos.place(layer.picture.element, layer.live);
+      }
     }
     this.#placeEndFade(frame.endFade);
   }
@@ -80,6 +85,7 @@ export class DomRenderer implements SlideRenderer<BrowserPicture> {
     this.#captions.get(picture.element)?.remove();
     this.#captions.delete(picture.element);
     this.#placement.forget(picture.element);
+    this.#videos.forget(picture.element);
   }
 
   dispose(): void {
@@ -151,7 +157,12 @@ export class DomRenderer implements SlideRenderer<BrowserPicture> {
       layers.flatMap((layer) => (layer.card === undefined ? [] : [layer.card.card])),
     );
     for (const child of [...this.#host.children]) {
-      if (this.#placement.isExtra(child) || this.#cards.isExtra(child) || child === this.#endFade) {
+      if (
+        this.#placement.isExtra(child) ||
+        this.#cards.isExtra(child) ||
+        this.#videos.owns(child) ||
+        child === this.#endFade
+      ) {
         continue;
       }
       const kept =
@@ -162,6 +173,7 @@ export class DomRenderer implements SlideRenderer<BrowserPicture> {
         child.remove();
       }
     }
+    this.#videos.sweep(shown);
     this.#placement.sweep(shown, blurredFillFronts);
     this.#cards.sweep(shownCards);
   }

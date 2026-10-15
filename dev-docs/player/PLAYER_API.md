@@ -7,6 +7,8 @@ positioned `container` and returns a `SlideshowPlayer`, modelled on an HTML vide
   `image.src` can be a key such as a stored media id. Each blob gets an object URL for its
   decode, revoked when the picture is released or fails to decode. Without it, `src` is a URL.
 - `webGl2Context(canvas)` supplies the WebGL2 context; `null` selects the DOM fallback.
+- `readVideo(src): Promise<Blob>` reads a video slide's clip when the player opens it (`video.src`
+  can then be a media id); the object URL lives until the clip is released. Without it, `src` is a URL.
 - `picturesAhead` is how many slides are loaded beyond the last one on screen, 1 without it.
 
 `createBrowserPlayer` (`src/player/browser-player.ts`) is the same with a required
@@ -19,12 +21,20 @@ keeps the worker alone, so a broken picture is never decoded twice. It and its c
 engine's modules directly, never the index, whose `createPlayer` would bring the worker in as a
 separate file.
 
-`createFramePlayer(slideshow, size, openPicture?)` is the video export's: a silent player on a
+`createFramePlayer(slideshow, size, openPicture?, openVideoFrames?)` is the video export's: a silent player on a
 canvas in no document, drawn with WebGL2 at exactly `size` (pixel ratio 1, drawing buffer
 preserved for `new VideoFrame(canvas)`), with `captionFontLoaded` and `cardFontsLoaded` (settled at
 once without a card) to await before the first `renderAt`, and `dispose()`, which destroys the
 player and loses the WebGL context on purpose, since a page holds only a few; `null` without
-WebGL2.
+WebGL2. It never plays a `<video>`: `openVideoFrames(src): VideoFrameSource` supplies a video
+slide's frames, one `frameAt(clipMs)` per `renderAt`, so the export can inject frame-accurate
+decoded frames (a `TexImageSource`); without it a video slide draws its poster.
+
+Video slides (VIDEO_SLIDES.md) play through the optional `PlayerDependencies.openVideo(src,
+volume): VideoPlayback` port (`seek`, `play`, `follow`, `pause`, `setVolume`, `frame`,
+`onFrameReady`, `dispose`); `createBrowserPlayer` supplies one `<video>` element per clip
+(`browser/video-playback.ts`, `browser/open-video.ts`). A refused clip is a `VideoPlaybackError` in
+an `error` event, and the show pauses, like a refused music start.
 
 The player:
 

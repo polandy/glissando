@@ -6,6 +6,7 @@ import {
   type DuplicateReason,
 } from "../../import/picture-import";
 import type { PictureSource } from "../../import/picture-source";
+import { localVideoSource, type LocalVideoReaders } from "../../import/local-video-source";
 import type { PictureColours, RgbPixel } from "../../library/picture-colours";
 import type { PictureIdentity } from "../../library/picture-identity";
 import type { LibraryStore } from "../../library/stored-slideshow";
@@ -18,8 +19,10 @@ export interface PictureIntakePorts
   extends LocalPictureReaders, Omit<PictureRemovalsPorts, "pictures"> {
   readonly store: Pick<
     LibraryStore,
-    "putPicture" | "putPictureFocus" | "claimMedia" | "releaseClaim"
+    "putPicture" | "putPictureFocus" | "putVideo" | "claimMedia" | "releaseClaim"
   >;
+  /** What a video file is opened and dated with; its poster is decoded by `decode`. */
+  readonly videoClips: Pick<LocalVideoReaders, "openClip" | "captureDate">;
   /** Measures each stored picture's thumbnail for culling (ADR-0024). */
   readonly checker: PictureChecker;
   /** A photo picked in the Immich browser, read through the composition root's client. */
@@ -36,6 +39,8 @@ export interface PictureIntakePorts
   /** Records an error the user already sees, such as a failed import shown by the pictures step. */
   log(error: unknown): void;
 }
+
+const VIDEO_TYPE_PREFIX = "video/";
 
 /**
  * The pictures being taken in, for a new slideshow or one being added to: files and Immich photos
@@ -69,12 +74,19 @@ export class PictureIntake {
           await ports.store.putPicture(id, blobs);
         },
         putPictureFocus: (id, focus) => ports.store.putPictureFocus(id, focus),
+        putVideo: async (id, blob) => {
+          await this.claim(id);
+          await ports.store.putVideo(id, blob);
+        },
       },
       pixels: ports.pixels,
       newId: ports.newId,
       log: ports.log,
       known: () => this.#known,
-      stored: (stored) => this.culling.check(stored),
+      stored: (stored) => {
+        // A clip is never a blur or a near-duplicate of a shot (ADR-0034).
+        if (stored.picture.video === undefined) this.culling.check(stored);
+      },
     });
     this.culling = new PictureCulling({
       checker: ports.checker,
@@ -83,6 +95,12 @@ export class PictureIntake {
       onError: ports.onError,
     });
     this.#removals = new PictureRemovals({ ...ports, pictures: this.pictures });
+  }
+
+  #localSource(file: File): PictureSource {
+    return file.type.startsWith(VIDEO_TYPE_PREFIX)
+      ? localVideoSource(file, { ...this.#ports.videoClips, decode: this.#ports.decode })
+      : localPictureSource(file, this.#ports);
   }
 
   /** The pictures already there, such as the slideshow's being added to. */
@@ -97,7 +115,7 @@ export class PictureIntake {
 
   addPictures(files: readonly File[]): void {
     this.#removals.end();
-    this.pictures.add(files.map((file) => localPictureSource(file, this.#ports)));
+    this.pictures.add(files.map((file) => this.#localSource(file)));
     this.#watchDrain();
   }
 

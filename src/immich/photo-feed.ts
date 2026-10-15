@@ -21,6 +21,8 @@ export interface PhotoFeedOptions {
   readonly reportUnavailable: ReportUnavailable;
   /** One album's photos; the whole library without it. */
   readonly albumId?: string;
+  /** Videos among the photos, as a device import downloads them. */
+  readonly withVideos?: boolean;
 }
 
 const FIRST_PAGE = 1;
@@ -33,6 +35,7 @@ const FIRST_PAGE = 1;
 export class PhotoFeed {
   readonly #client: ImmichClient;
   readonly #albumId: string | undefined;
+  readonly #withVideos: boolean;
   readonly #reportUnavailable: ReportUnavailable;
   readonly #listeners = new Set<(state: PhotoFeedState) => void>();
   #state: PhotoFeedState = { photos: [], loading: false, done: false, failure: null };
@@ -41,6 +44,7 @@ export class PhotoFeed {
   constructor(options: PhotoFeedOptions) {
     this.#client = options.client;
     this.#albumId = options.albumId;
+    this.#withVideos = options.withVideos === true;
     this.#reportUnavailable = options.reportUnavailable;
   }
 
@@ -69,11 +73,11 @@ export class PhotoFeed {
   async #load(): Promise<void> {
     this.#publish({ ...this.#state, loading: true });
     try {
-      const page = await this.#client.photos(
-        this.#albumId === undefined
-          ? { page: this.#nextPage }
-          : { page: this.#nextPage, albumId: this.#albumId },
-      );
+      const page = await this.#client.photos({
+        page: this.#nextPage,
+        ...(this.#albumId === undefined ? {} : { albumId: this.#albumId }),
+        ...(this.#withVideos ? { withVideos: true } : {}),
+      });
       if (page.nextPage !== null) this.#nextPage = page.nextPage;
       this.#publish({
         photos: [...this.#state.photos, ...page.photos],

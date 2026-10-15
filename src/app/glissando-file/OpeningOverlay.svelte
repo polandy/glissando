@@ -16,7 +16,9 @@
     ? t("glissandoFile.checking")
     : line.kind === "picture"
       ? t("glissandoFile.picture", { number: line.number, count: line.count })
-      : t("glissandoFile.music")}
+      : line.kind === "video"
+        ? t("glissandoFile.video", { number: line.number, count: line.count })
+        : t("glissandoFile.music")}
   progress={opening.fraction}
   note={opening.fileName}
   {onCancel}

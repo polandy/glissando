@@ -9,6 +9,7 @@ import { enHtml } from "./catalogue-en-html.ts";
 import { enSharePage } from "./catalogue-en-share-page.ts";
 import { enTvPage } from "./catalogue-en-tv-page.ts";
 import { enRemotePage } from "./catalogue-en-remote-page.ts";
+import { enClip } from "./catalogue-en-clip.ts";
 import { enVideo } from "./catalogue-en-video.ts";
 import { enServer } from "./catalogue-en-server.ts";
 import { enShare } from "./catalogue-en-share.ts";
@@ -125,7 +126,8 @@ export const en: Catalogue = {
   "import.or": "or",
   "import.pickFolder": "choose a folder",
   "import.dropHint": "on a desktop, drop them here too",
-  "import.pictureFormats": "JPEG, PNG, WebP, HEIC (where the browser supports it)",
+  "import.pictureFormats":
+    "JPEG, PNG, WebP, HEIC and videos (MP4, WebM, MOV), where the browser supports them",
   "import.progressCount": "{done} / {count}",
   "import.progressLabel": {
     one: "picture being downsized\u00a0…",
@@ -268,6 +270,7 @@ export const en: Catalogue = {
   "glissandoFile.checking": "Checking file\u00a0…",
   "glissandoFile.picture": "Picture {number} of {count}",
   "glissandoFile.music": "Music",
+  "glissandoFile.video": "Video {number} of {count}",
   "glissandoFile.opened": "“{title}” opened",
   "glissandoFile.openedAs": "Opened as “{title}”, “{original}” stays unchanged.",
   "glissandoFile.cancelled": "Opening cancelled, nothing saved.",
@@ -312,6 +315,7 @@ export const en: Catalogue = {
   ...enPortrait,
   ...enImmich,
   ...enMusic,
+  ...enClip,
   ...enVideo,
   ...enHtml,
   ...enSharePage,

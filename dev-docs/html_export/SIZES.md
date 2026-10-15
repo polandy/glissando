@@ -11,6 +11,6 @@
   its bytes as they are, and so does any size the stored picture already fits.
 - The default is Small.
 - The estimate beside a size is
-  `(Σ picture bytes × min(1, fitted pixels / stored pixels) + song bytes + page bytes) × 4 / 3`,
-  shown as "ca. 16 MB". "Page bytes" are the player bundle, font and markup.
+  `(Σ picture bytes × min(1, fitted pixels / stored pixels) + song bytes + clip bytes + page bytes) × 4 / 3`,
+  shown as "ca. 16 MB". Clip bytes are each distinct clip's file, counted whole at every size. "Page bytes" are the player bundle, font and markup.
 - With 4K selected, a lemon note shows: "Zu groß für eine E-Mail. …"

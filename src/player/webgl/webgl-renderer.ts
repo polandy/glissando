@@ -132,6 +132,7 @@ export class WebGlRenderer implements SlideRenderer<BitmapPicture> {
       return;
     }
     const gl = this.#gl;
+    this.#pictures.beginFrame();
     const viewport = this.#fitCanvasToDisplay();
     gl.viewport(0, 0, viewport.width, viewport.height);
     const [effect, progress, from, to] =

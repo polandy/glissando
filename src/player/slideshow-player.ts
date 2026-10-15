@@ -2,8 +2,8 @@ import { CaptionInset } from "./caption-inset";
 import { FramePictures } from "./frame-pictures";
 import { PlaybackTime } from "./playback-time";
 import type { Size } from "./ken-burns";
-import { MusicPlaybackError, type PlayerDependencies } from "./ports";
-import { PlaylistMusic } from "./playlist-music";
+import { PlayerMedia } from "./player-media";
+import type { PlayerDependencies } from "./ports";
 import { MILLISECONDS_PER_SECOND, type Slideshow } from "./slideshow";
 import { createTimeline, type Timeline, type TimelineFrame } from "./timeline";
 
@@ -17,7 +17,7 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
   readonly #timeline: Timeline;
   readonly #deps: PlayerDependencies<Picture>;
   readonly #pictures: FramePictures<Picture>;
-  readonly #music: PlaylistMusic | null;
+  readonly #media: PlayerMedia;
   readonly #time: PlaybackTime;
   #paused = true;
   #ended = false;
@@ -34,10 +34,15 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
     this.#timeline = createTimeline(slideshow.slides);
     this.#time = new PlaybackTime(dependencies.clock, this.#timeline.durationMs);
     this.#deps = dependencies;
-    this.#music =
-      slideshow.music === undefined || dependencies.openMusic === undefined
-        ? null
-        : new PlaylistMusic(slideshow.music, dependencies.openMusic);
+    this.#media = new PlayerMedia(slideshow, dependencies, {
+      onError: (error) => this.#fail(error),
+      // Playback draws the next frame anyway; a paused show draws the frame that arrived.
+      onFrameReady: () => {
+        if (this.#paused) {
+          this.redraw();
+        }
+      },
+    });
     this.#captionInset = new CaptionInset({
       clock: dependencies.clock,
       frames: dependencies.frames,
@@ -52,6 +57,7 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
       dependencies.pictures,
       dependencies.renderer,
       dependencies.picturesAhead,
+      this.#media.video,
     );
     this.#whenDrawable(() => this.#draw());
   }
@@ -67,6 +73,7 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
   set currentTime(seconds: number) {
     this.#assertAlive();
     this.#stopAdvancing();
+    this.#media.restart();
     this.#time.holdAt(seconds * MILLISECONDS_PER_SECOND);
     this.#ended = false;
     const announceSeeked = () => {
@@ -154,7 +161,7 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
     this.#ended = false;
     this.#time.holdAt(seconds * MILLISECONDS_PER_SECOND);
     const generation = this.#generation;
-    await this.#pictures.loadAroundScreen();
+    await Promise.all([this.#pictures.loadAroundScreen(), this.#media.load(this.#time.frameMs)]);
     if (this.#destroyed || generation !== this.#generation) {
       throw new Error(`the frame at ${seconds} s was superseded before it was drawn`);
     }
@@ -179,7 +186,7 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
     this.#destroyed = true;
     this.#pictures.clear();
     this.#deps.pictures.dispose();
-    this.#music?.dispose();
+    this.#media.dispose();
     this.#deps.renderer.dispose();
   }
 
@@ -192,25 +199,21 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
       onFirstFrame?.();
       this.#emit("playing");
       this.#scheduleFrame();
-      this.#music?.play(this.#time.frameMs).catch((cause: unknown) => this.#failMusic(cause));
+      this.#media.play(this.#time.frameMs);
     };
-    if (this.#pictures.areOnScreenLoaded()) {
+    if (this.#pictures.isOnScreenPlayable()) {
       advance();
       return;
     }
-    this.#music?.pause();
+    this.#media.pause();
     this.#emit("waiting");
     this.#whenDrawable(advance);
-  }
-
-  #failMusic(cause: unknown): void {
-    this.#fail(new MusicPlaybackError(cause));
   }
 
   #stopAdvancing(): void {
     this.#generation += 1;
     if (this.#time.stopAdvancing()) {
-      this.#music?.pause();
+      this.#media.pause();
     }
     if (this.#frameHandle !== null) {
       this.#deps.frames.cancel(this.#frameHandle);
@@ -229,7 +232,7 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
       this.#finish();
       return;
     }
-    this.#music?.follow(timeMs).catch((cause: unknown) => this.#failMusic(cause));
+    this.#media.follow(timeMs);
     if (!this.#pictures.areOnScreenLoaded()) {
       this.#stopAdvancing();
       this.#startAdvancing();

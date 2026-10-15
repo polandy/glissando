@@ -1,9 +1,17 @@
 import type { Size } from "./ken-burns";
 import { PictureBuffer } from "./picture-buffer";
-import type { PictureLoader, SlideRenderer } from "./ports";
+import type { LiveFrame, PictureLoader, SlideRenderer } from "./ports";
 import { renderFrame, type RenderFrameContext } from "./render-frame";
 import { isGroundSlide, type Slideshow } from "./slideshow";
 import type { SlideAtTime, TimelineFrame } from "./timeline";
+
+/** The clip frames of the video slides: placed at the show time before each draw. */
+export interface LiveSlideFrames {
+  place(timeMs: number): void;
+  isReady(timeMs: number): boolean;
+  whenReady(timeMs: number): Promise<void>;
+  frameAt(index: number): LiveFrame | undefined;
+}
 
 /**
  * The pictures around the player's current frame: loads those on screen and the next ones, draws
@@ -15,6 +23,7 @@ export class FramePictures<Picture extends Size> {
   readonly #context: () => RenderFrameContext;
   readonly #renderer: SlideRenderer<Picture>;
   readonly #buffer: PictureBuffer<Picture>;
+  readonly #live: LiveSlideFrames | null;
 
   constructor(
     slideshow: Slideshow,
@@ -23,11 +32,13 @@ export class FramePictures<Picture extends Size> {
     loader: PictureLoader<Picture>,
     renderer: SlideRenderer<Picture>,
     picturesAhead?: number,
+    live: LiveSlideFrames | null = null,
   ) {
     this.#slideshow = slideshow;
     this.#currentFrame = currentFrame;
     this.#context = context;
     this.#renderer = renderer;
+    this.#live = live;
     this.#buffer = new PictureBuffer(
       slideshow.slides.map((slide) => {
         if (isGroundSlide(slide)) {
@@ -48,9 +59,22 @@ export class FramePictures<Picture extends Size> {
     return this.#onScreen().every((slide) => this.#buffer.get(slide.index) !== undefined);
   }
 
+  /** True once the pictures on screen are loaded and the clips on screen can play on. */
+  isOnScreenPlayable(): boolean {
+    return (
+      this.areOnScreenLoaded() && (this.#live?.isReady(this.#currentFrame().showTimeMs) ?? true)
+    );
+  }
+
   /** Loads the pictures on screen and the next ones; resolves once those on screen are loaded. */
   loadAroundScreen(): Promise<void> {
     return this.#buffer.keep(this.#onScreen().map((slide) => slide.index));
+  }
+
+  /** Like `loadAroundScreen`, and also waits for the clips on screen to be able to play. */
+  async loadAndAwaitClips(): Promise<void> {
+    await this.loadAroundScreen();
+    await this.#live?.whenReady(this.#currentFrame().showTimeMs);
   }
 
   /**
@@ -62,7 +86,7 @@ export class FramePictures<Picture extends Size> {
     readonly onLoaded: () => void;
     readonly onError: (error: Error) => void;
   }): void {
-    this.loadAroundScreen().then(
+    this.loadAndAwaitClips().then(
       () => {
         if (callbacks.isWanted() && this.areOnScreenLoaded()) {
           callbacks.onLoaded();
@@ -79,9 +103,15 @@ export class FramePictures<Picture extends Size> {
   /** Draws the current frame; its pictures must be loaded. */
   draw(captionInset: number): void {
     this.#renderer.setCaptionInset(captionInset);
+    const frame = this.#currentFrame();
+    this.#live?.place(frame.showTimeMs);
     this.#renderer.render(
-      renderFrame(this.#currentFrame(), this.#slideshow, this.#context(), (index) =>
-        this.#buffer.get(index),
+      renderFrame(
+        frame,
+        this.#slideshow,
+        this.#context(),
+        (index) => this.#buffer.get(index),
+        (index) => this.#live?.frameAt(index),
       ),
     );
   }

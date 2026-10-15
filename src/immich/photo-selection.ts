@@ -97,15 +97,16 @@ export class PhotoSelection {
   }
 }
 
-/** Every photo of an album, newest first, fetched page by page. */
+/** Every photo of an album, newest first, fetched page by page; videos too when asked. */
 export async function allAlbumPhotos(
   client: ImmichClient,
   albumId: string,
+  withVideos = false,
 ): Promise<ImmichPhoto[]> {
   const photos: ImmichPhoto[] = [];
   let page: number | null = FIRST_PAGE;
   while (page !== null) {
-    const answer = await client.photos({ page, albumId });
+    const answer = await client.photos({ page, albumId, ...(withVideos ? { withVideos } : {}) });
     photos.push(...answer.photos);
     page = answer.nextPage;
   }

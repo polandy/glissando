@@ -51,6 +51,8 @@ export interface PictureWeight extends Size {
 export interface PageWeights {
   readonly pictures: readonly PictureWeight[];
   readonly musicBytes: number;
+  /** Every clip's file, which goes in whole, never reduced. */
+  readonly videoBytes: number;
   /** The player bundle, font and markup (`playerBundleBytes`). */
   readonly pageBytes: number;
 }
@@ -68,7 +70,9 @@ export function estimatePageBytes(weights: PageWeights, sizeId: PageSizeId): num
         : (rendition.size.width * rendition.size.height) / (picture.width * picture.height);
     return sum + picture.bytes * share;
   }, 0);
-  return (pictureBytes + weights.musicBytes + weights.pageBytes) * BASE64_GROWTH;
+  return (
+    (pictureBytes + weights.musicBytes + weights.videoBytes + weights.pageBytes) * BASE64_GROWTH
+  );
 }
 
 const utf8 = new TextEncoder();

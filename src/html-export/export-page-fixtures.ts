@@ -77,6 +77,7 @@ export function run(overrides: Partial<PageExportJob> = {}): Run {
         return Promise.resolve(new Blob([`bytes of ${id}`], { type: "image/jpeg" }));
       },
       musicBlob: (id) => Promise.resolve(new Blob([`bytes of ${id}`], { type: "audio/mpeg" })),
+      videoBlob: (id) => Promise.resolve(new Blob([`bytes of ${id}`], { type: "video/mp4" })),
     },
     scaler,
     sink,
@@ -97,3 +98,15 @@ export function decoded(page: string, id: string): string | undefined {
   const base64 = block(page, id);
   return base64 === undefined ? undefined : atob(base64);
 }
+
+/** The first picture plays an 8 s excerpt of a clip; the others are plain. */
+export const WITH_CLIP: StoredSlideshow = {
+  ...WITHOUT_MUSIC,
+  pictures: [
+    {
+      ...picture("poster", 1000, 600),
+      video: { mediaId: "c1", sourceMs: 20_000, startMs: 2000, endMs: 10_000, volume: 80 },
+    },
+    ...WITHOUT_MUSIC.pictures.slice(1),
+  ],
+};

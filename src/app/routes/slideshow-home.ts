@@ -7,7 +7,7 @@ import type { SlideshowHome } from "./slideshow-storage";
 
 /** The store the slideshow route reads and edits through, of either home. */
 export type RouteStore = SlideshowStore &
-  Pick<LibraryStore, "claimMedia" | "releaseClaim" | "mediaBytes" | "musicBeats">;
+  Pick<LibraryStore, "claimMedia" | "releaseClaim" | "mediaBytes" | "musicBeats" | "videoBlob">;
 
 /**
  * Where a slideshow opened by id lives: the device is asked first, as it answers offline too; a
@@ -43,6 +43,7 @@ export function serverRouteStore(
     playbackPictureBlob: (id, signal) => server.playbackPictureBlob(id, signal),
     thumbnailBlob: (id) => server.thumbnailBlob(id),
     musicBlob: (id) => server.musicBlob(id),
+    videoBlob: () => Promise.reject(new Error("a server slideshow has no video clips")),
     pictureFocus: (ids) => server.pictureFocus(ids),
     putPictureFocus: (id, focus) => server.putPictureFocus(id, focus),
     claimMedia: () => Promise.resolve(),

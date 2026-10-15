@@ -23,6 +23,7 @@ export class FakeHtmlExportPorts implements HtmlExportPorts {
   weightsResult: PageWeights = {
     pictures: [{ width: 3840, height: 2160, bytes: 3_000_000 }],
     musicBytes: 0,
+    videoBytes: 0,
     pageBytes: 0,
   };
   weightsError: Error | null = null;

@@ -6,12 +6,14 @@ import type {
 } from "../library/stored-slideshow";
 import type { CheckedGlissandoFile } from "./check-glissando-file";
 import { ownMusicFields } from "./glissando-manifest";
+import { storedVideo } from "./manifest-video";
 import { cardFromManifest } from "./manifest-card";
 import { uniqueTitle } from "./unique-title";
 
 export type OpenStep = (
   | { readonly kind: "picture"; readonly number: number; readonly count: number }
   | { readonly kind: "music"; readonly number: number; readonly count: number }
+  | { readonly kind: "video"; readonly number: number; readonly count: number }
 ) & {
   /** The share of the media files written before this step, from 0 to 1. */
   readonly fraction: number;
@@ -23,6 +25,7 @@ export interface WritePorts {
     | "claimMedia"
     | "putPicture"
     | "putMusic"
+    | "putVideo"
     | "saveSlideshow"
     | "releaseClaim"
     | "deleteUnreferencedMedia"
@@ -58,7 +61,12 @@ export async function writeGlissandoFile(
   const { slideshow } = contents.manifest;
   const count = slideshow.pictures.length;
   const songCount = slideshow.songs.length;
-  const files = count * 2 + songCount;
+  const clipFiles = [
+    ...new Map(
+      slideshow.pictures.flatMap(({ video }) => (video === undefined ? [] : [[video.file, video]])),
+    ).values(),
+  ];
+  const files = count * 2 + songCount + clipFiles.length;
   let written = 0;
 
   const claimed = async (write: (id: string) => Promise<void>): Promise<string> => {
@@ -114,15 +122,31 @@ export async function writeGlissandoFile(
         ...ownMusicFields(song),
       });
     }
+    const clipIds = new Map<string, string>();
+    for (const [index, clip] of clipFiles.entries()) {
+      options.onStep?.({
+        kind: "video",
+        number: index + 1,
+        count: clipFiles.length,
+        fraction: written / files,
+      });
+      const id = await claimed((videoId) => store.putVideo(videoId, contents.media(clip.file)));
+      written += 1;
+      clipIds.set(clip.file, id);
+    }
     options.signal.throwIfAborted();
-    const pictureIds = pictures.map((picture) => picture.id);
+    const placed = pictures.map((picture, index): StoredPicture => {
+      const video = slideshow.pictures[index]?.video;
+      return video === undefined ? picture : { ...picture, video: storedVideo(video, clipIds) };
+    });
+    const pictureIds = placed.map((picture) => picture.id);
     const openingCard = cardFromManifest(slideshow.openingCard, pictureIds);
     const closingCard = cardFromManifest(slideshow.closingCard, pictureIds);
     const created: StoredSlideshow = {
       id: ports.newId(),
       title: uniqueTitle(slideshow.title, options.existingTitles),
       createdAt: ports.now().toISOString(),
-      pictures,
+      pictures: placed,
       ...(slideshow.ownOrder ? { ownOrder: true } : {}),
       ...(slideshow.pictureLength === undefined ? {} : { pictureLength: slideshow.pictureLength }),
       ...(slideshow.portraitPictures === undefined

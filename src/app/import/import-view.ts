@@ -1,6 +1,8 @@
+import type { VideoRefusal } from "../../import/video-refusal";
 import type { ConvertibleSource } from "../../import/music-format";
 import { musicExcerptMs, placeSongs, playlistMs, slideDurationsMs } from "../../compose";
 import type { PictureImportState, SkipReason, SkippedFile } from "../../import/picture-import";
+import { MAX_VIDEO_EXCERPT_MS } from "../../library/own-video";
 import type { StoredPicture } from "../../library/stored-slideshow";
 import { MILLISECONDS_PER_SECOND } from "../../player";
 import type { PlaylistSongView } from "../music-editor/playlist-view";
@@ -53,6 +55,26 @@ export interface SkippedNotices {
   readonly alreadyIn: readonly string[];
   /** Pictures this import already took in, which "Add anyway" takes in after all. */
   readonly chosenTwice: readonly string[];
+  /** Videos refused, each with why: one notice each. */
+  readonly videosRefused: readonly RefusedVideo[];
+}
+
+export interface RefusedVideo {
+  readonly fileName: string;
+  readonly reason: VideoRefusal;
+}
+
+const VIDEO_REFUSALS: ReadonlySet<SkipReason> = new Set<VideoRefusal>([
+  "videoUnplayable",
+  "videoTooLarge",
+  "videoTooShort",
+]);
+
+const isVideoRefusal = (reason: SkipReason): reason is VideoRefusal => VIDEO_REFUSALS.has(reason);
+
+/** How many chosen videos are longer than an excerpt can be, so the film plays a part of them. */
+export function longVideoCount(pictures: readonly Pick<StoredPicture, "video">[]): number {
+  return pictures.filter((picture) => (picture.video?.sourceMs ?? 0) > MAX_VIDEO_EXCERPT_MS).length;
 }
 
 export function skippedNotices(skipped: readonly SkippedFile[]): SkippedNotices {
@@ -64,6 +86,9 @@ export function skippedNotices(skipped: readonly SkippedFile[]): SkippedNotices 
     notDownloaded: namesFor((reason) => reason === "notDownloaded"),
     alreadyIn: namesFor((reason) => reason === "alreadyIn"),
     chosenTwice: namesFor((reason) => reason === "chosenTwice"),
+    videosRefused: skipped.flatMap(({ fileName, reason }) =>
+      isVideoRefusal(reason) ? [{ fileName, reason }] : [],
+    ),
   };
 }
 
@@ -94,32 +119,41 @@ export interface ImportTiming {
   readonly music: { readonly kind: ImportMusicFit; readonly seconds: number } | null;
 }
 
+/** A video lasts its excerpt; a photo has no own duration yet (`undefined`). */
+export function ownDurationsMs(
+  pictures: readonly Pick<StoredPicture, "video">[],
+): (number | undefined)[] {
+  return pictures.map(({ video }) =>
+    video === undefined ? undefined : video.endMs - video.startMs,
+  );
+}
+
 /**
- * The slide durations of a slideshow about to be created: none of its pictures has an own one,
- * and the music's beats are not known yet.
+ * The slide durations of a slideshow about to be created, from each picture's own duration; the
+ * music's beats are not known yet.
  */
 export function importSlideDurationsMs(
-  pictureCount: number,
+  ownMs: readonly (number | undefined)[],
   music: ImportMusic | undefined,
   secondsPerPicture: number,
 ): number[] {
-  const pictures = Array.from({ length: pictureCount }, () => ({}));
+  const pictures = ownMs.map((durationMs) => (durationMs === undefined ? {} : { durationMs }));
   const filledMs = music?.filled === true ? music.durationMs : undefined;
   return slideDurationsMs(pictures, filledMs, secondsPerPicture);
 }
 
 /** Step 2's timing row, by the same rule the slideshow is composed with. */
 export function importTiming(
-  pictureCount: number,
+  ownMs: readonly (number | undefined)[],
   music: ImportMusic | undefined,
   secondsPerPicture: number,
 ): ImportTiming {
-  const totalMs = importSlideDurationsMs(pictureCount, music, secondsPerPicture).reduce(
+  const totalMs = importSlideDurationsMs(ownMs, music, secondsPerPicture).reduce(
     (sum, durationMs) => sum + durationMs,
     0,
   );
   return {
-    perPictureSeconds: totalMs / pictureCount / MILLISECONDS_PER_SECOND,
+    perPictureSeconds: totalMs / ownMs.length / MILLISECONDS_PER_SECOND,
     totalSeconds: totalMs / MILLISECONDS_PER_SECOND,
     music:
       music === undefined

@@ -30,6 +30,10 @@ English.
 | TV remote          | —                                                       | show on the TV, control it from the phone                          |
 | Your pictures      | never leave the device                                  | stay with your devices, server and Immich, unless you share a link |
 
+Video clips can be slides too: pick them with your pictures (or from Immich), then cut the
+excerpt (up to 5 minutes) and set its sound in the clip editor. A device slideshow only: a
+server slideshow links photos.
+
 ## License
 
 [MIT](LICENSE). The Baloo 2 font is licensed under the [SIL Open Font License 1.1](assets/fonts/OFL.txt).

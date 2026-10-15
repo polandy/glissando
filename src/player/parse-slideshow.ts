@@ -1,4 +1,5 @@
 import { readCard } from "./parse-card";
+import { checkVideoSlide, readVideo } from "./parse-video";
 import {
   readHexColor,
   readIsoDate,
@@ -162,6 +163,7 @@ function readPictureSlide(raw: JsonObject, path: string, isLast: boolean): Pictu
     "durationMs",
     "kenBurns",
     "partner",
+    "video",
     "caption",
     "fit",
     "card",
@@ -175,6 +177,7 @@ function readPictureSlide(raw: JsonObject, path: string, isLast: boolean): Pictu
     ...(slide.partner === undefined
       ? {}
       : { partner: readPartner(slide.partner, `${path}.partner`) }),
+    ...(slide.video === undefined ? {} : { video: readVideo(slide.video, `${path}.video`) }),
     ...(slide.caption === undefined
       ? {}
       : { caption: readCaptionLike(slide.caption, `${path}.caption`) }),
@@ -183,6 +186,9 @@ function readPictureSlide(raw: JsonObject, path: string, isLast: boolean): Pictu
       ? {}
       : { card: readCard(slide.card, `${path}.card`, durationMs, true) }),
   };
+  if (read.video !== undefined) {
+    checkVideoSlide(read, read.video, path);
+  }
   return { ...read, ...readTransitionField(slide, path, isLast, durationMs) };
 }
 

@@ -23,11 +23,16 @@ export class PageDataError extends Error {
   override readonly name = "PageDataError";
 }
 
+/** Clips kept decoded, so a replay or a seek back within a slide does not decode base64 again. */
+const DECODED_CLIPS_KEPT = 2;
+
 export interface PageData {
   readonly slideshow: Slideshow;
   readonly copy: PageCopy;
   /** Unpacks a picture only when the player asks for it. */
   readonly openPicture: OpenPicture;
+  /** Unpacks a clip when a video slide opens it. */
+  readonly readVideo: (key: string) => Promise<Blob>;
   /** Each song the tracks play, by the tracks' `src`; empty without music. */
   readonly songs: ReadonlyMap<string, Blob>;
 }
@@ -44,15 +49,30 @@ export function readPageData(read: ReadBlock): PageData {
     const type = block.mimeType ?? "";
     return new Blob([decodeBase64(block.text)], { type });
   };
+  const asPromise = (key: string): Promise<Blob> => {
+    try {
+      return Promise.resolve(media(key));
+    } catch (error: unknown) {
+      return Promise.reject(error instanceof Error ? error : new Error(String(error)));
+    }
+  };
+  const clips = new Map<string, Blob>();
   return {
     slideshow,
     copy,
-    openPicture: (key) => {
-      try {
-        return Promise.resolve(media(key));
-      } catch (error: unknown) {
-        return Promise.reject(error instanceof Error ? error : new Error(String(error)));
+    openPicture: asPromise,
+    readVideo: async (key) => {
+      const kept = clips.get(key);
+      if (kept !== undefined) {
+        return kept;
       }
+      const clip = await asPromise(key);
+      clips.set(key, clip);
+      const oldest = clips.keys().next().value;
+      if (clips.size > DECODED_CLIPS_KEPT && oldest !== undefined) {
+        clips.delete(oldest);
+      }
+      return clip;
     },
     songs: new Map(
       [...new Set(slideshow.music?.map(({ src }) => src))].map((src) => [src, media(src)]),

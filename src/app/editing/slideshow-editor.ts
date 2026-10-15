@@ -12,6 +12,7 @@ import { EditorUndos } from "./editor-undos";
 import { MusicSettingsEditor } from "./music-settings-editor";
 import { PictureListEditor } from "./picture-list-editor";
 import { PictureSettingsEditor } from "./picture-settings-editor";
+import { VideoSettingsEditor } from "./video-settings-editor";
 import type { SlideshowEditorPorts } from "./slideshow-editor-ports";
 
 /**
@@ -30,6 +31,8 @@ export class SlideshowEditor {
   readonly #pictureList: PictureListEditor;
   readonly #musicSettings: MusicSettingsEditor;
   readonly #cardSettings: CardSettingsEditor;
+  /** The clip settings of the video slides. */
+  readonly video: VideoSettingsEditor;
 
   constructor(initial: StoredSlideshow, ports: SlideshowEditorPorts) {
     this.#slideshow = initial;
@@ -65,6 +68,10 @@ export class SlideshowEditor {
     );
     this.#musicSettings = new MusicSettingsEditor(
       this.#undos.songRemoval,
+      () => this.#slideshow,
+      (slideshow) => this.#apply(slideshow),
+    );
+    this.video = new VideoSettingsEditor(
       () => this.#slideshow,
       (slideshow) => this.#apply(slideshow),
     );

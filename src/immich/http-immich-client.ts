@@ -21,6 +21,12 @@ const ALBUMS_PATH = "api/albums";
 const SEARCH_PATH = "api/search/metadata";
 const FACES_PATH = "api/faces";
 const IMAGE_ASSET_TYPE = "IMAGE";
+const VIDEO_ASSET_TYPE = "VIDEO";
+const MILLISECONDS_PER_SECOND = 1000;
+const SECONDS_PER_MINUTE = 60;
+const SECONDS_PER_HOUR = 3600;
+/** Immich writes a video's length as "H:MM:SS.ffffff". */
+const DURATION_PATTERN = /^(\d+):(\d{2}):(\d{2}(?:\.\d+)?)$/;
 const NEWEST_FIRST = "desc";
 const LIST_THUMBNAIL_SIZE: ImmichThumbnailSize = "thumbnail";
 const JSON_MEDIA_TYPE = "application/json";
@@ -91,19 +97,27 @@ export class HttpImmichClient implements ImmichClient {
   async photos(query: {
     readonly page: number;
     readonly albumId?: string;
+    readonly withVideos?: boolean;
   }): Promise<ImmichPhotoPage> {
     const reader = new ImmichJsonReader(`POST ${SEARCH_PATH}`);
+    const withVideos = query.withVideos === true;
     const answer = await this.#json("POST", SEARCH_PATH, {
-      type: IMAGE_ASSET_TYPE,
+      // Without a type Immich answers every kind of asset; the photos and videos are kept below.
+      ...(withVideos ? {} : { type: IMAGE_ASSET_TYPE }),
       order: NEWEST_FIRST,
       size: PAGE_SIZE,
       page: query.page,
       ...(query.albumId === undefined ? {} : { albumIds: [query.albumId] }),
     });
     const assets = reader.record(reader.record(answer, "a body").assets, '"assets"');
-    const photos = reader.array(assets.items, '"assets.items"').map((value): ImmichPhoto => {
-      const asset = reader.record(value, "an asset");
-      return {
+    const records = reader
+      .array(assets.items, '"assets.items"')
+      .map((value) => reader.record(value, "an asset"));
+    const photos = records.flatMap((asset): ImmichPhoto[] => {
+      const type = reader.optionalString(asset, "type");
+      if (type === VIDEO_ASSET_TYPE && !withVideos) return [];
+      if (type !== null && type !== IMAGE_ASSET_TYPE && type !== VIDEO_ASSET_TYPE) return [];
+      const photo: ImmichPhoto = {
         id: reader.string(asset, "id"),
         fileName: reader.string(asset, "originalFileName"),
         takenAt: reader.string(asset, "localDateTime"),
@@ -112,6 +126,14 @@ export class HttpImmichClient implements ImmichClient {
           reader.optionalNumber(asset, "height"),
         ),
       };
+      return [
+        type === VIDEO_ASSET_TYPE
+          ? {
+              ...photo,
+              video: { durationMs: durationMs(reader.optionalString(asset, "duration")) },
+            }
+          : photo,
+      ];
     });
     return { photos, nextPage: reader.optionalCountingString(assets, "nextPage") };
   }
@@ -126,6 +148,11 @@ export class HttpImmichClient implements ImmichClient {
 
   async original(photoId: string, signal?: AbortSignal): Promise<Blob> {
     return (await this.#download(`${assetPath(photoId)}/original`, signal)).blob();
+  }
+
+  async video(photoId: string, signal?: AbortSignal): Promise<Blob> {
+    const response = await this.#download(`${assetPath(photoId)}/video/playback`, signal);
+    return response.blob();
   }
 
   async faces(photoId: string): Promise<readonly ImmichFace[]> {
@@ -234,4 +261,14 @@ function thumbnailPath(photoId: string, size: ImmichThumbnailSize): string {
 
 function isJson(response: Response): boolean {
   return response.headers.get("content-type")?.startsWith(JSON_MEDIA_TYPE) ?? false;
+}
+
+/** A video's length in ms; null where Immich has none (it answers "0:00:00.00000" then). */
+function durationMs(text: string | null): number | null {
+  const parts = text === null ? null : DURATION_PATTERN.exec(text);
+  if (parts === null) return null;
+  const [, hours, minutes, seconds] = parts;
+  const total =
+    Number(hours) * SECONDS_PER_HOUR + Number(minutes) * SECONDS_PER_MINUTE + Number(seconds);
+  return total > 0 ? Math.round(total * MILLISECONDS_PER_SECOND) : null;
 }

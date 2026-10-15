@@ -6,10 +6,10 @@ import type {
   StoredPicture,
   StoredSlideshow,
 } from "../library/stored-slideshow";
-import { cardFontFaceRule, cardFontFilesUsedBy, type Slideshow } from "../player";
+import { cardFontFaceRule, cardFontFilesUsedBy, isGroundSlide, type Slideshow } from "../player";
 import { encodeBase64 } from "./base64";
 import { MEDIA_BLOCK_END, mediaBlockStart, pageHead, pageTail } from "./page";
-import { pictureKey, songKey, type PageCopy } from "./page-contract";
+import { pictureKey, songKey, videoKey, type PageCopy } from "./page-contract";
 import { PAGE_JPEG_QUALITY, pictureRendition, type PageSizeId } from "./plan";
 import type { PageSink, PictureScaler, PlayerAsset, PlayerBundle } from "./ports";
 
@@ -48,7 +48,7 @@ export interface PageExportJob {
   readonly lang: string;
   readonly copy: PageCopy;
   readonly noscript: string;
-  readonly media: Pick<LibraryStore, "pictureBlob" | "musicBlob">;
+  readonly media: Pick<LibraryStore, "pictureBlob" | "musicBlob" | "videoBlob">;
   readonly scaler: PictureScaler;
   readonly sink: PageSink;
   readonly playerAsset: PlayerAsset;
@@ -64,7 +64,7 @@ export interface PageExportResult {
 const utf8 = new TextEncoder();
 
 /**
- * The bytes of a picture or the music read, encoded and written at a time, so a medium is never
+ * The bytes of a picture, the music or a clip read, encoded and written at a time, so a medium is never
  * held whole as a string. A multiple of 3, so only the last chunk's base64 is padded.
  */
 export const MEDIA_CHUNK_BYTES = 3 * 256 * 1024;
@@ -95,12 +95,13 @@ async function writePage(job: PageExportJob): Promise<PageExportResult> {
   const keys = new Map(stored.pictures.map((picture, index) => [picture.id, pictureKey(index)]));
   const composed = composeSlideshow(
     stored,
-    { picture: (id) => keys.get(id) ?? id, music: (id) => id },
+    { picture: (id) => keys.get(id) ?? id, music: (id) => id, video: (id) => id },
     job.focus,
     job.beats,
   );
   const songs = playedSongs(stored, composed);
-  const slideshow = withSongKeys(composed, songs);
+  const clips = playedClips(composed);
+  const slideshow = withVideoKeys(withSongKeys(composed, songs), clips);
   let bytesWritten = 0;
   const write = async (text: string, bytes: number) => {
     await sink.write(text);
@@ -145,6 +146,11 @@ async function writePage(job: PageExportJob): Promise<PageExportResult> {
     signal?.throwIfAborted();
     await writeBlock(songKey(index), song.mimeType, await job.media.musicBlob(song.id));
   }
+  for (const [index, mediaId] of clips.entries()) {
+    signal?.throwIfAborted();
+    const clip = await job.media.videoBlob(mediaId);
+    await writeBlock(videoKey(index), clip.type, clip);
+  }
   await writeText(pageTail(bundle.script));
   signal?.throwIfAborted();
   await sink.close();
@@ -187,6 +193,33 @@ function withSongKeys(slideshow: Slideshow, songs: readonly StoredMusic[]): Slid
       }
       return { ...track, src: key };
     }),
+  };
+}
+
+/** The media ids of the clips the composed slideshow plays, each once, in show order. */
+function playedClips(slideshow: Slideshow): readonly string[] {
+  const ids = slideshow.slides.flatMap((slide) =>
+    !isGroundSlide(slide) && slide.video !== undefined ? [slide.video.src] : [],
+  );
+  return [...new Set(ids)];
+}
+
+/** Points every video slide at its clip's block. */
+function withVideoKeys(slideshow: Slideshow, clips: readonly string[]): Slideshow {
+  if (clips.length === 0) {
+    return slideshow;
+  }
+  const keys = new Map(clips.map((mediaId, index) => [mediaId, videoKey(index)]));
+  return {
+    ...slideshow,
+    slides: slideshow.slides.map((slide) =>
+      isGroundSlide(slide) || slide.video === undefined
+        ? slide
+        : {
+            ...slide,
+            video: { ...slide.video, src: keys.get(slide.video.src) ?? slide.video.src },
+          },
+    ),
   };
 }
 

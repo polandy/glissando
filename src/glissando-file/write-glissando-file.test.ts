@@ -202,6 +202,7 @@ describe("writeGlissandoFile", () => {
       putPicture: (id, blobs) =>
         ++pictures === 2 ? Promise.reject(quota) : store.putPicture(id, blobs),
       putMusic: (id, blob) => store.putMusic(id, blob),
+      putVideo: (id, blob) => store.putVideo(id, blob),
       saveSlideshow: (slideshow) => store.saveSlideshow(slideshow),
       releaseClaim: (claimId) => store.releaseClaim(claimId),
       deleteUnreferencedMedia: (now) => store.deleteUnreferencedMedia(now),

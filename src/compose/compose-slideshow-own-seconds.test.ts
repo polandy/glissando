@@ -20,7 +20,11 @@ function picture(id: string): StoredPicture {
   };
 }
 
-const sources = { picture: (id: string) => id, music: (id: string) => id };
+const sources = {
+  picture: (id: string) => id,
+  music: (id: string) => id,
+  video: (id: string) => id,
+};
 const NO_FOCUS: ReadonlyMap<string, PictureFocus> = new Map();
 const SONG: StoredMusic = {
   id: "m1",

@@ -33,6 +33,8 @@ export class FakeExportPorts implements VideoExportPorts<FakePreview> {
     defaultPreset: "1080p",
     audioCodec: "aac",
   };
+  /** The 1-based number of the clip this browser cannot decode; null: all decode. */
+  undecodable: number | null = null;
   free: number | null = null;
   pickerAvailable = false;
   /** What the picker answers; null is a dismissal. */
@@ -52,6 +54,9 @@ export class FakeExportPorts implements VideoExportPorts<FakePreview> {
 
   probe(): Promise<ExportCapabilities> {
     return Promise.resolve(this.capabilities);
+  }
+  undecodableClip(): Promise<number | null> {
+    return Promise.resolve(this.undecodable);
   }
   freeBytes(): Promise<number | null> {
     return Promise.resolve(this.free);

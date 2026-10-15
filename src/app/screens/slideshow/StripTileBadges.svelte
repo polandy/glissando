@@ -1,4 +1,5 @@
 <script lang="ts">
+  import VideoBadge from "../../components/VideoBadge.svelte";
   import Icon from "../../components/Icon.svelte";
   import { getTranslator } from "../../i18n/context";
   import type { PictureTile } from "../view-models";
@@ -24,6 +25,9 @@
 <span class="badges" aria-hidden="true">
   {#if isNew}
     <span class="badge new-badge">{t("add.newBadge")}</span>
+  {/if}
+  {#if picture.clipMs !== undefined}
+    <VideoBadge durationMs={picture.clipMs} />
   {/if}
   {#if picture.ownMotion}
     <span class="badge"><Icon name="frame" />{t("slideshow.ownMotionBadge")}</span>

@@ -8,9 +8,14 @@
  * 4 added a slide's `partner`, a second picture drawn beside or below the first, and `fit`,
  * which turns the blurred fill off for the slide (ADR-0028). Version 5 added the title card
  * (ADR-0032): a slide's `card`, a ground slide in place of a picture, and the show's `endFadeMs`.
- * Version 6 makes a card's `entrance` required.
+ * Version 6 makes a card's `entrance` required. Version 7 added a picture slide's `video`
+ * (ADR-0034, `dev-docs/player/VIDEO_SLIDES.md`).
  */
-export const SLIDESHOW_FORMAT_VERSION = 6;
+export const SLIDESHOW_FORMAT_VERSION = 7;
+
+/** A video slide's excerpt is 0.5 s to 5 min long. */
+export const MIN_VIDEO_EXCERPT_MS = 500;
+export const MAX_VIDEO_EXCERPT_MS = 300_000;
 
 /** Durations in the format are milliseconds; the player's clock speaks seconds. */
 export const MILLISECONDS_PER_SECOND = 1000;
@@ -88,6 +93,19 @@ export interface Card {
   readonly revealAtMs?: number;
 }
 
+/**
+ * The clip a video slide plays over its poster (`image`): `startMs` and `endMs` are ms of the
+ * clip, and the slide's `durationMs` is `endMs − startMs`. `volume` is 0..1; the music ducks
+ * while a clip with sound plays unless `duckMusic` is `false`.
+ */
+export interface SlideVideo {
+  readonly src: string;
+  readonly startMs: number;
+  readonly endMs: number;
+  readonly volume: number;
+  readonly duckMusic?: boolean;
+}
+
 /** A slide with a picture, as every slide was before version 5. */
 export interface PictureSlide {
   readonly image: { readonly src: string; readonly capturedAt: string };
@@ -101,6 +119,8 @@ export interface PictureSlide {
     readonly image: { readonly src: string; readonly capturedAt: string };
     readonly kenBurns: KenBurns;
   };
+  /** A clip played in place of Ken Burns; `kenBurns` is then a still and `partner` is absent. */
+  readonly video?: SlideVideo;
   /** Shown bottom left with the slide; absent: none. Rules in `caption.ts`, see ADR-0007. */
   readonly caption?: string;
   /** `"cover"` turns the blurred fill off; absent: whole picture over a blurred fill if needed. */

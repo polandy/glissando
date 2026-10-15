@@ -30,7 +30,11 @@ async function startPage(): Promise<void> {
   });
   await loadCaptionFont();
   const music = new MutableMusicOutput(createMusicAudioContext);
-  createPagePlayer(view, music).show({ slideshow, openPicture: data.openPicture });
+  createPagePlayer(view, music).show({
+    slideshow,
+    openPicture: data.openPicture,
+    readVideo: data.readVideo,
+  });
   // Only now is a click on Play heard; an error the player raised meanwhile stays shown.
   if (view.state === "loading") view.showState("start");
 }

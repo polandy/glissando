@@ -17,7 +17,7 @@ export interface SlideUnit {
 /**
  * The slide units for `pictures`. With `portraitPictures` set (not automatic), every picture is
  * single. Automatic pairs two consecutive pictures that are both portrait and have none of a
- * caption, own motion, duration or transition, and are not marked `alone`.
+ * caption, own motion, duration or transition, and are neither a video nor marked `alone`.
  */
 export function slideUnits(
   pictures: readonly StoredPicture[],
@@ -55,13 +55,19 @@ export function slideOfPicture(units: readonly SlideUnit[], pictureIndex: number
   return slideIndex;
 }
 
-/** A paired slide is always automatic; a single one keeps its picture's own duration, if any. */
+/**
+ * A paired slide is always automatic; a single one keeps its picture's own duration, if any, and
+ * a video slide always lasts its excerpt, an own duration that is never snapped to the beats.
+ */
 export function timedUnit(pictures: readonly StoredPicture[], unit: SlideUnit): TimedPicture {
   if (unit.pictureIndices.length === 2) {
     return { weight: PAIR_WEIGHT };
   }
   const [firstIndex] = unit.pictureIndices;
-  const durationMs = (pictures[firstIndex] as StoredPicture).durationMs;
+  const { video, durationMs } = pictures[firstIndex] as StoredPicture;
+  if (video !== undefined) {
+    return { durationMs: video.endMs - video.startMs };
+  }
   return durationMs === undefined ? {} : { durationMs };
 }
 
@@ -72,6 +78,7 @@ function pairable(picture: StoredPicture): boolean {
     picture.caption === undefined &&
     picture.durationMs === undefined &&
     picture.transition === undefined &&
+    picture.video === undefined &&
     picture.alone !== true
   );
 }

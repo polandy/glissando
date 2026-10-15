@@ -8,7 +8,10 @@ export const DURATION_MS = 10_000;
 export const FRAMES = 300;
 
 export function session(ports: FakeExportPorts, withMusic = true): VideoExportSession<FakePreview> {
-  return new VideoExportSession({ title: TITLE, durationMs: DURATION_MS, withMusic }, ports);
+  return new VideoExportSession(
+    { title: TITLE, durationMs: DURATION_MS, withMusic, withAudio: withMusic },
+    ports,
+  );
 }
 
 export async function opened(ports = new FakeExportPorts(), withMusic = true) {

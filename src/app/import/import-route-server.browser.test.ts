@@ -1,3 +1,4 @@
+import { noVideoClips } from "./testing/import-session-fixtures";
 import { flushSync } from "svelte";
 import { FakePictureChecker } from "../../culling/testing/fake-picture-checker";
 import { afterEach, describe, expect, it } from "vitest";
@@ -32,6 +33,7 @@ function session(createOnServer: ImportSessionPorts["createOnServer"]): ImportSe
         display: new Blob([file.name]),
         thumbnail: new Blob([file.name]),
       }),
+    videoClips: noVideoClips,
     captureDate: () => Promise.resolve("2025-07-01T10:00:00Z"),
     immichSource: () => {
       throw new Error("no Immich download in this test");

@@ -29,6 +29,15 @@
   CSS transform, followed by its caption element (`[data-caption]`, styled by `captionStyles`)
   outside that transform; every transition becomes a crossfade, the caption fading with its slide.
   Two lines are clamped with CSS.
+- **Video slides (ADR-0035)**: a picture layer carries `live`, the clip's current frame
+  (`PictureSlideLayer.live`), while its poster still sets the layout and the blurred fill's
+  backdrop; both renderers draw it under the picture's crop, fit, caption and card rules.
+  - **WebGL**: `PictureTextures.live` re-uploads the frame (`texImage2D`, no mipmaps, linear,
+    clamped) at most once per rendered frame into a texture per poster, deleted on `forget`,
+    `dispose` and context loss; a layer without a frame draws the poster's texture.
+  - **DOM**: `dom-live-video.ts` shows the clip's `<video>` right after the poster `<img>` with the
+    poster's inline style (`object-fit: fill`), under the caption; frames that are no video element
+    leave the poster.
 - **Layouts (ADR-0028)**: `slide-layout.ts` is the one place that decides, per viewport, whether a
   slide covers, is drawn whole over a blurred fill, or splits into a pair's two halves; both
   renderers call it, so a transition's `from` and `to` can each have their own layout. A pair's

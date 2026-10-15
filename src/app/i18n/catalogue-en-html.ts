@@ -29,6 +29,10 @@ export const enHtml: Pick<Catalogue, keyof typeof deHtml> = {
   "htmlExport.bigTitle": "Too big to send as mail.",
   "htmlExport.bigText":
     "Copy it to the TV's computer or a USB stick, or share it through a cloud folder.",
+  "htmlExport.clipsTitle": "Video clips in the show: {count}.",
+  "htmlExport.clipsText":
+    "They go into the file whole, at their original size, so the page is about {size} at every size.",
+  "htmlExport.clipsTextUnsized": "They go into the file whole, at their original size.",
   "htmlExport.hint":
     "Opens in any current browser on a computer, phone or tablet, without the internet and without Glissando. Pictures are downscaled; the originals stay here.",
   "htmlExport.start": "Create web page",

@@ -31,6 +31,12 @@ describe("readServerDocument", () => {
     expect(readFails({ ...document(), ...change })).toContain(reason);
   });
 
+  it("refuses a picture's video: the server keeps no clips", () => {
+    const video = { file: "videos/clip-1.mp4", mimeType: "video/mp4" };
+
+    expect(readFails(withFirstPicture({ video }))).toContain("slideshow.pictures[0].video");
+  });
+
   it("keeps the music's even picture changes through writing and reading", () => {
     const song = {
       id: MUSIC_ID,

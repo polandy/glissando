@@ -10,6 +10,7 @@ import { describeEditing } from "./editing-contract";
 import { describeImportsInProgress } from "./imports-in-progress-contract";
 import { describeMusicBeats } from "./music-beats-contract";
 import { describePictureFocus } from "./picture-focus-contract";
+import { describeVideos } from "./videos-contract";
 
 const CLEAN_UP_AT = new Date("2026-10-08T12:00:00Z");
 
@@ -267,6 +268,10 @@ export function describeLibraryStoreContract(
       () => harness,
     );
     describeMusicBeats(
+      () => store,
+      () => harness,
+    );
+    describeVideos(
       () => store,
       () => harness,
     );

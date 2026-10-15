@@ -2,7 +2,7 @@
 
 /** Records and media share one database so a transaction can span both (see ADR-0003). */
 export const LIBRARY_DATABASE_NAME = "glissando";
-export const SCHEMA_VERSION = 5;
+export const SCHEMA_VERSION = 6;
 /** The version that added the `imports` store. */
 const IMPORTS_ADDED_IN = 2;
 /** The version that added the `focus` store (ADR-0012). */
@@ -16,6 +16,8 @@ const BEATS_ADDED_IN = 4;
  * read; its media is cleaned up next by `deleteUnreferencedMedia`.
  */
 const COLOURS_ADDED_IN = 5;
+/** The version that added the `videos` store (ADR-0034). */
+const VIDEOS_ADDED_IN = 6;
 
 export const SLIDESHOWS = "slideshows";
 export const PICTURES = "pictures";
@@ -25,8 +27,16 @@ export const IMPORTS = "imports";
 export const FOCUS = "focus";
 /** A track's beats, keyed by its media id like `music`. */
 export const BEATS = "beats";
+/** A video's original file, keyed by its media id (`StoredVideo.mediaId`). */
+export const VIDEOS = "videos";
 export type StoreName =
-  typeof SLIDESHOWS | typeof PICTURES | typeof MUSIC | typeof IMPORTS | typeof FOCUS | typeof BEATS;
+  | typeof SLIDESHOWS
+  | typeof PICTURES
+  | typeof MUSIC
+  | typeof IMPORTS
+  | typeof FOCUS
+  | typeof BEATS
+  | typeof VIDEOS;
 
 /**
  * Adds what each version after `oldVersion` brought. Existing data stays untouched, except the
@@ -47,6 +57,9 @@ export function upgradeLibraryDatabase(database: IDBDatabase, oldVersion: number
   }
   if (oldVersion < BEATS_ADDED_IN) {
     database.createObjectStore(BEATS);
+  }
+  if (oldVersion < VIDEOS_ADDED_IN) {
+    database.createObjectStore(VIDEOS);
   }
   if (oldVersion > 0 && oldVersion < COLOURS_ADDED_IN) {
     database.deleteObjectStore(SLIDESHOWS);

@@ -3,9 +3,9 @@ import { browserCapabilityProbe } from "./capability-probe";
 
 /** What this browser can export, asked of it directly (video_export/CAPABILITIES.md). */
 export function probeVideoExport({
-  withMusic,
+  withAudio,
 }: {
-  readonly withMusic: boolean;
+  readonly withAudio: boolean;
 }): Promise<ExportCapabilities> {
-  return probeCapabilities(browserCapabilityProbe(), { withMusic });
+  return probeCapabilities(browserCapabilityProbe(), { withAudio });
 }

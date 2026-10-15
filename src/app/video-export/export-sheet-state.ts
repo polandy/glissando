@@ -19,7 +19,9 @@ export interface ExportRun<Preview> {
 
 /** What the sheet needs of the browser and the export (video_export/SHEET.md). */
 export interface VideoExportPorts<Preview> {
-  probe(withMusic: boolean): Promise<ExportCapabilities>;
+  probe(withAudio: boolean): Promise<ExportCapabilities>;
+  /** The 1-based number of the first video slide's clip this browser cannot decode, if any. */
+  undecodableClip(): Promise<number | null>;
   /** Quota minus usage of the origin's storage; null where the browser cannot tell. */
   freeBytes(): Promise<number | null>;
   canPickSaveFile(): boolean;
@@ -41,6 +43,8 @@ export interface ExportSubject {
   readonly title: string;
   readonly durationMs: number;
   readonly withMusic: boolean;
+  /** Music or a clip with sound: the file gets an audio track. */
+  readonly withAudio: boolean;
 }
 
 export interface SpaceShortage {
@@ -56,6 +60,8 @@ export type Delivery = "saved" | "share" | "download";
 export type ExportSheetState =
   | { readonly kind: "probing" }
   | { readonly kind: "unsupported"; readonly reason: UnsupportedReason }
+  /** A video slide's clip cannot be decoded here; named before anything is rendered. */
+  | { readonly kind: "clip-unsupported"; readonly clip: number }
   | {
       readonly kind: "choose";
       readonly available: readonly PresetId[];

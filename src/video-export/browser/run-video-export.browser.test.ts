@@ -84,7 +84,7 @@ function slide(src: string, caption?: string): Slide {
 }
 
 const SLIDESHOW: Slideshow = {
-  formatVersion: 6,
+  formatVersion: 7,
   title: "Generated",
   music: [{ src: "tone", atMs: 0, startMs: 500, endMs: 600_000, fadeInMs: 500, fadeOutMs: 0 }],
   slides: [
@@ -98,7 +98,7 @@ async function exportGenerated(
   signal: AbortSignal,
   onProgress: (progress: ExportProgress) => void,
 ) {
-  const capabilities = await probeVideoExport({ withMusic: true });
+  const capabilities = await probeVideoExport({ withAudio: true });
   if (!capabilities.supported) {
     throw new Error(`this engine cannot export: ${capabilities.reason}`);
   }

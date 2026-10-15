@@ -14,6 +14,9 @@ app and the server):
 - each song of `songs` (the playlist, ADR-0023) has `musicId` (the server's id of the uploaded
   file) instead of `file`; `betweenSongs` as in the manifest.
 
+A picture has no `video`: a server slideshow holds no video slides, because the server keeps no
+clip (ADR-0034), and a document with a `video` is invalid like any unknown key.
+
 It is read as strictly as the manifest, with the same field checks (one implementation, shared
 with `read-manifest.ts`): an unknown key, a value out of range, a missing `immichAssetId` or two
 pictures with the same one make it invalid; the reason names the path and value. A picture's

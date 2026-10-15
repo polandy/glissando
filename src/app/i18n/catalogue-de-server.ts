@@ -92,7 +92,7 @@ export const deServer = {
     other: "{count} Bilder sind nur auf diesem Gerät",
   },
   "server.onlyHereText":
-    "Eine Server-Diashow verknüpft Fotos aus Immich und speichert selbst keine Bilder. Diese kamen von diesem Gerät:",
+    "Eine Server-Diashow verknüpft Fotos aus Immich und speichert selbst weder Bilder noch Videoclips. Diese sind nur auf diesem Gerät:",
   "server.onlyHereHint":
     "Lade sie in Immich hoch und füge sie von dort hinzu, oder speichere die Diashow ohne sie.",
   "server.saveWithout": { one: "Ohne dieses speichern", other: "Ohne diese {count} speichern" },

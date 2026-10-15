@@ -109,6 +109,11 @@ function mediaTypes(manifest: GlissandoManifest): Map<string, string | null> {
   for (const song of manifest.slideshow.songs) {
     types.set(song.file, song.mimeType);
   }
+  for (const { video } of manifest.slideshow.pictures) {
+    if (video !== undefined) {
+      types.set(video.file, video.mimeType);
+    }
+  }
   return types;
 }
 

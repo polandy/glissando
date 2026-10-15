@@ -33,7 +33,7 @@ describe("video export capabilities", () => {
   it("offers every preset the encoder accepts, 1080p by default, AAC for the music", async () => {
     const { probe } = browser();
 
-    const capabilities = await probeCapabilities(probe, { withMusic: true });
+    const capabilities = await probeCapabilities(probe, { withAudio: true });
 
     expect(capabilities).toEqual({
       supported: true,
@@ -46,7 +46,7 @@ describe("video export capabilities", () => {
   it("asks for each preset's exact size and codec", async () => {
     const { probe, asked } = browser();
 
-    await probeCapabilities(probe, { withMusic: false });
+    await probeCapabilities(probe, { withAudio: false });
 
     expect(asked).toEqual([
       "avc1.640028 1280x720",
@@ -58,7 +58,7 @@ describe("video export capabilities", () => {
   it("greys out a preset the encoder refuses", async () => {
     const { probe } = browser({ videoCodecs: ["avc1.640028"] });
 
-    const capabilities = await probeCapabilities(probe, { withMusic: false });
+    const capabilities = await probeCapabilities(probe, { withAudio: false });
 
     expect(capabilities).toMatchObject({ available: ["720p", "1080p"], defaultPreset: "1080p" });
   });
@@ -70,7 +70,7 @@ describe("video export capabilities", () => {
       isVideoConfigSupported: (config) => Promise.resolve(config.width !== 1920),
     };
 
-    const capabilities = await probeCapabilities(refuse1080p, { withMusic: false });
+    const capabilities = await probeCapabilities(refuse1080p, { withAudio: false });
 
     expect(capabilities).toMatchObject({ available: ["720p", "4k"], defaultPreset: "4k" });
   });
@@ -78,7 +78,7 @@ describe("video export capabilities", () => {
   it("falls back to Opus where the browser has no AAC encoder", async () => {
     const { probe } = browser({ audioCodecs: ["opus"] });
 
-    const capabilities = await probeCapabilities(probe, { withMusic: true });
+    const capabilities = await probeCapabilities(probe, { withAudio: true });
 
     expect(capabilities).toMatchObject({ supported: true, audioCodec: "opus" });
   });
@@ -86,7 +86,7 @@ describe("video export capabilities", () => {
   it("asks nothing about audio for a slideshow without music, which gets no audio track", async () => {
     const { probe, asked } = browser({ audioCodecs: [] });
 
-    const capabilities = await probeCapabilities(probe, { withMusic: false });
+    const capabilities = await probeCapabilities(probe, { withAudio: false });
 
     expect(capabilities).toMatchObject({ supported: true, audioCodec: null });
     expect(asked.every((question) => question.startsWith("avc1"))).toBe(true);
@@ -97,9 +97,9 @@ describe("video export capabilities", () => {
     ["no-webgl2", { hasWebGl2: false }, true],
     ["no-preset", { videoCodecs: [] }, true],
     ["no-audio-codec", { audioCodecs: [] }, true],
-  ] as const)("is unsupported as a whole: %s", async (reason, setup, withMusic) => {
+  ] as const)("is unsupported as a whole: %s", async (reason, setup, withAudio) => {
     const { probe } = browser(setup);
 
-    expect(await probeCapabilities(probe, { withMusic })).toEqual({ supported: false, reason });
+    expect(await probeCapabilities(probe, { withAudio })).toEqual({ supported: false, reason });
   });
 });

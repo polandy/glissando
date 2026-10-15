@@ -8,6 +8,9 @@ library on, the pictures step starts with "Where should it live?"; a server slid
 Immich photos, offers no "Open file" and is created on the server
 (server_library/IN_THE_APP.md).
 
+- **Videos** are chosen with the pictures (`video/*`, mp4, webm, mov). A video tile carries a play glyph and
+  its length; "Ausschnitt" marks a clip cut to its first 5 minutes. A video the browser cannot play, or over 1 GiB, is
+  refused with a red notice naming it; the rest goes on. A clip over 5 minutes gets an amber notice (the excerpt is picked in the clip editor).
 - **Pictures**: a drop zone with "Choose pictures" (several files, `image/*`), "choose a
   folder", and drag-and-drop on desktop (folders read recursively). While downscaling: "k of N
   pictures are being downscaled …" with a mono counter, Cancel and a mint meter; a shimmering

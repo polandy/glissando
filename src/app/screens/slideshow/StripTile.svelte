@@ -104,7 +104,7 @@
       <img src={picture.thumbnailUrl} alt={label} draggable="false" />
     {/if}
     <span class="number mono" aria-hidden="true">{number}</span>
-    {#if isNew || picture.ownMotion || ownSeconds !== null || picture.ownTransition !== null || picture.alone || picture.blurredFill}
+    {#if isNew || picture.clipMs !== undefined || picture.ownMotion || ownSeconds !== null || picture.ownTransition !== null || picture.alone || picture.blurredFill}
       <StripTileBadges {picture} {isNew} {ownSeconds} />
     {/if}
     <span class="date mono" aria-hidden="true">{date}</span>

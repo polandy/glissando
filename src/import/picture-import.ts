@@ -9,13 +9,17 @@ import {
   type Queued,
 } from "./picture-import-outcome";
 import type { PictureSource } from "./picture-source";
+import type { VideoRefusal } from "./video-refusal";
 
 /** Why a picture was skipped as a duplicate: one of the known ones, or one this import took in. */
 export type DuplicateReason = "alreadyIn" | "chosenTwice";
 
-/** "unreadable": the bytes could not be read; "undecodable": they could not be decoded into pixels. */
+/**
+ * "unreadable": the bytes could not be read; "undecodable": they could not be decoded into pixels;
+ * a video is refused as "videoUnplayable", "videoTooLarge" or "videoTooShort".
+ */
 export type SkipReason =
-  "unsupported" | "unreadable" | "undecodable" | "notDownloaded" | DuplicateReason;
+  "unsupported" | "unreadable" | "undecodable" | "notDownloaded" | VideoRefusal | DuplicateReason;
 
 export interface SkippedFile {
   readonly fileName: string;
@@ -51,7 +55,7 @@ export interface PictureImportPorts extends OutcomePorts {
   stored?(stored: StoredWithThumbnail): void;
 }
 
-const PICTURE_TYPE_PREFIX = "image/";
+const PICTURE_TYPE_PREFIXES = ["image/", "video/"];
 
 const EMPTY: PictureImportState = {
   total: 0,
@@ -110,7 +114,7 @@ export class PictureImport {
       throw new Error("the picture import failed; cancel it or start a new one to add files");
     }
     const isPicture = (source: PictureSource): boolean =>
-      source.mimeType.startsWith(PICTURE_TYPE_PREFIX);
+      PICTURE_TYPE_PREFIXES.some((prefix) => source.mimeType.startsWith(prefix));
     const pictures = sources.filter(isPicture);
     const unsupported = sources
       .filter((source) => !isPicture(source))

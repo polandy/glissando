@@ -13,6 +13,9 @@ the stored slideshow for the run) and `browser-video-export-device.ts` (the brow
   cancel (an `AbortSignal`) and error mapping (`QuotaExceededError` → storage-full). Its ports:
   `FrameSource`, `VideoEncoderPort`, `AudioSource`, `AudioEncoderPort`, `MuxerPort`, `FileSink`,
   `Clock`.
+- `clip-audio-plan.ts`, `duck-ramps.ts`, `clip-check.ts`: the video slides' sound and decodability
+  as pure functions; `browser/clip-frames.ts`, `clip-sound.ts`, `clip-support.ts` read clips
+  with mediabunny (`VIDEO_SLIDES.md`).
 - Tests: units against fakes of every port, with no browser and no timing. A browser test exports a
   small generated slideshow in each engine and reads the MP4 back with mediabunny's reader (duration,
   frame count, audio track). E2E-030 runs the sheet from the info panel to "done" at 720p,

@@ -33,7 +33,7 @@ const MUSIC: MusicTrack = {
 
 function setUp() {
   const slideshow: Slideshow = {
-    formatVersion: 6,
+    formatVersion: 7,
     title: "July 2025",
     music: [MUSIC],
     slides: [slide("a.jpg", 4000), slide("b.jpg", 4000), slide("c.jpg", 4000)],

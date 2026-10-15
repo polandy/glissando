@@ -1,7 +1,8 @@
 # Storage layout
 
-One IndexedDB database, `glissando` (schema version 4; version 1 lacked `imports`, version 2
-`focus`, version 3 `beats` — each upgrade only adds its store, existing data stays as it is). A slideshow record holds
+One IndexedDB database, `glissando` (schema version 6; version 1 lacked `imports`, version 2
+`focus`, version 3 `beats`, version 5 cleared the slideshow records for the picture colours (ADR-0033),
+version 6 added `videos` — each other upgrade only adds its store, existing data stays as it is). A slideshow record holds
 `songs` (ADR-0023); one holding a single `music` is not read, and such a database is cleared
 by hand:
 
@@ -13,6 +14,7 @@ by hand:
 | `imports`    | `id`     | a claim (import in progress or undoable removal): `startedAt`, media ids |
 | `focus`      | media id | a picture's `PictureFocus`: its subject box, or none found (ADR-0012)    |
 | `beats`      | media id | a track's `MusicBeats`: its beat times and tempo, or none (ADR-0021)     |
+| `videos`     | media id | a video's original file as chosen, bytes + type (ADR-0034)               |
 
 Media is written while importing, the slideshow record last. Edits on the slideshow screen
 replace the record through `updateSlideshow`, which reads it in the same transaction and throws
@@ -37,10 +39,15 @@ validate them (`checkOwnDurationMs`, `checkTransitionChoice`) and delete the fie
 the default every picture without its own plays (one of `SLIDESHOW_TRANSITIONS`: a picture's
 choices or `"alternate"`); absent, it is the crossfade (ADR-0010). `setSlideshowTransition`
 validates it (`checkSlideshowTransition`) and deletes the field for `undefined` or
-`"crossfade"`; records without it need no migration. `mediaBytes`
-measures what a slideshow's pictures (both renditions) and songs take, in one read-only
+`"crossfade"`; records without it need no migration. A picture's optional `video` (`StoredVideo`: `mediaId`, `sourceMs`,
+`startMs`, `endMs`, `volume` 0 to 100 in steps of 5, `duckMusic` only ever `false`) makes it a video
+slide, its picture the poster; the file lives in `videos` under `mediaId` (`putVideo`, `videoBlob`).
+`setVideoExcerpt`, `setVideoVolume` and `setVideoDuckMusic` validate (`checkVideoExcerpt`,
+`checkVideoVolume`, failing loud with the field and value); `MAX_VIDEO_BYTES` (1 GiB) bounds a
+source at import. `mediaBytes`
+measures what a slideshow's pictures (both renditions), videos and songs take, in one read-only
 transaction, for the export's size estimate. `deleteSlideshow` deletes the
-record and, in the same transaction, the media no other slideshow references, those pictures'
+record and, in the same transaction, the media (videos included) no other slideshow references, those pictures'
 focus and those songs' beats with it.
 
 A picture's focus lives beside its media, not on the record: the editors save whole records

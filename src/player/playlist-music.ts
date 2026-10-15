@@ -14,8 +14,15 @@ interface PlacedTrack {
  */
 export class PlaylistMusic {
   readonly #tracks: readonly PlacedTrack[];
+  readonly #duckAt: (timeMs: number) => number;
 
-  constructor(tracks: readonly MusicTrack[], openMusic: (src: string) => MusicPlayback) {
+  /** `duckAt` is the factor every track's volume is multiplied by at a slideshow time (ADR-0035). */
+  constructor(
+    tracks: readonly MusicTrack[],
+    openMusic: (src: string) => MusicPlayback,
+    duckAt: (timeMs: number) => number = () => 1,
+  ) {
+    this.#duckAt = duckAt;
     this.#tracks = tracks.map((track) => ({
       track,
       playback: openMusic(track.src),
@@ -32,7 +39,7 @@ export class PlaylistMusic {
     const starts: Promise<void>[] = [];
     for (const placed of this.#tracks) {
       if (isTrackHeardAt(placed.track, timeMs)) {
-        starts.push(start(placed, timeMs));
+        starts.push(this.#start(placed, timeMs));
       } else if (!placed.sounding) {
         starts.push(prime(placed));
       }
@@ -49,11 +56,11 @@ export class PlaylistMusic {
     for (const placed of this.#tracks) {
       const heard = isTrackHeardAt(placed.track, timeMs);
       if (placed.sounding && heard) {
-        placed.playback.setVolume(trackGainAt(placed.track, timeMs));
+        placed.playback.setVolume(this.#volumeAt(placed.track, timeMs));
       } else if (placed.sounding) {
         pause(placed);
       } else if (heard) {
-        starts.push(start(placed, timeMs));
+        starts.push(this.#start(placed, timeMs));
       }
     }
     return Promise.all(starts).then(() => undefined);
@@ -74,12 +81,16 @@ export class PlaylistMusic {
       placed.playback.dispose();
     }
   }
-}
 
-function start(placed: PlacedTrack, timeMs: number): Promise<void> {
-  placed.playback.setVolume(trackGainAt(placed.track, timeMs));
-  placed.sounding = true;
-  return placed.playback.play(trackSecondsAt(placed.track, timeMs));
+  #start(placed: PlacedTrack, timeMs: number): Promise<void> {
+    placed.playback.setVolume(this.#volumeAt(placed.track, timeMs));
+    placed.sounding = true;
+    return placed.playback.play(trackSecondsAt(placed.track, timeMs));
+  }
+
+  #volumeAt(track: MusicTrack, timeMs: number): number {
+    return trackGainAt(track, timeMs) * this.#duckAt(timeMs);
+  }
 }
 
 /** Starts and at once pauses the track at its start, silent, so it counts as user-started. */

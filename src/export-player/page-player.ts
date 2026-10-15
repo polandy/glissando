@@ -22,6 +22,8 @@ import { SEEK_STEP_SECONDS, seekBy } from "./seek";
 export interface PlayablePage {
   readonly slideshow: Slideshow;
   readonly openPicture: OpenPicture;
+  /** Absent for a slideshow without video slides. */
+  readonly readVideo?: (src: string) => Promise<Blob>;
 }
 
 export interface PagePlayerHooks {
@@ -244,6 +246,7 @@ export function createPagePlayer(
         startDecodeWorker: () => new DecodeWorker(),
         mainThreadDecodeFallback: true,
         openPicture: page.openPicture,
+        ...(page.readVideo === undefined ? {} : { readVideo: page.readVideo }),
         musicOutput: music,
       });
       const detach = new AbortController();

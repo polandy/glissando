@@ -16,6 +16,7 @@
     convertibleSourceLabel,
     importPlaylist,
     importSlideDurationsMs,
+    ownDurationsMs,
     importTiming,
     musicFormatLabel,
   } from "./import-view";
@@ -44,6 +45,8 @@
   let choices = $state.raw(session.choices.current());
   // svelte-ignore state_referenced_locally
   let pictureIds = $state.raw(session.pictures.state.pictures.map((picture) => picture.id));
+  // svelte-ignore state_referenced_locally
+  let ownMs = $state.raw(ownDurationsMs(session.pictures.state.pictures));
   let urls = $state<ReadonlyMap<string, string>>(new Map());
   let pickMusic: HTMLInputElement;
 
@@ -53,7 +56,10 @@
 
   $effect(() => session.choices.subscribe((next) => (choices = next)));
   $effect(() =>
-    session.pictures.subscribe((next) => (pictureIds = next.pictures.map((picture) => picture.id))),
+    session.pictures.subscribe((next) => {
+      pictureIds = next.pictures.map((picture) => picture.id);
+      ownMs = ownDurationsMs(next.pictures);
+    }),
   );
   $effect(() => thumbnails.subscribe((next) => (urls = next)));
   const chosen = $derived(chosenSongs(choices));
@@ -71,11 +77,9 @@
   const music = $derived(
     chosen.length === 0 ? undefined : { durationMs: musicMs, filled: !ownSeconds },
   );
-  const timing = $derived(importTiming(pictureCount, music, choices.secondsPerPicture));
+  const timing = $derived(importTiming(ownMs, music, choices.secondsPerPicture));
   // Each picture's segment, by the rule the slideshow is composed with.
-  const segmentsMs = $derived(
-    importSlideDurationsMs(pictureCount, music, choices.secondsPerPicture),
-  );
+  const segmentsMs = $derived(importSlideDurationsMs(ownMs, music, choices.secondsPerPicture));
   const playlist = $derived(importPlaylist(chosen, timing.totalSeconds * MILLISECONDS_PER_SECOND));
 
   function add(files: readonly File[]): void {

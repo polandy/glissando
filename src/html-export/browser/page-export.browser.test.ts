@@ -85,6 +85,7 @@ async function exportedPage(): Promise<Blob> {
     media: {
       pictureBlob: (id) => Promise.resolve(blobs.get(id) ?? new Blob()),
       musicBlob: () => Promise.resolve(new Blob([silentWav(MUSIC_MS)], { type: "audio/wav" })),
+      videoBlob: () => Promise.reject(new Error("the page holds no clip")),
     },
     scaler: canvasPictureScaler,
     sink,

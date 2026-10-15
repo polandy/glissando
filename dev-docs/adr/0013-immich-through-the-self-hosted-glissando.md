@@ -34,6 +34,8 @@ What the feature needs, with the API key's permission:
   `albumIds` the same for one album. `GET /api/albums/{id}` no longer lists assets in v3.
 - `GET /api/assets/{id}/thumbnail?size=thumbnail|preview` (`asset.view`): WebP ≈ 250 px short side;
   JPEG, long side ≤ 1440 px. `GET /api/assets/{id}/original` (`asset.download`): the file itself.
+  `GET /api/assets/{id}/video/playback` (`asset.view`): a video as Immich plays it, its
+  transcoded copy or else the original, downloaded whole for a video slide (ADR-0034).
 - `localDateTime` on every asset: the capture time as wall time with a `Z`, the convention
   `captureDate()` already uses for local files.
 - `GET /api/faces?id=` (`face.read`): boxes in pixels of `imageWidth × imageHeight`, which is the
@@ -54,7 +56,7 @@ What the feature needs, with the API key's permission:
   sets it as `x-api-key` on the way to Immich and strips any `x-api-key` the browser sends. The
   browser never sees, stores or exports it; there is no key field in the app.
 - **The route lets through only what Glissando reads**: `GET` on `/api/server/version`,
-  `/api/albums`, `/api/assets/{id}/thumbnail`, `/api/assets/{id}/original`, `/api/faces`, and
+  `/api/albums`, `/api/assets/{id}/thumbnail`, `/api/assets/{id}/original`, `/api/assets/{id}/video/playback`, `/api/faces`, and
   `POST /api/search/metadata`. Everything else answers 403. The key is created with the five read
   permissions above, so a hole in one layer is still read-only.
 - **Access to Glissando is the access to the photos.** Whoever can open the self-hosted Glissando
@@ -68,8 +70,9 @@ What the feature needs, with the API key's permission:
   owner's forward auth after its session expired) means "sign in again" — a reload. The settings
   show this status read-only, with the remedy addressed to whoever runs the server.
 - **Browsing**: "All photos" (newest first, grouped by day, the next page of 60 loaded as the
-  list scrolls to its end) and "Albums". A selection spans both and several albums; videos are
-  left out.
+  list scrolls to its end) and "Albums". A selection spans both and several albums. Videos are listed
+  for a device slideshow (a server slideshow links photos only) with a length badge; a picked video
+  is downloaded whole as a video slide, never streamed.
 - **A picked photo is downloaded and stored like a local picture** (ADR-0003). The original goes
   through the same decode as a file from disk: a display rendition up to 3840 × 2160 and the
   480 px thumbnail, both made on the device. Immich's preview (≤ 1440 px) is too small for a 4K

@@ -10,6 +10,7 @@
   import type { SlideshowEditor } from "../editing/slideshow-editor";
   import { browserObjectUrls, ObjectUrls } from "../media/object-urls";
   import { REDUCED_MOTION_QUERY } from "../../ui-kit/reduced-motion";
+  import ClipEditorScreen from "../clip-editor/ClipEditorScreen.svelte";
   import PictureEditorScreen from "../picture-editor/PictureEditorScreen.svelte";
   import { pictureEditorView } from "../picture-editor/picture-editor-view";
 
@@ -27,7 +28,7 @@
     onError,
     log,
   }: {
-    store: Pick<LibraryStore, "pictureBlob" | "musicBeats">;
+    store: Pick<LibraryStore, "pictureBlob" | "videoBlob" | "musicBeats">;
     stored: StoredSlideshow;
     /** The pictures' focus, updated as the background pass finds it. */
     focus: PicturesFocus;
@@ -58,6 +59,19 @@
     pictures.dispose();
   });
 
+  // svelte-ignore state_referenced_locally
+  const clips = new ObjectUrls({
+    ...browserObjectUrls,
+    load: (id) => store.videoBlob(id),
+    onError,
+  });
+  let clipUrls = $state.raw<ReadonlyMap<string, string>>(new Map());
+  const stopClips = clips.subscribe((urls) => (clipUrls = urls));
+  onDestroy(() => {
+    stopClips();
+    clips.dispose();
+  });
+
   let beats = $state.raw<ReadonlyMap<string, BeatsStatus>>(new Map());
   // The ports are fixed for the route's lifetime.
   // svelte-ignore state_referenced_locally
@@ -81,6 +95,8 @@
       view === null ? [] : [view.id, view.previousId, view.nextId].filter((id) => id !== null),
     ),
   );
+  const video = $derived(stored.pictures.find((picture) => picture.id === pictureId)?.video);
+  $effect(() => clips.sync(video === undefined ? [] : [video.mediaId]));
   // A picture removed meanwhile, e.g. in another tab, has nothing left to edit.
   $effect(() => {
     if (!present) {
@@ -89,7 +105,24 @@
   });
 </script>
 
-{#if view !== null}
+{#if view !== null && video !== undefined}
+  {#key view.id}
+    <ClipEditorScreen
+      slide={view}
+      {video}
+      slideshowTitle={stored.title}
+      posterUrl={pictureUrls.get(view.id) ?? null}
+      videoUrl={clipUrls.get(video.mediaId) ?? null}
+      {saving}
+      {onBack}
+      {onOpen}
+      onExcerpt={(startMs, endMs) => editor.video.setExcerpt(view.id, startMs, endMs)}
+      onVolume={(volume) => editor.video.setVolume(view.id, volume)}
+      onDuckMusic={(duck) => editor.video.setDuckMusic(view.id, duck)}
+      onReset={() => editor.video.reset(view.id)}
+    />
+  {/key}
+{:else if view !== null}
   {#key view.id}
     <PictureEditorScreen
       picture={view}

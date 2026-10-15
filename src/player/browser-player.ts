@@ -1,5 +1,6 @@
 import { BitmapLoader, type BitmapPicture, type PictureDecoder } from "./browser/bitmap-loader";
-import type { MusicOutput } from "./browser/music-output";
+import { MusicOutput } from "./browser/music-output";
+import { openVideoElement } from "./browser/open-video";
 import {
   ImageElementLoader,
   type BrowserPicture,
@@ -40,6 +41,11 @@ export interface BrowserPlayerOptions {
    * is loaded as a URL.
    */
   readonly openPicture?: OpenPicture;
+  /**
+   * Reads a video slide's clip by its `video.src`, which then needs to be no URL; without it,
+   * `src` is loaded as a URL. Its object URL is revoked when the clip is released.
+   */
+  readonly readVideo?: (src: string) => Promise<Blob>;
   /** Where the music sounds; without it, at the audio element's own volume. */
   readonly musicOutput?: MusicOutput;
   /** Slides loaded beyond the last one on screen; `DEFAULT_PICTURES_AHEAD` without it. */
@@ -79,6 +85,7 @@ export function createBrowserPlayer(
     mainThreadDecodeFallback = false,
     webGl2Context = defaultWebGl2Context,
     openPicture,
+    readVideo,
     musicOutput,
     picturesAhead,
   }: BrowserPlayerOptions,
@@ -92,10 +99,18 @@ export function createBrowserPlayer(
       : workerDecoder;
   };
   const drawing = createDrawing(container, redraw, webGl2Context, openPicture, createDecoder);
+  const videoOutput = musicOutput ?? new MusicOutput(() => null);
   const playback = {
     clock: performanceClock,
     frames: animationFrames,
     openMusic: (src: string) => new AudioElementMusic(src, musicOutput),
+    openVideo: (src: string, volume: number) =>
+      openVideoElement(src, volume, {
+        output: videoOutput,
+        ...(readVideo === undefined
+          ? {}
+          : { source: { openVideo: readVideo, urls: browserObjectUrls } }),
+      }),
     reducedMotion: () => window.matchMedia(REDUCED_MOTION_QUERY).matches,
     ...(picturesAhead === undefined ? {} : { picturesAhead }),
   };

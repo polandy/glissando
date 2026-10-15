@@ -1,6 +1,7 @@
 import { decodePicture } from "../../import/downscale";
 import { captureDate } from "../../import/exif-capture-date";
 import { immichPictureSource, type ImmichPictureReaders } from "../../import/immich-picture-source";
+import { openClipInVideoElement, videoCaptureDate } from "../../import/browser/video-clip";
 import { samplePictureColourPixels } from "../../import/sample-picture-colours";
 import type { ImmichPhoto } from "../../immich/immich-client";
 import { HttpImmichClient } from "../../immich/http-immich-client";
@@ -34,6 +35,10 @@ export function browserIntakePorts(
   return {
     decode: decodePicture,
     captureDate,
+    videoClips: {
+      openClip: openClipInVideoElement,
+      captureDate: (file) => videoCaptureDate(file, log),
+    },
     immichSource: (photo: ImmichPhoto) => immichPictureSource(photo, immichReaders),
     pixels: samplePictureColourPixels,
     immichColours: (photo: ImmichPhoto) =>

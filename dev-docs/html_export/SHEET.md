@@ -12,9 +12,12 @@ below 720 px. Its states follow the video sheet's (VIDEO_EXPORT.md):
 | done    | File row (first picture, name, size, duration, size id). The video sheet's targets (picker: "Gespeichert" + "Fertig"; share: "Teilen …"; else "Herunterladen") plus "Öffnen", which opens the page in a new tab                                                                                                                          |
 | failed  | Coral note with the error; "Schließen"                                                                                                                                                                                                                                                                                                   |
 
+- **Clips**: a slideshow with video slides shows a lemon note beneath the comparison, "Videoclips
+  in der Show: n. Sie kommen unverkleinert in die Datei, daher ist die Seite in jeder Größe etwa
+  X groß." The size is the selected estimate, so the file size is named before the start.
 - **Estimate**: each stored display picture's byte count is its Blob's size, which IndexedDB
   knows without reading the bytes; every song's likewise, also one the slideshow may not reach,
-  so the estimate errs on the large side. The page bytes are the player bundle's
+  so the estimate errs on the large side; each distinct clip's likewise, once, whole. The page bytes are the player bundle's
   (`playerBundleBytes`), so opening the sheet loads the bundle, which also fetches it before the
   start. Until both are known the sizes show no estimate; if either fails, the sheet shows
   failed. The comparison's full bar is the 1080p video's estimate (VIDEO_EXPORT.md).

@@ -41,7 +41,7 @@ function slideFrame(index: number, slideTimeMs: number, showTimeMs = slideTimeMs
 describe("renderFrame: ground slides (ADR-0032)", () => {
   it("draws a ground slide as a ground layer carrying its hex colour", () => {
     const slideshow: Slideshow = {
-      formatVersion: 6,
+      formatVersion: 7,
       title: "Opening",
       slides: [groundSlide(heldCard())],
     };
@@ -56,7 +56,7 @@ describe("renderFrame: ground slides (ADR-0032)", () => {
   it("computes the ground slide's card timing the same way cardTimingAt does", () => {
     const card = heldCard({ enterAtMs: 0 });
     const slideshow: Slideshow = {
-      formatVersion: 6,
+      formatVersion: 7,
       title: "Opening",
       slides: [groundSlide(card)],
     };
@@ -76,7 +76,7 @@ describe("renderFrame: ground slides (ADR-0032)", () => {
 
   it("never loads a picture for a ground slide: picturesAt is never asked", () => {
     const slideshow: Slideshow = {
-      formatVersion: 6,
+      formatVersion: 7,
       title: "Opening",
       slides: [groundSlide(heldCard())],
     };
@@ -97,7 +97,7 @@ describe("renderFrame: a picture slide's card (ADR-0032)", () => {
   it("carries the card's timing and discounts the caption by the text opacity", () => {
     const card = heldCard({ enterAtMs: 0 });
     const slideshow: Slideshow = {
-      formatVersion: 6,
+      formatVersion: 7,
       title: "Lake",
       slides: [pictureSlide({ card, caption: "At the lake" })],
     };
@@ -118,7 +118,7 @@ describe("renderFrame: a picture slide's card (ADR-0032)", () => {
 
   it("leaves card and captionOpacity absent on a slide without a card", () => {
     const slideshow: Slideshow = {
-      formatVersion: 6,
+      formatVersion: 7,
       title: "Lake",
       slides: [pictureSlide({ caption: "At the lake" })],
     };
@@ -136,7 +136,7 @@ describe("renderFrame: a picture slide's card (ADR-0032)", () => {
   it("shortens the card's drift under reduced motion, unlike the default motion", () => {
     const card = heldCard({ enterAtMs: 0 });
     const slideshow: Slideshow = {
-      formatVersion: 6,
+      formatVersion: 7,
       title: "Lake",
       slides: [pictureSlide({ card })],
     };
@@ -165,7 +165,7 @@ describe("renderFrame: a picture slide's card (ADR-0032)", () => {
 describe("renderFrame: the end fade (ADR-0032)", () => {
   it("is 0 when the show has no endFadeMs, even at the very end", () => {
     const slideshow: Slideshow = {
-      formatVersion: 6,
+      formatVersion: 7,
       title: "Lake",
       slides: [pictureSlide()],
     };
@@ -182,7 +182,7 @@ describe("renderFrame: the end fade (ADR-0032)", () => {
 
   it("mixes to black over the show's last endFadeMs, reaching 1 at the very end", () => {
     const slideshow: Slideshow = {
-      formatVersion: 6,
+      formatVersion: 7,
       title: "Lake",
       endFadeMs: 1000,
       slides: [pictureSlide()],
@@ -206,4 +206,47 @@ describe("renderFrame: the end fade (ADR-0032)", () => {
   });
 
   const picture = { src: "a.jpg", width: 1600, height: 900 };
+});
+
+describe("renderFrame: video slides (ADR-0035)", () => {
+  const video = { src: "v.mp4", startMs: 0, endMs: 4000, volume: 1 };
+  const slideshow: Slideshow = {
+    formatVersion: 7,
+    title: "Clip",
+    slides: [pictureSlide({ video }), pictureSlide()],
+  };
+  const picture = { src: "a.jpg", width: 1600, height: 900 };
+  const frame = { width: 1, height: 1 } as unknown as TexImageSource;
+  const liveOf = (drawn: ReturnType<typeof renderFrame>) =>
+    drawn.kind === "slide" && drawn.slide.kind === "picture" ? drawn.slide : undefined;
+
+  it("carries the clip's frame in the layer, beside its poster", () => {
+    const drawn = renderFrame(
+      slideFrame(0, 0),
+      slideshow,
+      NO_FADE,
+      () => [picture],
+      () => frame,
+    );
+    expect(liveOf(drawn)?.live).toBe(frame);
+    expect(liveOf(drawn)?.picture).toBe(picture);
+  });
+
+  it("carries no live frame while the clip has none", () => {
+    const drawn = renderFrame(slideFrame(0, 0), slideshow, NO_FADE, () => [picture]);
+    expect(liveOf(drawn)).toBeDefined();
+    expect(liveOf(drawn)).not.toHaveProperty("live");
+  });
+
+  it("never gives a picture slide a live frame", () => {
+    const drawn = renderFrame(
+      slideFrame(1, 0),
+      slideshow,
+      NO_FADE,
+      () => [picture],
+      () => frame,
+    );
+    expect(liveOf(drawn)).toBeDefined();
+    expect(liveOf(drawn)).not.toHaveProperty("live");
+  });
 });

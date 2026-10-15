@@ -1,5 +1,6 @@
 import type { LibraryStore, StoredSlideshow } from "../library/stored-slideshow";
 import { manifestFor, MANIFEST_ENTRY_NAME } from "./glissando-manifest";
+import { distinctClipIds } from "./manifest-video";
 import { StoredZipWriter } from "./stored-zip";
 
 export const GLISSANDO_FILE_EXTENSION = ".glissando";
@@ -11,7 +12,10 @@ const FORBIDDEN_IN_FILE_NAMES = /[\\/:*?"<>|\u0000-\u001f]+/g;
 const TRIMMED_AT_ENDS = /^[\s.-]+|[\s.-]+$/g;
 const MANIFEST_TYPE = "application/json";
 
-export type ExportMedia = Pick<LibraryStore, "pictureBlob" | "thumbnailBlob" | "musicBlob">;
+export type ExportMedia = Pick<
+  LibraryStore,
+  "pictureBlob" | "thumbnailBlob" | "musicBlob" | "videoBlob"
+>;
 
 export interface ExportOptions {
   /** The entries' modification time in the container. */
@@ -22,7 +26,8 @@ export interface ExportOptions {
 
 /**
  * The slideshow as a .glissando file: `glissando.json` first (it marks the file as one), then
- * each picture in play order with its thumbnail, then the music. The media is read from the
+ * each picture in play order with its thumbnail, then the music, then each clip a video slide
+ * plays, once. The media is read from the
  * store one file at a time; the container is built from their blobs.
  */
 export async function exportSlideshow(
@@ -30,7 +35,8 @@ export async function exportSlideshow(
   media: ExportMedia,
   options: ExportOptions,
 ): Promise<Blob> {
-  const mediaCount = slideshow.pictures.length * 2 + slideshow.songs.length;
+  const clipIds = distinctClipIds(slideshow.pictures);
+  const mediaCount = slideshow.pictures.length * 2 + slideshow.songs.length + clipIds.length;
   // Each media file is read once and checksummed once.
   const steps = mediaCount * 2;
   let done = 0;
@@ -50,11 +56,21 @@ export async function exportSlideshow(
     step();
   }
 
+  const clipBlobs = new Map<string, Blob>();
+  for (const mediaId of clipIds) {
+    clipBlobs.set(mediaId, await media.videoBlob(mediaId));
+    step();
+  }
+
   const types = pictures.map(({ display, thumbnail }) => ({
     display: display.type,
     thumbnail: thumbnail.type,
   }));
-  const manifest = manifestFor(slideshow, types);
+  const manifest = manifestFor(
+    slideshow,
+    types,
+    new Map([...clipBlobs].map(([mediaId, blob]) => [mediaId, blob.type])),
+  );
   const zip = new StoredZipWriter(options.modifiedAt);
   await zip.add(MANIFEST_ENTRY_NAME, new Blob([JSON.stringify(manifest)], { type: MANIFEST_TYPE }));
   for (const [index, picture] of manifest.slideshow.pictures.entries()) {
@@ -73,6 +89,18 @@ export async function exportSlideshow(
       throw new Error(`song ${index} of the manifest was never read`);
     }
     await zip.add(song.file, blob);
+    step();
+  }
+  const written = new Set<string>();
+  for (const [index, picture] of manifest.slideshow.pictures.entries()) {
+    const clip = picture.video;
+    const mediaId = slideshow.pictures[index]?.video?.mediaId;
+    const blob = mediaId === undefined ? undefined : clipBlobs.get(mediaId);
+    if (clip === undefined || blob === undefined || written.has(clip.file)) {
+      continue;
+    }
+    written.add(clip.file);
+    await zip.add(clip.file, blob);
     step();
   }
   return zip.finish();

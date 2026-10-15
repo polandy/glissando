@@ -10,6 +10,9 @@
   upload call sends; the worker decode, EXIF orientation included, runs in all three engines.
   Headless Firefox in the CI image has no WebGL, so it tests the DOM fallback
   only.
+- A video slide's clip is faked in the unit tests (`testing/fake-videos.ts`: `FakeVideo`,
+  `FakeVideos`, `FakeVideoFrames`); the renderers' browser tests draw a canvas as the live frame
+  (no encoded fixture), and `browser/video-playback.ts` is tested against a fake element.
 - A browser test that plays on real animation frames keeps its frame wholly in view: WebKit runs
   no animation frame in a frame outside the window's viewport, and in a full run Vitest stacks
   each test file's frame below the ones before it.
