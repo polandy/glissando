@@ -1,4 +1,5 @@
 import { flushSync } from "svelte";
+import { server } from "vitest/browser";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import type { StoredVideo } from "../../library/own-video";
 import { generatedClip } from "../../video-export/testing/generated-clip";
@@ -66,26 +67,30 @@ describe("scrubbing a clip in the editor", () => {
     await vi.waitFor(() => expect(clip.currentTime).toBeCloseTo(SCRUBBED_CLIP_SECONDS, 1));
   });
 
-  it("leaves a paused clip where the viewer put it", async () => {
-    const { clip, scrubTo } = mountPlayable();
-    await vi.waitFor(() => expect(clip.readyState).toBeGreaterThan(1));
-    scrubTo(SCRUB_AT_MS);
-    await vi.waitFor(() => {
-      expect(clip.seeking).toBe(false);
-      expect(clip.currentTime).toBeCloseTo(SCRUBBED_CLIP_SECONDS, 1);
-    });
-    const assigned: number[] = [];
-    const original = Object.getOwnPropertyDescriptor(HTMLMediaElement.prototype, "currentTime");
-    Object.defineProperty(clip, "currentTime", {
-      get: () => original?.get?.call(clip) as number,
-      set: (seconds: number) => assigned.push(seconds),
-    });
+  // WebKit's AAC encoder stamps every packet 0, so a seek in a clip it wrote never completes.
+  it.skipIf(server.browser === "webkit")(
+    "leaves a paused clip where the viewer put it",
+    async () => {
+      const { clip, scrubTo } = mountPlayable();
+      await vi.waitFor(() => expect(clip.readyState).toBeGreaterThan(1));
+      scrubTo(SCRUB_AT_MS);
+      await vi.waitFor(() => {
+        expect(clip.seeking).toBe(false);
+        expect(clip.currentTime).toBeCloseTo(SCRUBBED_CLIP_SECONDS, 1);
+      });
+      const assigned: number[] = [];
+      const original = Object.getOwnPropertyDescriptor(HTMLMediaElement.prototype, "currentTime");
+      Object.defineProperty(clip, "currentTime", {
+        get: () => original?.get?.call(clip) as number,
+        set: (seconds: number) => assigned.push(seconds),
+      });
 
-    clip.dispatchEvent(new Event("play"));
-    flushSync();
-    clip.dispatchEvent(new Event("pause"));
-    flushSync();
+      clip.dispatchEvent(new Event("play"));
+      flushSync();
+      clip.dispatchEvent(new Event("pause"));
+      flushSync();
 
-    expect(assigned).toEqual([]);
-  });
+      expect(assigned).toEqual([]);
+    },
+  );
 });
