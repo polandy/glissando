@@ -1,3 +1,4 @@
+import { noVideoClips } from "./testing/import-session-fixtures";
 import { flushSync } from "svelte";
 import { FakePictureChecker } from "../../culling/testing/fake-picture-checker";
 import { afterEach, describe, expect, it } from "vitest";
@@ -43,6 +44,7 @@ function failingSession(): ImportSession {
         display: new Blob([file.name]),
         thumbnail: new Blob([file.name]),
       }),
+    videoClips: noVideoClips,
     captureDate: (file) =>
       file.name === "a.jpg"
         ? Promise.resolve("2025-07-01T10:00:00Z")

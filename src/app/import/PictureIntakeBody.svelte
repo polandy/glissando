@@ -11,7 +11,14 @@
   import PicturesProgress from "./PicturesProgress.svelte";
   import SetAsidePictures from "./SetAsidePictures.svelte";
   import type { PictureIntake } from "./picture-intake";
-  import { captureRange, pendingPictureCount, picturesPhase, skippedNotices } from "./import-view";
+  import {
+    captureRange,
+    longVideoCount,
+    pendingPictureCount,
+    picturesPhase,
+    skippedNotices,
+  } from "./import-view";
+  import VideoNotices from "./VideoNotices.svelte";
 
   /**
    * The pictures step's body, for a new slideshow and for adding to one: the drop zone with the
@@ -207,6 +214,10 @@
     onRemove={(pictureId) => intake.removePicture(pictureId)}
     onEmptied={() => choosePictures?.focus()}
   />
+{/if}
+
+{#if !importState.busy}
+  <VideoNotices refused={skipped.videosRefused} longCount={longVideoCount(importState.pictures)} />
 {/if}
 
 {#if cullingState.setAsideCount > 0}

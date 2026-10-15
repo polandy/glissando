@@ -22,6 +22,7 @@ export function serverAddingStore(
     updateSlideshowWith: (id, edit) => server.updateSlideshowWith(id, edit),
     putPicture: refused,
     putPictureFocus: refused,
+    putVideo: refused,
     claimMedia: () => Promise.resolve(),
     releaseClaim: () => Promise.resolve(),
   };

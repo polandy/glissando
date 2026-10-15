@@ -17,6 +17,12 @@ export const FACE: PictureFocus = {
 export const pictureFile = (name: string, capturedAt: string): File =>
   Object.assign(new File([name], name, { type: "image/jpeg" }), { capturedAt });
 
+/** Where no test plays a video: every clip is unplayable. */
+export const noVideoClips: ImportSessionPorts["videoClips"] = {
+  captureDate: () => Promise.reject(new Error("no video in this test")),
+  openClip: () => Promise.resolve(null),
+};
+
 export function sessionWith(
   store = new MemoryLibraryStore(),
   overrides: Partial<ImportSessionPorts> = {},
@@ -57,6 +63,7 @@ export function sessionWith(
           focus: FACE,
         }),
     }),
+    videoClips: noVideoClips,
     checker: new FakePictureChecker(),
     pixels: () => Promise.resolve([]),
     immichColours: () => Promise.resolve({ veil: "#404040", accent: "#C0C0C0" }),

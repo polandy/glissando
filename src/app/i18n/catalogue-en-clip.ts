@@ -1,0 +1,40 @@
+import type { Catalogue } from "./messages.ts";
+import type { deClip } from "./catalogue-de-clip.ts";
+
+/** English copy of video slides; typed to the German keys. */
+export const enClip: Pick<Catalogue, keyof typeof deClip> = {
+  "clip.badge": "Video",
+  "clip.badgeLength": "Video, {length}",
+  "clip.cutFlag": "Excerpt",
+  "clip.longNotice": {
+    one: "{count} video is longer than {max}. The film plays an excerpt of up to {max}; you choose it later in the clip editor.",
+    other:
+      "{count} videos are longer than {max}. The film plays an excerpt of up to {max} of each; you choose it later in the clip editor.",
+  },
+  "clip.refusedUnplayable":
+    "“{fileName}” cannot be played on this device. This format isn't supported here.",
+  "clip.refusedTooLarge": "“{fileName}” is larger than {max} and is not taken in.",
+  "clip.refusedTooShort": "“{fileName}” is shorter than {min} and is not taken in.",
+  "clip.crumb": "Clip",
+  "clip.previewLabel": "Preview of the excerpt",
+  "clip.play": "Play",
+  "clip.pause": "Pause",
+  "clip.previewFailed": "This device cannot play the clip.",
+  "clip.missing": "The clip is no longer on this device.",
+  "clip.strip": "Choose the excerpt",
+  "clip.handleStart": "Start",
+  "clip.handleEnd": "End",
+  "clip.from": "From",
+  "clip.to": "To",
+  "clip.inFilm": "In the film: {length}",
+  "clip.sound": "Sound",
+  "clip.soundOn": "On",
+  "clip.soundOff": "Off",
+  "clip.volume": "Volume",
+  "clip.volumeValue": "{percent}%",
+  "clip.duck": "Music quieter meanwhile",
+  "clip.transitionNote":
+    "The transition to the next slide runs in the last {length} of the excerpt.",
+  "clip.reset": "Reset",
+  "clip.done": "Done",
+};

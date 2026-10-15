@@ -94,6 +94,6 @@ describe("PictureIntake, videos", () => {
     await intake.settled();
 
     expect(intake.pictures.state.pictures).toHaveLength(2);
-    expect((ports.checker as { asked: string[] }).asked).toEqual([]);
+    expect((ports.checker as unknown as { asked: string[] }).asked).toEqual([]);
   });
 });

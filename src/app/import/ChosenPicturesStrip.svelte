@@ -2,6 +2,7 @@
   import { flushSync } from "svelte";
   import type { StoredPicture } from "../../library/stored-slideshow";
   import Icon from "../components/Icon.svelte";
+  import VideoBadge from "../components/VideoBadge.svelte";
   import { getTranslator } from "../i18n/context";
 
   /** The pictures step's tiles: the stored pictures, each with its ✕, then a placeholder per file in flight. */
@@ -59,6 +60,13 @@
         <img src={urls.get(picture.id)} alt="" />
       {/if}
       <span class="date mono">{formatDate(picture.capturedAt)}</span>
+      {#if picture.video !== undefined}
+        {@const { startMs, endMs, sourceMs } = picture.video}
+        <span class="video-mark"><VideoBadge durationMs={endMs - startMs} /></span>
+        {#if endMs - startMs < sourceMs}
+          <span class="cut-flag">{t("clip.cutFlag")}</span>
+        {/if}
+      {/if}
       <button
         class="remove"
         type="button"
@@ -112,6 +120,24 @@
     color: var(--gl-on-photo);
     font-weight: var(--gl-weight-medium);
     font-size: var(--gl-size-caption);
+  }
+  .video-mark {
+    position: absolute;
+    z-index: 2;
+    right: 5px;
+    bottom: 5px;
+  }
+  .cut-flag {
+    position: absolute;
+    z-index: 2;
+    top: 5px;
+    left: 5px;
+    padding: 1px 6px;
+    border-radius: var(--gl-radius-small);
+    background: var(--gl-accent);
+    color: var(--gl-accent-ink);
+    font-size: var(--gl-size-caption);
+    font-weight: var(--gl-weight-semibold);
   }
   /* Always shown for touch, which has no other way to remove; a mouse sees it on hover. */
   .remove {

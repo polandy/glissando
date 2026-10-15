@@ -9,6 +9,7 @@ import { deHtml } from "./catalogue-de-html.ts";
 import { deSharePage } from "./catalogue-de-share-page.ts";
 import { deTvPage } from "./catalogue-de-tv-page.ts";
 import { deRemotePage } from "./catalogue-de-remote-page.ts";
+import { deClip } from "./catalogue-de-clip.ts";
 import { deVideo } from "./catalogue-de-video.ts";
 import { deServer } from "./catalogue-de-server.ts";
 import { deShare } from "./catalogue-de-share.ts";
@@ -127,7 +128,8 @@ export const de = {
   "import.or": "oder",
   "import.pickFolder": "einen Ordner wählen",
   "import.dropHint": "auf dem Desktop auch hierher ziehen",
-  "import.pictureFormats": "JPEG, PNG, WebP, HEIC (wo der Browser es kann)",
+  "import.pictureFormats":
+    "JPEG, PNG, WebP, HEIC und Videos (MP4, WebM, MOV), soweit der Browser sie kann",
   "import.progressCount": "{done} / {count}",
   "import.progressLabel": {
     one: "Bild wird verkleinert\u00a0…",
@@ -314,6 +316,7 @@ export const de = {
   ...dePortrait,
   ...deImmich,
   ...deMusic,
+  ...deClip,
   ...deVideo,
   ...deHtml,
   ...deSharePage,
