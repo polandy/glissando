@@ -207,3 +207,46 @@ describe("renderFrame: the end fade (ADR-0032)", () => {
 
   const picture = { src: "a.jpg", width: 1600, height: 900 };
 });
+
+describe("renderFrame: video slides (ADR-0035)", () => {
+  const video = { src: "v.mp4", startMs: 0, endMs: 4000, volume: 1 };
+  const slideshow: Slideshow = {
+    formatVersion: 7,
+    title: "Clip",
+    slides: [pictureSlide({ video }), pictureSlide()],
+  };
+  const picture = { src: "a.jpg", width: 1600, height: 900 };
+  const frame = { width: 1, height: 1 } as unknown as TexImageSource;
+  const liveOf = (drawn: ReturnType<typeof renderFrame>) =>
+    drawn.kind === "slide" && drawn.slide.kind === "picture" ? drawn.slide : undefined;
+
+  it("carries the clip's frame in the layer, beside its poster", () => {
+    const drawn = renderFrame(
+      slideFrame(0, 0),
+      slideshow,
+      NO_FADE,
+      () => [picture],
+      () => frame,
+    );
+    expect(liveOf(drawn)?.live).toBe(frame);
+    expect(liveOf(drawn)?.picture).toBe(picture);
+  });
+
+  it("carries no live frame while the clip has none", () => {
+    const drawn = renderFrame(slideFrame(0, 0), slideshow, NO_FADE, () => [picture]);
+    expect(liveOf(drawn)).toBeDefined();
+    expect(liveOf(drawn)).not.toHaveProperty("live");
+  });
+
+  it("never gives a picture slide a live frame", () => {
+    const drawn = renderFrame(
+      slideFrame(1, 0),
+      slideshow,
+      NO_FADE,
+      () => [picture],
+      () => frame,
+    );
+    expect(liveOf(drawn)).toBeDefined();
+    expect(liveOf(drawn)).not.toHaveProperty("live");
+  });
+});

@@ -37,7 +37,16 @@ export {
   type MusicEnvelope,
   type PlacedMusicEnvelope,
 } from "./music-gain";
-export { MusicPlaybackError, type Clock, type FrameScheduler, type MusicPlayback } from "./ports";
+export {
+  MusicPlaybackError,
+  VideoPlaybackError,
+  type Clock,
+  type FrameScheduler,
+  type LiveFrame,
+  type MusicPlayback,
+  type VideoFrameSource,
+  type VideoPlayback,
+} from "./ports";
 export { easeTransition } from "./render-frame";
 export { PLAYER_EVENTS, type PlayerEvent } from "./player-events";
 export { SlideshowPlayer } from "./slideshow-player";

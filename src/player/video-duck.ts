@@ -48,6 +48,12 @@ export function duckFactorAt(timeMs: number, spans: readonly VideoSoundSpan[]): 
   return Math.min(1, factor);
 }
 
+/** `duckFactorAt` for the sound spans of `slides`, as the music's per-time factor. */
+export function duckFactorFor(slides: readonly Slide[]): (timeMs: number) => number {
+  const spans = videoSoundSpans(slides);
+  return (timeMs) => duckFactorAt(timeMs, spans);
+}
+
 function mergeCloseSpans(spans: readonly VideoSoundSpan[]): readonly VideoSoundSpan[] {
   const merged: VideoSoundSpan[] = [];
   for (const span of spans) {

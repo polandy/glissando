@@ -1,9 +1,15 @@
 import type { Size } from "./ken-burns";
 import { PictureBuffer } from "./picture-buffer";
-import type { PictureLoader, SlideRenderer } from "./ports";
+import type { LiveFrame, PictureLoader, SlideRenderer } from "./ports";
 import { renderFrame, type RenderFrameContext } from "./render-frame";
 import { isGroundSlide, type Slideshow } from "./slideshow";
 import type { SlideAtTime, TimelineFrame } from "./timeline";
+
+/** The clip frames of the video slides: placed at the show time before each draw. */
+export interface LiveSlideFrames {
+  place(timeMs: number): void;
+  frameAt(index: number): LiveFrame | undefined;
+}
 
 /**
  * The pictures around the player's current frame: loads those on screen and the next ones, draws
@@ -15,6 +21,7 @@ export class FramePictures<Picture extends Size> {
   readonly #context: () => RenderFrameContext;
   readonly #renderer: SlideRenderer<Picture>;
   readonly #buffer: PictureBuffer<Picture>;
+  readonly #live: LiveSlideFrames | null;
 
   constructor(
     slideshow: Slideshow,
@@ -23,11 +30,13 @@ export class FramePictures<Picture extends Size> {
     loader: PictureLoader<Picture>,
     renderer: SlideRenderer<Picture>,
     picturesAhead?: number,
+    live: LiveSlideFrames | null = null,
   ) {
     this.#slideshow = slideshow;
     this.#currentFrame = currentFrame;
     this.#context = context;
     this.#renderer = renderer;
+    this.#live = live;
     this.#buffer = new PictureBuffer(
       slideshow.slides.map((slide) => {
         if (isGroundSlide(slide)) {
@@ -79,9 +88,15 @@ export class FramePictures<Picture extends Size> {
   /** Draws the current frame; its pictures must be loaded. */
   draw(captionInset: number): void {
     this.#renderer.setCaptionInset(captionInset);
+    const frame = this.#currentFrame();
+    this.#live?.place(frame.showTimeMs);
     this.#renderer.render(
-      renderFrame(this.#currentFrame(), this.#slideshow, this.#context(), (index) =>
-        this.#buffer.get(index),
+      renderFrame(
+        frame,
+        this.#slideshow,
+        this.#context(),
+        (index) => this.#buffer.get(index),
+        (index) => this.#live?.frameAt(index),
       ),
     );
   }

@@ -1,6 +1,6 @@
 import { ease } from "./easing";
 import { cardTimingAt, endFadeAmount } from "./card-timing";
-import type { CardVisual, PictureSlideLayer, RenderFrame, SlideLayer } from "./ports";
+import type { CardVisual, LiveFrame, PictureSlideLayer, RenderFrame, SlideLayer } from "./ports";
 import {
   isGroundSlide,
   type Card,
@@ -28,12 +28,14 @@ export interface RenderFrameContext {
  * What the renderer draws for `frame`; `picturesAt` holds the loaded pictures of the slide on
  * it, its own picture first and its partner's second if it is paired (ADR-0028). A card's
  * timing (ADR-0032) is computed here, once, from `cardTimingAt`, so no renderer repeats it.
+ * `liveFrameAt` gives a video slide's clip frame once one is ready (ADR-0035).
  */
 export function renderFrame<Picture>(
   frame: TimelineFrame,
   slideshow: Slideshow,
   context: RenderFrameContext,
   picturesAt: (index: number) => readonly Picture[] | undefined,
+  liveFrameAt: (index: number) => LiveFrame | undefined = () => undefined,
 ): RenderFrame<Picture> {
   const layer = (slideAtTime: SlideAtTime): SlideLayer<Picture> => {
     const slide = slideshow.slides[slideAtTime.index];
@@ -54,11 +56,13 @@ export function renderFrame<Picture>(
     }
     const progress = slideAtTime.kenBurnsProgress;
     const partner = partnerLayer(slide, pictures, progress);
+    const live = slide.video === undefined ? undefined : liveFrameAt(slideAtTime.index);
     return {
       kind: "picture",
       picture,
       motion: { kenBurns: slide.kenBurns, progress },
       ...(partner === undefined ? {} : { partner }),
+      ...(live === undefined ? {} : { live }),
       ...(slide.fit === undefined ? {} : { fit: slide.fit }),
       ...(slide.caption === undefined ? {} : { caption: slide.caption }),
       ...(cardVisual === undefined
