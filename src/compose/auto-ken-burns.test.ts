@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { autoKenBurns } from "./auto-ken-burns";
+import { autoKenBurns, SMALLEST_ZOOM_TRAVEL } from "./auto-ken-burns";
 import { cropRect } from "../player/ken-burns";
 import { MIN_KEN_BURNS_ZOOM } from "../player/slideshow";
 
@@ -163,10 +163,17 @@ describe("autoKenBurns", () => {
         }
       });
 
-      it("stays at zoom 1 for a group across the whole picture", () => {
+      it("still zooms a little for a group across the whole picture", () => {
         const { from, to } = autoKenBurns(0, LANDSCAPE, subject(GROUP_ACROSS_THE_PICTURE));
 
-        expect([from.zoom, to.zoom]).toEqual([MIN_KEN_BURNS_ZOOM, MIN_KEN_BURNS_ZOOM]);
+        expect([from.zoom, to.zoom]).toEqual([MIN_KEN_BURNS_ZOOM, SMALLEST_ZOOM_TRAVEL]);
+      });
+
+      it("zooms a little for a subject that fills the picture on a portrait one, too", () => {
+        const whole = { x: 0, y: 0, width: 1, height: 1 };
+        const { from, to } = autoKenBurns(1, PORTRAIT, subject(whole));
+
+        expect([from.zoom, to.zoom]).toEqual([SMALLEST_ZOOM_TRAVEL, MIN_KEN_BURNS_ZOOM]);
       });
 
       it("centres the motion on the group, not on one face of it", () => {

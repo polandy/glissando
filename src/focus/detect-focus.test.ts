@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it } from "vitest";
-import type { RgbaImage } from "./animal-focus";
 import cascadeDataUrl from "./facefinder.bin?url&inline";
+import type { RgbaImage } from "./object-focus";
 import { detectFocus, type FocusModels } from "./detect-focus";
 import { item } from "./onnx/item";
 import { parseOnnx } from "./onnx/onnx-model";
@@ -9,7 +9,7 @@ import astronautPgmDataUrl from "./testing/astronaut-128.pgm?url&inline";
 import chelseaPpmDataUrl from "./testing/chelsea-160.ppm?url&inline";
 import modelDataUrl from "./yolox-nano.bin?url&inline";
 
-/** astronaut-128.pgm (a face, no animal) and chelsea-160.ppm (a cat, no face): see their tests. */
+/** astronaut-128.pgm (a face, no object) and chelsea-160.ppm (a cat, no face): see their tests. */
 let models: FocusModels;
 let astronaut: RgbaImage;
 let chelsea: RgbaImage;
@@ -36,7 +36,7 @@ function rgbaFrom(bytes: Uint8Array, width: number, height: number, channels: 1 
 beforeAll(async () => {
   models = {
     cascade: unpackCascade(new Int8Array((await bytesOf(cascadeDataUrl)).buffer)),
-    animals: parseOnnx(await bytesOf(modelDataUrl)),
+    objects: parseOnnx(await bytesOf(modelDataUrl)),
   };
   astronaut = rgbaFrom(await bytesOf(astronautPgmDataUrl), 128, 128, 1);
   chelsea = rgbaFrom(await bytesOf(chelseaPpmDataUrl), 160, 106, 3);
@@ -50,7 +50,7 @@ describe("detectFocus", () => {
     expect(focus.box.height).toBeLessThan(0.5);
   });
 
-  it("aims at the animal of a picture without a face", () => {
+  it("aims at the object of a picture without a face", () => {
     const focus = detectFocus(chelsea, models);
 
     if (focus.kind !== "subject") throw new Error("expected the cat to be found");

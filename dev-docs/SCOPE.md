@@ -124,7 +124,7 @@ Not in the MVP: per-slide settings, detection, Immich, video export, audio conve
    editor, below the motion; drawn into the slide, ADR-0007), 3. duration and transition per
    picture, 4. music trim and fade (the music editor, ADR-0009; mockup:
    https://polandy.github.io/glissando-assets/mockups/music-trim/).
-2. **Automatic focus** — Ken Burns aims at people, else at animals; Immich photos use Immich's face
+2. **Automatic focus** — Ken Burns aims at people, else at the main object; Immich photos use Immich's face
    data, others get on-device detection in the browser.
 3. **Immich** — browse and pick albums and photos via the Immich API. Whether the browser calls
    it directly (CORS, API key exposure) or through a thin server proxy is an ADR.

@@ -1,4 +1,4 @@
-# ADR-0036: Animals are found by YOLOX-nano, run by a small own ONNX interpreter
+# ADR-0036: Objects, animals among them, are found by YOLOX-nano, run by a small own ONNX interpreter
 
 **Status:** accepted
 
@@ -13,17 +13,18 @@ constraints of ADR-0012 stand: in the browser, offline, every asset shipped by t
 
 - **YOLOX-nano** (Megvii-BaseDetection/YOLOX, Apache-2.0), the upstream `yolox_nano.onnx` of
   release 0.1.1rc0 byte for byte as `src/focus/yolox-nano.bin` (3.7 MB, 3.4 MB gzip), pinned by
-  sha256 in a unit test. 80 COCO classes; the ten animal classes (bird, cat, dog, horse, sheep,
-  cow, elephant, bear, zebra, giraffe) count, a score (objectness × class) of at least 0.35,
+  sha256 in a unit test. 80 COCO classes; every one counts as a subject (a person without a
+  visible face, an animal, a vehicle, a cup), a score (objectness × class) of at least 0.35,
   non-maximum suppression at 0.45.
 - **Run by ~600 lines of TypeScript** (`src/focus/onnx/`): a protobuf reader for the ONNX graph
   and the ten operators this network uses (Conv, MaxPool, Resize, Slice, Concat, Reshape,
   Transpose, Add, Mul, Sigmoid) on float32. An unknown operator fails loud.
 - **Same pass, same worker, same store.** The focus worker looks for faces first; only a picture
-  without a face is handed to the animal network, the costlier of the two. The result is a
+  without a face is handed to the object network, the costlier of the two. The result is a
   `{kind: "subject"}` box like a face's, so the stored form, the motion (ADR-0006, ADR-0029)
-  and the editors' focus mark need no change. Several animals of similar size are framed
-  together, as faces are (ADR-0029). A picture with people _and_ animals aims at the people.
+  and the editors' focus mark need no change. Several objects of similar size are framed
+  together, as faces are (ADR-0029); otherwise the largest, weighted by score, wins. A picture
+  with a face aims at the face.
 - **Where** the 416 px network is fed the stored 480 px thumbnail, scaled down and padded to a
   square (grey 114), as upstream's demo does.
 
@@ -50,6 +51,6 @@ constraints of ADR-0012 stand: in the browser, offline, every asset shipped by t
   compared with onnxruntime's output while writing it.
 - A different network later needs only the operators it uses added to `tensor-ops.ts`; if the
   time per picture matters more than the download, onnxruntime-web can replace the runner
-  behind `animalFocus` without touching anything else.
+  behind `objectFocus` without touching anything else.
 - There is no migration: pictures stored without a focus are looked at, pictures already stored
   as "none" stay so until the focus store is cleared.

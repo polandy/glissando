@@ -10,7 +10,7 @@ import {
 
 /**
  * astronaut-128.jpg: NASA's public-domain portrait of Eileen Collins, as in find-focus.test.ts;
- * chelsea-160.jpg: Chelsea the cat, as in animal-focus.test.ts.
+ * chelsea-160.jpg: Chelsea the cat, as in object-focus.test.ts.
  */
 async function thumbnail(url: string): Promise<Blob> {
   return (await fetch(url)).blob();
@@ -37,7 +37,7 @@ describe("the focus worker", () => {
     expect(focus.kind).toBe("subject");
   });
 
-  it("finds the animal in a thumbnail without a face", async () => {
+  it("finds the object in a thumbnail without a face", async () => {
     const focus = await detector().detect(await thumbnail(chelseaJpegUrl));
 
     expect(focus.kind).toBe("subject");

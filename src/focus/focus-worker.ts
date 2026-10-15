@@ -1,13 +1,13 @@
-// The worker side of `WorkerFocusDetector`: decodes each thumbnail and runs the face and animal
+// The worker side of `WorkerFocusDetector`: decodes each thumbnail and runs the face and object
 // detectors on it, off the main thread (ADR-0012, ADR-0036). Typed with the DOM lib, whose `self` covers what a
 // dedicated worker uses here.
-import type { RgbaImage } from "./animal-focus";
 import { detectFocus, type FocusModels } from "./detect-focus";
 import cascadeUrl from "./facefinder.bin?url";
 import type { FocusReply, FocusRequest } from "./focus-worker-protocol";
+import type { RgbaImage } from "./object-focus";
 import { parseOnnx } from "./onnx/onnx-model";
 import { unpackCascade } from "./pico";
-import animalNetworkUrl from "./yolox-nano.bin?url";
+import objectNetworkUrl from "./yolox-nano.bin?url";
 
 // Loaded once, when the worker starts, and shared by every request.
 const models = loadModels();
@@ -35,13 +35,13 @@ function messageOf(error: unknown): string {
 }
 
 async function loadModels(): Promise<FocusModels> {
-  const [cascade, animals] = await Promise.all([
+  const [cascade, objects] = await Promise.all([
     download(cascadeUrl, "face cascade"),
-    download(animalNetworkUrl, "animal network"),
+    download(objectNetworkUrl, "object network"),
   ]);
   return {
     cascade: unpackCascade(new Int8Array(cascade)),
-    animals: parseOnnx(new Uint8Array(animals)),
+    objects: parseOnnx(new Uint8Array(objects)),
   };
 }
 
