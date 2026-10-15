@@ -17,18 +17,12 @@ test.use(GERMAN_BROWSER);
 const TITLE = "Juli 2025";
 const RED = "#e53935";
 const BLUE = "#1e88e5";
-/**
- * No two pictures share a size: the pictures of the pair load at the same time, and the test
- * WebKit hands a worker's concurrent decodes of equally sized pictures each other's bitmaps.
- */
-const PORTRAIT_PICTURE_TALLER = { ...PORTRAIT_PICTURE, height: PORTRAIT_PICTURE.height + 4 };
-const LANDSCAPE_PICTURE_WIDER = { ...LANDSCAPE_PICTURE, width: LANDSCAPE_PICTURE.width + 4 };
 /** Landscape, portrait, portrait, landscape: the two portrait pictures in the middle pair up. */
 const PICTURES = [
   { day: "2025-07-12", colour: "#ffd54f", size: LANDSCAPE_PICTURE },
   { day: "2025-07-14", colour: RED, size: PORTRAIT_PICTURE },
-  { day: "2025-07-16", colour: BLUE, size: PORTRAIT_PICTURE_TALLER },
-  { day: "2025-07-20", colour: "#43a047", size: LANDSCAPE_PICTURE_WIDER },
+  { day: "2025-07-16", colour: BLUE, size: PORTRAIT_PICTURE },
+  { day: "2025-07-20", colour: "#43a047", size: LANDSCAPE_PICTURE },
 ] as const;
 /** Inside the pair's slide: 5 s pictures, so the pair runs from 5 s for 1.5 × 5 s. */
 const PAIR_SECONDS = 9;
