@@ -1,6 +1,15 @@
 import type { PictureFocus } from "../library/picture-focus";
 import type { StoredPicture, StoredSlideshow } from "../library/stored-slideshow";
-import { SLIDESHOW_FORMAT_VERSION, type Slide, type Slideshow } from "../player/slideshow";
+import {
+  MIN_KEN_BURNS_ZOOM,
+  SLIDESHOW_FORMAT_VERSION,
+  type Framing,
+  type KenBurns,
+  type Slide,
+  type Slideshow,
+  type SlideVideo,
+} from "../player/slideshow";
+import { DEFAULT_VIDEO_VOLUME, type StoredVideo } from "../library/own-video";
 import { beatTransitionDurationMs } from "./beat-transition";
 import { composeCards } from "./compose-cards";
 import { filledMusicMs, playlistBeatsMs, resolvePlaylist, type SongBeats } from "./playlist";
@@ -9,11 +18,17 @@ import { pictureTransition, slideshowTransition } from "./picture-transition";
 import { slideDurationsMs } from "./slide-durations-ms";
 import { slideUnits, timedUnit, type SlideUnit } from "./slide-units";
 
-/** Resolves a stored picture or music id to the URL the player loads it from. */
+/** Resolves a stored picture, music or video (`StoredVideo.mediaId`) id to the URL the player loads it from. */
 export interface SlideshowSources {
   picture(id: string): string;
   music(id: string): string;
+  video(mediaId: string): string;
 }
+
+/** A video slide holds still: the clip is the motion. */
+const STILL_FRAMING: Framing = { zoom: MIN_KEN_BURNS_ZOOM, centerX: 0.5, centerY: 0.5 };
+const STILL_KEN_BURNS: KenBurns = { from: STILL_FRAMING, to: STILL_FRAMING, easing: "linear" };
+const PERCENT = 100;
 
 /** `Slide.fit`, written for every slide while the layout gives every picture the crop (ADR-0028). */
 const COVER_FIT = "cover";
@@ -100,7 +115,9 @@ function slideFor(
     return {
       image: { src: sources.picture(first.id), capturedAt: first.capturedAt },
       durationMs,
-      kenBurns: pictureKenBurns(index, first, firstFocus),
+      kenBurns:
+        first.video === undefined ? pictureKenBurns(index, first, firstFocus) : STILL_KEN_BURNS,
+      ...(first.video === undefined ? {} : { video: videoOf(first.video, sources) }),
       ...(first.caption === undefined ? {} : { caption: first.caption }),
       ...(fit === undefined ? {} : { fit }),
     };
@@ -116,5 +133,15 @@ function slideFor(
       kenBurns: motion.second,
     },
     ...(fit === undefined ? {} : { fit }),
+  };
+}
+
+function videoOf(video: StoredVideo, sources: SlideshowSources): SlideVideo {
+  return {
+    src: sources.video(video.mediaId),
+    startMs: video.startMs,
+    endMs: video.endMs,
+    volume: (video.volume ?? DEFAULT_VIDEO_VOLUME) / PERCENT,
+    ...(video.duckMusic === false ? { duckMusic: false } : {}),
   };
 }

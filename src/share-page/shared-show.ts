@@ -44,7 +44,7 @@ export async function loadSharedShow(
   if (known !== null && known.revision === answer.revision) return known;
   const byKey = composeSlideshow(
     answer.slideshow,
-    { picture: (key) => key, music: (key) => key },
+    { picture: (key) => key, music: (key) => key, video: (key) => key },
     NO_FOCUS,
     answer.beats,
   );
@@ -136,6 +136,7 @@ function composed(show: SharedShow, skipped: ReadonlySet<string>): Slideshow {
     { ...show.stored, pictures },
     {
       picture: (key) => key,
+      video: (key) => key,
       music: (key) => {
         const url = show.songUrls.get(key);
         if (url === undefined) throw new Error(`the shared slideshow's song ${key} was not loaded`);

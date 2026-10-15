@@ -100,6 +100,7 @@
           played,
           {
             picture: (id) => id,
+            video: (id) => id,
             music: (id) => {
               const url = loaded?.musicUrls.get(id);
               if (url === undefined) {

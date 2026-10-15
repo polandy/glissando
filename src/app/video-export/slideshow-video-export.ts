@@ -33,7 +33,7 @@ export function slideshowVideoExport(
     // The export reads media by id, so the sources stay ids.
     const slideshow = composeSlideshow(
       stored,
-      { picture: (id) => id, music: (id) => id },
+      { picture: (id) => id, music: (id) => id, video: (id) => id },
       focus,
       beats,
     );

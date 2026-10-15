@@ -42,7 +42,7 @@ const motion = ({ from, to }: KenBurns) => ({ from, to });
 function played(slideshow: StoredSlideshow, pictureId: string, beats: SongBeats) {
   const { slides } = composeSlideshow(
     slideshow,
-    { picture: (id) => id, music: (id) => id },
+    { picture: (id) => id, music: (id) => id, video: (id) => id },
     new Map(),
     beats,
   );

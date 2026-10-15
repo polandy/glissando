@@ -95,7 +95,7 @@ async function writePage(job: PageExportJob): Promise<PageExportResult> {
   const keys = new Map(stored.pictures.map((picture, index) => [picture.id, pictureKey(index)]));
   const composed = composeSlideshow(
     stored,
-    { picture: (id) => keys.get(id) ?? id, music: (id) => id },
+    { picture: (id) => keys.get(id) ?? id, music: (id) => id, video: (id) => id },
     job.focus,
     job.beats,
   );

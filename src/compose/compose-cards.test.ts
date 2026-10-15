@@ -27,6 +27,7 @@ function picture(id: string, capturedAt: string): StoredPicture {
 const sources = {
   picture: (id: string) => `pictures/${id}.jpg`,
   music: (id: string) => `music/${id}.mp3`,
+  video: (id: string) => `videos/${id}.mp4`,
 };
 
 const NO_FOCUS: ReadonlyMap<string, PictureFocus> = new Map();
