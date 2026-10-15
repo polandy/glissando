@@ -153,6 +153,7 @@ Not in the MVP: per-slide settings, detection, Immich, video export, audio conve
     https://polandy.github.io/glissando-assets/mockups/tv-remote/; `dev-docs/TV_REMOTE.md`.
 11. **Title and closing slides** — drawn by the player, ADR-0032;
     `dev-docs/player/TITLE_CARDS.md`.
-12. **Videos as slides.**
+12. **Videos as slides** — a clip's excerpt plays as a slide; `dev-docs/player/VIDEO_SLIDES.md`,
+    ADR-0034, ADR-0035.
 
 Each step goes through the UI flow in `CLAUDE.md` (mockup first, owner OK, then specs and code).

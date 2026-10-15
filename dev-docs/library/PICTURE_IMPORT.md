@@ -9,7 +9,12 @@ publishes a state with the Svelte store contract:
 - **Storage full** (`QuotaExceededError`): the import stops, keeps what is stored, drops the
   remaining files from `total` and reports `storageFull`. Adding files again tries again.
 - `skipped` names each skipped file with its reason (_unsupported_, _unreadable_, _not
-  downloaded_, _alreadyIn_, _chosenTwice_); a duplicate counts as done.
+  downloaded_, _alreadyIn_, _chosenTwice_, and for a video _videoUnplayable_, _videoTooLarge_,
+  _videoTooShort_); a duplicate counts as done.
+- A **video** file (`video/*`) is stored as a picture carrying a clip (`dev-docs/player/VIDEO_SLIDES.md`):
+  its bytes go to the library's video store (`putVideo`), its poster (the frame at the excerpt's
+  start) runs through the picture pipeline, and its claims cover the video's media id. Culling
+  skips it: a video is never removed as a blur or a duplicate.
 - **Cancel** stops after the file in flight and clears the state.
 - Any other error ends the import as `failed`; it is never swallowed: `settled()` rejects with
   `PictureImportFailedError` (the error as its `cause`), which the app logs and shows as the

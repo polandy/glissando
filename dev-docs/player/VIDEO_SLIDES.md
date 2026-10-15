@@ -21,10 +21,12 @@ https://polandy.github.io/glissando-assets/mockups/video-slides/.
 
 - Videos come in through the same picker as pictures, mixed in capture order. A picture list shows a
   video with a length badge; Immich videos are no longer hidden (`IMMICH.md`).
-- Capture time: the container's creation time, then the file date. The poster is the frame at the
+- Capture time: the container's creation time (read with mediabunny, taken as device wall time
+  like a photo's), then the file date. The poster is the frame at the
   start of the excerpt, downscaled like a picture (`PICTURE_IMPORT.md`) and cached as its picture.
-- A video the browser cannot play (`canPlayType`, then loading its metadata) is refused at its tile
-  with its reason ("This browser cannot play this video format."); the rest of the batch goes on.
+- A video the browser cannot play is refused at its tile with its reason ("This browser cannot
+  play this video format."); the rest of the batch goes on. Loading its metadata into a `<video>`
+  decides: `canPlayType` is not asked, as Chrome answers "" for a `.mov` it plays.
   A source over `MAX_VIDEO_BYTES` (1 GiB) is refused the same way.
 - A clip longer than 5 min is accepted; its excerpt starts as the first 5 min and the user moves it.
 

@@ -24,6 +24,7 @@
   with the pictures it is added to and those this import took in. A match with the former is
   skipped as _alreadyIn_, one with the latter as _chosenTwice_; both are kept, so
   `addDuplicates(reason)` can take those of one reason in after all.
+- A video is taken in like a picture and is exempt from culling (`PICTURE_IMPORT.md`).
 - **Culling** (ADR-0024): `PictureImport` hands each picture it stores, with its thumbnail, to
   `PictureCulling` (`src/app/import/picture-culling.ts`), which has it measured in a worker
   (`src/culling/`): the grey 480 px thumbnail's _sharpness_ (variance of the 4-neighbour
