@@ -6,7 +6,7 @@ are rejected.
 
 ```json
 {
-  "formatVersion": 5,
+  "formatVersion": 7,
   "title": "July 2025",
   "music": [
     {
@@ -85,5 +85,12 @@ are rejected.
   drawn over the slide; a ground slide (a `#RRGGBB` colour instead of `image` and `kenBurns`)
   carrying one; the show's fade to black. Contract and timing in [TITLE_CARDS.md](TITLE_CARDS.md).
   Version 6 makes a card's `entrance` required.
-- Only version 6 is read; older versions are refused, not upgraded — no instance holds
+- **`video`** (version 7, ADR-0034, optional, picture slides): `{ src, startMs, endMs, volume,
+duckMusic? }`, a clip played over the slide's `image`, which is its poster. `startMs` and `endMs`
+  are ms of the clip; the excerpt is `MIN_VIDEO_EXCERPT_MS` (500) to `MAX_VIDEO_EXCERPT_MS`
+  (300000) long, `durationMs` must equal `endMs − startMs`, `volume` is 0 to 1 and `duckMusic`
+  absent means `true`. A video slide has a still framing (`kenBurns.from` equals `to`, zoom 1) and
+  no `partner`. Errors name the field, e.g. `slides[i].video.endMs`. The music's duck factor is
+  `duckFactorAt` over `videoSoundSpans(slides)`; see [VIDEO_SLIDES.md](VIDEO_SLIDES.md).
+- Only version 7 is read; older versions are refused, not upgraded — no instance holds
   slideshows older than this app.

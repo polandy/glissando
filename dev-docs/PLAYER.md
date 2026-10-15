@@ -6,6 +6,7 @@
 | Section                                    | What it covers                                                                 |
 | ------------------------------------------ | ------------------------------------------------------------------------------ |
 | [Slideshow JSON](player/SLIDESHOW_JSON.md) | The wire contract and its fields                                               |
+| [Video slides](player/VIDEO_SLIDES.md)     | A picture slide that plays a clip: format, timing, sound and ducking           |
 | [Timing](player/TIMING.md)                 | Transitions, the Ken Burns path and show time                                  |
 | [Player API](player/PLAYER_API.md)         | `createPlayer`, `createBrowserPlayer`, `createFramePlayer` and their behaviour |
 | [Captions](player/CAPTIONS.md)             | A caption's look and layout                                                    |
