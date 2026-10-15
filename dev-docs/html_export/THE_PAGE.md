@@ -12,7 +12,13 @@
   once, numbered in playlist order, and a song the slideshow never reaches is left out. Each
   medium is a `<script type="application/octet-stream" id="<key>" data-type="<mime>">` holding its
   base64. The page's `openPicture(key)` decodes a block into a Blob on demand, so only the
-  pictures the player holds are ever unpacked. Each song becomes one `blob:` URL when the page
+  pictures the player holds are ever unpacked. A video slide's `video.src` is a key `v<n>`: each
+  distinct clip the slideshow plays is embedded once, whole and in its own type, numbered in slide
+  order after the songs, and the slide's poster stays a normal `p<n>` picture. The page's
+  `readVideo(key)` decodes the clip's block when the slide opens and keeps the last two decoded
+  clips, so a replay does not decode base64 again; the clip plays with sound after the first
+  gesture (VIDEO_SLIDES.md). The mute button mutes the music only, so a slideshow whose only sound
+  is a clip's shows none. Each song becomes one `blob:` URL when the page
   starts, shared by its tracks, and the page plays every track as the app does (PLAYER.md). The page's
   words sit in `<script type="application/json" id="copy">`, the start card's summary already
   formatted at export time, so the page itself formats nothing but the time.

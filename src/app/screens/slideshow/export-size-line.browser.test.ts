@@ -23,6 +23,7 @@ function presetRadios() {
 
 function pageChoose(fromImmich: boolean) {
   const mounted = mountWithTranslator(PageChoose, {
+    clipCount: 0,
     view: {
       kind: "choose",
       sizeId: "small",

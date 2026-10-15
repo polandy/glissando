@@ -83,6 +83,24 @@ describe("readPageData", () => {
     );
   });
 
+  it("reads a clip by its key as a Blob of its block's bytes and type", async () => {
+    const reads = readPageData(
+      page({ ...BLOCKS, v0: { text: btoa("mp4 bytes"), mimeType: "video/mp4" } }),
+    );
+
+    const clip = await reads.readVideo("v0");
+
+    expect(clip.type).toBe("video/mp4");
+    expect(await clip.text()).toBe("mp4 bytes");
+    expect(await reads.readVideo("v0")).toBe(clip);
+  });
+
+  it("rejects a clip key without a block with PageDataError naming the key", async () => {
+    await expect(readPageData(page(BLOCKS)).readVideo("v3")).rejects.toThrow(
+      new PageDataError('the page holds no media block "v3"'),
+    );
+  });
+
   it("holds every song the tracks play as one Blob each, by the tracks' src", async () => {
     const { songs } = readPageData(page(BLOCKS));
 

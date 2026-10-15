@@ -2,7 +2,15 @@ import { describe, expect, it } from "vitest";
 import type { StoredSlideshow } from "../library/stored-slideshow";
 import { isGroundSlide, parseSlideshow } from "../player";
 import { exportPage } from "./export-page";
-import { WITHOUT_MUSIC, STORED, TWO_SONGS, run, block, decoded } from "./export-page-fixtures";
+import {
+  WITHOUT_MUSIC,
+  STORED,
+  TWO_SONGS,
+  WITH_CLIP,
+  run,
+  block,
+  decoded,
+} from "./export-page-fixtures";
 
 describe("exportPage, what the page holds", () => {
   it("writes the page in order: head, each picture as p<n>, each song as s<n>, the player, then closes", async () => {
@@ -107,5 +115,54 @@ describe("exportPage, what the page holds", () => {
     expect(block(sink.text, "p2")).toBeDefined();
     expect(block(sink.text, "s0")).toBeUndefined();
     expect(JSON.parse(block(sink.text, "slideshow") ?? "null")).not.toHaveProperty("music");
+  });
+});
+
+describe("exportPage, video slides", () => {
+  it("embeds each clip once as v<n> in its own type, after the songs, and points the slide at it", async () => {
+    const stored: StoredSlideshow = {
+      ...WITH_CLIP,
+      songs: STORED.songs,
+      pictures: [
+        ...WITH_CLIP.pictures,
+        {
+          ...WITH_CLIP.pictures[0]!,
+          id: "again",
+          fileName: "again.jpg",
+        },
+      ],
+    };
+    const { job, sink } = run({ stored });
+
+    await exportPage(job);
+
+    const slideshow = parseSlideshow(JSON.parse(block(sink.text, "slideshow") ?? "null"));
+    const clips = slideshow.slides.flatMap((slide) =>
+      !isGroundSlide(slide) && slide.video !== undefined ? [slide.video] : [],
+    );
+    expect(clips.map((clip) => [clip.src, clip.startMs, clip.endMs, clip.volume])).toEqual([
+      ["v0", 2000, 10_000, 0.8],
+      ["v0", 2000, 10_000, 0.8],
+    ]);
+    expect(sink.text).toContain('id="v0" data-type="video/mp4"');
+    expect(decoded(sink.text, "v0")).toBe("bytes of c1");
+    expect(block(sink.text, "v1")).toBeUndefined();
+    expect(sink.text.indexOf('id="s0"')).toBeLessThan(sink.text.indexOf('id="v0"'));
+  });
+
+  it("keeps the poster as the slide's picture block", async () => {
+    const { job, sink } = run({ stored: WITH_CLIP });
+
+    await exportPage(job);
+
+    expect(decoded(sink.text, "p0")).toBe("bytes of poster");
+  });
+
+  it("writes no clip block for a slideshow without video slides", async () => {
+    const { job, sink } = run();
+
+    await exportPage(job);
+
+    expect(block(sink.text, "v0")).toBeUndefined();
   });
 });

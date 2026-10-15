@@ -24,20 +24,29 @@ export type HtmlExportDevice = Omit<HtmlExportPorts, "weights" | "run"> & {
  */
 export function slideshowHtmlExport(
   device: HtmlExportDevice,
-  store: Pick<LibraryStore, "pictureBlob" | "musicBlob" | "pictureFocus" | "musicBeats">,
+  store: Pick<
+    LibraryStore,
+    "pictureBlob" | "musicBlob" | "videoBlob" | "pictureFocus" | "musicBeats"
+  >,
   stored: StoredSlideshow,
   translator: Translator,
   home: SlideshowHome,
 ): HtmlExportSession {
+  const clipIds = [
+    ...new Set(
+      stored.pictures.flatMap(({ video }) => (video === undefined ? [] : [video.mediaId])),
+    ),
+  ];
   const subject: HtmlExportSubject = {
     title: stored.title,
     durationMs: slideshowDurationMs(stored),
     withMusic: stored.songs.length > 0,
     pictureCount: stored.pictures.length,
     picturesFromImmich: home === "server",
+    clipCount: clipIds.length,
   };
   const weights = async (): Promise<PageWeights> => {
-    const [pictures, musicBytes, bundle] = await Promise.all([
+    const [pictures, musicBytes, videoBytes, bundle] = await Promise.all([
       Promise.all(
         stored.pictures.map(async ({ id, width, height }) => ({
           width,
@@ -49,10 +58,13 @@ export function slideshowHtmlExport(
       Promise.all(stored.songs.map(async ({ id }) => (await store.musicBlob(id)).size)).then(
         (sizes) => sizes.reduce((total, size) => total + size, 0),
       ),
+      Promise.all(clipIds.map(async (id) => (await store.videoBlob(id)).size)).then((sizes) =>
+        sizes.reduce((total, size) => total + size, 0),
+      ),
       // Loading the bundle here also fetches it before "Webseite erstellen".
       device.playerAsset.load(),
     ]);
-    return { pictures, musicBytes, pageBytes: playerBundleBytes(bundle) };
+    return { pictures, musicBytes, videoBytes, pageBytes: playerBundleBytes(bundle) };
   };
   const run = async (job: PageRun): Promise<void> => {
     const [focus, beats] = await Promise.all([

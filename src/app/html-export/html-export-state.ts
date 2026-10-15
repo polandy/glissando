@@ -20,7 +20,7 @@ export interface PageRun {
 
 /** What the sheet needs of the browser and the export (html_export/SHEET.md). */
 export interface HtmlExportPorts {
-  /** The stored pictures' sizes and bytes, the music's and the page's own, for the estimate. */
+  /** The stored pictures' sizes and bytes, the music's, the clips' and the page's own, for the estimate. */
   weights(): Promise<PageWeights>;
   canPickSaveFile(): boolean;
   /** Asks where to save; null when the user dismissed the picker. */
@@ -46,6 +46,8 @@ export interface HtmlExportSubject {
   readonly pictureCount: number;
   /** A server slideshow's pictures, downloaded from Immich only as the page is made. */
   readonly picturesFromImmich: boolean;
+  /** How many distinct clips the video slides play; each goes into the page whole. */
+  readonly clipCount: number;
 }
 
 /** How a finished page reaches the user: already saved, the share sheet or a download. */

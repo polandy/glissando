@@ -61,12 +61,20 @@ describe("estimatePageBytes", () => {
           { width: 800, height: 600, bytes: 1000 },
         ],
         musicBytes: 3000,
+        videoBytes: 0,
         pageBytes: 2000,
       },
       "small",
     );
 
     expect(estimate).toBeCloseTo(((4000 / 4 + 1000 + 3000 + 2000) * 4) / 3);
+  });
+
+  it("counts a clip's bytes whole at every size, since a clip is never reduced", () => {
+    const weights = { pictures: [], musicBytes: 0, videoBytes: 9000, pageBytes: 0 };
+
+    expect(estimatePageBytes(weights, "small")).toBeCloseTo((9000 * 4) / 3);
+    expect(estimatePageBytes(weights, "4k")).toBeCloseTo((9000 * 4) / 3);
   });
 });
 

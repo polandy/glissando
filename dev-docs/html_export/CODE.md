@@ -10,7 +10,7 @@
   - `export-page.ts`: the run (downscale each picture through a port, progress, cancel, write the
     parts to a sink in order, so a picked file is streamed rather than held whole). A medium is
     read, encoded and written in slices of `MEDIA_CHUNK_BYTES` (768 KiB), so not even a song
-    is ever held whole as a string. The cancel is checked before each picture, each slice and
+    or a clip is ever held whole as a string. The cancel is checked before each picture, each slice and
     closing the page.
   - `page-contract.ts`: the block ids, keys, copy keys and states the page's script shares.
   - Ports: `PictureScaler`, `PageSink`, `PlayerAsset`.

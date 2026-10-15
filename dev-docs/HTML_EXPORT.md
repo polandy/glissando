@@ -1,6 +1,6 @@
 # Web page export
 
-The slideshow as one self-contained `.html` file: pictures scaled down, the songs it plays, the caption
+The slideshow as one self-contained `.html` file: pictures scaled down, the songs it plays, the video clips it plays (whole, never reduced), the caption
 font and Glissando's player engine inside it. It plays offline in a browser, without Glissando,
 at a tenth of the MP4's size (ADR-0017). Approved mockup:
 https://polandy.github.io/glissando-assets/mockups/html-export/.

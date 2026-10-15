@@ -31,6 +31,10 @@ export const deHtml = {
   "htmlExport.bigTitle": "Zu groß für eine E-Mail.",
   "htmlExport.bigText":
     "Kopiere sie auf den Rechner am Fernseher oder einen USB-Stick, oder teile sie über einen Cloud-Ordner.",
+  "htmlExport.clipsTitle": "Videoclips in der Show: {count}.",
+  "htmlExport.clipsText":
+    "Sie kommen unverkleinert in die Datei, daher ist die Seite in jeder Größe etwa {size} groß.",
+  "htmlExport.clipsTextUnsized": "Sie kommen unverkleinert in die Datei.",
   "htmlExport.hint":
     "Läuft in jedem aktuellen Browser auf Rechner, Handy oder Tablet, ohne Internet und ohne Glissando. Die Bilder werden verkleinert; die Originale bleiben hier.",
   "htmlExport.start": "Webseite erstellen",

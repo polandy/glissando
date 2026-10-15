@@ -8,6 +8,7 @@ const SUBJECT = {
   withMusic: true,
   pictureCount: 50,
   picturesFromImmich: false,
+  clipCount: 0,
 };
 
 describe("pageWords", () => {

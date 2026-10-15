@@ -20,6 +20,14 @@ export function songKey(index: number): string {
   return `s${index}`;
 }
 
+/**
+ * The `video.src` of every slide playing the `index`th of the distinct clips the slideshow plays,
+ * and the id of that clip's media block.
+ */
+export function videoKey(index: number): string {
+  return `v${index}`;
+}
+
 /** The `image.src` of the picture at `index` and its media block's id; a pair slide has two. */
 export function pictureKey(index: number): string {
   return `p${index}`;

@@ -93,6 +93,7 @@
       {view}
       videoBytes={session.videoBytes}
       fromImmich={session.subject.picturesFromImmich}
+      clipCount={session.subject.clipCount}
       onSelect={(sizeId) => session.select(sizeId)}
       onStart={() => void session.start()}
       onCancel={close}

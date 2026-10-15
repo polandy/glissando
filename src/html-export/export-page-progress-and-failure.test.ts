@@ -85,6 +85,7 @@ describe("exportPage, progress, cancelling and failures", () => {
         pictureBlob: (id) =>
           id === "fits" ? Promise.reject(unreadable) : Promise.resolve(new Blob([id])),
         musicBlob: () => Promise.resolve(new Blob([])),
+        videoBlob: () => Promise.resolve(new Blob([])),
       },
     });
 

@@ -21,6 +21,7 @@ function session(
       withMusic,
       pictureCount: PICTURES,
       picturesFromImmich,
+      clipCount: 0,
     },
     ports,
   );

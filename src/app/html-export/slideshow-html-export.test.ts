@@ -72,6 +72,7 @@ describe("slideshowHtmlExport", () => {
         { width: 1000, height: 800, bytes: 300 },
       ],
       musicBytes: 500,
+      videoBytes: 0,
       pageBytes: playerBundleBytes(FAKE_BUNDLE),
     };
     expect(sheet.state).toMatchObject({
@@ -103,8 +104,46 @@ describe("slideshowHtmlExport", () => {
         { width: 1000, height: 800, bytes: 300 },
       ],
       musicBytes: 700,
+      videoBytes: 0,
       pageBytes: playerBundleBytes(FAKE_BUNDLE),
     };
+    expect(sheet.state).toMatchObject({
+      kind: "choose",
+      estimates: { small: estimatePageBytes(weights, "small") },
+    });
+  });
+
+  it("counts each distinct clip once, whole, in the estimate and the subject", async () => {
+    const store = await storeWithMedia();
+    await store.putVideo("c", new Blob(["c".repeat(4000)]));
+    const video = { mediaId: "c", sourceMs: 9000, startMs: 0, endMs: 5000 };
+    const [first, second] = STORED.pictures;
+    const sheet = slideshowHtmlExport(
+      fakeHtmlExportDevice(),
+      store,
+      {
+        ...STORED,
+        pictures: [
+          { ...first!, video },
+          { ...second!, video },
+        ],
+      },
+      createTranslator("de"),
+      "device",
+    );
+
+    await sheet.open();
+
+    const weights = {
+      pictures: [
+        { width: 3840, height: 2160, bytes: 900 },
+        { width: 1000, height: 800, bytes: 300 },
+      ],
+      musicBytes: 500,
+      videoBytes: 4000,
+      pageBytes: playerBundleBytes(FAKE_BUNDLE),
+    };
+    expect(sheet.subject.clipCount).toBe(1);
     expect(sheet.state).toMatchObject({
       kind: "choose",
       estimates: { small: estimatePageBytes(weights, "small") },

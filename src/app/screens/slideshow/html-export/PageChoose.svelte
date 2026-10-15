@@ -12,6 +12,7 @@
     view,
     videoBytes,
     fromImmich,
+    clipCount,
     onSelect,
     onStart,
     onCancel,
@@ -21,6 +22,8 @@
     videoBytes: number;
     /** A server slideshow's pictures are downloaded from Immich: the size line says so. */
     fromImmich: boolean;
+    /** The video clips the page holds whole; its size is named before the start. */
+    clipCount: number;
     onSelect: (sizeId: PageSizeId) => void;
     onStart: () => void;
     onCancel: () => void;
@@ -77,6 +80,14 @@
   <Notice tone="warn">
     <b>{t("htmlExport.bigTitle")}</b>
     {t("htmlExport.bigText")}
+  </Notice>
+{/if}
+{#if clipCount > 0}
+  <Notice tone="warn">
+    <b>{t("htmlExport.clipsTitle", { count: String(clipCount) })}</b>
+    {pageBytes === null
+      ? t("htmlExport.clipsTextUnsized")
+      : t("htmlExport.clipsText", { size: formatBytes(pageBytes) })}
   </Notice>
 {/if}
 <div class="spec mono">
