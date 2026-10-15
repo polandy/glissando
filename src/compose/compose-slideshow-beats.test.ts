@@ -5,7 +5,14 @@ import type { PictureFocus } from "../library/picture-focus";
 import type { StoredMusic, StoredPicture, StoredSlideshow } from "../library/stored-slideshow";
 
 function picture(id: string): StoredPicture {
-  return { id, capturedAt: "2025-07-01T10:00:00Z", fileName: `${id}.jpg`, width: 400, height: 300 };
+  return {
+    id,
+    capturedAt: "2025-07-01T10:00:00Z",
+    fileName: `${id}.jpg`,
+    width: 400,
+    height: 300,
+    colours: { veil: "#404040", accent: "#C0C0C0" },
+  };
 }
 
 const sources = { picture: (id: string) => id, music: (id: string) => id };

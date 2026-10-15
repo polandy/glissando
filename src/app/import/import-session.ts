@@ -106,8 +106,11 @@ export class ImportSession {
 
   /** Downloaded for a device slideshow, linked for a server slideshow. */
   addImmichPhotos(photos: readonly ImmichPhoto[]): void {
-    if (this.#choices.home === "server") this.intake.linkImmichPhotos(photos);
-    else this.intake.addImmichPhotos(photos);
+    if (this.#choices.home === "server") {
+      this.intake.linkImmichPhotos(photos).catch((error: unknown) => this.#ports.onError(error));
+    } else {
+      this.intake.addImmichPhotos(photos);
+    }
   }
 
   /** Resolves once an unexpected picture-import error, if any, has been reported or logged. */

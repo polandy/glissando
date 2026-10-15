@@ -24,7 +24,7 @@ function slide(src: string, durationMs: number): Slide {
 }
 
 const SLIDESHOW: Slideshow = {
-  formatVersion: 5,
+  formatVersion: 6,
   title: "July 2025",
   music: [{ src: "summer.mp3", atMs: 0, startMs: 0, endMs: 600_000, fadeInMs: 0, fadeOutMs: 0 }],
   slides: [

@@ -32,6 +32,7 @@ const SHARED_PICTURE_KEYS = [
   "durationMs",
   "transition",
   "alone",
+  "colours",
 ] as const satisfies readonly (keyof ServerPicture)[];
 const SHARED_SONG_KEYS = [
   "durationMs",

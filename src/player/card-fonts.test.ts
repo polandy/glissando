@@ -15,8 +15,8 @@ const INSTRUMENT_SERIF_ITALIC_PATH = "assets/fonts/instrumentserif-italic-latin-
 
 function card(style: CardStyle, subtitle?: string): Card {
   return subtitle === undefined
-    ? { title: "Rome", style, position: "centre", ink: "light" }
-    : { title: "Rome", subtitle, style, position: "centre", ink: "light" };
+    ? { title: "Rome", style, position: "centre", ink: "light", entrance: "rise" }
+    : { title: "Rome", subtitle, style, position: "centre", ink: "light", entrance: "rise" };
 }
 
 /** A ground slide carrying `card`, the simplest slide a card can sit on. */

@@ -13,8 +13,20 @@ function answer(overrides: Record<string, unknown> = {}): Record<string, unknown
       createdAt: "2026-07-02T10:00:00Z",
       secondsPerPicture: 4,
       pictures: [
-        { capturedAt: "2026-07-01T00:00:00.000Z", width: 1600, height: 900, caption: "Arrival" },
-        { capturedAt: "2026-07-01T00:00:00Z", width: 900, height: 1600, durationMs: 2500 },
+        {
+          capturedAt: "2026-07-01T00:00:00.000Z",
+          width: 1600,
+          height: 900,
+          caption: "Arrival",
+          colours: { veil: "#404040", accent: "#C0C0C0" },
+        },
+        {
+          capturedAt: "2026-07-01T00:00:00Z",
+          width: 900,
+          height: 1600,
+          durationMs: 2500,
+          colours: { veil: "#404040", accent: "#C0C0C0" },
+        },
       ],
       songs: [{ durationMs: 90_000, mimeType: "audio/mpeg" }],
     },

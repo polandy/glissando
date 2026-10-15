@@ -23,6 +23,7 @@ const slideshow: StoredSlideshow = {
       height: 2160,
       fileName: "a.jpg",
       caption: "Am Steg",
+      colours: { veil: "#404040", accent: "#C0C0C0" },
     },
     {
       id: "p2",
@@ -34,6 +35,7 @@ const slideshow: StoredSlideshow = {
         from: { zoom: 2.5, centerX: 0.3, centerY: 0.2 },
         to: { zoom: 1, centerX: 0.5, centerY: 0.5 },
       },
+      colours: { veil: "#404040", accent: "#C0C0C0" },
     },
   ],
   ownOrder: true,
@@ -65,6 +67,7 @@ describe("manifestFor", () => {
       height: 2160,
       fileName: "a.jpg",
       caption: "Am Steg",
+      colours: { veil: "#404040", accent: "#C0C0C0" },
     });
     expect(written.slideshow.songs).toEqual([
       {

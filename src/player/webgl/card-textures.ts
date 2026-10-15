@@ -1,8 +1,9 @@
+import { CARD_FOCUS_BLUR_SHARE } from "../card-timing";
 import { CARD_STYLE_SPECS, type CardTextSpec } from "../card-layout";
 import { loadFonts, type FontSpec, type Fonts } from "../fonts";
 import type { Size } from "../ken-burns";
 import type { Card, CardStyle } from "../slideshow";
-import { rasterizeCard } from "./card-raster";
+import { blurCardRaster, rasterizeCard } from "./card-raster";
 import { setLinearClamped } from "./caption-textures";
 
 const TRANSPARENT_PIXEL = new Uint8Array([0, 0, 0, 0]);
@@ -10,7 +11,6 @@ const TRANSPARENT_PIXEL = new Uint8Array([0, 0, 0, 0]);
 interface CardTexture {
   readonly texture: WebGLTexture;
   readonly viewport: Size;
-  readonly titleFontSizePx: number;
 }
 
 function toFontSpec(spec: CardTextSpec): FontSpec {
@@ -19,19 +19,6 @@ function toFontSpec(spec: CardTextSpec): FontSpec {
     weight: spec.fontWeight,
     style: spec.italic ? "italic" : "normal",
   };
-}
-
-/**
- * A card's drift (`CardVisual.driftEm`, relative to its title's rendered font size) as a
- * fraction of the viewport's height, which is what the shader's screen-space `withCard` uniform
- * needs (ADR-0032).
- */
-export function cardDriftFraction(
-  driftEm: number,
-  titleFontSizePx: number,
-  viewportHeightPx: number,
-): number {
-  return (driftEm * titleFontSizePx) / viewportHeightPx;
 }
 
 /**
@@ -45,6 +32,8 @@ export class CardTextures {
   readonly #gl: WebGL2RenderingContext;
   readonly #canvas = document.createElement("canvas");
   readonly #textures = new Map<Card, CardTexture>();
+  readonly #blurredTextures = new Map<Card, CardTexture>();
+  readonly #blurCanvas = document.createElement("canvas");
   readonly #loadedStyles = new Set<CardStyle>();
   readonly #loading = new Map<CardStyle, Promise<void>>();
   readonly #fonts: Fonts;
@@ -82,35 +71,65 @@ export class CardTextures {
     }
     const gl = this.#gl;
     const texture = existing?.texture ?? gl.createTexture();
-    const titleFontSizePx = rasterizeCard(this.#canvas, card, viewport);
+    rasterizeCard(this.#canvas, card, viewport);
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.#canvas);
     gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
     setLinearClamped(gl);
-    this.#textures.set(card, { texture, viewport, titleFontSizePx });
+    this.#textures.set(card, { texture, viewport });
     return texture;
   }
 
-  /** The transparent texture a layer without a card binds, so `withCard` draws nothing. */
-  transparent(): WebGLTexture {
-    return this.#transparent;
+  /**
+   * `card`'s cross-fade copy for `focus` (ADR-0032, `dev-docs/player/TITLE_CARDS.md` §
+   * Entrances): rasterised once with a static blur of `CARD_FOCUS_BLUR_SHARE` of the viewport's
+   * height, never re-blurred per frame. Transparent before its style's fonts have loaded.
+   */
+  blurredTexture(card: Card, viewport: Size): WebGLTexture {
+    this.#ensureLoading(card.style);
+    if (!this.#loadedStyles.has(card.style)) {
+      return this.#transparent;
+    }
+    const existing = this.#blurredTextures.get(card);
+    if (
+      existing !== undefined &&
+      existing.viewport.width === viewport.width &&
+      existing.viewport.height === viewport.height
+    ) {
+      return existing.texture;
+    }
+    const gl = this.#gl;
+    const texture = existing?.texture ?? gl.createTexture();
+    // `#canvas` is only scratch once its own texture is uploaded: the sharp raster to blur from.
+    rasterizeCard(this.#canvas, card, viewport);
+    blurCardRaster(this.#canvas, this.#blurCanvas, CARD_FOCUS_BLUR_SHARE * viewport.height);
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.#blurCanvas);
+    gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+    setLinearClamped(gl);
+    this.#blurredTextures.set(card, { texture, viewport });
+    return texture;
   }
 
-  /** The title's rendered font size in px, for the drift uniform; 0 before its texture is drawn. */
-  titleFontSizePx(card: Card): number {
-    return this.#textures.get(card)?.titleFontSizePx ?? 0;
+  /** The transparent texture a layer without a card binds, so nothing draws. */
+  transparent(): WebGLTexture {
+    return this.#transparent;
   }
 
   /** The context was restored: every texture is gone with the old one and is drawn anew. */
   recreate(): void {
     this.#textures.clear();
+    this.#blurredTextures.clear();
     this.#transparent = this.#createTransparent();
   }
 
   dispose(): void {
     this.#textures.forEach(({ texture }) => this.#gl.deleteTexture(texture));
     this.#textures.clear();
+    this.#blurredTextures.forEach(({ texture }) => this.#gl.deleteTexture(texture));
+    this.#blurredTextures.clear();
     this.#gl.deleteTexture(this.#transparent);
   }
 

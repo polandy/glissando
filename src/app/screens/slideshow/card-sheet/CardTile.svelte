@@ -29,7 +29,7 @@
   } = $props();
 
   const empty = $derived(card === undefined || card.title === "");
-  const face = $derived(card === undefined || empty ? null : previewFace(card));
+  const face = $derived(card === undefined || empty ? null : previewFace(card, pictures));
   const pictureUrl = $derived(
     face?.pictureId === undefined ? undefined : pictureUrlFor(pictures, face.pictureId),
   );

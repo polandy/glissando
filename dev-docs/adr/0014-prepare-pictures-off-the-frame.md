@@ -26,7 +26,10 @@ each, from an `ImageBitmap` a few — so slices must come from bitmaps.
 - **Decode in a worker.** The WebGL renderer's pictures are loaded by `BitmapLoader`: the bytes
   come from `openPicture` (or `fetch` for a URL `src`), a module worker decodes them with
   `createImageBitmap(…, { imageOrientation: "from-image" })` — upright by EXIF, as an `<img>`
-  shows them — and transfers the bitmap back. Release closes it; destroying the player
+  shows them — draws it onto an `OffscreenCanvas` and transfers that copy back: WebKit hands
+  decodes running at once of equally sized pictures (photos of one camera) each other's bitmaps,
+  the copy is the picture's own and costs ~10 ms per 4K picture in the worker; a decode in a
+  chain inside the worker did not help. Release closes it; destroying the player
   terminates the worker.
 - **Upload in slices before the picture is needed.** `SlideRenderer.prepare` does a bounded
   step of the work to draw a picture later. In WebGL: storage for the whole mip chain with a

@@ -75,6 +75,7 @@ export function slideshowDetails(
     pairedWithNumber: layoutAt(index).pairedWithNumber,
     blurredFill: layoutAt(index).blurredFill,
     alone: picture.alone === true,
+    colours: picture.colours,
   }));
   return {
     title: stored.title,

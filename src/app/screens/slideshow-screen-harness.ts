@@ -20,7 +20,8 @@ const DEFAULT_OPENING_CARD: StoredCard = {
   subtitle: "1.–3. Juli 2025",
   style: "modern",
   position: "centre",
-  background: { kind: "picture", pictureId: "a", fade: 60 },
+  entrance: "rise",
+  background: { kind: "picture", pictureId: "a", fade: 60, tint: "picture" },
   motion: true,
 };
 
@@ -29,7 +30,8 @@ const DEFAULT_CLOSING_CARD: StoredCard = {
   title: "",
   style: "modern",
   position: "centre",
-  background: { kind: "picture", pictureId: "a", fade: 60 },
+  entrance: "rise",
+  background: { kind: "picture", pictureId: "a", fade: 60, tint: "picture" },
   motion: true,
 };
 
@@ -74,6 +76,7 @@ export function details(ids: readonly string[], overrides: Partial<SlideshowDeta
       pairedWithNumber: null,
       blurredFill: false,
       alone: false,
+      colours: { veil: "#404040", accent: "#C0C0C0" },
     })),
   };
   return { ...base, ...overrides };

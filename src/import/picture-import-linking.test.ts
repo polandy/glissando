@@ -11,6 +11,7 @@ describe("PictureImport, linking pictures without storing them", () => {
       width: 3,
       height: 2,
       fileName: `${id}.jpg`,
+      colours: { veil: "#404040", accent: "#C0C0C0" },
     });
 
     pictureImport.link(

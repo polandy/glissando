@@ -15,6 +15,7 @@ const slideshow: StoredSlideshow = {
       height: 2160,
       fileName: "a.jpg",
       immichAssetId: "asset-123",
+      colours: { veil: "#404040", accent: "#C0C0C0" },
     },
     {
       id: "p2",
@@ -23,6 +24,7 @@ const slideshow: StoredSlideshow = {
       height: 3840,
       fileName: "b.jpg",
       fileBytes: 4_200_000,
+      colours: { veil: "#404040", accent: "#C0C0C0" },
     },
   ],
   songs: [],

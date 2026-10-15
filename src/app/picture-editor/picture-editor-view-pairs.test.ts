@@ -15,6 +15,7 @@ const at = (id: string, size: typeof LANDSCAPE): StoredPicture => ({
   id,
   capturedAt: "2025-07-01T10:00:00Z",
   fileName: `${id}.jpg`,
+  colours: { veil: "#404040", accent: "#C0C0C0" },
   ...size,
 });
 

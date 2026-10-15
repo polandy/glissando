@@ -13,11 +13,12 @@ describe("ImportSession, a slideshow on the Glissando server", () => {
     expect(choicesOf(sessionWith().session).home).toBe("device");
   });
 
-  it("links Immich photos without downloading them once it lives on the server", () => {
+  it("links Immich photos without downloading them once it lives on the server", async () => {
     const { session } = sessionWith();
     session.chooseHome("server");
 
     session.addImmichPhotos([immichPhoto("asset-1", "2025-07-01T10:00:00Z")]);
+    await session.intake.settled();
 
     expect(session.pictures.state.pictures).toEqual([
       expect.objectContaining({ id: "asset-1", immichAssetId: "asset-1" }),
@@ -64,6 +65,7 @@ describe("ImportSession, a slideshow on the Glissando server", () => {
     const { session, onServer } = sessionWith();
     session.chooseHome("server");
     session.addImmichPhotos([immichPhoto("asset-1", "2025-07-01T10:00:00Z")]);
+    await session.intake.settled();
 
     const created = await session.create("de");
 
@@ -78,6 +80,7 @@ describe("ImportSession, a slideshow on the Glissando server", () => {
     });
     session.chooseHome("server");
     session.addImmichPhotos([immichPhoto("asset-1", "2025-07-01T10:00:00Z")]);
+    await session.intake.settled();
 
     await expect(session.create("de")).rejects.toBe(failure);
 

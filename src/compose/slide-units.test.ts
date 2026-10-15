@@ -9,12 +9,20 @@ function portrait(id: string, overrides: Partial<StoredPicture> = {}): StoredPic
     fileName: `${id}.jpg`,
     width: 300,
     height: 400,
+    colours: { veil: "#404040", accent: "#C0C0C0" },
     ...overrides,
   };
 }
 
 function landscape(id: string): StoredPicture {
-  return { id, capturedAt: "2025-07-01T10:00:00Z", fileName: `${id}.jpg`, width: 400, height: 300 };
+  return {
+    id,
+    capturedAt: "2025-07-01T10:00:00Z",
+    fileName: `${id}.jpg`,
+    width: 400,
+    height: 300,
+    colours: { veil: "#404040", accent: "#C0C0C0" },
+  };
 }
 
 describe("slideUnits", () => {

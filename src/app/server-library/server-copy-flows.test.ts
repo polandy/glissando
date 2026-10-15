@@ -15,7 +15,14 @@ const SHOW: StoredSlideshow = {
   title: "Iceland 2025",
   createdAt: "2025-07-02T08:00:00Z",
   pictures: [
-    { id: "asset-1", capturedAt: "2025-07-01T10:00:00Z", width: 3, height: 2, fileName: "a" },
+    {
+      id: "asset-1",
+      capturedAt: "2025-07-01T10:00:00Z",
+      width: 3,
+      height: 2,
+      fileName: "a",
+      colours: { veil: "#404040", accent: "#C0C0C0" },
+    },
   ],
   songs: [],
   secondsPerPicture: 5,

@@ -3,7 +3,14 @@ import { placeByCaptureDate } from "./added-placement";
 import type { StoredPicture } from "./stored-slideshow";
 
 function at(id: string, capturedAt: string): StoredPicture {
-  return { id, capturedAt, width: 100, height: 100, fileName: `${id}.jpg` };
+  return {
+    id,
+    capturedAt,
+    width: 100,
+    height: 100,
+    fileName: `${id}.jpg`,
+    colours: { veil: "#404040", accent: "#C0C0C0" },
+  };
 }
 
 const ids = (pictures: readonly StoredPicture[]) => pictures.map(({ id }) => id);

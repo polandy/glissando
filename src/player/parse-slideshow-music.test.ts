@@ -28,7 +28,7 @@ const NEXT = {
   fadeOutMs: 0,
 };
 
-function withMusic(music: unknown, formatVersion = 5): unknown {
+function withMusic(music: unknown, formatVersion = 6): unknown {
   return { formatVersion, title: "July 2025", music, slides: [SLIDE] };
 }
 
@@ -55,7 +55,7 @@ describe("parseSlideshow music", () => {
       const error = parseError(withMusic(TRACK, formatVersion));
 
       expect(error.path).toBe("formatVersion");
-      expect(error.message).toContain("expected 5");
+      expect(error.message).toContain("expected 6");
     },
   );
 

@@ -8,7 +8,12 @@ describe("SlideshowEditor's title slide and closing slide (ADR-0032, TITLE_SLIDE
     const card = editor.ensureOpeningCard();
     await editor.settled();
 
-    expect(card.background).toEqual({ kind: "picture", pictureId: "a", fade: 60 });
+    expect(card.background).toEqual({
+      kind: "picture",
+      pictureId: "a",
+      fade: 60,
+      tint: "picture",
+    });
     expect((await store.getSlideshow("show")).openingCard).toEqual(card);
   });
 
@@ -53,7 +58,12 @@ describe("SlideshowEditor's title slide and closing slide (ADR-0032, TITLE_SLIDE
     await editor.settled();
 
     expect(card.title).toBe("");
-    expect(card.background).toEqual({ kind: "picture", pictureId: "c", fade: 60 });
+    expect(card.background).toEqual({
+      kind: "picture",
+      pictureId: "c",
+      fade: 60,
+      tint: "picture",
+    });
     expect((await store.getSlideshow("show")).closingCard).toEqual(card);
   });
 

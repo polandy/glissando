@@ -41,6 +41,7 @@ function mountStart(
       onDismissNotice: () => {},
       onReload: () => {},
       onSetUpFrame: () => {},
+      onHideFrameCard: () => {},
       updateWaiting: false,
       statusBar: createRawSnippet(() => ({ render: () => "<footer></footer>" })),
     },

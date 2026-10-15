@@ -15,7 +15,14 @@ import { InvalidOwnKenBurnsError } from "./own-ken-burns";
 import type { StoredPicture, StoredSlideshow } from "./stored-slideshow";
 
 function picture(id: string): StoredPicture {
-  return { id, capturedAt: "2025-07-01T10:00:00Z", width: 100, height: 100, fileName: `${id}.jpg` };
+  return {
+    id,
+    capturedAt: "2025-07-01T10:00:00Z",
+    width: 100,
+    height: 100,
+    fileName: `${id}.jpg`,
+    colours: { veil: "#404040", accent: "#C0C0C0" },
+  };
 }
 
 function slideshow(ids: readonly string[], overrides: Partial<StoredSlideshow> = {}) {

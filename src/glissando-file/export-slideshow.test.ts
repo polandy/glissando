@@ -12,8 +12,22 @@ const slideshow: StoredSlideshow = {
   title: "Herbst in Wien",
   createdAt: "2025-10-01T08:00:00.000Z",
   pictures: [
-    { id: "p2", capturedAt: "2025-09-30T11:00:00Z", width: 40, height: 30, fileName: "b.jpg" },
-    { id: "p1", capturedAt: "2025-09-30T10:00:00Z", width: 40, height: 30, fileName: "a.jpg" },
+    {
+      id: "p2",
+      capturedAt: "2025-09-30T11:00:00Z",
+      width: 40,
+      height: 30,
+      fileName: "b.jpg",
+      colours: { veil: "#404040", accent: "#C0C0C0" },
+    },
+    {
+      id: "p1",
+      capturedAt: "2025-09-30T10:00:00Z",
+      width: 40,
+      height: 30,
+      fileName: "a.jpg",
+      colours: { veil: "#404040", accent: "#C0C0C0" },
+    },
   ],
   songs: [{ id: "m1", fileName: "Walzer.m4a", durationMs: 240000, mimeType: "audio/mp4" }],
   secondsPerPicture: 5,
@@ -110,6 +124,7 @@ describe("exportSlideshow", () => {
       width: 4,
       height: 3,
       fileName: "",
+      colours: { veil: "#404040", accent: "#C0C0C0" },
     };
     const broken = { ...slideshow, pictures: [gone] };
     await expect(exportSlideshow(broken, store, { modifiedAt: MODIFIED })).rejects.toThrow(/gone/);

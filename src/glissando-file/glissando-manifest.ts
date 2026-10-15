@@ -1,4 +1,5 @@
 import type { OwnKenBurns } from "../library/own-ken-burns";
+import type { PictureColours } from "../library/picture-colours";
 import type { PictureLength } from "../library/picture-length";
 import type { PortraitPictures } from "../library/portrait-pictures";
 import type { BetweenSongs, MusicTrim, PictureChanges } from "../library/own-music";
@@ -20,12 +21,14 @@ export const GLISSANDO_FORMAT_ID = "glissando";
  * (ADR-0021), version 9 the slideshow's picture length (ADR-0022), version 10 the playlist,
  * `songs` and `betweenSongs` replacing the single `music` (ADR-0023), version 11 the slideshow's
  * `portraitPictures` and a picture's `alone` (ADR-0028), version 12 the slideshow's `openingCard`
- * and `closingCard` (ADR-0032). A file older than version 10 carried `music`, not `songs`, with
- * no automatic way to tell the two apart in a document that also predates other fields; such a
- * file is reported like any other unsupported version.
+ * and `closingCard` (ADR-0032), version 13 a picture's `colours` and a card's picture background
+ * `tint` (ADR-0033). A file older than version 10 carried `music`, not `songs`, with no automatic
+ * way to tell the two apart in a document that also predates other fields; such a file is
+ * reported like any other unsupported version. Only version 13 is read: there is no production
+ * instance yet, so an older file is refused rather than migrated.
  */
-export const GLISSANDO_FORMAT_VERSION = 12;
-export const OLDEST_READABLE_FORMAT_VERSION = 12;
+export const GLISSANDO_FORMAT_VERSION = 13;
+export const OLDEST_READABLE_FORMAT_VERSION = 13;
 /** The first version that carries a picture's own motion. */
 export const OWN_KEN_BURNS_FROM_VERSION = 2;
 /** The first version that carries a picture's caption. */
@@ -69,6 +72,8 @@ export interface ManifestPicture {
   readonly fileBytes?: number;
   /** Never composed into a portrait pair, even automatically; absent: it may be (ADR-0028). */
   readonly alone?: true;
+  /** Worked out once when the picture is added (ADR-0033). */
+  readonly colours: PictureColours;
 }
 
 export interface ManifestMusic {
@@ -161,6 +166,7 @@ export function manifestFor(
     width: picture.width,
     height: picture.height,
     fileName: picture.fileName,
+    colours: picture.colours,
     ...(picture.kenBurns === undefined ? {} : { kenBurns: picture.kenBurns }),
     ...(picture.caption === undefined ? {} : { caption: picture.caption }),
     ...(picture.durationMs === undefined ? {} : { durationMs: picture.durationMs }),

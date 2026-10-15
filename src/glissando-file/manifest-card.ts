@@ -1,15 +1,21 @@
 import {
   checkCardColour,
+  checkCardEntrance,
   checkCardFade,
   checkCardMotion,
   checkCardPosition,
   checkCardStyle,
   checkCardText,
+  checkCardTint,
   InvalidCardError,
 } from "../library/stored-card";
-import type { StoredCard, StoredCardBackground } from "../library/stored-slideshow";
-import type { CardSwatchId } from "../player/card-palette";
-import type { CardPosition, CardStyle } from "../player/slideshow";
+import type {
+  CardColour,
+  CardTint,
+  StoredCard,
+  StoredCardBackground,
+} from "../library/stored-slideshow";
+import type { CardEntrance, CardPosition, CardStyle } from "../player/slideshow";
 import { DocumentFormatError, readObject } from "./document-values";
 
 /**
@@ -23,14 +29,20 @@ import { DocumentFormatError, readObject } from "./document-values";
 export const TITLE_CARDS_FROM_VERSION = 12;
 
 export type ManifestCardBackground =
-  | { readonly kind: "colour"; readonly colour: CardSwatchId }
-  | { readonly kind: "picture"; readonly pictureIndex: number; readonly fade: number };
+  | { readonly kind: "colour"; readonly colour: CardColour }
+  | {
+      readonly kind: "picture";
+      readonly pictureIndex: number;
+      readonly fade: number;
+      readonly tint: CardTint;
+    };
 
 export interface ManifestCard {
   readonly title: string;
   readonly subtitle?: string;
   readonly style: CardStyle;
   readonly position: CardPosition;
+  readonly entrance: CardEntrance;
   readonly background: ManifestCardBackground;
   readonly motion: boolean;
 }
@@ -48,6 +60,7 @@ export function cardToManifest(
     ...(card.subtitle === undefined ? {} : { subtitle: card.subtitle }),
     style: card.style,
     position: card.position,
+    entrance: card.entrance,
     background: backgroundToManifest(card.background, pictureIds),
     motion: card.motion,
   };
@@ -66,7 +79,7 @@ function backgroundToManifest(
       `card background names picture "${background.pictureId}", not one of this slideshow's`,
     );
   }
-  return { kind: "picture", pictureIndex, fade: background.fade };
+  return { kind: "picture", pictureIndex, fade: background.fade, tint: background.tint };
 }
 
 /** `card`'s background picture named by `pictureIds[pictureIndex]`; `undefined` stays so. */
@@ -82,6 +95,7 @@ export function cardFromManifest(
     ...(card.subtitle === undefined ? {} : { subtitle: card.subtitle }),
     style: card.style,
     position: card.position,
+    entrance: card.entrance,
     background: backgroundFromManifest(card.background, pictureIds),
     motion: card.motion,
   };
@@ -98,7 +112,7 @@ function backgroundFromManifest(
   if (pictureId === undefined) {
     throw new Error(`card background's pictureIndex ${background.pictureIndex} is out of range`);
   }
-  return { kind: "picture", pictureId, fade: background.fade };
+  return { kind: "picture", pictureId, fade: background.fade, tint: background.tint };
 }
 
 /** `value` as a `ManifestCard` at `path`; throws `DocumentFormatError` naming the bad field. */
@@ -108,6 +122,7 @@ export function readManifestCard(value: unknown, path: string, pictureCount: num
     "subtitle",
     "style",
     "position",
+    "entrance",
     "background",
     "motion",
   ]);
@@ -116,6 +131,7 @@ export function readManifestCard(value: unknown, path: string, pictureCount: num
     card["subtitle"] === undefined ? undefined : readCardText(card["subtitle"], path, "subtitle");
   const style = readCardCheck(checkCardStyle, card["style"], path);
   const position = readCardCheck(checkCardPosition, card["position"], path);
+  const entrance = readCardCheck(checkCardEntrance, card["entrance"], path);
   const motion = readCardCheck(checkCardMotion, card["motion"], path);
   const background = readCardBackground(card["background"], path, pictureCount);
   return {
@@ -123,6 +139,7 @@ export function readManifestCard(value: unknown, path: string, pictureCount: num
     ...(subtitle === undefined ? {} : { subtitle }),
     style,
     position,
+    entrance,
     background,
     motion,
   };
@@ -138,6 +155,7 @@ function readCardBackground(
     "colour",
     "pictureIndex",
     "fade",
+    "tint",
   ]);
   if (background["kind"] === "colour") {
     return {
@@ -163,6 +181,7 @@ function readCardBackground(
       kind: "picture",
       pictureIndex,
       fade: readCardCheck(checkCardFade, background["fade"], `${path}.background`),
+      tint: readCardCheck(checkCardTint, background["tint"], `${path}.background`),
     };
   }
   throw new DocumentFormatError(

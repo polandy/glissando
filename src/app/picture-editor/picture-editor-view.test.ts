@@ -92,6 +92,7 @@ describe("pictureEditorView", () => {
             width: 300,
             height: 400,
             fileName: "a.jpg",
+            colours: { veil: "#404040", accent: "#C0C0C0" },
           },
           {
             id: "p2",
@@ -99,6 +100,7 @@ describe("pictureEditorView", () => {
             width: 300,
             height: 400,
             fileName: "b.jpg",
+            colours: { veil: "#404040", accent: "#C0C0C0" },
           },
         ],
       };

@@ -1,10 +1,9 @@
 # Title cards
 
-A **card** is the title or closing text that the player draws over a slide (ADR-0032). It is
-drawn in screen space and does not move with the Ken Burns motion, like a caption (ADR-0007).
-Its look and timing live with the player (`card-layout.ts`, `card-timing.ts`). Both renderers
-and the editor's preview use the same numbers. Mockup:
-https://polandy.github.io/glissando-assets/mockups/title-slides/.
+A **card** is the title or closing text the player draws over a slide (ADR-0032), in screen
+space and not moving with Ken Burns, like a caption (ADR-0007). Its look and timing
+live with the player (`card-layout.ts`, `card-timing.ts`), shared by both renderers and the
+editor preview. Mockup: https://polandy.github.io/glissando-assets/mockups/title-slides/.
 
 ## Contract
 
@@ -19,6 +18,7 @@ https://polandy.github.io/glissando-assets/mockups/title-slides/.
     "style": "modern",
     "position": "centre",
     "ink": "light",
+    "entrance": "words",
     "veil": { "amount": 0.6, "tint": "#2A2340" },
     "enterAtMs": 0,
     "revealAtMs": 2400
@@ -32,31 +32,61 @@ A **ground slide** has `"ground": "#2A2340"` (a `#RRGGBB` colour) in place of `i
 - `title`: required. It follows the caption rule (1 to 80 graphemes, a single line, no outer or
   repeated whitespace). `subtitle` is optional and follows the same rule.
 - `style`: one of `modern`, `quiet`, `bold`, `classic`. `position`: `centre` or `bottom-left`.
-- `ink`: `light` or `dark`, the text colour. The composer chooses it for contrast, so the
-  player does not guess.
-- `veil` (picture slides only, optional): `amount` is from 0 to 1 and `tint` is `#RRGGBB`. An
-  absent veil means no veil.
+- `ink`: `light` or `dark`, the text colour, chosen by the composer for contrast.
+- `entrance`: one of `rise`, `words`, `letters`, `focus`, `slow-fade` (§ Entrances). It is
+  required.
+- `veil` (picture slides only, optional): `amount` from 0 to 1, `tint` `#RRGGBB`.
 - `enterAtMs` (default 0) is where the card starts, in slide time. `revealAtMs` (picture slides
-  only, optional) is where the text dissolves and the veil lifts. It must come at least
-  `CARD_ENTER_MS` after `enterAtMs` and at least `CARD_REVEAL_MS` before the slide's end.
-- A `veil` on a card that starts after 0 **veils in**: the slide shows the bare picture until
-  `enterAtMs`, then the veil settles in with the text.
+  only, optional) is where the text dissolves and the veil lifts. It must come at least the
+  card's enter length (`cardEnterMs`, § Entrances) after `enterAtMs`, and at least
+  `CARD_REVEAL_MS` before the slide's end.
+- A `veil` on a card starting after 0 **veils in**: the bare picture shows until `enterAtMs`,
+  then the veil settles in with the text.
 - Slideshow `endFadeMs` (optional, positive and no longer than the last slide): over the last
   `endFadeMs` of the show, the whole frame fades to black. The final frame is black.
-- Every fault is a `SlideshowFormatError` at its path, for example `slides[0].card.revealAtMs`.
+- Every fault is a `SlideshowFormatError` at its path, e.g. `slides[0].card.revealAtMs`.
 
 ## Timing (slide time `t`, eased cubic in-out unless named)
 
 | Phase  | When                                     | What                                                                                  |
 | ------ | ---------------------------------------- | ------------------------------------------------------------------------------------- |
-| enter  | `enterAtMs` … `+ CARD_ENTER_MS` (800)    | text opacity 0 → 1, drift 0.4 em → 0 (ease-out)                                       |
+| enter  | `enterAtMs` … `+ cardEnterMs`            | the text comes in by its entrance (§ Entrances)                                       |
 | veil   | with enter if it veils in, else at 0     | veils in: 0 → `amount` over `CARD_VEIL_MS` (1400); else `amount` from the first frame |
-| reveal | `revealAtMs` … `+ CARD_REVEAL_MS` (1400) | text opacity 1 → 0 with drift 0 → −0.3 em; veil → 0                                   |
+| reveal | `revealAtMs` … `+ CARD_REVEAL_MS` (1400) | the text goes out by its entrance, reversed; veil → 0                                 |
 | end    | last `endFadeMs` of the show             | the frame mixes to black                                                              |
 
-A caption on a slide with a card has opacity `1 − text opacity`, so it appears once the reveal
-has run and fades out as a closing card comes in. Under reduced motion, the drift is 0 and every
-fade takes `CARD_REDUCED_FADE_MS` (400).
+The card's **presence** is the enter progress times one minus the reveal progress. A caption on
+a slide with a card has opacity `1 − presence`: it appears after the reveal and fades as a
+closing card enters. Under reduced motion, every entrance is a plain fade: no drift, no stagger,
+no blur, no scale, and every fade (enter, veil, reveal) takes `CARD_REDUCED_FADE_MS` (400).
+
+## Entrances
+
+An entrance moves **items**. For `rise`, `focus` and `slow-fade` the whole text is one item. For
+`words` each word is an item, for `letters` each grapheme (spaces are not items). The items run
+in reading order, the title's before the subtitle's. A staggered entrance starts item `i` at
+`i × stagger`, with `stagger = min(step, spread / (n − 1))` for `n` items, so a long title still
+lands in time. The reveal runs the items in reverse order with its own step and spread, and
+always fits within `CARD_REVEAL_MS`. `cardEnterMs(card)` is the enter phase's whole length; no
+entrance is longer than `CARD_ENTER_MAX_MS` (2000), which is less than `CARD_HOLD_MS`.
+
+| Entrance    | Enter (per item, ease-out)                                                      | Reveal (per item, ease-in-out)                         |
+| ----------- | ------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| `rise`      | 800 ms: opacity 0 → 1, drift 0.4 em → 0                                         | 1400 ms: opacity 1 → 0, drift 0 → −0.3 em              |
+| `words`     | 500 ms: opacity 0 → 1, drift 0.4 em → 0; step 120 ms, spread 1200 ms            | 600 ms: opacity 1 → 0; step 80 ms, spread 800 ms       |
+| `letters`   | 350 ms: opacity 0 → 1, drift 0.15 em → 0; step 40 ms, spread 1600 ms            | 400 ms: opacity 1 → 0; step 25 ms, spread 1000 ms      |
+| `focus`     | 1000 ms: from blurred to sharp (below), scale 1.04 → 1 about the block's centre | 1400 ms: sharp to blurred, scale 1 → 1.04, opacity → 0 |
+| `slow-fade` | 1600 ms: opacity 0 → 1, eased in-out                                            | 1400 ms: opacity 1 → 0                                 |
+
+- An item is a slice of its laid-out line, from the measured width of the text before it to the
+  width through it, over the line's full height. The text is rasterised once, as for `rise`;
+  an item's motion moves only its slice.
+- **Focus** draws the card twice: the sharp text, and a copy rasterised once with a blur of
+  0.012 h. At progress `p`, the sharp text has opacity `p` and the blurred copy
+  `min(1, 2p) × (1 − p)`: a cross-fade, not a blur per frame (ADR-0032). The blur runs on a
+  copy scaled down to a sigma of 3 px, so it takes milliseconds at any resolution; only
+  `focus`, and only in motion, builds the copy.
+- No entrance animates letter spacing or blur per frame (both re-rasterise).
 
 ## Look
 
@@ -120,4 +150,7 @@ of the music, as for any slide with its own duration.
   least `endFadeMs`.
 - **Ink:** `light` unless the ground (or the veil's tint at full amount) has a relative
   luminance above 0.5.
-- **Tint:** `#2A2340` (plum). Picture-derived tints come later.
+- **Tint** by the stored card's `tint`: `picture` takes the background picture's veil colour
+  ([picture colours](TITLE_CARD_COLOURS.md)), `light` is cream `#FFF3E2`, `dark` is plum
+  `#2A2340`.
+- **Entrance:** the stored card's, unchanged.

@@ -9,7 +9,14 @@ const AUTOMATIC: StoredSlideshow = {
   title: "Herbst in Wien",
   createdAt: "2025-10-01T08:00:00.000Z",
   pictures: [
-    { id: "p1", capturedAt: "2025-09-30T10:00:00Z", width: 30, height: 40, fileName: "a.jpg" },
+    {
+      id: "p1",
+      capturedAt: "2025-09-30T10:00:00Z",
+      width: 30,
+      height: 40,
+      fileName: "a.jpg",
+      colours: { veil: "#404040", accent: "#C0C0C0" },
+    },
     {
       id: "p2",
       capturedAt: "2025-09-30T11:00:00Z",
@@ -17,6 +24,7 @@ const AUTOMATIC: StoredSlideshow = {
       height: 40,
       fileName: "b.jpg",
       alone: true,
+      colours: { veil: "#404040", accent: "#C0C0C0" },
     },
   ],
   songs: [],

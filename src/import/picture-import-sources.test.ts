@@ -37,7 +37,11 @@ class FullFocusStore extends MemoryLibraryStore {
 
 function setUp(store = new MemoryLibraryStore()) {
   let next = 1;
-  const pictureImport = new PictureImport({ store, newId: () => `picture-${next++}` });
+  const pictureImport = new PictureImport({
+    store,
+    newId: () => `picture-${next++}`,
+    pixels: () => Promise.resolve([]),
+  });
   return { pictureImport, store };
 }
 

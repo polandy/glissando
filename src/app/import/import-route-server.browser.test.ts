@@ -23,6 +23,8 @@ function session(createOnServer: ImportSessionPorts["createOnServer"]): ImportSe
     store: new MemoryLibraryStore(),
     ...fakeRemovalPorts(),
     checker: new FakePictureChecker(),
+    pixels: () => Promise.resolve([]),
+    immichColours: () => Promise.resolve({ veil: "#404040", accent: "#C0C0C0" }),
     decode: (file) =>
       Promise.resolve({
         width: 300,
@@ -96,6 +98,9 @@ describe("ImportRoute, creating a server slideshow", () => {
     });
     importSession.chooseHome("server");
     importSession.addImmichPhotos([PHOTO]);
+    // Linking reads the photo's colours off its thumbnail (ADR-0033), so it settles later than
+    // the synchronous call above.
+    await importSession.intake.settled();
     const { target, failed, created, toldFailure, createButton } = mountMusicStep(importSession);
 
     createButton()?.click();
