@@ -7,13 +7,22 @@ export interface ReadPicture {
   readonly decoded: DecodedPicture;
   /** Null when the source knows none; the on-device pass looks for it later (ADR-0012). */
   readonly focus: PictureFocus | null;
+  /** The clip of a video: `decoded` is its poster, the frame at the excerpt's start (ADR-0034). */
+  readonly video?: ReadVideo;
+}
+
+/** A video's original file as chosen, with the length of the whole clip. */
+export interface ReadVideo {
+  readonly blob: Blob;
+  readonly sourceMs: number;
 }
 
 /**
  * Where the picture import takes a picture from: a local file or a photo on Immich.
  * `identify()` is cheap, so a duplicate is known before the picture is read (ADR-0016). Both
  * reject with `UnreadablePictureError` for a picture the browser cannot read or decode,
- * and with `PictureNotDownloadedError` for one whose bytes could not be fetched.
+ * and with `PictureNotDownloadedError` for one whose bytes could not be fetched. A video this
+ * browser cannot take in rejects with `VideoRefusedError`.
  */
 export interface PictureSource {
   readonly fileName: string;

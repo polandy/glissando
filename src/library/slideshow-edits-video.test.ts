@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { InvalidVideoError, type StoredVideo } from "./own-video";
-import { setVideoDuckMusic, setVideoExcerpt, setVideoVolume } from "./slideshow-edits-video";
+import {
+  resetVideoClip,
+  setVideoDuckMusic,
+  setVideoExcerpt,
+  setVideoVolume,
+} from "./slideshow-edits-video";
 import type { StoredSlideshow } from "./stored-slideshow";
 
 const VIDEO: StoredVideo = { mediaId: "video-1", sourceMs: 60_000, startMs: 0, endMs: 10_000 };
@@ -85,5 +90,36 @@ describe("setVideoDuckMusic", () => {
 
     expect(videoOf(edited)).toEqual(VIDEO);
     expect(videoOf(edited)).not.toHaveProperty("duckMusic");
+  });
+});
+
+describe("resetVideoClip", () => {
+  it("brings back the first five minutes, full sound and a ducking music", () => {
+    const edited = slideshow({
+      ...VIDEO,
+      sourceMs: 20 * 60_000,
+      startMs: 70_000,
+      endMs: 90_000,
+      volume: 40,
+      duckMusic: false,
+    });
+
+    expect(videoOf(resetVideoClip(edited, "clip"))).toEqual({
+      mediaId: "video-1",
+      sourceMs: 20 * 60_000,
+      startMs: 0,
+      endMs: 5 * 60_000,
+    });
+  });
+
+  it("keeps a shorter clip whole", () => {
+    expect(videoOf(resetVideoClip(slideshow({ ...VIDEO, startMs: 5000 }), "clip"))).toMatchObject({
+      startMs: 0,
+      endMs: 60_000,
+    });
+  });
+
+  it("throws for a picture that holds no video", () => {
+    expect(() => resetVideoClip(slideshow(), "still")).toThrow(/no video picture "still"/);
   });
 });

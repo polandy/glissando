@@ -1,14 +1,21 @@
 import { isSamePicture, type PictureIdentity } from "../library/picture-identity";
 import { pictureColours, type RgbPixel } from "../library/picture-colours";
+import { MAX_VIDEO_EXCERPT_MS, type StoredVideo } from "../library/own-video";
 import type { LibraryStore, StoredPicture } from "../library/stored-slideshow";
 import type { DuplicateReason, SkipReason } from "./picture-import";
-import { PictureNotDownloadedError, type PictureSource, type ReadPicture } from "./picture-source";
+import {
+  PictureNotDownloadedError,
+  type PictureSource,
+  type ReadPicture,
+  type ReadVideo,
+} from "./picture-source";
 import { UnreadablePictureError } from "./unreadable-picture";
+import { VideoRefusedError } from "./video-refusal";
 
 const QUOTA_EXCEEDED = "QuotaExceededError";
 
 export interface OutcomePorts {
-  readonly store: Pick<LibraryStore, "putPicture" | "putPictureFocus">;
+  readonly store: Pick<LibraryStore, "putPicture" | "putPictureFocus" | "putVideo">;
   /** The stored display rendition's pixels, sampled for `pictureColours` (ADR-0033). */
   pixels(blob: Blob): Promise<readonly RgbPixel[]>;
   newId(): string;
@@ -60,14 +67,21 @@ export async function importOne(
       ports.log?.(error);
       return { kind: "skipped", reason: error.stage === "read" ? "unreadable" : "undecodable" };
     }
+    if (error instanceof VideoRefusedError) {
+      return { kind: "skipped", reason: error.reason };
+    }
     if (error instanceof PictureNotDownloadedError) {
       return { kind: "skipped", reason: "notDownloaded" };
     }
     throw error;
   }
-  const { decoded, focus } = read;
+  const { decoded, focus, video } = read;
   const id = ports.newId();
+  const storedVideo = video === undefined ? undefined : wholeClip(ports.newId(), video);
   try {
+    if (video !== undefined && storedVideo !== undefined) {
+      await ports.store.putVideo(storedVideo.mediaId, video.blob);
+    }
     await ports.store.putPicture(id, {
       display: decoded.display,
       thumbnail: decoded.thumbnail,
@@ -90,7 +104,21 @@ export async function importOne(
   const colours = pictureColours(await ports.pixels(decoded.display));
   return {
     kind: "stored",
-    picture: { id, capturedAt, width, height, fileName, colours, ...origin },
+    picture: {
+      id,
+      capturedAt,
+      width,
+      height,
+      fileName,
+      colours,
+      ...origin,
+      ...(storedVideo === undefined ? {} : { video: storedVideo }),
+    },
     thumbnail: decoded.thumbnail,
   };
+}
+
+/** A clip's first stored form: the whole clip, up to the longest excerpt, from its start. */
+function wholeClip(mediaId: string, { sourceMs }: ReadVideo): StoredVideo {
+  return { mediaId, sourceMs, startMs: 0, endMs: Math.min(sourceMs, MAX_VIDEO_EXCERPT_MS) };
 }

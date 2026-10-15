@@ -16,6 +16,11 @@ export const INTAKE_NOW = new Date("2026-10-08T12:00:00Z");
 export const pictureFile = (name: string, capturedAt: string): File =>
   Object.assign(new File([name], name, { type: "image/jpeg" }), { capturedAt });
 
+/** A generated video file the fake clip reader opens as an 8 s clip; `refused` names it unplayable. */
+export const FAKE_CLIP_MS = 8000;
+export const videoFile = (name: string, capturedAt: string): File =>
+  Object.assign(new File([name], name, { type: "video/mp4" }), { capturedAt });
+
 /** A photo from the fake Immich, read like a file. */
 export function fakeImmichSource(photo: ImmichPhoto): PictureSource {
   return {
@@ -70,6 +75,20 @@ export function fakeIntakePorts(
         thumbnail: new Blob([`thumbnail ${file.name}`]),
       }),
     captureDate: (file) => Promise.resolve((file as File & { capturedAt: string }).capturedAt),
+    videoClips: {
+      captureDate: (file) => Promise.resolve((file as File & { capturedAt: string }).capturedAt),
+      openClip: (file) =>
+        Promise.resolve(
+          file.name.startsWith("broken")
+            ? null
+            : {
+                durationMs: FAKE_CLIP_MS,
+                posterFrame: (atMs) =>
+                  Promise.resolve(new File([`frame ${atMs}`], `${file.name}.jpg`)),
+                close: () => undefined,
+              },
+        ),
+    },
     immichSource: fakeImmichSource,
     pixels: () => Promise.resolve([]),
     immichColours: () => Promise.resolve(NO_COLOURS),

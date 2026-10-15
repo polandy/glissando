@@ -42,7 +42,7 @@ export async function captureDate(file: File): Promise<string> {
   return readExifCaptureDate(head) ?? localWallTime(new Date(file.lastModified));
 }
 
-function localWallTime(date: Date): string {
+export function localWallTime(date: Date): string {
   const two = (value: number) => String(value).padStart(2, "0");
   const day = `${String(date.getFullYear()).padStart(4, "0")}-${two(date.getMonth() + 1)}-${two(date.getDate())}`;
   return `${day}T${two(date.getHours())}:${two(date.getMinutes())}:${two(date.getSeconds())}Z`;

@@ -1,4 +1,9 @@
-import { checkVideoExcerpt, checkVideoVolume, type StoredVideo } from "./own-video";
+import {
+  checkVideoExcerpt,
+  checkVideoVolume,
+  MAX_VIDEO_EXCERPT_MS,
+  type StoredVideo,
+} from "./own-video";
 import type { StoredPicture, StoredSlideshow } from "./stored-slideshow";
 
 /**
@@ -61,4 +66,18 @@ function editVideo(
     ...slideshow,
     pictures: slideshow.pictures.map((other) => (other === picture ? edited : other)),
   };
+}
+
+/** The clip as import made it: its first `MAX_VIDEO_EXCERPT_MS` from the start, full sound, music ducked. */
+export function resetVideoClip(slideshow: StoredSlideshow, pictureId: string): StoredSlideshow {
+  const video = slideshow.pictures.find((picture) => picture.id === pictureId)?.video;
+  if (video === undefined) {
+    throw new Error(`slideshow "${slideshow.id}" holds no video picture "${pictureId}"`);
+  }
+  const endMs = Math.min(video.sourceMs, MAX_VIDEO_EXCERPT_MS);
+  return setVideoDuckMusic(
+    setVideoVolume(setVideoExcerpt(slideshow, pictureId, 0, endMs), pictureId, undefined),
+    pictureId,
+    true,
+  );
 }

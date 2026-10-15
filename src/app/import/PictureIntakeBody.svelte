@@ -46,7 +46,7 @@
     linking?: boolean;
   } = $props();
 
-  const PICTURE_TYPES = "image/*";
+  const PICTURE_TYPES = "image/*,video/*,.mp4,.webm,.mov";
   const DUPLICATE_REASONS: readonly DuplicateReason[] = ["alreadyIn", "chosenTwice"];
   const DUPLICATE_LEADS = {
     alreadyIn: "add.alreadyIn",
