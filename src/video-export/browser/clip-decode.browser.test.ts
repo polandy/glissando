@@ -16,6 +16,7 @@ import { ClipSound } from "./clip-sound";
 /** A software encode of a short clip can take a while on a shared runner; a ceiling, not a wait. */
 const GENERATION_CEILING_MS = 60_000;
 const CLIP_MS = 1500;
+const CAPTURED_AT = "2026-07-01T10:00:00Z";
 const TONE_AMPLITUDE = 0.5;
 const EXPORT_WIDTH = 1280;
 
@@ -163,8 +164,8 @@ describe("runVideoExport with a video slide", () => {
         formatVersion: 7,
         title: "With a clip",
         slides: [
-          { image: { src: "blue" }, durationMs: 1000, kenBurns: still },
-          { ...CLIP_SLIDE, image: { src: "blue" }, kenBurns: still },
+          { image: { src: "blue", capturedAt: CAPTURED_AT }, durationMs: 1000, kenBurns: still },
+          { ...CLIP_SLIDE, image: { src: "blue", capturedAt: CAPTURED_AT }, kenBurns: still },
         ],
       };
       const blue = await solidPicture("#0000ff");
@@ -195,8 +196,8 @@ describe("runVideoExport with a video slide", () => {
       const before = await sink.getCanvas(0.5);
       const during = await sink.getCanvas(1.5);
       input.dispose();
-      const [beforeRed, , beforeBlue] = centrePixel(before?.canvas as OffscreenCanvas);
-      const [duringRed, , duringBlue] = centrePixel(during?.canvas as OffscreenCanvas);
+      const [beforeRed = 0, , beforeBlue = 0] = centrePixel(before?.canvas as OffscreenCanvas);
+      const [duringRed = 0, , duringBlue = 0] = centrePixel(during?.canvas as OffscreenCanvas);
       expect(beforeBlue).toBeGreaterThan(beforeRed);
       expect(duringRed).toBeGreaterThan(duringBlue);
     },
