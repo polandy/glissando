@@ -13,7 +13,8 @@ const CARD: StoredCard = {
   title: "Juli 2025",
   style: "modern",
   position: "centre",
-  background: { kind: "picture", pictureId: "a", fade: 60 },
+  entrance: "rise",
+  background: { kind: "picture", pictureId: "a", fade: 60, tint: "picture" },
   motion: true,
 };
 
@@ -28,6 +29,7 @@ const PICTURES: PictureTile[] = [
     pairedWithNumber: null,
     blurredFill: false,
     alone: false,
+    colours: { veil: "#404040", accent: "#C0C0C0" },
   },
 ];
 
@@ -46,8 +48,16 @@ function setUp(reducedMotion = false) {
     pictures: readonly PictureTile[];
     previewPorts: { clock: FakeClock; frames: FakeFrameScheduler };
     reducedMotion: boolean;
+    entranceReplayToken: number;
     fonts: FakeFonts;
-  }>({ card: CARD, pictures: PICTURES, previewPorts: { clock, frames }, reducedMotion, fonts });
+  }>({
+    card: CARD,
+    pictures: PICTURES,
+    previewPorts: { clock, frames },
+    reducedMotion,
+    entranceReplayToken: 0,
+    fonts,
+  });
   const mounted = mountWithTranslator(CardPreview, props);
   mounted.target.style.width = "320px";
   destroy = mounted.destroy;
@@ -107,6 +117,24 @@ describe("CardPreview", () => {
     flushSync();
 
     expect(target.textContent).toContain("Juli am See");
+    expect(text.style.opacity).toBe("1");
+  });
+
+  it("replays the enter phase once when entranceReplayToken changes", async () => {
+    const { target, props, after, fonts } = setUp();
+    const text = await settledText(target, fonts);
+    after(CARD_PREVIEW_SETTLED_MS);
+    flushSync();
+    expect(text.style.opacity).toBe("1");
+
+    props.card = { ...CARD };
+    props.entranceReplayToken = 1;
+    flushSync();
+
+    expect(text.style.opacity).toBe("0");
+
+    after(CARD_PREVIEW_SETTLED_MS);
+    flushSync();
     expect(text.style.opacity).toBe("1");
   });
 

@@ -11,10 +11,10 @@ import {
 } from "./server-document-fixtures";
 
 describe("serverDocumentFor", () => {
-  it("names the server format and version 2 and links every picture by its Immich asset", () => {
+  it("names the server format and version 3 and links every picture by its Immich asset", () => {
     const written = document();
     expect(written.format).toBe("glissando-server");
-    expect(written.formatVersion).toBe(2);
+    expect(written.formatVersion).toBe(3);
     expect(written.slideshow.pictures[0]).toEqual({
       capturedAt: "2025-09-30T10:00:00Z",
       width: 3840,
@@ -22,6 +22,7 @@ describe("serverDocumentFor", () => {
       fileName: "a.jpg",
       caption: "Am Steg",
       immichAssetId: ASSET_A,
+      colours: { veil: "#404040", accent: "#C0C0C0" },
     });
   });
 
@@ -54,8 +55,8 @@ describe("serverDocumentFor", () => {
   });
 
   it("refuses a picture without an Immich asset, naming it", () => {
-    const { id, capturedAt, width, height, fileName } = firstStoredPicture;
-    const devicePicture: StoredPicture = { id, capturedAt, width, height, fileName };
+    const { id, capturedAt, width, height, fileName, colours } = firstStoredPicture;
+    const devicePicture: StoredPicture = { id, capturedAt, width, height, fileName, colours };
     expect(() => serverDocumentFor({ ...slideshow, pictures: [devicePicture] })).toThrow(
       /picture .*a\.jpg.* has no immichAssetId/,
     );

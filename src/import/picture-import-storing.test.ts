@@ -38,6 +38,7 @@ describe("PictureImport, storing pictures", () => {
           height: 200,
           fileName: "a.jpg",
           fileBytes: 5,
+          colours: { veil: "#262626", accent: "#BEBEBE" },
         },
       ],
       skipped: [],

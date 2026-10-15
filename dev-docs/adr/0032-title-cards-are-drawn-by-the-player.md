@@ -54,5 +54,6 @@ the fonts that its cards use.
   KB). One without a card stays as it is.
 - The picture frame (ADR-0030) has no cards: its rounds are not composed from a stored
   slideshow.
-- The text's motion is opacity and a short drift only. A blur on the text would need another
-  pass per frame and is left out.
+- The text's motion is opacity, a short drift and a slight scale, per item of the text. A blur
+  on the text would need another pass per frame and is left out. The "focus" entrance
+  cross-fades to a copy blurred once when it is rasterised.

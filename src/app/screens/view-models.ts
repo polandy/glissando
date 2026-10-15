@@ -1,4 +1,5 @@
 import type { SlideshowTransition, TransitionChoice } from "../../library/own-timing";
+import type { PictureColours } from "../../library/picture-colours";
 import type { ResolvedPortraitPictures } from "../../library/portrait-pictures";
 import type { StoredCard } from "../../library/stored-slideshow";
 
@@ -51,6 +52,8 @@ export interface PictureTile {
   readonly blurredFill: boolean;
   /** Marked never to be composed into a pair. */
   readonly alone: boolean;
+  /** Derived from its pixels (`TITLE_CARD_COLOURS.md`); used for a title card tinted `picture`. */
+  readonly colours: PictureColours;
 }
 
 /** Which fades the music plays: named in its summary once the user changed the music. */

@@ -4,7 +4,7 @@ import type { Slideshow } from "./slideshow";
 import { WebGlRenderer } from "./webgl/webgl-renderer";
 
 const SLIDESHOW: Slideshow = {
-  formatVersion: 5,
+  formatVersion: 6,
   title: "Generated",
   slides: [
     {
@@ -21,13 +21,19 @@ const SLIDESHOW: Slideshow = {
 
 /** A closing card in the `classic` style, the simplest slideshow whose card needs an extra font. */
 const SLIDESHOW_WITH_CARD: Slideshow = {
-  formatVersion: 5,
+  formatVersion: 6,
   title: "Generated",
   slides: [
     {
       ground: "#000000",
       durationMs: 1000,
-      card: { title: "The End", style: "classic", position: "centre", ink: "light" },
+      card: {
+        title: "The End",
+        style: "classic",
+        position: "centre",
+        ink: "light",
+        entrance: "rise",
+      },
     },
   ],
 };

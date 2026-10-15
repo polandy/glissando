@@ -13,8 +13,22 @@ const STORED: StoredSlideshow = {
   createdAt: "2025-07-12T10:00:00Z",
   secondsPerPicture: 5,
   pictures: [
-    { id: "a", capturedAt: "2025-07-12T10:00:00Z", width: 3840, height: 2160, fileName: "a.jpg" },
-    { id: "b", capturedAt: "2025-07-12T11:00:00Z", width: 1000, height: 800, fileName: "b.jpg" },
+    {
+      id: "a",
+      capturedAt: "2025-07-12T10:00:00Z",
+      width: 3840,
+      height: 2160,
+      fileName: "a.jpg",
+      colours: { veil: "#404040", accent: "#C0C0C0" },
+    },
+    {
+      id: "b",
+      capturedAt: "2025-07-12T11:00:00Z",
+      width: 1000,
+      height: 800,
+      fileName: "b.jpg",
+      colours: { veil: "#404040", accent: "#C0C0C0" },
+    },
   ],
   songs: [{ id: "m", fileName: "m.mp3", durationMs: 60_000, mimeType: "audio/mpeg" }],
 };

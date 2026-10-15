@@ -3,7 +3,14 @@ import { orderByCaptureDate } from "./order-by-capture-date";
 import type { StoredPicture } from "../library/stored-slideshow";
 
 function picture(id: string, capturedAt: string, fileName = id): StoredPicture {
-  return { id, capturedAt, fileName, width: 100, height: 100 };
+  return {
+    id,
+    capturedAt,
+    fileName,
+    width: 100,
+    height: 100,
+    colours: { veil: "#404040", accent: "#C0C0C0" },
+  };
 }
 
 describe("orderByCaptureDate", () => {

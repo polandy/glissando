@@ -10,7 +10,8 @@ const CARD: StoredCard = {
   subtitle: "1.–20. Juli",
   style: "modern",
   position: "centre",
-  background: { kind: "picture", pictureId: "a", fade: 60 },
+  entrance: "rise",
+  background: { kind: "picture", pictureId: "a", fade: 60, tint: "picture" },
   motion: true,
 };
 
@@ -25,6 +26,7 @@ const PICTURES: PictureTile[] = [
     pairedWithNumber: null,
     blurredFill: false,
     alone: false,
+    colours: { veil: "#404040", accent: "#C0C0C0" },
   },
 ];
 
@@ -80,6 +82,16 @@ describe("CardSheet", () => {
     }
 
     expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ title: "Juli  am See " }));
+  });
+
+  it("calls onChange with the picked entrance", () => {
+    const { target, onChange } = setUp(CARD);
+
+    const chips = target.querySelectorAll<HTMLButtonElement>(".chip");
+    const words = Array.from(chips).find((chip) => chip.textContent === "Wort für Wort");
+    words?.click();
+
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ entrance: "words" }));
   });
 
   it("calls onRemove and onClose when Remove is clicked", () => {

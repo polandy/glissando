@@ -18,6 +18,7 @@ const picture = (overrides: Partial<ServerPicture> = {}): ServerPicture => ({
   height: 1080,
   fileName: "IMG_0001.jpg",
   immichAssetId: ASSET_ID,
+  colours: { veil: "#404040", accent: "#C0C0C0" },
   ...overrides,
 });
 
@@ -70,6 +71,7 @@ describe("the share document", () => {
       caption: "Am Kahlenberg",
       durationMs: 4000,
       kenBurns,
+      colours: { veil: "#404040", accent: "#C0C0C0" },
     });
   });
 

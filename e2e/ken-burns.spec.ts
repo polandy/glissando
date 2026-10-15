@@ -37,6 +37,7 @@ const AGAINST_THE_EDGE: StoredSlideshow = {
       capturedAt: "2025-09-30T10:00:00Z",
       ...PICTURE,
       fileName: "gradient.jpg",
+      colours: { veil: "#404040", accent: "#C0C0C0" },
       kenBurns: {
         from: { zoom: 1, centerX: 1, centerY: 0.5 },
         to: { zoom: 3, centerX: 0.2, centerY: 0.5 },

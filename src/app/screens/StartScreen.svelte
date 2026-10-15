@@ -29,6 +29,8 @@
     statusBar,
     serverOn = false,
     onSetUpFrame,
+    onHideFrameCard,
+    frameCardShown = true,
   }: {
     /** Newest first. */
     slideshows: readonly SlideshowSummary[];
@@ -53,6 +55,9 @@
     /** The picture frame card shows only while the server library is on (`dev-docs/app/FRAME.md`). */
     serverOn?: boolean;
     onSetUpFrame: () => void;
+    onHideFrameCard: () => void;
+    /** The owner can hide the picture frame card; Settings brings it back. */
+    frameCardShown?: boolean;
   } = $props();
 
   const { t } = getTranslator();
@@ -99,8 +104,8 @@
     {#if logo}
       <div class="logo">{@render logo()}</div>
     {/if}
-    {#if serverOn}
-      <FrameCard onSetUp={onSetUpFrame} />
+    {#if serverOn && frameCardShown}
+      <FrameCard onSetUp={onSetUpFrame} onHide={onHideFrameCard} />
     {/if}
     {#if slideshows.length === 0 && server === null}
       <div class="hero">

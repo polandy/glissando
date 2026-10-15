@@ -1,10 +1,14 @@
 import { describe, expect, it } from "vitest";
 import {
+  CARD_ENTER_MAX_MS,
   CARD_ENTER_MS,
   CARD_REDUCED_FADE_MS,
   CARD_REVEAL_MS,
   CARD_VEIL_MS,
+  cardEnterMs,
+  cardItemTimingAt,
   cardTimingAt,
+  drawsBlurredCopy,
   endFadeAmount,
 } from "./card-timing";
 import type { Card } from "./slideshow";
@@ -16,6 +20,7 @@ function heldCard(overrides: Partial<Card> = {}): Card {
     style: "modern",
     position: "centre",
     ink: "light",
+    entrance: "rise",
     ...overrides,
   };
 }
@@ -125,6 +130,113 @@ describe("cardTimingAt: reduced motion", () => {
   });
 });
 
+describe("cardEnterMs", () => {
+  it("is the entrance's own item length for a whole-text entrance", () => {
+    expect(cardEnterMs({ title: "Summer at the Lake", entrance: "rise" })).toBe(800);
+    expect(cardEnterMs({ title: "Summer at the Lake", entrance: "focus" })).toBe(1000);
+    expect(cardEnterMs({ title: "Summer at the Lake", entrance: "slow-fade" })).toBe(1600);
+  });
+
+  it("adds the last word's stagger offset for words", () => {
+    // 4 words ("Summer", "at", "the", "Lake"): stagger = min(120, 1200/3) = 120, so
+    // the last item starts 3 * 120ms in and takes another 500ms to finish.
+    const length = cardEnterMs({ title: "Summer at the Lake", entrance: "words" });
+
+    expect(length).toBe(3 * 120 + 500);
+  });
+
+  it("adds the last letter's stagger offset for letters, spaces excluded", () => {
+    // 4 letters ("a","b","c","d"): stagger = min(40, 1600/3) = 40.
+    const length = cardEnterMs({ title: "ab cd", entrance: "letters" });
+
+    expect(length).toBe(3 * 40 + 350);
+  });
+
+  it("never exceeds CARD_ENTER_MAX_MS, even for a long title split into letters", () => {
+    const longTitle = "a".repeat(200);
+
+    expect(cardEnterMs({ title: longTitle, entrance: "letters" })).toBeLessThanOrEqual(
+      CARD_ENTER_MAX_MS,
+    );
+  });
+});
+
+describe("cardItemTimingAt: stagger order", () => {
+  const staggered = { entrance: "words" as const, enterAtMs: 0 };
+
+  it("has an earlier item further through its enter than a later one, same slide time", () => {
+    const first = cardItemTimingAt(staggered, 0, 4, 300, false);
+    const last = cardItemTimingAt(staggered, 3, 4, 300, false);
+
+    expect(first.opacity).toBeGreaterThan(last.opacity);
+  });
+
+  it("reveals the last item first: its reverse index starts the reveal window at 0", () => {
+    const revealing = { entrance: "words" as const, enterAtMs: 0, revealAtMs: 2000 };
+
+    const lastItem = cardItemTimingAt(revealing, 3, 4, 2100, false);
+    const firstItem = cardItemTimingAt(revealing, 0, 4, 2100, false);
+
+    expect(lastItem.opacity).toBeLessThan(firstItem.opacity);
+  });
+});
+
+describe("cardItemTimingAt: focus cross-fade", () => {
+  const focusCard = { entrance: "focus" as const, enterAtMs: 0 };
+
+  it("is all blur, no sharp text, scaled up, when fully hidden", () => {
+    const visual = cardItemTimingAt(focusCard, 0, 1, -1, false);
+
+    expect(visual.opacity).toBe(0);
+    expect(visual.blurOpacity).toBe(0);
+    expect(visual.scale).toBeCloseTo(1.04);
+  });
+
+  it("is all sharp text, no blur, at native scale, once fully present", () => {
+    const visual = cardItemTimingAt(focusCard, 0, 1, 10_000, false);
+
+    expect(visual.opacity).toBeCloseTo(1);
+    expect(visual.blurOpacity).toBeCloseTo(0);
+    expect(visual.scale).toBeCloseTo(1);
+  });
+
+  it("cross-fades through a blurred peak partway through the enter", () => {
+    const halfway = cardItemTimingAt(focusCard, 0, 1, 500, false);
+
+    expect(halfway.opacity).toBeGreaterThan(0);
+    expect(halfway.opacity).toBeLessThan(1);
+    expect(halfway.blurOpacity).toBeGreaterThan(0);
+    expect(halfway.scale).toBeGreaterThan(1);
+    expect(halfway.scale).toBeLessThan(1.04);
+  });
+});
+
+describe("cardItemTimingAt: reduced motion", () => {
+  it("drops the stagger: every item shares the same plain fade", () => {
+    const staggered = { entrance: "letters" as const, enterAtMs: 0 };
+
+    const first = cardItemTimingAt(staggered, 0, 4, 200, true);
+    const last = cardItemTimingAt(staggered, 3, 4, 200, true);
+
+    expect(first.opacity).toBe(last.opacity);
+    expect(first.driftEm).toBe(0);
+    expect(first.scale).toBe(1);
+  });
+
+  it("gives focus a plain fade too: no blur, no scale change", () => {
+    const visual = cardItemTimingAt(
+      { entrance: "focus" as const, enterAtMs: 0 },
+      0,
+      1,
+      CARD_REDUCED_FADE_MS / 2,
+      true,
+    );
+
+    expect(visual.blurOpacity).toBe(0);
+    expect(visual.scale).toBe(1);
+  });
+});
+
 describe("endFadeAmount", () => {
   it("is 0 before the fade window starts", () => {
     expect(endFadeAmount(1000, 10_000, 8_000)).toBe(0);
@@ -144,4 +256,20 @@ describe("endFadeAmount", () => {
     expect(amount).toBeGreaterThan(0);
     expect(amount).toBeLessThan(1);
   });
+});
+
+describe("drawsBlurredCopy", () => {
+  it.each([
+    ["rise", false, false],
+    ["words", false, false],
+    ["letters", false, false],
+    ["slow-fade", false, false],
+    ["focus", false, true],
+    ["focus", true, false],
+  ] as const)(
+    "%s (reduced motion %s) needs a blurred cross-fade copy: %s",
+    (entrance, reducedMotion, expected) => {
+      expect(drawsBlurredCopy(entrance, reducedMotion)).toBe(expected);
+    },
+  );
 });

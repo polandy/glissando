@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { StoredSlideshow } from "./stored-slideshow";
+import { SlideshowNotFoundError, type StoredSlideshow } from "./stored-slideshow";
 import { IndexedDbLibraryStore, LIBRARY_DATABASE_NAME, openLibraryStore } from "./indexeddb-store";
 import { describeLibraryStoreContract } from "./testing/library-store-contract";
 import { MemoryLibraryStore } from "./testing/memory-store";
@@ -90,6 +90,7 @@ describe("IndexedDbLibraryStore saves", () => {
             width: 1,
             height: 1,
             fileName: "a.jpg",
+            colours: { veil: "#404040", accent: "#C0C0C0" },
           },
         ],
         songs: [],
@@ -129,7 +130,7 @@ describe("IndexedDbLibraryStore schema upgrade", () => {
     });
   }
 
-  it("keeps the slideshows of a version 1 library and records imports after upgrading", async () => {
+  it("clears the slideshows of a version 1 library, predating colours, and records imports after upgrading", async () => {
     await deleteLibraryDatabase();
     const saved: StoredSlideshow = {
       id: "show-1",
@@ -142,6 +143,7 @@ describe("IndexedDbLibraryStore schema upgrade", () => {
           width: 1,
           height: 1,
           fileName: "a.jpg",
+          colours: { veil: "#404040", accent: "#C0C0C0" },
         },
       ],
       songs: [],
@@ -151,7 +153,8 @@ describe("IndexedDbLibraryStore schema upgrade", () => {
 
     const store = await openLibraryStore(indexedDB);
     try {
-      expect(await store.getSlideshow("show-1")).toEqual(saved);
+      await expect(store.getSlideshow("show-1")).rejects.toBeInstanceOf(SlideshowNotFoundError);
+      expect(await store.listSlideshows()).toEqual([]);
       await store.claimMedia("import-1", new Date("2026-10-08T12:00:00Z"), "picture-1");
       await store.putPicture("picture-1", { display: new Blob(["d"]), thumbnail: new Blob(["t"]) });
       await store.deleteUnreferencedMedia(new Date("2026-10-08T12:00:00Z"));
@@ -189,7 +192,7 @@ describe("IndexedDbLibraryStore focus upgrade", () => {
     });
   }
 
-  it("keeps a version 2 library's slideshows and pictures and stores focus after upgrading", async () => {
+  it("clears a version 2 library's slideshows, predating colours, keeps pictures and stores focus after upgrading", async () => {
     await deleteLibraryDatabase();
     const saved: StoredSlideshow = {
       id: "show-1",
@@ -202,6 +205,7 @@ describe("IndexedDbLibraryStore focus upgrade", () => {
           width: 1,
           height: 1,
           fileName: "a.jpg",
+          colours: { veil: "#404040", accent: "#C0C0C0" },
         },
       ],
       songs: [],
@@ -211,7 +215,7 @@ describe("IndexedDbLibraryStore focus upgrade", () => {
 
     const store = await openLibraryStore(indexedDB);
     try {
-      expect(await store.getSlideshow("show-1")).toEqual(saved);
+      await expect(store.getSlideshow("show-1")).rejects.toBeInstanceOf(SlideshowNotFoundError);
       expect((await store.thumbnailBlob("saved-picture")).size).toBe(1);
       expect(await store.pictureFocus(["saved-picture"])).toEqual(new Map());
       await store.putPictureFocus("saved-picture", { kind: "none" });
@@ -248,7 +252,7 @@ describe("IndexedDbLibraryStore beats upgrade", () => {
     });
   }
 
-  it("keeps a version 3 library's slideshows and music and stores beats after upgrading", async () => {
+  it("clears a version 3 library's slideshows, predating colours, keeps music and stores beats after upgrading", async () => {
     await deleteLibraryDatabase();
     const saved: StoredSlideshow = {
       id: "show-1",
@@ -262,7 +266,7 @@ describe("IndexedDbLibraryStore beats upgrade", () => {
 
     const store = await openLibraryStore(indexedDB);
     try {
-      expect(await store.getSlideshow("show-1")).toEqual(saved);
+      await expect(store.getSlideshow("show-1")).rejects.toBeInstanceOf(SlideshowNotFoundError);
       expect((await store.musicBlob("saved-music")).size).toBe(1);
       expect(await store.musicBeats("saved-music")).toBeUndefined();
       await store.putMusicBeats("saved-music", { kind: "none" });

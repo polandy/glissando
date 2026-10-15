@@ -45,15 +45,14 @@ function toggleSwitch(page: Page, label: string): Promise<void> {
     .click();
 }
 
-/** Registers the fake server and loads the app, with a photo ready for every picture asked for. */
+/**
+ * Registers the fake server and loads the app. The photo is drawn on the still-empty page first,
+ * so it exists before the app can ask for one (a frame started by a link asks at once).
+ */
 async function openAppWithServer(page: Page, path = "/"): Promise<void> {
-  let jpeg: Uint8Array | null = null;
-  await fakeGlissandoServer(page, () => {
-    if (jpeg === null) throw new Error("a photo was asked for before the case made one");
-    return jpeg;
-  });
+  const photo = (await pictureTakenOn(page, "photo.jpg", "2019-07-02", "#4db6ac")).buffer;
+  await fakeGlissandoServer(page, () => photo);
   await openApp(page, path);
-  jpeg = (await pictureTakenOn(page, "photo.jpg", "2019-07-02", "#4db6ac")).buffer;
 }
 
 test("E2E-047 the picture frame is set up from the start screen, runs full screen and its tap controls exit back to the start screen on both the button and Esc", async ({
@@ -154,18 +153,60 @@ test("E2E-048 the picture frame's set-up choices survive a reload", async ({ pag
 });
 
 test("E2E-049 a #frame= link starts the frame directly, skipping set-up", async ({ page }) => {
-  let jpeg: Uint8Array | null = null;
-  await fakeGlissandoServer(page, () => {
-    if (jpeg === null) throw new Error("a photo was asked for before the case made one");
-    return jpeg;
-  });
-  await openApp(page, `/#frame=${LANDSCAPES_ALBUM_ID}`);
-  jpeg = (await pictureTakenOn(page, "photo.jpg", "2019-07-02", "#4db6ac")).buffer;
+  await openAppWithServer(page, `/#frame=${LANDSCAPES_ALBUM_ID}`);
 
   await expect(exitButton(page)).toBeVisible();
   // The default showDate stamps the running picture with the album's own name: proof the deep
   // link's album, not just any frame, is the one playing.
   await expect(page.locator(".stamp")).toHaveText("Landscapes Lab");
+});
+
+test("E2E-057 the picture frame card is hidden with its close button, stays hidden after a reload, the frame is still set up from Settings and the card is brought back there", async ({
+  page,
+}) => {
+  await openAppWithServer(page);
+  await expect(setUpCard(page)).toBeVisible();
+
+  await page.getByRole("button", { name: "Bilderrahmen-Karte ausblenden" }).click();
+  await expect(
+    page.getByText("Bilderrahmen ausgeblendet. In den Einstellungen holst du ihn zurück."),
+  ).toBeVisible();
+  await expect(setUpCard(page)).toHaveCount(0);
+
+  // The card shows once the server library and Immich have answered; with both in and the
+  // server's own section drawn, its absence is the owner's choice, not a start screen still loading.
+  const immichChecked = page.waitForResponse((response) =>
+    /\/immich\/api\/server\/version$/.test(response.url()),
+  );
+  await page.reload();
+  await immichChecked;
+  await expect(page.getByRole("heading", { name: "Auf deinem Glissando-Server" })).toBeVisible();
+  await expect(setUpCard(page)).toHaveCount(0);
+
+  await page.getByRole("button", { name: "Einstellungen" }).click();
+  await expect(page.getByText("In diesem Browser ausgeblendet", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Bilderrahmen einrichten" }).click();
+  await expect(startFrameButton(page)).toBeInViewport();
+
+  await page.goBack();
+  await page.getByRole("button", { name: "Einstellungen" }).click();
+  await expect(page.getByText("In diesem Browser ausgeblendet", { exact: true })).toBeVisible();
+  await toggleSwitch(page, "Karte auf der Startseite zeigen");
+  await expect(page.getByText("Steht über deinen Diashows", { exact: true })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(setUpCard(page)).toBeVisible();
+});
+
+test("E2E-058 the picture frame card's undo toast brings the card back at once", async ({
+  page,
+}) => {
+  await openAppWithServer(page);
+
+  await page.getByRole("button", { name: "Bilderrahmen-Karte ausblenden" }).click();
+  await expect(setUpCard(page)).toHaveCount(0);
+  await page.getByRole("button", { name: "Rückgängig" }).click();
+
+  await expect(setUpCard(page)).toBeVisible();
 });
 
 test("E2E-050 the picture frame card is absent while Immich cannot be reached", async ({

@@ -32,10 +32,9 @@ import { browserMusicEditorAudio } from "./app/music-editor/music-editor-audio";
 import { deviceSongStorage, serverSongStorage } from "./app/music-editor/song-intake";
 import { freeStorageBytes } from "./library/free-storage";
 import { decodePicture } from "./import/downscale";
-import { captureDate } from "./import/exif-capture-date";
-import { immichPictureSource } from "./import/immich-picture-source";
+import { browserIntakePorts } from "./app/import/browser-intake-ports";
 import { HttpImmichClient } from "./immich/http-immich-client";
-import type { ImmichPhoto, ImmichUnavailableKind } from "./immich/immich-client";
+import type { ImmichUnavailableKind } from "./immich/immich-client";
 import type { StoredSlideshow } from "./library/stored-slideshow";
 import type { SlideshowHome } from "./app/routes/slideshow-storage";
 import { browserNetworkStatus, ImmichAvailability } from "./immich/immich-availability";
@@ -48,7 +47,6 @@ import { openLibraryStore } from "./library/indexeddb-store";
 import { startFocusWorker, WorkerFocusDetector } from "./focus/worker-focus-detector";
 import { decodeMusicWithWebAudio } from "./beats/decode-music";
 import { startBeatWorker, WorkerBeatDetector } from "./beats/worker-beat-detector";
-import { startCheckWorker, WorkerPictureChecker } from "./culling/worker-picture-checker";
 import { requestPersistentStorage } from "./library/persistent-storage";
 import { browserPwaPorts } from "./pwa/browser-pwa";
 import { createStorageHintDismissalStore, PwaStatus } from "./pwa/pwa-status";
@@ -191,20 +189,16 @@ const serverBeatPass = new BeatPass({
   reportError: logError,
 });
 
-/** What every picture intake reads with, for a new slideshow and for adding to one. */
-const intakePorts = {
-  decode: decodePicture,
-  captureDate,
-  immichSource: (photo: ImmichPhoto) => immichPictureSource(photo, immichReaders),
-  checker: new WorkerPictureChecker(startCheckWorker),
+const intakePorts = browserIntakePorts({
+  immichClient,
+  immichReaders,
   newId,
   now,
   onError: reportError,
   log: logError,
   toaster,
-  removedText: (count: number) => translator.current.t("slideshow.removed", { count }),
-  undoLabel: () => translator.current.t("slideshow.undo"),
-};
+  translator,
+});
 
 const serverSessions = serverSlideshowSessions(window, {
   shareApi: serverLibraryClient,

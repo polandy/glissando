@@ -86,12 +86,14 @@ export async function writeGlissandoFile(
         width: picture.width,
         height: picture.height,
         fileName: picture.fileName,
+        colours: picture.colours,
         ...(picture.kenBurns === undefined ? {} : { kenBurns: picture.kenBurns }),
         ...(picture.caption === undefined ? {} : { caption: picture.caption }),
         ...(picture.durationMs === undefined ? {} : { durationMs: picture.durationMs }),
         ...(picture.transition === undefined ? {} : { transition: picture.transition }),
         ...(picture.immichAssetId === undefined ? {} : { immichAssetId: picture.immichAssetId }),
         ...(picture.fileBytes === undefined ? {} : { fileBytes: picture.fileBytes }),
+        ...(picture.alone === true ? { alone: true } : {}),
       });
     }
     const songs: StoredMusic[] = [];
@@ -122,6 +124,10 @@ export async function writeGlissandoFile(
       createdAt: ports.now().toISOString(),
       pictures,
       ...(slideshow.ownOrder ? { ownOrder: true } : {}),
+      ...(slideshow.pictureLength === undefined ? {} : { pictureLength: slideshow.pictureLength }),
+      ...(slideshow.portraitPictures === undefined
+        ? {}
+        : { portraitPictures: slideshow.portraitPictures }),
       ...(slideshow.transition === undefined ? {} : { transition: slideshow.transition }),
       songs,
       ...(slideshow.betweenSongs === undefined ? {} : { betweenSongs: slideshow.betweenSongs }),

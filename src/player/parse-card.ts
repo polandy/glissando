@@ -1,4 +1,4 @@
-import { CARD_ENTER_MS, CARD_REVEAL_MS } from "./card-timing";
+import { cardEnterMs, CARD_REVEAL_MS } from "./card-timing";
 import {
   readCaptionLike,
   readHexColor,
@@ -9,10 +9,12 @@ import {
   SlideshowFormatError,
 } from "./parse-primitives";
 import {
+  CARD_ENTRANCES,
   CARD_INKS,
   CARD_POSITIONS,
   CARD_STYLES,
   type Card,
+  type CardEntrance,
   type CardInk,
   type CardPosition,
   type CardStyle,
@@ -32,21 +34,34 @@ export function readCard(
   allowPictureOnly: boolean,
 ): Card {
   const keys = allowPictureOnly
-    ? ["title", "subtitle", "style", "position", "ink", "veil", "enterAtMs", "revealAtMs"]
-    : ["title", "subtitle", "style", "position", "ink", "enterAtMs"];
+    ? [
+        "title",
+        "subtitle",
+        "style",
+        "position",
+        "ink",
+        "entrance",
+        "veil",
+        "enterAtMs",
+        "revealAtMs",
+      ]
+    : ["title", "subtitle", "style", "position", "ink", "entrance", "enterAtMs"];
   const card = readObject(value, path, keys);
   const enterAtMs =
     card.enterAtMs === undefined
       ? undefined
       : readNonNegativeInteger(card.enterAtMs, `${path}.enterAtMs`);
+  const title = readCaptionLike(card.title, `${path}.title`);
+  const subtitle =
+    card.subtitle === undefined ? undefined : readCaptionLike(card.subtitle, `${path}.subtitle`);
+  const entrance = readOneOf<CardEntrance>(card.entrance, `${path}.entrance`, CARD_ENTRANCES);
   return {
-    title: readCaptionLike(card.title, `${path}.title`),
-    ...(card.subtitle === undefined
-      ? {}
-      : { subtitle: readCaptionLike(card.subtitle, `${path}.subtitle`) }),
+    title,
+    ...(subtitle === undefined ? {} : { subtitle }),
     style: readOneOf<CardStyle>(card.style, `${path}.style`, CARD_STYLES),
     position: readOneOf<CardPosition>(card.position, `${path}.position`, CARD_POSITIONS),
     ink: readOneOf<CardInk>(card.ink, `${path}.ink`, CARD_INKS),
+    entrance,
     ...(card.veil === undefined ? {} : { veil: readVeil(card.veil, `${path}.veil`) }),
     ...(enterAtMs === undefined ? {} : { enterAtMs }),
     ...(card.revealAtMs === undefined
@@ -57,6 +72,7 @@ export function readCard(
             `${path}.revealAtMs`,
             enterAtMs ?? 0,
             slideDurationMs,
+            { title, entrance, ...(subtitle === undefined ? {} : { subtitle }) },
           ),
         }),
   };
@@ -75,13 +91,14 @@ function readRevealAtMs(
   path: string,
   enterAtMs: number,
   slideDurationMs: number,
+  card: Pick<Card, "title" | "subtitle" | "entrance">,
 ): number {
   const revealAtMs = readNonNegativeInteger(value, path);
-  const minimum = enterAtMs + CARD_ENTER_MS;
+  const minimum = enterAtMs + cardEnterMs(card);
   if (revealAtMs < minimum) {
     throw new SlideshowFormatError(
       path,
-      `at least enterAtMs + CARD_ENTER_MS (${minimum})`,
+      `at least enterAtMs + cardEnterMs (${minimum})`,
       revealAtMs,
     );
   }

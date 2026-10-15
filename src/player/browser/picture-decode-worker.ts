@@ -8,9 +8,9 @@ self.addEventListener("message", (event: MessageEvent<DecodeRequest>) => {
 });
 
 async function decode({ id, bytes }: DecodeRequest): Promise<void> {
-  let bitmap: ImageBitmap;
+  let owned: ImageBitmap;
   try {
-    bitmap = await createImageBitmap(bytes, { imageOrientation: "from-image" });
+    owned = ownedCopy(await createImageBitmap(bytes, { imageOrientation: "from-image" }));
   } catch (error) {
     const reply: DecodeReply = {
       id,
@@ -20,6 +20,19 @@ async function decode({ id, bytes }: DecodeRequest): Promise<void> {
     self.postMessage(reply);
     return;
   }
-  const reply: DecodeReply = { id, kind: "decoded", bitmap };
-  self.postMessage(reply, { transfer: [bitmap] });
+  const reply: DecodeReply = { id, kind: "decoded", bitmap: owned };
+  self.postMessage(reply, { transfer: [owned] });
+}
+
+// WebKit hands concurrent decodes of equally sized pictures each other's bitmaps; a copy drawn
+// onto a canvas is the picture's own.
+function ownedCopy(bitmap: ImageBitmap): ImageBitmap {
+  const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
+  const context = canvas.getContext("2d");
+  if (context === null) {
+    throw new Error("no 2D canvas context to copy a decoded picture");
+  }
+  context.drawImage(bitmap, 0, 0);
+  bitmap.close();
+  return canvas.transferToImageBitmap();
 }

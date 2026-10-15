@@ -32,6 +32,7 @@ export interface AppStateSetters {
   setPwaState(state: PwaState): void;
   setImmichState(state: ImmichAvailabilityState): void;
   setServerState(state: ServerLibraryState): void;
+  setFrameCardShown(shown: boolean): void;
 }
 
 /**
@@ -78,6 +79,7 @@ export function subscribeAppState(
   });
   const stopPwa = pwa.subscribe(setters.setPwaState);
   const stopImmich = immich.availability.subscribe(setters.setImmichState);
+  const stopFrameCard = services.frameCardPreference.subscribe(setters.setFrameCardShown);
   const stopServer = services.serverLibrary.availability.subscribe(setters.setServerState);
   // A double-clicked file starts a new window (`launch_handler`), so it opens from the library.
   openLaunchedFiles(launchQueue, {
@@ -95,5 +97,6 @@ export function subscribeAppState(
     stopPwa();
     stopImmich();
     stopServer();
+    stopFrameCard();
   };
 }

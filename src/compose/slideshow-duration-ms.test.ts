@@ -3,7 +3,14 @@ import { slideshowDurationMs } from "./slideshow-duration-ms";
 import type { StoredPicture, StoredSlideshow } from "../library/stored-slideshow";
 
 function picture(id: string, capturedAt: string): StoredPicture {
-  return { id, capturedAt, fileName: `${id}.jpg`, width: 400, height: 300 };
+  return {
+    id,
+    capturedAt,
+    fileName: `${id}.jpg`,
+    width: 400,
+    height: 300,
+    colours: { veil: "#404040", accent: "#C0C0C0" },
+  };
 }
 
 describe("slideshowDurationMs", () => {
@@ -81,6 +88,7 @@ describe("slideshowDurationMs", () => {
       fileName: `${id}.jpg`,
       width: 300,
       height: 400,
+      colours: { veil: "#404040", accent: "#C0C0C0" },
     });
     const stored: StoredSlideshow = {
       id: "s1",

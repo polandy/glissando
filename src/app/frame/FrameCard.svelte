@@ -3,7 +3,7 @@
   import { getTranslator } from "../i18n/context";
 
   /** The start screen's entry into the picture frame (`dev-docs/app/FRAME.md`). */
-  let { onSetUp }: { onSetUp: () => void } = $props();
+  let { onSetUp, onHide }: { onSetUp: () => void; onHide: () => void } = $props();
 
   const { t } = getTranslator();
 </script>
@@ -15,6 +15,15 @@
     <p>{t("frame.cardText")}</p>
   </div>
   <button class="btn" type="button" onclick={onSetUp}>{t("frame.setUp")}</button>
+  <button
+    class="icon-btn"
+    type="button"
+    title={t("frame.cardHide")}
+    aria-label={t("frame.cardHide")}
+    onclick={onHide}
+  >
+    <Icon name="close" />
+  </button>
 </div>
 
 <style>

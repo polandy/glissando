@@ -3,13 +3,17 @@ import type { KenBurnsAt, Size } from "./ken-burns";
 
 /**
  * A card's look at the moment drawn (ADR-0032): the card itself plus `cardTimingAt`'s numbers,
- * so the renderers never recompute the timing.
+ * so the renderers never recompute the timing. `slideTimeMs` and `reducedMotion` are carried
+ * through so a renderer can derive each item's own visual (`cardItemTimingAt`) itself, never the
+ * wall clock.
  */
 export interface CardVisual {
   readonly card: Card;
   readonly textOpacity: number;
   readonly driftEm: number;
   readonly veilAmount: number;
+  readonly slideTimeMs: number;
+  readonly reducedMotion: boolean;
 }
 
 /**

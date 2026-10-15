@@ -6,7 +6,7 @@ gesture all close it the same way: by going back. A native modal dialog (focus t
 behind inert, focus back on the gear when closed): above 720 px viewport width a 380 px panel at
 the top right, narrower a bottom sheet. Radio groups, three with the server library on, else two
 (`components/RadioGroup.svelte`: one tab stop, arrows and Home/End move the choice with the
-focus), the Immich group, the version group, the footnote
+focus), the Picture frame group (server library on), the Immich group, the version group, the footnote
 "Applies at once and is stored on this device" and the link "Open-source licences":
 
 - **Appearance**: "Same as device" (hint "Light or dark, following the system setting"),
@@ -20,6 +20,10 @@ focus), the Immich group, the version group, the footnote
   device pixels (screen size × `devicePixelRatio`, `screenShortEdge` in
   `settings/playback-quality.ts`) is larger than 1440. What a server slideshow then does before
   it plays: [PREPARING.md](PREPARING.md), ADR-0027.
+- **Picture frame** (`settings/FrameSettingsGroup.svelte`), only while the server library is on:
+  "Set up a picture frame" opens the frame's set-up screen ([FRAME.md](FRAME.md)); the switch
+  "Show the card on the start page" (sub-line "Shown above your slideshows" or "Hidden in this
+  browser") shows or hides the start screen's card, kept in this browser.
 - **Immich** (`immich/ImmichSettingsGroup.svelte`): read-only, see [IMMICH.md](IMMICH.md).
 - **Version** (`settings/VersionGroup.svelte`): "Glissando 0.0.2" and below it, in mono, the
   abbreviated commit and its date ("416d018 · 12/10/2026"). While a new version waits the box

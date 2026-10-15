@@ -13,6 +13,7 @@ function portrait(id: string, overrides: Partial<StoredPicture> = {}): StoredPic
     fileName: `${id}.jpg`,
     width: 300,
     height: 400,
+    colours: { veil: "#404040", accent: "#C0C0C0" },
     ...overrides,
   };
 }

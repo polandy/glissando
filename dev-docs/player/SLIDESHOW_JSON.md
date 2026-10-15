@@ -84,5 +84,6 @@ are rejected.
 - **`card`, `ground`, `endFadeMs`** (version 5, ADR-0032, optional): a title or closing card
   drawn over the slide; a ground slide (a `#RRGGBB` colour instead of `image` and `kenBurns`)
   carrying one; the show's fade to black. Contract and timing in [TITLE_CARDS.md](TITLE_CARDS.md).
-- Only version 5 is read; version 4 (without cards) is refused, not upgraded — no
-  instance holds slideshows older than this app.
+  Version 6 makes a card's `entrance` required.
+- Only version 6 is read; older versions are refused, not upgraded — no instance holds
+  slideshows older than this app.

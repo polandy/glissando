@@ -1,3 +1,5 @@
+import { hideFrameCard } from "./frame/frame-card-actions";
+import type { FrameCardPreference } from "./frame/frame-card-preference";
 import type { InstallOffer, StatusBarAction } from "../pwa/status-bar-view";
 import type { Translator } from "./i18n/translator";
 import type { PwaSheetContent } from "./pwa/PwaSheet.svelte";
@@ -7,6 +9,7 @@ import type { Toaster } from "./toast/toaster";
 export interface AppActionPorts {
   readonly pwa: Pick<AppServices["pwa"], "install" | "reload">;
   readonly toaster: Toaster;
+  readonly frameCardPreference: Pick<FrameCardPreference, "setShown">;
   readonly reportError: AppServices["reportError"];
   readonly appAddress: string;
 }
@@ -15,11 +18,12 @@ export interface AppActions {
   install(offer: InstallOffer): void;
   statusBarAction(action: StatusBarAction): void;
   createFailed(retry: () => void): void;
+  hideFrameCard(): void;
 }
 
 /**
- * The status bar's install/update actions, and the toast offering a retry after a failed
- * server create.
+ * The status bar's install/update actions, the toast offering a retry after a failed
+ * server create, and hiding the picture frame card.
  */
 export function createAppActions(
   ports: AppActionPorts,
@@ -57,5 +61,9 @@ export function createAppActions(
     });
   }
 
-  return { install, statusBarAction, createFailed };
+  function hideFrame(): void {
+    hideFrameCard({ preference: ports.frameCardPreference, toaster: ports.toaster, t });
+  }
+
+  return { install, statusBarAction, createFailed, hideFrameCard: hideFrame };
 }

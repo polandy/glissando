@@ -6,6 +6,7 @@ import {
   type DuplicateReason,
 } from "../../import/picture-import";
 import type { PictureSource } from "../../import/picture-source";
+import type { PictureColours, RgbPixel } from "../../library/picture-colours";
 import type { PictureIdentity } from "../../library/picture-identity";
 import type { LibraryStore } from "../../library/stored-slideshow";
 import { linkImmichPhotos } from "../../server-library/link-immich-photos";
@@ -23,6 +24,10 @@ export interface PictureIntakePorts
   readonly checker: PictureChecker;
   /** A photo picked in the Immich browser, read through the composition root's client. */
   immichSource(photo: ImmichPhoto): PictureSource;
+  /** The decoded display rendition's pixels, sampled for `pictureColours` (ADR-0033). */
+  pixels(blob: Blob): Promise<readonly RgbPixel[]>;
+  /** A linked Immich photo's colours, read from a thumbnail; nothing else about it is downloaded. */
+  immichColours(photo: ImmichPhoto): Promise<PictureColours>;
   /** Claim and media ids. */
   newId(): string;
   now(): Date;
@@ -47,6 +52,8 @@ export class PictureIntake {
   #known: readonly PictureIdentity[];
   #reporting: Promise<void> = Promise.resolve();
   #reportedDrain: Promise<void> | null = null;
+  /** The Immich photos being linked now, their colours not yet read; `settled()` awaits it too. */
+  #linking: Promise<void> = Promise.resolve();
   #claimId: string;
   /** Set by the first claim; a claim that covers nothing is never recorded. */
   #startedAt: Date | null = null;
@@ -63,6 +70,7 @@ export class PictureIntake {
         },
         putPictureFocus: (id, focus) => ports.store.putPictureFocus(id, focus),
       },
+      pixels: ports.pixels,
       newId: ports.newId,
       log: ports.log,
       known: () => this.#known,
@@ -99,15 +107,23 @@ export class PictureIntake {
     this.#watchDrain();
   }
 
-  /** Links Immich photos for a server slideshow: listed at once, nothing downloaded. */
-  linkImmichPhotos(photos: readonly ImmichPhoto[]): void {
+  /**
+   * Links Immich photos for a server slideshow: listed at once, their media not downloaded, only
+   * each one's colours read off a thumbnail (ADR-0033).
+   */
+  linkImmichPhotos(photos: readonly ImmichPhoto[]): Promise<void> {
     this.#removals.end();
-    const { pictures, skipped } = linkImmichPhotos(
+    const linking = linkImmichPhotos(
       photos,
       this.#known,
+      { colours: this.#ports.immichColours },
       this.pictures.state.pictures,
-    );
-    this.pictures.link(pictures, skipped);
+    ).then(({ pictures, skipped }) => {
+      this.pictures.link(pictures, skipped);
+    });
+    // settled() only waits for the linking to finish; its failure is the caller's to handle.
+    this.#linking = linking.catch(() => undefined);
+    return linking;
   }
 
   /** Takes the pictures skipped as duplicates for `reason` in after all. */
@@ -135,6 +151,7 @@ export class PictureIntake {
    * rejects as `PictureImport.settled` does.
    */
   async settled(): Promise<void> {
+    await this.#linking;
     await this.pictures.settled();
     await this.culling.settled();
   }

@@ -16,7 +16,7 @@ export const CARD_SWATCHES = {
 
 export type CardSwatchId = keyof typeof CARD_SWATCHES;
 
-/** The tint the composer falls back to until picture-derived tints land (TITLE_CARDS.md). */
+/** The ground and veil uniforms of a layer without a card or veil; it draws nothing there. */
 export const CARD_DEFAULT_TINT: string = CARD_SWATCHES.plum;
 
 /** sRGB 0..255 to linear, for relative luminance (WCAG). */

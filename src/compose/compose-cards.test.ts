@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import type { PictureFocus } from "../library/picture-focus";
-import type { StoredCard, StoredPicture, StoredSlideshow } from "../library/stored-slideshow";
+import type {
+  CardTint,
+  StoredCard,
+  StoredPicture,
+  StoredSlideshow,
+} from "../library/stored-slideshow";
 import { CARD_SWATCHES } from "../player/card-palette";
 import { isGroundSlide, type GroundSlide } from "../player/slideshow";
 import { pictureSlide } from "../player/testing/picture-slide";
@@ -9,7 +14,14 @@ import { composeSlideshow } from "./compose-slideshow";
 import { NO_SONG_BEATS } from "./playlist";
 
 function picture(id: string, capturedAt: string): StoredPicture {
-  return { id, capturedAt, fileName: `${id}.jpg`, width: 400, height: 300 };
+  return {
+    id,
+    capturedAt,
+    fileName: `${id}.jpg`,
+    width: 400,
+    height: 300,
+    colours: { veil: "#404040", accent: "#C0C0C0" },
+  };
 }
 
 const sources = {
@@ -42,16 +54,18 @@ const COLOUR_CARD: StoredCard = {
   title: "Summer at the Lake",
   style: "modern",
   position: "centre",
+  entrance: "rise",
   background: { kind: "colour", colour: "plum" },
   motion: true,
 };
 
-function pictureCard(pictureId: string, motion: boolean): StoredCard {
+function pictureCard(pictureId: string, motion: boolean, tint: CardTint = "picture"): StoredCard {
   return {
     title: "Summer at the Lake",
     style: "modern",
     position: "centre",
-    background: { kind: "picture", pictureId, fade: 60 },
+    entrance: "rise",
+    background: { kind: "picture", pictureId, fade: 60, tint },
     motion,
   };
 }
@@ -92,7 +106,8 @@ describe("composeCards, opening card", () => {
     const first = pictureSlide(result.slides[0]);
     expect(first.image.src).toBe("pictures/p2.jpg");
     expect(first.durationMs).toBe(CARD_SLIDE_MS);
-    expect(first.card).toMatchObject({ veil: { amount: 0.6, tint: CARD_SWATCHES.plum } });
+    // tint "picture": the veil is the background picture's own colour, not a fixed swatch.
+    expect(first.card).toMatchObject({ veil: { amount: 0.6, tint: "#404040" } });
     expect(first.card).not.toHaveProperty("revealAtMs");
     // The picture still plays again in its own place, unchanged.
     expect(pictureSlide(result.slides[2]).image.src).toBe("pictures/p2.jpg");
@@ -177,10 +192,39 @@ describe("composeCards, ink", () => {
     expect(first.card.ink).toBe("dark");
   });
 
-  it("is light on the plum tint behind a picture card", () => {
-    const stored = storedSlideshow({ openingCard: pictureCard("p1", false) });
+  it("is dark on a light hex ground colour", () => {
+    const stored = storedSlideshow({
+      openingCard: { ...COLOUR_CARD, background: { kind: "colour", colour: "#F5F0E8" } },
+    });
+    const first = ground(compose(stored).slides[0]);
+    expect(first.ground).toBe("#F5F0E8");
+    expect(first.card.ink).toBe("dark");
+  });
+
+  it("is light on the picture's own dark veil tint", () => {
+    const stored = storedSlideshow({ openingCard: pictureCard("p1", false, "picture") });
     const first = pictureSlide(compose(stored).slides[0]);
     expect(first.card?.ink).toBe("light");
+  });
+});
+
+describe("composeCards, tint", () => {
+  it("tint picture: the veil is the background picture's own colour", () => {
+    const stored = storedSlideshow({ openingCard: pictureCard("p1", false, "picture") });
+    const first = pictureSlide(compose(stored).slides[0]);
+    expect(first.card).toMatchObject({ veil: { amount: 0.6, tint: "#404040" } });
+  });
+
+  it("tint light: the veil is the fixed cream, not the picture's colour", () => {
+    const stored = storedSlideshow({ openingCard: pictureCard("p1", false, "light") });
+    const first = pictureSlide(compose(stored).slides[0]);
+    expect(first.card).toMatchObject({ veil: { amount: 0.6, tint: CARD_SWATCHES.cream } });
+  });
+
+  it("tint dark: the veil is the fixed plum, not the picture's colour", () => {
+    const stored = storedSlideshow({ openingCard: pictureCard("p1", false, "dark") });
+    const first = pictureSlide(compose(stored).slides[0]);
+    expect(first.card).toMatchObject({ veil: { amount: 0.6, tint: CARD_SWATCHES.plum } });
   });
 });
 

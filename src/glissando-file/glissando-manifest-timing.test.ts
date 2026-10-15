@@ -20,6 +20,7 @@ const slideshow: StoredSlideshow = {
       fileName: "a.jpg",
       durationMs: 8000,
       transition: "cut",
+      colours: { veil: "#404040", accent: "#C0C0C0" },
     },
     {
       id: "p2",
@@ -28,6 +29,7 @@ const slideshow: StoredSlideshow = {
       height: 3840,
       fileName: "b.jpg",
       transition: "dissolve",
+      colours: { veil: "#404040", accent: "#C0C0C0" },
     },
   ],
   songs: [],

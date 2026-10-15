@@ -3,7 +3,14 @@ import type { StoredPicture } from "../library/stored-slideshow";
 import { pictureLayoutSummaries } from "./picture-layout-summary";
 
 function picture(id: string, width: number, height: number): StoredPicture {
-  return { id, capturedAt: "2025-07-01T10:00:00Z", fileName: `${id}.jpg`, width, height };
+  return {
+    id,
+    capturedAt: "2025-07-01T10:00:00Z",
+    fileName: `${id}.jpg`,
+    width,
+    height,
+    colours: { veil: "#404040", accent: "#C0C0C0" },
+  };
 }
 
 const portrait = (id: string) => picture(id, 300, 400);

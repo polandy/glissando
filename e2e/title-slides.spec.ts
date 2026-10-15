@@ -109,3 +109,65 @@ test("E2E-055 typing a title on the closing slide makes its tile show the card, 
   await expect(closingTile(page)).toHaveClass(/empty/);
   await expect(cardFaceOf(closingTile(page))).toHaveCount(0);
 });
+
+test("E2E-056 an entrance and a picture tint chosen on the title slide persist across a reload, and the tint shows on the tile", async ({
+  page,
+}) => {
+  const dialog = page.getByRole("dialog");
+  const entrance = dialog.getByRole("group", { name: "Einstieg" });
+  const tint = dialog.getByRole("group", { name: "Tönung" });
+  const wordByWord = entrance.getByRole("button", { name: "Wort für Wort" });
+  const darkTint = tint.getByRole("button", { name: "Dunkel" });
+  const lightTint = tint.getByRole("button", { name: "Hell" });
+  const veilOfOpeningTile = openingTile(page).locator(".veil");
+  const veilColour = (): Promise<string> =>
+    veilOfOpeningTile.evaluate((veil) => getComputedStyle(veil).backgroundColor);
+  await openApp(page);
+  await createSlideshow(page, ["2025-07-12", "2025-07-14", "2025-07-20"], 5);
+
+  await openingTile(page).click();
+  await expect(dialog).toBeVisible();
+  await dialog.getByRole("radio", { name: "Bild", exact: true }).click();
+  await dialog.getByRole("radio", { name: "Bild 1" }).click();
+  await wordByWord.click();
+  await expect(wordByWord).toHaveAttribute("aria-pressed", "true");
+  await darkTint.click();
+  await expect(darkTint).toHaveAttribute("aria-pressed", "true");
+  await editsStored(page);
+  await dialog.getByRole("button", { name: "Fertig" }).click();
+  await expect(dialog).toBeHidden();
+
+  await expect(veilOfOpeningTile).toBeVisible();
+  const darkVeil = await veilColour();
+
+  await openingTile(page).click();
+  await lightTint.click();
+  await expect(lightTint).toHaveAttribute("aria-pressed", "true");
+  await editsStored(page);
+  await dialog.getByRole("button", { name: "Fertig" }).click();
+  await expect(dialog).toBeHidden();
+  await expect(veilOfOpeningTile).toBeVisible();
+  expect(await veilColour()).not.toBe(darkVeil);
+
+  await darkTintAgain(page);
+  await page.reload();
+  await expect(veilOfOpeningTile).toBeVisible();
+  expect(await veilColour()).toBe(darkVeil);
+  await openingTile(page).click();
+  await expect(wordByWord).toHaveAttribute("aria-pressed", "true");
+  await expect(darkTint).toHaveAttribute("aria-pressed", "true");
+  await expect(lightTint).toHaveAttribute("aria-pressed", "false");
+});
+
+/** Switches the open title slide's sheet back to the dark tint and closes it. */
+async function darkTintAgain(page: Page): Promise<void> {
+  const dialog = page.getByRole("dialog");
+  await openingTile(page).click();
+  await dialog
+    .getByRole("group", { name: "Tönung" })
+    .getByRole("button", { name: "Dunkel" })
+    .click();
+  await editsStored(page);
+  await dialog.getByRole("button", { name: "Fertig" }).click();
+  await expect(dialog).toBeHidden();
+}

@@ -210,6 +210,8 @@ const CAPTIONS = new Map([
   [16, "Market square"],
 ]);
 
+const SEED_COLOURS = { veil: "#2A2340", accent: "#F3B7A6" };
+
 function seedDocument(title, createdAt, members, extraPictures = []) {
   const pictures = members.map((photo) => ({
     capturedAt: photo.takenAt,
@@ -217,11 +219,12 @@ function seedDocument(title, createdAt, members, extraPictures = []) {
     height: photo.height,
     fileName: photo.fileName,
     immichAssetId: photo.id,
+    colours: SEED_COLOURS,
     ...(CAPTIONS.has(photo.number) ? { caption: CAPTIONS.get(photo.number) } : {}),
   }));
   return {
     format: "glissando-server",
-    formatVersion: 2,
+    formatVersion: 3,
     slideshow: {
       title,
       createdAt,
@@ -240,6 +243,7 @@ function seedDocuments() {
     height,
     fileName: "GLS_GONE.png",
     immichAssetId: GONE_ID,
+    colours: SEED_COLOURS,
   };
   return [
     seedDocument("Lake days", "2025-06-20T18:00:00Z", photos.slice(0, 14)),

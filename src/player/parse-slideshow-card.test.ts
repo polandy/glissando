@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CARD_ENTER_MS, CARD_REVEAL_MS } from "./card-timing";
+import { cardEnterMs, CARD_REVEAL_MS } from "./card-timing";
 import { parseSlideshow, SlideshowFormatError } from "./parse-slideshow";
 import { isGroundSlide, type Card, type GroundSlide, type Slide } from "./slideshow";
 
@@ -18,7 +18,14 @@ const KEN_BURNS = {
 };
 
 function validCard(overrides: Record<string, unknown> = {}): Record<string, unknown> {
-  return { title: "Lake Garda", style: "modern", position: "centre", ink: "light", ...overrides };
+  return {
+    title: "Lake Garda",
+    style: "modern",
+    position: "centre",
+    ink: "light",
+    entrance: "rise",
+    ...overrides,
+  };
 }
 
 function validPictureSlide(overrides: Record<string, unknown> = {}): Record<string, unknown> {
@@ -36,7 +43,7 @@ function validGroundSlide(overrides: Record<string, unknown> = {}): Record<strin
 
 function validSlideshow(overrides: Record<string, unknown> = {}): Record<string, unknown> {
   return {
-    formatVersion: 5,
+    formatVersion: 6,
     title: "July 2025",
     slides: [validGroundSlide(), validPictureSlide()],
     ...overrides,
@@ -67,6 +74,7 @@ describe("a ground slide (ADR-0032)", () => {
       style: "modern",
       position: "centre",
       ink: "light",
+      entrance: "rise",
     });
   });
 
@@ -110,28 +118,30 @@ describe("a ground slide (ADR-0032)", () => {
 });
 
 describe("a card's veil and revealAtMs (ADR-0032)", () => {
+  const riseEnterMs = cardEnterMs({ title: "Lake Garda", entrance: "rise" });
+
   it("accepts a veil and a revealAtMs that respect both margins", () => {
     const card = validCard({
       enterAtMs: 0,
-      revealAtMs: CARD_ENTER_MS,
+      revealAtMs: riseEnterMs,
       veil: { amount: 0.5, tint: "#000000" },
     });
     const input = validSlideshow({ slides: [validPictureSlide({ durationMs: 10_000, card })] });
 
     const slide = parseSlideshow(input).slides[0];
 
-    expect(slide?.card?.revealAtMs).toBe(CARD_ENTER_MS);
+    expect(slide?.card?.revealAtMs).toBe(riseEnterMs);
     expect(slide?.card?.veil).toEqual({ amount: 0.5, tint: "#000000" });
   });
 
-  it("rejects a revealAtMs closer to enterAtMs than CARD_ENTER_MS", () => {
-    const card = validCard({ enterAtMs: 0, revealAtMs: CARD_ENTER_MS - 1 });
+  it("rejects a revealAtMs closer to enterAtMs than the entrance's cardEnterMs", () => {
+    const card = validCard({ enterAtMs: 0, revealAtMs: riseEnterMs - 1 });
     const input = validSlideshow({ slides: [validPictureSlide({ durationMs: 10_000, card })] });
 
     const error = parseError(input);
 
     expect(error.path).toBe("slides[0].card.revealAtMs");
-    expect(error.message).toContain(`at least enterAtMs + CARD_ENTER_MS (${CARD_ENTER_MS})`);
+    expect(error.message).toContain(`at least enterAtMs + cardEnterMs (${riseEnterMs})`);
   });
 
   it("rejects a revealAtMs closer to the slide's end than CARD_REVEAL_MS", () => {
