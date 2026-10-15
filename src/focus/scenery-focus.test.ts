@@ -35,7 +35,36 @@ function isPair(colour: Rgb | readonly [Rgb, Rgb]): colour is readonly [Rgb, Rgb
   return Array.isArray(colour[0]);
 }
 
+const GREY_LIGHT: Rgb = [140, 140, 140];
+const GREY_DARK: Rgb = [60, 60, 60];
+const FOLIAGE_LIGHT: Rgb = [70, 130, 50];
+const FOLIAGE_DARK: Rgb = [20, 60, 30];
+
 describe("sceneryFocus", () => {
+  it("recognises a wide view that is nearly all foliage, with no sky at all", () => {
+    expect(
+      sceneryFocus(
+        skyOverGround(120, 80, [FOLIAGE_LIGHT, FOLIAGE_DARK], FOLIAGE_LIGHT, FOLIAGE_DARK),
+      ),
+    ).toEqual({
+      kind: "scenery",
+    });
+  });
+
+  it("finds no scenery in a wide picture of grey, which has no colour of nature", () => {
+    expect(
+      sceneryFocus(skyOverGround(120, 80, [GREY_LIGHT, GREY_DARK], GREY_LIGHT, GREY_DARK)),
+    ).toEqual({
+      kind: "none",
+    });
+  });
+
+  it("finds no scenery in a pale ceiling over a grey floor, as a bright upper part is not enough alone", () => {
+    expect(sceneryFocus(skyOverGround(120, 80, OVERCAST, GREY_LIGHT, GREY_DARK))).toEqual({
+      kind: "none",
+    });
+  });
+
   it("recognises a blue sky over a textured ground in a wide picture", () => {
     expect(sceneryFocus(skyOverGround(120, 80, SKY_BLUE, GROUND_LIGHT, GROUND_DARK))).toEqual({
       kind: "scenery",
@@ -55,7 +84,7 @@ describe("sceneryFocus", () => {
   });
 
   it("finds no scenery when the upper part is as busy as the lower part", () => {
-    const busy = skyOverGround(120, 80, [SKY_BLUE, DARK_WALL], GROUND_LIGHT, GROUND_DARK);
+    const busy = skyOverGround(120, 80, [SKY_BLUE, DARK_WALL], GREY_LIGHT, GREY_DARK);
 
     expect(sceneryFocus(busy)).toEqual({ kind: "none" });
   });
@@ -67,7 +96,7 @@ describe("sceneryFocus", () => {
   });
 
   it("finds no scenery when the lower part is as flat as the sky", () => {
-    expect(sceneryFocus(skyOverGround(120, 80, SKY_BLUE, GROUND_LIGHT, GROUND_LIGHT))).toEqual({
+    expect(sceneryFocus(skyOverGround(120, 80, SKY_BLUE, GREY_LIGHT, GREY_LIGHT))).toEqual({
       kind: "none",
     });
   });

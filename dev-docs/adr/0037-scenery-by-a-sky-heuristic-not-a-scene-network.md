@@ -1,4 +1,4 @@
-# ADR-0037: Scenery is found by a sky heuristic, not by a scene network
+# ADR-0037: Scenery is found by a sky and colour heuristic, not by a scene network
 
 **Status:** accepted
 
@@ -11,9 +11,15 @@ sweep across it instead. Which pictures are scenery is a label of the whole pict
 ## Decision
 
 - **A heuristic on the stored thumbnail** (`src/focus/scenery-focus.ts`): the picture is at
-  least 1.3 times wider than high, its upper third is calm (a mean luminance step of at most 6
-  per pixel) and blue or bright, and the rest changes at least twice as much as that third
-  (and at least 8). Nothing is downloaded and it costs a few milliseconds.
+  least 1.3 times wider than high, and either
+  - at least 60 % of its pixels are the colours of nature (hue from yellow-green to blue,
+    saturated, not black): foliage, grass, sea; no sky needed; or
+  - its upper third is calm (a mean luminance step of at most 6 per pixel), the rest changes at
+    least twice as much as that third (and at least 8), and the third is clearly blue, or bright
+    above a ground that is at least a quarter nature-coloured.
+
+  Nothing is downloaded and it costs a few milliseconds.
+
 - **Last in the order** face, object, scenery, middle: a picture with a person or an animal
   aims at it, even with a sky behind.
 - **Stored as `{kind: "scenery"}`** beside `subject` and `none`; no box, so the editors' focus
@@ -33,9 +39,10 @@ sweep across it instead. Which pictures are scenery is a label of the whole pict
 
 ## Consequences
 
-- The heuristic misses scenery without a calm sky (a forest, a close view of a beach) and
-  takes a wall under a pale ceiling with a busy floor for scenery. A miss plays the middle
-  motion as before; a false hit sweeps a picture that did not need it. Both cost little.
+- The heuristic misses scenery that is neither mostly green or blue nor under a calm sky (a
+  desert, a snowfield, a dusk view) and takes a green or blue room (a painted wall) for
+  scenery. A miss plays the middle motion as before; a false hit sweeps a picture that did not
+  need it. Both cost little.
 - The thresholds are not fitted to a data set; if they prove wrong in use, a scene network can
   replace `sceneryFocus` behind the same `PictureFocus` value.
 - There is no migration: a picture stored as "none" stays so until the focus store is cleared.
