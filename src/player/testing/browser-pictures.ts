@@ -121,7 +121,7 @@ export function viewportBox(size: { width: number; height: number }): HTMLElemen
 export async function oneSlideShow(): Promise<Slideshow> {
   const picture = await solidPicture(RED);
   return {
-    formatVersion: 6,
+    formatVersion: 7,
     title: "July 2025",
     slides: [
       {

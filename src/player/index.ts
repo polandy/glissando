@@ -44,8 +44,10 @@ export { SlideshowPlayer } from "./slideshow-player";
 export {
   EASINGS,
   isGroundSlide,
+  MAX_VIDEO_EXCERPT_MS,
   MILLISECONDS_PER_SECOND,
   MIN_KEN_BURNS_ZOOM,
+  MIN_VIDEO_EXCERPT_MS,
   SLIDESHOW_FORMAT_VERSION,
   TRANSITION_EFFECTS,
   type Card,
@@ -57,6 +59,14 @@ export {
   type PictureSlide,
   type Slide,
   type Slideshow,
+  type SlideVideo,
   type Transition,
   type TransitionEffect,
 } from "./slideshow";
+export {
+  duckFactorAt,
+  VIDEO_DUCK_RAMP_MS,
+  VIDEO_DUCK_VOLUME,
+  videoSoundSpans,
+  type VideoSoundSpan,
+} from "./video-duck";
