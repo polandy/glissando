@@ -92,7 +92,7 @@ export const enServer: Pick<Catalogue, keyof typeof deServer> = {
     other: "{count} pictures are only on this device",
   },
   "server.onlyHereText":
-    "A server slideshow links photos from Immich and stores no pictures itself. These came from this device:",
+    "A server slideshow links photos from Immich and stores no pictures or video clips itself. These are only on this device:",
   "server.onlyHereHint":
     "Upload them to Immich and add them from there, or save the slideshow without them.",
   "server.saveWithout": { one: "Save without this one", other: "Save without these {count}" },

@@ -117,16 +117,12 @@ describe("slideshowHtmlExport", () => {
     const store = await storeWithMedia();
     await store.putVideo("c", new Blob(["c".repeat(4000)]));
     const video = { mediaId: "c", sourceMs: 9000, startMs: 0, endMs: 5000 };
-    const [first, second] = STORED.pictures;
     const sheet = slideshowHtmlExport(
       fakeHtmlExportDevice(),
       store,
       {
         ...STORED,
-        pictures: [
-          { ...first!, video },
-          { ...second!, video },
-        ],
+        pictures: [...STORED.pictures.map((picture) => ({ ...picture, video }))],
       },
       createTranslator("de"),
       "device",

@@ -75,6 +75,35 @@ describe("partitionForServer", () => {
   });
 });
 
+describe("partitionForServer, video slides", () => {
+  it("keeps a video slide off the server even when its poster came from Immich, as the clip is only on this device", () => {
+    const video = { mediaId: "clip", sourceMs: 9000, startMs: 0, endMs: 5000 };
+    const clip = { ...devicePicture("p1", "asset-1"), video };
+    const photo = devicePicture("p2", "asset-2");
+
+    expect(partitionForServer(serverSlideshow({ pictures: [clip, photo] }))).toEqual({
+      linked: [photo],
+      deviceOnly: [clip],
+    });
+  });
+
+  it("saves the slideshow without its video slides", async () => {
+    const { client } = libraryServiceFetch();
+    const clip = {
+      ...devicePicture("p1", "asset-1"),
+      video: { mediaId: "clip", sourceMs: 9000, startMs: 0, endMs: 5000 },
+    };
+    const photo = linkedPicture("asset-2");
+
+    const saved = await saveOnServer(serverSlideshow({ pictures: [clip, photo] }), {
+      client,
+      store: new MemoryLibraryStore(),
+    });
+
+    expect(saved.pictures.map(({ id }) => id)).toEqual(["asset-2"]);
+  });
+});
+
 describe("saveOnServer", () => {
   it("saves a copy with the Immich pictures only, leaving the device's slideshow as it is", async () => {
     const { client } = libraryServiceFetch();

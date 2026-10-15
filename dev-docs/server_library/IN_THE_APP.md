@@ -88,7 +88,7 @@ wizard as it was with a coral toast naming it and "Try again".
   opens this Glissando can then play and edit it. Its n pictures stay in Immich and are linked,
   not uploaded. The music (3.1 MB) is stored on the server." / "The slideshow on this device stays
   as it is. The two copies are independent." — Cancel / "Save on the server". Some from the
-  device: "n pictures are only on this device", listing their file names, "Upload them to Immich
+  device (a video slide counts as one, whatever its poster's origin, as the server keeps no clip): "n pictures are only on this device", listing their file names, "Upload them to Immich
   and add them from there, or save the slideshow without them." — Cancel / "Save without these
   n"; with no picture from Immich at all, the same sheet with Cancel only. Done: toast "Saved on
   the server" with "Open". Not answering: the coral toast "Couldn't save on the server. Your

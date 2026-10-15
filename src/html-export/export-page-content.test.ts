@@ -125,11 +125,11 @@ describe("exportPage, video slides", () => {
       songs: STORED.songs,
       pictures: [
         ...WITH_CLIP.pictures,
-        {
-          ...WITH_CLIP.pictures[0]!,
+        ...WITH_CLIP.pictures.slice(0, 1).map((poster) => ({
+          ...poster,
           id: "again",
           fileName: "again.jpg",
-        },
+        })),
       ],
     };
     const { job, sink } = run({ stored });

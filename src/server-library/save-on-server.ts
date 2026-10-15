@@ -47,14 +47,21 @@ async function uploadedSongs(
 export interface ServerPartition {
   /** Pictures from Immich, which a server slideshow links. */
   readonly linked: readonly StoredPicture[];
-  /** Pictures only on this device, which a server slideshow cannot hold (ADR-0018). */
+  /**
+   * Pictures only on this device, which a server slideshow cannot hold (ADR-0018): a video
+   * slide too, whatever its poster's origin, since the server keeps no clip.
+   */
   readonly deviceOnly: readonly StoredPicture[];
+}
+
+function isLinkable(picture: StoredPicture): boolean {
+  return picture.immichAssetId !== undefined && picture.video === undefined;
 }
 
 export function partitionForServer(slideshow: StoredSlideshow): ServerPartition {
   return {
-    linked: slideshow.pictures.filter((picture) => picture.immichAssetId !== undefined),
-    deviceOnly: slideshow.pictures.filter((picture) => picture.immichAssetId === undefined),
+    linked: slideshow.pictures.filter(isLinkable),
+    deviceOnly: slideshow.pictures.filter((picture) => !isLinkable(picture)),
   };
 }
 

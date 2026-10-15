@@ -51,8 +51,15 @@ export function distinctClipIds(pictures: readonly Pick<StoredPicture, "video">[
 
 /** `video` as stored, its clip at `file`. */
 export function videoToManifest(video: StoredVideo, file: string, mimeType: string): ManifestVideo {
-  const { mediaId: _mediaId, ...fields } = video;
-  return { file, mimeType, ...fields };
+  return {
+    file,
+    mimeType,
+    sourceMs: video.sourceMs,
+    startMs: video.startMs,
+    endMs: video.endMs,
+    ...(video.volume === undefined ? {} : { volume: video.volume }),
+    ...(video.duckMusic === undefined ? {} : { duckMusic: video.duckMusic }),
+  };
 }
 
 /** The video a slide stores, its clip saved under the id `clipIds` holds for its file. */
@@ -60,12 +67,18 @@ export function storedVideo(
   video: ManifestVideo,
   clipIds: ReadonlyMap<string, string>,
 ): StoredVideo {
-  const { file, mimeType: _mimeType, ...fields } = video;
-  const mediaId = clipIds.get(file);
+  const mediaId = clipIds.get(video.file);
   if (mediaId === undefined) {
-    throw new Error(`the clip ${file} was never stored`);
+    throw new Error(`the clip ${video.file} was never stored`);
   }
-  return { mediaId, ...fields };
+  return {
+    mediaId,
+    sourceMs: video.sourceMs,
+    startMs: video.startMs,
+    endMs: video.endMs,
+    ...(video.volume === undefined ? {} : { volume: video.volume }),
+    ...(video.duckMusic === undefined ? {} : { duckMusic: video.duckMusic }),
+  };
 }
 
 /** Reads and checks a picture's `video`; throws `DocumentFormatError` naming the bad field. */
