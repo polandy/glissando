@@ -50,7 +50,12 @@
   }: {
     store: Pick<
       LibraryStore,
-      "pictureBlob" | "playbackPictureBlob" | "musicBlob" | "pictureFocus" | "musicBeats"
+      | "pictureBlob"
+      | "playbackPictureBlob"
+      | "videoBlob"
+      | "musicBlob"
+      | "pictureFocus"
+      | "musicBeats"
     >;
     stored: StoredSlideshow;
     musicOutput: MusicOutput;
@@ -227,6 +232,7 @@
       {musicTitle}
       slideDates={played.pictures.map((picture) => picture.capturedAt)}
       {openPicture}
+      readVideo={(id) => store.videoBlob(id)}
       picturesAhead={picturesAheadFor(home)}
       onSlide={(index) => {
         const picture = played.pictures[index];

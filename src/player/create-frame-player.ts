@@ -5,6 +5,7 @@ import { startPictureDecodeWorker } from "./browser/start-picture-decode-worker"
 import { WorkerPictureDecoder } from "./browser/worker-picture-decoder";
 import { cardStylesUsedBy } from "./card-fonts";
 import type { Size } from "./ken-burns";
+import type { VideoFrameSource } from "./ports";
 import type { Slideshow } from "./slideshow";
 import { SlideshowPlayer } from "./slideshow-player";
 import { WebGlRenderer } from "./webgl/webgl-renderer";
@@ -25,12 +26,14 @@ export interface FramePlayer {
 
 /**
  * For the video export: draws `slideshow` with WebGL2 at exactly `size` pixels and no music.
- * Null where the browser has no WebGL2.
+ * A video slide's frames come from `openVideoFrames` (decoded exactly), never from a `<video>`
+ * element; without it a video slide draws its poster. Null where the browser has no WebGL2.
  */
 export function createFramePlayer(
   slideshow: Slideshow,
   size: Size,
   openPicture?: OpenPicture,
+  openVideoFrames?: (src: string) => VideoFrameSource,
 ): FramePlayer | null {
   const canvas = document.createElement("canvas");
   // The drawing buffer is read into a video frame after drawing, never shown.
@@ -54,6 +57,7 @@ export function createFramePlayer(
     pictures,
     clock: performanceClock,
     frames: animationFrames,
+    ...(openVideoFrames === undefined ? {} : { openVideoFrames }),
   });
   const cardFontsLoaded = Promise.all(
     cardStylesUsedBy(slideshow).map((style) => renderer.cardFontLoaded(style)),

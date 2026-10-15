@@ -27,6 +27,7 @@ export {
 } from "./card-fonts";
 export { createFramePlayer, type FramePlayer } from "./create-frame-player";
 export { createPlayer } from "./create-player";
+export { VIDEO_DRIFT_MS } from "./browser/video-playback";
 export { layerTransform } from "./dom/layer-transform";
 export { cropAt, cropRect, type KenBurnsAt, type Rect, type Size } from "./ken-burns";
 export { parseSlideshow, SlideshowFormatError } from "./parse-slideshow";

@@ -37,6 +37,7 @@
     musicTitle = null,
     slideDates = [],
     openPicture,
+    readVideo,
     musicOutput,
     startAt = 0,
     picturesAhead,
@@ -52,6 +53,8 @@
     slideDates?: readonly string[];
     /** Reads a slide's picture by its `src`; without it, `src` is a URL. */
     openPicture?: OpenPicture;
+    /** Reads a video slide's clip by its `video.src`; without it, `src` is a URL. */
+    readVideo?: (src: string) => Promise<Blob>;
     /** Where the music sounds; without it, at the audio element's own volume. */
     musicOutput?: MusicOutput;
     /** Where on the time line playing starts, in seconds. */
@@ -107,6 +110,7 @@
   onMount(() => {
     const created = createPlayer(stage, slideshow, {
       ...(openPicture === undefined ? {} : { openPicture }),
+      ...(readVideo === undefined ? {} : { readVideo }),
       ...(musicOutput === undefined ? {} : { musicOutput }),
       ...(picturesAhead === undefined ? {} : { picturesAhead }),
     });

@@ -135,7 +135,7 @@ export interface VideoPlayback {
   seek(clipMs: number): void;
   /** Plays from `clipMs`; rejects with `VideoPlaybackError` when the browser refuses. */
   play(clipMs: number): Promise<void>;
-  /** While playing, seeks to `clipMs` only once the clip drifted from it by more than `VIDEO_DRIFT_MS`. */
+  /** While playing, seeks to `clipMs` only once the clip drifted from it by more than a threshold. */
   follow(clipMs: number): void;
   pause(): void;
   /** From 0 (silent) to 1 (as recorded). */
