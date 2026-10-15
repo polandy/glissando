@@ -17,6 +17,7 @@ export const enClip: Pick<Catalogue, keyof typeof deClip> = {
   "clip.refusedTooShort": "“{fileName}” is shorter than {min} and is not taken in.",
   "clip.crumb": "Clip {number}",
   "clip.previewLabel": "Preview of the excerpt",
+  "clip.scrub": "Position in the excerpt",
   "clip.play": "Play",
   "clip.pause": "Pause",
   "clip.previewFailed": "This device cannot play the clip.",

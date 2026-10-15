@@ -16,6 +16,7 @@ export const deClip = {
   "clip.refusedTooShort": "„{fileName}“ ist kürzer als {min} und wird nicht übernommen.",
   "clip.crumb": "Clip {number}",
   "clip.previewLabel": "Vorschau des Ausschnitts",
+  "clip.scrub": "Position im Ausschnitt",
   "clip.play": "Abspielen",
   "clip.pause": "Pause",
   "clip.previewFailed": "Dieses Gerät kann den Clip nicht abspielen.",

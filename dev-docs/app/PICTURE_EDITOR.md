@@ -13,7 +13,9 @@
   picture, at most 440 px, always the full width), the panel below.
 
 A **video slide** opens the clip editor instead (ADR-0034, `dev-docs/player/VIDEO_SLIDES.md`):
-a preview that plays the excerpt in a loop, a strip with a start and an end handle (arrow keys
+a preview that plays the excerpt in a loop, with a slider under it to move within the excerpt by
+finger or mouse (a paused clip stays where it was put; a handle drag shows the frame at the
+handle, only the latest place being sought), a strip with a start and an end handle (arrow keys
 move by 0.1 s, Shift by 1 s, Home/End to the limits), "In the film" length (0.5 s to 5 min),
 Sound On/Off with a volume slider (0–100, step 5), "Music quieter meanwhile", a note that the
 transition runs inside the excerpt's end, Reset and Done. There is no Ken Burns or duration

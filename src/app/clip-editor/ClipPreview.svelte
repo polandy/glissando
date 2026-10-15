@@ -1,11 +1,12 @@
 <script lang="ts">
+  import { untrack } from "svelte";
   import { MAX_VIDEO_VOLUME } from "../../library/own-video";
   import Icon from "../components/Icon.svelte";
   import { getTranslator } from "../i18n/context";
 
   /**
    * The clip's excerpt in a 16:9 screen: its frame at `seekMs` while paused, played in a loop
-   * between `startMs` and `endMs` with the sound at `volume`.
+   * between `startMs` and `endMs` with the sound at `volume`, and a slider to move within it.
    */
   let {
     posterUrl,
@@ -40,12 +41,38 @@
     video.muted = volume === 0;
   });
 
-  function showFrame(): void {
-    if (video !== undefined && !playing) video.currentTime = seekMs / MS_PER_SECOND;
+  const lengthMs = $derived(endMs - startMs);
+  /** The place asked for while a seek was under way; null once it is applied. */
+  let deferredMs: number | null = null;
+
+  function seekTo(ms: number): void {
+    positionMs = ms - startMs;
+    if (video === undefined) return;
+    if (video.seeking) {
+      deferredMs = ms;
+      return;
+    }
+    video.currentTime = ms / MS_PER_SECOND;
   }
+
+  // A drag asks for far more places than a clip can seek to; only the latest one is followed up.
+  function settle(): void {
+    if (video === undefined || video.seeking || deferredMs === null) return;
+    const ms = deferredMs;
+    deferredMs = null;
+    video.currentTime = ms / MS_PER_SECOND;
+  }
+
+  function showFrame(): void {
+    seekTo(seekMs);
+  }
+  // Only a new `seekMs` moves a paused frame; pausing must leave it where the viewer put it.
   $effect(() => {
     void seekMs;
-    showFrame();
+    void video;
+    untrack(() => {
+      if (!playing) showFrame();
+    });
   });
 
   // The loop ends on the excerpt's end, which `timeupdate` is too coarse to catch.
@@ -87,6 +114,7 @@
         preload="auto"
         aria-label={t("clip.previewLabel")}
         onloadedmetadata={showFrame}
+        onseeked={settle}
         onplay={() => (playing = true)}
         onpause={() => (playing = false)}
         onended={() => (playing = false)}
@@ -112,9 +140,28 @@
       >{formatTenths(Math.max(0, positionMs) / MS_PER_SECOND)}</span
     >
   </div>
+  <input
+    class="scrub"
+    type="range"
+    min="0"
+    max={lengthMs}
+    step="10"
+    value={Math.min(Math.max(positionMs, 0), lengthMs)}
+    aria-label={t("clip.scrub")}
+    disabled={videoUrl === null}
+    oninput={(event) => seekTo(startMs + Number(event.currentTarget.value))}
+  />
 </div>
 
 <style>
+  .scrub {
+    box-sizing: border-box;
+    width: 100%;
+    margin: 8px 0 0;
+    accent-color: var(--gl-accent);
+    /* Dragging along the slider must not scroll the page on a touch screen. */
+    touch-action: pan-y;
+  }
   .viewport {
     position: relative;
     aspect-ratio: 16 / 9;
