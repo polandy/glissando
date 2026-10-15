@@ -125,7 +125,8 @@
     position: absolute;
     z-index: 2;
     right: 5px;
-    bottom: 5px;
+    /* Above the date line, which spans the tile's width. */
+    bottom: 24px;
   }
   .cut-flag {
     position: absolute;

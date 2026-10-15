@@ -75,7 +75,7 @@
 </script>
 
 <div class="preview">
-  <div class="screen">
+  <div class="viewport">
     {#if videoUrl !== null}
       <!-- A clip is the user's own footage: there is no transcript to caption it with. -->
       <!-- svelte-ignore a11y_media_has_caption -->
@@ -115,7 +115,7 @@
 </div>
 
 <style>
-  .screen {
+  .viewport {
     position: relative;
     aspect-ratio: 16 / 9;
     overflow: hidden;

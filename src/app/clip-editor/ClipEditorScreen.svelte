@@ -162,7 +162,7 @@
     font-weight: var(--gl-weight-medium);
   }
   .in-film dd {
-    color: var(--gl-accent-hover);
+    color: var(--gl-ink);
   }
   .sr-only {
     position: absolute;
@@ -185,7 +185,7 @@
     /* The phone layout scrolls as one: the preview on top, the panel below. */
     .edit {
       flex: none;
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1fr);
     }
     .stage {
       padding: 0 0 8px;

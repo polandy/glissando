@@ -147,7 +147,7 @@
   .handle::before {
     content: "";
     position: absolute;
-    inset: -4px -15px;
+    inset: -4px -7px;
   }
   .handle:focus-visible,
   .handle.active {
