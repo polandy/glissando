@@ -195,6 +195,36 @@ describe("autoKenBurns", () => {
     });
   });
 
+  describe("for scenery (ADR-0037)", () => {
+    const scenery = { kind: "scenery" } as const;
+
+    it.each([
+      [0, "left to right"],
+      [1, "right to left"],
+    ])("sweeps the whole width at index %d, %s", (index) => {
+      const { from, to } = autoKenBurns(index, LANDSCAPE, scenery);
+      const halfFrame = 0.5 / from.zoom;
+
+      expect(Math.min(from.centerX, to.centerX)).toBeCloseTo(halfFrame);
+      expect(Math.max(from.centerX, to.centerX)).toBeCloseTo(1 - halfFrame);
+      expect(from.centerX < to.centerX).toBe(index % 2 === 0);
+    });
+
+    it("keeps its zoom steady and the frame inside the picture", () => {
+      const { from, to } = autoKenBurns(0, LANDSCAPE, scenery);
+
+      expect(from.zoom).toBe(to.zoom);
+      expect(from.zoom).toBeGreaterThan(MIN_KEN_BURNS_ZOOM);
+      expect(from.centerX).toBeGreaterThanOrEqual(0.5 / from.zoom);
+    });
+
+    it("does not sweep sideways in a composed pair's half", () => {
+      const { from, to } = autoKenBurns(0, LANDSCAPE, scenery, false);
+
+      expect(from.centerX).toBe(to.centerX);
+    });
+  });
+
   it("uses linear easing", () => {
     expect(autoKenBurns(0, LANDSCAPE).easing).toBe("linear");
   });

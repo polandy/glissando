@@ -57,6 +57,23 @@ describe("detectFocus", () => {
     expect(focus.box.height).toBeGreaterThan(0.5);
   });
 
+  it("takes a picture with neither face nor object for scenery when it has a sky", () => {
+    const width = 160;
+    const height = 96;
+    const data = new Uint8ClampedArray(width * height * 4).fill(255);
+    for (let row = 0; row < height; row++) {
+      for (let column = 0; column < width; column++) {
+        const ground = row >= height / 2 && (row + column) % 2 === 0;
+        data.set(
+          row < height / 2 ? [90, 140, 220] : ground ? [90, 140, 60] : [30, 60, 20],
+          (row * width + column) * 4,
+        );
+      }
+    }
+
+    expect(detectFocus({ width, height, data }, models)).toEqual({ kind: "scenery" });
+  });
+
   it("finds nothing in a blank picture", () => {
     const blank = { width: 160, height: 120, data: new Uint8ClampedArray(160 * 120 * 4).fill(128) };
 

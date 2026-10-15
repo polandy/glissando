@@ -38,7 +38,7 @@ constraints of ADR-0012 stand: in the browser, offline, every asset shipped by t
   and usage metrics posted to Google.
 - _A bigger YOLO_ — Ultralytics' models are AGPL-3.0; YOLOX-nano is the smallest permissively
   licensed one that still finds cats and dogs reliably.
-- _Landscape detection_ is a separate decision (a scene label, not a box).
+- _Landscape detection_ is a separate decision (a scene label, not a box): ADR-0037.
 
 ## Consequences
 

@@ -7,8 +7,10 @@ export interface FocusBox {
 }
 
 /**
- * What the on-device detection found in a picture: the box around its people or subject, or
- * nothing to aim at. Stored by picture id beside its media; none yet: not looked at (ADR-0012).
+ * What the on-device detection found in a picture: the box around its people or subject,
+ * scenery (a wide view with no one thing to aim at), or nothing to aim at. Stored by picture id beside its media; none yet: not looked at (ADR-0012).
  */
 export type PictureFocus =
-  { readonly kind: "subject"; readonly box: FocusBox } | { readonly kind: "none" };
+  | { readonly kind: "subject"; readonly box: FocusBox }
+  | { readonly kind: "scenery" }
+  | { readonly kind: "none" };
