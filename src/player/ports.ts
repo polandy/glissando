@@ -142,6 +142,8 @@ export interface VideoPlayback {
   setVolume(volume: number): void;
   /** The newest frame, or null while there is none to draw; a stalled clip keeps its last one. */
   frame(): LiveFrame | null;
+  /** True once the clip can play on from where it is without stalling. */
+  isReady(): boolean;
   /** Calls `listener` whenever a frame became ready, so a paused show can draw it. */
   onFrameReady(listener: () => void): void;
   dispose(): void;

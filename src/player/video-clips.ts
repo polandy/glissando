@@ -26,6 +26,7 @@ export class VideoClips {
   readonly #openVideo: (src: string, volume: number) => VideoPlayback;
   readonly #listeners: VideoClipsListeners;
   readonly #open = new Map<number, OpenClip>();
+  readonly #readyChecks = new Set<() => void>();
   #playing = false;
 
   constructor(
@@ -51,6 +52,30 @@ export class VideoClips {
     for (const target of targets) {
       this.#placeClip(this.#clipFor(target), target);
     }
+  }
+
+  /**
+   * Puts the clips at `timeMs` and resolves once those on screen there can play on without
+   * stalling, so a show never starts its clock ahead of a clip that is still loading.
+   */
+  whenReady(timeMs: number): Promise<void> {
+    this.place(timeMs);
+    const onScreen = this.#plan(timeMs)
+      .filter((target) => target.phase === "playing")
+      .map((target) => target.index);
+    const isPending = () => onScreen.some((index) => !this.#open.get(index)?.playback.isReady());
+    if (!isPending()) {
+      return Promise.resolve();
+    }
+    return new Promise((resolve) => {
+      const check = () => {
+        if (!isPending()) {
+          this.#readyChecks.delete(check);
+          resolve();
+        }
+      };
+      this.#readyChecks.add(check);
+    });
   }
 
   /** Plays the clips on screen from `timeMs`; call it in the user's play gesture (Safari). */
@@ -85,6 +110,7 @@ export class VideoClips {
       clip.playback.dispose();
     }
     this.#open.clear();
+    this.#readyChecks.clear();
   }
 
   #clipFor({ index, video }: ClipTarget): OpenClip {
@@ -93,7 +119,10 @@ export class VideoClips {
       return existing;
     }
     const playback = this.#openVideo(video.src, video.volume);
-    playback.onFrameReady(this.#listeners.onFrameReady);
+    playback.onFrameReady(() => {
+      this.#listeners.onFrameReady();
+      [...this.#readyChecks].forEach((check) => check());
+    });
     const clip = { playback, started: false, placedAtMs: null };
     this.#open.set(index, clip);
     return clip;

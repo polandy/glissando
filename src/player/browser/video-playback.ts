@@ -11,7 +11,7 @@ const HAVE_CURRENT_DATA = 2;
 const HAVE_FUTURE_DATA = 3;
 /** What a media element's `play()` rejects with when a later `pause()` interrupts it. */
 const INTERRUPTED_PLAY = "AbortError";
-const READY_EVENTS = ["seeked", "loadeddata", "playing"] as const;
+const READY_EVENTS = ["seeked", "loadeddata", "canplay", "playing"] as const;
 
 /** The parts of the music output a clip's sound uses (ADR-0009). */
 export interface VideoOutput {
@@ -114,6 +114,10 @@ export class VideoElementPlayback implements VideoPlayback {
     return this.#hardSeekPending || this.#element.readyState < HAVE_CURRENT_DATA
       ? null
       : this.#element;
+  }
+
+  isReady(): boolean {
+    return !this.#element.seeking && this.#element.readyState >= HAVE_FUTURE_DATA;
   }
 
   onFrameReady(listener: () => void): void {

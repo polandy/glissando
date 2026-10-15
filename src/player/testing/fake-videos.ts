@@ -14,6 +14,7 @@ export class FakeVideo implements VideoPlayback {
   readonly calls: string[] = [];
   volume: number | undefined;
   disposed = false;
+  ready = true;
   #frame: LiveFrame | null = null;
   #listener: (() => void) | null = null;
   #refusal: Error | null = null;
@@ -45,12 +46,20 @@ export class FakeVideo implements VideoPlayback {
   frame(): LiveFrame | null {
     return this.#frame;
   }
+  isReady(): boolean {
+    return this.ready;
+  }
   onFrameReady(listener: () => void): void {
     this.#listener = listener;
   }
   dispose(): void {
     this.disposed = true;
     this.calls.push("dispose");
+  }
+  /** The clip became able to play on, and tells the player's listener. */
+  becomeReady(): void {
+    this.ready = true;
+    this.#listener?.();
   }
   /** The decoder delivered `frame`; tells the player's listener. */
   deliverFrame(frame: LiveFrame): void {
@@ -62,8 +71,11 @@ export class FakeVideo implements VideoPlayback {
 /** Opens a `FakeVideo` per call, in order. */
 export class FakeVideos {
   readonly opened: FakeVideo[] = [];
+  /** Whether a clip can play on as soon as it is opened. */
+  readyOnOpen = true;
   readonly open = (src: string, volume: number): FakeVideo => {
     const video = new FakeVideo(src, volume);
+    video.ready = this.readyOnOpen;
     this.opened.push(video);
     return video;
   };

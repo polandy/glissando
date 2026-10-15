@@ -49,6 +49,11 @@ export class PlayerVideo implements LiveSlideFrames {
     return this.#frames?.frameAt(index) ?? this.#clips?.frameAt(index);
   }
 
+  /** Resolves once the clips on screen at `timeMs` can play on; at once without live clips. */
+  whenReady(timeMs: number): Promise<void> {
+    return this.#clips?.whenReady(timeMs) ?? Promise.resolve();
+  }
+
   /** Plays the clips on screen from `timeMs`; call it in the user's play gesture (Safari). */
   play(timeMs: number): void {
     this.#clips?.play(timeMs);

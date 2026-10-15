@@ -132,4 +132,21 @@ describe("video clips", () => {
     clips.dispose();
     expect(videos.only().disposed).toBe(true);
   });
+  it("resolves whenReady only once a clip on screen can play on", async () => {
+    const { clips, videos } = setUp();
+    videos.readyOnOpen = false;
+    let resolved = false;
+    const pending = clips.whenReady(10_000).then(() => (resolved = true));
+    await Promise.resolve();
+    expect(resolved).toBe(false);
+
+    videos.only().becomeReady();
+    await pending;
+    expect(resolved).toBe(true);
+  });
+
+  it("resolves whenReady at once when no clip is on screen", async () => {
+    const { clips } = setUp();
+    await expect(clips.whenReady(1000)).resolves.toBeUndefined();
+  });
 });
