@@ -12,6 +12,9 @@ updates:
     ignore:
       # Its browsers come from the digest-pinned image in ci.yml; both are bumped together by hand.
       - dependency-name: "@playwright/test"
+      # svelte-check and typescript-eslint do not support TypeScript 7 yet (peer range < 7).
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: github-actions
     directory: /
     schedule:
