@@ -8,6 +8,7 @@ const MS_PER_SECOND = 1000;
 /** Closer than this, the clip already is at the requested time. */
 const SAME_TIME_MS = 1;
 const HAVE_CURRENT_DATA = 2;
+const HAVE_FUTURE_DATA = 3;
 /** What a media element's `play()` rejects with when a later `pause()` interrupts it. */
 const INTERRUPTED_PLAY = "AbortError";
 const READY_EVENTS = ["seeked", "loadeddata", "playing"] as const;
@@ -86,7 +87,13 @@ export class VideoElementPlayback implements VideoPlayback {
   }
 
   follow(clipMs: number): void {
-    if (this.#element.seeking) {
+    // Until it really plays, a clip lags the clock only by its start-up; a seek then would restart
+    // that start-up and make the clip stutter.
+    if (
+      this.#element.seeking ||
+      this.#element.paused ||
+      this.#element.readyState < HAVE_FUTURE_DATA
+    ) {
       return;
     }
     const driftMs = Math.abs(this.#element.currentTime * MS_PER_SECOND - clipMs);

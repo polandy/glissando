@@ -5,6 +5,7 @@ import { VIDEO_DRIFT_MS, VideoElementPlayback, type VideoOutput } from "./video-
 
 const HAVE_NOTHING = 0;
 const HAVE_CURRENT_DATA = 2;
+const HAVE_FUTURE_DATA = 3;
 
 class FakeElement extends EventTarget {
   currentTime = 0;
@@ -14,6 +15,7 @@ class FakeElement extends EventTarget {
   preload = "";
   readyState = HAVE_CURRENT_DATA;
   seeking = false;
+  paused = false;
   src = "";
   playCalls = 0;
   pauseCalls = 0;
@@ -126,8 +128,25 @@ describe("VideoElementPlayback", () => {
     await expect(playback.play(0)).resolves.toBeUndefined();
   });
 
+  it("does not seek a clip that is still starting up, however far behind the clock it is", () => {
+    const { element, playback } = setUp();
+    element.readyState = HAVE_CURRENT_DATA;
+    playback.follow(5000);
+    expect(element.currentTime).toBe(0);
+
+    element.readyState = HAVE_FUTURE_DATA;
+    element.paused = true;
+    playback.follow(5000);
+    expect(element.currentTime).toBe(0);
+
+    element.paused = false;
+    playback.follow(5000);
+    expect(element.currentTime).toBe(5);
+  });
+
   it("follows by seeking only once the clip drifted beyond the threshold, keeping its frame", () => {
     const { element, playback } = setUp();
+    element.readyState = HAVE_FUTURE_DATA;
     element.currentTime = 10;
     playback.follow(10_000 + VIDEO_DRIFT_MS);
     expect(element.currentTime).toBe(10);
@@ -140,6 +159,7 @@ describe("VideoElementPlayback", () => {
 
   it("does not stack seeks while one is under way", () => {
     const { element, playback } = setUp();
+    element.readyState = HAVE_FUTURE_DATA;
     element.seeking = true;
     playback.follow(5000);
     expect(element.currentTime).toBe(0);
