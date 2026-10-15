@@ -1,6 +1,7 @@
 import {
   createFramePlayer,
   performanceClock,
+  videoSoundSpans,
   type FramePlayer,
   type OpenPicture,
   type Slideshow,
@@ -12,7 +13,10 @@ import { WebCodecsAudioEncoder, WebCodecsVideoEncoder } from "./encoders";
 import type { ExportTarget } from "./file-targets";
 import { CanvasFrameSource } from "./frame-source";
 import { createMp4Muxer, type Mp4Muxer } from "./mp4-muxer";
-import { MusicRenderer, type OpenMusic } from "./music-renderer";
+import { AudioMixer, type ClipAudio, type OpenMusic } from "./audio-mixer";
+import { ClipFrames, type OpenVideo } from "./clip-frames";
+import { ClipSound } from "./clip-sound";
+import { clipAudioSlides, exportHasAudio } from "../clip-audio-plan";
 
 export interface RunVideoExportOptions {
   /** As composed for the player: `image.src` is what `openPicture` reads. */
@@ -20,8 +24,10 @@ export interface RunVideoExportOptions {
   readonly openPicture: OpenPicture;
   /** Reads a song's file by a track's `src`; each distinct song is read once. */
   readonly openMusic: OpenMusic;
+  /** Reads a clip's file by a video slide's `src`; needed exactly when a slide has a clip. */
+  readonly openVideo?: OpenVideo;
   readonly preset: PresetId;
-  /** From `probeVideoExport`; null exactly when there is no music. */
+  /** From `probeVideoExport`; null exactly when there is no music and no clip with sound. */
   readonly audioCodec: AudioCodecChoice | null;
   readonly target: ExportTarget;
   /** Aborting stops the export at once and discards the file. */
@@ -38,17 +44,37 @@ export type VideoExportResult =
 export async function runVideoExport(options: RunVideoExportOptions): Promise<VideoExportResult> {
   const { slideshow, target, signal } = options;
   const preset = presetById(options.preset);
-  if ((slideshow.music === undefined) !== (options.audioCodec === null)) {
-    throw new Error("runVideoExport needs an audioCodec exactly when there is music");
+  if (exportHasAudio(slideshow) !== (options.audioCodec !== null)) {
+    throw new Error("runVideoExport needs an audioCodec exactly when there is audio to mix");
   }
-  const framePlayer = createFramePlayer(slideshow, preset.size, options.openPicture);
+  const { openVideo } = options;
+  const hasClips = slideshow.slides.some((slide) => "video" in slide && slide.video !== undefined);
+  if (hasClips && openVideo === undefined) {
+    throw new Error("runVideoExport needs openVideo for a slideshow with video slides");
+  }
+  const framePlayer = createFramePlayer(
+    slideshow,
+    preset.size,
+    options.openPicture,
+    openVideo === undefined
+      ? undefined
+      : (src) => new ClipFrames(src, openVideo, preset.size.width),
+  );
   if (framePlayer === null) {
     return { kind: "failed", error: new Error("this browser has no WebGL2 to draw the video") };
   }
+  const clipSounds = clipAudioSlides(slideshow.slides);
+  const clipAudio: ClipAudio | null =
+    openVideo === undefined || clipSounds.length === 0
+      ? null
+      : {
+          sound: new ClipSound(clipSounds, openVideo),
+          duckSpans: videoSoundSpans(slideshow.slides),
+        };
   // The timeline lays the slides end to end, so this is the player's duration in whole ms.
   const durationMs = slideshow.slides.reduce((total, slide) => total + slide.durationMs, 0);
   try {
-    const job = await prepare(options, framePlayer, durationMs);
+    const job = await prepare(options, clipAudio, framePlayer, durationMs);
     if (job.kind !== "ready") {
       return job;
     }
@@ -66,6 +92,7 @@ export async function runVideoExport(options: RunVideoExportOptions): Promise<Vi
     return outcome.kind === "done" ? { ...outcome, file: await target.file() } : outcome;
   } finally {
     framePlayer.dispose();
+    clipAudio?.sound.dispose();
   }
 }
 
@@ -74,18 +101,19 @@ type Prepared =
       readonly kind: "ready";
       readonly muxer: Mp4Muxer;
       readonly audio: {
-        readonly source: MusicRenderer;
+        readonly source: AudioMixer;
         readonly encoder: WebCodecsAudioEncoder;
       } | null;
     }
   | Extract<ExportOutcome, { readonly kind: "failed" | "cancelled" }>;
 
 /**
- * Decodes the music, loads the caption font and the show's card fonts, and starts the file. A
+ * Decodes the music, opens the clips' sound, loads the caption font and the show's card fonts, and starts the file. A
  * failure here leaves no file behind either.
  */
 async function prepare(
   { slideshow, openMusic, audioCodec, target, signal }: RunVideoExportOptions,
+  clipAudio: ClipAudio | null,
   framePlayer: FramePlayer,
   durationMs: number,
 ): Promise<Prepared> {
@@ -93,7 +121,7 @@ async function prepare(
   let muxer: Mp4Muxer | null = null;
   try {
     const [music] = await Promise.all([
-      slideshow.music === undefined ? null : MusicRenderer.decode(slideshow.music, openMusic),
+      audioCodec === null ? null : AudioMixer.decode(slideshow.music ?? [], openMusic, clipAudio),
       framePlayer.captionFontLoaded,
       framePlayer.cardFontsLoaded,
     ]);

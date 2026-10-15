@@ -1,8 +1,8 @@
 /**
  * The video export's public API for the app (VIDEO_EXPORT.md). The sheet:
- * 1. `probeVideoExport({ withMusic })` when it opens: unsupported (with a reason), or the
+ * 1. `probeVideoExport({ withAudio })` when it opens: unsupported (with a reason), or the
  *    available presets, the default one and the audio codec ("opus" warrants the Apple note).
- * 2. `estimatedBytes(presetById(id), durationMs, withMusic)` beside each preset; with a private
+ * 2. `estimatedBytes(presetById(id), durationMs, withAudio)` beside each preset; with a private
  *    target, compared with `navigator.storage.estimate()` for the space note.
  * 3. On "Video erstellen" (in the click's gesture): `canPickSaveFile()` ? `pickSaveTarget(name)`
  *    (null: dismissed, back to choose) : `privateExportTarget(name)`, with
@@ -47,3 +47,6 @@ export {
   type VideoExportResult,
 } from "./browser/run-video-export";
 export { probeVideoExport } from "./browser/entry";
+export { clipsToDecode, firstUndecodableClip, type ClipToDecode } from "./clip-check";
+export { canDecodeClip } from "./browser/clip-support";
+export type { OpenVideo } from "./browser/clip-frames";

@@ -1,5 +1,6 @@
-import { MILLISECONDS_PER_SECOND, type MusicTrack } from "../../player";
-import { trackGainRamps } from "../music-ramps";
+import { MILLISECONDS_PER_SECOND, type MusicTrack, type VideoSoundSpan } from "../../player";
+import { duckGainRamps } from "../duck-ramps";
+import { trackGainRamps, type GainPoint } from "../music-ramps";
 import { AUDIO_CHANNELS, AUDIO_SAMPLE_RATE, type AudioSegment } from "../plan";
 import type { AudioSource } from "../ports";
 
@@ -9,6 +10,25 @@ const DECODING_CONTEXT_FRAMES = 1;
 /** Reads a song's file by a track's `src`. */
 export type OpenMusic = (src: string) => Promise<Blob>;
 
+/** The sound of the video slides' clips, added to each segment as it is rendered. */
+export interface ClipSoundMix {
+  /** Plays the clips heard in show time `fromMs` to `toMs` into `output`. */
+  mixInto(
+    context: OfflineAudioContext,
+    output: AudioNode,
+    fromMs: number,
+    toMs: number,
+  ): Promise<void>;
+  /** Closes the clips' files. */
+  dispose(): void;
+}
+
+/** The clips' sound and the spans in which the music ducks under it. */
+export interface ClipAudio {
+  readonly sound: ClipSoundMix;
+  readonly duckSpans: readonly VideoSoundSpan[];
+}
+
 interface DecodedTrack {
   readonly track: MusicTrack;
   readonly audio: AudioBuffer;
@@ -16,18 +36,28 @@ interface DecodedTrack {
 
 /**
  * The playlist's tracks mixed along slideshow time, each from its place on its own gain envelope,
- * rendered one segment at a time in its own `OfflineAudioContext`, so only the decoded songs and
- * one segment are held at once. See ADR-0023.
+ * with the video slides' clip sound on top and the music ducked under it (ADR-0035), rendered
+ * one segment at a time in its own `OfflineAudioContext`, so only the decoded songs and one
+ * segment are held at once. See ADR-0023.
  */
-export class MusicRenderer implements AudioSource<AudioData> {
+export class AudioMixer implements AudioSource<AudioData> {
   readonly #tracks: readonly DecodedTrack[];
+  readonly #clips: ClipAudio | null;
 
-  private constructor(tracks: readonly DecodedTrack[]) {
+  private constructor(tracks: readonly DecodedTrack[], clips: ClipAudio | null) {
     this.#tracks = tracks;
+    this.#clips = clips;
   }
 
-  /** Decodes each distinct song once, resampled to the export's rate. */
-  static async decode(tracks: readonly MusicTrack[], openMusic: OpenMusic): Promise<MusicRenderer> {
+  /**
+   * Decodes each distinct song once, resampled to the export's rate. A slideshow without music
+   * passes no tracks.
+   */
+  static async decode(
+    tracks: readonly MusicTrack[],
+    openMusic: OpenMusic,
+    clips: ClipAudio | null = null,
+  ): Promise<AudioMixer> {
     const context = new OfflineAudioContext(
       AUDIO_CHANNELS,
       DECODING_CONTEXT_FRAMES,
@@ -42,8 +72,9 @@ export class MusicRenderer implements AudioSource<AudioData> {
         }),
       ),
     );
-    return new MusicRenderer(
+    return new AudioMixer(
       tracks.map((track) => ({ track, audio: decodedOrThrow(decoded, track.src) })),
+      clips,
     );
   }
 
@@ -51,11 +82,15 @@ export class MusicRenderer implements AudioSource<AudioData> {
     const context = new OfflineAudioContext(AUDIO_CHANNELS, sampleCount, AUDIO_SAMPLE_RATE);
     const fromMs = (startSample / AUDIO_SAMPLE_RATE) * MILLISECONDS_PER_SECOND;
     const toMs = ((startSample + sampleCount) / AUDIO_SAMPLE_RATE) * MILLISECONDS_PER_SECOND;
+    const musicBus = context.createGain();
+    applyRamps(musicBus.gain, duckGainRamps(this.#clips?.duckSpans ?? [], fromMs, toMs));
+    musicBus.connect(context.destination);
     for (const decoded of this.#tracks) {
       if (isHeardBetween(decoded.track, fromMs, toMs)) {
-        mixInto(context, decoded, fromMs, toMs);
+        mixInto(context, musicBus, decoded, fromMs, toMs);
       }
     }
+    await this.#clips?.sound.mixInto(context, context.destination, fromMs, toMs);
     const rendered = await context.startRendering();
     return new AudioData({
       format: "f32-planar",
@@ -83,20 +118,14 @@ function isHeardBetween(track: MusicTrack, fromMs: number, toMs: number): boolea
 /** Plays `decoded` into `context`, which renders slideshow time `fromMs` to `toMs`. */
 function mixInto(
   context: OfflineAudioContext,
+  output: AudioNode,
   { track, audio }: DecodedTrack,
   fromMs: number,
   toMs: number,
 ): void {
   const gain = context.createGain();
-  for (const { atMs, gain: value, kind } of trackGainRamps(track, fromMs, toMs)) {
-    const atSeconds = atMs / MILLISECONDS_PER_SECOND;
-    if (kind === "set") {
-      gain.gain.setValueAtTime(value, atSeconds);
-    } else {
-      gain.gain.linearRampToValueAtTime(value, atSeconds);
-    }
-  }
-  gain.connect(context.destination);
+  applyRamps(gain.gain, trackGainRamps(track, fromMs, toMs));
+  gain.connect(output);
   const source = context.createBufferSource();
   source.buffer = audio;
   source.connect(gain);
@@ -105,6 +134,17 @@ function mixInto(
   const trackOffsetSeconds = trackOffsetMs / MILLISECONDS_PER_SECOND;
   if (trackOffsetSeconds < audio.duration) {
     source.start(startsInsideMs / MILLISECONDS_PER_SECOND, trackOffsetSeconds);
+  }
+}
+
+function applyRamps(param: AudioParam, points: readonly GainPoint[]): void {
+  for (const { atMs, gain, kind } of points) {
+    const atSeconds = atMs / MILLISECONDS_PER_SECOND;
+    if (kind === "set") {
+      param.setValueAtTime(gain, atSeconds);
+    } else {
+      param.linearRampToValueAtTime(gain, atSeconds);
+    }
   }
 }
 

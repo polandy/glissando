@@ -121,6 +121,11 @@
         <b>{t("videoExport.unsupportedTitle")}</b>
         {t("videoExport.unsupportedText")}
       </Notice>
+    {:else if view.kind === "clip-unsupported"}
+      <Notice tone="warn">
+        <b>{t("videoExport.clipUnsupportedTitle", { clip: view.clip })}</b>
+        {t("videoExport.clipUnsupportedText")}
+      </Notice>
     {:else if view.kind === "storage-full"}
       <Notice tone="error">
         <b>{t("videoExport.storageFullTitle")}</b>

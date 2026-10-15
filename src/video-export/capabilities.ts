@@ -59,7 +59,7 @@ export function audioEncoderConfig(codec: AudioCodecChoice): AudioEncoderConfig 
 
 export async function probeCapabilities(
   probe: CapabilityProbe,
-  { withMusic }: { readonly withMusic: boolean },
+  { withAudio }: { readonly withAudio: boolean },
 ): Promise<ExportCapabilities> {
   if (!probe.hasVideoEncoder) {
     return { supported: false, reason: "no-video-encoder" };
@@ -77,8 +77,8 @@ export async function probeCapabilities(
   if (largest === undefined) {
     return { supported: false, reason: "no-preset" };
   }
-  const audioCodec = withMusic ? await firstAudioCodec(probe) : null;
-  if (withMusic && audioCodec === null) {
+  const audioCodec = withAudio ? await firstAudioCodec(probe) : null;
+  if (withAudio && audioCodec === null) {
     return { supported: false, reason: "no-audio-codec" };
   }
   return {

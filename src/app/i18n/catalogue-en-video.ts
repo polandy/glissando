@@ -57,6 +57,9 @@ export const enVideo: Pick<Catalogue, keyof typeof deVideo> = {
   "videoExport.otherSize": "Choose another size",
   "videoExport.failedText":
     "Something went wrong while creating it. The unfinished file is discarded.",
+  "videoExport.clipUnsupportedTitle": "Clip {clip} cannot be exported.",
+  "videoExport.clipUnsupportedText":
+    "This browser cannot decode that clip frame by frame. It still plays in the show; remove the clip or export from another browser.",
   "videoExport.unsupportedTitle": "This browser cannot create videos.",
   "videoExport.unsupportedText":
     "Glissando needs WebCodecs for it. Current Chrome, Edge, Firefox and Safari (also on iPhone and iPad) have it.",

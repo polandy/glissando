@@ -3,7 +3,6 @@ import {
   exportFileName,
   frameCount,
   presetById,
-  VIDEO_PRESETS,
   type ExportCapabilities,
   type ExportTarget,
   type PresetId,
@@ -13,9 +12,9 @@ import type {
   Delivery,
   ExportSheetState,
   ExportSubject,
-  SpaceShortage,
   VideoExportPorts,
 } from "./export-sheet-state";
+import { spaceShortage } from "./space-shortage";
 
 /** The preset "Andere Größe wählen" offers after the storage ran out: the smallest. */
 const SMALLEST_PRESET: PresetId = "720p";
@@ -55,7 +54,7 @@ export class VideoExportSession<Preview> {
 
   /** The file's rough size with `preset`, from the bitrates. */
   estimate(preset: PresetId): number {
-    return estimatedBytes(presetById(preset), this.#subject.durationMs, this.#subject.withMusic);
+    return estimatedBytes(presetById(preset), this.#subject.durationMs, this.#subject.withAudio);
   }
 
   /** The listener gets the current state at once, then every change. */
@@ -70,7 +69,7 @@ export class VideoExportSession<Preview> {
     let capabilities: ExportCapabilities;
     try {
       [capabilities, this.#freeBytes] = await Promise.all([
-        ports.probe(this.#subject.withMusic),
+        ports.probe(this.#subject.withAudio),
         // A picked file is not the browser's storage, so only a private one is measured.
         ports.canPickSaveFile() ? null : ports.freeBytes(),
       ]);
@@ -80,6 +79,15 @@ export class VideoExportSession<Preview> {
     }
     if (!capabilities.supported) {
       this.#set({ kind: "unsupported", reason: capabilities.reason });
+      return;
+    }
+    const clip = await ports.undecodableClip().catch((error: unknown) => {
+      // An unreadable clip is no verdict on the browser; the run itself fails loud if it must.
+      ports.log(error);
+      return null;
+    });
+    if (clip !== null) {
+      this.#set({ kind: "clip-unsupported", clip });
       return;
     }
     this.#capabilities = capabilities;
@@ -254,22 +262,11 @@ export class VideoExportSession<Preview> {
       available: capabilities.available,
       preset,
       audioCodec: capabilities.audioCodec,
-      spaceShortage: this.#spaceShortage(preset, capabilities.available),
+      spaceShortage: spaceShortage(preset, capabilities.available, this.#freeBytes, (id) =>
+        this.estimate(id),
+      ),
       starting: false,
     });
-  }
-
-  #spaceShortage(preset: PresetId, available: readonly PresetId[]): SpaceShortage | null {
-    const freeBytes = this.#freeBytes;
-    const neededBytes = this.estimate(preset);
-    if (freeBytes === null || freeBytes >= neededBytes) {
-      return null;
-    }
-    const fitting =
-      VIDEO_PRESETS.filter(
-        ({ id }) => id !== preset && available.includes(id) && this.estimate(id) <= freeBytes,
-      ).at(-1)?.id ?? null;
-    return { freeBytes, neededBytes, fitting };
   }
 
   #fail(error: unknown): void {

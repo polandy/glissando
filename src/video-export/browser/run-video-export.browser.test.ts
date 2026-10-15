@@ -98,7 +98,7 @@ async function exportGenerated(
   signal: AbortSignal,
   onProgress: (progress: ExportProgress) => void,
 ) {
-  const capabilities = await probeVideoExport({ withMusic: true });
+  const capabilities = await probeVideoExport({ withAudio: true });
   if (!capabilities.supported) {
     throw new Error(`this engine cannot export: ${capabilities.reason}`);
   }

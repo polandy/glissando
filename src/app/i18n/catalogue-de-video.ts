@@ -56,6 +56,9 @@ export const deVideo = {
   "videoExport.otherSize": "Andere Größe wählen",
   "videoExport.failedText":
     "Beim Erstellen ging etwas schief. Die angefangene Datei ist verworfen.",
+  "videoExport.clipUnsupportedTitle": "Clip {clip} lässt sich nicht exportieren.",
+  "videoExport.clipUnsupportedText":
+    "Dieser Browser kann den Clip nicht Bild für Bild entschlüsseln. In der Show läuft er trotzdem; entferne den Clip oder exportiere in einem anderen Browser.",
   "videoExport.unsupportedTitle": "Dieser Browser kann keine Videos erstellen.",
   "videoExport.unsupportedText":
     "Dafür braucht Glissando WebCodecs. Es geht in aktuellem Chrome, Edge, Firefox und Safari (auch auf iPhone und iPad).",

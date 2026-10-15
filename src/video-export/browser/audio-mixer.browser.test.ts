@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { levelWav } from "../../import/testing/silent-wav";
 import type { MusicTrack } from "../../player";
 import { AUDIO_SAMPLE_RATE } from "../plan";
-import { MusicRenderer } from "./music-renderer";
+import { AudioMixer } from "./audio-mixer";
 
 const LEVELS: Readonly<Record<string, number>> = { low: 0.25, high: 0.5 };
 
@@ -29,7 +29,7 @@ function generatedSongs() {
 }
 
 /** The first channel's sample at `seconds` into the 3 s segment rendered from 0. */
-async function levelsOf(renderer: MusicRenderer, ...seconds: number[]): Promise<number[]> {
+async function levelsOf(renderer: AudioMixer, ...seconds: number[]): Promise<number[]> {
   const sampleCount = 3 * AUDIO_SAMPLE_RATE;
   const audio = await renderer.segment({ startSample: 0, sampleCount, timestampUs: 0 });
   const channel = new Float32Array(sampleCount);
@@ -38,13 +38,10 @@ async function levelsOf(renderer: MusicRenderer, ...seconds: number[]): Promise<
   return seconds.map((at) => channel[Math.round(at * AUDIO_SAMPLE_RATE)] ?? Number.NaN);
 }
 
-describe("MusicRenderer", () => {
+describe("AudioMixer", () => {
   it("mixes every track from its place, two at once where they overlap", async () => {
     const songs = generatedSongs();
-    const renderer = await MusicRenderer.decode(
-      [placed("low", 0), placed("high", 1000)],
-      songs.open,
-    );
+    const renderer = await AudioMixer.decode([placed("low", 0), placed("high", 1000)], songs.open);
 
     const [first, both, second] = await levelsOf(renderer, 0.5, 1.5, 2.5);
 
@@ -56,10 +53,7 @@ describe("MusicRenderer", () => {
   it("decodes a song once though it plays twice", async () => {
     const songs = generatedSongs();
 
-    const renderer = await MusicRenderer.decode(
-      [placed("low", 0), placed("low", 1000)],
-      songs.open,
-    );
+    const renderer = await AudioMixer.decode([placed("low", 0), placed("low", 1000)], songs.open);
 
     expect(await levelsOf(renderer, 1.5)).toEqual([expect.closeTo(0.5, 2)]);
     expect(songs.opened).toEqual(["low"]);

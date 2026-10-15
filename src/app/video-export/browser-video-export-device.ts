@@ -24,7 +24,7 @@ export function browserVideoExportDevice({
 }: BrowserVideoExportOptions): VideoExportDevice {
   const { navigator, document } = window;
   return {
-    probe: (withMusic) => probeVideoExport({ withMusic }),
+    probe: (withAudio) => probeVideoExport({ withAudio }),
     freeBytes,
     canPickSaveFile,
     pickSaveTarget,

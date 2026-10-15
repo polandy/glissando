@@ -95,6 +95,7 @@ export default defineConfig({
                   "src/player/webgl/**",
                   "src/player/browser/web-audio-unlock.browser.test.ts",
                   "src/video-export/browser/run-video-export.browser.test.ts",
+                  "src/video-export/browser/clip-decode.browser.test.ts",
                   "src/player/create-frame-player.browser.test.ts",
                   "src/player/create-frame-player-video.browser.test.ts",
                 ],
