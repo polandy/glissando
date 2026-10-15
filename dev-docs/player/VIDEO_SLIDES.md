@@ -92,11 +92,12 @@ The slide clock leads; the clip follows it, never the other way round.
 
 - A slide's clip sound is audible for the slide's own duration, at `volume`.
 - The music volume is multiplied by the **duck factor**: 1 outside a clip with sound; `0.15`
-  (`VIDEO_DUCK_VOLUME`) inside it, with `VIDEO_DUCK_RAMP_MS` = 400 ms linear ramps starting
-  400 ms before the slide so the music is already low when the clip starts and back up 400 ms
-  after it. Pure function `duckFactorAt(timeMs, spans)` in `src/player/`; the music's own
+  (`VIDEO_DUCK_VOLUME`) inside it, with linear ramps: `VIDEO_DUCK_RAMP_DOWN_MS` = 400 ms
+  before the slide so the music is already low when the clip starts, and a slower
+  `VIDEO_DUCK_RAMP_UP_MS` = 1500 ms after it so the music swells back instead of jumping. Pure
+  function `duckFactorAt(timeMs, spans)` in `src/player/`; the music's own
   trim and fades (ADR-0009) multiply on top.
-- Two clips closer together than twice the ramp stay ducked between them.
+- Two clips closer together than a ramp up plus a ramp down stay ducked between them.
 - Safari starts sound only after a user gesture; the player's play button is that gesture.
   A refused clip sound is a `MusicPlaybackError`-style player error (`VideoPlaybackError`).
 

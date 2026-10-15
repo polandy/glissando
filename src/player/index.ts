@@ -75,7 +75,8 @@ export {
 } from "./slideshow";
 export {
   duckFactorAt,
-  VIDEO_DUCK_RAMP_MS,
+  VIDEO_DUCK_RAMP_DOWN_MS,
+  VIDEO_DUCK_RAMP_UP_MS,
   VIDEO_DUCK_VOLUME,
   videoSoundSpans,
   type VideoSoundSpan,

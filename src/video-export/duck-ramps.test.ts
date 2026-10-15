@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { VIDEO_DUCK_RAMP_MS, VIDEO_DUCK_VOLUME, duckFactorAt } from "../player";
+import { VIDEO_DUCK_RAMP_DOWN_MS, VIDEO_DUCK_VOLUME, duckFactorAt } from "../player";
 import { duckGainRamps } from "./duck-ramps";
 
 const SPAN = { startMs: 10_000, endMs: 14_000 };
@@ -18,22 +18,22 @@ describe("duckGainRamps", () => {
       { atMs: 600, gain: 1, kind: "ramp" },
       { atMs: 1000, gain: VIDEO_DUCK_VOLUME, kind: "ramp" },
       { atMs: 5000, gain: VIDEO_DUCK_VOLUME, kind: "ramp" },
-      { atMs: 5400, gain: 1, kind: "ramp" },
+      { atMs: 6500, gain: 1, kind: "ramp" },
       { atMs: 7000, gain: 1, kind: "ramp" },
     ]);
   });
 
   it("starts a window inside a ramp at the factor there", () => {
-    const [first] = duckGainRamps([SPAN], 10_000 - VIDEO_DUCK_RAMP_MS / 2, 11_000);
+    const [first] = duckGainRamps([SPAN], 10_000 - VIDEO_DUCK_RAMP_DOWN_MS / 2, 11_000);
 
     expect(first).toEqual({
       atMs: 0,
-      gain: duckFactorAt(10_000 - VIDEO_DUCK_RAMP_MS / 2, [SPAN]),
+      gain: duckFactorAt(10_000 - VIDEO_DUCK_RAMP_DOWN_MS / 2, [SPAN]),
       kind: "set",
     });
   });
 
-  it("stays ducked between two clips closer than two ramps", () => {
+  it("stays ducked between two clips closer than a ramp up and a ramp down", () => {
     const next = { startMs: 14_500, endMs: 18_000 };
     const points = duckGainRamps([SPAN, next], 13_000, 15_500);
 

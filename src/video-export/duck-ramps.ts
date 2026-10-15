@@ -1,4 +1,9 @@
-import { duckFactorAt, VIDEO_DUCK_RAMP_MS, type VideoSoundSpan } from "../player";
+import {
+  duckFactorAt,
+  VIDEO_DUCK_RAMP_DOWN_MS,
+  VIDEO_DUCK_RAMP_UP_MS,
+  type VideoSoundSpan,
+} from "../player";
 import type { GainPoint } from "./music-ramps";
 
 /**
@@ -13,10 +18,10 @@ export function duckGainRamps(
 ): readonly GainPoint[] {
   const bends = spans
     .flatMap(({ startMs, endMs }) => [
-      startMs - VIDEO_DUCK_RAMP_MS,
+      startMs - VIDEO_DUCK_RAMP_DOWN_MS,
       startMs,
       endMs,
-      endMs + VIDEO_DUCK_RAMP_MS,
+      endMs + VIDEO_DUCK_RAMP_UP_MS,
     ])
     .filter((timeMs) => timeMs > fromMs && timeMs < toMs);
   const times = [...new Set([...bends, toMs])].sort((left, right) => left - right);

@@ -1,19 +1,29 @@
 import { describe, expect, it } from "vitest";
 import type { PictureSlide, Slide } from "./slideshow";
-import { duckFactorAt, VIDEO_DUCK_RAMP_MS, VIDEO_DUCK_VOLUME, videoSoundSpans } from "./video-duck";
+import {
+  duckFactorAt,
+  VIDEO_DUCK_RAMP_DOWN_MS,
+  VIDEO_DUCK_RAMP_UP_MS,
+  VIDEO_DUCK_VOLUME,
+  videoSoundSpans,
+} from "./video-duck";
 
 const SPAN = { startMs: 10_000, endMs: 20_000 };
 
 describe("duckFactorAt", () => {
   it.each([
     ["far before the span", 0, 1],
-    ["where the ramp down starts", SPAN.startMs - VIDEO_DUCK_RAMP_MS, 1],
-    ["halfway down the ramp", SPAN.startMs - VIDEO_DUCK_RAMP_MS / 2, (1 + VIDEO_DUCK_VOLUME) / 2],
+    ["where the ramp down starts", SPAN.startMs - VIDEO_DUCK_RAMP_DOWN_MS, 1],
+    [
+      "halfway down the ramp",
+      SPAN.startMs - VIDEO_DUCK_RAMP_DOWN_MS / 2,
+      (1 + VIDEO_DUCK_VOLUME) / 2,
+    ],
     ["where the slide starts", SPAN.startMs, VIDEO_DUCK_VOLUME],
     ["inside the span", 15_000, VIDEO_DUCK_VOLUME],
     ["where the slide ends", SPAN.endMs, VIDEO_DUCK_VOLUME],
-    ["halfway up the ramp", SPAN.endMs + VIDEO_DUCK_RAMP_MS / 2, (1 + VIDEO_DUCK_VOLUME) / 2],
-    ["where the ramp up ends", SPAN.endMs + VIDEO_DUCK_RAMP_MS, 1],
+    ["halfway up the ramp", SPAN.endMs + VIDEO_DUCK_RAMP_UP_MS / 2, (1 + VIDEO_DUCK_VOLUME) / 2],
+    ["where the ramp up ends", SPAN.endMs + VIDEO_DUCK_RAMP_UP_MS, 1],
     ["far after the span", 60_000, 1],
   ])("is right %s", (_name, timeMs, expected) => {
     expect(duckFactorAt(timeMs, [SPAN])).toBeCloseTo(expected, 10);
@@ -23,10 +33,15 @@ describe("duckFactorAt", () => {
     expect(duckFactorAt(5000, [])).toBe(1);
   });
 
-  it("stays ducked between spans closer than two ramps", () => {
-    const spans = [SPAN, { startMs: SPAN.endMs + VIDEO_DUCK_RAMP_MS, endMs: 40_000 }];
+  it("swells back more slowly than it ducks", () => {
+    expect(VIDEO_DUCK_RAMP_UP_MS).toBeGreaterThan(VIDEO_DUCK_RAMP_DOWN_MS);
+  });
 
-    expect(duckFactorAt(SPAN.endMs + VIDEO_DUCK_RAMP_MS / 2, spans)).toBe(VIDEO_DUCK_VOLUME);
+  it("stays ducked between spans closer than a ramp up and a ramp down", () => {
+    const gapMs = VIDEO_DUCK_RAMP_UP_MS + VIDEO_DUCK_RAMP_DOWN_MS - 1;
+    const spans = [SPAN, { startMs: SPAN.endMs + gapMs, endMs: 40_000 }];
+
+    expect(duckFactorAt(SPAN.endMs + gapMs / 2, spans)).toBe(VIDEO_DUCK_VOLUME);
   });
 
   it("rises between spans further apart than two ramps", () => {
