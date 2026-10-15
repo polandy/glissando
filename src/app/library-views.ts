@@ -68,6 +68,7 @@ export function slideshowDetails(
     id: picture.id,
     thumbnailUrl: thumbnailUrl(picture.id),
     capturedAt: picture.capturedAt,
+    ...(picture.video === undefined ? {} : { clipMs: picture.video.endMs - picture.video.startMs }),
     ownMotion: picture.kenBurns !== undefined,
     ownDurationMs: picture.durationMs ?? null,
     // The last picture plays no transition; one stored there waits for a picture to follow.

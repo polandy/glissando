@@ -14,7 +14,7 @@ export const deClip = {
     "„{fileName}“ lässt sich auf diesem Gerät nicht abspielen. Das Format wird hier nicht unterstützt.",
   "clip.refusedTooLarge": "„{fileName}“ ist größer als {max} und wird nicht übernommen.",
   "clip.refusedTooShort": "„{fileName}“ ist kürzer als {min} und wird nicht übernommen.",
-  "clip.crumb": "Clip",
+  "clip.crumb": "Clip {number}",
   "clip.previewLabel": "Vorschau des Ausschnitts",
   "clip.play": "Abspielen",
   "clip.pause": "Pause",
