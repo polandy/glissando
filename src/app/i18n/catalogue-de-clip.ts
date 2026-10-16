@@ -23,6 +23,7 @@ export const deClip = {
   "clip.missing": "Der Clip liegt nicht mehr auf diesem Gerät.",
   "clip.strip": "Ausschnitt wählen",
   "clip.noSound": "Kein Ton in diesem Clip",
+  "clip.soundUnreadable": "Ton kann hier nicht gelesen werden",
   "clip.handleStart": "Anfang",
   "clip.handleEnd": "Ende",
   "clip.from": "Von",

@@ -28,7 +28,10 @@ like the slider, clamped into the excerpt. The strip draws the clip's sound as b
 editor's way (ink inside the excerpt, faint outside, under a half-transparent excerpt tint): the
 sound is read from the file as the editor opens, streamed and never stored, the bars growing from
 left to right as it is read; leaving the editor stops the reading. With Sound Off every bar is
-faint; a clip without a sound track shows "No sound in this clip" instead. "In the film" length
+faint; a clip without a sound track shows "No sound in this clip" instead, and a sound that cannot
+be read (a damaged file, an unsupported codec, a browser without an audio decoder, such as a page
+served over plain http) shows a warning icon with "Sound can't be read here"; the error is logged
+and the excerpt still works. "In the film" length
 (0.5 s to 5 min), Sound On/Off with a volume slider (0–100, step 5), "Music quieter meanwhile", a
 note that the transition runs inside the excerpt's end, Reset and Done. There is no Ken Burns or
 duration section: the excerpt is the slide's length. Slideshow tiles show the length badge.

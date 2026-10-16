@@ -105,6 +105,10 @@ async function mountRoute(
     focusOf: () => undefined,
   });
   let backs = 0;
+  let resolveLogged: (error: unknown) => void = () => {};
+  const logged = new Promise<unknown>((resolve) => {
+    resolveLogged = resolve;
+  });
   const props = reactiveProps({
     store,
     stored: SHOW,
@@ -116,12 +120,15 @@ async function mountRoute(
     onBack: () => (backs += 1),
     onOpen: () => {},
     onError: (error: unknown) => errors.push(error),
-    log: (error: unknown) => errors.push(error),
+    log: (error: unknown) => {
+      errors.push(error);
+      resolveLogged(error);
+    },
     readClipPeaks,
   });
   const mounted = mountWithTranslator(PictureEditorRoute, props);
   destroy = mounted.destroy;
-  return { target: mounted.target, backs: () => backs, store, editor, errors, props };
+  return { target: mounted.target, backs: () => backs, store, editor, errors, logged, props };
 }
 
 const FACE: PictureFocus = { kind: "subject", box: { x: 0.4, y: 0.2, width: 0.2, height: 0.3 } };
@@ -217,6 +224,16 @@ describe("the picture editor route", () => {
 
     expect(await call.blob.text()).toBe(await CLIP_BLOB.text());
     expect(call.sourceMs).toBe(CLIP_VIDEO.sourceMs);
+  });
+
+  it("says the clip's sound cannot be read, and logs why, when the reader fails", async () => {
+    const failure = new Error("no audio decoder in this browser");
+    const { target, logged } = await mountRoute("c", () => Promise.reject(failure));
+
+    expect(await logged).toBe(failure);
+    flushSync();
+
+    expect(target.textContent).toContain("Ton kann hier nicht gelesen werden");
   });
 
   it("aborts the reader's signal when the clip editor closes", async () => {
