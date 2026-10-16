@@ -7,6 +7,9 @@ tablet, the **install icon** in the address bar on a computer. After the first l
 without internet. If you use a self-hosted Glissando, open its address instead
 ([self-hosting](self-hosting.md)).
 
+Nothing to show yet? **Load demo slideshow**, under the two buttons below, downloads a small demo
+with its own pictures and music — once loaded, it plays offline like any other slideshow.
+
 ## Make a slideshow
 
 1. **New slideshow** and choose pictures from the device (or from Immich, on a self-hosted
