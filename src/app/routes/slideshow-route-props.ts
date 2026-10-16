@@ -5,6 +5,7 @@ import type { SlideshowHome } from "./slideshow-storage";
 import type { RouteStore } from "./slideshow-home";
 import type { ExportProgress } from "../glissando-file/export-job";
 import type { Toaster } from "../toast/toaster";
+import type { ReadClipPeaks } from "../clip-editor/clip-sound-wave";
 import type { MusicEditorAudio } from "../music-editor/music-editor-audio";
 import type { MusicOutput } from "../../player";
 import type { SongIntakeDevice } from "../music-editor/song-intake";
@@ -53,6 +54,8 @@ export interface SlideshowRouteProps {
   musicAudio: MusicEditorAudio;
   /** Where the player's music sounds. */
   musicOutput: MusicOutput;
+  /** Reads a video clip's sound into the waveform the clip editor shows. */
+  readClipPeaks: ReadClipPeaks;
   /** Reads songs picked in the music editor and stores their audio where the slideshow lives. */
   songIntake: SongIntakeDevice;
   /** Also taken when the slideshow is no longer on this device. */

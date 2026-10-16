@@ -10,6 +10,7 @@
   import type { SlideshowEditor } from "../editing/slideshow-editor";
   import { browserObjectUrls, ObjectUrls } from "../media/object-urls";
   import { REDUCED_MOTION_QUERY } from "../../ui-kit/reduced-motion";
+  import type { ClipSoundWave, ReadClipPeaks } from "../clip-editor/clip-sound-wave";
   import ClipEditorScreen from "../clip-editor/ClipEditorScreen.svelte";
   import PictureEditorScreen from "../picture-editor/PictureEditorScreen.svelte";
   import { pictureEditorView } from "../picture-editor/picture-editor-view";
@@ -27,6 +28,7 @@
     onOpen,
     onError,
     log,
+    readClipPeaks,
   }: {
     store: Pick<LibraryStore, "pictureBlob" | "videoBlob" | "musicBeats">;
     stored: StoredSlideshow;
@@ -42,6 +44,7 @@
     onError: (error: unknown) => void;
     /** Logs beats that could not be read: the pictures share the music evenly meanwhile. */
     log: (error: unknown) => void;
+    readClipPeaks: ReadClipPeaks;
   } = $props();
 
   const reducedMotion = new MediaQuery(REDUCED_MOTION_QUERY);
@@ -97,6 +100,28 @@
   );
   const video = $derived(stored.pictures.find((picture) => picture.id === pictureId)?.video);
   $effect(() => clips.sync(video === undefined ? [] : [video.mediaId]));
+
+  // Tracked as plain values, so an unrelated edit to `stored` does not restart the read.
+  const clipMediaId = $derived(video?.mediaId);
+  const clipSourceMs = $derived(video?.sourceMs);
+  let wave = $state.raw<ClipSoundWave | null>(null);
+  $effect(() => {
+    const mediaId = clipMediaId;
+    const sourceMs = clipSourceMs;
+    wave = null;
+    if (mediaId === undefined || sourceMs === undefined) return;
+    const controller = new AbortController();
+    store
+      .videoBlob(mediaId)
+      .then((blob) => {
+        if (controller.signal.aborted) return;
+        return readClipPeaks(blob, sourceMs, controller.signal, (nextWave) => {
+          wave = nextWave;
+        });
+      })
+      .catch(log);
+    return () => controller.abort();
+  });
   // A picture removed meanwhile, e.g. in another tab, has nothing left to edit.
   $effect(() => {
     if (!present) {
@@ -113,6 +138,7 @@
       slideshowTitle={stored.title}
       posterUrl={pictureUrls.get(view.id) ?? null}
       videoUrl={clipUrls.get(video.mediaId) ?? null}
+      {wave}
       {saving}
       {onBack}
       {onOpen}

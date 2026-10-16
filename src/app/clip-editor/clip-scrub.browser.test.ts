@@ -32,6 +32,7 @@ function mountPlayable() {
   const props = reactiveProps({
     slide: view(),
     video: CLIP,
+    wave: null,
     slideshowTitle: "Sommer am See",
     posterUrl: PIXEL,
     videoUrl: url,

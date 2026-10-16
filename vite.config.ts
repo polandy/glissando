@@ -97,6 +97,7 @@ export default defineConfig({
                   "src/video-export/browser/run-video-export.browser.test.ts",
                   "src/video-export/browser/clip-decode.browser.test.ts",
                   "src/app/clip-editor/clip-scrub.browser.test.ts",
+                  "src/app/clip-editor/read-clip-peaks.browser.test.ts",
                   "src/player/create-frame-player.browser.test.ts",
                   "src/player/create-frame-player-video.browser.test.ts",
                 ],

@@ -75,6 +75,7 @@ export function mountRoute(
     editingMusic: false,
     musicAudio: browserMusicEditorAudio(musicOutput),
     musicOutput,
+    readClipPeaks: () => new Promise<void>(() => {}),
     songIntake: songIntakeStoringIn(store, (error) => errors.push(error)),
     onBack: () => {},
     onPlay: () => {},

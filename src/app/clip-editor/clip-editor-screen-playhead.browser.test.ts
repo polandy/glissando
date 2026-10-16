@@ -19,6 +19,7 @@ function mount(video: StoredVideo = CLIP) {
   const props = reactiveProps({
     slide: view(),
     video,
+    wave: null,
     slideshowTitle: "Sommer am See",
     posterUrl: PIXEL,
     videoUrl: null,

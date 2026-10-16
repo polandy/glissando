@@ -49,6 +49,7 @@
     editingMusic,
     musicAudio,
     musicOutput,
+    readClipPeaks,
     songIntake,
     onBack,
     onPlay,
@@ -162,6 +163,7 @@
     onOpen={onEdit}
     {onError}
     {log}
+    {readClipPeaks}
   />
 {:else if editingMusic && stored !== null && editor !== null}
   <MusicEditorRoute

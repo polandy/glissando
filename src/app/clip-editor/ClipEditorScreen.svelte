@@ -5,6 +5,7 @@
   import { getTranslator } from "../i18n/context";
   import PictureNavigation from "../picture-editor/PictureNavigation.svelte";
   import type { PictureEditorView } from "../picture-editor/picture-editor-view";
+  import type { ClipSoundWave } from "./clip-sound-wave";
   import type { Excerpt, Handle } from "./clip-excerpt";
   import ClipPreview from "./ClipPreview.svelte";
   import ClipSoundPanel from "./ClipSoundPanel.svelte";
@@ -18,6 +19,7 @@
   let {
     slide,
     video,
+    wave,
     slideshowTitle,
     posterUrl,
     videoUrl,
@@ -32,6 +34,8 @@
     /** Where the slide is in the slideshow and what follows it. */
     slide: PictureEditorView;
     video: StoredVideo;
+    /** What is known of the clip's sound so far; null before reading it has started. */
+    wave: ClipSoundWave | null;
     slideshowTitle: string;
     posterUrl: string | null;
     /** The clip's object URL; null while it loads. */
@@ -102,6 +106,8 @@
         sourceMs={video.sourceMs}
         {excerpt}
         {positionMs}
+        {wave}
+        soundOff={volume === 0}
         onExcerpt={excerptChanged}
         onSeek={(clipMs) => preview.seek(clipMs)}
       />

@@ -15,7 +15,7 @@ import { AppSettings } from "./app/settings/app-settings";
 import { createStorageLanguagePreferenceStore } from "./app/settings/language";
 import {
   createStoragePlaybackQualityStore,
-  screenShortEdge,
+  browserScreenShortEdge,
 } from "./app/settings/playback-quality";
 import { applyThemePreference, createStorageThemePreferenceStore } from "./app/settings/theme";
 import { browserScheduler } from "./ui-kit/scheduler";
@@ -29,6 +29,7 @@ import { Toaster } from "./app/toast/toaster";
 import { createDownloader } from "./app/glissando-file/download-file";
 import { browserLaunchQueue } from "./app/glissando-file/launched-files";
 import { browserObjectUrls } from "./app/media/object-urls";
+import { readClipPeaksWithMediabunny } from "./app/clip-editor/read-clip-peaks";
 import { browserMusicEditorAudio } from "./app/music-editor/music-editor-audio";
 import { deviceSongStorage, serverSongStorage } from "./app/music-editor/song-intake";
 import { freeStorageBytes } from "./library/free-storage";
@@ -244,6 +245,7 @@ const services = {
   launchQueue: browserLaunchQueue(window),
   musicOutput,
   musicAudio: browserMusicEditorAudio(musicOutput),
+  readClipPeaks: readClipPeaksWithMediabunny,
   focusPass,
   beatPass,
   serverBeatPass,
@@ -274,12 +276,7 @@ const services = {
   }),
   newId,
   now,
-  screenShortEdge: () =>
-    screenShortEdge({
-      width: window.screen.width,
-      height: window.screen.height,
-      devicePixelRatio: window.devicePixelRatio,
-    }),
+  screenShortEdge: () => browserScreenShortEdge(window),
   deleteAbandonedMedia,
   log: logError,
   freeBytes,

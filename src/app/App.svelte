@@ -256,6 +256,7 @@
         editingMusic={route.screen === "music"}
         musicAudio={services.musicAudio}
         musicOutput={services.musicOutput}
+        readClipPeaks={services.readClipPeaks}
         songIntake={services.songIntake(opened.home)}
         onBack={() => navigator.back()}
         onPlay={() => {
