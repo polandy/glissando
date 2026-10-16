@@ -84,6 +84,16 @@ Decoding at 11 025 Hz takes about 0.14 s for 3 minutes and is native code.
   room for a derived result and freezes today's detector into every file.
 - _Snap own durations too_ — rejected: the user set them to the half second.
 
+## Addendum: phrase starts
+
+The beat list carries no bar or phrase information, so a boundary prefers every fourth beat of
+the list (`BEATS_PER_PHRASE`, counted from the playlist's first beat) over the nearest beat when
+that is at most half a beat further from where the even share puts it. A change then sits where
+the music turns more often, at the cost of up to half a beat of evenness. Counting from the
+playlist start is exact for the first song only; after a song change the phrase grid is a guess
+that still keeps within half a beat of the nearest beat. A full beat of tolerance was tried and
+rejected: slides of 5 s varied by 1.4 s.
+
 ## Addendum: server slideshows
 
 A slideshow on the Glissando server (ADR-0018) keeps its beats on the server, beside its music:

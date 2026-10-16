@@ -51,7 +51,7 @@ describe("musicEditorView, the picture changes", () => {
 
     expect(view.slideChanges).toEqual([
       { atMs: 8900, offBeat: false },
-      { atMs: 14_100, offBeat: false },
+      { atMs: 13_700, offBeat: false },
       { atMs: 18_900, offBeat: false },
     ]);
   });

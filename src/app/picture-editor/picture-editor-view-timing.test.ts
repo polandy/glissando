@@ -39,7 +39,7 @@ describe("pictureEditorView timing", () => {
       new Map([["m", STEADY_BEATS]]),
     );
 
-    expect([first.durationMs, second.durationMs]).toEqual([10_100, 10_000]);
+    expect([first.durationMs, second.durationMs]).toEqual([9700, 10_400]);
     expect(first.transition.durationMs).toBe(800);
   });
 
