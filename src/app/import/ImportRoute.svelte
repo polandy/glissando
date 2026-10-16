@@ -17,6 +17,7 @@
     step,
     session,
     loadThumbnail,
+    loadPicture,
     onError,
     onToMusic,
     onBack,
@@ -37,6 +38,7 @@
     step: ImportStep;
     session: ImportSession;
     loadThumbnail: (pictureId: string) => Promise<Blob>;
+    loadPicture: (pictureId: string) => Promise<Blob>;
     onError: (error: unknown) => void;
     onToMusic: () => void;
     /** One step up, keeping the selection. */
@@ -91,6 +93,7 @@
   <PicturesStep
     {session}
     {loadThumbnail}
+    {loadPicture}
     {onError}
     onLeave={leave}
     onNext={onToMusic}

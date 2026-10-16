@@ -15,7 +15,8 @@ Immich photos, offers no "Open file" and is created on the server
   folder", and drag-and-drop on desktop (folders read recursively). While downscaling: "k of N
   pictures are being downscaled …" with a mono counter, Cancel and a mint meter; a shimmering
   placeholder per file still in flight; the tiles appear in capture order as
-  they are stored. Then "n pictures · from – to" and "add more". **Removing** (mockup:
+  they are stored. Then "n pictures · from – to" and "add more". A tile opens its picture full
+  screen ([PICTURE_VIEWER.md](PICTURE_VIEWER.md)). **Removing** (mockup:
   https://polandy.github.io/glissando-assets/mockups/remove-import-pictures/): a stored tile has
   a ✕ ("Remove picture from <date>"), always shown on touch, on hover or keyboard focus for a
   mouse; a click, a tap, or Enter, Space, Delete or Backspace on it removes the picture at once,

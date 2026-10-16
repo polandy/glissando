@@ -53,6 +53,7 @@ function mountStep(immich: ImmichAvailabilityState, importSession = session()) {
     {
       session: importSession,
       loadThumbnail: () => Promise.resolve(new Blob()),
+      loadPicture: () => Promise.resolve(new Blob()),
       serverOn: false,
       rememberedHome: "device",
       onHomeChosen: () => undefined,

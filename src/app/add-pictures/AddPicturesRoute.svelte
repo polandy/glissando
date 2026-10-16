@@ -17,6 +17,7 @@
   let {
     session,
     loadThumbnail,
+    loadPicture,
     onError,
     onDiscard,
     onCommit,
@@ -26,6 +27,7 @@
   }: {
     session: AddPicturesSession;
     loadThumbnail: (pictureId: string) => Promise<Blob>;
+    loadPicture: (pictureId: string) => Promise<Blob>;
     onError: (error: unknown) => void;
     /** Throws the selection away; `leave` also goes back to the slideshow. */
     onDiscard: (leave: boolean) => void;
@@ -101,6 +103,7 @@
   <PictureIntakeBody
     intake={session.intake}
     {loadThumbnail}
+    {loadPicture}
     {onError}
     onFiles={add}
     {linking}

@@ -63,6 +63,7 @@ function mountStripInto(frame: HTMLElement): void {
     urls: new Map(),
     pending: 0,
     onRemove: () => undefined,
+    onView: () => undefined,
     onEmptied: () => undefined,
   });
   unmounts.push(strip.destroy);

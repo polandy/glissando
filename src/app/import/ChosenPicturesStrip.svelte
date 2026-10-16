@@ -4,6 +4,7 @@
   import Icon from "../components/Icon.svelte";
   import VideoBadge from "../components/VideoBadge.svelte";
   import { getTranslator } from "../i18n/context";
+  import ViewPictureButton from "./ViewPictureButton.svelte";
 
   /** The pictures step's tiles: the stored pictures, each with its ✕, then a placeholder per file in flight. */
   let {
@@ -11,6 +12,7 @@
     urls,
     pending,
     onRemove,
+    onView,
     onEmptied,
   }: {
     pictures: readonly StoredPicture[];
@@ -18,6 +20,7 @@
     urls: ReadonlyMap<string, string>;
     pending: number;
     onRemove: (pictureId: string) => void;
+    onView: (pictureId: string) => void;
     /** The last picture was removed: the focus has no ✕ left to go to. */
     onEmptied: () => void;
   } = $props();
@@ -67,6 +70,7 @@
           <span class="cut-flag">{t("clip.cutFlag")}</span>
         {/if}
       {/if}
+      <ViewPictureButton {picture} {onView} />
       <button
         class="remove"
         type="button"
