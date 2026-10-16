@@ -82,5 +82,5 @@
   while the server library is on (it can be hidden with its ✕ and is brought back in Settings),
   its set-up screen and the fullscreen running frame.
 
-Up to 720 px wide (a container query on `.screen`) the layout narrows: one card column, the
-info panel below the preview, three tiles per row.
+Up to 1024 px wide (a container query on `.screen`) the info panel stacks full width above the
+pictures instead of beside them. Up to 720 px the layout narrows further: three tiles per row.
