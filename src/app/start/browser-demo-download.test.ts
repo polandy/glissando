@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { browserDemoDownload, type DemoFetch, type DemoFetchResponse } from "./browser-demo-download.ts";
+import {
+  browserDemoDownload,
+  type DemoFetch,
+  type DemoFetchResponse,
+} from "./browser-demo-download.ts";
 
 /** A streamed body the test releases one chunk at a time. */
 function fakeStream(chunks: readonly Uint8Array[]): DemoFetchResponse["body"] {
@@ -46,8 +50,9 @@ describe("browserDemoDownload", () => {
         body: fakeStream([chunk("abc"), chunk("def"), chunk("ghi")]),
       }),
     );
-    const blob = await download.download("https://example.invalid/demo.glissando", (received, total) =>
-      seen.push({ received, total }),
+    const blob = await download.download(
+      "https://example.invalid/demo.glissando",
+      (received, total) => seen.push({ received, total }),
     );
     expect(seen).toEqual([
       { received: 3, total: 9 },
@@ -60,7 +65,11 @@ describe("browserDemoDownload", () => {
   it("reports a null total where Content-Length is absent or not a number", async () => {
     const seen: Array<number | null> = [];
     const download = browserDemoDownload(
-      fakeFetch({ ok: true, headers: { get: () => "not-a-number" }, body: fakeStream([chunk("a")]) }),
+      fakeFetch({
+        ok: true,
+        headers: { get: () => "not-a-number" },
+        body: fakeStream([chunk("a")]),
+      }),
     );
     await download.download("https://example.invalid/demo.glissando", (_received, total) =>
       seen.push(total),

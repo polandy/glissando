@@ -15,7 +15,10 @@ export type DemoSlideshowState =
 
 /** Downloads the whole file, reporting bytes received and the total as it becomes known. */
 export interface DemoDownloadPort {
-  download(url: string, onProgress: (received: number, total: number | null) => void): Promise<Blob>;
+  download(
+    url: string,
+    onProgress: (received: number, total: number | null) => void,
+  ): Promise<Blob>;
 }
 
 /** The device's network connection, as the browser reports it (immich/immich-availability.ts). */

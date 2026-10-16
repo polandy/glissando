@@ -24,6 +24,7 @@ import type { BuildInfo } from "./settings/build-info";
 import type { FrameDevice } from "./frame/browser-frame-device";
 import type { FrameCardPreference } from "./frame/frame-card-preference";
 import type { FramePreferences } from "./frame/frame-preferences";
+import type { DemoSlideshowServices } from "./start/demo-slideshow-services";
 
 /**
  * What the composition root (`main.ts`) wires into the app; a server slideshow's share link and
@@ -91,4 +92,6 @@ export interface AppServices extends ServerSlideshowSessions {
   readonly frameCardPreference: FrameCardPreference;
   /** What the picture frame needs of the browser beyond Immich and storage. */
   readonly frameDevice: FrameDevice;
+  /** The start screen's "Load demo slideshow" button (dev-docs/app/INSTALLING_AND_OFFLINE.md). */
+  readonly demoSlideshow: DemoSlideshowServices;
 }

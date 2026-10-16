@@ -1,4 +1,3 @@
-import { openClipInVideoElement } from "./import/browser/video-clip";
 import { mount } from "svelte";
 import App from "./app/App.svelte";
 import { createErrorReporter } from "./app/errors/error-reporter";
@@ -32,10 +31,9 @@ import { browserObjectUrls } from "./app/media/object-urls";
 import { browserMusicEditorAudio } from "./app/music-editor/music-editor-audio";
 import { deviceSongStorage, serverSongStorage } from "./app/music-editor/song-intake";
 import { freeStorageBytes } from "./library/free-storage";
-import { decodePicture } from "./import/downscale";
 import { browserIntakePorts } from "./app/import/browser-intake-ports";
 import { HttpImmichClient } from "./immich/http-immich-client";
-import type { ImmichUnavailableKind } from "./immich/immich-client";
+import { createImmichReaders } from "./immich/immich-readers";
 import type { StoredSlideshow } from "./library/stored-slideshow";
 import type { SlideshowHome } from "./app/routes/slideshow-storage";
 import { browserNetworkStatus, ImmichAvailability } from "./immich/immich-availability";
@@ -59,6 +57,7 @@ import { createStorageServerLibraryMemory } from "./server-library/server-librar
 import { browserHtmlExportDevice } from "./app/html-export/browser-html-export-device";
 import { browserVideoExportDevice } from "./app/video-export/browser-video-export-device";
 import { createFrameServices } from "./app/frame/frame-services";
+import { createDemoSlideshowServices } from "./app/start/demo-slideshow-services";
 
 /** Same origin: the self-hosted Glissando's `/immich/` route sets the API key (ADR-0013). */
 const immichClient = new HttpImmichClient({
@@ -156,18 +155,11 @@ const download = createDownloader({
   scheduler: browserScheduler,
 });
 
-/** How Immich's pictures are read, for an intake, a server slideshow and a copy of one. */
-const immichReaders = {
-  client: immichClient,
-  decode: decodePicture,
-  reportUnavailable: (kind: ImmichUnavailableKind) => immichAvailability.report(kind),
-  log: logError,
-};
-
-const intakeImmichReaders = {
-  ...immichReaders,
-  videos: { client: immichClient, openClip: openClipInVideoElement },
-};
+const { immichReaders, intakeImmichReaders } = createImmichReaders(
+  immichClient,
+  (kind) => immichAvailability.report(kind),
+  logError,
+);
 
 // Same origin: the self-hosted Glissando routes ./api/library to its library service (ADR-0018).
 const serverLibraryClient = new HttpServerLibraryClient({
@@ -215,6 +207,7 @@ const serverSessions = serverSlideshowSessions(window, {
   log: logError,
 });
 const frame = createFrameServices(window, browserScheduler, logError);
+const demoSlideshow = createDemoSlideshowServices(window);
 
 // Read before the navigator exists, so its own first route is never raced by this one.
 const deepLinkedFrameAlbumId = parseFrameDeepLink(window.location.hash);
@@ -289,6 +282,7 @@ const services = {
   ...serverSessions,
   reload: () => window.location.reload(),
   ...frame,
+  demoSlideshow,
 };
 
 const playStartAnimation = consumeFirstLaunch(createStorageFirstLaunchStore(window.localStorage));
