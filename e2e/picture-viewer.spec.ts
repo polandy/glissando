@@ -9,7 +9,7 @@ test.beforeEach(async ({ page }) => {
   await openApp(page);
 });
 
-test("E2E-050 a picture of the pictures step opens full screen, browses, removes and closes", async ({
+test("E2E-060 a picture of the pictures step opens full screen, browses, removes and closes", async ({
   page,
 }, testInfo) => {
   const files = [
