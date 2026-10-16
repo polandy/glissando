@@ -53,6 +53,7 @@ export const de = {
   "start.withMusic": "mit Musik",
   "start.searchingSubjects": "Motive werden gesucht",
   "start.searchProgress": "{done} von {total}",
+  "start.demoCardTitle": "Glissando in Aktion sehen",
   "start.loadDemo": "Demo-Slideshow laden",
   "start.loadingDemo": "Demo wird geladen …",
   "start.loadingDemoProgress": "Demo wird geladen … {received} von {total} MB",

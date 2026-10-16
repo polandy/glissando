@@ -3,14 +3,16 @@
   import { getTranslator } from "../i18n/context";
   import type { DemoSlideshowState } from "./demo-slideshow-flow";
 
-  /** The start screen's third hero button: downloads the demo, then opens it like a picked file. */
+  /** The start screen's demo card, above "New slideshow" on an empty, public install. */
   let { state, onLoad }: { state: DemoSlideshowState; onLoad: () => void } = $props();
 
   /** The demo download's own bytes-per-megabyte, rounded like `Translator.formatBytes`. */
   const BYTES_PER_MEGABYTE = 1_000_000;
 
   const { t } = getTranslator();
-  const label = $derived.by(() => {
+
+  /** The action text, loading or idle; doubles as the card's accessible name. */
+  const actionText = $derived.by(() => {
     if (state.kind !== "loading") return t("start.loadDemo");
     return state.total === null
       ? t("start.loadingDemo")
@@ -19,6 +21,8 @@
           total: megabytes(state.total),
         });
   });
+  const disabled = $derived(state.kind === "loading" || !state.online);
+  const idleOnline = $derived(state.kind !== "loading" && state.online);
 
   /** Rounded like `Translator.formatBytes`, without its gigabyte fallback the demo never reaches. */
   function megabytes(bytes: number): number {
@@ -26,43 +30,105 @@
   }
 </script>
 
-<button
-  class="btn ghost"
-  type="button"
-  disabled={state.kind === "loading" || !state.online}
-  onclick={onLoad}
->
-  <Icon name="sparkle" />{label}
+<button class="demo-card" type="button" aria-label={actionText} {disabled} onclick={onLoad}>
+  <span class="cover" aria-hidden="true"><Icon name="play" /></span>
+  <span class="body">
+    <span class="heading">{t("start.demoCardTitle")}</span>
+    <span class="line" class:action={idleOnline}>
+      {#if state.kind === "loading"}
+        {actionText}
+      {:else if !state.online}
+        {t("start.demoNeedsConnection")}
+      {:else}
+        {actionText}<span class="arrow" aria-hidden="true">→</span>
+      {/if}
+    </span>
+  </span>
+  {#if state.kind === "loading"}
+    <span class="meter" aria-hidden="true">
+      <i
+        class:indeterminate={state.total === null}
+        style:width={state.total === null ? undefined : `${(state.received / state.total) * 100}%`}
+      ></i>
+    </span>
+  {/if}
 </button>
-{#if state.kind === "loading"}
-  <div class="meter">
-    <i
-      class:indeterminate={state.total === null}
-      style:width={state.total === null ? undefined : `${(state.received / state.total) * 100}%`}
-    ></i>
-  </div>
-{:else if !state.online}
-  <p class="hint">{t("start.demoNeedsConnection")}</p>
-{/if}
 
 <style>
-  .hint {
-    margin: 0;
+  .demo-card {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    padding: 14px 16px;
+    overflow: hidden;
+    border: none;
+    border-radius: var(--gl-radius-large);
+    background: var(--gl-surface);
+    box-shadow: var(--gl-shadow);
+    color: var(--gl-ink);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+  .demo-card:hover:not(:disabled) {
+    background: var(--gl-hover);
+  }
+  .demo-card:disabled {
+    opacity: 0.55;
+    cursor: default;
+  }
+  .cover {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 64px;
+    height: 64px;
+    border-radius: var(--gl-radius-tile);
+    background: linear-gradient(
+      135deg,
+      var(--gl-logo-peach),
+      var(--gl-logo-mint) 55%,
+      var(--gl-logo-lemon)
+    );
+    color: var(--gl-player-text);
+    filter: var(--gl-photo-marker-shadow);
+    --gl-icon-size: var(--gl-size-icon);
+  }
+  .body {
+    display: grid;
+    flex: 1;
+    min-width: 0;
+    gap: 2px;
+  }
+  .heading {
+    font-weight: var(--gl-weight-semibold);
+    font-size: var(--gl-size-body);
+  }
+  .line {
     color: var(--gl-muted);
     font-size: var(--gl-size-meta);
   }
+  .line.action {
+    color: var(--gl-accent);
+    font-weight: var(--gl-weight-medium);
+  }
+  .arrow {
+    margin-inline-start: 4px;
+  }
   .meter {
-    width: 100%;
-    max-width: 260px;
-    height: 6px;
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: 3px;
     overflow: hidden;
-    border-radius: var(--gl-radius-pill);
     background: var(--gl-hover);
   }
   .meter i {
     display: block;
     height: 100%;
-    border-radius: var(--gl-radius-pill);
     background: var(--gl-mint);
     transition: width 0.3s;
   }
