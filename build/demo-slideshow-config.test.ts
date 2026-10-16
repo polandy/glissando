@@ -4,9 +4,7 @@ import {
   type DemoSlideshowConfigSources,
 } from "./demo-slideshow-config.ts";
 
-function sources(
-  overrides: Partial<DemoSlideshowConfigSources> = {},
-): DemoSlideshowConfigSources {
+function sources(overrides: Partial<DemoSlideshowConfigSources> = {}): DemoSlideshowConfigSources {
   return { env: {}, ...overrides };
 }
 
@@ -18,9 +16,10 @@ describe("resolveDemoSlideshowConfig", () => {
     });
   });
 
-  it("turns on only where GLISSANDO_PUBLIC_INSTALL is exactly \"true\"", () => {
+  it('turns on only where GLISSANDO_PUBLIC_INSTALL is exactly "true"', () => {
     expect(
-      resolveDemoSlideshowConfig(sources({ env: { GLISSANDO_PUBLIC_INSTALL: "true" } })).publicInstall,
+      resolveDemoSlideshowConfig(sources({ env: { GLISSANDO_PUBLIC_INSTALL: "true" } }))
+        .publicInstall,
     ).toBe(true);
   });
 
@@ -32,9 +31,7 @@ describe("resolveDemoSlideshowConfig", () => {
 
   it("takes the demo's URL from the environment, e.g. for a LAN preview", () => {
     const url = "http://192.168.1.110:4174/glissando-demo.glissando";
-    expect(
-      resolveDemoSlideshowConfig(sources({ env: { GLISSANDO_DEMO_URL: url } })).url,
-    ).toBe(url);
+    expect(resolveDemoSlideshowConfig(sources({ env: { GLISSANDO_DEMO_URL: url } })).url).toBe(url);
   });
 
   it("refuses a GLISSANDO_DEMO_URL that is no absolute URL, naming the remedy", () => {

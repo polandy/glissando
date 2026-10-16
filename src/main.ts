@@ -63,6 +63,7 @@ import { browserVideoExportDevice } from "./app/video-export/browser-video-expor
 import { createFrameServices } from "./app/frame/frame-services";
 import { browserMediaDecoders } from "./glissando-file/browser/media-decoders";
 import { decodeClipSound } from "./video-export/browser/decode-clip-sound";
+import { createDemoSlideshowServices } from "./app/start/demo-slideshow-services";
 
 /** Same origin: the self-hosted Glissando's `/immich/` route sets the API key (ADR-0013). */
 const immichClient = new HttpImmichClient({
@@ -196,6 +197,7 @@ const serverSessions = serverSlideshowSessions(window, {
   onError: reportError,
   log: logError,
 });
+const demoSlideshow = createDemoSlideshowServices(window);
 
 // Read before the navigator exists, so its own first route is never raced by this one.
 const deepLinkedFrameAlbumId = parseFrameDeepLink(window.location.hash);
@@ -272,6 +274,7 @@ const services = {
   ...serverSessions,
   reload: () => window.location.reload(),
   ...createFrameServices(window, browserScheduler, logError),
+  demoSlideshow,
 };
 
 const playStartAnimation = consumeFirstLaunch(createStorageFirstLaunchStore(window.localStorage));

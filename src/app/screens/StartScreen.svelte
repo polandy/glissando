@@ -12,6 +12,8 @@
   import { getTranslator } from "../i18n/context";
   import SlideshowCard from "./SlideshowCard.svelte";
   import type { ServerShelf, SlideshowSummary } from "./view-models";
+  import type { DemoSlideshowState } from "../start/demo-slideshow-flow";
+  import DemoSlideshowButton from "../start/DemoSlideshowButton.svelte";
 
   let {
     slideshows,
@@ -31,6 +33,7 @@
     onSetUpFrame,
     onHideFrameCard,
     frameCardShown = true,
+    demo = { visible: false, state: { kind: "idle", online: true }, onLoad: () => {} },
   }: {
     /** Newest first. */
     slideshows: readonly SlideshowSummary[];
@@ -58,6 +61,8 @@
     onHideFrameCard: () => void;
     /** The owner can hide the picture frame card; Settings brings it back. */
     frameCardShown?: boolean;
+    /** The "Load demo slideshow" button (dev-docs/app/INSTALLING_AND_OFFLINE.md). */
+    demo?: { visible: boolean; state: DemoSlideshowState; onLoad: () => void };
   } = $props();
 
   const { t } = getTranslator();
@@ -117,6 +122,9 @@
         <button class="btn ghost" type="button" onclick={() => picker.pick()}>
           <Icon name="open" />{t("glissandoFile.openGlissandoFile")}
         </button>
+        {#if demo.visible}
+          <DemoSlideshowButton state={demo.state} onLoad={demo.onLoad} />
+        {/if}
       </div>
     {:else}
       <div class="head">
