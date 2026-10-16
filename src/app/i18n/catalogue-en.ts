@@ -48,6 +48,7 @@ export const en: Catalogue = {
   "start.withMusic": "with music",
   "start.searchingSubjects": "Looking for subjects",
   "start.searchProgress": "{done} of {total}",
+  "start.demoCardTitle": "See Glissando in action",
   "start.loadDemo": "Load demo slideshow",
   "start.loadingDemo": "Loading demo…",
   "start.loadingDemoProgress": "Loading demo… {received} of {total} MB",

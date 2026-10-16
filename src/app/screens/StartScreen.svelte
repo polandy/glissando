@@ -116,15 +116,15 @@
       <div class="hero">
         <h1 class="title">{t("start.heroTitle")}</h1>
         <p class="lead">{t("start.heroText")}</p>
+        {#if demo.visible}
+          <DemoSlideshowButton state={demo.state} onLoad={demo.onLoad} />
+        {/if}
         <button class="btn primary large" type="button" onclick={onCreate}>
           <Icon name="plus" />{t("start.newSlideshow")}
         </button>
         <button class="btn ghost" type="button" onclick={() => picker.pick()}>
           <Icon name="open" />{t("glissandoFile.openGlissandoFile")}
         </button>
-        {#if demo.visible}
-          <DemoSlideshowButton state={demo.state} onLoad={demo.onLoad} />
-        {/if}
       </div>
     {:else}
       <div class="head">

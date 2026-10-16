@@ -28,19 +28,17 @@ function mountStart(demo?: { visible: boolean; state: DemoSlideshowState; onLoad
   return mounted.target;
 }
 
-const demoButton = (target: HTMLElement): HTMLButtonElement | undefined =>
-  [...target.querySelectorAll<HTMLButtonElement>(".hero button")].find((button) =>
-    button.textContent?.includes("Demo"),
-  );
+const demoCard = (target: HTMLElement): HTMLButtonElement | null =>
+  target.querySelector<HTMLButtonElement>(".hero .demo-card");
 
-describe("StartScreen's demo slideshow button", () => {
+describe("StartScreen's demo slideshow card", () => {
   it("stays out of the hero when the demo is not offered", () => {
     const target = mountStart();
 
-    expect(demoButton(target)).toBeUndefined();
+    expect(demoCard(target)).toBeNull();
   });
 
-  it("offers the demo, idle and online, and starts it on click", () => {
+  it("offers the demo, idle and online, with the action as its accessible name, and starts it on click", () => {
     let starts = 0;
     const target = mountStart({
       visible: true,
@@ -48,37 +46,40 @@ describe("StartScreen's demo slideshow button", () => {
       onLoad: () => (starts += 1),
     });
 
-    const button = demoButton(target);
-    expect(button?.textContent).toContain("Demo-Slideshow laden");
-    expect(button?.disabled).toBe(false);
+    const card = demoCard(target);
+    expect(card?.getAttribute("aria-label")).toBe("Demo-Slideshow laden");
+    expect(card?.textContent).toContain("Glissando in Aktion sehen");
+    expect(card?.textContent).toContain("Demo-Slideshow laden");
+    expect(card?.disabled).toBe(false);
 
-    button?.click();
+    card?.click();
 
     expect(starts).toBe(1);
   });
 
-  it("disables the button and shows a hairline while loading", () => {
+  it("disables the card and shows a hairline while loading, with progress as its name", () => {
     const target = mountStart({
       visible: true,
       state: { kind: "loading", online: true, received: 12_000_000, total: 31_000_000 },
       onLoad: () => {},
     });
 
-    const button = demoButton(target);
-    expect(button?.disabled).toBe(true);
-    expect(button?.textContent).toContain("12 von 31");
+    const card = demoCard(target);
+    expect(card?.disabled).toBe(true);
+    expect(card?.getAttribute("aria-label")).toContain("12 von 31");
+    expect(card?.textContent).toContain("12 von 31");
     expect(target.querySelector(".hero .meter")).not.toBeNull();
   });
 
-  it("disables the button and hints at a connection while offline", () => {
+  it("disables the card and hints at a connection while offline", () => {
     const target = mountStart({
       visible: true,
       state: { kind: "idle", online: false },
       onLoad: () => {},
     });
 
-    const button = demoButton(target);
-    expect(button?.disabled).toBe(true);
-    expect(target.querySelector(".hero")?.textContent).toContain("Braucht eine Verbindung");
+    const card = demoCard(target);
+    expect(card?.disabled).toBe(true);
+    expect(card?.textContent).toContain("Braucht eine Verbindung");
   });
 });
