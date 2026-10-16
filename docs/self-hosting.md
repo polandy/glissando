@@ -12,6 +12,15 @@ the few reads Glissando makes (albums, photos, faces) and adds your Immich API k
 everything else is refused. The key stays inside the container: browsers never see it, and there
 is no key to type into the app.
 
+## In short
+
+1. **Protect** the address (sign-in or VPN) and serve it over HTTPS.
+2. **Create** an Immich API key with five read permissions → `glissando-immich-api-key.txt`.
+3. **Add** the `glissando` service to Immich's compose file, `docker compose up -d glissando`.
+4. Optional: a **data volume** for slideshows on the server, a **share link**, a **TV**.
+
+The details of each step follow.
+
 ## First: protect it
 
 **Whoever can open your Glissando can browse the photo library the API key can read.** The
