@@ -107,7 +107,8 @@ The slide clock leads; the clip follows it, never the other way round.
 - The composer emits a video slide's `video` from the stored one; the slide has no Ken Burns
   (still framing) and its transition and caption follow the picture's rules.
 - Duration: a fixed own duration (ADR-0008): with music the other pictures share what is left
-  (ADR-0022); on the beat the video's own length is not snapped (ADR-0021).
+  (ADR-0022); on the beat the video's own length is not snapped (ADR-0021). A card (ADR-0032)
+  never lengthens it, opening or closing (`TITLE_CARD_COMPOSITION.md`).
 - A card (ADR-0032) may sit over a video slide's poster background, never over the playing clip.
 
 ## Targets

@@ -53,7 +53,7 @@ export function snapToBeats(
 
 /**
  * The beat at or after `minMs`, else `minMs` itself: without beats, or none reaches that far
- * (`TITLE_CARDS.md` § Composition, Beats).
+ * (`TITLE_CARD_COMPOSITION.md`, Beats).
  */
 export function snapToNextBeat(beatsMs: readonly number[] | undefined, minMs: number): number {
   const next = beatsMs?.find((beatMs) => beatMs >= minMs);
