@@ -26,6 +26,9 @@ const PAN_OFFSET = 0.1;
  */
 const PORTRAIT_CENTER_Y = 0.4;
 
+/** The zoom a sweep over scenery holds; the frame shows 1/zoom of the width. */
+const SCENERY_ZOOM = 1.3;
+
 /** The group's box grown by this factor is the room its frame keeps around the people. */
 const GROUP_MARGIN = 1.15;
 
@@ -46,6 +49,7 @@ export function autoKenBurns(
 ): KenBurns {
   const zoomsIn = index % 2 === 0;
   const pansRight = index % 2 === 0;
+  if (focus?.kind === "scenery" && pansHorizontally) return sceneryKenBurns(pansRight);
   const center = restingCenter(picture, focus);
   const maxZoom = largestZoomShowing(focus);
 
@@ -64,6 +68,18 @@ export function autoKenBurns(
       centerX: endCenterX,
       centerY: center.y,
     },
+    easing: KEN_BURNS_EASING,
+  };
+}
+
+/** A slow sweep from one edge of the picture to the other at a steady zoom (ADR-0037). */
+function sceneryKenBurns(pansRight: boolean): KenBurns {
+  const leftmost = BASE_CENTER / SCENERY_ZOOM;
+  const rightmost = 1 - leftmost;
+  const [startX, endX] = pansRight ? [leftmost, rightmost] : [rightmost, leftmost];
+  return {
+    from: { zoom: SCENERY_ZOOM, centerX: startX, centerY: BASE_CENTER },
+    to: { zoom: SCENERY_ZOOM, centerX: endX, centerY: BASE_CENTER },
     easing: KEN_BURNS_EASING,
   };
 }

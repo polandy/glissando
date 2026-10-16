@@ -2,7 +2,7 @@
 
 `FocusPass` (`library/focus-pass.ts`) looks, in the background, for the focus of every stored
 picture without one (ADR-0012): newest slideshow first, one picture at a time, its thumbnail
-through the `FocusDetector` (a worker) into the store: a face (pico, ADR-0012), and only when there is none the main object (YOLOX-nano, any of its 80 classes, ADR-0036), stored the same way as a `{kind: "subject"}` box. It starts when the app opens and again
+through the `FocusDetector` (a worker) into the store: a face (pico, ADR-0012), and only when there is none the main object (YOLOX-nano, any of its 80 classes, ADR-0036), stored the same way as a `{kind: "subject"}` box; with neither, a wide picture that is mostly green or blue, or has a calm sky over a busier ground, is `{kind: "scenery"}` (ADR-0037) and gets a sideways sweep. It starts when the app opens and again
 whenever a slideshow is created (an import, an opened file); a start while it runs only takes up
 the slideshows created since, so two never run at once. A picture from Immich with faces already
 has its focus when it is stored: the box around the largest of Immich's faces (by area; Immich gives no

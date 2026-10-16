@@ -29,6 +29,10 @@ describe("focusIndication", () => {
     });
   });
 
+  it("marks scenery as having no subject, as it has no box to show", () => {
+    expect(focusIndication({ kind: "scenery" }, false)).toEqual({ kind: "no-subject" });
+  });
+
   it("notes that no subject was found, and that one is being searched for", () => {
     expect(focusIndication({ kind: "none" }, false)).toEqual({ kind: "no-subject" });
     expect(focusIndication({ kind: "searching" }, false)).toEqual({ kind: "searching" });

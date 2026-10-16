@@ -37,6 +37,7 @@ export function focusIndication(focus: PictureFocusStatus, ownMotion: boolean): 
           alignRight: focus.box.x + focus.box.width > CHIP_ROOM_RIGHT,
         },
       };
+    case "scenery":
     case "none":
       return { kind: "no-subject" };
     case "searching":
