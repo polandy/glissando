@@ -180,7 +180,16 @@ describe("MusicEditorScreen, the pictures' times and listening", () => {
     expect(document.querySelector(".lane .over")).not.toBeNull();
   });
 
-  it("listens to the start and shows where it plays", () => {
+  it("shows no playhead, chip or current picture before anything plays", () => {
+    mountEditor(slideshowWith(TRIMMED));
+
+    expect(document.querySelector(".lane .runs")).not.toBeNull();
+    expect(document.querySelector(".playhead")).toBeNull();
+    expect(document.querySelector(".chip")).toBeNull();
+    expect(document.querySelector(".lane .current")).toBeNull();
+  });
+
+  it("listens to the start and shows where it plays, over both lanes", () => {
     const { calls, set } = mountEditor(slideshowWith(TRIMMED));
 
     buttonNamed("Anfang anhören ab 0:12,0").click();
@@ -188,7 +197,14 @@ describe("MusicEditorScreen, the pictures' times and listening", () => {
 
     expect(calls.listens).toEqual(["start"]);
     expect(buttonNamed("Anfang anhören ab 0:12,0").getAttribute("aria-pressed")).toBe("true");
-    expect(document.querySelector(".playhead")).not.toBeNull();
+    const playheads = document.querySelectorAll(".playhead");
+    expect(playheads).toHaveLength(1);
+    const lane = document.querySelector(".lane") as Element;
+    expect(playheads[0]?.getBoundingClientRect().bottom).toBeGreaterThanOrEqual(
+      lane.getBoundingClientRect().bottom,
+    );
+    expect(text(".chip")).toBe("0:14,0");
+    expect(document.querySelector(".lane .current")).not.toBeNull();
   });
 
   it("stops listening when a handle is grabbed", () => {

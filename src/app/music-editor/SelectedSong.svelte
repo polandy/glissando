@@ -7,6 +7,7 @@
   import type { MusicEditorView } from "./music-editor-view";
   import MusicWaveform from "./MusicWaveform.svelte";
   import SlideshowLane from "./SlideshowLane.svelte";
+  import { percentOf } from "./waveform-scale";
 
   /**
    * The selected song, headed by its place and name: its excerpt on the waveform with the
@@ -39,6 +40,9 @@
     { kind: "end", label: "music.listenEnd", at: "music.listenUntil" },
   ] as const;
   const seconds = (ms: number) => ms / MILLISECONDS_PER_SECOND;
+  const pct = (ms: number) => percentOf(ms, music.durationMs);
+  /** Wide enough for the longest formatted time the chip shows, e.g. "12:34,5". */
+  const CHIP_WIDTH_PX = 64;
 </script>
 
 <div class="head">
@@ -55,15 +59,22 @@
   </span>
 </div>
 <div class="wavebox">
-  <MusicWaveform
-    {music}
-    {peaks}
-    playheadMs={listening?.positionMs ?? null}
-    {onDraft}
-    {onCommit}
-    onGrab={onStopListening}
-  />
-  <SlideshowLane {music} />
+  <div class="tracks">
+    <MusicWaveform {music} {peaks} {onDraft} {onCommit} onGrab={onStopListening} />
+    <SlideshowLane {music} listeningPositionMs={listening?.positionMs ?? null} />
+    {#if listening !== null}
+      <div class="playhead" style:left={pct(listening.positionMs)} aria-hidden="true"></div>
+      <div
+        class="chip mono"
+        style:left="clamp(0px, calc({pct(listening.positionMs)} - {CHIP_WIDTH_PX / 2}px), calc(100%
+        - {CHIP_WIDTH_PX}px))"
+        style:width="{CHIP_WIDTH_PX}px"
+        aria-hidden="true"
+      >
+        {formatTenths(seconds(listening.positionMs))}
+      </div>
+    {/if}
+  </div>
 </div>
 <div class="listen">
   {#each LISTENS as listen (listen.kind)}
@@ -106,12 +117,42 @@
     font-size: var(--gl-size-meta);
   }
   .wavebox {
-    display: grid;
-    gap: 8px;
-    padding: 42px 16px 12px;
+    /* The bottom padding leaves room for the time chip below the slideshow lane, so nothing
+       jumps when listening starts or stops. */
+    padding: 42px 16px 40px;
     border: 1px solid var(--gl-line);
     border-radius: var(--gl-radius-large);
     background: var(--gl-surface);
+  }
+  .tracks {
+    position: relative;
+    display: grid;
+    gap: 8px;
+  }
+  /* One line, from the top of the waveform through the ruler to the bottom of the slideshow
+     lane: the playhead at the same track-time scale both lanes use. */
+  .playhead {
+    position: absolute;
+    top: -6px;
+    bottom: -4px;
+    z-index: 3;
+    width: 2px;
+    margin-left: -1px;
+    background: var(--gl-ink);
+    pointer-events: none;
+  }
+  .chip {
+    position: absolute;
+    top: calc(100% + 8px);
+    z-index: 3;
+    padding: 3px 0;
+    border-radius: var(--gl-radius-small);
+    background: var(--gl-ink);
+    color: var(--gl-surface);
+    font-size: var(--gl-size-caption);
+    font-weight: var(--gl-weight-semibold);
+    text-align: center;
+    pointer-events: none;
   }
   .listen {
     display: grid;
@@ -164,7 +205,7 @@
   }
   @container (max-width: 720px) {
     .wavebox {
-      padding: 40px 12px 10px;
+      padding: 40px 12px 38px;
     }
     .listen {
       gap: 8px;
