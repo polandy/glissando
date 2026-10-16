@@ -1,7 +1,8 @@
 import { afterEach, describe, expect, it } from "vitest";
 import type { BitmapPicture } from "../browser/bitmap-loader";
-import { CARD_STYLE_SPECS, layoutCard } from "../card-layout";
+import { CARD_STYLE_SPECS, layoutCard, type CardTextSpec } from "../card-layout";
 import { cardItemSlices } from "../card-item-layout";
+import { CardItemLayouts, type MeasureFactory } from "../card-item-layouts";
 import { canvasCardMeasure } from "../card-measure";
 import type { PictureSlideLayer, RenderFrame } from "../ports";
 import { BLUE, solidBitmap, standingStill, RED, type Rgb } from "../testing/browser-pictures";
@@ -22,7 +23,9 @@ import {
 let box: HTMLElement;
 afterEach(() => box.remove());
 
-function setUp(options: { readonly fontsLoaded?: boolean } = {}) {
+function setUp(
+  options: { readonly fontsLoaded?: boolean; readonly cardItemLayouts?: CardItemLayouts } = {},
+) {
   const support = setUpCardRenderer(options);
   box = support.box;
   return support;
@@ -116,6 +119,29 @@ describe("WebGlRenderer title cards", () => {
     const lastWord = maxBrightnessInColumns(pixels, VIEWPORT.width, split, VIEWPORT.width);
 
     expect(firstWord).toBeGreaterThan(lastWord);
+  });
+
+  it("lays a card's items out once for a stage, not once per frame drawn", async () => {
+    const measureCalls: CardTextSpec[] = [];
+    const countingMeasure: MeasureFactory = (spec, stage) => {
+      measureCalls.push(spec);
+      return canvasCardMeasure(spec, stage);
+    };
+    const cardItemLayouts = new CardItemLayouts(countingMeasure);
+    const { renderer, readAllPixels } = setUp({ cardItemLayouts });
+    await renderer.cardFontLoaded("modern");
+    const frame: RenderFrame<BitmapPicture> = {
+      kind: "slide",
+      slide: groundLayer(cardVisual(baseCard(), { textOpacity: 1, slideTimeMs: 800 })),
+      endFade: 0,
+    };
+
+    const firstFramePixels = readAllPixels(frame);
+    readAllPixels(frame);
+    readAllPixels(frame);
+
+    expect(everyPixelIsGround(firstFramePixels, GROUND_COLOUR)).toBe(false);
+    expect(measureCalls.length).toBe(2); // the title spec once, the subtitle spec once
   });
 });
 

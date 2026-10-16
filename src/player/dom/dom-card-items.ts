@@ -1,6 +1,6 @@
-import { CARD_INK_COLORS, CARD_STYLE_SPECS, layoutCard, type CardTextSpec } from "../card-layout";
-import { cardItemSlices, type CardItemSlice } from "../card-item-layout";
-import { canvasCardMeasure } from "../card-measure";
+import { CARD_INK_COLORS, CARD_STYLE_SPECS, type CardTextSpec } from "../card-layout";
+import type { CardItemLayouts } from "../card-item-layouts";
+import type { CardItemSlice } from "../card-item-layout";
 import { cardItemTimingAt, type CardItemVisual } from "../card-timing";
 import type { Size } from "../ken-burns";
 import type { CardVisual } from "../ports";
@@ -17,6 +17,7 @@ const ITEM_ATTRIBUTE = "data-card-item";
 
 export function placeItemText(
   container: HTMLElement,
+  cardItemLayouts: CardItemLayouts,
   cardVisual: CardVisual,
   layerOpacity: number,
   stage: Size,
@@ -24,10 +25,7 @@ export function placeItemText(
   const card = cardVisual.card;
   const spec = CARD_STYLE_SPECS[card.style];
   const ink = CARD_INK_COLORS[card.ink];
-  const measureTitle = canvasCardMeasure(spec.title, stage);
-  const measureSubtitle = canvasCardMeasure(spec.subtitle, stage);
-  const layout = layoutCard(card, stage, measureTitle, measureSubtitle);
-  const slices = cardItemSlices(card, layout, stage, measureTitle, measureSubtitle);
+  const slices = cardItemLayouts.slicesFor(card, stage);
 
   const existing = [...container.querySelectorAll<HTMLElement>(`[${ITEM_ATTRIBUTE}]`)];
   slices.forEach((slice, index) => {

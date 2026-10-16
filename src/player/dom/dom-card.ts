@@ -1,5 +1,6 @@
 import { BACKDROP_BLUR_RADIUS_SHARE } from "../backdrop-blur";
 import { cardItemSlices } from "../card-item-layout";
+import type { CardItemLayouts } from "../card-item-layouts";
 import { itemGranularity } from "../card-items";
 import { canvasCardMeasure } from "../card-measure";
 import { layoutCard } from "../card-layout";
@@ -36,13 +37,15 @@ interface CachedLayout {
  */
 export class CardOverlay {
   readonly #host: HTMLElement;
+  readonly #cardItemLayouts: CardItemLayouts;
   readonly #grounds = new Map<Card, HTMLElement>();
   readonly #veilTints = new Map<Card, HTMLElement>();
   readonly #cardNodes = new Map<Card, HTMLElement>();
   readonly #layoutCache = new Map<Card, CachedLayout>();
 
-  constructor(host: HTMLElement) {
+  constructor(host: HTMLElement, cardItemLayouts: CardItemLayouts) {
     this.#host = host;
+    this.#cardItemLayouts = cardItemLayouts;
   }
 
   /** True for a node this class placed, which the renderer's generic sweep must not remove. */
@@ -109,7 +112,7 @@ export class CardOverlay {
     if (itemGranularity(cardVisual.card.entrance) === "block") {
       this.#placeBlockText(container, cardVisual, layerOpacity, stage);
     } else {
-      placeItemText(container, cardVisual, layerOpacity, stage);
+      placeItemText(container, this.#cardItemLayouts, cardVisual, layerOpacity, stage);
     }
     return container;
   }

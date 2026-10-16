@@ -1,5 +1,7 @@
 import type { BrowserPicture } from "../browser/picture-loader";
 import { captionStyles } from "../caption-style";
+import { CardItemLayouts } from "../card-item-layouts";
+import { canvasCardMeasure } from "../card-measure";
 import type { Size } from "../ken-burns";
 import type { PictureSlideLayer, RenderFrame, SlideLayer, SlideRenderer } from "../ports";
 import type { Card } from "../slideshow";
@@ -24,6 +26,12 @@ interface PlacedLayer {
   readonly anchor: HTMLElement;
 }
 
+export interface DomRendererOptions {
+  /** Memoises a card's item slices per card and stage; a fresh one, backed by a throwaway Canvas
+   * 2D context, without it. */
+  readonly cardItemLayouts?: CardItemLayouts;
+}
+
 /**
  * The fallback without WebGL2: each slide is its picture element (or, paired or blurred-filled,
  * a few, see `dom-layer-placement.ts`) or, for a ground slide, a solid colour element, framed by
@@ -40,12 +48,16 @@ export class DomRenderer implements SlideRenderer<BrowserPicture> {
   readonly #endFade: HTMLElement;
   #captionInsetCssPixels = 0;
 
-  constructor(container: HTMLElement, onResize: () => void) {
+  constructor(
+    container: HTMLElement,
+    onResize: () => void,
+    { cardItemLayouts = new CardItemLayouts(canvasCardMeasure) }: DomRendererOptions = {},
+  ) {
     this.#host = document.createElement("div");
     Object.assign(this.#host.style, { position: "absolute", inset: "0", overflow: "hidden" });
     container.append(this.#host);
     this.#placement = new LayerPlacement(this.#host);
-    this.#cards = new CardOverlay(this.#host);
+    this.#cards = new CardOverlay(this.#host, cardItemLayouts);
     this.#endFade = this.#newEndFade();
     this.#resizeObserver = new ResizeObserver(onResize);
     this.#resizeObserver.observe(this.#host);

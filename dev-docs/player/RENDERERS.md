@@ -20,6 +20,11 @@
   slide's band over its picture in screen space inside `fromColor`/`toColor`, so every effect
   carries it; `captionInset` is a uniform shifting where the band is sampled, so it never redraws
   the texture. A slide without a caption samples a transparent 1×1 texture.
+- **Title cards**: a card's items are laid out and measured once per `Card` and stage size
+  (`CardItemLayouts`, a `WeakMap` keyed on the card), shared by both renderers rather than each
+  measuring its own on every frame drawn. In WebGL, a card's texture is prepared ahead like a
+  picture's, and so is its blurred copy for an entrance that may cross-fade from one (`focus`),
+  so neither rasterises on the frame that first draws the card.
 - **Context loss**: on `webglcontextlost` it stops issuing GL calls (`render()` is a no-op, never
   throwing) until `webglcontextrestored`, when it rebuilds its buffers and shader programs, drops
   its texture cache (textures are uploaded anew from the still-held bitmaps when each picture is

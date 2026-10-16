@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import type { BitmapPicture } from "../browser/bitmap-loader";
 import type { RenderFrame } from "../ports";
 import { BLUE, RED, standingStill, viewportBox, type Rgb } from "../testing/browser-pictures";
+import { baseCard, cardVisual, groundLayer } from "./testing/card-render-fixtures";
 import { UPLOAD_PIXELS_PER_FRAME } from "./picture-textures";
 import { WebGlRenderer } from "./webgl-renderer";
 
@@ -45,8 +46,8 @@ function setUp() {
     throw new Error("this browser has no WebGL2");
   }
   const uploads: number[] = [];
-  /** One entry per caption rasterised and uploaded; captions are uploaded from a canvas. */
-  const captionUploads: HTMLCanvasElement[] = [];
+  /** One entry per caption or card rasterised and uploaded; both are uploaded from a canvas. */
+  const canvasUploads: HTMLCanvasElement[] = [];
   const texSubImage2D = gl.texSubImage2D.bind(gl) as (...args: unknown[]) => void;
   gl.texSubImage2D = ((...args: unknown[]) => {
     if (args[8] instanceof ImageBitmap) {
@@ -61,7 +62,7 @@ function setUp() {
       uploads.push(source.width * source.height);
     }
     if (source instanceof HTMLCanvasElement) {
-      captionUploads.push(source);
+      canvasUploads.push(source);
     }
     texImage2D(...args);
   }) as typeof gl.texImage2D;
@@ -73,7 +74,7 @@ function setUp() {
     gl?.readPixels(x, y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel);
     return [pixel[0] ?? 0, pixel[1] ?? 0, pixel[2] ?? 0];
   }
-  return { renderer, uploads, captionUploads, drawAndRead };
+  return { renderer, uploads, canvasUploads, drawAndRead };
 }
 
 /** `fit: "cover"`, since this suite is about upload mechanics, not the picture's layout. */
@@ -119,7 +120,7 @@ describe("WebGlRenderer.prepare", () => {
   });
 
   it("rasterises a slide's caption once its picture is uploaded, so drawing the captioned slide afterwards rasterises nothing", async () => {
-    const { renderer, uploads, captionUploads, drawAndRead } = setUp();
+    const { renderer, uploads, canvasUploads, drawAndRead } = setUp();
     await renderer.captionFontLoaded;
     const picture = await twoBandPicture();
     // The picture's slices, its mipmaps and its backdrop, then one step for the caption.
@@ -128,15 +129,15 @@ describe("WebGlRenderer.prepare", () => {
     for (let step = 0; step < pictureSteps + 1; step += 1) {
       renderer.prepare({ picture, caption: CAPTION });
     }
-    const rasterisedWhilePreparing = captionUploads.length;
+    const rasterisedWhilePreparing = canvasUploads.length;
     uploads.length = 0;
-    captionUploads.length = 0;
+    canvasUploads.length = 0;
     const band = drawAndRead(wholePicture(picture, CAPTION), GRADIENT_CORNER.y, GRADIENT_CORNER.x);
 
     expectColour(band, DARKENED_BLUE);
     expect(rasterisedWhilePreparing).toBe(1);
     expect(uploads).toEqual([]);
-    expect(captionUploads).toEqual([]);
+    expect(canvasUploads).toEqual([]);
   });
 
   it("draws a picture prepared only in part by uploading the rest at once", async () => {
@@ -150,5 +151,24 @@ describe("WebGlRenderer.prepare", () => {
     expectColour(top, RED);
     expectColour(bottom, BLUE);
     expect(uploads.reduce((sum, slice) => sum + slice, 0)).toBe(PICTURE.width * PICTURE.height);
+  });
+
+  it("pre-rasterises a focus card's blurred copy too, so drawing it the first time rasterises nothing", async () => {
+    const { renderer, canvasUploads, drawAndRead } = setUp();
+    await renderer.cardFontLoaded("modern");
+    const card = baseCard({ entrance: "focus" });
+
+    renderer.prepare({ ground: "#101010", card });
+    const rasterisedWhilePreparing = canvasUploads.splice(0).length;
+    const frame: RenderFrame<BitmapPicture> = {
+      kind: "slide",
+      slide: groundLayer(cardVisual(card, { textOpacity: 1, slideTimeMs: 500 })),
+      endFade: 0,
+    };
+
+    drawAndRead(frame, 0.5);
+
+    expect(rasterisedWhilePreparing).toBe(2); // the sharp texture, then its blurred copy
+    expect(canvasUploads).toEqual([]);
   });
 });

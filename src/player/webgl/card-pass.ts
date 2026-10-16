@@ -1,6 +1,4 @@
-import { CARD_STYLE_SPECS, layoutCard } from "../card-layout";
-import { cardItemSlices } from "../card-item-layout";
-import { canvasCardMeasure } from "../card-measure";
+import type { CardItemLayouts } from "../card-item-layouts";
 import { cardItemTimingAt, drawsBlurredCopy } from "../card-timing";
 import type { BitmapPicture } from "../browser/bitmap-loader";
 import type { Size } from "../ken-burns";
@@ -22,6 +20,7 @@ export function renderCardLayer(
   gl: WebGL2RenderingContext,
   cardItems: CardItemProgram,
   cards: CardTextures,
+  cardItemLayouts: CardItemLayouts,
   target: CardRenderTarget,
   layer: SlideLayer<BitmapPicture>,
   viewport: Size,
@@ -34,7 +33,7 @@ export function renderCardLayer(
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
     cardItems.use();
-    drawCardItems(cardItems, cards, layer, viewport);
+    drawCardItems(cardItems, cards, cardItemLayouts, layer, viewport);
     gl.disable(gl.BLEND);
   });
 }
@@ -44,6 +43,7 @@ export function renderCardLayer(
 function drawCardItems(
   cardItems: CardItemProgram,
   cards: CardTextures,
+  cardItemLayouts: CardItemLayouts,
   layer: SlideLayer<BitmapPicture>,
   viewport: Size,
 ): void {
@@ -52,11 +52,7 @@ function drawCardItems(
     return;
   }
   const card = visual.card;
-  const spec = CARD_STYLE_SPECS[card.style];
-  const measureTitle = canvasCardMeasure(spec.title, viewport);
-  const measureSubtitle = canvasCardMeasure(spec.subtitle, viewport);
-  const layout = layoutCard(card, viewport, measureTitle, measureSubtitle);
-  const slices = cardItemSlices(card, layout, viewport, measureTitle, measureSubtitle);
+  const slices = cardItemLayouts.slicesFor(card, viewport);
   const texture = cards.texture(card, viewport);
   const blurred = drawsBlurredCopy(card.entrance, visual.reducedMotion)
     ? cards.blurredTexture(card, viewport)

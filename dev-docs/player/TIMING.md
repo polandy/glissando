@@ -30,4 +30,5 @@ Show time follows the clock from an anchor set when playing starts or resumes, *
 first frame is drawn, so the time it takes never shows as a jump in the motion. While playing,
 every animation frame is drawn first, then `SlideRenderer.prepare` is called for each buffered
 picture after the ones on screen: a bounded step of the work to draw it later, so the frame a
-picture comes on screen pays nothing for it (ADR-0014).
+picture comes on screen pays nothing for it (ADR-0014). `prepare` rasterises a slide's card the
+same way, so the card's own first frame pays nothing for it either.
