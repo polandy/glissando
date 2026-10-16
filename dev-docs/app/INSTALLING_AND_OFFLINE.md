@@ -63,7 +63,8 @@ manifest and icons in `public/`; the PNG icons come from `scripts/brand/icons.sh
   a slideshow and reappears once it is empty again. A tap downloads `GLISSANDO_DEMO_URL`
   (`build/demo-slideshow-config.ts`; defaults to the file published at `glissando-assets/demo/`,
   overridable for a LAN preview) and hands the bytes to the same import path a picked `.glissando`
-  file takes (`app/start/demo-slideshow-flow.ts`). While loading, the card's action line carries
+  file takes (`app/start/demo-slideshow-flow.ts`). The demo file is never part of the bundle or
+  the precache, so its size costs nothing until someone asks for it. While loading, the card's action line carries
   progress, "Loading demo… 12 of 31 MB", with a hairline bar along the card's bottom edge
   (indeterminate until the download's `Content-Length` is known). Offline, the card is disabled
   (dimmed) with the hint "Needs a connection — once loaded, the demo works offline." A failed

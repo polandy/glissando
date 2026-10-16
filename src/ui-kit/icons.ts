@@ -225,15 +225,6 @@ export const ICONS = {
     shapes: [path("M3 3l18 18"), path("M9 17H7A5 5 0 017 7M15 7h2a5 5 0 014 8"), path("M8 12h4")],
   },
   tv: { shapes: [rect(3, 7, 18, 13, 2), path("M8 3l4 4 4-4")] },
-  /** The demo slideshow's hero button (dev-docs/app/INSTALLING_AND_OFFLINE.md). */
-  sparkle: {
-    shapes: [
-      path(
-        "M12 2c.4 3.2 1.4 5.4 3 7s3.8 2.6 7 3c-3.2.4-5.4 1.4-7 3s-2.6 3.8-3 7c-.4-3.2-1.4-5.4-3-7s-3.8-2.6-7-3c3.2-.4 5.4-1.4 7-3s2.6-3.8 3-7z",
-      ),
-    ],
-    filled: true,
-  },
 } as const satisfies Record<string, IconDefinition>;
 
 export type IconName = keyof typeof ICONS;

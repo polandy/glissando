@@ -28,19 +28,16 @@ export function resolveDemoSlideshowConfig(
     );
   }
   const url = sources.env[URL_VARIABLE] ?? DEFAULT_URL;
-  if (!isAbsoluteUrl(url)) {
-    throw new Error(`${URL_VARIABLE} is "${url}"; set it to an absolute URL.`);
+  if (!isHttpUrl(url)) {
+    throw new Error(`${URL_VARIABLE} is "${url}"; set it to an absolute http(s) URL.`);
   }
   return { publicInstall: publicInstallValue === "true", url };
 }
 
-function isAbsoluteUrl(value: string): boolean {
-  try {
-    new URL(value);
-    return true;
-  } catch {
-    return false;
-  }
+const HTTP_PROTOCOLS: readonly string[] = ["http:", "https:"];
+
+function isHttpUrl(value: string): boolean {
+  return HTTP_PROTOCOLS.includes(URL.parse(value)?.protocol ?? "");
 }
 
 /** Makes this build's DemoSlideshowConfig available to the app as a compile-time constant. */
