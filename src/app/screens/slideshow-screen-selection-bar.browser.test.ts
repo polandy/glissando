@@ -59,9 +59,11 @@ describe("SlideshowScreen selection bar look", () => {
     document.documentElement.setAttribute("data-theme", theme);
     const bar = openBar();
     const icon = buttonNamed("Entfernen").querySelector("svg");
-    const iconColour = getComputedStyle(icon as SVGSVGElement).color;
+    if (icon === null) {
+      throw new Error("Remove shows no icon");
+    }
+    const iconColour = getComputedStyle(icon).color;
 
-    expect(icon).not.toBeNull();
     expect(
       getComputedStyle(document.documentElement).getPropertyValue("--gl-inverse-danger"),
     ).not.toBe("");
