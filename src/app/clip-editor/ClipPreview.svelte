@@ -5,15 +5,17 @@
   import { getTranslator } from "../i18n/context";
 
   /**
-   * The clip's excerpt in a 16:9 screen: its frame at `seekMs` while paused, played in a loop
-   * between `startMs` and `endMs` with the sound at `volume`, and a slider to move within it.
+   * The clip's excerpt in a 16:9 screen, played in a loop with the sound at `volume` and a
+   * slider to move within it. `peekMs` set pauses and shows that frame instead; `peekMs` back to
+   * null returns to the place from before it was set, clamped into the excerpt, resuming play if
+   * it was playing there.
    */
   let {
     posterUrl,
     videoUrl,
     startMs,
     endMs,
-    seekMs,
+    peekMs,
     volume,
     onPosition,
   }: {
@@ -22,8 +24,8 @@
     videoUrl: string | null;
     startMs: number;
     endMs: number;
-    /** The frame shown while paused, e.g. the handle just moved. */
-    seekMs: number;
+    /** The dragged or moved handle's frame to show instead of the clip's own place; null otherwise. */
+    peekMs: number | null;
     /** 0 to 100; 0 plays silently. */
     volume: number;
     /** The player's place in the whole clip, startMs to endMs. */
@@ -36,7 +38,7 @@
 
   let video: HTMLVideoElement | undefined = $state();
   let playing = $state(false);
-  let positionMs = $state(0);
+  let clipMs = $state(untrack(() => startMs)); // the player's place in the whole clip
   let failed = $state(false);
 
   $effect(() => {
@@ -44,20 +46,19 @@
     video.volume = volume / MAX_VIDEO_VOLUME;
     video.muted = volume === 0;
   });
-
   const lengthMs = $derived(endMs - startMs);
+  const positionMs = $derived(clipMs - startMs);
   const scrubValueMs = $derived(Math.min(Math.max(positionMs, 0), lengthMs));
   const scrubPercent = $derived(lengthMs > 0 ? (scrubValueMs / lengthMs) * PERCENT : 0);
-  /** The place asked for while a seek was under way; null once it is applied. */
-  let deferredMs: number | null = null;
-
+  let deferredMs: number | null = null; // the place asked for while a seek was under way
+  let beforePeek: { ms: number; wasPlaying: boolean } | null = $state(null); // null outside a peek
   /** Tells the parent the player's place, clamped to the excerpt it was asked to stay in. */
-  function reportPosition(clipMs: number): void {
-    onPosition(Math.min(Math.max(clipMs, startMs), endMs));
+  function reportPosition(ms: number): void {
+    onPosition(Math.min(Math.max(ms, startMs), endMs));
   }
 
   function seekTo(ms: number): void {
-    positionMs = ms - startMs;
+    clipMs = ms;
     reportPosition(ms);
     if (video === undefined) return;
     if (video.seeking) {
@@ -75,17 +76,30 @@
     video.currentTime = ms / MS_PER_SECOND;
   }
 
-  function showFrame(): void {
-    seekTo(seekMs);
-  }
-  // A new seekMs is a handle grabbed or moved: show its frame, pausing a playing clip first so
-  // the loop does not immediately play past it.
+  // Where the clip belongs: peeking at a dragged handle, settling back after one (clamped into
+  // the now-current excerpt, resuming play if it was playing), or, with no peek, pulled inside
+  // an excerpt a keyboard move just changed.
   $effect(() => {
-    void seekMs;
-    void video;
+    const peek = peekMs;
+    const low = startMs;
+    const high = endMs;
     untrack(() => {
-      if (playing) video?.pause();
-      showFrame();
+      if (peek !== null) {
+        beforePeek ??= { ms: clipMs, wasPlaying: playing };
+        if (playing) video?.pause();
+        seekTo(peek);
+        return;
+      }
+      if (beforePeek !== null) {
+        const { ms, wasPlaying } = beforePeek;
+        beforePeek = null;
+        seekTo(Math.min(Math.max(ms, low), high));
+        if (wasPlaying) video?.play().catch(() => (failed = true));
+        return;
+      }
+      const clamped = Math.min(Math.max(clipMs, low), high);
+      if (clamped === clipMs) reportPosition(clipMs);
+      else seekTo(clamped);
     });
   });
 
@@ -95,13 +109,13 @@
     if (!playing || clip === undefined) return;
     let frame = 0;
     const tick = (): void => {
-      let clipMs = clip.currentTime * MS_PER_SECOND;
-      if (clipMs >= endMs) {
+      let ms = clip.currentTime * MS_PER_SECOND;
+      if (ms >= endMs) {
         clip.currentTime = startMs / MS_PER_SECOND;
-        clipMs = startMs;
+        ms = startMs;
       }
-      positionMs = clipMs - startMs;
-      reportPosition(clipMs);
+      clipMs = ms;
+      reportPosition(ms);
       frame = requestAnimationFrame(tick);
     };
     frame = requestAnimationFrame(tick);
@@ -132,7 +146,6 @@
         playsinline
         preload="auto"
         aria-label={t("clip.previewLabel")}
-        onloadedmetadata={showFrame}
         onseeked={settle}
         onplay={() => (playing = true)}
         onpause={() => (playing = false)}

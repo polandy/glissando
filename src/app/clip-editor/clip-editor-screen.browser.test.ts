@@ -29,7 +29,10 @@ function mount(video: StoredVideo = CLIP) {
     saving: false,
     onBack: () => (calls.backs += 1),
     onOpen: () => {},
-    onExcerpt: (start: number, end: number) => calls.excerpts.push([start, end]),
+    onExcerpt: (start: number, end: number) => {
+      calls.excerpts.push([start, end]);
+      props.video = { ...props.video, startMs: start, endMs: end };
+    },
     onVolume: (volume: number) => calls.volumes.push(volume),
     onDuckMusic: (duck: boolean) => calls.ducks.push(duck),
     onReset: () => (calls.resets += 1),
@@ -62,6 +65,22 @@ const dragHandleTo = (name: "Anfang" | "Ende", fromMs: number, toMs: number) => 
   const at = (ms: number) => ({ clientX: xOfClipMs(ms), clientY: 0, pointerId: 1, bubbles: true });
   handle(name).dispatchEvent(new PointerEvent("pointerdown", at(fromMs)));
   window.dispatchEvent(new PointerEvent("pointermove", at(toMs)));
+  flushSync();
+};
+const dragHandleRelease = (name: "Anfang" | "Ende", fromMs: number, toMs: number) => {
+  const at = (ms: number) => ({ clientX: xOfClipMs(ms), clientY: 0, pointerId: 1, bubbles: true });
+  handle(name).dispatchEvent(new PointerEvent("pointerdown", at(fromMs)));
+  window.dispatchEvent(new PointerEvent("pointermove", at(toMs)));
+  flushSync();
+  window.dispatchEvent(new PointerEvent("pointerup", at(toMs)));
+  flushSync();
+};
+const scrubTo = (relativeMs: number) => {
+  const input = document.querySelector<HTMLInputElement>(
+    'input[aria-label="Position im Ausschnitt"]',
+  ) as HTMLInputElement;
+  input.value = String(relativeMs);
+  input.dispatchEvent(new Event("input", { bubbles: true }));
   flushSync();
 };
 
@@ -165,5 +184,35 @@ describe("ClipEditorScreen, the playhead", () => {
 
     expect(playheadX()).toBeCloseTo(xOfClipMs(12_000), 0);
     expect(chip()?.textContent?.trim()).toBe("0:12,0");
+  });
+
+  it("returns to the place before a drag once it is released, clamped into the new excerpt", () => {
+    mount();
+    scrubTo(5_000); // 15,000 in the whole clip
+
+    dragHandleRelease("Anfang", CLIP.startMs, 12_000);
+
+    expect(playheadX()).toBeCloseTo(xOfClipMs(15_000), 0);
+    expect(chip()?.textContent?.trim()).toBe("0:15,0");
+  });
+
+  it("clamps the restored place to the new excerpt's edge when it now falls outside", () => {
+    mount();
+    scrubTo(5_000); // 15,000 in the whole clip
+
+    dragHandleRelease("Ende", CLIP.endMs, 12_000);
+
+    expect(playheadX()).toBeCloseTo(xOfClipMs(12_000), 0);
+    expect(chip()?.textContent?.trim()).toBe("0:12,0");
+  });
+
+  it("keeps the clip's place when a handle moves by keyboard, instead of jumping to it", () => {
+    mount();
+    scrubTo(5_000); // 15,000 in the whole clip
+
+    key(handle("Ende"), "ArrowRight");
+
+    expect(playheadX()).toBeCloseTo(xOfClipMs(15_000), 0);
+    expect(chip()?.textContent?.trim()).toBe("0:15,0");
   });
 });

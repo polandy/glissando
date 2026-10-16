@@ -52,7 +52,8 @@
 
   /** The excerpt while a handle is being dragged; stored on release. */
   let draft = $state.raw<Excerpt | null>(null);
-  let seekMs = $state(0);
+  /** The dragged or moved handle's frame to peek at; null once it is released. */
+  let peekMs: number | null = $state(null);
   /** The player's place in the whole clip; null until the preview reports one. */
   let positionMs = $state<number | null>(null);
   const excerpt = $derived(draft ?? { startMs: video.startMs, endMs: video.endMs });
@@ -63,11 +64,12 @@
   );
 
   function excerptChanged(next: Excerpt, final: boolean, handle: Handle): void {
-    seekMs = handle === "start" ? next.startMs : next.endMs;
     if (final) {
+      peekMs = null;
       draft = null;
       onExcerpt(next.startMs, next.endMs);
     } else {
+      peekMs = handle === "start" ? next.startMs : next.endMs;
       draft = next;
     }
   }
@@ -89,7 +91,7 @@
         {videoUrl}
         startMs={excerpt.startMs}
         endMs={excerpt.endMs}
-        {seekMs}
+        {peekMs}
         {volume}
         onPosition={(clipMs) => (positionMs = clipMs)}
       />

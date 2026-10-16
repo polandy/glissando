@@ -17,9 +17,11 @@ a preview that plays the excerpt in a loop, with a slider under it to move withi
 finger or mouse (a paused clip stays where it was put; a handle drag shows the frame at the
 handle, only the latest place being sought); the slider carries an ink mark at the player's
 place. A strip below shows the whole clip with a start and an end handle (arrow keys move by
-0.1 s, Shift by 1 s, Home/End to the limits), grabbing or moving one pauses a playing clip and
-shows its frame, and, always once a position is known, an ink line at the player's place at the
-whole clip's scale with a time chip below it. "In the film" length
+0.1 s, Shift by 1 s, Home/End to the limits); dragging a handle by pointer pauses a playing clip
+and shows its frame until release, when the preview returns to the place from before the drag,
+clamped into the new excerpt, resuming play if it was playing there; a key move keeps that place,
+clamped the same way, rather than jumping to the handle. Always once a position is known, an ink
+line marks it at the whole clip's scale with a time chip below it. "In the film" length
 (0.5 s to 5 min), Sound On/Off with a volume slider (0–100, step 5), "Music quieter meanwhile", a
 note that the transition runs inside the excerpt's end, Reset and Done. There is no Ken Burns or
 duration section: the excerpt is the slide's length. Slideshow tiles show the length badge.
