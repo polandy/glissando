@@ -103,10 +103,10 @@
     <span class="separator" aria-hidden="true"></span>
     <!-- At the ends Earlier and Later look off but keep their place in the tab order. -->
     <button class="btn" type="button" aria-disabled={earlierDisabled} onclick={earlier}>
-      <Icon name="chevronLeft" /><span>{t("slideshow.earlier")}</span>
+      <Icon name="chevronLeft" /><span class="move-word">{t("slideshow.earlier")}</span>
     </button>
     <button class="btn" type="button" aria-disabled={laterDisabled} onclick={later}>
-      <span>{t("slideshow.later")}</span><Icon name="chevronRight" />
+      <span class="move-word">{t("slideshow.later")}</span><Icon name="chevronRight" />
     </button>
     {#if !selection.several || count === 1}
       <button class="btn" type="button" onclick={edit}>
@@ -140,9 +140,10 @@
     height: var(--selection-bar-height);
     gap: 4px;
     padding: 6px;
-    border: 1px solid var(--gl-line);
     border-radius: var(--gl-radius-large);
-    background: var(--gl-surface);
+    /* Inverse to the screen behind it, so the bar stands out in either theme. */
+    background: var(--gl-inverse-bg);
+    color: var(--gl-inverse-text);
     box-shadow: var(--gl-shadow);
   }
   .bar .btn {
@@ -150,30 +151,36 @@
     padding: 0 12px;
     border-color: transparent;
     background: transparent;
+    color: inherit;
   }
-  .bar .done,
+  .bar .remove :global(svg) {
+    color: var(--gl-inverse-danger);
+  }
+  .bar .done {
+    background: var(--gl-accent);
+    color: var(--gl-accent-ink);
+  }
   .bar .done:hover {
-    background: var(--gl-inverse-bg);
-    color: var(--gl-inverse-text);
+    background: var(--gl-accent-hover);
   }
   /* A touch screen keeps the last tapped button "hovered": highlight for a mouse only. */
   @media (hover: hover) {
     .bar .btn:hover:not(:disabled, [aria-disabled="true"], .done) {
-      background: var(--gl-hover);
+      background: var(--gl-inverse-hover);
     }
     .bar .remove:hover:not([aria-disabled="true"]) {
-      background: color-mix(in srgb, var(--gl-coral) 22%, var(--gl-surface));
+      background: color-mix(in srgb, var(--gl-inverse-danger) 30%, var(--gl-inverse-bg));
     }
   }
   .count {
     padding: 0 8px 0 6px;
-    color: var(--gl-muted);
+    color: var(--gl-inverse-muted);
     font-size: var(--gl-size-small);
     white-space: nowrap;
   }
   /* Selecting several (dev-docs/app/slideshow-editing/SELECTING_SEVERAL.md, Selecting several): the count in the accent. */
   .count.several {
-    color: var(--gl-ink);
+    color: var(--gl-inverse-text);
     font-weight: var(--gl-weight-medium);
   }
   .count.several b {
@@ -191,7 +198,7 @@
   .separator {
     width: 1px;
     height: 24px;
-    background: var(--gl-line);
+    background: var(--gl-inverse-line);
   }
   @container (max-width: 720px) {
     .dock {
@@ -209,8 +216,12 @@
       padding: 0 9px;
       font-size: var(--gl-size-label);
     }
-    /* A single selection's count is for assistive technology only; several's stays visible. */
-    .count:not(.several) {
+    /*
+     * A single selection's count is for assistive technology only; several's stays visible. Earlier
+     * and Later show their arrows alone, so all five buttons fit a phone's width with German labels.
+     */
+    .count:not(.several),
+    .move-word {
       position: absolute;
       width: 1px;
       height: 1px;

@@ -55,28 +55,29 @@ heading 26 (23 below 720 px), display 34 px.
 Neutral surfaces with a slight plum tint; peach is the one accent (the main action, the playhead);
 mint, lemon and coral are status only. Tokens in `src/styles/tokens.css`:
 
-| Token                           | Use                                   | Light                 | Dark                  |
-| ------------------------------- | ------------------------------------- | --------------------- | --------------------- |
-| `--gl-ground`                   | Page background                       | `#F6F5F8`             | `#121019`             |
-| `--gl-surface`                  | Bars, cards, panels                   | `#FFFFFF`             | `#1A1723`             |
-| `--gl-raised`                   | Cells inside a surface                | `#FBFAFC`             | `#221E2D`             |
-| `--gl-ink`                      | Text                                  | `#221D33`             | `#EDEAF3`             |
-| `--gl-muted` / `--gl-faint`     | Secondary text / separators           | `#6B6580` / `#9C97AD` | `#9A94AB` / `#6C6680` |
-| `--gl-line`                     | Hairlines, borders                    | `#E5E2EB`             | `#2C2838`             |
-| `--gl-hover`                    | Hover fill, empty meter, pending tile | `#EFEDF3`             | `#26222F`             |
-| `--gl-accent` (`-hover`)        | Primary button                        | `#FF9F7F`             | `#FFB59A`             |
-| `--gl-accent-ink`               | Text on the accent                    | `#2A1A14`             | same                  |
-| `--gl-scrim` / `--gl-shadow`    | Faint pill fill / card lift           | plum 4 %              | white 3 %             |
-| `--gl-backdrop`                 | Behind a dialog or blocking overlay   | 38 %                  | same                  |
-| `--gl-mint`                     | Done, progress, offline dot           | `#6FCFB4`             | same                  |
-| `--gl-lemon`                    | Warnings                              | `#F5C94A`             | same                  |
-| `--gl-coral`                    | Errors, destructive buttons           | `#F2786B`             | same                  |
-| `--gl-coral-hover` / `-ink`     | Destructive button hover / its text   | `#FF8F84` / `#2A1A14` | same                  |
-| `--gl-danger-text`              | A destructive menu item's label       | `#C4473A`             | `--gl-coral`          |
-| `--gl-song-1` … `-6`, `-ink`    | A playlist's songs in turn; text on   | Sorbet + lilac, blue  | same                  |
-| `--gl-logo-*`                   | Logo cards and outline                | Sorbet                | outline `#171223`     |
-| `--gl-qr-dark` / `-light`       | A QR code's modules / its ground      | `#14111C` / `#FFFFFF` | same                  |
-| `--gl-photo-*`, `--gl-player-*` | Marks over pictures; the black player | white on black alphas | same                  |
+| Token                           | Use                                   | Light                  | Dark                  |
+| ------------------------------- | ------------------------------------- | ---------------------- | --------------------- |
+| `--gl-ground`                   | Page background                       | `#F6F5F8`              | `#121019`             |
+| `--gl-surface`                  | Bars, cards, panels                   | `#FFFFFF`              | `#1A1723`             |
+| `--gl-raised`                   | Cells inside a surface                | `#FBFAFC`              | `#221E2D`             |
+| `--gl-ink`                      | Text                                  | `#221D33`              | `#EDEAF3`             |
+| `--gl-muted` / `--gl-faint`     | Secondary text / separators           | `#6B6580` / `#9C97AD`  | `#9A94AB` / `#6C6680` |
+| `--gl-line`                     | Hairlines, borders                    | `#E5E2EB`              | `#2C2838`             |
+| `--gl-hover`                    | Hover fill, empty meter, pending tile | `#EFEDF3`              | `#26222F`             |
+| `--gl-accent` (`-hover`)        | Primary button                        | `#FF9F7F`              | `#FFB59A`             |
+| `--gl-accent-ink`               | Text on the accent                    | `#2A1A14`              | same                  |
+| `--gl-scrim` / `--gl-shadow`    | Faint pill fill / card lift           | plum 4 %               | white 3 %             |
+| `--gl-inverse-*`                | A bar flipped against the screen      | ink fill, surface text | same                  |
+| `--gl-backdrop`                 | Behind a dialog or blocking overlay   | 38 %                   | same                  |
+| `--gl-mint`                     | Done, progress, offline dot           | `#6FCFB4`              | same                  |
+| `--gl-lemon`                    | Warnings                              | `#F5C94A`              | same                  |
+| `--gl-coral`                    | Errors, destructive buttons           | `#F2786B`              | same                  |
+| `--gl-coral-hover` / `-ink`     | Destructive button hover / its text   | `#FF8F84` / `#2A1A14`  | same                  |
+| `--gl-danger-text`              | A destructive menu item's label       | `#C4473A`              | `--gl-coral`          |
+| `--gl-song-1` … `-6`, `-ink`    | A playlist's songs in turn; text on   | Sorbet + lilac, blue   | same                  |
+| `--gl-logo-*`                   | Logo cards and outline                | Sorbet                 | outline `#171223`     |
+| `--gl-qr-dark` / `-light`       | A QR code's modules / its ground      | `#14111C` / `#FFFFFF`  | same                  |
+| `--gl-photo-*`, `--gl-player-*` | Marks over pictures; the black player | white on black alphas  | same                  |
 
 Title cards (ADR-0032) are drawn by the player and take their colours from the **card
 palette** in `card-palette.ts`, not from the tokens: `plum` `#2A2340`, `night` `#14111C`, `cream`
