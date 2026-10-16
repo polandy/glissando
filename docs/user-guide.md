@@ -7,9 +7,10 @@ tablet, the **install icon** in the address bar on a computer. After the first l
 without internet. If you use a self-hosted Glissando, open its address instead
 ([self-hosting](self-hosting.md)).
 
-Nothing to show yet? The **See Glissando in action** card, above the two buttons below, downloads
-a small demo with its own pictures and music — once loaded, it plays offline like any other
-slideshow.
+Nothing to show yet? On <https://polandy.github.io/glissando/>, an empty library offers the
+**See Glissando in action** card above **New slideshow**. It downloads a small demo with its own
+pictures and music; once loaded, it plays offline like any other slideshow. A self-hosted
+Glissando has no demo.
 
 ## Make a slideshow
 

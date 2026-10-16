@@ -37,6 +37,14 @@ describe("resolveDemoSlideshowConfig", () => {
   it("refuses a GLISSANDO_DEMO_URL that is no absolute URL, naming the remedy", () => {
     expect(() =>
       resolveDemoSlideshowConfig(sources({ env: { GLISSANDO_DEMO_URL: "not a url" } })),
-    ).toThrow(/GLISSANDO_DEMO_URL is "not a url"; set it to an absolute URL\./);
+    ).toThrow(/GLISSANDO_DEMO_URL is "not a url"; set it to an absolute http\(s\) URL\./);
+  });
+
+  it("refuses a GLISSANDO_DEMO_URL with a scheme other than http or https", () => {
+    expect(() =>
+      resolveDemoSlideshowConfig(
+        sources({ env: { GLISSANDO_DEMO_URL: "file:///demo.glissando" } }),
+      ),
+    ).toThrow(/set it to an absolute http\(s\) URL\./);
   });
 });
