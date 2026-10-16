@@ -50,6 +50,8 @@
   const { t, formatTenths, formatTenthSeconds } = getTranslator();
   const seconds = (ms: number): string => formatTenthSeconds(ms / MS_PER_SECOND);
 
+  /** The mounted preview, so the strip's playhead line can seek it like the scrub slider does. */
+  let preview: ClipPreview;
   /** The excerpt while a handle is being dragged; stored on release. */
   let draft = $state.raw<Excerpt | null>(null);
   /** The dragged or moved handle's frame to peek at; null once it is released. */
@@ -87,6 +89,7 @@
   <main class="edit">
     <div class="stage">
       <ClipPreview
+        bind:this={preview}
         {posterUrl}
         {videoUrl}
         startMs={excerpt.startMs}
@@ -95,7 +98,13 @@
         {volume}
         onPosition={(clipMs) => (positionMs = clipMs)}
       />
-      <ExcerptStrip sourceMs={video.sourceMs} {excerpt} {positionMs} onExcerpt={excerptChanged} />
+      <ExcerptStrip
+        sourceMs={video.sourceMs}
+        {excerpt}
+        {positionMs}
+        onExcerpt={excerptChanged}
+        onSeek={(clipMs) => preview.seek(clipMs)}
+      />
       <dl class="times">
         <div>
           <dt>{t("clip.from")}</dt>

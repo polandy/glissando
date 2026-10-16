@@ -74,6 +74,11 @@
     seekVideoOnly(ms);
   }
 
+  /** Moves the player's place the same way a scrub does; the strip's playhead line drives this. */
+  export function seek(ms: number): void {
+    seekTo(ms);
+  }
+
   // A drag asks for far more places than a clip can seek to; only the latest one is followed up.
   function settle(): void {
     if (video === undefined || video.seeking || deferredMs === null) return;

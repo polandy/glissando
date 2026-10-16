@@ -14,19 +14,23 @@
    * with the arrow keys (Shift: a second; Home and End: to its limit). A drag reports every
    * position as a draft and the release as the final one, naming which handle moved so the
    * caller never has to guess it from the excerpt alone. The player's place is drawn as a line
-   * over the track with a time chip below, shown as soon as that place is known.
+   * over the track with a time chip below, shown as soon as that place is known; the line itself
+   * is draggable, clamped into the excerpt, and reports every place it is dragged across to
+   * `onSeek`.
    */
   let {
     sourceMs,
     excerpt,
     positionMs,
     onExcerpt,
+    onSeek,
   }: {
     sourceMs: number;
     excerpt: Excerpt;
     /** The player's place in the whole clip; null before a position is known. */
     positionMs: number | null;
     onExcerpt: (excerpt: Excerpt, final: boolean, handle: Handle) => void;
+    onSeek: (clipMs: number) => void;
   } = $props();
 
   const MS_PER_SECOND = 1000;
@@ -38,9 +42,12 @@
   ] as const;
   /** Wide enough for the longest formatted time the chip shows, e.g. "12:34,5". */
   const CHIP_WIDTH_PX = 64;
+  /** The playhead line's grab zone, as wide as a handle's own touch target. */
+  const PLAYHEAD_HIT_WIDTH_PX = 28;
 
   let track: HTMLDivElement | undefined = $state();
-  let dragging: Handle | null = $state(null);
+  type DragTarget = Handle | "playhead";
+  let dragging: DragTarget | null = $state(null);
 
   const percentOf = (ms: number): number => (ms / sourceMs) * PERCENT;
   const valueOf = (handle: Handle): number =>
@@ -55,19 +62,38 @@
       : excerptWithEnd(sourceMs, excerpt, ms);
   }
 
-  function press(handle: Handle): void {
-    dragging = handle;
+  /** The place a pointer on the track asks for, clamped into the excerpt it can't leave. */
+  function playheadMsAt(event: PointerEvent): number | null {
+    if (track === undefined) return null;
+    const { left, width } = track.getBoundingClientRect();
+    const ms = fractionToMs((event.clientX - left) / width, sourceMs);
+    return Math.min(Math.max(ms, excerpt.startMs), excerpt.endMs);
+  }
+
+  function press(target: DragTarget): void {
+    dragging = target;
   }
 
   // Listening on the window, not the handle, keeps the drag going once the pointer leaves it.
   function windowMove(event: PointerEvent): void {
     if (dragging === null) return;
+    if (dragging === "playhead") {
+      const ms = playheadMsAt(event);
+      if (ms !== null) onSeek(ms);
+      return;
+    }
     const next = dragTo(dragging, event);
     if (next !== null) onExcerpt(next, false, dragging);
   }
 
   function windowRelease(event: PointerEvent): void {
     if (dragging === null) return;
+    if (dragging === "playhead") {
+      const ms = playheadMsAt(event);
+      dragging = null;
+      if (ms !== null) onSeek(ms);
+      return;
+    }
     const handle = dragging;
     const next = dragTo(handle, event);
     dragging = null;
@@ -103,6 +129,16 @@
     ></span>
     {#if positionMs !== null}
       <span class="playhead" style:left="{percentOf(positionMs)}%" aria-hidden="true"></span>
+      <!-- Pointer only: dragging the line seeks the same way as the slider above, which stays
+           the keyboard and assistive-technology way to move the player's place. -->
+      <div
+        class="playhead-zone"
+        role="presentation"
+        style:left="{percentOf(positionMs)}%"
+        style:width="{PLAYHEAD_HIT_WIDTH_PX}px"
+        style:margin-left="{-PLAYHEAD_HIT_WIDTH_PX / 2}px"
+        onpointerdown={() => press("playhead")}
+      ></div>
     {/if}
     {#each HANDLES as { handle, label } (handle)}
       <div
@@ -170,6 +206,14 @@
     margin-left: -1px;
     background: var(--gl-ink);
     pointer-events: none;
+  }
+  /* Wider than the line so it is easy to grab; a handle drawn on top of it wins the drag. */
+  .playhead-zone {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    cursor: ew-resize;
+    touch-action: none;
   }
   .chip {
     position: absolute;

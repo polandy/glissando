@@ -181,6 +181,27 @@ describe("scrubbing a clip in the editor", () => {
     },
   );
 
+  it("moves the clip to the place dragged on the strip's playhead line", async () => {
+    const { clip } = mountPlayable();
+    await vi.waitFor(() => expect(clip.readyState).toBeGreaterThan(1));
+    const track = document.querySelector('[aria-label="Ausschnitt wählen"] .track') as HTMLElement;
+    const rect = track.getBoundingClientRect();
+    const at = (ms: number) => ({
+      clientX: rect.left + (ms / CLIP_MS) * rect.width,
+      clientY: 0,
+      pointerId: 1,
+      bubbles: true,
+    });
+    const zone = track.querySelector(".playhead-zone") as HTMLElement;
+    const draggedToMs = 2500;
+
+    zone.dispatchEvent(new PointerEvent("pointerdown", at(CLIP.startMs)));
+    window.dispatchEvent(new PointerEvent("pointermove", at(draggedToMs)));
+    flushSync();
+
+    await vi.waitFor(() => expect(clip.currentTime).toBeCloseTo(draggedToMs / 1000, 1));
+  });
+
   it("plays the clip again after releasing a handle it was playing when grabbed", async () => {
     const { clip } = mountPlayable();
     await vi.waitFor(() => expect(clip.readyState).toBeGreaterThan(1));

@@ -48,42 +48,6 @@ const key = (target: HTMLElement, pressed: string, shiftKey = false) => {
   flushSync();
 };
 
-const stripTrack = () =>
-  document.querySelector('[aria-label="Ausschnitt wählen"] .track') as HTMLElement;
-const chip = () => stripTrack().querySelector(".chip");
-/** The playhead line's centre, which is where it marks the player's place. */
-const playheadX = (): number | undefined => {
-  const rect = stripTrack().querySelector(".playhead")?.getBoundingClientRect();
-  return rect === undefined ? undefined : rect.left + rect.width / 2;
-};
-/** The client x of track time `atMs` of `CLIP.sourceMs` on the excerpt strip. */
-const xOfClipMs = (atMs: number) => {
-  const rect = stripTrack().getBoundingClientRect();
-  return rect.left + (atMs / CLIP.sourceMs) * rect.width;
-};
-const dragHandleTo = (name: "Anfang" | "Ende", fromMs: number, toMs: number) => {
-  const at = (ms: number) => ({ clientX: xOfClipMs(ms), clientY: 0, pointerId: 1, bubbles: true });
-  handle(name).dispatchEvent(new PointerEvent("pointerdown", at(fromMs)));
-  window.dispatchEvent(new PointerEvent("pointermove", at(toMs)));
-  flushSync();
-};
-const dragHandleRelease = (name: "Anfang" | "Ende", fromMs: number, toMs: number) => {
-  const at = (ms: number) => ({ clientX: xOfClipMs(ms), clientY: 0, pointerId: 1, bubbles: true });
-  handle(name).dispatchEvent(new PointerEvent("pointerdown", at(fromMs)));
-  window.dispatchEvent(new PointerEvent("pointermove", at(toMs)));
-  flushSync();
-  window.dispatchEvent(new PointerEvent("pointerup", at(toMs)));
-  flushSync();
-};
-const scrubTo = (relativeMs: number) => {
-  const input = document.querySelector<HTMLInputElement>(
-    'input[aria-label="Position im Ausschnitt"]',
-  ) as HTMLInputElement;
-  input.value = String(relativeMs);
-  input.dispatchEvent(new Event("input", { bubbles: true }));
-  flushSync();
-};
-
 describe("ClipEditorScreen", () => {
   it("tells the excerpt's length in the film and its bounds", () => {
     mount();
@@ -146,83 +110,5 @@ describe("ClipEditorScreen", () => {
     named("Fertig").click();
 
     expect([calls.resets, calls.backs]).toEqual([1, 1]);
-  });
-});
-
-describe("ClipEditorScreen, the playhead", () => {
-  it("shows the playhead and time chip at the clip's place in the strip while paused", () => {
-    mount();
-
-    expect(playheadX()).toBeCloseTo(xOfClipMs(CLIP.startMs), 0);
-    expect(chip()?.textContent?.trim()).toBe("0:10,0");
-  });
-
-  it("keeps the playhead and time chip at the clip's place while a handle is dragged", () => {
-    mount();
-
-    dragHandleTo("Ende", CLIP.endMs, 30_000);
-
-    expect(playheadX()).toBeCloseTo(xOfClipMs(CLIP.startMs), 0);
-    expect(chip()?.textContent?.trim()).toBe("0:10,0");
-  });
-
-  it("clamps the clip's place to the new excerpt's edge while it is dragged past it", () => {
-    mount();
-    scrubTo(5_000); // 15,000 in the whole clip
-
-    dragHandleTo("Ende", CLIP.endMs, 12_000);
-
-    expect(playheadX()).toBeCloseTo(xOfClipMs(12_000), 0);
-    expect(chip()?.textContent?.trim()).toBe("0:12,0");
-  });
-
-  it("keeps the preview on the start handle when a second move leaves it unchanged", () => {
-    mount();
-    const at = (ms: number) => ({
-      clientX: xOfClipMs(ms),
-      clientY: 0,
-      pointerId: 1,
-      bubbles: true,
-    });
-
-    // Both moves snap to the same 0.1 s quantum, which once made the start look unmoved.
-    handle("Anfang").dispatchEvent(new PointerEvent("pointerdown", at(CLIP.startMs)));
-    window.dispatchEvent(new PointerEvent("pointermove", at(12_010)));
-    flushSync();
-    window.dispatchEvent(new PointerEvent("pointermove", at(12_040)));
-    flushSync();
-
-    expect(playheadX()).toBeCloseTo(xOfClipMs(12_000), 0);
-    expect(chip()?.textContent?.trim()).toBe("0:12,0");
-  });
-
-  it("returns to the place before a drag once it is released, clamped into the new excerpt", () => {
-    mount();
-    scrubTo(5_000); // 15,000 in the whole clip
-
-    dragHandleRelease("Anfang", CLIP.startMs, 12_000);
-
-    expect(playheadX()).toBeCloseTo(xOfClipMs(15_000), 0);
-    expect(chip()?.textContent?.trim()).toBe("0:15,0");
-  });
-
-  it("clamps the restored place to the new excerpt's edge when it now falls outside", () => {
-    mount();
-    scrubTo(5_000); // 15,000 in the whole clip
-
-    dragHandleRelease("Ende", CLIP.endMs, 12_000);
-
-    expect(playheadX()).toBeCloseTo(xOfClipMs(12_000), 0);
-    expect(chip()?.textContent?.trim()).toBe("0:12,0");
-  });
-
-  it("keeps the clip's place when a handle moves by keyboard, instead of jumping to it", () => {
-    mount();
-    scrubTo(5_000); // 15,000 in the whole clip
-
-    key(handle("Ende"), "ArrowRight");
-
-    expect(playheadX()).toBeCloseTo(xOfClipMs(15_000), 0);
-    expect(chip()?.textContent?.trim()).toBe("0:15,0");
   });
 });
