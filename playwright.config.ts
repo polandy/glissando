@@ -1,5 +1,6 @@
 import { defineConfig, devices } from "@playwright/test";
 import { BELOW_PATH, BELOW_PATH_PORT, BELOW_PATH_URL } from "./e2e/support/below-path.ts";
+import { DEMO_URL } from "./e2e/support/demo-slideshow.ts";
 
 const PREVIEW_PORT = 4173;
 const BASE_URL = `http://localhost:${PREVIEW_PORT}`;
@@ -28,6 +29,10 @@ export default defineConfig({
     {
       command: `npx vite build && npx vite preview --port ${PREVIEW_PORT} --strictPort`,
       url: BASE_URL,
+      // So the start screen's demo card shows on every empty library; a case that needs it
+      // intercepts DEMO_URL, and no other case clicks the card or asserts an empty library's
+      // layout exhaustively.
+      env: { GLISSANDO_PUBLIC_INSTALL: "true", GLISSANDO_DEMO_URL: DEMO_URL },
     },
     {
       command: `npx vite preview --port ${String(BELOW_PATH_PORT)} --strictPort --base ${BELOW_PATH}`,

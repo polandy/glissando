@@ -8,6 +8,7 @@ import { ImmichBrowsers } from "./immich/immich-browsers";
 import { ImportFlow } from "./import/import-flow";
 import type { ImportSession } from "./import/import-session";
 import type { AppServices } from "./services";
+import { DemoSlideshowFlow } from "./start/demo-slideshow-flow";
 
 /** The app's long-running flows, wired to the services and worded by the translator. */
 export function createAppFlows(
@@ -43,5 +44,13 @@ export function createAppFlows(
     client: immich.client,
     reportUnavailable: (kind) => immich.availability.report(kind),
   });
-  return { importFlow, addFlow, exportJob, openFlow, immichBrowsers };
+  const demoSlideshowFlow = new DemoSlideshowFlow({
+    url: services.demoSlideshow.config.url,
+    download: services.demoSlideshow.download,
+    connectivity: services.demoSlideshow.connectivity,
+    openFile: (file) => void openFlow.open(file, "library"),
+    toaster: services.toaster,
+    failedText: () => t("start.demoLoadFailed"),
+  });
+  return { importFlow, addFlow, exportJob, openFlow, immichBrowsers, demoSlideshowFlow };
 }
