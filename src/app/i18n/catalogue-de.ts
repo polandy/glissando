@@ -53,6 +53,11 @@ export const de = {
   "start.withMusic": "mit Musik",
   "start.searchingSubjects": "Motive werden gesucht",
   "start.searchProgress": "{done} von {total}",
+  "start.loadDemo": "Demo-Slideshow laden",
+  "start.loadingDemo": "Demo wird geladen …",
+  "start.loadingDemoProgress": "Demo wird geladen … {received} von {total} MB",
+  "start.demoNeedsConnection": "Braucht eine Verbindung — einmal geladen, läuft die Demo offline.",
+  "start.demoLoadFailed": "Demo konnte nicht geladen werden — versuch's noch mal",
 
   "settings.open": "Einstellungen",
   "settings.title": "Einstellungen",
