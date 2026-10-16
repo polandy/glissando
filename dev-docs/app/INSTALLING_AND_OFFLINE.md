@@ -55,6 +55,21 @@ manifest and icons in `public/`; the PNG icons come from `scripts/brand/icons.sh
 - **Updates**: "Reload now" (or "Reload to update" in the settings) asks the waiting version to take over, then this tab reloads into the
   new version; other tabs keep running their version until their next start.
 
+- **The demo slideshow** (approved mockup:
+  https://polandy.github.io/glissando-assets/mockups/demo-slideshow/): on the public installation
+  only (`GLISSANDO_PUBLIC_INSTALL`, never on the self-hosted Docker image), an empty library shows
+  a quiet third hero button, "Load demo slideshow" (sparkle icon), under "New slideshow" and
+  "Open .glissando file"; it hides once the library holds a slideshow and reappears once it is
+  empty again. A tap downloads `GLISSANDO_DEMO_URL` (`build/demo-slideshow-config.ts`; defaults to
+  the file published at `glissando-assets/demo/`, overridable for a LAN preview) and hands the
+  bytes to the same import path a picked `.glissando` file takes
+  (`app/start/demo-slideshow-flow.ts`). While loading, the button's label carries progress,
+  "Loading demo… 12 of 31 MB", with a hairline bar below it (indeterminate until the download's
+  `Content-Length` is known). Offline, the button is disabled with the hint "Needs a connection —
+  once loaded, the demo works offline." A failed download toasts "Couldn't load the demo — try
+  again" and returns the button to idle. Credit for the demo's pictures and music lives in the
+  file's own content.
+
 - **Double-click on a .glissando file** (`glissando-file/launched-files.ts`): the installed app
   registers as the program for `.glissando` (manifest `file_handlers`, type
   `application/x-glissando`, the app icon as file icon) — Chromium on the desktop only. Every
