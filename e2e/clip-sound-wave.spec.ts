@@ -38,14 +38,22 @@ function meanHeight(bars: readonly { height: number }[]): number {
   return bars.reduce((sum, bar) => sum + bar.height, 0) / bars.length;
 }
 
-/** Imports one video clip without music and opens its one slide's clip editor. */
-async function openClipEditor(page: Page, clip: TestFile): Promise<void> {
+/**
+ * Imports one video clip without music and opens its one slide's clip editor; `beforeOpening`
+ * runs between the two, once the slideshow is stored.
+ */
+async function openClipEditor(
+  page: Page,
+  clip: TestFile,
+  beforeOpening: () => Promise<void> = async () => {},
+): Promise<void> {
   await openImport(page);
   await chooseFiles(page, page.getByRole("button", { name: "Bilder auswählen" }), [clip]);
   await expect(page.getByText("1 Bilder", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Weiter" }).click();
   await page.getByRole("button", { name: "Ohne Musik erstellen" }).click();
   await expect(page.getByRole("status")).toHaveText(CREATED_TOAST);
+  await beforeOpening();
 
   const tile = page
     .getByRole("listitem")
@@ -102,4 +110,28 @@ test("E2E-064 the clip editor's strip shows the clip's sound as bars, faint with
   );
   await openClipEditor(page, silentClip);
   await expect(excerptTrack(page).getByText("Kein Ton in diesem Clip")).toBeVisible();
+});
+
+test("E2E-065 the clip editor's strip says so, instead of drawing a flat line, when the clip's sound cannot be read", async ({
+  page,
+  browserName,
+}) => {
+  test.skip(
+    browserName !== "chromium",
+    "Only Chromium's test build encodes the H.264 video and Opus sound the case imports",
+  );
+  await openApp(page);
+  const clip = await generatedClip(page, "clip.mp4", CLIP_COLOUR, CLIP_SECONDS, {
+    toneSeconds: TONE_SECONDS,
+  });
+  // A page that is not a secure context, e.g. plain http on a LAN address, has no AudioDecoder.
+  await openClipEditor(page, clip, () =>
+    page.evaluate(() => {
+      delete (globalThis as { AudioDecoder?: unknown }).AudioDecoder;
+    }),
+  );
+
+  const track = excerptTrack(page);
+  await expect(track.getByText("Ton kann hier nicht gelesen werden")).toBeVisible();
+  await expect(track.locator("svg.bars")).toHaveCount(0);
 });
