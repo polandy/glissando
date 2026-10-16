@@ -23,12 +23,13 @@ describe("slideDurationsMs with music the pictures do not fill", () => {
     expect(durations.slice(0, 3)).toEqual([4900, 4900, 4900]);
   });
 
-  it("moves the slideshow's end to the nearest beat too", () => {
-    // Without beats the slideshow ends at 20 000; the nearest beat is 20 300.
+  it("moves the slideshow's end to the nearest beat too, a phrase start when about as near", () => {
+    // Without beats the slideshow ends at 20 000; the nearest beat is 20 300, the phrase start at
+    // 19 600 is 400 ms away, less than half a beat further.
     const durations = slideDurationsMs(automatic(4), undefined, 5, beatsEvery(700, 0, 60_000));
 
-    expect(durations).toEqual([4900, 4900, 4900, 5600]);
-    expect(sum(durations)).toBe(20_300);
+    expect(durations).toEqual([4900, 4900, 4900, 4900]);
+    expect(sum(durations)).toBe(19_600);
   });
 
   it("keeps the end where it falls when no beat is near it, as past the music's end", () => {

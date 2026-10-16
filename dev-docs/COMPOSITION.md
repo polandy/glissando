@@ -39,7 +39,8 @@ I/O, no subject detection.
   strictly inside its excerpt, placed at the song's start in the playlist; inside a crossfade's
   overlap only the incoming song's; a song with `pictureChanges` `"even"`, without a clear beat
   or not listened to yet gives none)
-  each boundary that ends an automatic slide then moves to the nearest beat that leaves that
+  each boundary that ends an automatic slide then moves to the nearest beat — a phrase start, every
+  fourth beat of the list, when it is at most half a beat further away — that leaves that
   slide and the next automatic one at least `MIN_SECONDS_PER_PICTURE` (`snapToBeats`), else
   stays. Pictures with an own duration between the two move along, so the first of them starts
   on the beat and each keeps its duration exactly; the boundary after them is not snapped, and

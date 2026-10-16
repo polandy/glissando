@@ -51,10 +51,11 @@ describe("musicEditorView, pictures lasting their own seconds with music", () =>
 
   it("ends the slideshow on the beat nearest its pictures' length, fading a longer song out there", () => {
     // The changes would fall at 5000, 10 000 and 15 000 and the end at 20 000; the nearest beats
-    // are 4900, 10 100, 14 900 and 20 100.
+    // are 4900, 10 100, 14 900 and 20 100, but the second sits on a phrase start at 9700, the
+    // nearer-by-half-a-beat rule taking it.
     const view = firstSongView(slideshow(60_000), FOUND);
 
-    expect(view.slideChanges.map((change) => change.atMs)).toEqual([4900, 10_100, 14_900]);
+    expect(view.slideChanges.map((change) => change.atMs)).toEqual([4900, 9700, 14_900]);
     expect(view.slideshowMs).toBe(20_100);
     expect(view.audibleEndMs).toBe(20_100);
     expect(view.fadeOut).toEqual({ ms: 2000, own: false, reason: "slideshow-ends" });
