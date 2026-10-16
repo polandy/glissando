@@ -91,6 +91,15 @@ describe("ExcerptStrip, the clip's waveform", () => {
     expect(stripTrack().textContent).toContain("Kein Ton in diesem Clip");
   });
 
+  it("shows its own caption with a warning icon and no bars when the sound cannot be read", () => {
+    mount({ kind: "unreadable" });
+
+    expect(stripTrack().textContent).toContain("Ton kann hier nicht gelesen werden");
+    expect(stripTrack().querySelector(".empty svg.icon")).not.toBeNull();
+    expect(stripTrack().textContent).not.toContain("Kein Ton in diesem Clip");
+    expect(bars()).toHaveLength(0);
+  });
+
   it("draws the unread half flat while the rest already shows its sound", () => {
     mount({ kind: "peaks", peaks: peaksWithSecondHalfUnread() });
 

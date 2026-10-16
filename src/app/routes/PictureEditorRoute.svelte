@@ -119,7 +119,10 @@
           wave = nextWave;
         });
       })
-      .catch(log);
+      .catch((error: unknown) => {
+        if (!controller.signal.aborted) wave = { kind: "unreadable" };
+        log(error);
+      });
     return () => controller.abort();
   });
   // A picture removed meanwhile, e.g. in another tab, has nothing left to edit.

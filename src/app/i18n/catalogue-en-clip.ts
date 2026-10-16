@@ -24,6 +24,7 @@ export const enClip: Pick<Catalogue, keyof typeof deClip> = {
   "clip.missing": "The clip is no longer on this device.",
   "clip.strip": "Choose the excerpt",
   "clip.noSound": "No sound in this clip",
+  "clip.soundUnreadable": "Sound can't be read here",
   "clip.handleStart": "Start",
   "clip.handleEnd": "End",
   "clip.from": "From",
