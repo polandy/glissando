@@ -1,7 +1,7 @@
 <script lang="ts">
   import { MILLISECONDS_PER_SECOND } from "../../player";
   import { getTranslator } from "../i18n/context";
-  import { currentPictureSpan } from "./current-picture-span";
+  import { currentPictureSpan, pictureRunEndMs } from "./current-picture-span";
   import type { MusicEditorView } from "./music-editor-view";
   import { percentOf } from "./waveform-scale";
 
@@ -21,7 +21,7 @@
   const pct = (ms: number) => percentOf(ms, music.durationMs);
   /** Where the slideshow ends, in the song's track time. */
   const slideshowEndMs = $derived(music.startMs + music.slideshowMs - music.atMs);
-  const runEndMs = $derived(Math.min(music.durationMs, slideshowEndMs));
+  const runEndMs = $derived(pictureRunEndMs(music));
   const outlastsExcerpt = $derived(music.last && slideshowEndMs > music.endMs);
   /** `atMs` of the run as a percentage of `.runs`'s own width, which spans the run alone. */
   const runPct = (atMs: number) => ((atMs - music.startMs) / (runEndMs - music.startMs)) * 100;

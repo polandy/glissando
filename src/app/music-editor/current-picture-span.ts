@@ -6,6 +6,11 @@ export interface PictureSpan {
   readonly endMs: number;
 }
 
+/** Where the pictures stop playing against `music`'s track: the slideshow's end, at most the track's. */
+export function pictureRunEndMs(music: MusicEditorView): number {
+  return Math.min(music.durationMs, music.startMs + music.slideshowMs - music.atMs);
+}
+
 /**
  * The run of the picture showing at `positionMs` of `music`'s track: from the slide change
  * before it (or the run's own start) to the one after it (or the run's own end, where the
@@ -13,7 +18,7 @@ export interface PictureSpan {
  * never reaches the song.
  */
 export function currentPictureSpan(music: MusicEditorView, positionMs: number): PictureSpan | null {
-  const runEndMs = Math.min(music.durationMs, music.startMs + music.slideshowMs - music.atMs);
+  const runEndMs = pictureRunEndMs(music);
   if (!music.reached || positionMs < music.startMs || positionMs > runEndMs) {
     return null;
   }
