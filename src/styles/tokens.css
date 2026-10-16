@@ -60,6 +60,11 @@
   --gl-backdrop: rgb(10 8 18 / 0.38);
   --gl-inverse-bg: var(--gl-ink);
   --gl-inverse-text: var(--gl-surface);
+  /* Secondary text, separators, hover and a destructive mark on an inverse surface. */
+  --gl-inverse-muted: color-mix(in srgb, var(--gl-inverse-text) 68%, var(--gl-inverse-bg));
+  --gl-inverse-line: color-mix(in srgb, var(--gl-inverse-text) 22%, var(--gl-inverse-bg));
+  --gl-inverse-hover: color-mix(in srgb, var(--gl-inverse-text) 14%, var(--gl-inverse-bg));
+  --gl-inverse-danger: var(--gl-coral);
 
   /* Status colours: mint for done and progress, lemon for warnings, coral for errors. */
   --gl-mint: #6fcfb4;
@@ -199,6 +204,7 @@
     --gl-shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px rgb(0 0 0 / 0.3);
     --gl-warn-icon: var(--gl-lemon);
     --gl-danger-text: var(--gl-coral);
+    --gl-inverse-danger: #c4473a;
     --gl-logo-outline: #171223;
     color-scheme: dark;
   }
@@ -219,6 +225,7 @@
   --gl-shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px rgb(0 0 0 / 0.3);
   --gl-warn-icon: var(--gl-lemon);
   --gl-danger-text: var(--gl-coral);
+  --gl-inverse-danger: #c4473a;
   --gl-logo-outline: #171223;
   color-scheme: dark;
 }
