@@ -59,7 +59,7 @@ export interface StoredPicture {
 /** A card's own ground or veil colour: one of the fixed swatches, or a picture's hex. */
 export type CardColour = CardSwatchId | string;
 
-/** The veil's tint over a card's picture background (TITLE_CARDS.md § Composition). */
+/** The veil's tint over a card's picture background (TITLE_CARD_COMPOSITION.md). */
 export type CardTint = "picture" | "light" | "dark";
 
 /** Where a title or closing card sits behind its text (ADR-0032, TITLE_SLIDES.md). */

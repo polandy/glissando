@@ -97,7 +97,7 @@ I/O, no subject detection.
 ## Title and closing cards
 
 The stored title and closing slides become cards, ground slides and merged first or last
-slides with fixed durations: [player/TITLE_CARDS.md](player/TITLE_CARDS.md#composition-stored--slides).
+slides with fixed durations: [player/TITLE_CARD_COMPOSITION.md](player/TITLE_CARD_COMPOSITION.md).
 
 ## Entry points
 

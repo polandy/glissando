@@ -21,7 +21,7 @@ Mockup: https://polandy.github.io/glissando-assets/mockups/title-slides/. Player
   was picked: it does not follow later changes to the pictures.
 - `fade` is a whole number from 0 to 100, in steps of 5. The veil amount is `fade / 100`.
 - `tint` is `picture`, `light` or `dark`: the veil's tint, as the composer reads it
-  ([TITLE_CARDS](../../player/TITLE_CARDS.md#composition-stored--slides)).
+  ([TITLE_CARD_COMPOSITION](../../player/TITLE_CARD_COMPOSITION.md)).
 - The swatches are `plum` `#2A2340`, `night` `#14111C`, `cream` `#FFF3E2`, `peach`
   `#FFB59A`, `mint` `#8FD9C4` and `lemon` `#FFD95A` (BRAND.md, card palette).
 - Every stored picture has `colours: { veil, accent }`, worked out when it is added

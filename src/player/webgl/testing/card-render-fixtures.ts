@@ -1,12 +1,14 @@
 import type { BitmapPicture } from "../../browser/bitmap-loader";
+import type { CardItemLayouts } from "../../card-item-layouts";
 import type { Fonts } from "../../fonts";
 import type { CardVisual, GroundSlideLayer, RenderFrame } from "../../ports";
 import type { Card } from "../../slideshow";
 import { viewportBox, type Rgb } from "../../testing/browser-pictures";
 import { WebGlRenderer } from "../webgl-renderer";
 
-/** Shared by `webgl-cards.browser.test.ts` and `webgl-card-transitions.browser.test.ts`: a
- * ground slide's stage, its card and a way to read back what the renderer drew. */
+/** Shared by `webgl-cards.browser.test.ts`, `webgl-card-transitions.browser.test.ts` and
+ * `webgl-prepare.browser.test.ts`: a ground slide's stage, its card and a way to read back what
+ * the renderer drew. */
 export const VIEWPORT = { width: 200, height: 200 };
 export const WHOLE_PICTURE = { zoom: 1, centerX: 0.5, centerY: 0.5 } as const;
 /** `#101010`. */
@@ -54,7 +56,15 @@ export function groundLayer(card: CardVisual): GroundSlideLayer {
   return { kind: "ground", ground: GROUND_HEX, card };
 }
 
-export function setUpCardRenderer({ fontsLoaded = true } = {}): {
+export function setUpCardRenderer({
+  fontsLoaded = true,
+  cardItemLayouts,
+}: {
+  readonly fontsLoaded?: boolean;
+  /** A test's own instance, e.g. to count the measure factory's calls; the renderer's default
+   * otherwise. */
+  readonly cardItemLayouts?: CardItemLayouts;
+} = {}): {
   readonly renderer: WebGlRenderer;
   readonly fonts: ControlledFonts;
   readonly box: HTMLElement;
@@ -73,7 +83,11 @@ export function setUpCardRenderer({ fontsLoaded = true } = {}): {
   // functions below, which close over this variable rather than being called immediately.
   const gl: WebGL2RenderingContext = context;
   const fonts = new ControlledFonts();
-  const renderer = new WebGlRenderer(canvas, gl, () => undefined, { pixelRatio: () => 1, fonts });
+  const renderer = new WebGlRenderer(canvas, gl, () => undefined, {
+    pixelRatio: () => 1,
+    fonts,
+    ...(cardItemLayouts === undefined ? {} : { cardItemLayouts }),
+  });
   if (fontsLoaded) {
     fonts.finishLoading();
   }

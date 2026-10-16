@@ -48,7 +48,7 @@ export interface PlacedSong {
  * The tracks the slideshow plays, `slideshowMs` long: every song it reaches, the one heard at its
  * end cut there and fading out (own fade-out, or automatic as in ADR-0009). Fades that together
  * outlast what is heard of a song are scaled down in proportion. `minEndFadeMs` (a closing card's
- * `endFadeMs`, `TITLE_CARDS.md` § Composition) raises the last track's fade-out so it lasts at
+ * `endFadeMs`, `TITLE_CARD_COMPOSITION.md`) raises the last track's fade-out so it lasts at
  * least that long into the show's end.
  */
 export function resolvePlaylist(

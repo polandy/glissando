@@ -31,7 +31,7 @@ const sources = {
 };
 
 const NO_FOCUS: ReadonlyMap<string, PictureFocus> = new Map();
-// No beats: the nominal values apply directly (TITLE_CARDS.md § Composition, Beats).
+// No beats: the nominal values apply directly (TITLE_CARD_COMPOSITION.md, Beats).
 const REVEAL_AT_MS = 2500;
 const LEAD_MS = REVEAL_AT_MS + 1400;
 

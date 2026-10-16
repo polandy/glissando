@@ -53,7 +53,7 @@ function isCardSwatchId(colour: CardColour): colour is CardSwatchId {
 }
 
 /**
- * A picture background's veil tint (TITLE_CARDS.md § Composition). The card sheet only ever
+ * A picture background's veil tint (TITLE_CARD_COMPOSITION.md). The card sheet only ever
  * previews a card whose pictures are already loaded, so a `picture` tint whose `pictureId` is
  * not among `pictures` is an impossible state, not a style to fall back from.
  */

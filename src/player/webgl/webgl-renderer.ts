@@ -1,4 +1,6 @@
 import type { BitmapPicture } from "../browser/bitmap-loader";
+import { CardItemLayouts } from "../card-item-layouts";
+import { canvasCardMeasure } from "../card-measure";
 import type { Fonts } from "../fonts";
 import type { Size } from "../ken-burns";
 import type { PreparedSlide, RenderFrame, SlideRenderer } from "../ports";
@@ -11,6 +13,7 @@ import { renderCardLayer } from "./card-pass";
 import { CardItemProgram } from "./card-item-program";
 import { CardTextures } from "./card-textures";
 import { PictureTextures } from "./picture-textures";
+import { prepareSlide } from "./prepare-slide";
 import { compilePrograms, type EffectProgram } from "./shader-programs";
 
 /** A single slide is a crossfade that has not started. */
@@ -33,6 +36,9 @@ export interface WebGlRendererOptions {
   readonly fonts?: Fonts;
   /** A fixed drawing buffer, e.g. a video's frame size, instead of the CSS size × pixel ratio. */
   readonly drawingSize?: Size;
+  /** Memoises a card's item slices per card and stage; a fresh one, backed by a throwaway Canvas
+   * 2D context, without it. */
+  readonly cardItemLayouts?: CardItemLayouts;
 }
 
 /** Draws slides and the GLSL transitions into a canvas that fills its container. */
@@ -54,6 +60,7 @@ export class WebGlRenderer implements SlideRenderer<BitmapPicture> {
    * for the renderer's lifetime; never reallocated per frame (`card-render-target.ts`). */
   readonly #fromCardTarget: CardRenderTarget;
   readonly #toCardTarget: CardRenderTarget;
+  readonly #cardItemLayouts: CardItemLayouts;
   #mainBuffer!: WebGLBuffer;
   #captionInsetCssPixels = 0;
   readonly #drawingSize: Size | undefined;
@@ -70,6 +77,7 @@ export class WebGlRenderer implements SlideRenderer<BitmapPicture> {
       pixelRatio = () => devicePixelRatio,
       fonts = document.fonts,
       drawingSize,
+      cardItemLayouts = new CardItemLayouts(canvasCardMeasure),
     }: WebGlRendererOptions = {},
   ) {
     this.#canvas = canvas;
@@ -77,6 +85,7 @@ export class WebGlRenderer implements SlideRenderer<BitmapPicture> {
     this.#onResize = onResize;
     this.#pixelRatio = pixelRatio;
     this.#drawingSize = drawingSize;
+    this.#cardItemLayouts = cardItemLayouts;
     this.#setUpGlResources();
     this.#pictures = new PictureTextures(gl);
     this.#captions = new CaptionTextures(gl, fonts, pixelRatio, onResize);
@@ -139,8 +148,24 @@ export class WebGlRenderer implements SlideRenderer<BitmapPicture> {
       frame.kind === "slide"
         ? [SINGLE_SLIDE_EFFECT, 0, frame.slide, frame.slide]
         : [frame.effect, frame.progress, frame.from, frame.to];
-    renderCardLayer(gl, this.#cardItems, this.#cards, this.#fromCardTarget, from, viewport);
-    renderCardLayer(gl, this.#cardItems, this.#cards, this.#toCardTarget, to, viewport);
+    renderCardLayer(
+      gl,
+      this.#cardItems,
+      this.#cards,
+      this.#cardItemLayouts,
+      this.#fromCardTarget,
+      from,
+      viewport,
+    );
+    renderCardLayer(
+      gl,
+      this.#cardItems,
+      this.#cards,
+      this.#cardItemLayouts,
+      this.#toCardTarget,
+      to,
+      viewport,
+    );
     const { program, uniforms } = this.#program(effect);
     gl.useProgram(program);
     bindLayer(gl, this.#pictures, FROM_TEXTURE_UNITS, from, fromUniforms(uniforms), viewport);
@@ -191,24 +216,21 @@ export class WebGlRenderer implements SlideRenderer<BitmapPicture> {
     gl.uniform1i(sampler, unit);
   }
 
-  /** One upload step of the picture (and its backdrop) per call, then its caption and card, or a
-   * ground slide's card alone (see `PictureTextures`). */
+  /** Delegates to `prepareSlide`: one upload step of the picture (and its backdrop) per call,
+   * then its caption and card, or a ground slide's card alone (see `PictureTextures`). */
   prepare(slide: PreparedSlide<BitmapPicture>): void {
     if (this.#contextLost) {
       return;
     }
-    if ("ground" in slide) {
-      this.#cards.texture(slide.card, this.#displaySize());
-      return;
-    }
-    if (!this.#pictures.isComplete(slide.picture)) {
-      this.#pictures.prepareStep(slide.picture);
-      return;
-    }
-    this.#captions.texture(slide.picture, slide.caption, this.#displaySize());
-    if (slide.card !== undefined) {
-      this.#cards.texture(slide.card, this.#displaySize());
-    }
+    prepareSlide(
+      {
+        pictures: this.#pictures,
+        captions: this.#captions,
+        cards: this.#cards,
+        displaySize: () => this.#displaySize(),
+      },
+      slide,
+    );
   }
 
   setCaptionInset(cssPixels: number): void {

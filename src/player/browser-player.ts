@@ -12,7 +12,9 @@ import {
   mainThreadPictureDecoder,
 } from "./browser/fallback-picture-decoder";
 import { WorkerPictureDecoder, type PictureDecodeWorker } from "./browser/worker-picture-decoder";
+import { cardStylesUsedBy } from "./card-fonts";
 import { DomRenderer } from "./dom/dom-renderer";
+import type { Fonts } from "./fonts";
 import type { PictureLoader, SlideRenderer } from "./ports";
 import type { Slideshow } from "./slideshow";
 import { SlideshowPlayer } from "./slideshow-player";
@@ -50,6 +52,8 @@ export interface BrowserPlayerOptions {
   readonly musicOutput?: MusicOutput;
   /** Slides loaded beyond the last one on screen; `DEFAULT_PICTURES_AHEAD` without it. */
   readonly picturesAhead?: number;
+  /** Loads a card's fonts; `document.fonts` without it. */
+  readonly fonts?: Fonts;
 }
 
 const browserObjectUrls = {
@@ -88,6 +92,7 @@ export function createBrowserPlayer(
     readVideo,
     musicOutput,
     picturesAhead,
+    fonts,
   }: BrowserPlayerOptions,
 ): BrowserPlayer {
   let player: BrowserPlayer | null = null;
@@ -98,7 +103,15 @@ export function createBrowserPlayer(
       ? new FallbackPictureDecoder(workerDecoder, mainThreadPictureDecoder)
       : workerDecoder;
   };
-  const drawing = createDrawing(container, redraw, webGl2Context, openPicture, createDecoder);
+  const drawing = createDrawing(
+    container,
+    redraw,
+    webGl2Context,
+    openPicture,
+    createDecoder,
+    slideshow,
+    fonts,
+  );
   const videoOutput = musicOutput ?? new MusicOutput(() => null);
   const playback = {
     clock: performanceClock,
@@ -135,6 +148,8 @@ function createDrawing(
   webGl2Context: WebGl2Context,
   openPicture: OpenPicture | undefined,
   createDecoder: () => PictureDecoder,
+  slideshow: Slideshow,
+  fonts: Fonts | undefined,
 ): Drawing {
   const canvas = document.createElement("canvas");
   Object.assign(canvas.style, { position: "absolute", inset: "0", width: "100%", height: "100%" });
@@ -149,9 +164,16 @@ function createDrawing(
     };
   }
   container.append(canvas);
+  const renderer = new WebGlRenderer(canvas, gl, onResize, fonts === undefined ? {} : { fonts });
+  // Starts a card style's font loading as soon as the renderer exists, rather than leaving it to
+  // begin mid-playback on the first frame that draws it (ADR-0032). Never swallowed silently:
+  // `CardTextures` itself logs a failed load (`#loadStyle`); this merely asks it to start one.
+  cardStylesUsedBy(slideshow).forEach((style) => {
+    void renderer.cardFontLoaded(style);
+  });
   return {
     kind: "webgl",
-    renderer: new WebGlRenderer(canvas, gl, onResize),
+    renderer,
     pictures: new BitmapLoader(createDecoder(), openPicture),
   };
 }
