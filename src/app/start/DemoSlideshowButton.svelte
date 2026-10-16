@@ -31,8 +31,10 @@
 </script>
 
 <button class="demo-card" type="button" aria-label={actionText} {disabled} onclick={onLoad}>
-  <span class="cover" aria-hidden="true"><Icon name="play" /></span>
-  <span class="body">
+  <span class="cover" aria-hidden="true">
+    <span class="badge"><Icon name="play" /></span>
+  </span>
+  <span class="text">
     <span class="heading">{t("start.demoCardTitle")}</span>
     <span class="line" class:action={idleOnline}>
       {#if state.kind === "loading"}
@@ -58,10 +60,10 @@
   .demo-card {
     position: relative;
     display: flex;
-    align-items: center;
-    gap: 14px;
+    flex-direction: column;
+    align-items: stretch;
     width: 100%;
-    padding: 14px 16px;
+    padding: 0;
     overflow: hidden;
     border: none;
     border-radius: var(--gl-radius-large);
@@ -69,11 +71,12 @@
     box-shadow: var(--gl-shadow);
     color: var(--gl-ink);
     font: inherit;
-    text-align: left;
+    text-align: center;
     cursor: pointer;
   }
   .demo-card:hover:not(:disabled) {
-    background: var(--gl-hover);
+    outline: 2px solid color-mix(in srgb, var(--gl-accent) 45%, transparent);
+    outline-offset: -2px;
   }
   .demo-card:disabled {
     opacity: 0.55;
@@ -83,24 +86,29 @@
     display: grid;
     flex: none;
     place-items: center;
-    width: 64px;
-    height: 64px;
-    border-radius: var(--gl-radius-tile);
+    height: 120px;
     background: linear-gradient(
       135deg,
       var(--gl-logo-peach),
       var(--gl-logo-mint) 55%,
       var(--gl-logo-lemon)
     );
-    color: var(--gl-player-text);
-    filter: var(--gl-photo-marker-shadow);
-    --gl-icon-size: var(--gl-size-icon);
   }
-  .body {
+  .badge {
     display: grid;
-    flex: 1;
-    min-width: 0;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--gl-photo-play-bg);
+    color: var(--gl-photo-play-ink);
+    box-shadow: var(--gl-photo-play-shadow);
+    --gl-icon-size: var(--gl-size-icon-small);
+  }
+  .text {
+    display: grid;
     gap: 2px;
+    padding: 12px 14px 14px;
   }
   .heading {
     font-weight: var(--gl-weight-semibold);

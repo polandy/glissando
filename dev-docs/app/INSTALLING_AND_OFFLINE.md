@@ -56,11 +56,11 @@ manifest and icons in `public/`; the PNG icons come from `scripts/brand/icons.sh
   new version; other tabs keep running their version until their next start.
 
 - **The demo slideshow** (approved mockup:
-  https://polandy.github.io/glissando-assets/mockups/demo-slideshow/): on the public installation
-  only (`GLISSANDO_PUBLIC_INSTALL`, never on the self-hosted Docker image), an empty library shows
-  a card, "See Glissando in action" over "Load demo slideshow →" next to a play-icon cover, above
-  "New slideshow" and "Open .glissando file"; it hides once the library holds a slideshow and
-  reappears once it is empty again. A tap downloads `GLISSANDO_DEMO_URL`
+  https://polandy.github.io/glissando-assets/mockups/demo-card/, variant A): on the public
+  installation only (`GLISSANDO_PUBLIC_INSTALL`, never on the self-hosted Docker image), an empty
+  library shows a card, a play-icon cover above "See Glissando in action" over "Load demo
+  slideshow →", above "New slideshow" and "Open .glissando file"; it hides once the library holds
+  a slideshow and reappears once it is empty again. A tap downloads `GLISSANDO_DEMO_URL`
   (`build/demo-slideshow-config.ts`; defaults to the file published at `glissando-assets/demo/`,
   overridable for a LAN preview) and hands the bytes to the same import path a picked `.glissando`
   file takes (`app/start/demo-slideshow-flow.ts`). While loading, the card's action line carries
