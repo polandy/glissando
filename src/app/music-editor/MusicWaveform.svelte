@@ -21,7 +21,6 @@
   let {
     music,
     peaks,
-    playheadMs,
     onDraft,
     onCommit,
     onGrab,
@@ -29,8 +28,6 @@
     music: MusicEditorView;
     /** Fine peaks of the whole track, 0..1; null while the track is decoded. */
     peaks: Float32Array | null;
-    /** Where a listen is in the track; null while none plays. */
-    playheadMs: number | null;
     /** The excerpt while a handle is dragged. */
     onDraft: (trim: MusicTrim) => void;
     /** The excerpt a drag or a key settled on. */
@@ -164,9 +161,6 @@
       </button>
     </div>
   {/each}
-  {#if playheadMs !== null}
-    <div class="playhead" style:left={pct(playheadMs)}></div>
-  {/if}
 </div>
 <div class="ruler mono" aria-hidden="true">
   {#each ticks as tickMs (tickMs)}
@@ -261,16 +255,6 @@
   }
   .handle.end button {
     transform: translateX(calc(-100% + 12px));
-  }
-  .playhead {
-    position: absolute;
-    top: -6px;
-    bottom: -6px;
-    z-index: 3;
-    width: 2px;
-    margin-left: -1px;
-    background: var(--gl-ink);
-    pointer-events: none;
   }
   .ruler {
     position: relative;

@@ -53,8 +53,10 @@
     in silence; when the slideshow ends earlier, the waveform is hatched from there to the
     excerpt's end. "Listen to the start" (the excerpt's first 8 s with the fade-in, "from
     0:12,0") and "Listen to the end" (the last 8 s before the music stops being heard, with the
-    fade-out, "until 2:30,0") toggle to pause; a playhead runs over the waveform; grabbing a
-    handle stops it. A hint names the handles' keys and the line.
+    fade-out, "until 2:30,0") toggle to pause; while it plays, one line runs from the top of the
+    waveform down through both lanes, a time chip below the slideshow lane naming the position
+    ("0:14,0"), and the picture it is over lit a stronger mint; grabbing a handle stops it. A
+    hint names the handles' keys and the line.
   - **Excerpt**: the state "Whole track" or "Trimmed" (accent-tinted), Start and End as
     "0:12,0" with − and + for half seconds, then "Whole track" (resets) or, untrimmed, "The
     slideshow uses the whole track, 3:24."
