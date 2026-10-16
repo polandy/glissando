@@ -93,4 +93,20 @@ describe("scrubbing a clip in the editor", () => {
       expect(assigned).toEqual([]);
     },
   );
+
+  it("moves the strip's playhead and time chip to the scrubbed place in the whole clip", async () => {
+    const { clip, scrubTo } = mountPlayable();
+    await vi.waitFor(() => expect(clip.readyState).toBeGreaterThan(1));
+
+    scrubTo(SCRUB_AT_MS);
+    flushSync();
+
+    const track = document.querySelector('[aria-label="Ausschnitt wählen"] .track') as HTMLElement;
+    const trackRect = track.getBoundingClientRect();
+    const expectedX = trackRect.left + ((CLIP.startMs + SCRUB_AT_MS) / CLIP_MS) * trackRect.width;
+
+    const playheadRect = track.querySelector(".playhead")?.getBoundingClientRect();
+    expect((playheadRect?.left ?? 0) + (playheadRect?.width ?? 0) / 2).toBeCloseTo(expectedX, 0);
+    expect(track.querySelector(".chip")?.textContent?.trim()).toBe("0:02,5");
+  });
 });

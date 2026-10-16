@@ -15,6 +15,7 @@
     endMs,
     seekMs,
     volume,
+    onPosition,
   }: {
     posterUrl: string | null;
     /** The clip's object URL; null while it loads. */
@@ -25,9 +26,12 @@
     seekMs: number;
     /** 0 to 100; 0 plays silently. */
     volume: number;
+    /** The player's place in the whole clip, startMs to endMs. */
+    onPosition: (clipMs: number) => void;
   } = $props();
 
   const MS_PER_SECOND = 1000;
+  const PERCENT = 100;
   const { t, formatTenths } = getTranslator();
 
   let video: HTMLVideoElement | undefined = $state();
@@ -42,11 +46,19 @@
   });
 
   const lengthMs = $derived(endMs - startMs);
+  const scrubValueMs = $derived(Math.min(Math.max(positionMs, 0), lengthMs));
+  const scrubPercent = $derived(lengthMs > 0 ? (scrubValueMs / lengthMs) * PERCENT : 0);
   /** The place asked for while a seek was under way; null once it is applied. */
   let deferredMs: number | null = null;
 
+  /** Tells the parent the player's place, clamped to the excerpt it was asked to stay in. */
+  function reportPosition(clipMs: number): void {
+    onPosition(Math.min(Math.max(clipMs, startMs), endMs));
+  }
+
   function seekTo(ms: number): void {
     positionMs = ms - startMs;
+    reportPosition(ms);
     if (video === undefined) return;
     if (video.seeking) {
       deferredMs = ms;
@@ -81,8 +93,13 @@
     if (!playing || clip === undefined) return;
     let frame = 0;
     const tick = (): void => {
-      if (clip.currentTime * MS_PER_SECOND >= endMs) clip.currentTime = startMs / MS_PER_SECOND;
-      positionMs = clip.currentTime * MS_PER_SECOND - startMs;
+      let clipMs = clip.currentTime * MS_PER_SECOND;
+      if (clipMs >= endMs) {
+        clip.currentTime = startMs / MS_PER_SECOND;
+        clipMs = startMs;
+      }
+      positionMs = clipMs - startMs;
+      reportPosition(clipMs);
       frame = requestAnimationFrame(tick);
     };
     frame = requestAnimationFrame(tick);
@@ -146,7 +163,8 @@
     min="0"
     max={lengthMs}
     step="10"
-    value={Math.min(Math.max(positionMs, 0), lengthMs)}
+    value={scrubValueMs}
+    style:--scrub-pct="{scrubPercent}%"
     aria-label={t("clip.scrub")}
     disabled={videoUrl === null}
     oninput={(event) => seekTo(startMs + Number(event.currentTarget.value))}
@@ -157,10 +175,53 @@
   .scrub {
     box-sizing: border-box;
     width: 100%;
+    height: 22px;
     margin: 8px 0 0;
-    accent-color: var(--gl-accent);
+    appearance: none;
+    background: transparent;
+    cursor: pointer;
     /* Dragging along the slider must not scroll the page on a touch screen. */
     touch-action: pan-y;
+  }
+  .scrub:focus-visible {
+    outline: 3px solid var(--gl-accent-halo);
+    outline-offset: 2px;
+  }
+  /* The rail, filled up to the player's place by a gradient driven by --scrub-pct. */
+  .scrub::-webkit-slider-runnable-track {
+    height: 6px;
+    border-radius: var(--gl-radius-small);
+    background: linear-gradient(
+      to right,
+      var(--gl-accent-tint) var(--scrub-pct),
+      var(--gl-hover) var(--scrub-pct)
+    );
+  }
+  .scrub::-moz-range-track {
+    height: 6px;
+    border-radius: var(--gl-radius-small);
+    background: linear-gradient(
+      to right,
+      var(--gl-accent-tint) var(--scrub-pct),
+      var(--gl-hover) var(--scrub-pct)
+    );
+  }
+  /* The thumb as a short ink line rather than the browser's round knob. */
+  .scrub::-webkit-slider-thumb {
+    appearance: none;
+    width: 3px;
+    height: 22px;
+    margin-top: -8px;
+    border: 0;
+    border-radius: var(--gl-radius-tiny);
+    background: var(--gl-ink);
+  }
+  .scrub::-moz-range-thumb {
+    width: 3px;
+    height: 22px;
+    border: 0;
+    border-radius: var(--gl-radius-tiny);
+    background: var(--gl-ink);
   }
   .viewport {
     position: relative;

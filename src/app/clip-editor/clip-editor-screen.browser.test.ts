@@ -45,6 +45,26 @@ const key = (target: HTMLElement, pressed: string, shiftKey = false) => {
   flushSync();
 };
 
+const stripTrack = () =>
+  document.querySelector('[aria-label="Ausschnitt wählen"] .track') as HTMLElement;
+const chip = () => stripTrack().querySelector(".chip");
+/** The playhead line's centre, which is where it marks the player's place. */
+const playheadX = (): number | undefined => {
+  const rect = stripTrack().querySelector(".playhead")?.getBoundingClientRect();
+  return rect === undefined ? undefined : rect.left + rect.width / 2;
+};
+/** The client x of track time `atMs` of `CLIP.sourceMs` on the excerpt strip. */
+const xOfClipMs = (atMs: number) => {
+  const rect = stripTrack().getBoundingClientRect();
+  return rect.left + (atMs / CLIP.sourceMs) * rect.width;
+};
+const dragHandleTo = (name: "Anfang" | "Ende", fromMs: number, toMs: number) => {
+  const at = (ms: number) => ({ clientX: xOfClipMs(ms), clientY: 0, pointerId: 1, bubbles: true });
+  handle(name).dispatchEvent(new PointerEvent("pointerdown", at(fromMs)));
+  window.dispatchEvent(new PointerEvent("pointermove", at(toMs)));
+  flushSync();
+};
+
 describe("ClipEditorScreen", () => {
   it("tells the excerpt's length in the film and its bounds", () => {
     mount();
@@ -107,5 +127,23 @@ describe("ClipEditorScreen", () => {
     named("Fertig").click();
 
     expect([calls.resets, calls.backs]).toEqual([1, 1]);
+  });
+});
+
+describe("ClipEditorScreen, the playhead", () => {
+  it("shows the playhead and time chip at the clip's place in the strip while paused", () => {
+    mount();
+
+    expect(playheadX()).toBeCloseTo(xOfClipMs(CLIP.startMs), 0);
+    expect(chip()?.textContent?.trim()).toBe("0:10,0");
+  });
+
+  it("moves the playhead to the end handle while it is dragged", () => {
+    mount();
+
+    dragHandleTo("Ende", CLIP.endMs, 30_000);
+
+    expect(playheadX()).toBeCloseTo(xOfClipMs(30_000), 0);
+    expect(chip()?.textContent?.trim()).toBe("0:30,0");
   });
 });

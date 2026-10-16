@@ -12,15 +12,19 @@
   /**
    * The whole clip as a strip with the excerpt between two handles. A handle is dragged or moved
    * with the arrow keys (Shift: a second; Home and End: to its limit). A drag reports every
-   * position as a draft and the release as the final one.
+   * position as a draft and the release as the final one. The player's place is drawn as a line
+   * over the track with a time chip below, shown as soon as that place is known.
    */
   let {
     sourceMs,
     excerpt,
+    positionMs,
     onExcerpt,
   }: {
     sourceMs: number;
     excerpt: Excerpt;
+    /** The player's place in the whole clip; null before a position is known. */
+    positionMs: number | null;
     onExcerpt: (excerpt: Excerpt, final: boolean) => void;
   } = $props();
 
@@ -31,6 +35,8 @@
     { handle: "start", label: "clip.handleStart" },
     { handle: "end", label: "clip.handleEnd" },
   ] as const;
+  /** Wide enough for the longest formatted time the chip shows, e.g. "12:34,5". */
+  const CHIP_WIDTH_PX = 64;
 
   let track: HTMLDivElement | undefined = $state();
   let dragging: Handle | null = $state(null);
@@ -48,22 +54,26 @@
       : excerptWithEnd(sourceMs, excerpt, ms);
   }
 
-  function press(handle: Handle, event: PointerEvent): void {
-    (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
+  function press(handle: Handle): void {
     dragging = handle;
   }
 
-  function move(handle: Handle, event: PointerEvent): void {
-    if (dragging !== handle) return;
-    const next = dragTo(handle, event);
+  // Listening on the window, not the handle, keeps the drag going once the pointer leaves it.
+  function windowMove(event: PointerEvent): void {
+    if (dragging === null) return;
+    const next = dragTo(dragging, event);
     if (next !== null) onExcerpt(next, false);
   }
 
-  function release(handle: Handle, event: PointerEvent): void {
-    if (dragging !== handle) return;
+  function windowRelease(event: PointerEvent): void {
+    if (dragging === null) return;
+    const next = dragTo(dragging, event);
     dragging = null;
-    const next = dragTo(handle, event);
     if (next !== null) onExcerpt(next, true);
+  }
+
+  function windowCancel(): void {
+    dragging = null;
   }
 
   function key(handle: Handle, event: KeyboardEvent): void {
@@ -74,6 +84,12 @@
   }
 </script>
 
+<svelte:window
+  onpointermove={windowMove}
+  onpointerup={windowRelease}
+  onpointercancel={windowCancel}
+/>
+
 <div class="strip" role="group" aria-label={t("clip.strip")}>
   <div class="track" bind:this={track}>
     <span class="dim" style:left="0" style:width="{percentOf(excerpt.startMs)}%"></span>
@@ -83,6 +99,9 @@
       style:left="{percentOf(excerpt.startMs)}%"
       style:width="{percentOf(excerpt.endMs - excerpt.startMs)}%"
     ></span>
+    {#if positionMs !== null}
+      <span class="playhead" style:left="{percentOf(positionMs)}%" aria-hidden="true"></span>
+    {/if}
     {#each HANDLES as { handle, label } (handle)}
       <div
         class="handle"
@@ -96,19 +115,28 @@
         aria-valuemax={sourceMs}
         aria-valuenow={valueOf(handle)}
         aria-valuetext={formatTenths(valueOf(handle) / MS_PER_SECOND)}
-        onpointerdown={(event) => press(handle, event)}
-        onpointermove={(event) => move(handle, event)}
-        onpointerup={(event) => release(handle, event)}
-        onpointercancel={() => (dragging = null)}
+        onpointerdown={() => press(handle)}
         onkeydown={(event) => key(handle, event)}
       ></div>
     {/each}
+    {#if positionMs !== null}
+      <div
+        class="chip mono"
+        style:left="clamp(0px, calc({percentOf(positionMs)}% - {CHIP_WIDTH_PX / 2}px), calc(100% - {CHIP_WIDTH_PX}px))"
+        style:width="{CHIP_WIDTH_PX}px"
+        aria-hidden="true"
+      >
+        {formatTenths(positionMs / MS_PER_SECOND)}
+      </div>
+    {/if}
   </div>
 </div>
 
 <style>
   .strip {
-    padding: 10px 14px;
+    /* The bottom padding leaves room for the time chip below the track, so nothing jumps once
+       a position becomes known. */
+    padding: 10px 14px 40px;
   }
   .track {
     position: relative;
@@ -130,6 +158,28 @@
     bottom: 0;
     border-block: 3px solid var(--gl-accent);
     background: var(--gl-accent-tint);
+  }
+  /* The player's place at the whole clip's scale, over the window but under the handles. */
+  .playhead {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    margin-left: -1px;
+    background: var(--gl-ink);
+    pointer-events: none;
+  }
+  .chip {
+    position: absolute;
+    top: calc(100% + 8px);
+    padding: 3px 0;
+    border-radius: var(--gl-radius-small);
+    background: var(--gl-ink);
+    color: var(--gl-surface);
+    font-size: var(--gl-size-caption);
+    font-weight: var(--gl-weight-semibold);
+    text-align: center;
+    pointer-events: none;
   }
   .handle {
     position: absolute;

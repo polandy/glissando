@@ -53,6 +53,8 @@
   /** The excerpt while a handle is being dragged; stored on release. */
   let draft = $state.raw<Excerpt | null>(null);
   let seekMs = $state(0);
+  /** The player's place in the whole clip; null until the preview reports one. */
+  let positionMs = $state<number | null>(null);
   const excerpt = $derived(draft ?? { startMs: video.startMs, endMs: video.endMs });
   const volume = $derived(video.volume ?? DEFAULT_VIDEO_VOLUME);
   // The slide's transition runs inside the excerpt's end, so it is told with the excerpt.
@@ -89,8 +91,9 @@
         endMs={excerpt.endMs}
         {seekMs}
         {volume}
+        onPosition={(clipMs) => (positionMs = clipMs)}
       />
-      <ExcerptStrip sourceMs={video.sourceMs} {excerpt} onExcerpt={excerptChanged} />
+      <ExcerptStrip sourceMs={video.sourceMs} {excerpt} {positionMs} onExcerpt={excerptChanged} />
       <dl class="times">
         <div>
           <dt>{t("clip.from")}</dt>
