@@ -9,6 +9,7 @@ import type { ServerLibrary } from "../server-library/server-library";
 import type { ErrorReporter } from "./errors/error-reporter";
 import type { LaunchQueue } from "./glissando-file/launched-files";
 import type { AddPicturesSession } from "./add-pictures/add-pictures-session";
+import type { ReadClipPeaks } from "./clip-editor/clip-sound-wave";
 import type { SlideshowHome } from "./routes/slideshow-storage";
 import type { ImportSession } from "./import/import-session";
 import type { MusicEditorAudio } from "./music-editor/music-editor-audio";
@@ -42,6 +43,8 @@ export interface AppServices extends ServerSlideshowSessions {
   readonly musicOutput: MusicOutput;
   /** Decoding and playing the music in the music editor. */
   readonly musicAudio: MusicEditorAudio;
+  /** Reads a video clip's sound into the waveform the clip editor shows. */
+  readonly readClipPeaks: ReadClipPeaks;
   /** Looks for the pictures' focus in the background (ADR-0012); started as the app opens. */
   readonly focusPass: FocusPass;
   /** Listens for the music's beats in the background (ADR-0021); started as the app opens. */

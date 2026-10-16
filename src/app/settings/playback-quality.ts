@@ -42,6 +42,12 @@ export function screenShortEdge(screen: ScreenPixels): number {
   return Math.round(Math.min(screen.width, screen.height) * screen.devicePixelRatio);
 }
 
+/** The browser's screen's short edge in device pixels. */
+export function browserScreenShortEdge(window: Window): number {
+  const { width, height } = window.screen;
+  return screenShortEdge({ width, height, devicePixelRatio: window.devicePixelRatio });
+}
+
 /** "auto" plays 4K only on a screen whose short edge has more pixels than the preview. */
 export function effectivePlaybackQuality(
   preference: PlaybackQualityPreference,

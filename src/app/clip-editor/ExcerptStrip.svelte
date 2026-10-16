@@ -1,5 +1,7 @@
 <script lang="ts">
   import { getTranslator } from "../i18n/context";
+  import type { ClipSoundWave } from "./clip-sound-wave";
+  import ClipWaveform from "./ClipWaveform.svelte";
   import {
     excerptAfterKey,
     excerptWithEnd,
@@ -10,18 +12,20 @@
   } from "./clip-excerpt";
 
   /**
-   * The whole clip as a strip with the excerpt between two handles. A handle is dragged or moved
-   * with the arrow keys (Shift: a second; Home and End: to its limit). A drag reports every
-   * position as a draft and the release as the final one, naming which handle moved so the
-   * caller never has to guess it from the excerpt alone. The player's place is drawn as a line
-   * over the track with a time chip below, shown as soon as that place is known; the line itself
-   * is draggable, clamped into the excerpt, and reports every place it is dragged across to
-   * `onSeek`.
+   * The whole clip as a strip with the excerpt between two handles, the clip's sound as a
+   * waveform underneath. A handle is dragged or moved with the arrow keys (Shift: a second; Home
+   * and End: to its limit). A drag reports every position as a draft and the release as the
+   * final one, naming which handle moved so the caller never has to guess it from the excerpt
+   * alone. The player's place is drawn as a line over the track with a time chip below, shown as
+   * soon as that place is known; the line itself is draggable, clamped into the excerpt, and
+   * reports every place it is dragged across to `onSeek`.
    */
   let {
     sourceMs,
     excerpt,
     positionMs,
+    wave,
+    soundOff,
     onExcerpt,
     onSeek,
   }: {
@@ -29,6 +33,8 @@
     excerpt: Excerpt;
     /** The player's place in the whole clip; null before a position is known. */
     positionMs: number | null;
+    wave: ClipSoundWave | null;
+    soundOff: boolean;
     onExcerpt: (excerpt: Excerpt, final: boolean, handle: Handle) => void;
     onSeek: (clipMs: number) => void;
   } = $props();
@@ -46,6 +52,7 @@
   const PLAYHEAD_HIT_WIDTH_PX = 28;
 
   let track: HTMLDivElement | undefined = $state();
+  let trackWidth = $state(0);
   type DragTarget = Handle | "playhead";
   let dragging: DragTarget | null = $state(null);
 
@@ -119,7 +126,8 @@
 />
 
 <div class="strip" role="group" aria-label={t("clip.strip")}>
-  <div class="track" bind:this={track}>
+  <div class="track" bind:this={track} bind:clientWidth={trackWidth}>
+    <ClipWaveform {wave} {excerpt} {sourceMs} {soundOff} width={trackWidth} />
     <span class="dim" style:left="0" style:width="{percentOf(excerpt.startMs)}%"></span>
     <span class="dim" style:right="0" style:width="{PERCENT - percentOf(excerpt.endMs)}%"></span>
     <span
@@ -195,7 +203,8 @@
     top: 0;
     bottom: 0;
     border-block: 3px solid var(--gl-accent);
-    background: var(--gl-accent-tint);
+    /* Half-transparent so the waveform underneath still shows through the excerpt's tint. */
+    background: color-mix(in srgb, var(--gl-accent-tint) 55%, transparent);
   }
   /* The player's place at the whole clip's scale, over the window but under the handles. */
   .playhead {

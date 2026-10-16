@@ -22,6 +22,7 @@ export const deClip = {
   "clip.previewFailed": "Dieses Gerät kann den Clip nicht abspielen.",
   "clip.missing": "Der Clip liegt nicht mehr auf diesem Gerät.",
   "clip.strip": "Ausschnitt wählen",
+  "clip.noSound": "Kein Ton in diesem Clip",
   "clip.handleStart": "Anfang",
   "clip.handleEnd": "Ende",
   "clip.from": "Von",

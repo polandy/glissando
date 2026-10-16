@@ -24,7 +24,11 @@ that place, clamped into the new excerpt, resuming play if it was playing there;
 that place, clamped the same way, rather than jumping to the handle. Always once a position is
 known, an ink line marks it at the whole clip's scale with a time chip below it; the line itself
 is draggable by pointer (a handle on top of it wins the drag where they overlap) and seeks exactly
-like the slider, clamped into the excerpt. "In the film" length
+like the slider, clamped into the excerpt. The strip draws the clip's sound as bars, the music
+editor's way (ink inside the excerpt, faint outside, under a half-transparent excerpt tint): the
+sound is read from the file as the editor opens, streamed and never stored, the bars growing from
+left to right as it is read; leaving the editor stops the reading. With Sound Off every bar is
+faint; a clip without a sound track shows "No sound in this clip" instead. "In the film" length
 (0.5 s to 5 min), Sound On/Off with a volume slider (0–100, step 5), "Music quieter meanwhile", a
 note that the transition runs inside the excerpt's end, Reset and Done. There is no Ken Burns or
 duration section: the excerpt is the slide's length. Slideshow tiles show the length badge.
