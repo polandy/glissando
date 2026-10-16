@@ -3,6 +3,7 @@
   import type { StoredPicture } from "../../library/stored-slideshow";
   import Icon from "../components/Icon.svelte";
   import { getTranslator } from "../i18n/context";
+  import ViewPictureButton from "./ViewPictureButton.svelte";
   import type { SetAsideGroup } from "./picture-culling";
   import { byCaptureTime, latestCaptured } from "./set-aside-view";
 
@@ -17,6 +18,7 @@
     urls,
     onTakeIn,
     onTakeAllIn,
+    onView,
     onEmptied,
   }: {
     groups: readonly SetAsideGroup[];
@@ -27,6 +29,7 @@
     urls: ReadonlyMap<string, string>;
     onTakeIn: (pictureId: string) => void;
     onTakeAllIn: () => void;
+    onView: (pictureId: string) => void;
     /** The last set-aside picture was taken in, `pictureId` the latest: no + is left to focus. */
     onEmptied: (pictureId: string) => void;
   } = $props();
@@ -87,6 +90,7 @@
     {/if}
     <span class="date mono">{formatTime(picture.capturedAt)}</span>
     <span class="chip" class:kept>{chip}</span>
+    <ViewPictureButton {picture} {onView} />
     {#if !kept}
       <button
         class="take"
@@ -256,6 +260,7 @@
   }
   .take {
     position: absolute;
+    z-index: 2;
     top: 5px;
     right: 5px;
     display: grid;

@@ -16,6 +16,7 @@ import { deShare } from "./catalogue-de-share.ts";
 import { deTvSheet } from "./catalogue-de-tv-sheet.ts";
 import { dePlaylist } from "./catalogue-de-playlist.ts";
 import { deCulling } from "./catalogue-de-culling.ts";
+import { deView } from "./catalogue-de-view.ts";
 import { deFrame } from "./catalogue-de-frame.ts";
 import { deCards } from "./catalogue-de-cards.ts";
 import type { Message } from "./messages.ts";
@@ -328,6 +329,7 @@ export const de = {
   ...deTvSheet,
   ...dePlaylist,
   ...deCulling,
+  ...deView,
   ...deFrame,
   ...deCards,
 } as const satisfies Record<string, Message>;

@@ -59,6 +59,7 @@ function mountMusicStep(importSession: ImportSession) {
       step: "music",
       session: importSession,
       loadThumbnail: () => Promise.resolve(new Blob()),
+      loadPicture: () => Promise.resolve(new Blob()),
       onError: (error: unknown) => {
         throw error;
       },

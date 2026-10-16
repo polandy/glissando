@@ -8,9 +8,11 @@
   import { browserObjectUrls, ObjectUrls } from "../media/object-urls";
   import ChosenPicturesStrip from "./ChosenPicturesStrip.svelte";
   import DropZone from "./DropZone.svelte";
+  import PictureViewer from "./PictureViewer.svelte";
   import PicturesProgress from "./PicturesProgress.svelte";
   import SetAsidePictures from "./SetAsidePictures.svelte";
   import type { PictureIntake } from "./picture-intake";
+  import { viewerEntries } from "./picture-viewer-view";
   import {
     captureRange,
     longVideoCount,
@@ -27,6 +29,7 @@
   let {
     intake,
     loadThumbnail,
+    loadPicture,
     onError,
     onFiles,
     onDiscard,
@@ -37,6 +40,8 @@
   }: {
     intake: PictureIntake;
     loadThumbnail: (pictureId: string) => Promise<Blob>;
+    /** A picture as the slideshow will show it, for the full-screen view. */
+    loadPicture: (pictureId: string) => Promise<Blob>;
     onError: (error: unknown) => void;
     /** Files chosen or dropped; the caller decides what they are. */
     onFiles: (files: readonly File[]) => void;
@@ -72,6 +77,7 @@
   let pickFolder: HTMLInputElement;
   let choosePictures: HTMLButtonElement | undefined = $state();
   let strip: ReturnType<typeof ChosenPicturesStrip> | undefined = $state();
+  let viewing: string | null = $state(null);
 
   // svelte-ignore state_referenced_locally
   const thumbnails = new ObjectUrls({ ...browserObjectUrls, load: loadThumbnail, onError });
@@ -93,6 +99,7 @@
   const range = $derived(captureRange(importState.pictures));
   const pending = $derived(pendingPictureCount(importState));
   const skipped = $derived(skippedNotices(importState.skipped));
+  const entries = $derived(viewerEntries(importState.pictures, cullingState.groups));
 
   function picked(event: Event & { currentTarget: HTMLInputElement }): void {
     onFiles([...(event.currentTarget.files ?? [])]);
@@ -212,6 +219,7 @@
     {urls}
     {pending}
     onRemove={(pictureId) => intake.removePicture(pictureId)}
+    onView={(pictureId) => (viewing = pictureId)}
     onEmptied={() => choosePictures?.focus()}
   />
 {/if}
@@ -228,7 +236,22 @@
     {urls}
     onTakeIn={(pictureId) => intake.culling.takeIn(pictureId)}
     onTakeAllIn={() => intake.culling.takeAllIn()}
+    onView={(pictureId) => (viewing = pictureId)}
     onEmptied={(pictureId) => strip?.focusRemove(pictureId)}
+  />
+{/if}
+
+{#if viewing !== null}
+  <PictureViewer
+    {entries}
+    pictureId={viewing}
+    {urls}
+    {loadPicture}
+    {onError}
+    onShow={(pictureId) => (viewing = pictureId)}
+    onRemove={(pictureId) => intake.removePicture(pictureId)}
+    onTakeIn={(pictureId) => intake.culling.takeIn(pictureId)}
+    onClose={() => (viewing = null)}
   />
 {/if}
 

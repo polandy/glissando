@@ -18,6 +18,7 @@
   let {
     session,
     loadThumbnail,
+    loadPicture,
     onError,
     onLeave,
     onNext,
@@ -35,6 +36,7 @@
   }: {
     session: ImportSession;
     loadThumbnail: (pictureId: string) => Promise<Blob>;
+    loadPicture: (pictureId: string) => Promise<Blob>;
     onError: (error: unknown) => void;
     /** Abbrechen and ←: the caller asks before throwing a selection away. */
     onLeave: () => void;
@@ -122,6 +124,7 @@
     linking={home === "server"}
     intake={session.intake}
     {loadThumbnail}
+    {loadPicture}
     {onError}
     onFiles={add}
     {onDiscard}

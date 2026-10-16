@@ -42,6 +42,7 @@ function mountRoute(
   const route = mountWithTranslator(AddPicturesRoute, {
     session,
     loadThumbnail: () => Promise.resolve(new Blob()),
+    loadPicture: () => Promise.resolve(new Blob()),
     onError: () => undefined,
     onDiscard: (leave: boolean) => discards.push(leave),
     onCommit,

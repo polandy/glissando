@@ -21,6 +21,7 @@ async function mountWithPictures(...names: string[]) {
   const body = mountWithTranslator(PictureIntakeBody, {
     intake,
     loadThumbnail: () => Promise.resolve(new Blob()),
+    loadPicture: () => Promise.resolve(new Blob()),
     onError: () => undefined,
     onFiles: () => undefined,
     onDiscard: () => undefined,

@@ -141,11 +141,9 @@
     serverMemory.rememberNewSlideshowHome(home);
   }
 
-  /** A server slideshow's pictures in the making are linked: their thumbnails are Immich's. */
-  function importThumbnail(pictureId: string): Promise<Blob> {
-    const home = importSession?.choices.current().home;
-    return (home === "server" ? serverRoute : store).thumbnailBlob(pictureId);
-  }
+  /** A server slideshow's pictures in the making are linked: their media is Immich's. */
+  const importStore = (): RouteStore =>
+    importSession?.choices.current().home === "server" ? serverRoute : store;
 </script>
 
 {#snippet statusBar()}
@@ -204,7 +202,8 @@
   <ImportRoute
     step={route.step}
     session={importSession}
-    loadThumbnail={importThumbnail}
+    loadThumbnail={(id) => importStore().thumbnailBlob(id)}
+    loadPicture={(id) => importStore().playbackPictureBlob(id)}
     onError={reportError}
     serverOn={serverState.kind === "on"}
     {rememberedHome}

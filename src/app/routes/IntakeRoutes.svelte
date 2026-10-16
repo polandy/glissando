@@ -67,6 +67,8 @@
     session={adding}
     loadThumbnail={(id) =>
       (adding.home === "server" ? serverLibrary.store : store).thumbnailBlob(id)}
+    loadPicture={(id) =>
+      (adding.home === "server" ? serverLibrary.store : store).playbackPictureBlob(id)}
     onError={reportError}
     onDiscard={(leave) => void addFlow.discard(leave)}
     onCommit={() => addFlow.commit()}

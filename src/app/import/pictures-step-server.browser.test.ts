@@ -61,6 +61,7 @@ function mountStep(
     {
       session: importSession,
       loadThumbnail: () => Promise.resolve(new Blob()),
+      loadPicture: () => Promise.resolve(new Blob()),
       onError: () => undefined,
       onLeave: () => undefined,
       onNext: () => undefined,

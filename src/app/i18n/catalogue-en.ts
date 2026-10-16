@@ -16,6 +16,7 @@ import { enShare } from "./catalogue-en-share.ts";
 import { enTvSheet } from "./catalogue-en-tv-sheet.ts";
 import { enPlaylist } from "./catalogue-en-playlist.ts";
 import { enCulling } from "./catalogue-en-culling.ts";
+import { enView } from "./catalogue-en-view.ts";
 import { enFrame } from "./catalogue-en-frame.ts";
 import { enCards } from "./catalogue-en-cards.ts";
 import type { Catalogue } from "./messages.ts";
@@ -326,6 +327,7 @@ export const en: Catalogue = {
   ...enTvSheet,
   ...enPlaylist,
   ...enCulling,
+  ...enView,
   ...enFrame,
   ...enCards,
 };
