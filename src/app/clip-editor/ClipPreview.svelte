@@ -3,12 +3,14 @@
   import { MAX_VIDEO_VOLUME } from "../../library/own-video";
   import Icon from "../components/Icon.svelte";
   import { getTranslator } from "../i18n/context";
+  import ClipScrub from "./ClipScrub.svelte";
 
   /**
    * The clip's excerpt in a 16:9 screen, played in a loop with the sound at `volume` and a
-   * slider to move within it. `peekMs` set pauses and shows that frame instead; `peekMs` back to
-   * null returns to the place from before it was set, clamped into the excerpt, resuming play if
-   * it was playing there.
+   * slider to move within it. `peekMs` set pauses and shows that frame instead, leaving the
+   * player's own place (the slider, the time badge, `onPosition`) exactly where it was, clamped
+   * into the excerpt; `peekMs` back to null returns the clip itself to that place, resuming play
+   * if it was playing there.
    */
   let {
     posterUrl,
@@ -24,7 +26,7 @@
     videoUrl: string | null;
     startMs: number;
     endMs: number;
-    /** The dragged or moved handle's frame to show instead of the clip's own place; null otherwise. */
+    /** The dragged handle's frame to show in place of the clip's own, while it stays; null otherwise. */
     peekMs: number | null;
     /** 0 to 100; 0 plays silently. */
     volume: number;
@@ -33,7 +35,6 @@
   } = $props();
 
   const MS_PER_SECOND = 1000;
-  const PERCENT = 100;
   const { t, formatTenths } = getTranslator();
 
   let video: HTMLVideoElement | undefined = $state();
@@ -49,7 +50,6 @@
   const lengthMs = $derived(endMs - startMs);
   const positionMs = $derived(clipMs - startMs);
   const scrubValueMs = $derived(Math.min(Math.max(positionMs, 0), lengthMs));
-  const scrubPercent = $derived(lengthMs > 0 ? (scrubValueMs / lengthMs) * PERCENT : 0);
   let deferredMs: number | null = null; // the place asked for while a seek was under way
   let beforePeek: { ms: number; wasPlaying: boolean } | null = $state(null); // null outside a peek
   /** Tells the parent the player's place, clamped to the excerpt it was asked to stay in. */
@@ -57,15 +57,21 @@
     onPosition(Math.min(Math.max(ms, startMs), endMs));
   }
 
-  function seekTo(ms: number): void {
-    clipMs = ms;
-    reportPosition(ms);
+  /** Moves only the video element's displayed frame, deferring to the latest ask if a seek is
+      already under way; used while peeking so the player's own place is left untouched. */
+  function seekVideoOnly(ms: number): void {
     if (video === undefined) return;
     if (video.seeking) {
       deferredMs = ms;
       return;
     }
     video.currentTime = ms / MS_PER_SECOND;
+  }
+
+  function seekTo(ms: number): void {
+    clipMs = ms;
+    reportPosition(ms);
+    seekVideoOnly(ms);
   }
 
   // A drag asks for far more places than a clip can seek to; only the latest one is followed up.
@@ -76,9 +82,11 @@
     video.currentTime = ms / MS_PER_SECOND;
   }
 
-  // Where the clip belongs: peeking at a dragged handle, settling back after one (clamped into
-  // the now-current excerpt, resuming play if it was playing), or, with no peek, pulled inside
-  // an excerpt a keyboard move just changed.
+  // Where the clip belongs: peeking at a dragged handle (only the video's shown frame moves to
+  // it; the player's own place stays remembered, reported clamped to the current excerpt so it
+  // at most rides along a shrinking edge), settling back after a peek (clamped into the
+  // now-current excerpt, resuming play if it was playing), or, with no peek, pulled inside an
+  // excerpt a keyboard move just changed.
   $effect(() => {
     const peek = peekMs;
     const low = startMs;
@@ -87,7 +95,8 @@
       if (peek !== null) {
         beforePeek ??= { ms: clipMs, wasPlaying: playing };
         if (playing) video?.pause();
-        seekTo(peek);
+        seekVideoOnly(peek);
+        reportPosition(clipMs);
         return;
       }
       if (beforePeek !== null) {
@@ -172,72 +181,15 @@
       >{formatTenths(Math.max(0, positionMs) / MS_PER_SECOND)}</span
     >
   </div>
-  <input
-    class="scrub"
-    type="range"
-    min="0"
-    max={lengthMs}
-    step="10"
-    value={scrubValueMs}
-    style:--scrub-pct="{scrubPercent}%"
-    aria-label={t("clip.scrub")}
+  <ClipScrub
+    valueMs={scrubValueMs}
+    maxMs={lengthMs}
     disabled={videoUrl === null}
-    oninput={(event) => seekTo(startMs + Number(event.currentTarget.value))}
+    onScrub={(relativeMs) => seekTo(startMs + relativeMs)}
   />
 </div>
 
 <style>
-  .scrub {
-    box-sizing: border-box;
-    width: 100%;
-    height: 22px;
-    margin: 8px 0 0;
-    appearance: none;
-    background: transparent;
-    cursor: pointer;
-    /* Dragging along the slider must not scroll the page on a touch screen. */
-    touch-action: pan-y;
-  }
-  .scrub:focus-visible {
-    outline: 3px solid var(--gl-accent-halo);
-    outline-offset: 2px;
-  }
-  /* The rail, filled up to the player's place by a gradient driven by --scrub-pct. */
-  .scrub::-webkit-slider-runnable-track {
-    height: 6px;
-    border-radius: var(--gl-radius-small);
-    background: linear-gradient(
-      to right,
-      var(--gl-accent-tint) var(--scrub-pct),
-      var(--gl-hover) var(--scrub-pct)
-    );
-  }
-  .scrub::-moz-range-track {
-    height: 6px;
-    border-radius: var(--gl-radius-small);
-    background: linear-gradient(
-      to right,
-      var(--gl-accent-tint) var(--scrub-pct),
-      var(--gl-hover) var(--scrub-pct)
-    );
-  }
-  /* The thumb as a short ink line rather than the browser's round knob. */
-  .scrub::-webkit-slider-thumb {
-    appearance: none;
-    width: 3px;
-    height: 22px;
-    margin-top: -8px;
-    border: 0;
-    border-radius: var(--gl-radius-tiny);
-    background: var(--gl-ink);
-  }
-  .scrub::-moz-range-thumb {
-    width: 3px;
-    height: 22px;
-    border: 0;
-    border-radius: var(--gl-radius-tiny);
-    background: var(--gl-ink);
-  }
   .viewport {
     position: relative;
     aspect-ratio: 16 / 9;

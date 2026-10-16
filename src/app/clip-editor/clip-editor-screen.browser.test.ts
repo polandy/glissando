@@ -157,13 +157,23 @@ describe("ClipEditorScreen, the playhead", () => {
     expect(chip()?.textContent?.trim()).toBe("0:10,0");
   });
 
-  it("moves the playhead to the end handle while it is dragged", () => {
+  it("keeps the playhead and time chip at the clip's place while a handle is dragged", () => {
     mount();
 
     dragHandleTo("Ende", CLIP.endMs, 30_000);
 
-    expect(playheadX()).toBeCloseTo(xOfClipMs(30_000), 0);
-    expect(chip()?.textContent?.trim()).toBe("0:30,0");
+    expect(playheadX()).toBeCloseTo(xOfClipMs(CLIP.startMs), 0);
+    expect(chip()?.textContent?.trim()).toBe("0:10,0");
+  });
+
+  it("clamps the clip's place to the new excerpt's edge while it is dragged past it", () => {
+    mount();
+    scrubTo(5_000); // 15,000 in the whole clip
+
+    dragHandleTo("Ende", CLIP.endMs, 12_000);
+
+    expect(playheadX()).toBeCloseTo(xOfClipMs(12_000), 0);
+    expect(chip()?.textContent?.trim()).toBe("0:12,0");
   });
 
   it("keeps the preview on the start handle when a second move leaves it unchanged", () => {
