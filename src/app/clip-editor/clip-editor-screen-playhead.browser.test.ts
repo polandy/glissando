@@ -47,6 +47,8 @@ const key = (target: HTMLElement, pressed: string, shiftKey = false) => {
 const stripTrack = () =>
   document.querySelector('[aria-label="Ausschnitt wählen"] .track') as HTMLElement;
 const chip = () => stripTrack().querySelector(".chip");
+/** The preview's time badge: the player's place within the excerpt. */
+const previewTime = () => document.querySelector(".viewport .time")?.textContent?.trim();
 const scrub = () =>
   document.querySelector<HTMLInputElement>(
     'input[aria-label="Position im Ausschnitt"]',
@@ -151,6 +153,7 @@ describe("ClipEditorScreen, the playhead", () => {
 
     expect(playheadX()).toBeCloseTo(xOfClipMs(12_000), 0);
     expect(chip()?.textContent?.trim()).toBe("0:12,0");
+    expect(previewTime()).toBe("0:02,0");
   });
 
   it("keeps the clip's place when a handle moves by keyboard, instead of jumping to it", () => {
