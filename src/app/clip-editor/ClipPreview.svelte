@@ -78,12 +78,14 @@
   function showFrame(): void {
     seekTo(seekMs);
   }
-  // Only a new `seekMs` moves a paused frame; pausing must leave it where the viewer put it.
+  // A new seekMs is a handle grabbed or moved: show its frame, pausing a playing clip first so
+  // the loop does not immediately play past it.
   $effect(() => {
     void seekMs;
     void video;
     untrack(() => {
-      if (!playing) showFrame();
+      if (playing) video?.pause();
+      showFrame();
     });
   });
 

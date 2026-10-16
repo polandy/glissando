@@ -12,7 +12,8 @@
   /**
    * The whole clip as a strip with the excerpt between two handles. A handle is dragged or moved
    * with the arrow keys (Shift: a second; Home and End: to its limit). A drag reports every
-   * position as a draft and the release as the final one. The player's place is drawn as a line
+   * position as a draft and the release as the final one, naming which handle moved so the
+   * caller never has to guess it from the excerpt alone. The player's place is drawn as a line
    * over the track with a time chip below, shown as soon as that place is known.
    */
   let {
@@ -25,7 +26,7 @@
     excerpt: Excerpt;
     /** The player's place in the whole clip; null before a position is known. */
     positionMs: number | null;
-    onExcerpt: (excerpt: Excerpt, final: boolean) => void;
+    onExcerpt: (excerpt: Excerpt, final: boolean, handle: Handle) => void;
   } = $props();
 
   const MS_PER_SECOND = 1000;
@@ -62,14 +63,15 @@
   function windowMove(event: PointerEvent): void {
     if (dragging === null) return;
     const next = dragTo(dragging, event);
-    if (next !== null) onExcerpt(next, false);
+    if (next !== null) onExcerpt(next, false, dragging);
   }
 
   function windowRelease(event: PointerEvent): void {
     if (dragging === null) return;
-    const next = dragTo(dragging, event);
+    const handle = dragging;
+    const next = dragTo(handle, event);
     dragging = null;
-    if (next !== null) onExcerpt(next, true);
+    if (next !== null) onExcerpt(next, true, handle);
   }
 
   function windowCancel(): void {
@@ -80,7 +82,7 @@
     const next = excerptAfterKey(handle, sourceMs, excerpt, event.key, event.shiftKey);
     if (next === null) return;
     event.preventDefault();
-    onExcerpt(next, true);
+    onExcerpt(next, true, handle);
   }
 </script>
 

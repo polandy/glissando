@@ -146,4 +146,24 @@ describe("ClipEditorScreen, the playhead", () => {
     expect(playheadX()).toBeCloseTo(xOfClipMs(30_000), 0);
     expect(chip()?.textContent?.trim()).toBe("0:30,0");
   });
+
+  it("keeps the preview on the start handle when a second move leaves it unchanged", () => {
+    mount();
+    const at = (ms: number) => ({
+      clientX: xOfClipMs(ms),
+      clientY: 0,
+      pointerId: 1,
+      bubbles: true,
+    });
+
+    // Both moves snap to the same 0.1 s quantum, which once made the start look unmoved.
+    handle("Anfang").dispatchEvent(new PointerEvent("pointerdown", at(CLIP.startMs)));
+    window.dispatchEvent(new PointerEvent("pointermove", at(12_010)));
+    flushSync();
+    window.dispatchEvent(new PointerEvent("pointermove", at(12_040)));
+    flushSync();
+
+    expect(playheadX()).toBeCloseTo(xOfClipMs(12_000), 0);
+    expect(chip()?.textContent?.trim()).toBe("0:12,0");
+  });
 });

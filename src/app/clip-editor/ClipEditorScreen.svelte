@@ -5,7 +5,7 @@
   import { getTranslator } from "../i18n/context";
   import PictureNavigation from "../picture-editor/PictureNavigation.svelte";
   import type { PictureEditorView } from "../picture-editor/picture-editor-view";
-  import type { Excerpt } from "./clip-excerpt";
+  import type { Excerpt, Handle } from "./clip-excerpt";
   import ClipPreview from "./ClipPreview.svelte";
   import ClipSoundPanel from "./ClipSoundPanel.svelte";
   import ExcerptStrip from "./ExcerptStrip.svelte";
@@ -62,8 +62,8 @@
     Math.min(slide.transition.durationMs, excerpt.endMs - excerpt.startMs),
   );
 
-  function excerptChanged(next: Excerpt, final: boolean): void {
-    seekMs = next.startMs !== excerpt.startMs ? next.startMs : next.endMs;
+  function excerptChanged(next: Excerpt, final: boolean, handle: Handle): void {
+    seekMs = handle === "start" ? next.startMs : next.endMs;
     if (final) {
       draft = null;
       onExcerpt(next.startMs, next.endMs);

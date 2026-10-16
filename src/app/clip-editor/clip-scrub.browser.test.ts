@@ -109,4 +109,35 @@ describe("scrubbing a clip in the editor", () => {
     expect((playheadRect?.left ?? 0) + (playheadRect?.width ?? 0) / 2).toBeCloseTo(expectedX, 0);
     expect(track.querySelector(".chip")?.textContent?.trim()).toBe("0:02,5");
   });
+
+  it("pauses a playing clip and shows the grabbed handle's frame", async () => {
+    const { clip } = mountPlayable();
+    await vi.waitFor(() => expect(clip.readyState).toBeGreaterThan(1));
+    let pauseCalls = 0;
+    Object.defineProperty(clip, "pause", { value: () => (pauseCalls += 1) });
+
+    // A fake play event marks the preview as playing without needing a real autoplay gesture.
+    clip.dispatchEvent(new Event("play"));
+    flushSync();
+
+    const handle = document.querySelector<HTMLElement>(
+      '[role="slider"][aria-label="Anfang"]',
+    ) as HTMLElement;
+    const track = document.querySelector('[aria-label="Ausschnitt wählen"] .track') as HTMLElement;
+    const rect = track.getBoundingClientRect();
+    const at = (ms: number) => ({
+      clientX: rect.left + (ms / CLIP_MS) * rect.width,
+      clientY: 0,
+      pointerId: 1,
+      bubbles: true,
+    });
+    const grabbedAtMs = 1500;
+
+    handle.dispatchEvent(new PointerEvent("pointerdown", at(CLIP.startMs)));
+    window.dispatchEvent(new PointerEvent("pointermove", at(grabbedAtMs)));
+    flushSync();
+
+    expect(pauseCalls).toBeGreaterThan(0);
+    await vi.waitFor(() => expect(clip.currentTime).toBeCloseTo(grabbedAtMs / 1000, 1));
+  });
 });
