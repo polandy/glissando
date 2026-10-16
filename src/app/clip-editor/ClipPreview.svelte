@@ -3,28 +3,35 @@
   import { MAX_VIDEO_VOLUME } from "../../library/own-video";
   import Icon from "../components/Icon.svelte";
   import { getTranslator } from "../i18n/context";
+  import ClipScrub from "./ClipScrub.svelte";
 
   /**
-   * The clip's excerpt in a 16:9 screen: its frame at `seekMs` while paused, played in a loop
-   * between `startMs` and `endMs` with the sound at `volume`, and a slider to move within it.
+   * The clip's excerpt in a 16:9 screen, played in a loop with the sound at `volume` and a
+   * slider to move within it. `peekMs` set pauses and shows that frame instead, leaving the
+   * player's own place (the slider, the time badge, `onPosition`) exactly where it was, clamped
+   * into the excerpt; `peekMs` back to null returns the clip itself to that place, resuming play
+   * if it was playing there.
    */
   let {
     posterUrl,
     videoUrl,
     startMs,
     endMs,
-    seekMs,
+    peekMs,
     volume,
+    onPosition,
   }: {
     posterUrl: string | null;
     /** The clip's object URL; null while it loads. */
     videoUrl: string | null;
     startMs: number;
     endMs: number;
-    /** The frame shown while paused, e.g. the handle just moved. */
-    seekMs: number;
+    /** The dragged handle's frame to show in place of the clip's own, while it stays; null otherwise. */
+    peekMs: number | null;
     /** 0 to 100; 0 plays silently. */
     volume: number;
+    /** The player's place in the whole clip, startMs to endMs. */
+    onPosition: (clipMs: number) => void;
   } = $props();
 
   const MS_PER_SECOND = 1000;
@@ -32,7 +39,7 @@
 
   let video: HTMLVideoElement | undefined = $state();
   let playing = $state(false);
-  let positionMs = $state(0);
+  let clipMs = $state(untrack(() => startMs)); // the player's place in the whole clip
   let failed = $state(false);
 
   $effect(() => {
@@ -40,19 +47,36 @@
     video.volume = volume / MAX_VIDEO_VOLUME;
     video.muted = volume === 0;
   });
-
   const lengthMs = $derived(endMs - startMs);
-  /** The place asked for while a seek was under way; null once it is applied. */
-  let deferredMs: number | null = null;
+  const positionMs = $derived(clipMs - startMs);
+  const scrubValueMs = $derived(Math.min(Math.max(positionMs, 0), lengthMs));
+  let deferredMs: number | null = null; // the place asked for while a seek was under way
+  let beforePeek: { ms: number; wasPlaying: boolean } | null = $state(null); // null outside a peek
+  /** Tells the parent the player's place, clamped to the excerpt it was asked to stay in. */
+  function reportPosition(ms: number): void {
+    onPosition(Math.min(Math.max(ms, startMs), endMs));
+  }
 
-  function seekTo(ms: number): void {
-    positionMs = ms - startMs;
+  /** Moves only the video element's displayed frame, deferring to the latest ask if a seek is
+      already under way; used while peeking so the player's own place is left untouched. */
+  function seekVideoOnly(ms: number): void {
     if (video === undefined) return;
     if (video.seeking) {
       deferredMs = ms;
       return;
     }
     video.currentTime = ms / MS_PER_SECOND;
+  }
+
+  function seekTo(ms: number): void {
+    clipMs = ms;
+    reportPosition(ms);
+    seekVideoOnly(ms);
+  }
+
+  /** Moves the player's place the same way a scrub does; the strip's playhead line drives this. */
+  export function seek(ms: number): void {
+    seekTo(ms);
   }
 
   // A drag asks for far more places than a clip can seek to; only the latest one is followed up.
@@ -63,15 +87,33 @@
     video.currentTime = ms / MS_PER_SECOND;
   }
 
-  function showFrame(): void {
-    seekTo(seekMs);
-  }
-  // Only a new `seekMs` moves a paused frame; pausing must leave it where the viewer put it.
+  // Where the clip belongs: peeking at a dragged handle (only the video's shown frame moves to
+  // it; the player's own place stays remembered, reported clamped to the current excerpt so it
+  // at most rides along a shrinking edge), settling back after a peek (clamped into the
+  // now-current excerpt, resuming play if it was playing), or, with no peek, pulled inside an
+  // excerpt a keyboard move just changed.
   $effect(() => {
-    void seekMs;
-    void video;
+    const peek = peekMs;
+    const low = startMs;
+    const high = endMs;
     untrack(() => {
-      if (!playing) showFrame();
+      if (peek !== null) {
+        beforePeek ??= { ms: clipMs, wasPlaying: playing };
+        if (playing) video?.pause();
+        seekVideoOnly(peek);
+        reportPosition(clipMs);
+        return;
+      }
+      if (beforePeek !== null) {
+        const { ms, wasPlaying } = beforePeek;
+        beforePeek = null;
+        seekTo(Math.min(Math.max(ms, low), high));
+        if (wasPlaying) video?.play().catch(() => (failed = true));
+        return;
+      }
+      const clamped = Math.min(Math.max(clipMs, low), high);
+      if (clamped === clipMs) reportPosition(clipMs);
+      else seekTo(clamped);
     });
   });
 
@@ -81,8 +123,13 @@
     if (!playing || clip === undefined) return;
     let frame = 0;
     const tick = (): void => {
-      if (clip.currentTime * MS_PER_SECOND >= endMs) clip.currentTime = startMs / MS_PER_SECOND;
-      positionMs = clip.currentTime * MS_PER_SECOND - startMs;
+      let ms = clip.currentTime * MS_PER_SECOND;
+      if (ms >= endMs) {
+        clip.currentTime = startMs / MS_PER_SECOND;
+        ms = startMs;
+      }
+      clipMs = ms;
+      reportPosition(ms);
       frame = requestAnimationFrame(tick);
     };
     frame = requestAnimationFrame(tick);
@@ -113,7 +160,6 @@
         playsinline
         preload="auto"
         aria-label={t("clip.previewLabel")}
-        onloadedmetadata={showFrame}
         onseeked={settle}
         onplay={() => (playing = true)}
         onpause={() => (playing = false)}
@@ -140,28 +186,15 @@
       >{formatTenths(Math.max(0, positionMs) / MS_PER_SECOND)}</span
     >
   </div>
-  <input
-    class="scrub"
-    type="range"
-    min="0"
-    max={lengthMs}
-    step="10"
-    value={Math.min(Math.max(positionMs, 0), lengthMs)}
-    aria-label={t("clip.scrub")}
+  <ClipScrub
+    valueMs={scrubValueMs}
+    maxMs={lengthMs}
     disabled={videoUrl === null}
-    oninput={(event) => seekTo(startMs + Number(event.currentTarget.value))}
+    onScrub={(relativeMs) => seekTo(startMs + relativeMs)}
   />
 </div>
 
 <style>
-  .scrub {
-    box-sizing: border-box;
-    width: 100%;
-    margin: 8px 0 0;
-    accent-color: var(--gl-accent);
-    /* Dragging along the slider must not scroll the page on a touch screen. */
-    touch-action: pan-y;
-  }
   .viewport {
     position: relative;
     aspect-ratio: 16 / 9;

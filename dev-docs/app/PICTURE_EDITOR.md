@@ -14,12 +14,20 @@
 
 A **video slide** opens the clip editor instead (ADR-0034, `dev-docs/player/VIDEO_SLIDES.md`):
 a preview that plays the excerpt in a loop, with a slider under it to move within the excerpt by
-finger or mouse (a paused clip stays where it was put; a handle drag shows the frame at the
-handle, only the latest place being sought), a strip with a start and an end handle (arrow keys
-move by 0.1 s, Shift by 1 s, Home/End to the limits), "In the film" length (0.5 s to 5 min),
-Sound On/Off with a volume slider (0–100, step 5), "Music quieter meanwhile", a note that the
-transition runs inside the excerpt's end, Reset and Done. There is no Ken Burns or duration
-section: the excerpt is the slide's length. Slideshow tiles show the length badge.
+finger or mouse (a paused clip stays where it was put); the slider carries an ink mark at the
+player's place. A strip below shows the whole clip with a start and an end handle (arrow keys move
+by 0.1 s, Shift by 1 s, Home/End to the limits); dragging a handle by pointer pauses a playing clip
+and shows only its picture at the handle's place (only the latest place being sought) — the
+slider, the time badge and the strip's mark all stay at the player's own place, clamped into the
+excerpt as it narrows, so they never jump to the handle; on release the preview itself returns to
+that place, clamped into the new excerpt, resuming play if it was playing there; a key move keeps
+that place, clamped the same way, rather than jumping to the handle. Always once a position is
+known, an ink line marks it at the whole clip's scale with a time chip below it; the line itself
+is draggable by pointer (a handle on top of it wins the drag where they overlap) and seeks exactly
+like the slider, clamped into the excerpt. "In the film" length
+(0.5 s to 5 min), Sound On/Off with a volume slider (0–100, step 5), "Music quieter meanwhile", a
+note that the transition runs inside the excerpt's end, Reset and Done. There is no Ken Burns or
+duration section: the excerpt is the slide's length. Slideshow tiles show the length badge.
 
 | Section                                                        | What it covers                                   |
 | -------------------------------------------------------------- | ------------------------------------------------ |

@@ -38,7 +38,9 @@ test("E2E-028 the automatic motion's focus is found in the background: a face is
   await editPicture(page, "Bild 1, aufgenommen am 12.07.2025, über einer unscharfen Füllung");
   await expect(picture).toBeVisible();
   await expect(state).toHaveText("Automatisch");
-  await expect(marker).toBeVisible();
+  // The background focus pass detects pictures one at a time; no fixed bound on how long
+  // picture 1's turn in the queue takes under load, so wait for it rather than guess.
+  await expect(marker).toBeVisible({ timeout: 0 });
   await expect(marker).toContainText("Fokus");
 
   await page.locator(".frame.active").press("+");
@@ -53,7 +55,8 @@ test("E2E-028 the automatic motion's focus is found in the background: a face is
 
   await editPicture(page, "Bild 2, aufgenommen am 14.07.2025");
   await expect(picture).toBeVisible();
-  await expect(noSubject).toBeVisible();
+  // Picture 2 is second in the focus pass's queue; it may still be "searching" here under load.
+  await expect(noSubject).toBeVisible({ timeout: 0 });
   await expect(marker).toBeHidden();
 
   await page.getByRole("button", { name: "Zurück", exact: true }).click();

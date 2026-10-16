@@ -29,7 +29,10 @@ function mount(video: StoredVideo = CLIP) {
     saving: false,
     onBack: () => (calls.backs += 1),
     onOpen: () => {},
-    onExcerpt: (start: number, end: number) => calls.excerpts.push([start, end]),
+    onExcerpt: (start: number, end: number) => {
+      calls.excerpts.push([start, end]);
+      props.video = { ...props.video, startMs: start, endMs: end };
+    },
     onVolume: (volume: number) => calls.volumes.push(volume),
     onDuckMusic: (duck: boolean) => calls.ducks.push(duck),
     onReset: () => (calls.resets += 1),
