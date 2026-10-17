@@ -10,11 +10,13 @@ afterEach(() => {
 
 function mountHead(narrow: boolean, { selecting = false, onToggleSelect = () => {} } = {}) {
   const adds: string[] = [];
+  const shuffles: string[] = [];
   const mounted = mountWithTranslator(StripHead, {
     count: 24,
     ownOrder: false,
     selecting,
     onToggleSelect,
+    onShuffle: () => shuffles.push("shuffle"),
     onAdd: () => adds.push("add"),
   });
   destroy = mounted.destroy;
@@ -29,7 +31,7 @@ function mountHead(narrow: boolean, { selecting = false, onToggleSelect = () => 
   if (addButton === undefined || selectButton === undefined) {
     throw new Error("the strip head shows no Select or Add media button");
   }
-  return { button: addButton, selectButton, adds };
+  return { button: addButton, selectButton, adds, shuffles, buttons };
 }
 
 describe("StripHead's Add media", () => {
@@ -70,6 +72,16 @@ describe("StripHead's Add media", () => {
   });
 });
 
+describe("StripHead's Shuffle", () => {
+  it("asks for a new order", () => {
+    const { buttons, shuffles } = mountHead(false);
+
+    buttons.find((button) => button.getAttribute("aria-label") === "Mischen")?.click();
+
+    expect(shuffles).toEqual(["shuffle"]);
+  });
+});
+
 describe("StripHead's hint", () => {
   it("adds 'hold to select several' narrow only, sorted by capture date", () => {
     const mounted = mountWithTranslator(StripHead, {
@@ -77,6 +89,7 @@ describe("StripHead's hint", () => {
       ownOrder: false,
       selecting: false,
       onToggleSelect: () => {},
+      onShuffle: () => {},
       onAdd: () => {},
     });
     destroy = mounted.destroy;

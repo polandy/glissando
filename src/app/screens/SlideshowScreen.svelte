@@ -23,6 +23,7 @@
     onRemove,
     onShiftGroup,
     onRemoveGroup,
+    onShuffle,
     onMoveGroup,
     onRename,
     onEdit,
@@ -132,6 +133,7 @@
         {onEdit}
         {onRemove}
         onRemoveGroup={removeGroup}
+        {onShuffle}
         {onShiftGroup}
         {onMoveGroup}
         onOpenOpeningCard={() => editSheets?.openOpeningCard()}

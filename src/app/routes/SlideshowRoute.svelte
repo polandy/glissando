@@ -105,7 +105,16 @@
           screenFocus.load(loaded.stored);
           stored = loaded.stored;
           const focusOf = (pictureId: string) => focus.found.get(pictureId);
-          const ports = { store, focusOf, toaster, newId, now, onError, onGone };
+          const ports = {
+            store,
+            focusOf,
+            toaster,
+            newId,
+            now,
+            random: Math.random,
+            onError,
+            onGone,
+          };
           editor = createScreenEditor(loaded.stored, ports, translator);
           editor.subscribe((edited) => (stored = edited));
           editor.subscribeSaving((isSaving) => (saving = isSaving));
@@ -189,6 +198,7 @@
     onRemove={(pictureId) => editor?.remove(pictureId)}
     onShiftGroup={(pictureIds, offset) => editor?.shiftGroup(pictureIds, offset)}
     onRemoveGroup={(pictureIds) => editor?.removeGroup(pictureIds)}
+    onShuffle={() => editor?.shuffle()}
     onMoveGroup={(pictureIds, insertion) => editor?.moveGroup(pictureIds, insertion)}
     onRename={(typed) => editor?.rename(typed)}
     {onEdit}

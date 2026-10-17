@@ -38,6 +38,10 @@ export interface SlideshowEditorPorts {
   readonly portraitPicturesResetText: () => string;
   /** The undo toast's text after a song was removed. */
   readonly songRemovedText: () => string;
+  /** The undo toast's text after `count` pictures were shuffled. */
+  readonly shuffledText: (count: number) => string;
+  /** Uniform in [0, 1); what a shuffle draws its order from. */
+  readonly random: () => number;
   /** The title from the capture dates, which an emptied title falls back to. */
   readonly automaticTitle: (slideshow: StoredSlideshow) => string;
   /** The BCP 47 language the title slide's default subtitle (a capture range) is worded in. */

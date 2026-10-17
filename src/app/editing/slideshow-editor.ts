@@ -127,6 +127,11 @@ export class SlideshowEditor {
     this.#pictureList.shiftGroup(pictureIds, offset);
   }
 
+  /** Puts the pictures in a new random order; the toast's undo brings the old one back. */
+  shuffle(): void {
+    this.#pictureList.shuffle();
+  }
+
   rename(typed: string): void {
     this.#pictureList.rename(typed);
   }

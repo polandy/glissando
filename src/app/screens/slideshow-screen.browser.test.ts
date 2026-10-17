@@ -24,6 +24,17 @@ describe("SlideshowScreen editing", () => {
     expect(document.querySelector("dialog")).toBeNull();
   });
 
+  it("asks for a new random order with Shuffle, which the last picture alone cannot do", () => {
+    const { calls } = mountScreen();
+    byLabel("Mischen").click();
+    expect(calls.shuffles).toBe(1);
+    unmountScreen();
+
+    mountScreen(details(["a"]));
+
+    expect(byLabel("Mischen").disabled).toBe(true);
+  });
+
   it("keeps the last picture: its ✕ is off; Remove and Delete look off but ask, keeping the selection", () => {
     const { calls } = mountScreen(details(["a"]));
     const only = tile(1, "01.07.2025");

@@ -179,6 +179,9 @@ export const ICONS = {
   addToHome: { shapes: [rect(4, 4, 16, 16, 3), path("M12 8v8M8 12h8")] },
   menuDots: { shapes: [circle(12, 5, 1.2), circle(12, 12, 1.2), circle(12, 19, 1.2)] },
   check: { shapes: [path("M5 12.5l4.5 4.5L19 7.5")] },
+  shuffle: {
+    shapes: [path("M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5")],
+  },
   checkCircle: { shapes: [circle(12, 12, 8.5), path("M8.3 12.3l2.8 2.8L15.8 9")] },
   fadeIn: { shapes: [path("M2 18L12 7h10")] },
   fadeOut: { shapes: [path("M2 7h10l10 11")] },

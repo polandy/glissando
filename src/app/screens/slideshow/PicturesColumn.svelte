@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tick } from "svelte";
   import type { FrameScheduler } from "../../../player";
   import type { Scheduler } from "../../../ui-kit/scheduler";
   import type { SlideshowDetails, SlideshowStorage, StorageAction } from "../view-models";
@@ -19,6 +20,7 @@
     onEdit,
     onRemove,
     onRemoveGroup,
+    onShuffle,
     onShiftGroup,
     onMoveGroup,
     onOpenOpeningCard,
@@ -38,6 +40,8 @@
     onEdit: (pictureId: string) => void;
     onRemove: (pictureId: string) => void;
     onRemoveGroup: (pictureIds: readonly string[]) => void;
+    /** Puts the pictures in a new random order. */
+    onShuffle: () => void;
     onShiftGroup: (pictureIds: readonly string[], offset: number) => void;
     onMoveGroup: (pictureIds: readonly string[], insertion: number) => void;
     /** Opens the title slide / closing slide sheet (TITLE_SLIDES.md). */
@@ -55,6 +59,14 @@
     strip?.focusOpeningCard();
   }
 
+  /** The tiles glide to their new places, so the shuffle shows. */
+  async function shuffle(): Promise<void> {
+    const glide = strip?.beginGlide();
+    onShuffle();
+    await tick();
+    glide?.();
+  }
+
   export function focusClosingCard(): void {
     strip?.focusClosingCard();
   }
@@ -69,6 +81,7 @@
     selecting={selection.several}
     onToggleSelect={() =>
       (selection = selection.several ? endSelecting() : startSelecting(selection))}
+    onShuffle={shuffle}
     onAdd={onAddPictures}
   />
   <PictureStrip

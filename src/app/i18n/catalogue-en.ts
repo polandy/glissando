@@ -87,6 +87,8 @@ export const en: Catalogue = {
   "slideshow.reorderHintNarrow": "tap to reorder, hold to select several",
   "slideshow.selectHintNarrow": "hold to select several",
   "slideshow.select": "Select",
+  "slideshow.shuffle": "Shuffle",
+  "slideshow.shuffled": "{count} pictures shuffled",
   "slideshow.removePicture": "Remove picture {number}",
   "slideshow.removed": { one: "Picture removed", other: "{count} pictures removed" },
   "slideshow.undo": "Undo",

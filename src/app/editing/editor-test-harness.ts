@@ -98,6 +98,8 @@ export async function setUp(
     slideshowTransitionResetText: () => "Übergänge wieder auf Überblenden",
     portraitPicturesResetText: () => "Hochformatbilder wieder automatisch",
     songRemovedText: () => "Song entfernt",
+    shuffledText: (count) => `${count} Bilder gemischt`,
+    random: () => 0,
     automaticTitle: () => "Juli 2025",
     locale: () => "de-DE",
   });

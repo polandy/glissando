@@ -60,6 +60,8 @@ function editorOver(store: MemoryLibraryStore, toaster: Toaster): SlideshowEdito
     slideshowTransitionResetText: () => "Übergänge wieder auf Überblenden",
     portraitPicturesResetText: () => "Hochformatbilder wieder automatisch",
     songRemovedText: () => "Song entfernt",
+    shuffledText: () => "",
+    random: () => 0,
     automaticTitle: () => "Juli 2025",
     locale: () => "de-DE",
     focusOf: () => undefined,

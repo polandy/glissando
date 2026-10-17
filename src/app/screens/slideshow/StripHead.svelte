@@ -8,6 +8,7 @@
     ownOrder,
     selecting,
     onToggleSelect,
+    onShuffle,
     onAdd,
   }: {
     count: number;
@@ -15,6 +16,8 @@
     /** Selecting several is on (dev-docs/app/slideshow-editing/SELECTING_SEVERAL.md, Selecting several). */
     selecting: boolean;
     onToggleSelect: () => void;
+    /** Puts the pictures in a new random order. */
+    onShuffle: () => void;
     onAdd: () => void;
   } = $props();
 
@@ -37,6 +40,15 @@
   </p>
   <span class="mono muted count">{count}</span>
   <button
+    class="btn small shuffle"
+    type="button"
+    onclick={onShuffle}
+    disabled={count < 2}
+    aria-label={t("slideshow.shuffle")}
+  >
+    <Icon name="shuffle" /><span>{t("slideshow.shuffle")}</span>
+  </button>
+  <button
     class="btn small select"
     type="button"
     aria-pressed={selecting}
@@ -56,7 +68,7 @@
   /* The order line sits under the eyebrow; narrow, it takes the whole width below the buttons. */
   .strip-head {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto auto auto;
+    grid-template-columns: minmax(0, 1fr) auto auto auto auto;
     column-gap: 12px;
     align-items: baseline;
   }
@@ -75,11 +87,14 @@
     grid-row: 1 / span 2;
     align-self: center;
   }
-  .select {
+  .shuffle {
     grid-column: 3;
   }
-  .add {
+  .select {
     grid-column: 4;
+  }
+  .add {
+    grid-column: 5;
   }
   .narrow {
     display: none;
