@@ -232,13 +232,19 @@
   .screen.selecting .content {
     padding-bottom: var(--selection-clearance);
   }
+  /* Below a desktop the info panel stacks over the pictures instead of squeezing them. */
+  @container (max-width: 1024px) {
+    .detail {
+      grid-template-columns: 1fr;
+    }
+    .detail > :global(.panel) {
+      order: -1;
+    }
+  }
   @container (max-width: 720px) {
     /* A container query styles descendants only: the bar and the content inherit this. */
     .screen > :global(*) {
       --selection-bar-inset: 10px;
-    }
-    .detail {
-      grid-template-columns: 1fr;
     }
   }
 </style>

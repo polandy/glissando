@@ -31,7 +31,7 @@
   preview of the first picture (tap plays) with the running time, then the pictures in play
   order, each with its order number and capture date, under "Sorted by capture date" or, once
   the user reordered, "Own order" (with "drag or tap", narrow: "tap to reorder"); right of the
-  count "Add pictures" (narrow: "Add"; [ADDING_PICTURES.md](slideshow-editing/ADDING_PICTURES.md), Adding pictures). Beside it an
+  count "Add pictures" (narrow: "Add"; [ADDING_PICTURES.md](slideshow-editing/ADDING_PICTURES.md), Adding pictures). Beside it (above it up to 1024 px) an
   info panel: title with a ✎ button, date range (earliest to latest capture), "Play", below it
   the "Save as" row with "Video" (the video export sheet, `dev-docs/VIDEO_EXPORT.md`) and "Web
   page" (the web page export sheet, `dev-docs/HTML_EXPORT.md`) side by side, and the
@@ -82,5 +82,9 @@
   while the server library is on (it can be hidden with its ✕ and is brought back in Settings),
   its set-up screen and the fullscreen running frame.
 
-Up to 720 px wide (a container query on `.screen`) the layout narrows: one card column, the
-info panel below the preview, three tiles per row.
+Up to 1024 px wide (a container query on `.screen`) the info panel stacks full width above the
+pictures instead of beside them, folded to a slim header: title, "date range · N pictures ·
+duration" and "Play". A "Details" toggle (`aria-expanded`, folded on every visit) opens the rest
+— "Save as", storage, link, "Show on TV" and the facts — in two columns, one column up to 720 px.
+Above 1024 px the panel shows everything beside the pictures and has no toggle. Up to 720 px the
+layout narrows further: three tiles per row.

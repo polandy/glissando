@@ -13,6 +13,8 @@
   /**
    * Beside the pictures: the title (renamed in place), "Play", the "Save as" row (video, web
    * page), where it lives, its link and "Show on TV", and the slideshow's facts (`InfoPanelRows`).
+   * Stacked above the pictures, only the head (title, summary, "Play") shows; "Details" opens
+   * the rest.
    */
   let {
     slideshow,
@@ -67,7 +69,13 @@
     rows.focusPortraitPictures();
   }
 
-  const { t, formatDate } = getTranslator();
+  const { t, formatDate, formatDuration } = getTranslator();
+
+  let detailsOpen = $state(false);
+  const detailsId = "slideshow-details";
+  const summary = $derived(
+    `${t("units.pictures", { count: slideshow.pictures.length })} · ${formatDuration(slideshow.durationSeconds)}`,
+  );
 
   const dateRange = $derived.by(() => {
     const from = formatDate(slideshow.capturedFrom);
@@ -77,41 +85,57 @@
 </script>
 
 <aside class="panel">
-  <div>
-    <div class="eyebrow">{t("slideshow.eyebrow")}</div>
-    <TitleEditor title={slideshow.title} {onRename} />
-    <div class="muted mono range">{dateRange}</div>
-  </div>
-  <div class="actions">
-    <button class="btn primary large" type="button" onclick={onPlay}>
+  <div class="head">
+    <div class="identity">
+      <div class="eyebrow">{t("slideshow.eyebrow")}</div>
+      <TitleEditor title={slideshow.title} {onRename} />
+      <div class="muted mono range">
+        {dateRange}<span class="summary">{` · ${summary}`}</span>
+      </div>
+    </div>
+    <button class="btn primary large play" type="button" onclick={onPlay}>
       <Icon name="play" />{t("slideshow.play")}
     </button>
-    <SaveAsRow bind:this={saveAs} {onSaveVideo} {onSaveWebPage} />
-    {#if storage !== null}
-      <StorageRow {storage} />
-      {#if storage.kind === "device" || serverRows !== null}
-        <ShareLinkControl
-          session={storage.kind === "server" ? (serverRows?.shareLink ?? null) : null}
-          subject={{
-            title: slideshow.title,
-            pictureCount: slideshow.pictures.length,
-            durationSeconds: slideshow.durationSeconds,
-            hasMusic: slideshow.songCount > 0,
-          }}
-        />
-      {/if}
-      {#if storage.kind === "server" && serverRows !== null}
-        <TvControl session={serverRows.tv} />
-      {/if}
-    {/if}
   </div>
-  <InfoPanelRows
-    bind:this={rows}
-    {slideshow}
-    {onEditMusic}
-    {onEditTransitions}
-    {onEditPortraitPictures}
-  />
+  <button
+    class="toggle"
+    type="button"
+    aria-expanded={detailsOpen}
+    aria-controls={detailsId}
+    onclick={() => (detailsOpen = !detailsOpen)}
+  >
+    {t("slideshow.details")}
+    <span class="chevron" class:open={detailsOpen}><Icon name="chevronRight" /></span>
+  </button>
+  <div class="more" class:open={detailsOpen} id={detailsId}>
+    <div class="actions">
+      <SaveAsRow bind:this={saveAs} {onSaveVideo} {onSaveWebPage} />
+      {#if storage !== null}
+        <StorageRow {storage} />
+        {#if storage.kind === "device" || serverRows !== null}
+          <ShareLinkControl
+            session={storage.kind === "server" ? (serverRows?.shareLink ?? null) : null}
+            subject={{
+              title: slideshow.title,
+              pictureCount: slideshow.pictures.length,
+              durationSeconds: slideshow.durationSeconds,
+              hasMusic: slideshow.songCount > 0,
+            }}
+          />
+        {/if}
+        {#if storage.kind === "server" && serverRows !== null}
+          <TvControl session={serverRows.tv} />
+        {/if}
+      {/if}
+    </div>
+    <InfoPanelRows
+      bind:this={rows}
+      {slideshow}
+      {onEditMusic}
+      {onEditTransitions}
+      {onEditPortraitPictures}
+    />
+  </div>
 </aside>
 
 <style>
@@ -123,6 +147,14 @@
     border-radius: var(--gl-radius-large);
     background: var(--gl-surface);
   }
+  .head {
+    display: grid;
+    gap: 16px;
+  }
+  .more {
+    display: grid;
+    gap: 16px;
+  }
   .actions {
     display: grid;
     gap: 10px;
@@ -130,5 +162,46 @@
   .range {
     margin-top: 4px;
     font-size: var(--gl-size-meta);
+  }
+  .summary {
+    display: none;
+  }
+  .toggle {
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    font-weight: var(--gl-weight-semibold);
+    color: var(--gl-muted);
+    cursor: pointer;
+  }
+  .chevron {
+    display: inline-flex;
+    transform: rotate(90deg);
+  }
+  .chevron.open {
+    transform: rotate(-90deg);
+  }
+  @container (max-width: 1024px) {
+    .head {
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+    }
+    .summary {
+      display: inline;
+    }
+    .toggle {
+      display: flex;
+    }
+    .more:not(.open) {
+      display: none;
+    }
+    .actions {
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      align-items: start;
+    }
   }
 </style>

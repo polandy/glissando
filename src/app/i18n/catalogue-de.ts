@@ -81,6 +81,7 @@ export const de = {
   "slideshow.automatic": "automatisch",
   "slideshow.transitions": "Übergänge",
   "slideshow.play": "Abspielen",
+  "slideshow.details": "Details",
   "slideshow.pictures": "Bilder",
   "slideshow.sortedByDate": "Nach Aufnahmedatum sortiert",
   "slideshow.pictureLabel": "Bild {number}, aufgenommen am {date}",
