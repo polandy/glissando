@@ -23,9 +23,11 @@ describe("isAllowedEntryName", () => {
   it.each([
     "../glissando.json",
     "/glissando.json",
+    "/etc/x",
     "pictures/../glissando.json",
     "pictures\\0001.jpg",
     "__MACOSX/pictures/0001.jpg",
+    "__MACOSX/._x",
     "pictures/",
     "pictures/001.jpg",
     "pictures/0001.gif",

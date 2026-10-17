@@ -9,6 +9,7 @@ import {
   EXPORTED_VIDEO_CLIP_BYTES,
   EXPORTED_VIDEO_PICTURE_BYTES,
   exportedVideoFile,
+  VIDEO_CLIP_MARKERS,
 } from "./testing/glissando-fixtures";
 import { writeGlissandoFile, type OpenStep, type WritePorts } from "./write-glissando-file";
 
@@ -148,6 +149,18 @@ describe("video slides in a .glissando file", () => {
 
     expect(await store.listSlideshows()).toEqual([]);
     await expect(store.videoBlob("new-5")).rejects.toThrow();
+  });
+
+  it("refuses a clip that does not load, naming it", async () => {
+    const decoders = fakeMediaDecoders({ refuseClipContaining: VIDEO_CLIP_MARKERS.clipOne });
+
+    const check = await checkGlissandoFile(await exportedVideoFile(), {
+      ...plentyOfSpace,
+      mediaDecoders: decoders,
+    });
+
+    expect(check).toMatchObject({ kind: "damaged" });
+    expect(check.kind === "damaged" && check.reason).toContain("does not decode as a clip");
   });
 
   it("refuses a file whose clip entry is missing, before anything is stored", async () => {

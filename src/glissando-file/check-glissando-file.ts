@@ -79,13 +79,16 @@ export async function checkGlissandoFile(
 
   const byName = new Map(entries.map((entry) => [entry.name, entry]));
   const manifestEntry = byName.get(MANIFEST_ENTRY_NAME);
-  if (manifestEntry === undefined || !(await checksumMatches(file, manifestEntry))) {
+  if (manifestEntry === undefined) {
     return damaged(`${MANIFEST_ENTRY_NAME} does not match its checksum`);
   }
   if (manifestEntry.size > MAX_MANIFEST_BYTES) {
     return damaged(
       `${MANIFEST_ENTRY_NAME} is ${manifestEntry.size} bytes, over the ${MAX_MANIFEST_BYTES} limit`,
     );
+  }
+  if (!(await checksumMatches(file, manifestEntry))) {
+    return damaged(`${MANIFEST_ENTRY_NAME} does not match its checksum`);
   }
   const reading = readManifest(await entryData(file, manifestEntry).text());
   if (reading.kind !== "ok") {

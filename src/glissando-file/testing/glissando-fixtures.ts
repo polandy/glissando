@@ -153,7 +153,8 @@ export const VIDEO_SLIDESHOW: StoredSlideshow = {
   })),
 };
 
-const VIDEO_CLIP_MARKERS = { clipOne: "clip one", clipTwo: "clip two" } as const;
+/** The text each of `exportedVideoFile`'s two clips carries, so a test can target one by name. */
+export const VIDEO_CLIP_MARKERS = { clipOne: "clip one", clipTwo: "clip two" } as const;
 
 /** The bytes `exportedVideoFile`'s two clips need, each counted once. */
 export const EXPORTED_VIDEO_CLIP_BYTES = Object.values(VIDEO_CLIP_MARKERS).reduce(

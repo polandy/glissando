@@ -23,9 +23,9 @@ export async function checkMediaFile(
 ): Promise<string | null> {
   switch (descriptor.kind) {
     case "picture":
-      return checkPicture(path, data, descriptor, decoders, DISPLAY_BOUND, true);
+      return checkPicture(path, data, descriptor, decoders, DISPLAY_BOUND);
     case "thumbnail":
-      return checkPicture(path, data, descriptor, decoders, THUMBNAIL_BOUND, false);
+      return checkPicture(path, data, descriptor, decoders, THUMBNAIL_BOUND);
     case "music":
       return (await decoders.music(data)) ? null : `"${path}" does not decode as music`;
     case "video":
@@ -39,7 +39,6 @@ async function checkPicture(
   descriptor: MediaDescriptor,
   decoders: MediaDecoders,
   bound: Bound,
-  checkDeclaredSize: boolean,
 ): Promise<string | null> {
   const header = await readPictureHeader(data);
   if (header === null) {
@@ -48,11 +47,10 @@ async function checkPicture(
   if (!fitsWithin(header, bound)) {
     return boundError(path, header, bound);
   }
-  if (checkDeclaredSize) {
-    const mismatch = declaredSizeMismatch(path, header, descriptor.size);
-    if (mismatch !== null) {
-      return mismatch;
-    }
+  // A thumbnail's descriptor carries no declared size (ADR-0038); only a display picture's does.
+  const mismatch = declaredSizeMismatch(path, header, descriptor.size);
+  if (mismatch !== null) {
+    return mismatch;
   }
   const decoded = await decoders.picture(data);
   if (decoded === null) {
