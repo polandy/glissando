@@ -10,6 +10,7 @@
   import { hold, pick, type StripSelection } from "./strip-selection";
   import { StripKeydown } from "./strip-keydown";
   import { TileDrag } from "./tile-drag";
+  import { glideTiles, tilePositions } from "./tile-glide";
   import type { DropTarget, TileDragState } from "./tile-drag-types";
 
   /** The pictures in play order as tiles: select, remove, and reorder by drag or keyboard. */
@@ -70,6 +71,18 @@
 
   export function focusClosingCard(): void {
     closingTile?.focus();
+  }
+
+  /** Remembers where the tiles are; the returned function glides them from there once the order changed. */
+  export function beginGlide(): () => void {
+    const shown = strip;
+    const before = tilePositions(shown);
+    // The screen may have gone by the time the order is rendered.
+    return () => {
+      if (shown.isConnected) {
+        glideTiles(shown, before);
+      }
+    };
   }
 
   let strip: HTMLOListElement;

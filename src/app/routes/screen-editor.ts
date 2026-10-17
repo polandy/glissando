@@ -8,7 +8,7 @@ import type { Translator } from "../i18n/translator";
 /** What the slideshow route wires into its editor besides the copy. */
 export type ScreenEditorPorts = Pick<
   SlideshowEditorPorts,
-  "store" | "focusOf" | "toaster" | "newId" | "now" | "onError" | "onGone"
+  "store" | "focusOf" | "toaster" | "newId" | "now" | "random" | "onError" | "onGone"
 >;
 
 /**
@@ -28,6 +28,7 @@ export function createScreenEditor(
     onRefused: refused,
     removedText: (count) => t("slideshow.removed", { count }),
     addedText: (count) => t("add.added", { count }),
+    shuffledText: (count) => t("slideshow.shuffled", { count }),
     undoLabel: () => t("slideshow.undo"),
     lastPictureText: () => t("slideshow.lastPictureStays"),
     everyPictureText: () => t("slideshow.everyPictureStays"),

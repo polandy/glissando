@@ -90,6 +90,8 @@ export const de = {
   "slideshow.reorderHintNarrow": "antippen zum Umsortieren, halten für mehrere",
   "slideshow.selectHintNarrow": "halten für mehrere",
   "slideshow.select": "Auswählen",
+  "slideshow.shuffle": "Mischen",
+  "slideshow.shuffled": "{count} Bilder gemischt",
   "slideshow.removePicture": "Bild {number} entfernen",
   "slideshow.removed": { one: "Bild entfernt", other: "{count} Bilder entfernt" },
   "slideshow.undo": "Rückgängig",

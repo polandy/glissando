@@ -46,6 +46,8 @@ describe("SlideshowEditor on a server slideshow, the playlist (ADR-0023)", () =>
       slideshowTransitionResetText: () => "Übergänge wieder auf Überblenden",
       portraitPicturesResetText: () => "Hochformatbilder wieder automatisch",
       songRemovedText: () => "Song entfernt",
+      shuffledText: () => "",
+      random: () => 0,
       automaticTitle: () => "Juli 2025",
       locale: () => "de-DE",
     });

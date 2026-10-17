@@ -25,3 +25,11 @@
   bar shows, the content keeps room below it for the bar, and the selected tile scrolls clear
   of it. The bar's buttons highlight on hover only where the pointer hovers. With a mouse, a
   double-click on a tile opens the picture editor too.
+- **Shuffle** (mockup: https://polandy.github.io/glissando-assets/mockups/shuffle/, variant A):
+  "Shuffle" in the strip header, left of "Select", puts every picture in a new random order. It
+  never returns the order it started from, and with one picture it is disabled. The order is
+  stored like any manual one, so the order line reads "Own order" and the player and the
+  exports use it. The tiles glide to their new places (not with reduced motion), and a toast
+  "12 pictures shuffled" with "Undo" follows. Undo brings the previous order back, leaving
+  edits made since (a caption) alone; any other edit of the picture list ends it. The random
+  source is injected into the editor (`SlideshowEditorPorts.random`).

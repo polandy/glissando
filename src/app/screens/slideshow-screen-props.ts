@@ -29,6 +29,8 @@ export interface SlideshowScreenProps {
   onShiftGroup: (pictureIds: readonly string[], offset: number) => void;
   /** The selection bar's Remove, or Delete/Backspace on a focused (selected) tile. */
   onRemoveGroup: (pictureIds: readonly string[]) => void;
+  /** "Shuffle" in the strip header: puts the pictures in a new random order. */
+  onShuffle: () => void;
   /** A drop: moves the group to the slot before the tile at `insertion`. */
   onMoveGroup: (pictureIds: readonly string[], insertion: number) => void;
   onRename: (typed: string) => void;

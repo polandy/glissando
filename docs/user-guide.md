@@ -21,7 +21,8 @@ without internet. If you use a self-hosted Glissando, open its address instead
 </p>
 
 Adding pictures later skips the ones already in the slideshow (you can add them anyway). Drag
-pictures to reorder; open one to change its motion.
+pictures to reorder, or tap Shuffle for a random order (Undo in the message that follows
+brings the old one back); open a picture to change its motion.
 
 ## Play
 

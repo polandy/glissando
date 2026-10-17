@@ -2,6 +2,7 @@ import {
   moveGroup as moveGroupInSlideshow,
   shiftGroup as shiftGroupInSlideshow,
 } from "../../library/group-edits";
+import { restoreOrder, shuffleSlideshow } from "../../library/shuffle-edits";
 import {
   removePicture,
   renameSlideshow,
@@ -12,6 +13,7 @@ import type { StoredSlideshow } from "../../library/stored-slideshow";
 import type { Toaster } from "../toast/toaster";
 import type { AddUndo } from "./add-undo";
 import type { RemovalUndo } from "./removal-undo";
+import type { ShuffleUndo } from "./shuffle-undo";
 
 /** What `PictureListEditor` needs from the screen to word its toasts. */
 export interface PictureListPorts {
@@ -22,12 +24,17 @@ export interface PictureListPorts {
   readonly everyPictureText: () => string;
   /** The title from the capture dates, which an emptied title falls back to. */
   readonly automaticTitle: (slideshow: StoredSlideshow) => string;
+  /** The undo toast's text after `count` pictures were shuffled. */
+  readonly shuffledText: (count: number) => string;
+  /** Uniform in [0, 1); what a shuffle draws its order from. */
+  readonly random: () => number;
 }
 
 /** The undo toasts `PictureListEditor` extends with its own removals and additions. */
 export interface PictureListUndos {
   readonly removal: RemovalUndo;
   readonly add: AddUndo;
+  readonly shuffle: ShuffleUndo;
 }
 
 /**
@@ -102,6 +109,24 @@ export class PictureListEditor {
       this.#undos.removal.end();
       this.#apply(shifted);
     }
+  }
+
+  /**
+   * Puts the pictures in a new random order, which is the user's own. Its toast undoes just
+   * the order, so a caption typed meanwhile stays.
+   */
+  shuffle(): void {
+    const before = this.#current();
+    const shuffled = shuffleSlideshow(before, this.#ports.random);
+    if (shuffled === before) {
+      return;
+    }
+    const previousIds = before.pictures.map((picture) => picture.id);
+    this.#undos.removal.end();
+    this.#apply(shuffled);
+    this.#undos.shuffle.offer(this.#ports.shuffledText(shuffled.pictures.length), () =>
+      this.#apply(restoreOrder(this.#current(), previousIds, before.ownOrder)),
+    );
   }
 
   rename(typed: string): void {
