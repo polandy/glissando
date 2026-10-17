@@ -3,7 +3,7 @@
 Mockup (variant C, approved): https://polandy.github.io/glissando-assets/mockups/picture-fullscreen/
 
 A tile's thumbnail is too small to judge a picture, so the pictures step ([IMPORT_WIZARD.md](IMPORT_WIZARD.md); the
-same body serves "Add pictures") shows one full screen on request (`import/PictureViewer.svelte`).
+same body serves "Add media") shows one full screen on request (`import/PictureViewer.svelte`).
 
 - **Open**: the whole tile of a strip picture and of a set-aside picture (also the kept one of a similar group) is
   a button, "View picture from <date> at <time>" (`ViewPictureButton.svelte`, cursor zoom-in). The ✕ and + keep
