@@ -1,5 +1,38 @@
 # Changelog
 
+## [0.0.6](https://github.com/polandy/glissando/compare/glissando-v0.0.5...glissando-v0.0.6) (2026-10-17)
+
+
+### Features
+
+* add a placeholder tile after the last picture that adds media ([#93](https://github.com/polandy/glissando/issues/93)) ([c42e5bd](https://github.com/polandy/glissando/commit/c42e5bd36dd80bbff48be75eb9ec91218b513bd5))
+* aim the automatic motion at animals in pictures without a face ([f85c54b](https://github.com/polandy/glissando/commit/f85c54bb04cca91247deef5183b75560c6a8b681))
+* aim the automatic motion at the main object of a picture ([#77](https://github.com/polandy/glissando/issues/77)) ([6247e60](https://github.com/polandy/glissando/commit/6247e60bd578dcac9fddf1384561387e233c6974))
+* change pictures on a phrase start when it is about as near as a beat ([033bf16](https://github.com/polandy/glissando/commit/033bf16207927de73c87ec725d939564ed243c79))
+* hide the picture frame card and bring it back in Settings ([#71](https://github.com/polandy/glissando/issues/71)) ([3dedd9d](https://github.com/polandy/glissando/commit/3dedd9dae8b995ff18fe1e9bb865438f56003111))
+* link to the documentation and the source code in the settings ([#94](https://github.com/polandy/glissando/issues/94)) ([faa8379](https://github.com/polandy/glissando/commit/faa837927118dc67cdaa51da5f0b93c4d14a837d))
+* open and close a slideshow with a title slide ([#65](https://github.com/polandy/glissando/issues/65)) ([6ce3a1c](https://github.com/polandy/glissando/commit/6ce3a1cebf8c8faf43c27327a6a13ce1d5899446))
+* pick a title card's entrance, tint and picture colours ([#67](https://github.com/polandy/glissando/issues/67)) ([788471d](https://github.com/polandy/glissando/commit/788471dfc74e7bc9d805d267e732564fb9bdfd73))
+* put every export in the slideshow's ⋯ menu ([#91](https://github.com/polandy/glissando/issues/91)) ([8a8790b](https://github.com/polandy/glissando/commit/8a8790b1482a160ef2289c80a1c77b490440f466))
+* rename "Add pictures" to "Add media" since videos are accepted too ([#90](https://github.com/polandy/glissando/issues/90)) ([683658c](https://github.com/polandy/glissando/commit/683658c4a140c44e4577854e646423fdb29a8f35))
+* say so in the clip editor's strip when the clip's sound cannot be read ([#87](https://github.com/polandy/glissando/issues/87)) ([b72fb62](https://github.com/polandy/glissando/commit/b72fb62c6bb70015c14aa5cee4cf778100eb515a))
+* show a picture full screen in the picture selection ([#79](https://github.com/polandy/glissando/issues/79)) ([ef79be0](https://github.com/polandy/glissando/commit/ef79be01695b110b6d0cf470ac47eb8b24ad3845))
+* show and drag the play position on both clip editor bars ([#85](https://github.com/polandy/glissando/issues/85)) ([e37b711](https://github.com/polandy/glissando/commit/e37b7116d8ee4a51d8b86ed91005e26b5bc626ee))
+* show the clip's sound as a waveform in the clip editor's strip ([#86](https://github.com/polandy/glissando/issues/86)) ([940a387](https://github.com/polandy/glissando/commit/940a3873b38b7aedd2463c31f7c562785fe8c106))
+* show the play position on the slideshow lane too ([#83](https://github.com/polandy/glissando/issues/83)) ([2691c8e](https://github.com/polandy/glissando/commit/2691c8ea6da423892cf6c45df8f5a4f35ec142bc))
+* shuffle the pictures of a slideshow into a random order ([870074a](https://github.com/polandy/glissando/commit/870074a1c75ea5b07b824e6c04b29e39fc735551))
+* sweep slowly across scenery ([#78](https://github.com/polandy/glissando/issues/78)) ([86d37ea](https://github.com/polandy/glissando/commit/86d37eae632b467c77e4fb261a13cb7574f39945))
+* videos as slides ([#75](https://github.com/polandy/glissando/issues/75)) ([2e9e4c3](https://github.com/polandy/glissando/commit/2e9e4c34091cba219b7f92377982af21c3454de2))
+
+
+### Bug Fixes
+
+* keep equally sized pictures decoded at once apart in WebKit ([6146d58](https://github.com/polandy/glissando/commit/6146d587c3b926e17edbe12f75a937de5c774ebf))
+* keep portrait pictures, picture length and alone marks on import ([fd3cde8](https://github.com/polandy/glissando/commit/fd3cde8a1cdd8dc021bcd5862d107ac614d0d0de))
+* make the selection bar stand out and fit a phone ([#88](https://github.com/polandy/glissando/issues/88)) ([e013f82](https://github.com/polandy/glissando/commit/e013f82a61071f8527dacc505413445b5103e1fb))
+* stack the slideshow info panel above the pictures, details folded, on tablet and narrower ([#89](https://github.com/polandy/glissando/issues/89)) ([e6baa30](https://github.com/polandy/glissando/commit/e6baa307283847528aec7c0fdb30d8ba147160fd))
+* stop title cards stuttering and freezing a video next to them ([#82](https://github.com/polandy/glissando/issues/82)) ([8c672ec](https://github.com/polandy/glissando/commit/8c672ec4fe3b5abf054b7133e3212805af7df332))
+
 ## [0.0.5](https://github.com/polandy/glissando/compare/glissando-v0.0.4...glissando-v0.0.5) (2026-10-13)
 
 
