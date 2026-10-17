@@ -12,6 +12,16 @@ export const CONVERTIBLE_SOURCES = [
 export type ConvertibleSource = (typeof CONVERTIBLE_SOURCES)[number];
 
 /**
+ * The file picker's `accept`: every audio type, plus the extensions of every format recognised
+ * here, because iPadOS greys out a file whose type it cannot tell from where it is stored.
+ */
+export const MUSIC_FILE_PICKER_ACCEPT = [
+  "audio/*",
+  ...[".mp3", ".m4a", ".aac", ".flac", ".ogg", ".oga", ".opus", ".wav", ".webm"],
+  ...[".aif", ".aiff", ".aifc", ".caf", ".ac3", ".eac3", ".wma", ".amr"],
+].join(",");
+
+/**
  * - `playable`: Chromium, Firefox and Safari all decode it, so it is stored as it is.
  * - `convertible`: one of them does not, so a FLAC copy is stored instead.
  * - `protected`: DRM; no browser may decode it.
