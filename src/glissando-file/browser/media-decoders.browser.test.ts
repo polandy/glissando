@@ -84,4 +84,15 @@ describe("browserMediaDecoders", () => {
 
     expect(await decoders.music(claimingWav)).toBe(false);
   });
+
+  it.each(["picture", "music"] as const)(
+    "lets a failed read of a %s through instead of calling it undecodable",
+    async (kind) => {
+      const unreadable = new Blob(["bytes"]);
+      const readError = new DOMException("the file went away", "NotReadableError");
+      unreadable.arrayBuffer = () => Promise.reject(readError);
+
+      await expect(decoders[kind](unreadable)).rejects.toBe(readError);
+    },
+  );
 });

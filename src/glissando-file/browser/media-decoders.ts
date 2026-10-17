@@ -12,10 +12,13 @@ const CLIP_PLACEHOLDER_NAME = "clip";
  */
 export function browserMediaDecoders(): MediaDecoders {
   return {
+    // Each medium is read before the decode's try, so a read failure stays an error and is not
+    // taken for a damaged file.
     async picture(picture) {
+      const bytes = new Blob([await picture.arrayBuffer()]);
       let bitmap: ImageBitmap;
       try {
-        bitmap = await createImageBitmap(picture);
+        bitmap = await createImageBitmap(bytes);
       } catch {
         return null;
       }
@@ -25,9 +28,10 @@ export function browserMediaDecoders(): MediaDecoders {
     },
 
     async music(song) {
+      const bytes = await song.arrayBuffer();
       const context = new OfflineAudioContext(1, 1, DETECTION_SAMPLE_RATE);
       try {
-        await context.decodeAudioData(await song.arrayBuffer());
+        await context.decodeAudioData(bytes);
         return true;
       } catch {
         return false;

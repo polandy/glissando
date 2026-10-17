@@ -10,9 +10,9 @@ import {
  * a macOS resource fork — refuses the file before any of its bytes are read.
  */
 
-export const SCHEMA_ENTRY_NAME = "glissando.schema.json";
-export const README_ENTRY_NAME = "README.txt";
-export const PLAYER_ENTRY_NAME = "index.html";
+const SCHEMA_ENTRY_NAME = "glissando.schema.json";
+const README_ENTRY_NAME = "README.txt";
+const PLAYER_ENTRY_NAME = "index.html";
 
 const NON_MEDIA_ENTRY_NAMES: ReadonlySet<string> = new Set([
   MANIFEST_ENTRY_NAME,
