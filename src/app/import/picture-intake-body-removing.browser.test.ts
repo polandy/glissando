@@ -83,14 +83,14 @@ describe("PictureIntakeBody, removing a chosen picture", () => {
     expect(document.activeElement).toBe(removeButtons(target)[0]);
   });
 
-  it("moves the focus to Choose pictures once the last picture is removed", async () => {
+  it("moves the focus to Choose media once the last picture is removed", async () => {
     const { intake, target } = await mountWithPictures("beach.jpg");
 
     removeButtons(target)[0]?.click();
     flushSync();
 
     expect(storedNames(intake)).toEqual([]);
-    expect(document.activeElement?.textContent.trim()).toBe("Bilder auswählen");
+    expect(document.activeElement?.textContent.trim()).toBe("Medien auswählen");
   });
 
   it("makes the removals final on leaving the step", async () => {

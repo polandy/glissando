@@ -20,7 +20,7 @@ test("E2E-038 music a browser cannot play becomes a FLAC copy; an unreadable fil
   await page.getByRole("button", { name: "New slideshow" }).first().click();
   await chooseFiles(
     page,
-    page.getByRole("button", { name: "Choose pictures" }),
+    page.getByRole("button", { name: "Choose media" }),
     await picturesTakenOn(page, ["2025-07-12", "2025-07-14"]),
   );
   await expect(page.getByText("2 pictures", { exact: true })).toBeVisible();

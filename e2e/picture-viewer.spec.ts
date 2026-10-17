@@ -18,7 +18,7 @@ test("E2E-060 a picture of the pictures step opens full screen, browses, removes
     await pictureTakenOn(page, "lake.jpg", "2025-07-14", "#ffd54f"),
   ];
   await openImport(page);
-  await chooseFiles(page, page.getByRole("button", { name: "Bilder auswählen" }), files);
+  await chooseFiles(page, page.getByRole("button", { name: "Medien auswählen" }), files);
 
   const opener = page.getByRole("button", { name: "Bild vom 13.07.2025 um 12:00:00 ansehen" });
   await opener.click();

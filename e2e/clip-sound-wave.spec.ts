@@ -48,7 +48,7 @@ async function openClipEditor(
   beforeOpening: () => Promise<void> = async () => {},
 ): Promise<void> {
   await openImport(page);
-  await chooseFiles(page, page.getByRole("button", { name: "Bilder auswählen" }), [clip]);
+  await chooseFiles(page, page.getByRole("button", { name: "Medien auswählen" }), [clip]);
   await expect(page.getByText("1 Bilder", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Weiter" }).click();
   await page.getByRole("button", { name: "Ohne Musik erstellen" }).click();

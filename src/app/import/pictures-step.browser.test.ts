@@ -94,7 +94,7 @@ describe("PicturesStep after a failed import", () => {
     );
     expect(buttons).toContain("Neu starten");
     expect(buttons).not.toContain("mehr hinzufügen");
-    expect(buttons).not.toContain("Bilder auswählen");
+    expect(buttons).not.toContain("Medien auswählen");
 
     const startOver = [...(notice?.querySelectorAll("button") ?? [])].find(
       (button) => button.textContent === "Neu starten",
