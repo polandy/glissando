@@ -39,7 +39,8 @@ All three are in the ⋯ menu at the top right of a slideshow.
 - **Save as video**: an MP4 you can send or put on a TV stick.
 - **Save as web page**: one file that plays in any browser, no Glissando needed.
 - **Save as Glissando file**: moves a slideshow with its pictures, music and settings to another
-  device; import it there.
+  device; import it there. Glissando checks a file whole, every picture and song included, before
+  it keeps anything of it, and refuses a file that is damaged or not what it claims to be.
 - **Share link, TV, picture frame** need a self-hosted Glissando
   ([self-hosting](self-hosting.md)): a link anyone can watch, a TV you control from the phone
   (`/tv`), and an Immich album played endlessly (the Picture frame card, or Settings).

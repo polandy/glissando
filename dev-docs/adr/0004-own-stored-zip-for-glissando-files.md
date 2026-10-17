@@ -1,6 +1,6 @@
 # ADR-0004: The .glissando file is a stored ZIP, read and written by our own code
 
-**Status:** accepted
+**Status:** superseded by ADR-0038
 
 ## Context
 
