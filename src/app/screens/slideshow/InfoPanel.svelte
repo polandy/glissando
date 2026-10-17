@@ -199,14 +199,9 @@
     .more:not(.open) {
       display: none;
     }
-    .more.open {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+    .actions {
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
       align-items: start;
-    }
-  }
-  @container (max-width: 720px) {
-    .more.open {
-      grid-template-columns: 1fr;
     }
   }
 </style>

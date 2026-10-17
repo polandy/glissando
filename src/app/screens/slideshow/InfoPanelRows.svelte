@@ -200,6 +200,17 @@
     display: block;
     padding: 6px 0;
   }
+  /* Stacked above the pictures the facts pair up, so the open details stay short. */
+  @container (min-width: 721px) and (max-width: 1024px) {
+    .rows {
+      display: block;
+      column-count: 2;
+      column-gap: 24px;
+    }
+    .rows div {
+      break-inside: avoid;
+    }
+  }
   .pill {
     display: inline-flex;
     align-items: center;
