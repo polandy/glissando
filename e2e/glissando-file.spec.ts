@@ -1,5 +1,4 @@
 import { expect, test, type Page } from "@playwright/test";
-import { exportedFile } from "../src/glissando-file/testing/glissando-fixtures";
 import {
   captionPicture,
   chooseFiles,
@@ -10,7 +9,8 @@ import {
 } from "./support/app";
 import { openApp } from "./support/browser";
 import { holdPictureStore } from "./support/hold-pictures";
-import { blobFile, textFile } from "./support/media";
+import { textFile } from "./support/media";
+import { exportedFileWithRealMedia } from "./support/real-glissando-file";
 
 test.use(GERMAN_BROWSER);
 
@@ -88,7 +88,7 @@ test("E2E-016 a file that is no .glissando file is refused in the library and st
 test("E2E-017 step 1 of a new slideshow opens a .glissando file from another device", async ({
   page,
 }) => {
-  const glissando = await blobFile("Herbst in Wien.glissando", await exportedFile());
+  const glissando = await exportedFileWithRealMedia();
   await openApp(page);
   await openImport(page);
 
@@ -103,7 +103,7 @@ test("E2E-017 step 1 of a new slideshow opens a .glissando file from another dev
 test("E2E-024 a .glissando file double-clicked on the desktop opens in the installed app", async ({
   page,
 }) => {
-  const bytes = [...new Uint8Array(await (await exportedFile()).arrayBuffer())];
+  const bytes = [...(await exportedFileWithRealMedia()).buffer];
   // The operating system's hand-over: Chromium's Launch Queue with the double-clicked file.
   await page.addInitScript(
     ({ name, bytes }) => {
