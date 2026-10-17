@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { recogniseMusicFormat, type MusicFormat } from "./music-format";
+import { MUSIC_FILE_PICKER_ACCEPT, recogniseMusicFormat, type MusicFormat } from "./music-format";
 import {
   ASF_HEADER_GUID,
   ascii,
@@ -62,5 +62,37 @@ describe("recogniseMusicFormat, which music every target browser plays and which
     ["an M4A whose box sizes run past the file", concat(m4a("mp4a").subarray(0, 40))],
   ])("does not know %s", async (_name, bytes) => {
     expect(await recognise(bytes)).toEqual({ kind: "unknown" });
+  });
+});
+
+describe("MUSIC_FILE_PICKER_ACCEPT, what the file picker offers", () => {
+  const accepted = MUSIC_FILE_PICKER_ACCEPT.split(",");
+
+  it("offers every audio type a browser knows", () => {
+    expect(accepted).toContain("audio/*");
+  });
+
+  // iPadOS greys out a file whose type it cannot tell from its location (SMB, cloud providers)
+  // unless the picker names its extension.
+  it.each([
+    ".mp3",
+    ".m4a",
+    ".aac",
+    ".flac",
+    ".ogg",
+    ".oga",
+    ".opus",
+    ".wav",
+    ".webm",
+    ".aif",
+    ".aiff",
+    ".aifc",
+    ".caf",
+    ".ac3",
+    ".eac3",
+    ".wma",
+    ".amr",
+  ])("offers %s files by their extension", (extension) => {
+    expect(accepted).toContain(extension);
   });
 });

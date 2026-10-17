@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { MUSIC_FILE_PICKER_ACCEPT } from "../../import/music-format";
   import type { BetweenSongs, MusicTrim, PictureChanges } from "../../library/own-music";
   import type { PictureLength } from "../../library/picture-length";
   import { setMusicTrim } from "../../library/slideshow-edits-music";
@@ -79,7 +80,6 @@
   } = $props();
 
   const { t } = getTranslator();
-  const MUSIC_TYPES = "audio/*";
 
   let pickSongs = $state<HTMLInputElement>();
   /** The excerpt while a handle is dragged; stored on release. */
@@ -105,7 +105,14 @@
   }
 </script>
 
-<input bind:this={pickSongs} type="file" accept={MUSIC_TYPES} multiple hidden onchange={picked} />
+<input
+  bind:this={pickSongs}
+  type="file"
+  accept={MUSIC_FILE_PICKER_ACCEPT}
+  multiple
+  hidden
+  onchange={picked}
+/>
 
 <div class="screen" aria-busy={saving}>
   <Header crumbs={[t("start.library"), slideshow.title, t("music.crumb")]} {onBack} />
