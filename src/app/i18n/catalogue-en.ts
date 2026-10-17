@@ -63,6 +63,8 @@ export const en: Catalogue = {
   "settings.languageGerman": "Deutsch",
   "settings.languageEnglish": "English",
   "settings.footnote": "Applies at once and is stored on this device.",
+  "settings.documentation": "Documentation",
+  "settings.sourceCode": "Source code on GitHub",
   "settings.licenses": "Open-source licences",
   "settings.version": "Version",
   "settings.versionName": "Glissando {version}",

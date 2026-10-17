@@ -7,7 +7,8 @@ behind inert, focus back on the gear when closed): above 720 px viewport width a
 the top right, narrower a bottom sheet. Radio groups, three with the server library on, else two
 (`components/RadioGroup.svelte`: one tab stop, arrows and Home/End move the choice with the
 focus), the Picture frame group (server library on), the Immich group, the version group, the footnote
-"Applies at once and is stored on this device" and the link "Open-source licences":
+"Applies at once and is stored on this device" and a row of three links, wrapping when narrow:
+"Documentation", "Source code on GitHub" and "Open-source licences":
 
 - **Appearance**: "Same as device" (hint "Light or dark, following the system setting"),
   "Light", "Dark" — the theme preference ([THEMES.md](THEMES.md)).
@@ -34,6 +35,8 @@ focus), the Picture frame group (server library on), the Immich group, the versi
   that can name neither fails. The image's build context leaves `.git` out, so
   `deploy/build-image.sh` passes both as build arguments, and `scripts/ci-image.sh` as
   environment.
+- **Documentation** opens the README on GitHub, **Source code on GitHub** the repository, both
+  in a new tab (`settings/project-links.ts`); they need a connection, unlike the rest of the app.
 - **Open-source licences** opens `third-party-licenses.md` in a new tab: the name, version and
   licence of every bundled dependency, among them mediabunny's MPL-2.0 (ADR-0015). The build
   writes it, the service worker precaches it and answers a navigation to it with the file, so it

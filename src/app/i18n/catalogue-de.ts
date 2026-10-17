@@ -66,6 +66,8 @@ export const de = {
   "settings.languageGerman": "Deutsch",
   "settings.languageEnglish": "English",
   "settings.footnote": "Gilt sofort und wird auf diesem Gerät gespeichert.",
+  "settings.documentation": "Dokumentation",
+  "settings.sourceCode": "Quellcode auf GitHub",
   "settings.licenses": "Open-Source-Lizenzen",
   "settings.version": "Version",
   "settings.versionName": "Glissando {version}",

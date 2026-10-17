@@ -47,3 +47,19 @@ test("E2E-044 the settings name the running build: version, commit and its date"
   await expect(version.getByText(/^Glissando \d+\.\d+\.\d+$/)).toBeVisible();
   await expect(version.getByText(/^[0-9a-f]{7} · \d{2}\.\d{2}\.\d{4}$/)).toBeVisible();
 });
+
+test("E2E-070 the settings link to the documentation and the source code on GitHub", async ({
+  page,
+}) => {
+  const dialog = settingsDialog(page);
+  const documentation = dialog.getByRole("link", { name: "Dokumentation" });
+  const sourceCode = dialog.getByRole("link", { name: "Quellcode auf GitHub" });
+
+  await expect(documentation).toHaveAttribute(
+    "href",
+    "https://github.com/polandy/glissando#readme",
+  );
+  await expect(documentation).toHaveAttribute("target", "_blank");
+  await expect(sourceCode).toHaveAttribute("href", "https://github.com/polandy/glissando");
+  await expect(sourceCode).toHaveAttribute("target", "_blank");
+});
