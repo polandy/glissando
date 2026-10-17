@@ -2,6 +2,7 @@
   import type { ImmichAvailabilityState } from "../../immich/immich-availability";
   import Notice from "../components/Notice.svelte";
   import { getTranslator } from "../i18n/context";
+  import { SELF_HOSTING_GUIDE_URL } from "../settings/project-links";
   import ImmichGlyph from "./ImmichGlyph.svelte";
   import { immichSettings, PROBLEM_MESSAGES } from "./immich-view";
 
@@ -12,7 +13,6 @@
     onReload,
   }: { state: ImmichAvailabilityState; onCheck: () => void; onReload: () => void } = $props();
 
-  const SETUP_GUIDE = "https://github.com/polandy/glissando/blob/main/docs/self-hosting.md";
   const { t } = getTranslator();
   const view = $derived(immichSettings(state));
 </script>
@@ -41,7 +41,12 @@
     </div>
     {#if view.kind === "notSetUp"}
       <div>
-        <a class="btn small" href={SETUP_GUIDE} target="_blank" rel="noopener noreferrer">
+        <a
+          class="btn small"
+          href={SELF_HOSTING_GUIDE_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
           {t("immich.howToSetUp")}
         </a>
       </div>

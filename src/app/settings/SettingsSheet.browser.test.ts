@@ -269,4 +269,19 @@ describe("SettingsSheet", () => {
     button?.click();
     expect(updates()).toBe(1);
   });
+
+  it("ends with links to the documentation, the source code on GitHub and the licences, each in a new tab", () => {
+    const { dialog } = mountSheet();
+    const links = [...dialog.querySelectorAll("a")]
+      .slice(-3)
+      .map(
+        (link) =>
+          `${link.textContent?.trim()} → ${link.getAttribute("href")} (${link.target}, ${link.rel})`,
+      );
+    expect(links).toEqual([
+      "Dokumentation → https://github.com/polandy/glissando#readme (_blank, noopener noreferrer)",
+      "Quellcode auf GitHub → https://github.com/polandy/glissando (_blank, noopener noreferrer)",
+      "Open-Source-Lizenzen → third-party-licenses.md (_blank, noopener)",
+    ]);
+  });
 });

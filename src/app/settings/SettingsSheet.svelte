@@ -17,6 +17,7 @@
     type PlaybackQualityPreference,
   } from "./playback-quality";
   import type { ThemePreference } from "./theme";
+  import { DOCUMENTATION_URL, SOURCE_CODE_URL } from "./project-links";
   import { THIRD_PARTY_LICENSES_FILE } from "./third-party-licenses";
   import VersionGroup from "./VersionGroup.svelte";
 
@@ -194,9 +195,16 @@
     <ImmichSettingsGroup state={immich} onCheck={onCheckImmich} {onReload} />
     <VersionGroup {build} {updateWaiting} {onUpdate} />
     <p class="footnote">{t("settings.footnote")}</p>
-    <a class="licenses" href={THIRD_PARTY_LICENSES_FILE} target="_blank" rel="noopener">
-      {t("settings.licenses")}
-    </a>
+    <div class="links">
+      <a href={DOCUMENTATION_URL} target="_blank" rel="noopener noreferrer"
+        >{t("settings.documentation")}</a
+      >
+      <a href={SOURCE_CODE_URL} target="_blank" rel="noopener noreferrer"
+        >{t("settings.sourceCode")}</a
+      >
+      <a href={THIRD_PARTY_LICENSES_FILE} target="_blank" rel="noopener">{t("settings.licenses")}</a
+      >
+    </div>
   </div>
 </dialog>
 
@@ -245,13 +253,17 @@
     color: var(--gl-muted);
     font-size: var(--gl-size-meta);
   }
-  .licenses {
-    justify-self: start;
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 16px;
+  }
+  .links a {
     color: var(--gl-muted);
     font-size: var(--gl-size-meta);
     text-underline-offset: 3px;
   }
-  .licenses:hover {
+  .links a:hover {
     color: var(--gl-ink);
   }
   /* The dialog sits in the top layer, outside the screen's container, so the viewport decides;
