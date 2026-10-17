@@ -99,8 +99,13 @@ The slide clock leads; the clip follows it, never the other way round.
   function `duckFactorAt(timeMs, spans)` in `src/player/`; the music's own
   trim and fades (ADR-0009) multiply on top.
 - Two clips closer together than a ramp up plus a ramp down stay ducked between them.
-- Safari starts sound only after a user gesture; the player's play button is that gesture.
-  A refused clip sound is a `MusicPlaybackError`-style player error (`VideoPlaybackError`). A clip whose bytes are missing or that the browser cannot decode raises the same error when it loads, so a show never waits for it.
+- WebKit (iPadOS/iOS Safari) allows a `<video>` element's audible `play()` only once that element
+  itself played inside a user gesture. The player keeps a small pool of elements blessed in the
+  Play gesture (`VideoElementPool`, `video-element-pool.ts`) and reuses them for later clips; past
+  the pool's size a fresh, un-blessed element falls back to the safety net below. A clip whose
+  bytes are missing or that the browser cannot decode raises `VideoPlaybackError` when it loads,
+  so a show never waits for it; a clip WebKit still refuses to play aloud is muted and played
+  silently instead (one `console.warn`), and stays muted for its life.
 
 ## Composition
 

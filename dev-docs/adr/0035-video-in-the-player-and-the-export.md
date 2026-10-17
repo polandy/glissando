@@ -35,4 +35,7 @@ where WebCodecs exists.
 ## Consequences
 
 - Two decode paths (player, export) must agree on which frame a time shows; the export's tests pin it.
-- Safari plays clip sound only after the first user gesture, which the play button is.
+- WebKit allows a `<video>` element's audible `play()` only once that very element has played
+  inside a user gesture, not merely once per page; the player keeps a small pool of elements
+  blessed in the Play gesture and reused for later clips, with a refused clip muted rather than
+  stopping the show (`video-element-pool.ts`, `video-playback.ts`).

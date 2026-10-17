@@ -2,7 +2,7 @@ import type { BeatPass } from "../library/beat-pass";
 import type { FocusPass } from "../library/focus-pass";
 import type { ImmichAvailability } from "../immich/immich-availability";
 import type { ImmichClient } from "../immich/immich-client";
-import type { MusicOutput } from "../player";
+import type { MusicOutput, VideoElementPool } from "../player";
 import type { LibraryStore, StoredSlideshow } from "../library/stored-slideshow";
 import type { PwaStatus } from "../pwa/pwa-status";
 import type { ServerLibrary } from "../server-library/server-library";
@@ -41,6 +41,8 @@ export interface AppServices extends ServerSlideshowSessions {
   readonly pwa: PwaStatus;
   /** Where the music sounds, in the player and the music editor; unlocked by a user gesture. */
   readonly musicOutput: MusicOutput;
+  /** Gesture-blessed `<video>` elements a clip's sound can reuse on iPadOS Safari (ADR-0035). */
+  readonly videoElementPool: VideoElementPool;
   /** Decoding and playing the music in the music editor. */
   readonly musicAudio: MusicEditorAudio;
   /** Reads a video clip's sound into the waveform the clip editor shows. */

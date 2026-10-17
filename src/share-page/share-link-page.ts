@@ -2,6 +2,7 @@
 // shared slideshow from the share API and plays it with the web page export's player page; its
 // start card offers control by phone (dev-docs/tv_remote/TV_PAGE.md, way B).
 import { createMusicAudioContext } from "../player/browser/platform";
+import { VideoElementPool } from "../player/browser/video-element-pool";
 import { MutableMusicOutput } from "../export-player/mutable-music-output";
 import { createPagePlayer } from "../export-player/page-player";
 import { loadCaptionFont, showStartFailure } from "../export-player/page-start";
@@ -67,41 +68,47 @@ export async function startShareLinkPage(
   showState = view.showState;
   await loadCaptionFont();
   const music = new MutableMusicOutput(createMusicAudioContext);
+  const videoElementPool = new VideoElementPool();
   let tv: TvOffer | null = null;
-  const pagePlayer = createPagePlayer(view, music, {
-    start(play) {
-      view.showState("starting");
-      // Live: each start plays the slideshow as it is now (dev-docs/share_link/THE_LINK.md).
-      loadSharedShow(api, createUrl, show).then((now) => {
-        if (now !== show) {
-          for (const url of show.songUrls.values()) URL.revokeObjectURL(url);
-          show = now;
-          skipped = new Set();
-          pagePlayer.show(playableShow(show, api, skipped));
+  const pagePlayer = createPagePlayer(
+    view,
+    music,
+    {
+      start(play) {
+        view.showState("starting");
+        // Live: each start plays the slideshow as it is now (dev-docs/share_link/THE_LINK.md).
+        loadSharedShow(api, createUrl, show).then((now) => {
+          if (now !== show) {
+            for (const url of show.songUrls.values()) URL.revokeObjectURL(url);
+            show = now;
+            skipped = new Set();
+            pagePlayer.show(playableShow(show, api, skipped));
+          }
+          play();
+        }, failed);
+      },
+      pictureFailed(cause) {
+        if (cause instanceof SharedPictureMissingError) {
+          const skip = skipMissingPicture(show, skipped, cause.pictureKey);
+          if (skip === null) return false;
+          skipped = skip.skipped;
+          pagePlayer.show(playableShow(show, api, skipped), {
+            atSeconds: skip.atSeconds,
+            play: true,
+          });
+          return true;
         }
-        play();
-      }, failed);
+        if (cause instanceof ShareGoneError || cause instanceof ShareUnreachableError) {
+          failed(cause);
+          return true;
+        }
+        return false;
+      },
+      waiting: (waiting) => parts.showLate(waiting),
+      changed: (change) => tv?.playerChanged(change),
     },
-    pictureFailed(cause) {
-      if (cause instanceof SharedPictureMissingError) {
-        const skip = skipMissingPicture(show, skipped, cause.pictureKey);
-        if (skip === null) return false;
-        skipped = skip.skipped;
-        pagePlayer.show(playableShow(show, api, skipped), {
-          atSeconds: skip.atSeconds,
-          play: true,
-        });
-        return true;
-      }
-      if (cause instanceof ShareGoneError || cause instanceof ShareUnreachableError) {
-        failed(cause);
-        return true;
-      }
-      return false;
-    },
-    waiting: (waiting) => parts.showLate(waiting),
-    changed: (change) => tv?.playerChanged(change),
-  });
+    videoElementPool,
+  );
   pagePlayer.show(first);
   tv = offerTvControl({
     document,

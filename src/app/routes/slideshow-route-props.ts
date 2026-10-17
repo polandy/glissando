@@ -7,7 +7,7 @@ import type { ExportProgress } from "../glissando-file/export-job";
 import type { Toaster } from "../toast/toaster";
 import type { ReadClipPeaks } from "../clip-editor/clip-sound-wave";
 import type { MusicEditorAudio } from "../music-editor/music-editor-audio";
-import type { MusicOutput } from "../../player";
+import type { MusicOutput, VideoElementPool } from "../../player";
 import type { SongIntakeDevice } from "../music-editor/song-intake";
 import type { PlaybackQuality } from "../settings/playback-quality";
 import type { VideoExportDevice } from "../video-export/slideshow-video-export";
@@ -54,6 +54,8 @@ export interface SlideshowRouteProps {
   musicAudio: MusicEditorAudio;
   /** Where the player's music sounds. */
   musicOutput: MusicOutput;
+  /** Gesture-blessed `<video>` elements a clip's sound can reuse on iPadOS Safari (ADR-0035). */
+  videoElementPool: VideoElementPool;
   /** Reads a video clip's sound into the waveform the clip editor shows. */
   readClipPeaks: ReadClipPeaks;
   /** Reads songs picked in the music editor and stores their audio where the slideshow lives. */

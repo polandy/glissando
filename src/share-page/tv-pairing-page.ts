@@ -1,6 +1,7 @@
 // The TV page, `/tv` (dev-docs/tv_remote/TV_PAGE.md, way A): pairs with a phone by a code, then
 // plays the slideshow the phone chooses, as the phone commands.
 import { createMusicAudioContext } from "../player/browser/platform";
+import { VideoElementPool } from "../player/browser/video-element-pool";
 import { MutableMusicOutput } from "../export-player/mutable-music-output";
 import { createPagePlayer, type PagePlayer } from "../export-player/page-player";
 import { loadCaptionFont, showStartFailure } from "../export-player/page-start";
@@ -50,8 +51,10 @@ export async function startTvPairingPage(
   const parts = createTvParts(document, words, ports.scheduler);
   const shareParts = createShareParts(document, words);
   const music = new MutableMusicOutput(createMusicAudioContext);
+  const videoElementPool = new VideoElementPool();
   parts.allowSound.addEventListener("click", () => {
     music.unlock();
+    videoElementPool.unlock();
     parts.showSoundAllowed();
   });
   await loadCaptionFont();
@@ -173,27 +176,35 @@ export async function startTvPairingPage(
       }),
       shareParts,
     );
-    const player = createPagePlayer(view, music, {
-      pictureFailed(cause) {
-        if (cause instanceof SharedPictureMissingError) {
-          const skip = skipMissingPicture(show, skipped, cause.pictureKey);
-          if (skip === null) return false;
-          skipped = skip.skipped;
-          player.show(playableShow(show, api, skipped), { atSeconds: skip.atSeconds, play: true });
-          return true;
-        }
-        // A slideshow no longer shown, or a server away: the stream tells what comes next.
-        return cause instanceof ShareGoneError || cause instanceof ShareUnreachableError;
+    const player = createPagePlayer(
+      view,
+      music,
+      {
+        pictureFailed(cause) {
+          if (cause instanceof SharedPictureMissingError) {
+            const skip = skipMissingPicture(show, skipped, cause.pictureKey);
+            if (skip === null) return false;
+            skipped = skip.skipped;
+            player.show(playableShow(show, api, skipped), {
+              atSeconds: skip.atSeconds,
+              play: true,
+            });
+            return true;
+          }
+          // A slideshow no longer shown, or a server away: the stream tells what comes next.
+          return cause instanceof ShareGoneError || cause instanceof ShareUnreachableError;
+        },
+        waiting: (waiting) => shareParts.showLate(waiting),
+        changed(change) {
+          session?.playerChanged(change);
+          if (change === "ended") parts.showCard({ kind: "ended", title });
+          if (change === "playing") parts.showCard(null);
+          // OK on the TV remote presses Play: the gesture the browser wants before the music.
+          if (change === "refused") view.togglePlay.focus();
+        },
       },
-      waiting: (waiting) => shareParts.showLate(waiting),
-      changed(change) {
-        session?.playerChanged(change);
-        if (change === "ended") parts.showCard({ kind: "ended", title });
-        if (change === "playing") parts.showCard(null);
-        // OK on the TV remote presses Play: the gesture the browser wants before the music.
-        if (change === "refused") view.togglePlay.focus();
-      },
-    });
+      videoElementPool,
+    );
     shown = { view, player, show };
     player.show(playable, { atSeconds: 0, play: true });
     session?.drive(player, title);

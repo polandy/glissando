@@ -7,6 +7,7 @@ import {
   type OpenPicture,
 } from "./browser/picture-loader";
 import { AudioElementMusic, animationFrames, performanceClock } from "./browser/platform";
+import type { VideoElementPool } from "./browser/video-element-pool";
 import {
   FallbackPictureDecoder,
   mainThreadPictureDecoder,
@@ -50,6 +51,8 @@ export interface BrowserPlayerOptions {
   readonly readVideo?: (src: string) => Promise<Blob>;
   /** Where the music sounds; without it, at the audio element's own volume. */
   readonly musicOutput?: MusicOutput;
+  /** Gesture-blessed `<video>` elements a clip's sound can reuse on iPadOS Safari (ADR-0035). */
+  readonly videoElementPool?: VideoElementPool;
   /** Slides loaded beyond the last one on screen; `DEFAULT_PICTURES_AHEAD` without it. */
   readonly picturesAhead?: number;
   /** Loads a card's fonts; `document.fonts` without it. */
@@ -91,6 +94,7 @@ export function createBrowserPlayer(
     openPicture,
     readVideo,
     musicOutput,
+    videoElementPool,
     picturesAhead,
     fonts,
   }: BrowserPlayerOptions,
@@ -123,6 +127,7 @@ export function createBrowserPlayer(
         ...(readVideo === undefined
           ? {}
           : { source: { openVideo: readVideo, urls: browserObjectUrls } }),
+        ...(videoElementPool === undefined ? {} : { pool: videoElementPool }),
       }),
     reducedMotion: () => window.matchMedia(REDUCED_MOTION_QUERY).matches,
     ...(picturesAhead === undefined ? {} : { picturesAhead }),

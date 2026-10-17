@@ -122,10 +122,11 @@ describe("VideoElementPlayback", () => {
     expect(element.currentTime).toBe(2);
   });
 
-  it("rejects with VideoPlaybackError when the browser refuses to play", async () => {
+  it("rejects with VideoPlaybackError on a refusal other than the sound being disallowed", async () => {
     const { element, playback } = setUp();
-    element.playResult = Promise.reject(new DOMException("blocked", "NotAllowedError"));
+    element.playResult = Promise.reject(new DOMException("blocked", "InvalidStateError"));
     await expect(playback.play(0)).rejects.toBeInstanceOf(VideoPlaybackError);
+    expect(element.playCalls).toBe(1);
   });
 
   it("does not count a pause interrupting the start as a refusal", async () => {
