@@ -1,10 +1,39 @@
 import { describe, expect, it } from "vitest";
-import { checkGlissandoFile } from "./check-glissando-file";
+import { DISPLAY_BOUND } from "../import/downscale";
+import { checkGlissandoFile, type GlissandoFileCheck } from "./check-glissando-file";
 import { GLISSANDO_FORMAT_VERSION } from "./glissando-manifest";
+import { MAX_MANIFEST_BYTES, MAX_THUMBNAIL_BYTES } from "./file-limits";
 import { entryData, readZipDirectory } from "./stored-zip";
-import { exportedFile, withBytesReplaced, zipWith } from "./testing/glissando-fixtures";
+import { fakeMediaDecoders } from "./testing/fake-media-decoders";
+import {
+  EXPORTED_MEDIA_BYTES,
+  exportedFile,
+  tinyPicture,
+  withBytesReplaced,
+  zipWith,
+} from "./testing/glissando-fixtures";
 
-const plentyOfSpace = { freeBytes: () => Promise.resolve(1e9) };
+interface ExportedManifest {
+  readonly slideshow: {
+    readonly pictures: readonly {
+      readonly file: string;
+      readonly thumbnail: string;
+      readonly width: number;
+      readonly height: number;
+    }[];
+    readonly songs: readonly { readonly file: string }[];
+  };
+}
+
+/** The reason of a damaged check, or a thrown failure when the check was not "damaged". */
+function damagedReason(check: GlissandoFileCheck): string {
+  if (check.kind !== "damaged") {
+    throw new Error(`expected a damaged check, got ${check.kind}`);
+  }
+  return check.reason;
+}
+
+const plentyOfSpace = { freeBytes: () => Promise.resolve(1e9), mediaDecoders: fakeMediaDecoders() };
 
 async function manifestText(
   change: (manifest: Record<string, unknown>) => unknown,
@@ -23,8 +52,7 @@ describe("checkGlissandoFile", () => {
     const check = await checkGlissandoFile(await exportedFile(), plentyOfSpace);
     expect(check.kind).toBe("ok");
     expect(check.kind === "ok" && check.contents.manifest.slideshow.title).toBe("Herbst in Wien");
-    const mediaBytes = "display one".length * 2 + "thumb one".length * 2 + "music bytes".length;
-    expect(check.kind === "ok" && check.contents.mediaBytes).toBe(mediaBytes);
+    expect(check.kind === "ok" && check.contents.mediaBytes).toBe(EXPORTED_MEDIA_BYTES);
   });
 
   it("reports checking progress up to the whole file", async () => {
@@ -81,13 +109,15 @@ describe("checkGlissandoFile", () => {
 
   it("refuses a file whose media need more than the free space, with both sizes", async () => {
     const check = await checkGlissandoFile(await exportedFile(), {
+      ...plentyOfSpace,
       freeBytes: () => Promise.resolve(10),
     });
-    expect(check).toEqual({ kind: "tooLarge", neededBytes: 51, freeBytes: 10 });
+    expect(check).toEqual({ kind: "tooLarge", neededBytes: EXPORTED_MEDIA_BYTES, freeBytes: 10 });
   });
 
   it("accepts a file when the free space is unknown", async () => {
     const check = await checkGlissandoFile(await exportedFile(), {
+      ...plentyOfSpace,
       freeBytes: () => Promise.resolve(null),
     });
     expect(check.kind).toBe("ok");
@@ -101,5 +131,170 @@ describe("checkGlissandoFile", () => {
       onProgress: () => cancel.abort(),
     });
     await expect(checking).rejects.toMatchObject({ name: "AbortError" });
+  });
+
+  it("refuses a file with an entry name outside the format, naming it", async () => {
+    const file = await zipWith({
+      "glissando.json": await manifestText((m) => m),
+      "pictures/0001.gif": "not an allowed extension",
+    });
+
+    const check = await checkGlissandoFile(file, plentyOfSpace);
+
+    const reason = damagedReason(check);
+    expect(reason).toContain("pictures/0001.gif");
+    expect(reason).toContain("is not an entry name this format uses");
+  });
+
+  it("refuses a manifest over its size limit, naming the limit, before reading it", async () => {
+    const file = await zipWith({ "glissando.json": "x".repeat(MAX_MANIFEST_BYTES + 1) });
+
+    const check = await checkGlissandoFile(file, plentyOfSpace);
+
+    expect(damagedReason(check)).toContain(`over the ${MAX_MANIFEST_BYTES} limit`);
+  });
+
+  it("refuses a thumbnail over its size limit, naming the entry and the limit", async () => {
+    const manifest = JSON.parse(await manifestText((m) => m)) as ExportedManifest;
+    const [first, second] = manifest.slideshow.pictures;
+    const [song] = manifest.slideshow.songs;
+    if (first === undefined || second === undefined || song === undefined) {
+      throw new Error("the fixture manifest should have two pictures and a song");
+    }
+    const oversizedThumbnail = "x".repeat(MAX_THUMBNAIL_BYTES + 1);
+    const file = await zipWith({
+      "glissando.json": JSON.stringify(manifest),
+      [first.file]: "display one",
+      [first.thumbnail]: oversizedThumbnail,
+      [second.file]: "display two",
+      [second.thumbnail]: "thumb two",
+      [song.file]: "music bytes",
+    });
+
+    const check = await checkGlissandoFile(file, plentyOfSpace);
+
+    const reason = damagedReason(check);
+    expect(reason).toContain(first.thumbnail);
+    expect(reason).toContain(`over the ${MAX_THUMBNAIL_BYTES} limit`);
+  });
+
+  it("refuses a picture whose header is beyond the display bound, before decoding it", async () => {
+    const manifest = JSON.parse(await manifestText((m) => m)) as ExportedManifest;
+    const [first, second] = manifest.slideshow.pictures;
+    const [song] = manifest.slideshow.songs;
+    if (first === undefined || second === undefined || song === undefined) {
+      throw new Error("the fixture manifest should have two pictures and a song");
+    }
+    const decoders = fakeMediaDecoders();
+    const file = await zipWith({
+      "glissando.json": JSON.stringify(manifest),
+      [first.file]: tinyPicture("huge", 5000, 5000),
+      [first.thumbnail]: "thumb one",
+      [second.file]: "display two",
+      [second.thumbnail]: "thumb two",
+      [song.file]: "music bytes",
+    });
+
+    const check = await checkGlissandoFile(file, { ...plentyOfSpace, mediaDecoders: decoders });
+
+    const reason = damagedReason(check);
+    expect(reason).toContain("5000×5000");
+    expect(reason).toContain(
+      `beyond the ${DISPLAY_BOUND.longEdge}×${DISPLAY_BOUND.shortEdge} bound`,
+    );
+    expect(decoders.pictureCalls).toHaveLength(0);
+  });
+
+  it("refuses a display picture whose header size differs from the manifest's, naming both", async () => {
+    const manifest = JSON.parse(await manifestText((m) => m)) as ExportedManifest;
+    const [first, second] = manifest.slideshow.pictures;
+    const [song] = manifest.slideshow.songs;
+    if (first === undefined || second === undefined || song === undefined) {
+      throw new Error("the fixture manifest should have two pictures and a song");
+    }
+    const file = await zipWith({
+      "glissando.json": JSON.stringify(manifest),
+      [first.file]: tinyPicture("display one", first.width + 10, first.height),
+      [first.thumbnail]: tinyPicture("thumb one"),
+      [second.file]: tinyPicture("display two", second.width, second.height),
+      [second.thumbnail]: tinyPicture("thumb two"),
+      [song.file]: "music bytes",
+    });
+
+    const check = await checkGlissandoFile(file, plentyOfSpace);
+
+    const reason = damagedReason(check);
+    expect(reason).toContain(`${first.width + 10}×${first.height}`);
+    expect(reason).toContain(`not the ${first.width}×${first.height} the manifest declares`);
+  });
+
+  it("refuses a picture that does not decode, naming it, after calling the decoder", async () => {
+    const decoders = fakeMediaDecoders({ refusePictureContaining: "display two" });
+
+    const check = await checkGlissandoFile(await exportedFile(), {
+      ...plentyOfSpace,
+      mediaDecoders: decoders,
+    });
+
+    expect(damagedReason(check)).toContain("does not decode as a picture");
+    expect(decoders.pictureCalls.length).toBeGreaterThan(0);
+  });
+
+  it("refuses a song that does not decode, naming it", async () => {
+    const decoders = fakeMediaDecoders({ refuseMusicContaining: "music bytes" });
+
+    const check = await checkGlissandoFile(await exportedFile(), {
+      ...plentyOfSpace,
+      mediaDecoders: decoders,
+    });
+
+    expect(damagedReason(check)).toContain("does not decode as music");
+  });
+
+  it("refuses a manifest naming a song's file as a picture's entry name", async () => {
+    const file = await zipWith({
+      "glissando.json": await manifestText((m) => {
+        const manifest = m as { slideshow: { songs: { file: string }[] } };
+        const songs = manifest.slideshow.songs.map((song) => ({
+          ...song,
+          file: "pictures/0001.jpg",
+        }));
+        return { ...manifest, slideshow: { ...manifest.slideshow, songs } };
+      }),
+    });
+
+    const check = await checkGlissandoFile(file, plentyOfSpace);
+
+    expect(damagedReason(check)).toContain("is not a valid music entry name");
+  });
+
+  it("accepts a README, the schema and the player, but refuses to serve them as media", async () => {
+    const manifest = JSON.parse(await manifestText((m) => m)) as ExportedManifest;
+    const [first, second] = manifest.slideshow.pictures;
+    const [song] = manifest.slideshow.songs;
+    if (first === undefined || second === undefined || song === undefined) {
+      throw new Error("the fixture manifest should have two pictures and a song");
+    }
+    const file = await zipWith({
+      "glissando.json": JSON.stringify(manifest),
+      [first.file]: tinyPicture("display one", first.width, first.height),
+      [first.thumbnail]: tinyPicture("thumb one"),
+      [second.file]: tinyPicture("display two", second.width, second.height),
+      [second.thumbnail]: tinyPicture("thumb two"),
+      [song.file]: "music bytes",
+      "README.txt": "a plain-text read me",
+      "index.html": "<script>alert('should never run')</script>",
+      "glissando.schema.json": "{}",
+    });
+
+    const check = await checkGlissandoFile(file, plentyOfSpace);
+
+    expect(check.kind).toBe("ok");
+    if (check.kind !== "ok") {
+      return;
+    }
+    expect(() => check.contents.media("README.txt")).toThrow();
+    expect(() => check.contents.media("index.html")).toThrow();
+    expect(() => check.contents.media("glissando.schema.json")).toThrow();
   });
 });

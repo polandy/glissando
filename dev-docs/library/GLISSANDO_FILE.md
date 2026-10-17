@@ -2,7 +2,7 @@
 
 One slideshow as one file, to move it between devices (`src/glissando-file/`). A ZIP whose
 entries are stored, not compressed, so any unzip tool opens it; no ZIP64, so it stays under
-4 GiB and 65,535 entries (ADR-0004):
+4 GiB and 65,535 entries. Every opened file is foreign and possibly hostile (ADR-0038):
 
 | Entry                   | Content                                                                                                              |
 | ----------------------- | -------------------------------------------------------------------------------------------------------------------- |
@@ -33,8 +33,17 @@ leading, trailing or repeated whitespace); the reason names its path and value.
   _foreign_) and no higher version (else _newer_) that validates (else _damaged_), every media
   file it names present, and fit into the free storage (`navigator.storage.estimate()`, quota
   minus usage; else _too large_, skipped where the browser cannot tell, e.g. over plain HTTP).
-  Last, every media file's CRC-32 is checked (else _damaged_): one damaged picture refuses the
-  whole file. Each media file, a clip too, is read as a slice of the file, never all at once. A clip counts in
+  Before the manifest is read, every entry name must be `glissando.json`, `glissando.schema.json`,
+  `README.txt`, `index.html` or match its kind's pattern in the table, and each media path the
+  manifest names that of its own kind (no `../`, no absolute path, no directory entry); the
+  manifest may hold 8 MiB, a picture 64 MiB, a thumbnail 4 MiB, a clip 1 GiB and all entries
+  together under 4 GiB (else _damaged_). `README.txt`, `index.html` and the schema are never read.
+  Last, one media file at a time: its CRC-32; for a picture or thumbnail its size from its header
+  (JPEG, PNG, WebP), which must fit the display or thumbnail bound and, for a picture, equal its
+  `width` and `height`, before it is decoded; then it is decoded (a picture to its header size, a
+  song by Web Audio at the beat-detection rate, a clip's metadata loaded). Any failure is
+  _damaged_ and names the entry: one damaged picture refuses the whole file. Each media file, a
+  clip too, is read as a slice of the file, never all at once. A clip counts in
   the media bytes that must fit, once however many slides play it; two slides naming one clip file with two types make the file damaged.
 - **Write** (`writeGlissandoFile`): always a new slideshow with fresh ids, created now, keeping
   every setting the file carries (picture length, portrait pictures, each picture's `alone` mark); a title

@@ -61,7 +61,9 @@ const PICTURE_EXTENSIONS: Readonly<Record<string, string>> = {
   "image/png": "png",
   "image/webp": "webp",
 };
-const PICTURE_NUMBER_DIGITS = 4;
+/** The extensions a picture or thumbnail entry may have, shared with the entry name allowlist. */
+export const PICTURE_FILE_EXTENSIONS: readonly string[] = Object.values(PICTURE_EXTENSIONS);
+export const PICTURE_NUMBER_DIGITS = 4;
 const MUSIC_EXTENSION = /\.([a-z0-9]{1,8})$/i;
 
 export interface ManifestPicture {

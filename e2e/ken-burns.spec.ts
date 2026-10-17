@@ -1,5 +1,6 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { exportSlideshow } from "../src/glissando-file/export-slideshow";
+import { THUMBNAIL_BOUND } from "../src/import/downscale";
 import type { StoredSlideshow } from "../src/library/stored-slideshow";
 import { MemoryLibraryStore } from "../src/library/testing/memory-store";
 import { chooseFiles, GERMAN_BROWSER, openImport } from "./support/app";
@@ -51,9 +52,17 @@ const AGAINST_THE_EDGE: StoredSlideshow = {
 
 async function edgeSlideshowFile(page: Page): Promise<TestFile> {
   const jpeg = await horizontalGradientJpeg(page, PICTURE.width, PICTURE.height);
-  const picture = new Blob([new Uint8Array(jpeg)], { type: "image/jpeg" });
+  const display = new Blob([new Uint8Array(jpeg)], { type: "image/jpeg" });
+  // A thumbnail of the display picture's own pixels, downsized to fit the thumbnail bound: the
+  // full-size picture itself is over that bound, which opening a .glissando file now enforces.
+  const thumbnailJpeg = await horizontalGradientJpeg(
+    page,
+    THUMBNAIL_BOUND.longEdge,
+    THUMBNAIL_BOUND.shortEdge / 2,
+  );
+  const thumbnail = new Blob([new Uint8Array(thumbnailJpeg)], { type: "image/jpeg" });
   const store = new MemoryLibraryStore();
-  await store.putPicture("edge-picture", { display: picture, thumbnail: picture });
+  await store.putPicture("edge-picture", { display, thumbnail });
   const file = await exportSlideshow(AGAINST_THE_EDGE, store, { modifiedAt: new Date(0) });
   return blobFile(`${TITLE}.glissando`, file);
 }
