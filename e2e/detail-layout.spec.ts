@@ -39,20 +39,20 @@ test("E2E-067 on a tablet the info panel stacks above the pictures with its deta
   // Folded, the panel is a slim header, not a block that pushes the pictures down.
   expect(panel.height).toBeLessThan(200);
 
-  const saveVideo = page.getByRole("button", { name: "Als Video sichern" });
+  const transitions = page.getByRole("button", { name: /^Übergänge/ });
   const details = page.getByRole("button", { name: "Details" });
   await expect(
     page.getByRole("complementary").getByRole("button", { name: "Abspielen" }),
   ).toBeVisible();
-  await expect(saveVideo).toBeHidden();
+  await expect(transitions).toBeHidden();
   await expect(details).toHaveAttribute("aria-expanded", "false");
 
   await details.click();
   await expect(details).toHaveAttribute("aria-expanded", "true");
-  await expect(saveVideo).toBeVisible();
+  await expect(transitions).toBeVisible();
 
   await details.click();
-  await expect(saveVideo).toBeHidden();
+  await expect(transitions).toBeHidden();
 });
 
 test("E2E-068 on a desktop the info panel stays beside the pictures, everything shown", async ({
@@ -65,5 +65,5 @@ test("E2E-068 on a desktop the info panel stays beside the pictures, everything 
   const { panel, picture } = await panelAndFirstPicture(page);
   expect(panel.x).toBeGreaterThan(picture.x + picture.width);
   await expect(page.getByRole("button", { name: "Details" })).toBeHidden();
-  await expect(page.getByRole("button", { name: "Als Video sichern" })).toBeVisible();
+  await expect(page.getByRole("button", { name: /^Übergänge/ })).toBeVisible();
 });

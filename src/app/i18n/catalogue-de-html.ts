@@ -5,9 +5,6 @@ import type { Message } from "./messages.ts";
  * page's own words (`htmlPage.*`), written into the page at export time.
  */
 export const deHtml = {
-  "slideshow.saveAs": "Speichern als",
-  "slideshow.saveVideo": "Video",
-  "slideshow.saveWebPage": "Webseite",
   "slideshow.saveAsWebPage": "Als Webseite sichern",
   "htmlExport.title": "Als Webseite sichern",
   "htmlExport.subtitle": "{title} · {duration} · {music}",

@@ -52,7 +52,7 @@ async function createSlideshowWithMusic(page: Page): Promise<void> {
   await expect(page.getByRole("status")).toHaveText(CREATED_TOAST);
 }
 
-test("E2E-030 a slideshow saved as a 720p video from its info panel downloads as an MP4 of its whole length", async ({
+test("E2E-030 a slideshow saved as a 720p video from its menu downloads as an MP4 of its whole length", async ({
   page,
   browserName,
 }, testInfo) => {
@@ -69,7 +69,8 @@ test("E2E-030 a slideshow saved as a 720p video from its info panel downloads as
   await openApp(page);
   await createSlideshowWithMusic(page);
 
-  await page.getByRole("button", { name: "Als Video sichern" }).click();
+  await page.getByRole("button", { name: "Mehr" }).click();
+  await page.getByRole("menuitem", { name: "Als Video sichern" }).click();
   const sheet = page.getByRole("dialog", { name: "Als Video sichern" });
   const small = sheet.getByRole("radio", { name: /^Klein/ });
   await expect(small).toHaveAttribute("aria-disabled", "false");

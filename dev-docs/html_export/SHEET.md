@@ -1,8 +1,7 @@
 # Sheet
 
-The info panel's "Speichern als" row holds "Video" (film icon) and "Webseite" (page icon), side by
-side under "Abspielen"; their accessible names are "Als Video sichern" and "Als Webseite sichern".
-"Webseite" opens `HtmlExportSheet`: a dialog on desktop, a bottom sheet
+The header's ⋯ menu holds "Als Video sichern" (film icon), "Als Webseite sichern" (page icon) and
+"Als Glissando-Datei sichern". "Als Webseite sichern" opens `HtmlExportSheet`: a dialog on desktop, a bottom sheet
 below 720 px. Its states follow the video sheet's (VIDEO_EXPORT.md):
 
 | State   | Content                                                                                                                                                                                                                                                                                                                                  |

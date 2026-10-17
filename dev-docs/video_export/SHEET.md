@@ -1,8 +1,7 @@
 # Sheet
 
-"Video" (film icon) in the info panel's "Speichern als" row below "Play", beside "Webseite"
-(HTML_EXPORT.md), opens `VideoExportSheet`: a dialog on desktop, a bottom sheet below 720 px. The
-button's accessible name is "Als Video sichern". The sheet's frame (`export-sheet/ExportDialog`),
+"Als Video sichern" in the header's ⋯ menu, above "Als Webseite sichern" (HTML_EXPORT.md) and
+"Als Glissando-Datei sichern", opens `VideoExportSheet`: a dialog on desktop, a bottom sheet below 720 px. The sheet's frame (`export-sheet/ExportDialog`),
 size radios, file row and saved note are shared with the web page export.
 
 | State            | Content                                                                                                                                                                                                                                                                |

@@ -46,14 +46,15 @@ async function createSlideshowWithMusic(page: Page): Promise<void> {
   await expect(page.getByRole("status")).toHaveText(CREATED_TOAST);
 }
 
-test("E2E-033 a slideshow saved as a web page from its info panel downloads as one .html that plays from file://", async ({
+test("E2E-033 a slideshow saved as a web page from its menu downloads as one .html that plays from file://", async ({
   page,
 }, testInfo) => {
   await deliverByDownload(page);
   await openApp(page);
   await createSlideshowWithMusic(page);
 
-  await page.getByRole("button", { name: "Als Webseite sichern" }).click();
+  await page.getByRole("button", { name: "Mehr" }).click();
+  await page.getByRole("menuitem", { name: "Als Webseite sichern" }).click();
   const sheet = page.getByRole("dialog", { name: "Als Webseite sichern" });
   // The default size: small is kept as is, so the page fits the usual estimate.
   await expect(sheet.getByRole("radio", { name: /^Klein/ })).toHaveAttribute(

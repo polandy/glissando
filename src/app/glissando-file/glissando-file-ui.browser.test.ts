@@ -87,6 +87,8 @@ describe("MoreMenu", () => {
     return mountWithTranslator(MoreMenu, {
       exportState,
       onExport: () => calls.push("export"),
+      onSaveVideo: () => calls.push("video"),
+      onSaveWebPage: () => calls.push("webPage"),
       onOpened: () => calls.push("opened"),
       onDelete: () => calls.push("delete"),
       pictureCount: 3,
@@ -94,17 +96,21 @@ describe("MoreMenu", () => {
     });
   }
 
-  it("offers Export with the file's size above deleting", () => {
+  it("offers every export, with the file's size, above deleting", () => {
     const { target, calls } = openMenu({ kind: "idle", sizeBytes: 184_000_000 });
 
     const items = [...target.querySelectorAll('[role="menuitem"]')];
     expect(items.map((item) => item.textContent?.trim())).toEqual([
-      "Exportieren Eine .glissando-Datei, ca. 184 MB",
+      "Als Video sichern",
+      "Als Webseite sichern",
+      "Als Glissando-Datei sichern Eine .glissando-Datei, ca. 184 MB",
       "Diashow löschen …",
     ]);
     expect(target.querySelector('[role="menu"] hr')).not.toBeNull();
-    byText(target, "Exportieren").click();
-    expect(calls).toEqual(["opened", "export"]);
+    byText(target, "Als Video sichern").click();
+    byText(target, "Als Webseite sichern").click();
+    byText(target, "Als Glissando-Datei sichern").click();
+    expect(calls).toEqual(["opened", "video", "webPage", "export"]);
   });
 
   it("while this slideshow exports, shows the percentage and does nothing on a click", () => {
@@ -121,7 +127,7 @@ describe("MoreMenu", () => {
   it("while another slideshow exports, says Export waits for it", () => {
     const { target } = openMenu({ kind: "other" });
 
-    const item = byText(target, "Exportieren");
+    const item = byText(target, "Als Glissando-Datei sichern");
     expect(item.getAttribute("aria-disabled")).toBe("true");
     expect(item.textContent).toContain("Erst wenn der laufende Export fertig ist");
   });

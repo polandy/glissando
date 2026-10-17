@@ -109,6 +109,8 @@
         bind:this={moreMenu}
         {exportState}
         {onExport}
+        onSaveVideo={() => exportSheets?.openVideo()}
+        onSaveWebPage={() => exportSheets?.openWebPage()}
         onOpened={onMenuOpened}
         onDelete={() => (confirmingDelete = true)}
         {storage}
@@ -146,8 +148,6 @@
         {onPlay}
         {storage}
         {serverRows}
-        onSaveVideo={() => exportSheets?.openVideo()}
-        onSaveWebPage={() => exportSheets?.openWebPage()}
         {onRename}
         {onEditMusic}
         onEditTransitions={() => editSheets?.openTransitions()}
@@ -194,8 +194,8 @@
   {slideshow}
   {newVideoExport}
   {newHtmlExport}
-  onVideoClosed={() => infoPanel?.focusSaveVideo()}
-  onHtmlClosed={() => infoPanel?.focusSaveWebPage()}
+  onVideoClosed={() => moreMenu?.focus()}
+  onHtmlClosed={() => moreMenu?.focus()}
 />
 
 {#if confirmingDelete}

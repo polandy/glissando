@@ -253,7 +253,7 @@ export const en: Catalogue = {
   "pwa.firefoxDesktop.note":
     "As its own window in the Dock or taskbar: open Glissando in Chrome, Edge or Safari and install it there.",
 
-  "glissandoFile.export": "Export",
+  "glissandoFile.export": "Save as Glissando file",
   "glissandoFile.exportSize": "A .glissando file, about {size}",
   "glissandoFile.exportSizeUnknown": "A .glissando file",
   "glissandoFile.exportRunning": "Exporting\u00a0… {percent}\u00a0%",

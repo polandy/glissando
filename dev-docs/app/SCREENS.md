@@ -25,16 +25,14 @@
   server cards from the last list this device remembers while offline
   (server_library/IN_THE_APP.md).
 - **Slideshow** (`screens/SlideshowScreen.svelte`, parts in `screens/slideshow/`): breadcrumb
-  "Library / title" and a ⋯ "More" button whose menu holds "Export" (subtitle "A .glissando
+  "Library / title" and a ⋯ "More" button whose menu holds "Save as video", "Save as web page" and "Save as Glissando file" (subtitle "A .glissando
   file, about 184 MB", measured when the menu opens, again only after its pictures or music changed), a separator and "Delete slideshow
   …"; a 16:9
   preview of the first picture (tap plays) with the running time, then the pictures in play
   order, each with its order number and capture date, under "Sorted by capture date" or, once
   the user reordered, "Own order" (with "drag or tap", narrow: "tap to reorder"); right of the
   count "Add media" (narrow: "Add"; [ADDING_PICTURES.md](slideshow-editing/ADDING_PICTURES.md), Adding pictures). Beside it (above it up to 1024 px) an
-  info panel: title with a ✎ button, date range (earliest to latest capture), "Play", below it
-  the "Save as" row with "Video" (the video export sheet, `dev-docs/VIDEO_EXPORT.md`) and "Web
-  page" (the web page export sheet, `dev-docs/HTML_EXPORT.md`) side by side, and the
+  info panel: title with a ✎ button, date range (earliest to latest capture), "Play", and the
   facts — pictures, duration (with "· music 0:44" beside it, muted, when the slideshow does not
   end with the music's excerpt), music (with music a button spanning the row: the file name,
   below it "whole track", or once changed in the music editor "0:12–2:30 · fades in and out",

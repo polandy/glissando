@@ -7,12 +7,10 @@
   import TvControl from "../../tv-remote/TvControl.svelte";
   import InfoPanelRows from "./InfoPanelRows.svelte";
   import StorageRow from "./StorageRow.svelte";
-  import SaveAsRow from "./SaveAsRow.svelte";
   import TitleEditor from "./TitleEditor.svelte";
 
   /**
-   * Beside the pictures: the title (renamed in place), "Play", the "Save as" row (video, web
-   * page), where it lives, its link and "Show on TV", and the slideshow's facts (`InfoPanelRows`).
+   * Beside the pictures: the title (renamed in place), "Play", where it lives, its link and "Show on TV", and the slideshow's facts (`InfoPanelRows`).
    * Stacked above the pictures, only the head (title, summary, "Play") shows; "Details" opens
    * the rest.
    */
@@ -21,8 +19,6 @@
     onPlay,
     storage = null,
     serverRows = null,
-    onSaveVideo,
-    onSaveWebPage,
     onRename,
     onEditMusic,
     onEditTransitions,
@@ -34,10 +30,6 @@
     storage?: SlideshowStorage | null;
     /** A server slideshow's link and "Show on TV"; null for a device slideshow. */
     serverRows?: ServerSlideshowRows | null;
-    /** Opens the video export sheet. */
-    onSaveVideo: () => void;
-    /** Opens the web page export sheet. */
-    onSaveWebPage: () => void;
     onRename: (typed: string) => void;
     onEditMusic: () => void;
     /** Opens the sheet of the slideshow's default transition. */
@@ -47,17 +39,6 @@
   } = $props();
 
   let rows: InfoPanelRows;
-  let saveAs: SaveAsRow;
-
-  /** The video export sheet closed: focus goes back to its button. */
-  export function focusSaveVideo(): void {
-    saveAs.focusVideo();
-  }
-
-  /** The web page export sheet closed: focus goes back to its button. */
-  export function focusSaveWebPage(): void {
-    saveAs.focusWebPage();
-  }
 
   /** The transitions sheet closed: focus goes back to the row it was opened from. */
   export function focusTransitions(): void {
@@ -109,7 +90,6 @@
   </button>
   <div class="more" class:open={detailsOpen} id={detailsId}>
     <div class="actions">
-      <SaveAsRow bind:this={saveAs} {onSaveVideo} {onSaveWebPage} />
       {#if storage !== null}
         <StorageRow {storage} />
         {#if storage.kind === "device" || serverRows !== null}
