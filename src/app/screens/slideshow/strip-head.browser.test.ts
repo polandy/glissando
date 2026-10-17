@@ -23,18 +23,18 @@ function mountHead(narrow: boolean, { selecting = false, onToggleSelect = () => 
   mounted.target.style.width = narrow ? "400px" : "1000px";
   const buttons = [...mounted.target.querySelectorAll<HTMLButtonElement>("button")];
   const addButton = buttons.find(
-    (button) => button.getAttribute("aria-label") === "Bilder hinzufügen",
+    (button) => button.getAttribute("aria-label") === "Medien hinzufügen",
   );
   const selectButton = buttons.find((button) => button.getAttribute("aria-label") === "Auswählen");
   if (addButton === undefined || selectButton === undefined) {
-    throw new Error("the strip head shows no Select or Add pictures button");
+    throw new Error("the strip head shows no Select or Add media button");
   }
   return { button: addButton, selectButton, adds };
 }
 
-describe("StripHead's Add pictures", () => {
+describe("StripHead's Add media", () => {
   it.each([
-    { layout: "wide", narrow: false, label: "Bilder hinzufügen" },
+    { layout: "wide", narrow: false, label: "Medien hinzufügen" },
     { layout: "narrow", narrow: true, label: "Hinzufügen" },
   ])(
     "reads $label in the $layout layout, named in full for assistive technology",
@@ -42,7 +42,7 @@ describe("StripHead's Add pictures", () => {
       const { button } = mountHead(narrow);
 
       expect(button.innerText.trim()).toBe(label);
-      expect(button.getAttribute("aria-label")).toBe("Bilder hinzufügen");
+      expect(button.getAttribute("aria-label")).toBe("Medien hinzufügen");
     },
   );
 

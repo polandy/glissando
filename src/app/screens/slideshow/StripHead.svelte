@@ -2,7 +2,7 @@
   import Icon from "../../components/Icon.svelte";
   import { getTranslator } from "../../i18n/context";
 
-  /** Above the strip: its order, the picture count, "Select" and "Add pictures". */
+  /** Above the strip: its order, the picture count, "Select" and "Add media". */
   let {
     count,
     ownOrder,

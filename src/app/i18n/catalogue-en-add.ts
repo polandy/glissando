@@ -3,7 +3,7 @@ import type { Catalogue } from "./messages.ts";
 
 /** English copy of adding pictures to a slideshow and of duplicates; typed to the German keys. */
 export const enAdd: Pick<Catalogue, keyof typeof deAdd> = {
-  "add.title": "Add pictures",
+  "add.title": "Add media",
   "add.titleShort": "Add",
   "add.leadByDate": "They go into place by capture date.",
   "add.leadOwnOrder": "Your own order stays; choose below where the new pictures go.",
