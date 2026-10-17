@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onDestroy } from "svelte";
   import { DEFAULT_SECONDS_PER_PICTURE } from "../../library/stored-slideshow";
+  import { MUSIC_FILE_PICKER_ACCEPT } from "../../import/music-format";
   import { MILLISECONDS_PER_SECOND } from "../../player";
   import PictureLengthSection from "../components/PictureLengthSection.svelte";
   import SecondsStepper from "../components/SecondsStepper.svelte";
@@ -37,7 +38,6 @@
     onError: (error: unknown) => void;
   } = $props();
 
-  const MUSIC_TYPES = "audio/*";
   const { t, formatDuration, formatSeconds } = getTranslator();
 
   // The session and the loader are fixed for the step's lifetime.
@@ -96,7 +96,14 @@
   const keyOf = (song: PlaylistSongView): number => Number(song.id);
 </script>
 
-<input bind:this={pickMusic} type="file" accept={MUSIC_TYPES} multiple hidden onchange={picked} />
+<input
+  bind:this={pickMusic}
+  type="file"
+  accept={MUSIC_FILE_PICKER_ACCEPT}
+  multiple
+  hidden
+  onchange={picked}
+/>
 
 {#snippet songDetail(song: PlaylistSongView)}
   {@const picked = chosen.find((candidate) => candidate.key === keyOf(song))}
