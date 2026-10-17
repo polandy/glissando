@@ -124,7 +124,7 @@ describe("SlideshowScreen, the ⋯ menu of a server slideshow", () => {
     const items = openMenu();
     const keep = itemNamed(items, "Keep a copy on this device");
     expect(keep.textContent).toContain("Downloads 3 pictures. Plays offline.");
-    expect(itemNamed(items, "Export").textContent).toContain(
+    expect(itemNamed(items, "Glissando").textContent).toContain(
       "A .glissando file, pictures downloaded from Immich",
     );
     expect(itemNamed(items, "Delete slideshow").textContent).toContain("For every device");
@@ -159,7 +159,7 @@ describe("SlideshowScreen, the ⋯ menu of a server slideshow", () => {
     mountScreen(details(["a"]), { english: true });
 
     const items = openMenu();
-    expect(itemNamed(items, "Export")).toBeDefined();
+    expect(itemNamed(items, "Glissando")).toBeDefined();
     expect(items.map((item) => item.textContent).join()).not.toContain("server");
     expect(items.map((item) => item.textContent).join()).not.toContain("Keep a copy");
   });

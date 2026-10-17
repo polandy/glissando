@@ -255,7 +255,7 @@ export const de = {
   "pwa.firefoxDesktop.note":
     "Als eigenes Fenster im Dock oder in der Taskleiste: öffne Glissando in Chrome, Edge oder Safari und installiere es dort.",
 
-  "glissandoFile.export": "Exportieren",
+  "glissandoFile.export": "Als Glissando-Datei sichern",
   "glissandoFile.exportSize": "Eine .glissando-Datei, ca. {size}",
   "glissandoFile.exportSizeUnknown": "Eine .glissando-Datei",
   "glissandoFile.exportRunning": "Wird exportiert\u00a0… {percent}\u00a0%",

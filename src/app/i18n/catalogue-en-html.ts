@@ -3,9 +3,6 @@ import type { Catalogue } from "./messages.ts";
 
 /** English copy of the web page export; typed to the German keys. */
 export const enHtml: Pick<Catalogue, keyof typeof deHtml> = {
-  "slideshow.saveAs": "Save as",
-  "slideshow.saveVideo": "Video",
-  "slideshow.saveWebPage": "Web page",
   "slideshow.saveAsWebPage": "Save as web page",
   "htmlExport.title": "Save as web page",
   "htmlExport.subtitle": "{title} · {duration} · {music}",

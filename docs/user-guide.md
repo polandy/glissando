@@ -33,6 +33,8 @@ pictures to reorder; open one to change its motion.
 
 ## Keep and share
 
+All three are in the ⋯ menu at the top right of a slideshow.
+
 - **Save as video**: an MP4 you can send or put on a TV stick.
 - **Export as HTML**: one file that plays in any browser, no Glissando needed.
 - **`.glissando` file**: moves a slideshow with its pictures, music and settings to another

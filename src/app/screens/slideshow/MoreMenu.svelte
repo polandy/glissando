@@ -5,10 +5,12 @@
   import { getTranslator } from "../../i18n/context";
   import type { SlideshowStorage, StorageAction } from "../view-models";
 
-  /** The header's ⋯ button and its menu of the slideshow's rarer actions. */
+  /** The header's ⋯ button and its menu: every export of the slideshow, then storage and delete. */
   let {
     exportState,
     onExport,
+    onSaveVideo,
+    onSaveWebPage,
     onOpened,
     onDelete,
     storage = null,
@@ -17,6 +19,10 @@
   }: {
     exportState: ExportMenuState;
     onExport: () => void;
+    /** Opens the video export sheet. */
+    onSaveVideo: () => void;
+    /** Opens the web page export sheet. */
+    onSaveWebPage: () => void;
     /** The menu opened: the export's size is due. */
     onOpened: () => void;
     onDelete: () => void;
@@ -97,33 +103,12 @@
       onclick={() => void close()}
     ></button>
     <div class="menu" role="menu" tabindex="-1" use:focusFirstItem onkeydown={keydown}>
-      {#if storage?.kind === "server"}
-        <button
-          class="item two-line"
-          type="button"
-          role="menuitem"
-          onclick={() => choose(() => onStorageAction("keepCopy"))}
-        >
-          <Icon name="download" />
-          <span class="text">
-            {t("server.keepCopy")}
-            <small>{t("server.keepCopyHint", { count: pictureCount })}</small>
-          </span>
-        </button>
-      {:else if storage?.kind === "device"}
-        <button
-          class="item two-line"
-          type="button"
-          role="menuitem"
-          onclick={() => choose(() => onStorageAction("saveOnServer"))}
-        >
-          <Icon name="upload" />
-          <span class="text">
-            {t("server.saveOnServer")}
-            <small>{t("server.saveOnServerHint")}</small>
-          </span>
-        </button>
-      {/if}
+      <button class="item" type="button" role="menuitem" onclick={() => choose(onSaveVideo)}>
+        <Icon name="film" />{t("slideshow.saveAsVideo")}
+      </button>
+      <button class="item" type="button" role="menuitem" onclick={() => choose(onSaveWebPage)}>
+        <Icon name="page" />{t("slideshow.saveAsWebPage")}
+      </button>
       <button
         class="item two-line"
         type="button"
@@ -154,6 +139,36 @@
         </span>
       </button>
       <hr />
+      {#if storage?.kind === "server"}
+        <button
+          class="item two-line"
+          type="button"
+          role="menuitem"
+          onclick={() => choose(() => onStorageAction("keepCopy"))}
+        >
+          <Icon name="download" />
+          <span class="text">
+            {t("server.keepCopy")}
+            <small>{t("server.keepCopyHint", { count: pictureCount })}</small>
+          </span>
+        </button>
+      {:else if storage?.kind === "device"}
+        <button
+          class="item two-line"
+          type="button"
+          role="menuitem"
+          onclick={() => choose(() => onStorageAction("saveOnServer"))}
+        >
+          <Icon name="upload" />
+          <span class="text">
+            {t("server.saveOnServer")}
+            <small>{t("server.saveOnServerHint")}</small>
+          </span>
+        </button>
+      {/if}
+      {#if storage !== null}
+        <hr />
+      {/if}
       <button
         class="item danger"
         class:two-line={onServer}

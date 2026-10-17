@@ -38,7 +38,7 @@ test("E2E-015 a slideshow exported from its menu opens again from the library as
   await expect(definitionOf(page, "Bildtitel")).toHaveText("1 von 2");
 
   await page.getByRole("button", { name: "Mehr" }).click();
-  const exportItem = page.getByRole("menuitem", { name: /^Exportieren/ });
+  const exportItem = page.getByRole("menuitem", { name: /^Als Glissando-Datei sichern/ });
   await expect(exportItem).toContainText(/Eine \.glissando-Datei, ca\. [\d,]+ MB/);
   const releaseExport = await holdPictureStore(page);
   await exportItem.click();
