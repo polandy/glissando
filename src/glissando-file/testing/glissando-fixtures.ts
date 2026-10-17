@@ -56,22 +56,61 @@ export const EXPORTED_SLIDESHOW: StoredSlideshow = {
   secondsPerPicture: 5,
 };
 
-const jpeg = (content: string): Blob => new Blob([content], { type: "image/jpeg" });
+const PNG_SIGNATURE = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
+/** A PNG signature plus its IHDR chunk: the only part `readPictureHeader` reads. */
+export const PICTURE_HEADER_BYTES = 24;
+
+/**
+ * A minimal PNG whose header declares `width`×`height`, with `marker` appended after the header
+ * so a byte-level corruption test (`withBytesReplaced`) can target it without touching the header.
+ */
+export function tinyPicture(marker: string, width = 40, height = 30): Blob {
+  const bytes = new Uint8Array(PICTURE_HEADER_BYTES);
+  bytes.set(PNG_SIGNATURE, 0);
+  const view = new DataView(bytes.buffer);
+  view.setUint32(8, 13); // IHDR chunk's data length
+  bytes.set([0x49, 0x48, 0x44, 0x52], 12); // "IHDR"
+  view.setUint32(16, width);
+  view.setUint32(20, height);
+  return new Blob([bytes, marker], { type: "image/png" });
+}
+
+const EXPORTED_PICTURE_MARKERS = {
+  displayOne: "display one",
+  thumbOne: "thumb one",
+  displayTwo: "display two",
+  thumbTwo: "thumb two",
+} as const;
+const EXPORTED_MUSIC_BYTES_TEXT = "music bytes";
+
+/** The bytes `exportedFile`'s media need: two pictures' two renditions each, plus the music. */
+export const EXPORTED_MEDIA_BYTES =
+  Object.values(EXPORTED_PICTURE_MARKERS).reduce(
+    (sum, marker) => sum + PICTURE_HEADER_BYTES + marker.length,
+    0,
+  ) + EXPORTED_MUSIC_BYTES_TEXT.length;
 
 /** A .glissando file as the export writes it. */
 export async function exportedFile(slideshow = EXPORTED_SLIDESHOW): Promise<Blob> {
   const store = new MemoryLibraryStore();
-  await store.putPicture("src-p1", { display: jpeg("display one"), thumbnail: jpeg("thumb one") });
-  await store.putPicture("src-p2", { display: jpeg("display two"), thumbnail: jpeg("thumb two") });
-  await store.putMusic("src-m1", new Blob(["music bytes"], { type: "audio/mp4" }));
+  const { displayOne, thumbOne, displayTwo, thumbTwo } = EXPORTED_PICTURE_MARKERS;
+  await store.putPicture("src-p1", {
+    display: tinyPicture(displayOne),
+    thumbnail: tinyPicture(thumbOne),
+  });
+  await store.putPicture("src-p2", {
+    display: tinyPicture(displayTwo),
+    thumbnail: tinyPicture(thumbTwo),
+  });
+  await store.putMusic("src-m1", new Blob([EXPORTED_MUSIC_BYTES_TEXT], { type: "audio/mp4" }));
   return exportSlideshow(slideshow, store, { modifiedAt: MODIFIED_AT });
 }
 
-/** A stored ZIP of the given entries, in order. */
-export async function zipWith(entries: Readonly<Record<string, string>>): Promise<Blob> {
+/** A stored ZIP of the given entries, in order; a string entry becomes its UTF-8 bytes. */
+export async function zipWith(entries: Readonly<Record<string, string | Blob>>): Promise<Blob> {
   const writer = new StoredZipWriter(MODIFIED_AT);
   for (const [name, content] of Object.entries(entries)) {
-    await writer.add(name, new Blob([content]));
+    await writer.add(name, content instanceof Blob ? content : new Blob([content]));
   }
   return writer.finish();
 }
@@ -114,16 +153,34 @@ export const VIDEO_SLIDESHOW: StoredSlideshow = {
   })),
 };
 
+const VIDEO_CLIP_MARKERS = { clipOne: "clip one", clipTwo: "clip two" } as const;
+
+/** The bytes `exportedVideoFile`'s two clips need, each counted once. */
+export const EXPORTED_VIDEO_CLIP_BYTES = Object.values(VIDEO_CLIP_MARKERS).reduce(
+  (sum, marker) => sum + marker.length,
+  0,
+);
+
+/** The bytes `exportedVideoFile`'s pictures need: one display and one thumbnail per slide. */
+export const EXPORTED_VIDEO_PICTURE_BYTES = ["a", "b", "c"].reduce(
+  (sum, name) =>
+    sum +
+    (PICTURE_HEADER_BYTES + `display ${name}`.length) +
+    (PICTURE_HEADER_BYTES + `thumb ${name}`.length),
+  0,
+);
+
 /** A .glissando file of `VIDEO_SLIDESHOW`, its two clips in the store as `src-c1` and `src-c2`. */
 export async function exportedVideoFile(): Promise<Blob> {
   const store = new MemoryLibraryStore();
   for (const name of ["a", "b", "c"]) {
     await store.putPicture(`src-${name}`, {
-      display: jpeg(`display ${name}`),
-      thumbnail: jpeg(`thumb ${name}`),
+      display: tinyPicture(`display ${name}`),
+      thumbnail: tinyPicture(`thumb ${name}`),
     });
   }
-  await store.putVideo("src-c1", new Blob(["clip one"], { type: "video/mp4" }));
-  await store.putVideo("src-c2", new Blob(["clip two"], { type: "video/webm" }));
+  const { clipOne, clipTwo } = VIDEO_CLIP_MARKERS;
+  await store.putVideo("src-c1", new Blob([clipOne], { type: "video/mp4" }));
+  await store.putVideo("src-c2", new Blob([clipTwo], { type: "video/webm" }));
   return exportSlideshow(VIDEO_SLIDESHOW, store, { modifiedAt: MODIFIED_AT });
 }

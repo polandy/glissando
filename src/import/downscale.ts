@@ -37,6 +37,13 @@ export function fitWithin(size: Size, bound: Bound): Size {
   };
 }
 
+/** Whether `size` already fits `bound`, with no scaling needed. */
+export function fitsWithin(size: Size, bound: Bound): boolean {
+  const longEdge = Math.max(size.width, size.height);
+  const shortEdge = Math.min(size.width, size.height);
+  return longEdge <= bound.longEdge && shortEdge <= bound.shortEdge;
+}
+
 /** Decodes a picture file, upright per its EXIF orientation, into its two stored renditions. */
 export async function decodePicture(file: File): Promise<DecodedPicture> {
   let bitmap: ImageBitmap;

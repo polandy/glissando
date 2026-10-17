@@ -4,10 +4,15 @@ import { checkGlissandoFile, type CheckedGlissandoFile } from "./check-glissando
 import { GLISSANDO_FORMAT_VERSION } from "./glissando-manifest";
 import { readManifest } from "./read-manifest";
 import { entryData, readZipDirectory } from "./stored-zip";
-import { exportedVideoFile } from "./testing/glissando-fixtures";
+import { fakeMediaDecoders } from "./testing/fake-media-decoders";
+import {
+  EXPORTED_VIDEO_CLIP_BYTES,
+  EXPORTED_VIDEO_PICTURE_BYTES,
+  exportedVideoFile,
+} from "./testing/glissando-fixtures";
 import { writeGlissandoFile, type OpenStep, type WritePorts } from "./write-glissando-file";
 
-const plentyOfSpace = { freeBytes: () => Promise.resolve(1e9) };
+const plentyOfSpace = { freeBytes: () => Promise.resolve(1e9), mediaDecoders: fakeMediaDecoders() };
 
 async function manifestOf(file: Blob): Promise<Record<string, unknown>> {
   const [first] = (await readZipDirectory(file)) ?? [];
@@ -79,11 +84,7 @@ describe("video slides in a .glissando file", () => {
   it("counts the clips' bytes in what the media need, once each", async () => {
     const contents = await checked();
 
-    const others = ["a", "b", "c"].reduce(
-      (sum, name) => sum + `display ${name}`.length + `thumb ${name}`.length,
-      0,
-    );
-    expect(contents.mediaBytes).toBe(others + "clip one".length + "clip two".length);
+    expect(contents.mediaBytes).toBe(EXPORTED_VIDEO_PICTURE_BYTES + EXPORTED_VIDEO_CLIP_BYTES);
   });
 
   it("stores each clip once under a fresh id and restores every slide's excerpt", async () => {

@@ -28,4 +28,32 @@ export default tseslint.config(
       "@typescript-eslint/no-explicit-any": "error",
     },
   },
+  {
+    // Raw HTML insertion bypasses Svelte's escaping; a .glissando file's own README.txt or
+    // index.html (ADR-0038) must never reach the DOM through it.
+    rules: {
+      "no-restricted-properties": [
+        "error",
+        {
+          property: "innerHTML",
+          message: "Setting innerHTML bypasses escaping; build DOM nodes or use Svelte binding.",
+        },
+        {
+          property: "outerHTML",
+          message: "Setting outerHTML bypasses escaping; build DOM nodes or use Svelte binding.",
+        },
+      ],
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "CallExpression[callee.property.name='insertAdjacentHTML']",
+          message: "insertAdjacentHTML bypasses escaping; build DOM nodes or use Svelte binding.",
+        },
+        {
+          selector: "CallExpression[callee.object.name='document'][callee.property.name='write']",
+          message: "document.write bypasses escaping; build DOM nodes or use Svelte binding.",
+        },
+      ],
+    },
+  },
 );

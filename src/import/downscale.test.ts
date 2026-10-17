@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DISPLAY_BOUND, fitWithin, THUMBNAIL_BOUND } from "./downscale";
+import { DISPLAY_BOUND, fitsWithin, fitWithin, THUMBNAIL_BOUND } from "./downscale";
 
 describe("fitWithin", () => {
   it.each([
@@ -32,5 +32,24 @@ describe("fitWithin", () => {
       width: fitted[0],
       height: fitted[1],
     });
+  });
+});
+
+describe("fitsWithin", () => {
+  it.each([
+    { picture: "well under the bound", size: [800, 600] },
+    { picture: "exactly at the bound", size: [3840, 2160] },
+  ])("accepts $picture", ({ size }) => {
+    const [width, height] = size as [number, number];
+    expect(fitsWithin({ width, height }, DISPLAY_BOUND)).toBe(true);
+  });
+
+  it.each([
+    { picture: "over the long edge", size: [3841, 2160] },
+    { picture: "over the short edge", size: [2160, 3841] },
+    { picture: "over both edges", size: [8000, 6000] },
+  ])("refuses a picture $picture", ({ size }) => {
+    const [width, height] = size as [number, number];
+    expect(fitsWithin({ width, height }, DISPLAY_BOUND)).toBe(false);
   });
 });

@@ -60,6 +60,7 @@ import { createStorageServerLibraryMemory } from "./server-library/server-librar
 import { browserHtmlExportDevice } from "./app/html-export/browser-html-export-device";
 import { browserVideoExportDevice } from "./app/video-export/browser-video-export-device";
 import { createFrameServices } from "./app/frame/frame-services";
+import { browserMediaDecoders } from "./glissando-file/browser/media-decoders";
 
 /** Same origin: the self-hosted Glissando's `/immich/` route sets the API key (ADR-0013). */
 const immichClient = new HttpImmichClient({
@@ -151,6 +152,7 @@ const beatPass = new BeatPass({
 beatPass.start();
 
 const freeBytes = (): Promise<number | null> => freeStorageBytes(window.navigator.storage);
+const mediaDecoders = browserMediaDecoders();
 const download = createDownloader({
   document,
   urls: browserObjectUrls,
@@ -280,6 +282,7 @@ const services = {
   deleteAbandonedMedia,
   log: logError,
   freeBytes,
+  mediaDecoders,
   download,
   videoExport: browserVideoExportDevice({ window, freeBytes, download, log: logError }),
   htmlExport: browserHtmlExportDevice({ window, download, log: logError }),
