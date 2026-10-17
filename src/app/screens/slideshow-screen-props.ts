@@ -19,7 +19,7 @@ export interface SlideshowScreenProps {
   slideshow: SlideshowDetails;
   onBack: () => void;
   onPlay: () => void;
-  /** "Add pictures" in the strip header. */
+  /** "Add media" in the strip header. */
   onAddPictures: () => void;
   /** The pictures just added, marked as new while the screen is shown. */
   newPictureIds?: ReadonlySet<string>;

@@ -1,6 +1,6 @@
 # Selecting several, moving, removing several
 
-- **Selecting several**: "Select" (a toggle, `aria-pressed`) left of "Add pictures" in the
+- **Selecting several**: "Select" (a toggle, `aria-pressed`) left of "Add media" in the
   strip header, holding a tile on touch (450 ms, a short vibration where the device has
   one), Ctrl/⌘+click, Shift+click or Ctrl+Space start it; a single selection stays in it
   (holding another tile instead replaces it). Every tile then shows a circle top right (filled
