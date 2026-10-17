@@ -4,10 +4,10 @@ import { byLabel, details, mountScreen, unmountScreen } from "./slideshow-screen
 afterEach(() => unmountScreen());
 
 describe("SlideshowScreen, adding pictures", () => {
-  it("offers Add pictures beside the picture count", () => {
+  it("offers Add media beside the picture count", () => {
     const { calls } = mountScreen();
 
-    byLabel("Bilder hinzufügen").click();
+    byLabel("Medien hinzufügen").click();
 
     expect(calls.adds).toBe(1);
   });

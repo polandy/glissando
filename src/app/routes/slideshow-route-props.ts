@@ -61,7 +61,7 @@ export interface SlideshowRouteProps {
   /** Also taken when the slideshow is no longer on this device. */
   onBack: () => void;
   onPlay: () => void;
-  /** "Add pictures", with the slideshow as shown. */
+  /** "Add media", with the slideshow as shown. */
   onAddPictures: (slideshow: StoredSlideshow) => void;
   /** Pictures just added: marked as new, and the toast's undo takes them out. */
   addedPictureIds: readonly string[];

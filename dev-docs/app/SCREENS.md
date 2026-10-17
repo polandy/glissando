@@ -31,7 +31,7 @@
   preview of the first picture (tap plays) with the running time, then the pictures in play
   order, each with its order number and capture date, under "Sorted by capture date" or, once
   the user reordered, "Own order" (with "drag or tap", narrow: "tap to reorder"); right of the
-  count "Add pictures" (narrow: "Add"; [ADDING_PICTURES.md](slideshow-editing/ADDING_PICTURES.md), Adding pictures). Beside it (above it up to 1024 px) an
+  count "Add media" (narrow: "Add"; [ADDING_PICTURES.md](slideshow-editing/ADDING_PICTURES.md), Adding pictures). Beside it (above it up to 1024 px) an
   info panel: title with a ✎ button, date range (earliest to latest capture), "Play", and the
   facts — pictures, duration (with "· music 0:44" beside it, muted, when the slideshow does not
   end with the music's excerpt), music (with music a button spanning the row: the file name,

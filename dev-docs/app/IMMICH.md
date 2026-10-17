@@ -11,7 +11,7 @@ meets while browsing or importing is published at once (`report(kind)`); the nex
 it.
 
 `immich/ImmichRoute.svelte`, under the crumbs "New slideshow / Pictures / Immich" (adding
-pictures: "title / Add pictures / Immich"; an album adds its name), opened from the pictures step
+pictures: "title / Add media / Immich"; an album adds its name), opened from the pictures step
 (route `{ screen: "immich", albumId, slideshowId }`, `slideshowId` null for a new slideshow); ← goes back a level (album → albums → pictures step),
 keeping the selection. `immich/immich-browser.ts` holds the selection, the tab, the albums and the
 feeds read so far for as long as the intake it feeds lives (`immich-browsers.ts` keeps one per

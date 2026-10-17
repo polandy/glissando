@@ -42,6 +42,6 @@
   after an import. A slideshow deleted meanwhile ends it like an edit would: back to start
   with "This slideshow no longer exists.", the new media discarded. The selection lives in
   memory for the tab like the import's (history restores the screen only from the screen
-  itself or its Immich browser); opening "Add pictures" again on the same slideshow keeps it
+  itself or its Immich browser); opening "Add media" again on the same slideshow keeps it
   and takes the slideshow as stored now (its title, order and pictures, the known ones for
   Duplicates), on another slideshow discards it.
