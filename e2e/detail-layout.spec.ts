@@ -26,7 +26,7 @@ async function panelAndFirstPicture(page: Page): Promise<{ panel: Box; picture: 
   };
 }
 
-test("E2E-067 on a tablet the info panel stacks full width above the pictures", async ({
+test("E2E-067 on a tablet the info panel stacks above the pictures with its details folded away", async ({
   page,
 }) => {
   await page.setViewportSize(TABLET);
@@ -36,13 +36,34 @@ test("E2E-067 on a tablet the info panel stacks full width above the pictures", 
   const { panel, picture } = await panelAndFirstPicture(page);
   expect(panel.y + panel.height).toBeLessThanOrEqual(picture.y);
   expect(panel.width).toBeGreaterThan(TABLET.width * 0.8);
+  // Folded, the panel is a slim header, not a block that pushes the pictures down.
+  expect(panel.height).toBeLessThan(200);
+
+  const saveVideo = page.getByRole("button", { name: "Als Video sichern" });
+  const details = page.getByRole("button", { name: "Details" });
+  await expect(
+    page.getByRole("complementary").getByRole("button", { name: "Abspielen" }),
+  ).toBeVisible();
+  await expect(saveVideo).toBeHidden();
+  await expect(details).toHaveAttribute("aria-expanded", "false");
+
+  await details.click();
+  await expect(details).toHaveAttribute("aria-expanded", "true");
+  await expect(saveVideo).toBeVisible();
+
+  await details.click();
+  await expect(saveVideo).toBeHidden();
 });
 
-test("E2E-068 on a desktop the info panel stays beside the pictures", async ({ page }) => {
+test("E2E-068 on a desktop the info panel stays beside the pictures, everything shown", async ({
+  page,
+}) => {
   await page.setViewportSize(DESKTOP);
   await openApp(page);
   await createSlideshow(page, ["2025-07-01", "2025-07-02", "2025-07-03"], 2);
 
   const { panel, picture } = await panelAndFirstPicture(page);
   expect(panel.x).toBeGreaterThan(picture.x + picture.width);
+  await expect(page.getByRole("button", { name: "Details" })).toBeHidden();
+  await expect(page.getByRole("button", { name: "Als Video sichern" })).toBeVisible();
 });

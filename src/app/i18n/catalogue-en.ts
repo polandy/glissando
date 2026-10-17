@@ -78,6 +78,7 @@ export const en: Catalogue = {
   "slideshow.automatic": "automatic",
   "slideshow.transitions": "Transitions",
   "slideshow.play": "Play",
+  "slideshow.details": "Details",
   "slideshow.pictures": "Pictures",
   "slideshow.sortedByDate": "Sorted by capture date",
   "slideshow.pictureLabel": "Picture {number}, taken on {date}",

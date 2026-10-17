@@ -83,4 +83,8 @@
   its set-up screen and the fullscreen running frame.
 
 Up to 1024 px wide (a container query on `.screen`) the info panel stacks full width above the
-pictures instead of beside them. Up to 720 px the layout narrows further: three tiles per row.
+pictures instead of beside them, folded to a slim header: title, "date range · N pictures ·
+duration" and "Play". A "Details" toggle (`aria-expanded`, folded on every visit) opens the rest
+— "Save as", storage, link, "Show on TV" and the facts — in two columns, one column up to 720 px.
+Above 1024 px the panel shows everything beside the pictures and has no toggle. Up to 720 px the
+layout narrows further: three tiles per row.
