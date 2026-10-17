@@ -30,6 +30,6 @@
   never returns the order it started from, and with one picture it is disabled. The order is
   stored like any manual one, so the order line reads "Own order" and the player and the
   exports use it. The tiles glide to their new places (not with reduced motion), and a toast
-  "12 pictures shuffled" with "Undo" follows. Undo brings the previous order back, leaving
-  edits made since (a caption) alone; any other edit of the picture list ends it. The random
+  "12 pictures shuffled" with "Undo" follows. Undo brings the order from before the shuffle back, leaving edits made since (a
+  caption) alone; a newer toast replaces it, and leaving the screen dismisses it. The random
   source is injected into the editor (`SlideshowEditorPorts.random`).
