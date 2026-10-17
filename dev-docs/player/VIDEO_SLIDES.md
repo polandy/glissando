@@ -118,7 +118,7 @@ The slide clock leads; the clip follows it, never the other way round.
 | App player         | `<video>` per clip, frames uploaded to the slide's texture each frame (WebGL) or shown (DOM)                                                            |
 | Video export (MP4) | Frame-accurate decode with mediabunny; the clip sound is mixed with the music, ducked                                                                   |
 | HTML export        | The clip's bytes embedded in the file; the export sheet names the size beforehand                                                                       |
-| `.glissando` file  | Format 14 holds `videos/clip-<n>` entries (stored, ADR-0004) and a picture's `video`; 13 is still read                                                  |
+| `.glissando` file  | Format 14 holds `videos/clip-<n>` entries (stored, ADR-0038) and a picture's `video`; 13 is still read                                                  |
 | Server slideshow   | None: the server links Immich photos and keeps no clip, so a video slide is left out when a slideshow is saved there, as a device picture is (ADR-0018) |
 | Share link         | None: a share is of a server slideshow, which holds no clip; nothing is fetched or streamed                                                             |
 | Immich             | The clip is downloaded as Immich's playable version and then lives on the device (ADR-0013)                                                             |

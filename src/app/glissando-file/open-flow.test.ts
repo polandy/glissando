@@ -1,12 +1,17 @@
 import { describe, expect, it } from "vitest";
-import { exportedFile, zipWith } from "../../glissando-file/testing/glissando-fixtures";
+import { fakeMediaDecoders } from "../../glissando-file/testing/fake-media-decoders";
+import {
+  EXPORTED_MEDIA_BYTES,
+  exportedFile,
+  zipWith,
+} from "../../glissando-file/testing/glissando-fixtures";
 import type { StoredSlideshow } from "../../library/stored-slideshow";
 import { MemoryLibraryStore } from "../../library/testing/memory-store";
 import type { Route } from "../navigation/route";
 import type { ToastMessage } from "../toast/toaster";
 import { OpenFlow, type OpenFlowPorts, type OpenFlowState } from "./open-flow";
 
-const MEDIA_BYTES = 51;
+const MEDIA_BYTES = EXPORTED_MEDIA_BYTES;
 
 async function setUp(change: Partial<OpenFlowPorts> = {}) {
   const store = new MemoryLibraryStore();
@@ -21,6 +26,7 @@ async function setUp(change: Partial<OpenFlowPorts> = {}) {
     newId: () => `new-${++next}`,
     now: () => new Date("2026-01-02T03:04:05Z"),
     freeBytes: () => Promise.resolve(1e9),
+    mediaDecoders: fakeMediaDecoders(),
     navigator: { open: (route) => opened.push(route) },
     toaster: { show: (toast) => toasts.push(toast) },
     reportError: (error) => errors.push(error),

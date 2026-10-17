@@ -14,7 +14,7 @@ const CENTRAL_HEADER_BYTES = 46;
 const END_RECORD_BYTES = 22;
 const MAX_COMMENT_BYTES = 0xffff;
 /** Sizes and offsets at or above this need ZIP64, which this container does not write. */
-const MAX_32_BIT = 0xffffffff;
+export const MAX_32_BIT = 0xffffffff;
 const MAX_ENTRIES = 0xffff;
 /** Version 1.0: stored entries need no more. */
 const VERSION_NEEDED = 10;

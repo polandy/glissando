@@ -3,7 +3,7 @@
 Pictures and music are imported into the browser's storage on the device; nothing leaves it
 unless the user exports a slideshow as a file. Code: `src/import/` (reading files),
 `src/library/` (storing them), `src/glissando-file/` (the `.glissando` file). Storage choice:
-ADR-0003; file container: ADR-0004.
+ADR-0003; file container: ADR-0038.
 
 | Section                                                      | What it covers                                                                |
 | ------------------------------------------------------------ | ----------------------------------------------------------------------------- |

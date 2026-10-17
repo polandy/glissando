@@ -5,7 +5,8 @@ import {
   type IndexedDbLibraryStore,
 } from "../library/indexeddb-store";
 import { checkGlissandoFile } from "./check-glissando-file";
-import { EXPORTED_SLIDESHOW, MODIFIED_AT } from "./testing/glissando-fixtures";
+import { fakeMediaDecoders } from "./testing/fake-media-decoders";
+import { EXPORTED_SLIDESHOW, MODIFIED_AT, tinyPicture } from "./testing/glissando-fixtures";
 import { exportSlideshow } from "./export-slideshow";
 import { writeGlissandoFile } from "./write-glissando-file";
 
@@ -29,21 +30,23 @@ describe("a .glissando file between two libraries", () => {
   it("opens a slideshow exported from IndexedDB as an equal copy with its own ids", async () => {
     await deleteLibraryDatabase();
     store = await openLibraryStore(indexedDB);
-    const jpeg = (content: string) => new Blob([content], { type: "image/jpeg" });
     await store.putPicture("src-p1", {
-      display: jpeg("display one"),
-      thumbnail: jpeg("thumb one"),
+      display: tinyPicture("display one"),
+      thumbnail: tinyPicture("thumb one"),
     });
     await store.putPicture("src-p2", {
-      display: jpeg("display two"),
-      thumbnail: jpeg("thumb two"),
+      display: tinyPicture("display two"),
+      thumbnail: tinyPicture("thumb two"),
     });
     await store.putMusic("src-m1", new Blob(["music bytes"], { type: "audio/mp4" }));
     await store.saveSlideshow(EXPORTED_SLIDESHOW);
 
     const exported = await exportSlideshow(EXPORTED_SLIDESHOW, store, { modifiedAt: MODIFIED_AT });
     const file = new File([exported], "Herbst in Wien.glissando");
-    const check = await checkGlissandoFile(file, { freeBytes: () => Promise.resolve(null) });
+    const check = await checkGlissandoFile(file, {
+      freeBytes: () => Promise.resolve(null),
+      mediaDecoders: fakeMediaDecoders(),
+    });
     if (check.kind !== "ok") {
       throw new Error(`the export should pass the check, got ${check.kind}`);
     }
@@ -57,8 +60,8 @@ describe("a .glissando file between two libraries", () => {
     const copy = await store.getSlideshow(created.id);
     expect(copy.title).toBe("Herbst in Wien (2)");
     const [first] = copy.pictures;
-    expect(first && (await (await store.pictureBlob(first.id)).text())).toBe("display two");
-    expect(first && (await store.thumbnailBlob(first.id)).type).toBe("image/jpeg");
+    expect(first && (await (await store.pictureBlob(first.id)).text())).toContain("display two");
+    expect(first && (await store.thumbnailBlob(first.id)).type).toBe("image/png");
     expect(await store.mediaBytes(copy)).toBe(await store.mediaBytes(EXPORTED_SLIDESHOW));
   });
 });
