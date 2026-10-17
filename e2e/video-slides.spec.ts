@@ -30,7 +30,7 @@ test("E2E-059 a clip imported as a slide shows its length, opens in the clip edi
   const clip = await generatedClip(page, "clip.mp4", CLIP_COLOUR, CLIP_SECONDS);
 
   await openImport(page);
-  await chooseFiles(page, page.getByRole("button", { name: "Bilder auswählen" }), [clip]);
+  await chooseFiles(page, page.getByRole("button", { name: "Medien auswählen" }), [clip]);
   await expect(page.getByText("1 Bilder", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Weiter" }).click();
   await page.getByRole("button", { name: "Ohne Musik erstellen" }).click();
@@ -113,7 +113,7 @@ test("E2E-063 the clip editor's strip shows the player's place as a draggable ma
   const clip = await generatedClip(page, "clip.mp4", CLIP_COLOUR, PLAYHEAD_CLIP_SECONDS);
 
   await openImport(page);
-  await chooseFiles(page, page.getByRole("button", { name: "Bilder auswählen" }), [clip]);
+  await chooseFiles(page, page.getByRole("button", { name: "Medien auswählen" }), [clip]);
   await expect(page.getByText("1 Bilder", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Weiter" }).click();
   await page.getByRole("button", { name: "Ohne Musik erstellen" }).click();

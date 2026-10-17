@@ -117,7 +117,7 @@ describe("PicturesStep, where a new slideshow lives", () => {
     expect(target.querySelector(".immich-first .btn.primary")?.textContent).toContain(
       "Open Immich",
     );
-    expect(text).not.toContain("Choose pictures");
+    expect(text).not.toContain("Choose media");
   });
 
   it("fixes the choice once a picture is linked, and says the pictures stay in Immich", async () => {

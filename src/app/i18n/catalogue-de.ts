@@ -128,7 +128,7 @@ export const de = {
   "import.picturesTitle": "Welche Bilder?",
   "import.picturesText":
     "Glissando sortiert sie nach Aufnahmedatum und verkleinert sie fürs Gerät. Deine Originale bleiben unverändert.",
-  "import.pickPictures": "Bilder auswählen",
+  "import.pickPictures": "Medien auswählen",
   "import.or": "oder",
   "import.pickFolder": "einen Ordner wählen",
   "import.dropHint": "auf dem Desktop auch hierher ziehen",

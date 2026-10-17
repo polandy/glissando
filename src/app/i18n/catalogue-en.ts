@@ -126,7 +126,7 @@ export const en: Catalogue = {
   "import.picturesTitle": "Which pictures?",
   "import.picturesText":
     "Glissando sorts them by capture date and downsizes them for the device. Your originals stay untouched.",
-  "import.pickPictures": "Choose pictures",
+  "import.pickPictures": "Choose media",
   "import.or": "or",
   "import.pickFolder": "choose a folder",
   "import.dropHint": "on a desktop, drop them here too",

@@ -12,6 +12,19 @@ describe("SlideshowScreen, adding pictures", () => {
     expect(calls.adds).toBe(1);
   });
 
+  it("follows the last picture with a placeholder that adds pictures right there", () => {
+    const { calls, target } = mountScreen(details(["a", "b"]));
+
+    const tiles = [...target.querySelectorAll(".strip > li")];
+    const placeholder = tiles.at(-2)?.querySelector("button");
+    expect(tiles.at(-3)?.querySelector(".pick")).not.toBeNull();
+    expect(placeholder?.textContent).toContain("Hinzufügen");
+    expect(tiles.at(-2)?.querySelector(".pick")).toBeNull();
+    placeholder?.click();
+
+    expect(calls.adds).toBe(1);
+  });
+
   it("marks the pictures just added as new, for the eye and in their description", () => {
     const { target } = mountScreen(details(["a", "b", "c"]), { newPictureIds: new Set(["b"]) });
 

@@ -47,7 +47,7 @@ export async function choosePictures(
   files: TestFile[],
   storedCount: number,
 ): Promise<void> {
-  await chooseFiles(page, page.getByRole("button", { name: "Bilder auswählen" }), files);
+  await chooseFiles(page, page.getByRole("button", { name: "Medien auswählen" }), files);
   await expect(page.getByText(`${storedCount} Bilder`, { exact: true })).toBeVisible();
 }
 

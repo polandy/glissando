@@ -4,6 +4,7 @@
   import { browserScheduler, type Scheduler } from "../../../ui-kit/scheduler";
   import { getTranslator } from "../../i18n/context";
   import type { PictureTile } from "../view-models";
+  import AddTile from "./AddTile.svelte";
   import CardTile from "./card-sheet/CardTile.svelte";
   import DragGhost from "./DragGhost.svelte";
   import StripTile from "./StripTile.svelte";
@@ -25,6 +26,7 @@
     onRemoveGroup,
     onShiftGroup,
     onMoveGroup,
+    onAdd,
     openingCard,
     closingCard,
     onOpenOpeningCard,
@@ -47,6 +49,8 @@
     onShiftGroup: (pictureIds: readonly string[], offset: number) => void;
     /** A drop: moves the group to the slot before the tile at `insertion`. */
     onMoveGroup: (pictureIds: readonly string[], insertion: number) => void;
+    /** The placeholder after the last picture: adds pictures. */
+    onAdd: () => void;
     /** Opens the picture editor. */
     onOpen: (pictureId: string) => void;
     /** The title slide; absent until the editor creates it (TITLE_SLIDES.md). */
@@ -249,6 +253,7 @@
       onRemove={() => onRemove(picture.id)}
     />
   {/each}
+  <AddTile {onAdd} />
   <CardTile
     bind:this={closingTile}
     card={closingCard}
