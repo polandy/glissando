@@ -3,7 +3,7 @@ import { beatPassFindingNone } from "../../library/testing/beat-pass-finding-non
 import type { FocusPass } from "../../library/focus-pass";
 import type { StoredSlideshow } from "../../library/stored-slideshow";
 import { MemoryLibraryStore } from "../../library/testing/memory-store";
-import { MusicOutput } from "../../player";
+import { MusicOutput, VideoElementPool } from "../../player";
 import { browserMusicEditorAudio } from "../music-editor/music-editor-audio";
 import { FakeScheduler } from "../../ui-kit/testing/fake-scheduler";
 import { mountWithTranslator } from "../testing/mount-with-translator";
@@ -75,6 +75,7 @@ export function mountRoute(
     editingMusic: false,
     musicAudio: browserMusicEditorAudio(musicOutput),
     musicOutput,
+    videoElementPool: new VideoElementPool(),
     readClipPeaks: () => new Promise<void>(() => {}),
     songIntake: songIntakeStoringIn(store, (error) => errors.push(error)),
     onBack: () => {},

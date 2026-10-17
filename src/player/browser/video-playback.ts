@@ -17,6 +17,8 @@ const HAVE_CURRENT_DATA = 2;
 const HAVE_FUTURE_DATA = 3;
 /** What a media element's `play()` rejects with when a later `pause()` interrupts it. */
 const INTERRUPTED_PLAY = "AbortError";
+/** What WebKit rejects an audible `play()` with outside a gesture-blessed element (ADR-0035). */
+const NOT_ALLOWED = "NotAllowedError";
 const READY_EVENTS = ["seeked", "loadeddata", "canplay", "playing"] as const;
 
 /** The parts of the music output a clip's sound uses (ADR-0009). */
@@ -41,6 +43,9 @@ export class VideoElementPlayback implements VideoPlayback {
   readonly #failureListeners = new Set<(error: Error) => void>();
   #hardSeekPending = false;
   #disposed = false;
+  readonly #abort = new AbortController();
+  /** Set once the safety net mutes a clip the browser refused to play aloud; stays muted for good. */
+  #safetyMuted = false;
 
   /**
    * `sourceReady` settles when the element has its `src`; `release` frees what that took (an
@@ -62,14 +67,21 @@ export class VideoElementPlayback implements VideoPlayback {
     element.muted = volume === 0;
     this.#volume = element.muted ? null : output.route(element);
     this.#volume?.set(volume);
-    element.addEventListener("seeked", () => {
-      this.#hardSeekPending = false;
-    });
-    element.addEventListener("loadedmetadata", () => this.#applyWanted());
-    element.addEventListener("error", () => this.#fail(element.error));
+    const { signal } = this.#abort;
+    element.addEventListener(
+      "seeked",
+      () => {
+        this.#hardSeekPending = false;
+      },
+      { signal },
+    );
+    element.addEventListener("loadedmetadata", () => this.#applyWanted(), { signal });
+    element.addEventListener("error", () => this.#fail(element.error), { signal });
     sourceReady.catch((cause: unknown) => this.#fail(cause));
     for (const type of READY_EVENTS) {
-      element.addEventListener(type, () => this.#listeners.forEach((listener) => listener()));
+      element.addEventListener(type, () => this.#listeners.forEach((listener) => listener()), {
+        signal,
+      });
     }
   }
 
@@ -94,9 +106,23 @@ export class VideoElementPlayback implements VideoPlayback {
       await this.#element.play();
     } catch (error) {
       // A pause before the start lands is not a refusal.
-      if (!(error instanceof DOMException && error.name === INTERRUPTED_PLAY)) {
-        throw new VideoPlaybackError(error);
+      if (error instanceof DOMException && error.name === INTERRUPTED_PLAY) {
+        return;
       }
+      if (!this.#element.muted && error instanceof DOMException && error.name === NOT_ALLOWED) {
+        // WebKit refused this element's sound outside a blessed gesture (ADR-0035): the show goes
+        // on without it rather than stopping on every video slide.
+        console.warn("muting a video clip WebKit refused to play aloud", error);
+        this.#safetyMuted = true;
+        this.#element.muted = true;
+        try {
+          await this.#element.play();
+          return;
+        } catch (retryError) {
+          throw new VideoPlaybackError(retryError);
+        }
+      }
+      throw new VideoPlaybackError(error);
     }
   }
 
@@ -128,6 +154,10 @@ export class VideoElementPlayback implements VideoPlayback {
 
   setVolume(volume: number): void {
     this.#volume?.set(volume);
+    // The safety net's mute is for this clip's whole life: a later volume never lifts it.
+    if (this.#safetyMuted) {
+      this.#element.muted = true;
+    }
   }
 
   frame(): LiveFrame | null {
@@ -150,6 +180,7 @@ export class VideoElementPlayback implements VideoPlayback {
 
   dispose(): void {
     this.#disposed = true;
+    this.#abort.abort();
     this.#listeners.clear();
     this.#failureListeners.clear();
     this.#volume?.dispose();

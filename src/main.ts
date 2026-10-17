@@ -42,7 +42,7 @@ import type { SlideshowHome } from "./app/routes/slideshow-storage";
 import { browserNetworkStatus, ImmichAvailability } from "./immich/immich-availability";
 import { convertMusic } from "./import/browser/convert-music";
 import { probeMusic } from "./import/music-probe";
-import { createMusicAudioContext, MusicOutput } from "./player";
+import { createMusicAudioContext, MusicOutput, VideoElementPool } from "./player";
 import { BeatPass } from "./library/beat-pass";
 import { FocusPass } from "./library/focus-pass";
 import { openLibraryStore } from "./library/indexeddb-store";
@@ -125,6 +125,7 @@ const store = await openLibraryStore(window.indexedDB);
 const newId = (): string => randomId(crypto);
 const now = (): Date => new Date();
 const musicOutput = new MusicOutput(createMusicAudioContext);
+const videoElementPool = new VideoElementPool();
 
 function deleteAbandonedMedia(): void {
   store.deleteUnreferencedMedia(now()).catch(reportError);
@@ -244,6 +245,7 @@ const services = {
   build: __GLISSANDO_BUILD_INFO__,
   launchQueue: browserLaunchQueue(window),
   musicOutput,
+  videoElementPool,
   musicAudio: browserMusicEditorAudio(musicOutput),
   readClipPeaks: readClipPeaksWithMediabunny,
   focusPass,
