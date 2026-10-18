@@ -12,7 +12,7 @@ https://polandy.github.io/glissando-assets/mockups/video-slides/.
 | Model         | A stored picture with an optional `video`; its picture is the **poster** frame (ADR-0034)                                                                |
 | Stored bytes  | The original file as chosen, never re-encoded; accepted when this browser can play it (ADR-0034)                                                         |
 | Length        | The chosen excerpt, 0.5 s to 5 min; a fixed own duration, like ADR-0008                                                                                  |
-| Sound         | On by default; the music ducks to 15 % while a clip with sound plays (ADR-0035)                                                                          |
+| Sound         | On by default; the music ducks to 35 %, staying audible, while a clip with sound plays (ADR-0035)                                                        |
 | Decoder       | `<video>` in the player, WebCodecs through mediabunny in the video export (ADR-0035)                                                                     |
 | Network       | Clips are downloaded whole before they play, from Immich; never streamed (ADR-0034). The server keeps no clips: a server slideshow holds no video slides |
 | Portrait pair | A video slide is never composed into a portrait pair; a portrait clip gets the blurred fill (ADR-0028)                                                   |
@@ -101,13 +101,14 @@ The slide clock leads; the clip follows it, never the other way round.
 
 - A slide's clip sound is audible from `shift` ms into the transition before the slide (sooner
   than the slide's own start for a shifted clip) until the slide ends, at `volume`.
-- The music volume is multiplied by the **duck factor**: 1 outside a clip with sound; `0.15`
-  (`VIDEO_DUCK_VOLUME`) inside it, with linear ramps: `VIDEO_DUCK_RAMP_DOWN_MS` = 1000 ms
-  before the clip's sound starts so the music is already low by then, and a slower
-  `VIDEO_DUCK_RAMP_UP_MS` = 1500 ms after it so the music swells back instead of jumping. Pure
-  function `duckFactorAt(timeMs, spans)` in `src/player/`; the music's own
-  trim and fades (ADR-0009) multiply on top.
-- Two clips closer together than a ramp up plus a ramp down stay ducked between them.
+- The music volume is multiplied by the **duck factor**: 1 before a clip's sound starts; it
+  ramps down, linearly over `VIDEO_DUCK_RAMP_DOWN_MS` = 1000 ms starting there, to `0.35`
+  (`VIDEO_DUCK_VOLUME`) so the music cross-fades with the clip's sound and stays audible under
+  it. It holds at `0.35` until the slide ends, then ramps back up over a slower
+  `VIDEO_DUCK_RAMP_UP_MS` = 1500 ms so the music swells back instead of jumping. Pure function
+  `duckFactorAt(timeMs, spans)` in `src/player/`; the music's own trim and fades (ADR-0009)
+  multiply on top.
+- Two clips closer together than a ramp up stay ducked between them.
 - WebKit (iPadOS/iOS Safari) allows a `<video>` element's audible `play()` only once that element
   itself played inside a user gesture. The player keeps a small pool of elements blessed in the
   Play gesture (`VideoElementPool`, `video-element-pool.ts`) and reuses them for later clips; past

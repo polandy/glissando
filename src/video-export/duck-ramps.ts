@@ -18,8 +18,8 @@ export function duckGainRamps(
 ): readonly GainPoint[] {
   const bends = spans
     .flatMap(({ startMs, endMs }) => [
-      startMs - VIDEO_DUCK_RAMP_DOWN_MS,
       startMs,
+      startMs + VIDEO_DUCK_RAMP_DOWN_MS,
       endMs,
       endMs + VIDEO_DUCK_RAMP_UP_MS,
     ])

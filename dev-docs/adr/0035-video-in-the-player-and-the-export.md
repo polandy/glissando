@@ -17,8 +17,10 @@ where WebCodecs exists.
   when it stalls.
 - **Export:** mediabunny demuxes and decodes the clip with WebCodecs, frame accurate at the export's
   frame times; the clip's audio is decoded into the same offline mix as the music.
-- **Sound:** a clip's sound is on by default; the music multiplies by a duck factor of 0.15 inside
-  such a slide with a 1000 ms ramp down and a 1500 ms ramp up (`duckFactorAt`, a pure function shared by the player and the
+- **Sound:** a clip's sound is on by default; the music multiplies by a duck factor that ramps
+  down to 0.35 — staying audible, cross-fading with the clip's sound rather than vanishing before
+  it — over 1000 ms starting where the clip's sound starts, holds there, then ramps back up over
+  1500 ms after the slide ends (`duckFactorAt`, a pure function shared by the player and the
   export mix). The user can turn a clip's sound off or keep the music at full volume.
 
 ## Options weighed

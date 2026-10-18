@@ -1,11 +1,11 @@
 import { isGroundSlide, type Slide } from "./slideshow";
 import { videoShiftMs } from "./video-clip-plan";
 
-/** The music's volume factor while a clip with sound plays (ADR-0035). */
-export const VIDEO_DUCK_VOLUME = 0.15;
-/** The linear ramp down before a clip's slide: quick, so the clip's sound is heard clearly. */
+/** The music's volume factor while a clip with sound plays (ADR-0035): stays audible under it. */
+export const VIDEO_DUCK_VOLUME = 0.35;
+/** The linear ramp down, starting where the clip's sound starts: quick, so it cross-fades in. */
 export const VIDEO_DUCK_RAMP_DOWN_MS = 1000;
-/** The linear ramp up after it: slow, so the music swells back instead of jumping. */
+/** The linear ramp up after the slide ends: slow, so the music swells back instead of jumping. */
 export const VIDEO_DUCK_RAMP_UP_MS = 1500;
 
 /** A stretch of show time in which a clip's sound is heard. */
@@ -40,19 +40,25 @@ export function videoSoundSpans(slides: readonly Slide[]): readonly VideoSoundSp
 }
 
 /**
- * The factor the music's volume is multiplied by at show time `timeMs`: 1 outside the spans,
- * `VIDEO_DUCK_VOLUME` inside, linear ramps either side. `spans` are in order; two closer than
- * a ramp up and a ramp down stay ducked between them. The music's own trim and fades multiply on top.
+ * The factor the music's volume is multiplied by at show time `timeMs`: 1 before a span's
+ * start, ramping down to `VIDEO_DUCK_VOLUME` over the first `VIDEO_DUCK_RAMP_DOWN_MS` of it so
+ * the music cross-fades into the clip's own sound, held until the span ends, then ramping back
+ * up over `VIDEO_DUCK_RAMP_UP_MS`. `spans` are in order; two closer than a ramp up stay ducked
+ * between them. The music's own trim and fades multiply on top.
  */
 export function duckFactorAt(timeMs: number, spans: readonly VideoSoundSpan[]): number {
   let factor = 1;
   for (const span of mergeCloseSpans(spans)) {
-    const downMs = (span.startMs - timeMs) / VIDEO_DUCK_RAMP_DOWN_MS;
-    const upMs = (timeMs - span.endMs) / VIDEO_DUCK_RAMP_UP_MS;
-    const ramped = VIDEO_DUCK_VOLUME + (1 - VIDEO_DUCK_VOLUME) * Math.max(downMs, upMs, 0);
-    factor = Math.min(factor, ramped);
+    const rampingDown = clamp01((timeMs - span.startMs) / VIDEO_DUCK_RAMP_DOWN_MS);
+    const rampingUp = clamp01(1 - (timeMs - span.endMs) / VIDEO_DUCK_RAMP_UP_MS);
+    const duckAmount = Math.min(rampingDown, rampingUp);
+    factor = Math.min(factor, 1 - (1 - VIDEO_DUCK_VOLUME) * duckAmount);
   }
-  return Math.min(1, factor);
+  return factor;
+}
+
+function clamp01(value: number): number {
+  return Math.min(1, Math.max(0, value));
 }
 
 /** `duckFactorAt` for the sound spans of `slides`, as the music's per-time factor. */
@@ -65,10 +71,7 @@ function mergeCloseSpans(spans: readonly VideoSoundSpan[]): readonly VideoSoundS
   const merged: VideoSoundSpan[] = [];
   for (const span of spans) {
     const previous = merged.at(-1);
-    if (
-      previous !== undefined &&
-      span.startMs - previous.endMs < VIDEO_DUCK_RAMP_UP_MS + VIDEO_DUCK_RAMP_DOWN_MS
-    ) {
+    if (previous !== undefined && span.startMs - previous.endMs < VIDEO_DUCK_RAMP_UP_MS) {
       merged[merged.length - 1] = { startMs: previous.startMs, endMs: span.endMs };
     } else {
       merged.push(span);
