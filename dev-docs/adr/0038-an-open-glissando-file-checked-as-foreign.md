@@ -23,10 +23,22 @@ anything it could use to sign a file ships with the app and is public.
   `glissando.json` (indented, readable), `glissando.schema.json` (a JSON Schema of it), the
   `pictures/`, `thumbnails/`, `music/` and `videos/` entries, an English `README.txt` (what each
   entry is; unpack the whole file first, then open `index.html`) and `index.html`: the player
-  engine as its own bundle, which reads `glissando.json` and the pictures beside it.
-- **`index.html` plays on the DOM renderer.** From `file://`, Chromium and WebKit refuse a picture
-  beside the page to WebGL (ADR-0017); the page is a way in for anyone without Glissando, not the
-  share format — that stays the web page export (ADR-0017) and the video (ADR-0015).
+  engine as its own bundle, which reads `glissando.json` and the media beside it and checks them
+  as the app does (missing, damaged, foreign or newer is said in words, never played half).
+- **`index.html` asks for its folder where the browser will not read it unasked.** Firefox lets a
+  `file://` page fetch the files beside it; Chromium and WebKit refuse, so the page shows a card
+  with a folder picker (`<input webkitdirectory>`), and the same checks run on the files picked.
+  Served over HTTP, it reads the folder without asking. The page's policy adds only
+  `connect-src 'self'` to the web page export's.
+- **`index.html` plays on the normal renderer** (WebGL2, the DOM where it is missing): every
+  medium reaches the player as a `Blob` read from the folder, never as a `file://` URL, so no
+  browser keeps it from WebGL. The file holds no focus and no beats: picture changes are not
+  snapped to the beat, and Ken Burns aims at the middle. The page is a way in for anyone without
+  Glissando, not the share format — that stays the web page export (ADR-0017) and the video
+  (ADR-0015).
+- **`index.html` embeds the caption font and only the card fonts the slideshow's shown title
+  and closing slides use**, like the web page export; the slideshow's title is baked in, the
+  rest comes from `glissando.json`, so an edited folder plays as edited.
 - **Glissando opens a file that was edited and packed again**: entries stored or deflated (read
   with `DecompressionStream("deflate-raw")`, no dependency), in any order, `glissando.json`
   anywhere among them; a missing thumbnail is made again from its picture, and so is one whose
@@ -59,13 +71,17 @@ anything it could use to sign a file ships with the app and is public.
   safety it cannot give.
 - _A self-contained `index.html` with the media inside (ADR-0017)_ — WebGL would work, but every
   picture would sit in the file twice, once as base64; the web page export exists for that.
+- _The data and links to the media inside `index.html`_ — no folder picker, but the player would
+  need the media as URLs: pictures beside a `file://` page are refused to WebGL, and Chromium
+  silences `file://` music played through Web Audio.
 - _Skip every unknown entry unread_ — the most forgiving, but a mistyped media name would show
   only as "missing", and the format would hold whatever anyone adds; rejected for the fixed list.
 - _Refuse a folder around the entries_ — simpler, but a folder zipped as a whole, the way Finder
   and Explorer offer first, would be refused with a reason few would understand.
 - _An open ZIP, checked as foreign_ — chosen. The cost: a larger reader (deflate, any order,
-  limits, header parsing), a second player bundle in every file (about 40 KB), and opening is
-  slower, as every medium is decoded once more on the receiving device.
+  limits, header parsing), a second player bundle in every file (`index.html` is about 175 KB,
+  80 KB gzipped, without a card; a card style adds its fonts, up to about 235 KB), and opening
+  is slower, as every medium is decoded once more on the receiving device.
 
 ## Consequences
 
@@ -73,5 +89,5 @@ anything it could use to sign a file ships with the app and is public.
 - Opening decodes every picture once and every song at the beat-detection rate (ADR-0021), one
   file at a time; a long slideshow takes noticeably longer to check than to checksum.
 - The limits bound what one file may hold; a slideshow beyond them cannot be exported either.
-- `index.html` from `file://` plays only where the DOM renderer is good enough; Firefox, which
-  allows WebGL there, is no special case.
+- `index.html` from `file://` asks for its folder in Chromium and WebKit once per opening; Firefox
+  plays at once.

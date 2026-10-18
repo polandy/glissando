@@ -58,6 +58,7 @@ import { serverSlideshowSessions } from "./app/server-library/server-slideshow-s
 import { createServerLibrary } from "./server-library/server-library";
 import { createStorageServerLibraryMemory } from "./server-library/server-library-memory";
 import { browserHtmlExportDevice } from "./app/html-export/browser-html-export-device";
+import { bundledFilePage } from "./file-page/browser/bundled-file-page";
 import { browserVideoExportDevice } from "./app/video-export/browser-video-export-device";
 import { createFrameServices } from "./app/frame/frame-services";
 import { browserMediaDecoders } from "./glissando-file/browser/media-decoders";
@@ -152,7 +153,6 @@ const beatPass = new BeatPass({
 beatPass.start();
 
 const freeBytes = (): Promise<number | null> => freeStorageBytes(window.navigator.storage);
-const mediaDecoders = browserMediaDecoders();
 const download = createDownloader({
   document,
   urls: browserObjectUrls,
@@ -217,7 +217,6 @@ const serverSessions = serverSlideshowSessions(window, {
   onError: reportError,
   log: logError,
 });
-const frame = createFrameServices(window, browserScheduler, logError);
 
 // Read before the navigator exists, so its own first route is never raced by this one.
 const deepLinkedFrameAlbumId = parseFrameDeepLink(window.location.hash);
@@ -282,13 +281,14 @@ const services = {
   deleteAbandonedMedia,
   log: logError,
   freeBytes,
-  mediaDecoders,
+  mediaDecoders: browserMediaDecoders(),
   download,
   videoExport: browserVideoExportDevice({ window, freeBytes, download, log: logError }),
   htmlExport: browserHtmlExportDevice({ window, download, log: logError }),
+  playerPage: bundledFilePage,
   ...serverSessions,
   reload: () => window.location.reload(),
-  ...frame,
+  ...createFrameServices(window, browserScheduler, logError),
 };
 
 const playStartAnimation = consumeFirstLaunch(createStorageFirstLaunchStore(window.localStorage));

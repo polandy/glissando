@@ -19,6 +19,7 @@ import { deCulling } from "./catalogue-de-culling.ts";
 import { deView } from "./catalogue-de-view.ts";
 import { deFrame } from "./catalogue-de-frame.ts";
 import { deCards } from "./catalogue-de-cards.ts";
+import { deFilePage } from "./catalogue-de-file-page.ts";
 import type { Message } from "./messages.ts";
 
 /**
@@ -337,4 +338,5 @@ export const de = {
   ...deView,
   ...deFrame,
   ...deCards,
+  ...deFilePage,
 } as const satisfies Record<string, Message>;

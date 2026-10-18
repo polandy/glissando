@@ -6,6 +6,12 @@ import { readEntry, readZipDirectory } from "../zip-reader";
 import type { RawEntry } from "./raw-zip";
 
 export const MODIFIED_AT = new Date("2025-10-01T08:00:00Z");
+/** Stands in for the built player page; opening a file must neither read nor run it. */
+export const FIXTURE_PLAYER_PAGE = "<!doctype html><script>throw new Error('ran');</script>";
+export const EXPORT_OPTIONS = {
+  modifiedAt: MODIFIED_AT,
+  playerPage: async (): Promise<string> => FIXTURE_PLAYER_PAGE,
+};
 
 /**
  * Two pictures in an own order, the first with a caption, its own duration and transition and a
@@ -105,7 +111,7 @@ export async function exportedFile(slideshow = EXPORTED_SLIDESHOW): Promise<Blob
     thumbnail: tinyPicture(thumbTwo),
   });
   await store.putMusic("src-m1", new Blob([EXPORTED_MUSIC_BYTES_TEXT], { type: "audio/mp4" }));
-  return exportSlideshow(slideshow, store, { modifiedAt: MODIFIED_AT });
+  return exportSlideshow(slideshow, store, EXPORT_OPTIONS);
 }
 
 /** The exported file's entries, as raw entries a test may pack and change at will. */
@@ -211,5 +217,5 @@ export async function exportedVideoFile(): Promise<Blob> {
   const { clipOne, clipTwo } = VIDEO_CLIP_MARKERS;
   await store.putVideo("src-c1", new Blob([clipOne], { type: "video/mp4" }));
   await store.putVideo("src-c2", new Blob([clipTwo], { type: "video/webm" }));
-  return exportSlideshow(VIDEO_SLIDESHOW, store, { modifiedAt: MODIFIED_AT });
+  return exportSlideshow(VIDEO_SLIDESHOW, store, EXPORT_OPTIONS);
 }

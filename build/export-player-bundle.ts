@@ -1,5 +1,7 @@
 import { encodeBase64 } from "../src/html-export/base64.ts";
 import { assertInlineableScript } from "../src/html-export/inline-script.ts";
+import type { PlayerBundle } from "../src/html-export/ports.ts";
+import type { PlayerPageParts } from "./export-player-plugin.ts";
 
 const FONT_DATA_URL_PREFIX = "data:font/woff2;base64,";
 /** The design tokens' first `:root` block holds every token with its light value. */
@@ -70,14 +72,9 @@ export function bundleParts(files: readonly BuiltPlayerFile[]): { script: string
   return { script: chunk.code, style: css };
 }
 
-/** The virtual module's source: the `PlayerBundle` as its default export. */
-export function playerBundleModule(parts: {
-  readonly script: string;
-  readonly style: string;
-  readonly fontBytes: Uint8Array;
-  readonly cardFontBytes: Readonly<Record<string, Uint8Array>>;
-}): string {
-  const bundle = {
+/** The `PlayerBundle` of a built player page, its fonts as `data:` URLs. */
+export function playerBundle(parts: PlayerPageParts): PlayerBundle {
+  return {
     script: parts.script,
     style: parts.style,
     captionFontDataUrl: captionFontDataUrl(parts.fontBytes),
@@ -88,7 +85,11 @@ export function playerBundleModule(parts: {
       ]),
     ),
   };
-  return `export default ${JSON.stringify(bundle)};\n`;
+}
+
+/** The virtual module's source: the `PlayerBundle` as its default export. */
+export function playerBundleModule(parts: PlayerPageParts): string {
+  return `export default ${JSON.stringify(playerBundle(parts))};\n`;
 }
 
 /** Any font's bytes as a `data:` URL, for an `@font-face` rule. */

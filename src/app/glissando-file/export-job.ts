@@ -3,7 +3,7 @@ import {
   glissandoFileName,
   type ExportMedia,
 } from "../../glissando-file/export-slideshow";
-import type { LibraryStore } from "../../library/stored-slideshow";
+import type { LibraryStore, StoredSlideshow } from "../../library/stored-slideshow";
 import type { Toaster } from "../toast/toaster";
 import { isStorageShortage } from "./storage-shortage";
 
@@ -28,6 +28,8 @@ export interface ExportJobPorts {
   downloadedText(fileName: string, bytes: number): string;
   failedText(): string;
   tryAgainLabel(): string;
+  /** The file's `index.html`, which plays `slideshow` from the unpacked folder (ADR-0038). */
+  playerPage(slideshow: StoredSlideshow): Promise<string>;
 }
 
 /**
@@ -79,6 +81,7 @@ export class ExportJob {
       this.#publish({ slideshowId, title: slideshow.title, fraction: 0 });
       const file = await exportSlideshow(slideshow, store, {
         modifiedAt: ports.now(),
+        playerPage: (shown) => ports.playerPage(shown),
         onProgress: (fraction) => this.#publish({ slideshowId, title: slideshow.title, fraction }),
       });
       const fileName = glissandoFileName(slideshow.title);

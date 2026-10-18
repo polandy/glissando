@@ -4,11 +4,10 @@ import { formatPlayTime } from "../export-player/play-time";
 import { TV_TEXT_KEYS, type TvPageWords } from "./tv-page-words";
 
 /**
- * The share page's words in one language, as the catalogue holds them (`sharePage.*` and the
- * export page's `htmlPage.*`): built into the page for both languages, and filled in by the
- * page, which only learns the slideshow once it has loaded (dev-docs/SHARE_LINK.md).
+ * The words a player page's start card and controls need (`pageCopyFor`), in one language: the
+ * share page's and a `.glissando` file's `index.html`'s, both built from the catalogue.
  */
-export interface SharePageWords extends TvPageWords {
+export interface PlayerPageWords {
   readonly eyebrow: string;
   /** "{pictures} · {duration} · {music}". */
   readonly summary: string;
@@ -25,20 +24,11 @@ export interface SharePageWords extends TvPageWords {
   readonly timeline: string;
   readonly playAgain: string;
   readonly cannotPlay: string;
-  /** After Play, until the player plays. */
-  readonly loadingFirst: string;
-  /** The chip while the player waits for a late picture. */
-  readonly loadingLate: string;
-  readonly goneTitle: string;
-  readonly goneText: string;
-  readonly unreachableTitle: string;
-  readonly unreachableText: string;
-  readonly tryAgain: string;
   readonly noscript: string;
 }
 
-/** Every word that is plain text; `pictures` is the one plural. */
-export const SHARE_TEXT_KEYS = [
+/** `PlayerPageWords`' plain texts; `pictures` is the one plural. */
+export const PLAYER_TEXT_KEYS = [
   "eyebrow",
   "summary",
   "withMusic",
@@ -52,6 +42,29 @@ export const SHARE_TEXT_KEYS = [
   "timeline",
   "playAgain",
   "cannotPlay",
+  "noscript",
+] as const satisfies readonly Exclude<keyof PlayerPageWords, "pictures">[];
+
+/**
+ * The share page's words in one language, as the catalogue holds them (`sharePage.*` and the
+ * export page's `htmlPage.*`): built into the page for both languages, and filled in by the
+ * page, which only learns the slideshow once it has loaded (dev-docs/SHARE_LINK.md).
+ */
+export interface SharePageWords extends PlayerPageWords, TvPageWords {
+  /** After Play, until the player plays. */
+  readonly loadingFirst: string;
+  /** The chip while the player waits for a late picture. */
+  readonly loadingLate: string;
+  readonly goneTitle: string;
+  readonly goneText: string;
+  readonly unreachableTitle: string;
+  readonly unreachableText: string;
+  readonly tryAgain: string;
+}
+
+/** Every word that is plain text; `pictures` is the one plural. */
+export const SHARE_TEXT_KEYS = [
+  ...PLAYER_TEXT_KEYS,
   "loadingFirst",
   "loadingLate",
   "goneTitle",
@@ -59,7 +72,6 @@ export const SHARE_TEXT_KEYS = [
   "unreachableTitle",
   "unreachableText",
   "tryAgain",
-  "noscript",
   ...TV_TEXT_KEYS,
 ] as const satisfies readonly Exclude<keyof SharePageWords, "pictures">[];
 
@@ -86,7 +98,7 @@ export interface ShareSummary {
 
 /** The player page's words for a loaded slideshow. */
 export function pageCopyFor(
-  words: SharePageWords,
+  words: PlayerPageWords,
   language: SharePageLanguage,
   summary: ShareSummary,
 ): PageCopy {

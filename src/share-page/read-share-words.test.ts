@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { readShareWords, ShareWordsError } from "./read-share-words";
+import { readShareWords, PageWordsError } from "./read-share-words";
 import type { SharePageWords } from "./share-page-words";
 
 const WORD_KEYS = [
@@ -73,7 +73,7 @@ describe("readShareWords", () => {
       text: JSON.stringify({ de: words("de"), en: { ...words("en"), pictures: "pictures" } }),
     },
   ])("refuses $what", ({ text }) => {
-    expect(() => readShareWords(text)).toThrow(ShareWordsError);
+    expect(() => readShareWords(text)).toThrow(PageWordsError);
   });
 
   it("keeps the type's keys and the read keys in step", () => {

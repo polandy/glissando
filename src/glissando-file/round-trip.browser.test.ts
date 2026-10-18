@@ -6,7 +6,12 @@ import {
 } from "../library/indexeddb-store";
 import { checkGlissandoFile } from "./check-glissando-file";
 import { fakeMediaDecoders } from "./testing/fake-media-decoders";
-import { EXPORTED_SLIDESHOW, MODIFIED_AT, tinyPicture } from "./testing/glissando-fixtures";
+import {
+  EXPORT_OPTIONS,
+  EXPORTED_SLIDESHOW,
+  MODIFIED_AT,
+  tinyPicture,
+} from "./testing/glissando-fixtures";
 import { exportSlideshow } from "./export-slideshow";
 import { writeGlissandoFile } from "./write-glissando-file";
 
@@ -41,7 +46,7 @@ describe("a .glissando file between two libraries", () => {
     await store.putMusic("src-m1", new Blob(["music bytes"], { type: "audio/mp4" }));
     await store.saveSlideshow(EXPORTED_SLIDESHOW);
 
-    const exported = await exportSlideshow(EXPORTED_SLIDESHOW, store, { modifiedAt: MODIFIED_AT });
+    const exported = await exportSlideshow(EXPORTED_SLIDESHOW, store, EXPORT_OPTIONS);
     const file = new File([exported], "Herbst in Wien.glissando");
     const check = await checkGlissandoFile(file, {
       freeBytes: () => Promise.resolve(null),

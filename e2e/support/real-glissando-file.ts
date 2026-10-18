@@ -2,8 +2,8 @@ import { deflateSync } from "node:zlib";
 import { crc32 } from "../../src/glissando-file/crc32";
 import { exportSlideshow } from "../../src/glissando-file/export-slideshow";
 import {
+  EXPORT_OPTIONS,
   EXPORTED_SLIDESHOW,
-  MODIFIED_AT,
 } from "../../src/glissando-file/testing/glissando-fixtures";
 import { silentWav } from "../../src/import/testing/silent-wav";
 import { MemoryLibraryStore } from "../../src/library/testing/memory-store";
@@ -79,6 +79,6 @@ export async function exportedFileWithRealMedia(): Promise<TestFile> {
   await store.putPicture("src-p1", { display: picture(40, 30), thumbnail: picture(40, 30) });
   await store.putPicture("src-p2", { display: picture(40, 30), thumbnail: picture(40, 30) });
   await store.putMusic("src-m1", new Blob([silentWav(SILENT_MUSIC_MS)], { type: "audio/wav" }));
-  const file = await exportSlideshow(EXPORTED_SLIDESHOW, store, { modifiedAt: MODIFIED_AT });
+  const file = await exportSlideshow(EXPORTED_SLIDESHOW, store, EXPORT_OPTIONS);
   return blobFile("Herbst in Wien.glissando", file);
 }

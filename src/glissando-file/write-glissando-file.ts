@@ -1,13 +1,6 @@
-import type {
-  LibraryStore,
-  StoredMusic,
-  StoredPicture,
-  StoredSlideshow,
-} from "../library/stored-slideshow";
+import type { LibraryStore, StoredSlideshow } from "../library/stored-slideshow";
 import type { CheckedGlissandoFile } from "./check-glissando-file";
-import { ownMusicFields } from "./glissando-manifest";
-import { storedVideo } from "./manifest-video";
-import { cardFromManifest } from "./manifest-card";
+import { slideshowFromManifest } from "./slideshow-from-manifest";
 import { uniqueTitle } from "./unique-title";
 
 export type OpenStep = (
@@ -69,42 +62,30 @@ export async function writeGlissandoFile(
   const files = count * 2 + songCount + clipFiles.length;
   let written = 0;
 
-  const claimed = async (write: (id: string) => Promise<void>): Promise<string> => {
+  // One id per picture and song, and one per distinct clip file, generated up front in the file's
+  // order so `slideshowFromManifest` can map everything in one pass once the media is written.
+  const pictureIds = slideshow.pictures.map(() => ports.newId());
+  const songIds = slideshow.songs.map(() => ports.newId());
+  const clipIds = new Map(clipFiles.map((clip) => [clip.file, ports.newId()]));
+
+  const claimed = async (id: string, write: (id: string) => Promise<void>): Promise<void> => {
     options.signal.throwIfAborted();
-    const id = ports.newId();
     await store.claimMedia(claimId, startedAt, id);
     await write(id);
-    return id;
   };
 
   try {
-    const pictures: StoredPicture[] = [];
     for (const [index, picture] of slideshow.pictures.entries()) {
       options.onStep?.({ kind: "picture", number: index + 1, count, fraction: written / files });
-      const id = await claimed(async (pictureId) =>
+      const id = requireId(pictureIds, index, "picture");
+      await claimed(id, async (pictureId) =>
         store.putPicture(pictureId, {
           display: await contents.media(picture.file),
           thumbnail: await contents.media(picture.thumbnail),
         }),
       );
       written += 2;
-      pictures.push({
-        id,
-        capturedAt: picture.capturedAt,
-        width: picture.width,
-        height: picture.height,
-        fileName: picture.fileName,
-        colours: picture.colours,
-        ...(picture.kenBurns === undefined ? {} : { kenBurns: picture.kenBurns }),
-        ...(picture.caption === undefined ? {} : { caption: picture.caption }),
-        ...(picture.durationMs === undefined ? {} : { durationMs: picture.durationMs }),
-        ...(picture.transition === undefined ? {} : { transition: picture.transition }),
-        ...(picture.immichAssetId === undefined ? {} : { immichAssetId: picture.immichAssetId }),
-        ...(picture.fileBytes === undefined ? {} : { fileBytes: picture.fileBytes }),
-        ...(picture.alone === true ? { alone: true } : {}),
-      });
     }
-    const songs: StoredMusic[] = [];
     for (const [index, song] of slideshow.songs.entries()) {
       options.onStep?.({
         kind: "music",
@@ -112,19 +93,12 @@ export async function writeGlissandoFile(
         count: songCount,
         fraction: written / files,
       });
-      const id = await claimed(async (musicId) =>
+      const id = requireId(songIds, index, "song");
+      await claimed(id, async (musicId) =>
         store.putMusic(musicId, await contents.media(song.file)),
       );
       written += 1;
-      songs.push({
-        id,
-        fileName: song.fileName,
-        durationMs: song.durationMs,
-        mimeType: song.mimeType,
-        ...ownMusicFields(song),
-      });
     }
-    const clipIds = new Map<string, string>();
     for (const [index, clip] of clipFiles.entries()) {
       options.onStep?.({
         kind: "video",
@@ -132,36 +106,21 @@ export async function writeGlissandoFile(
         count: clipFiles.length,
         fraction: written / files,
       });
-      const id = await claimed(async (videoId) =>
+      const id = clipIds.get(clip.file);
+      if (id === undefined) {
+        throw new Error(`clip ${clip.file} has no id: it was not counted among clipFiles`);
+      }
+      await claimed(id, async (videoId) =>
         store.putVideo(videoId, await contents.media(clip.file)),
       );
       written += 1;
-      clipIds.set(clip.file, id);
     }
     options.signal.throwIfAborted();
-    const placed = pictures.map((picture, index): StoredPicture => {
-      const video = slideshow.pictures[index]?.video;
-      return video === undefined ? picture : { ...picture, video: storedVideo(video, clipIds) };
-    });
-    const pictureIds = placed.map((picture) => picture.id);
-    const openingCard = cardFromManifest(slideshow.openingCard, pictureIds);
-    const closingCard = cardFromManifest(slideshow.closingCard, pictureIds);
     const created: StoredSlideshow = {
       id: ports.newId(),
       title: uniqueTitle(slideshow.title, options.existingTitles),
       createdAt: ports.now().toISOString(),
-      pictures: placed,
-      ...(slideshow.ownOrder ? { ownOrder: true } : {}),
-      ...(slideshow.pictureLength === undefined ? {} : { pictureLength: slideshow.pictureLength }),
-      ...(slideshow.portraitPictures === undefined
-        ? {}
-        : { portraitPictures: slideshow.portraitPictures }),
-      ...(slideshow.transition === undefined ? {} : { transition: slideshow.transition }),
-      songs,
-      ...(slideshow.betweenSongs === undefined ? {} : { betweenSongs: slideshow.betweenSongs }),
-      secondsPerPicture: slideshow.secondsPerPicture,
-      ...(openingCard === undefined ? {} : { openingCard }),
-      ...(closingCard === undefined ? {} : { closingCard }),
+      ...slideshowFromManifest(slideshow, { pictureIds, songIds, clipIds }),
     };
     await store.saveSlideshow(created);
     await store.releaseClaim(claimId);
@@ -175,4 +134,12 @@ export async function writeGlissandoFile(
     }
     throw error;
   }
+}
+
+function requireId(ids: readonly string[], index: number, kind: string): string {
+  const id = ids[index];
+  if (id === undefined) {
+    throw new Error(`${kind} ${index} has no id: pass one id per ${kind}`);
+  }
+  return id;
 }

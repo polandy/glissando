@@ -9,9 +9,10 @@ hostile (ADR-0038):
 
 | Entry                   | Content                                                                                                              |
 | ----------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| `glissando.json`        | first, as the export writes it: `format` "glissando", `formatVersion` 14, the `slideshow`                            |
+| `glissando.json`        | first, as the export writes it, indented: `format` "glissando", `formatVersion` 14, the `slideshow`                  |
 | `glissando.schema.json` | next: a JSON Schema (draft-07) of `glissando.json` at the current `formatVersion`                                    |
 | `README.txt`            | next: English plain text saying what the file is and what each entry holds                                           |
+| `index.html`            | next: a player for the unpacked folder (`src/file-page/`, ADR-0038), see below                                       |
 | `pictures/0001.jpg` …   | the display renditions in play order, as stored (numbered from 0001)                                                 |
 | `thumbnails/0001.jpg`…  | their thumbnails, as stored                                                                                          |
 | `music/track-<n>.<ext>` | the playlist's n-th song (from 1), extension from its file name (none when it has none)                              |
@@ -81,3 +82,17 @@ track's `durationMs`, and a video excerpt under 500 ms.
   media id in `imports` before writing that media (each clip once, shared by the slides that play it) and saves the record last. Cancelled, or
   failing midway (e.g. `QuotaExceededError`), it releases its claim and deletes the unreferenced
   media, so no half slideshow stays behind.
+
+## `index.html`
+
+`build/file-page-plugin.ts` builds `src/file-page/main.ts` into the virtual module
+`virtual:glissando-file-page` (script, style, caption font, every card font, both languages'
+words); at export, `filePageHtml` bakes in the slideshow's title and only the card fonts its
+shown title and closing slides use. Opened, the page reads `glissando.json` beside it with
+`fetch` (Firefox from `file://`, any browser over HTTP); where that throws (Chromium and WebKit
+from `file://`), it shows a card with a folder picker, and the shallowest `glissando.json` among
+the picked files marks the folder. Either way the manifest is checked with `readManifest`, and
+every picture, song and clip it names must be in the folder (thumbnails need not); a problem is
+said in words on the card. The slideshow is composed as the app composes it, without focus or
+beats, and plays on the normal renderer, each medium read as a `Blob`. German where the
+browser's language is, English otherwise.
