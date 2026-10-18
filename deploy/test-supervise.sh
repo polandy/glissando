@@ -11,6 +11,8 @@ set -eu
 readonly SUPERVISE=$1
 # A process killed by SIGKILL: 128 + 9.
 readonly KILLED_STATUS=137
+# Bounds a case whose failure is a shell waiting for good; a passing case ends at once.
+readonly CASE_SECONDS=10
 
 failures=0
 pass() { echo "ok   $1"; }
@@ -46,6 +48,30 @@ if [ "$status" = "$KILLED_STATUS" ]; then
 	pass "a process that dies as a signal lands passes on its own status"
 else
 	fail "a process that dies as a signal lands passes on its own status: expected $KILLED_STATUS, got $status"
+fi
+
+# The library dies before Caddy is started: its USR1 lands while the pair is still starting. The
+# stand-in starts Caddy only once that USR1 has ended the pair (waiting on the library's
+# supervisor instead would reap it before the real wait). Caddy, started after the end, must be
+# stopped all the same; a missed stop leaves the supervising shell waiting on Caddy for good, so
+# the case is bounded.
+status=0
+timeout "$CASE_SECONDS" sh -eu -c '
+	. "$1"
+	start_supervised() {
+		supervise "$1" &
+		started=$!
+		[ "$1" = library_dies ] || return 0
+		until [ "$ending" = true ]; do :; done
+	}
+	library_dies() { exec sh -c "kill -KILL \$\$"; }
+	caddy_runs() { exec tail -f /dev/null; }
+	supervise_pair library_dies caddy_runs
+' supervise-case "$SUPERVISE" 2>/dev/null || status=$?
+if [ "$status" = "$KILLED_STATUS" ]; then
+	pass "a process that dies before the other is started passes on its own status"
+else
+	fail "a process that dies before the other is started passes on its own status: expected $KILLED_STATUS, got $status"
 fi
 
 [ "$failures" -eq 0 ]
