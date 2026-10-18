@@ -35,7 +35,8 @@ siblings keep them in sync by running both over one table of manifests. A few ru
 express stay reader-only, and are named in the schema's own `description` and proved by
 `manifest-schema-reader-only.test.ts`: a repeated song path, a card background's `pictureIndex`
 past the picture count, two clips sharing a file but not a `mimeType`, a date-time that matches
-the pattern but not a real calendar time, a caption over 80 graphemes, a music trim past its
+the pattern but not a real calendar time, a caption or card text over 80 graphemes (their
+whitespace rule is in the schema), a music trim past its
 track's `durationMs`, and a video excerpt under 500 ms.
 
 - **Export** (`exportSlideshow`) reads the media from the store one file at a time and builds

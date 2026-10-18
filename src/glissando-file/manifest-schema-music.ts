@@ -15,7 +15,7 @@ const MUSIC_FADE_SCHEMA: JsonSchema = {
 
 /**
  * `trim`'s `endMs <= durationMs` and `endMs - startMs >= 5000` depend on a sibling field and stay
- * reader-only; see `manifest-schema.test.ts`'s reader-only table.
+ * reader-only; see `manifest-schema-reader-only.test.ts`.
  */
 const MUSIC_TRIM_SCHEMA: JsonSchema = {
   type: "object",

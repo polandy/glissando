@@ -1,7 +1,7 @@
 import { CARD_FADE_STEP, CARD_TINTS, MAX_CARD_FADE, MIN_CARD_FADE } from "../library/stored-card";
 import { CARD_SWATCHES } from "../player/card-palette";
 import { CARD_ENTRANCES, CARD_POSITIONS, CARD_STYLES } from "../player/slideshow";
-import { FREE_TEXT_SCHEMA, HEX_COLOUR_SCHEMA, type JsonSchema } from "./manifest-schema-values";
+import { CARD_TEXT_SCHEMA, HEX_COLOUR_SCHEMA, type JsonSchema } from "./manifest-schema-values";
 
 const CARD_COLOUR_SCHEMA: JsonSchema = {
   anyOf: [{ type: "string", enum: Object.keys(CARD_SWATCHES) }, HEX_COLOUR_SCHEMA],
@@ -42,13 +42,13 @@ const CARD_BACKGROUND_SCHEMA: JsonSchema = {
 /**
  * A title or closing card (version 12+, ADR-0032). `title`/`subtitle` allow the empty string here
  * — `checkCardText`'s grapheme-counted length and whitespace rule for non-empty text is
- * reader-only; see `manifest-schema.test.ts`'s reader-only table.
+ * reader-only; see `manifest-schema-reader-only.test.ts`.
  */
 export const CARD_SCHEMA: JsonSchema = {
   type: "object",
   properties: {
-    title: FREE_TEXT_SCHEMA,
-    subtitle: FREE_TEXT_SCHEMA,
+    title: CARD_TEXT_SCHEMA,
+    subtitle: CARD_TEXT_SCHEMA,
     style: { enum: CARD_STYLES },
     position: { enum: CARD_POSITIONS },
     entrance: { enum: CARD_ENTRANCES },

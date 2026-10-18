@@ -115,3 +115,24 @@ describe("PICTURE_SCHEMA: broken pictures", () => {
     expectBothRefuse(doc);
   });
 });
+
+describe("PICTURE_SCHEMA: a caption's whitespace", () => {
+  const caption = ["slideshow", "pictures", 0, "caption"] as const;
+
+  it.each([
+    ["empty", ""],
+    ["a leading space", " Beach"],
+    ["a trailing space", "Beach "],
+    ["a repeated space", "Beach  day"],
+    ["a line break", "Beach\nday"],
+    ["a tab", "Beach\tday"],
+  ])("%s is refused by both", (_name, text) => {
+    expectBothRefuse(withAt(BASE_MANIFEST, [...caption], text));
+  });
+
+  it("single spaces between words are accepted by both", () => {
+    const doc = withAt(BASE_MANIFEST, [...caption], "A day at the beach");
+    expect(validateManifestSchema(doc)).toBe(true);
+    expect(readManifest(JSON.stringify(doc)).kind).toBe("ok");
+  });
+});

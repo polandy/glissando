@@ -50,9 +50,20 @@ export const POSITIVE_SAFE_INTEGER_SCHEMA: JsonSchema = {
   maximum: Number.MAX_SAFE_INTEGER,
 };
 
+/** Words split by single spaces, as `normalizeCaption` leaves whitespace. */
+const SINGLE_SPACED_WORDS = "\\S+( \\S+)*";
+
 /**
- * A plain string with no length or whitespace rule: a caption's or a card text's grapheme-counted
- * normalisation (`isCaption`) counts user-perceived characters, which a pattern cannot, and stays
- * reader-only.
+ * `isCaption`'s whitespace rule; its 80-grapheme limit counts user-perceived characters, which a
+ * pattern cannot, and stays reader-only.
  */
-export const FREE_TEXT_SCHEMA: JsonSchema = { type: "string" };
+export const CAPTION_SCHEMA: JsonSchema = {
+  type: "string",
+  pattern: `^${SINGLE_SPACED_WORDS}$`,
+};
+
+/** `checkCardText`: empty, or a caption (same reader-only limit). */
+export const CARD_TEXT_SCHEMA: JsonSchema = {
+  type: "string",
+  pattern: `^(${SINGLE_SPACED_WORDS})?$`,
+};

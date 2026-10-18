@@ -79,3 +79,22 @@ describe("CARD_SCHEMA and CARD_BACKGROUND_SCHEMA: broken cards", () => {
     expectBothRefuse(doc);
   });
 });
+
+describe("CARD_SCHEMA: a card text's whitespace", () => {
+  it.each([
+    ["a leading space", " Summer"],
+    ["a repeated space", "Summer  2026"],
+    ["a line break", "Summer\n2026"],
+  ])("%s is refused by both", (_name, text) => {
+    expectBothRefuse(withAt(BASE_MANIFEST, [...openingCard, "title"], text));
+  });
+
+  it.each([
+    ["empty", ""],
+    ["words with single spaces", "Summer 2026"],
+  ])("%s is accepted by both", (_name, text) => {
+    const doc = withAt(BASE_MANIFEST, [...openingCard, "title"], text);
+    expect(validateManifestSchema(doc)).toBe(true);
+    expect(readManifest(JSON.stringify(doc)).kind).toBe("ok");
+  });
+});

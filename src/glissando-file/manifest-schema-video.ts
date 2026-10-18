@@ -8,7 +8,7 @@ import {
 /**
  * A picture's `video` (ADR-0034): the clip's path and type, its whole length (`sourceMs`) and the
  * excerpt played (`startMs`..`endMs`). The excerpt's bounds depend on both siblings
- * (`checkVideoExcerpt`) and stay reader-only; see `manifest-schema.test.ts`'s reader-only table.
+ * (`checkVideoExcerpt`) and stay reader-only; see `manifest-schema-reader-only.test.ts`.
  */
 export const VIDEO_SCHEMA: JsonSchema = {
   type: "object",

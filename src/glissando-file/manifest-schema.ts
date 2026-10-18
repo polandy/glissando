@@ -37,22 +37,26 @@ const SLIDESHOW_SCHEMA: JsonSchema = {
   additionalProperties: false,
 };
 
+/** Rules a JSON Schema cannot express, which only Glissando's reader checks. */
+const READER_ONLY_RULES = [
+  "no two songs share a file",
+  "a card background's pictureIndex is below the number of pictures",
+  "slides playing one clip file give it one mimeType",
+  "createdAt and capturedAt are real calendar times",
+  "a caption or card text is at most 80 user-perceived characters",
+  "a song's trim lies within its durationMs",
+  "a video excerpt lies within its sourceMs and lasts at least the shortest excerpt",
+];
+
 /**
  * JSON Schema (draft-07) of `glissando.json` at the current format version (ADR-0038), built
- * from the same constants `read-manifest.ts` and its siblings check against and kept in sync by
- * `manifest-schema.test.ts`. A manifest at an older readable version (`readManifest` accepts
- * `formatVersion` down to `OLDEST_READABLE_FORMAT_VERSION`) does not necessarily match this
- * schema. A handful of rules JSON Schema cannot express stay reader-only: unique `songs[].file`
- * paths, a card background's `pictureIndex` under the picture count, two slides' clips sharing a
- * `file` but not a `mimeType`, `capturedAt`/`createdAt` also passing `Date.parse`, a caption's or
- * a card text's grapheme-counted length and whitespace rule, a music `trim`'s bounds against its
- * sibling `durationMs`, and a video excerpt's bounds against its siblings `startMs`/`sourceMs` —
- * see that test's reader-only table.
+ * from the constants the reader checks against and kept in sync by `manifest-schema.test.ts`;
+ * `manifest-schema-reader-only.test.ts` covers `READER_ONLY_RULES`.
  */
 export const MANIFEST_SCHEMA: JsonSchema = {
   $schema: "http://json-schema.org/draft-07/schema#",
   title: "Glissando manifest",
-  description: `glissando.json inside a .glissando file, at format version ${GLISSANDO_FORMAT_VERSION} (ADR-0038).`,
+  description: `glissando.json inside a .glissando file, at format version ${GLISSANDO_FORMAT_VERSION}. Glissando also checks: ${READER_ONLY_RULES.join("; ")}.`,
   type: "object",
   properties: {
     format: { const: GLISSANDO_FORMAT_ID },

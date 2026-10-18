@@ -7,8 +7,8 @@ import {
 import { TRANSITION_CHOICES } from "../library/own-timing";
 import { MIN_KEN_BURNS_ZOOM } from "../player/slideshow";
 import {
+  CAPTION_SCHEMA,
   DATE_TIME_SCHEMA,
-  FREE_TEXT_SCHEMA,
   HEX_COLOUR_SCHEMA,
   NON_EMPTY_STRING_SCHEMA,
   POSITIVE_SAFE_INTEGER_SCHEMA,
@@ -41,12 +41,7 @@ const COLOURS_SCHEMA: JsonSchema = {
   additionalProperties: false,
 };
 
-/**
- * A manifest picture (version 14). `caption`'s grapheme-counted normalisation and the
- * `immichAssetId`/`fileBytes` exclusivity (`not`, below) being the ONLY way either may appear —
- * both halves missing is also refused by the reader — are documented in full, with the rest of
- * the reader-only rules, in `manifest-schema.test.ts`'s reader-only table.
- */
+/** A manifest picture; `immichAssetId` and `fileBytes` may each appear, never both. */
 export const PICTURE_SCHEMA: JsonSchema = {
   type: "object",
   properties: {
@@ -58,7 +53,7 @@ export const PICTURE_SCHEMA: JsonSchema = {
     fileName: NON_EMPTY_STRING_SCHEMA,
     colours: COLOURS_SCHEMA,
     kenBurns: KEN_BURNS_SCHEMA,
-    caption: FREE_TEXT_SCHEMA,
+    caption: CAPTION_SCHEMA,
     durationMs: {
       type: "integer",
       minimum: MIN_OWN_DURATION_MS,
