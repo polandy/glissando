@@ -1,5 +1,5 @@
 import { readPictureHeader } from "../picture-header";
-import type { MediaDecoders } from "../media-decoders";
+import { MADE_THUMBNAIL_TYPE, type MediaDecoders } from "../media-decoders";
 
 export interface FakeMediaDecodersOptions {
   /** A picture whose bytes contain this text fails to decode, even with a readable header. */
@@ -54,7 +54,9 @@ export function fakeMediaDecoders(options: FakeMediaDecodersOptions = {}): FakeM
 
     thumbnail(picture) {
       thumbnailCalls.push(picture);
-      return Promise.resolve(new Blob([MADE_THUMBNAIL_MARKER, picture], { type: "image/jpeg" }));
+      return Promise.resolve(
+        new Blob([MADE_THUMBNAIL_MARKER, picture], { type: MADE_THUMBNAIL_TYPE }),
+      );
     },
   };
 }

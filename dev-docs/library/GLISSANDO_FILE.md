@@ -56,7 +56,10 @@ leading, trailing or repeated whitespace); the reason names its path and value.
   song by Web Audio at the beat-detection rate, a clip's metadata loaded). Any failure is
   _damaged_ and names the entry: one damaged picture refuses the whole file. A thumbnail the
   manifest names but the file lacks is made again from its picture once that passed, as an import
-  makes one (JPEG, `THUMBNAIL_BOUND`), and counts in the media bytes. Each stored media file, a
+  makes one (JPEG, `THUMBNAIL_BOUND`), and counts in the media bytes. An edited manifest may leave
+  a picture's `thumbnail` key out: the thumbnail is made the same way, at `thumbnails/<n>.jpg`
+  from the picture's own number on, the first such path no entry of the file and no other picture
+  holds, so it never takes up a stray entry's bytes. Each stored media file, a
   clip too, is read as a slice of the file, never all at once; a deflated one is unpacked into
   memory one file at a time, during the check and again when it is written. A clip counts in
   the media bytes that must fit, once however many slides play it; two slides naming one clip file with two types make the file damaged.

@@ -7,14 +7,13 @@ import {
 import { MAX_MANIFEST_BYTES } from "./file-limits";
 import { MANIFEST_ENTRY_NAME } from "./glissando-manifest";
 import { fakeMediaDecoders, MADE_THUMBNAIL_MARKER } from "./testing/fake-media-decoders";
-import { EXPORTED_MEDIA_BYTES, exportedFile } from "./testing/glissando-fixtures";
-import { rawZip, type RawEntry } from "./testing/raw-zip";
+import { EXPORTED_MEDIA_BYTES, exportedEntries, exportedFile } from "./testing/glissando-fixtures";
+import { rawZip } from "./testing/raw-zip";
 import infoZipUrl from "./testing/repacked/info-zip.glissando?url&inline";
 import macosFinderUrl from "./testing/repacked/macos-finder.glissando?url&inline";
 import noThumbnailsUrl from "./testing/repacked/no-thumbnails.glissando?url&inline";
 import pythonZipfileUrl from "./testing/repacked/python-zipfile.glissando?url&inline";
 import windowsExplorerUrl from "./testing/repacked/windows-explorer.glissando?url&inline";
-import { readEntry, readZipDirectory } from "./zip-reader";
 
 const plentyOfSpace = { freeBytes: () => Promise.resolve(1e9), mediaDecoders: fakeMediaDecoders() };
 
@@ -45,19 +44,6 @@ async function mediaTexts(contents: CheckedGlissandoFile): Promise<Record<string
     texts[path] = await (await contents.media(path)).text();
   }
   return texts;
-}
-
-/** The exported file's entries, as raw entries a test may pack and change at will. */
-async function exportedEntries(): Promise<RawEntry[]> {
-  const file = await exportedFile();
-  const entries: RawEntry[] = [];
-  for (const entry of (await readZipDirectory(file)) ?? []) {
-    const read = await readEntry(file, entry);
-    if (read.kind === "ok") {
-      entries.push({ name: entry.name, content: new Uint8Array(await read.data.arrayBuffer()) });
-    }
-  }
-  return entries;
 }
 
 describe("checkGlissandoFile on a file packed again", () => {
