@@ -6,9 +6,9 @@ import {
   ORIGIN_FROM_VERSION,
   type GlissandoManifest,
   type ManifestMusic,
-  type ManifestPicture,
   type ManifestReading,
 } from "./glissando-manifest";
+import { withThumbnailPaths, type PictureAsRead } from "./made-thumbnail-paths";
 import { readManifestVideo, refuseClipsOfTwoTypes, VIDEO_FROM_VERSION } from "./manifest-video";
 import {
   DocumentFormatError,
@@ -26,8 +26,14 @@ import {
   readPictureFields,
 } from "./slideshow-fields-media";
 
-/** Untrusted manifest text: foreign, from a newer version, damaged or a valid manifest. */
-export function readManifest(text: string): ManifestReading {
+/**
+ * Untrusted manifest text: foreign, from a newer version, damaged or a valid manifest. A picture
+ * naming no thumbnail gets a path none of `entryNames`, the container's entries, holds.
+ */
+export function readManifest(
+  text: string,
+  entryNames: ReadonlySet<string> = new Set(),
+): ManifestReading {
   let input: unknown;
   try {
     input = JSON.parse(text);
@@ -49,7 +55,7 @@ export function readManifest(text: string): ManifestReading {
     return { kind: "newer" };
   }
   try {
-    return { kind: "ok", manifest: readValidManifest(input) };
+    return { kind: "ok", manifest: readValidManifest(input, entryNames) };
   } catch (error) {
     if (error instanceof DocumentFormatError) {
       return { kind: "damaged", reason: `${MANIFEST_ENTRY_NAME} ${error.message}` };
@@ -58,7 +64,7 @@ export function readManifest(text: string): ManifestReading {
   }
 }
 
-function readValidManifest(input: JsonObject): GlissandoManifest {
+function readValidManifest(input: JsonObject, entryNames: ReadonlySet<string>): GlissandoManifest {
   const root = readObject(input, "", ["format", "formatVersion", "slideshow"]);
   const version = root["formatVersion"];
   if (
@@ -74,8 +80,9 @@ function readValidManifest(input: JsonObject): GlissandoManifest {
   }
   const path = "slideshow";
   const show = readObject(root["slideshow"], path, slideshowKeys(version));
-  const pictures = readPictures(show, path, (picture, picturePath) =>
-    readPicture(picture, picturePath, version),
+  const pictures = withThumbnailPaths(
+    readPictures(show, path, (picture, picturePath) => readPicture(picture, picturePath, version)),
+    entryNames,
   );
   const songs = readSongs(show, path, (song, songPath) => readMusic(song, songPath, version));
   refuseRepeatedSongPaths(songs, path);
@@ -106,7 +113,7 @@ function refuseRepeatedSongPaths(songs: readonly ManifestMusic[], path: string):
   }
 }
 
-function readPicture(value: unknown, path: string, version: number): ManifestPicture {
+function readPicture(value: unknown, path: string, version: number): PictureAsRead {
   const picture = readObject(value, path, [
     "file",
     "thumbnail",
@@ -114,14 +121,14 @@ function readPicture(value: unknown, path: string, version: number): ManifestPic
     ...(version >= ORIGIN_FROM_VERSION ? ["immichAssetId", "fileBytes"] : []),
     ...(version >= VIDEO_FROM_VERSION ? ["video"] : []),
   ]);
-  const { immichAssetId, fileBytes, video } = picture;
+  const { thumbnail, immichAssetId, fileBytes, video } = picture;
   if (immichAssetId !== undefined && fileBytes !== undefined) {
     const both = { immichAssetId, fileBytes };
     throw new DocumentFormatError(path, "immichAssetId or fileBytes, not both", both);
   }
   return {
     file: readText(picture["file"], `${path}.file`),
-    thumbnail: readText(picture["thumbnail"], `${path}.thumbnail`),
+    ...(thumbnail === undefined ? {} : { thumbnail: readText(thumbnail, `${path}.thumbnail`) }),
     ...readPictureFields(picture, path),
     ...(immichAssetId === undefined
       ? {}

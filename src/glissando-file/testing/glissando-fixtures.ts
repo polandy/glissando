@@ -3,6 +3,7 @@ import { MemoryLibraryStore } from "../../library/testing/memory-store";
 import { exportSlideshow } from "../export-slideshow";
 import { StoredZipWriter } from "../stored-zip";
 import { readEntry, readZipDirectory } from "../zip-reader";
+import type { RawEntry } from "./raw-zip";
 
 export const MODIFIED_AT = new Date("2025-10-01T08:00:00Z");
 
@@ -105,6 +106,19 @@ export async function exportedFile(slideshow = EXPORTED_SLIDESHOW): Promise<Blob
   });
   await store.putMusic("src-m1", new Blob([EXPORTED_MUSIC_BYTES_TEXT], { type: "audio/mp4" }));
   return exportSlideshow(slideshow, store, { modifiedAt: MODIFIED_AT });
+}
+
+/** The exported file's entries, as raw entries a test may pack and change at will. */
+export async function exportedEntries(): Promise<RawEntry[]> {
+  const file = await exportedFile();
+  const entries: RawEntry[] = [];
+  for (const entry of (await readZipDirectory(file)) ?? []) {
+    const read = await readEntry(file, entry);
+    if (read.kind === "ok") {
+      entries.push({ name: entry.name, content: new Uint8Array(await read.data.arrayBuffer()) });
+    }
+  }
+  return entries;
 }
 
 /** Every entry's bytes as text, by name, as the reader unpacks them. */

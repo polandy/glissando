@@ -29,7 +29,8 @@ anything it could use to sign a file ships with the app and is public.
   share format — that stays the web page export (ADR-0017) and the video (ADR-0015).
 - **Glissando opens a file that was edited and packed again**: entries stored or deflated (read
   with `DecompressionStream("deflate-raw")`, no dependency), in any order, `glissando.json`
-  anywhere among them; a missing thumbnail is made again from its picture. The entries ZIP tools
+  anywhere among them; a missing thumbnail is made again from its picture, and so is one whose
+  picture's `thumbnail` key was left out — under a free `thumbnails/` path of the format. The entries ZIP tools
   add by themselves — empty directory entries, `__MACOSX/`, `._` files, `.DS_Store`, `Thumbs.db`,
   `desktop.ini` — are skipped unread, and one top-level folder holding `glissando.json`, as
   zipping the folder itself adds it, is taken off every name; an entry beside that folder refuses the file. Any other unknown entry still

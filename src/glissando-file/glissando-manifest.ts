@@ -141,8 +141,14 @@ export function picturePaths(
   const number = String(index + 1).padStart(PICTURE_NUMBER_DIGITS, "0");
   return {
     file: `pictures/${number}.${pictureExtension(types.display)}`,
-    thumbnail: `thumbnails/${number}.${pictureExtension(types.thumbnail)}`,
+    thumbnail: thumbnailPath(index, types.thumbnail),
   };
+}
+
+/** Where thumbnail `index` (from 0) of type `type` sits in the container. */
+export function thumbnailPath(index: number, type: string): string {
+  const number = String(index + 1).padStart(PICTURE_NUMBER_DIGITS, "0");
+  return `thumbnails/${number}.${pictureExtension(type)}`;
 }
 
 /**

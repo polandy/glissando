@@ -52,7 +52,8 @@ const MEDIA_SIZE_LIMITS: Readonly<Partial<Record<MediaDescriptor["kind"], number
  * Checks a file before anything of it is written (ADR-0038): that it is a .glissando file (a ZIP
  * holding `glissando.json`, as packed by the export or any ZIP tool), a version this app reads,
  * every entry name and size within what the format allows, every media file's checksum right and
- * its bytes what its name and the manifest say; a missing thumbnail is made from its picture.
+ * its bytes what its name and the manifest say; a missing thumbnail, or one the manifest names
+ * no path for, is made from its picture.
  * Media is read one file at a time.
  */
 export async function checkGlissandoFile(
@@ -99,7 +100,7 @@ export async function checkGlissandoFile(
   if (manifestRead.kind !== "ok") {
     return manifestRead;
   }
-  const reading = readManifest(await manifestRead.data.text());
+  const reading = readManifest(await manifestRead.data.text(), new Set(byName.keys()));
   if (reading.kind !== "ok") {
     return reading;
   }
