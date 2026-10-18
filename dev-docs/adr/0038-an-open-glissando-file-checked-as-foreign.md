@@ -79,9 +79,9 @@ anything it could use to sign a file ships with the app and is public.
 - _Refuse a folder around the entries_ — simpler, but a folder zipped as a whole, the way Finder
   and Explorer offer first, would be refused with a reason few would understand.
 - _An open ZIP, checked as foreign_ — chosen. The cost: a larger reader (deflate, any order,
-  limits, header parsing), a second player bundle in every file (`index.html` is about 175 KB, 80 KB gzipped, without a
-  card; a card style adds its fonts, up to about 235 KB), and opening is
-  slower, as every medium is decoded once more on the receiving device.
+  limits, header parsing), a second player bundle in every file (`index.html` is about 175 KB,
+  80 KB gzipped, without a card; a card style adds its fonts, up to about 235 KB), and opening
+  is slower, as every medium is decoded once more on the receiving device.
 
 ## Consequences
 

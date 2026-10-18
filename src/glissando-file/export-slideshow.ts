@@ -35,9 +35,9 @@ export interface ExportOptions {
 
 /**
  * The slideshow as a .glissando file: `glissando.json` first (it marks the file as one), then
- * its schema, a README and the player page, then each picture in play order with its thumbnail, then the music,
- * then each clip a video slide plays, once. The media is read from the store one file at a time;
- * the container is built from their blobs.
+ * its schema, a README and the player page, then each picture in play order with its thumbnail,
+ * then the music, then each clip a video slide plays, once. The media is read from the store one
+ * file at a time; the container is built from their blobs.
  */
 export async function exportSlideshow(
   slideshow: StoredSlideshow,
