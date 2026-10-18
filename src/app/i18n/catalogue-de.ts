@@ -145,6 +145,22 @@ export const de = {
   "import.dateRange": "{from} bis {to}",
   "import.addMore": "mehr hinzufügen",
   "import.removePicture": "Bild vom {date} entfernen",
+  "import.queueHeader": "Import läuft · {done} von {count} fertig",
+  "import.queueLeft": "{count} übrig",
+  "import.pickImmich": { one: "Immich · {count} Foto", other: "Immich · {count} Fotos" },
+  "import.pickProgress": "{done} / {total}",
+  "import.pickWaiting": "wartet",
+  "import.pickDone": "{count} ✓",
+  "import.earlierPicksDone": {
+    one: "{count} frühere Auswahl fertig",
+    other: "{count} frühere Auswahlen fertig",
+  },
+  "import.stopPick": "Import von {name} stoppen",
+  "import.pickStopped": "{name} gestoppt",
+  "import.pickStoppedKept": {
+    one: "{name} gestoppt · {count} Bild schon übernommen",
+    other: "{name} gestoppt · {count} Bilder schon übernommen",
+  },
   "import.skipped": {
     one: "{count} Datei konnte nicht als Bild gelesen werden und wurde übersprungen:",
     other: "{count} Dateien konnten nicht als Bild gelesen werden und wurden übersprungen:",

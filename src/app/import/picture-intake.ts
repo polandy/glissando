@@ -4,6 +4,7 @@ import {
   PictureImport,
   PictureImportFailedError,
   type DuplicateReason,
+  type ImportPick,
   type PickInput,
 } from "../../import/picture-import";
 import type { PictureSource } from "../../import/picture-source";
@@ -39,6 +40,8 @@ export interface PictureIntakePorts
   onError(error: unknown): void;
   /** Records an error the user already sees, such as a failed import shown by the pictures step. */
   log(error: unknown): void;
+  /** The toast's text for a stopped pick, naming what it was and how much of it stayed. */
+  stoppedPickText(pick: ImportPick): string;
 }
 
 const VIDEO_TYPE_PREFIX = "video/";
@@ -178,6 +181,20 @@ export class PictureIntake {
   /** The removals become final and their toast goes, such as on leaving the pictures step. */
   endRemovals(): void {
     this.#removals.end();
+  }
+
+  /**
+   * Stops a pick still in flight: its waiting files are dropped, what already landed stays; a
+   * toast says so, naming the pick as its row did (before `stop` shrinks its total to match what
+   * is done). Throws as `PictureImport.stop` does for an unknown or already-finished pick.
+   */
+  stopPick(pickId: string): void {
+    const pick = this.pictures.state.picks.find((candidate) => candidate.id === pickId);
+    this.pictures.stop(pickId);
+    if (pick === undefined) {
+      throw new Error(`pick "${pickId}" vanished unexpectedly`);
+    }
+    this.#ports.toaster.show({ text: this.#ports.stoppedPickText(pick), tone: "info" });
   }
 
   /**

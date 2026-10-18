@@ -1,10 +1,18 @@
 import { describe, expect, it } from "vitest";
 import type { ImportPick } from "../../import/picture-import";
-import { queueRows } from "./picture-queue";
+import type { Translator } from "../i18n/translator";
+import { pickName, queueRows } from "./picture-queue";
 
 function pick(id: string, done: number, total: number): ImportPick {
   return { id, kind: "files", done, total, stored: done };
 }
+
+/** Enough of a translator to prove `pickName` picks the right key and passes the count through. */
+const t = ((key: string, args?: { readonly count: number }) => {
+  if (key === "import.pickImmich") return `Immich · ${args?.count} photos`;
+  if (key === "units.pictures") return `${args?.count} pictures`;
+  throw new Error(`pickName asked for an unexpected key "${key}"`);
+}) as Translator["t"];
 
 describe("queueRows", () => {
   it("shows every pick when there are four or fewer", () => {
@@ -54,5 +62,29 @@ describe("queueRows", () => {
     const { rows } = queueRows(picks);
 
     expect(rows[0]?.finished).toBe(false);
+  });
+});
+
+describe("pickName", () => {
+  it("names a folder pick by its folder name", () => {
+    const folder: ImportPick = { id: "a", kind: "folder", folderName: "Beach 2025", done: 1, total: 3, stored: 1 };
+
+    expect(pickName(folder, t)).toBe("Beach 2025");
+  });
+
+  it("throws for a folder pick with no folder name", () => {
+    const folder: ImportPick = { id: "a", kind: "folder", done: 1, total: 3, stored: 1 };
+
+    expect(() => pickName(folder, t)).toThrow('pick "a"');
+  });
+
+  it("names a files pick by how many pictures it has", () => {
+    expect(pickName(pick("a", 1, 3), t)).toBe("3 pictures");
+  });
+
+  it("names an Immich pick by how many photos it has", () => {
+    const immich: ImportPick = { id: "a", kind: "immich", done: 1, total: 5, stored: 1 };
+
+    expect(pickName(immich, t)).toBe("Immich · 5 photos");
   });
 });

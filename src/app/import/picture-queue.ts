@@ -7,6 +7,7 @@
  */
 
 import type { ImportPick } from "../../import/picture-import";
+import type { Translator } from "../i18n/translator";
 import { pickProgress, type PickProgress } from "./import-view";
 
 /** At most this many of the queue's rows show; older finished picks collapse into a count. */
@@ -32,4 +33,18 @@ export function queueRows(picks: readonly ImportPick[]): QueueRows {
     rows: rows.slice(-VISIBLE_ROWS),
     earlierDone: Math.max(0, rows.length - VISIBLE_ROWS),
   };
+}
+
+/** The pick's name for a queue row and the stop toast: its folder, or a picture/Immich count. */
+export function pickName(pick: ImportPick, t: Translator["t"]): string {
+  if (pick.kind === "folder") {
+    if (pick.folderName === undefined) {
+      throw new Error(`pick "${pick.id}" is a folder pick without a folder name`);
+    }
+    return pick.folderName;
+  }
+  if (pick.kind === "immich") {
+    return t("import.pickImmich", { count: pick.total });
+  }
+  return t("units.pictures", { count: pick.total });
 }

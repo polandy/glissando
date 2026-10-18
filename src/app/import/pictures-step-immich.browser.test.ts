@@ -4,7 +4,7 @@ import { FakePictureChecker } from "../../culling/testing/fake-picture-checker";
 import { afterEach, describe, expect, it } from "vitest";
 import type { ImmichAvailabilityState } from "../../immich/immich-availability";
 import { MemoryLibraryStore } from "../../library/testing/memory-store";
-import { fakeRemovalPorts } from "../testing/picture-intake-ports";
+import { fakeRemovalPorts, fakeStoppedPickText } from "../testing/picture-intake-ports";
 import { createTranslator } from "../i18n/translator";
 import { mountWithTranslator } from "../testing/mount-with-translator";
 import { ImportSession } from "./import-session";
@@ -21,6 +21,7 @@ function session(): ImportSession {
   return new ImportSession({
     store: new MemoryLibraryStore(),
     ...fakeRemovalPorts(),
+    stoppedPickText: fakeStoppedPickText,
     checker: new FakePictureChecker(),
     random: () => 0,
     pixels: () => Promise.resolve([]),

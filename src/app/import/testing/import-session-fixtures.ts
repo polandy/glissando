@@ -3,7 +3,7 @@ import type { PictureBlobs, StoredSlideshow } from "../../../library/stored-slid
 import { MemoryLibraryStore } from "../../../library/testing/memory-store";
 import type { ImmichPhoto } from "../../../immich/immich-client";
 import type { PictureFocus } from "../../../library/picture-focus";
-import { fakeRemovalPorts } from "../../testing/picture-intake-ports";
+import { fakeRemovalPorts, fakeStoppedPickText } from "../../testing/picture-intake-ports";
 import { FakePictureChecker } from "../../../culling/testing/fake-picture-checker";
 import { ImportSession, type ImportChoices, type ImportSessionPorts } from "../import-session";
 
@@ -84,6 +84,7 @@ export function sessionWith(
       return Promise.resolve(slideshow);
     },
     random: () => 0,
+    stoppedPickText: fakeStoppedPickText,
     ...overrides,
   };
   return {

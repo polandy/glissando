@@ -143,6 +143,22 @@ export const en: Catalogue = {
   "import.dateRange": "{from} to {to}",
   "import.addMore": "add more",
   "import.removePicture": "Remove picture from {date}",
+  "import.queueHeader": "Importing · {done} of {count} ready",
+  "import.queueLeft": "{count} left",
+  "import.pickImmich": { one: "Immich · {count} photo", other: "Immich · {count} photos" },
+  "import.pickProgress": "{done} / {total}",
+  "import.pickWaiting": "waiting",
+  "import.pickDone": "{count} ✓",
+  "import.earlierPicksDone": {
+    one: "{count} earlier pick done",
+    other: "{count} earlier picks done",
+  },
+  "import.stopPick": "Stop importing {name}",
+  "import.pickStopped": "Stopped {name}",
+  "import.pickStoppedKept": {
+    one: "Stopped {name} · {count} picture already in stay",
+    other: "Stopped {name} · {count} pictures already in stay",
+  },
   "import.skipped": {
     one: "{count} file could not be read as a picture and was skipped:",
     other: "{count} files could not be read as pictures and were skipped:",
