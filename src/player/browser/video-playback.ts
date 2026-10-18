@@ -17,6 +17,12 @@ const CATCH_UP_WINDOW_MS = 1000;
 const MS_PER_SECOND = 1000;
 /** Closer than this, the clip already is at the requested time. */
 const SAME_TIME_MS = 1;
+/**
+ * A clip at most this far from its place when `play` starts it is not seeked: a start a frame or
+ * two behind the clock is caught up by `follow`, but a seek right at the start stalls the
+ * picture and, on iOS, the sound.
+ */
+export const VIDEO_START_TOLERANCE_MS = 250;
 const HAVE_CURRENT_DATA = 2;
 const HAVE_FUTURE_DATA = 3;
 /** What a media element's `play()` rejects with when a later `pause()` interrupts it. */
@@ -97,7 +103,7 @@ export class VideoElementPlayback implements VideoPlayback {
 
   async play(clipMs: number): Promise<void> {
     this.#output.unlock();
-    this.#moveIfAway(clipMs);
+    this.#moveIfFarAway(clipMs, VIDEO_START_TOLERANCE_MS);
     try {
       await this.#sourceReady;
     } catch (error) {
@@ -211,8 +217,13 @@ export class VideoElementPlayback implements VideoPlayback {
 
   /** Seeks unless the clip already is at `clipMs`; tells whether it did. */
   #moveIfAway(clipMs: number): boolean {
+    return this.#moveIfFarAway(clipMs, SAME_TIME_MS);
+  }
+
+  /** Seeks unless the clip already is within `toleranceMs` of `clipMs`; tells whether it did. */
+  #moveIfFarAway(clipMs: number, toleranceMs: number): boolean {
     this.#wantedMs = clipMs;
-    if (Math.abs(this.#element.currentTime * MS_PER_SECOND - clipMs) <= SAME_TIME_MS) {
+    if (Math.abs(this.#element.currentTime * MS_PER_SECOND - clipMs) <= toleranceMs) {
       return false;
     }
     this.#element.currentTime = clipMs / MS_PER_SECOND;

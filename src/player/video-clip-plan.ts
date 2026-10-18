@@ -59,15 +59,14 @@ function targetOf(clip: PlacedClip, timeMs: number): readonly ClipTarget[] {
     return [];
   }
   const { video, index } = clip;
-  // Before the file's first frame there is nothing to play on: held, it does not drift off the clock.
-  const isBeforeFile = video.startMs + slideTimeMs < 0;
-  if (timeMs < onScreenFromMs || isBeforeFile) {
+  const shiftMs = videoShiftMs(video, clip.leadInMs);
+  if (timeMs < onScreenFromMs) {
     return [
       {
         index,
         video,
         phase: "waiting",
-        clipMs: clipMsAt(video, -clip.leadInMs),
+        clipMs: clipMsAt(video, -clip.leadInMs, shiftMs),
         soundOn: false,
       },
     ];
@@ -77,12 +76,22 @@ function targetOf(clip: PlacedClip, timeMs: number): readonly ClipTarget[] {
       index,
       video,
       phase: "playing",
-      clipMs: clipMsAt(video, slideTimeMs),
-      soundOn: slideTimeMs >= 0 && slideTimeMs < clip.endMs - clip.startMs,
+      clipMs: clipMsAt(video, slideTimeMs, shiftMs),
+      soundOn: slideTimeMs >= -shiftMs && slideTimeMs < clip.endMs - clip.startMs,
     },
   ];
 }
 
-function clipMsAt(video: SlideVideo, slideTimeMs: number): number {
-  return Math.min(video.endMs, Math.max(0, video.startMs + slideTimeMs));
+/**
+ * How much earlier a clip plays than its slide time alone would put it: enough that a clip whose
+ * `startMs` falls inside the lead-in reaches file time 0 exactly when the transition into its
+ * slide starts, instead of waiting there paused while the slide fades in over it. 0 once
+ * `startMs` already reaches past the lead-in.
+ */
+export function videoShiftMs(video: SlideVideo, leadInMs: number): number {
+  return Math.max(0, leadInMs - video.startMs);
+}
+
+function clipMsAt(video: SlideVideo, slideTimeMs: number, shiftMs: number): number {
+  return Math.min(video.endMs, Math.max(0, video.startMs + slideTimeMs + shiftMs));
 }

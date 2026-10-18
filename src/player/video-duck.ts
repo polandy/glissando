@@ -1,4 +1,5 @@
 import { isGroundSlide, type Slide } from "./slideshow";
+import { videoShiftMs } from "./video-clip-plan";
 
 /** The music's volume factor while a clip with sound plays (ADR-0035). */
 export const VIDEO_DUCK_VOLUME = 0.15;
@@ -15,11 +16,13 @@ export interface VideoSoundSpan {
 
 /**
  * The spans, in show time and order, in which a clip with sound plays and the music ducks:
- * volume above 0 and `duckMusic` not `false`.
+ * volume above 0 and `duckMusic` not `false`. A clip shifted into the lead-in of its transition
+ * (`videoShiftMs`) has its span start there too, where its sound actually starts.
  */
 export function videoSoundSpans(slides: readonly Slide[]): readonly VideoSoundSpan[] {
   const spans: VideoSoundSpan[] = [];
   let startMs = 0;
+  let leadInMs = 0;
   for (const slide of slides) {
     const endMs = startMs + slide.durationMs;
     if (
@@ -28,8 +31,9 @@ export function videoSoundSpans(slides: readonly Slide[]): readonly VideoSoundSp
       slide.video.volume > 0 &&
       slide.video.duckMusic !== false
     ) {
-      spans.push({ startMs, endMs });
+      spans.push({ startMs: startMs - videoShiftMs(slide.video, leadInMs), endMs });
     }
+    leadInMs = slide.transitionToNext?.durationMs ?? 0;
     startMs = endMs;
   }
   return spans;

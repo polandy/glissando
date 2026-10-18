@@ -171,3 +171,37 @@ describe("VideoElementPlayback, the sound WebKit refuses", () => {
     expect(secondReady).toBe(1);
   });
 });
+
+describe("VideoElementPlayback.play, starting close to the clock", () => {
+  it("does not seek a clip already within the start tolerance of its place", async () => {
+    const element = new FakeElement();
+    const playback = new VideoElementPlayback(
+      element as unknown as HTMLVideoElement,
+      1,
+      OUTPUT,
+      Promise.resolve(),
+      () => undefined,
+    );
+    element.currentTime = 0;
+
+    await playback.play(40);
+
+    expect(element.currentTime).toBe(0);
+  });
+
+  it("seeks a clip further than the start tolerance from its place", async () => {
+    const element = new FakeElement();
+    const playback = new VideoElementPlayback(
+      element as unknown as HTMLVideoElement,
+      1,
+      OUTPUT,
+      Promise.resolve(),
+      () => undefined,
+    );
+    element.currentTime = 0;
+
+    await playback.play(1000);
+
+    expect(element.currentTime).toBe(1);
+  });
+});

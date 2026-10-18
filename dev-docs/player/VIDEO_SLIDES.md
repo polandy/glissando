@@ -79,24 +79,31 @@ its media; `mediaBytes` counts them.
 
 The slide clock leads; the clip follows it, never the other way round.
 
-- Slide time `t` shows clip time `startMs + t`. A transition into a video slide starts the clip at
-  the start of the transition; a transition out of it shows the clip's last frames while it plays.
-- While the slide time is negative (the lead-in), the clip time is `startMs + slide time` clamped
-  at 0. Where that would be before the file's first frame the clip is held paused at 0 and starts
-  playing when its time reaches 0, so it never plays ahead of the clock and is seeked back.
-- Seeking the show puts the clip at `startMs + t` (the poster is drawn until the frame is ready).
+- Slide time `t` shows clip time `startMs + t + shift`, clamped to `[0, endMs]`. `shift` is 0 once
+  `startMs` already reaches past the transition's lead-in; otherwise it is `leadIn − startMs`, so
+  the clip starts at file time 0 exactly when the transition into its slide starts, instead of
+  waiting there paused while the slide fades in over it (`videoShiftMs` in `video-clip-plan.ts`).
+  A transition out of a video slide shows the clip's last frames while it plays; a clip whose file
+  is too short for its slide reaches `endMs` before the slide ends and holds that frame for the
+  rest of it.
+- Seeking the show puts the clip at its shifted clip time for that moment (the poster is drawn
+  until the frame is ready).
 - A clip that cannot keep up (stalled decoder, slow network source) holds its last frame. A muted
   clip catches up by playing slightly faster or slower; a clip with sound plays at its normal rate
   instead, because changing an audible element's rate stalls its sound on iOS, and is corrected
-  only by a seek once far off. Either way the show's time is never stretched.
+  only by a seek once far off. A clip already within `VIDEO_START_TOLERANCE_MS` (250 ms) of its
+  place when playback starts is left there rather than seeked — a seek right as the sound starts
+  is a visible and audible hitch, and `follow` catches up the small gap on its own. Either way the
+  show's time is never stretched.
 - With reduced motion nothing changes: a clip is content, not decoration.
 
 ## Sound and ducking
 
-- A slide's clip sound is audible for the slide's own duration, at `volume`.
+- A slide's clip sound is audible from `shift` ms into the transition before the slide (sooner
+  than the slide's own start for a shifted clip) until the slide ends, at `volume`.
 - The music volume is multiplied by the **duck factor**: 1 outside a clip with sound; `0.15`
   (`VIDEO_DUCK_VOLUME`) inside it, with linear ramps: `VIDEO_DUCK_RAMP_DOWN_MS` = 1000 ms
-  before the slide so the music is already low when the clip starts, and a slower
+  before the clip's sound starts so the music is already low by then, and a slower
   `VIDEO_DUCK_RAMP_UP_MS` = 1500 ms after it so the music swells back instead of jumping. Pure
   function `duckFactorAt(timeMs, spans)` in `src/player/`; the music's own
   trim and fades (ADR-0009) multiply on top.
