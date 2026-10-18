@@ -20,6 +20,8 @@ export interface ImportPick {
   readonly folderName?: string;
   readonly total: number;
   readonly done: number;
+  /** Of `done`, how many are pictures now in stay; the rest were duplicates or unreadable. */
+  readonly stored: number;
 }
 
 export const FILES_PICK: PickInput = { kind: "files" };
@@ -31,15 +33,21 @@ export function newPick(id: string, input: PickInput, total: number): ImportPick
     ...(input.folderName === undefined ? {} : { folderName: input.folderName }),
     total,
     done: 0,
+    stored: 0,
   };
 }
 
-/** The pick's progress after one more of its files is processed. */
+/** The pick's progress after one more of its files is processed; `stored`: it was kept in. */
 export function pickWithOneDone(
   picks: readonly ImportPick[],
   pickId: string,
+  stored: boolean,
 ): readonly ImportPick[] {
-  return picks.map((pick) => (pick.id === pickId ? { ...pick, done: pick.done + 1 } : pick));
+  return picks.map((pick) =>
+    pick.id === pickId
+      ? { ...pick, done: pick.done + 1, stored: pick.stored + (stored ? 1 : 0) }
+      : pick,
+  );
 }
 
 /** Every pick's waiting files dropped, such as when storage runs full. */

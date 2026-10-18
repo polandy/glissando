@@ -47,7 +47,8 @@ export function applyOutcome(
     return { change: { total: state.total - 1, busy } };
   }
   const done = state.done + 1;
-  const picks = pickId === undefined ? state.picks : pickWithOneDone(state.picks, pickId);
+  const picks =
+    pickId === undefined ? state.picks : pickWithOneDone(state.picks, pickId, outcome.kind === "stored");
   if (outcome.kind === "stored") {
     return {
       change: {

@@ -50,6 +50,7 @@ describe("pickProgress", () => {
     kind: "files",
     total,
     done,
+    stored: done,
   });
 
   it("marks the earliest unfinished pick as the one in flight", () => {

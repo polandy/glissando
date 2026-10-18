@@ -16,8 +16,19 @@ describe("PictureImport, picks", () => {
     await pictureImport.settled();
 
     expect(pictureImport.state.picks).toEqual([
-      { id: "pick-1", kind: "files", total: 2, done: 2 },
-      { id: "pick-2", kind: "folder", folderName: "Vacation", total: 1, done: 1 },
+      { id: "pick-1", kind: "files", total: 2, done: 2, stored: 2 },
+      { id: "pick-2", kind: "folder", folderName: "Vacation", total: 1, done: 1, stored: 1 },
+    ]);
+  });
+
+  it("counts a pick's stored pictures apart from its skipped or duplicate files", async () => {
+    const { pictureImport, addFiles } = setUp();
+
+    addFiles([picture("a.jpg"), picture("a.jpg"), picture("notes.txt", "text/plain")]);
+    await pictureImport.settled();
+
+    expect(pictureImport.state.picks).toEqual([
+      { id: "pick-1", kind: "files", total: 2, done: 2, stored: 1 },
     ]);
   });
 
@@ -35,8 +46,8 @@ describe("PictureImport, picks", () => {
 
     expect(pictureImport.state).toMatchObject({ total: 2, done: 1, busy: true });
     expect(pictureImport.state.picks).toEqual([
-      { id: "pick-1", kind: "files", total: 1, done: 1 },
-      { id: "pick-2", kind: "files", total: 0, done: 0 },
+      { id: "pick-1", kind: "files", total: 1, done: 1, stored: 1 },
+      { id: "pick-2", kind: "files", total: 0, done: 0, stored: 0 },
     ]);
 
     decoder.open();
@@ -45,8 +56,8 @@ describe("PictureImport, picks", () => {
     expect(fileNames(pictureImport.state)).toEqual(["a.jpg"]);
     expect(pictureImport.state).toMatchObject({ total: 1, done: 1, busy: false });
     expect(pictureImport.state.picks).toEqual([
-      { id: "pick-1", kind: "files", total: 1, done: 1 },
-      { id: "pick-2", kind: "files", total: 0, done: 0 },
+      { id: "pick-1", kind: "files", total: 1, done: 1, stored: 1 },
+      { id: "pick-2", kind: "files", total: 0, done: 0, stored: 0 },
     ]);
   });
 
@@ -66,8 +77,8 @@ describe("PictureImport, picks", () => {
     expect(fileNames(pictureImport.state)).toEqual(["a.jpg"]);
     expect(pictureImport.state).toMatchObject({ total: 1, done: 1, busy: false });
     expect(pictureImport.state.picks).toEqual([
-      { id: "pick-1", kind: "files", total: 1, done: 1 },
-      { id: "pick-2", kind: "files", total: 0, done: 0 },
+      { id: "pick-1", kind: "files", total: 1, done: 1, stored: 1 },
+      { id: "pick-2", kind: "files", total: 0, done: 0, stored: 0 },
     ]);
   });
 
@@ -106,6 +117,8 @@ describe("PictureImport, picks", () => {
     await pictureImport.settled();
 
     expect(pictureImport.state).toMatchObject({ total: 1, done: 1, storageFull: true });
-    expect(pictureImport.state.picks).toEqual([{ id: "pick-1", kind: "files", total: 1, done: 1 }]);
+    expect(pictureImport.state.picks).toEqual([
+      { id: "pick-1", kind: "files", total: 1, done: 1, stored: 1 },
+    ]);
   });
 });

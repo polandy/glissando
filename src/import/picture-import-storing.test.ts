@@ -42,7 +42,7 @@ describe("PictureImport, storing pictures", () => {
           colours: { veil: "#262626", accent: "#BEBEBE" },
         },
       ],
-      picks: [{ id: "pick-1", kind: "files", total: 1, done: 1 }],
+      picks: [{ id: "pick-1", kind: "files", total: 1, done: 1, stored: 1 }],
       skipped: [],
       storageFull: false,
       busy: false,
