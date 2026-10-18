@@ -8,9 +8,9 @@ rename the file so it ends in .zip instead of .glissando and open it as you woul
 
 What is inside:
 
-  glissando.json         The slideshow itself: its settings and the order of its pictures,
+  glissando.json          The slideshow itself: its settings and the order of its pictures,
                           music and video clips, as JSON.
-  glissando.schema.json  A JSON Schema describing glissando.json's shape.
+  glissando.schema.json   A JSON Schema describing glissando.json's shape.
   pictures/               The pictures, full size.
   thumbnails/             Small previews of the pictures, shown while browsing.
   music/                  The music tracks.

@@ -124,7 +124,6 @@ export function withoutAt(doc: unknown, path: readonly (string | number)[]): unk
     target = target[segment] as Record<string | number, unknown>;
   }
   const key = path[path.length - 1] as string | number;
-  // eslint-disable-next-line @typescript-eslint/no-dynamic-delete -- the key is a test-case path, not user input
-  delete target[key];
+  Reflect.deleteProperty(target, key);
   return result;
 }
