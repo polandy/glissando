@@ -26,9 +26,10 @@ export interface QueueRows {
 }
 
 export function queueRows(picks: readonly ImportPick[]): QueueRows {
-  const rows = pickProgress(picks).map(
-    (progress): QueueRow => ({ ...progress, finished: progress.pick.done >= progress.pick.total }),
-  );
+  const rows = pickProgress(picks).map((progress): QueueRow => ({
+    ...progress,
+    finished: progress.pick.done >= progress.pick.total,
+  }));
   return {
     rows: rows.slice(-VISIBLE_ROWS),
     earlierDone: Math.max(0, rows.length - VISIBLE_ROWS),

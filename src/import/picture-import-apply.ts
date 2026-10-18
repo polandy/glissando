@@ -48,7 +48,9 @@ export function applyOutcome(
   }
   const done = state.done + 1;
   const picks =
-    pickId === undefined ? state.picks : pickWithOneDone(state.picks, pickId, outcome.kind === "stored");
+    pickId === undefined
+      ? state.picks
+      : pickWithOneDone(state.picks, pickId, outcome.kind === "stored");
   if (outcome.kind === "stored") {
     return {
       change: {

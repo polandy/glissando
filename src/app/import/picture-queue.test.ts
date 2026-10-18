@@ -67,7 +67,14 @@ describe("queueRows", () => {
 
 describe("pickName", () => {
   it("names a folder pick by its folder name", () => {
-    const folder: ImportPick = { id: "a", kind: "folder", folderName: "Beach 2025", done: 1, total: 3, stored: 1 };
+    const folder: ImportPick = {
+      id: "a",
+      kind: "folder",
+      folderName: "Beach 2025",
+      done: 1,
+      total: 3,
+      stored: 1,
+    };
 
     expect(pickName(folder, t)).toBe("Beach 2025");
   });
