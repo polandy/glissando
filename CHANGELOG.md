@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.0.7](https://github.com/polandy/glissando/compare/glissando-v0.0.6...glissando-v0.0.7) (2026-10-17)
+
+
+### Features
+
+* check every opened .glissando file as foreign before storing it ([#97](https://github.com/polandy/glissando/issues/97)) ([ba5b289](https://github.com/polandy/glissando/commit/ba5b2893603bf48f7b0e039a9de8cf8a1d26b03f))
+
+
+### Bug Fixes
+
+* let the iPad pick MP3s from any storage location ([#95](https://github.com/polandy/glissando/issues/95)) ([e8fb269](https://github.com/polandy/glissando/commit/e8fb269956676d48741dfb2ce2f3bda465c684dd))
+
 ## [0.0.6](https://github.com/polandy/glissando/compare/glissando-v0.0.5...glissando-v0.0.6) (2026-10-17)
 
 
