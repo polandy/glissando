@@ -17,6 +17,7 @@ export interface StripKeydownPorts {
   readonly onSelectionChange: (next: StripSelection) => void;
   readonly onShiftGroup: (pictureIds: readonly string[], offset: number) => void;
   readonly onRemoveGroup: (pictureIds: readonly string[]) => void;
+  readonly onView: (pictureId: string) => void;
 }
 
 /**
@@ -84,6 +85,9 @@ export class StripKeydown {
       }
       case "remove":
         this.#removeByKey(pictureId, index);
+        break;
+      case "view":
+        this.#ports.onView(pictureId);
         break;
       case "none":
         break;

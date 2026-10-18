@@ -2,7 +2,7 @@
 export type StripKeyAction =
   | { readonly kind: "focus"; readonly index: number }
   | { readonly kind: "shift"; readonly offset: number }
-  | { readonly kind: "toggle" | "addToggle" | "range" | "remove" | "deselect" | "none" };
+  | { readonly kind: "toggle" | "addToggle" | "range" | "remove" | "deselect" | "view" | "none" };
 
 const HORIZONTAL_STEPS: Readonly<Record<string, number>> = { ArrowLeft: -1, ArrowRight: 1 };
 const VERTICAL_STEPS: Readonly<Record<string, number>> = { ArrowUp: -1, ArrowDown: 1 };
@@ -16,6 +16,7 @@ const KEY_ACTIONS: Readonly<Record<string, "remove" | "deselect">> = {
  * Arrows walk the grid (up and down by one row of `columns`); Shift+arrows carry the group by
  * that step instead (ADR-0019, `group-order.ts` clamps it, so this needs no range check). Space
  * and Enter toggle the tile; Ctrl/⌘+Space and Shift+Space start or extend selecting several.
+ * Plain F (no modifiers, so Ctrl/⌘+F still finds) opens the tile in the full-screen viewer.
  */
 export function stripKeyAction(
   event: {
@@ -36,6 +37,10 @@ export function stripKeyAction(
   }
   if (event.key === "Enter") {
     return { kind: "toggle" };
+  }
+  const plainF = event.key === "f" || event.key === "F";
+  if (plainF && !event.shiftKey && !event.ctrlKey && !event.metaKey) {
+    return { kind: "view" };
   }
   const named = KEY_ACTIONS[event.key];
   if (named !== undefined) {

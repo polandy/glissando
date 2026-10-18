@@ -88,6 +88,7 @@
     class="pick"
     type="button"
     data-picture-id={picture.id}
+    data-view-id={picture.id}
     aria-pressed={selected}
     onclick={onPick}
     ondblclick={() => {

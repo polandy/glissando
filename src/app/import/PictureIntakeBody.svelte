@@ -8,11 +8,11 @@
   import { browserObjectUrls, ObjectUrls } from "../media/object-urls";
   import ChosenPicturesStrip from "./ChosenPicturesStrip.svelte";
   import DropZone from "./DropZone.svelte";
-  import PictureViewer from "./PictureViewer.svelte";
+  import PictureViewer from "../components/PictureViewer.svelte";
   import PicturesProgress from "./PicturesProgress.svelte";
   import SetAsidePictures from "./SetAsidePictures.svelte";
   import type { PictureIntake } from "./picture-intake";
-  import { viewerEntries } from "./picture-viewer-view";
+  import { viewerEntries } from "../components/picture-viewer-view";
   import {
     captureRange,
     longVideoCount,

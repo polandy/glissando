@@ -22,6 +22,7 @@
     mousePointer,
     onSelectionChange,
     onOpen,
+    onView,
     onRemove,
     onRemoveGroup,
     onShiftGroup,
@@ -53,6 +54,8 @@
     onAdd: () => void;
     /** Opens the picture editor. */
     onOpen: (pictureId: string) => void;
+    /** F on a focused tile: opens it in the full-screen viewer. */
+    onView: (pictureId: string) => void;
     /** The title slide; absent until the editor creates it (TITLE_SLIDES.md). */
     openingCard?: StoredCard | undefined;
     /** The closing slide; absent until the editor creates it (TITLE_SLIDES.md). */
@@ -162,6 +165,7 @@
     onSelectionChange,
     onShiftGroup,
     onRemoveGroup,
+    onView,
   });
 
   function keydown(event: KeyboardEvent, pictureId: string, index: number): void {

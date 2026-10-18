@@ -1,19 +1,16 @@
 import { describe, expect, it } from "vitest";
-import type { StoredPicture } from "../../library/stored-slideshow";
-import type { SetAsideGroup } from "./picture-culling";
-import { neighbourAfterRemoval, stepFrom, viewerEntries } from "./picture-viewer-view";
+import {
+  neighbourAfterRemoval,
+  stepFrom,
+  viewerEntries,
+  type SetAsideReason,
+  type ViewerPicture,
+} from "./picture-viewer-view";
 
-const picture = (id: string): StoredPicture => ({
-  id,
-  capturedAt: "2026-07-01T12:00:00Z",
-  width: 4,
-  height: 3,
-  fileName: `${id}.jpg`,
-  colours: { veil: "#404040", accent: "#C0C0C0" },
-});
+const picture = (id: string): ViewerPicture => ({ id, capturedAt: "2026-07-01T12:00:00Z" });
 
-const GROUPS: readonly SetAsideGroup[] = [
-  { kind: "similar", keptId: "a", pictures: [picture("s1"), picture("s2")] },
+const GROUPS: readonly { kind: SetAsideReason; pictures: readonly ViewerPicture[] }[] = [
+  { kind: "similar", pictures: [picture("s1"), picture("s2")] },
   { kind: "blurry", pictures: [picture("b1")] },
 ];
 

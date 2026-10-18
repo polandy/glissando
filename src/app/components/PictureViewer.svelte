@@ -1,14 +1,14 @@
 <script lang="ts">
   import { onDestroy, onMount } from "svelte";
-  import Icon from "../components/Icon.svelte";
   import { getTranslator } from "../i18n/context";
   import { browserObjectUrls, ObjectUrls } from "../media/object-urls";
-  import ViewerBottomBar from "./ViewerBottomBar.svelte";
+  import Icon from "./Icon.svelte";
   import { neighbourAfterRemoval, stepFrom, type ViewerEntry } from "./picture-viewer-view";
+  import ViewerBottomBar from "./ViewerBottomBar.svelte";
 
   /**
-   * One picture of the pictures step full screen, over the step: its date, a way to browse the
-   * pictures in order, and the decision the tile has too (remove it, or take a set-aside one in).
+   * One picture shown full screen: its date, a way to browse the pictures in order, and the
+   * decision the tile has too, each left out by the caller when it does not apply.
    */
   let {
     entries,
@@ -21,7 +21,7 @@
     onTakeIn,
     onClose,
   }: {
-    /** The strip's pictures, then the set-aside ones. */
+    /** The strip's pictures, then the set-aside ones, if any. */
     entries: readonly ViewerEntry[];
     pictureId: string;
     /** Thumbnail URLs by picture id: shown until the full picture has loaded, and in the filmstrip. */
@@ -29,11 +29,11 @@
     loadPicture: (pictureId: string) => Promise<Blob>;
     onError: (error: unknown) => void;
     onShow: (pictureId: string) => void;
-    onRemove: (pictureId: string) => void;
-    onTakeIn: (pictureId: string) => void;
-    onClose: () => void;
+    /** Left out to hide "Remove" (the last-picture rule); `onTakeIn` left out with no set-aside. */
+    onRemove?: ((pictureId: string) => void) | undefined;
+    onTakeIn?: ((pictureId: string) => void) | undefined;
+    onClose: (shownPictureId: string) => void;
   } = $props();
-
   const SWIPE_MIN_PX = 50;
   const REMOVE_KEYS: ReadonlySet<string> = new Set(["Delete", "Backspace"]);
   const { t, formatDate, formatTime } = getTranslator();
@@ -81,9 +81,10 @@
 
   /** The next picture follows, or the viewer closes with none left. */
   function remove(): void {
+    if (onRemove === undefined) return;
     const next = neighbourAfterRemoval(entries, pictureId);
     onRemove(pictureId);
-    if (next === null) onClose();
+    if (next === null) onClose(pictureId);
     else onShow(next);
   }
 
@@ -103,10 +104,11 @@
 
   function onKeydown(event: KeyboardEvent): void {
     if (entry === undefined) return;
-    if (event.key === "Escape") onClose();
+    if (event.key === "Escape") onClose(pictureId);
     else if (event.key === "ArrowLeft") show(previousId);
     else if (event.key === "ArrowRight") show(nextId);
-    else if (REMOVE_KEYS.has(event.key) && entry.setAside === null) remove();
+    else if (onRemove !== undefined && REMOVE_KEYS.has(event.key) && entry.setAside === null)
+      remove();
     else if (event.key === "Tab") keepFocusInside(event);
     else return;
     if (event.key !== "Tab") event.preventDefault();
@@ -149,7 +151,7 @@
         type="button"
         bind:this={closeButton}
         aria-label={t("common.close")}
-        onclick={onClose}
+        onclick={() => onClose(pictureId)}
       >
         <Icon name="close" />
       </button>
@@ -190,8 +192,8 @@
       setAside={entry.setAside}
       hidden={barsHidden}
       {onShow}
-      onRemove={remove}
-      onTakeIn={() => onTakeIn(pictureId)}
+      onRemove={onRemove === undefined ? undefined : remove}
+      onTakeIn={onTakeIn === undefined ? undefined : () => onTakeIn(pictureId)}
     />
   </div>
 {/if}
