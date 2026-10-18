@@ -1,11 +1,15 @@
 import { VideoPlaybackError, type LiveFrame, type VideoPlayback } from "../ports";
 import type { MusicVolume } from "./music-output";
 
-/** A clip further than this from where the slide clock puts it is seeked. */
+/** A clip further than this from where the slide clock puts it is seeked, muted or not. */
 export const VIDEO_SEEK_DRIFT_MS = 2000;
-/** A clip closer than this to the clock plays at its normal rate. */
+/** A muted clip closer than this to the clock plays at its normal rate. */
 export const VIDEO_RATE_TOLERANCE_MS = 60;
-/** Between the two, a clip catches up by playing faster or slower, which a seek would stall. */
+/**
+ * Between the two, a muted clip catches up by playing faster or slower, which a seek would
+ * stall. An audible clip never does: changing its rate stalls its sound pipeline on iOS, so it
+ * waits for the seek instead (dev-docs/player/TIMING.md).
+ */
 const MIN_CATCH_UP_RATE = 0.8;
 const MAX_CATCH_UP_RATE = 1.25;
 const CATCH_UP_WINDOW_MS = 1000;
@@ -138,13 +142,23 @@ export class VideoElementPlayback implements VideoPlayback {
     }
     const aheadMs = this.#element.currentTime * MS_PER_SECOND - clipMs;
     if (Math.abs(aheadMs) > VIDEO_SEEK_DRIFT_MS) {
-      this.#element.playbackRate = 1;
+      this.#setRate(1);
       this.#moveTo(clipMs);
+    } else if (!this.#element.muted) {
+      // A rate change stalls an audible element's sound on iOS; only the seek above mends it.
+      this.#setRate(1);
     } else if (Math.abs(aheadMs) > VIDEO_RATE_TOLERANCE_MS) {
       const rate = 1 - aheadMs / CATCH_UP_WINDOW_MS;
-      this.#element.playbackRate = Math.min(MAX_CATCH_UP_RATE, Math.max(MIN_CATCH_UP_RATE, rate));
+      this.#setRate(Math.min(MAX_CATCH_UP_RATE, Math.max(MIN_CATCH_UP_RATE, rate)));
     } else {
-      this.#element.playbackRate = 1;
+      this.#setRate(1);
+    }
+  }
+
+  /** Avoids a redundant write: Safari fires a `ratechange` event even when the value is unchanged. */
+  #setRate(rate: number): void {
+    if (this.#element.playbackRate !== rate) {
+      this.#element.playbackRate = rate;
     }
   }
 

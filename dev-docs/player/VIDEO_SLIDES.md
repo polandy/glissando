@@ -85,8 +85,10 @@ The slide clock leads; the clip follows it, never the other way round.
   at 0. Where that would be before the file's first frame the clip is held paused at 0 and starts
   playing when its time reaches 0, so it never plays ahead of the clock and is seeked back.
 - Seeking the show puts the clip at `startMs + t` (the poster is drawn until the frame is ready).
-- A clip that cannot keep up (stalled decoder, slow network source) holds its last frame and
-  catches up by playing slightly faster or slower, and by seeking only when far off; the show's time is never stretched.
+- A clip that cannot keep up (stalled decoder, slow network source) holds its last frame. A muted
+  clip catches up by playing slightly faster or slower; a clip with sound plays at its normal rate
+  instead, because changing an audible element's rate stalls its sound on iOS, and is corrected
+  only by a seek once far off. Either way the show's time is never stretched.
 - With reduced motion nothing changes: a clip is content, not decoration.
 
 ## Sound and ducking
