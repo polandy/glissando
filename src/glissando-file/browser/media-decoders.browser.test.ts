@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { THUMBNAIL_BOUND } from "../../import/downscale";
 import { browserMediaDecoders } from "./media-decoders";
 
 /** A canvas filled with a flat colour, encoded as `type`; null where the browser cannot encode it. */
@@ -63,6 +64,25 @@ describe("browserMediaDecoders", () => {
       return;
     }
     expect(await decoders.picture(blob)).toEqual({ width: 5, height: 4 });
+  });
+
+  it("makes a JPEG thumbnail within the thumbnail bound, keeping the picture's aspect", async () => {
+    const picture = await canvasBlob(
+      "image/png",
+      THUMBNAIL_BOUND.longEdge * 2,
+      THUMBNAIL_BOUND.longEdge,
+    );
+    if (picture === null) {
+      throw new Error("this browser could not encode image/png");
+    }
+
+    const thumbnail = await decoders.thumbnail(picture);
+
+    expect(thumbnail.type).toBe("image/jpeg");
+    expect(await decoders.picture(thumbnail)).toEqual({
+      width: THUMBNAIL_BOUND.longEdge,
+      height: THUMBNAIL_BOUND.longEdge / 2,
+    });
   });
 
   it("refuses bytes that claim to be a JPEG but do not decode", async () => {

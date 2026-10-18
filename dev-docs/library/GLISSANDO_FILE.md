@@ -1,12 +1,15 @@
 # The .glissando file
 
-One slideshow as one file, to move it between devices (`src/glissando-file/`). A ZIP whose
-entries are stored, not compressed, so any unzip tool opens it; no ZIP64, so it stays under
-4 GiB and 65,535 entries. Every opened file is foreign and possibly hostile (ADR-0038):
+One slideshow as one file, to move it between devices (`src/glissando-file/`). A ZIP; the export
+stores its entries, not compressed, in the order of the table, and any unzip tool opens it. No
+ZIP64, so it stays under 4 GiB and 65,535 entries. Glissando also opens a copy a ZIP tool packed
+again (`zip-reader.ts`, `entry-layout.ts`): entries stored or deflated (unpacked with
+`DecompressionStream("deflate-raw")`), in any order. Every opened file is foreign and possibly
+hostile (ADR-0038):
 
 | Entry                   | Content                                                                                                              |
 | ----------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| `glissando.json`        | always first: `format` "glissando", `formatVersion` 14, the `slideshow`                                              |
+| `glissando.json`        | first, as the export writes it: `format` "glissando", `formatVersion` 14, the `slideshow`                            |
 | `pictures/0001.jpg` …   | the display renditions in play order, as stored (numbered from 0001)                                                 |
 | `thumbnails/0001.jpg`…  | their thumbnails, as stored                                                                                          |
 | `music/track-<n>.<ext>` | the playlist's n-th song (from 1), extension from its file name (none when it has none)                              |
@@ -28,8 +31,14 @@ leading, trailing or repeated whitespace); the reason names its path and value.
   the container from their blobs; the file is named after the title, characters a file system
   refuses replaced by "-".
 - **Check first, then write** (`checkGlissandoFile`): before anything is stored the file must
-  start with `glissando.json` (else _foreign_), have a readable ZIP directory whose entries match
-  their local headers and are stored (else _damaged_), a manifest of this format (else
+  start like a ZIP (else _foreign_), have a readable ZIP directory whose entries match their local
+  headers, with no name twice (else _damaged_), and hold `glissando.json` (else _foreign_). Entries
+  a ZIP tool adds by itself are skipped unread: an empty directory entry (`pictures/`), anything
+  under `__MACOSX/`, a `._` file, `.DS_Store`, `Thumbs.db` and `desktop.ini` (by name, any case),
+  never one whose name leaves its folder. When `glissando.json` is not at the top but in exactly one
+  top-level folder (zipping the folder itself, as Finder's "Compress" or Windows' "Compressed
+  folder" do), that folder is taken off every name; an entry outside it keeps its name. Then a
+  manifest of this format (else
   _foreign_) and no higher version (else _newer_) that validates (else _damaged_), every media
   file it names present, and fit into the free storage (`navigator.storage.estimate()`, quota
   minus usage; else _too large_, skipped where the browser cannot tell, e.g. over plain HTTP).
@@ -37,13 +46,19 @@ leading, trailing or repeated whitespace); the reason names its path and value.
   `README.txt`, `index.html` or match its kind's pattern in the table, and each media path the
   manifest names that of its own kind (no `../`, no absolute path, no directory entry); the
   manifest may hold 8 MiB, a picture 64 MiB, a thumbnail 4 MiB, a clip 1 GiB and all entries
-  together under 4 GiB (else _damaged_). `README.txt`, `index.html` and the schema are never read.
-  Last, one media file at a time: its CRC-32; for a picture or thumbnail its size from its header
+  together under 4 GiB (else _damaged_), each by the unpacked size the ZIP directory declares; a
+  skipped entry counts in the total too. `README.txt`, `index.html` and the schema are never read.
+  Last, one media file at a time: unpacked when deflated, stopping as soon as it passes its
+  declared size (a ZIP bomb), and refused with any other method (named), encrypted, or short of
+  its declared size; its CRC-32 over the unpacked bytes; for a picture or thumbnail its size from its header
   (JPEG, PNG, WebP), which must fit the display or thumbnail bound and, for a picture, equal its
   `width` and `height`, before it is decoded; then it is decoded (a picture to its header size, a
   song by Web Audio at the beat-detection rate, a clip's metadata loaded). Any failure is
-  _damaged_ and names the entry: one damaged picture refuses the whole file. Each media file, a
-  clip too, is read as a slice of the file, never all at once. A clip counts in
+  _damaged_ and names the entry: one damaged picture refuses the whole file. A thumbnail the
+  manifest names but the file lacks is made again from its picture once that passed, as an import
+  makes one (JPEG, `THUMBNAIL_BOUND`), and counts in the media bytes. Each stored media file, a
+  clip too, is read as a slice of the file, never all at once; a deflated one is unpacked into
+  memory one file at a time, during the check and again when it is written. A clip counts in
   the media bytes that must fit, once however many slides play it; two slides naming one clip file with two types make the file damaged.
 - **Write** (`writeGlissandoFile`): always a new slideshow with fresh ids, created now, keeping
   every setting the file carries (picture length, portrait pictures, each picture's `alone` mark); a title

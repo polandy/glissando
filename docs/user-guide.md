@@ -40,7 +40,9 @@ All three are in the ⋯ menu at the top right of a slideshow.
 - **Save as web page**: one file that plays in any browser, no Glissando needed.
 - **Save as Glissando file**: moves a slideshow with its pictures, music and settings to another
   device; import it there. Glissando checks a file whole, every picture and song included, before
-  it keeps anything of it, and refuses a file that is damaged or not what it claims to be.
+  it keeps anything of it, and refuses a file that is damaged or not what it claims to be. The
+  file is a ZIP: rename it to `.zip` to look inside. A copy you unpacked, edited and zipped again
+  (the folder itself or its contents) still opens; missing thumbnails are made again.
 - **Share link, TV, picture frame** need a self-hosted Glissando
   ([self-hosting](self-hosting.md)): a link anyone can watch, a TV you control from the phone
   (`/tv`), and an Immich album played endlessly (the Picture frame card, or Settings).

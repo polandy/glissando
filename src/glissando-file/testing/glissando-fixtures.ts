@@ -2,6 +2,7 @@ import type { StoredSlideshow } from "../../library/stored-slideshow";
 import { MemoryLibraryStore } from "../../library/testing/memory-store";
 import { exportSlideshow } from "../export-slideshow";
 import { StoredZipWriter } from "../stored-zip";
+import { readEntry, readZipDirectory } from "../zip-reader";
 
 export const MODIFIED_AT = new Date("2025-10-01T08:00:00Z");
 
@@ -104,6 +105,19 @@ export async function exportedFile(slideshow = EXPORTED_SLIDESHOW): Promise<Blob
   });
   await store.putMusic("src-m1", new Blob([EXPORTED_MUSIC_BYTES_TEXT], { type: "audio/mp4" }));
   return exportSlideshow(slideshow, store, { modifiedAt: MODIFIED_AT });
+}
+
+/** Every entry's bytes as text, by name, as the reader unpacks them. */
+export async function entryTexts(file: Blob): Promise<Record<string, string>> {
+  const texts: Record<string, string> = {};
+  for (const entry of (await readZipDirectory(file)) ?? []) {
+    const read = await readEntry(file, entry);
+    if (read.kind !== "ok") {
+      throw new Error(`the fixture's "${entry.name}" does not read: ${read.reason}`);
+    }
+    texts[entry.name] = await read.data.text();
+  }
+  return texts;
 }
 
 /** A stored ZIP of the given entries, in order; a string entry becomes its UTF-8 bytes. */

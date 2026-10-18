@@ -3,10 +3,10 @@ import { DISPLAY_BOUND } from "../import/downscale";
 import { checkGlissandoFile, type GlissandoFileCheck } from "./check-glissando-file";
 import { GLISSANDO_FORMAT_VERSION } from "./glissando-manifest";
 import { MAX_MANIFEST_BYTES, MAX_THUMBNAIL_BYTES } from "./file-limits";
-import { entryData, readZipDirectory } from "./stored-zip";
 import { fakeMediaDecoders } from "./testing/fake-media-decoders";
 import {
   EXPORTED_MEDIA_BYTES,
+  entryTexts,
   exportedFile,
   tinyPicture,
   withBytesReplaced,
@@ -39,8 +39,7 @@ async function manifestText(
   change: (manifest: Record<string, unknown>) => unknown,
 ): Promise<string> {
   const file = await exportedFile();
-  const [first] = (await readZipDirectory(file)) ?? [];
-  const manifest = JSON.parse(first ? await entryData(file, first).text() : "{}") as Record<
+  const manifest = JSON.parse((await entryTexts(file))["glissando.json"] ?? "{}") as Record<
     string,
     unknown
   >;
@@ -293,8 +292,8 @@ describe("checkGlissandoFile", () => {
     if (check.kind !== "ok") {
       return;
     }
-    expect(() => check.contents.media("README.txt")).toThrow();
-    expect(() => check.contents.media("index.html")).toThrow();
-    expect(() => check.contents.media("glissando.schema.json")).toThrow();
+    await expect(check.contents.media("README.txt")).rejects.toThrow();
+    await expect(check.contents.media("index.html")).rejects.toThrow();
+    await expect(check.contents.media("glissando.schema.json")).rejects.toThrow();
   });
 });

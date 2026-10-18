@@ -81,10 +81,10 @@ export async function writeGlissandoFile(
     const pictures: StoredPicture[] = [];
     for (const [index, picture] of slideshow.pictures.entries()) {
       options.onStep?.({ kind: "picture", number: index + 1, count, fraction: written / files });
-      const id = await claimed((pictureId) =>
+      const id = await claimed(async (pictureId) =>
         store.putPicture(pictureId, {
-          display: contents.media(picture.file),
-          thumbnail: contents.media(picture.thumbnail),
+          display: await contents.media(picture.file),
+          thumbnail: await contents.media(picture.thumbnail),
         }),
       );
       written += 2;
@@ -112,7 +112,9 @@ export async function writeGlissandoFile(
         count: songCount,
         fraction: written / files,
       });
-      const id = await claimed((musicId) => store.putMusic(musicId, contents.media(song.file)));
+      const id = await claimed(async (musicId) =>
+        store.putMusic(musicId, await contents.media(song.file)),
+      );
       written += 1;
       songs.push({
         id,
@@ -130,7 +132,9 @@ export async function writeGlissandoFile(
         count: clipFiles.length,
         fraction: written / files,
       });
-      const id = await claimed((videoId) => store.putVideo(videoId, contents.media(clip.file)));
+      const id = await claimed(async (videoId) =>
+        store.putVideo(videoId, await contents.media(clip.file)),
+      );
       written += 1;
       clipIds.set(clip.file, id);
     }
