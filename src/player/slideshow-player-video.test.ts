@@ -194,7 +194,7 @@ describe("a player with video slides", () => {
 
   it("multiplies the music's volume by the duck factor while the clip's sound plays", async () => {
     const run = setUp();
-    run.player.currentTime = (4000 + VIDEO_DUCK_RAMP_DOWN_MS / 2) / 1000;
+    run.player.currentTime = (4000 - VIDEO_DUCK_RAMP_DOWN_MS / 2) / 1000;
     await run.showing("a.jpg", "v.jpg");
     run.player.play();
     expect(run.music.volume).toBeCloseTo((1 + VIDEO_DUCK_VOLUME) / 2, 5);

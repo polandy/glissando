@@ -12,11 +12,11 @@ describe("duckGainRamps", () => {
     ]);
   });
 
-  it("ramps down starting at the span, holds, and ramps up after it", () => {
+  it("ramps down before the span, holds, and ramps up after it", () => {
     expect(duckGainRamps([SPAN], 8000, 16_000)).toEqual([
       { atMs: 0, gain: 1, kind: "set" },
-      { atMs: 2000, gain: 1, kind: "ramp" },
-      { atMs: 3000, gain: VIDEO_DUCK_VOLUME, kind: "ramp" },
+      { atMs: 1000, gain: 1, kind: "ramp" },
+      { atMs: 2000, gain: VIDEO_DUCK_VOLUME, kind: "ramp" },
       { atMs: 6000, gain: VIDEO_DUCK_VOLUME, kind: "ramp" },
       { atMs: 7500, gain: 1, kind: "ramp" },
       { atMs: 8000, gain: 1, kind: "ramp" },
@@ -24,16 +24,16 @@ describe("duckGainRamps", () => {
   });
 
   it("starts a window inside a ramp at the factor there", () => {
-    const [first] = duckGainRamps([SPAN], SPAN.startMs + VIDEO_DUCK_RAMP_DOWN_MS / 2, 11_000);
+    const [first] = duckGainRamps([SPAN], 10_000 - VIDEO_DUCK_RAMP_DOWN_MS / 2, 11_000);
 
     expect(first).toEqual({
       atMs: 0,
-      gain: duckFactorAt(SPAN.startMs + VIDEO_DUCK_RAMP_DOWN_MS / 2, [SPAN]),
+      gain: duckFactorAt(10_000 - VIDEO_DUCK_RAMP_DOWN_MS / 2, [SPAN]),
       kind: "set",
     });
   });
 
-  it("stays ducked between two clips closer than a ramp up", () => {
+  it("stays ducked between two clips closer than a ramp up and a ramp down", () => {
     const next = { startMs: 14_500, endMs: 18_000 };
     const points = duckGainRamps([SPAN, next], 13_000, 15_500);
 

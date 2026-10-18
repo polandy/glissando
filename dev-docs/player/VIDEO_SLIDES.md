@@ -101,14 +101,14 @@ The slide clock leads; the clip follows it, never the other way round.
 
 - A slide's clip sound is audible from `shift` ms into the transition before the slide (sooner
   than the slide's own start for a shifted clip) until the slide ends, at `volume`.
-- The music volume is multiplied by the **duck factor**: 1 before a clip's sound starts; it
-  ramps down, linearly over `VIDEO_DUCK_RAMP_DOWN_MS` = 1000 ms starting there, to `0.35`
-  (`VIDEO_DUCK_VOLUME`) so the music cross-fades with the clip's sound and stays audible under
-  it. It holds at `0.35` until the slide ends, then ramps back up over a slower
+- The music volume is multiplied by the **duck factor**: 1 outside a clip with sound; it ramps
+  down, linearly over `VIDEO_DUCK_RAMP_DOWN_MS` = 1000 ms, to `0.35` (`VIDEO_DUCK_VOLUME`) so the
+  music is already quieter — staying audible, never vanishing — by the time the clip's sound
+  starts. It holds at `0.35` until the slide ends, then ramps back up over a slower
   `VIDEO_DUCK_RAMP_UP_MS` = 1500 ms so the music swells back instead of jumping. Pure function
   `duckFactorAt(timeMs, spans)` in `src/player/`; the music's own trim and fades (ADR-0009)
   multiply on top.
-- Two clips closer together than a ramp up stay ducked between them.
+- Two clips closer together than a ramp up plus a ramp down stay ducked between them.
 - WebKit (iPadOS/iOS Safari) allows a `<video>` element's audible `play()` only once that element
   itself played inside a user gesture. The player keeps a small pool of elements blessed in the
   Play gesture (`VideoElementPool`, `video-element-pool.ts`) and reuses them for later clips; past

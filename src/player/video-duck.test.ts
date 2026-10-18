@@ -13,14 +13,13 @@ const SPAN = { startMs: 10_000, endMs: 20_000 };
 describe("duckFactorAt", () => {
   it.each([
     ["far before the span", 0, 1],
-    ["just before the span starts", SPAN.startMs - 1, 1],
-    ["where the span starts and the ramp down begins", SPAN.startMs, 1],
+    ["where the ramp down starts", SPAN.startMs - VIDEO_DUCK_RAMP_DOWN_MS, 1],
     [
       "halfway down the ramp",
-      SPAN.startMs + VIDEO_DUCK_RAMP_DOWN_MS / 2,
+      SPAN.startMs - VIDEO_DUCK_RAMP_DOWN_MS / 2,
       (1 + VIDEO_DUCK_VOLUME) / 2,
     ],
-    ["where the ramp down ends", SPAN.startMs + VIDEO_DUCK_RAMP_DOWN_MS, VIDEO_DUCK_VOLUME],
+    ["where the slide starts", SPAN.startMs, VIDEO_DUCK_VOLUME],
     ["inside the span", 15_000, VIDEO_DUCK_VOLUME],
     ["where the slide ends", SPAN.endMs, VIDEO_DUCK_VOLUME],
     ["halfway up the ramp", SPAN.endMs + VIDEO_DUCK_RAMP_UP_MS / 2, (1 + VIDEO_DUCK_VOLUME) / 2],
@@ -38,18 +37,18 @@ describe("duckFactorAt", () => {
     expect(VIDEO_DUCK_RAMP_UP_MS).toBeGreaterThan(VIDEO_DUCK_RAMP_DOWN_MS);
   });
 
-  it("stays ducked between spans closer than a ramp up", () => {
-    const gapMs = VIDEO_DUCK_RAMP_UP_MS - 1;
+  it("stays ducked between spans closer than a ramp up and a ramp down", () => {
+    const gapMs = VIDEO_DUCK_RAMP_UP_MS + VIDEO_DUCK_RAMP_DOWN_MS - 1;
     const spans = [SPAN, { startMs: SPAN.endMs + gapMs, endMs: 40_000 }];
 
     expect(duckFactorAt(SPAN.endMs + gapMs / 2, spans)).toBe(VIDEO_DUCK_VOLUME);
   });
 
-  it("rises between spans a ramp up or further apart, even within a ramp up plus a ramp down", () => {
-    const gapMs = VIDEO_DUCK_RAMP_UP_MS + 500;
+  it("rises between spans just over a ramp up plus a ramp down apart", () => {
+    const gapMs = VIDEO_DUCK_RAMP_UP_MS + VIDEO_DUCK_RAMP_DOWN_MS + 1;
     const spans = [SPAN, { startMs: SPAN.endMs + gapMs, endMs: 40_000 }];
 
-    expect(duckFactorAt(SPAN.endMs + VIDEO_DUCK_RAMP_UP_MS + 100, spans)).toBe(1);
+    expect(duckFactorAt(SPAN.endMs + VIDEO_DUCK_RAMP_UP_MS, spans)).toBe(1);
   });
 
   it("rises between spans further apart than two ramps", () => {
