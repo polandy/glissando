@@ -159,6 +159,11 @@ export const en: Catalogue = {
     one: "Stopped {name} · {count} picture already in stay",
     other: "Stopped {name} · {count} pictures already in stay",
   },
+  "import.blockedImporting": {
+    one: "{count} picture left to import",
+    other: "{count} pictures left to import",
+  },
+  "import.blockedChecking": "checking for similar shots and blur …",
   "import.skipped": {
     one: "{count} file could not be read as a picture and was skipped:",
     other: "{count} files could not be read as pictures and were skipped:",

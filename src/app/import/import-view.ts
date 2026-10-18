@@ -11,6 +11,7 @@ import { MAX_VIDEO_EXCERPT_MS } from "../../library/own-video";
 import type { StoredPicture } from "../../library/stored-slideshow";
 import { MILLISECONDS_PER_SECOND } from "../../player";
 import type { PlaylistSongView } from "../music-editor/playlist-view";
+import type { Translator } from "../i18n/translator";
 import type { ChosenSong } from "./import-session";
 import type { CullingState } from "./picture-culling";
 
@@ -56,6 +57,13 @@ export function continueBlockedReason(
     return { kind: "importing", remaining: state.total - state.done };
   }
   return culling.checking === null ? null : { kind: "checking" };
+}
+
+/** The footer's text for why "Next"/"Add" is disabled, by `continueBlockedReason`'s result. */
+export function continueBlockedText(reason: ContinueBlockedReason, t: Translator["t"]): string {
+  return reason.kind === "importing"
+    ? t("import.blockedImporting", { count: reason.remaining })
+    : t("import.blockedChecking");
 }
 
 /** A pick with whether it is the one being read now, the earliest still unfinished. */

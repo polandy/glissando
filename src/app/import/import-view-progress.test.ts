@@ -1,8 +1,16 @@
 import { describe, expect, it } from "vitest";
 import type { ImportPick, PictureImportState } from "../../import/picture-import";
 import type { StoredPicture } from "../../library/stored-slideshow";
+import type { Translator } from "../i18n/translator";
 import type { CullingState } from "./picture-culling";
-import { continueBlockedReason, pickProgress } from "./import-view";
+import { continueBlockedReason, continueBlockedText, pickProgress } from "./import-view";
+
+/** Enough of a translator to prove `continueBlockedText` picks the right key and count. */
+const t = ((key: string, args?: { readonly count: number }) => {
+  if (key === "import.blockedImporting") return `${args?.count} left to import`;
+  if (key === "import.blockedChecking") return "checking …";
+  throw new Error(`continueBlockedText asked for an unexpected key "${key}"`);
+}) as Translator["t"];
 
 const picture = (id: string, capturedAt: string): StoredPicture => ({
   id,
@@ -41,6 +49,16 @@ describe("continueBlockedReason", () => {
 
   it("is null once nothing blocks continuing", () => {
     expect(continueBlockedReason(oneStored, culled)).toBeNull();
+  });
+});
+
+describe("continueBlockedText", () => {
+  it("names how many pictures are left while importing", () => {
+    expect(continueBlockedText({ kind: "importing", remaining: 3 }, t)).toBe("3 left to import");
+  });
+
+  it("says checking while the cull runs", () => {
+    expect(continueBlockedText({ kind: "checking" }, t)).toBe("checking …");
   });
 });
 

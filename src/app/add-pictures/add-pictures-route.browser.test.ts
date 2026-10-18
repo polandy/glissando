@@ -3,7 +3,9 @@ import { afterEach, describe, expect, it } from "vitest";
 import type { StoredSlideshow } from "../../library/stored-slideshow";
 import { picture, slideshow } from "../../library/testing/library-store-contract";
 import { MemoryLibraryStore } from "../../library/testing/memory-store";
+import { FakeDecoder } from "../../import/testing/picture-import-fixtures";
 import { createTranslator } from "../i18n/translator";
+import type { PictureIntakePorts } from "../import/picture-intake";
 import type { SlideshowHome } from "../routes/slideshow-storage";
 import { mountWithTranslator } from "../testing/mount-with-translator";
 import { fakeIntakePorts, pictureFile } from "../testing/picture-intake-ports";
@@ -35,9 +37,13 @@ function mountRoute(
   shown: StoredSlideshow = SHOW,
   onCommit = () => Promise.resolve(),
   home: SlideshowHome = "device",
+  portsOverrides: Partial<PictureIntakePorts> = {},
 ) {
   const store = new MemoryLibraryStore();
-  const session = new AddPicturesSession(shown, home, { ...fakeIntakePorts(store).ports, store });
+  const session = new AddPicturesSession(shown, home, {
+    ...fakeIntakePorts(store, portsOverrides).ports,
+    store,
+  });
   const discards: boolean[] = [];
   const route = mountWithTranslator(AddPicturesRoute, {
     session,
@@ -111,6 +117,27 @@ describe("AddPicturesRoute", () => {
     await session.intake.settled();
     flushSync();
     expect(button(target, de.t("add.add", { count: 1 })).disabled).toBe(false);
+  });
+
+  it("names how many pictures are left while Add is disabled for importing", async () => {
+    const decoder = new FakeDecoder();
+    const { session, target } = mountRoute(SHOW, undefined, "device", { decode: decoder.decode });
+    decoder.hold();
+
+    session.intake.addPictures([
+      pictureFile("new1.jpg", "2025-07-02T10:00:00Z"),
+      pictureFile("new2.jpg", "2025-07-03T10:00:00Z"),
+    ]);
+    flushSync();
+
+    expect(target.querySelector(".blocked-reason")?.textContent).toBe(
+      de.t("import.blockedImporting", { count: 2 }),
+    );
+
+    decoder.open();
+    await session.intake.settled();
+    flushSync();
+    expect(target.querySelector(".blocked-reason")).toBeNull();
   });
 
   it("disables Add n, Cancel and back while the pictures are being added", async () => {
