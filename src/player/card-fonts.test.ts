@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   CARD_FONT_FILES,
   cardFontFaceRule,
+  cardFontFilesOf,
   cardFontFilesUsedBy,
   cardStylesUsedBy,
   type CardFontFile,
@@ -79,6 +80,16 @@ describe("cardFontFilesUsedBy", () => {
     );
 
     expect(files.map((file) => file.assetPath)).toEqual([BRICOLAGE_PATH, GEIST_MONO_PATH]);
+  });
+});
+
+describe("cardFontFilesOf", () => {
+  it("picks the files a stored slideshow's cards need, before the slideshow is composed", () => {
+    const files = cardFontFilesOf([
+      { style: "classic" },
+      { style: "bold", subtitle: "Sommer 2025" },
+    ]).map((file) => file.assetPath);
+    expect(files).toEqual([INSTRUMENT_SERIF_PATH, BRICOLAGE_PATH, GEIST_MONO_PATH]);
   });
 });
 

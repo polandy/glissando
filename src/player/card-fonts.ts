@@ -68,12 +68,22 @@ const STYLE_FONT_FILES: Readonly<
  * (ADR-0032).
  */
 export function cardFontFilesUsedBy(slideshow: Slideshow): readonly CardFontFile[] {
+  return cardFontFilesOf(slideshow.slides.flatMap((slide) => slide.card ?? []));
+}
+
+/** What a card's fonts depend on: a stored card's as much as a composed one's. */
+export interface CardFontNeeds {
+  readonly style: CardStyle;
+  readonly subtitle?: string | undefined;
+}
+
+/**
+ * The card font files `cards` use, beyond Instrument Sans, each once: for a page built from a
+ * stored slideshow, before it is composed (`index.html` in a `.glissando` file).
+ */
+export function cardFontFilesOf(cards: readonly CardFontNeeds[]): readonly CardFontFile[] {
   const files = new Map<string, CardFontFile>();
-  for (const slide of slideshow.slides) {
-    const card = slide.card;
-    if (card === undefined) {
-      continue;
-    }
+  for (const card of cards) {
     const spec = STYLE_FONT_FILES[card.style];
     if (spec.title !== undefined) {
       files.set(spec.title.assetPath, spec.title);
