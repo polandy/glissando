@@ -44,7 +44,10 @@ All three are in the ⋯ menu at the top right of a slideshow.
   file is a ZIP: rename it to `.zip` to look inside. A copy you unpacked, edited and zipped again
   (the folder itself or its contents) still opens; missing thumbnails are made again, also where you deleted a picture's `thumbnail`
   line from `glissando.json`. Inside, `README.txt` says what each entry is, and
-  `glissando.schema.json` describes `glissando.json` as a JSON Schema.
+  `glissando.schema.json` describes `glissando.json` as a JSON Schema. To watch it without
+  Glissando, unpack the whole file and open `index.html` in a browser; Firefox plays at once,
+  Chrome, Edge and Safari ask you to choose the unpacked folder first. It plays what
+  `glissando.json` says, so your edits show.
 - **Share link, TV, picture frame** need a self-hosted Glissando
   ([self-hosting](self-hosting.md)): a link anyone can watch, a TV you control from the phone
   (`/tv`), and an Immich album played endlessly (the Picture frame card, or Settings).
