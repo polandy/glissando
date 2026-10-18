@@ -87,14 +87,14 @@ describe("glissandoEntries", () => {
     ]);
   });
 
-  it("keeps an entry outside the shared folder, for the name check to refuse", () => {
-    expect(
-      namesOf(layoutOf("Album/glissando.json", "Album/pictures/0001.jpg", "notes.txt")),
-    ).toEqual([
-      ["glissando.json", "Album/glissando.json"],
-      ["pictures/0001.jpg", "Album/pictures/0001.jpg"],
-      ["notes.txt", "notes.txt"],
-    ]);
+  it.each([
+    ["an entry no format uses", "notes.txt"],
+    ["one the stripped folder also holds", "pictures/0001.jpg"],
+  ])("refuses %s outside the shared folder, naming it and the folder", (_, outside) => {
+    expect(layoutOf("Album/glissando.json", "Album/pictures/0001.jpg", outside)).toEqual({
+      kind: "damaged",
+      reason: `"${outside}" is outside the folder "Album/" that holds glissando.json`,
+    });
   });
 
   it.each([

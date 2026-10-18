@@ -173,6 +173,17 @@ describe("checkGlissandoFile on a file packed again", () => {
     );
   });
 
+  it("refuses an entry beside the folder it strips, which could stand in for one inside", async () => {
+    const exported = await exportedEntries();
+    const entries = [
+      ...exported.map((entry) => ({ ...entry, name: `Album/${entry.name}` })),
+      { name: "pictures/0001.png", content: "another picture" },
+    ];
+    expect(damagedReason(await checkGlissandoFile(await rawZip(entries), plentyOfSpace))).toBe(
+      '"pictures/0001.png" is outside the folder "Album/" that holds glissando.json',
+    );
+  });
+
   it("refuses a picture packed with a method it cannot unpack, naming it", async () => {
     const entries = (await exportedEntries()).map((entry) =>
       entry.name === "pictures/0002.png" ? { ...entry, method: 12 } : entry,

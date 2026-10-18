@@ -4,12 +4,14 @@ import type { ZipEntry } from "./zip-reader";
 /**
  * Which of a ZIP's entries are a .glissando file's, once a ZIP tool has packed it again
  * (ADR-0038): the entries a tool adds by itself are skipped unread, and one folder every entry
- * shares, as zipping a folder adds it, is taken off. What is left is named as the format names
- * it; whether each name is one the format allows is `isAllowedEntryName`'s to decide.
+ * shares, as zipping a folder adds it, is taken off; an entry outside that folder refuses the
+ * file, as it could stand in for one inside. What is left is named as the format names it;
+ * whether each name is one the format allows is `isAllowedEntryName`'s to decide.
  */
 
 export type EntryLayout =
   | { readonly kind: "glissando"; readonly entries: ReadonlyMap<string, ZipEntry> }
+  | { readonly kind: "damaged"; readonly reason: string }
   | { readonly kind: "foreign" };
 
 const PATH_SEPARATOR = "/";
@@ -29,14 +31,16 @@ export function glissandoEntries(entries: readonly ZipEntry[]): EntryLayout {
   if (folder === null) {
     return { kind: "foreign" };
   }
+  const outside = own.find((entry) => !entry.name.startsWith(folder));
+  if (outside !== undefined) {
+    return {
+      kind: "damaged",
+      reason: `"${outside.name}" is outside the folder "${folder}" that holds ${MANIFEST_ENTRY_NAME}`,
+    };
+  }
   return {
     kind: "glissando",
-    entries: new Map(
-      own.map((entry) => [
-        entry.name.startsWith(folder) ? entry.name.slice(folder.length) : entry.name,
-        entry,
-      ]),
-    ),
+    entries: new Map(own.map((entry) => [entry.name.slice(folder.length), entry])),
   };
 }
 

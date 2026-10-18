@@ -70,6 +70,9 @@ export async function checkGlissandoFile(
   if (layout.kind === "foreign") {
     return { kind: "foreign" };
   }
+  if (layout.kind === "damaged") {
+    return damaged(layout.reason);
+  }
   const totalBytes = entries.reduce((sum, entry) => sum + entry.size, 0);
   if (totalBytes > MAX_TOTAL_ENTRY_BYTES) {
     return damaged(

@@ -37,7 +37,7 @@ leading, trailing or repeated whitespace); the reason names its path and value.
   under `__MACOSX/`, a `._` file, `.DS_Store`, `Thumbs.db` and `desktop.ini` (by name, any case),
   never one whose name leaves its folder. When `glissando.json` is not at the top but in exactly one
   top-level folder (zipping the folder itself, as Finder's "Compress" or Windows' "Compressed
-  folder" do), that folder is taken off every name; an entry outside it keeps its name. Then a
+  folder" do), that folder is taken off every name; an entry outside it refuses the file (_damaged_), as it could stand in for one inside. Then a
   manifest of this format (else
   _foreign_) and no higher version (else _newer_) that validates (else _damaged_), every media
   file it names present, and fit into the free storage (`navigator.storage.estimate()`, quota
