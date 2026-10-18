@@ -24,7 +24,9 @@
   Letting go of a held tile in place only selects it. Keyboard: arrows move the focus (with a
   single selection, the selection follows; while selecting several, only the focus),
   Shift+arrows move the selection (up and down by a row; an unselected focused tile is
-  selected alone first), Esc deselects. Any move makes the order the user's own.
+  selected alone first), Esc deselects, F shows the focused tile's picture full screen
+  ([PICTURE_VIEWER.md](../PICTURE_VIEWER.md)). The same strip and keys serve the import's
+  pictures step ([IMPORT_ARRANGING.md](../IMPORT_ARRANGING.md)). Any move makes the order the user's own.
 - **Removing several**: Remove or Delete (on a selected tile) removes the whole selection;
   the toast counts them all ("3 pictures removed") and Undo puts each back where it was. At
   least one picture stays: removing every picture is answered with the toast "At least one

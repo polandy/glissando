@@ -12,16 +12,12 @@ Immich photos, offers no "Open file" and is created on the server
   its length; "Ausschnitt" marks a clip cut to its first 5 minutes. A video the browser cannot play, or over 1 GiB, is
   refused with a red notice naming it; the rest goes on. A clip over 5 minutes gets an amber notice (the excerpt is picked in the clip editor).
 - **Pictures**: a drop zone with "Choose pictures" (several files, `image/*`), "choose a
-  folder", and drag-and-drop on desktop (folders read recursively). While downscaling: "k of N
-  pictures are being downscaled …" with a mono counter, Cancel and a mint meter; a shimmering
-  placeholder per file still in flight; the tiles appear in capture order as
-  they are stored. Then "n pictures · from – to" and "add more". A tile opens its picture full
-  screen ([PICTURE_VIEWER.md](PICTURE_VIEWER.md)). **Removing** (mockup:
-  https://polandy.github.io/glissando-assets/mockups/remove-import-pictures/): a stored tile has
-  a ✕ ("Remove picture from <date>"), always shown on touch, on hover or keyboard focus for a
-  mouse; a click, a tap, or Enter, Space, Delete or Backspace on it removes the picture at once,
-  never confirmed, and focus moves to the next tile's ✕ (the previous one at the end, "Choose
-  pictures" when none is left). The toast "Picture removed" with "Undo" follows; removals while
+  folder", and drag-and-drop on desktop (folders read recursively). While anything is in flight, more can be picked at any time; each pick joins the
+  running import as a row of a queue, and the tiles arrange like the editor's
+  ([IMPORT_ARRANGING.md](IMPORT_ARRANGING.md): the queue, placeholders, order, selecting,
+  moving, viewing, the keys). Then "n pictures · from – to". **Removing**: ✕ on a tile (mouse
+  only), Remove in the selection bar, or Delete or Backspace on a focused tile; never
+  confirmed. The toast "Picture removed" with "Undo" follows; removals while
   it shows add up ("3 pictures removed") and one Undo puts them all back. Choosing more pictures,
   discarding, or leaving the step (Next, Cancel, ←) ends the undo and dismisses the toast. A
   removed picture leaves the count and no longer counts as a duplicate; its media is cleaned up
@@ -34,8 +30,8 @@ Immich photos, offers no "Open file" and is created on the server
   logged with its cause), full storage a coral one with "Choose fewer pictures" (discards and reopens the
   picker). A failed import is a coral notice "The import failed. No more pictures can be added."
   with "Start over" (discards the selection and shows the empty drop zone); the drop zone and
-  "add more" stay hidden until then. Its error is logged; the notice is its only message (no
-  "unexpected error" toast besides). "Next" is enabled once nothing is in flight, every picture is checked (Culling) and at least one picture is stored.
+  "Add pictures" stay hidden until then. Its error is logged; the notice is its only message (no
+  "unexpected error" toast besides). "Next" is enabled once nothing is in flight, every picture is checked (Culling) and at least one picture is stored; until then the footer says why ("12 still importing", "Checking pictures …").
   Cancel and ← with a selection ask "Discard selection?" (Keep choosing / Discard). While the
   drop zone shows, a box below it offers "Slideshow from another device?" with "Open file"; a
   single .glissando file chosen or dropped on the drop zone opens it ([SCREENS.md](SCREENS.md)) instead of being
@@ -55,19 +51,20 @@ Immich photos, offers no "Open file" and is created on the server
   minutes, one time when both fall in the same minute; the kept picture first with a
   mint "Kept" chip, the others "Similar"), then "Blurry"; set-aside tiles are dimmed and show
   their time to the second. A tile's + ("Take in picture from <date> at <time>", a 44 px target)
-  puts it back into the strip at its capture-date place and focus moves to the next +; from then
+  puts it back into the strip at its capture-date place (at the end once the order is the
+  user's own) and focus moves to the next +; from then
   on it is an ordinary picture (✕ removes it) and never set aside again; "Take all in" takes all
-  back. Once none is left set aside, focus moves to the ✕ in the strip of the picture taken in
+  back. Once none is left set aside, focus moves to the strip tile of the picture taken in
   last (for "Take all in", the latest of them). Set-aside pictures are not kept: the slideshow never references them, so the clean-up
-  after Next deletes their media. Exact duplicates are skipped before the check, and duplicates
-  taken in by "Add anyway" are never set aside. A picture the check cannot measure stays in;
+  after Next deletes their media. Exact duplicates are skipped before the check, and neither
+  duplicates taken in by "Add anyway" nor pictures the user moved are ever set aside. A picture the check cannot measure stays in;
   once the check worker is gone (crashed, or a reply it cannot read) every picture from then on
   stays in unchecked, the error logged once, and "Next" is not held. Linked photos of a server
   slideshow are not downloaded, so they are not checked. Above that box, when this Glissando offers Immich ([IMMICH.md](IMMICH.md)), a box "From
   Immich" with "Open Immich" opens the Immich browser; offline it is greyed out ("Offline — Immich
   needs a connection to your Glissando server …"), with an Immich problem it names it and offers
   "Settings". Photos added from Immich join the same import: the same progress ("n / m pictures
-  being downsized …"), tiles, notices and "Next"; "add more" then also offers "more from Immich".
+  being downsized …"), tiles, notices and "Next"; "From Immich" then stays beside "Add pictures".
   A photo whose original or preview Immich does not deliver (e.g. a 404 for one deleted in Immich
   after browsing) is skipped as not downloaded and the import goes on; when only its faces fail,
   it is kept without a focus (the on-device pass looks for one) and the error is logged. An Immich
