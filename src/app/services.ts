@@ -85,6 +85,8 @@ export interface AppServices extends ServerSlideshowSessions {
   readonly mediaDecoders: MediaDecoders;
   /** Hands a file to the browser's downloads. */
   download(file: Blob, fileName: string): void;
+  /** `index.html` for a slideshow's .glissando file, which plays its unpacked folder (ADR-0038). */
+  playerPage(slideshow: StoredSlideshow): Promise<string>;
   /** What the video export sheet needs of the browser (dev-docs/VIDEO_EXPORT.md). */
   readonly videoExport: VideoExportDevice;
   /** What the web page export sheet needs of the browser (dev-docs/HTML_EXPORT.md). */

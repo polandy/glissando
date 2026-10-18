@@ -11,10 +11,14 @@ What is inside:
   glissando.json          The slideshow itself: its settings and the order of its pictures,
                           music and video clips, as JSON.
   glissando.schema.json   A JSON Schema describing glissando.json's shape.
+  index.html              A page that plays the slideshow in a web browser, without Glissando.
   pictures/               The pictures, full size.
   thumbnails/             Small previews of the pictures, shown while browsing.
   music/                  The music tracks.
   videos/                 The video clips.
+
+To play it without Glissando, unpack the whole file into a folder first, then open index.html
+from that folder in a web browser. Some browsers ask you to choose the folder once.
 
 Get Glissando at https://polandy.github.io/glissando/ to open this file as a slideshow.
 `;

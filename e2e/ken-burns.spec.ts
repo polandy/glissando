@@ -1,5 +1,6 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { exportSlideshow } from "../src/glissando-file/export-slideshow";
+import { EXPORT_OPTIONS } from "../src/glissando-file/testing/glissando-fixtures";
 import { THUMBNAIL_BOUND } from "../src/import/downscale";
 import type { StoredSlideshow } from "../src/library/stored-slideshow";
 import { MemoryLibraryStore } from "../src/library/testing/memory-store";
@@ -63,7 +64,7 @@ async function edgeSlideshowFile(page: Page): Promise<TestFile> {
   const thumbnail = new Blob([new Uint8Array(thumbnailJpeg)], { type: "image/jpeg" });
   const store = new MemoryLibraryStore();
   await store.putPicture("edge-picture", { display, thumbnail });
-  const file = await exportSlideshow(AGAINST_THE_EDGE, store, { modifiedAt: new Date(0) });
+  const file = await exportSlideshow(AGAINST_THE_EDGE, store, EXPORT_OPTIONS);
   return blobFile(`${TITLE}.glissando`, file);
 }
 

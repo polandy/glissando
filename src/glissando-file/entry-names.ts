@@ -12,7 +12,7 @@ import {
 
 export const SCHEMA_ENTRY_NAME = "glissando.schema.json";
 export const README_ENTRY_NAME = "README.txt";
-const PLAYER_ENTRY_NAME = "index.html";
+export const PLAYER_ENTRY_NAME = "index.html";
 
 const NON_MEDIA_ENTRY_NAMES: ReadonlySet<string> = new Set([
   MANIFEST_ENTRY_NAME,

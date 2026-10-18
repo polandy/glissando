@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { StoredSlideshow } from "../../library/stored-slideshow";
+import { entryTexts } from "../../glissando-file/testing/glissando-fixtures";
 import { MemoryLibraryStore } from "../../library/testing/memory-store";
 import type { ToastMessage } from "../toast/toaster";
 import { ExportJob, type ExportJobPorts, type ExportProgress } from "./export-job";
@@ -21,6 +22,9 @@ const SHOW: StoredSlideshow = {
   songs: [],
   secondsPerPicture: 5,
 };
+
+const playerPageFor = (slideshow: StoredSlideshow) =>
+  `<!doctype html><title>${slideshow.title}</title>`;
 
 async function setUp(
   wrap: (store: MemoryLibraryStore) => ExportJobPorts["store"] = (store) => store,
@@ -45,6 +49,7 @@ async function setUp(
     downloadedText: (fileName, bytes) => `${fileName} downloaded · ${bytes}`,
     failedText: () => "Export failed",
     tryAgainLabel: () => "Try again",
+    playerPage: async (slideshow) => playerPageFor(slideshow),
   });
   const states: (ExportProgress | null)[] = [];
   job.subscribe((state) => states.push(state));
@@ -62,6 +67,15 @@ describe("ExportJob", () => {
     expect(toasts).toEqual([
       { text: `Herbst- in Wien.glissando downloaded · ${size}`, tone: "info" },
     ]);
+  });
+
+  it("puts the player page built for the slideshow into the file", async () => {
+    const { job, downloads } = await setUp();
+
+    await job.start("show-1");
+
+    const file = downloads[0]?.file ?? new Blob();
+    expect((await entryTexts(file))["index.html"]).toBe(playerPageFor(SHOW));
   });
 
   it("exports from the store it is given, such as a server slideshow's, over its own", async () => {

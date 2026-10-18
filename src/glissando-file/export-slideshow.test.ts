@@ -7,6 +7,8 @@ import { readManifest } from "./read-manifest";
 import { entryTexts } from "./testing/glissando-fixtures";
 
 const MODIFIED = new Date("2025-10-01T08:00:00Z");
+const PLAYER_PAGE = "<!doctype html><title>player</title>";
+const OPTIONS = { modifiedAt: MODIFIED, playerPage: async () => PLAYER_PAGE };
 
 const slideshow: StoredSlideshow = {
   id: "show-1",
@@ -47,14 +49,15 @@ async function storeWithMedia(): Promise<MemoryLibraryStore> {
 const contents = entryTexts;
 
 describe("exportSlideshow", () => {
-  it("writes the manifest first, then each picture in play order, its thumbnail and the music", async () => {
-    const file = await exportSlideshow(slideshow, await storeWithMedia(), { modifiedAt: MODIFIED });
+  it("writes the manifest first, then the schema, README and player page, each picture in play order, its thumbnail and the music", async () => {
+    const file = await exportSlideshow(slideshow, await storeWithMedia(), OPTIONS);
 
     const read = await contents(file);
     expect(Object.keys(read)).toEqual([
       "glissando.json",
       "glissando.schema.json",
       "README.txt",
+      "index.html",
       "pictures/0001.jpg",
       "thumbnails/0001.jpg",
       "pictures/0002.jpg",
@@ -68,7 +71,27 @@ describe("exportSlideshow", () => {
     expect(manifest.kind === "ok" && manifest.manifest.slideshow.title).toBe("Herbst in Wien");
     expect(JSON.parse(read["glissando.schema.json"] ?? "")).toEqual(MANIFEST_SCHEMA);
     expect(read["README.txt"]).toContain("glissando.json");
-    expect(read["README.txt"]).not.toContain("index.html");
+    expect(read["README.txt"]).toContain("index.html");
+    expect(read["index.html"]).toBe(PLAYER_PAGE);
+  });
+
+  it("indents glissando.json so a person can read and edit it", async () => {
+    const file = await exportSlideshow(slideshow, await storeWithMedia(), OPTIONS);
+
+    const json = (await contents(file))["glissando.json"] ?? "";
+    expect(json).toBe(JSON.stringify(JSON.parse(json), null, 2));
+  });
+
+  it("builds the player page for the slideshow it exports", async () => {
+    const asked: StoredSlideshow[] = [];
+    await exportSlideshow(slideshow, await storeWithMedia(), {
+      ...OPTIONS,
+      playerPage: async (shown) => {
+        asked.push(shown);
+        return PLAYER_PAGE;
+      },
+    });
+    expect(asked).toEqual([slideshow]);
   });
 
   it("writes every song of the playlist at its own path, in play order", async () => {
@@ -82,7 +105,7 @@ describe("exportSlideshow", () => {
     const store = await storeWithMedia();
     await store.putMusic("m2", new Blob(["polka bytes"], { type: "audio/mpeg" }));
 
-    const file = await exportSlideshow(withTwoSongs, store, { modifiedAt: MODIFIED });
+    const file = await exportSlideshow(withTwoSongs, store, OPTIONS);
 
     const read = await contents(file);
     expect(read["music/track-1.m4a"]).toBe("music bytes");
@@ -97,7 +120,7 @@ describe("exportSlideshow", () => {
     });
     expect((await store.pictureFocus(["p1"])).has("p1")).toBe(true);
 
-    const file = await exportSlideshow(slideshow, store, { modifiedAt: MODIFIED });
+    const file = await exportSlideshow(slideshow, store, OPTIONS);
 
     const json = (await contents(file))["glissando.json"] ?? "";
     expect(json).toContain('"capturedAt"');
@@ -107,7 +130,7 @@ describe("exportSlideshow", () => {
   it("reports progress per media file up to all of them", async () => {
     const reported: number[] = [];
     await exportSlideshow(slideshow, await storeWithMedia(), {
-      modifiedAt: MODIFIED,
+      ...OPTIONS,
       onProgress: (fraction) => reported.push(fraction),
     });
     expect(reported.at(-1)).toBe(1);
@@ -126,7 +149,7 @@ describe("exportSlideshow", () => {
       colours: { veil: "#404040", accent: "#C0C0C0" },
     };
     const broken = { ...slideshow, pictures: [gone] };
-    await expect(exportSlideshow(broken, store, { modifiedAt: MODIFIED })).rejects.toThrow(/gone/);
+    await expect(exportSlideshow(broken, store, OPTIONS)).rejects.toThrow(/gone/);
   });
 });
 
