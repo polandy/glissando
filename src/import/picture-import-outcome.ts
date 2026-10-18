@@ -2,7 +2,7 @@ import { isSamePicture, type PictureIdentity } from "../library/picture-identity
 import { pictureColours, type RgbPixel } from "../library/picture-colours";
 import { MAX_VIDEO_EXCERPT_MS, type StoredVideo } from "../library/own-video";
 import type { LibraryStore, StoredPicture } from "../library/stored-slideshow";
-import type { DuplicateReason, SkipReason } from "./picture-import";
+import type { DuplicateReason, SkipReason } from "./picture-import-types";
 import {
   PictureNotDownloadedError,
   type PictureSource,
@@ -27,6 +27,8 @@ export interface Queued {
   readonly source: PictureSource;
   /** False for a duplicate the user takes in after all. */
   readonly skipDuplicate: boolean;
+  /** The pick this file belongs to; absent for a duplicate taken in after all (no pick of its own). */
+  readonly pickId?: string;
 }
 
 export type Outcome =

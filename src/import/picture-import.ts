@@ -1,30 +1,33 @@
 import { orderByCaptureDate } from "../compose";
-import type { PictureIdentity } from "../library/picture-identity";
 import type { StoredPicture } from "../library/stored-slideshow";
+import { applyOutcome } from "./picture-import-apply";
+import { duplicateReason, importOne, type Outcome, type Queued } from "./picture-import-outcome";
 import {
-  duplicateReason,
-  importOne,
-  type Outcome,
-  type OutcomePorts,
-  type Queued,
-} from "./picture-import-outcome";
+  FILES_PICK,
+  newPick,
+  pickStopped,
+  pickToStop,
+  picksTruncated,
+  type ImportPick,
+  type PickInput,
+} from "./picture-import-picks";
 import type { PictureSource } from "./picture-source";
-import type { VideoRefusal } from "./video-refusal";
+import {
+  PictureImportFailedError,
+  type DuplicateReason,
+  type PictureImportPorts,
+  type SkippedFile,
+} from "./picture-import-types";
 
-/** Why a picture was skipped as a duplicate: one of the known ones, or one this import took in. */
-export type DuplicateReason = "alreadyIn" | "chosenTwice";
-
-/**
- * "unreadable": the bytes could not be read; "undecodable": they could not be decoded into pixels;
- * a video is refused as "videoUnplayable", "videoTooLarge" or "videoTooShort".
- */
-export type SkipReason =
-  "unsupported" | "unreadable" | "undecodable" | "notDownloaded" | VideoRefusal | DuplicateReason;
-
-export interface SkippedFile {
-  readonly fileName: string;
-  readonly reason: SkipReason;
-}
+export type { ImportPick, PickInput, PickKind } from "./picture-import-picks";
+export {
+  PictureImportFailedError,
+  type DuplicateReason,
+  type PictureImportPorts,
+  type SkippedFile,
+  type SkipReason,
+  type StoredWithThumbnail,
+} from "./picture-import-types";
 
 export interface PictureImportState {
   /** Picture files accepted so far; files dropped at full storage leave the count. */
@@ -33,26 +36,13 @@ export interface PictureImportState {
   readonly done: number;
   /** By capture date ascending, ties by file name. */
   readonly pictures: readonly StoredPicture[];
+  /** One per `add()` call (or Immich selection), in pick order. */
+  readonly picks: readonly ImportPick[];
   readonly skipped: readonly SkippedFile[];
   readonly storageFull: boolean;
   readonly busy: boolean;
   /** An unexpected error ended the import; `settled()` rejects with it. */
   readonly failed: boolean;
-}
-
-/** A picture just stored, with the thumbnail it was stored with. */
-export interface StoredWithThumbnail {
-  readonly picture: StoredPicture;
-  readonly thumbnail: Blob;
-  /** A duplicate the user took in after all. */
-  readonly takenInAnyway: boolean;
-}
-
-export interface PictureImportPorts extends OutcomePorts {
-  /** Pictures already there now, such as the slideshow's when adding to it; absent: none. */
-  known?(): readonly PictureIdentity[];
-  /** Told of each picture this import stores, before it is listed; absent: no one is told. */
-  stored?(stored: StoredWithThumbnail): void;
 }
 
 const PICTURE_TYPE_PREFIXES = ["image/", "video/"];
@@ -61,26 +51,18 @@ const EMPTY: PictureImportState = {
   total: 0,
   done: 0,
   pictures: [],
+  picks: [],
   skipped: [],
   storageFull: false,
   busy: false,
   failed: false,
 };
 
-/** The import stopped on an unexpected error, its `cause`; the state reports it as failed. */
-export class PictureImportFailedError extends Error {
-  constructor(cause: unknown) {
-    super("the picture import failed on an unexpected error", { cause });
-    this.name = "PictureImportFailedError";
-  }
-}
-
 /**
  * Step 1 of creating a slideshow, or adding to one: pictures from files or Immich in, stored
- * downscaled pictures out. Pictures are processed one at a time so memory stays bounded on phones.
- * A picture the known ones or this import already have is skipped as a duplicate before it is
- * read (ADR-0016). Media stored by a cancelled import is left unreferenced for
- * `LibraryStore.deleteUnreferencedMedia`.
+ * downscaled pictures out, one at a time so memory stays bounded on phones. A picture the known
+ * ones or this import already have is skipped as a duplicate before it is read (ADR-0016). Media
+ * stored by a cancelled import is left unreferenced for `LibraryStore.deleteUnreferencedMedia`.
  */
 export class PictureImport {
   readonly #ports: PictureImportPorts;
@@ -93,6 +75,10 @@ export class PictureImport {
   #isDraining = false;
   /** Bumped by `cancel()`, so the file in flight at that moment is discarded. */
   #generation = 0;
+  /** Names each pick, counting up so ids stay stable across tests regardless of media ids. */
+  #nextPickId = 0;
+  /** A pick stopped while its file in flight was still being read; that file is dropped once done. */
+  readonly #stoppedPickIds = new Set<string>();
 
   constructor(ports: PictureImportPorts) {
     this.#ports = ports;
@@ -109,7 +95,8 @@ export class PictureImport {
     return () => this.#listeners.delete(listener);
   }
 
-  add(sources: readonly PictureSource[]): void {
+  /** `pick` names the files for the queue's progress display; default: an unnamed files pick. */
+  add(sources: readonly PictureSource[], pick: PickInput = FILES_PICK): void {
     if (this.#state.failed) {
       throw new Error("the picture import failed; cancel it or start a new one to add files");
     }
@@ -119,13 +106,33 @@ export class PictureImport {
     const unsupported = sources
       .filter((source) => !isPicture(source))
       .map((source): SkippedFile => ({ fileName: source.fileName, reason: "unsupported" }));
+    this.#nextPickId += 1;
+    const pickId = `pick-${this.#nextPickId}`;
     this.#enqueue(
-      pictures.map((source) => ({ source, skipDuplicate: true })),
+      pictures.map((source) => ({ source, skipDuplicate: true, pickId })),
       {
         total: this.#state.total + pictures.length,
         skipped: [...this.#state.skipped, ...unsupported],
+        picks: [...this.#state.picks, newPick(pickId, pick, pictures.length)],
       },
     );
+  }
+
+  /**
+   * Drops the pick's waiting files from the queue and the overall total; its pictures already
+   * stored stay. A file of it already being read finishes but is then dropped, as if it had
+   * never been picked (`PICTURE_IMPORT.md`).
+   */
+  stop(pickId: string): void {
+    pickToStop(this.#state.picks, pickId);
+    const waiting = this.#queue.filter((entry) => entry.pickId === pickId).length;
+    this.#queue = this.#queue.filter((entry) => entry.pickId !== pickId);
+    this.#stoppedPickIds.add(pickId);
+    this.#update({
+      total: this.#state.total - waiting,
+      picks: pickStopped(this.#state.picks, pickId),
+      busy: this.#queue.length > 0 || this.#isDraining,
+    });
   }
 
   /** Takes the pictures skipped as duplicates for `reason` in after all; they leave the skipped list. */
@@ -197,10 +204,7 @@ export class PictureImport {
     }
   }
 
-  /**
-   * Resolves once every queued file is processed; rejects with `PictureImportFailedError`, or with
-   * the unexpected error of a file cancelled in flight.
-   */
+  /** Resolves once every queued file is processed; rejects with `PictureImportFailedError`. */
   settled(): Promise<void> {
     return this.#draining;
   }
@@ -210,6 +214,7 @@ export class PictureImport {
     this.#generation += 1;
     this.#queue = [];
     this.#duplicates = [];
+    this.#stoppedPickIds.clear();
     if (!this.#isDraining) {
       this.#draining = Promise.resolve();
     }
@@ -241,7 +246,12 @@ export class PictureImport {
       }
     } catch (error) {
       this.#queue = [];
-      this.#update({ total: this.#state.done, busy: false, failed: true });
+      this.#update({
+        total: this.#state.done,
+        picks: picksTruncated(this.#state.picks),
+        busy: false,
+        failed: true,
+      });
       throw new PictureImportFailedError(error);
     } finally {
       this.#isDraining = false;
@@ -257,37 +267,20 @@ export class PictureImport {
     );
   }
 
-  #apply({ source, skipDuplicate }: Queued, outcome: Outcome): void {
-    const done = this.#state.done + 1;
+  #apply(entry: Queued, outcome: Outcome): void {
     const busy = this.#queue.length > 0;
-    switch (outcome.kind) {
-      case "stored":
-        this.#ports.stored?.({
-          picture: outcome.picture,
-          thumbnail: outcome.thumbnail,
-          takenInAnyway: !skipDuplicate,
-        });
-        this.#update({
-          done,
-          busy,
-          pictures: orderByCaptureDate([...this.#state.pictures, outcome.picture]),
-        });
-        return;
-      case "skipped":
-        if (outcome.reason === "alreadyIn" || outcome.reason === "chosenTwice") {
-          this.#duplicates.push({ source, reason: outcome.reason });
-        }
-        this.#update({
-          done,
-          busy,
-          skipped: [...this.#state.skipped, { fileName: source.fileName, reason: outcome.reason }],
-        });
-        return;
-      case "storageFull":
-        this.#queue = [];
-        this.#update({ total: this.#state.done, storageFull: true, busy: false });
-        return;
+    const wasStopped = entry.pickId !== undefined && this.#stoppedPickIds.delete(entry.pickId);
+    const result = applyOutcome(this.#state, busy, entry, outcome, wasStopped);
+    if (outcome.kind === "storageFull") {
+      this.#queue = [];
     }
+    if (result.stored !== undefined) {
+      this.#ports.stored?.(result.stored);
+    }
+    if (result.duplicate !== undefined) {
+      this.#duplicates.push(result.duplicate);
+    }
+    this.#update(result.change);
   }
 
   #update(change: Partial<PictureImportState>): void {

@@ -10,6 +10,7 @@ import {
   type PictureImportState,
   type StoredWithThumbnail,
 } from "../picture-import";
+import type { PickInput } from "../picture-import-picks";
 
 export const picture = (name: string, type = "image/jpeg"): File =>
   new File([name], name, { type });
@@ -102,10 +103,12 @@ export function setUp(
     ...(options.known === undefined ? {} : { known: () => options.known ?? [] }),
   });
   const captureDate = options.captureDate ?? captureDates(options.dates ?? {});
-  const addFiles = (files: readonly File[]): void => {
-    pictureImport.add(
-      files.map((file) => localPictureSource(file, { decode: decoder.decode, captureDate })),
+  const addFiles = (files: readonly File[], pick?: PickInput): void => {
+    const sources = files.map((file) =>
+      localPictureSource(file, { decode: decoder.decode, captureDate }),
     );
+    if (pick === undefined) pictureImport.add(sources);
+    else pictureImport.add(sources, pick);
   };
   const states: PictureImportState[] = [];
   pictureImport.subscribe((state) => states.push(state));

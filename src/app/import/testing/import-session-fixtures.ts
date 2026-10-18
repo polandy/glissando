@@ -83,6 +83,7 @@ export function sessionWith(
       onServer.push({ slideshow, songsAudio });
       return Promise.resolve(slideshow);
     },
+    random: () => 0,
     ...overrides,
   };
   return {

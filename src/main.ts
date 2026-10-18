@@ -123,7 +123,6 @@ const pwa = new PwaStatus(
 pwa.start().catch(reportError);
 
 const store = await openLibraryStore(window.indexedDB);
-
 const newId = (): string => randomId(crypto);
 const now = (): Date => new Date();
 const musicOutput = new MusicOutput(createMusicAudioContext);
@@ -260,6 +259,7 @@ const services = {
       convertMusic,
       createOnServer: (slideshow, songsAudio) =>
         serverLibrary.createSlideshow(slideshow, songsAudio),
+      random: Math.random,
     }),
   newAddPicturesSession: (slideshow: StoredSlideshow, home: SlideshowHome) =>
     new AddPicturesSession(slideshow, home, {

@@ -35,6 +35,7 @@ function failingSession(): ImportSession {
     store: new MemoryLibraryStore(),
     ...fakeRemovalPorts(),
     checker: new FakePictureChecker(),
+    random: () => 0,
     pixels: () => Promise.resolve([]),
     immichColours: () => Promise.resolve({ veil: "#404040", accent: "#C0C0C0" }),
     decode: (file) =>

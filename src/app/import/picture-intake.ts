@@ -4,6 +4,7 @@ import {
   PictureImport,
   PictureImportFailedError,
   type DuplicateReason,
+  type PickInput,
 } from "../../import/picture-import";
 import type { PictureSource } from "../../import/picture-source";
 import { localVideoSource, type LocalVideoReaders } from "../../import/local-video-source";
@@ -41,6 +42,15 @@ export interface PictureIntakePorts
 }
 
 const VIDEO_TYPE_PREFIX = "video/";
+
+/**
+ * "folder" for a folder pick, named after it (`webkitRelativePath`'s first segment, the same for
+ * every file of one such pick); "files" otherwise.
+ */
+function filesPickInput(files: readonly File[]): PickInput {
+  const folderName = files[0]?.webkitRelativePath?.split("/")[0];
+  return folderName ? { kind: "folder", folderName } : { kind: "files" };
+}
 
 /**
  * The pictures being taken in, for a new slideshow or one being added to: files and Immich photos
@@ -115,13 +125,19 @@ export class PictureIntake {
 
   addPictures(files: readonly File[]): void {
     this.#removals.end();
-    this.pictures.add(files.map((file) => this.#localSource(file)));
+    this.pictures.add(
+      files.map((file) => this.#localSource(file)),
+      filesPickInput(files),
+    );
     this.#watchDrain();
   }
 
   addImmichPhotos(photos: readonly ImmichPhoto[]): void {
     this.#removals.end();
-    this.pictures.add(photos.map((photo) => this.#ports.immichSource(photo)));
+    this.pictures.add(
+      photos.map((photo) => this.#ports.immichSource(photo)),
+      { kind: "immich" },
+    );
     this.#watchDrain();
   }
 

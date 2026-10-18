@@ -25,7 +25,7 @@ function withPictureOrder(
 }
 
 /** A Fisher–Yates shuffle; an outcome equal to the start is rotated by one so something moves. */
-function shuffledIds(order: readonly string[], random: () => number): readonly string[] {
+export function shuffledIds(order: readonly string[], random: () => number): readonly string[] {
   const shuffled = [...order];
   for (let last = shuffled.length - 1; last > 0; last -= 1) {
     const other = Math.floor(random() * (last + 1));
