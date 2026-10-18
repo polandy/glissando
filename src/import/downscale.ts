@@ -37,6 +37,13 @@ export function fitWithin(size: Size, bound: Bound): Size {
   };
 }
 
+/** Whether `size` already fits `bound`, with no scaling needed. */
+export function fitsWithin(size: Size, bound: Bound): boolean {
+  const longEdge = Math.max(size.width, size.height);
+  const shortEdge = Math.min(size.width, size.height);
+  return longEdge <= bound.longEdge && shortEdge <= bound.shortEdge;
+}
+
 /** Decodes a picture file, upright per its EXIF orientation, into its two stored renditions. */
 export async function decodePicture(file: File): Promise<DecodedPicture> {
   let bitmap: ImageBitmap;
@@ -50,15 +57,16 @@ export async function decodePicture(file: File): Promise<DecodedPicture> {
     return {
       ...display,
       display: await encodeJpeg(bitmap, display, DISPLAY_JPEG_QUALITY),
-      thumbnail: await encodeJpeg(
-        bitmap,
-        fitWithin(bitmap, THUMBNAIL_BOUND),
-        THUMBNAIL_JPEG_QUALITY,
-      ),
+      thumbnail: await encodeThumbnail(bitmap),
     };
   } finally {
     bitmap.close();
   }
+}
+
+/** A picture's thumbnail rendition, as an import stores it. */
+export function encodeThumbnail(bitmap: ImageBitmap): Promise<Blob> {
+  return encodeJpeg(bitmap, fitWithin(bitmap, THUMBNAIL_BOUND), THUMBNAIL_JPEG_QUALITY);
 }
 
 /** Draws `bitmap` scaled to `size` and encodes it as JPEG; also used by the web page export. */

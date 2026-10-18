@@ -1,4 +1,5 @@
 import { CAPTION_FONT_NAME } from "../player/caption-layout.ts";
+import { cardFontFaceRule, type CardFontFile } from "../player/card-fonts.ts";
 import type { Slideshow } from "../player/slideshow.ts";
 import {
   COPY_BLOCK_ID,
@@ -40,6 +41,20 @@ export interface PageFrame {
   /** `@font-face` rules for the fonts this slideshow's cards use, beyond the caption font
    * (ADR-0032); empty without a card. */
   readonly cardFontFaceRules: readonly string[];
+}
+
+/** `@font-face` rules for the card fonts `files`, from the player bundle's `data:` URLs. */
+export function cardFontFaceRules(
+  files: readonly CardFontFile[],
+  cardFontDataUrls: Readonly<Record<string, string>>,
+): readonly string[] {
+  return files.map((file) => {
+    const dataUrl = cardFontDataUrls[file.assetPath];
+    if (dataUrl === undefined) {
+      throw new Error(`the export player did not bundle the card font ${file.assetPath}`);
+    }
+    return cardFontFaceRule(file, dataUrl);
+  });
 }
 
 /** The caption font as an `@font-face` rule from its `data:` URL. */

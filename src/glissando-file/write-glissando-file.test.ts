@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { MediaNotFoundError } from "../library/stored-slideshow";
 import { MemoryLibraryStore } from "../library/testing/memory-store";
 import { checkGlissandoFile, type CheckedGlissandoFile } from "./check-glissando-file";
+import { fakeMediaDecoders } from "./testing/fake-media-decoders";
 import { EXPORTED_SLIDESHOW, exportedFile } from "./testing/glissando-fixtures";
 import { writeGlissandoFile, type OpenStep, type WritePorts } from "./write-glissando-file";
 
@@ -10,6 +11,7 @@ const NOW = new Date("2026-01-02T03:04:05Z");
 async function checked(): Promise<CheckedGlissandoFile> {
   const check = await checkGlissandoFile(await exportedFile(), {
     freeBytes: () => Promise.resolve(null),
+    mediaDecoders: fakeMediaDecoders(),
   });
   if (check.kind !== "ok") {
     throw new Error(`the fixture should pass the check, got ${check.kind}`);
@@ -66,8 +68,8 @@ describe("writeGlissandoFile", () => {
     expect(saved.pictures.map((picture) => picture.fileName)).toEqual(["b.jpg", "a.jpg"]);
     expect(saved.pictures.map((picture) => picture.id)).not.toContain("src-p2");
     const [first] = saved.pictures;
-    expect(first && (await (await store.pictureBlob(first.id)).text())).toBe("display two");
-    expect(first && (await store.thumbnailBlob(first.id)).type).toBe("image/jpeg");
+    expect(first && (await (await store.pictureBlob(first.id)).text())).toContain("display two");
+    expect(first && (await store.thumbnailBlob(first.id)).type).toBe("image/png");
     const [song] = saved.songs;
     expect(song && (await (await store.musicBlob(song.id)).text())).toBe("music bytes");
     expect(song?.fileName).toBe("Walzer.m4a");

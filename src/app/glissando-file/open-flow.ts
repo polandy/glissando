@@ -1,4 +1,5 @@
 import { checkGlissandoFile } from "../../glissando-file/check-glissando-file";
+import type { MediaDecoders } from "../../glissando-file/media-decoders";
 import { writeGlissandoFile, type WritePorts } from "../../glissando-file/write-glissando-file";
 import type { LibraryStore } from "../../library/stored-slideshow";
 import type { Navigator } from "../navigation/navigator";
@@ -46,6 +47,8 @@ export interface OpenFlowPorts {
   now(): Date;
   /** Free storage on the device in bytes; null where the browser cannot tell. */
   freeBytes(): Promise<number | null>;
+  /** Decodes each medium before it is stored, so a file that is not what it says is refused. */
+  readonly mediaDecoders: MediaDecoders;
   readonly navigator: Pick<Navigator, "open">;
   readonly toaster: Pick<Toaster, "show">;
   reportError(error: unknown): void;
@@ -110,6 +113,7 @@ export class OpenFlow {
     try {
       const check = await checkGlissandoFile(file, {
         freeBytes: () => this.#ports.freeBytes(),
+        mediaDecoders: this.#ports.mediaDecoders,
         signal: cancel.signal,
         onProgress: (fraction) => show({ kind: "checking" }, fraction * CHECKING_SHARE),
       });

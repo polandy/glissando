@@ -6,6 +6,7 @@ import type { MusicOutput, VideoElementPool } from "../player";
 import type { LibraryStore, StoredSlideshow } from "../library/stored-slideshow";
 import type { PwaStatus } from "../pwa/pwa-status";
 import type { ServerLibrary } from "../server-library/server-library";
+import type { MediaDecoders } from "../glissando-file/media-decoders";
 import type { ErrorReporter } from "./errors/error-reporter";
 import type { LaunchQueue } from "./glissando-file/launched-files";
 import type { AddPicturesSession } from "./add-pictures/add-pictures-session";
@@ -82,8 +83,12 @@ export interface AppServices extends ServerSlideshowSessions {
   log(error: unknown): void;
   /** Free storage on the device in bytes; null where the browser cannot tell. */
   freeBytes(): Promise<number | null>;
+  /** Decodes an opened .glissando file's media before it is stored (ADR-0038). */
+  readonly mediaDecoders: MediaDecoders;
   /** Hands a file to the browser's downloads. */
   download(file: Blob, fileName: string): void;
+  /** `index.html` for a slideshow's .glissando file, which plays its unpacked folder (ADR-0038). */
+  playerPage(slideshow: StoredSlideshow): Promise<string>;
   /** What the video export sheet needs of the browser (dev-docs/VIDEO_EXPORT.md). */
   readonly videoExport: VideoExportDevice;
   /** What the web page export sheet needs of the browser (dev-docs/HTML_EXPORT.md). */

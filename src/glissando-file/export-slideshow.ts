@@ -1,6 +1,9 @@
 import type { LibraryStore, StoredSlideshow } from "../library/stored-slideshow";
 import { manifestFor, MANIFEST_ENTRY_NAME } from "./glissando-manifest";
+import { PLAYER_ENTRY_NAME, README_ENTRY_NAME, SCHEMA_ENTRY_NAME } from "./entry-names";
 import { distinctClipIds } from "./manifest-video";
+import { MANIFEST_SCHEMA } from "./manifest-schema";
+import { README_TEXT } from "./readme-text";
 import { StoredZipWriter } from "./stored-zip";
 
 export const GLISSANDO_FILE_EXTENSION = ".glissando";
@@ -11,6 +14,10 @@ const FALLBACK_FILE_NAME = "Glissando";
 const FORBIDDEN_IN_FILE_NAMES = /[\\/:*?"<>|\u0000-\u001f]+/g;
 const TRIMMED_AT_ENDS = /^[\s.-]+|[\s.-]+$/g;
 const MANIFEST_TYPE = "application/json";
+const README_TYPE = "text/plain";
+const PLAYER_TYPE = "text/html";
+/** Spaces per level in the JSON entries, so a person can read and edit them. */
+const JSON_INDENT = 2;
 
 export type ExportMedia = Pick<
   LibraryStore,
@@ -22,13 +29,15 @@ export interface ExportOptions {
   readonly modifiedAt: Date;
   /** The share of the work done, from 0 to 1. */
   readonly onProgress?: (fraction: number) => void;
+  /** `index.html`: the page that plays the slideshow from the unpacked folder (ADR-0038). */
+  playerPage(slideshow: StoredSlideshow): Promise<string>;
 }
 
 /**
  * The slideshow as a .glissando file: `glissando.json` first (it marks the file as one), then
- * each picture in play order with its thumbnail, then the music, then each clip a video slide
- * plays, once. The media is read from the
- * store one file at a time; the container is built from their blobs.
+ * its schema, a README and the player page, then each picture in play order with its thumbnail,
+ * then the music, then each clip a video slide plays, once. The media is read from the store one
+ * file at a time; the container is built from their blobs.
  */
 export async function exportSlideshow(
   slideshow: StoredSlideshow,
@@ -72,7 +81,17 @@ export async function exportSlideshow(
     new Map([...clipBlobs].map(([mediaId, blob]) => [mediaId, blob.type])),
   );
   const zip = new StoredZipWriter(options.modifiedAt);
-  await zip.add(MANIFEST_ENTRY_NAME, new Blob([JSON.stringify(manifest)], { type: MANIFEST_TYPE }));
+  await zip.add(
+    MANIFEST_ENTRY_NAME,
+    new Blob([JSON.stringify(manifest, null, JSON_INDENT)], { type: MANIFEST_TYPE }),
+  );
+  await zip.add(
+    SCHEMA_ENTRY_NAME,
+    new Blob([JSON.stringify(MANIFEST_SCHEMA, null, JSON_INDENT)], { type: MANIFEST_TYPE }),
+  );
+  await zip.add(README_ENTRY_NAME, new Blob([README_TEXT], { type: README_TYPE }));
+  const page = await options.playerPage(slideshow);
+  await zip.add(PLAYER_ENTRY_NAME, new Blob([page], { type: PLAYER_TYPE }));
   for (const [index, picture] of manifest.slideshow.pictures.entries()) {
     const blobs = pictures[index];
     if (blobs === undefined) {

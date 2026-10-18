@@ -8,12 +8,14 @@ import { OWN_SECONDS_PICTURE_LENGTH } from "../library/picture-length";
 import type { StoredSlideshow } from "../library/stored-slideshow";
 import { MemoryLibraryStore } from "../library/testing/memory-store";
 import { checkGlissandoFile } from "./check-glissando-file";
+import { fakeMediaDecoders } from "./testing/fake-media-decoders";
 import { EXPORTED_SLIDESHOW, exportedFile } from "./testing/glissando-fixtures";
 import { writeGlissandoFile } from "./write-glissando-file";
 
 async function importedAfterExport(slideshow: StoredSlideshow): Promise<StoredSlideshow> {
   const check = await checkGlissandoFile(await exportedFile(slideshow), {
     freeBytes: () => Promise.resolve(null),
+    mediaDecoders: fakeMediaDecoders(),
   });
   if (check.kind !== "ok") {
     throw new Error(`the exported file should pass the check, got ${check.kind}`);

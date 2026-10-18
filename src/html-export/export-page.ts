@@ -6,9 +6,9 @@ import type {
   StoredPicture,
   StoredSlideshow,
 } from "../library/stored-slideshow";
-import { cardFontFaceRule, cardFontFilesUsedBy, isGroundSlide, type Slideshow } from "../player";
+import { cardFontFilesUsedBy, isGroundSlide, type Slideshow } from "../player";
 import { encodeBase64 } from "./base64";
-import { MEDIA_BLOCK_END, mediaBlockStart, pageHead, pageTail } from "./page";
+import { cardFontFaceRules, MEDIA_BLOCK_END, mediaBlockStart, pageHead, pageTail } from "./page";
 import { pictureKey, songKey, videoKey, type PageCopy } from "./page-contract";
 import { PAGE_JPEG_QUALITY, pictureRendition, type PageSizeId } from "./plan";
 import type { PageSink, PictureScaler, PlayerAsset, PlayerBundle } from "./ports";
@@ -131,7 +131,7 @@ async function writePage(job: PageExportJob): Promise<PageExportResult> {
       slideshow,
       style: bundle.style,
       captionFontDataUrl: bundle.captionFontDataUrl,
-      cardFontFaceRules: cardFontFaceRules(slideshow, bundle.cardFontDataUrls),
+      cardFontFaceRules: cardFontFaceRules(cardFontFilesUsedBy(slideshow), bundle.cardFontDataUrls),
     }),
   );
   report(0);
@@ -156,20 +156,6 @@ async function writePage(job: PageExportJob): Promise<PageExportResult> {
   await sink.close();
   report(stored.pictures.length);
   return { bytesWritten };
-}
-
-/** `@font-face` rules for the fonts `slideshow`'s cards use, beyond the caption font. */
-function cardFontFaceRules(
-  slideshow: Slideshow,
-  cardFontDataUrls: Readonly<Record<string, string>>,
-): readonly string[] {
-  return cardFontFilesUsedBy(slideshow).map((file) => {
-    const dataUrl = cardFontDataUrls[file.assetPath];
-    if (dataUrl === undefined) {
-      throw new Error(`the export player did not bundle the card font ${file.assetPath}`);
-    }
-    return cardFontFaceRule(file, dataUrl);
-  });
 }
 
 /** The songs the composed slideshow plays, each once, in playlist order. */

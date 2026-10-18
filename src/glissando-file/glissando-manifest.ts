@@ -61,7 +61,9 @@ const PICTURE_EXTENSIONS: Readonly<Record<string, string>> = {
   "image/png": "png",
   "image/webp": "webp",
 };
-const PICTURE_NUMBER_DIGITS = 4;
+/** The extensions a picture or thumbnail entry may have, shared with the entry name allowlist. */
+export const PICTURE_FILE_EXTENSIONS: readonly string[] = Object.values(PICTURE_EXTENSIONS);
+export const PICTURE_NUMBER_DIGITS = 4;
 const MUSIC_EXTENSION = /\.([a-z0-9]{1,8})$/i;
 
 export interface ManifestPicture {
@@ -139,8 +141,14 @@ export function picturePaths(
   const number = String(index + 1).padStart(PICTURE_NUMBER_DIGITS, "0");
   return {
     file: `pictures/${number}.${pictureExtension(types.display)}`,
-    thumbnail: `thumbnails/${number}.${pictureExtension(types.thumbnail)}`,
+    thumbnail: thumbnailPath(index, types.thumbnail),
   };
+}
+
+/** Where thumbnail `index` (from 0) of type `type` sits in the container. */
+export function thumbnailPath(index: number, type: string): string {
+  const number = String(index + 1).padStart(PICTURE_NUMBER_DIGITS, "0");
+  return `thumbnails/${number}.${pictureExtension(type)}`;
 }
 
 /**

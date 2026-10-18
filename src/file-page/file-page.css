@@ -1,0 +1,17 @@
+/* index.html's own card, on top of the exported page's (page.css): asks for the folder. */
+.choose {
+  background: var(--gl-player-bg);
+}
+
+.choose-text {
+  max-width: 34em;
+  margin: 0 auto 22px;
+  font-size: var(--gl-size-label);
+  line-height: 1.5;
+  opacity: 0.82;
+}
+
+.choose .error {
+  max-width: 34em;
+  margin-inline: auto;
+}
