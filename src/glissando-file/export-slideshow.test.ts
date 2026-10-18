@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { MemoryLibraryStore } from "../library/testing/memory-store";
 import type { StoredSlideshow } from "../library/stored-slideshow";
 import { exportSlideshow, glissandoFileName } from "./export-slideshow";
+import { MANIFEST_SCHEMA } from "./manifest-schema";
 import { readManifest } from "./read-manifest";
 import { entryTexts } from "./testing/glissando-fixtures";
 
@@ -52,6 +53,8 @@ describe("exportSlideshow", () => {
     const read = await contents(file);
     expect(Object.keys(read)).toEqual([
       "glissando.json",
+      "glissando.schema.json",
+      "README.txt",
       "pictures/0001.jpg",
       "thumbnails/0001.jpg",
       "pictures/0002.jpg",
@@ -63,6 +66,9 @@ describe("exportSlideshow", () => {
     expect(read["music/track-1.m4a"]).toBe("music bytes");
     const manifest = readManifest(read["glissando.json"] ?? "");
     expect(manifest.kind === "ok" && manifest.manifest.slideshow.title).toBe("Herbst in Wien");
+    expect(JSON.parse(read["glissando.schema.json"] ?? "")).toEqual(MANIFEST_SCHEMA);
+    expect(read["README.txt"]).toContain("glissando.json");
+    expect(read["README.txt"]).not.toContain("index.html");
   });
 
   it("writes every song of the playlist at its own path, in play order", async () => {

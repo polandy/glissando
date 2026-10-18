@@ -1,4 +1,6 @@
-const ISO_8601_DATE_TIME = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:\d{2})$/;
+/** An ISO 8601 date-time's shape; `readDateTime` also checks `Date.parse` accepts the value. */
+export const ISO_8601_DATE_TIME =
+  /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:\d{2})$/;
 
 /**
  * A value in a JSON document (a .glissando manifest, a server slideshow) unlike what its path

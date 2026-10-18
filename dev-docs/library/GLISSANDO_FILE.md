@@ -10,6 +10,8 @@ hostile (ADR-0038):
 | Entry                   | Content                                                                                                              |
 | ----------------------- | -------------------------------------------------------------------------------------------------------------------- |
 | `glissando.json`        | first, as the export writes it: `format` "glissando", `formatVersion` 14, the `slideshow`                            |
+| `glissando.schema.json` | next: a JSON Schema (draft-07) of `glissando.json` at the current `formatVersion`                                    |
+| `README.txt`            | next: English plain text saying what the file is and what each entry holds                                           |
 | `pictures/0001.jpg` …   | the display renditions in play order, as stored (numbered from 0001)                                                 |
 | `thumbnails/0001.jpg`…  | their thumbnails, as stored                                                                                          |
 | `music/track-<n>.<ext>` | the playlist's n-th song (from 1), extension from its file name (none when it has none)                              |
@@ -26,6 +28,15 @@ out of range makes the file damaged. Versions 13 and 14 are read (version 13 has
 of an older version is damaged. An own duration, transition, default transition, excerpt, fade or picture changes is checked as on the edit; the reason
 names its path and value. A caption must be what `normalizeCaption` leaves (1 to 80 characters counted in graphemes, one line, no
 leading, trailing or repeated whitespace); the reason names its path and value.
+
+`glissando.schema.json` (`manifest-schema.ts` and its siblings) is built from the same constants
+`readManifest` checks against, so the two cannot drift apart; `manifest-schema.test.ts` and its
+siblings keep them in sync by running both over one table of manifests. A few rules it cannot
+express stay reader-only, and are named in the schema's own `description` and proved by
+`manifest-schema-reader-only.test.ts`: a repeated song path, a card background's `pictureIndex`
+past the picture count, two clips sharing a file but not a `mimeType`, a date-time that matches
+the pattern but not a real calendar time, a caption over 80 graphemes, a music trim past its
+track's `durationMs`, and a video excerpt under 500 ms.
 
 - **Export** (`exportSlideshow`) reads the media from the store one file at a time and builds
   the container from their blobs; the file is named after the title, characters a file system
