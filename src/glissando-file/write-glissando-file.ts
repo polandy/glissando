@@ -94,7 +94,9 @@ export async function writeGlissandoFile(
         fraction: written / files,
       });
       const id = requireId(songIds, index, "song");
-      await claimed(id, async (musicId) => store.putMusic(musicId, await contents.media(song.file)));
+      await claimed(id, async (musicId) =>
+        store.putMusic(musicId, await contents.media(song.file)),
+      );
       written += 1;
     }
     for (const [index, clip] of clipFiles.entries()) {
@@ -108,7 +110,9 @@ export async function writeGlissandoFile(
       if (id === undefined) {
         throw new Error(`clip ${clip.file} has no id: it was not counted among clipFiles`);
       }
-      await claimed(id, async (videoId) => store.putVideo(videoId, await contents.media(clip.file)));
+      await claimed(id, async (videoId) =>
+        store.putVideo(videoId, await contents.media(clip.file)),
+      );
       written += 1;
     }
     options.signal.throwIfAborted();
