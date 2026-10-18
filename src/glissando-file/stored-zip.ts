@@ -1,35 +1,27 @@
 import { crc32OfBlob } from "./crc32";
+import {
+  CENTRAL_HEADER_BYTES,
+  CENTRAL_SIGNATURE,
+  END_RECORD_BYTES,
+  END_SIGNATURE,
+  FLAG_UTF8_NAMES,
+  LOCAL_HEADER_BYTES,
+  LOCAL_SIGNATURE,
+  METHOD_STORED,
+} from "./zip-records";
 
 /**
- * A ZIP container whose entries are stored, never compressed: the minimal subset Glissando
- * writes and reads (see ADR-0004). No ZIP64, so the container stays under 4 GiB and 65,535
- * entries.
+ * Writes a ZIP container whose entries are stored, never compressed, the way Glissando exports
+ * (see ADR-0004); `./zip-reader.ts` reads it and what other tools pack. No ZIP64, so the
+ * container stays under 4 GiB and 65,535 entries.
  */
 
-const LOCAL_SIGNATURE = 0x04034b50;
-const CENTRAL_SIGNATURE = 0x02014b50;
-const END_SIGNATURE = 0x06054b50;
-const LOCAL_HEADER_BYTES = 30;
-const CENTRAL_HEADER_BYTES = 46;
-const END_RECORD_BYTES = 22;
-const MAX_COMMENT_BYTES = 0xffff;
 /** Sizes and offsets at or above this need ZIP64, which this container does not write. */
 export const MAX_32_BIT = 0xffffffff;
 const MAX_ENTRIES = 0xffff;
 /** Version 1.0: stored entries need no more. */
 const VERSION_NEEDED = 10;
-const FLAG_ENCRYPTED = 0x0001;
-const FLAG_UTF8_NAMES = 0x0800;
-const METHOD_STORED = 0;
 const DOS_EPOCH_YEAR = 1980;
-
-export interface ZipEntry {
-  readonly name: string;
-  /** Where the entry's bytes start in the container. */
-  readonly dataOffset: number;
-  readonly size: number;
-  readonly crc32: number;
-}
 
 /** The container would need ZIP64: over 4 GiB or 65,535 entries. */
 export class ZipTooLargeError extends Error {
@@ -122,126 +114,6 @@ export class StoredZipWriter {
     }
     return view.buffer;
   }
-}
-
-/** The name in the container's first local header; null when it does not start like a ZIP. */
-export async function firstEntryName(file: Blob): Promise<string | null> {
-  const header = await viewOf(file, 0, LOCAL_HEADER_BYTES);
-  if (header.byteLength < LOCAL_HEADER_BYTES || header.getUint32(0, true) !== LOCAL_SIGNATURE) {
-    return null;
-  }
-  const nameBytes = header.getUint16(26, true);
-  return decodeName(await viewOf(file, LOCAL_HEADER_BYTES, nameBytes));
-}
-
-/**
- * The container's entries from its central directory, each checked against its local header;
- * null for anything this reader cannot trust: cut short, inconsistent, compressed or encrypted.
- * The entries' bytes are not read (see `entryData`).
- */
-export async function readZipDirectory(file: Blob): Promise<ZipEntry[] | null> {
-  const end = await findEndRecord(file);
-  if (end === null) {
-    return null;
-  }
-  const count = end.getUint16(10, true);
-  const centralSize = end.getUint32(12, true);
-  const centralOffset = end.getUint32(16, true);
-  if (end.getUint16(8, true) !== count || centralOffset + centralSize > file.size) {
-    return null;
-  }
-  const central = await viewOf(file, centralOffset, centralSize);
-  const entries: ZipEntry[] = [];
-  const names = new Set<string>();
-  let at = 0;
-  for (let index = 0; index < count; index++) {
-    if (at + CENTRAL_HEADER_BYTES > central.byteLength) {
-      return null;
-    }
-    const entry = await checkedEntry(file, central, at, centralOffset);
-    if (entry === null || names.has(entry.name)) {
-      return null;
-    }
-    names.add(entry.name);
-    entries.push(entry);
-    at += centralHeaderLength(central, at);
-  }
-  return entries;
-}
-
-/** An entry's bytes as a slice of the container: nothing is read until the blob is. */
-export function entryData(file: Blob, entry: ZipEntry, type = ""): Blob {
-  return file.slice(entry.dataOffset, entry.dataOffset + entry.size, type);
-}
-
-async function checkedEntry(
-  file: Blob,
-  central: DataView,
-  at: number,
-  centralOffset: number,
-): Promise<ZipEntry | null> {
-  const flags = central.getUint16(at + 8, true);
-  const size = central.getUint32(at + 24, true);
-  const nameLength = central.getUint16(at + 28, true);
-  const localOffset = central.getUint32(at + 42, true);
-  if (
-    central.getUint32(at, true) !== CENTRAL_SIGNATURE ||
-    (flags & FLAG_ENCRYPTED) !== 0 ||
-    central.getUint16(at + 10, true) !== METHOD_STORED ||
-    central.getUint32(at + 20, true) !== size ||
-    at + centralHeaderLength(central, at) > central.byteLength
-  ) {
-    return null;
-  }
-  const nameView = new DataView(
-    central.buffer,
-    central.byteOffset + at + CENTRAL_HEADER_BYTES,
-    nameLength,
-  );
-  const name = decodeName(nameView);
-  const local = await viewOf(file, localOffset, LOCAL_HEADER_BYTES);
-  if (local.byteLength < LOCAL_HEADER_BYTES || local.getUint32(0, true) !== LOCAL_SIGNATURE) {
-    return null;
-  }
-  const localNameLength = local.getUint16(26, true);
-  const dataOffset = localOffset + LOCAL_HEADER_BYTES + localNameLength + local.getUint16(28, true);
-  const localName = decodeName(
-    await viewOf(file, localOffset + LOCAL_HEADER_BYTES, localNameLength),
-  );
-  if (localName !== name || dataOffset + size > centralOffset) {
-    return null;
-  }
-  return { name, dataOffset, size, crc32: central.getUint32(at + 16, true) };
-}
-
-/** A central header with its name, extra field and comment. */
-function centralHeaderLength(central: DataView, at: number): number {
-  return (
-    CENTRAL_HEADER_BYTES +
-    central.getUint16(at + 28, true) +
-    central.getUint16(at + 30, true) +
-    central.getUint16(at + 32, true)
-  );
-}
-
-/** The end record sits in the last 22 bytes plus at most a 64 KiB comment. */
-async function findEndRecord(file: Blob): Promise<DataView | null> {
-  const tailStart = Math.max(0, file.size - END_RECORD_BYTES - MAX_COMMENT_BYTES);
-  const tail = await viewOf(file, tailStart, file.size - tailStart);
-  for (let at = tail.byteLength - END_RECORD_BYTES; at >= 0; at--) {
-    if (tail.getUint32(at, true) === END_SIGNATURE) {
-      return new DataView(tail.buffer, tail.byteOffset + at, END_RECORD_BYTES);
-    }
-  }
-  return null;
-}
-
-async function viewOf(file: Blob, start: number, length: number): Promise<DataView> {
-  return new DataView(await file.slice(start, start + length).arrayBuffer());
-}
-
-function decodeName(view: DataView): string {
-  return new TextDecoder().decode(view);
 }
 
 /** MS-DOS time and date, as ZIP stores them: two-second steps, years from 1980. */

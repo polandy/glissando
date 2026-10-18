@@ -10,4 +10,6 @@ export interface MediaDecoders {
   music(song: Blob): Promise<boolean>;
   /** Whether this browser loads a clip's metadata. */
   clip(clip: Blob): Promise<boolean>;
+  /** A thumbnail made from a picture that decoded, for a file packed again without its own. */
+  thumbnail(picture: Blob): Promise<Blob>;
 }

@@ -3,7 +3,7 @@ import { MemoryLibraryStore } from "../library/testing/memory-store";
 import type { StoredSlideshow } from "../library/stored-slideshow";
 import { exportSlideshow, glissandoFileName } from "./export-slideshow";
 import { readManifest } from "./read-manifest";
-import { entryData, readZipDirectory } from "./stored-zip";
+import { entryTexts } from "./testing/glissando-fixtures";
 
 const MODIFIED = new Date("2025-10-01T08:00:00Z");
 
@@ -43,14 +43,7 @@ async function storeWithMedia(): Promise<MemoryLibraryStore> {
   return store;
 }
 
-async function contents(file: Blob): Promise<Record<string, string>> {
-  const entries = (await readZipDirectory(file)) ?? [];
-  const read: Record<string, string> = {};
-  for (const entry of entries) {
-    read[entry.name] = await entryData(file, entry).text();
-  }
-  return read;
-}
+const contents = entryTexts;
 
 describe("exportSlideshow", () => {
   it("writes the manifest first, then each picture in play order, its thumbnail and the music", async () => {

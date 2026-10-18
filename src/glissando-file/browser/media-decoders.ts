@@ -1,5 +1,6 @@
 import { DETECTION_SAMPLE_RATE } from "../../beats/decode-music";
 import { openClipInVideoElement } from "../../import/browser/video-clip";
+import { encodeThumbnail } from "../../import/downscale";
 import type { MediaDecoders } from "../media-decoders";
 
 /** The name given a clip's blob to open it in a `<video>` element; never shown to anyone. */
@@ -46,6 +47,16 @@ export function browserMediaDecoders(): MediaDecoders {
       }
       opened.close();
       return true;
+    },
+
+    // Called only for a picture that decoded, so a failure here is an error, not a damaged file.
+    async thumbnail(picture) {
+      const bitmap = await createImageBitmap(new Blob([await picture.arrayBuffer()]));
+      try {
+        return await encodeThumbnail(bitmap);
+      } finally {
+        bitmap.close();
+      }
     },
   };
 }

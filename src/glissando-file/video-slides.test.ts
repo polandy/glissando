@@ -3,11 +3,12 @@ import { MemoryLibraryStore } from "../library/testing/memory-store";
 import { checkGlissandoFile, type CheckedGlissandoFile } from "./check-glissando-file";
 import { GLISSANDO_FORMAT_VERSION } from "./glissando-manifest";
 import { readManifest } from "./read-manifest";
-import { entryData, readZipDirectory } from "./stored-zip";
+import { readZipDirectory } from "./zip-reader";
 import { fakeMediaDecoders } from "./testing/fake-media-decoders";
 import {
   EXPORTED_VIDEO_CLIP_BYTES,
   EXPORTED_VIDEO_PICTURE_BYTES,
+  entryTexts,
   exportedVideoFile,
   VIDEO_CLIP_MARKERS,
 } from "./testing/glissando-fixtures";
@@ -16,8 +17,7 @@ import { writeGlissandoFile, type OpenStep, type WritePorts } from "./write-glis
 const plentyOfSpace = { freeBytes: () => Promise.resolve(1e9), mediaDecoders: fakeMediaDecoders() };
 
 async function manifestOf(file: Blob): Promise<Record<string, unknown>> {
-  const [first] = (await readZipDirectory(file)) ?? [];
-  return JSON.parse(first ? await entryData(file, first).text() : "{}") as Record<string, unknown>;
+  return JSON.parse((await entryTexts(file))["glissando.json"] ?? "{}") as Record<string, unknown>;
 }
 
 async function checked(file?: Blob): Promise<CheckedGlissandoFile> {
