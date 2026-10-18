@@ -43,7 +43,8 @@ All three are in the ⋯ menu at the top right of a slideshow.
   it keeps anything of it, and refuses a file that is damaged or not what it claims to be. The
   file is a ZIP: rename it to `.zip` to look inside. A copy you unpacked, edited and zipped again
   (the folder itself or its contents) still opens; missing thumbnails are made again, also where you deleted a picture's `thumbnail`
-  line from `glissando.json`.
+  line from `glissando.json`. Inside, `README.txt` says what each entry is, and
+  `glissando.schema.json` describes `glissando.json` as a JSON Schema.
 - **Share link, TV, picture frame** need a self-hosted Glissando
   ([self-hosting](self-hosting.md)): a link anyone can watch, a TV you control from the phone
   (`/tv`), and an Immich album played endlessly (the Picture frame card, or Settings).

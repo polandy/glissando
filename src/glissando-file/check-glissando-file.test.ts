@@ -15,6 +15,7 @@ import {
 
 interface ExportedManifest {
   readonly slideshow: {
+    readonly title: string;
     readonly pictures: readonly {
       readonly file: string;
       readonly thumbnail: string;
@@ -281,17 +282,17 @@ describe("checkGlissandoFile", () => {
       [second.file]: tinyPicture("display two", second.width, second.height),
       [second.thumbnail]: tinyPicture("thumb two"),
       [song.file]: "music bytes",
-      "README.txt": "a plain-text read me",
+      "README.txt": "\x00\x01garbage, not text\xff\xfe",
       "index.html": "<script>alert('should never run')</script>",
-      "glissando.schema.json": "{}",
+      "glissando.schema.json": "{ not json at all ] garbage \x00\xff",
     });
 
     const check = await checkGlissandoFile(file, plentyOfSpace);
 
-    expect(check.kind).toBe("ok");
     if (check.kind !== "ok") {
-      return;
+      throw new Error(`expected an ok check, got ${check.kind}`);
     }
+    expect(check.contents.manifest.slideshow.title).toBe(manifest.slideshow.title);
     await expect(check.contents.media("README.txt")).rejects.toThrow();
     await expect(check.contents.media("index.html")).rejects.toThrow();
     await expect(check.contents.media("glissando.schema.json")).rejects.toThrow();

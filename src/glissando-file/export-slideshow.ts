@@ -1,6 +1,9 @@
 import type { LibraryStore, StoredSlideshow } from "../library/stored-slideshow";
 import { manifestFor, MANIFEST_ENTRY_NAME } from "./glissando-manifest";
+import { README_ENTRY_NAME, SCHEMA_ENTRY_NAME } from "./entry-names";
 import { distinctClipIds } from "./manifest-video";
+import { MANIFEST_SCHEMA } from "./manifest-schema";
+import { README_TEXT } from "./readme-text";
 import { StoredZipWriter } from "./stored-zip";
 
 export const GLISSANDO_FILE_EXTENSION = ".glissando";
@@ -11,6 +14,7 @@ const FALLBACK_FILE_NAME = "Glissando";
 const FORBIDDEN_IN_FILE_NAMES = /[\\/:*?"<>|\u0000-\u001f]+/g;
 const TRIMMED_AT_ENDS = /^[\s.-]+|[\s.-]+$/g;
 const MANIFEST_TYPE = "application/json";
+const README_TYPE = "text/plain";
 
 export type ExportMedia = Pick<
   LibraryStore,
@@ -26,9 +30,9 @@ export interface ExportOptions {
 
 /**
  * The slideshow as a .glissando file: `glissando.json` first (it marks the file as one), then
- * each picture in play order with its thumbnail, then the music, then each clip a video slide
- * plays, once. The media is read from the
- * store one file at a time; the container is built from their blobs.
+ * its schema and a README, then each picture in play order with its thumbnail, then the music,
+ * then each clip a video slide plays, once. The media is read from the store one file at a time;
+ * the container is built from their blobs.
  */
 export async function exportSlideshow(
   slideshow: StoredSlideshow,
@@ -73,6 +77,11 @@ export async function exportSlideshow(
   );
   const zip = new StoredZipWriter(options.modifiedAt);
   await zip.add(MANIFEST_ENTRY_NAME, new Blob([JSON.stringify(manifest)], { type: MANIFEST_TYPE }));
+  await zip.add(
+    SCHEMA_ENTRY_NAME,
+    new Blob([JSON.stringify(MANIFEST_SCHEMA, null, 2)], { type: MANIFEST_TYPE }),
+  );
+  await zip.add(README_ENTRY_NAME, new Blob([README_TEXT], { type: README_TYPE }));
   for (const [index, picture] of manifest.slideshow.pictures.entries()) {
     const blobs = pictures[index];
     if (blobs === undefined) {
