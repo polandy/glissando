@@ -26,7 +26,18 @@ function orderedById(
   order: readonly string[],
 ): readonly StoredPicture[] {
   const byId = new Map(pictures.map((picture) => [picture.id, picture]));
-  return order.map((id) => byId.get(id) as StoredPicture);
+  if (new Set(order).size !== byId.size) {
+    throw new Error(
+      `the slideshow's order names ${new Set(order).size} pictures, but it has ${byId.size}`,
+    );
+  }
+  return order.map((id) => {
+    const picture = byId.get(id);
+    if (picture === undefined) {
+      throw new Error(`the slideshow's order names a picture "${id}" it does not have`);
+    }
+    return picture;
+  });
 }
 
 /**

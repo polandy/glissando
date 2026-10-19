@@ -74,6 +74,36 @@ describe("buildStoredSlideshow", () => {
     expect(slideshow.ownOrder).toBeUndefined();
   });
 
+  it("throws loudly when the order names a picture it does not have", () => {
+    const build = () =>
+      buildStoredSlideshow({
+        id: "s1",
+        createdAt: "2025-07-21T00:00:00Z",
+        pictures: [picture("a", "2025-07-01T10:00:00Z")],
+        order: ["ghost"],
+        songs: [],
+        secondsPerPicture: 5,
+        locale: "en",
+      });
+
+    expect(build).toThrow(/ghost/);
+  });
+
+  it("throws loudly when the order leaves a picture out", () => {
+    const build = () =>
+      buildStoredSlideshow({
+        id: "s1",
+        createdAt: "2025-07-21T00:00:00Z",
+        pictures: [picture("a", "2025-07-01T10:00:00Z"), picture("b", "2025-07-02T10:00:00Z")],
+        order: ["a"],
+        songs: [],
+        secondsPerPicture: 5,
+        locale: "en",
+      });
+
+    expect(build).toThrow();
+  });
+
   it("flags the explicit order as the user's own when asked to", () => {
     const slideshow = buildStoredSlideshow({
       id: "s1",
