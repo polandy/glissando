@@ -13,7 +13,7 @@ https://polandy.github.io/glissando-assets/mockups/video-slides/.
 | Stored bytes  | The original file as chosen, never re-encoded; accepted when this browser can play it (ADR-0034)                                                         |
 | Length        | The chosen excerpt, 0.5 s to 5 min; a fixed own duration, like ADR-0008                                                                                  |
 | Sound         | On by default; the music ducks to 35 %, staying audible, while a clip with sound plays (ADR-0035)                                                        |
-| Decoder       | `<video>` in the player, WebCodecs through mediabunny in the video export (ADR-0035)                                                                     |
+| Decoder       | A muted `<video>` in the player, its sound decoded with mediabunny; WebCodecs through mediabunny in the video export (ADR-0035)                          |
 | Network       | Clips are downloaded whole before they play, from Immich; never streamed (ADR-0034). The server keeps no clips: a server slideshow holds no video slides |
 | Portrait pair | A video slide is never composed into a portrait pair; a portrait clip gets the blurred fill (ADR-0028)                                                   |
 

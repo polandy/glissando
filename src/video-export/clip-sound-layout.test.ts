@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { assembledSoundLength, placeChunkFrames } from "./clip-sound-layout";
+import { placeChunkFrames, soundLengthFrames } from "./clip-sound-layout";
 
 const SAMPLE_RATE = 48_000;
+const ROOMY = 10 * SAMPLE_RATE;
 
 describe("placeChunkFrames", () => {
   it.each([
@@ -10,6 +11,8 @@ describe("placeChunkFrames", () => {
     ["a timestamp that rounds up lands one frame later", 0.1 + 1 / SAMPLE_RATE, 480, 4801, 0, 480],
     ["negative timestamp cuts its early frames, landing the rest at time 0", -0.1, 480, 0, 4800, 0],
     ["a chunk that ends before time 0 contributes no frames", -1, 480, 0, 48_000, 0],
+    ["a chunk running past the buffer's end is cut at it", 10 - 0.005, 480, ROOMY - 240, 0, 240],
+    ["a chunk starting past the buffer's end contributes no frames", 11, 480, ROOMY, 0, 0],
   ] as const)(
     "%s",
     (
@@ -20,7 +23,7 @@ describe("placeChunkFrames", () => {
       sourceFrameOffset,
       framesToCopy,
     ) => {
-      expect(placeChunkFrames({ timestampSeconds, frameCount }, SAMPLE_RATE)).toEqual({
+      expect(placeChunkFrames({ timestampSeconds, frameCount }, SAMPLE_RATE, ROOMY)).toEqual({
         targetFrameOffset,
         sourceFrameOffset,
         framesToCopy,
@@ -29,18 +32,12 @@ describe("placeChunkFrames", () => {
   );
 });
 
-describe("assembledSoundLength", () => {
-  it("spans from file time 0 to the last chunk's end", () => {
-    expect(assembledSoundLength({ timestampSeconds: 2, frameCount: 480 }, SAMPLE_RATE)).toBe(
-      2 * SAMPLE_RATE + 480,
-    );
+describe("soundLengthFrames", () => {
+  it("holds the whole duration, rounded up to a whole frame", () => {
+    expect(soundLengthFrames(2 + 0.5 / SAMPLE_RATE, SAMPLE_RATE)).toBe(2 * SAMPLE_RATE + 1);
   });
 
-  it("is cut to the part of the last chunk at or after time 0", () => {
-    expect(assembledSoundLength({ timestampSeconds: -0.1, frameCount: 4800 }, SAMPLE_RATE)).toBe(0);
-  });
-
-  it("is never negative, even when the last chunk ends before time 0", () => {
-    expect(assembledSoundLength({ timestampSeconds: -1, frameCount: 480 }, SAMPLE_RATE)).toBe(0);
+  it("is 0 for a track without duration", () => {
+    expect(soundLengthFrames(0, SAMPLE_RATE)).toBe(0);
   });
 });

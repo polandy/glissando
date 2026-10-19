@@ -1,4 +1,4 @@
-import { assembledSoundLength, placeChunkFrames } from "../clip-sound-layout";
+import { placeChunkFrames, soundLengthFrames } from "../clip-sound-layout";
 import { openClipFile } from "./open-clip";
 
 /**
@@ -17,26 +17,22 @@ export async function decodeClipSound(blob: Blob): Promise<AudioBuffer | null> {
     }
     const { AudioBufferSink } = await import("./mediabunny-reader");
     const sink = new AudioBufferSink(clip.audio);
-    const chunks: { buffer: AudioBuffer; timestamp: number }[] = [];
-    for await (const chunk of sink.buffers()) {
-      chunks.push(chunk);
-    }
-    const first = chunks[0];
-    const last = chunks[chunks.length - 1];
-    if (first === undefined || last === undefined) {
-      return null;
-    }
-    const { sampleRate, numberOfChannels } = first.buffer;
-    const length = assembledSoundLength(
-      { timestampSeconds: last.timestamp, frameCount: last.buffer.length },
-      sampleRate,
-    );
-    if (length <= 0) {
-      return null;
-    }
-    const assembled = new AudioBuffer({ numberOfChannels, length, sampleRate });
-    for (const { buffer, timestamp } of chunks) {
-      copyChunkInto(assembled, buffer, timestamp, sampleRate);
+    const durationSeconds = await clip.audio.computeDuration();
+    // Sized up front and filled chunk by chunk, so the decoded chunks are never held beside it.
+    let assembled: AudioBuffer | null = null;
+    for await (const { buffer, timestamp } of sink.buffers()) {
+      if (assembled === null) {
+        const length = soundLengthFrames(durationSeconds, buffer.sampleRate);
+        if (length <= 0) {
+          return null;
+        }
+        assembled = new AudioBuffer({
+          numberOfChannels: buffer.numberOfChannels,
+          length,
+          sampleRate: buffer.sampleRate,
+        });
+      }
+      copyChunkInto(assembled, buffer, timestamp);
     }
     return assembled;
   } finally {
@@ -45,13 +41,12 @@ export async function decodeClipSound(blob: Blob): Promise<AudioBuffer | null> {
 }
 
 /** Copies the part of `chunk` at or after file time 0 into `assembled`, at its placed offset. */
-function copyChunkInto(
-  assembled: AudioBuffer,
-  chunk: AudioBuffer,
-  timestampSeconds: number,
-  sampleRate: number,
-): void {
-  const placement = placeChunkFrames({ timestampSeconds, frameCount: chunk.length }, sampleRate);
+function copyChunkInto(assembled: AudioBuffer, chunk: AudioBuffer, timestampSeconds: number): void {
+  const placement = placeChunkFrames(
+    { timestampSeconds, frameCount: chunk.length },
+    assembled.sampleRate,
+    assembled.length,
+  );
   if (placement.framesToCopy <= 0) {
     return;
   }

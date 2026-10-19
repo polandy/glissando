@@ -15,24 +15,29 @@ export interface ClipSoundChunkPlacement {
 }
 
 /**
- * Where `chunk` lands in a buffer whose frame 0 is file time 0. A chunk timestamped before 0
- * (a clip's first chunk can start early) has its early frames cut rather than placed off-buffer.
+ * Where `chunk` lands in a buffer of `lengthFrames` whose frame 0 is file time 0. A chunk
+ * timestamped before 0 (a clip's first chunk can start early) has its early frames cut, and one
+ * running past the buffer's end its late frames, rather than placed off-buffer.
  */
 export function placeChunkFrames(
   chunk: ClipSoundChunkTiming,
   sampleRate: number,
+  lengthFrames: number,
 ): ClipSoundChunkPlacement {
   const rawTargetOffset = Math.round(chunk.timestampSeconds * sampleRate);
   const sourceFrameOffset = Math.max(0, -rawTargetOffset);
+  const targetFrameOffset = Math.min(lengthFrames, Math.max(0, rawTargetOffset));
   return {
-    targetFrameOffset: Math.max(0, rawTargetOffset),
+    targetFrameOffset,
     sourceFrameOffset,
-    framesToCopy: Math.max(0, chunk.frameCount - sourceFrameOffset),
+    framesToCopy: Math.max(
+      0,
+      Math.min(chunk.frameCount - sourceFrameOffset, lengthFrames - targetFrameOffset),
+    ),
   };
 }
 
-/** The assembled buffer's length in frames, from file time 0 to the last chunk's end. */
-export function assembledSoundLength(lastChunk: ClipSoundChunkTiming, sampleRate: number): number {
-  const placement = placeChunkFrames(lastChunk, sampleRate);
-  return placement.targetFrameOffset + placement.framesToCopy;
+/** The frames a buffer needs to hold `durationSeconds` of sound, from file time 0. */
+export function soundLengthFrames(durationSeconds: number, sampleRate: number): number {
+  return Math.ceil(durationSeconds * sampleRate);
 }
