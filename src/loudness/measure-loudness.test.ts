@@ -15,10 +15,7 @@ describe("measureLoudness against the BS.1770-4 reference tones", () => {
       const tone = sineTone(REFERENCE_TONE_HZ, 1.0, REFERENCE_DURATION_MS, sampleRate);
       const loudness = measureLoudness([tone], sampleRate);
 
-      expect(excerptLoudnessLufs(loudness, 0, REFERENCE_DURATION_MS)).toBeCloseTo(
-        -3.01,
-        1,
-      );
+      expect(excerptLoudnessLufs(loudness, 0, REFERENCE_DURATION_MS)).toBeCloseTo(-3.01, 1);
     },
   );
 
@@ -32,7 +29,10 @@ describe("measureLoudness against the BS.1770-4 reference tones", () => {
 
   it("measures a -20 dB sine as 20 dB quieter than full scale", () => {
     const sampleRate = 48_000;
-    const full = measureLoudness([sineTone(REFERENCE_TONE_HZ, 1.0, REFERENCE_DURATION_MS, sampleRate)], sampleRate);
+    const full = measureLoudness(
+      [sineTone(REFERENCE_TONE_HZ, 1.0, REFERENCE_DURATION_MS, sampleRate)],
+      sampleRate,
+    );
     const quiet = measureLoudness(
       [sineTone(REFERENCE_TONE_HZ, 0.1, REFERENCE_DURATION_MS, sampleRate)],
       sampleRate,
@@ -90,7 +90,10 @@ describe("measureLoudness gating", () => {
     // trigger the relative gate instead — isolates the absolute gate from the relative one.
     const sampleRate = 48_000;
     const veryQuietAmplitude = 10 ** (-80 / 20);
-    const loudness = measureLoudness([sineTone(1000, veryQuietAmplitude, 5000, sampleRate)], sampleRate);
+    const loudness = measureLoudness(
+      [sineTone(1000, veryQuietAmplitude, 5000, sampleRate)],
+      sampleRate,
+    );
 
     expect(excerptLoudnessLufs(loudness, 0, 5000)).toBeNull();
   });
@@ -134,7 +137,9 @@ describe("measureLoudness performance", () => {
     const loudness = measureLoudness([channel, channel], sampleRate);
 
     const hopsPerBlock = 4; // 400 ms block / 100 ms hop
-    expect(loudness.hopPeaks.length).toBe(Math.floor((sampleRate * durationMs) / 1000 / (sampleRate / 10)));
+    expect(loudness.hopPeaks.length).toBe(
+      Math.floor((sampleRate * durationMs) / 1000 / (sampleRate / 10)),
+    );
     expect(loudness.blockMeanSquares.length).toBe(loudness.hopPeaks.length - hopsPerBlock + 1);
   });
 });

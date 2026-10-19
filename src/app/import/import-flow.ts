@@ -1,5 +1,6 @@
 import type { BeatPass } from "../../library/beat-pass";
 import type { FocusPass } from "../../library/focus-pass";
+import type { LoudnessPass } from "../../library/loudness-pass";
 import type { Navigator } from "../navigation/navigator";
 import type { PersistencePrompt } from "../storage/persistence-prompt";
 import type { Toaster } from "../toast/toaster";
@@ -20,6 +21,8 @@ export interface ImportFlowPorts<Session extends DiscardableSession> {
   readonly focusPass: Pick<FocusPass, "start">;
   /** Listens for the new slideshow's music's beats in the background. */
   readonly beatPass: Pick<BeatPass, "start">;
+  /** Measures the new slideshow's music's loudness in the background. */
+  readonly loudnessPass: Pick<LoudnessPass, "start">;
   reportError(error: unknown): void;
   createdText(): string;
 }
@@ -98,12 +101,13 @@ export class ImportFlow<Session extends DiscardableSession> {
   }
 
   /**
-   * A slideshow was created, here or from a file: its pictures' focus and its music's beats are
-   * looked for, and persistent storage asked for once.
+   * A slideshow was created, here or from a file: its pictures' focus and its music's beats and
+   * loudness are looked for, and persistent storage asked for once.
    */
   async afterCreate(): Promise<void> {
     this.#ports.focusPass.start();
     this.#ports.beatPass.start();
+    this.#ports.loudnessPass.start();
     try {
       if (await this.#ports.persistencePrompt.afterCreate()) {
         this.#publish({ persistRefused: true });

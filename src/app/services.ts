@@ -1,5 +1,6 @@
 import type { BeatPass } from "../library/beat-pass";
 import type { FocusPass } from "../library/focus-pass";
+import type { LoudnessPass } from "../library/loudness-pass";
 import type { ImmichAvailability } from "../immich/immich-availability";
 import type { ImmichClient } from "../immich/immich-client";
 import type { DecodeClipSound, MusicOutput } from "../player";
@@ -54,6 +55,10 @@ export interface AppServices extends ServerSlideshowSessions {
   readonly beatPass: BeatPass;
   /** Listens for a server slideshow's beats as it opens and keeps them on the server (ADR-0021). */
   readonly serverBeatPass: BeatPass;
+  /** Measures the music's loudness in the background (ADR-0040); started as the app opens. */
+  readonly loudnessPass: LoudnessPass;
+  /** Measures a server slideshow's loudness as it opens and keeps it on the server (ADR-0040). */
+  readonly serverLoudnessPass: LoudnessPass;
   /** Immich through the self-hosted Glissando (ADR-0013); checked as the app opens. */
   readonly immich: { readonly client: ImmichClient; readonly availability: ImmichAvailability };
   /**

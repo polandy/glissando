@@ -67,18 +67,24 @@ export function describeMusicLoudness(
         await store.putMusicLoudness(id, MEASURED);
       }
       await store.saveSlideshow(
-        slideshow({ songs: [{ id: "own-music", fileName: "a.mp3", durationMs: 2000, mimeType: "audio/mpeg" }] }),
+        slideshow({
+          songs: [{ id: "own-music", fileName: "a.mp3", durationMs: 2000, mimeType: "audio/mpeg" }],
+        }),
       );
       await store.saveSlideshow(
         slideshow({
           id: "other",
-          songs: [{ id: "shared-music", fileName: "a.mp3", durationMs: 2000, mimeType: "audio/mpeg" }],
+          songs: [
+            { id: "shared-music", fileName: "a.mp3", durationMs: 2000, mimeType: "audio/mpeg" },
+          ],
         }),
       );
       await store.saveSlideshow(
         slideshow({
           id: "third",
-          songs: [{ id: "shared-music", fileName: "a.mp3", durationMs: 2000, mimeType: "audio/mpeg" }],
+          songs: [
+            { id: "shared-music", fileName: "a.mp3", durationMs: 2000, mimeType: "audio/mpeg" },
+          ],
         }),
       );
 
@@ -97,7 +103,9 @@ export function describeMusicLoudness(
       }
       await store.saveSlideshow(
         slideshow({
-          songs: [{ id: "referenced-music", fileName: "a.mp3", durationMs: 2000, mimeType: "audio/mpeg" }],
+          songs: [
+            { id: "referenced-music", fileName: "a.mp3", durationMs: 2000, mimeType: "audio/mpeg" },
+          ],
         }),
       );
 

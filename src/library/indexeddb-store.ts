@@ -195,9 +195,7 @@ export class IndexedDbLibraryStore implements LibraryStore {
   }
 
   async musicLoudness(musicId: string): Promise<MusicLoudness | undefined> {
-    return (await this.#read(LOUDNESS, (store) => store.get(musicId))) as
-      | MusicLoudness
-      | undefined;
+    return (await this.#read(LOUDNESS, (store) => store.get(musicId))) as MusicLoudness | undefined;
   }
 
   /** One read-only transaction; each record is dropped once measured, so memory stays bounded. */

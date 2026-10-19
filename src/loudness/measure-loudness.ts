@@ -62,7 +62,8 @@ export function measureLoudness(
   const blockMeanSquares = new Float32Array(blockCount);
   for (let block = 0; block < blockCount; block += 1) {
     const start = block * hopSamples;
-    const sum = (cumulativeEnergy[start + blockSamples] as number) - (cumulativeEnergy[start] as number);
+    const sum =
+      (cumulativeEnergy[start + blockSamples] as number) - (cumulativeEnergy[start] as number);
     blockMeanSquares[block] = sum / blockSamples;
   }
 

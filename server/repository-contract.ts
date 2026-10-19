@@ -314,7 +314,10 @@ function music(id: string, uploadedAt: number): MusicRecord {
 }
 
 function loudnessOf(blockMeanSquares: number[], hopPeaks: number[]): MusicLoudness {
-  return { blockMeanSquares: Float32Array.from(blockMeanSquares), hopPeaks: Float32Array.from(hopPeaks) };
+  return {
+    blockMeanSquares: Float32Array.from(blockMeanSquares),
+    hopPeaks: Float32Array.from(hopPeaks),
+  };
 }
 
 /**

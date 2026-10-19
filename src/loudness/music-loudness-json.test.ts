@@ -51,9 +51,9 @@ describe("musicLoudnessToJson / parseMusicLoudness", () => {
   });
 
   it("rejects an unknown key", () => {
-    expect(() =>
-      parseMusicLoudness({ blockLoudnessDb: [], hopPeaksDbfs: [], extra: 1 }),
-    ).toThrow(/"extra"/);
+    expect(() => parseMusicLoudness({ blockLoudnessDb: [], hopPeaksDbfs: [], extra: 1 })).toThrow(
+      /"extra"/,
+    );
   });
 
   it("rejects a non-finite number", () => {

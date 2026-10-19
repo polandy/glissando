@@ -43,7 +43,11 @@ export function parseMusicLoudness(json: unknown): MusicLoudness {
   }
 
   const { blockLoudnessDb, hopPeaksDbfs } = json as Record<string, unknown>;
-  const blockMeanSquares = decibelsToLinear(blockLoudnessDb, "blockLoudnessDb", (db) => 10 ** (db / 10));
+  const blockMeanSquares = decibelsToLinear(
+    blockLoudnessDb,
+    "blockLoudnessDb",
+    (db) => 10 ** (db / 10),
+  );
   const hopPeaks = decibelsToLinear(hopPeaksDbfs, "hopPeaksDbfs", (dbfs) => 10 ** (dbfs / 20));
 
   const expectedBlocks = Math.max(0, hopPeaks.length - HOPS_PER_BLOCK + 1);

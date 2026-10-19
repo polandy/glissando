@@ -108,9 +108,9 @@ wizard as it was with a coral toast naming it and "Try again".
   download; `thumbnailBlob` is Immich's thumbnail; `musicBlob`
   the server's music; `pictureFocus` the largest Immich face box (ADR-0013's rule), asked once per
   picture and kept for the session (faces Immich could not give are logged and asked again
-  later); `putPictureFocus` keeps it for the session only; `musicBeats`/`putMusicBeats` read and
-  keep the beats beside the server's music, listened for by the first device that opens the
-  slideshow in the player or the music editor (`serverBeatPass`, ADR-0021). Both stores share the type
+  later); `putPictureFocus` keeps it for the session only; `musicBeats`/`musicLoudness` (with
+  `put…`) keep beats and loudness beside the server music, measured by the first device
+  opening the slideshow in the player or music editor (`serverBeatPass`/`serverLoudnessPass`). Both stores share the type
   `SlideshowStore` (`src/library/stored-slideshow.ts`).
 - Errors the screens tell apart: an unknown slideshow is `SlideshowNotFoundError` as on the
   device; an edit at a stale revision `SlideshowChangedError` carrying the current slideshow; a

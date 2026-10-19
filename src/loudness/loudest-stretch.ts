@@ -18,7 +18,10 @@ export function loudestStretchStartMs(
     prefix[block + 1] = (prefix[block] as number) + (m.blockMeanSquares[block] as number);
   }
   const energyOfWindow = (windowStartMs: number): number => {
-    const firstBlock = Math.min(Math.ceil(windowStartMs / LOUDNESS_HOP_MS), m.blockMeanSquares.length);
+    const firstBlock = Math.min(
+      Math.ceil(windowStartMs / LOUDNESS_HOP_MS),
+      m.blockMeanSquares.length,
+    );
     const lastBlock = Math.min(
       Math.ceil((windowStartMs + lengthMs) / LOUDNESS_HOP_MS),
       m.blockMeanSquares.length,

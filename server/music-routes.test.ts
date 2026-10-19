@@ -178,11 +178,9 @@ describe("music loudness", () => {
 
   it("answers 404 putting loudness for music the server does not have", () => {
     const library = libraryHarness();
-    const response = library.send(
-      "PUT",
-      `${MUSIC}/00000000-0000-4000-8000-000000000009/loudness`,
-      { body: { blockLoudnessDb: [], hopPeaksDbfs: [] } },
-    );
+    const response = library.send("PUT", `${MUSIC}/00000000-0000-4000-8000-000000000009/loudness`, {
+      body: { blockLoudnessDb: [], hopPeaksDbfs: [] },
+    });
     expect(response.status).toBe(404);
   });
 

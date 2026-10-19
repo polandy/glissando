@@ -41,12 +41,14 @@ import { convertMusic } from "./import/browser/convert-music";
 import { probeMusic } from "./import/music-probe";
 import { createImmichReaders } from "./immich/immich-readers";
 import { createMusicAudioContext, MusicOutput } from "./player";
-import { BeatPass } from "./library/beat-pass";
 import { FocusPass } from "./library/focus-pass";
 import { openLibraryStore } from "./library/indexeddb-store";
 import { startFocusWorker, WorkerFocusDetector } from "./focus/worker-focus-detector";
 import { decodeMusicWithWebAudio } from "./beats/decode-music";
 import { startBeatWorker, WorkerBeatDetector } from "./beats/worker-beat-detector";
+import { decodeMusicFullRate } from "./loudness/decode-music-full-rate";
+import { startLoudnessWorker, WorkerLoudnessMeter } from "./loudness/worker-loudness-meter";
+import { startBackgroundMusicPasses } from "./app/background-music-passes";
 import { requestPersistentStorage } from "./library/persistent-storage";
 import { browserPwaPorts } from "./pwa/browser-pwa";
 import { createStorageHintDismissalStore, PwaStatus } from "./pwa/pwa-status";
@@ -141,15 +143,6 @@ const focusPass = new FocusPass({
 });
 focusPass.start();
 
-const beatDetector = new WorkerBeatDetector(decodeMusicWithWebAudio, startBeatWorker);
-const beatPass = new BeatPass({
-  store,
-  detector: beatDetector,
-  log: logError,
-  reportError,
-});
-beatPass.start();
-
 const freeBytes = (): Promise<number | null> => freeStorageBytes(window.navigator.storage);
 const download = createDownloader({
   document,
@@ -175,14 +168,13 @@ const serverLibrary = createServerLibrary({
   log: logError,
 });
 
-// The first device to open a server slideshow listens for its music's beats and keeps them on
-// the server for the others (ADR-0021). A server out of reach ends the pass without a message:
-// the pictures share the music evenly, and the next opening tries again.
-const serverBeatPass = new BeatPass({
-  store: serverLibrary.store,
-  detector: beatDetector,
+const { beatPass, loudnessPass, serverBeatPass, serverLoudnessPass } = startBackgroundMusicPasses({
+  store,
+  serverStore: serverLibrary.store,
+  beatDetector: new WorkerBeatDetector(decodeMusicWithWebAudio, startBeatWorker),
+  loudnessMeter: new WorkerLoudnessMeter(decodeMusicFullRate, startLoudnessWorker),
   log: logError,
-  reportError: logError,
+  reportError,
 });
 
 const intakePorts = browserIntakePorts({
@@ -238,6 +230,8 @@ const services = {
   focusPass,
   beatPass,
   serverBeatPass,
+  loudnessPass,
+  serverLoudnessPass,
   immich: { client: immichClient, availability: immichAvailability },
   serverLibrary,
   newImportSession: () =>

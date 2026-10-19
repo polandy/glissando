@@ -32,11 +32,11 @@ crossfade). A removed song's media goes with the clean-up of unreferenced media.
 ADR-0040. Every song plays levelled: brought to `MUSIC_TARGET_LOUDNESS_LUFS` = −14 LUFS, so a quiet and a
 loud song sound equally loud without any setting. A song's own volume moves it from there.
 
-- **Measured once per file, in blocks.** A loudness pass (beside the beat pass, from its own
-  full-rate decode, in a worker) measures integrated loudness per ITU-R BS.1770: K-weighted, in 400 ms
-  gating blocks with 75 % overlap, plus each block's sample peak. The blocks are stored per media
-  id beside the beats (derived data: never exported, measured again where missing). A 5-minute
-  song is about 3000 pairs of numbers.
+- **Measured once per file, in blocks.** `LoudnessPass` (`dev-docs/library/LOUDNESS_LISTENING.md`)
+  measures integrated loudness per ITU-R BS.1770: K-weighted, in 400 ms gating blocks with 75 %
+  overlap, plus each block's sample peak. The blocks are stored per media id beside the beats
+  (derived data: never exported, measured again where missing). A 5-minute song is about 3000
+  pairs of numbers.
 - **The excerpt is levelled, not the file.** The loudness of what plays — the gated integral
   over the blocks inside `trim` — follows from the stored blocks without decoding again, so a
   new trim re-levels at once. `levelDb = target − excerptLoudness`.
