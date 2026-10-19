@@ -12,6 +12,7 @@
   import PicturesProgress from "./PicturesProgress.svelte";
   import SetAsidePictures from "./SetAsidePictures.svelte";
   import type { PictureIntake } from "./picture-intake";
+  import { orderedPictures, type ArrangementState } from "./import-arrangement";
   import type { SessionArrangement } from "./session-arrangement";
   import { viewerEntries } from "../components/picture-viewer-view";
   import {
@@ -84,6 +85,8 @@
   let emptyStep: ReturnType<typeof PictureIntakeEmpty> | undefined = $state();
   let strip: ReturnType<typeof ImportPicturesStrip> | undefined = $state();
   let viewing: string | null = $state(null);
+  // svelte-ignore state_referenced_locally
+  let arrangementState = $state.raw<ArrangementState | null>(arrangement?.state ?? null);
 
   // svelte-ignore state_referenced_locally
   const thumbnails = new ObjectUrls({ ...browserObjectUrls, load: loadThumbnail, onError });
@@ -99,6 +102,7 @@
     }
     previousPictureCount = importState.pictures.length;
   });
+  $effect(() => arrangement?.subscribe((next) => (arrangementState = next)));
   $effect(() => intake.culling.subscribe((next) => (cullingState = next)));
   $effect(() => thumbnails.subscribe((next) => (urls = next)));
   $effect(() =>
@@ -112,7 +116,13 @@
   const range = $derived(captureRange(importState.pictures));
   const pending = $derived(pendingPictureCount(importState));
   const skipped = $derived(skippedNotices(importState.skipped));
-  const entries = $derived(viewerEntries(importState.pictures, cullingState.groups));
+  // The viewer steps through the pictures as the strip shows them.
+  const stripPictures = $derived(
+    arrangementState === null
+      ? importState.pictures
+      : orderedPictures(arrangementState, importState.pictures),
+  );
+  const entries = $derived(viewerEntries(stripPictures, cullingState.groups));
 
   function picked(event: Event & { currentTarget: HTMLInputElement }): void {
     onFiles([...(event.currentTarget.files ?? [])]);

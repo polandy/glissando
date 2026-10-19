@@ -130,6 +130,12 @@ test("E2E-072 pictures added, moved and shuffled while arranging a new slideshow
   await firstTile.press("f");
   const viewer = page.getByRole("dialog", { name: `Bild vom ${firstDate}` });
   await expect(viewer).toBeVisible();
+  // The viewer steps through the strip's arranged order, not the import's.
+  await expect(viewer.getByText("1 von 7", { exact: true })).toBeVisible();
+  await page.keyboard.press("ArrowRight");
+  await expect(page.getByRole("dialog", { name: `Bild vom ${afterShuffle[1]}` })).toBeVisible();
+  await page.keyboard.press("ArrowLeft");
+  await expect(viewer).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(viewer).toBeHidden();
   await expect(firstTile).toBeFocused();
