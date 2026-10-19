@@ -27,7 +27,7 @@ class CountingMusicOutput extends MusicOutput {
 function silentTrack(atMs: number): MusicTrack {
   const src = URL.createObjectURL(new Blob([silentWav(2000)], { type: "audio/wav" }));
   urls.push(src);
-  return { src, atMs, startMs: 0, endMs: 2000, fadeInMs: 0, fadeOutMs: 1000 };
+  return { src, atMs, startMs: 0, endMs: 2000, fadeInMs: 0, fadeOutMs: 1000, gain: 1 };
 }
 
 describe("createPlayer", () => {

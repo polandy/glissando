@@ -36,6 +36,9 @@ function sharedLibrary() {
     },
   };
   library.send("PUT", `/api/library/music/${secondMusic}/beats`, { body: { kind: "none" } });
+  library.send("PUT", `/api/library/music/${firstMusic}/loudness`, {
+    body: { blockLoudnessDb: [-20], hopPeaksDbfs: [-10, -10, -10, -10] },
+  });
   const id = library.create(document);
   const token = String(library.send("POST", shareOf(id), { body: {} }).json["token"]);
   return { library, id, token, firstMusic, secondMusic };
@@ -135,7 +138,7 @@ describe("turning a share link off", () => {
 });
 
 describe("the shared document", () => {
-  it("answers the revision, the share document and each song's beats or null, never stored", () => {
+  it("answers the revision, the share document and each song's beats and loudness or null, never stored", () => {
     const { library, token } = sharedLibrary();
     const response = library.send("GET", `/api/share/${token}`);
     expect(response.status).toBe(200);
@@ -166,6 +169,7 @@ describe("the shared document", () => {
         ],
       },
       beats: [null, { kind: "none" }],
+      loudness: [{ blockLoudnessDb: [-20], hopPeaksDbfs: [-10, -10, -10, -10] }, null],
     });
   });
 

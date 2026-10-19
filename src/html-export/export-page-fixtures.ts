@@ -67,6 +67,7 @@ export function run(overrides: Partial<PageExportJob> = {}): Run {
     stored: STORED,
     focus: new Map(),
     beats: new Map(),
+    loudness: new Map(),
     sizeId: "small",
     lang: "de",
     copy: COPY,

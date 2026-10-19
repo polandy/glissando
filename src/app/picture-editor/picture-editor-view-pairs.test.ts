@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { composeSlideshow, NO_SONG_BEATS, type SongBeats } from "../../compose";
+import { composeSlideshow, NO_SONG_BEATS, NO_SONG_LOUDNESS, type SongBeats } from "../../compose";
 import { ALTERNATE_TRANSITION } from "../../library/own-timing";
 import type { StoredPicture, StoredSlideshow } from "../../library/stored-slideshow";
 import { isGroundSlide, type KenBurns, type Slide } from "../../player";
@@ -45,6 +45,7 @@ function played(slideshow: StoredSlideshow, pictureId: string, beats: SongBeats)
     { picture: (id) => id, music: (id) => id, video: (id) => id },
     new Map(),
     beats,
+    NO_SONG_LOUDNESS,
   );
   const slideIndex = slides.findIndex((raw) => {
     if (isGroundSlide(raw)) {

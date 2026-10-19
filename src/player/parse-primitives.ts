@@ -73,6 +73,13 @@ export function readNonNegativeInteger(value: unknown, path: string): number {
   return value;
 }
 
+export function readPositiveFiniteNumber(value: unknown, path: string): number {
+  if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) {
+    throw new SlideshowFormatError(path, "a positive finite number", value);
+  }
+  return value;
+}
+
 export function readUnitInterval(value: unknown, path: string): number {
   if (typeof value !== "number" || !(value >= 0 && value <= 1)) {
     throw new SlideshowFormatError(path, "a number from 0 to 1", value);

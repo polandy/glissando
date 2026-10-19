@@ -69,6 +69,11 @@ export function trackGainRamps(
   return [silent, ...fromItsPlace];
 }
 
+/** `points` levelled by a song's own `gain` (ADR-0040), applied on top of its fade envelope. */
+export function scaleGainPoints(points: readonly GainPoint[], gain: number): readonly GainPoint[] {
+  return points.map((point) => ({ ...point, gain: point.gain * gain }));
+}
+
 /** Where a fade-in still under full volume meets the fade-out; none when they do not. */
 function fadesCrossAt(music: MusicEnvelope, heardMs: number): number {
   if (music.fadeInMs <= 0 || music.fadeOutMs <= 0) {

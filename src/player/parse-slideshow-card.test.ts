@@ -43,7 +43,7 @@ function validGroundSlide(overrides: Record<string, unknown> = {}): Record<strin
 
 function validSlideshow(overrides: Record<string, unknown> = {}): Record<string, unknown> {
   return {
-    formatVersion: 7,
+    formatVersion: 8,
     title: "July 2025",
     slides: [validGroundSlide(), validPictureSlide()],
     ...overrides,

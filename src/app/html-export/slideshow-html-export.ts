@@ -6,6 +6,7 @@ import type { LibraryStore, StoredSlideshow } from "../../library/stored-slidesh
 import { storedSongBeats } from "../beats/music-beats-known";
 import { NO_FOCUS_KNOWN } from "../focus/pictures-focus";
 import type { Translator } from "../i18n/translator";
+import { storedSongLoudness } from "../loudness/music-loudness-composed";
 import type { HtmlExportPorts, HtmlExportSubject, PageRun } from "./html-export-state";
 import { HtmlExportSession } from "./html-export-session";
 import { pageWords } from "./page-copy";
@@ -26,7 +27,7 @@ export function slideshowHtmlExport(
   device: HtmlExportDevice,
   store: Pick<
     LibraryStore,
-    "pictureBlob" | "musicBlob" | "videoBlob" | "pictureFocus" | "musicBeats"
+    "pictureBlob" | "musicBlob" | "videoBlob" | "pictureFocus" | "musicBeats" | "musicLoudness"
   >,
   stored: StoredSlideshow,
   translator: Translator,
@@ -67,19 +68,21 @@ export function slideshowHtmlExport(
     return { pictures, musicBytes, videoBytes, pageBytes: playerBundleBytes(bundle) };
   };
   const run = async (job: PageRun): Promise<void> => {
-    const [focus, beats] = await Promise.all([
+    const [focus, beats, loudness] = await Promise.all([
       store.pictureFocus(stored.pictures.map((picture) => picture.id)).catch((error: unknown) => {
         // Focus only aims the automatic motions: unread, they aim at the middle.
         device.log(error);
         return NO_FOCUS_KNOWN.found;
       }),
       storedSongBeats(store, stored, (error) => device.log(error)),
+      storedSongLoudness(store, stored, (error) => device.log(error)),
     ]);
     const words = pageWords(translator, subject);
     await exportPage({
       stored,
       focus,
       beats,
+      loudness,
       sizeId: job.sizeId,
       lang: words.lang,
       copy: words.copy,

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { musicGainRamps, trackGainRamps } from "./music-ramps";
+import { musicGainRamps, scaleGainPoints, trackGainRamps } from "./music-ramps";
 
 /** Heard from 10 s to 70 s of the track: 60 s, fading in 2 s and out 4 s. */
 const MUSIC = { startMs: 10_000, endMs: 70_000, fadeInMs: 2000, fadeOutMs: 4000 };
@@ -92,5 +92,25 @@ describe("trackGainRamps (slideshow time; the track starts at its atMs)", () => 
     expect(trackGainRamps({ ...MUSIC, atMs: 30_000, fadeInMs: 0 }, 0, 30_000)).toEqual([
       { atMs: 0, gain: 0, kind: "set" },
     ]);
+  });
+});
+
+describe("scaleGainPoints", () => {
+  it("multiplies every point's gain by the factor (ADR-0040's levelling), keeping its place and kind", () => {
+    const points = [
+      { atMs: 0, gain: 0.5, kind: "set" as const },
+      { atMs: 2000, gain: 1, kind: "ramp" as const },
+    ];
+
+    expect(scaleGainPoints(points, 1.5)).toEqual([
+      { atMs: 0, gain: 0.75, kind: "set" },
+      { atMs: 2000, gain: 1.5, kind: "ramp" },
+    ]);
+  });
+
+  it("leaves the points unchanged at a factor of 1", () => {
+    const points = [{ atMs: 0, gain: 0.5, kind: "set" as const }];
+
+    expect(scaleGainPoints(points, 1)).toEqual(points);
   });
 });

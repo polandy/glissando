@@ -29,13 +29,14 @@ const MUSIC: MusicTrack = {
   endMs: 16_000,
   fadeInMs: 2000,
   fadeOutMs: 2000,
+  gain: 1,
 };
 
-function setUp() {
+function setUp(track: MusicTrack = MUSIC) {
   const slideshow: Slideshow = {
-    formatVersion: 7,
+    formatVersion: 8,
     title: "July 2025",
-    music: [MUSIC],
+    music: [track],
     slides: [slide("a.jpg", 4000), slide("b.jpg", 4000), slide("c.jpg", 4000)],
   };
   const clock = new FakeClock();
@@ -87,6 +88,16 @@ describe("SlideshowPlayer with trimmed, faded music", () => {
     advance(1000);
 
     expect(music.volume).toBeCloseTo(0.5);
+  });
+
+  it("scales the envelope by the track's gain (ADR-0040)", async () => {
+    const { player, music, ready, advance } = setUp({ ...MUSIC, gain: 1.5 });
+    await ready();
+    player.play();
+
+    advance(1000);
+
+    expect(music.volume).toBeCloseTo(0.75);
   });
 
   it("maps a seek into the excerpt and sets the volume there before playing on", async () => {

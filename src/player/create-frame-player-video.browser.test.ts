@@ -12,7 +12,7 @@ const CHANNEL_TOLERANCE = 12;
 async function videoSlideshow(): Promise<Slideshow> {
   const poster = await solidPicture(RED);
   return {
-    formatVersion: 7,
+    formatVersion: 8,
     title: "Clip",
     slides: [
       {

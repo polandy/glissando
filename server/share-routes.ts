@@ -12,6 +12,7 @@ import {
 } from "./library-http";
 import { shareDocumentOf } from "./share-document";
 import { newShareToken } from "./share-token";
+import { musicLoudnessToJson } from "../src/loudness/music-loudness-json";
 
 /** What a recipient's browser may keep: a picture or a song, a day; the document never. */
 const MEDIA_CACHE_CONTROL = "private, max-age=86400";
@@ -114,6 +115,10 @@ export function shareDocumentAnswer(
       revision,
       slideshow: shareDocumentOf(slideshow),
       beats: slideshow.songs.map((song) => repository.findMusicBeats(song.musicId) ?? null),
+      loudness: slideshow.songs.map((song) => {
+        const loudness = repository.findMusicLoudness(song.musicId);
+        return loudness === undefined ? null : musicLoudnessToJson(loudness);
+      }),
     },
     { [CACHE_CONTROL]: DOCUMENT_CACHE_CONTROL },
   );

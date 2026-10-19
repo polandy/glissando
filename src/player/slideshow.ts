@@ -9,9 +9,10 @@
  * which turns the blurred fill off for the slide (ADR-0028). Version 5 added the title card
  * (ADR-0032): a slide's `card`, a ground slide in place of a picture, and the show's `endFadeMs`.
  * Version 6 makes a card's `entrance` required. Version 7 added a picture slide's `video`
- * (ADR-0034, `dev-docs/player/VIDEO_SLIDES.md`).
+ * (ADR-0034, `dev-docs/player/VIDEO_SLIDES.md`). Version 8 added a music track's `gain`
+ * (ADR-0040).
  */
-export const SLIDESHOW_FORMAT_VERSION = 7;
+export const SLIDESHOW_FORMAT_VERSION = 8;
 
 /** A video slide's excerpt is 0.5 s to 5 min long. */
 export const MIN_VIDEO_EXCERPT_MS = 500;
@@ -164,6 +165,8 @@ export interface MusicTrack {
   readonly fadeInMs: number;
   /** Ramps the volume down to `endMs`; 0: none. */
   readonly fadeOutMs: number;
+  /** Linear; levels the excerpt to the target loudness, the song's own volume applied (ADR-0040). */
+  readonly gain: number;
 }
 
 export interface Slideshow {

@@ -29,6 +29,7 @@ const SUMMER: MusicTrack = {
   endMs: 16_000,
   fadeInMs: 0,
   fadeOutMs: 2000,
+  gain: 1,
 };
 
 /** Heard from 4 s to 12 s of the slideshow, fading in over the crossfade with `SUMMER`. */
@@ -39,11 +40,12 @@ const AUTUMN: MusicTrack = {
   endMs: 8000,
   fadeInMs: 2000,
   fadeOutMs: 0,
+  gain: 1,
 };
 
 function setUp() {
   const slideshow: Slideshow = {
-    formatVersion: 7,
+    formatVersion: 8,
     title: "July 2025",
     music: [SUMMER, AUTUMN],
     slides: [slide("a.jpg", 4000), slide("b.jpg", 4000), slide("c.jpg", 4000)],

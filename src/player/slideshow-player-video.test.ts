@@ -37,9 +37,11 @@ const SLIDES: Slide[] = [
 ];
 
 const SLIDESHOW: Slideshow = {
-  formatVersion: 7,
+  formatVersion: 8,
   title: "Clips",
-  music: [{ src: "m.mp3", atMs: 0, startMs: 0, endMs: 600_000, fadeInMs: 0, fadeOutMs: 0 }],
+  music: [
+    { src: "m.mp3", atMs: 0, startMs: 0, endMs: 600_000, fadeInMs: 0, fadeOutMs: 0, gain: 1 },
+  ],
   slides: SLIDES,
 };
 

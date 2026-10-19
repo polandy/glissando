@@ -7,6 +7,7 @@ import {
   readNonNegativeInteger,
   readObject,
   readOneOf,
+  readPositiveFiniteNumber,
   readPositiveInteger,
   readCaptionLike,
   readString,
@@ -81,7 +82,7 @@ function readTracks(value: unknown): readonly MusicTrack[] {
   let previousAtMs = 0;
   return value.map((item: unknown, index) => {
     const path = `music[${index}]`;
-    const fields = readObject(item, path, ["src", "atMs", ...TRACK_TIMES]);
+    const fields = readObject(item, path, ["src", "atMs", "gain", ...TRACK_TIMES]);
     const atMs = readNonNegativeInteger(fields.atMs, `${path}.atMs`);
     if (atMs < previousAtMs) {
       throw new SlideshowFormatError(
@@ -111,7 +112,15 @@ function readTrack(track: JsonObject, path: string): Omit<MusicTrack, "atMs"> {
       fadeOutMs,
     );
   }
-  return { src: readNonEmptyString(track.src, `${path}.src`), startMs, endMs, fadeInMs, fadeOutMs };
+  const gain = readPositiveFiniteNumber(track.gain, `${path}.gain`);
+  return {
+    src: readNonEmptyString(track.src, `${path}.src`),
+    startMs,
+    endMs,
+    fadeInMs,
+    fadeOutMs,
+    gain,
+  };
 }
 
 function readSlides(value: unknown): readonly Slide[] {

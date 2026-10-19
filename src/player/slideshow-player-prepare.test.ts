@@ -25,7 +25,7 @@ function slide(src: string, durationMs: number, extra: Partial<Slide> = {}): Sli
 
 /** a: 0–4 s, wipe into b from 3 s; b: 4–9 s; c: 9–12 s. */
 const SLIDESHOW: Slideshow = {
-  formatVersion: 7,
+  formatVersion: 8,
   title: "July 2025",
   slides: [
     slide("a.jpg", 4000, { transitionToNext: { effect: "wipe-right", durationMs: 1000 } }),

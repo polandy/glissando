@@ -17,6 +17,7 @@ const TRACK = {
   endMs: 150_000,
   fadeInMs: 2000,
   fadeOutMs: 5000,
+  gain: 1,
 };
 const MUSIC = { ...TRACK, atMs: 0 };
 const NEXT = {
@@ -26,9 +27,10 @@ const NEXT = {
   endMs: 60_000,
   fadeInMs: 3000,
   fadeOutMs: 0,
+  gain: 1.5,
 };
 
-function withMusic(music: unknown, formatVersion = 7): unknown {
+function withMusic(music: unknown, formatVersion = 8): unknown {
   return { formatVersion, title: "July 2025", music, slides: [SLIDE] };
 }
 
@@ -55,7 +57,7 @@ describe("parseSlideshow music", () => {
       const error = parseError(withMusic(TRACK, formatVersion));
 
       expect(error.path).toBe("formatVersion");
-      expect(error.message).toContain("expected 7");
+      expect(error.message).toContain("expected 8");
     },
   );
 
@@ -100,6 +102,16 @@ describe("parseSlideshow music", () => {
       { ...MUSIC, endMs: 18_000 },
       "music[0].fadeOutMs",
       "fadeInMs + fadeOutMs at most endMs − startMs (6000)",
+    ],
+    ["a missing gain", { ...MUSIC, gain: undefined }, "music[0].gain", "a positive finite number"],
+    ["a zero gain", { ...MUSIC, gain: 0 }, "music[0].gain", "a positive finite number"],
+    ["a negative gain", { ...MUSIC, gain: -1 }, "music[0].gain", "a positive finite number"],
+    ["a NaN gain", { ...MUSIC, gain: Number.NaN }, "music[0].gain", "a positive finite number"],
+    [
+      "an infinite gain",
+      { ...MUSIC, gain: Number.POSITIVE_INFINITY },
+      "music[0].gain",
+      "a positive finite number",
     ],
   ])("rejects a track with %s, naming the path and what to set", (_case, music, path, expected) => {
     const error = parseError(withMusic([music]));

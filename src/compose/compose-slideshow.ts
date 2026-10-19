@@ -17,6 +17,11 @@ import { pairKenBurns, pictureKenBurns } from "./picture-ken-burns";
 import { pictureTransition, slideshowTransition } from "./picture-transition";
 import { slideDurationsMs } from "./slide-durations-ms";
 import { slideUnits, timedUnit, type SlideUnit } from "./slide-units";
+import type { SongLoudness } from "./song-loudness";
+import { trackGain } from "./track-gain";
+
+/** A song not yet given its own volume plays at the levelling alone. */
+const DEFAULT_OWN_VOLUME_DB = 0;
 
 /** Resolves a stored picture, music or video (`StoredVideo.mediaId`) id to the URL the player loads it from. */
 export interface SlideshowSources {
@@ -39,13 +44,15 @@ const COVER_FIT = "cover";
  * unless `stored.portraitPictures` turns that off (`slideUnits`, ADR-0028). An automatic motion
  * aims at a picture's `focus`, by picture id; a picture absent from it was not looked at yet. The
  * pictures change on the songs' `beats` found so far, by music id; a song absent from it gives
- * none (ADR-0021, ADR-0023).
+ * none (ADR-0021, ADR-0023). Each track's `gain` levels its excerpt by the songs' `loudness`
+ * measured so far, by music id; a song absent from it plays at its own volume alone (ADR-0040).
  */
 export function composeSlideshow(
   stored: StoredSlideshow,
   sources: SlideshowSources,
   focus: ReadonlyMap<string, PictureFocus>,
   beats: SongBeats,
+  loudness: SongLoudness,
 ): Slideshow {
   const units = slideUnits(stored.pictures, stored.portraitPictures);
   const defaultTransition = slideshowTransition(stored);
@@ -84,7 +91,16 @@ export function composeSlideshow(
   const withCards = composeCards(stored, units, slides, sources, focus, defaultTransition, beatsMs);
   const slideshowMs = withCards.slides.reduce((sum, finalSlide) => sum + finalSlide.durationMs, 0);
   const music = resolvePlaylist(stored, slideshowMs, withCards.endFadeMs).map(
-    ({ song, ...timing }) => ({ src: sources.music(song.id), ...timing }),
+    ({ song, ...timing }) => ({
+      src: sources.music(song.id),
+      ...timing,
+      gain: trackGain({
+        loudness: loudness.get(song.id),
+        startMs: timing.startMs,
+        endMs: timing.endMs,
+        ownDb: song.volumeDb ?? DEFAULT_OWN_VOLUME_DB,
+      }),
+    }),
   );
   return {
     formatVersion: SLIDESHOW_FORMAT_VERSION,

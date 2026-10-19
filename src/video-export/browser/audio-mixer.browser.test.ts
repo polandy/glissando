@@ -6,8 +6,8 @@ import { AudioMixer } from "./audio-mixer";
 
 const LEVELS: Readonly<Record<string, number>> = { low: 0.25, high: 0.5 };
 
-function placed(src: string, atMs: number): MusicTrack {
-  return { src, atMs, startMs: 0, endMs: 2000, fadeInMs: 0, fadeOutMs: 0 };
+function placed(src: string, atMs: number, gain = 1): MusicTrack {
+  return { src, atMs, startMs: 0, endMs: 2000, fadeInMs: 0, fadeOutMs: 0, gain };
 }
 
 /** Opens each generated song by its level's name, counting the opens. */
@@ -48,6 +48,13 @@ describe("AudioMixer", () => {
     expect(first).toBeCloseTo(0.25, 2);
     expect(both).toBeCloseTo(0.75, 2);
     expect(second).toBeCloseTo(0.5, 2);
+  });
+
+  it("levels a track's volume by its own gain (ADR-0040)", async () => {
+    const songs = generatedSongs();
+    const renderer = await AudioMixer.decode([placed("high", 0, 0.5)], songs.open);
+
+    expect(await levelsOf(renderer, 1.5)).toEqual([expect.closeTo(0.25, 2)]);
   });
 
   it("decodes a song once though it plays twice", async () => {
