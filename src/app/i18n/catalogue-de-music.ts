@@ -118,6 +118,7 @@ export const deMusic = {
   "music.volumeListenAt": "bei dieser Lautstärke, an der lautesten Stelle",
   "music.volumeListenOriginal": "Originaldatei, unangeglichen",
   "music.volumeOriginalFile": "Originaldatei",
+  "music.volumeListenCompare": "Während des Anhörens auf einen anderen Titel tippen, um zu vergleichen.",
   "music.volumeComparison": "Lautstärke der Titel",
   "music.volumeComparisonHint": "Graue Linie: Originaldatei",
 } as const satisfies Record<string, Message>;

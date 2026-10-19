@@ -19,6 +19,7 @@ import { songIndex } from "../../library/slideshow-edits-songs";
 import type { StoredSlideshow } from "../../library/stored-slideshow";
 import { composedBeats, type BeatsStatus } from "../beats/music-beats-known";
 import type { LoudnessStatus } from "../loudness/music-loudness-known";
+import { volumeListenPlan, type VolumeListenPlan } from "./listen-preview";
 import {
   beatTicks,
   pictureChangesView,
@@ -78,6 +79,8 @@ export interface MusicEditorView {
   readonly fadeIn: FadeView<FadeInReason>;
   readonly fadeOut: FadeView<FadeOutReason>;
   readonly volume: VolumeView;
+  /** What "Listen" (at this volume, from the loudest part) plays. */
+  readonly volumeListen: VolumeListenPlan;
   /** The excerpt and fades as the player plays them in the playlist. */
   readonly timing: MusicTiming;
   readonly note: TimingNote;
@@ -167,6 +170,12 @@ export function musicEditorView(
       music.volumeDb ?? 0,
     ),
   );
+  const volumeListen = volumeListenPlan({
+    startMs,
+    endMs,
+    loudness: loudnessOfExcerpt ?? null,
+    gainDb: volume.gainDb,
+  });
   // The songs the slideshow reaches come first, so the index is the same among them.
   const resolved = resolvePlaylist(stored, slideshowMs)[index];
   const reached = resolved !== undefined;
@@ -224,6 +233,7 @@ export function musicEditorView(
             : "track-ends",
     },
     volume,
+    volumeListen,
     timing: { startMs, endMs: heardEndMs, fadeInMs: timing.fadeInMs, fadeOutMs: timing.fadeOutMs },
     note: timingNote(stored, durationsMs, playlistLengthMs, beatsMs !== undefined),
   };

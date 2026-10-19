@@ -4,26 +4,38 @@
   import ResetButton from "../components/ResetButton.svelte";
   import SectionHead from "../components/SectionHead.svelte";
   import { getTranslator } from "../i18n/context";
+  import type { ListenState } from "./listen-preview";
   import type { VolumeView } from "./volume-view";
 
   /**
    * The selected song's own volume, atop the level that brings its excerpt to the target loudness
    * (ADR-0040, dev-docs/library/MUSIC.md "Loudness levelling and song volume"): a slider from
    * {@link MUSIC_VOLUME_MIN_DB} to {@link MUSIC_VOLUME_MAX_DB} with a tick where it is levelled,
-   * the zone past the peak ceiling hatched and out of reach.
+   * the zone past the peak ceiling hatched and out of reach, and a button to listen to it.
    */
   let {
     volume,
+    listening,
     onVolume,
     onReset,
+    onListen,
+    onToggleOriginal,
   }: {
     volume: VolumeView;
+    /** The song's listen at volume, if under way; other kinds leave the buttons unpressed. */
+    listening: ListenState | null;
     /** `undefined`: levelled. */
     onVolume: (volumeDb: number | undefined) => void;
     onReset: () => void;
+    /** Starts or stops a listen at this volume, from the excerpt's loudest part. */
+    onListen: () => void;
+    /** While listening, swaps the resolved gain for the original file's (or back). */
+    onToggleOriginal: () => void;
   } = $props();
 
   const { t, formatVolumeDb } = getTranslator();
+  const playing = $derived(listening?.kind === "volume");
+  const original = $derived(listening?.kind === "volume" && (listening.original ?? false));
   const RANGE_DB = MUSIC_VOLUME_MAX_DB - MUSIC_VOLUME_MIN_DB;
   /** Where the "Levelled" tick sits along the full rail, 0 to 100. */
   const ZERO_PERCENT = ((0 - MUSIC_VOLUME_MIN_DB) / RANGE_DB) * 100;
@@ -105,6 +117,27 @@
       <ResetButton automatic={false} alreadyAutomatic="" label={t("music.volumeReset")} {onReset} />
     </div>
   {/if}
+  <div class="listen">
+    <button class="listen-btn" type="button" aria-pressed={playing} onclick={onListen}>
+      <span class="round"><Icon name={playing ? "pause" : "play"} /></span>
+      <b>{playing ? t("music.volumeListenStop") : t("music.volumeListen")}</b>
+      <small class="mono">
+        {original ? t("music.volumeListenOriginal") : t("music.volumeListenAt")}
+      </small>
+    </button>
+    <button
+      class="orig-btn"
+      type="button"
+      aria-pressed={original}
+      disabled={!playing}
+      onclick={onToggleOriginal}
+    >
+      {t("music.volumeOriginalFile")}
+    </button>
+  </div>
+  {#if playing}
+    <p class="hint">{t("music.volumeListenCompare")}</p>
+  {/if}
 </section>
 
 <style>
@@ -178,5 +211,70 @@
     flex-shrink: 0;
     color: var(--gl-warn-icon);
     --gl-icon-size: var(--gl-size-icon-small);
+  }
+  .listen {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+  }
+  .listen-btn {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: 2px 10px;
+    padding: 10px 12px;
+    border: 1px solid var(--gl-line);
+    border-radius: var(--gl-radius);
+    background: var(--gl-surface);
+    color: var(--gl-ink);
+    font: inherit;
+    font-size: var(--gl-size-label);
+    text-align: left;
+    cursor: pointer;
+  }
+  .listen-btn:hover {
+    background: var(--gl-hover);
+  }
+  .listen-btn[aria-pressed="true"] {
+    border-color: var(--gl-accent);
+    box-shadow: 0 0 0 1px var(--gl-accent) inset;
+  }
+  .listen-btn b {
+    font-weight: var(--gl-weight-semibold);
+  }
+  .listen-btn small {
+    color: var(--gl-muted);
+    font-size: var(--gl-size-meta);
+  }
+  .round {
+    grid-row: span 2;
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--gl-inverse-bg);
+    color: var(--gl-inverse-text);
+  }
+  .orig-btn {
+    padding: 0 14px;
+    border: 1px solid var(--gl-line);
+    border-radius: var(--gl-radius);
+    background: var(--gl-surface);
+    color: var(--gl-ink);
+    font: inherit;
+    font-size: var(--gl-size-label);
+    cursor: pointer;
+  }
+  .orig-btn:hover:not(:disabled) {
+    background: var(--gl-hover);
+  }
+  .orig-btn[aria-pressed="true"] {
+    border-color: var(--gl-accent);
+    box-shadow: 0 0 0 1px var(--gl-accent) inset;
+  }
+  .orig-btn:disabled {
+    color: var(--gl-muted);
+    cursor: default;
   }
 </style>

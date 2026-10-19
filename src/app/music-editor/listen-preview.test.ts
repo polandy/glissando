@@ -1,6 +1,14 @@
 import { describe, expect, it } from "vitest";
+import { LOUDNESS_HOP_MS, measureLoudness, type MusicLoudness } from "../../loudness";
+import { concatSegments, sineTone } from "../../loudness/testing/synthetic-tones";
 import { FakeClock, FakeFrameScheduler, FakeMusic } from "../../player/testing/fakes";
-import { ListenPreview, listenRange, type ListenState } from "./listen-preview";
+import {
+  ListenPreview,
+  listenRange,
+  volumeListenPlan,
+  type ListenState,
+  type VolumeListenPlan,
+} from "./listen-preview";
 
 /** Heard from 12 s to 150 s of the track, fading in 2 s and out 4 s. */
 const TIMING = { startMs: 12_000, endMs: 150_000, fadeInMs: 2000, fadeOutMs: 4000 };
@@ -36,6 +44,42 @@ describe("listenRange", () => {
 
     expect(listenRange("start", short)).toEqual({ fromMs: 12_000, toMs: 17_000 });
     expect(listenRange("end", short)).toEqual({ fromMs: 12_000, toMs: 17_000 });
+  });
+});
+
+describe("volumeListenPlan", () => {
+  it("starts at the excerpt's start when the loudness is not known yet", () => {
+    const plan = volumeListenPlan({ startMs: 12_000, endMs: 150_000, loudness: null, gainDb: 3 });
+
+    expect(plan).toEqual({
+      fromMs: 12_000,
+      toMs: 12_000 + 8000,
+      gain: expect.closeTo(10 ** (3 / 20)),
+    });
+  });
+
+  it("starts at the excerpt's start when it is no longer than the preview", () => {
+    const loudness: MusicLoudness = {
+      blockMeanSquares: new Float32Array(10),
+      hopPeaks: new Float32Array(10),
+    };
+
+    const plan = volumeListenPlan({ startMs: 100, endMs: 2000, loudness, gainDb: 0 });
+
+    expect(plan).toEqual({ fromMs: 100, toMs: 2000, gain: 1 });
+  });
+
+  it("starts at the loudest stretch of a longer excerpt", () => {
+    const sampleRate = 48_000;
+    const quiet = sineTone(1000, 0.01, 10_000, sampleRate);
+    const burst = sineTone(1000, 1.0, 8000, sampleRate);
+    const track = concatSegments(quiet, burst, quiet);
+    const loudness = measureLoudness([track], sampleRate);
+
+    const plan = volumeListenPlan({ startMs: 0, endMs: 28_000, loudness, gainDb: 0 });
+
+    expect(Math.abs(plan.fromMs - 10_000)).toBeLessThanOrEqual(LOUDNESS_HOP_MS);
+    expect(plan.toMs).toBe(plan.fromMs + 8000);
   });
 });
 
@@ -120,5 +164,72 @@ describe("ListenPreview", () => {
     preview.dispose();
 
     expect(music.calls.at(-1)).toBe("dispose");
+  });
+});
+
+describe("ListenPreview, listening at volume", () => {
+  const PLAN: VolumeListenPlan = { fromMs: 30_000, toMs: 38_000, gain: 2 };
+
+  it("plays the plan's range at its gain", () => {
+    const { preview, music, states } = setUp();
+
+    preview.toggleVolume(PLAN);
+
+    expect(music.calls).toEqual(["play@30"]);
+    expect(music.volume).toBe(2);
+    expect(states.at(-1)).toEqual({ kind: "volume", positionMs: 30_000, original: false });
+  });
+
+  it("toggled again stops", () => {
+    const { preview, music, states } = setUp();
+    preview.toggleVolume(PLAN);
+
+    preview.toggleVolume(PLAN);
+
+    expect(states.at(-1)).toBeNull();
+    expect(music.calls).toEqual(["play@30", "pause"]);
+  });
+
+  it("swaps to the original file's gain without restarting or losing the position", () => {
+    const { preview, music, states, after } = setUp();
+    preview.toggleVolume(PLAN);
+    after(1000);
+
+    preview.setOriginal(true);
+
+    expect(music.calls).toEqual(["play@30"]);
+    expect(music.volume).toBe(1);
+    expect(states.at(-1)).toEqual({ kind: "volume", positionMs: 31_000, original: true });
+  });
+
+  it("does nothing when asked for the original file while nothing plays", () => {
+    const { preview, music, states } = setUp();
+
+    preview.setOriginal(true);
+
+    expect(music.calls).toEqual([]);
+    expect(states).toEqual([]);
+  });
+
+  it("replaces whatever plays with the volume listen, keeping the given original flag", () => {
+    const { preview, music, states } = setUp();
+    preview.toggle("start", TIMING);
+
+    preview.replaceVolume(PLAN, true);
+
+    expect(music.calls).toEqual(["play@12", "pause", "play@30"]);
+    expect(music.volume).toBe(1);
+    expect(states.at(-1)).toEqual({ kind: "volume", positionMs: 30_000, original: true });
+  });
+
+  it("stops itself at the end of the plan's range", () => {
+    const { preview, music, states, after, frames } = setUp();
+    preview.toggleVolume(PLAN);
+
+    after(8000);
+
+    expect(states.at(-1)).toBeNull();
+    expect(music.calls).toEqual(["play@30", "pause"]);
+    expect(frames.hasPendingFrame).toBe(false);
   });
 });

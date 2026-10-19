@@ -59,6 +59,13 @@
   );
   const songIds = $derived(stored.songs.map(({ id }) => id));
   let preview: ListenPreview | null = null;
+  /** Set as a volume listen's song changes, so the new song picks it straight back up. */
+  let resumeVolumeListen: { readonly original: boolean } | null = null;
+  /**
+   * Mirrors `listening`'s "volume" case outside `$state`, so the song-loading effect's cleanup
+   * reads it reliably even within the same flush that set it (its own `listening` read is not).
+   */
+  let activeVolumeListen: { readonly original: boolean } | null = null;
 
   // The ports are fixed for the route's lifetime.
   // svelte-ignore state_referenced_locally
@@ -85,6 +92,8 @@
   $effect(() => {
     const songId = song?.id;
     if (songId === undefined) return;
+    const resume = resumeVolumeListen;
+    resumeVolumeListen = null;
     const left = new AbortController();
     let musicUrl: string | null = null;
     peaks = null;
@@ -93,17 +102,28 @@
       musicUrl = audio.createUrl(blob);
       preview = new ListenPreview(
         { clock: audio.clock, frames: audio.frames, music: audio.playback(musicUrl), onError },
-        (state) => (listening = state),
+        (state) => {
+          listening = state;
+          activeVolumeListen =
+            state?.kind === "volume" ? { original: state.original ?? false } : null;
+        },
       );
+      if (resume !== null) {
+        const plan = musicEditorView(stored, beats, songId, loudness).volumeListen;
+        preview.replaceVolume(plan, resume.original);
+      }
       audio.decodePeaks(blob).then((decoded) => {
         if (!left.signal.aborted) peaks = decoded;
       }, onError);
     }, onError);
     return () => {
+      // Tapping another song while listening at volume keeps comparing it (music.volumeListenCompare).
+      resumeVolumeListen = activeVolumeListen;
       left.abort();
       preview?.dispose();
       preview = null;
       listening = null;
+      activeVolumeListen = null;
       if (musicUrl !== null) audio.revokeUrl(musicUrl);
     };
   });
@@ -141,6 +161,12 @@
   onSecondsPerPicture={(seconds) => editor.setSecondsPerPicture(seconds)}
   onListen={(kind) =>
     song !== undefined && preview?.toggle(kind, musicEditorView(stored, beats, song.id).timing)}
+  onListenVolume={() =>
+    song !== undefined &&
+    preview?.toggleVolume(musicEditorView(stored, beats, song.id, loudness).volumeListen)}
+  onToggleOriginal={() => {
+    if (listening?.kind === "volume") preview?.setOriginal(!(listening.original ?? false));
+  }}
   onStopListening={() => preview?.stop()}
   {saving}
 />

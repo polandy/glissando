@@ -26,6 +26,8 @@ export interface VolumeView {
   readonly levelled: boolean;
   /** Target minus the excerpt's loudness; 0 while unmeasured. */
   readonly levelDb: number;
+  /** The resolved gain in dB: levelling and own volume together, never past the peak ceiling. */
+  readonly gainDb: number;
   /** The highest own dB the slider reaches, clamped to its own range. */
   readonly capDb: number;
   /** Whether `capDb` falls short of the slider's top, so part of it is out of reach. */
@@ -53,7 +55,7 @@ export interface VolumeViewInput {
  */
 export function volumeView({ status, loudnessLufs, peakDbfs, ownDb }: VolumeViewInput): VolumeView {
   const measured = status === "known";
-  const { levelDb, maxOwnDb } = levelSong({ loudnessLufs, peakDbfs, ownDb });
+  const { levelDb, gainDb, maxOwnDb } = levelSong({ loudnessLufs, peakDbfs, ownDb });
   const capDb = Math.max(MUSIC_VOLUME_MIN_DB, Math.min(MUSIC_VOLUME_MAX_DB, maxOwnDb));
   const capReached = capDb < MUSIC_VOLUME_MAX_DB;
   const atCap = ownDb >= capDb;
@@ -83,7 +85,19 @@ export function volumeView({ status, loudnessLufs, peakDbfs, ownDb }: VolumeView
               ? { kind: "levelledBy", levelDb }
               : { kind: "none" };
 
-  return { measured, ownDb, levelled, levelDb, capDb, capReached, atCap, shortDb, sub, hint };
+  return {
+    measured,
+    ownDb,
+    levelled,
+    levelDb,
+    gainDb,
+    capDb,
+    capReached,
+    atCap,
+    shortDb,
+    sub,
+    hint,
+  };
 }
 
 /** `volumeView`'s input from the song's loudness status and the excerpt it plays. */

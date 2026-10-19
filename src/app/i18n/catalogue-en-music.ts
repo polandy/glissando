@@ -119,6 +119,7 @@ export const enMusic: Pick<Catalogue, keyof typeof deMusic> = {
   "music.volumeListenAt": "at this volume, from the loudest part",
   "music.volumeListenOriginal": "original file, unlevelled",
   "music.volumeOriginalFile": "Original file",
+  "music.volumeListenCompare": "While listening, tap another song to compare.",
   "music.volumeComparison": "Loudness of the songs",
   "music.volumeComparisonHint": "Grey line: original file",
 };

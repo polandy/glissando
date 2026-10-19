@@ -36,7 +36,22 @@ const slider = (): HTMLInputElement => {
   return found;
 };
 const resetButton = (): HTMLButtonElement | null =>
-  section().querySelector<HTMLButtonElement>("button");
+  section().querySelector<HTMLButtonElement>(".btn");
+const listenButton = (): HTMLButtonElement => {
+  const found = section().querySelector<HTMLButtonElement>(".listen-btn");
+  if (found === null) throw new Error("no listen button");
+  return found;
+};
+const originalButton = (): HTMLButtonElement => {
+  const found = section().querySelector<HTMLButtonElement>(".orig-btn");
+  if (found === null) throw new Error("no original-file button");
+  return found;
+};
+const comparisonBox = (): HTMLDetailsElement => {
+  const found = document.querySelector<HTMLDetailsElement>(".box");
+  if (found === null) throw new Error("no comparison box");
+  return found;
+};
 
 describe("MusicEditorScreen, the volume", () => {
   it("plays unlevelled and says so while the loudness is still measuring", () => {
@@ -98,5 +113,28 @@ describe("MusicEditorScreen, the volume", () => {
     slider().dispatchEvent(new Event("input", { bubbles: true }));
 
     expect(calls.volumes).toEqual([undefined]);
+  });
+
+  it("calls back to listen at this volume and to toggle the original file", () => {
+    const { calls, set } = mountEditor(slideshowWith(), { kind: "listening" }, ROOM_TO_LEVEL);
+
+    listenButton().click();
+    expect(calls.listenVolumes).toBe(1);
+
+    set({ listening: { kind: "volume", positionMs: 0, original: false } });
+    originalButton().click();
+    expect(calls.toggleOriginals).toBe(1);
+  });
+});
+
+describe("MusicEditorScreen, the loudness comparison box", () => {
+  it("is collapsed by default and opens", () => {
+    mountEditor(slideshowWith(), { kind: "listening" }, { kind: "listening" });
+
+    expect(comparisonBox().open).toBe(false);
+
+    comparisonBox().querySelector("summary")?.click();
+
+    expect(comparisonBox().open).toBe(true);
   });
 });

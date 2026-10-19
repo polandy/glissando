@@ -242,4 +242,21 @@ describe("the music editor route", () => {
       "Song 2 · Low Tide.mp3",
     );
   });
+
+  it("keeps comparing a song's loudness when another is tapped while listening at volume", async () => {
+    const { target, music, decoded, store } = await mountRoute(TWO_SONGS);
+    await store.putMusic("m2", new Blob(["second song"], { type: "audio/mpeg" }));
+    await decoded(Float32Array.from({ length: 1000 }, () => 0.5));
+
+    target
+      .querySelector<HTMLButtonElement>('[aria-labelledby="music-volume"] .listen-btn')
+      ?.click();
+    expect(music.calls.filter((call) => call.startsWith("play@")).length).toBe(1);
+
+    target.querySelectorAll<HTMLButtonElement>(".song .pick")[1]?.click();
+    flushSync();
+    await decoded(Float32Array.from({ length: 1000 }, () => 0.5));
+
+    expect(music.calls.filter((call) => call.startsWith("play@")).length).toBe(2);
+  });
 });

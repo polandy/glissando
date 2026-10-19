@@ -5,6 +5,7 @@
   import { getTranslator } from "../i18n/context";
   import BetweenSongsSection from "./BetweenSongsSection.svelte";
   import FadeSection from "./FadeSection.svelte";
+  import type { ListenState } from "./listen-preview";
   import type { MusicEditorView } from "./music-editor-view";
   import PictureChangesSection from "./PictureChangesSection.svelte";
   import type { PlaylistView } from "./playlist-view";
@@ -19,11 +20,14 @@
   let {
     music,
     playlist,
+    listening,
     onTrim,
     onFadeIn,
     onFadeOut,
     onVolume,
     onVolumeReset,
+    onListenVolume,
+    onToggleOriginal,
     onPictureChanges,
     onPictureLength,
     onSecondsPerPicture,
@@ -31,6 +35,7 @@
   }: {
     music: MusicEditorView;
     playlist: PlaylistView;
+    listening: ListenState | null;
     /** `undefined`: the whole track. */
     onTrim: (trim: MusicTrim | undefined) => void;
     /** `undefined`: automatic. */
@@ -39,6 +44,8 @@
     /** `undefined`: levelled. */
     onVolume: (volumeDb: number | undefined) => void;
     onVolumeReset: () => void;
+    onListenVolume: () => void;
+    onToggleOriginal: () => void;
     /** `undefined`: on the beat. */
     onPictureChanges: (changes: PictureChanges | undefined) => void;
     /** `undefined`: the pictures fill the music. */
@@ -62,7 +69,14 @@
     <p class="unreached">{t("music.songNotReached")}</p>
   {/if}
   <TrimSection {music} {onTrim} onReset={() => onTrim(undefined)} />
-  <VolumeSection volume={music.volume} {onVolume} onReset={onVolumeReset} />
+  <VolumeSection
+    volume={music.volume}
+    {listening}
+    {onVolume}
+    onReset={onVolumeReset}
+    onListen={onListenVolume}
+    {onToggleOriginal}
+  />
   <PictureChangesSection view={music.pictureChanges} {onPictureChanges} />
   <TimingNote note={music.note} />
   <FadeSection

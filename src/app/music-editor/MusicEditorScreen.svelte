@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { MUSIC_FILE_PICKER_ACCEPT } from "../../import/music-format";
   import type { BetweenSongs, MusicTrim, PictureChanges } from "../../library/own-music";
   import type { PictureLength } from "../../library/picture-length";
   import { setMusicTrim } from "../../library/slideshow-edits-music";
@@ -7,7 +6,8 @@
   import Header from "../components/Header.svelte";
   import Icon from "../components/Icon.svelte";
   import { getTranslator } from "../i18n/context";
-  import type { ListenKind, ListenState } from "./listen-preview";
+  import AddSongsButton from "./AddSongsButton.svelte";
+  import type { ListenState } from "./listen-preview";
   import MusicEditorPanel from "./MusicEditorPanel.svelte";
   import {
     musicEditorView,
@@ -19,6 +19,7 @@
   import SelectedSong from "./SelectedSong.svelte";
   import type { PendingSong } from "./song-intake";
   import SongList from "./SongList.svelte";
+  import VolumeComparisonBox from "./VolumeComparisonBox.svelte";
 
   /**
    * The music editor: the playlist's songs and how they meet the slideshow; the selected song's
@@ -45,6 +46,8 @@
     onFadeOut,
     onVolume,
     onVolumeReset,
+    onListenVolume,
+    onToggleOriginal,
     onPictureChanges,
     onPictureLength,
     onSecondsPerPicture,
@@ -80,12 +83,14 @@
     /** `undefined`: levelled. */
     onVolume: (volumeDb: number | undefined) => void;
     onVolumeReset: () => void;
+    onListenVolume: () => void;
+    onToggleOriginal: () => void;
     /** `undefined`: on the beat. */
     onPictureChanges: (changes: PictureChanges | undefined) => void;
     /** `undefined`: the pictures fill the music. */
     onPictureLength: (length: PictureLength | undefined) => void;
     onSecondsPerPicture: (seconds: number) => void;
-    onListen: (kind: ListenKind) => void;
+    onListen: (kind: "start" | "end") => void;
     onStopListening: () => void;
     /** An edit is being stored. */
     saving: boolean;
@@ -93,7 +98,6 @@
 
   const { t } = getTranslator();
 
-  let pickSongs = $state<HTMLInputElement>();
   /** The excerpt while a handle is dragged; stored on release. */
   let draft = $state.raw<MusicTrim | null>(null);
   const songId = $derived(
@@ -111,22 +115,7 @@
     draft = null;
     onTrim(trim);
   }
-
-  function picked(event: Event & { currentTarget: HTMLInputElement }): void {
-    onAddSongs([...(event.currentTarget.files ?? [])]);
-    // Cleared so that picking the same file again still reports a change.
-    event.currentTarget.value = "";
-  }
 </script>
-
-<input
-  bind:this={pickSongs}
-  type="file"
-  accept={MUSIC_FILE_PICKER_ACCEPT}
-  multiple
-  hidden
-  onchange={picked}
-/>
 
 <div class="screen" aria-busy={saving}>
   <Header crumbs={[t("start.library"), slideshow.title, t("music.crumb")]} {onBack} />
@@ -137,9 +126,7 @@
           <span class="disc"><Icon name="music" /></span>
           <b>{t("music.noMusicYet")}</b>
           <p>{t("music.noMusicWhy")}</p>
-          <button class="primary" type="button" onclick={() => pickSongs?.click()}>
-            <Icon name="plus" />{t("music.addSong")}
-          </button>
+          <AddSongsButton primary label={t("music.addSong")} onAdd={onAddSongs} />
         </div>
         {#if pending.length > 0}
           <SongList
@@ -166,9 +153,8 @@
           onRemove={onRemoveSong}
           onDismiss={onDismissPending}
         />
-        <button class="add" type="button" onclick={() => pickSongs?.click()}>
-          <Icon name="plus" />{t("music.addSong")}
-        </button>
+        <VolumeComparisonBox slideshow={edited} {loudness} />
+        <AddSongsButton label={t("music.addSong")} onAdd={onAddSongs} />
         <PlaylistLane {playlist} />
         <SelectedSong
           {music}
@@ -183,11 +169,14 @@
       <MusicEditorPanel
         {music}
         {playlist}
+        {listening}
         onTrim={trimmed}
         {onFadeIn}
         {onFadeOut}
         {onVolume}
         {onVolumeReset}
+        {onListenVolume}
+        {onToggleOriginal}
         {onPictureChanges}
         {onPictureLength}
         {onSecondsPerPicture}
@@ -198,24 +187,6 @@
 </div>
 
 <style>
-  .add {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    padding: 10px;
-    border: 1px dashed var(--gl-line);
-    border-radius: var(--gl-radius);
-    background: transparent;
-    color: var(--gl-ink);
-    font: inherit;
-    font-size: var(--gl-size-label);
-    font-weight: var(--gl-weight-medium);
-    cursor: pointer;
-  }
-  .add:hover {
-    background: var(--gl-hover);
-  }
   /* A zero basis: the screen keeps the viewport's height and each column scrolls inside it. */
   .edit {
     flex: 1 1 0;
@@ -258,23 +229,6 @@
     border-radius: 50%;
     background: color-mix(in srgb, var(--gl-accent) 30%, var(--gl-surface));
     color: var(--gl-ink);
-  }
-  .primary {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 10px 18px;
-    border: 0;
-    border-radius: var(--gl-radius-pill);
-    background: var(--gl-accent);
-    color: var(--gl-accent-ink);
-    font: inherit;
-    font-size: var(--gl-size-body);
-    font-weight: var(--gl-weight-semibold);
-    cursor: pointer;
-  }
-  .primary:hover {
-    background: var(--gl-accent-hover);
   }
   .empty-edit {
     grid-template-columns: minmax(0, 720px);
