@@ -17,16 +17,22 @@
     onRemoveGroup,
     onEdit,
     onDone,
+    arranging = true,
+    viewMode = false,
   }: {
     selection: StripSelection;
     /** The slideshow's current play order, for the group moves and the contiguous range. */
     order: readonly string[];
-    /** Earlier/Later: moves the selection by `offset` steps (ADR-0019). */
+    /** Earlier/Later: moves the selection by `offset` steps (ADR-0019). Unused while `!arranging`. */
     onShiftGroup: (pictureIds: readonly string[], offset: number) => void;
     onRemoveGroup: (pictureIds: readonly string[]) => void;
-    /** Opens the picture editor; shown only while exactly one picture is selected. */
+    /** Opens the picture editor, or the viewer while `viewMode`; one picture selected, only. */
     onEdit: (pictureId: string) => void;
     onDone: () => void;
+    /** False hides Earlier/Later (IMPORT_ARRANGING.md, Add media): no moving while adding. */
+    arranging?: boolean;
+    /** True shows View (full-screen) instead of Edit: no picture editor while importing. */
+    viewMode?: boolean;
   } = $props();
 
   const { t } = getTranslator();
@@ -101,16 +107,19 @@
       </span>
     {/if}
     <span class="separator" aria-hidden="true"></span>
-    <!-- At the ends Earlier and Later look off but keep their place in the tab order. -->
-    <button class="btn" type="button" aria-disabled={earlierDisabled} onclick={earlier}>
-      <Icon name="chevronLeft" /><span class="move-word">{t("slideshow.earlier")}</span>
-    </button>
-    <button class="btn" type="button" aria-disabled={laterDisabled} onclick={later}>
-      <span class="move-word">{t("slideshow.later")}</span><Icon name="chevronRight" />
-    </button>
+    {#if arranging}
+      <!-- At the ends Earlier and Later look off but keep their place in the tab order. -->
+      <button class="btn" type="button" aria-disabled={earlierDisabled} onclick={earlier}>
+        <Icon name="chevronLeft" /><span class="move-word">{t("slideshow.earlier")}</span>
+      </button>
+      <button class="btn" type="button" aria-disabled={laterDisabled} onclick={later}>
+        <span class="move-word">{t("slideshow.later")}</span><Icon name="chevronRight" />
+      </button>
+    {/if}
     {#if !selection.several || count === 1}
       <button class="btn" type="button" onclick={edit}>
-        <Icon name="pencil" /><span>{t("slideshow.edit")}</span>
+        <Icon name={viewMode ? "eye" : "pencil"} />
+        <span>{t(viewMode ? "slideshow.view" : "slideshow.edit")}</span>
       </button>
     {/if}
     <!-- The last picture stays: Remove looks off but still answers, saying why. -->
