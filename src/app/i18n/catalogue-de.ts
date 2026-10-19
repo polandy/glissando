@@ -166,6 +166,9 @@ export const de = {
     other: "noch {count} Bilder zu importieren",
   },
   "import.blockedChecking": "wird auf ähnliche Aufnahmen und Unschärfe geprüft …",
+  "import.captureOrder": "Aufnahmereihenfolge",
+  "import.sortedInByDate": "neue Bilder werden nach Datum einsortiert",
+  "import.sortedInAtEnd": "neue Bilder kommen ans Ende",
   "import.skipped": {
     one: "{count} Datei konnte nicht als Bild gelesen werden und wurde übersprungen:",
     other: "{count} Dateien konnten nicht als Bild gelesen werden und wurden übersprungen:",

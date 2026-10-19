@@ -168,6 +168,7 @@
     checking={cullingState.checking}
     {range}
     onCancel={onDiscard}
+    onStopPick={(pickId) => intake.stopPick(pickId)}
     onAddMore={linking ? null : () => pickFiles.click()}
     onMoreFromImmich={immich.kind === "available" ? onOpenImmich : null}
   />

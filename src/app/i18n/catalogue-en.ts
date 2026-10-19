@@ -164,6 +164,9 @@ export const en: Catalogue = {
     other: "{count} pictures left to import",
   },
   "import.blockedChecking": "checking for similar shots and blur …",
+  "import.captureOrder": "Capture order",
+  "import.sortedInByDate": "new pictures are sorted in by date",
+  "import.sortedInAtEnd": "new pictures go at the end",
   "import.skipped": {
     one: "{count} file could not be read as a picture and was skipped:",
     other: "{count} files could not be read as pictures and were skipped:",
