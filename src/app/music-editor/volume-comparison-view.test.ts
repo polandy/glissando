@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { excerptLoudnessLufs, excerptPeakDbfs, levelSong, type MusicLoudness } from "../../loudness";
+import {
+  excerptLoudnessLufs,
+  excerptPeakDbfs,
+  levelSong,
+  type MusicLoudness,
+} from "../../loudness";
 import type { StoredMusic, StoredPicture, StoredSlideshow } from "../../library/stored-slideshow";
 import type { LoudnessStatus } from "../loudness/music-loudness-known";
 import { volumeComparisonView } from "./volume-comparison-view";
@@ -7,7 +12,10 @@ import { volumeComparisonView } from "./volume-comparison-view";
 /** A loudness measurement that is the same throughout, long enough to cover a 60 s excerpt. */
 function uniformLoudness(meanSquare: number, peak: number): MusicLoudness {
   const hops = 700;
-  return { blockMeanSquares: new Float32Array(hops).fill(meanSquare), hopPeaks: new Float32Array(hops).fill(peak) };
+  return {
+    blockMeanSquares: new Float32Array(hops).fill(meanSquare),
+    hopPeaks: new Float32Array(hops).fill(peak),
+  };
 }
 
 const LOUD = uniformLoudness(0.03, 0.9);
