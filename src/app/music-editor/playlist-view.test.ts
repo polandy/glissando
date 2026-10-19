@@ -47,6 +47,7 @@ describe("playlistView (ADR-0023)", () => {
         trimmed: false,
         atMs: 0,
         reached: true,
+        volumeBadge: { kind: "measuring" },
       },
       {
         id: "b",
@@ -57,6 +58,7 @@ describe("playlistView (ADR-0023)", () => {
         trimmed: true,
         atMs: 57_000,
         reached: true,
+        volumeBadge: { kind: "measuring" },
       },
       {
         id: "c",
@@ -67,6 +69,7 @@ describe("playlistView (ADR-0023)", () => {
         trimmed: false,
         atMs: 114_000,
         reached: true,
+        volumeBadge: { kind: "measuring" },
       },
     ]);
     expect(view.crossfades).toEqual([
@@ -103,4 +106,33 @@ describe("playlistView (ADR-0023)", () => {
       slideshowMs: 15_000,
     });
   });
+
+  describe("volume badge (ADR-0040)", () => {
+    const songs = [song("a", 60_000, { volumeDb: 3 }), song("b", 60_000)];
+    const known = { kind: "known" as const, loudness: silentLoudness() };
+
+    it("badges a song still being listened for as measuring, own volume or not", () => {
+      const view = playlistView(slideshow(songs, 6), new Map());
+      expect(view.songs.map((s) => s.volumeBadge)).toEqual([
+        { kind: "measuring" },
+        { kind: "measuring" },
+      ]);
+    });
+
+    it("badges a measured song by its own volume, once known", () => {
+      const loudness = new Map([
+        ["a", known],
+        ["b", known],
+      ]);
+      const view = playlistView(slideshow(songs, 6), new Map(), loudness);
+      expect(view.songs.map((s) => s.volumeBadge)).toEqual([
+        { kind: "own", ownDb: 3 },
+        { kind: "none" },
+      ]);
+    });
+  });
 });
+
+function silentLoudness() {
+  return { blockMeanSquares: new Float32Array(), hopPeaks: new Float32Array() };
+}

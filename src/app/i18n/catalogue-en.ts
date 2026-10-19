@@ -39,6 +39,7 @@ export const en: Catalogue = {
   "units.pictures": { one: "{count} picture", other: "{count} pictures" },
   "units.megabytes": "{size} MB",
   "units.gigabytes": "{size} GB",
+  "units.decibels": "{db} dB",
 
   "start.heroTitle": "Pictures in, slideshow out.",
   "start.heroText":

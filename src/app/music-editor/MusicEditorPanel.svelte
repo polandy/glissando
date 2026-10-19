@@ -10,6 +10,7 @@
   import type { PlaylistView } from "./playlist-view";
   import TimingNote from "./TimingNote.svelte";
   import TrimSection from "./TrimSection.svelte";
+  import VolumeSection from "./VolumeSection.svelte";
 
   /**
    * The music editor's panel: what is the slideshow's (the picture length, the hand-over between
@@ -21,6 +22,8 @@
     onTrim,
     onFadeIn,
     onFadeOut,
+    onVolume,
+    onVolumeReset,
     onPictureChanges,
     onPictureLength,
     onSecondsPerPicture,
@@ -33,6 +36,9 @@
     /** `undefined`: automatic. */
     onFadeIn: (fadeMs: number | undefined) => void;
     onFadeOut: (fadeMs: number | undefined) => void;
+    /** `undefined`: levelled. */
+    onVolume: (volumeDb: number | undefined) => void;
+    onVolumeReset: () => void;
     /** `undefined`: on the beat. */
     onPictureChanges: (changes: PictureChanges | undefined) => void;
     /** `undefined`: the pictures fill the music. */
@@ -56,6 +62,7 @@
     <p class="unreached">{t("music.songNotReached")}</p>
   {/if}
   <TrimSection {music} {onTrim} onReset={() => onTrim(undefined)} />
+  <VolumeSection volume={music.volume} {onVolume} onReset={onVolumeReset} />
   <PictureChangesSection view={music.pictureChanges} {onPictureChanges} />
   <TimingNote note={music.note} />
   <FadeSection

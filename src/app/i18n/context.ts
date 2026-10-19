@@ -34,6 +34,7 @@ export function getTranslator(): Translator {
     formatZoom: (zoom) => source.current.formatZoom(zoom),
     formatTenths: (seconds) => source.current.formatTenths(seconds),
     formatList: (items) => source.current.formatList(items),
+    formatVolumeDb: (db) => source.current.formatVolumeDb(db),
   };
 }
 

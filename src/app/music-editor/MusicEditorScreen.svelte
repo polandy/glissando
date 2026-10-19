@@ -9,7 +9,11 @@
   import { getTranslator } from "../i18n/context";
   import type { ListenKind, ListenState } from "./listen-preview";
   import MusicEditorPanel from "./MusicEditorPanel.svelte";
-  import { musicEditorView, type SongsBeatsStatus } from "./music-editor-view";
+  import {
+    musicEditorView,
+    type SongsBeatsStatus,
+    type SongsLoudnessStatus,
+  } from "./music-editor-view";
   import PlaylistLane from "./PlaylistLane.svelte";
   import { playlistView } from "./playlist-view";
   import SelectedSong from "./SelectedSong.svelte";
@@ -25,6 +29,7 @@
     slideshow,
     selectedSongId,
     beats,
+    loudness,
     peaks,
     listening,
     pending,
@@ -38,6 +43,8 @@
     onTrim,
     onFadeIn,
     onFadeOut,
+    onVolume,
+    onVolumeReset,
     onPictureChanges,
     onPictureLength,
     onSecondsPerPicture,
@@ -50,6 +57,8 @@
     selectedSongId: string | null;
     /** What is known of the songs' beats, updated as the background pass listens. */
     beats: SongsBeatsStatus;
+    /** What is known of the songs' loudness, updated as the background pass listens (ADR-0040). */
+    loudness: SongsLoudnessStatus;
     /** Fine peaks of the selected song's whole track, 0..1; null while it is decoded. */
     peaks: Float32Array | null;
     listening: ListenState | null;
@@ -68,6 +77,9 @@
     /** `undefined`: automatic. */
     onFadeIn: (fadeMs: number | undefined) => void;
     onFadeOut: (fadeMs: number | undefined) => void;
+    /** `undefined`: levelled. */
+    onVolume: (volumeDb: number | undefined) => void;
+    onVolumeReset: () => void;
     /** `undefined`: on the beat. */
     onPictureChanges: (changes: PictureChanges | undefined) => void;
     /** `undefined`: the pictures fill the music. */
@@ -90,8 +102,10 @@
   const edited = $derived(
     draft === null || songId === undefined ? slideshow : setMusicTrim(slideshow, songId, draft),
   );
-  const music = $derived(songId === undefined ? null : musicEditorView(edited, beats, songId));
-  const playlist = $derived(playlistView(edited, beats));
+  const music = $derived(
+    songId === undefined ? null : musicEditorView(edited, beats, songId, loudness),
+  );
+  const playlist = $derived(playlistView(edited, beats, loudness));
 
   function trimmed(trim: MusicTrim | undefined): void {
     draft = null;
@@ -172,6 +186,8 @@
         onTrim={trimmed}
         {onFadeIn}
         {onFadeOut}
+        {onVolume}
+        {onVolumeReset}
         {onPictureChanges}
         {onPictureLength}
         {onSecondsPerPicture}

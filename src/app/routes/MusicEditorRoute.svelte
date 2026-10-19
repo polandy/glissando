@@ -1,12 +1,18 @@
 <script lang="ts">
   import { onDestroy } from "svelte";
   import type { BeatPass } from "../../library/beat-pass";
+  import type { LoudnessPass } from "../../library/loudness-pass";
   import type { LibraryStore, StoredSlideshow } from "../../library/stored-slideshow";
   import { PlaylistBeats } from "../beats/playlist-beats";
+  import { PlaylistLoudness } from "../loudness/playlist-loudness";
   import type { SlideshowEditor } from "../editing/slideshow-editor";
   import type { MusicEditorAudio } from "../music-editor/music-editor-audio";
   import { ListenPreview, type ListenState } from "../music-editor/listen-preview";
-  import { musicEditorView, type SongsBeatsStatus } from "../music-editor/music-editor-view";
+  import {
+    musicEditorView,
+    type SongsBeatsStatus,
+    type SongsLoudnessStatus,
+  } from "../music-editor/music-editor-view";
   import MusicEditorScreen from "../music-editor/MusicEditorScreen.svelte";
   import { SongIntake, type PendingSong, type SongIntakeDevice } from "../music-editor/song-intake";
 
@@ -16,6 +22,7 @@
     stored,
     editor,
     beatPass,
+    loudnessPass,
     audio,
     songIntake,
     saving,
@@ -23,11 +30,13 @@
     onError,
     log,
   }: {
-    store: Pick<LibraryStore, "musicBlob" | "musicBeats">;
+    store: Pick<LibraryStore, "musicBlob" | "musicBeats" | "musicLoudness">;
     stored: StoredSlideshow;
     editor: SlideshowEditor;
     /** What it finds puts the automatic changes on the music's beats as it goes. */
     beatPass: Pick<BeatPass, "subscribe" | "listenFor">;
+    /** What it finds levels each song as it goes (ADR-0040). */
+    loudnessPass: Pick<LoudnessPass, "subscribe" | "listenFor">;
     audio: MusicEditorAudio;
     /** Reads picked songs and stores their audio where the slideshow lives. */
     songIntake: SongIntakeDevice;
@@ -42,6 +51,7 @@
   let peaks = $state.raw<Float32Array | null>(null);
   let listening = $state.raw<ListenState | null>(null);
   let beats = $state.raw<SongsBeatsStatus>(new Map());
+  let loudness = $state.raw<SongsLoudnessStatus>(new Map());
   let pending = $state.raw<readonly PendingSong[]>([]);
   /** The song edited: the one selected, or the playlist's first. */
   const song = $derived(
@@ -56,12 +66,19 @@
     beats = status;
   });
   // svelte-ignore state_referenced_locally
+  const playlistLoudness = new PlaylistLoudness({ store, pass: loudnessPass, log }, (status) => {
+    loudness = status;
+  });
+  // svelte-ignore state_referenced_locally
   const intake = new SongIntake({ ...songIntake, editor, onError }, (songs) => {
     pending = songs;
   });
 
   $effect(() => {
     playlistBeats.follow(songIds).catch(onError);
+  });
+  $effect(() => {
+    playlistLoudness.follow(songIds).catch(onError);
   });
 
   // The selected song's audio, for its waveform and listening; let go of when another is chosen.
@@ -93,6 +110,7 @@
 
   onDestroy(() => {
     playlistBeats.dispose();
+    playlistLoudness.dispose();
     intake.dispose();
   });
 </script>
@@ -101,6 +119,7 @@
   slideshow={stored}
   selectedSongId={song?.id ?? null}
   {beats}
+  {loudness}
   {peaks}
   {listening}
   {pending}
@@ -114,6 +133,8 @@
   onTrim={(trim) => song !== undefined && editor.setMusicTrim(song.id, trim)}
   onFadeIn={(fadeMs) => song !== undefined && editor.setMusicFadeIn(song.id, fadeMs)}
   onFadeOut={(fadeMs) => song !== undefined && editor.setMusicFadeOut(song.id, fadeMs)}
+  onVolume={(volumeDb) => song !== undefined && editor.setMusicVolume(song.id, volumeDb)}
+  onVolumeReset={() => song !== undefined && editor.setMusicVolume(song.id, undefined)}
   onPictureChanges={(changes) =>
     song !== undefined && editor.setMusicPictureChanges(song.id, changes)}
   onPictureLength={(length) => editor.setPictureLength(length)}

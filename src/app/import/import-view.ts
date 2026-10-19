@@ -242,6 +242,7 @@ export function importPlaylist(songs: readonly ChosenSong[], slideshowMs: number
       trimmed: false,
       atMs,
       reached: atMs < slideshowMs,
+      volumeBadge: { kind: "none" },
     })),
     playlistMs: playlistMs(playlist) ?? 0,
   };

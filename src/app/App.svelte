@@ -125,9 +125,8 @@
     ),
   );
 
-  function noticeFor(origin: OpenOrigin) {
-    return openState.notice?.origin === origin ? openState.notice : null;
-  }
+  const noticeFor = (origin: OpenOrigin) =>
+    openState.notice?.origin === origin ? openState.notice : null;
 
   // svelte-ignore state_referenced_locally
   const actions = createAppActions(services, t, (sheet) => (pwaSheet = sheet));
@@ -235,10 +234,12 @@
   {@const slideshowId = route.slideshowId}
   {#key slideshowId}
     {#await openedSlideshow(slideshowId) then opened}
+      {@const onDevice = opened.home === "device"}
       <SlideshowRoute
         store={opened.store}
         focusPass={services.focusPass}
-        beatPass={opened.home === "device" ? services.beatPass : services.serverBeatPass}
+        beatPass={onDevice ? services.beatPass : services.serverBeatPass}
+        loudnessPass={onDevice ? services.loudnessPass : services.serverLoudnessPass}
         {toaster}
         {newId}
         {now}

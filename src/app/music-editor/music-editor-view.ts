@@ -13,10 +13,12 @@ import {
   type MusicTiming,
   type PlacedSong,
 } from "../../compose";
+import { excerptLoudnessLufs, excerptPeakDbfs } from "../../loudness";
 import { SEQUENCE_BETWEEN_SONGS } from "../../library/own-music";
 import { songIndex } from "../../library/slideshow-edits-songs";
 import type { StoredSlideshow } from "../../library/stored-slideshow";
 import { composedBeats, type BeatsStatus } from "../beats/music-beats-known";
+import type { LoudnessStatus } from "../loudness/music-loudness-known";
 import {
   beatTicks,
   pictureChangesView,
@@ -24,6 +26,7 @@ import {
   type PictureChangesView,
 } from "./picture-changes-view";
 import { sum, timingNote, type TimingNote } from "./music-timing-note";
+import { volumeView, volumeViewInput, type VolumeView } from "./volume-view";
 
 /** Why an automatic fade-in is what it is. */
 export type FadeInReason = "excerpt-starts-mid-track" | "track-starts" | "crossfade-from-previous";
@@ -74,6 +77,7 @@ export interface MusicEditorView {
   readonly pictureChanges: PictureChangesView;
   readonly fadeIn: FadeView<FadeInReason>;
   readonly fadeOut: FadeView<FadeOutReason>;
+  readonly volume: VolumeView;
   /** The excerpt and fades as the player plays them in the playlist. */
   readonly timing: MusicTiming;
   readonly note: TimingNote;
@@ -89,11 +93,21 @@ export interface SlideChange {
 /** What is known of each song's beats; a song absent is still being listened for. */
 export type SongsBeatsStatus = ReadonlyMap<string, BeatsStatus>;
 
+/** What is known of each song's loudness; a song absent is still being listened for. */
+export type SongsLoudnessStatus = ReadonlyMap<string, LoudnessStatus>;
+
 const LISTENING: BeatsStatus = { kind: "listening" };
+const LISTENING_FOR_LOUDNESS: LoudnessStatus = { kind: "listening" };
+const NOTHING_LOUDNESS_KNOWN: SongsLoudnessStatus = new Map();
 
 /** What is known of the song's beats. */
 export function songBeatsStatus(beats: SongsBeatsStatus, songId: string): BeatsStatus {
   return beats.get(songId) ?? LISTENING;
+}
+
+/** What is known of the song's loudness. */
+export function songLoudnessStatus(loudness: SongsLoudnessStatus, songId: string): LoudnessStatus {
+  return loudness.get(songId) ?? LISTENING_FOR_LOUDNESS;
 }
 
 /**
@@ -125,12 +139,13 @@ export function slideshowTimes(stored: StoredSlideshow, beats: SongsBeatsStatus)
 
 /**
  * What the music editor shows of the song `songId` of `stored`, with what is known of the songs'
- * beats; the pictures' times are the whole playlist's (ADR-0023).
+ * beats and loudness; the pictures' times are the whole playlist's (ADR-0023).
  */
 export function musicEditorView(
   stored: StoredSlideshow,
   beats: SongsBeatsStatus,
   songId: string,
+  loudness: SongsLoudnessStatus = NOTHING_LOUDNESS_KNOWN,
 ): MusicEditorView {
   const index = songIndex(stored, songId);
   const placed = placeSongs(stored);
@@ -140,6 +155,18 @@ export function musicEditorView(
   const { beatsMs, durationsMs, slideshowMs } = slideshowTimes(stored, beats);
   const status = songBeatsStatus(beats, songId);
   const pictureChanges = pictureChangesView(stored, music, status);
+  const loudnessStatus = songLoudnessStatus(loudness, songId);
+  const loudnessOfExcerpt = loudnessStatus.kind === "known" ? loudnessStatus.loudness : undefined;
+  const volume = volumeView(
+    volumeViewInput(
+      loudnessStatus,
+      loudnessOfExcerpt === undefined
+        ? null
+        : excerptLoudnessLufs(loudnessOfExcerpt, startMs, endMs),
+      loudnessOfExcerpt === undefined ? null : excerptPeakDbfs(loudnessOfExcerpt, startMs, endMs),
+      music.volumeDb ?? 0,
+    ),
+  );
   // The songs the slideshow reaches come first, so the index is the same among them.
   const resolved = resolvePlaylist(stored, slideshowMs)[index];
   const reached = resolved !== undefined;
@@ -196,6 +223,7 @@ export function musicEditorView(
             ? "excerpt-ends-early"
             : "track-ends",
     },
+    volume,
     timing: { startMs, endMs: heardEndMs, fadeInMs: timing.fadeInMs, fadeOutMs: timing.fadeOutMs },
     note: timingNote(stored, durationsMs, playlistLengthMs, beatsMs !== undefined),
   };

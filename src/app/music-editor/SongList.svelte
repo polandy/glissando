@@ -7,6 +7,7 @@
   import { songColour } from "./song-colour";
   import { SongDrag, songIndexAfterKey, type SongDragState } from "./song-drag";
   import type { PendingSong } from "./song-intake";
+  import VolumeBadge from "./VolumeBadge.svelte";
 
   /**
    * The playlist's songs in play order: a row selects its song for editing where songs are
@@ -95,6 +96,7 @@
       {@render detail(song)}
     {/if}
   </span>
+  <VolumeBadge badge={song.volumeBadge} />
   <span class="tag mono">
     {song.reached ? t("music.songFrom", { time: duration(song.atMs) }) : t("music.notReached")}
   </span>
@@ -244,7 +246,7 @@
   }
   .pick {
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
     align-items: center;
     gap: 10px;
     padding: 5px 4px;

@@ -19,6 +19,7 @@ const song = (number: number, atMs: number): PlaylistSongView => ({
   trimmed: false,
   atMs,
   reached: true,
+  volumeBadge: { kind: "none" },
 });
 
 /** Two songs with a long crossfade, so its hatching is wide enough to cover a number. */

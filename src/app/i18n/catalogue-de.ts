@@ -42,6 +42,7 @@ export const de = {
   "units.pictures": { one: "{count} Bild", other: "{count} Bilder" },
   "units.megabytes": "{size} MB",
   "units.gigabytes": "{size} GB",
+  "units.decibels": "{db} dB",
 
   "start.heroTitle": "Bilder rein, Diashow raus.",
   "start.heroText":
