@@ -1,4 +1,5 @@
 <script lang="ts">
+  import type { Snippet } from "svelte";
   import Icon from "../../components/Icon.svelte";
   import { getTranslator } from "../../i18n/context";
 
@@ -12,7 +13,7 @@
     onAdd = () => undefined,
     variant = "editor",
     busy = false,
-    addButton = true,
+    add,
   }: {
     count: number;
     ownOrder: boolean;
@@ -21,14 +22,14 @@
     onToggleSelect: () => void;
     /** Puts the pictures in a new random order. */
     onShuffle: () => void;
-    /** Unused while `!addButton`. */
+    /** Unused while `add` is given. */
     onAdd?: () => void;
     /** "import" reads the order as capture order, not sorted by date (IMPORT_ARRANGING.md). */
     variant?: "editor" | "import";
     /** An import is still running: says where a newly-ready picture joins the order. */
     busy?: boolean;
-    /** False while picking lives above the strip instead (the pictures step while importing). */
-    addButton?: boolean;
+    /** Replaces the default "Add media" button, e.g. the pictures step's own add menu. */
+    add?: Snippet | undefined;
   } = $props();
 
   const { t } = getTranslator();
@@ -76,13 +77,17 @@
   >
     <Icon name="checkCircle" /><span>{t("slideshow.select")}</span>
   </button>
-  {#if addButton}
-    <button class="btn small add" type="button" onclick={onAdd} aria-label={t("add.title")}>
-      <Icon name="plus" /><span class="wide">{t("add.title")}</span><span class="narrow"
-        >{t("add.titleShort")}</span
-      >
-    </button>
-  {/if}
+  <span class="add">
+    {#if add}
+      {@render add()}
+    {:else}
+      <button class="btn small" type="button" onclick={onAdd} aria-label={t("add.title")}>
+        <Icon name="plus" /><span class="wide">{t("add.title")}</span><span class="narrow"
+          >{t("add.titleShort")}</span
+        >
+      </button>
+    {/if}
+  </span>
 </div>
 
 <style>
@@ -116,12 +121,15 @@
   }
   .add {
     grid-column: 5;
+    grid-row: 1 / span 2;
+    align-self: center;
   }
   .narrow {
     display: none;
   }
   @container (max-width: 720px) {
-    .btn {
+    .btn,
+    .add {
       grid-row: 1;
     }
     .sorted {

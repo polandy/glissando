@@ -165,10 +165,6 @@
     checking={cullingState.checking}
     {range}
     onStopPick={(pickId) => intake.stopPick(pickId)}
-    onAddMore={linking
-      ? null
-      : { onPickFiles: () => pickFiles.click(), onPickFolder: () => pickFolder.click() }}
-    onMoreFromImmich={immich.kind === "available" ? onOpenImmich : null}
   />
 {/if}
 
@@ -219,6 +215,10 @@
     {pending}
     busy={importState.busy}
     {arrangement}
+    onAddMore={linking
+      ? null
+      : { onPickFiles: () => pickFiles.click(), onPickFolder: () => pickFolder.click() }}
+    onOpenImmich={immich.kind === "available" ? onOpenImmich : null}
     onRemove={(pictureId) => intake.removePicture(pictureId)}
     onView={(pictureId) => (viewing = pictureId)}
   />

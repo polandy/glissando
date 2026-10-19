@@ -21,8 +21,6 @@ function mountProgress(
   overrides: {
     onStopPick?: (pickId: string) => void;
     range?: { readonly from: string; readonly to: string } | null;
-    onAddMore?: { onPickFiles: () => void; onPickFolder: () => void } | null;
-    onMoreFromImmich?: (() => void) | null;
   } = {},
 ) {
   const mounted = mountWithTranslator(
@@ -32,8 +30,6 @@ function mountProgress(
       checking: intake.culling.state.checking,
       range: overrides.range ?? null,
       onStopPick: overrides.onStopPick ?? (() => {}),
-      onAddMore: overrides.onAddMore ?? null,
-      onMoreFromImmich: overrides.onMoreFromImmich ?? null,
     },
     english,
   );
@@ -103,65 +99,6 @@ describe("PicturesProgress, the queue of picks being imported", () => {
     expect(stopped).toEqual(["pick-1"]);
     decoder.open();
     await intake.settled();
-  });
-});
-
-describe("PicturesProgress, adding more while something is chosen", () => {
-  it("offers Add pictures and From Immich above the strip while the queue runs", async () => {
-    const decoder = new FakeDecoder();
-    const { ports } = fakeIntakePorts(undefined, { decode: decoder.decode });
-    const intake = new PictureIntake(ports);
-    decoder.hold();
-    intake.addPictures([pictureFile("a.jpg", "2025-07-01T10:00:00Z")]);
-    await decoder.reached;
-    const picked: string[] = [];
-
-    const target = mountProgress(intake, {
-      onAddMore: {
-        onPickFiles: () => picked.push("files"),
-        onPickFolder: () => picked.push("folder"),
-      },
-      onMoreFromImmich: () => picked.push("immich"),
-    });
-
-    expect(target.querySelector(".queue")).not.toBeNull();
-    const addPictures = [...target.querySelectorAll("button")].find(
-      (button) => button.textContent?.trim() === "Add pictures",
-    );
-    expect(addPictures).toBeDefined();
-    const fromImmich = [...target.querySelectorAll("button")].find(
-      (button) => button.textContent?.trim() === "From Immich",
-    );
-    fromImmich?.click();
-    expect(picked).toEqual(["immich"]);
-    decoder.open();
-    await intake.settled();
-  });
-
-  it("hides From Immich where it is not offered", () => {
-    const { ports } = fakeIntakePorts();
-    const intake = new PictureIntake(ports);
-    const target = mountProgress(intake, {
-      range: { from: "2025-07-01T10:00:00Z", to: "2025-07-01T10:00:00Z" },
-      onAddMore: { onPickFiles: () => {}, onPickFolder: () => {} },
-      onMoreFromImmich: null,
-    });
-
-    const buttons = [...target.querySelectorAll("button")].map((button) =>
-      button.textContent?.trim(),
-    );
-    expect(buttons).toContain("Add pictures");
-    expect(buttons).not.toContain("From Immich");
-  });
-
-  it("shows neither button once nothing can add more, as while linking a server slideshow", () => {
-    const { ports } = fakeIntakePorts();
-    const intake = new PictureIntake(ports);
-    const target = mountProgress(intake, {
-      range: { from: "2025-07-01T10:00:00Z", to: "2025-07-01T10:00:00Z" },
-    });
-
-    expect(target.querySelector(".more")).toBeNull();
   });
 });
 

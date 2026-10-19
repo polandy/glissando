@@ -6,20 +6,17 @@
   import { picturesPhase } from "./import-view";
   import type { CullingState } from "./picture-culling";
   import { pickName, queueRows } from "./picture-queue";
-  import AddPicturesMenu from "./AddPicturesMenu.svelte";
 
   /**
-   * Step 1's "Add pictures"/"From Immich" row, always shown above the strip while either is
-   * on offer, then exactly one of: the queue (a row per pick, with a stop button for each still
-   * in flight), the culling check once the queue is empty, or what is in once both are done.
+   * Step 1's own report: exactly one of the queue (a row per pick, with a stop button for each
+   * still in flight), the culling check once the queue is empty, or what is in once both are
+   * done. "Add pictures" lives in the strip instead (IMPORT_ARRANGING.md, `ImportPicturesStrip.svelte`).
    */
   let {
     state,
     checking,
     range,
     onStopPick,
-    onAddMore,
-    onMoreFromImmich,
   }: {
     state: PictureImportState;
     checking: CullingState["checking"];
@@ -27,10 +24,6 @@
     range: { readonly from: string; readonly to: string } | null;
     /** Stops the named pick: its waiting files are dropped, what already landed stays. */
     onStopPick: (pickId: string) => void;
-    /** Null where no pictures come from the device, as for a server slideshow. */
-    onAddMore: { readonly onPickFiles: () => void; readonly onPickFolder: () => void } | null;
-    /** Shown only while Immich can be opened. */
-    onMoreFromImmich: (() => void) | null;
   } = $props();
 
   const { t, formatDate } = getTranslator();
@@ -50,21 +43,6 @@
 </script>
 
 <div class="progress">
-  {#if onAddMore !== null || onMoreFromImmich !== null}
-    <div class="more">
-      {#if onAddMore !== null}
-        <AddPicturesMenu
-          onPickFiles={onAddMore.onPickFiles}
-          onPickFolder={onAddMore.onPickFolder}
-        />
-      {/if}
-      {#if onMoreFromImmich !== null}
-        <button class="btn small" type="button" onclick={onMoreFromImmich}>
-          <Icon name="plus" />{t("immich.more")}
-        </button>
-      {/if}
-    </div>
-  {/if}
   {#if importing}
     <div class="queue">
       <div class="queue-head">
@@ -196,11 +174,6 @@
   .queue-row .stop:hover {
     background: var(--gl-hover);
     color: var(--gl-ink);
-  }
-  .more {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
   }
   .meter {
     height: 6px;

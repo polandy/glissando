@@ -67,6 +67,8 @@ function mountStripInto(frame: HTMLElement): void {
     pending: 0,
     busy: false,
     arrangement: null,
+    onAddMore: null,
+    onOpenImmich: null,
     onRemove: () => undefined,
     onView: () => undefined,
   });

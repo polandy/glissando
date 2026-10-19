@@ -142,6 +142,8 @@ export const en: Catalogue = {
   },
   "import.dateRange": "{from} to {to}",
   "import.addMore": "Add pictures",
+  "import.addPicturesAndVideos": "Pictures and videos",
+  "import.addFolder": "A folder",
   "import.queueHeader": "Importing · {done} of {count} ready",
   "import.queueLeft": "{count} left",
   "import.pickImmich": { one: "Immich · {count} photo", other: "Immich · {count} photos" },

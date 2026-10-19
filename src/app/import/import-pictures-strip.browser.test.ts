@@ -58,8 +58,18 @@ function mountStrip(options: {
   readonly pending?: number;
   readonly busy?: boolean;
   readonly arrangement?: SessionArrangement | null;
+  readonly onAddMore?: { onPickFiles: () => void; onPickFolder: () => void } | null;
+  readonly onOpenImmich?: (() => void) | null;
 }) {
-  const { ids, withoutUrl = [], pending = 0, busy = false, arrangement = null } = options;
+  const {
+    ids,
+    withoutUrl = [],
+    pending = 0,
+    busy = false,
+    arrangement = null,
+    onAddMore = { onPickFiles: () => {}, onPickFolder: () => {} },
+    onOpenImmich = null,
+  } = options;
   const pictures = ids.map(picture);
   const urls = new Map(ids.filter((id) => !withoutUrl.includes(id)).map((id) => [id, "data:,"]));
   const removed: string[] = [];
@@ -70,6 +80,8 @@ function mountStrip(options: {
     pending,
     busy,
     arrangement,
+    onAddMore,
+    onOpenImmich,
     onRemove: (pictureId: string) => removed.push(pictureId),
     onView: (pictureId: string) => viewed.push(pictureId),
   });
@@ -153,6 +165,56 @@ describe("ImportPicturesStrip, the selection bar", () => {
     const bar = target.querySelector('[role="toolbar"]');
     const labels = [...(bar?.querySelectorAll("button") ?? [])].map((button) => text(button));
     expect(labels).toEqual(["Früher", "Später", "Ansehen", "Entfernen", "Fertig"]);
+  });
+});
+
+describe("ImportPicturesStrip, adding more", () => {
+  it("offers the add menu from the strip head", () => {
+    const { target } = mountStrip({ ids: ["a", "b"] });
+
+    const headButton = target.querySelector('.strip-head button[aria-haspopup="menu"]');
+    expect(headButton).not.toBeNull();
+
+    headButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    flushSync();
+
+    expect(target.querySelector('[role="menu"]')).not.toBeNull();
+  });
+
+  it("offers a dashed add tile after the placeholders", () => {
+    const { target } = mountStrip({ ids: ["a", "b"], pending: 1 });
+
+    const tileButton = target.querySelector("li.tile button.add-tile");
+    expect(tileButton).not.toBeNull();
+
+    tileButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    flushSync();
+
+    expect(target.querySelector('[role="menu"]')).not.toBeNull();
+  });
+
+  it("offers only From Immich while linking a server slideshow", () => {
+    const opened: boolean[] = [];
+    const { target } = mountStrip({
+      ids: ["a"],
+      onAddMore: null,
+      onOpenImmich: () => opened.push(true),
+    });
+
+    const headButton = target.querySelector('.strip-head button[aria-haspopup="menu"]');
+    expect(headButton).not.toBeNull();
+    headButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    flushSync();
+
+    const items = [...target.querySelectorAll('[role="menuitem"]')].map((item) => text(item));
+    expect(items).toEqual(["Aus Immich"]);
+  });
+
+  it("shows no add button and no add tile with neither on offer", () => {
+    const { target } = mountStrip({ ids: ["a"], onAddMore: null, onOpenImmich: null });
+
+    expect(target.querySelector('.strip-head button[aria-haspopup="menu"]')).toBeNull();
+    expect(target.querySelector("li.tile button.add-tile")).toBeNull();
   });
 });
 

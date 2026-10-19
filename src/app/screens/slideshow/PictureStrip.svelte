@@ -28,6 +28,7 @@
     onShiftGroup,
     onMoveGroup,
     onAdd = () => undefined,
+    add,
     openingCard,
     closingCard,
     onOpenOpeningCard = () => undefined,
@@ -239,8 +240,12 @@
   {#each { length: placeholderCount }, index (index)}
     <PlaceholderTile active={index === 0} />
   {/each}
-  {#if !suppressCards}
+  {#if add}
+    {@render add()}
+  {:else if !suppressCards}
     <AddTile {onAdd} />
+  {/if}
+  {#if !suppressCards}
     <CardTile
       bind:this={closingTile}
       card={closingCard}

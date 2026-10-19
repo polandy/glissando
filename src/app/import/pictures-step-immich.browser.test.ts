@@ -121,9 +121,9 @@ describe("PicturesStep, the Immich box", () => {
     expect(calls).toEqual(["settings"]);
   });
 
-  it("offers From Immich next to Add pictures once pictures are in", async () => {
+  it("offers From Immich in the Add pictures menu once pictures are in", async () => {
     const importSession = session();
-    const { calls, button } = mountStep(
+    const { target, calls } = mountStep(
       { kind: "available", version: "3.3.1", albumCount: 2 },
       importSession,
     );
@@ -132,8 +132,16 @@ describe("PicturesStep, the Immich box", () => {
     await importSession.intake.settled();
     flushSync();
 
-    expect(button("Add pictures")).toBeDefined();
-    button("From Immich")?.click();
+    const addButton = target.querySelector('.strip-head button[aria-haspopup="menu"]');
+    expect(addButton).not.toBeNull();
+    addButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    flushSync();
+
+    const fromImmich = [...target.querySelectorAll('[role="menuitem"]')].find(
+      (item) => item.textContent?.trim() === "From Immich",
+    );
+    expect(fromImmich).toBeDefined();
+    fromImmich?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     expect(calls).toEqual(["open"]);
   });
 });

@@ -44,7 +44,10 @@ async function settle(intake: PictureIntake): Promise<void> {
 const warnings = (target: HTMLElement): string[] =>
   [...target.querySelectorAll(".notice.warn")].map((notice) => notice.textContent);
 
-const tileCount = (target: HTMLElement): number => target.querySelectorAll(".strip .tile").length;
+const tileCount = (target: HTMLElement): number =>
+  [...target.querySelectorAll(".strip .tile")].filter(
+    (tile) => tile.querySelector("button.pick") !== null,
+  ).length;
 
 describe("PictureIntakeBody's duplicates notices", () => {
   it("names the pictures already in the slideshow and those chosen twice in their own sentences", async () => {

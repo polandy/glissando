@@ -144,6 +144,8 @@ export const de = {
   },
   "import.dateRange": "{from} bis {to}",
   "import.addMore": "Bilder hinzufügen",
+  "import.addPicturesAndVideos": "Bilder und Videos",
+  "import.addFolder": "Ein Ordner",
   "import.queueHeader": "Import läuft · {done} von {count} fertig",
   "import.queueLeft": "{count} übrig",
   "import.pickImmich": { one: "Immich · {count} Foto", other: "Immich · {count} Fotos" },

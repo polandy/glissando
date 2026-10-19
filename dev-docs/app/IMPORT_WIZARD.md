@@ -64,7 +64,8 @@ Immich photos, offers no "Open file" and is created on the server
   Immich" with "Open Immich" opens the Immich browser; offline it is greyed out ("Offline — Immich
   needs a connection to your Glissando server …"), with an Immich problem it names it and offers
   "Settings". Photos added from Immich join the same import: the same progress ("n / m pictures
-  being downsized …"), tiles, notices and "Next"; "From Immich" then stays beside "Add pictures".
+  being downsized …"), tiles, notices and "Next"; "From Immich" then stays in the "Add pictures"
+  menu (IMPORT_ARRANGING.md).
   A photo whose original or preview Immich does not deliver (e.g. a 404 for one deleted in Immich
   after browsing) is skipped as not downloaded and the import goes on; when only its faces fail,
   it is kept without a focus (the on-device pass looks for one) and the error is logged. An Immich
