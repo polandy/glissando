@@ -63,7 +63,9 @@
     own={!volume.levelled}
   />
   <div class="readout">
-    <b class="mono">{volume.levelled ? t("music.volumeLevelled") : formatVolumeDb(volume.ownDb)}</b>
+    <b class="mono"
+      >{volume.levelled ? t("music.volumeLevelled") : formatVolumeDb(volume.shownDb)}</b
+    >
     <span class="sub">{t(subKeys[volume.sub.kind])}</span>
   </div>
   <div class="rail">
@@ -72,10 +74,10 @@
       min={MUSIC_VOLUME_MIN_DB}
       max={volume.capDb}
       step="1"
-      value={Math.min(volume.ownDb, volume.capDb)}
+      value={volume.shownDb}
       style:flex-grow={volume.capDb - MUSIC_VOLUME_MIN_DB}
       aria-labelledby="music-volume"
-      aria-valuetext={formatVolumeDb(volume.ownDb)}
+      aria-valuetext={formatVolumeDb(volume.shownDb)}
       oninput={onInput}
     />
     {#if volume.capReached}

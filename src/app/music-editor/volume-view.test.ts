@@ -54,7 +54,7 @@ describe("volumeView", () => {
     expect(quieter.sub).toEqual({ kind: "quieter" });
     expect(quieter.hint).toEqual({ kind: "none" });
 
-    const louder = volumeView({ ...QUIET_SONG, ownDb: 3 });
+    const louder = volumeView({ ...QUIET_SONG, ownDb: 2 });
     expect(louder.sub).toEqual({ kind: "louder" });
   });
 
@@ -81,6 +81,18 @@ describe("volumeView", () => {
     const view = volumeView(LOUD_SONG);
     expect(view.capDb).toBe(4);
     expect(view.capReached).toBe(true);
+  });
+
+  it("shows the capped volume, not the stored one, once a new excerpt lowers the ceiling below it", () => {
+    // Stored +6 from a quieter excerpt; this one's peak caps the own volume at +2.
+    const view = volumeView({ status: "known", loudnessLufs: -14, peakDbfs: -3, ownDb: 6 });
+    expect(view.capDb).toBe(2);
+    expect(view.shownDb).toBe(2);
+    expect(view.sub).toEqual({ kind: "asFarAsItGoes" });
+  });
+
+  it("shows the stored volume while it stays within the ceiling", () => {
+    expect(volumeView(QUIET_SONG).shownDb).toBe(-4);
   });
 
   it("never reports a cap above +6, the slider's own top", () => {

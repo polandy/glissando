@@ -63,12 +63,12 @@
     "0:12,0" with − and + for half seconds, then "Whole track" (resets) or, untrimmed, "The
     slideshow uses the whole track, 3:24."
   - **Volume** (`VolumeSection.svelte`, ADR-0040, `dev-docs/library/MUSIC.md` "Loudness
-    levelling and song volume"): a slider around the levelled point (0 dB), hatched past the
-    peak ceiling; the readout "Levelled" or the own dB, with why (same loudness, louder,
-    quieter, or capped short to avoid distortion); "Back to levelled" once own. "Listen" plays
-    the excerpt's loudest 8 s at the resolved gain (toggle to stop); "Original file" swaps it
-    for the file's own gain without losing place; while listening, a hint invites tapping
-    another song to compare — it keeps playing, now comparing that one. Below the song list,
+    levelling and song volume"): a slider around the levelled point (0 dB), hatched past the peak
+    ceiling; the readout "Levelled" or the own dB that plays (held at the ceiling), with why (same
+    loudness, louder, quieter, or capped short to avoid distortion); "Back to levelled" once own.
+    "Listen" plays the excerpt's loudest 8 s at the resolved gain (toggle to stop); "Original file"
+    swaps it for the file's own gain in place; while listening, a hint invites tapping another song
+    to compare, which then plays. Below the song list,
     the collapsible "Loudness of the songs" (`VolumeComparisonBox.svelte`, closed by default):
     each song's bar to where it ends up now, a grey mark at its own loudness, and its state.
   - **Picture length** (`components/PictureLengthSection.svelte`, also in the new slideshow's

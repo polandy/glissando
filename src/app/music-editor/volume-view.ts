@@ -23,6 +23,8 @@ export type VolumeHint =
 export interface VolumeView {
   readonly measured: boolean;
   readonly ownDb: number;
+  /** The own volume that plays: `ownDb`, held at `capDb` when the excerpt's peak ceiling is lower. */
+  readonly shownDb: number;
   readonly levelled: boolean;
   /** Target minus the excerpt's loudness; 0 while unmeasured. */
   readonly levelDb: number;
@@ -61,6 +63,7 @@ export function volumeView({ status, loudnessLufs, peakDbfs, ownDb }: VolumeView
   const atCap = ownDb >= capDb;
   const shortDb = Math.max(0, -maxOwnDb);
   const levelled = ownDb === 0;
+  const shownDb = levelled ? 0 : Math.min(ownDb, capDb);
 
   const sub: VolumeSub = !measured
     ? { kind: "unmeasured" }
@@ -68,9 +71,11 @@ export function volumeView({ status, loudnessLufs, peakDbfs, ownDb }: VolumeView
       ? shortDb > 0
         ? { kind: "asFarAsItGoes" }
         : { kind: "sameLoudness" }
-      : ownDb > 0
-        ? { kind: "louder" }
-        : { kind: "quieter" };
+      : ownDb > capDb
+        ? { kind: "asFarAsItGoes" }
+        : ownDb > 0
+          ? { kind: "louder" }
+          : { kind: "quieter" };
 
   const hint: VolumeHint =
     status === "listening"
@@ -88,6 +93,7 @@ export function volumeView({ status, loudnessLufs, peakDbfs, ownDb }: VolumeView
   return {
     measured,
     ownDb,
+    shownDb,
     levelled,
     levelDb,
     gainDb,
