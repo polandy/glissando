@@ -2,7 +2,7 @@ import { isGroundSlide, type Slide } from "./slideshow";
 import { videoShiftMs } from "./video-clip-plan";
 
 /** The music's volume factor while a clip with sound plays (ADR-0035): stays audible under it. */
-export const VIDEO_DUCK_VOLUME = 0.35;
+export const VIDEO_DUCK_VOLUME = 0.25;
 /** The linear ramp down before a clip's slide: so the music is already low once the sound starts. */
 export const VIDEO_DUCK_RAMP_DOWN_MS = 1000;
 /** The linear ramp up after the slide ends: slow, so the music swells back instead of jumping. */
