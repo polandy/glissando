@@ -35,10 +35,10 @@
 
   const { t, formatDate } = getTranslator();
   const importing = $derived(picturesPhase(state) === "importing");
+  // Only read while importing or checking (below): done shows the picture count instead.
   const share = $derived.by(() => {
     if (importing) return state.total > 0 ? state.done / state.total : 0;
-    if (checking !== null) return checking.total > 0 ? checking.checked / checking.total : 0;
-    return 1;
+    return checking !== null && checking.total > 0 ? checking.checked / checking.total : 0;
   });
   const rows = $derived(queueRows(state.picks));
 
@@ -59,7 +59,7 @@
         />
       {/if}
       {#if onMoreFromImmich !== null}
-        <button class="btn ghost" type="button" onclick={onMoreFromImmich}>
+        <button class="btn small" type="button" onclick={onMoreFromImmich}>
           <Icon name="plus" />{t("immich.more")}
         </button>
       {/if}
@@ -123,9 +123,11 @@
       </span>
     </div>
   {/if}
-  <div class="meter">
-    <i style:width="{share * 100}%"></i>
-  </div>
+  {#if importing || checking !== null}
+    <div class="meter">
+      <i style:width="{share * 100}%"></i>
+    </div>
+  {/if}
 </div>
 
 <style>

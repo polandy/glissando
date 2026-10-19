@@ -39,7 +39,7 @@
 
 <div class="add-pictures">
   <button
-    class="btn ghost"
+    class="btn small"
     type="button"
     aria-haspopup="menu"
     aria-expanded={open}
