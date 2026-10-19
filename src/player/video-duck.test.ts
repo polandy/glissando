@@ -44,6 +44,13 @@ describe("duckFactorAt", () => {
     expect(duckFactorAt(SPAN.endMs + gapMs / 2, spans)).toBe(VIDEO_DUCK_VOLUME);
   });
 
+  it("rises between spans just over a ramp up plus a ramp down apart", () => {
+    const gapMs = VIDEO_DUCK_RAMP_UP_MS + VIDEO_DUCK_RAMP_DOWN_MS + 1;
+    const spans = [SPAN, { startMs: SPAN.endMs + gapMs, endMs: 40_000 }];
+
+    expect(duckFactorAt(SPAN.endMs + VIDEO_DUCK_RAMP_UP_MS, spans)).toBe(1);
+  });
+
   it("rises between spans further apart than two ramps", () => {
     const spans = [SPAN, { startMs: SPAN.endMs + 5000, endMs: 40_000 }];
 
@@ -89,5 +96,18 @@ describe("videoSoundSpans", () => {
     ];
 
     expect(videoSoundSpans(slides)).toEqual([{ startMs: 8000, endMs: 9000 }]);
+  });
+
+  it("starts a shifted clip's duck span where its sound starts, inside the transition", () => {
+    // video.startMs (1000) is inside the 3000 ms lead-in: shiftMs = 3000 - 1000 = 2000.
+    const slides = [
+      picture({ transitionToNext: { effect: "crossfade", durationMs: 3000 } }),
+      picture({
+        durationMs: 4000,
+        video: { src: "videos/1.mp4", startMs: 1000, endMs: 5000, volume: 1 },
+      }),
+    ];
+
+    expect(videoSoundSpans(slides)).toEqual([{ startMs: 1000, endMs: 7000 }]);
   });
 });

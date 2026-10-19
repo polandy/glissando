@@ -2,7 +2,7 @@ import { ALL_FORMATS, BlobSource, CanvasSink, Input } from "mediabunny";
 import { beforeAll, describe, expect, it } from "vitest";
 import { server } from "vitest/browser";
 import { levelWav } from "../../import/testing/silent-wav";
-import type { Slideshow } from "../../player";
+import { VIDEO_DUCK_VOLUME, type Slideshow } from "../../player";
 import { probeVideoExport, runVideoExport } from "..";
 import { clipAudioSlides } from "../clip-audio-plan";
 import { AUDIO_SAMPLE_RATE } from "../plan";
@@ -142,7 +142,7 @@ describe.skipIf(server.browser === "webkit")("the clip's sound in the audio mix"
     sound.dispose();
 
     expect(mean(samples, 0.1, 0.5)).toBeCloseTo(0.5, 1);
-    expect(mean(samples, 2.3, 2.9)).toBeCloseTo(0.5 * 0.15, 1);
+    expect(mean(samples, 2.3, 2.9)).toBeCloseTo(0.5 * VIDEO_DUCK_VOLUME, 1);
     expect(mean(samples, 4.6, 4.9)).toBeCloseTo(0.5, 1);
   });
 });

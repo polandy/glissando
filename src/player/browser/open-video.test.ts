@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { openVideoElement } from "./open-video";
+import { VideoElementPool } from "./video-element-pool";
 import type { VideoOutput } from "./video-playback";
 
 const OUTPUT: VideoOutput = {
@@ -76,5 +77,49 @@ describe("openVideoElement", () => {
     await Promise.resolve();
 
     expect(revoked).toEqual(["blob:clip"]);
+  });
+});
+
+describe("openVideoElement with a pool", () => {
+  it("acquires its element from the pool instead of creating a fresh one", () => {
+    const pooled = new FakeElement();
+    const fresh = new FakeElement();
+    const pool = new VideoElementPool(1, () => pooled as unknown as HTMLVideoElement);
+    const playback = openVideoElement("https://x/clip.mp4", 1, {
+      output: OUTPUT,
+      pool,
+      createElement: () => fresh as unknown as HTMLVideoElement,
+    });
+    expect(pooled.src).toBe("https://x/clip.mp4");
+    expect(fresh.src).toBe("");
+    playback.dispose();
+  });
+
+  it("returns its element to the pool on dispose, for the next clip to reuse", () => {
+    const pooled = new FakeElement();
+    const pool = new VideoElementPool(1, () => pooled as unknown as HTMLVideoElement);
+    const playback = openVideoElement("a", 1, { output: OUTPUT, pool });
+
+    playback.dispose();
+
+    expect(pool.acquire()).toBe(pooled as unknown as HTMLVideoElement);
+  });
+
+  it("routes a pooled element through the pool, so a reused element is not routed twice", () => {
+    const pooled = new FakeElement();
+    const pool = new VideoElementPool(1, () => pooled as unknown as HTMLVideoElement);
+    const routeCalls: HTMLVideoElement[] = [];
+    const output: VideoOutput = {
+      unlock: () => undefined,
+      route: (element) => {
+        routeCalls.push(element);
+        return { set: () => undefined, dispose: () => undefined };
+      },
+    };
+
+    openVideoElement("a", 1, { output, pool }).dispose();
+    openVideoElement("b", 1, { output, pool }).dispose();
+
+    expect(routeCalls).toHaveLength(1);
   });
 });
