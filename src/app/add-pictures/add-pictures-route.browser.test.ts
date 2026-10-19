@@ -76,6 +76,19 @@ function button(target: HTMLElement, label: string): HTMLButtonElement {
   return found;
 }
 
+/**
+ * The footer's primary action, found by its class rather than its label: while busy it reads
+ * "Add" too, the same as the strip's own add-tile (AddPicturesMenu), so a label lookup is
+ * ambiguous.
+ */
+function primaryButton(target: HTMLElement): HTMLButtonElement {
+  const found = target.querySelector<HTMLButtonElement>(".btn.primary");
+  if (found === null) {
+    throw new Error("no primary button");
+  }
+  return found;
+}
+
 describe("AddPicturesRoute, adding to a server slideshow", () => {
   it("takes pictures from Immich only, the device's pictures shown as off", () => {
     const { target } = mountRoute(SHOW, undefined, "server");
@@ -113,7 +126,7 @@ describe("AddPicturesRoute", () => {
     session.intake.addPictures([pictureFile("new.jpg", "2025-07-02T10:00:00Z")]);
     flushSync();
 
-    expect(button(target, de.t("add.titleShort")).disabled).toBe(true);
+    expect(primaryButton(target).disabled).toBe(true);
     await session.intake.settled();
     flushSync();
     expect(button(target, de.t("add.add", { count: 1 })).disabled).toBe(false);
