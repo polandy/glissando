@@ -20,3 +20,4 @@ export {
   measureLoudness,
   type MusicLoudness,
 } from "./measure-loudness";
+export { musicLoudnessToJson, parseMusicLoudness } from "./music-loudness-json";

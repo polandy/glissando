@@ -271,6 +271,13 @@ describe("IndexedDbLibraryStore beats upgrade", () => {
       expect(await store.musicBeats("saved-music")).toBeUndefined();
       await store.putMusicBeats("saved-music", { kind: "none" });
       expect(await store.musicBeats("saved-music")).toEqual({ kind: "none" });
+      expect(await store.musicLoudness("saved-music")).toBeUndefined();
+      const loudness = {
+        blockMeanSquares: new Float32Array([0.01, 0.02]),
+        hopPeaks: new Float32Array([0.5, 0.6, 0.7, 0.8, 0.9]),
+      };
+      await store.putMusicLoudness("saved-music", loudness);
+      expect(await store.musicLoudness("saved-music")).toEqual(loudness);
     } finally {
       store.close();
       await deleteLibraryDatabase();

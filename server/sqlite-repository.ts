@@ -1,6 +1,8 @@
 import type { DatabaseSync, SQLOutputValue } from "node:sqlite";
 import type { MusicBeats } from "../src/beats/music-beats";
 import { parseMusicBeats } from "../src/beats/music-beats-json";
+import type { MusicLoudness } from "../src/loudness/measure-loudness";
+import { musicLoudnessToJson, parseMusicLoudness } from "../src/loudness/music-loudness-json";
 import { readServerDocument } from "../src/server-library/server-document";
 import type { LibraryRepository, MusicRecord, SlideshowRecord } from "./library-repository";
 
@@ -23,6 +25,10 @@ const SCHEMA = `
   CREATE TABLE IF NOT EXISTS music_beats (
     music_id TEXT PRIMARY KEY,
     beats TEXT NOT NULL
+  );
+  CREATE TABLE IF NOT EXISTS music_loudness (
+    music_id TEXT PRIMARY KEY,
+    loudness TEXT NOT NULL
   );
   CREATE TABLE IF NOT EXISTS share_links (
     slideshow_id TEXT PRIMARY KEY REFERENCES slideshows (id) ON DELETE CASCADE,
@@ -78,6 +84,12 @@ export function openSqliteRepository(database: DatabaseSync): LibraryRepository 
        ON CONFLICT (music_id) DO UPDATE SET beats = excluded.beats`,
   );
   const deleteMusicBeats = statement("DELETE FROM music_beats WHERE music_id = ?");
+  const findMusicLoudness = statement("SELECT loudness FROM music_loudness WHERE music_id = ?");
+  const putMusicLoudness = statement(
+    `INSERT INTO music_loudness (music_id, loudness) VALUES (?, ?)
+       ON CONFLICT (music_id) DO UPDATE SET loudness = excluded.loudness`,
+  );
+  const deleteMusicLoudness = statement("DELETE FROM music_loudness WHERE music_id = ?");
   const musicReference = statement("SELECT 1 FROM document_music_ids WHERE music_id = ?");
   const unreferencedMusic = statement(
     `SELECT id FROM music WHERE uploaded_at < ? AND id NOT IN (SELECT music_id FROM document_music_ids)
@@ -136,6 +148,7 @@ export function openSqliteRepository(database: DatabaseSync): LibraryRepository 
     deleteMusic(id) {
       deleteMusic.run(id);
       deleteMusicBeats.run(id);
+      deleteMusicLoudness.run(id);
     },
     findMusicBeats(id) {
       const row = findMusicBeats.get(id);
@@ -143,6 +156,13 @@ export function openSqliteRepository(database: DatabaseSync): LibraryRepository 
     },
     putMusicBeats(id, beats) {
       putMusicBeats.run(id, JSON.stringify(beats));
+    },
+    findMusicLoudness(id) {
+      const row = findMusicLoudness.get(id);
+      return row === undefined ? undefined : musicLoudnessOf(row);
+    },
+    putMusicLoudness(id, loudness) {
+      putMusicLoudness.run(id, JSON.stringify(musicLoudnessToJson(loudness)));
     },
     restartMusicGrace(id, time) {
       restartMusicGrace.run(time, id);
@@ -184,6 +204,19 @@ function musicBeatsOf(row: Row): MusicBeats {
     throw new Error(`database column beats holds ${stored}, not valid MusicBeats`);
   }
   return beats;
+}
+
+function musicLoudnessOf(row: Row): MusicLoudness {
+  const stored = text(row, "loudness");
+  try {
+    // What the database holds was validated on the way in; reading it again fails loud on damage.
+    return parseMusicLoudness(JSON.parse(stored));
+  } catch (error) {
+    throw new Error(
+      `database column loudness holds ${stored}, not valid MusicLoudness: ${(error as Error).message}`,
+      { cause: error },
+    );
+  }
 }
 
 function text(row: Row, column: string): string {

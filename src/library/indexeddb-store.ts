@@ -20,6 +20,7 @@ import {
   FOCUS,
   IMPORTS,
   LIBRARY_DATABASE_NAME,
+  LOUDNESS,
   MUSIC,
   PICTURES,
   SCHEMA_VERSION,
@@ -31,6 +32,7 @@ import {
 import { editSlideshowRecord } from "./indexeddb-edit";
 import { CLEAN_UP_STORES, deleteUnreferenced, measureMediaBytes } from "./indexeddb-media";
 import type { MusicBeats } from "../beats";
+import type { MusicLoudness } from "../loudness";
 import type { PictureFocus } from "./picture-focus";
 
 export { LIBRARY_DATABASE_NAME } from "./indexeddb-schema";
@@ -97,9 +99,7 @@ export class IndexedDbLibraryStore implements LibraryStore {
 
   async getSlideshow(id: string): Promise<StoredSlideshow> {
     const slideshow = await this.#read(SLIDESHOWS, (store) => store.get(id));
-    if (slideshow === undefined) {
-      throw new SlideshowNotFoundError(id);
-    }
+    if (slideshow === undefined) throw new SlideshowNotFoundError(id);
     return slideshow as StoredSlideshow;
   }
 
@@ -107,7 +107,7 @@ export class IndexedDbLibraryStore implements LibraryStore {
   deleteSlideshow(id: string): Promise<void> {
     let found = true;
     const deleted = this.#update(
-      [SLIDESHOWS, PICTURES, MUSIC, VIDEOS, FOCUS, BEATS],
+      [SLIDESHOWS, PICTURES, MUSIC, VIDEOS, FOCUS, BEATS, LOUDNESS],
       (transaction) => {
         const slideshows = transaction.objectStore(SLIDESHOWS);
         const all = slideshows.getAll();
@@ -121,7 +121,7 @@ export class IndexedDbLibraryStore implements LibraryStore {
           slideshows.delete(id);
           const remaining = records.filter((slideshow) => slideshow.id !== id);
           for (const mediaId of mediaOnlyIn(record, remaining)) {
-            for (const name of [PICTURES, FOCUS, MUSIC, VIDEOS, BEATS]) {
+            for (const name of [PICTURES, FOCUS, MUSIC, VIDEOS, BEATS, LOUDNESS]) {
               transaction.objectStore(name).delete(mediaId);
             }
           }
@@ -131,9 +131,7 @@ export class IndexedDbLibraryStore implements LibraryStore {
       },
     );
     return deleted.then(() => {
-      if (!found) {
-        throw new SlideshowNotFoundError(id);
-      }
+      if (!found) throw new SlideshowNotFoundError(id);
     });
   }
 
@@ -152,31 +150,19 @@ export class IndexedDbLibraryStore implements LibraryStore {
 
   async musicBlob(id: string): Promise<Blob> {
     const media = await this.#read(MUSIC, (store) => store.get(id));
-    if (media === undefined) {
-      throw new MediaNotFoundError(id);
-    }
+    if (media === undefined) throw new MediaNotFoundError(id);
     return toBlob(media as StoredMedia);
   }
 
   async videoBlob(id: string): Promise<Blob> {
     const media = await this.#read(VIDEOS, (store) => store.get(id));
-    if (media === undefined) {
-      throw new MediaNotFoundError(id);
-    }
+    if (media === undefined) throw new MediaNotFoundError(id);
     return toBlob(media as StoredMedia);
   }
 
   /** Checks for the media and writes in one transaction, so a concurrent deletion cannot interleave. */
   putPictureFocus(pictureId: string, focus: PictureFocus): Promise<void> {
-    return this.#update([PICTURES, FOCUS], (transaction) => {
-      const media = transaction.objectStore(PICTURES).getKey(pictureId);
-      media.onsuccess = () => {
-        if (media.result !== undefined) {
-          transaction.objectStore(FOCUS).put(focus, pictureId);
-          transaction.commit();
-        }
-      };
-    });
+    return this.#putBesideMedia(PICTURES, FOCUS, pictureId, focus);
   }
 
   pictureFocus(pictureIds: readonly string[]): Promise<ReadonlyMap<string, PictureFocus>> {
@@ -196,19 +182,22 @@ export class IndexedDbLibraryStore implements LibraryStore {
 
   /** Checks for the media and writes in one transaction, so a concurrent deletion cannot interleave. */
   putMusicBeats(musicId: string, beats: MusicBeats): Promise<void> {
-    return this.#update([MUSIC, BEATS], (transaction) => {
-      const media = transaction.objectStore(MUSIC).getKey(musicId);
-      media.onsuccess = () => {
-        if (media.result !== undefined) {
-          transaction.objectStore(BEATS).put(beats, musicId);
-          transaction.commit();
-        }
-      };
-    });
+    return this.#putBesideMedia(MUSIC, BEATS, musicId, beats);
   }
 
   async musicBeats(musicId: string): Promise<MusicBeats | undefined> {
     return (await this.#read(BEATS, (store) => store.get(musicId))) as MusicBeats | undefined;
+  }
+
+  /** Checks for the media and writes in one transaction, so a concurrent deletion cannot interleave. */
+  putMusicLoudness(musicId: string, loudness: MusicLoudness): Promise<void> {
+    return this.#putBesideMedia(MUSIC, LOUDNESS, musicId, loudness);
+  }
+
+  async musicLoudness(musicId: string): Promise<MusicLoudness | undefined> {
+    return (await this.#read(LOUDNESS, (store) => store.get(musicId))) as
+      | MusicLoudness
+      | undefined;
   }
 
   /** One read-only transaction; each record is dropped once measured, so memory stays bounded. */
@@ -245,15 +234,31 @@ export class IndexedDbLibraryStore implements LibraryStore {
 
   async #picture(id: string): Promise<StoredPictureMedia> {
     const media = await this.#read(PICTURES, (store) => store.get(id));
-    if (media === undefined) {
-      throw new MediaNotFoundError(id);
-    }
+    if (media === undefined) throw new MediaNotFoundError(id);
     return media as StoredPictureMedia;
   }
 
   #read(name: StoreName, query: (store: IDBObjectStore) => IDBRequest): Promise<unknown> {
     const request = query(this.#database.transaction(name, "readonly").objectStore(name));
     return requestResult(request);
+  }
+
+  /** Writes `value` under `mediaId` in `valueStore`, only once `mediaStore` still has that media. */
+  #putBesideMedia(
+    mediaStore: StoreName,
+    valueStore: StoreName,
+    mediaId: string,
+    value: unknown,
+  ): Promise<void> {
+    return this.#update([mediaStore, valueStore], (transaction) => {
+      const media = transaction.objectStore(mediaStore).getKey(mediaId);
+      media.onsuccess = () => {
+        if (media.result !== undefined) {
+          transaction.objectStore(valueStore).put(value, mediaId);
+          transaction.commit();
+        }
+      };
+    });
   }
 
   /**

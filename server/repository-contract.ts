@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { MusicBeats } from "../src/beats/music-beats";
+import type { MusicLoudness } from "../src/loudness/measure-loudness";
+import { musicLoudnessToJson } from "../src/loudness/music-loudness-json";
 import {
   SERVER_DOCUMENT_FORMAT_VERSION,
   type ServerDocument,
@@ -178,6 +180,37 @@ export function describeLibraryRepositoryContract(
       expect(repository.findMusicBeats("music-a")).toBeUndefined();
     });
 
+    it("finds no loudness for music not measured yet", () => {
+      const repository = createRepository();
+      repository.insertMusic(music("music-a", 1000));
+      expect(repository.findMusicLoudness("music-a")).toBeUndefined();
+    });
+
+    it("finds the loudness put for a music", () => {
+      const repository = createRepository();
+      repository.insertMusic(music("music-a", 1000));
+      const loudness = loudnessOf([0.01, 0.02], [0.5, 0.6, 0.7, 0.8, 0.9]);
+      repository.putMusicLoudness("music-a", loudness);
+      expectSameLoudness(repository.findMusicLoudness("music-a"), loudness);
+    });
+
+    it("replaces a music's loudness on a later put", () => {
+      const repository = createRepository();
+      repository.insertMusic(music("music-a", 1000));
+      repository.putMusicLoudness("music-a", loudnessOf([0.01], [0.1, 0.2, 0.3, 0.4]));
+      const relevelled = loudnessOf([0.02], [0.2, 0.3, 0.4, 0.5]);
+      repository.putMusicLoudness("music-a", relevelled);
+      expectSameLoudness(repository.findMusicLoudness("music-a"), relevelled);
+    });
+
+    it("deletes a music's loudness with the music", () => {
+      const repository = createRepository();
+      repository.insertMusic(music("music-a", 1000));
+      repository.putMusicLoudness("music-a", loudnessOf([0.01], [0.1, 0.2, 0.3, 0.4]));
+      repository.deleteMusic("music-a");
+      expect(repository.findMusicLoudness("music-a")).toBeUndefined();
+    });
+
     it("knows music is referenced while a slideshow's document names it", () => {
       const repository = createRepository();
       repository.insertMusic(music("music-a", 1000));
@@ -278,4 +311,17 @@ function slideshow(id: string, createdAt: number): SlideshowRecord {
 
 function music(id: string, uploadedAt: number): MusicRecord {
   return { id, contentType: "audio/mp4", bytes: new Uint8Array([1, 2, 3]), uploadedAt };
+}
+
+function loudnessOf(blockMeanSquares: number[], hopPeaks: number[]): MusicLoudness {
+  return { blockMeanSquares: Float32Array.from(blockMeanSquares), hopPeaks: Float32Array.from(hopPeaks) };
+}
+
+/**
+ * Compares through the compact dB/dBFS wire form (ADR-0021 style), since the sqlite adapter
+ * rounds to 0.01 dB on the way in; the exact linear values an adapter kept are not the point.
+ */
+function expectSameLoudness(actual: MusicLoudness | undefined, expected: MusicLoudness): void {
+  expect(actual).toBeDefined();
+  expect(musicLoudnessToJson(actual as MusicLoudness)).toEqual(musicLoudnessToJson(expected));
 }

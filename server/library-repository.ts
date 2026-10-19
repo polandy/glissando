@@ -1,4 +1,5 @@
 import type { MusicBeats } from "../src/beats/music-beats";
+import type { MusicLoudness } from "../src/loudness/measure-loudness";
 import type { ServerDocument } from "../src/server-library/server-document";
 
 /**
@@ -47,12 +48,16 @@ export interface LibraryRepository {
   slideshowByShareToken(token: string): SlideshowRecord | undefined;
   findMusic(id: string): MusicRecord | undefined;
   insertMusic(record: MusicRecord): void;
-  /** Deletes the music `id` and the beats found for it, if any. */
+  /** Deletes the music `id` and the beats and loudness found for it, if any. */
   deleteMusic(id: string): void;
   /** The beats found for the music `id`, or `undefined` while no device has listened yet. */
   findMusicBeats(id: string): MusicBeats | undefined;
   /** Replaces the beats found for the music `id` (two devices may race; same detector, same answer). */
   putMusicBeats(id: string, beats: MusicBeats): void;
+  /** The loudness measured for the music `id`, or `undefined` while not measured yet. */
+  findMusicLoudness(id: string): MusicLoudness | undefined;
+  /** Replaces the loudness measured for the music `id` (two devices may race; same pass, same answer). */
+  putMusicLoudness(id: string, loudness: MusicLoudness): void;
   /** Whether a slideshow's document names the music `id`. */
   isMusicReferenced(id: string): boolean;
   /**

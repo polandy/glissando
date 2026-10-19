@@ -26,3 +26,29 @@ already has, validating each song's own fields), `removeSong`, `moveSong` (a son
 settings to another place) and `setBetweenSongs` (`StoredSlideshow.betweenSongs` `"sequence"`
 plays the songs one after another, `checkBetweenSongs`; `undefined` deletes the field, so they
 crossfade). A removed song's media goes with the clean-up of unreferenced media.
+
+## Loudness levelling and song volume
+
+ADR-0040. Every song plays levelled: brought to `MUSIC_TARGET_LOUDNESS_LUFS` = −14 LUFS, so a quiet and a
+loud song sound equally loud without any setting. A song's own volume moves it from there.
+
+- **Measured once per file, in blocks.** A loudness pass (beside the beat pass, from its own
+  full-rate decode, in a worker) measures integrated loudness per ITU-R BS.1770: K-weighted, in 400 ms
+  gating blocks with 75 % overlap, plus each block's sample peak. The blocks are stored per media
+  id beside the beats (derived data: never exported, measured again where missing). A 5-minute
+  song is about 3000 pairs of numbers.
+- **The excerpt is levelled, not the file.** The loudness of what plays — the gated integral
+  over the blocks inside `trim` — follows from the stored blocks without decoding again, so a
+  new trim re-levels at once. `levelDb = target − excerptLoudness`.
+- **Own volume.** `StoredMusic.volumeDb`: whole dB, −12 to +6; absent, levelled (0). Set by
+  `setMusicVolume` (deleting the field for `undefined` or 0), validated by `checkMusicVolumeDb`.
+- **Never distorts.** `gainDb = min(levelDb + volumeDb, −1 dBFS − excerptPeak)`. When the cap
+  bites, the editor says so ("as loud as it gets without distortion").
+- **Not measured yet** (just added, still in the pass): played unlevelled, own volume still
+  applies; the editor shows "Measuring…". Once measured it applies from the next play.
+- **One number for player and export.** The composer resolves `gainDb` into the slideshow
+  JSON's `MusicTrack.gain` (linear). The player sets each element's gain to
+  `gain × fade/crossfade envelope × video duck × remote volume`; mute stays the master gain.
+  The video export's per-track gain node carries `gain ×` the same envelope ramps, the duck stays
+  on the music bus. The HTML export plays through the player. Clip sound is not levelled; it
+  keeps its own clip volume.

@@ -1,4 +1,5 @@
 import type { MusicBeats } from "../beats";
+import type { MusicLoudness } from "../loudness";
 import type { ServerDocument } from "./server-document";
 
 /**
@@ -27,6 +28,10 @@ export interface ServerLibraryClient {
   musicBeats(musicId: string): Promise<MusicBeats | undefined>;
   /** Keeps the beats found beside the music, replacing any found before. */
   putMusicBeats(musicId: string, beats: MusicBeats): Promise<void>;
+  /** The loudness a device measured for the music; `undefined` while none has measured it yet. */
+  musicLoudness(musicId: string): Promise<MusicLoudness | undefined>;
+  /** Keeps the loudness measured beside the music, replacing any found before. */
+  putMusicLoudness(musicId: string, loudness: MusicLoudness): Promise<void>;
 }
 
 /** A slideshow as the server keeps it. */

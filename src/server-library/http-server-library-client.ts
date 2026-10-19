@@ -1,5 +1,7 @@
 import type { MusicBeats } from "../beats";
 import { parseMusicBeats } from "../beats/music-beats-json";
+import type { MusicLoudness } from "../loudness";
+import { musicLoudnessToJson, parseMusicLoudness } from "../loudness";
 import { readServerDocument, type ServerDocument } from "./server-document";
 import {
   ServerLibraryNotFoundError,
@@ -17,6 +19,8 @@ const SLIDESHOWS_PATH = `${LIBRARY_PATH}/slideshows`;
 const MUSIC_PATH = `${LIBRARY_PATH}/music`;
 /** Under a music's path: the beats a device found in it. */
 const BEATS_SUFFIX = "/beats";
+/** Under a music's path: the loudness a device measured for it. */
+const LOUDNESS_SUFFIX = "/loudness";
 const DISCOVERY_SERVICE = "glissando-library";
 const JSON_MEDIA_TYPE = "application/json";
 const HTTP_NOT_FOUND = 404;
@@ -121,6 +125,30 @@ export class HttpServerLibraryClient implements ServerLibraryClient {
     const path = `${musicPath(musicId)}${BEATS_SUFFIX}`;
     const response = await this.#send("PUT", path, {
       body: JSON.stringify(beats),
+      headers: { "content-type": JSON_MEDIA_TYPE },
+    });
+    await check("PUT", path, response);
+  }
+
+  async musicLoudness(musicId: string): Promise<MusicLoudness | undefined> {
+    const path = `${musicPath(musicId)}${LOUDNESS_SUFFIX}`;
+    const answer = field(await this.#json("GET", path), "loudness", path);
+    if (answer === null) return undefined;
+    try {
+      return parseMusicLoudness(answer);
+    } catch (error) {
+      throw new Error(
+        `${path} answered "loudness" that is not the loudness of a piece of music ` +
+          `(${(error as Error).message}); the app and the Glissando server's library service differ in version`,
+        { cause: error },
+      );
+    }
+  }
+
+  async putMusicLoudness(musicId: string, loudness: MusicLoudness): Promise<void> {
+    const path = `${musicPath(musicId)}${LOUDNESS_SUFFIX}`;
+    const response = await this.#send("PUT", path, {
+      body: JSON.stringify(musicLoudnessToJson(loudness)),
       headers: { "content-type": JSON_MEDIA_TYPE },
     });
     await check("PUT", path, response);

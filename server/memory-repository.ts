@@ -1,4 +1,5 @@
 import type { MusicBeats } from "../src/beats/music-beats";
+import type { MusicLoudness } from "../src/loudness/measure-loudness";
 import type {
   LibraryRepository,
   MusicRecord,
@@ -12,6 +13,7 @@ export function createMemoryRepository(): LibraryRepository {
   let slideshows = new Map<string, SlideshowRecord>();
   let music = new Map<string, MusicRecord>();
   let musicBeats = new Map<string, MusicBeats>();
+  let musicLoudness = new Map<string, MusicLoudness>();
   let shareLinks = new Map<string, ShareLink>();
 
   const isMusicReferenced = (id: string): boolean =>
@@ -25,6 +27,7 @@ export function createMemoryRepository(): LibraryRepository {
         slideshows: new Map(slideshows),
         music: new Map(music),
         musicBeats: new Map(musicBeats),
+        musicLoudness: new Map(musicLoudness),
         shareLinks: new Map(shareLinks),
       };
       try {
@@ -33,6 +36,7 @@ export function createMemoryRepository(): LibraryRepository {
         slideshows = before.slideshows;
         music = before.music;
         musicBeats = before.musicBeats;
+        musicLoudness = before.musicLoudness;
         shareLinks = before.shareLinks;
         throw error;
       }
@@ -72,10 +76,15 @@ export function createMemoryRepository(): LibraryRepository {
     deleteMusic(id) {
       music.delete(id);
       musicBeats.delete(id);
+      musicLoudness.delete(id);
     },
     findMusicBeats: (id) => musicBeats.get(id),
     putMusicBeats(id, beats) {
       musicBeats.set(id, beats);
+    },
+    findMusicLoudness: (id) => musicLoudness.get(id),
+    putMusicLoudness(id, loudness) {
+      musicLoudness.set(id, loudness);
     },
     restartMusicGrace(id, time) {
       const record = music.get(id);

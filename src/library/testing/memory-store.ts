@@ -14,6 +14,7 @@ import {
   type StoredSlideshow,
 } from "../stored-slideshow";
 import type { MusicBeats } from "../../beats";
+import type { MusicLoudness } from "../../loudness";
 import type { PictureFocus } from "../picture-focus";
 
 /** An in-memory `LibraryStore` for tests; holds copies, like a real store, so callers share nothing. */
@@ -25,6 +26,7 @@ export class MemoryLibraryStore implements LibraryStore {
   readonly #imports = new Map<string, MediaClaim>();
   readonly #focus = new Map<string, PictureFocus>();
   readonly #beats = new Map<string, MusicBeats>();
+  readonly #loudness = new Map<string, MusicLoudness>();
 
   putPicture(id: string, blobs: PictureBlobs): Promise<void> {
     this.#pictures.set(id, { display: blobs.display, thumbnail: blobs.thumbnail });
@@ -145,6 +147,18 @@ export class MemoryLibraryStore implements LibraryStore {
     return Promise.resolve(beats === undefined ? undefined : structuredClone(beats));
   }
 
+  putMusicLoudness(musicId: string, loudness: MusicLoudness): Promise<void> {
+    if (this.#music.has(musicId)) {
+      this.#loudness.set(musicId, structuredClone(loudness));
+    }
+    return Promise.resolve();
+  }
+
+  musicLoudness(musicId: string): Promise<MusicLoudness | undefined> {
+    const loudness = this.#loudness.get(musicId);
+    return Promise.resolve(loudness === undefined ? undefined : structuredClone(loudness));
+  }
+
   mediaBytes(slideshow: StoredSlideshow): Promise<number> {
     let bytes = 0;
     for (const picture of slideshow.pictures) {
@@ -174,10 +188,15 @@ export class MemoryLibraryStore implements LibraryStore {
     const referenced = referencedMediaIds([...this.#slideshows.values()]);
     const { sparedMediaIds, staleClaimIds } = claimsAt([...this.#imports.values()], now);
     staleClaimIds.forEach((id) => this.#imports.delete(id));
-    // Focus and beats are media too: one kept for media that went goes with it.
-    const mediaIds = [this.#pictures, this.#music, this.#videos, this.#focus, this.#beats].flatMap(
-      (media) => [...media.keys()],
-    );
+    // Focus, beats and loudness are media too: one kept for media that went goes with it.
+    const mediaIds = [
+      this.#pictures,
+      this.#music,
+      this.#videos,
+      this.#focus,
+      this.#beats,
+      this.#loudness,
+    ].flatMap((media) => [...media.keys()]);
     for (const id of mediaIds) {
       if (!referenced.has(id) && !sparedMediaIds.has(id)) {
         this.#deleteMedia(id);
@@ -192,6 +211,7 @@ export class MemoryLibraryStore implements LibraryStore {
     this.#music.delete(id);
     this.#videos.delete(id);
     this.#beats.delete(id);
+    this.#loudness.delete(id);
   }
 }
 

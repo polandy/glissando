@@ -74,6 +74,8 @@ function tvRepositoryOf(server: FakeGlissandoServer): LibraryRepository {
     deleteMusic: unsupported("deleteMusic"),
     findMusicBeats: () => undefined,
     putMusicBeats: unsupported("putMusicBeats"),
+    findMusicLoudness: () => undefined,
+    putMusicLoudness: unsupported("putMusicLoudness"),
     isMusicReferenced: unsupported("isMusicReferenced"),
     restartMusicGrace: unsupported("restartMusicGrace"),
     unreferencedMusicUploadedBefore: unsupported("unreferencedMusicUploadedBefore"),

@@ -77,6 +77,12 @@ export function createLibraryHandler(dependencies: LibraryHandlerDependencies): 
         PUT: (request) => music.replaceBeats(musicId, request),
       };
     }
+    if (musicId !== undefined && musicPart === LOUDNESS_PART && beyondMusic.length === 0) {
+      return {
+        GET: () => music.readLoudness(musicId),
+        PUT: (request) => music.replaceLoudness(musicId, request),
+      };
+    }
     const [token, sharePart, songPosition, ...beyondShare] = segmentsUnder(SHARE_PATH, path);
     if (token !== undefined && sharePart === undefined) {
       return { GET: () => share.document(token) };
@@ -106,4 +112,5 @@ export function createLibraryHandler(dependencies: LibraryHandlerDependencies): 
 
 const SHARE_PART = "share";
 const BEATS_PART = "beats";
+const LOUDNESS_PART = "loudness";
 const SONGS_PART = "songs";

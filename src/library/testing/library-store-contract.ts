@@ -9,6 +9,7 @@ import {
 import { describeEditing } from "./editing-contract";
 import { describeImportsInProgress } from "./imports-in-progress-contract";
 import { describeMusicBeats } from "./music-beats-contract";
+import { describeMusicLoudness } from "./music-loudness-contract";
 import { describePictureFocus } from "./picture-focus-contract";
 import { describeVideos } from "./videos-contract";
 
@@ -268,6 +269,10 @@ export function describeLibraryStoreContract(
       () => harness,
     );
     describeMusicBeats(
+      () => store,
+      () => harness,
+    );
+    describeMusicLoudness(
       () => store,
       () => harness,
     );

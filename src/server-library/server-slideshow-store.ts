@@ -6,6 +6,7 @@ import {
 } from "../immich/immich-client";
 import type { MusicBeats } from "../beats";
 import { focusFromFaces } from "../immich/immich-focus";
+import type { MusicLoudness } from "../loudness";
 import type { DecodedPicture } from "../import/downscale";
 import { decodeImmichPhoto } from "../import/immich-picture-source";
 import type { PictureFocus } from "../library/picture-focus";
@@ -138,6 +139,25 @@ export class ServerSlideshowStore implements SlideshowStore {
   async putMusicBeats(musicId: string, beats: MusicBeats): Promise<void> {
     try {
       await this.#options.client.putMusicBeats(musicId, beats);
+    } catch (error) {
+      if (!(error instanceof ServerLibraryNotFoundError)) throw error;
+    }
+  }
+
+  /** The loudness a device measured for the server's music; none for music the server does not have. */
+  async musicLoudness(musicId: string): Promise<MusicLoudness | undefined> {
+    try {
+      return await this.#options.client.musicLoudness(musicId);
+    } catch (error) {
+      if (error instanceof ServerLibraryNotFoundError) return undefined;
+      throw error;
+    }
+  }
+
+  /** Keeps the loudness beside the server's music for every device; nothing for music deleted meanwhile. */
+  async putMusicLoudness(musicId: string, loudness: MusicLoudness): Promise<void> {
+    try {
+      await this.#options.client.putMusicLoudness(musicId, loudness);
     } catch (error) {
       if (!(error instanceof ServerLibraryNotFoundError)) throw error;
     }
