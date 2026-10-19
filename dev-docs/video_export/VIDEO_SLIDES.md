@@ -16,7 +16,7 @@ a clip's file by a video slide's `src`; the app passes `LibraryStore.videoBlob`.
   `placeClipBuffer` puts it, through a gain at the clip's volume; so a clip's sound is decoded
   one window at a time too. A clip without a sound track adds nothing.
 - **Ducking.** The music goes through one more gain whose automation is `duckGainRamps`, the
-  linear pieces of the player's own `duckFactorAt` over the segment, so the ramps and the 25 %
+  linear pieces of the player's own `duckFactorAt` over the segment, so the ramps and the 20 %
   plateau are the player's exactly; the music's trim and fades multiply on top.
 - **Audio track.** The file gets one when there is music or a clip with sound
   (`exportHasAudio`); the codec probe and the size estimate take that, not the music alone.

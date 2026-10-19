@@ -12,7 +12,7 @@ https://polandy.github.io/glissando-assets/mockups/video-slides/.
 | Model         | A stored picture with an optional `video`; its picture is the **poster** frame (ADR-0034)                                                                |
 | Stored bytes  | The original file as chosen, never re-encoded; accepted when this browser can play it (ADR-0034)                                                         |
 | Length        | The chosen excerpt, 0.5 s to 5 min; a fixed own duration, like ADR-0008                                                                                  |
-| Sound         | On by default; the music ducks to 25 %, staying audible, while a clip with sound plays (ADR-0035)                                                        |
+| Sound         | On by default; the music ducks to 20 %, staying audible, while a clip with sound plays (ADR-0035)                                                        |
 | Decoder       | A muted `<video>` in the player, its sound decoded with mediabunny; WebCodecs through mediabunny in the video export (ADR-0035)                          |
 | Network       | Clips are downloaded whole before they play, from Immich; never streamed (ADR-0034). The server keeps no clips: a server slideshow holds no video slides |
 | Portrait pair | A video slide is never composed into a portrait pair; a portrait clip gets the blurred fill (ADR-0028)                                                   |
@@ -96,9 +96,9 @@ changes: a clip is content, not decoration.
 - A slide's clip sound is audible from `shift` ms into the transition before the slide (sooner
   than the slide's own start for a shifted clip) until the slide ends, at `volume`.
 - The music volume is multiplied by the **duck factor**: 1 outside a clip with sound; it ramps
-  down, linearly over `VIDEO_DUCK_RAMP_DOWN_MS` = 1000 ms, to `0.25` (`VIDEO_DUCK_VOLUME`) so the
+  down, linearly over `VIDEO_DUCK_RAMP_DOWN_MS` = 1000 ms, to `0.2` (`VIDEO_DUCK_VOLUME`) so the
   music is already quieter — staying audible, never vanishing — by the time the clip's sound
-  starts. It holds at `0.25` until the slide ends, then ramps back up over a slower
+  starts. It holds at `0.2` until the slide ends, then ramps back up over a slower
   `VIDEO_DUCK_RAMP_UP_MS` = 1500 ms so the music swells back instead of jumping. Pure function
   `duckFactorAt(timeMs, spans)` in `src/player/`; the music's own trim and fades (ADR-0009)
   multiply on top.

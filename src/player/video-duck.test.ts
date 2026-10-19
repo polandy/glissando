@@ -29,8 +29,8 @@ describe("duckFactorAt", () => {
     expect(duckFactorAt(timeMs, [SPAN])).toBeCloseTo(expected, 10);
   });
 
-  it("ducks the music to 25 % under a clip's sound, staying audible", () => {
-    expect(duckFactorAt(15_000, [SPAN])).toBe(0.25);
+  it("ducks the music to 20 % under a clip's sound, staying audible", () => {
+    expect(duckFactorAt(15_000, [SPAN])).toBe(0.2);
   });
 
   it("is 1 without spans", () => {
