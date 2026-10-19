@@ -190,10 +190,10 @@ export class PictureIntake {
    */
   stopPick(pickId: string): void {
     const pick = this.pictures.state.picks.find((candidate) => candidate.id === pickId);
-    this.pictures.stop(pickId);
     if (pick === undefined) {
-      throw new Error(`pick "${pickId}" vanished unexpectedly`);
+      throw new Error(`the import has no pick "${pickId}" to stop`);
     }
+    this.pictures.stop(pickId);
     this.#ports.toaster.show({ text: this.#ports.stoppedPickText(pick), tone: "info" });
   }
 
