@@ -229,6 +229,7 @@ function answerShareApi(route: Route, server: FakeGlissandoServer, photo: () => 
         revision: record.revision,
         slideshow: shareDocumentOf(slideshow),
         beats: slideshow.songs.map(() => null),
+        loudness: slideshow.songs.map(() => null),
       },
     });
   }

@@ -15,11 +15,11 @@
 
 ## Public (under `/api/share/<token>/`, no sign-in)
 
-| Request                                          | Answer                                                                                                           |
-| ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------- |
-| `GET /api/share/{token}`                         | 200 `{ "revision", "slideshow": <share document>, "beats": [ <MusicBeats> or null per song ] }`; 404 `notShared` |
-| `GET /api/share/{token}/{revision}/pictures/{n}` | 200 the picture (JPEG, Immich's preview, through Caddy); 404 `notShared` or `noSuchPicture`                      |
-| `GET /api/share/{token}/songs/{n}`               | 200 the song's bytes with their `Content-Type`; 404 `notShared` or `noSuchSong`                                  |
+| Request                                          | Answer                                                                                                                                                             |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `GET /api/share/{token}`                         | 200 `{ "revision", "slideshow": <share document>, "beats": [ <MusicBeats> or null per song ], "loudness": [ <MusicLoudness> or null per song ] }`; 404 `notShared` |
+| `GET /api/share/{token}/{revision}/pictures/{n}` | 200 the picture (JPEG, Immich's preview, through Caddy); 404 `notShared` or `noSuchPicture`                                                                        |
+| `GET /api/share/{token}/songs/{n}`               | 200 the song's bytes with their `Content-Type`; 404 `notShared` or `noSuchSong`                                                                                    |
 
 - **The share document** is the server document's `slideshow` with the following changes, made
   by a pure function (`server/share-document.ts`). It keeps only the keys it names (an allow-list
