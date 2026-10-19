@@ -14,6 +14,7 @@ export {
   type MusicVolume,
   type VolumeElement,
 } from "./browser/music-output";
+export { VIDEO_POOL_SIZE, VideoElementPool } from "./browser/video-element-pool";
 export { captionLength, MAX_CAPTION_LENGTH, normalizeCaption, withinCaptionLimit } from "./caption";
 export { CAPTION_GLIDE_MS } from "./caption-glide";
 export { CAPTION_FONT_NAME, CAPTION_FONT_WEIGHT } from "./caption-layout";

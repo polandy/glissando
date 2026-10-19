@@ -17,9 +17,11 @@ where WebCodecs exists.
   when it stalls.
 - **Export:** mediabunny demuxes and decodes the clip with WebCodecs, frame accurate at the export's
   frame times; the clip's audio is decoded into the same offline mix as the music.
-- **Sound:** a clip's sound is on by default; the music multiplies by a duck factor of 0.15 inside
-  such a slide with a 1000 ms ramp down and a 1500 ms ramp up (`duckFactorAt`, a pure function shared by the player and the
-  export mix). The user can turn a clip's sound off or keep the music at full volume.
+- **Sound:** a clip's sound is on by default; the music multiplies by a duck factor that ramps
+  down to 0.35 — staying audible rather than vanishing — over the 1000 ms before the clip's sound
+  starts, holds there, then ramps back up over 1500 ms after the slide ends (`duckFactorAt`, a
+  pure function shared by the player and the export mix). The user can turn a clip's sound off or
+  keep the music at full volume.
 
 ## Options weighed
 
@@ -35,4 +37,7 @@ where WebCodecs exists.
 ## Consequences
 
 - Two decode paths (player, export) must agree on which frame a time shows; the export's tests pin it.
-- Safari plays clip sound only after the first user gesture, which the play button is.
+- WebKit allows a `<video>` element's audible `play()` only once that very element has played
+  inside a user gesture, not merely once per page; the player keeps a small pool of elements
+  blessed in the Play gesture and reused for later clips, with a refused clip muted rather than
+  stopping the show (`video-element-pool.ts`, `video-playback.ts`).

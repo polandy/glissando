@@ -8,6 +8,7 @@
     type OpenPicture,
     type PlayerEvent,
     type Slideshow,
+    type VideoElementPool,
   } from "../../player";
   import { getTranslator } from "../i18n/context";
   import Icon from "../components/Icon.svelte";
@@ -23,13 +24,8 @@
     exitFullscreen,
     toggleFullscreen,
   } from "../../ui-kit/fullscreen";
-  import { playerActionForKey, type PlayerAction } from "./player-keys";
-  import {
-    nextSlideStart,
-    previousSlideStart,
-    slideBoundaries,
-    slideIndexAt,
-  } from "./slide-boundaries";
+  import { performPlayerAction, playerActionForKey } from "./player-keys";
+  import { slideBoundaries, slideIndexAt } from "./slide-boundaries";
   import "./player-overlay.css";
 
   let {
@@ -39,6 +35,7 @@
     openPicture,
     readVideo,
     musicOutput,
+    videoElementPool,
     startAt = 0,
     picturesAhead,
     pictureFailure = () => "picture",
@@ -57,6 +54,8 @@
     readVideo?: (src: string) => Promise<Blob>;
     /** Where the music sounds; without it, at the audio element's own volume. */
     musicOutput?: MusicOutput;
+    /** Gesture-blessed `<video>` elements a clip's sound can reuse on iPadOS Safari (ADR-0035). */
+    videoElementPool?: VideoElementPool;
     /** Where on the time line playing starts, in seconds. */
     startAt?: number;
     /** Slides loaded beyond the last one on screen; the player's default without it. */
@@ -112,6 +111,7 @@
       ...(openPicture === undefined ? {} : { openPicture }),
       ...(readVideo === undefined ? {} : { readVideo }),
       ...(musicOutput === undefined ? {} : { musicOutput }),
+      ...(videoElementPool === undefined ? {} : { videoElementPool }),
       ...(picturesAhead === undefined ? {} : { picturesAhead }),
     });
     player = created;
@@ -156,26 +156,10 @@
       failure = null;
       // Within the gesture, also when the music starts only once the pictures are loaded.
       musicOutput?.unlock();
+      videoElementPool?.unlock();
       player.play();
     } else {
       player.pause();
-    }
-  }
-
-  function perform(action: PlayerAction): void {
-    switch (action) {
-      case "toggle-play":
-        return togglePlay();
-      case "previous":
-        return seek(previousSlideStart(boundaries, currentTime));
-      case "next": {
-        const start = nextSlideStart(boundaries, currentTime);
-        return start === null ? undefined : seek(start);
-      }
-      case "close":
-        return onClose();
-      case "toggle-fullscreen":
-        return toggleFullscreen(root);
     }
   }
 
@@ -184,7 +168,14 @@
     if (action !== null) {
       event.preventDefault();
       controls.reveal();
-      perform(action);
+      performPlayerAction(action, {
+        boundaries,
+        currentTime,
+        togglePlay,
+        seek,
+        close: onClose,
+        toggleFullscreen: () => toggleFullscreen(root),
+      });
     }
   }
 </script>

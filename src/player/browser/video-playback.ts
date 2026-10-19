@@ -1,11 +1,15 @@
 import { VideoPlaybackError, type LiveFrame, type VideoPlayback } from "../ports";
 import type { MusicVolume } from "./music-output";
 
-/** A clip further than this from where the slide clock puts it is seeked. */
+/** A clip further than this from where the slide clock puts it is seeked, muted or not. */
 export const VIDEO_SEEK_DRIFT_MS = 2000;
-/** A clip closer than this to the clock plays at its normal rate. */
+/** A muted clip closer than this to the clock plays at its normal rate. */
 export const VIDEO_RATE_TOLERANCE_MS = 60;
-/** Between the two, a clip catches up by playing faster or slower, which a seek would stall. */
+/**
+ * Between the two, a muted clip catches up by playing faster or slower, which a seek would
+ * stall. An audible clip never does: changing its rate stalls its sound pipeline on iOS, so it
+ * waits for the seek instead (dev-docs/player/TIMING.md).
+ */
 const MIN_CATCH_UP_RATE = 0.8;
 const MAX_CATCH_UP_RATE = 1.25;
 const CATCH_UP_WINDOW_MS = 1000;
@@ -13,10 +17,18 @@ const CATCH_UP_WINDOW_MS = 1000;
 const MS_PER_SECOND = 1000;
 /** Closer than this, the clip already is at the requested time. */
 const SAME_TIME_MS = 1;
+/**
+ * A clip at most this far from its place when `play` starts it is not seeked: a start a frame or
+ * two behind the clock is caught up by `follow`, but a seek right at the start stalls the
+ * picture and, on iOS, the sound.
+ */
+export const VIDEO_START_TOLERANCE_MS = 250;
 const HAVE_CURRENT_DATA = 2;
 const HAVE_FUTURE_DATA = 3;
 /** What a media element's `play()` rejects with when a later `pause()` interrupts it. */
 const INTERRUPTED_PLAY = "AbortError";
+/** What WebKit rejects an audible `play()` with outside a gesture-blessed element (ADR-0035). */
+const NOT_ALLOWED = "NotAllowedError";
 const READY_EVENTS = ["seeked", "loadeddata", "canplay", "playing"] as const;
 
 /** The parts of the music output a clip's sound uses (ADR-0009). */
@@ -41,6 +53,9 @@ export class VideoElementPlayback implements VideoPlayback {
   readonly #failureListeners = new Set<(error: Error) => void>();
   #hardSeekPending = false;
   #disposed = false;
+  readonly #abort = new AbortController();
+  /** Set once the safety net mutes a clip the browser refused to play aloud; stays muted for good. */
+  #safetyMuted = false;
 
   /**
    * `sourceReady` settles when the element has its `src`; `release` frees what that took (an
@@ -62,14 +77,21 @@ export class VideoElementPlayback implements VideoPlayback {
     element.muted = volume === 0;
     this.#volume = element.muted ? null : output.route(element);
     this.#volume?.set(volume);
-    element.addEventListener("seeked", () => {
-      this.#hardSeekPending = false;
-    });
-    element.addEventListener("loadedmetadata", () => this.#applyWanted());
-    element.addEventListener("error", () => this.#fail(element.error));
+    const { signal } = this.#abort;
+    element.addEventListener(
+      "seeked",
+      () => {
+        this.#hardSeekPending = false;
+      },
+      { signal },
+    );
+    element.addEventListener("loadedmetadata", () => this.#applyWanted(), { signal });
+    element.addEventListener("error", () => this.#fail(element.error), { signal });
     sourceReady.catch((cause: unknown) => this.#fail(cause));
     for (const type of READY_EVENTS) {
-      element.addEventListener(type, () => this.#listeners.forEach((listener) => listener()));
+      element.addEventListener(type, () => this.#listeners.forEach((listener) => listener()), {
+        signal,
+      });
     }
   }
 
@@ -81,7 +103,7 @@ export class VideoElementPlayback implements VideoPlayback {
 
   async play(clipMs: number): Promise<void> {
     this.#output.unlock();
-    this.#moveIfAway(clipMs);
+    this.#moveIfFarAway(clipMs, VIDEO_START_TOLERANCE_MS);
     try {
       await this.#sourceReady;
     } catch (error) {
@@ -94,9 +116,23 @@ export class VideoElementPlayback implements VideoPlayback {
       await this.#element.play();
     } catch (error) {
       // A pause before the start lands is not a refusal.
-      if (!(error instanceof DOMException && error.name === INTERRUPTED_PLAY)) {
-        throw new VideoPlaybackError(error);
+      if (error instanceof DOMException && error.name === INTERRUPTED_PLAY) {
+        return;
       }
+      if (!this.#element.muted && error instanceof DOMException && error.name === NOT_ALLOWED) {
+        // WebKit refused this element's sound outside a blessed gesture (ADR-0035): the show goes
+        // on without it rather than stopping on every video slide.
+        console.warn("muting a video clip WebKit refused to play aloud", error);
+        this.#safetyMuted = true;
+        this.#element.muted = true;
+        try {
+          await this.#element.play();
+          return;
+        } catch (retryError) {
+          throw new VideoPlaybackError(retryError);
+        }
+      }
+      throw new VideoPlaybackError(error);
     }
   }
 
@@ -112,13 +148,23 @@ export class VideoElementPlayback implements VideoPlayback {
     }
     const aheadMs = this.#element.currentTime * MS_PER_SECOND - clipMs;
     if (Math.abs(aheadMs) > VIDEO_SEEK_DRIFT_MS) {
-      this.#element.playbackRate = 1;
+      this.#setRate(1);
       this.#moveTo(clipMs);
+    } else if (!this.#element.muted) {
+      // A rate change stalls an audible element's sound on iOS; only the seek above mends it.
+      this.#setRate(1);
     } else if (Math.abs(aheadMs) > VIDEO_RATE_TOLERANCE_MS) {
       const rate = 1 - aheadMs / CATCH_UP_WINDOW_MS;
-      this.#element.playbackRate = Math.min(MAX_CATCH_UP_RATE, Math.max(MIN_CATCH_UP_RATE, rate));
+      this.#setRate(Math.min(MAX_CATCH_UP_RATE, Math.max(MIN_CATCH_UP_RATE, rate)));
     } else {
-      this.#element.playbackRate = 1;
+      this.#setRate(1);
+    }
+  }
+
+  /** Avoids a redundant write: Safari fires a `ratechange` event even when the value is unchanged. */
+  #setRate(rate: number): void {
+    if (this.#element.playbackRate !== rate) {
+      this.#element.playbackRate = rate;
     }
   }
 
@@ -128,6 +174,10 @@ export class VideoElementPlayback implements VideoPlayback {
 
   setVolume(volume: number): void {
     this.#volume?.set(volume);
+    // The safety net's mute is for this clip's whole life: a later volume never lifts it.
+    if (this.#safetyMuted) {
+      this.#element.muted = true;
+    }
   }
 
   frame(): LiveFrame | null {
@@ -150,6 +200,7 @@ export class VideoElementPlayback implements VideoPlayback {
 
   dispose(): void {
     this.#disposed = true;
+    this.#abort.abort();
     this.#listeners.clear();
     this.#failureListeners.clear();
     this.#volume?.dispose();
@@ -166,8 +217,13 @@ export class VideoElementPlayback implements VideoPlayback {
 
   /** Seeks unless the clip already is at `clipMs`; tells whether it did. */
   #moveIfAway(clipMs: number): boolean {
+    return this.#moveIfFarAway(clipMs, SAME_TIME_MS);
+  }
+
+  /** Seeks unless the clip already is within `toleranceMs` of `clipMs`; tells whether it did. */
+  #moveIfFarAway(clipMs: number, toleranceMs: number): boolean {
     this.#wantedMs = clipMs;
-    if (Math.abs(this.#element.currentTime * MS_PER_SECOND - clipMs) <= SAME_TIME_MS) {
+    if (Math.abs(this.#element.currentTime * MS_PER_SECOND - clipMs) <= toleranceMs) {
       return false;
     }
     this.#element.currentTime = clipMs / MS_PER_SECOND;

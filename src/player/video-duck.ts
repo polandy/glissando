@@ -1,10 +1,11 @@
 import { isGroundSlide, type Slide } from "./slideshow";
+import { videoShiftMs } from "./video-clip-plan";
 
-/** The music's volume factor while a clip with sound plays (ADR-0035). */
-export const VIDEO_DUCK_VOLUME = 0.15;
-/** The linear ramp down before a clip's slide: quick, so the clip's sound is heard clearly. */
+/** The music's volume factor while a clip with sound plays (ADR-0035): stays audible under it. */
+export const VIDEO_DUCK_VOLUME = 0.35;
+/** The linear ramp down before a clip's slide: so the music is already low once the sound starts. */
 export const VIDEO_DUCK_RAMP_DOWN_MS = 1000;
-/** The linear ramp up after it: slow, so the music swells back instead of jumping. */
+/** The linear ramp up after the slide ends: slow, so the music swells back instead of jumping. */
 export const VIDEO_DUCK_RAMP_UP_MS = 1500;
 
 /** A stretch of show time in which a clip's sound is heard. */
@@ -15,11 +16,13 @@ export interface VideoSoundSpan {
 
 /**
  * The spans, in show time and order, in which a clip with sound plays and the music ducks:
- * volume above 0 and `duckMusic` not `false`.
+ * volume above 0 and `duckMusic` not `false`. A clip shifted into the lead-in of its transition
+ * (`videoShiftMs`) has its span start there too, where its sound actually starts.
  */
 export function videoSoundSpans(slides: readonly Slide[]): readonly VideoSoundSpan[] {
   const spans: VideoSoundSpan[] = [];
   let startMs = 0;
+  let leadInMs = 0;
   for (const slide of slides) {
     const endMs = startMs + slide.durationMs;
     if (
@@ -28,27 +31,34 @@ export function videoSoundSpans(slides: readonly Slide[]): readonly VideoSoundSp
       slide.video.volume > 0 &&
       slide.video.duckMusic !== false
     ) {
-      spans.push({ startMs, endMs });
+      spans.push({ startMs: startMs - videoShiftMs(slide.video, leadInMs), endMs });
     }
+    leadInMs = slide.transitionToNext?.durationMs ?? 0;
     startMs = endMs;
   }
   return spans;
 }
 
 /**
- * The factor the music's volume is multiplied by at show time `timeMs`: 1 outside the spans,
- * `VIDEO_DUCK_VOLUME` inside, linear ramps either side. `spans` are in order; two closer than
- * a ramp up and a ramp down stay ducked between them. The music's own trim and fades multiply on top.
+ * The factor the music's volume is multiplied by at show time `timeMs`: 1 outside a span,
+ * ramping down to `VIDEO_DUCK_VOLUME` over the `VIDEO_DUCK_RAMP_DOWN_MS` before its start so the
+ * music is already low once the clip's own sound starts, held until the span ends, then ramping
+ * back up over `VIDEO_DUCK_RAMP_UP_MS`. `spans` are in order; two closer than a ramp up plus a
+ * ramp down stay ducked between them. The music's own trim and fades multiply on top.
  */
 export function duckFactorAt(timeMs: number, spans: readonly VideoSoundSpan[]): number {
   let factor = 1;
   for (const span of mergeCloseSpans(spans)) {
-    const downMs = (span.startMs - timeMs) / VIDEO_DUCK_RAMP_DOWN_MS;
-    const upMs = (timeMs - span.endMs) / VIDEO_DUCK_RAMP_UP_MS;
-    const ramped = VIDEO_DUCK_VOLUME + (1 - VIDEO_DUCK_VOLUME) * Math.max(downMs, upMs, 0);
-    factor = Math.min(factor, ramped);
+    const rampingDown = clamp01(1 - (span.startMs - timeMs) / VIDEO_DUCK_RAMP_DOWN_MS);
+    const rampingUp = clamp01(1 - (timeMs - span.endMs) / VIDEO_DUCK_RAMP_UP_MS);
+    const duckAmount = Math.min(rampingDown, rampingUp);
+    factor = Math.min(factor, 1 - (1 - VIDEO_DUCK_VOLUME) * duckAmount);
   }
-  return Math.min(1, factor);
+  return factor;
+}
+
+function clamp01(value: number): number {
+  return Math.min(1, Math.max(0, value));
 }
 
 /** `duckFactorAt` for the sound spans of `slides`, as the music's per-time factor. */

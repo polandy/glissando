@@ -4,6 +4,7 @@
 import { canFullscreen } from "../ui-kit/fullscreen";
 import { MEDIA_TYPE_ATTRIBUTE } from "../html-export/page-contract";
 import { createMusicAudioContext } from "../player/browser/platform";
+import { VideoElementPool } from "../player/browser/video-element-pool";
 import { MutableMusicOutput } from "./mutable-music-output";
 import { readPageData, withSongUrls, type PageBlock } from "./page-data";
 import { createPagePlayer } from "./page-player";
@@ -30,7 +31,8 @@ async function startPage(): Promise<void> {
   });
   await loadCaptionFont();
   const music = new MutableMusicOutput(createMusicAudioContext);
-  createPagePlayer(view, music).show({
+  const videoElementPool = new VideoElementPool();
+  createPagePlayer(view, music, {}, videoElementPool).show({
     slideshow,
     openPicture: data.openPicture,
     readVideo: data.readVideo,

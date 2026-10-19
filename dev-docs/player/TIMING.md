@@ -17,14 +17,24 @@ centre moves one way only.
 ## Video clips
 
 The slide clock leads and a clip follows (`video-clip-plan.ts`, `video-clips.ts`). A video slide's
-clip time is `max(0, startMs + slide time)`; the slide time is negative during the transition into
-it, so the clip plays from the start of that transition, and a transition out keeps it playing. A
-clip is opened `VIDEO_PRELOAD_MS` before that lead-in and released once out of range. Each frame
-`follow` lets a playing clip that is off the clock by more than `VIDEO_RATE_TOLERANCE_MS` (60 ms)
-catch up by playing 0.8× to 1.25× as fast, and seeks it only beyond `VIDEO_SEEK_DRIFT_MS` (2 s):
-a seek mid-file waits for a keyframe and shows as a stutter. A stalled clip holds its last frame. Seeking the show, or a clip not yet playing, is a hard `seek`:
-the poster shows until the frame is ready. The clip's sound is audible only for its slide's own
-duration. The music's volume is multiplied each frame by `duckFactorAt` (`playlist-music.ts`).
+clip time is `startMs + slide time + shift`, clamped to `[0, endMs]`; the slide time is negative
+during the transition into it, so the clip plays from the start of that transition, and a
+transition out keeps it playing. `shift` (`videoShiftMs`) is 0 once `startMs` already reaches past
+the transition's lead-in; otherwise it is `leadIn − startMs`, so the clip reaches file time 0
+exactly when the transition starts rather than waiting there paused while the slide fades in over
+it — and, symmetrically, reaches `endMs` `shift` ms before its slide ends and holds that last frame
+for the rest of it. A clip is opened `VIDEO_PRELOAD_MS` before that lead-in and released once out
+of range. Each frame `follow` lets a playing, **muted** clip that is off the clock by more than
+`VIDEO_RATE_TOLERANCE_MS` (60 ms) catch up by playing 0.8× to 1.25× as fast; a clip with sound stays
+at rate 1 instead, because changing an audible element's rate stalls its sound on iOS. Either way, a
+clip off by more than `VIDEO_SEEK_DRIFT_MS` (2 s) is seeked to the clock: a seek mid-file waits for
+a keyframe and shows as a stutter. A stalled clip holds its last frame. Seeking the show, or a clip
+not yet playing, is a hard `seek`: the poster shows until the frame is ready — except that starting
+playback leaves a clip already within `VIDEO_START_TOLERANCE_MS` (250 ms) of its place alone rather
+than seeking it, since `follow` mends a gap that small on its own and a seek right as the sound
+starts is a visible, audible hitch. The clip's sound is audible from `shift` ms before its slide
+starts until its slide ends. The music's volume is multiplied each frame by `duckFactorAt`
+(`playlist-music.ts`), whose spans start where each clip's sound does.
 
 Show time follows the clock from an anchor set when playing starts or resumes, **after** that
 first frame is drawn, so the time it takes never shows as a jump in the motion. While playing,
