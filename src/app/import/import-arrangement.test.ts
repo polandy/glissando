@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   EMPTY_ARRANGEMENT,
   moveGroup,
+  orderedPictures,
   reconcile,
   shiftGroup,
   shuffle,
@@ -84,5 +85,14 @@ describe("shuffle", () => {
     const result = shuffle(state, randoms(0, 0));
 
     expect(result.moved).toEqual(new Set());
+  });
+});
+
+describe("orderedPictures", () => {
+  it("orders the given pictures the way the strip shows them, leaving out one not ordered yet", () => {
+    const state: ArrangementState = { order: ["b", "a"], own: true, moved: new Set() };
+    const pictures = ["a", "b", "c"].map((id) => ({ id }));
+
+    expect(orderedPictures(state, pictures)).toEqual([{ id: "b" }, { id: "a" }]);
   });
 });

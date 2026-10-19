@@ -6,7 +6,6 @@
  */
 
 import type { PictureImport } from "../../import/picture-import";
-import type { StoredPicture } from "../../library/stored-slideshow";
 import {
   EMPTY_ARRANGEMENT,
   moveGroup as orderWithGroupMoved,
@@ -50,15 +49,6 @@ export class SessionArrangement {
     this.#listeners.add(listener);
     listener(this.#state);
     return () => this.#listeners.delete(listener);
-  }
-
-  /** The ready `pictures` in the strip's order. */
-  orderedPictures(pictures: readonly StoredPicture[]): readonly StoredPicture[] {
-    const byId = new Map(pictures.map((picture) => [picture.id, picture]));
-    return this.#state.order.flatMap((id) => {
-      const picture = byId.get(id);
-      return picture === undefined ? [] : [picture];
-    });
   }
 
   /** Moves `group` to sit before the tile at `insertion` (drag, a drop). */

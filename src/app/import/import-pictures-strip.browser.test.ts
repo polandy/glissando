@@ -235,3 +235,35 @@ describe("ImportPicturesStrip, the order rule", () => {
     );
   });
 });
+
+describe("ImportPicturesStrip, arranging after the import", () => {
+  const tileIds = (target: HTMLElement) =>
+    tiles(target).map((tile) => tile.closest("[data-picture-id]")?.getAttribute("data-picture-id"));
+
+  it("shows the shuffled order once Shuffle is pressed", () => {
+    const arrangement = arrangementWith(["a", "b", "c"], [0]);
+    const { target } = mountStrip({ ids: ["a", "b", "c"], arrangement });
+    expect(tileIds(target)).toEqual(["a", "b", "c"]);
+
+    target.querySelector<HTMLButtonElement>("button.shuffle")?.click();
+    flushSync();
+
+    expect(arrangement.state.order).not.toEqual(["a", "b", "c"]);
+    expect(tileIds(target)).toEqual(arrangement.state.order);
+  });
+
+  it("moves the selected picture one place on with Later", () => {
+    const arrangement = arrangementWith(["a", "b", "c"]);
+    const { target } = mountStrip({ ids: ["a", "b", "c"], arrangement });
+
+    tiles(target)[0]?.click();
+    flushSync();
+    const later = [...target.querySelectorAll('[role="toolbar"] button')].find(
+      (button) => text(button) === "Später",
+    );
+    (later as HTMLButtonElement | undefined)?.click();
+    flushSync();
+
+    expect(tileIds(target)).toEqual(["b", "a", "c"]);
+  });
+});

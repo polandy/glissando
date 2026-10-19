@@ -61,12 +61,6 @@ describe("SessionArrangement", () => {
     expect(arrangement.state.order).toEqual(["a", "b", "c"]);
   });
 
-  it("orders the given pictures the way the strip shows them", () => {
-    const { arrangement } = arrangementWith(["a", "b"]);
-
-    expect(arrangement.orderedPictures(["b", "a"].map(picture))).toEqual(["a", "b"].map(picture));
-  });
-
   it("moves the group, makes the order its own, and exempts the moved pictures from culling", () => {
     const { arrangement, exempted } = arrangementWith(["a", "b", "c"]);
 

@@ -17,7 +17,7 @@
     type StripSelection,
   } from "../screens/slideshow/strip-selection";
   import { importPictureTile } from "./import-tile";
-  import type { ArrangementState } from "./import-arrangement";
+  import { orderedPictures, type ArrangementState } from "./import-arrangement";
   import type { SessionArrangement } from "./session-arrangement";
 
   const NO_NEW_PICTURES: ReadonlySet<string> = new Set();
@@ -69,7 +69,9 @@
 
   $effect(() => arrangement?.subscribe((next) => (arrangementState = next)));
 
-  const ordered = $derived(arrangement === null ? pictures : arrangement.orderedPictures(pictures));
+  const ordered = $derived(
+    arrangementState === null ? pictures : orderedPictures(arrangementState, pictures),
+  );
   const tiles = $derived(
     ordered.flatMap((picture) => {
       const url = urls.get(picture.id);

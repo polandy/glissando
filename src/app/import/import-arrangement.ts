@@ -72,3 +72,15 @@ export function shiftGroup(
 export function shuffle(state: ArrangementState, random: () => number): ArrangementState {
   return { ...state, order: shuffledIds(state.order, random), own: true };
 }
+
+/** The ready `pictures` in the strip's order; one not in the order yet is left out. */
+export function orderedPictures<Picture extends { readonly id: string }>(
+  state: ArrangementState,
+  pictures: readonly Picture[],
+): readonly Picture[] {
+  const byId = new Map(pictures.map((picture) => [picture.id, picture]));
+  return state.order.flatMap((id) => {
+    const picture = byId.get(id);
+    return picture === undefined ? [] : [picture];
+  });
+}
