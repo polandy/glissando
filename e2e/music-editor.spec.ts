@@ -153,3 +153,54 @@ test("E2E-061 listening to the excerpt draws one playhead through both lanes wit
   await expect(current).toBeHidden();
   await expect(lane).toBeVisible();
 });
+
+test("E2E-073 a song's own volume shows Own with its dB and the song-list badge, stored, and back to levelled", async ({
+  page,
+}) => {
+  const volume = page.locator('section[aria-labelledby="music-volume"]');
+  const state = volume.locator(".state");
+  const sub = volume.locator(".sub");
+  const readout = volume.locator(".readout b");
+  const slider = page.getByRole("slider", { name: "Lautstärke" });
+  const reset = page.getByRole("button", { name: "Zurück auf angeglichen" });
+  const badge = page.getByRole("list", { name: "Songs" }).locator(".badge");
+
+  await openApp(page);
+  await createSlideshowWithMusic(page, silentTrack("Sommerwind.wav", TRACK_SECONDS), {
+    fill: true,
+  });
+  await page.getByRole("button", { name: "Musik Sommerwind.wav ganzer Titel Bearbeiten" }).click();
+
+  // The loudness pass measures the song in the background; the badge drops its pulsing
+  // "Measuring…" once the song's blocks are stored — a positive signal, no sleep. A silent
+  // track can measure before this first check runs, so the state before is not asserted.
+  await expect(badge).not.toHaveClass(/measuring/);
+  await expect(state).toHaveText("Angeglichen");
+  await expect(sub).toHaveText("Gleich laut wie die anderen Titel");
+  await expect(reset).toHaveCount(0);
+
+  await slider.focus();
+  await slider.press("ArrowUp");
+  await slider.press("ArrowUp");
+  await slider.press("ArrowUp");
+  await expect(slider).toHaveValue("3");
+  await expect(state).toHaveText("Eigene");
+  await expect(readout).toHaveText("+3 dB");
+  await expect(sub).toHaveText("Lauter als angeglichen");
+  await expect(reset).toBeVisible();
+  await expect(badge).toHaveText("+3 dB");
+  await editsStored(page);
+
+  await page.reload();
+  await expect(slider).toHaveValue("3");
+  await expect(state).toHaveText("Eigene");
+  await expect(badge).toHaveText("+3 dB");
+
+  await reset.click();
+  await expect(state).toHaveText("Angeglichen");
+  await expect(sub).toHaveText("Gleich laut wie die anderen Titel");
+  await expect(slider).toHaveValue("0");
+  await expect(reset).toHaveCount(0);
+  await expect(badge).toBeEmpty();
+  await editsStored(page);
+});
