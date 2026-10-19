@@ -29,6 +29,7 @@ function mountBody(known: readonly PictureIdentity[]) {
     onDiscard: () => undefined,
     immich: { kind: "notSetUp" },
     onOpenImmich: () => undefined,
+    arrangement: null,
     sources: NO_SOURCES,
   });
   unmounts.push(body.destroy);

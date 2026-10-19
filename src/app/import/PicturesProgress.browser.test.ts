@@ -34,7 +34,9 @@ function mountProgress(intake: PictureIntake, onStopPick: (pickId: string) => vo
 }
 
 const rowText = (target: HTMLElement): string[] =>
-  [...target.querySelectorAll(".queue-row")].map((row) => row.textContent.replace(/\s+/g, " ").trim());
+  [...target.querySelectorAll(".queue-row")].map((row) =>
+    row.textContent.replace(/\s+/g, " ").trim(),
+  );
 
 describe("PicturesProgress, the queue of picks being imported", () => {
   it("shows the header share, the running pick's k/n, a later pick waiting, by pick order", async () => {

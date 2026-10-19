@@ -5,7 +5,11 @@ import { afterEach, describe, expect, it } from "vitest";
 import { MemoryLibraryStore } from "../../library/testing/memory-store";
 import { FakeDecoder } from "../../import/testing/picture-import-fixtures";
 import { createTranslator } from "../i18n/translator";
-import { fakeRemovalPorts, fakeStoppedPickText, pictureFile } from "../testing/picture-intake-ports";
+import {
+  fakeRemovalPorts,
+  fakeStoppedPickText,
+  pictureFile,
+} from "../testing/picture-intake-ports";
 import { mountWithTranslator } from "../testing/mount-with-translator";
 import { ImportSession } from "./import-session";
 import PicturesStep from "./PicturesStep.svelte";

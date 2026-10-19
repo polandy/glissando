@@ -1,10 +1,11 @@
+import "../../styles/tokens.css";
 import { createRawSnippet } from "svelte";
 import { afterEach, describe, expect, it } from "vitest";
 import Toast from "../components/Toast.svelte";
 import { mountWithTranslator } from "../testing/mount-with-translator";
 import type { StoredPicture } from "../../library/stored-slideshow";
-import ChosenPicturesStrip from "./ChosenPicturesStrip.svelte";
 import ImportFrame from "./ImportFrame.svelte";
+import ImportPicturesStrip from "./ImportPicturesStrip.svelte";
 
 /** Taller than any test viewport, so the sticky action bar rests on the viewport's bottom. */
 const TALL_BODY = createRawSnippet(() => ({ render: () => `<div style="height: 4000px"></div>` }));
@@ -56,15 +57,18 @@ const MANY_PICTURES: readonly StoredPicture[] = Array.from({ length: 80 }, (_, i
   fileName: `picture-${index}.jpg`,
   colours: { veil: "#404040", accent: "#C0C0C0" },
 }));
+/** A thumbnail stand-in for every picture, so each renders as a tile, not a placeholder. */
+const MANY_URLS = new Map(MANY_PICTURES.map((picture) => [picture.id, "data:,"]));
 
 function mountStripInto(frame: HTMLElement): void {
-  const strip = mountWithTranslator(ChosenPicturesStrip, {
+  const strip = mountWithTranslator(ImportPicturesStrip, {
     pictures: MANY_PICTURES,
-    urls: new Map(),
+    urls: MANY_URLS,
     pending: 0,
+    busy: false,
+    arrangement: null,
     onRemove: () => undefined,
     onView: () => undefined,
-    onEmptied: () => undefined,
   });
   unmounts.push(strip.destroy);
   frame.querySelector(".content")?.prepend(strip.target);
