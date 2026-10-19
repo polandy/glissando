@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type {
+  AudioBufferSourceNodeLike,
   AudioNodeLike,
   GainNodeLike,
   MusicAudioContext,
@@ -27,6 +28,19 @@ class FakeNode implements GainNodeLike {
   }
 }
 
+class FakeBufferSource implements AudioBufferSourceNodeLike {
+  buffer: AudioBuffer | null = null;
+  readonly connections: AudioNodeLike[] = [];
+  connect(destination: AudioNodeLike): void {
+    this.connections.push(destination);
+  }
+  disconnect(): void {
+    this.connections.length = 0;
+  }
+  start(): void {}
+  stop(): void {}
+}
+
 class FakeContext implements MusicAudioContext<FakeElement> {
   readonly currentTime = 0;
   readonly state = "running";
@@ -42,6 +56,9 @@ class FakeContext implements MusicAudioContext<FakeElement> {
     const gain = new FakeNode();
     this.gains.push(gain);
     return gain;
+  }
+  createBufferSource(): FakeBufferSource {
+    return new FakeBufferSource();
   }
 }
 
@@ -118,6 +135,19 @@ describe("MutableMusicOutput", () => {
     expect(() => {
       output.volume = wrong;
     }).toThrow(RangeError);
+  });
+
+  it("connects a clip's sound to the same master gain as the music, so muting silences both", () => {
+    const context = new FakeContext();
+    const output = new MutableMusicOutput<FakeElement>(() => context);
+    output.route(element());
+    const [master] = context.gains;
+
+    const clipSound = output.clipSoundOutput();
+
+    expect(clipSound?.destination).toBe(master);
+    output.muted = true;
+    expect(master?.value).toBe(0);
   });
 
   it("starts an element routed while muted silent", () => {

@@ -176,8 +176,11 @@ export interface PlayerDependencies<Picture extends Size> {
   readonly frames: FrameScheduler;
   /** Opens one playback per track of the slideshow's music. */
   readonly openMusic?: (src: string) => MusicPlayback;
-  /** Opens one playback per video slide on screen or about to be; `volume` is the clip's own. */
-  readonly openVideo?: (src: string, volume: number) => VideoPlayback;
+  /**
+   * Opens one playback per video slide on screen or about to be; `volume` is the clip's own,
+   * `endMs` its file-time clamp, for the sound decoded up to it (`ClipSoundTrack`).
+   */
+  readonly openVideo?: (src: string, volume: number, endMs: number) => VideoPlayback;
   /** `renderAt` takes a video slide's frames from here, never from `openVideo`. */
   readonly openVideoFrames?: (src: string) => VideoFrameSource;
   /** Slides loaded beyond the last one on screen; `DEFAULT_PICTURES_AHEAD` without it. */

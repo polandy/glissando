@@ -24,16 +24,17 @@ the transition's lead-in; otherwise it is `leadIn − startMs`, so the clip reac
 exactly when the transition starts rather than waiting there paused while the slide fades in over
 it — and, symmetrically, reaches `endMs` `shift` ms before its slide ends and holds that last frame
 for the rest of it. A clip is opened `VIDEO_PRELOAD_MS` before that lead-in and released once out
-of range. Each frame `follow` lets a playing, **muted** clip that is off the clock by more than
-`VIDEO_RATE_TOLERANCE_MS` (60 ms) catch up by playing 0.8× to 1.25× as fast; a clip with sound stays
-at rate 1 instead, because changing an audible element's rate stalls its sound on iOS. Either way, a
-clip off by more than `VIDEO_SEEK_DRIFT_MS` (2 s) is seeked to the clock: a seek mid-file waits for
+of range. A clip's `<video>` is always muted; each frame `follow` lets a playing clip that is off
+the clock by more than `VIDEO_RATE_TOLERANCE_MS` (60 ms) catch up by playing 0.8× to 1.25× as fast,
+and a clip off by more than `VIDEO_SEEK_DRIFT_MS` (2 s) is seeked to the clock: a seek mid-file waits for
 a keyframe and shows as a stutter. A stalled clip holds its last frame. Seeking the show, or a clip
 not yet playing, is a hard `seek`: the poster shows until the frame is ready — except that starting
 playback leaves a clip already within `VIDEO_START_TOLERANCE_MS` (250 ms) of its place alone rather
-than seeking it, since `follow` mends a gap that small on its own and a seek right as the sound
-starts is a visible, audible hitch. The clip's sound is audible from `shift` ms before its slide
-starts until its slide ends. The music's volume is multiplied each frame by `duckFactorAt`
+than seeking it, since `follow` mends a gap that small on its own and a seek right at the start is
+a visible hitch. The clip's sound is a decoded buffer on the `AudioContext` clock, started at the
+clip time and restarted on seek, resume, or when it drifts from the slide clock by more than
+`CLIP_SOUND_RESYNC_MS` (`ClipSoundTrack`); it is audible from `shift` ms before its slide starts
+until its slide ends. The music's volume is multiplied each frame by `duckFactorAt`
 (`playlist-music.ts`), whose spans start where each clip's sound does.
 
 Show time follows the clock from an anchor set when playing starts or resumes, **after** that

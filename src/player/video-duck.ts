@@ -2,7 +2,7 @@ import { isGroundSlide, type Slide } from "./slideshow";
 import { videoShiftMs } from "./video-clip-plan";
 
 /** The music's volume factor while a clip with sound plays (ADR-0035): stays audible under it. */
-export const VIDEO_DUCK_VOLUME = 0.35;
+export const VIDEO_DUCK_VOLUME = 0.2;
 /** The linear ramp down before a clip's slide: so the music is already low once the sound starts. */
 export const VIDEO_DUCK_RAMP_DOWN_MS = 1000;
 /** The linear ramp up after the slide ends: slow, so the music swells back instead of jumping. */
@@ -52,7 +52,8 @@ export function duckFactorAt(timeMs: number, spans: readonly VideoSoundSpan[]): 
     const rampingDown = clamp01(1 - (span.startMs - timeMs) / VIDEO_DUCK_RAMP_DOWN_MS);
     const rampingUp = clamp01(1 - (timeMs - span.endMs) / VIDEO_DUCK_RAMP_UP_MS);
     const duckAmount = Math.min(rampingDown, rampingUp);
-    factor = Math.min(factor, 1 - (1 - VIDEO_DUCK_VOLUME) * duckAmount);
+    // Interpolated from the ducked end, so a full duck is `VIDEO_DUCK_VOLUME` exactly, not a float off it.
+    factor = Math.min(factor, VIDEO_DUCK_VOLUME + (1 - VIDEO_DUCK_VOLUME) * (1 - duckAmount));
   }
   return factor;
 }

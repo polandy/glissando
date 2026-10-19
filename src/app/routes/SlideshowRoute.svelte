@@ -49,7 +49,7 @@
     editingMusic,
     musicAudio,
     musicOutput,
-    videoElementPool,
+    decodeClipSound,
     readClipPeaks,
     songIntake,
     onBack,
@@ -234,7 +234,7 @@
     {store}
     {stored}
     {musicOutput}
-    {videoElementPool}
+    {decodeClipSound}
     onClose={onBack}
     {onError}
     {log}

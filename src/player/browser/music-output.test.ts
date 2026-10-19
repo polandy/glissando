@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   MusicOutput,
+  type AudioBufferSourceNodeLike,
   type AudioNodeLike,
   type GainNodeLike,
   type MusicAudioContext,
@@ -28,6 +29,18 @@ class FakeGainNode extends FakeNode implements GainNodeLike {
   };
 }
 
+class FakeBufferSourceNode extends FakeNode implements AudioBufferSourceNodeLike {
+  buffer: AudioBuffer | null = null;
+  startCalls: (readonly [number | undefined, number | undefined, number | undefined])[] = [];
+  stopCalls = 0;
+  start(when?: number, offset?: number, duration?: number): void {
+    this.startCalls.push([when, offset, duration]);
+  }
+  stop(): void {
+    this.stopCalls += 1;
+  }
+}
+
 class FakeAudioContext implements MusicAudioContext<VolumeElement> {
   currentTime = 0;
   state = "suspended";
@@ -35,6 +48,7 @@ class FakeAudioContext implements MusicAudioContext<VolumeElement> {
   readonly destination = new FakeNode();
   readonly sources = new Map<VolumeElement, FakeNode>();
   readonly gains: FakeGainNode[] = [];
+  readonly bufferSources: FakeBufferSourceNode[] = [];
   resume(): Promise<void> {
     this.resumeCalls += 1;
     this.state = "running";
@@ -49,6 +63,11 @@ class FakeAudioContext implements MusicAudioContext<VolumeElement> {
     const gain = new FakeGainNode();
     this.gains.push(gain);
     return gain;
+  }
+  createBufferSource(): FakeBufferSourceNode {
+    const source = new FakeBufferSourceNode();
+    this.bufferSources.push(source);
+    return source;
   }
 }
 
@@ -145,5 +164,21 @@ describe("MusicOutput", () => {
     volume.set(0.4);
 
     expect(element.volume).toBe(0.4);
+  });
+
+  it("hands a clip's sound the same context and destination the music routes through", () => {
+    const { output, context } = outputWithContext();
+
+    const clipSound = output.clipSoundOutput();
+
+    expect(clipSound).not.toBeNull();
+    expect(clipSound?.context).toBe(context);
+    expect(clipSound?.destination).toBe(context.destination);
+  });
+
+  it("has no clip sound output where Web Audio is unavailable", () => {
+    const output = new MusicOutput<VolumeElement>(() => null);
+
+    expect(output.clipSoundOutput()).toBeNull();
   });
 });

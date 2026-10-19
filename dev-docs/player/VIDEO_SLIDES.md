@@ -12,8 +12,8 @@ https://polandy.github.io/glissando-assets/mockups/video-slides/.
 | Model         | A stored picture with an optional `video`; its picture is the **poster** frame (ADR-0034)                                                                |
 | Stored bytes  | The original file as chosen, never re-encoded; accepted when this browser can play it (ADR-0034)                                                         |
 | Length        | The chosen excerpt, 0.5 s to 5 min; a fixed own duration, like ADR-0008                                                                                  |
-| Sound         | On by default; the music ducks to 35 %, staying audible, while a clip with sound plays (ADR-0035)                                                        |
-| Decoder       | `<video>` in the player, WebCodecs through mediabunny in the video export (ADR-0035)                                                                     |
+| Sound         | On by default; the music ducks to 20 %, staying audible, while a clip with sound plays (ADR-0035)                                                        |
+| Decoder       | A muted `<video>` in the player, its sound decoded with mediabunny; WebCodecs through mediabunny in the video export (ADR-0035)                          |
 | Network       | Clips are downloaded whole before they play, from Immich; never streamed (ADR-0034). The server keeps no clips: a server slideshow holds no video slides |
 | Portrait pair | A video slide is never composed into a portrait pair; a portrait clip gets the blurred fill (ADR-0028)                                                   |
 
@@ -77,45 +77,34 @@ its media; `mediaBytes` counts them.
 
 ## Timing
 
-The slide clock leads; the clip follows it, never the other way round.
-
-- Slide time `t` shows clip time `startMs + t + shift`, clamped to `[0, endMs]`. `shift` is 0 once
-  `startMs` already reaches past the transition's lead-in; otherwise it is `leadIn − startMs`, so
-  the clip starts at file time 0 exactly when the transition into its slide starts, instead of
-  waiting there paused while the slide fades in over it (`videoShiftMs` in `video-clip-plan.ts`).
-  A transition out of a video slide shows the clip's last frames while it plays; a clip whose file
-  is too short for its slide reaches `endMs` before the slide ends and holds that frame for the
-  rest of it.
-- Seeking the show puts the clip at its shifted clip time for that moment (the poster is drawn
-  until the frame is ready).
-- A clip that cannot keep up (stalled decoder, slow network source) holds its last frame. A muted
-  clip catches up by playing slightly faster or slower; a clip with sound plays at its normal rate
-  instead, because changing an audible element's rate stalls its sound on iOS, and is corrected
-  only by a seek once far off. A clip already within `VIDEO_START_TOLERANCE_MS` (250 ms) of its
-  place when playback starts is left there rather than seeked — a seek right as the sound starts
-  is a visible and audible hitch, and `follow` catches up the small gap on its own. Either way the
-  show's time is never stretched.
-- With reduced motion nothing changes: a clip is content, not decoration.
+The slide clock leads; the clip follows it, never the other way round — the shift, catch-up,
+seek and start-tolerance details are in `TIMING.md`'s "Video clips". With reduced motion nothing
+changes: a clip is content, not decoration.
 
 ## Sound and ducking
 
+- A clip's sound never comes from its `<video>`, which is always muted: iOS and iPadOS let only
+  one media element with sound play at a time and would pause the music for good (ADR-0035). The
+  sound is decoded from the clip's file into one `AudioBuffer` (`decodeClipSound`, mediabunny,
+  the export's reader) as soon as the clip is opened, `VIDEO_PRELOAD_MS` ahead, and played by
+  an `AudioBufferSourceNode` on the music's `AudioContext` through its own gain at `volume`
+  (`ClipSoundTrack`). It starts at the clip time the slide clock puts it at, stops on pause and
+  seek, starts again from the new place on resume, and is restarted when it drifts from the clock
+  by more than `CLIP_SOUND_RESYNC_MS`. A clip not decoded in time plays silent until its sound is
+  decoded, then joins at the current place; a sound that cannot be decoded is logged and the clip
+  stays silent — the show never waits for it. Without Web Audio a clip plays silent.
 - A slide's clip sound is audible from `shift` ms into the transition before the slide (sooner
   than the slide's own start for a shifted clip) until the slide ends, at `volume`.
 - The music volume is multiplied by the **duck factor**: 1 outside a clip with sound; it ramps
-  down, linearly over `VIDEO_DUCK_RAMP_DOWN_MS` = 1000 ms, to `0.35` (`VIDEO_DUCK_VOLUME`) so the
+  down, linearly over `VIDEO_DUCK_RAMP_DOWN_MS` = 1000 ms, to `0.2` (`VIDEO_DUCK_VOLUME`) so the
   music is already quieter — staying audible, never vanishing — by the time the clip's sound
-  starts. It holds at `0.35` until the slide ends, then ramps back up over a slower
+  starts. It holds at `0.2` until the slide ends, then ramps back up over a slower
   `VIDEO_DUCK_RAMP_UP_MS` = 1500 ms so the music swells back instead of jumping. Pure function
   `duckFactorAt(timeMs, spans)` in `src/player/`; the music's own trim and fades (ADR-0009)
   multiply on top.
 - Two clips closer together than a ramp up plus a ramp down stay ducked between them.
-- WebKit (iPadOS/iOS Safari) allows a `<video>` element's audible `play()` only once that element
-  itself played inside a user gesture. The player keeps a small pool of elements blessed in the
-  Play gesture (`VideoElementPool`, `video-element-pool.ts`) and reuses them for later clips; past
-  the pool's size a fresh, un-blessed element falls back to the safety net below. A clip whose
-  bytes are missing or that the browser cannot decode raises `VideoPlaybackError` when it loads,
-  so a show never waits for it; a clip WebKit still refuses to play aloud is muted and played
-  silently instead (one `console.warn`), and stays muted for its life.
+- A clip whose bytes are missing or that the browser cannot decode raises `VideoPlaybackError`
+  when it loads, so a show never waits for it.
 
 ## Composition
 
@@ -130,7 +119,7 @@ The slide clock leads; the clip follows it, never the other way round.
 
 | Target             | Behaviour                                                                                                                                               |
 | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| App player         | `<video>` per clip, frames uploaded to the slide's texture each frame (WebGL) or shown (DOM)                                                            |
+| App player         | A muted `<video>` per clip, frames uploaded to the slide's texture each frame (WebGL) or shown (DOM); its sound decoded and played by Web Audio         |
 | Video export (MP4) | Frame-accurate decode with mediabunny; the clip sound is mixed with the music, ducked                                                                   |
 | HTML export        | The clip's bytes embedded in the file; the export sheet names the size beforehand                                                                       |
 | `.glissando` file  | Format 14 holds `videos/clip-<n>` entries (stored, ADR-0038) and a picture's `video`; 13 is still read                                                  |

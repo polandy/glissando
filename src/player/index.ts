@@ -14,7 +14,6 @@ export {
   type MusicVolume,
   type VolumeElement,
 } from "./browser/music-output";
-export { VIDEO_POOL_SIZE, VideoElementPool } from "./browser/video-element-pool";
 export { captionLength, MAX_CAPTION_LENGTH, normalizeCaption, withinCaptionLimit } from "./caption";
 export { CAPTION_GLIDE_MS } from "./caption-glide";
 export { CAPTION_FONT_NAME, CAPTION_FONT_WEIGHT } from "./caption-layout";
@@ -27,7 +26,8 @@ export {
   type CardFontFile,
 } from "./card-fonts";
 export { createFramePlayer, type FramePlayer } from "./create-frame-player";
-export { createPlayer } from "./create-player";
+export { createPlayer, type CreatePlayerOptions } from "./create-player";
+export { type DecodeClipSound } from "./browser/open-video";
 export { VIDEO_RATE_TOLERANCE_MS, VIDEO_SEEK_DRIFT_MS } from "./browser/video-playback";
 export { layerTransform } from "./dom/layer-transform";
 export { cropAt, cropRect, type KenBurnsAt, type Rect, type Size } from "./ken-burns";

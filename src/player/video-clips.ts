@@ -23,7 +23,7 @@ interface OpenClip {
  */
 export class VideoClips {
   readonly #plan: (timeMs: number) => readonly ClipTarget[];
-  readonly #openVideo: (src: string, volume: number) => VideoPlayback;
+  readonly #openVideo: (src: string, volume: number, endMs: number) => VideoPlayback;
   readonly #listeners: VideoClipsListeners;
   readonly #open = new Map<number, OpenClip>();
   readonly #readyChecks = new Set<() => void>();
@@ -32,7 +32,7 @@ export class VideoClips {
 
   constructor(
     slides: readonly Slide[],
-    openVideo: (src: string, volume: number) => VideoPlayback,
+    openVideo: (src: string, volume: number, endMs: number) => VideoPlayback,
     listeners: VideoClipsListeners,
   ) {
     this.#plan = createClipPlan(slides);
@@ -130,7 +130,7 @@ export class VideoClips {
     if (existing !== undefined) {
       return existing;
     }
-    const playback = this.#openVideo(video.src, video.volume);
+    const playback = this.#openVideo(video.src, video.volume, video.endMs);
     playback.onFrameReady(() => {
       this.#listeners.onFrameReady();
       [...this.#readyChecks].forEach((check) => check());
