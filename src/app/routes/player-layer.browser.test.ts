@@ -4,7 +4,7 @@ import { ImmichUnavailableError } from "../../immich/immich-client";
 import type { PictureFocus } from "../../library/picture-focus";
 import type { StoredSlideshow } from "../../library/stored-slideshow";
 import { MemoryLibraryStore } from "../../library/testing/memory-store";
-import { MusicOutput, VideoElementPool } from "../../player";
+import { MusicOutput } from "../../player";
 import { mountWithTranslator } from "../testing/mount-with-translator";
 import { whenRendered } from "../testing/when-rendered";
 import { PictureMissingFromImmichError } from "../../server-library/server-slideshow-store";
@@ -49,7 +49,7 @@ describe("the player layer", () => {
       store,
       stored: SHOW,
       musicOutput: new MusicOutput(() => null),
-      videoElementPool: new VideoElementPool(),
+      decodeClipSound: () => Promise.resolve(null),
       onClose: () => {},
       onError: (error: unknown) => reported.push(error),
       log: (error: unknown) => logged.push(error),
@@ -81,7 +81,7 @@ describe("the player layer", () => {
         songs: [{ id: "tune", fileName: "tune.mp3", durationMs: 5000, mimeType: "audio/mpeg" }],
       },
       musicOutput: new MusicOutput(() => null),
-      videoElementPool: new VideoElementPool(),
+      decodeClipSound: () => Promise.resolve(null),
       onClose: () => {},
       onError: () => {},
       log: () => {},
@@ -129,7 +129,7 @@ function mountServerLayer(store: MemoryLibraryStore, missing = new SvelteSet<str
     store,
     stored: TWO_PICTURES,
     musicOutput: new MusicOutput(() => null),
-    videoElementPool: new VideoElementPool(),
+    decodeClipSound: () => Promise.resolve(null),
     onClose: () => {},
     onError: () => {},
     log: () => {},
@@ -215,7 +215,7 @@ describe("the pictures the player layer loads ahead", () => {
       store,
       stored: FIVE_PICTURES,
       musicOutput: new MusicOutput(() => null),
-      videoElementPool: new VideoElementPool(),
+      decodeClipSound: () => Promise.resolve(null),
       onClose: () => {},
       onError: () => {},
       log: () => {},

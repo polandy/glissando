@@ -1,13 +1,12 @@
 import { BitmapLoader, type BitmapPicture, type PictureDecoder } from "./browser/bitmap-loader";
 import { MusicOutput } from "./browser/music-output";
-import { openVideoElement } from "./browser/open-video";
+import { openVideoElement, type DecodeClipSound } from "./browser/open-video";
 import {
   ImageElementLoader,
   type BrowserPicture,
   type OpenPicture,
 } from "./browser/picture-loader";
 import { AudioElementMusic, animationFrames, performanceClock } from "./browser/platform";
-import type { VideoElementPool } from "./browser/video-element-pool";
 import {
   FallbackPictureDecoder,
   mainThreadPictureDecoder,
@@ -51,8 +50,8 @@ export interface BrowserPlayerOptions {
   readonly readVideo?: (src: string) => Promise<Blob>;
   /** Where the music sounds; without it, at the audio element's own volume. */
   readonly musicOutput?: MusicOutput;
-  /** Gesture-blessed `<video>` elements a clip's sound can reuse on iPadOS Safari (ADR-0035). */
-  readonly videoElementPool?: VideoElementPool;
+  /** Decodes a video clip's sound for Web Audio (ADR-0035); without it, every clip plays silent. */
+  readonly decodeClipSound?: DecodeClipSound;
   /** Slides loaded beyond the last one on screen; `DEFAULT_PICTURES_AHEAD` without it. */
   readonly picturesAhead?: number;
   /** Loads a card's fonts; `document.fonts` without it. */
@@ -94,7 +93,7 @@ export function createBrowserPlayer(
     openPicture,
     readVideo,
     musicOutput,
-    videoElementPool,
+    decodeClipSound,
     picturesAhead,
     fonts,
   }: BrowserPlayerOptions,
@@ -121,13 +120,13 @@ export function createBrowserPlayer(
     clock: performanceClock,
     frames: animationFrames,
     openMusic: (src: string) => new AudioElementMusic(src, musicOutput),
-    openVideo: (src: string, volume: number) =>
-      openVideoElement(src, volume, {
+    openVideo: (src: string, volume: number, endMs: number) =>
+      openVideoElement(src, volume, endMs, {
         output: videoOutput,
         ...(readVideo === undefined
           ? {}
           : { source: { openVideo: readVideo, urls: browserObjectUrls } }),
-        ...(videoElementPool === undefined ? {} : { pool: videoElementPool }),
+        ...(decodeClipSound === undefined ? {} : { decodeClipSound }),
       }),
     reducedMotion: () => window.matchMedia(REDUCED_MOTION_QUERY).matches,
     ...(picturesAhead === undefined ? {} : { picturesAhead }),

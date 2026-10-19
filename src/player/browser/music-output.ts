@@ -12,6 +12,12 @@ export interface GainNodeLike extends AudioNodeLike {
   readonly gain: { setValueAtTime(value: number, startTime: number): unknown };
 }
 
+export interface AudioBufferSourceNodeLike extends AudioNodeLike {
+  buffer: AudioBuffer | null;
+  start(when?: number, offset?: number, duration?: number): void;
+  stop(when?: number): void;
+}
+
 /** The parts of an `AudioContext` the music output uses. */
 export interface MusicAudioContext<Element extends VolumeElement = HTMLMediaElement> {
   readonly currentTime: number;
@@ -20,6 +26,20 @@ export interface MusicAudioContext<Element extends VolumeElement = HTMLMediaElem
   resume(): Promise<void>;
   createMediaElementSource(element: Element): AudioNodeLike;
   createGain(): GainNodeLike;
+  createBufferSource(): AudioBufferSourceNodeLike;
+}
+
+/** What a video clip's sound needs from the music's Web Audio context, nothing about elements. */
+export interface ClipSoundContext {
+  readonly currentTime: number;
+  createBufferSource(): AudioBufferSourceNodeLike;
+  createGain(): GainNodeLike;
+}
+
+/** Where a clip's sound connects to; its context schedules it (`ClipSoundTrack`). */
+export interface ClipSoundOutput {
+  readonly context: ClipSoundContext;
+  readonly destination: AudioNodeLike;
 }
 
 /** Makes the context; null or a throw where the browser has no Web Audio. */
@@ -78,6 +98,16 @@ export class MusicOutput<Element extends VolumeElement = HTMLMediaElement> {
         gainNode.disconnect();
       },
     };
+  }
+
+  /**
+   * The Web Audio node a video clip's sound connects to, and the context to schedule it on
+   * (`ClipSoundTrack`); the same context and master as the music, so a mute silences both. Null
+   * where Web Audio is unavailable, same as `route`'s fallback.
+   */
+  clipSoundOutput(): ClipSoundOutput | null {
+    const context = this.#ensureContext();
+    return context === null ? null : { context, destination: context.destination };
   }
 
   #ensureContext(): MusicAudioContext<Element> | null {

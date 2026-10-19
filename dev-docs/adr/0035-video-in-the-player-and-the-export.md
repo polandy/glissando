@@ -14,7 +14,10 @@ where WebCodecs exists.
 - **Player:** a `<video>` element per clip, opened through an injected port (`openVideo`), following
   the slide clock; its frames are uploaded to the slide's texture every frame (WebGL) or shown
   directly (DOM). The slide clock leads; the clip is seeked to catch up and holds its last frame
-  when it stalls.
+  when it stalls. The `<video>` is always muted, picture only: the clip's sound is decoded from
+  its file into an `AudioBuffer` ahead of its slide (mediabunny, as in the export) and played by
+  an `AudioBufferSourceNode` on the music's `AudioContext`, scheduled at the clip's place and
+  restarted on seek, pause and resume. A clip not decoded in time plays silent until it is.
 - **Export:** mediabunny demuxes and decodes the clip with WebCodecs, frame accurate at the export's
   frame times; the clip's audio is decoded into the same offline mix as the music.
 - **Sound:** a clip's sound is on by default; the music multiplies by a duck factor that ramps
@@ -27,6 +30,10 @@ where WebCodecs exists.
 
 - _WebCodecs everywhere_ — rejected: missing or partial on Safari and TV browsers, and audio output
   would need its own decoder and A/V sync; `<video>` already gives both.
+- _The clip's sound from its `<video>` element_ — rejected: iOS and iPadOS let only one media
+  element with sound play at a time, so an audible clip pauses the music element for the rest of
+  the show; WebKit also allows an element's audible `play()` only once that element played in a
+  gesture. Decoding costs memory instead — a 5-minute imported clip is about 50 MB of PCM.
 - _`<video>` in the export too_ — rejected: it cannot be stepped frame accurately; the export must
   not depend on playback speed.
 - _The music pauses during a clip_ — rejected: the slideshow's timing follows the music (ADR-0022),
@@ -37,7 +44,8 @@ where WebCodecs exists.
 ## Consequences
 
 - Two decode paths (player, export) must agree on which frame a time shows; the export's tests pin it.
-- WebKit allows a `<video>` element's audible `play()` only once that very element has played
-  inside a user gesture, not merely once per page; the player keeps a small pool of elements
-  blessed in the Play gesture and reused for later clips, with a refused clip muted rather than
-  stopping the show (`video-element-pool.ts`, `video-playback.ts`).
+- A clip's sound is held decoded while its slide is near (about 50 MB for a 5-minute clip) and
+  released with the clip.
+- With every `<video>` muted, a clip plays outside a gesture and catches up with the clock by
+  rate; only the `AudioContext` needs the gesture that starts the show (ADR-0009). Without Web
+  Audio a clip plays silent.

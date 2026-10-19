@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { VideoPlaybackError } from "../ports";
-import type { MusicVolume } from "./music-output";
-import { VideoElementPlayback, type VideoOutput } from "./video-playback";
+import type { ClipSoundOutput } from "./music-output";
+import { VideoElementPlayback, VIDEO_RATE_TOLERANCE_MS, type VideoOutput } from "./video-playback";
 
 const HAVE_NOTHING = 0;
 const HAVE_CURRENT_DATA = 2;
+const HAVE_FUTURE_DATA = 3;
+const END_MS = 10_000;
 
 class FakeElement extends EventTarget {
   currentTime = 0;
@@ -41,38 +43,39 @@ class FakeElement extends EventTarget {
   }
 }
 
-function setUp(volume = 1) {
-  const element = new FakeElement();
-  const routed: number[] = [];
-  const disposed: string[] = [];
+function outputWithUnlock() {
+  const unlocked: string[] = [];
   const output: VideoOutput = {
-    unlock: () => disposed.push("unlock"),
-    route: (): MusicVolume => ({
-      set: (value) => routed.push(value),
-      dispose: () => disposed.push("route"),
-    }),
+    unlock: () => unlocked.push("unlock"),
+    clipSoundOutput: (): ClipSoundOutput | null => null,
   };
+  return { output, unlocked };
+}
+
+function setUp(volume = 1, decoded: Promise<AudioBuffer | null> = Promise.resolve(null)) {
+  const element = new FakeElement();
+  const { output, unlocked } = outputWithUnlock();
   const released: string[] = [];
   const playback = new VideoElementPlayback(
     element as unknown as HTMLVideoElement,
     volume,
+    END_MS,
     output,
+    decoded,
     Promise.resolve(),
     () => released.push("release"),
   );
-  return { element, playback, routed, disposed, released };
+  return { element, playback, unlocked, released };
 }
 
 describe("VideoElementPlayback", () => {
-  it("sets up the element for inline playback, with sound only when the clip has volume", () => {
-    expect(setUp(1).element).toMatchObject({ playsInline: true, preload: "auto", muted: false });
+  it("is always muted, picture only, whatever the clip's volume (ADR-0035)", () => {
+    expect(setUp(1).element.muted).toBe(true);
     expect(setUp(0).element.muted).toBe(true);
   });
 
-  it("routes the volume through the output when unmuted", () => {
-    const { playback, routed } = setUp(0.5);
-    playback.setVolume(0.25);
-    expect(routed).toEqual([0.5, 0.25]);
+  it("sets up the element for inline playback", () => {
+    expect(setUp(1).element).toMatchObject({ playsInline: true, preload: "auto" });
   });
 
   it("holds a hard seek's poster until its frame is ready", () => {
@@ -101,12 +104,12 @@ describe("VideoElementPlayback", () => {
     expect(ready).toBe(2);
   });
 
-  it("plays from a time, unlocking the sound in the same gesture", async () => {
-    const { element, playback, disposed } = setUp();
+  it("plays from a time, unlocking the music's context in the same gesture", async () => {
+    const { element, playback, unlocked } = setUp();
     await playback.play(2000);
     expect(element.currentTime).toBe(2);
     expect(element.playCalls).toBe(1);
-    expect(disposed).toEqual(["unlock"]);
+    expect(unlocked).toEqual(["unlock"]);
   });
 
   it("does not seek again to where the clip already is", async () => {
@@ -116,7 +119,7 @@ describe("VideoElementPlayback", () => {
     expect(element.currentTime).toBe(2);
   });
 
-  it("rejects with VideoPlaybackError on a refusal other than the sound being disallowed", async () => {
+  it("rejects with VideoPlaybackError on a refusal other than a pause interrupting the start", async () => {
     const { element, playback } = setUp();
     element.playResult = Promise.reject(new DOMException("blocked", "InvalidStateError"));
     await expect(playback.play(0)).rejects.toBeInstanceOf(VideoPlaybackError);
@@ -147,22 +150,24 @@ describe("VideoElementPlayback", () => {
     expect(playback.frame()).toBe(element);
   });
 
-  it("pauses, and on dispose frees the element, the routing and the object URL", () => {
-    const { element, playback, disposed, released } = setUp();
+  it("pauses, and on dispose frees the element and the object URL", () => {
+    const { element, playback, released } = setUp();
     playback.pause();
     playback.dispose();
     expect(element.pauseCalls).toBeGreaterThanOrEqual(1);
     expect(element.loadCalls).toBe(1);
-    expect(disposed).toContain("route");
     expect(released).toEqual(["release"]);
   });
 
   it("tells its failure listener when the clip's bytes could not be read, without a play", async () => {
     const failures: Error[] = [];
+    const { output } = outputWithUnlock();
     const playback = new VideoElementPlayback(
       new FakeElement() as unknown as HTMLVideoElement,
       1,
-      { unlock: () => undefined, route: () => ({ set() {}, dispose() {} }) },
+      END_MS,
+      output,
+      Promise.resolve(null),
       Promise.reject(new Error("missing")),
       () => undefined,
     );
@@ -183,10 +188,13 @@ describe("VideoElementPlayback", () => {
   it("does not start a clip that was disposed while its bytes were still being read", async () => {
     let ready: () => void = () => undefined;
     const element = new FakeElement();
+    const { output } = outputWithUnlock();
     const playback = new VideoElementPlayback(
       element as unknown as HTMLVideoElement,
       1,
-      { unlock: () => undefined, route: () => ({ set() {}, dispose() {} }) },
+      END_MS,
+      output,
+      Promise.resolve(null),
       new Promise<void>((resolve) => (ready = resolve)),
       () => undefined,
     );
@@ -199,18 +207,64 @@ describe("VideoElementPlayback", () => {
 
   it("rejects play when the clip's bytes could not be read", async () => {
     const element = new FakeElement();
-    const output: VideoOutput = {
-      unlock: () => undefined,
-      route: () => ({ set() {}, dispose() {} }),
-    };
+    const { output } = outputWithUnlock();
     const playback = new VideoElementPlayback(
       element as unknown as HTMLVideoElement,
       1,
+      END_MS,
       output,
+      Promise.resolve(null),
       Promise.reject(new Error("missing")),
       () => undefined,
     );
     await expect(playback.play(0)).rejects.toBeInstanceOf(VideoPlaybackError);
     expect(element.playCalls).toBe(0);
+  });
+
+  it("catches a muted clip up by rate once it is close to the clock, same as before (ADR-0035)", () => {
+    const { element, playback } = setUp();
+    element.readyState = HAVE_FUTURE_DATA;
+    element.currentTime = 2;
+    playback.follow(2000 + VIDEO_RATE_TOLERANCE_MS + 500);
+    expect(element.playbackRate).not.toBe(1);
+  });
+
+  it("plays a clip's sound through the track built from its own decode and endMs", async () => {
+    const decodedBuffer = {} as AudioBuffer;
+    const gain = {
+      gain: { setValueAtTime: () => undefined },
+      connect: () => undefined,
+      disconnect: () => undefined,
+    };
+    const bufferSource = {
+      buffer: null as AudioBuffer | null,
+      connect: () => undefined,
+      disconnect: () => undefined,
+      start: () => undefined,
+      stop: () => undefined,
+    };
+    const context = {
+      currentTime: 0,
+      createBufferSource: () => bufferSource,
+      createGain: () => gain,
+    };
+    const clipSoundOutput: ClipSoundOutput = { context, destination: gain };
+    const output: VideoOutput = { unlock: () => undefined, clipSoundOutput: () => clipSoundOutput };
+    const element = new FakeElement();
+    const playback = new VideoElementPlayback(
+      element as unknown as HTMLVideoElement,
+      1,
+      END_MS,
+      output,
+      Promise.resolve(decodedBuffer),
+      Promise.resolve(),
+      () => undefined,
+    );
+
+    await playback.play(500);
+    await Promise.resolve();
+    playback.follow(500);
+
+    expect(bufferSource.buffer).toBe(decodedBuffer);
   });
 });

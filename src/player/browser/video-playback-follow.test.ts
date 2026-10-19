@@ -1,14 +1,10 @@
 import { describe, expect, it } from "vitest";
-import type { MusicVolume } from "./music-output";
-import {
-  VIDEO_RATE_TOLERANCE_MS,
-  VIDEO_SEEK_DRIFT_MS,
-  VideoElementPlayback,
-  type VideoOutput,
-} from "./video-playback";
+import type { ClipSoundOutput } from "./music-output";
+import { VIDEO_RATE_TOLERANCE_MS, VideoElementPlayback, type VideoOutput } from "./video-playback";
 
 const HAVE_CURRENT_DATA = 2;
 const HAVE_FUTURE_DATA = 3;
+const END_MS = 20_000;
 
 /** A `<video>` fake covering only what `follow` reads and writes. */
 class FakeElement extends EventTarget {
@@ -40,7 +36,7 @@ class FakeElement extends EventTarget {
 
 const OUTPUT: VideoOutput = {
   unlock: () => undefined,
-  route: (): MusicVolume => ({ set: () => undefined, dispose: () => undefined }),
+  clipSoundOutput: (): ClipSoundOutput | null => null,
 };
 
 function setUp(volume = 1) {
@@ -48,7 +44,9 @@ function setUp(volume = 1) {
   const playback = new VideoElementPlayback(
     element as unknown as HTMLVideoElement,
     volume,
+    END_MS,
     OUTPUT,
+    Promise.resolve(null),
     Promise.resolve(),
     () => undefined,
   );
@@ -116,43 +114,6 @@ describe("VideoElementPlayback.follow", () => {
     playback.follow(clipMs);
 
     expect(element.playbackRateAssignments).toBe(1);
-  });
-
-  it("never rate-corrects a clip with sound, however far behind the clock short of a seek", () => {
-    const { element, playback } = setUp();
-    element.readyState = HAVE_FUTURE_DATA;
-    element.currentTime = 10;
-
-    playback.follow(10_000 + 500);
-
-    expect(element.currentTime).toBe(10);
-    expect(element.playbackRate).toBe(1);
-    expect(element.playbackRateAssignments).toBe(0);
-  });
-
-  it("seeks a clip with sound to the clock once it drifted beyond the seek threshold", () => {
-    const { element, playback } = setUp();
-    element.readyState = HAVE_FUTURE_DATA;
-    element.currentTime = 10;
-
-    playback.follow(10_000 + VIDEO_SEEK_DRIFT_MS + 1);
-
-    expect(element.currentTime).toBeCloseTo(12.001, 6);
-    expect(element.playbackRate).toBe(1);
-  });
-
-  it("seeks, keeping its frame, only once the clip is further off than catching up can mend", () => {
-    const { element, playback } = setUp();
-    element.readyState = HAVE_FUTURE_DATA;
-    element.currentTime = 10;
-    playback.follow(10_000 + VIDEO_SEEK_DRIFT_MS);
-    expect(element.currentTime).toBe(10);
-
-    playback.follow(10_000 + VIDEO_SEEK_DRIFT_MS + 1);
-
-    expect(element.currentTime).toBeCloseTo(12.001, 6);
-    expect(element.playbackRate).toBe(1);
-    expect(playback.frame()).toBe(element);
   });
 
   it("does not stack seeks while one is under way", () => {

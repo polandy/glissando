@@ -4,11 +4,11 @@
     CAPTION_GLIDE_MS,
     createPlayer,
     isGroundSlide,
+    type DecodeClipSound,
     type MusicOutput,
     type OpenPicture,
     type PlayerEvent,
     type Slideshow,
-    type VideoElementPool,
   } from "../../player";
   import { getTranslator } from "../i18n/context";
   import Icon from "../components/Icon.svelte";
@@ -35,7 +35,7 @@
     openPicture,
     readVideo,
     musicOutput,
-    videoElementPool,
+    decodeClipSound,
     startAt = 0,
     picturesAhead,
     pictureFailure = () => "picture",
@@ -54,8 +54,8 @@
     readVideo?: (src: string) => Promise<Blob>;
     /** Where the music sounds; without it, at the audio element's own volume. */
     musicOutput?: MusicOutput;
-    /** Gesture-blessed `<video>` elements a clip's sound can reuse on iPadOS Safari (ADR-0035). */
-    videoElementPool?: VideoElementPool;
+    /** Decodes a video clip's sound for Web Audio (ADR-0035); without it, every clip plays silent. */
+    decodeClipSound?: DecodeClipSound;
     /** Where on the time line playing starts, in seconds. */
     startAt?: number;
     /** Slides loaded beyond the last one on screen; the player's default without it. */
@@ -111,7 +111,7 @@
       ...(openPicture === undefined ? {} : { openPicture }),
       ...(readVideo === undefined ? {} : { readVideo }),
       ...(musicOutput === undefined ? {} : { musicOutput }),
-      ...(videoElementPool === undefined ? {} : { videoElementPool }),
+      ...(decodeClipSound === undefined ? {} : { decodeClipSound }),
       ...(picturesAhead === undefined ? {} : { picturesAhead }),
     });
     player = created;
@@ -156,7 +156,6 @@
       failure = null;
       // Within the gesture, also when the music starts only once the pictures are loaded.
       musicOutput?.unlock();
-      videoElementPool?.unlock();
       player.play();
     } else {
       player.pause();

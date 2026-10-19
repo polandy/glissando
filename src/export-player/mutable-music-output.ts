@@ -117,5 +117,6 @@ function withDestination<Element extends VolumeElement>(
     resume: () => context.resume(),
     createMediaElementSource: (element) => context.createMediaElementSource(element),
     createGain: () => context.createGain(),
+    createBufferSource: () => context.createBufferSource(),
   };
 }

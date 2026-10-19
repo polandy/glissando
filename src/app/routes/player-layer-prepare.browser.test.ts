@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { ImmichUnavailableError } from "../../immich/immich-client";
 import type { StoredSlideshow } from "../../library/stored-slideshow";
 import { MemoryLibraryStore } from "../../library/testing/memory-store";
-import { MusicOutput, VideoElementPool } from "../../player";
+import { MusicOutput } from "../../player";
 import type { PlaybackQuality } from "../settings/playback-quality";
 import { mountWithTranslator } from "../testing/mount-with-translator";
 import { whenRendered } from "../testing/when-rendered";
@@ -68,7 +68,7 @@ async function mountLayer(playbackQuality: PlaybackQuality = "4k") {
     store,
     stored: SHOW,
     musicOutput: new MusicOutput(() => null),
-    videoElementPool: new VideoElementPool(),
+    decodeClipSound: () => Promise.resolve(null),
     onClose: () => (closes += 1),
     onError: () => {},
     log: () => {},
@@ -149,7 +149,7 @@ describe("preparing a server slideshow in the player layer", () => {
       store,
       stored: SHOW,
       musicOutput: new MusicOutput(() => null),
-      videoElementPool: new VideoElementPool(),
+      decodeClipSound: () => Promise.resolve(null),
       onClose: () => {},
       onError: () => {},
       log: () => {},

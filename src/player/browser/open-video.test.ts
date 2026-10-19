@@ -1,12 +1,13 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { openVideoElement } from "./open-video";
-import { VideoElementPool } from "./video-element-pool";
+import type { ClipSoundOutput } from "./music-output";
 import type { VideoOutput } from "./video-playback";
 
 const OUTPUT: VideoOutput = {
   unlock: () => undefined,
-  route: () => ({ set: () => undefined, dispose: () => undefined }),
+  clipSoundOutput: (): ClipSoundOutput | null => null,
 };
+const END_MS = 4000;
 
 class FakeElement extends EventTarget {
   src = "";
@@ -22,12 +23,15 @@ class FakeElement extends EventTarget {
   removeAttribute = () => undefined;
 }
 
-function setUp(read: (src: string) => Promise<Blob>) {
+function setUp(
+  read: (src: string) => Promise<Blob>,
+  decodeClipSound?: (blob: Blob) => Promise<AudioBuffer | null>,
+) {
   const element = new FakeElement();
   const urls: string[] = [];
   const revoked: string[] = [];
-  const open = (src: string) =>
-    openVideoElement(src, 1, {
+  const open = (src: string, volume = 1) =>
+    openVideoElement(src, volume, END_MS, {
       output: OUTPUT,
       createElement: () => element as unknown as HTMLVideoElement,
       source: {
@@ -40,6 +44,7 @@ function setUp(read: (src: string) => Promise<Blob>) {
           revoke: (url) => revoked.push(url),
         },
       },
+      ...(decodeClipSound === undefined ? {} : { decodeClipSound }),
     });
   return { element, open, urls, revoked };
 }
@@ -47,11 +52,20 @@ function setUp(read: (src: string) => Promise<Blob>) {
 describe("openVideoElement", () => {
   it("uses the src as a URL without a source", () => {
     const element = new FakeElement();
-    openVideoElement("https://x/clip.mp4", 1, {
+    openVideoElement("https://x/clip.mp4", 1, END_MS, {
       output: OUTPUT,
       createElement: () => element as unknown as HTMLVideoElement,
     });
     expect(element.src).toBe("https://x/clip.mp4");
+  });
+
+  it("is always muted, picture only: the clip's sound plays through Web Audio instead (ADR-0035)", () => {
+    const element = new FakeElement();
+    openVideoElement("https://x/clip.mp4", 1, END_MS, {
+      output: OUTPUT,
+      createElement: () => element as unknown as HTMLVideoElement,
+    });
+    expect(element.muted).toBe(true);
   });
 
   it("reads the clip's bytes, sets the object URL and revokes the object URL on dispose", async () => {
@@ -80,46 +94,61 @@ describe("openVideoElement", () => {
   });
 });
 
-describe("openVideoElement with a pool", () => {
-  it("acquires its element from the pool instead of creating a fresh one", () => {
-    const pooled = new FakeElement();
-    const fresh = new FakeElement();
-    const pool = new VideoElementPool(1, () => pooled as unknown as HTMLVideoElement);
-    const playback = openVideoElement("https://x/clip.mp4", 1, {
-      output: OUTPUT,
-      pool,
-      createElement: () => fresh as unknown as HTMLVideoElement,
+describe("openVideoElement's clip sound", () => {
+  it("decodes the same blob read for the element, without reading it twice", async () => {
+    const blob = new Blob(["x"]);
+    const read = vi.fn(() => Promise.resolve(blob));
+    const decodeClipSound = vi.fn(() => Promise.resolve(null));
+    const { open } = setUp(read, decodeClipSound);
+
+    open("media-1").dispose();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(read).toHaveBeenCalledTimes(1);
+    expect(decodeClipSound).toHaveBeenCalledWith(blob);
+  });
+
+  it("never decodes a silent clip: no decoder call for a clip with no volume", async () => {
+    const decodeClipSound = vi.fn(() => Promise.resolve(null));
+    const { open } = setUp(() => Promise.resolve(new Blob(["x"])), decodeClipSound);
+
+    open("media-1", 0).dispose();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(decodeClipSound).not.toHaveBeenCalled();
+  });
+
+  it("without a decoder, never fetches or decodes: the clip just plays silent", () => {
+    const read = vi.fn(() => Promise.resolve(new Blob(["x"])));
+    const { open } = setUp(read);
+
+    open("media-1").dispose();
+
+    // The element's own bytes are still read for the picture; only the decode step is skipped.
+    expect(read).toHaveBeenCalledTimes(1);
+  });
+
+  it("warns and stays silent when the decode rejects, without failing the clip", async () => {
+    const warned: unknown[] = [];
+    vi.spyOn(console, "warn").mockImplementation((...args: unknown[]) => {
+      warned.push(args);
     });
-    expect(pooled.src).toBe("https://x/clip.mp4");
-    expect(fresh.src).toBe("");
-    playback.dispose();
-  });
+    try {
+      const { open } = setUp(
+        () => Promise.resolve(new Blob(["x"])),
+        () => Promise.reject(new Error("could not decode")),
+      );
 
-  it("returns its element to the pool on dispose, for the next clip to reuse", () => {
-    const pooled = new FakeElement();
-    const pool = new VideoElementPool(1, () => pooled as unknown as HTMLVideoElement);
-    const playback = openVideoElement("a", 1, { output: OUTPUT, pool });
+      const playback = open("media-1");
+      await playback.play(0);
+      await Promise.resolve();
+      await Promise.resolve();
 
-    playback.dispose();
-
-    expect(pool.acquire()).toBe(pooled as unknown as HTMLVideoElement);
-  });
-
-  it("routes a pooled element through the pool, so a reused element is not routed twice", () => {
-    const pooled = new FakeElement();
-    const pool = new VideoElementPool(1, () => pooled as unknown as HTMLVideoElement);
-    const routeCalls: HTMLVideoElement[] = [];
-    const output: VideoOutput = {
-      unlock: () => undefined,
-      route: (element) => {
-        routeCalls.push(element);
-        return { set: () => undefined, dispose: () => undefined };
-      },
-    };
-
-    openVideoElement("a", 1, { output, pool }).dispose();
-    openVideoElement("b", 1, { output, pool }).dispose();
-
-    expect(routeCalls).toHaveLength(1);
+      expect(warned).toHaveLength(1);
+    } finally {
+      vi.restoreAllMocks();
+    }
   });
 });
