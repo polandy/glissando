@@ -228,6 +228,10 @@ export class SlideshowEditor {
     this.#musicSettings.setMusicPictureChanges(songId, pictureChanges);
   }
 
+  setMusicVolume(songId: string, volumeDb: number | undefined): void {
+    this.#musicSettings.setMusicVolume(songId, volumeDb);
+  }
+
   setPictureLength(pictureLength: PictureLength | undefined): void {
     this.#musicSettings.setPictureLength(pictureLength);
   }

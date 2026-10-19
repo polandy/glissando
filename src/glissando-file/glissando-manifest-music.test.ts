@@ -26,6 +26,7 @@ const slideshow: StoredSlideshow = {
       trim: { startMs: 12_000, endMs: 200_000 },
       fadeInMs: 0,
       fadeOutMs: 5000,
+      volumeDb: -3,
     },
   ],
   secondsPerPicture: 5,
@@ -51,6 +52,7 @@ describe("a song's excerpt and fades in the .glissando file", () => {
       trim: { startMs: 12_000, endMs: 200_000 },
       fadeInMs: 0,
       fadeOutMs: 5000,
+      volumeDb: -3,
     });
   });
 
@@ -90,6 +92,13 @@ describe("a song's excerpt and fades in the .glissando file", () => {
       kind: "damaged",
       reason:
         "glissando.json slideshow.songs[0].fadeOutMs: expected whole milliseconds from 0 to 10000 in steps of 500, got 1200",
+    });
+  });
+
+  it("name a bad volume's path, its value and what is expected", () => {
+    expect(readManifest(withSong({ volumeDb: 7 }))).toEqual({
+      kind: "damaged",
+      reason: "glissando.json slideshow.songs[0].volumeDb: expected whole dB from -12 to 6, got 7",
     });
   });
 

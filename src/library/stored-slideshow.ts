@@ -1,4 +1,5 @@
 import type { MusicBeats } from "../beats";
+import type { MusicLoudness } from "../loudness";
 import type { CardSwatchId } from "../player/card-palette";
 import type { CardEntrance, CardPosition, CardStyle } from "../player/slideshow";
 import type { OwnKenBurns } from "./own-ken-burns";
@@ -104,6 +105,12 @@ export interface StoredMusic {
    * the beat when one was found (ADR-0021).
    */
   readonly pictureChanges?: PictureChanges;
+  /**
+   * Own volume in whole dB off the levelled default, `MUSIC_VOLUME_MIN_DB` to
+   * `MUSIC_VOLUME_MAX_DB` (`checkMusicVolumeDb`); absent: levelled (0 dB). Never stored as a
+   * literal 0 — `setMusicVolume` deletes the field instead (ADR-0040).
+   */
+  readonly volumeDb?: number;
 }
 
 export interface StoredSlideshow {
@@ -183,7 +190,8 @@ export interface LibraryStore {
   getSlideshow(id: string): Promise<StoredSlideshow>;
   /**
    * Deletes the record and, in the same transaction, the media (pictures, music, videos) only it
-   * references, those pictures' focus and that music's beats. Throws `SlideshowNotFoundError` for an unknown id.
+   * references, those pictures' focus and that music's beats and loudness. Throws
+   * `SlideshowNotFoundError` for an unknown id.
    */
   deleteSlideshow(id: string): Promise<void>;
   /** `signal` cancels a download where reading the picture needs one. */
@@ -208,6 +216,14 @@ export interface LibraryStore {
   putMusicBeats(musicId: string, beats: MusicBeats): Promise<void>;
   /** The stored beats of a track; `undefined` while it was not listened to yet. */
   musicBeats(musicId: string): Promise<MusicBeats | undefined>;
+  /**
+   * Stores the loudness measured for a track, beside its media (dev-docs/library/MUSIC.md). A
+   * track whose media is not stored (any more) keeps nothing, so a late measurement cannot
+   * resurrect it.
+   */
+  putMusicLoudness(musicId: string, loudness: MusicLoudness): Promise<void>;
+  /** The stored loudness of a track; `undefined` while it was not measured yet (played unlevelled). */
+  musicLoudness(musicId: string): Promise<MusicLoudness | undefined>;
   /** The bytes the slideshow's pictures (both renditions), music and videos take; missing media counts 0. */
   mediaBytes(slideshow: StoredSlideshow): Promise<number>;
   /**

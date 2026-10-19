@@ -28,6 +28,10 @@ export const MUSIC_FADE_CHOICES_MS = [
 export const MAX_MUSIC_FADE_MS = 10 * MILLISECONDS_PER_SECOND;
 export const MUSIC_FADE_STEP_MS = MILLISECONDS_PER_SECOND / 2;
 
+/** The range a song's own volume can move it off the levelled default (0 dB, ADR-0040). */
+export const MUSIC_VOLUME_MIN_DB = -12;
+export const MUSIC_VOLUME_MAX_DB = 6;
+
 /** The pictures change evenly, ignoring the beats; absent: on the beat when one was found. */
 export const EVEN_PICTURE_CHANGES = "even";
 export type PictureChanges = typeof EVEN_PICTURE_CHANGES;
@@ -37,7 +41,8 @@ export const SEQUENCE_BETWEEN_SONGS = "sequence";
 export type BetweenSongs = typeof SEQUENCE_BETWEEN_SONGS;
 
 /** The music's fields this module checks. */
-export type OwnMusicField = "trim" | "fadeInMs" | "fadeOutMs" | "pictureChanges" | "betweenSongs";
+export type OwnMusicField =
+  "trim" | "fadeInMs" | "fadeOutMs" | "pictureChanges" | "betweenSongs" | "volumeDb";
 
 const TRIM_KEYS: readonly string[] = ["startMs", "endMs"];
 
@@ -65,8 +70,8 @@ export function checkMusicTrim(value: unknown, durationMs: number, where: string
   }
   const { startMs, endMs } = value as Readonly<Record<string, unknown>>;
   if (
-    !isWholeMs(startMs) ||
-    !isWholeMs(endMs) ||
+    !isWholeNumber(startMs) ||
+    !isWholeNumber(endMs) ||
     startMs < 0 ||
     endMs > durationMs ||
     endMs - startMs < MIN_MUSIC_EXCERPT_MS
@@ -83,7 +88,7 @@ export function checkMusicFadeMs(
   where: string,
 ): number {
   if (
-    !isWholeMs(value) ||
+    !isWholeNumber(value) ||
     value < MUSIC_FADE_OFF_MS ||
     value > MAX_MUSIC_FADE_MS ||
     value % MUSIC_FADE_STEP_MS !== 0
@@ -111,15 +116,29 @@ export function checkPictureChanges(value: unknown, where: string): PictureChang
   return value;
 }
 
+/** `value` as a song's own volume, in whole dB off the levelled default; throws `InvalidOwnMusicError`. */
+export function checkMusicVolumeDb(value: unknown, where: string): number {
+  if (!isWholeNumber(value) || value < MUSIC_VOLUME_MIN_DB || value > MUSIC_VOLUME_MAX_DB) {
+    throw new InvalidOwnMusicError(
+      where,
+      "volumeDb",
+      `whole dB from ${MUSIC_VOLUME_MIN_DB} to ${MUSIC_VOLUME_MAX_DB}`,
+      value,
+    );
+  }
+  return value;
+}
+
 /**
- * Checks a song's own fields as `checkMusicTrim`, `checkMusicFadeMs` and `checkPictureChanges` do;
- * throws `InvalidOwnMusicError` naming `where`.
+ * Checks a song's own fields as `checkMusicTrim`, `checkMusicFadeMs`, `checkPictureChanges` and
+ * `checkMusicVolumeDb` do; throws `InvalidOwnMusicError` naming `where`.
  */
 export function checkOwnMusicFields(song: StoredMusic, where: string): void {
   if (song.trim !== undefined) checkMusicTrim(song.trim, song.durationMs, where);
   if (song.fadeInMs !== undefined) checkMusicFadeMs(song.fadeInMs, "fadeInMs", where);
   if (song.fadeOutMs !== undefined) checkMusicFadeMs(song.fadeOutMs, "fadeOutMs", where);
   if (song.pictureChanges !== undefined) checkPictureChanges(song.pictureChanges, where);
+  if (song.volumeDb !== undefined) checkMusicVolumeDb(song.volumeDb, where);
 }
 
 /** `value` as the slideshow's own hand-over between songs; throws `InvalidOwnMusicError`. */
@@ -135,6 +154,6 @@ export function checkBetweenSongs(value: unknown, where: string): BetweenSongs {
   return value;
 }
 
-function isWholeMs(value: unknown): value is number {
+function isWholeNumber(value: unknown): value is number {
   return typeof value === "number" && Number.isInteger(value);
 }

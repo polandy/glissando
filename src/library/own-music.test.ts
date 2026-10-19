@@ -2,8 +2,11 @@ import { describe, expect, it } from "vitest";
 import {
   InvalidOwnMusicError,
   MUSIC_FADE_CHOICES_MS,
+  MUSIC_VOLUME_MAX_DB,
+  MUSIC_VOLUME_MIN_DB,
   checkMusicFadeMs,
   checkMusicTrim,
+  checkMusicVolumeDb,
 } from "./own-music";
 
 const TRACK_MS = 204_000;
@@ -49,5 +52,21 @@ describe("checkMusicFadeMs", () => {
   ])("refuses a fade %s, naming the field", (_, value) => {
     expect(() => checkMusicFadeMs(value, "fadeOutMs", "music")).toThrow(InvalidOwnMusicError);
     expect(() => checkMusicFadeMs(value, "fadeOutMs", "music")).toThrow("music fadeOutMs");
+  });
+});
+
+describe("checkMusicVolumeDb", () => {
+  it.each([MUSIC_VOLUME_MIN_DB, -3, 0, MUSIC_VOLUME_MAX_DB])("accepts %i dB: -12 to +6", (db) => {
+    expect(checkMusicVolumeDb(db, "music")).toBe(db);
+  });
+
+  it.each([
+    ["below the minimum", MUSIC_VOLUME_MIN_DB - 1],
+    ["above the maximum", MUSIC_VOLUME_MAX_DB + 1],
+    ["not a whole number", 1.5],
+    ["no number", "3"],
+  ])("refuses a volume %s, naming the field", (_, value) => {
+    expect(() => checkMusicVolumeDb(value, "music")).toThrow(InvalidOwnMusicError);
+    expect(() => checkMusicVolumeDb(value, "music")).toThrow("music volumeDb");
   });
 });

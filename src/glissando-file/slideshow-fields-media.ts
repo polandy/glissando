@@ -5,12 +5,14 @@ import { isHexColour, type PictureColours } from "../library/picture-colours";
 import {
   checkMusicFadeMs,
   checkMusicTrim,
+  checkMusicVolumeDb,
   checkPictureChanges,
   InvalidOwnMusicError,
 } from "../library/own-music";
 import {
   CAPTION_FROM_VERSION,
   MUSIC_TRIM_FROM_VERSION,
+  MUSIC_VOLUME_FROM_VERSION,
   OWN_KEN_BURNS_FROM_VERSION,
   OWN_TIMING_FROM_VERSION,
   PICTURE_CHANGES_FROM_VERSION,
@@ -71,6 +73,7 @@ export function musicKeys(version: number): string[] {
     "mimeType",
     ...(version >= MUSIC_TRIM_FROM_VERSION ? ["trim", "fadeInMs", "fadeOutMs"] : []),
     ...(version >= PICTURE_CHANGES_FROM_VERSION ? ["pictureChanges"] : []),
+    ...(version >= MUSIC_VOLUME_FROM_VERSION ? ["volumeDb"] : []),
   ];
 }
 
@@ -83,7 +86,7 @@ export function readMusicFields(music: JsonObject, path: string): MusicFields {
       durationMs,
     );
   }
-  const { trim, fadeInMs, fadeOutMs, pictureChanges } = music;
+  const { trim, fadeInMs, fadeOutMs, pictureChanges, volumeDb } = music;
   return {
     fileName: readText(music["fileName"], `${path}.fileName`),
     durationMs,
@@ -97,6 +100,7 @@ export function readMusicFields(music: JsonObject, path: string): MusicFields {
       ...(pictureChanges === undefined
         ? {}
         : { pictureChanges: checkPictureChanges(pictureChanges, path) }),
+      ...(volumeDb === undefined ? {} : { volumeDb: checkMusicVolumeDb(volumeDb, path) }),
     })),
   };
 }

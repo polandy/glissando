@@ -1,6 +1,7 @@
 import {
   checkMusicFadeMs,
   checkMusicTrim,
+  checkMusicVolumeDb,
   checkPictureChanges,
   type MusicTrim,
   type PictureChanges,
@@ -92,6 +93,26 @@ export function setMusicPictureChanges(
             pictureChanges,
             `slideshow "${slideshow.id}" song "${songId}"`,
           ),
+        };
+  });
+}
+
+/**
+ * Gives the music its own volume in whole dB off the levelled default; `undefined` or `0`, the
+ * levelled default itself, deletes the field (ADR-0040) so it is never stored as a literal 0.
+ */
+export function setMusicVolume(
+  slideshow: StoredSlideshow,
+  songId: string,
+  volumeDb: number | undefined,
+): StoredSlideshow {
+  return editSong(slideshow, songId, (music) => {
+    delete music.volumeDb;
+    return volumeDb === undefined || volumeDb === 0
+      ? music
+      : {
+          ...music,
+          volumeDb: checkMusicVolumeDb(volumeDb, `slideshow "${slideshow.id}" song "${songId}"`),
         };
   });
 }

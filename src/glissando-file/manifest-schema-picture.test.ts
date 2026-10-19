@@ -9,7 +9,7 @@ import {
 
 const MINIMAL_PICTURE = {
   format: "glissando",
-  formatVersion: 14,
+  formatVersion: 15,
   slideshow: {
     title: "T",
     createdAt: "2025-01-01T00:00:00Z",

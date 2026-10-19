@@ -40,6 +40,17 @@ describe("SlideshowEditor, the music's excerpt and fades", () => {
     editor.setMusicFadeOut("m1", undefined);
     expect(await storedMusic()).toEqual(MUSIC);
   });
+
+  it("stores the song's own volume, and back to levelled drops it", async () => {
+    const { editor, storedMusic } = await setUp(["a"], MUSIC);
+
+    editor.setMusicVolume("m1", -3);
+    expect(editor.slideshow.songs[0]?.volumeDb).toBe(-3);
+    expect((await storedMusic())?.volumeDb).toBe(-3);
+
+    editor.setMusicVolume("m1", undefined);
+    expect(await storedMusic()).toEqual(MUSIC);
+  });
 });
 
 describe("SlideshowEditor, the music's picture changes", () => {
