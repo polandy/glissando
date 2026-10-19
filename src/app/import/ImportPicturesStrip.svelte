@@ -10,6 +10,7 @@
   import {
     endSelecting,
     NO_SELECTION,
+    soleSelection,
     startSelecting,
     withoutRemoved,
     type StripSelection,
@@ -93,6 +94,11 @@
   /** The focus follows a picture taken in from the set-aside ones, or back by an undo. */
   export function focusPicture(pictureId: string): void {
     root?.querySelector<HTMLElement>(`[data-picture-id="${pictureId}"]`)?.focus();
+  }
+
+  /** Closing the viewer on a single selection moves it to the shown picture (PICTURE_VIEWER.md). */
+  export function moveSelectionToShown(pictureId: string): void {
+    if (!selection.several && selection.ids.size === 1) selection = soleSelection(pictureId);
   }
 </script>
 

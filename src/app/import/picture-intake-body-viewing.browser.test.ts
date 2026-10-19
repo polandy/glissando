@@ -128,6 +128,19 @@ describe("PictureIntakeBody, a picture full screen", () => {
     expect(document.activeElement).toBe(opener);
   });
 
+  it("moves a single strip selection to the picture shown when the viewer closes", async () => {
+    const { target } = await mountWithPictures("beach.jpg", "hill.jpg", "lake.jpg");
+    click(target, ".strip button.pick");
+    openByKey(target, 2);
+
+    press("Escape");
+
+    const [beach, hill, lake] = tiles(target);
+    expect(beach?.getAttribute("aria-pressed")).toBe("false");
+    expect(hill?.getAttribute("aria-pressed")).toBe("false");
+    expect(lake?.getAttribute("aria-pressed")).toBe("true");
+  });
+
   it("removes the shown picture, with the undo toast, and shows the next one", async () => {
     const { intake, toaster, target } = await mountWithPictures(
       "beach.jpg",

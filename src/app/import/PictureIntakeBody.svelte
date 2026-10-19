@@ -251,7 +251,10 @@
     onShow={(pictureId) => (viewing = pictureId)}
     onRemove={(pictureId) => intake.removePicture(pictureId)}
     onTakeIn={(pictureId) => intake.culling.takeIn(pictureId)}
-    onClose={() => (viewing = null)}
+    onClose={(pictureId) => {
+      viewing = null;
+      strip?.moveSelectionToShown(pictureId);
+    }}
   />
 {/if}
 
