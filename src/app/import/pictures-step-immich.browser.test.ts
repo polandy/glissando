@@ -121,7 +121,7 @@ describe("PicturesStep, the Immich box", () => {
     expect(calls).toEqual(["settings"]);
   });
 
-  it("offers more from Immich next to add more once pictures are in", async () => {
+  it("offers From Immich next to Add pictures once pictures are in", async () => {
     const importSession = session();
     const { calls, button } = mountStep(
       { kind: "available", version: "3.3.1", albumCount: 2 },
@@ -132,8 +132,8 @@ describe("PicturesStep, the Immich box", () => {
     await importSession.intake.settled();
     flushSync();
 
-    expect(button("add more")).toBeDefined();
-    button("more from Immich")?.click();
+    expect(button("Add pictures")).toBeDefined();
+    button("From Immich")?.click();
     expect(calls).toEqual(["open"]);
   });
 });

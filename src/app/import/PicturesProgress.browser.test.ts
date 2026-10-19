@@ -1,5 +1,6 @@
 import { flushSync } from "svelte";
 import { afterEach, describe, expect, it } from "vitest";
+import { FakePictureChecker } from "../../culling/testing/fake-picture-checker";
 import { FakeDecoder } from "../../import/testing/picture-import-fixtures";
 import { createTranslator } from "../i18n/translator";
 import { mountWithTranslator } from "../testing/mount-with-translator";
@@ -15,17 +16,24 @@ afterEach(() => {
   unmounts = [];
 });
 
-function mountProgress(intake: PictureIntake, onStopPick: (pickId: string) => void = () => {}) {
+function mountProgress(
+  intake: PictureIntake,
+  overrides: {
+    onStopPick?: (pickId: string) => void;
+    range?: { readonly from: string; readonly to: string } | null;
+    onAddMore?: { onPickFiles: () => void; onPickFolder: () => void } | null;
+    onMoreFromImmich?: (() => void) | null;
+  } = {},
+) {
   const mounted = mountWithTranslator(
     PicturesProgress,
     {
       state: intake.pictures.state,
       checking: intake.culling.state.checking,
-      range: null,
-      onCancel: () => {},
-      onStopPick,
-      onAddMore: null,
-      onMoreFromImmich: null,
+      range: overrides.range ?? null,
+      onStopPick: overrides.onStopPick ?? (() => {}),
+      onAddMore: overrides.onAddMore ?? null,
+      onMoreFromImmich: overrides.onMoreFromImmich ?? null,
     },
     english,
   );
@@ -88,12 +96,116 @@ describe("PicturesProgress, the queue of picks being imported", () => {
     await decoder.reached;
     const stopped: string[] = [];
 
-    const target = mountProgress(intake, (pickId) => stopped.push(pickId));
+    const target = mountProgress(intake, { onStopPick: (pickId) => stopped.push(pickId) });
     target.querySelector<HTMLButtonElement>(".queue-row button.stop")?.click();
     flushSync();
 
     expect(stopped).toEqual(["pick-1"]);
     decoder.open();
+    await intake.settled();
+  });
+});
+
+describe("PicturesProgress, adding more while something is chosen", () => {
+  it("offers Add pictures and From Immich above the strip while the queue runs", async () => {
+    const decoder = new FakeDecoder();
+    const { ports } = fakeIntakePorts(undefined, { decode: decoder.decode });
+    const intake = new PictureIntake(ports);
+    decoder.hold();
+    intake.addPictures([pictureFile("a.jpg", "2025-07-01T10:00:00Z")]);
+    await decoder.reached;
+    const picked: string[] = [];
+
+    const target = mountProgress(intake, {
+      onAddMore: {
+        onPickFiles: () => picked.push("files"),
+        onPickFolder: () => picked.push("folder"),
+      },
+      onMoreFromImmich: () => picked.push("immich"),
+    });
+
+    expect(target.querySelector(".queue")).not.toBeNull();
+    const addPictures = [...target.querySelectorAll("button")].find(
+      (button) => button.textContent?.trim() === "Add pictures",
+    );
+    expect(addPictures).toBeDefined();
+    const fromImmich = [...target.querySelectorAll("button")].find(
+      (button) => button.textContent?.trim() === "From Immich",
+    );
+    fromImmich?.click();
+    expect(picked).toEqual(["immich"]);
+    decoder.open();
+    await intake.settled();
+  });
+
+  it("hides From Immich where it is not offered", () => {
+    const { ports } = fakeIntakePorts();
+    const intake = new PictureIntake(ports);
+    const target = mountProgress(intake, {
+      range: { from: "2025-07-01T10:00:00Z", to: "2025-07-01T10:00:00Z" },
+      onAddMore: { onPickFiles: () => {}, onPickFolder: () => {} },
+      onMoreFromImmich: null,
+    });
+
+    const buttons = [...target.querySelectorAll("button")].map((button) =>
+      button.textContent?.trim(),
+    );
+    expect(buttons).toContain("Add pictures");
+    expect(buttons).not.toContain("From Immich");
+  });
+
+  it("shows neither button once nothing can add more, as while linking a server slideshow", () => {
+    const { ports } = fakeIntakePorts();
+    const intake = new PictureIntake(ports);
+    const target = mountProgress(intake, {
+      range: { from: "2025-07-01T10:00:00Z", to: "2025-07-01T10:00:00Z" },
+    });
+
+    expect(target.querySelector(".more")).toBeNull();
+  });
+});
+
+describe("PicturesProgress, the queue and the culling check never show together", () => {
+  it("shows only the queue while it runs, even once a stored picture is already being checked", async () => {
+    const decoder = new FakeDecoder();
+    const checker = new FakePictureChecker();
+    checker.hold();
+    const { ports } = fakeIntakePorts(undefined, { decode: decoder.decode, checker });
+    const intake = new PictureIntake(ports);
+    intake.addPictures([pictureFile("a.jpg", "2025-07-01T10:00:00Z")]);
+    await intake.pictures.settled();
+    flushSync();
+    expect(intake.culling.state.checking).not.toBeNull();
+    decoder.hold();
+    intake.addPictures([pictureFile("b.jpg", "2025-07-02T10:00:00Z")]);
+    await decoder.reached;
+
+    const target = mountProgress(intake);
+
+    expect(target.querySelector(".queue")).not.toBeNull();
+    expect(target.textContent).not.toContain("checked for similar shots and blur");
+    expect(target.querySelector(".progress-row button")).toBeNull();
+    checker.release();
+    decoder.open();
+    await intake.settled();
+  });
+
+  it("shows the checking line without its own Cancel once the queue is empty", async () => {
+    const checker = new FakePictureChecker();
+    checker.hold();
+    const { ports } = fakeIntakePorts(undefined, { checker });
+    const intake = new PictureIntake(ports);
+    intake.addPictures([pictureFile("a.jpg", "2025-07-01T10:00:00Z")]);
+    await intake.pictures.settled();
+    flushSync();
+
+    const target = mountProgress(intake);
+
+    expect(target.querySelector(".queue")).toBeNull();
+    expect(target.textContent).toContain("0 / 1");
+    expect(target.textContent).toContain("checked for similar shots and blur");
+    expect(target.querySelector(".progress-row button")).toBeNull();
+    checker.release();
     await intake.settled();
   });
 });

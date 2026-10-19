@@ -6,16 +6,17 @@
   import { picturesPhase } from "./import-view";
   import type { CullingState } from "./picture-culling";
   import { pickName, queueRows } from "./picture-queue";
+  import AddPicturesMenu from "./AddPicturesMenu.svelte";
 
   /**
-   * Step 1's count and meter: downscaling (a queue row per pick, with a stop button for each
-   * still in flight), then checking for similar shots and blur, or what is in with "add more".
+   * Step 1's "Add pictures"/"From Immich" row, always shown above the strip while either is
+   * on offer, then exactly one of: the queue (a row per pick, with a stop button for each still
+   * in flight), the culling check once the queue is empty, or what is in once both are done.
    */
   let {
     state,
     checking,
     range,
-    onCancel,
     onStopPick,
     onAddMore,
     onMoreFromImmich,
@@ -24,11 +25,10 @@
     checking: CullingState["checking"];
     /** The capture dates of the stored pictures; null while none is stored. */
     range: { readonly from: string; readonly to: string } | null;
-    onCancel: () => void;
     /** Stops the named pick: its waiting files are dropped, what already landed stays. */
     onStopPick: (pickId: string) => void;
     /** Null where no pictures come from the device, as for a server slideshow. */
-    onAddMore: (() => void) | null;
+    onAddMore: { readonly onPickFiles: () => void; readonly onPickFolder: () => void } | null;
     /** Shown only while Immich can be opened. */
     onMoreFromImmich: (() => void) | null;
   } = $props();
@@ -50,6 +50,21 @@
 </script>
 
 <div class="progress">
+  {#if onAddMore !== null || onMoreFromImmich !== null}
+    <div class="more">
+      {#if onAddMore !== null}
+        <AddPicturesMenu
+          onPickFiles={onAddMore.onPickFiles}
+          onPickFolder={onAddMore.onPickFolder}
+        />
+      {/if}
+      {#if onMoreFromImmich !== null}
+        <button class="btn ghost" type="button" onclick={onMoreFromImmich}>
+          <Icon name="plus" />{t("immich.more")}
+        </button>
+      {/if}
+    </div>
+  {/if}
   {#if importing}
     <div class="queue">
       <div class="queue-head">
@@ -89,41 +104,25 @@
         {/each}
       </ul>
     </div>
-  {/if}
-  <div class="progress-row">
-    {#if checking !== null}
+  {:else if checking !== null}
+    <div class="progress-row">
       <span>
         <span class="mono">
           {t("import.progressCount", { done: checking.checked, count: checking.total })}
         </span>
         {t("cull.checkingLabel")}
       </span>
-      <button class="btn ghost" type="button" onclick={onCancel}>
-        {t("common.cancel")}
-      </button>
-    {:else}
+    </div>
+  {:else if range !== null}
+    <div class="progress-row">
       <span>
-        {#if range !== null}
-          <b>{t("units.pictures", { count: state.pictures.length })}</b>
-          <span class="muted">
-            · {t("import.dateRange", { from: formatDate(range.from), to: formatDate(range.to) })}
-          </span>
-        {/if}
+        <b>{t("units.pictures", { count: state.pictures.length })}</b>
+        <span class="muted">
+          · {t("import.dateRange", { from: formatDate(range.from), to: formatDate(range.to) })}
+        </span>
       </span>
-      <span class="more">
-        {#if onMoreFromImmich !== null}
-          <button class="btn ghost" type="button" onclick={onMoreFromImmich}>
-            <Icon name="plus" />{t("immich.more")}
-          </button>
-        {/if}
-        {#if onAddMore !== null}
-          <button class="btn ghost" type="button" onclick={onAddMore}>
-            <Icon name="plus" />{t("import.addMore")}
-          </button>
-        {/if}
-      </span>
-    {/if}
-  </div>
+    </div>
+  {/if}
   <div class="meter">
     <i style:width="{share * 100}%"></i>
   </div>
@@ -199,8 +198,7 @@
   .more {
     display: flex;
     flex-wrap: wrap;
-    justify-content: flex-end;
-    gap: 4px;
+    gap: 8px;
   }
   .meter {
     height: 6px;
