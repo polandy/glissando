@@ -18,6 +18,8 @@ export interface StripKeydownPorts {
   readonly onShiftGroup: (pictureIds: readonly string[], offset: number) => void;
   readonly onRemoveGroup: (pictureIds: readonly string[]) => void;
   readonly onView: (pictureId: string) => void;
+  /** False while the strip only shows what is in, with no moving (IMPORT_ARRANGING.md, Add media). */
+  readonly arranging: () => boolean;
 }
 
 /**
@@ -74,6 +76,7 @@ export class StripKeydown {
         break;
       }
       case "shift": {
+        if (!this.#ports.arranging()) break;
         const selected = selection().ids.has(pictureId);
         const ids = selected ? selectedInOrder(selection(), order()) : [pictureId];
         if (!selected) {

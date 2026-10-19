@@ -1,14 +1,14 @@
 <script lang="ts">
-  import type { StoredCard } from "../../../library/stored-slideshow";
-  import { animationFrames, type FrameScheduler } from "../../../player";
-  import { browserScheduler, type Scheduler } from "../../../ui-kit/scheduler";
+  import { animationFrames } from "../../../player";
+  import { browserScheduler } from "../../../ui-kit/scheduler";
   import { getTranslator } from "../../i18n/context";
-  import type { PictureTile } from "../view-models";
   import AddTile from "./AddTile.svelte";
   import CardTile from "./card-sheet/CardTile.svelte";
   import DragGhost from "./DragGhost.svelte";
+  import PlaceholderTile from "./PlaceholderTile.svelte";
+  import type { PictureStripProps } from "./picture-strip-props";
   import StripTile from "./StripTile.svelte";
-  import { hold, pick, type StripSelection } from "./strip-selection";
+  import { hold, pick } from "./strip-selection";
   import { StripKeydown } from "./strip-keydown";
   import { TileDrag } from "./tile-drag";
   import { glideTiles, tilePositions } from "./tile-glide";
@@ -27,46 +27,18 @@
     onRemoveGroup,
     onShiftGroup,
     onMoveGroup,
-    onAdd,
+    onAdd = () => undefined,
     openingCard,
     closingCard,
-    onOpenOpeningCard,
-    onOpenClosingCard,
+    onOpenOpeningCard = () => undefined,
+    onOpenClosingCard = () => undefined,
     holdScheduler = browserScheduler,
     frameScheduler = animationFrames,
-  }: {
-    pictures: readonly PictureTile[];
-    /** Pictures just added, marked as new. */
-    newPictureIds: ReadonlySet<string>;
-    selection: StripSelection;
-    /** The primary pointer is a mouse: a mouse drags after 8 px, a double-click opens a picture. */
-    mousePointer: boolean;
-    onSelectionChange: (next: StripSelection) => void;
-    /** The tile's own ✕: removes just that picture, never the rest of the selection. */
-    onRemove: (pictureId: string) => void;
-    /** The selection bar's Remove, or Delete/Backspace on a focused (selected) tile. */
-    onRemoveGroup: (pictureIds: readonly string[]) => void;
-    /** Earlier/Later or Shift+arrows: moves the group by `offset` steps (ADR-0019). */
-    onShiftGroup: (pictureIds: readonly string[], offset: number) => void;
-    /** A drop: moves the group to the slot before the tile at `insertion`. */
-    onMoveGroup: (pictureIds: readonly string[], insertion: number) => void;
-    /** The placeholder after the last picture: adds pictures. */
-    onAdd: () => void;
-    /** Opens the picture editor. */
-    onOpen: (pictureId: string) => void;
-    /** F on a focused tile: opens it in the full-screen viewer. */
-    onView: (pictureId: string) => void;
-    /** The title slide; absent until the editor creates it (TITLE_SLIDES.md). */
-    openingCard?: StoredCard | undefined;
-    /** The closing slide; absent until the editor creates it (TITLE_SLIDES.md). */
-    closingCard?: StoredCard | undefined;
-    onOpenOpeningCard: () => void;
-    onOpenClosingCard: () => void;
-    /** The 450 ms touch hold; a real timeout by default, faked in tests. */
-    holdScheduler?: Scheduler;
-    /** The auto-scroll's frames; real `requestAnimationFrame` by default, faked in tests. */
-    frameScheduler?: FrameScheduler;
-  } = $props();
+    arranging = true,
+    suppressCards = false,
+    placeholderCount = 0,
+    lastRemovable = false,
+  }: PictureStripProps = $props();
 
   const { t } = getTranslator();
   let openingTile = $state<CardTile>();
@@ -102,6 +74,7 @@
   let suppressNextClick = false;
   let lastPointerWasTouch = false;
   const lastPicture = $derived(pictures.length < 2);
+  const removable = $derived(lastRemovable || !lastPicture);
   const order = $derived(pictures.map((picture) => picture.id));
   const tileById = $derived(new Map(pictures.map((picture) => [picture.id, picture])));
 
@@ -166,6 +139,7 @@
     onShiftGroup,
     onRemoveGroup,
     onView,
+    arranging: () => arranging,
   });
 
   function keydown(event: KeyboardEvent, pictureId: string, index: number): void {
@@ -191,6 +165,9 @@
   }
 
   function pointerDown(event: PointerEvent): void {
+    if (!arranging) {
+      return;
+    }
     lastPointerWasTouch = event.pointerType !== "mouse";
     // A drop over another tile, or a lifted touch, may send no click to a tile at all: a stale
     // suppression must not swallow this new gesture's click.
@@ -229,13 +206,15 @@
 />
 
 <ol class="strip" bind:this={strip} onpointerdown={pointerDown} oncontextmenu={contextmenu}>
-  <CardTile
-    bind:this={openingTile}
-    card={openingCard}
-    {pictures}
-    label={t("cards.openingTile")}
-    onOpen={onOpenOpeningCard}
-  />
+  {#if !suppressCards}
+    <CardTile
+      bind:this={openingTile}
+      card={openingCard}
+      {pictures}
+      label={t("cards.openingTile")}
+      onOpen={onOpenOpeningCard}
+    />
+  {/if}
   {#each pictures as picture, index (picture.id)}
     <StripTile
       {picture}
@@ -250,21 +229,26 @@
           ? "after"
           : "before"
         : null}
-      removable={!lastPicture}
+      {removable}
       onPick={(event) => clickTile(event, picture.id)}
       onOpen={() => openOnDoubleClick(picture.id)}
       onKeydown={(event) => keydown(event, picture.id, index)}
       onRemove={() => onRemove(picture.id)}
     />
   {/each}
-  <AddTile {onAdd} />
-  <CardTile
-    bind:this={closingTile}
-    card={closingCard}
-    {pictures}
-    label={t("cards.closingTile")}
-    onOpen={onOpenClosingCard}
-  />
+  {#each { length: placeholderCount }, index (index)}
+    <PlaceholderTile active={index === 0} />
+  {/each}
+  {#if !suppressCards}
+    <AddTile {onAdd} />
+    <CardTile
+      bind:this={closingTile}
+      card={closingCard}
+      {pictures}
+      label={t("cards.closingTile")}
+      onOpen={onOpenClosingCard}
+    />
+  {/if}
 </ol>
 
 <DragGhost
