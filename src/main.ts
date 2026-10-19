@@ -40,7 +40,7 @@ import { browserNetworkStatus, ImmichAvailability } from "./immich/immich-availa
 import { convertMusic } from "./import/browser/convert-music";
 import { probeMusic } from "./import/music-probe";
 import { createImmichReaders } from "./immich/immich-readers";
-import { createMusicAudioContext, MusicOutput, VideoElementPool } from "./player";
+import { createMusicAudioContext, MusicOutput } from "./player";
 import { BeatPass } from "./library/beat-pass";
 import { FocusPass } from "./library/focus-pass";
 import { openLibraryStore } from "./library/indexeddb-store";
@@ -60,6 +60,7 @@ import { bundledFilePage } from "./file-page/browser/bundled-file-page";
 import { browserVideoExportDevice } from "./app/video-export/browser-video-export-device";
 import { createFrameServices } from "./app/frame/frame-services";
 import { browserMediaDecoders } from "./glissando-file/browser/media-decoders";
+import { decodeClipSound } from "./video-export/browser/decode-clip-sound";
 
 /** Same origin: the self-hosted Glissando's `/immich/` route sets the API key (ADR-0013). */
 const immichClient = new HttpImmichClient({
@@ -124,7 +125,6 @@ const store = await openLibraryStore(window.indexedDB);
 const newId = (): string => randomId(crypto);
 const now = (): Date => new Date();
 const musicOutput = new MusicOutput(createMusicAudioContext);
-const videoElementPool = new VideoElementPool();
 
 function deleteAbandonedMedia(): void {
   store.deleteUnreferencedMedia(now()).catch(reportError);
@@ -232,7 +232,7 @@ const services = {
   build: __GLISSANDO_BUILD_INFO__,
   launchQueue: browserLaunchQueue(window),
   musicOutput,
-  videoElementPool,
+  decodeClipSound,
   musicAudio: browserMusicEditorAudio(musicOutput),
   readClipPeaks: readClipPeaksWithMediabunny,
   focusPass,

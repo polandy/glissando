@@ -1,15 +1,12 @@
 import { VideoPlaybackError, type LiveFrame, type VideoPlayback } from "../ports";
-import type { MusicVolume } from "./music-output";
+import { ClipSoundTrack } from "./clip-sound-track";
+import type { ClipSoundOutput } from "./music-output";
 
-/** A clip further than this from where the slide clock puts it is seeked, muted or not. */
+/** A clip further than this from where the slide clock puts it is seeked. */
 export const VIDEO_SEEK_DRIFT_MS = 2000;
-/** A muted clip closer than this to the clock plays at its normal rate. */
+/** A clip closer than this to the clock plays at its normal rate. */
 export const VIDEO_RATE_TOLERANCE_MS = 60;
-/**
- * Between the two, a muted clip catches up by playing faster or slower, which a seek would
- * stall. An audible clip never does: changing its rate stalls its sound pipeline on iOS, so it
- * waits for the seek instead (dev-docs/player/TIMING.md).
- */
+/** Between the two, the clip catches up by playing faster or slower, which a seek would stall. */
 const MIN_CATCH_UP_RATE = 0.8;
 const MAX_CATCH_UP_RATE = 1.25;
 const CATCH_UP_WINDOW_MS = 1000;
@@ -19,32 +16,31 @@ const MS_PER_SECOND = 1000;
 const SAME_TIME_MS = 1;
 /**
  * A clip at most this far from its place when `play` starts it is not seeked: a start a frame or
- * two behind the clock is caught up by `follow`, but a seek right at the start stalls the
- * picture and, on iOS, the sound.
+ * two behind the clock is caught up by `follow`, but a seek right at the start is a visible hitch.
  */
 export const VIDEO_START_TOLERANCE_MS = 250;
 const HAVE_CURRENT_DATA = 2;
 const HAVE_FUTURE_DATA = 3;
 /** What a media element's `play()` rejects with when a later `pause()` interrupts it. */
 const INTERRUPTED_PLAY = "AbortError";
-/** What WebKit rejects an audible `play()` with outside a gesture-blessed element (ADR-0035). */
-const NOT_ALLOWED = "NotAllowedError";
 const READY_EVENTS = ["seeked", "loadeddata", "canplay", "playing"] as const;
 
 /** The parts of the music output a clip's sound uses (ADR-0009). */
 export interface VideoOutput {
   unlock(): void;
-  route(element: HTMLVideoElement): MusicVolume;
+  /** Where the clip's decoded sound connects to and is scheduled from; null without Web Audio. */
+  clipSoundOutput(): ClipSoundOutput | null;
 }
 
 /**
- * One clip played by an `HTMLVideoElement`, which also is the frame the renderers draw. A clip
- * with volume 0 is muted for good; one with volume is never muted, so Safari keeps its sound
- * allowed by the gesture that started the show.
+ * One clip played by an `HTMLVideoElement`, which also is the frame the renderers draw. The
+ * element is always muted — iOS and iPadOS let only one media element with sound play at a time,
+ * so an audible `<video>` would pause the music for the rest of the show (ADR-0035). The clip's
+ * own sound, if any, plays through a `ClipSoundTrack` on the music's Web Audio context instead.
  */
 export class VideoElementPlayback implements VideoPlayback {
   readonly #element: HTMLVideoElement;
-  readonly #volume: MusicVolume | null;
+  readonly #sound: ClipSoundTrack | null;
   readonly #sourceReady: Promise<void>;
   readonly #release: () => void;
   readonly #output: VideoOutput;
@@ -54,17 +50,18 @@ export class VideoElementPlayback implements VideoPlayback {
   #hardSeekPending = false;
   #disposed = false;
   readonly #abort = new AbortController();
-  /** Set once the safety net mutes a clip the browser refused to play aloud; stays muted for good. */
-  #safetyMuted = false;
 
   /**
    * `sourceReady` settles when the element has its `src`; `release` frees what that took (an
-   * object URL) on `dispose`.
+   * object URL) on `dispose`. `decoded` is the clip's sound, if any, as `open-video.ts` starts
+   * decoding it; `endMs` is the clip's own file-time clamp, past which its sound never plays.
    */
   constructor(
     element: HTMLVideoElement,
     volume: number,
+    endMs: number,
     output: VideoOutput,
+    decoded: Promise<AudioBuffer | null>,
     sourceReady: Promise<void>,
     release: () => void,
   ) {
@@ -74,9 +71,9 @@ export class VideoElementPlayback implements VideoPlayback {
     this.#release = release;
     element.playsInline = true;
     element.preload = "auto";
-    element.muted = volume === 0;
-    this.#volume = element.muted ? null : output.route(element);
-    this.#volume?.set(volume);
+    element.muted = true;
+    this.#sound = volume > 0 ? new ClipSoundTrack(decoded, output.clipSoundOutput(), endMs) : null;
+    this.#sound?.setVolume(volume);
     const { signal } = this.#abort;
     element.addEventListener(
       "seeked",
@@ -96,6 +93,7 @@ export class VideoElementPlayback implements VideoPlayback {
   }
 
   seek(clipMs: number): void {
+    this.#sound?.stop();
     this.#element.playbackRate = 1;
     this.#hardSeekPending = true;
     this.#moveTo(clipMs);
@@ -103,6 +101,7 @@ export class VideoElementPlayback implements VideoPlayback {
 
   async play(clipMs: number): Promise<void> {
     this.#output.unlock();
+    this.#sound?.play(clipMs);
     this.#moveIfFarAway(clipMs, VIDEO_START_TOLERANCE_MS);
     try {
       await this.#sourceReady;
@@ -113,30 +112,19 @@ export class VideoElementPlayback implements VideoPlayback {
       return;
     }
     try {
+      // A muted play is always allowed: no gesture, no refusal to guard against.
       await this.#element.play();
     } catch (error) {
       // A pause before the start lands is not a refusal.
       if (error instanceof DOMException && error.name === INTERRUPTED_PLAY) {
         return;
       }
-      if (!this.#element.muted && error instanceof DOMException && error.name === NOT_ALLOWED) {
-        // WebKit refused this element's sound outside a blessed gesture (ADR-0035): the show goes
-        // on without it rather than stopping on every video slide.
-        console.warn("muting a video clip WebKit refused to play aloud", error);
-        this.#safetyMuted = true;
-        this.#element.muted = true;
-        try {
-          await this.#element.play();
-          return;
-        } catch (retryError) {
-          throw new VideoPlaybackError(retryError);
-        }
-      }
       throw new VideoPlaybackError(error);
     }
   }
 
   follow(clipMs: number): void {
+    this.#sound?.follow(clipMs);
     // Until it really plays, a clip lags the clock only by its start-up; a seek then would restart
     // that start-up and make the clip stutter.
     if (
@@ -150,9 +138,6 @@ export class VideoElementPlayback implements VideoPlayback {
     if (Math.abs(aheadMs) > VIDEO_SEEK_DRIFT_MS) {
       this.#setRate(1);
       this.#moveTo(clipMs);
-    } else if (!this.#element.muted) {
-      // A rate change stalls an audible element's sound on iOS; only the seek above mends it.
-      this.#setRate(1);
     } else if (Math.abs(aheadMs) > VIDEO_RATE_TOLERANCE_MS) {
       const rate = 1 - aheadMs / CATCH_UP_WINDOW_MS;
       this.#setRate(Math.min(MAX_CATCH_UP_RATE, Math.max(MIN_CATCH_UP_RATE, rate)));
@@ -169,15 +154,12 @@ export class VideoElementPlayback implements VideoPlayback {
   }
 
   pause(): void {
+    this.#sound?.stop();
     this.#element.pause();
   }
 
   setVolume(volume: number): void {
-    this.#volume?.set(volume);
-    // The safety net's mute is for this clip's whole life: a later volume never lifts it.
-    if (this.#safetyMuted) {
-      this.#element.muted = true;
-    }
+    this.#sound?.setVolume(volume);
   }
 
   frame(): LiveFrame | null {
@@ -203,7 +185,7 @@ export class VideoElementPlayback implements VideoPlayback {
     this.#abort.abort();
     this.#listeners.clear();
     this.#failureListeners.clear();
-    this.#volume?.dispose();
+    this.#sound?.dispose();
     this.#element.pause();
     this.#element.removeAttribute("src");
     this.#element.load();

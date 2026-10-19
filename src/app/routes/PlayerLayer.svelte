@@ -3,7 +3,7 @@
   import type { BeatPass } from "../../library/beat-pass";
   import { composeSlideshow, type SongBeats } from "../../compose";
   import type { LibraryStore, StoredSlideshow } from "../../library/stored-slideshow";
-  import { performanceClock, type MusicOutput, type VideoElementPool } from "../../player";
+  import { performanceClock, type DecodeClipSound, type MusicOutput } from "../../player";
   import type { PictureFocus } from "../../library/picture-focus";
   import { getTranslator } from "../i18n/context";
   import { playingMusic } from "../library-views";
@@ -38,7 +38,7 @@
     store,
     stored,
     musicOutput,
-    videoElementPool,
+    decodeClipSound,
     onClose,
     onError,
     log,
@@ -60,7 +60,7 @@
     >;
     stored: StoredSlideshow;
     musicOutput: MusicOutput;
-    videoElementPool: VideoElementPool;
+    decodeClipSound: DecodeClipSound;
     onClose: () => void;
     onError: (error: unknown) => void;
     /** Logs a focus or beats that could not be read: play goes on without them. */
@@ -241,7 +241,7 @@
         if (picture !== undefined) flow?.slidePassed(picture.id);
       }}
       {musicOutput}
-      {videoElementPool}
+      {decodeClipSound}
       {startAt}
       {pictureFailure}
       onClose={close}

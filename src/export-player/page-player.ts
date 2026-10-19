@@ -8,8 +8,8 @@ import { REDUCED_MOTION_QUERY } from "../ui-kit/reduced-motion";
 import { browserScheduler } from "../ui-kit/scheduler";
 import { createBrowserPlayer, type BrowserPlayer } from "../player/browser-player";
 import DecodeWorker from "../player/browser/picture-decode-worker.ts?worker&inline";
+import type { DecodeClipSound } from "../player/browser/open-video";
 import type { OpenPicture } from "../player/browser/picture-loader";
-import type { VideoElementPool } from "../player/browser/video-element-pool";
 import { SlideshowLoadError } from "../player/picture-buffer";
 import { MusicPlaybackError } from "../player/ports";
 import type { Slideshow } from "../player/slideshow";
@@ -77,7 +77,7 @@ export function createPagePlayer(
   view: PageView,
   music: MutableMusicOutput,
   hooks: PagePlayerHooks = {},
-  videoElementPool?: VideoElementPool,
+  decodeClipSound?: DecodeClipSound,
 ): PagePlayer {
   let shown: { readonly player: BrowserPlayer; readonly detach: AbortController } | null = null;
   let pictureStarts: readonly number[] = [];
@@ -119,12 +119,10 @@ export function createPagePlayer(
   const play = () => {
     // Within the gesture, also when the music starts only once the pictures are loaded.
     music.unlock();
-    videoElementPool?.unlock();
     player().play();
   };
   const start = () => {
     music.unlock();
-    videoElementPool?.unlock();
     if (hooks.start === undefined) player().play();
     else hooks.start(() => player().play());
   };
@@ -252,7 +250,7 @@ export function createPagePlayer(
         openPicture: page.openPicture,
         ...(page.readVideo === undefined ? {} : { readVideo: page.readVideo }),
         musicOutput: music,
-        ...(videoElementPool === undefined ? {} : { videoElementPool }),
+        ...(decodeClipSound === undefined ? {} : { decodeClipSound }),
       });
       const detach = new AbortController();
       shown = { player: created, detach };

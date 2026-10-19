@@ -256,14 +256,13 @@
         editingMusic={route.screen === "music"}
         musicAudio={services.musicAudio}
         musicOutput={services.musicOutput}
-        videoElementPool={services.videoElementPool}
+        decodeClipSound={services.decodeClipSound}
         readClipPeaks={services.readClipPeaks}
         songIntake={services.songIntake(opened.home)}
         onBack={() => navigator.back()}
         onPlay={() => {
           // Within the Play gesture: the player starts the music only after its pictures load.
           services.musicOutput.unlock();
-          services.videoElementPool.unlock();
           navigator.open({ screen: "player", slideshowId });
         }}
         onAddPictures={(slideshow) => addFlow.open(slideshow, opened.home)}
