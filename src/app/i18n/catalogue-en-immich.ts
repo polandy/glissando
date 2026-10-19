@@ -8,7 +8,7 @@ export const enImmich: Pick<Catalogue, keyof typeof deImmich> = {
   "immich.sourceText":
     "Albums and photos from your Immich. They are downloaded and stay on this device.",
   "immich.open": "Open Immich",
-  "immich.more": "more from Immich",
+  "immich.more": "From Immich",
   "immich.offlineText":
     "Offline — Immich needs a connection to your Glissando server. Pictures from this device still work.",
   "immich.detailsInSettings": "Details in the settings.",
