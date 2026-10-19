@@ -131,6 +131,7 @@
     {onDiscard}
     {immich}
     {onOpenImmich}
+    arrangement={session.arrangement}
   >
     {#snippet sources()}
       <ImmichBox

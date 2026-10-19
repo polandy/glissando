@@ -6,12 +6,13 @@
   import { getTranslator } from "../i18n/context";
   import type { MessageKey } from "../i18n/messages";
   import { browserObjectUrls, ObjectUrls } from "../media/object-urls";
-  import ChosenPicturesStrip from "./ChosenPicturesStrip.svelte";
-  import DropZone from "./DropZone.svelte";
+  import ImportPicturesStrip from "./ImportPicturesStrip.svelte";
+  import PictureIntakeEmpty from "./PictureIntakeEmpty.svelte";
   import PictureViewer from "../components/PictureViewer.svelte";
   import PicturesProgress from "./PicturesProgress.svelte";
   import SetAsidePictures from "./SetAsidePictures.svelte";
   import type { PictureIntake } from "./picture-intake";
+  import type { SessionArrangement } from "./session-arrangement";
   import { viewerEntries } from "../components/picture-viewer-view";
   import {
     captureRange,
@@ -37,6 +38,7 @@
     onOpenImmich,
     sources,
     linking = false,
+    arrangement,
   }: {
     intake: PictureIntake;
     loadThumbnail: (pictureId: string) => Promise<Blob>;
@@ -56,6 +58,8 @@
      * device (`dev-docs/server_library/IN_THE_APP.md`).
      */
     linking?: boolean;
+    /** A new slideshow's own order (IMPORT_ARRANGING.md, Arranging); null while adding, which has none. */
+    arrangement: SessionArrangement | null;
   } = $props();
 
   const PICTURE_TYPES = "image/*,video/*,.mp4,.webm,.mov";
@@ -71,12 +75,14 @@
   // svelte-ignore state_referenced_locally
   let importState = $state.raw(intake.pictures.state);
   // svelte-ignore state_referenced_locally
+  let previousPictureCount = importState.pictures.length;
+  // svelte-ignore state_referenced_locally
   let cullingState = $state.raw(intake.culling.state);
   let urls = $state<ReadonlyMap<string, string>>(new Map());
   let pickFiles: HTMLInputElement;
   let pickFolder: HTMLInputElement;
-  let choosePictures: HTMLButtonElement | undefined = $state();
-  let strip: ReturnType<typeof ChosenPicturesStrip> | undefined = $state();
+  let emptyStep: ReturnType<typeof PictureIntakeEmpty> | undefined = $state();
+  let strip: ReturnType<typeof ImportPicturesStrip> | undefined = $state();
   let viewing: string | null = $state(null);
 
   // svelte-ignore state_referenced_locally
@@ -86,6 +92,13 @@
   onDestroy(() => intake.endRemovals());
 
   $effect(() => intake.pictures.subscribe((next) => (importState = next)));
+  // The strip just emptied: the focus has nothing of its own left to go to.
+  $effect(() => {
+    if (importState.pictures.length === 0 && previousPictureCount > 0) {
+      emptyStep?.focusChoose();
+    }
+    previousPictureCount = importState.pictures.length;
+  });
   $effect(() => intake.culling.subscribe((next) => (cullingState = next)));
   $effect(() => thumbnails.subscribe((next) => (urls = next)));
   $effect(() =>
@@ -116,32 +129,16 @@
 <input bind:this={pickFiles} type="file" accept={PICTURE_TYPES} multiple hidden onchange={picked} />
 <input bind:this={pickFolder} type="file" webkitdirectory hidden onchange={picked} />
 
-{#if phase === "empty" && linking}
-  <div class="sources immich-first">{@render sources()}</div>
-  <div class="device-off" aria-disabled="true">
-    <b>{t("server.devicePictures")}</b>
-    <small>{t("server.deviceDisabled")}</small>
-  </div>
-{:else if phase === "empty"}
-  <DropZone icon="image" onFiles={(files) => onFiles(files)} {onError}>
-    <button
-      bind:this={choosePictures}
-      class="btn primary"
-      type="button"
-      onclick={() => pickFiles.click()}
-    >
-      {t("import.pickPictures")}
-    </button>
-    <span>
-      {t("import.or")}
-      <button class="btn ghost inline" type="button" onclick={() => pickFolder.click()}>
-        {t("import.pickFolder")}
-      </button>
-      · {t("import.dropHint")}
-    </span>
-    <span class="formats">{t("import.pictureFormats")}</span>
-  </DropZone>
-  <div class="sources">{@render sources()}</div>
+{#if phase === "empty"}
+  <PictureIntakeEmpty
+    bind:this={emptyStep}
+    {linking}
+    {sources}
+    {onFiles}
+    {onError}
+    onPickFiles={() => pickFiles.click()}
+    onPickFolder={() => pickFolder.click()}
+  />
 {/if}
 
 {#if importState.storageFull}
@@ -214,14 +211,15 @@
 {/if}
 
 {#if importState.pictures.length > 0 || pending > 0}
-  <ChosenPicturesStrip
+  <ImportPicturesStrip
     bind:this={strip}
     pictures={importState.pictures}
     {urls}
     {pending}
+    busy={importState.busy}
+    {arrangement}
     onRemove={(pictureId) => intake.removePicture(pictureId)}
     onView={(pictureId) => (viewing = pictureId)}
-    onEmptied={() => choosePictures?.focus()}
   />
 {/if}
 
@@ -238,7 +236,7 @@
     onTakeIn={(pictureId) => intake.culling.takeIn(pictureId)}
     onTakeAllIn={() => intake.culling.takeAllIn()}
     onView={(pictureId) => (viewing = pictureId)}
-    onEmptied={(pictureId) => strip?.focusRemove(pictureId)}
+    onEmptied={(pictureId) => strip?.focusPicture(pictureId)}
   />
 {/if}
 
@@ -261,34 +259,6 @@
 {/if}
 
 <style>
-  .device-off {
-    display: grid;
-    justify-items: center;
-    gap: 6px;
-    padding: 28px 16px;
-    border: 1.5px dashed var(--gl-line);
-    border-radius: var(--gl-radius-large);
-    background: var(--gl-surface);
-    text-align: center;
-    opacity: 0.55;
-  }
-  .device-off small {
-    max-width: 44ch;
-    color: var(--gl-muted);
-  }
-  .sources {
-    display: grid;
-    gap: 10px;
-  }
-  .inline {
-    height: auto;
-    padding: 0 4px;
-    font-size: inherit;
-  }
-  .formats {
-    font-size: var(--gl-size-small);
-    color: var(--gl-faint);
-  }
   .link {
     padding: 0;
     border: 0;

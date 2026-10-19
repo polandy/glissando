@@ -116,6 +116,7 @@
     onDiscard={() => onDiscard(false)}
     {immich}
     {onOpenImmich}
+    arrangement={null}
   >
     {#snippet sources()}
       <ImmichBox state={immich} onOpen={onOpenImmich} onSettings={onImmichSettings} />
