@@ -163,3 +163,31 @@ describe("AddPicturesMenu, the add-tile trigger", () => {
     ]);
   });
 });
+
+describe("AddPicturesMenu, placement", () => {
+  function openAt(edge: "top" | "bottom") {
+    const target = mountMenu({ tile: true });
+    target.style.position = "fixed";
+    target.style[edge] = "0";
+    target.style.width = "160px";
+    toggle(target)?.click();
+    flushSync();
+    const trigger = toggle(target);
+    const menu = target.querySelector<HTMLElement>('[role="menu"]');
+    if (trigger === null || menu === null) throw new Error("the menu did not open");
+    return { trigger: trigger.getBoundingClientRect(), menu: menu.getBoundingClientRect() };
+  }
+
+  it("opens below a trigger in the upper half of the screen", () => {
+    const { trigger, menu } = openAt("top");
+
+    expect(menu.top).toBeGreaterThanOrEqual(trigger.bottom);
+  });
+
+  it("opens above a trigger in the lower half, clear of the step's bottom bar", () => {
+    const { trigger, menu } = openAt("bottom");
+
+    expect(menu.bottom).toBeLessThanOrEqual(trigger.top);
+    expect(menu.top).toBeGreaterThanOrEqual(0);
+  });
+});

@@ -46,6 +46,7 @@
   /**
    * Focuses the first item and, fixed to the viewport, keeps the popover clear of its right
    * edge — the strip would otherwise clip it, and the trigger can sit close to a phone's edge.
+   * A trigger in the lower half opens it upwards, clear of the step's bottom bar.
    */
   function openMenu(menu: HTMLElement): void {
     menu.querySelector<HTMLElement>('[role="menuitem"]')?.focus();
@@ -56,7 +57,10 @@
     const margin = 8;
     const left = Math.min(anchor.left, window.innerWidth - menu.offsetWidth - margin);
     menu.style.left = `${Math.max(margin, left)}px`;
-    menu.style.top = `${anchor.bottom + 6}px`;
+    const gap = 6;
+    const opensUp = anchor.top + anchor.height / 2 > window.innerHeight / 2;
+    const top = opensUp ? anchor.top - gap - menu.offsetHeight : anchor.bottom + gap;
+    menu.style.top = `${Math.max(margin, top)}px`;
   }
 </script>
 
