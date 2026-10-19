@@ -28,6 +28,7 @@ function mountBody(checker: FakePictureChecker) {
     onDiscard: () => undefined,
     immich: { kind: "notSetUp" },
     onOpenImmich: () => undefined,
+    arrangement: null,
     sources: NO_SOURCES,
   });
   unmounts.push(body.destroy);
@@ -57,9 +58,14 @@ function similarAndBlurry() {
 
 const text = (element: Element | null | undefined): string =>
   (element?.textContent ?? "").replace(/\s+/g, " ").trim();
-const stripTiles = (target: HTMLElement) => target.querySelectorAll(".strip .tile").length;
-/** The strip's tiles; soft.jpg, the latest set aside, is the fifth once every picture is in. */
-const tiles = (target: HTMLElement) => [...target.querySelectorAll(".strip .tile")];
+/** The strip's picture tiles; soft.jpg, the latest set aside, is the fifth once every picture is in. */
+const tiles = (target: HTMLElement) =>
+  [...target.querySelectorAll(".strip .tile")].filter(
+    (tile) => tile.querySelector("button.pick") !== null,
+  );
+const stripTiles = (target: HTMLElement) => tiles(target).length;
+/** The tile's own button: what a picture taken in from the aside focuses (`focusPicture`). */
+const pickButton = (tile: Element | undefined) => tile?.querySelector("button.pick");
 const SOFT_TILE = 4;
 const takeButtons = (target: HTMLElement) => [
   ...target.querySelectorAll<HTMLButtonElement>("button.take"),
@@ -139,7 +145,7 @@ describe("PictureIntakeBody, the set-aside pictures", () => {
     flushSync();
 
     expect(stripTiles(target)).toBe(6);
-    expect(document.activeElement).toBe(tiles(target)[SOFT_TILE]?.querySelector("button.remove"));
+    expect(document.activeElement).toBe(pickButton(tiles(target)[SOFT_TILE]));
     expect(target.querySelector(".aside")).toBeNull();
   });
 
@@ -156,7 +162,7 @@ describe("PictureIntakeBody, the set-aside pictures", () => {
     }
 
     expect(stripTiles(target)).toBe(6);
-    expect(document.activeElement).toBe(tiles(target)[SOFT_TILE]?.querySelector("button.remove"));
+    expect(document.activeElement).toBe(pickButton(tiles(target)[SOFT_TILE]));
     expect(target.querySelector(".aside")).toBeNull();
   });
 

@@ -7,7 +7,7 @@ export const deImmich = {
   "immich.sourceText":
     "Alben und Fotos aus deinem Immich. Sie werden heruntergeladen und bleiben auf dem Gerät.",
   "immich.open": "Immich öffnen",
-  "immich.more": "mehr aus Immich",
+  "immich.more": "Aus Immich",
   "immich.offlineText":
     "Offline – Immich geht nur mit Verbindung zu deinem Glissando-Server. Bilder von diesem Gerät gehen weiter.",
   "immich.detailsInSettings": "Details in den Einstellungen.",

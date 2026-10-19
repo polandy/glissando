@@ -1,7 +1,7 @@
 <script lang="ts">
-  import Icon from "../components/Icon.svelte";
-  import { keepToastsClear } from "../components/toast-clearance";
   import { getTranslator } from "../i18n/context";
+  import Icon from "./Icon.svelte";
+  import { keepToastsClear } from "./toast-clearance";
   import type { SetAsideReason, ViewerEntry } from "./picture-viewer-view";
 
   /** The viewer's bottom bar: a filmstrip of every picture, and the decision about the shown one. */
@@ -23,8 +23,10 @@
     setAside: SetAsideReason | null;
     hidden: boolean;
     onShow: (pictureId: string) => void;
-    onRemove: () => void;
-    onTakeIn: () => void;
+    /** Left out to hide "Remove" (the caller's last-picture rule). */
+    onRemove?: (() => void) | undefined;
+    /** Left out where set-aside pictures do not apply. */
+    onTakeIn?: (() => void) | undefined;
   } = $props();
 
   const { t } = getTranslator();
@@ -46,10 +48,12 @@
     {/each}
   </ul>
   {#if setAside === null}
-    <button class="pill remove" type="button" onclick={onRemove}>
-      <Icon name="trash" />{t("slideshow.remove")}
-    </button>
-  {:else}
+    {#if onRemove !== undefined}
+      <button class="pill remove" type="button" onclick={onRemove}>
+        <Icon name="trash" />{t("slideshow.remove")}
+      </button>
+    {/if}
+  {:else if onTakeIn !== undefined}
     <button class="pill take" type="button" onclick={onTakeIn}>
       <Icon name="plus" />{t("view.takeIn")}
     </button>

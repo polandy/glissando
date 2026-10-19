@@ -140,6 +140,8 @@ export function mountScreen(
     closingCardsEnsured: 0,
     closingCards: [] as CardInput[],
     closingCardsRemoved: 0,
+    loaded: [] as string[],
+    errors: [] as unknown[],
   };
   // The transitions sheet's picks and resets come back as the parent would show them.
   const props = reactiveProps({
@@ -159,6 +161,11 @@ export function mountScreen(
     frameScheduler: dragFrames,
     onRename: (typed: string) => calls.renamed.push(typed),
     onEdit: (pictureId: string) => calls.edited.push(pictureId),
+    loadPicture: (pictureId: string) => {
+      calls.loaded.push(pictureId);
+      return Promise.resolve(new Blob());
+    },
+    onError: (error: unknown) => calls.errors.push(error),
     onEditMusic: () => (calls.musicEdits += 1),
     onTransition: (transition: SlideshowTransition) => {
       calls.transitions.push(transition);

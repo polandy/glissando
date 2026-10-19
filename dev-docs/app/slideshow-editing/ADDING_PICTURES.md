@@ -7,7 +7,7 @@
   box. Its lead: "They go into place by capture date." (with own order: "Your own order stays;
   choose below where the new pictures go."), then "Glissando downscales them for this device;
   your originals stay untouched." The drop zone, the Immich box (its browser opens for this
-  slideshow, Immich below), the progress, the tiles (with their ✕, Removing), the set-aside
+  slideshow, Immich below), the queue and the tiles (selecting, View, F, removing — [IMPORT_ARRANGING.md](../IMPORT_ARRANGING.md), In "Add media"), the set-aside
   pictures (Culling, Import wizard; similar shots are found among the new pictures only) and the
   notices are the import's; pictures already in the slideshow are skipped (Duplicates, Import
   wizard), and "Add n" waits for the check as "Next" does. Once at least one new

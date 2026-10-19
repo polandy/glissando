@@ -1,4 +1,5 @@
 <script lang="ts">
+  import type { Snippet } from "svelte";
   import Icon from "../../components/Icon.svelte";
   import { getTranslator } from "../../i18n/context";
 
@@ -9,7 +10,10 @@
     selecting,
     onToggleSelect,
     onShuffle,
-    onAdd,
+    onAdd = () => undefined,
+    variant = "editor",
+    busy = false,
+    add,
   }: {
     count: number;
     ownOrder: boolean;
@@ -18,7 +22,14 @@
     onToggleSelect: () => void;
     /** Puts the pictures in a new random order. */
     onShuffle: () => void;
-    onAdd: () => void;
+    /** Unused while `add` is given. */
+    onAdd?: () => void;
+    /** "import" reads the order as capture order, not sorted by date (IMPORT_ARRANGING.md). */
+    variant?: "editor" | "import";
+    /** An import is still running: says where a newly-ready picture joins the order. */
+    busy?: boolean;
+    /** Replaces the default "Add media" button, e.g. the pictures step's own add menu. */
+    add?: Snippet | undefined;
   } = $props();
 
   const { t } = getTranslator();
@@ -28,10 +39,19 @@
   <h2 class="eyebrow">{t("slideshow.pictures")}</h2>
   <p class="muted sorted">
     {#if ownOrder}
-      {t("slideshow.ownOrder")} ·
-      <span class="wide">{t("slideshow.reorderHintWide")}</span><span class="narrow"
-        >{t("slideshow.reorderHintNarrow")}</span
-      >
+      {t("slideshow.ownOrder")}
+      {#if variant === "editor"}
+        · <span class="wide">{t("slideshow.reorderHintWide")}</span><span class="narrow"
+          >{t("slideshow.reorderHintNarrow")}</span
+        >
+      {:else if busy}
+        · {t("import.sortedInAtEnd")}
+      {/if}
+    {:else if variant === "import"}
+      {t("import.captureOrder")}
+      {#if busy}
+        · {t("import.sortedInByDate")}
+      {/if}
     {:else}
       {t("slideshow.sortedByDate")}<span class="narrow"
         >&nbsp;· {t("slideshow.selectHintNarrow")}</span
@@ -57,11 +77,17 @@
   >
     <Icon name="checkCircle" /><span>{t("slideshow.select")}</span>
   </button>
-  <button class="btn small add" type="button" onclick={onAdd} aria-label={t("add.title")}>
-    <Icon name="plus" /><span class="wide">{t("add.title")}</span><span class="narrow"
-      >{t("add.titleShort")}</span
-    >
-  </button>
+  <span class="add">
+    {#if add}
+      {@render add()}
+    {:else}
+      <button class="btn small" type="button" onclick={onAdd} aria-label={t("add.title")}>
+        <Icon name="plus" /><span class="wide">{t("add.title")}</span><span class="narrow"
+          >{t("add.titleShort")}</span
+        >
+      </button>
+    {/if}
+  </span>
 </div>
 
 <style>
@@ -95,12 +121,15 @@
   }
   .add {
     grid-column: 5;
+    grid-row: 1 / span 2;
+    align-self: center;
   }
   .narrow {
     display: none;
   }
   @container (max-width: 720px) {
-    .btn {
+    .btn,
+    .add {
       grid-row: 1;
     }
     .sorted {

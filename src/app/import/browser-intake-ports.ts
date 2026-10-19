@@ -10,6 +10,7 @@ import { WorkerPictureChecker, startCheckWorker } from "../../culling/worker-pic
 import type { Toaster } from "../toast/toaster";
 import type { TranslatorState } from "../i18n/translator-state.svelte";
 import type { PictureIntakePorts } from "./picture-intake";
+import { pickName } from "./picture-queue";
 
 export interface BrowserIntakePortsDependencies {
   readonly immichClient: HttpImmichClient;
@@ -54,5 +55,11 @@ export function browserIntakePorts(
     toaster,
     removedText: (count: number) => translator.current.t("slideshow.removed", { count }),
     undoLabel: () => translator.current.t("slideshow.undo"),
+    stoppedPickText: (pick) => {
+      const name = pickName(pick, translator.current.t);
+      return pick.stored > 0
+        ? translator.current.t("import.pickStoppedKept", { name, count: pick.stored })
+        : translator.current.t("import.pickStopped", { name });
+    },
   };
 }

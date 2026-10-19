@@ -16,7 +16,7 @@ const SLIDESHOW_TILE = /^Bild \d+, aufgenommen am \d{2}\.\d{2}\.\d{4}$/;
 
 /** The wizard strip's pictures, named by their remove buttons in strip order. */
 function stripRemoveButtons(page: Page) {
-  return page.getByRole("button", { name: /^Bild vom \d{2}\.\d{2}\.\d{4} entfernen$/ });
+  return page.getByRole("button", { name: /^Bild \d+ entfernen$/ });
 }
 
 test.beforeEach(async ({ page }) => {
@@ -39,8 +39,8 @@ test("E2E-042 the import sets aside the blurrier of two similar shots and a blur
   const setAside = page.getByRole("region", { name: /^Beiseitegelegt/ });
   await expect(setAside.getByRole("heading", { level: 2 })).toHaveText("Beiseitegelegt · 2");
   await expect(stripRemoveButtons(page)).toHaveCount(2);
-  await expect(page.getByRole("button", { name: "Bild vom 12.07.2025 entfernen" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Bild vom 13.07.2025 entfernen" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Bild 1 entfernen" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Bild 2 entfernen" })).toBeVisible();
 
   await expect(setAside.getByRole("heading", { level: 3 })).toHaveText([
     "Ähnlich · 13.07.2025 12:00–12:01 · das schärfste bleibt",
@@ -59,7 +59,7 @@ test("E2E-042 the import sets aside the blurrier of two similar shots and a blur
     .getByRole("button", { name: "Bild vom 14.07.2025 um 12:00:00 übernehmen" })
     .click();
 
-  await expect(page.getByRole("button", { name: "Bild vom 14.07.2025 entfernen" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Bild 3 entfernen" })).toBeVisible();
   await expect(stripRemoveButtons(page)).toHaveCount(3);
   await expect(setAside.getByRole("heading", { level: 2 })).toHaveText("Beiseitegelegt · 1");
   await expect(setAside.getByRole("heading", { level: 3 })).toHaveText([

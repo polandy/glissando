@@ -36,6 +36,9 @@ export interface SlideshowScreenProps {
   onRename: (typed: string) => void;
   /** Opens the picture editor for a picture. */
   onEdit: (pictureId: string) => void;
+  /** A picture as the slideshow will show it, for F's full-screen view. */
+  loadPicture: (pictureId: string) => Promise<Blob>;
+  onError: (error: unknown) => void;
   /** Opens the music editor; only offered with music. */
   onEditMusic: () => void;
   /** The slideshow's default transition was picked in its sheet. */

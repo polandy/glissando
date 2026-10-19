@@ -1,18 +1,29 @@
-import type { StoredPicture } from "../../library/stored-slideshow";
-import type { SetAsideGroup } from "./picture-culling";
+import type { SetAsideReason } from "../../culling/cull";
 
-export type SetAsideReason = SetAsideGroup["kind"];
+export type { SetAsideReason };
+
+/** A picture as the full-screen viewer can show it: enough to date it and tell it apart. */
+export interface ViewerPicture {
+  readonly id: string;
+  readonly capturedAt: string;
+}
 
 /** One picture the full-screen viewer can show; `setAside` says why it is not in the strip. */
 export interface ViewerEntry {
-  readonly picture: StoredPicture;
+  readonly picture: ViewerPicture;
   readonly setAside: SetAsideReason | null;
+}
+
+/** A set-aside group, in whatever shape the caller holds it (the import's `SetAsideGroup`). */
+interface SetAsideGroupLike {
+  readonly kind: SetAsideReason;
+  readonly pictures: readonly ViewerPicture[];
 }
 
 /** The strip's pictures in order, then the set-aside ones group by group. */
 export function viewerEntries(
-  pictures: readonly StoredPicture[],
-  groups: readonly SetAsideGroup[],
+  pictures: readonly ViewerPicture[],
+  groups: readonly SetAsideGroupLike[],
 ): ViewerEntry[] {
   return [
     ...pictures.map((picture) => ({ picture, setAside: null })),

@@ -125,6 +125,11 @@ export class PictureCulling {
     this.#takeIn([...this.#setAside.keys()]);
   }
 
+  /** Spares `ids` from every cull from now on: the user moved them, so they count as chosen. */
+  exempt(ids: readonly string[]): void {
+    for (const id of ids) this.#exempt.add(id);
+  }
+
   /** Forgets every check and set-aside picture, such as when the import starts over. */
   reset(): void {
     this.#generation += 1;

@@ -203,6 +203,8 @@
     onMoveGroup={(pictureIds, insertion) => editor?.moveGroup(pictureIds, insertion)}
     onRename={(typed) => editor?.rename(typed)}
     {onEdit}
+    loadPicture={(id) => store.playbackPictureBlob(id)}
+    {onError}
     {onEditMusic}
     onTransition={(transition) => editor?.setSlideshowTransition(transition)}
     onResetTransition={() => editor?.resetSlideshowTransition()}

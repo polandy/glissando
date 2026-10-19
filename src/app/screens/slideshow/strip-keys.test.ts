@@ -61,4 +61,14 @@ describe("stripKeyAction", () => {
   it.each(["Tab", "a", "Home"])("leaves %j to the browser", (key) => {
     expect(action(key)).toBeNull();
   });
+
+  it.each(["f", "F"])("answers %j with view", (key) => {
+    expect(action(key)).toEqual({ kind: "view" });
+  });
+
+  it("leaves Ctrl+F, Shift+F and ⌘+F to the browser", () => {
+    expect(action("f", { ctrlKey: true })).toBeNull();
+    expect(action("F", { shiftKey: true })).toBeNull();
+    expect(action("f", { metaKey: true })).toBeNull();
+  });
 });

@@ -126,6 +126,26 @@ describe("PictureIntake, culling similar shots and blurry pictures", () => {
     expect(intake.culling.state).toMatchObject({ groups: [], setAsideCount: 0 });
   });
 
+  it("never sets aside a picture the user moved, exempted from culling", async () => {
+    const { intake } = intakeWith(SIMILAR_SHOTS);
+    intake.addPictures(similarShotFiles());
+    await intake.pictures.settled();
+    const exempted = intake.pictures.state.pictures.find(({ fileName }) => fileName === "a.jpg");
+
+    intake.culling.exempt([exempted?.id ?? ""]);
+    await intake.settled();
+
+    expect(names(intake)).toEqual(["a.jpg", "b.jpg", "later.jpg"]);
+    const kept = intake.pictures.state.pictures.find(({ fileName }) => fileName === "b.jpg");
+    expect(intake.culling.state.groups).toEqual([
+      {
+        kind: "similar",
+        keptId: kept?.id,
+        pictures: [expect.objectContaining({ fileName: "c.jpg" })],
+      },
+    ]);
+  });
+
   it("never sets aside a duplicate taken in anyway", async () => {
     const { intake, checker } = intakeWith({});
     intake.addPictures([pictureFile("a.jpg", at(0))]);

@@ -57,6 +57,8 @@ export const ICONS = {
       ),
     ],
   },
+  /** A pick of loose files, not a folder: two overlapping sheets. */
+  files: { shapes: [rect(7, 3, 13, 16, 1.5), rect(4, 7, 13, 16, 1.5)] },
   download: { shapes: [path("M12 4v11M7 10.5l5 5 5-5M5 19.5h14")] },
   open: {
     shapes: [
@@ -204,6 +206,10 @@ export const ICONS = {
   moon: { shapes: [path("M20 14.5A8 8 0 019.5 4a8 8 0 1010.5 10.5z")] },
   monitor: { shapes: [rect(3, 4, 18, 12, 2), path("M8 20h8M12 16v4")] },
   search: { shapes: [circle(11, 11, 6.5), path("M16 16l4 4")] },
+  /** An Immich pick. */
+  cloud: {
+    shapes: [path("M8 7.5A5.5 5.5 0 0117.5 10 4 4 0 0120 16.5M16 18H7a4.5 4.5 0 01-1.6-8.7")],
+  },
   cloudOff: {
     shapes: [
       path("M3 3l18 18"),

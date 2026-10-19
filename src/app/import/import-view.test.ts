@@ -31,6 +31,7 @@ const idle: PictureImportState = {
   total: 0,
   done: 0,
   pictures: [],
+  picks: [],
   skipped: [],
   storageFull: false,
   busy: false,
@@ -80,7 +81,6 @@ describe("canContinue", () => {
     expect(canContinue(oneStored, { ...culled, checking: { checked: 0, total: 1 } })).toBe(false);
   });
 });
-
 describe("hasSelection", () => {
   it.each([
     ["a stored picture", oneStored, true],

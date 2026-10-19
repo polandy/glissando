@@ -4,6 +4,8 @@ import {
   PictureImport,
   PictureImportFailedError,
   type DuplicateReason,
+  type ImportPick,
+  type PickInput,
 } from "../../import/picture-import";
 import type { PictureSource } from "../../import/picture-source";
 import { localVideoSource, type LocalVideoReaders } from "../../import/local-video-source";
@@ -38,9 +40,20 @@ export interface PictureIntakePorts
   onError(error: unknown): void;
   /** Records an error the user already sees, such as a failed import shown by the pictures step. */
   log(error: unknown): void;
+  /** The toast's text for a stopped pick, naming what it was and how much of it stayed. */
+  stoppedPickText(pick: ImportPick): string;
 }
 
 const VIDEO_TYPE_PREFIX = "video/";
+
+/**
+ * "folder" for a folder pick, named after it (`webkitRelativePath`'s first segment, the same for
+ * every file of one such pick); "files" otherwise.
+ */
+function filesPickInput(files: readonly File[]): PickInput {
+  const folderName = files[0]?.webkitRelativePath?.split("/")[0];
+  return folderName ? { kind: "folder", folderName } : { kind: "files" };
+}
 
 /**
  * The pictures being taken in, for a new slideshow or one being added to: files and Immich photos
@@ -115,13 +128,19 @@ export class PictureIntake {
 
   addPictures(files: readonly File[]): void {
     this.#removals.end();
-    this.pictures.add(files.map((file) => this.#localSource(file)));
+    this.pictures.add(
+      files.map((file) => this.#localSource(file)),
+      filesPickInput(files),
+    );
     this.#watchDrain();
   }
 
   addImmichPhotos(photos: readonly ImmichPhoto[]): void {
     this.#removals.end();
-    this.pictures.add(photos.map((photo) => this.#ports.immichSource(photo)));
+    this.pictures.add(
+      photos.map((photo) => this.#ports.immichSource(photo)),
+      { kind: "immich" },
+    );
     this.#watchDrain();
   }
 
@@ -162,6 +181,20 @@ export class PictureIntake {
   /** The removals become final and their toast goes, such as on leaving the pictures step. */
   endRemovals(): void {
     this.#removals.end();
+  }
+
+  /**
+   * Stops a pick still in flight: its waiting files are dropped, what already landed stays; a
+   * toast says so, naming the pick as its row did (before `stop` shrinks its total to match what
+   * is done). Throws as `PictureImport.stop` does for an unknown or already-finished pick.
+   */
+  stopPick(pickId: string): void {
+    const pick = this.pictures.state.picks.find((candidate) => candidate.id === pickId);
+    if (pick === undefined) {
+      throw new Error(`the import has no pick "${pickId}" to stop`);
+    }
+    this.pictures.stop(pickId);
+    this.#ports.toaster.show({ text: this.#ports.stoppedPickText(pick), tone: "info" });
   }
 
   /**

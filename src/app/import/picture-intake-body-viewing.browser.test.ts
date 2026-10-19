@@ -33,6 +33,7 @@ function mountBody(checker?: FakePictureChecker) {
     onDiscard: () => undefined,
     immich: { kind: "notSetUp" },
     onOpenImmich: () => undefined,
+    arrangement: null,
     sources: NO_SOURCES,
   });
   unmounts.push(body.destroy);
@@ -51,8 +52,9 @@ async function mountWithPictures(...names: string[]) {
 
 const text = (element: Element | null | undefined): string =>
   (element?.textContent ?? "").replace(/\s+/g, " ").trim();
-const viewButtons = (target: HTMLElement) => [
-  ...target.querySelectorAll<HTMLButtonElement>(".strip button.view"),
+// The tile itself: focusing it and pressing F opens it full screen (strip-keys.ts).
+const tiles = (target: HTMLElement) => [
+  ...target.querySelectorAll<HTMLButtonElement>(".strip button.pick"),
 ];
 const viewer = (target: HTMLElement) => target.querySelector<HTMLElement>("[role=dialog]");
 const press = (key: string) => {
@@ -63,22 +65,26 @@ const click = (target: HTMLElement, selector: string) => {
   target.querySelector<HTMLElement>(selector)?.click();
   flushSync();
 };
+/** Opens the tile's picture full screen, the way a keyboard user does (plain F). */
+function openByKey(target: HTMLElement, index: number): void {
+  tiles(target)[index]?.focus();
+  press("f");
+}
 
 describe("PictureIntakeBody, a picture full screen", () => {
-  it("names a tile's view button by the picture's date and time", async () => {
+  it("names each tile by its position and date", async () => {
     const { target } = await mountWithPictures("beach.jpg", "hill.jpg");
 
-    expect(viewButtons(target).map((button) => button.getAttribute("aria-label"))).toEqual([
-      "Bild vom 01.07.2025 um 10:00:00 ansehen",
-      "Bild vom 02.07.2025 um 10:00:00 ansehen",
+    expect(tiles(target).map((tile) => tile.querySelector("img")?.alt)).toEqual([
+      "Bild 1, aufgenommen am 01.07.2025",
+      "Bild 2, aufgenommen am 02.07.2025",
     ]);
   });
 
-  it("opens the chosen picture as a modal dialog with its date and place, loading the full pictures", async () => {
+  it("opens the focused tile's picture with F, as a modal dialog with its date, loading the full pictures", async () => {
     const { target, loaded } = await mountWithPictures("beach.jpg", "hill.jpg");
 
-    viewButtons(target)[1]?.click();
-    flushSync();
+    openByKey(target, 1);
 
     const dialog = viewer(target);
     expect(dialog?.getAttribute("aria-modal")).toBe("true");
@@ -89,8 +95,7 @@ describe("PictureIntakeBody, a picture full screen", () => {
 
   it("browses with the arrow keys and stops at the ends", async () => {
     const { target } = await mountWithPictures("beach.jpg", "hill.jpg");
-    viewButtons(target)[0]?.click();
-    flushSync();
+    openByKey(target, 0);
 
     press("ArrowLeft");
     expect(text(viewer(target)?.querySelector(".meta span"))).toBe("1 von 2");
@@ -102,8 +107,7 @@ describe("PictureIntakeBody, a picture full screen", () => {
 
   it("jumps to a picture with its filmstrip thumbnail", async () => {
     const { target } = await mountWithPictures("beach.jpg", "hill.jpg", "lake.jpg");
-    viewButtons(target)[0]?.click();
-    flushSync();
+    openByKey(target, 0);
 
     target.querySelectorAll<HTMLElement>(".film button")[2]?.click();
     flushSync();
@@ -114,10 +118,8 @@ describe("PictureIntakeBody, a picture full screen", () => {
 
   it("closes with Escape and focuses the tile it came from", async () => {
     const { target } = await mountWithPictures("beach.jpg", "hill.jpg");
-    const opener = viewButtons(target)[1];
-    opener?.focus();
-    opener?.click();
-    flushSync();
+    const opener = tiles(target)[1];
+    openByKey(target, 1);
     expect(viewer(target)).not.toBeNull();
 
     press("Escape");
@@ -126,14 +128,26 @@ describe("PictureIntakeBody, a picture full screen", () => {
     expect(document.activeElement).toBe(opener);
   });
 
+  it("moves a single strip selection to the picture shown when the viewer closes", async () => {
+    const { target } = await mountWithPictures("beach.jpg", "hill.jpg", "lake.jpg");
+    click(target, ".strip button.pick");
+    openByKey(target, 2);
+
+    press("Escape");
+
+    const [beach, hill, lake] = tiles(target);
+    expect(beach?.getAttribute("aria-pressed")).toBe("false");
+    expect(hill?.getAttribute("aria-pressed")).toBe("false");
+    expect(lake?.getAttribute("aria-pressed")).toBe("true");
+  });
+
   it("removes the shown picture, with the undo toast, and shows the next one", async () => {
     const { intake, toaster, target } = await mountWithPictures(
       "beach.jpg",
       "hill.jpg",
       "lake.jpg",
     );
-    viewButtons(target)[1]?.click();
-    flushSync();
+    openByKey(target, 1);
 
     click(target, ".pill.remove");
 
@@ -148,8 +162,7 @@ describe("PictureIntakeBody, a picture full screen", () => {
 
   it("removes with the Delete key", async () => {
     const { intake, target } = await mountWithPictures("beach.jpg", "hill.jpg");
-    viewButtons(target)[0]?.click();
-    flushSync();
+    openByKey(target, 0);
 
     press("Delete");
 
@@ -158,8 +171,7 @@ describe("PictureIntakeBody, a picture full screen", () => {
 
   it("closes once the last picture is removed", async () => {
     const { target } = await mountWithPictures("beach.jpg");
-    viewButtons(target)[0]?.click();
-    flushSync();
+    openByKey(target, 0);
 
     click(target, ".pill.remove");
 

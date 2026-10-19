@@ -1,11 +1,17 @@
 import type { VideoRefusal } from "../../import/video-refusal";
 import type { ConvertibleSource } from "../../import/music-format";
 import { musicExcerptMs, placeSongs, playlistMs, slideDurationsMs } from "../../compose";
-import type { PictureImportState, SkipReason, SkippedFile } from "../../import/picture-import";
+import type {
+  ImportPick,
+  PictureImportState,
+  SkipReason,
+  SkippedFile,
+} from "../../import/picture-import";
 import { MAX_VIDEO_EXCERPT_MS } from "../../library/own-video";
 import type { StoredPicture } from "../../library/stored-slideshow";
 import { MILLISECONDS_PER_SECOND } from "../../player";
 import type { PlaylistSongView } from "../music-editor/playlist-view";
+import type { Translator } from "../i18n/translator";
 import type { ChosenSong } from "./import-session";
 import type { CullingState } from "./picture-culling";
 
@@ -36,6 +42,40 @@ export function pendingPictureCount(state: PictureImportState): number {
  */
 export function canContinue(state: PictureImportState, culling: CullingState): boolean {
   return !state.busy && culling.checking === null && !state.failed && state.pictures.length > 0;
+}
+
+/** Why "Next" is disabled; null once `canContinue` allows it. */
+export type ContinueBlockedReason =
+  { readonly kind: "importing"; readonly remaining: number } | { readonly kind: "checking" };
+
+/** The reason behind `canContinue`'s false, for the footer to show (IMPORT_ARRANGING.md). */
+export function continueBlockedReason(
+  state: PictureImportState,
+  culling: CullingState,
+): ContinueBlockedReason | null {
+  if (state.busy) {
+    return { kind: "importing", remaining: state.total - state.done };
+  }
+  return culling.checking === null ? null : { kind: "checking" };
+}
+
+/** The footer's text for why "Next"/"Add" is disabled, by `continueBlockedReason`'s result. */
+export function continueBlockedText(reason: ContinueBlockedReason, t: Translator["t"]): string {
+  return reason.kind === "importing"
+    ? t("import.blockedImporting", { count: reason.remaining })
+    : t("import.blockedChecking");
+}
+
+/** A pick with whether it is the one being read now, the earliest still unfinished. */
+export interface PickProgress {
+  readonly pick: ImportPick;
+  readonly inFlight: boolean;
+}
+
+/** Each pick for the queue (PICTURE_IMPORT.md): at most one is marked in flight. */
+export function pickProgress(picks: readonly ImportPick[]): readonly PickProgress[] {
+  const inFlightId = picks.find((pick) => pick.done < pick.total)?.id;
+  return picks.map((pick) => ({ pick, inFlight: pick.id === inFlightId }));
 }
 
 /** Whether leaving step 1 would throw away something the user chose. */

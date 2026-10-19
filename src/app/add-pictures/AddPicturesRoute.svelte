@@ -6,7 +6,12 @@
   import ImmichBox from "../immich/ImmichBox.svelte";
   import { getTranslator } from "../i18n/context";
   import ImportFrame from "../import/ImportFrame.svelte";
-  import { canContinue, hasSelection } from "../import/import-view";
+  import {
+    canContinue,
+    continueBlockedReason,
+    continueBlockedText,
+    hasSelection,
+  } from "../import/import-view";
   import PictureIntakeBody from "../import/PictureIntakeBody.svelte";
   import type { AddPicturesSession } from "./add-pictures-session";
   import { afterAdding } from "./after-adding";
@@ -57,6 +62,7 @@
   // svelte-ignore state_referenced_locally
   const linking = session.home === "server";
   const ready = $derived(canContinue(importState, cullingState));
+  const blockedReason = $derived(continueBlockedReason(importState, cullingState));
   const after = $derived(
     ready ? afterAdding(session.slideshow, importState.pictures, placement) : null,
   );
@@ -110,6 +116,7 @@
     onDiscard={() => onDiscard(false)}
     {immich}
     {onOpenImmich}
+    arrangement={null}
   >
     {#snippet sources()}
       <ImmichBox state={immich} onOpen={onOpenImmich} onSettings={onImmichSettings} />
@@ -148,6 +155,9 @@
   {/if}
 
   {#snippet actions()}
+    {#if blockedReason !== null}
+      <span class="blocked-reason muted">{continueBlockedText(blockedReason, t)}</span>
+    {/if}
     <button class="btn ghost" type="button" disabled={committing} onclick={leave}>
       {t("common.cancel")}
     </button>
@@ -177,6 +187,10 @@
 {/if}
 
 <style>
+  .blocked-reason {
+    margin-right: auto;
+    font-size: var(--gl-size-label);
+  }
   .where {
     display: grid;
     gap: 10px;

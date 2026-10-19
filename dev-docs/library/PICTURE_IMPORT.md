@@ -5,6 +5,10 @@ publishes a state with the Svelte store contract:
 
 - `total` counts accepted picture files, `done` the processed ones (stored or unreadable), so
   progress "done of total" reaches total. More files can be added at any time; they append.
+- Each `add` (and each Immich selection) is one **pick** with a name and a kind (files, folder,
+  Immich); `picks` lists them in pick order with their own `total` and `done`. `stop(pickId)`
+  drops the pick's waiting files from the queue and from `total`; stored pictures stay, and the
+  file in flight is dropped when it finishes. `cancel` stops every pick, as before.
 - `pictures` lists the stored pictures in capture-date order as they arrive.
 - **Storage full** (`QuotaExceededError`): the import stops, keeps what is stored, drops the
   remaining files from `total` and reports `storageFull`. Adding files again tries again.

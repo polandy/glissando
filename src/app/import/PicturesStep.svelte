@@ -9,7 +9,7 @@
   import { singleGlissandoFile } from "./dropped-files";
   import ImportFrame from "./ImportFrame.svelte";
   import type { ImportSession } from "./import-session";
-  import { canContinue } from "./import-view";
+  import { canContinue, continueBlockedReason, continueBlockedText } from "./import-view";
   import PictureIntakeBody from "./PictureIntakeBody.svelte";
   import WhereItLives from "./WhereItLives.svelte";
   import type { SlideshowHome } from "../../server-library/server-library-memory";
@@ -77,6 +77,7 @@
   let cullingState = $state.raw(session.intake.culling.state);
   $effect(() => session.intake.culling.subscribe((next) => (cullingState = next)));
   $effect(() => session.choices.subscribe((next) => (home = next.home)));
+  const blockedReason = $derived(continueBlockedReason(importState, cullingState));
   // Without the server library a new slideshow lives on this device; a selection keeps its home.
   $effect(() => {
     const wanted = serverOn ? rememberedHome : "device";
@@ -130,6 +131,7 @@
     {onDiscard}
     {immich}
     {onOpenImmich}
+    arrangement={session.arrangement}
   >
     {#snippet sources()}
       <ImmichBox
@@ -145,6 +147,9 @@
   </PictureIntakeBody>
 
   {#snippet actions()}
+    {#if blockedReason !== null}
+      <span class="blocked-reason muted">{continueBlockedText(blockedReason, t)}</span>
+    {/if}
     <button class="btn ghost" type="button" onclick={onLeave}>{t("common.cancel")}</button>
     <button
       class="btn primary"
@@ -156,3 +161,10 @@
     </button>
   {/snippet}
 </ImportFrame>
+
+<style>
+  .blocked-reason {
+    margin-right: auto;
+    font-size: var(--gl-size-label);
+  }
+</style>

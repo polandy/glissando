@@ -18,6 +18,7 @@
     selection = $bindable(),
     mousePointer,
     onEdit,
+    onView,
     onRemove,
     onRemoveGroup,
     onShuffle,
@@ -38,6 +39,8 @@
     mousePointer: boolean;
     /** Opens the picture editor for a picture. */
     onEdit: (pictureId: string) => void;
+    /** F on a focused tile: opens it in the full-screen viewer. */
+    onView: (pictureId: string) => void;
     onRemove: (pictureId: string) => void;
     onRemoveGroup: (pictureIds: readonly string[]) => void;
     /** Puts the pictures in a new random order. */
@@ -92,6 +95,7 @@
     {mousePointer}
     onSelectionChange={(next) => (selection = next)}
     onOpen={onEdit}
+    {onView}
     {onRemove}
     {onRemoveGroup}
     {onShiftGroup}

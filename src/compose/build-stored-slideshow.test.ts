@@ -56,6 +56,82 @@ describe("buildStoredSlideshow", () => {
     expect(slideshow.songs).toEqual([]);
   });
 
+  it("uses the explicit order instead of capture order when one is given", () => {
+    const second = picture("b", "2025-07-20T10:00:00Z");
+    const first = picture("a", "2025-07-01T10:00:00Z");
+
+    const slideshow = buildStoredSlideshow({
+      id: "s1",
+      createdAt: "2025-07-21T00:00:00Z",
+      pictures: [first, second],
+      order: ["b", "a"],
+      songs: [],
+      secondsPerPicture: 5,
+      locale: "en",
+    });
+
+    expect(slideshow.pictures).toEqual([second, first]);
+    expect(slideshow.ownOrder).toBeUndefined();
+  });
+
+  it("throws loudly when the order names a picture it does not have", () => {
+    const build = () =>
+      buildStoredSlideshow({
+        id: "s1",
+        createdAt: "2025-07-21T00:00:00Z",
+        pictures: [picture("a", "2025-07-01T10:00:00Z")],
+        order: ["ghost"],
+        songs: [],
+        secondsPerPicture: 5,
+        locale: "en",
+      });
+
+    expect(build).toThrow(/ghost/);
+  });
+
+  it("throws loudly when the order leaves a picture out", () => {
+    const build = () =>
+      buildStoredSlideshow({
+        id: "s1",
+        createdAt: "2025-07-21T00:00:00Z",
+        pictures: [picture("a", "2025-07-01T10:00:00Z"), picture("b", "2025-07-02T10:00:00Z")],
+        order: ["a"],
+        songs: [],
+        secondsPerPicture: 5,
+        locale: "en",
+      });
+
+    expect(build).toThrow();
+  });
+
+  it("flags the explicit order as the user's own when asked to", () => {
+    const slideshow = buildStoredSlideshow({
+      id: "s1",
+      createdAt: "2025-07-21T00:00:00Z",
+      pictures: [picture("a", "2025-07-01T10:00:00Z")],
+      order: ["a"],
+      ownOrder: true,
+      songs: [],
+      secondsPerPicture: 5,
+      locale: "en",
+    });
+
+    expect(slideshow.ownOrder).toBe(true);
+  });
+
+  it("ignores ownOrder without an explicit order", () => {
+    const slideshow = buildStoredSlideshow({
+      id: "s1",
+      createdAt: "2025-07-21T00:00:00Z",
+      pictures: [picture("a", "2025-07-01T10:00:00Z")],
+      songs: [],
+      secondsPerPicture: 5,
+      locale: "en",
+    });
+
+    expect(slideshow.ownOrder).toBeUndefined();
+  });
+
   it("carries the given songs through", () => {
     const music = { id: "m1", fileName: "song.mp3", durationMs: 10_000, mimeType: "audio/mpeg" };
 

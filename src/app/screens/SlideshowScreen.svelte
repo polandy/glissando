@@ -1,6 +1,8 @@
 <script lang="ts">
   import { flushSync } from "svelte";
   import Header from "../components/Header.svelte";
+  import PictureViewer from "../components/PictureViewer.svelte";
+  import { viewerEntries } from "../components/picture-viewer-view";
   import { getTranslator } from "../i18n/context";
   import InfoPanel from "./slideshow/InfoPanel.svelte";
   import MoreMenu from "./slideshow/MoreMenu.svelte";
@@ -9,7 +11,12 @@
   import SlideshowEditSheets from "./slideshow/SlideshowEditSheets.svelte";
   import ExportSheets from "./slideshow/ExportSheets.svelte";
   import DeleteDialog from "./slideshow/DeleteDialog.svelte";
-  import { endSelecting, NO_SELECTION, withoutRemoved } from "./slideshow/strip-selection";
+  import {
+    endSelecting,
+    NO_SELECTION,
+    soleSelection,
+    withoutRemoved,
+  } from "./slideshow/strip-selection";
   import { browserScheduler } from "../../ui-kit/scheduler";
   import { animationFrames } from "../../player";
   import type { SlideshowScreenProps } from "./slideshow-screen-props";
@@ -27,6 +34,8 @@
     onMoveGroup,
     onRename,
     onEdit,
+    loadPicture,
+    onError,
     onEditMusic,
     onTransition,
     onResetTransition,
@@ -59,7 +68,12 @@
   const { t } = getTranslator();
 
   let confirmingDelete = $state(false);
+  let viewing = $state<string | null>(null);
   const order = $derived(slideshow.pictures.map((picture) => picture.id));
+  const viewerEntryList = $derived(viewerEntries(slideshow.pictures, []));
+  const viewerUrls = $derived(
+    new Map(slideshow.pictures.map((picture) => [picture.id, picture.thumbnailUrl])),
+  );
   // A selected picture that was removed meanwhile leaves no selection (and, unless "Select"
   // started it, leaves selecting several too): kept in sync should the pictures prop change for
   // some other reason too.
@@ -131,6 +145,7 @@
         bind:selection
         {mousePointer}
         {onEdit}
+        onView={(pictureId) => (viewing = pictureId)}
         {onRemove}
         onRemoveGroup={removeGroup}
         {onShuffle}
@@ -169,6 +184,22 @@
     />
   {/if}
 </div>
+
+{#if viewing !== null}
+  <PictureViewer
+    entries={viewerEntryList}
+    pictureId={viewing}
+    urls={viewerUrls}
+    {loadPicture}
+    {onError}
+    onShow={(pictureId) => (viewing = pictureId)}
+    onRemove={slideshow.pictures.length > 1 ? onRemove : undefined}
+    onClose={(pictureId) => {
+      viewing = null;
+      if (!selection.several && selection.ids.size === 1) selection = soleSelection(pictureId);
+    }}
+  />
+{/if}
 
 <SlideshowEditSheets
   bind:this={editSheets}

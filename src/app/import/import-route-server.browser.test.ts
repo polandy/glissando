@@ -3,7 +3,7 @@ import { flushSync } from "svelte";
 import { FakePictureChecker } from "../../culling/testing/fake-picture-checker";
 import { afterEach, describe, expect, it } from "vitest";
 import { MemoryLibraryStore } from "../../library/testing/memory-store";
-import { fakeRemovalPorts } from "../testing/picture-intake-ports";
+import { fakeRemovalPorts, fakeStoppedPickText } from "../testing/picture-intake-ports";
 import { ServerLibraryUnavailableError } from "../../server-library/server-library-client";
 import { createTranslator } from "../i18n/translator";
 import { mountWithTranslator } from "../testing/mount-with-translator";
@@ -23,7 +23,9 @@ function session(createOnServer: ImportSessionPorts["createOnServer"]): ImportSe
   return new ImportSession({
     store: new MemoryLibraryStore(),
     ...fakeRemovalPorts(),
+    stoppedPickText: fakeStoppedPickText,
     checker: new FakePictureChecker(),
+    random: () => 0,
     pixels: () => Promise.resolve([]),
     immichColours: () => Promise.resolve({ veil: "#404040", accent: "#C0C0C0" }),
     decode: (file) =>

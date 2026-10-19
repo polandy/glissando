@@ -41,7 +41,8 @@
   picture always stays. The constants are calibrated on generated scenes in every engine
   (`check-worker.browser.test.ts`). A set-aside picture leaves the import's pictures
   (`remove`) and is kept by `PictureCulling`; taking it in `restore`s it and exempts it from
-  every later cull, as are duplicates taken in by `addDuplicates`. A later cull, after more
+  every later cull, as are duplicates taken in by `addDuplicates` and pictures the user moved in
+  the pictures step (`exempt`, IMPORT_ARRANGING.md). A later cull, after more
   pictures, runs over the set-aside ones again. A picture the worker cannot measure stays in and
   its error is logged. Nothing about the check is stored: the slideshow holds what was kept, and
   the set-aside media, claimed like the rest, is deleted by the clean-up once the claim ends.

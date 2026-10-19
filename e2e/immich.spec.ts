@@ -164,7 +164,7 @@ test("E2E-029 photos picked in Immich by day, by range and by whole album are im
 
   await expect(page.getByRole("heading", { name: "Welche Bilder?" })).toBeVisible();
   await expect(page.getByText("9 Bilder", { exact: true })).toBeVisible();
-  await expect(page.getByRole("listitem")).toHaveText([
+  await expect(page.getByRole("listitem").locator(".date")).toHaveText([
     "15.06.2019",
     "16.06.2019",
     "17.06.2019",

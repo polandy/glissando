@@ -20,8 +20,9 @@ test("E2E-060 a picture of the pictures step opens full screen, browses, removes
   await openImport(page);
   await chooseFiles(page, page.getByRole("button", { name: "Medien auswählen" }), files);
 
-  const opener = page.getByRole("button", { name: "Bild vom 13.07.2025 um 12:00:00 ansehen" });
-  await opener.click();
+  // Selects the tile, then opens it full screen from the selection bar (IMPORT_ARRANGING.md).
+  await page.getByRole("button", { name: "Bild 2, aufgenommen am 13.07.2025" }).click();
+  await page.getByRole("button", { name: "Ansehen" }).click();
 
   const viewer = page.getByRole("dialog");
   await expect(viewer).toBeVisible();
@@ -42,7 +43,8 @@ test("E2E-060 a picture of the pictures step opens full screen, browses, removes
 
   await page.keyboard.press("Escape");
   await expect(viewer).toBeHidden();
+  // harbour.jpg was removed, so the pier tile shown last closes focused at its new position, 1.
   await expect(
-    page.getByRole("button", { name: "Bild vom 13.07.2025 um 12:00:00 ansehen" }),
+    page.getByRole("button", { name: "Bild 1, aufgenommen am 13.07.2025" }),
   ).toBeFocused();
 });

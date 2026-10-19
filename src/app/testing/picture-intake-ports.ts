@@ -55,6 +55,24 @@ export function fakeRemovalPorts() {
   };
 }
 
+/** The stop toast's text, in the same shape as `import.pickStopped`/`pickStoppedKept`. */
+export function fakeStoppedPickText(pick: {
+  readonly kind: string;
+  readonly folderName?: string;
+  readonly total: number;
+  readonly stored: number;
+}): string {
+  const name =
+    pick.kind === "folder"
+      ? (pick.folderName ?? "")
+      : pick.kind === "immich"
+        ? `Immich · ${pick.total} photos`
+        : `${pick.total} pictures`;
+  return pick.stored > 0
+    ? `Stopped ${name} · ${pick.stored} pictures already in stay`
+    : `Stopped ${name}`;
+}
+
 /** Ports for a picture intake over an in-memory store; ids count up from `id-1`. */
 export function fakeIntakePorts(
   store = new MemoryLibraryStore(),
@@ -97,6 +115,7 @@ export function fakeIntakePorts(
     now: () => INTAKE_NOW,
     onError: (error) => errors.push(error),
     log: (error) => logged.push(error),
+    stoppedPickText: fakeStoppedPickText,
     ...overrides,
   };
   return { ports, store, errors, logged, toaster: removal.toaster };

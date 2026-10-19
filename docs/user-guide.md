@@ -20,6 +20,10 @@ without internet. If you use a self-hosted Glissando, open its address instead
   <img src="images/add-pictures.png" alt="Adding pictures to a slideshow" width="760">
 </p>
 
+While pictures are still coming in, you don't have to wait: view, remove or drag the ones already
+there to set your own order — new ones join by capture date until you do — and keep adding more
+(another folder, or more from Immich) while it runs.
+
 Adding pictures later skips the ones already in the slideshow (you can add them anyway). Drag
 pictures to reorder, or tap Shuffle for a random order (Undo in the message that follows
 brings the old one back); open a picture to change its motion.

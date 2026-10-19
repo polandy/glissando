@@ -8,6 +8,10 @@ export interface BuildStoredSlideshowInput {
   /** ISO 8601 date-time. */
   readonly createdAt: string;
   readonly pictures: readonly StoredPicture[];
+  /** The pictures' ids in this exact order; absent: capture order, ties by file name. */
+  readonly order?: readonly string[];
+  /** The `order` given is the user's own (IMPORT_ARRANGING.md, Order); ignored without `order`. */
+  readonly ownOrder?: true;
   /** The playlist, in play order; empty without music. */
   readonly songs: readonly StoredMusic[];
   readonly secondsPerPicture: number;
@@ -17,9 +21,34 @@ export interface BuildStoredSlideshowInput {
   readonly locale: string;
 }
 
-/** Applies the automatic choices an import makes: capture order and a title from the range. */
+function orderedById(
+  pictures: readonly StoredPicture[],
+  order: readonly string[],
+): readonly StoredPicture[] {
+  const byId = new Map(pictures.map((picture) => [picture.id, picture]));
+  if (new Set(order).size !== byId.size) {
+    throw new Error(
+      `the slideshow's order names ${new Set(order).size} pictures, but it has ${byId.size}`,
+    );
+  }
+  return order.map((id) => {
+    const picture = byId.get(id);
+    if (picture === undefined) {
+      throw new Error(`the slideshow's order names a picture "${id}" it does not have`);
+    }
+    return picture;
+  });
+}
+
+/**
+ * Applies the automatic choices an import makes: a title from the capture range, and, without an
+ * explicit `order`, capture order.
+ */
 export function buildStoredSlideshow(input: BuildStoredSlideshowInput): StoredSlideshow {
-  const pictures = orderByCaptureDate(input.pictures);
+  const pictures =
+    input.order === undefined
+      ? orderByCaptureDate(input.pictures)
+      : orderedById(input.pictures, input.order);
   const title = titleForCaptureRange(
     pictures.map((picture) => picture.capturedAt),
     input.locale,
@@ -33,5 +62,6 @@ export function buildStoredSlideshow(input: BuildStoredSlideshowInput): StoredSl
     songs: input.songs,
     secondsPerPicture: input.secondsPerPicture,
     ...(input.pictureLength === undefined ? {} : { pictureLength: input.pictureLength }),
+    ...(input.order !== undefined && input.ownOrder ? { ownOrder: true } : {}),
   };
 }

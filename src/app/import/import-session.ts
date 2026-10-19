@@ -16,6 +16,7 @@ import {
   type PendingSong,
 } from "./music-pick";
 import { PictureIntake, type PictureIntakePorts } from "./picture-intake";
+import { SessionArrangement } from "./session-arrangement";
 
 export interface ImportSessionPorts extends PictureIntakePorts, MusicPickPorts {
   readonly store: LibraryStore;
@@ -24,6 +25,8 @@ export interface ImportSessionPorts extends PictureIntakePorts, MusicPickPorts {
    * (`ServerLibrary.createSlideshow`).
    */
   createOnServer(slideshow: StoredSlideshow, songsAudio: readonly Blob[]): Promise<StoredSlideshow>;
+  /** Uniform in [0, 1); what Shuffle draws the pictures step's order from. */
+  readonly random: () => number;
 }
 
 /** A song of step 2's list: chosen, or still pending; `key` names its row. */
@@ -63,6 +66,8 @@ const INITIAL_CHOICES: ImportChoices = {
 export class ImportSession {
   readonly intake: PictureIntake;
   readonly pictures: PictureImport;
+  /** The pictures step's strip order for this new slideshow (IMPORT_ARRANGING.md, Order). */
+  readonly arrangement: SessionArrangement;
   readonly #ports: ImportSessionPorts;
   readonly #choiceListeners = new Set<(choices: ImportChoices) => void>();
   #choices = INITIAL_CHOICES;
@@ -76,6 +81,11 @@ export class ImportSession {
     this.#ports = ports;
     this.intake = new PictureIntake(ports);
     this.pictures = this.intake.pictures;
+    this.arrangement = new SessionArrangement({
+      pictures: this.pictures,
+      exempt: (ids) => this.intake.culling.exempt(ids),
+      random: ports.random,
+    });
   }
 
   /** The Svelte store contract over step 2's choices. */
@@ -229,11 +239,13 @@ export class ImportSession {
       id: this.#ports.newId(),
       createdAt: this.#ports.now().toISOString(),
       pictures: state.pictures,
+      order: this.arrangement.state.order,
       songs,
       secondsPerPicture: this.#choices.secondsPerPicture,
       ...(this.#choices.pictureLength === undefined
         ? {}
         : { pictureLength: this.#choices.pictureLength }),
+      ...(this.arrangement.state.own ? { ownOrder: true } : {}),
       locale,
     });
     if (onServer) {
@@ -255,6 +267,7 @@ export class ImportSession {
     for (const read of this.#songReads.values()) read.abort();
     this.#songReads.clear();
     this.#setChoices(INITIAL_CHOICES);
+    this.arrangement.reset();
     return this.intake.discard();
   }
 

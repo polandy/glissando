@@ -106,6 +106,7 @@ describe("PictureImport, failures: unreadable files, full storage, cancel", () =
       total: 0,
       done: 0,
       pictures: [],
+      picks: [],
       skipped: [],
       storageFull: false,
       busy: false,

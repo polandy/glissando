@@ -4,7 +4,7 @@ import { FakePictureChecker } from "../../culling/testing/fake-picture-checker";
 import { afterEach, describe, expect, it } from "vitest";
 import type { ImmichAvailabilityState } from "../../immich/immich-availability";
 import { MemoryLibraryStore } from "../../library/testing/memory-store";
-import { fakeRemovalPorts } from "../testing/picture-intake-ports";
+import { fakeRemovalPorts, fakeStoppedPickText } from "../testing/picture-intake-ports";
 import { createTranslator } from "../i18n/translator";
 import { mountWithTranslator } from "../testing/mount-with-translator";
 import { ImportSession } from "./import-session";
@@ -21,7 +21,9 @@ function session(): ImportSession {
   return new ImportSession({
     store: new MemoryLibraryStore(),
     ...fakeRemovalPorts(),
+    stoppedPickText: fakeStoppedPickText,
     checker: new FakePictureChecker(),
+    random: () => 0,
     pixels: () => Promise.resolve([]),
     immichColours: () => Promise.resolve({ veil: "#404040", accent: "#C0C0C0" }),
     decode: (file) =>
@@ -119,9 +121,9 @@ describe("PicturesStep, the Immich box", () => {
     expect(calls).toEqual(["settings"]);
   });
 
-  it("offers more from Immich next to add more once pictures are in", async () => {
+  it("offers From Immich in the Add pictures menu once pictures are in", async () => {
     const importSession = session();
-    const { calls, button } = mountStep(
+    const { target, calls } = mountStep(
       { kind: "available", version: "3.3.1", albumCount: 2 },
       importSession,
     );
@@ -130,8 +132,16 @@ describe("PicturesStep, the Immich box", () => {
     await importSession.intake.settled();
     flushSync();
 
-    expect(button("add more")).toBeDefined();
-    button("more from Immich")?.click();
+    const addButton = target.querySelector('.strip-head button[aria-haspopup="menu"]');
+    expect(addButton).not.toBeNull();
+    addButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    flushSync();
+
+    const fromImmich = [...target.querySelectorAll('[role="menuitem"]')].find(
+      (item) => item.textContent?.trim() === "From Immich",
+    );
+    expect(fromImmich).toBeDefined();
+    fromImmich?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     expect(calls).toEqual(["open"]);
   });
 });

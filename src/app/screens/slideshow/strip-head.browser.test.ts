@@ -1,3 +1,4 @@
+import { createRawSnippet } from "svelte";
 import { afterEach, describe, expect, it } from "vitest";
 import { mountWithTranslator } from "../../testing/mount-with-translator";
 import StripHead from "./StripHead.svelte";
@@ -69,6 +70,30 @@ describe("StripHead's Add media", () => {
     selectButton.click();
 
     expect(toggles).toEqual([true]);
+  });
+});
+
+describe("StripHead's add", () => {
+  it("replaces the default Add media button with the given snippet", () => {
+    const add = createRawSnippet(() => ({
+      render: () => '<button class="own-add" type="button">Bilder hinzufügen</button>',
+    }));
+    const mounted = mountWithTranslator(StripHead, {
+      count: 3,
+      ownOrder: false,
+      selecting: false,
+      onToggleSelect: () => {},
+      onShuffle: () => {},
+      add,
+    });
+    destroy = mounted.destroy;
+
+    expect(mounted.target.querySelector(".own-add")).not.toBeNull();
+    expect(
+      [...mounted.target.querySelectorAll("button")].some(
+        (button) => button.getAttribute("aria-label") === "Medien hinzufügen",
+      ),
+    ).toBe(false);
   });
 });
 

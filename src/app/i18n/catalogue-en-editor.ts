@@ -5,6 +5,7 @@ import type { deEditor } from "./catalogue-de-editor.ts";
 export const enEditor: Pick<Catalogue, keyof typeof deEditor> = {
   "units.zoom": "{zoom}×",
   "slideshow.edit": "Edit",
+  "slideshow.view": "View",
   "slideshow.ownMotionBadge": "own",
   "slideshow.pictureLabelOwnMotion": "Picture {number}, taken on {date}, own motion",
   "slideshow.automaticWithOwn": "automatic, {count} own",
