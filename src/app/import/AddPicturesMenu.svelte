@@ -108,6 +108,7 @@
       class="add-tile"
       type="button"
       bind:this={toggle}
+      aria-label={t("import.addMore")}
       aria-haspopup="menu"
       aria-expanded={open}
       onclick={() => (open = !open)}

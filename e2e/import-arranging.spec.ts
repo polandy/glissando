@@ -67,7 +67,7 @@ test("E2E-072 pictures added, moved and shuffled while arranging a new slideshow
   const laterStill = await pictureTakenOn(page, "picture-22nd.jpg", "2025-07-22", "#4db6ac");
   await addMorePictures(
     page,
-    page.getByRole("button", { name: "Bilder hinzufügen", exact: true }),
+    page.locator(".strip-head").getByRole("button", { name: "Bilder hinzufügen", exact: true }),
     [between, laterStill],
   );
 

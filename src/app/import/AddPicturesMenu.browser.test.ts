@@ -147,7 +147,8 @@ describe("AddPicturesMenu, the add-tile trigger", () => {
 
     expect(target.querySelector("li.tile")).not.toBeNull();
     expect(target.querySelector(".add-tile")).not.toBeNull();
-    expect(toggle(target)?.getAttribute("aria-label")).toBeNull();
+    // Named in full: "Add" alone is also the footer's button in "Add media".
+    expect(toggle(target)?.getAttribute("aria-label")).toBe("Add pictures");
   });
 
   it("opens the same menu as the head trigger", () => {
