@@ -40,7 +40,11 @@ test("E2E-005 importing pictures and music creates a slideshow ordered by captur
     page.getByText("1 Datei konnte nicht als Bild gelesen werden und wurde übersprungen:"),
   ).toBeVisible();
   await expect(page.getByText(/notes\.txt\./)).toBeVisible();
-  await expect(page.getByRole("listitem")).toHaveText(["12.07.2025", "14.07.2025", "20.07.2025"]);
+  await expect(page.getByRole("listitem").locator(".date")).toHaveText([
+    "12.07.2025",
+    "14.07.2025",
+    "20.07.2025",
+  ]);
   await expect(next).toBeEnabled();
 
   await next.click();
@@ -89,7 +93,10 @@ test.describe("Abbrechen with pictures chosen", () => {
 
     await expect(page.getByRole("dialog", { name: "Auswahl verwerfen?" })).toBeHidden();
     await expect(page.getByRole("heading", { name: "Welche Bilder?" })).toBeVisible();
-    await expect(page.getByRole("listitem")).toHaveText(["12.07.2025", "14.07.2025"]);
+    await expect(page.getByRole("listitem").locator(".date")).toHaveText([
+      "12.07.2025",
+      "14.07.2025",
+    ]);
   });
 
   test("E2E-007 Verwerfen returns to start and stores nothing", async ({ page }) => {
@@ -116,18 +123,20 @@ test.describe("Removing chosen pictures", () => {
   test("E2E-037 a removed picture stays out of the created slideshow, and Undo puts removals back", async ({
     page,
   }) => {
-    const tiles = page.getByRole("listitem");
-    await page.getByRole("button", { name: "Bild vom 13.07.2025 entfernen" }).click();
+    const tiles = page.getByRole("listitem").locator(".date");
+    // Tile 2 (13.07.2025): removing it leaves 12.07.2025 and 14.07.2025, the latter now tile 2.
+    await page.getByRole("button", { name: "Bild 2 entfernen" }).click();
     await expect(page.getByRole("status")).toContainText("Bild entfernt");
     await expect(page.getByText("2 Bilder", { exact: true })).toBeVisible();
 
-    await page.getByRole("button", { name: "Bild vom 14.07.2025 entfernen" }).press("Delete");
+    // Delete/Backspace remove the focused tile itself (its keydown sits on the tile, not the mark).
+    await page.getByRole("button", { name: "Bild 2, aufgenommen am 14.07.2025" }).press("Delete");
     await expect(page.getByRole("status")).toContainText("2 Bilder entfernt");
     await expect(tiles).toHaveText(["12.07.2025"]);
     await page.getByRole("status").getByRole("button", { name: "Rückgängig" }).click();
     await expect(tiles).toHaveText(["12.07.2025", "13.07.2025", "14.07.2025"]);
 
-    await page.getByRole("button", { name: "Bild vom 12.07.2025 entfernen" }).click();
+    await page.getByRole("button", { name: "Bild 1 entfernen" }).click();
     await page.getByRole("button", { name: "Weiter" }).click();
     await page.getByRole("button", { name: "Ohne Musik erstellen" }).click();
 
