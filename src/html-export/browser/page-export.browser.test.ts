@@ -193,13 +193,13 @@ describe("an exported web page", () => {
     frameAbove.style.height = "100%";
     cleanups.push(() => frameAbove.remove());
 
-    let pushedOutIn: string | null = null;
+    let stateWhenPushed: string | null = null;
     const { pageDocument } = await playedToTheEndCard((playing) => {
-      pushedOutIn = playing.documentElement.getAttribute(PAGE_STATE_ATTRIBUTE);
+      stateWhenPushed = playing.documentElement.getAttribute(PAGE_STATE_ATTRIBUTE);
       testFrame.before(frameAbove);
     });
 
-    expect(pushedOutIn).toBe("playing");
+    expect(stateWhenPushed).toBe("playing");
     expect(frameAbove.isConnected).toBe(true);
     expect(pageDocument.querySelector(".end")?.textContent).toContain("Play again");
   });
