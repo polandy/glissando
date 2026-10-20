@@ -105,8 +105,10 @@ slides with fixed durations: [player/TITLE_CARD_COMPOSITION.md](player/TITLE_CAR
 - `composeSlideshow` turns a stored slideshow into the player's JSON, resolving picture and
   music ids to URLs through an injected `SlideshowSources`; the pictures' focus comes in as a
   map by picture id (`LibraryStore.pictureFocus`), the songs' beats as a map by music id (`SongBeats`, from
-  `LibraryStore.musicBeats` per song; a song not listened to yet is absent), both read when the
-  player or an export starts — play never waits on the search for the rest.
+  `LibraryStore.musicBeats` per song; a song not listened to yet is absent), and the songs'
+  loudness (`SongLoudness`, from `LibraryStore.musicLoudness`; absent until measured, `gain` 1
+  meanwhile, ADR-0040) — all three read when the player or an export starts — play never waits
+  on the search for the rest.
 - `slideDurationsMs` with `filledMusicMs` and `playlistBeatsMs` gives the editors the same timing: the music
   editor's lane and the picture editor's duration and transition (`beatTransitionDurationMs`)
   follow the beats as the background pass finds them.

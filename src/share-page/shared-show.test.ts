@@ -70,7 +70,9 @@ const countedUrl = () => `blob:song-${made++}`;
 
 describe("loadSharedShow", () => {
   it("fetches each song the slideshow plays once, before it can play", async () => {
-    const { api, fetched } = fakeApi([{ revision: 1, slideshow: stored(2), beats: new Map() }]);
+    const { api, fetched } = fakeApi([
+      { revision: 1, slideshow: stored(2), beats: new Map(), loudness: new Map() },
+    ]);
 
     const show = await loadSharedShow(api, countedUrl, null);
 
@@ -81,7 +83,12 @@ describe("loadSharedShow", () => {
   });
 
   it("keeps the slideshow it has, songs and all, while the revision is the same", async () => {
-    const answer: ShareAnswer = { revision: 4, slideshow: stored(1), beats: new Map() };
+    const answer: ShareAnswer = {
+      revision: 4,
+      slideshow: stored(1),
+      beats: new Map(),
+      loudness: new Map(),
+    };
     const { api, fetched } = fakeApi([answer, answer]);
     const first = await loadSharedShow(api, countedUrl, null);
 
@@ -94,8 +101,8 @@ describe("loadSharedShow", () => {
   it("takes the slideshow as it is now once it was edited", async () => {
     const edited: StoredSlideshow = { ...stored(0), title: "Lake Garda, edited" };
     const { api } = fakeApi([
-      { revision: 4, slideshow: stored(0), beats: new Map() },
-      { revision: 5, slideshow: edited, beats: new Map() },
+      { revision: 4, slideshow: stored(0), beats: new Map(), loudness: new Map() },
+      { revision: 5, slideshow: edited, beats: new Map(), loudness: new Map() },
     ]);
     const first = await loadSharedShow(api, countedUrl, null);
 
@@ -108,7 +115,9 @@ describe("loadSharedShow", () => {
 
 describe("playableShow", () => {
   it("fetches a picture by its position in the revision, also after one before it was skipped", async () => {
-    const { api, fetched } = fakeApi([{ revision: 2, slideshow: stored(0), beats: new Map() }]);
+    const { api, fetched } = fakeApi([
+      { revision: 2, slideshow: stored(0), beats: new Map(), loudness: new Map() },
+    ]);
     const show = await loadSharedShow(api, countedUrl, null);
 
     const played = playableShow(show, api, new Set([pictureKey(0)]));
@@ -123,7 +132,7 @@ describe("playableShow", () => {
 
   it("names the picture the server no longer has", async () => {
     const { api } = fakeApi(
-      [{ revision: 2, slideshow: stored(0), beats: new Map() }],
+      [{ revision: 2, slideshow: stored(0), beats: new Map(), loudness: new Map() }],
       new Set([1]),
     );
     const show = await loadSharedShow(api, countedUrl, null);
@@ -137,7 +146,9 @@ describe("playableShow", () => {
 
 describe("skipMissingPicture", () => {
   it("goes on where the missing picture would have started", async () => {
-    const { api } = fakeApi([{ revision: 2, slideshow: stored(0), beats: new Map() }]);
+    const { api } = fakeApi([
+      { revision: 2, slideshow: stored(0), beats: new Map(), loudness: new Map() },
+    ]);
     const show = await loadSharedShow(api, countedUrl, null);
 
     const skip = skipMissingPicture(show, new Set(), pictureKey(1));
@@ -146,7 +157,9 @@ describe("skipMissingPicture", () => {
   });
 
   it("gives up when no picture would be left", async () => {
-    const { api } = fakeApi([{ revision: 2, slideshow: stored(0), beats: new Map() }]);
+    const { api } = fakeApi([
+      { revision: 2, slideshow: stored(0), beats: new Map(), loudness: new Map() },
+    ]);
     const show = await loadSharedShow(api, countedUrl, null);
 
     const skip = skipMissingPicture(show, new Set([pictureKey(0), pictureKey(1)]), pictureKey(2));
@@ -167,7 +180,9 @@ describe("skipMissingPicture", () => {
         colours: COLOURS,
       })),
     };
-    const { api } = fakeApi([{ revision: 2, slideshow: portraitStored, beats: new Map() }]);
+    const { api } = fakeApi([
+      { revision: 2, slideshow: portraitStored, beats: new Map(), loudness: new Map() },
+    ]);
     const show = await loadSharedShow(api, countedUrl, null);
 
     // Picture 2 going missing leaves picture 3 without a partner: it plays alone, on the slide
@@ -197,7 +212,9 @@ describe("shareSummary", () => {
         colours: COLOURS,
       })),
     };
-    const { api } = fakeApi([{ revision: 2, slideshow: portraitStored, beats: new Map() }]);
+    const { api } = fakeApi([
+      { revision: 2, slideshow: portraitStored, beats: new Map(), loudness: new Map() },
+    ]);
     const show = await loadSharedShow(api, countedUrl, null);
 
     expect(shareSummary(show, playableShow(show, api, new Set()).slideshow)).toEqual({

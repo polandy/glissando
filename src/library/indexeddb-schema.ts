@@ -2,7 +2,7 @@
 
 /** Records and media share one database so a transaction can span both (see ADR-0003). */
 export const LIBRARY_DATABASE_NAME = "glissando";
-export const SCHEMA_VERSION = 6;
+export const SCHEMA_VERSION = 7;
 /** The version that added the `imports` store. */
 const IMPORTS_ADDED_IN = 2;
 /** The version that added the `focus` store (ADR-0012). */
@@ -18,6 +18,8 @@ const BEATS_ADDED_IN = 4;
 const COLOURS_ADDED_IN = 5;
 /** The version that added the `videos` store (ADR-0034). */
 const VIDEOS_ADDED_IN = 6;
+/** The version that added the `loudness` store (dev-docs/library/MUSIC.md). */
+const LOUDNESS_ADDED_IN = 7;
 
 export const SLIDESHOWS = "slideshows";
 export const PICTURES = "pictures";
@@ -29,6 +31,8 @@ export const FOCUS = "focus";
 export const BEATS = "beats";
 /** A video's original file, keyed by its media id (`StoredVideo.mediaId`). */
 export const VIDEOS = "videos";
+/** A track's measured loudness, keyed by its media id like `music`. */
+export const LOUDNESS = "loudness";
 export type StoreName =
   | typeof SLIDESHOWS
   | typeof PICTURES
@@ -36,7 +40,8 @@ export type StoreName =
   | typeof IMPORTS
   | typeof FOCUS
   | typeof BEATS
-  | typeof VIDEOS;
+  | typeof VIDEOS
+  | typeof LOUDNESS;
 
 /**
  * Adds what each version after `oldVersion` brought. Existing data stays untouched, except the
@@ -60,6 +65,9 @@ export function upgradeLibraryDatabase(database: IDBDatabase, oldVersion: number
   }
   if (oldVersion < VIDEOS_ADDED_IN) {
     database.createObjectStore(VIDEOS);
+  }
+  if (oldVersion < LOUDNESS_ADDED_IN) {
+    database.createObjectStore(LOUDNESS);
   }
   if (oldVersion > 0 && oldVersion < COLOURS_ADDED_IN) {
     database.deleteObjectStore(SLIDESHOWS);

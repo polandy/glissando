@@ -1,4 +1,4 @@
-import { composeSlideshow, NO_SONG_BEATS } from "../compose";
+import { composeSlideshow, NO_SONG_BEATS, NO_SONG_LOUDNESS } from "../compose";
 import { withSongUrls } from "../export-player/page-data";
 import type { PlayablePage } from "../export-player/page-player";
 import type { GlissandoManifest } from "../glissando-file/glissando-manifest";
@@ -51,6 +51,7 @@ export async function folderShow(
     { picture: (path) => path, music: (path) => path, video: (path) => path },
     NO_FOCUS,
     NO_SONG_BEATS,
+    NO_SONG_LOUDNESS,
   );
   const played = [...new Set(byPath.music?.map(({ src }) => src))];
   const songs = new Map(

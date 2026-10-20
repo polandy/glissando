@@ -12,6 +12,7 @@ import {
   setMusicFadeOut,
   setMusicPictureChanges,
   setMusicTrim,
+  setMusicVolume,
 } from "../../library/slideshow-edits-music";
 import { setPictureLength, setSecondsPerPicture } from "../../library/slideshow-edits-timing";
 import type { StoredMusic, StoredSlideshow } from "../../library/stored-slideshow";
@@ -85,6 +86,11 @@ export class MusicSettingsEditor {
   /** `"even"` shares the song evenly; `undefined` changes the pictures on the beat (ADR-0021). */
   setMusicPictureChanges(songId: string, pictureChanges: PictureChanges | undefined): void {
     this.#apply(setMusicPictureChanges(this.#current(), songId, pictureChanges));
+  }
+
+  /** The song's own volume in whole dB off the levelled default; `undefined` or `0` levels it. */
+  setMusicVolume(songId: string, volumeDb: number | undefined): void {
+    this.#apply(setMusicVolume(this.#current(), songId, volumeDb));
   }
 
   /** `"seconds"`: the pictures last their seconds with music too; `undefined`: they fill it. */

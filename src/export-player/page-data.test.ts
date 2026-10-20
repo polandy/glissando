@@ -36,8 +36,8 @@ const SILENT_SLIDESHOW: Slideshow = {
 const SLIDESHOW: Slideshow = {
   ...SILENT_SLIDESHOW,
   music: [
-    { src: "s0", atMs: 0, startMs: 0, endMs: 3000, fadeInMs: 0, fadeOutMs: 1000 },
-    { src: "s1", atMs: 2000, startMs: 0, endMs: 1000, fadeInMs: 1000, fadeOutMs: 0 },
+    { src: "s0", atMs: 0, startMs: 0, endMs: 3000, fadeInMs: 0, fadeOutMs: 1000, gain: 1 },
+    { src: "s1", atMs: 2000, startMs: 0, endMs: 1000, fadeInMs: 1000, fadeOutMs: 0, gain: 1 },
   ],
 };
 
@@ -45,8 +45,8 @@ const SLIDESHOW: Slideshow = {
 const TWO_TRACK_SLIDESHOW: Slideshow = {
   ...SILENT_SLIDESHOW,
   music: [
-    { src: "m0", atMs: 0, startMs: 0, endMs: 3000, fadeInMs: 0, fadeOutMs: 1000 },
-    { src: "m0", atMs: 2000, startMs: 0, endMs: 1000, fadeInMs: 1000, fadeOutMs: 0 },
+    { src: "m0", atMs: 0, startMs: 0, endMs: 3000, fadeInMs: 0, fadeOutMs: 1000, gain: 1 },
+    { src: "m0", atMs: 2000, startMs: 0, endMs: 1000, fadeInMs: 1000, fadeOutMs: 0, gain: 1 },
   ],
 };
 

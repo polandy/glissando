@@ -49,6 +49,10 @@ describe("addSongs", () => {
       InvalidOwnMusicError,
     );
   });
+
+  it("refuses a song whose own volume is out of range, so no invalid record is stored", () => {
+    expect(() => addSongs(slideshow(), [song("a", { volumeDb: 7 })])).toThrow(InvalidOwnMusicError);
+  });
 });
 
 describe("removeSong", () => {

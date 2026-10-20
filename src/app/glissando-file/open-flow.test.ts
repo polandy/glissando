@@ -5,6 +5,7 @@ import {
   exportedFile,
   zipWith,
 } from "../../glissando-file/testing/glissando-fixtures";
+import { GLISSANDO_FORMAT_VERSION } from "../../glissando-file/glissando-manifest";
 import type { StoredSlideshow } from "../../library/stored-slideshow";
 import { MemoryLibraryStore } from "../../library/testing/memory-store";
 import type { Route } from "../navigation/route";
@@ -113,7 +114,11 @@ describe("OpenFlow", () => {
       "newer",
       async () =>
         new File(
-          [await zipWith({ "glissando.json": '{"format":"glissando","formatVersion":15}' })],
+          [
+            await zipWith({
+              "glissando.json": `{"format":"glissando","formatVersion":${GLISSANDO_FORMAT_VERSION + 1}}`,
+            }),
+          ],
           "x.glissando",
         ),
     ],

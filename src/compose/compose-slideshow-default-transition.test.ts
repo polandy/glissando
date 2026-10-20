@@ -3,6 +3,7 @@ import { composeSlideshow } from "./compose-slideshow";
 import type { PictureFocus } from "../library/picture-focus";
 import type { StoredPicture, StoredSlideshow } from "../library/stored-slideshow";
 import { NO_SONG_BEATS } from "./playlist";
+import { NO_SONG_LOUDNESS } from "./song-loudness";
 
 function picture(id: string, capturedAt: string): StoredPicture {
   return {
@@ -48,7 +49,7 @@ describe("composeSlideshow with the slideshow's default transition", () => {
   }
 
   function effects(stored: StoredSlideshow): readonly (string | undefined)[] {
-    return composeSlideshow(stored, sources, NO_FOCUS, NO_SONG_BEATS).slides.map(
+    return composeSlideshow(stored, sources, NO_FOCUS, NO_SONG_BEATS, NO_SONG_LOUDNESS).slides.map(
       (slide) => slide.transitionToNext?.effect,
     );
   }

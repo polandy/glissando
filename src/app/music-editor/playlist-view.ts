@@ -1,7 +1,18 @@
 import { musicExcerptMs, placeSongs, playlistMs } from "../../compose";
 import { SEQUENCE_BETWEEN_SONGS } from "../../library/own-music";
 import type { StoredSlideshow } from "../../library/stored-slideshow";
-import { slideshowTimes, type SongsBeatsStatus } from "./music-editor-view";
+import {
+  slideshowTimes,
+  songLoudnessStatus,
+  type SongsBeatsStatus,
+  type SongsLoudnessStatus,
+} from "./music-editor-view";
+
+/** The list's badge for a song's own volume (ADR-0040). */
+export type SongVolumeBadge =
+  | { readonly kind: "none" }
+  | { readonly kind: "measuring" }
+  | { readonly kind: "own"; readonly ownDb: number };
 
 /** A song of the music editor's list and of its playlist lane. */
 export interface PlaylistSongView {
@@ -18,6 +29,7 @@ export interface PlaylistSongView {
   readonly atMs: number;
   /** The slideshow plays it; one starting after the slideshow's end is not heard (ADR-0023). */
   readonly reached: boolean;
+  readonly volumeBadge: SongVolumeBadge;
 }
 
 /** Where two songs sound at once, in slideshow time. */
@@ -39,7 +51,11 @@ export interface PlaylistView {
   readonly slideChangesMs: readonly number[];
 }
 
-export function playlistView(stored: StoredSlideshow, beats: SongsBeatsStatus): PlaylistView {
+export function playlistView(
+  stored: StoredSlideshow,
+  beats: SongsBeatsStatus,
+  loudness: SongsLoudnessStatus = new Map(),
+): PlaylistView {
   const { durationsMs, slideshowMs } = slideshowTimes(stored, beats);
   const placed = placeSongs(stored);
   const songs = placed.map(({ song, atMs }, index) => ({
@@ -51,6 +67,7 @@ export function playlistView(stored: StoredSlideshow, beats: SongsBeatsStatus): 
     trimmed: song.trim !== undefined,
     atMs,
     reached: atMs < slideshowMs,
+    volumeBadge: songVolumeBadge(loudness, song.id, song.volumeDb),
   }));
   const crossfades = songs.slice(1).flatMap((next, index) => {
     // The songs before `next`: index is the previous one's.
@@ -67,4 +84,16 @@ export function playlistView(stored: StoredSlideshow, beats: SongsBeatsStatus): 
     slideshowMs,
     slideChangesMs: durationsMs.slice(0, -1).map((durationMs) => (changeMs += durationMs)),
   };
+}
+
+/** The list's badge for a song's own volume: still measuring, its own dB, or none (ADR-0040). */
+function songVolumeBadge(
+  loudness: SongsLoudnessStatus,
+  songId: string,
+  ownDb: number | undefined,
+): SongVolumeBadge {
+  if (songLoudnessStatus(loudness, songId).kind === "listening") {
+    return { kind: "measuring" };
+  }
+  return ownDb === undefined ? { kind: "none" } : { kind: "own", ownDb };
 }

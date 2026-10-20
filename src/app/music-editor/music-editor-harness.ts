@@ -4,7 +4,8 @@ import type { BetweenSongs, MusicTrim, PictureChanges } from "../../library/own-
 import type { PictureLength } from "../../library/picture-length";
 import type { StoredMusic, StoredPicture, StoredSlideshow } from "../../library/stored-slideshow";
 import type { BeatsStatus } from "../beats/music-beats-known";
-import type { SongsBeatsStatus } from "./music-editor-view";
+import type { LoudnessStatus } from "../loudness/music-loudness-known";
+import type { SongsBeatsStatus, SongsLoudnessStatus } from "./music-editor-view";
 import { mountWithTranslator } from "../testing/mount-with-translator";
 import { reactiveProps } from "../testing/reactive-props.svelte";
 import type { ListenKind, ListenState } from "./listen-preview";
@@ -72,13 +73,18 @@ export function unmountEditor(): void {
 export function mountEditor(
   slideshow: StoredSlideshow = slideshowWith(),
   beats: BeatsStatus = { kind: "listening" },
+  loudness: LoudnessStatus = { kind: "listening" },
 ) {
   const calls = {
     trims: [] as (MusicTrim | undefined)[],
     fadesIn: [] as (number | undefined)[],
     fadesOut: [] as (number | undefined)[],
+    volumes: [] as (number | undefined)[],
+    volumeResets: 0,
     listens: [] as ListenKind[],
     stops: 0,
+    listenVolumes: 0,
+    toggleOriginals: 0,
     pictureChanges: [] as (PictureChanges | undefined)[],
     pictureLength: [] as (PictureLength | undefined)[],
     secondsPerPicture: [] as number[],
@@ -94,6 +100,7 @@ export function mountEditor(
     slideshow,
     selectedSongId: songId,
     beats: new Map(slideshow.songs.map(({ id }) => [id, beats])) as SongsBeatsStatus,
+    loudness: new Map(slideshow.songs.map(({ id }) => [id, loudness])) as SongsLoudnessStatus,
     peaks: Float32Array.from({ length: 1000 }, (_, index) => (index % 10) / 10),
     listening: null as ListenState | null,
     pending: [] as readonly PendingSong[],
@@ -101,11 +108,15 @@ export function mountEditor(
     onTrim: (trim: MusicTrim | undefined) => calls.trims.push(trim),
     onFadeIn: (fadeMs: number | undefined) => calls.fadesIn.push(fadeMs),
     onFadeOut: (fadeMs: number | undefined) => calls.fadesOut.push(fadeMs),
+    onVolume: (volumeDb: number | undefined) => calls.volumes.push(volumeDb),
+    onVolumeReset: () => (calls.volumeResets += 1),
     onPictureChanges: (changes: PictureChanges | undefined) => calls.pictureChanges.push(changes),
     onPictureLength: (length: PictureLength | undefined) => calls.pictureLength.push(length),
     onSecondsPerPicture: (seconds: number) => calls.secondsPerPicture.push(seconds),
     onListen: (kind: ListenKind) => calls.listens.push(kind),
     onStopListening: () => (calls.stops += 1),
+    onListenVolume: () => (calls.listenVolumes += 1),
+    onToggleOriginal: () => (calls.toggleOriginals += 1),
     onSelectSong: (id: string) => calls.selected.push(id),
     onMoveSong: (id: string, toIndex: number) => calls.moves.push(`${id} → ${toIndex}`),
     onRemoveSong: (id: string) => calls.removed.push(id),

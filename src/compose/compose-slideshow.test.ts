@@ -6,6 +6,7 @@ import type { PictureFocus } from "../library/picture-focus";
 import type { StoredPicture, StoredSlideshow } from "../library/stored-slideshow";
 import { autoKenBurns } from "./auto-ken-burns";
 import { NO_SONG_BEATS } from "./playlist";
+import { NO_SONG_LOUDNESS } from "./song-loudness";
 
 function picture(id: string, capturedAt: string): StoredPicture {
   return {
@@ -42,7 +43,7 @@ describe("composeSlideshow", () => {
   it("keeps the stored picture order and title", () => {
     const stored = storedSlideshow();
 
-    const result = composeSlideshow(stored, sources, NO_FOCUS, NO_SONG_BEATS);
+    const result = composeSlideshow(stored, sources, NO_FOCUS, NO_SONG_BEATS, NO_SONG_LOUDNESS);
 
     expect(result.title).toBe("July 2025");
     expect(result.slides.map((slide) => pictureSlide(slide).image.src)).toEqual([
@@ -56,7 +57,7 @@ describe("composeSlideshow", () => {
       songs: [{ id: "m1", fileName: "song.mp3", durationMs: 10_000, mimeType: "audio/mpeg" }],
     });
 
-    const result = composeSlideshow(stored, sources, NO_FOCUS, NO_SONG_BEATS);
+    const result = composeSlideshow(stored, sources, NO_FOCUS, NO_SONG_BEATS, NO_SONG_LOUDNESS);
 
     expect(result.music).toEqual([
       {
@@ -66,6 +67,7 @@ describe("composeSlideshow", () => {
         endMs: 10_000,
         fadeInMs: 0,
         fadeOutMs: 0,
+        gain: 1,
       },
     ]);
   });
@@ -84,7 +86,7 @@ describe("composeSlideshow", () => {
       ],
     });
 
-    const result = composeSlideshow(stored, sources, NO_FOCUS, NO_SONG_BEATS);
+    const result = composeSlideshow(stored, sources, NO_FOCUS, NO_SONG_BEATS, NO_SONG_LOUDNESS);
 
     expect(result.music).toEqual([
       {
@@ -94,6 +96,7 @@ describe("composeSlideshow", () => {
         endMs: 22_000,
         fadeInMs: 2000,
         fadeOutMs: 5000,
+        gain: 1,
       },
     ]);
     expect(result.slides.map((slide) => slide.durationMs)).toEqual([5000, 5000]);
@@ -108,11 +111,27 @@ describe("composeSlideshow", () => {
     });
     const stored = storedSlideshow({ songs: [song("m1"), song("m2")] });
 
-    const result = composeSlideshow(stored, sources, NO_FOCUS, NO_SONG_BEATS);
+    const result = composeSlideshow(stored, sources, NO_FOCUS, NO_SONG_BEATS, NO_SONG_LOUDNESS);
 
     expect(result.music).toEqual([
-      { src: "music/m1.mp3", atMs: 0, startMs: 0, endMs: 10_000, fadeInMs: 0, fadeOutMs: 3000 },
-      { src: "music/m2.mp3", atMs: 7000, startMs: 0, endMs: 10_000, fadeInMs: 3000, fadeOutMs: 0 },
+      {
+        src: "music/m1.mp3",
+        atMs: 0,
+        startMs: 0,
+        endMs: 10_000,
+        fadeInMs: 0,
+        fadeOutMs: 3000,
+        gain: 1,
+      },
+      {
+        src: "music/m2.mp3",
+        atMs: 7000,
+        startMs: 0,
+        endMs: 10_000,
+        fadeInMs: 3000,
+        fadeOutMs: 0,
+        gain: 1,
+      },
     ]);
     expect(result.slides.map((slide) => slide.durationMs)).toEqual([8500, 8500]);
     expect(parseSlideshow(JSON.parse(JSON.stringify(result)))).toEqual(result);
@@ -130,15 +149,29 @@ describe("composeSlideshow", () => {
       pictureLength: "seconds",
     });
 
-    const result = composeSlideshow(stored, sources, NO_FOCUS, NO_SONG_BEATS);
+    const result = composeSlideshow(stored, sources, NO_FOCUS, NO_SONG_BEATS, NO_SONG_LOUDNESS);
 
     expect(result.music).toEqual([
-      { src: "music/m1.mp3", atMs: 0, startMs: 0, endMs: 10_000, fadeInMs: 0, fadeOutMs: 2000 },
+      {
+        src: "music/m1.mp3",
+        atMs: 0,
+        startMs: 0,
+        endMs: 10_000,
+        fadeInMs: 0,
+        fadeOutMs: 2000,
+        gain: 1,
+      },
     ]);
   });
 
   it("omits music when the stored slideshow has none", () => {
-    const result = composeSlideshow(storedSlideshow(), sources, NO_FOCUS, NO_SONG_BEATS);
+    const result = composeSlideshow(
+      storedSlideshow(),
+      sources,
+      NO_FOCUS,
+      NO_SONG_BEATS,
+      NO_SONG_LOUDNESS,
+    );
 
     expect(result.music).toBeUndefined();
     expect("music" in result).toBe(false);
@@ -155,7 +188,7 @@ describe("composeSlideshow", () => {
       songs: [{ id: "m1", fileName: "song.mp3", durationMs: 8000, mimeType: "audio/mpeg" }],
     });
 
-    const result = composeSlideshow(stored, sources, NO_FOCUS, NO_SONG_BEATS);
+    const result = composeSlideshow(stored, sources, NO_FOCUS, NO_SONG_BEATS, NO_SONG_LOUDNESS);
     const roundTripped = parseSlideshow(JSON.parse(JSON.stringify(result)));
 
     expect(roundTripped).toEqual(result);
@@ -173,7 +206,7 @@ describe("composeSlideshow", () => {
       songs: [{ id: "m1", fileName: "song.mp3", durationMs: 10_000, mimeType: "audio/mpeg" }],
     });
 
-    const result = composeSlideshow(stored, sources, NO_FOCUS, NO_SONG_BEATS);
+    const result = composeSlideshow(stored, sources, NO_FOCUS, NO_SONG_BEATS, NO_SONG_LOUDNESS);
     const roundTripped = parseSlideshow(JSON.parse(JSON.stringify(result)));
 
     expect(roundTripped).toEqual(result);
@@ -191,12 +224,20 @@ describe("composeSlideshow with an own motion", () => {
     const [first, second] = storedSlideshow().pictures as [StoredPicture, StoredPicture];
     const stored = storedSlideshow({ pictures: [first, { ...second, kenBurns: own }] });
 
-    const slides = composeSlideshow(stored, sources, NO_FOCUS, NO_SONG_BEATS).slides;
+    const slides = composeSlideshow(
+      stored,
+      sources,
+      NO_FOCUS,
+      NO_SONG_BEATS,
+      NO_SONG_LOUDNESS,
+    ).slides;
 
     expect(pictureSlide(slides[1]).kenBurns).toEqual({ ...own, easing: "linear" });
     expect(pictureSlide(slides[0]).kenBurns).toEqual(
-      pictureSlide(composeSlideshow(storedSlideshow(), sources, NO_FOCUS, NO_SONG_BEATS).slides[0])
-        .kenBurns,
+      pictureSlide(
+        composeSlideshow(storedSlideshow(), sources, NO_FOCUS, NO_SONG_BEATS, NO_SONG_LOUDNESS)
+          .slides[0],
+      ).kenBurns,
     );
   });
 });
@@ -218,7 +259,7 @@ describe("composeSlideshow with the pictures' focus", () => {
       ["b", faces],
     ]);
 
-    const slides = composeSlideshow(stored, sources, focus, NO_SONG_BEATS).slides;
+    const slides = composeSlideshow(stored, sources, focus, NO_SONG_BEATS, NO_SONG_LOUDNESS).slides;
 
     expect(pictureSlide(slides[0]).kenBurns).toEqual(autoKenBurns(0, first, faces));
     expect(pictureSlide(slides[0]).kenBurns).not.toEqual(autoKenBurns(0, first, undefined));
@@ -231,35 +272,16 @@ describe("composeSlideshow with a caption", () => {
     const [first, second] = storedSlideshow().pictures as [StoredPicture, StoredPicture];
     const stored = storedSlideshow({ pictures: [first, { ...second, caption: "Jetty" }] });
 
-    const slides = composeSlideshow(stored, sources, NO_FOCUS, NO_SONG_BEATS).slides;
+    const slides = composeSlideshow(
+      stored,
+      sources,
+      NO_FOCUS,
+      NO_SONG_BEATS,
+      NO_SONG_LOUDNESS,
+    ).slides;
 
     expect(pictureSlide(slides[1]).caption).toBe("Jetty");
     expect(slides[0]).toBeDefined();
     expect(slides[0]).not.toHaveProperty("caption");
-  });
-});
-
-describe("composeSlideshow with an own duration and transition", () => {
-  it("plays the own duration and the own effect, at the length that duration gives", () => {
-    const [first, second] = storedSlideshow().pictures as [StoredPicture, StoredPicture];
-    const stored = storedSlideshow({
-      pictures: [{ ...first, durationMs: 2000, transition: "dissolve" }, second],
-    });
-
-    const [slide] = composeSlideshow(stored, sources, NO_FOCUS, NO_SONG_BEATS).slides;
-
-    expect(slide?.durationMs).toBe(2000);
-    expect(slide?.transitionToNext).toEqual({ effect: "dissolve", durationMs: 600 });
-  });
-
-  it("composes a cut as a slide without transitionToNext, which the player accepts", () => {
-    const [first, second] = storedSlideshow().pictures as [StoredPicture, StoredPicture];
-    const stored = storedSlideshow({ pictures: [{ ...first, transition: "cut" }, second] });
-
-    const composed = composeSlideshow(stored, sources, NO_FOCUS, NO_SONG_BEATS);
-
-    expect(composed.slides[0]?.durationMs).toBe(5000);
-    expect(composed.slides[0]).not.toHaveProperty("transitionToNext");
-    expect(() => parseSlideshow(composed)).not.toThrow();
   });
 });

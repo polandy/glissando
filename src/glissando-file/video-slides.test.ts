@@ -42,14 +42,13 @@ function withVideo(manifest: Record<string, unknown>, change: Record<string, unk
 }
 
 describe("video slides in a .glissando file", () => {
-  it("writes format version 14 with each distinct clip once as videos/clip-<n>.<ext>", async () => {
+  it("writes the current format version with each distinct clip once as videos/clip-<n>.<ext>", async () => {
     const file = await exportedVideoFile();
 
     const names = ((await readZipDirectory(file)) ?? []).map((entry) => entry.name);
     const manifest = await manifestOf(file);
 
-    expect(GLISSANDO_FORMAT_VERSION).toBe(14);
-    expect(manifest["formatVersion"]).toBe(14);
+    expect(manifest["formatVersion"]).toBe(GLISSANDO_FORMAT_VERSION);
     expect(names.filter((name) => name.startsWith("videos/"))).toEqual([
       "videos/clip-1.mp4",
       "videos/clip-2.webm",

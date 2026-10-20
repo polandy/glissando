@@ -25,6 +25,8 @@ const BYTES_PER_GIGABYTE = 1_000_000_000;
 /** From here a size rounds to 1,000 MB and reads better as GB. */
 const GIGABYTE_FROM_MEGABYTES = 999.5;
 const GIGABYTE_FRACTION_DIGITS = 1;
+/** A true minus, not the hyphen-minus some locales format negative numbers with. */
+const MINUS_SIGN = "−";
 
 /** The first browser language the app speaks, English otherwise. */
 export function pickLanguage(languages: readonly string[]): Language {
@@ -68,6 +70,8 @@ export interface Translator {
   formatBytes(bytes: number): string;
   /** Items joined as the locale does: "5 und 12", "5, 12 and 20". */
   formatList(items: readonly string[]): string;
+  /** A signed dB amount, the sign a true minus: "+3 dB", "−4 dB". */
+  formatVolumeDb(db: number): string;
 }
 
 export function createTranslator(language: Language): Translator {
@@ -200,6 +204,10 @@ export function createTranslator(language: Language): Translator {
     },
     formatList(items) {
       return lists.format(items);
+    },
+    formatVolumeDb(db) {
+      const sign = db > 0 ? "+" : db < 0 ? MINUS_SIGN : "";
+      return t("units.decibels", { db: `${sign}${Math.abs(db)}` });
     },
   };
 }

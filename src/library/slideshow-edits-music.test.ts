@@ -5,6 +5,7 @@ import {
   setMusicFadeOut,
   setMusicPictureChanges,
   setMusicTrim,
+  setMusicVolume,
 } from "./slideshow-edits-music";
 import type { StoredMusic, StoredSlideshow } from "./stored-slideshow";
 
@@ -103,6 +104,35 @@ describe("setMusicFadeIn and setMusicFadeOut", () => {
   it("refuse a fade off the half-second grid", () => {
     expect(() => setMusicFadeIn(slideshow(), "m1", 1200)).toThrow("fadeInMs");
     expect(() => setMusicFadeOut(slideshow(), "m1", 1200)).toThrow("fadeOutMs");
+  });
+});
+
+describe("setMusicVolume", () => {
+  it("stores the own volume", () => {
+    expect(setMusicVolume(slideshow(), "m1", -3).songs[0]?.volumeDb).toBe(-3);
+  });
+
+  it("set back to undefined makes it levelled again: the field is gone", () => {
+    const own = setMusicVolume(slideshow(), "m1", -3);
+
+    expect(setMusicVolume(own, "m1", undefined).songs[0]).toEqual(MUSIC);
+  });
+
+  it("set to 0, the levelled default, deletes the field too", () => {
+    const own = setMusicVolume(slideshow(), "m1", -3);
+
+    expect(setMusicVolume(own, "m1", 0).songs[0]).toEqual(MUSIC);
+  });
+
+  it("refuses a volume out of range, naming the field", () => {
+    expect(() => setMusicVolume(slideshow(), "m1", 7)).toThrow(InvalidOwnMusicError);
+    expect(() => setMusicVolume(slideshow(), "m1", 7)).toThrow("volumeDb");
+  });
+
+  it("refuses a song the slideshow does not play, naming both", () => {
+    expect(() => setMusicVolume(slideshow(), "gone", -3)).toThrow(
+      'slideshow "show" has no song "gone"',
+    );
   });
 });
 

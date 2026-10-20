@@ -9,7 +9,7 @@ hostile (ADR-0038):
 
 | Entry                   | Content                                                                                                              |
 | ----------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| `glissando.json`        | first, as the export writes it, indented: `format` "glissando", `formatVersion` 14, the `slideshow`                  |
+| `glissando.json`        | first, as the export writes it, indented: `format` "glissando", `formatVersion` 15, the `slideshow`                  |
 | `glissando.schema.json` | next: a JSON Schema (draft-07) of `glissando.json` at the current `formatVersion`                                    |
 | `README.txt`            | next: English plain text saying what the file is and what each entry holds                                           |
 | `index.html`            | next: a player for the unpacked folder (`src/file-page/`, ADR-0038), see below                                       |
@@ -22,10 +22,11 @@ hostile (ADR-0038):
 `pictureLength` (only when set), `ownOrder` (only when true), `transition` (only when not the crossfade), `portraitPictures` (only when set, ADR-0028), `openingCard` and `closingCard` (only when set, ADR-0032, [TITLE_SLIDES](../app/slideshow-editing/TITLE_SLIDES.md); a card picture is named by its index in `pictures`), `pictures` (`file`, `thumbnail`, `capturedAt`, `width`, `height`,
 `fileName`, `colours` (`veil` and `accent`, ADR-0033), `kenBurns` for a picture with an own motion, `caption` for one with a caption,
 `durationMs` and `transition` for one with an own duration or transition, `immichAssetId` or
-`fileBytes` where known, `alone` for one never composed into a pair, `video` for a video slide: the clip's `file` and `mimeType`, its `sourceMs`, the excerpt `startMs` and `endMs`, and `volume` and `duckMusic: false` where set, ADR-0034; slides playing one clip name one file, which is stored once), `songs` (in play order, empty without music; each `file`, `fileName`, `durationMs` in whole ms, `mimeType`, and `trim`, `fadeInMs`, `fadeOutMs`, `pictureChanges` where set) and `betweenSongs` (only when set). Picture types follow
+`fileBytes` where known, `alone` for one never composed into a pair, `video` for a video slide: the clip's `file` and `mimeType`, its `sourceMs`, the excerpt `startMs` and `endMs`, and `volume` and `duckMusic: false` where set, ADR-0034; slides playing one clip name one file, which is stored once), `songs` (in play order, empty without music; each `file`, `fileName`, `durationMs` in whole ms, `mimeType`, and `trim`, `fadeInMs`, `fadeOutMs`, `pictureChanges`, `volumeDb` (whole dB off the levelled
+default, -12 to 6, ADR-0040) where set) and `betweenSongs` (only when set). Picture types follow
 the extension (`jpg`, `png`, `webp`). No picture's focus travels in the file: the receiving
 device looks for it itself (ADR-0012). The manifest is read strictly: an unknown key or a value
-out of range makes the file damaged. Versions 13 and 14 are read (version 13 has no `video`; version 14 added it with the `videos/` entries, ADR-0034); a file
+out of range makes the file damaged. Versions 13 to 15 are read (version 13 has no `video`; version 14 added it with the `videos/` entries, ADR-0034; version 15 added a song's own `volumeDb`, ADR-0040); a file
 of an older version is damaged. An own duration, transition, default transition, excerpt, fade or picture changes is checked as on the edit; the reason
 names its path and value. A caption must be what `normalizeCaption` leaves (1 to 80 characters counted in graphemes, one line, no
 leading, trailing or repeated whitespace); the reason names its path and value.

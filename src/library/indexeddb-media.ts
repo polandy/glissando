@@ -5,6 +5,7 @@ import {
   BEATS,
   FOCUS,
   IMPORTS,
+  LOUDNESS,
   MUSIC,
   PICTURES,
   SLIDESHOWS,
@@ -21,6 +22,7 @@ export const CLEAN_UP_STORES: StoreName[] = [
   IMPORTS,
   FOCUS,
   BEATS,
+  LOUDNESS,
 ];
 
 /**
@@ -65,8 +67,8 @@ export function deleteUnreferenced(transaction: IDBTransaction, now: Date): void
     const referenced = referencedMediaIds(slideshows.result as StoredSlideshow[]);
     const { sparedMediaIds, staleClaimIds } = claimsAt(imports.result as MediaClaim[], now);
     staleClaimIds.forEach((id) => importStore.delete(id));
-    // Focus and beats are media too: one kept for media that went goes with it.
-    for (const name of [PICTURES, MUSIC, VIDEOS, FOCUS, BEATS]) {
+    // Focus, beats and loudness are media too: one kept for media that went goes with it.
+    for (const name of [PICTURES, MUSIC, VIDEOS, FOCUS, BEATS, LOUDNESS]) {
       const media = transaction.objectStore(name);
       const keys = media.getAllKeys();
       keys.onsuccess = () => {

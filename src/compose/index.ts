@@ -26,6 +26,8 @@ export { buildStoredSlideshow, type BuildStoredSlideshowInput } from "./build-st
 export { composeSlideshow, type SlideshowSources } from "./compose-slideshow";
 export { slideshowDurationMs } from "./slideshow-duration-ms";
 export { beatTransitionDurationMs } from "./beat-transition";
+export { NO_SONG_LOUDNESS, type SongLoudness } from "./song-loudness";
+export { trackGain, type TrackGainInput } from "./track-gain";
 export {
   CROSSFADE_MS,
   NO_SONG_BEATS,

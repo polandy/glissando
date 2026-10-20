@@ -5,6 +5,7 @@ import { pictureSlide } from "../player/testing/picture-slide";
 import type { PictureFocus } from "../library/picture-focus";
 import type { StoredPicture, StoredSlideshow } from "../library/stored-slideshow";
 import { NO_SONG_BEATS } from "./playlist";
+import { NO_SONG_LOUDNESS } from "./song-loudness";
 
 function portrait(id: string, overrides: Partial<StoredPicture> = {}): StoredPicture {
   return {
@@ -40,7 +41,13 @@ function storedSlideshow(overrides: Partial<StoredSlideshow> = {}): StoredSlides
 
 describe("composeSlideshow with portrait pictures (ADR-0028)", () => {
   it("composes two consecutive portrait pictures into one slide, by default", () => {
-    const result = composeSlideshow(storedSlideshow(), sources, NO_FOCUS, NO_SONG_BEATS);
+    const result = composeSlideshow(
+      storedSlideshow(),
+      sources,
+      NO_FOCUS,
+      NO_SONG_BEATS,
+      NO_SONG_LOUDNESS,
+    );
 
     expect(result.slides).toHaveLength(1);
     expect(pictureSlide(result.slides[0]).image.src).toBe("pictures/a.jpg");
@@ -48,13 +55,25 @@ describe("composeSlideshow with portrait pictures (ADR-0028)", () => {
   });
 
   it("gives the pair 1.5 times a single slide's seconds", () => {
-    const result = composeSlideshow(storedSlideshow(), sources, NO_FOCUS, NO_SONG_BEATS);
+    const result = composeSlideshow(
+      storedSlideshow(),
+      sources,
+      NO_FOCUS,
+      NO_SONG_BEATS,
+      NO_SONG_LOUDNESS,
+    );
 
     expect(pictureSlide(result.slides[0]).durationMs).toBe(7500);
   });
 
   it("gives each half its own automatic motion with no horizontal pan", () => {
-    const result = composeSlideshow(storedSlideshow(), sources, NO_FOCUS, NO_SONG_BEATS);
+    const result = composeSlideshow(
+      storedSlideshow(),
+      sources,
+      NO_FOCUS,
+      NO_SONG_BEATS,
+      NO_SONG_LOUDNESS,
+    );
     const slide = pictureSlide(result.slides[0]);
 
     expect(slide.kenBurns.from.centerX).toBe(slide.kenBurns.to.centerX);
@@ -62,7 +81,13 @@ describe("composeSlideshow with portrait pictures (ADR-0028)", () => {
   });
 
   it("round-trips through parseSlideshow unchanged", () => {
-    const result = composeSlideshow(storedSlideshow(), sources, NO_FOCUS, NO_SONG_BEATS);
+    const result = composeSlideshow(
+      storedSlideshow(),
+      sources,
+      NO_FOCUS,
+      NO_SONG_BEATS,
+      NO_SONG_LOUDNESS,
+    );
 
     expect(parseSlideshow(JSON.parse(JSON.stringify(result)))).toEqual(result);
   });
@@ -70,7 +95,7 @@ describe("composeSlideshow with portrait pictures (ADR-0028)", () => {
   it("composes no pair when the slideshow is one-at-a-time", () => {
     const stored = storedSlideshow({ portraitPictures: "one-at-a-time" });
 
-    const result = composeSlideshow(stored, sources, NO_FOCUS, NO_SONG_BEATS);
+    const result = composeSlideshow(stored, sources, NO_FOCUS, NO_SONG_BEATS, NO_SONG_LOUDNESS);
 
     expect(result.slides).toHaveLength(2);
     expect(result.slides[0]).not.toHaveProperty("partner");
@@ -79,14 +104,20 @@ describe("composeSlideshow with portrait pictures (ADR-0028)", () => {
   it("gives every slide fit cover when the slideshow is fill-screen", () => {
     const stored = storedSlideshow({ portraitPictures: "fill-screen" });
 
-    const result = composeSlideshow(stored, sources, NO_FOCUS, NO_SONG_BEATS);
+    const result = composeSlideshow(stored, sources, NO_FOCUS, NO_SONG_BEATS, NO_SONG_LOUDNESS);
 
     expect(result.slides.every((slide) => pictureSlide(slide).fit === "cover")).toBe(true);
     expect(result.slides[0]).not.toHaveProperty("partner");
   });
 
   it("omits fit when the layout is automatic", () => {
-    const result = composeSlideshow(storedSlideshow(), sources, NO_FOCUS, NO_SONG_BEATS);
+    const result = composeSlideshow(
+      storedSlideshow(),
+      sources,
+      NO_FOCUS,
+      NO_SONG_BEATS,
+      NO_SONG_LOUDNESS,
+    );
 
     expect(result.slides[0]).not.toHaveProperty("fit");
   });
@@ -96,7 +127,7 @@ describe("composeSlideshow with portrait pictures (ADR-0028)", () => {
       pictures: [portrait("a", { alone: true }), portrait("b"), portrait("c")],
     });
 
-    const result = composeSlideshow(stored, sources, NO_FOCUS, NO_SONG_BEATS);
+    const result = composeSlideshow(stored, sources, NO_FOCUS, NO_SONG_BEATS, NO_SONG_LOUDNESS);
 
     expect(result.slides).toHaveLength(2);
     expect(result.slides[0]).not.toHaveProperty("partner");

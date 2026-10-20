@@ -1,4 +1,4 @@
-import { composeSlideshow, type SongBeats } from "../compose";
+import { composeSlideshow, type SongBeats, type SongLoudness } from "../compose";
 import type { PictureFocus } from "../library/picture-focus";
 import type {
   LibraryStore,
@@ -43,6 +43,8 @@ export interface PageExportJob {
   readonly focus: ReadonlyMap<string, PictureFocus>;
   /** The songs' beats found so far, by music id; the automatic picture changes land on them (ADR-0021). */
   readonly beats: SongBeats;
+  /** The songs' loudness found so far, by music id; levels each track's gain (ADR-0040). */
+  readonly loudness: SongLoudness;
   readonly sizeId: PageSizeId;
   /** The app's language at export time. */
   readonly lang: string;
@@ -98,6 +100,7 @@ async function writePage(job: PageExportJob): Promise<PageExportResult> {
     { picture: (id) => keys.get(id) ?? id, music: (id) => id, video: (id) => id },
     job.focus,
     job.beats,
+    job.loudness,
   );
   const songs = playedSongs(stored, composed);
   const clips = playedClips(composed);

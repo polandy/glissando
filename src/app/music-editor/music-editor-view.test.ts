@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { excerptLoudnessLufs, excerptPeakDbfs, MUSIC_TARGET_LOUDNESS_LUFS } from "../../loudness";
 import type { StoredMusic, StoredPicture, StoredSlideshow } from "../../library/stored-slideshow";
 import type { BeatsStatus } from "../beats/music-beats-known";
 import { firstSongView } from "./testing/first-song-view";
@@ -142,6 +143,36 @@ describe("musicEditorView", () => {
       endMs: 150_000,
       fadeInMs: 2000,
       fadeOutMs: 2000,
+    });
+  });
+
+  describe("volume (ADR-0040)", () => {
+    it("is still listening for the song's loudness until given", () => {
+      const view = firstSongView(slideshow({}), LISTENING);
+
+      expect(view.volume.measured).toBe(false);
+      expect(view.volume.hint).toEqual({ kind: "measuring" });
+    });
+
+    it("levels the excerpt it plays, atop its own volume", () => {
+      // One 400 ms gating block and the four 100 ms hops it spans, all one loudness, so the
+      // whole-track excerpt [0, 400) feeds exactly these into excerptLoudnessLufs/excerptPeakDbfs.
+      const loudness = {
+        blockMeanSquares: new Float32Array([0.02]),
+        hopPeaks: new Float32Array([0.6, 0.6, 0.6, 0.6]),
+      };
+      const view = firstSongView(slideshow({ durationMs: 400, volumeDb: 2 }), LISTENING, {
+        kind: "known",
+        loudness,
+      });
+
+      const lufs = excerptLoudnessLufs(loudness, 0, 400);
+      const peakDbfs = excerptPeakDbfs(loudness, 0, 400);
+      expect(lufs).not.toBeNull();
+      expect(peakDbfs).not.toBeNull();
+      expect(view.volume.measured).toBe(true);
+      expect(view.volume.ownDb).toBe(2);
+      expect(view.volume.levelDb).toBeCloseTo(MUSIC_TARGET_LOUDNESS_LUFS - (lufs as number), 5);
     });
   });
 });

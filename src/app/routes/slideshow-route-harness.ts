@@ -1,5 +1,6 @@
 import { songIntakeStoringIn } from "../music-editor/testing/song-intake-device";
 import { beatPassFindingNone } from "../../library/testing/beat-pass-finding-none";
+import { loudnessPassFindingNone } from "../../library/testing/loudness-pass-finding-none";
 import type { FocusPass } from "../../library/focus-pass";
 import type { StoredSlideshow } from "../../library/stored-slideshow";
 import { MemoryLibraryStore } from "../../library/testing/memory-store";
@@ -61,6 +62,7 @@ export function mountRoute(
     store,
     focusPass,
     beatPass: beatPassFindingNone(store),
+    loudnessPass: loudnessPassFindingNone(store),
     toaster,
     newId: () => "claim-1",
     now: () => new Date("2026-10-08T12:00:00Z"),

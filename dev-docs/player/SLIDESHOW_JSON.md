@@ -6,7 +6,7 @@ are rejected.
 
 ```json
 {
-  "formatVersion": 7,
+  "formatVersion": 8,
   "title": "July 2025",
   "music": [
     {
@@ -15,7 +15,8 @@ are rejected.
       "startMs": 12000,
       "endMs": 150000,
       "fadeInMs": 2000,
-      "fadeOutMs": 3000
+      "fadeOutMs": 3000,
+      "gain": 1
     },
     {
       "src": "music/autumn.mp3",
@@ -23,7 +24,8 @@ are rejected.
       "startMs": 0,
       "endMs": 90000,
       "fadeInMs": 3000,
-      "fadeOutMs": 2000
+      "fadeOutMs": 2000,
+      "gain": 1.26
     }
   ],
   "slides": [
@@ -72,6 +74,9 @@ are rejected.
   resolves them, leaving out the songs the slideshow never reaches: the player knows no
   "automatic", no "whole track" and no crossfade rule. Errors name the track, e.g.
   `music[1].atMs`.
+- **`gain`** (version 8, ADR-0040, required): linear, greater than 0 and finite; the composer's
+  own-loudness levelling, which the player and the video export each multiply into the track's
+  fade envelope. `1` is unlevelled (no measured loudness, or already at the target).
 - **`partner`** (version 4, ADR-0028, optional): the second picture of a composed portrait pair,
   drawn right of `image` on a landscape screen and below it on a portrait one, each cropped to
   cover its half; its own `kenBurns` moves within its own half, never panning horizontally
@@ -92,5 +97,5 @@ duckMusic? }`, a clip played over the slide's `image`, which is its poster. `sta
   absent means `true`. A video slide has a still framing (`kenBurns.from` equals `to`, zoom 1) and
   no `partner`. Errors name the field, e.g. `slides[i].video.endMs`. The music's duck factor is
   `duckFactorAt` over `videoSoundSpans(slides)`; see [VIDEO_SLIDES.md](VIDEO_SLIDES.md).
-- Only version 7 is read; older versions are refused, not upgraded — no instance holds
+- Only version 8 is read; older versions are refused, not upgraded — no instance holds
   slideshows older than this app.

@@ -130,7 +130,15 @@ describe.skipIf(server.browser === "webkit")("the clip's sound in the audio mix"
 
   it("ducks the music under the clip", async () => {
     const sound = new ClipSound(clipAudioSlides(slides as never), openClip);
-    const music = { src: "level", atMs: 0, startMs: 0, endMs: 6000, fadeInMs: 0, fadeOutMs: 0 };
+    const music = {
+      src: "level",
+      atMs: 0,
+      startMs: 0,
+      endMs: 6000,
+      fadeInMs: 0,
+      fadeOutMs: 0,
+      gain: 1,
+    };
     const mixer = await AudioMixer.decode(
       [music],
       () =>
@@ -161,7 +169,7 @@ describe("runVideoExport with a video slide", () => {
         easing: "linear",
       } as const;
       const slideshow: Slideshow = {
-        formatVersion: 7,
+        formatVersion: 8,
         title: "With a clip",
         slides: [
           { image: { src: "blue", capturedAt: CAPTURED_AT }, durationMs: 1000, kenBurns: still },

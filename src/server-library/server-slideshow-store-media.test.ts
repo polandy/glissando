@@ -6,13 +6,27 @@ import {
   type ImmichFace,
 } from "../immich/immich-client";
 import { MediaNotFoundError } from "../library/stored-slideshow";
+import { musicLoudnessToJson, type MusicLoudness } from "../loudness";
 import { PictureMissingFromImmichError } from "./server-slideshow-store";
 import { UNDECODABLE } from "./testing/fake-immich-media";
 import { serverStoreHarness } from "./testing/server-store-harness";
 
 const DRUMS: MusicBeats = { kind: "beats", beatsMs: [500, 1000], beatsPerMinute: 120 };
+const MEASURED: MusicLoudness = {
+  blockMeanSquares: new Float32Array([0.01, 0.02]),
+  hopPeaks: new Float32Array([0.5, 0.6, 0.7, 0.8, 0.9]),
+};
 const SMALL_FACE: ImmichFace = { imageWidth: 100, imageHeight: 50, x1: 0, y1: 0, x2: 10, y2: 10 };
 const LARGE_FACE: ImmichFace = { imageWidth: 100, imageHeight: 50, x1: 25, y1: 5, x2: 75, y2: 25 };
+
+/**
+ * Compares through the compact dB/dBFS wire form, since the server round trip rounds to 0.01 dB
+ * for compactness (dev-docs/library/MUSIC.md); the exact linear values put are not the point.
+ */
+function expectSameLoudness(actual: MusicLoudness | undefined, expected: MusicLoudness): void {
+  expect(actual).toBeDefined();
+  expect(musicLoudnessToJson(actual as MusicLoudness)).toEqual(musicLoudnessToJson(expected));
+}
 
 async function rejection(promise: Promise<unknown>): Promise<unknown> {
   return promise.then(
@@ -143,6 +157,27 @@ describe("ServerSlideshowStore media", () => {
 
     expect(await store.musicBeats(musicId)).toBeUndefined();
     expect(await store.musicBeats("deleted-meanwhile")).toBeUndefined();
+  });
+
+  it("keeps the loudness a device measured beside the server's music, for every device to read", async () => {
+    const { store, client } = serverStoreHarness();
+    const musicId = await client.uploadMusic(new Blob(["generated tone"]), "audio/mp4");
+    expect(await store.musicLoudness(musicId)).toBeUndefined();
+
+    await store.putMusicLoudness(musicId, MEASURED);
+
+    expectSameLoudness(await client.musicLoudness(musicId), MEASURED);
+    expectSameLoudness(await store.musicLoudness(musicId), MEASURED);
+  });
+
+  it("reads no loudness for music the server does not have, and keeps none put for it", async () => {
+    const { store, client } = serverStoreHarness();
+    const musicId = await client.uploadMusic(new Blob(["generated tone"]), "audio/mp4");
+
+    await store.putMusicLoudness("deleted-meanwhile", MEASURED);
+
+    expect(await store.musicLoudness(musicId)).toBeUndefined();
+    expect(await store.musicLoudness("deleted-meanwhile")).toBeUndefined();
   });
 
   it("aims a picture at its largest Immich face, asking Immich once per picture for the session", async () => {

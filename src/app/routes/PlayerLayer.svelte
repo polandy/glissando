@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onDestroy, onMount } from "svelte";
   import type { BeatPass } from "../../library/beat-pass";
-  import { composeSlideshow, type SongBeats } from "../../compose";
+  import { composeSlideshow, type SongBeats, type SongLoudness } from "../../compose";
   import type { LibraryStore, StoredSlideshow } from "../../library/stored-slideshow";
   import { performanceClock, type DecodeClipSound, type MusicOutput } from "../../player";
   import type { PictureFocus } from "../../library/picture-focus";
@@ -10,6 +10,7 @@
   import { browserObjectUrls } from "../media/object-urls";
   import { storedSongBeats } from "../beats/music-beats-known";
   import { NO_FOCUS_KNOWN } from "../focus/pictures-focus";
+  import { storedSongLoudness } from "../loudness/music-loudness-composed";
   import type { PlayerFailure } from "../player/player-failure";
   import PlayerOverlay from "../player/PlayerOverlay.svelte";
   import PlayerCard from "../player/PlayerCard.svelte";
@@ -57,6 +58,7 @@
       | "musicBlob"
       | "pictureFocus"
       | "musicBeats"
+      | "musicLoudness"
     >;
     stored: StoredSlideshow;
     musicOutput: MusicOutput;
@@ -91,6 +93,7 @@
     readonly musicUrls: ReadonlyMap<string, string>;
     readonly focus: ReadonlyMap<string, PictureFocus>;
     readonly beats: SongBeats;
+    readonly loudness: SongLoudness;
   }
 
   let loaded = $state.raw<Loaded | null>(null);
@@ -120,6 +123,7 @@
           },
           loaded.focus,
           loaded.beats,
+          loaded.loudness,
         ),
   );
 
@@ -192,12 +196,13 @@
         return NO_FOCUS_KNOWN.found;
       }),
       storedSongBeats(store, stored, log),
-    ]).then(([music, focus, beats]) => {
+      storedSongLoudness(store, stored, log),
+    ]).then(([music, focus, beats, loudness]) => {
       if (music === null) {
         return;
       }
       musicUrls = music.urls;
-      loaded = { musicUrls: music.urls, focus, beats };
+      loaded = { musicUrls: music.urls, focus, beats, loudness };
     }, onError);
     return unsubscribe;
   });

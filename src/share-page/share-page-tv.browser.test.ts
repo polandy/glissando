@@ -48,6 +48,7 @@ async function fakeTvApi(): Promise<FakeTvApi> {
         songs: [{ durationMs: MUSIC_MS, mimeType: "audio/wav" }],
       },
       beats: [null],
+      loudness: [null],
     },
     pictures: await Promise.all(
       [0, 1].map(async (index) => medium(await drawnJpeg(1600, 900, index * 120))),

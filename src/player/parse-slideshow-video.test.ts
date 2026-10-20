@@ -21,7 +21,7 @@ function videoSlide(
 }
 
 function show(...slides: Record<string, unknown>[]): unknown {
-  return { formatVersion: 7, title: "Clips", slides };
+  return { formatVersion: 8, title: "Clips", slides };
 }
 
 function parseError(input: unknown): SlideshowFormatError {

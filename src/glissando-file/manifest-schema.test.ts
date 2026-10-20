@@ -14,7 +14,7 @@ import { readEntry, readZipDirectory } from "./zip-reader";
 /** The smallest manifest `readManifest` accepts: every optional key, at every level, absent. */
 const MINIMAL_MANIFEST = {
   format: "glissando",
-  formatVersion: 14,
+  formatVersion: 15,
   slideshow: {
     title: "T",
     createdAt: "2025-01-01T00:00:00Z",
@@ -67,7 +67,7 @@ describe("MANIFEST_SCHEMA: root and slideshow, broken manifests", () => {
     ["root: missing slideshow", withoutAt(BASE_MANIFEST, ["slideshow"])],
     ["root: an unknown key", withAt(BASE_MANIFEST, ["extra"], true)],
     ["root: format of the wrong type", withAt(BASE_MANIFEST, ["format"], 123)],
-    ["root: formatVersion of the wrong type", withAt(BASE_MANIFEST, ["formatVersion"], "14")],
+    ["root: formatVersion of the wrong type", withAt(BASE_MANIFEST, ["formatVersion"], "15")],
     ["root: slideshow of the wrong type", withAt(BASE_MANIFEST, ["slideshow"], "oops")],
     ["slideshow: missing title", withoutAt(MINIMAL_MANIFEST, ["slideshow", "title"])],
     ["slideshow: missing createdAt", withoutAt(MINIMAL_MANIFEST, ["slideshow", "createdAt"])],

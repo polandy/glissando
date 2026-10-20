@@ -78,6 +78,7 @@ async function exportedPage(): Promise<Blob> {
     stored: STORED,
     focus: new Map(),
     beats: new Map(),
+    loudness: new Map(),
     sizeId: "small",
     lang: "en",
     copy: COPY,

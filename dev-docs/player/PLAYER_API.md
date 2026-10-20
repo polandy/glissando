@@ -65,9 +65,10 @@ Behaviour:
   pauses on pause, while waiting and at the end, and a track pauses once play time passes its end
   while the others play on. In a crossfade two sound at once. On play, every track not heard then
   is primed: started at its `startMs` at volume 0 and paused again at once, so it starts on loaded
-  sound and, on iOS, counts as started in the Play gesture. Each track's volume is a pure function
-  of play time (`trackGainAt`: linear fades, silent outside the track), set before every start
-  and on every frame, so pause, resume and seek land on every envelope without a jump. The volume
+  sound and, on iOS, counts as started in the Play gesture. Each track's volume is its `gain`
+  (ADR-0040, the composer's own-loudness levelling) times a pure function of play time
+  (`trackGainAt`: linear fades, silent outside the track), set before every start and on every
+  frame, so pause, resume and seek land on every envelope without a jump. The volume
   is set on a Web Audio gain node per element at the context's current time (`MusicOutput`, one
   `AudioContext` per page that every track routes through), since iOS ignores a media element's
   `volume`; without Web Audio it falls back to the element's volume. iOS lets the context sound

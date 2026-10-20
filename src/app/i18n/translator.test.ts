@@ -171,6 +171,19 @@ describe("formatBytes", () => {
   });
 });
 
+describe("formatVolumeDb", () => {
+  it.each([
+    ["de", 3, "+3 dB"],
+    ["en", 3, "+3 dB"],
+    ["de", -4, "−4 dB"],
+    ["en", -4, "−4 dB"],
+    ["de", 0, "0 dB"],
+    ["en", 0, "0 dB"],
+  ] as const)("in %s shows %d dB as %j", (language, db, expected) => {
+    expect(createTranslator(language).formatVolumeDb(db)).toBe(expected);
+  });
+});
+
 describe("catalogues", () => {
   function placeholdersOf(message: unknown): string[] {
     const text = typeof message === "string" ? message : JSON.stringify(message);

@@ -4,6 +4,7 @@ import { pictureKey, songKey } from "../html-export/page-contract";
 import { readShareAnswer } from "./share-answer";
 
 const BEATS = { kind: "beats", beatsMs: [0, 500, 1000], beatsPerMinute: 120 };
+const LOUDNESS = { blockLoudnessDb: [-20], hopPeaksDbfs: [-10, -10, -10, -10] };
 
 function answer(overrides: Record<string, unknown> = {}): Record<string, unknown> {
   return {
@@ -31,6 +32,7 @@ function answer(overrides: Record<string, unknown> = {}): Record<string, unknown
       songs: [{ durationMs: 90_000, mimeType: "audio/mpeg" }],
     },
     beats: [BEATS],
+    loudness: [LOUDNESS],
     ...overrides,
   };
 }
@@ -59,6 +61,7 @@ describe("readShareAnswer", () => {
         ],
       },
       beats: [null, BEATS],
+      loudness: [null, LOUDNESS],
     });
 
     const read = readShareAnswer(twoSongs);
@@ -67,10 +70,35 @@ describe("readShareAnswer", () => {
     expect(read.beats.get(songKey(1))).toEqual(BEATS);
   });
 
+  it("keeps the loudness of each song that has it, by the song's key", () => {
+    const withSong = answer();
+    const twoSongs = answer({
+      slideshow: {
+        ...(withSong["slideshow"] as object),
+        songs: [
+          { durationMs: 90_000, mimeType: "audio/mpeg" },
+          { durationMs: 60_000, mimeType: "audio/mpeg" },
+        ],
+      },
+      beats: [null, BEATS],
+      loudness: [null, LOUDNESS],
+    });
+
+    const read = readShareAnswer(twoSongs);
+
+    expect([...read.loudness.keys()]).toEqual([songKey(1)]);
+    const peak = 10 ** (-10 / 20);
+    expect(read.loudness.get(songKey(1))?.hopPeaks).toEqual(
+      new Float32Array([peak, peak, peak, peak]),
+    );
+  });
+
   it.each([
     { what: "a revision that is no whole number", overrides: { revision: "7" } },
     { what: "beats not one per song", overrides: { beats: [] } },
     { what: "beats that are no beats", overrides: { beats: [{ bpm: "fast" }] } },
+    { what: "loudness not one per song", overrides: { loudness: [] } },
+    { what: "loudness that is no loudness", overrides: { loudness: [{ bad: true }] } },
     { what: "an unknown key", overrides: { extra: true } },
   ])("refuses an answer with $what", ({ overrides }) => {
     expect(() => readShareAnswer(answer(overrides))).toThrow(DocumentFormatError);

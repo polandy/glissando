@@ -33,16 +33,16 @@ describe("MusicEditorScreen, the playlist's songs", () => {
     mountEditor(slideshowOfSongs(THREE));
 
     expect(rows()).toEqual([
-      "1 a.mp3 1:00 ab 0:00",
-      "2 b.mp3 1:00 ab 0:57",
-      "3 c.mp3 1:00 ab 1:54",
+      "1 a.mp3 1:00 Wird gemessen… ab 0:00",
+      "2 b.mp3 1:00 Wird gemessen… ab 0:57",
+      "3 c.mp3 1:00 Wird gemessen… ab 1:54",
     ]);
   });
 
   it("dims a song the slideshow never reaches as not reached", () => {
     mountEditor(slideshowOfSongs(THREE, { count: 4, pictureLength: OWN_SECONDS_PICTURE_LENGTH }));
 
-    expect(rows()[1]).toBe("2 b.mp3 1:00 Nicht erreicht");
+    expect(rows()[1]).toBe("2 b.mp3 1:00 Wird gemessen… Nicht erreicht");
     expect(document.querySelectorAll(".song.unreached")).toHaveLength(2);
   });
 

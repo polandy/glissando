@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { composeSlideshow } from "./compose-slideshow";
 import { pictureDurationsMs } from "./picture-durations-ms";
 import { NO_SONG_BEATS } from "./playlist";
+import { NO_SONG_LOUDNESS } from "./song-loudness";
 import { slideUnits } from "./slide-units";
 import { parseSlideshow } from "../player/parse-slideshow";
 import { pictureSlide } from "../player/testing/picture-slide";
@@ -58,7 +59,13 @@ const BEATS: MusicBeats = {
 
 describe("composeSlideshow with a video slide", () => {
   it("emits the clip from its media id, the picture being the poster", () => {
-    const slideshow = composeSlideshow(show([clip("a")]), sources, NO_FOCUS, NO_SONG_BEATS);
+    const slideshow = composeSlideshow(
+      show([clip("a")]),
+      sources,
+      NO_FOCUS,
+      NO_SONG_BEATS,
+      NO_SONG_LOUDNESS,
+    );
 
     expect(pictureSlide(slideshow.slides[0])).toMatchObject({
       image: { src: "pictures/a.jpg" },
@@ -72,6 +79,7 @@ describe("composeSlideshow with a video slide", () => {
       sources,
       NO_FOCUS,
       NO_SONG_BEATS,
+      NO_SONG_LOUDNESS,
     );
     const [a, b, c] = slideshow.slides.map((slide) => pictureSlide(slide).video);
 
@@ -87,6 +95,7 @@ describe("composeSlideshow with a video slide", () => {
       sources,
       NO_FOCUS,
       NO_SONG_BEATS,
+      NO_SONG_LOUDNESS,
     );
 
     expect(slideshow.slides.map((slide) => slide.durationMs)).toEqual([8400, 5000]);
@@ -99,6 +108,7 @@ describe("composeSlideshow with a video slide", () => {
       sources,
       NO_FOCUS,
       NO_SONG_BEATS,
+      NO_SONG_LOUDNESS,
     );
 
     expect(pictureSlide(slideshow.slides[0]).kenBurns).toEqual({
@@ -125,6 +135,7 @@ describe("composeSlideshow with a video slide", () => {
       sources,
       NO_FOCUS,
       NO_SONG_BEATS,
+      NO_SONG_LOUDNESS,
     );
 
     expect(pictureSlide(slideshow.slides[0])).toMatchObject({
@@ -139,6 +150,7 @@ describe("composeSlideshow with a video slide", () => {
       sources,
       NO_FOCUS,
       NO_SONG_BEATS,
+      NO_SONG_LOUDNESS,
     );
 
     expect(parseSlideshow(JSON.parse(JSON.stringify(slideshow)))).toEqual(slideshow);
@@ -150,6 +162,7 @@ describe("composeSlideshow with a video slide", () => {
       sources,
       NO_FOCUS,
       NO_SONG_BEATS,
+      NO_SONG_LOUDNESS,
     );
 
     expect(slideshow.slides.map((slide) => slide.durationMs)).toEqual([8400, 25_800, 25_800]);
@@ -161,6 +174,7 @@ describe("composeSlideshow with a video slide", () => {
       sources,
       NO_FOCUS,
       new Map([[SONG.id, BEATS]]),
+      NO_SONG_LOUDNESS,
     );
 
     expect(slideshow.slides[1]?.durationMs).toBe(8400);

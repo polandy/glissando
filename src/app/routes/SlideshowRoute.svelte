@@ -35,6 +35,7 @@
     serverSessions,
     focusPass,
     beatPass,
+    loudnessPass,
     toaster,
     newId,
     now,
@@ -181,6 +182,7 @@
     {stored}
     {editor}
     {beatPass}
+    {loudnessPass}
     audio={musicAudio}
     {songIntake}
     {saving}

@@ -1,6 +1,6 @@
 import type { MusicBeats } from "../beats";
 import { parseMusicBeats } from "../beats/music-beats-json";
-import type { SongBeats } from "../compose/playlist";
+import type { SongBeats, SongLoudness } from "../compose";
 import { GLISSANDO_FORMAT_VERSION } from "../glissando-file/glissando-manifest";
 import {
   DocumentFormatError,
@@ -22,16 +22,18 @@ import {
 } from "../glissando-file/slideshow-fields-media";
 import { pictureKey, songKey } from "../html-export/page-contract";
 import type { StoredMusic, StoredPicture, StoredSlideshow } from "../library/stored-slideshow";
+import { parseMusicLoudness, type MusicLoudness } from "../loudness";
 
 /**
  * `GET /api/share/{token}` read as the page plays it (dev-docs/share_link/HTTP_API.md, Public): the share
  * document as a stored slideshow whose pictures and songs are named by their position
- * (`pictureKey`, `songKey`), and the beats by song.
+ * (`pictureKey`, `songKey`), and the beats and loudness by song.
  */
 export interface ShareAnswer {
   readonly revision: number;
   readonly slideshow: StoredSlideshow;
   readonly beats: SongBeats;
+  readonly loudness: SongLoudness;
 }
 
 /** The share document never names a file; the stored slideshow needs a name, never shown. */
@@ -40,7 +42,7 @@ const SHARED_SLIDESHOW_ID = "shared";
 
 /** Untrusted JSON as the share API's answer; throws `DocumentFormatError` naming path and value. */
 export function readShareAnswer(json: unknown): ShareAnswer {
-  const root = readObject(json, "", ["revision", "slideshow", "beats"]);
+  const root = readObject(json, "", ["revision", "slideshow", "beats", "loudness"]);
   const revision = root["revision"];
   if (typeof revision !== "number" || !Number.isInteger(revision) || revision < 1) {
     throw new DocumentFormatError("revision", "a positive whole number", revision);
@@ -64,6 +66,7 @@ export function readShareAnswer(json: unknown): ShareAnswer {
       ...(resolvedClosingCard === undefined ? {} : { closingCard: resolvedClosingCard }),
     },
     beats: readBeats(root["beats"], songs.length),
+    loudness: readLoudness(root["loudness"], songs.length),
   };
 }
 
@@ -95,6 +98,22 @@ function readBeats(value: unknown, songCount: number): SongBeats {
       throw new DocumentFormatError(`beats[${index}]`, "a song's beats or null", entry);
     }
     found.set(songKey(index), beats);
+  });
+  return found;
+}
+
+function readLoudness(value: unknown, songCount: number): SongLoudness {
+  if (!Array.isArray(value) || value.length !== songCount) {
+    throw new DocumentFormatError("loudness", `${songCount} entries, one per song`, value);
+  }
+  const found = new Map<string, MusicLoudness>();
+  value.forEach((entry: unknown, index) => {
+    if (entry === null) return;
+    try {
+      found.set(songKey(index), parseMusicLoudness(entry));
+    } catch {
+      throw new DocumentFormatError(`loudness[${index}]`, "a song's loudness or null", entry);
+    }
   });
   return found;
 }

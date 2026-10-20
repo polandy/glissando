@@ -28,6 +28,7 @@ const ANSWER = {
     songs: [],
   },
   beats: [],
+  loudness: [],
 };
 
 /** Answers each URL from `routes`; any other URL is a test failure. */

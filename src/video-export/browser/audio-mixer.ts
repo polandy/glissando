@@ -1,6 +1,6 @@
 import { MILLISECONDS_PER_SECOND, type MusicTrack, type VideoSoundSpan } from "../../player";
 import { duckGainRamps } from "../duck-ramps";
-import { trackGainRamps, type GainPoint } from "../music-ramps";
+import { scaleGainPoints, trackGainRamps, type GainPoint } from "../music-ramps";
 import { AUDIO_CHANNELS, AUDIO_SAMPLE_RATE, type AudioSegment } from "../plan";
 import type { AudioSource } from "../ports";
 
@@ -35,8 +35,9 @@ interface DecodedTrack {
 }
 
 /**
- * The playlist's tracks mixed along slideshow time, each from its place on its own gain envelope,
- * with the video slides' clip sound on top and the music ducked under it (ADR-0035), rendered
+ * The playlist's tracks mixed along slideshow time, each from its place on its own gain envelope
+ * levelled by its own `gain` (ADR-0040), with the video slides' clip sound on top — not levelled —
+ * and the music ducked under it (ADR-0035), rendered
  * one segment at a time in its own `OfflineAudioContext`, so only the decoded songs and one
  * segment are held at once. See ADR-0023.
  */
@@ -124,7 +125,7 @@ function mixInto(
   toMs: number,
 ): void {
   const gain = context.createGain();
-  applyRamps(gain.gain, trackGainRamps(track, fromMs, toMs));
+  applyRamps(gain.gain, scaleGainPoints(trackGainRamps(track, fromMs, toMs), track.gain));
   gain.connect(output);
   const source = context.createBufferSource();
   source.buffer = audio;

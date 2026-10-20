@@ -9,8 +9,9 @@ interface PlacedTrack {
 }
 
 /**
- * Plays a playlist along slideshow time: each track from its place, at its start, at the volume of
- * its own fade envelope, and only while it is heard; two at once in a crossfade. See ADR-0023.
+ * Plays a playlist along slideshow time: each track from its place, at its start, at its own
+ * `gain` (ADR-0040) times its own fade envelope, and only while it is heard; two at once in a
+ * crossfade. See ADR-0023.
  */
 export class PlaylistMusic {
   readonly #tracks: readonly PlacedTrack[];
@@ -89,7 +90,7 @@ export class PlaylistMusic {
   }
 
   #volumeAt(track: MusicTrack, timeMs: number): number {
-    return trackGainAt(track, timeMs) * this.#duckAt(timeMs);
+    return track.gain * trackGainAt(track, timeMs) * this.#duckAt(timeMs);
   }
 }
 

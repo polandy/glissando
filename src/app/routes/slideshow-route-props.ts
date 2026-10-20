@@ -1,6 +1,7 @@
 import type { StoredSlideshow } from "../../library/stored-slideshow";
 import type { BeatPass } from "../../library/beat-pass";
 import type { FocusPass } from "../../library/focus-pass";
+import type { LoudnessPass } from "../../library/loudness-pass";
 import type { SlideshowHome } from "./slideshow-storage";
 import type { RouteStore } from "./slideshow-home";
 import type { ExportProgress } from "../glissando-file/export-job";
@@ -32,6 +33,8 @@ export interface SlideshowRouteProps {
   focusPass: Pick<FocusPass, "state" | "subscribe">;
   /** What it finds puts the editors' automatic changes on the music's beats as it goes. */
   beatPass: Pick<BeatPass, "subscribe" | "listenFor">;
+  /** What it finds levels each song in the music editor as it goes (ADR-0040). */
+  loudnessPass: Pick<LoudnessPass, "subscribe" | "listenFor">;
   toaster: Toaster;
   newId: () => string;
   now: () => Date;

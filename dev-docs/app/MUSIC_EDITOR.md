@@ -17,7 +17,9 @@
   - **Songs** (`SongList.svelte`): a row per song in play order — a grip, its number on the
     song's colour (`--gl-song-1` … `-6` in turn), the file name over "3:24" (trimmed "3:24 ·
     trimmed to 2:18"), "from 0:57" where it starts in the slideshow, and × (removes it, with
-    the undo toast). A song starting after the slideshow's end is dimmed and reads "Not
+    the undo toast). A badge by the length (`VolumeBadge.svelte`) shows the own dB once set, or
+    pulses "Measuring…" until the loudness is known; a levelled song shows none. A song starting
+    after the slideshow's end is dimmed and reads "Not
     reached"; it stays and plays once the slideshow grows. Tapping a row selects the song; the
     first is selected on opening and when the selected one goes. The grip
     (`song-drag.ts`, ADR-0019's pattern) drags the song onto another row, which a dashed accent
@@ -60,6 +62,15 @@
   - **Excerpt**: the state "Whole track" or "Trimmed" (accent-tinted), Start and End as
     "0:12,0" with − and + for half seconds, then "Whole track" (resets) or, untrimmed, "The
     slideshow uses the whole track, 3:24."
+  - **Volume** (`VolumeSection.svelte`, ADR-0040, `dev-docs/library/MUSIC.md` "Loudness
+    levelling and song volume"): a slider around the levelled point (0 dB), hatched past the peak
+    ceiling; the readout "Levelled" or the own dB that plays (held at the ceiling), with why (same
+    loudness, louder, quieter, or capped short to avoid distortion); "Back to levelled" once own.
+    "Listen" plays the excerpt's loudest 8 s at the resolved gain (toggle to stop); "Original file"
+    swaps it for the file's own gain in place; while listening, a hint invites tapping another song
+    to compare, which then plays. Below the song list,
+    the collapsible "Loudness of the songs" (`VolumeComparisonBox.svelte`, closed by default):
+    each song's bar to where it ends up now, a grey mark at its own loudness, and its state.
   - **Picture length** (`components/PictureLengthSection.svelte`, also in the new slideshow's
     music step): a clock icon, "About 5 s each" and "Fill the music" as a radiogroup (arrows move
     the choice), stored at once; with the first, the seconds stepper (− and + for half seconds, 2
@@ -102,5 +113,5 @@
     another" ("The next song starts once the previous one has faded out.") as a radiogroup.
     The panel (`MusicEditorPanel.svelte`) is in two groups: "Slideshow" with Picture length and
     Between songs, then "Song 2" — for a song not reached first the lemon note "The slideshow
-    ends before this song starts; it plays once the slideshow grows." — with Excerpt, Picture
-    changes, Picture times, Fade in, Fade out. The rules: `dev-docs/COMPOSITION.md`.
+    ends before this song starts; it plays once the slideshow grows." — with Excerpt, Volume,
+    Picture changes, Picture times, Fade in, Fade out. The rules: `dev-docs/COMPOSITION.md`.

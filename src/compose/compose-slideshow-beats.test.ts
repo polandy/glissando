@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { composeSlideshow } from "./compose-slideshow";
+import { NO_SONG_LOUDNESS } from "./song-loudness";
 import { NO_BEATS, type MusicBeats } from "../beats";
 import type { PictureFocus } from "../library/picture-focus";
 import type { StoredMusic, StoredPicture, StoredSlideshow } from "../library/stored-slideshow";
@@ -46,7 +47,13 @@ function storedSlideshow(music: StoredMusic): StoredSlideshow {
 }
 
 const compose = (music: StoredMusic, beats: MusicBeats) =>
-  composeSlideshow(storedSlideshow(music), sources, NO_FOCUS, new Map([[music.id, beats]]));
+  composeSlideshow(
+    storedSlideshow(music),
+    sources,
+    NO_FOCUS,
+    new Map([[music.id, beats]]),
+    NO_SONG_LOUDNESS,
+  );
 const durationsOf = (music: StoredMusic, beats: MusicBeats) =>
   compose(music, beats).slides.map((slide) => slide.durationMs);
 

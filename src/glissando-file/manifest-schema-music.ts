@@ -3,6 +3,8 @@ import {
   MAX_MUSIC_FADE_MS,
   MUSIC_FADE_OFF_MS,
   MUSIC_FADE_STEP_MS,
+  MUSIC_VOLUME_MAX_DB,
+  MUSIC_VOLUME_MIN_DB,
 } from "../library/own-music";
 import { NON_EMPTY_STRING_SCHEMA, type JsonSchema } from "./manifest-schema-values";
 
@@ -27,7 +29,13 @@ const MUSIC_TRIM_SCHEMA: JsonSchema = {
   additionalProperties: false,
 };
 
-/** A song in `songs` (version 14): its path, type, whole length and optional trim and fades. */
+const MUSIC_VOLUME_SCHEMA: JsonSchema = {
+  type: "integer",
+  minimum: MUSIC_VOLUME_MIN_DB,
+  maximum: MUSIC_VOLUME_MAX_DB,
+};
+
+/** A song in `songs`: its path, type, whole length and optional trim, fades and volume. */
 export const MUSIC_SCHEMA: JsonSchema = {
   type: "object",
   properties: {
@@ -39,6 +47,7 @@ export const MUSIC_SCHEMA: JsonSchema = {
     fadeInMs: MUSIC_FADE_SCHEMA,
     fadeOutMs: MUSIC_FADE_SCHEMA,
     pictureChanges: { const: EVEN_PICTURE_CHANGES },
+    volumeDb: MUSIC_VOLUME_SCHEMA,
   },
   required: ["file", "fileName", "durationMs", "mimeType"],
   additionalProperties: false,

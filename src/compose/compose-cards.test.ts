@@ -12,6 +12,7 @@ import { pictureSlide } from "../player/testing/picture-slide";
 import { CARD_ALONE_MS, CARD_END_FADE_MS, CARD_SLIDE_MS } from "./compose-cards";
 import { composeSlideshow } from "./compose-slideshow";
 import { NO_SONG_BEATS } from "./playlist";
+import { NO_SONG_LOUDNESS } from "./song-loudness";
 
 function picture(id: string, capturedAt: string): StoredPicture {
   return {
@@ -72,7 +73,7 @@ function pictureCard(pictureId: string, motion: boolean, tint: CardTint = "pictu
 }
 
 function compose(stored: StoredSlideshow) {
-  return composeSlideshow(stored, sources, NO_FOCUS, NO_SONG_BEATS);
+  return composeSlideshow(stored, sources, NO_FOCUS, NO_SONG_BEATS, NO_SONG_LOUDNESS);
 }
 
 function ground(slide: unknown): GroundSlide {

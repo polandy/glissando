@@ -1,5 +1,11 @@
 import { slideBoundaries } from "../app/player/slide-boundaries";
-import { composeSlideshow, slideOfPicture, slideUnits, type SongBeats } from "../compose";
+import {
+  composeSlideshow,
+  slideOfPicture,
+  slideUnits,
+  type SongBeats,
+  type SongLoudness,
+} from "../compose";
 import type { PlayablePage } from "../export-player/page-player";
 import type { PictureFocus } from "../library/picture-focus";
 import type { StoredSlideshow } from "../library/stored-slideshow";
@@ -13,6 +19,7 @@ export interface SharedShow {
   /** Its pictures and songs named by their position (`pictureKey`, `songKey`). */
   readonly stored: StoredSlideshow;
   readonly beats: SongBeats;
+  readonly loudness: SongLoudness;
   /** Each song the slideshow plays, by its key, as a playable URL. */
   readonly songUrls: ReadonlyMap<string, string>;
 }
@@ -48,6 +55,7 @@ export async function loadSharedShow(
     { picture: (key) => key, music: (key) => key, video: (key) => key },
     NO_FOCUS,
     answer.beats,
+    answer.loudness,
   );
   const playedSongs = [...new Set(byKey.music?.map(({ src }) => src))];
   const songIndex = new Map(answer.slideshow.songs.map(({ id }, index) => [id, index]));
@@ -62,6 +70,7 @@ export async function loadSharedShow(
     revision: answer.revision,
     stored: answer.slideshow,
     beats: answer.beats,
+    loudness: answer.loudness,
     songUrls: new Map(songUrls),
   };
 }
@@ -146,5 +155,6 @@ function composed(show: SharedShow, skipped: ReadonlySet<string>): Slideshow {
     },
     NO_FOCUS,
     show.beats,
+    show.loudness,
   );
 }

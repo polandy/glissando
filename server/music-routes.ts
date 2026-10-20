@@ -1,4 +1,5 @@
 import { parseMusicBeats } from "../src/beats/music-beats-json";
+import { musicLoudnessToJson, parseMusicLoudness } from "../src/loudness/music-loudness-json";
 import type { LibraryHandlerDependencies } from "./library-handler";
 import {
   errorResponse,
@@ -86,6 +87,40 @@ export function musicRoutes({ repository, now, newId }: LibraryHandlerDependenci
           return notFound();
         }
         repository.putMusicBeats(id, beats);
+        return { status: HTTP_STATUS.noContent, headers: {}, body: "" };
+      });
+    },
+
+    readLoudness(id: string): LibraryResponse {
+      if (repository.findMusic(id) === undefined) {
+        return notFound();
+      }
+      const loudness = repository.findMusicLoudness(id);
+      return jsonResponse(HTTP_STATUS.ok, {
+        loudness: loudness === undefined ? null : musicLoudnessToJson(loudness),
+      });
+    },
+
+    replaceLoudness(id: string, request: LibraryRequest): LibraryResponse {
+      const read = readJsonBody(
+        request,
+        `music loudness is at most ${MAX_DOCUMENT_BYTES} bytes`,
+        "invalidLoudness",
+      );
+      if (read.kind === "refused") {
+        return read.response;
+      }
+      let loudness;
+      try {
+        loudness = parseMusicLoudness(read.value);
+      } catch (error) {
+        return errorResponse(HTTP_STATUS.badRequest, "invalidLoudness", (error as Error).message);
+      }
+      return repository.inTransaction(() => {
+        if (repository.findMusic(id) === undefined) {
+          return notFound();
+        }
+        repository.putMusicLoudness(id, loudness);
         return { status: HTTP_STATUS.noContent, headers: {}, body: "" };
       });
     },

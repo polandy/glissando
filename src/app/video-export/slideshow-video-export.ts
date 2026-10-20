@@ -9,6 +9,7 @@ import {
 } from "../../video-export";
 import { storedSongBeats } from "../beats/music-beats-known";
 import { NO_FOCUS_KNOWN } from "../focus/pictures-focus";
+import { storedSongLoudness } from "../loudness/music-loudness-composed";
 import type { ExportRun, VideoExportPorts } from "./export-sheet-state";
 import { VideoExportSession } from "./video-export-session";
 
@@ -26,18 +27,19 @@ export function slideshowVideoExport(
   device: VideoExportDevice,
   store: Pick<
     LibraryStore,
-    "pictureBlob" | "musicBlob" | "videoBlob" | "pictureFocus" | "musicBeats"
+    "pictureBlob" | "musicBlob" | "videoBlob" | "pictureFocus" | "musicBeats" | "musicLoudness"
   >,
   stored: StoredSlideshow,
 ): VideoExportSession<ExportPreview> {
   const compose = async () => {
-    const [focus, beats] = await Promise.all([
+    const [focus, beats, loudness] = await Promise.all([
       store.pictureFocus(stored.pictures.map((picture) => picture.id)).catch((error: unknown) => {
         // Focus only aims the automatic motions: unread, they aim at the middle.
         device.log(error);
         return NO_FOCUS_KNOWN.found;
       }),
       storedSongBeats(store, stored, device.log),
+      storedSongLoudness(store, stored, device.log),
     ]);
     // The export reads media by id, so the sources stay ids.
     return composeSlideshow(
@@ -45,6 +47,7 @@ export function slideshowVideoExport(
       { picture: (id) => id, music: (id) => id, video: (id) => id },
       focus,
       beats,
+      loudness,
     );
   };
   const run = async (job: ExportRun<ExportPreview>) => {

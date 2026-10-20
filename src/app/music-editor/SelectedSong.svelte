@@ -3,7 +3,7 @@
   import { MILLISECONDS_PER_SECOND } from "../../player";
   import Icon from "../components/Icon.svelte";
   import { getTranslator } from "../i18n/context";
-  import type { ListenKind, ListenState } from "./listen-preview";
+  import type { ListenState } from "./listen-preview";
   import type { MusicEditorView } from "./music-editor-view";
   import MusicWaveform from "./MusicWaveform.svelte";
   import SlideshowLane from "./SlideshowLane.svelte";
@@ -31,7 +31,7 @@
     /** The excerpt on release. */
     onCommit: (trim: MusicTrim) => void;
     onStopListening: () => void;
-    onListen: (kind: ListenKind) => void;
+    onListen: (kind: "start" | "end") => void;
   } = $props();
 
   const { t, formatDuration, formatTenths } = getTranslator();
