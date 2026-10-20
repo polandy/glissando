@@ -41,10 +41,8 @@
   const translator = getTranslator();
   const { t } = translator;
   // svelte-ignore state_referenced_locally
-  const { importFlow, addFlow, exportJob, openFlow, immichBrowsers } = createAppFlows(
-    services,
-    translator,
-  );
+  const { importFlow, addFlow, exportJob, openFlow, immichBrowsers, demoSlideshowFlow } =
+    createAppFlows(services, translator);
 
   // svelte-ignore state_referenced_locally
   const serverCopies = new ServerCopyFlows({
@@ -173,6 +171,8 @@
     onSetUpFrame={() => navigator.open({ screen: "frameSetup" })}
     onHideFrameCard={actions.hideFrameCard}
     {frameCardShown}
+    demoSlideshow={demoSlideshowFlow}
+    publicInstall={services.demoSlideshow.config.publicInstall}
   />
   <FrameRoutes {route} {services} {navigator} />
   {#if route.screen === "settings"}
