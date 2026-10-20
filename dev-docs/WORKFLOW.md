@@ -12,6 +12,8 @@ here; this file is the full text.
   settled/completion signal) instead.
 - **An absence needs a positive signal** — assert what must still be there before what is gone.
 - **Prove it can fail**: break the behaviour and watch exactly that case go red.
+- **A flake under load** is reproduced and its fix proven by repeated overloaded runs in each
+  engine: `scripts/browser-stress.sh <engine> <runs> <cpus> <workers> <files…>`.
 
 ## Working agreement
 
