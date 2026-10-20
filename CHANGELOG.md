@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.9](https://github.com/polandy/glissando/compare/glissando-v0.0.8...glissando-v0.0.9) (2026-10-20)
+
+
+### Bug Fixes
+
+* list the server's slideshows past one whose document it cannot read ([#110](https://github.com/polandy/glissando/issues/110)) ([7823440](https://github.com/polandy/glissando/commit/782344044f404a45203f8a16436006addfb24098))
+
 ## [0.0.8](https://github.com/polandy/glissando/compare/glissando-v0.0.7...glissando-v0.0.8) (2026-10-20)
 
 
