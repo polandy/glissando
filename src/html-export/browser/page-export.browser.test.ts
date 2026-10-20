@@ -3,7 +3,7 @@ import { page } from "vitest/browser";
 import { silentWav } from "../../import/testing/silent-wav";
 import type { StoredPicture, StoredSlideshow } from "../../library/stored-slideshow";
 import { exportPage } from "../export-page";
-import type { PageCopy, PageState } from "../page-contract";
+import { PAGE_STATE_ATTRIBUTE, type PageCopy, type PageState } from "../page-contract";
 import {
   drawnJpeg,
   keptInView,
@@ -136,7 +136,7 @@ describe("an exported web page", () => {
 
   /** Opens the exported page from a `blob:` URL, clicks Play and waits for the end card. */
   async function playedToTheEndCard(
-    whilePlaying: () => void = () => {},
+    whilePlaying: (pageDocument: Document) => void = () => {},
   ): Promise<{ readonly pageDocument: Document; readonly seen: readonly PageState[] }> {
     const progress: PlayProgress = { step: "exporting", watch: null, seen: [] };
     // A timeout alone says nothing; the report names where the page stopped.
@@ -163,13 +163,16 @@ describe("an exported web page", () => {
     expect(pageDocument.title).toBe("Generated <test>");
 
     progress.step = "clicking Play";
+    // Both watched from before the click, whose round trip can outlast the whole show. The
+    // second has a list of its own: a second observer on `seen` would note old states again.
+    const ended = stateReached(pageDocument, "ended", progress.seen);
+    const played = stateReached(pageDocument, "playing", []).then(() => whilePlaying(pageDocument));
     await page
       .frameLocator(page.elementLocator(frame))
       .getByRole("button", { name: "Play" })
       .click();
     progress.step = "playing to the end card";
-    whilePlaying();
-    await stateReached(pageDocument, "ended", progress.seen);
+    await Promise.all([played, ended]);
     return { pageDocument, seen: progress.seen };
   }
 
@@ -190,8 +193,13 @@ describe("an exported web page", () => {
     frameAbove.style.height = "100%";
     cleanups.push(() => frameAbove.remove());
 
-    const { pageDocument } = await playedToTheEndCard(() => testFrame.before(frameAbove));
+    let pushedOutIn: string | null = null;
+    const { pageDocument } = await playedToTheEndCard((playing) => {
+      pushedOutIn = playing.documentElement.getAttribute(PAGE_STATE_ATTRIBUTE);
+      testFrame.before(frameAbove);
+    });
 
+    expect(pushedOutIn).toBe("playing");
     expect(frameAbove.isConnected).toBe(true);
     expect(pageDocument.querySelector(".end")?.textContent).toContain("Play again");
   });
