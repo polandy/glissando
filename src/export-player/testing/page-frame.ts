@@ -107,6 +107,16 @@ function countAnimationFrames(window: Window): { report(): string; stop(): void 
   };
 }
 
+/** Collects what `window` throws and nobody catches, e.g. in an animation frame callback. */
+function collectUncaughtErrors(window: Window): string[] {
+  const errors: string[] = [];
+  const describe = (error: unknown) =>
+    error instanceof Error ? (error.stack ?? String(error)) : String(error);
+  window.addEventListener("error", (event) => errors.push(describe(event.error ?? event.message)));
+  window.addEventListener("unhandledrejection", (event) => errors.push(describe(event.reason)));
+  return errors;
+}
+
 /** Where `element` sits in its window's viewport, so a frame scrolled out of view shows. */
 function placeInView(element: Element | null): string {
   if (element === null) return "none";
@@ -128,13 +138,16 @@ export interface PageWatch {
 /**
  * Watches the player page in `frame` from now on, so a test that times out can name where the
  * page stopped: its state and time, and whether animation frames still run in the page's window
- * and in the test's own, with both frames' places in their viewports. WebKit runs none in a frame
- * it holds to be out of view, which leaves the page's clock standing.
+ * and in the test's own, with both frames' places in their viewports, and what the page threw
+ * uncaught. WebKit runs no animation frame in a frame it holds to be out of view, which leaves the
+ * page's clock standing; an error thrown in the player's frame callback ends its frames as well.
  */
 export function watchPage(frame: HTMLIFrameElement): PageWatch {
   const testFrames = countAnimationFrames(window);
   const pageFrames =
     frame.contentWindow === null ? null : countAnimationFrames(frame.contentWindow);
+  const uncaughtErrors =
+    frame.contentWindow === null ? [] : collectUncaughtErrors(frame.contentWindow);
   const report = () => {
     const page = frame.contentDocument;
     return {
@@ -145,6 +158,7 @@ export function watchPage(frame: HTMLIFrameElement): PageWatch {
       canvases: page?.querySelectorAll("canvas").length,
       error: page?.querySelector(".error")?.textContent,
       visibility: page?.visibilityState,
+      uncaughtErrors: [...uncaughtErrors],
       pageAnimationFrames: pageFrames?.report() ?? "no window",
       testAnimationFrames: testFrames.report(),
       pageFrame: placeInView(frame),

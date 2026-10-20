@@ -79,6 +79,8 @@ Behaviour:
   an `error` and pauses; a start interrupted by a pause (a quick seek) is not a refusal.
 - **Pictures** are loaded for the slides on screen plus the next `picturesAhead`; all others are
   released, so memory stays bounded. When a frame needs a picture that is not loaded yet, time
-  stops, `waiting` fires, and playback goes on from the same moment with `playing`.
+  stops, `waiting` fires, and playback goes on from the same moment with `playing`. A frame that
+  lands past the end (a busy main thread, a hidden tab) holds at the end, fires `waiting` while
+  the last frame's pictures load, then ends as usual.
 - A picture that fails to load or open is an `error` (`SlideshowLoadError`) and pauses.
 - `play()` after the end starts from the beginning.
