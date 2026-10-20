@@ -5,8 +5,7 @@ import type { Size } from "./ken-burns";
 import { PlayerMedia } from "./player-media";
 import type { PlayerDependencies } from "./ports";
 import { MILLISECONDS_PER_SECOND, type Slideshow } from "./slideshow";
-import { createTimeline, type Timeline, type TimelineFrame } from "./timeline";
-
+import { createTimeline, type Timeline } from "./timeline";
 import type { PlayerEvent } from "./player-events";
 
 /**
@@ -52,7 +51,7 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
     const reducedMotion = dependencies.reducedMotion ?? (() => false);
     this.#pictures = new FramePictures(
       slideshow,
-      () => this.#currentFrame(),
+      () => this.#timeline.frameAt(this.#time.frameMs),
       () => ({ showDurationMs: this.#timeline.durationMs, reducedMotion: reducedMotion() }),
       dependencies.pictures,
       dependencies.renderer,
@@ -247,6 +246,12 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
   #finish(): void {
     this.#stopAdvancing();
     this.#time.holdAt(this.#time.durationMs);
+    // A late frame can land past the end before the last slide's picture was ever needed.
+    if (!this.#pictures.areOnScreenLoaded()) {
+      this.#emit("waiting");
+      this.#whenDrawable(() => this.#finish());
+      return;
+    }
     this.#draw();
     this.#emit("timeupdate");
     this.#paused = true;
@@ -270,10 +275,6 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
       onLoaded: action,
       onError: (error) => this.#fail(error),
     });
-  }
-
-  #currentFrame(): TimelineFrame {
-    return this.#timeline.frameAt(this.#time.frameMs);
   }
 
   #draw(): void {

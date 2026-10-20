@@ -25,6 +25,25 @@ describe("SlideshowPlayer, loading, errors and destroy", () => {
     expect(music.calls.at(-1)).toBe("play@3.2");
   });
 
+  it("ends on a frame that lands past the end once the last picture has loaded", async () => {
+    const { player, events, pictures, renderer, ready, advance } = setUp();
+    await ready();
+    player.play();
+
+    // One late frame, as after a busy main thread or a hidden tab, skips the last slide.
+    advance(13_000);
+    expect(player.currentTime).toBe(12);
+    expect(events.at(-1)).toBe("waiting");
+    expect(player.ended).toBe(false);
+
+    const ended = nextEvent(player, "ended");
+    pictures.complete("c.jpg");
+    await ended;
+
+    expect(player.paused).toBe(true);
+    expect(renderer.frames.at(-1)?.kind).toBe("slide");
+  });
+
   it("preloads the next slide and releases the slides it has left behind", async () => {
     const { player, pictures, renderer, ready, advance } = setUp();
     await ready();
