@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.0.8](https://github.com/polandy/glissando/compare/glissando-v0.0.7...glissando-v0.0.8) (2026-10-20)
+
+
+### Features
+
+* arrange pictures and keep adding media while an import runs ([#105](https://github.com/polandy/glissando/issues/105)) ([5db02a6](https://github.com/polandy/glissando/commit/5db02a6fd53f514036ce69b897381892981eda0a))
+* level every song to the same loudness and give each its own volume ([#107](https://github.com/polandy/glissando/issues/107)) ([a6083e8](https://github.com/polandy/glissando/commit/a6083e8062d52a2a4bb39d65fe5db523bf7d7ddd))
+* open a .glissando file that a ZIP tool packed again ([#99](https://github.com/polandy/glissando/issues/99)) ([a555607](https://github.com/polandy/glissando/commit/a555607ac1d76aafead899c06eaf6b73ff147f09))
+* open an edited glissando.json that leaves out a thumbnail key ([#101](https://github.com/polandy/glissando/issues/101)) ([b48ff99](https://github.com/polandy/glissando/commit/b48ff990e56f2e045b74a27a4c0959d07ab9dfd6))
+* put a player page into every .glissando file ([#103](https://github.com/polandy/glissando/issues/103)) ([1046507](https://github.com/polandy/glissando/commit/1046507c90f0a862bdf3d239adb06b3e1d9cd09d))
+* write a JSON Schema and a README into every exported .glissando file ([9f6fcde](https://github.com/polandy/glissando/commit/9f6fcde53b8ce1031dc47d24fe32a69dc58253d3))
+
+
+### Bug Fixes
+
+* end a slideshow whose last frame lands past the end before its picture ([#108](https://github.com/polandy/glissando/issues/108)) ([5a5d779](https://github.com/polandy/glissando/commit/5a5d7794b4ba720c0431ab711825e696d2f0c5aa))
+* keep the music playing under a video clip's sound on the iPad ([#106](https://github.com/polandy/glissando/issues/106)) ([dc0402d](https://github.com/polandy/glissando/commit/dc0402d2844b42e51b98538f972ac1d9bd10493a))
+* play video slides with sound on the iPad ([#98](https://github.com/polandy/glissando/issues/98)) ([9ef5cbf](https://github.com/polandy/glissando/commit/9ef5cbf5640def3a03fd92b4bd8eb1b2013e5c62))
+* stop both server processes when one ends while the pair is starting ([#104](https://github.com/polandy/glissando/issues/104)) ([9aa9ab1](https://github.com/polandy/glissando/commit/9aa9ab13c5f58a238a44a9d3bafc167544c6cfc9))
+
 ## [0.0.7](https://github.com/polandy/glissando/compare/glissando-v0.0.6...glissando-v0.0.7) (2026-10-17)
 
 
