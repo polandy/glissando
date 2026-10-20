@@ -21,6 +21,8 @@ the server.
 
 - **Share links** add `…/slideshows/{id}/share` and the public `/api/share/` (`dev-docs/SHARE_LINK.md`).
 - **TV remote** adds `/api/library/tv/`, the public `/api/tv/` and `/api/share/{token}/tv`, served by `server/tv/` beside the library (`dev-docs/TV_REMOTE.md`).
+- **Unreadable documents**: the list leaves out a slideshow whose stored document the service
+  cannot read and logs it (`SERVER_DOCUMENT.md`).
 - **Revision**: a positive whole number, 1 on create, +1 on every accepted `PUT`. Compared in the
   same transaction as the write. An `If-Match` other than the
   current `"<revision>"` (also `*` or a weak tag) is a stale one: 412.

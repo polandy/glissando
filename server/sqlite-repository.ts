@@ -44,8 +44,14 @@ const SLIDESHOW_COLUMNS = "id, revision, created_at, document";
 
 type Row = Record<string, SQLOutputValue>;
 
-/** A `LibraryRepository` in `database`, its tables created when missing. */
-export function openSqliteRepository(database: DatabaseSync): LibraryRepository {
+/**
+ * A `LibraryRepository` in `database`, its tables created when missing. `log` reports each
+ * slideshow the list leaves out because its document cannot be read.
+ */
+export function openSqliteRepository(
+  database: DatabaseSync,
+  log: (line: string) => void,
+): LibraryRepository {
   database.exec(SCHEMA);
   const statement = (sql: string) => database.prepare(sql);
   const findSlideshow = statement(`SELECT ${SLIDESHOW_COLUMNS} FROM slideshows WHERE id = ?`);
@@ -108,7 +114,16 @@ export function openSqliteRepository(database: DatabaseSync): LibraryRepository 
         throw error;
       }
     },
-    listSlideshows: () => listSlideshows.all().map(slideshowOf),
+    // One unreadable document (e.g. an older formatVersion) must not hide every other slideshow.
+    listSlideshows: () =>
+      listSlideshows.all().flatMap((row) => {
+        try {
+          return [slideshowOf(row)];
+        } catch (error) {
+          log(`slideshow ${String(row["id"])} left out of the list: ${(error as Error).message}`);
+          return [];
+        }
+      }),
     findSlideshow(id) {
       const row = findSlideshow.get(id);
       return row === undefined ? undefined : slideshowOf(row);

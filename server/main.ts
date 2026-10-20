@@ -49,7 +49,7 @@ interface Handlers {
 function start(): void {
   const config = parseLibraryConfig(process.env);
   const database = new DatabaseSync(join(config.dataDir, DATABASE_FILE));
-  const repository = openSqliteRepository(database);
+  const repository = openSqliteRepository(database, log);
   const now = () => Date.now();
   const handlers: Handlers = {
     library: createLibraryHandler({ repository, now, newId: randomUUID, randomBytes, log }),

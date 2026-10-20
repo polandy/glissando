@@ -29,5 +29,9 @@ a picture's `alone`, version 11) keeps it at 1: the service and the app ship in
 one image, so a document with the field is always read by an app that knows it; only an app still
 cached from before the update refuses it as invalid, until it updates.
 
+A stored document the service cannot read, e.g. one at an older `formatVersion`, is left out of
+the slideshow list and logged with its id and reason, so it hides no other slideshow; fetching it
+by id still fails loud.
+
 In the app a server slideshow is a `StoredSlideshow` whose pictures' `id` is their
 `immichAssetId` and whose songs' `id` is their `musicId`.
