@@ -22,8 +22,8 @@ export interface KeepCopyPorts {
     | "releaseClaim"
     | "deleteUnreferencedMedia"
   >;
-  /** The server's store, holding the slideshow's music. */
-  readonly server: Pick<SlideshowStore, "musicBlob">;
+  /** The server's store, holding the slideshow's music and its own focus for each picture. */
+  readonly server: Pick<SlideshowStore, "musicBlob" | "pictureFocus">;
   /** What downloads and decodes each picture from Immich, as the import does. */
   readonly immich: ImmichPictureReaders;
   newId(): string;
@@ -43,10 +43,12 @@ export interface KeepCopyOptions {
 
 /**
  * "Keep a copy on this device" (`dev-docs/SERVER_LIBRARY.md`): a server slideshow downloaded into
- * a new, independent device slideshow. Pictures are decoded like an Immich import, with
- * Immich's faces as their focus. All or nothing, as `writeGlissandoFile`: every media id is
- * claimed before its media is written and the record is saved last, so a failure (e.g.
- * `PictureNotDownloadedError` for a picture no longer in Immich) or a cancel keeps nothing.
+ * a new, independent device slideshow. Pictures are decoded like an Immich import; each one's
+ * focus is the server's own stored focus where the server has one (it may be richer than a live
+ * faces lookup, e.g. confirmed or found by scenery), else Immich's faces. All or nothing, as
+ * `writeGlissandoFile`: every media id is claimed before its media is written and the record is
+ * saved last, so a failure (e.g. `PictureNotDownloadedError` for a picture no longer in Immich)
+ * or a cancel keeps nothing.
  */
 export async function keepCopyOnDevice(
   slideshow: StoredSlideshow,
@@ -71,13 +73,21 @@ export async function keepCopyOnDevice(
 
   try {
     options.onProgress?.(0);
+    const assetIds = slideshow.pictures.flatMap((picture) =>
+      picture.immichAssetId === undefined ? [] : [picture.immichAssetId],
+    );
+    const serverFocus = await ports.server.pictureFocus(assetIds);
     const pictures: StoredPicture[] = [];
     for (const picture of slideshow.pictures) {
       const { decoded, focus } = await immichPictureSource(photoOf(picture), ports.immich).read();
+      const stored =
+        picture.immichAssetId !== undefined ? serverFocus.get(picture.immichAssetId) : undefined;
+      const toSave =
+        stored ?? (focus === null ? null : { focus, detector: FOCUS_DETECTOR_VERSION });
       const id = await claimed(async (pictureId) => {
         await store.putPicture(pictureId, decoded);
-        if (focus !== null) {
-          await store.putPictureFocus(pictureId, { focus, detector: FOCUS_DETECTOR_VERSION });
+        if (toSave !== null) {
+          await store.putPictureFocus(pictureId, toSave);
         }
       });
       pictures.push({ ...picture, id, width: decoded.width, height: decoded.height });
