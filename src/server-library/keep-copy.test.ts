@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { ImmichFace } from "../immich/immich-client";
 import { PictureNotDownloadedError } from "../import/picture-source";
+import { storedFocus } from "../library/focus-pass-fixtures";
 import { MediaNotFoundError, type StoredSlideshow } from "../library/stored-slideshow";
 import { MemoryLibraryStore } from "../library/testing/memory-store";
 import { keepCopyOnDevice } from "./keep-copy";
@@ -102,7 +103,11 @@ describe("keepCopyOnDevice", () => {
 
     const focus = await store.pictureFocus(copy.pictures.map((picture) => picture.id));
     expect([...focus.values()]).toEqual([
-      { kind: "subject", box: { x: 0.25, y: 0.1, width: 0.5, height: 0.4 } },
+      storedFocus({
+        kind: "subject",
+        box: { x: 0.25, y: 0.1, width: 0.5, height: 0.4 },
+        foundBy: "immich-faces",
+      }),
     ]);
   });
 

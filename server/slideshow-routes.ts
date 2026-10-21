@@ -55,8 +55,13 @@ export function slideshowRoutes({ repository, now, newId }: LibraryHandlerDepend
    * (ADR-0041): unlike music, a dropped picture's asset id is gone for good, so its focus goes
    * with it, no grace period.
    */
-  const releaseUnreferencedPictureFocus = (before: ServerDocument, after?: ServerDocument): void => {
-    const afterIds = new Set(after?.slideshow.pictures.map((picture) => picture.immichAssetId) ?? []);
+  const releaseUnreferencedPictureFocus = (
+    before: ServerDocument,
+    after?: ServerDocument,
+  ): void => {
+    const afterIds = new Set(
+      after?.slideshow.pictures.map((picture) => picture.immichAssetId) ?? [],
+    );
     for (const { immichAssetId } of before.slideshow.pictures) {
       if (!afterIds.has(immichAssetId) && !repository.isPictureReferenced(immichAssetId)) {
         repository.deletePictureFocus(immichAssetId);

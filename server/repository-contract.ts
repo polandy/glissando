@@ -271,9 +271,7 @@ export function describeLibraryRepositoryContract(
       const repository = createRepository();
       const newer = storedFocus(2);
       repository.putPictureFocus(PICTURE_ASSET_ID, newer, 1000);
-      expect(repository.putPictureFocus(PICTURE_ASSET_ID, storedFocus(1), 2000)).toBe(
-        "newerKept",
-      );
+      expect(repository.putPictureFocus(PICTURE_ASSET_ID, storedFocus(1), 2000)).toBe("newerKept");
       expect(repository.findPictureFocus([PICTURE_ASSET_ID])).toEqual(
         new Map([[PICTURE_ASSET_ID, newer]]),
       );

@@ -52,5 +52,5 @@ constraints of ADR-0012 stand: in the browser, offline, every asset shipped by t
 - A different network later needs only the operators it uses added to `tensor-ops.ts`; if the
   time per picture matters more than the download, onnxruntime-web can replace the runner
   behind `objectFocus` without touching anything else.
-- There is no migration: pictures stored without a focus are looked at, pictures already stored
-  as "none" stay so until the focus store is cleared.
+- A result found before the object detection is outdated by its detector version and looked at
+  again (ADR-0041).

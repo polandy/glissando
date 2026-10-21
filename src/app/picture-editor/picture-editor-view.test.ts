@@ -7,7 +7,11 @@ import { NO_FOCUS_KNOWN } from "../focus/pictures-focus";
 import { pictureEditorView } from "./picture-editor-view";
 import { own, stored, withPicture } from "./testing/picture-editor-fixtures";
 
-const FACES: PictureFocus = { kind: "subject", box: { x: 0.6, y: 0.1, width: 0.3, height: 0.3 } };
+const FACES: PictureFocus = {
+  kind: "subject",
+  box: { x: 0.6, y: 0.1, width: 0.3, height: 0.3 },
+  foundBy: "face",
+};
 
 describe("pictureEditorView", () => {
   it("aims an automatic picture's motion, and the next one's, at their focus", () => {

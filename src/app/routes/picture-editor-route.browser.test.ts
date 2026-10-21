@@ -133,7 +133,11 @@ async function mountRoute(
   return { target: mounted.target, backs: () => backs, store, editor, errors, logged, props };
 }
 
-const FACE: PictureFocus = { kind: "subject", box: { x: 0.4, y: 0.2, width: 0.2, height: 0.3 } };
+const FACE: PictureFocus = {
+  kind: "subject",
+  box: { x: 0.4, y: 0.2, width: 0.2, height: 0.3 },
+  foundBy: "face",
+};
 
 /** Resolves with the first state of the pass that `matches`. */
 function stateOf(pass: FocusPass, matches: (state: FocusPassState) => boolean): Promise<void> {

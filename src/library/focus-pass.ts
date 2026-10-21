@@ -1,74 +1,32 @@
-import { FocusDetectorGoneError, type FocusDetector } from "./focus-detector";
+import { FOCUS_DETECTOR_VERSION } from "../focus/focus-detector-version";
+import { FocusDetectorGoneError } from "./focus-detector";
+import { FocusPassQueue } from "./focus-pass-queue";
+import {
+  FocusDetectionFailedError,
+  IDLE,
+  isOutdated,
+  type FocusPassPorts,
+  type FocusPassState,
+} from "./focus-pass-types";
 import type { PictureFocus } from "./picture-focus";
-import { MediaNotFoundError, type LibraryStore } from "./stored-slideshow";
+import { MediaNotFoundError } from "./stored-slideshow";
 
-export interface FocusPassPorts {
-  readonly store: Pick<
-    LibraryStore,
-    "listSlideshows" | "pictureFocus" | "thumbnailBlob" | "putPictureFocus"
-  >;
-  readonly detector: FocusDetector;
-  /** A detection failed for one picture: logged, the pass carries on. */
-  log(error: unknown): void;
-  /** An unexpected error, or the detector gone, ended the pass. */
-  reportError(error: unknown): void;
-}
-
-/** How far the pass is with one slideshow's pictures. */
-export interface SlideshowSearch {
-  readonly done: number;
-  /** The pictures it had no focus for when the pass took it up. */
-  readonly total: number;
-}
-
-export interface FocusPassState {
-  readonly running: boolean;
-  /** Each slideshow with pictures still to look at, by slideshow id. */
-  readonly slideshows: ReadonlyMap<string, SlideshowSearch>;
-  /** The pictures the pass will still look at, the one in flight included. */
-  readonly searching: ReadonlySet<string>;
-  /** Every focus the pass stored since the app opened, by picture id. */
-  readonly found: ReadonlyMap<string, PictureFocus>;
-}
-
-/** The detector failed on one picture; it is looked at again on the next pass. */
-export class FocusDetectionFailedError extends Error {
-  constructor(
-    readonly pictureId: string,
-    cause: unknown,
-  ) {
-    super(`finding the focus of picture "${pictureId}" failed`, { cause });
-    this.name = "FocusDetectionFailedError";
-  }
-}
-
-interface Progress {
-  readonly pending: Set<string>;
-  total: number;
-}
-
-const IDLE: FocusPassState = {
-  running: false,
-  slideshows: new Map(),
-  searching: new Set(),
-  found: new Map(),
-};
+export type { FocusPassPorts, FocusPassState, SlideshowSearch } from "./focus-pass-types";
+export { FocusDetectionFailedError } from "./focus-pass-types";
 
 /**
- * Looks, in the background, for the focus of every stored picture that has none yet (ADR-0012):
- * one picture at a time, so the device stays responsive, its thumbnail through the detector into
- * the store. A picture whose media is gone meanwhile is skipped; one whose detection fails is
- * logged and left for the next pass. A detector gone ends the pass, the rest left for the next.
+ * Looks, in the background, for the focus of every stored picture whose record is missing or
+ * outdated (ADR-0012, ADR-0041): one picture at a time, so the device stays responsive, its
+ * thumbnail through the detector into the store, with the detector version that found it. A
+ * picture whose media is gone meanwhile is skipped; one whose detection fails is logged and left
+ * for the next pass. A detector gone ends the pass, the rest left for the next. `lookAgain` asks
+ * for specific pictures regardless of their record, ahead of the background scan.
  */
 export class FocusPass {
   readonly #ports: FocusPassPorts;
   readonly #listeners = new Set<(state: FocusPassState) => void>();
+  readonly #queue = new FocusPassQueue();
   #state = IDLE;
-  #queue: string[] = [];
-  /** Pictures taken up in this pass, so a rescan neither queues them twice nor retries a failure. */
-  readonly #takenUp = new Set<string>();
-  readonly #progress = new Map<string, Progress>();
-  #rescanRequested = false;
   #isRunning = false;
   #running: Promise<void> = Promise.resolve();
 
@@ -92,12 +50,21 @@ export class FocusPass {
    * created since it started instead, so two never run at once.
    */
   start(): void {
-    this.#rescanRequested = true;
-    if (!this.#isRunning) {
-      this.#isRunning = true;
-      this.#publish({ running: true });
-      this.#running = this.#run();
+    this.#queue.requestRescan();
+    this.#launch();
+  }
+
+  /**
+   * Looks again at these pictures regardless of their record, ahead of the background queue. One
+   * already queued moves to the front instead of being queued twice; a slideshow-wide look-again
+   * is the caller passing all its picture ids.
+   */
+  lookAgain(pictureIds: readonly string[]): void {
+    if (pictureIds.length === 0) {
+      return;
     }
+    this.#queue.requestLookAgain(pictureIds);
+    this.#launch();
   }
 
   /** Resolves once the pass has ended; its errors went to `reportError`. */
@@ -105,60 +72,116 @@ export class FocusPass {
     return this.#running;
   }
 
+  #launch(): void {
+    if (this.#isRunning) {
+      return;
+    }
+    this.#isRunning = true;
+    this.#publish({ running: true, paused: false });
+    this.#running = this.#run();
+  }
+
   async #run(): Promise<void> {
     try {
-      while (this.#rescanRequested || this.#queue.length > 0) {
-        if (this.#rescanRequested) {
-          this.#rescanRequested = false;
+      while (this.#queue.hasWork) {
+        const forced = this.#queue.takeForcedRequest();
+        if (forced !== undefined) {
+          await this.#takeUpForced(forced);
+          continue;
+        }
+        if (this.#queue.needsScan) {
+          this.#queue.clearRescanRequest();
           await this.#scan();
           continue;
         }
-        const pictureId = this.#queue.shift() as string;
-        await this.#lookAt(pictureId);
-        this.#done(pictureId);
+        if (await this.#takeNext()) {
+          return; // paused: the queue and progress stay as they are.
+        }
       }
     } catch (error) {
       this.#ports.reportError(error);
     } finally {
-      this.#queue = [];
-      this.#takenUp.clear();
-      this.#progress.clear();
       this.#isRunning = false;
-      this.#publish({ running: false, slideshows: new Map(), searching: new Set() });
+      if (this.#state.paused) {
+        this.#publish({ running: false });
+      } else {
+        this.#queue.reset();
+        this.#publish({ running: false, slideshows: new Map(), searching: new Set() });
+      }
     }
   }
 
-  /** Queues every picture without a focus that this pass has not taken up yet, newest slideshow first. */
+  /** Takes the next queued picture up; resolves true when a `pausesOn` error paused the pass. */
+  async #takeNext(): Promise<boolean> {
+    const pictureId = this.#queue.beginNext();
+    if (pictureId === undefined) {
+      return false;
+    }
+    const paused = await this.#lookAt(pictureId);
+    this.#queue.endCurrent();
+    if (paused) {
+      this.#queue.requeueFront(pictureId);
+      this.#publish({ paused: true });
+      return true;
+    }
+    this.#queue.markDone(pictureId);
+    this.#publishProgress();
+    return false;
+  }
+
+  /** Queues every picture with no current focus that this pass has not taken up yet. */
   async #scan(): Promise<void> {
     const slideshows = await this.#ports.store.listSlideshows();
     const pictureIds = [...new Set(slideshows.flatMap((show) => show.pictures.map((p) => p.id)))];
     const stored = await this.#ports.store.pictureFocus(pictureIds);
     for (const slideshow of slideshows) {
-      const toLookAt = slideshow.pictures
-        .map((picture) => picture.id)
-        .filter((id) => !stored.has(id) && !this.#takenUp.has(id));
-      if (toLookAt.length === 0) {
-        continue;
+      for (const picture of slideshow.pictures) {
+        if (this.#queue.takenUpAlready(picture.id) || !isOutdated(stored.get(picture.id))) {
+          continue;
+        }
+        this.#queue.enqueueBackground(slideshow.id, picture.id, stored.has(picture.id));
       }
-      const progress = this.#progress.get(slideshow.id) ?? { pending: new Set(), total: 0 };
-      for (const id of toLookAt) {
-        this.#takenUp.add(id);
-        this.#queue.push(id);
-        progress.pending.add(id);
-      }
-      progress.total += toLookAt.length;
-      this.#progress.set(slideshow.id, progress);
     }
     this.#publishProgress();
   }
 
-  async #lookAt(pictureId: string): Promise<void> {
+  /** Takes up pictures asked for by `lookAgain`, regardless of their record, at the queue's front. */
+  async #takeUpForced(pictureIds: readonly string[]): Promise<void> {
+    const candidates = pictureIds.filter((id) => !this.#queue.isInFlight(id));
+    if (candidates.length === 0) {
+      return;
+    }
+    const [slideshows, stored] = await Promise.all([
+      this.#ports.store.listSlideshows(),
+      this.#ports.store.pictureFocus(candidates),
+    ]);
+    const memberOf = new Map<string, string[]>();
+    for (const slideshow of slideshows) {
+      for (const picture of slideshow.pictures) {
+        memberOf.set(picture.id, [...(memberOf.get(picture.id) ?? []), slideshow.id]);
+      }
+    }
+    for (const id of candidates) {
+      for (const slideshowId of memberOf.get(id) ?? []) {
+        this.#queue.addToProgress(slideshowId, id, stored.has(id));
+      }
+    }
+    this.#queue.bringToFront(candidates);
+    this.#publishProgress();
+  }
+
+  /** Looks at one picture; resolves true when a `pausesOn` error means the pass should pause. */
+  async #lookAt(pictureId: string): Promise<boolean> {
     let thumbnail: Blob;
     try {
       thumbnail = await this.#ports.store.thumbnailBlob(pictureId);
     } catch (error) {
       if (error instanceof MediaNotFoundError) {
-        return;
+        return false;
+      }
+      if (this.#ports.pausesOn?.(error) === true) {
+        this.#ports.log(error);
+        return true;
       }
       throw error;
     }
@@ -171,31 +194,42 @@ export class FocusPass {
         throw error;
       }
       this.#ports.log(new FocusDetectionFailedError(pictureId, error));
-      return;
+      this.#setFailed(pictureId, true);
+      return false;
     }
-    // The store keeps nothing for a picture deleted meanwhile.
-    await this.#ports.store.putPictureFocus(pictureId, focus);
+    try {
+      // The store keeps nothing for a picture deleted meanwhile.
+      await this.#ports.store.putPictureFocus(pictureId, {
+        focus,
+        detector: FOCUS_DETECTOR_VERSION,
+      });
+    } catch (error) {
+      if (this.#ports.pausesOn?.(error) === true) {
+        this.#ports.log(error);
+        return true;
+      }
+      throw error;
+    }
+    this.#setFailed(pictureId, false);
     this.#publish({ found: new Map(this.#state.found).set(pictureId, focus) });
+    return false;
   }
 
-  #done(pictureId: string): void {
-    for (const [slideshowId, progress] of this.#progress) {
-      progress.pending.delete(pictureId);
-      if (progress.pending.size === 0) {
-        this.#progress.delete(slideshowId);
-      }
+  #setFailed(pictureId: string, failed: boolean): void {
+    if (this.#state.failed.has(pictureId) === failed) {
+      return;
     }
-    this.#publishProgress();
+    const next = new Set(this.#state.failed);
+    if (failed) {
+      next.add(pictureId);
+    } else {
+      next.delete(pictureId);
+    }
+    this.#publish({ failed: next });
   }
 
   #publishProgress(): void {
-    const slideshows = new Map<string, SlideshowSearch>();
-    const searching = new Set<string>();
-    for (const [slideshowId, { pending, total }] of this.#progress) {
-      slideshows.set(slideshowId, { done: total - pending.size, total });
-      pending.forEach((id) => searching.add(id));
-    }
-    this.#publish({ slideshows, searching });
+    this.#publish(this.#queue.progressSnapshot());
   }
 
   #publish(change: Partial<FocusPassState>): void {

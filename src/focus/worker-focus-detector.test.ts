@@ -8,7 +8,11 @@ import {
   type FocusWorker,
 } from "./worker-focus-detector";
 
-const FACE: PictureFocus = { kind: "subject", box: { x: 0.1, y: 0.2, width: 0.3, height: 0.3 } };
+const FACE: PictureFocus = {
+  kind: "subject",
+  box: { x: 0.1, y: 0.2, width: 0.3, height: 0.3 },
+  foundBy: "face",
+};
 const NONE: PictureFocus = { kind: "none" };
 
 /** Stands in for the worker: records requests, replies and fails only when the test says so. */

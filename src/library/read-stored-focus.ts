@@ -1,4 +1,8 @@
-import { DocumentFormatError, readObject, readPositiveInteger } from "../glissando-file/document-values";
+import {
+  DocumentFormatError,
+  readObject,
+  readPositiveInteger,
+} from "../glissando-file/document-values";
 import {
   SUBJECT_FINDERS,
   type FocusBox,

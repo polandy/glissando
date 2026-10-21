@@ -10,7 +10,7 @@ const focusLine = () => element(".focus-line");
 
 describe("PictureEditorScreen, the focus of the automatic motion", () => {
   it("marks the subject box on the picture, with a Fokus chip", () => {
-    mountEditor(view({ focus: { kind: "subject", box: FACE } }));
+    mountEditor(view({ focus: { kind: "subject", box: FACE, foundBy: "face" } }));
 
     const shown = marker();
     expect(shown?.getAttribute("aria-label")).toBe("Fokus: Gesicht erkannt");
@@ -49,7 +49,7 @@ describe("PictureEditorScreen, the focus of the automatic motion", () => {
   });
 
   it("hides the marker while the picture has its own motion and brings it back with the automatic one", () => {
-    const automatic = view({ focus: { kind: "subject", box: FACE } });
+    const automatic = view({ focus: { kind: "subject", box: FACE, foundBy: "face" } });
     const { update } = mountEditor(automatic);
 
     update({ ...automatic, ownMotion: true });
@@ -64,13 +64,13 @@ describe("PictureEditorScreen, the focus of the automatic motion", () => {
     const searching = view({ focus: { kind: "searching" } });
     const { update } = mountEditor(searching);
 
-    update({ ...searching, focus: { kind: "subject", box: FACE } });
+    update({ ...searching, focus: { kind: "subject", box: FACE, foundBy: "face" } });
 
     expect(marker()?.getAnimations()).not.toEqual([]);
   });
 
   it("shows a focus already known at once, without settling in", () => {
-    mountEditor(view({ focus: { kind: "subject", box: FACE } }));
+    mountEditor(view({ focus: { kind: "subject", box: FACE, foundBy: "face" } }));
 
     const shown = marker();
     expect(shown).not.toBeNull();
@@ -79,7 +79,10 @@ describe("PictureEditorScreen, the focus of the automatic motion", () => {
 
   it("brings the marker back at once when the automatic motion returns", () => {
     const searching = view({ focus: { kind: "searching" } });
-    const found = { ...searching, focus: { kind: "subject", box: FACE } } as const;
+    const found = {
+      ...searching,
+      focus: { kind: "subject", box: FACE, foundBy: "face" },
+    } as const;
     const { update } = mountEditor(searching);
     update(found);
     update({ ...found, ownMotion: true });

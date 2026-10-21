@@ -107,6 +107,7 @@ describe("immichPictureSource", () => {
     expect(read.focus).toEqual({
       kind: "subject",
       box: { x: 0.25, y: 0.1, width: 0.5, height: 0.4 },
+      foundBy: "immich-faces",
     });
     expect(client.calls).toEqual(["original asset-1", "faces asset-1"]);
   });

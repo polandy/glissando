@@ -5,11 +5,12 @@ import {
   type ImmichUnavailableKind,
 } from "../immich/immich-client";
 import type { MusicBeats } from "../beats";
+import { FOCUS_DETECTOR_VERSION } from "../focus/focus-detector-version";
 import { focusFromFaces } from "../immich/immich-focus";
 import type { MusicLoudness } from "../loudness";
 import type { DecodedPicture } from "../import/downscale";
 import { decodeImmichPhoto } from "../import/immich-picture-source";
-import type { PictureFocus } from "../library/picture-focus";
+import type { StoredFocus } from "../library/picture-focus";
 import {
   MediaNotFoundError,
   SlideshowNotFoundError,
@@ -57,7 +58,7 @@ export class ServerSlideshowStore implements SlideshowStore {
   readonly #options: ServerSlideshowStoreOptions;
   readonly #seen = new Map<string, SeenSlideshow>();
   /** By picture: Immich's focus asked for, or one put, for this session; null: none found. */
-  readonly #focus = new Map<string, Promise<PictureFocus | null>>();
+  readonly #focus = new Map<string, Promise<StoredFocus | null>>();
   /** The edit under way; the next one starts once it has settled. */
   #edits: Promise<unknown> = Promise.resolve();
 
@@ -163,16 +164,16 @@ export class ServerSlideshowStore implements SlideshowStore {
     }
   }
 
-  async pictureFocus(pictureIds: readonly string[]): Promise<ReadonlyMap<string, PictureFocus>> {
+  async pictureFocus(pictureIds: readonly string[]): Promise<ReadonlyMap<string, StoredFocus>> {
     const found = await Promise.all(
       pictureIds.map(async (id) => [id, await this.#focusOf(id)] as const),
     );
     return new Map(
-      found.filter((entry): entry is readonly [string, PictureFocus] => entry[1] !== null),
+      found.filter((entry): entry is readonly [string, StoredFocus] => entry[1] !== null),
     );
   }
 
-  putPictureFocus(pictureId: string, focus: PictureFocus): Promise<void> {
+  putPictureFocus(pictureId: string, focus: StoredFocus): Promise<void> {
     this.#focus.set(pictureId, Promise.resolve(focus));
     return Promise.resolve();
   }
@@ -247,7 +248,7 @@ export class ServerSlideshowStore implements SlideshowStore {
     }
   }
 
-  #focusOf(id: string): Promise<PictureFocus | null> {
+  #focusOf(id: string): Promise<StoredFocus | null> {
     const known = this.#focus.get(id);
     if (known !== undefined) return known;
     const asking = this.#askFocus(id);
@@ -256,9 +257,10 @@ export class ServerSlideshowStore implements SlideshowStore {
   }
 
   /** The picture's focus; none while Immich cannot give its faces, asked again next time. */
-  async #askFocus(id: string): Promise<PictureFocus | null> {
+  async #askFocus(id: string): Promise<StoredFocus | null> {
     try {
-      return focusFromFaces(await this.#options.immich.faces(id));
+      const focus = focusFromFaces(await this.#options.immich.faces(id));
+      return focus === null ? null : { focus, detector: FOCUS_DETECTOR_VERSION };
     } catch (error) {
       this.#focus.delete(id);
       const notFound = error instanceof ImmichRequestFailedError && error.status === HTTP_NOT_FOUND;

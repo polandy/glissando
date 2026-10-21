@@ -175,7 +175,10 @@ describe("a slideshow dropping a picture", () => {
 
     const document = documentWithTwoPictures();
     const [, kept] = document.slideshow.pictures;
-    const withoutFirstPicture = { ...document, slideshow: { ...document.slideshow, pictures: [kept] } };
+    const withoutFirstPicture = {
+      ...document,
+      slideshow: { ...document.slideshow, pictures: [kept] },
+    };
     const put = library.send("PUT", `${SLIDESHOWS}/${id}`, {
       body: withoutFirstPicture,
       headers: { "if-match": before.headers["etag"] as string },
@@ -196,7 +199,10 @@ describe("a slideshow dropping a picture", () => {
 
     const document = documentWithTwoPictures();
     const [, kept] = document.slideshow.pictures;
-    const withoutFirstPicture = { ...document, slideshow: { ...document.slideshow, pictures: [kept] } };
+    const withoutFirstPicture = {
+      ...document,
+      slideshow: { ...document.slideshow, pictures: [kept] },
+    };
     const put = library.send("PUT", `${SLIDESHOWS}/${first}`, {
       body: withoutFirstPicture,
       headers: { "if-match": before.headers["etag"] as string },

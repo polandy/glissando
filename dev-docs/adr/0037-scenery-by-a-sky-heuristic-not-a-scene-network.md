@@ -45,4 +45,4 @@ sweep across it instead. Which pictures are scenery is a label of the whole pict
   need it. Both cost little.
 - The thresholds are not fitted to a data set; if they prove wrong in use, a scene network can
   replace `sceneryFocus` behind the same `PictureFocus` value.
-- There is no migration: a picture stored as "none" stays so until the focus store is cleared.
+- A result found before the scenery heuristic is outdated by its detector version and looked at again (ADR-0041).

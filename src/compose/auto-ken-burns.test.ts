@@ -76,7 +76,11 @@ describe("autoKenBurns", () => {
 
   describe("with a focus", () => {
     const FACE_TOP_RIGHT = { x: 0.7, y: 0.1, width: 0.1, height: 0.2 };
-    const subject = (box: typeof FACE_TOP_RIGHT) => ({ kind: "subject" as const, box });
+    const subject = (box: typeof FACE_TOP_RIGHT) => ({
+      kind: "subject" as const,
+      box,
+      foundBy: "face" as const,
+    });
 
     it("swings the pan around the focus centre instead of the picture's middle", () => {
       const { from, to } = autoKenBurns(0, LANDSCAPE, subject(FACE_TOP_RIGHT));

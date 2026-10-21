@@ -55,7 +55,7 @@ const card = (target: HTMLElement, title: string): HTMLButtonElement => {
 
 describe("StartScreen, the background search for subjects", () => {
   it("tells on a slideshow's card how far the search is, with a progress hairline", () => {
-    const { target } = mountStart(new Map([["lake", { done: 12, total: 40 }]]));
+    const { target } = mountStart(new Map([["lake", { done: 12, total: 40, again: false }]]));
 
     const lake = card(target, "Sommer am See");
     expect(lake.textContent).toContain("Motive werden gesucht · 12 von 40");
@@ -66,7 +66,9 @@ describe("StartScreen, the background search for subjects", () => {
   });
 
   it("keeps a searched slideshow's card usable", () => {
-    const { target, opened } = mountStart(new Map([["lake", { done: 12, total: 40 }]]));
+    const { target, opened } = mountStart(
+      new Map([["lake", { done: 12, total: 40, again: false }]]),
+    );
 
     card(target, "Sommer am See").click();
 
@@ -74,7 +76,9 @@ describe("StartScreen, the background search for subjects", () => {
   });
 
   it("drops the line once the search is done with the slideshow", () => {
-    const { target, props } = mountStart(new Map([["lake", { done: 39, total: 40 }]]));
+    const { target, props } = mountStart(
+      new Map([["lake", { done: 39, total: 40, again: false }]]),
+    );
 
     props.focusSearches = new Map();
     flushSync();

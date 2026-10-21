@@ -6,7 +6,7 @@ const FACE: FocusBox = { x: 0.6, y: 0.4, width: 0.12, height: 0.16 };
 
 describe("focusIndication", () => {
   it("marks the subject box of an automatic motion, its chip above and from the box's left", () => {
-    expect(focusIndication({ kind: "subject", box: FACE }, false)).toEqual({
+    expect(focusIndication({ kind: "subject", box: FACE, foundBy: "face" }, false)).toEqual({
       kind: "marker",
       box: FACE,
       chip: { below: false, alignRight: false },
@@ -16,7 +16,7 @@ describe("focusIndication", () => {
   it("puts the chip below a box too near the picture's top for it to fit above", () => {
     const high = { ...FACE, y: 0.05 };
 
-    expect(focusIndication({ kind: "subject", box: high }, false)).toMatchObject({
+    expect(focusIndication({ kind: "subject", box: high, foundBy: "face" }, false)).toMatchObject({
       chip: { below: true, alignRight: false },
     });
   });
@@ -24,7 +24,7 @@ describe("focusIndication", () => {
   it("aligns the chip to the right of a box reaching close to the picture's right edge", () => {
     const right = { ...FACE, x: 0.75 };
 
-    expect(focusIndication({ kind: "subject", box: right }, false)).toMatchObject({
+    expect(focusIndication({ kind: "subject", box: right, foundBy: "face" }, false)).toMatchObject({
       chip: { below: false, alignRight: true },
     });
   });
@@ -43,7 +43,9 @@ describe("focusIndication", () => {
   });
 
   it("shows nothing of the focus while the picture has its own motion", () => {
-    expect(focusIndication({ kind: "subject", box: FACE }, true)).toEqual({ kind: "nothing" });
+    expect(focusIndication({ kind: "subject", box: FACE, foundBy: "face" }, true)).toEqual({
+      kind: "nothing",
+    });
     expect(focusIndication({ kind: "none" }, true)).toEqual({ kind: "nothing" });
     expect(focusIndication({ kind: "searching" }, true)).toEqual({ kind: "nothing" });
   });

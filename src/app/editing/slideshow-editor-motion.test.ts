@@ -120,7 +120,11 @@ describe("SlideshowEditor, a picture's own motion", () => {
 
   it("swapping an automatic picture reverses the motion aimed at its focus", async () => {
     const { editor, storedPicture, focus } = await setUp();
-    const faces = { kind: "subject", box: { x: 0.7, y: 0.6, width: 0.2, height: 0.2 } } as const;
+    const faces = {
+      kind: "subject",
+      box: { x: 0.7, y: 0.6, width: 0.2, height: 0.2 },
+      foundBy: "face",
+    } as const;
     focus.set("c", faces);
     const aimed = pictureKenBurns(2, editor.slideshow.pictures[2] ?? fail(), faces);
 

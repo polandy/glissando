@@ -11,6 +11,7 @@ import {
   answersBy,
   ObservedDetector,
   passOver,
+  storedFocus,
 } from "./focus-pass-fixtures";
 
 describe("FocusPass, changes while it runs", () => {
@@ -32,7 +33,7 @@ describe("FocusPass, changes while it runs", () => {
     held.release();
     await pass.settled();
 
-    expect((await store.pictureFocus(["x"])).get("x")).toEqual(NOTHING);
+    expect((await store.pictureFocus(["x"])).get("x")).toEqual(storedFocus(NOTHING));
     expect(await store.pictureFocus(["in-flight", "queued"])).toEqual(new Map());
     expect(fake.calls).toBe(2);
     expect([...logged, ...reported]).toEqual([]);
@@ -57,7 +58,7 @@ describe("FocusPass, changes while it runs", () => {
     held.release();
     await pass.settled();
 
-    expect((await store.pictureFocus(["later"])).get("later")).toEqual(NOTHING);
+    expect((await store.pictureFocus(["later"])).get("later")).toEqual(storedFocus(NOTHING));
     expect((await store.pictureFocus(["a", "b"])).size).toBe(2);
     expect(fake.calls).toBe(3);
     expect(detector.mostAtOnce).toBe(1);

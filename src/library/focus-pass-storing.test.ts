@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import type { PictureFocus } from "./picture-focus";
 import { FakeFocusDetector } from "./testing/fake-focus-detector";
 import {
   FACES,
@@ -8,6 +7,7 @@ import {
   answersBy,
   ObservedDetector,
   passOver,
+  storedFocus,
 } from "./focus-pass-fixtures";
 
 describe("FocusPass, storing what the detector finds", () => {
@@ -22,30 +22,30 @@ describe("FocusPass, storing what the detector finds", () => {
     await pass.settled();
 
     expect(await store.pictureFocus(["a", "b", "c"])).toEqual(
-      new Map<string, PictureFocus>([
-        ["a", FACES],
-        ["b", NOTHING],
-        ["c", FACES],
+      new Map([
+        ["a", storedFocus(FACES)],
+        ["b", storedFocus(NOTHING)],
+        ["c", storedFocus(FACES)],
       ]),
     );
   });
 
-  it("does not look again at a picture whose focus is stored", async () => {
+  it("does not look again at a picture whose focus is stored, at the current detector version", async () => {
     const { store, thumbnails } = await storeWith({ "show-1": ["looked-at", "new"] });
-    await store.putPictureFocus("looked-at", NOTHING);
+    await store.putPictureFocus("looked-at", storedFocus(NOTHING));
     const detector = new FakeFocusDetector(answersBy(thumbnails, { new: FACES }));
     const { pass } = passOver(store, detector);
 
     pass.start();
     await pass.settled();
 
-    expect((await store.pictureFocus(["new"])).get("new")).toEqual(FACES);
+    expect((await store.pictureFocus(["new"])).get("new")).toEqual(storedFocus(FACES));
     expect(detector.calls).toBe(1);
   });
 
   it("tells per slideshow how many of the pictures to look at are done, while it searches", async () => {
     const { store, thumbnails } = await storeWith({ "show-1": ["a", "b", "c"], "show-2": ["d"] });
-    await store.putPictureFocus("c", NOTHING);
+    await store.putPictureFocus("c", storedFocus(NOTHING));
     const fake = new FakeFocusDetector(answersBy(thumbnails, { a: FACES, b: FACES, d: FACES }));
     const detector = new ObservedDetector(fake);
     const { pass } = passOver(store, detector);
@@ -62,8 +62,8 @@ describe("FocusPass, storing what the detector finds", () => {
     expect(pass.state.running).toBe(true);
     expect(pass.state.slideshows).toEqual(
       new Map([
-        ["show-1", { done: 0, total: 2 }],
-        ["show-2", { done: 0, total: 1 }],
+        ["show-1", { done: 0, total: 2, again: false }],
+        ["show-2", { done: 0, total: 1, again: false }],
       ]),
     );
     held.release();

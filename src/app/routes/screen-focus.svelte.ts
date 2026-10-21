@@ -1,7 +1,7 @@
 import type { FocusPass, FocusPassState } from "../../library/focus-pass";
 import type { PictureFocus } from "../../library/picture-focus";
 import type { StoredSlideshow } from "../../library/stored-slideshow";
-import { NO_FOCUS_KNOWN, picturesFocus } from "../focus/pictures-focus";
+import { bareFocus, NO_FOCUS_KNOWN, picturesFocus } from "../focus/pictures-focus";
 import type { RouteStore } from "./slideshow-home";
 
 /** The slideshow screen's picture focus: as stored when it opened, plus what the pass finds since. */
@@ -43,7 +43,7 @@ export class ScreenFocus {
    */
   load(opened: StoredSlideshow): void {
     this.#store.pictureFocus(opened.pictures.map((picture) => picture.id)).then((read) => {
-      if (!this.#left.aborted) this.#stored = read;
+      if (!this.#left.aborted) this.#stored = bareFocus(read);
     }, this.#onError);
   }
 }

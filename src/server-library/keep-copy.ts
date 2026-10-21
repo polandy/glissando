@@ -1,3 +1,4 @@
+import { FOCUS_DETECTOR_VERSION } from "../focus/focus-detector-version";
 import { uniqueTitle } from "../glissando-file/unique-title";
 import type { ImmichPhoto } from "../immich/immich-client";
 import { immichPictureSource, type ImmichPictureReaders } from "../import/immich-picture-source";
@@ -75,7 +76,9 @@ export async function keepCopyOnDevice(
       const { decoded, focus } = await immichPictureSource(photoOf(picture), ports.immich).read();
       const id = await claimed(async (pictureId) => {
         await store.putPicture(pictureId, decoded);
-        if (focus !== null) await store.putPictureFocus(pictureId, focus);
+        if (focus !== null) {
+          await store.putPictureFocus(pictureId, { focus, detector: FOCUS_DETECTOR_VERSION });
+        }
       });
       pictures.push({ ...picture, id, width: decoded.width, height: decoded.height });
     }

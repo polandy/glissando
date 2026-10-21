@@ -27,7 +27,11 @@ describe("readStoredFocus", () => {
 
   it("accepts a box touching the picture's right and bottom edge", () => {
     const value = {
-      focus: { kind: "subject", box: { x: 0.5, y: 0.5, width: 0.5, height: 0.5 }, foundBy: "object" },
+      focus: {
+        kind: "subject",
+        box: { x: 0.5, y: 0.5, width: 0.5, height: 0.5 },
+        foundBy: "object",
+      },
       detector: 1,
     };
     expect(readStoredFocus(value, PATH)).toEqual(value);
@@ -47,26 +51,11 @@ describe("readStoredFocus", () => {
     ["an unknown focus kind", { focus: { kind: "maybe" }, detector: 1 }],
     ["a focus missing its kind", { focus: {}, detector: 1 }],
     ["an unknown key inside focus", { focus: { kind: "none", extra: true }, detector: 1 }],
-    [
-      "a box on scenery",
-      { focus: { kind: "scenery", box: SUBJECT_BOX }, detector: 1 },
-    ],
-    [
-      "a foundBy on scenery",
-      { focus: { kind: "scenery", foundBy: "face" }, detector: 1 },
-    ],
-    [
-      "a box on none",
-      { focus: { kind: "none", box: SUBJECT_BOX }, detector: 1 },
-    ],
-    [
-      "a foundBy on none",
-      { focus: { kind: "none", foundBy: "object" }, detector: 1 },
-    ],
-    [
-      "a subject missing its box",
-      { focus: { kind: "subject", foundBy: "face" }, detector: 1 },
-    ],
+    ["a box on scenery", { focus: { kind: "scenery", box: SUBJECT_BOX }, detector: 1 }],
+    ["a foundBy on scenery", { focus: { kind: "scenery", foundBy: "face" }, detector: 1 }],
+    ["a box on none", { focus: { kind: "none", box: SUBJECT_BOX }, detector: 1 }],
+    ["a foundBy on none", { focus: { kind: "none", foundBy: "object" }, detector: 1 }],
+    ["a subject missing its box", { focus: { kind: "subject", foundBy: "face" }, detector: 1 }],
     [
       "a subject missing its foundBy",
       { focus: { kind: "subject", box: SUBJECT_BOX }, detector: 1 },
@@ -163,8 +152,8 @@ describe("readStoredFocus", () => {
   });
 
   it("names the path and the bad value in its error", () => {
-    expect(() => readStoredFocus({ focus: { kind: "none" }, detector: 0 }, "slideshows[0]")).toThrow(
-      /slideshows\[0\]\.detector/,
-    );
+    expect(() =>
+      readStoredFocus({ focus: { kind: "none" }, detector: 0 }, "slideshows[0]"),
+    ).toThrow(/slideshows\[0\]\.detector/);
   });
 });

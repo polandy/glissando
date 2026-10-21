@@ -3,15 +3,21 @@ import type { FocusPassState } from "../../library/focus-pass";
 import type { PictureFocus } from "../../library/picture-focus";
 import { focusStatus, picturesFocus } from "./pictures-focus";
 
-const FACES: PictureFocus = { kind: "subject", box: { x: 0.2, y: 0.1, width: 0.3, height: 0.4 } };
+const FACES: PictureFocus = {
+  kind: "subject",
+  box: { x: 0.2, y: 0.1, width: 0.3, height: 0.4 },
+  foundBy: "face",
+};
 const NOTHING: PictureFocus = { kind: "none" };
 
 function passState(change: Partial<FocusPassState> = {}): FocusPassState {
   return {
     running: false,
+    paused: false,
     slideshows: new Map(),
     searching: new Set(),
     found: new Map(),
+    failed: new Set(),
     ...change,
   };
 }

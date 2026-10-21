@@ -5,6 +5,7 @@ import {
   ImmichUnavailableError,
   type ImmichFace,
 } from "../immich/immich-client";
+import { storedFocus } from "../library/focus-pass-fixtures";
 import { MediaNotFoundError } from "../library/stored-slideshow";
 import { musicLoudnessToJson, type MusicLoudness } from "../loudness";
 import { PictureMissingFromImmichError } from "./server-slideshow-store";
@@ -189,7 +190,14 @@ describe("ServerSlideshowStore media", () => {
 
     expect(focus).toEqual(
       new Map([
-        ["asset-1", { kind: "subject", box: { x: 0.25, y: 0.1, width: 0.5, height: 0.4 } }],
+        [
+          "asset-1",
+          storedFocus({
+            kind: "subject",
+            box: { x: 0.25, y: 0.1, width: 0.5, height: 0.4 },
+            foundBy: "immich-faces",
+          }),
+        ],
       ]),
     );
     expect(immich.calls).toEqual(["faces asset-1", "faces asset-2"]);
@@ -199,9 +207,11 @@ describe("ServerSlideshowStore media", () => {
     const { store, immich } = serverStoreHarness();
     immich.add("asset-1", { faces: [LARGE_FACE] });
 
-    await store.putPictureFocus("asset-1", { kind: "none" });
+    await store.putPictureFocus("asset-1", storedFocus({ kind: "none" }));
 
-    expect(await store.pictureFocus(["asset-1"])).toEqual(new Map([["asset-1", { kind: "none" }]]));
+    expect(await store.pictureFocus(["asset-1"])).toEqual(
+      new Map([["asset-1", storedFocus({ kind: "none" })]]),
+    );
     expect(immich.calls).toEqual([]);
   });
 
@@ -221,7 +231,7 @@ describe("ServerSlideshowStore media", () => {
 
       expect(failed).toEqual(new Map());
       expect(logged).toEqual([failure]);
-      expect(asked.get("asset-1")?.kind).toBe("subject");
+      expect(asked.get("asset-1")?.focus.kind).toBe("subject");
     },
   );
 
@@ -235,6 +245,6 @@ describe("ServerSlideshowStore media", () => {
     immich.facesError = null;
     const asked = await store.pictureFocus(["asset-1"]);
 
-    expect(asked.get("asset-1")?.kind).toBe("subject");
+    expect(asked.get("asset-1")?.focus.kind).toBe("subject");
   });
 });

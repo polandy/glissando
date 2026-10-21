@@ -79,6 +79,10 @@ function tvRepositoryOf(server: FakeGlissandoServer): LibraryRepository {
     isMusicReferenced: unsupported("isMusicReferenced"),
     restartMusicGrace: unsupported("restartMusicGrace"),
     unreferencedMusicUploadedBefore: unsupported("unreferencedMusicUploadedBefore"),
+    findPictureFocus: unsupported("findPictureFocus"),
+    putPictureFocus: unsupported("putPictureFocus"),
+    isPictureReferenced: unsupported("isPictureReferenced"),
+    deletePictureFocus: unsupported("deletePictureFocus"),
   };
 }
 

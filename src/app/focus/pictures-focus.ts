@@ -1,5 +1,5 @@
 import type { FocusPassState } from "../../library/focus-pass";
-import type { PictureFocus } from "../../library/picture-focus";
+import type { PictureFocus, StoredFocus } from "../../library/picture-focus";
 
 /** What is known of the pictures' focus: as stored when a slideshow was opened, and found since. */
 export interface PicturesFocus {
@@ -11,6 +11,13 @@ export interface PicturesFocus {
 
 /** Before the stored focus is read: nothing known, the automatic motion aims at the middle. */
 export const NO_FOCUS_KNOWN: PicturesFocus = { found: new Map(), searching: new Set() };
+
+/** What a store gives for display: the focus only, without the detector version that found it. */
+export function bareFocus(
+  stored: ReadonlyMap<string, StoredFocus>,
+): ReadonlyMap<string, PictureFocus> {
+  return new Map([...stored].map(([id, { focus }]) => [id, focus]));
+}
 
 /**
  * What the picture editor shows of one picture's focus: the subject box or none, being searched

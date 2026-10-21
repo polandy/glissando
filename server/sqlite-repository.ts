@@ -123,9 +123,7 @@ export function openSqliteRepository(
        WHERE excluded.detector >= picture_focus.detector`,
   );
   const deletePictureFocusStatement = statement("DELETE FROM picture_focus WHERE asset_id = ?");
-  const pictureReference = statement(
-    "SELECT 1 FROM document_picture_asset_ids WHERE asset_id = ?",
-  );
+  const pictureReference = statement("SELECT 1 FROM document_picture_asset_ids WHERE asset_id = ?");
 
   return {
     inTransaction(work) {
