@@ -65,17 +65,17 @@ export function visibleFocusStatuses(
   return FOCUS_SHEET_STATUS_ORDER.filter((status) => counts[status] > 0);
 }
 
-/** The dot/stacked-bar/legend colour for each status: the three status tokens plus accent/faint
- * for "found something"/"neutral", never a raw colour (tokens.css). */
+/** The dot/stacked-bar/legend colour for each status, as in the approved mockup: accent for a
+ * subject, mint for scenery and looking, lemon for outdated, coral for failed, faint for waiting. */
 export const FOCUS_STATUS_COLOR: Readonly<Record<FocusDisplayStatus, string>> = {
   face: "var(--gl-accent)",
   subject: "var(--gl-accent)",
   immich: "var(--gl-accent)",
-  scenery: "var(--gl-accent)",
+  scenery: "var(--gl-mint)",
   none: "var(--gl-faint)",
   waiting: "var(--gl-faint)",
   outdated: "var(--gl-lemon)",
-  waitingForServer: "var(--gl-lemon)",
+  waitingForServer: "var(--gl-faint)",
   failed: "var(--gl-coral)",
   looking: "var(--gl-mint)",
 };

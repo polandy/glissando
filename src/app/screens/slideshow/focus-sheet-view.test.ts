@@ -113,6 +113,11 @@ describe("FOCUS_STATUS_COLOR", () => {
       expect(FOCUS_STATUS_COLOR[status]).toMatch(/^var\(--gl-/);
     }
   });
+
+  it("tells scenery apart from a found subject, and waiting for the server from a warning", () => {
+    expect(FOCUS_STATUS_COLOR.scenery).not.toBe(FOCUS_STATUS_COLOR.subject);
+    expect(FOCUS_STATUS_COLOR.waitingForServer).not.toBe(FOCUS_STATUS_COLOR.outdated);
+  });
 });
 
 describe("FOCUS_STATUS_LABEL_KEY", () => {
