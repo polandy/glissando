@@ -7,7 +7,14 @@ export interface FocusPassPorts {
   readonly store: Pick<
     LibraryStore,
     "listSlideshows" | "pictureFocus" | "thumbnailBlob" | "putPictureFocus"
-  >;
+  > & {
+    /**
+     * What to detect a picture's focus on, in place of its thumbnail: the server pass's input is
+     * Immich's own faces, or else its downscaled preview (ADR-0041). Answering a `PictureFocus`
+     * directly skips the detector entirely. Omitted, the pass reads `thumbnailBlob` as before.
+     */
+    detectionInput?(pictureId: string): Promise<PictureFocus | Blob>;
+  };
   readonly detector: FocusDetector;
   /** A detection failed for one picture: logged, the pass carries on. */
   log(error: unknown): void;

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { FocusPassPorts } from "./focus-pass";
 import { FakeFocusDetector } from "./testing/fake-focus-detector";
-import type { LibraryStore, StoredSlideshow } from "./stored-slideshow";
+import type { StoredSlideshow } from "./stored-slideshow";
 import { picture, slideshow } from "./testing/library-store-contract";
 import {
   FACES,
@@ -72,7 +72,7 @@ describe("FocusPass, changes while it runs", () => {
       pictureFocus: (ids) => store.pictureFocus(ids),
       thumbnailBlob: (id) => store.thumbnailBlob(id),
       putPictureFocus: (id, focus) => store.putPictureFocus(id, focus),
-    } satisfies Pick<LibraryStore, keyof FocusPassPorts["store"]>;
+    } satisfies FocusPassPorts["store"];
     const { pass, reported } = passOver(failing, new FakeFocusDetector(() => FACES));
 
     pass.start();

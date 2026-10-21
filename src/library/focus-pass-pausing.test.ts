@@ -3,16 +3,22 @@ import type { FocusPassPorts } from "./focus-pass";
 import { FakeFocusDetector } from "./testing/fake-focus-detector";
 import { FACES, storeWith, answersBy, passOver, storedFocus } from "./focus-pass-fixtures";
 
-/** Wraps `inner`, failing `thumbnailBlob`/`putPictureFocus` with `failure` while `failing()` is true. */
+/** Wraps `inner`, failing the named methods with `failure` while `failing()` is true. */
 function flakyStore(
   inner: FocusPassPorts["store"],
   failure: Error,
   failing: () => boolean,
-  { onThumbnail = false, onStore = false }: { onThumbnail?: boolean; onStore?: boolean },
+  {
+    onList = false,
+    onFocusRead = false,
+    onThumbnail = false,
+    onStore = false,
+  }: { onList?: boolean; onFocusRead?: boolean; onThumbnail?: boolean; onStore?: boolean },
 ): FocusPassPorts["store"] {
   return {
-    listSlideshows: () => inner.listSlideshows(),
-    pictureFocus: (ids) => inner.pictureFocus(ids),
+    listSlideshows: () => (onList && failing() ? Promise.reject(failure) : inner.listSlideshows()),
+    pictureFocus: (ids) =>
+      onFocusRead && failing() ? Promise.reject(failure) : inner.pictureFocus(ids),
     thumbnailBlob: (id) =>
       onThumbnail && failing() ? Promise.reject(failure) : inner.thumbnailBlob(id),
     putPictureFocus: (id, focus) =>
@@ -87,6 +93,54 @@ describe("FocusPass, pausing on a pausesOn error (ADR-0041)", () => {
     pass.start();
     await pass.settled();
     expect(pass.state.paused).toBe(true);
+
+    unreachableNow = false;
+    pass.lookAgain(["a"]);
+    await pass.settled();
+
+    expect(pass.state.paused).toBe(false);
+    expect(await store.pictureFocus(["a"])).toEqual(new Map([["a", storedFocus(FACES)]]));
+  });
+
+  it("pauses quietly when listing slideshows fails during a scan, and resumes the scan later", async () => {
+    const { store, thumbnails } = await storeWith({ "show-1": ["a"] });
+    const unreachable = new Error("the server is unreachable");
+    let unreachableNow = true;
+    const flaky = flakyStore(store, unreachable, () => unreachableNow, { onList: true });
+    const detector = new FakeFocusDetector(answersBy(thumbnails, { a: FACES }));
+    const { pass, logged, reported } = passOver(flaky, detector, (error) => error === unreachable);
+
+    pass.start();
+    await pass.settled();
+
+    expect(pass.state.paused).toBe(true);
+    expect(logged).toEqual([unreachable]);
+    expect(reported).toEqual([]);
+    expect(detector.calls).toBe(0);
+
+    unreachableNow = false;
+    pass.start();
+    await pass.settled();
+
+    expect(pass.state.paused).toBe(false);
+    expect(await store.pictureFocus(["a"])).toEqual(new Map([["a", storedFocus(FACES)]]));
+  });
+
+  it("pauses quietly when reading stored focus fails for a lookAgain request, and resumes it later", async () => {
+    const { store, thumbnails } = await storeWith({ "show-1": ["a"] });
+    const unreachable = new Error("the server is unreachable");
+    let unreachableNow = true;
+    const flaky = flakyStore(store, unreachable, () => unreachableNow, { onFocusRead: true });
+    const detector = new FakeFocusDetector(answersBy(thumbnails, { a: FACES }));
+    const { pass, logged, reported } = passOver(flaky, detector, (error) => error === unreachable);
+
+    pass.lookAgain(["a"]);
+    await pass.settled();
+
+    expect(pass.state.paused).toBe(true);
+    expect(logged).toEqual([unreachable]);
+    expect(reported).toEqual([]);
+    expect(detector.calls).toBe(0);
 
     unreachableNow = false;
     pass.lookAgain(["a"]);

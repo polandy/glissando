@@ -86,12 +86,25 @@ export class FocusPass {
       while (this.#queue.hasWork) {
         const forced = this.#queue.takeForcedRequest();
         if (forced !== undefined) {
-          await this.#takeUpForced(forced);
+          const paused = await this.#guarded(
+            () => this.#takeUpForced(forced),
+            () => this.#queue.requestLookAgain(forced),
+          );
+          if (paused) {
+            return;
+          }
           continue;
         }
         if (this.#queue.needsScan) {
           this.#queue.clearRescanRequest();
-          await this.#scan();
+          if (
+            await this.#guarded(
+              () => this.#scan(),
+              () => this.#queue.requestRescan(),
+            )
+          ) {
+            return;
+          }
           continue;
         }
         if (await this.#takeNext()) {
@@ -108,6 +121,25 @@ export class FocusPass {
         this.#queue.reset();
         this.#publish({ running: false, slideshows: new Map(), searching: new Set() });
       }
+    }
+  }
+
+  /**
+   * Runs `step` (a scan or a forced-lookup fetch); resolves true when a `pausesOn` error paused
+   * the pass, having first restored the request `step` was serving so nothing it asked for is lost.
+   */
+  async #guarded(step: () => Promise<void>, restore: () => void): Promise<boolean> {
+    try {
+      await step();
+      return false;
+    } catch (error) {
+      if (this.#ports.pausesOn?.(error) !== true) {
+        throw error;
+      }
+      this.#ports.log(error);
+      restore();
+      this.#publish({ paused: true });
+      return true;
     }
   }
 
@@ -172,9 +204,9 @@ export class FocusPass {
 
   /** Looks at one picture; resolves true when a `pausesOn` error means the pass should pause. */
   async #lookAt(pictureId: string): Promise<boolean> {
-    let thumbnail: Blob;
+    let input: PictureFocus | Blob;
     try {
-      thumbnail = await this.#ports.store.thumbnailBlob(pictureId);
+      input = await this.#readInput(pictureId);
     } catch (error) {
       if (error instanceof MediaNotFoundError) {
         return false;
@@ -186,16 +218,20 @@ export class FocusPass {
       throw error;
     }
     let focus: PictureFocus;
-    try {
-      focus = await this.#ports.detector.detect(thumbnail);
-    } catch (error) {
-      if (error instanceof FocusDetectorGoneError) {
-        // Every later detection would fail alike: the pass ends, the rest waits for the next.
-        throw error;
+    if (!(input instanceof Blob)) {
+      focus = input;
+    } else {
+      try {
+        focus = await this.#ports.detector.detect(input);
+      } catch (error) {
+        if (error instanceof FocusDetectorGoneError) {
+          // Every later detection would fail alike: the pass ends, the rest waits for the next.
+          throw error;
+        }
+        this.#ports.log(new FocusDetectionFailedError(pictureId, error));
+        this.#setFailed(pictureId, true);
+        return false;
       }
-      this.#ports.log(new FocusDetectionFailedError(pictureId, error));
-      this.#setFailed(pictureId, true);
-      return false;
     }
     try {
       // The store keeps nothing for a picture deleted meanwhile.
@@ -213,6 +249,14 @@ export class FocusPass {
     this.#setFailed(pictureId, false);
     this.#publish({ found: new Map(this.#state.found).set(pictureId, focus) });
     return false;
+  }
+
+  /** What to detect on, or the focus already known without detecting (ADR-0041). */
+  #readInput(pictureId: string): Promise<PictureFocus | Blob> {
+    const { store } = this.#ports;
+    return store.detectionInput !== undefined
+      ? store.detectionInput(pictureId)
+      : store.thumbnailBlob(pictureId);
   }
 
   #setFailed(pictureId: string, failed: boolean): void {
