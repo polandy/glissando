@@ -155,6 +155,7 @@ async function mountRoute(stored: StoredSlideshow = SHOW) {
     onBack: () => (backs += 1),
     onError: (error: unknown) => errors.push(error),
     log: (error: unknown) => errors.push(error),
+    toaster: new Toaster(new FakeScheduler()),
   });
   destroy = mounted.destroy;
   return { ...fake, target: mounted.target, backs: () => backs, store, editor, errors };

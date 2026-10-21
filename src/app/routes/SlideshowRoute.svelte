@@ -53,6 +53,7 @@
     decodeClipSound,
     readClipPeaks,
     songIntake,
+    samplePreview,
     onBack,
     onPlay,
     onAddPictures,
@@ -187,6 +188,8 @@
     {loudnessPass}
     audio={musicAudio}
     {songIntake}
+    {samplePreview}
+    {toaster}
     {saving}
     {onBack}
     {onError}

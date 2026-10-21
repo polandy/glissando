@@ -21,6 +21,7 @@ import { enFrame } from "./catalogue-en-frame.ts";
 import { enCards } from "./catalogue-en-cards.ts";
 import { enFilePage } from "./catalogue-en-file-page.ts";
 import { enSampleMusicCredit } from "./catalogue-en-sample-music-credit.ts";
+import { enSampleMusicPicker } from "./catalogue-en-sample-music-picker.ts";
 import type { Catalogue } from "./messages.ts";
 
 /** English UI copy; the type demands exactly the German catalogue's keys and message shapes. */
@@ -415,4 +416,5 @@ export const en: Catalogue = {
   ...enCards,
   ...enFilePage,
   ...enSampleMusicCredit,
+  ...enSampleMusicPicker,
 };

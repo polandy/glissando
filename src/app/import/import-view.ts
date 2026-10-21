@@ -233,17 +233,22 @@ export function importPlaylist(songs: readonly ChosenSong[], slideshowMs: number
     })),
   };
   return {
-    songs: placeSongs(playlist).map(({ song, atMs }, index) => ({
-      id: song.id,
-      number: index + 1,
-      fileName: song.fileName,
-      durationMs: song.durationMs,
-      excerptMs: musicExcerptMs(song),
-      trimmed: false,
-      atMs,
-      reached: atMs < slideshowMs,
-      volumeBadge: { kind: "none" },
-    })),
+    // `placeSongs` keeps the input order, one placed song per song: `index` is also `songs`'s.
+    songs: placeSongs(playlist).map(({ song, atMs }, index) => {
+      const trackId = songs[index]?.sample?.trackId;
+      return {
+        id: song.id,
+        number: index + 1,
+        fileName: song.fileName,
+        durationMs: song.durationMs,
+        excerptMs: musicExcerptMs(song),
+        trimmed: false,
+        atMs,
+        reached: atMs < slideshowMs,
+        volumeBadge: { kind: "none" },
+        ...(trackId !== undefined ? { sampleTrack: trackId } : {}),
+      };
+    }),
     playlistMs: playlistMs(playlist) ?? 0,
   };
 }

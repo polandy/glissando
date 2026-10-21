@@ -21,6 +21,7 @@ import { deFrame } from "./catalogue-de-frame.ts";
 import { deCards } from "./catalogue-de-cards.ts";
 import { deFilePage } from "./catalogue-de-file-page.ts";
 import { deSampleMusicCredit } from "./catalogue-de-sample-music-credit.ts";
+import { deSampleMusicPicker } from "./catalogue-de-sample-music-picker.ts";
 import type { Message } from "./messages.ts";
 
 /**
@@ -417,4 +418,5 @@ export const de = {
   ...deCards,
   ...deFilePage,
   ...deSampleMusicCredit,
+  ...deSampleMusicPicker,
 } as const satisfies Record<string, Message>;

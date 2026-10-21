@@ -114,8 +114,8 @@ describe("MusicEditorScreen, the playlist's songs", () => {
       ],
     });
 
-    expect(text(".pending")).toContain("Lanterns.m4a Wird in FLAC umgewandelt · 42 %");
-    expect(text(".pending.unusable")).toBe("Concert.wma Diese Datei lässt sich nicht verwenden");
+    expect(text(".row")).toContain("Lanterns.m4a Wird in FLAC umgewandelt · 42 %");
+    expect(text(".row.failed")).toBe("Concert.wma Diese Datei lässt sich nicht verwenden");
     buttonNamed("Concert.wma entfernen").click();
 
     expect(calls.dismissed).toEqual([2]);

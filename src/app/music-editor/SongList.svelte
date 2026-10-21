@@ -1,45 +1,48 @@
 <script lang="ts">
   import type { Snippet } from "svelte";
-  import { MILLISECONDS_PER_SECOND } from "../../player";
+  import type { SampleTrackId } from "../../sample-music/sample-tracks";
   import Icon from "../components/Icon.svelte";
   import { getTranslator } from "../i18n/context";
+  import type { SampleSongRow } from "../sample-music/sample-song-pick";
   import type { PlaylistSongView } from "./playlist-view";
-  import { songColour } from "./song-colour";
+  import PendingRow from "./PendingRow.svelte";
+  import SongLabel from "./SongLabel.svelte";
   import { SongDrag, songIndexAfterKey, type SongDragState } from "./song-drag";
   import type { PendingSong } from "./song-intake";
-  import VolumeBadge from "./VolumeBadge.svelte";
 
   /**
-   * The playlist's songs in play order: a row selects its song for editing where songs are
-   * edited, its grip reorders it (dragged, or the arrow keys while focused), its × removes it.
-   * Songs on their way in follow.
+   * The playlist's songs in play order, then pending picks and sample downloads. A row selects
+   * its song, its grip reorders it (dragged or by arrow key), its × removes it.
    */
   let {
     songs,
     selectedSongId,
     pending,
+    sampleRows,
     onSelect,
     detail,
     onMove,
     onRemove,
     onDismiss,
+    onRemoveSampleRow,
   }: {
     songs: readonly PlaylistSongView[];
     /** Without it, a row selects nothing. */
     selectedSongId?: string;
     pending: readonly PendingSong[];
+    sampleRows: readonly SampleSongRow[];
     onSelect?: (songId: string) => void;
     /** The line under a song's name; by default its length and excerpt. */
     detail?: Snippet<[PlaylistSongView]>;
     onMove: (songId: string, toIndex: number) => void;
     onRemove: (songId: string) => void;
-    /** Takes an unusable file's row away. */
+    /** Takes an unusable file's, or a failed sample download's, row away. */
     onDismiss: (key: number) => void;
+    onRemoveSampleRow: (trackId: SampleTrackId) => void;
   } = $props();
 
-  const { t, formatDuration } = getTranslator();
+  const { t } = getTranslator();
   const PERCENT = 100;
-  const duration = (ms: number) => formatDuration(ms / MILLISECONDS_PER_SECOND);
 
   const rowElements: HTMLElement[] = $state([]);
   const grips: Record<string, HTMLButtonElement> = $state({});
@@ -79,29 +82,6 @@
   onpointercancel={() => track(() => drag.cancel())}
 />
 
-{#snippet songLabel(song: PlaylistSongView)}
-  <span class="number mono" style:background={songColour(song.number)}>{song.number}</span>
-  <span class="name">
-    <b>{song.fileName}</b>
-    {#if detail === undefined}
-      <small class="mono">
-        {song.trimmed
-          ? t("music.trimmedTo", {
-              duration: duration(song.durationMs),
-              excerpt: duration(song.excerptMs),
-            })
-          : duration(song.durationMs)}
-      </small>
-    {:else}
-      {@render detail(song)}
-    {/if}
-  </span>
-  <VolumeBadge badge={song.volumeBadge} />
-  <span class="tag mono">
-    {song.reached ? t("music.songFrom", { time: duration(song.atMs) }) : t("music.notReached")}
-  </span>
-{/snippet}
-
 <ol class="songs" aria-label={t("music.songs")}>
   {#each songs as song, index (song.id)}
     <li
@@ -130,7 +110,7 @@
         <Icon name="grip" />
       </button>
       {#if onSelect === undefined}
-        <div class="pick">{@render songLabel(song)}</div>
+        <div class="pick"><SongLabel {song} {detail} /></div>
       {:else}
         <button
           class="pick"
@@ -138,7 +118,7 @@
           aria-pressed={song.id === selectedSongId}
           onclick={() => onSelect(song.id)}
         >
-          {@render songLabel(song)}
+          <SongLabel {song} {detail} />
         </button>
       {/if}
       <button
@@ -152,30 +132,31 @@
     </li>
   {/each}
   {#each pending as song (song.key)}
-    <li class="song pending" class:unusable={song.kind === "unusable"}>
-      <span class="name">
-        <b>{song.pickedName}</b>
-        {#if song.kind === "converting"}
-          <small class="mono">
-            {t("music.songConverting", { percent: Math.round(song.progress * PERCENT) })}
-          </small>
-        {:else if song.kind === "unusable"}
-          <small>{t("music.songUnusable")}</small>
-        {/if}
-      </span>
-      {#if song.kind === "unusable"}
-        <button
-          class="remove"
-          type="button"
-          aria-label={t("music.removeSong", { name: song.pickedName })}
-          onclick={() => onDismiss(song.key)}
-        >
-          <Icon name="close" />
-        </button>
-      {:else}
-        <span class="pulse" aria-hidden="true"></span>
-      {/if}
-    </li>
+    {@const status =
+      song.kind === "converting"
+        ? t("music.songConverting", { percent: Math.round(song.progress * PERCENT) })
+        : song.kind === "unusable"
+          ? t("music.songUnusable")
+          : undefined}
+    <PendingRow
+      title={song.pickedName}
+      {...status !== undefined ? { status } : {}}
+      failed={song.kind === "unusable"}
+      removeLabel={t("music.removeSong", { name: song.pickedName })}
+      onRemove={() => onDismiss(song.key)}
+    />
+  {/each}
+  {#each sampleRows as row (row.trackId)}
+    <PendingRow
+      title={row.title}
+      status={row.kind === "downloadingSample"
+        ? t("sampleMusicPicker.downloading", { percent: Math.round(row.progress * PERCENT) })
+        : t("sampleMusicPicker.downloadFailed")}
+      {...row.kind === "downloadingSample" ? { progress: row.progress } : {}}
+      failed={row.kind === "failedSampleDownload"}
+      removeLabel={t("music.removeSong", { name: row.title })}
+      onRemove={() => onRemoveSampleRow(row.trackId)}
+    />
   {/each}
 </ol>
 
@@ -210,16 +191,6 @@
   .song.drop {
     outline: 2px dashed var(--gl-accent);
     outline-offset: 1px;
-  }
-  .song.pending {
-    grid-template-columns: minmax(0, 1fr) auto;
-    padding: 9px 6px 9px 14px;
-    border-style: dashed;
-  }
-  .song.unusable {
-    border-color: var(--gl-coral);
-    border-style: solid;
-    background: color-mix(in srgb, var(--gl-coral) 8%, var(--gl-surface));
   }
   .grip,
   .remove {
@@ -256,41 +227,6 @@
     color: var(--gl-ink);
     font: inherit;
     text-align: left;
-  }
-  button.pick {
     cursor: pointer;
-  }
-  .number {
-    display: grid;
-    place-items: center;
-    width: 26px;
-    height: 26px;
-    border-radius: 50%;
-    color: var(--gl-song-ink);
-    font-size: var(--gl-size-small);
-    font-weight: var(--gl-weight-semibold);
-  }
-  .name {
-    display: grid;
-    min-width: 0;
-  }
-  .name b {
-    overflow: hidden;
-    font-size: var(--gl-size-body);
-    font-weight: var(--gl-weight-semibold);
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  .name :global(small),
-  .tag {
-    color: var(--gl-muted);
-    font-size: var(--gl-size-small);
-  }
-  .pulse {
-    width: 8px;
-    height: 8px;
-    margin: 0 12px;
-    border-radius: 50%;
-    background: var(--gl-accent);
   }
 </style>

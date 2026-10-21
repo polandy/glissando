@@ -1,7 +1,9 @@
 import { flushSync } from "svelte";
 import { afterEach, describe, expect, it } from "vitest";
+import { FakeScheduler } from "../../ui-kit/testing/fake-scheduler";
 import { createTranslator } from "../i18n/translator";
 import { mountWithTranslator } from "../testing/mount-with-translator";
+import { Toaster } from "../toast/toaster";
 import type { ImportSession } from "./import-session";
 import MusicStep from "./MusicStep.svelte";
 import { choicesOf, withTwoPictures } from "./testing/import-session-fixtures";
@@ -25,6 +27,7 @@ function mountStep(session: ImportSession): HTMLElement {
       onError: (error: unknown) => {
         throw error;
       },
+      toaster: new Toaster(new FakeScheduler()),
     },
     { current: createTranslator("en") },
   );

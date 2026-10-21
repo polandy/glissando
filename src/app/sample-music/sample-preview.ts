@@ -82,6 +82,15 @@ export class SamplePreview {
     return this.#state;
   }
 
+  get network(): NetworkStatus {
+    return this.#ports.network;
+  }
+
+  /** Whether `trackId` is already stored on this device, so its card need not show "Needs a connection". */
+  hasTrackOnDevice(trackId: SampleTrackId): Promise<boolean> {
+    return this.#ports.hasMusic(sampleMediaId(trackId));
+  }
+
   subscribe(listener: (state: SamplePreviewState) => void): () => void {
     this.#listeners.add(listener);
     listener(this.#state);
