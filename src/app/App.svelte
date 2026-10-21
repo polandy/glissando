@@ -237,7 +237,7 @@
       {@const onDevice = opened.home === "device"}
       <SlideshowRoute
         store={opened.store}
-        focusPass={services.focusPass}
+        focusPass={onDevice ? services.focusPass : services.serverFocusPass}
         beatPass={onDevice ? services.beatPass : services.serverBeatPass}
         loudnessPass={onDevice ? services.loudnessPass : services.serverLoudnessPass}
         {toaster}

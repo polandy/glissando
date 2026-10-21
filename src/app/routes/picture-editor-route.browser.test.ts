@@ -210,7 +210,7 @@ describe("the picture editor route", () => {
 
   it("shows the next picture's known focus at once when ‹/› moves on to it", async () => {
     const { target, props } = await mountRoute("a");
-    const found = { found: new Map([["b", FACE]]), searching: new Set<string>() };
+    const found = { ...NO_FOCUS_KNOWN, found: new Map([["b", FACE]]) };
     props.focus = found;
     flushSync();
 
