@@ -1,7 +1,7 @@
 import { SvelteSet } from "svelte/reactivity";
 import { afterEach, describe, expect, it } from "vitest";
 import { ImmichUnavailableError } from "../../immich/immich-client";
-import type { PictureFocus } from "../../library/picture-focus";
+import type { StoredFocus } from "../../library/picture-focus";
 import type { StoredSlideshow } from "../../library/stored-slideshow";
 import { MemoryLibraryStore } from "../../library/testing/memory-store";
 import { MusicOutput } from "../../player";
@@ -30,7 +30,7 @@ const SHOW: StoredSlideshow = {
 
 /** A store whose focus cannot be read, as when the browser's database refuses the read. */
 class FocusUnreadableStore extends MemoryLibraryStore {
-  override pictureFocus(): Promise<ReadonlyMap<string, PictureFocus>> {
+  override pictureFocus(): Promise<ReadonlyMap<string, StoredFocus>> {
     return Promise.reject(new Error("the focus could not be read"));
   }
 }

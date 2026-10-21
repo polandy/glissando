@@ -9,7 +9,7 @@
   import { playingMusic } from "../library-views";
   import { browserObjectUrls } from "../media/object-urls";
   import { storedSongBeats } from "../beats/music-beats-known";
-  import { NO_FOCUS_KNOWN } from "../focus/pictures-focus";
+  import { bareFocus, NO_FOCUS_KNOWN } from "../focus/pictures-focus";
   import { storedSongLoudness } from "../loudness/music-loudness-composed";
   import type { PlayerFailure } from "../player/player-failure";
   import PlayerOverlay from "../player/PlayerOverlay.svelte";
@@ -191,10 +191,12 @@
     // share the music evenly and play goes on.
     Promise.all([
       loadPlayerMusic(store, stored, browserObjectUrls.create, closed.signal),
-      store.pictureFocus(stored.pictures.map((picture) => picture.id)).catch((error: unknown) => {
-        log(error);
-        return NO_FOCUS_KNOWN.found;
-      }),
+      store
+        .pictureFocus(stored.pictures.map((picture) => picture.id))
+        .then(bareFocus, (error: unknown) => {
+          log(error);
+          return NO_FOCUS_KNOWN.found;
+        }),
       storedSongBeats(store, stored, log),
       storedSongLoudness(store, stored, log),
     ]).then(([music, focus, beats, loudness]) => {

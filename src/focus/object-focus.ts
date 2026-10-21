@@ -53,7 +53,11 @@ export function objectFocus(image: RgbaImage, network: OnnxGraph): PictureFocus 
   );
   if (strongest === undefined) return { kind: "none" };
   const others = objects.filter((object) => object !== strongest).map((o) => boxOf(o, image));
-  return { kind: "subject", box: groupFocusBox(boxOf(strongest, image), others) };
+  return {
+    kind: "subject",
+    box: groupFocusBox(boxOf(strongest, image), others),
+    foundBy: "object",
+  };
 }
 
 /**

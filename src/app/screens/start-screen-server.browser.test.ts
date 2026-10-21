@@ -1,5 +1,6 @@
 import { createRawSnippet } from "svelte";
 import { afterEach, describe, expect, it } from "vitest";
+import type { SlideshowSearch } from "../../library/focus-pass";
 import { createTranslator } from "../i18n/translator";
 import { mountWithTranslator } from "../testing/mount-with-translator";
 import StartScreen from "./StartScreen.svelte";
@@ -24,6 +25,7 @@ function mountStart(
   server: ServerShelf | null,
   slideshows = [summary("lake", "Summer by the lake")],
   language: "de" | "en" = "en",
+  serverFocusSearches: ReadonlyMap<string, SlideshowSearch> = new Map(),
 ) {
   const opened: string[] = [];
   const created: true[] = [];
@@ -33,6 +35,7 @@ function mountStart(
       slideshows,
       server,
       focusSearches: new Map(),
+      serverFocusSearches,
       onCreate: () => created.push(true),
       onOpen: (slideshowId: string) => opened.push(slideshowId),
       onSettings: () => {},
@@ -135,5 +138,17 @@ describe("StartScreen, slideshows on the Glissando server", () => {
     expect(iceland.getAttribute("aria-disabled")).toBe("true");
     iceland.click();
     expect(opened).toEqual([]);
+  });
+
+  it("shows a server card's own focus search, 'looking again' included, like a device card", () => {
+    const { target } = mountStart(
+      { offline: false, slideshows: [summary("iceland", "Iceland 2025")] },
+      [],
+      "en",
+      new Map([["iceland", { done: 5, total: 30, again: true, failed: 0 }]]),
+    );
+
+    const iceland = cardOf(serverSection(target), "Iceland 2025");
+    expect(iceland.textContent).toContain("Looking again · 5 of 30");
   });
 });

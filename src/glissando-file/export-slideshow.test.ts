@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { storedFocus } from "../library/focus-pass-fixtures";
 import { MemoryLibraryStore } from "../library/testing/memory-store";
 import type { StoredSlideshow } from "../library/stored-slideshow";
 import { exportSlideshow, glissandoFileName } from "./export-slideshow";
@@ -114,10 +115,14 @@ describe("exportSlideshow", () => {
 
   it("carries no picture's focus, even one stored on this device (ADR-0012)", async () => {
     const store = await storeWithMedia();
-    await store.putPictureFocus("p1", {
-      kind: "subject",
-      box: { x: 0.2, y: 0.1, width: 0.3, height: 0.4 },
-    });
+    await store.putPictureFocus(
+      "p1",
+      storedFocus({
+        kind: "subject",
+        box: { x: 0.2, y: 0.1, width: 0.3, height: 0.4 },
+        foundBy: "face",
+      }),
+    );
     expect((await store.pictureFocus(["p1"])).has("p1")).toBe(true);
 
     const file = await exportSlideshow(slideshow, store, OPTIONS);

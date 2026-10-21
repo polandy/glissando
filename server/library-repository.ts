@@ -1,6 +1,10 @@
 import type { MusicBeats } from "../src/beats/music-beats";
 import type { MusicLoudness } from "../src/loudness/measure-loudness";
+import type { StoredFocus } from "../src/library/picture-focus";
 import type { ServerDocument } from "../src/server-library/server-document";
+
+/** What a `putPictureFocus` did: replaced the stored focus, or kept a newer one already there. */
+export type PutPictureFocusOutcome = "stored" | "newerKept";
 
 /**
  * Where the library service keeps slideshows and music: a SQLite database in the data volume,
@@ -67,4 +71,16 @@ export interface LibraryRepository {
   restartMusicGrace(id: string, time: number): void;
   /** The ids of music no slideshow names, uploaded (or its grace restarted) before `time`. */
   unreferencedMusicUploadedBefore(time: number): string[];
+  /** The stored focus of each picture asset id in `assetIds` that has one (ADR-0041). */
+  findPictureFocus(assetIds: readonly string[]): ReadonlyMap<string, StoredFocus>;
+  /**
+   * Stores `stored` for the picture asset `id`, found at `foundAt`: replaces when the stored
+   * detector is at most the new one, keeps the newer one otherwise (two devices may race; same
+   * detector, same answer).
+   */
+  putPictureFocus(id: string, stored: StoredFocus, foundAt: number): PutPictureFocusOutcome;
+  /** Whether a slideshow's document names the picture asset `id`. */
+  isPictureReferenced(id: string): boolean;
+  /** Deletes the stored focus of the picture asset `id`, if any. */
+  deletePictureFocus(id: string): void;
 }

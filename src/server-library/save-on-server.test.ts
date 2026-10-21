@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { storedFocus } from "../library/focus-pass-fixtures";
 import type { StoredMusic, StoredPicture } from "../library/stored-slideshow";
 import { MemoryLibraryStore } from "../library/testing/memory-store";
+import type { ServerLibraryClient } from "./server-library-client";
 import { createServerSlideshow, partitionForServer, saveOnServer } from "./save-on-server";
 import { libraryServiceFetch } from "./testing/library-service-fetch";
 import { linkedPicture, serverSlideshow } from "./testing/server-store-harness";
@@ -98,6 +100,7 @@ describe("partitionForServer, video slides", () => {
     const saved = await saveOnServer(serverSlideshow({ pictures: [clip, photo] }), {
       client,
       store: new MemoryLibraryStore(),
+      log: () => undefined,
     });
 
     expect(saved.pictures.map(({ id }) => id)).toEqual(["asset-2"]);
@@ -112,7 +115,11 @@ describe("saveOnServer", () => {
       pictures: [devicePicture("p1", "asset-1"), devicePicture("p2")],
     });
 
-    const saved = await saveOnServer(device, { client, store: new MemoryLibraryStore() });
+    const saved = await saveOnServer(device, {
+      client,
+      store: new MemoryLibraryStore(),
+      log: () => undefined,
+    });
 
     expect(saved.id).not.toBe("device-show");
     expect(saved.pictures).toEqual([{ ...devicePicture("p1", "asset-1"), id: "asset-1" }]);
@@ -129,6 +136,7 @@ describe("saveOnServer", () => {
       {
         client,
         store,
+        log: () => undefined,
       },
     );
 
@@ -143,8 +151,63 @@ describe("saveOnServer", () => {
       saveOnServer(serverSlideshow({ pictures: [devicePicture("p1")] }), {
         client,
         store: new MemoryLibraryStore(),
+        log: () => undefined,
       }),
     ).rejects.toThrow(/Immich/);
     expect(await client.listSlideshows()).toEqual([]);
+  });
+
+  it("puts each linked picture's stored focus on the server once the slideshow exists there", async () => {
+    const { client } = libraryServiceFetch();
+    const store = new MemoryLibraryStore();
+    await store.putPicture("p1", { display: new Blob(["d"]), thumbnail: new Blob(["t"]) });
+    await store.putPictureFocus("p1", storedFocus({ kind: "scenery" }));
+
+    const saved = await saveOnServer(
+      serverSlideshow({ pictures: [devicePicture("p1", "asset-1")] }),
+      { client, store, log: () => undefined },
+    );
+
+    const focus = await client.slideshowFocus(saved.id);
+    expect(focus.get("asset-1")).toEqual(storedFocus({ kind: "scenery" }));
+  });
+
+  it("leaves a picture without a stored focus for the server's own pass to find", async () => {
+    const { client } = libraryServiceFetch();
+
+    const saved = await saveOnServer(serverSlideshow({ pictures: [linkedPicture("asset-1")] }), {
+      client,
+      store: new MemoryLibraryStore(),
+      log: () => undefined,
+    });
+
+    const focus = await client.slideshowFocus(saved.id);
+    expect(focus.has("asset-1")).toBe(false);
+  });
+
+  it("logs, rather than fails the save, when a focus PUT cannot reach the server", async () => {
+    const { client } = libraryServiceFetch();
+    const store = new MemoryLibraryStore();
+    await store.putPicture("p1", { display: new Blob(["d"]), thumbnail: new Blob(["t"]) });
+    await store.putPictureFocus("p1", storedFocus({ kind: "scenery" }));
+    const unreachable: ServerLibraryClient["putPictureFocus"] = () =>
+      Promise.reject(new Error("offline"));
+    const logged: unknown[] = [];
+
+    const saved = await saveOnServer(
+      serverSlideshow({ pictures: [devicePicture("p1", "asset-1")] }),
+      {
+        client: {
+          createSlideshow: (document) => client.createSlideshow(document),
+          uploadMusic: (audio, mimeType) => client.uploadMusic(audio, mimeType),
+          putPictureFocus: unreachable,
+        },
+        store,
+        log: (error) => logged.push(error),
+      },
+    );
+
+    expect(saved.id).toBeTruthy();
+    expect(logged).toHaveLength(1);
   });
 });

@@ -3,6 +3,7 @@ import { serverDocumentFor, storedSlideshowFrom } from "./server-document";
 import type { ServerLibraryClient } from "./server-library-client";
 
 type CreatingClient = Pick<ServerLibraryClient, "uploadMusic" | "createSlideshow">;
+type FocusPuttingClient = Pick<ServerLibraryClient, "putPictureFocus">;
 
 /**
  * Creates `slideshow` on the server (its id and its songs' ids are ignored): uploads every
@@ -66,18 +67,23 @@ export function partitionForServer(slideshow: StoredSlideshow): ServerPartition 
 }
 
 export interface SaveOnServerPorts {
-  readonly client: CreatingClient;
-  /** The device's store, holding the slideshow's music. */
-  readonly store: Pick<SlideshowStore, "musicBlob">;
+  readonly client: CreatingClient & FocusPuttingClient;
+  /** The device's store, holding the slideshow's music and each picture's stored focus. */
+  readonly store: Pick<SlideshowStore, "musicBlob" | "pictureFocus">;
+  /** Where a focus PUT that could not reach the server is logged; the save itself still succeeds. */
+  log(error: unknown): void;
 }
 
 /**
  * "Save on the server": an independent copy of a device slideshow with its pictures from Immich,
- * those only on this device left out (`partitionForServer`), and its playlist uploaded.
+ * those only on this device left out (`partitionForServer`), and its playlist uploaded. Once the
+ * copy exists on the server, a picture's focus already stored on this device is put there too, so
+ * the server's own focus pass need not find it again; a picture with none is left for that pass.
+ * A focus PUT that cannot reach the server is logged, not thrown: the save has already succeeded.
  */
 export async function saveOnServer(
   slideshow: StoredSlideshow,
-  { client, store }: SaveOnServerPorts,
+  { client, store, log }: SaveOnServerPorts,
 ): Promise<StoredSlideshow> {
   const { linked } = partitionForServer(slideshow);
   if (linked.length === 0) {
@@ -86,5 +92,27 @@ export async function saveOnServer(
     );
   }
   const songsAudio = await Promise.all(slideshow.songs.map((song) => store.musicBlob(song.id)));
-  return createServerSlideshow({ ...slideshow, pictures: linked }, songsAudio, client);
+  const saved = await createServerSlideshow({ ...slideshow, pictures: linked }, songsAudio, client);
+  await putStoredFocus(saved.id, linked, { client, store, log });
+  return saved;
+}
+
+/** Puts each linked picture's device-stored focus on the server slideshow just created. */
+async function putStoredFocus(
+  slideshowId: string,
+  linked: readonly StoredPicture[],
+  { client, store, log }: SaveOnServerPorts,
+): Promise<void> {
+  const focusByDeviceId = await store.pictureFocus(linked.map((picture) => picture.id));
+  await Promise.all(
+    linked.flatMap((picture) => {
+      const stored = focusByDeviceId.get(picture.id);
+      if (stored === undefined || picture.immichAssetId === undefined) return [];
+      return [
+        client
+          .putPictureFocus(slideshowId, picture.immichAssetId, stored)
+          .catch((error: unknown) => log(error)),
+      ];
+    }),
+  );
 }

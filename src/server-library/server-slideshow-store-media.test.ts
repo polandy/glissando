@@ -1,10 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { MusicBeats } from "../beats";
-import {
-  ImmichRequestFailedError,
-  ImmichUnavailableError,
-  type ImmichFace,
-} from "../immich/immich-client";
+import { ImmichUnavailableError } from "../immich/immich-client";
 import { MediaNotFoundError } from "../library/stored-slideshow";
 import { musicLoudnessToJson, type MusicLoudness } from "../loudness";
 import { PictureMissingFromImmichError } from "./server-slideshow-store";
@@ -16,8 +12,6 @@ const MEASURED: MusicLoudness = {
   blockMeanSquares: new Float32Array([0.01, 0.02]),
   hopPeaks: new Float32Array([0.5, 0.6, 0.7, 0.8, 0.9]),
 };
-const SMALL_FACE: ImmichFace = { imageWidth: 100, imageHeight: 50, x1: 0, y1: 0, x2: 10, y2: 10 };
-const LARGE_FACE: ImmichFace = { imageWidth: 100, imageHeight: 50, x1: 25, y1: 5, x2: 75, y2: 25 };
 
 /**
  * Compares through the compact dB/dBFS wire form, since the server round trip rounds to 0.01 dB
@@ -178,63 +172,5 @@ describe("ServerSlideshowStore media", () => {
 
     expect(await store.musicLoudness(musicId)).toBeUndefined();
     expect(await store.musicLoudness("deleted-meanwhile")).toBeUndefined();
-  });
-
-  it("aims a picture at its largest Immich face, asking Immich once per picture for the session", async () => {
-    const { store, immich } = serverStoreHarness();
-    immich.add("asset-1", { faces: [SMALL_FACE, LARGE_FACE] }).add("asset-2");
-
-    await store.pictureFocus(["asset-1", "asset-2"]);
-    const focus = await store.pictureFocus(["asset-1", "asset-2"]);
-
-    expect(focus).toEqual(
-      new Map([
-        ["asset-1", { kind: "subject", box: { x: 0.25, y: 0.1, width: 0.5, height: 0.4 } }],
-      ]),
-    );
-    expect(immich.calls).toEqual(["faces asset-1", "faces asset-2"]);
-  });
-
-  it("keeps a focus put for the session, without asking Immich", async () => {
-    const { store, immich } = serverStoreHarness();
-    immich.add("asset-1", { faces: [LARGE_FACE] });
-
-    await store.putPictureFocus("asset-1", { kind: "none" });
-
-    expect(await store.pictureFocus(["asset-1"])).toEqual(new Map([["asset-1", { kind: "none" }]]));
-    expect(immich.calls).toEqual([]);
-  });
-
-  it.each([
-    ["unavailable", new ImmichUnavailableError("unreachable")],
-    ["not found", new ImmichRequestFailedError("GET faces", 404)],
-  ])(
-    "logs faces Immich could not give (%s), leaves the picture without focus and asks again later",
-    async (_reason, failure) => {
-      const { store, immich, logged } = serverStoreHarness();
-      immich.add("asset-1", { faces: [LARGE_FACE] });
-      immich.facesError = failure;
-
-      const failed = await store.pictureFocus(["asset-1"]);
-      immich.facesError = null;
-      const asked = await store.pictureFocus(["asset-1"]);
-
-      expect(failed).toEqual(new Map());
-      expect(logged).toEqual([failure]);
-      expect(asked.get("asset-1")?.kind).toBe("subject");
-    },
-  );
-
-  it("rejects with any other failure asking for faces, and asks again later", async () => {
-    const { store, immich } = serverStoreHarness();
-    immich.add("asset-1", { faces: [LARGE_FACE] });
-    const failure = new Error("the faces answer does not match the Immich API");
-    immich.facesError = failure;
-
-    await expect(store.pictureFocus(["asset-1"])).rejects.toBe(failure);
-    immich.facesError = null;
-    const asked = await store.pictureFocus(["asset-1"]);
-
-    expect(asked.get("asset-1")?.kind).toBe("subject");
   });
 });

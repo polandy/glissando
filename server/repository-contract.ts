@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { MusicBeats } from "../src/beats/music-beats";
 import type { MusicLoudness } from "../src/loudness/measure-loudness";
 import { musicLoudnessToJson } from "../src/loudness/music-loudness-json";
+import type { StoredFocus } from "../src/library/picture-focus";
 import {
   SERVER_DOCUMENT_FORMAT_VERSION,
   type ServerDocument,
@@ -242,6 +243,56 @@ export function describeLibraryRepositoryContract(
       expect(repository.unreferencedMusicUploadedBefore(5001)).toEqual(["released"]);
     });
 
+    it("finds no focus for a picture asset id never stored", () => {
+      const repository = createRepository();
+      expect(repository.findPictureFocus([PICTURE_ASSET_ID])).toEqual(new Map());
+    });
+
+    it("finds the focus stored for a picture, among the asset ids asked for", () => {
+      const repository = createRepository();
+      const focus = storedFocus(1);
+      expect(repository.putPictureFocus(PICTURE_ASSET_ID, focus, 1000)).toBe("stored");
+      expect(repository.findPictureFocus([PICTURE_ASSET_ID, "unasked-for"])).toEqual(
+        new Map([[PICTURE_ASSET_ID, focus]]),
+      );
+    });
+
+    it("replaces a picture's focus when the stored detector is at most the new one", () => {
+      const repository = createRepository();
+      repository.putPictureFocus(PICTURE_ASSET_ID, storedFocus(1), 1000);
+      const refound = storedFocus(1);
+      expect(repository.putPictureFocus(PICTURE_ASSET_ID, refound, 2000)).toBe("stored");
+      expect(repository.findPictureFocus([PICTURE_ASSET_ID])).toEqual(
+        new Map([[PICTURE_ASSET_ID, refound]]),
+      );
+    });
+
+    it("keeps a picture's focus when the stored detector is newer than the new one", () => {
+      const repository = createRepository();
+      const newer = storedFocus(2);
+      repository.putPictureFocus(PICTURE_ASSET_ID, newer, 1000);
+      expect(repository.putPictureFocus(PICTURE_ASSET_ID, storedFocus(1), 2000)).toBe("newerKept");
+      expect(repository.findPictureFocus([PICTURE_ASSET_ID])).toEqual(
+        new Map([[PICTURE_ASSET_ID, newer]]),
+      );
+    });
+
+    it("knows a picture is referenced while a slideshow's document names it", () => {
+      const repository = createRepository();
+      expect(repository.isPictureReferenced(PICTURE_ASSET_ID)).toBe(false);
+      repository.insertSlideshow(slideshow("show-a", 1000));
+      expect(repository.isPictureReferenced(PICTURE_ASSET_ID)).toBe(true);
+      repository.deleteSlideshow("show-a");
+      expect(repository.isPictureReferenced(PICTURE_ASSET_ID)).toBe(false);
+    });
+
+    it("deletes a picture's stored focus", () => {
+      const repository = createRepository();
+      repository.putPictureFocus(PICTURE_ASSET_ID, storedFocus(1), 1000);
+      repository.deletePictureFocus(PICTURE_ASSET_ID);
+      expect(repository.findPictureFocus([PICTURE_ASSET_ID])).toEqual(new Map());
+    });
+
     it("keeps every write of a transaction that completes and returns its result", () => {
       const repository = createRepository();
       const result = repository.inTransaction(() => {
@@ -275,6 +326,8 @@ export function describeLibraryRepositoryContract(
 
 const TOKEN_A = "AAAAAAAAAAAAAAAAAAAAAA";
 const TOKEN_B = "BBBBBBBBBBBBBBBBBBBBBB";
+// The asset id every `documentTitled` picture names, so a slideshow always references it.
+const PICTURE_ASSET_ID = "0b5a7c3e-1f2d-4e6a-9b8c-7d6e5f4a3b2c";
 
 function documentTitled(title: string): ServerDocument {
   return {
@@ -311,6 +364,10 @@ function slideshow(id: string, createdAt: number): SlideshowRecord {
 
 function music(id: string, uploadedAt: number): MusicRecord {
   return { id, contentType: "audio/mp4", bytes: new Uint8Array([1, 2, 3]), uploadedAt };
+}
+
+function storedFocus(detector: number): StoredFocus {
+  return { focus: { kind: "none" }, detector };
 }
 
 function loudnessOf(blockMeanSquares: number[], hopPeaks: number[]): MusicLoudness {

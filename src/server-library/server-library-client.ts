@@ -1,5 +1,6 @@
 import type { MusicBeats } from "../beats";
 import type { MusicLoudness } from "../loudness";
+import type { StoredFocus } from "../library/picture-focus";
 import type { ServerDocument } from "./server-document";
 
 /**
@@ -32,6 +33,17 @@ export interface ServerLibraryClient {
   musicLoudness(musicId: string): Promise<MusicLoudness | undefined>;
   /** Keeps the loudness measured beside the music, replacing any found before. */
   putMusicLoudness(musicId: string, loudness: MusicLoudness): Promise<void>;
+  /** The stored focus of a slideshow's pictures that have one (ADR-0041). */
+  slideshowFocus(slideshowId: string): Promise<ReadonlyMap<string, StoredFocus>>;
+  /**
+   * Stores a picture's focus, replacing any found before unless it is newer; `"newerKept"` when
+   * the server already holds a focus from a detector at least as new.
+   */
+  putPictureFocus(
+    slideshowId: string,
+    assetId: string,
+    stored: StoredFocus,
+  ): Promise<"stored" | "newerKept">;
 }
 
 /** A slideshow as the server keeps it. */
@@ -81,7 +93,7 @@ export class ServerRevisionChangedError extends Error {
   }
 }
 
-export type RefusedContent = "slideshow" | "music";
+export type RefusedContent = "slideshow" | "music" | "focus";
 
 /** The server refused a request as invalid, e.g. `invalidDocument`, `musicMissing`, `tooLarge`. */
 export class ServerLibraryRefusedError extends Error {

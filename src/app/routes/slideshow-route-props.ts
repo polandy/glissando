@@ -29,8 +29,9 @@ export interface SlideshowRouteProps {
   onSaveOnServer: (slideshow: StoredSlideshow) => void;
   /** A server slideshow's share link and "Show on TV" rows (share_link/, tv_remote/). */
   serverSessions: Pick<ServerSlideshowSessions, "newShareLinkSession" | "newTvSession">;
-  /** What it finds updates the editors' automatic motions and focus marks as it goes. */
-  focusPass: Pick<FocusPass, "state" | "subscribe">;
+  /** What it finds updates the editors' automatic motions and focus marks as it goes; the picture
+   * editor's "Look again" asks it to look at one picture again (ADR-0041). */
+  focusPass: Pick<FocusPass, "state" | "subscribe" | "lookAgain">;
   /** What it finds puts the editors' automatic changes on the music's beats as it goes. */
   beatPass: Pick<BeatPass, "subscribe" | "listenFor">;
   /** What it finds levels each song in the music editor as it goes (ADR-0040). */

@@ -68,7 +68,7 @@ export function createServerLibrary(dependencies: ServerLibraryDependencies): Se
       createServerSlideshow(slideshow, musicAudio, client),
     uploadMusic: (audio, mimeType) => client.uploadMusic(audio, mimeType),
     saveOnServer: (deviceSlideshow) =>
-      saveOnServer(deviceSlideshow, { client, store: deviceStore }),
+      saveOnServer(deviceSlideshow, { client, store: deviceStore, log }),
     keepCopy: (serverSlideshow, options) =>
       keepCopyOnDevice(
         serverSlideshow,

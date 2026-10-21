@@ -17,10 +17,13 @@ interface ImmichSearch {
   readonly assets: { readonly items: ImmichAsset[]; readonly nextPage: string | null };
 }
 
-/** A picture's focus as the library stores it. */
+/** A picture's focus as the library stores it (ADR-0041): wrapped, by the detector version. */
 interface StoredFocus {
-  readonly kind: string;
-  readonly box?: { readonly x: number; readonly y: number };
+  readonly detector: number;
+  readonly focus: {
+    readonly kind: string;
+    readonly box?: { readonly x: number; readonly y: number };
+  };
 }
 
 /** A recorded answer of a real Immich (`src/immich/fixtures`). */
@@ -183,9 +186,9 @@ test("E2E-029 photos picked in Immich by day, by range and by whole album are im
   const stored = await storedFocus(page);
   expect(stored.pictures).toBe(9);
   expect(stored.focus).toHaveLength(6);
-  for (const focus of stored.focus) {
-    expect(focus.kind).toBe("subject");
-    expect(focus.box?.x).toBeCloseTo(FACE_LEFT);
+  for (const record of stored.focus) {
+    expect(record.focus.kind).toBe("subject");
+    expect(record.focus.box?.x).toBeCloseTo(FACE_LEFT);
   }
 
   await next.click();

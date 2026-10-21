@@ -18,7 +18,11 @@ const own = {
   to: { zoom: 1, centerX: 0.5, centerY: 0.5 },
 };
 
-const FOCUS = { kind: "subject", box: { x: 0.1, y: 0.1, width: 0.2, height: 0.2 } } as const;
+const FOCUS = {
+  kind: "subject",
+  box: { x: 0.1, y: 0.1, width: 0.2, height: 0.2 },
+  foundBy: "face",
+} as const;
 
 describe("pictureKenBurns", () => {
   it("is the automatic motion for the picture's position while it has none of its own", () => {

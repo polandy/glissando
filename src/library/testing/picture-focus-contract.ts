@@ -1,14 +1,15 @@
 import { describe, expect, it } from "vitest";
-import type { PictureFocus } from "../picture-focus";
+import type { StoredFocus } from "../picture-focus";
 import type { LibraryStore } from "../stored-slideshow";
 import { picture, pictureBlobs, slideshow, type StoreHarness } from "./library-store-contract";
 
 const CLEAN_UP_AT = new Date("2026-10-08T12:00:00Z");
-const FACES: PictureFocus = {
-  kind: "subject",
-  box: { x: 0.25, y: 0.1, width: 0.3, height: 0.4 },
+const DETECTOR_VERSION = 3;
+const FACES: StoredFocus = {
+  focus: { kind: "subject", box: { x: 0.25, y: 0.1, width: 0.3, height: 0.4 }, foundBy: "face" },
+  detector: DETECTOR_VERSION,
 };
-const NOTHING: PictureFocus = { kind: "none" };
+const NOTHING: StoredFocus = { focus: { kind: "none" }, detector: DETECTOR_VERSION };
 
 /** The part of the `LibraryStore` contract that keeps a picture's focus beside its media. */
 export function describePictureFocus(

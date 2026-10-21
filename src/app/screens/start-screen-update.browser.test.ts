@@ -10,6 +10,7 @@ function gear(updateWaiting: boolean): HTMLButtonElement {
   const mounted = mountWithTranslator(StartScreen, {
     slideshows: [],
     focusSearches: new Map(),
+    serverFocusSearches: new Map(),
     updateWaiting,
     onCreate: () => {},
     onOpen: () => {},

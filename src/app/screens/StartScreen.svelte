@@ -17,6 +17,7 @@
     slideshows,
     server = null,
     focusSearches,
+    serverFocusSearches,
     onCreate,
     onOpen,
     updateWaiting,
@@ -36,8 +37,10 @@
     slideshows: readonly SlideshowSummary[];
     /** The server's slideshows; null while the server library is off. */
     server?: ServerShelf | null;
-    /** The slideshows the background pass is still searching subjects in, by id. */
+    /** The device slideshows the background pass is still searching subjects in, by id. */
     focusSearches: ReadonlyMap<string, SlideshowSearch>;
+    /** The same, for the server's own slideshows (ADR-0041). */
+    serverFocusSearches: ReadonlyMap<string, SlideshowSearch>;
     onCreate: () => void;
     onOpen: (slideshowId: string) => void;
     /** A new version waits to take over: the gear carries a dot. */
@@ -167,7 +170,13 @@
           <ul class="grid">
             {#each server.slideshows as slideshow (slideshow.id)}
               <li>
-                <SlideshowCard {slideshow} onServer offline={server.offline} {onOpen} />
+                <SlideshowCard
+                  {slideshow}
+                  search={serverFocusSearches.get(slideshow.id)}
+                  onServer
+                  offline={server.offline}
+                  {onOpen}
+                />
               </li>
             {/each}
             <li>

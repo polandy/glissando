@@ -4,20 +4,22 @@ Served by the Node service behind Caddy at `/api/library/` (same origin as the a
 out unless noted; an error answers `{ "error": "<code>", "detail": "…" }`. Ids are UUIDs made by
 the server.
 
-| Request                                                                | Answer                                                                                                                                                                               |
-| ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `GET /api/library`                                                     | 200 `{ "service": "glissando-library", "version": 1 }` — the discovery                                                                                                               |
-| `GET /api/library/slideshows`                                          | 200 `{ "slideshows": [ { "id", "revision", "document" } ] }`, newest `createdAt` first                                                                                               |
-| `GET /api/library/slideshows/{id}`                                     | 200 `{ "id", "revision", "document" }`, `ETag: "<revision>"`; 404 `notFound`                                                                                                         |
-| `POST /api/library/slideshows` body: a document                        | 201 `{ "id", "revision" }`; 400 `invalidDocument`; 409 `musicMissing`; 413 `tooLarge`; 415 `notJson`                                                                                 |
-| `PUT /api/library/slideshows/{id}` `If-Match: "<rev>"`, document       | 200 `{ "revision" }`; 412 `revisionChanged` with `{ "current": { "id", "revision", "document" } }`; 404; 428 `revisionRequired` without `If-Match`; 400, 409, 413, 415 as for `POST` |
-| `DELETE /api/library/slideshows/{id}`                                  | 204; 404                                                                                                                                                                             |
-| `POST /api/library/music` body: the audio bytes, `Content-Type`        | 201 `{ "musicId" }`; 413 `tooLarge` over `MAX_MUSIC_BYTES` (200 MiB); 415 `notAudio` not `audio/*`                                                                                   |
-| `GET /api/library/music/{musicId}`                                     | 200 the bytes with their stored `Content-Type`; 404                                                                                                                                  |
-| `GET /api/library/music/{musicId}/beats`                               | 200 `{ "beats": <MusicBeats> }` or `{ "beats": null }` while no device has listened yet; 404                                                                                         |
-| `PUT /api/library/music/{musicId}/beats` body: a `MusicBeats`          | 204; 400 `invalidBeats`; 404; 413 `tooLarge`; 415 `notJson`                                                                                                                          |
-| `GET /api/library/music/{musicId}/loudness`                            | 200 `{ "loudness": <MusicLoudness JSON> }` or `{ "loudness": null }` while not measured yet; 404                                                                                     |
-| `PUT /api/library/music/{musicId}/loudness` body: `MusicLoudness` JSON | 204; 400 `invalidLoudness`; 404; 413 `tooLarge`; 415 `notJson`                                                                                                                       |
+| Request                                                                  | Answer                                                                                                                                                                               |
+| ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `GET /api/library`                                                       | 200 `{ "service": "glissando-library", "version": 1 }` — the discovery                                                                                                               |
+| `GET /api/library/slideshows`                                            | 200 `{ "slideshows": [ { "id", "revision", "document" } ] }`, newest `createdAt` first                                                                                               |
+| `GET /api/library/slideshows/{id}`                                       | 200 `{ "id", "revision", "document" }`, `ETag: "<revision>"`; 404 `notFound`                                                                                                         |
+| `POST /api/library/slideshows` body: a document                          | 201 `{ "id", "revision" }`; 400 `invalidDocument`; 409 `musicMissing`; 413 `tooLarge`; 415 `notJson`                                                                                 |
+| `PUT /api/library/slideshows/{id}` `If-Match: "<rev>"`, document         | 200 `{ "revision" }`; 412 `revisionChanged` with `{ "current": { "id", "revision", "document" } }`; 404; 428 `revisionRequired` without `If-Match`; 400, 409, 413, 415 as for `POST` |
+| `DELETE /api/library/slideshows/{id}`                                    | 204; 404                                                                                                                                                                             |
+| `POST /api/library/music` body: the audio bytes, `Content-Type`          | 201 `{ "musicId" }`; 413 `tooLarge` over `MAX_MUSIC_BYTES` (200 MiB); 415 `notAudio` not `audio/*`                                                                                   |
+| `GET /api/library/music/{musicId}`                                       | 200 the bytes with their stored `Content-Type`; 404                                                                                                                                  |
+| `GET /api/library/music/{musicId}/beats`                                 | 200 `{ "beats": <MusicBeats> }` or `{ "beats": null }` while no device has listened yet; 404                                                                                         |
+| `PUT /api/library/music/{musicId}/beats` body: a `MusicBeats`            | 204; 400 `invalidBeats`; 404; 413 `tooLarge`; 415 `notJson`                                                                                                                          |
+| `GET /api/library/music/{musicId}/loudness`                              | 200 `{ "loudness": <MusicLoudness JSON> }` or `{ "loudness": null }` while not measured yet; 404                                                                                     |
+| `PUT /api/library/music/{musicId}/loudness` body: `MusicLoudness` JSON   | 204; 400 `invalidLoudness`; 404; 413 `tooLarge`; 415 `notJson`                                                                                                                       |
+| `GET /api/library/slideshows/{id}/focus`                                 | 200 `{ "focus": { "<assetId>": <StoredFocus> } }`, one entry per picture that has one; 404                                                                                           |
+| `PUT /api/library/slideshows/{id}/focus/{assetId}` body: a `StoredFocus` | 204; 400 `invalidFocus`; 404; 409 `newerFocus`; 413 `tooLarge`; 415 `notJson`                                                                                                        |
 
 - **Share links** add `…/slideshows/{id}/share` and the public `/api/share/` (`dev-docs/SHARE_LINK.md`).
 - **TV remote** adds `/api/library/tv/`, the public `/api/tv/` and `/api/share/{token}/tv`, served by `server/tv/` beside the library (`dev-docs/TV_REMOTE.md`).
@@ -38,6 +40,12 @@ the server.
   a device `PUT`s what the loudness pass measured, as the compact dB/dBFS JSON
   `src/loudness/music-loudness-json.ts` defines, so later devices read it instead of measuring
   again; a later `PUT` replaces the stored result the same way beats does.
+- **Focus** (`StoredFocus`, `src/library/picture-focus.ts`, ADR-0041): a device `PUT`s the focus it
+  found for a picture so later devices read it instead of detecting again. No `If-Match`: the
+  server keeps whichever result came from the newest detector, replacing a stored one only when
+  the new `detector` is at least as high; an older one is refused with 409 `newerFocus` and the
+  stored value is unchanged. A dropped picture's focus is deleted with the slideshow edit that
+  drops it (no grace period, unlike music, because an Immich asset id is never reused).
 - **Media type**: a `POST` or `PUT` of a slideshow carries `Content-Type: application/json`
   (parameters such as `charset` allowed), anything else answers 415 `notJson`. A cross-site page
   can make a browser send a form or `text/plain` request without asking, but not a JSON one, so

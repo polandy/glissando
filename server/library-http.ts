@@ -4,12 +4,17 @@
  */
 
 const MIB = 1024 * 1024;
+const KIB = 1024;
 export const MAX_MUSIC_BYTES = 200 * MIB;
 export const MAX_DOCUMENT_BYTES = 2 * MIB;
+/** A `StoredFocus` is a handful of numbers and short strings; this is generous for one. */
+export const MAX_FOCUS_BYTES = 4 * KIB;
 
 export const LIBRARY_PATH = "/api/library";
 export const SLIDESHOWS_PATH = `${LIBRARY_PATH}/slideshows`;
 export const MUSIC_PATH = `${LIBRARY_PATH}/music`;
+/** The path segment naming a picture's focus under a slideshow (ADR-0041). */
+export const FOCUS_PATH_PART = "focus";
 /** The public share API, no sign-in (`dev-docs/SHARE_LINK.md`). */
 export const SHARE_PATH = "/api/share";
 /** Asked by Caddy's forward_auth on loopback only; Caddy routes no outside request here. */
@@ -51,7 +56,11 @@ export interface LibraryResponse {
 
 /** The most bytes a request to `path` may carry. */
 export function maxBodyBytes(path: string): number {
-  return path === MUSIC_PATH ? MAX_MUSIC_BYTES : MAX_DOCUMENT_BYTES;
+  if (path === MUSIC_PATH) {
+    return MAX_MUSIC_BYTES;
+  }
+  const [, part] = segmentsUnder(SLIDESHOWS_PATH, path);
+  return part === FOCUS_PATH_PART ? MAX_FOCUS_BYTES : MAX_DOCUMENT_BYTES;
 }
 
 const JSON_CONTENT_TYPE = "application/json";
@@ -89,6 +98,8 @@ export type ErrorCode =
   | "notJson"
   | "invalidBeats"
   | "invalidLoudness"
+  | "invalidFocus"
+  | "newerFocus"
   | "notShared"
   | "noSuchPicture"
   | "noSuchSong"

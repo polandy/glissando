@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { storedFocus } from "../../library/focus-pass-fixtures";
 import { MediaNotFoundError } from "../../library/stored-slideshow";
 import {
   CREATED_AT,
@@ -43,7 +44,7 @@ describe("ImportSession, how it claims and stores its media", () => {
       "a.jpg",
     ]);
     expect(store.log).toEqual(["claim id-2", "picture id-2", "claim id-3", "picture id-3"]);
-    expect(await store.pictureFocus(["id-3"])).toEqual(new Map([["id-3", FACE]]));
+    expect(await store.pictureFocus(["id-3"])).toEqual(new Map([["id-3", storedFocus(FACE)]]));
   });
 
   it("spares the pictures of the running import from a clean-up", async () => {

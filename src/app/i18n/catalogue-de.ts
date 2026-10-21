@@ -52,7 +52,12 @@ export const de = {
   "start.yourSlideshows": "Deine Diashows",
   "start.withMusic": "mit Musik",
   "start.searchingSubjects": "Motive werden gesucht",
+  "start.searchingAgain": "Motive werden erneut gesucht",
   "start.searchProgress": "{done} von {total}",
+  "start.focusFailed": {
+    one: "{count} Bild konnte nicht angesehen werden",
+    other: "{count} Bilder konnten nicht angesehen werden",
+  },
 
   "settings.open": "Einstellungen",
   "settings.title": "Einstellungen",
@@ -114,6 +119,14 @@ export const de = {
   "slideshow.titleInput": "Titel",
   "slideshow.titleHint": "Enter speichert · Esc verwirft · leer = automatischer Titel",
   "slideshow.more": "Mehr",
+  "slideshow.focus": "Fokus\u00a0…",
+  "slideshow.focusLooking": "Wird gesucht · {done} von {total}",
+  "slideshow.focusLookingAgain": "Wird erneut gesucht · {done} von {total}",
+  "slideshow.focusFailedHint": {
+    one: "{count} konnte nicht angesehen werden",
+    other: "{count} konnten nicht angesehen werden",
+  },
+  "slideshow.focusDone": "Alle angesehen",
   "slideshow.delete": "Diashow löschen\u00a0…",
   "slideshow.deleteTitle": "„{title}“ löschen?",
   "slideshow.deleteText": {
@@ -125,6 +138,46 @@ export const de = {
   "slideshow.deleteConfirm": "Löschen",
   "slideshow.deleted": "Diashow gelöscht",
   "slideshow.gone": "Diese Diashow gibt es nicht mehr.",
+
+  "focusSheet.title": "Fokus",
+  "focusSheet.looking": "Der Fokus wird gesucht · {done} von {total}",
+  "focusSheet.lookingAgain": "Wird erneut gesucht · {done} von {total}",
+  "focusSheet.lookingAgainHint": "Jedes Bild behält sein Ergebnis, bis das neue da ist.",
+  "focusSheet.lookedAtSoFar": "{done} von {total} angesehen.",
+  "focusSheet.waitingForServerHint": {
+    one: "Wartet auf deinen Glissando-Server: das andere Bild fehlt noch.",
+    other: "Wartet auf deinen Glissando-Server: {count} weitere Bilder fehlen noch.",
+  },
+  "focusSheet.failedHint": {
+    one: "{count} Bild konnte nicht angesehen werden. Glissando versucht es beim nächsten Öffnen erneut.",
+    other:
+      "{count} Bilder konnten nicht angesehen werden. Glissando versucht es beim nächsten Öffnen erneut.",
+  },
+  "focusSheet.allLookedAt": "Alle Bilder angesehen.",
+  "focusSheet.statusFace": "Gesichter",
+  "focusSheet.statusSubject": "Motive",
+  "focusSheet.statusImmich": "Gesichter von Immich",
+  "focusSheet.statusScenery": "Landschaft",
+  "focusSheet.statusNone": "Nichts gefunden",
+  "focusSheet.statusOutdated": "Ältere Erkennung",
+  "focusSheet.statusFailed": "Fehlgeschlagen",
+  "focusSheet.statusWaiting": "Noch nicht",
+  "focusSheet.statusWaitingForServer": "Wartet auf Server",
+  "focusSheet.statusLooking": "Wird gesucht",
+  "focusSheet.ownMotion": "Eigene Bewegung",
+  "focusSheet.tryAgain": "Die {count} erneut versuchen",
+  "focusSheet.lookAgainAll": {
+    one: "Das Bild erneut ansehen",
+    other: "Alle {count} Bilder erneut ansehen",
+  },
+  "focusSheet.lookingEllipsis": "Wird gesucht …",
+  "focusSheet.ownMotionHint": {
+    one: "Dieses Bild hat einen Start und ein Ende, die du von Hand gesetzt hast. Es behält sie, was auch gefunden wird.",
+    other:
+      "{count} Bilder haben einen Start und ein Ende, die du von Hand gesetzt hast. Sie behalten sie, was auch gefunden wird.",
+  },
+  "focusSheet.storedOnDevice": "Auf diesem Gerät gespeichert.",
+  "focusSheet.sharedOnServer": "Für jedes Gerät auf deinem Glissando-Server freigegeben.",
 
   "import.crumb": "Neue Diashow",
   "import.crumbPictures": "Bilder",
