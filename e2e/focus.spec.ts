@@ -66,3 +66,49 @@ test("E2E-028 the automatic motion's focus is found in the background: a face is
   await expect(card.getByRole("progressbar", { name: "Motive werden gesucht" })).toHaveCount(0);
   await expect(card).not.toContainText("Motive werden gesucht");
 });
+
+test("E2E-074 the More menu's Fokus sheet sums a face and a faceless picture into its legend once the pass is done, a legend tap dims the other, and closing hides it", async ({
+  page,
+}) => {
+  await openApp(page);
+  await openImport(page);
+  await choosePictures(
+    page,
+    [
+      portraitTakenOn("portrait.jpg", "2025-07-12"),
+      await stripedPictureTakenOn(page, "stripes.jpg", "2025-07-14", "#4db6ac"),
+    ],
+    2,
+  );
+  await page.getByRole("button", { name: "Weiter" }).click();
+  await page.getByRole("button", { name: "Ohne Musik erstellen" }).click();
+  await expect(page.getByRole("status")).toHaveText(CREATED_TOAST);
+
+  await page.getByRole("button", { name: "Mehr" }).click();
+  await page.getByRole("menuitem", { name: /^Fokus/ }).click();
+  const sheet = page.getByRole("dialog", { name: "Fokus" });
+  await expect(sheet).toBeVisible();
+
+  // The background focus pass detects pictures one at a time; no fixed bound on how long two
+  // pictures take under load, so wait for it rather than guess.
+  await expect(sheet.getByText("Alle Bilder angesehen.", { exact: true })).toBeVisible({
+    timeout: 0,
+  });
+  const faceChip = sheet.getByRole("button", { name: "Gesichter 1", exact: true });
+  const noSubjectChip = sheet.getByRole("button", { name: "Nichts gefunden 1", exact: true });
+  await expect(faceChip).toBeVisible();
+  await expect(noSubjectChip).toBeVisible();
+
+  const faceTile = sheet.getByRole("button", { name: "Gesichter", exact: true });
+  const noSubjectTile = sheet.getByRole("button", { name: "Nichts gefunden", exact: true });
+  // No filter is active yet: neither tile is dimmed, which is what the tap below changes.
+  await expect(sheet.locator(".tile.dim")).toHaveCount(0);
+
+  await faceChip.click();
+  await expect(faceChip).toHaveAttribute("aria-pressed", "true");
+  await expect(faceTile).not.toHaveClass(/dim/);
+  await expect(noSubjectTile).toHaveClass(/dim/);
+
+  await sheet.getByRole("button", { name: "Schließen" }).click();
+  await expect(sheet).toBeHidden();
+});
