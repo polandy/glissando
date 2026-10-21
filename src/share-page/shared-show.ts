@@ -84,6 +84,9 @@ export function shareSummary(show: SharedShow, slideshow: Slideshow): ShareSumma
     pictureCount: show.stored.pictures.length,
     durationMs: slideshow.slides.reduce((sum, { durationMs }) => sum + durationMs, 0),
     withMusic: slideshow.music !== undefined,
+    withSampleMusic: show.stored.songs.some(
+      (song) => song.sampleTrack !== undefined && show.songUrls.has(song.id),
+    ),
   };
 }
 

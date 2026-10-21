@@ -121,4 +121,8 @@ constant `SAMPLE_MUSIC_CREDIT`, "Music: Glissando, CC BY-NC 4.0" ("Musik: Glissa
   id as any imported song does.
 - **Web page**: a slideshow that plays a sample song shows the credit on the start card, below
   "Erstellt mit Glissando · läuft offline" (html_export/THE_PAGE.md).
+- **Share page, TV and file opener**: the same, below "Shared with Glissando" on the share
+  link's start card (share_link/RECIPIENTS_PAGE.md), which the TV page shares, and below the
+  made-with line of a `.glissando` file's `index.html` — whenever a song the slideshow plays
+  carries `sampleTrack`.
 - **Video**: no overlay and no other mark in the video.

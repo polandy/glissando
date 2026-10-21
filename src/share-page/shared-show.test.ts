@@ -221,6 +221,23 @@ describe("shareSummary", () => {
       pictureCount: 4,
       durationMs: 2 * SLIDE_MS * 1.5,
       withMusic: false,
+      withSampleMusic: false,
     });
+  });
+
+  it("tells whether a song the slideshow plays is a sample track", async () => {
+    const own = stored(1);
+    const withSample: StoredSlideshow = {
+      ...own,
+      songs: own.songs.map((song) => ({ ...song, sampleTrack: "hold-the-frame" })),
+    };
+    const summaryOf = async (slideshow: StoredSlideshow) => {
+      const { api } = fakeApi([{ revision: 1, slideshow, beats: new Map(), loudness: new Map() }]);
+      const show = await loadSharedShow(api, countedUrl, null);
+      return shareSummary(show, playableShow(show, api, new Set()).slideshow);
+    };
+
+    expect(await summaryOf(own)).toMatchObject({ withMusic: true, withSampleMusic: false });
+    expect(await summaryOf(withSample)).toMatchObject({ withMusic: true, withSampleMusic: true });
   });
 });

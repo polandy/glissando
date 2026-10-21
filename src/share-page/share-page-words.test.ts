@@ -8,6 +8,7 @@ const WORDS: SharePageWords = {
   withMusic: "with music",
   withoutMusic: "without music",
   madeWith: "Shared with Glissando",
+  sampleMusicCredit: "Music: Glissando, CC BY-NC 4.0",
   play: "Play",
   pause: "Pause",
   mute: "Mute",
@@ -63,6 +64,7 @@ describe("pageCopyFor", () => {
       pictureCount: 50,
       durationMs: 250_400,
       withMusic: true,
+      withSampleMusic: false,
     });
 
     expect(copy.summary).toBe("50 pictures · 4:10 · with music");
@@ -70,22 +72,41 @@ describe("pageCopyFor", () => {
     expect(copy.madeWith).toBe("Shared with Glissando");
   });
 
-  it("never shows a sample-music credit: the share page is not one of its surfaces", () => {
+  it("credits the sample music below the made-with line when a played song is one", () => {
     const copy = pageCopyFor(WORDS, "en", {
       pictureCount: 1,
       durationMs: 4000,
-      withMusic: false,
+      withMusic: true,
+      withSampleMusic: true,
     });
 
+    expect(copy.madeWith).toBe("Shared with Glissando");
+    expect(copy.sampleMusicCredit).toBe("Music: Glissando, CC BY-NC 4.0");
+  });
+
+  it("leaves the credit out when no played song is a sample track", () => {
+    const copy = pageCopyFor(WORDS, "en", {
+      pictureCount: 1,
+      durationMs: 4000,
+      withMusic: true,
+      withSampleMusic: false,
+    });
+
+    expect(copy.madeWith).toBe("Shared with Glissando");
     expect(copy.sampleMusicCredit).toBe("");
   });
 
   it("counts in the language's plural and digits", () => {
-    const one = pageCopyFor(WORDS, "en", { pictureCount: 1, durationMs: 4000, withMusic: false });
+    const one = pageCopyFor(WORDS, "en", {
+      pictureCount: 1,
+      durationMs: 4000,
+      withMusic: false,
+      withSampleMusic: false,
+    });
     const many = pageCopyFor(
       { ...WORDS, pictures: { one: "{count} Bild", other: "{count} Bilder" } },
       "de",
-      { pictureCount: 1234, durationMs: 4000, withMusic: false },
+      { pictureCount: 1234, durationMs: 4000, withMusic: false, withSampleMusic: false },
     );
 
     expect(one.summary).toBe("1 picture · 0:04 · without music");

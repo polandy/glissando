@@ -69,6 +69,9 @@ export async function folderShow(
       pictureCount: slideshow.pictures.length,
       durationMs: composed.slides.reduce((sum, { durationMs }) => sum + durationMs, 0),
       withMusic: composed.music !== undefined,
+      withSampleMusic: stored.songs.some(
+        (song) => song.sampleTrack !== undefined && songs.has(song.id),
+      ),
     },
   };
 }
