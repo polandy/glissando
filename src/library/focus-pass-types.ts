@@ -26,6 +26,13 @@ export interface FocusPassPorts {
    * and resumes where it left off on the next `start()` or `lookAgain()` (ADR-0041).
    */
   pausesOn?(error: unknown): boolean;
+  /**
+   * A slideshow's own error, reading its stored focus during a scan, means it is gone, e.g.
+   * deleted on another device between listing it and reading its focus: that one slideshow is
+   * skipped, the scan carrying on with the rest, the way a picture's `MediaNotFoundError` is
+   * skipped in `#lookAt`.
+   */
+  isGone?(error: unknown): boolean;
 }
 
 /** How far the pass is with one slideshow's pictures. */

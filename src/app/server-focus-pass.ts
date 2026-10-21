@@ -3,7 +3,10 @@ import { ImmichUnavailableError } from "../immich/immich-client";
 import { thumbnailFromImage } from "../import/downscale";
 import { FocusPass, type FocusPassPorts } from "../library/focus-pass";
 import type { FocusDetector } from "../library/focus-detector";
-import { ServerLibraryUnavailableError } from "../server-library/server-library-client";
+import {
+  ServerLibraryNotFoundError,
+  ServerLibraryUnavailableError,
+} from "../server-library/server-library-client";
 import { serverDetectionInput } from "../server-library/server-focus-detection";
 import type { ServerLibrary } from "../server-library/server-library";
 import type { Navigator } from "./navigation/navigator";
@@ -55,6 +58,7 @@ export function startServerFocusPass(options: ServerFocusPassOptions): ServerFoc
     reportError,
     pausesOn: (error) =>
       error instanceof ServerLibraryUnavailableError || error instanceof ImmichUnavailableError,
+    isGone: (error) => error instanceof ServerLibraryNotFoundError,
   });
 
   const startIfAllowed = (): void => {

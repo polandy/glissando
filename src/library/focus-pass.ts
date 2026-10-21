@@ -8,7 +8,7 @@ import {
   type FocusPassPorts,
   type FocusPassState,
 } from "./focus-pass-types";
-import type { PictureFocus } from "./picture-focus";
+import type { PictureFocus, StoredFocus } from "./picture-focus";
 import { MediaNotFoundError } from "./stored-slideshow";
 
 export type { FocusPassPorts, FocusPassState, SlideshowSearch } from "./focus-pass-types";
@@ -161,12 +161,24 @@ export class FocusPass {
     return false;
   }
 
-  /** Queues every picture with no current focus that this pass has not taken up yet. */
+  /**
+   * Queues every picture with no current focus that this pass has not taken up yet; a slideshow
+   * gone by the time its own focus is read (`isGone`) is skipped, the scan carrying on with the
+   * rest.
+   */
   async #scan(): Promise<void> {
     const slideshows = await this.#ports.store.listSlideshows();
-    const pictureIds = [...new Set(slideshows.flatMap((show) => show.pictures.map((p) => p.id)))];
-    const stored = await this.#ports.store.pictureFocus(pictureIds);
     for (const slideshow of slideshows) {
+      const pictureIds = slideshow.pictures.map((p) => p.id);
+      let stored: ReadonlyMap<string, StoredFocus>;
+      try {
+        stored = await this.#ports.store.pictureFocus(pictureIds);
+      } catch (error) {
+        if (this.#ports.isGone?.(error) === true) {
+          continue;
+        }
+        throw error;
+      }
       for (const picture of slideshow.pictures) {
         if (this.#queue.takenUpAlready(picture.id) || !isOutdated(stored.get(picture.id))) {
           continue;

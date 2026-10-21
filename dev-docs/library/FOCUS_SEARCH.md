@@ -24,7 +24,9 @@ divided by its `imageWidth`/`imageHeight` (Immich's preview in display orientati
 face list stores nothing — it may mean "not scanned yet" — so the pass looks at that picture like
 any other.
 
-A picture whose media is gone meanwhile is skipped; one whose detection fails is logged
+A picture whose media is gone meanwhile is skipped, as is a whole slideshow gone by the time a
+scan reads its own stored focus (the injected `isGone` predicate), the scan carrying on with the
+rest; one whose detection fails is logged
 (`FocusDetectionFailedError`), keeps no focus and is tried again on the next pass — its id is
 added to `failed` for this app session and removed once a later look at it succeeds. A detection
 failing because the detector itself is gone (`FocusDetectorGoneError`: its worker crashed, sent a

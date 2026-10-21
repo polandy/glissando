@@ -98,6 +98,7 @@ export function passOver(
   store: FocusPassPorts["store"],
   detector: FocusDetector,
   pausesOn?: (error: unknown) => boolean,
+  isGone?: (error: unknown) => boolean,
 ): { pass: FocusPass; logged: unknown[]; reported: unknown[] } {
   const logged: unknown[] = [];
   const reported: unknown[] = [];
@@ -107,6 +108,7 @@ export function passOver(
     log: (error) => logged.push(error),
     reportError: (error) => reported.push(error),
     ...(pausesOn === undefined ? {} : { pausesOn }),
+    ...(isGone === undefined ? {} : { isGone }),
   });
   return { pass, logged, reported };
 }

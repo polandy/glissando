@@ -19,7 +19,10 @@ device is never kept waiting by the server pass's own search.
 For a picture with no focus yet, `serverDetectionInput` (`server-focus-detection.ts`) asks Immich's
 faces first (as an import does); with none, it downscales Immich's preview to the same bound an
 import's thumbnail is and the shared detector looks at that, same as the device pass's own
-thumbnails. An asset Immich answers 404 for is skipped, as any missing picture is.
+thumbnails. An asset Immich answers 404 for is skipped, as any missing picture is; a slideshow
+another device deleted between the scan listing it and reading its own focus 404s the same way
+(`ServerLibraryNotFoundError`, the pass's `isGone`) and is skipped too, the scan carrying on with
+the rest.
 
 ## Starting, pausing, resuming
 
