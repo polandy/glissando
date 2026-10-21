@@ -33,7 +33,7 @@ import { editSlideshowRecord } from "./indexeddb-edit";
 import { CLEAN_UP_STORES, deleteUnreferenced, measureMediaBytes } from "./indexeddb-media";
 import type { MusicBeats } from "../beats";
 import type { MusicLoudness } from "../loudness";
-import type { PictureFocus } from "./picture-focus";
+import type { StoredFocus } from "./picture-focus";
 
 export { LIBRARY_DATABASE_NAME } from "./indexeddb-schema";
 
@@ -161,19 +161,19 @@ export class IndexedDbLibraryStore implements LibraryStore {
   }
 
   /** Checks for the media and writes in one transaction, so a concurrent deletion cannot interleave. */
-  putPictureFocus(pictureId: string, focus: PictureFocus): Promise<void> {
+  putPictureFocus(pictureId: string, focus: StoredFocus): Promise<void> {
     return this.#putBesideMedia(PICTURES, FOCUS, pictureId, focus);
   }
 
-  pictureFocus(pictureIds: readonly string[]): Promise<ReadonlyMap<string, PictureFocus>> {
+  pictureFocus(pictureIds: readonly string[]): Promise<ReadonlyMap<string, StoredFocus>> {
     const transaction = this.#database.transaction(FOCUS, "readonly");
     const store = transaction.objectStore(FOCUS);
-    const found = new Map<string, PictureFocus>();
+    const found = new Map<string, StoredFocus>();
     for (const id of pictureIds) {
       const request = store.get(id);
       request.onsuccess = () => {
         if (request.result !== undefined) {
-          found.set(id, request.result as PictureFocus);
+          found.set(id, request.result as StoredFocus);
         }
       };
     }

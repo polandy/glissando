@@ -69,6 +69,16 @@ export function encodeThumbnail(bitmap: ImageBitmap): Promise<Blob> {
   return encodeJpeg(bitmap, fitWithin(bitmap, THUMBNAIL_BOUND), THUMBNAIL_JPEG_QUALITY);
 }
 
+/** Downscales an already-upright image to the thumbnail bound (ADR-0041's server focus pass). */
+export async function thumbnailFromImage(image: Blob): Promise<Blob> {
+  const bitmap = await createImageBitmap(image);
+  try {
+    return await encodeThumbnail(bitmap);
+  } finally {
+    bitmap.close();
+  }
+}
+
 /** Draws `bitmap` scaled to `size` and encodes it as JPEG; also used by the web page export. */
 export async function encodeJpeg(bitmap: ImageBitmap, size: Size, quality: number): Promise<Blob> {
   if (typeof OffscreenCanvas === "function") {

@@ -5,6 +5,8 @@
   import { viewerEntries } from "../components/picture-viewer-view";
   import { getTranslator } from "../i18n/context";
   import InfoPanel from "./slideshow/InfoPanel.svelte";
+  import FocusSheetHost from "./slideshow/FocusSheetHost.svelte";
+  import { slideshowFocusMenuHint } from "./slideshow/focus-menu-hint";
   import MoreMenu from "./slideshow/MoreMenu.svelte";
   import PicturesColumn from "./slideshow/PicturesColumn.svelte";
   import SelectionBar from "./slideshow/SelectionBar.svelte";
@@ -20,7 +22,6 @@
   import { browserScheduler } from "../../ui-kit/scheduler";
   import { animationFrames } from "../../player";
   import type { SlideshowScreenProps } from "./slideshow-screen-props";
-
   let {
     slideshow,
     onBack,
@@ -63,6 +64,10 @@
     selection = $bindable(NO_SELECTION),
     holdScheduler = browserScheduler,
     frameScheduler = animationFrames,
+    focus,
+    focusSearch,
+    focusPaused,
+    onLookAgain,
   }: SlideshowScreenProps = $props();
 
   const { t } = getTranslator();
@@ -96,12 +101,12 @@
       );
     }
   }
-
   let moreMenu = $state<MoreMenu>();
   let infoPanel = $state<InfoPanel>();
   let picturesColumn = $state<PicturesColumn>();
   let editSheets = $state<SlideshowEditSheets>();
   let exportSheets = $state<ExportSheets>();
+  let focusSheetHost = $state<FocusSheetHost>();
 
   /** Keep or Esc: focus goes back to the ⋯ button the dialog was opened from. */
   function keepSlideshow(): void {
@@ -131,6 +136,8 @@
         {storage}
         pictureCount={slideshow.pictures.length}
         {onStorageAction}
+        focusHint={slideshowFocusMenuHint(focus, slideshow.pictures, focusSearch, focusPaused)}
+        onFocus={() => focusSheetHost?.show()}
       />
     {/snippet}
   </Header>
@@ -229,6 +236,16 @@
   {newHtmlExport}
   onVideoClosed={() => moreMenu?.focus()}
   onHtmlClosed={() => moreMenu?.focus()}
+/>
+<FocusSheetHost
+  bind:this={focusSheetHost}
+  {focus}
+  pictures={slideshow.pictures}
+  search={focusSearch}
+  passPaused={focusPaused}
+  onServer={storage?.kind === "server"}
+  {onEdit}
+  {onLookAgain}
 />
 
 {#if confirmingDelete}

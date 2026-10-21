@@ -42,6 +42,7 @@ import { probeMusic } from "./import/music-probe";
 import { createImmichReaders } from "./immich/immich-readers";
 import { createMusicAudioContext, MusicOutput } from "./player";
 import { FocusPass } from "./library/focus-pass";
+import { serializeFocusDetector } from "./library/serialized-focus-detector";
 import { openLibraryStore } from "./library/indexeddb-store";
 import { startFocusWorker, WorkerFocusDetector } from "./focus/worker-focus-detector";
 import { decodeMusicWithWebAudio } from "./beats/decode-music";
@@ -57,6 +58,7 @@ import { HttpServerLibraryClient } from "./server-library/http-server-library-cl
 import { serverSlideshowSessions } from "./app/server-library/server-slideshow-sessions";
 import { createServerLibrary } from "./server-library/server-library";
 import { createStorageServerLibraryMemory } from "./server-library/server-library-memory";
+import { startServerFocusPass } from "./app/server-focus-pass";
 import { browserHtmlExportDevice } from "./app/html-export/browser-html-export-device";
 import { bundledFilePage } from "./file-page/browser/bundled-file-page";
 import { browserVideoExportDevice } from "./app/video-export/browser-video-export-device";
@@ -135,14 +137,18 @@ deleteAbandonedMedia();
 // Exports a crash or a closed tab left behind (video_export/WRITING_THE_FILE.md).
 sweepPrivateExports().catch(logError);
 
+// One worker, never detecting for the device pass and the server pass at once, the device pass
+// always first (ADR-0041).
+const { primary: deviceFocusDetector, secondary: serverFocusDetector } = serializeFocusDetector(
+  new WorkerFocusDetector(startFocusWorker),
+);
 const focusPass = new FocusPass({
   store,
-  detector: new WorkerFocusDetector(startFocusWorker),
+  detector: deviceFocusDetector,
   log: logError,
   reportError,
 });
 focusPass.start();
-
 const freeBytes = (): Promise<number | null> => freeStorageBytes(window.navigator.storage);
 const download = createDownloader({
   document,
@@ -209,6 +215,16 @@ if (deepLinkedFrameAlbumId !== null) {
   );
 }
 
+const { serverFocusPass, serverLibrary: serverLibraryWithFocusStart } = startServerFocusPass({
+  serverLibrary,
+  detector: serverFocusDetector,
+  navigator,
+  immich: immichClient,
+  reportUnavailable: (kind) => immichReaders.reportUnavailable(kind),
+  log: logError,
+  reportError,
+});
+
 const services = {
   store,
   navigator,
@@ -228,12 +244,13 @@ const services = {
   musicAudio: browserMusicEditorAudio(musicOutput),
   readClipPeaks: readClipPeaksWithMediabunny,
   focusPass,
+  serverFocusPass,
   beatPass,
   serverBeatPass,
   loudnessPass,
   serverLoudnessPass,
   immich: { client: immichClient, availability: immichAvailability },
-  serverLibrary,
+  serverLibrary: serverLibraryWithFocusStart,
   newImportSession: () =>
     new ImportSession({
       ...intakePorts,
@@ -241,7 +258,7 @@ const services = {
       probeMusic,
       convertMusic,
       createOnServer: (slideshow, songsAudio) =>
-        serverLibrary.createSlideshow(slideshow, songsAudio),
+        serverLibraryWithFocusStart.createSlideshow(slideshow, songsAudio),
       random: Math.random,
     }),
   newAddPicturesSession: (slideshow: StoredSlideshow, home: SlideshowHome) =>

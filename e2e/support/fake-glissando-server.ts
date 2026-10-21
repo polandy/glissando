@@ -1,6 +1,7 @@
 import type { Page, Route } from "@playwright/test";
 import { readFileSync } from "node:fs";
 import { shareDocumentOf } from "../../server/share-document";
+import type { StoredFocus } from "../../src/library/picture-focus";
 import type { ServerDocument } from "../../src/server-library/server-document";
 import { attachTvApi } from "./fake-tv-api";
 
@@ -34,6 +35,8 @@ interface LibraryRecord {
   document: ServerDocument;
   /** Its link (share_link/HTTP_API.md, Private); null while it is not shared. */
   share: { readonly token: string; readonly createdAt: string } | null;
+  /** Each picture's focus the library service holds (ADR-0041), by Immich asset id. */
+  readonly focus: Map<string, StoredFocus>;
 }
 
 /** What the fake self-hosted Glissando saw and holds; the case changes `goneFromImmich`. */
@@ -61,7 +64,7 @@ export interface FakeGlissandoServer {
 const IMMICH_ROUTE = /\/immich\/(.*)$/;
 const LIBRARY_ROUTE = /\/api\/library(\/.*)?$/;
 const ASSET_IMAGE = /^api\/assets\/([^/]+)\/(thumbnail|original)$/;
-const SLIDESHOW_PATH = /^\/slideshows\/([^/]+)(\/share)?$/;
+const SLIDESHOW_PATH = /^\/slideshows\/([^/]+)(\/share|\/focus(?:\/([^/]+))?)?$/;
 /** The recipient's page and the public share API (share_link/HTTP_API.md, Public). */
 const SHARE_PAGE_ROUTE = /\/s\/[^/]+$/;
 const SHARE_API_ROUTE = /\/api\/share\/.*$/;
@@ -76,6 +79,7 @@ const HTTP_NO_CONTENT = 204;
 const HTTP_CREATED = 201;
 const HTTP_NOT_FOUND = 404;
 const HTTP_PRECONDITION_FAILED = 412;
+const HTTP_CONFLICT = 409;
 
 /**
  * Answers the self-hosted Glissando's `/immich/` route like Immich behind it (every photo is
@@ -158,6 +162,7 @@ function answerLibrary(route: Route, server: FakeGlissandoServer) {
       revision: 1,
       document: request.postDataJSON() as ServerDocument,
       share: null,
+      focus: new Map<string, StoredFocus>(),
     };
     server.slideshows.push(record);
     return route.fulfill({
@@ -165,12 +170,14 @@ function answerLibrary(route: Route, server: FakeGlissandoServer) {
       json: { id: record.id, revision: record.revision },
     });
   }
-  const [, id, share] = path.match(SLIDESHOW_PATH) ?? [];
+  const [, id, suffix, focusAssetId] = path.match(SLIDESHOW_PATH) ?? [];
   const record = server.slideshows.find((slideshow) => slideshow.id === id);
   if (record === undefined) {
     return route.fulfill({ status: HTTP_NOT_FOUND, json: { error: "notFound", detail: path } });
   }
-  if (share !== undefined) return answerShare(route, server, record, path);
+  if (suffix === "/share") return answerShare(route, server, record, path);
+  if (suffix === "/focus") return answerFocusList(route, record);
+  if (focusAssetId !== undefined) return answerFocusPut(route, record, focusAssetId, path);
   if (method === "GET") return route.fulfill({ json: record });
   if (method === "PUT") {
     if (request.headers()["if-match"] !== `"${String(record.revision)}"`) {
@@ -210,6 +217,28 @@ function answerShare(
     return route.fulfill({ status: HTTP_NO_CONTENT });
   }
   return route.fulfill({ status: HTTP_NOT_FOUND, json: { error: "notFound", detail: path } });
+}
+
+/** Every picture's focus the fake holds for the slideshow (ADR-0041, GET .../focus). */
+function answerFocusList(route: Route, record: LibraryRecord) {
+  const focus: Record<string, StoredFocus> = {};
+  for (const [assetId, value] of record.focus) focus[assetId] = value;
+  return route.fulfill({ json: { focus } });
+}
+
+/** Keeps a picture's focus, refusing one from a detector older than what is already kept. */
+function answerFocusPut(route: Route, record: LibraryRecord, encodedAssetId: string, path: string) {
+  if (route.request().method() !== "PUT") {
+    return route.fulfill({ status: HTTP_NOT_FOUND, json: { error: "notFound", detail: path } });
+  }
+  const assetId = decodeURIComponent(encodedAssetId);
+  const stored = route.request().postDataJSON() as StoredFocus;
+  const current = record.focus.get(assetId);
+  if (current !== undefined && current.detector >= stored.detector) {
+    return route.fulfill({ status: HTTP_CONFLICT, json: { error: "newerFocus", detail: path } });
+  }
+  record.focus.set(assetId, stored);
+  return route.fulfill({ status: HTTP_NO_CONTENT });
 }
 
 /** The document and the pictures; no songs, as no case shares a slideshow with music. */

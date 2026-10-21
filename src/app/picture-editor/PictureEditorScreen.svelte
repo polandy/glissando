@@ -42,6 +42,7 @@
     onTransition,
     onResetTransition,
     onAlone,
+    onLookAgain,
     previewPorts,
     reducedMotion,
     saving,
@@ -67,6 +68,8 @@
     onResetTransition: () => void;
     /** "Always alone" was toggled (ADR-0028). */
     onAlone: (alone: boolean) => void;
+    /** Looks at this picture's focus again; never touches its Ken Burns motion (ADR-0041). */
+    onLookAgain: () => void;
     previewPorts: MotionPreviewPorts;
     /** The preview starts paused. */
     reducedMotion: boolean;
@@ -156,7 +159,7 @@
         onActivate={activate}
         onFraming={frameChanged}
       />
-      <FocusLine indication={focus} />
+      <FocusLine line={picture.focusLine} {onLookAgain} />
       <p class="hint wide-hint">{t("editor.hintWide")}</p>
     </div>
     <MotionPanel

@@ -15,7 +15,7 @@ import {
 } from "../stored-slideshow";
 import type { MusicBeats } from "../../beats";
 import type { MusicLoudness } from "../../loudness";
-import type { PictureFocus } from "../picture-focus";
+import type { StoredFocus } from "../picture-focus";
 
 /** An in-memory `LibraryStore` for tests; holds copies, like a real store, so callers share nothing. */
 export class MemoryLibraryStore implements LibraryStore {
@@ -24,7 +24,7 @@ export class MemoryLibraryStore implements LibraryStore {
   readonly #music = new Map<string, Blob>();
   readonly #videos = new Map<string, Blob>();
   readonly #imports = new Map<string, MediaClaim>();
-  readonly #focus = new Map<string, PictureFocus>();
+  readonly #focus = new Map<string, StoredFocus>();
   readonly #beats = new Map<string, MusicBeats>();
   readonly #loudness = new Map<string, MusicLoudness>();
 
@@ -117,15 +117,15 @@ export class MemoryLibraryStore implements LibraryStore {
     return found(id, this.#videos.get(id));
   }
 
-  putPictureFocus(pictureId: string, focus: PictureFocus): Promise<void> {
+  putPictureFocus(pictureId: string, focus: StoredFocus): Promise<void> {
     if (this.#pictures.has(pictureId)) {
       this.#focus.set(pictureId, structuredClone(focus));
     }
     return Promise.resolve();
   }
 
-  pictureFocus(pictureIds: readonly string[]): Promise<ReadonlyMap<string, PictureFocus>> {
-    const found = new Map<string, PictureFocus>();
+  pictureFocus(pictureIds: readonly string[]): Promise<ReadonlyMap<string, StoredFocus>> {
+    const found = new Map<string, StoredFocus>();
     for (const id of pictureIds) {
       const focus = this.#focus.get(id);
       if (focus !== undefined) {

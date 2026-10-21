@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import type { ImmichFace } from "../immich/immich-client";
 import { PictureNotDownloadedError } from "../import/picture-source";
+import { storedFocus } from "../library/focus-pass-fixtures";
+import type { StoredFocus } from "../library/picture-focus";
 import { MediaNotFoundError, type StoredSlideshow } from "../library/stored-slideshow";
 import { MemoryLibraryStore } from "../library/testing/memory-store";
 import { keepCopyOnDevice } from "./keep-copy";
@@ -14,6 +16,7 @@ function setUp() {
   const store = new MemoryLibraryStore();
   const immich = new FakeImmichMedia();
   const serverMusic = new Map<string, Blob>();
+  const serverFocus = new Map<string, StoredFocus>();
   const progress: number[] = [];
   let ids = 0;
   const ports = {
@@ -25,6 +28,15 @@ function setUp() {
           ? Promise.reject(new MediaNotFoundError(id))
           : Promise.resolve(music);
       },
+      pictureFocus: (assetIds: readonly string[]) =>
+        Promise.resolve(
+          new Map(
+            assetIds.flatMap((id) => {
+              const focus = serverFocus.get(id);
+              return focus === undefined ? [] : [[id, focus] as const];
+            }),
+          ),
+        ),
     },
     immich: {
       client: immich,
@@ -45,7 +57,7 @@ function setUp() {
       signal: options.signal ?? new AbortController().signal,
       onProgress: (fraction) => progress.push(fraction),
     });
-  return { store, immich, serverMusic, progress, keep };
+  return { store, immich, serverMusic, serverFocus, progress, keep };
 }
 
 async function rejection(promise: Promise<unknown>): Promise<unknown> {
@@ -102,8 +114,23 @@ describe("keepCopyOnDevice", () => {
 
     const focus = await store.pictureFocus(copy.pictures.map((picture) => picture.id));
     expect([...focus.values()]).toEqual([
-      { kind: "subject", box: { x: 0.25, y: 0.1, width: 0.5, height: 0.4 } },
+      storedFocus({
+        kind: "subject",
+        box: { x: 0.25, y: 0.1, width: 0.5, height: 0.4 },
+        foundBy: "immich-faces",
+      }),
     ]);
+  });
+
+  it("prefers the server's own stored focus over Immich's faces", async () => {
+    const { store, immich, serverFocus, keep } = setUp();
+    immich.add("asset-1", { faces: [FACE] });
+    serverFocus.set("asset-1", storedFocus({ kind: "scenery" }));
+
+    const copy = await keep(serverSlideshow());
+
+    const focus = await store.pictureFocus(copy.pictures.map((picture) => picture.id));
+    expect([...focus.values()]).toEqual([storedFocus({ kind: "scenery" })]);
   });
 
   it("copies the server's music onto the device", async () => {

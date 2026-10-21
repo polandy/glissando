@@ -15,9 +15,13 @@
   a cover of the first three pictures (one large, two small), the title, "12 pictures · 1:00" and a
   music icon — ending in a dashed "New slideshow" card. While the background search for the
   focus (dev-docs/library/FOCUS_SEARCH.md) has pictures of a slideshow left, its card
-  adds the line "Looking for subjects · 12 of 40" over a 2 px mint hairline filling with the
-  progress (`screens/FocusSearchLine.svelte`); both go once the slideshow is done, and the card
-  stays fully usable meanwhile. A status bar at the bottom
+  adds the line "Looking for subjects · 12 of 40" (every picture already having a record:
+  "Looking again · 12 of 40") over a 2 px mint hairline filling with the
+  progress (`screens/FocusSearchLine.svelte`); the line and bar go once the slideshow is done. A
+  slideshow done searching with pictures the pass could not look at instead keeps the line, without
+  a bar: "3 pictures couldn't be looked at" (singular "1 picture couldn't be looked at"); this, too,
+  goes once a later look succeeds. The card stays fully usable meanwhile; both lines show the same
+  way on a device or a server card. A status bar at the bottom
   (`pwa/StatusBar.svelte`): "Offline · stored on this device", or what
   [Installing and offline](INSTALLING_AND_OFFLINE.md) says. A file dragged over the library shows
   the layer "Drop to open the slideshow"; dropped, it opens (below). With the server library on
@@ -26,8 +30,18 @@
   (server_library/IN_THE_APP.md).
 - **Slideshow** (`screens/SlideshowScreen.svelte`, parts in `screens/slideshow/`): breadcrumb
   "Library / title" and a ⋯ "More" button whose menu holds "Save as video", "Save as web page" and "Save as Glissando file" (subtitle "A .glissando
-  file, about 184 MB", measured when the menu opens, again only after its pictures or music changed), a separator and "Delete slideshow
-  …"; a 16:9
+  file, about 184 MB", measured when the menu opens, again only after its pictures or music changed), a separator, "Focus …" with a subtitle for the
+  slideshow's search ("Looking · 12 of 40", "Looking again · 12 of 40", "3 couldn't be looked at"
+  or, done and none failed, "All looked at"), a separator and "Delete slideshow …". "Focus …" opens
+  the Focus sheet (`screens/slideshow/FocusSheet.svelte`, mockup "Variant A · grid", ADR-0041): a
+  bottom sheet on phone, a 440 px right panel from 720 px — a status line with the same progress as
+  the menu's subtitle, a stacked bar and legend chips by result (filtering the grid below them, own
+  motion as its own chip), a 4-column grid of the slideshow's pictures with a status dot and, on an
+  own-motion one, an "Own motion" badge (tapping a tile opens the picture editor), "Try the 3 again"
+  once some failed or "Look again at all 12 pictures" otherwise (asking again at every picture,
+  own-motion ones included: their automatic focus is still found and shown, only not used for their
+  motion), a hint once any picture has its own motion, and where the result is kept ("Stored on
+  this device." or "Shared with every device on your Glissando server."); a 16:9
   preview of the first picture (tap plays) with the running time, then the pictures in play
   order, each with its order number and capture date, under "Sorted by capture date" or, once
   the user reordered, "Own order" (with "drag or tap", narrow: "tap to reorder"); right of the

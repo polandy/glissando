@@ -43,7 +43,13 @@ export interface ImmichPictureReaders {
  */
 export async function decodeImmichPhoto(
   photo: Pick<ImmichPhoto, "id" | "fileName">,
-  { client, decode }: Pick<ImmichPictureReaders, "client" | "decode">,
+  {
+    client,
+    decode,
+  }: {
+    readonly client: Pick<ImmichClient, "original" | "thumbnail">;
+    decode: ImmichPictureReaders["decode"];
+  },
   signal?: AbortSignal,
 ): Promise<DecodedPicture> {
   const decodeBlob = (blob: Blob): Promise<DecodedPicture> =>

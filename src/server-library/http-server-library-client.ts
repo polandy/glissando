@@ -2,7 +2,9 @@ import type { MusicBeats } from "../beats";
 import { parseMusicBeats } from "../beats/music-beats-json";
 import type { MusicLoudness } from "../loudness";
 import { musicLoudnessToJson, parseMusicLoudness } from "../loudness";
-import { readServerDocument, type ServerDocument } from "./server-document";
+import type { StoredFocus } from "../library/picture-focus";
+import { readStoredFocus } from "../library/read-stored-focus";
+import type { ServerDocument } from "./server-document";
 import {
   ServerLibraryNotFoundError,
   ServerLibraryRefusedError,
@@ -13,6 +15,18 @@ import {
   type ServerSlideshowRecord,
   type ShareLink,
 } from "./server-library-client";
+import {
+  field,
+  isJson,
+  isRecord,
+  JSON_MEDIA_TYPE,
+  mismatch,
+  readRecord,
+  readShareLink,
+  refusal,
+  revision,
+  text,
+} from "./server-library-wire-values";
 
 const LIBRARY_PATH = "api/library";
 const SLIDESHOWS_PATH = `${LIBRARY_PATH}/slideshows`;
@@ -21,17 +35,17 @@ const MUSIC_PATH = `${LIBRARY_PATH}/music`;
 const BEATS_SUFFIX = "/beats";
 /** Under a music's path: the loudness a device measured for it. */
 const LOUDNESS_SUFFIX = "/loudness";
+/** Under a slideshow's path: the stored focus of its pictures (ADR-0041). */
+const FOCUS_SUFFIX = "/focus";
 const DISCOVERY_SERVICE = "glissando-library";
-const JSON_MEDIA_TYPE = "application/json";
 const HTTP_NOT_FOUND = 404;
+const HTTP_CONFLICT = 409;
 const HTTP_PRECONDITION_FAILED = 412;
 const HTTP_SERVER_ERROR = 500;
 /** Under a slideshow's path: its link (share_link/HTTP_API.md, Private). */
 const SHARE_SUFFIX = "/share";
 /** The 404 code of a link that is already off. */
 const NOT_SHARED = "notShared";
-/** 16 random bytes as base64url without padding. */
-const SHARE_TOKEN = /^[A-Za-z0-9_-]{22}$/;
 
 type HttpMethod = "GET" | "POST" | "PUT" | "DELETE";
 
@@ -154,6 +168,32 @@ export class HttpServerLibraryClient implements ServerLibraryClient {
     await check("PUT", path, response);
   }
 
+  async slideshowFocus(slideshowId: string): Promise<ReadonlyMap<string, StoredFocus>> {
+    const path = `${slideshowPath(slideshowId)}${FOCUS_SUFFIX}`;
+    const answer = field(await this.#json("GET", path), "focus", path);
+    if (!isRecord(answer)) throw mismatch(path, "focus", "an object of StoredFocus", answer);
+    const result = new Map<string, StoredFocus>();
+    for (const [assetId, value] of Object.entries(answer)) {
+      result.set(assetId, readStoredFocus(value, `${path}.${assetId}`));
+    }
+    return result;
+  }
+
+  async putPictureFocus(
+    slideshowId: string,
+    assetId: string,
+    stored: StoredFocus,
+  ): Promise<"stored" | "newerKept"> {
+    const path = `${slideshowPath(slideshowId)}${FOCUS_SUFFIX}/${encodeURIComponent(assetId)}`;
+    const response = await this.#send("PUT", path, {
+      body: JSON.stringify(stored),
+      headers: { "content-type": JSON_MEDIA_TYPE },
+    });
+    if (response.status === HTTP_CONFLICT) return "newerKept";
+    await check("PUT", path, response);
+    return "stored";
+  }
+
   /** The slideshow's link; null while it is not shared. */
   async shareOf(id: string): Promise<ShareLink | null> {
     const path = slideshowPath(id);
@@ -226,66 +266,10 @@ async function check(method: HttpMethod, path: string, response: Response): Prom
   }
   if (response.status === HTTP_NOT_FOUND) throw new ServerLibraryNotFoundError(request);
   const { code, detail } = await refusal(response);
-  const refused = path.startsWith(MUSIC_PATH) ? "music" : "slideshow";
+  const refused = path.startsWith(MUSIC_PATH)
+    ? "music"
+    : path.includes(FOCUS_SUFFIX)
+      ? "focus"
+      : "slideshow";
   throw new ServerLibraryRefusedError(request, response.status, code, detail, refused);
-}
-
-const UNKNOWN_CODE = "unknown";
-
-/** The `error` code and `detail` a refusal names; reads the body. */
-async function refusal(response: Response): Promise<{ code: string; detail: string }> {
-  const answer: unknown = isJson(response) ? await response.json() : {};
-  if (!isRecord(answer)) return { code: UNKNOWN_CODE, detail: "" };
-  return { code: String(answer["error"]), detail: String(answer["detail"]) };
-}
-
-function readShareLink(value: unknown, path: string): ShareLink {
-  const token = text(value, "token", path);
-  if (!SHARE_TOKEN.test(token)) throw mismatch(path, "token", "22 characters of base64url", token);
-  const createdAt = text(value, "createdAt", path);
-  if (Number.isNaN(Date.parse(createdAt))) {
-    throw mismatch(path, "createdAt", "an ISO 8601 date-time", createdAt);
-  }
-  return { token, createdAt };
-}
-
-function readRecord(value: unknown, path: string): ServerSlideshowRecord {
-  return {
-    id: text(value, "id", path),
-    revision: revision(value, path),
-    document: readServerDocument(field(value, "document", path)),
-  };
-}
-
-function revision(value: unknown, path: string): number {
-  const answer = field(value, "revision", path);
-  if (typeof answer !== "number" || !Number.isInteger(answer) || answer < 1) {
-    throw mismatch(path, "revision", "a positive whole number", answer);
-  }
-  return answer;
-}
-
-function text(value: unknown, name: string, path: string): string {
-  const answer = field(value, name, path);
-  if (typeof answer !== "string") throw mismatch(path, name, "a string", answer);
-  return answer;
-}
-
-function field(value: unknown, name: string, path: string): unknown {
-  if (!isRecord(value)) throw mismatch(path, name, "inside an object", value);
-  return value[name];
-}
-
-function mismatch(path: string, name: string, expected: string, got: unknown): Error {
-  return new Error(
-    `${path} answered "${name}" that is not ${expected} (got ${JSON.stringify(got)}); the app and the Glissando server's library service differ in version`,
-  );
-}
-
-function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function isJson(response: Response): boolean {
-  return response.headers.get("content-type")?.startsWith(JSON_MEDIA_TYPE) ?? false;
 }

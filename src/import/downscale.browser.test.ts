@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { decodePicture } from "./downscale";
+import { decodePicture, thumbnailFromImage } from "./downscale";
 import { UnreadablePictureError } from "./unreadable-picture";
 
 async function pngFile(width: number, height: number): Promise<File> {
@@ -58,5 +58,13 @@ describe("decodePicture", () => {
     expect(error).toBeInstanceOf(UnreadablePictureError);
     expect((error as UnreadablePictureError).fileName).toBe("broken.jpg");
     expect((error as UnreadablePictureError).stage).toBe("decode");
+  });
+});
+
+describe("thumbnailFromImage", () => {
+  it("downscales an image to the thumbnail bound as JPEG", async () => {
+    const thumbnail = await thumbnailFromImage(await pngFile(4000, 1000));
+
+    expect(await sizeOf(thumbnail)).toEqual({ width: 480, height: 120, type: "image/jpeg" });
   });
 });

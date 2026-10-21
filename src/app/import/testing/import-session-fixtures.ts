@@ -12,6 +12,7 @@ export const MUSIC_MS = 60_000;
 export const FACE: PictureFocus = {
   kind: "subject",
   box: { x: 0.25, y: 0.1, width: 0.5, height: 0.4 },
+  foundBy: "face",
 };
 
 export const pictureFile = (name: string, capturedAt: string): File =>

@@ -7,17 +7,21 @@ import { NO_FOCUS_KNOWN } from "../focus/pictures-focus";
 import { pictureEditorView } from "./picture-editor-view";
 import { own, stored, withPicture } from "./testing/picture-editor-fixtures";
 
-const FACES: PictureFocus = { kind: "subject", box: { x: 0.6, y: 0.1, width: 0.3, height: 0.3 } };
+const FACES: PictureFocus = {
+  kind: "subject",
+  box: { x: 0.6, y: 0.1, width: 0.3, height: 0.3 },
+  foundBy: "face",
+};
 
 describe("pictureEditorView", () => {
   it("aims an automatic picture's motion, and the next one's, at their focus", () => {
     const [first, second, third] = stored.pictures as [StoredPicture, StoredPicture, StoredPicture];
     const focus = {
+      ...NO_FOCUS_KNOWN,
       found: new Map([
         ["p1", FACES],
         ["p3", FACES],
       ]),
-      searching: new Set<string>(),
     };
 
     const view = pictureEditorView(stored, "p1", focus, NO_SONG_BEATS);
@@ -31,13 +35,13 @@ describe("pictureEditorView", () => {
   });
 
   it.each([
-    ["the subject found", { found: new Map([["p1", FACES]]), searching: new Set<string>() }, FACES],
+    ["the subject found", { ...NO_FOCUS_KNOWN, found: new Map([["p1", FACES]]) }, FACES],
     [
       "nothing found",
-      { found: new Map([["p1", { kind: "none" } as const]]), searching: new Set<string>() },
+      { ...NO_FOCUS_KNOWN, found: new Map([["p1", { kind: "none" } as const]]) },
       { kind: "none" },
     ],
-    ["the search", { found: new Map(), searching: new Set(["p1"]) }, { kind: "searching" }],
+    ["the search", { ...NO_FOCUS_KNOWN, searching: new Set(["p1"]) }, { kind: "searching" }],
   ])("shows %s for the picture's focus", (_, focus, status) => {
     expect(pictureEditorView(stored, "p1", focus, NO_SONG_BEATS).focus).toEqual(status);
   });
@@ -57,6 +61,7 @@ describe("pictureEditorView", () => {
       motion: { from: automatic.from, to: automatic.to },
       ownMotion: false,
       focus: { kind: "not-looked-at" },
+      focusLine: { status: "waiting", ownMotion: false, resultKind: null },
       durationMs: 4000,
       ownDuration: false,
       durationBasis: { kind: "seconds-per-picture", automaticMs: 4000 },

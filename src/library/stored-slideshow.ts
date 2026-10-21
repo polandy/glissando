@@ -5,7 +5,7 @@ import type { CardEntrance, CardPosition, CardStyle } from "../player/slideshow"
 import type { OwnKenBurns } from "./own-ken-burns";
 import type { StoredVideo } from "./own-video";
 import type { PictureColours } from "./picture-colours";
-import type { PictureFocus } from "./picture-focus";
+import type { StoredFocus } from "./picture-focus";
 import type { PictureLength } from "./picture-length";
 import type { PortraitPictures } from "./portrait-pictures";
 import type { BetweenSongs, MusicTrim, PictureChanges } from "./own-music";
@@ -203,12 +203,13 @@ export interface LibraryStore {
   /** Throws `MediaNotFoundError` for an unknown media id. */
   videoBlob(id: string): Promise<Blob>;
   /**
-   * Stores what the detection found in a picture, beside its media (ADR-0012). A picture whose
-   * media is not stored (any more) keeps nothing, so a late detection cannot resurrect it.
+   * Stores what the detection found in a picture and the detector version that found it, beside
+   * its media (ADR-0012, ADR-0041). A picture whose media is not stored (any more) keeps nothing,
+   * so a late detection cannot resurrect it.
    */
-  putPictureFocus(pictureId: string, focus: PictureFocus): Promise<void>;
+  putPictureFocus(pictureId: string, focus: StoredFocus): Promise<void>;
   /** The stored focus of each picture asked for; a picture not looked at yet is absent. */
-  pictureFocus(pictureIds: readonly string[]): Promise<ReadonlyMap<string, PictureFocus>>;
+  pictureFocus(pictureIds: readonly string[]): Promise<ReadonlyMap<string, StoredFocus>>;
   /**
    * Stores the beats the detection found in a track, beside its media (ADR-0021). A track whose
    * media is not stored (any more) keeps nothing, so a late detection cannot resurrect it.

@@ -1,5 +1,6 @@
 import { flushSync } from "svelte";
 import { afterEach, describe, expect, it } from "vitest";
+import { FOCUS_DETECTOR_VERSION } from "../../focus/focus-detector-version";
 import { FocusPass } from "../../library/focus-pass";
 import type { PictureFocus } from "../../library/picture-focus";
 import { FakeFocusDetector } from "../../library/testing/fake-focus-detector";
@@ -7,7 +8,11 @@ import type { MemoryLibraryStore } from "../../library/testing/memory-store";
 import { whenRendered } from "../testing/when-rendered";
 import { mountRoute, storeWithShow, unmountRoute } from "./slideshow-route-harness";
 
-const FACE: PictureFocus = { kind: "subject", box: { x: 0.4, y: 0.2, width: 0.2, height: 0.3 } };
+const FACE: PictureFocus = {
+  kind: "subject",
+  box: { x: 0.4, y: 0.2, width: 0.2, height: 0.3 },
+  foundBy: "face",
+};
 const MARKER = '[role="img"][aria-label="Fokus: Gesicht erkannt"]';
 
 afterEach(() => unmountRoute());
@@ -15,7 +20,7 @@ afterEach(() => unmountRoute());
 /** A store holding the slideshow, with the focus of picture "a" found on an earlier visit. */
 async function storeWithFocusOfA(): Promise<MemoryLibraryStore> {
   const store = await storeWithShow();
-  await store.putPictureFocus("a", FACE);
+  await store.putPictureFocus("a", { focus: FACE, detector: FOCUS_DETECTOR_VERSION });
   return store;
 }
 

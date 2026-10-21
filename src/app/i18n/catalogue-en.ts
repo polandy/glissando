@@ -49,7 +49,12 @@ export const en: Catalogue = {
   "start.yourSlideshows": "Your slideshows",
   "start.withMusic": "with music",
   "start.searchingSubjects": "Looking for subjects",
+  "start.searchingAgain": "Looking again",
   "start.searchProgress": "{done} of {total}",
+  "start.focusFailed": {
+    one: "{count} picture couldn't be looked at",
+    other: "{count} pictures couldn't be looked at",
+  },
 
   "settings.open": "Settings",
   "settings.title": "Settings",
@@ -112,6 +117,14 @@ export const en: Catalogue = {
   "slideshow.titleInput": "Title",
   "slideshow.titleHint": "Enter saves · Esc discards · empty = automatic title",
   "slideshow.more": "More",
+  "slideshow.focus": "Focus\u00a0…",
+  "slideshow.focusLooking": "Looking · {done} of {total}",
+  "slideshow.focusLookingAgain": "Looking again · {done} of {total}",
+  "slideshow.focusFailedHint": {
+    one: "{count} couldn't be looked at",
+    other: "{count} couldn't be looked at",
+  },
+  "slideshow.focusDone": "All looked at",
   "slideshow.delete": "Delete slideshow\u00a0…",
   "slideshow.deleteTitle": "Delete “{title}”?",
   "slideshow.deleteText": {
@@ -123,6 +136,46 @@ export const en: Catalogue = {
   "slideshow.deleteConfirm": "Delete",
   "slideshow.deleted": "Slideshow deleted",
   "slideshow.gone": "This slideshow no longer exists.",
+
+  "focusSheet.title": "Focus",
+  "focusSheet.looking": "Looking for the focus · {done} of {total}",
+  "focusSheet.lookingAgain": "Looking again · {done} of {total}",
+  "focusSheet.lookingAgainHint": "Each picture keeps its result until the new one is in.",
+  "focusSheet.lookedAtSoFar": "{done} of {total} looked at.",
+  "focusSheet.waitingForServerHint": {
+    one: "Waiting for your Glissando server to look at the other picture.",
+    other: "Waiting for your Glissando server to look at the other {count} pictures.",
+  },
+  "focusSheet.failedHint": {
+    one: "{count} picture couldn't be looked at. Glissando tries it again the next time it opens.",
+    other:
+      "{count} pictures couldn't be looked at. Glissando tries them again the next time it opens.",
+  },
+  "focusSheet.allLookedAt": "All pictures looked at.",
+  "focusSheet.statusFace": "Faces",
+  "focusSheet.statusSubject": "Subjects",
+  "focusSheet.statusImmich": "Faces from Immich",
+  "focusSheet.statusScenery": "Scenery",
+  "focusSheet.statusNone": "Nothing found",
+  "focusSheet.statusOutdated": "Older detection",
+  "focusSheet.statusFailed": "Couldn't look",
+  "focusSheet.statusWaiting": "Not yet",
+  "focusSheet.statusWaitingForServer": "Waiting for server",
+  "focusSheet.statusLooking": "Looking",
+  "focusSheet.ownMotion": "Own motion",
+  "focusSheet.tryAgain": "Try the {count} again",
+  "focusSheet.lookAgainAll": {
+    one: "Look again at the picture",
+    other: "Look again at all {count} pictures",
+  },
+  "focusSheet.lookingEllipsis": "Looking …",
+  "focusSheet.ownMotionHint": {
+    one: "This picture has a start and end you set by hand. It keeps it, whatever is found.",
+    other:
+      "{count} pictures have a start and end you set by hand. They keep it, whatever is found.",
+  },
+  "focusSheet.storedOnDevice": "Stored on this device.",
+  "focusSheet.sharedOnServer": "Shared with every device on your Glissando server.",
 
   "import.crumb": "New slideshow",
   "import.crumbPictures": "Pictures",

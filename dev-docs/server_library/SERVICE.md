@@ -10,10 +10,12 @@
   start (the entrypoint already does this; `GLISSANDO_DATA_DIR` joins its known settings). The
   entrypoint hands the service these two settings only, never the Immich key.
 - **Storage** (`node:sqlite`): tables `slideshows(id, revision, created_at, document)`,
-  `music(id, content_type, bytes, uploaded_at)`, `music_beats(music_id, beats)` and
+  `music(id, content_type, bytes, uploaded_at)`, `music_beats(music_id, beats)`,
+  `picture_focus(asset_id, detector, focus, found_at)` (ADR-0041) and
   `share_links(slideshow_id, token, created_at)` (share_link/STORAGE.md), times in
-  milliseconds since the epoch; WAL mode; every write in one transaction. Whether music is
-  referenced is read from the documents (`json_extract`), so no second record of it can drift.
+  milliseconds since the epoch; WAL mode; every write in one transaction. Whether music or a
+  picture is referenced is read from the documents (`json_extract`), so no second record of it can
+  drift.
 - **Ports**: a `LibraryRepository` (the SQLite adapter and an in-memory fake run the same contract
   suite), a clock, an id source and a random source (for share tokens), all injected into the request handler, which is a pure
   function of request → response tested in-process without sockets.

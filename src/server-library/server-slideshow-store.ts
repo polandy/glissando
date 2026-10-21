@@ -5,11 +5,10 @@ import {
   type ImmichUnavailableKind,
 } from "../immich/immich-client";
 import type { MusicBeats } from "../beats";
-import { focusFromFaces } from "../immich/immich-focus";
 import type { MusicLoudness } from "../loudness";
 import type { DecodedPicture } from "../import/downscale";
 import { decodeImmichPhoto } from "../import/immich-picture-source";
-import type { PictureFocus } from "../library/picture-focus";
+import type { StoredFocus } from "../library/picture-focus";
 import {
   MediaNotFoundError,
   SlideshowNotFoundError,
@@ -23,6 +22,7 @@ import {
   type ServerLibraryClient,
   type ServerSlideshowRecord,
 } from "./server-library-client";
+import { ServerPictureFocus } from "./server-picture-focus";
 
 const HTTP_NOT_FOUND = 404;
 const THUMBNAIL_SIZE = "thumbnail";
@@ -31,12 +31,12 @@ const PLAYBACK_SIZE = "preview";
 
 export interface ServerSlideshowStoreOptions {
   readonly client: ServerLibraryClient;
-  readonly immich: Pick<ImmichClient, "original" | "thumbnail" | "faces">;
+  readonly immich: Pick<ImmichClient, "original" | "thumbnail">;
   /** Rejects with `UnreadablePictureError` for a file it cannot decode (`decodePicture`). */
   decode(file: File): Promise<DecodedPicture>;
   /** Tells the app why Immich cannot be used (`ImmichAvailability.report`). */
   reportUnavailable(kind: ImmichUnavailableKind): void;
-  /** Logs a failure the store handles itself, e.g. faces Immich could not give. */
+  /** Logs a failure the store handles itself, e.g. a focus PUT the server could not be reached for. */
   log(error: unknown): void;
 }
 
@@ -56,13 +56,13 @@ interface SeenSlideshow {
 export class ServerSlideshowStore implements SlideshowStore {
   readonly #options: ServerSlideshowStoreOptions;
   readonly #seen = new Map<string, SeenSlideshow>();
-  /** By picture: Immich's focus asked for, or one put, for this session; null: none found. */
-  readonly #focus = new Map<string, Promise<PictureFocus | null>>();
+  readonly #pictureFocus: ServerPictureFocus;
   /** The edit under way; the next one starts once it has settled. */
   #edits: Promise<unknown> = Promise.resolve();
 
   constructor(options: ServerSlideshowStoreOptions) {
     this.#options = options;
+    this.#pictureFocus = new ServerPictureFocus({ client: options.client, log: options.log });
   }
 
   async listSlideshows(): Promise<readonly StoredSlideshow[]> {
@@ -163,18 +163,22 @@ export class ServerSlideshowStore implements SlideshowStore {
     }
   }
 
-  async pictureFocus(pictureIds: readonly string[]): Promise<ReadonlyMap<string, PictureFocus>> {
-    const found = await Promise.all(
-      pictureIds.map(async (id) => [id, await this.#focusOf(id)] as const),
-    );
-    return new Map(
-      found.filter((entry): entry is readonly [string, PictureFocus] => entry[1] !== null),
-    );
+  /** The server's stored focus, plus this session's own results, for the UI (ADR-0041). */
+  pictureFocus(pictureIds: readonly string[]): Promise<ReadonlyMap<string, StoredFocus>> {
+    return this.#pictureFocus.pictureFocus(pictureIds);
   }
 
-  putPictureFocus(pictureId: string, focus: PictureFocus): Promise<void> {
-    this.#focus.set(pictureId, Promise.resolve(focus));
-    return Promise.resolve();
+  /**
+   * The same focus `pictureFocus` answers, but a picture whose session result is not yet
+   * confirmed on the server counts as unstored: the server pass's own seam, so it PUTs a result
+   * again next run instead of believing it is already stored (ADR-0041).
+   */
+  pictureFocusForPass(pictureIds: readonly string[]): Promise<ReadonlyMap<string, StoredFocus>> {
+    return this.#pictureFocus.pictureFocusForPass(pictureIds);
+  }
+
+  putPictureFocus(pictureId: string, focus: StoredFocus): Promise<void> {
+    return this.#pictureFocus.putPictureFocus(pictureId, focus);
   }
 
   #serialized<T>(edit: () => Promise<T>): Promise<T> {
@@ -200,6 +204,10 @@ export class ServerSlideshowStore implements SlideshowStore {
         this.#options.client.replaceSlideshow(id, revision, serverDocumentFor(slideshow)),
       );
       this.#seen.set(id, { revision: next, slideshow });
+      this.#pictureFocus.noteSlideshow(
+        id,
+        slideshow.pictures.map((picture) => picture.id),
+      );
     } catch (error) {
       if (error instanceof ServerRevisionChangedError) {
         throw new SlideshowChangedError(this.#remember(error.current));
@@ -224,6 +232,10 @@ export class ServerSlideshowStore implements SlideshowStore {
   #remember(record: ServerSlideshowRecord): StoredSlideshow {
     const seen = this.#seenOf(record);
     this.#seen.set(record.id, seen);
+    this.#pictureFocus.noteSlideshow(
+      record.id,
+      seen.slideshow.pictures.map((picture) => picture.id),
+    );
     return seen.slideshow;
   }
 
@@ -244,28 +256,6 @@ export class ServerSlideshowStore implements SlideshowStore {
       }
       if (error instanceof ImmichUnavailableError) this.#options.reportUnavailable(error.kind);
       throw error;
-    }
-  }
-
-  #focusOf(id: string): Promise<PictureFocus | null> {
-    const known = this.#focus.get(id);
-    if (known !== undefined) return known;
-    const asking = this.#askFocus(id);
-    this.#focus.set(id, asking);
-    return asking;
-  }
-
-  /** The picture's focus; none while Immich cannot give its faces, asked again next time. */
-  async #askFocus(id: string): Promise<PictureFocus | null> {
-    try {
-      return focusFromFaces(await this.#options.immich.faces(id));
-    } catch (error) {
-      this.#focus.delete(id);
-      const notFound = error instanceof ImmichRequestFailedError && error.status === HTTP_NOT_FOUND;
-      if (!notFound && !(error instanceof ImmichUnavailableError)) throw error;
-      if (error instanceof ImmichUnavailableError) this.#options.reportUnavailable(error.kind);
-      this.#options.log(error);
-      return null;
     }
   }
 }

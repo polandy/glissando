@@ -1,5 +1,7 @@
+import { focusRoutes } from "./focus-routes";
 import type { LibraryRepository } from "./library-repository";
 import {
+  FOCUS_PATH_PART,
   HTTP_STATUS,
   jsonResponse,
   LIBRARY_PATH,
@@ -41,6 +43,7 @@ export function createLibraryHandler(dependencies: LibraryHandlerDependencies): 
   const slideshows = slideshowRoutes(dependencies);
   const music = musicRoutes(dependencies);
   const share = shareRoutes(dependencies);
+  const focus = focusRoutes(dependencies);
 
   const discovery = () => jsonResponse(HTTP_STATUS.ok, DISCOVERY);
   const routesFor = (path: string): MethodRoutes => {
@@ -66,6 +69,15 @@ export function createLibraryHandler(dependencies: LibraryHandlerDependencies): 
         POST: (request) => share.share(slideshowId, request),
         DELETE: () => share.unshare(slideshowId),
       };
+    }
+    if (slideshowId !== undefined && slideshowPart === FOCUS_PATH_PART) {
+      if (beyondSlideshow.length === 0) {
+        return { GET: () => focus.readAll(slideshowId) };
+      }
+      const [assetId, ...rest] = beyondSlideshow;
+      if (assetId !== undefined && rest.length === 0) {
+        return { PUT: (request) => focus.put(slideshowId, assetId, request) };
+      }
     }
     const [musicId, musicPart, ...beyondMusic] = segmentsUnder(MUSIC_PATH, path);
     if (musicId !== undefined && musicPart === undefined) {

@@ -253,6 +253,7 @@ describe("composeSlideshow with the pictures' focus", () => {
     const faces: PictureFocus = {
       kind: "subject",
       box: { x: 0.7, y: 0.1, width: 0.2, height: 0.2 },
+      foundBy: "face",
     };
     const focus = new Map([
       ["a", faces],

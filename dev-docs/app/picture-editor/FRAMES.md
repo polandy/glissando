@@ -14,16 +14,27 @@
   picture's edges into the well's margin (20 px, 24 px on a touch screen, on a phone too, so
   the whole hit area stays on screen). A dashed line joins
   the two centres; while the preview plays, a peach outline runs over the picture with it.
-- **Focus** (`focus-indication.ts`, `FocusMarker.svelte`, `FocusLine.svelte`): with the
-  automatic motion, accent corner brackets mark the subject box (the group) it aims at, with a small
-  "Focus" chip above it (below a box at the picture's top, right-aligned at its right edge);
-  over the frames, never in the way of a drag. Found while the editor is open, the marker
-  settles in (fades in from slightly larger; at once with reduced motion); a focus already
-  known, on opening or on ‹/›, shows at once. Under the picture
-  one quiet line: "No subject found – the motion stays centred." or, while the search is still
-  to come, a pill "Looking for the focus …" with a pulsing mint dot (still with reduced
-  motion). A picture not looked at (its detection failed) shows nothing; nor does an own
-  motion, whose frames say where it goes — back to automatic, the marker returns at once.
+- **Focus marker** (`focus-indication.ts`, `FocusMarker.svelte`): with the automatic motion,
+  accent corner brackets mark the subject box it aims at, with a small chip above it naming what
+  found it — "Face", "Subject" or "Immich" (below a box at the picture's top, right-aligned at
+  its right edge); over the frames, never in the way of a drag. Found while the editor is open,
+  the marker settles in (fades in from slightly larger; at once with reduced motion); a focus
+  already known, on opening or on ‹/›, shows at once. An own motion hides the marker — its frames
+  say where it goes — and brings it back at once if the motion returns to automatic.
+- **Focus line** (`focus-indication.ts`, `FocusLine.svelte`): one quiet line under the picture
+  for every state of the picture's focus search, each with its own action button next to it:
+  not yet looked at ("Not looked at yet – it's in the queue.", "Look now"); searching (the
+  existing pulsing-dot pill, no action); found — face, subject, Immich faces, scenery or no
+  subject — with a small "Look again" link; found by an older detector version ("… found by an
+  older version – looking again soon.", "Look again now"); the look failed ("Couldn't look at
+  this picture.", "Try again"); waiting on the server or Immich to look ("Waiting for your
+  Glissando server to look at this picture.", no action). Every action calls the slideshow's
+  focus pass's `lookAgain` for this picture alone and never touches its Ken Burns motion
+  (ADR-0041). An own motion replaces a found result's sentence with its own: "Own motion – your
+  start and end stay, whatever is found. The focus (‹result›) is used only if you go back to
+  automatic." — the same action beside it; a process state (searching, failed, waiting on the
+  server) shows as usual, since own motion changes only what a found result means, not whether
+  the search itself is still running.
 - **Changing a frame**: a drag anywhere on the picture (one pointer, past 8 px, counted from
   where it went down) moves the active frame by the pointer's travel; a corner resizes it about
   the opposite corner (shape kept), the wheel and two fingers anywhere zoom (at once, without

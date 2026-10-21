@@ -51,6 +51,8 @@ export interface AppServices extends ServerSlideshowSessions {
   readonly readClipPeaks: ReadClipPeaks;
   /** Looks for the pictures' focus in the background (ADR-0012); started as the app opens. */
   readonly focusPass: FocusPass;
+  /** Looks for a server slideshow's focus as it opens and keeps it on the server (ADR-0041). */
+  readonly serverFocusPass: FocusPass;
   /** Listens for the music's beats in the background (ADR-0021); started as the app opens. */
   readonly beatPass: BeatPass;
   /** Listens for a server slideshow's beats as it opens and keeps them on the server (ADR-0021). */
