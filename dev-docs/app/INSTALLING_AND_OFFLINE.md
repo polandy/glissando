@@ -55,6 +55,12 @@ manifest and icons in `public/`; the PNG icons come from `scripts/brand/icons.sh
 - **Updates**: "Reload now" (or "Reload to update" in the settings) asks the waiting version to take over, then this tab reloads into the
   new version; other tabs keep running their version until their next start.
 
+- **Sample music** (library/SAMPLE_MUSIC.md, ADR-0042): on in every build, the public
+  installation and the self-hosted Docker image alike; `GLISSANDO_SAMPLE_MUSIC=off` at build time
+  (`build/sample-music-config.ts`, a Docker build argument) leaves it out, and
+  `GLISSANDO_SAMPLE_MUSIC_URL` names where the tracks are fetched from. The tracks are never
+  precached: offline, only those already on this device can be added.
+
 - **Double-click on a .glissando file** (`glissando-file/launched-files.ts`): the installed app
   registers as the program for `.glissando` (manifest `file_handlers`, type
   `application/x-glissando`, the app icon as file icon) — Chromium on the desktop only. Every

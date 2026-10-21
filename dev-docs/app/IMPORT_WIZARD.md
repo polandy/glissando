@@ -72,7 +72,9 @@ Immich photos, offers no "Open file" and is created on the server
   problem met on the way (e.g. a rejected key) is reported to `ImmichAvailability`, so the Immich
   box and the settings name it.
 - **Music** (optional): the intro "One song or several — they play one after another and the
-  pictures change on their beat. Without music each picture stays 5 s.", then a drop zone with
+  pictures change on their beat. Without music each picture stays 5 s.", then the tabs "My
+  music" (selected on entry) and "Sample music" (library/SAMPLE_MUSIC.md, where the build offers it).
+  "My music" holds a drop zone with
   "Choose music" (`audio/*` plus every recognised extension, `MUSIC_FILE_PICKER_ACCEPT` — iPadOS greys out files it cannot type by location otherwise; several at once; hint "One or more files · MP3, M4A, FLAC, WAV, Ogg,
   AIFF, WMA …"). Picked or dropped files join `ImportChoices.songs`, a keyed list, after the
   songs already in it, and are read one at a time in the order picked by

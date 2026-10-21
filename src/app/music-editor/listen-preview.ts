@@ -61,7 +61,7 @@ export function listenRange(kind: "start" | "end", timing: ListenTiming): Listen
 }
 
 /**
- * What the Volume section's "Listen" plays (dev-docs/app/MUSIC_EDITOR.md "Volume"): the excerpt's
+ * What the Volume section's "Listen" plays (dev-docs/app/music-editor/SELECTED_SONG.md "Volume"): the excerpt's
  * loudest {@link LISTEN_PREVIEW_MS}, at the song's resolved gain.
  */
 export function volumeListenPlan({
