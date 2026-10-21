@@ -99,7 +99,7 @@ export const BASE_MANIFEST: ManifestDocument = {
   },
 };
 
-/** The schema compiled once with ajv 6, the way `manifest-schema.test.ts` and its siblings do. */
+/** The schema compiled once, the way `manifest-schema.test.ts` and its siblings do. */
 export const validateManifestSchema = new Ajv().compile(MANIFEST_SCHEMA);
 
 function clone<Value>(value: Value): Value {
