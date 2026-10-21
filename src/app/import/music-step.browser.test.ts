@@ -80,11 +80,13 @@ describe("MusicStep, the import's song list", () => {
       input.dispatchEvent(new Event("change", { bubbles: true }));
     }
 
-    expect(choicesOf(session).songs.map((added) => added.pickedName)).toEqual([
-      "Low Tide.mp3",
-      "Paper Lanterns.mp3",
-      "Sea Glass.mp3",
-    ]);
+    expect(
+      choicesOf(session)
+        .songs.filter(
+          (song) => song.kind !== "downloadingSample" && song.kind !== "failedSampleDownload",
+        )
+        .map((added) => added.pickedName),
+    ).toEqual(["Low Tide.mp3", "Paper Lanterns.mp3", "Sea Glass.mp3"]);
   });
 
   it("removes a song by its ×", async () => {

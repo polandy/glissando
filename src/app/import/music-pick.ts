@@ -2,6 +2,7 @@ import type { ConvertMusic } from "../../import/music-conversion";
 import { UnconvertibleMusicError } from "../../import/music-conversion";
 import { recogniseMusicFormat, type ConvertibleSource } from "../../import/music-format";
 import { UnreadableMusicError, type MusicProbe } from "../../import/music-probe";
+import type { SampleOrigin } from "../sample-music/sample-song-pick";
 
 /** What reads a picked music file: its probe, its FLAC conversion (ADR-0020) and the log. */
 export interface MusicPickPorts {
@@ -17,6 +18,8 @@ export interface ChosenMusic {
   readonly pickedName: string;
   readonly durationMs: number;
   readonly convertedFrom: ConvertibleSource | null;
+  /** Set for a sample track (SAMPLE_MUSIC.md); absent for a song of the user's own. */
+  readonly sample?: SampleOrigin;
 }
 
 /** A picked file that cannot be used as music. */

@@ -146,6 +146,14 @@ export function describeLibraryStoreContract(
       expect(await (await store.musicBlob("music-1")).text()).toBe("one music");
     });
 
+    it("says whether the music store holds an id, re-checked each call", async () => {
+      expect(await store.hasMusic("music-1")).toBe(false);
+
+      await store.putMusic("music-1", musicBlob("one"));
+
+      expect(await store.hasMusic("music-1")).toBe(true);
+    });
+
     it("measures the bytes a slideshow's pictures, thumbnails and music take", async () => {
       await store.putPicture("picture-1", pictureBlobs("one"));
       await store.putMusic("music-1", musicBlob("one"));

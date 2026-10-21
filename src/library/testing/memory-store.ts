@@ -113,6 +113,10 @@ export class MemoryLibraryStore implements LibraryStore {
     return found(id, this.#music.get(id));
   }
 
+  hasMusic(id: string): Promise<boolean> {
+    return Promise.resolve(this.#music.has(id));
+  }
+
   videoBlob(id: string): Promise<Blob> {
     return found(id, this.#videos.get(id));
   }

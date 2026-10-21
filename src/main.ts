@@ -31,12 +31,12 @@ import { browserObjectUrls } from "./app/media/object-urls";
 import { readClipPeaksWithMediabunny } from "./app/clip-editor/read-clip-peaks";
 import { browserMusicEditorAudio } from "./app/music-editor/music-editor-audio";
 import { deviceSongStorage, serverSongStorage } from "./app/music-editor/song-intake";
+import { browserSampleMusic } from "./app/sample-music/browser-sample-music";
 import { freeStorageBytes } from "./library/free-storage";
 import { browserIntakePorts } from "./app/import/browser-intake-ports";
-import { HttpImmichClient } from "./immich/http-immich-client";
+import { browserImmich } from "./immich/browser-immich";
 import type { StoredSlideshow } from "./library/stored-slideshow";
 import type { SlideshowHome } from "./app/routes/slideshow-storage";
-import { browserNetworkStatus, ImmichAvailability } from "./immich/immich-availability";
 import { convertMusic } from "./import/browser/convert-music";
 import { probeMusic } from "./import/music-probe";
 import { createImmichReaders } from "./immich/immich-readers";
@@ -66,15 +66,7 @@ import { createFrameServices } from "./app/frame/frame-services";
 import { browserMediaDecoders } from "./glissando-file/browser/media-decoders";
 import { decodeClipSound } from "./video-export/browser/decode-clip-sound";
 
-/** Same origin: the self-hosted Glissando's `/immich/` route sets the API key (ADR-0013). */
-const immichClient = new HttpImmichClient({
-  baseUrl: new URL("./immich/", window.location.href),
-  fetch: window.fetch.bind(window),
-});
-const immichAvailability = new ImmichAvailability({
-  client: immichClient,
-  network: browserNetworkStatus(window),
-});
+const { client: immichClient, availability: immichAvailability } = browserImmich(window);
 
 const settings = new AppSettings({
   themes: createStorageThemePreferenceStore(window.localStorage),
@@ -129,6 +121,8 @@ const store = await openLibraryStore(window.indexedDB);
 const newId = (): string => randomId(crypto);
 const now = (): Date => new Date();
 const musicOutput = new MusicOutput(createMusicAudioContext);
+// Reads __GLISSANDO_SAMPLE_MUSIC__ through browser-sample-music.ts, the constant's only reader.
+const sampleMusic = browserSampleMusic(__GLISSANDO_SAMPLE_MUSIC__, { store, target: window });
 
 function deleteAbandonedMedia(): void {
   store.deleteUnreferencedMedia(now()).catch(reportError);
@@ -260,6 +254,7 @@ const services = {
       createOnServer: (slideshow, songsAudio) =>
         serverLibraryWithFocusStart.createSlideshow(slideshow, songsAudio),
       random: Math.random,
+      ...sampleMusic,
     }),
   newAddPicturesSession: (slideshow: StoredSlideshow, home: SlideshowHome) =>
     new AddPicturesSession(slideshow, home, {
@@ -274,6 +269,7 @@ const services = {
       home === "device"
         ? deviceSongStorage({ store, newId, now })
         : serverSongStorage(serverLibrary),
+    ...sampleMusic,
   }),
   newId,
   now,
@@ -289,6 +285,7 @@ const services = {
   ...serverSessions,
   reload: () => window.location.reload(),
   ...createFrameServices(window, browserScheduler, logError),
+  ...sampleMusic,
 };
 
 const playStartAnimation = consumeFirstLaunch(createStorageFirstLaunchStore(window.localStorage));

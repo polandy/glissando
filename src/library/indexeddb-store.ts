@@ -154,6 +154,11 @@ export class IndexedDbLibraryStore implements LibraryStore {
     return toBlob(media as StoredMedia);
   }
 
+  async hasMusic(id: string): Promise<boolean> {
+    const key = await this.#read(MUSIC, (store) => store.getKey(id));
+    return key !== undefined;
+  }
+
   async videoBlob(id: string): Promise<Blob> {
     const media = await this.#read(VIDEOS, (store) => store.get(id));
     if (media === undefined) throw new MediaNotFoundError(id);

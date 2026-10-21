@@ -206,6 +206,8 @@ export interface LibraryStore {
   playbackPictureBlob(id: string, signal?: AbortSignal): Promise<Blob>;
   thumbnailBlob(id: string): Promise<Blob>;
   musicBlob(id: string): Promise<Blob>;
+  /** Whether the `music` store holds `id`, re-checked every call (a slideshow may be deleted meanwhile). */
+  hasMusic(id: string): Promise<boolean>;
   /** Throws `MediaNotFoundError` for an unknown media id. */
   videoBlob(id: string): Promise<Blob>;
   /**

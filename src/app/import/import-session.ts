@@ -5,18 +5,23 @@ import type { PictureImport } from "../../import/picture-import";
 import {
   DEFAULT_SECONDS_PER_PICTURE,
   type LibraryStore,
-  type StoredMusic,
   type StoredSlideshow,
 } from "../../library/stored-slideshow";
+import type { SampleTrack, SampleTrackId } from "../../sample-music/sample-tracks";
 import type { SlideshowHome } from "../routes/slideshow-storage";
-import {
-  readPickedMusic,
-  type ChosenMusic,
-  type MusicPickPorts,
-  type PendingSong,
-} from "./music-pick";
+import type { SampleSongPickPorts, SampleSongRow } from "../sample-music/sample-song-pick";
+import type { ChosenMusic, MusicPickPorts, PendingSong } from "./music-pick";
+import { addPickedSongs, type SongReadQueue } from "./picked-song-intake";
 import { PictureIntake, type PictureIntakePorts } from "./picture-intake";
+import {
+  addSampleTrack as addSampleTrackRow,
+  isSampleTrackAdded as isSampleTrackAddedRow,
+  removeSampleTrack as removeSampleTrackRow,
+  songRecord,
+  storeChosenSongs,
+} from "./sample-track-intake";
 import { SessionArrangement } from "./session-arrangement";
+import type { SongRowHost } from "./song-row-host";
 
 export interface ImportSessionPorts extends PictureIntakePorts, MusicPickPorts {
   readonly store: LibraryStore;
@@ -27,10 +32,15 @@ export interface ImportSessionPorts extends PictureIntakePorts, MusicPickPorts {
   createOnServer(slideshow: StoredSlideshow, songsAudio: readonly Blob[]): Promise<StoredSlideshow>;
   /** Uniform in [0, 1); what Shuffle draws the pictures step's order from. */
   readonly random: () => number;
+  /** `undefined` when the build turns sample music off (SAMPLE_MUSIC.md): no track can be added. */
+  readonly sampleMusic?: SampleSongPickPorts;
 }
 
 /** A song of step 2's list: chosen, or still pending; `key` names its row. */
-export type ImportSong = PendingSong | ({ readonly key: number } & ChosenMusic);
+export type ImportSong =
+  | PendingSong
+  | ({ readonly key: number } & ChosenMusic)
+  | ({ readonly key: number } & SampleSongRow);
 
 export type ChosenSong = Extract<ImportSong, { kind: "chosen" }>;
 
@@ -76,6 +86,26 @@ export class ImportSession {
   readonly #songReads = new Map<number, AbortController>();
   /** Songs are read one at a time, in the order picked: a conversion takes the device's power. */
   #songQueue: Promise<void> = Promise.resolve();
+  readonly #songRowHost: SongRowHost = {
+    songs: () => this.#choices.songs,
+    setSongs: (songs) => this.#setChoices({ songs }),
+    nextKey: () => (this.#nextSongKey += 1),
+    beginRead: (key) => {
+      const controller = new AbortController();
+      this.#songReads.set(key, controller);
+      return controller.signal;
+    },
+    readSignal: (key) => this.#songReads.get(key)?.signal,
+    removeSong: (key) => this.removeSong(key),
+  };
+  readonly #songReadQueue: SongReadQueue = {
+    next: (step) => {
+      const read = this.#songQueue.then(step);
+      // The next read waits for this one's end; its failure is the caller's, through `next`.
+      this.#songQueue = read.catch(() => undefined);
+      return read;
+    },
+  };
 
   constructor(ports: ImportSessionPorts) {
     this.#ports = ports;
@@ -128,27 +158,9 @@ export class ImportSession {
     return this.intake.reported();
   }
 
-  /**
-   * Appends the files to the song list, each read in turn: chosen as it is or as its FLAC copy
-   * when a target browser cannot decode it (ADR-0020), or found unusable. Resolves once all are
-   * read, rejecting with the first unexpected error.
-   */
-  async addSongs(files: readonly File[]): Promise<void> {
-    const keyed = files.map((file) => ({ file, key: (this.#nextSongKey += 1) }));
-    this.#setChoices({
-      songs: [
-        ...this.#choices.songs,
-        ...keyed.map(({ file, key }) => ({ key, kind: "reading" as const, pickedName: file.name })),
-      ],
-    });
-    for (const { key } of keyed) this.#songReads.set(key, new AbortController());
-    const reads = keyed.map(({ file, key }) => {
-      const read = this.#songQueue.then(() => this.#readSong(file, key));
-      // The next read waits for this one's end; its failure is the caller's, through `reads`.
-      this.#songQueue = read.catch(() => undefined);
-      return read;
-    });
-    await Promise.all(reads);
+  /** Appends the files to the song list, each read in turn (picked-song-intake.ts, ADR-0020). */
+  addSongs(files: readonly File[]): Promise<void> {
+    return addPickedSongs(this.#songRowHost, files, this.#ports, this.#songReadQueue);
   }
 
   /** Takes the song out of the list, cancelling its conversion. */
@@ -156,6 +168,25 @@ export class ImportSession {
     this.#songReads.get(key)?.abort();
     this.#songReads.delete(key);
     this.#setChoices({ songs: this.#choices.songs.filter((song) => song.key !== key) });
+  }
+
+  /** Whether `trackId` already has a row: downloading or chosen (SAMPLE_MUSIC.md). */
+  isSampleTrackAdded(trackId: SampleTrackId): boolean {
+    return isSampleTrackAddedRow(this.#songRowHost, trackId);
+  }
+
+  /**
+   * Adds a sample track (SAMPLE_MUSIC.md): reused from this device without a download, or
+   * downloaded and checked, its row reporting progress until it is chosen or fails. A track
+   * already in the list, downloading or chosen, is left alone.
+   */
+  addSampleTrack(track: SampleTrack): Promise<void> {
+    return addSampleTrackRow(this.#songRowHost, track, this.#ports.sampleMusic);
+  }
+
+  /** Takes the row holding `trackId` out of the list, cancelling its download. */
+  removeSampleTrack(trackId: SampleTrackId): void {
+    removeSampleTrackRow(this.#songRowHost, trackId);
   }
 
   /**
@@ -175,32 +206,6 @@ export class ImportSession {
     const at = songs.indexOf(target);
     const others = songs.filter((candidate) => candidate !== song);
     this.#setChoices({ songs: [...others.slice(0, at), song, ...others.slice(at)] });
-  }
-
-  async #readSong(file: File, key: number): Promise<void> {
-    const signal = this.#songReads.get(key)?.signal;
-    if (signal === undefined || signal.aborted) return;
-    try {
-      const read = await readPickedMusic(
-        file,
-        this.#ports,
-        (converting) => this.#replaceSong(key, { key, ...converting }),
-        signal,
-      );
-      this.#replaceSong(key, { key, ...read });
-    } catch (error) {
-      if (signal.aborted) return;
-      this.removeSong(key);
-      throw error;
-    }
-  }
-
-  /** Updates a song still in the list; one removed meanwhile stays out. */
-  #replaceSong(key: number, song: ImportSong): void {
-    if (this.#songReads.get(key)?.signal.aborted !== false) return;
-    this.#setChoices({
-      songs: this.#choices.songs.map((candidate) => (candidate.key === key ? song : candidate)),
-    });
   }
 
   setSecondsPerPicture(secondsPerPicture: number): void {
@@ -227,14 +232,27 @@ export class ImportSession {
     if (state.pictures.length === 0) {
       throw new Error("cannot create a slideshow with no pictures: import at least one first");
     }
-    if (this.#choices.songs.some((song) => song.kind === "reading" || song.kind === "converting")) {
-      throw new Error("cannot create the slideshow: a song is still being read or converted");
+    if (
+      this.#choices.songs.some(
+        (song) =>
+          song.kind === "reading" ||
+          song.kind === "converting" ||
+          song.kind === "downloadingSample",
+      )
+    ) {
+      throw new Error(
+        "cannot create the slideshow: a song is still being read, converted or downloaded",
+      );
     }
     const onServer = this.#choices.home === "server";
     const chosen = chosenSongs(this.#choices);
     const songs = onServer
-      ? chosen.map((song) => this.#songRecord(this.#ports.newId(), song))
-      : await this.#storeSongs(chosen);
+      ? chosen.map((song) => songRecord(this.#ports.newId(), song))
+      : await storeChosenSongs(chosen, {
+          putMusic: (id, audio) => this.#ports.store.putMusic(id, audio),
+          claim: (id) => this.intake.claim(id),
+          newId: () => this.#ports.newId(),
+        });
     const slideshow = buildStoredSlideshow({
       id: this.#ports.newId(),
       createdAt: this.#ports.now().toISOString(),
@@ -269,22 +287,6 @@ export class ImportSession {
     this.#setChoices(INITIAL_CHOICES);
     this.arrangement.reset();
     return this.intake.discard();
-  }
-
-  /** Claimed for the import before written, one after another in the list's order. */
-  async #storeSongs(songs: readonly ChosenSong[]): Promise<StoredMusic[]> {
-    const stored: StoredMusic[] = [];
-    for (const song of songs) {
-      const id = this.#ports.newId();
-      await this.intake.claim(id);
-      await this.#ports.store.putMusic(id, song.file);
-      stored.push(this.#songRecord(id, song));
-    }
-    return stored;
-  }
-
-  #songRecord(id: string, song: ChosenSong): StoredMusic {
-    return { id, fileName: song.file.name, durationMs: song.durationMs, mimeType: song.file.type };
   }
 
   #setChoices(change: Partial<ImportChoices>): void {

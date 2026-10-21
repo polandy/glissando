@@ -19,7 +19,7 @@ export interface SampleDownloadPorts {
 }
 
 export type SampleDownloadResult =
-  | { readonly kind: "success"; readonly bytes: Uint8Array }
+  | { readonly kind: "success"; readonly bytes: Uint8Array<ArrayBuffer> }
   | { readonly kind: "network"; readonly cause: unknown }
   | { readonly kind: "httpStatus"; readonly status: number }
   | {
@@ -56,7 +56,7 @@ export async function downloadSampleTrack(
 
   if (!response.ok) return { kind: "httpStatus", status: response.status };
 
-  let received: Uint8Array | "aborted";
+  let received: Uint8Array<ArrayBuffer> | "aborted";
   try {
     received = await readBody(response.body, track.bytes, signal, (receivedBytes) =>
       onProgress(receivedBytes, track.bytes),
@@ -87,7 +87,7 @@ async function readBody(
   maxBytes: number,
   signal: AbortSignal | undefined,
   onReceived: (receivedBytes: number) => void,
-): Promise<Uint8Array | "aborted"> {
+): Promise<Uint8Array<ArrayBuffer> | "aborted"> {
   if (body === null) return new Uint8Array(0);
   const reader = body.getReader();
   const chunks: Uint8Array[] = [];
