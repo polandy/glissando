@@ -77,7 +77,7 @@
     width: 10px;
     height: 10px;
     border-radius: 50%;
-    box-shadow: 0 0 0 2px rgb(0 0 0 / 0.35);
+    box-shadow: 0 0 0 2px var(--gl-photo-badge);
   }
   .own {
     position: absolute;
@@ -85,8 +85,8 @@
     right: 4px;
     padding: 1px 6px;
     border-radius: var(--gl-radius-pill);
-    background: rgb(0 0 0 / 0.5);
-    color: #fff;
+    background: var(--gl-photo-badge);
+    color: var(--gl-on-photo);
     font-size: var(--gl-size-caption);
   }
 </style>
