@@ -27,6 +27,7 @@ const slideshow: StoredSlideshow = {
       fadeInMs: 0,
       fadeOutMs: 5000,
       volumeDb: -3,
+      sampleTrack: "hold-the-frame",
     },
   ],
   secondsPerPicture: 5,
@@ -53,6 +54,7 @@ describe("a song's excerpt and fades in the .glissando file", () => {
       fadeInMs: 0,
       fadeOutMs: 5000,
       volumeDb: -3,
+      sampleTrack: "hold-the-frame",
     });
   });
 
@@ -99,6 +101,27 @@ describe("a song's excerpt and fades in the .glissando file", () => {
     expect(readManifest(withSong({ volumeDb: 7 }))).toEqual({
       kind: "damaged",
       reason: "glissando.json slideshow.songs[0].volumeDb: expected whole dB from -12 to 6, got 7",
+    });
+  });
+
+  it("name a bad sample-track id's path, its value and what is expected", () => {
+    expect(readManifest(withSong({ sampleTrack: "Hold The Frame" }))).toEqual({
+      kind: "damaged",
+      reason:
+        'glissando.json slideshow.songs[0].sampleTrack: expected lowercase letters, digits and hyphens, 1 to 64 characters, got "Hold The Frame"',
+    });
+  });
+
+  it("refuses a sample-track id one version too old to read", () => {
+    const text = asText({
+      ...manifest(),
+      formatVersion: 15,
+      slideshow: { ...manifest().slideshow, songs: [{ ...manifest().slideshow.songs[0] }] },
+    });
+    expect(readManifest(text)).toEqual({
+      kind: "damaged",
+      reason:
+        'glissando.json slideshow.songs[0].sampleTrack: expected one of file, fileName, durationMs, mimeType, trim, fadeInMs, fadeOutMs, pictureChanges, volumeDb, got "sampleTrack"',
     });
   });
 

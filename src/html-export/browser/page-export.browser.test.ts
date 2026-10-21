@@ -20,6 +20,7 @@ const COPY: PageCopy = {
   eyebrow: "Slideshow",
   summary: "3 pictures · 0:01 · with music",
   madeWith: "Made with Glissando · plays offline",
+  sampleMusicCredit: "",
   play: "Play",
   pause: "Pause",
   mute: "Mute",

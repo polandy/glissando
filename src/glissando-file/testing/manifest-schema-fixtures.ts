@@ -18,7 +18,7 @@ type ManifestDocument = Omit<GlissandoManifest, "slideshow"> & {
  */
 export const BASE_MANIFEST: ManifestDocument = {
   format: "glissando",
-  formatVersion: 15,
+  formatVersion: 16,
   slideshow: {
     title: "Herbst in Wien",
     createdAt: "2025-10-01T08:00:00Z",
@@ -77,6 +77,7 @@ export const BASE_MANIFEST: ManifestDocument = {
         fadeOutMs: 5000,
         pictureChanges: "even",
         volumeDb: -3,
+        sampleTrack: "hold-the-frame",
       },
     ],
     openingCard: {

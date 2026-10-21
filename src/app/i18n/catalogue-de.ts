@@ -20,6 +20,7 @@ import { deView } from "./catalogue-de-view.ts";
 import { deFrame } from "./catalogue-de-frame.ts";
 import { deCards } from "./catalogue-de-cards.ts";
 import { deFilePage } from "./catalogue-de-file-page.ts";
+import { deSampleMusicCredit } from "./catalogue-de-sample-music-credit.ts";
 import type { Message } from "./messages.ts";
 
 /**
@@ -415,4 +416,5 @@ export const de = {
   ...deFrame,
   ...deCards,
   ...deFilePage,
+  ...deSampleMusicCredit,
 } as const satisfies Record<string, Message>;

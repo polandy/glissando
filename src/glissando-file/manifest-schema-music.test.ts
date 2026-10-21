@@ -31,6 +31,13 @@ describe("MUSIC_SCHEMA: broken songs", () => {
     ["volumeDb below its minimum", withAt(BASE_MANIFEST, [...song0, "volumeDb"], -13)],
     ["volumeDb above its maximum", withAt(BASE_MANIFEST, [...song0, "volumeDb"], 7)],
     ["volumeDb not a whole number", withAt(BASE_MANIFEST, [...song0, "volumeDb"], 1.5)],
+    ["sampleTrack uppercase", withAt(BASE_MANIFEST, [...song0, "sampleTrack"], "Hold-The-Frame")],
+    ["sampleTrack empty", withAt(BASE_MANIFEST, [...song0, "sampleTrack"], "")],
+    [
+      "sampleTrack with a space",
+      withAt(BASE_MANIFEST, [...song0, "sampleTrack"], "hold the frame"),
+    ],
+    ["sampleTrack of the wrong type", withAt(BASE_MANIFEST, [...song0, "sampleTrack"], 5)],
     ["trim: missing endMs", withoutAt(BASE_MANIFEST, [...song0, "trim", "endMs"])],
     ["trim: missing startMs", withoutAt(BASE_MANIFEST, [...song0, "trim", "startMs"])],
     ["trim: an unknown key", withAt(BASE_MANIFEST, [...song0, "trim", "extra"], true)],

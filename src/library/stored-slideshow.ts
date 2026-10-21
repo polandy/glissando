@@ -111,6 +111,12 @@ export interface StoredMusic {
    * literal 0 — `setMusicVolume` deletes the field instead (ADR-0040).
    */
   readonly volumeDb?: number;
+  /**
+   * The id of the Glissando sample track this song is (`checkSampleTrack`); absent for the
+   * owner's own music. Set only when the song is added; no edit changes it (SAMPLE_MUSIC.md,
+   * ADR-0042).
+   */
+  readonly sampleTrack?: string;
 }
 
 export interface StoredSlideshow {

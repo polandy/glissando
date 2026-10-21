@@ -7,6 +7,7 @@ import {
   ASSET_A,
   MUSIC_ID,
   slideshow,
+  firstStoredSong,
   without,
   document,
   withSlideshow,
@@ -69,6 +70,25 @@ describe("readServerDocument", () => {
 
     expect(storedSlideshowFrom("server-show-1", readServerDocument(written)).betweenSongs).toBe(
       "sequence",
+    );
+  });
+
+  it("keeps a sample song's sampleTrack through writing and reading", () => {
+    const withSample: StoredSlideshow = {
+      ...slideshow,
+      songs: [{ ...firstStoredSong, sampleTrack: "hold-the-frame" }],
+    };
+    const written = serverDocumentFor(withSample);
+
+    expect(storedSlideshowFrom("server-show-1", readServerDocument(written)).songs).toEqual(
+      withSample.songs,
+    );
+  });
+
+  it("refuses an invalid sample-track id, naming the path and value", () => {
+    const [song] = document().slideshow.songs;
+    expect(readFails(withSlideshow({ songs: [{ ...song, sampleTrack: "Hold The Frame" }] }))).toBe(
+      'slideshow.songs[0].sampleTrack: expected lowercase letters, digits and hyphens, 1 to 64 characters, got "Hold The Frame"',
     );
   });
 

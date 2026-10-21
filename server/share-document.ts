@@ -42,6 +42,7 @@ const SHARED_SONG_KEYS = [
   "fadeOutMs",
   "pictureChanges",
   "volumeDb",
+  "sampleTrack",
 ] as const satisfies readonly (keyof ServerMusic)[];
 
 export type SharePicture = Pick<ServerPicture, (typeof SHARED_PICTURE_KEYS)[number]>;

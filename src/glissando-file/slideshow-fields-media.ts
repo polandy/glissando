@@ -7,6 +7,7 @@ import {
   checkMusicTrim,
   checkMusicVolumeDb,
   checkPictureChanges,
+  checkSampleTrack,
   InvalidOwnMusicError,
 } from "../library/own-music";
 import {
@@ -16,6 +17,7 @@ import {
   OWN_KEN_BURNS_FROM_VERSION,
   OWN_TIMING_FROM_VERSION,
   PICTURE_CHANGES_FROM_VERSION,
+  SAMPLE_TRACK_FROM_VERSION,
 } from "./glissando-manifest";
 import {
   DocumentFormatError,
@@ -74,6 +76,7 @@ export function musicKeys(version: number): string[] {
     ...(version >= MUSIC_TRIM_FROM_VERSION ? ["trim", "fadeInMs", "fadeOutMs"] : []),
     ...(version >= PICTURE_CHANGES_FROM_VERSION ? ["pictureChanges"] : []),
     ...(version >= MUSIC_VOLUME_FROM_VERSION ? ["volumeDb"] : []),
+    ...(version >= SAMPLE_TRACK_FROM_VERSION ? ["sampleTrack"] : []),
   ];
 }
 
@@ -86,7 +89,7 @@ export function readMusicFields(music: JsonObject, path: string): MusicFields {
       durationMs,
     );
   }
-  const { trim, fadeInMs, fadeOutMs, pictureChanges, volumeDb } = music;
+  const { trim, fadeInMs, fadeOutMs, pictureChanges, volumeDb, sampleTrack } = music;
   return {
     fileName: readText(music["fileName"], `${path}.fileName`),
     durationMs,
@@ -101,6 +104,7 @@ export function readMusicFields(music: JsonObject, path: string): MusicFields {
         ? {}
         : { pictureChanges: checkPictureChanges(pictureChanges, path) }),
       ...(volumeDb === undefined ? {} : { volumeDb: checkMusicVolumeDb(volumeDb, path) }),
+      ...(sampleTrack === undefined ? {} : { sampleTrack: checkSampleTrack(sampleTrack, path) }),
     })),
   };
 }

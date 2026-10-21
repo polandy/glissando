@@ -1,12 +1,14 @@
 import { describe, expect, it } from "vitest";
 import {
   InvalidOwnMusicError,
+  MAX_SAMPLE_TRACK_ID_LENGTH,
   MUSIC_FADE_CHOICES_MS,
   MUSIC_VOLUME_MAX_DB,
   MUSIC_VOLUME_MIN_DB,
   checkMusicFadeMs,
   checkMusicTrim,
   checkMusicVolumeDb,
+  checkSampleTrack,
 } from "./own-music";
 
 const TRACK_MS = 204_000;
@@ -68,5 +70,29 @@ describe("checkMusicVolumeDb", () => {
   ])("refuses a volume %s, naming the field", (_, value) => {
     expect(() => checkMusicVolumeDb(value, "music")).toThrow(InvalidOwnMusicError);
     expect(() => checkMusicVolumeDb(value, "music")).toThrow("music volumeDb");
+  });
+});
+
+describe("checkSampleTrack", () => {
+  it.each(["calm-piano", "a", "b2", "song-9-long"])("accepts the id %s", (id) => {
+    expect(checkSampleTrack(id, "music")).toBe(id);
+  });
+
+  it("accepts an id of the longest length let through", () => {
+    const id = "a".repeat(MAX_SAMPLE_TRACK_ID_LENGTH);
+
+    expect(checkSampleTrack(id, "music")).toBe(id);
+  });
+
+  it.each([
+    ["empty", ""],
+    ["uppercase", "Calm-Piano"],
+    ["an underscore", "calm_piano"],
+    ["a space", "calm piano"],
+    ["too long", "a".repeat(MAX_SAMPLE_TRACK_ID_LENGTH + 1)],
+    ["no string", 7],
+  ])("refuses an id that is %s, naming the field", (_, value) => {
+    expect(() => checkSampleTrack(value, "music")).toThrow(InvalidOwnMusicError);
+    expect(() => checkSampleTrack(value, "music")).toThrow("music sampleTrack");
   });
 });

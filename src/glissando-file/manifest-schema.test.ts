@@ -1,5 +1,6 @@
 import Ajv from "ajv";
 import { describe, expect, it } from "vitest";
+import { GLISSANDO_FORMAT_VERSION } from "./glissando-manifest";
 import { readManifest } from "./read-manifest";
 import {
   BASE_MANIFEST,
@@ -14,7 +15,7 @@ import { readEntry, readZipDirectory } from "./zip-reader";
 /** The smallest manifest `readManifest` accepts: every optional key, at every level, absent. */
 const MINIMAL_MANIFEST = {
   format: "glissando",
-  formatVersion: 15,
+  formatVersion: GLISSANDO_FORMAT_VERSION,
   slideshow: {
     title: "T",
     createdAt: "2025-01-01T00:00:00Z",

@@ -116,6 +116,9 @@ export function pageCopyFor(
       music: summary.withMusic ? words.withMusic : words.withoutMusic,
     }),
     madeWith: words.madeWith,
+    // The credit (SAMPLE_MUSIC.md) names only the .glissando file and the web export as surfaces;
+    // the live share page, file-page opener and TV pairing page never show it.
+    sampleMusicCredit: "",
     play: words.play,
     pause: words.pause,
     mute: words.mute,

@@ -70,6 +70,16 @@ describe("pageCopyFor", () => {
     expect(copy.madeWith).toBe("Shared with Glissando");
   });
 
+  it("never shows a sample-music credit: the share page is not one of its surfaces", () => {
+    const copy = pageCopyFor(WORDS, "en", {
+      pictureCount: 1,
+      durationMs: 4000,
+      withMusic: false,
+    });
+
+    expect(copy.sampleMusicCredit).toBe("");
+  });
+
   it("counts in the language's plural and digits", () => {
     const one = pageCopyFor(WORDS, "en", { pictureCount: 1, durationMs: 4000, withMusic: false });
     const many = pageCopyFor(

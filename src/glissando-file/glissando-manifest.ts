@@ -31,14 +31,15 @@ export const GLISSANDO_FORMAT_ID = "glissando";
  * `portraitPictures` and a picture's `alone` (ADR-0028), version 12 the slideshow's `openingCard`
  * and `closingCard` (ADR-0032), version 13 a picture's `colours` and a card's picture background
  * `tint` (ADR-0033), version 14 a picture's `video` and the `videos/` entries (ADR-0034), version
- * 15 a song's own volume, `volumeDb` (ADR-0040).
+ * 15 a song's own volume, `volumeDb` (ADR-0040), version 16 a song's sample-track id,
+ * `sampleTrack` (ADR-0042).
  *
- * Versions 13 to 15 are read (a version 13 file holds no clips, and versions 13 and 14 no song
- * volume). Any older file is refused rather than migrated, as there is no production instance
- * yet; before version 10 a file carried `music`, not `songs`, which cannot be told apart from the
- * rest of such a document.
+ * Versions 13 to 16 are read (a version 13 file holds no clips, versions 13 and 14 no song
+ * volume, and versions 13 to 15 no sample-track id). Any older file is refused rather than
+ * migrated, as there is no production instance yet; before version 10 a file carried `music`,
+ * not `songs`, which cannot be told apart from the rest of such a document.
  */
-export const GLISSANDO_FORMAT_VERSION = 15;
+export const GLISSANDO_FORMAT_VERSION = 16;
 export const OLDEST_READABLE_FORMAT_VERSION = 13;
 /** The first version that carries a picture's own motion. */
 export const OWN_KEN_BURNS_FROM_VERSION = 2;
@@ -58,6 +59,8 @@ export const PICTURE_CHANGES_FROM_VERSION = 8;
 export const PICTURE_LENGTH_FROM_VERSION = 9;
 /** The first version that carries a song's own volume. */
 export const MUSIC_VOLUME_FROM_VERSION = 15;
+/** The first version that carries a song's sample-track id. */
+export const SAMPLE_TRACK_FROM_VERSION = 16;
 export const MANIFEST_ENTRY_NAME = "glissando.json";
 
 const PICTURE_EXTENSIONS: Readonly<Record<string, string>> = {
@@ -103,6 +106,8 @@ export interface ManifestMusic {
   readonly fadeOutMs?: number;
   readonly pictureChanges?: PictureChanges;
   readonly volumeDb?: number;
+  /** The id of the Glissando sample track this song is; absent for the owner's own music. */
+  readonly sampleTrack?: string;
 }
 
 export interface ManifestSlideshow {
@@ -252,12 +257,12 @@ function manifestVideo(
 
 type OwnMusicFields = Pick<
   ManifestMusic,
-  "trim" | "fadeInMs" | "fadeOutMs" | "pictureChanges" | "volumeDb"
+  "trim" | "fadeInMs" | "fadeOutMs" | "pictureChanges" | "volumeDb" | "sampleTrack"
 >;
 
 /**
- * The music's own excerpt, fades, picture changes and volume, those it has; shared by both
- * directions of the file.
+ * The music's own excerpt, fades, picture changes, volume and sample-track id, those it has;
+ * shared by both directions of the file.
  */
 export function ownMusicFields(music: OwnMusicFields): OwnMusicFields {
   return {
@@ -266,6 +271,7 @@ export function ownMusicFields(music: OwnMusicFields): OwnMusicFields {
     ...(music.fadeOutMs === undefined ? {} : { fadeOutMs: music.fadeOutMs }),
     ...(music.pictureChanges === undefined ? {} : { pictureChanges: music.pictureChanges }),
     ...(music.volumeDb === undefined ? {} : { volumeDb: music.volumeDb }),
+    ...(music.sampleTrack === undefined ? {} : { sampleTrack: music.sampleTrack }),
   };
 }
 
