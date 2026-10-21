@@ -75,4 +75,31 @@ describe("FocusPass, a failing detection", () => {
     expect((await store.pictureFocus(["flaky"])).get("flaky")).toEqual(storedFocus(FACES));
     expect(pass.state.failed.has("flaky")).toBe(false);
   });
+
+  it("keeps a slideshow's failed count after the pass has moved on, for the start card", async () => {
+    const { store, thumbnails } = await storeWith({ "show-1": ["broken", "fine"] });
+    let brokenFixed = false;
+    const answer = answersBy(thumbnails, { broken: FACES, fine: FACES });
+    const detector = new FakeFocusDetector((blob) => {
+      const id = [...thumbnails].find(([, candidate]) => candidate === blob)?.[0];
+      if (id === "broken" && !brokenFixed) {
+        throw new Error("the detector failed on this picture");
+      }
+      return answer(blob);
+    });
+    const { pass } = passOver(store, detector);
+
+    pass.start();
+    await pass.settled();
+
+    // The pass has moved on to nothing left to do, but "show-1" still has a failure to report.
+    expect(pass.state.running).toBe(false);
+    expect(pass.state.slideshows.get("show-1")).toMatchObject({ failed: 1 });
+
+    brokenFixed = true;
+    pass.lookAgain(["broken"]);
+    await pass.settled();
+
+    expect(pass.state.slideshows.has("show-1")).toBe(false);
+  });
 });

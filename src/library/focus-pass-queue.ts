@@ -17,6 +17,10 @@ export class FocusPassQueue {
   /** Pictures taken up in this pass, so a rescan neither queues them twice nor retries them. */
   readonly #takenUp = new Set<string>();
   readonly #progress = new Map<string, Progress>();
+  /** Which slideshow(s) a picture belongs to, kept past the slideshow leaving `#progress`. */
+  readonly #slideshowsOf = new Map<string, Set<string>>();
+  /** This pass's currently-failed pictures, by slideshow; outlives a slideshow's own progress. */
+  readonly #failedBySlideshow = new Map<string, Set<string>>();
   /** Pending `lookAgain` requests, each a batch of picture ids taken up ahead of the queue. */
   #forcedRequests: string[][] = [];
   #rescanRequested = false;
@@ -63,11 +67,11 @@ export class FocusPassQueue {
   }
 
   addToProgress(slideshowId: string, pictureId: string, hadRecord: boolean): void {
-    const progress = this.#progress.get(slideshowId) ?? {
-      pending: new Set(),
-      total: 0,
-      withRecord: 0,
-    };
+    // A slideshow kept around only to report a failed count starts a fresh batch, as if recreated.
+    const existing = this.#progress.get(slideshowId);
+    const progress: Progress = existing?.pending.size
+      ? existing
+      : { pending: new Set<string>(), total: 0, withRecord: 0 };
     if (progress.pending.has(pictureId)) {
       return;
     }
@@ -77,6 +81,32 @@ export class FocusPassQueue {
       progress.withRecord += 1;
     }
     this.#progress.set(slideshowId, progress);
+    const members = this.#slideshowsOf.get(pictureId) ?? new Set();
+    members.add(slideshowId);
+    this.#slideshowsOf.set(pictureId, members);
+  }
+
+  /** A picture's detection failed: counted against every slideshow it belongs to. */
+  recordFailed(pictureId: string): void {
+    for (const slideshowId of this.#slideshowsOf.get(pictureId) ?? []) {
+      const failed = this.#failedBySlideshow.get(slideshowId) ?? new Set();
+      failed.add(pictureId);
+      this.#failedBySlideshow.set(slideshowId, failed);
+    }
+  }
+
+  /** A later look at a picture succeeded: it no longer counts against its slideshows' failed count. */
+  clearFailed(pictureId: string): void {
+    for (const slideshowId of this.#slideshowsOf.get(pictureId) ?? []) {
+      const failed = this.#failedBySlideshow.get(slideshowId);
+      if (failed === undefined) {
+        continue;
+      }
+      failed.delete(pictureId);
+      if (failed.size === 0) {
+        this.#failedBySlideshow.delete(slideshowId);
+      }
+    }
   }
 
   /** Brings pictures asked for by `lookAgain` to the queue's front, in the order given. */
@@ -128,13 +158,23 @@ export class FocusPassQueue {
         done: total - pending.size,
         total,
         again: withRecord === total,
+        failed: this.#failedBySlideshow.get(slideshowId)?.size ?? 0,
       });
       pending.forEach((id) => searching.add(id));
+    }
+    // A slideshow whose pictures are all taken up still reports a failed count, for the start card.
+    for (const [slideshowId, failed] of this.#failedBySlideshow) {
+      if (!slideshows.has(slideshowId)) {
+        slideshows.set(slideshowId, { done: 0, total: 0, again: false, failed: failed.size });
+      }
     }
     return { slideshows, searching };
   }
 
-  /** Clears every pending picture and progress, for the pass ending without a pause. */
+  /**
+   * Clears every pending picture and progress, for the pass ending without a pause. Failed counts
+   * outlive this, like `FocusPassState.failed` (ADR-0041): a later look at the picture clears them.
+   */
   reset(): void {
     this.#queue = [];
     this.#queued.clear();

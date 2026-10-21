@@ -28,6 +28,7 @@ export function view(overrides: Partial<PictureEditorView> = {}): PictureEditorV
     motion: AUTOMATIC,
     ownMotion: false,
     focus: { kind: "not-looked-at" },
+    focusLine: { status: "waiting", ownMotion: false, resultKind: null },
     durationMs: 5000,
     ownDuration: false,
     durationBasis: { kind: "seconds-per-picture", automaticMs: 5000 },
@@ -93,6 +94,7 @@ export function mountEditor(shown: PictureEditorView = view(), { reducedMotion =
     transitions: [] as TransitionChoice[],
     transitionResets: 0,
     alones: [] as boolean[],
+    lookAgains: 0,
   };
   /** Shows the picture as stored after an edit, e.g. with its new duration. */
   const update = (changed: PictureEditorView): void => {
@@ -126,6 +128,7 @@ export function mountEditor(shown: PictureEditorView = view(), { reducedMotion =
       calls.alones.push(alone);
       update({ ...current, layout: { ...current.layout, alone } });
     },
+    onLookAgain: () => (calls.lookAgains += 1),
     previewPorts: { clock, frames },
     reducedMotion,
     saving: false,

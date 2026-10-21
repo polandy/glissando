@@ -1,6 +1,7 @@
 import { flushSync } from "svelte";
 import { afterEach, describe, expect, it } from "vitest";
 import BlockingOverlay from "../components/BlockingOverlay.svelte";
+import type { FocusMenuHint } from "../screens/slideshow/focus-menu-hint";
 import MoreMenu from "../screens/slideshow/MoreMenu.svelte";
 import { mountWithTranslator } from "../testing/mount-with-translator";
 import ExportIndicator from "./ExportIndicator.svelte";
@@ -93,6 +94,8 @@ describe("MoreMenu", () => {
       onDelete: () => calls.push("delete"),
       pictureCount: 3,
       onStorageAction: () => calls.push("storage"),
+      focusHint: { kind: "done" } as FocusMenuHint,
+      onFocus: () => calls.push("focus"),
     });
   }
 
@@ -104,6 +107,7 @@ describe("MoreMenu", () => {
       "Als Video sichern",
       "Als Webseite sichern",
       "Als Glissando-Datei sichern Eine .glissando-Datei, ca. 184 MB",
+      "Fokus … Alle angesehen",
       "Diashow löschen …",
     ]);
     expect(target.querySelector('[role="menu"] hr')).not.toBeNull();

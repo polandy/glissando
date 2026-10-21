@@ -12,6 +12,8 @@ import type { ExportMenuState } from "../glissando-file/export-menu";
 import type { StripSelection } from "./slideshow/strip-selection";
 import type { Scheduler } from "../../ui-kit/scheduler";
 import type { FrameScheduler } from "../../player";
+import type { SlideshowSearch } from "../../library/focus-pass";
+import type { PicturesFocus } from "../focus/pictures-focus";
 
 /** `SlideshowScreen`'s props: the slideshow's own screen, its pictures strip, the title slide
  * and closing slide sheets, and the export and delete flows reached from it. */
@@ -86,4 +88,12 @@ export interface SlideshowScreenProps {
   holdScheduler?: Scheduler;
   /** The strip's auto-scroll frames; real `requestAnimationFrame` by default, faked in tests. */
   frameScheduler?: FrameScheduler;
+  /** What is known of the pictures' focus, for the Focus menu entry and its sheet (ADR-0041). */
+  focus: PicturesFocus;
+  /** This slideshow's progress in the background focus pass; undefined once it has none to report. */
+  focusSearch?: SlideshowSearch | undefined;
+  /** The focus pass paused on a retryable error (ADR-0041): the Focus sheet says so, not "waiting". */
+  focusPaused: boolean;
+  /** The Focus sheet's "Try again"/"Look again at all" buttons. */
+  onLookAgain: (pictureIds: readonly string[]) => void;
 }

@@ -4,8 +4,10 @@
   import type { ExportMenuState } from "../../glissando-file/export-menu";
   import { getTranslator } from "../../i18n/context";
   import type { SlideshowStorage, StorageAction } from "../view-models";
+  import type { FocusMenuHint } from "./focus-menu-hint";
 
-  /** The header's ⋯ button and its menu: every export of the slideshow, then storage and delete. */
+  /** The header's ⋯ button and its menu: every export of the slideshow, then focus, storage and
+   * delete. */
   let {
     exportState,
     onExport,
@@ -16,6 +18,8 @@
     storage = null,
     pictureCount,
     onStorageAction,
+    focusHint,
+    onFocus,
   }: {
     exportState: ExportMenuState;
     onExport: () => void;
@@ -30,12 +34,27 @@
     storage?: SlideshowStorage | null;
     pictureCount: number;
     onStorageAction: (action: StorageAction) => void;
+    /** The Focus entry's hint line (ADR-0041). */
+    focusHint: FocusMenuHint;
+    /** Opens the Focus sheet. */
+    onFocus: () => void;
   } = $props();
 
   const onServer = $derived(storage?.kind === "server");
 
   const PERCENT = 100;
   const { t, formatBytes } = getTranslator();
+
+  const focusHintText = $derived(
+    focusHint.kind === "looking"
+      ? t(focusHint.again ? "slideshow.focusLookingAgain" : "slideshow.focusLooking", {
+          done: focusHint.done,
+          total: focusHint.total,
+        })
+      : focusHint.kind === "failed"
+        ? t("slideshow.focusFailedHint", { count: focusHint.count })
+        : t("slideshow.focusDone"),
+  );
 
   let open = $state(false);
   let toggle = $state<HTMLButtonElement>();
@@ -139,6 +158,14 @@
         </span>
       </button>
       <hr />
+      <button class="item two-line" type="button" role="menuitem" onclick={() => choose(onFocus)}>
+        <Icon name="search" />
+        <span class="text">
+          {t("slideshow.focus")}
+          <small>{focusHintText}</small>
+        </span>
+      </button>
+      <hr />
       {#if storage?.kind === "server"}
         <button
           class="item two-line"
@@ -166,9 +193,7 @@
           </span>
         </button>
       {/if}
-      {#if storage !== null}
-        <hr />
-      {/if}
+      <hr />
       <button
         class="item danger"
         class:two-line={onServer}

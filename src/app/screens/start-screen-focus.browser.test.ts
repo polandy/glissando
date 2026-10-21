@@ -26,6 +26,7 @@ function mountStart(focusSearches: ReadonlyMap<string, SlideshowSearch>) {
   const props = reactiveProps({
     slideshows: [summary("lake", "Sommer am See"), summary("hike", "Wanderung Allgäu")],
     focusSearches,
+    serverFocusSearches: new Map(),
     onCreate: () => {},
     onOpen: (slideshowId: string) => opened.push(slideshowId),
     onSettings: () => {},
@@ -55,7 +56,9 @@ const card = (target: HTMLElement, title: string): HTMLButtonElement => {
 
 describe("StartScreen, the background search for subjects", () => {
   it("tells on a slideshow's card how far the search is, with a progress hairline", () => {
-    const { target } = mountStart(new Map([["lake", { done: 12, total: 40, again: false }]]));
+    const { target } = mountStart(
+      new Map([["lake", { done: 12, total: 40, again: false, failed: 0 }]]),
+    );
 
     const lake = card(target, "Sommer am See");
     expect(lake.textContent).toContain("Motive werden gesucht · 12 von 40");
@@ -67,7 +70,7 @@ describe("StartScreen, the background search for subjects", () => {
 
   it("keeps a searched slideshow's card usable", () => {
     const { target, opened } = mountStart(
-      new Map([["lake", { done: 12, total: 40, again: false }]]),
+      new Map([["lake", { done: 12, total: 40, again: false, failed: 0 }]]),
     );
 
     card(target, "Sommer am See").click();
@@ -77,7 +80,7 @@ describe("StartScreen, the background search for subjects", () => {
 
   it("drops the line once the search is done with the slideshow", () => {
     const { target, props } = mountStart(
-      new Map([["lake", { done: 39, total: 40, again: false }]]),
+      new Map([["lake", { done: 39, total: 40, again: false, failed: 0 }]]),
     );
 
     props.focusSearches = new Map();
@@ -85,5 +88,35 @@ describe("StartScreen, the background search for subjects", () => {
 
     expect(card(target, "Sommer am See").textContent).toContain("40 Bilder");
     expect(card(target, "Sommer am See").querySelector('[role="progressbar"]')).toBeNull();
+  });
+
+  it("says a slideshow is being looked at again, with its own line", () => {
+    const { target } = mountStart(
+      new Map([["lake", { done: 5, total: 40, again: true, failed: 0 }]]),
+    );
+
+    expect(card(target, "Sommer am See").textContent).toContain(
+      "Motive werden erneut gesucht · 5 von 40",
+    );
+  });
+
+  it("says how many pictures couldn't be looked at once the search has moved on, not a progress bar", () => {
+    const { target } = mountStart(
+      new Map([["lake", { done: 0, total: 0, again: false, failed: 3 }]]),
+    );
+
+    const lake = card(target, "Sommer am See");
+    expect(lake.textContent).toContain("3 Bilder konnten nicht angesehen werden");
+    expect(lake.querySelector('[role="progressbar"]')).toBeNull();
+  });
+
+  it("uses the singular for exactly one picture that couldn't be looked at", () => {
+    const { target } = mountStart(
+      new Map([["lake", { done: 0, total: 0, again: false, failed: 1 }]]),
+    );
+
+    expect(card(target, "Sommer am See").textContent).toContain(
+      "1 Bild konnte nicht angesehen werden",
+    );
   });
 });

@@ -6,24 +6,32 @@
   let { search }: { search: SlideshowSearch } = $props();
 
   const { t } = getTranslator();
-  const label = $derived(t("start.searchingSubjects"));
+  // Still pending pictures: a progress line. Done but some failed: that count, no bar. Else: nothing.
+  const searching = $derived(search.done < search.total);
+  const label = $derived(t(search.again ? "start.searchingAgain" : "start.searchingSubjects"));
 </script>
 
-<span class="search">
-  <span class="line">
-    {label} · {t("start.searchProgress", { done: search.done, total: search.total })}
+{#if searching}
+  <span class="search">
+    <span class="line">
+      {label} · {t("start.searchProgress", { done: search.done, total: search.total })}
+    </span>
+    <span
+      class="hairline"
+      role="progressbar"
+      aria-label={label}
+      aria-valuemin={0}
+      aria-valuemax={search.total}
+      aria-valuenow={search.done}
+    >
+      <i style:width="{(search.done / search.total) * 100}%"></i>
+    </span>
   </span>
-  <span
-    class="hairline"
-    role="progressbar"
-    aria-label={label}
-    aria-valuemin={0}
-    aria-valuemax={search.total}
-    aria-valuenow={search.done}
-  >
-    <i style:width="{(search.done / search.total) * 100}%"></i>
+{:else if search.failed > 0}
+  <span class="search">
+    <span class="line">{t("start.focusFailed", { count: search.failed })}</span>
   </span>
-</span>
+{/if}
 
 <style>
   .search {

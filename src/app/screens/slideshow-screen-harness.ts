@@ -1,5 +1,4 @@
 /** Shared set-up of the `SlideshowScreen` browser tests. */
-import { flushSync } from "svelte";
 import type { SlideshowTransition } from "../../library/own-timing";
 import type { ResolvedPortraitPictures } from "../../library/portrait-pictures";
 import type { StoredCard } from "../../library/stored-slideshow";
@@ -13,6 +12,8 @@ import type { ExportMenuState } from "../glissando-file/export-menu";
 import type { SlideshowDetails, SlideshowStorage, StorageAction } from "./view-models";
 import { createTranslator } from "../i18n/translator";
 import type { ServerSlideshowRows } from "../server-library/server-slideshow-sessions";
+import { NO_FOCUS_KNOWN, type PicturesFocus } from "../focus/pictures-focus";
+import type { SlideshowSearch } from "../../library/focus-pass";
 
 /** The title slide a bare `ensureOpeningCard` call creates, for tests that don't care about it. */
 const DEFAULT_OPENING_CARD: StoredCard = {
@@ -111,6 +112,9 @@ export function mountScreen(
     newPictureIds = new Set<string>(),
     storage = null as SlideshowStorage | null,
     serverRows = null as ServerSlideshowRows | null,
+    focus = NO_FOCUS_KNOWN as PicturesFocus,
+    focusSearch = undefined as SlideshowSearch | undefined,
+    focusPaused = false,
     english = false,
   } = {},
 ) {
@@ -142,6 +146,7 @@ export function mountScreen(
     closingCardsRemoved: 0,
     loaded: [] as string[],
     errors: [] as unknown[],
+    lookAgain: [] as string[][],
   };
   // The transitions sheet's picks and resets come back as the parent would show them.
   const props = reactiveProps({
@@ -228,6 +233,10 @@ export function mountScreen(
     storage,
     serverRows,
     onStorageAction: (action: StorageAction) => calls.storageActions.push(action),
+    focus,
+    focusSearch,
+    focusPaused,
+    onLookAgain: (pictureIds: readonly string[]) => calls.lookAgain.push([...pictureIds]),
   });
   const mounted = mountWithTranslator(
     SlideshowScreen,
@@ -238,63 +247,12 @@ export function mountScreen(
   return { target: mounted.target, calls, clock, frames, holdScheduler, dragFrames };
 }
 
-export function byLabel<T extends HTMLElement = HTMLButtonElement>(label: string): T {
-  const found = document.querySelector<T>(`[aria-label="${label}"]`);
-  if (found === null) {
-    throw new Error(`nothing labelled "${label}"`);
-  }
-  return found;
-}
-
-export function buttonNamed(name: string): HTMLButtonElement {
-  const found = [...document.querySelectorAll("button")].find(
-    (button) => button.textContent?.trim() === name,
-  );
-  if (found === undefined) {
-    throw new Error(`no button named "${name}"`);
-  }
-  return found;
-}
-
-/** A tile's button, named by its picture's description. */
-export function tile(number: number, date: string): HTMLButtonElement {
-  const picture = document.querySelector(`img[alt="Bild ${number}, aufgenommen am ${date}"]`);
-  const button = picture?.closest("button");
-  if (button === null || button === undefined) {
-    throw new Error(`no tile for picture ${number}`);
-  }
-  return button;
-}
-/** The selection bar, by its toolbar name: it holds one picture or several. */
-export const selectionBar = () => document.querySelector('[role="toolbar"][aria-label="Auswahl"]');
-
-export function press(target: HTMLElement, key: string, shiftKey = false): void {
-  target.dispatchEvent(new KeyboardEvent("keydown", { key, shiftKey, bubbles: true }));
-  flushSync();
-}
-
-export function click(
-  target: HTMLElement,
-  modifiers: { ctrlKey?: boolean; shiftKey?: boolean } = {},
-): void {
-  target.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, ...modifiers }));
-  flushSync();
-}
-
-/** A tile's drag, by mouse or touch (ADR-0019): `pointerdown` bubbles from its `.pick` button. */
-export function firePointer(
-  target: EventTarget,
-  type: "pointerdown" | "pointermove" | "pointerup" | "pointercancel",
-  { x = 0, y = 0, pointerType = "mouse" as "mouse" | "touch" } = {},
-): void {
-  target.dispatchEvent(
-    new PointerEvent(type, {
-      bubbles: true,
-      cancelable: true,
-      clientX: x,
-      clientY: y,
-      pointerType,
-    }),
-  );
-  flushSync();
-}
+export {
+  byLabel,
+  buttonNamed,
+  tile,
+  selectionBar,
+  press,
+  click,
+  firePointer,
+} from "./slideshow-screen-dom";

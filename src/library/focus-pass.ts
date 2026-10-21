@@ -119,7 +119,7 @@ export class FocusPass {
         this.#publish({ running: false });
       } else {
         this.#queue.reset();
-        this.#publish({ running: false, slideshows: new Map(), searching: new Set() });
+        this.#publish({ running: false, ...this.#queue.progressSnapshot() });
       }
     }
   }
@@ -266,8 +266,10 @@ export class FocusPass {
     const next = new Set(this.#state.failed);
     if (failed) {
       next.add(pictureId);
+      this.#queue.recordFailed(pictureId);
     } else {
       next.delete(pictureId);
+      this.#queue.clearFailed(pictureId);
     }
     this.#publish({ failed: next });
   }

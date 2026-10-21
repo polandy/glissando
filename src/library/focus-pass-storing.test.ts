@@ -62,8 +62,8 @@ describe("FocusPass, storing what the detector finds", () => {
     expect(pass.state.running).toBe(true);
     expect(pass.state.slideshows).toEqual(
       new Map([
-        ["show-1", { done: 0, total: 2, again: false }],
-        ["show-2", { done: 0, total: 1, again: false }],
+        ["show-1", { done: 0, total: 2, again: false, failed: 0 }],
+        ["show-2", { done: 0, total: 1, again: false, failed: 0 }],
       ]),
     );
     held.release();

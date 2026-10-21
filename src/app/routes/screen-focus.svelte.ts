@@ -1,4 +1,4 @@
-import type { FocusPass, FocusPassState } from "../../library/focus-pass";
+import type { FocusPass, FocusPassState, SlideshowSearch } from "../../library/focus-pass";
 import type { PictureFocus } from "../../library/picture-focus";
 import type { StoredSlideshow } from "../../library/stored-slideshow";
 import { bareFocus, NO_FOCUS_KNOWN, outdatedIds, picturesFocus } from "../focus/pictures-focus";
@@ -31,6 +31,16 @@ export class ScreenFocus {
   /** Read inside a `$derived`, which keeps it until either part changes. */
   get current() {
     return picturesFocus(this.#stored, this.#passState, this.#outdated);
+  }
+
+  /** The pass ended on a `pausesOn` error (ADR-0041): the picture editor says so, not "waiting". */
+  get passPaused(): boolean {
+    return this.#passState.paused;
+  }
+
+  /** This slideshow's progress in the background pass, for its Focus menu entry and sheet. */
+  search(slideshowId: string): SlideshowSearch | undefined {
+    return this.#passState.slideshows.get(slideshowId);
   }
 
   /** Follows the pass; returns the unsubscribe. */

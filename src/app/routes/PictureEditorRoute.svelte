@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onDestroy } from "svelte";
   import type { BeatPass } from "../../library/beat-pass";
+  import type { FocusPass } from "../../library/focus-pass";
   import { MediaQuery } from "svelte/reactivity";
   import type { LibraryStore, StoredSlideshow } from "../../library/stored-slideshow";
   import { animationFrames, performanceClock } from "../../player";
@@ -20,6 +21,8 @@
     store,
     stored,
     focus,
+    focusPass,
+    passPaused,
     beatPass,
     editor,
     pictureId,
@@ -34,6 +37,10 @@
     stored: StoredSlideshow;
     /** The pictures' focus, updated as the background pass finds it. */
     focus: PicturesFocus;
+    /** "Look again" asks it to look at one picture again; never touches Ken Burns (ADR-0041). */
+    focusPass: Pick<FocusPass, "lookAgain">;
+    /** The pass ended on a `pausesOn` error: the focus line says so, not "waiting". */
+    passPaused: boolean;
     /** What it finds puts the automatic changes on the music's beats as it goes. */
     beatPass: Pick<BeatPass, "subscribe" | "listenFor">;
     editor: SlideshowEditor;
@@ -91,7 +98,9 @@
   );
 
   const present = $derived(stored.pictures.some((picture) => picture.id === pictureId));
-  const view = $derived(present ? pictureEditorView(stored, pictureId, focus, songBeats) : null);
+  const view = $derived(
+    present ? pictureEditorView(stored, pictureId, focus, songBeats, passPaused) : null,
+  );
   // The neighbours load ahead, so ‹ and › show their picture at once.
   $effect(() =>
     pictures.sync(
@@ -169,6 +178,7 @@
       onTransition={(choice) => editor.setTransition(view.id, choice)}
       onResetTransition={() => editor.resetTransition(view.id)}
       onAlone={(alone) => editor.setPictureAlone(view.id, alone)}
+      onLookAgain={() => focusPass.lookAgain([view.id])}
       previewPorts={{ clock: performanceClock, frames: animationFrames }}
       reducedMotion={reducedMotion.current}
       {saving}

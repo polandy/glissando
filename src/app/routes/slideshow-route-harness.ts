@@ -52,7 +52,7 @@ export async function storeWithShow(): Promise<MemoryLibraryStore> {
 /** The slideshow route on `SHOW`, with the picture editor open on `editingPictureId`. */
 export function mountRoute(
   store: MemoryLibraryStore,
-  focusPass: Pick<FocusPass, "state" | "subscribe">,
+  focusPass: Pick<FocusPass, "state" | "subscribe" | "lookAgain">,
   editingPictureId: string | null,
 ) {
   const errors: unknown[] = [];

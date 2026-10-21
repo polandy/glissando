@@ -130,7 +130,6 @@
 
   // svelte-ignore state_referenced_locally
   const actions = createAppActions(services, t, (sheet) => (pwaSheet = sheet));
-
   // svelte-ignore state_referenced_locally
   const serverMemory = services.serverLibrary.memory;
   let rememberedHome = $state<SlideshowHome>(serverMemory.newSlideshowHome());
@@ -158,6 +157,7 @@
     {store}
     serverLibrary={services.serverLibrary}
     focusPass={services.focusPass}
+    serverFocusPass={services.serverFocusPass}
     playStartAnimation={logoPlays}
     onError={reportError}
     onCreate={() => importFlow.open()}

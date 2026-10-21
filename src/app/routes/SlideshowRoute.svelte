@@ -166,6 +166,8 @@
     {store}
     {stored}
     {focus}
+    {focusPass}
+    passPaused={screenFocus.passPaused}
     {beatPass}
     {editor}
     pictureId={editingPictureId}
@@ -231,6 +233,10 @@
     {storage}
     serverRows={screenStorage.serverRows}
     onStorageAction={screenStorage.act}
+    {focus}
+    focusSearch={screenFocus.search(slideshowId)}
+    focusPaused={screenFocus.passPaused}
+    onLookAgain={(pictureIds) => focusPass.lookAgain(pictureIds)}
   />
 {/if}
 {#if playing && stored !== null}

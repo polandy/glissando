@@ -35,6 +35,8 @@ export interface SlideshowSearch {
   readonly total: number;
   /** Every one of them already had a stored focus (outdated, or asked again): "looking again". */
   readonly again: boolean;
+  /** This slideshow's pictures still in `FocusPassState.failed`; outlives the pass taking it up. */
+  readonly failed: number;
 }
 
 export interface FocusPassState {

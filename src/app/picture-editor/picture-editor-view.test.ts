@@ -61,6 +61,7 @@ describe("pictureEditorView", () => {
       motion: { from: automatic.from, to: automatic.to },
       ownMotion: false,
       focus: { kind: "not-looked-at" },
+      focusLine: { status: "waiting", ownMotion: false, resultKind: null },
       durationMs: 4000,
       ownDuration: false,
       durationBasis: { kind: "seconds-per-picture", automaticMs: 4000 },

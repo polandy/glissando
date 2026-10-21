@@ -46,9 +46,13 @@ through `serializeFocusDetector` so the two never detect at once
 (`dev-docs/server_library/FOCUS.md`).
 
 Its state, with the Svelte store contract: `running`; `paused`, set by a `pausesOn` pause; per
-slideshow with pictures left, `done` of `total` (those it had no current focus for when taken up)
-and `again` (true once every one of them already had a record — outdated, or asked again through
-`lookAgain`); `searching`, the pictures still to come; `found`, every focus it stored since the
-app opened; and `failed`, the pictures whose detection failed this session. The slideshow screen
-merges `found` into the focus it read on opening, so the editors' automatic motions and focus
-marks follow at once.
+slideshow with pictures left, `done` of `total` (those it had no current focus for when taken up),
+`again` (true once every one of them already had a record — outdated, or asked again through
+`lookAgain`) and `failed` (this slideshow's pictures still in `FocusPassState.failed`); `searching`,
+the pictures still to come; `found`, every focus it stored since the app opened; and `failed`, the
+pictures whose detection failed this session. A slideshow's `failed` count outlives the pass taking
+it up — once every one of its pictures is taken up, it keeps reporting its failures with `done` and
+`total` both 0, for the start card and the Focus sheet to still show them — and is only cleared
+picture by picture, as each failure is looked at again and succeeds. The slideshow screen merges
+`found` into the focus it read on opening, so the editors' automatic motions and focus marks follow
+at once.

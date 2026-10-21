@@ -2,7 +2,16 @@
   import { cubicOut } from "svelte/easing";
   import type { TransitionConfig } from "svelte/transition";
   import { getTranslator } from "../i18n/context";
+  import type { MessageKey } from "../i18n/messages";
+  import type { SubjectFinder } from "../../library/picture-focus";
   import type { FocusIndication } from "./focus-indication";
+
+  /** The chip and aria-label the marker shows, by what found the subject. */
+  const MARKER_TEXT = {
+    face: { chip: "editor.focusChipFace", aria: "editor.focusMarkerFace" },
+    object: { chip: "editor.focusChipSubject", aria: "editor.focusMarkerSubject" },
+    "immich-faces": { chip: "editor.focusChipImmich", aria: "editor.focusMarkerImmich" },
+  } as const satisfies Record<SubjectFinder, { chip: MessageKey; aria: MessageKey }>;
 
   /**
    * Accent corner brackets around the subject box the automatic motion aims at, with a small
@@ -55,14 +64,14 @@
     style:width={percent(marker.box.width)}
     style:height={percent(marker.box.height)}
     role="img"
-    aria-label={t("editor.focusMarker")}
+    aria-label={t(MARKER_TEXT[marker.foundBy].aria)}
     in:settle
   >
     <i class="corner top-left"></i>
     <i class="corner top-right"></i>
     <i class="corner bottom-left"></i>
     <i class="corner bottom-right"></i>
-    <span class="chip">{t("editor.focusChip")}</span>
+    <span class="chip">{t(MARKER_TEXT[marker.foundBy].chip)}</span>
   </div>
 {/if}
 
