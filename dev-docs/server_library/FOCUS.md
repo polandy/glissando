@@ -27,7 +27,8 @@ The pass starts once the server library's own availability first answers **on**
 (`ServerLibraryAvailability.subscribe`, which replays its current state at once) — covering both
 app open and coming back from **offline** — and again right after a slideshow is created or saved
 on the server. It never starts on the frame route: a kiosk showing one album has no library to
-search. `pausesOn` ends it quietly, resumable on the next start, for `ServerLibraryUnavailableError`
+search. An app opened on the frame starts it once it leaves the frame for its own screens, if the
+server library is on (`followServerFocusStart`). `pausesOn` ends it quietly, resumable on the next start, for `ServerLibraryUnavailableError`
 and `ImmichUnavailableError` — the server or Immich being unreachable, not a single picture's
 detection failing.
 

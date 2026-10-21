@@ -7,6 +7,7 @@ import { ServerLibraryUnavailableError } from "../server-library/server-library-
 import { serverDetectionInput } from "../server-library/server-focus-detection";
 import type { ServerLibrary } from "../server-library/server-library";
 import type { Navigator } from "./navigation/navigator";
+import { followServerFocusStart } from "./server-focus-start";
 
 export interface ServerFocusPassOptions {
   readonly serverLibrary: ServerLibrary;
@@ -30,9 +31,8 @@ export interface ServerFocusPassResult {
 
 /**
  * The server's own background focus pass (ADR-0041, `dev-docs/server_library/FOCUS.md`): starts
- * once the server library is reachable (covering both app open and coming back from "offline"),
- * and again right after a slideshow is created or saved on the server; never on the frame route,
- * a kiosk showing one album having no library to search.
+ * as `followServerFocusStart` says, and again right after a slideshow is created or saved on the
+ * server; never on the frame route, a kiosk showing one album having no library to search.
  */
 export function startServerFocusPass(options: ServerFocusPassOptions): ServerFocusPassResult {
   const { serverLibrary, detector, navigator, immich, reportUnavailable, log, reportError } =
@@ -60,10 +60,10 @@ export function startServerFocusPass(options: ServerFocusPassOptions): ServerFoc
   const startIfAllowed = (): void => {
     if (navigator.route.screen !== "frame") serverFocusPass.start();
   };
-  // Replays the current state at once, so this alone covers both "starts on app open" and
-  // "resumes after offline".
-  serverLibrary.availability.subscribe((state) => {
-    if (state.kind === "on") startIfAllowed();
+  followServerFocusStart({
+    availability: serverLibrary.availability,
+    navigator,
+    start: () => serverFocusPass.start(),
   });
 
   return {
