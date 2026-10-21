@@ -41,7 +41,7 @@ test("E2E-028 the automatic motion's focus is found in the background: a face is
   // The background focus pass detects pictures one at a time; no fixed bound on how long
   // picture 1's turn in the queue takes under load, so wait for it rather than guess.
   await expect(marker).toBeVisible({ timeout: 0 });
-  await expect(marker).toContainText("Fokus");
+  await expect(marker).toContainText("Gesicht");
 
   await page.locator(".frame.active").press("+");
   await expect(state).toHaveText("Eigene Bewegung");
