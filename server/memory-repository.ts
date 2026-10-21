@@ -1,11 +1,17 @@
 import type { MusicBeats } from "../src/beats/music-beats";
 import type { MusicLoudness } from "../src/loudness/measure-loudness";
+import type { StoredFocus } from "../src/library/picture-focus";
 import type {
   LibraryRepository,
   MusicRecord,
   ShareLink,
   SlideshowRecord,
 } from "./library-repository";
+
+interface PictureFocusEntry {
+  readonly stored: StoredFocus;
+  readonly foundAt: number;
+}
 
 /** A `LibraryRepository` in memory, for the handler's tests. */
 export function createMemoryRepository(): LibraryRepository {
@@ -15,10 +21,16 @@ export function createMemoryRepository(): LibraryRepository {
   let musicBeats = new Map<string, MusicBeats>();
   let musicLoudness = new Map<string, MusicLoudness>();
   let shareLinks = new Map<string, ShareLink>();
+  let pictureFocus = new Map<string, PictureFocusEntry>();
 
   const isMusicReferenced = (id: string): boolean =>
     [...slideshows.values()].some(({ document }) =>
       document.slideshow.songs.some((song) => song.musicId === id),
+    );
+
+  const isPictureReferenced = (id: string): boolean =>
+    [...slideshows.values()].some(({ document }) =>
+      document.slideshow.pictures.some((picture) => picture.immichAssetId === id),
     );
 
   return {
@@ -29,6 +41,7 @@ export function createMemoryRepository(): LibraryRepository {
         musicBeats: new Map(musicBeats),
         musicLoudness: new Map(musicLoudness),
         shareLinks: new Map(shareLinks),
+        pictureFocus: new Map(pictureFocus),
       };
       try {
         return work();
@@ -38,6 +51,7 @@ export function createMemoryRepository(): LibraryRepository {
         musicBeats = before.musicBeats;
         musicLoudness = before.musicLoudness;
         shareLinks = before.shareLinks;
+        pictureFocus = before.pictureFocus;
         throw error;
       }
     },
@@ -97,5 +111,27 @@ export function createMemoryRepository(): LibraryRepository {
       [...music.values()]
         .filter(({ id, uploadedAt }) => uploadedAt < time && !isMusicReferenced(id))
         .map(({ id }) => id),
+    findPictureFocus(assetIds) {
+      const found = new Map<string, StoredFocus>();
+      for (const id of assetIds) {
+        const entry = pictureFocus.get(id);
+        if (entry !== undefined) {
+          found.set(id, entry.stored);
+        }
+      }
+      return found;
+    },
+    putPictureFocus(id, stored, foundAt) {
+      const current = pictureFocus.get(id);
+      if (current !== undefined && current.stored.detector > stored.detector) {
+        return "newerKept";
+      }
+      pictureFocus.set(id, { stored, foundAt });
+      return "stored";
+    },
+    isPictureReferenced,
+    deletePictureFocus(id) {
+      pictureFocus.delete(id);
+    },
   };
 }

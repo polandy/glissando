@@ -17,6 +17,9 @@ app and the server):
 A picture has no `video`: a server slideshow holds no video slides, because the server keeps no
 clip (ADR-0034), and a document with a `video` is invalid like any unknown key.
 
+A picture's focus (ADR-0041) is not part of this document: it is kept beside it, in `picture_focus`
+keyed by `immichAssetId`, so a device can replace it without touching the slideshow's revision.
+
 It is read as strictly as the manifest, with the same field checks (one implementation, shared
 with `read-manifest.ts`): an unknown key, a value out of range, a missing `immichAssetId` or two
 pictures with the same one make it invalid; the reason names the path and value. A picture's

@@ -3,6 +3,8 @@ import type { MusicBeats } from "../src/beats/music-beats";
 import { parseMusicBeats } from "../src/beats/music-beats-json";
 import type { MusicLoudness } from "../src/loudness/measure-loudness";
 import { musicLoudnessToJson, parseMusicLoudness } from "../src/loudness/music-loudness-json";
+import type { StoredFocus } from "../src/library/picture-focus";
+import { readStoredFocus } from "../src/library/read-stored-focus";
 import { readServerDocument } from "../src/server-library/server-document";
 import type { LibraryRepository, MusicRecord, SlideshowRecord } from "./library-repository";
 
@@ -35,10 +37,20 @@ const SCHEMA = `
     token TEXT NOT NULL UNIQUE,
     created_at INTEGER NOT NULL
   );
+  CREATE TABLE IF NOT EXISTS picture_focus (
+    asset_id TEXT PRIMARY KEY,
+    detector INTEGER NOT NULL,
+    focus TEXT NOT NULL,
+    found_at INTEGER NOT NULL
+  );
   -- Every musicId the playlist's songs name (ADR-0023).
   CREATE VIEW IF NOT EXISTS document_music_ids AS
     SELECT json_extract(je.value, '$.musicId') AS music_id
     FROM slideshows, json_each(slideshows.document, '$.slideshow.songs') AS je;
+  -- Every immichAssetId a slideshow's pictures name (ADR-0041).
+  CREATE VIEW IF NOT EXISTS document_picture_asset_ids AS
+    SELECT json_extract(je.value, '$.immichAssetId') AS asset_id
+    FROM slideshows, json_each(slideshows.document, '$.slideshow.pictures') AS je;
 `;
 const SLIDESHOW_COLUMNS = "id, revision, created_at, document";
 
@@ -100,6 +112,19 @@ export function openSqliteRepository(
   const unreferencedMusic = statement(
     `SELECT id FROM music WHERE uploaded_at < ? AND id NOT IN (SELECT music_id FROM document_music_ids)
      ORDER BY uploaded_at, id`,
+  );
+  const findPictureFocusOne = statement(
+    "SELECT detector, focus FROM picture_focus WHERE asset_id = ?",
+  );
+  const putPictureFocusStatement = statement(
+    `INSERT INTO picture_focus (asset_id, detector, focus, found_at) VALUES (?, ?, ?, ?)
+       ON CONFLICT (asset_id) DO UPDATE SET detector = excluded.detector, focus = excluded.focus,
+         found_at = excluded.found_at
+       WHERE excluded.detector >= picture_focus.detector`,
+  );
+  const deletePictureFocusStatement = statement("DELETE FROM picture_focus WHERE asset_id = ?");
+  const pictureReference = statement(
+    "SELECT 1 FROM document_picture_asset_ids WHERE asset_id = ?",
   );
 
   return {
@@ -185,6 +210,29 @@ export function openSqliteRepository(
     isMusicReferenced: (id) => musicReference.get(id) !== undefined,
     unreferencedMusicUploadedBefore: (time) =>
       unreferencedMusic.all(time).map((row) => text(row, "id")),
+    findPictureFocus(assetIds) {
+      const found = new Map<string, StoredFocus>();
+      for (const assetId of assetIds) {
+        const row = findPictureFocusOne.get(assetId);
+        if (row !== undefined) {
+          found.set(assetId, storedFocusOf(row, assetId));
+        }
+      }
+      return found;
+    },
+    putPictureFocus(id, stored, foundAt) {
+      const info = putPictureFocusStatement.run(
+        id,
+        stored.detector,
+        JSON.stringify(stored.focus),
+        foundAt,
+      );
+      return info.changes > 0 ? "stored" : "newerKept";
+    },
+    isPictureReferenced: (id) => pictureReference.get(id) !== undefined,
+    deletePictureFocus(id) {
+      deletePictureFocusStatement.run(id);
+    },
   };
 }
 
@@ -229,6 +277,22 @@ function musicLoudnessOf(row: Row): MusicLoudness {
   } catch (error) {
     throw new Error(
       `database column loudness holds ${stored}, not valid MusicLoudness: ${(error as Error).message}`,
+      { cause: error },
+    );
+  }
+}
+
+function storedFocusOf(row: Row, assetId: string): StoredFocus {
+  const stored = text(row, "focus");
+  try {
+    // What the database holds was validated on the way in; reading it again fails loud on damage.
+    return readStoredFocus(
+      { focus: JSON.parse(stored), detector: integer(row, "detector") },
+      "picture_focus",
+    );
+  } catch (error) {
+    throw new Error(
+      `database row picture_focus for asset ${assetId} holds ${stored}, not valid StoredFocus: ${(error as Error).message}`,
       { cause: error },
     );
   }

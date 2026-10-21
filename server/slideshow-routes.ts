@@ -50,6 +50,20 @@ export function slideshowRoutes({ repository, now, newId }: LibraryHandlerDepend
     }
   };
 
+  /**
+   * Deletes the stored focus of every picture `before` named that no slideshow names any more
+   * (ADR-0041): unlike music, a dropped picture's asset id is gone for good, so its focus goes
+   * with it, no grace period.
+   */
+  const releaseUnreferencedPictureFocus = (before: ServerDocument, after?: ServerDocument): void => {
+    const afterIds = new Set(after?.slideshow.pictures.map((picture) => picture.immichAssetId) ?? []);
+    for (const { immichAssetId } of before.slideshow.pictures) {
+      if (!afterIds.has(immichAssetId) && !repository.isPictureReferenced(immichAssetId)) {
+        repository.deletePictureFocus(immichAssetId);
+      }
+    }
+  };
+
   /** A slideshow as its GETs answer it: the version and its share link (SHARE_LINK.md). */
   const asListed = (record: SlideshowRecord) => ({
     ...asVersion(record),
@@ -118,6 +132,7 @@ export function slideshowRoutes({ repository, now, newId }: LibraryHandlerDepend
         const revision = current.revision + 1;
         repository.updateSlideshow(id, revision, document);
         releaseUnreferencedMusic(current.document, document);
+        releaseUnreferencedPictureFocus(current.document, document);
         return jsonResponse(HTTP_STATUS.ok, { revision });
       });
     },
@@ -130,6 +145,7 @@ export function slideshowRoutes({ repository, now, newId }: LibraryHandlerDepend
         }
         repository.deleteSlideshow(id);
         releaseUnreferencedMusic(current.document);
+        releaseUnreferencedPictureFocus(current.document);
         return { status: HTTP_STATUS.noContent, headers: {}, body: "" };
       });
     },
