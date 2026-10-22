@@ -26,8 +26,10 @@ type PictureChangesState =
       readonly onTheBeat: boolean;
       /**
        * The positions (from 1) of the pictures with an own duration whose change still can fall
-       * between beats: filling the music, with no automatic picture left after it to take up the
-       * difference: empty unless on the beat.
+       * between beats: filling the music, with an automatic picture somewhere but none left after
+       * it to take up the difference. Empty unless on the beat, and also empty with no automatic
+       * picture anywhere, where every own duration moves about its own length instead
+       * (`snapToBeats`).
        */
       readonly ownDurationNumbers: readonly number[];
     };
