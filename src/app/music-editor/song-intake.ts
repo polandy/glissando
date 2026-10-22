@@ -235,6 +235,10 @@ export class SongIntake {
         sampleMediaId(track.id),
         result.kind === "onDevice",
       );
+      if (signal.aborted) {
+        await audio.release();
+        return;
+      }
       const song: StoredMusic = {
         id: audio.id,
         fileName: result.file.name,

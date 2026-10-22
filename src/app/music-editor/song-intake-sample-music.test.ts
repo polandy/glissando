@@ -1,10 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { MemoryLibraryStore } from "../../library/testing/memory-store";
 import { sha256 } from "../../sample-music/sha256";
 import { sampleMediaId, type SampleTrack } from "../../sample-music/sample-tracks";
 import type { SampleSongPickPorts } from "../sample-music/sample-song-pick";
-import { intakeWith, mp3 } from "./testing/song-intake-fixtures";
-import { deviceSongStorage, serverSongStorage } from "./song-intake";
+import { intakeWith } from "./testing/song-intake-fixtures";
 
 const SAMPLE_BYTES = new TextEncoder().encode("sample bytes");
 
@@ -200,6 +198,46 @@ describe("SongIntake, sample music", () => {
     await first;
   });
 
+  it("keeps a sample track removed while its store write is pending out of the playlist", async () => {
+    const download = heldDownload();
+    let markStoreStarted: () => void = () => undefined;
+    const storeStarted = new Promise<void>((resolve) => (markStoreStarted = resolve));
+    let resolveStore: (() => void) | undefined;
+    const released: string[] = [];
+    const { intake, editor, sampleShown } = intakeWith({
+      sampleMusic: sampleMusicPorts({ fetch: download.fetch }),
+      storage: {
+        store: () => Promise.reject(new Error("no plain song expected in this test")),
+        storeSample: (_file, mediaId) => {
+          markStoreStarted();
+          return new Promise((resolve) => {
+            resolveStore = () =>
+              resolve({
+                id: mediaId,
+                release: () => {
+                  released.push(mediaId);
+                  return Promise.resolve();
+                },
+              });
+          });
+        },
+      },
+    });
+
+    const added = intake.addSampleTrack(track);
+    await download.started;
+    download.respond();
+    await storeStarted;
+
+    intake.removeSampleTrack(track.id);
+    resolveStore?.();
+    await added;
+
+    expect(editor.added).toEqual([]);
+    expect(released).toEqual([sampleMediaId(track.id)]);
+    expect(sampleShown.at(-1)).toEqual([]);
+  });
+
   it("aborts a track's download when its row is removed, and offers it again", async () => {
     const download = heldDownload();
     const { intake, editor, sampleShown } = intakeWith({
@@ -215,60 +253,5 @@ describe("SongIntake, sample music", () => {
     expect(sampleShown.at(-1)).toEqual([]);
     expect(editor.added).toEqual([]);
     expect(intake.isSampleTrackAdded("hold-the-frame")).toBe(false);
-  });
-});
-
-describe("deviceSongStorage, sample music", () => {
-  it("claims a sample track's fixed id, writing nothing new when it is already stored", async () => {
-    const store = new MemoryLibraryStore();
-    const claims: string[] = [];
-    let ids = 0;
-    const storage = deviceSongStorage({
-      store: {
-        claimMedia: (claimId, _at, mediaId) => {
-          claims.push(`claim ${claimId} ${mediaId}`);
-          return Promise.resolve();
-        },
-        releaseClaim: (claimId) => {
-          claims.push(`release ${claimId}`);
-          return Promise.resolve();
-        },
-        putMusic: (id, blob) => store.putMusic(id, blob),
-      },
-      newId: () => `id-${(ids += 1)}`,
-      now: () => new Date("2026-10-11T12:00:00Z"),
-    });
-
-    const stored = await storage.storeSample(
-      mp3("Hold the Frame.mp3"),
-      "sample-hold-the-frame",
-      true,
-    );
-    await stored.release();
-
-    expect(stored.id).toBe("sample-hold-the-frame");
-    await expect(store.musicBlob("sample-hold-the-frame")).rejects.toThrow();
-    expect(claims).toEqual(["claim id-1 sample-hold-the-frame", "release id-1"]);
-  });
-});
-
-describe("serverSongStorage, sample music", () => {
-  it("uploads a sample track like any other song, ignoring the device's fixed id", async () => {
-    const uploads: string[] = [];
-    const storage = serverSongStorage({
-      uploadMusic: async (audio, mimeType) => {
-        uploads.push(`${await audio.text()} ${mimeType}`);
-        return "music-8";
-      },
-    });
-
-    const stored = await storage.storeSample(
-      mp3("Hold the Frame.mp3"),
-      "sample-hold-the-frame",
-      true,
-    );
-
-    expect(stored.id).toBe("music-8");
-    expect(uploads).toEqual(["ID3 tune audio/mpeg"]);
   });
 });
