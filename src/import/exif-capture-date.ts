@@ -1,4 +1,15 @@
 import { readPictureHead } from "./unreadable-picture";
+import {
+  findEntry,
+  findExifTiffStart,
+  readAscii,
+  readTiffByteOrder,
+  readU16,
+  readU32,
+  INLINE_VALUE_BYTES,
+  TAG_EXIF_IFD_POINTER,
+  TYPE_ASCII,
+} from "./exif-ifd";
 
 /**
  * The capture date of a picture. EXIF stores the camera's wall-clock time without a zone, so
@@ -10,24 +21,10 @@ import { readPictureHead } from "./unreadable-picture";
 /** Enough of a file to hold the EXIF segment of any camera picture. */
 export const EXIF_SEARCH_BYTES = 128 * 1024;
 
-const JPEG_START_OF_IMAGE = 0xffd8;
-const MARKER_PREFIX = 0xff;
-const MARKER_APP1 = 0xe1;
-const MARKER_START_OF_SCAN = 0xda;
-const MARKER_END_OF_IMAGE = 0xd9;
-const EXIF_HEADER = "Exif\0\0";
-const TIFF_LITTLE_ENDIAN = 0x4949;
-const TIFF_BIG_ENDIAN = 0x4d4d;
-const TIFF_MAGIC = 42;
-const IFD_ENTRY_LENGTH = 12;
-const TAG_EXIF_IFD_POINTER = 0x8769;
 const TAG_DATE_TIME_ORIGINAL = 0x9003;
-const TYPE_ASCII = 2;
 /** "YYYY:MM:DD HH:MM:SS" */
 const EXIF_DATE_LENGTH = 19;
 const EXIF_DATE = /^(\d{4}):(\d{2}):(\d{2}) (\d{2}):(\d{2}):(\d{2})$/;
-/** Values up to four bytes sit in the entry itself, longer ones at an offset. */
-const INLINE_VALUE_BYTES = 4;
 
 /** The EXIF DateTimeOriginal of a JPEG as "YYYY-MM-DDTHH:MM:SSZ", or null; never throws. */
 export function readExifCaptureDate(bytes: ArrayBuffer): string | null {
@@ -48,41 +45,9 @@ export function localWallTime(date: Date): string {
   return `${day}T${two(date.getHours())}:${two(date.getMinutes())}:${two(date.getSeconds())}Z`;
 }
 
-function findExifTiffStart(data: DataView): number | null {
-  if (readU16(data, 0, false) !== JPEG_START_OF_IMAGE) {
-    return null;
-  }
-  let at = 2;
-  while (at + 4 <= data.byteLength) {
-    if (data.getUint8(at) !== MARKER_PREFIX) {
-      return null;
-    }
-    const marker = data.getUint8(at + 1);
-    if (marker === MARKER_START_OF_SCAN || marker === MARKER_END_OF_IMAGE) {
-      return null;
-    }
-    // The length counts its own two bytes but not the marker.
-    const segmentLength = data.getUint16(at + 2);
-    const payload = at + 4;
-    // A segment may run past the bytes read (a file's head); every later read is bounds-checked.
-    if (segmentLength < 2) {
-      return null;
-    }
-    if (marker === MARKER_APP1 && startsWithAscii(data, payload, EXIF_HEADER)) {
-      return payload + EXIF_HEADER.length;
-    }
-    at += 2 + segmentLength;
-  }
-  return null;
-}
-
 function readDateTimeOriginal(data: DataView, tiffStart: number): string | null {
-  const byteOrder = readU16(data, tiffStart, false);
-  if (byteOrder !== TIFF_LITTLE_ENDIAN && byteOrder !== TIFF_BIG_ENDIAN) {
-    return null;
-  }
-  const little = byteOrder === TIFF_LITTLE_ENDIAN;
-  if (readU16(data, tiffStart + 2, little) !== TIFF_MAGIC) {
+  const little = readTiffByteOrder(data, tiffStart);
+  if (little === null) {
     return null;
   }
   const ifd0 = readU32(data, tiffStart + 4, little);
@@ -104,32 +69,6 @@ function readDateTimeOriginal(data: DataView, tiffStart: number): string | null 
     : toIsoDate(readAscii(data, tiffStart + dateOffset, EXIF_DATE_LENGTH));
 }
 
-/** The position of the IFD entry with the given tag, or null. */
-function findEntry(
-  data: DataView,
-  tiffStart: number,
-  ifdOffset: number,
-  tag: number,
-  little: boolean,
-): number | null {
-  const ifd = tiffStart + ifdOffset;
-  const entryCount = readU16(data, ifd, little);
-  if (entryCount === null) {
-    return null;
-  }
-  for (let index = 0; index < entryCount; index += 1) {
-    const entry = ifd + 2 + index * IFD_ENTRY_LENGTH;
-    const entryTag = readU16(data, entry, little);
-    if (entryTag === null || entry + IFD_ENTRY_LENGTH > data.byteLength) {
-      return null;
-    }
-    if (entryTag === tag) {
-      return entry;
-    }
-  }
-  return null;
-}
-
 function toIsoDate(exifDate: string | null): string | null {
   const parts = exifDate === null ? null : EXIF_DATE.exec(exifDate);
   if (parts === null) {
@@ -142,27 +81,4 @@ function toIsoDate(exifDate: string | null): string | null {
   const valid =
     !Number.isNaN(instant) && new Date(instant).toISOString() === iso.replace("Z", ".000Z");
   return valid && year !== "0000" ? iso : null;
-}
-
-function readU16(data: DataView, at: number, little: boolean): number | null {
-  return at >= 0 && at + 2 <= data.byteLength ? data.getUint16(at, little) : null;
-}
-
-function readU32(data: DataView, at: number, little: boolean): number | null {
-  return at >= 0 && at + 4 <= data.byteLength ? data.getUint32(at, little) : null;
-}
-
-function readAscii(data: DataView, at: number, length: number): string | null {
-  if (at < 0 || at + length > data.byteLength) {
-    return null;
-  }
-  let text = "";
-  for (let index = 0; index < length; index += 1) {
-    text += String.fromCharCode(data.getUint8(at + index));
-  }
-  return text;
-}
-
-function startsWithAscii(data: DataView, at: number, prefix: string): boolean {
-  return readAscii(data, at, prefix.length) === prefix;
 }
