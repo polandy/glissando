@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import type { Place } from "../places/nearest-place";
+import type { ExifGps } from "./exif-gps";
 import type { PictureImportState } from "./picture-import";
 import { FakeDecoder, fileNames, picture, setUp } from "./testing/picture-import-fixtures";
 
@@ -141,6 +143,44 @@ describe("PictureImport, storing pictures", () => {
     await pictureImport.settled();
 
     expect(stored.map((entry) => entry.takenInAnyway)).toEqual([false, true]);
+  });
+
+  it("stores a picture's resolved place when its GPS resolves to one (ADR-0043)", async () => {
+    const coordinate: ExifGps = { latitude: 48.2082, longitude: 16.3738 };
+    const place: Place = { name: "Vienna", latitude: 48.208, longitude: 16.373 };
+    const { pictureImport, addFiles } = setUp({
+      gps: () => Promise.resolve(coordinate),
+      resolvePlace: () => Promise.resolve(place),
+    });
+
+    addFiles([picture("a.jpg")]);
+    await pictureImport.settled();
+
+    expect(pictureImport.state.pictures[0]?.place).toEqual(place);
+  });
+
+  it("stores no place for a picture whose GPS resolves to none", async () => {
+    const coordinate: ExifGps = { latitude: 0, longitude: 0 };
+    const { pictureImport, addFiles } = setUp({
+      gps: () => Promise.resolve(coordinate),
+      resolvePlace: () => Promise.resolve(null),
+    });
+
+    addFiles([picture("a.jpg")]);
+    await pictureImport.settled();
+
+    expect(pictureImport.state.pictures[0]).not.toHaveProperty("place");
+  });
+
+  it("stores no place for a picture with no GPS at all", async () => {
+    const { pictureImport, addFiles } = setUp({
+      resolvePlace: () => Promise.resolve({ name: "unreachable", latitude: 0, longitude: 0 }),
+    });
+
+    addFiles([picture("a.jpg")]);
+    await pictureImport.settled();
+
+    expect(pictureImport.state.pictures[0]).not.toHaveProperty("place");
   });
 
   it("hands on nothing of a picture whose import was cancelled in flight", async () => {

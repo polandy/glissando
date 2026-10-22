@@ -59,6 +59,8 @@ function failingSession(): ImportSession {
       file.name === "a.jpg"
         ? Promise.resolve("2025-07-01T10:00:00Z")
         : Promise.reject(new Error("the disk went away")),
+    gps: () => Promise.resolve(null),
+    resolvePlace: () => Promise.resolve(null),
     immichSource: () => {
       throw new Error("no Immich in this test");
     },
@@ -86,6 +88,8 @@ function workingSession(decoder: FakeDecoder): ImportSession {
     decode: decoder.decode,
     videoClips: noVideoClips,
     captureDate: () => Promise.resolve("2025-07-01T10:00:00Z"),
+    gps: () => Promise.resolve(null),
+    resolvePlace: () => Promise.resolve(null),
     immichSource: () => {
       throw new Error("no Immich in this test");
     },
