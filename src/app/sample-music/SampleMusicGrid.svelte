@@ -133,6 +133,16 @@
       {@render card(track)}
     {/each}
   </ul>
+  <div class="more" id={moreId} class:open={expanded}>
+    <div class="more-inner">
+      <ul class="grid">
+        {#each rest as track (track.id)}
+          {@render card(track)}
+        {/each}
+      </ul>
+      <p class="footer">{t("sampleMusicPicker.footer")}</p>
+    </div>
+  </div>
   <button
     class="toggle"
     type="button"
@@ -145,16 +155,6 @@
       : t("sampleMusicPicker.showAll", { count: SAMPLE_TRACKS.length })}
     <span class="chevron" class:open={expanded}><Icon name="chevronDown" /></span>
   </button>
-  <div class="more" id={moreId} class:open={expanded}>
-    <div class="more-inner">
-      <ul class="grid">
-        {#each rest as track (track.id)}
-          {@render card(track)}
-        {/each}
-      </ul>
-      <p class="footer">{t("sampleMusicPicker.footer")}</p>
-    </div>
-  </div>
 </div>
 
 <style>

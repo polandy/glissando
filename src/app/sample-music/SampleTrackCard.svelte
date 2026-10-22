@@ -93,10 +93,8 @@
       {/if}
       <span class="name">{track.title}</span>
     </b>
-    <p class="meta">
-      {t(SAMPLE_TRACK_MOOD_KEYS[track.id])} ·
-      <span class="mono">{formatDuration(track.durationMs / MILLISECONDS_PER_SECOND)}</span>
-    </p>
+    <p class="mood">{t(SAMPLE_TRACK_MOOD_KEYS[track.id])}</p>
+    <p class="length mono">{formatDuration(track.durationMs / MILLISECONDS_PER_SECOND)}</p>
     {#if statusKey !== undefined}<span class="status">{t(statusKey)}</span>{/if}
   </div>
   {#if playing || paused}
@@ -213,13 +211,16 @@
     font-size: var(--gl-size-small);
     font-weight: var(--gl-weight-semibold);
   }
-  .meta {
+  .mood {
     margin: 2px 0 0;
     overflow: hidden;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
-    display: -webkit-box;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: var(--gl-size-small);
+    opacity: 0.8;
+  }
+  .length {
+    margin: 1px 0 0;
     font-size: var(--gl-size-small);
     opacity: 0.8;
   }

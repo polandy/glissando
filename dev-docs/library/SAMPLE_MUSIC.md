@@ -60,14 +60,17 @@ both as build arguments (`deploy/Dockerfile`).
 - **Music editor** (app/MUSIC_EDITOR.md): "Add a song" and "+ Add a song" open the sheet "Add a
   song" with the same two blocks, the music block unfolded; "Done" or Esc closes it, and the songs
   added stay. Without sample music both open the file picker directly.
-- **The block** (an accordion): it shows the first three cards; "Show all 9" (`aria-expanded`,
-  `aria-controls`) unfolds it in place to all nine and the credit footer, animated in height
-  (none under `prefers-reduced-motion`), and reads "Show fewer", which folds it again. Nothing
-  scrolls sideways. Unfolded or not, the block keeps its state while the step is open.
+- **The block** (an accordion): it shows the first three cards, then, below them and above the
+  toggle, the part "Show all 9" (`aria-expanded`, `aria-controls`) unfolds in place — the rest of
+  the nine and the credit footer, animated in height (none under `prefers-reduced-motion`); the
+  toggle itself sits at the block's bottom and reads "Show fewer" once open, which folds the block
+  again. Nothing scrolls sideways. Unfolded or not, the block keeps its state while the step is
+  open.
 - **The grid**: 3 columns at every width. A card is a square, its cover filling it; the play
   button (top left) and "+" (top right, `aria-label` "Add <title>"; "✓" once added) sit on the
-  cover, and the title, the mood and the length are overlaid at the bottom on a dark gradient,
-  with a status line in the same overlay where one applies.
+  cover, and the title, the mood and the length are overlaid at the bottom on a dark gradient: the
+  mood keeps to one line with an ellipsis, the length stays on its own line in the mono font so it
+  always shows in full, and a status line follows in the same overlay where one applies.
 
 ## Listening
 
