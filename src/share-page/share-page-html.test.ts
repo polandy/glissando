@@ -12,6 +12,7 @@ function words(noscript: string): SharePageWords {
     withMusic: word,
     withoutMusic: word,
     madeWith: word,
+    sampleMusicCredit: word,
     play: word,
     pause: word,
     mute: word,

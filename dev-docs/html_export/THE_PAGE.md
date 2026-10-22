@@ -32,7 +32,9 @@
   captions and each picture's own Ken Burns, duration and transition are exactly the app's.
 - **Start card**: the first picture behind a dark veil, eyebrow "Diashow", the title, "50 Bilder ·
   4:10 · mit Musik" (or "ohne Musik"), a round peach Play button, and at the bottom "Erstellt mit
-  Glissando · läuft offline". Play is the user gesture that unlocks the music (PLAYER.md).
+  Glissando · läuft offline" — below it "Musik: Glissando, CC BY-NC 4.0" when a song the page
+  plays is a sample song (`sampleTrack`, library/SAMPLE_MUSIC.md). Play is the user gesture that
+  unlocks the music (PLAYER.md).
 - **Playing**: the player full-bleed. Controls are laid over the bottom: play/pause, time
   "0:12 / 4:10", a timeline, mute where the slideshow has music, and full screen where
   `requestFullscreen` exists. The timeline is a focusable `role="slider"` (`aria-valuenow` and

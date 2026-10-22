@@ -3,16 +3,18 @@
   import { DEFAULT_SECONDS_PER_PICTURE } from "../../library/stored-slideshow";
   import { MUSIC_FILE_PICKER_ACCEPT } from "../../import/music-format";
   import { MILLISECONDS_PER_SECOND } from "../../player";
-  import PictureLengthSection from "../components/PictureLengthSection.svelte";
-  import SecondsStepper from "../components/SecondsStepper.svelte";
+  import type { SampleTrack, SampleTrackId } from "../../sample-music/sample-tracks";
   import { getTranslator } from "../i18n/context";
   import Icon from "../components/Icon.svelte";
   import { browserObjectUrls, ObjectUrls } from "../media/object-urls";
   import type { PlaylistSongView } from "../music-editor/playlist-view";
   import SongList from "../music-editor/SongList.svelte";
-  import DropZone from "./DropZone.svelte";
+  import SampleMusicGrid from "../sample-music/SampleMusicGrid.svelte";
+  import type { SamplePreview } from "../sample-music/sample-preview";
+  import type { Toaster } from "../toast/toaster";
   import ImportFrame from "./ImportFrame.svelte";
-  import { chosenSongs, type ImportSession } from "./import-session";
+  import OwnMusicRow from "./OwnMusicRow.svelte";
+  import { chosenSongs, type ImportSession, type ImportSong } from "./import-session";
   import {
     convertibleSourceLabel,
     importPlaylist,
@@ -21,8 +23,8 @@
     importTiming,
     musicFormatLabel,
   } from "./import-view";
-  import MusicFit from "./MusicFit.svelte";
   import type { PendingSong } from "./music-pick";
+  import MusicTimingPanel from "./MusicTimingPanel.svelte";
 
   let {
     session,
@@ -30,12 +32,17 @@
     onBack,
     onCreate,
     onError,
+    samplePreview,
+    toaster,
   }: {
     session: ImportSession;
     loadThumbnail: (pictureId: string) => Promise<Blob>;
     onBack: () => void;
     onCreate: () => void;
     onError: (error: unknown) => void;
+    /** `undefined` when the build turns sample music off (SAMPLE_MUSIC.md). */
+    samplePreview?: SamplePreview | undefined;
+    toaster: Toaster;
   } = $props();
 
   const { t, formatDuration, formatSeconds } = getTranslator();
@@ -64,8 +71,37 @@
   $effect(() => thumbnails.subscribe((next) => (urls = next)));
   const chosen = $derived(chosenSongs(choices));
   const pending = $derived(
-    choices.songs.filter((song): song is PendingSong => song.kind !== "chosen"),
+    choices.songs.filter(
+      (song): song is PendingSong =>
+        song.kind === "reading" || song.kind === "converting" || song.kind === "unusable",
+    ),
   );
+  const sampleRows = $derived(
+    choices.songs.filter(
+      (song): song is Extract<ImportSong, { kind: "downloadingSample" | "failedSampleDownload" }> =>
+        song.kind === "downloadingSample" || song.kind === "failedSampleDownload",
+    ),
+  );
+  function chosenSampleSong(trackId: SampleTrackId): (typeof chosen)[number] | undefined {
+    return chosen.find((song) => song.sample?.trackId === trackId);
+  }
+
+  /** Already chosen, or still downloading, as the "✓ Added" state the card shows either way. */
+  function sampleTrackAdded(trackId: SampleTrackId): boolean {
+    return chosenSampleSong(trackId) !== undefined || session.isSampleTrackAdded(trackId);
+  }
+
+  function toggleSample(track: SampleTrack): void {
+    const chosenSong = chosenSampleSong(track.id);
+    if (chosenSong !== undefined) {
+      session.removeSong(chosenSong.key);
+    } else if (session.isSampleTrackAdded(track.id)) {
+      session.removeSampleTrack(track.id);
+    } else {
+      session.addSampleTrack(track).catch(onError);
+    }
+  }
+
   const reading = $derived(
     pending.some((song) => song.kind === "reading" || song.kind === "converting"),
   );
@@ -130,73 +166,48 @@
     </p>
   </div>
 
-  {#if choices.songs.length > 0}
-    <SongList
-      songs={playlist.songs}
-      {pending}
-      detail={songDetail}
-      onMove={(songId, toIndex) => session.moveSong(Number(songId), toIndex)}
-      onRemove={(songId) => session.removeSong(Number(songId))}
-      onDismiss={(key) => session.removeSong(key)}
+  {#if samplePreview !== undefined}
+    <SampleMusicGrid
+      preview={samplePreview}
+      isAdded={sampleTrackAdded}
+      onToggle={toggleSample}
+      {sampleRows}
+      {toaster}
     />
-    <button class="add" type="button" onclick={() => pickMusic.click()}>
-      <Icon name="plus" />{t("import.addAnotherSong")}
-    </button>
-  {:else}
-    <DropZone icon="music" onFiles={add} {onError}>
-      <button class="btn primary" type="button" onclick={() => pickMusic.click()}>
-        {t("import.pickMusic")}
-      </button>
-      <span class="formats">{t("import.musicFormats")}</span>
-    </DropZone>
+    <p class="or">{t("sampleMusicPicker.or")}</p>
   {/if}
+  <OwnMusicRow onFiles={add} {onError} onChoose={() => pickMusic.click()} />
 
-  {#if timing.music !== null}
-    <div class="panel">
-      <PictureLengthSection
-        {ownSeconds}
-        secondsPerPicture={choices.secondsPerPicture}
-        onPictureLength={(length) => session.setPictureLength(length)}
-        onSecondsPerPicture={(seconds) => session.setSecondsPerPicture(seconds)}
-      />
-      <MusicFit
-        {pictureIds}
-        {urls}
-        {segmentsMs}
-        {timing}
-        music={timing.music}
+  <div class="soundtrack">
+    <h2 class="soundtrack-title">{t("import.soundtrackTitle")}</h2>
+    {#if choices.songs.length > 0}
+      <SongList
         songs={playlist.songs}
+        {pending}
+        {sampleRows}
+        detail={songDetail}
+        onMove={(songId, toIndex) => session.moveSong(Number(songId), toIndex)}
+        onRemove={(songId) => session.removeSong(Number(songId))}
+        onDismiss={(key) => session.removeSong(key)}
+        onRemoveSampleRow={(trackId) => session.removeSampleTrack(trackId)}
       />
-    </div>
-  {:else}
-    <div class="panel track">
-      <div class="text">
-        <b>{t("import.secondsTitle")}</b>
-        <span class="muted meta">
-          {t("import.secondsHint", { seconds: formatSeconds(DEFAULT_SECONDS_PER_PICTURE) })}
-        </span>
-      </div>
-      <SecondsStepper
-        seconds={choices.secondsPerPicture}
-        onChange={(seconds) => session.setSecondsPerPicture(seconds)}
-      />
-    </div>
-  {/if}
+    {:else}
+      <p class="soundtrack-empty">{t("import.soundtrackEmpty")}</p>
+    {/if}
+  </div>
 
-  <dl class="timing">
-    <div>
-      <dt>{t("import.timingPictures")}</dt>
-      <dd class="mono">{pictureCount}</dd>
-    </div>
-    <div>
-      <dt>{t("import.timingPerPicture")}</dt>
-      <dd class="mono">{formatSeconds(timing.perPictureSeconds)}</dd>
-    </div>
-    <div>
-      <dt>{t("import.timingTotal")}</dt>
-      <dd class="mono">{formatDuration(timing.totalSeconds)}</dd>
-    </div>
-  </dl>
+  <MusicTimingPanel
+    {ownSeconds}
+    secondsPerPicture={choices.secondsPerPicture}
+    onPictureLength={(length) => session.setPictureLength(length)}
+    onSecondsPerPicture={(seconds) => session.setSecondsPerPicture(seconds)}
+    {pictureIds}
+    {urls}
+    {segmentsMs}
+    {timing}
+    songs={playlist.songs}
+    {pictureCount}
+  />
 
   {#snippet actions()}
     <button class="btn" type="button" onclick={onBack}>
@@ -213,76 +224,33 @@
 </ImportFrame>
 
 <style>
-  .add {
+  .or {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 6px;
-    padding: 10px;
-    border: 1px dashed var(--gl-line);
-    border-radius: var(--gl-radius);
-    background: transparent;
-    color: var(--gl-ink);
-    font: inherit;
-    font-size: var(--gl-size-label);
-    font-weight: var(--gl-weight-medium);
-    cursor: pointer;
-  }
-  .add:hover {
-    background: var(--gl-hover);
-  }
-  .formats {
-    font-size: var(--gl-size-small);
+    gap: 10px;
+    margin: 0;
     color: var(--gl-faint);
+    font-size: var(--gl-size-small);
   }
-  .panel {
-    display: grid;
-    gap: 14px;
-    padding: 16px;
-    border: 1px solid var(--gl-line);
-    border-radius: var(--gl-radius-large);
-    background: var(--gl-surface);
-  }
-  .track {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  .text {
+  .or::before,
+  .or::after {
     flex: 1;
-    min-width: 0;
+    height: 1px;
+    background: var(--gl-line);
+    content: "";
   }
-  .text b {
-    display: block;
+  .soundtrack {
+    display: grid;
+    gap: 8px;
+  }
+  .soundtrack-title {
+    margin: 0;
+    font-family: var(--gl-font-display);
+    font-size: var(--gl-size-label);
     font-weight: var(--gl-weight-semibold);
   }
-  .meta {
-    font-size: var(--gl-size-meta);
-  }
-  .timing {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
+  .soundtrack-empty {
     margin: 0;
-    overflow: hidden;
-    border: 1px solid var(--gl-line);
-    border-radius: var(--gl-radius);
-  }
-  .timing div {
-    display: flex;
-    flex-direction: column-reverse;
-    gap: 2px;
-    padding: 10px 12px;
-    background: var(--gl-raised);
-  }
-  .timing div + div {
-    border-left: 1px solid var(--gl-line);
-  }
-  .timing dd {
-    margin: 0;
-    font-weight: var(--gl-weight-medium);
-    font-size: var(--gl-size-name);
-  }
-  .timing dt {
     color: var(--gl-muted);
     font-size: var(--gl-size-small);
   }

@@ -2,16 +2,21 @@
   import { MUSIC_FILE_PICKER_ACCEPT } from "../../import/music-format";
   import Icon from "../components/Icon.svelte";
 
-  /** Opens the file picker and reports what was picked, raw, for the playlist to take or refuse. */
+  /**
+   * Opens the file picker and reports what was picked, raw, for the playlist to take or refuse.
+   * With sample music on, `onOpenSheet` opens the "Add a song" sheet instead (MUSIC_EDITOR.md).
+   */
   let {
     primary = false,
     label,
     onAdd,
+    onOpenSheet,
   }: {
     /** The empty playlist's own call to action; otherwise the understated "add another" button. */
     primary?: boolean;
     label: string;
     onAdd: (files: readonly File[]) => void;
+    onOpenSheet?: () => void;
   } = $props();
 
   let input = $state<HTMLInputElement>();
@@ -31,7 +36,11 @@
   hidden
   onchange={picked}
 />
-<button class={primary ? "primary" : "add"} type="button" onclick={() => input?.click()}>
+<button
+  class={primary ? "primary" : "add"}
+  type="button"
+  onclick={() => (onOpenSheet === undefined ? input?.click() : onOpenSheet())}
+>
   <Icon name="plus" />{label}
 </button>
 

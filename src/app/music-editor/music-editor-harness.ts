@@ -3,14 +3,18 @@ import { flushSync } from "svelte";
 import type { BetweenSongs, MusicTrim, PictureChanges } from "../../library/own-music";
 import type { PictureLength } from "../../library/picture-length";
 import type { StoredMusic, StoredPicture, StoredSlideshow } from "../../library/stored-slideshow";
+import type { SampleTrack, SampleTrackId } from "../../sample-music/sample-tracks";
 import type { BeatsStatus } from "../beats/music-beats-known";
 import type { LoudnessStatus } from "../loudness/music-loudness-known";
 import type { SongsBeatsStatus, SongsLoudnessStatus } from "./music-editor-view";
+import { FakeScheduler } from "../../ui-kit/testing/fake-scheduler";
+import type { SamplePreview } from "../sample-music/sample-preview";
 import { mountWithTranslator } from "../testing/mount-with-translator";
 import { reactiveProps } from "../testing/reactive-props.svelte";
+import { Toaster } from "../toast/toaster";
 import type { ListenKind, ListenState } from "./listen-preview";
 import MusicEditorScreen from "./MusicEditorScreen.svelte";
-import type { PendingSong } from "./song-intake";
+import type { PendingSong, SampleSongRow } from "./song-intake";
 
 export const TRACK_MS = 204_000;
 
@@ -74,6 +78,7 @@ export function mountEditor(
   slideshow: StoredSlideshow = slideshowWith(),
   beats: BeatsStatus = { kind: "listening" },
   loudness: LoudnessStatus = { kind: "listening" },
+  samplePreview: SamplePreview | undefined = undefined,
 ) {
   const calls = {
     trims: [] as (MusicTrim | undefined)[],
@@ -94,8 +99,12 @@ export function mountEditor(
     added: [] as string[],
     dismissed: [] as number[],
     betweenSongs: [] as (BetweenSongs | undefined)[],
+    removedSampleRows: [] as SampleTrackId[],
+    addedSampleTracks: [] as SampleTrackId[],
+    errors: [] as unknown[],
   };
   const songId = slideshow.songs[0]?.id ?? null;
+  const notAdded: (trackId: SampleTrackId) => boolean = () => false;
   const props = reactiveProps({
     slideshow,
     selectedSongId: songId,
@@ -104,7 +113,14 @@ export function mountEditor(
     peaks: Float32Array.from({ length: 1000 }, (_, index) => (index % 10) / 10),
     listening: null as ListenState | null,
     pending: [] as readonly PendingSong[],
+    sampleRows: [] as readonly SampleSongRow[],
+    samplePreview: samplePreview as SamplePreview | undefined,
+    toaster: new Toaster(new FakeScheduler()),
+    onRemoveSampleRow: (trackId: SampleTrackId) => calls.removedSampleRows.push(trackId),
+    isSampleTrackAdded: notAdded,
+    onAddSampleTrack: (track: SampleTrack) => calls.addedSampleTracks.push(track.id),
     onBack: () => {},
+    onError: (error: unknown) => calls.errors.push(error),
     onTrim: (trim: MusicTrim | undefined) => calls.trims.push(trim),
     onFadeIn: (fadeMs: number | undefined) => calls.fadesIn.push(fadeMs),
     onFadeOut: (fadeMs: number | undefined) => calls.fadesOut.push(fadeMs),

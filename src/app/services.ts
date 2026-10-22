@@ -16,6 +16,7 @@ import type { SlideshowHome } from "./routes/slideshow-storage";
 import type { ImportSession } from "./import/import-session";
 import type { MusicEditorAudio } from "./music-editor/music-editor-audio";
 import type { SongIntakeDevice } from "./music-editor/song-intake";
+import type { SamplePreview } from "./sample-music/sample-preview";
 import type { Navigator } from "./navigation/navigator";
 import type { AppSettings } from "./settings/app-settings";
 import type { PersistencePrompt } from "./storage/persistence-prompt";
@@ -108,4 +109,6 @@ export interface AppServices extends ServerSlideshowSessions {
   readonly frameCardPreference: FrameCardPreference;
   /** What the picture frame needs of the browser beyond Immich and storage. */
   readonly frameDevice: FrameDevice;
+  /** Previews a sample track (SAMPLE_MUSIC.md); undefined when the build turns sample music off. */
+  readonly samplePreview?: SamplePreview;
 }

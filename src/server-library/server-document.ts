@@ -32,7 +32,7 @@ export const SERVER_DOCUMENT_FORMAT_ID = "glissando-server";
  */
 export const SERVER_DOCUMENT_FORMAT_VERSION = 3;
 /** The manifest format version whose slideshow fields a server document carries. */
-const MANIFEST_FIELDS_VERSION = 15;
+const MANIFEST_FIELDS_VERSION = 16;
 /** Every key a server document's slideshow, each picture and each song may carry. */
 export const SERVER_SLIDESHOW_KEYS: readonly string[] = slideshowKeys(MANIFEST_FIELDS_VERSION);
 export const SERVER_PICTURE_KEYS: readonly string[] = [

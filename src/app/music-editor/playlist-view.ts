@@ -30,6 +30,11 @@ export interface PlaylistSongView {
   /** The slideshow plays it; one starting after the slideshow's end is not heard (ADR-0023). */
   readonly reached: boolean;
   readonly volumeBadge: SongVolumeBadge;
+  /**
+   * Set when this song is a sample track (SAMPLE_MUSIC.md), for its row's badge. Its shape is
+   * checked where it is stored, never against the current catalogue (own-music.ts).
+   */
+  readonly sampleTrack?: string;
 }
 
 /** Where two songs sound at once, in slideshow time. */
@@ -68,6 +73,7 @@ export function playlistView(
     atMs,
     reached: atMs < slideshowMs,
     volumeBadge: songVolumeBadge(loudness, song.id, song.volumeDb),
+    ...(song.sampleTrack !== undefined ? { sampleTrack: song.sampleTrack } : {}),
   }));
   const crossfades = songs.slice(1).flatMap((next, index) => {
     // The songs before `next`: index is the previous one's.

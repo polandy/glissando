@@ -130,7 +130,7 @@ async function writePage(job: PageExportJob): Promise<PageExportResult> {
       lang: job.lang,
       title: stored.title,
       noscript: job.noscript,
-      copy: job.copy,
+      copy: copyWithSampleCredit(job.copy, songs),
       slideshow,
       style: bundle.style,
       captionFontDataUrl: bundle.captionFontDataUrl,
@@ -165,6 +165,12 @@ async function writePage(job: PageExportJob): Promise<PageExportResult> {
 function playedSongs(stored: StoredSlideshow, slideshow: Slideshow): readonly StoredMusic[] {
   const played = new Set(slideshow.music?.map((track) => track.src));
   return stored.songs.filter((song) => played.has(song.id));
+}
+
+/** `copy` with its sample-music credit blanked unless one of `songs` is a sample track. */
+function copyWithSampleCredit(copy: PageCopy, songs: readonly StoredMusic[]): PageCopy {
+  const hasSampleTrack = songs.some((song) => song.sampleTrack !== undefined);
+  return hasSampleTrack ? copy : { ...copy, sampleMusicCredit: "" };
 }
 
 /** Points every track at its song's block. */

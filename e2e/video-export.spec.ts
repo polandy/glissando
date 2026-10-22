@@ -42,7 +42,7 @@ async function createSlideshowWithMusic(page: Page): Promise<void> {
   await openImport(page);
   await choosePictures(page, await picturesTakenOn(page, DAYS), DAYS.length);
   await page.getByRole("button", { name: "Weiter" }).click();
-  await chooseFiles(page, page.getByRole("button", { name: "Musik auswählen" }), [
+  await chooseFiles(page, page.getByRole("button", { name: "Dateien wählen" }), [
     silentTrack("Sommerwind.wav", TRACK_SECONDS),
   ]);
   await expect(page.getByText("Sommerwind.wav", { exact: true })).toBeVisible();

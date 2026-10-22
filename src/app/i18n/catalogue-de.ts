@@ -20,6 +20,8 @@ import { deView } from "./catalogue-de-view.ts";
 import { deFrame } from "./catalogue-de-frame.ts";
 import { deCards } from "./catalogue-de-cards.ts";
 import { deFilePage } from "./catalogue-de-file-page.ts";
+import { deSampleMusicCredit } from "./catalogue-de-sample-music-credit.ts";
+import { deSampleMusicPicker } from "./catalogue-de-sample-music-picker.ts";
 import type { Message } from "./messages.ts";
 
 /**
@@ -250,8 +252,10 @@ export const de = {
   "import.musicText":
     "Ein Song oder mehrere — sie spielen nacheinander, und die Bilder wechseln in ihrem Takt. Ohne Musik bleibt jedes Bild {seconds}.",
   "import.musicFormats": "Eine oder mehrere Dateien · MP3, M4A, FLAC, WAV, Ogg, AIFF, WMA\u00a0…",
-  "import.addAnotherSong": "Weiteren Song hinzufügen",
-  "import.pickMusic": "Musik auswählen",
+  "import.ownMusicTitle": "Eigene Musik",
+  "import.chooseFiles": "Dateien wählen",
+  "import.soundtrackTitle": "Soundtrack",
+  "import.soundtrackEmpty": "Noch keine Musik — füge oben einen Titel oder eigene Songs hinzu.",
   "import.trackMeta": "{duration} · {format}",
   "import.secondsTitle": "Dauer je Bild",
   "import.secondsHint": "Voreinstellung {seconds}, in halben Sekunden, gilt für diese Diashow",
@@ -415,4 +419,6 @@ export const de = {
   ...deFrame,
   ...deCards,
   ...deFilePage,
+  ...deSampleMusicCredit,
+  ...deSampleMusicPicker,
 } as const satisfies Record<string, Message>;

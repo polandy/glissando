@@ -14,7 +14,14 @@
     type SongsLoudnessStatus,
   } from "../music-editor/music-editor-view";
   import MusicEditorScreen from "../music-editor/MusicEditorScreen.svelte";
-  import { SongIntake, type PendingSong, type SongIntakeDevice } from "../music-editor/song-intake";
+  import {
+    SongIntake,
+    type PendingSong,
+    type SampleSongRow,
+    type SongIntakeDevice,
+  } from "../music-editor/song-intake";
+  import type { SamplePreview } from "../sample-music/sample-preview";
+  import type { Toaster } from "../toast/toaster";
 
   /** The music editor over the slideshow screen's editor: its edits are stored the same way. */
   let {
@@ -25,6 +32,8 @@
     loudnessPass,
     audio,
     songIntake,
+    samplePreview,
+    toaster,
     saving,
     onBack,
     onError,
@@ -40,6 +49,9 @@
     audio: MusicEditorAudio;
     /** Reads picked songs and stores their audio where the slideshow lives. */
     songIntake: SongIntakeDevice;
+    /** `undefined` when the build turns sample music off (SAMPLE_MUSIC.md). */
+    samplePreview?: SamplePreview | undefined;
+    toaster: Toaster;
     saving: boolean;
     onBack: () => void;
     onError: (error: unknown) => void;
@@ -53,6 +65,7 @@
   let beats = $state.raw<SongsBeatsStatus>(new Map());
   let loudness = $state.raw<SongsLoudnessStatus>(new Map());
   let pending = $state.raw<readonly PendingSong[]>([]);
+  let sampleRows = $state.raw<readonly SampleSongRow[]>([]);
   /** The song edited: the one selected, or the playlist's first. */
   const song = $derived(
     stored.songs.find((candidate) => candidate.id === selectedSongId) ?? stored.songs[0],
@@ -77,9 +90,15 @@
     loudness = status;
   });
   // svelte-ignore state_referenced_locally
-  const intake = new SongIntake({ ...songIntake, editor, onError }, (songs) => {
-    pending = songs;
-  });
+  const intake = new SongIntake(
+    { ...songIntake, editor, onError },
+    (songs) => {
+      pending = songs;
+    },
+    (rows) => {
+      sampleRows = rows;
+    },
+  );
 
   $effect(() => {
     playlistBeats.follow(songIds).catch(onError);
@@ -143,12 +162,19 @@
   {peaks}
   {listening}
   {pending}
+  {sampleRows}
+  {samplePreview}
+  {toaster}
   {onBack}
+  {onError}
   onSelectSong={(songId) => (selectedSongId = songId)}
   onAddSongs={(files) => void intake.add(files)}
   onRemoveSong={(songId) => editor.removeSong(songId)}
   onMoveSong={(songId, toIndex) => editor.moveSong(songId, toIndex)}
   onDismissPending={(key) => intake.dismiss(key)}
+  onRemoveSampleRow={(trackId) => intake.removeSampleTrack(trackId)}
+  isSampleTrackAdded={(trackId) => intake.isSampleTrackAdded(trackId)}
+  onAddSampleTrack={(track) => intake.addSampleTrack(track)}
   onBetweenSongs={(between) => editor.setBetweenSongs(between)}
   onTrim={(trim) => song !== undefined && editor.setMusicTrim(song.id, trim)}
   onFadeIn={(fadeMs) => song !== undefined && editor.setMusicFadeIn(song.id, fadeMs)}

@@ -7,6 +7,8 @@ import {
   STORED,
   TWO_SONGS,
   WITH_CLIP,
+  WITH_SAMPLE_SONG,
+  SAMPLE_MUSIC_CREDIT_TEXT,
   run,
   block,
   decoded,
@@ -115,6 +117,26 @@ describe("exportPage, what the page holds", () => {
     expect(block(sink.text, "p2")).toBeDefined();
     expect(block(sink.text, "s0")).toBeUndefined();
     expect(JSON.parse(block(sink.text, "slideshow") ?? "null")).not.toHaveProperty("music");
+  });
+
+  it("credits the sample track when a played song is one", async () => {
+    const { job, sink } = run({ stored: WITH_SAMPLE_SONG });
+
+    await exportPage(job);
+
+    const copy = JSON.parse(block(sink.text, "copy") ?? "null");
+    expect(copy.madeWith).toBe(job.copy.madeWith);
+    expect(copy.sampleMusicCredit).toBe(SAMPLE_MUSIC_CREDIT_TEXT);
+  });
+
+  it("gives no sample-music credit when no played song is a sample track", async () => {
+    const { job, sink } = run({ stored: STORED });
+
+    await exportPage(job);
+
+    const copy = JSON.parse(block(sink.text, "copy") ?? "null");
+    expect(copy.madeWith).toBe(job.copy.madeWith);
+    expect(copy.sampleMusicCredit).toBe("");
   });
 });
 

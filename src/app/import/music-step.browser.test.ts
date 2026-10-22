@@ -1,7 +1,9 @@
 import { flushSync } from "svelte";
 import { afterEach, describe, expect, it } from "vitest";
+import { FakeScheduler } from "../../ui-kit/testing/fake-scheduler";
 import { createTranslator } from "../i18n/translator";
 import { mountWithTranslator } from "../testing/mount-with-translator";
+import { Toaster } from "../toast/toaster";
 import type { ImportSession } from "./import-session";
 import MusicStep from "./MusicStep.svelte";
 import { choicesOf, withTwoPictures } from "./testing/import-session-fixtures";
@@ -25,6 +27,7 @@ function mountStep(session: ImportSession): HTMLElement {
       onError: (error: unknown) => {
         throw error;
       },
+      toaster: new Toaster(new FakeScheduler()),
     },
     { current: createTranslator("en") },
   );
@@ -74,17 +77,19 @@ describe("MusicStep, the import's song list", () => {
     picked.items.add(song("Sea Glass.mp3"));
 
     expect(input?.multiple).toBe(true);
-    expect(buttonNamed(target, "Add another song")).toBeDefined();
+    expect(buttonNamed(target, "Choose files")).toBeDefined();
     if (input !== null) {
       input.files = picked.files;
       input.dispatchEvent(new Event("change", { bubbles: true }));
     }
 
-    expect(choicesOf(session).songs.map((added) => added.pickedName)).toEqual([
-      "Low Tide.mp3",
-      "Paper Lanterns.mp3",
-      "Sea Glass.mp3",
-    ]);
+    expect(
+      choicesOf(session)
+        .songs.filter(
+          (song) => song.kind !== "downloadingSample" && song.kind !== "failedSampleDownload",
+        )
+        .map((added) => added.pickedName),
+    ).toEqual(["Low Tide.mp3", "Paper Lanterns.mp3", "Sea Glass.mp3"]);
   });
 
   it("removes a song by its ×", async () => {

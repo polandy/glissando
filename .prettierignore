@@ -11,3 +11,5 @@ src/import/libav/LICENSE.md
 # Written by release-please, which does not format them.
 CHANGELOG.md
 .release-please-manifest.json
+# Copied verbatim from polandy/glissando-assets music/covers/ (ADR-0042); Prettier has no SVG parser.
+src/sample-music/covers/*.svg

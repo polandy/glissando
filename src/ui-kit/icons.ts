@@ -35,6 +35,7 @@ export const ICONS = {
   back: { shapes: [path("M15 6l-6 6 6 6")] },
   chevronLeft: { shapes: [path("M15 6l-6 6 6 6")] },
   chevronRight: { shapes: [path("M9 6l6 6-6 6")] },
+  chevronDown: { shapes: [path("M6 9l6 6 6-6")] },
   plus: { shapes: [path("M12 5v14M5 12h14")] },
   minus: { shapes: [path("M5 12h14")] },
   play: { shapes: [path("M7 4.5v15l13-7.5z")], filled: true },

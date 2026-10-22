@@ -139,7 +139,7 @@ export async function createSlideshowWithMusic(
     3,
   );
   await page.getByRole("button", { name: "Weiter" }).click();
-  await chooseFiles(page, page.getByRole("button", { name: "Musik auswählen" }), [track]);
+  await chooseFiles(page, page.getByRole("button", { name: "Dateien wählen" }), [track]);
   await expect(page.getByText(track.name, { exact: true })).toBeVisible();
   if (fill) {
     await page.getByRole("radio", { name: "Musik füllen" }).click();

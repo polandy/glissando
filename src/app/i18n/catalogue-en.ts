@@ -20,6 +20,8 @@ import { enView } from "./catalogue-en-view.ts";
 import { enFrame } from "./catalogue-en-frame.ts";
 import { enCards } from "./catalogue-en-cards.ts";
 import { enFilePage } from "./catalogue-en-file-page.ts";
+import { enSampleMusicCredit } from "./catalogue-en-sample-music-credit.ts";
+import { enSampleMusicPicker } from "./catalogue-en-sample-music-picker.ts";
 import type { Catalogue } from "./messages.ts";
 
 /** English UI copy; the type demands exactly the German catalogue's keys and message shapes. */
@@ -248,8 +250,10 @@ export const en: Catalogue = {
   "import.musicText":
     "One song or several — they play one after another and the pictures change on their beat. Without music each picture stays {seconds}.",
   "import.musicFormats": "One or more files · MP3, M4A, FLAC, WAV, Ogg, AIFF, WMA\u00a0…",
-  "import.addAnotherSong": "Add another song",
-  "import.pickMusic": "Choose music",
+  "import.ownMusicTitle": "Your own music",
+  "import.chooseFiles": "Choose files",
+  "import.soundtrackTitle": "Soundtrack",
+  "import.soundtrackEmpty": "No music yet — add a track or your own songs above.",
   "import.trackMeta": "{duration} · {format}",
   "import.secondsTitle": "Time per picture",
   "import.secondsHint": "Default {seconds}, in half seconds, applies to this slideshow",
@@ -413,4 +417,6 @@ export const en: Catalogue = {
   ...enFrame,
   ...enCards,
   ...enFilePage,
+  ...enSampleMusicCredit,
+  ...enSampleMusicPicker,
 };

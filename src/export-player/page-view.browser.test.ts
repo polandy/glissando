@@ -6,6 +6,7 @@ const COPY: PageCopy = {
   eyebrow: "Slideshow",
   summary: "3 pictures · 0:12",
   madeWith: "Made with Glissando",
+  sampleMusicCredit: "",
   play: "Play",
   pause: "Pause",
   mute: "Mute",
@@ -76,5 +77,21 @@ describe("createPageView", () => {
     page.remove();
 
     expect([...document.body.children]).toEqual([other]);
+  });
+
+  it("shows no sample-music credit below madeWith when the copy carries none", () => {
+    const { document } = view();
+
+    const made = document.querySelector(".made");
+    expect(made?.textContent).toBe(COPY.madeWith);
+  });
+
+  it("shows the sample-music credit below madeWith when the copy carries one", () => {
+    const { document } = view({
+      copy: { ...COPY, sampleMusicCredit: "Music: Glissando, CC BY-NC 4.0" },
+    });
+
+    const made = document.querySelector(".made");
+    expect(made?.textContent).toBe(`${COPY.madeWith}Music: Glissando, CC BY-NC 4.0`);
   });
 });

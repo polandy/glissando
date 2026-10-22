@@ -20,7 +20,9 @@
   the player plays), `gone` (404 `notShared`, also from a picture or song) and `unreachable` (no
   network, or a 5xx). Any other answer is a fault and shows as `error`.
   - **Start card**: the first picture behind the veil, eyebrow "Shared slideshow", the title,
-    "50 pictures · 4:10 · with music", Play, and "Shared with Glissando" at the bottom.
+    "50 pictures · 4:10 · with music", Play, and "Shared with Glissando" at the bottom — with
+    the sample-music credit below it when a played song is a sample track
+    (library/SAMPLE_MUSIC.md).
   - **Loading**: after Play, "Loading the first pictures …" with a ring until the player is
     playing.
   - **A late picture**: while the player waits for a picture it hasn't prepared yet (its

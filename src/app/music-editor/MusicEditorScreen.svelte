@@ -3,9 +3,13 @@
   import type { PictureLength } from "../../library/picture-length";
   import { setMusicTrim } from "../../library/slideshow-edits-music";
   import type { StoredSlideshow } from "../../library/stored-slideshow";
+  import type { SampleTrack, SampleTrackId } from "../../sample-music/sample-tracks";
   import Header from "../components/Header.svelte";
   import Icon from "../components/Icon.svelte";
   import { getTranslator } from "../i18n/context";
+  import type { SamplePreview } from "../sample-music/sample-preview";
+  import type { Toaster } from "../toast/toaster";
+  import AddSongSheet from "./AddSongSheet.svelte";
   import AddSongsButton from "./AddSongsButton.svelte";
   import type { ListenState } from "./listen-preview";
   import MusicEditorPanel from "./MusicEditorPanel.svelte";
@@ -17,7 +21,7 @@
   import PlaylistLane from "./PlaylistLane.svelte";
   import { playlistView } from "./playlist-view";
   import SelectedSong from "./SelectedSong.svelte";
-  import type { PendingSong } from "./song-intake";
+  import type { PendingSong, SampleSongRow } from "./song-intake";
   import SongList from "./SongList.svelte";
   import VolumeComparisonBox from "./VolumeComparisonBox.svelte";
 
@@ -34,12 +38,19 @@
     peaks,
     listening,
     pending,
+    sampleRows,
+    samplePreview,
+    toaster,
     onBack,
+    onError,
     onSelectSong,
     onAddSongs,
     onRemoveSong,
     onMoveSong,
     onDismissPending,
+    onRemoveSampleRow,
+    isSampleTrackAdded,
+    onAddSampleTrack,
     onBetweenSongs,
     onTrim,
     onFadeIn,
@@ -67,12 +78,21 @@
     listening: ListenState | null;
     /** Picked files on their way into the playlist, or found unusable. */
     pending: readonly PendingSong[];
+    /** Sample tracks downloading or failed; not yet in `slideshow.songs` (song-intake.ts). */
+    sampleRows: readonly SampleSongRow[];
+    /** `undefined` when the build turns sample music off (SAMPLE_MUSIC.md). */
+    samplePreview?: SamplePreview | undefined;
+    toaster: Toaster;
     onBack: () => void;
+    onError: (error: unknown) => void;
     onSelectSong: (songId: string) => void;
     onAddSongs: (files: readonly File[]) => void;
     onRemoveSong: (songId: string) => void;
     onMoveSong: (songId: string, toIndex: number) => void;
     onDismissPending: (key: number) => void;
+    onRemoveSampleRow: (trackId: SampleTrackId) => void;
+    isSampleTrackAdded: (trackId: SampleTrackId) => boolean;
+    onAddSampleTrack: (track: SampleTrack) => void;
     /** `undefined`: the songs crossfade. */
     onBetweenSongs: (between: BetweenSongs | undefined) => void;
     /** `undefined`: the whole track. */
@@ -100,6 +120,10 @@
 
   /** The excerpt while a handle is dragged; stored on release. */
   let draft = $state.raw<MusicTrim | null>(null);
+  let sheetOpen = $state(false);
+  function openSheet(): void {
+    sheetOpen = true;
+  }
   const songId = $derived(
     slideshow.songs.find((song) => song.id === selectedSongId)?.id ?? slideshow.songs[0]?.id,
   );
@@ -126,17 +150,24 @@
           <span class="disc"><Icon name="music" /></span>
           <b>{t("music.noMusicYet")}</b>
           <p>{t("music.noMusicWhy")}</p>
-          <AddSongsButton primary label={t("music.addSong")} onAdd={onAddSongs} />
+          <AddSongsButton
+            primary
+            label={t("music.addSong")}
+            onAdd={onAddSongs}
+            {...samplePreview === undefined ? {} : { onOpenSheet: openSheet }}
+          />
         </div>
-        {#if pending.length > 0}
+        {#if pending.length > 0 || sampleRows.length > 0}
           <SongList
             songs={playlist.songs}
             selectedSongId=""
             {pending}
+            {sampleRows}
             onSelect={onSelectSong}
             onMove={onMoveSong}
             onRemove={onRemoveSong}
             onDismiss={onDismissPending}
+            {onRemoveSampleRow}
           />
         {/if}
       </div>
@@ -148,13 +179,19 @@
           songs={playlist.songs}
           selectedSongId={music.songId}
           {pending}
+          {sampleRows}
           onSelect={onSelectSong}
           onMove={onMoveSong}
           onRemove={onRemoveSong}
           onDismiss={onDismissPending}
+          {onRemoveSampleRow}
         />
         <VolumeComparisonBox slideshow={edited} {loudness} />
-        <AddSongsButton label={t("music.addSong")} onAdd={onAddSongs} />
+        <AddSongsButton
+          label={t("music.addSong")}
+          onAdd={onAddSongs}
+          {...samplePreview === undefined ? {} : { onOpenSheet: openSheet }}
+        />
         <PlaylistLane {playlist} />
         <SelectedSong
           {music}
@@ -185,6 +222,21 @@
     </main>
   {/if}
 </div>
+{#if sheetOpen && samplePreview !== undefined}
+  <AddSongSheet
+    songs={playlist.songs}
+    {samplePreview}
+    {sampleRows}
+    {toaster}
+    {isSampleTrackAdded}
+    {onAddSampleTrack}
+    {onRemoveSampleRow}
+    {onRemoveSong}
+    onAdd={onAddSongs}
+    {onError}
+    onClose={() => (sheetOpen = false)}
+  />
+{/if}
 
 <style>
   /* A zero basis: the screen keeps the viewport's height and each column scrolls inside it. */

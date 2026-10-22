@@ -42,7 +42,17 @@ export type BetweenSongs = typeof SEQUENCE_BETWEEN_SONGS;
 
 /** The music's fields this module checks. */
 export type OwnMusicField =
-  "trim" | "fadeInMs" | "fadeOutMs" | "pictureChanges" | "betweenSongs" | "volumeDb";
+  | "trim"
+  | "fadeInMs"
+  | "fadeOutMs"
+  | "pictureChanges"
+  | "betweenSongs"
+  | "volumeDb"
+  | "sampleTrack";
+
+/** The longest a sample track's id is let be; ids are short catalogue slugs (`checkSampleTrack`). */
+export const MAX_SAMPLE_TRACK_ID_LENGTH = 64;
+const SAMPLE_TRACK_ID_PATTERN = /^[a-z0-9-]+$/;
 
 const TRIM_KEYS: readonly string[] = ["startMs", "endMs"];
 
@@ -130,8 +140,30 @@ export function checkMusicVolumeDb(value: unknown, where: string): number {
 }
 
 /**
- * Checks a song's own fields as `checkMusicTrim`, `checkMusicFadeMs`, `checkPictureChanges` and
- * `checkMusicVolumeDb` do; throws `InvalidOwnMusicError` naming `where`.
+ * `value` as a sample track's id — lowercase letters, digits and hyphens, never checked against
+ * the sample-music catalogue, so a file stays readable when the catalogue changes (SAMPLE_MUSIC.md);
+ * throws `InvalidOwnMusicError` naming `where`.
+ */
+export function checkSampleTrack(value: unknown, where: string): string {
+  if (
+    typeof value !== "string" ||
+    value.length === 0 ||
+    value.length > MAX_SAMPLE_TRACK_ID_LENGTH ||
+    !SAMPLE_TRACK_ID_PATTERN.test(value)
+  ) {
+    throw new InvalidOwnMusicError(
+      where,
+      "sampleTrack",
+      `lowercase letters, digits and hyphens, 1 to ${MAX_SAMPLE_TRACK_ID_LENGTH} characters`,
+      value,
+    );
+  }
+  return value;
+}
+
+/**
+ * Checks a song's own fields as `checkMusicTrim`, `checkMusicFadeMs`, `checkPictureChanges`,
+ * `checkMusicVolumeDb` and `checkSampleTrack` do; throws `InvalidOwnMusicError` naming `where`.
  */
 export function checkOwnMusicFields(song: StoredMusic, where: string): void {
   if (song.trim !== undefined) checkMusicTrim(song.trim, song.durationMs, where);
@@ -139,6 +171,7 @@ export function checkOwnMusicFields(song: StoredMusic, where: string): void {
   if (song.fadeOutMs !== undefined) checkMusicFadeMs(song.fadeOutMs, "fadeOutMs", where);
   if (song.pictureChanges !== undefined) checkPictureChanges(song.pictureChanges, where);
   if (song.volumeDb !== undefined) checkMusicVolumeDb(song.volumeDb, where);
+  if (song.sampleTrack !== undefined) checkSampleTrack(song.sampleTrack, where);
 }
 
 /** `value` as the slideshow's own hand-over between songs; throws `InvalidOwnMusicError`. */

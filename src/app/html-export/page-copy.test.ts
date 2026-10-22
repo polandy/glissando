@@ -20,6 +20,7 @@ describe("pageWords", () => {
       eyebrow: "Diashow",
       summary: "50 Bilder · 4:10 · mit Musik",
       madeWith: "Erstellt mit Glissando · läuft offline",
+      sampleMusicCredit: "Musik: Glissando, CC BY-NC 4.0",
       play: "Abspielen",
       pause: "Pause",
       mute: "Ton aus",

@@ -14,6 +14,7 @@ const COPY: PageCopy = {
   eyebrow: "Diashow",
   summary: "3 Bilder · 0:12 · mit Musik",
   madeWith: "Erstellt mit Glissando · läuft offline",
+  sampleMusicCredit: "",
   play: "Abspielen",
   pause: "Pause",
   mute: "Ton aus",

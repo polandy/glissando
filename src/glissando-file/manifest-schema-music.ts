@@ -1,6 +1,7 @@
 import {
   EVEN_PICTURE_CHANGES,
   MAX_MUSIC_FADE_MS,
+  MAX_SAMPLE_TRACK_ID_LENGTH,
   MUSIC_FADE_OFF_MS,
   MUSIC_FADE_STEP_MS,
   MUSIC_VOLUME_MAX_DB,
@@ -35,7 +36,15 @@ const MUSIC_VOLUME_SCHEMA: JsonSchema = {
   maximum: MUSIC_VOLUME_MAX_DB,
 };
 
-/** A song in `songs`: its path, type, whole length and optional trim, fades and volume. */
+const SAMPLE_TRACK_SCHEMA: JsonSchema = {
+  type: "string",
+  pattern: `^[a-z0-9-]{1,${MAX_SAMPLE_TRACK_ID_LENGTH}}$`,
+};
+
+/**
+ * A song in `songs`: its path, type, whole length and optional trim, fades, volume and
+ * sample-track id.
+ */
 export const MUSIC_SCHEMA: JsonSchema = {
   type: "object",
   properties: {
@@ -48,6 +57,7 @@ export const MUSIC_SCHEMA: JsonSchema = {
     fadeOutMs: MUSIC_FADE_SCHEMA,
     pictureChanges: { const: EVEN_PICTURE_CHANGES },
     volumeDb: MUSIC_VOLUME_SCHEMA,
+    sampleTrack: SAMPLE_TRACK_SCHEMA,
   },
   required: ["file", "fileName", "durationMs", "mimeType"],
   additionalProperties: false,

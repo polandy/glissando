@@ -111,6 +111,12 @@ export interface StoredMusic {
    * literal 0 — `setMusicVolume` deletes the field instead (ADR-0040).
    */
   readonly volumeDb?: number;
+  /**
+   * The id of the Glissando sample track this song is (`checkSampleTrack`); absent for the
+   * owner's own music. Set only when the song is added; no edit changes it (SAMPLE_MUSIC.md,
+   * ADR-0042).
+   */
+  readonly sampleTrack?: string;
 }
 
 export interface StoredSlideshow {
@@ -200,6 +206,8 @@ export interface LibraryStore {
   playbackPictureBlob(id: string, signal?: AbortSignal): Promise<Blob>;
   thumbnailBlob(id: string): Promise<Blob>;
   musicBlob(id: string): Promise<Blob>;
+  /** Whether the `music` store holds `id`, re-checked every call (a slideshow may be deleted meanwhile). */
+  hasMusic(id: string): Promise<boolean>;
   /** Throws `MediaNotFoundError` for an unknown media id. */
   videoBlob(id: string): Promise<Blob>;
   /**

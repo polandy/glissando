@@ -15,19 +15,17 @@
   import ImportRoute from "./import/ImportRoute.svelte";
   import type { ImportSession } from "./import/import-session";
   import type { Route } from "./navigation/route";
-  import FrameRoutes from "./frame/FrameRoutes.svelte";
   import type { PwaSheetContent } from "./pwa/PwaSheet.svelte";
   import StatusBar from "./pwa/StatusBar.svelte";
+  import HomeRoutes from "./routes/HomeRoutes.svelte";
   import IntakeRoutes from "./routes/IntakeRoutes.svelte";
   import SlideshowRoute from "./routes/SlideshowRoute.svelte";
   import { leaveWithToast } from "./routes/slideshow-exits";
   import { findSlideshowHome, serverRouteStore, type RouteStore } from "./routes/slideshow-home";
   import type { SlideshowHome } from "./routes/slideshow-storage";
-  import StartRoute from "./routes/StartRoute.svelte";
   import type { AppServices } from "./services";
   import type { SettingsState } from "./settings/app-settings";
   import { effectivePlaybackQuality } from "./settings/playback-quality";
-  import SettingsSheet from "./settings/SettingsSheet.svelte";
   import type { ToastMessage } from "./toast/toaster";
   import { ServerCopyFlows } from "./server-library/server-copy-flows";
   import type { ServerLibraryState } from "../server-library/server-library-availability";
@@ -152,51 +150,23 @@
   />
 {/snippet}
 
-{#if route.screen === "start" || route.screen === "settings" || route.screen === "frame"}
-  <StartRoute
-    {store}
-    serverLibrary={services.serverLibrary}
-    focusPass={services.focusPass}
-    serverFocusPass={services.serverFocusPass}
-    playStartAnimation={logoPlays}
-    onError={reportError}
-    onCreate={() => importFlow.open()}
-    onOpen={(slideshowId) => navigator.open({ screen: "slideshow", slideshowId })}
-    updateWaiting={pwaState.updateWaiting}
-    onSettings={() => navigator.open({ screen: "settings" })}
-    onOpenFile={(file) => void openFlow.open(file, "library")}
+{#if route.screen === "start" || route.screen === "settings" || route.screen === "frame" || route.screen === "frameSetup"}
+  <HomeRoutes
+    {route}
+    {services}
+    {importFlow}
+    {openFlow}
+    {actions}
+    {statusBar}
+    {logoPlays}
+    {pwaState}
+    {serverState}
+    {frameCardShown}
+    {settingsState}
+    {immichState}
     notice={noticeFor("library")}
     onDismissNotice={() => openFlow.dismissNotice()}
-    onReload={services.reload}
-    {statusBar}
-    serverOn={serverState.kind === "on"}
-    onSetUpFrame={() => navigator.open({ screen: "frameSetup" })}
-    onHideFrameCard={actions.hideFrameCard}
-    {frameCardShown}
   />
-  <FrameRoutes {route} {services} {navigator} />
-  {#if route.screen === "settings"}
-    <SettingsSheet
-      state={settingsState}
-      immich={immichState}
-      build={services.build}
-      updateWaiting={pwaState.updateWaiting}
-      onUpdate={() => pwa.reload()}
-      onCheckImmich={() => immich.availability.check().catch(reportError)}
-      onReload={services.reload}
-      onTheme={(theme) => settings.setTheme(theme)}
-      onLanguage={(language) => settings.setLanguage(language)}
-      serverOn={serverState.kind === "on"}
-      screenShortEdge={services.screenShortEdge()}
-      onPlaybackQuality={(quality) => settings.setPlaybackQuality(quality)}
-      {frameCardShown}
-      onSetUpFrame={() => navigator.open({ screen: "frameSetup" })}
-      onFrameCardShown={(shown) => services.frameCardPreference.setShown(shown)}
-      onClose={() => navigator.back()}
-    />
-  {/if}
-{:else if route.screen === "frameSetup"}
-  <FrameRoutes {route} {services} {navigator} />
 {:else if route.screen === "import" && importSession !== null}
   <ImportRoute
     step={route.step}
@@ -219,6 +189,8 @@
     immich={immichState}
     onOpenImmich={() => navigator.open({ screen: "immich", albumId: null, slideshowId: null })}
     onImmichSettings={() => navigator.open({ screen: "settings" })}
+    samplePreview={services.samplePreview}
+    {toaster}
   />
 {:else if route.screen === "add" || route.screen === "immich"}
   <IntakeRoutes
@@ -260,6 +232,7 @@
         decodeClipSound={services.decodeClipSound}
         readClipPeaks={services.readClipPeaks}
         songIntake={services.songIntake(opened.home)}
+        samplePreview={services.samplePreview}
         onBack={() => navigator.back()}
         onPlay={() => {
           // Within the Play gesture: the player starts the music only after its pictures load.

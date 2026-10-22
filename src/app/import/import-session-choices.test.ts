@@ -103,7 +103,13 @@ describe("ImportSession, its choices of songs and seconds per picture", () => {
       new File(["c"], "third.mp3", { type: "audio/mpeg" }),
     ]);
 
-    expect(choicesOf(session).songs.map(({ key, pickedName }) => ({ key, pickedName }))).toEqual([
+    expect(
+      choicesOf(session)
+        .songs.filter(
+          (song) => song.kind !== "downloadingSample" && song.kind !== "failedSampleDownload",
+        )
+        .map(({ key, pickedName }) => ({ key, pickedName })),
+    ).toEqual([
       { key: 1, pickedName: "first.mp3" },
       { key: 2, pickedName: "second.mp3" },
       { key: 3, pickedName: "third.mp3" },

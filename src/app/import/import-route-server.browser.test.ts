@@ -5,8 +5,10 @@ import { afterEach, describe, expect, it } from "vitest";
 import { MemoryLibraryStore } from "../../library/testing/memory-store";
 import { fakeRemovalPorts, fakeStoppedPickText } from "../testing/picture-intake-ports";
 import { ServerLibraryUnavailableError } from "../../server-library/server-library-client";
+import { FakeScheduler } from "../../ui-kit/testing/fake-scheduler";
 import { createTranslator } from "../i18n/translator";
 import { mountWithTranslator } from "../testing/mount-with-translator";
+import { Toaster } from "../toast/toaster";
 import { ImportSession, type ImportSessionPorts } from "./import-session";
 import ImportRoute from "./ImportRoute.svelte";
 
@@ -83,6 +85,7 @@ function mountMusicStep(importSession: ImportSession) {
         failed.push(retry);
         told();
       },
+      toaster: new Toaster(new FakeScheduler()),
     },
     { current: createTranslator("en") },
   );

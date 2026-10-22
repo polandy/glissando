@@ -27,7 +27,7 @@ test("E2E-038 music a browser cannot play becomes a FLAC copy; an unreadable fil
   await page.getByRole("button", { name: "Next" }).click();
   await expect(page.getByRole("heading", { name: "Which music?" })).toBeVisible();
 
-  await chooseFiles(page, page.getByRole("button", { name: "Choose music" }), [
+  await chooseFiles(page, page.getByRole("button", { name: "Choose files" }), [
     textFile("Concert.mp3"),
   ]);
   const songs = page.getByRole("list", { name: "Songs" });
@@ -41,7 +41,7 @@ test("E2E-038 music a browser cannot play becomes a FLAC copy; an unreadable fil
   ).toBe(true);
 
   await page.getByRole("button", { name: "Remove Concert.mp3" }).click();
-  await chooseFiles(page, page.getByRole("button", { name: "Choose music" }), [
+  await chooseFiles(page, page.getByRole("button", { name: "Choose files" }), [
     toneTrack("Evening Walk.m4a", "alac.m4a"),
   ]);
   await expect(page.getByText("Converted from Apple Lossless on this device")).toBeVisible();

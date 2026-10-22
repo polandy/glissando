@@ -51,7 +51,23 @@ describe("folderShow", () => {
       pictureCount: manifest.slideshow.pictures.length,
       durationMs: page.slideshow.slides.reduce((sum, { durationMs }) => sum + durationMs, 0),
       withMusic: true,
+      withSampleMusic: false,
     });
+  });
+
+  it("tells the start card when a song it plays is a sample track", async () => {
+    const { folder, manifest } = await checkedFolder(await exportedFile());
+    const withSample = {
+      ...manifest,
+      slideshow: {
+        ...manifest.slideshow,
+        songs: manifest.slideshow.songs.map((song) => ({ ...song, sampleTrack: "hold-the-frame" })),
+      },
+    };
+
+    const { summary } = await folderShow(withSample, folder, songUrl);
+
+    expect(summary).toMatchObject({ withMusic: true, withSampleMusic: true });
   });
 
   it("reads each clip from its file in the folder", async () => {

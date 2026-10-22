@@ -58,7 +58,7 @@ test("E2E-005 importing pictures and music creates a slideshow ordered by captur
   await expect(definitionOf(page, "je Bild")).toHaveText("4 s");
   await expect(definitionOf(page, "Gesamt")).toHaveText("0:12");
 
-  await chooseFiles(page, page.getByRole("button", { name: "Musik auswählen" }), [
+  await chooseFiles(page, page.getByRole("button", { name: "Dateien wählen" }), [
     silentTrack("Sommerwind.wav", 9),
   ]);
   await expect(page.getByText("Sommerwind.wav", { exact: true })).toBeVisible();

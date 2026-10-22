@@ -16,6 +16,8 @@ export interface PlayerPageWords {
   readonly withMusic: string;
   readonly withoutMusic: string;
   readonly madeWith: string;
+  /** Below `madeWith` when a played song is a Glissando sample track (SAMPLE_MUSIC.md). */
+  readonly sampleMusicCredit: string;
   readonly play: string;
   readonly pause: string;
   readonly mute: string;
@@ -34,6 +36,7 @@ export const PLAYER_TEXT_KEYS = [
   "withMusic",
   "withoutMusic",
   "madeWith",
+  "sampleMusicCredit",
   "play",
   "pause",
   "mute",
@@ -94,6 +97,8 @@ export interface ShareSummary {
   readonly pictureCount: number;
   readonly durationMs: number;
   readonly withMusic: boolean;
+  /** Whether a song the slideshow plays is a sample track, which the start card credits. */
+  readonly withSampleMusic: boolean;
 }
 
 /** The player page's words for a loaded slideshow. */
@@ -116,6 +121,7 @@ export function pageCopyFor(
       music: summary.withMusic ? words.withMusic : words.withoutMusic,
     }),
     madeWith: words.madeWith,
+    sampleMusicCredit: summary.withSampleMusic ? words.sampleMusicCredit : "",
     play: words.play,
     pause: words.pause,
     mute: words.mute,

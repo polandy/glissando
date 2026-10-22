@@ -10,6 +10,7 @@ ADR-0003; file container: ADR-0038.
 | [Importing pictures](library/IMPORTING.md)                   | Accepted files, downscaling, capture date, order, Immich, duplicates, culling |
 | [Step 1 — the picture import](library/PICTURE_IMPORT.md)     | `PictureImport`'s state and errors as files are processed                     |
 | [Music](library/MUSIC.md)                                    | The playlist, trim and fades, picture timing with music                       |
+| [Sample music](library/SAMPLE_MUSIC.md)                      | Glissando's own tracks: preview, download, offline, credit                    |
 | [Storage layout](library/STORAGE_LAYOUT.md)                  | The IndexedDB schema and what each edit stores                                |
 | [Looking for the focus](library/FOCUS_SEARCH.md)             | `FocusPass` finding a picture's subject in the background                     |
 | [Listening for the beats](library/BEAT_LISTENING.md)         | `BeatPass` finding a song's beats in the background                           |

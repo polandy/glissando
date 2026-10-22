@@ -122,13 +122,11 @@ Not in the MVP: per-slide settings, detection, Immich, video export, audio conve
    Mockup: https://polandy.github.io/glissando-assets/mockups/editor/. One PR each, in this
    order: 1. Ken Burns per picture (the picture editor), 2. picture captions (edited in the same
    editor, below the motion; drawn into the slide, ADR-0007), 3. duration and transition per
-   picture, 4. music trim and fade (the music editor, ADR-0009; mockup:
-   https://polandy.github.io/glissando-assets/mockups/music-trim/).
+   picture, 4. music trim and fade (the music editor, ADR-0009).
 2. **Automatic focus** — Ken Burns aims at people, the main object or sweeps scenery; Immich photos use
    Immich's faces, others get on-device detection.
-3. **Immich** — browse and pick albums and photos via the Immich API. Whether the browser calls
-   it directly (CORS, API key exposure) or through a thin server proxy is an ADR.
-   Beside it, slideshows stored on the self-hosted Glissando with their pictures linked from
+3. **Immich** — browse and pick albums and photos via the Immich API, through the self-hosted
+   Glissando (ADR-0013). Beside it, slideshows stored on the self-hosted Glissando with their pictures linked from
    Immich — `dev-docs/SERVER_LIBRARY.md`, ADR-0018.
 4. **Video export** — the slideshow with its music rendered to a video file in the browser
    (WebCodecs encoding, client-side muxing; muxer choice is an ADR) — `dev-docs/VIDEO_EXPORT.md`,
@@ -155,5 +153,6 @@ Not in the MVP: per-slide settings, detection, Immich, video export, audio conve
     `dev-docs/player/TITLE_CARDS.md`.
 12. **Videos as slides** — a clip's excerpt plays as a slide; `dev-docs/player/VIDEO_SLIDES.md`,
     ADR-0034, ADR-0035.
+13. **Sample music** — `dev-docs/library/SAMPLE_MUSIC.md`, ADR-0042.
 
 Each step goes through the UI flow in `CLAUDE.md` (mockup first, owner OK, then specs and code).

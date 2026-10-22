@@ -36,10 +36,27 @@ export const TWO_SONGS: StoredSlideshow = {
   ],
 };
 
+/** The one song is a Glissando sample track. */
+export const WITH_SAMPLE_SONG: StoredSlideshow = {
+  ...STORED,
+  songs: [
+    {
+      id: "m1",
+      fileName: "song.mp3",
+      durationMs: 60_000,
+      mimeType: "audio/mpeg",
+      sampleTrack: "hold-the-frame",
+    },
+  ],
+};
+
+export const SAMPLE_MUSIC_CREDIT_TEXT = "Musik: Glissando, CC BY-NC 4.0";
+
 export const COPY = {
   eyebrow: "Diashow",
   summary: "3 Bilder · 0:12 · mit Musik",
   madeWith: "Erstellt mit Glissando",
+  sampleMusicCredit: SAMPLE_MUSIC_CREDIT_TEXT,
   play: "Abspielen",
   pause: "Pause",
   mute: "Ton aus",
