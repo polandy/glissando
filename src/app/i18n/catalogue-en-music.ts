@@ -39,8 +39,8 @@ export const enMusic: Pick<Catalogue, keyof typeof deMusic> = {
   "music.automaticBecause": "Automatic: {reason}.",
   "music.reason-excerpt-starts-mid-track": "short, as the excerpt starts mid-track",
   "music.reason-track-starts": "off, as the track plays from its start",
-  "music.reason-slideshow-ends": "short, as the slideshow ends at {time}",
-  "music.reason-excerpt-ends-early": "short, as the excerpt stops before the track ends",
+  "music.reason-slideshow-ends": "long, as the slideshow ends at {time}",
+  "music.reason-excerpt-ends-early": "long, as the excerpt stops before the track ends",
   "music.reason-track-ends": "off, as the track ends by itself",
   "music.pictureTimes": "Picture times",
   "music.noteShared": {

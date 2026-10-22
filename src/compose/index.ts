@@ -42,7 +42,8 @@ export {
   type SongBeats,
 } from "./playlist";
 export {
-  AUTOMATIC_MUSIC_FADE_MS,
+  AUTOMATIC_MUSIC_FADE_IN_MS,
+  AUTOMATIC_MUSIC_FADE_OUT_MS,
   audibleEndMs,
   automaticFadeInMs,
   automaticFadeOutMs,

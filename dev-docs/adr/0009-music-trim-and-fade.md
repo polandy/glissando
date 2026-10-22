@@ -24,7 +24,8 @@ the excerpt is cut while playing.
 - **The excerpt's length replaces the track's** in the slide timing; nothing else about it
   changes (ADR-0008).
 - **Automatic fades only where the music is cut**: a short fade-in when the excerpt starts after
-  the track's start, a short fade-out when the music stops before the track's end.
+  the track's start, a long fade-out when the music stops before the track's end, so an ending
+  is never abrupt.
 - **The music is heard until the excerpt's end or the slideshow's, whichever comes first**: a
   longer slideshow plays its last pictures in silence after the fade-out; a shorter one fades
   the music out as it ends.

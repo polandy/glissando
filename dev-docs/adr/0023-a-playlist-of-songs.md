@@ -23,8 +23,8 @@ what the player and the exports are told.
   fade on either side of a join is 3 s (`CROSSFADE_MS`); an own fade is kept, so an own fade-out
   of "off" leaves no overlap: the next song starts as the previous one stops, still fading in
   automatically. One after another, the next song starts at the previous one's end,
-  and each song's automatic fades follow ADR-0009 (short only where the song is cut). The
-  playlist's start and its end follow ADR-0009 as for one song.
+  and each song's automatic fades follow ADR-0009 (short in, long out, only where the song is
+  cut). The playlist's start and its end follow ADR-0009 as for one song.
 - **The pictures meet the playlist as they met one song** (ADR-0022): "Fill the music" fills the
   playlist's length (the excerpts' sum less the overlaps). The beats are each song's excerpt
   beats placed at its start in the playlist; inside an overlap only the incoming song's count; a

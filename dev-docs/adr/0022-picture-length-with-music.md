@@ -28,7 +28,7 @@ Three questions need an answer: where the choice is stored, what existing slides
   the slideshow ends on a beat, about as long as its pictures. Without a beat, or with picture
   changes "Evenly", every picture stays exactly N s.
 - **The music follows the slideshow** (ADR-0009, unchanged): a longer song is heard until the
-  slideshow ends and fades out there (automatically 2 s); a shorter one leaves the last pictures
+  slideshow ends and fades out there (automatically 5 s); a shorter one leaves the last pictures
   in silence.
 - `.glissando` goes to version 9, which carries `pictureLength`; the server document carries it
   under the same rules.
