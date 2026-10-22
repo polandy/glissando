@@ -67,7 +67,7 @@ function cellKey(latCell: number, lonCell: number): string {
  * (equal longitude) this is exact — the path is a meridian arc, itself a great circle — which is
  * what the PLACE_LOOKUP_MAX_KM boundary tests measure against independently of this function.
  */
-function greatCircleDistanceKm(
+export function greatCircleDistanceKm(
   latitude1: number,
   longitude1: number,
   latitude2: number,
