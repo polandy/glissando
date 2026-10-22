@@ -39,9 +39,10 @@ while the import runs, with these differences:
 - No title-slide tiles; the placeholders follow the last picture, then the add tile where
   "Add pictures" or "From Immich" is on offer (none while linking a server slideshow with
   neither available).
-- The selection bar has **View** where the editor has Edit; it opens the picture full screen
-  ([PICTURE_VIEWER.md](PICTURE_VIEWER.md)), as do F on a focused tile and a double-click with
-  a mouse. The picture editor needs a stored slideshow and stays in the editor.
+- The selection bar has **View** alone, where the editor has View beside Edit; it opens the
+  picture full screen ([PICTURE_VIEWER.md](PICTURE_VIEWER.md)), as do F on a focused tile and
+  a double-click with a mouse. The picture editor needs a stored slideshow and stays in the
+  editor.
 - Removal is the step's own: the toast "Picture removed" · "Undo" that adds up, and the last
   picture can go too (the empty drop zone returns).
 - The strip head reads "Capture order" or "Own order"; while the import runs it adds
