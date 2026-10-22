@@ -14,8 +14,8 @@ The panel for the song selected in the [music editor](../MUSIC_EDITOR.md).
   below. Then the lane "Slideshow, 24 pictures" with
   its length: a mint bar from the excerpt's start for as long as the slideshow plays this song
   (none for a song not reached), a tick
-  per picture change (on the beat, a change that falls between beats — e.g. the one after a picture with an
-  own duration — is a wider coral tick), lemon hatching past the last song's excerpt end when the pictures play on
+  per picture change (on the beat, a change that falls between beats — an own duration with no
+  automatic picture left after it to absorb the shift — is a wider coral tick), lemon hatching past the last song's excerpt end when the pictures play on
   in silence; when the slideshow ends earlier, the waveform is hatched from there to the
   excerpt's end. "Listen to the start" (the excerpt's first 8 s with the fade-in, "from
   0:12,0") and "Listen to the end" (the last 8 s before the music stops being heard, with the
@@ -53,9 +53,10 @@ The panel for the song selected in the [music editor](../MUSIC_EDITOR.md).
   evenly." (pictures lasting their seconds: "… Until then each picture stays exactly 5 s.").
   With a beat, "On the beat" (the default) and "Evenly" as a radiogroup (arrows move
   the choice), stored with the music at once; on the beat "Every automatic change lands on a
-  beat of the music; a transition lasts whole beats.", with own durations followed by
-  "Pictures 5 and 12 keep their own duration, so the change after each can fall between
-  beats."; evenly "The pictures share the music evenly, regardless of its beat." (or "Each
+  beat of the music; a transition lasts whole beats." — every own duration moves there too,
+  about its set length, except one with no automatic picture left after it to absorb the shift,
+  named "Pictures 5 and 12 keep their own duration exactly: no automatic picture follows to take
+  up the difference, so their changes can fall between beats."; evenly "The pictures share the music evenly, regardless of its beat." (or "Each
   picture stays exactly 5 s, regardless of the beat.").
   Music without a clear beat: "No steady beat found in this music. The pictures share it
   evenly." (or "… Each picture stays exactly 5 s."), no choice. Only music this device cannot

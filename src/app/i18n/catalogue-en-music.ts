@@ -81,9 +81,9 @@ export const enMusic: Pick<Catalogue, keyof typeof deMusic> = {
   "music.onTheBeatHint":
     "Every automatic change lands on a beat of the music; a transition lasts whole beats.",
   "music.ownDurationsOffBeat": {
-    one: "Picture {pictures} keeps its own duration, so the change after it can fall between beats.",
+    one: "Picture {pictures} keeps its own duration exactly: no automatic picture follows to take up the difference, so its change can fall between beats.",
     other:
-      "Pictures {pictures} keep their own duration, so the change after each can fall between beats.",
+      "Pictures {pictures} keep their own duration exactly: no automatic picture follows to take up the difference, so their changes can fall between beats.",
   },
   "music.evenlyHint": "The pictures share the music evenly, regardless of its beat.",
   "music.evenlyHintSeconds": "Each picture stays exactly {seconds}, regardless of the beat.",

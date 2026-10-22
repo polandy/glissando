@@ -27,28 +27,29 @@ I/O, no subject detection.
 - **Durations** (`slideDurationsMs`): works per slide unit, not per picture. A composed pair
   counts as `PAIR_WEIGHT` (1.5) of a single slide's share; a pair is always automatic, since a
   picture with any own setting is never paired. A picture's own duration (`StoredPicture.durationMs`,
-  ADR-0008) is kept exactly. Without music, and with music when `StoredSlideshow.pictureLength`
-  is `"seconds"` (ADR-0022), every other slide gets `secondsPerPicture` times its weight. When the pictures fill
-  the music (`pictureLength` absent; `filledMusicMs`), the slides without an own duration share what the own durations leave of the
+  ADR-0008) is kept exactly, unless the music's beats move it (below). Without music, and with
+  music when `StoredSlideshow.pictureLength` is `"seconds"` (ADR-0022), every other slide gets
+  `secondsPerPicture` times its weight. When the pictures fill the music (`pictureLength` absent;
+  `filledMusicMs`), the slides without an own duration share what the own durations leave of the
   playlist (`playlistMs`: the songs' excerpts — each the trim, or the whole track, ADR-0009 —
-  summed, less the crossfades' overlaps; ADR-0023) by weight (the remainder
-  milliseconds go to the first of them, so the sum matches the playlist exactly) — unless that share would fall below `MIN_SECONDS_PER_PICTURE`, unweighted, (or nothing is left),
-  in which case each of them gets the minimum and the slideshow outlasts the music. When every
-  picture has an own duration, the music plays no part in the timing. **On the beat**
-  (ADR-0021): with the playlist's beats (`playlistBeatsMs`: each song's beats from `src/beats/`
-  strictly inside its excerpt, placed at the song's start in the playlist; inside a crossfade's
-  overlap only the incoming song's; a song with `pictureChanges` `"even"`, without a clear beat
-  or not listened to yet gives none)
-  each boundary that ends an automatic slide then moves to the nearest beat — a phrase start, every
-  fourth beat of the list, when it is at most half a beat further away — that leaves that
-  slide and the next automatic one at least `MIN_SECONDS_PER_PICTURE` (`snapToBeats`), else
-  stays. Pictures with an own duration between the two move along, so the first of them starts
-  on the beat and each keeps its duration exactly; the boundary after them is not snapped, and
-  the next automatic slide takes up the difference. The playlist's end, and a boundary followed by
-  own durations only, never move, so the total is unchanged. When the pictures last their
-  seconds, the boundaries snap the same way and the last automatic slide's end moves too, to the
-  nearest beat within its slack above the minimum, with the own durations after it following:
-  the slideshow ends on a beat, about as long as its pictures. When no song gives a beat, the even share stands.
+  summed, less the crossfades' overlaps; ADR-0023) by weight (the remainder milliseconds go to the
+  first of them, so the sum matches the playlist exactly) — unless that share would fall below
+  `MIN_SECONDS_PER_PICTURE`, unweighted (or nothing is left), in which case each of them gets the
+  minimum and the slideshow outlasts the music; filling it or not then makes no difference when
+  every picture has an own duration. **On the beat** (ADR-0021): with the playlist's beats
+  (`playlistBeatsMs`: each song's beats from `src/beats/` strictly inside its excerpt, placed at
+  the song's start in the playlist; inside a crossfade's overlap only the incoming song's; a song
+  with `pictureChanges` `"even"`, without a clear beat or not listened to yet gives none), each
+  boundary moves to the nearest beat — a phrase start, every fourth beat of the list, within half
+  a beat — that leaves the slide before it and the next automatic one after it at least
+  `MIN_SECONDS_PER_PICTURE` (`snapToBeats`), the difference taken up by that next slide; else
+  stays. An own duration moves the same way but only within half its slack above the minimum
+  either way of its set length, so it moves to about that long, not exactly it. A boundary with no
+  automatic slide left to absorb the difference — the playlist's end when the pictures fill it, or
+  an own duration the rest of the way to it — keeps its unsnapped length instead, unless there is
+  no automatic slide at all, when each own duration still moves about its own length. Lasting
+  their seconds, the last slide's end moves too, the same way: the slideshow ends on a beat. No
+  beat leaves the even, or exact, shares as they are.
 - **Ken Burns**: zoom alternates in/out by slide index between `MIN_KEN_BURNS_ZOOM` and 1.2; a
   gentle horizontal pan alternates direction with it. The motion swings around the picture's
   focus — the centre of the subject box the on-device detection found (`PictureFocus`,

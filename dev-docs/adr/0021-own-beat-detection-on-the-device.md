@@ -55,16 +55,19 @@ Decoding at 11 025 Hz takes about 0.14 s for 3 minutes and is native code.
 - **The choice** is the music's: `StoredMusic.pictureChanges` absent means automatic (on the beat
   when a beat was found), `"even"` keeps the even share. It travels with the track like the trim
   (ADR-0009); `.glissando` goes to version 8.
-- **Composing**: the even shares are computed as before; then each boundary that ends an
-  automatic slide moves to the nearest beat inside the excerpt, never leaving that slide or the
-  next automatic one below `MIN_SECONDS_PER_PICTURE`. The last boundary stays at the excerpt's end, so the slideshow still ends with the
-  music. A transition into a slide on the beat lasts the largest whole number of beats that fits
-  its usual duration (30 % of the slide, at most 1 s), so it starts on a beat too; one beat longer
-  than that keeps the usual duration.
-- **Own durations stay exact** (ADR-0008): pictures with an own duration between two automatic
-  slides move along with the boundary before them; the boundary after a picture with an own
-  duration is not moved, nor is one followed by own durations only; the following automatic
-  boundaries snap again.
+- **Composing**: the even shares are computed as before; then each boundary moves to the nearest
+  beat inside the excerpt, the difference taken up by the next automatic slide ahead, never
+  leaving a slide below `MIN_SECONDS_PER_PICTURE`. The last boundary stays at the excerpt's end,
+  so the slideshow still ends with the music, unless no automatic slide is left after a boundary
+  to take up the difference: that one then moves too. A transition into a slide on the beat lasts
+  the largest whole number of beats that fits its usual duration (30 % of the slide, at most 1 s),
+  so it starts on a beat too; one beat longer than that keeps the usual duration.
+- **Own durations move to about their set length** (ADR-0008): a boundary after a picture with an
+  own duration moves the same way, but only within half its slack above `MIN_SECONDS_PER_PICTURE`
+  either way of its set length, so it keeps about that long rather than exactly it. With no
+  automatic slide left after it to take up the difference — filling the music, with only own
+  durations the rest of the way — it keeps its own duration exactly instead, and the boundary
+  before it (automatic or own) does too.
 - **The same timing everywhere**: player, video export and web page export compose with the beats
   found so far; until a result exists the even share plays.
 
@@ -82,7 +85,6 @@ Decoding at 11 025 Hz takes about 0.14 s for 3 minutes and is native code.
   simpler to carry, but a live recording or a song that speeds up drifts off it within a minute.
 - _Carry the beats in `.glissando` files_ — saves the receiver about a second, but needs format
   room for a derived result and freezes today's detector into every file.
-- _Snap own durations too_ — rejected: the user set them to the half second.
 
 ## Addendum: phrase starts
 

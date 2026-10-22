@@ -2,42 +2,46 @@
 const BEATS_PER_PHRASE = 4;
 
 /**
- * Moves the boundaries that end an automatic slide onto the music's beats (ADR-0021): each to the
- * nearest beat (preferring a phrase start, `nearestBeatMs`) that leaves its slide and the next automatic one at least `minSlideMs`, else where
- * it was. Pictures with an own duration between the two move along and stay exact, so the boundary
- * after them is not snapped. With `endOnBeat` the last automatic slide's end moves too, to the
- * nearest beat as far from it as the slide's slack above the minimum, and the own durations after
- * it follow; otherwise it stays, and the sum of the durations does not change.
+ * Moves slide boundaries onto the music's beats (ADR-0021): each one, automatic or an own
+ * duration, to the nearest beat (preferring a phrase start, `nearestBeatMs`) that leaves this
+ * slide and the next automatic one ahead at least `minSlideMs`. An own duration also keeps its
+ * slide within its slack of that duration — half its length above the minimum — so it moves to
+ * about its set length rather than exactly it. The difference absorbs into the next automatic
+ * slide ahead, whose own boundary may then snap again in turn; a slide with an own duration in
+ * between carries over unaffected, its own boundary decided separately on its own terms. With
+ * `endOnBeat`, a slide with no automatic slide ahead to absorb into — the last automatic slide
+ * when the pictures do not fill the music, or an own duration after it — still moves its own end
+ * the same bounded way; otherwise it stays, and the sum of the durations does not change.
  */
 export function snapToBeats(
   durationsMs: readonly number[],
-  /** Per slide: whether its duration is automatic, and so may change. */
+  /** Per slide: whether its duration is automatic, and so may change without a slack limit. */
   automatic: readonly boolean[],
   /** In ms of the playlist, ascending. */
   beatsMs: readonly number[],
   minSlideMs: number,
-  /** The last automatic slide may end on a beat: the pictures do not fill the music. */
+  /** The last slide, if it has no automatic one ahead, may end on a beat too. */
   endOnBeat = false,
 ): number[] {
   const snappedMs = [...durationsMs];
   let startMs = 0;
   for (let index = 0; index < snappedMs.length; index += 1) {
     const nextAutomatic = automatic.indexOf(true, index + 1);
-    if (automatic[index] && nextAutomatic !== -1) {
-      const endMs = startMs + (snappedMs[index] as number);
+    if (nextAutomatic !== -1) {
+      const durationMs = snappedMs[index] as number;
+      const endMs = startMs + durationMs;
       const ownBetweenMs = sum(snappedMs.slice(index + 1, nextAutomatic));
       const nextEndMs = endMs + ownBetweenMs + (snappedMs[nextAutomatic] as number);
-      const beatMs = nearestBeatMs(
-        beatsMs,
-        endMs,
-        startMs + minSlideMs,
+      const latestMs = Math.min(
         nextEndMs - ownBetweenMs - minSlideMs,
+        automatic[index] ? Infinity : startMs + 2 * durationMs - minSlideMs,
       );
+      const beatMs = nearestBeatMs(beatsMs, endMs, startMs + minSlideMs, latestMs);
       if (beatMs !== undefined) {
         snappedMs[index] = beatMs - startMs;
         snappedMs[nextAutomatic] = nextEndMs - beatMs - ownBetweenMs;
       }
-    } else if (automatic[index] && endOnBeat) {
+    } else if (endOnBeat) {
       const durationMs = snappedMs[index] as number;
       const slackMs = durationMs - minSlideMs;
       const endMs = startMs + durationMs;
