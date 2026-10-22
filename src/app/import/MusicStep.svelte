@@ -225,10 +225,19 @@
 
 <style>
   .or {
+    display: flex;
+    align-items: center;
+    gap: 10px;
     margin: 0;
     color: var(--gl-faint);
     font-size: var(--gl-size-small);
-    text-align: center;
+  }
+  .or::before,
+  .or::after {
+    flex: 1;
+    height: 1px;
+    background: var(--gl-line);
+    content: "";
   }
   .soundtrack {
     display: grid;

@@ -19,20 +19,20 @@
   const { t } = getTranslator();
 </script>
 
-<DropZone icon="music" {onFiles} {onError}>
-  <div class="own">
+<DropZone icon="music" compact {onFiles} {onError}>
+  <div class="txt">
     <span class="own-title">{t("import.ownMusicTitle")}</span>
     <span class="own-hint">{t("import.musicFormats")}</span>
-    <button class="btn" type="button" onclick={onChoose}>{t("import.chooseFiles")}</button>
   </div>
+  <button class="btn" type="button" onclick={onChoose}>{t("import.chooseFiles")}</button>
 </DropZone>
 
 <style>
-  .own {
+  .txt {
     display: grid;
-    gap: 6px;
-    justify-items: center;
-    text-align: center;
+    gap: 2px;
+    flex: 1;
+    min-width: 0;
   }
   .own-title {
     font-size: var(--gl-size-label);
@@ -40,7 +40,10 @@
     color: var(--gl-ink);
   }
   .own-hint {
-    font-size: var(--gl-size-small);
+    overflow: hidden;
     color: var(--gl-faint);
+    font-size: var(--gl-size-small);
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 </style>

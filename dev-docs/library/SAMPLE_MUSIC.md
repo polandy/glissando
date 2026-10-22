@@ -50,8 +50,10 @@ both as build arguments (`deploy/Dockerfile`).
 
 - **Import, music step** (app/IMPORT_WIZARD.md): no tabs — both ways in show on the first phone
   screen (412 × 780 CSS px), one above the other: the block "Glissando music" ("9 tracks · come
-  with Glissando"), the divider "or", then the row "Your own music" ("MP3, M4A, FLAC, WAV, Ogg …",
-  "Choose files"; the drop zone). Below them the one song list "Soundtrack" holds every song
+  with Glissando"), the divider "or", then the compact row "Your own music" (a music icon, the
+  file-format hint "MP3, M4A, FLAC, WAV, Ogg …" on one line, "Choose files"). The row is the drop
+  zone; it shows a dashed accent outline only while something is dragged over it. Below them the
+  one song list "Soundtrack" holds every song
   chosen, wherever it came from ("No music yet — add a track or your own songs above." while
   empty), then the picture-length panel and the buttons. An added track joins
   `ImportChoices.songs` like a picked file and is stored with them on "Create slideshow".
@@ -62,9 +64,10 @@ both as build arguments (`deploy/Dockerfile`).
   `aria-controls`) unfolds it in place to all nine and the credit footer, animated in height
   (none under `prefers-reduced-motion`), and reads "Show fewer", which folds it again. Nothing
   scrolls sideways. Unfolded or not, the block keeps its state while the step is open.
-- **The grid**: 3 columns at every width. A card is its cover with the play button (top left) and
-  "+" (top right, `aria-label` "Add <title>"; "✓" once added), the title, the mood and the
-  length, with a status line where one applies.
+- **The grid**: 3 columns at every width. A card is a square, its cover filling it; the play
+  button (top left) and "+" (top right, `aria-label` "Add <title>"; "✓" once added) sit on the
+  cover, and the title, the mood and the length are overlaid at the bottom on a dark gradient,
+  with a status line in the same overlay where one applies.
 
 ## Listening
 

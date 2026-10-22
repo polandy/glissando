@@ -45,128 +45,143 @@
   const { t, formatDuration } = getTranslator();
 </script>
 
-<li class="card" class:disabled>
-  <div class="cover">
-    <img src={SAMPLE_TRACK_COVER_URLS[track.id]} alt="" />
-    {#if !disabled}
-      <button
-        class="play"
-        type="button"
-        disabled={loading}
-        aria-label={playing
-          ? t("sampleMusicPicker.pauseTrack", { title: track.title })
-          : t("sampleMusicPicker.playTrack", { title: track.title })}
-        onclick={onTogglePlay}
-      >
-        <Icon name={playing ? "pause" : "play"} />
-      </button>
-    {/if}
-    {#if downloadProgress !== undefined}
-      <span
-        class="ring"
-        aria-hidden="true"
-        style:background="conic-gradient(var(--gl-accent) {downloadProgress * FULL_TURN_DEGREES}deg,
-        var(--gl-photo-badge) 0deg)"
-      >
-        <span class="ring-value">{Math.round(downloadProgress * PERCENT)}</span>
-      </span>
-    {:else}
-      <button
-        class="plus"
-        class:added
-        type="button"
-        aria-pressed={added}
-        disabled={disabled && !added}
-        aria-label={added
-          ? t("sampleMusicPicker.removeTrack", { title: track.title })
-          : t("sampleMusicPicker.addTrack", { title: track.title })}
-        onclick={onToggleAdd}
-      >
+<li class="card" class:disabled class:added>
+  <img class="cover" src={SAMPLE_TRACK_COVER_URLS[track.id]} alt="" />
+  {#if !disabled}
+    <button
+      class="play"
+      type="button"
+      disabled={loading}
+      aria-label={playing
+        ? t("sampleMusicPicker.pauseTrack", { title: track.title })
+        : t("sampleMusicPicker.playTrack", { title: track.title })}
+      onclick={onTogglePlay}
+    >
+      <Icon name={playing ? "pause" : "play"} />
+    </button>
+  {/if}
+  {#if downloadProgress !== undefined}
+    <span
+      class="ring"
+      aria-hidden="true"
+      style:background="conic-gradient(var(--gl-accent) {downloadProgress * FULL_TURN_DEGREES}deg,
+      var(--gl-photo-badge) 0deg)"
+    >
+      <span class="ring-value">{Math.round(downloadProgress * PERCENT)}</span>
+    </span>
+  {:else}
+    <button
+      class="plus"
+      class:added
+      type="button"
+      aria-pressed={added}
+      disabled={disabled && !added}
+      aria-label={added
+        ? t("sampleMusicPicker.removeTrack", { title: track.title })
+        : t("sampleMusicPicker.addTrack", { title: track.title })}
+      onclick={onToggleAdd}
+    >
+      <span class="dot" aria-hidden="true">
         <Icon name={added ? "check" : "plus"} />
-      </button>
-    {/if}
-    {#if playing || paused}
-      <span class="progress" aria-hidden="true">
-        <span class="bar" style:width="{previewProgress * PERCENT}%"></span>
       </span>
-    {/if}
-  </div>
-  <div class="info">
+    </button>
+  {/if}
+  <div class="shade">
     <b class="title">
       {#if playing}
         <span class="bars" aria-hidden="true"><span></span><span></span><span></span></span>
       {/if}
       <span class="name">{track.title}</span>
     </b>
-    <span class="mood">{t(SAMPLE_TRACK_MOOD_KEYS[track.id])}</span>
-    <span class="length mono">{formatDuration(track.durationMs / MILLISECONDS_PER_SECOND)}</span>
+    <p class="meta">
+      {t(SAMPLE_TRACK_MOOD_KEYS[track.id])} ·
+      <span class="mono">{formatDuration(track.durationMs / MILLISECONDS_PER_SECOND)}</span>
+    </p>
     {#if statusKey !== undefined}<span class="status">{t(statusKey)}</span>{/if}
   </div>
+  {#if playing || paused}
+    <span class="progress" aria-hidden="true">
+      <span class="bar" style:width="{previewProgress * PERCENT}%"></span>
+    </span>
+  {/if}
 </li>
 
 <style>
   .card {
-    display: grid;
-    gap: 8px;
-  }
-  .card.disabled {
-    opacity: 0.55;
-  }
-  .cover {
     position: relative;
     aspect-ratio: 1;
     overflow: hidden;
     border-radius: var(--gl-radius);
     background: var(--gl-raised);
   }
-  .cover img {
+  .card.disabled {
+    opacity: 0.55;
+  }
+  .cover {
+    position: absolute;
+    inset: 0;
     width: 100%;
     height: 100%;
     object-fit: cover;
   }
-  .play,
-  .plus {
-    position: absolute;
-    display: grid;
-    place-items: center;
-    width: 32px;
-    height: 32px;
-    border: 0;
-    border-radius: 50%;
-    cursor: pointer;
-  }
   .play {
+    position: absolute;
     top: 6px;
     left: 6px;
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border: 0;
+    border-radius: 50%;
     background: var(--gl-photo-play-bg);
     color: var(--gl-photo-play-ink);
     box-shadow: var(--gl-photo-play-shadow);
+    cursor: pointer;
   }
   .play:disabled {
     cursor: wait;
   }
   .plus {
-    top: 6px;
-    right: 6px;
-    background: var(--gl-photo-badge);
-    color: var(--gl-on-photo);
-  }
-  .plus.added {
-    background: var(--gl-accent);
-    color: var(--gl-accent-ink);
+    position: absolute;
+    top: 0;
+    right: 0;
+    display: grid;
+    width: 44px;
+    height: 44px;
+    place-items: center;
+    border: 0;
+    background: transparent;
+    padding: 0;
+    cursor: pointer;
   }
   .plus:disabled {
     cursor: not-allowed;
+  }
+  .dot {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--gl-photo-badge);
+    color: var(--gl-on-photo);
+  }
+  .plus.added .dot {
+    background: var(--gl-accent);
+    color: var(--gl-accent-ink);
+  }
+  .plus:disabled .dot {
     opacity: 0.6;
   }
   .ring {
     position: absolute;
-    top: 6px;
-    right: 6px;
+    top: 5px;
+    right: 5px;
     display: grid;
     place-items: center;
-    width: 32px;
-    height: 32px;
+    width: 34px;
+    height: 34px;
     border-radius: 50%;
   }
   .ring-value {
@@ -178,6 +193,41 @@
     background: var(--gl-photo-badge);
     color: var(--gl-on-photo);
     font-size: var(--gl-size-small);
+  }
+  .shade {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    padding: 22px 8px 6px;
+    background: linear-gradient(transparent, var(--gl-photo-fade));
+    color: var(--gl-on-photo);
+  }
+  .title {
+    display: -webkit-box;
+    margin: 0;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    font-size: var(--gl-size-small);
+    font-weight: var(--gl-weight-semibold);
+  }
+  .meta {
+    margin: 2px 0 0;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    display: -webkit-box;
+    font-size: var(--gl-size-small);
+    opacity: 0.8;
+  }
+  .status {
+    display: block;
+    margin-top: 2px;
+    font-size: var(--gl-size-small);
+    opacity: 0.8;
   }
   .progress {
     position: absolute;
@@ -193,38 +243,13 @@
     height: 100%;
     background: var(--gl-accent);
   }
-  .info {
-    display: grid;
-    gap: 2px;
-  }
-  .title {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    overflow: hidden;
-    font-size: var(--gl-size-label);
-    font-weight: var(--gl-weight-semibold);
-  }
-  .name {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  .mood,
-  .status {
-    color: var(--gl-muted);
-    font-size: var(--gl-size-small);
-  }
-  .length {
-    color: var(--gl-faint);
-    font-size: var(--gl-size-small);
-  }
   .bars {
-    display: flex;
-    flex: none;
+    display: inline-flex;
     align-items: center;
     gap: 1.5px;
     height: 10px;
+    margin-right: 4px;
+    vertical-align: middle;
   }
   .bars span {
     width: 2.5px;

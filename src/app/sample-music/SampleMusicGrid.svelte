@@ -162,10 +162,17 @@
     container-type: inline-size;
     display: grid;
     gap: 14px;
+    padding: 14px;
+    border: 1px solid var(--gl-line);
+    border-radius: var(--gl-radius-large);
+    background: var(--gl-surface);
   }
   .header {
-    display: grid;
-    gap: 2px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
   }
   .block-title {
     margin: 0;
@@ -199,15 +206,15 @@
     align-items: center;
     justify-content: center;
     gap: 6px;
-    justify-self: center;
-    padding: 6px 14px;
+    width: 100%;
+    padding: 9px 14px;
     border: 1px solid var(--gl-line);
-    border-radius: var(--gl-radius-pill);
-    background: transparent;
+    border-radius: var(--gl-radius);
+    background: var(--gl-surface);
     color: var(--gl-ink);
     font: inherit;
     font-size: var(--gl-size-small);
-    font-weight: var(--gl-weight-medium);
+    font-weight: var(--gl-weight-semibold);
     cursor: pointer;
   }
   .toggle:hover {
