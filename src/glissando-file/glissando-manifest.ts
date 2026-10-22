@@ -6,6 +6,7 @@ import type { BetweenSongs, MusicTrim, PictureChanges } from "../library/own-mus
 import type { SlideshowTransition, TransitionChoice } from "../library/own-timing";
 import type { StoredVideo } from "../library/own-video";
 import type { StoredSlideshow } from "../library/stored-slideshow";
+import type { Place } from "../places/nearest-place";
 import { cardToManifest, type ManifestCard } from "./manifest-card";
 import {
   clipMimeType,
@@ -32,14 +33,14 @@ export const GLISSANDO_FORMAT_ID = "glissando";
  * and `closingCard` (ADR-0032), version 13 a picture's `colours` and a card's picture background
  * `tint` (ADR-0033), version 14 a picture's `video` and the `videos/` entries (ADR-0034), version
  * 15 a song's own volume, `volumeDb` (ADR-0040), version 16 a song's sample-track id,
- * `sampleTrack` (ADR-0042).
+ * `sampleTrack` (ADR-0042), version 17 a picture's resolved `place` (ADR-0043).
  *
- * Versions 13 to 16 are read (a version 13 file holds no clips, versions 13 and 14 no song
- * volume, and versions 13 to 15 no sample-track id). Any older file is refused rather than
- * migrated, as there is no production instance yet; before version 10 a file carried `music`,
- * not `songs`, which cannot be told apart from the rest of such a document.
+ * Versions 13 to 17 are read (a version 13 file holds no clips, versions 13 and 14 no song
+ * volume, versions 13 to 15 no sample-track id, and versions 13 to 16 no place). Any older file
+ * is refused rather than migrated, as there is no production instance yet; before version 10 a
+ * file carried `music`, not `songs`, which cannot be told apart from the rest of such a document.
  */
-export const GLISSANDO_FORMAT_VERSION = 16;
+export const GLISSANDO_FORMAT_VERSION = 17;
 export const OLDEST_READABLE_FORMAT_VERSION = 13;
 /** The first version that carries a picture's own motion. */
 export const OWN_KEN_BURNS_FROM_VERSION = 2;
@@ -61,6 +62,8 @@ export const PICTURE_LENGTH_FROM_VERSION = 9;
 export const MUSIC_VOLUME_FROM_VERSION = 15;
 /** The first version that carries a song's sample-track id. */
 export const SAMPLE_TRACK_FROM_VERSION = 16;
+/** The first version that carries a picture's resolved place. */
+export const PLACE_FROM_VERSION = 17;
 export const MANIFEST_ENTRY_NAME = "glissando.json";
 
 const PICTURE_EXTENSIONS: Readonly<Record<string, string>> = {
@@ -94,6 +97,8 @@ export interface ManifestPicture {
   readonly colours: PictureColours;
   /** The clip the slide plays; the picture is its poster (ADR-0034). */
   readonly video?: ManifestVideo;
+  /** The nearest bundled place to the picture's GPS, resolved at import; absent: none (ADR-0043). */
+  readonly place?: Place;
 }
 
 export interface ManifestMusic {
@@ -211,6 +216,7 @@ export function manifestFor(
     ...(picture.fileBytes === undefined ? {} : { fileBytes: picture.fileBytes }),
     ...(picture.alone === true ? { alone: true } : {}),
     ...(picture.video === undefined ? {} : { video: manifestVideo(picture.video, clipFiles) }),
+    ...(picture.place === undefined ? {} : { place: picture.place }),
   }));
   const songs = slideshow.songs.map((song, index) => ({
     file: songPath(index, song.fileName),

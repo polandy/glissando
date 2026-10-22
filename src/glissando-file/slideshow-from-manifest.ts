@@ -47,6 +47,7 @@ export function slideshowFromManifest(
       ...(picture.fileBytes === undefined ? {} : { fileBytes: picture.fileBytes }),
       ...(picture.alone === true ? { alone: true } : {}),
       ...(picture.video === undefined ? {} : { video: storedVideo(picture.video, ids.clipIds) }),
+      ...(picture.place === undefined ? {} : { place: picture.place }),
     };
   });
   const songs = slideshow.songs.map((song, index): StoredMusic => {

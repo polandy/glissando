@@ -2,6 +2,7 @@ import type { MusicBeats } from "../beats";
 import type { MusicLoudness } from "../loudness";
 import type { CardSwatchId } from "../player/card-palette";
 import type { CardEntrance, CardPosition, CardStyle } from "../player/slideshow";
+import type { Place } from "../places/nearest-place";
 import type { OwnKenBurns } from "./own-ken-burns";
 import type { StoredVideo } from "./own-video";
 import type { PictureColours } from "./picture-colours";
@@ -55,6 +56,8 @@ export interface StoredPicture {
   readonly video?: StoredVideo;
   /** Worked out once when the picture is added (`pictureColours`, ADR-0033). */
   readonly colours: PictureColours;
+  /** The nearest bundled place to the picture's GPS, resolved at import; absent: none (ADR-0043). */
+  readonly place?: Place;
 }
 
 /** A card's own ground or veil colour: one of the fixed swatches, or a picture's hex. */

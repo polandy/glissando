@@ -1,5 +1,5 @@
 import Ajv from "ajv";
-import type { GlissandoManifest } from "../glissando-manifest";
+import { GLISSANDO_FORMAT_VERSION, type GlissandoManifest } from "../glissando-manifest";
 import type { PictureAsRead } from "../made-thumbnail-paths";
 import { MANIFEST_SCHEMA } from "../manifest-schema";
 
@@ -18,7 +18,7 @@ type ManifestDocument = Omit<GlissandoManifest, "slideshow"> & {
  */
 export const BASE_MANIFEST: ManifestDocument = {
   format: "glissando",
-  formatVersion: 16,
+  formatVersion: GLISSANDO_FORMAT_VERSION,
   slideshow: {
     title: "Herbst in Wien",
     createdAt: "2025-10-01T08:00:00Z",
@@ -46,6 +46,7 @@ export const BASE_MANIFEST: ManifestDocument = {
         transition: "dissolve",
         fileBytes: 2_500_000,
         alone: true,
+        place: { name: "Lisbon", latitude: 38.717, longitude: -9.133 },
         video: {
           file: "videos/clip-1.mp4",
           mimeType: "video/mp4",
