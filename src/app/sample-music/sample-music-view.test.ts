@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { createTranslator } from "../i18n/translator";
 import { SAMPLE_TRACKS } from "../../sample-music/sample-tracks";
+import type { SampleSongRow } from "./sample-song-pick";
 import {
   SAMPLE_TRACK_MOOD_KEYS,
   sampleCardDisabled,
+  sampleCardDownloadProgress,
   sampleCardStatusKey,
 } from "./sample-music-view";
 
@@ -46,5 +48,31 @@ describe("sampleCardDisabled", () => {
     expect(sampleCardDisabled(false, true)).toBe(false);
     expect(sampleCardDisabled(true, false)).toBe(false);
     expect(sampleCardDisabled(true, true)).toBe(false);
+  });
+});
+
+describe("sampleCardDownloadProgress", () => {
+  it("is undefined without a downloading row for the track", () => {
+    expect(sampleCardDownloadProgress([], "hold-the-frame")).toBeUndefined();
+  });
+
+  it("is undefined for a failed row: no ring once a download has given up", () => {
+    const rows: readonly SampleSongRow[] = [
+      { kind: "failedSampleDownload", trackId: "hold-the-frame", title: "Hold the Frame" },
+    ];
+    expect(sampleCardDownloadProgress(rows, "hold-the-frame")).toBeUndefined();
+  });
+
+  it("is the row's fraction while it downloads", () => {
+    const rows: readonly SampleSongRow[] = [
+      {
+        kind: "downloadingSample",
+        trackId: "hold-the-frame",
+        title: "Hold the Frame",
+        progress: 0.42,
+      },
+    ];
+    expect(sampleCardDownloadProgress(rows, "hold-the-frame")).toBe(0.42);
+    expect(sampleCardDownloadProgress(rows, "morning-latitude")).toBeUndefined();
   });
 });

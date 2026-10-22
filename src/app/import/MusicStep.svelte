@@ -4,7 +4,6 @@
   import { MUSIC_FILE_PICKER_ACCEPT } from "../../import/music-format";
   import { MILLISECONDS_PER_SECOND } from "../../player";
   import type { SampleTrack, SampleTrackId } from "../../sample-music/sample-tracks";
-  import Tabs from "../components/Tabs.svelte";
   import { getTranslator } from "../i18n/context";
   import Icon from "../components/Icon.svelte";
   import { browserObjectUrls, ObjectUrls } from "../media/object-urls";
@@ -13,8 +12,8 @@
   import SampleMusicGrid from "../sample-music/SampleMusicGrid.svelte";
   import type { SamplePreview } from "../sample-music/sample-preview";
   import type { Toaster } from "../toast/toaster";
-  import DropZone from "./DropZone.svelte";
   import ImportFrame from "./ImportFrame.svelte";
+  import OwnMusicRow from "./OwnMusicRow.svelte";
   import { chosenSongs, type ImportSession, type ImportSong } from "./import-session";
   import {
     convertibleSourceLabel,
@@ -83,8 +82,6 @@
         song.kind === "downloadingSample" || song.kind === "failedSampleDownload",
     ),
   );
-  let tab = $state<"myMusic" | "sampleMusic">("myMusic");
-
   function chosenSampleSong(trackId: SampleTrackId): (typeof chosen)[number] | undefined {
     return chosen.find((song) => song.sample?.trackId === trackId);
   }
@@ -161,31 +158,6 @@
   {/if}
 {/snippet}
 
-{#snippet myMusicContent()}
-  {#if choices.songs.length > 0}
-    <SongList
-      songs={playlist.songs}
-      {pending}
-      {sampleRows}
-      detail={songDetail}
-      onMove={(songId, toIndex) => session.moveSong(Number(songId), toIndex)}
-      onRemove={(songId) => session.removeSong(Number(songId))}
-      onDismiss={(key) => session.removeSong(key)}
-      onRemoveSampleRow={(trackId) => session.removeSampleTrack(trackId)}
-    />
-    <button class="add" type="button" onclick={() => pickMusic.click()}>
-      <Icon name="plus" />{t("import.addAnotherSong")}
-    </button>
-  {:else}
-    <DropZone icon="music" onFiles={add} {onError}>
-      <button class="btn primary" type="button" onclick={() => pickMusic.click()}>
-        {t("import.pickMusic")}
-      </button>
-      <span class="formats">{t("import.musicFormats")}</span>
-    </DropZone>
-  {/if}
-{/snippet}
-
 <ImportFrame step="music" {onBack}>
   <div>
     <h1 class="title">{t("import.musicTitle")}</h1>
@@ -194,43 +166,35 @@
     </p>
   </div>
 
-  {#if samplePreview === undefined}
-    {@render myMusicContent()}
-  {:else}
-    <Tabs
-      idPrefix="import-music"
-      label={t("import.musicTitle")}
-      tabs={[
-        { value: "myMusic", label: t("sampleMusicPicker.tabMyMusic") },
-        { value: "sampleMusic", label: t("sampleMusicPicker.tabSampleMusic") },
-      ]}
-      selected={tab}
-      onSelect={(next) => (tab = next)}
+  {#if samplePreview !== undefined}
+    <SampleMusicGrid
+      preview={samplePreview}
+      isAdded={sampleTrackAdded}
+      onToggle={toggleSample}
+      {sampleRows}
+      {toaster}
     />
-    <div
-      id="import-music-panel-myMusic"
-      role="tabpanel"
-      aria-labelledby="import-music-tab-myMusic"
-      hidden={tab !== "myMusic"}
-    >
-      {@render myMusicContent()}
-    </div>
-    {#if tab === "sampleMusic"}
-      <div
-        id="import-music-panel-sampleMusic"
-        class="sample-panel"
-        role="tabpanel"
-        aria-labelledby="import-music-tab-sampleMusic"
-      >
-        <SampleMusicGrid
-          preview={samplePreview}
-          isAdded={sampleTrackAdded}
-          onToggle={toggleSample}
-          {toaster}
-        />
-      </div>
-    {/if}
+    <p class="or">{t("sampleMusicPicker.or")}</p>
   {/if}
+  <OwnMusicRow onFiles={add} {onError} onChoose={() => pickMusic.click()} />
+
+  <div class="soundtrack">
+    <h2 class="soundtrack-title">{t("import.soundtrackTitle")}</h2>
+    {#if choices.songs.length > 0}
+      <SongList
+        songs={playlist.songs}
+        {pending}
+        {sampleRows}
+        detail={songDetail}
+        onMove={(songId, toIndex) => session.moveSong(Number(songId), toIndex)}
+        onRemove={(songId) => session.removeSong(Number(songId))}
+        onDismiss={(key) => session.removeSong(key)}
+        onRemoveSampleRow={(trackId) => session.removeSampleTrack(trackId)}
+      />
+    {:else}
+      <p class="soundtrack-empty">{t("import.soundtrackEmpty")}</p>
+    {/if}
+  </div>
 
   <MusicTimingPanel
     {ownSeconds}
@@ -260,30 +224,25 @@
 </ImportFrame>
 
 <style>
-  .add {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    padding: 10px;
-    border: 1px dashed var(--gl-line);
-    border-radius: var(--gl-radius);
-    background: transparent;
-    color: var(--gl-ink);
-    font: inherit;
-    font-size: var(--gl-size-label);
-    font-weight: var(--gl-weight-medium);
-    cursor: pointer;
-  }
-  .add:hover {
-    background: var(--gl-hover);
-  }
-  .formats {
-    font-size: var(--gl-size-small);
+  .or {
+    margin: 0;
     color: var(--gl-faint);
+    font-size: var(--gl-size-small);
+    text-align: center;
   }
-  .sample-panel {
+  .soundtrack {
     display: grid;
-    margin-top: 14px;
+    gap: 8px;
+  }
+  .soundtrack-title {
+    margin: 0;
+    font-family: var(--gl-font-display);
+    font-size: var(--gl-size-label);
+    font-weight: var(--gl-weight-semibold);
+  }
+  .soundtrack-empty {
+    margin: 0;
+    color: var(--gl-muted);
+    font-size: var(--gl-size-small);
   }
 </style>

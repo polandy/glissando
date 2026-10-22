@@ -101,6 +101,7 @@ export function mountEditor(
     betweenSongs: [] as (BetweenSongs | undefined)[],
     removedSampleRows: [] as SampleTrackId[],
     addedSampleTracks: [] as SampleTrackId[],
+    errors: [] as unknown[],
   };
   const songId = slideshow.songs[0]?.id ?? null;
   const notAdded: (trackId: SampleTrackId) => boolean = () => false;
@@ -119,6 +120,7 @@ export function mountEditor(
     isSampleTrackAdded: notAdded,
     onAddSampleTrack: (track: SampleTrack) => calls.addedSampleTracks.push(track.id),
     onBack: () => {},
+    onError: (error: unknown) => calls.errors.push(error),
     onTrim: (trim: MusicTrim | undefined) => calls.trims.push(trim),
     onFadeIn: (fadeMs: number | undefined) => calls.fadesIn.push(fadeMs),
     onFadeOut: (fadeMs: number | undefined) => calls.fadesOut.push(fadeMs),

@@ -252,8 +252,10 @@ export const de = {
   "import.musicText":
     "Ein Song oder mehrere — sie spielen nacheinander, und die Bilder wechseln in ihrem Takt. Ohne Musik bleibt jedes Bild {seconds}.",
   "import.musicFormats": "Eine oder mehrere Dateien · MP3, M4A, FLAC, WAV, Ogg, AIFF, WMA\u00a0…",
-  "import.addAnotherSong": "Weiteren Song hinzufügen",
-  "import.pickMusic": "Musik auswählen",
+  "import.ownMusicTitle": "Eigene Musik",
+  "import.chooseFiles": "Dateien wählen",
+  "import.soundtrackTitle": "Soundtrack",
+  "import.soundtrackEmpty": "Noch keine Musik — füge oben einen Titel oder eigene Songs hinzu.",
   "import.trackMeta": "{duration} · {format}",
   "import.secondsTitle": "Dauer je Bild",
   "import.secondsHint": "Voreinstellung {seconds}, in halben Sekunden, gilt für diese Diashow",

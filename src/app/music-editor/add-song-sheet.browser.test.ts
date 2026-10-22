@@ -64,15 +64,15 @@ const cardFor = (title: string): HTMLElement => {
 };
 
 describe("MusicEditorScreen, the 'Add a song' sheet", () => {
-  it("opens from the empty playlist's call to action, My music first", () => {
+  it("opens from the empty playlist's call to action, the sample block unfolded already", () => {
     mountEditor(slideshowOfSongs([]), undefined, undefined, samplePreviewWith());
 
     buttonNamed("Song hinzufügen").click();
     flushSync();
 
     expect(dialog()?.open).toBe(true);
-    expect(dialog()?.querySelector("#add-song-panel-myMusic")?.hasAttribute("hidden")).toBe(false);
-    expect(dialog()?.querySelector("#add-song-panel-sampleMusic")).toBeNull();
+    expect(dialog()?.querySelector(".block .toggle")?.getAttribute("aria-expanded")).toBe("true");
+    expect(dialog()?.querySelector(".own-title")).not.toBeNull();
   });
 
   it("opens from the playlist's own 'Add a song' button too", () => {
@@ -93,16 +93,14 @@ describe("MusicEditorScreen, the 'Add a song' sheet", () => {
     expect(dialog()).toBeNull();
   });
 
-  it("switches to the sample-music tab inside the sheet, hiding My music", () => {
+  it("shows no tab at all, both blocks together", () => {
     mountEditor(slideshowOfSongs([]), undefined, undefined, samplePreviewWith());
     buttonNamed("Song hinzufügen").click();
     flushSync();
 
-    buttonNamed("Beispielmusik").click();
-    flushSync();
-
-    expect(dialog()?.querySelector("#add-song-panel-sampleMusic .grid")).not.toBeNull();
-    expect(dialog()?.querySelector("#add-song-panel-myMusic")?.hasAttribute("hidden")).toBe(true);
+    expect(dialog()?.querySelector('[role="tablist"]')).toBeNull();
+    expect(dialog()?.querySelector(".block .grid")).not.toBeNull();
+    expect(dialog()?.querySelector(".own-title")).not.toBeNull();
   });
 
   it("adds a sample track from the sheet, then removes its still-downloading row", () => {
@@ -114,15 +112,13 @@ describe("MusicEditorScreen, the 'Add a song' sheet", () => {
     );
     buttonNamed("Song hinzufügen").click();
     flushSync();
-    buttonNamed("Beispielmusik").click();
-    flushSync();
 
-    cardFor("Hold the Frame").querySelector<HTMLButtonElement>(".add")?.click();
+    cardFor("Hold the Frame").querySelector<HTMLButtonElement>(".plus")?.click();
     expect(calls.addedSampleTracks).toEqual(["hold-the-frame"]);
 
     // The track is now a downloading row, not yet a song: toggling it again takes the row away.
     set({ isSampleTrackAdded: (trackId: SampleTrackId) => trackId === "hold-the-frame" });
-    cardFor("Hold the Frame").querySelector<HTMLButtonElement>(".add")?.click();
+    cardFor("Hold the Frame").querySelector<HTMLButtonElement>(".plus")?.click();
 
     expect(calls.removedSampleRows).toEqual(["hold-the-frame"]);
   });
@@ -137,10 +133,8 @@ describe("MusicEditorScreen, the 'Add a song' sheet", () => {
     );
     buttonNamed("Song hinzufügen").click();
     flushSync();
-    buttonNamed("Beispielmusik").click();
-    flushSync();
 
-    cardFor("Hold the Frame").querySelector<HTMLButtonElement>(".add")?.click();
+    cardFor("Hold the Frame").querySelector<HTMLButtonElement>(".plus")?.click();
 
     expect(calls.removed).toEqual(["hold-the-frame"]);
     expect(calls.removedSampleRows).toEqual([]);

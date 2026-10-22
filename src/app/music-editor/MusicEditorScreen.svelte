@@ -42,6 +42,7 @@
     samplePreview,
     toaster,
     onBack,
+    onError,
     onSelectSong,
     onAddSongs,
     onRemoveSong,
@@ -83,6 +84,7 @@
     samplePreview?: SamplePreview | undefined;
     toaster: Toaster;
     onBack: () => void;
+    onError: (error: unknown) => void;
     onSelectSong: (songId: string) => void;
     onAddSongs: (files: readonly File[]) => void;
     onRemoveSong: (songId: string) => void;
@@ -224,12 +226,14 @@
   <AddSongSheet
     songs={playlist.songs}
     {samplePreview}
+    {sampleRows}
     {toaster}
     {isSampleTrackAdded}
     {onAddSampleTrack}
     {onRemoveSampleRow}
     {onRemoveSong}
     onAdd={onAddSongs}
+    {onError}
     onClose={() => (sheetOpen = false)}
   />
 {/if}

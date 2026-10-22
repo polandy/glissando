@@ -250,8 +250,10 @@ export const en: Catalogue = {
   "import.musicText":
     "One song or several — they play one after another and the pictures change on their beat. Without music each picture stays {seconds}.",
   "import.musicFormats": "One or more files · MP3, M4A, FLAC, WAV, Ogg, AIFF, WMA\u00a0…",
-  "import.addAnotherSong": "Add another song",
-  "import.pickMusic": "Choose music",
+  "import.ownMusicTitle": "Your own music",
+  "import.chooseFiles": "Choose files",
+  "import.soundtrackTitle": "Soundtrack",
+  "import.soundtrackEmpty": "No music yet — add a track or your own songs above.",
   "import.trackMeta": "{duration} · {format}",
   "import.secondsTitle": "Time per picture",
   "import.secondsHint": "Default {seconds}, in half seconds, applies to this slideshow",

@@ -1,5 +1,9 @@
 import type { MessageKey } from "../i18n/messages";
 import type { SampleTrackId } from "../../sample-music/sample-tracks";
+import type { SampleSongRow } from "./sample-song-pick";
+
+/** Cards shown before "Show all" unfolds the rest (SAMPLE_MUSIC.md, "The block"). */
+export const SAMPLE_MUSIC_VISIBLE_COUNT = 3;
 
 /** Each track's mood, in the message catalogue (SAMPLE_MUSIC.md, the catalogue table). */
 export const SAMPLE_TRACK_MOOD_KEYS: Readonly<Record<SampleTrackId, MessageKey>> = {
@@ -27,4 +31,16 @@ export function sampleCardStatusKey(online: boolean, onDevice: boolean): Message
 /** A card is disabled, dimmed and without its play button, only offline and not on this device. */
 export function sampleCardDisabled(online: boolean, onDevice: boolean): boolean {
   return !online && !onDevice;
+}
+
+/**
+ * `trackId`'s download fraction (0 to 1) while its row is still downloading; `undefined` once
+ * it has failed or has no row at all (SAMPLE_MUSIC.md, "Downloaded once").
+ */
+export function sampleCardDownloadProgress(
+  sampleRows: readonly SampleSongRow[],
+  trackId: SampleTrackId,
+): number | undefined {
+  const row = sampleRows.find((candidate) => candidate.trackId === trackId);
+  return row?.kind === "downloadingSample" ? row.progress : undefined;
 }

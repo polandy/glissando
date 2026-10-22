@@ -1,11 +1,14 @@
 import type { Message } from "./messages.ts";
 
-/** German copy of the sample-music picker: its tabs, cards and credit (library/SAMPLE_MUSIC.md). */
+/** German copy of the sample-music picker: its accordion block, cards and credit (SAMPLE_MUSIC.md). */
 export const deSampleMusicPicker = {
-  "sampleMusicPicker.tabMyMusic": "Meine Musik",
-  "sampleMusicPicker.tabSampleMusic": "Beispielmusik",
-  "sampleMusicPicker.add": "Hinzufügen",
-  "sampleMusicPicker.added": "✓ Hinzugefügt",
+  "sampleMusicPicker.blockTitle": "Glissando-Musik",
+  "sampleMusicPicker.blockSubtitle": "{count} Titel · gehören zu Glissando",
+  "sampleMusicPicker.or": "oder",
+  "sampleMusicPicker.showAll": "Alle {count} zeigen",
+  "sampleMusicPicker.showFewer": "Weniger zeigen",
+  "sampleMusicPicker.addTrack": "{title} hinzufügen",
+  "sampleMusicPicker.removeTrack": "{title} entfernen",
   "sampleMusicPicker.playTrack": "{title} abspielen",
   "sampleMusicPicker.pauseTrack": "{title} anhalten",
   "sampleMusicPicker.onDevice": "Auf diesem Gerät",

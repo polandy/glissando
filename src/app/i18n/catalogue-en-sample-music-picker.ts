@@ -3,10 +3,13 @@ import type { deSampleMusicPicker } from "./catalogue-de-sample-music-picker.ts"
 
 /** English copy of the sample-music picker; typed to the German keys. */
 export const enSampleMusicPicker: Pick<Catalogue, keyof typeof deSampleMusicPicker> = {
-  "sampleMusicPicker.tabMyMusic": "My music",
-  "sampleMusicPicker.tabSampleMusic": "Sample music",
-  "sampleMusicPicker.add": "Add",
-  "sampleMusicPicker.added": "✓ Added",
+  "sampleMusicPicker.blockTitle": "Glissando music",
+  "sampleMusicPicker.blockSubtitle": "{count} tracks · come with Glissando",
+  "sampleMusicPicker.or": "or",
+  "sampleMusicPicker.showAll": "Show all {count}",
+  "sampleMusicPicker.showFewer": "Show fewer",
+  "sampleMusicPicker.addTrack": "Add {title}",
+  "sampleMusicPicker.removeTrack": "Remove {title}",
   "sampleMusicPicker.playTrack": "Play {title}",
   "sampleMusicPicker.pauseTrack": "Pause {title}",
   "sampleMusicPicker.onDevice": "On this device",

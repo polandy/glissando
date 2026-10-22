@@ -12,6 +12,12 @@ import { mountWithTranslator } from "../testing/mount-with-translator";
 import { Toaster } from "../toast/toaster";
 import SampleMusicGrid from "./SampleMusicGrid.svelte";
 import { SamplePreview, type SamplePreviewAudio, type SamplePreviewPorts } from "./sample-preview";
+import type { SampleSongRow } from "./sample-song-pick";
+
+// First 3 (the folded grid) and one from the remaining 6 (unfolded by "Show all").
+const VISIBLE_TITLE = "Hold the Frame";
+const HIDDEN_TITLE = "Where the Mountains Meet";
+const HIDDEN_TRACK_ID: SampleTrackId = "where-the-mountains-meet";
 
 class FakeNetwork implements NetworkStatus {
   #online: boolean;
@@ -62,6 +68,7 @@ afterEach(() => {
 function mountGrid(
   preview: SamplePreview,
   isAdded: (trackId: SampleTrackId) => boolean = () => false,
+  sampleRows: readonly SampleSongRow[] = [],
 ) {
   const toggled: SampleTrack[] = [];
   const mounted = mountWithTranslator(
@@ -71,6 +78,7 @@ function mountGrid(
       isAdded,
       onToggle: (track: SampleTrack) => toggled.push(track),
       toaster: new Toaster(new FakeScheduler()),
+      sampleRows,
     },
     { current: createTranslator("en") },
   );
@@ -86,6 +94,12 @@ const cardFor = (target: HTMLElement, title: string): HTMLElement => {
   return card as HTMLElement;
 };
 
+const toggleButton = (target: HTMLElement): HTMLButtonElement => {
+  const button = target.querySelector<HTMLButtonElement>(".toggle");
+  if (button === null) throw new Error("no toggle button");
+  return button;
+};
+
 // hasTrackOnDevice resolves on a microtask per track; a flush after lets its effect settle.
 async function settled(): Promise<void> {
   await Promise.resolve();
@@ -93,14 +107,106 @@ async function settled(): Promise<void> {
   flushSync();
 }
 
+describe("SampleMusicGrid, folded by default", () => {
+  it("shows only the first 3 cards, folding the rest behind Show all", async () => {
+    const { target } = mountGrid(previewWith());
+    await settled();
+
+    expect(toggleButton(target).getAttribute("aria-expanded")).toBe("false");
+    expect(toggleButton(target).textContent).toContain("Show all 9");
+    expect(target.querySelector(".more")?.classList.contains("open")).toBe(false);
+  });
+
+  it("unfolds the rest on Show all, flipping to Show fewer", async () => {
+    const { target } = mountGrid(previewWith());
+    await settled();
+
+    toggleButton(target).click();
+    flushSync();
+
+    expect(toggleButton(target).getAttribute("aria-expanded")).toBe("true");
+    expect(toggleButton(target).textContent).toContain("Show fewer");
+    expect(target.querySelector(".more")?.classList.contains("open")).toBe(true);
+    expect(cardFor(target, HIDDEN_TITLE)).not.toBeNull();
+  });
+
+  it("stops a playing hidden card's preview when the block folds back over it", async () => {
+    const { target } = mountGrid(previewWith());
+    await settled();
+    toggleButton(target).click();
+    flushSync();
+
+    const hidden = cardFor(target, HIDDEN_TITLE);
+    hidden.querySelector<HTMLButtonElement>(".play")?.click();
+    await vi.waitFor(() => {
+      flushSync();
+      expect(cardFor(target, HIDDEN_TITLE).querySelector(".bars")).not.toBeNull();
+    });
+
+    toggleButton(target).click();
+    flushSync();
+
+    expect(toggleButton(target).getAttribute("aria-expanded")).toBe("false");
+    // Folding stopped the preview, so the card's playing marker is gone.
+    expect(cardFor(target, HIDDEN_TITLE).querySelector(".bars")).toBeNull();
+  });
+});
+
+describe("SampleMusicGrid, adding", () => {
+  it("shows + as not pressed, labelled Add <title>, when not added", async () => {
+    const { target } = mountGrid(previewWith());
+    await settled();
+
+    const plus = cardFor(target, VISIBLE_TITLE).querySelector<HTMLButtonElement>(".plus");
+    expect(plus?.getAttribute("aria-pressed")).toBe("false");
+    expect(plus?.getAttribute("aria-label")).toBe(`Add ${VISIBLE_TITLE}`);
+  });
+
+  it("shows + as pressed and ✓-styled, labelled Remove <title>, when added", async () => {
+    const { target } = mountGrid(previewWith(), () => true);
+    await settled();
+
+    const plus = cardFor(target, VISIBLE_TITLE).querySelector<HTMLButtonElement>(".plus");
+    expect(plus?.getAttribute("aria-pressed")).toBe("true");
+    expect(plus?.getAttribute("aria-label")).toBe(`Remove ${VISIBLE_TITLE}`);
+    expect(plus?.classList.contains("added")).toBe(true);
+  });
+
+  it("reports the toggled track on click", async () => {
+    const { target, toggled } = mountGrid(previewWith());
+    await settled();
+
+    cardFor(target, VISIBLE_TITLE).querySelector<HTMLButtonElement>(".plus")?.click();
+
+    expect(toggled.map((track) => track.id)).toEqual(["hold-the-frame"]);
+  });
+});
+
+describe("SampleMusicGrid, downloading", () => {
+  it("shows a progress ring instead of + while a track downloads", async () => {
+    const rows: readonly SampleSongRow[] = [
+      { kind: "downloadingSample", trackId: HIDDEN_TRACK_ID, title: HIDDEN_TITLE, progress: 0.4 },
+    ];
+    const { target } = mountGrid(previewWith(), () => false, rows);
+    await settled();
+    toggleButton(target).click();
+    flushSync();
+
+    const card = cardFor(target, HIDDEN_TITLE);
+    expect(card.querySelector(".plus")).toBeNull();
+    expect(card.querySelector(".ring")).not.toBeNull();
+    expect(card.querySelector(".ring-value")?.textContent).toBe("40");
+  });
+});
+
 describe("SampleMusicGrid, online", () => {
-  it("shows no offline notice, and every card's Add enabled", async () => {
+  it("shows no offline notice, and every card's + enabled", async () => {
     const { target } = mountGrid(previewWith());
     await settled();
 
     expect(target.querySelector(".notice")).toBeNull();
-    const add = cardFor(target, "Hold the Frame").querySelector<HTMLButtonElement>(".add");
-    expect(add?.disabled).toBe(false);
+    const plus = cardFor(target, VISIBLE_TITLE).querySelector<HTMLButtonElement>(".plus");
+    expect(plus?.disabled).toBe(false);
     expect(target.querySelector(".status")).toBeNull();
   });
 });
@@ -111,9 +217,9 @@ describe("SampleMusicGrid, offline", () => {
     await settled();
 
     expect(target.querySelector(".notice")?.textContent).toContain("You are offline");
-    const card = cardFor(target, "Hold the Frame");
+    const card = cardFor(target, VISIBLE_TITLE);
     expect(card.classList.contains("disabled")).toBe(true);
-    expect(card.querySelector<HTMLButtonElement>(".add")?.disabled).toBe(true);
+    expect(card.querySelector<HTMLButtonElement>(".plus")?.disabled).toBe(true);
     expect(card.querySelector(".status")?.textContent).toBe("Needs a connection");
     // The play button is withheld from a disabled card altogether.
     expect(card.querySelector(".play")).toBeNull();
@@ -129,10 +235,10 @@ describe("SampleMusicGrid, offline", () => {
 
     await vi.waitFor(() => {
       flushSync();
-      expect(cardFor(target, "Hold the Frame").classList.contains("disabled")).toBe(false);
+      expect(cardFor(target, VISIBLE_TITLE).classList.contains("disabled")).toBe(false);
     });
-    const card = cardFor(target, "Hold the Frame");
-    expect(card.querySelector<HTMLButtonElement>(".add")?.disabled).toBe(false);
+    const card = cardFor(target, VISIBLE_TITLE);
+    expect(card.querySelector<HTMLButtonElement>(".plus")?.disabled).toBe(false);
     expect(card.querySelector(".status")?.textContent).toBe("On this device");
   });
 
@@ -143,9 +249,9 @@ describe("SampleMusicGrid, offline", () => {
     );
     await settled();
 
-    const add = cardFor(target, "Hold the Frame").querySelector<HTMLButtonElement>(".add");
-    expect(add?.disabled).toBe(false);
-    add?.click();
+    const plus = cardFor(target, VISIBLE_TITLE).querySelector<HTMLButtonElement>(".plus");
+    expect(plus?.disabled).toBe(false);
+    plus?.click();
 
     expect(toggled.map((track) => track.id)).toEqual(["hold-the-frame"]);
   });

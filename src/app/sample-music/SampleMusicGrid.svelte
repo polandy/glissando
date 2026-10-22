@@ -1,25 +1,30 @@
 <script lang="ts">
   import { onDestroy } from "svelte";
-  import { MILLISECONDS_PER_SECOND } from "../../player";
   import {
     SAMPLE_TRACKS,
     type SampleTrack,
     type SampleTrackId,
   } from "../../sample-music/sample-tracks";
-  import { SAMPLE_TRACK_COVER_URLS } from "../../sample-music/sample-track-covers";
   import Icon from "../components/Icon.svelte";
   import { getTranslator } from "../i18n/context";
   import type { Toaster } from "../toast/toaster";
   import type { SamplePreview, SamplePreviewState } from "./sample-preview";
+  import type { SampleSongRow } from "./sample-song-pick";
   import {
-    SAMPLE_TRACK_MOOD_KEYS,
+    SAMPLE_MUSIC_VISIBLE_COUNT,
     sampleCardDisabled,
+    sampleCardDownloadProgress,
     sampleCardStatusKey,
   } from "./sample-music-view";
+  import SampleTrackCard from "./SampleTrackCard.svelte";
+
+  const visible = SAMPLE_TRACKS.slice(0, SAMPLE_MUSIC_VISIBLE_COUNT);
+  const rest = SAMPLE_TRACKS.slice(SAMPLE_MUSIC_VISIBLE_COUNT);
+  const restTrackIds = new Set(rest.map((track) => track.id));
 
   /**
-   * The cover grid every "Add a song" picker shares (SAMPLE_MUSIC.md, layout A): each card plays
-   * its own preview, shows its mood and length, and offers "Add"/"✓ Added". The caller decides
+   * The accordion block every "Add a song" picker shares (SAMPLE_MUSIC.md, "The block"): three
+   * cards, then "Show all" unfolds the rest and the credit footer in place. The caller decides
    * what "added" means for its own list and what toggling it does.
    */
   let {
@@ -27,15 +32,24 @@
     isAdded,
     onToggle,
     toaster,
+    sampleRows = [],
+    initiallyExpanded = false,
   }: {
     preview: SamplePreview;
     isAdded: (trackId: SampleTrackId) => boolean;
     onToggle: (track: SampleTrack) => void;
     toaster: Toaster;
+    /** Still downloading or failed, for the ring (SAMPLE_MUSIC.md, "Downloaded once"). */
+    sampleRows?: readonly SampleSongRow[];
+    /** Unfolded on open in the music editor's sheet; folded in the import step (SAMPLE_MUSIC.md). */
+    initiallyExpanded?: boolean;
   } = $props();
 
-  const { t, formatDuration } = getTranslator();
+  const { t } = getTranslator();
+  const moreId = $props.id();
 
+  // svelte-ignore state_referenced_locally
+  let expanded = $state(initiallyExpanded);
   // svelte-ignore state_referenced_locally
   let previewState = $state.raw<SamplePreviewState>(preview.state);
   // svelte-ignore state_referenced_locally
@@ -62,7 +76,7 @@
       left = true;
     };
   });
-  // The tab closing or changing, like the picker closing, lets go of the preview (SAMPLE_MUSIC.md).
+  // The picker closing, like the tab or block closing, lets go of the preview (SAMPLE_MUSIC.md).
   onDestroy(() => preview.stop());
 
   /** `trackId`'s progress while it plays or is paused; 0 otherwise. */
@@ -71,77 +85,98 @@
       ? current.progress
       : 0;
   }
+
+  function toggleExpanded(): void {
+    // The playing preview stops when the block folds over its card (SAMPLE_MUSIC.md, "Listening").
+    if (expanded && previewState.kind !== "idle" && restTrackIds.has(previewState.trackId)) {
+      preview.stop();
+    }
+    expanded = !expanded;
+  }
 </script>
 
-<div class="picker">
+{#snippet card(track: SampleTrack)}
+  {@const trackOnDevice = onDevice.has(track.id)}
+  {@const disabled = sampleCardDisabled(online, trackOnDevice)}
+  {@const playing = previewState.kind === "playing" && previewState.trackId === track.id}
+  {@const paused = previewState.kind === "paused" && previewState.trackId === track.id}
+  {@const loading = previewState.kind === "loading" && previewState.trackId === track.id}
+  {@const added = isAdded(track.id)}
+  {@const statusKey = added ? undefined : sampleCardStatusKey(online, trackOnDevice)}
+  <SampleTrackCard
+    {track}
+    {disabled}
+    {playing}
+    {paused}
+    {loading}
+    previewProgress={trackProgress(previewState, track.id)}
+    {added}
+    downloadProgress={sampleCardDownloadProgress(sampleRows, track.id)}
+    {statusKey}
+    onTogglePlay={() => void preview.toggle(track)}
+    onToggleAdd={() => onToggle(track)}
+  />
+{/snippet}
+
+<div class="block">
+  <div class="header">
+    <h2 class="block-title">{t("sampleMusicPicker.blockTitle")}</h2>
+    <p class="block-subtitle">
+      {t("sampleMusicPicker.blockSubtitle", { count: SAMPLE_TRACKS.length })}
+    </p>
+  </div>
   {#if !online}
     <p class="notice">{t("sampleMusicPicker.offlineNotice")}</p>
   {/if}
   <ul class="grid">
-    {#each SAMPLE_TRACKS as track (track.id)}
-      {@const trackOnDevice = onDevice.has(track.id)}
-      {@const disabled = sampleCardDisabled(online, trackOnDevice)}
-      {@const playing = previewState.kind === "playing" && previewState.trackId === track.id}
-      {@const paused = previewState.kind === "paused" && previewState.trackId === track.id}
-      {@const loading = previewState.kind === "loading" && previewState.trackId === track.id}
-      {@const added = isAdded(track.id)}
-      {@const statusKey = added ? undefined : sampleCardStatusKey(online, trackOnDevice)}
-      <li class="card" class:disabled>
-        <div class="cover">
-          <img src={SAMPLE_TRACK_COVER_URLS[track.id]} alt="" />
-          {#if !disabled}
-            <button
-              class="play"
-              type="button"
-              disabled={loading}
-              aria-label={playing
-                ? t("sampleMusicPicker.pauseTrack", { title: track.title })
-                : t("sampleMusicPicker.playTrack", { title: track.title })}
-              onclick={() => void preview.toggle(track)}
-            >
-              <Icon name={playing ? "pause" : "play"} />
-            </button>
-          {/if}
-          {#if playing || paused}
-            <span class="progress" aria-hidden="true">
-              <span class="bar" style:width="{trackProgress(previewState, track.id) * 100}%"></span>
-            </span>
-          {/if}
-        </div>
-        <div class="info">
-          <b class="title">
-            {#if playing}
-              <span class="bars" aria-hidden="true"><span></span><span></span><span></span></span>
-            {/if}
-            <span class="name">{track.title}</span>
-          </b>
-          <span class="mood">{t(SAMPLE_TRACK_MOOD_KEYS[track.id])}</span>
-          <span class="length mono"
-            >{formatDuration(track.durationMs / MILLISECONDS_PER_SECOND)}</span
-          >
-          {#if statusKey !== undefined}<span class="status">{t(statusKey)}</span>{/if}
-          <button
-            class="add"
-            class:added
-            type="button"
-            aria-pressed={added}
-            disabled={disabled && !added}
-            onclick={() => onToggle(track)}
-          >
-            {added ? t("sampleMusicPicker.added") : t("sampleMusicPicker.add")}
-          </button>
-        </div>
-      </li>
+    {#each visible as track (track.id)}
+      {@render card(track)}
     {/each}
   </ul>
-  <p class="footer">{t("sampleMusicPicker.footer")}</p>
+  <button
+    class="toggle"
+    type="button"
+    aria-expanded={expanded}
+    aria-controls={moreId}
+    onclick={toggleExpanded}
+  >
+    {expanded
+      ? t("sampleMusicPicker.showFewer")
+      : t("sampleMusicPicker.showAll", { count: SAMPLE_TRACKS.length })}
+    <span class="chevron" class:open={expanded}><Icon name="chevronDown" /></span>
+  </button>
+  <div class="more" id={moreId} class:open={expanded}>
+    <div class="more-inner">
+      <ul class="grid">
+        {#each rest as track (track.id)}
+          {@render card(track)}
+        {/each}
+      </ul>
+      <p class="footer">{t("sampleMusicPicker.footer")}</p>
+    </div>
+  </div>
 </div>
 
 <style>
-  .picker {
+  .block {
     container-type: inline-size;
     display: grid;
     gap: 14px;
+  }
+  .header {
+    display: grid;
+    gap: 2px;
+  }
+  .block-title {
+    margin: 0;
+    font-family: var(--gl-font-display);
+    font-size: var(--gl-size-label);
+    font-weight: var(--gl-weight-semibold);
+  }
+  .block-subtitle {
+    margin: 0;
+    color: var(--gl-muted);
+    font-size: var(--gl-size-small);
   }
   .notice {
     margin: 0;
@@ -159,85 +194,13 @@
     padding: 0;
     list-style: none;
   }
-  /* The picker itself is the query container, so the 2-column layout also applies inside the
-     narrower "Add a song" sheet, not only at a narrow viewport. */
-  @container (max-width: 600px) {
-    .grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-  }
-  .card {
-    display: grid;
-    gap: 8px;
-  }
-  .card.disabled {
-    opacity: 0.55;
-  }
-  .cover {
-    position: relative;
-    aspect-ratio: 1;
-    overflow: hidden;
-    border-radius: var(--gl-radius);
-    background: var(--gl-raised);
-  }
-  .cover img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-  .play {
-    position: absolute;
-    inset: 0;
-    display: grid;
-    place-items: center;
-    border: 0;
-    background: color-mix(in srgb, black 25%, transparent);
-    color: white;
-    cursor: pointer;
-  }
-  .progress {
-    position: absolute;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    display: block;
-    height: 4px;
-    background: color-mix(in srgb, black 35%, transparent);
-  }
-  .bar {
-    display: block;
-    height: 100%;
-    background: var(--gl-accent);
-  }
-  .info {
-    display: grid;
-    gap: 2px;
-  }
-  .title {
+  .toggle {
     display: flex;
     align-items: center;
-    gap: 5px;
-    overflow: hidden;
-    font-size: var(--gl-size-label);
-    font-weight: var(--gl-weight-semibold);
-  }
-  .name {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  .mood,
-  .status {
-    color: var(--gl-muted);
-    font-size: var(--gl-size-small);
-  }
-  .length {
-    color: var(--gl-faint);
-    font-size: var(--gl-size-small);
-  }
-  .add {
-    justify-self: start;
-    padding: 5px 14px;
+    justify-content: center;
+    gap: 6px;
+    justify-self: center;
+    padding: 6px 14px;
     border: 1px solid var(--gl-line);
     border-radius: var(--gl-radius-pill);
     background: transparent;
@@ -247,42 +210,40 @@
     font-weight: var(--gl-weight-medium);
     cursor: pointer;
   }
-  .add:disabled {
-    cursor: not-allowed;
-    opacity: 0.6;
+  .toggle:hover {
+    background: var(--gl-hover);
   }
-  .add.added {
-    border-color: var(--gl-accent);
-    background: var(--gl-accent-tint);
-    color: var(--gl-accent-ink);
+  .chevron {
+    display: grid;
+    place-items: center;
+    transition: transform 0.2s ease;
   }
-  .bars {
-    display: flex;
-    flex: none;
-    align-items: center;
-    gap: 1.5px;
-    height: 10px;
+  .chevron.open {
+    transform: rotate(180deg);
   }
-  .bars span {
-    width: 2.5px;
-    height: 100%;
-    background: var(--gl-accent);
-    animation: bar-move 0.9s ease-in-out infinite;
-  }
-  .bars span:nth-child(2) {
-    animation-delay: 0.2s;
-  }
-  .bars span:nth-child(3) {
-    animation-delay: 0.4s;
-  }
-  @keyframes bar-move {
-    0%,
-    100% {
-      transform: scaleY(0.3);
+  @media (prefers-reduced-motion: reduce) {
+    .chevron {
+      transition: none;
     }
-    50% {
-      transform: scaleY(1);
+  }
+  .more {
+    display: grid;
+    grid-template-rows: 0fr;
+    overflow: hidden;
+    transition: grid-template-rows 0.25s ease;
+  }
+  .more.open {
+    grid-template-rows: 1fr;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .more {
+      transition: none;
     }
+  }
+  .more-inner {
+    display: grid;
+    gap: 14px;
+    min-height: 0;
   }
   .footer {
     margin: 0;

@@ -119,7 +119,7 @@ function heldDownload() {
   };
 }
 
-/** Resolves once `trackId` is a chosen song, as the sample grid's "Add" leads to. */
+/** Resolves once `trackId` is a chosen song, as the sample grid's "+" leads to. */
 function waitForChosen(session: ImportSession, trackId: SampleTrackId): Promise<void> {
   return new Promise((resolve) => {
     const unsubscribe = session.choices.subscribe((next) => {
@@ -171,15 +171,6 @@ function mountStep(session: ImportSession, samplePreview?: SamplePreview): HTMLE
   return step.target;
 }
 
-const buttonNamed = (target: HTMLElement, name: string): HTMLButtonElement => {
-  const button = [...target.querySelectorAll("button")].find(
-    (candidate) =>
-      candidate.getAttribute("aria-label") === name || candidate.textContent.trim() === name,
-  );
-  if (button === undefined) throw new Error(`no button "${name}"`);
-  return button;
-};
-
 const cardFor = (target: HTMLElement, title: string): HTMLElement => {
   const card = [...target.querySelectorAll(".card")].find(
     (candidate) => candidate.querySelector(".name")?.textContent?.trim() === title,
@@ -189,29 +180,31 @@ const cardFor = (target: HTMLElement, title: string): HTMLElement => {
 };
 
 describe("MusicStep, sample music off", () => {
-  it("shows no tab, and no sample-music grid", async () => {
+  it("shows no sample-music block, no or divider, and the soundtrack straight away", async () => {
     const { session } = await withTwoPictures();
 
     const target = mountStep(session);
 
-    expect(target.querySelector('[role="tablist"]')).toBeNull();
-    expect(target.querySelector(".grid")).toBeNull();
+    expect(target.querySelector(".block")).toBeNull();
+    expect(target.querySelector(".or")).toBeNull();
+    expect(target.querySelector(".own-title")?.textContent).toBe("Your own music");
+    expect(target.querySelector(".soundtrack-empty")).not.toBeNull();
   });
 });
 
 describe("MusicStep, sample music on", () => {
-  it("switches to the sample-music tab, showing its grid and hiding the song list", async () => {
+  it("shows the block, the or divider and own music together, without any tab", async () => {
     const { session } = await withTwoPictures({ sampleMusic: sampleMusicPorts() });
     const target = mountStep(session, samplePreviewWith());
-
-    buttonNamed(target, "Sample music").click();
     flushSync();
 
-    expect(target.querySelector("#import-music-panel-sampleMusic .grid")).not.toBeNull();
-    expect(target.querySelector("#import-music-panel-myMusic")?.hasAttribute("hidden")).toBe(true);
+    expect(target.querySelector('[role="tablist"]')).toBeNull();
+    expect(target.querySelector(".block .grid")).not.toBeNull();
+    expect(target.querySelector(".or")?.textContent).toBe("or");
+    expect(target.querySelector(".own-title")?.textContent).toBe("Your own music");
   });
 
-  it("adds a track already on this device at once, tagging the song Sample", async () => {
+  it("adds a track already on this device at once, tagging the song Sample in the one list", async () => {
     const deviceId = sampleMediaId(track.id);
     const { session } = await withTwoPictures({
       sampleMusic: sampleMusicPorts({
@@ -220,24 +213,22 @@ describe("MusicStep, sample music on", () => {
       }),
     });
     const target = mountStep(session, samplePreviewWith());
-    buttonNamed(target, "Sample music").click();
     flushSync();
     const chosen = waitForChosen(session, track.id);
 
-    cardFor(target, "Hold the Frame").querySelector<HTMLButtonElement>(".add")?.click();
+    cardFor(target, "Hold the Frame").querySelector<HTMLButtonElement>(".plus")?.click();
     await chosen;
     flushSync();
 
     expect(
-      cardFor(target, "Hold the Frame").querySelector(".add")?.getAttribute("aria-pressed"),
+      cardFor(target, "Hold the Frame").querySelector(".plus")?.getAttribute("aria-pressed"),
     ).toBe("true");
-    // The "My music" panel stays in the DOM, only hidden, while the sample-music tab is open.
-    expect(target.querySelector(".badge")?.textContent).toBe("Sample");
+    expect(target.querySelector(".soundtrack .badge")?.textContent).toBe("Sample");
 
-    cardFor(target, "Hold the Frame").querySelector<HTMLButtonElement>(".add")?.click();
+    cardFor(target, "Hold the Frame").querySelector<HTMLButtonElement>(".plus")?.click();
     flushSync();
 
-    expect(target.querySelector(".badge")).toBeNull();
+    expect(target.querySelector(".soundtrack .badge")).toBeNull();
   });
 
   it("shows a downloading row with progress, then a failed row its × dismisses", async () => {
@@ -246,23 +237,23 @@ describe("MusicStep, sample music on", () => {
       sampleMusic: sampleMusicPorts({ fetch: download.fetch }),
     });
     const target = mountStep(session, samplePreviewWith());
-    buttonNamed(target, "Sample music").click();
     flushSync();
 
-    cardFor(target, "Hold the Frame").querySelector<HTMLButtonElement>(".add")?.click();
+    cardFor(target, "Hold the Frame").querySelector<HTMLButtonElement>(".plus")?.click();
     await download.started;
     flushSync();
 
-    // The "My music" panel, holding the downloading/failed rows, stays in the DOM, only hidden.
     // The catalogue's "Downloading · {percent} %" uses non-breaking spaces (U+00A0).
-    expect(target.querySelector(".row .name")?.textContent).toContain("Downloading · 0 %");
+    expect(target.querySelector(".soundtrack .row .name")?.textContent).toContain(
+      "Downloading · 0 %",
+    );
 
     const failed = waitForFailed(session, track.id);
     download.failHttp();
     await failed;
     flushSync();
 
-    expect(target.querySelector(".row.failed .name")?.textContent).toContain(
+    expect(target.querySelector(".soundtrack .row.failed .name")?.textContent).toContain(
       "Couldn't download this song",
     );
     const dismiss = [...target.querySelectorAll("button")].find((button) =>
@@ -271,6 +262,6 @@ describe("MusicStep, sample music on", () => {
     dismiss?.click();
     flushSync();
 
-    expect(target.querySelector(".row")).toBeNull();
+    expect(target.querySelector(".soundtrack .row")).toBeNull();
   });
 });

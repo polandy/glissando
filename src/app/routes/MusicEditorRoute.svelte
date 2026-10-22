@@ -166,6 +166,7 @@
   {samplePreview}
   {toaster}
   {onBack}
+  {onError}
   onSelectSong={(songId) => (selectedSongId = songId)}
   onAddSongs={(files) => void intake.add(files)}
   onRemoveSong={(songId) => editor.removeSong(songId)}
