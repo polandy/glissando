@@ -165,7 +165,6 @@
         {holdScheduler}
         {frameScheduler}
       />
-
       <InfoPanel
         bind:this={infoPanel}
         {slideshow}
@@ -187,6 +186,7 @@
       {onShiftGroup}
       onRemoveGroup={removeGroup}
       {onEdit}
+      onView={(pictureId) => (viewing = pictureId)}
       onDone={() => (selection = endSelecting())}
     />
   {/if}

@@ -16,6 +16,7 @@
     onShiftGroup,
     onRemoveGroup,
     onEdit,
+    onView,
     onDone,
     arranging = true,
     viewMode = false,
@@ -28,6 +29,8 @@
     onRemoveGroup: (pictureIds: readonly string[]) => void;
     /** Opens the picture editor, or the viewer while `viewMode`; one picture selected, only. */
     onEdit: (pictureId: string) => void;
+    /** Opens the picture full screen beside Edit (PICTURE_VIEWER.md); undefined while `viewMode`. */
+    onView?: (pictureId: string) => void;
     onDone: () => void;
     /** False hides Earlier/Later (IMPORT_ARRANGING.md, Add media): no moving while adding. */
     arranging?: boolean;
@@ -78,6 +81,12 @@
     }
   }
 
+  function view(): void {
+    if (soleId !== null && onView !== undefined) {
+      onView(soleId);
+    }
+  }
+
   function remove(): void {
     if (count > 0) {
       onRemoveGroup(selectedIds);
@@ -117,6 +126,11 @@
       </button>
     {/if}
     {#if !selection.several || count === 1}
+      {#if onView !== undefined}
+        <button class="btn" type="button" onclick={view}>
+          <Icon name="eye" /><span class="view-word">{t("slideshow.view")}</span>
+        </button>
+      {/if}
       <button class="btn" type="button" onclick={edit}>
         <Icon name={viewMode ? "eye" : "pencil"} />
         <span>{t(viewMode ? "slideshow.view" : "slideshow.edit")}</span>
@@ -222,15 +236,16 @@
     }
     .bar .btn {
       gap: 5px;
-      padding: 0 9px;
+      padding: 0 7px;
       font-size: var(--gl-size-label);
     }
     /*
-     * A single selection's count is for assistive technology only; several's stays visible. Earlier
-     * and Later show their arrows alone, so all five buttons fit a phone's width with German labels.
+     * A single selection's count is for assistive technology only; several's stays visible. Earlier,
+     * Later and View show their icon alone, so all six buttons fit a phone's width with German labels.
      */
     .count:not(.several),
-    .move-word {
+    .move-word,
+    .view-word {
       position: absolute;
       width: 1px;
       height: 1px;
