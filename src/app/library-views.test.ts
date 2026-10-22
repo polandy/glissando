@@ -135,10 +135,9 @@ describe("slideshowDetails", () => {
       ],
     };
 
-    expect(slideshowDetails(lone, urlOf, "en").pictures.map((picture) => picture.blurredFill)).toEqual([
-      false,
-      true,
-    ]);
+    expect(
+      slideshowDetails(lone, urlOf, "en").pictures.map((picture) => picture.blurredFill),
+    ).toEqual([false, true]);
   });
 
   it("marks a picture set to always alone, and names the setting as resolved", () => {
@@ -177,7 +176,10 @@ describe("slideshowDetails", () => {
   });
 
   it("sums up the whole track with automatic fades as such", () => {
-    expect(slideshowDetails(withMusic, urlOf, "en").musicSummary).toEqual({ excerpt: null, fades: null });
+    expect(slideshowDetails(withMusic, urlOf, "en").musicSummary).toEqual({
+      excerpt: null,
+      fades: null,
+    });
   });
 
   it("sums up an excerpt with the fades it plays, and its length as the music's", () => {
@@ -199,7 +201,10 @@ describe("slideshowDetails", () => {
   it("names the fades once one is the user's own", () => {
     const faded: StoredSlideshow = { ...withMusic, songs: [{ ...music, fadeInMs: 5000 }] };
 
-    expect(slideshowDetails(faded, urlOf, "en").musicSummary).toEqual({ excerpt: null, fades: "in" });
+    expect(slideshowDetails(faded, urlOf, "en").musicSummary).toEqual({
+      excerpt: null,
+      fades: "in",
+    });
   });
 
   it("names the music by its file name", () => {

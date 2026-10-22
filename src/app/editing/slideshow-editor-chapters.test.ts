@@ -89,9 +89,7 @@ describe("SlideshowEditor's trip chapters (TRIP_CHAPTERS.md)", () => {
     editor.chapters.insertChapter("b");
     await editor.settled();
 
-    expect((await store.getSlideshow("show")).addedChapters).toEqual([
-      { beforePictureId: "b" },
-    ]);
+    expect((await store.getSlideshow("show")).addedChapters).toEqual([{ beforePictureId: "b" }]);
   });
 
   it("does nothing when a chapter is already added before that picture", async () => {
@@ -139,8 +137,6 @@ describe("SlideshowEditor's trip chapters (TRIP_CHAPTERS.md)", () => {
 
     editor.chapters.resetAddedChapterSubtitle("b");
     await editor.settled();
-    expect((await store.getSlideshow("show")).addedChapters).toEqual([
-      { beforePictureId: "b" },
-    ]);
+    expect((await store.getSlideshow("show")).addedChapters).toEqual([{ beforePictureId: "b" }]);
   });
 });
