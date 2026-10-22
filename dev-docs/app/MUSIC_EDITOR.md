@@ -24,7 +24,7 @@
     first is selected on opening and when the selected one goes. The grip
     (`song-drag.ts`, ADR-0019's pattern) drags the song onto another row, which a dashed accent
     outline marks, or moves it up and down with the arrow keys while focused. Then "+ Add a song", a dashed
-    button; with sample music it opens a sheet with the import's two tabs (library/SAMPLE_MUSIC.md).
+    button; with sample music it opens a sheet with the import's two blocks, the music block unfolded (library/SAMPLE_MUSIC.md).
     Picking one file or several (`song-intake.ts`): each is read as in
     the import's music step (converted to FLAC where a target browser cannot play it,
     ADR-0020), its audio stored where the slideshow lives (on this device claimed until the

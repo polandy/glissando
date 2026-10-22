@@ -1,7 +1,7 @@
 # Sample music
 
 Nine tracks that come with Glissando, for a slideshow whose owner has no music of their own at
-hand. Approved mockup (layout A, the cover grid):
+hand. Approved mockup (layout A, the accordion block above own music):
 https://polandy.github.io/glissando-assets/mockups/sample-music/. Where the tracks come from and
 how they are kept: ADR-0042. Code: `src/sample-music/` (catalogue, download, check),
 `src/app/sample-music/` (the picker).
@@ -35,7 +35,7 @@ grid looks the same offline.
 On in every build, the self-hosted Docker image included. `build/sample-music-config.ts` reads,
 following the demo slideshow's pattern (`build/demo-slideshow-config.ts`):
 
-- `GLISSANDO_SAMPLE_MUSIC`: unset, sample music is offered; `off`, it is not — no tab, no
+- `GLISSANDO_SAMPLE_MUSIC`: unset, sample music is offered; `off`, it is not — no block, no
   credit, nothing fetched. Any other value fails the build, naming the variable and the two
   allowed states.
 - `GLISSANDO_SAMPLE_MUSIC_URL`: the base the tracks are fetched from, an absolute http(s) URL
@@ -48,17 +48,23 @@ both as build arguments (`deploy/Dockerfile`).
 
 ## Where it shows
 
-- **Import, music step** (app/IMPORT_WIZARD.md): two tabs, "My music" ("From this device",
-  selected on entry; the drop zone) and "Sample music" ("9 tracks that come with Glissando"). The
-  song list, the picture-length panel and the buttons stay below the tabs. An added track joins
+- **Import, music step** (app/IMPORT_WIZARD.md): no tabs — both ways in show on the first phone
+  screen (412 × 780 CSS px), one above the other: the block "Glissando music" ("9 tracks · come
+  with Glissando"), the divider "or", then the row "Your own music" ("MP3, M4A, FLAC, WAV, Ogg …",
+  "Choose files"; the drop zone). Below them the one song list "Soundtrack" holds every song
+  chosen, wherever it came from ("No music yet — add a track or your own songs above." while
+  empty), then the picture-length panel and the buttons. An added track joins
   `ImportChoices.songs` like a picked file and is stored with them on "Create slideshow".
 - **Music editor** (app/MUSIC_EDITOR.md): "Add a song" and "+ Add a song" open the sheet "Add a
-  song" with the same two tabs, "My music" holding "Choose music" for the file picker; "Done" or
-  Esc closes it, and the songs added stay. Without sample music both open the file picker
-  directly.
-- **The grid** (layout A): 3 columns, 2 up to 600 px (the ninth card alone on the last phone
-  row). A card is its cover with the play button, the title, the mood, the length and "Add",
-  with a status line where one applies; the credit footer closes the tab.
+  song" with the same two blocks, the music block unfolded; "Done" or Esc closes it, and the songs
+  added stay. Without sample music both open the file picker directly.
+- **The block** (an accordion): it shows the first three cards; "Show all 9" (`aria-expanded`,
+  `aria-controls`) unfolds it in place to all nine and the credit footer, animated in height
+  (none under `prefers-reduced-motion`), and reads "Show fewer", which folds it again. Nothing
+  scrolls sideways. Unfolded or not, the block keeps its state while the step is open.
+- **The grid**: 3 columns at every width. A card is its cover with the play button (top left) and
+  "+" (top right, `aria-label` "Add <title>"; "✓" once added), the title, the mood and the
+  length, with a status line where one applies.
 
 ## Listening
 
@@ -67,22 +73,22 @@ preview at a time — tapping another switches to it, tapping the playing one pa
 it again resumes. The playing card shows a pause icon on its cover, a progress bar along the
 cover's bottom edge and moving bars before its title. A track on this device (below) plays from
 the device instead of the network. Nothing is stored for a preview. The preview stops when the
-picker closes, the tab changes or the device goes offline (a streamed one; one from the device
+picker closes, the block folds over the playing card, the step is left or the device goes offline (a streamed one; one from the device
 plays on). A preview that fails to load returns its card to idle with the toast "Couldn't play
 this song — try again".
 
 ## Adding
 
-"Add" puts the track at the end of the playlist, exactly like a picked file of one's own, and
-reads "✓ Added" (`aria-pressed`) while the playlist holds it; tapping "✓ Added" takes it out
-again, as × on its row does.
+"+" puts the track at the end of the playlist, exactly like a picked file of one's own, and
+shows "✓" (`aria-pressed`, `aria-label` "Remove <title>") while the playlist holds it; tapping "✓"
+takes it out again, as × on its row does.
 
 - **Downloaded once**: a track not on this device is fetched (`fetch`, CORS; the server's
   `Content-Length` drives the progress) and checked against the catalogue's size and SHA-256
   (`src/sample-music/sha256.ts`, own pure code, as `crypto.subtle` is missing over plain HTTP on
   the LAN). A mismatch is a failed download, never a stored track. While it downloads the song
   row is dashed and reads "Downloading · 42 %" with a progress bar; a failed one becomes the coral
-  row "Couldn't download this song" until its ×, and the card's "Add" is offered again.
+  row "Couldn't download this song" until its ×, and the card's "+" is offered again.
 - **Stored like an own song**: once checked, the bytes go the same way as a picked MP3 (read by
   `readPickedMusic`, its duration from the file), under the fixed media id `sample-<id>`
   (`sampleMediaId`) — so the track is stored once on the device however many slideshows play it,
@@ -97,7 +103,7 @@ again, as × on its row does.
 ## On this device
 
 A track is on this device when the `music` store holds `sample-<id>`. Its card reads "On this
-device"; "Add" then reuses that media without a download, online or offline. It stays on the
+device"; "+" then reuses that media without a download, online or offline. It stays on the
 device as long as a slideshow plays it (the usual clean-up of unreferenced media, which an
 import's claim on `sample-<id>` spares until its slideshow is stored).
 
@@ -106,7 +112,7 @@ import's claim on `sample-<id>` spares until its slideshow is stored).
 Without a connection (`NetworkStatus`, `src/immich/immich-availability.ts`: `navigator.onLine`
 and its events), the grid opens with the notice "You are offline. Tracks already on this
 device can be added; listening to the others needs a connection." A track not on this device is
-dimmed, without its play button, with "Add" disabled and the status "Needs a connection"; one on
+dimmed, without its play button, with "+" disabled and the status "Needs a connection"; one on
 this device keeps both. A download under way when the connection drops fails as above.
 
 ## The credit
