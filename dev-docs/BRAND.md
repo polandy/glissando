@@ -35,7 +35,9 @@ shows the finished logo at once; the launch is remembered in the browser's local
 
 All OFL 1.1, self-hosted as Latin woff2 subsets incl. German (`assets/fonts/`, licence texts
 beside them), fetched from a pinned commit of google/fonts and hash-verified by
-`scripts/brand/build.sh`; no request leaves the device.
+`scripts/brand/build.sh`; no request leaves the device. Each shipped font's OFL notice is also
+listed in `third-party-licenses.md` (`build/committed-licenses.ts`), since none is an npm
+package.
 
 | Font (token)                                   | Role                                                     |
 | ---------------------------------------------- | -------------------------------------------------------- |

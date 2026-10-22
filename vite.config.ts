@@ -2,9 +2,9 @@ import { svelte } from "@sveltejs/vite-plugin-svelte";
 import { playwright } from "@vitest/browser-playwright";
 import { defineConfig } from "vitest/config";
 import { buildInfoPlugin } from "./build/build-info.ts";
+import { committedLicensesPlugin } from "./build/committed-licenses.ts";
 import { exportPlayerPlugin } from "./build/export-player-plugin.ts";
 import { filePagePlugin } from "./build/file-page-plugin.ts";
-import { libavLicensePlugin } from "./build/libav-license.ts";
 import { pinnedThemePlugin } from "./build/pinned-theme-script.ts";
 import { remotePagePlugin } from "./build/remote-page-plugin.ts";
 import { sampleMusicConfigPlugin } from "./build/sample-music-config.ts";
@@ -48,7 +48,7 @@ export default defineConfig({
     sharePagePlugin(),
     remotePagePlugin(),
     sampleMusicConfigPlugin(),
-    libavLicensePlugin(),
+    committedLicensesPlugin(),
     serviceWorkerPlugin(),
     // Only its configurePreviewServer hook does anything; e2e/support/fake-tv-api.ts needs it.
     tvStreamPlugin(),
