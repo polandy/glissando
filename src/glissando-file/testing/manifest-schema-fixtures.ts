@@ -98,6 +98,9 @@ export const BASE_MANIFEST: ManifestDocument = {
       background: { kind: "picture", pictureIndex: 0, fade: 60, tint: "picture" },
       motion: false,
     },
+    automaticChaptersOff: true,
+    chapterEdits: [{ pictureIndex: 0, title: "Lisbon", subtitle: "September 30", hidden: true }],
+    addedChapters: [{ beforePictureIndex: 1, title: "Sintra", subtitle: "October 1" }],
   },
 };
 
