@@ -16,14 +16,14 @@ export interface TimedPicture extends Pick<StoredPicture, "durationMs"> {
 const DEFAULT_WEIGHT = 1;
 
 /**
- * The slide durations in play order. An own duration is kept exactly. The other slides show
+ * The slide durations in play order. An own duration keeps that length; the other slides show
  * `secondsPerPicture` each, scaled by weight, unless they fill the music: then they share the
  * rest of its excerpt by weight (the remainder going to the first of them so the sum matches
  * exactly). A share below `MIN_SECONDS_PER_PICTURE`, unweighted, is rejected in favour of the
  * minimum, so the slideshow outlasts a excerpt too short for it. With the playlist's beats, each
- * boundary ending an automatic slide then moves to the nearest beat (`snapToBeats`), and so does
- * the slideshow's end unless the pictures fill the music. See ADR-0008, ADR-0009, ADR-0021,
- * ADR-0022, ADR-0023 and ADR-0028.
+ * boundary then moves to the nearest beat (`snapToBeats`), an own duration only to about its set
+ * length; the slideshow's end moves too unless the pictures fill the music. See ADR-0008,
+ * ADR-0009, ADR-0021, ADR-0022, ADR-0023 and ADR-0028.
  */
 export function slideDurationsMs(
   pictures: readonly TimedPicture[],
@@ -52,7 +52,8 @@ export function slideDurationsMs(
     return durationsMs;
   }
   const automatic = pictures.map((picture) => picture.durationMs === undefined);
-  const endOnBeat = filledMs === undefined;
+  // Filling the music does not pin the end when there is no automatic slide to fill it with.
+  const endOnBeat = filledMs === undefined || automaticWeights.length === 0;
   return snapToBeats(durationsMs, automatic, beatsMs, MIN_SLIDE_DURATION_MS, endOnBeat);
 }
 

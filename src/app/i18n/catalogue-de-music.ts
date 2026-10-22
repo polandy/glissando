@@ -79,9 +79,9 @@ export const deMusic = {
   "music.onTheBeatHint":
     "Jeder automatische Wechsel landet auf einem Schlag der Musik; ein Übergang dauert ganze Schläge.",
   "music.ownDurationsOffBeat": {
-    one: "Bild {pictures} behält seine eigene Dauer, darum kann der Wechsel danach zwischen die Schläge fallen.",
+    one: "Bild {pictures} behält seine eigene Dauer genau: Danach folgt kein automatisches Bild, das den Versatz ausgleichen könnte, darum kann der Wechsel zwischen die Schläge fallen.",
     other:
-      "Die Bilder {pictures} behalten ihre eigene Dauer, darum kann der Wechsel nach jedem zwischen die Schläge fallen.",
+      "Die Bilder {pictures} behalten ihre eigene Dauer genau: Danach folgt kein automatisches Bild, das den Versatz ausgleichen könnte, darum können die Wechsel zwischen die Schläge fallen.",
   },
   "music.evenlyHint": "Die Bilder teilen sich die Musik gleichmäßig, unabhängig von ihrem Takt.",
   "music.evenlyHintSeconds": "Jedes Bild bleibt genau {seconds}, unabhängig vom Takt.",

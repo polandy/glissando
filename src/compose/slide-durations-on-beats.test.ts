@@ -43,17 +43,19 @@ describe("slideDurationsMs on the music's beats", () => {
     expect(slideDurationsMs(automatic(2), 4000, 5, [1900])).toEqual([2000, 2000]);
   });
 
-  it("does not move the boundary after a picture with an own duration, which stays exact", () => {
+  it("moves the boundary after a picture with an own duration too, within its slack, absorbing the difference ahead", () => {
     // The own 3000 ms picture comes first; the automatic ones share 10 000 ms, meeting at 8000.
+    // The own picture's slack (2000 to 4000) holds the beat at 2800, nearer than 3200; the slide
+    // after it absorbs the 200 ms difference, and its own boundary then takes the beat at 7900.
     const pictures = [{ durationMs: 3000 }, {}, {}];
 
-    expect(slideDurationsMs(pictures, 13_000, 5, [2800, 3200, 7900])).toEqual([3000, 4900, 5100]);
+    expect(slideDurationsMs(pictures, 13_000, 5, [2800, 3200, 7900])).toEqual([2800, 5100, 5100]);
   });
 
   it("moves the boundary ending an automatic slide onto the beat, so the own-duration picture after it starts there, and snaps the next automatic boundaries again", () => {
     // Shares of 3334, 3000 (own), 3333 and 3333 end at 3334, 6334, 9667 and 13 000. The first
-    // boundary takes the beat at 3000, the own picture keeps its 3000 ms, the slide after it
-    // takes up the difference, and the boundary at 9667 takes the beat at 9500.
+    // boundary takes the beat at 3000, the own picture's slack does not reach the next beat at
+    // 9500 from there, so it keeps its 3000 ms, and the slide after it takes the beat instead.
     const pictures = [{}, { durationMs: 3000 }, {}, {}];
 
     expect(slideDurationsMs(pictures, 13_000, 5, [3000, 9500])).toEqual([3000, 3000, 3500, 3500]);
@@ -61,11 +63,12 @@ describe("slideDurationsMs on the music's beats", () => {
 
   it("keeps the slide after an own-duration picture at the minimum: it takes the nearest beat that does", () => {
     // Shares of 3000 each, the third picture's own. The second boundary's nearest beat, 7100,
-    // would leave the last slide at 1900 ms, so it takes 4600.
+    // would leave the own slide below its slack floor, so it takes 4600 instead, and the own
+    // picture's own boundary then takes 7100, within its slack, absorbing the rest ahead.
     const pictures = [{}, {}, { durationMs: 3000 }, {}];
     const durations = slideDurationsMs(pictures, 12_000, 5, [2400, 4600, 7100]);
 
-    expect(durations).toEqual([2400, 2200, 3000, 4400]);
+    expect(durations).toEqual([2400, 2200, 2500, 4900]);
     expect(Math.min(...durations)).toBeGreaterThanOrEqual(MIN_MS);
   });
 
@@ -79,5 +82,14 @@ describe("slideDurationsMs on the music's beats", () => {
     const durations = slideDurationsMs(automatic(4), 5000, 5, [1900, 4100]);
 
     expect(durations).toEqual([MIN_MS, MIN_MS, MIN_MS, MIN_MS]);
+  });
+
+  it("moves each own duration's own end within its slack, filling the music or not having no effect when every picture has one", () => {
+    // Without an automatic picture, filling the music does not pin the end, so each own duration
+    // snaps about its own length instead: the first to the beat at 3200, the second, with none in
+    // its own slack of 2000 to 4000, keeps its 3000 ms.
+    const pictures = [{ durationMs: 3000 }, { durationMs: 3000 }];
+
+    expect(slideDurationsMs(pictures, 6000, 5, [3200])).toEqual([3200, 3000]);
   });
 });

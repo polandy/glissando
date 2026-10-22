@@ -89,7 +89,7 @@ export interface MusicEditorView {
 export interface SlideChange {
   /** Track time. */
   readonly atMs: number;
-  /** The pictures change on the beat, but this change falls between beats (an own duration). */
+  /** The pictures change on the beat, but no beat fits close enough to move this change onto. */
   readonly offBeat: boolean;
 }
 
