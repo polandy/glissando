@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.10](https://github.com/polandy/glissando/compare/glissando-v0.0.9...glissando-v0.0.10) (2026-10-22)
+
+
+### Features
+
+* find the focus of server pictures on the client, share it via the server and look again ([#113](https://github.com/polandy/glissando/issues/113)) ([dcd5ee3](https://github.com/polandy/glissando/commit/dcd5ee3907c58b704b6775df375b8e51cd9c4d97))
+* offer nine sample tracks for a slideshow's music ([#115](https://github.com/polandy/glissando/issues/115)) ([09975ef](https://github.com/polandy/glissando/commit/09975ef5795db0d474088d6e9bf24a4803766c6d))
+
 ## [0.0.9](https://github.com/polandy/glissando/compare/glissando-v0.0.8...glissando-v0.0.9) (2026-10-20)
 
 
