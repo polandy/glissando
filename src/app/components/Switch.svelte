@@ -3,16 +3,23 @@
   let {
     checked,
     label,
+    disabled = false,
     onChange,
-  }: { checked: boolean; label: string; onChange: (checked: boolean) => void } = $props();
+  }: {
+    checked: boolean;
+    label: string;
+    disabled?: boolean;
+    onChange: (checked: boolean) => void;
+  } = $props();
 </script>
 
-<label class="switch">
+<label class="switch" class:disabled>
   <input
     type="checkbox"
     role="switch"
     aria-label={label}
     {checked}
+    {disabled}
     onchange={(event) => onChange(event.currentTarget.checked)}
   />
   <span class="track" aria-hidden="true"></span>
@@ -23,6 +30,10 @@
     position: absolute;
     opacity: 0;
     pointer-events: none;
+  }
+  .switch.disabled {
+    cursor: default;
+    opacity: 0.5;
   }
   .track {
     position: relative;
