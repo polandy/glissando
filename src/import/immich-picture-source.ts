@@ -9,6 +9,7 @@ import { focusFromFaces } from "../immich/immich-focus";
 import type { PictureFocus } from "../library/picture-focus";
 import type { PictureIdentity } from "../library/picture-identity";
 import type { DecodedPicture } from "./downscale";
+import type { ExifGps } from "./exif-gps";
 import { PictureNotDownloadedError, type PictureSource } from "./picture-source";
 import { UnreadablePictureError } from "./unreadable-picture";
 import { VideoRefusedError } from "./video-refusal";
@@ -27,7 +28,7 @@ export interface ImmichVideoReaders extends Pick<VideoReaders, "openClip"> {
 }
 
 export interface ImmichPictureReaders {
-  readonly client: Pick<ImmichClient, "original" | "thumbnail" | "faces">;
+  readonly client: Pick<ImmichClient, "original" | "thumbnail" | "faces" | "gps">;
   readonly videos?: ImmichVideoReaders;
   /** Rejects with `UnreadablePictureError` for a file it cannot decode. */
   decode(file: File): Promise<DecodedPicture>;
@@ -132,13 +133,24 @@ export function immichPictureSource(
     }
   };
 
+  const gps = async (): Promise<ExifGps | null> => {
+    try {
+      return await client.gps(photo.id);
+    } catch (error) {
+      if (error instanceof ImmichUnavailableError) reportUnavailable(error.kind);
+      log(error);
+      return null;
+    }
+  };
+
   return {
     fileName: photo.fileName,
     mimeType: IMMICH_PHOTO_TYPE,
     identify: () => Promise.resolve(immichPhotoIdentity(photo)),
     read: async () => {
       const decoded = await download();
-      return { decoded, focus: await focus() };
+      const [pictureFocus, pictureGps] = await Promise.all([focus(), gps()]);
+      return { decoded, focus: pictureFocus, ...(pictureGps === null ? {} : { gps: pictureGps }) };
     },
   };
 }

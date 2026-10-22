@@ -8,6 +8,7 @@ import {
   type ImmichUnavailableKind,
 } from "../immich/immich-client";
 import type { DecodedPicture } from "./downscale";
+import type { ExifGps } from "./exif-gps";
 import { immichPictureSource } from "./immich-picture-source";
 import { PictureNotDownloadedError } from "./picture-source";
 import { UnreadablePictureError } from "./unreadable-picture";
@@ -29,7 +30,8 @@ class FakeImmichClient {
   original_ = new Blob(["original bytes"], { type: "image/heic" });
   preview = new Blob(["preview bytes"], { type: "image/jpeg" });
   faceList: readonly ImmichFace[] = [FACE];
-  fails: Partial<Record<"original" | "thumbnail" | "faces", Error>> = {};
+  gpsCoordinate: ExifGps | null = null;
+  fails: Partial<Record<"original" | "thumbnail" | "faces" | "gps", Error>> = {};
 
   readonly original = (photoId: string): Promise<Blob> => {
     this.calls.push(`original ${photoId}`);
@@ -48,6 +50,11 @@ class FakeImmichClient {
   readonly faces = (photoId: string): Promise<readonly ImmichFace[]> => {
     this.calls.push(`faces ${photoId}`);
     return this.fails.faces ? Promise.reject(this.fails.faces) : Promise.resolve(this.faceList);
+  };
+
+  readonly gps = (photoId: string): Promise<ExifGps | null> => {
+    this.calls.push(`gps ${photoId}`);
+    return this.fails.gps ? Promise.reject(this.fails.gps) : Promise.resolve(this.gpsCoordinate);
   };
 }
 
@@ -109,8 +116,46 @@ describe("immichPictureSource", () => {
       box: { x: 0.25, y: 0.1, width: 0.5, height: 0.4 },
       foundBy: "immich-faces",
     });
-    expect(client.calls).toEqual(["original asset-1", "faces asset-1"]);
+    expect(client.calls).toEqual(["original asset-1", "faces asset-1", "gps asset-1"]);
   });
+
+  it("brings the GPS coordinate Immich already read", async () => {
+    const client = new FakeImmichClient();
+    client.gpsCoordinate = { latitude: 48.2082, longitude: 16.3738 };
+
+    const read = await sourceFor(client).read();
+
+    expect(read.gps).toEqual({ latitude: 48.2082, longitude: 16.3738 });
+  });
+
+  it("brings no GPS for a photo without a coordinate", async () => {
+    const client = new FakeImmichClient();
+
+    const read = await sourceFor(client).read();
+
+    expect(read.gps).toBeUndefined();
+  });
+
+  it.each([
+    ["Immich is unavailable", new ImmichUnavailableError("unreachable"), ["unreachable"]],
+    ["Immich answers 404", new ImmichRequestFailedError("GET gps", 404), []],
+    ["the answer does not match Immich's API", new Error("not Immich's shape"), []],
+  ])(
+    "keeps a decoded picture with no GPS and logs the error when it fails as %s",
+    async (_name, error, expectedReports) => {
+      const { client, reported, logged, source } = setUp();
+      client.fails.gps = error;
+
+      const read = await source.read();
+
+      expect(await read.decoded.display.text()).toBe(
+        "original bytes as IMG_0001.HEIC (image/heic)",
+      );
+      expect(read.gps).toBeUndefined();
+      expect(logged).toEqual([error]);
+      expect(reported).toEqual(expectedReports);
+    },
+  );
 
   it("brings no focus for a photo without faces", async () => {
     const client = new FakeImmichClient();
