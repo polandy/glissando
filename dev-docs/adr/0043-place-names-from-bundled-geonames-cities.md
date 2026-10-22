@@ -31,9 +31,10 @@ regenerated daily, so a bundled copy must freeze one day's bytes deliberately.
   generated static asset (`scripts/places/build.sh`), never hand-edited, like the brand assets.
 - **Name**: GeoNames' own `name` column as published, mostly the common English form ("Lisbon").
   No alternate names or translations are kept, to keep the file small.
-- **Licence**: credited in the app's third-party licences list
-  (`src/app/settings/third-party-licenses.ts`) as "Place names © GeoNames (CC BY 4.0)", linking
-  `https://www.geonames.org/`.
+- **Licence**: credited in the app's third-party licences list as "Place names © GeoNames
+  (CC BY 4.0)", linking `https://www.geonames.org/`, listed by `build/committed-licenses.ts`
+  like the app's other committed (non-npm) components, since GeoNames' CC BY 4.0 asks only for
+  attribution, not for embedding the licence's full text.
 - **When the lookup runs**: at import, once per picture that has GPS — never in the player, which
   only ever sees the place already resolved and stored on the picture. The place data asset is
   fetched lazily, only when an imported picture actually has GPS, not on every app start.

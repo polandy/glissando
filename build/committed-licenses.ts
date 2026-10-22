@@ -12,11 +12,14 @@ export interface CommittedLicense {
 
 const GOOGLE_FONTS_WEBFONT_COMMIT = "5e8a3ba899557829a76cfdac30fa512bda91d7ca";
 const GOOGLE_FONTS_BALOO2_COMMIT = "8e0cd05881f3ae5e933ba4161103005a3e841ce0";
+// Kept in step with scripts/places/build.sh's own EXPECTED_SHA256.
+const GEONAMES_DUMP_SHA256 = "306220b96c4dc00fd3bd7b2427290afed492a05ad5111d071644d74c79eba707";
 
 /**
  * Every committed (non-npm) component Vite's own `build.license` cannot see, appended to its
  * npm licences list in this order: the music decoder (ADR-0020), the on-device detectors
- * (ADR-0012, ADR-0036) and the self-hosted fonts (`dev-docs/BRAND.md`).
+ * (ADR-0012, ADR-0036), the self-hosted fonts (`dev-docs/BRAND.md`) and the bundled place names
+ * (ADR-0043).
  */
 export const COMMITTED_LICENSES: readonly CommittedLicense[] = [
   {
@@ -109,6 +112,17 @@ export const COMMITTED_LICENSES: readonly CommittedLicense[] = [
       `https://github.com/google/fonts/tree/${GOOGLE_FONTS_WEBFONT_COMMIT}/ofl/instrumentserif,\n` +
       "hash-verified; no request leaves the device.",
     licenseFilePath: "assets/fonts/OFL-instrument-serif.txt",
+  },
+  {
+    name: "GeoNames cities15000 place names",
+    version: GEONAMES_DUMP_SHA256,
+    licenseId: "CC-BY-4.0",
+    sourceSentence:
+      "Trip chapters' bundled place names, compressed from the cities15000 dump at\n" +
+      "https://download.geonames.org/export/dump/cities15000.zip by scripts/places/build.sh in\n" +
+      "Glissando's repository (ADR-0043); GeoNames' CC BY 4.0 asks only for attribution, not for\n" +
+      "embedding the licence's full text.",
+    licenseFilePath: "public/places/LICENSE-geonames.txt",
   },
 ];
 
