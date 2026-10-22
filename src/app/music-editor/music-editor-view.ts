@@ -1,5 +1,5 @@
 import {
-  AUTOMATIC_MUSIC_FADE_MS,
+  AUTOMATIC_MUSIC_FADE_OUT_MS,
   filledMusicMs,
   musicExcerpt,
   placeSongs,
@@ -186,7 +186,7 @@ export function musicEditorView(
   };
   const heardEndMs = timing.endMs;
   const cutBySlideshow = heardEndMs < endMs;
-  const automaticFadeOutMs = cutBySlideshow ? AUTOMATIC_MUSIC_FADE_MS : fadeOutMs;
+  const automaticFadeOutMs = cutBySlideshow ? AUTOMATIC_MUSIC_FADE_OUT_MS : fadeOutMs;
   const playlistLengthMs = playlistMs(stored) ?? 0;
   const joinsPrevious = index > 0 && stored.betweenSongs !== SEQUENCE_BETWEEN_SONGS;
   const joinsNext =

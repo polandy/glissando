@@ -4,7 +4,7 @@ import type { StoredMusic, StoredSlideshow } from "../library/stored-slideshow";
 import { MILLISECONDS_PER_SECOND } from "../player/slideshow";
 import { excerptBeatsMs } from "./excerpt-beats";
 import {
-  AUTOMATIC_MUSIC_FADE_MS,
+  AUTOMATIC_MUSIC_FADE_OUT_MS,
   automaticFadeInMs,
   musicExcerpt,
   musicExcerptMs,
@@ -63,7 +63,7 @@ export function resolvePlaylist(
     const cutBySlideshowEnd = endMs < excerpt.endMs;
     const floorMs = index === tracks.length - 1 ? (minEndFadeMs ?? 0) : 0;
     const heardFadeOutMs = Math.max(
-      cutBySlideshowEnd ? (song.fadeOutMs ?? AUTOMATIC_MUSIC_FADE_MS) : fadeOutMs,
+      cutBySlideshowEnd ? (song.fadeOutMs ?? AUTOMATIC_MUSIC_FADE_OUT_MS) : fadeOutMs,
       floorMs,
     );
     return {
@@ -150,7 +150,9 @@ export function placeSongs({ songs, betweenSongs }: Playlist): PlacedSong[] {
   return placed;
 }
 
-/** A song's own end as in ADR-0009: short where the excerpt stops before the track's end. */
+/** A song's own end as in ADR-0009: long where the excerpt stops before the track's end. */
 function endFadeOutMs(song: StoredMusic): number {
-  return musicExcerpt(song).endMs < song.durationMs ? AUTOMATIC_MUSIC_FADE_MS : MUSIC_FADE_OFF_MS;
+  return musicExcerpt(song).endMs < song.durationMs
+    ? AUTOMATIC_MUSIC_FADE_OUT_MS
+    : MUSIC_FADE_OFF_MS;
 }

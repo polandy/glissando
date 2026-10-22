@@ -58,7 +58,7 @@ describe("musicEditorView, pictures lasting their own seconds with music", () =>
     expect(view.slideChanges.map((change) => change.atMs)).toEqual([4900, 9700, 14_900]);
     expect(view.slideshowMs).toBe(20_100);
     expect(view.audibleEndMs).toBe(20_100);
-    expect(view.fadeOut).toEqual({ ms: 2000, own: false, reason: "slideshow-ends" });
+    expect(view.fadeOut).toEqual({ ms: 5000, own: false, reason: "slideshow-ends" });
     expect(view.note).toEqual({
       kind: "own-seconds",
       secondsPerPicture: 5,
