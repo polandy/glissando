@@ -225,6 +225,7 @@
     onEnsureClosingCard={() => mustEditor().ensureClosingCard()}
     onClosingCard={(card) => editor?.setClosingCard(card)}
     onRemoveClosingCard={() => editor?.removeClosingCard()}
+    chapterEditor={editor?.chapters ?? null}
     previewPorts={{ clock: performanceClock, frames: animationFrames }}
     reducedMotion={reducedMotion.current}
     onDelete={() => deleteShownSlideshow(store, slideshowId, editor).then(onDeleted, onError)}

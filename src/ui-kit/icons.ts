@@ -226,6 +226,8 @@ export const ICONS = {
     shapes: [path("M3 3l18 18"), path("M9 17H7A5 5 0 017 7M15 7h2a5 5 0 014 8"), path("M8 12h4")],
   },
   tv: { shapes: [rect(3, 7, 18, 13, 2), path("M8 3l4 4 4-4")] },
+  /** A bookmark: a trip chapter (TRIP_CHAPTERS.md). */
+  chapter: { shapes: [path("M6 3.5h12v17l-6-4.2-6 4.2z")] },
 } as const satisfies Record<string, IconDefinition>;
 
 export type IconName = keyof typeof ICONS;
