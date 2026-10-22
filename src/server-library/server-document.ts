@@ -53,7 +53,11 @@ export interface ServerMusic extends MusicFields {
   readonly musicId: string;
 }
 
-export interface ServerSlideshow extends SlideshowFields {
+/** A server document's slideshow fields: no trip chapters yet (`MANIFEST_FIELDS_VERSION`). */
+export interface ServerSlideshow extends Omit<
+  SlideshowFields,
+  "automaticChaptersOff" | "chapterEdits" | "addedChapters"
+> {
   readonly pictures: readonly ServerPicture[];
   /** The playlist, in play order; empty for no music (ADR-0023). */
   readonly songs: readonly ServerMusic[];
