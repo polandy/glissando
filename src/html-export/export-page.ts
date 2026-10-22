@@ -101,6 +101,7 @@ async function writePage(job: PageExportJob): Promise<PageExportResult> {
     job.focus,
     job.beats,
     job.loudness,
+    job.lang,
   );
   const songs = playedSongs(stored, composed);
   const clips = playedClips(composed);

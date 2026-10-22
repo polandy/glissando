@@ -57,6 +57,7 @@ describe("composeSlideshow when the pictures last their own seconds with music",
       NO_FOCUS,
       NO_SONG_BEATS,
       NO_SONG_LOUDNESS,
+      "en",
     );
 
     expect(slideshow.slides.map((slide) => slide.durationMs)).toEqual([5000, 5000, 5000, 5000]);
@@ -70,6 +71,7 @@ describe("composeSlideshow when the pictures last their own seconds with music",
       NO_FOCUS,
       new Map([[SONG.id, BEATS]]),
       NO_SONG_LOUDNESS,
+      "en",
     );
 
     expect(slideshow.slides.map((slide) => slide.durationMs)).toEqual([4900, 4900, 4900, 5600]);
@@ -82,6 +84,7 @@ describe("composeSlideshow when the pictures last their own seconds with music",
       NO_FOCUS,
       NO_SONG_BEATS,
       NO_SONG_LOUDNESS,
+      "en",
     );
 
     expect(music).toMatchObject([
@@ -91,7 +94,14 @@ describe("composeSlideshow when the pictures last their own seconds with music",
 
   it("fills the music when the slideshow has no picture length of its own", () => {
     const filling = setPictureLength(OWN_SECONDS, undefined);
-    const slideshow = composeSlideshow(filling, sources, NO_FOCUS, NO_SONG_BEATS, NO_SONG_LOUDNESS);
+    const slideshow = composeSlideshow(
+      filling,
+      sources,
+      NO_FOCUS,
+      NO_SONG_BEATS,
+      NO_SONG_LOUDNESS,
+      "en",
+    );
 
     expect(slideshow.slides.map((slide) => slide.durationMs)).toEqual([
       15_000, 15_000, 15_000, 15_000,

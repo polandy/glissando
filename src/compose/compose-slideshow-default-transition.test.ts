@@ -49,9 +49,14 @@ describe("composeSlideshow with the slideshow's default transition", () => {
   }
 
   function effects(stored: StoredSlideshow): readonly (string | undefined)[] {
-    return composeSlideshow(stored, sources, NO_FOCUS, NO_SONG_BEATS, NO_SONG_LOUDNESS).slides.map(
-      (slide) => slide.transitionToNext?.effect,
-    );
+    return composeSlideshow(
+      stored,
+      sources,
+      NO_FOCUS,
+      NO_SONG_BEATS,
+      NO_SONG_LOUDNESS,
+      "en",
+    ).slides.map((slide) => slide.transitionToNext?.effect);
   }
 
   it("crossfades every picture while the slideshow stores no default", () => {

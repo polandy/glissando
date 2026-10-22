@@ -12,6 +12,8 @@ import {
 import { DEFAULT_VIDEO_VOLUME, type StoredVideo } from "../library/own-video";
 import { beatTransitionDurationMs } from "./beat-transition";
 import { composeCards } from "./compose-cards";
+import { composeChapters } from "./compose-chapters";
+import { composedChapters } from "./chapters-of-slideshow";
 import { filledMusicMs, playlistBeatsMs, resolvePlaylist, type SongBeats } from "./playlist";
 import { pairKenBurns, pictureKenBurns } from "./picture-ken-burns";
 import { pictureTransition, slideshowTransition } from "./picture-transition";
@@ -46,6 +48,7 @@ const COVER_FIT = "cover";
  * pictures change on the songs' `beats` found so far, by music id; a song absent from it gives
  * none (ADR-0021, ADR-0023). Each track's `gain` levels its excerpt by the songs' `loudness`
  * measured so far, by music id; a song absent from it plays at its own volume alone (ADR-0040).
+ * `locale` picks the language of a trip chapter's automatic text (`TRIP_CHAPTERS.md`).
  */
 export function composeSlideshow(
   stored: StoredSlideshow,
@@ -53,6 +56,7 @@ export function composeSlideshow(
   focus: ReadonlyMap<string, PictureFocus>,
   beats: SongBeats,
   loudness: SongLoudness,
+  locale: string,
 ): Slideshow {
   const units = slideUnits(stored.pictures, stored.portraitPictures);
   const defaultTransition = slideshowTransition(stored);
@@ -89,7 +93,15 @@ export function composeSlideshow(
   });
 
   const withCards = composeCards(stored, units, slides, sources, focus, defaultTransition, beatsMs);
-  const slideshowMs = withCards.slides.reduce((sum, finalSlide) => sum + finalSlide.durationMs, 0);
+  const withChapters = composeChapters(
+    composedChapters(stored, locale),
+    stored.pictures,
+    withCards.slides,
+    sources,
+    focus,
+    defaultTransition,
+  );
+  const slideshowMs = withChapters.reduce((sum, finalSlide) => sum + finalSlide.durationMs, 0);
   const music = resolvePlaylist(stored, slideshowMs, withCards.endFadeMs).map(
     ({ song, ...timing }) => ({
       src: sources.music(song.id),
@@ -106,7 +118,7 @@ export function composeSlideshow(
     formatVersion: SLIDESHOW_FORMAT_VERSION,
     title: stored.title,
     ...(music.length === 0 ? {} : { music }),
-    slides: withCards.slides,
+    slides: withChapters,
     ...(withCards.endFadeMs === undefined ? {} : { endFadeMs: withCards.endFadeMs }),
   };
 }

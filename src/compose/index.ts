@@ -53,3 +53,19 @@ export {
   scaledFades,
   type MusicTiming,
 } from "./music-excerpt";
+export {
+  dayNumbersOf,
+  dateOfDay,
+  showDays,
+  type DayNumberedPicture,
+  type ShowDay,
+} from "./chapter-days";
+export { STAY_RADIUS_KM, staysOf, type Stay } from "./chapter-stays";
+export { multiDaySubtitle, singleDaySubtitle, dateOnlySubtitle, dayTitle } from "./chapter-text";
+export {
+  chaptersOfSlideshow,
+  composedChapters,
+  type ChapterKind,
+  type SlideshowChapter,
+} from "./chapters-of-slideshow";
+export { CHAPTER_SLIDE_MS, composeChapters, type ComposedChapter } from "./compose-chapters";

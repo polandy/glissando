@@ -47,6 +47,7 @@ describe("composeSlideshow with portrait pictures (ADR-0028)", () => {
       NO_FOCUS,
       NO_SONG_BEATS,
       NO_SONG_LOUDNESS,
+      "en",
     );
 
     expect(result.slides).toHaveLength(1);
@@ -61,6 +62,7 @@ describe("composeSlideshow with portrait pictures (ADR-0028)", () => {
       NO_FOCUS,
       NO_SONG_BEATS,
       NO_SONG_LOUDNESS,
+      "en",
     );
 
     expect(pictureSlide(result.slides[0]).durationMs).toBe(7500);
@@ -73,6 +75,7 @@ describe("composeSlideshow with portrait pictures (ADR-0028)", () => {
       NO_FOCUS,
       NO_SONG_BEATS,
       NO_SONG_LOUDNESS,
+      "en",
     );
     const slide = pictureSlide(result.slides[0]);
 
@@ -87,6 +90,7 @@ describe("composeSlideshow with portrait pictures (ADR-0028)", () => {
       NO_FOCUS,
       NO_SONG_BEATS,
       NO_SONG_LOUDNESS,
+      "en",
     );
 
     expect(parseSlideshow(JSON.parse(JSON.stringify(result)))).toEqual(result);
@@ -95,7 +99,14 @@ describe("composeSlideshow with portrait pictures (ADR-0028)", () => {
   it("composes no pair when the slideshow is one-at-a-time", () => {
     const stored = storedSlideshow({ portraitPictures: "one-at-a-time" });
 
-    const result = composeSlideshow(stored, sources, NO_FOCUS, NO_SONG_BEATS, NO_SONG_LOUDNESS);
+    const result = composeSlideshow(
+      stored,
+      sources,
+      NO_FOCUS,
+      NO_SONG_BEATS,
+      NO_SONG_LOUDNESS,
+      "en",
+    );
 
     expect(result.slides).toHaveLength(2);
     expect(result.slides[0]).not.toHaveProperty("partner");
@@ -104,7 +115,14 @@ describe("composeSlideshow with portrait pictures (ADR-0028)", () => {
   it("gives every slide fit cover when the slideshow is fill-screen", () => {
     const stored = storedSlideshow({ portraitPictures: "fill-screen" });
 
-    const result = composeSlideshow(stored, sources, NO_FOCUS, NO_SONG_BEATS, NO_SONG_LOUDNESS);
+    const result = composeSlideshow(
+      stored,
+      sources,
+      NO_FOCUS,
+      NO_SONG_BEATS,
+      NO_SONG_LOUDNESS,
+      "en",
+    );
 
     expect(result.slides.every((slide) => pictureSlide(slide).fit === "cover")).toBe(true);
     expect(result.slides[0]).not.toHaveProperty("partner");
@@ -117,6 +135,7 @@ describe("composeSlideshow with portrait pictures (ADR-0028)", () => {
       NO_FOCUS,
       NO_SONG_BEATS,
       NO_SONG_LOUDNESS,
+      "en",
     );
 
     expect(result.slides[0]).not.toHaveProperty("fit");
@@ -127,7 +146,14 @@ describe("composeSlideshow with portrait pictures (ADR-0028)", () => {
       pictures: [portrait("a", { alone: true }), portrait("b"), portrait("c")],
     });
 
-    const result = composeSlideshow(stored, sources, NO_FOCUS, NO_SONG_BEATS, NO_SONG_LOUDNESS);
+    const result = composeSlideshow(
+      stored,
+      sources,
+      NO_FOCUS,
+      NO_SONG_BEATS,
+      NO_SONG_LOUDNESS,
+      "en",
+    );
 
     expect(result.slides).toHaveLength(2);
     expect(result.slides[0]).not.toHaveProperty("partner");
