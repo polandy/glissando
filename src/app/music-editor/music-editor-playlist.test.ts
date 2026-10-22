@@ -75,7 +75,7 @@ describe("musicEditorView of one song of a playlist (ADR-0023)", () => {
     expect(musicEditorView(stored, NOTHING_KNOWN, "a")).toMatchObject({
       reached: true,
       audibleEndMs: 10_000,
-      fadeOut: { reason: "slideshow-ends", ms: 2000 },
+      fadeOut: { reason: "slideshow-ends", ms: 5000 },
     });
   });
 

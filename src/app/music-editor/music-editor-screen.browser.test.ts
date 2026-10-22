@@ -136,19 +136,19 @@ describe("MusicEditorScreen, the fades", () => {
     mountEditor(slideshowWith(TRIMMED));
 
     expect(checked("Einblenden")).toBe("Kurz 2 s");
-    expect(checked("Ausblenden")).toBe("Kurz 2 s");
+    expect(checked("Ausblenden")).toBe("Lang 5 s");
     expect(text(".panel")).toContain(
       "Automatisch: kurz, weil der Ausschnitt mitten im Titel beginnt.",
     );
     expect(text(".panel")).toContain(
-      "Automatisch: kurz, weil der Ausschnitt vor dem Titelende aufhört.",
+      "Automatisch: lang, weil der Ausschnitt vor dem Titelende aufhört.",
     );
   });
 
   it("explains a fade-out where the slideshow ends before the excerpt", () => {
     mountEditor(slideshowWith({}, { count: 4, durations: { 0: 5000, 1: 5000, 2: 5000, 3: 5000 } }));
 
-    expect(text(".panel")).toContain("Automatisch: kurz, weil die Diashow bei 0:20 endet.");
+    expect(text(".panel")).toContain("Automatisch: lang, weil die Diashow bei 0:20 endet.");
   });
 
   it("picks an own fade, and goes back to automatic", () => {

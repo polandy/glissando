@@ -57,7 +57,7 @@ test("E2E-023 the music gets its own excerpt and fade-in, stored, summed up in t
   await expect(fadeIn.locator(".state")).toHaveText("Eigene");
   await expect(fadeOut.locator(".state")).toHaveText("Automatisch");
   await expect(
-    fadeOut.getByText("Automatisch: kurz, weil der Ausschnitt vor dem Titelende aufhört."),
+    fadeOut.getByText("Automatisch: lang, weil der Ausschnitt vor dem Titelende aufhört."),
   ).toBeVisible();
   await editsStored(page);
 

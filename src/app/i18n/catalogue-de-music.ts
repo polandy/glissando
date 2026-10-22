@@ -38,8 +38,8 @@ export const deMusic = {
   "music.automaticBecause": "Automatisch: {reason}.",
   "music.reason-excerpt-starts-mid-track": "kurz, weil der Ausschnitt mitten im Titel beginnt",
   "music.reason-track-starts": "aus, weil der Titel von vorn beginnt",
-  "music.reason-slideshow-ends": "kurz, weil die Diashow bei {time} endet",
-  "music.reason-excerpt-ends-early": "kurz, weil der Ausschnitt vor dem Titelende aufhört",
+  "music.reason-slideshow-ends": "lang, weil die Diashow bei {time} endet",
+  "music.reason-excerpt-ends-early": "lang, weil der Ausschnitt vor dem Titelende aufhört",
   "music.reason-track-ends": "aus, weil der Titel von selbst endet",
   "music.pictureTimes": "Bildzeiten",
   "music.noteShared": {

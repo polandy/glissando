@@ -61,7 +61,7 @@ describe("musicEditorView", () => {
 
     expect(view.trimmed).toBe(true);
     expect(view.fadeIn).toEqual({ ms: 2000, own: false, reason: "excerpt-starts-mid-track" });
-    expect(view.fadeOut).toEqual({ ms: 2000, own: false, reason: "excerpt-ends-early" });
+    expect(view.fadeOut).toEqual({ ms: 5000, own: false, reason: "excerpt-ends-early" });
   });
 
   it("shows own fades as own, 0 included", () => {
@@ -92,7 +92,7 @@ describe("musicEditorView", () => {
     const view = firstSongView(slideshow({}, [5000, 5000]), LISTENING);
 
     expect(view.audibleEndMs).toBe(10_000);
-    expect(view.fadeOut).toEqual({ ms: 2000, own: false, reason: "slideshow-ends" });
+    expect(view.fadeOut).toEqual({ ms: 5000, own: false, reason: "slideshow-ends" });
     expect(view.note).toEqual({ kind: "ends-early", endsAtMs: 10_000 });
   });
 
@@ -142,7 +142,7 @@ describe("musicEditorView", () => {
       startMs: 12_000,
       endMs: 150_000,
       fadeInMs: 2000,
-      fadeOutMs: 2000,
+      fadeOutMs: 5000,
     });
   });
 

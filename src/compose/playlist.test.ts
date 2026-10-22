@@ -70,7 +70,7 @@ describe("resolvePlaylist with a crossfade between songs (ADR-0023)", () => {
     const [opening, closing] = placed(crossfading(first, last));
 
     expect(opening).toMatchObject({ atMs: 0, fadeInMs: 2000, fadeOutMs: 3000 });
-    expect(closing).toMatchObject({ atMs: 47_000, endMs: 40_000, fadeOutMs: 2000 });
+    expect(closing).toMatchObject({ atMs: 47_000, endMs: 40_000, fadeOutMs: 5000 });
   });
 
   it("scales a short song's fades down in proportion and never sounds three songs at once", () => {
@@ -89,7 +89,7 @@ describe("resolvePlaylist one song after another (ADR-0023)", () => {
 
     expect(placed(inSequence(song("a", 60_000), cut))).toEqual([
       { id: "a", atMs: 0, startMs: 0, endMs: 60_000, fadeInMs: 0, fadeOutMs: 0 },
-      { id: "b", atMs: 60_000, startMs: 10_000, endMs: 40_000, fadeInMs: 2000, fadeOutMs: 2000 },
+      { id: "b", atMs: 60_000, startMs: 10_000, endMs: 40_000, fadeInMs: 2000, fadeOutMs: 5000 },
     ]);
   });
 });
@@ -97,14 +97,14 @@ describe("resolvePlaylist one song after another (ADR-0023)", () => {
 describe("resolvePlaylist where the slideshow ends (ADR-0009, ADR-0023)", () => {
   it("leaves out the songs the slideshow never reaches and fades out the one it ends in", () => {
     expect(placed(crossfading(song("a", 60_000), song("b", 60_000)), 50_000)).toEqual([
-      { id: "a", atMs: 0, startMs: 0, endMs: 50_000, fadeInMs: 0, fadeOutMs: 2000 },
+      { id: "a", atMs: 0, startMs: 0, endMs: 50_000, fadeInMs: 0, fadeOutMs: 5000 },
     ]);
   });
 
   it("ends both songs of a crossfade the slideshow ends in, their fades scaled to what is heard", () => {
     expect(placed(crossfading(song("a", 60_000), song("b", 60_000)), 58_000)).toEqual([
-      { id: "a", atMs: 0, startMs: 0, endMs: 58_000, fadeInMs: 0, fadeOutMs: 2000 },
-      { id: "b", atMs: 57_000, startMs: 0, endMs: 1000, fadeInMs: 600, fadeOutMs: 400 },
+      { id: "a", atMs: 0, startMs: 0, endMs: 58_000, fadeInMs: 0, fadeOutMs: 5000 },
+      { id: "b", atMs: 57_000, startMs: 0, endMs: 1000, fadeInMs: 375, fadeOutMs: 625 },
     ]);
   });
 

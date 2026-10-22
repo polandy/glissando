@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { composeSlideshow } from "./compose-slideshow";
 import { slideshowDurationMs } from "./slideshow-duration-ms";
-import { AUTOMATIC_MUSIC_FADE_MS } from "./music-excerpt";
+import { AUTOMATIC_MUSIC_FADE_OUT_MS } from "./music-excerpt";
 import type { MusicBeats } from "../beats";
 import { NO_SONG_BEATS } from "./playlist";
 import { NO_SONG_LOUDNESS } from "./song-loudness";
@@ -85,7 +85,7 @@ describe("composeSlideshow when the pictures last their own seconds with music",
     );
 
     expect(music).toMatchObject([
-      { atMs: 0, startMs: 0, endMs: 20_000, fadeOutMs: AUTOMATIC_MUSIC_FADE_MS },
+      { atMs: 0, startMs: 0, endMs: 20_000, fadeOutMs: AUTOMATIC_MUSIC_FADE_OUT_MS },
     ]);
   });
 

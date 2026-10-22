@@ -42,7 +42,7 @@ The panel for the song selected in the [music editor](../MUSIC_EDITOR.md).
 - **Fade in** and **Fade out**: a ramp icon, the state "Automatic" or "Own", three steps Off,
   Short (2 s), Long (5 s) as a radiogroup (arrows move the choice); the automatic choice is
   outlined dashed and explained: "Automatic: short, as the excerpt starts mid-track." / "off,
-  as the track plays from its start" / "short, as the slideshow ends at 2:00" / "short, as the
+  as the track plays from its start" / "long, as the slideshow ends at 2:00" / "long, as the
   excerpt stops before the track ends" / "off, as the track ends by itself"; in a crossfade 3 s,
   as "the crossfade from the previous song" / "the crossfade into the next song". Any step
   makes it own; "Back to automatic" follows.
