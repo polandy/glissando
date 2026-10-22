@@ -15,9 +15,11 @@
   https://polandy.github.io/glissando-assets/mockups/move-together/): a tap on a tile selects
   it (outlined in the accent, its number badge in the accent; another tap deselects) and opens
   the selection bar at the bottom — "Picture 3 of 12" (a polite live region, so every move is
-  announced; visually hidden up to 720 px, where the bar spans the width and Earlier and Later
-  show their arrows alone, keeping their names for screen readers), "◀ Earlier",
-  "Later ▶", "✎ Edit" (opens the picture editor, [PICTURE_EDITOR.md](../PICTURE_EDITOR.md)), "Remove", "Done". The bar is drawn inverse to the
+  announced; visually hidden up to 720 px, where the bar spans the width and Earlier, Later and
+  View show their icon alone, keeping their names for screen readers), "◀ Earlier",
+  "Later ▶", "👁 View" (opens the picture full screen, [PICTURE_VIEWER.md](../PICTURE_VIEWER.md)),
+  "✎ Edit" (opens the picture editor, [PICTURE_EDITOR.md](../PICTURE_EDITOR.md)), "Remove",
+  "Done". The bar is drawn inverse to the
   screen (dark on the light theme, light on the dark one), with "Done" in the accent and
   Remove's icon in the danger colour, so it stands out in either theme (mockup:
   https://claude.ai/artifact/6a6E2dqYM52hUkjCek4CLE, variant B). At the ends Earlier

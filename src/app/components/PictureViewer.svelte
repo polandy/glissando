@@ -288,11 +288,6 @@
   .next {
     right: 12px;
   }
-  @media (pointer: coarse) {
-    .side {
-      display: none;
-    }
-  }
   .round:focus-visible {
     outline: 2px solid var(--gl-player-outline);
     outline-offset: 2px;
