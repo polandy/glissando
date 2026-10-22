@@ -169,7 +169,7 @@ describe("runVideoExport with a video slide", () => {
         easing: "linear",
       } as const;
       const slideshow: Slideshow = {
-        formatVersion: 8,
+        formatVersion: 9,
         title: "With a clip",
         slides: [
           { image: { src: "blue", capturedAt: CAPTURED_AT }, durationMs: 1000, kenBurns: still },

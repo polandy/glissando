@@ -46,19 +46,32 @@ export class LayerPlacement {
     );
   }
 
-  /** Places the layer's picture(s); returns the top-level node its caption, if any, follows. */
+  /**
+   * Places the layer's picture(s); returns the top-level node its caption, if any, follows.
+   * `lookFilter` (ADR-0044, `dev-docs/player/LOOKS.md` § Renderers) is the show's look as a CSS
+   * filter fragment, "" for "none": every picture here gets it directly, since the returned
+   * anchor is this layer's own picture only for a "cover" layout, never for a pair's two halves
+   * or a blurred fill's front and backdrop.
+   */
   place(
     layer: PictureSlideLayer<BrowserPicture>,
     opacity: number,
     layout: SlideLayout,
     viewport: Size,
+    lookFilter: string,
   ): HTMLElement {
     if (layout.kind === "cover") {
       this.forget(layer.picture.element);
-      return this.#placeCover(layer.picture, layout.crop, opacity, viewport);
+      return this.#placeCover(layer.picture, layout.crop, opacity, viewport, lookFilter);
     }
     if (layout.kind === "blurred-fill") {
-      const group = this.#placeBlurredFill(layer.picture, layout.backdropCrop, opacity, viewport);
+      const group = this.#placeBlurredFill(
+        layer.picture,
+        layout.backdropCrop,
+        opacity,
+        viewport,
+        lookFilter,
+      );
       this.#placeWrapped(
         layer.picture,
         layout.frontCrop,
@@ -66,6 +79,7 @@ export class LayerPlacement {
         OPAQUE,
         viewport,
         group,
+        lookFilter,
       );
       return group;
     }
@@ -77,6 +91,7 @@ export class LayerPlacement {
       opacity,
       viewport,
       this.#host,
+      lookFilter,
     );
     if (layer.partner !== undefined) {
       this.#placeWrapped(
@@ -86,6 +101,7 @@ export class LayerPlacement {
         opacity,
         viewport,
         this.#host,
+        lookFilter,
       );
     }
     return first;
@@ -114,7 +130,13 @@ export class LayerPlacement {
     this.#removeBlurredFill(element);
   }
 
-  #placeCover(picture: BrowserPicture, crop: Rect, opacity: number, viewport: Size): HTMLElement {
+  #placeCover(
+    picture: BrowserPicture,
+    crop: Rect,
+    opacity: number,
+    viewport: Size,
+    lookFilter: string,
+  ): HTMLElement {
     Object.assign(picture.element.style, {
       position: "absolute",
       left: "0",
@@ -125,6 +147,7 @@ export class LayerPlacement {
       transformOrigin: "0 0",
       transform: layerTransform(crop, picture, viewport),
       opacity: String(opacity),
+      filter: lookFilter,
     });
     if (picture.element.parentElement !== this.#host) {
       this.#host.append(picture.element);
@@ -143,6 +166,7 @@ export class LayerPlacement {
     opacity: number,
     viewport: Size,
     parent: HTMLElement,
+    lookFilter: string,
   ): HTMLElement {
     const pixelRect = toPixelRect(rect, viewport);
     const wrapper = this.#wrapperFor(picture.element);
@@ -168,6 +192,7 @@ export class LayerPlacement {
       transformOrigin: "0 0",
       transform: layerTransform(crop, picture, pixelRect),
       opacity: "1",
+      filter: lookFilter,
     });
     if (picture.element.parentElement !== wrapper) {
       wrapper.append(picture.element);
@@ -179,13 +204,15 @@ export class LayerPlacement {
    * The blurred fill's group, carrying the layer's opacity, with the backdrop in it: the same
    * picture as the front, static, blurred and darkened, covering the whole screen. The blur is
    * set in the backdrop's own pixels, the picture's, which its transform scales with it, so it
-   * is the same share of the picture as the WebGL renderer's.
+   * is the same share of the picture as the WebGL renderer's. The look's grade comes last, over
+   * the already blurred and darkened result, as it does in the WebGL renderer.
    */
   #placeBlurredFill(
     front: BrowserPicture,
     crop: Rect,
     opacity: number,
     viewport: Size,
+    lookFilter: string,
   ): HTMLElement {
     const { group, backdrop } = this.#blurredFillFor(front);
     Object.assign(group.style, { position: "absolute", inset: "0", opacity: String(opacity) });
@@ -202,7 +229,9 @@ export class LayerPlacement {
       maxWidth: "none",
       transformOrigin: "0 0",
       transform: layerTransform(crop, front, viewport),
-      filter: `blur(${blurRadius}px) brightness(${BACKDROP_BRIGHTNESS})`,
+      filter: [`blur(${blurRadius}px)`, `brightness(${BACKDROP_BRIGHTNESS})`, lookFilter]
+        .filter((fragment) => fragment !== "")
+        .join(" "),
     });
     return group;
   }

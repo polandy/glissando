@@ -19,7 +19,7 @@ function validSlide(overrides: Record<string, unknown> = {}): Record<string, unk
 
 function validSlideshow(overrides: Record<string, unknown> = {}): Record<string, unknown> {
   return {
-    formatVersion: 8,
+    formatVersion: 9,
     title: "July 2025",
     slides: [validSlide()],
     ...overrides,
@@ -90,6 +90,6 @@ describe("a slide's partner and fit (ADR-0028)", () => {
     const error = parseError(validSlideshow({ formatVersion: 3 }));
 
     expect(error.path).toBe("formatVersion");
-    expect(error.message).toContain("expected 8, got 3");
+    expect(error.message).toContain("expected 9, got 3");
   });
 });

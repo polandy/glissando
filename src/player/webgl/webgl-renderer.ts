@@ -7,6 +7,7 @@ import type { PreparedSlide, RenderFrame, SlideRenderer } from "../ports";
 import type { CardStyle, TransitionEffect } from "../slideshow";
 import { bindCaption } from "./bind-overlays";
 import { bindLayer, fromUniforms, toUniforms, type LayerTextureUnits } from "./bind-layer";
+import { bindLook } from "./bind-look";
 import { CaptionTextures } from "./caption-textures";
 import { CardRenderTarget } from "./card-render-target";
 import { renderCardLayer } from "./card-pass";
@@ -198,6 +199,7 @@ export class WebGlRenderer implements SlideRenderer<BitmapPicture> {
       (this.#captionInsetCssPixels * this.#pixelRatio()) / viewport.height,
     );
     gl.uniform1f(uniforms.endFade, frame.endFade);
+    bindLook(gl, uniforms, frame.look);
     gl.bindBuffer(gl.ARRAY_BUFFER, this.#mainBuffer);
     gl.vertexAttribPointer(POSITION_ATTRIBUTE, COORDINATES_PER_VERTEX, gl.FLOAT, false, 0, 0);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, VERTEX_COUNT);

@@ -17,7 +17,7 @@ function validSlide(overrides: Record<string, unknown> = {}): Record<string, unk
 
 function validSlideshow(overrides: Record<string, unknown> = {}): Record<string, unknown> {
   return {
-    formatVersion: 8,
+    formatVersion: 9,
     title: "July 2025",
     music: [
       {
@@ -78,7 +78,8 @@ describe("parseSlideshow", () => {
 
   it.each([
     ["not an object", "a slideshow", "", "an object"],
-    [{ ...validSlideshow(), formatVersion: 4 }, "formatVersion", "formatVersion", "8"],
+    [{ ...validSlideshow(), formatVersion: 4 }, "formatVersion", "formatVersion", "9"],
+    [{ ...validSlideshow(), formatVersion: 8 }, "the previous formatVersion", "formatVersion", "9"],
     [validSlideshow({ title: 7 }), "title", "title", "a string"],
     [validSlideshow({ slides: [] }), "no slides", "slides", "at least one slide"],
     [
@@ -245,6 +246,30 @@ describe("parseSlideshow", () => {
 
     expect(error.path).toBe(path);
     expect(error.message).toContain("unknown key");
+  });
+
+  it("accepts a look", () => {
+    const input = validSlideshow({ look: "warm" });
+
+    expect(parseSlideshow(input).look).toBe("warm");
+  });
+
+  it("accepts a slideshow without a look", () => {
+    expect(parseSlideshow(validSlideshow()).look).toBeUndefined();
+  });
+
+  it("rejects none as a look — absent already means none", () => {
+    const error = parseError(validSlideshow({ look: "none" }));
+
+    expect(error.path).toBe("look");
+    expect(error.message).toContain("one of warm, cool, vivid, film, black-and-white, faded");
+  });
+
+  it("rejects an unknown look", () => {
+    const error = parseError(validSlideshow({ look: "sepia" }));
+
+    expect(error.path).toBe("look");
+    expect(error.message).toContain("one of warm, cool, vivid, film, black-and-white, faded");
   });
 
   it("names the bad value in the message", () => {

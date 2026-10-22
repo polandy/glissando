@@ -1,3 +1,4 @@
+import { GRADED_SLIDESHOW_LOOKS, type SlideshowLook } from "./looks/slideshow-look";
 import { readCard } from "./parse-card";
 import { checkVideoSlide, readVideo } from "./parse-video";
 import {
@@ -36,7 +37,14 @@ export { SlideshowFormatError };
 
 /** Validates untrusted JSON as a slideshow; throws `SlideshowFormatError` on the first fault. */
 export function parseSlideshow(input: unknown): Slideshow {
-  const root = readObject(input, "", ["formatVersion", "title", "music", "slides", "endFadeMs"]);
+  const root = readObject(input, "", [
+    "formatVersion",
+    "title",
+    "music",
+    "slides",
+    "endFadeMs",
+    "look",
+  ]);
   const version = root.formatVersion;
   if (version !== SLIDESHOW_FORMAT_VERSION) {
     throw new SlideshowFormatError("formatVersion", `${SLIDESHOW_FORMAT_VERSION}`, version);
@@ -46,6 +54,7 @@ export function parseSlideshow(input: unknown): Slideshow {
   return {
     formatVersion: SLIDESHOW_FORMAT_VERSION,
     title,
+    ...(root.look === undefined ? {} : { look: readLook(root.look, "look") }),
     ...(root.music === undefined ? {} : { music: readTracks(root.music) }),
     slides,
     ...(root.endFadeMs === undefined
@@ -59,6 +68,11 @@ export function parseSlideshow(input: unknown): Slideshow {
           ),
         }),
   };
+}
+
+/** "None" is never written (ADR-0044); absent already means it, so it is refused here too. */
+function readLook(value: unknown, path: string): SlideshowLook {
+  return readOneOf<SlideshowLook>(value, path, GRADED_SLIDESHOW_LOOKS);
 }
 
 function readEndFadeMs(value: unknown, path: string, lastSlideDurationMs: number): number {

@@ -34,7 +34,7 @@ describe("DomRenderer video slides", () => {
     const { renderer, poster } = await setUp();
     const clip = document.createElement("video");
 
-    renderer.render({ kind: "slide", endFade: 0, slide: slide(poster, clip) });
+    renderer.render({ kind: "slide", endFade: 0, look: "none", slide: slide(poster, clip) });
 
     expect(poster.element.nextElementSibling).toBe(clip);
     expect(clip.style.transform).toBe(poster.element.style.transform);
@@ -44,11 +44,11 @@ describe("DomRenderer video slides", () => {
   it("keeps the same element across frames and draws no video for a plain picture", async () => {
     const { renderer, poster } = await setUp();
     const clip = document.createElement("video");
-    renderer.render({ kind: "slide", endFade: 0, slide: slide(poster, clip) });
-    renderer.render({ kind: "slide", endFade: 0, slide: slide(poster, clip) });
+    renderer.render({ kind: "slide", endFade: 0, look: "none", slide: slide(poster, clip) });
+    renderer.render({ kind: "slide", endFade: 0, look: "none", slide: slide(poster, clip) });
     expect(box.querySelectorAll("video")).toHaveLength(1);
 
-    renderer.render({ kind: "slide", endFade: 0, slide: slide(poster) });
+    renderer.render({ kind: "slide", endFade: 0, look: "none", slide: slide(poster) });
 
     expect(box.querySelectorAll("video")).toHaveLength(0);
     expect(poster.element.isConnected).toBe(true);
@@ -57,12 +57,12 @@ describe("DomRenderer video slides", () => {
   it("removes the clip when its slide leaves the screen or is forgotten", async () => {
     const { renderer, poster, other } = await setUp();
     const clip = document.createElement("video");
-    renderer.render({ kind: "slide", endFade: 0, slide: slide(poster, clip) });
+    renderer.render({ kind: "slide", endFade: 0, look: "none", slide: slide(poster, clip) });
 
-    renderer.render({ kind: "slide", endFade: 0, slide: slide(other) });
+    renderer.render({ kind: "slide", endFade: 0, look: "none", slide: slide(other) });
     expect(clip.isConnected).toBe(false);
 
-    renderer.render({ kind: "slide", endFade: 0, slide: slide(poster, clip) });
+    renderer.render({ kind: "slide", endFade: 0, look: "none", slide: slide(poster, clip) });
     expect(clip.isConnected).toBe(true);
     renderer.forget(poster);
     expect(clip.isConnected).toBe(false);

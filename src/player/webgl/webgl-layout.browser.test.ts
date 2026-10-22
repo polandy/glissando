@@ -62,7 +62,12 @@ describe("WebGlRenderer: pairs and the blurred fill (ADR-0028)", () => {
       motion: STILL,
       partner: { picture: blue, motion: STILL },
     };
-    const frame: RenderFrame<BitmapPicture> = { kind: "slide", slide: layer, endFade: 0 };
+    const frame: RenderFrame<BitmapPicture> = {
+      kind: "slide",
+      slide: layer,
+      endFade: 0,
+      look: "none",
+    };
 
     expect(drawAndRead(frame, 0.2, 0.5)).toEqual(RED);
     expect(drawAndRead(frame, 0.8, 0.5)).toEqual(BLUE);
@@ -79,7 +84,12 @@ describe("WebGlRenderer: pairs and the blurred fill (ADR-0028)", () => {
       motion: STILL,
       partner: { picture: blue, motion: STILL },
     };
-    const frame: RenderFrame<BitmapPicture> = { kind: "slide", slide: layer, endFade: 0 };
+    const frame: RenderFrame<BitmapPicture> = {
+      kind: "slide",
+      slide: layer,
+      endFade: 0,
+      look: "none",
+    };
 
     expect(drawAndRead(frame, 0.5, 0.2)).toEqual(RED);
     expect(drawAndRead(frame, 0.5, 0.8)).toEqual(BLUE);
@@ -93,6 +103,7 @@ describe("WebGlRenderer: pairs and the blurred fill (ADR-0028)", () => {
       kind: "slide",
       slide: { kind: "picture", picture, motion: STILL },
       endFade: 0,
+      look: "none",
     };
 
     const middle = drawAndRead(frame, 0.5, 0.5);
@@ -112,6 +123,7 @@ describe("WebGlRenderer: pairs and the blurred fill (ADR-0028)", () => {
       kind: "slide",
       slide: { kind: "picture", picture, motion: STILL, fit: "cover" },
       endFade: 0,
+      look: "none",
     };
 
     expect(drawAndRead(frame, 0.02, 0.5)).toEqual(RED);
@@ -125,6 +137,7 @@ describe("WebGlRenderer: pairs and the blurred fill (ADR-0028)", () => {
       kind: "slide",
       slide: { kind: "picture", picture, motion: STILL },
       endFade: 0,
+      look: "none",
     };
 
     expect(drawAndRead(frame, 0.02, 0.5)).toEqual(RED);

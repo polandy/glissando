@@ -30,7 +30,7 @@ const NEXT = {
   gain: 1.5,
 };
 
-function withMusic(music: unknown, formatVersion = 8): unknown {
+function withMusic(music: unknown, formatVersion = 9): unknown {
   return { formatVersion, title: "July 2025", music, slides: [SLIDE] };
 }
 
@@ -51,13 +51,13 @@ describe("parseSlideshow music", () => {
     expect(parseSlideshow(withMusic([MUSIC, NEXT])).music).toEqual([MUSIC, NEXT]);
   });
 
-  it.each([1, 2, 3])(
+  it.each([1, 2, 3, 8])(
     "refuses a version %s slideshow, naming the version to set",
     (formatVersion) => {
       const error = parseError(withMusic(TRACK, formatVersion));
 
       expect(error.path).toBe("formatVersion");
-      expect(error.message).toContain("expected 8");
+      expect(error.message).toContain("expected 9");
     },
   );
 

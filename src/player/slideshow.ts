@@ -1,3 +1,5 @@
+import type { SlideshowLook } from "./looks/slideshow-look";
+
 /**
  * The slideshow as JSON: the contract shared by player, app and the optional server. Slides
  * play in array order, which starts as capture order and follows the user's reordering.
@@ -10,9 +12,9 @@
  * (ADR-0032): a slide's `card`, a ground slide in place of a picture, and the show's `endFadeMs`.
  * Version 6 makes a card's `entrance` required. Version 7 added a picture slide's `video`
  * (ADR-0034, `dev-docs/player/VIDEO_SLIDES.md`). Version 8 added a music track's `gain`
- * (ADR-0040).
+ * (ADR-0040). Version 9 added the show's `look` (ADR-0044).
  */
-export const SLIDESHOW_FORMAT_VERSION = 8;
+export const SLIDESHOW_FORMAT_VERSION = 9;
 
 /** A video slide's excerpt is 0.5 s to 5 min long. */
 export const MIN_VIDEO_EXCERPT_MS = 500;
@@ -177,4 +179,6 @@ export interface Slideshow {
   readonly slides: readonly Slide[];
   /** Over the last `endFadeMs` of the show, the frame mixes to black (ADR-0032). Absent: none. */
   readonly endFadeMs?: number;
+  /** Grades every picture and video layer the same way in every renderer (ADR-0044). Absent: none. */
+  readonly look?: SlideshowLook;
 }

@@ -7,6 +7,7 @@ import type { PictureSlideLayer, RenderFrame, SlideLayer, SlideRenderer } from "
 import type { Card } from "../slideshow";
 import { slideLayout } from "../slide-layout";
 import { CardOverlay } from "./dom-card";
+import { DomLookFilters } from "./dom-look-filters";
 import { LayerPlacement } from "./dom-layer-placement";
 import { LiveVideos } from "./dom-live-video";
 
@@ -46,6 +47,7 @@ export class DomRenderer implements SlideRenderer<BrowserPicture> {
   readonly #cards: CardOverlay;
   readonly #videos = new LiveVideos();
   readonly #endFade: HTMLElement;
+  readonly #lookFilters: DomLookFilters;
   #captionInsetCssPixels = 0;
 
   constructor(
@@ -59,6 +61,7 @@ export class DomRenderer implements SlideRenderer<BrowserPicture> {
     this.#placement = new LayerPlacement(this.#host);
     this.#cards = new CardOverlay(this.#host, cardItemLayouts);
     this.#endFade = this.#newEndFade();
+    this.#lookFilters = new DomLookFilters(this.#host);
     this.#resizeObserver = new ResizeObserver(onResize);
     this.#resizeObserver.observe(this.#host);
   }
@@ -72,10 +75,13 @@ export class DomRenderer implements SlideRenderer<BrowserPicture> {
             { layer: frame.to, opacity: frame.progress },
           ];
     const viewport = { width: this.#host.clientWidth, height: this.#host.clientHeight };
+    const lookFilter = this.#lookFilters.filterUrl(frame.look);
     this.#sweep(layers.map(({ layer }) => layer));
-    const placed = layers.map(({ layer, opacity }) => this.#placeLayer(layer, opacity, viewport));
+    const placed = layers.map(({ layer, opacity }) =>
+      this.#placeLayer(layer, opacity, viewport, lookFilter),
+    );
     for (const { layer, opacity, anchor } of placed) {
-      this.#placeCardAndCaption(layer, anchor, opacity, viewport);
+      this.#placeCardAndCaption(layer, anchor, opacity, viewport, lookFilter);
       if (layer.kind === "picture") {
         this.#videos.place(layer.picture.element, layer.live);
       }
@@ -102,16 +108,22 @@ export class DomRenderer implements SlideRenderer<BrowserPicture> {
 
   dispose(): void {
     this.#resizeObserver.disconnect();
+    this.#lookFilters.dispose();
     this.#host.remove();
   }
 
-  #placeLayer(layer: SlideLayer<BrowserPicture>, opacity: number, viewport: Size): PlacedLayer {
+  #placeLayer(
+    layer: SlideLayer<BrowserPicture>,
+    opacity: number,
+    viewport: Size,
+    lookFilter: string,
+  ): PlacedLayer {
     if (layer.kind === "ground") {
       const anchor = this.#cards.placeGround(layer.ground, layer.card.card, opacity);
       return { layer, opacity, anchor };
     }
     const layout = slideLayout(layer, viewport);
-    const anchor = this.#placement.place(layer, opacity, layout, viewport);
+    const anchor = this.#placement.place(layer, opacity, layout, viewport, lookFilter);
     return { layer, opacity, anchor };
   }
 
@@ -121,8 +133,9 @@ export class DomRenderer implements SlideRenderer<BrowserPicture> {
     anchor: HTMLElement,
     opacity: number,
     viewport: Size,
+    lookFilter: string,
   ): void {
-    const veil = this.#veilFor(anchor, layer);
+    const veil = this.#veilFor(anchor, layer, viewport, lookFilter);
     const captionOpacity = layer.kind === "picture" ? (layer.captionOpacity ?? CAPTION_OPAQUE) : 0;
     const caption = this.#captionFor(layer, opacity * captionOpacity, viewport);
     const card =
@@ -132,15 +145,27 @@ export class DomRenderer implements SlideRenderer<BrowserPicture> {
     );
   }
 
-  #veilFor(anchor: HTMLElement, layer: SlideLayer<BrowserPicture>): HTMLElement | undefined {
+  /**
+   * `anchor` is the picture itself only for a "cover" layout; a pair's or a blurred fill's
+   * picture(s) already carry the look filter directly (`dom-layer-placement.ts`), so `anchor`
+   * (their wrapper or group) must not grade a second time — only "cover" combines it with the
+   * veil here, on the one node both share.
+   */
+  #veilFor(
+    anchor: HTMLElement,
+    layer: SlideLayer<BrowserPicture>,
+    viewport: Size,
+    lookFilter: string,
+  ): HTMLElement | undefined {
     if (layer.kind !== "picture") {
       return undefined;
     }
+    const anchorLookFilter = slideLayout(layer, viewport).kind === "cover" ? lookFilter : "";
     if (layer.card === undefined) {
-      anchor.style.filter = "";
+      anchor.style.filter = anchorLookFilter;
       return undefined;
     }
-    return this.#cards.placeVeil(anchor, layer, layer.card.card);
+    return this.#cards.placeVeil(anchor, layer, layer.card.card, anchorLookFilter);
   }
 
   /** Drops every picture, wrapper, backdrop, caption, ground, veil and card not drawn this frame. */
@@ -173,7 +198,8 @@ export class DomRenderer implements SlideRenderer<BrowserPicture> {
         this.#placement.isExtra(child) ||
         this.#cards.isExtra(child) ||
         this.#videos.owns(child) ||
-        child === this.#endFade
+        child === this.#endFade ||
+        child instanceof SVGSVGElement
       ) {
         continue;
       }

@@ -72,26 +72,28 @@ export class CardOverlay {
   }
 
   /**
-   * The veil over a picture layer's own node (`anchor`): a CSS filter on `anchor` itself, plus a
-   * tint overlay, returned so the caller orders it on screen. Both clear at amount 0, when this
-   * returns `undefined`.
+   * The veil over a picture layer's own node (`anchor`): a CSS filter on `anchor` itself, after
+   * `lookFilter` (ADR-0044), plus a tint overlay, returned so the caller orders it on screen.
+   * The veil clears at amount 0, when this returns `undefined`, but `lookFilter` still applies.
    */
   placeVeil<Picture extends Size>(
     anchor: HTMLElement,
     layer: PictureSlideLayer<Picture>,
     card: Card,
+    lookFilter: string,
   ): HTMLElement | undefined {
     const amount = layer.card?.veilAmount ?? VEIL_NEGLIGIBLE_AMOUNT;
     const tint = layer.card?.card.veil?.tint;
     if (amount <= VEIL_NEGLIGIBLE_AMOUNT || tint === undefined) {
-      anchor.style.filter = "";
+      anchor.style.filter = lookFilter;
       this.#veilTints.get(card)?.remove();
       this.#veilTints.delete(card);
       return undefined;
     }
     const blurPx =
       BACKDROP_BLUR_RADIUS_SHARE * Math.max(layer.picture.width, layer.picture.height) * amount;
-    anchor.style.filter = `blur(${blurPx}px) saturate(${1 - VEIL_SATURATION_SHARE * amount}) contrast(${1 - VEIL_CONTRAST_SHARE * amount})`;
+    const veilFilter = `blur(${blurPx}px) saturate(${1 - VEIL_SATURATION_SHARE * amount}) contrast(${1 - VEIL_CONTRAST_SHARE * amount})`;
+    anchor.style.filter = [lookFilter, veilFilter].filter((fragment) => fragment !== "").join(" ");
     const tintElement = this.#elementFor(this.#veilTints, card, VEIL_TINT_ATTRIBUTE);
     Object.assign(tintElement.style, {
       position: "absolute",

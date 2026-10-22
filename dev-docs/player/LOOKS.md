@@ -49,6 +49,12 @@ Order in the sheet is the table's order. The mockup that fixed these values:
 
 - Unit: `gradeColour` against hand-computed values per look, identity for None, clamping, knot
   and between-knot values; the SVG filter attribute strings built from the table.
-- Browser (`webgl-looks.browser.test.ts`, `dom-looks.browser.test.ts`): a solid colour drawn with
-  each look reads back as `gradeColour` of it within `COLOUR_TOLERANCE`; a caption and a ground
-  card read back unchanged under a look.
+- Browser, WebGL (`webgl-looks.browser.test.ts`): a solid colour drawn with each look reads back
+  as `gradeColour` of it within `COLOUR_TOLERANCE`; a caption and a ground card read back
+  unchanged under a look.
+- Browser, DOM (`dom-looks.browser.test.ts`): a graded look's `<filter>` matches `lookFilterValues`
+  exactly; a picture, a pair's two and a blurred fill's front and backdrop each carry it (the
+  backdrop after its own blur and darken); a cover layout's veil combines with it, look first, on
+  their one shared node; a ground card and a caption carry no filter at all. WebKit's Canvas 2D
+  does not apply a `url(...)` SVG filter reference, so this cannot read back actual pixels as the
+  WebGL test does.

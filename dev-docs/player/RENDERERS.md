@@ -66,3 +66,6 @@
     shows through a half-transparent front. A caption, which only a single, unpaired slide ever
     carries, follows the layer's top-level node (the picture itself when covering, its group for
     the blurred fill) so it stays screen-space regardless of layout.
+- **Looks (ADR-0044)**: a frame's `look` grades every picture and video layer, never a ground
+  slide, a veil, card text, a caption or the end fade — the table, the maths and each renderer's
+  exact mechanism are in `dev-docs/player/LOOKS.md`.

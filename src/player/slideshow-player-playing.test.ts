@@ -26,6 +26,7 @@ describe("SlideshowPlayer, playing, pausing and drawing", () => {
         motion: { kenBurns: slide("a.jpg", 4000).kenBurns, progress: 0 },
       },
       endFade: 0,
+      look: "none",
     });
   });
 
