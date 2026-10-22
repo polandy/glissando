@@ -26,6 +26,7 @@
     onMoveGroup,
     onOpenOpeningCard,
     onOpenClosingCard,
+    onOpenChapter,
     storage,
     onStorageAction,
     holdScheduler,
@@ -50,6 +51,8 @@
     /** Opens the title slide / closing slide sheet (TITLE_SLIDES.md). */
     onOpenOpeningCard: () => void;
     onOpenClosingCard: () => void;
+    /** Opens the trip chapter's sheet (TRIP_CHAPTERS.md). */
+    onOpenChapter: (anchorPictureId: string) => void;
     storage: SlideshowStorage | null;
     onStorageAction: (action: StorageAction) => void;
     holdScheduler: Scheduler;
@@ -105,6 +108,8 @@
     closingCard={slideshow.closingCard}
     {onOpenOpeningCard}
     {onOpenClosingCard}
+    chapters={slideshow.chapters}
+    {onOpenChapter}
     {holdScheduler}
     {frameScheduler}
   />

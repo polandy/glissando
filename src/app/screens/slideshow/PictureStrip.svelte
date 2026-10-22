@@ -4,6 +4,7 @@
   import { getTranslator } from "../../i18n/context";
   import AddTile from "./AddTile.svelte";
   import CardTile from "./card-sheet/CardTile.svelte";
+  import ChapterTile from "./ChapterTile.svelte";
   import DragGhost from "./DragGhost.svelte";
   import PlaceholderTile from "./PlaceholderTile.svelte";
   import type { PictureStripProps } from "./picture-strip-props";
@@ -39,6 +40,8 @@
     suppressCards = false,
     placeholderCount = 0,
     lastRemovable = false,
+    chapters = [],
+    onOpenChapter = () => undefined,
   }: PictureStripProps = $props();
 
   const { t } = getTranslator();
@@ -78,6 +81,14 @@
   const removable = $derived(lastRemovable || !lastPicture);
   const order = $derived(pictures.map((picture) => picture.id));
   const tileById = $derived(new Map(pictures.map((picture) => [picture.id, picture])));
+  // Hidden automatic chapters are omitted entirely (TRIP_CHAPTERS.md): the strip never shows them.
+  const chapterByAnchor = $derived(
+    new Map(
+      chapters
+        .filter((chapter) => !chapter.hidden)
+        .map((chapter) => [chapter.anchorPictureId, chapter]),
+    ),
+  );
 
   /** The tile under a viewport point, and whether a drop lands before or after it. */
   function hitTest(x: number, y: number): DropTarget | null {
@@ -217,6 +228,10 @@
     />
   {/if}
   {#each pictures as picture, index (picture.id)}
+    {@const chapter = chapterByAnchor.get(picture.id)}
+    {#if chapter !== undefined}
+      <ChapterTile {chapter} onOpen={() => onOpenChapter(chapter.anchorPictureId)} />
+    {/if}
     <StripTile
       {picture}
       number={index + 1}

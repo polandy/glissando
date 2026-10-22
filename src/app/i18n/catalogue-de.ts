@@ -19,6 +19,7 @@ import { deCulling } from "./catalogue-de-culling.ts";
 import { deView } from "./catalogue-de-view.ts";
 import { deFrame } from "./catalogue-de-frame.ts";
 import { deCards } from "./catalogue-de-cards.ts";
+import { deChapters } from "./catalogue-de-chapters.ts";
 import { deFilePage } from "./catalogue-de-file-page.ts";
 import { deSampleMusicCredit } from "./catalogue-de-sample-music-credit.ts";
 import { deSampleMusicPicker } from "./catalogue-de-sample-music-picker.ts";
@@ -418,6 +419,7 @@ export const de = {
   ...deView,
   ...deFrame,
   ...deCards,
+  ...deChapters,
   ...deFilePage,
   ...deSampleMusicCredit,
   ...deSampleMusicPicker,
