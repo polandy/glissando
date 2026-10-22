@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.0.11](https://github.com/polandy/glissando/compare/glissando-v0.0.10...glissando-v0.0.11) (2026-10-22)
+
+
+### Features
+
+* offer View beside Edit in the editor's selection bar ([#119](https://github.com/polandy/glissando/issues/119)) ([c270bb6](https://github.com/polandy/glissando/commit/c270bb6e39e034bb0d0421fd9fe9c99a5a81369e))
+* snap a picture change after an own duration to the beat too ([#121](https://github.com/polandy/glissando/issues/121)) ([ef5e962](https://github.com/polandy/glissando/commit/ef5e962d3b51aad088a11c8dbc1ed8438101c5cd))
+* zoom while panning across scenery ([#116](https://github.com/polandy/glissando/issues/116)) ([dc6fd46](https://github.com/polandy/glissando/commit/dc6fd46e8c8dadd830486376f95e6c82512aa4b1))
+
+
+### Bug Fixes
+
+* lengthen the automatic music fade-out so an ending is never abrupt ([#120](https://github.com/polandy/glissando/issues/120)) ([8b5301b](https://github.com/polandy/glissando/commit/8b5301b97fb7d557499ff494468d8726b547eb30))
+* list the bundled models, face finder and fonts in the open-source licences ([#117](https://github.com/polandy/glissando/issues/117)) ([6bf4729](https://github.com/polandy/glissando/commit/6bf4729ce92d5616f526b1c3374bb8571cc870aa))
+
 ## [0.0.10](https://github.com/polandy/glissando/compare/glissando-v0.0.9...glissando-v0.0.10) (2026-10-22)
 
 
