@@ -24,7 +24,7 @@ describe("slideshowDetails video slides", () => {
       pictures: [{ ...still("p1"), video: clip }, still("p2")],
     };
 
-    const details = slideshowDetails(withClip, (id: string) => `url:${id}`);
+    const details = slideshowDetails(withClip, (id: string) => `url:${id}`, "en");
 
     expect(details.pictures.map((picture) => picture.clipMs)).toEqual([12_500, undefined]);
   });

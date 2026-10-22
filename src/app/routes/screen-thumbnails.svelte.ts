@@ -26,8 +26,8 @@ export class ScreenThumbnails {
   }
 
   /** The screen's view of `stored`, a missing picture's tile marked as such. */
-  details(stored: StoredSlideshow): SlideshowDetails {
-    const shown = slideshowDetails(stored, (id) => this.urls.get(id) ?? "");
+  details(stored: StoredSlideshow, locale: string): SlideshowDetails {
+    const shown = slideshowDetails(stored, (id) => this.urls.get(id) ?? "", locale);
     const pictures = shown.pictures.map((tile) =>
       this.missing.has(tile.id) ? { ...tile, missing: true as const } : tile,
     );

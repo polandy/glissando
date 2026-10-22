@@ -102,7 +102,7 @@
 
   onMount(() => {
     const stopFocus = screenFocus.follow();
-    loadSlideshowScreen(store, slideshowId, thumbnails.urls, left.signal).then(
+    loadSlideshowScreen(store, slideshowId, thumbnails.urls, translator.language, left.signal).then(
       (loaded) => {
         if (loaded !== null) {
           screenFocus.load(loaded.stored);
@@ -158,7 +158,9 @@
     return editor;
   }
 
-  const details = $derived(stored === null ? null : thumbnails.details(stored));
+  const details = $derived(
+    stored === null ? null : thumbnails.details(stored, translator.language),
+  );
   const storage = $derived(stored === null ? null : screenStorage.of(stored, { serverOn, saving }));
 </script>
 
