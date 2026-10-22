@@ -172,7 +172,7 @@ describe("composeSlideshow with music", () => {
         startMs: 0,
         endMs: 10_000,
         fadeInMs: 0,
-        fadeOutMs: 2000,
+        fadeOutMs: 5000,
         gain: 1,
       },
     ]);
