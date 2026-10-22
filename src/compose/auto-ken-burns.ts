@@ -5,7 +5,10 @@ import { MIN_KEN_BURNS_ZOOM, type Easing, type KenBurns } from "../player/slides
 /** Every motion, automatic or the user's own, runs at an even pace. */
 export const KEN_BURNS_EASING: Easing = "linear";
 
-/** Largest zoom the automatic framing reaches; `MIN_KEN_BURNS_ZOOM` is the smallest. */
+/**
+ * Largest zoom the automatic framing reaches for a subject or an unfocused picture;
+ * `MIN_KEN_BURNS_ZOOM` is the smallest. Scenery has its own range, below.
+ */
 const MAX_ZOOM = 1.2;
 
 /**
@@ -26,8 +29,11 @@ const PAN_OFFSET = 0.1;
  */
 const PORTRAIT_CENTER_Y = 0.4;
 
-/** The zoom a sweep over scenery holds; the frame shows 1/zoom of the width. */
-const SCENERY_ZOOM = 1.3;
+/** Scenery's wide end: the gentlest zoom of its slow zoom-in-or-out while it pans (ADR-0037). */
+export const SCENERY_ZOOM_WIDE = 1.15;
+
+/** Scenery's tight end: the closest zoom of the same sweep. */
+export const SCENERY_ZOOM_TIGHT = 1.35;
 
 /** The group's box grown by this factor is the room its frame keeps around the people. */
 const GROUP_MARGIN = 1.15;
@@ -72,16 +78,30 @@ export function autoKenBurns(
   };
 }
 
-/** A slow sweep from one edge of the picture to the other at a steady zoom (ADR-0037). */
+/**
+ * A slow sweep from one edge of the picture to the other, the zoom moving between
+ * `SCENERY_ZOOM_WIDE` and `SCENERY_ZOOM_TIGHT` along the way instead of holding steady
+ * (ADR-0037): zooming in while panning right, zooming out while panning left. Each end of the
+ * pan sits exactly at the edge its own end of the zoom allows (`sceneryEdge`), which keeps the
+ * frame inside the picture for every point of the sweep, not only its ends — the pan moves in a
+ * straight line between two points that already account for how far the zoom has moved.
+ */
 function sceneryKenBurns(pansRight: boolean): KenBurns {
-  const leftmost = BASE_CENTER / SCENERY_ZOOM;
-  const rightmost = 1 - leftmost;
-  const [startX, endX] = pansRight ? [leftmost, rightmost] : [rightmost, leftmost];
+  const fromZoom = pansRight ? SCENERY_ZOOM_WIDE : SCENERY_ZOOM_TIGHT;
+  const toZoom = pansRight ? SCENERY_ZOOM_TIGHT : SCENERY_ZOOM_WIDE;
+  const fromEdge = sceneryEdge(fromZoom);
+  const toEdge = sceneryEdge(toZoom);
+  const [startX, endX] = pansRight ? [fromEdge, 1 - toEdge] : [1 - fromEdge, toEdge];
   return {
-    from: { zoom: SCENERY_ZOOM, centerX: startX, centerY: BASE_CENTER },
-    to: { zoom: SCENERY_ZOOM, centerX: endX, centerY: BASE_CENTER },
+    from: { zoom: fromZoom, centerX: startX, centerY: BASE_CENTER },
+    to: { zoom: toZoom, centerX: endX, centerY: BASE_CENTER },
     easing: KEN_BURNS_EASING,
   };
+}
+
+/** How far the frame's near edge sits from the picture's own edge at `zoom`. */
+function sceneryEdge(zoom: number): number {
+  return BASE_CENTER / zoom;
 }
 
 function largestZoomShowing(focus: PictureFocus | undefined): number {

@@ -24,9 +24,10 @@ sweep across it instead. Which pictures are scenery is a label of the whole pict
   aims at it, even with a sky behind.
 - **Stored as `{kind: "scenery"}`** beside `subject` and `none`; no box, so the editors' focus
   mark treats it as "no subject".
-- **The motion** (`auto-ken-burns.ts`): a steady zoom of 1.3 and a pan from one edge of the
-  picture to the other, direction alternating by slide index. In a composed pair's half
-  (ADR-0028) there is no sideways pan, as for every motion.
+- **The motion** (`auto-ken-burns.ts`): a pan from one edge of the picture to the other, the zoom
+  itself moving between 1.15 and 1.35 along the way — zooming in while panning right, out while
+  panning left — so scenery is not just panned at a steady scale; direction alternates by slide
+  index. In a composed pair's half (ADR-0028) there is no sideways pan, as for every motion.
 
 ## Options weighed
 
