@@ -19,7 +19,8 @@ same body serves "Add media") and the slideshow editor show one full screen on r
   aside: Similar|Blurry"). A tap on the picture hides and shows the bars. A filmstrip of every picture's thumbnail
   at the bottom jumps to one and marks the shown one.
 - **Order** (`components/picture-viewer-view.ts`): the strip's pictures, then the set-aside ones group by group. ← / →,
-  the side arrows (fine pointers) and a horizontal swipe step through them; the ends do not wrap.
+  the side arrows (shown on every pointer, disabled at the ends) and a horizontal swipe step through them; the ends
+  do not wrap.
 - **Deciding**: a strip picture offers "Remove" (also Delete / Backspace): the same removal as ✕ with the same
   "Picture removed" · "Undo" toast (in the editor its removal, so the last picture stays), which stays above the viewer; the next picture is shown, the previous at the
   end, and the viewer closes when none is left. A set-aside picture offers "Take in" (as +) and stays shown, now
