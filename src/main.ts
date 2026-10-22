@@ -122,7 +122,8 @@ const newId = (): string => randomId(crypto);
 const now = (): Date => new Date();
 const musicOutput = new MusicOutput(createMusicAudioContext);
 // Reads __GLISSANDO_SAMPLE_MUSIC__ through browser-sample-music.ts, the constant's only reader.
-const sampleMusic = browserSampleMusic(__GLISSANDO_SAMPLE_MUSIC__, { store, target: window });
+const sampleMusicDependencies = { store, target: window, onError: logError };
+const sampleMusic = browserSampleMusic(__GLISSANDO_SAMPLE_MUSIC__, sampleMusicDependencies);
 
 function deleteAbandonedMedia(): void {
   store.deleteUnreferencedMedia(now()).catch(reportError);

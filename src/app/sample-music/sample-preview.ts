@@ -24,6 +24,7 @@ export interface SamplePreviewPorts extends Pick<ObjectUrlPorts, "create" | "rev
   musicBlob(id: string): Promise<Blob>;
   readonly network: NetworkStatus;
   createAudioElement(): SamplePreviewAudio;
+  onError(error: unknown): void;
 }
 
 /** No track is loading or playing. */
@@ -145,7 +146,8 @@ export class SamplePreview {
     let onDevice: boolean;
     try {
       onDevice = await this.#ports.hasMusic(mediaId);
-    } catch {
+    } catch (error) {
+      this.#ports.onError(error);
       if (generation === this.#generation) this.#fail(track.id);
       return;
     }
@@ -168,7 +170,8 @@ export class SamplePreview {
       }
       this.#audio.currentTime = 0;
       await this.#audio.play();
-    } catch {
+    } catch (error) {
+      this.#ports.onError(error);
       if (generation === this.#generation) this.#fail(track.id);
       return;
     }
@@ -180,7 +183,8 @@ export class SamplePreview {
     const generation = this.#generation;
     try {
       await this.#audio.play();
-    } catch {
+    } catch (error) {
+      this.#ports.onError(error);
       if (generation === this.#generation) this.#fail(track.id);
       return;
     }

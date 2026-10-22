@@ -55,6 +55,7 @@ function previewWith(overrides: Partial<SamplePreviewPorts> = {}): SamplePreview
     createAudioElement: dummyAudio,
     create: () => "blob:0",
     revoke: () => undefined,
+    onError: () => undefined,
     ...overrides,
   });
 }

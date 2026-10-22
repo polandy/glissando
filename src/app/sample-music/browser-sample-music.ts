@@ -9,6 +9,7 @@ export interface BrowserSampleMusicDependencies {
   readonly store: Pick<LibraryStore, "hasMusic" | "musicBlob">;
   /** `window`, kept as a dependency so a test need not reach for the real one. */
   readonly target: Window & { readonly navigator: { readonly onLine: boolean } };
+  readonly onError: (error: unknown) => void;
 }
 
 /**
@@ -31,7 +32,7 @@ export function browserSampleMusic(
   deps: BrowserSampleMusicDependencies,
 ): BrowserSampleMusic {
   if (!config.enabled) return {};
-  const { store, target } = deps;
+  const { store, target, onError } = deps;
   const hasMusic = (id: string): Promise<boolean> => store.hasMusic(id);
   const musicBlob = (id: string): Promise<Blob> => store.musicBlob(id);
   const fetchSample = (
@@ -47,6 +48,7 @@ export function browserSampleMusic(
       musicBlob,
       network: browserNetworkStatus(target),
       createAudioElement: () => new Audio(),
+      onError,
       ...browserObjectUrls,
     }),
   };
