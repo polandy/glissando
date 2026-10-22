@@ -20,6 +20,7 @@
     onDone,
     arranging = true,
     viewMode = false,
+    onInsertChapter,
   }: {
     selection: StripSelection;
     /** The slideshow's current play order, for the group moves and the contiguous range. */
@@ -36,6 +37,8 @@
     arranging?: boolean;
     /** True shows View (full-screen) instead of Edit: no picture editor while importing. */
     viewMode?: boolean;
+    /** Inserts a trip chapter before the selected picture (TRIP_CHAPTERS.md); omitted while importing. */
+    onInsertChapter?: (pictureId: string) => void;
   } = $props();
 
   const { t } = getTranslator();
@@ -92,6 +95,12 @@
       onRemoveGroup(selectedIds);
     }
   }
+
+  function insertChapter(): void {
+    if (soleId !== null) {
+      onInsertChapter?.(soleId);
+    }
+  }
 </script>
 
 <div class="dock" use:keepToastsClear>
@@ -135,6 +144,11 @@
         <Icon name={viewMode ? "eye" : "pencil"} />
         <span>{t(viewMode ? "slideshow.view" : "slideshow.edit")}</span>
       </button>
+      {#if onInsertChapter !== undefined}
+        <button class="btn" type="button" onclick={insertChapter}>
+          <Icon name="chapter" /><span>{t("chapters.insertChapter")}</span>
+        </button>
+      {/if}
     {/if}
     <!-- The last picture stays: Remove looks off but still answers, saying why. -->
     <button class="btn remove" type="button" aria-disabled={removeDisabledLook} onclick={remove}>

@@ -5,8 +5,10 @@
   import type { PortraitPictures } from "../../../library/portrait-pictures";
   import type { SlideshowTransition } from "../../../library/own-timing";
   import type { MotionPreviewPorts } from "../../picture-editor/motion-preview";
+  import type { ChapterSettingsEditor } from "../../editing/chapter-settings-editor";
   import type { SlideshowDetails } from "../view-models";
   import CardSheet from "./card-sheet/CardSheet.svelte";
+  import ChapterSheet from "./chapter-sheet/ChapterSheet.svelte";
   import PortraitPicturesSheet from "./PortraitPicturesSheet.svelte";
   import TransitionsSheet from "./TransitionsSheet.svelte";
 
@@ -33,6 +35,8 @@
     onClosingCard,
     onRemoveClosingCard,
     onClosingCardClosed,
+    chapterEditor,
+    onChaptersClosed,
   }: {
     slideshow: SlideshowDetails;
     /** The transitions sheet's tiles loop on these. */
@@ -55,12 +59,17 @@
     onClosingCard: (card: CardInput) => void;
     onRemoveClosingCard: () => void;
     onClosingCardClosed: () => void;
+    /** The trip chapters editor (TRIP_CHAPTERS.md); null while importing. */
+    chapterEditor: ChapterSettingsEditor | null;
+    onChaptersClosed: () => void;
   } = $props();
 
   let editingTransitions = $state(false);
   let editingPortraitPictures = $state(false);
   let editingOpeningCard = $state(false);
   let editingClosingCard = $state(false);
+  // null closes the sheet; a null anchorPictureId inside opens it in general mode.
+  let editingChapter = $state<{ anchorPictureId: string | null } | null>(null);
 
   export function openTransitions(): void {
     editingTransitions = true;
@@ -76,6 +85,20 @@
 
   export function openClosingCard(): void {
     editingClosingCard = true;
+  }
+
+  export function openChapter(anchorPictureId: string): void {
+    editingChapter = { anchorPictureId };
+  }
+
+  export function openGeneralChapters(): void {
+    editingChapter = { anchorPictureId: null };
+  }
+
+  /** Inserts an added chapter before the picture (TRIP_CHAPTERS.md), then opens its sheet. */
+  export function insertAndOpenChapter(pictureId: string): void {
+    chapterEditor?.insertChapter(pictureId);
+    openChapter(pictureId);
   }
 
   function closeTransitions(): void {
@@ -104,6 +127,13 @@
     // The modal dialog must be gone first: until then the page behind it is inert.
     flushSync();
     onClosingCardClosed();
+  }
+
+  function closeChapters(): void {
+    editingChapter = null;
+    // The modal dialog must be gone first: until then the page behind it is inert.
+    flushSync();
+    onChaptersClosed();
   }
 </script>
 
@@ -152,5 +182,14 @@
     onChange={onClosingCard}
     onRemove={onRemoveClosingCard}
     onClose={closeClosingCard}
+  />
+{/if}
+
+{#if editingChapter !== null}
+  <ChapterSheet
+    {slideshow}
+    {chapterEditor}
+    anchorPictureId={editingChapter.anchorPictureId}
+    onClose={closeChapters}
   />
 {/if}

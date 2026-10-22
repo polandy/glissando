@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { flushSync } from "svelte";
   import Header from "../components/Header.svelte";
   import PictureViewer from "../components/PictureViewer.svelte";
   import { viewerEntries } from "../components/picture-viewer-view";
@@ -12,7 +11,7 @@
   import SelectionBar from "./slideshow/SelectionBar.svelte";
   import SlideshowEditSheets from "./slideshow/SlideshowEditSheets.svelte";
   import ExportSheets from "./slideshow/ExportSheets.svelte";
-  import DeleteDialog from "./slideshow/DeleteDialog.svelte";
+  import DeleteFlow from "./slideshow/DeleteFlow.svelte";
   import {
     endSelecting,
     NO_SELECTION,
@@ -48,6 +47,7 @@
     onEnsureClosingCard,
     onClosingCard,
     onRemoveClosingCard,
+    chapterEditor,
     previewPorts,
     reducedMotion,
     onDelete,
@@ -72,7 +72,6 @@
 
   const { t } = getTranslator();
 
-  let confirmingDelete = $state(false);
   let viewing = $state<string | null>(null);
   const order = $derived(slideshow.pictures.map((picture) => picture.id));
   const viewerEntryList = $derived(viewerEntries(slideshow.pictures, []));
@@ -107,19 +106,7 @@
   let editSheets = $state<SlideshowEditSheets>();
   let exportSheets = $state<ExportSheets>();
   let focusSheetHost = $state<FocusSheetHost>();
-
-  /** Keep or Esc: focus goes back to the ⋯ button the dialog was opened from. */
-  function keepSlideshow(): void {
-    confirmingDelete = false;
-    // The modal dialog must be gone first: until then the page behind it is inert.
-    flushSync();
-    moreMenu?.focus();
-  }
-
-  function deleteConfirmed(): void {
-    confirmingDelete = false;
-    onDelete();
-  }
+  let deleteFlow = $state<DeleteFlow>();
 </script>
 
 <div class="screen" class:selecting={showBar} aria-busy={saving}>
@@ -132,7 +119,7 @@
         onSaveVideo={() => exportSheets?.openVideo()}
         onSaveWebPage={() => exportSheets?.openWebPage()}
         onOpened={onMenuOpened}
-        onDelete={() => (confirmingDelete = true)}
+        onDelete={() => deleteFlow?.open()}
         {storage}
         pictureCount={slideshow.pictures.length}
         {onStorageAction}
@@ -160,6 +147,7 @@
         {onMoveGroup}
         onOpenOpeningCard={() => editSheets?.openOpeningCard()}
         onOpenClosingCard={() => editSheets?.openClosingCard()}
+        onOpenChapter={(anchorPictureId) => editSheets?.openChapter(anchorPictureId)}
         {storage}
         {onStorageAction}
         {holdScheduler}
@@ -175,6 +163,7 @@
         {onEditMusic}
         onEditTransitions={() => editSheets?.openTransitions()}
         onEditPortraitPictures={() => editSheets?.openPortraitPictures()}
+        onEditChapters={() => editSheets?.openGeneralChapters()}
       />
     </div>
   </main>
@@ -188,6 +177,7 @@
       {onEdit}
       onView={(pictureId) => (viewing = pictureId)}
       onDone={() => (selection = endSelecting())}
+      onInsertChapter={(pictureId) => editSheets?.insertAndOpenChapter(pictureId)}
     />
   {/if}
 </div>
@@ -227,6 +217,8 @@
   {onClosingCard}
   {onRemoveClosingCard}
   onClosingCardClosed={() => picturesColumn?.focusClosingCard()}
+  {chapterEditor}
+  onChaptersClosed={() => infoPanel?.focusChapters()}
 />
 
 <ExportSheets
@@ -248,15 +240,14 @@
   {onLookAgain}
 />
 
-{#if confirmingDelete}
-  <DeleteDialog
-    title={slideshow.title}
-    pictureCount={slideshow.pictures.length}
-    onServer={storage?.kind === "server"}
-    onKeep={keepSlideshow}
-    onDelete={deleteConfirmed}
-  />
-{/if}
+<DeleteFlow
+  bind:this={deleteFlow}
+  title={slideshow.title}
+  pictureCount={slideshow.pictures.length}
+  onServer={storage?.kind === "server"}
+  {onDelete}
+  onKept={() => moreMenu?.focus()}
+/>
 
 <style>
   .detail {

@@ -14,6 +14,7 @@ import { createTranslator } from "../i18n/translator";
 import type { ServerSlideshowRows } from "../server-library/server-slideshow-sessions";
 import { NO_FOCUS_KNOWN, type PicturesFocus } from "../focus/pictures-focus";
 import type { SlideshowSearch } from "../../library/focus-pass";
+import type { ChapterSettingsEditor } from "../editing/chapter-settings-editor";
 
 /** The title slide a bare `ensureOpeningCard` call creates, for tests that don't care about it. */
 const DEFAULT_OPENING_CARD: StoredCard = {
@@ -118,6 +119,7 @@ export function mountScreen(
     focusSearch = undefined as SlideshowSearch | undefined,
     focusPaused = false,
     english = false,
+    chapterEditor = null as ChapterSettingsEditor | null,
   } = {},
 ) {
   const clock = new FakeClock();
@@ -218,6 +220,7 @@ export function mountScreen(
       calls.closingCardsRemoved += 1;
       props.slideshow = withClosingCard(props.slideshow, undefined);
     },
+    chapterEditor,
     previewPorts: { clock, frames },
     reducedMotion,
     onDelete: () => (calls.deletes += 1),
