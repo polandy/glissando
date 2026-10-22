@@ -29,7 +29,7 @@ test("E2E-040 with music the pictures keep their own length on the beat, set in 
     3,
   );
   await page.getByRole("button", { name: "Weiter" }).click();
-  await chooseFiles(page, page.getByRole("button", { name: "Musik auswählen" }), [track]);
+  await chooseFiles(page, page.getByRole("button", { name: "Dateien wählen" }), [track]);
 
   await expect(ownSeconds("5 s")).toHaveAttribute("aria-checked", "true");
   await expect(page.getByText("Die Musik blendet mit dem letzten Bild aus.")).toBeVisible();

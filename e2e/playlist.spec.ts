@@ -45,7 +45,7 @@ test("E2E-041 several songs chosen in the import play as a playlist, reordered, 
     3,
   );
   await page.getByRole("button", { name: "Weiter" }).click();
-  await chooseFiles(page, page.getByRole("button", { name: "Musik auswählen" }), [
+  await chooseFiles(page, page.getByRole("button", { name: "Dateien wählen" }), [
     silentTrack(MORNING, 8),
     silentTrack(EVENING, 6),
   ]);
@@ -79,9 +79,13 @@ test("E2E-041 several songs chosen in the import play as a playlist, reordered, 
   await removedToast.getByRole("button", { name: "Rückgängig", exact: true }).click();
   await expect(songRows).toHaveText([new RegExp(EVENING), new RegExp(MORNING)]);
 
-  await chooseFiles(page, page.getByRole("button", { name: "Song hinzufügen" }), [
+  // With sample music on, "+ Add a song" opens a sheet with the own-music row inside it.
+  await page.getByRole("button", { name: "Song hinzufügen" }).click();
+  const addSongSheet = page.getByRole("dialog", { name: "Song hinzufügen" });
+  await chooseFiles(page, addSongSheet.getByRole("button", { name: "Dateien wählen" }), [
     silentTrack(NIGHT, 5),
   ]);
+  await addSongSheet.getByRole("button", { name: "Fertig" }).click();
   await expect(songRows).toHaveText([new RegExp(EVENING), new RegExp(MORNING), new RegExp(NIGHT)]);
   // 6 s, 8 s and 5 s with two crossfades of 3 s: 0:13.
   await expect(page.getByText("Playlist, 3 Songs · 0:13")).toBeVisible();
