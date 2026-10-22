@@ -146,11 +146,7 @@ export function parsePlaceList(tsvText: string): PlaceIndex {
  *  correct and sufficient approximation of "nearest within 50 km" for this bundled, sparse
  *  (>=15k population) dataset, not a literal nearest-neighbour-on-the-sphere guarantee in
  *  extreme edge cases. */
-export function nearestPlace(
-  index: PlaceIndex,
-  latitude: number,
-  longitude: number,
-): Place | null {
+export function nearestPlace(index: PlaceIndex, latitude: number, longitude: number): Place | null {
   const baseLatCell = latitudeCell(latitude);
   const baseLonCell = longitudeCell(longitude);
 
@@ -160,10 +156,7 @@ export function nearestPlace(
   for (const latOffset of NEIGHBOUR_CELL_OFFSETS) {
     for (const lonOffset of NEIGHBOUR_CELL_OFFSETS) {
       // Latitude cells beyond the poles (e.g. 90, -91) simply have no entry — no wrap, no crash.
-      const key = cellKey(
-        baseLatCell + latOffset,
-        normalizeLongitudeCell(baseLonCell + lonOffset),
-      );
+      const key = cellKey(baseLatCell + latOffset, normalizeLongitudeCell(baseLonCell + lonOffset));
       const placesInCell = index.placesByCellKey.get(key);
       if (!placesInCell) {
         continue;

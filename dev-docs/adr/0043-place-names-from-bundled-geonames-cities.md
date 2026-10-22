@@ -8,12 +8,12 @@ Trip chapters need a place name for a picture's GPS coordinates (e.g. "Lisbon") 
 and without a connection (`dev-docs/SCOPE.md`): the lookup must run fully offline, from data
 shipped with the app.
 
-| Option                                        | Size (compressed)   | Coverage                                                                  |
-| ---------------------------------------------- | -------------------- | -------------------------------------------------------------------------- |
-| **GeoNames `cities15000`** (chosen)            | ~400 KB, ~30k places | every place with population ≥ 15,000; a village resolves to its nearest larger town |
-| GeoNames `cities5000`                          | ~1 MB, ~70k places   | population ≥ 5,000: more rural precision, over double the size            |
-| Natural Earth populated places                 | public domain, ~7k   | far coarser; whole regions have no entry close enough                     |
-| An online geocoder                             | nothing bundled      | rejected outright: needs a connection and sends the owner's GPS trail to a third party, against local-first and privacy |
+| Option                              | Size (compressed)    | Coverage                                                                                                                |
+| ----------------------------------- | -------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| **GeoNames `cities15000`** (chosen) | ~400 KB, ~30k places | every place with population ≥ 15,000; a village resolves to its nearest larger town                                     |
+| GeoNames `cities5000`               | ~1 MB, ~70k places   | population ≥ 5,000: more rural precision, over double the size                                                          |
+| Natural Earth populated places      | public domain, ~7k   | far coarser; whole regions have no entry close enough                                                                   |
+| An online geocoder                  | nothing bundled      | rejected outright: needs a connection and sends the owner's GPS trail to a third party, against local-first and privacy |
 
 `cities15000` is the smallest list that gives most pictures a town within a useful distance; a
 picture taken in a small village names the nearest larger town instead of its own hamlet, an

@@ -5,7 +5,10 @@ import { nearestPlace } from "./nearest-place";
 const SAMPLE_TSV = "Lisbon\t38.717\t-9.133";
 
 /** Counts calls and resolves with `text`, independent of any mocking framework. */
-function countingFetchText(text: string): { fetchText: () => Promise<string>; callCount: () => number } {
+function countingFetchText(text: string): {
+  fetchText: () => Promise<string>;
+  callCount: () => number;
+} {
   let callCount = 0;
   return {
     fetchText: () => {
