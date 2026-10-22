@@ -7,6 +7,7 @@ import type { PictureLength } from "../../library/picture-length";
 import type { StoredCard, StoredMusic, StoredSlideshow } from "../../library/stored-slideshow";
 import type { CardInput } from "../../library/stored-card";
 import { CardSettingsEditor } from "./card-settings-editor";
+import { ChapterSettingsEditor } from "./chapter-settings-editor";
 import { EditSaver } from "./edit-saver";
 import { EditorUndos } from "./editor-undos";
 import { MusicSettingsEditor } from "./music-settings-editor";
@@ -33,6 +34,8 @@ export class SlideshowEditor {
   readonly #cardSettings: CardSettingsEditor;
   /** The clip settings of the video slides. */
   readonly video: VideoSettingsEditor;
+  /** The automatic and added trip chapters (TRIP_CHAPTERS.md). */
+  readonly chapters: ChapterSettingsEditor;
 
   constructor(initial: StoredSlideshow, ports: SlideshowEditorPorts) {
     this.#slideshow = initial;
@@ -77,6 +80,10 @@ export class SlideshowEditor {
     );
     this.#cardSettings = new CardSettingsEditor(
       ports,
+      () => this.#slideshow,
+      (slideshow) => this.#apply(slideshow),
+    );
+    this.chapters = new ChapterSettingsEditor(
       () => this.#slideshow,
       (slideshow) => this.#apply(slideshow),
     );
