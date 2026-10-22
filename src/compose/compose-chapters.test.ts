@@ -31,6 +31,16 @@ function plainSlide(pictureId: string, durationMs = 5000): PictureSlide {
   };
 }
 
+function pairSlide(firstPictureId: string, secondPictureId: string): PictureSlide {
+  return {
+    ...plainSlide(firstPictureId),
+    partner: {
+      image: { src: `pictures/${secondPictureId}.jpg`, capturedAt: "2025-07-01T10:00:00Z" },
+      kenBurns: KEN_BURNS,
+    },
+  };
+}
+
 const sources: PictureSource = { picture: (id) => `pictures/${id}.jpg` };
 const NO_FOCUS: ReadonlyMap<string, PictureFocus> = new Map();
 
@@ -156,6 +166,29 @@ describe("composeChapters", () => {
     expect(composed).toHaveLength(5);
     expect(pictureSlide(composed[2]).card?.title).toBe("Porto");
     expect(pictureSlide(composed[3]).image.src).toBe("pictures/p2.jpg");
+  });
+
+  it("inserts the chapter before a portrait pair's slide when the anchor is its second picture", () => {
+    const pairedSlides = [pairSlide("p1", "p2"), plainSlide("p3")];
+    const pairedChapter: ComposedChapter = {
+      anchorPictureId: "p2",
+      title: "Porto",
+      subtitle: "Day 2",
+    };
+
+    const composed = composeChapters(
+      [pairedChapter],
+      pictures,
+      pairedSlides,
+      sources,
+      NO_FOCUS,
+      DEFAULT_SLIDESHOW_TRANSITION,
+    );
+
+    expect(composed).toHaveLength(3);
+    expect(pictureSlide(composed[0]).card?.title).toBe("Porto");
+    expect(pictureSlide(composed[1]).image.src).toBe("pictures/p1.jpg");
+    expect(pictureSlide(composed[1]).partner?.image.src).toBe("pictures/p2.jpg");
   });
 
   it("produces no slide when there are no chapters to insert", () => {
