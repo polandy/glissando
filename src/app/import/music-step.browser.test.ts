@@ -77,7 +77,7 @@ describe("MusicStep, the import's song list", () => {
     picked.items.add(song("Sea Glass.mp3"));
 
     expect(input?.multiple).toBe(true);
-    expect(buttonNamed(target, "Add another song")).toBeDefined();
+    expect(buttonNamed(target, "Choose files")).toBeDefined();
     if (input !== null) {
       input.files = picked.files;
       input.dispatchEvent(new Event("change", { bubbles: true }));

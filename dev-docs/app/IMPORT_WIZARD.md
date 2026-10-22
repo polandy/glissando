@@ -74,23 +74,25 @@ Immich photos, offers no "Open file" and is created on the server
 - **Music** (optional): the intro "One song or several — they play one after another and the
   pictures change on their beat. Without music each picture stays 5 s.", then, without tabs and
   both on the first phone screen, the block "Glissando music" (library/SAMPLE_MUSIC.md, where the
-  build offers it), the divider "or" and the row "Your own music" — the drop zone, with
-  "Choose files" (`audio/*` plus every recognised extension, `MUSIC_FILE_PICKER_ACCEPT` — iPadOS greys out files it cannot type by location otherwise; several at once; hint "One or more files · MP3, M4A, FLAC, WAV, Ogg,
-  AIFF, WMA …"). Picked or dropped files join `ImportChoices.songs`, a keyed list, after the
+  build offers it), the divider "or" and the row "Your own music" (library/SAMPLE_MUSIC.md,
+  "Where it shows" — the drop zone), with "Choose files" (`audio/*` plus every recognised
+  extension, `MUSIC_FILE_PICKER_ACCEPT` — iPadOS greys out files it cannot type by location
+  otherwise; several at once; hint "One or more files · MP3, M4A, FLAC, WAV, Ogg, AIFF, WMA …").
+  Picked or dropped files join `ImportChoices.songs`, a keyed list, after the
   songs already in it, and are read one at a time in the order picked by
   `import/music-pick.ts` (`readPickedMusic`, the music editor's too): the format is recognised
   from the file's first bytes (`src/import/music-format.ts`); MP3, AAC, FLAC, Opus and PCM WAV are
   kept as they are; ALAC, AIFF, CAF, AC-3/E-AC-3, WMA, AMR and Ogg Vorbis, which a target browser
   cannot decode, are converted on the device to a FLAC copy, and only the copy is stored
-  (ADR-0020). Once a song is in, the drop zone gives way to the song list, the music editor's
-  (`SongList.svelte`, without selecting): per song a grip, its number in its colour, the picked
+  (ADR-0020). Once a song is in, the row "Your own music" stays above the song list, the music
+  editor's (`SongList.svelte`, without selecting): per song a grip, its number in its colour, the picked
   name, "1:00 · WAV" (a converted one adds "Converted from Apple Lossless on this device"), "from
   0:57" where it starts in the slideshow or, dimmed, "Not reached", and × removing it (cancelling
   its conversion). The grip drags the song onto another row or moves it with the arrow keys while
   focused (ADR-0019's pattern). A song being read is a dashed row with its name ("Converting to
   FLAC · 42 %" while converting); a file that cannot be read or converted, or is copy-protected
-  (an iTunes `drms` track), is a coral row "This file can't be used" until its ×. A dashed "+ Add
-  another song" follows the list. The songs are placed as the slideshow will play them, each
+  (an iTunes `drms` track), is a coral row "This file can't be used" until its ×. The songs are
+  placed as the slideshow will play them, each
   crossfading into the next (ADR-0023). With a song chosen, a panel holds the **Picture length**
   choice — "About 5 s each" (the default) with its stepper, or "Fill the music" — and a strip of
   the pictures' thumbnails over the songs as numbered blocks in their colours, both to one scale,
