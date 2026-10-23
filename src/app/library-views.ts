@@ -4,6 +4,7 @@ import {
   resolveMusicTiming,
   slideUnits,
   slideshowDurationMs,
+  slideshowLook,
   slideshowTransition,
 } from "../compose";
 import { MILLISECONDS_PER_SECOND } from "../player";
@@ -92,6 +93,7 @@ export function slideshowDetails(
     ownDurationCount: tiles.filter((tile) => tile.ownDurationMs !== null).length,
     ownTransitionCount: tiles.filter((tile) => tile.ownTransition !== null).length,
     transition: slideshowTransition(stored),
+    look: slideshowLook(stored),
     portraitPictures: resolvePortraitPictures(stored.portraitPictures),
     pairCount: slideUnits(stored.pictures, stored.portraitPictures).filter(
       (unit) => unit.pictureIndices.length === 2,

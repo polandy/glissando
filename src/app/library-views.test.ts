@@ -47,6 +47,7 @@ describe("slideshowDetails", () => {
       ownDurationCount: 0,
       ownTransitionCount: 0,
       transition: "crossfade",
+      look: "none",
       portraitPictures: "automatic",
       pairCount: 0,
       captionCount: 0,
@@ -243,6 +244,10 @@ describe("slideshowDetails", () => {
     expect(slideshowDetails({ ...stored, transition: "alternate" }, urlOf).transition).toBe(
       "alternate",
     );
+  });
+
+  it("tells the slideshow's colour grade as stored", () => {
+    expect(slideshowDetails({ ...stored, look: "warm" }, urlOf).look).toBe("warm");
   });
 
   it("marks own durations and own transitions, a last picture's transition not counting", () => {

@@ -59,6 +59,7 @@ function editorOver(store: MemoryLibraryStore, toaster: Toaster): SlideshowEdito
     transitionAutomaticText: () => "Übergang wieder automatisch",
     slideshowTransitionResetText: () => "Übergänge wieder auf Überblenden",
     portraitPicturesResetText: () => "Hochformatbilder wieder automatisch",
+    lookResetText: () => "Look wieder auf Kein",
     songRemovedText: () => "Song entfernt",
     shuffledText: () => "",
     random: () => 0,

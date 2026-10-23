@@ -5,6 +5,7 @@ import type { PortraitPictures } from "../../library/portrait-pictures";
 import { setPictureAlone as setPictureAloneEdit } from "../../library/slideshow-edits";
 import type { PictureLength } from "../../library/picture-length";
 import type { StoredCard, StoredMusic, StoredSlideshow } from "../../library/stored-slideshow";
+import type { SlideshowLook } from "../../player/looks/slideshow-look";
 import type { CardInput } from "../../library/stored-card";
 import { CardSettingsEditor } from "./card-settings-editor";
 import { EditSaver } from "./edit-saver";
@@ -16,11 +17,10 @@ import { VideoSettingsEditor } from "./video-settings-editor";
 import type { SlideshowEditorPorts } from "./slideshow-editor-ports";
 
 /**
- * The slideshow screen's edits: each applies at once and is stored. Removing needs no
- * confirmation; its toast undoes every removal made while it is shown, and any other edit
- * ends that batch, so an undo never puts pictures back at positions that shifted meanwhile.
- * While the toast is shown, the removed pictures' media is claimed, so a clean-up in any tab
- * spares it.
+ * The slideshow screen's edits: each applies at once and is stored. Removing needs no confirmation;
+ * its toast undoes every removal made while it is shown, and any other edit ends that batch, so an
+ * undo never puts pictures back at positions that shifted meanwhile. While the toast is shown, the
+ * removed pictures' media is claimed, so a clean-up in any tab spares it.
  */
 export class SlideshowEditor {
   readonly #listeners = new Set<(slideshow: StoredSlideshow) => void>();
@@ -178,6 +178,13 @@ export class SlideshowEditor {
     this.#pictureSettings.resetPortraitPictures();
   }
 
+  setSlideshowLook(look: SlideshowLook): void {
+    this.#pictureSettings.setSlideshowLook(look);
+  }
+
+  resetSlideshowLook(): void {
+    this.#pictureSettings.resetSlideshowLook();
+  }
   /** Marks the picture never to be composed into a portrait pair, or lets it be again. */
   setPictureAlone(pictureId: string, alone: boolean): void {
     this.#apply(setPictureAloneEdit(this.#slideshow, pictureId, alone));

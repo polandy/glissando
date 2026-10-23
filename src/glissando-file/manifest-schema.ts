@@ -3,6 +3,7 @@ import { SLIDESHOW_TRANSITIONS } from "../library/own-timing";
 import { OWN_SECONDS_PICTURE_LENGTH } from "../library/picture-length";
 import { PORTRAIT_PICTURES_CHOICES } from "../library/portrait-pictures";
 import { MAX_SECONDS_PER_PICTURE, MIN_SECONDS_PER_PICTURE } from "../library/stored-slideshow";
+import { GRADED_SLIDESHOW_LOOKS } from "../player/looks/slideshow-look";
 import { CARD_SCHEMA } from "./manifest-schema-card";
 import { GLISSANDO_FORMAT_ID, GLISSANDO_FORMAT_VERSION } from "./glissando-manifest";
 import { MUSIC_SCHEMA } from "./manifest-schema-music";
@@ -30,6 +31,7 @@ const SLIDESHOW_SCHEMA: JsonSchema = {
     transition: { enum: SLIDESHOW_TRANSITIONS },
     pictureLength: { const: OWN_SECONDS_PICTURE_LENGTH },
     portraitPictures: { enum: PORTRAIT_PICTURES_CHOICES },
+    look: { enum: GRADED_SLIDESHOW_LOOKS },
     openingCard: CARD_SCHEMA,
     closingCard: CARD_SCHEMA,
   },

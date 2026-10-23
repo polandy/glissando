@@ -10,6 +10,7 @@ import {
   type SlideVideo,
 } from "../player/slideshow";
 import { DEFAULT_VIDEO_VOLUME, type StoredVideo } from "../library/own-video";
+import { isGradedLook } from "../player/looks/slideshow-look";
 import { beatTransitionDurationMs } from "./beat-transition";
 import { composeCards } from "./compose-cards";
 import { filledMusicMs, playlistBeatsMs, resolvePlaylist, type SongBeats } from "./playlist";
@@ -17,6 +18,7 @@ import { pairKenBurns, pictureKenBurns } from "./picture-ken-burns";
 import { pictureTransition, slideshowTransition } from "./picture-transition";
 import { slideDurationsMs } from "./slide-durations-ms";
 import { slideUnits, timedUnit, type SlideUnit } from "./slide-units";
+import { slideshowLook } from "./slideshow-look";
 import type { SongLoudness } from "./song-loudness";
 import { trackGain } from "./track-gain";
 
@@ -56,6 +58,7 @@ export function composeSlideshow(
 ): Slideshow {
   const units = slideUnits(stored.pictures, stored.portraitPictures);
   const defaultTransition = slideshowTransition(stored);
+  const look = slideshowLook(stored);
   const beatsMs = playlistBeatsMs(stored, beats);
   const durationsMs = slideDurationsMs(
     units.map((unit) => timedUnit(stored.pictures, unit)),
@@ -108,6 +111,7 @@ export function composeSlideshow(
     ...(music.length === 0 ? {} : { music }),
     slides: withCards.slides,
     ...(withCards.endFadeMs === undefined ? {} : { endFadeMs: withCards.endFadeMs }),
+    ...(isGradedLook(look) ? { look } : {}),
   };
 }
 

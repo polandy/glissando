@@ -12,9 +12,12 @@ import {
   PORTRAIT_PICTURES_CHOICES,
   type PortraitPictures,
 } from "../library/portrait-pictures";
+import { checkSlideshowLook, InvalidSlideshowLookError } from "../library/slideshow-look";
 import { MAX_SECONDS_PER_PICTURE, MIN_SECONDS_PER_PICTURE } from "../library/stored-slideshow";
+import { GRADED_SLIDESHOW_LOOKS, type GradedSlideshowLook } from "../player/looks/slideshow-look";
 import {
   DEFAULT_TRANSITION_FROM_VERSION,
+  LOOK_FROM_VERSION,
   PICTURE_LENGTH_FROM_VERSION,
   type ManifestMusic,
   type ManifestPicture,
@@ -53,6 +56,7 @@ export function slideshowKeys(version: number): string[] {
     ...(version >= PICTURE_LENGTH_FROM_VERSION ? ["pictureLength"] : []),
     "portraitPictures",
     ...(version >= TITLE_CARDS_FROM_VERSION ? ["openingCard", "closingCard"] : []),
+    ...(version >= LOOK_FROM_VERSION ? ["look"] : []),
   ];
 }
 
@@ -94,6 +98,7 @@ export function readSlideshowFields(
     ...(show["portraitPictures"] === undefined
       ? {}
       : { portraitPictures: readPortraitPictures(show["portraitPictures"], path) }),
+    ...(show["look"] === undefined ? {} : { look: readLook(show["look"], path) }),
     ...(show["openingCard"] === undefined
       ? {}
       : {
@@ -105,6 +110,21 @@ export function readSlideshowFields(
           closingCard: readManifestCard(show["closingCard"], `${path}.closingCard`, pictureCount),
         }),
   };
+}
+
+function readLook(value: unknown, path: string): GradedSlideshowLook {
+  try {
+    return checkSlideshowLook(value, path);
+  } catch (error) {
+    if (error instanceof InvalidSlideshowLookError) {
+      throw new DocumentFormatError(
+        `${path}.look`,
+        `one of ${GRADED_SLIDESHOW_LOOKS.join(", ")}`,
+        error.actual,
+      );
+    }
+    throw error;
+  }
 }
 
 function readPortraitPictures(value: unknown, path: string): PortraitPictures {

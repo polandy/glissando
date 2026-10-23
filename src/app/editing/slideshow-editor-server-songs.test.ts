@@ -45,6 +45,7 @@ describe("SlideshowEditor on a server slideshow, the playlist (ADR-0023)", () =>
       transitionAutomaticText: () => "Übergang wieder automatisch",
       slideshowTransitionResetText: () => "Übergänge wieder auf Überblenden",
       portraitPicturesResetText: () => "Hochformatbilder wieder automatisch",
+      lookResetText: () => "Look wieder auf Kein",
       songRemovedText: () => "Song entfernt",
       shuffledText: () => "",
       random: () => 0,

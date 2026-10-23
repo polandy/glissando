@@ -62,6 +62,7 @@ export function details(ids: readonly string[], overrides: Partial<SlideshowDeta
     ownDurationCount: 0,
     ownTransitionCount: 0,
     transition: "crossfade",
+    look: "none",
     portraitPictures: "automatic",
     pairCount: 0,
     captionCount: 0,

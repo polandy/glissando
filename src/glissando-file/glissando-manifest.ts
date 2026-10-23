@@ -6,6 +6,7 @@ import type { BetweenSongs, MusicTrim, PictureChanges } from "../library/own-mus
 import type { SlideshowTransition, TransitionChoice } from "../library/own-timing";
 import type { StoredVideo } from "../library/own-video";
 import type { StoredSlideshow } from "../library/stored-slideshow";
+import type { GradedSlideshowLook } from "../player/looks/slideshow-look";
 import { cardToManifest, type ManifestCard } from "./manifest-card";
 import {
   clipMimeType,
@@ -32,14 +33,14 @@ export const GLISSANDO_FORMAT_ID = "glissando";
  * and `closingCard` (ADR-0032), version 13 a picture's `colours` and a card's picture background
  * `tint` (ADR-0033), version 14 a picture's `video` and the `videos/` entries (ADR-0034), version
  * 15 a song's own volume, `volumeDb` (ADR-0040), version 16 a song's sample-track id,
- * `sampleTrack` (ADR-0042).
+ * `sampleTrack` (ADR-0042), version 17 the slideshow's colour grade, `look` (ADR-0044).
  *
- * Versions 13 to 16 are read (a version 13 file holds no clips, versions 13 and 14 no song
- * volume, and versions 13 to 15 no sample-track id). Any older file is refused rather than
- * migrated, as there is no production instance yet; before version 10 a file carried `music`,
- * not `songs`, which cannot be told apart from the rest of such a document.
+ * Versions 13 to 17 are read (a version 13 file holds no clips, versions 13 and 14 no song
+ * volume, versions 13 to 15 no sample-track id, and versions 13 to 16 no look). Any older file
+ * is refused rather than migrated, as there is no production instance yet; before version 10 a
+ * file carried `music`, not `songs`, which cannot be told apart from the rest of such a document.
  */
-export const GLISSANDO_FORMAT_VERSION = 16;
+export const GLISSANDO_FORMAT_VERSION = 17;
 export const OLDEST_READABLE_FORMAT_VERSION = 13;
 /** The first version that carries a picture's own motion. */
 export const OWN_KEN_BURNS_FROM_VERSION = 2;
@@ -61,6 +62,8 @@ export const PICTURE_LENGTH_FROM_VERSION = 9;
 export const MUSIC_VOLUME_FROM_VERSION = 15;
 /** The first version that carries a song's sample-track id. */
 export const SAMPLE_TRACK_FROM_VERSION = 16;
+/** The first version that carries the slideshow's colour grade. */
+export const LOOK_FROM_VERSION = 17;
 export const MANIFEST_ENTRY_NAME = "glissando.json";
 
 const PICTURE_EXTENSIONS: Readonly<Record<string, string>> = {
@@ -119,6 +122,8 @@ export interface ManifestSlideshow {
   readonly transition?: SlideshowTransition;
   /** How portrait pictures lay out; absent: automatic, pairs and a blurred fill (ADR-0028). */
   readonly portraitPictures?: PortraitPictures;
+  /** The colour grade every slide plays; absent: None (ADR-0044). */
+  readonly look?: GradedSlideshowLook;
   readonly pictures: readonly ManifestPicture[];
   /** The playlist, in play order; empty for no music (ADR-0023). */
   readonly songs: readonly ManifestMusic[];
@@ -235,6 +240,7 @@ export function manifestFor(
       ...(slideshow.portraitPictures === undefined
         ? {}
         : { portraitPictures: slideshow.portraitPictures }),
+      ...(slideshow.look === undefined ? {} : { look: slideshow.look }),
       pictures,
       songs,
       ...(slideshow.betweenSongs === undefined ? {} : { betweenSongs: slideshow.betweenSongs }),

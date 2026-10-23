@@ -18,7 +18,7 @@ type ManifestDocument = Omit<GlissandoManifest, "slideshow"> & {
  */
 export const BASE_MANIFEST: ManifestDocument = {
   format: "glissando",
-  formatVersion: 16,
+  formatVersion: 17,
   slideshow: {
     title: "Herbst in Wien",
     createdAt: "2025-10-01T08:00:00Z",
@@ -28,6 +28,7 @@ export const BASE_MANIFEST: ManifestDocument = {
     betweenSongs: "sequence",
     pictureLength: "seconds",
     portraitPictures: "fill-screen",
+    look: "warm",
     pictures: [
       {
         file: "pictures/0001.png",

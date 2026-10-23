@@ -1,8 +1,10 @@
 import { orderByCaptureDate } from "../compose/order-by-capture-date";
 import { placeByCaptureDate, type AddedPlacement } from "./added-placement";
 import { normalizeCaption } from "../player/caption";
+import { DEFAULT_SLIDESHOW_LOOK, type SlideshowLook } from "../player/looks/slideshow-look";
 import { checkOwnKenBurns, type OwnKenBurns } from "./own-ken-burns";
 import { checkPortraitPictures, type PortraitPictures } from "./portrait-pictures";
+import { checkSlideshowLook } from "./slideshow-look";
 import { withPicturesAfterCardRemoval } from "./slideshow-edits-cards";
 import {
   DEFAULT_SLIDESHOW_TRANSITION,
@@ -212,6 +214,25 @@ export function setSlideshowTransition(
   return checked === DEFAULT_SLIDESHOW_TRANSITION
     ? withoutTransition
     : { ...withoutTransition, transition: checked };
+}
+
+/**
+ * Sets the slideshow's colour grade; `undefined` or None deletes the field, since its absence is
+ * None (ADR-0044).
+ */
+export function setSlideshowLook(
+  slideshow: StoredSlideshow,
+  look: SlideshowLook | undefined,
+): StoredSlideshow {
+  const withoutLook: { -readonly [Key in keyof StoredSlideshow]: StoredSlideshow[Key] } = {
+    ...slideshow,
+  };
+  delete withoutLook.look;
+  if (look === undefined || look === DEFAULT_SLIDESHOW_LOOK) {
+    return withoutLook;
+  }
+  const checked = checkSlideshowLook(look, `slideshow "${slideshow.id}"`);
+  return { ...withoutLook, look: checked };
 }
 
 /** Sets the slideshow's portrait layout; `undefined` makes it automatic again (ADR-0028). */
