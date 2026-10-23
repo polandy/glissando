@@ -1,4 +1,4 @@
-import type { SlideshowLook } from "./looks/slideshow-look";
+import type { GradedSlideshowLook } from "./looks/slideshow-look";
 
 /**
  * The slideshow as JSON: the contract shared by player, app and the optional server. Slides
@@ -180,5 +180,5 @@ export interface Slideshow {
   /** Over the last `endFadeMs` of the show, the frame mixes to black (ADR-0032). Absent: none. */
   readonly endFadeMs?: number;
   /** Grades every picture and video layer the same way in every renderer (ADR-0044). Absent: none. */
-  readonly look?: SlideshowLook;
+  readonly look?: GradedSlideshowLook;
 }

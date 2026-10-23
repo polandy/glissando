@@ -1,4 +1,4 @@
-import { GRADED_SLIDESHOW_LOOKS, type SlideshowLook } from "./looks/slideshow-look";
+import { GRADED_SLIDESHOW_LOOKS, type GradedSlideshowLook } from "./looks/slideshow-look";
 import { readCard } from "./parse-card";
 import { checkVideoSlide, readVideo } from "./parse-video";
 import {
@@ -71,8 +71,8 @@ export function parseSlideshow(input: unknown): Slideshow {
 }
 
 /** "None" is never written (ADR-0044); absent already means it, so it is refused here too. */
-function readLook(value: unknown, path: string): SlideshowLook {
-  return readOneOf<SlideshowLook>(value, path, GRADED_SLIDESHOW_LOOKS);
+function readLook(value: unknown, path: string): GradedSlideshowLook {
+  return readOneOf<GradedSlideshowLook>(value, path, GRADED_SLIDESHOW_LOOKS);
 }
 
 function readEndFadeMs(value: unknown, path: string, lastSlideDurationMs: number): number {
