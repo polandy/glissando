@@ -1,6 +1,6 @@
 import type { Snippet } from "svelte";
 import type { StoredCard } from "../../../library/stored-slideshow";
-import type { FrameScheduler } from "../../../player";
+import type { FrameScheduler, SlideshowLook } from "../../../player";
 import type { Scheduler } from "../../../ui-kit/scheduler";
 import type { PictureTile } from "../view-models";
 import type { StripSelection } from "./strip-selection";
@@ -8,6 +8,8 @@ import type { StripSelection } from "./strip-selection";
 /** `PictureStrip.svelte`'s props, split out to keep that file under the line limit. */
 export interface PictureStripProps {
   pictures: readonly PictureTile[];
+  /** The slideshow's look (LOOKS.md): graded onto every picture tile, never a card tile. */
+  look: SlideshowLook;
   /** Pictures just added, marked as new. */
   newPictureIds: ReadonlySet<string>;
   selection: StripSelection;

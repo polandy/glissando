@@ -92,6 +92,7 @@ export const de = {
   "slideshow.kenBurns": "Ken Burns",
   "slideshow.automatic": "automatisch",
   "slideshow.transitions": "Übergänge",
+  "slideshow.look": "Look",
   "slideshow.play": "Abspielen",
   "slideshow.details": "Details",
   "slideshow.pictures": "Bilder",

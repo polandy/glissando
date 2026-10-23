@@ -89,6 +89,7 @@ export const en: Catalogue = {
   "slideshow.kenBurns": "Ken Burns",
   "slideshow.automatic": "automatic",
   "slideshow.transitions": "Transitions",
+  "slideshow.look": "Look",
   "slideshow.play": "Play",
   "slideshow.details": "Details",
   "slideshow.pictures": "Pictures",

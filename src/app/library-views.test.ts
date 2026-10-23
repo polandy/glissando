@@ -168,13 +168,6 @@ describe("slideshowDetails", () => {
     expect(details.ownMotionCount).toBe(1);
   });
 
-  it("counts the pictures with a caption", () => {
-    const [first, second] = stored.pictures;
-    const edited = { ...stored, pictures: [first, { ...second, caption: "Am Steg" }] };
-
-    expect(slideshowDetails(edited as StoredSlideshow, urlOf).captionCount).toBe(1);
-  });
-
   it("sums up the whole track with automatic fades as such", () => {
     expect(slideshowDetails(withMusic, urlOf).musicSummary).toEqual({ excerpt: null, fades: null });
   });

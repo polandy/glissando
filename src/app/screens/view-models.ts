@@ -43,6 +43,8 @@ export interface PictureTile {
   readonly capturedAt: string;
   /** The length of a video slide's excerpt; absent for a still picture. */
   readonly clipMs?: number;
+  /** Shown with the picture in the player; absent: none. Normalised (`normalizeCaption`). */
+  readonly caption?: string;
   /** The picture plays a Ken Burns motion of the user's own. */
   readonly ownMotion: boolean;
   /** The picture's own duration; null while automatic. */

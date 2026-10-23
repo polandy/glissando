@@ -22,6 +22,7 @@
     onRename,
     onEditMusic,
     onEditTransitions,
+    onEditLook,
     onEditPortraitPictures,
   }: {
     slideshow: SlideshowDetails;
@@ -34,6 +35,8 @@
     onEditMusic: () => void;
     /** Opens the sheet of the slideshow's default transition. */
     onEditTransitions: () => void;
+    /** Opens the sheet of the slideshow's colour grade (ADR-0044). */
+    onEditLook: () => void;
     /** Opens the sheet of the slideshow's portrait pictures setting. */
     onEditPortraitPictures: () => void;
   } = $props();
@@ -43,6 +46,11 @@
   /** The transitions sheet closed: focus goes back to the row it was opened from. */
   export function focusTransitions(): void {
     rows.focusTransitions();
+  }
+
+  /** The look sheet closed: focus goes back to the row it was opened from. */
+  export function focusLook(): void {
+    rows.focusLook();
   }
 
   /** The portrait pictures sheet closed: focus goes back to the row it was opened from. */
@@ -113,6 +121,7 @@
       {slideshow}
       {onEditMusic}
       {onEditTransitions}
+      {onEditLook}
       {onEditPortraitPictures}
     />
   </div>

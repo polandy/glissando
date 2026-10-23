@@ -70,6 +70,7 @@ export function slideshowDetails(
     thumbnailUrl: thumbnailUrl(picture.id),
     capturedAt: picture.capturedAt,
     ...(picture.video === undefined ? {} : { clipMs: picture.video.endMs - picture.video.startMs }),
+    ...(picture.caption === undefined ? {} : { caption: picture.caption }),
     ownMotion: picture.kenBurns !== undefined,
     ownDurationMs: picture.durationMs ?? null,
     // The last picture plays no transition; one stored there waits for a picture to follow.

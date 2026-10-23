@@ -215,6 +215,8 @@
     {onEditMusic}
     onTransition={(transition) => editor?.setSlideshowTransition(transition)}
     onResetTransition={() => editor?.resetSlideshowTransition()}
+    onLook={(look) => editor?.setSlideshowLook(look)}
+    onResetLook={() => editor?.resetSlideshowLook()}
     onPortraitPictures={(choice) => editor?.setPortraitPictures(choice)}
     onResetPortraitPictures={() => editor?.resetPortraitPictures()}
     onEnsureOpeningCard={() => mustEditor().ensureOpeningCard()}

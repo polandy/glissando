@@ -5,6 +5,8 @@
   import AddTile from "./AddTile.svelte";
   import CardTile from "./card-sheet/CardTile.svelte";
   import DragGhost from "./DragGhost.svelte";
+  import { lookFilterUrl } from "./look-filter-id";
+  import LookFilterDefs from "./LookFilterDefs.svelte";
   import PlaceholderTile from "./PlaceholderTile.svelte";
   import type { PictureStripProps } from "./picture-strip-props";
   import StripTile from "./StripTile.svelte";
@@ -17,6 +19,7 @@
   /** The pictures in play order as tiles: select, remove, and reorder by drag or keyboard. */
   let {
     pictures,
+    look,
     newPictureIds,
     selection,
     mousePointer,
@@ -44,6 +47,10 @@
   const { t } = getTranslator();
   let openingTile = $state<CardTile>();
   let closingTile = $state<CardTile>();
+
+  // Scopes this strip's filter ids from any other `LookFilterDefs` instance in the document.
+  const filterPrefix = crypto.randomUUID();
+  const lookFilter = $derived(lookFilterUrl(filterPrefix, look));
 
   export function focusOpeningCard(): void {
     openingTile?.focus();
@@ -206,6 +213,8 @@
   onpointercancel={(event) => drag.pointerCancel(event.pointerId)}
 />
 
+<LookFilterDefs prefix={filterPrefix} />
+
 <ol class="strip" bind:this={strip} onpointerdown={pointerDown} oncontextmenu={contextmenu}>
   {#if !suppressCards}
     <CardTile
@@ -223,6 +232,7 @@
       selected={selection.ids.has(picture.id)}
       selecting={selection.several}
       isNew={newPictureIds.has(picture.id)}
+      {lookFilter}
       {mousePointer}
       dragging={dragState.groupIds?.includes(picture.id) ?? false}
       drop={dragState.dropMark?.pictureId === picture.id
