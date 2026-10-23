@@ -121,7 +121,7 @@ describe("LookSheet", () => {
   it("shows German strings by default and English when asked", () => {
     setUp(details(["a", "b"]));
     expect(text(dialog()?.querySelector("#look-title") ?? null)).toBe("Look");
-    expect(text(dialog())).toContain("Zurück auf Kein");
+    expect(text(dialog())).toContain("Look entfernen");
 
     destroy?.();
     setUp(details(["a", "b"]), true);

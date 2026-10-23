@@ -19,7 +19,7 @@ describe("SlideshowEditor, the slideshow's look", () => {
 
     await editor.settled();
     expect(await store.getSlideshow("show")).not.toHaveProperty("look");
-    expect(toaster.current?.text).toBe("Look wieder auf Kein");
+    expect(toaster.current?.text).toBe("Look entfernt");
     expect(toaster.current?.action?.label).toBe("Rückgängig");
   });
 

@@ -93,6 +93,9 @@
           own: t("slideshow.transitionOwnCount", { count: slideshow.ownTransitionCount }),
         });
   });
+  const lookSummary = $derived(
+    slideshow.look === DEFAULT_SLIDESHOW_LOOK ? t("slideshow.lookDefault") : "",
+  );
   const portraitPicturesSummary = $derived(
     slideshow.pairCount === 0 ? "" : `· ${t("portrait.pairCount", { count: slideshow.pairCount })}`,
   );
@@ -161,9 +164,7 @@
       name="look"
       label={t("slideshow.look")}
       value={t(`look.${slideshow.look}`)}
-      summary=""
-      pill
-      own={slideshow.look !== DEFAULT_SLIDESHOW_LOOK}
+      summary={lookSummary}
       action={t("slideshow.change")}
       onclick={onEditLook}
     />

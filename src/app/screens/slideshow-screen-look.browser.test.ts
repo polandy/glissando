@@ -22,9 +22,10 @@ const tile = (look: string) => {
   }
   return found;
 };
-const chip = () => text(lookRow().querySelector(".chip") ?? null);
+const lookValue = () => text(lookRow().querySelector(".value b") ?? null);
+const lookRowSummary = () => text(lookRow().querySelector(".value small") ?? null);
 const pill = () => text(sheet()?.querySelector(".state") ?? null);
-const resetButton = () => buttonNamed("Zurück auf Kein");
+const resetButton = () => buttonNamed("Look entfernen");
 
 function openSheet(): void {
   lookRow().click();
@@ -32,18 +33,19 @@ function openSheet(): void {
 }
 
 describe("SlideshowScreen, the look row", () => {
-  it("names None and offers to change it, plain", () => {
+  it("names None as plain text and says it is the default", () => {
     mountScreen();
 
-    expect(text(lookRow())).toBe("Look Ohne Ändern");
-    expect(lookRow().querySelector(".chip")?.classList.contains("own")).toBe(false);
+    expect(lookValue()).toBe("Ohne");
+    expect(lookRowSummary()).toBe("Vorgabe");
+    expect(text(lookRow())).toBe("Look Ohne Vorgabe Ändern");
   });
 
-  it("names the chosen look as the slideshow's own choice", () => {
+  it("names the chosen look as plain text, with no summary", () => {
     mountScreen(details(["a"], { look: "warm" }));
 
-    expect(chip()).toBe("Warm");
-    expect(lookRow().querySelector(".chip")?.classList.contains("own")).toBe(true);
+    expect(lookValue()).toBe("Warm");
+    expect(lookRowSummary()).toBe("");
   });
 });
 
@@ -69,7 +71,8 @@ describe("SlideshowScreen, the look sheet", () => {
     expect(calls.looks).toEqual(["vivid"]);
     expect(pill()).toBe("Kräftig");
     expect(tile("vivid").getAttribute("aria-checked")).toBe("true");
-    expect(chip()).toBe("Kräftig");
+    expect(lookValue()).toBe("Kräftig");
+    expect(lookRowSummary()).toBe("");
   });
 
   it("goes back to None, which then looks off and says why", () => {
@@ -85,7 +88,8 @@ describe("SlideshowScreen, the look sheet", () => {
     expect(pill()).toBe("Ohne");
     expect(resetButton().getAttribute("aria-disabled")).toBe("true");
     expect(resetButton().title).toBe("Die Diashow hat keinen Look");
-    expect(chip()).toBe("Ohne");
+    expect(lookValue()).toBe("Ohne");
+    expect(lookRowSummary()).toBe("Vorgabe");
   });
 
   it("closes with Done, focus back on the row", () => {

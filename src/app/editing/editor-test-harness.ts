@@ -97,7 +97,7 @@ export async function setUp(
     transitionAutomaticText: () => "Übergang wieder automatisch",
     slideshowTransitionResetText: () => "Übergänge wieder auf Überblenden",
     portraitPicturesResetText: () => "Hochformatbilder wieder automatisch",
-    lookResetText: () => "Look wieder auf Kein",
+    lookResetText: () => "Look entfernt",
     songRemovedText: () => "Song entfernt",
     shuffledText: (count) => `${count} Bilder gemischt`,
     random: () => 0,

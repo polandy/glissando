@@ -12,8 +12,6 @@
     summary,
     action,
     onclick,
-    pill = false,
-    own = false,
   }: {
     /** Which row, as a class: "music", "transitions". */
     name: string;
@@ -23,10 +21,6 @@
     summary: string;
     action: string;
     onclick: () => void;
-    /** The value as an accent-tintable chip (the look row) instead of plain bold text. */
-    pill?: boolean;
-    /** The chip is accent-tinted: the setting is the user's own choice, not the default. */
-    own?: boolean;
   } = $props();
 
   let button: HTMLButtonElement;
@@ -39,11 +33,7 @@
 <button bind:this={button} type="button" class="row-action {name}" {onclick}>
   <span class="label">{label}</span>
   <span class="value">
-    {#if pill}
-      <span class="chip" class:own>{value}</span>
-    {:else}
-      <b>{value}</b>
-    {/if}
+    <b>{value}</b>
     {#if summary !== ""}
       <small>{summary}</small>
     {/if}
@@ -88,21 +78,6 @@
   .value small {
     color: var(--gl-muted);
     font-size: var(--gl-size-meta);
-  }
-  .chip {
-    justify-self: start;
-    padding: 3px 9px;
-    border: 1px solid var(--gl-line);
-    border-radius: var(--gl-radius-pill);
-    color: var(--gl-muted);
-    font-size: var(--gl-size-small);
-    font-weight: var(--gl-weight-semibold);
-    white-space: nowrap;
-  }
-  .chip.own {
-    border-color: transparent;
-    background: color-mix(in srgb, var(--gl-accent) 28%, var(--gl-surface));
-    color: var(--gl-ink);
   }
   .go {
     display: flex;

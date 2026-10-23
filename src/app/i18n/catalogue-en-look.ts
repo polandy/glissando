@@ -3,6 +3,7 @@ import type { deLook } from "./catalogue-de-look.ts";
 
 /** English copy of the slideshow's colour grade; typed to the German keys. */
 export const enLook: Pick<Catalogue, keyof typeof deLook> = {
+  "slideshow.lookDefault": "default",
   "look.title": "Look",
   "look.none": "None",
   "look.warm": "Warm",
