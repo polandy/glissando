@@ -7,7 +7,8 @@ option A: `https://polandy.github.io/glissando-assets/mockups/slideshow-looks/`.
   plain text, like the transitions row, with "default" underneath for None and no summary for
   any other look, and "Change", which opens the sheet.
 - **Sheet** (`slideshow/LookSheet.svelte`): modal like the transitions sheet (bottom sheet up to
-  720 px wide, a centred dialog above, over a scrim), title "Look", the state pill as in the row.
+  720 px wide, a centred dialog above, over a scrim), title "Look" and a state pill with
+  the look's name, accent-tinted for any look but None.
   - **Preview**: one picture of the slideshow (the first one; a video shows its poster) large,
     with its caption over it in the caption style, ungraded. The look is applied with the DOM
     renderer's SVG filter from the same table, so it matches the player. A "Hold to compare"
