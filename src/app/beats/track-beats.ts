@@ -1,6 +1,6 @@
 import type { MusicBeats } from "../../beats";
 import type { BeatPass, BeatPassState } from "../../library/beat-pass";
-import type { LibraryStore } from "../../library/stored-slideshow";
+import type { LibraryStore } from "../../library/library-store";
 import { beatsStatus, READING_BEATS, type BeatsStatus } from "./music-beats-known";
 
 export interface TrackBeatsPorts {

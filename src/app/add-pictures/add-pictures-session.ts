@@ -1,7 +1,8 @@
 import type { ImmichPhoto } from "../../immich/immich-client";
 import { DEFAULT_ADDED_PLACEMENT, type AddedPlacement } from "../../library/added-placement";
 import { addPictures } from "../../library/slideshow-edits";
-import type { LibraryStore, SlideshowStore, StoredSlideshow } from "../../library/stored-slideshow";
+import type { LibraryStore, SlideshowStore } from "../../library/library-store";
+import type { StoredSlideshow } from "../../library/stored-slideshow";
 import { PictureIntake, type PictureIntakePorts } from "../import/picture-intake";
 import type { SlideshowHome } from "../routes/slideshow-storage";
 

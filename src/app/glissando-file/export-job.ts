@@ -3,7 +3,8 @@ import {
   glissandoFileName,
   type ExportMedia,
 } from "../../glissando-file/export-slideshow";
-import type { LibraryStore, StoredSlideshow } from "../../library/stored-slideshow";
+import type { LibraryStore } from "../../library/library-store";
+import type { StoredSlideshow } from "../../library/stored-slideshow";
 import type { Toaster } from "../toast/toaster";
 import { isStorageShortage } from "./storage-shortage";
 

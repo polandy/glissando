@@ -1,5 +1,6 @@
 import { UnreadableMusicError, type MusicProbe } from "../../../import/music-probe";
-import type { PictureBlobs, StoredSlideshow } from "../../../library/stored-slideshow";
+import type { PictureBlobs } from "../../../library/library-store";
+import type { StoredSlideshow } from "../../../library/stored-slideshow";
 import { MemoryLibraryStore } from "../../../library/testing/memory-store";
 import type { ImmichPhoto } from "../../../immich/immich-client";
 import type { PictureFocus } from "../../../library/picture-focus";

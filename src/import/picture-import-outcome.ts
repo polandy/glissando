@@ -2,7 +2,8 @@ import { FOCUS_DETECTOR_VERSION } from "../focus/focus-detector-version";
 import { isSamePicture, type PictureIdentity } from "../library/picture-identity";
 import { pictureColours, type RgbPixel } from "../library/picture-colours";
 import { MAX_VIDEO_EXCERPT_MS, type StoredVideo } from "../library/own-video";
-import type { LibraryStore, StoredPicture } from "../library/stored-slideshow";
+import type { LibraryStore } from "../library/library-store";
+import type { StoredPicture } from "../library/stored-slideshow";
 import type { DuplicateReason, SkipReason } from "./picture-import-types";
 import {
   PictureNotDownloadedError,

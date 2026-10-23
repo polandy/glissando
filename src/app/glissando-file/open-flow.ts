@@ -1,7 +1,7 @@
 import { checkGlissandoFile } from "../../glissando-file/check-glissando-file";
 import type { MediaDecoders } from "../../glissando-file/media-decoders";
 import { writeGlissandoFile, type WritePorts } from "../../glissando-file/write-glissando-file";
-import type { LibraryStore } from "../../library/stored-slideshow";
+import type { LibraryStore } from "../../library/library-store";
 import type { Navigator } from "../navigation/navigator";
 import type { Toaster } from "../toast/toaster";
 import { isQuotaExceeded } from "./storage-shortage";

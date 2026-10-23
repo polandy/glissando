@@ -9,12 +9,9 @@ import type { MusicLoudness } from "../loudness";
 import type { DecodedPicture } from "../import/downscale";
 import { decodeImmichPhoto } from "../import/immich-picture-source";
 import type { StoredFocus } from "../library/picture-focus";
-import {
-  MediaNotFoundError,
-  SlideshowNotFoundError,
-  type SlideshowStore,
-  type StoredSlideshow,
-} from "../library/stored-slideshow";
+import type { SlideshowStore } from "../library/library-store";
+import { MediaNotFoundError, SlideshowNotFoundError } from "../library/library-store";
+import type { StoredSlideshow } from "../library/stored-slideshow";
 import { serverDocumentFor, storedSlideshowFrom } from "./server-document";
 import {
   ServerLibraryNotFoundError,

@@ -159,7 +159,3 @@ export interface StoredSlideshow {
   /** The closing slide; absent: none. */
   readonly closingCard?: StoredCard;
 }
-
-/** The persistence port (`LibraryStore` and what it moves): `src/library/library-store.ts`. */
-export type { LibraryStore, MediaClaim, PictureBlobs, SlideshowStore } from "./library-store";
-export { CLAIM_SPARED_FOR_MS, MediaNotFoundError, SlideshowNotFoundError } from "./library-store";

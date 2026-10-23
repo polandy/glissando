@@ -1,5 +1,6 @@
 import type { PictureFocus } from "../../library/picture-focus";
-import type { LibraryStore, StoredSlideshow } from "../../library/stored-slideshow";
+import type { LibraryStore } from "../../library/library-store";
+import type { StoredSlideshow } from "../../library/stored-slideshow";
 import type { Toaster } from "../toast/toaster";
 import type { EditRefusal } from "./edit-refusal";
 

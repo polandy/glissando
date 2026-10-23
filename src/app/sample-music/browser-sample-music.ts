@@ -1,5 +1,5 @@
 import { browserNetworkStatus } from "../../immich/immich-availability";
-import type { LibraryStore } from "../../library/stored-slideshow";
+import type { LibraryStore } from "../../library/library-store";
 import type { SampleMusicConfig } from "../../sample-music/sample-music-config";
 import { browserObjectUrls } from "../media/object-urls";
 import { SamplePreview } from "./sample-preview";

@@ -2,13 +2,8 @@ import { FOCUS_DETECTOR_VERSION } from "../focus/focus-detector-version";
 import { uniqueTitle } from "../glissando-file/unique-title";
 import type { ImmichPhoto } from "../immich/immich-client";
 import { immichPictureSource, type ImmichPictureReaders } from "../import/immich-picture-source";
-import type {
-  LibraryStore,
-  SlideshowStore,
-  StoredMusic,
-  StoredPicture,
-  StoredSlideshow,
-} from "../library/stored-slideshow";
+import type { LibraryStore, SlideshowStore } from "../library/library-store";
+import type { StoredMusic, StoredPicture, StoredSlideshow } from "../library/stored-slideshow";
 
 export interface KeepCopyPorts {
   /** The device's store the copy goes into. */

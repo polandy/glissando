@@ -112,7 +112,7 @@ wizard as it was with a coral toast naming it and "Try again".
   `musicBeats`/`musicLoudness`
   (with `put…`) keep beats and loudness beside the server music, measured by the first device
   opening the slideshow in the player or music editor (`serverBeatPass`/`serverLoudnessPass`). Both stores share the type
-  `SlideshowStore` (`src/library/stored-slideshow.ts`).
+  `SlideshowStore` (`src/library/library-store.ts`).
 - Errors the screens tell apart: an unknown slideshow is `SlideshowNotFoundError` as on the
   device; an edit at a stale revision `SlideshowChangedError` carrying the current slideshow; a
   server out of reach or failing (network, 5xx) `ServerLibraryUnavailableError`; a picture Immich

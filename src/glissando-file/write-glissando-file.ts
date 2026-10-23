@@ -1,4 +1,5 @@
-import type { LibraryStore, StoredSlideshow } from "../library/stored-slideshow";
+import type { LibraryStore } from "../library/library-store";
+import type { StoredSlideshow } from "../library/stored-slideshow";
 import type { CheckedGlissandoFile } from "./check-glissando-file";
 import { slideshowFromManifest } from "./slideshow-from-manifest";
 import { uniqueTitle } from "./unique-title";

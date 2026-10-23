@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { SlideshowNotFoundError, type StoredSlideshow } from "../../library/stored-slideshow";
+import { SlideshowNotFoundError } from "../../library/library-store";
+import type { StoredSlideshow } from "../../library/stored-slideshow";
 import { MemoryLibraryStore } from "../../library/testing/memory-store";
 import { SlideshowEditor } from "../editing/slideshow-editor";
 import { FakeScheduler } from "../../ui-kit/testing/fake-scheduler";

@@ -1,6 +1,6 @@
 import { NO_BEATS } from "../../beats";
 import { BeatPass } from "../beat-pass";
-import type { LibraryStore } from "../stored-slideshow";
+import type { LibraryStore } from "../library-store";
 import { FakeBeatDetector } from "./fake-beat-detector";
 
 /**

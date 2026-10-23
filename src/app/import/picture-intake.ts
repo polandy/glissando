@@ -11,7 +11,7 @@ import type { PictureSource } from "../../import/picture-source";
 import { localVideoSource, type LocalVideoReaders } from "../../import/local-video-source";
 import type { PictureColours, RgbPixel } from "../../library/picture-colours";
 import type { PictureIdentity } from "../../library/picture-identity";
-import type { LibraryStore } from "../../library/stored-slideshow";
+import type { LibraryStore } from "../../library/library-store";
 import { linkImmichPhotos } from "../../server-library/link-immich-photos";
 import type { PictureChecker } from "../../culling/picture-checker";
 import { PictureCulling } from "./picture-culling";

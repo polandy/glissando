@@ -1,9 +1,6 @@
 /** Shared set-up of the `SlideshowEditor` tests. */
-import {
-  MediaNotFoundError,
-  type StoredMusic,
-  type StoredSlideshow,
-} from "../../library/stored-slideshow";
+import { MediaNotFoundError } from "../../library/library-store";
+import type { StoredMusic, StoredSlideshow } from "../../library/stored-slideshow";
 import type { PictureFocus } from "../../library/picture-focus";
 import { MemoryLibraryStore } from "../../library/testing/memory-store";
 import { FakeScheduler } from "../../ui-kit/testing/fake-scheduler";

@@ -4,7 +4,7 @@ import {
   ImmichUnavailableError,
   type ImmichFace,
 } from "../immich/immich-client";
-import { MediaNotFoundError } from "../library/stored-slideshow";
+import { MediaNotFoundError } from "../library/library-store";
 import { serverDetectionInput } from "./server-focus-detection";
 
 const FACE: ImmichFace = { imageWidth: 100, imageHeight: 50, x1: 25, y1: 5, x2: 75, y2: 25 };

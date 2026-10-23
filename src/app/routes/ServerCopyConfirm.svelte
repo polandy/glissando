@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import type { SlideshowStore, StoredSlideshow } from "../../library/stored-slideshow";
+  import type { SlideshowStore } from "../../library/library-store";
+  import type { StoredSlideshow } from "../../library/stored-slideshow";
   import Dialog, { type DialogAction } from "../components/Dialog.svelte";
   import { getTranslator } from "../i18n/context";
   import { keepCopySheet, saveOnServerSheet, type CopySheet } from "../server-library/copy-sheet";

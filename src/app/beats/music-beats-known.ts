@@ -1,7 +1,8 @@
 import { NO_BEATS, type MusicBeats } from "../../beats";
 import type { SongBeats } from "../../compose";
 import type { BeatPassState } from "../../library/beat-pass";
-import type { LibraryStore, StoredSlideshow } from "../../library/stored-slideshow";
+import type { LibraryStore } from "../../library/library-store";
+import type { StoredSlideshow } from "../../library/stored-slideshow";
 
 /**
  * The beats found so far for each song of the slideshow, which the player and the exports compose

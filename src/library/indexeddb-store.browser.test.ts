@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { SlideshowNotFoundError, type StoredSlideshow } from "./stored-slideshow";
+import { SlideshowNotFoundError } from "./library-store";
+import type { StoredSlideshow } from "./stored-slideshow";
 import { storedFocus } from "./focus-pass-fixtures";
 import { IndexedDbLibraryStore, LIBRARY_DATABASE_NAME, openLibraryStore } from "./indexeddb-store";
 import { describeLibraryStoreContract } from "./testing/library-store-contract";

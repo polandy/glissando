@@ -6,7 +6,8 @@ import {
   LoudnessPass,
   type LoudnessPassPorts,
 } from "./loudness-pass";
-import type { LibraryStore, StoredSlideshow } from "./stored-slideshow";
+import type { LibraryStore } from "./library-store";
+import type { StoredSlideshow } from "./stored-slideshow";
 import {
   addShow,
   answersBy,

@@ -1,11 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import {
-  MediaNotFoundError,
-  SlideshowNotFoundError,
-  type LibraryStore,
-  type StoredPicture,
-  type StoredSlideshow,
-} from "../stored-slideshow";
+import type { LibraryStore } from "../library-store";
+import { MediaNotFoundError, SlideshowNotFoundError } from "../library-store";
+import type { StoredPicture, StoredSlideshow } from "../stored-slideshow";
 import { describeEditing } from "./editing-contract";
 import { describeImportsInProgress } from "./imports-in-progress-contract";
 import { describeMusicBeats } from "./music-beats-contract";

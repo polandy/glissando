@@ -1,11 +1,7 @@
 import { composeSlideshow, type SongBeats, type SongLoudness } from "../compose";
 import type { PictureFocus } from "../library/picture-focus";
-import type {
-  LibraryStore,
-  StoredMusic,
-  StoredPicture,
-  StoredSlideshow,
-} from "../library/stored-slideshow";
+import type { LibraryStore } from "../library/library-store";
+import type { StoredMusic, StoredPicture, StoredSlideshow } from "../library/stored-slideshow";
 import { cardFontFilesUsedBy, isGroundSlide, type Slideshow } from "../player";
 import { encodeBase64 } from "./base64";
 import { cardFontFaceRules, MEDIA_BLOCK_END, mediaBlockStart, pageHead, pageTail } from "./page";

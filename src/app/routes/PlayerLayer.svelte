@@ -2,7 +2,8 @@
   import { onDestroy, onMount } from "svelte";
   import type { BeatPass } from "../../library/beat-pass";
   import { composeSlideshow, type SongBeats, type SongLoudness } from "../../compose";
-  import type { LibraryStore, StoredSlideshow } from "../../library/stored-slideshow";
+  import type { LibraryStore } from "../../library/library-store";
+  import type { StoredSlideshow } from "../../library/stored-slideshow";
   import { performanceClock, type DecodeClipSound, type MusicOutput } from "../../player";
   import type { PictureFocus } from "../../library/picture-focus";
   import { getTranslator } from "../i18n/context";

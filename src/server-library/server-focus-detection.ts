@@ -6,7 +6,7 @@ import {
 } from "../immich/immich-client";
 import { focusFromFaces } from "../immich/immich-focus";
 import type { PictureFocus } from "../library/picture-focus";
-import { MediaNotFoundError } from "../library/stored-slideshow";
+import { MediaNotFoundError } from "../library/library-store";
 
 const HTTP_NOT_FOUND = 404;
 /** Immich's display-size JPEG, upright; downscaled further for detection (ADR-0041). */

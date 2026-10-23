@@ -3,7 +3,8 @@
   import type { BeatPass } from "../../library/beat-pass";
   import type { FocusPass } from "../../library/focus-pass";
   import { MediaQuery } from "svelte/reactivity";
-  import type { LibraryStore, StoredSlideshow } from "../../library/stored-slideshow";
+  import type { LibraryStore } from "../../library/library-store";
+  import type { StoredSlideshow } from "../../library/stored-slideshow";
   import { animationFrames, performanceClock } from "../../player";
   import { composedBeats, type BeatsStatus } from "../beats/music-beats-known";
   import { PlaylistBeats } from "../beats/playlist-beats";

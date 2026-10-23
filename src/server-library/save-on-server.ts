@@ -1,4 +1,5 @@
-import type { SlideshowStore, StoredPicture, StoredSlideshow } from "../library/stored-slideshow";
+import type { SlideshowStore } from "../library/library-store";
+import type { StoredPicture, StoredSlideshow } from "../library/stored-slideshow";
 import { serverDocumentFor, storedSlideshowFrom } from "./server-document";
 import type { ServerLibraryClient } from "./server-library-client";
 

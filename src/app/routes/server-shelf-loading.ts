@@ -1,4 +1,4 @@
-import type { SlideshowStore } from "../../library/stored-slideshow";
+import type { SlideshowStore } from "../../library/library-store";
 import { ServerLibraryUnavailableError } from "../../server-library/server-library-client";
 import type {
   ServerLibraryMemory,

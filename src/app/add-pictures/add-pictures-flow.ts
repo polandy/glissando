@@ -1,5 +1,6 @@
 import type { FocusPass } from "../../library/focus-pass";
-import { SlideshowNotFoundError, type StoredSlideshow } from "../../library/stored-slideshow";
+import { SlideshowNotFoundError } from "../../library/library-store";
+import type { StoredSlideshow } from "../../library/stored-slideshow";
 import { refusedEditOf, type EditRefusal } from "../editing/edit-refusal";
 import type { Navigator } from "../navigation/navigator";
 import type { Route } from "../navigation/route";

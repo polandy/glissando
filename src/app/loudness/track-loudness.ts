@@ -1,6 +1,6 @@
 import type { MusicLoudness } from "../../loudness";
 import type { LoudnessPass, LoudnessPassState } from "../../library/loudness-pass";
-import type { LibraryStore } from "../../library/stored-slideshow";
+import type { LibraryStore } from "../../library/library-store";
 import { loudnessStatus, READING_LOUDNESS, type LoudnessStatus } from "./music-loudness-known";
 
 export interface TrackLoudnessPorts {

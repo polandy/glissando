@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { SlideshowNotFoundError } from "../../library/stored-slideshow";
+import { SlideshowNotFoundError } from "../../library/library-store";
 import { TOAST_DURATION_MS } from "../toast/toaster";
 import { setUp, stored } from "./editor-test-harness";
 

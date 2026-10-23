@@ -1,6 +1,7 @@
 import { composeSlideshow, slideshowDurationMs } from "../../compose";
 import { DEFAULT_VIDEO_VOLUME } from "../../library/own-video";
-import type { LibraryStore, StoredSlideshow } from "../../library/stored-slideshow";
+import type { LibraryStore } from "../../library/library-store";
+import type { StoredSlideshow } from "../../library/stored-slideshow";
 import {
   canDecodeClip,
   clipsToDecode,

@@ -1,7 +1,7 @@
 import type { PictureIdentity } from "../../library/picture-identity";
 import type { RgbPixel } from "../../library/picture-colours";
 import { MemoryLibraryStore } from "../../library/testing/memory-store";
-import type { PictureBlobs } from "../../library/stored-slideshow";
+import type { PictureBlobs } from "../../library/library-store";
 import type { DecodedPicture } from "../downscale";
 import { UnreadablePictureError } from "../unreadable-picture";
 import { localPictureSource } from "../local-picture-source";

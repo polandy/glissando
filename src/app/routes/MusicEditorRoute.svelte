@@ -2,7 +2,8 @@
   import { onDestroy } from "svelte";
   import type { BeatPass } from "../../library/beat-pass";
   import type { LoudnessPass } from "../../library/loudness-pass";
-  import type { LibraryStore, StoredSlideshow } from "../../library/stored-slideshow";
+  import type { LibraryStore } from "../../library/library-store";
+  import type { StoredSlideshow } from "../../library/stored-slideshow";
   import { PlaylistBeats } from "../beats/playlist-beats";
   import { PlaylistLoudness } from "../loudness/playlist-loudness";
   import type { SlideshowEditor } from "../editing/slideshow-editor";

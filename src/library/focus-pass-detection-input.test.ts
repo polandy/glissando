@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { FocusPassPorts } from "./focus-pass";
 import type { PictureFocus } from "./picture-focus";
-import { MediaNotFoundError } from "./stored-slideshow";
+import { MediaNotFoundError } from "./library-store";
 import { FakeFocusDetector } from "./testing/fake-focus-detector";
 import { FACES, NOTHING, storeWith, passOver, storedFocus } from "./focus-pass-fixtures";
 

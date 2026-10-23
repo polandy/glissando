@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MediaNotFoundError } from "../library/stored-slideshow";
+import { MediaNotFoundError } from "../library/library-store";
 import { MemoryLibraryStore } from "../library/testing/memory-store";
 import { checkGlissandoFile, type CheckedGlissandoFile } from "./check-glissando-file";
 import { fakeMediaDecoders } from "./testing/fake-media-decoders";
