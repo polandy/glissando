@@ -13,11 +13,18 @@ import {
   type PortraitPictures,
 } from "../library/portrait-pictures";
 import { checkSlideshowLook, InvalidSlideshowLookError } from "../library/slideshow-look";
+import {
+  checkSlideshowMood,
+  InvalidSlideshowMoodError,
+  SLIDESHOW_MOODS,
+  type SlideshowMood,
+} from "../library/slideshow-mood";
 import { MAX_SECONDS_PER_PICTURE, MIN_SECONDS_PER_PICTURE } from "../library/stored-slideshow";
 import { GRADED_SLIDESHOW_LOOKS, type GradedSlideshowLook } from "../player/looks/slideshow-look";
 import {
   DEFAULT_TRANSITION_FROM_VERSION,
   LOOK_FROM_VERSION,
+  MOOD_FROM_VERSION,
   PICTURE_LENGTH_FROM_VERSION,
   TRIP_CHAPTERS_FROM_VERSION,
   type ManifestMusic,
@@ -62,6 +69,7 @@ export function slideshowKeys(version: number): string[] {
       ? ["automaticChaptersOff", "chapterEdits", "addedChapters"]
       : []),
     ...(version >= LOOK_FROM_VERSION ? ["look"] : []),
+    ...(version >= MOOD_FROM_VERSION ? ["mood"] : []),
   ];
 }
 
@@ -111,6 +119,7 @@ export function readSlideshowFields(
       ? {}
       : { portraitPictures: readPortraitPictures(show["portraitPictures"], path) }),
     ...(show["look"] === undefined ? {} : { look: readLook(show["look"], path) }),
+    ...(show["mood"] === undefined ? {} : { mood: readMood(show["mood"], path) }),
     ...(show["openingCard"] === undefined
       ? {}
       : {
@@ -151,6 +160,21 @@ function readLook(value: unknown, path: string): GradedSlideshowLook {
       throw new DocumentFormatError(
         `${path}.look`,
         `one of ${GRADED_SLIDESHOW_LOOKS.join(", ")}`,
+        error.actual,
+      );
+    }
+    throw error;
+  }
+}
+
+function readMood(value: unknown, path: string): SlideshowMood {
+  try {
+    return checkSlideshowMood(value, path);
+  } catch (error) {
+    if (error instanceof InvalidSlideshowMoodError) {
+      throw new DocumentFormatError(
+        `${path}.mood`,
+        `one of ${SLIDESHOW_MOODS.join(", ")}`,
         error.actual,
       );
     }

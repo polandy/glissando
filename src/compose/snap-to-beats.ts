@@ -1,5 +1,5 @@
 /** Beats per phrase: a bar of four, so a change on a phrase start sits where the music turns. */
-const BEATS_PER_PHRASE = 4;
+export const BEATS_PER_PHRASE = 4;
 
 /**
  * Moves slide boundaries onto the music's beats (ADR-0021): each one, automatic or an own

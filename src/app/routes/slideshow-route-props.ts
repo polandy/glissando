@@ -33,8 +33,9 @@ export interface SlideshowRouteProps {
   /** What it finds updates the editors' automatic motions and focus marks as it goes; the picture
    * editor's "Look again" asks it to look at one picture again (ADR-0041). */
   focusPass: Pick<FocusPass, "state" | "subscribe" | "lookAgain">;
-  /** What it finds puts the editors' automatic changes on the music's beats as it goes. */
-  beatPass: Pick<BeatPass, "subscribe" | "listenFor">;
+  /** What it finds puts the editors' automatic changes on the music's beats as it goes; a mood
+   * reads its state directly, for the tempo it paces to (ADR-0045). */
+  beatPass: Pick<BeatPass, "state" | "subscribe" | "listenFor">;
   /** What it finds levels each song in the music editor as it goes (ADR-0040). */
   loudnessPass: Pick<LoudnessPass, "subscribe" | "listenFor">;
   toaster: Toaster;

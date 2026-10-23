@@ -15,10 +15,14 @@ export function autoTransitionEffect(index: number): TransitionEffect {
   return TRANSITION_EFFECTS[index % TRANSITION_EFFECTS.length] as TransitionEffect;
 }
 
-/** How long a transition runs at the end of a slide this long, own effect or automatic. */
-export function transitionDurationMs(slideDurationMs: number): number {
-  return Math.min(
-    MAX_TRANSITION_DURATION_MS,
-    Math.round(slideDurationMs * TRANSITION_SHARE_OF_SLIDE),
-  );
+/**
+ * How long a transition runs at the end of a slide this long, own effect or automatic; `share`
+ * and `maxMs` take a mood's own length in place of the defaults (ADR-0045).
+ */
+export function transitionDurationMs(
+  slideDurationMs: number,
+  share = TRANSITION_SHARE_OF_SLIDE,
+  maxMs = MAX_TRANSITION_DURATION_MS,
+): number {
+  return Math.min(maxMs, Math.round(slideDurationMs * share));
 }

@@ -45,7 +45,10 @@ validates it (`checkSlideshowTransition`) and deletes the field for `undefined` 
 `"crossfade"`; records without it need no migration. The slideshow's optional `look` is its colour grade (one of
 `SLIDESHOW_LOOKS` other than `"none"`; ADR-0044); absent, it is none. `setSlideshowLook` validates
 it (`checkSlideshowLook`) and deletes the field for `undefined` or `"none"`; records without it
-need no migration. A picture's optional `video` (`StoredVideo`: `mediaId`, `sourceMs`,
+need no migration. The slideshow's optional `mood` is its pacing rule (one of `"calm"` or
+`"lively"`, ADR-0045); absent, it is Custom. `setSlideshowMood` validates it
+(`checkSlideshowMood`) and deletes the field for `undefined`; records without it need no
+migration. A picture's optional `video` (`StoredVideo`: `mediaId`, `sourceMs`,
 `startMs`, `endMs`, `volume` 0 to 100 in steps of 5, `duckMusic` only ever `false`) makes it a video
 slide, its picture the poster; the file lives in `videos` under `mediaId` (`putVideo`, `videoBlob`).
 `setVideoExcerpt`, `setVideoVolume` and `setVideoDuckMusic` validate (`checkVideoExcerpt`,

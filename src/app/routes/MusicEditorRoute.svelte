@@ -186,6 +186,7 @@
     song !== undefined && editor.setMusicPictureChanges(song.id, changes)}
   onPictureLength={(length) => editor.setPictureLength(length)}
   onSecondsPerPicture={(seconds) => editor.setSecondsPerPicture(seconds)}
+  onSetOwnPictureTimes={() => editor.mood.reset()}
   onListen={(kind) =>
     song !== undefined && preview?.toggle(kind, musicEditorView(stored, beats, song.id).timing)}
   onListenVolume={() =>

@@ -23,6 +23,8 @@ export interface PictureSettingsPorts {
   readonly slideshowTransitionResetText: () => string;
   /** The undo toast's text after the portrait pictures setting went back to automatic. */
   readonly portraitPicturesResetText: () => string;
+  /** The undo toast's text after this edit silently left an active mood (ADR-0045 `leaveMood`). */
+  readonly moodNowCustomText: () => string;
 }
 
 /**
@@ -105,10 +107,16 @@ export class PictureSettingsEditor {
     );
   }
 
-  /** Every picture without its own transition hands over with `transition` from now on. */
+  /**
+   * Every picture without its own transition hands over with `transition` from now on. While a
+   * mood is on, this leaves it first (ADR-0045); the toast's undo brings the slideshow back as
+   * it was, mood included.
+   */
   setSlideshowTransition(transition: SlideshowTransition): void {
     this.#reset.supersede(this.#current().id, "slideshowTransition");
-    this.#apply(setSlideshowTransition(this.#current(), transition));
+    const before = this.#current();
+    this.#apply(setSlideshowTransition(before, transition));
+    this.#offerMoodLeftUndo(before);
   }
 
   /** Returns the default to crossfade without asking; the toast's undo brings it back. */
@@ -159,6 +167,15 @@ export class PictureSettingsEditor {
       this.#ports.focusOf(pictureId),
     );
     this.setKenBurns(pictureId, { from: to, to: from });
+  }
+
+  /** Offers the "Mood is now Custom" undo when `before`'s mood just left by this edit. */
+  #offerMoodLeftUndo(before: StoredSlideshow): void {
+    if (before.mood !== undefined && this.#current().mood === undefined) {
+      this.#reset.offer(before.id, "slideshowMood", this.#ports.moodNowCustomText(), () =>
+        this.#apply(before),
+      );
+    }
   }
 
   /** The undo of a reset; a picture removed meanwhile has nothing to bring back. */

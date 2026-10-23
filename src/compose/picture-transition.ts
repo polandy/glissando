@@ -30,7 +30,8 @@ export function automaticTransition(
 /**
  * The transition the picture at `index` hands over with: its own effect (which stays with it
  * wherever it moves), otherwise the automatic one. A cut has none, and the last slide has none
- * to carry it (ADR-0002), even with an own one stored (ADR-0008).
+ * to carry it (ADR-0002), even with an own one stored (ADR-0008). `transitionShare` and
+ * `maxTransitionMs` take a mood's own length in place of the defaults (ADR-0045).
  */
 export function pictureTransition(
   index: number,
@@ -38,10 +39,15 @@ export function pictureTransition(
   picture: StoredPicture,
   slideDurationMs: number,
   defaultTransition: SlideshowTransition,
+  transitionShare?: number,
+  maxTransitionMs?: number,
 ): Transition | undefined {
   const choice = picture.transition ?? automaticTransition(index, defaultTransition);
   if (index === slideCount - 1 || choice === CUT_TRANSITION) {
     return undefined;
   }
-  return { effect: choice, durationMs: transitionDurationMs(slideDurationMs) };
+  return {
+    effect: choice,
+    durationMs: transitionDurationMs(slideDurationMs, transitionShare, maxTransitionMs),
+  };
 }

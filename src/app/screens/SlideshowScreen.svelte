@@ -4,14 +4,12 @@
   import { viewerEntries } from "../components/picture-viewer-view";
   import { getTranslator } from "../i18n/context";
   import InfoPanel from "./slideshow/InfoPanel.svelte";
-  import FocusSheetHost from "./slideshow/FocusSheetHost.svelte";
   import { slideshowFocusMenuHint } from "./slideshow/focus-menu-hint";
   import MoreMenu from "./slideshow/MoreMenu.svelte";
   import PicturesColumn from "./slideshow/PicturesColumn.svelte";
   import SelectionBar from "./slideshow/SelectionBar.svelte";
   import SlideshowEditSheets from "./slideshow/SlideshowEditSheets.svelte";
-  import ExportSheets from "./slideshow/ExportSheets.svelte";
-  import DeleteFlow from "./slideshow/DeleteFlow.svelte";
+  import SlideshowScreenOverlays from "./slideshow/SlideshowScreenOverlays.svelte";
   import {
     endSelecting,
     NO_SELECTION,
@@ -41,6 +39,10 @@
     onResetTransition,
     onLook,
     onResetLook,
+    moodBpm,
+    moodPreviewPorts,
+    onMood,
+    onResetMood,
     onPortraitPictures,
     onResetPortraitPictures,
     onEnsureOpeningCard,
@@ -106,9 +108,7 @@
   let infoPanel = $state<InfoPanel>();
   let picturesColumn = $state<PicturesColumn>();
   let editSheets = $state<SlideshowEditSheets>();
-  let exportSheets = $state<ExportSheets>();
-  let focusSheetHost = $state<FocusSheetHost>();
-  let deleteFlow = $state<DeleteFlow>();
+  let overlays = $state<SlideshowScreenOverlays>();
 </script>
 
 <div class="screen" class:selecting={showBar} aria-busy={saving}>
@@ -118,15 +118,15 @@
         bind:this={moreMenu}
         {exportState}
         {onExport}
-        onSaveVideo={() => exportSheets?.openVideo()}
-        onSaveWebPage={() => exportSheets?.openWebPage()}
+        onSaveVideo={() => overlays?.openVideoExport()}
+        onSaveWebPage={() => overlays?.openWebPageExport()}
         onOpened={onMenuOpened}
-        onDelete={() => deleteFlow?.open()}
+        onDelete={() => overlays?.openDelete()}
         {storage}
         pictureCount={slideshow.pictures.length}
         {onStorageAction}
         focusHint={slideshowFocusMenuHint(focus, slideshow.pictures, focusSearch, focusPaused)}
-        onFocus={() => focusSheetHost?.show()}
+        onFocus={() => overlays?.showFocus()}
       />
     {/snippet}
   </Header>
@@ -165,6 +165,8 @@
         {onEditMusic}
         onEditTransitions={() => editSheets?.openTransitions()}
         onEditLook={() => editSheets?.openLook()}
+        {moodBpm}
+        onEditMood={() => editSheets?.openMood()}
         onEditPortraitPictures={() => editSheets?.openPortraitPictures()}
         onEditChapters={() => editSheets?.openGeneralChapters()}
       />
@@ -210,10 +212,15 @@
   {onResetTransition}
   {onLook}
   {onResetLook}
+  {moodPreviewPorts}
+  {moodBpm}
+  {onMood}
+  {onResetMood}
   {onPortraitPictures}
   {onResetPortraitPictures}
   onTransitionsClosed={() => infoPanel?.focusTransitions()}
   onLookClosed={() => infoPanel?.focusLook()}
+  onMoodClosed={() => infoPanel?.focusMood()}
   onPortraitPicturesClosed={() => infoPanel?.focusPortraitPictures()}
   {onEnsureOpeningCard}
   {onOpeningCard}
@@ -227,32 +234,19 @@
   onChaptersClosed={() => infoPanel?.focusChapters()}
 />
 
-<ExportSheets
-  bind:this={exportSheets}
+<SlideshowScreenOverlays
+  bind:this={overlays}
   {slideshow}
-  {newVideoExport}
-  {newHtmlExport}
-  onVideoClosed={() => moreMenu?.focus()}
-  onHtmlClosed={() => moreMenu?.focus()}
-/>
-<FocusSheetHost
-  bind:this={focusSheetHost}
+  {storage}
   {focus}
-  pictures={slideshow.pictures}
-  search={focusSearch}
-  passPaused={focusPaused}
-  onServer={storage?.kind === "server"}
+  {focusSearch}
+  {focusPaused}
   {onEdit}
   {onLookAgain}
-/>
-
-<DeleteFlow
-  bind:this={deleteFlow}
-  title={slideshow.title}
-  pictureCount={slideshow.pictures.length}
-  onServer={storage?.kind === "server"}
+  {newVideoExport}
+  {newHtmlExport}
   {onDelete}
-  onKept={() => moreMenu?.focus()}
+  onClosed={() => moreMenu?.focus()}
 />
 
 <style>

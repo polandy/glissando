@@ -23,6 +23,8 @@
     onEditMusic,
     onEditTransitions,
     onEditLook,
+    moodBpm,
+    onEditMood,
     onEditPortraitPictures,
     onEditChapters,
   }: {
@@ -38,6 +40,10 @@
     onEditTransitions: () => void;
     /** Opens the sheet of the slideshow's colour grade (ADR-0044). */
     onEditLook: () => void;
+    /** The slideshow's tempo under its mood (ADR-0045); undefined without one. */
+    moodBpm: number | undefined;
+    /** Opens the Mood sheet. */
+    onEditMood: () => void;
     /** Opens the sheet of the slideshow's portrait pictures setting. */
     onEditPortraitPictures: () => void;
     /** Opens the trip chapters sheet in general mode (TRIP_CHAPTERS.md). */
@@ -54,6 +60,11 @@
   /** The look sheet closed: focus goes back to the row it was opened from. */
   export function focusLook(): void {
     rows.focusLook();
+  }
+
+  /** The Mood sheet closed: focus goes back to the row it was opened from. */
+  export function focusMood(): void {
+    rows.focusMood();
   }
 
   /** The portrait pictures sheet closed: focus goes back to the row it was opened from. */
@@ -130,6 +141,8 @@
       {onEditMusic}
       {onEditTransitions}
       {onEditLook}
+      {moodBpm}
+      {onEditMood}
       {onEditPortraitPictures}
       {onEditChapters}
     />

@@ -9,6 +9,7 @@ import type { PictureLength } from "./picture-length";
 import type { PortraitPictures } from "./portrait-pictures";
 import type { BetweenSongs, MusicTrim, PictureChanges } from "./own-music";
 import type { SlideshowTransition, TransitionChoice } from "./own-timing";
+import type { SlideshowMood } from "./slideshow-mood";
 
 /**
  * A slideshow as kept on the device: the user's pictures and music plus the few settings the
@@ -171,6 +172,12 @@ export interface StoredSlideshow {
    * see ADR-0044).
    */
   readonly look?: GradedSlideshowLook;
+  /**
+   * The live rule over the picture times, default transition and Ken Burns strength, resolved
+   * from the music's tempo when composing; absent: Custom, the single settings as stored
+   * (ADR-0045, `dev-docs/app/slideshow-editing/MOOD.md`).
+   */
+  readonly mood?: SlideshowMood;
   /**
    * How portrait pictures lay out (`checkPortraitPictures`); absent: automatic, pairs and a
    * blurred fill for a whole picture that would otherwise lose too much to the crop (ADR-0028).

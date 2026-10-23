@@ -154,6 +154,8 @@ export async function mountRoute(
     slideshowTransitionResetText: () => "Übergänge wieder auf Überblenden",
     portraitPicturesResetText: () => "Hochformatbilder wieder automatisch",
     lookResetText: () => "Look entfernt",
+    moodResetText: () => "Stimmung wieder auf Eigene",
+    moodNowCustomText: () => "Stimmung ist jetzt Eigene",
     songRemovedText: () => "Song entfernt",
     shuffledText: () => "",
     random: () => 0,

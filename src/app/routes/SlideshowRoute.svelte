@@ -1,11 +1,12 @@
 <script lang="ts">
-  import { onDestroy, onMount } from "svelte";
+  import { onDestroy, onMount, untrack } from "svelte";
   import { MediaQuery } from "svelte/reactivity";
   import { SlideshowNotFoundError } from "../../library/library-store";
   import type { StoredSlideshow } from "../../library/stored-slideshow";
   import type { SlideshowEditor } from "../editing/slideshow-editor";
   import { createScreenEditor } from "./screen-editor";
   import { getTranslator } from "../i18n/context";
+  import { ScreenMoodBpm } from "./screen-mood-bpm.svelte";
   import { ScreenThumbnails } from "./screen-thumbnails.svelte";
   import SlideshowScreen from "../screens/SlideshowScreen.svelte";
   import { animationFrames, performanceClock } from "../../player";
@@ -100,9 +101,11 @@
     onError,
     left: left.signal,
   });
+  // svelte-ignore state_referenced_locally
+  const screenMoodBpm = new ScreenMoodBpm(beatPass, store, log);
 
   onMount(() => {
-    const stopFocus = screenFocus.follow();
+    const stops = [screenFocus.follow(), screenMoodBpm.follow()];
     loadSlideshowScreen(store, slideshowId, thumbnails.urls, translator.language, left.signal).then(
       (loaded) => {
         if (loaded !== null) {
@@ -130,7 +133,7 @@
         else onError(error);
       },
     );
-    return stopFocus;
+    return () => stops.forEach((stop) => stop());
   });
   onDestroy(() => {
     left.abort();
@@ -159,10 +162,26 @@
     return editor;
   }
 
+  /** The mood preview only opens once the screen (and so the slideshow) is shown. */
+  function mustStored(): StoredSlideshow {
+    if (stored === null) throw new Error("the slideshow is not ready yet");
+    return stored;
+  }
+
   const details = $derived(
     stored === null ? null : thumbnails.details(stored, translator.language),
   );
   const storage = $derived(stored === null ? null : screenStorage.of(stored, { serverOn, saving }));
+
+  // Rereads only once the slideshow's own songs change, not on every unrelated edit: `stored` is
+  // read untracked, so only `songIds` (this effect's one tracked read) decides a rerun.
+  const songIds = $derived(stored === null ? "" : stored.songs.map((song) => song.id).join(","));
+  $effect(() => {
+    void songIds;
+    const current = untrack(() => stored);
+    if (current !== null) screenMoodBpm.load(current);
+  });
+  const moodBpm = $derived(stored === null ? undefined : screenMoodBpm.of(stored));
 </script>
 
 {#if editingPictureId !== null && stored !== null && editor !== null}
@@ -220,6 +239,10 @@
     onResetTransition={() => editor?.resetSlideshowTransition()}
     onLook={(look) => editor?.look.set(look)}
     onResetLook={() => editor?.look.reset()}
+    {moodBpm}
+    moodPreviewPorts={{ store, stored: mustStored(), musicOutput, decodeClipSound, log }}
+    onMood={(mood) => editor?.mood.set(mood)}
+    onResetMood={() => editor?.mood.reset()}
     onPortraitPictures={(choice) => editor?.setPortraitPictures(choice)}
     onResetPortraitPictures={() => editor?.resetPortraitPictures()}
     onEnsureOpeningCard={() => mustEditor().ensureOpeningCard()}

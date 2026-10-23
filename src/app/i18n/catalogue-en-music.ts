@@ -74,6 +74,8 @@ export const enMusic: Pick<Catalogue, keyof typeof deMusic> = {
   "music.pictureLength": "Picture length",
   "music.aboutSecondsEach": "About {seconds} each",
   "music.fillTheMusic": "Fill the music",
+  "music.pictureTimesByMood": "Picture times are set by the mood {name} — {value}",
+  "music.setOwnPictureTimes": "Set them yourself",
   "music.pictureChanges": "Picture changes",
   "music.beatsPerMinute": "{bpm} BPM",
   "music.onTheBeat": "On the beat",

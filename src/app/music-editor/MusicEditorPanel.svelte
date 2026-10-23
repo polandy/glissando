@@ -6,6 +6,7 @@
   import BetweenSongsSection from "./BetweenSongsSection.svelte";
   import FadeSection from "./FadeSection.svelte";
   import type { ListenState } from "./listen-preview";
+  import MoodPictureTimesSection from "./MoodPictureTimesSection.svelte";
   import type { MusicEditorView } from "./music-editor-view";
   import PictureChangesSection from "./PictureChangesSection.svelte";
   import type { PlaylistView } from "./playlist-view";
@@ -31,6 +32,7 @@
     onPictureChanges,
     onPictureLength,
     onSecondsPerPicture,
+    onSetOwnPictureTimes,
     onBetweenSongs,
   }: {
     music: MusicEditorView;
@@ -51,6 +53,8 @@
     /** `undefined`: the pictures fill the music. */
     onPictureLength: (length: PictureLength | undefined) => void;
     onSecondsPerPicture: (seconds: number) => void;
+    /** Leaves the slideshow's mood for its own picture times (MOOD.md). */
+    onSetOwnPictureTimes: () => void;
     /** `undefined`: the songs crossfade. */
     onBetweenSongs: (between: BetweenSongs | undefined) => void;
   } = $props();
@@ -60,7 +64,11 @@
 
 <div class="panel">
   <h2 class="group-title">{t("music.sectionSlideshow")}</h2>
-  <PictureLengthSection {...music.pictureLength} {onPictureLength} {onSecondsPerPicture} />
+  {#if music.moodPictureLength !== undefined}
+    <MoodPictureTimesSection moodPictureLength={music.moodPictureLength} {onSetOwnPictureTimes} />
+  {:else}
+    <PictureLengthSection {...music.pictureLength} {onPictureLength} {onSecondsPerPicture} />
+  {/if}
   {#if playlist.songs.length > 1}
     <BetweenSongsSection crossfade={playlist.crossfade} {onBetweenSongs} />
   {/if}

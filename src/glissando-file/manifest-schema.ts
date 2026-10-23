@@ -2,6 +2,7 @@ import { SEQUENCE_BETWEEN_SONGS } from "../library/own-music";
 import { SLIDESHOW_TRANSITIONS } from "../library/own-timing";
 import { OWN_SECONDS_PICTURE_LENGTH } from "../library/picture-length";
 import { PORTRAIT_PICTURES_CHOICES } from "../library/portrait-pictures";
+import { SLIDESHOW_MOODS } from "../library/slideshow-mood";
 import { MAX_SECONDS_PER_PICTURE, MIN_SECONDS_PER_PICTURE } from "../library/stored-slideshow";
 import { GRADED_SLIDESHOW_LOOKS } from "../player/looks/slideshow-look";
 import { CARD_SCHEMA } from "./manifest-schema-card";
@@ -33,6 +34,7 @@ const SLIDESHOW_SCHEMA: JsonSchema = {
     pictureLength: { const: OWN_SECONDS_PICTURE_LENGTH },
     portraitPictures: { enum: PORTRAIT_PICTURES_CHOICES },
     look: { enum: GRADED_SLIDESHOW_LOOKS },
+    mood: { enum: SLIDESHOW_MOODS },
     openingCard: CARD_SCHEMA,
     closingCard: CARD_SCHEMA,
     automaticChaptersOff: { const: true },

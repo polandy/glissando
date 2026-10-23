@@ -4,6 +4,7 @@ import { deMusic } from "./catalogue-de-music.ts";
 import { deTiming } from "./catalogue-de-timing.ts";
 import { deTransitions } from "./catalogue-de-transitions.ts";
 import { deLook } from "./catalogue-de-look.ts";
+import { deMood } from "./catalogue-de-mood.ts";
 import { dePortrait } from "./catalogue-de-portrait.ts";
 import { deImmich } from "./catalogue-de-immich.ts";
 import { deHtml } from "./catalogue-de-html.ts";
@@ -94,6 +95,7 @@ export const de = {
   "slideshow.automatic": "automatisch",
   "slideshow.transitions": "Übergänge",
   "slideshow.look": "Look",
+  "slideshow.mood": "Stimmung",
   "slideshow.play": "Abspielen",
   "slideshow.details": "Details",
   "slideshow.pictures": "Bilder",
@@ -405,6 +407,7 @@ export const de = {
   ...deTiming,
   ...deTransitions,
   ...deLook,
+  ...deMood,
   ...dePortrait,
   ...deImmich,
   ...deMusic,

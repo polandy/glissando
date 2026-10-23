@@ -18,6 +18,13 @@ without internet. If you use a self-hosted Glissando, open its address instead
 3. **Play.** Motion and transitions are chosen for you — people stay in frame, scenery gets a slow
    sweep, changes follow the beat.
 
+For a different feel, pick a Mood in the slideshow's Details. **Calm** shows each picture longer,
+with soft crossfades and gentle motion; **Lively** changes pictures quickly with mixed transitions
+and stronger motion. Both fit the picture changes to the song's beats and phrases, so a slow and a
+fast song pace the same mood differently. **Custom**, the default, keeps your own settings. A
+picture with its own duration, transition or motion keeps it under any mood, and changing a single
+setting while a mood is on turns it into Custom with the mood's values to start from.
+
 Open the slideshow's Details and give it a Look — Warm, Cool, Vivid, Film, Black & white or
 Faded — if you want one. It colours every picture and video, in the exported video and web page
 too; the title and closing slides and the captions stay as they are.
