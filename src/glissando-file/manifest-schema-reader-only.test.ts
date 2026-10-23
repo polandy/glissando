@@ -46,6 +46,25 @@ describe("reader-only rules: accepted by the schema, refused by the reader", () 
       "a video excerpt shorter than its 500 ms minimum",
       withAt(BASE_MANIFEST, ["slideshow", "pictures", 0, "video", "endMs"], 1200),
     ],
+    [
+      "a chapter edit's pictureIndex at or past the picture count",
+      withAt(BASE_MANIFEST, ["slideshow", "chapterEdits", 0, "pictureIndex"], 5),
+    ],
+    [
+      "two chapter edits naming the same picture",
+      withAt(
+        BASE_MANIFEST,
+        ["slideshow", "chapterEdits"],
+        [
+          { pictureIndex: 0, title: "Lisbon" },
+          { pictureIndex: 0, title: "Sintra" },
+        ],
+      ),
+    ],
+    [
+      "a chapter title past the 80-grapheme limit",
+      withAt(BASE_MANIFEST, ["slideshow", "chapterEdits", 0, "title"], "a".repeat(81)),
+    ],
   ])("%s", (_name, doc) => {
     expect(validateManifestSchema(doc)).toBe(true);
     expect(readManifest(JSON.stringify(doc)).kind).not.toBe("ok");

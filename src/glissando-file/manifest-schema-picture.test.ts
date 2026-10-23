@@ -111,6 +111,35 @@ describe("PICTURE_SCHEMA: broken pictures", () => {
     ],
     ["video.volume off the 5-step", withAt(BASE_MANIFEST, [...picture0, "video", "volume"], 61)],
     ["video.duckMusic not false", withAt(BASE_MANIFEST, [...picture0, "video", "duckMusic"], true)],
+    [
+      "place missing name",
+      withAt(BASE_MANIFEST, [...picture0, "place"], { latitude: 38.717, longitude: -9.133 }),
+    ],
+    [
+      "place.latitude below its minimum",
+      withAt(BASE_MANIFEST, [...picture0, "place"], {
+        name: "Lisbon",
+        latitude: -90.1,
+        longitude: -9.133,
+      }),
+    ],
+    [
+      "place.longitude above its maximum",
+      withAt(BASE_MANIFEST, [...picture0, "place"], {
+        name: "Lisbon",
+        latitude: 38.717,
+        longitude: 180.1,
+      }),
+    ],
+    [
+      "place with an unknown field",
+      withAt(BASE_MANIFEST, [...picture0, "place"], {
+        name: "Lisbon",
+        latitude: 38.717,
+        longitude: -9.133,
+        country: "PT",
+      }),
+    ],
   ])("%s is refused by both the reader and the schema", (_name, doc) => {
     expectBothRefuse(doc);
   });

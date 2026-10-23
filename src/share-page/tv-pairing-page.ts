@@ -136,7 +136,7 @@ export async function startTvPairingPage(
     parts.showCard(null);
     shareParts.showState("starting");
     const api = createShowApi(ports.fetch, tvShowPath(tvKey));
-    loadSharedShow(api, (song) => URL.createObjectURL(song), null).then(
+    loadSharedShow(api, (song) => URL.createObjectURL(song), null, language).then(
       (show) => {
         if (mine === generation) return showShow(show, api);
         for (const url of show.songUrls.values()) URL.revokeObjectURL(url);

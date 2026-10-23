@@ -105,6 +105,7 @@ export default defineConfig({
                   "src/app/clip-editor/read-clip-peaks.browser.test.ts",
                   "src/player/create-frame-player.browser.test.ts",
                   "src/player/create-frame-player-video.browser.test.ts",
+                  "src/compose/compose-chapters.browser.test.ts",
                 ],
               },
               { browser: "webkit" },

@@ -42,6 +42,7 @@ export async function loadSlideshowScreen(
   store: Pick<LibraryStore, "getSlideshow">,
   slideshowId: string,
   thumbnails: ThumbnailUrls,
+  locale: string,
   left: AbortSignal,
 ): Promise<{ readonly stored: StoredSlideshow; readonly details: SlideshowDetails } | null> {
   let stored: StoredSlideshow;
@@ -61,7 +62,10 @@ export async function loadSlideshowScreen(
   if (left.aborted) {
     return null;
   }
-  return { stored, details: slideshowDetails(stored, (id) => thumbnails.get(id) ?? "") };
+  return {
+    stored,
+    details: slideshowDetails(stored, (id) => thumbnails.get(id) ?? "", locale),
+  };
 }
 
 /**

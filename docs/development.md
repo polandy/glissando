@@ -33,6 +33,18 @@ deploy/build-image.sh -t glissando:dev --build-arg GLISSANDO_SAMPLE_MUSIC=off
 deploy/build-image.sh -t glissando:dev --build-arg GLISSANDO_SAMPLE_MUSIC_URL=https://example.test/music/
 ```
 
+## Regenerate the bundled place names
+
+`public/places/cities15000.tsv` (trip chapters' offline place lookup, ADR-0043) is generated,
+committed output, never hand-edited:
+
+```sh
+scripts/places/build.sh
+```
+
+It downloads GeoNames' `cities15000` dump, checks it against a hash recorded in the script, and
+writes the reduced TSV; a changed dump fails the build with how to review and update that hash.
+
 ## Map
 
 | Where       | What                                                    |

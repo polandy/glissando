@@ -19,6 +19,7 @@ import { enCulling } from "./catalogue-en-culling.ts";
 import { enView } from "./catalogue-en-view.ts";
 import { enFrame } from "./catalogue-en-frame.ts";
 import { enCards } from "./catalogue-en-cards.ts";
+import { enChapters } from "./catalogue-en-chapters.ts";
 import { enFilePage } from "./catalogue-en-file-page.ts";
 import { enSampleMusicCredit } from "./catalogue-en-sample-music-credit.ts";
 import { enSampleMusicPicker } from "./catalogue-en-sample-music-picker.ts";
@@ -416,6 +417,7 @@ export const en: Catalogue = {
   ...enView,
   ...enFrame,
   ...enCards,
+  ...enChapters,
   ...enFilePage,
   ...enSampleMusicCredit,
   ...enSampleMusicPicker,

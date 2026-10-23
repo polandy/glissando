@@ -41,6 +41,18 @@ const COLOURS_SCHEMA: JsonSchema = {
   additionalProperties: false,
 };
 
+/** The resolved place's own name and coordinates, from the bundled GeoNames list (ADR-0043). */
+const PLACE_SCHEMA: JsonSchema = {
+  type: "object",
+  properties: {
+    name: NON_EMPTY_STRING_SCHEMA,
+    latitude: { type: "number", minimum: -90, maximum: 90 },
+    longitude: { type: "number", minimum: -180, maximum: 180 },
+  },
+  required: ["name", "latitude", "longitude"],
+  additionalProperties: false,
+};
+
 /** A manifest picture; `immichAssetId` and `fileBytes` may each appear, never both. */
 export const PICTURE_SCHEMA: JsonSchema = {
   type: "object",
@@ -65,6 +77,7 @@ export const PICTURE_SCHEMA: JsonSchema = {
     fileBytes: POSITIVE_SAFE_INTEGER_SCHEMA,
     alone: { const: true },
     video: VIDEO_SCHEMA,
+    place: PLACE_SCHEMA,
   },
   required: ["file", "capturedAt", "width", "height", "fileName", "colours"],
   additionalProperties: false,

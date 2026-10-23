@@ -3,6 +3,8 @@
  * (ADR-0013). The route sets the API key; the app never holds one.
  */
 
+import type { ExifGps } from "../import/exif-gps";
+
 export interface ImmichAlbum {
   readonly id: string;
   readonly name: string;
@@ -116,4 +118,6 @@ export interface ImmichClient {
    */
   video(photoId: string, signal?: AbortSignal): Promise<Blob>;
   faces(photoId: string): Promise<readonly ImmichFace[]>;
+  /** The GPS coordinate Immich already read from the photo's EXIF; null when it has none. */
+  gps(photoId: string): Promise<ExifGps | null>;
 }

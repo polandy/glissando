@@ -1,11 +1,17 @@
 import type { DecodedPicture } from "./downscale";
+import type { ExifGps } from "./exif-gps";
 import type { PictureSource } from "./picture-source";
 import { UnreadablePictureError } from "./unreadable-picture";
 
-/** Both reject with `UnreadablePictureError` for a file they cannot read; each is tried twice. */
+/**
+ * `decode` and `captureDate` reject with `UnreadablePictureError` for a file they cannot read;
+ * each is tried twice. `gps` never rejects with it (no GPS tag reads the same as an unreadable
+ * one: null), so it is tried twice only on the same error the other two retry on.
+ */
 export interface LocalPictureReaders {
   decode(file: File): Promise<DecodedPicture>;
   captureDate(file: File): Promise<string>;
+  gps(file: File): Promise<ExifGps | null>;
 }
 
 /**
@@ -33,6 +39,10 @@ export function localPictureSource(file: File, readers: LocalPictureReaders): Pi
       capturedAt: await retryOnce(() => readers.captureDate(file)),
       fileBytes: file.size,
     }),
-    read: async () => ({ decoded: await retryOnce(() => readers.decode(file)), focus: null }),
+    read: async () => {
+      const decoded = await retryOnce(() => readers.decode(file));
+      const gps = await retryOnce(() => readers.gps(file));
+      return { decoded, focus: null, ...(gps === null ? {} : { gps }) };
+    },
   };
 }

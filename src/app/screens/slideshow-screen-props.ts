@@ -14,6 +14,7 @@ import type { Scheduler } from "../../ui-kit/scheduler";
 import type { FrameScheduler } from "../../player";
 import type { SlideshowSearch } from "../../library/focus-pass";
 import type { PicturesFocus } from "../focus/pictures-focus";
+import type { ChapterSettingsEditor } from "../editing/chapter-settings-editor";
 
 /** `SlideshowScreen`'s props: the slideshow's own screen, its pictures strip, the title slide
  * and closing slide sheets, and the export and delete flows reached from it. */
@@ -59,6 +60,8 @@ export interface SlideshowScreenProps {
   onEnsureClosingCard: () => StoredCard;
   onClosingCard: (card: CardInput) => void;
   onRemoveClosingCard: () => void;
+  /** The trip chapters editor (TRIP_CHAPTERS.md); null while importing. */
+  chapterEditor: ChapterSettingsEditor | null;
   /** The transitions sheet's tiles loop on these. */
   previewPorts: MotionPreviewPorts;
   /** The transitions sheet's tiles stand still. */

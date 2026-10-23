@@ -21,7 +21,7 @@ describe("folderShow", () => {
   it("plays each picture by its path in the folder, read from there", async () => {
     const { folder, manifest } = await checkedFolder(await exportedFile());
 
-    const show = await folderShow(manifest, folder, songUrl);
+    const show = await folderShow(manifest, folder, songUrl, "en");
 
     const sources = show.page.slideshow.slides.flatMap((slide) =>
       "image" in slide ? [slide.image.src] : [],
@@ -34,7 +34,7 @@ describe("folderShow", () => {
   it("plays each song from a URL of its file", async () => {
     const { folder, manifest } = await checkedFolder(await exportedFile());
 
-    const show = await folderShow(manifest, folder, songUrl);
+    const show = await folderShow(manifest, folder, songUrl, "en");
 
     const music = await folder.read(manifest.slideshow.songs[0]?.file ?? "");
     expect(show.page.slideshow.music?.map(({ src }) => src)).toEqual([
@@ -45,7 +45,7 @@ describe("folderShow", () => {
   it("sums up the pictures, the play time and the music for the start card", async () => {
     const { folder, manifest } = await checkedFolder(await exportedFile());
 
-    const { summary, page } = await folderShow(manifest, folder, songUrl);
+    const { summary, page } = await folderShow(manifest, folder, songUrl, "en");
 
     expect(summary).toEqual({
       pictureCount: manifest.slideshow.pictures.length,
@@ -65,7 +65,7 @@ describe("folderShow", () => {
       },
     };
 
-    const { summary } = await folderShow(withSample, folder, songUrl);
+    const { summary } = await folderShow(withSample, folder, songUrl, "en");
 
     expect(summary).toMatchObject({ withMusic: true, withSampleMusic: true });
   });
@@ -73,7 +73,7 @@ describe("folderShow", () => {
   it("reads each clip from its file in the folder", async () => {
     const { folder, manifest } = await checkedFolder(await exportedVideoFile());
 
-    const { page } = await folderShow(manifest, folder, songUrl);
+    const { page } = await folderShow(manifest, folder, songUrl, "en");
 
     const clip = page.slideshow.slides.flatMap((slide) =>
       "video" in slide && slide.video !== undefined ? [slide.video.src] : [],
@@ -85,7 +85,7 @@ describe("folderShow", () => {
   it("fails loud on a picture the folder does not hold", async () => {
     const { folder, manifest } = await checkedFolder(await exportedFile());
 
-    const { page } = await folderShow(manifest, folder, songUrl);
+    const { page } = await folderShow(manifest, folder, songUrl, "en");
 
     await expect(page.openPicture("pictures/9999.png")).rejects.toThrow(/9999/);
   });

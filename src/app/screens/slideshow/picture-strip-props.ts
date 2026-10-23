@@ -3,6 +3,7 @@ import type { StoredCard } from "../../../library/stored-slideshow";
 import type { FrameScheduler } from "../../../player";
 import type { Scheduler } from "../../../ui-kit/scheduler";
 import type { PictureTile } from "../view-models";
+import type { SlideshowChapter } from "../../../compose/chapters-of-slideshow";
 import type { StripSelection } from "./strip-selection";
 
 /** `PictureStrip.svelte`'s props, split out to keep that file under the line limit. */
@@ -50,4 +51,8 @@ export interface PictureStripProps {
   placeholderCount?: number;
   /** True lets the very last picture be removed too, unlike the editor. */
   lastRemovable?: boolean;
+  /** Trip chapters shown before their anchor picture (TRIP_CHAPTERS.md); none while importing. */
+  chapters?: readonly SlideshowChapter[];
+  /** Opens the chapter's sheet. Unused while `chapters` is absent. */
+  onOpenChapter?: (anchorPictureId: string) => void;
 }

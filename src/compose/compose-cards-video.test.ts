@@ -72,7 +72,7 @@ function pictureCard(pictureId: string, motion: boolean, tint: CardTint = "pictu
 }
 
 function compose(stored: StoredSlideshow) {
-  return composeSlideshow(stored, sources, NO_FOCUS, NO_SONG_BEATS, NO_SONG_LOUDNESS);
+  return composeSlideshow(stored, sources, NO_FOCUS, NO_SONG_BEATS, NO_SONG_LOUDNESS, "en");
 }
 
 describe("composeCards, a card on a video slide", () => {

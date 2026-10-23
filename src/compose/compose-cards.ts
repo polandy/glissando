@@ -14,6 +14,7 @@ import {
   groundColourOf,
   pictureOf,
   pictureSlide,
+  revealFitsBeforeTransitionOut,
   transitionInto,
   veilColourFor,
   withTransition,
@@ -123,10 +124,4 @@ function composeOpening(
     ...withTransition(transitionInto(0, defaultTransition, durationMs)),
   });
   return [leadSlide, ...slides];
-}
-
-/** Whether the reveal ends before `slide` hands over to the next one. */
-function revealFitsBeforeTransitionOut(slide: PictureSlide, revealAtMs: number): boolean {
-  const transitionOutMs = slide.transitionToNext?.durationMs ?? 0;
-  return revealAtMs + CARD_REVEAL_MS <= slide.durationMs - transitionOutMs;
 }

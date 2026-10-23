@@ -1,6 +1,7 @@
 import type { StoredMusic, StoredPicture, StoredSlideshow } from "../library/stored-slideshow";
 import { ownMusicFields, type ManifestSlideshow } from "./glissando-manifest";
 import { cardFromManifest } from "./manifest-card";
+import { addedChaptersFromManifest, chapterEditsFromManifest } from "./manifest-chapters";
 import { storedVideo } from "./manifest-video";
 
 /**
@@ -47,6 +48,7 @@ export function slideshowFromManifest(
       ...(picture.fileBytes === undefined ? {} : { fileBytes: picture.fileBytes }),
       ...(picture.alone === true ? { alone: true } : {}),
       ...(picture.video === undefined ? {} : { video: storedVideo(picture.video, ids.clipIds) }),
+      ...(picture.place === undefined ? {} : { place: picture.place }),
     };
   });
   const songs = slideshow.songs.map((song, index): StoredMusic => {
@@ -65,6 +67,8 @@ export function slideshowFromManifest(
   const pictureIds = pictures.map((picture) => picture.id);
   const openingCard = cardFromManifest(slideshow.openingCard, pictureIds);
   const closingCard = cardFromManifest(slideshow.closingCard, pictureIds);
+  const chapterEdits = chapterEditsFromManifest(slideshow.chapterEdits, pictureIds);
+  const addedChapters = addedChaptersFromManifest(slideshow.addedChapters, pictureIds);
   return {
     pictures,
     ...(slideshow.ownOrder ? { ownOrder: true } : {}),
@@ -78,5 +82,8 @@ export function slideshowFromManifest(
     secondsPerPicture: slideshow.secondsPerPicture,
     ...(openingCard === undefined ? {} : { openingCard }),
     ...(closingCard === undefined ? {} : { closingCard }),
+    ...(slideshow.automaticChaptersOff ? { automaticChaptersOff: true } : {}),
+    ...(chapterEdits === undefined ? {} : { chapterEdits }),
+    ...(addedChapters === undefined ? {} : { addedChapters }),
   };
 }

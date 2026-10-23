@@ -47,7 +47,7 @@ export async function startShareLinkPage(
   const createUrl = (song: Blob) => URL.createObjectURL(song);
   let show: SharedShow;
   try {
-    show = await loadSharedShow(api, createUrl, null);
+    show = await loadSharedShow(api, createUrl, null, language);
   } catch (error: unknown) {
     failed(error);
     return;
@@ -72,7 +72,7 @@ export async function startShareLinkPage(
     start(play) {
       view.showState("starting");
       // Live: each start plays the slideshow as it is now (dev-docs/share_link/THE_LINK.md).
-      loadSharedShow(api, createUrl, show).then((now) => {
+      loadSharedShow(api, createUrl, show, language).then((now) => {
         if (now !== show) {
           for (const url of show.songUrls.values()) URL.revokeObjectURL(url);
           show = now;

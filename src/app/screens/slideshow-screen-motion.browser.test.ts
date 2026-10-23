@@ -31,7 +31,8 @@ describe("SlideshowScreen, the way into the picture editor", () => {
 
     expect(labels.indexOf("Ansehen")).toBe(labels.indexOf("Später") + 1);
     expect(labels.indexOf("Bearbeiten")).toBe(labels.indexOf("Ansehen") + 1);
-    expect(labels.indexOf("Entfernen")).toBe(labels.indexOf("Bearbeiten") + 1);
+    expect(labels.indexOf("Kapitel einfügen")).toBe(labels.indexOf("Bearbeiten") + 1);
+    expect(labels.indexOf("Entfernen")).toBe(labels.indexOf("Kapitel einfügen") + 1);
     expect(calls.edited).toEqual(["b"]);
   });
 

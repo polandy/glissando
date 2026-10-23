@@ -94,7 +94,7 @@ describe("loadStartSlideshows", () => {
 describe("loadSlideshowScreen", () => {
   it("shows the slideshow with its thumbnail URLs", async () => {
     const store = await storeWithOneSlideshow();
-    const loading = loadSlideshowScreen(store, "show-1", thumbnailUrls(store, []), signal());
+    const loading = loadSlideshowScreen(store, "show-1", thumbnailUrls(store, []), "en", signal());
     store.openGate();
 
     const loaded = await loading;
@@ -106,7 +106,7 @@ describe("loadSlideshowScreen", () => {
     const store = await storeWithOneSlideshow();
     const thumbnails = thumbnailUrls(store, []);
     const leaving = new AbortController();
-    const loading = loadSlideshowScreen(store, "show-1", thumbnails, leaving.signal);
+    const loading = loadSlideshowScreen(store, "show-1", thumbnails, "en", leaving.signal);
 
     leaving.abort();
     thumbnails.dispose();
@@ -119,7 +119,7 @@ describe("loadSlideshowScreen", () => {
     const store = await storeWithOneSlideshow();
     const thumbnails = thumbnailUrls(store, []);
     const leaving = new AbortController();
-    const loading = loadSlideshowScreen(store, "deleted-show", thumbnails, leaving.signal);
+    const loading = loadSlideshowScreen(store, "deleted-show", thumbnails, "en", leaving.signal);
 
     leaving.abort();
     store.openGate();
@@ -138,7 +138,7 @@ describe("loadSlideshowScreen", () => {
     });
     const leaving = new AbortController();
     store.openGate();
-    const loading = loadSlideshowScreen(store, "show-1", thumbnails, leaving.signal);
+    const loading = loadSlideshowScreen(store, "show-1", thumbnails, "en", leaving.signal);
     await requested;
 
     leaving.abort();

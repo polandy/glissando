@@ -28,7 +28,7 @@ async function startPage(): Promise<void> {
 
   const play = async (manifest: GlissandoManifest, folder: FolderSource): Promise<void> => {
     // Each song played becomes one `blob:` URL for the page's lifetime.
-    const show = await folderShow(manifest, folder, (song) => URL.createObjectURL(song));
+    const show = await folderShow(manifest, folder, (song) => URL.createObjectURL(song), language);
     document.title = show.title;
     const view = createPageView(document, {
       title: show.title,

@@ -6,6 +6,7 @@ import {
   slideshowDurationMs,
   slideshowTransition,
 } from "../compose";
+import { chaptersOfSlideshow } from "../compose/chapters-of-slideshow";
 import { MILLISECONDS_PER_SECOND } from "../player";
 import { resolvePortraitPictures } from "../library/portrait-pictures";
 import type { StoredMusic, StoredSlideshow } from "../library/stored-slideshow";
@@ -55,6 +56,7 @@ function captureSpan(stored: StoredSlideshow): { from: string; to: string } {
 export function slideshowDetails(
   stored: StoredSlideshow,
   thumbnailUrl: ThumbnailUrl,
+  locale: string,
 ): SlideshowDetails {
   const span = captureSpan(stored);
   const firstSong = stored.songs[0];
@@ -88,6 +90,8 @@ export function slideshowDetails(
     musicSummary:
       onlySong === undefined ? null : musicSummary(onlySong, slideshowDurationMs(stored)),
     ownOrder: stored.ownOrder === true,
+    automaticChaptersOff: stored.automaticChaptersOff === true,
+    chapters: chaptersOfSlideshow(stored, locale),
     ownMotionCount: stored.pictures.filter((picture) => picture.kenBurns !== undefined).length,
     ownDurationCount: tiles.filter((tile) => tile.ownDurationMs !== null).length,
     ownTransitionCount: tiles.filter((tile) => tile.ownTransition !== null).length,

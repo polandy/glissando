@@ -154,5 +154,6 @@ Not in the MVP: per-slide settings, detection, Immich, video export, audio conve
 12. **Videos as slides** — a clip's excerpt plays as a slide; `dev-docs/player/VIDEO_SLIDES.md`,
     ADR-0034, ADR-0035.
 13. **Sample music** — `dev-docs/library/SAMPLE_MUSIC.md`, ADR-0042.
+14. **Trip chapters** — `dev-docs/player/TRIP_CHAPTERS.md`.
 
 Each step goes through the UI flow in `CLAUDE.md` (mockup first, owner OK, then specs and code).
