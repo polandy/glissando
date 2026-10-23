@@ -1,6 +1,6 @@
 <script lang="ts">
   import { MediaQuery } from "svelte/reactivity";
-  import { animationFrames, type FrameScheduler } from "../../player";
+  import { animationFrames, DEFAULT_SLIDESHOW_LOOK, type FrameScheduler } from "../../player";
   import type { StoredPicture } from "../../library/stored-slideshow";
   import { browserScheduler, type Scheduler } from "../../ui-kit/scheduler";
   import { MOUSE_POINTER_QUERY } from "../screens/slideshow/pointer";
@@ -135,6 +135,7 @@
   />
   <PictureStrip
     pictures={tiles}
+    look={DEFAULT_SLIDESHOW_LOOK}
     newPictureIds={NO_NEW_PICTURES}
     {selection}
     mousePointer={mousePointer.current}

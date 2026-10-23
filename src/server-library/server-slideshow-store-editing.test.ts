@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { SlideshowNotFoundError } from "../library/stored-slideshow";
+import { SlideshowNotFoundError } from "../library/library-store";
 import { serverDocumentFor } from "./server-document";
 import { ServerLibraryUnavailableError } from "./server-library-client";
 import { SlideshowChangedError } from "./server-slideshow-store";

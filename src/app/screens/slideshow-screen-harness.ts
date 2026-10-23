@@ -1,5 +1,6 @@
 /** Shared set-up of the `SlideshowScreen` browser tests. */
 import type { SlideshowTransition } from "../../library/own-timing";
+import type { SlideshowLook } from "../../player";
 import type { ResolvedPortraitPictures } from "../../library/portrait-pictures";
 import type { StoredCard } from "../../library/stored-slideshow";
 import type { CardInput } from "../../library/stored-card";
@@ -65,6 +66,7 @@ export function details(ids: readonly string[], overrides: Partial<SlideshowDeta
     ownDurationCount: 0,
     ownTransitionCount: 0,
     transition: "crossfade",
+    look: "none",
     portraitPictures: "automatic",
     pairCount: 0,
     captionCount: 0,
@@ -137,6 +139,8 @@ export function mountScreen(
     musicEdits: 0,
     transitions: [] as SlideshowTransition[],
     transitionResets: 0,
+    looks: [] as SlideshowLook[],
+    lookResets: 0,
     portraitPictureChoices: [] as ResolvedPortraitPictures[],
     portraitPictureResets: 0,
     deletes: 0,
@@ -183,6 +187,14 @@ export function mountScreen(
     onResetTransition: () => {
       calls.transitionResets += 1;
       props.slideshow = { ...props.slideshow, transition: "crossfade" };
+    },
+    onLook: (look: SlideshowLook) => {
+      calls.looks.push(look);
+      props.slideshow = { ...props.slideshow, look };
+    },
+    onResetLook: () => {
+      calls.lookResets += 1;
+      props.slideshow = { ...props.slideshow, look: "none" };
     },
     onPortraitPictures: (choice: ResolvedPortraitPictures) => {
       calls.portraitPictureChoices.push(choice);

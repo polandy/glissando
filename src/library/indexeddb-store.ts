@@ -1,12 +1,7 @@
 import { mediaOnlyIn, newestFirst, withClaimedMedia } from "./slideshow-queries";
-import {
-  MediaNotFoundError,
-  SlideshowNotFoundError,
-  type MediaClaim,
-  type LibraryStore,
-  type PictureBlobs,
-  type StoredSlideshow,
-} from "./stored-slideshow";
+import type { LibraryStore, MediaClaim, PictureBlobs } from "./library-store";
+import { MediaNotFoundError, SlideshowNotFoundError } from "./library-store";
+import type { StoredSlideshow } from "./stored-slideshow";
 import {
   completed,
   requestResult,

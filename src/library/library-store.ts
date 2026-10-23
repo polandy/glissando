@@ -3,6 +3,12 @@ import type { MusicLoudness } from "../loudness";
 import type { StoredFocus } from "./picture-focus";
 import type { StoredSlideshow } from "./stored-slideshow";
 
+/**
+ * The persistence port: what the device's `LibraryStore` offers, and the narrower
+ * `SlideshowStore` the library, a slideshow's screen, its editors, the player and the exports
+ * need (the server's store has it too).
+ */
+
 /** A picture's two stored renditions. */
 export interface PictureBlobs {
   /** Downscaled to display resolution; what the player shows. */

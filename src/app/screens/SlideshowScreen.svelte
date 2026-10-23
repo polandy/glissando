@@ -39,6 +39,8 @@
     onEditMusic,
     onTransition,
     onResetTransition,
+    onLook,
+    onResetLook,
     onPortraitPictures,
     onResetPortraitPictures,
     onEnsureOpeningCard,
@@ -162,6 +164,7 @@
         {onRename}
         {onEditMusic}
         onEditTransitions={() => editSheets?.openTransitions()}
+        onEditLook={() => editSheets?.openLook()}
         onEditPortraitPictures={() => editSheets?.openPortraitPictures()}
         onEditChapters={() => editSheets?.openGeneralChapters()}
       />
@@ -205,9 +208,12 @@
   {reducedMotion}
   {onTransition}
   {onResetTransition}
+  {onLook}
+  {onResetLook}
   {onPortraitPictures}
   {onResetPortraitPictures}
   onTransitionsClosed={() => infoPanel?.focusTransitions()}
+  onLookClosed={() => infoPanel?.focusLook()}
   onPortraitPicturesClosed={() => infoPanel?.focusPortraitPictures()}
   {onEnsureOpeningCard}
   {onOpeningCard}

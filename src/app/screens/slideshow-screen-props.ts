@@ -11,7 +11,7 @@ import type { MotionPreviewPorts } from "../picture-editor/motion-preview";
 import type { ExportMenuState } from "../glissando-file/export-menu";
 import type { StripSelection } from "./slideshow/strip-selection";
 import type { Scheduler } from "../../ui-kit/scheduler";
-import type { FrameScheduler } from "../../player";
+import type { FrameScheduler, SlideshowLook } from "../../player";
 import type { SlideshowSearch } from "../../library/focus-pass";
 import type { PicturesFocus } from "../focus/pictures-focus";
 import type { ChapterSettingsEditor } from "../editing/chapter-settings-editor";
@@ -48,6 +48,10 @@ export interface SlideshowScreenProps {
   onTransition: (transition: SlideshowTransition) => void;
   /** "Back to crossfade" in the transitions sheet. */
   onResetTransition: () => void;
+  /** The slideshow's colour grade was picked in its sheet (ADR-0044). */
+  onLook: (look: SlideshowLook) => void;
+  /** "Back to None" in the look sheet. */
+  onResetLook: () => void;
   /** A choice was picked in the portrait pictures sheet. */
   onPortraitPictures: (choice: PortraitPictures) => void;
   /** "Back to automatic" in the portrait pictures sheet. */

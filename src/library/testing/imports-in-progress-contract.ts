@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { CLAIM_SPARED_FOR_MS, MediaNotFoundError, type LibraryStore } from "../stored-slideshow";
+import type { LibraryStore } from "../library-store";
+import { CLAIM_SPARED_FOR_MS, MediaNotFoundError } from "../library-store";
 import { musicBlob, pictureBlobs, rejection, type StoreHarness } from "./library-store-contract";
 
 const STARTED_AT = new Date("2026-10-08T12:00:00Z");

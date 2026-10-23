@@ -93,6 +93,7 @@
   <PictureStrip
     bind:this={strip}
     pictures={slideshow.pictures}
+    look={slideshow.look}
     {newPictureIds}
     {selection}
     {mousePointer}

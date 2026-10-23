@@ -1,5 +1,6 @@
 import { ease } from "./easing";
 import { cardTimingAt, endFadeAmount } from "./card-timing";
+import { DEFAULT_SLIDESHOW_LOOK } from "./looks/slideshow-look";
 import type { CardVisual, LiveFrame, PictureSlideLayer, RenderFrame, SlideLayer } from "./ports";
 import {
   isGroundSlide,
@@ -74,8 +75,9 @@ export function renderFrame<Picture>(
     slideshow.endFadeMs === undefined
       ? 0
       : endFadeAmount(slideshow.endFadeMs, context.showDurationMs, frame.showTimeMs);
+  const look = slideshow.look ?? DEFAULT_SLIDESHOW_LOOK;
   if (frame.kind === "slide") {
-    return { kind: "slide", slide: layer(frame.slide), endFade };
+    return { kind: "slide", slide: layer(frame.slide), endFade, look };
   }
   return {
     kind: "transition",
@@ -84,6 +86,7 @@ export function renderFrame<Picture>(
     from: layer(frame.from),
     to: layer(frame.to),
     endFade,
+    look,
   };
 }
 

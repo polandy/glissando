@@ -1,4 +1,5 @@
-import type { LibraryStore, StoredSlideshow } from "../library/stored-slideshow";
+import type { LibraryStore } from "../library/library-store";
+import type { StoredSlideshow } from "../library/stored-slideshow";
 import { manifestFor, MANIFEST_ENTRY_NAME } from "./glissando-manifest";
 import { PLAYER_ENTRY_NAME, README_ENTRY_NAME, SCHEMA_ENTRY_NAME } from "./entry-names";
 import { distinctClipIds } from "./manifest-video";

@@ -2,11 +2,8 @@ import { OWN_SECONDS_PICTURE_LENGTH, type PictureLength } from "../../library/pi
 import { buildStoredSlideshow } from "../../compose";
 import type { ImmichPhoto } from "../../immich/immich-client";
 import type { PictureImport } from "../../import/picture-import";
-import {
-  DEFAULT_SECONDS_PER_PICTURE,
-  type LibraryStore,
-  type StoredSlideshow,
-} from "../../library/stored-slideshow";
+import type { LibraryStore } from "../../library/library-store";
+import { DEFAULT_SECONDS_PER_PICTURE, type StoredSlideshow } from "../../library/stored-slideshow";
 import type { SampleTrack, SampleTrackId } from "../../sample-music/sample-tracks";
 import type { SlideshowHome } from "../routes/slideshow-storage";
 import type { SampleSongPickPorts, SampleSongRow } from "../sample-music/sample-song-pick";

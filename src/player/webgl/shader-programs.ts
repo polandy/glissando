@@ -44,6 +44,10 @@ const UNIFORM_NAMES = [
   "captionBand",
   "captionInset",
   "endFade",
+  "lookOn",
+  "lookMatrix",
+  "lookOffset",
+  "lookCurve",
 ] as const;
 export type UniformName = (typeof UNIFORM_NAMES)[number];
 

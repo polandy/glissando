@@ -89,6 +89,7 @@ function backdropRow(picture: BitmapPicture): number[] {
       motion: standingStill({ zoom: 1, centerX: 0.5, centerY: 0.5 }),
     },
     endFade: 0,
+    look: "none",
   });
   const pixels = new Uint8Array(ROW_PIXELS * 4);
   gl.readPixels(0, canvas.height / 2, ROW_PIXELS, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixels);

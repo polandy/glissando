@@ -1,4 +1,5 @@
-import type { LibraryStore, StoredMusic } from "../../library/stored-slideshow";
+import type { LibraryStore } from "../../library/library-store";
+import type { StoredMusic } from "../../library/stored-slideshow";
 import type { ServerLibrary } from "../../server-library/server-library";
 import type { SlideshowEditor } from "../editing/slideshow-editor";
 import { readPickedMusic, type MusicPickPorts, type PendingSong } from "../import/music-pick";

@@ -1,4 +1,6 @@
-import { CLAIM_SPARED_FOR_MS, type MediaClaim, type StoredSlideshow } from "./stored-slideshow";
+import type { MediaClaim } from "./library-store";
+import { CLAIM_SPARED_FOR_MS } from "./library-store";
+import type { StoredSlideshow } from "./stored-slideshow";
 
 /** Orders slideshows by creation instant, newest first; equal instants by id for a stable list. */
 export function newestFirst(slideshows: readonly StoredSlideshow[]): StoredSlideshow[] {

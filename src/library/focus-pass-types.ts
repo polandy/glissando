@@ -1,7 +1,7 @@
 import { FOCUS_DETECTOR_VERSION } from "../focus/focus-detector-version";
 import type { FocusDetector } from "./focus-detector";
 import type { PictureFocus, StoredFocus } from "./picture-focus";
-import type { LibraryStore } from "./stored-slideshow";
+import type { LibraryStore } from "./library-store";
 
 export interface FocusPassPorts {
   readonly store: Pick<

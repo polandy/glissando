@@ -31,6 +31,14 @@ export { type DecodeClipSound } from "./browser/open-video";
 export { VIDEO_RATE_TOLERANCE_MS, VIDEO_SEEK_DRIFT_MS } from "./browser/video-playback";
 export { layerTransform } from "./dom/layer-transform";
 export { cropAt, cropRect, type KenBurnsAt, type Rect, type Size } from "./ken-burns";
+export { lookFilterValues, type LookFilterValues } from "./looks/look-filter";
+export {
+  DEFAULT_SLIDESHOW_LOOK,
+  isGradedLook,
+  SLIDESHOW_LOOKS,
+  type GradedSlideshowLook,
+  type SlideshowLook,
+} from "./looks/slideshow-look";
 export { parseSlideshow, SlideshowFormatError } from "./parse-slideshow";
 export { SlideshowLoadError } from "./picture-buffer";
 export {

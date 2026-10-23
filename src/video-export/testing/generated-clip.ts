@@ -66,7 +66,7 @@ export async function generatedClip(
     throw new Error(`this engine cannot export: ${capabilities.reason}`);
   }
   const slideshow: Slideshow = {
-    formatVersion: 8,
+    formatVersion: 9,
     title: "Clip",
     music: [
       {

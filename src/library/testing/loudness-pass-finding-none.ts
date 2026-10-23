@@ -1,6 +1,6 @@
 import type { MusicLoudness } from "../../loudness";
 import { LoudnessPass } from "../loudness-pass";
-import type { LibraryStore } from "../stored-slideshow";
+import type { LibraryStore } from "../library-store";
 import { FakeLoudnessMeter } from "./fake-loudness-meter";
 
 const SILENT: MusicLoudness = {

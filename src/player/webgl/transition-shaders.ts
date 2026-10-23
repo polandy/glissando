@@ -2,6 +2,7 @@ import { VEIL_CONTRAST_SHARE, VEIL_SATURATION_SHARE, VEIL_TINT_OPACITY_SHARE } f
 import { BACKDROP_BRIGHTNESS } from "../slide-layout";
 import type { TransitionEffect } from "../slideshow";
 import { LAYOUT_CODE } from "./layer-uniforms";
+import { LOOK_GLSL } from "./look-glsl";
 
 export const VERTEX_SHADER = `#version 300 es
 in vec2 position;
@@ -156,10 +157,11 @@ vec4 withCard(vec4 picture, sampler2D card, vec2 p) {
   vec4 text = texture(card, p);
   return vec4(text.rgb + picture.rgb * (1.0 - text.a), 1.0);
 }
+${LOOK_GLSL}
 vec4 fromColor(vec2 p) {
   vec4 colour = fromIsGround == 1
     ? vec4(fromGroundColor, 1.0)
-    : layerColor(fromLayout, fromPicture, fromPartner, fromBackdrop, fromCrop, fromSecondCrop, fromRect, fromRect2, p);
+    : withLook(layerColor(fromLayout, fromPicture, fromPartner, fromBackdrop, fromCrop, fromSecondCrop, fromRect, fromRect2, p));
   vec4 veiled = applyVeil(colour, fromBackdrop, fromCrop, p, fromVeilAmount, fromVeilTint);
   vec4 captioned = withCaption(veiled, fromCaption, fromCaptionOpacity, p);
   return withCard(captioned, fromCard, p);
@@ -167,7 +169,7 @@ vec4 fromColor(vec2 p) {
 vec4 toColor(vec2 p) {
   vec4 colour = toIsGround == 1
     ? vec4(toGroundColor, 1.0)
-    : layerColor(toLayout, toPicture, toPartner, toBackdrop, toCrop, toSecondCrop, toRect, toRect2, p);
+    : withLook(layerColor(toLayout, toPicture, toPartner, toBackdrop, toCrop, toSecondCrop, toRect, toRect2, p));
   vec4 veiled = applyVeil(colour, toBackdrop, toCrop, p, toVeilAmount, toVeilTint);
   vec4 captioned = withCaption(veiled, toCaption, toCaptionOpacity, p);
   return withCard(captioned, toCard, p);

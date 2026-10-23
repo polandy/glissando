@@ -1,5 +1,5 @@
 import type { StoredPicture, StoredSlideshow } from "../library/stored-slideshow";
-import { ownMusicFields } from "../glissando-file/glissando-manifest";
+import { LOOK_FROM_VERSION, ownMusicFields } from "../glissando-file/glissando-manifest";
 import { cardFromManifest, cardToManifest } from "../glissando-file/manifest-card";
 import { DocumentFormatError, readObject, readText } from "../glissando-file/document-values";
 import {
@@ -27,16 +27,22 @@ import {
 export const SERVER_DOCUMENT_FORMAT_ID = "glissando-server";
 /**
  * Version 2 added the slideshow's `openingCard` and `closingCard` (ADR-0032), version 3 a
- * picture's `colours` and a card's picture background `tint` (ADR-0033). Only version 3 is read:
- * there is no production instance yet, so an older document is refused rather than migrated.
+ * picture's `colours` and a card's picture background `tint` (ADR-0033), version 4 the
+ * slideshow's `look` (ADR-0044). Only version 4 is read: there is no production instance yet, so
+ * an older document is refused rather than migrated.
  */
-export const SERVER_DOCUMENT_FORMAT_VERSION = 3;
+export const SERVER_DOCUMENT_FORMAT_VERSION = 4;
 /** The manifest format version whose slideshow fields a server document carries. */
-const MANIFEST_FIELDS_VERSION = 16;
+const MANIFEST_FIELDS_VERSION = LOOK_FROM_VERSION;
+/** Trip chapters (`dev-docs/player/TRIP_CHAPTERS.md`) are not part of a server document yet. */
+const TRIP_CHAPTER_KEYS = ["automaticChaptersOff", "chapterEdits", "addedChapters"];
 /** Every key a server document's slideshow, each picture and each song may carry. */
-export const SERVER_SLIDESHOW_KEYS: readonly string[] = slideshowKeys(MANIFEST_FIELDS_VERSION);
+export const SERVER_SLIDESHOW_KEYS: readonly string[] = slideshowKeys(
+  MANIFEST_FIELDS_VERSION,
+).filter((key) => !TRIP_CHAPTER_KEYS.includes(key));
 export const SERVER_PICTURE_KEYS: readonly string[] = [
-  ...pictureKeys(MANIFEST_FIELDS_VERSION),
+  // A picture's resolved `place` is not part of a server document yet, like trip chapters.
+  ...pictureKeys(MANIFEST_FIELDS_VERSION).filter((key) => key !== "place"),
   "immichAssetId",
 ];
 export const SERVER_MUSIC_KEYS: readonly string[] = [
@@ -44,7 +50,8 @@ export const SERVER_MUSIC_KEYS: readonly string[] = [
   "musicId",
 ];
 
-export interface ServerPicture extends PictureFields {
+/** A server document's picture fields: no resolved `place` yet (`MANIFEST_FIELDS_VERSION`). */
+export interface ServerPicture extends Omit<PictureFields, "place"> {
   readonly immichAssetId: string;
 }
 
@@ -166,6 +173,7 @@ export function serverDocumentFor(slideshow: StoredSlideshow): ServerDocument {
       ...(slideshow.portraitPictures === undefined
         ? {}
         : { portraitPictures: slideshow.portraitPictures }),
+      ...(slideshow.look === undefined ? {} : { look: slideshow.look }),
       pictures: slideshow.pictures.map(serverPictureFor),
       songs: slideshow.songs.map((song) => ({
         musicId: song.id,

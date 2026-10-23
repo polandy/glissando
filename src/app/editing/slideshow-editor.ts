@@ -10,6 +10,7 @@ import { CardSettingsEditor } from "./card-settings-editor";
 import { ChapterSettingsEditor } from "./chapter-settings-editor";
 import { EditSaver } from "./edit-saver";
 import { EditorUndos } from "./editor-undos";
+import { LookSettingsEditor } from "./look-settings-editor";
 import { MusicSettingsEditor } from "./music-settings-editor";
 import { PictureListEditor } from "./picture-list-editor";
 import { PictureSettingsEditor } from "./picture-settings-editor";
@@ -17,11 +18,10 @@ import { VideoSettingsEditor } from "./video-settings-editor";
 import type { SlideshowEditorPorts } from "./slideshow-editor-ports";
 
 /**
- * The slideshow screen's edits: each applies at once and is stored. Removing needs no
- * confirmation; its toast undoes every removal made while it is shown, and any other edit
- * ends that batch, so an undo never puts pictures back at positions that shifted meanwhile.
- * While the toast is shown, the removed pictures' media is claimed, so a clean-up in any tab
- * spares it.
+ * The slideshow screen's edits: each applies at once and is stored. Removing needs no confirmation;
+ * its toast undoes every removal made while it is shown, and any other edit ends that batch, so an
+ * undo never puts pictures back at positions that shifted meanwhile. While the toast is shown, the
+ * removed pictures' media is claimed, so a clean-up in any tab spares it.
  */
 export class SlideshowEditor {
   readonly #listeners = new Set<(slideshow: StoredSlideshow) => void>();
@@ -36,6 +36,8 @@ export class SlideshowEditor {
   readonly video: VideoSettingsEditor;
   /** The automatic and added trip chapters (TRIP_CHAPTERS.md). */
   readonly chapters: ChapterSettingsEditor;
+  /** The slideshow's colour grade (ADR-0044). */
+  readonly look: LookSettingsEditor;
 
   constructor(initial: StoredSlideshow, ports: SlideshowEditorPorts) {
     this.#slideshow = initial;
@@ -87,6 +89,12 @@ export class SlideshowEditor {
       () => this.#slideshow,
       (slideshow) => this.#apply(slideshow),
     );
+    this.look = new LookSettingsEditor(
+      ports,
+      this.#undos.reset,
+      () => this.#slideshow,
+      (slideshow) => this.#apply(slideshow),
+    );
   }
 
   get slideshow(): StoredSlideshow {
@@ -103,8 +111,6 @@ export class SlideshowEditor {
   subscribeSaving(listener: (saving: boolean) => void): () => void {
     return this.#saver.subscribeSaving(listener);
   }
-
-  // The picture list's shape and the slideshow's title delegate to `PictureListEditor`.
 
   /** The last picture stays; asking to remove it explains why in a toast. */
   remove(pictureId: string): void {
@@ -142,8 +148,6 @@ export class SlideshowEditor {
   rename(typed: string): void {
     this.#pictureList.rename(typed);
   }
-
-  // Ken Burns, duration and transition settings delegate to `PictureSettingsEditor`.
 
   setKenBurns(pictureId: string, kenBurns: OwnKenBurns): void {
     this.#pictureSettings.setKenBurns(pictureId, kenBurns);
@@ -200,9 +204,6 @@ export class SlideshowEditor {
     this.#pictureList.setCaption(pictureId, typed);
   }
 
-  // The playlist and timing settings delegate to `MusicSettingsEditor`; the songs' edits offer
-  // no undo, since one tap on "whole track" or "automatic" restores them.
-
   addSongs(songs: readonly StoredMusic[]): void {
     this.#musicSettings.addSongs(songs);
   }
@@ -246,8 +247,6 @@ export class SlideshowEditor {
   setSecondsPerPicture(seconds: number): void {
     this.#musicSettings.setSecondsPerPicture(seconds);
   }
-
-  // The title slide and closing slide (ADR-0032, TITLE_SLIDES.md) delegate to `CardSettingsEditor`.
 
   ensureOpeningCard(): StoredCard {
     return this.#cardSettings.ensureOpeningCard();

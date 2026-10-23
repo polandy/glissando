@@ -1,4 +1,5 @@
 import type { CardSwatchId } from "../player/card-palette";
+import type { GradedSlideshowLook } from "../player/looks/slideshow-look";
 import type { CardEntrance, CardPosition, CardStyle } from "../player/slideshow";
 import type { Place } from "../places/nearest-place";
 import type { OwnKenBurns } from "./own-ken-burns";
@@ -166,6 +167,11 @@ export interface StoredSlideshow {
    */
   readonly transition?: SlideshowTransition;
   /**
+   * The colour grade of every picture and video layer; absent: none (`DEFAULT_SLIDESHOW_LOOK`,
+   * see ADR-0044).
+   */
+  readonly look?: GradedSlideshowLook;
+  /**
    * How portrait pictures lay out (`checkPortraitPictures`); absent: automatic, pairs and a
    * blurred fill for a whole picture that would otherwise lose too much to the crop (ADR-0028).
    */
@@ -181,6 +187,3 @@ export interface StoredSlideshow {
   /** Chapters the user added by hand; absent: none. */
   readonly addedChapters?: readonly AddedChapter[];
 }
-
-export type { LibraryStore, MediaClaim, PictureBlobs, SlideshowStore } from "./library-store";
-export { CLAIM_SPARED_FOR_MS, MediaNotFoundError, SlideshowNotFoundError } from "./library-store";

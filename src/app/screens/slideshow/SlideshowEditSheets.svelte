@@ -4,18 +4,20 @@
   import type { CardInput } from "../../../library/stored-card";
   import type { PortraitPictures } from "../../../library/portrait-pictures";
   import type { SlideshowTransition } from "../../../library/own-timing";
+  import type { SlideshowLook } from "../../../player";
   import type { MotionPreviewPorts } from "../../picture-editor/motion-preview";
   import type { ChapterSettingsEditor } from "../../editing/chapter-settings-editor";
   import type { SlideshowDetails } from "../view-models";
   import CardSheet from "./card-sheet/CardSheet.svelte";
+  import LookSheet from "./LookSheet.svelte";
   import ChapterSheet from "./chapter-sheet/ChapterSheet.svelte";
   import PortraitPicturesSheet from "./PortraitPicturesSheet.svelte";
   import TransitionsSheet from "./TransitionsSheet.svelte";
 
   /**
-   * The slideshow screen's setting sheets (default transition, portrait pictures, title slide,
-   * closing slide): each opens over the screen and, once closed, hands focus back to the row or
-   * tile it was opened from.
+   * The slideshow screen's setting sheets (default transition, colour grade, portrait pictures,
+   * title slide, closing slide): each opens over the screen and, once closed, hands focus back to
+   * the row or tile it was opened from.
    */
   let {
     slideshow,
@@ -23,9 +25,12 @@
     reducedMotion,
     onTransition,
     onResetTransition,
+    onLook,
+    onResetLook,
     onPortraitPictures,
     onResetPortraitPictures,
     onTransitionsClosed,
+    onLookClosed,
     onPortraitPicturesClosed,
     onEnsureOpeningCard,
     onOpeningCard,
@@ -45,9 +50,12 @@
     reducedMotion: boolean;
     onTransition: (transition: SlideshowTransition) => void;
     onResetTransition: () => void;
+    onLook: (look: SlideshowLook) => void;
+    onResetLook: () => void;
     onPortraitPictures: (choice: PortraitPictures) => void;
     onResetPortraitPictures: () => void;
     onTransitionsClosed: () => void;
+    onLookClosed: () => void;
     onPortraitPicturesClosed: () => void;
     /** Creates the title slide with its defaults, storing it at once. */
     onEnsureOpeningCard: () => StoredCard;
@@ -65,6 +73,7 @@
   } = $props();
 
   let editingTransitions = $state(false);
+  let editingLook = $state(false);
   let editingPortraitPictures = $state(false);
   let editingOpeningCard = $state(false);
   let editingClosingCard = $state(false);
@@ -73,6 +82,10 @@
 
   export function openTransitions(): void {
     editingTransitions = true;
+  }
+
+  export function openLook(): void {
+    editingLook = true;
   }
 
   export function openPortraitPictures(): void {
@@ -106,6 +119,13 @@
     // The modal dialog must be gone first: until then the page behind it is inert.
     flushSync();
     onTransitionsClosed();
+  }
+
+  function closeLook(): void {
+    editingLook = false;
+    // The modal dialog must be gone first: until then the page behind it is inert.
+    flushSync();
+    onLookClosed();
   }
 
   function closePortraitPictures(): void {
@@ -146,6 +166,10 @@
     onReset={onResetTransition}
     onClose={closeTransitions}
   />
+{/if}
+
+{#if editingLook}
+  <LookSheet {slideshow} {onLook} onReset={onResetLook} onClose={closeLook} />
 {/if}
 
 {#if editingPortraitPictures}

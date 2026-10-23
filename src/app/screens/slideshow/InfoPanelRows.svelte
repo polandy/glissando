@@ -1,14 +1,16 @@
 <script lang="ts">
   import { DEFAULT_SLIDESHOW_TRANSITION } from "../../../library/own-timing";
+  import { DEFAULT_SLIDESHOW_LOOK } from "../../../player";
   import { getTranslator } from "../../i18n/context";
   import type { SlideshowDetails } from "../view-models";
   import PanelActionRow from "./PanelActionRow.svelte";
 
-  /** The slideshow's facts: pictures, duration, music, timing, transitions and captions. */
+  /** The slideshow's facts: pictures, duration, music, timing, transitions, look and captions. */
   let {
     slideshow,
     onEditMusic,
     onEditTransitions,
+    onEditLook,
     onEditPortraitPictures,
     onEditChapters,
   }: {
@@ -16,6 +18,8 @@
     onEditMusic: () => void;
     /** Opens the sheet of the slideshow's default transition. */
     onEditTransitions: () => void;
+    /** Opens the sheet of the slideshow's colour grade (ADR-0044). */
+    onEditLook: () => void;
     /** Opens the sheet of the slideshow's portrait pictures setting. */
     onEditPortraitPictures: () => void;
     /** Opens the trip chapters sheet in general mode (TRIP_CHAPTERS.md). */
@@ -23,12 +27,18 @@
   } = $props();
 
   let transitionsRow: PanelActionRow;
+  let lookRow: PanelActionRow;
   let portraitPicturesRow: PanelActionRow;
   let chaptersRow: PanelActionRow;
 
   /** The transitions sheet closed: focus goes back to the row it was opened from. */
   export function focusTransitions(): void {
     transitionsRow.focus();
+  }
+
+  /** The look sheet closed: focus goes back to the row it was opened from. */
+  export function focusLook(): void {
+    lookRow.focus();
   }
 
   /** The portrait pictures sheet closed: focus goes back to the row it was opened from. */
@@ -92,6 +102,9 @@
           own: t("slideshow.transitionOwnCount", { count: slideshow.ownTransitionCount }),
         });
   });
+  const lookSummary = $derived(
+    slideshow.look === DEFAULT_SLIDESHOW_LOOK ? t("slideshow.lookDefault") : "",
+  );
   const portraitPicturesSummary = $derived(
     slideshow.pairCount === 0 ? "" : `· ${t("portrait.pairCount", { count: slideshow.pairCount })}`,
   );
@@ -163,6 +176,17 @@
   </div>
   <div class="action-row">
     <PanelActionRow
+      bind:this={lookRow}
+      name="look"
+      label={t("slideshow.look")}
+      value={t(`look.${slideshow.look}`)}
+      summary={lookSummary}
+      action={t("slideshow.change")}
+      onclick={onEditLook}
+    />
+  </div>
+  <div class="action-row">
+    <PanelActionRow
       bind:this={portraitPicturesRow}
       name="portrait"
       label={t("slideshow.portraitPictures")}
@@ -222,7 +246,7 @@
     font-size: inherit;
     font-weight: var(--gl-weight-regular);
   }
-  /* The music, transitions and portrait pictures rows open their editors (PanelActionRow). */
+  /* The music, transitions, look and portrait pictures rows open their editors (PanelActionRow). */
   .rows .action-row {
     display: block;
     padding: 6px 0;

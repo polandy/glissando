@@ -1,5 +1,5 @@
 import type { RemovedPicture } from "../../library/slideshow-edits";
-import type { LibraryStore } from "../../library/stored-slideshow";
+import type { LibraryStore } from "../../library/library-store";
 import type { Toaster, ToastMessage } from "../toast/toaster";
 
 export interface RemovalUndoPorts {

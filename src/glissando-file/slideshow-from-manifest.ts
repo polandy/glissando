@@ -77,6 +77,7 @@ export function slideshowFromManifest(
       ? {}
       : { portraitPictures: slideshow.portraitPictures }),
     ...(slideshow.transition === undefined ? {} : { transition: slideshow.transition }),
+    ...(slideshow.look === undefined ? {} : { look: slideshow.look }),
     songs,
     ...(slideshow.betweenSongs === undefined ? {} : { betweenSongs: slideshow.betweenSongs }),
     secondsPerPicture: slideshow.secondsPerPicture,

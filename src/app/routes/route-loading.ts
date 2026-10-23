@@ -1,8 +1,6 @@
-import {
-  SlideshowNotFoundError,
-  type LibraryStore,
-  type StoredSlideshow,
-} from "../../library/stored-slideshow";
+import type { LibraryStore } from "../../library/library-store";
+import { SlideshowNotFoundError } from "../../library/library-store";
+import type { StoredSlideshow } from "../../library/stored-slideshow";
 import { COVER_PICTURE_COUNT, slideshowDetails, slideshowSummary } from "../library-views";
 import type { ObjectUrls } from "../media/object-urls";
 import type { SlideshowDetails, SlideshowSummary } from "../screens/view-models";

@@ -25,6 +25,7 @@ describe("DomRenderer", () => {
     renderer.render({
       kind: "slide",
       endFade: 0,
+      look: "none",
       slide: { kind: "picture", picture: outgoing, motion: MOTION, fit: FIT },
     });
 
@@ -44,12 +45,14 @@ describe("DomRenderer", () => {
     renderer.render({
       kind: "slide",
       endFade: 0,
+      look: "none",
       slide: { kind: "picture", picture: outgoing, motion: MOTION, fit: FIT },
     });
 
     renderer.render({
       kind: "transition",
       endFade: 0,
+      look: "none",
       effect: "circle-open",
       progress: 0.25,
       from: { kind: "picture", picture: outgoing, motion: MOTION, fit: FIT },
@@ -66,12 +69,14 @@ describe("DomRenderer", () => {
     renderer.render({
       kind: "slide",
       endFade: 0,
+      look: "none",
       slide: { kind: "picture", picture: outgoing, motion: MOTION, fit: FIT },
     });
 
     renderer.render({
       kind: "slide",
       endFade: 0,
+      look: "none",
       slide: { kind: "picture", picture: incoming, motion: MOTION, fit: FIT },
     });
 
@@ -84,6 +89,7 @@ describe("DomRenderer", () => {
     renderer.render({
       kind: "slide",
       endFade: 0,
+      look: "none",
       slide: { kind: "picture", picture: outgoing, motion: MOTION, fit: FIT },
     });
     expect(box.childElementCount).toBe(1);

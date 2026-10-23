@@ -3,6 +3,7 @@ import type { SlideshowTransition, TransitionChoice } from "../../library/own-ti
 import type { PictureColours } from "../../library/picture-colours";
 import type { ResolvedPortraitPictures } from "../../library/portrait-pictures";
 import type { StoredCard } from "../../library/stored-slideshow";
+import type { SlideshowLook } from "../../player/looks/slideshow-look";
 
 /** What the screens show; the composition root derives these from the stored slideshows. */
 
@@ -43,6 +44,8 @@ export interface PictureTile {
   readonly capturedAt: string;
   /** The length of a video slide's excerpt; absent for a still picture. */
   readonly clipMs?: number;
+  /** Shown with the picture in the player; absent: none. Normalised (`normalizeCaption`). */
+  readonly caption?: string;
   /** The picture plays a Ken Burns motion of the user's own. */
   readonly ownMotion: boolean;
   /** The picture's own duration; null while automatic. */
@@ -95,6 +98,8 @@ export interface SlideshowDetails {
   readonly ownTransitionCount: number;
   /** The transition of every picture without its own. */
   readonly transition: SlideshowTransition;
+  /** The slideshow's colour grade; `"none"` for its absent setting (ADR-0044). */
+  readonly look: SlideshowLook;
   /** How portrait pictures lay out; `"automatic"` for the slideshow's absent setting (ADR-0028). */
   readonly portraitPictures: ResolvedPortraitPictures;
   /** How many slides compose two portrait pictures into one pair. */

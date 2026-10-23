@@ -9,7 +9,7 @@ import {
   type FocusPassState,
 } from "./focus-pass-types";
 import type { PictureFocus, StoredFocus } from "./picture-focus";
-import { MediaNotFoundError } from "./stored-slideshow";
+import { MediaNotFoundError } from "./library-store";
 
 export type { FocusPassPorts, FocusPassState, SlideshowSearch } from "./focus-pass-types";
 export { FocusDetectionFailedError } from "./focus-pass-types";

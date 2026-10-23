@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { FakePictureChecker } from "../../culling/testing/fake-picture-checker";
-import { MediaNotFoundError } from "../../library/stored-slideshow";
+import { MediaNotFoundError } from "../../library/library-store";
 import { MemoryLibraryStore } from "../../library/testing/memory-store";
 import { CREATED_AT, pictureFile, sessionWith } from "./testing/import-session-fixtures";
 

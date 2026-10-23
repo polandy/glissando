@@ -1,6 +1,7 @@
 import type { MusicBeats } from "../beats";
 import { BeatDetectorGoneError, MusicUndecodableError, type BeatDetector } from "./beat-detector";
-import { MediaNotFoundError, type LibraryStore } from "./stored-slideshow";
+import type { LibraryStore } from "./library-store";
+import { MediaNotFoundError } from "./library-store";
 
 export interface BeatPassPorts {
   readonly store: Pick<

@@ -6,7 +6,8 @@ are rejected.
 
 ```json
 {
-  "formatVersion": 8,
+  "formatVersion": 9,
+  "look": "film",
   "title": "July 2025",
   "music": [
     {
@@ -97,5 +98,8 @@ duckMusic? }`, a clip played over the slide's `image`, which is its poster. `sta
   absent means `true`. A video slide has a still framing (`kenBurns.from` equals `to`, zoom 1) and
   no `partner`. Errors name the field, e.g. `slides[i].video.endMs`. The music's duck factor is
   `duckFactorAt` over `videoSoundSpans(slides)`; see [VIDEO_SLIDES.md](VIDEO_SLIDES.md).
-- Only version 8 is read; older versions are refused, not upgraded — no instance holds
+- **`look`** (version 9, ADR-0044, optional, top level): the slideshow's colour grade, one of
+  `warm`, `cool`, `vivid`, `film`, `black-and-white`, `faded`; absent means none (`"none"` is
+  refused, one spelling per state). Table and maths in [LOOKS.md](LOOKS.md).
+- Only version 9 is read; older versions are refused, not upgraded — no instance holds
   slideshows older than this app.

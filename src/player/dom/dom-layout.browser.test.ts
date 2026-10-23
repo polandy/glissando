@@ -20,6 +20,7 @@ describe("DomRenderer: pairs and the blurred fill (ADR-0028)", () => {
     renderer.render({
       kind: "slide",
       endFade: 0,
+      look: "none",
       slide: {
         kind: "picture",
         picture: first,
@@ -41,6 +42,7 @@ describe("DomRenderer: pairs and the blurred fill (ADR-0028)", () => {
     renderer.render({
       kind: "slide",
       endFade: 0,
+      look: "none",
       slide: {
         kind: "picture",
         picture: first,
@@ -64,6 +66,7 @@ describe("DomRenderer: pairs and the blurred fill (ADR-0028)", () => {
     renderer.render({
       kind: "slide",
       endFade: 0,
+      look: "none",
       slide: { kind: "picture", picture: first, motion: STILL },
     });
 
@@ -82,6 +85,7 @@ describe("DomRenderer: pairs and the blurred fill (ADR-0028)", () => {
     renderer.render({
       kind: "slide",
       endFade: 0,
+      look: "none",
       slide: { kind: "picture", picture: first, motion: STILL, fit: "cover" },
     });
 

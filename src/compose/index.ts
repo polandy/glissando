@@ -21,6 +21,7 @@ export {
   TRANSITION_SHARE_OF_SLIDE,
 } from "./auto-transition";
 export { automaticTransition, pictureTransition, slideshowTransition } from "./picture-transition";
+export { slideshowLook } from "./slideshow-look";
 export { titleForCaptureRange } from "./title-for-capture-range";
 export { buildStoredSlideshow, type BuildStoredSlideshowInput } from "./build-stored-slideshow";
 export { composeSlideshow, type SlideshowSources } from "./compose-slideshow";

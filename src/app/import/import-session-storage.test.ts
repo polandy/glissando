@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { storedFocus } from "../../library/focus-pass-fixtures";
-import { MediaNotFoundError } from "../../library/stored-slideshow";
+import { MediaNotFoundError } from "../../library/library-store";
 import {
   CREATED_AT,
   LoggingStore,

@@ -28,6 +28,7 @@ export const BASE_MANIFEST: ManifestDocument = {
     betweenSongs: "sequence",
     pictureLength: "seconds",
     portraitPictures: "fill-screen",
+    look: "warm",
     pictures: [
       {
         file: "pictures/0001.png",

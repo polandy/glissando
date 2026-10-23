@@ -182,7 +182,7 @@ describe("openingCard and closingCard in the .glissando file (ADR-0032)", () => 
     const text = JSON.stringify({ ...written, formatVersion: 11 });
     expect(readManifest(text)).toEqual({
       kind: "damaged",
-      reason: "glissando.json formatVersion: expected a whole number from 13 to 17, got 11",
+      reason: "glissando.json formatVersion: expected a whole number from 13 to 18, got 11",
     });
   });
 });

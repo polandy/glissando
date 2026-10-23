@@ -26,7 +26,7 @@ async function clipWithoutSound(colour: string, durationMs: number): Promise<Blo
     throw new Error(`this engine cannot export: ${capabilities.reason}`);
   }
   const slideshow: Slideshow = {
-    formatVersion: 8,
+    formatVersion: 9,
     title: "Clip without sound",
     slides: [
       { image: { src: "solid", capturedAt: CAPTURED_AT }, durationMs, kenBurns: STILL_MOTION },

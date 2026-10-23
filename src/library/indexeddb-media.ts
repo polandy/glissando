@@ -1,5 +1,6 @@
 import { claimsAt, referencedMediaIds } from "./slideshow-queries";
-import type { MediaClaim, StoredSlideshow } from "./stored-slideshow";
+import type { MediaClaim } from "./library-store";
+import type { StoredSlideshow } from "./stored-slideshow";
 import type { StoredMedia, StoredPictureMedia } from "./indexeddb-records";
 import {
   BEATS,

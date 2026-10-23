@@ -68,6 +68,7 @@ describe("WebGlRenderer title cards under a transition", () => {
       from,
       to,
       endFade: 0,
+      look: "none",
     };
 
     const pixels = readAllPixels(frame);

@@ -1,7 +1,8 @@
 <script lang="ts">
   import { onDestroy, onMount } from "svelte";
   import { MediaQuery } from "svelte/reactivity";
-  import { SlideshowNotFoundError, type StoredSlideshow } from "../../library/stored-slideshow";
+  import { SlideshowNotFoundError } from "../../library/library-store";
+  import type { StoredSlideshow } from "../../library/stored-slideshow";
   import type { SlideshowEditor } from "../editing/slideshow-editor";
   import { createScreenEditor } from "./screen-editor";
   import { getTranslator } from "../i18n/context";
@@ -217,6 +218,8 @@
     {onEditMusic}
     onTransition={(transition) => editor?.setSlideshowTransition(transition)}
     onResetTransition={() => editor?.resetSlideshowTransition()}
+    onLook={(look) => editor?.look.set(look)}
+    onResetLook={() => editor?.look.reset()}
     onPortraitPictures={(choice) => editor?.setPortraitPictures(choice)}
     onResetPortraitPictures={() => editor?.resetPortraitPictures()}
     onEnsureOpeningCard={() => mustEditor().ensureOpeningCard()}

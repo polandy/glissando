@@ -46,6 +46,7 @@ function chapter(overrides: Partial<SlideshowChapter> = {}): SlideshowChapter {
 function mountStrip(chapters: readonly SlideshowChapter[], onOpenChapter = vi.fn()) {
   const mounted = mountWithTranslator(PictureStrip, {
     pictures: [picture("p1"), picture("p2")],
+    look: "none" as const,
     newPictureIds: new Set<string>(),
     selection: NO_SELECTION,
     mousePointer: true,

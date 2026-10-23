@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { MusicBeats } from "../beats";
 import { ImmichUnavailableError } from "../immich/immich-client";
-import { MediaNotFoundError } from "../library/stored-slideshow";
+import { MediaNotFoundError } from "../library/library-store";
 import { musicLoudnessToJson, type MusicLoudness } from "../loudness";
 import { PictureMissingFromImmichError } from "./server-slideshow-store";
 import { UNDECODABLE } from "./testing/fake-immich-media";

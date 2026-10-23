@@ -126,7 +126,7 @@ describe("a composed chapter slide, rendered", () => {
         motion,
         card: cardVisual(card, { textOpacity, veilAmount, slideTimeMs: 1000 }),
       };
-      return { kind: "slide", slide: layer, endFade: 0 };
+      return { kind: "slide", slide: layer, endFade: 0, look: "none" };
     }
 
     // The picture is darkened: a point clear of the text (near the top) dims once the veil is on.
@@ -225,7 +225,7 @@ describe("a chapter composed before its anchor picture, rendered across the hand
         picture: quadrants,
         motion: { kenBurns: slide.kenBurns, progress },
       };
-      return { kind: "slide", slide: layer, endFade: 0 };
+      return { kind: "slide", slide: layer, endFade: 0, look: "none" };
     }
 
     const endOfChapter = readPixel(frameAt(CHAPTER_SLIDE_MS - 1), [0.5, 0.5]);

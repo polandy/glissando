@@ -134,6 +134,7 @@ async function mountRoute(stored: StoredSlideshow = SHOW) {
     transitionAutomaticText: () => "Übergang wieder automatisch",
     slideshowTransitionResetText: () => "Übergänge wieder auf Überblenden",
     portraitPicturesResetText: () => "Hochformatbilder wieder automatisch",
+    lookResetText: () => "Look entfernt",
     songRemovedText: () => "Song entfernt",
     shuffledText: () => "",
     random: () => 0,

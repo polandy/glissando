@@ -37,6 +37,7 @@ export function createScreenEditor(
     transitionAutomaticText: () => t("editor.transitionAutomatic"),
     slideshowTransitionResetText: () => t("transitions.resetDone"),
     portraitPicturesResetText: () => t("portrait.resetDone"),
+    lookResetText: () => t("look.resetDone"),
     songRemovedText: () => t("music.songRemoved"),
     automaticTitle: (slideshow) =>
       titleForCaptureRange(

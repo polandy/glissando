@@ -6,18 +6,22 @@
   import CardTile from "./card-sheet/CardTile.svelte";
   import ChapterTile from "./ChapterTile.svelte";
   import DragGhost from "./DragGhost.svelte";
+  import { lookFilterUrl } from "./look-filter-id";
+  import LookFilterDefs from "./LookFilterDefs.svelte";
   import PlaceholderTile from "./PlaceholderTile.svelte";
   import type { PictureStripProps } from "./picture-strip-props";
+  import { hitTest } from "./strip-hit-test";
   import StripTile from "./StripTile.svelte";
   import { hold, pick } from "./strip-selection";
   import { StripKeydown } from "./strip-keydown";
   import { TileDrag } from "./tile-drag";
   import { glideTiles, tilePositions } from "./tile-glide";
-  import type { DropTarget, TileDragState } from "./tile-drag-types";
+  import type { TileDragState } from "./tile-drag-types";
 
   /** The pictures in play order as tiles: select, remove, and reorder by drag or keyboard. */
   let {
     pictures,
+    look,
     newPictureIds,
     selection,
     mousePointer,
@@ -47,6 +51,10 @@
   const { t } = getTranslator();
   let openingTile = $state<CardTile>();
   let closingTile = $state<CardTile>();
+
+  // Scopes this strip's filter ids from any other `LookFilterDefs` instance in the document.
+  const filterPrefix = crypto.randomUUID();
+  const lookFilter = $derived(lookFilterUrl(filterPrefix, look));
 
   export function focusOpeningCard(): void {
     openingTile?.focus();
@@ -89,17 +97,6 @@
         .map((chapter) => [chapter.anchorPictureId, chapter]),
     ),
   );
-
-  /** The tile under a viewport point, and whether a drop lands before or after it. */
-  function hitTest(x: number, y: number): DropTarget | null {
-    const tile = document.elementFromPoint(x, y)?.closest<HTMLElement>(".pick") ?? null;
-    const pictureId = tile?.dataset.pictureId;
-    if (tile === null || pictureId === undefined) {
-      return null;
-    }
-    const box = tile.getBoundingClientRect();
-    return { pictureId, after: x > box.left + box.width / 2 };
-  }
 
   // Fixed for the strip's lifetime: a test passes its fakes once, at mount.
   // svelte-ignore state_referenced_locally
@@ -217,6 +214,8 @@
   onpointercancel={(event) => drag.pointerCancel(event.pointerId)}
 />
 
+<LookFilterDefs prefix={filterPrefix} />
+
 <ol class="strip" bind:this={strip} onpointerdown={pointerDown} oncontextmenu={contextmenu}>
   {#if !suppressCards}
     <CardTile
@@ -238,6 +237,7 @@
       selected={selection.ids.has(picture.id)}
       selecting={selection.several}
       isNew={newPictureIds.has(picture.id)}
+      {lookFilter}
       {mousePointer}
       dragging={dragState.groupIds?.includes(picture.id) ?? false}
       drop={dragState.dropMark?.pictureId === picture.id

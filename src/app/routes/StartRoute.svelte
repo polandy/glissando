@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onDestroy, onMount, type Snippet } from "svelte";
   import type { FocusPass, FocusPassState } from "../../library/focus-pass";
-  import type { LibraryStore } from "../../library/stored-slideshow";
+  import type { LibraryStore } from "../../library/library-store";
   import { browserObjectUrls, ObjectUrls } from "../media/object-urls";
   import type { OpenNotice } from "../glissando-file/open-flow";
   import StartScreen from "../screens/StartScreen.svelte";

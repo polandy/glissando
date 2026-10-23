@@ -4,6 +4,7 @@ import {
   resolveMusicTiming,
   slideUnits,
   slideshowDurationMs,
+  slideshowLook,
   slideshowTransition,
 } from "../compose";
 import { chaptersOfSlideshow } from "../compose/chapters-of-slideshow";
@@ -71,6 +72,7 @@ export function slideshowDetails(
     thumbnailUrl: thumbnailUrl(picture.id),
     capturedAt: picture.capturedAt,
     ...(picture.video === undefined ? {} : { clipMs: picture.video.endMs - picture.video.startMs }),
+    ...(picture.caption === undefined ? {} : { caption: picture.caption }),
     ownMotion: picture.kenBurns !== undefined,
     ownDurationMs: picture.durationMs ?? null,
     // The last picture plays no transition; one stored there waits for a picture to follow.
@@ -96,6 +98,7 @@ export function slideshowDetails(
     ownDurationCount: tiles.filter((tile) => tile.ownDurationMs !== null).length,
     ownTransitionCount: tiles.filter((tile) => tile.ownTransition !== null).length,
     transition: slideshowTransition(stored),
+    look: slideshowLook(stored),
     portraitPictures: resolvePortraitPictures(stored.portraitPictures),
     pairCount: slideUnits(stored.pictures, stored.portraitPictures).filter(
       (unit) => unit.pictureIndices.length === 2,

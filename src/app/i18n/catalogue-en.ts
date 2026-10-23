@@ -3,6 +3,7 @@ import { enEditor } from "./catalogue-en-editor.ts";
 import { enMusic } from "./catalogue-en-music.ts";
 import { enTiming } from "./catalogue-en-timing.ts";
 import { enTransitions } from "./catalogue-en-transitions.ts";
+import { enLook } from "./catalogue-en-look.ts";
 import { enPortrait } from "./catalogue-en-portrait.ts";
 import { enImmich } from "./catalogue-en-immich.ts";
 import { enHtml } from "./catalogue-en-html.ts";
@@ -89,6 +90,7 @@ export const en: Catalogue = {
   "slideshow.kenBurns": "Ken Burns",
   "slideshow.automatic": "automatic",
   "slideshow.transitions": "Transitions",
+  "slideshow.look": "Look",
   "slideshow.play": "Play",
   "slideshow.details": "Details",
   "slideshow.pictures": "Pictures",
@@ -400,6 +402,7 @@ export const en: Catalogue = {
   ...enAdd,
   ...enTiming,
   ...enTransitions,
+  ...enLook,
   ...enPortrait,
   ...enImmich,
   ...enMusic,
