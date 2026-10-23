@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { PictureFocus } from "../library/picture-focus";
 import { DEFAULT_SLIDESHOW_TRANSITION } from "../library/own-timing";
 import type { StoredPicture } from "../library/stored-slideshow";
+import { CARD_REVEAL_MS } from "../player/card-timing";
 import { isGroundSlide, type KenBurns, type PictureSlide, type Slide } from "../player/slideshow";
 import { CHAPTER_SLIDE_MS, composeChapters, type ComposedChapter } from "./compose-chapters";
 import type { PictureSource } from "./card-slide";
@@ -19,7 +20,7 @@ function picture(id: string): StoredPicture {
 
 const KEN_BURNS: KenBurns = {
   from: { zoom: 1, centerX: 0.5, centerY: 0.5 },
-  to: { zoom: 1, centerX: 0.5, centerY: 0.5 },
+  to: { zoom: 1.2, centerX: 0.6, centerY: 0.4 },
   easing: "linear",
 };
 
@@ -41,10 +42,17 @@ function pairSlide(firstPictureId: string, secondPictureId: string): PictureSlid
   };
 }
 
+function videoSlide(pictureId: string, durationMs: number): PictureSlide {
+  return {
+    ...plainSlide(pictureId, durationMs),
+    video: { src: `videos/${pictureId}.mp4`, startMs: 0, endMs: durationMs, volume: 1 },
+  };
+}
+
 const sources: PictureSource = { picture: (id) => `pictures/${id}.jpg` };
 const NO_FOCUS: ReadonlyMap<string, PictureFocus> = new Map();
 
-function pictureSlide(slide: Slide | undefined): PictureSlide {
+function pictureSlideOf(slide: Slide | undefined): PictureSlide {
   if (slide === undefined || isGroundSlide(slide)) {
     throw new Error("expected a picture slide");
   }
@@ -56,7 +64,7 @@ describe("composeChapters", () => {
   const slides = [plainSlide("p1"), plainSlide("p2"), plainSlide("p3")];
   const chapter: ComposedChapter = { anchorPictureId: "p2", title: "Porto", subtitle: "Day 2" };
 
-  it("inserts a new slide right before the slide showing the anchor picture", () => {
+  it("carries the chapter on the anchor's own slide instead of inserting a separate one", () => {
     const composed = composeChapters(
       [chapter],
       pictures,
@@ -66,12 +74,12 @@ describe("composeChapters", () => {
       DEFAULT_SLIDESHOW_TRANSITION,
     );
 
-    expect(composed).toHaveLength(4);
-    expect(pictureSlide(composed[1]).image.src).toBe("pictures/p2.jpg");
-    expect(pictureSlide(composed[2]).image.src).toBe("pictures/p2.jpg");
+    expect(composed).toHaveLength(3);
+    expect(pictureSlideOf(composed[1]).image.src).toBe("pictures/p2.jpg");
+    expect(pictureSlideOf(composed[1]).card).toMatchObject({ title: "Porto", subtitle: "Day 2" });
   });
 
-  it("gives the inserted slide the chapter's title and subtitle, over the anchor picture", () => {
+  it("keeps the anchor's own Ken Burns motion, unchanged by the chapter", () => {
     const composed = composeChapters(
       [chapter],
       pictures,
@@ -81,7 +89,36 @@ describe("composeChapters", () => {
       DEFAULT_SLIDESHOW_TRANSITION,
     );
 
-    expect(pictureSlide(composed[1]).card).toMatchObject({ title: "Porto", subtitle: "Day 2" });
+    expect(pictureSlideOf(composed[1]).kenBurns).toEqual(KEN_BURNS);
+  });
+
+  it("lengthens the anchor's own duration by the fixed chapter time, on top of its own", () => {
+    const composed = composeChapters(
+      [chapter],
+      pictures,
+      [plainSlide("p1"), plainSlide("p2", 9000), plainSlide("p3")],
+      sources,
+      NO_FOCUS,
+      DEFAULT_SLIDESHOW_TRANSITION,
+    );
+
+    expect(pictureSlideOf(composed[1]).durationMs).toBe(9000 + CHAPTER_SLIDE_MS);
+    expect(CHAPTER_SLIDE_MS).toBe(3000);
+  });
+
+  it("reveals the card so the veil and text are gone once the chapter time has elapsed", () => {
+    const composed = composeChapters(
+      [chapter],
+      pictures,
+      slides,
+      sources,
+      NO_FOCUS,
+      DEFAULT_SLIDESHOW_TRANSITION,
+    );
+
+    expect(pictureSlideOf(composed[1]).card).toMatchObject({
+      revealAtMs: CHAPTER_SLIDE_MS - CARD_REVEAL_MS,
+    });
   });
 
   it("builds a quiet, bottom-left card with a picture veil and matching ink", () => {
@@ -94,7 +131,7 @@ describe("composeChapters", () => {
       DEFAULT_SLIDESHOW_TRANSITION,
     );
 
-    expect(pictureSlide(composed[1]).card).toMatchObject({
+    expect(pictureSlideOf(composed[1]).card).toMatchObject({
       style: "quiet",
       position: "bottom-left",
       entrance: "slow-fade",
@@ -103,21 +140,7 @@ describe("composeChapters", () => {
     });
   });
 
-  it("gives the inserted slide the fixed chapter duration, not the anchor slide's own", () => {
-    const composed = composeChapters(
-      [chapter],
-      pictures,
-      [plainSlide("p1"), plainSlide("p2", 9000), plainSlide("p3")],
-      sources,
-      NO_FOCUS,
-      DEFAULT_SLIDESHOW_TRANSITION,
-    );
-
-    expect(pictureSlide(composed[1]).durationMs).toBe(CHAPTER_SLIDE_MS);
-    expect(CHAPTER_SLIDE_MS).toBe(3000);
-  });
-
-  it("leaves the existing slides and their own durations untouched", () => {
+  it("leaves the other slides and their own durations untouched", () => {
     const composed = composeChapters(
       [chapter],
       pictures,
@@ -127,11 +150,13 @@ describe("composeChapters", () => {
       DEFAULT_SLIDESHOW_TRANSITION,
     );
 
-    expect(pictureSlide(composed[0]).durationMs).toBe(5000);
-    expect(pictureSlide(composed[2]).durationMs).toBe(5000);
+    expect(pictureSlideOf(composed[0]).durationMs).toBe(5000);
+    expect(pictureSlideOf(composed[0]).card).toBeUndefined();
+    expect(pictureSlideOf(composed[2]).durationMs).toBe(5000);
+    expect(pictureSlideOf(composed[2]).card).toBeUndefined();
   });
 
-  it("inserts several chapters, each before its own anchor", () => {
+  it("composes several chapters, each carried by its own anchor", () => {
     const chapters: readonly ComposedChapter[] = [
       { anchorPictureId: "p2", title: "Porto", subtitle: "Day 2" },
       { anchorPictureId: "p3", title: "Sintra", subtitle: "Day 3" },
@@ -146,9 +171,9 @@ describe("composeChapters", () => {
       DEFAULT_SLIDESHOW_TRANSITION,
     );
 
-    expect(composed).toHaveLength(5);
+    expect(composed).toHaveLength(3);
     const titles = composed.map((slide) => (isGroundSlide(slide) ? undefined : slide.card?.title));
-    expect(titles).toEqual([undefined, "Porto", undefined, "Sintra", undefined]);
+    expect(titles).toEqual([undefined, "Porto", "Sintra"]);
   });
 
   it("finds the anchor picture's slide by its image, unaffected by an opening card's lead slide", () => {
@@ -163,12 +188,12 @@ describe("composeChapters", () => {
       DEFAULT_SLIDESHOW_TRANSITION,
     );
 
-    expect(composed).toHaveLength(5);
-    expect(pictureSlide(composed[2]).card?.title).toBe("Porto");
-    expect(pictureSlide(composed[3]).image.src).toBe("pictures/p2.jpg");
+    expect(composed).toHaveLength(4);
+    expect(pictureSlideOf(composed[2]).card?.title).toBe("Porto");
+    expect(pictureSlideOf(composed[2]).image.src).toBe("pictures/p2.jpg");
   });
 
-  it("inserts the chapter before a portrait pair's slide when the anchor is its second picture", () => {
+  it("falls back to a dedicated slide of its own when the anchor is a portrait pair's second picture", () => {
     const pairedSlides = [pairSlide("p1", "p2"), plainSlide("p3")];
     const pairedChapter: ComposedChapter = {
       anchorPictureId: "p2",
@@ -186,12 +211,62 @@ describe("composeChapters", () => {
     );
 
     expect(composed).toHaveLength(3);
-    expect(pictureSlide(composed[0]).card?.title).toBe("Porto");
-    expect(pictureSlide(composed[1]).image.src).toBe("pictures/p1.jpg");
-    expect(pictureSlide(composed[1]).partner?.image.src).toBe("pictures/p2.jpg");
+    const dedicated = pictureSlideOf(composed[0]);
+    expect(dedicated.card?.title).toBe("Porto");
+    expect(dedicated.durationMs).toBe(CHAPTER_SLIDE_MS);
+    expect(dedicated.card?.revealAtMs).toBeUndefined();
+    const pair = pictureSlideOf(composed[1]);
+    expect(pair.image.src).toBe("pictures/p1.jpg");
+    expect(pair.partner?.image.src).toBe("pictures/p2.jpg");
+    expect(pair.card).toBeUndefined();
+    expect(pair.durationMs).toBe(5000);
   });
 
-  it("produces no slide when there are no chapters to insert", () => {
+  it("falls back to a dedicated slide of its own when the anchor is a video too short for the reveal", () => {
+    const shortVideoSlides = [plainSlide("p1"), videoSlide("p2", 2000), plainSlide("p3")];
+
+    const composed = composeChapters(
+      [chapter],
+      pictures,
+      shortVideoSlides,
+      sources,
+      NO_FOCUS,
+      DEFAULT_SLIDESHOW_TRANSITION,
+    );
+
+    expect(composed).toHaveLength(4);
+    const dedicated = pictureSlideOf(composed[1]);
+    expect(dedicated.video).toBeUndefined();
+    expect(dedicated.durationMs).toBe(CHAPTER_SLIDE_MS);
+    const clip = pictureSlideOf(composed[2]);
+    expect(clip.video).toBeDefined();
+    expect(clip.durationMs).toBe(2000);
+    expect(clip.card).toBeUndefined();
+  });
+
+  it("merges onto a video long enough for the reveal, without lengthening its clip", () => {
+    const longVideoSlides = [plainSlide("p1"), videoSlide("p2", 9000), plainSlide("p3")];
+
+    const composed = composeChapters(
+      [chapter],
+      pictures,
+      longVideoSlides,
+      sources,
+      NO_FOCUS,
+      DEFAULT_SLIDESHOW_TRANSITION,
+    );
+
+    expect(composed).toHaveLength(3);
+    const merged = pictureSlideOf(composed[1]);
+    expect(merged.video).toBeDefined();
+    expect(merged.durationMs).toBe(9000);
+    expect(merged.card).toMatchObject({
+      title: "Porto",
+      revealAtMs: CHAPTER_SLIDE_MS - CARD_REVEAL_MS,
+    });
+  });
+
+  it("produces no change when there are no chapters to insert", () => {
     expect(
       composeChapters([], pictures, slides, sources, NO_FOCUS, DEFAULT_SLIDESHOW_TRANSITION),
     ).toEqual(slides);

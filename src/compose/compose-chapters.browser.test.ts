@@ -5,17 +5,24 @@ import type { StoredPicture } from "../library/stored-slideshow";
 import { canvasCardMeasure } from "../player/card-measure";
 import { cardItemSlices } from "../player/card-item-layout";
 import { CARD_STYLE_SPECS, layoutCard } from "../player/card-layout";
-import { isGroundSlide, type PictureSlide, type Slide } from "../player/slideshow";
+import { isGroundSlide, type KenBurns, type PictureSlide, type Slide } from "../player/slideshow";
 import type { BitmapPicture } from "../player/browser/bitmap-loader";
 import type { PictureSlideLayer, RenderFrame } from "../player/ports";
-import { solidBitmap, standingStill, BLUE, type Rgb } from "../player/testing/browser-pictures";
+import {
+  quadrantBitmap,
+  solidBitmap,
+  standingStill,
+  BLUE,
+  type Rgb,
+} from "../player/testing/browser-pictures";
 import {
   cardVisual,
+  isColour,
   setUpCardRenderer,
   VIEWPORT,
   WHOLE_PICTURE,
 } from "../player/webgl/testing/card-render-fixtures";
-import { composeChapters, type ComposedChapter } from "./compose-chapters";
+import { CHAPTER_SLIDE_MS, composeChapters, type ComposedChapter } from "./compose-chapters";
 import type { PictureSource } from "./card-slide";
 
 /**
@@ -143,5 +150,87 @@ describe("a composed chapter slide, rendered", () => {
     const veiledBrightness = maxBrightnessInBox(veiledPixels, VIEWPORT.width, slice);
     const textBrightness = maxBrightnessInBox(textPixels, VIEWPORT.width, slice);
     expect(textBrightness).toBeGreaterThan(veiledBrightness);
+  });
+});
+
+/**
+ * A pan across the picture's diagonal, held at the anchor picture itself (ADR-0006), so it
+ * travels with the picture wherever it plays — a jump to a different point of it moves the crop
+ * a lot, not a little.
+ */
+const PANNING_KEN_BURNS: KenBurns = {
+  from: { zoom: 1.4, centerX: 0.3, centerY: 0.3 },
+  to: { zoom: 1.4, centerX: 0.7, centerY: 0.7 },
+  easing: "linear",
+};
+
+function panningPicture(): StoredPicture {
+  return { ...picture(), kenBurns: { from: PANNING_KEN_BURNS.from, to: PANNING_KEN_BURNS.to } };
+}
+
+/** The composed slides for one chapter before `panningPicture`'s own slide (Rule F): either the
+ * anchor's own slide, carrying the chapter and running on, or — against the former composition,
+ * which always inserted a dedicated card-only slide first — that slide followed by the anchor's. */
+function composedWithChapter(): readonly Slide[] {
+  const anchor: Slide = {
+    image: { src: "pictures/p1.jpg", capturedAt: "2025-07-01T10:00:00Z" },
+    durationMs: 5000,
+    kenBurns: PANNING_KEN_BURNS,
+  };
+  const chapter: ComposedChapter = { anchorPictureId: "p1", title: "Lisbon", subtitle: "Day 2" };
+  return composeChapters(
+    [chapter],
+    [panningPicture()],
+    [anchor],
+    sources,
+    NO_FOCUS,
+    DEFAULT_SLIDESHOW_TRANSITION,
+  );
+}
+
+/** The picture slide and the local time within it that is showing at `elapsedMs` since the
+ * composed slides' own start — the same walk the player's timeline does across a slide boundary. */
+function pictureSlideAt(
+  slides: readonly Slide[],
+  elapsedMs: number,
+): { readonly slide: PictureSlide; readonly slideTimeMs: number } {
+  let remaining = elapsedMs;
+  for (const [index, slide] of slides.entries()) {
+    if (isGroundSlide(slide)) {
+      throw new Error("expected a picture slide");
+    }
+    if (remaining < slide.durationMs || index === slides.length - 1) {
+      return { slide, slideTimeMs: Math.min(remaining, slide.durationMs) };
+    }
+    remaining -= slide.durationMs;
+  }
+  throw new Error("composeChapters produced no slide");
+}
+
+describe("a chapter composed before its anchor picture, rendered across the hand-over", () => {
+  it("keeps the picture's own framing continuous, not a jump to a different crop", async () => {
+    const composed = composedWithChapter();
+    // Both sample times are past the reveal (Rule F; CARD_REVEAL_MS ends by CHAPTER_SLIDE_MS),
+    // so only the picture's own Ken Burns, not the veil or text, can account for a pixel
+    // difference between them.
+    const { readPixel, box: renderBox } = setUpCardRenderer();
+    box = renderBox;
+    const quadrants = await quadrantBitmap();
+
+    function frameAt(elapsedMs: number): RenderFrame<BitmapPicture> {
+      const { slide, slideTimeMs } = pictureSlideAt(composed, elapsedMs);
+      const progress = Math.min(1, Math.max(0, slideTimeMs / slide.durationMs));
+      const layer: PictureSlideLayer<BitmapPicture> = {
+        kind: "picture",
+        picture: quadrants,
+        motion: { kenBurns: slide.kenBurns, progress },
+      };
+      return { kind: "slide", slide: layer, endFade: 0 };
+    }
+
+    const endOfChapter = readPixel(frameAt(CHAPTER_SLIDE_MS - 1), [0.5, 0.5]);
+    const shortlyAfter = readPixel(frameAt(CHAPTER_SLIDE_MS + 200), [0.5, 0.5]);
+
+    expect(isColour(shortlyAfter, endOfChapter)).toBe(true);
   });
 });

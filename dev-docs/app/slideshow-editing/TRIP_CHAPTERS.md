@@ -9,7 +9,7 @@ and composition: [player/TRIP_CHAPTERS.md](../../player/TRIP_CHAPTERS.md).
 picture's tile, from `chaptersOfSlideshow`: a slim dashed chip, a full-row bar on the phone
 (`@container (max-width: 720px)`), showing the chapter's effective title and subtitle, e.g.
 "Lisbon · Day 11–12 · 22–23 June". A hidden automatic chapter is omitted from the strip entirely —
-its picture still plays, just with no chapter slide. A chapter whose title or subtitle was edited
+its picture still plays, just with no card over it. A chapter whose title or subtitle was edited
 shows a small accent dot before its text. The tile takes no part in drag, select or keyboard
 reorder (no `.pick` class, no `data-picture-id`); tapping it opens the chapter sheet.
 
@@ -25,12 +25,12 @@ once, prefilled with the automatic text for that spot.
 `chapter-sheet/ChapterSheet.svelte`: a bottom sheet on the phone, a dialog from 720 px. Opened
 with an anchor picture's id, it shows:
 
-- A **preview** of the inserted chapter slide (`chapter-preview-model.ts`): the anchor picture,
-  veiled, with the chapter's effective title and subtitle in place.
+- A **preview** of the chapter's card (`chapter-preview-model.ts`): the anchor picture, veiled,
+  with the chapter's effective title and subtitle in place.
 - **Title** and **Subtitle** fields, prefilled with the effective (edited or automatic) text.
   Each has its own **Reset to automatic** button, disabled while that field is not edited.
 - For an **automatic** chapter: a **Hide this chapter** switch — hiding keeps it in the listing
-  (and in `chapterEdits`) but drops its slide, the same as an automatic chapter that fails Rule C.
+  (and in `chapterEdits`) but drops its card, the same as an automatic chapter that fails Rule C.
 - For an **added** chapter: a **Delete chapter** button instead of the switch — deleting removes
   it outright and closes the sheet.
 

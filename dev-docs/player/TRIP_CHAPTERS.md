@@ -1,9 +1,10 @@
 # Trip chapters
 
 Mockup: https://polandy.github.io/glissando-assets/mockups/day-chapters/. A chapter marks where
-one stay of the trip ends and the next begins, with a dedicated slide of its own. Domain and
-composition live under `src/compose/`; the stored fields in `src/library/stored-slideshow.ts`;
-the manifest shape in `src/glissando-file/manifest-chapters.ts`.
+one stay of the trip ends and the next begins, playing over its anchor picture's own slide so
+that picture's Ken Burns motion runs on, unbroken (Rule F). Domain and composition live under
+`src/compose/`; the stored fields in `src/library/stored-slideshow.ts`; the manifest shape in
+`src/glissando-file/manifest-chapters.ts`.
 
 ## Rule A — days
 
@@ -53,7 +54,7 @@ Chapter text is DE/EN, hand-assembled to match the mockup's exact punctuation �
 - `automaticChaptersOff?: true` — Rule C's switch; on is the default, so only `true` is ever
   stored.
 - `chapterEdits?: readonly ChapterEdit[]` — an automatic chapter's own title/subtitle and/or
-  `hidden`, keyed by `pictureId`. A hidden automatic chapter still plays no chapter slide, but its
+  `hidden`, keyed by `pictureId`. A hidden automatic chapter carries no card at all, but its
   picture plays as normal.
 - `addedChapters?: readonly AddedChapter[]` — a manually inserted chapter, keyed by
   `beforePictureId`, with its own optional title/subtitle; an added chapter cannot be hidden, only
@@ -85,23 +86,39 @@ A server document (`src/server-library/server-document.ts`) does not carry chapt
 
 ## Rule F — composition into slides
 
-`composeChapters` (`src/compose/compose-chapters.ts`) inserts one extra slide before the slide
-that shows each chapter's anchor picture (found by its image URL, so opening/closing cards or
-pairing cannot throw off the index). The inserted slide:
+`composeChapters` (`src/compose/compose-chapters.ts`) finds the slide that already shows each
+chapter's anchor picture (by its image URL, so opening/closing cards or pairing cannot throw off
+the index) and merges the chapter onto that slide instead of inserting a separate one — the same
+"carried by the picture's own slide" pattern a mergeable title card uses
+(`TITLE_CARD_COMPOSITION.md`), so the picture's own Ken Burns motion runs on across the hand-over
+instead of cutting to a second, separately-framed slide:
 
-- plays the stay's first picture again, held still, for `CHAPTER_SLIDE_MS` (3000) on top of the
-  show's own length — the same "added duration" pattern as the title cards;
-- carries an ordinary `Card`: `style: "quiet"`, `position: "bottom-left"`, `entrance: "slow-fade"`,
-  a veil at the opening/closing cards' default amount, tinted with the picture's own veil colour,
-  and `ink` chosen for that colour the same way a title card's is — quieter than the opening
-  title, as the mockup shows it.
+- the anchor's `durationMs` is lengthened by `CHAPTER_SLIDE_MS` (3000) on top of its own, the same
+  "added duration" pattern as the title cards (a video clip keeps its own length, never
+  lengthened);
+- it carries an ordinary `Card`: `style: "quiet"`, `position: "bottom-left"`, `entrance:
+"slow-fade"`, a veil at the opening/closing cards' default amount, tinted with the picture's own
+  veil colour, and `ink` chosen for that colour the same way a title card's is — quieter than the
+  opening title, as the mockup shows it;
+- `revealAtMs` is set to `CHAPTER_SLIDE_MS - CARD_REVEAL_MS`, so the veil and text are gone by the
+  time the chapter's nominal duration has elapsed, leaving the picture to play on, plain, for the
+  rest of its own duration.
 
-A hidden chapter produces no slide at all. The player itself carries no chapter logic: by the time
-a chapter reaches it, it is just another `Card`/`Slide`, identical in shape to a title card's.
+The anchor cannot always carry the card itself: a picture paired into a portrait slide, or a video
+clip too short for the reveal to finish before its transition out, falls back to a dedicated slide
+of just that picture, inserted right before the anchor — card for its whole `CHAPTER_SLIDE_MS`,
+no reveal, same as a title card's own fallback.
+
+A hidden chapter produces no slide and no card at all. The player itself carries no chapter logic:
+by the time a chapter reaches it, it is just another `Card` on an ordinary `Slide`, identical in
+shape to a title card's.
 
 ## Testing
 
 `compose-chapters.test.ts` and `chapters-of-slideshow.test.ts` are table-driven unit tests over the
-pure domain and composition. `compose-chapters.browser.test.ts` renders one composed chapter slide
-through the real WebGL renderer and checks, pixel for pixel, that the veil darkens the picture and
-that text appears in the lower third — using a generated solid-colour picture, never a real photo.
+pure domain and composition, including the merge-onto-anchor and dedicated-slide-fallback cases.
+`compose-chapters.browser.test.ts` renders a composed chapter slide through the real WebGL renderer
+and checks, pixel for pixel, that the veil darkens the picture and that text appears in the lower
+third; a second case renders the frame at the end of the chapter and a frame shortly after and
+checks that a distinctive generated pattern sits at the same crop in both, proving the picture's
+framing stays continuous across the hand-over — using generated pictures, never a real photo.

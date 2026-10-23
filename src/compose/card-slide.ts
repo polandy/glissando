@@ -2,6 +2,7 @@ import type { PictureFocus } from "../library/picture-focus";
 import { CUT_TRANSITION, type SlideshowTransition } from "../library/own-timing";
 import type { CardColour, CardTint, StoredCard, StoredPicture } from "../library/stored-slideshow";
 import { CARD_SWATCHES, type CardSwatchId } from "../player/card-palette";
+import { CARD_REVEAL_MS } from "../player/card-timing";
 import type { Card, CardInk, PictureSlide, Slide, Transition } from "../player/slideshow";
 import { transitionDurationMs } from "./auto-transition";
 import { pictureKenBurns } from "./picture-ken-burns";
@@ -87,6 +88,13 @@ export function pictureSlide(
     kenBurns: pictureKenBurns(kenBurnsIndex, picture, focus.get(picture.id)),
     ...extra,
   };
+}
+
+/** Whether `slide`'s reveal, started at `revealAtMs`, ends before it hands over to the next
+ * slide — the test a video slide (never lengthened for a card) must pass to merge one on. */
+export function revealFitsBeforeTransitionOut(slide: PictureSlide, revealAtMs: number): boolean {
+  const transitionOutMs = slide.transitionToNext?.durationMs ?? 0;
+  return revealAtMs + CARD_REVEAL_MS <= slide.durationMs - transitionOutMs;
 }
 
 export function cardFace(
