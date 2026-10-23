@@ -1,3 +1,4 @@
+import type { ExifGps } from "../import/exif-gps";
 import {
   ImmichRequestFailedError,
   ImmichUnavailableError,
@@ -170,6 +171,19 @@ export class HttpImmichClient implements ImmichClient {
         y2: reader.number(face, "boundingBoxY2"),
       };
     });
+  }
+
+  async gps(photoId: string): Promise<ExifGps | null> {
+    const path = assetPath(photoId);
+    const reader = new ImmichJsonReader(`GET ${path}`);
+    const answer = await this.#json("GET", path);
+    const asset = reader.record(answer, "a body");
+    const exifValue = asset.exifInfo;
+    if (exifValue === undefined || exifValue === null) return null;
+    const exif = reader.record(exifValue, '"exifInfo"');
+    const latitude = reader.optionalNumber(exif, "latitude");
+    const longitude = reader.optionalNumber(exif, "longitude");
+    return latitude === null || longitude === null ? null : { latitude, longitude };
   }
 
   /** Immich's version, or null when the route is not Immich (no route, or a static host). */

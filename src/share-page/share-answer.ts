@@ -9,6 +9,10 @@ import {
 } from "../glissando-file/document-values";
 import { cardFromManifest } from "../glissando-file/manifest-card";
 import {
+  addedChaptersFromManifest,
+  chapterEditsFromManifest,
+} from "../glissando-file/manifest-chapters";
+import {
   readPictures,
   readSlideshowFields,
   readSongs,
@@ -51,10 +55,16 @@ export function readShareAnswer(json: unknown): ShareAnswer {
   const show = readObject(root["slideshow"], path, slideshowKeys(GLISSANDO_FORMAT_VERSION));
   const pictures = readPictures(show, path, readPicture);
   const songs = readSongs(show, path, readSong);
-  const { openingCard, closingCard, ...fields } = readSlideshowFields(show, path, pictures.length);
+  const { openingCard, closingCard, chapterEdits, addedChapters, ...fields } = readSlideshowFields(
+    show,
+    path,
+    pictures.length,
+  );
   const pictureIds = pictures.map((picture) => picture.id);
   const resolvedOpeningCard = cardFromManifest(openingCard, pictureIds);
   const resolvedClosingCard = cardFromManifest(closingCard, pictureIds);
+  const resolvedChapterEdits = chapterEditsFromManifest(chapterEdits, pictureIds);
+  const resolvedAddedChapters = addedChaptersFromManifest(addedChapters, pictureIds);
   return {
     revision,
     slideshow: {
@@ -64,6 +74,8 @@ export function readShareAnswer(json: unknown): ShareAnswer {
       songs,
       ...(resolvedOpeningCard === undefined ? {} : { openingCard: resolvedOpeningCard }),
       ...(resolvedClosingCard === undefined ? {} : { closingCard: resolvedClosingCard }),
+      ...(resolvedChapterEdits === undefined ? {} : { chapterEdits: resolvedChapterEdits }),
+      ...(resolvedAddedChapters === undefined ? {} : { addedChapters: resolvedAddedChapters }),
     },
     beats: readBeats(root["beats"], songs.length),
     loudness: readLoudness(root["loudness"], songs.length),

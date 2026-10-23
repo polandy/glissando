@@ -24,6 +24,7 @@
     onEditTransitions,
     onEditLook,
     onEditPortraitPictures,
+    onEditChapters,
   }: {
     slideshow: SlideshowDetails;
     onPlay: () => void;
@@ -39,6 +40,8 @@
     onEditLook: () => void;
     /** Opens the sheet of the slideshow's portrait pictures setting. */
     onEditPortraitPictures: () => void;
+    /** Opens the trip chapters sheet in general mode (TRIP_CHAPTERS.md). */
+    onEditChapters: () => void;
   } = $props();
 
   let rows: InfoPanelRows;
@@ -56,6 +59,11 @@
   /** The portrait pictures sheet closed: focus goes back to the row it was opened from. */
   export function focusPortraitPictures(): void {
     rows.focusPortraitPictures();
+  }
+
+  /** The chapters sheet closed: focus goes back to the row it was opened from. */
+  export function focusChapters(): void {
+    rows.focusChapters();
   }
 
   const { t, formatDate, formatDuration } = getTranslator();
@@ -123,6 +131,7 @@
       {onEditTransitions}
       {onEditLook}
       {onEditPortraitPictures}
+      {onEditChapters}
     />
   </div>
 </aside>

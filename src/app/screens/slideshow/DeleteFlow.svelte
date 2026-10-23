@@ -2,10 +2,7 @@
   import { flushSync } from "svelte";
   import DeleteDialog from "./DeleteDialog.svelte";
 
-  /**
-   * The whole slideshow's delete confirmation, opened from the ⋯ menu: "Keep" or Esc closes it
-   * and hands focus back to the menu button; "Delete" removes the slideshow.
-   */
+  /** The slideshow screen's delete confirmation: opened from the ⋯ menu, cancel hands focus back. */
   let {
     title,
     pictureCount,
@@ -17,13 +14,13 @@
     pictureCount: number;
     onServer: boolean;
     onDelete: () => void;
-    /** Kept or Esc: focus goes back to the ⋯ button the dialog was opened from. */
+    /** The dialog was dismissed without deleting; focus goes back to the ⋯ button. */
     onKept: () => void;
   } = $props();
 
   let confirming = $state(false);
 
-  export function confirm(): void {
+  export function open(): void {
     confirming = true;
   }
 
@@ -34,12 +31,12 @@
     onKept();
   }
 
-  function deleteConfirmed(): void {
+  function confirmed(): void {
     confirming = false;
     onDelete();
   }
 </script>
 
 {#if confirming}
-  <DeleteDialog {title} {pictureCount} {onServer} onKeep={keep} onDelete={deleteConfirmed} />
+  <DeleteDialog {title} {pictureCount} {onServer} onKeep={keep} onDelete={confirmed} />
 {/if}

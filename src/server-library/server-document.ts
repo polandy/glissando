@@ -1,5 +1,5 @@
 import type { StoredPicture, StoredSlideshow } from "../library/stored-slideshow";
-import { ownMusicFields } from "../glissando-file/glissando-manifest";
+import { LOOK_FROM_VERSION, ownMusicFields } from "../glissando-file/glissando-manifest";
 import { cardFromManifest, cardToManifest } from "../glissando-file/manifest-card";
 import { DocumentFormatError, readObject, readText } from "../glissando-file/document-values";
 import {
@@ -33,11 +33,16 @@ export const SERVER_DOCUMENT_FORMAT_ID = "glissando-server";
  */
 export const SERVER_DOCUMENT_FORMAT_VERSION = 4;
 /** The manifest format version whose slideshow fields a server document carries. */
-const MANIFEST_FIELDS_VERSION = 17;
+const MANIFEST_FIELDS_VERSION = LOOK_FROM_VERSION;
+/** Trip chapters (`dev-docs/player/TRIP_CHAPTERS.md`) are not part of a server document yet. */
+const TRIP_CHAPTER_KEYS = ["automaticChaptersOff", "chapterEdits", "addedChapters"];
 /** Every key a server document's slideshow, each picture and each song may carry. */
-export const SERVER_SLIDESHOW_KEYS: readonly string[] = slideshowKeys(MANIFEST_FIELDS_VERSION);
+export const SERVER_SLIDESHOW_KEYS: readonly string[] = slideshowKeys(
+  MANIFEST_FIELDS_VERSION,
+).filter((key) => !TRIP_CHAPTER_KEYS.includes(key));
 export const SERVER_PICTURE_KEYS: readonly string[] = [
-  ...pictureKeys(MANIFEST_FIELDS_VERSION),
+  // A picture's resolved `place` is not part of a server document yet, like trip chapters.
+  ...pictureKeys(MANIFEST_FIELDS_VERSION).filter((key) => key !== "place"),
   "immichAssetId",
 ];
 export const SERVER_MUSIC_KEYS: readonly string[] = [
@@ -45,7 +50,8 @@ export const SERVER_MUSIC_KEYS: readonly string[] = [
   "musicId",
 ];
 
-export interface ServerPicture extends PictureFields {
+/** A server document's picture fields: no resolved `place` yet (`MANIFEST_FIELDS_VERSION`). */
+export interface ServerPicture extends Omit<PictureFields, "place"> {
   readonly immichAssetId: string;
 }
 
@@ -54,7 +60,11 @@ export interface ServerMusic extends MusicFields {
   readonly musicId: string;
 }
 
-export interface ServerSlideshow extends SlideshowFields {
+/** A server document's slideshow fields: no trip chapters yet (`MANIFEST_FIELDS_VERSION`). */
+export interface ServerSlideshow extends Omit<
+  SlideshowFields,
+  "automaticChaptersOff" | "chapterEdits" | "addedChapters"
+> {
   readonly pictures: readonly ServerPicture[];
   /** The playlist, in play order; empty for no music (ADR-0023). */
   readonly songs: readonly ServerMusic[];

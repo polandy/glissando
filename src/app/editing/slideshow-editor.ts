@@ -5,11 +5,12 @@ import type { PortraitPictures } from "../../library/portrait-pictures";
 import { setPictureAlone as setPictureAloneEdit } from "../../library/slideshow-edits";
 import type { PictureLength } from "../../library/picture-length";
 import type { StoredCard, StoredMusic, StoredSlideshow } from "../../library/stored-slideshow";
-import type { SlideshowLook } from "../../player/looks/slideshow-look";
 import type { CardInput } from "../../library/stored-card";
 import { CardSettingsEditor } from "./card-settings-editor";
+import { ChapterSettingsEditor } from "./chapter-settings-editor";
 import { EditSaver } from "./edit-saver";
 import { EditorUndos } from "./editor-undos";
+import { LookSettingsEditor } from "./look-settings-editor";
 import { MusicSettingsEditor } from "./music-settings-editor";
 import { PictureListEditor } from "./picture-list-editor";
 import { PictureSettingsEditor } from "./picture-settings-editor";
@@ -33,6 +34,10 @@ export class SlideshowEditor {
   readonly #cardSettings: CardSettingsEditor;
   /** The clip settings of the video slides. */
   readonly video: VideoSettingsEditor;
+  /** The automatic and added trip chapters (TRIP_CHAPTERS.md). */
+  readonly chapters: ChapterSettingsEditor;
+  /** The slideshow's colour grade (ADR-0044). */
+  readonly look: LookSettingsEditor;
 
   constructor(initial: StoredSlideshow, ports: SlideshowEditorPorts) {
     this.#slideshow = initial;
@@ -80,6 +85,16 @@ export class SlideshowEditor {
       () => this.#slideshow,
       (slideshow) => this.#apply(slideshow),
     );
+    this.chapters = new ChapterSettingsEditor(
+      () => this.#slideshow,
+      (slideshow) => this.#apply(slideshow),
+    );
+    this.look = new LookSettingsEditor(
+      ports,
+      this.#undos.reset,
+      () => this.#slideshow,
+      (slideshow) => this.#apply(slideshow),
+    );
   }
 
   get slideshow(): StoredSlideshow {
@@ -96,8 +111,6 @@ export class SlideshowEditor {
   subscribeSaving(listener: (saving: boolean) => void): () => void {
     return this.#saver.subscribeSaving(listener);
   }
-
-  // The picture list's shape and the slideshow's title delegate to `PictureListEditor`.
 
   /** The last picture stays; asking to remove it explains why in a toast. */
   remove(pictureId: string): void {
@@ -135,8 +148,6 @@ export class SlideshowEditor {
   rename(typed: string): void {
     this.#pictureList.rename(typed);
   }
-
-  // Ken Burns, duration and transition settings delegate to `PictureSettingsEditor`.
 
   setKenBurns(pictureId: string, kenBurns: OwnKenBurns): void {
     this.#pictureSettings.setKenBurns(pictureId, kenBurns);
@@ -178,13 +189,6 @@ export class SlideshowEditor {
     this.#pictureSettings.resetPortraitPictures();
   }
 
-  setSlideshowLook(look: SlideshowLook): void {
-    this.#pictureSettings.setSlideshowLook(look);
-  }
-
-  resetSlideshowLook(): void {
-    this.#pictureSettings.resetSlideshowLook();
-  }
   /** Marks the picture never to be composed into a portrait pair, or lets it be again. */
   setPictureAlone(pictureId: string, alone: boolean): void {
     this.#apply(setPictureAloneEdit(this.#slideshow, pictureId, alone));
@@ -199,9 +203,6 @@ export class SlideshowEditor {
   setCaption(pictureId: string, typed: string): void {
     this.#pictureList.setCaption(pictureId, typed);
   }
-
-  // The playlist and timing settings delegate to `MusicSettingsEditor`; the songs' edits offer
-  // no undo, since one tap on "whole track" or "automatic" restores them.
 
   addSongs(songs: readonly StoredMusic[]): void {
     this.#musicSettings.addSongs(songs);
@@ -246,8 +247,6 @@ export class SlideshowEditor {
   setSecondsPerPicture(seconds: number): void {
     this.#musicSettings.setSecondsPerPicture(seconds);
   }
-
-  // The title slide and closing slide (ADR-0032, TITLE_SLIDES.md) delegate to `CardSettingsEditor`.
 
   ensureOpeningCard(): StoredCard {
     return this.#cardSettings.ensureOpeningCard();

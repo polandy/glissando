@@ -24,7 +24,7 @@ player is told, where the choice is stored, and what it applies to.
   TV, file page — gets it through `composeSlideshow`, so none can differ.
 - **`StoredSlideshow` gains an optional `look`**, absent for None, like the default transition
   (ADR-0010): choosing None deletes the field. Validated where it enters (the edit, the
-  `.glissando` reader, the server document reader). The `.glissando` format goes to version 17
+  `.glissando` reader, the server document reader). The `.glissando` format goes to version 18
   and the server document to version 4, both with an optional `look`; no migration and no
   mapping of older shapes — a slideshow without the field simply has no look.
 - **What is graded**: every picture and video layer, including the blurred fill behind a whole

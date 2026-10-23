@@ -5,7 +5,7 @@ describe("SlideshowEditor, the slideshow's look", () => {
   it("stores the look at once", async () => {
     const { editor, store } = await setUp();
 
-    editor.setSlideshowLook("warm");
+    editor.look.set("warm");
 
     await editor.settled();
     expect((await store.getSlideshow("show")).look).toBe("warm");
@@ -13,9 +13,9 @@ describe("SlideshowEditor, the slideshow's look", () => {
 
   it("back to None drops the look without asking and offers an undo", async () => {
     const { editor, toaster, store } = await setUp();
-    editor.setSlideshowLook("cool");
+    editor.look.set("cool");
 
-    editor.resetSlideshowLook();
+    editor.look.reset();
 
     await editor.settled();
     expect(await store.getSlideshow("show")).not.toHaveProperty("look");
@@ -25,8 +25,8 @@ describe("SlideshowEditor, the slideshow's look", () => {
 
   it("the undo brings the previous look back", async () => {
     const { editor, toaster, store } = await setUp();
-    editor.setSlideshowLook("cool");
-    editor.resetSlideshowLook();
+    editor.look.set("cool");
+    editor.look.reset();
 
     toaster.act();
 
@@ -36,11 +36,11 @@ describe("SlideshowEditor, the slideshow's look", () => {
 
   it("a newer look ends the undo, so it never overwrites the newer look", async () => {
     const { editor, toaster, store } = await setUp();
-    editor.setSlideshowLook("cool");
-    editor.resetSlideshowLook();
+    editor.look.set("cool");
+    editor.look.reset();
     const undo = toaster.current?.action ?? fail();
 
-    editor.setSlideshowLook("vivid");
+    editor.look.set("vivid");
     undo.run();
 
     await editor.settled();
@@ -52,7 +52,7 @@ describe("SlideshowEditor, the slideshow's look", () => {
     const { editor, toaster, store } = await setUp();
     const callsBefore = store.calls.length;
 
-    editor.resetSlideshowLook();
+    editor.look.reset();
 
     expect(store.calls.length).toBe(callsBefore);
     expect(toaster.current).toBeNull();

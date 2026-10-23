@@ -1,6 +1,7 @@
 import type { CardSwatchId } from "../player/card-palette";
 import type { GradedSlideshowLook } from "../player/looks/slideshow-look";
 import type { CardEntrance, CardPosition, CardStyle } from "../player/slideshow";
+import type { Place } from "../places/nearest-place";
 import type { OwnKenBurns } from "./own-ken-burns";
 import type { StoredVideo } from "./own-video";
 import type { PictureColours } from "./picture-colours";
@@ -53,6 +54,8 @@ export interface StoredPicture {
   readonly video?: StoredVideo;
   /** Worked out once when the picture is added (`pictureColours`, ADR-0033). */
   readonly colours: PictureColours;
+  /** The nearest bundled place to the picture's GPS, resolved at import; absent: none (ADR-0043). */
+  readonly place?: Place;
 }
 
 /** A card's own ground or veil colour: one of the fixed swatches, or a picture's hex. */
@@ -85,6 +88,25 @@ export interface StoredCard {
   readonly entrance: CardEntrance;
   readonly background: StoredCardBackground;
   readonly motion: boolean;
+}
+
+/**
+ * An override of one automatic chapter's text or visibility, keyed by its stay's first picture
+ * (Rule E, `TRIP_CHAPTERS.md`). A field left out keeps the automatic text for that field.
+ */
+export interface ChapterEdit {
+  readonly pictureId: string;
+  readonly title?: string;
+  readonly subtitle?: string;
+  /** The chapter is not shown; its picture still plays normally. */
+  readonly hidden?: true;
+}
+
+/** A chapter the user added by hand, before a picture of their choosing (`TRIP_CHAPTERS.md`). */
+export interface AddedChapter {
+  readonly beforePictureId: string;
+  readonly title?: string;
+  readonly subtitle?: string;
 }
 
 export interface StoredMusic {
@@ -158,4 +180,10 @@ export interface StoredSlideshow {
   readonly openingCard?: StoredCard;
   /** The closing slide; absent: none. */
   readonly closingCard?: StoredCard;
+  /** Automatic chapters are on by default; `true` turns them off (Rule C, `TRIP_CHAPTERS.md`). */
+  readonly automaticChaptersOff?: true;
+  /** Overrides of automatic chapters' text or visibility, keyed by their anchor picture. */
+  readonly chapterEdits?: readonly ChapterEdit[];
+  /** Chapters the user added by hand; absent: none. */
+  readonly addedChapters?: readonly AddedChapter[];
 }

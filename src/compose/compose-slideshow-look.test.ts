@@ -37,7 +37,7 @@ function storedSlideshow(overrides: Partial<StoredSlideshow> = {}): StoredSlides
 }
 
 function composed(stored: StoredSlideshow) {
-  return composeSlideshow(stored, sources, NO_FOCUS, NO_SONG_BEATS, NO_SONG_LOUDNESS);
+  return composeSlideshow(stored, sources, NO_FOCUS, NO_SONG_BEATS, NO_SONG_LOUDNESS, "en");
 }
 
 describe("composeSlideshow with the slideshow's look", () => {

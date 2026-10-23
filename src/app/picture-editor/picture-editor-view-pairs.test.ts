@@ -46,6 +46,7 @@ function played(slideshow: StoredSlideshow, pictureId: string, beats: SongBeats)
     new Map(),
     beats,
     NO_SONG_LOUDNESS,
+    "en",
   );
   const slideIndex = slides.findIndex((raw) => {
     if (isGroundSlide(raw)) {

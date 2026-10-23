@@ -143,3 +143,36 @@ describe("HttpImmichClient failures", () => {
     ).toThrow(/end with "\/"/);
   });
 });
+
+describe("HttpImmichClient.gps", () => {
+  it("reads the coordinate Immich's exifInfo already holds", async () => {
+    const fake = new FakeFetch().answer(
+      "GET",
+      "api/assets/a",
+      json({ exifInfo: { latitude: 48.2082, longitude: 16.3738 } }),
+    );
+
+    expect(await clientWith(fake).gps("a")).toEqual({ latitude: 48.2082, longitude: 16.3738 });
+  });
+
+  it("is null when exifInfo has no coordinate", async () => {
+    const fake = new FakeFetch().answer("GET", "api/assets/a", json({ exifInfo: {} }));
+
+    expect(await clientWith(fake).gps("a")).toBeNull();
+  });
+
+  it.each([
+    ["exifInfo is null", { exifInfo: null }],
+    ["exifInfo is absent", {}],
+  ])("is null when %s", async (_name, body) => {
+    const fake = new FakeFetch().answer("GET", "api/assets/a", json(body));
+
+    expect(await clientWith(fake).gps("a")).toBeNull();
+  });
+
+  it("fails loud on an answer that is not Immich's shape", async () => {
+    const fake = new FakeFetch().answer("GET", "api/assets/a", json({ exifInfo: "nowhere" }));
+
+    await expect(clientWith(fake).gps("a")).rejects.toThrow(/"exifInfo"/);
+  });
+});

@@ -39,6 +39,17 @@ describe("withCommittedLicenses, the committed components' licences in the shipp
     expect(listed).toContain("scripts/build-audio-decoder.sh");
   });
 
+  it("credits the bundled GeoNames place names (ADR-0043)", () => {
+    const listed = withCommittedLicenses(
+      "# Licenses\n\n## mediabunny - 1.61.3 (MPL-2.0)\n\nMPL text\n",
+      new Map(COMMITTED_LICENSES.map((entry) => [entry.licenseFilePath, "licence text"])),
+    );
+
+    expect(listed).toContain("GeoNames cities15000 place names");
+    expect(listed).toContain("(CC-BY-4.0)");
+    expect(listed).toContain("https://download.geonames.org/export/dump/cities15000.zip");
+  });
+
   it("throws when a component's licence text is missing from the given map", () => {
     expect(() => withCommittedLicenses("# Licenses\n", new Map())).toThrow(/licence text/i);
   });

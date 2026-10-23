@@ -3,13 +3,11 @@ import type { OwnKenBurns } from "../../library/own-ken-burns";
 import type { PictureFocus } from "../../library/picture-focus";
 import type { SlideshowTransition, TransitionChoice } from "../../library/own-timing";
 import type { PortraitPictures } from "../../library/portrait-pictures";
-import type { SlideshowLook } from "../../player/looks/slideshow-look";
 import {
   setPictureDuration,
   setPictureKenBurns,
   setPictureTransition,
   setPortraitPictures as setPortraitPicturesEdit,
-  setSlideshowLook,
   setSlideshowTransition,
 } from "../../library/slideshow-edits";
 import type { StoredSlideshow } from "../../library/stored-slideshow";
@@ -25,14 +23,12 @@ export interface PictureSettingsPorts {
   readonly slideshowTransitionResetText: () => string;
   /** The undo toast's text after the portrait pictures setting went back to automatic. */
   readonly portraitPicturesResetText: () => string;
-  /** The undo toast's text after the slideshow's look went back to None. */
-  readonly lookResetText: () => string;
 }
 
 /**
  * A picture's own Ken Burns motion, duration and transition, and the slideshow's default
- * transition and look: each applies at once, through the `SlideshowEditor` that owns this
- * instance. Drops ask nothing; the toast's undo brings the setting back (`ResetUndo`).
+ * transition: each applies at once, through the `SlideshowEditor` that owns this instance. Drops
+ * ask nothing; the toast's undo brings the setting back (`ResetUndo`).
  */
 export class PictureSettingsEditor {
   readonly #ports: PictureSettingsPorts;
@@ -128,25 +124,6 @@ export class PictureSettingsEditor {
       "slideshowTransition",
       this.#ports.slideshowTransitionResetText(),
       () => this.setSlideshowTransition(previous),
-    );
-  }
-
-  /** The slideshow's colour grade from now on (ADR-0044); None stores no field. */
-  setSlideshowLook(look: SlideshowLook): void {
-    this.#reset.supersede(this.#current().id, "slideshowLook");
-    this.#apply(setSlideshowLook(this.#current(), look));
-  }
-
-  /** Returns the look to None without asking; the toast's undo brings it back. */
-  resetSlideshowLook(): void {
-    const slideshow = this.#current();
-    const previous = slideshow.look;
-    if (previous === undefined) {
-      return;
-    }
-    this.#apply(setSlideshowLook(slideshow, undefined));
-    this.#reset.offer(slideshow.id, "slideshowLook", this.#ports.lookResetText(), () =>
-      this.setSlideshowLook(previous),
     );
   }
 

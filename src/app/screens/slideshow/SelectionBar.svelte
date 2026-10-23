@@ -20,6 +20,7 @@
     onDone,
     arranging = true,
     viewMode = false,
+    onInsertChapter,
   }: {
     selection: StripSelection;
     /** The slideshow's current play order, for the group moves and the contiguous range. */
@@ -36,6 +37,8 @@
     arranging?: boolean;
     /** True shows View (full-screen) instead of Edit: no picture editor while importing. */
     viewMode?: boolean;
+    /** Inserts a trip chapter before the selected picture (TRIP_CHAPTERS.md); omitted while importing. */
+    onInsertChapter?: (pictureId: string) => void;
   } = $props();
 
   const { t } = getTranslator();
@@ -92,6 +95,12 @@
       onRemoveGroup(selectedIds);
     }
   }
+
+  function insertChapter(): void {
+    if (soleId !== null) {
+      onInsertChapter?.(soleId);
+    }
+  }
 </script>
 
 <div class="dock" use:keepToastsClear>
@@ -118,16 +127,16 @@
     <span class="separator" aria-hidden="true"></span>
     {#if arranging}
       <!-- At the ends Earlier and Later look off but keep their place in the tab order. -->
-      <button class="btn" type="button" aria-disabled={earlierDisabled} onclick={earlier}>
+      <button class="btn icon-btn" type="button" aria-disabled={earlierDisabled} onclick={earlier}>
         <Icon name="chevronLeft" /><span class="move-word">{t("slideshow.earlier")}</span>
       </button>
-      <button class="btn" type="button" aria-disabled={laterDisabled} onclick={later}>
+      <button class="btn icon-btn" type="button" aria-disabled={laterDisabled} onclick={later}>
         <span class="move-word">{t("slideshow.later")}</span><Icon name="chevronRight" />
       </button>
     {/if}
     {#if !selection.several || count === 1}
       {#if onView !== undefined}
-        <button class="btn" type="button" onclick={view}>
+        <button class="btn icon-btn" type="button" onclick={view}>
           <Icon name="eye" /><span class="view-word">{t("slideshow.view")}</span>
         </button>
       {/if}
@@ -135,6 +144,11 @@
         <Icon name={viewMode ? "eye" : "pencil"} />
         <span>{t(viewMode ? "slideshow.view" : "slideshow.edit")}</span>
       </button>
+      {#if onInsertChapter !== undefined}
+        <button class="btn icon-btn" type="button" onclick={insertChapter}>
+          <Icon name="chapter" /><span class="chapter-word">{t("chapters.insertChapter")}</span>
+        </button>
+      {/if}
     {/if}
     <!-- The last picture stays: Remove looks off but still answers, saying why. -->
     <button class="btn remove" type="button" aria-disabled={removeDisabledLook} onclick={remove}>
@@ -234,18 +248,28 @@
     .bar {
       justify-content: space-between;
     }
+    .bar {
+      gap: 2px;
+      padding: 4px;
+    }
     .bar .btn {
-      gap: 5px;
-      padding: 0 7px;
-      font-size: var(--gl-size-label);
+      gap: 4px;
+      padding: 0 6px;
+      font-size: var(--gl-size-caption);
+    }
+    /* Icon alone, no label to pad for: Earlier, Later, View, Insert chapter. */
+    .bar .icon-btn {
+      padding: 0 4px;
     }
     /*
-     * A single selection's count is for assistive technology only; several's stays visible. Earlier,
-     * Later and View show their icon alone, so all six buttons fit a phone's width with German labels.
+     * A single selection's count is for assistive technology only; several's stays visible.
+     * Earlier, Later, View and Insert chapter show their icon alone, so every button fits a
+     * phone's width with German labels.
      */
     .count:not(.several),
     .move-word,
-    .view-word {
+    .view-word,
+    .chapter-word {
       position: absolute;
       width: 1px;
       height: 1px;

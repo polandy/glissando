@@ -34,7 +34,7 @@ const urlOf = (id: string) => `url:${id}`;
 
 describe("slideshowDetails", () => {
   it("lists the pictures in play order with their thumbnails", () => {
-    expect(slideshowDetails(stored, urlOf)).toEqual({
+    expect(slideshowDetails(stored, urlOf, "en")).toEqual({
       title: "Juli 2025",
       coverUrl: "url:p1",
       durationSeconds: 8,
@@ -43,6 +43,8 @@ describe("slideshowDetails", () => {
       musicSeconds: null,
       musicSummary: null,
       ownOrder: false,
+      automaticChaptersOff: false,
+      chapters: [],
       ownMotionCount: 0,
       ownDurationCount: 0,
       ownTransitionCount: 0,
@@ -105,7 +107,7 @@ describe("slideshowDetails", () => {
       ],
     };
 
-    const details = slideshowDetails(portrait, urlOf);
+    const details = slideshowDetails(portrait, urlOf, "en");
 
     expect(details.pairCount).toBe(1);
     expect(details.pictures.map((picture) => picture.pairedWithNumber)).toEqual([2, 1]);
@@ -134,10 +136,9 @@ describe("slideshowDetails", () => {
       ],
     };
 
-    expect(slideshowDetails(lone, urlOf).pictures.map((picture) => picture.blurredFill)).toEqual([
-      false,
-      true,
-    ]);
+    expect(
+      slideshowDetails(lone, urlOf, "en").pictures.map((picture) => picture.blurredFill),
+    ).toEqual([false, true]);
   });
 
   it("marks a picture set to always alone, and names the setting as resolved", () => {
@@ -148,7 +149,7 @@ describe("slideshowDetails", () => {
       portraitPictures: "one-at-a-time",
     };
 
-    const details = slideshowDetails(edited, urlOf);
+    const details = slideshowDetails(edited, urlOf, "en");
 
     expect(details.portraitPictures).toBe("one-at-a-time");
     expect(details.pictures.map((picture) => picture.alone)).toEqual([false, true]);
@@ -162,14 +163,24 @@ describe("slideshowDetails", () => {
     const [first, second] = stored.pictures;
     const edited = { ...stored, pictures: [first, { ...second, kenBurns: motion }] };
 
-    const details = slideshowDetails(edited as StoredSlideshow, urlOf);
+    const details = slideshowDetails(edited as StoredSlideshow, urlOf, "en");
 
     expect(details.pictures.map((picture) => picture.ownMotion)).toEqual([false, true]);
     expect(details.ownMotionCount).toBe(1);
   });
 
+  it("counts the pictures with a caption", () => {
+    const [first, second] = stored.pictures;
+    const edited = { ...stored, pictures: [first, { ...second, caption: "Am Steg" }] };
+
+    expect(slideshowDetails(edited as StoredSlideshow, urlOf, "en").captionCount).toBe(1);
+  });
+
   it("sums up the whole track with automatic fades as such", () => {
-    expect(slideshowDetails(withMusic, urlOf).musicSummary).toEqual({ excerpt: null, fades: null });
+    expect(slideshowDetails(withMusic, urlOf, "en").musicSummary).toEqual({
+      excerpt: null,
+      fades: null,
+    });
   });
 
   it("sums up an excerpt with the fades it plays, and its length as the music's", () => {
@@ -178,7 +189,7 @@ describe("slideshowDetails", () => {
       songs: [{ ...music, trim: { startMs: 2000, endMs: 22_000 } }],
     };
 
-    const details = slideshowDetails(trimmed, urlOf);
+    const details = slideshowDetails(trimmed, urlOf, "en");
 
     expect(details.musicSummary).toEqual({
       excerpt: { fromSeconds: 2, toSeconds: 22 },
@@ -191,18 +202,21 @@ describe("slideshowDetails", () => {
   it("names the fades once one is the user's own", () => {
     const faded: StoredSlideshow = { ...withMusic, songs: [{ ...music, fadeInMs: 5000 }] };
 
-    expect(slideshowDetails(faded, urlOf).musicSummary).toEqual({ excerpt: null, fades: "in" });
+    expect(slideshowDetails(faded, urlOf, "en").musicSummary).toEqual({
+      excerpt: null,
+      fades: "in",
+    });
   });
 
   it("names the music by its file name", () => {
-    expect(slideshowDetails(withMusic, urlOf).musicTitle).toBe("Sommer.mp3");
+    expect(slideshowDetails(withMusic, urlOf, "en").musicTitle).toBe("Sommer.mp3");
   });
 
   it("counts several songs and gives the playlist's length, less the crossfade, without a summary", () => {
     const second = { ...music, id: "m2", fileName: "Herbst.mp3" };
     const playlist: StoredSlideshow = { ...withMusic, songs: [music, second] };
 
-    const details = slideshowDetails(playlist, urlOf);
+    const details = slideshowDetails(playlist, urlOf, "en");
 
     expect(details.songCount).toBe(2);
     expect(details.musicSeconds).toBe(57);
@@ -216,7 +230,7 @@ describe("slideshowDetails", () => {
       ownOrder: true,
     };
 
-    const details = slideshowDetails(reordered, urlOf);
+    const details = slideshowDetails(reordered, urlOf, "en");
 
     expect(details.ownOrder).toBe(true);
     expect(details.coverUrl).toBe("url:p2");
@@ -225,7 +239,7 @@ describe("slideshowDetails", () => {
   it("spans the earliest to the latest capture date, whatever the order", () => {
     const reordered: StoredSlideshow = { ...stored, pictures: [...stored.pictures].reverse() };
 
-    const details = slideshowDetails(reordered, urlOf);
+    const details = slideshowDetails(reordered, urlOf, "en");
 
     expect([details.capturedFrom, details.capturedTo]).toEqual([
       "2025-07-01T10:00:00Z",
@@ -234,13 +248,13 @@ describe("slideshowDetails", () => {
   });
 
   it("tells the slideshow's default transition as stored", () => {
-    expect(slideshowDetails({ ...stored, transition: "alternate" }, urlOf).transition).toBe(
+    expect(slideshowDetails({ ...stored, transition: "alternate" }, urlOf, "en").transition).toBe(
       "alternate",
     );
   });
 
   it("tells the slideshow's colour grade as stored", () => {
-    expect(slideshowDetails({ ...stored, look: "warm" }, urlOf).look).toBe("warm");
+    expect(slideshowDetails({ ...stored, look: "warm" }, urlOf, "en").look).toBe("warm");
   });
 
   it("marks own durations and own transitions, a last picture's transition not counting", () => {
@@ -252,7 +266,7 @@ describe("slideshowDetails", () => {
       ],
     };
 
-    const details = slideshowDetails(timed, urlOf);
+    const details = slideshowDetails(timed, urlOf, "en");
 
     expect(details.pictures.map((picture) => picture.ownDurationMs)).toEqual([8000, null]);
     expect(details.pictures.map((picture) => picture.ownTransition)).toEqual(["cut", null]);
@@ -264,8 +278,8 @@ describe("slideshowDetails", () => {
   it("spreads the music over the pictures that are left", () => {
     const fewer: StoredSlideshow = { ...withMusic, pictures: stored.pictures.slice(0, 1) };
 
-    expect(slideshowDetails(fewer, urlOf).durationSeconds).toBe(30);
-    expect(slideshowDetails(fewer, urlOf).pictures).toHaveLength(1);
+    expect(slideshowDetails(fewer, urlOf, "en").durationSeconds).toBe(30);
+    expect(slideshowDetails(fewer, urlOf, "en").pictures).toHaveLength(1);
   });
 });
 

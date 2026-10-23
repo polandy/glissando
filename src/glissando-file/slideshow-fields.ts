@@ -19,10 +19,12 @@ import {
   DEFAULT_TRANSITION_FROM_VERSION,
   LOOK_FROM_VERSION,
   PICTURE_LENGTH_FROM_VERSION,
+  TRIP_CHAPTERS_FROM_VERSION,
   type ManifestMusic,
   type ManifestPicture,
   type ManifestSlideshow,
 } from "./glissando-manifest";
+import { readManifestAddedChapters, readManifestChapterEdits } from "./manifest-chapters";
 import { readManifestCard, TITLE_CARDS_FROM_VERSION } from "./manifest-card";
 import { readOwnMusic } from "./slideshow-fields-media";
 import { DocumentFormatError, readDateTime, readText, type JsonObject } from "./document-values";
@@ -56,6 +58,9 @@ export function slideshowKeys(version: number): string[] {
     ...(version >= PICTURE_LENGTH_FROM_VERSION ? ["pictureLength"] : []),
     "portraitPictures",
     ...(version >= TITLE_CARDS_FROM_VERSION ? ["openingCard", "closingCard"] : []),
+    ...(version >= TRIP_CHAPTERS_FROM_VERSION
+      ? ["automaticChaptersOff", "chapterEdits", "addedChapters"]
+      : []),
     ...(version >= LOOK_FROM_VERSION ? ["look"] : []),
   ];
 }
@@ -80,6 +85,13 @@ export function readSlideshowFields(
   }
   if (show["ownOrder"] !== undefined && show["ownOrder"] !== true) {
     throw new DocumentFormatError(`${path}.ownOrder`, "true or absent", show["ownOrder"]);
+  }
+  if (show["automaticChaptersOff"] !== undefined && show["automaticChaptersOff"] !== true) {
+    throw new DocumentFormatError(
+      `${path}.automaticChaptersOff`,
+      "true or absent",
+      show["automaticChaptersOff"],
+    );
   }
   return {
     title: readText(show["title"], `${path}.title`),
@@ -108,6 +120,25 @@ export function readSlideshowFields(
       ? {}
       : {
           closingCard: readManifestCard(show["closingCard"], `${path}.closingCard`, pictureCount),
+        }),
+    ...(show["automaticChaptersOff"] === true ? { automaticChaptersOff: true } : {}),
+    ...(show["chapterEdits"] === undefined
+      ? {}
+      : {
+          chapterEdits: readManifestChapterEdits(
+            show["chapterEdits"],
+            `${path}.chapterEdits`,
+            pictureCount,
+          ),
+        }),
+    ...(show["addedChapters"] === undefined
+      ? {}
+      : {
+          addedChapters: readManifestAddedChapters(
+            show["addedChapters"],
+            `${path}.addedChapters`,
+            pictureCount,
+          ),
         }),
   };
 }

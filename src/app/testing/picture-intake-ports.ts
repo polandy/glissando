@@ -93,6 +93,8 @@ export function fakeIntakePorts(
         thumbnail: new Blob([`thumbnail ${file.name}`]),
       }),
     captureDate: (file) => Promise.resolve((file as File & { capturedAt: string }).capturedAt),
+    gps: () => Promise.resolve(null),
+    resolvePlace: () => Promise.resolve(null),
     videoClips: {
       captureDate: (file) => Promise.resolve((file as File & { capturedAt: string }).capturedAt),
       openClip: (file) =>

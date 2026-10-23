@@ -4,17 +4,19 @@
   import { getTranslator } from "../../i18n/context";
   import AddTile from "./AddTile.svelte";
   import CardTile from "./card-sheet/CardTile.svelte";
+  import ChapterTile from "./ChapterTile.svelte";
   import DragGhost from "./DragGhost.svelte";
   import { lookFilterUrl } from "./look-filter-id";
   import LookFilterDefs from "./LookFilterDefs.svelte";
   import PlaceholderTile from "./PlaceholderTile.svelte";
   import type { PictureStripProps } from "./picture-strip-props";
+  import { hitTest } from "./strip-hit-test";
   import StripTile from "./StripTile.svelte";
   import { hold, pick } from "./strip-selection";
   import { StripKeydown } from "./strip-keydown";
   import { TileDrag } from "./tile-drag";
   import { glideTiles, tilePositions } from "./tile-glide";
-  import type { DropTarget, TileDragState } from "./tile-drag-types";
+  import type { TileDragState } from "./tile-drag-types";
 
   /** The pictures in play order as tiles: select, remove, and reorder by drag or keyboard. */
   let {
@@ -42,6 +44,8 @@
     suppressCards = false,
     placeholderCount = 0,
     lastRemovable = false,
+    chapters = [],
+    onOpenChapter = () => undefined,
   }: PictureStripProps = $props();
 
   const { t } = getTranslator();
@@ -85,17 +89,14 @@
   const removable = $derived(lastRemovable || !lastPicture);
   const order = $derived(pictures.map((picture) => picture.id));
   const tileById = $derived(new Map(pictures.map((picture) => [picture.id, picture])));
-
-  /** The tile under a viewport point, and whether a drop lands before or after it. */
-  function hitTest(x: number, y: number): DropTarget | null {
-    const tile = document.elementFromPoint(x, y)?.closest<HTMLElement>(".pick") ?? null;
-    const pictureId = tile?.dataset.pictureId;
-    if (tile === null || pictureId === undefined) {
-      return null;
-    }
-    const box = tile.getBoundingClientRect();
-    return { pictureId, after: x > box.left + box.width / 2 };
-  }
+  // Hidden automatic chapters are omitted entirely (TRIP_CHAPTERS.md): the strip never shows them.
+  const chapterByAnchor = $derived(
+    new Map(
+      chapters
+        .filter((chapter) => !chapter.hidden)
+        .map((chapter) => [chapter.anchorPictureId, chapter]),
+    ),
+  );
 
   // Fixed for the strip's lifetime: a test passes its fakes once, at mount.
   // svelte-ignore state_referenced_locally
@@ -226,6 +227,10 @@
     />
   {/if}
   {#each pictures as picture, index (picture.id)}
+    {@const chapter = chapterByAnchor.get(picture.id)}
+    {#if chapter !== undefined}
+      <ChapterTile {chapter} onOpen={() => onOpenChapter(chapter.anchorPictureId)} />
+    {/if}
     <StripTile
       {picture}
       number={index + 1}

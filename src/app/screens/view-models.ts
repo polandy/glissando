@@ -1,3 +1,4 @@
+import type { SlideshowChapter } from "../../compose/chapters-of-slideshow";
 import type { SlideshowTransition, TransitionChoice } from "../../library/own-timing";
 import type { PictureColours } from "../../library/picture-colours";
 import type { ResolvedPortraitPictures } from "../../library/portrait-pictures";
@@ -85,6 +86,10 @@ export interface SlideshowDetails {
   readonly musicSummary: MusicSummary | null;
   /** The user reordered the pictures; otherwise they are in capture-date order. */
   readonly ownOrder: boolean;
+  /** Rule C, TRIP_CHAPTERS.md: the owner turned the automatic trip chapters off. */
+  readonly automaticChaptersOff: boolean;
+  /** Every chapter, automatic and added, in play order (TRIP_CHAPTERS.md). */
+  readonly chapters: readonly SlideshowChapter[];
   /** How many pictures play a Ken Burns motion of the user's own. */
   readonly ownMotionCount: number;
   /** How many pictures show for a duration of the user's own. */

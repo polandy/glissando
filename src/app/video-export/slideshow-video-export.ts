@@ -31,6 +31,7 @@ export function slideshowVideoExport(
     "pictureBlob" | "musicBlob" | "videoBlob" | "pictureFocus" | "musicBeats" | "musicLoudness"
   >,
   stored: StoredSlideshow,
+  locale: string,
 ): VideoExportSession<ExportPreview> {
   const compose = async () => {
     const [focus, beats, loudness] = await Promise.all([
@@ -51,6 +52,7 @@ export function slideshowVideoExport(
       focus,
       beats,
       loudness,
+      locale,
     );
   };
   const run = async (job: ExportRun<ExportPreview>) => {

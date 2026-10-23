@@ -100,6 +100,7 @@ describe("PictureImport with a picture source", () => {
           : Promise.resolve(new Blob([photoId], { type: "image/jpeg" })),
       thumbnail: () => Promise.reject(new Error("no preview is needed")),
       faces: () => Promise.resolve([]),
+      gps: () => Promise.resolve(null),
     };
     const fromImmich = (id: string) =>
       immichPictureSource(

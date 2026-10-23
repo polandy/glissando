@@ -1,4 +1,6 @@
 import { expect, type Locator, type Page } from "@playwright/test";
+import type { ExifGps } from "../../src/import/exif-gps";
+import { pictureTakenOnAt } from "./gps-media";
 import { pictureTakenOn, type TestFile } from "./media";
 
 /** A German browser, so the copy a case asserts is the German catalogue's. */
@@ -17,6 +19,30 @@ export async function picturesTakenOn(page: Page, days: readonly string[]): Prom
         `picture-${index + 1}.jpg`,
         day,
         PICTURE_COLOURS[index % PICTURE_COLOURS.length] ?? "#000000",
+      ),
+    ),
+  );
+}
+
+/** One picture taken on `visit.day` at `visit.place`'s GPS coordinate, for a trip chapter to key off. */
+export interface PlaceVisit {
+  readonly day: string;
+  readonly place: ExifGps;
+}
+
+/** One JPEG per `visits` entry, each carrying its day and GPS coordinate (TRIP_CHAPTERS.md, Rule B). */
+export async function picturesTakenAt(
+  page: Page,
+  visits: readonly PlaceVisit[],
+): Promise<TestFile[]> {
+  return Promise.all(
+    visits.map((visit, index) =>
+      pictureTakenOnAt(
+        page,
+        `picture-${index + 1}.jpg`,
+        visit.day,
+        PICTURE_COLOURS[index % PICTURE_COLOURS.length] ?? "#000000",
+        visit.place,
       ),
     ),
   );
@@ -52,18 +78,18 @@ export async function choosePictures(
 }
 
 /**
- * Imports pictures taken on `days` without music, each shown `secondsPerPicture`, and waits
- * on the created slideshow's screen.
+ * Imports `files` without music, each shown `secondsPerPicture`, and waits on the created
+ * slideshow's screen.
  */
-export async function createSlideshow(
+export async function createSlideshowFromFiles(
   page: Page,
-  days: readonly string[],
+  files: TestFile[],
   secondsPerPicture: number,
 ): Promise<void> {
   const defaultSeconds = 5;
   const step = 0.5;
   await openImport(page);
-  await choosePictures(page, await picturesTakenOn(page, days), days.length);
+  await choosePictures(page, files, files.length);
   await page.getByRole("button", { name: "Weiter" }).click();
   const stepper = page.getByRole("button", {
     name: secondsPerPicture < defaultSeconds ? "Kürzer" : "Länger",
@@ -75,6 +101,18 @@ export async function createSlideshow(
   await expect(definitionOf(page, "je Bild")).toHaveText(`${secondsPerPicture} s`);
   await page.getByRole("button", { name: "Ohne Musik erstellen" }).click();
   await expect(page.getByRole("status")).toHaveText(CREATED_TOAST);
+}
+
+/**
+ * Imports pictures taken on `days` without music, each shown `secondsPerPicture`, and waits
+ * on the created slideshow's screen.
+ */
+export async function createSlideshow(
+  page: Page,
+  days: readonly string[],
+  secondsPerPicture: number,
+): Promise<void> {
+  await createSlideshowFromFiles(page, await picturesTakenOn(page, days), secondsPerPicture);
 }
 
 /**
@@ -90,7 +128,8 @@ export function captionField(page: Page): Locator {
   return page.getByRole("textbox", { name: "Bildtitel" });
 }
 
-function selectionBar(page: Page): Locator {
+/** The bar offering actions on the current selection (Edit, Insert chapter, Remove, Done). */
+export function selectionBar(page: Page): Locator {
   return page.getByRole("toolbar", { name: "Auswahl" });
 }
 

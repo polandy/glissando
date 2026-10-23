@@ -22,6 +22,8 @@ export interface SharedShow {
   readonly loudness: SongLoudness;
   /** Each song the slideshow plays, by its key, as a playable URL. */
   readonly songUrls: ReadonlyMap<string, string>;
+  /** The share page's language; picks a trip chapter's automatic text (`TRIP_CHAPTERS.md`). */
+  readonly language: string;
 }
 
 /** The server no longer has this picture (Immich lost it); playing skips it. */
@@ -46,6 +48,7 @@ export async function loadSharedShow(
   api: ShareApi,
   createUrl: (song: Blob) => string,
   known: SharedShow | null,
+  language: string,
 ): Promise<SharedShow> {
   const answer = await api.answer();
   if (known !== null && known.revision === answer.revision) return known;
@@ -56,6 +59,7 @@ export async function loadSharedShow(
     NO_FOCUS,
     answer.beats,
     answer.loudness,
+    language,
   );
   const playedSongs = [...new Set(byKey.music?.map(({ src }) => src))];
   const songIndex = new Map(answer.slideshow.songs.map(({ id }, index) => [id, index]));
@@ -72,6 +76,7 @@ export async function loadSharedShow(
     beats: answer.beats,
     loudness: answer.loudness,
     songUrls: new Map(songUrls),
+    language,
   };
 }
 
@@ -159,5 +164,6 @@ function composed(show: SharedShow, skipped: ReadonlySet<string>): Slideshow {
     NO_FOCUS,
     show.beats,
     show.loudness,
+    show.language,
   );
 }

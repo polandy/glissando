@@ -39,6 +39,8 @@ function details(
     musicSeconds: null,
     musicSummary: null,
     ownOrder: false,
+    automaticChaptersOff: false,
+    chapters: [],
     ownMotionCount: 0,
     ownDurationCount: 0,
     ownTransitionCount: 0,

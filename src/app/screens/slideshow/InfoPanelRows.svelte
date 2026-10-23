@@ -12,6 +12,7 @@
     onEditTransitions,
     onEditLook,
     onEditPortraitPictures,
+    onEditChapters,
   }: {
     slideshow: SlideshowDetails;
     onEditMusic: () => void;
@@ -21,11 +22,14 @@
     onEditLook: () => void;
     /** Opens the sheet of the slideshow's portrait pictures setting. */
     onEditPortraitPictures: () => void;
+    /** Opens the trip chapters sheet in general mode (TRIP_CHAPTERS.md). */
+    onEditChapters: () => void;
   } = $props();
 
   let transitionsRow: PanelActionRow;
   let lookRow: PanelActionRow;
   let portraitPicturesRow: PanelActionRow;
+  let chaptersRow: PanelActionRow;
 
   /** The transitions sheet closed: focus goes back to the row it was opened from. */
   export function focusTransitions(): void {
@@ -40,6 +44,11 @@
   /** The portrait pictures sheet closed: focus goes back to the row it was opened from. */
   export function focusPortraitPictures(): void {
     portraitPicturesRow.focus();
+  }
+
+  /** The chapters sheet closed: focus goes back to the row it was opened from. */
+  export function focusChapters(): void {
+    chaptersRow.focus();
   }
 
   const { t, formatDuration } = getTranslator();
@@ -98,6 +107,13 @@
   );
   const portraitPicturesSummary = $derived(
     slideshow.pairCount === 0 ? "" : `· ${t("portrait.pairCount", { count: slideshow.pairCount })}`,
+  );
+  // Hidden automatic chapters are omitted (TRIP_CHAPTERS.md): the count is what the trip shows.
+  const visibleChapterCount = $derived(
+    slideshow.chapters.filter((chapter) => !chapter.hidden).length,
+  );
+  const chaptersSummary = $derived(
+    slideshow.automaticChaptersOff ? t("chapters.automaticOffSummary") : "",
   );
 </script>
 
@@ -178,6 +194,17 @@
       summary={portraitPicturesSummary}
       action={t("slideshow.change")}
       onclick={onEditPortraitPictures}
+    />
+  </div>
+  <div class="action-row">
+    <PanelActionRow
+      bind:this={chaptersRow}
+      name="chapters"
+      label={t("chapters.rowLabel")}
+      value={t("chapters.count", { count: visibleChapterCount })}
+      summary={chaptersSummary}
+      action={t("slideshow.change")}
+      onclick={onEditChapters}
     />
   </div>
   <div>

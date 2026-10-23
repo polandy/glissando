@@ -36,8 +36,8 @@ function written(
 }
 
 describe("the slideshow's colour grade in the .glissando file", () => {
-  it("is written as format version 17, the version that carries it", () => {
-    expect(LOOK_FROM_VERSION).toBe(17);
+  it("is written as format version 18, the version that carries it", () => {
+    expect(LOOK_FROM_VERSION).toBe(18);
     expect(manifestFor(warm, [JPEG]).slideshow.look).toBe("warm");
   });
 
@@ -52,8 +52,8 @@ describe("the slideshow's colour grade in the .glissando file", () => {
     expect(readManifest(asText(manifest))).toEqual({ kind: "ok", manifest });
   });
 
-  it("refuses a version 16 file, older than this app still reads (ADR-0044)", () => {
-    expect(readManifest(written(warm, {}, 16)).kind).toBe("damaged");
+  it("refuses a version 17 file, older than this app still reads (ADR-0044)", () => {
+    expect(readManifest(written(warm, {}, 17)).kind).toBe("damaged");
   });
 
   it("names a bad look's path, its value and what is expected", () => {

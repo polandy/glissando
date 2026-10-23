@@ -26,7 +26,7 @@ describe("slideshowDetails captions", () => {
   it("counts the pictures with a caption", () => {
     const edited = stored([picture("p1"), picture("p2", { caption: "Am Steg" })]);
 
-    expect(slideshowDetails(edited, urlOf).captionCount).toBe(1);
+    expect(slideshowDetails(edited, urlOf, "en").captionCount).toBe(1);
   });
 
   it("carries a picture's caption on its tile, and no caption key at all without one", () => {
@@ -35,7 +35,7 @@ describe("slideshowDetails captions", () => {
       picture("p2", { capturedAt: "2025-07-02T10:00:00Z" }),
     ]);
 
-    const [first, second] = slideshowDetails(withCaption, urlOf).pictures;
+    const [first, second] = slideshowDetails(withCaption, urlOf, "en").pictures;
 
     expect(first?.caption).toBe("Last light");
     expect("caption" in (second ?? {})).toBe(false);

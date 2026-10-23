@@ -80,7 +80,7 @@
     clock?: () => number;
   } = $props();
 
-  const { t } = getTranslator();
+  const { t, language } = getTranslator();
   /** The only song by its name; a playlist by its count of songs. */
   const musicTitle = $derived.by(() => {
     const music = playingMusic(stored);
@@ -125,6 +125,7 @@
           loaded.focus,
           loaded.beats,
           loaded.loudness,
+          language,
         ),
   );
 

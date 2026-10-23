@@ -45,6 +45,8 @@ export function sessionWith(
         thumbnail: new Blob([`thumbnail ${file.name}`]),
       }),
     captureDate: (file) => Promise.resolve((file as File & { capturedAt: string }).capturedAt),
+    gps: () => Promise.resolve(null),
+    resolvePlace: () => Promise.resolve(null),
     immichSource: (photo: ImmichPhoto) => ({
       fileName: photo.fileName,
       mimeType: "image/jpeg",

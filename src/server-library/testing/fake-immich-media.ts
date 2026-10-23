@@ -7,6 +7,7 @@ import {
   type ImmichUnavailableKind,
 } from "../../immich/immich-client";
 import type { DecodedPicture } from "../../import/downscale";
+import type { ExifGps } from "../../import/exif-gps";
 import { UnreadablePictureError } from "../../import/unreadable-picture";
 
 /** Bytes `decodeAsText` refuses, as the browser refuses e.g. HEIC. */
@@ -18,7 +19,10 @@ const HTTP_NOT_FOUND = 404;
  * Immich's media of the assets a test adds: an original holding "original <id>", a thumbnail
  * and a preview likewise; an asset never added answers 404 as a deleted one does.
  */
-export class FakeImmichMedia implements Pick<ImmichClient, "original" | "thumbnail" | "faces"> {
+export class FakeImmichMedia implements Pick<
+  ImmichClient,
+  "original" | "thumbnail" | "faces" | "gps"
+> {
   readonly calls: string[] = [];
   /** The signal each download was asked with, by call. */
   readonly signals = new Map<string, AbortSignal | undefined>();
@@ -56,6 +60,10 @@ export class FakeImmichMedia implements Pick<ImmichClient, "original" | "thumbna
     }
     return this.#answer(`faces ${assetId}`, assetId, () => this.#faces.get(assetId) ?? []);
   };
+
+  gps(): Promise<ExifGps | null> {
+    return Promise.resolve(null);
+  }
 
   #answer<T>(call: string, assetId: string, answer: (original: string) => T): Promise<T> {
     this.calls.push(call);

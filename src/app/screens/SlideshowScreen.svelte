@@ -11,7 +11,7 @@
   import SelectionBar from "./slideshow/SelectionBar.svelte";
   import SlideshowEditSheets from "./slideshow/SlideshowEditSheets.svelte";
   import ExportSheets from "./slideshow/ExportSheets.svelte";
-  import SlideshowDeleteFlow from "./slideshow/SlideshowDeleteFlow.svelte";
+  import DeleteFlow from "./slideshow/DeleteFlow.svelte";
   import {
     endSelecting,
     NO_SELECTION,
@@ -49,6 +49,7 @@
     onEnsureClosingCard,
     onClosingCard,
     onRemoveClosingCard,
+    chapterEditor,
     previewPorts,
     reducedMotion,
     onDelete,
@@ -107,7 +108,7 @@
   let editSheets = $state<SlideshowEditSheets>();
   let exportSheets = $state<ExportSheets>();
   let focusSheetHost = $state<FocusSheetHost>();
-  let deleteFlow = $state<SlideshowDeleteFlow>();
+  let deleteFlow = $state<DeleteFlow>();
 </script>
 
 <div class="screen" class:selecting={showBar} aria-busy={saving}>
@@ -120,7 +121,7 @@
         onSaveVideo={() => exportSheets?.openVideo()}
         onSaveWebPage={() => exportSheets?.openWebPage()}
         onOpened={onMenuOpened}
-        onDelete={() => deleteFlow?.confirm()}
+        onDelete={() => deleteFlow?.open()}
         {storage}
         pictureCount={slideshow.pictures.length}
         {onStorageAction}
@@ -148,6 +149,7 @@
         {onMoveGroup}
         onOpenOpeningCard={() => editSheets?.openOpeningCard()}
         onOpenClosingCard={() => editSheets?.openClosingCard()}
+        onOpenChapter={(anchorPictureId) => editSheets?.openChapter(anchorPictureId)}
         {storage}
         {onStorageAction}
         {holdScheduler}
@@ -164,6 +166,7 @@
         onEditTransitions={() => editSheets?.openTransitions()}
         onEditLook={() => editSheets?.openLook()}
         onEditPortraitPictures={() => editSheets?.openPortraitPictures()}
+        onEditChapters={() => editSheets?.openGeneralChapters()}
       />
     </div>
   </main>
@@ -177,6 +180,7 @@
       {onEdit}
       onView={(pictureId) => (viewing = pictureId)}
       onDone={() => (selection = endSelecting())}
+      onInsertChapter={(pictureId) => editSheets?.insertAndOpenChapter(pictureId)}
     />
   {/if}
 </div>
@@ -219,6 +223,8 @@
   {onClosingCard}
   {onRemoveClosingCard}
   onClosingCardClosed={() => picturesColumn?.focusClosingCard()}
+  {chapterEditor}
+  onChaptersClosed={() => infoPanel?.focusChapters()}
 />
 
 <ExportSheets
@@ -240,7 +246,7 @@
   {onLookAgain}
 />
 
-<SlideshowDeleteFlow
+<DeleteFlow
   bind:this={deleteFlow}
   title={slideshow.title}
   pictureCount={slideshow.pictures.length}

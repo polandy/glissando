@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { DecodedPicture } from "./downscale";
+import type { ExifGps } from "./exif-gps";
 import { localPictureSource } from "./local-picture-source";
 import { UnreadablePictureError } from "./unreadable-picture";
 
@@ -10,12 +11,15 @@ const DECODED: DecodedPicture = {
   thumbnail: new Blob(["thumbnail"]),
 };
 
+const noGps = (): Promise<ExifGps | null> => Promise.resolve(null);
+
 describe("localPictureSource", () => {
   it("is identified by its name, capture date and size in bytes, without decoding it", async () => {
     const decoded: string[] = [];
     const source = localPictureSource(new File(["12345678"], "a.jpg", { type: "image/jpeg" }), {
       decode: (file) => (decoded.push(file.name), Promise.resolve(DECODED)),
       captureDate: () => Promise.resolve("2025-07-01T10:00:00Z"),
+      gps: noGps,
     });
 
     expect(await source.identify()).toEqual({
@@ -26,13 +30,25 @@ describe("localPictureSource", () => {
     expect(decoded).toEqual([]);
   });
 
-  it("reads the decoded picture and brings no focus", async () => {
+  it("reads the decoded picture and brings no focus or GPS when there is none", async () => {
     const source = localPictureSource(new File(["x"], "a.jpg", { type: "image/jpeg" }), {
       decode: () => Promise.resolve(DECODED),
       captureDate: () => Promise.resolve("2025-07-01T10:00:00Z"),
+      gps: noGps,
     });
 
     expect(await source.read()).toEqual({ decoded: DECODED, focus: null });
+  });
+
+  it("reads the picture's GPS coordinate alongside it", async () => {
+    const coordinate: ExifGps = { latitude: 48.2082, longitude: 16.3738 };
+    const source = localPictureSource(new File(["x"], "a.jpg", { type: "image/jpeg" }), {
+      decode: () => Promise.resolve(DECODED),
+      captureDate: () => Promise.resolve("2025-07-01T10:00:00Z"),
+      gps: () => Promise.resolve(coordinate),
+    });
+
+    expect(await source.read()).toEqual({ decoded: DECODED, focus: null, gps: coordinate });
   });
 
   describe("a failing read or decode", () => {
@@ -55,6 +71,7 @@ describe("localPictureSource", () => {
       const source = localPictureSource(file(), {
         decode: () => Promise.resolve(DECODED),
         captureDate: run,
+        gps: noGps,
       });
 
       expect((await source.identify()).capturedAt).toBe("2025-07-01T10:00:00Z");
@@ -64,9 +81,23 @@ describe("localPictureSource", () => {
     it("is retried once when the picture cannot be decoded", async () => {
       const failure = new UnreadablePictureError("a.jpg", "decode");
       const { calls, run } = flaky(1, failure, DECODED);
-      const source = localPictureSource(file(), { decode: run, captureDate });
+      const source = localPictureSource(file(), { decode: run, captureDate, gps: noGps });
 
       expect(await source.read()).toEqual({ decoded: DECODED, focus: null });
+      expect(calls.count).toBe(2);
+    });
+
+    it("is retried once when the GPS coordinate cannot be read", async () => {
+      const coordinate: ExifGps = { latitude: 48.2082, longitude: 16.3738 };
+      const failure = new UnreadablePictureError("a.jpg", "read");
+      const { calls, run } = flaky(1, failure, coordinate);
+      const source = localPictureSource(file(), {
+        decode: () => Promise.resolve(DECODED),
+        captureDate,
+        gps: run,
+      });
+
+      expect(await source.read()).toEqual({ decoded: DECODED, focus: null, gps: coordinate });
       expect(calls.count).toBe(2);
     });
 
@@ -78,6 +109,7 @@ describe("localPictureSource", () => {
         const source = localPictureSource(file(), {
           decode: stage === "decode" ? run : () => Promise.resolve(DECODED),
           captureDate: stage === "read" ? () => run().then(() => "") : captureDate,
+          gps: noGps,
         });
 
         const rejected = stage === "read" ? source.identify() : source.read();
@@ -89,7 +121,7 @@ describe("localPictureSource", () => {
     it("is not retried when it fails for another reason", async () => {
       const other = new Error("out of luck");
       const { calls, run } = flaky(1, other, DECODED);
-      const source = localPictureSource(file(), { decode: run, captureDate });
+      const source = localPictureSource(file(), { decode: run, captureDate, gps: noGps });
 
       await expect(source.read()).rejects.toBe(other);
       expect(calls.count).toBe(1);

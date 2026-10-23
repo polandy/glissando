@@ -7,7 +7,7 @@ app and the server):
 { "format": "glissando-server", "formatVersion": 1, "slideshow": { … } }
 ```
 
-`slideshow` is the `.glissando` manifest's `slideshow` of format version 17
+`slideshow` is the `.glissando` manifest's `slideshow` of format version 18
 (`dev-docs/library/GLISSANDO_FILE.md`) with two differences:
 
 - every picture has `immichAssetId` (required) and neither `file`, `thumbnail` nor `fileBytes`;
@@ -32,7 +32,7 @@ picture's `alone`, version 11, a song's own volume `volumeDb`, version 15, or a 
 sample-track id `sampleTrack`, version 16) never changes it by itself: the service and the app
 ship in one image, so a document with the field is always read by an app that knows it; only an
 app still cached from before the update refuses it as invalid, until it updates. The slideshow's
-colour grade `look` (manifest version 17, ADR-0044) bumped `formatVersion` to 4, like the
+colour grade `look` (manifest version 18, ADR-0044) bumped `formatVersion` to 4, like the
 picture's `colours` and a card's picture background `tint` (ADR-0033) bumped it to 3.
 
 A stored document the service cannot read, e.g. one at an older `formatVersion`, is left out of

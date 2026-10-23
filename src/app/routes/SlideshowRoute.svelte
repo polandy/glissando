@@ -103,7 +103,7 @@
 
   onMount(() => {
     const stopFocus = screenFocus.follow();
-    loadSlideshowScreen(store, slideshowId, thumbnails.urls, left.signal).then(
+    loadSlideshowScreen(store, slideshowId, thumbnails.urls, translator.language, left.signal).then(
       (loaded) => {
         if (loaded !== null) {
           screenFocus.load(loaded.stored);
@@ -159,7 +159,9 @@
     return editor;
   }
 
-  const details = $derived(stored === null ? null : thumbnails.details(stored));
+  const details = $derived(
+    stored === null ? null : thumbnails.details(stored, translator.language),
+  );
   const storage = $derived(stored === null ? null : screenStorage.of(stored, { serverOn, saving }));
 </script>
 
@@ -216,8 +218,8 @@
     {onEditMusic}
     onTransition={(transition) => editor?.setSlideshowTransition(transition)}
     onResetTransition={() => editor?.resetSlideshowTransition()}
-    onLook={(look) => editor?.setSlideshowLook(look)}
-    onResetLook={() => editor?.resetSlideshowLook()}
+    onLook={(look) => editor?.look.set(look)}
+    onResetLook={() => editor?.look.reset()}
     onPortraitPictures={(choice) => editor?.setPortraitPictures(choice)}
     onResetPortraitPictures={() => editor?.resetPortraitPictures()}
     onEnsureOpeningCard={() => mustEditor().ensureOpeningCard()}
@@ -226,6 +228,7 @@
     onEnsureClosingCard={() => mustEditor().ensureClosingCard()}
     onClosingCard={(card) => editor?.setClosingCard(card)}
     onRemoveClosingCard={() => editor?.removeClosingCard()}
+    chapterEditor={editor?.chapters ?? null}
     previewPorts={{ clock: performanceClock, frames: animationFrames }}
     reducedMotion={reducedMotion.current}
     onDelete={() => deleteShownSlideshow(store, slideshowId, editor).then(onDeleted, onError)}
