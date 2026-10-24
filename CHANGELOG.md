@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.0.12](https://github.com/polandy/glissando/compare/glissando-v0.0.11...glissando-v0.0.12) (2026-10-24)
+
+
+### Features
+
+* insert trip chapters at each change of place in a slideshow ([#124](https://github.com/polandy/glissando/issues/124)) ([79752ec](https://github.com/polandy/glissando/commit/79752ec32fbe7c7540b83d2e156d8e07d7d7edd4))
+* offer looks for a slideshow ([#125](https://github.com/polandy/glissando/issues/125)) ([340ee03](https://github.com/polandy/glissando/commit/340ee038e5a300789ce09028943f4a787e7f1b9c))
+* pick a mood for a slideshow instead of single settings ([#126](https://github.com/polandy/glissando/issues/126)) ([93ca041](https://github.com/polandy/glissando/commit/93ca0418d49e5d1a6e87f5f47ff3ab38a537a5e8))
+
+
+### Bug Fixes
+
+* say pictures with their own duration stay about that long when pictures are added ([#122](https://github.com/polandy/glissando/issues/122)) ([b919939](https://github.com/polandy/glissando/commit/b91993999b60eb767b97a56a95fbba2dd3a3953a))
+
 ## [0.0.11](https://github.com/polandy/glissando/compare/glissando-v0.0.10...glissando-v0.0.11) (2026-10-22)
 
 
