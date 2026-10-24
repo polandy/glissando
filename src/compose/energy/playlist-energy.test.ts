@@ -40,7 +40,10 @@ describe("playlistEnergy", () => {
   it("reads a song's own energy curve inside its territory", () => {
     const a = song("a", 20_000);
     const playlist: Playlist = { songs: [a] };
-    const loudness = loudnessOf(["a", [...levelMs(QUIET_LUFS, 10_000), ...levelMs(LOUD_LUFS, 10_000)]]);
+    const loudness = loudnessOf([
+      "a",
+      [...levelMs(QUIET_LUFS, 10_000), ...levelMs(LOUD_LUFS, 10_000)],
+    ]);
 
     const energy = playlistEnergy(playlist, loudness, NO_SONG_BEATS);
 
@@ -51,7 +54,10 @@ describe("playlistEnergy", () => {
   it("reads neutral energy and no lifts for a song whose picture changes are even", () => {
     const a = song("a", 20_000, { pictureChanges: EVEN_PICTURE_CHANGES });
     const playlist: Playlist = { songs: [a] };
-    const loudness = loudnessOf(["a", [...levelMs(QUIET_LUFS, 10_000), ...levelMs(LOUD_LUFS, 10_000)]]);
+    const loudness = loudnessOf([
+      "a",
+      [...levelMs(QUIET_LUFS, 10_000), ...levelMs(LOUD_LUFS, 10_000)],
+    ]);
 
     const energy = playlistEnergy(playlist, loudness, NO_SONG_BEATS);
 
@@ -100,7 +106,10 @@ describe("playlistEnergy", () => {
   it("averages energy over a span at every LOUDNESS_HOP_MS, quieter half below louder half", () => {
     const a = song("a", 20_000);
     const playlist: Playlist = { songs: [a] };
-    const loudness = loudnessOf(["a", [...levelMs(QUIET_LUFS, 10_000), ...levelMs(LOUD_LUFS, 10_000)]]);
+    const loudness = loudnessOf([
+      "a",
+      [...levelMs(QUIET_LUFS, 10_000), ...levelMs(LOUD_LUFS, 10_000)],
+    ]);
 
     const energy = playlistEnergy(playlist, loudness, NO_SONG_BEATS);
 
@@ -125,7 +134,10 @@ describe("playlistEnergy", () => {
     const a = song("a", 10_000);
     const b = song("b", 30_000);
     const playlist: Playlist = { songs: [a, b], betweenSongs: SEQUENCE_BETWEEN_SONGS };
-    const loudness = loudnessOf(["b", [...levelMs(QUIET_LUFS, 15_000), ...levelMs(LOUD_LUFS, 15_000)]]);
+    const loudness = loudnessOf([
+      "b",
+      [...levelMs(QUIET_LUFS, 15_000), ...levelMs(LOUD_LUFS, 15_000)],
+    ]);
     const beats = beatsOf("b", [14_700, 15_400]);
 
     const energy = playlistEnergy(playlist, loudness, beats);
@@ -137,7 +149,10 @@ describe("playlistEnergy", () => {
   it("leaves a lift where it is for a song without beats", () => {
     const a = song("a", 30_000);
     const playlist: Playlist = { songs: [a] };
-    const loudness = loudnessOf(["a", [...levelMs(QUIET_LUFS, 15_000), ...levelMs(LOUD_LUFS, 15_000)]]);
+    const loudness = loudnessOf([
+      "a",
+      [...levelMs(QUIET_LUFS, 15_000), ...levelMs(LOUD_LUFS, 15_000)],
+    ]);
 
     const energy = playlistEnergy(playlist, loudness, NO_SONG_BEATS);
 

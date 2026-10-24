@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { levelMs, syntheticLoudness } from "../../compose/energy/testing/synthetic-loudness";
 import type { StoredPicture, StoredSlideshow } from "../../library/stored-slideshow";
-import { NO_SONGS_LOUDNESS_KNOWN, slideshowTimes, type SongsLoudnessStatus } from "./slideshow-times";
+import {
+  NO_SONGS_LOUDNESS_KNOWN,
+  slideshowTimes,
+  type SongsLoudnessStatus,
+} from "./slideshow-times";
 
 // Close enough together that the relative gate never excludes the quieter half from the
 // excerpt's integrated loudness, so both halves still read on either side of neutral.
@@ -34,7 +38,10 @@ function slideshow(energyPacing?: true): StoredSlideshow {
 const QUIET_THEN_LOUD: SongsLoudnessStatus = new Map([
   [
     "m",
-    { kind: "known", loudness: syntheticLoudness([...levelMs(QUIET_LUFS, 10_000), ...levelMs(LOUD_LUFS, 10_000)]) },
+    {
+      kind: "known",
+      loudness: syntheticLoudness([...levelMs(QUIET_LUFS, 10_000), ...levelMs(LOUD_LUFS, 10_000)]),
+    },
   ],
 ]);
 

@@ -5,7 +5,11 @@ import { ENERGY_PASSES, paceByEnergy } from "./pace-by-energy";
 const MIN_SLIDE_MS = 200;
 
 /** A `PlaylistEnergy` stub whose energy steps from `quiet` to `loud` at `thresholdMs`. */
-function stepEnergy(thresholdMs: number, quiet: number, loud: number): PlaylistEnergy & { calls: number } {
+function stepEnergy(
+  thresholdMs: number,
+  quiet: number,
+  loud: number,
+): PlaylistEnergy & { calls: number } {
   let calls = 0;
   return {
     energyAt: () => quiet,

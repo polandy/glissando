@@ -53,6 +53,9 @@ export function energyStripGeometry(input: {
     areaPoints,
     tickFractions: tickMs.map(fractionOf),
     liftFractions: liftsMs.map(fractionOf),
-    previewStretch: { startFraction: fractionOf(previewStartMs), endFraction: fractionOf(previewEndMs) },
+    previewStretch: {
+      startFraction: fractionOf(previewStartMs),
+      endFraction: fractionOf(previewEndMs),
+    },
   };
 }

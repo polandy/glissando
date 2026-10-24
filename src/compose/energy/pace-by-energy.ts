@@ -37,7 +37,9 @@ export function paceByEnergy(
       return [...usualMs];
     }
     let nextShare = 0;
-    spans = usualMs.map((usual, index) => (automatic[index] ? (shares[nextShare++] as number) : usual));
+    spans = usualMs.map((usual, index) =>
+      automatic[index] ? (shares[nextShare++] as number) : usual,
+    );
   }
   return [...spans];
 }

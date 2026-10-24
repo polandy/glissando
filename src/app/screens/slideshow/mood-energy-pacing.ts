@@ -107,7 +107,7 @@ export function moodEnergyStripData(
     energyAt,
     tickMs: boundariesMs.slice(0, -1),
     liftsMs,
-    previewStartMs: startIndex === 0 ? 0 : boundariesMs[startIndex - 1] ?? 0,
+    previewStartMs: startIndex === 0 ? 0 : (boundariesMs[startIndex - 1] ?? 0),
     previewEndMs: boundariesMs[endIndex - 1] ?? totalMs,
   };
 }

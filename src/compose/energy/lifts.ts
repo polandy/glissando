@@ -39,7 +39,11 @@ export function songLiftsMs(
 }
 
 /** The rise at every sampled moment a lift could sit at, `LOUDNESS_HOP_MS` apart. */
-function risesOver(loudness: MusicLoudness, excerptStartMs: number, excerptEndMs: number): RiseAt[] {
+function risesOver(
+  loudness: MusicLoudness,
+  excerptStartMs: number,
+  excerptEndMs: number,
+): RiseAt[] {
   const lengthMs = excerptEndMs - excerptStartMs;
   const rises: RiseAt[] = [];
   for (let atMs = LIFT_WINDOW_MS; atMs <= lengthMs - LIFT_WINDOW_MS; atMs += LOUDNESS_HOP_MS) {
@@ -68,7 +72,9 @@ function strongestFirst(candidates: readonly RiseAt[]): RiseAt[] {
 
 function farEnoughFromEarlierAccepted(candidate: RiseAt, ranked: readonly RiseAt[]): boolean {
   const strongerOrEarlier = ranked.slice(0, ranked.indexOf(candidate));
-  return strongerOrEarlier.every((accepted) => Math.abs(accepted.atMs - candidate.atMs) >= LIFT_MIN_GAP_MS);
+  return strongerOrEarlier.every(
+    (accepted) => Math.abs(accepted.atMs - candidate.atMs) >= LIFT_MIN_GAP_MS,
+  );
 }
 
 function meanLoudnessLufs(loudness: MusicLoudness, fromMs: number, toMs: number): number {

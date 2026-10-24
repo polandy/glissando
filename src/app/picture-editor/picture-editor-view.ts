@@ -127,8 +127,7 @@ export function pictureEditorView(
     throw new Error(`slideshow "${stored.id}" holds no picture "${pictureId}"`);
   }
   const beatsMs = playlistBeatsMs(stored, beats);
-  const energy =
-    stored.energyPacing === true ? playlistEnergy(stored, loudness, beats) : undefined;
+  const energy = stored.energyPacing === true ? playlistEnergy(stored, loudness, beats) : undefined;
   // The preview plays the picture's slide as composed (ADR-0028): a pair is one slide, timed
   // once, with one transition and the pair's motion.
   const units = slideUnits(pictures, stored.portraitPictures);

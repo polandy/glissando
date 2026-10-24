@@ -48,8 +48,14 @@ export function playlistEnergy(
     const territoryEndMs = placed[index + 1]?.atMs ?? atMs + musicExcerptMs(song);
     const songLoudness = loudness.get(song.id);
     const integratedLufs =
-      songLoudness === undefined ? null : excerptLoudnessLufs(songLoudness, excerpt.startMs, excerpt.endMs);
-    if (song.pictureChanges === EVEN_PICTURE_CHANGES || songLoudness === undefined || integratedLufs === null) {
+      songLoudness === undefined
+        ? null
+        : excerptLoudnessLufs(songLoudness, excerpt.startMs, excerpt.endMs);
+    if (
+      song.pictureChanges === EVEN_PICTURE_CHANGES ||
+      songLoudness === undefined ||
+      integratedLufs === null
+    ) {
       return { atMs, territoryEndMs, usable: false };
     }
     return {
@@ -70,7 +76,13 @@ export function playlistEnergy(
         return [];
       }
       const songBeatsMs = excerptBeatsMs(song, beats.get(song.id) ?? NO_BEATS);
-      return songLiftsMs(span.loudness, span.integratedLufs, span.excerptStartMs, span.excerptEndMs, songBeatsMs)
+      return songLiftsMs(
+        span.loudness,
+        span.integratedLufs,
+        span.excerptStartMs,
+        span.excerptEndMs,
+        songBeatsMs,
+      )
         .map((liftMs) => atMs + liftMs)
         .filter((liftMs) => liftMs < span.territoryEndMs);
     })
@@ -82,7 +94,13 @@ export function playlistEnergy(
       return NEUTRAL_ENERGY;
     }
     const trackMs = span.excerptStartMs + (ms - span.atMs);
-    return songEnergyAt(span.loudness, span.integratedLufs, trackMs, span.excerptStartMs, span.excerptEndMs);
+    return songEnergyAt(
+      span.loudness,
+      span.integratedLufs,
+      trackMs,
+      span.excerptStartMs,
+      span.excerptEndMs,
+    );
   }
 
   function meanEnergy(fromMs: number, toMs: number): number {

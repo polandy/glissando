@@ -146,8 +146,20 @@ describe("pictureEditorView timing", () => {
     it("paces the automatic slide durations by the music's energy once the slideshow follows it", () => {
       const withEnergy = { ...stored, songs: [music(30_000)], energyPacing: true as const };
 
-      const first = pictureEditorView(withEnergy, "p1", NO_FOCUS_KNOWN, NO_SONG_BEATS, quietThenLoud);
-      const third = pictureEditorView(withEnergy, "p3", NO_FOCUS_KNOWN, NO_SONG_BEATS, quietThenLoud);
+      const first = pictureEditorView(
+        withEnergy,
+        "p1",
+        NO_FOCUS_KNOWN,
+        NO_SONG_BEATS,
+        quietThenLoud,
+      );
+      const third = pictureEditorView(
+        withEnergy,
+        "p3",
+        NO_FOCUS_KNOWN,
+        NO_SONG_BEATS,
+        quietThenLoud,
+      );
 
       // p1 (0-10 000 before pacing) sits in the quiet half, p3 (20 000-30 000) in the loud half.
       expect(first.durationMs).toBeGreaterThan(third.durationMs);
@@ -156,8 +168,20 @@ describe("pictureEditorView timing", () => {
     it("does not pace by energy unless the slideshow follows it, even with loudness known", () => {
       const withMusic = { ...stored, songs: [music(30_000)] };
 
-      const first = pictureEditorView(withMusic, "p1", NO_FOCUS_KNOWN, NO_SONG_BEATS, quietThenLoud);
-      const third = pictureEditorView(withMusic, "p3", NO_FOCUS_KNOWN, NO_SONG_BEATS, quietThenLoud);
+      const first = pictureEditorView(
+        withMusic,
+        "p1",
+        NO_FOCUS_KNOWN,
+        NO_SONG_BEATS,
+        quietThenLoud,
+      );
+      const third = pictureEditorView(
+        withMusic,
+        "p3",
+        NO_FOCUS_KNOWN,
+        NO_SONG_BEATS,
+        quietThenLoud,
+      );
 
       expect(first.durationMs).toBe(third.durationMs);
       expect(first.durationMs).toBe(10_000);

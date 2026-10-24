@@ -94,7 +94,10 @@ describe("composeSlideshow with energy pacing", () => {
       pictureLength: OWN_SECONDS_PICTURE_LENGTH,
       energyPacing: true,
     });
-    const loudness = loudnessOf("a", [...levelMs(QUIET_LUFS, 10_000), ...levelMs(LOUD_LUFS, 10_000)]);
+    const loudness = loudnessOf("a", [
+      ...levelMs(QUIET_LUFS, 10_000),
+      ...levelMs(LOUD_LUFS, 10_000),
+    ]);
 
     const durationsMs = durationsOf(stored, loudness);
 
@@ -135,7 +138,10 @@ describe("composeSlideshow with energy pacing", () => {
       pictureLength: OWN_SECONDS_PICTURE_LENGTH,
       energyPacing: true,
     });
-    const loudness = loudnessOf("a", [...levelMs(QUIET_LUFS, 15_000), ...levelMs(LOUD_LUFS, 15_000)]);
+    const loudness = loudnessOf("a", [
+      ...levelMs(QUIET_LUFS, 15_000),
+      ...levelMs(LOUD_LUFS, 15_000),
+    ]);
 
     const durationsMs = durationsOf(stored, loudness);
 
@@ -152,7 +158,10 @@ describe("composeSlideshow with energy pacing", () => {
       pictureLength: OWN_SECONDS_PICTURE_LENGTH,
       energyPacing: true,
     });
-    const loudness = loudnessOf("a", [...levelMs(QUIET_LUFS, 15_000), ...levelMs(LOUD_LUFS, 15_000)]);
+    const loudness = loudnessOf("a", [
+      ...levelMs(QUIET_LUFS, 15_000),
+      ...levelMs(LOUD_LUFS, 15_000),
+    ]);
 
     const cutSlides = composed(base, loudness).slides;
     const cutIndex = slideEndsMs(cutSlides.map((slide) => slide.durationMs)).indexOf(15_000);

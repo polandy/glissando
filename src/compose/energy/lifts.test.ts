@@ -8,7 +8,10 @@ const INTEGRATED_LUFS = -20;
 
 describe("songLiftsMs", () => {
   it("finds the jump from a quiet passage into a loud one", () => {
-    const loudness = syntheticLoudness([...levelMs(QUIET_LUFS, 15_000), ...levelMs(LOUD_LUFS, 15_000)]);
+    const loudness = syntheticLoudness([
+      ...levelMs(QUIET_LUFS, 15_000),
+      ...levelMs(LOUD_LUFS, 15_000),
+    ]);
 
     expect(songLiftsMs(loudness, INTEGRATED_LUFS, 0, 30_000)).toEqual([15_000]);
   });
@@ -28,7 +31,10 @@ describe("songLiftsMs", () => {
   });
 
   it("finds no lift within LIFT_WINDOW_MS of the excerpt's start", () => {
-    const loudness = syntheticLoudness([...levelMs(QUIET_LUFS, 2000), ...levelMs(LOUD_LUFS, 28_000)]);
+    const loudness = syntheticLoudness([
+      ...levelMs(QUIET_LUFS, 2000),
+      ...levelMs(LOUD_LUFS, 28_000),
+    ]);
 
     expect(songLiftsMs(loudness, INTEGRATED_LUFS, 0, 30_000)).toEqual([]);
   });
@@ -55,13 +61,19 @@ describe("songLiftsMs", () => {
   });
 
   it("moves a lift to the nearest beat of the song's excerpt when it has beats", () => {
-    const loudness = syntheticLoudness([...levelMs(QUIET_LUFS, 15_000), ...levelMs(LOUD_LUFS, 15_000)]);
+    const loudness = syntheticLoudness([
+      ...levelMs(QUIET_LUFS, 15_000),
+      ...levelMs(LOUD_LUFS, 15_000),
+    ]);
 
     expect(songLiftsMs(loudness, INTEGRATED_LUFS, 0, 30_000, [14_700, 15_400])).toEqual([14_700]);
   });
 
   it("leaves a lift where it is without any beats to snap to", () => {
-    const loudness = syntheticLoudness([...levelMs(QUIET_LUFS, 15_000), ...levelMs(LOUD_LUFS, 15_000)]);
+    const loudness = syntheticLoudness([
+      ...levelMs(QUIET_LUFS, 15_000),
+      ...levelMs(LOUD_LUFS, 15_000),
+    ]);
 
     expect(songLiftsMs(loudness, INTEGRATED_LUFS, 0, 30_000, [])).toEqual([15_000]);
   });

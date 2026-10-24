@@ -90,6 +90,7 @@ The composed player JSON carries no new field.
   - "quiet → longer" and "loud → quicker" underneath.
 
   It is decorative (`aria-hidden`); the "What it sets" rows say the same in words.
+
 - **Preview**: with the switch on and a lift found, the preview plays the four slide units around
   the first lift (two before, two after) instead of the first four. The badge adds "· energy".
 - **Info panel**: under a mood, "Picture times" shows the same range "· by energy"; under Custom,
