@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { MusicBeats } from "../../beats";
 import type { BeatPassState } from "../../library/beat-pass";
-import type { SongsBeatsStatus } from "../music-editor/music-editor-view";
+import type { SongsBeatsStatus } from "../music-editor/slideshow-times";
 import { PlaylistBeats } from "./playlist-beats";
 
 const DRUMS: MusicBeats = { kind: "beats", beatsMs: [500, 1000], beatsPerMinute: 120 };

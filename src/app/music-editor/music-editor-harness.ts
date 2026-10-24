@@ -6,7 +6,7 @@ import type { StoredMusic, StoredPicture, StoredSlideshow } from "../../library/
 import type { SampleTrack, SampleTrackId } from "../../sample-music/sample-tracks";
 import type { BeatsStatus } from "../beats/music-beats-known";
 import type { LoudnessStatus } from "../loudness/music-loudness-known";
-import type { SongsBeatsStatus, SongsLoudnessStatus } from "./music-editor-view";
+import type { SongsBeatsStatus, SongsLoudnessStatus } from "./slideshow-times";
 import { FakeScheduler } from "../../ui-kit/testing/fake-scheduler";
 import type { SamplePreview } from "../sample-music/sample-preview";
 import { mountWithTranslator } from "../testing/mount-with-translator";

@@ -1,7 +1,7 @@
 import { musicExcerpt } from "../../compose";
 import { excerptLoudnessLufs, excerptPeakDbfs, levelSong } from "../../loudness";
 import type { StoredSlideshow } from "../../library/stored-slideshow";
-import { songLoudnessStatus, type SongsLoudnessStatus } from "./music-editor-view";
+import { songLoudnessStatus, type SongsLoudnessStatus } from "./slideshow-times";
 
 /** The axis the comparison bars scale across, in LUFS: as quiet as the box ever shows. */
 const COMPARISON_MIN_LUFS = -30;

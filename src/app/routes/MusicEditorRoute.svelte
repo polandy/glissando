@@ -9,11 +9,8 @@
   import type { SlideshowEditor } from "../editing/slideshow-editor";
   import type { MusicEditorAudio } from "../music-editor/music-editor-audio";
   import { ListenPreview, type ListenState } from "../music-editor/listen-preview";
-  import {
-    musicEditorView,
-    type SongsBeatsStatus,
-    type SongsLoudnessStatus,
-  } from "../music-editor/music-editor-view";
+  import { musicEditorView } from "../music-editor/music-editor-view";
+  import type { SongsBeatsStatus, SongsLoudnessStatus } from "../music-editor/slideshow-times";
   import MusicEditorScreen from "../music-editor/MusicEditorScreen.svelte";
   import {
     SongIntake,

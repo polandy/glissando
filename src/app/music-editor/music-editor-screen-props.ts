@@ -3,7 +3,7 @@ import type { PictureLength } from "../../library/picture-length";
 import type { StoredSlideshow } from "../../library/stored-slideshow";
 import type { SampleTrack, SampleTrackId } from "../../sample-music/sample-tracks";
 import type { ListenState } from "./listen-preview";
-import type { SongsBeatsStatus, SongsLoudnessStatus } from "./music-editor-view";
+import type { SongsBeatsStatus, SongsLoudnessStatus } from "./slideshow-times";
 import type { SamplePreview } from "../sample-music/sample-preview";
 import type { Toaster } from "../toast/toaster";
 import type { PendingSong, SampleSongRow } from "./song-intake";

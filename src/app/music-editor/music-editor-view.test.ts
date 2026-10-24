@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { levelMs, syntheticLoudness } from "../../compose/energy/testing/synthetic-loudness";
 import { excerptLoudnessLufs, excerptPeakDbfs, MUSIC_TARGET_LOUDNESS_LUFS } from "../../loudness";
 import type { StoredMusic, StoredPicture, StoredSlideshow } from "../../library/stored-slideshow";
 import type { BeatsStatus } from "../beats/music-beats-known";
@@ -173,6 +174,30 @@ describe("musicEditorView", () => {
       expect(view.volume.measured).toBe(true);
       expect(view.volume.ownDb).toBe(2);
       expect(view.volume.levelDb).toBeCloseTo(MUSIC_TARGET_LOUDNESS_LUFS - (lufs as number), 5);
+    });
+  });
+
+  describe("energy pacing (ADR-0046)", () => {
+    it("paces the slide changes by the music's energy once the slideshow follows it", () => {
+      const withEnergy = { ...slideshow({ durationMs: 20_000 }), energyPacing: true as const };
+      const loudness = syntheticLoudness([...levelMs(-24, 10_000), ...levelMs(-16, 10_000)]);
+
+      const view = firstSongView(withEnergy, LISTENING, { kind: "known", loudness });
+
+      const boundaries = [0, ...view.slideChanges.map((change) => change.atMs), view.audibleEndMs];
+      const gaps = boundaries.slice(1).map((atMs, index) => atMs - (boundaries[index] as number));
+      // The first slide sits in the quiet half, the last in the loud half: quiet stretches, loud
+      // compresses (ADR-0046, "Pacing").
+      expect(gaps[0]).toBeGreaterThan(gaps[3] as number);
+    });
+
+    it("keeps the usual even slide changes when the slideshow does not follow the energy", () => {
+      const withoutEnergy = slideshow({ durationMs: 20_000 });
+      const loudness = syntheticLoudness([...levelMs(-24, 10_000), ...levelMs(-16, 10_000)]);
+
+      const view = firstSongView(withoutEnergy, LISTENING, { kind: "known", loudness });
+
+      expect(view.slideChanges.map((change) => change.atMs)).toEqual([5000, 10_000, 15_000]);
     });
   });
 });
