@@ -1,9 +1,6 @@
-import { moodSettings } from "../../../compose/mood-settings";
+import { moodPictureTimesValueText } from "../../mood-picture-times-value";
 import type { SlideshowMood } from "../../../library/slideshow-mood";
 import type { Translator } from "../../i18n/translator";
-
-/** A mood's picture-length target rounds to whole beats against the song's tempo. */
-const SECONDS_PER_MINUTE = 60;
 
 /**
  * The mood's display name, or Custom's; shown on the info panel row, the sheet's state pill and
@@ -25,17 +22,11 @@ export function moodPictureTimesText(
   mood: SlideshowMood | undefined,
   beatsPerMinute: number | undefined,
 ): string {
-  const { t, formatSeconds } = translator;
+  const { t } = translator;
   if (mood === undefined) {
     return t("slideshow.automatic");
   }
-  const settings = moodSettings(mood, beatsPerMinute);
-  const seconds = formatSeconds(settings.secondsPerPicture);
-  if (beatsPerMinute === undefined) {
-    return t("mood.pictureTimesNoBeat", { seconds });
-  }
-  const beats = Math.round((settings.secondsPerPicture * beatsPerMinute) / SECONDS_PER_MINUTE);
-  return t("mood.pictureTimesWithBeats", { seconds, beats });
+  return moodPictureTimesValueText(translator, mood, beatsPerMinute);
 }
 
 /** "Ken Burns" under a mood: "Gentle" (calm) or "Strong" (lively); automatic while Custom. */
