@@ -241,6 +241,16 @@ export function setSlideshowLook(
   return { ...withoutLook, look: checked };
 }
 
+/**
+ * Turns energy pacing (ADR-0046) on or off for this slideshow; off, which is never stored, is the
+ * default.
+ */
+export function setSlideshowEnergyPacing(slideshow: StoredSlideshow, on: boolean): StoredSlideshow {
+  const next: { -readonly [Key in keyof StoredSlideshow]: StoredSlideshow[Key] } = { ...slideshow };
+  delete next.energyPacing;
+  return on ? { ...next, energyPacing: true } : next;
+}
+
 /** Sets the slideshow's portrait layout; `undefined` makes it automatic again (ADR-0028). */
 export function setPortraitPictures(
   slideshow: StoredSlideshow,

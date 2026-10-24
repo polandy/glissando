@@ -23,6 +23,7 @@ import { MAX_SECONDS_PER_PICTURE, MIN_SECONDS_PER_PICTURE } from "../library/sto
 import { GRADED_SLIDESHOW_LOOKS, type GradedSlideshowLook } from "../player/looks/slideshow-look";
 import {
   DEFAULT_TRANSITION_FROM_VERSION,
+  ENERGY_PACING_FROM_VERSION,
   LOOK_FROM_VERSION,
   MOOD_FROM_VERSION,
   PICTURE_LENGTH_FROM_VERSION,
@@ -70,6 +71,7 @@ export function slideshowKeys(version: number): string[] {
       : []),
     ...(version >= LOOK_FROM_VERSION ? ["look"] : []),
     ...(version >= MOOD_FROM_VERSION ? ["mood"] : []),
+    ...(version >= ENERGY_PACING_FROM_VERSION ? ["energyPacing"] : []),
   ];
 }
 
@@ -101,6 +103,9 @@ export function readSlideshowFields(
       show["automaticChaptersOff"],
     );
   }
+  if (show["energyPacing"] !== undefined && show["energyPacing"] !== true) {
+    throw new DocumentFormatError(`${path}.energyPacing`, "true or absent", show["energyPacing"]);
+  }
   return {
     title: readText(show["title"], `${path}.title`),
     createdAt: readDateTime(show["createdAt"], `${path}.createdAt`),
@@ -120,6 +125,7 @@ export function readSlideshowFields(
       : { portraitPictures: readPortraitPictures(show["portraitPictures"], path) }),
     ...(show["look"] === undefined ? {} : { look: readLook(show["look"], path) }),
     ...(show["mood"] === undefined ? {} : { mood: readMood(show["mood"], path) }),
+    ...(show["energyPacing"] === true ? { energyPacing: true } : {}),
     ...(show["openingCard"] === undefined
       ? {}
       : {

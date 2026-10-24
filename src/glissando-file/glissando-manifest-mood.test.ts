@@ -36,8 +36,8 @@ function written(
 }
 
 describe("the slideshow's mood in the .glissando file", () => {
-  it("is written as the format version that carries it", () => {
-    expect(MOOD_FROM_VERSION).toBe(GLISSANDO_FORMAT_VERSION);
+  it("is written as format version 19, the version that carries it", () => {
+    expect(MOOD_FROM_VERSION).toBe(19);
     expect(manifestFor(calm, [JPEG]).slideshow.mood).toBe("calm");
   });
 
@@ -51,8 +51,8 @@ describe("the slideshow's mood in the .glissando file", () => {
     expect(readManifest(asText(manifest))).toEqual({ kind: "ok", manifest });
   });
 
-  it("refuses a file older than the version that carries it", () => {
-    expect(readManifest(written(calm, {}, MOOD_FROM_VERSION - 1)).kind).toBe("damaged");
+  it("refuses a version 18 file, older than this app still reads (ADR-0045)", () => {
+    expect(readManifest(written(calm, {}, 18)).kind).toBe("damaged");
   });
 
   it("names a bad mood's path, its value and what is expected", () => {

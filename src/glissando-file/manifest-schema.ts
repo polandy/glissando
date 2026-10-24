@@ -35,6 +35,7 @@ const SLIDESHOW_SCHEMA: JsonSchema = {
     portraitPictures: { enum: PORTRAIT_PICTURES_CHOICES },
     look: { enum: GRADED_SLIDESHOW_LOOKS },
     mood: { enum: SLIDESHOW_MOODS },
+    energyPacing: { const: true },
     openingCard: CARD_SCHEMA,
     closingCard: CARD_SCHEMA,
     automaticChaptersOff: { const: true },
