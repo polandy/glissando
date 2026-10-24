@@ -137,6 +137,48 @@ describe("SlideshowEditor, the slideshow's mood", () => {
 
     editor.setSlideshowTransition("alternate");
 
-    expect(toaster.current?.text).not.toBe("Stimmung ist jetzt Eigene");
+    expect(toaster.current).toBeNull();
+  });
+
+  it("leave writes the mood's settings into the single ones and drops the mood", async () => {
+    const { editor, toaster, store } = await setUp();
+    editor.mood.set("lively");
+    await editor.settled();
+
+    editor.mood.leave();
+
+    await editor.settled();
+    const slideshow = await store.getSlideshow("show");
+    expect(slideshow).not.toHaveProperty("mood");
+    expect(slideshow.pictureLength).toBe("seconds");
+    expect(slideshow.secondsPerPicture).toBe(3);
+    expect(slideshow.transition).toBe("alternate");
+    expect(toaster.current?.text).toBe("Stimmung ist jetzt Eigene");
+    expect(toaster.current?.action?.label).toBe("Rückgängig");
+  });
+
+  it("leave's undo restores the slideshow as it was before it left the mood", async () => {
+    const { editor, toaster, store } = await setUp();
+    editor.mood.set("lively");
+    await editor.settled();
+
+    editor.mood.leave();
+    toaster.act();
+
+    await editor.settled();
+    const slideshow = await store.getSlideshow("show");
+    expect(slideshow.mood).toBe("lively");
+    expect(slideshow).not.toHaveProperty("pictureLength");
+    expect(slideshow.secondsPerPicture).toBe(5);
+  });
+
+  it("leave while already Custom stores nothing and shows no toast", async () => {
+    const { editor, toaster, store } = await setUp();
+    const callsBefore = store.calls.length;
+
+    editor.mood.leave();
+
+    expect(store.calls.length).toBe(callsBefore);
+    expect(toaster.current).toBeNull();
   });
 });
