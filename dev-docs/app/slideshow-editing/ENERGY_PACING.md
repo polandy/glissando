@@ -60,14 +60,10 @@ The slideshow's total length is the same as without energy, before the beat snap
 When `stored.energyPacing` is set, `composeSlideshow` builds the `PlaylistEnergy` from
 `loudness` and `beats` and passes it to `slideDurationsMs`. A slide whose end lands exactly on a
 lift gets no `transitionToNext` (a cut), unless its picture has an own transition. Every other
-caller that shows per-picture times passes the same energy:
-
-- `picture-durations-ms`;
-- `slideshow-duration-ms`;
-- the picture editor;
-- the music editor;
-- after adding pictures;
-- the import view.
+caller that shows per-picture times passes the same energy (`picture-durations-ms`,
+`slideshow-duration-ms`): the picture editor and the music editor. After adding pictures and the
+import view show the slideshow before its songs are measured and keep the usual times; the total
+is the same either way.
 
 The composed player JSON carries no new field.
 

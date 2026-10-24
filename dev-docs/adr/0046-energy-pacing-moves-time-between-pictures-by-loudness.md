@@ -74,6 +74,6 @@ worked out.
 - The thresholds (12 LU range, 1.5 spread, 6 LU over 4 s) were chosen on generated music, like the
   beat detector's. Real recordings may need them tuned, and that changes only the constants in
   `src/compose/energy/`.
-- Everything that shows per-picture times (the picture editor, the music editor, after adding
-  pictures) goes through `slideDurationsMs` with the same energy, so it agrees with the player.
+- The picture editor and the music editor go through `slideDurationsMs` with the same energy, so
+  they agree with the player. After adding pictures and the import view keep the usual times.
   The slideshow's total length is unchanged by design, apart from the beat snap.
