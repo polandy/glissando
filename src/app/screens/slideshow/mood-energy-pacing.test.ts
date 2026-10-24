@@ -3,7 +3,7 @@ import { levelMs, syntheticLoudness } from "../../../compose/energy/testing/synt
 import { NO_SONG_BEATS } from "../../../compose/playlist";
 import { NO_SONG_LOUDNESS } from "../../../compose/song-loudness";
 import type { StoredPicture, StoredSlideshow } from "../../../library/stored-slideshow";
-import { moodEnergyPacing } from "./mood-energy-pacing";
+import { moodEnergyPacing, moodEnergyStripData } from "./mood-energy-pacing";
 
 const QUIET_LUFS = -30;
 const LOUD_LUFS = -12;
@@ -85,5 +85,47 @@ describe("moodEnergyPacing", () => {
     const result = moodEnergyPacing(stored, "lively", NO_SONG_BEATS, NO_SONG_LOUDNESS);
 
     expect(result).toEqual({ minMs: 3000, maxMs: 3000, firstLiftUnitIndex: undefined });
+  });
+});
+
+describe("moodEnergyStripData", () => {
+  it("marks a tick at every picture change and the preview's own window, without music to pace by", () => {
+    const stored = storedSlideshow();
+
+    const result = moodEnergyStripData(stored, undefined, NO_SONG_BEATS, NO_SONG_LOUDNESS);
+
+    expect(result.totalMs).toBe(30_000);
+    expect(result.tickMs).toEqual([5000, 10_000, 15_000, 20_000, 25_000]);
+    expect(result.liftsMs).toEqual([]);
+    expect(result.previewStartMs).toBe(0);
+    expect(result.previewEndMs).toBe(20_000);
+  });
+
+  it("reads the energy curve itself, quieter near a quiet stretch than near a loud one", () => {
+    const stored = storedSlideshow({
+      songs: [{ id: "m", fileName: "m.mp3", durationMs: 30_000, mimeType: "audio/mpeg" }],
+    });
+    const loudness = new Map([
+      ["m", syntheticLoudness([...levelMs(QUIET_LUFS, 15_000), ...levelMs(LOUD_LUFS, 15_000)])],
+    ]);
+
+    const result = moodEnergyStripData(stored, undefined, NO_SONG_BEATS, loudness);
+
+    expect(result.energyAt(1000)).toBeLessThan(result.energyAt(29_000));
+  });
+
+  it("shades the preview's window around the first lift found, not the first pictures", () => {
+    const stored = storedSlideshow({
+      songs: [{ id: "m", fileName: "m.mp3", durationMs: 30_000, mimeType: "audio/mpeg" }],
+    });
+    const loudness = new Map([
+      ["m", syntheticLoudness([...levelMs(QUIET_LUFS, 15_000), ...levelMs(LOUD_LUFS, 15_000)])],
+    ]);
+
+    const result = moodEnergyStripData(stored, undefined, NO_SONG_BEATS, loudness);
+
+    expect(result.liftsMs).toHaveLength(1);
+    expect(result.previewEndMs).toBeGreaterThan(result.previewStartMs);
+    expect(result.previewEndMs).toBeLessThanOrEqual(result.totalMs);
   });
 });
