@@ -84,7 +84,6 @@
     (id) => store.thumbnailBlob(id),
     (error) => onError(error),
   );
-
   const left = new AbortController();
   // The pass, the store and the export ports are fixed for the screen's lifetime.
   // svelte-ignore state_referenced_locally
@@ -141,7 +140,6 @@
     thumbnails.dispose();
     screenStorage.dispose();
   });
-
   // The slideshow and where it lives are fixed for the screen's lifetime.
   // svelte-ignore state_referenced_locally
   const screenStorage = new ScreenStorage({
@@ -182,6 +180,7 @@
     if (current !== null) screenMoodBpm.load(current);
   });
   const moodBpm = $derived(stored === null ? undefined : screenMoodBpm.of(stored));
+  const moodPending = $derived(stored === null ? false : screenMoodBpm.pendingOf(stored));
 </script>
 
 {#if editingPictureId !== null && stored !== null && editor !== null}
@@ -240,6 +239,7 @@
     onLook={(look) => editor?.look.set(look)}
     onResetLook={() => editor?.look.reset()}
     {moodBpm}
+    {moodPending}
     moodPreviewPorts={{ store, stored: mustStored(), musicOutput, decodeClipSound, log }}
     onMood={(mood) => editor?.mood.set(mood)}
     onResetMood={() => editor?.mood.reset()}

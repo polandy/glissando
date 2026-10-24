@@ -71,6 +71,7 @@ function setUp(
   slideshow: SlideshowDetails,
   ports: MoodPreviewPorts = previewPorts(),
   moodBpm: number | undefined = undefined,
+  moodPending = false,
 ) {
   const onMood = vi.fn();
   const onResetMood = vi.fn();
@@ -79,6 +80,7 @@ function setUp(
     slideshow,
     previewPorts: ports,
     moodBpm,
+    moodPending,
     onMood,
     onResetMood,
     onClose,
@@ -158,5 +160,31 @@ describe("MoodSheet", () => {
     const { target } = setUp(details(), ports);
 
     await whenRendered(target, ".stage");
+  });
+
+  it("shows the preview badge with the same tempo as the row, from the one `moodBpm` prop", async () => {
+    const store = new MemoryLibraryStore();
+    await store.putPicture("a", { display: new Blob([]), thumbnail: new Blob([]) });
+    const ports = previewPorts(
+      {
+        pictures: [
+          {
+            id: "a",
+            capturedAt: "2025-07-01T10:00:00Z",
+            width: 100,
+            height: 100,
+            fileName: "a.jpg",
+            colours: { veil: "#404040", accent: "#C0C0C0" },
+          },
+        ],
+      },
+      store,
+    );
+    const { target } = setUp(details({ mood: "calm" }), ports, 105);
+
+    const badge = await whenRendered(target, ".badge", (found) => found.textContent !== "");
+
+    expect(badge.textContent).toBe("♪ 105 BPM · Calm");
+    expect(setText("Picture times")).toBe("~6.9 s · 12 beats");
   });
 });

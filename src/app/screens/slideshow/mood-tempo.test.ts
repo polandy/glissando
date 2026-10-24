@@ -4,7 +4,7 @@ import { DRUMS, NO_CLEAR_BEAT } from "../../../library/testing/beat-pass-fixture
 import type { SongBeats } from "../../../compose/playlist";
 import { EVEN_PICTURE_CHANGES } from "../../../library/own-music";
 import type { StoredMusic } from "../../../library/stored-slideshow";
-import { slideshowMoodBpm } from "./mood-tempo";
+import { slideshowMoodBpm, slideshowMoodTempoPending } from "./mood-tempo";
 
 const IDLE_PASS: BeatPassState = {
   running: false,
@@ -56,5 +56,57 @@ describe("slideshowMoodBpm", () => {
     const bpm = slideshowMoodBpm({ mood: "calm", songs: [song("a")] }, stored, IDLE_PASS);
 
     expect(bpm).toBeUndefined();
+  });
+});
+
+describe("slideshowMoodTempoPending", () => {
+  it("is not pending without a mood, however little is known", () => {
+    const pending = slideshowMoodTempoPending({ songs: [song("a")] }, new Map(), IDLE_PASS);
+
+    expect(pending).toBe(false);
+  });
+
+  it("is not pending once the mood already has its tempo", () => {
+    const stored: SongBeats = new Map([["a", DRUMS]]);
+
+    const pending = slideshowMoodTempoPending(
+      { mood: "calm", songs: [song("a")] },
+      stored,
+      IDLE_PASS,
+    );
+
+    expect(pending).toBe(false);
+  });
+
+  it("is pending while a song that could still give a tempo is still being listened to", () => {
+    const pending = slideshowMoodTempoPending(
+      { mood: "calm", songs: [song("a")] },
+      new Map(),
+      IDLE_PASS,
+    );
+
+    expect(pending).toBe(true);
+  });
+
+  it("is not pending once every song has settled with no clear beat", () => {
+    const stored: SongBeats = new Map([["a", NO_CLEAR_BEAT]]);
+
+    const pending = slideshowMoodTempoPending(
+      { mood: "calm", songs: [song("a")] },
+      stored,
+      IDLE_PASS,
+    );
+
+    expect(pending).toBe(false);
+  });
+
+  it("is not pending while only a song opted into even picture changes is still listening", () => {
+    const pending = slideshowMoodTempoPending(
+      { mood: "calm", songs: [song("a", true)] },
+      new Map(),
+      IDLE_PASS,
+    );
+
+    expect(pending).toBe(false);
   });
 });

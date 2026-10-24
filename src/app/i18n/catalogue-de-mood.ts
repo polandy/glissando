@@ -29,6 +29,7 @@ export const deMood = {
   "mood.backToCustom": "Zurück auf Eigene",
   "mood.alreadyCustom": "Die Diashow steht schon auf Eigene",
   "mood.previewBpm": "♪ {bpm} BPM",
+  "mood.previewPending": "♪ …",
   "mood.previewNoBeat": "♪ kein Beat gefunden",
   "mood.sound": "Ton",
 } as const satisfies Record<string, Message>;

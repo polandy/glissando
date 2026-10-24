@@ -1,5 +1,6 @@
 import { moodTempo } from "../../../compose/mood-settings";
 import type { SongBeats } from "../../../compose/playlist";
+import { EVEN_PICTURE_CHANGES } from "../../../library/own-music";
 import type { BeatPassState } from "../../../library/beat-pass";
 import type { StoredMusic, StoredSlideshow } from "../../../library/stored-slideshow";
 import { beatsStatus, composedBeats } from "../../beats/music-beats-known";
@@ -24,4 +25,27 @@ export function slideshowMoodBpm(
     ]),
   );
   return moodTempo(stored, beats);
+}
+
+/**
+ * Whether the mood's tempo (`slideshowMoodBpm`) is still undecided: no tempo found yet, but a song
+ * that could still give one is not opted into even picture changes and has not finished being
+ * listened to. The preview badge shows a neutral state meanwhile, never "no beat found" (MOOD.md).
+ */
+export function slideshowMoodTempoPending(
+  stored: Pick<StoredSlideshow, "mood" | "songs">,
+  storedBeats: SongBeats,
+  pass: BeatPassState,
+): boolean {
+  if (stored.mood === undefined) {
+    return false;
+  }
+  if (slideshowMoodBpm(stored, storedBeats, pass) !== undefined) {
+    return false;
+  }
+  return stored.songs.some(
+    (song: StoredMusic) =>
+      song.pictureChanges !== EVEN_PICTURE_CHANGES &&
+      beatsStatus(song.id, storedBeats.get(song.id), pass).kind === "listening",
+  );
 }

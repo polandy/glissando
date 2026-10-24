@@ -1,6 +1,5 @@
 <script lang="ts">
   import { onDestroy, onMount } from "svelte";
-  import { moodTempo } from "../../../compose/mood-settings";
   import type { SongBeats } from "../../../compose/playlist";
   import type { SongLoudness } from "../../../compose/song-loudness";
   import type { PictureFocus } from "../../../library/picture-focus";
@@ -24,9 +23,21 @@
   /**
    * The Mood sheet's live preview (MOOD.md): the real player on the slideshow's first four slide
    * units composed under `mood`, looping, silent until the "Sound" toggle is on. The caller
-   * leaves this out while the slideshow has no pictures.
+   * leaves this out while the slideshow has no pictures. `moodBpm` and `moodPending` are the same
+   * ones the sheet's rows show (`slideshowMoodBpm`/`slideshowMoodTempoPending`), so the badge never
+   * disagrees with them, and while they are still pending it never claims "no beat found".
    */
-  let { ports, mood }: { ports: MoodPreviewPorts; mood: SlideshowMood | undefined } = $props();
+  let {
+    ports,
+    mood,
+    moodBpm,
+    moodPending,
+  }: {
+    ports: MoodPreviewPorts;
+    mood: SlideshowMood | undefined;
+    moodBpm: number | undefined;
+    moodPending: boolean;
+  } = $props();
 
   const { t, language } = getTranslator();
 
@@ -97,11 +108,12 @@
   const previewSlideshow = $derived(
     composed === null ? null : soundOn ? composed : mutedPreviewSlideshow(composed),
   );
-  const moodBpm = $derived(loaded === null ? undefined : moodTempo(ports.stored, loaded.beats));
   const bpmText = $derived(
-    moodBpm === undefined
-      ? t("mood.previewNoBeat")
-      : t("mood.previewBpm", { bpm: Math.round(moodBpm) }),
+    moodBpm !== undefined
+      ? t("mood.previewBpm", { bpm: Math.round(moodBpm) })
+      : moodPending
+        ? t("mood.previewPending")
+        : t("mood.previewNoBeat"),
   );
 </script>
 
@@ -161,8 +173,8 @@
     padding: 0;
     border: 0;
     border-radius: 50%;
-    background: var(--gl-player-glass);
-    color: inherit;
+    background: var(--gl-photo-badge);
+    color: var(--gl-on-photo);
     cursor: pointer;
   }
 </style>

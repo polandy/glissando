@@ -4,7 +4,7 @@ import type { BeatPass, BeatPassState } from "../../library/beat-pass";
 import type { LibraryStore } from "../../library/library-store";
 import type { StoredSlideshow } from "../../library/stored-slideshow";
 import { storedSongBeats } from "../beats/music-beats-known";
-import { slideshowMoodBpm } from "../screens/slideshow/mood-tempo";
+import { slideshowMoodBpm, slideshowMoodTempoPending } from "../screens/slideshow/mood-tempo";
 
 /**
  * The slideshow's tempo under its mood (ADR-0045): each song's beats as already stored, reread
@@ -32,6 +32,11 @@ export class ScreenMoodBpm {
   /** Read inside a `$derived`, which keeps it until the stored beats or the pass changes. */
   of(stored: StoredSlideshow): number | undefined {
     return slideshowMoodBpm(stored, this.#storedBeats, this.#passState);
+  }
+
+  /** Read inside a `$derived`: whether `of(stored)` may still change once analysis catches up. */
+  pendingOf(stored: StoredSlideshow): boolean {
+    return slideshowMoodTempoPending(stored, this.#storedBeats, this.#passState);
   }
 
   /** Rereads the slideshow's songs' beats; the caller decides when they have changed. */

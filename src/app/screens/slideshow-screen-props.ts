@@ -57,6 +57,8 @@ export interface SlideshowScreenProps {
   /** The slideshow's tempo under its mood, for the info panel and the Mood sheet's "What it
    * sets" (ADR-0045); undefined without a mood, or without a clear beat to pace to. */
   moodBpm: number | undefined;
+  /** Whether `moodBpm` may still change once analysis catches up; never "no beat found" then. */
+  moodPending: boolean;
   /** The Mood sheet's live preview data ports; left out while it has no pictures. */
   moodPreviewPorts: MoodPreviewPorts;
   /** A mood tile was tapped: stores at once. */

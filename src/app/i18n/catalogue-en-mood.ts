@@ -29,6 +29,7 @@ export const enMood: Pick<Catalogue, keyof typeof deMood> = {
   "mood.backToCustom": "Back to Custom",
   "mood.alreadyCustom": "The slideshow is already Custom",
   "mood.previewBpm": "♪ {bpm} BPM",
+  "mood.previewPending": "♪ …",
   "mood.previewNoBeat": "♪ no beat found",
   "mood.sound": "Sound",
 };

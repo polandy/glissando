@@ -32,6 +32,7 @@
     onResetLook,
     moodPreviewPorts,
     moodBpm,
+    moodPending,
     onMood,
     onResetMood,
     onPortraitPictures,
@@ -64,6 +65,8 @@
     moodPreviewPorts: MoodPreviewPorts;
     /** The slideshow's tempo under its mood (ADR-0045); undefined without one. */
     moodBpm: number | undefined;
+    /** Whether `moodBpm` may still change once analysis catches up; never "no beat found" then. */
+    moodPending: boolean;
     /** A mood tile was tapped: stores at once. */
     onMood: (mood: SlideshowMood | undefined) => void;
     /** "Back to Custom" in the Mood sheet. */
@@ -206,6 +209,7 @@
     {slideshow}
     previewPorts={moodPreviewPorts}
     {moodBpm}
+    {moodPending}
     {onMood}
     {onResetMood}
     onClose={closeMood}

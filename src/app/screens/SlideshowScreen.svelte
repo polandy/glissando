@@ -40,6 +40,7 @@
     onLook,
     onResetLook,
     moodBpm,
+    moodPending,
     moodPreviewPorts,
     onMood,
     onResetMood,
@@ -214,6 +215,7 @@
   {onResetLook}
   {moodPreviewPorts}
   {moodBpm}
+  {moodPending}
   {onMood}
   {onResetMood}
   {onPortraitPictures}

@@ -28,6 +28,7 @@
     slideshow,
     previewPorts,
     moodBpm,
+    moodPending,
     onMood,
     onResetMood,
     onClose,
@@ -35,8 +36,10 @@
     slideshow: SlideshowDetails;
     /** The live preview's data ports (`MoodPreview.svelte`); left out while it has no pictures. */
     previewPorts: MoodPreviewPorts;
-    /** The slideshow's tempo, for "What it sets"; `undefined` without a beat. */
+    /** The slideshow's tempo, for "What it sets" and the preview badge; `undefined` without a beat. */
     moodBpm: number | undefined;
+    /** Whether `moodBpm` may still change once analysis catches up; never "no beat found" then. */
+    moodPending: boolean;
     onMood: (mood: SlideshowMood | undefined) => void;
     /** "Back to Custom"; offered while a mood is chosen. */
     onResetMood: () => void;
@@ -96,7 +99,7 @@
       own={slideshow.mood !== undefined}
     />
     {#if hasPictures}
-      <MoodPreview ports={previewPorts} mood={slideshow.mood} />
+      <MoodPreview ports={previewPorts} mood={slideshow.mood} {moodBpm} {moodPending} />
     {/if}
     <div class="tiles" role="radiogroup" aria-labelledby="mood-title">
       {#each MOOD_CHOICES as choice, index (choice ?? "custom")}

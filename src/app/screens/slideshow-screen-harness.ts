@@ -132,6 +132,7 @@ export function mountScreen(
     english = false,
     chapterEditor = null as ChapterSettingsEditor | null,
     moodBpm = undefined as number | undefined,
+    moodPending = false,
     moodPreviewPorts = moodPreviewPortsFixture(),
   } = {},
 ) {
@@ -210,6 +211,7 @@ export function mountScreen(
       props.slideshow = { ...props.slideshow, look: "none" };
     },
     moodBpm,
+    moodPending,
     moodPreviewPorts,
     onMood: (mood: SlideshowMood | undefined) => {
       calls.moods.push(mood);
