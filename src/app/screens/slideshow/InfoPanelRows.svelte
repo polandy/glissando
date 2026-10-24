@@ -4,6 +4,7 @@
   import { getTranslator } from "../../i18n/context";
   import type { SlideshowDetails } from "../view-models";
   import { infoPanelMoodValues } from "./info-panel-mood-values";
+  import type { MoodEnergyPacing } from "./mood-energy-pacing";
   import { moodName } from "./mood-text";
   import PanelActionRow from "./PanelActionRow.svelte";
   import PanelFactRow from "./PanelFactRow.svelte";
@@ -15,6 +16,7 @@
     onEditTransitions,
     onEditLook,
     moodBpm,
+    moodEnergyPacing,
     onEditMood,
     onEditPortraitPictures,
     onEditChapters,
@@ -27,6 +29,8 @@
     onEditLook: () => void;
     /** The slideshow's tempo under its mood (ADR-0045); undefined without one. */
     moodBpm: number | undefined;
+    /** The "Picture times" range under the energy pacing (ADR-0046); null without one. */
+    moodEnergyPacing: MoodEnergyPacing | null;
     /** Opens the Mood sheet. */
     onEditMood: () => void;
     /** Opens the sheet of the slideshow's portrait pictures setting. */
@@ -121,7 +125,7 @@
   // A mood paces the transition, picture times and Ken Burns rows (ADR-0045); the single
   // settings underneath are unchanged.
   const moodValues = $derived(
-    infoPanelMoodValues(translator, slideshow, moodBpm, transitionSummary),
+    infoPanelMoodValues(translator, slideshow, moodBpm, transitionSummary, moodEnergyPacing),
   );
   const lookSummary = $derived(
     slideshow.look === DEFAULT_SLIDESHOW_LOOK ? t("slideshow.lookDefault") : "",
@@ -179,6 +183,7 @@
     label={t("slideshow.pictureTimes")}
     value={moodValues.pictureTimesValue}
     byMood={slideshow.mood !== undefined}
+    note={moodValues.pictureTimesNote}
   />
   <PanelFactRow
     label={t("slideshow.kenBurns")}

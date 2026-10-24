@@ -6,6 +6,7 @@
   import type { SlideshowEditor } from "../editing/slideshow-editor";
   import { createScreenEditor } from "./screen-editor";
   import { getTranslator } from "../i18n/context";
+  import { loadMusicAnalysis, ScreenEnergyPacing } from "./screen-energy-pacing.svelte";
   import { ScreenMoodBpm } from "./screen-mood-bpm.svelte";
   import { ScreenThumbnails } from "./screen-thumbnails.svelte";
   import SlideshowScreen from "../screens/SlideshowScreen.svelte";
@@ -17,6 +18,7 @@
   import ServerCopyConfirm from "./ServerCopyConfirm.svelte";
   import { loadSlideshowScreen } from "./route-loading";
   import { deleteShownSlideshow } from "./slideshow-exits";
+  import { must } from "./must";
   import { MOUSE_POINTER_QUERY } from "../screens/slideshow/pointer";
   import {
     NO_SELECTION,
@@ -102,7 +104,8 @@
   });
   // svelte-ignore state_referenced_locally
   const screenMoodBpm = new ScreenMoodBpm(beatPass, store, log);
-
+  // svelte-ignore state_referenced_locally
+  const screenEnergyPacing = new ScreenEnergyPacing(store, log);
   onMount(() => {
     const stops = [screenFocus.follow(), screenMoodBpm.follow()];
     loadSlideshowScreen(store, slideshowId, thumbnails.urls, translator.language, left.signal).then(
@@ -154,12 +157,6 @@
   // svelte-ignore state_referenced_locally
   const newPictureIds: ReadonlySet<string> = new Set(addedPictureIds);
 
-  /** The card sheet and the mood preview only reach for `editor`/`stored` once the screen shows. */
-  function must<Value>(value: Value | null, what: string): Value {
-    if (value === null) throw new Error(`${what} is not ready yet`);
-    return value;
-  }
-
   const details = $derived(
     stored === null ? null : thumbnails.details(stored, translator.language),
   );
@@ -170,10 +167,11 @@
   $effect(() => {
     void songIds;
     const current = untrack(() => stored);
-    if (current !== null) screenMoodBpm.load(current);
+    if (current !== null) loadMusicAnalysis(current, screenMoodBpm, screenEnergyPacing);
   });
   const moodBpm = $derived(stored === null ? undefined : screenMoodBpm.of(stored));
   const moodPending = $derived(stored === null ? false : screenMoodBpm.pendingOf(stored));
+  const moodEnergyPacing = $derived(stored === null ? null : screenEnergyPacing.of(stored));
 </script>
 
 {#if editingPictureId !== null && stored !== null && editor !== null}
@@ -234,7 +232,14 @@
     onResetLook={() => editor?.look.reset()}
     {moodBpm}
     {moodPending}
-    moodPreviewPorts={{ store, stored: must(stored, "the slideshow"), musicOutput, decodeClipSound, log }}
+    {moodEnergyPacing}
+    moodPreviewPorts={{
+      store,
+      stored: must(stored, "the slideshow"),
+      musicOutput,
+      decodeClipSound,
+      log,
+    }}
     onMood={(mood) => editor?.mood.set(mood)}
     onResetMood={() => editor?.mood.reset()}
     onEnergyPacing={(on) => editor?.setEnergyPacing(on)}

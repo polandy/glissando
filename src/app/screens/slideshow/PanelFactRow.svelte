@@ -3,9 +3,15 @@
 
   /**
    * A plain fact row of the info panel: a pill value ("Automatic" or a mood's own), captioned
-   * "by mood" underneath once a mood sets it (ADR-0045) instead of the single setting.
+   * "by mood" underneath once a mood sets it (ADR-0045) instead of the single setting, or `note`
+   * underneath instead (the energy pacing's "follows the energy", ADR-0046).
    */
-  let { label, value, byMood }: { label: string; value: string; byMood: boolean } = $props();
+  let {
+    label,
+    value,
+    byMood,
+    note,
+  }: { label: string; value: string; byMood: boolean; note?: string | undefined } = $props();
 
   const { t } = getTranslator();
 </script>
@@ -16,6 +22,8 @@
     <span class="pill"><i></i>{value}</span>
     {#if byMood}
       <small>{t("mood.byMood")}</small>
+    {:else if note !== undefined}
+      <small>{note}</small>
     {/if}
   </dd>
 </div>

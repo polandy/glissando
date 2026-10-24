@@ -17,6 +17,7 @@ import type { ServerSlideshowRows } from "../server-library/server-slideshow-ses
 import { NO_FOCUS_KNOWN, type PicturesFocus } from "../focus/pictures-focus";
 import type { SlideshowSearch } from "../../library/focus-pass";
 import type { ChapterSettingsEditor } from "../editing/chapter-settings-editor";
+import type { MoodEnergyPacing } from "./slideshow/mood-energy-pacing";
 import { moodPreviewPortsFixture } from "./slideshow/mood-preview-ports-fixture";
 import { withClosingCard, withMood, withOpeningCard } from "./slideshow-screen-harness-cards";
 
@@ -108,6 +109,7 @@ export function mountScreen(
     chapterEditor = null as ChapterSettingsEditor | null,
     moodBpm = undefined as number | undefined,
     moodPending = false,
+    moodEnergyPacing = null as MoodEnergyPacing | null,
     moodPreviewPorts = moodPreviewPortsFixture(),
   } = {},
 ) {
@@ -188,6 +190,7 @@ export function mountScreen(
     },
     moodBpm,
     moodPending,
+    moodEnergyPacing,
     moodPreviewPorts,
     onMood: (mood: SlideshowMood | undefined) => {
       calls.moods.push(mood);

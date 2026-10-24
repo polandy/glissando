@@ -32,6 +32,7 @@ const factRow = (dt: string) =>
     (row) => text(row.querySelector("dt")) === dt,
   ) ?? null;
 const factRowSummary = (dt: string) => text(factRow(dt)?.querySelector("dd small") ?? null);
+const factRowValue = (dt: string) => text(factRow(dt)?.querySelector(".pill") ?? null);
 
 function openSheet(): void {
   moodRow().click();
@@ -58,6 +59,24 @@ describe("SlideshowScreen, the mood row", () => {
 
     expect(factRowSummary("Bildzeiten")).toBe("nach Stimmung");
     expect(factRowSummary("Ken Burns")).toBe("nach Stimmung");
+  });
+
+  it("shows the energy pacing's found range under a mood, instead of the mood's own text", () => {
+    mountScreen(details(["a"], { mood: "calm" }), {
+      moodBpm: 80,
+      moodEnergyPacing: { minMs: 5000, maxMs: 10_000, firstLiftUnitIndex: undefined },
+    });
+
+    expect(factRowValue("Bildzeiten")).toBe("5 s – 10 s · nach Energie");
+  });
+
+  it("notes 'folgt der Energie' under Custom once the energy pacing is on", () => {
+    mountScreen(details(["a"], { energyPacing: true }), {
+      moodEnergyPacing: { minMs: 5000, maxMs: 10_000, firstLiftUnitIndex: undefined },
+    });
+
+    expect(factRowValue("Bildzeiten")).toBe("automatisch");
+    expect(factRowSummary("Bildzeiten")).toBe("folgt der Energie");
   });
 });
 
