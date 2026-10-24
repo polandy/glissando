@@ -14,7 +14,7 @@ import {
   type PlacedSong,
   type SongBeats,
 } from "../../compose";
-import { moodTempo } from "../../compose/mood-settings";
+import { moodSettings, moodTempo } from "../../compose/mood-settings";
 import { SEQUENCE_BETWEEN_SONGS } from "../../library/own-music";
 import { songIndex } from "../../library/slideshow-edits-songs";
 import type { SlideshowMood } from "../../library/slideshow-mood";
@@ -208,6 +208,12 @@ export function musicEditorView(
   const joinsPrevious = index > 0 && stored.betweenSongs !== SEQUENCE_BETWEEN_SONGS;
   const joinsNext =
     index < stored.songs.length - 1 && stored.betweenSongs !== SEQUENCE_BETWEEN_SONGS;
+  const moodBeatsPerMinute =
+    stored.mood === undefined ? undefined : moodTempo(stored, songBeats(beats));
+  const moodSecondsPerPicture =
+    stored.mood === undefined
+      ? undefined
+      : moodSettings(stored.mood, moodBeatsPerMinute).secondsPerPicture;
   return {
     songId,
     songNumber: index + 1,
@@ -231,7 +237,7 @@ export function musicEditorView(
     moodPictureLength:
       stored.mood === undefined
         ? undefined
-        : { mood: stored.mood, beatsPerMinute: moodTempo(stored, songBeats(beats)) },
+        : { mood: stored.mood, beatsPerMinute: moodBeatsPerMinute },
     pictureChanges,
     fadeIn: {
       ms: fadeInMs,
@@ -256,7 +262,13 @@ export function musicEditorView(
     volume,
     volumeListen,
     timing: { startMs, endMs: heardEndMs, fadeInMs: timing.fadeInMs, fadeOutMs: timing.fadeOutMs },
-    note: timingNote(stored, durationsMs, playlistLengthMs, beatsMs !== undefined),
+    note: timingNote(
+      stored,
+      durationsMs,
+      playlistLengthMs,
+      beatsMs !== undefined,
+      moodSecondsPerPicture,
+    ),
   };
 }
 
