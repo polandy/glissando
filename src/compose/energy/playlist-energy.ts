@@ -1,11 +1,16 @@
 import { NO_BEATS } from "../../beats";
 import { EVEN_PICTURE_CHANGES } from "../../library/own-music";
-import { excerptLoudnessLufs, LOUDNESS_HOP_MS, type MusicLoudness } from "../../loudness";
+import { LOUDNESS_HOP_MS, type MusicLoudness } from "../../loudness";
 import { excerptBeatsMs } from "../excerpt-beats";
 import { musicExcerpt, musicExcerptMs } from "../music-excerpt";
 import { placeSongs, type Playlist, type SongBeats } from "../playlist";
 import type { SongLoudness } from "../song-loudness";
-import { NEUTRAL_ENERGY, songEnergyAt } from "./energy-curve";
+import {
+  NEUTRAL_ENERGY,
+  songEnergyAt,
+  songEnergyRange,
+  type SongEnergyRange,
+} from "./energy-curve";
 import { songLiftsMs } from "./lifts";
 
 /** How loud the playlist sounds moment to moment, and where its lifts are (ADR-0046). */
@@ -28,14 +33,14 @@ type SongSpan =
       readonly excerptStartMs: number;
       readonly excerptEndMs: number;
       readonly loudness: MusicLoudness;
-      readonly integratedLufs: number;
+      readonly range: SongEnergyRange;
     };
 
 /**
  * The playlist's energy and lifts, placed like `playlistBeatsMs` (`placeSongs`): inside a
  * crossfade's overlap, the incoming song's span wins. A song that is `pictureChanges: "even"`,
- * was not measured, or has no usable integrated loudness (`excerptLoudnessLufs` gives `null`)
- * reads as `NEUTRAL_ENERGY` and contributes no lifts, over the whole span it would otherwise own.
+ * was not measured, or is flat (`songEnergyRange` gives `null`) reads as `NEUTRAL_ENERGY` and
+ * contributes no lifts, over the whole span it would otherwise own.
  */
 export function playlistEnergy(
   playlist: Playlist,
@@ -47,14 +52,14 @@ export function playlistEnergy(
     const excerpt = musicExcerpt(song);
     const territoryEndMs = placed[index + 1]?.atMs ?? atMs + musicExcerptMs(song);
     const songLoudness = loudness.get(song.id);
-    const integratedLufs =
+    const range =
       songLoudness === undefined
         ? null
-        : excerptLoudnessLufs(songLoudness, excerpt.startMs, excerpt.endMs);
+        : songEnergyRange(songLoudness, excerpt.startMs, excerpt.endMs);
     if (
       song.pictureChanges === EVEN_PICTURE_CHANGES ||
       songLoudness === undefined ||
-      integratedLufs === null
+      range === null
     ) {
       return { atMs, territoryEndMs, usable: false };
     }
@@ -65,7 +70,7 @@ export function playlistEnergy(
       excerptStartMs: excerpt.startMs,
       excerptEndMs: excerpt.endMs,
       loudness: songLoudness,
-      integratedLufs,
+      range,
     };
   });
 
@@ -78,7 +83,7 @@ export function playlistEnergy(
       const songBeatsMs = excerptBeatsMs(song, beats.get(song.id) ?? NO_BEATS);
       return songLiftsMs(
         span.loudness,
-        span.integratedLufs,
+        span.range.liftLevelLufs,
         span.excerptStartMs,
         span.excerptEndMs,
         songBeatsMs,
@@ -94,13 +99,7 @@ export function playlistEnergy(
       return NEUTRAL_ENERGY;
     }
     const trackMs = span.excerptStartMs + (ms - span.atMs);
-    return songEnergyAt(
-      span.loudness,
-      span.integratedLufs,
-      trackMs,
-      span.excerptStartMs,
-      span.excerptEndMs,
-    );
+    return songEnergyAt(span.loudness, span.range, trackMs, span.excerptStartMs, span.excerptEndMs);
   }
 
   function meanEnergy(fromMs: number, toMs: number): number {

@@ -65,7 +65,9 @@ describe("moodEnergyPacing", () => {
 
     const result = moodEnergyPacing(stored, undefined, NO_SONG_BEATS, loudness);
 
-    expect(result.firstLiftUnitIndex).toBe(2);
+    // With ENERGY_SPREAD now 2, the quiet half stretches enough that a single slide's cumulative
+    // duration already reaches the lift at 15 s.
+    expect(result.firstLiftUnitIndex).toBe(1);
   });
 
   it("gives no lift index while none was found", () => {

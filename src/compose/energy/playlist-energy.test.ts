@@ -75,15 +75,28 @@ describe("playlistEnergy", () => {
     expect(energy.liftsMs).toEqual([]);
   });
 
-  it("reads neutral energy for a song whose excerpt has no usable integrated loudness", () => {
+  it("reads neutral energy for a song whose excerpt is silent throughout", () => {
     const a = song("a", 20_000);
     const playlist: Playlist = { songs: [a] };
-    // Below the absolute gate throughout, so excerptLoudnessLufs gives null.
+    // Below the absolute gate throughout, so every sample floors at the same LUFS: flat.
     const loudness = loudnessOf(["a", levelMs(-80, 20_000)]);
 
     const energy = playlistEnergy(playlist, loudness, NO_SONG_BEATS);
 
     expect(energy.energyAt(10_000)).toBe(NEUTRAL_ENERGY);
+    expect(energy.liftsMs).toEqual([]);
+  });
+
+  it("reads neutral energy and no lifts for a song that is flat, with only a fraction of an LU of swing", () => {
+    const a = song("a", 20_000);
+    const playlist: Playlist = { songs: [a] };
+    // Under ENERGY_MIN_RANGE_LU (2): no audible dynamics, unlike the few-LU-swing case covered
+    // by songEnergyRange's own tests.
+    const loudness = loudnessOf(["a", [...levelMs(-20.5, 10_000), ...levelMs(-19.8, 10_000)]]);
+
+    const energy = playlistEnergy(playlist, loudness, NO_SONG_BEATS);
+
+    expect(energy.energyAt(18_000)).toBe(NEUTRAL_ENERGY);
     expect(energy.liftsMs).toEqual([]);
   });
 

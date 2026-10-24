@@ -3,7 +3,7 @@ import { ABSOLUTE_GATE_LUFS, LOUDNESS_HOP_MS, lufsOf, type MusicLoudness } from 
 /** How far back and forward a lift's before/after loudness is measured (ADR-0046, "Lifts"). */
 const LIFT_WINDOW_MS = 4000;
 /** The rise from before to after a lift must be at least this many LU. */
-const LIFT_RISE_LU = 6;
+const LIFT_RISE_LU = 4;
 /** Two lifts of the same song are at least this far apart. */
 const LIFT_MIN_GAP_MS = 20_000;
 
@@ -16,20 +16,20 @@ interface RiseAt {
 /**
  * Where the song's excerpt jumps into a loud passage (ADR-0046, "Lifts"), in excerpt-relative ms,
  * ascending: `t` where the loudness of the next `LIFT_WINDOW_MS` is at least `LIFT_RISE_LU` above
- * the previous `LIFT_WINDOW_MS`, at or above the excerpt's own `integratedLufs`, and a local
- * maximum of the rise. Each lift then moves to the nearest of `beatsMs` (also excerpt-relative),
- * when given.
+ * the previous `LIFT_WINDOW_MS`, at or above `liftLevelLufs` (the excerpt's `LIFT_LEVEL_PERCENTILE`,
+ * see `songEnergyRange`), and a local maximum of the rise. Each lift then moves to the nearest of
+ * `beatsMs` (also excerpt-relative), when given.
  */
 export function songLiftsMs(
   loudness: MusicLoudness,
-  integratedLufs: number,
+  liftLevelLufs: number,
   excerptStartMs: number,
   excerptEndMs: number,
   beatsMs?: readonly number[],
 ): number[] {
   const rises = risesOver(loudness, excerptStartMs, excerptEndMs);
   const candidates = localMaxima(rises).filter(
-    (rise) => rise.riseLu >= LIFT_RISE_LU && rise.afterLufs >= integratedLufs,
+    (rise) => rise.riseLu >= LIFT_RISE_LU && rise.afterLufs >= liftLevelLufs,
   );
   const acceptedMs = strongestFirst(candidates)
     .filter((candidate, _, accepted) => farEnoughFromEarlierAccepted(candidate, accepted))
