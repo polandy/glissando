@@ -179,6 +179,11 @@ export interface StoredSlideshow {
    */
   readonly mood?: SlideshowMood;
   /**
+   * The automatic picture times follow the music's energy, with a cut at each lift; absent: off
+   * (ADR-0046, `dev-docs/app/slideshow-editing/ENERGY_PACING.md`).
+   */
+  readonly energyPacing?: true;
+  /**
    * How portrait pictures lay out (`checkPortraitPictures`); absent: automatic, pairs and a
    * blurred fill for a whole picture that would otherwise lose too much to the crop (ADR-0028).
    */
