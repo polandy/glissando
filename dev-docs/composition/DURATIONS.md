@@ -17,6 +17,13 @@ every picture has an own duration.
 Under a mood ([MOOD](../app/slideshow-editing/MOOD.md), ADR-0045), every slide lasts its
 seconds per picture instead, and the music is never filled.
 
+## By the music's energy
+
+With `energyPacing` set ([ENERGY_PACING](../app/slideshow-editing/ENERGY_PACING.md), ADR-0046),
+the automatic slides' time is shared out again by the music's energy before the beat snap —
+longer where it is quiet, shorter where it is loud, same total — and a boundary moves onto each
+lift, where the slide ends with a cut.
+
 ## On the beat
 
 ADR-0021. With the playlist's beats (`playlistBeatsMs`: each song's beats from `src/beats/`

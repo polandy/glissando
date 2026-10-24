@@ -13,3 +13,4 @@
 | [Title slide and closing slide](slideshow-editing/TITLE_SLIDES.md)                                  | The two card tiles, the card sheet, defaults, what is stored                     |
 | [Look](slideshow-editing/LOOK.md)                                                                   | The look row and sheet: preview, tiles, back to None                             |
 | [Mood](slideshow-editing/MOOD.md)                                                                   | Calm, Lively or Custom: row, sheet with live preview, leaving by a single change |
+| [Energy pacing](slideshow-editing/ENERGY_PACING.md)                                                 | Following the music's energy: switch, curve, lifts, the cut at a drop           |

@@ -25,6 +25,11 @@ fast song pace the same mood differently. **Custom**, the default, keeps your ow
 picture with its own duration, transition or motion keeps it under any mood, and changing a single
 setting while a mood is on turns it into Custom with the mood's values to start from.
 
+Turn on **Follow the music's energy** in the Mood sheet, under any mood or Custom, and the
+pictures stay longer where the music is quiet and change quicker where it is loud; at a drop or
+chorus the next picture cuts in on the beat. The slideshow stays as long as before, and pictures
+with their own duration keep it.
+
 Open the slideshow's Details and give it a Look — Warm, Cool, Vivid, Film, Black & white or
 Faded — if you want one. It colours every picture and video, in the exported video and web page
 too; the title and closing slides and the captions stay as they are.
