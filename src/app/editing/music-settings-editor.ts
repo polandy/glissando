@@ -16,6 +16,7 @@ import {
 } from "../../library/slideshow-edits-music";
 import { setPictureLength, setSecondsPerPicture } from "../../library/slideshow-edits-timing";
 import type { StoredMusic, StoredSlideshow } from "../../library/stored-slideshow";
+import { offerMoodLeftUndo } from "./mood-left-undo";
 import type { ResetUndo } from "./reset-undo";
 import type { SongRemovalUndo } from "./song-removal-undo";
 
@@ -115,7 +116,13 @@ export class MusicSettingsEditor {
   setPictureLength(pictureLength: PictureLength | undefined): void {
     const before = this.#current();
     this.#apply(setPictureLength(before, pictureLength));
-    this.#offerMoodLeftUndo(before);
+    offerMoodLeftUndo(
+      this.#reset,
+      before,
+      this.#current(),
+      this.#ports.moodNowCustomText,
+      this.#apply,
+    );
   }
 
   /**
@@ -126,15 +133,12 @@ export class MusicSettingsEditor {
   setSecondsPerPicture(seconds: number): void {
     const before = this.#current();
     this.#apply(setSecondsPerPicture(before, seconds));
-    this.#offerMoodLeftUndo(before);
-  }
-
-  /** Offers the "Mood is now Custom" undo when `before`'s mood just left by this edit. */
-  #offerMoodLeftUndo(before: StoredSlideshow): void {
-    if (before.mood !== undefined && this.#current().mood === undefined) {
-      this.#reset.offer(before.id, "slideshowMood", this.#ports.moodNowCustomText(), () =>
-        this.#apply(before),
-      );
-    }
+    offerMoodLeftUndo(
+      this.#reset,
+      before,
+      this.#current(),
+      this.#ports.moodNowCustomText,
+      this.#apply,
+    );
   }
 }

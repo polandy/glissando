@@ -11,6 +11,7 @@ import {
   setSlideshowTransition,
 } from "../../library/slideshow-edits";
 import type { StoredSlideshow } from "../../library/stored-slideshow";
+import { offerMoodLeftUndo } from "./mood-left-undo";
 import type { ResetUndo } from "./reset-undo";
 
 /** What `PictureSettingsEditor` needs from the screen to word its undo toasts. */
@@ -116,7 +117,13 @@ export class PictureSettingsEditor {
     this.#reset.supersede(this.#current().id, "slideshowTransition");
     const before = this.#current();
     this.#apply(setSlideshowTransition(before, transition));
-    this.#offerMoodLeftUndo(before);
+    offerMoodLeftUndo(
+      this.#reset,
+      before,
+      this.#current(),
+      this.#ports.moodNowCustomText,
+      this.#apply,
+    );
   }
 
   /** Returns the default to crossfade without asking; the toast's undo brings it back. */
@@ -167,15 +174,6 @@ export class PictureSettingsEditor {
       this.#ports.focusOf(pictureId),
     );
     this.setKenBurns(pictureId, { from: to, to: from });
-  }
-
-  /** Offers the "Mood is now Custom" undo when `before`'s mood just left by this edit. */
-  #offerMoodLeftUndo(before: StoredSlideshow): void {
-    if (before.mood !== undefined && this.#current().mood === undefined) {
-      this.#reset.offer(before.id, "slideshowMood", this.#ports.moodNowCustomText(), () =>
-        this.#apply(before),
-      );
-    }
   }
 
   /** The undo of a reset; a picture removed meanwhile has nothing to bring back. */
