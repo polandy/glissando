@@ -171,8 +171,7 @@
   );
   const storage = $derived(stored === null ? null : screenStorage.of(stored, { serverOn, saving }));
 
-  // Rereads only once the slideshow's own songs change, not on every unrelated edit: `stored` is
-  // read untracked, so only `songIds` (this effect's one tracked read) decides a rerun.
+  // Rereads only when the songs change: `stored` is read untracked, so only `songIds` reruns this.
   const songIds = $derived(stored === null ? "" : stored.songs.map((song) => song.id).join(","));
   $effect(() => {
     void songIds;
@@ -191,6 +190,7 @@
     {focusPass}
     passPaused={screenFocus.passPaused}
     {beatPass}
+    {loudnessPass}
     {editor}
     pictureId={editingPictureId}
     {saving}
