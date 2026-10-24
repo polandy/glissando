@@ -84,13 +84,15 @@ describe("SlideshowScreen, dragging a tile (ADR-0019)", () => {
     }
     // The title and closing tiles push this tile below the fold on a short viewport.
     third.scrollIntoView();
-    const box = third.getBoundingClientRect();
 
     firePointer(pick, "pointerdown", { x: 0, y: 0, pointerType: "touch" });
     holdScheduler.advance(HOLD_MS);
     flushSync();
     expect(pick.getAttribute("aria-pressed")).toBe("true");
 
+    // Selecting the held tile scrolls it clear of the selection bar (PictureStrip.svelte), which
+    // can move third too: read its box only now, as a real finger would find it under itself.
+    const box = third.getBoundingClientRect();
     firePointer(window, "pointermove", {
       x: box.right - 2,
       y: box.top + 2,

@@ -15,6 +15,7 @@ import { beatTransitionDurationMs } from "./beat-transition";
 import { composeCards } from "./compose-cards";
 import { composeChapters } from "./compose-chapters";
 import { composedChapters } from "./chapters-of-slideshow";
+import { moodSettings, moodTempo } from "./mood-settings";
 import { filledMusicMs, playlistBeatsMs, resolvePlaylist, type SongBeats } from "./playlist";
 import { pairKenBurns, pictureKenBurns } from "./picture-ken-burns";
 import { pictureTransition, slideshowTransition } from "./picture-transition";
@@ -61,13 +62,16 @@ export function composeSlideshow(
   locale: string,
 ): Slideshow {
   const units = slideUnits(stored.pictures, stored.portraitPictures);
-  const defaultTransition = slideshowTransition(stored);
+  const mood =
+    stored.mood === undefined ? undefined : moodSettings(stored.mood, moodTempo(stored, beats));
+  const defaultTransition = mood?.transition ?? slideshowTransition(stored);
   const look = slideshowLook(stored);
   const beatsMs = playlistBeatsMs(stored, beats);
+  // A mood always paces its own seconds per picture and never fills the music (ADR-0045).
   const durationsMs = slideDurationsMs(
     units.map((unit) => timedUnit(stored.pictures, unit)),
-    filledMusicMs(stored),
-    stored.secondsPerPicture,
+    mood === undefined ? filledMusicMs(stored) : undefined,
+    mood?.secondsPerPicture ?? stored.secondsPerPicture,
     beatsMs,
   );
   const fit = stored.portraitPictures === "fill-screen" ? COVER_FIT : undefined;
@@ -77,13 +81,24 @@ export function composeSlideshow(
     // durationsMs has exactly one entry per slide unit; the index is always in range.
     const durationMs = durationsMs[index] as number;
     slideEndMs += durationMs;
-    const slide = slideFor(index, stored.pictures, unit, sources, focus, durationMs, fit);
+    const slide = slideFor(
+      index,
+      stored.pictures,
+      unit,
+      sources,
+      focus,
+      durationMs,
+      fit,
+      mood?.kenBurnsStrength,
+    );
     const transitionToNext = pictureTransition(
       index,
       units.length,
       pictureOf(stored.pictures, unit.pictureIndices[0]),
       durationMs,
       defaultTransition,
+      mood?.transitionShare,
+      mood?.maxTransitionMs,
     );
     if (transitionToNext === undefined) {
       return slide;
@@ -139,6 +154,8 @@ function slideFor(
   focus: ReadonlyMap<string, PictureFocus>,
   durationMs: number,
   fit: typeof COVER_FIT | undefined,
+  /** A mood's own Ken Burns strength, in place of the default (ADR-0045). */
+  kenBurnsStrength?: number,
 ): Slide {
   const first = pictureOf(pictures, unit.pictureIndices[0]);
   const firstFocus = focus.get(first.id);
@@ -148,14 +165,23 @@ function slideFor(
       image: { src: sources.picture(first.id), capturedAt: first.capturedAt },
       durationMs,
       kenBurns:
-        first.video === undefined ? pictureKenBurns(index, first, firstFocus) : STILL_KEN_BURNS,
+        first.video === undefined
+          ? pictureKenBurns(index, first, firstFocus, kenBurnsStrength)
+          : STILL_KEN_BURNS,
       ...(first.video === undefined ? {} : { video: videoOf(first.video, sources) }),
       ...(first.caption === undefined ? {} : { caption: first.caption }),
       ...(fit === undefined ? {} : { fit }),
     };
   }
   const second = pictureOf(pictures, partnerIndex);
-  const motion = pairKenBurns(index, first, firstFocus, second, focus.get(second.id));
+  const motion = pairKenBurns(
+    index,
+    first,
+    firstFocus,
+    second,
+    focus.get(second.id),
+    kenBurnsStrength,
+  );
   return {
     image: { src: sources.picture(first.id), capturedAt: first.capturedAt },
     durationMs,

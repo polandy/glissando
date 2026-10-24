@@ -72,6 +72,8 @@ export const deMusic = {
   "music.pictureLength": "Bilddauer",
   "music.aboutSecondsEach": "Je etwa {seconds}",
   "music.fillTheMusic": "Musik füllen",
+  "music.pictureTimesByMood": "Die Bilddauer wird durch die Stimmung {name} festgelegt — {value}",
+  "music.setOwnPictureTimes": "Selbst festlegen",
   "music.pictureChanges": "Bildwechsel",
   "music.beatsPerMinute": "{bpm} BPM",
   "music.onTheBeat": "Im Takt",

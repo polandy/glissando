@@ -5,6 +5,7 @@ import { DEFAULT_SLIDESHOW_LOOK, type SlideshowLook } from "../player/looks/slid
 import { checkOwnKenBurns, type OwnKenBurns } from "./own-ken-burns";
 import { checkPortraitPictures, type PortraitPictures } from "./portrait-pictures";
 import { checkSlideshowLook } from "./slideshow-look";
+import { leaveMood } from "./slideshow-edits-mood";
 import { withPicturesAfterCardRemoval } from "./slideshow-edits-cards";
 import { withPicturesAfterChapterRemoval } from "./slideshow-edits-chapters";
 import {
@@ -201,14 +202,15 @@ export function setPictureTransition(
 
 /**
  * Sets the slideshow's default transition; `undefined` or the crossfade deletes the field, since
- * its absence is the crossfade (ADR-0010). The pictures' own transitions stay as they are.
+ * its absence is the crossfade (ADR-0010). The pictures' own transitions stay as they are. While
+ * a mood is on, leaves it first, writing its values into the single settings (ADR-0045).
  */
 export function setSlideshowTransition(
   slideshow: StoredSlideshow,
   transition: SlideshowTransition | undefined,
 ): StoredSlideshow {
   const withoutTransition: { -readonly [Key in keyof StoredSlideshow]: StoredSlideshow[Key] } = {
-    ...slideshow,
+    ...leaveMood(slideshow),
   };
   delete withoutTransition.transition;
   if (transition === undefined) {

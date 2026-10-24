@@ -2,6 +2,7 @@ import type { SlideshowChapter } from "../../compose/chapters-of-slideshow";
 import type { SlideshowTransition, TransitionChoice } from "../../library/own-timing";
 import type { PictureColours } from "../../library/picture-colours";
 import type { ResolvedPortraitPictures } from "../../library/portrait-pictures";
+import type { SlideshowMood } from "../../library/slideshow-mood";
 import type { StoredCard } from "../../library/stored-slideshow";
 import type { SlideshowLook } from "../../player/looks/slideshow-look";
 
@@ -98,6 +99,8 @@ export interface SlideshowDetails {
   readonly ownTransitionCount: number;
   /** The transition of every picture without its own. */
   readonly transition: SlideshowTransition;
+  /** The slideshow's mood (ADR-0045); absent is Custom. */
+  readonly mood?: SlideshowMood;
   /** The slideshow's colour grade; `"none"` for its absent setting (ADR-0044). */
   readonly look: SlideshowLook;
   /** How portrait pictures lay out; `"automatic"` for the slideshow's absent setting (ADR-0028). */

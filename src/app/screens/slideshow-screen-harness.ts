@@ -1,6 +1,7 @@
 /** Shared set-up of the `SlideshowScreen` browser tests. */
 import type { SlideshowTransition } from "../../library/own-timing";
 import type { SlideshowLook } from "../../player";
+import type { SlideshowMood } from "../../library/slideshow-mood";
 import type { ResolvedPortraitPictures } from "../../library/portrait-pictures";
 import type { StoredCard } from "../../library/stored-slideshow";
 import type { CardInput } from "../../library/stored-card";
@@ -16,6 +17,7 @@ import type { ServerSlideshowRows } from "../server-library/server-slideshow-ses
 import { NO_FOCUS_KNOWN, type PicturesFocus } from "../focus/pictures-focus";
 import type { SlideshowSearch } from "../../library/focus-pass";
 import type { ChapterSettingsEditor } from "../editing/chapter-settings-editor";
+import { moodPreviewPortsFixture } from "./slideshow/mood-preview-ports-fixture";
 
 /** The title slide a bare `ensureOpeningCard` call creates, for tests that don't care about it. */
 const DEFAULT_OPENING_CARD: StoredCard = {
@@ -108,6 +110,13 @@ function withClosingCard(
   return card === undefined ? rest : { ...rest, closingCard: card };
 }
 
+/** `slideshow` with its mood set, or removed (Custom) when `mood` is undefined. */
+function withMood(slideshow: SlideshowDetails, mood: SlideshowMood | undefined): SlideshowDetails {
+  const { mood: previous, ...rest } = slideshow;
+  void previous;
+  return mood === undefined ? rest : { ...rest, mood };
+}
+
 export function mountScreen(
   slideshow: SlideshowDetails = details(["a", "b", "c"]),
   {
@@ -122,6 +131,9 @@ export function mountScreen(
     focusPaused = false,
     english = false,
     chapterEditor = null as ChapterSettingsEditor | null,
+    moodBpm = undefined as number | undefined,
+    moodPending = false,
+    moodPreviewPorts = moodPreviewPortsFixture(),
   } = {},
 ) {
   const clock = new FakeClock();
@@ -141,6 +153,8 @@ export function mountScreen(
     transitionResets: 0,
     looks: [] as SlideshowLook[],
     lookResets: 0,
+    moods: [] as (SlideshowMood | undefined)[],
+    moodResets: 0,
     portraitPictureChoices: [] as ResolvedPortraitPictures[],
     portraitPictureResets: 0,
     deletes: 0,
@@ -195,6 +209,17 @@ export function mountScreen(
     onResetLook: () => {
       calls.lookResets += 1;
       props.slideshow = { ...props.slideshow, look: "none" };
+    },
+    moodBpm,
+    moodPending,
+    moodPreviewPorts,
+    onMood: (mood: SlideshowMood | undefined) => {
+      calls.moods.push(mood);
+      props.slideshow = withMood(props.slideshow, mood);
+    },
+    onResetMood: () => {
+      calls.moodResets += 1;
+      props.slideshow = withMood(props.slideshow, undefined);
     },
     onPortraitPictures: (choice: ResolvedPortraitPictures) => {
       calls.portraitPictureChoices.push(choice);

@@ -16,24 +16,39 @@ import {
 } from "../../library/slideshow-edits-music";
 import { setPictureLength, setSecondsPerPicture } from "../../library/slideshow-edits-timing";
 import type { StoredMusic, StoredSlideshow } from "../../library/stored-slideshow";
+import { offerMoodLeftUndo } from "./mood-left-undo";
+import type { ResetUndo } from "./reset-undo";
 import type { SongRemovalUndo } from "./song-removal-undo";
+
+/** What `MusicSettingsEditor` needs from the screen to word its undo toast. */
+export interface MusicSettingsPorts {
+  /** The undo toast's text after this edit silently left an active mood (ADR-0045 `leaveMood`). */
+  readonly moodNowCustomText: () => string;
+}
 
 /**
  * The slideshow screen's playlist and timing edits: each applies at once, through the
  * `SlideshowEditor` that owns this instance. A song removed gets a toast whose undo puts it
- * back; the other edits offer none, since one tap on "whole track" or "automatic" restores them.
+ * back; the other edits offer none, since one tap on "whole track" or "automatic" restores them
+ * — except where leaving an active mood needs its own undo (ADR-0045).
  */
 export class MusicSettingsEditor {
   readonly #songRemoval: SongRemovalUndo;
+  readonly #ports: MusicSettingsPorts;
+  readonly #reset: ResetUndo;
   readonly #current: () => StoredSlideshow;
   readonly #apply: (slideshow: StoredSlideshow) => void;
 
   constructor(
     songRemoval: SongRemovalUndo,
+    ports: MusicSettingsPorts,
+    reset: ResetUndo,
     current: () => StoredSlideshow,
     apply: (slideshow: StoredSlideshow) => void,
   ) {
     this.#songRemoval = songRemoval;
+    this.#ports = ports;
+    this.#reset = reset;
     this.#current = current;
     this.#apply = apply;
   }
@@ -93,13 +108,37 @@ export class MusicSettingsEditor {
     this.#apply(setMusicVolume(this.#current(), songId, volumeDb));
   }
 
-  /** `"seconds"`: the pictures last their seconds with music too; `undefined`: they fill it. */
+  /**
+   * `"seconds"`: the pictures last their seconds with music too; `undefined`: they fill it.
+   * While a mood is on, this leaves it first (ADR-0045); the toast's undo brings the slideshow
+   * back as it was, mood included.
+   */
   setPictureLength(pictureLength: PictureLength | undefined): void {
-    this.#apply(setPictureLength(this.#current(), pictureLength));
+    const before = this.#current();
+    this.#apply(setPictureLength(before, pictureLength));
+    offerMoodLeftUndo(
+      this.#reset,
+      before,
+      this.#current(),
+      this.#ports.moodNowCustomText,
+      this.#apply,
+    );
   }
 
-  /** How long each picture without an own duration stays, in half-second steps. */
+  /**
+   * How long each picture without an own duration stays, in half-second steps. While a mood is
+   * on, this leaves it first (ADR-0045); the toast's undo brings the slideshow back as it was,
+   * mood included.
+   */
   setSecondsPerPicture(seconds: number): void {
-    this.#apply(setSecondsPerPicture(this.#current(), seconds));
+    const before = this.#current();
+    this.#apply(setSecondsPerPicture(before, seconds));
+    offerMoodLeftUndo(
+      this.#reset,
+      before,
+      this.#current(),
+      this.#ports.moodNowCustomText,
+      this.#apply,
+    );
   }
 }

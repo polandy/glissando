@@ -8,9 +8,12 @@
   import type { MotionPreviewPorts } from "../../picture-editor/motion-preview";
   import type { ChapterSettingsEditor } from "../../editing/chapter-settings-editor";
   import type { SlideshowDetails } from "../view-models";
+  import type { SlideshowMood } from "../../../library/slideshow-mood";
+  import type { MoodPreviewPorts } from "./mood-preview-ports";
   import CardSheet from "./card-sheet/CardSheet.svelte";
   import LookSheet from "./LookSheet.svelte";
   import ChapterSheet from "./chapter-sheet/ChapterSheet.svelte";
+  import MoodSheet from "./MoodSheet.svelte";
   import PortraitPicturesSheet from "./PortraitPicturesSheet.svelte";
   import TransitionsSheet from "./TransitionsSheet.svelte";
 
@@ -27,10 +30,16 @@
     onResetTransition,
     onLook,
     onResetLook,
+    moodPreviewPorts,
+    moodBpm,
+    moodPending,
+    onMood,
+    onResetMood,
     onPortraitPictures,
     onResetPortraitPictures,
     onTransitionsClosed,
     onLookClosed,
+    onMoodClosed,
     onPortraitPicturesClosed,
     onEnsureOpeningCard,
     onOpeningCard,
@@ -52,10 +61,21 @@
     onResetTransition: () => void;
     onLook: (look: SlideshowLook) => void;
     onResetLook: () => void;
+    /** The Mood sheet's live preview data ports; left out while it has no pictures. */
+    moodPreviewPorts: MoodPreviewPorts;
+    /** The slideshow's tempo under its mood (ADR-0045); undefined without one. */
+    moodBpm: number | undefined;
+    /** Whether `moodBpm` may still change once analysis catches up; never "no beat found" then. */
+    moodPending: boolean;
+    /** A mood tile was tapped: stores at once. */
+    onMood: (mood: SlideshowMood | undefined) => void;
+    /** "Back to Custom" in the Mood sheet. */
+    onResetMood: () => void;
     onPortraitPictures: (choice: PortraitPictures) => void;
     onResetPortraitPictures: () => void;
     onTransitionsClosed: () => void;
     onLookClosed: () => void;
+    onMoodClosed: () => void;
     onPortraitPicturesClosed: () => void;
     /** Creates the title slide with its defaults, storing it at once. */
     onEnsureOpeningCard: () => StoredCard;
@@ -74,6 +94,7 @@
 
   let editingTransitions = $state(false);
   let editingLook = $state(false);
+  let editingMood = $state(false);
   let editingPortraitPictures = $state(false);
   let editingOpeningCard = $state(false);
   let editingClosingCard = $state(false);
@@ -86,6 +107,10 @@
 
   export function openLook(): void {
     editingLook = true;
+  }
+
+  export function openMood(): void {
+    editingMood = true;
   }
 
   export function openPortraitPictures(): void {
@@ -126,6 +151,13 @@
     // The modal dialog must be gone first: until then the page behind it is inert.
     flushSync();
     onLookClosed();
+  }
+
+  function closeMood(): void {
+    editingMood = false;
+    // The modal dialog must be gone first: until then the page behind it is inert.
+    flushSync();
+    onMoodClosed();
   }
 
   function closePortraitPictures(): void {
@@ -170,6 +202,18 @@
 
 {#if editingLook}
   <LookSheet {slideshow} {onLook} onReset={onResetLook} onClose={closeLook} />
+{/if}
+
+{#if editingMood}
+  <MoodSheet
+    {slideshow}
+    previewPorts={moodPreviewPorts}
+    {moodBpm}
+    {moodPending}
+    {onMood}
+    {onResetMood}
+    onClose={closeMood}
+  />
 {/if}
 
 {#if editingPortraitPictures}

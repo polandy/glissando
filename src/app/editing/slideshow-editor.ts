@@ -6,16 +6,18 @@ import { setPictureAlone as setPictureAloneEdit } from "../../library/slideshow-
 import type { PictureLength } from "../../library/picture-length";
 import type { StoredCard, StoredMusic, StoredSlideshow } from "../../library/stored-slideshow";
 import type { CardInput } from "../../library/stored-card";
-import { CardSettingsEditor } from "./card-settings-editor";
-import { ChapterSettingsEditor } from "./chapter-settings-editor";
+import type { CardSettingsEditor } from "./card-settings-editor";
+import type { ChapterSettingsEditor } from "./chapter-settings-editor";
 import { EditSaver } from "./edit-saver";
 import { EditorUndos } from "./editor-undos";
-import { LookSettingsEditor } from "./look-settings-editor";
-import { MusicSettingsEditor } from "./music-settings-editor";
-import { PictureListEditor } from "./picture-list-editor";
-import { PictureSettingsEditor } from "./picture-settings-editor";
-import { VideoSettingsEditor } from "./video-settings-editor";
+import type { LookSettingsEditor } from "./look-settings-editor";
+import type { MoodSettingsEditor } from "./mood-settings-editor";
+import type { MusicSettingsEditor } from "./music-settings-editor";
+import type { PictureListEditor } from "./picture-list-editor";
+import type { PictureSettingsEditor } from "./picture-settings-editor";
 import type { SlideshowEditorPorts } from "./slideshow-editor-ports";
+import { createSubEditors } from "./slideshow-sub-editors";
+import type { VideoSettingsEditor } from "./video-settings-editor";
 
 /**
  * The slideshow screen's edits: each applies at once and is stored. Removing needs no confirmation;
@@ -38,6 +40,8 @@ export class SlideshowEditor {
   readonly chapters: ChapterSettingsEditor;
   /** The slideshow's colour grade (ADR-0044). */
   readonly look: LookSettingsEditor;
+  /** The slideshow's mood (ADR-0045). */
+  readonly mood: MoodSettingsEditor;
 
   constructor(initial: StoredSlideshow, ports: SlideshowEditorPorts) {
     this.#slideshow = initial;
@@ -59,42 +63,20 @@ export class SlideshowEditor {
       apply: (slideshow) => this.#apply(slideshow),
       track: (work) => this.#saver.track(work),
     });
-    this.#pictureSettings = new PictureSettingsEditor(
-      ports,
-      this.#undos.reset,
-      () => this.#slideshow,
-      (slideshow) => this.#apply(slideshow),
-    );
-    this.#pictureList = new PictureListEditor(
+    const subEditors = createSubEditors(
       ports,
       this.#undos,
       () => this.#slideshow,
       (slideshow) => this.#apply(slideshow),
     );
-    this.#musicSettings = new MusicSettingsEditor(
-      this.#undos.songRemoval,
-      () => this.#slideshow,
-      (slideshow) => this.#apply(slideshow),
-    );
-    this.video = new VideoSettingsEditor(
-      () => this.#slideshow,
-      (slideshow) => this.#apply(slideshow),
-    );
-    this.#cardSettings = new CardSettingsEditor(
-      ports,
-      () => this.#slideshow,
-      (slideshow) => this.#apply(slideshow),
-    );
-    this.chapters = new ChapterSettingsEditor(
-      () => this.#slideshow,
-      (slideshow) => this.#apply(slideshow),
-    );
-    this.look = new LookSettingsEditor(
-      ports,
-      this.#undos.reset,
-      () => this.#slideshow,
-      (slideshow) => this.#apply(slideshow),
-    );
+    this.#pictureSettings = subEditors.pictureSettings;
+    this.#pictureList = subEditors.pictureList;
+    this.#musicSettings = subEditors.musicSettings;
+    this.#cardSettings = subEditors.cardSettings;
+    this.video = subEditors.video;
+    this.chapters = subEditors.chapters;
+    this.look = subEditors.look;
+    this.mood = subEditors.mood;
   }
 
   get slideshow(): StoredSlideshow {

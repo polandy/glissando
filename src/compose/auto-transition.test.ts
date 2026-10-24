@@ -30,4 +30,9 @@ describe("transitionDurationMs", () => {
   it("caps the transition duration at 1000 ms on a long slide", () => {
     expect(transitionDurationMs(10_000)).toBe(1000);
   });
+
+  it("uses a given share and cap in place of the defaults, for a mood", () => {
+    expect(transitionDurationMs(2000, 0.45, 1600)).toBe(900);
+    expect(transitionDurationMs(10_000, 0.45, 1600)).toBe(1600);
+  });
 });

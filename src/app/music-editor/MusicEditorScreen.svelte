@@ -1,27 +1,17 @@
 <script lang="ts">
-  import type { BetweenSongs, MusicTrim, PictureChanges } from "../../library/own-music";
-  import type { PictureLength } from "../../library/picture-length";
+  import type { MusicTrim } from "../../library/own-music";
   import { setMusicTrim } from "../../library/slideshow-edits-music";
-  import type { StoredSlideshow } from "../../library/stored-slideshow";
-  import type { SampleTrack, SampleTrackId } from "../../sample-music/sample-tracks";
   import Header from "../components/Header.svelte";
   import Icon from "../components/Icon.svelte";
   import { getTranslator } from "../i18n/context";
-  import type { SamplePreview } from "../sample-music/sample-preview";
-  import type { Toaster } from "../toast/toaster";
   import AddSongSheet from "./AddSongSheet.svelte";
   import AddSongsButton from "./AddSongsButton.svelte";
-  import type { ListenState } from "./listen-preview";
   import MusicEditorPanel from "./MusicEditorPanel.svelte";
-  import {
-    musicEditorView,
-    type SongsBeatsStatus,
-    type SongsLoudnessStatus,
-  } from "./music-editor-view";
+  import { musicEditorView } from "./music-editor-view";
+  import type { MusicEditorScreenProps } from "./music-editor-screen-props";
   import PlaylistLane from "./PlaylistLane.svelte";
   import { playlistView } from "./playlist-view";
   import SelectedSong from "./SelectedSong.svelte";
-  import type { PendingSong, SampleSongRow } from "./song-intake";
   import SongList from "./SongList.svelte";
   import VolumeComparisonBox from "./VolumeComparisonBox.svelte";
 
@@ -62,59 +52,11 @@
     onPictureChanges,
     onPictureLength,
     onSecondsPerPicture,
+    onSetOwnPictureTimes,
     onListen,
     onStopListening,
     saving,
-  }: {
-    slideshow: StoredSlideshow;
-    /** The song edited; the first while none is chosen or the chosen one is gone. */
-    selectedSongId: string | null;
-    /** What is known of the songs' beats, updated as the background pass listens. */
-    beats: SongsBeatsStatus;
-    /** What is known of the songs' loudness, updated as the background pass listens (ADR-0040). */
-    loudness: SongsLoudnessStatus;
-    /** Fine peaks of the selected song's whole track, 0..1; null while it is decoded. */
-    peaks: Float32Array | null;
-    listening: ListenState | null;
-    /** Picked files on their way into the playlist, or found unusable. */
-    pending: readonly PendingSong[];
-    /** Sample tracks downloading or failed; not yet in `slideshow.songs` (song-intake.ts). */
-    sampleRows: readonly SampleSongRow[];
-    /** `undefined` when the build turns sample music off (SAMPLE_MUSIC.md). */
-    samplePreview?: SamplePreview | undefined;
-    toaster: Toaster;
-    onBack: () => void;
-    onError: (error: unknown) => void;
-    onSelectSong: (songId: string) => void;
-    onAddSongs: (files: readonly File[]) => void;
-    onRemoveSong: (songId: string) => void;
-    onMoveSong: (songId: string, toIndex: number) => void;
-    onDismissPending: (key: number) => void;
-    onRemoveSampleRow: (trackId: SampleTrackId) => void;
-    isSampleTrackAdded: (trackId: SampleTrackId) => boolean;
-    onAddSampleTrack: (track: SampleTrack) => void;
-    /** `undefined`: the songs crossfade. */
-    onBetweenSongs: (between: BetweenSongs | undefined) => void;
-    /** `undefined`: the whole track. */
-    onTrim: (trim: MusicTrim | undefined) => void;
-    /** `undefined`: automatic. */
-    onFadeIn: (fadeMs: number | undefined) => void;
-    onFadeOut: (fadeMs: number | undefined) => void;
-    /** `undefined`: levelled. */
-    onVolume: (volumeDb: number | undefined) => void;
-    onVolumeReset: () => void;
-    onListenVolume: () => void;
-    onToggleOriginal: () => void;
-    /** `undefined`: on the beat. */
-    onPictureChanges: (changes: PictureChanges | undefined) => void;
-    /** `undefined`: the pictures fill the music. */
-    onPictureLength: (length: PictureLength | undefined) => void;
-    onSecondsPerPicture: (seconds: number) => void;
-    onListen: (kind: "start" | "end") => void;
-    onStopListening: () => void;
-    /** An edit is being stored. */
-    saving: boolean;
-  } = $props();
+  }: MusicEditorScreenProps = $props();
 
   const { t } = getTranslator();
 
@@ -217,6 +159,7 @@
         {onPictureChanges}
         {onPictureLength}
         {onSecondsPerPicture}
+        {onSetOwnPictureTimes}
         {onBetweenSongs}
       />
     </main>

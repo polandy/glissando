@@ -38,12 +38,18 @@ export type TimingNote =
   /** Every picture is timed, together exactly as long as the excerpt. */
   | { readonly kind: "ends-with-music" };
 
-/** What the pictures' times say about the music: shared, outlasting or ending early. */
+/**
+ * What the pictures' times say about the music: shared, outlasting or ending early.
+ * `moodSecondsPerPicture`, under a mood, is what every automatic picture actually lasts
+ * (`moodSettings` resolved against the tempo); it always wins over the single settings, which a
+ * mood ignores (MOOD.md).
+ */
 export function timingNote(
   stored: StoredSlideshow,
   durationsMs: readonly number[],
   excerptMs: number,
   onTheBeat: boolean,
+  moodSecondsPerPicture?: number,
 ): TimingNote {
   const slideshowMs = sum(durationsMs);
   // One entry per picture without an own duration, `durationsMs` indexed by slide: a paired
@@ -55,19 +61,22 @@ export function timingNote(
       .filter((pictureIndex) => stored.pictures[pictureIndex]?.durationMs === undefined)
       .map(() => durationsMs[slideIndex] as number),
   );
-  const ownSeconds = stored.pictureLength !== undefined && automaticMs.length > 0;
+  const secondsPerPicture = moodSecondsPerPicture ?? stored.secondsPerPicture;
+  const ownSeconds =
+    (moodSecondsPerPicture !== undefined || stored.pictureLength !== undefined) &&
+    automaticMs.length > 0;
   if (slideshowMs > excerptMs) {
     return {
       kind: "outlasts",
       overMs: slideshowMs - excerptMs,
       automaticCount: automaticMs.length,
-      ...(ownSeconds ? { secondsPerPicture: stored.secondsPerPicture } : {}),
+      ...(ownSeconds ? { secondsPerPicture } : {}),
     };
   }
   if (ownSeconds) {
     return {
       kind: "own-seconds",
-      secondsPerPicture: stored.secondsPerPicture,
+      secondsPerPicture,
       onTheBeat,
       slideshowMs,
     };

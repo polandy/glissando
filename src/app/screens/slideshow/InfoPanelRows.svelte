@@ -3,7 +3,10 @@
   import { DEFAULT_SLIDESHOW_LOOK } from "../../../player";
   import { getTranslator } from "../../i18n/context";
   import type { SlideshowDetails } from "../view-models";
+  import { infoPanelMoodValues } from "./info-panel-mood-values";
+  import { moodName } from "./mood-text";
   import PanelActionRow from "./PanelActionRow.svelte";
+  import PanelFactRow from "./PanelFactRow.svelte";
 
   /** The slideshow's facts: pictures, duration, music, timing, transitions, look and captions. */
   let {
@@ -11,6 +14,8 @@
     onEditMusic,
     onEditTransitions,
     onEditLook,
+    moodBpm,
+    onEditMood,
     onEditPortraitPictures,
     onEditChapters,
   }: {
@@ -20,6 +25,10 @@
     onEditTransitions: () => void;
     /** Opens the sheet of the slideshow's colour grade (ADR-0044). */
     onEditLook: () => void;
+    /** The slideshow's tempo under its mood (ADR-0045); undefined without one. */
+    moodBpm: number | undefined;
+    /** Opens the Mood sheet. */
+    onEditMood: () => void;
     /** Opens the sheet of the slideshow's portrait pictures setting. */
     onEditPortraitPictures: () => void;
     /** Opens the trip chapters sheet in general mode (TRIP_CHAPTERS.md). */
@@ -28,6 +37,7 @@
 
   let transitionsRow: PanelActionRow;
   let lookRow: PanelActionRow;
+  let moodRow: PanelActionRow;
   let portraitPicturesRow: PanelActionRow;
   let chaptersRow: PanelActionRow;
 
@@ -41,6 +51,11 @@
     lookRow.focus();
   }
 
+  /** The Mood sheet closed: focus goes back to the row it was opened from. */
+  export function focusMood(): void {
+    moodRow.focus();
+  }
+
   /** The portrait pictures sheet closed: focus goes back to the row it was opened from. */
   export function focusPortraitPictures(): void {
     portraitPicturesRow.focus();
@@ -51,7 +66,8 @@
     chaptersRow.focus();
   }
 
-  const { t, formatDuration } = getTranslator();
+  const translator = getTranslator();
+  const { t, formatDuration } = translator;
 
   /**
    * Named beside the duration when the slideshow does not end with the music, as displayed:
@@ -102,6 +118,11 @@
           own: t("slideshow.transitionOwnCount", { count: slideshow.ownTransitionCount }),
         });
   });
+  // A mood paces the transition, picture times and Ken Burns rows (ADR-0045); the single
+  // settings underneath are unchanged.
+  const moodValues = $derived(
+    infoPanelMoodValues(translator, slideshow, moodBpm, transitionSummary),
+  );
   const lookSummary = $derived(
     slideshow.look === DEFAULT_SLIDESHOW_LOOK ? t("slideshow.lookDefault") : "",
   );
@@ -143,33 +164,34 @@
       onclick={onEditMusic}
     />
   </div>
-  <div>
-    <dt>{t("slideshow.pictureTimes")}</dt>
-    <dd>
-      <span class="pill"
-        ><i></i>{slideshow.ownDurationCount > 0
-          ? t("slideshow.automaticWithOwn", { count: slideshow.ownDurationCount })
-          : t("slideshow.automatic")}</span
-      >
-    </dd>
+  <div class="action-row">
+    <PanelActionRow
+      bind:this={moodRow}
+      name="mood"
+      label={t("slideshow.mood")}
+      value={moodName(t, slideshow.mood)}
+      summary={slideshow.mood === undefined ? t("slideshow.moodDefault") : ""}
+      action={t("slideshow.change")}
+      onclick={onEditMood}
+    />
   </div>
-  <div>
-    <dt>{t("slideshow.kenBurns")}</dt>
-    <dd>
-      <span class="pill"
-        ><i></i>{slideshow.ownMotionCount > 0
-          ? t("slideshow.automaticWithOwn", { count: slideshow.ownMotionCount })
-          : t("slideshow.automatic")}</span
-      >
-    </dd>
-  </div>
+  <PanelFactRow
+    label={t("slideshow.pictureTimes")}
+    value={moodValues.pictureTimesValue}
+    byMood={slideshow.mood !== undefined}
+  />
+  <PanelFactRow
+    label={t("slideshow.kenBurns")}
+    value={moodValues.kenBurnsValue}
+    byMood={slideshow.mood !== undefined}
+  />
   <div class="action-row">
     <PanelActionRow
       bind:this={transitionsRow}
       name="transitions"
       label={t("slideshow.transitions")}
-      value={t(`effect.${slideshow.transition}`)}
-      summary={transitionSummary}
+      value={moodValues.transitionValue}
+      summary={moodValues.transitionRowSummary}
       action={t("slideshow.change")}
       onclick={onEditTransitions}
     />
@@ -261,23 +283,5 @@
     .rows div {
       break-inside: avoid;
     }
-  }
-  .pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    padding: 2px 8px;
-    border: 1px solid var(--gl-line);
-    border-radius: var(--gl-radius-pill);
-    background: var(--gl-scrim);
-    color: var(--gl-muted);
-    font-weight: var(--gl-weight-semibold);
-    font-size: var(--gl-size-small);
-  }
-  .pill i {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--gl-mint);
   }
 </style>

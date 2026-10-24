@@ -12,11 +12,14 @@ import {
   timedUnit,
   type MusicTiming,
   type PlacedSong,
+  type SongBeats,
 } from "../../compose";
-import { excerptLoudnessLufs, excerptPeakDbfs } from "../../loudness";
+import { moodSettings, moodTempo } from "../../compose/mood-settings";
 import { SEQUENCE_BETWEEN_SONGS } from "../../library/own-music";
 import { songIndex } from "../../library/slideshow-edits-songs";
+import type { SlideshowMood } from "../../library/slideshow-mood";
 import type { StoredSlideshow } from "../../library/stored-slideshow";
+import { excerptLoudnessLufs, excerptPeakDbfs } from "../../loudness";
 import { composedBeats, type BeatsStatus } from "../beats/music-beats-known";
 import type { LoudnessStatus } from "../loudness/music-loudness-known";
 import { volumeListenPlan, type VolumeListenPlan } from "./listen-preview";
@@ -50,6 +53,13 @@ export interface PictureLengthView {
   readonly secondsPerPicture: number;
 }
 
+/** The slideshow's mood pacing the picture length instead of `PictureLengthView` (ADR-0045). */
+export interface MoodPictureLengthView {
+  readonly mood: SlideshowMood;
+  /** The tempo the mood paces to; absent without a song that gives one (`moodTempo`). */
+  readonly beatsPerMinute: number | undefined;
+}
+
 export interface MusicEditorView {
   readonly songId: string;
   /** Its place in the playlist, from 1. */
@@ -75,6 +85,8 @@ export interface MusicEditorView {
   /** The beats the pictures change on, while they do. */
   readonly beatTicks: readonly BeatTick[];
   readonly pictureLength: PictureLengthView;
+  /** Set instead of `pictureLength` while the slideshow has a mood (ADR-0045). */
+  readonly moodPictureLength: MoodPictureLengthView | undefined;
   readonly pictureChanges: PictureChangesView;
   readonly fadeIn: FadeView<FadeInReason>;
   readonly fadeOut: FadeView<FadeOutReason>;
@@ -106,6 +118,11 @@ const NOTHING_LOUDNESS_KNOWN: SongsLoudnessStatus = new Map();
 /** What is known of the song's beats. */
 export function songBeatsStatus(beats: SongsBeatsStatus, songId: string): BeatsStatus {
   return beats.get(songId) ?? LISTENING;
+}
+
+/** `beats` composed for `moodTempo`, which paces to a found tempo as soon as one is known. */
+function songBeats(beats: SongsBeatsStatus): SongBeats {
+  return new Map([...beats].map(([songId, status]) => [songId, composedBeats(status)]));
 }
 
 /** What is known of the song's loudness. */
@@ -191,6 +208,12 @@ export function musicEditorView(
   const joinsPrevious = index > 0 && stored.betweenSongs !== SEQUENCE_BETWEEN_SONGS;
   const joinsNext =
     index < stored.songs.length - 1 && stored.betweenSongs !== SEQUENCE_BETWEEN_SONGS;
+  const moodBeatsPerMinute =
+    stored.mood === undefined ? undefined : moodTempo(stored, songBeats(beats));
+  const moodSecondsPerPicture =
+    stored.mood === undefined
+      ? undefined
+      : moodSettings(stored.mood, moodBeatsPerMinute).secondsPerPicture;
   return {
     songId,
     songNumber: index + 1,
@@ -211,6 +234,10 @@ export function musicEditorView(
       ownSeconds: stored.pictureLength !== undefined,
       secondsPerPicture: stored.secondsPerPicture,
     },
+    moodPictureLength:
+      stored.mood === undefined
+        ? undefined
+        : { mood: stored.mood, beatsPerMinute: moodBeatsPerMinute },
     pictureChanges,
     fadeIn: {
       ms: fadeInMs,
@@ -235,7 +262,13 @@ export function musicEditorView(
     volume,
     volumeListen,
     timing: { startMs, endMs: heardEndMs, fadeInMs: timing.fadeInMs, fadeOutMs: timing.fadeOutMs },
-    note: timingNote(stored, durationsMs, playlistLengthMs, beatsMs !== undefined),
+    note: timingNote(
+      stored,
+      durationsMs,
+      playlistLengthMs,
+      beatsMs !== undefined,
+      moodSecondsPerPicture,
+    ),
   };
 }
 

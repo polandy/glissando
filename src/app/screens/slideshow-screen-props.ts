@@ -8,6 +8,8 @@ import type { CardInput } from "../../library/stored-card";
 import type { SlideshowTransition } from "../../library/own-timing";
 import type { PortraitPictures } from "../../library/portrait-pictures";
 import type { MotionPreviewPorts } from "../picture-editor/motion-preview";
+import type { SlideshowMood } from "../../library/slideshow-mood";
+import type { MoodPreviewPorts } from "./slideshow/mood-preview-ports";
 import type { ExportMenuState } from "../glissando-file/export-menu";
 import type { StripSelection } from "./slideshow/strip-selection";
 import type { Scheduler } from "../../ui-kit/scheduler";
@@ -52,6 +54,17 @@ export interface SlideshowScreenProps {
   onLook: (look: SlideshowLook) => void;
   /** "Back to None" in the look sheet. */
   onResetLook: () => void;
+  /** The slideshow's tempo under its mood, for the info panel and the Mood sheet's "What it
+   * sets" (ADR-0045); undefined without a mood, or without a clear beat to pace to. */
+  moodBpm: number | undefined;
+  /** Whether `moodBpm` may still change once analysis catches up; never "no beat found" then. */
+  moodPending: boolean;
+  /** The Mood sheet's live preview data ports; left out while it has no pictures. */
+  moodPreviewPorts: MoodPreviewPorts;
+  /** A mood tile was tapped: stores at once. */
+  onMood: (mood: SlideshowMood | undefined) => void;
+  /** "Back to Custom" in the Mood sheet. */
+  onResetMood: () => void;
   /** A choice was picked in the portrait pictures sheet. */
   onPortraitPictures: (choice: PortraitPictures) => void;
   /** "Back to automatic" in the portrait pictures sheet. */
