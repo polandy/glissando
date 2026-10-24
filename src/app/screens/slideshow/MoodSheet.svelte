@@ -3,15 +3,13 @@
   import { SLIDESHOW_MOODS, type SlideshowMood } from "../../../library/slideshow-mood";
   import ResetButton from "../../components/ResetButton.svelte";
   import SectionHead from "../../components/SectionHead.svelte";
+  import Switch from "../../components/Switch.svelte";
   import { radioIndexForKey } from "../../components/radio-keys";
   import { getTranslator } from "../../i18n/context";
   import type { SlideshowDetails } from "../view-models";
-  import {
-    moodKenBurnsText,
-    moodName,
-    moodPictureTimesText,
-    moodTransitionText,
-  } from "./mood-text";
+  import EnergyStrip from "./EnergyStrip.svelte";
+  import { moodKenBurnsText, moodName, moodTransitionText } from "./mood-text";
+  import { moodSheetEnergyView, type MoodEnergyAnalysis } from "./mood-sheet-energy-view";
   import type { MoodPreviewPorts } from "./mood-preview-ports";
   import MoodPreview from "./MoodPreview.svelte";
   import MoodTile from "./MoodTile.svelte";
@@ -31,6 +29,7 @@
     moodPending,
     onMood,
     onResetMood,
+    onEnergyPacing,
     onClose,
   }: {
     slideshow: SlideshowDetails;
@@ -43,6 +42,8 @@
     onMood: (mood: SlideshowMood | undefined) => void;
     /** "Back to Custom"; offered while a mood is chosen. */
     onResetMood: () => void;
+    /** The "Follow the music's energy" switch (ADR-0046): stores at once. */
+    onEnergyPacing: (on: boolean) => void;
     /** "Done", the scrim, Esc. */
     onClose: () => void;
   } = $props();
@@ -51,6 +52,14 @@
   const { t } = translator;
 
   const hasPictures = $derived(previewPorts.stored.pictures.length > 0);
+
+  // The preview (`MoodPreview.svelte`) loads the beats and loudness anyway; the energy pacing
+  // rows and strip reuse that same analysis instead of loading it again.
+  let moodAnalysis = $state.raw<MoodEnergyAnalysis | null>(null);
+
+  const energyView = $derived(
+    moodSheetEnergyView(translator, previewPorts.stored, slideshow.mood, moodBpm, moodAnalysis),
+  );
 
   let dialog: HTMLDialogElement;
   const radios: HTMLButtonElement[] = $state([]);
@@ -99,7 +108,16 @@
       own={slideshow.mood !== undefined}
     />
     {#if hasPictures}
-      <MoodPreview ports={previewPorts} mood={slideshow.mood} {moodBpm} {moodPending} />
+      <MoodPreview
+        ports={previewPorts}
+        mood={slideshow.mood}
+        {moodBpm}
+        {moodPending}
+        onLoaded={(loaded) => (moodAnalysis = loaded)}
+      />
+      {#if energyView.stripGeometry !== null}
+        <EnergyStrip geometry={energyView.stripGeometry} />
+      {/if}
     {/if}
     <div class="tiles" role="radiogroup" aria-labelledby="mood-title">
       {#each MOOD_CHOICES as choice, index (choice ?? "custom")}
@@ -112,11 +130,28 @@
         />
       {/each}
     </div>
+    <div class="row switch-row">
+      <div>
+        <b>{t("mood.energySwitch")}</b>
+        <small>{t("mood.energySwitchSubtitle")}</small>
+      </div>
+      <Switch
+        checked={slideshow.energyPacing}
+        label={t("mood.energySwitch")}
+        onChange={onEnergyPacing}
+      />
+    </div>
     <dl class="sets">
       <div>
         <dt>{t("slideshow.pictureTimes")}</dt>
-        <dd>{moodPictureTimesText(translator, slideshow.mood, moodBpm)}</dd>
+        <dd>{energyView.pictureTimesText}</dd>
       </div>
+      {#if energyView.hasLift}
+        <div>
+          <dt>{t("mood.energyLiftLabel")}</dt>
+          <dd>{t("mood.energyLiftValue")}</dd>
+        </div>
+      {/if}
       <div>
         <dt>{t("slideshow.transitions")}</dt>
         <dd>{moodTransitionText(t, slideshow.mood)}</dd>
@@ -126,7 +161,7 @@
         <dd>{moodKenBurnsText(t, slideshow.mood)}</dd>
       </div>
     </dl>
-    <p class="hint">{slideshow.mood === undefined ? t("mood.hintCustom") : t("mood.hintMood")}</p>
+    <p class="hint">{energyView.hintText}</p>
     <footer>
       <ResetButton
         automatic={slideshow.mood === undefined}
@@ -164,6 +199,18 @@
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 8px;
+  }
+  .row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .switch-row small {
+    display: block;
+    color: var(--gl-muted);
+    font-size: var(--gl-size-meta);
+    font-weight: var(--gl-weight-regular);
   }
   .sets {
     display: grid;
