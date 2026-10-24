@@ -1,95 +1,19 @@
 import { flushSync } from "svelte";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import { MemoryLibraryStore } from "../../../library/testing/memory-store";
-import { createTranslator } from "../../i18n/translator";
-import { mountWithTranslator } from "../../testing/mount-with-translator";
-import { reactiveProps } from "../../testing/reactive-props.svelte";
 import { whenRendered } from "../../testing/when-rendered";
-import type { SlideshowDetails } from "../view-models";
-import type { MoodPreviewPorts } from "./mood-preview-ports";
-import { moodPreviewPortsFixture } from "./mood-preview-ports-fixture";
-import MoodSheet from "./MoodSheet.svelte";
+import {
+  cleanupMoodSheet,
+  details,
+  dialogEl,
+  hint,
+  previewPorts,
+  setText,
+  setUp,
+  tile,
+} from "./mood-sheet-browser-harness";
 
-// A generated 1×1 pixel: no real picture is used in this test (CLAUDE.md).
-const PIXEL = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
-
-function details(overrides: Partial<SlideshowDetails> = {}): SlideshowDetails {
-  return {
-    title: "Sommer am See",
-    coverUrl: PIXEL,
-    durationSeconds: 60,
-    songCount: 0,
-    musicTitle: null,
-    musicSeconds: null,
-    musicSummary: null,
-    ownOrder: false,
-    automaticChaptersOff: false,
-    chapters: [],
-    ownMotionCount: 0,
-    ownDurationCount: 0,
-    ownTransitionCount: 0,
-    transition: "crossfade",
-    energyPacing: false,
-    look: "none",
-    portraitPictures: "automatic",
-    pairCount: 0,
-    captionCount: 0,
-    capturedFrom: "2025-07-01T10:00:00Z",
-    capturedTo: "2025-07-03T10:00:00Z",
-    pictures: [],
-    ...overrides,
-  };
-}
-
-const previewPorts = moodPreviewPortsFixture;
-
-const dialogEl = () => document.querySelector("dialog");
-const text = (within: Element | null) => within?.textContent?.replace(/\s+/g, " ").trim() ?? "";
-function tile(choice: string): HTMLButtonElement {
-  const found = dialogEl()?.querySelector<HTMLButtonElement>(
-    `[role="radio"][data-choice="${choice}"]`,
-  );
-  if (found === null || found === undefined) {
-    throw new Error(`no tile for ${choice}`);
-  }
-  return found;
-}
-const hint = () => text(dialogEl()?.querySelector(".hint") ?? null);
-const setText = (dt: string) => {
-  const row = Array.from(dialogEl()?.querySelectorAll(".sets > div") ?? []).find(
-    (div) => text(div.querySelector("dt")) === dt,
-  );
-  return text(row?.querySelector("dd") ?? null);
-};
-
-let destroy: (() => void) | null = null;
-afterEach(() => {
-  destroy?.();
-  destroy = null;
-});
-
-function setUp(
-  slideshow: SlideshowDetails,
-  ports: MoodPreviewPorts = previewPorts(),
-  moodBpm: number | undefined = undefined,
-  moodPending = false,
-) {
-  const onMood = vi.fn();
-  const onResetMood = vi.fn();
-  const onClose = vi.fn();
-  const props = reactiveProps({
-    slideshow,
-    previewPorts: ports,
-    moodBpm,
-    moodPending,
-    onMood,
-    onResetMood,
-    onClose,
-  });
-  const mounted = mountWithTranslator(MoodSheet, props, { current: createTranslator("en") });
-  destroy = mounted.destroy;
-  return { target: mounted.target, onMood, onResetMood, onClose };
-}
+afterEach(cleanupMoodSheet);
 
 describe("MoodSheet", () => {
   it("checks the Custom tile and shows its own hint without a mood", () => {
