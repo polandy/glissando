@@ -32,4 +32,18 @@ export const enMood: Pick<Catalogue, keyof typeof deMood> = {
   "mood.previewPending": "♪ …",
   "mood.previewNoBeat": "♪ no beat found",
   "mood.sound": "Sound",
+  "mood.energySwitch": "Follow the music's energy",
+  "mood.energySwitchSubtitle":
+    "Slower when it's quiet, quicker when it's loud, a strong change at a drop",
+  "mood.energyPictureTimesRange": "{from} – {to} · by energy",
+  "mood.energyLiftLabel": "At a drop or chorus",
+  "mood.energyLiftValue": "Cut on the beat",
+  "mood.hintMoodEnergy":
+    "The mood sets the average pace; the energy makes it slower in quiet passages and quicker in loud ones. Pictures with their own duration, transition or motion keep them.",
+  "mood.hintCustomEnergy":
+    "Your picture times stay the average. With “Fill the music” the slideshow still ends with the song. Pictures with their own duration keep it.",
+  "mood.energyBadgeSuffix": "energy",
+  "mood.energyStripQuiet": "quiet → longer",
+  "mood.energyStripLoud": "loud → quicker",
+  "mood.energyFollowsNote": "follows the energy",
 };
