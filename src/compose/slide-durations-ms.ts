@@ -1,5 +1,9 @@
 import { MIN_SECONDS_PER_PICTURE, type StoredPicture } from "../library/stored-slideshow";
 import { MILLISECONDS_PER_SECOND } from "../player/slideshow";
+import { cutAtLifts } from "./energy/cut-at-lifts";
+import { paceByEnergy } from "./energy/pace-by-energy";
+import type { PlaylistEnergy } from "./energy/playlist-energy";
+import { shareByWeightMs } from "./share-by-weight";
 import { snapToBeats } from "./snap-to-beats";
 
 const MIN_SLIDE_DURATION_MS = MIN_SECONDS_PER_PICTURE * MILLISECONDS_PER_SECOND;
@@ -22,8 +26,10 @@ const DEFAULT_WEIGHT = 1;
  * exactly). A share below `MIN_SECONDS_PER_PICTURE`, unweighted, is rejected in favour of the
  * minimum, so the slideshow outlasts a excerpt too short for it. With the playlist's beats, each
  * boundary then moves to the nearest beat (`snapToBeats`), an own duration only to about its set
- * length; the slideshow's end moves too unless the pictures fill the music. See ADR-0008,
- * ADR-0009, ADR-0021, ADR-0022, ADR-0023 and ADR-0028.
+ * length; the slideshow's end moves too unless the pictures fill the music. With the playlist's
+ * energy, the automatic durations are re-paced by it first, then cut at its lifts, before beats
+ * are considered (`paceByEnergy`, `cutAtLifts`; ADR-0046). See ADR-0008, ADR-0009, ADR-0021,
+ * ADR-0022, ADR-0023 and ADR-0028.
  */
 export function slideDurationsMs(
   pictures: readonly TimedPicture[],
@@ -32,6 +38,8 @@ export function slideDurationsMs(
   secondsPerPicture: number,
   /** The beats to change on, in ms of the playlist (`playlistBeatsMs`); absent: none. */
   beatsMs?: readonly number[],
+  /** The playlist's energy and lifts (`playlistEnergy`); absent: the usual durations stand. */
+  energy?: PlaylistEnergy,
 ): number[] {
   if (pictures.length < 1) {
     throw new RangeError(`pictures: expected at least 1, got ${pictures.length}`);
@@ -45,13 +53,22 @@ export function slideDurationsMs(
       : evenSplitMs(automaticWeights, filledMs - ownTotalMs(pictures));
   let nextAutomatic = 0;
   // automaticMs holds exactly one entry per picture without an own duration.
-  const durationsMs = pictures.map(
+  const usualMs = pictures.map(
     (picture) => picture.durationMs ?? (automaticMs[nextAutomatic++] as number),
   );
+  const automatic = pictures.map((picture) => picture.durationMs === undefined);
+  const durationsMs =
+    energy === undefined
+      ? usualMs
+      : cutAtLifts(
+          paceByEnergy(usualMs, automatic, energy, MIN_SLIDE_DURATION_MS),
+          automatic,
+          energy.liftsMs,
+          MIN_SLIDE_DURATION_MS,
+        );
   if (beatsMs === undefined) {
     return durationsMs;
   }
-  const automatic = pictures.map((picture) => picture.durationMs === undefined);
   // Filling the music does not pin the end when there is no automatic slide to fill it with.
   const endOnBeat = filledMs === undefined || automaticWeights.length === 0;
   return snapToBeats(durationsMs, automatic, beatsMs, MIN_SLIDE_DURATION_MS, endOnBeat);
@@ -62,24 +79,19 @@ function ownTotalMs(pictures: readonly TimedPicture[]): number {
 }
 
 /**
- * `restMs` shared in proportion to `weights`, the remainder of whole ms on the first slides so
- * the sum matches exactly; the minimum, unweighted, if a share would fall below it.
+ * `restMs` shared in proportion to `weights` (`shareByWeightMs`); the minimum, unweighted, if a
+ * share would floor below it.
  */
 function evenSplitMs(weights: readonly number[], restMs: number): number[] {
   if (weights.length === 0) {
     return [];
   }
   const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
-  const floorShares = weights.map((weight) => Math.floor((restMs * weight) / totalWeight));
-  if (floorShares.some((share) => share < MIN_SLIDE_DURATION_MS)) {
+  const anyFloorsBelowMinimum = weights.some(
+    (weight) => Math.floor((restMs * weight) / totalWeight) < MIN_SLIDE_DURATION_MS,
+  );
+  if (anyFloorsBelowMinimum) {
     return weights.map(() => MIN_SLIDE_DURATION_MS);
   }
-  let remainderMs = restMs - floorShares.reduce((sum, share) => sum + share, 0);
-  return floorShares.map((share) => {
-    if (remainderMs > 0) {
-      remainderMs -= 1;
-      return share + 1;
-    }
-    return share;
-  });
+  return shareByWeightMs(weights, restMs);
 }

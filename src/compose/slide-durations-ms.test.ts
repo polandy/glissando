@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import type { PlaylistEnergy } from "./energy/playlist-energy";
 import { slideDurationsMs } from "./slide-durations-ms";
 import { MIN_SECONDS_PER_PICTURE } from "../library/stored-slideshow";
 
@@ -71,6 +72,19 @@ describe("slideDurationsMs", () => {
       expect(slideDurationsMs([{ durationMs: 8000 }, { durationMs: 2500 }], 60_000, 5)).toEqual([
         8000, 2500,
       ]);
+    });
+  });
+
+  describe("with energy", () => {
+    // A perfectly neutral curve leaves paceByEnergy's re-weighting a no-op, isolating what this
+    // test is about: a lift already sitting on a beat stays there through snapToBeats too.
+    const neutralEnergy: PlaylistEnergy = { energyAt: () => 0.5, meanEnergy: () => 0.5, liftsMs: [4500] };
+
+    it("keeps a lift-driven boundary exactly where it is when it already sits on a beat", () => {
+      const durations = slideDurationsMs(automatic(2), undefined, 5, [4500], neutralEnergy);
+
+      expect(durations).toEqual([4500, 5500]);
+      expect(sum(durations)).toBe(10_000);
     });
   });
 });

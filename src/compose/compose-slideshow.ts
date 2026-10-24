@@ -15,6 +15,7 @@ import { beatTransitionDurationMs } from "./beat-transition";
 import { composeCards } from "./compose-cards";
 import { composeChapters } from "./compose-chapters";
 import { composedChapters } from "./chapters-of-slideshow";
+import { playlistEnergy } from "./energy/playlist-energy";
 import { moodSettings, moodTempo } from "./mood-settings";
 import { filledMusicMs, playlistBeatsMs, resolvePlaylist, type SongBeats } from "./playlist";
 import { pairKenBurns, pictureKenBurns } from "./picture-ken-burns";
@@ -67,12 +68,14 @@ export function composeSlideshow(
   const defaultTransition = mood?.transition ?? slideshowTransition(stored);
   const look = slideshowLook(stored);
   const beatsMs = playlistBeatsMs(stored, beats);
+  const energy = stored.energyPacing === true ? playlistEnergy(stored, loudness, beats) : undefined;
   // A mood always paces its own seconds per picture and never fills the music (ADR-0045).
   const durationsMs = slideDurationsMs(
     units.map((unit) => timedUnit(stored.pictures, unit)),
     mood === undefined ? filledMusicMs(stored) : undefined,
     mood?.secondsPerPicture ?? stored.secondsPerPicture,
     beatsMs,
+    energy,
   );
   const fit = stored.portraitPictures === "fill-screen" ? COVER_FIT : undefined;
   let slideEndMs = 0;
@@ -91,16 +94,21 @@ export function composeSlideshow(
       fit,
       mood?.kenBurnsStrength,
     );
+    const picture = pictureOf(stored.pictures, unit.pictureIndices[0]);
     const transitionToNext = pictureTransition(
       index,
       units.length,
-      pictureOf(stored.pictures, unit.pictureIndices[0]),
+      picture,
       durationMs,
       defaultTransition,
       mood?.transitionShare,
       mood?.maxTransitionMs,
     );
     if (transitionToNext === undefined) {
+      return slide;
+    }
+    // A cut at a drop or chorus, unless the picture keeps its own transition (ADR-0046).
+    if (picture.transition === undefined && energy?.liftsMs.includes(slideEndMs) === true) {
       return slide;
     }
     if (beatsMs === undefined) {
