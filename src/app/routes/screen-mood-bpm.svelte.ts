@@ -7,9 +7,9 @@ import { storedSongBeats } from "../beats/music-beats-known";
 import { slideshowMoodBpm, slideshowMoodTempoPending } from "../screens/slideshow/mood-tempo";
 
 /**
- * The slideshow's tempo under its mood (ADR-0045): each song's beats as already stored, reread
- * once `load` is called with changed songs, overtaken by whatever the background pass finds this
- * session.
+ * The slideshow's tempo for its mood (ADR-0045), under Custom too: each song's beats as already
+ * stored, reread once `load` is called with changed songs, overtaken by whatever the background
+ * pass finds this session.
  */
 export class ScreenMoodBpm {
   #storedBeats = $state.raw<SongBeats>(NO_SONG_BEATS);
