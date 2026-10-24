@@ -12,11 +12,15 @@ and change quicker in loud ones, and a drop or chorus (a _lift_) gets a cut on i
 - **Short-term loudness** `S(t)` of a song: the mean of `blockMeanSquares` over the blocks
   starting in `[t − 1500, t + 1500 − LOUDNESS_BLOCK_MS]`, clipped to the excerpt, in LUFS;
   silence is floored at the absolute gate (−70 LUFS).
-- **Energy** `e(t) = clamp(0.5 + (S(t) − I) / ENERGY_RANGE_LU, 0, 1)`, where
-  `I = excerptLoudnessLufs` of that song's excerpt and `ENERGY_RANGE_LU = 12`.
+- **The song's own range**: `S` sampled every `LOUDNESS_HOP_MS` over the excerpt gives its
+  percentiles `P10`, `P50` and `P90` (`ENERGY_QUIET_PERCENTILE`, `LIFT_LEVEL_PERCENTILE`,
+  `ENERGY_LOUD_PERCENTILE`). Mastered music swings only a few LU, so energy is measured against
+  the song's own quiet and loud parts, not a fixed range.
+- **Energy** `e(t) = clamp((S(t) − P10) / (P90 − P10), 0, 1)`. A song with
+  `P90 − P10 < ENERGY_MIN_RANGE_LU` (2) has no audible dynamics and counts as flat.
 - **Playlist**: each song is placed like `playlistBeatsMs` (`placeSongs`); inside an overlap the
   incoming song counts. Outside any song, and for a song that is `pictureChanges: "even"`, was not
-  measured, or has `I = null`: `e = NEUTRAL_ENERGY` (0.5) and no lifts.
+  measured, has `I = null` or is flat: `e = NEUTRAL_ENERGY` (0.5) and no lifts.
 - A slide's energy is the mean of `e` sampled every `LOUDNESS_HOP_MS` over its span.
 
 ## Lifts
@@ -27,8 +31,8 @@ Per song, over its excerpt, sampled every `LOUDNESS_HOP_MS`:
   `[t − LIFT_WINDOW_MS, t)`, and `A(t)` the same over `[t, t + LIFT_WINDOW_MS)`, where
   `LIFT_WINDOW_MS = 4000`.
 - **Where a lift is**: `t` is a lift when all of these hold:
-  - `A(t) − B(t) ≥ LIFT_RISE_LU` (6);
-  - `A(t) ≥ I`;
+  - `A(t) − B(t) ≥ LIFT_RISE_LU` (4);
+  - `A(t) ≥ P50`;
   - the rise is a local maximum, with the earliest of equal values winning;
   - `t ≥ excerpt start + LIFT_WINDOW_MS` and `t ≤ excerpt end − LIFT_WINDOW_MS`;
   - `t` is at least `LIFT_MIN_GAP_MS` (20 000) after the previous lift. The larger rise wins a
@@ -45,9 +49,11 @@ Per song, over its excerpt, sampled every `LOUDNESS_HOP_MS`:
    music's even split.
 2. **Weights** (`paceByEnergy`): three passes (`ENERGY_PASSES`). Each pass weights every
    automatic slide by `usual × ENERGY_SPREAD ^ (1 − 2·meanEnergy(span))`, with
-   `ENERGY_SPREAD = 1.5`, using the spans of the previous pass. The automatic total is then
-   shared out by those weights, in whole ms, with the remainder going to the first slides. If any
-   share falls below `MIN_SECONDS_PER_PICTURE`, the usual durations are kept. Own durations never
+   `ENERGY_SPREAD = 2` (quiet twice the usual, loud half), using the spans of the previous pass.
+   The automatic total is then shared out by those weights, in whole ms, with the remainder going
+   to the first slides. A share below `MIN_SECONDS_PER_PICTURE` is raised to it and the rest of
+   the total is shared again among the others, until none is below. Only when the total cannot
+   give every automatic slide the minimum are the usual durations kept. Own durations never
    change.
 3. **Lifts** (`cutAtLifts`): for each lift, the nearest boundary between two automatic slides
    moves onto it, if both stay at or above the minimum. Otherwise the lift is skipped.
