@@ -154,16 +154,10 @@
   // svelte-ignore state_referenced_locally
   const newPictureIds: ReadonlySet<string> = new Set(addedPictureIds);
 
-  /** The card sheet only opens once the screen (and so the editor) is shown. */
-  function mustEditor(): SlideshowEditor {
-    if (editor === null) throw new Error("the editor is not ready yet");
-    return editor;
-  }
-
-  /** The mood preview only opens once the screen (and so the slideshow) is shown. */
-  function mustStored(): StoredSlideshow {
-    if (stored === null) throw new Error("the slideshow is not ready yet");
-    return stored;
+  /** The card sheet and the mood preview only reach for `editor`/`stored` once the screen shows. */
+  function must<Value>(value: Value | null, what: string): Value {
+    if (value === null) throw new Error(`${what} is not ready yet`);
+    return value;
   }
 
   const details = $derived(
@@ -240,15 +234,16 @@
     onResetLook={() => editor?.look.reset()}
     {moodBpm}
     {moodPending}
-    moodPreviewPorts={{ store, stored: mustStored(), musicOutput, decodeClipSound, log }}
+    moodPreviewPorts={{ store, stored: must(stored, "the slideshow"), musicOutput, decodeClipSound, log }}
     onMood={(mood) => editor?.mood.set(mood)}
     onResetMood={() => editor?.mood.reset()}
+    onEnergyPacing={(on) => editor?.setEnergyPacing(on)}
     onPortraitPictures={(choice) => editor?.setPortraitPictures(choice)}
     onResetPortraitPictures={() => editor?.resetPortraitPictures()}
-    onEnsureOpeningCard={() => mustEditor().ensureOpeningCard()}
+    onEnsureOpeningCard={() => must(editor, "the editor").ensureOpeningCard()}
     onOpeningCard={(card) => editor?.setOpeningCard(card)}
     onRemoveOpeningCard={() => editor?.removeOpeningCard()}
-    onEnsureClosingCard={() => mustEditor().ensureClosingCard()}
+    onEnsureClosingCard={() => must(editor, "the editor").ensureClosingCard()}
     onClosingCard={(card) => editor?.setClosingCard(card)}
     onRemoveClosingCard={() => editor?.removeClosingCard()}
     chapterEditor={editor?.chapters ?? null}

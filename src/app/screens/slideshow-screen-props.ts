@@ -65,6 +65,8 @@ export interface SlideshowScreenProps {
   onMood: (mood: SlideshowMood | undefined) => void;
   /** "Back to Custom" in the Mood sheet. */
   onResetMood: () => void;
+  /** The Mood sheet's "Follow the music's energy" switch (ADR-0046): stores at once. */
+  onEnergyPacing: (on: boolean) => void;
   /** A choice was picked in the portrait pictures sheet. */
   onPortraitPictures: (choice: PortraitPictures) => void;
   /** "Back to automatic" in the portrait pictures sheet. */

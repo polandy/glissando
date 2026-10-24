@@ -44,6 +44,7 @@
     moodPreviewPorts,
     onMood,
     onResetMood,
+    onEnergyPacing,
     onPortraitPictures,
     onResetPortraitPictures,
     onEnsureOpeningCard,
@@ -218,6 +219,7 @@
   {moodPending}
   {onMood}
   {onResetMood}
+  {onEnergyPacing}
   {onPortraitPictures}
   {onResetPortraitPictures}
   onTransitionsClosed={() => infoPanel?.focusTransitions()}
