@@ -67,6 +67,17 @@ describe("songLiftsMs", () => {
     expect(songLiftsMs(loudness, LIFT_LEVEL_LUFS, 0, 70_000)).toEqual([10_000, 50_000]);
   });
 
+  it("measures the gap only against kept lifts, never against one already dropped", () => {
+    const loudness = syntheticLoudness([
+      ...levelMs(-40, 10_000),
+      ...levelMs(-16, 12_000), // the largest rise, at 10 s: kept
+      ...levelMs(-10, 12_000), // 6 LU up at 22 s: only 12 s after 10 s, dropped
+      ...levelMs(-5, 10_000), // 5 LU up at 34 s: 24 s after the kept lift, 12 s after the dropped one
+    ]);
+
+    expect(songLiftsMs(loudness, LIFT_LEVEL_LUFS, 0, 44_000)).toEqual([10_000, 34_000]);
+  });
+
   it("moves a lift to the nearest beat of the song's excerpt when it has beats", () => {
     const loudness = syntheticLoudness([
       ...levelMs(QUIET_LUFS, 15_000),

@@ -31,8 +31,7 @@ export function songLiftsMs(
   const candidates = localMaxima(rises).filter(
     (rise) => rise.riseLu >= LIFT_RISE_LU && rise.afterLufs >= liftLevelLufs,
   );
-  const acceptedMs = strongestFirst(candidates)
-    .filter((candidate, _, accepted) => farEnoughFromEarlierAccepted(candidate, accepted))
+  const acceptedMs = keptApart(strongestFirst(candidates))
     .map((candidate) => candidate.atMs)
     .sort((a, b) => a - b);
   return beatsMs === undefined ? acceptedMs : acceptedMs.map((atMs) => nearestOf(beatsMs, atMs));
@@ -70,11 +69,15 @@ function strongestFirst(candidates: readonly RiseAt[]): RiseAt[] {
   return [...candidates].sort((a, b) => b.riseLu - a.riseLu || a.atMs - b.atMs);
 }
 
-function farEnoughFromEarlierAccepted(candidate: RiseAt, ranked: readonly RiseAt[]): boolean {
-  const strongerOrEarlier = ranked.slice(0, ranked.indexOf(candidate));
-  return strongerOrEarlier.every(
-    (accepted) => Math.abs(accepted.atMs - candidate.atMs) >= LIFT_MIN_GAP_MS,
-  );
+/** Walks `ranked` in order, keeping each rise at least `LIFT_MIN_GAP_MS` from every one kept. */
+function keptApart(ranked: readonly RiseAt[]): RiseAt[] {
+  const kept: RiseAt[] = [];
+  for (const candidate of ranked) {
+    if (kept.every((lift) => Math.abs(lift.atMs - candidate.atMs) >= LIFT_MIN_GAP_MS)) {
+      kept.push(candidate);
+    }
+  }
+  return kept;
 }
 
 function meanLoudnessLufs(loudness: MusicLoudness, fromMs: number, toMs: number): number {
