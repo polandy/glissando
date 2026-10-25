@@ -9,6 +9,14 @@ test.use(GERMAN_BROWSER);
 /** The fixture albums (`src/immich/fixtures/albums.json`), by name. */
 const LANDSCAPES_ALBUM_ID = "81d82341-f78f-43b8-8b6a-9e156b52f550";
 
+/** Any fixed start for the page's clock; the case only counts time from it. */
+const CLOCK_START = new Date("2026-01-01T12:00:00Z").getTime();
+/**
+ * How far the page's clock is moved on when it is held: past the moment it was installed, which
+ * holding it at an earlier time would refuse.
+ */
+const CLOCK_HOLD_MS = 60_000;
+
 function setUpCard(page: Page): Locator {
   return page.getByRole("button", { name: "Einrichten" });
 }
@@ -58,10 +66,10 @@ async function openAppWithServer(page: Page, path = "/"): Promise<void> {
 test("E2E-047 the picture frame is set up from the start screen, runs full screen and its tap controls exit back to the start screen on both the button and Esc", async ({
   page,
 }) => {
-  // A long `controlsVisibleMs` (`browser-frame-device.ts`) keeps the tap controls up for every
-  // step below, instead of racing their real 4 s auto-hide (`tap-controls.ts`); that auto-hide
-  // itself is proven deterministically at the unit level (`tap-controls.test.ts`).
-  await openAppWithServer(page, "/?controlsVisibleMs=60000");
+  // The held page clock (set before the frame starts) keeps the tap controls up for every step,
+  // instead of racing their real 4 s auto-hide (`tap-controls.ts`); that auto-hide itself is proven
+  // deterministically at the unit level (`tap-controls.test.ts`).
+  await openAppWithServer(page);
 
   await expect(page.getByText("Bilderrahmen", { exact: true })).toBeVisible();
   await setUpCard(page).click();
@@ -88,8 +96,17 @@ test("E2E-047 the picture frame is set up from the start screen, runs full scree
   await expect(settingSwitch(page, "Uhr anzeigen")).not.toBeChecked();
   await expect(settingSwitch(page, "Datum anzeigen")).not.toBeChecked();
 
+  // The frame's player draws on the page's clock, held still so it never competes on the main
+  // thread with the taps below; the tap controls' auto-hide timer is held with it.
+  await page.clock.install({ time: CLOCK_START });
+  await page.clock.pauseAt(CLOCK_START + CLOCK_HOLD_MS);
+
   await startFrameButton(page).click();
   await expect(exitButton(page)).toBeVisible();
+  await expect(page.getByRole("application", { name: "Bilderrahmen" })).toHaveAttribute(
+    "aria-busy",
+    "false",
+  );
 
   // The controls stay hidden until a tap: proven by opacity, since the pill is in the DOM (so
   // the regular `toBeVisible` cannot tell idle from revealed) but not interactive while idle.
@@ -115,6 +132,10 @@ test("E2E-047 the picture frame is set up from the start screen, runs full scree
 
   await startFrameButton(page).click();
   await expect(exitButton(page)).toBeVisible();
+  await expect(page.getByRole("application", { name: "Bilderrahmen" })).toHaveAttribute(
+    "aria-busy",
+    "false",
+  );
   await page.locator(".stage").click();
   await expect(exitButton(page)).toHaveCSS("opacity", "1");
   await page.keyboard.press("Escape");
