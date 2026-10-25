@@ -9,15 +9,14 @@ export interface InfoPanelMoodValues {
   readonly transitionValue: string;
   readonly transitionRowSummary: string;
   readonly pictureTimesValue: string;
-  /** Under Custom with the energy pacing on: "follows the energy", shown under the value. */
   readonly kenBurnsValue: string;
 }
 
 /**
  * The transition, picture times and Ken Burns rows' displayed value, and the transition row's
  * summary: a mood's own text (ADR-0045) once one is set, else the slideshow's own automatic (or
- * own-count) text, as already shown before moods existed. Under the energy pacing (ADR-0046),
- * "Picture times" shows the found range instead, or without a mood, a note under the value.
+ * own-count) text. Under a mood with the energy pacing on (ADR-0046), "Picture times" shows the
+ * found range instead; under Custom it keeps its value, the switch row below says it is on.
  */
 export function infoPanelMoodValues(
   translator: Pick<Translator, "t" | "formatSeconds">,
