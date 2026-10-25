@@ -30,10 +30,12 @@ The sheet also holds the switch "Follow the music's energy" ([ENERGY_PACING](ENE
 
 ## Composing
 
-`composeSlideshow` with `stored.mood` set: `secondsPerPicture` is the mood's seconds, the music
-is not filled (`stored.pictureLength` ignored), the default transition is the mood's, and the
-transition length and Ken Burns strength follow the table. Own duration, own transition and own
-motion of a picture win as always (ADR-0008); beats snap as in `dev-docs/COMPOSITION.md`.
+`composeSlideshow` with `stored.mood` set: `secondsPerPicture` is the mood's seconds
+(`stored.pictureLength` ignored), the default transition is the mood's, and the transition
+length and Ken Burns strength follow the table. A shorter music still shrinks the mood's seconds
+to fit it, like "Fill the music" and own seconds (`picturesFillMs`, ADR-0047) — the mood keeps
+its pace otherwise. Own duration, own transition and own motion of a picture win as always
+(ADR-0008); beats snap as in `dev-docs/COMPOSITION.md`.
 
 ## Editing
 

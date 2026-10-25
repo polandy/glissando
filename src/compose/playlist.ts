@@ -21,7 +21,10 @@ import {
 export const CROSSFADE_MS = 3 * MILLISECONDS_PER_SECOND;
 
 /** What the playlist is made of. */
-export type Playlist = Pick<StoredSlideshow, "songs" | "betweenSongs">;
+export type Playlist = Pick<StoredSlideshow, "songs" | "betweenSongs" | "repeatMusic">;
+
+/** A sane ceiling on playlist repeats, so a song with no forward progress fails loud, not forever. */
+const MAX_PLAYLIST_REPEATS = 1000;
 
 /** The beats found so far per music id; a song absent was not listened to yet. */
 export type SongBeats = ReadonlyMap<string, MusicBeats>;
@@ -56,7 +59,9 @@ export function resolvePlaylist(
   slideshowMs: number,
   minEndFadeMs?: number,
 ): PlaylistTrack[] {
-  const tracks = placeSongs(playlist).filter(({ atMs }) => atMs < slideshowMs);
+  const tracks = placeSongs(repeatedPlaylist(playlist, slideshowMs)).filter(
+    ({ atMs }) => atMs < slideshowMs,
+  );
   return tracks.map(({ song, atMs, fadeInMs, fadeOutMs }, index) => {
     const excerpt = musicExcerpt(song);
     const endMs = Math.min(excerpt.endMs, excerpt.startMs + slideshowMs - atMs);
@@ -77,14 +82,29 @@ export function resolvePlaylist(
 }
 
 /**
- * The length the pictures without an own duration share: the playlist's while they fill it
- * (`StoredSlideshow.pictureLength` absent, ADR-0022). Absent without songs, or when they last
- * their own seconds.
+ * The playlist repeated from its first song, joined like any two songs, until it reaches
+ * `slideshowMs` (`StoredSlideshow.repeatMusic`, ADR-0047); the playlist once through otherwise, or
+ * without songs. Grows by whole songs, so it may run a little past `slideshowMs` — `resolvePlaylist`
+ * cuts what plays beyond it.
  */
-export function filledMusicMs(
-  slideshow: Playlist & Pick<StoredSlideshow, "pictureLength">,
-): number | undefined {
-  return slideshow.pictureLength === undefined ? playlistMs(slideshow) : undefined;
+export function repeatedPlaylist(playlist: Playlist, slideshowMs: number): Playlist {
+  const { songs, betweenSongs } = playlist;
+  const onceThrough: Playlist = betweenSongs === undefined ? { songs } : { songs, betweenSongs };
+  if (playlist.repeatMusic !== true || songs.length === 0) {
+    return onceThrough;
+  }
+  let repeated = songs;
+  for (let repeats = 1; repeats <= MAX_PLAYLIST_REPEATS; repeats += 1) {
+    // placeSongs never returns an empty list for a non-empty songs array.
+    const last = placeSongs({ ...onceThrough, songs: repeated }).at(-1) as PlacedSong;
+    if (last.atMs + musicExcerptMs(last.song) >= slideshowMs) {
+      return { ...onceThrough, songs: repeated };
+    }
+    repeated = [...repeated, ...songs];
+  }
+  throw new RangeError(
+    `playlist: did not reach ${slideshowMs} ms of music within ${MAX_PLAYLIST_REPEATS} repeats`,
+  );
 }
 
 /**
@@ -100,12 +120,17 @@ export function playlistMs(playlist: Playlist): number | undefined {
  * The beats the pictures change on, in ms of the playlist: each song's excerpt beats placed at
  * its start; inside an overlap only the incoming song's. A song with even picture changes, without
  * a clear beat or not listened to yet gives none; absent when no song gives any (ADR-0023).
+ * `slideshowMs`, when the playlist repeats, reaches as far into the repeats as it needs
+ * (`repeatedPlaylist`); omitted, or without a repeat, only the playlist once through is placed.
  */
 export function playlistBeatsMs(
   playlist: Playlist,
   beats: SongBeats,
+  slideshowMs?: number,
 ): readonly number[] | undefined {
-  const placed = placeSongs(playlist);
+  const placed = placeSongs(
+    slideshowMs === undefined ? playlist : repeatedPlaylist(playlist, slideshowMs),
+  );
   const perSong = placed.map(({ song, atMs }, index) => {
     const songBeatsMs = excerptBeatsMs(song, beats.get(song.id) ?? NO_BEATS);
     const nextAtMs = placed[index + 1]?.atMs ?? Number.POSITIVE_INFINITY;

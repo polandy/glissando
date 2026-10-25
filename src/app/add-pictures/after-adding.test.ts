@@ -119,6 +119,40 @@ const cases: readonly {
       placement: null,
     },
   },
+  {
+    name: "own seconds shrink to fit a shorter music instead of outlasting it (ADR-0047)",
+    show: slideshow({
+      pictures: pictures(5, "old"),
+      songs: [{ ...MUSIC, durationMs: 25_000 }],
+      secondsPerPicture: 6,
+      pictureLength: OWN_SECONDS_PICTURE_LENGTH,
+    }),
+    added: 0,
+    expected: {
+      pictures: { before: 5, after: 5 },
+      durationSeconds: { before: 25, after: 25 },
+      perPictureSeconds: { before: 5, after: 5 },
+      note: { kind: "fitted", shareSeconds: 5 },
+      placement: null,
+    },
+  },
+  {
+    name: "own seconds too far below the floor keep their length and end in silence, not musicTooShort",
+    show: slideshow({
+      pictures: pictures(5, "old"),
+      songs: [{ ...MUSIC, durationMs: 15_000 }],
+      secondsPerPicture: 6,
+      pictureLength: OWN_SECONDS_PICTURE_LENGTH,
+    }),
+    added: 0,
+    expected: {
+      pictures: { before: 5, after: 5 },
+      durationSeconds: { before: 30, after: 30 },
+      perPictureSeconds: null,
+      note: { kind: "ownSeconds", secondsPerPicture: 6 },
+      placement: null,
+    },
+  },
 ];
 
 describe("afterAdding", () => {

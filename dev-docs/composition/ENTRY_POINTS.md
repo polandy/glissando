@@ -8,7 +8,7 @@
   loudness (`SongLoudness`, from `LibraryStore.musicLoudness`; absent until measured, `gain` 1
   meanwhile, ADR-0040) — all three read when the player or an export starts — play never waits
   on the search for the rest.
-- `slideDurationsMs` with `filledMusicMs` and `playlistBeatsMs` gives the editors the same timing: the music
+- `slideDurationsMs` with `picturesFillMs` and `playlistBeatsMs` gives the editors the same timing: the music
   editor's lane and the picture editor's duration and transition (`beatTransitionDurationMs`)
   follow the beats as the background pass finds them.
 - `pictureDurationsMs` wraps `slideUnits` and `slideDurationsMs` to give one duration per

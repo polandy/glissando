@@ -4,18 +4,29 @@
 `PAIR_WEIGHT` (1.5) of a single slide's share; a pair is always automatic, since a picture with
 any own setting is never paired. A picture's own duration (`StoredPicture.durationMs`,
 ADR-0008) is kept exactly, unless the music's beats move it (below). Without music, and with
-music when `StoredSlideshow.pictureLength` is `"seconds"` (ADR-0022), every other slide gets
-`secondsPerPicture` times its weight. When the pictures fill the music (`pictureLength` absent;
-`filledMusicMs`), the slides without an own duration share what the own durations leave of the
-playlist (`playlistMs`: the songs' excerpts — each the trim, or the whole track, ADR-0009 —
-summed, less the crossfades' overlaps; ADR-0023) by weight (the remainder milliseconds go to the
-first of them, so the sum matches the playlist exactly) — unless that share would fall below
-`MIN_SECONDS_PER_PICTURE`, unweighted (or nothing is left), in which case each of them gets the
-minimum and the slideshow outlasts the music; filling it or not then makes no difference when
-every picture has an own duration.
+music when `StoredSlideshow.pictureLength` is `"seconds"` (ADR-0022) or a mood is set
+([MOOD](../app/slideshow-editing/MOOD.md), ADR-0045) and the music does not need fitting, every
+other slide gets its target seconds (`secondsPerPicture`, or the mood's) times its weight. When
+the pictures fill the music (`pictureLength` absent and no mood; `picturesFillMs`), the slides
+without an own duration share what the own durations leave of the playlist (`playlistMs`: the
+songs' excerpts — each the trim, or the whole track, ADR-0009 — summed, less the crossfades'
+overlaps; ADR-0023, or the repeated playlist's length with `repeatMusic` set, ADR-0047) by weight
+(the remainder milliseconds go to the first of them, so the sum matches the playlist exactly) —
+unless that share would fall below `MIN_SECONDS_PER_PICTURE`, unweighted (or nothing is left), in
+which case each of them gets the minimum and the slideshow outlasts the music; filling it or not
+then makes no difference when every picture has an own duration.
 
-Under a mood ([MOOD](../app/slideshow-editing/MOOD.md), ADR-0045), every slide lasts its
-seconds per picture instead, and the music is never filled.
+## Fitting a shorter music
+
+`picturesFillMs` (`src/compose/filled-length.ts`, ADR-0047) also decides, for own seconds and a
+mood alike, whether a shorter playlist than the automatic pictures' target length should be
+filled instead of leaving the last pictures in silence: when the automatic pictures, unweighted
+after the own durations, would still get at least `MIN_SLIDE_DURATION_MS` or ⅔ of their target
+seconds (whichever is larger — `FIT_SHRINK_FACTOR`), the playlist's length is returned so they
+fill it, same as "Fill the music"; otherwise the target seconds are kept and the slideshow
+outlasts the music. `StoredSlideshow.repeatMusic` set, or no playlist, always keeps the target:
+a repeating playlist leaves no gap to fit, so the pictures keep their own or mood length. Nothing
+is stored: the fit is worked out again on every composition.
 
 ## By the music's energy
 

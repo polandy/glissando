@@ -1,13 +1,13 @@
 import {
   automaticTransition,
   beatTransitionDurationMs,
-  filledMusicMs,
   pairKenBurns,
   pictureKenBurns,
   pictureLayoutSummaries,
   type PictureLayoutSummary,
   NO_SONG_LOUDNESS,
   playlistBeatsMs,
+  playlistMs,
   pictureTransition,
   slideDurationsMs,
   slideOfPicture,
@@ -19,6 +19,7 @@ import {
   type SongLoudness,
 } from "../../compose";
 import { playlistEnergy } from "../../compose/energy/playlist-energy";
+import { picturesFillMs, targetSecondsPerPicture } from "../../compose/filled-length";
 import type { OwnKenBurns } from "../../library/own-ken-burns";
 import type { SlideshowTransition, TransitionChoice } from "../../library/own-timing";
 import type { PortraitPictures } from "../../library/portrait-pictures";
@@ -131,10 +132,13 @@ export function pictureEditorView(
   // The preview plays the picture's slide as composed (ADR-0028): a pair is one slide, timed
   // once, with one transition and the pair's motion.
   const units = slideUnits(pictures, stored.portraitPictures);
+  const timedPictures = units.map((unit) => timedUnit(pictures, unit));
+  const target = targetSecondsPerPicture(stored.pictureLength, stored.secondsPerPicture);
+  const filledMs = picturesFillMs(playlistMs(stored), timedPictures, target, stored.repeatMusic);
   const durationsMs = slideDurationsMs(
-    units.map((unit) => timedUnit(pictures, unit)),
-    filledMusicMs(stored),
-    stored.secondsPerPicture,
+    timedPictures,
+    filledMs,
+    target ?? stored.secondsPerPicture,
     beatsMs,
     energy,
   );

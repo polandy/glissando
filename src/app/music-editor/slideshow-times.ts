@@ -1,12 +1,14 @@
 import {
-  filledMusicMs,
   playlistBeatsMs,
+  playlistMs,
   slideDurationsMs,
   slideUnits,
   timedUnit,
   type SongBeats,
 } from "../../compose";
 import { playlistEnergy } from "../../compose/energy/playlist-energy";
+import { picturesFillMs, targetSecondsPerPicture } from "../../compose/filled-length";
+import { moodSettings, moodTempo } from "../../compose/mood-settings";
 import type { StoredSlideshow } from "../../library/stored-slideshow";
 import { composedBeats, type BeatsStatus } from "../beats/music-beats-known";
 import { composedLoudness, type LoudnessStatus } from "../loudness/music-loudness-known";
@@ -49,11 +51,15 @@ export interface SlideshowTimes {
   readonly beatsMs: readonly number[] | undefined;
   readonly durationsMs: readonly number[];
   readonly slideshowMs: number;
+  /** Whether the automatic pictures fill the excerpt, or fit a shorter one (`picturesFillMs`). */
+  readonly picturesFit: boolean;
 }
 
 /**
  * `loudness`, with what is known of it, re-paces the automatic slides by the playlist's energy
- * while `stored.energyPacing` is set (ADR-0046), so the editor's times match the player's.
+ * while `stored.energyPacing` is set (ADR-0046), so the editor's times match the player's. Own
+ * seconds or a mood shrink to fit a shorter excerpt instead of outlasting it where they can
+ * (ADR-0047).
  */
 export function slideshowTimes(
   stored: StoredSlideshow,
@@ -68,13 +74,27 @@ export function slideshowTimes(
     stored.energyPacing === true
       ? playlistEnergy(stored, composedLoudness(loudness), found)
       : undefined;
+  const mood =
+    stored.mood === undefined ? undefined : moodSettings(stored.mood, moodTempo(stored, found));
   const units = slideUnits(stored.pictures, stored.portraitPictures);
-  const durationsMs = slideDurationsMs(
-    units.map((unit) => timedUnit(stored.pictures, unit)),
-    filledMusicMs(stored),
+  const timedPictures = units.map((unit) => timedUnit(stored.pictures, unit));
+  const target = targetSecondsPerPicture(
+    stored.pictureLength,
     stored.secondsPerPicture,
+    mood?.secondsPerPicture,
+  );
+  const filledMs = picturesFillMs(playlistMs(stored), timedPictures, target, stored.repeatMusic);
+  const durationsMs = slideDurationsMs(
+    timedPictures,
+    filledMs,
+    target ?? stored.secondsPerPicture,
     beatsMs,
     energy,
   );
-  return { beatsMs, durationsMs, slideshowMs: sum(durationsMs) };
+  return {
+    beatsMs,
+    durationsMs,
+    slideshowMs: sum(durationsMs),
+    picturesFit: filledMs !== undefined,
+  };
 }

@@ -88,4 +88,12 @@ describe("musicEditorView, pictures lasting their own seconds with music", () =>
       secondsPerPicture: 5,
     });
   });
+
+  it("shrinks the pictures to end with a shorter song instead of outlasting it (ADR-0047)", () => {
+    // 4 pictures at 5 s would outlast a 16 s song, but a 4 s share stays at or above the
+    // floor (2/3 of 5 s), so they shrink to it instead of ending in silence.
+    const view = firstSongView(slideshow(16_000), FOUND);
+
+    expect(view.note).toEqual({ kind: "fitted", shareMs: 4000, onTheBeat: true });
+  });
 });

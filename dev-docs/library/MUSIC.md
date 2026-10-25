@@ -23,9 +23,12 @@ and throws for one the slideshow does not play (`src/library/slideshow-edits-mus
 validate (`checkMusicTrim`, `checkMusicFadeMs`, `checkPictureChanges`). The playlist's own
 edits are in `src/library/slideshow-edits-songs.ts`: `addSongs` appends (refusing a song it
 already has, validating each song's own fields), `removeSong`, `moveSong` (a song with its own
-settings to another place) and `setBetweenSongs` (`StoredSlideshow.betweenSongs` `"sequence"`
+settings to another place), `setBetweenSongs` (`StoredSlideshow.betweenSongs` `"sequence"`
 plays the songs one after another, `checkBetweenSongs`; `undefined` deletes the field, so they
-crossfade). A removed song's media goes with the clean-up of unreferenced media.
+crossfade) and `setRepeatMusic` (`StoredSlideshow.repeatMusic` `true` repeats the playlist from
+its first song for as long as the slideshow lasts instead of the pictures fitting a shorter one;
+`undefined` deletes the field, so it plays once, ADR-0047). A removed song's media goes with the
+clean-up of unreferenced media.
 
 ## Loudness levelling and song volume
 

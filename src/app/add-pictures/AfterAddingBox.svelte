@@ -52,6 +52,10 @@
     </Notice>
   {:else if after.note.kind === "sharesMusic"}
     <p class="note">{t("add.sharesMusic")}</p>
+  {:else if after.note.kind === "fitted"}
+    <p class="note">
+      {t("add.fitted", { seconds: formatTenthSeconds(after.note.shareSeconds) })}
+    </p>
   {:else}
     <p class="note">
       {t("add.ownSeconds", { seconds: formatSeconds(after.note.secondsPerPicture) })}

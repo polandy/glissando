@@ -1,6 +1,7 @@
 import { playlistEnergy } from "../../../compose/energy/playlist-energy";
+import { picturesFillMs, targetSecondsPerPicture } from "../../../compose/filled-length";
 import { moodSettings, moodTempo } from "../../../compose/mood-settings";
-import { filledMusicMs, playlistBeatsMs, type SongBeats } from "../../../compose/playlist";
+import { playlistBeatsMs, playlistMs, type SongBeats } from "../../../compose/playlist";
 import { slideDurationsMs } from "../../../compose/slide-durations-ms";
 import { slideUnits, timedUnit } from "../../../compose/slide-units";
 import type { SongLoudness } from "../../../compose/song-loudness";
@@ -55,10 +56,17 @@ function composePacing(
     shownMood === undefined ? undefined : moodSettings(shownMood, moodTempo(stored, beats));
   const beatsMs = playlistBeatsMs(stored, beats);
   const energy = playlistEnergy(stored, loudness, beats);
+  const timedPictures = units.map((unit) => timedUnit(stored.pictures, unit));
+  const target = targetSecondsPerPicture(
+    stored.pictureLength,
+    stored.secondsPerPicture,
+    mood?.secondsPerPicture,
+  );
+  const filledMs = picturesFillMs(playlistMs(stored), timedPictures, target, stored.repeatMusic);
   const durationsMs = slideDurationsMs(
-    units.map((unit) => timedUnit(stored.pictures, unit)),
-    mood === undefined ? filledMusicMs(stored) : undefined,
-    mood?.secondsPerPicture ?? stored.secondsPerPicture,
+    timedPictures,
+    filledMs,
+    target ?? stored.secondsPerPicture,
     beatsMs,
     energy,
   );

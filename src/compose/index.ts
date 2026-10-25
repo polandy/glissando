@@ -32,16 +32,17 @@ export { trackGain, type TrackGainInput } from "./track-gain";
 export {
   CROSSFADE_MS,
   NO_SONG_BEATS,
-  filledMusicMs,
   playlistBeatsMs,
   placeSongs,
   playlistMs,
+  repeatedPlaylist,
   resolvePlaylist,
   type Playlist,
   type PlacedSong,
   type PlaylistTrack,
   type SongBeats,
 } from "./playlist";
+export { picturesFillMs, targetSecondsPerPicture } from "./filled-length";
 export {
   AUTOMATIC_MUSIC_FADE_IN_MS,
   AUTOMATIC_MUSIC_FADE_OUT_MS,

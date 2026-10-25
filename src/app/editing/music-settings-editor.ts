@@ -5,6 +5,7 @@ import {
   moveSong,
   removeSong,
   setBetweenSongs,
+  setRepeatMusic,
   songIndex,
 } from "../../library/slideshow-edits-songs";
 import {
@@ -81,6 +82,14 @@ export class MusicSettingsEditor {
   /** `"sequence"`: one song after another; `undefined`: they crossfade. */
   setBetweenSongs(betweenSongs: BetweenSongs | undefined): void {
     this.#apply(setBetweenSongs(this.#current(), betweenSongs));
+  }
+
+  /**
+   * `true` repeats the playlist for as long as the slideshow lasts, instead of the automatic
+   * pictures shrinking to fit a shorter one; `undefined` plays it once through (ADR-0047).
+   */
+  setRepeatMusic(repeatMusic: true | undefined): void {
+    this.#apply(setRepeatMusic(this.#current(), repeatMusic));
   }
 
   /** Plays only `trim` of the song; `undefined` or the whole track plays all of it. */

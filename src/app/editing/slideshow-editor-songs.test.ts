@@ -37,6 +37,16 @@ describe("SlideshowEditor, the playlist (ADR-0023)", () => {
     expect(editor.slideshow.betweenSongs).toBeUndefined();
   });
 
+  it("repeats the playlist until the slideshow ends, or plays it once (ADR-0047)", async () => {
+    const { editor } = await setUp(["a"], [song("m1"), song("m2")]);
+
+    editor.setRepeatMusic(true);
+    expect(editor.slideshow.repeatMusic).toBe(true);
+
+    editor.setRepeatMusic(undefined);
+    expect(editor.slideshow.repeatMusic).toBeUndefined();
+  });
+
   it("removes a song with an undo toast that puts it back at its place", async () => {
     const { editor, toaster } = await setUp(["a"], [song("m1"), song("m2"), song("m3")]);
 

@@ -121,7 +121,11 @@ export function musicEditorView(
   // songIndex only returns the index of a song the playlist has.
   const { song: music, atMs, fadeInMs, fadeOutMs } = placed[index] as PlacedSong;
   const { startMs, endMs } = musicExcerpt(music);
-  const { beatsMs, durationsMs, slideshowMs } = slideshowTimes(stored, beats, loudness);
+  const { beatsMs, durationsMs, slideshowMs, picturesFit } = slideshowTimes(
+    stored,
+    beats,
+    loudness,
+  );
   const status = songBeatsStatus(beats, songId);
   const pictureChanges = pictureChangesView(stored, music, status);
   const loudnessStatus = songLoudnessStatus(loudness, songId);
@@ -216,6 +220,7 @@ export function musicEditorView(
       durationsMs,
       playlistLengthMs,
       beatsMs !== undefined,
+      picturesFit,
       moodSecondsPerPicture,
     ),
   };

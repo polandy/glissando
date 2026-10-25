@@ -14,6 +14,15 @@ export type TimingNote =
       readonly onTheBeat: boolean;
     }
   /**
+   * Own seconds or a mood set what the automatic pictures would otherwise last, but they shrink
+   * to end with the excerpt instead of outlasting it, `shareMs` each about the mean (ADR-0047).
+   */
+  | {
+      readonly kind: "fitted";
+      readonly shareMs: number;
+      readonly onTheBeat: boolean;
+    }
+  /**
    * The slideshow plays on in silence for `overMs` after the music: the automatic pictures last
    * their own `secondsPerPicture`, or (absent) the share fell to the minimum.
    */
@@ -39,16 +48,18 @@ export type TimingNote =
   | { readonly kind: "ends-with-music" };
 
 /**
- * What the pictures' times say about the music: shared, outlasting or ending early.
- * `moodSecondsPerPicture`, under a mood, is what every automatic picture actually lasts
+ * What the pictures' times say about the music: shared, fitted, outlasting or ending early.
+ * `moodSecondsPerPicture`, under a mood, is what every automatic picture would otherwise last
  * (`moodSettings` resolved against the tempo); it always wins over the single settings, which a
- * mood ignores (MOOD.md).
+ * mood ignores (MOOD.md). `picturesFit` (`SlideshowTimes.picturesFit`) says whether own seconds
+ * or the mood shrink to end with the excerpt instead (ADR-0047).
  */
 export function timingNote(
   stored: StoredSlideshow,
   durationsMs: readonly number[],
   excerptMs: number,
   onTheBeat: boolean,
+  picturesFit: boolean,
   moodSecondsPerPicture?: number,
 ): TimingNote {
   const slideshowMs = sum(durationsMs);
@@ -65,6 +76,14 @@ export function timingNote(
   const ownSeconds =
     (moodSecondsPerPicture !== undefined || stored.pictureLength !== undefined) &&
     automaticMs.length > 0;
+  if (ownSeconds && picturesFit) {
+    return {
+      kind: "fitted",
+      // The mean, rounded down: evenly, the smallest share.
+      shareMs: Math.floor(sum(automaticMs) / automaticMs.length),
+      onTheBeat,
+    };
+  }
   if (slideshowMs > excerptMs) {
     return {
       kind: "outlasts",
