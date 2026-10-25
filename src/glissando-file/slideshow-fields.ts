@@ -27,6 +27,7 @@ import {
   LOOK_FROM_VERSION,
   MOOD_FROM_VERSION,
   PICTURE_LENGTH_FROM_VERSION,
+  REPEAT_MUSIC_FROM_VERSION,
   TRIP_CHAPTERS_FROM_VERSION,
   type ManifestMusic,
   type ManifestPicture,
@@ -62,6 +63,7 @@ export function slideshowKeys(version: number): string[] {
     "pictures",
     "songs",
     "betweenSongs",
+    ...(version >= REPEAT_MUSIC_FROM_VERSION ? ["repeatMusic"] : []),
     ...(version >= DEFAULT_TRANSITION_FROM_VERSION ? ["transition"] : []),
     ...(version >= PICTURE_LENGTH_FROM_VERSION ? ["pictureLength"] : []),
     "portraitPictures",
@@ -106,6 +108,9 @@ export function readSlideshowFields(
   if (show["energyPacing"] !== undefined && show["energyPacing"] !== true) {
     throw new DocumentFormatError(`${path}.energyPacing`, "true or absent", show["energyPacing"]);
   }
+  if (show["repeatMusic"] !== undefined && show["repeatMusic"] !== true) {
+    throw new DocumentFormatError(`${path}.repeatMusic`, "true or absent", show["repeatMusic"]);
+  }
   return {
     title: readText(show["title"], `${path}.title`),
     createdAt: readDateTime(show["createdAt"], `${path}.createdAt`),
@@ -120,6 +125,7 @@ export function readSlideshowFields(
     ...(show["betweenSongs"] === undefined
       ? {}
       : { betweenSongs: readBetweenSongs(show["betweenSongs"], path) }),
+    ...(show["repeatMusic"] === true ? { repeatMusic: true } : {}),
     ...(show["portraitPictures"] === undefined
       ? {}
       : { portraitPictures: readPortraitPictures(show["portraitPictures"], path) }),

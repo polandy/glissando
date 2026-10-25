@@ -82,6 +82,7 @@ export function slideshowFromManifest(
     ...(slideshow.energyPacing ? { energyPacing: true } : {}),
     songs,
     ...(slideshow.betweenSongs === undefined ? {} : { betweenSongs: slideshow.betweenSongs }),
+    ...(slideshow.repeatMusic ? { repeatMusic: true } : {}),
     secondsPerPicture: slideshow.secondsPerPicture,
     ...(openingCard === undefined ? {} : { openingCard }),
     ...(closingCard === undefined ? {} : { closingCard }),
