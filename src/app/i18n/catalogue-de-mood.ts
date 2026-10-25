@@ -35,6 +35,7 @@ export const deMood = {
   "mood.energySwitch": "Folgt der Energie der Musik",
   "mood.energySwitchSubtitle":
     "Langsamer, wenn es leise ist, schneller, wenn es laut ist, ein starker Wechsel bei einem Drop",
+  "mood.energySwitchPanelSubtitle": "Langsamer, wenn es leise ist, schneller, wenn es laut ist",
   "mood.energyPictureTimesRange": "{from} – {to} · nach Energie",
   "mood.energyLiftLabel": "Bei einem Drop oder Refrain",
   "mood.energyLiftValue": "Schnitt auf den Beat",

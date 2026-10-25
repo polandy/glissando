@@ -171,6 +171,7 @@
         {moodBpm}
         {moodEnergyPacing}
         onEditMood={() => editSheets?.openMood()}
+        {onEnergyPacing}
         onEditPortraitPictures={() => editSheets?.openPortraitPictures()}
         onEditChapters={() => editSheets?.openGeneralChapters()}
       />

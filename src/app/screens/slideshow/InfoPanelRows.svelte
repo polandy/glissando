@@ -3,6 +3,7 @@
   import { DEFAULT_SLIDESHOW_LOOK } from "../../../player";
   import { getTranslator } from "../../i18n/context";
   import type { SlideshowDetails } from "../view-models";
+  import EnergyPacingRow from "./EnergyPacingRow.svelte";
   import { infoPanelMoodValues } from "./info-panel-mood-values";
   import type { MoodEnergyPacing } from "./mood-energy-pacing";
   import { moodName } from "./mood-text";
@@ -18,6 +19,7 @@
     moodBpm,
     moodEnergyPacing,
     onEditMood,
+    onEnergyPacing,
     onEditPortraitPictures,
     onEditChapters,
   }: {
@@ -33,6 +35,8 @@
     moodEnergyPacing: MoodEnergyPacing | null;
     /** Opens the Mood sheet. */
     onEditMood: () => void;
+    /** The info panel's own "Follow the music's energy" switch (ADR-0046): stores at once. */
+    onEnergyPacing: (on: boolean) => void;
     /** Opens the sheet of the slideshow's portrait pictures setting. */
     onEditPortraitPictures: () => void;
     /** Opens the trip chapters sheet in general mode (TRIP_CHAPTERS.md). */
@@ -185,6 +189,9 @@
     byMood={slideshow.mood !== undefined}
     note={moodValues.pictureTimesNote}
   />
+  {#if slideshow.songCount > 0}
+    <EnergyPacingRow on={slideshow.energyPacing} onChange={onEnergyPacing} />
+  {/if}
   <PanelFactRow
     label={t("slideshow.kenBurns")}
     value={moodValues.kenBurnsValue}

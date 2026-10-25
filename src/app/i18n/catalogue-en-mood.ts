@@ -35,6 +35,7 @@ export const enMood: Pick<Catalogue, keyof typeof deMood> = {
   "mood.energySwitch": "Follow the music's energy",
   "mood.energySwitchSubtitle":
     "Slower when it's quiet, quicker when it's loud, a strong change at a drop",
+  "mood.energySwitchPanelSubtitle": "Slower when it's quiet, quicker when it's loud",
   "mood.energyPictureTimesRange": "{from} – {to} · by energy",
   "mood.energyLiftLabel": "At a drop or chorus",
   "mood.energyLiftValue": "Cut on the beat",

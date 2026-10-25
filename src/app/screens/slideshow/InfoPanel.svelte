@@ -27,6 +27,7 @@
     moodBpm,
     moodEnergyPacing,
     onEditMood,
+    onEnergyPacing,
     onEditPortraitPictures,
     onEditChapters,
   }: {
@@ -48,6 +49,8 @@
     moodEnergyPacing: MoodEnergyPacing | null;
     /** Opens the Mood sheet. */
     onEditMood: () => void;
+    /** The info panel's own "Follow the music's energy" switch (ADR-0046): stores at once. */
+    onEnergyPacing: (on: boolean) => void;
     /** Opens the sheet of the slideshow's portrait pictures setting. */
     onEditPortraitPictures: () => void;
     /** Opens the trip chapters sheet in general mode (TRIP_CHAPTERS.md). */
@@ -148,6 +151,7 @@
       {moodBpm}
       {moodEnergyPacing}
       {onEditMood}
+      {onEnergyPacing}
       {onEditPortraitPictures}
       {onEditChapters}
     />
