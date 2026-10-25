@@ -1,3 +1,4 @@
+import type { InsertedTime } from "../inserted-time";
 import { spansOf, type SlideSpan } from "./slide-spans";
 
 /**
@@ -7,16 +8,21 @@ import { spansOf, type SlideSpan } from "./slide-spans";
  * candidate boundary would take either of the two slides it falls between below `minSlideMs`;
  * there is no fallback to the next-nearest boundary. Lifts are applied in the given order, each
  * onto the boundaries left by the one before.
+ *
+ * `inserted` is how much of a title card or chapter plays around each slide unit (`InsertedTime`)
+ * — absent with neither — so a lift, already in real playlist time, is matched and cut against
+ * each slide's real span, not its nominal one.
  */
 export function cutAtLifts(
   durationsMs: readonly number[],
   automatic: readonly boolean[],
   liftsMs: readonly number[],
   minSlideMs: number,
+  inserted?: InsertedTime,
 ): number[] {
   let result = [...durationsMs];
   for (const liftMs of liftsMs) {
-    result = cutAtLift(result, automatic, liftMs, minSlideMs);
+    result = cutAtLift(result, automatic, liftMs, minSlideMs, inserted);
   }
   return result;
 }
@@ -26,15 +32,20 @@ function cutAtLift(
   automatic: readonly boolean[],
   liftMs: number,
   minSlideMs: number,
+  inserted: InsertedTime | undefined,
 ): number[] {
-  const spans = spansOf(durationsMs);
+  const spans = spansOf(durationsMs, inserted);
   const boundary = nearestBoundary(spans, automatic, liftMs);
   if (boundary === undefined) {
     return [...durationsMs];
   }
   const { index, span, nextSpan } = boundary;
-  const firstMs = liftMs - span.startMs;
-  const secondMs = nextSpan.endMs - liftMs;
+  // The boundary's two nominal, own durations: the lift sits in real time, so a card or chapter
+  // widening either slide's own end (`ownMs`) is backed out before storing the nominal lengths.
+  const ownAtIndexMs = inserted?.ownMs[index] ?? 0;
+  const ownAtNextMs = inserted?.ownMs[index + 1] ?? 0;
+  const firstMs = liftMs - span.startMs - ownAtIndexMs;
+  const secondMs = nextSpan.endMs - liftMs - ownAtNextMs;
   if (firstMs < minSlideMs || secondMs < minSlideMs) {
     return [...durationsMs];
   }

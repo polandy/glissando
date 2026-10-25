@@ -104,6 +104,10 @@ instead of cutting to a second, separately-framed slide:
   time the chapter's nominal duration has elapsed, leaving the picture to play on, plain, for the
   rest of its own duration.
 
+The `CHAPTER_SLIDE_MS` a chapter adds carries forward into every later picture's own beat and
+energy snap too (`DURATIONS.md`, "On the beat"): a boundary after the chapter lands on the beat
+and lift it really falls on, not the one it would fall on without that time.
+
 The anchor cannot always carry the card itself: a picture paired into a portrait slide, or a video
 clip too short for the reveal to finish before its transition out, falls back to a dedicated slide
 of just that picture, inserted right before the anchor — card for its whole `CHAPTER_SLIDE_MS`,

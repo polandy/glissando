@@ -42,8 +42,10 @@ Per song, over its excerpt, sampled every `LOUDNESS_HOP_MS`:
 
 ## Pacing
 
-`slideDurationsMs(pictures, filledMs, secondsPerPicture, beatsMs?, energy?)`, where `energy` is
-`PlaylistEnergy { energyAt(ms), meanEnergy(fromMs, toMs), liftsMs }`.
+`slideDurationsMs(pictures, filledMs, secondsPerPicture, beatsMs?, energy?, inserted?)`, where
+`energy` is `PlaylistEnergy { energyAt(ms), meanEnergy(fromMs, toMs), liftsMs }` and `inserted` is
+the real time an opening title card or a trip chapter adds around a slide unit
+(`InsertedTime`/`insertedTimeFor`, `DURATIONS.md` "On the beat") — absent, nothing is added.
 
 1. The usual durations, as before: own durations, `secondsPerPicture × weight`, or the filled
    music's even split.
@@ -64,12 +66,14 @@ The slideshow's total length is the same as without energy, before the beat snap
 ## Composing
 
 When `stored.energyPacing` is set, `composeSlideshow` builds the `PlaylistEnergy` from
-`loudness` and `beats` and passes it to `slideDurationsMs`. A slide whose end lands exactly on a
-lift gets no `transitionToNext` (a cut), unless its picture has an own transition. Every other
-caller that shows per-picture times passes the same energy (`picture-durations-ms`,
-`slideshow-duration-ms`): the picture editor and the music editor. After adding pictures and the
-import view show the slideshow before its songs are measured and keep the usual times; the total
-is the same either way.
+`loudness` and `beats` and passes it to `slideDurationsMs`, together with the real time an opening
+title card or a trip chapter adds (`insertedTimeFor`, `DURATIONS.md` "On the beat"). A slide whose
+end lands exactly on a lift, in that real time, gets no `transitionToNext` (a cut), unless its
+picture has an own transition. The picture editor and the music editor (`picture-editor-view.ts`,
+`slideshow-times.ts`) pass the same energy for their own per-picture times, but never a card or
+chapter's added time: their times are the nominal ones, without it, same as before energy pacing
+existed. After adding pictures and the import view show the slideshow before its songs are
+measured and keep the usual times; the total is the same either way.
 
 The composed player JSON carries no new field.
 

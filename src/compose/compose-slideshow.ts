@@ -16,6 +16,7 @@ import { composeCards } from "./compose-cards";
 import { composeChapters } from "./compose-chapters";
 import { composedChapters } from "./chapters-of-slideshow";
 import { playlistEnergy } from "./energy/playlist-energy";
+import { insertedTimeFor, realOffsetsMs } from "./inserted-time";
 import { moodSettings, moodTempo } from "./mood-settings";
 import { filledMusicMs, playlistBeatsMs, resolvePlaylist, type SongBeats } from "./playlist";
 import { pairKenBurns, pictureKenBurns } from "./picture-ken-burns";
@@ -69,6 +70,21 @@ export function composeSlideshow(
   const look = slideshowLook(stored);
   const beatsMs = playlistBeatsMs(stored, beats);
   const energy = stored.energyPacing === true ? playlistEnergy(stored, loudness, beats) : undefined;
+  const chapters = composedChapters(stored, locale);
+  // How much the opening card and the chapters add around a slide unit, before the beat and
+  // energy math below runs — the beats, energy and lifts are already in that real playlist time
+  // (`insertedTimeFor`).
+  const inserted = insertedTimeFor(
+    stored.openingCard,
+    chapters,
+    stored.pictures,
+    units,
+    beatsMs,
+    defaultTransition,
+    mood?.transitionShare,
+    mood?.maxTransitionMs,
+  );
+  const insertedOffsets = realOffsetsMs(inserted, units.length);
   // A mood always paces its own seconds per picture and never fills the music (ADR-0045).
   const durationsMs = slideDurationsMs(
     units.map((unit) => timedUnit(stored.pictures, unit)),
@@ -76,6 +92,7 @@ export function composeSlideshow(
     mood?.secondsPerPicture ?? stored.secondsPerPicture,
     beatsMs,
     energy,
+    inserted,
   );
   const fit = stored.portraitPictures === "fill-screen" ? COVER_FIT : undefined;
   let slideEndMs = 0;
@@ -84,6 +101,9 @@ export function composeSlideshow(
     // durationsMs has exactly one entry per slide unit; the index is always in range.
     const durationMs = durationsMs[index] as number;
     slideEndMs += durationMs;
+    // The slide's real end in playlist ms, counting whatever the opening card or a chapter adds
+    // around it — the lift check and the beat-aligned transition below both read the playlist.
+    const realSlideEndMs = slideEndMs + (insertedOffsets.endMs[index] as number);
     const slide = slideFor(
       index,
       stored.pictures,
@@ -108,19 +128,19 @@ export function composeSlideshow(
       return slide;
     }
     // A cut at a drop or chorus, unless the picture keeps its own transition (ADR-0046).
-    if (picture.transition === undefined && energy?.liftsMs.includes(slideEndMs) === true) {
+    if (picture.transition === undefined && energy?.liftsMs.includes(realSlideEndMs) === true) {
       return slide;
     }
     if (beatsMs === undefined) {
       return { ...slide, transitionToNext };
     }
-    const onBeatMs = beatTransitionDurationMs(slideEndMs, transitionToNext.durationMs, beatsMs);
+    const onBeatMs = beatTransitionDurationMs(realSlideEndMs, transitionToNext.durationMs, beatsMs);
     return { ...slide, transitionToNext: { ...transitionToNext, durationMs: onBeatMs } };
   });
 
   const withCards = composeCards(stored, units, slides, sources, focus, defaultTransition, beatsMs);
   const withChapters = composeChapters(
-    composedChapters(stored, locale),
+    chapters,
     stored.pictures,
     withCards.slides,
     sources,

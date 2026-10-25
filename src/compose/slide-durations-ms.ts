@@ -3,6 +3,7 @@ import { MILLISECONDS_PER_SECOND } from "../player/slideshow";
 import { cutAtLifts } from "./energy/cut-at-lifts";
 import { paceByEnergy } from "./energy/pace-by-energy";
 import type { PlaylistEnergy } from "./energy/playlist-energy";
+import type { InsertedTime } from "./inserted-time";
 import { shareByWeightMs } from "./share-by-weight";
 import { snapToBeats } from "./snap-to-beats";
 
@@ -30,6 +31,10 @@ const DEFAULT_WEIGHT = 1;
  * energy, the automatic durations are re-paced by it first, then cut at its lifts, before beats
  * are considered (`paceByEnergy`, `cutAtLifts`; ADR-0046). See ADR-0008, ADR-0009, ADR-0021,
  * ADR-0022, ADR-0023 and ADR-0028.
+ *
+ * `inserted` is how much of a title card or chapter plays around each slide unit, ahead of this
+ * (`insertedTimeFor`) — absent with neither. The beats, energy and lifts are already in that real
+ * playlist time, so passing it keeps the pacing, the cuts and the beat snap aligned to it.
  */
 export function slideDurationsMs(
   pictures: readonly TimedPicture[],
@@ -40,6 +45,7 @@ export function slideDurationsMs(
   beatsMs?: readonly number[],
   /** The playlist's energy and lifts (`playlistEnergy`); absent: the usual durations stand. */
   energy?: PlaylistEnergy,
+  inserted?: InsertedTime,
 ): number[] {
   if (pictures.length < 1) {
     throw new RangeError(`pictures: expected at least 1, got ${pictures.length}`);
@@ -61,17 +67,18 @@ export function slideDurationsMs(
     energy === undefined
       ? usualMs
       : cutAtLifts(
-          paceByEnergy(usualMs, automatic, energy, MIN_SLIDE_DURATION_MS),
+          paceByEnergy(usualMs, automatic, energy, MIN_SLIDE_DURATION_MS, inserted),
           automatic,
           energy.liftsMs,
           MIN_SLIDE_DURATION_MS,
+          inserted,
         );
   if (beatsMs === undefined) {
     return durationsMs;
   }
   // Filling the music does not pin the end when there is no automatic slide to fill it with.
   const endOnBeat = filledMs === undefined || automaticWeights.length === 0;
-  return snapToBeats(durationsMs, automatic, beatsMs, MIN_SLIDE_DURATION_MS, endOnBeat);
+  return snapToBeats(durationsMs, automatic, beatsMs, MIN_SLIDE_DURATION_MS, endOnBeat, inserted);
 }
 
 function ownTotalMs(pictures: readonly TimedPicture[]): number {

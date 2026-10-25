@@ -1,3 +1,4 @@
+import type { InsertedTime } from "../inserted-time";
 import { shareByWeightWithMinimumMs } from "../share-by-weight";
 import type { PlaylistEnergy } from "./playlist-energy";
 import { spansOf, type SlideSpan } from "./slide-spans";
@@ -15,12 +16,17 @@ export const ENERGY_SPREAD = 2;
  * share that would land below `minSlideMs` is raised to it and the rest re-shared by weight among
  * the other automatic slides; only when the automatic total cannot give every one of them the
  * minimum at all are the usual durations kept instead, unweighted.
+ *
+ * `inserted` is how much of a title card or chapter plays around each slide unit (`InsertedTime`)
+ * — absent with neither — so each pass weights a slide by the energy over its real playlist span,
+ * not its nominal one.
  */
 export function paceByEnergy(
   usualMs: readonly number[],
   automatic: readonly boolean[],
   energy: PlaylistEnergy,
   minSlideMs: number,
+  inserted?: InsertedTime,
 ): number[] {
   const automaticTotalMs = usualMs.reduce(
     (sum, durationMs, index) => sum + (automatic[index] ? durationMs : 0),
@@ -28,7 +34,7 @@ export function paceByEnergy(
   );
   let spans: readonly number[] = usualMs;
   for (let pass = 0; pass < ENERGY_PASSES; pass += 1) {
-    const boundaries = spansOf(spans);
+    const boundaries = spansOf(spans, inserted);
     const automaticWeights = usualMs
       .map((usual, index) => ({ usual, index }))
       .filter(({ index }) => automatic[index])

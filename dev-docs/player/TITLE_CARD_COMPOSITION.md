@@ -6,7 +6,10 @@ whose title is empty is not composed. The card durations are fixed: the pictures
 of the music, as for any slide with its own duration.
 
 - **Beats.** With music, each moment below is snapped to the nearest beat at or after the
-  minimum (`snapToNextBeat`). Without music, the nominal values apply.
+  minimum (`snapToNextBeat`). Without music, the nominal values apply. The lead carries forward
+  into every later picture's own beat snap too (`DURATIONS.md`, "On the beat"): a boundary after
+  the card or the merged-onto slide lands on the beat it really falls on, not the beat it would
+  fall on without the lead.
 - **Title slide on a colour:** a ground slide of `CARD_SLIDE_MS` (4000). Its transition into
   the first picture is the slideshow's transition.
 - **Title slide on a picture, with reveal:** `revealAtMs` is the beat at or after

@@ -1,3 +1,7 @@
+import { realOffsetsMs, type InsertedTime } from "./inserted-time";
+
+export { snapToNextBeat } from "./snap-to-next-beat";
+
 /** Beats per phrase: a bar of four, so a change on a phrase start sits where the music turns. */
 export const BEATS_PER_PHRASE = 4;
 
@@ -12,6 +16,11 @@ export const BEATS_PER_PHRASE = 4;
  * `endOnBeat`, a slide with no automatic slide ahead to absorb into — the last automatic slide
  * when the pictures do not fill the music, or an own duration after it — still moves its own end
  * the same bounded way; otherwise it stays, and the sum of the durations does not change.
+ *
+ * `inserted` is how much of a title card or chapter plays around each slide unit (`InsertedTime`)
+ * — absent with neither. The beats are already in that real playlist time, so every bound and
+ * target below is shifted by it; `durationsMs` and the snapped result stay the slides' own,
+ * nominal lengths throughout.
  */
 export function snapToBeats(
   durationsMs: readonly number[],
@@ -22,46 +31,49 @@ export function snapToBeats(
   minSlideMs: number,
   /** The last slide, if it has no automatic one ahead, may end on a beat too. */
   endOnBeat = false,
+  inserted?: InsertedTime,
 ): number[] {
   const snappedMs = [...durationsMs];
+  const offsets = realOffsetsMs(inserted, durationsMs.length);
   let startMs = 0;
   for (let index = 0; index < snappedMs.length; index += 1) {
+    const startOffsetMs = offsets.startMs[index] as number;
+    const endOffsetMs = offsets.endMs[index] as number;
     const nextAutomatic = automatic.indexOf(true, index + 1);
     if (nextAutomatic !== -1) {
       const durationMs = snappedMs[index] as number;
-      const endMs = startMs + durationMs;
+      const endMs = startMs + durationMs + endOffsetMs;
       const ownBetweenMs = sum(snappedMs.slice(index + 1, nextAutomatic));
-      const nextEndMs = endMs + ownBetweenMs + (snappedMs[nextAutomatic] as number);
+      const nextEndOffsetMs = offsets.endMs[nextAutomatic] as number;
+      const nextEndMs =
+        startMs +
+        durationMs +
+        ownBetweenMs +
+        (snappedMs[nextAutomatic] as number) +
+        nextEndOffsetMs;
       const latestMs = Math.min(
-        nextEndMs - ownBetweenMs - minSlideMs,
-        automatic[index] ? Infinity : startMs + 2 * durationMs - minSlideMs,
+        nextEndMs - ownBetweenMs - minSlideMs + endOffsetMs - nextEndOffsetMs,
+        automatic[index] ? Infinity : startMs + startOffsetMs + 2 * durationMs - minSlideMs,
       );
-      const beatMs = nearestBeatMs(beatsMs, endMs, startMs + minSlideMs, latestMs);
+      const earliestMs = startMs + startOffsetMs + minSlideMs;
+      const beatMs = nearestBeatMs(beatsMs, endMs, earliestMs, latestMs);
       if (beatMs !== undefined) {
-        snappedMs[index] = beatMs - startMs;
-        snappedMs[nextAutomatic] = nextEndMs - beatMs - ownBetweenMs;
+        snappedMs[index] = beatMs - startMs - endOffsetMs;
+        snappedMs[nextAutomatic] =
+          nextEndMs - beatMs - ownBetweenMs + endOffsetMs - nextEndOffsetMs;
       }
     } else if (endOnBeat) {
       const durationMs = snappedMs[index] as number;
       const slackMs = durationMs - minSlideMs;
-      const endMs = startMs + durationMs;
+      const endMs = startMs + durationMs + endOffsetMs;
       const beatMs = nearestBeatMs(beatsMs, endMs, endMs - slackMs, endMs + slackMs);
       if (beatMs !== undefined) {
-        snappedMs[index] = beatMs - startMs;
+        snappedMs[index] = beatMs - startMs - endOffsetMs;
       }
     }
     startMs += snappedMs[index] as number;
   }
   return snappedMs;
-}
-
-/**
- * The beat at or after `minMs`, else `minMs` itself: without beats, or none reaches that far
- * (`TITLE_CARD_COMPOSITION.md`, Beats).
- */
-export function snapToNextBeat(beatsMs: readonly number[] | undefined, minMs: number): number {
-  const next = beatsMs?.find((beatMs) => beatMs >= minMs);
-  return next ?? minMs;
 }
 
 function sum(durationsMs: readonly number[]): number {

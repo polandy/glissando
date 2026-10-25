@@ -39,3 +39,10 @@ end when the pictures fill it, or an own duration the rest of the way to it — 
 length instead, unless there is no automatic slide at all, when each own duration still moves
 about its own length. Lasting their seconds, the last slide's end moves too, the same way: the
 slideshow ends on a beat. No beat leaves the even, or exact, shares as they are.
+
+The beats, and the energy and lifts above, are already in real playlist time — including an
+opening title card or a trip chapter's own time, composed afterwards
+([TITLE_CARD_COMPOSITION](../player/TITLE_CARD_COMPOSITION.md),
+[TRIP_CHAPTERS](../player/TRIP_CHAPTERS.md)). `composeSlideshow` works out that time first
+(`insertedTimeFor`) and passes it into `slideDurationsMs`, so a boundary snaps to the beat it
+really falls on, not the beat it would fall on without the card or chapter.
