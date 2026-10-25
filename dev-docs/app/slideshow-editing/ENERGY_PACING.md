@@ -104,7 +104,11 @@ The composed player JSON carries no new field.
 - **Preview**: with the switch on and a lift found, the preview plays the four slide units around
   the first lift (two before, two after) instead of the first four. The badge adds "· energy".
 - **Info panel**: under a mood, "Picture times" shows the same range "· by energy"; under Custom,
-  "follows the energy" goes underneath the value.
+  "follows the energy" goes underneath the value. Right under "Picture times", while the
+  slideshow has music, a row "Follow the music's energy" with "Slower when it's quiet, quicker
+  when it's loud" underneath carries the same `role="switch"` as the Mood sheet; it stores at
+  once, and either switch shows the other's state. Mockup:
+  `https://polandy.github.io/glissando-assets/mockups/energy-pacing-panel/`.
 
 ## Stored
 
