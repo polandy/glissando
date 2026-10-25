@@ -19,6 +19,10 @@ class FakePlayer extends EventTarget implements FrameRoundPlayer {
   showFirstPicture(): void {
     this.dispatchEvent(new Event("playing"));
   }
+
+  stall(): void {
+    this.dispatchEvent(new Event("waiting"));
+  }
 }
 
 function fakePorts(players: readonly FakePlayer[]): RoundHandoverPorts & { calls: number } {
@@ -55,7 +59,12 @@ describe("RoundHandover", () => {
 
     handover.start();
 
-    expect(handover.state).toEqual({ player: null, paused: false, endOfPictures: true });
+    expect(handover.state).toEqual({
+      player: null,
+      paused: false,
+      endOfPictures: true,
+      waiting: false,
+    });
   });
 
   it("swaps to the prepared round as soon as the current one ends, if it is already ready", () => {
@@ -127,6 +136,70 @@ describe("RoundHandover", () => {
     second.showFirstPicture();
     first.end();
     expect(handover.state.player).toBeNull();
+  });
+
+  it("is waiting until the first round emits playing", () => {
+    const [first, second] = [new FakePlayer(), new FakePlayer()];
+    const handover = new RoundHandover(fakePorts([first, second]));
+    expect(handover.state.waiting).toBe(true);
+
+    handover.start();
+    expect(handover.state.waiting).toBe(true); // play() was called, but not "playing" yet
+
+    first.showFirstPicture();
+
+    expect(handover.state.waiting).toBe(false);
+  });
+
+  it("is waiting again when the current player emits waiting, and not once it plays again", () => {
+    const [first, second] = [new FakePlayer(), new FakePlayer()];
+    const handover = new RoundHandover(fakePorts([first, second]));
+    handover.start();
+    first.showFirstPicture();
+
+    first.stall();
+    expect(handover.state.waiting).toBe(true);
+
+    first.showFirstPicture();
+    expect(handover.state.waiting).toBe(false);
+  });
+
+  it("is waiting while an ended round waits for the prepared round, not once it swaps in", () => {
+    const [first, second] = [new FakePlayer(), new FakePlayer()];
+    const handover = new RoundHandover(fakePorts([first, second]));
+    handover.start();
+    first.showFirstPicture();
+
+    first.end(); // "second" has not fired "playing" yet
+
+    expect(handover.state.waiting).toBe(true);
+
+    second.showFirstPicture();
+
+    expect(handover.state.waiting).toBe(false);
+  });
+
+  it("is not waiting once the album has nothing left from the start", () => {
+    const handover = new RoundHandover(fakePorts([]));
+
+    handover.start();
+
+    expect(handover.state.waiting).toBe(false);
+  });
+
+  it("stops reacting to the old player's events once it has been swapped out", () => {
+    const [first, second] = [new FakePlayer(), new FakePlayer()];
+    const handover = new RoundHandover(fakePorts([first, second]));
+    handover.start();
+    first.showFirstPicture();
+    second.showFirstPicture();
+    first.end(); // already ready, so "second" swaps in at once
+
+    expect(handover.state.waiting).toBe(false);
+
+    first.stall(); // a late event from the player that was just swapped out
+
+    expect(handover.state.waiting).toBe(false);
   });
 
   it("tells subscribers of every hand-over", () => {

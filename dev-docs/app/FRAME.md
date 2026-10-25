@@ -46,11 +46,12 @@ albums".
 
 Fullscreen, no chrome by default. A tap reveals, for `CONTROLS_VISIBLE_MS` (4 s,
 `src/frame/tap-controls.ts`): an exit pill (also Esc) and a bottom bar with pause/resume and
-next; a further tap hides them again at once. An e2e case can lengthen that time with
-`?controlsVisibleMs=<ms>` on the app's URL (a whole number above 0, else the app refuses to
-start), so it clicks through the controls without racing the timer. The mockup's bottom bar also carries a "Settings"
+next; a further tap hides them again at once. The mockup's bottom bar also carries a "Settings"
 button back to the set-up screen; this build omits it; exiting the frame (back to the set-up
 screen) covers the same need until a dedicated in-frame settings path is worth its own screen.
+The frame's `role="application"` is `aria-busy` while it has no picture to show: until the first
+round plays, while a round waits for a picture, and while an ended round waits for the next one
+(`src/frame/round-handover.ts`).
 The clock (if on) sits top-right, the date and album name (if the date is on) bottom-left — the
 mockup's copy says "date and place", but place comes from Immich's reverse geocoding, which this
 screen does not read, so only the date and the album's own name are shown; a future iteration may

@@ -10,8 +10,8 @@ export interface FrameRoundPlayer {
   play(): void;
   pause(): void;
   destroy(): void;
-  addEventListener(type: "ended" | "playing", listener: () => void): void;
-  removeEventListener(type: "ended" | "playing", listener: () => void): void;
+  addEventListener(type: "ended" | "playing" | "waiting", listener: () => void): void;
+  removeEventListener(type: "ended" | "playing" | "waiting", listener: () => void): void;
 }
 
 export type RoundOutcome =
@@ -29,6 +29,12 @@ export interface RoundHandoverState {
   readonly paused: boolean;
   /** True once the album has nothing left and no round is left playing. */
   readonly endOfPictures: boolean;
+  /**
+   * True while the frame waits for a picture: until the first round plays,
+   * while the current round's player itself waits for a picture, and while an ended round waits
+   * for the prepared one to take over.
+   */
+  readonly waiting: boolean;
 }
 
 /** Keeps exactly one round playing at a time, with the next one prepared ahead of its turn. */
@@ -42,19 +48,49 @@ export class RoundHandover {
       this.#swapIn();
     }
   };
+  readonly #onCurrentPlaying = (): void => {
+    this.#currentPlaying = true;
+    this.#notify();
+  };
+  readonly #onCurrentWaiting = (): void => {
+    this.#currentPlaying = false;
+    this.#notify();
+  };
   #current: FrameRoundPlayer | null = null;
   #preparing: FrameRoundPlayer | null = null;
   #preparingReady = false;
   #waitingToSwap = false;
   #paused = false;
   #endOfPictures = false;
+  /** Whether `#current` itself last reported "playing" rather than "waiting". */
+  #currentPlaying = false;
 
   constructor(ports: RoundHandoverPorts) {
     this.#ports = ports;
   }
 
   get state(): RoundHandoverState {
-    return { player: this.#current, paused: this.#paused, endOfPictures: this.#endOfPictures };
+    return {
+      player: this.#current,
+      paused: this.#paused,
+      endOfPictures: this.#endOfPictures,
+      waiting: this.#waiting(),
+    };
+  }
+
+  /**
+   * At end of pictures there is nothing left to wait for; before `start()` there is no current
+   * round yet; an ended round waiting for the prepared one to take over has nothing on screen
+   * either way, whatever the ended round's own player last reported.
+   */
+  #waiting(): boolean {
+    if (this.#endOfPictures) {
+      return false;
+    }
+    if (this.#current === null || this.#waitingToSwap) {
+      return true;
+    }
+    return !this.#currentPlaying;
   }
 
   /** Called with the current state at once, then with every change; returns the unsubscribe. */
@@ -74,6 +110,8 @@ export class RoundHandover {
     }
     this.#current = outcome.player;
     this.#current.addEventListener("ended", this.#onEnded);
+    this.#current.addEventListener("playing", this.#onCurrentPlaying);
+    this.#current.addEventListener("waiting", this.#onCurrentWaiting);
     this.#current.play();
     this.#notify();
     this.#prepareNext();
@@ -99,6 +137,8 @@ export class RoundHandover {
   /** Tears down whatever is playing or being prepared; called when the frame is left. */
   destroy(): void {
     this.#current?.removeEventListener("ended", this.#onEnded);
+    this.#current?.removeEventListener("playing", this.#onCurrentPlaying);
+    this.#current?.removeEventListener("waiting", this.#onCurrentWaiting);
     this.#current?.destroy();
     this.#current = null;
     this.#preparing?.removeEventListener("playing", this.#onPreparingReady);
@@ -141,9 +181,15 @@ export class RoundHandover {
       return;
     }
     next.removeEventListener("playing", this.#onPreparingReady);
+    this.#current?.removeEventListener("playing", this.#onCurrentPlaying);
+    this.#current?.removeEventListener("waiting", this.#onCurrentWaiting);
     this.#current?.destroy();
     this.#current = next;
+    // The prepared round only ever got here because its own "playing" already fired.
+    this.#currentPlaying = true;
     this.#current.addEventListener("ended", this.#onEnded);
+    this.#current.addEventListener("playing", this.#onCurrentPlaying);
+    this.#current.addEventListener("waiting", this.#onCurrentWaiting);
     this.#preparing = null;
     this.#preparingReady = false;
     this.#waitingToSwap = false;

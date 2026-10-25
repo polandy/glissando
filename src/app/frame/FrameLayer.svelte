@@ -47,6 +47,7 @@
     player: null,
     paused: false,
     endOfPictures: false,
+    waiting: true,
   });
   // svelte-ignore state_referenced_locally
   const controls = new TapControls(device.scheduler, device.controlsVisibleMs);
@@ -155,7 +156,12 @@
 
 <svelte:window onkeydown={exitKey} />
 
-<div class="frame" role="application" aria-label={t("frame.title")}>
+<div
+  class="frame"
+  role="application"
+  aria-label={t("frame.title")}
+  aria-busy={handoverState.waiting}
+>
   {#if failure !== null}
     <div class="centered">
       <Notice tone="error">
