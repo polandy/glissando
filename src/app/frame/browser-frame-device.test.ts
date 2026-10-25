@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { browserFrameDevice } from "./browser-frame-device";
-import { CONTROLS_VISIBLE_MS } from "../../frame/tap-controls";
 import type { ScreenAwakePorts } from "../video-export/screen-awake";
 
 const noopScheduler = { after: () => () => {} };
@@ -63,15 +62,5 @@ describe("browserFrameDevice", () => {
 
     expect(device.scheduler).toBe(noopScheduler);
     expect(device.screenAwake).toBe(noopScreenAwake);
-  });
-
-  it("sets the tap controls' default visible time", () => {
-    const device = browserFrameDevice(
-      fakeWindow({ hasClipboard: true }),
-      noopScheduler,
-      noopScreenAwake,
-    );
-
-    expect(device.controlsVisibleMs).toBe(CONTROLS_VISIBLE_MS);
   });
 });

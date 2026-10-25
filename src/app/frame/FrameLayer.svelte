@@ -5,7 +5,7 @@
   import type { ImmichClient } from "../../immich/immich-client";
   import { FrameAlbumDeck } from "../../frame/frame-album-deck";
   import { RoundHandover, type RoundHandoverState } from "../../frame/round-handover";
-  import { TapControls } from "../../frame/tap-controls";
+  import { CONTROLS_VISIBLE_MS, TapControls } from "../../frame/tap-controls";
   import { keepScreenAwake } from "../video-export/screen-awake";
   import { getTranslator } from "../i18n/context";
   import BlockingOverlay from "../components/BlockingOverlay.svelte";
@@ -50,7 +50,7 @@
     waiting: true,
   });
   // svelte-ignore state_referenced_locally
-  const controls = new TapControls(device.scheduler, device.controlsVisibleMs);
+  const controls = new TapControls(device.scheduler, CONTROLS_VISIBLE_MS);
   let controlsVisible = $state(false);
   let now = $state(new Date());
   let cancelClock: (() => void) | null = null;
