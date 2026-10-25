@@ -6,6 +6,7 @@ import {
   pictureKenBurns,
   pictureLayoutSummaries,
   type PictureLayoutSummary,
+  NO_SONG_LOUDNESS,
   playlistBeatsMs,
   pictureTransition,
   slideDurationsMs,
@@ -15,7 +16,9 @@ import {
   timedUnit,
   type SlideUnit,
   type SongBeats,
+  type SongLoudness,
 } from "../../compose";
+import { playlistEnergy } from "../../compose/energy/playlist-energy";
 import type { OwnKenBurns } from "../../library/own-ken-burns";
 import type { SlideshowTransition, TransitionChoice } from "../../library/own-timing";
 import type { PortraitPictures } from "../../library/portrait-pictures";
@@ -104,13 +107,16 @@ export interface PictureEditorView {
 
 /**
  * `focus`: the automatic motions aim at it; `beats`: each song's beats found so far, which the
- * automatic changes land on (ADR-0021, ADR-0023). So the preview plays what the player will.
+ * automatic changes land on (ADR-0021, ADR-0023); `loudness`: each song's loudness found so far,
+ * which paces the automatic changes further while `stored.energyPacing` is set (ADR-0046). So
+ * the preview plays what the player will.
  */
 export function pictureEditorView(
   stored: StoredSlideshow,
   pictureId: string,
   focus: PicturesFocus,
   beats: SongBeats,
+  loudness: SongLoudness = NO_SONG_LOUDNESS,
   /** Only the server or Immich pauses the pass (ADR-0041); says so instead of just "waiting". */
   passPaused = false,
 ): PictureEditorView {
@@ -121,6 +127,7 @@ export function pictureEditorView(
     throw new Error(`slideshow "${stored.id}" holds no picture "${pictureId}"`);
   }
   const beatsMs = playlistBeatsMs(stored, beats);
+  const energy = stored.energyPacing === true ? playlistEnergy(stored, loudness, beats) : undefined;
   // The preview plays the picture's slide as composed (ADR-0028): a pair is one slide, timed
   // once, with one transition and the pair's motion.
   const units = slideUnits(pictures, stored.portraitPictures);
@@ -129,6 +136,7 @@ export function pictureEditorView(
     filledMusicMs(stored),
     stored.secondsPerPicture,
     beatsMs,
+    energy,
   );
   const slideIndex = slideOfPicture(units, index);
   // One duration per slide unit; every slide index below is in range.

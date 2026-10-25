@@ -32,4 +32,18 @@ export const deMood = {
   "mood.previewPending": "♪ …",
   "mood.previewNoBeat": "♪ kein Beat gefunden",
   "mood.sound": "Ton",
+  "mood.energySwitch": "Folgt der Energie der Musik",
+  "mood.energySwitchSubtitle":
+    "Langsamer, wenn es leise ist, schneller, wenn es laut ist, ein starker Wechsel bei einem Drop",
+  "mood.energySwitchPanelSubtitle": "Langsamer, wenn es leise ist, schneller, wenn es laut ist",
+  "mood.energyPictureTimesRange": "{from} – {to} · nach Energie",
+  "mood.energyLiftLabel": "Bei einem Drop oder Refrain",
+  "mood.energyLiftValue": "Schnitt auf den Beat",
+  "mood.hintMoodEnergy":
+    "Die Stimmung bestimmt das durchschnittliche Tempo; die Energie macht es in leisen Passagen langsamer und in lauten schneller. Bilder mit eigener Dauer, eigenem Übergang oder eigener Bewegung behalten sie.",
+  "mood.hintCustomEnergy":
+    "Ihre Bilddauer bleibt der Durchschnitt. Mit „Musik füllen“ endet die Diashow weiterhin mit dem Song. Bilder mit eigener Dauer behalten sie.",
+  "mood.energyBadgeSuffix": "Energie",
+  "mood.energyStripQuiet": "leise → länger",
+  "mood.energyStripLoud": "laut → schneller",
 } as const satisfies Record<string, Message>;

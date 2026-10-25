@@ -41,9 +41,11 @@
     onResetLook,
     moodBpm,
     moodPending,
+    moodEnergyPacing,
     moodPreviewPorts,
     onMood,
     onResetMood,
+    onEnergyPacing,
     onPortraitPictures,
     onResetPortraitPictures,
     onEnsureOpeningCard,
@@ -167,7 +169,9 @@
         onEditTransitions={() => editSheets?.openTransitions()}
         onEditLook={() => editSheets?.openLook()}
         {moodBpm}
+        {moodEnergyPacing}
         onEditMood={() => editSheets?.openMood()}
+        {onEnergyPacing}
         onEditPortraitPictures={() => editSheets?.openPortraitPictures()}
         onEditChapters={() => editSheets?.openGeneralChapters()}
       />
@@ -218,6 +222,7 @@
   {moodPending}
   {onMood}
   {onResetMood}
+  {onEnergyPacing}
   {onPortraitPictures}
   {onResetPortraitPictures}
   onTransitionsClosed={() => infoPanel?.focusTransitions()}

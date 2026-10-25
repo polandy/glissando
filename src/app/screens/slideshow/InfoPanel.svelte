@@ -6,6 +6,7 @@
   import type { ServerSlideshowRows } from "../../server-library/server-slideshow-sessions";
   import TvControl from "../../tv-remote/TvControl.svelte";
   import InfoPanelRows from "./InfoPanelRows.svelte";
+  import type { MoodEnergyPacing } from "./mood-energy-pacing";
   import StorageRow from "./StorageRow.svelte";
   import TitleEditor from "./TitleEditor.svelte";
 
@@ -24,7 +25,9 @@
     onEditTransitions,
     onEditLook,
     moodBpm,
+    moodEnergyPacing,
     onEditMood,
+    onEnergyPacing,
     onEditPortraitPictures,
     onEditChapters,
   }: {
@@ -42,8 +45,12 @@
     onEditLook: () => void;
     /** The slideshow's tempo under its mood (ADR-0045); undefined without one. */
     moodBpm: number | undefined;
+    /** The "Picture times" range under the energy pacing (ADR-0046); null without one. */
+    moodEnergyPacing: MoodEnergyPacing | null;
     /** Opens the Mood sheet. */
     onEditMood: () => void;
+    /** The info panel's own "Follow the music's energy" switch (ADR-0046): stores at once. */
+    onEnergyPacing: (on: boolean) => void;
     /** Opens the sheet of the slideshow's portrait pictures setting. */
     onEditPortraitPictures: () => void;
     /** Opens the trip chapters sheet in general mode (TRIP_CHAPTERS.md). */
@@ -142,7 +149,9 @@
       {onEditTransitions}
       {onEditLook}
       {moodBpm}
+      {moodEnergyPacing}
       {onEditMood}
+      {onEnergyPacing}
       {onEditPortraitPictures}
       {onEditChapters}
     />

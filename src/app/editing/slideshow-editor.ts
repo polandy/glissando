@@ -2,7 +2,10 @@ import type { OwnKenBurns } from "../../library/own-ken-burns";
 import type { BetweenSongs, MusicTrim, PictureChanges } from "../../library/own-music";
 import type { SlideshowTransition, TransitionChoice } from "../../library/own-timing";
 import type { PortraitPictures } from "../../library/portrait-pictures";
-import { setPictureAlone as setPictureAloneEdit } from "../../library/slideshow-edits";
+import {
+  setPictureAlone as setPictureAloneEdit,
+  setSlideshowEnergyPacing,
+} from "../../library/slideshow-edits";
 import type { PictureLength } from "../../library/picture-length";
 import type { StoredCard, StoredMusic, StoredSlideshow } from "../../library/stored-slideshow";
 import type { CardInput } from "../../library/stored-card";
@@ -174,6 +177,11 @@ export class SlideshowEditor {
   /** Marks the picture never to be composed into a portrait pair, or lets it be again. */
   setPictureAlone(pictureId: string, alone: boolean): void {
     this.#apply(setPictureAloneEdit(this.#slideshow, pictureId, alone));
+  }
+
+  /** The Mood sheet's "Follow the music's energy" switch (ADR-0046): stores at once. */
+  setEnergyPacing(on: boolean): void {
+    this.#apply(setSlideshowEnergyPacing(this.#slideshow, on));
   }
 
   /** Reverses the picture's motion; an automatic one becomes the picture's own. */

@@ -3,7 +3,12 @@
  * (dev-docs/library/MUSIC.md "Loudness levelling and song volume"). Framework-free: no DOM, no
  * Web Audio, no Svelte.
  */
-export { excerptLoudnessLufs } from "./excerpt-loudness";
+export {
+  ABSOLUTE_GATE_LUFS,
+  excerptLoudnessLufs,
+  lufsOf,
+  meanSquaresInside,
+} from "./excerpt-loudness";
 export { excerptPeakDbfs } from "./excerpt-peak";
 export {
   decibelsToGain,

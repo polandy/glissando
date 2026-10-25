@@ -17,6 +17,13 @@ every picture has an own duration.
 Under a mood ([MOOD](../app/slideshow-editing/MOOD.md), ADR-0045), every slide lasts its
 seconds per picture instead, and the music is never filled.
 
+## By the music's energy
+
+With `energyPacing` set ([ENERGY_PACING](../app/slideshow-editing/ENERGY_PACING.md), ADR-0046),
+the automatic slides' time is shared out again by the music's energy before the beat snap —
+longer where it is quiet, shorter where it is loud, same total — and a boundary moves onto each
+lift, where the slide ends with a cut.
+
 ## On the beat
 
 ADR-0021. With the playlist's beats (`playlistBeatsMs`: each song's beats from `src/beats/`
@@ -32,3 +39,10 @@ end when the pictures fill it, or an own duration the rest of the way to it — 
 length instead, unless there is no automatic slide at all, when each own duration still moves
 about its own length. Lasting their seconds, the last slide's end moves too, the same way: the
 slideshow ends on a beat. No beat leaves the even, or exact, shares as they are.
+
+The beats, and the energy and lifts above, are already in real playlist time — including an
+opening title card or a trip chapter's own time, composed afterwards
+([TITLE_CARD_COMPOSITION](../player/TITLE_CARD_COMPOSITION.md),
+[TRIP_CHAPTERS](../player/TRIP_CHAPTERS.md)). `composeSlideshow` works out that time first
+(`insertedTimeFor`) and passes it into `slideDurationsMs`, so a boundary snaps to the beat it
+really falls on, not the beat it would fall on without the card or chapter.

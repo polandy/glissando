@@ -9,6 +9,7 @@ import type { SlideshowTransition } from "../../library/own-timing";
 import type { PortraitPictures } from "../../library/portrait-pictures";
 import type { MotionPreviewPorts } from "../picture-editor/motion-preview";
 import type { SlideshowMood } from "../../library/slideshow-mood";
+import type { MoodEnergyPacing } from "./slideshow/mood-energy-pacing";
 import type { MoodPreviewPorts } from "./slideshow/mood-preview-ports";
 import type { ExportMenuState } from "../glissando-file/export-menu";
 import type { StripSelection } from "./slideshow/strip-selection";
@@ -59,12 +60,17 @@ export interface SlideshowScreenProps {
   moodBpm: number | undefined;
   /** Whether `moodBpm` may still change once analysis catches up; never "no beat found" then. */
   moodPending: boolean;
+  /** The info panel's "Picture times" range under the energy pacing (ADR-0046); null until
+   * loaded or without any songs. */
+  moodEnergyPacing: MoodEnergyPacing | null;
   /** The Mood sheet's live preview data ports; left out while it has no pictures. */
   moodPreviewPorts: MoodPreviewPorts;
   /** A mood tile was tapped: stores at once. */
   onMood: (mood: SlideshowMood | undefined) => void;
   /** "Back to Custom" in the Mood sheet. */
   onResetMood: () => void;
+  /** The Mood sheet's "Follow the music's energy" switch (ADR-0046): stores at once. */
+  onEnergyPacing: (on: boolean) => void;
   /** A choice was picked in the portrait pictures sheet. */
   onPortraitPictures: (choice: PortraitPictures) => void;
   /** "Back to automatic" in the portrait pictures sheet. */

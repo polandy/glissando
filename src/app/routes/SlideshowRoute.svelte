@@ -6,6 +6,7 @@
   import type { SlideshowEditor } from "../editing/slideshow-editor";
   import { createScreenEditor } from "./screen-editor";
   import { getTranslator } from "../i18n/context";
+  import { loadMusicAnalysis, ScreenEnergyPacing } from "./screen-energy-pacing.svelte";
   import { ScreenMoodBpm } from "./screen-mood-bpm.svelte";
   import { ScreenThumbnails } from "./screen-thumbnails.svelte";
   import SlideshowScreen from "../screens/SlideshowScreen.svelte";
@@ -17,6 +18,7 @@
   import ServerCopyConfirm from "./ServerCopyConfirm.svelte";
   import { loadSlideshowScreen } from "./route-loading";
   import { deleteShownSlideshow } from "./slideshow-exits";
+  import { must } from "./must";
   import { MOUSE_POINTER_QUERY } from "../screens/slideshow/pointer";
   import {
     NO_SELECTION,
@@ -102,7 +104,8 @@
   });
   // svelte-ignore state_referenced_locally
   const screenMoodBpm = new ScreenMoodBpm(beatPass, store, log);
-
+  // svelte-ignore state_referenced_locally
+  const screenEnergyPacing = new ScreenEnergyPacing(store, log);
   onMount(() => {
     const stops = [screenFocus.follow(), screenMoodBpm.follow()];
     loadSlideshowScreen(store, slideshowId, thumbnails.urls, translator.language, left.signal).then(
@@ -154,33 +157,21 @@
   // svelte-ignore state_referenced_locally
   const newPictureIds: ReadonlySet<string> = new Set(addedPictureIds);
 
-  /** The card sheet only opens once the screen (and so the editor) is shown. */
-  function mustEditor(): SlideshowEditor {
-    if (editor === null) throw new Error("the editor is not ready yet");
-    return editor;
-  }
-
-  /** The mood preview only opens once the screen (and so the slideshow) is shown. */
-  function mustStored(): StoredSlideshow {
-    if (stored === null) throw new Error("the slideshow is not ready yet");
-    return stored;
-  }
-
   const details = $derived(
     stored === null ? null : thumbnails.details(stored, translator.language),
   );
   const storage = $derived(stored === null ? null : screenStorage.of(stored, { serverOn, saving }));
 
-  // Rereads only once the slideshow's own songs change, not on every unrelated edit: `stored` is
-  // read untracked, so only `songIds` (this effect's one tracked read) decides a rerun.
+  // Rereads only when the songs change: `stored` is read untracked, so only `songIds` reruns this.
   const songIds = $derived(stored === null ? "" : stored.songs.map((song) => song.id).join(","));
   $effect(() => {
     void songIds;
     const current = untrack(() => stored);
-    if (current !== null) screenMoodBpm.load(current);
+    if (current !== null) loadMusicAnalysis(current, screenMoodBpm, screenEnergyPacing);
   });
   const moodBpm = $derived(stored === null ? undefined : screenMoodBpm.of(stored));
   const moodPending = $derived(stored === null ? false : screenMoodBpm.pendingOf(stored));
+  const moodEnergyPacing = $derived(stored === null ? null : screenEnergyPacing.of(stored));
 </script>
 
 {#if editingPictureId !== null && stored !== null && editor !== null}
@@ -191,6 +182,7 @@
     {focusPass}
     passPaused={screenFocus.passPaused}
     {beatPass}
+    {loudnessPass}
     {editor}
     pictureId={editingPictureId}
     {saving}
@@ -240,15 +232,23 @@
     onResetLook={() => editor?.look.reset()}
     {moodBpm}
     {moodPending}
-    moodPreviewPorts={{ store, stored: mustStored(), musicOutput, decodeClipSound, log }}
+    {moodEnergyPacing}
+    moodPreviewPorts={{
+      store,
+      stored: must(stored, "the slideshow"),
+      musicOutput,
+      decodeClipSound,
+      log,
+    }}
     onMood={(mood) => editor?.mood.set(mood)}
     onResetMood={() => editor?.mood.reset()}
+    onEnergyPacing={(on) => editor?.setEnergyPacing(on)}
     onPortraitPictures={(choice) => editor?.setPortraitPictures(choice)}
     onResetPortraitPictures={() => editor?.resetPortraitPictures()}
-    onEnsureOpeningCard={() => mustEditor().ensureOpeningCard()}
+    onEnsureOpeningCard={() => must(editor, "the editor").ensureOpeningCard()}
     onOpeningCard={(card) => editor?.setOpeningCard(card)}
     onRemoveOpeningCard={() => editor?.removeOpeningCard()}
-    onEnsureClosingCard={() => mustEditor().ensureClosingCard()}
+    onEnsureClosingCard={() => must(editor, "the editor").ensureClosingCard()}
     onClosingCard={(card) => editor?.setClosingCard(card)}
     onRemoveClosingCard={() => editor?.removeClosingCard()}
     chapterEditor={editor?.chapters ?? null}

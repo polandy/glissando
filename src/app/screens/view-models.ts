@@ -101,6 +101,8 @@ export interface SlideshowDetails {
   readonly transition: SlideshowTransition;
   /** The slideshow's mood (ADR-0045); absent is Custom. */
   readonly mood?: SlideshowMood;
+  /** The Mood sheet's "Follow the music's energy" switch (ADR-0046). */
+  readonly energyPacing: boolean;
   /** The slideshow's colour grade; `"none"` for its absent setting (ADR-0044). */
   readonly look: SlideshowLook;
   /** How portrait pictures lay out; `"automatic"` for the slideshow's absent setting (ADR-0028). */

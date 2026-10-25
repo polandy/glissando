@@ -1,18 +1,12 @@
 import {
   AUTOMATIC_MUSIC_FADE_OUT_MS,
-  filledMusicMs,
   musicExcerpt,
   placeSongs,
-  playlistBeatsMs,
   playlistMs,
   resolvePlaylist,
   scaledFades,
-  slideDurationsMs,
-  slideUnits,
-  timedUnit,
   type MusicTiming,
   type PlacedSong,
-  type SongBeats,
 } from "../../compose";
 import { moodSettings, moodTempo } from "../../compose/mood-settings";
 import { SEQUENCE_BETWEEN_SONGS } from "../../library/own-music";
@@ -20,8 +14,6 @@ import { songIndex } from "../../library/slideshow-edits-songs";
 import type { SlideshowMood } from "../../library/slideshow-mood";
 import type { StoredSlideshow } from "../../library/stored-slideshow";
 import { excerptLoudnessLufs, excerptPeakDbfs } from "../../loudness";
-import { composedBeats, type BeatsStatus } from "../beats/music-beats-known";
-import type { LoudnessStatus } from "../loudness/music-loudness-known";
 import { volumeListenPlan, type VolumeListenPlan } from "./listen-preview";
 import {
   beatTicks,
@@ -29,7 +21,16 @@ import {
   type BeatTick,
   type PictureChangesView,
 } from "./picture-changes-view";
-import { sum, timingNote, type TimingNote } from "./music-timing-note";
+import { timingNote, type TimingNote } from "./music-timing-note";
+import {
+  NO_SONGS_LOUDNESS_KNOWN,
+  slideshowTimes,
+  songBeats,
+  songBeatsStatus,
+  songLoudnessStatus,
+  type SongsBeatsStatus,
+  type SongsLoudnessStatus,
+} from "./slideshow-times";
 import { volumeView, volumeViewInput, type VolumeView } from "./volume-view";
 
 /** Why an automatic fade-in is what it is. */
@@ -105,58 +106,6 @@ export interface SlideChange {
   readonly offBeat: boolean;
 }
 
-/** What is known of each song's beats; a song absent is still being listened for. */
-export type SongsBeatsStatus = ReadonlyMap<string, BeatsStatus>;
-
-/** What is known of each song's loudness; a song absent is still being listened for. */
-export type SongsLoudnessStatus = ReadonlyMap<string, LoudnessStatus>;
-
-const LISTENING: BeatsStatus = { kind: "listening" };
-const LISTENING_FOR_LOUDNESS: LoudnessStatus = { kind: "listening" };
-const NOTHING_LOUDNESS_KNOWN: SongsLoudnessStatus = new Map();
-
-/** What is known of the song's beats. */
-export function songBeatsStatus(beats: SongsBeatsStatus, songId: string): BeatsStatus {
-  return beats.get(songId) ?? LISTENING;
-}
-
-/** `beats` composed for `moodTempo`, which paces to a found tempo as soon as one is known. */
-function songBeats(beats: SongsBeatsStatus): SongBeats {
-  return new Map([...beats].map(([songId, status]) => [songId, composedBeats(status)]));
-}
-
-/** What is known of the song's loudness. */
-export function songLoudnessStatus(loudness: SongsLoudnessStatus, songId: string): LoudnessStatus {
-  return loudness.get(songId) ?? LISTENING_FOR_LOUDNESS;
-}
-
-/**
- * The slides' times over the whole playlist, with what is known of the songs' beats; one entry
- * per slide, a composed pair counting as one (ADR-0028), which is what the timeline's slide
- * changes are positioned on.
- */
-export interface SlideshowTimes {
-  /** In ms of the playlist; absent while no song gives beats to change on. */
-  readonly beatsMs: readonly number[] | undefined;
-  readonly durationsMs: readonly number[];
-  readonly slideshowMs: number;
-}
-
-export function slideshowTimes(stored: StoredSlideshow, beats: SongsBeatsStatus): SlideshowTimes {
-  const found = new Map(
-    stored.songs.map(({ id }) => [id, composedBeats(songBeatsStatus(beats, id))]),
-  );
-  const beatsMs = playlistBeatsMs(stored, found);
-  const units = slideUnits(stored.pictures, stored.portraitPictures);
-  const durationsMs = slideDurationsMs(
-    units.map((unit) => timedUnit(stored.pictures, unit)),
-    filledMusicMs(stored),
-    stored.secondsPerPicture,
-    beatsMs,
-  );
-  return { beatsMs, durationsMs, slideshowMs: sum(durationsMs) };
-}
-
 /**
  * What the music editor shows of the song `songId` of `stored`, with what is known of the songs'
  * beats and loudness; the pictures' times are the whole playlist's (ADR-0023).
@@ -165,14 +114,14 @@ export function musicEditorView(
   stored: StoredSlideshow,
   beats: SongsBeatsStatus,
   songId: string,
-  loudness: SongsLoudnessStatus = NOTHING_LOUDNESS_KNOWN,
+  loudness: SongsLoudnessStatus = NO_SONGS_LOUDNESS_KNOWN,
 ): MusicEditorView {
   const index = songIndex(stored, songId);
   const placed = placeSongs(stored);
   // songIndex only returns the index of a song the playlist has.
   const { song: music, atMs, fadeInMs, fadeOutMs } = placed[index] as PlacedSong;
   const { startMs, endMs } = musicExcerpt(music);
-  const { beatsMs, durationsMs, slideshowMs } = slideshowTimes(stored, beats);
+  const { beatsMs, durationsMs, slideshowMs } = slideshowTimes(stored, beats, loudness);
   const status = songBeatsStatus(beats, songId);
   const pictureChanges = pictureChangesView(stored, music, status);
   const loudnessStatus = songLoudnessStatus(loudness, songId);

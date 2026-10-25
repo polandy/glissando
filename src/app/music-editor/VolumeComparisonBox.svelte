@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { StoredSlideshow } from "../../library/stored-slideshow";
   import { getTranslator } from "../i18n/context";
-  import type { SongsLoudnessStatus } from "./music-editor-view";
+  import type { SongsLoudnessStatus } from "./slideshow-times";
   import { songColour } from "./song-colour";
   import { volumeComparisonView } from "./volume-comparison-view";
 

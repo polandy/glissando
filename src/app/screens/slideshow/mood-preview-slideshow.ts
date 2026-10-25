@@ -5,18 +5,16 @@ import type { Slideshow } from "../../../player";
 import { composeSlideshow, type SlideshowSources } from "../../../compose/compose-slideshow";
 import type { SongBeats } from "../../../compose/playlist";
 import type { SongLoudness } from "../../../compose/song-loudness";
+import { moodEnergyPacing } from "./mood-energy-pacing";
+import { PREVIEW_PICTURE_COUNT, previewWindowStartIndex } from "./preview-window";
+
+export { PREVIEW_PICTURE_COUNT, previewWindowStartIndex };
 
 /**
- * The Mood sheet's preview loops on the slideshow's first four slide units (MOOD.md), without
- * composing the whole slideshow.
- */
-export const PREVIEW_PICTURE_COUNT = 4;
-
-/**
- * Composes the Mood sheet's live preview: the stored slideshow's first `PREVIEW_PICTURE_COUNT`
- * pictures under `shownMood` — a candidate the user has not chosen yet, so it is never written
- * to `stored`. No opening or closing card and no chapters, since the preview loops on pictures
- * alone. Pure: `stored` is read, never changed.
+ * Composes the Mood sheet's live preview: a window of `PREVIEW_PICTURE_COUNT` of the stored
+ * slideshow's pictures under `shownMood` — a candidate the user has not chosen yet, so it is
+ * never written to `stored`. No opening or closing card and no chapters, since the preview loops
+ * on pictures alone. Pure: `stored` is read, never changed.
  */
 export function moodPreviewSlideshow(
   stored: StoredSlideshow,
@@ -27,9 +25,16 @@ export function moodPreviewSlideshow(
   loudness: SongLoudness,
   locale: string,
 ): Slideshow {
+  const startIndex =
+    stored.energyPacing === true
+      ? previewWindowStartIndex(
+          stored.pictures.length,
+          moodEnergyPacing(stored, shownMood, beats, loudness).firstLiftUnitIndex,
+        )
+      : 0;
   const preview: { -readonly [Key in keyof StoredSlideshow]: StoredSlideshow[Key] } = {
     ...stored,
-    pictures: stored.pictures.slice(0, PREVIEW_PICTURE_COUNT),
+    pictures: stored.pictures.slice(startIndex, startIndex + PREVIEW_PICTURE_COUNT),
     automaticChaptersOff: true,
   };
   delete preview.openingCard;

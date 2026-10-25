@@ -224,7 +224,7 @@ function seedDocument(title, createdAt, members, extraPictures = []) {
   }));
   return {
     format: "glissando-server",
-    formatVersion: 5,
+    formatVersion: 6,
     slideshow: {
       title,
       createdAt,

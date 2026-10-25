@@ -1,5 +1,5 @@
 import type { StoredPicture, StoredSlideshow } from "../library/stored-slideshow";
-import { MOOD_FROM_VERSION, ownMusicFields } from "../glissando-file/glissando-manifest";
+import { ENERGY_PACING_FROM_VERSION, ownMusicFields } from "../glissando-file/glissando-manifest";
 import { cardFromManifest, cardToManifest } from "../glissando-file/manifest-card";
 import { DocumentFormatError, readObject, readText } from "../glissando-file/document-values";
 import {
@@ -28,13 +28,13 @@ export const SERVER_DOCUMENT_FORMAT_ID = "glissando-server";
 /**
  * Version 2 added the slideshow's `openingCard` and `closingCard` (ADR-0032), version 3 a
  * picture's `colours` and a card's picture background `tint` (ADR-0033), version 4 the
- * slideshow's `look` (ADR-0044), version 5 the slideshow's `mood` (ADR-0045). Only version 5 is
- * read: there is no production instance yet, so an older document is refused rather than
- * migrated.
+ * slideshow's `look` (ADR-0044), version 5 the slideshow's `mood` (ADR-0045), version 6 the
+ * slideshow's `energyPacing` (ADR-0046). Only version 6 is read: there is no production instance
+ * yet, so an older document is refused rather than migrated.
  */
-export const SERVER_DOCUMENT_FORMAT_VERSION = 5;
+export const SERVER_DOCUMENT_FORMAT_VERSION = 6;
 /** The manifest format version whose slideshow fields a server document carries. */
-const MANIFEST_FIELDS_VERSION = MOOD_FROM_VERSION;
+const MANIFEST_FIELDS_VERSION = ENERGY_PACING_FROM_VERSION;
 /** Trip chapters (`dev-docs/player/TRIP_CHAPTERS.md`) are not part of a server document yet. */
 const TRIP_CHAPTER_KEYS = ["automaticChaptersOff", "chapterEdits", "addedChapters"];
 /** Every key a server document's slideshow, each picture and each song may carry. */
@@ -176,6 +176,7 @@ export function serverDocumentFor(slideshow: StoredSlideshow): ServerDocument {
         : { portraitPictures: slideshow.portraitPictures }),
       ...(slideshow.look === undefined ? {} : { look: slideshow.look }),
       ...(slideshow.mood === undefined ? {} : { mood: slideshow.mood }),
+      ...(slideshow.energyPacing ? { energyPacing: true } : {}),
       pictures: slideshow.pictures.map(serverPictureFor),
       songs: slideshow.songs.map((song) => ({
         musicId: song.id,

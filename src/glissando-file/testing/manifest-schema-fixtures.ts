@@ -30,6 +30,7 @@ export const BASE_MANIFEST: ManifestDocument = {
     portraitPictures: "fill-screen",
     look: "warm",
     mood: "calm",
+    energyPacing: true,
     pictures: [
       {
         file: "pictures/0001.png",

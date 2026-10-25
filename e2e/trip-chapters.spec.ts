@@ -7,6 +7,7 @@ import {
   selectionBar,
   type PlaceVisit,
 } from "./support/app";
+import { clickSwitch } from "./support/switch";
 import { openApp } from "./support/browser";
 
 test.use(GERMAN_BROWSER);
@@ -41,14 +42,6 @@ function chapterChip(page: Page, text: string): Locator {
 /** The `<li>` a strip tile (chapter chip or picture) sits in, for an adjacency check. */
 function tileOf(locator: Locator): Locator {
   return locator.locator("xpath=ancestor::li[1]");
-}
-
-/**
- * Clicks a `Switch.svelte` switch: its input is drawn over by the visible track (pointer-events
- * none, Switch.svelte), so the click goes to the `<label>` wrapping both, same as a tap on it.
- */
-function clickSwitch(switchInput: Locator): Promise<void> {
-  return switchInput.locator("xpath=..").click();
 }
 
 test("E2E-077 a trip across two stays shows one automatic chapter right before the second stay, and an edited title persists until reset", async ({

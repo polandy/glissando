@@ -35,6 +35,7 @@
     moodPending,
     onMood,
     onResetMood,
+    onEnergyPacing,
     onPortraitPictures,
     onResetPortraitPictures,
     onTransitionsClosed,
@@ -71,6 +72,8 @@
     onMood: (mood: SlideshowMood | undefined) => void;
     /** "Back to Custom" in the Mood sheet. */
     onResetMood: () => void;
+    /** The Mood sheet's "Follow the music's energy" switch (ADR-0046): stores at once. */
+    onEnergyPacing: (on: boolean) => void;
     onPortraitPictures: (choice: PortraitPictures) => void;
     onResetPortraitPictures: () => void;
     onTransitionsClosed: () => void;
@@ -212,6 +215,7 @@
     {moodPending}
     {onMood}
     {onResetMood}
+    {onEnergyPacing}
     onClose={closeMood}
   />
 {/if}

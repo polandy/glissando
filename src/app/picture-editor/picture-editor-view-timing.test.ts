@@ -1,4 +1,5 @@
 import { NO_SONG_BEATS, placeSongs } from "../../compose";
+import { levelMs, syntheticLoudness } from "../../compose/energy/testing/synthetic-loudness";
 import { describe, expect, it } from "vitest";
 import { NO_FOCUS_KNOWN } from "../focus/pictures-focus";
 import { pictureEditorView } from "./picture-editor-view";
@@ -134,6 +135,56 @@ describe("pictureEditorView timing", () => {
       pictureEditorView(trimmed, "p1", NO_FOCUS_KNOWN, NO_SONG_BEATS).durationBasis,
     ).toMatchObject({
       clamped: true,
+    });
+  });
+
+  describe("energy pacing (ADR-0046)", () => {
+    const quietThenLoud = new Map([
+      ["m", syntheticLoudness([...levelMs(-24, 15_000), ...levelMs(-16, 15_000)])],
+    ]);
+
+    it("paces the automatic slide durations by the music's energy once the slideshow follows it", () => {
+      const withEnergy = { ...stored, songs: [music(30_000)], energyPacing: true as const };
+
+      const first = pictureEditorView(
+        withEnergy,
+        "p1",
+        NO_FOCUS_KNOWN,
+        NO_SONG_BEATS,
+        quietThenLoud,
+      );
+      const third = pictureEditorView(
+        withEnergy,
+        "p3",
+        NO_FOCUS_KNOWN,
+        NO_SONG_BEATS,
+        quietThenLoud,
+      );
+
+      // p1 (0-10 000 before pacing) sits in the quiet half, p3 (20 000-30 000) in the loud half.
+      expect(first.durationMs).toBeGreaterThan(third.durationMs);
+    });
+
+    it("does not pace by energy unless the slideshow follows it, even with loudness known", () => {
+      const withMusic = { ...stored, songs: [music(30_000)] };
+
+      const first = pictureEditorView(
+        withMusic,
+        "p1",
+        NO_FOCUS_KNOWN,
+        NO_SONG_BEATS,
+        quietThenLoud,
+      );
+      const third = pictureEditorView(
+        withMusic,
+        "p3",
+        NO_FOCUS_KNOWN,
+        NO_SONG_BEATS,
+        quietThenLoud,
+      );
+
+      expect(first.durationMs).toBe(third.durationMs);
+      expect(first.durationMs).toBe(10_000);
     });
   });
 });

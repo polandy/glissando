@@ -6,7 +6,7 @@ import {
   songLoudnessStatus,
   type SongsBeatsStatus,
   type SongsLoudnessStatus,
-} from "./music-editor-view";
+} from "./slideshow-times";
 
 /** The list's badge for a song's own volume (ADR-0040). */
 export type SongVolumeBadge =
@@ -61,7 +61,7 @@ export function playlistView(
   beats: SongsBeatsStatus,
   loudness: SongsLoudnessStatus = new Map(),
 ): PlaylistView {
-  const { durationsMs, slideshowMs } = slideshowTimes(stored, beats);
+  const { durationsMs, slideshowMs } = slideshowTimes(stored, beats, loudness);
   const placed = placeSongs(stored);
   const songs = placed.map(({ song, atMs }, index) => ({
     id: song.id,

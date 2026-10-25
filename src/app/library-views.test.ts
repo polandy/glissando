@@ -49,6 +49,7 @@ describe("slideshowDetails", () => {
       ownDurationCount: 0,
       ownTransitionCount: 0,
       transition: "crossfade",
+      energyPacing: false,
       look: "none",
       portraitPictures: "automatic",
       pairCount: 0,

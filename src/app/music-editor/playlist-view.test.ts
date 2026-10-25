@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { levelMs, syntheticLoudness } from "../../compose/energy/testing/synthetic-loudness";
 import { SEQUENCE_BETWEEN_SONGS } from "../../library/own-music";
 import type { StoredMusic, StoredPicture, StoredSlideshow } from "../../library/stored-slideshow";
 import { playlistView } from "./playlist-view";
@@ -129,6 +130,31 @@ describe("playlistView (ADR-0023)", () => {
         { kind: "own", ownDb: 3 },
         { kind: "none" },
       ]);
+    });
+  });
+
+  describe("energy pacing (ADR-0046)", () => {
+    const quietThenLoud = song("m", 20_000);
+    const loudness = new Map([
+      [
+        "m",
+        {
+          kind: "known" as const,
+          loudness: syntheticLoudness([...levelMs(-24, 10_000), ...levelMs(-16, 10_000)]),
+        },
+      ],
+    ]);
+
+    it("paces the slide changes by the music's energy once the slideshow follows it", () => {
+      const paced = playlistView(
+        slideshow([quietThenLoud], 4, { energyPacing: true }),
+        new Map(),
+        loudness,
+      );
+      const even = playlistView(slideshow([quietThenLoud], 4), new Map(), loudness);
+
+      // The first slide sits in the quiet half: quiet stretches it past the even 5000 ms gap.
+      expect(paced.slideChangesMs[0]).toBeGreaterThan(even.slideChangesMs[0] as number);
     });
   });
 });

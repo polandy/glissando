@@ -11,6 +11,7 @@
   import { storedSongLoudness } from "../../loudness/music-loudness-composed";
   import { browserObjectUrls } from "../../media/object-urls";
   import { loadPlayerMusic } from "../../routes/route-loading";
+  import { moodEnergyPacing } from "./mood-energy-pacing";
   import { moodName } from "./mood-text";
   import {
     moodPreviewSlideshow,
@@ -26,17 +27,21 @@
    * leaves this out while the slideshow has no pictures. `moodBpm` and `moodPending` are the same
    * ones the sheet's rows show (`slideshowMoodBpm`/`slideshowMoodTempoPending`), so the badge never
    * disagrees with them, and while they are still pending it never claims "no beat found".
+   * `onLoaded`, once given, fires with the beats and loudness once they are loaded, so the Mood
+   * sheet can draw the energy strip (ADR-0046) from the same analysis, instead of loading it twice.
    */
   let {
     ports,
     mood,
     moodBpm,
     moodPending,
+    onLoaded,
   }: {
     ports: MoodPreviewPorts;
     mood: SlideshowMood | undefined;
     moodBpm: number | undefined;
     moodPending: boolean;
+    onLoaded?: (loaded: { beats: SongBeats; loudness: SongLoudness }) => void;
   } = $props();
 
   const { t, language } = getTranslator();
@@ -71,6 +76,7 @@
       }
       musicUrls = music.urls;
       loaded = { focus, beats, loudness, musicUrls: music.urls };
+      onLoaded?.({ beats, loudness });
     }, ports.log);
   });
   onDestroy(() => {
@@ -115,6 +121,18 @@
         ? t("mood.previewPending")
         : t("mood.previewNoBeat"),
   );
+  // The badge adds "· energy" only once a lift was actually found to play the preview around.
+  const energyBadge = $derived(
+    loaded !== null &&
+      ports.stored.energyPacing === true &&
+      moodEnergyPacing(ports.stored, mood, loaded.beats, loaded.loudness).firstLiftUnitIndex !==
+        undefined,
+  );
+  const badgeText = $derived(
+    energyBadge
+      ? `${bpmText} · ${moodName(t, mood)} · ${t("mood.energyBadgeSuffix")}`
+      : `${bpmText} · ${moodName(t, mood)}`,
+  );
 </script>
 
 {#if previewSlideshow !== null}
@@ -128,7 +146,7 @@
         decodeClipSound={ports.decodeClipSound}
       />
     {/key}
-    <span class="badge">{bpmText} · {moodName(t, mood)}</span>
+    <span class="badge">{badgeText}</span>
     <button
       class="sound"
       type="button"

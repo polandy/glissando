@@ -3,6 +3,7 @@
 One mood per slideshow — Calm, Lively or Custom — that sets the default transition, the picture
 times and the Ken Burns strength from the music's tempo (ADR-0045). Mockup, option A:
 `https://polandy.github.io/glissando-assets/mockups/slideshow-moods/`.
+The sheet also holds the switch "Follow the music's energy" ([ENERGY_PACING](ENERGY_PACING.md)).
 
 ## Moods
 

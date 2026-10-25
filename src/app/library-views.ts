@@ -99,6 +99,7 @@ export function slideshowDetails(
     ownTransitionCount: tiles.filter((tile) => tile.ownTransition !== null).length,
     transition: slideshowTransition(stored),
     ...(stored.mood === undefined ? {} : { mood: stored.mood }),
+    energyPacing: stored.energyPacing === true,
     look: slideshowLook(stored),
     portraitPictures: resolvePortraitPictures(stored.portraitPictures),
     pairCount: slideUnits(stored.pictures, stored.portraitPictures).filter(

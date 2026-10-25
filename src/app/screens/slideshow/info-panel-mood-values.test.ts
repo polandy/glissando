@@ -22,6 +22,7 @@ function details(overrides: Partial<SlideshowDetails> = {}): SlideshowDetails {
     ownDurationCount: 0,
     ownTransitionCount: 0,
     transition: "crossfade",
+    energyPacing: false,
     look: "none",
     portraitPictures: "automatic",
     pairCount: 0,
@@ -42,26 +43,82 @@ describe("the info panel's mood-conditional values", () => {
       details({ transition: "crossfade" }),
       undefined,
       "own summary",
+      null,
     );
     expect(values.transitionValue).toBe(translator.t("effect.crossfade"));
     expect(values.transitionRowSummary).toBe("own summary");
   });
 
   it("names a picture without its own duration as automatic, without a mood", () => {
-    const values = infoPanelMoodValues(translator, details({ ownDurationCount: 0 }), undefined, "");
+    const values = infoPanelMoodValues(
+      translator,
+      details({ ownDurationCount: 0 }),
+      undefined,
+      "",
+      null,
+    );
     expect(values.pictureTimesValue).toBe(translator.t("slideshow.automatic"));
   });
 
   it("counts pictures with their own duration, without a mood", () => {
-    const values = infoPanelMoodValues(translator, details({ ownDurationCount: 2 }), undefined, "");
+    const values = infoPanelMoodValues(
+      translator,
+      details({ ownDurationCount: 2 }),
+      undefined,
+      "",
+      null,
+    );
     expect(values.pictureTimesValue).toBe(translator.t("slideshow.automaticWithOwn", { count: 2 }));
   });
 
   it("paces the transition, picture times and Ken Burns to the mood once one is set", () => {
-    const values = infoPanelMoodValues(translator, details({ mood: "calm" }), 80, "own summary");
+    const values = infoPanelMoodValues(
+      translator,
+      details({ mood: "calm" }),
+      80,
+      "own summary",
+      null,
+    );
     expect(values.transitionRowSummary).toBe(translator.t("mood.byMood"));
     expect(values.transitionValue).not.toBe("");
     expect(values.pictureTimesValue).not.toBe(translator.t("slideshow.automatic"));
     expect(values.kenBurnsValue).not.toBe(translator.t("slideshow.automatic"));
+  });
+
+  it("shows the found range '· by energy' under a mood once the energy pacing found one", () => {
+    const values = infoPanelMoodValues(translator, details({ mood: "calm" }), 80, "own summary", {
+      minMs: 2000,
+      maxMs: 6000,
+      firstLiftUnitIndex: undefined,
+    });
+    expect(values.pictureTimesValue).toBe(
+      translator.t("mood.energyPictureTimesRange", { from: "2 s", to: "6 s" }),
+    );
+  });
+
+  it("keeps the mood's own picture times once the energy pacing found no variance", () => {
+    const byMood = infoPanelMoodValues(translator, details({ mood: "calm" }), 80, "", null);
+    const byEnergy = infoPanelMoodValues(translator, details({ mood: "calm" }), 80, "", {
+      minMs: 4000,
+      maxMs: 4000,
+      firstLiftUnitIndex: undefined,
+    });
+    expect(byEnergy.pictureTimesValue).toBe(byMood.pictureTimesValue);
+  });
+
+  it("keeps Custom's picture times value whether the energy pacing is on or off", () => {
+    const off = infoPanelMoodValues(
+      translator,
+      details({ energyPacing: false }),
+      undefined,
+      "",
+      null,
+    );
+    const on = infoPanelMoodValues(translator, details({ energyPacing: true }), undefined, "", {
+      minMs: 2000,
+      maxMs: 6000,
+      firstLiftUnitIndex: undefined,
+    });
+    expect(on.pictureTimesValue).toBe(off.pictureTimesValue);
   });
 });

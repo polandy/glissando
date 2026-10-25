@@ -17,7 +17,9 @@ import type { ServerSlideshowRows } from "../server-library/server-slideshow-ses
 import { NO_FOCUS_KNOWN, type PicturesFocus } from "../focus/pictures-focus";
 import type { SlideshowSearch } from "../../library/focus-pass";
 import type { ChapterSettingsEditor } from "../editing/chapter-settings-editor";
+import type { MoodEnergyPacing } from "./slideshow/mood-energy-pacing";
 import { moodPreviewPortsFixture } from "./slideshow/mood-preview-ports-fixture";
+import { withClosingCard, withMood, withOpeningCard } from "./slideshow-screen-harness-cards";
 
 /** The title slide a bare `ensureOpeningCard` call creates, for tests that don't care about it. */
 const DEFAULT_OPENING_CARD: StoredCard = {
@@ -68,6 +70,7 @@ export function details(ids: readonly string[], overrides: Partial<SlideshowDeta
     ownDurationCount: 0,
     ownTransitionCount: 0,
     transition: "crossfade",
+    energyPacing: false,
     look: "none",
     portraitPictures: "automatic",
     pairCount: 0,
@@ -90,33 +93,6 @@ export function details(ids: readonly string[], overrides: Partial<SlideshowDeta
   return { ...base, ...overrides };
 }
 
-/** `slideshow` with its title slide set, or removed when `card` is undefined. */
-function withOpeningCard(
-  slideshow: SlideshowDetails,
-  card: StoredCard | undefined,
-): SlideshowDetails {
-  const { openingCard, ...rest } = slideshow;
-  void openingCard;
-  return card === undefined ? rest : { ...rest, openingCard: card };
-}
-
-/** `slideshow` with its closing slide set, or removed when `card` is undefined. */
-function withClosingCard(
-  slideshow: SlideshowDetails,
-  card: StoredCard | undefined,
-): SlideshowDetails {
-  const { closingCard, ...rest } = slideshow;
-  void closingCard;
-  return card === undefined ? rest : { ...rest, closingCard: card };
-}
-
-/** `slideshow` with its mood set, or removed (Custom) when `mood` is undefined. */
-function withMood(slideshow: SlideshowDetails, mood: SlideshowMood | undefined): SlideshowDetails {
-  const { mood: previous, ...rest } = slideshow;
-  void previous;
-  return mood === undefined ? rest : { ...rest, mood };
-}
-
 export function mountScreen(
   slideshow: SlideshowDetails = details(["a", "b", "c"]),
   {
@@ -133,6 +109,7 @@ export function mountScreen(
     chapterEditor = null as ChapterSettingsEditor | null,
     moodBpm = undefined as number | undefined,
     moodPending = false,
+    moodEnergyPacing = null as MoodEnergyPacing | null,
     moodPreviewPorts = moodPreviewPortsFixture(),
   } = {},
 ) {
@@ -155,6 +132,7 @@ export function mountScreen(
     lookResets: 0,
     moods: [] as (SlideshowMood | undefined)[],
     moodResets: 0,
+    energyPacingChoices: [] as boolean[],
     portraitPictureChoices: [] as ResolvedPortraitPictures[],
     portraitPictureResets: 0,
     deletes: 0,
@@ -212,6 +190,7 @@ export function mountScreen(
     },
     moodBpm,
     moodPending,
+    moodEnergyPacing,
     moodPreviewPorts,
     onMood: (mood: SlideshowMood | undefined) => {
       calls.moods.push(mood);
@@ -220,6 +199,10 @@ export function mountScreen(
     onResetMood: () => {
       calls.moodResets += 1;
       props.slideshow = withMood(props.slideshow, undefined);
+    },
+    onEnergyPacing: (on: boolean) => {
+      calls.energyPacingChoices.push(on);
+      props.slideshow = { ...props.slideshow, energyPacing: on };
     },
     onPortraitPictures: (choice: ResolvedPortraitPictures) => {
       calls.portraitPictureChoices.push(choice);

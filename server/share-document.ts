@@ -22,6 +22,7 @@ const SHARED_SLIDESHOW_KEYS = [
   "portraitPictures",
   "look",
   "mood",
+  "energyPacing",
   "openingCard",
   "closingCard",
 ] as const satisfies readonly (keyof ServerSlideshow)[];
