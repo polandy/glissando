@@ -187,7 +187,6 @@
     label={t("slideshow.pictureTimes")}
     value={moodValues.pictureTimesValue}
     byMood={slideshow.mood !== undefined}
-    note={moodValues.pictureTimesNote}
   />
   {#if slideshow.songCount > 0}
     <EnergyPacingRow on={slideshow.energyPacing} onChange={onEnergyPacing} />

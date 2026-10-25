@@ -94,7 +94,6 @@ describe("the info panel's mood-conditional values", () => {
     expect(values.pictureTimesValue).toBe(
       translator.t("mood.energyPictureTimesRange", { from: "2 s", to: "6 s" }),
     );
-    expect(values.pictureTimesNote).toBeUndefined();
   });
 
   it("keeps the mood's own picture times once the energy pacing found no variance", () => {
@@ -107,23 +106,19 @@ describe("the info panel's mood-conditional values", () => {
     expect(byEnergy.pictureTimesValue).toBe(byMood.pictureTimesValue);
   });
 
-  it("notes 'follows the energy' under Custom once the energy pacing is on", () => {
-    const values = infoPanelMoodValues(translator, details({ energyPacing: true }), undefined, "", {
-      minMs: 2000,
-      maxMs: 6000,
-      firstLiftUnitIndex: undefined,
-    });
-    expect(values.pictureTimesNote).toBe(translator.t("mood.energyFollowsNote"));
-  });
-
-  it("shows no note under Custom with the energy pacing off", () => {
-    const values = infoPanelMoodValues(
+  it("keeps Custom's picture times value whether the energy pacing is on or off", () => {
+    const off = infoPanelMoodValues(
       translator,
       details({ energyPacing: false }),
       undefined,
       "",
       null,
     );
-    expect(values.pictureTimesNote).toBeUndefined();
+    const on = infoPanelMoodValues(translator, details({ energyPacing: true }), undefined, "", {
+      minMs: 2000,
+      maxMs: 6000,
+      firstLiftUnitIndex: undefined,
+    });
+    expect(on.pictureTimesValue).toBe(off.pictureTimesValue);
   });
 });

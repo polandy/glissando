@@ -46,5 +46,4 @@ export const deMood = {
   "mood.energyBadgeSuffix": "Energie",
   "mood.energyStripQuiet": "leise → länger",
   "mood.energyStripLoud": "laut → schneller",
-  "mood.energyFollowsNote": "folgt der Energie",
 } as const satisfies Record<string, Message>;

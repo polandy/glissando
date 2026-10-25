@@ -46,5 +46,4 @@ export const enMood: Pick<Catalogue, keyof typeof deMood> = {
   "mood.energyBadgeSuffix": "energy",
   "mood.energyStripQuiet": "quiet → longer",
   "mood.energyStripLoud": "loud → quicker",
-  "mood.energyFollowsNote": "follows the energy",
 };

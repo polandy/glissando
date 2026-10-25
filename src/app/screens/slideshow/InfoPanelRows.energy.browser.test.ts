@@ -16,11 +16,12 @@ const text = (within: Element | null): string =>
 const energySwitch = (within: HTMLElement): HTMLInputElement | null =>
   within.querySelector<HTMLInputElement>('[role="switch"]');
 
-const pictureTimesNote = (within: HTMLElement): string => {
-  const row = Array.from(within.querySelectorAll(".rows > div")).find(
+const pictureTimesRow = (within: HTMLElement): HTMLElement => {
+  const row = Array.from(within.querySelectorAll<HTMLElement>(".rows > div")).find(
     (div) => text(div.querySelector("dt")) === "Picture times",
   );
-  return text(row?.querySelector("dd small") ?? null);
+  if (row === undefined) throw new Error("no Picture times row");
+  return row;
 };
 
 const destroyers: (() => void)[] = [];
@@ -65,18 +66,20 @@ describe("InfoPanelRows energy pacing row", () => {
     expect(energySwitch(target)?.getAttribute("aria-label")).toBe("Follow the music's energy");
   });
 
-  it("stores the switch at once and updates Picture times, like the Mood sheet's", () => {
+  it("stores the switch at once, like the Mood sheet's, without Picture times changing height", () => {
     const { target, onEnergyPacing } = setUp(details({ songCount: 1, energyPacing: false }));
 
     expect(energySwitch(target)?.checked).toBe(false);
-    expect(pictureTimesNote(target)).toBe("");
+    const heightOffPx = pictureTimesRow(target).getBoundingClientRect().height;
+    expect(heightOffPx).toBeGreaterThan(0);
 
     energySwitch(target)?.click();
     flushSync();
 
     expect(onEnergyPacing).toHaveBeenCalledWith(true);
     expect(energySwitch(target)?.checked).toBe(true);
-    expect(pictureTimesNote(target)).toBe("follows the energy");
+    // The switch row right below says it is on; Picture times keeps its height so nothing jumps.
+    expect(pictureTimesRow(target).getBoundingClientRect().height).toBe(heightOffPx);
   });
 
   it("keeps the info panel's switch and the Mood sheet's switch showing the same stored state", () => {

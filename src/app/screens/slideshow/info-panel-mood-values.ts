@@ -10,7 +10,6 @@ export interface InfoPanelMoodValues {
   readonly transitionRowSummary: string;
   readonly pictureTimesValue: string;
   /** Under Custom with the energy pacing on: "follows the energy", shown under the value. */
-  readonly pictureTimesNote: string | undefined;
   readonly kenBurnsValue: string;
 }
 
@@ -40,7 +39,6 @@ export function infoPanelMoodValues(
         slideshow.ownDurationCount > 0
           ? t("slideshow.automaticWithOwn", { count: slideshow.ownDurationCount })
           : t("slideshow.automatic"),
-      pictureTimesNote: slideshow.energyPacing ? t("mood.energyFollowsNote") : undefined,
       kenBurnsValue:
         slideshow.ownMotionCount > 0
           ? t("slideshow.automaticWithOwn", { count: slideshow.ownMotionCount })
@@ -52,7 +50,6 @@ export function infoPanelMoodValues(
     transitionRowSummary: t("mood.byMood"),
     pictureTimesValue:
       energyRangeFound ?? moodPictureTimesText(translator, slideshow.mood, moodBpm),
-    pictureTimesNote: undefined,
     kenBurnsValue: moodKenBurnsText(t, slideshow.mood),
   };
 }
