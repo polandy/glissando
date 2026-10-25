@@ -70,13 +70,13 @@ describe("SlideshowScreen, the mood row", () => {
     expect(factRowValue("Bildzeiten")).toBe("5 s – 10 s · nach Energie");
   });
 
-  it("notes 'folgt der Energie' under Custom once the energy pacing is on", () => {
+  it("keeps Custom's picture times without a note once the energy pacing is on", () => {
     mountScreen(details(["a"], { energyPacing: true }), {
       moodEnergyPacing: { minMs: 5000, maxMs: 10_000, firstLiftUnitIndex: undefined },
     });
 
     expect(factRowValue("Bildzeiten")).toBe("automatisch");
-    expect(factRowSummary("Bildzeiten")).toBe("folgt der Energie");
+    expect(factRowSummary("Bildzeiten")).toBe("");
   });
 });
 

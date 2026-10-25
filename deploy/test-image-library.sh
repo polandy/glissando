@@ -17,7 +17,7 @@ readonly UNKNOWN_TOKEN=AAAAAAAAAAAAAAAAAAAAAA
 # referrer rule; Date is the HTTP server's own.
 readonly PICTURE_HEADERS="cache-control content-length content-type date etag referrer-policy"
 document() { # title
-	printf '{"format":"glissando-server","formatVersion":5,"slideshow":{"title":"%s","createdAt":"2025-10-01T08:00:00Z","secondsPerPicture":5,"songs":[],"pictures":[{"capturedAt":"2025-09-30T10:00:00Z","width":1920,"height":1080,"fileName":"a.jpg","immichAssetId":"%s","colours":{"veil":"#2A2340","accent":"#F3B7A6"}}]}}' "$1" "$UUID"
+	printf '{"format":"glissando-server","formatVersion":6,"slideshow":{"title":"%s","createdAt":"2025-10-01T08:00:00Z","secondsPerPicture":5,"songs":[],"pictures":[{"capturedAt":"2025-09-30T10:00:00Z","width":1920,"height":1080,"fileName":"a.jpg","immichAssetId":"%s","colours":{"veil":"#2A2340","accent":"#F3B7A6"}}]}}' "$1" "$UUID"
 }
 
 header_names() { # the response headers' names in $WORK/headers, lower case, sorted
