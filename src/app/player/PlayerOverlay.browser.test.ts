@@ -2,7 +2,7 @@ import { flushSync } from "svelte";
 import { afterEach, describe, expect, it } from "vitest";
 import { CAPTION_GLIDE_MS, isGroundSlide, MILLISECONDS_PER_SECOND } from "../../player";
 import { oneSlideShow } from "../../player/testing/browser-pictures";
-import { OPENED_PICTURE_SHOW } from "../../player/testing/opened-pictures";
+import { OPENED_PICTURE_SHOW, redPng } from "../../player/testing/opened-pictures";
 import { FakeScheduler } from "../../ui-kit/testing/fake-scheduler";
 import { mountWithTranslator } from "../testing/mount-with-translator";
 import { whenRendered } from "../testing/when-rendered";
@@ -168,6 +168,26 @@ describe("PlayerOverlay", () => {
 
     expect(alert.textContent).toContain("Immich antwortet nicht");
     expect(causes).toEqual([gone]);
+  });
+
+  it("is busy while it waits for its pictures, and no longer once it plays", async () => {
+    const picture = await redPng();
+    let deliver: (blob: Blob) => void = () => undefined;
+    const mounted = mountWithTranslator(PlayerOverlay, {
+      slideshow: OPENED_PICTURE_SHOW,
+      openPicture: () => new Promise<Blob>((resolve) => (deliver = resolve)),
+      onClose: () => undefined,
+      scheduler: new FakeScheduler(),
+    });
+    destroy = mounted.destroy;
+    flushSync();
+
+    const dialog = mounted.target.querySelector("[role=dialog]");
+    expect(dialog?.getAttribute("aria-busy")).toBe("true");
+
+    deliver(picture);
+    await whenRendered(mounted.target, "[role=dialog][aria-busy=false]");
+    expect(playButton(mounted.target).getAttribute("aria-label")).toBe("Pause");
   });
 
   it("starts at the time it is given", async () => {

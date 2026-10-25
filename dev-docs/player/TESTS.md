@@ -21,3 +21,7 @@
   pixel-read this way — WebKit's Canvas 2D `filter` does not apply a `url(...)` reference to a
   document SVG filter — so it is checked by comparing each picture or video element's `style.filter`
   against the look's own `<filter>` element and its `feColorMatrix`/`feComponentTransfer` values.
+- An e2e case that reads the player's frame during playback holds the page's clock
+  (`page.clock.install` + `pauseAt`), waits for the dialog to stop being `aria-busy` and moves
+  the show with `fastForward` — one frame per jump. Real time never decides what is drawn: under
+  CPU load a playing clip can starve the page for seconds, longer than any assertion waits.

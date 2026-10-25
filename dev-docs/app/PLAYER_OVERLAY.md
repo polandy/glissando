@@ -22,6 +22,8 @@ level). Closing destroys the player.
   right after, so the first caption is announced too.
 - Keys: Space play/pause, ←/→ previous/next picture, Esc close, F fullscreen. "Previous" more
   than a second into a picture restarts it, else goes to the one before.
+- The player dialog is `aria-busy` from opening until the show moves, and again while it waits
+  for a picture or clip it needs; a failure ends the wait.
 - At the end an "End" card offers "Again" and "Close"; it never jumps back by itself.
 - A picture that fails to load shows a short message with "Close". Music the browser refuses
   to start leaves the player paused with the controls showing; play retries.
