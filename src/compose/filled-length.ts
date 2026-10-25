@@ -16,11 +16,10 @@ const FIT_SHRINK_FACTOR = 2 / 3;
 
 /**
  * The length the automatic pictures fill, resolved once for "Fill the music" (ADR-0022), own
- * seconds (ADR-0022) and a mood (ADR-0045) alike, now that all three can fit a shorter playlist
- * (ADR-0047):
+ * seconds (ADR-0022) and a mood (ADR-0045) alike, each fitting a shorter playlist (ADR-0047):
  *
  * - `targetSecondsPerPicture` absent (fill mode: `pictureLength` absent and no mood) always
- *   returns `playlistLengthMs`, as "Fill the music" does today.
+ *   returns `playlistLengthMs`.
  * - `repeatMusic` `true`, or no playlist, keeps the target: `undefined`, since there is then no
  *   gap to fit or nothing to fit against.
  * - Otherwise, when the automatic pictures at their target would outlast the playlist and
@@ -29,8 +28,8 @@ const FIT_SHRINK_FACTOR = 2 / 3;
  *   returned so they fill it instead, ending the slideshow with the music; a squeeze that would
  *   still fall short keeps the target (`undefined`), since it would still end in silence.
  *
- * Title cards and chapters play on top of this, as they do while filling the music today, so
- * they are not counted here either (`DURATIONS.md`).
+ * Title cards and chapters play on top of this, as they do while filling the music, so they
+ * are not counted here (`DURATIONS.md`).
  */
 export function picturesFillMs(
   playlistLengthMs: number | undefined,
