@@ -35,6 +35,16 @@ describe("cutAtLifts", () => {
     expect(result).toEqual([1000, 50, 1950, 1000]);
   });
 
+  it("keeps the total when a dedicated chapter slide plays right before the boundary's next slide", () => {
+    const durationsMs = [1000, 1000, 1000];
+    const automatic = [true, true, true];
+    const chapterBeforeSecond = { beforeMs: [0, 500, 0], ownMs: [0, 0, 0] };
+
+    const result = cutAtLifts(durationsMs, automatic, [900], MIN_SLIDE_MS, chapterBeforeSecond);
+
+    expect(result).toEqual([900, 1100, 1000]);
+  });
+
   it("applies lifts one after another, each onto the boundaries left by the one before", () => {
     const durationsMs = [1000, 1000, 1000];
     const automatic = [true, true, true];
