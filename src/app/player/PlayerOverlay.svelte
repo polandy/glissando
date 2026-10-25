@@ -84,6 +84,8 @@
   let currentTime = $state(startAt);
   let paused = $state(true);
   let ended = $state(false);
+  /** Until the show moves, it waits for its pictures or clips. */
+  let waitingForMedia = $state(true);
   let failure = $state<PlayerFailure | null>(null);
   let controlsVisible = $state(true);
   // The scheduler is fixed for the overlay's lifetime.
@@ -127,7 +129,10 @@
     for (const event of STATE_EVENTS) {
       created.addEventListener(event, sync);
     }
+    created.addEventListener("waiting", () => (waitingForMedia = true));
+    created.addEventListener("playing", () => (waitingForMedia = false));
     created.addEventListener("error", () => {
+      waitingForMedia = false;
       sync();
       failure = failureOfPlayerError(created.error, pictureFailure);
     });
@@ -189,6 +194,7 @@
   role="dialog"
   aria-modal="true"
   aria-label={slideshow.title}
+  aria-busy={waitingForMedia}
 >
   <!-- A tap toggles the controls; the keyboard has its own shortcuts. -->
   <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
