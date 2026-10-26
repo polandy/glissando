@@ -272,7 +272,12 @@ export const en: Catalogue = {
   "import.fitFadesOut": "The music fades out with the last picture.",
   "import.fitFadesOutNotReached":
     "The music fades out with the last picture; the dimmed songs are not reached.",
-  "import.fitSilentAfter": "The last pictures play in silence.",
+  "import.fitFitted": "Pictures about {seconds} each, to end with the music.",
+  "import.fitOutlasts": "The music ends {time} before the pictures",
+  "import.repeatButton": "Repeat the music",
+  "import.addSongButton": "Add a song",
+  "import.fitRepeats": "The music repeats · fades out with the last picture.",
+  "import.playOnceButton": "Play once",
   "import.fitEndsWithMusic": "The slideshow ends with the music.",
   "import.backToPictures": "Pictures",
   "import.create": "Create slideshow",

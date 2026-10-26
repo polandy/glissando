@@ -34,6 +34,18 @@ const SONGS = [
   song("c", 60_000),
 ];
 
+function timedPictures(count: number, durationMs: number): StoredPicture[] {
+  return Array.from({ length: count }, (_, index) => ({
+    id: `p${index}`,
+    capturedAt: "2025-07-01T10:00:00Z",
+    width: 1,
+    height: 1,
+    fileName: `p${index}.jpg`,
+    colours: { veil: "#404040", accent: "#C0C0C0" },
+    durationMs,
+  }));
+}
+
 describe("playlistView (ADR-0023)", () => {
   it("lists every song where it starts, its excerpt and the crossfades between", () => {
     const view = playlistView(slideshow(SONGS, 6), new Map());
@@ -130,6 +142,77 @@ describe("playlistView (ADR-0023)", () => {
         { kind: "own", ownDb: 3 },
         { kind: "none" },
       ]);
+    });
+  });
+
+  describe("the pictures fit a shorter music, or it repeats (ADR-0047)", () => {
+    it("shrinks the automatic pictures to end with the music, and gives their mean share", () => {
+      const view = playlistView(
+        slideshow([song("a", 24_000)], 5, { pictureLength: "seconds", secondsPerPicture: 6 }),
+        new Map(),
+      );
+
+      expect(view).toMatchObject({
+        repeatMusic: false,
+        fittedShareMs: 4800,
+        playlistMs: 24_000,
+        slideshowMs: 24_000,
+      });
+      expect(view.overMs).toBeUndefined();
+    });
+
+    it("does not call it fitted once the shrink would still fall short (the ⅔ floor)", () => {
+      // 5 pictures at 6 s each (floor 4 s) outlast 15 s even shrunk: 15 000 / 5 = 3000 < 4000.
+      const view = playlistView(
+        slideshow([song("b", 15_000)], 5, { pictureLength: "seconds", secondsPerPicture: 6 }),
+        new Map(),
+      );
+
+      expect(view).toMatchObject({ repeatMusic: false, overMs: 15_000 });
+      expect(view.fittedShareMs).toBeUndefined();
+    });
+
+    it("repeats the playlist from its first song while pictures remain", () => {
+      const songs = [song("x", 20_000), song("y", 20_000)];
+      const view = playlistView(
+        slideshow(songs, 10, { repeatMusic: true, pictures: timedPictures(10, 5000) }),
+        new Map(),
+      );
+
+      expect(view.slideshowMs).toBe(50_000);
+      expect(view.playlistMs).toBe(37_000);
+      expect(
+        view.songs.map(({ id, number, atMs, repeated }) => ({
+          id,
+          number,
+          atMs,
+          repeated,
+        })),
+      ).toEqual([
+        { id: "x", number: 1, atMs: 0, repeated: undefined },
+        { id: "y", number: 2, atMs: 17_000, repeated: undefined },
+        { id: "x", number: 1, atMs: 34_000, repeated: true },
+        { id: "y", number: 2, atMs: 51_000, repeated: true },
+      ]);
+      // The loop boundary (index 1 → 2) joins exactly like any other crossfade.
+      expect(view.crossfades).toEqual([
+        { atMs: 17_000, ms: 3000 },
+        { atMs: 34_000, ms: 3000 },
+        { atMs: 51_000, ms: 3000 },
+      ]);
+      expect(view.overMs).toBeUndefined();
+      expect(view.fittedShareMs).toBeUndefined();
+    });
+
+    it("counts the stored songs only, not their repeated entries", () => {
+      const view = playlistView(
+        slideshow([song("a", 9_000)], 10, { repeatMusic: true, pictures: timedPictures(10, 5000) }),
+        new Map(),
+      );
+
+      // Several blocks play the one song again and again, but only one song is stored.
+      expect(view.songs.length).toBeGreaterThan(1);
+      expect(view.songCount).toBe(1);
     });
   });
 

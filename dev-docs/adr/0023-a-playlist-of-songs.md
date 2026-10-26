@@ -1,6 +1,6 @@
 # ADR-0023: A slideshow plays a playlist of songs, crossfading between them
 
-**Status:** accepted
+**Status:** accepted; for a music shorter than the slideshow, amended by ADR-0047
 
 ## Context
 

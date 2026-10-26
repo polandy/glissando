@@ -39,6 +39,8 @@ export interface MusicEditorScreenProps {
   onAddSampleTrack: (track: SampleTrack) => void;
   /** `undefined`: the songs crossfade. */
   onBetweenSongs: (between: BetweenSongs | undefined) => void;
+  /** `undefined`: the playlist plays once (ADR-0047). */
+  onRepeatMusic: (repeatMusic: true | undefined) => void;
   /** `undefined`: the whole track. */
   onTrim: (trim: MusicTrim | undefined) => void;
   /** `undefined`: automatic. */

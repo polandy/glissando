@@ -16,9 +16,10 @@ import { composeCards } from "./compose-cards";
 import { composeChapters } from "./compose-chapters";
 import { composedChapters } from "./chapters-of-slideshow";
 import { playlistEnergy } from "./energy/playlist-energy";
+import { picturesFillMs, targetSecondsPerPicture } from "./filled-length";
 import { insertedTimeFor, realOffsetsMs } from "./inserted-time";
 import { moodSettings, moodTempo } from "./mood-settings";
-import { filledMusicMs, playlistBeatsMs, resolvePlaylist, type SongBeats } from "./playlist";
+import { playlistBeatsMs, playlistMs, resolvePlaylist, type SongBeats } from "./playlist";
 import { pairKenBurns, pictureKenBurns } from "./picture-ken-burns";
 import { pictureTransition, slideshowTransition } from "./picture-transition";
 import { slideDurationsMs } from "./slide-durations-ms";
@@ -68,8 +69,28 @@ export function composeSlideshow(
     stored.mood === undefined ? undefined : moodSettings(stored.mood, moodTempo(stored, beats));
   const defaultTransition = mood?.transition ?? slideshowTransition(stored);
   const look = slideshowLook(stored);
-  const beatsMs = playlistBeatsMs(stored, beats);
-  const energy = stored.energyPacing === true ? playlistEnergy(stored, loudness, beats) : undefined;
+  const timedPictures = units.map((unit) => timedUnit(stored.pictures, unit));
+  const target = targetSecondsPerPicture(
+    stored.pictureLength,
+    stored.secondsPerPicture,
+    mood?.secondsPerPicture,
+  );
+  // The pictures fill the playlist in fill mode, or fit a shorter one at their own or mood
+  // seconds, unless the music repeats instead of them shrinking (ADR-0022, ADR-0045, ADR-0047).
+  const filledMs = picturesFillMs(playlistMs(stored), timedPictures, target, stored.repeatMusic);
+  const secondsPerPicture = target ?? stored.secondsPerPicture;
+  // Roughly how long the slideshow plays, ahead of the beat snap and the cards below, so a
+  // repeating playlist's beats and energy reach far enough into the repeats (`repeatedPlaylist`);
+  // off by at most what the beat snap and the cards add, well inside a repeat's own margin.
+  const approxSlideshowMs = slideDurationsMs(timedPictures, filledMs, secondsPerPicture).reduce(
+    (sum, durationMs) => sum + durationMs,
+    0,
+  );
+  const beatsMs = playlistBeatsMs(stored, beats, approxSlideshowMs);
+  const energy =
+    stored.energyPacing === true
+      ? playlistEnergy(stored, loudness, beats, approxSlideshowMs)
+      : undefined;
   const chapters = composedChapters(stored, locale);
   // How much the opening card and the chapters add around a slide unit, before the beat and
   // energy math below runs — the beats, energy and lifts are already in that real playlist time
@@ -85,11 +106,10 @@ export function composeSlideshow(
     mood?.maxTransitionMs,
   );
   const insertedOffsets = realOffsetsMs(inserted, units.length);
-  // A mood always paces its own seconds per picture and never fills the music (ADR-0045).
   const durationsMs = slideDurationsMs(
-    units.map((unit) => timedUnit(stored.pictures, unit)),
-    mood === undefined ? filledMusicMs(stored) : undefined,
-    mood?.secondsPerPicture ?? stored.secondsPerPicture,
+    timedPictures,
+    filledMs,
+    secondsPerPicture,
     beatsMs,
     energy,
     inserted,

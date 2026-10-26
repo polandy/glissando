@@ -7,7 +7,11 @@ import type { InsertedTime } from "./inserted-time";
 import { shareByWeightMs } from "./share-by-weight";
 import { snapToBeats } from "./snap-to-beats";
 
-const MIN_SLIDE_DURATION_MS = MIN_SECONDS_PER_PICTURE * MILLISECONDS_PER_SECOND;
+/** A slide's floor, shared with `filled-length.ts`'s fit decision. */
+export const MIN_SLIDE_DURATION_MS = MIN_SECONDS_PER_PICTURE * MILLISECONDS_PER_SECOND;
+
+/** A single picture's weight, also `filled-length.ts`'s default for one without it. */
+export const DEFAULT_WEIGHT = 1;
 
 /**
  * What the durations are computed from: a slide's own duration, if it has one, and its weight —
@@ -17,8 +21,6 @@ export interface TimedPicture extends Pick<StoredPicture, "durationMs"> {
   /** Absent: 1, a single picture's weight. */
   readonly weight?: number;
 }
-
-const DEFAULT_WEIGHT = 1;
 
 /**
  * The slide durations in play order. An own duration keeps that length; the other slides show
@@ -38,7 +40,7 @@ const DEFAULT_WEIGHT = 1;
  */
 export function slideDurationsMs(
   pictures: readonly TimedPicture[],
-  /** The length the pictures fill (`filledMusicMs`); absent: they last their seconds. */
+  /** The length the pictures fill or fit (`picturesFillMs`); absent: they last their seconds. */
   filledMs: number | undefined,
   secondsPerPicture: number,
   /** The beats to change on, in ms of the playlist (`playlistBeatsMs`); absent: none. */
@@ -81,7 +83,8 @@ export function slideDurationsMs(
   return snapToBeats(durationsMs, automatic, beatsMs, MIN_SLIDE_DURATION_MS, endOnBeat, inserted);
 }
 
-function ownTotalMs(pictures: readonly TimedPicture[]): number {
+/** The sum of the pictures' own durations, shared with `filled-length.ts`'s fit decision. */
+export function ownTotalMs(pictures: readonly TimedPicture[]): number {
   return pictures.reduce((sum, picture) => sum + (picture.durationMs ?? 0), 0);
 }
 

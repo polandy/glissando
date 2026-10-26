@@ -26,6 +26,7 @@ export const enAdd: Pick<Catalogue, keyof typeof deAdd> = {
   "add.beforeAfter": "{before} → {after}",
   "add.sharesMusic":
     "The pictures keep sharing the music; each gets a little shorter. Pictures with their own duration stay about that long.",
+  "add.fitted": "Each new picture shrinks to about {seconds} each, to end with the music.",
   "add.musicTooShort": "The music is too short for all pictures:",
   "add.musicTooShortText":
     "no picture shows for less than {seconds}, so the slideshow runs {total} and the music {music}.",

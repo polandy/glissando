@@ -10,6 +10,7 @@
   import type { MusicEditorView } from "./music-editor-view";
   import PictureChangesSection from "./PictureChangesSection.svelte";
   import type { PlaylistView } from "./playlist-view";
+  import RepeatMusicSection from "./RepeatMusicSection.svelte";
   import TimingNote from "./TimingNote.svelte";
   import TrimSection from "./TrimSection.svelte";
   import VolumeSection from "./VolumeSection.svelte";
@@ -34,6 +35,7 @@
     onSecondsPerPicture,
     onSetOwnPictureTimes,
     onBetweenSongs,
+    onRepeatMusic,
   }: {
     music: MusicEditorView;
     playlist: PlaylistView;
@@ -57,6 +59,8 @@
     onSetOwnPictureTimes: () => void;
     /** `undefined`: the songs crossfade. */
     onBetweenSongs: (between: BetweenSongs | undefined) => void;
+    /** `undefined`: the playlist plays once (ADR-0047). */
+    onRepeatMusic: (repeatMusic: true | undefined) => void;
   } = $props();
 
   const { t } = getTranslator();
@@ -65,13 +69,23 @@
 <div class="panel">
   <h2 class="group-title">{t("music.sectionSlideshow")}</h2>
   {#if music.moodPictureLength !== undefined}
-    <MoodPictureTimesSection moodPictureLength={music.moodPictureLength} {onSetOwnPictureTimes} />
+    <MoodPictureTimesSection
+      moodPictureLength={music.moodPictureLength}
+      fittedShareMs={playlist.fittedShareMs}
+      {onSetOwnPictureTimes}
+    />
   {:else}
-    <PictureLengthSection {...music.pictureLength} {onPictureLength} {onSecondsPerPicture} />
+    <PictureLengthSection
+      {...music.pictureLength}
+      fittedShareMs={playlist.fittedShareMs}
+      {onPictureLength}
+      {onSecondsPerPicture}
+    />
   {/if}
-  {#if playlist.songs.length > 1}
+  {#if playlist.songCount > 1}
     <BetweenSongsSection crossfade={playlist.crossfade} {onBetweenSongs} />
   {/if}
+  <RepeatMusicSection on={playlist.repeatMusic} {onRepeatMusic} />
   <h2 class="group-title">{t("music.sectionSong", { number: music.songNumber })}</h2>
   {#if !music.reached}
     <p class="unreached">{t("music.songNotReached")}</p>

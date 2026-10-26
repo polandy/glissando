@@ -12,6 +12,13 @@ cut, off where a track starts or ends by itself — the first song's fade-in, th
 fade-out, and both of every song one after another. The playlist is heard until its end or the
 slideshow's, whichever comes first: a longer slideshow plays its last pictures in silence; a
 shorter one leaves out the songs it never reaches and ends the ones heard at its end there, with
-their own fade-out or an automatic long one — the usual case when the pictures last their own
-seconds. Fades that together outlast what is heard of a song are scaled down in proportion.
-Changing the pictures on the beat moves no music: the excerpts and their fades stay as they are.
+their own fade-out or an automatic long one — unless the automatic pictures instead fit the
+shorter playlist, or `StoredSlideshow.repeatMusic` is set, so the slideshow ends with the music
+either way (ADR-0047; `DURATIONS.md`). Fades that together outlast what is heard of a song are
+scaled down in proportion. Changing the pictures on the beat moves no music: the excerpts and
+their fades stay as they are.
+
+With `repeatMusic` true, `resolvePlaylist` repeats the playlist from its first song
+(`repeatedPlaylist`) for as long as the slideshow lasts, each repeat joined like any two songs
+above, the last one heard fading out with the last picture. The pictures then keep their own or
+mood length: there is no gap left to fit.

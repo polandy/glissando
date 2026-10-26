@@ -46,4 +46,16 @@ describe("musicEditorView's picture-times note under a mood (MOOD.md)", () => {
       onTheBeat: true,
     });
   });
+
+  it("shrinks the mood's pace to end with a shorter song instead of outlasting it (ADR-0047)", () => {
+    // 4 pictures at calm's ~6.857 s would outlast a 20 s song, but the share stays at or above
+    // the floor (2/3 of ~6.857 s, ~4.571 s), so they shrink to it instead of ending in silence.
+    const show = slideshow({
+      songs: [{ id: "m1", fileName: "generated.wav", durationMs: 20_000, mimeType: "audio/wav" }],
+    });
+
+    const view = firstSongView(show, FOUND);
+
+    expect(view.note).toEqual({ kind: "fitted", shareMs: 5000, onTheBeat: true });
+  });
 });

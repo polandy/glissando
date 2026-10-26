@@ -12,7 +12,7 @@ import { slideOfPicture, slideUnits, timedUnit } from "./slide-units";
 export function pictureDurationsMs(
   pictures: readonly StoredPicture[],
   portraitPictures: PortraitPictures | undefined,
-  /** The length the pictures fill (`filledMusicMs`); absent: they last their seconds. */
+  /** The length the pictures fill or fit (`picturesFillMs`); absent: they last their seconds. */
   filledMs: number | undefined,
   secondsPerPicture: number,
   /** The beats to change on, in ms of the playlist (`playlistBeatsMs`); absent: none. */

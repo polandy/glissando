@@ -65,6 +65,10 @@ export const enMusic: Pick<Catalogue, keyof typeof deMusic> = {
     "Every picture has its own duration. The slideshow ends after {time}; the music fades out there.",
   "music.noteEndsWithMusic":
     "Every picture has its own duration. The slideshow ends with the music.",
+  "music.noteFitted":
+    "Each picture without its own duration shrinks to about {seconds}, to end with the music.",
+  "music.noteFittedOnTheBeat":
+    "Each picture without its own duration shrinks to about {seconds}, each change on the nearest beat, to end with the music.",
   "music.noteOwnSeconds":
     "Each picture without its own duration stays {seconds}. The slideshow lasts {time}; the music fades out there.",
   "music.noteOwnSecondsOnTheBeat":
@@ -73,6 +77,7 @@ export const enMusic: Pick<Catalogue, keyof typeof deMusic> = {
     "Each picture without its own duration stays {seconds}; after the fade-out the last pictures play in silence. Shorter pictures, longer music or “Fill the music” fix that.",
   "music.pictureLength": "Picture length",
   "music.aboutSecondsEach": "About {seconds} each",
+  "music.pictureLengthFitted": "Shortened to {seconds} to fit the music",
   "music.fillTheMusic": "Fill the music",
   "music.pictureTimesByMood": "Picture times are set by the mood {name} — {value}",
   "music.setOwnPictureTimes": "Set them yourself",

@@ -119,6 +119,40 @@ const cases: readonly {
       placement: null,
     },
   },
+  {
+    name: "own seconds shrink to fit a shorter music instead of outlasting it (ADR-0047)",
+    show: slideshow({
+      pictures: pictures(5, "old"),
+      songs: [{ ...MUSIC, durationMs: 25_000 }],
+      secondsPerPicture: 6,
+      pictureLength: OWN_SECONDS_PICTURE_LENGTH,
+    }),
+    added: 0,
+    expected: {
+      pictures: { before: 5, after: 5 },
+      durationSeconds: { before: 25, after: 25 },
+      perPictureSeconds: { before: 5, after: 5 },
+      note: { kind: "fitted", shareSeconds: 5 },
+      placement: null,
+    },
+  },
+  {
+    name: "own seconds too far below the floor keep their length and end in silence, not musicTooShort",
+    show: slideshow({
+      pictures: pictures(5, "old"),
+      songs: [{ ...MUSIC, durationMs: 15_000 }],
+      secondsPerPicture: 6,
+      pictureLength: OWN_SECONDS_PICTURE_LENGTH,
+    }),
+    added: 0,
+    expected: {
+      pictures: { before: 5, after: 5 },
+      durationSeconds: { before: 30, after: 30 },
+      perPictureSeconds: null,
+      note: { kind: "ownSeconds", secondsPerPicture: 6 },
+      placement: null,
+    },
+  },
 ];
 
 describe("afterAdding", () => {
@@ -206,5 +240,29 @@ describe("afterAdding, where the new pictures go in an own order", () => {
     const sorted = slideshow({ pictures: own.pictures });
 
     expect(afterAdding(sorted, added, "byCaptureDate").placement).toBeNull();
+  });
+});
+
+describe("afterAdding with the slideshow's mood", () => {
+  it("paces by the mood's target seconds without a tempo, not the stored secondsPerPicture", () => {
+    const show = slideshow({ pictures: pictures(2, "old"), secondsPerPicture: 5, mood: "calm" });
+
+    const after = afterAdding(show, pictures(1, "new"), "byCaptureDate");
+
+    expect(after.durationSeconds).toEqual({ before: 14, after: 21 });
+    expect(after.note).toEqual({ kind: "ownSeconds", secondsPerPicture: 7 });
+  });
+
+  it("paces by the tempo found for the music, when passed, matching composeSlideshow's (ADR-0045)", () => {
+    const show = slideshow({ pictures: pictures(2, "old"), songs: [MUSIC], mood: "calm" });
+    const beats = new Map([
+      [MUSIC.id, { kind: "beats" as const, beatsMs: [0, 500], beatsPerMinute: 128 }],
+    ]);
+
+    // calm at 128 BPM paces to 7.5 s (mood-settings.test.ts): 2 pictures far short of the 60 s song.
+    expect(afterAdding(show, [], "byCaptureDate", beats).durationSeconds).toEqual({
+      before: 15,
+      after: 15,
+    });
   });
 });

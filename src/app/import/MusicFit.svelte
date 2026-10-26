@@ -1,13 +1,14 @@
 <script lang="ts">
   import { getTranslator } from "../i18n/context";
+  import Notice from "../components/Notice.svelte";
   import type { PlaylistSongView } from "../music-editor/playlist-view";
   import { songColour } from "../music-editor/song-colour";
-  import type { ImportTiming } from "./import-view";
+  import type { ImportTiming } from "./music-fit";
 
   /**
    * The pictures against the chosen songs, both to one scale: each picture's segment by the rule
    * the slideshow is composed with, the songs under them, dimmed where the slideshow does not
-   * reach them, and how the two meet (ADR-0022, ADR-0023).
+   * reach them, and how the two meet (ADR-0022, ADR-0023, ADR-0047).
    */
   let {
     pictureIds,
@@ -16,6 +17,8 @@
     timing,
     music,
     songs,
+    onRepeatMusic,
+    onAddSong,
   }: {
     pictureIds: readonly string[];
     /** Thumbnail URLs by picture id, as far as loaded. */
@@ -26,9 +29,13 @@
     music: NonNullable<ImportTiming["music"]>;
     /** In play order. */
     songs: readonly PlaylistSongView[];
+    /** `undefined`: the music plays once through (ADR-0047). */
+    onRepeatMusic: (repeatMusic: true | undefined) => void;
+    /** Opens the hidden file input to pick another song (ADR-0047). */
+    onAddSong: () => void;
   } = $props();
 
-  const { t, formatDuration } = getTranslator();
+  const { t, formatDuration, formatTenthSeconds } = getTranslator();
   const PERCENT = 100;
 
   const spanSeconds = $derived(Math.max(timing.totalSeconds, music.seconds));
@@ -70,15 +77,36 @@
     <span>{t("import.fitMusic", { time: formatDuration(music.seconds) })}</span>
   </div>
 </div>
-<p class="note">
-  {#if music.kind === "fades-out"}
-    {t(someNotReached ? "import.fitFadesOutNotReached" : "import.fitFadesOut")}
-  {:else if music.kind === "silent-after"}
-    {t("import.fitSilentAfter")}
-  {:else}
-    {t("import.fitEndsWithMusic")}
-  {/if}
-</p>
+{#if music.kind === "fitted"}
+  <Notice tone="mint" live={false}>
+    {t("import.fitFitted", { seconds: formatTenthSeconds(music.shareSeconds) })}
+  </Notice>
+{:else if music.kind === "silent-after"}
+  <Notice tone="warn">
+    {t("import.fitOutlasts", { time: formatDuration(timing.totalSeconds - music.seconds) })}
+    {#snippet actions()}
+      <button class="btn primary" type="button" onclick={() => onRepeatMusic(true)}>
+        {t("import.repeatButton")}
+      </button>
+      <button class="add" type="button" onclick={onAddSong}>{t("import.addSongButton")}</button>
+    {/snippet}
+  </Notice>
+{:else if music.kind === "repeats"}
+  <p class="note">
+    {t("import.fitRepeats")}
+    <button class="linkbtn" type="button" onclick={() => onRepeatMusic(undefined)}>
+      {t("import.playOnceButton")}
+    </button>
+  </p>
+{:else}
+  <p class="note">
+    {#if music.kind === "fades-out"}
+      {t(someNotReached ? "import.fitFadesOutNotReached" : "import.fitFadesOut")}
+    {:else}
+      {t("import.fitEndsWithMusic")}
+    {/if}
+  </p>
+{/if}
 
 <style>
   .fit {
@@ -126,8 +154,41 @@
     font-size: var(--gl-size-small);
   }
   .note {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 6px;
     margin: 0;
     color: var(--gl-muted);
     font-size: var(--gl-size-meta);
+  }
+  .add {
+    padding: 10px;
+    border: 1px dashed var(--gl-line);
+    border-radius: var(--gl-radius);
+    background: transparent;
+    color: var(--gl-ink);
+    font: inherit;
+    font-size: var(--gl-size-label);
+    font-weight: var(--gl-weight-medium);
+    cursor: pointer;
+  }
+  .add:hover {
+    background: var(--gl-hover);
+  }
+  .linkbtn {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--gl-accent);
+    font: inherit;
+    font-size: var(--gl-size-meta);
+    font-weight: var(--gl-weight-semibold);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+  }
+  .linkbtn:hover {
+    color: var(--gl-accent-hover);
   }
 </style>

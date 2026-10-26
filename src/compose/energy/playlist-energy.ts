@@ -3,7 +3,7 @@ import { EVEN_PICTURE_CHANGES } from "../../library/own-music";
 import { LOUDNESS_HOP_MS, type MusicLoudness } from "../../loudness";
 import { excerptBeatsMs } from "../excerpt-beats";
 import { musicExcerpt, musicExcerptMs } from "../music-excerpt";
-import { placeSongs, type Playlist, type SongBeats } from "../playlist";
+import { placeSongs, repeatedPlaylist, type Playlist, type SongBeats } from "../playlist";
 import type { SongLoudness } from "../song-loudness";
 import {
   NEUTRAL_ENERGY,
@@ -40,14 +40,18 @@ type SongSpan =
  * The playlist's energy and lifts, placed like `playlistBeatsMs` (`placeSongs`): inside a
  * crossfade's overlap, the incoming song's span wins. A song that is `pictureChanges: "even"`,
  * was not measured, or is flat (`songEnergyRange` gives `null`) reads as `NEUTRAL_ENERGY` and
- * contributes no lifts, over the whole span it would otherwise own.
+ * contributes no lifts, over the whole span it would otherwise own. `slideshowMs`, when the
+ * playlist repeats, reaches as far into the repeats as it needs (`repeatedPlaylist`).
  */
 export function playlistEnergy(
   playlist: Playlist,
   loudness: SongLoudness,
   beats: SongBeats,
+  slideshowMs?: number,
 ): PlaylistEnergy {
-  const placed = placeSongs(playlist);
+  const placed = placeSongs(
+    slideshowMs === undefined ? playlist : repeatedPlaylist(playlist, slideshowMs),
+  );
   const spans = placed.map(({ song, atMs }, index): SongSpan => {
     const excerpt = musicExcerpt(song);
     const territoryEndMs = placed[index + 1]?.atMs ?? atMs + musicExcerptMs(song);

@@ -1,15 +1,12 @@
-import { OWN_SECONDS_PICTURE_LENGTH, type PictureLength } from "../../library/picture-length";
+import type { PictureLength } from "../../library/picture-length";
 import { buildStoredSlideshow } from "../../compose";
 import type { ImmichPhoto } from "../../immich/immich-client";
 import type { PictureImport } from "../../import/picture-import";
-import type { LibraryStore } from "../../library/library-store";
-import { DEFAULT_SECONDS_PER_PICTURE, type StoredSlideshow } from "../../library/stored-slideshow";
+import type { StoredSlideshow } from "../../library/stored-slideshow";
 import type { SampleTrack, SampleTrackId } from "../../sample-music/sample-tracks";
 import type { SlideshowHome } from "../routes/slideshow-storage";
-import type { SampleSongPickPorts, SampleSongRow } from "../sample-music/sample-song-pick";
-import type { ChosenMusic, MusicPickPorts, PendingSong } from "./music-pick";
 import { addPickedSongs, type SongReadQueue } from "./picked-song-intake";
-import { PictureIntake, type PictureIntakePorts } from "./picture-intake";
+import { PictureIntake } from "./picture-intake";
 import {
   addSampleTrack as addSampleTrackRow,
   isSampleTrackAdded as isSampleTrackAddedRow,
@@ -19,50 +16,20 @@ import {
 } from "./sample-track-intake";
 import { SessionArrangement } from "./session-arrangement";
 import type { SongRowHost } from "./song-row-host";
+import {
+  chosenSongs,
+  INITIAL_CHOICES,
+  type ImportChoices,
+  type ImportSessionPorts,
+} from "./import-session-types";
 
-export interface ImportSessionPorts extends PictureIntakePorts, MusicPickPorts {
-  readonly store: LibraryStore;
-  /**
-   * Creates a server slideshow with its songs' audio, one blob per song in playlist order
-   * (`ServerLibrary.createSlideshow`).
-   */
-  createOnServer(slideshow: StoredSlideshow, songsAudio: readonly Blob[]): Promise<StoredSlideshow>;
-  /** Uniform in [0, 1); what Shuffle draws the pictures step's order from. */
-  readonly random: () => number;
-  /** `undefined` when the build turns sample music off (SAMPLE_MUSIC.md): no track can be added. */
-  readonly sampleMusic?: SampleSongPickPorts;
-}
-
-/** A song of step 2's list: chosen, or still pending; `key` names its row. */
-export type ImportSong =
-  | PendingSong
-  | ({ readonly key: number } & ChosenMusic)
-  | ({ readonly key: number } & SampleSongRow);
-
-export type ChosenSong = Extract<ImportSong, { kind: "chosen" }>;
-
-/** The songs the slideshow is created with, in the list's order. */
-export function chosenSongs(choices: ImportChoices): ChosenSong[] {
-  return choices.songs.filter((song): song is ChosenSong => song.kind === "chosen");
-}
-
-/** Where the slideshow lives (step 1) and step 2's choices. */
-export interface ImportChoices {
-  /** A server slideshow links Immich photos and is created on the server (ADR-0018). */
-  readonly home: SlideshowHome;
-  /** Played one after another in this order (ADR-0023). */
-  readonly songs: readonly ImportSong[];
-  readonly secondsPerPicture: number;
-  /** With music, the pictures last their seconds (the default) or, `undefined`, fill it. */
-  readonly pictureLength: PictureLength | undefined;
-}
-
-const INITIAL_CHOICES: ImportChoices = {
-  home: "device",
-  songs: [],
-  secondsPerPicture: DEFAULT_SECONDS_PER_PICTURE,
-  pictureLength: OWN_SECONDS_PICTURE_LENGTH,
-};
+export type {
+  ChosenSong,
+  ImportChoices,
+  ImportSessionPorts,
+  ImportSong,
+} from "./import-session-types";
+export { chosenSongs } from "./import-session-types";
 
 /**
  * One "new slideshow" in the making: the pictures of step 1, the choices of step 2 and the
@@ -214,6 +181,14 @@ export class ImportSession {
     this.#setChoices({ pictureLength });
   }
 
+  /** `undefined`: the music plays once through, as it does by default (ADR-0047). */
+  setRepeatMusic(repeatMusic: true | undefined): void {
+    // `repeatMusic` is absent, not `undefined`, when turned off: it is an optional property.
+    const { repeatMusic: previous, ...rest } = this.#choices;
+    void previous;
+    this.#publish(repeatMusic === undefined ? rest : { ...rest, repeatMusic });
+  }
+
   /**
    * Stores every chosen song and the slideshow record, last, or creates it on the server; `locale` writes
    * the title's month. A failure keeps the session as it was.
@@ -261,6 +236,7 @@ export class ImportSession {
         ? {}
         : { pictureLength: this.#choices.pictureLength }),
       ...(this.arrangement.state.own ? { ownOrder: true } : {}),
+      ...(this.#choices.repeatMusic ? { repeatMusic: true } : {}),
       locale,
     });
     if (onServer) {
@@ -287,7 +263,11 @@ export class ImportSession {
   }
 
   #setChoices(change: Partial<ImportChoices>): void {
-    this.#choices = { ...this.#choices, ...change };
+    this.#publish({ ...this.#choices, ...change });
+  }
+
+  #publish(choices: ImportChoices): void {
+    this.#choices = choices;
     for (const listener of this.#choiceListeners) {
       listener(this.#choices);
     }

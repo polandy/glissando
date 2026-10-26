@@ -210,6 +210,10 @@ export class SlideshowEditor {
     this.#musicSettings.setBetweenSongs(betweenSongs);
   }
 
+  setRepeatMusic(repeatMusic: true | undefined): void {
+    this.#musicSettings.setRepeatMusic(repeatMusic);
+  }
+
   setMusicTrim(songId: string, trim: MusicTrim | undefined): void {
     this.#musicSettings.setMusicTrim(songId, trim);
   }

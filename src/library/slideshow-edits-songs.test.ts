@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { InvalidOwnMusicError, SEQUENCE_BETWEEN_SONGS, type BetweenSongs } from "./own-music";
-import { addSongs, moveSong, removeSong, setBetweenSongs } from "./slideshow-edits-songs";
+import {
+  addSongs,
+  moveSong,
+  removeSong,
+  setBetweenSongs,
+  setRepeatMusic,
+} from "./slideshow-edits-songs";
 import type { StoredMusic, StoredSlideshow } from "./stored-slideshow";
 
 function song(id: string, own: Partial<StoredMusic> = {}): StoredMusic {
@@ -132,5 +138,20 @@ describe("setBetweenSongs", () => {
     const unknownChoice = "shuffle" as BetweenSongs;
 
     expect(() => setBetweenSongs(slideshow(), unknownChoice)).toThrow("betweenSongs");
+  });
+});
+
+describe("setRepeatMusic", () => {
+  it("repeats the playlist with true", () => {
+    expect(setRepeatMusic(slideshow(), true).repeatMusic).toBe(true);
+  });
+
+  it("without a choice plays it once: the field is gone", () => {
+    const repeating = setRepeatMusic(slideshow(), true);
+
+    const onceThrough = setRepeatMusic(repeating, undefined);
+
+    expect(onceThrough.id).toBe("show");
+    expect(onceThrough).not.toHaveProperty("repeatMusic");
   });
 });

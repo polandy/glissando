@@ -61,6 +61,11 @@ describe("AfterAddingBox", () => {
       expected: de.t("add.ownSeconds", { seconds: de.formatSeconds(5) }),
     },
     {
+      note: "fitted",
+      after: { ...SHARING, note: { kind: "fitted", shareSeconds: 3.3 } } as const,
+      expected: de.t("add.fitted", { seconds: de.formatTenthSeconds(3.3) }),
+    },
+    {
       note: "musicTooShort",
       after: {
         ...SHARING,

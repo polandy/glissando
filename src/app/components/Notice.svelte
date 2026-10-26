@@ -6,24 +6,30 @@
   /**
    * Lemon for a warning, coral for an error, mint for what is done as asked; it stays where its
    * cause is (dev-docs/app/WAITING_AND_ERRORS.md).
-   * `actions` are buttons below the text; `onDismiss` adds a ✕.
+   * `actions` are buttons below the text; `onDismiss` adds a ✕. `live` announces the notice to
+   * assistive tech as it appears; off for one that merely describes the current state alongside
+   * other, unannounced notes (ADR-0047's "fitted"), so it never doubles up with a toast's own
+   * announcement.
    */
   let {
     tone,
     children,
     actions,
     onDismiss,
+    live = true,
   }: {
     tone: "warn" | "error" | "mint";
     children: Snippet;
     actions?: Snippet | undefined;
     onDismiss?: (() => void) | undefined;
+    live?: boolean;
   } = $props();
 
   const { t } = getTranslator();
+  const role = $derived(tone === "error" ? "alert" : live ? "status" : undefined);
 </script>
 
-<div class="notice {tone}" role={tone === "error" ? "alert" : "status"}>
+<div class="notice {tone}" {role}>
   <span class="icon"><Icon name={tone === "error" ? "alert" : "info"} /></span>
   <div class="body">
     <div class="text">{@render children()}</div>

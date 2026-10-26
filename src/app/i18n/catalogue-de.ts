@@ -274,7 +274,12 @@ export const de = {
   "import.fitFadesOut": "Die Musik blendet mit dem letzten Bild aus.",
   "import.fitFadesOutNotReached":
     "Die Musik blendet mit dem letzten Bild aus; die blassen Songs werden nicht erreicht.",
-  "import.fitSilentAfter": "Die letzten Bilder laufen still.",
+  "import.fitFitted": "Bilder je etwa {seconds}, damit sie mit der Musik enden.",
+  "import.fitOutlasts": "Die Musik endet {time} vor den Bildern",
+  "import.repeatButton": "Musik wiederholen",
+  "import.addSongButton": "Song hinzufügen",
+  "import.fitRepeats": "Die Musik wiederholt sich · blendet mit dem letzten Bild aus.",
+  "import.playOnceButton": "Einmal abspielen",
   "import.fitEndsWithMusic": "Die Diashow endet mit der Musik.",
   "import.backToPictures": "Bilder",
   "import.create": "Diashow erstellen",

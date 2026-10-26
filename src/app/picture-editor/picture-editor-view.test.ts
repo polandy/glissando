@@ -243,3 +243,17 @@ describe("pictureEditorView", () => {
     expect(() => pictureEditorView(stored, "gone", NO_FOCUS_KNOWN, NO_SONG_BEATS)).toThrow(/gone/);
   });
 });
+
+describe("pictureEditorView with the slideshow's mood", () => {
+  it("paces by the mood's target seconds without a tempo, not the stored secondsPerPicture", () => {
+    const view = pictureEditorView(
+      { ...stored, mood: "lively" },
+      "p1",
+      NO_FOCUS_KNOWN,
+      NO_SONG_BEATS,
+    );
+
+    // The lively target, 3 s, not the stored secondsPerPicture (4 s) composeSlideshow would ignore.
+    expect(view.durationMs).toBe(3000);
+  });
+});

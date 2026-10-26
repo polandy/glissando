@@ -1,9 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  ENERGY_PACING_FROM_VERSION,
-  GLISSANDO_FORMAT_VERSION,
-  manifestFor,
-} from "./glissando-manifest";
+import { ENERGY_PACING_FROM_VERSION, manifestFor } from "./glissando-manifest";
 import { readManifest } from "./read-manifest";
 import type { StoredSlideshow } from "../library/stored-slideshow";
 
@@ -33,15 +29,15 @@ const asText = (value: unknown): string => JSON.stringify(value);
 function written(
   slideshow: StoredSlideshow,
   change: Record<string, unknown> = {},
-  formatVersion = GLISSANDO_FORMAT_VERSION,
+  formatVersion = ENERGY_PACING_FROM_VERSION,
 ): string {
   const manifest = manifestFor(slideshow, [JPEG]);
   return asText({ ...manifest, formatVersion, slideshow: { ...manifest.slideshow, ...change } });
 }
 
 describe("the slideshow's energy pacing in the .glissando file", () => {
-  it("is written as the format version that carries it", () => {
-    expect(ENERGY_PACING_FROM_VERSION).toBe(GLISSANDO_FORMAT_VERSION);
+  it("is written as format version 20, the version that carries it", () => {
+    expect(ENERGY_PACING_FROM_VERSION).toBe(20);
     expect(manifestFor(on, [JPEG]).slideshow.energyPacing).toBe(true);
   });
 

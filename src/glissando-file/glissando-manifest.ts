@@ -56,16 +56,17 @@ export const GLISSANDO_FORMAT_ID = "glissando";
  * trip chapters, `automaticChaptersOff`, `chapterEdits` and `addedChapters`
  * (`dev-docs/player/TRIP_CHAPTERS.md`), version 18 the slideshow's colour grade, `look`
  * (ADR-0044), version 19 the slideshow's mood (ADR-0045), version 20 the slideshow's energy
- * pacing, `energyPacing` (ADR-0046).
+ * pacing, `energyPacing` (ADR-0046), version 21 the slideshow's music repeat, `repeatMusic`
+ * (ADR-0047).
  *
- * Versions 13 to 20 are read (a version 13 file holds no clips, versions 13 and 14 no song
+ * Versions 13 to 21 are read (a version 13 file holds no clips, versions 13 and 14 no song
  * volume, versions 13 to 15 no sample-track id, versions 13 to 16 no place or chapters, versions
- * 13 to 17 no look, versions 13 to 18 no mood, and versions 13 to 19 no energy pacing). Any older
- * file is refused rather than migrated, as there is no production instance yet; before version 10
- * a file carried `music`, not `songs`, which cannot be told apart from the rest of such a
- * document.
+ * 13 to 17 no look, versions 13 to 18 no mood, versions 13 to 19 no energy pacing, and versions 13
+ * to 20 no music repeat). Any older file is refused rather than migrated, as there is no
+ * production instance yet; before version 10 a file carried `music`, not `songs`, which cannot be
+ * told apart from the rest of such a document.
  */
-export const GLISSANDO_FORMAT_VERSION = 20;
+export const GLISSANDO_FORMAT_VERSION = 21;
 export const OLDEST_READABLE_FORMAT_VERSION = 13;
 /** The first version that carries a picture's own motion. */
 export const OWN_KEN_BURNS_FROM_VERSION = 2;
@@ -97,6 +98,8 @@ export const LOOK_FROM_VERSION = 18;
 export const MOOD_FROM_VERSION = 19;
 /** The first version that carries the slideshow's energy pacing. */
 export const ENERGY_PACING_FROM_VERSION = 20;
+/** The first version that carries the slideshow's music repeat. */
+export const REPEAT_MUSIC_FROM_VERSION = 21;
 export const MANIFEST_ENTRY_NAME = "glissando.json";
 
 export interface ManifestPicture {
@@ -158,6 +161,8 @@ export interface ManifestSlideshow {
   readonly songs: readonly ManifestMusic[];
   /** `"sequence"`: one after another; absent: crossfade (ADR-0023). */
   readonly betweenSongs?: BetweenSongs;
+  /** The playlist restarts from its first song until the slideshow ends; absent: plays once (ADR-0047). */
+  readonly repeatMusic?: true;
   /** The title slide; absent: none (ADR-0032). */
   readonly openingCard?: ManifestCard;
   /** The closing slide; absent: none. */
@@ -243,6 +248,7 @@ export function manifestFor(
       pictures,
       songs,
       ...(slideshow.betweenSongs === undefined ? {} : { betweenSongs: slideshow.betweenSongs }),
+      ...(slideshow.repeatMusic ? { repeatMusic: true } : {}),
       ...(openingCard === undefined ? {} : { openingCard }),
       ...(closingCard === undefined ? {} : { closingCard }),
       ...(slideshow.automaticChaptersOff ? { automaticChaptersOff: true } : {}),

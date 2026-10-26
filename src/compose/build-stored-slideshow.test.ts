@@ -146,4 +146,31 @@ describe("buildStoredSlideshow", () => {
 
     expect(slideshow.songs).toEqual([music]);
   });
+
+  it("sets repeatMusic when asked to", () => {
+    const slideshow = buildStoredSlideshow({
+      id: "s1",
+      createdAt: "2025-07-21T00:00:00Z",
+      pictures: [picture("a", "2025-07-01T10:00:00Z")],
+      songs: [],
+      secondsPerPicture: 5,
+      repeatMusic: true,
+      locale: "en",
+    });
+
+    expect(slideshow.repeatMusic).toBe(true);
+  });
+
+  it("leaves repeatMusic unset by default", () => {
+    const slideshow = buildStoredSlideshow({
+      id: "s1",
+      createdAt: "2025-07-21T00:00:00Z",
+      pictures: [picture("a", "2025-07-01T10:00:00Z")],
+      songs: [],
+      secondsPerPicture: 5,
+      locale: "en",
+    });
+
+    expect(slideshow.repeatMusic).toBeUndefined();
+  });
 });

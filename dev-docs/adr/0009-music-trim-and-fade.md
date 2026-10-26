@@ -1,6 +1,6 @@
 # ADR-0009: The music's excerpt and fades are optional fields on the stored music
 
-**Status:** accepted
+**Status:** accepted; for a music shorter than the slideshow, amended by ADR-0047
 
 ## Context
 

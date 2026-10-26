@@ -2,9 +2,9 @@ import { describe, expect, it } from "vitest";
 import { NO_BEATS, type MusicBeats } from "../beats";
 import { SEQUENCE_BETWEEN_SONGS } from "../library/own-music";
 import type { StoredMusic, StoredSlideshow } from "../library/stored-slideshow";
-import { OWN_SECONDS_PICTURE_LENGTH } from "../library/picture-length";
 import {
-  filledMusicMs,
+  CROSSFADE_MS,
+  PlaylistNeverFillsSlideshowError,
   placeSongs,
   playlistBeatsMs,
   playlistMs,
@@ -17,7 +17,7 @@ function song(id: string, durationMs: number, own: Partial<StoredMusic> = {}): S
   return { id, fileName: `${id}.mp3`, durationMs, mimeType: "audio/mpeg", ...own };
 }
 
-type Playlist = Pick<StoredSlideshow, "songs" | "betweenSongs">;
+type Playlist = Pick<StoredSlideshow, "songs" | "betweenSongs" | "repeatMusic">;
 
 function crossfading(...songs: StoredMusic[]): Playlist {
   return { songs };
@@ -119,6 +119,59 @@ describe("resolvePlaylist where the slideshow ends (ADR-0009, ADR-0023)", () => 
   });
 });
 
+describe("resolvePlaylist when the music repeats (StoredSlideshow.repeatMusic, ADR-0047)", () => {
+  it("plays the playlist again from its first song once the slideshow outlasts it", () => {
+    const playlist: Playlist = {
+      ...inSequence(song("a", 10_000), song("b", 10_000)),
+      repeatMusic: true,
+    };
+
+    expect(placed(playlist, 25_000).map(({ id, atMs }) => ({ id, atMs }))).toEqual([
+      { id: "a", atMs: 0 },
+      { id: "b", atMs: 10_000 },
+      { id: "a", atMs: 20_000 },
+    ]);
+  });
+
+  it("joins a repeat to what came before it like any two songs, crossfading when the playlist does", () => {
+    const playlist: Playlist = {
+      ...crossfading(song("a", 60_000), song("b", 20_000)),
+      repeatMusic: true,
+    };
+
+    const tracks = placed(playlist, 134_000);
+    const repeatOfA = tracks.at(2);
+
+    expect(repeatOfA).toMatchObject({ id: "a", atMs: 74_000, fadeInMs: CROSSFADE_MS });
+  });
+
+  it("plays once through without repeating when the music already outlasts the slideshow", () => {
+    const playlist: Playlist = {
+      ...inSequence(song("a", 10_000), song("b", 10_000)),
+      repeatMusic: true,
+    };
+
+    expect(placed(playlist, 15_000).map(({ id }) => id)).toEqual(["a", "b"]);
+  });
+
+  it("repeats a much shorter song as many times as a long slideshow needs, with no repeat cap", () => {
+    const playlist: Playlist = { ...inSequence(song("a", 5_000)), repeatMusic: true };
+    const ninetyMinutesMs = 90 * 60 * 1_000;
+
+    const tracks = placed(playlist, ninetyMinutesMs);
+
+    const last = tracks.at(-1);
+    expect(last?.atMs).toBe(ninetyMinutesMs - 5_000);
+    expect(last?.endMs).toBe(5_000);
+  });
+
+  it("fails loud, not by looping forever, when repeating never reaches the slideshow's end", () => {
+    const playlist: Playlist = { ...inSequence(song("a", 0)), repeatMusic: true };
+
+    expect(() => placed(playlist, 10_000)).toThrow(PlaylistNeverFillsSlideshowError);
+  });
+});
+
 describe("playlistMs", () => {
   it("is the excerpts' sum less the crossfades' overlaps", () => {
     const trimmed = song("b", 60_000, { trim: { startMs: 0, endMs: 30_000 } });
@@ -132,24 +185,6 @@ describe("playlistMs", () => {
 
   it("is absent without songs", () => {
     expect(playlistMs({ songs: [] })).toBeUndefined();
-  });
-});
-
-describe("filledMusicMs", () => {
-  const playlist = crossfading(song("a", 60_000), song("b", 20_000));
-
-  it("is the playlist's length when the pictures fill the music", () => {
-    expect(filledMusicMs(playlist)).toBe(77_000);
-  });
-
-  it("is absent when the pictures last their own seconds with music", () => {
-    expect(
-      filledMusicMs({ ...playlist, pictureLength: OWN_SECONDS_PICTURE_LENGTH }),
-    ).toBeUndefined();
-  });
-
-  it("is absent without songs", () => {
-    expect(filledMusicMs({ songs: [] })).toBeUndefined();
   });
 });
 
@@ -198,6 +233,21 @@ describe("playlistBeatsMs (ADR-0023)", () => {
     const playlist = crossfading(song("a", 20_000, { pictureChanges: "even" }), song("c", 20_000));
 
     expect(playlistBeatsMs(playlist, new Map([["c", NO_BEATS]]))).toBeUndefined();
+  });
+
+  it("reaches into the repeats when given how long the slideshow plays and the music repeats", () => {
+    const playlist: Playlist = { ...inSequence(song("a", 20_000)), repeatMusic: true };
+
+    const beatsMs = playlistBeatsMs(playlist, new Map([["a", everySecond]]), 45_000);
+
+    expect(beatsMs).toHaveLength(57);
+    expect(beatsMs?.at(-1)).toBe(59_000);
+  });
+
+  it("stays at one pass of the playlist without a slideshow length to reach into", () => {
+    const playlist: Playlist = { ...inSequence(song("a", 20_000)), repeatMusic: true };
+
+    expect(playlistBeatsMs(playlist, new Map([["a", everySecond]]))).toHaveLength(19);
   });
 });
 

@@ -15,14 +15,8 @@
   import ImportFrame from "./ImportFrame.svelte";
   import OwnMusicRow from "./OwnMusicRow.svelte";
   import { chosenSongs, type ImportSession, type ImportSong } from "./import-session";
-  import {
-    convertibleSourceLabel,
-    importPlaylist,
-    importSlideDurationsMs,
-    ownDurationsMs,
-    importTiming,
-    musicFormatLabel,
-  } from "./import-view";
+  import { convertibleSourceLabel, importPlaylist, musicFormatLabel } from "./import-view";
+  import { importSlideDurationsMs, ownDurationsMs, importTiming } from "./music-fit";
   import type { PendingSong } from "./music-pick";
   import MusicTimingPanel from "./MusicTimingPanel.svelte";
 
@@ -113,9 +107,13 @@
   const music = $derived(
     chosen.length === 0 ? undefined : { durationMs: musicMs, filled: !ownSeconds },
   );
-  const timing = $derived(importTiming(ownMs, music, choices.secondsPerPicture));
+  const timing = $derived(
+    importTiming(ownMs, music, choices.secondsPerPicture, choices.repeatMusic),
+  );
   // Each picture's segment, by the rule the slideshow is composed with.
-  const segmentsMs = $derived(importSlideDurationsMs(ownMs, music, choices.secondsPerPicture));
+  const segmentsMs = $derived(
+    importSlideDurationsMs(ownMs, music, choices.secondsPerPicture, choices.repeatMusic),
+  );
   const playlist = $derived(importPlaylist(chosen, timing.totalSeconds * MILLISECONDS_PER_SECOND));
 
   function add(files: readonly File[]): void {
@@ -207,6 +205,8 @@
     {timing}
     songs={playlist.songs}
     {pictureCount}
+    onRepeatMusic={(repeatMusic) => session.setRepeatMusic(repeatMusic)}
+    onAddSong={() => pickMusic.click()}
   />
 
   {#snippet actions()}

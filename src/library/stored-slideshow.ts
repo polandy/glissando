@@ -156,6 +156,12 @@ export interface StoredSlideshow {
    * crossfade (ADR-0023).
    */
   readonly betweenSongs?: BetweenSongs;
+  /**
+   * The playlist plays again from its first song, joined like any two songs, for as long as the
+   * slideshow lasts, instead of the automatic pictures shrinking to fit a shorter one; absent:
+   * once through (ADR-0047).
+   */
+  readonly repeatMusic?: true;
   readonly secondsPerPicture: number;
   /**
    * `"seconds"`: with music too, the pictures last `secondsPerPicture` each, on the beat

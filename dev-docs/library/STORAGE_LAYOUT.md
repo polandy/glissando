@@ -49,7 +49,10 @@ need no migration. The slideshow's optional `mood` is its pacing rule (one of `"
 `"lively"`, ADR-0045); absent, it is Custom. `setSlideshowMood` validates it
 (`checkSlideshowMood`) and deletes the field for `undefined`; records without it need no
 migration. The slideshow's optional `energyPacing` (only ever `true`, ADR-0046) has the
-pictures follow the music's energy; `setSlideshowEnergyPacing` deletes it for `false`. A picture's optional `video` (`StoredVideo`: `mediaId`, `sourceMs`,
+pictures follow the music's energy; `setSlideshowEnergyPacing` deletes it for `false`. The
+slideshow's optional `repeatMusic` (only ever `true`, ADR-0047) has the playlist repeat from its
+first song for as long as the slideshow lasts, instead of its pictures fitting a shorter one;
+`setRepeatMusic` deletes it for `undefined`; records without it need no migration. A picture's optional `video` (`StoredVideo`: `mediaId`, `sourceMs`,
 `startMs`, `endMs`, `volume` 0 to 100 in steps of 5, `duckMusic` only ever `false`) makes it a video
 slide, its picture the poster; the file lives in `videos` under `mediaId` (`putVideo`, `videoBlob`).
 `setVideoExcerpt`, `setVideoVolume` and `setVideoDuckMusic` validate (`checkVideoExcerpt`,
