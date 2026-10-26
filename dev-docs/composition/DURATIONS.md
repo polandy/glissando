@@ -10,7 +10,7 @@ other slide gets its target seconds (`secondsPerPicture`, or the mood's) times i
 the pictures fill the music (`pictureLength` absent and no mood; `picturesFillMs`), the slides
 without an own duration share what the own durations leave of the playlist (`playlistMs`: the
 songs' excerpts — each the trim, or the whole track, ADR-0009 — summed, less the crossfades'
-overlaps; ADR-0023, or the repeated playlist's length with `repeatMusic` set, ADR-0047) by weight
+overlaps; ADR-0023) by weight
 (the remainder milliseconds go to the first of them, so the sum matches the playlist exactly) —
 unless that share would fall below `MIN_SECONDS_PER_PICTURE`, unweighted (or nothing is left), in
 which case each of them gets the minimum and the slideshow outlasts the music; filling it or not
