@@ -5,7 +5,7 @@
   import SecondsStepper from "../components/SecondsStepper.svelte";
   import { getTranslator } from "../i18n/context";
   import type { PlaylistSongView } from "../music-editor/playlist-view";
-  import type { ImportTiming } from "./import-view";
+  import type { ImportTiming } from "./music-fit";
   import MusicFit from "./MusicFit.svelte";
 
   /**
@@ -24,6 +24,8 @@
     timing,
     songs,
     pictureCount,
+    onRepeatMusic,
+    onAddSong,
   }: {
     ownSeconds: boolean;
     secondsPerPicture: number;
@@ -38,6 +40,10 @@
     /** In play order. */
     songs: readonly PlaylistSongView[];
     pictureCount: number;
+    /** `undefined`: the music plays once through (ADR-0047). */
+    onRepeatMusic: (repeatMusic: true | undefined) => void;
+    /** Opens the hidden file input to pick another song (ADR-0047). */
+    onAddSong: () => void;
   } = $props();
 
   const { t, formatDuration, formatSeconds } = getTranslator();
@@ -51,7 +57,16 @@
       {onPictureLength}
       {onSecondsPerPicture}
     />
-    <MusicFit {pictureIds} {urls} {segmentsMs} {timing} music={timing.music} {songs} />
+    <MusicFit
+      {pictureIds}
+      {urls}
+      {segmentsMs}
+      {timing}
+      music={timing.music}
+      {songs}
+      {onRepeatMusic}
+      {onAddSong}
+    />
   </div>
 {:else}
   <div class="panel track">

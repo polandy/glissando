@@ -100,6 +100,7 @@ export function mountEditor(
     added: [] as string[],
     dismissed: [] as number[],
     betweenSongs: [] as (BetweenSongs | undefined)[],
+    repeatMusic: [] as (true | undefined)[],
     removedSampleRows: [] as SampleTrackId[],
     addedSampleTracks: [] as SampleTrackId[],
     errors: [] as unknown[],
@@ -141,6 +142,7 @@ export function mountEditor(
     onAddSongs: (files: readonly File[]) => calls.added.push(...files.map((file) => file.name)),
     onDismissPending: (key: number) => calls.dismissed.push(key),
     onBetweenSongs: (between: BetweenSongs | undefined) => calls.betweenSongs.push(between),
+    onRepeatMusic: (repeatMusic: true | undefined) => calls.repeatMusic.push(repeatMusic),
     saving: false,
   });
   const mounted = mountWithTranslator(MusicEditorScreen, props);

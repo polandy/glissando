@@ -37,6 +37,10 @@
           seconds: formatSeconds(note.secondsPerPicture),
           time: formatDuration(seconds(note.slideshowMs)),
         })}
+      {:else if note.kind === "fitted"}
+        {t(note.onTheBeat ? "music.noteFittedOnTheBeat" : "music.noteFitted", {
+          seconds: formatTenthSeconds(seconds(note.shareMs)),
+        })}
       {:else if note.kind === "ends-early"}
         {t("music.noteEndsEarly", { time: formatDuration(seconds(note.endsAtMs)) })}
       {:else}

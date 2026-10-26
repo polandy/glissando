@@ -63,6 +63,10 @@ export const deMusic = {
   "music.noteEndsEarly":
     "Jedes Bild hat eine eigene Dauer. Die Diashow endet nach {time}, die Musik blendet dort aus.",
   "music.noteEndsWithMusic": "Jedes Bild hat eine eigene Dauer. Die Diashow endet mit der Musik.",
+  "music.noteFitted":
+    "Jedes Bild ohne eigene Dauer schrumpft auf etwa {seconds}, um mit der Musik zu enden.",
+  "music.noteFittedOnTheBeat":
+    "Jedes Bild ohne eigene Dauer schrumpft auf etwa {seconds}, jeder Wechsel auf dem nächsten Takt, um mit der Musik zu enden.",
   "music.noteOwnSeconds":
     "Jedes Bild ohne eigene Dauer bleibt {seconds}. Die Diashow dauert {time}, die Musik blendet dort aus.",
   "music.noteOwnSecondsOnTheBeat":
@@ -71,6 +75,7 @@ export const deMusic = {
     "Jedes Bild ohne eigene Dauer bleibt {seconds}; nach der Ausblende laufen die letzten Bilder still. Kürzere Bilder, längere Musik oder „Musik füllen“ beheben das.",
   "music.pictureLength": "Bilddauer",
   "music.aboutSecondsEach": "Je etwa {seconds}",
+  "music.pictureLengthFitted": "Auf {seconds} gekürzt, damit es zur Musik passt",
   "music.fillTheMusic": "Musik füllen",
   "music.pictureTimesByMood": "Die Bilddauer wird durch die Stimmung {name} festgelegt — {value}",
   "music.setOwnPictureTimes": "Selbst festlegen",

@@ -174,6 +174,7 @@
   isSampleTrackAdded={(trackId) => intake.isSampleTrackAdded(trackId)}
   onAddSampleTrack={(track) => intake.addSampleTrack(track)}
   onBetweenSongs={(between) => editor.setBetweenSongs(between)}
+  onRepeatMusic={(repeatMusic) => editor.setRepeatMusic(repeatMusic)}
   onTrim={(trim) => song !== undefined && editor.setMusicTrim(song.id, trim)}
   onFadeIn={(fadeMs) => song !== undefined && editor.setMusicFadeIn(song.id, fadeMs)}
   onFadeOut={(fadeMs) => song !== undefined && editor.setMusicFadeOut(song.id, fadeMs)}

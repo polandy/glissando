@@ -51,6 +51,27 @@ describe("ImportSession, its choices of songs and seconds per picture", () => {
     expect(created).not.toHaveProperty("pictureLength");
   });
 
+  it("creates a slideshow with the music set to repeat when chosen (ADR-0047)", async () => {
+    const { session } = await withTwoPictures();
+    await session.addSongs([new File(["tune"], "Sommer.mp3", { type: "audio/mpeg" })]);
+    session.setRepeatMusic(true);
+
+    expect(choicesOf(session).repeatMusic).toBe(true);
+    const created = await session.create("de");
+    expect(created.repeatMusic).toBe(true);
+  });
+
+  it("leaves repeatMusic unset by default, and un-set once turned off again", async () => {
+    const { session } = await withTwoPictures();
+    session.setRepeatMusic(true);
+
+    session.setRepeatMusic(undefined);
+
+    expect(choicesOf(session).repeatMusic).toBeUndefined();
+    const created = await session.create("de");
+    expect(created).not.toHaveProperty("repeatMusic");
+  });
+
   it("creates a slideshow of the imported pictures in capture order, titled by their range", async () => {
     const { session, store } = await withTwoPictures();
     session.setSecondsPerPicture(4.5);

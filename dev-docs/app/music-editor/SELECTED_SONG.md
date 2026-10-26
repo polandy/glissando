@@ -38,7 +38,9 @@ The panel for the song selected in the [music editor](../MUSIC_EDITOR.md).
 - **Picture length** (`components/PictureLengthSection.svelte`, also in the new slideshow's
   music step): a clock icon, "About 5 s each" and "Fill the music" as a radiogroup (arrows move
   the choice), stored at once; with the first, the seconds stepper (− and + for half seconds, 2
-  to 15 s) below it.
+  to 15 s) below it. Once own seconds or a mood (`MoodPictureTimesSection.svelte`) would outlast
+  a shorter music and the pictures shrink to end with it instead (ADR-0047), a muted line below
+  names the shrunk share: "Shortened to 3.3 s to fit the music"
 - **Fade in** and **Fade out**: a ramp icon, the state "Automatic" or "Own", three steps Off,
   Short (2 s), Long (5 s) as a radiogroup (arrows move the choice); the automatic choice is
   outlined dashed and explained: "Automatic: short, as the excerpt starts mid-track." / "off,
@@ -73,10 +75,21 @@ The panel for the song selected in the [music editor](../MUSIC_EDITOR.md).
   music fades out there." (off the beat "stays 5 s."), or on lemon the slideshow running
   longer with "Each picture without its own duration stays 5 s; after the fade-out the last
   pictures play in silence. Shorter pictures, longer music or “Fill the music” fix that."
+  Where own seconds or a mood would outlast a shorter music, but shrinking to ⅔ (never below the
+  2 s floor) fits it instead, a mint note replaces either: "Each picture without its own
+  duration shrinks to about 3.3 s, to end with the music." (on the beat, "… each change on the
+  nearest beat, to end with the music.") (ADR-0047, `music-timing-note.ts`'s `"fitted"` kind).
 - **Between songs** (`BetweenSongsSection.svelte`, only with two songs or more): "Crossfade"
   (the default; "The next song starts while the previous one fades out.") and "One after
   another" ("The next song starts once the previous one has faded out.") as a radiogroup.
-  The panel (`MusicEditorPanel.svelte`) is in two groups: "Slideshow" with Picture length and
-  Between songs, then "Song 2" — for a song not reached first the lemon note "The slideshow
-  ends before this song starts; it plays once the slideshow grows." — with Excerpt, Volume,
-  Picture changes, Picture times, Fade in, Fade out. The rules: `dev-docs/COMPOSITION.md`.
+- **Repeat the music** (`RepeatMusicSection.svelte`, ADR-0047): a row like "Follow the music's
+  energy" (`EnergyPacingRow.svelte`) — a label and hint on the left, a switch on the right,
+  stored at once. Off: "Off: a shorter music is fitted or offers a fix instead."
+  On: "Plays the songs again while pictures remain" Disabled, switch off, once the
+  music already outlasts the slideshow without repeating: "Not needed — the music already
+  outlasts the slideshow."
+  The panel (`MusicEditorPanel.svelte`) is in two groups: "Slideshow" with Picture length,
+  Between songs and Repeat the music, then "Song 2" — for a song not reached first the lemon
+  note "The slideshow ends before this song starts; it plays once the slideshow grows." — with
+  Excerpt, Volume, Picture changes, Picture times, Fade in, Fade out. The rules:
+  `dev-docs/COMPOSITION.md`.

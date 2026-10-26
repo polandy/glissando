@@ -42,6 +42,7 @@
     isSampleTrackAdded,
     onAddSampleTrack,
     onBetweenSongs,
+    onRepeatMusic,
     onTrim,
     onFadeIn,
     onFadeOut,
@@ -76,6 +77,8 @@
     songId === undefined ? null : musicEditorView(edited, beats, songId, loudness),
   );
   const playlist = $derived(playlistView(edited, beats, loudness));
+  /** `SongList` edits the stored songs, each once; the playlist's repeats (ADR-0047) are `PlaylistLane`'s alone. */
+  const ownedSongs = $derived(playlist.songs.filter((song) => song.repeated !== true));
 
   function trimmed(trim: MusicTrim | undefined): void {
     draft = null;
@@ -101,7 +104,7 @@
         </div>
         {#if pending.length > 0 || sampleRows.length > 0}
           <SongList
-            songs={playlist.songs}
+            songs={ownedSongs}
             selectedSongId=""
             {pending}
             {sampleRows}
@@ -118,7 +121,7 @@
     <main class="edit">
       <div class="main-column">
         <SongList
-          songs={playlist.songs}
+          songs={ownedSongs}
           selectedSongId={music.songId}
           {pending}
           {sampleRows}
@@ -134,7 +137,7 @@
           onAdd={onAddSongs}
           {...samplePreview === undefined ? {} : { onOpenSheet: openSheet }}
         />
-        <PlaylistLane {playlist} />
+        <PlaylistLane {playlist} {onRepeatMusic} {onAddSongs} />
         <SelectedSong
           {music}
           {peaks}
@@ -161,13 +164,14 @@
         {onSecondsPerPicture}
         {onSetOwnPictureTimes}
         {onBetweenSongs}
+        {onRepeatMusic}
       />
     </main>
   {/if}
 </div>
 {#if sheetOpen && samplePreview !== undefined}
   <AddSongSheet
-    songs={playlist.songs}
+    songs={ownedSongs}
     {samplePreview}
     {sampleRows}
     {toaster}

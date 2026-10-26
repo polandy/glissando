@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { MILLISECONDS_PER_SECOND } from "../../player";
   import { OWN_SECONDS_PICTURE_LENGTH, type PictureLength } from "../../library/picture-length";
   import { getTranslator } from "../i18n/context";
   import { radioIndexForKey } from "./radio-keys";
@@ -7,23 +8,27 @@
 
   /**
    * Whether the pictures without an own duration last their own seconds, set by the stepper, or
-   * fill the music (ADR-0022); in the music editor and the new slideshow's music step.
+   * fill the music (ADR-0022); in the music editor and the new slideshow's music step. While
+   * `fittedShareMs` is set, they instead shrink to end with a shorter music (ADR-0047).
    */
   let {
     ownSeconds,
     secondsPerPicture,
+    fittedShareMs,
     onPictureLength,
     onSecondsPerPicture,
   }: {
     /** The pictures last `secondsPerPicture` each; otherwise they fill the music. */
     ownSeconds: boolean;
     secondsPerPicture: number;
+    /** The mean shrunk share, while the automatic pictures fit a shorter music (ADR-0047). */
+    fittedShareMs?: number | undefined;
     /** `undefined`: they fill the music. */
     onPictureLength: (length: PictureLength | undefined) => void;
     onSecondsPerPicture: (seconds: number) => void;
   } = $props();
 
-  const { t, formatSeconds } = getTranslator();
+  const { t, formatSeconds, formatTenthSeconds } = getTranslator();
   const HEAD_ID = "music-picture-length";
   const CHOICES = [OWN_SECONDS_PICTURE_LENGTH, undefined] as const;
 
@@ -68,6 +73,13 @@
   {#if ownSeconds}
     <SecondsStepper seconds={secondsPerPicture} onChange={onSecondsPerPicture} />
   {/if}
+  {#if fittedShareMs !== undefined}
+    <p class="fitted">
+      {t("music.pictureLengthFitted", {
+        seconds: formatTenthSeconds(fittedShareMs / MILLISECONDS_PER_SECOND),
+      })}
+    </p>
+  {/if}
 </section>
 
 <style>
@@ -97,5 +109,10 @@
   .choices button[aria-checked="true"] {
     background: var(--gl-surface);
     box-shadow: var(--gl-shadow);
+  }
+  .fitted {
+    margin: 0;
+    color: var(--gl-muted);
+    font-size: var(--gl-size-meta);
   }
 </style>

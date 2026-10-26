@@ -17,6 +17,8 @@ export interface BuildStoredSlideshowInput {
   readonly secondsPerPicture: number;
   /** Absent: the pictures fill the music (ADR-0022). */
   readonly pictureLength?: PictureLength;
+  /** The music repeats from its first song for as long as the slideshow lasts (ADR-0047). */
+  readonly repeatMusic?: true;
   /** Locale the title's month name is written in. */
   readonly locale: string;
 }
@@ -63,5 +65,6 @@ export function buildStoredSlideshow(input: BuildStoredSlideshowInput): StoredSl
     secondsPerPicture: input.secondsPerPicture,
     ...(input.pictureLength === undefined ? {} : { pictureLength: input.pictureLength }),
     ...(input.order !== undefined && input.ownOrder ? { ownOrder: true } : {}),
+    ...(input.repeatMusic === undefined ? {} : { repeatMusic: input.repeatMusic }),
   };
 }
