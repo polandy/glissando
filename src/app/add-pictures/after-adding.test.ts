@@ -242,3 +242,27 @@ describe("afterAdding, where the new pictures go in an own order", () => {
     expect(afterAdding(sorted, added, "byCaptureDate").placement).toBeNull();
   });
 });
+
+describe("afterAdding with the slideshow's mood", () => {
+  it("paces by the mood's target seconds without a tempo, not the stored secondsPerPicture", () => {
+    const show = slideshow({ pictures: pictures(2, "old"), secondsPerPicture: 5, mood: "calm" });
+
+    const after = afterAdding(show, pictures(1, "new"), "byCaptureDate");
+
+    expect(after.durationSeconds).toEqual({ before: 14, after: 21 });
+    expect(after.note).toEqual({ kind: "ownSeconds", secondsPerPicture: 7 });
+  });
+
+  it("paces by the tempo found for the music, when passed, matching composeSlideshow's (ADR-0045)", () => {
+    const show = slideshow({ pictures: pictures(2, "old"), songs: [MUSIC], mood: "calm" });
+    const beats = new Map([
+      [MUSIC.id, { kind: "beats" as const, beatsMs: [0, 500], beatsPerMinute: 128 }],
+    ]);
+
+    // calm at 128 BPM paces to 7.5 s (mood-settings.test.ts): 2 pictures far short of the 60 s song.
+    expect(afterAdding(show, [], "byCaptureDate", beats).durationSeconds).toEqual({
+      before: 15,
+      after: 15,
+    });
+  });
+});

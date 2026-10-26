@@ -1,6 +1,7 @@
 import { slideDurationsMs, slideUnits, timedUnit } from "../../compose";
-import { picturesFillMs, targetSecondsPerPicture } from "../../compose/filled-length";
-import { playlistMs } from "../../compose/playlist";
+import { picturesFillMs } from "../../compose/filled-length";
+import { slideshowTargetSecondsPerPicture } from "../../compose/mood-settings";
+import { NO_SONG_BEATS, playlistMs, type SongBeats } from "../../compose/playlist";
 import type { AddedPlacement } from "../../library/added-placement";
 import { addPictures } from "../../library/slideshow-edits";
 import {
@@ -53,15 +54,20 @@ export interface AfterAdding {
   readonly placement: PlacementPreview | null;
 }
 
-/** The slideshow before and after `added` join it, by the composition rules (ADR-0008). */
+/**
+ * The slideshow before and after `added` join it, by the composition rules (ADR-0008). The add
+ * screen has no beats pass of its own, so a mood paces by its target seconds alone, same as
+ * `composeSlideshow` would without a tempo either (`slideshowTargetSecondsPerPicture`).
+ */
 export function afterAdding(
   slideshow: StoredSlideshow,
   added: readonly StoredPicture[],
   placement: AddedPlacement,
+  beats: SongBeats = NO_SONG_BEATS,
 ): AfterAdding {
   const withAdded = addPictures(slideshow, added, placement);
   const playlistLengthMs = playlistMs(slideshow);
-  const target = targetSecondsPerPicture(slideshow.pictureLength, slideshow.secondsPerPicture);
+  const target = slideshowTargetSecondsPerPicture(slideshow, beats);
   const before = timing(slideshow, playlistLengthMs, target);
   const after = timing(withAdded, playlistLengthMs, target);
   const toSeconds = (ms: number) => ms / MILLISECONDS_PER_SECOND;

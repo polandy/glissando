@@ -5,7 +5,12 @@ import {
   type SlideshowTransition,
 } from "../library/own-timing";
 import type { SlideshowMood } from "../library/slideshow-mood";
-import { MAX_SECONDS_PER_PICTURE, MIN_SECONDS_PER_PICTURE } from "../library/stored-slideshow";
+import {
+  MAX_SECONDS_PER_PICTURE,
+  MIN_SECONDS_PER_PICTURE,
+  type StoredSlideshow,
+} from "../library/stored-slideshow";
+import { targetSecondsPerPicture } from "./filled-length";
 import type { Playlist, SongBeats } from "./playlist";
 
 /**
@@ -93,4 +98,25 @@ export function moodTempo(playlist: Pick<Playlist, "songs">, beats: SongBeats): 
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
+}
+
+/**
+ * `targetSecondsPerPicture`, resolved with the slideshow's mood where it has one, paced to
+ * `beats`'s tempo when a song's is already known (`moodTempo`); otherwise the mood's target
+ * seconds as they are (`moodSettings`'s "no tempo" case) — the same `composeSlideshow` reaches
+ * for once the beats behind it are found, so a caller without them yet (an estimate shown before
+ * the beats pass has run, or one that never needs them) may pass `NO_SONG_BEATS` and still agree
+ * with it as far as it can without a tempo.
+ */
+export function slideshowTargetSecondsPerPicture(
+  stored: Pick<StoredSlideshow, "pictureLength" | "secondsPerPicture" | "mood" | "songs">,
+  beats: SongBeats,
+): number | undefined {
+  const mood =
+    stored.mood === undefined ? undefined : moodSettings(stored.mood, moodTempo(stored, beats));
+  return targetSecondsPerPicture(
+    stored.pictureLength,
+    stored.secondsPerPicture,
+    mood?.secondsPerPicture,
+  );
 }

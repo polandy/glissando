@@ -19,7 +19,8 @@ import {
   type SongLoudness,
 } from "../../compose";
 import { playlistEnergy } from "../../compose/energy/playlist-energy";
-import { picturesFillMs, targetSecondsPerPicture } from "../../compose/filled-length";
+import { picturesFillMs } from "../../compose/filled-length";
+import { slideshowTargetSecondsPerPicture } from "../../compose/mood-settings";
 import type { OwnKenBurns } from "../../library/own-ken-burns";
 import type { SlideshowTransition, TransitionChoice } from "../../library/own-timing";
 import type { PortraitPictures } from "../../library/portrait-pictures";
@@ -133,7 +134,7 @@ export function pictureEditorView(
   // once, with one transition and the pair's motion.
   const units = slideUnits(pictures, stored.portraitPictures);
   const timedPictures = units.map((unit) => timedUnit(pictures, unit));
-  const target = targetSecondsPerPicture(stored.pictureLength, stored.secondsPerPicture);
+  const target = slideshowTargetSecondsPerPicture(stored, beats);
   const filledMs = picturesFillMs(playlistMs(stored), timedPictures, target, stored.repeatMusic);
   const durationsMs = slideDurationsMs(
     timedPictures,
