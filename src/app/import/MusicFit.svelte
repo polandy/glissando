@@ -78,7 +78,7 @@
   </div>
 </div>
 {#if music.kind === "fitted"}
-  <Notice tone="mint">
+  <Notice tone="mint" live={false}>
     {t("import.fitFitted", { seconds: formatTenthSeconds(music.shareSeconds) })}
   </Notice>
 {:else if music.kind === "silent-after"}

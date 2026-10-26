@@ -63,8 +63,8 @@ test("E2E-005 importing pictures and music creates a slideshow ordered by captur
   ]);
   await expect(page.getByText("Sommerwind.wav", { exact: true })).toBeVisible();
   await expect(page.getByText("0:09 · WAV")).toBeVisible();
-  await expect(definitionOf(page, "je Bild")).toHaveText("4 s");
-  await expect(definitionOf(page, "Gesamt")).toHaveText("0:12");
+  await expect(definitionOf(page, "je Bild")).toHaveText("3 s");
+  await expect(definitionOf(page, "Gesamt")).toHaveText("0:09");
   await page.getByRole("radio", { name: "Musik füllen" }).click();
   await expect(definitionOf(page, "je Bild")).toHaveText("3 s");
   await expect(definitionOf(page, "Gesamt")).toHaveText("0:09");
