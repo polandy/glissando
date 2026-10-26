@@ -241,7 +241,6 @@
     <PlayerOverlay
       {slideshow}
       {musicTitle}
-      slideDates={played.pictures.map((picture) => picture.capturedAt)}
       {openPicture}
       readVideo={(id) => store.videoBlob(id)}
       picturesAhead={picturesAheadFor(home)}

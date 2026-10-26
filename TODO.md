@@ -5,7 +5,6 @@ One line per item, newest at the end. A finished item is deleted.
 ## Open
 
 - [ ] Investigate the video freeze before a video slide ends (picture holds, sound plays; title slide then video, cropped and not) — not reproducible in headless Chromium with a generated 720p clip; test on another device and note clip codec, resolution and browser; if a large clip is the cause, cap the live frame size and upload per decoded frame (`dev-docs/player/VIDEO_SLIDES.md`) (2026-10-15)
-- [ ] **HIGH** Stop the title slide repeating its title — the subtitle defaults to the title ("July 2025" twice) and the player's header shows it a third time; default the subtitle to the date range or empty, hide the header over the title slide (2026-10-25)
 - [ ] Start a new slideshow on a named mood — it opens as "Custom · default"; the mood dialog's preview is black with a debug-like "♪ no beat found · Custom" (2026-10-25)
 - [ ] Give each action one way in on the slideshow screen — two Play controls, an Add button and an Add tile, Select and "hold to select", "Open .glissando file" on the start screen and again in the pictures step; mockup first (2026-10-25)
 - [ ] **HIGH** Simplify the slideshow's Details — 11 rows in three forms (cards with Change, rows with an "automatic" chip, a toggle), "Follow the music's energy" also in the mood dialog, collapses on every return; mood, look and music up front, the rest under fine settings; mockup first (2026-10-25)
@@ -19,3 +18,4 @@ One line per item, newest at the end. A finished item is deleted.
 - [ ] Slim the selection bar — 7 icons, the bookmark for "Insert chapter" is unclear, the selected tile has its own X too; rare actions behind ⋯, the chapter action labelled (2026-10-25)
 - [ ] Show the music editor simple first — order, start and end up front; loudness curves and hatched crossfades on demand; drop the empty "Loudness of the songs" card (2026-10-25)
 - [ ] Move the "Automatic chapters" switch out of the chapter dialog — a slideshow-wide setting inside one chapter's dialog; keep it in the slideshow's settings only (2026-10-25)
+- [ ] Fix the player's slide-to-picture mapping — `PlayerLayer.svelte`'s `onSlide` looks up `played.pictures[slideIndex]`, but a title card or a portrait pair shifts slides against pictures, so the prepare flow marks the wrong picture as passed; map by the slide's own image (and partner) instead (2026-10-26)
