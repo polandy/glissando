@@ -20,8 +20,8 @@ const STEPS_TO_OUTLASTS = (TRACK_SECONDS * 1000 - OUTLASTS_END_MS) / 1000;
 
 /**
  * Steps the focused "Ende" handle `steps` times, a second at a time, in one round trip: a
- * Playwright `.press()` per step was too slow under CI load for a dozen of them (E2E-081 used
- * to time out), the same `KeyboardEvent` the handle's own keydown handler reacts to either way.
+ * Playwright `.press()` per step is too slow under CI load for several of them, and the handle's
+ * keydown handler reacts to the dispatched `KeyboardEvent` the same way.
  */
 async function stepEndHandle(endHandle: Locator, steps: number): Promise<void> {
   await endHandle.evaluate((element, count) => {
