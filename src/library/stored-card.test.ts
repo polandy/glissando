@@ -152,12 +152,35 @@ function slideshowWith(pictureIds: readonly string[]): StoredSlideshow {
 }
 
 describe("defaultOpeningCard", () => {
-  it("defaults to the slideshow's title, the capture range as subtitle, over the first picture", () => {
-    const card = defaultOpeningCard(slideshowWith(["p1", "p2"]), "en-US");
+  it("defaults to the slideshow's title, over the first picture, with reveal on", () => {
+    const card = defaultOpeningCard(slideshowWith(["p1", "p2"]), "en");
     expect(card.title).toBe("Herbst in Wien");
-    expect(card.subtitle).not.toBe("");
     expect(card.background).toMatchObject({ kind: "picture", pictureId: "p1" });
     expect(card.motion).toBe(true);
+  });
+
+  it.each([
+    {
+      name: "the title is still the automatic month title: subtitles empty",
+      title: "September 2025",
+      pictureIds: ["p1", "p2"],
+      subtitle: "",
+    },
+    {
+      name: "the title was renamed: subtitles with the capture day range",
+      title: "Herbst in Wien",
+      pictureIds: ["p1", "p2"],
+      subtitle: "September 29 – 30, 2025",
+    },
+    {
+      name: "the title was renamed, a single capture day: subtitles with that one day",
+      title: "Herbst in Wien",
+      pictureIds: ["p1"],
+      subtitle: "September 30, 2025",
+    },
+  ])("$name", ({ title, pictureIds, subtitle }) => {
+    const card = defaultOpeningCard({ ...slideshowWith(pictureIds), title }, "en");
+    expect(card.subtitle).toBe(subtitle);
   });
 
   it("throws for a slideshow with no pictures", () => {

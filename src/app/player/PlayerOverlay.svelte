@@ -3,7 +3,6 @@
   import {
     CAPTION_GLIDE_MS,
     createPlayer,
-    isGroundSlide,
     type DecodeClipSound,
     type MusicOutput,
     type OpenPicture,
@@ -26,12 +25,12 @@
   } from "../../ui-kit/fullscreen";
   import { performPlayerAction, playerActionForKey } from "./player-keys";
   import { slideBoundaries, slideIndexAt } from "./slide-boundaries";
+  import { slideCaptionText, slideCaptureDate, slideCardShows } from "./slide-heading";
   import "./player-overlay.css";
 
   let {
     slideshow,
     musicTitle = null,
-    slideDates = [],
     openPicture,
     readVideo,
     musicOutput,
@@ -46,8 +45,6 @@
     slideshow: Slideshow;
     /** Shown bottom left while there is music. */
     musicTitle?: string | null;
-    /** Each slide's capture date (ISO 8601), shown under the title; empty shows none. */
-    slideDates?: readonly string[];
     /** Reads a slide's picture by its `src`; without it, `src` is a URL. */
     openPicture?: OpenPicture;
     /** Reads a video slide's clip by its `video.src`; without it, `src` is a URL. */
@@ -95,11 +92,10 @@
   const slideCount = $derived(boundaries.starts.length);
   const slideNumber = $derived(slideIndexAt(boundaries, currentTime) + 1);
   $effect(() => onSlide?.(slideNumber - 1));
-  const slideDate = $derived(slideDates[slideNumber - 1]);
-  const slideCaption = $derived.by(() => {
-    const slide = slideshow.slides[slideNumber - 1];
-    return slide === undefined || isGroundSlide(slide) ? "" : (slide.caption ?? "");
-  });
+  const currentSlide = $derived(slideshow.slides[slideNumber - 1]);
+  const slideHasCard = $derived(slideCardShows(currentSlide));
+  const slideDate = $derived(slideCaptureDate(currentSlide));
+  const slideCaption = $derived(slideCaptionText(currentSlide));
   const progress = $derived(boundaries.duration > 0 ? currentTime / boundaries.duration : 0);
   const KEY_HINTS = [
     "player.keyPlay",
@@ -220,9 +216,11 @@
         <Icon name="close" />
       </button>
       <div class="heading">
-        <span class="name">{slideshow.title}</span>
-        {#if slideDate !== undefined}
-          <small class="mono">{formatDate(slideDate)}</small>
+        {#if !slideHasCard}
+          <span class="name">{slideshow.title}</span>
+          {#if slideDate !== undefined}
+            <small class="mono">{formatDate(slideDate)}</small>
+          {/if}
         {/if}
       </div>
       <span class="counter mono"
