@@ -84,6 +84,9 @@ All three are in the ⋯ menu at the top right of a slideshow.
 
 ## Good to know
 
+- If the music is a little shorter than the pictures, they shrink to fit it on their own. If it
+  ends well before the pictures do, the music editor offers to **Repeat the music** or **Add a
+  song**.
 - Glissando looks for faces and other subjects in the background, so motion aims well; a card or
   a slideshow's ⋯ menu shows how far it got, and **Focus …** lets you look again at any picture,
   including one it couldn't look at the first time.
