@@ -84,10 +84,8 @@ The panel for the song selected in the [music editor](../MUSIC_EDITOR.md).
   another" ("The next song starts once the previous one has faded out.") as a radiogroup.
 - **Repeat the music** (`RepeatMusicSection.svelte`, ADR-0047): a row like "Follow the music's
   energy" (`EnergyPacingRow.svelte`) — a label and hint on the left, a switch on the right,
-  stored at once. Off: "Off: a shorter music is fitted or offers a fix instead."
-  On: "Plays the songs again while pictures remain" Disabled, switch off, once the
-  music already outlasts the slideshow without repeating: "Not needed — the music already
-  outlasts the slideshow."
+  stored at once, always enabled. Off: "Off: a shorter music is fitted or offers a fix instead."
+  On: "Plays the songs again while pictures remain"
   The panel (`MusicEditorPanel.svelte`) is in two groups: "Slideshow" with Picture length,
   Between songs and Repeat the music, then "Song 2" — for a song not reached first the lemon
   note "The slideshow ends before this song starts; it plays once the slideshow grows." — with

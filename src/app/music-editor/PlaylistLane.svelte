@@ -44,7 +44,7 @@
   <div class="lane-label">
     <span>
       {t("music.playlistLane", {
-        count: playlist.songs.length,
+        count: playlist.songCount,
         duration: duration(playlist.playlistMs),
       })}
     </span>

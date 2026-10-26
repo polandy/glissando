@@ -64,11 +64,6 @@
   } = $props();
 
   const { t } = getTranslator();
-
-  /** Repeating would not change anything: the music already outlasts the slideshow. */
-  const repeatNotNeeded = $derived(
-    !playlist.repeatMusic && playlist.playlistMs >= playlist.slideshowMs,
-  );
 </script>
 
 <div class="panel">
@@ -87,10 +82,10 @@
       {onSecondsPerPicture}
     />
   {/if}
-  {#if playlist.songs.length > 1}
+  {#if playlist.songCount > 1}
     <BetweenSongsSection crossfade={playlist.crossfade} {onBetweenSongs} />
   {/if}
-  <RepeatMusicSection on={playlist.repeatMusic} disabled={repeatNotNeeded} {onRepeatMusic} />
+  <RepeatMusicSection on={playlist.repeatMusic} {onRepeatMusic} />
   <h2 class="group-title">{t("music.sectionSong", { number: music.songNumber })}</h2>
   {#if !music.reached}
     <p class="unreached">{t("music.songNotReached")}</p>

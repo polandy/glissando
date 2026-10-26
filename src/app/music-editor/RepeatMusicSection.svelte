@@ -5,28 +5,21 @@
   /**
    * The slideshow's row, in the music editor's panel, for repeating the playlist to end with
    * longer pictures instead of letting them outlast it (ADR-0047): on while `StoredSlideshow`'s
-   * `repeatMusic` is set, off otherwise, disabled while the music already outlasts the slideshow.
+   * `repeatMusic` is set, off otherwise; always enabled, since fitting a shorter music is an
+   * equally valid choice to offer even once the music already outlasts the slideshow.
    */
   let {
     on,
-    disabled,
     onRepeatMusic,
   }: {
     on: boolean;
-    disabled: boolean;
     /** `undefined`: the playlist plays once. */
     onRepeatMusic: (repeatMusic: true | undefined) => void;
   } = $props();
 
   const { t } = getTranslator();
 
-  const hint = $derived(
-    disabled
-      ? t("music.repeatMusicNotNeeded")
-      : on
-        ? t("music.repeatMusicOnHint")
-        : t("music.repeatMusicOffHint"),
-  );
+  const hint = $derived(on ? t("music.repeatMusicOnHint") : t("music.repeatMusicOffHint"));
 </script>
 
 <div>
@@ -38,7 +31,6 @@
     <Switch
       checked={on}
       label={t("music.repeatMusic")}
-      {disabled}
       onChange={(checked) => onRepeatMusic(checked ? true : undefined)}
     />
   </dd>

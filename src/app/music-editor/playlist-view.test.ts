@@ -203,6 +203,17 @@ describe("playlistView (ADR-0023)", () => {
       expect(view.overMs).toBeUndefined();
       expect(view.fittedShareMs).toBeUndefined();
     });
+
+    it("counts the stored songs only, not their repeated entries", () => {
+      const view = playlistView(
+        slideshow([song("a", 9_000)], 10, { repeatMusic: true, pictures: timedPictures(10, 5000) }),
+        new Map(),
+      );
+
+      // Several blocks play the one song again and again, but only one song is stored.
+      expect(view.songs.length).toBeGreaterThan(1);
+      expect(view.songCount).toBe(1);
+    });
   });
 
   describe("energy pacing (ADR-0046)", () => {

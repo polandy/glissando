@@ -31,7 +31,6 @@ export const dePlaylist = {
   "music.laneRepeats": "Musik wiederholt · blendet mit dem letzten Bild aus",
   "music.playlistRepeats": "Wiederholt bis zum Ende der Diashow",
   "music.repeatMusic": "Musik wiederholen",
-  "music.repeatMusicNotNeeded": "Nicht nötig — die Musik läuft schon länger als die Diashow.",
   "music.repeatMusicOnHint": "Spielt die Songs erneut, solange Bilder kommen",
   "music.repeatMusicOffHint": "Aus: Kürzere Musik wird angepasst oder bietet eine Lösung an.",
   "music.slideshowEnds": "Die Diashow endet",

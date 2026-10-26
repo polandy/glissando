@@ -51,6 +51,8 @@ export interface CrossfadeView {
 /** The music editor's playlist: its songs in order, and the slideshow beside it. */
 export interface PlaylistView {
   readonly songs: readonly PlaylistSongView[];
+  /** How many songs are stored; `songs` is longer than this while the playlist repeats. */
+  readonly songCount: number;
   /** The songs crossfade; otherwise they play one after another. */
   readonly crossfade: boolean;
   readonly crossfades: readonly CrossfadeView[];
@@ -119,6 +121,7 @@ export function playlistView(
   let changeMs = 0;
   return {
     songs,
+    songCount: originalCount,
     crossfade: stored.betweenSongs !== SEQUENCE_BETWEEN_SONGS,
     crossfades,
     playlistMs: playlistLengthMs,

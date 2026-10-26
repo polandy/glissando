@@ -30,6 +30,7 @@ const song = (
 /** Two songs with a long crossfade, so its hatching is wide enough to cover a number. */
 const playlist: PlaylistView = {
   songs: [song(1, 0), song(2, 48_000)],
+  songCount: 2,
   crossfade: true,
   crossfades: [{ atMs: 48_000, ms: 12_000 }],
   playlistMs: 108_000,
@@ -103,6 +104,7 @@ describe("PlaylistLane", () => {
         song(1, 120_000, { repeated: true }),
         song(2, 180_000, { repeated: true }),
       ],
+      songCount: 2,
       crossfade: false,
       crossfades: [],
       playlistMs: 120_000,
@@ -121,6 +123,7 @@ describe("PlaylistLane", () => {
   it("hatches the crossfade across a repeat's loop boundary", () => {
     const repeating: PlaylistView = {
       songs: [song(1, 0), song(1, 60_000, { repeated: true })],
+      songCount: 1,
       crossfade: true,
       crossfades: [{ atMs: 60_000, ms: 2_000 }],
       playlistMs: 60_000,

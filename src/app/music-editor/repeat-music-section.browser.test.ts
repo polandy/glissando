@@ -10,10 +10,10 @@ afterEach(() => {
   unmounts = [];
 });
 
-function mount(on: boolean, disabled: boolean, onRepeatMusic: (value: true | undefined) => void) {
+function mount(on: boolean, onRepeatMusic: (value: true | undefined) => void) {
   const mounted = mountWithTranslator(
     RepeatMusicSection,
-    { on, disabled, onRepeatMusic },
+    { on, onRepeatMusic },
     { current: createTranslator("en") },
   );
   unmounts.push(mounted.destroy);
@@ -29,29 +29,24 @@ function switchInput(target: HTMLElement): HTMLInputElement {
 }
 
 describe("RepeatMusicSection", () => {
-  it("says repeating is not needed once the music already outlasts the slideshow", () => {
-    const target = mount(false, true, () => {});
-
-    expect(switchInput(target).disabled).toBe(true);
-    expect(target.textContent).toContain("Not needed");
-  });
-
-  it("explains it plays the songs again while it is on", () => {
-    const target = mount(true, false, () => {});
+  it("explains it plays the songs again while it is on, the switch always enabled", () => {
+    const target = mount(true, () => {});
 
     expect(switchInput(target).checked).toBe(true);
+    expect(switchInput(target).disabled).toBe(false);
     expect(target.textContent).toContain("Plays the songs again");
   });
 
-  it("explains a shorter music fits instead while it is off", () => {
-    const target = mount(false, false, () => {});
+  it("explains a shorter music fits instead while it is off, the switch always enabled", () => {
+    const target = mount(false, () => {});
 
+    expect(switchInput(target).disabled).toBe(false);
     expect(target.textContent).toContain("a shorter music is fitted or offers a fix instead");
   });
 
   it("turns the switch on and off through onRepeatMusic, true or undefined", () => {
     const calls: (true | undefined)[] = [];
-    const target = mount(false, false, (value) => calls.push(value));
+    const target = mount(false, (value) => calls.push(value));
 
     switchInput(target).click();
     flushSync();

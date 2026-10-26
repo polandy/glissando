@@ -32,7 +32,6 @@ export const enPlaylist: Pick<Catalogue, keyof typeof dePlaylist> = {
   "music.laneRepeats": "Music repeats · fades out with the last picture",
   "music.playlistRepeats": "Repeats until the slideshow ends",
   "music.repeatMusic": "Repeat the music",
-  "music.repeatMusicNotNeeded": "Not needed — the music already outlasts the slideshow.",
   "music.repeatMusicOnHint": "Plays the songs again while pictures remain",
   "music.repeatMusicOffHint": "Off: a shorter music is fitted or offers a fix instead.",
   "music.slideshowEnds": "Slideshow ends",
