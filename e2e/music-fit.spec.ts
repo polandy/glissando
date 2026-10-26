@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, type Locator, test } from "@playwright/test";
 import { createSlideshowWithMusic, editsStored, GERMAN_BROWSER } from "./support/app";
 import { openApp } from "./support/browser";
 import { silentTrack } from "./support/media";
@@ -11,12 +11,27 @@ test.use({ ...GERMAN_BROWSER, viewport: PHONE });
 
 // 3 pictures at the default 5 s each (createSlideshowWithMusic without `fill`) last 15 s; a
 // shorter excerpt either squeezes them down to end with it (down to ⅔ of 5 s, so ≥ 10 s) or,
-// below that, leaves them outlasting it (ADR-0047).
-const TRACK_SECONDS = 20;
+// below that, leaves them outlasting it (ADR-0047). The track is the whole-track "fitted" length
+// itself, so going back to it is one click on "Ganzer Titel" rather than more stepping.
+const TRACK_SECONDS = 12;
 const OUTLASTS_END_MS = 8000;
-const FITTED_END_MS = 12000;
+const FITTED_END_MS = TRACK_SECONDS * 1000;
 const STEPS_TO_OUTLASTS = (TRACK_SECONDS * 1000 - OUTLASTS_END_MS) / 1000;
-const STEPS_TO_FITTED = (FITTED_END_MS - OUTLASTS_END_MS) / 1000;
+
+/**
+ * Steps the focused "Ende" handle `steps` times, a second at a time, in one round trip: a
+ * Playwright `.press()` per step was too slow under CI load for a dozen of them (E2E-081 used
+ * to time out), the same `KeyboardEvent` the handle's own keydown handler reacts to either way.
+ */
+async function stepEndHandle(endHandle: Locator, steps: number): Promise<void> {
+  await endHandle.evaluate((element, count) => {
+    for (let step = 0; step < count; step += 1) {
+      element.dispatchEvent(
+        new KeyboardEvent("keydown", { key: "ArrowLeft", shiftKey: true, bubbles: true }),
+      );
+    }
+  }, steps);
+}
 
 test("E2E-081 the music editor notes a shorter music that outlasts or fits the pictures, offers to repeat it, and keeps the choice", async ({
   page,
@@ -37,9 +52,7 @@ test("E2E-081 the music editor notes a shorter music that outlasts or fits the p
   // Shift+arrow steps the handle a second at a time (as in TrimSection), down to an excerpt the
   // 3 pictures, even squeezed, cannot end with: they keep their 5 s each and outlast it by 7 s.
   await endHandle.focus();
-  for (let step = 0; step < STEPS_TO_OUTLASTS; step += 1) {
-    await endHandle.press("Shift+ArrowLeft");
-  }
+  await stepEndHandle(endHandle, STEPS_TO_OUTLASTS);
   await expect(endHandle).toHaveAttribute("aria-valuenow", String(OUTLASTS_END_MS));
 
   await expect(outlastsNote).toBeVisible();
@@ -62,12 +75,9 @@ test("E2E-081 the music editor notes a shorter music that outlasts or fits the p
   await expect(outlastsNote).toBeVisible();
   await editsStored(page);
 
-  // A slightly longer excerpt (still short of the pictures' own 15 s) lets them shrink evenly
-  // to end with it instead: 12 s over 3 pictures is 4.0 s each.
-  await endHandle.focus();
-  for (let step = 0; step < STEPS_TO_FITTED; step += 1) {
-    await endHandle.press("Shift+ArrowRight");
-  }
+  // Back to the whole track (still short of the pictures' own 15 s) lets them shrink evenly to
+  // end with it instead: 12 s over 3 pictures is 4.0 s each.
+  await page.getByRole("button", { name: "Ganzer Titel" }).click();
   await expect(endHandle).toHaveAttribute("aria-valuenow", String(FITTED_END_MS));
   await expect(outlastsNote).toHaveCount(0);
   await expect(fittedNote).toBeVisible();
