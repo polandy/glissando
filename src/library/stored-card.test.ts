@@ -161,19 +161,19 @@ describe("defaultOpeningCard", () => {
 
   it.each([
     {
-      name: "the title is still the automatic month title: subtitles empty",
+      name: "the title is still the automatic month title: the subtitle is empty",
       title: "September 2025",
       pictureIds: ["p1", "p2"],
       subtitle: "",
     },
     {
-      name: "the title was renamed: subtitles with the capture day range",
+      name: "the title was renamed: the subtitle is the capture day range",
       title: "Herbst in Wien",
       pictureIds: ["p1", "p2"],
       subtitle: "September 29 – 30, 2025",
     },
     {
-      name: "the title was renamed, a single capture day: subtitles with that one day",
+      name: "the title was renamed, a single capture day: the subtitle is that one day",
       title: "Herbst in Wien",
       pictureIds: ["p1"],
       subtitle: "September 30, 2025",
