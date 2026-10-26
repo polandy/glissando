@@ -5,7 +5,6 @@ One line per item, newest at the end. A finished item is deleted.
 ## Open
 
 - [ ] Investigate the video freeze before a video slide ends (picture holds, sound plays; title slide then video, cropped and not) — not reproducible in headless Chromium with a generated 720p clip; test on another device and note clip codec, resolution and browser; if a large clip is the cause, cap the live frame size and upload per decoded frame (`dev-docs/player/VIDEO_SLIDES.md`) (2026-10-15)
-- [ ] **HIGH** Never leave the last pictures in silence — with 0:20 of music under a 0:30 slideshow the music editor only says "Last pictures in silence"; fit the picture times to the music where possible, otherwise offer a one-tap fix (repeat the music, add a song) (2026-10-25)
 - [ ] **HIGH** Stop the title slide repeating its title — the subtitle defaults to the title ("July 2025" twice) and the player's header shows it a third time; default the subtitle to the date range or empty, hide the header over the title slide (2026-10-25)
 - [ ] Start a new slideshow on a named mood — it opens as "Custom · default"; the mood dialog's preview is black with a debug-like "♪ no beat found · Custom" (2026-10-25)
 - [ ] Give each action one way in on the slideshow screen — two Play controls, an Add button and an Add tile, Select and "hold to select", "Open .glissando file" on the start screen and again in the pictures step; mockup first (2026-10-25)

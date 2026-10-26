@@ -3,10 +3,9 @@
   import { getTranslator } from "../i18n/context";
 
   /**
-   * The slideshow's row, in the music editor's panel, for repeating the playlist to end with
-   * longer pictures instead of letting them outlast it (ADR-0047): on while `StoredSlideshow`'s
-   * `repeatMusic` is set, off otherwise; always enabled, since fitting a shorter music is an
-   * equally valid choice to offer even once the music already outlasts the slideshow.
+   * The slideshow's row, in the music editor's panel, for playing the playlist again while
+   * pictures remain (ADR-0047): on while `StoredSlideshow`'s `repeatMusic` is set. Always
+   * enabled: repeating is a choice even where the pictures would fit the music by themselves.
    */
   let {
     on,
