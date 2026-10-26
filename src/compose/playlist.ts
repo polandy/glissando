@@ -23,8 +23,10 @@ export const CROSSFADE_MS = 3 * MILLISECONDS_PER_SECOND;
 /** What the playlist is made of. */
 export type Playlist = Pick<StoredSlideshow, "songs" | "betweenSongs" | "repeatMusic">;
 
-/** A sane ceiling on playlist repeats, so a song with no forward progress fails loud, not forever. */
-const MAX_PLAYLIST_REPEATS = 1000;
+/** Repeating the playlist never reaches the slideshow's end: every song's excerpt plays for 0 ms. */
+export class PlaylistNeverFillsSlideshowError extends Error {
+  override readonly name = "PlaylistNeverFillsSlideshowError";
+}
 
 /** The beats found so far per music id; a song absent was not listened to yet. */
 export type SongBeats = ReadonlyMap<string, MusicBeats>;
@@ -85,7 +87,9 @@ export function resolvePlaylist(
  * The playlist repeated from its first song, joined like any two songs, until it reaches
  * `slideshowMs` (`StoredSlideshow.repeatMusic`, ADR-0047); the playlist once through otherwise, or
  * without songs. Grows by whole songs, so it may run a little past `slideshowMs` — `resolvePlaylist`
- * cuts what plays beyond it.
+ * cuts what plays beyond it. Each repeat is checked to end later than the one before; a playlist
+ * that never advances (every song's excerpt plays for 0 ms) throws `PlaylistNeverFillsSlideshowError`
+ * rather than loop forever.
  */
 export function repeatedPlaylist(playlist: Playlist, slideshowMs: number): Playlist {
   const { songs, betweenSongs } = playlist;
@@ -94,17 +98,22 @@ export function repeatedPlaylist(playlist: Playlist, slideshowMs: number): Playl
     return onceThrough;
   }
   let repeated = songs;
-  for (let repeats = 1; repeats <= MAX_PLAYLIST_REPEATS; repeats += 1) {
+  let reachedMs = -1;
+  for (;;) {
     // placeSongs never returns an empty list for a non-empty songs array.
     const last = placeSongs({ ...onceThrough, songs: repeated }).at(-1) as PlacedSong;
-    if (last.atMs + musicExcerptMs(last.song) >= slideshowMs) {
+    const endMs = last.atMs + musicExcerptMs(last.song);
+    if (endMs >= slideshowMs) {
       return { ...onceThrough, songs: repeated };
     }
+    if (endMs <= reachedMs) {
+      throw new PlaylistNeverFillsSlideshowError(
+        `playlist: repeating its ${songs.length} song(s) never reaches ${slideshowMs} ms of music`,
+      );
+    }
+    reachedMs = endMs;
     repeated = [...repeated, ...songs];
   }
-  throw new RangeError(
-    `playlist: did not reach ${slideshowMs} ms of music within ${MAX_PLAYLIST_REPEATS} repeats`,
-  );
 }
 
 /**

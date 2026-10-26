@@ -2,7 +2,14 @@ import { describe, expect, it } from "vitest";
 import { NO_BEATS, type MusicBeats } from "../beats";
 import { SEQUENCE_BETWEEN_SONGS } from "../library/own-music";
 import type { StoredMusic, StoredSlideshow } from "../library/stored-slideshow";
-import { CROSSFADE_MS, placeSongs, playlistBeatsMs, playlistMs, resolvePlaylist } from "./playlist";
+import {
+  CROSSFADE_MS,
+  PlaylistNeverFillsSlideshowError,
+  placeSongs,
+  playlistBeatsMs,
+  playlistMs,
+  resolvePlaylist,
+} from "./playlist";
 
 const LONG_SLIDESHOW_MS = 3_600_000;
 
@@ -145,6 +152,23 @@ describe("resolvePlaylist when the music repeats (StoredSlideshow.repeatMusic, A
     };
 
     expect(placed(playlist, 15_000).map(({ id }) => id)).toEqual(["a", "b"]);
+  });
+
+  it("repeats a much shorter song as many times as a long slideshow needs, with no repeat cap", () => {
+    const playlist: Playlist = { ...inSequence(song("a", 5_000)), repeatMusic: true };
+    const ninetyMinutesMs = 90 * 60 * 1_000;
+
+    const tracks = placed(playlist, ninetyMinutesMs);
+
+    const last = tracks.at(-1);
+    expect(last?.atMs).toBe(ninetyMinutesMs - 5_000);
+    expect(last?.endMs).toBe(5_000);
+  });
+
+  it("fails loud, not by looping forever, when repeating never reaches the slideshow's end", () => {
+    const playlist: Playlist = { ...inSequence(song("a", 0)), repeatMusic: true };
+
+    expect(() => placed(playlist, 10_000)).toThrow(PlaylistNeverFillsSlideshowError);
   });
 });
 
