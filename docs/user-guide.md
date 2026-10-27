@@ -18,16 +18,18 @@ without internet. If you use a self-hosted Glissando, open its address instead
 3. **Play.** Motion and transitions are chosen for you — people stay in frame, scenery gets a slow
    sweep, changes follow the beat.
 
-For a different feel, tap Mood beside Music and Look on the slideshow's screen. **Calm** shows each picture longer,
-with soft crossfades and gentle motion; **Lively** changes pictures quickly with mixed transitions
-and stronger motion. Both fit the picture changes to the song's beats and phrases, so a slow and a
-fast song pace the same mood differently. **Custom**, the default, keeps your own settings. A
-picture with its own duration, transition or motion keeps it under any mood, and changing a single
-setting while a mood is on turns it into Custom with the mood's values to start from.
+For a different feel, tap Mood beside Music and Look on the slideshow's screen. **Calm** shows each
+picture longer, with soft crossfades and gentle motion; **Lively** changes pictures quickly with
+mixed transitions and stronger motion. Both fit the picture changes to the song's beats and phrases,
+so a slow and a fast song pace the same mood differently. **Custom**, the default, keeps your own
+settings. A picture with its own duration, transition or motion keeps it under any mood, and
+changing a single setting while a mood is on turns it into Custom with the mood's values to start
+from.
 
-Turn on **Follow the music's energy** in the Mood sheet, under any mood or Custom, and the pictures stay longer where the music is
-quiet and change quicker where it is loud; at a drop or chorus the next picture cuts in on the
-beat. The slideshow stays as long as before, and pictures with their own duration keep it.
+Turn on **Follow the music's energy** in the Mood sheet, under any mood or Custom, and the pictures
+stay longer where the music is quiet and change quicker where it is loud; at a drop or chorus the
+next picture cuts in on the beat. The slideshow stays as long as before, and pictures with their own
+duration keep it.
 
 Tap Look on the slideshow's screen to give it a look — Warm, Cool, Vivid, Film, Black & white or
 Faded — if you want one. It colours every picture and video, in the exported video and web page
@@ -50,8 +52,8 @@ its motion.
 them automatically, naming the place and the dates. Tap a chapter tile in the picture strip to
 rename it, hide it, or reset it to its automatic text; select a picture and tap **Insert chapter**
 to add one of your own, or delete it again from its sheet. The **Trip chapters** row in the
-slideshow's side panel, under **Fine settings**, turns automatic chapters on or off for the whole slideshow, and shows how
-many there currently are.
+slideshow's side panel, under **Fine settings**, turns automatic chapters on or off for the whole
+slideshow, and shows how many there currently are.
 
 ## Play
 

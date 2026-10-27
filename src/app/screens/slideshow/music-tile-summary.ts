@@ -1,5 +1,4 @@
 import type { Translator } from "../../i18n/translator";
-import type { SlideshowDetails } from "../view-models";
 
 /** What the Music tile's value and summary (ADR-0048) are built from. */
 export interface MusicTileInput {
@@ -23,10 +22,7 @@ export interface MusicTileValue {
 export function musicTileValue(
   t: Translator["t"],
   formatDuration: Translator["formatDuration"],
-  slideshow: Pick<
-    SlideshowDetails,
-    "songCount" | "musicTitle" | "musicSeconds" | "durationSeconds"
-  >,
+  slideshow: MusicTileInput,
 ): MusicTileValue {
   if (slideshow.songCount === 0) {
     return { value: t("slideshow.noMusic"), summary: t("slideshow.addMusic") };
