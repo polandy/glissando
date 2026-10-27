@@ -8,7 +8,7 @@ test.use(GERMAN_BROWSER);
 async function openLookSheet(page: Page): Promise<void> {
   await openApp(page);
   await createSlideshow(page, ["2025-07-12", "2025-07-14", "2025-07-20"], 5);
-  const defaultRow = page.getByRole("button", { name: "Look Ohne Vorgabe Ändern" });
+  const defaultRow = page.getByRole("button", { name: "Look Ohne Vorgabe" });
   await expect(defaultRow).toBeVisible();
   await defaultRow.click();
 }
@@ -16,7 +16,7 @@ async function openLookSheet(page: Page): Promise<void> {
 test("E2E-077 choosing Film in the look sheet stores it, shows it in the row and keeps it after a reload", async ({
   page,
 }) => {
-  const filmRow = page.getByRole("button", { name: "Look Film Ändern" });
+  const filmRow = page.getByRole("button", { name: "Look Film" });
   const sheet = page.getByRole("dialog", { name: "Look" });
   const filmTile = sheet.getByRole("radio", { name: "Film" });
 
@@ -37,8 +37,8 @@ test("E2E-077 choosing Film in the look sheet stores it, shows it in the row and
 test("E2E-078 'Look entfernen' goes back to None and its undo brings the chosen look back", async ({
   page,
 }) => {
-  const defaultRow = page.getByRole("button", { name: "Look Ohne Vorgabe Ändern" });
-  const filmRow = page.getByRole("button", { name: "Look Film Ändern" });
+  const defaultRow = page.getByRole("button", { name: "Look Ohne Vorgabe" });
+  const filmRow = page.getByRole("button", { name: "Look Film" });
   const sheet = page.getByRole("dialog", { name: "Look" });
   const filmTile = sheet.getByRole("radio", { name: "Film" });
   const noneTile = sheet.getByRole("radio", { name: /Ohne/ });

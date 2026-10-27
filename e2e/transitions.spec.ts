@@ -13,14 +13,16 @@ test.use(GERMAN_BROWSER);
 test("E2E-025 the slideshow's default transition is chosen in the info panel, stored, followed by the picture editor and goes back to crossfade with undo", async ({
   page,
 }) => {
-  const defaultRow = page.getByRole("button", { name: "Übergänge Überblenden Vorgabe Ändern" });
-  const pushRow = page.getByRole("button", { name: "Übergänge Schieben eigene Wahl Ändern" });
+  const defaultRow = page.getByRole("button", { name: "Übergänge Überblenden Vorgabe" });
+  const pushRow = page.getByRole("button", { name: "Übergänge Schieben eigene Wahl" });
   const sheet = page.getByRole("dialog", { name: "Übergänge der Diashow" });
   const pushTile = sheet.getByRole("radio", { name: /Schieben/ });
   const crossfadeTile = sheet.getByRole("radio", { name: /Überblenden/ });
   const transitionSection = page.locator('section[aria-labelledby="transition-label"]');
   await openApp(page);
   await createSlideshow(page, ["2025-07-12", "2025-07-14", "2025-07-20"], 5);
+  // The Transitions row lives behind the Fine settings fold (ADR-0048).
+  await page.getByRole("button", { name: "Feineinstellungen" }).click();
 
   await defaultRow.click();
   await expect(crossfadeTile).toHaveAttribute("aria-checked", "true");

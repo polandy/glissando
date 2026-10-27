@@ -3,7 +3,6 @@ import {
   captionField,
   captionPicture,
   createSlideshow,
-  definitionOf,
   editPicture,
   editsStored,
   GERMAN_BROWSER,
@@ -37,16 +36,13 @@ async function closePlayer(page: Page): Promise<void> {
   await expect(player(page)).toBeHidden();
 }
 
-test("E2E-021 a picture's caption is stored, shown by the player, counted, and cleared with ×", async ({
+test("E2E-021 a picture's caption is stored, shown by the player, and cleared with ×", async ({
   page,
 }) => {
-  const captions = definitionOf(page, "Bildtitel");
   await openApp(page);
   await createSlideshow(page, ["2025-07-12", "2025-07-14"], LONGEST_SECONDS_PER_PICTURE);
-  await expect(captions).toHaveText("0 von 2");
 
   await captionPicture(page, FIRST_TILE, CAPTION);
-  await expect(captions).toHaveText("1 von 2");
 
   await editPicture(page, FIRST_TILE);
   await page.reload();
@@ -63,7 +59,6 @@ test("E2E-021 a picture's caption is stored, shown by the player, counted, and c
   await expect(captionField(page)).toBeFocused();
   await editsStored(page);
   await leaveEditor(page);
-  await expect(captions).toHaveText("0 von 2");
 
   // The second picture's caption shows the region is live before the cleared one is read.
   await captionPicture(page, SECOND_TILE, SECOND_CAPTION);

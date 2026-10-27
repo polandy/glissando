@@ -1,5 +1,5 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
-import { createSlideshow, definitionOf, editsStored, GERMAN_BROWSER } from "./support/app";
+import { createSlideshow, editsStored, GERMAN_BROWSER } from "./support/app";
 import { openApp } from "./support/browser";
 
 test.use(GERMAN_BROWSER);
@@ -99,7 +99,6 @@ test("E2E-020 a picture gets its own Ken Burns motion that is stored, and goes b
   await page.getByRole("button", { name: "Zurück", exact: true }).click();
   await expect(ownTile).toHaveAttribute("aria-pressed", "true");
   await expect(ownTile.locator(".badge")).toHaveText("eigen");
-  await expect(definitionOf(page, "Ken Burns")).toHaveText("automatisch, 1 eigene");
 
   await selectionBar.getByRole("button", { name: "Bearbeiten" }).click();
   await expect(state).toHaveText("Eigene Bewegung");
@@ -157,9 +156,10 @@ test("E2E-022 a picture gets its own duration and transition, stored, and the tr
   await expect(ownTile).toHaveAttribute("aria-pressed", "true");
   await expect(ownTile.locator(".timing-badge.mono")).toHaveText("6,5 s");
   await expect(ownTile.locator(".timing-badge[title]")).toHaveAttribute("title", "Kreis");
-  await expect(definitionOf(page, "Bildzeiten")).toHaveText("automatisch, 1 eigene");
+  // The Transitions row lives behind the Fine settings fold (ADR-0048).
+  await page.getByRole("button", { name: "Feineinstellungen" }).click();
   await expect(
-    page.getByRole("button", { name: "Übergänge Überblenden Vorgabe · 1 eigener Ändern" }),
+    page.getByRole("button", { name: "Übergänge Überblenden Vorgabe · 1 eigener" }),
   ).toBeVisible();
 
   await selectionBar.getByRole("button", { name: "Bearbeiten" }).click();

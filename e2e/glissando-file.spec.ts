@@ -3,7 +3,6 @@ import {
   captionPicture,
   chooseFiles,
   createSlideshow,
-  definitionOf,
   GERMAN_BROWSER,
   openImport,
 } from "./support/app";
@@ -35,7 +34,6 @@ test("E2E-015 a slideshow exported from its menu opens again from the library as
   await openApp(page);
   await createSlideshow(page, ["2025-07-12", "2025-07-14"], 2);
   await captionPicture(page, "Bild 1, aufgenommen am 12.07.2025", "Abends am Steg");
-  await expect(definitionOf(page, "Bildtitel")).toHaveText("1 von 2");
 
   await page.getByRole("button", { name: "Mehr" }).click();
   const exportItem = page.getByRole("menuitem", { name: /^Als Glissando-Datei sichern/ });
@@ -64,7 +62,6 @@ test("E2E-015 a slideshow exported from its menu opens again from the library as
     status(page, `Geöffnet als „${TITLE} (2)“, „${TITLE}“ bleibt unverändert.`),
   ).toBeVisible();
   await expect(openingOverlay(page)).toHaveCount(0);
-  await expect(definitionOf(page, "Bildtitel")).toHaveText("1 von 2");
 });
 
 test("E2E-016 a file that is no .glissando file is refused in the library and stores nothing", async ({
