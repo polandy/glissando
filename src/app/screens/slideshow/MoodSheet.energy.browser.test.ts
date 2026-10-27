@@ -108,7 +108,7 @@ describe("MoodSheet energy pacing", () => {
     await whenRendered(target, ".strip");
   });
 
-  it("shows a lift row and the badge's energy suffix once the music has a drop", async () => {
+  it("shows a lift row once the music has a drop", async () => {
     const store = new MemoryLibraryStore();
     const pictures = ["a", "b", "c", "d", "e", "f"];
     for (const id of pictures) {
@@ -137,9 +137,7 @@ describe("MoodSheet energy pacing", () => {
     const { target } = setUp(details({ energyPacing: true }), ports);
 
     await whenRendered(target, ".stage");
-    const badge = await whenRendered(target, ".badge", (found) => found.textContent !== "");
 
     expect(setText("At a drop or chorus")).toBe("Cut on the beat");
-    expect(badge.textContent?.endsWith("· energy")).toBe(true);
   });
 });

@@ -102,7 +102,7 @@ The composed player JSON carries no new field.
   It is decorative (`aria-hidden`); the "What it sets" rows say the same in words.
 
 - **Preview**: with the switch on and a lift found, the preview plays the four slide units around
-  the first lift (two before, two after) instead of the first four. The badge adds "· energy".
+  the first lift (two before, two after) instead of the first four.
 - **Info panel**: the switch is in the Mood sheet only (ADR-0048). While it is on and the
   slideshow has music, the Mood tile's summary shows the range of picture times under a mood and
   ends in "follows the energy" ([SCREENS](../SCREENS.md)).

@@ -1,4 +1,5 @@
 import { vi } from "vitest";
+import { NO_SONG_BEATS, type SongBeats } from "../../../compose/playlist";
 import { createTranslator } from "../../i18n/translator";
 import { mountWithTranslator } from "../../testing/mount-with-translator";
 import { reactiveProps } from "../../testing/reactive-props.svelte";
@@ -78,7 +79,7 @@ export function setUp(
   slideshow: SlideshowDetails,
   ports: MoodPreviewPorts = previewPorts(),
   moodBpm: number | undefined = undefined,
-  moodPending = false,
+  moodBeats: SongBeats = NO_SONG_BEATS,
 ) {
   const onMood = vi.fn();
   const onResetMood = vi.fn();
@@ -88,7 +89,7 @@ export function setUp(
     slideshow,
     previewPorts: ports,
     moodBpm,
-    moodPending,
+    moodBeats,
     onMood,
     onResetMood,
     onEnergyPacing,

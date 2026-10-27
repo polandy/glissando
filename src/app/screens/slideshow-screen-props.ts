@@ -9,6 +9,7 @@ import type { SlideshowTransition } from "../../library/own-timing";
 import type { PortraitPictures } from "../../library/portrait-pictures";
 import type { MotionPreviewPorts } from "../picture-editor/motion-preview";
 import type { SlideshowMood } from "../../library/slideshow-mood";
+import type { SongBeats } from "../../compose/playlist";
 import type { MoodEnergyPacing } from "./slideshow/mood-energy-pacing";
 import type { MoodPreviewPorts } from "./slideshow/mood-preview-ports";
 import type { ExportMenuState } from "../glissando-file/export-menu";
@@ -59,8 +60,9 @@ export interface SlideshowScreenProps {
   /** The slideshow's tempo under its mood, for the info panel and the Mood sheet's "What it
    * sets" (ADR-0045); undefined without a mood, or without a clear beat to pace to. */
   moodBpm: number | undefined;
-  /** Whether `moodBpm` may still change once analysis catches up; never "no beat found" then. */
-  moodPending: boolean;
+  /** The pass-aware beats the Mood sheet's live preview composes and paces to (MOOD.md); a new
+   * map once the background pass finds a song's beats restarts the preview on them. */
+  moodBeats: SongBeats;
   /** The info panel's "Picture times" range under the energy pacing (ADR-0046); null until
    * loaded or without any songs. */
   moodEnergyPacing: MoodEnergyPacing | null;

@@ -4,7 +4,7 @@ import type { BeatPass, BeatPassState } from "../../library/beat-pass";
 import type { LibraryStore } from "../../library/library-store";
 import type { StoredSlideshow } from "../../library/stored-slideshow";
 import { storedSongBeats } from "../beats/music-beats-known";
-import { slideshowMoodBpm, slideshowMoodTempoPending } from "../screens/slideshow/mood-tempo";
+import { composedSongBeats, slideshowMoodBpm } from "../screens/slideshow/mood-tempo";
 
 /**
  * The slideshow's tempo for its mood (ADR-0045), under Custom too: each song's beats as already
@@ -17,6 +17,13 @@ export class ScreenMoodBpm {
   readonly #pass: Pick<BeatPass, "state" | "subscribe">;
   readonly #store: Pick<LibraryStore, "musicBeats">;
   readonly #log: (error: unknown) => void;
+
+  #beatsCache: {
+    songs: StoredSlideshow["songs"];
+    storedBeats: SongBeats;
+    pass: BeatPassState;
+    beats: SongBeats;
+  } | null = null;
 
   constructor(
     pass: Pick<BeatPass, "state" | "subscribe">,
@@ -34,9 +41,29 @@ export class ScreenMoodBpm {
     return slideshowMoodBpm(stored, this.#storedBeats, this.#passState);
   }
 
-  /** Read inside a `$derived`: whether `of(stored)` may still change once analysis catches up. */
-  pendingOf(stored: StoredSlideshow): boolean {
-    return slideshowMoodTempoPending(stored, this.#storedBeats, this.#passState);
+  /**
+   * The same pass-aware beats the Mood sheet's tempo row (`of`) is paced to, for its live preview
+   * to compose and restart on (MOOD.md). Reuses the last map while `stored.songs`, the stored
+   * beats and the pass have not changed, so an unrelated re-render does not restart the preview.
+   */
+  beatsOf(stored: StoredSlideshow): SongBeats {
+    const cache = this.#beatsCache;
+    if (
+      cache !== null &&
+      cache.songs === stored.songs &&
+      cache.storedBeats === this.#storedBeats &&
+      cache.pass === this.#passState
+    ) {
+      return cache.beats;
+    }
+    const beats = composedSongBeats(stored, this.#storedBeats, this.#passState);
+    this.#beatsCache = {
+      songs: stored.songs,
+      storedBeats: this.#storedBeats,
+      pass: this.#passState,
+      beats,
+    };
+    return beats;
   }
 
   /** Rereads the slideshow's songs' beats; the caller decides when they have changed. */

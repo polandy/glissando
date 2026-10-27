@@ -1,4 +1,5 @@
 /** Shared set-up of the `SlideshowScreen` browser tests. */
+import { NO_SONG_BEATS, type SongBeats } from "../../compose/playlist";
 import type { SlideshowTransition } from "../../library/own-timing";
 import type { SlideshowLook } from "../../player";
 import type { SlideshowMood } from "../../library/slideshow-mood";
@@ -108,7 +109,7 @@ export function mountScreen(
     english = false,
     chapterEditor = null as ChapterSettingsEditor | null,
     moodBpm = undefined as number | undefined,
-    moodPending = false,
+    moodBeats = NO_SONG_BEATS as SongBeats,
     moodEnergyPacing = null as MoodEnergyPacing | null,
     moodPreviewPorts = moodPreviewPortsFixture(),
     fineSettingsFold = createStorageFineSettingsFoldStore(createMemoryStorage()),
@@ -190,7 +191,7 @@ export function mountScreen(
       props.slideshow = { ...props.slideshow, look: "none" };
     },
     moodBpm,
-    moodPending,
+    moodBeats,
     moodEnergyPacing,
     moodPreviewPorts,
     onMood: (mood: SlideshowMood | undefined) => {

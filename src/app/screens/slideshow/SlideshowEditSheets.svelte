@@ -9,6 +9,7 @@
   import type { ChapterSettingsEditor } from "../../editing/chapter-settings-editor";
   import type { SlideshowDetails } from "../view-models";
   import type { SlideshowMood } from "../../../library/slideshow-mood";
+  import type { SongBeats } from "../../../compose/playlist";
   import type { MoodPreviewPorts } from "./mood-preview-ports";
   import CardSheet from "./card-sheet/CardSheet.svelte";
   import LookSheet from "./LookSheet.svelte";
@@ -32,7 +33,7 @@
     onResetLook,
     moodPreviewPorts,
     moodBpm,
-    moodPending,
+    moodBeats,
     onMood,
     onResetMood,
     onEnergyPacing,
@@ -66,8 +67,8 @@
     moodPreviewPorts: MoodPreviewPorts;
     /** The slideshow's tempo under its mood (ADR-0045); undefined without one. */
     moodBpm: number | undefined;
-    /** Whether `moodBpm` may still change once analysis catches up; never "no beat found" then. */
-    moodPending: boolean;
+    /** The pass-aware beats the Mood sheet's live preview composes and paces to (MOOD.md). */
+    moodBeats: SongBeats;
     /** A mood tile was tapped: stores at once. */
     onMood: (mood: SlideshowMood | undefined) => void;
     /** "Back to Custom" in the Mood sheet. */
@@ -212,7 +213,7 @@
     {slideshow}
     previewPorts={moodPreviewPorts}
     {moodBpm}
-    {moodPending}
+    {moodBeats}
     {onMood}
     {onResetMood}
     {onEnergyPacing}

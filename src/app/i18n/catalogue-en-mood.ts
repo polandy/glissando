@@ -32,9 +32,6 @@ export const enMood: Pick<Catalogue, keyof typeof deMood> = {
   "mood.hintCustom": "Your own picture times, transitions and Ken Burns, as set on the slideshow.",
   "mood.backToCustom": "Back to Custom",
   "mood.alreadyCustom": "The slideshow is already Custom",
-  "mood.previewBpm": "♪ {bpm} BPM",
-  "mood.previewPending": "♪ …",
-  "mood.previewNoBeat": "♪ no beat found",
   "mood.sound": "Sound",
   "mood.energySwitch": "Follow the music's energy",
   "mood.energySwitchSubtitle":
@@ -46,7 +43,6 @@ export const enMood: Pick<Catalogue, keyof typeof deMood> = {
     "The mood sets the average pace; the energy makes it slower in quiet passages and quicker in loud ones. Pictures with their own duration, transition or motion keep them.",
   "mood.hintCustomEnergy":
     "Your picture times stay the average. With “Fill the music” the slideshow still ends with the song. Pictures with their own duration keep it.",
-  "mood.energyBadgeSuffix": "energy",
   "mood.energyStripQuiet": "quiet → longer",
   "mood.energyStripLoud": "loud → quicker",
 };

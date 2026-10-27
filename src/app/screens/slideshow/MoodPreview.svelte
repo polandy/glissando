@@ -4,15 +4,12 @@
   import type { SongLoudness } from "../../../compose/song-loudness";
   import type { PictureFocus } from "../../../library/picture-focus";
   import type { SlideshowMood } from "../../../library/slideshow-mood";
-  import { storedSongBeats } from "../../beats/music-beats-known";
   import Icon from "../../components/Icon.svelte";
   import { bareFocus, NO_FOCUS_KNOWN } from "../../focus/pictures-focus";
   import { getTranslator } from "../../i18n/context";
   import { storedSongLoudness } from "../../loudness/music-loudness-composed";
   import { browserObjectUrls } from "../../media/object-urls";
   import { loadPlayerMusic } from "../../routes/route-loading";
-  import { moodEnergyPacing } from "./mood-energy-pacing";
-  import { moodName } from "./mood-text";
   import {
     moodPreviewSlideshow,
     mutedPreviewSlideshow,
@@ -24,31 +21,29 @@
   /**
    * The Mood sheet's live preview (MOOD.md): the real player on the slideshow's first four slide
    * units composed under `mood`, looping, silent until the "Sound" toggle is on. The caller
-   * leaves this out while the slideshow has no pictures. `moodBpm` and `moodPending` are the same
-   * ones the sheet's rows show (`slideshowMoodBpm`/`slideshowMoodTempoPending`), so the badge never
-   * disagrees with them, and while they are still pending it never claims "no beat found".
-   * `onLoaded`, once given, fires with the beats and loudness once they are loaded, so the Mood
-   * sheet can draw the energy strip (ADR-0046) from the same analysis, instead of loading it twice.
+   * leaves this out while the slideshow has no pictures. `moodBeats` is the same pass-aware map
+   * the sheet's tempo row is built from (`composedSongBeats`); the caller passes a new map once
+   * the background beat pass finds a song's beats, and the preview then re-paces to it, since a
+   * new `previewSlideshow` remounts the player (`{#key}` below). `onLoaded`, once given, fires
+   * with the loudness once it is loaded, so the Mood sheet can draw the energy strip (ADR-0046)
+   * from that and `moodBeats`, instead of loading loudness twice.
    */
   let {
     ports,
     mood,
-    moodBpm,
-    moodPending,
+    moodBeats,
     onLoaded,
   }: {
     ports: MoodPreviewPorts;
     mood: SlideshowMood | undefined;
-    moodBpm: number | undefined;
-    moodPending: boolean;
-    onLoaded?: (loaded: { beats: SongBeats; loudness: SongLoudness }) => void;
+    moodBeats: SongBeats;
+    onLoaded?: (loaded: { loudness: SongLoudness }) => void;
   } = $props();
 
   const { t, language } = getTranslator();
 
   interface Loaded {
     readonly focus: ReadonlyMap<string, PictureFocus>;
-    readonly beats: SongBeats;
     readonly loudness: SongLoudness;
     readonly musicUrls: ReadonlyMap<string, string>;
   }
@@ -68,15 +63,14 @@
         ports.log(error);
         return NO_FOCUS_KNOWN.found;
       }),
-      storedSongBeats(ports.store, ports.stored, ports.log),
       storedSongLoudness(ports.store, ports.stored, ports.log),
-    ]).then(([music, focus, beats, loudness]) => {
+    ]).then(([music, focus, loudness]) => {
       if (music === null) {
         return;
       }
       musicUrls = music.urls;
-      loaded = { focus, beats, loudness, musicUrls: music.urls };
-      onLoaded?.({ beats, loudness });
+      loaded = { focus, loudness, musicUrls: music.urls };
+      onLoaded?.({ loudness });
     }, ports.log);
   });
   onDestroy(() => {
@@ -106,32 +100,13 @@
       mood,
       sources,
       loaded.focus,
-      loaded.beats,
+      moodBeats,
       loaded.loudness,
       language,
     );
   });
   const previewSlideshow = $derived(
     composed === null ? null : soundOn ? composed : mutedPreviewSlideshow(composed),
-  );
-  const bpmText = $derived(
-    moodBpm !== undefined
-      ? t("mood.previewBpm", { bpm: Math.round(moodBpm) })
-      : moodPending
-        ? t("mood.previewPending")
-        : t("mood.previewNoBeat"),
-  );
-  // The badge adds "· energy" only once a lift was actually found to play the preview around.
-  const energyBadge = $derived(
-    loaded !== null &&
-      ports.stored.energyPacing === true &&
-      moodEnergyPacing(ports.stored, mood, loaded.beats, loaded.loudness).firstLiftUnitIndex !==
-        undefined,
-  );
-  const badgeText = $derived(
-    energyBadge
-      ? `${bpmText} · ${moodName(t, mood)} · ${t("mood.energyBadgeSuffix")}`
-      : `${bpmText} · ${moodName(t, mood)}`,
   );
 </script>
 
@@ -147,7 +122,6 @@
         onError={ports.log}
       />
     {/key}
-    <span class="badge">{badgeText}</span>
     <button
       class="sound"
       type="button"
@@ -168,18 +142,6 @@
     border-radius: var(--gl-radius-large);
     background: var(--gl-player-bg);
     color: var(--gl-player-text);
-  }
-  .badge {
-    position: absolute;
-    top: 8px;
-    left: 8px;
-    border-radius: var(--gl-radius-pill);
-    padding: 4px 10px;
-    background: var(--gl-photo-badge);
-    color: var(--gl-on-photo);
-    font-family: var(--gl-font-mono);
-    font-size: var(--gl-size-small);
-    font-weight: var(--gl-weight-medium);
   }
   .sound {
     position: absolute;
