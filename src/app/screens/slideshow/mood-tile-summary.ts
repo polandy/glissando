@@ -1,6 +1,9 @@
 import type { SlideshowMood } from "../../../library/slideshow-mood";
 import type { Translator } from "../../i18n/translator";
-import { energyPictureTimesRangeValueText } from "./energy-pacing-text";
+import {
+  energyPictureTimesRangeDiffers,
+  energyPictureTimesRangeValueText,
+} from "./energy-pacing-text";
 import type { MoodEnergyPacing } from "./mood-energy-pacing";
 import { moodPictureTimesText } from "./mood-text";
 
@@ -39,7 +42,11 @@ function pictureTimesText(
       ? t("slideshow.automaticWithOwn", { count: input.ownDurationCount })
       : t("slideshow.automatic");
   }
-  if (energyOn && energyRange !== null && energyRange.maxMs > energyRange.minMs) {
+  if (
+    energyOn &&
+    energyRange !== null &&
+    energyPictureTimesRangeDiffers(translator, energyRange.minMs, energyRange.maxMs)
+  ) {
     return energyPictureTimesRangeValueText(translator, energyRange.minMs, energyRange.maxMs);
   }
   return moodPictureTimesText(translator, input.mood, moodBpm);

@@ -173,17 +173,12 @@
   }
   .rows {
     display: grid;
-    gap: 6px;
   }
   .actions {
     display: grid;
     gap: 10px;
   }
   @container (min-width: 721px) and (max-width: 1024px) {
-    .rows {
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      align-items: start;
-    }
     .actions {
       grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
       align-items: start;

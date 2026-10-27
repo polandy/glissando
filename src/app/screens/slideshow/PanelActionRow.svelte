@@ -29,11 +29,11 @@
 </script>
 
 <button bind:this={button} type="button" class="row-action {name}" {onclick}>
-  <span class="label">{label}</span>
-  <span class="value">
-    <b>{value}</b>
+  <span class="text">
+    <span class="label">{label}</span>
+    <span class="value">{value}</span>
     {#if summary !== ""}
-      <small>{summary}</small>
+      <span class="summary">{summary}</span>
     {/if}
   </span>
   <span class="go"><Icon name="chevronRight" /></span>
@@ -42,47 +42,47 @@
 <style>
   .row-action {
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
-    gap: 4px 14px;
-    width: calc(100% + 8px);
-    margin: 0 -4px;
-    padding: 9px 10px 9px 12px;
-    border: 1px solid var(--gl-line);
-    border-radius: var(--gl-radius);
-    background: var(--gl-raised);
+    gap: 10px;
+    width: 100%;
+    padding: 10px 4px;
+    border: 0;
+    border-top: 1px solid var(--gl-line);
+    border-radius: 0;
+    background: none;
     color: var(--gl-ink);
     font: inherit;
     text-align: left;
     cursor: pointer;
   }
+  .row-action:first-child {
+    border-top: 0;
+  }
   .row-action:hover {
     background: var(--gl-hover);
   }
-  .label {
-    color: var(--gl-muted);
-  }
-  .value {
+  .text {
     display: grid;
     gap: 2px;
     min-width: 0;
   }
-  .value b {
-    overflow: hidden;
-    font-weight: var(--gl-weight-medium);
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  .value small {
+  .label {
     color: var(--gl-muted);
-    font-size: var(--gl-size-meta);
+    font-size: var(--gl-size-small);
+  }
+  .value {
+    overflow-wrap: anywhere;
+    font-weight: var(--gl-weight-semibold);
+  }
+  .summary {
+    display: block;
+    color: var(--gl-muted);
+    font-size: var(--gl-size-small);
   }
   .go {
     display: flex;
     align-items: center;
-    gap: 2px;
     color: var(--gl-muted);
-    font-size: var(--gl-size-meta);
-    font-weight: var(--gl-weight-semibold);
   }
 </style>

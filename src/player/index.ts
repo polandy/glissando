@@ -31,6 +31,7 @@ export { type DecodeClipSound } from "./browser/open-video";
 export { VIDEO_RATE_TOLERANCE_MS, VIDEO_SEEK_DRIFT_MS } from "./browser/video-playback";
 export { layerTransform } from "./dom/layer-transform";
 export { cropAt, cropRect, type KenBurnsAt, type Rect, type Size } from "./ken-burns";
+export { gradeColour, type Rgb } from "./looks/grade-colour";
 export { lookFilterValues, type LookFilterValues } from "./looks/look-filter";
 export {
   DEFAULT_SLIDESHOW_LOOK,

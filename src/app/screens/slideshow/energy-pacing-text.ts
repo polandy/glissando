@@ -36,3 +36,17 @@ export function energyPictureTimesRangeValueText(
 ): string {
   return translator.t("mood.pictureTimesRange", rangeSeconds(translator, minMs, maxMs));
 }
+
+/**
+ * Whether `minMs` and `maxMs` read as two different texts once formatted to the tenth second
+ * (ADR-0048): false when rounding makes the two ends the same, which would otherwise show a
+ * range repeating one number twice.
+ */
+export function energyPictureTimesRangeDiffers(
+  translator: Pick<Translator, "formatSeconds">,
+  minMs: number,
+  maxMs: number,
+): boolean {
+  const { from, to } = rangeSeconds(translator, minMs, maxMs);
+  return from !== to;
+}

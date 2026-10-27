@@ -2,8 +2,7 @@
   import { DEFAULT_SLIDESHOW_LOOK } from "../../../player";
   import { getTranslator } from "../../i18n/context";
   import type { SlideshowDetails } from "../view-models";
-  import { lookFilterUrl } from "./look-filter-id";
-  import LookFilterDefs from "./LookFilterDefs.svelte";
+  import { lookSwatchColour } from "./look-swatch-colour";
   import type { MoodEnergyPacing } from "./mood-energy-pacing";
   import { moodName } from "./mood-text";
   import { moodTileSummaryText } from "./mood-tile-summary";
@@ -63,7 +62,7 @@
   const lookSummary = $derived(
     slideshow.look === DEFAULT_SLIDESHOW_LOOK ? t("slideshow.lookDefault") : "",
   );
-  const lookFilter = $derived(lookFilterUrl("panel", slideshow.look));
+  const lookSwatch = $derived(lookSwatchColour(slideshow.look));
 </script>
 
 <div class="tiles">
@@ -88,34 +87,16 @@
     label={t("slideshow.look")}
     value={t(`look.${slideshow.look}`)}
     summary={lookSummary}
+    swatchColour={lookSwatch}
     onclick={onEditLook}
-  >
-    {#snippet swatch()}
-      <span class="sw"><img src={slideshow.coverUrl} alt="" style:filter={lookFilter} /></span>
-    {/snippet}
-  </PanelTile>
+  />
 </div>
-<LookFilterDefs prefix="panel" />
 
 <style>
   .tiles {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: stretch;
     gap: 8px;
-  }
-  .sw {
-    display: block;
-    flex: none;
-    width: 28px;
-    height: 28px;
-    overflow: hidden;
-    border-radius: var(--gl-radius-small);
-    outline: 1px solid var(--gl-line);
-    background: var(--gl-player-bg);
-  }
-  .sw img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
   }
 </style>

@@ -20,6 +20,12 @@ function input(overrides: Partial<MoodTileInput> = {}): MoodTileInput {
 
 const VARYING_RANGE: MoodEnergyPacing = { minMs: 2000, maxMs: 6000, firstLiftUnitIndex: undefined };
 const FLAT_RANGE: MoodEnergyPacing = { minMs: 4000, maxMs: 4000, firstLiftUnitIndex: undefined };
+// Different ms, but both round to the same tenth of a second once formatted.
+const ROUNDS_TO_FLAT_RANGE: MoodEnergyPacing = {
+  minMs: 6710,
+  maxMs: 6740,
+  firstLiftUnitIndex: undefined,
+};
 
 describe("moodTileSummaryText", () => {
   it("names Custom's automatic picture times with the standard motion, without own durations", () => {
@@ -76,6 +82,19 @@ describe("moodTileSummaryText", () => {
         input({ mood: "calm", energyPacing: true, hasMusic: true }),
         80,
         FLAT_RANGE,
+      ),
+    ).toBe(`${picturesTimes} · ${t("mood.motionGentle")} · ${t("mood.followsTheEnergy")}`);
+  });
+
+  it("keeps the mood's own picture times once the range's two ends format the same, even though the ms differ", () => {
+    const picturesTimes = moodPictureTimesText(translator, "calm", 80);
+
+    expect(
+      moodTileSummaryText(
+        translator,
+        input({ mood: "calm", energyPacing: true, hasMusic: true }),
+        80,
+        ROUNDS_TO_FLAT_RANGE,
       ),
     ).toBe(`${picturesTimes} · ${t("mood.motionGentle")} · ${t("mood.followsTheEnergy")}`);
   });

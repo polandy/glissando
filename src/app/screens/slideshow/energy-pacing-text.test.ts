@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createTranslator } from "../../i18n/translator";
 import {
+  energyPictureTimesRangeDiffers,
   energyPictureTimesRangeText,
   energyPictureTimesRangeValueText,
 } from "./energy-pacing-text";
@@ -20,5 +21,19 @@ describe("energyPictureTimesRangeText", () => {
 describe("energyPictureTimesRangeValueText", () => {
   it("names the range without the Mood sheet's 'by energy' suffix", () => {
     expect(energyPictureTimesRangeValueText(translator, 5000, 10_000)).toBe("5 s – 10 s");
+  });
+});
+
+describe("energyPictureTimesRangeDiffers", () => {
+  it("is true while the two ends format to different texts", () => {
+    expect(energyPictureTimesRangeDiffers(translator, 5000, 10_000)).toBe(true);
+  });
+
+  it("is false once rounding makes the two ends format the same, even though the ms differ", () => {
+    expect(energyPictureTimesRangeDiffers(translator, 6710, 6740)).toBe(false);
+  });
+
+  it("is false for equal ends", () => {
+    expect(energyPictureTimesRangeDiffers(translator, 6700, 6700)).toBe(false);
   });
 });
