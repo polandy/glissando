@@ -100,7 +100,8 @@ The info panel (ADR-0048, mockup option A:
 - **"Fine settings"**: a toggle (`aria-expanded`) at every width, folded until opened. Its state
   is remembered on the device for every slideshow. It opens Transitions, Portrait pictures and
   Trip chapters as rows (label, value, summary, chevron; the whole row opens the sheet), then
-  storage, "Save as", link and "Show on TV".
+  storage, "Save as", link and "Show on TV". E2E-083 shows the three tiles up front, folds Fine
+  settings away by default, and checks its open or closed state survives a reload.
 
 Up to 1024 px wide (a container query on `.screen`) the panel stacks full width above the
 pictures instead of beside them. Up to 720 px the layout narrows further: three tiles per row.

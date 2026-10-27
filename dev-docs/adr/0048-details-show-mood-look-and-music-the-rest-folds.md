@@ -48,4 +48,5 @@ visit, so the settings people change most took a tap each time. Mockup, option A
 - The panel loses the Pictures, Duration, Picture times, Ken Burns and Captions rows. Their
   information is in the header or in the Music and Mood summaries, apart from the captions count.
 - The Details toggle and its `aria-expanded` move to "Fine settings". E2e cases that opened
-  "Details" now open "Fine settings" (or nothing, for mood, look and music).
+  "Details" now open "Fine settings" (or nothing, for mood, look and music). E2E-083 covers the
+  tiles, the fold's default and its state surviving a reload.
