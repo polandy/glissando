@@ -15,4 +15,3 @@ One line per item, newest at the end. A finished item is deleted.
 - [ ] Slim the selection bar — 7 icons, the bookmark for "Insert chapter" is unclear, the selected tile has its own X too; rare actions behind ⋯, the chapter action labelled (2026-10-25)
 - [ ] Show the music editor simple first — order, start and end up front; loudness curves and hatched crossfades on demand; drop the empty "Loudness of the songs" card (2026-10-25)
 - [ ] Move the "Automatic chapters" switch out of the chapter dialog — a slideshow-wide setting inside one chapter's dialog; keep it in the slideshow's settings only (2026-10-25)
-- [ ] Fix the player's slide-to-picture mapping — `PlayerLayer.svelte`'s `onSlide` looks up `played.pictures[slideIndex]`, but a title card or a portrait pair shifts slides against pictures, so the prepare flow marks the wrong picture as passed; map by the slide's own image (and partner) instead (2026-10-26)

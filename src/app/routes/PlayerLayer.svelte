@@ -19,6 +19,7 @@
   import { PrepareFlow, type PrepareView } from "../player/prepare/prepare-flow";
   import type { PlaybackQuality } from "../settings/playback-quality";
   import { slideBoundaries } from "../player/slide-boundaries";
+  import { picturePassedBySlide, slideOfPicture } from "../player/prepare/slide-pictures";
   import { loadPlayerMusic } from "./route-loading";
   import {
     pictureFailureFor,
@@ -153,6 +154,15 @@
   $effect(() => {
     if (flow !== null && slideshow !== null) flow.setSlides(slideBoundaries(slideshow));
   });
+  /** The picture each slide passes, so the flow releases the renditions before it. */
+  const passedBySlide = $derived(
+    slideshow === null
+      ? []
+      : picturePassedBySlide(
+          slideshow.slides,
+          played.pictures.map(({ id }) => id),
+        ),
+  );
   const openPicture = (id: string): Promise<Blob> =>
     flow === null ? store.playbackPictureBlob(id) : flow.openPicture(id);
 
@@ -171,8 +181,10 @@
     if (outcome.kind === "stop") return outcome.failure;
     const { pictureId } = outcome;
     onPictureMissing(pictureId);
-    const index = played.pictures.findIndex(({ id }) => id === pictureId);
-    if (slideshow === null || index === -1 || played.pictures.length === 1) return "picture";
+    if (slideshow === null || played.pictures.length === 1) return "picture";
+    const ids = played.pictures.map(({ id }) => id);
+    const index = slideOfPicture(slideshow.slides, ids, pictureId);
+    if (index === -1) return "picture";
     const boundaries = slideBoundaries(slideshow);
     startAt = boundaries.starts[index] ?? boundaries.duration;
     skipped = new Set([...skipped, pictureId]);
@@ -245,8 +257,8 @@
       readVideo={(id) => store.videoBlob(id)}
       picturesAhead={picturesAheadFor(home)}
       onSlide={(index) => {
-        const picture = played.pictures[index];
-        if (picture !== undefined) flow?.slidePassed(picture.id);
+        const picture = passedBySlide[index];
+        if (picture !== undefined && picture !== null) flow?.slidePassed(picture);
       }}
       {musicOutput}
       {decodeClipSound}
