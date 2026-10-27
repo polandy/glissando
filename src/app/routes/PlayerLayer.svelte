@@ -19,6 +19,7 @@
   import { PrepareFlow, type PrepareView } from "../player/prepare/prepare-flow";
   import type { PlaybackQuality } from "../settings/playback-quality";
   import { slideBoundaries } from "../player/slide-boundaries";
+  import { picturePassedBySlide } from "../player/prepare/slide-pictures";
   import { loadPlayerMusic } from "./route-loading";
   import {
     pictureFailureFor,
@@ -153,6 +154,15 @@
   $effect(() => {
     if (flow !== null && slideshow !== null) flow.setSlides(slideBoundaries(slideshow));
   });
+  /** The picture each slide passes, so the flow releases the renditions before it. */
+  const passedBySlide = $derived(
+    slideshow === null
+      ? []
+      : picturePassedBySlide(
+          slideshow.slides,
+          played.pictures.map(({ id }) => id),
+        ),
+  );
   const openPicture = (id: string): Promise<Blob> =>
     flow === null ? store.playbackPictureBlob(id) : flow.openPicture(id);
 
@@ -245,8 +255,8 @@
       readVideo={(id) => store.videoBlob(id)}
       picturesAhead={picturesAheadFor(home)}
       onSlide={(index) => {
-        const picture = played.pictures[index];
-        if (picture !== undefined) flow?.slidePassed(picture.id);
+        const picture = passedBySlide[index];
+        if (picture !== undefined && picture !== null) flow?.slidePassed(picture);
       }}
       {musicOutput}
       {decodeClipSound}

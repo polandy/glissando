@@ -22,8 +22,9 @@ plays.
    slides; if it falls behind, the player shows its waiting state.
 
 Prepared pictures are encoded renditions in a cache of at most 60, released once their slide has
-passed (the player tells each slide as it comes on screen). A picture asked for out of order is
-prepared next. ✕ and Esc close the player and cancel the download under way.
+passed: each slide as it comes on screen passes the picture it plays in that picture's own place
+(`player/prepare/slide-pictures.ts`), a portrait pair its first one; a title or closing card
+passes none. A picture asked for out of order is prepared next. ✕ and Esc close the player and cancel the download under way.
 
 A picture Immich answers 404 for while measuring or preparing is reported as missing and left
 out of the slideshow, as on its screen; one found while playing is skipped by the player
