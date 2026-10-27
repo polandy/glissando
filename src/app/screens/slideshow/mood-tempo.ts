@@ -24,8 +24,8 @@ export function composedSongBeats(
 
 /**
  * The slideshow's mood tempo (MOOD.md "What it sets"): `undefined` without a clear beat to pace
- * to. Worked out under Custom too, so the Mood sheet's preview names the same tempo whichever
- * tile is checked.
+ * to. Worked out under Custom too, so the Mood sheet's tiles pace to the same tempo whichever
+ * one is checked.
  */
 export function slideshowMoodBpm(
   stored: Pick<StoredSlideshow, "songs">,

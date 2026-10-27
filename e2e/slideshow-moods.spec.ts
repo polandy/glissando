@@ -21,7 +21,7 @@ test("E2E-079 picking Calm sets its transitions, Ken Burns and picture times, an
 
   await openApp(page);
   await createSlideshowWithMusic(page, clickTrackWav("Takt.wav", 20, TRACK_BPM));
-  // A clear tempo starts the slideshow on Calm at once (ADR-0049).
+  // An import that left the pace as it was starts the slideshow on Calm (ADR-0049).
   await expect(calmRow).toBeVisible();
   // The Transitions row lives behind the Fine settings fold (ADR-0048).
   await page.getByRole("button", { name: "Feineinstellungen" }).click();
@@ -31,8 +31,7 @@ test("E2E-079 picking Calm sets its transitions, Ken Burns and picture times, an
   await expect(sheet.getByRole("radio")).toHaveCount(3);
   await expect(calmTile).toHaveAttribute("aria-checked", "true");
   await expect(statePill).toHaveText("Ruhig");
-  // Live preview plays at once; the sheet's "badge" is gone (MOOD.md) — the tempo shows only
-  // once a mood paces to it, in "Bildzeiten" below.
+  // The live preview plays at once; the tempo shows in "Bildzeiten" while a mood paces to it.
   await expect(sheet.locator(".stage")).toBeVisible();
   await expect(definitionOf(sheet, "Bildzeiten")).toHaveText("~8 s · 16 Beats");
   await expect(definitionOf(sheet, "Übergänge")).toHaveText("Überblenden, lang");
