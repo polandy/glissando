@@ -40,7 +40,7 @@
     onLook,
     onResetLook,
     moodBpm,
-    moodPending,
+    moodBeats,
     moodEnergyPacing,
     moodPreviewPorts,
     onMood,
@@ -220,7 +220,7 @@
   {onResetLook}
   {moodPreviewPorts}
   {moodBpm}
-  {moodPending}
+  {moodBeats}
   {onMood}
   {onResetMood}
   {onEnergyPacing}

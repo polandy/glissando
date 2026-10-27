@@ -85,3 +85,39 @@ test("E2E-075 the sample-music block offers 9 tracks behind Show all, and a fail
   ]);
   await expect(soundtrack.getByText("My Own Song.wav", { exact: true })).toBeVisible();
 });
+
+test.describe("on a phone, in the music editor's Add song sheet", () => {
+  // Three cards of about 85 px in the sheet at this size: a wrapping title grows the card's
+  // shade over its +, and a real tap must still land on the +.
+  const PHONE_TOUCH = { width: 390, height: 844 };
+  test.use({ hasTouch: true, isMobile: true, viewport: PHONE_TOUCH });
+
+  test.beforeEach(async ({ page }) => {
+    // Narrower than the phone screen the file's own beforeEach sets.
+    await page.setViewportSize(PHONE_TOUCH);
+  });
+
+  test("E2E-084 tapping a sample track's + adds it to a slideshow that started without music", async ({
+    page,
+  }) => {
+    await page.getByRole("button", { name: "Create without music" }).click();
+    await expect(page.getByRole("status")).toBeVisible();
+
+    await page.getByRole("button", { name: "Music None Add music" }).click();
+    await expect(page.getByText("No music yet")).toBeVisible();
+
+    await page.getByRole("button", { name: "Add a song" }).click();
+    const addSongSheet = page.getByRole("dialog", { name: "Add a song" });
+    await expect(addSongSheet).toBeVisible();
+
+    // A real tap, unforced: Playwright's hit-target check fails it if the card's shade still
+    // covers the +. The route above fails the download fast, so the pressed "Remove" state can
+    // flip back to "Add" before an assertion catches it; the song joining the list is the one
+    // signal that survives whichever way the download lands.
+    await addSongSheet.getByRole("button", { name: `Add ${FIRST_TRACK_TITLE}` }).tap();
+    await addSongSheet.getByRole("button", { name: "Done" }).click();
+    await expect(
+      page.getByRole("list", { name: "Songs" }).getByText(FIRST_TRACK_TITLE),
+    ).toBeVisible();
+  });
+});

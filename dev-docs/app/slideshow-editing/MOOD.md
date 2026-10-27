@@ -1,7 +1,8 @@
 # Mood
 
 One mood per slideshow — Calm, Lively or Custom — that sets the default transition, the picture
-times and the Ken Burns strength from the music's tempo (ADR-0045). Mockup, option A:
+times and the Ken Burns strength from the music's tempo (ADR-0045). A new slideshow starts on
+Calm unless the import set the pace (ADR-0049, `buildStoredSlideshow`). Mockup, option A:
 `https://polandy.github.io/glissando-assets/mockups/slideshow-moods/`.
 The sheet also holds the switch "Follow the music's energy" ([ENERGY_PACING](ENERGY_PACING.md)).
 
@@ -61,10 +62,11 @@ its pace otherwise. Own duration, own transition and own motion of a picture win
   pill with the mood's name, accent-tinted for any mood but Custom.
   - **Preview** (`MoodPreview.svelte`): the real player (`createPlayer`) on the slideshow's
     first four slide units composed with the shown mood, looping, silent until its "Sound"
-    toggle is on; a badge shows "♪ 76 BPM" (or "♪ no beat found") and the mood's name. Choosing
-    a mood restarts it. Left out without pictures.
+    toggle is on; no badge over it, the tempo shows only in "What it sets" below. Plays at once
+    and re-paces once the background beat pass finds a song's beats, or once a mood is chosen.
+    Left out without pictures.
   - **Tiles**: a radiogroup — Calm "Slow, soft", Lively "Quick, on the beat", Custom "Your
-    settings" (the default); three columns. A tap stores at once; arrow keys move it.
+    settings"; three columns. A tap stores at once; arrow keys move it.
   - **What it sets**: Picture times, Transitions ("Crossfade, long" / "Mixed, short" /
     "standard") and Ken Burns, worked out for this slideshow's tempo.
   - **Hint**: under a mood "Picture times follow the song's beats and phrases. Pictures with

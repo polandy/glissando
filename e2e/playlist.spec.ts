@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import {
+  chooseCustomMood,
   chooseFiles,
   choosePictures,
   CREATED_TOAST,
@@ -45,6 +46,9 @@ test("E2E-041 several songs chosen in the import play as a playlist, reordered, 
     3,
   );
   await page.getByRole("button", { name: "Weiter" }).click();
+  // A step off the default seconds per picture sets the import's own pace (ADR-0049), so the
+  // slideshow opens on Custom rather than Calm: this case is about the playlist against the
+  // pictures' own pace, which a mood would override.
   await chooseFiles(page, page.getByRole("button", { name: "Dateien wählen" }), [
     silentTrack(MORNING, 8),
     silentTrack(EVENING, 6),
@@ -52,6 +56,7 @@ test("E2E-041 several songs chosen in the import play as a playlist, reordered, 
   await expect(songRows).toHaveText([new RegExp(MORNING), new RegExp(EVENING)]);
   await page.getByRole("button", { name: "Diashow erstellen" }).click();
   await expect(page.getByRole("status")).toHaveText(CREATED_TOAST);
+  await chooseCustomMood(page);
 
   // Two songs of 8 s and 6 s crossfade for 3 s: the playlist lasts 0:11.
   await page.getByRole("button", { name: "Musik 2 Songs" }).click();

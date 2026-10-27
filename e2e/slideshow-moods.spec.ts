@@ -10,7 +10,6 @@ const TRACK_BPM = 120;
 test("E2E-079 picking Calm sets its transitions, Ken Burns and picture times, and leaving it by another transition keeps an undo", async ({
   page,
 }) => {
-  const moodRow = page.getByRole("button", { name: /^Stimmung Eigene/ });
   const calmRow = page.getByRole("button", { name: /^Stimmung Ruhig/ });
   const transitionsRow = page.getByRole("button", {
     name: "Übergänge Überblenden, lang nach Stimmung",
@@ -18,27 +17,32 @@ test("E2E-079 picking Calm sets its transitions, Ken Burns and picture times, an
   const sheet = page.getByRole("dialog", { name: "Stimmung" });
   const customTile = sheet.getByRole("radio", { name: "Eigene" });
   const calmTile = sheet.getByRole("radio", { name: "Ruhig" });
-  const badge = sheet.locator(".badge");
   const statePill = sheet.locator(".state");
 
   await openApp(page);
   await createSlideshowWithMusic(page, clickTrackWav("Takt.wav", 20, TRACK_BPM));
-  await expect(moodRow).toBeVisible();
+  // An import that left the pace as it was starts the slideshow on Calm (ADR-0049).
+  await expect(calmRow).toBeVisible();
   // The Transitions row lives behind the Fine settings fold (ADR-0048).
   await page.getByRole("button", { name: "Feineinstellungen" }).click();
 
-  await moodRow.click();
+  await calmRow.click();
   await expect(sheet).toBeVisible();
   await expect(sheet.getByRole("radio")).toHaveCount(3);
+  await expect(calmTile).toHaveAttribute("aria-checked", "true");
+  await expect(statePill).toHaveText("Ruhig");
+  // The live preview plays at once; the tempo shows in "Bildzeiten" while a mood paces to it.
+  await expect(sheet.locator(".stage")).toBeVisible();
+  await expect(definitionOf(sheet, "Bildzeiten")).toHaveText("~8 s · 16 Beats");
+  await expect(definitionOf(sheet, "Übergänge")).toHaveText("Überblenden, lang");
+  await expect(definitionOf(sheet, "Ken Burns")).toHaveText("Sanft");
+
+  await customTile.click();
   await expect(customTile).toHaveAttribute("aria-checked", "true");
-  await expect(badge).toHaveText(`♪ ${TRACK_BPM} BPM · Eigene`);
+  await expect(definitionOf(sheet, "Bildzeiten")).toHaveText("automatisch");
 
   await calmTile.click();
   await expect(calmTile).toHaveAttribute("aria-checked", "true");
-  await expect(statePill).toHaveText("Ruhig");
-  await expect(badge).toHaveText(`♪ ${TRACK_BPM} BPM · Ruhig`);
-  await expect(definitionOf(sheet, "Übergänge")).toHaveText("Überblenden, lang");
-  await expect(definitionOf(sheet, "Ken Burns")).toHaveText("Sanft");
   await sheet.getByRole("button", { name: "Fertig" }).click();
   await expect(sheet).toBeHidden();
 

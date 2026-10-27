@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onDestroy, onMount, untrack } from "svelte";
   import { MediaQuery } from "svelte/reactivity";
+  import { NO_SONG_BEATS } from "../../compose/playlist";
   import { SlideshowNotFoundError } from "../../library/library-store";
   import type { StoredSlideshow } from "../../library/stored-slideshow";
   import type { SlideshowEditor } from "../editing/slideshow-editor";
@@ -173,7 +174,7 @@
     if (current !== null) loadMusicAnalysis(current, screenMoodBpm, screenEnergyPacing);
   });
   const moodBpm = $derived(stored === null ? undefined : screenMoodBpm.of(stored));
-  const moodPending = $derived(stored === null ? false : screenMoodBpm.pendingOf(stored));
+  const moodBeats = $derived(stored === null ? NO_SONG_BEATS : screenMoodBpm.beatsOf(stored));
   const moodEnergyPacing = $derived(stored === null ? null : screenEnergyPacing.of(stored));
 </script>
 
@@ -229,7 +230,7 @@
     onLook={(look) => editor?.look.set(look)}
     onResetLook={() => editor?.look.reset()}
     {moodBpm}
-    {moodPending}
+    {moodBeats}
     {moodEnergyPacing}
     moodPreviewPorts={{
       store,

@@ -1,7 +1,7 @@
 /**
  * A slideshow's mood (ADR-0045, `dev-docs/app/slideshow-editing/MOOD.md`): a live rule that paces
  * the picture times, the default transition and the Ken Burns strength from the music's tempo.
- * Custom, the default, is no entry here — its absence from `StoredSlideshow.mood` means it.
+ * Custom is no entry here — its absence from `StoredSlideshow.mood` means it.
  */
 export const SLIDESHOW_MOODS = ["calm", "lively"] as const;
 export type SlideshowMood = (typeof SLIDESHOW_MOODS)[number];

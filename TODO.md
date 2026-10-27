@@ -5,9 +5,7 @@ One line per item, newest at the end. A finished item is deleted.
 ## Open
 
 - [ ] Investigate the video freeze before a video slide ends (picture holds, sound plays; title slide then video, cropped and not) — not reproducible in headless Chromium with a generated 720p clip; test on another device and note clip codec, resolution and browser; if a large clip is the cause, cap the live frame size and upload per decoded frame (`dev-docs/player/VIDEO_SLIDES.md`) (2026-10-15)
-- [ ] Start a new slideshow on a named mood — it opens as "Custom · default"; the mood dialog's preview is black with a debug-like "♪ no beat found · Custom" (2026-10-25)
 - [ ] Give each action one way in on the slideshow screen — two Play controls, an Add button and an Add tile, Select and "hold to select", "Open .glissando file" on the start screen and again in the pictures step; mockup first (2026-10-25)
-- [ ] **HIGH** Simplify the slideshow's Details — 11 rows in three forms (cards with Change, rows with an "automatic" chip, a toggle), "Follow the music's energy" also in the mood dialog, collapses on every return; mood, look and music up front, the rest under fine settings; mockup first (2026-10-25)
 - [ ] Take "Time per picture" out of the import's music step — a slideshow setting, it belongs in the editor only (2026-10-25)
 - [ ] Gather sharing in one Share button beside Play — video, web page and file sit in the ⋯ menu, the link in Details, and the .glissando file downloads without a sheet; mockup first (2026-10-25)
 - [ ] Drop "Focus … All looked at" from the ⋯ menu or name it in user language — the progress belongs in the global indicator (2026-10-25)

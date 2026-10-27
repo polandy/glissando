@@ -1,10 +1,11 @@
 import { describe, expect, it } from "vitest";
+import { NO_BEATS } from "../../../beats";
 import type { BeatPassState } from "../../../library/beat-pass";
 import { DRUMS, NO_CLEAR_BEAT } from "../../../library/testing/beat-pass-fixtures";
 import type { SongBeats } from "../../../compose/playlist";
 import { EVEN_PICTURE_CHANGES } from "../../../library/own-music";
 import type { StoredMusic } from "../../../library/stored-slideshow";
-import { slideshowMoodBpm, slideshowMoodTempoPending } from "./mood-tempo";
+import { composedSongBeats, slideshowMoodBpm } from "./mood-tempo";
 
 const IDLE_PASS: BeatPassState = {
   running: false,
@@ -60,40 +61,33 @@ describe("slideshowMoodBpm", () => {
   });
 });
 
-describe("slideshowMoodTempoPending", () => {
-  it("is pending under Custom too while a song is still being listened to", () => {
-    const pass: BeatPassState = { ...IDLE_PASS, running: true, listening: new Set(["a"]) };
-
-    const pending = slideshowMoodTempoPending({ songs: [song("a")] }, new Map(), pass);
-
-    expect(pending).toBe(true);
-  });
-
-  it("is not pending once the mood already has its tempo", () => {
+describe("composedSongBeats", () => {
+  it("takes a song's already persisted beats", () => {
     const stored: SongBeats = new Map([["a", DRUMS]]);
 
-    const pending = slideshowMoodTempoPending({ songs: [song("a")] }, stored, IDLE_PASS);
+    const beats = composedSongBeats({ songs: [song("a")] }, stored, IDLE_PASS);
 
-    expect(pending).toBe(false);
+    expect(beats.get("a")).toBe(DRUMS);
   });
 
-  it("is pending while a song that could still give a tempo is still being listened to", () => {
-    const pending = slideshowMoodTempoPending({ songs: [song("a")] }, new Map(), IDLE_PASS);
-
-    expect(pending).toBe(true);
-  });
-
-  it("is not pending once every song has settled with no clear beat", () => {
+  it("is overtaken by the background pass once it finds a song's beats", () => {
     const stored: SongBeats = new Map([["a", NO_CLEAR_BEAT]]);
+    const pass: BeatPassState = { ...IDLE_PASS, found: new Map([["a", DRUMS]]) };
 
-    const pending = slideshowMoodTempoPending({ songs: [song("a")] }, stored, IDLE_PASS);
+    const beats = composedSongBeats({ songs: [song("a")] }, stored, pass);
 
-    expect(pending).toBe(false);
+    expect(beats.get("a")).toBe(DRUMS);
   });
 
-  it("is not pending while only a song opted into even picture changes is still listening", () => {
-    const pending = slideshowMoodTempoPending({ songs: [song("a", true)] }, new Map(), IDLE_PASS);
+  it("gives a song still being listened to no beats, so it plays evenly meanwhile", () => {
+    const beats = composedSongBeats({ songs: [song("a")] }, new Map(), IDLE_PASS);
 
-    expect(pending).toBe(false);
+    expect(beats.get("a")).toBe(NO_BEATS);
+  });
+
+  it("has an entry for every song, even ones with nothing known yet", () => {
+    const beats = composedSongBeats({ songs: [song("a"), song("b")] }, new Map(), IDLE_PASS);
+
+    expect([...beats.keys()]).toEqual(["a", "b"]);
   });
 });

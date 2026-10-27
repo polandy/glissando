@@ -163,6 +163,18 @@ export async function captionPicture(page: Page, tile: string, caption: string):
 }
 
 /**
+ * Switches the slideshow's mood to Custom from the Mood sheet, so its own pacing (seconds per
+ * picture, transitions) applies instead of a mood's (ADR-0049).
+ */
+export async function chooseCustomMood(page: Page): Promise<void> {
+  await page.getByRole("button", { name: /^Stimmung/ }).click();
+  const sheet = page.getByRole("dialog", { name: "Stimmung" });
+  await sheet.getByRole("radio", { name: "Eigene" }).click();
+  await sheet.getByRole("button", { name: "Fertig" }).click();
+  await expect(sheet).toBeHidden();
+}
+
+/**
  * Imports three pictures with `track` and waits on the created slideshow's screen; with `fill`
  * the pictures fill the music, otherwise they last the default 5 s each.
  */

@@ -9,16 +9,11 @@ import type { DecodeClipSound, MusicOutput } from "../../../player";
 export interface MoodPreviewPorts {
   readonly store: Pick<
     LibraryStore,
-    | "playbackPictureBlob"
-    | "videoBlob"
-    | "musicBlob"
-    | "pictureFocus"
-    | "musicBeats"
-    | "musicLoudness"
+    "playbackPictureBlob" | "videoBlob" | "musicBlob" | "pictureFocus" | "musicLoudness"
   >;
   readonly stored: StoredSlideshow;
   readonly musicOutput: MusicOutput;
   readonly decodeClipSound: DecodeClipSound;
-  /** Logs a focus, beats or loudness that could not be read: the preview plays on without them. */
+  /** Logs a focus or loudness that could not be read: the preview plays on without it. */
   readonly log: (error: unknown) => void;
 }

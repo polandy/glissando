@@ -32,9 +32,6 @@ export const deMood = {
     "Ihre eigene Bilddauer, Übergänge und Ken Burns, wie an der Diashow eingestellt.",
   "mood.backToCustom": "Zurück auf Eigene",
   "mood.alreadyCustom": "Die Diashow steht schon auf Eigene",
-  "mood.previewBpm": "♪ {bpm} BPM",
-  "mood.previewPending": "♪ …",
-  "mood.previewNoBeat": "♪ kein Beat gefunden",
   "mood.sound": "Ton",
   "mood.energySwitch": "Folgt der Energie der Musik",
   "mood.energySwitchSubtitle":
@@ -46,7 +43,6 @@ export const deMood = {
     "Die Stimmung bestimmt das durchschnittliche Tempo; die Energie macht es in leisen Passagen langsamer und in lauten schneller. Bilder mit eigener Dauer, eigenem Übergang oder eigener Bewegung behalten sie.",
   "mood.hintCustomEnergy":
     "Ihre Bilddauer bleibt der Durchschnitt. Mit „Musik füllen“ endet die Diashow weiterhin mit dem Song. Bilder mit eigener Dauer behalten sie.",
-  "mood.energyBadgeSuffix": "Energie",
   "mood.energyStripQuiet": "leise → länger",
   "mood.energyStripLoud": "laut → schneller",
 } as const satisfies Record<string, Message>;

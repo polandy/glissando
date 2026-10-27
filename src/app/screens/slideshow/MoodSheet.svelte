@@ -1,5 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
+  import type { SongBeats } from "../../../compose/playlist";
+  import type { SongLoudness } from "../../../compose/song-loudness";
   import { SLIDESHOW_MOODS, type SlideshowMood } from "../../../library/slideshow-mood";
   import ResetButton from "../../components/ResetButton.svelte";
   import SectionHead from "../../components/SectionHead.svelte";
@@ -9,7 +11,7 @@
   import type { SlideshowDetails } from "../view-models";
   import EnergyStrip from "./EnergyStrip.svelte";
   import { moodKenBurnsText, moodName, moodTransitionText } from "./mood-text";
-  import { moodSheetEnergyView, type MoodEnergyAnalysis } from "./mood-sheet-energy-view";
+  import { moodSheetEnergyView } from "./mood-sheet-energy-view";
   import type { MoodPreviewPorts } from "./mood-preview-ports";
   import MoodPreview from "./MoodPreview.svelte";
   import MoodTile from "./MoodTile.svelte";
@@ -26,7 +28,7 @@
     slideshow,
     previewPorts,
     moodBpm,
-    moodPending,
+    moodBeats,
     onMood,
     onResetMood,
     onEnergyPacing,
@@ -35,10 +37,11 @@
     slideshow: SlideshowDetails;
     /** The live preview's data ports (`MoodPreview.svelte`); left out while it has no pictures. */
     previewPorts: MoodPreviewPorts;
-    /** The slideshow's tempo, for "What it sets" and the preview badge; `undefined` without a beat. */
+    /** The slideshow's tempo, for "What it sets"; `undefined` without a clear beat. */
     moodBpm: number | undefined;
-    /** Whether `moodBpm` may still change once analysis catches up; never "no beat found" then. */
-    moodPending: boolean;
+    /** The pass-aware beats the preview composes and paces to (MOOD.md); also this sheet's energy
+     * pacing rows and strip, once the preview's loudness analysis has loaded too. */
+    moodBeats: SongBeats;
     onMood: (mood: SlideshowMood | undefined) => void;
     /** "Back to Custom"; offered while a mood is chosen. */
     onResetMood: () => void;
@@ -53,9 +56,10 @@
 
   const hasPictures = $derived(previewPorts.stored.pictures.length > 0);
 
-  // The preview (`MoodPreview.svelte`) loads the beats and loudness anyway; the energy pacing
-  // rows and strip reuse that same analysis instead of loading it again.
-  let moodAnalysis = $state.raw<MoodEnergyAnalysis | null>(null);
+  // The preview (`MoodPreview.svelte`) loads the loudness anyway; the energy pacing rows and
+  // strip reuse it, combined with `moodBeats`, instead of loading it again.
+  let loudness = $state.raw<SongLoudness | null>(null);
+  const moodAnalysis = $derived(loudness === null ? null : { beats: moodBeats, loudness });
 
   const energyView = $derived(
     moodSheetEnergyView(translator, previewPorts.stored, slideshow.mood, moodBpm, moodAnalysis),
@@ -111,9 +115,8 @@
       <MoodPreview
         ports={previewPorts}
         mood={slideshow.mood}
-        {moodBpm}
-        {moodPending}
-        onLoaded={(loaded) => (moodAnalysis = loaded)}
+        {moodBeats}
+        onLoaded={(loaded) => (loudness = loaded.loudness)}
       />
       {#if energyView.stripGeometry !== null}
         <EnergyStrip geometry={energyView.stripGeometry} />

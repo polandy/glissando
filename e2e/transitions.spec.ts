@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import {
+  chooseCustomMood,
   createSlideshow,
   editPicture,
   editsStored,
@@ -21,6 +22,9 @@ test("E2E-025 the slideshow's default transition is chosen in the info panel, st
   const transitionSection = page.locator('section[aria-labelledby="transition-label"]');
   await openApp(page);
   await createSlideshow(page, ["2025-07-12", "2025-07-14", "2025-07-20"], 5);
+  // The import left the pace untouched, so the slideshow opened on Calm (ADR-0049); this case is
+  // about the slideshow's own default transition, so it switches back to Custom.
+  await chooseCustomMood(page);
   // The Transitions row lives behind the Fine settings fold (ADR-0048).
   await page.getByRole("button", { name: "Feineinstellungen" }).click();
 
