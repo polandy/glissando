@@ -67,7 +67,7 @@
       >
     {/each}
   </div>
-  <div class="fitline mono">
+  <div class="fitline">
     <span>
       {t("import.fitPictures", {
         count: pictureIds.length,

@@ -36,7 +36,7 @@
   {estimate}
   {onSelect}
 />
-<div class="spec mono">
+<div class="spec">
   <span>{t("videoExport.container")}</span>
   <span>{t("videoExport.videoCodec")}</span>
   {#if view.audioCodec !== null}<span>{t(`videoExport.audio-${view.audioCodec}`)}</span>{/if}

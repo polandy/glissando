@@ -112,7 +112,7 @@
   {:else}
     <Notice tone="error">
       {t("htmlExport.failedText")}
-      <small class="mono error-detail">{view.error.message}</small>
+      <small class="error-detail">{view.error.message}</small>
     </Notice>
     <footer>
       <button class="btn" type="button" onclick={close}>{t("common.close")}</button>

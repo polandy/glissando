@@ -55,7 +55,7 @@
     {:else}
       <Icon name="plus" />
     {/if}
-    <span class="label mono">{label}</span>
+    <span class="label">{label}</span>
   </button>
 </li>
 

@@ -25,11 +25,11 @@
   <span class="title">
     <b>{song.fileName}</b>
     {#if song.sampleTrack !== undefined}
-      <span class="badge mono">{t("music.sampleBadge")}</span>
+      <span class="badge">{t("music.sampleBadge")}</span>
     {/if}
   </span>
   {#if detail === undefined}
-    <small class="mono">
+    <small>
       {song.trimmed
         ? t("music.trimmedTo", {
             duration: duration(song.durationMs),
@@ -42,7 +42,7 @@
   {/if}
 </span>
 <VolumeBadge badge={song.volumeBadge} />
-<span class="tag mono">
+<span class="tag">
   {song.reached ? t("music.songFrom", { time: duration(song.atMs) }) : t("music.notReached")}
 </span>
 

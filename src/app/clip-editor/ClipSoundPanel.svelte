@@ -71,7 +71,7 @@
   <label class="volume" class:off={sound === "off"}>
     <span class="name">
       {t("clip.volume")}
-      <span class="mono">{t("clip.volumeValue", { percent: volume })}</span>
+      <span>{t("clip.volumeValue", { percent: volume })}</span>
     </span>
     <input
       type="range"

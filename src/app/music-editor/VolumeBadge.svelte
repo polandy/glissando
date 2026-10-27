@@ -20,7 +20,6 @@
 
 <style>
   .badge {
-    font-family: var(--gl-font-mono);
     font-size: var(--gl-size-small);
     font-weight: var(--gl-weight-medium);
     padding: 3px 8px;

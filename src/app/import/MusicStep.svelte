@@ -140,7 +140,7 @@
 {#snippet songDetail(song: PlaylistSongView)}
   {@const picked = chosen.find((candidate) => candidate.key === keyOf(song))}
   {#if picked !== undefined}
-    <small class="mono">
+    <small>
       {t("import.trackMeta", {
         duration: formatDuration(picked.durationMs / MILLISECONDS_PER_SECOND),
         format: musicFormatLabel(picked.file.name, picked.file.type),

@@ -246,7 +246,7 @@
       onpointerdown={() => controls.reveal()}
     >
       <div class="hint" role="note" aria-label={t("player.hint")}>
-        {#each KEY_HINTS as key (key)}<kbd class="mono">{t(key)}</kbd>{/each}
+        {#each KEY_HINTS as key (key)}<kbd>{t(key)}</kbd>{/each}
       </div>
       <div class="scrub">
         <div class="rail" aria-hidden="true">

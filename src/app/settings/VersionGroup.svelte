@@ -18,7 +18,7 @@
   <div class="box" class:update={updateWaiting}>
     <div class="text">
       <b>{t("settings.versionName", { version: build.version })}</b>
-      <span>{build.commit} · {formatDate(build.commitDate)}</span>
+      <span>{build.commit} · <span class="mono">{formatDate(build.commitDate)}</span></span>
     </div>
     {#if updateWaiting}
       <button class="btn primary small" type="button" onclick={onUpdate}>
@@ -56,8 +56,11 @@
     font-weight: var(--gl-weight-semibold);
   }
   span {
-    font-family: var(--gl-font-mono);
     font-size: var(--gl-size-small);
     color: var(--gl-muted);
+  }
+  .mono {
+    font-family: var(--gl-font-mono);
+    font-variant-numeric: tabular-nums;
   }
 </style>
