@@ -1,6 +1,6 @@
 # ADR-0049: A new slideshow starts on Calm unless the import set the pace
 
-**Status:** accepted
+**Status:** superseded by ADR-0050
 
 ## Context
 

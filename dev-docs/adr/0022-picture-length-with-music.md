@@ -1,6 +1,7 @@
 # ADR-0022: With music the pictures keep their own length, on the beat, unless they fill the music
 
-**Status:** accepted; for a music shorter than the slideshow, amended by ADR-0047
+**Status:** accepted; for a music shorter than the slideshow, amended by ADR-0047; for a new
+slideshow's picture length, by ADR-0050
 
 ## Context
 

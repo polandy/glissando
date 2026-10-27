@@ -31,7 +31,7 @@ const THIRD_PICTURE = "Bild 3, aufgenommen am 14.07.2025";
 
 async function createTrip(page: Page): Promise<void> {
   await openApp(page);
-  await createSlideshowFromFiles(page, await picturesTakenAt(page, TRIP), 5);
+  await createSlideshowFromFiles(page, await picturesTakenAt(page, TRIP));
 }
 
 /** A chapter's strip chip whose own text contains `text` — its title, or an edited title. */

@@ -1,4 +1,4 @@
-import { OWN_SECONDS_PICTURE_LENGTH, type PictureLength } from "../library/picture-length";
+import { OWN_SECONDS_PICTURE_LENGTH } from "../library/picture-length";
 import type { SlideshowMood } from "../library/slideshow-mood";
 import {
   DEFAULT_SECONDS_PER_PICTURE,
@@ -20,9 +20,6 @@ export interface BuildStoredSlideshowInput {
   readonly ownOrder?: true;
   /** The playlist, in play order; empty without music. */
   readonly songs: readonly StoredMusic[];
-  readonly secondsPerPicture: number;
-  /** Absent: the pictures fill the music (ADR-0022). */
-  readonly pictureLength?: PictureLength;
   /** The music repeats from its first song for as long as the slideshow lasts (ADR-0047). */
   readonly repeatMusic?: true;
   /** Locale the title's month name is written in. */
@@ -48,19 +45,13 @@ function orderedById(
   });
 }
 
-/** The mood a new slideshow starts on while the import left the pace as it was (ADR-0049). */
-const NEW_SLIDESHOW_MOOD: SlideshowMood = "calm";
-
-function setsOwnPace(input: BuildStoredSlideshowInput): boolean {
-  return (
-    input.secondsPerPicture !== DEFAULT_SECONDS_PER_PICTURE ||
-    input.pictureLength !== OWN_SECONDS_PICTURE_LENGTH
-  );
-}
+/** The mood every new slideshow starts on (ADR-0050). */
+export const NEW_SLIDESHOW_MOOD: SlideshowMood = "calm";
 
 /**
  * Applies the automatic choices an import makes: a title from the capture range, without an
- * explicit `order` capture order, and the mood Calm unless the import set the pace (ADR-0049).
+ * explicit `order` capture order, and the mood Calm,
+ * over the default seconds that "Back to Custom" brings back (ADR-0050).
  */
 export function buildStoredSlideshow(input: BuildStoredSlideshowInput): StoredSlideshow {
   const pictures =
@@ -78,10 +69,10 @@ export function buildStoredSlideshow(input: BuildStoredSlideshowInput): StoredSl
     createdAt: input.createdAt,
     pictures,
     songs: input.songs,
-    secondsPerPicture: input.secondsPerPicture,
-    ...(input.pictureLength === undefined ? {} : { pictureLength: input.pictureLength }),
+    secondsPerPicture: DEFAULT_SECONDS_PER_PICTURE,
+    pictureLength: OWN_SECONDS_PICTURE_LENGTH,
     ...(input.order !== undefined && input.ownOrder ? { ownOrder: true } : {}),
     ...(input.repeatMusic === undefined ? {} : { repeatMusic: input.repeatMusic }),
-    ...(setsOwnPace(input) ? {} : { mood: NEW_SLIDESHOW_MOOD }),
+    mood: NEW_SLIDESHOW_MOOD,
   };
 }

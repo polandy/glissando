@@ -14,7 +14,13 @@
   one tap.
   - **No music yet**: for a slideshow without songs (the panel's "Add music" opens it), a dashed
     card with a music disc, "No music yet", "Add one song or several; they play one after
-    another and the pictures change on their beat." and the accent button "Add a song".
+    another and the pictures change on their beat." and the accent button "Add a song". Under
+    it, in the main column, the slideshow's **Picture length** — the only place a slideshow
+    without music sets it: under a mood, "Picture times are set by the mood Calm — ~7 s"
+    (`MoodPictureTimesSection.svelte`, no beats) and "Set them yourself"; under Custom, "About
+    5 s each" and the stepper alone (`PictureLengthSection.svelte` `withoutMusic`), as there is
+    no music to fill. Mockup:
+    https://polandy.github.io/glissando-assets/mockups/music-editor-no-music-pace/
   - **Songs** (`SongList.svelte`): a row per stored song, once each even while the music repeats
     (ADR-0047; the playlist lane below shows the repeats) — a grip, its number on the
     song's colour (`--gl-song-1` … `-6` in turn), the file name over "3:24" (trimmed "3:24 ·

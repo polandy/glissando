@@ -123,7 +123,7 @@ test("E2E-036 adding to a slideshow in its own order sorts the new pictures in b
 test("E2E-069 the placeholder tile after the last picture adds media like the strip header", async ({
   page,
 }) => {
-  await createSlideshow(page, ["2025-07-12", "2025-07-14"], 5);
+  await createSlideshow(page, ["2025-07-12", "2025-07-14"]);
   const placeholder = page.locator("ol.strip > li").filter({ hasText: "Hinzufügen" });
   await expect(placeholder).toBeVisible();
   await expect(placeholder.locator("xpath=following-sibling::li")).toHaveCount(1);

@@ -6,7 +6,6 @@ One line per item, newest at the end. A finished item is deleted.
 
 - [ ] Investigate the video freeze before a video slide ends (picture holds, sound plays; title slide then video, cropped and not) — not reproducible in headless Chromium with a generated 720p clip; test on another device and note clip codec, resolution and browser; if a large clip is the cause, cap the live frame size and upload per decoded frame (`dev-docs/player/VIDEO_SLIDES.md`) (2026-10-15)
 - [ ] Give each action one way in on the slideshow screen — two Play controls, an Add button and an Add tile, Select and "hold to select", "Open .glissando file" on the start screen and again in the pictures step; mockup first (2026-10-25)
-- [ ] Take "Time per picture" out of the import's music step — a slideshow setting, it belongs in the editor only (2026-10-25)
 - [ ] Gather sharing in one Share button beside Play — video, web page and file sit in the ⋯ menu, the link in Details, and the .glissando file downloads without a sheet; mockup first (2026-10-25)
 - [ ] Drop "Focus … All looked at" from the ⋯ menu or name it in user language — the progress belongs in the global indicator (2026-10-25)
 - [ ] Keep the "Slideshow created — tap Play" toast from covering content — it lies over the Details, the picture and music editors and even the next import; end it when leaving the slideshow screen (2026-10-25)

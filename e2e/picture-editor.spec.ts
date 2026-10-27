@@ -134,8 +134,8 @@ test("E2E-022 a picture gets its own duration and transition, stored, and the tr
   const longer = durationSection.getByRole("button", { name: "Eine halbe Sekunde länger" });
   const circleTile = transitionSection.getByRole("radio", { name: /Kreis/ });
   await openApp(page);
-  await createSlideshow(page, ["2025-07-12", "2025-07-14", "2025-07-20"], 5);
-  // The import left the pace untouched, so the slideshow opened on Calm (ADR-0049); this case is
+  await createSlideshow(page, ["2025-07-12", "2025-07-14", "2025-07-20"]);
+  // A new slideshow opens on Calm (ADR-0050); this case is
   // about a picture's own duration against the automatic one, so it switches back to Custom.
   await chooseCustomMood(page);
 

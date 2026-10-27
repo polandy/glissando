@@ -2,10 +2,9 @@ import { picturesFillMs, slideDurationsMs, type TimedPicture } from "../../compo
 import type { StoredPicture } from "../../library/stored-slideshow";
 import { MILLISECONDS_PER_SECOND } from "../../player";
 
-/** The chosen music of a slideshow about to be created, and whether its pictures fill it. */
+/** The chosen music of a slideshow about to be created. */
 export interface ImportMusic {
   readonly durationMs: number;
-  readonly filled: boolean;
 }
 
 /**
@@ -44,18 +43,18 @@ function timedPictures(ownMs: readonly (number | undefined)[]): TimedPicture[] {
 }
 
 /**
- * The length the automatic pictures fill or fit (`picturesFillMs`), and whether that is a shrink
- * from their own or mood seconds rather than plain "Fill the music" (ADR-0047's "fitted").
+ * The length the automatic pictures shrink to when they would outlast a shorter music
+ * (`picturesFillMs`, ADR-0047); `undefined` while they keep their seconds.
  */
-function fillResolution(
+function fittedMs(
   pictures: readonly TimedPicture[],
-  music: ImportMusic,
+  music: ImportMusic | undefined,
   secondsPerPicture: number,
   repeatMusic: true | undefined,
-): { readonly filledMs: number | undefined; readonly fitted: boolean } {
-  const target = music.filled ? undefined : secondsPerPicture;
-  const filledMs = picturesFillMs(music.durationMs, pictures, target, repeatMusic);
-  return { filledMs, fitted: !music.filled && filledMs !== undefined };
+): number | undefined {
+  return music === undefined
+    ? undefined
+    : picturesFillMs(music.durationMs, pictures, secondsPerPicture, repeatMusic);
 }
 
 /**
@@ -69,11 +68,11 @@ export function importSlideDurationsMs(
   repeatMusic: true | undefined,
 ): number[] {
   const pictures = timedPictures(ownMs);
-  const filledMs =
-    music === undefined
-      ? undefined
-      : fillResolution(pictures, music, secondsPerPicture, repeatMusic).filledMs;
-  return slideDurationsMs(pictures, filledMs, secondsPerPicture);
+  return slideDurationsMs(
+    pictures,
+    fittedMs(pictures, music, secondsPerPicture, repeatMusic),
+    secondsPerPicture,
+  );
 }
 
 /** Step 2's timing row, by the same rule the slideshow is composed with. */
@@ -84,32 +83,29 @@ export function importTiming(
   repeatMusic: true | undefined,
 ): ImportTiming {
   const pictures = timedPictures(ownMs);
-  const resolution =
-    music === undefined
-      ? undefined
-      : fillResolution(pictures, music, secondsPerPicture, repeatMusic);
-  const durationsMs = slideDurationsMs(pictures, resolution?.filledMs, secondsPerPicture);
+  const fitMs = fittedMs(pictures, music, secondsPerPicture, repeatMusic);
+  const durationsMs = slideDurationsMs(pictures, fitMs, secondsPerPicture);
   const totalMs = durationsMs.reduce((sum, durationMs) => sum + durationMs, 0);
   return {
     perPictureSeconds: totalMs / ownMs.length / MILLISECONDS_PER_SECOND,
     totalSeconds: totalMs / MILLISECONDS_PER_SECOND,
     music:
-      music === undefined || resolution === undefined
+      music === undefined
         ? null
-        : musicTiming(music, totalMs, resolution, pictures, durationsMs, repeatMusic),
+        : musicTiming(music, totalMs, fitMs !== undefined, pictures, durationsMs, repeatMusic),
   };
 }
 
 function musicTiming(
   music: ImportMusic,
   totalMs: number,
-  resolution: { readonly filledMs: number | undefined; readonly fitted: boolean },
+  fitted: boolean,
   pictures: readonly TimedPicture[],
   durationsMs: readonly number[],
   repeatMusic: true | undefined,
 ): ImportMusicTiming {
   const seconds = music.durationMs / MILLISECONDS_PER_SECOND;
-  if (resolution.fitted) {
+  if (fitted) {
     return {
       kind: "fitted",
       seconds,

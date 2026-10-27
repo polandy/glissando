@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onDestroy } from "svelte";
-  import { DEFAULT_SECONDS_PER_PICTURE } from "../../library/stored-slideshow";
+  import { NEW_SLIDESHOW_MOOD } from "../../compose";
+  import { moodSettings } from "../../compose/mood-settings";
   import { MUSIC_FILE_PICKER_ACCEPT } from "../../import/music-format";
   import { MILLISECONDS_PER_SECOND } from "../../player";
   import type { SampleTrack, SampleTrackId } from "../../sample-music/sample-tracks";
@@ -39,7 +40,9 @@
     toaster: Toaster;
   } = $props();
 
-  const { t, formatDuration, formatSeconds } = getTranslator();
+  const { t, formatDuration } = getTranslator();
+  // A new slideshow starts on this mood (ADR-0050); its beats are only known once created.
+  const moodSeconds = moodSettings(NEW_SLIDESHOW_MOOD, undefined).secondsPerPicture;
 
   // The session and the loader are fixed for the step's lifetime.
   // svelte-ignore state_referenced_locally
@@ -102,17 +105,12 @@
   $effect(() => thumbnails.sync(chosen.length > 0 ? pictureIds : []));
 
   const pictureCount = $derived(pictureIds.length);
-  const ownSeconds = $derived(choices.pictureLength !== undefined);
   const musicMs = $derived(importPlaylist(chosen, 0).playlistMs);
-  const music = $derived(
-    chosen.length === 0 ? undefined : { durationMs: musicMs, filled: !ownSeconds },
-  );
-  const timing = $derived(
-    importTiming(ownMs, music, choices.secondsPerPicture, choices.repeatMusic),
-  );
+  const music = $derived(chosen.length === 0 ? undefined : { durationMs: musicMs });
+  const timing = $derived(importTiming(ownMs, music, moodSeconds, choices.repeatMusic));
   // Each picture's segment, by the rule the slideshow is composed with.
   const segmentsMs = $derived(
-    importSlideDurationsMs(ownMs, music, choices.secondsPerPicture, choices.repeatMusic),
+    importSlideDurationsMs(ownMs, music, moodSeconds, choices.repeatMusic),
   );
   const playlist = $derived(importPlaylist(chosen, timing.totalSeconds * MILLISECONDS_PER_SECOND));
 
@@ -160,7 +158,7 @@
   <div>
     <h1 class="title">{t("import.musicTitle")}</h1>
     <p class="lead">
-      {t("import.musicText", { seconds: formatSeconds(DEFAULT_SECONDS_PER_PICTURE) })}
+      {t("import.musicText")}
     </p>
   </div>
 
@@ -195,10 +193,8 @@
   </div>
 
   <MusicTimingPanel
-    {ownSeconds}
-    secondsPerPicture={choices.secondsPerPicture}
-    onPictureLength={(length) => session.setPictureLength(length)}
-    onSecondsPerPicture={(seconds) => session.setSecondsPerPicture(seconds)}
+    mood={NEW_SLIDESHOW_MOOD}
+    {moodSeconds}
     {pictureIds}
     {urls}
     {segmentsMs}

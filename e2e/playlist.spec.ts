@@ -31,7 +31,7 @@ test("E2E-041 several songs chosen in the import play as a playlist, reordered, 
   await openApp(page);
 
   // A slideshow without music offers to add some, and the music editor opens on its empty state.
-  await createSlideshow(page, ["2025-06-01", "2025-06-02"], 5);
+  await createSlideshow(page, ["2025-06-01", "2025-06-02"]);
   await page.getByRole("button", { name: "Musik Keine Musik hinzufügen" }).click();
   await expect(page.getByText("Noch keine Musik")).toBeVisible();
   await expect(page.getByRole("button", { name: "Song hinzufügen" })).toBeVisible();
@@ -46,16 +46,17 @@ test("E2E-041 several songs chosen in the import play as a playlist, reordered, 
     3,
   );
   await page.getByRole("button", { name: "Weiter" }).click();
-  // A step off the default seconds per picture sets the import's own pace (ADR-0049), so the
-  // slideshow opens on Custom rather than Calm: this case is about the playlist against the
-  // pictures' own pace, which a mood would override.
   await chooseFiles(page, page.getByRole("button", { name: "Dateien wählen" }), [
     silentTrack(MORNING, 8),
     silentTrack(EVENING, 6),
   ]);
   await expect(songRows).toHaveText([new RegExp(MORNING), new RegExp(EVENING)]);
   await page.getByRole("button", { name: "Diashow erstellen" }).click();
-  await expect(page.getByRole("status")).toHaveText(CREATED_TOAST);
+  // Calm's 21 s of pictures outlast the 11 s playlist, so the import step's own warning about that
+  // is still leaving as the created toast arrives: scope past it like the other toasts below.
+  await expect(page.getByRole("status").filter({ hasText: CREATED_TOAST })).toBeVisible();
+  // A new slideshow opens on Calm (ADR-0050); this case is
+  // about the playlist against the pictures' own pace, which a mood would override.
   await chooseCustomMood(page);
 
   // Two songs of 8 s and 6 s crossfade for 3 s: the playlist lasts 0:11.

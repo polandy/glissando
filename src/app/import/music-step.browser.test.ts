@@ -116,3 +116,31 @@ describe("MusicStep, the import's song list", () => {
     expect(rows(target).map((row) => row.name)).toEqual(["Paper Lanterns.mp3", "Low Tide.mp3"]);
   });
 });
+
+describe("MusicStep, the pace a new slideshow starts on (ADR-0050)", () => {
+  const paceLine = (target: HTMLElement) =>
+    target.querySelector(".pace")?.textContent.replace(/\s+/g, " ").trim();
+
+  it("names the mood Calm and its seconds per picture, with no picture-length choice", async () => {
+    const { session } = await withTwoPictures();
+    await session.addSongs([song("Low Tide.mp3")]);
+
+    const target = mountStep(session);
+
+    expect(paceLine(target)).toBe(
+      "Mood Calm · about 7 s per picture, on the music's phrases. Change it in the slideshow.",
+    );
+    expect(target.querySelector('[role="radio"]')).toBeNull();
+    expect(target.querySelector('[aria-label="Longer"]')).toBeNull();
+  });
+
+  it("without music names Calm's seconds, with no seconds stepper, and counts with them", async () => {
+    const { session } = await withTwoPictures();
+
+    const target = mountStep(session);
+
+    expect(paceLine(target)).toBe("Mood Calm · about 7 s per picture. Change it in the slideshow.");
+    expect(target.querySelector('[aria-label="Longer"]')).toBeNull();
+    expect(target.querySelector(".timing")?.textContent).toContain("0:14");
+  });
+});

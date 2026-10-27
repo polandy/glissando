@@ -3,9 +3,11 @@
   import { setMusicTrim } from "../../library/slideshow-edits-music";
   import Header from "../components/Header.svelte";
   import Icon from "../components/Icon.svelte";
+  import PictureLengthSection from "../components/PictureLengthSection.svelte";
   import { getTranslator } from "../i18n/context";
   import AddSongSheet from "./AddSongSheet.svelte";
   import AddSongsButton from "./AddSongsButton.svelte";
+  import MoodPictureTimesSection from "./MoodPictureTimesSection.svelte";
   import MusicEditorPanel from "./MusicEditorPanel.svelte";
   import { musicEditorView } from "./music-editor-view";
   import type { MusicEditorScreenProps } from "./music-editor-screen-props";
@@ -18,7 +20,8 @@
   /**
    * The music editor: the playlist's songs and how they meet the slideshow; the selected song's
    * excerpt on its waveform, its fades and how the pictures meet it, on its beats or evenly. Every
-   * change goes to its callback and is stored at once. Without songs, it offers to add one.
+   * change goes to its callback and is stored at once. Without songs, it offers to add one and
+   * still sets the picture length, the only place a slideshow without music does so.
    */
   let {
     slideshow,
@@ -113,6 +116,20 @@
             onRemove={onRemoveSong}
             onDismiss={onDismissPending}
             {onRemoveSampleRow}
+          />
+        {/if}
+        {#if slideshow.mood === undefined}
+          <PictureLengthSection
+            withoutMusic
+            ownSeconds
+            secondsPerPicture={slideshow.secondsPerPicture}
+            {onPictureLength}
+            {onSecondsPerPicture}
+          />
+        {:else}
+          <MoodPictureTimesSection
+            moodPictureLength={{ mood: slideshow.mood, beatsPerMinute: undefined }}
+            {onSetOwnPictureTimes}
           />
         {/if}
       </div>

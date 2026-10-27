@@ -8,13 +8,15 @@
 
   /**
    * Whether the pictures without an own duration last their own seconds, set by the stepper, or
-   * fill the music (ADR-0022); in the music editor and the new slideshow's music step. While
-   * `fittedShareMs` is set, they instead shrink to end with a shorter music (ADR-0047).
+   * fill the music (ADR-0022), in the music editor. Without music there is nothing to fill: only
+   * the own seconds show. While `fittedShareMs` is set, the pictures instead shrink to end with a
+   * shorter music (ADR-0047).
    */
   let {
     ownSeconds,
     secondsPerPicture,
     fittedShareMs,
+    withoutMusic = false,
     onPictureLength,
     onSecondsPerPicture,
   }: {
@@ -23,6 +25,8 @@
     secondsPerPicture: number;
     /** The mean shrunk share, while the automatic pictures fit a shorter music (ADR-0047). */
     fittedShareMs?: number | undefined;
+    /** No music to fill: the own seconds alone, without the choice. */
+    withoutMusic?: boolean;
     /** `undefined`: they fill the music. */
     onPictureLength: (length: PictureLength | undefined) => void;
     onSecondsPerPicture: (seconds: number) => void;
@@ -54,24 +58,29 @@
 
 <section class="section" aria-labelledby={HEAD_ID}>
   <SectionHead id={HEAD_ID} icon="clock" title={t("music.pictureLength")} own={false} />
-  <div class="choices" role="radiogroup" aria-labelledby={HEAD_ID}>
-    {#each CHOICES as choice, index (index)}
-      {@const checked = index === selected}
-      <button
-        bind:this={radios[index]}
-        type="button"
-        role="radio"
-        aria-checked={checked}
-        tabindex={checked ? 0 : -1}
-        onclick={() => onPictureLength(choice)}
-        onkeydown={(event) => onkeydown(event, index)}
-      >
-        {label(choice)}
-      </button>
-    {/each}
-  </div>
-  {#if ownSeconds}
+  {#if withoutMusic}
+    <p class="own-seconds">{label(OWN_SECONDS_PICTURE_LENGTH)}</p>
     <SecondsStepper seconds={secondsPerPicture} onChange={onSecondsPerPicture} />
+  {:else}
+    <div class="choices" role="radiogroup" aria-labelledby={HEAD_ID}>
+      {#each CHOICES as choice, index (index)}
+        {@const checked = index === selected}
+        <button
+          bind:this={radios[index]}
+          type="button"
+          role="radio"
+          aria-checked={checked}
+          tabindex={checked ? 0 : -1}
+          onclick={() => onPictureLength(choice)}
+          onkeydown={(event) => onkeydown(event, index)}
+        >
+          {label(choice)}
+        </button>
+      {/each}
+    </div>
+    {#if ownSeconds}
+      <SecondsStepper seconds={secondsPerPicture} onChange={onSecondsPerPicture} />
+    {/if}
   {/if}
   {#if fittedShareMs !== undefined}
     <p class="fitted">
@@ -109,6 +118,11 @@
   .choices button[aria-checked="true"] {
     background: var(--gl-surface);
     box-shadow: var(--gl-shadow);
+  }
+  .own-seconds {
+    margin: 0;
+    font-size: var(--gl-size-label);
+    font-weight: var(--gl-weight-semibold);
   }
   .fitted {
     margin: 0;

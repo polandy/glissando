@@ -2,7 +2,7 @@
 
 One mood per slideshow — Calm, Lively or Custom — that sets the default transition, the picture
 times and the Ken Burns strength from the music's tempo (ADR-0045). A new slideshow starts on
-Calm unless the import set the pace (ADR-0049, `buildStoredSlideshow`). Mockup, option A:
+Calm (ADR-0050, `buildStoredSlideshow`). Mockup, option A:
 `https://polandy.github.io/glissando-assets/mockups/slideshow-moods/`.
 The sheet also holds the switch "Follow the music's energy" ([ENERGY_PACING](ENERGY_PACING.md)).
 
