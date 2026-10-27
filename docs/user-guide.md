@@ -21,9 +21,10 @@ without internet. If you use a self-hosted Glissando, open its address instead
 For a different feel, tap Mood beside Music and Look on the slideshow's screen. **Calm** shows each
 picture longer, with soft crossfades and gentle motion; **Lively** changes pictures quickly with
 mixed transitions and stronger motion. Both fit the picture changes to the song's beats and phrases,
-so a slow and a fast song pace the same mood differently. A new slideshow starts on Calm, or on
-**Custom** when you set your own time per picture or "Fill the music" while creating it; Custom
-keeps your own settings. A picture with its own duration, transition or motion keeps it under any mood, and
+so a slow and a fast song pace the same mood differently. A new slideshow starts on Calm; choose
+**Custom**, or set your own time per picture or "Fill the music" in the music editor, to use your
+own settings. A slideshow without music sets its time per picture in the music editor too, below
+"No music yet". A picture with its own duration, transition or motion keeps it under any mood, and
 changing a single setting while a mood is on turns it into Custom with the mood's values to start
 from.
 

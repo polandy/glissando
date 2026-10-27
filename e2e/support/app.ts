@@ -77,40 +77,95 @@ export async function choosePictures(
   await expect(page.getByText(`${storedCount} Bilder`, { exact: true })).toBeVisible();
 }
 
+/** A new slideshow's stored own seconds (ADR-0050), what the Mood sheet's "Eigene" brings back. */
+const CUSTOM_SECONDS_PER_PICTURE = 5;
+const SECONDS_PER_PICTURE_STEP = 0.5;
+
+/** Opens the slideshow's music editor via its "Musik …" tile, with or without music. */
+async function openMusicEditor(page: Page): Promise<void> {
+  await page.getByRole("button", { name: /^Musik/ }).click();
+}
+
+/** The music editor's picture-length section, with or without music. */
+function pictureLengthSection(page: Page): Locator {
+  return page.locator('section[aria-labelledby="music-picture-length"]');
+}
+
 /**
- * Imports `files` without music, each shown `secondsPerPicture`, and waits on the created
- * slideshow's screen.
+ * Leaves the slideshow's mood from the music editor's picture-length section ("Selbst
+ * festlegen", MoodPictureTimesSection.svelte): the toast confirms it, and the section turns into
+ * `PictureLengthSection`'s radios and stepper, starting at the mood's own seconds (ADR-0045).
+ */
+async function leaveMoodForOwnPictureTimes(page: Page): Promise<Locator> {
+  const lengthSection = pictureLengthSection(page);
+  await lengthSection.getByRole("button", { name: "Selbst festlegen" }).click();
+  await expect(
+    page.getByRole("status").filter({ hasText: "Stimmung ist jetzt Eigene" }),
+  ).toBeVisible();
+  return lengthSection;
+}
+
+/** Steps `lengthSection`'s stepper from `fromSeconds` to `secondsPerPicture`, half a second at a time. */
+async function stepOwnPictureSeconds(
+  lengthSection: Locator,
+  fromSeconds: number,
+  secondsPerPicture: number,
+): Promise<void> {
+  const stepper = lengthSection.getByRole("button", {
+    name: secondsPerPicture < fromSeconds ? "Kürzer" : "Länger",
+  });
+  const steps = Math.abs(secondsPerPicture - fromSeconds) / SECONDS_PER_PICTURE_STEP;
+  for (let done = 0; done < steps; done += 1) {
+    await stepper.click();
+  }
+}
+
+/**
+ * Sets `secondsPerPicture` on a just-created, music-less slideshow: "Eigene" in the Mood sheet,
+ * which keeps the stored own seconds and transitions, then the music editor's stepper, which its
+ * empty state shows under Custom.
+ */
+async function setPictureLengthWithoutMusic(page: Page, secondsPerPicture: number): Promise<void> {
+  await chooseCustomMood(page);
+  await openMusicEditor(page);
+  await stepOwnPictureSeconds(
+    pictureLengthSection(page),
+    CUSTOM_SECONDS_PER_PICTURE,
+    secondsPerPicture,
+  );
+  await editsStored(page);
+  await page.getByRole("button", { name: "Zurück", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Musik Keine Musik hinzufügen" })).toBeVisible();
+}
+
+/**
+ * Imports `files` without music and waits on the created slideshow's screen, left on Calm
+ * (ADR-0050); with `secondsPerPicture`, sets it afterwards in the music editor instead
+ * (`setPictureLengthWithoutMusic`).
  */
 export async function createSlideshowFromFiles(
   page: Page,
   files: TestFile[],
-  secondsPerPicture: number,
+  secondsPerPicture?: number,
 ): Promise<void> {
-  const defaultSeconds = 5;
-  const step = 0.5;
   await openImport(page);
   await choosePictures(page, files, files.length);
   await page.getByRole("button", { name: "Weiter" }).click();
-  const stepper = page.getByRole("button", {
-    name: secondsPerPicture < defaultSeconds ? "Kürzer" : "Länger",
-  });
-  const steps = Math.abs(secondsPerPicture - defaultSeconds) / step;
-  for (let done = 0; done < steps; done += 1) {
-    await stepper.click();
-  }
-  await expect(definitionOf(page, "je Bild")).toHaveText(`${secondsPerPicture} s`);
   await page.getByRole("button", { name: "Ohne Musik erstellen" }).click();
   await expect(page.getByRole("status")).toHaveText(CREATED_TOAST);
+  if (secondsPerPicture !== undefined) {
+    await setPictureLengthWithoutMusic(page, secondsPerPicture);
+  }
 }
 
 /**
- * Imports pictures taken on `days` without music, each shown `secondsPerPicture`, and waits
- * on the created slideshow's screen.
+ * Imports pictures taken on `days` without music and waits on the created slideshow's screen,
+ * left on Calm; with `secondsPerPicture`, sets it afterwards (`createSlideshowFromFiles`).
  */
 export async function createSlideshow(
   page: Page,
   days: readonly string[],
-  secondsPerPicture: number,
+  secondsPerPicture?: number,
 ): Promise<void> {
   await createSlideshowFromFiles(page, await picturesTakenOn(page, days), secondsPerPicture);
 }
@@ -164,7 +219,7 @@ export async function captionPicture(page: Page, tile: string, caption: string):
 
 /**
  * Switches the slideshow's mood to Custom from the Mood sheet, so its own pacing (seconds per
- * picture, transitions) applies instead of a mood's (ADR-0049).
+ * picture, transitions) applies instead of a mood's (ADR-0045).
  */
 export async function chooseCustomMood(page: Page): Promise<void> {
   await page.getByRole("button", { name: /^Stimmung/ }).click();
@@ -175,8 +230,9 @@ export async function chooseCustomMood(page: Page): Promise<void> {
 }
 
 /**
- * Imports three pictures with `track` and waits on the created slideshow's screen; with `fill`
- * the pictures fill the music, otherwise they last the default 5 s each.
+ * Imports three pictures with `track` and waits on the created slideshow's screen, left on Calm
+ * (ADR-0050); with `fill`, afterwards leaves the mood in the music editor and sets the pictures
+ * to fill the music there.
  */
 export async function createSlideshowWithMusic(
   page: Page,
@@ -192,9 +248,16 @@ export async function createSlideshowWithMusic(
   await page.getByRole("button", { name: "Weiter" }).click();
   await chooseFiles(page, page.getByRole("button", { name: "Dateien wählen" }), [track]);
   await expect(page.getByText(track.name, { exact: true })).toBeVisible();
-  if (fill) {
-    await page.getByRole("radio", { name: "Musik füllen" }).click();
-  }
   await page.getByRole("button", { name: "Diashow erstellen" }).click();
   await expect(page.getByRole("status")).toHaveText(CREATED_TOAST);
+  if (fill) {
+    await openMusicEditor(page);
+    const lengthSection = await leaveMoodForOwnPictureTimes(page);
+    const fillRadio = lengthSection.getByRole("radio", { name: "Musik füllen" });
+    await fillRadio.click();
+    await expect(fillRadio).toHaveAttribute("aria-checked", "true");
+    await editsStored(page);
+    await page.getByRole("button", { name: "Zurück", exact: true }).click();
+    await expect(page.getByRole("button", { name: /^Musik/ })).toBeVisible();
+  }
 }

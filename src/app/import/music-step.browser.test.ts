@@ -1,3 +1,5 @@
+import "../../styles/tokens.css";
+import "../../styles/base.css";
 import { flushSync } from "svelte";
 import { afterEach, describe, expect, it } from "vitest";
 import { FakeScheduler } from "../../ui-kit/testing/fake-scheduler";
@@ -114,5 +116,53 @@ describe("MusicStep, the import's song list", () => {
     flushSync();
 
     expect(rows(target).map((row) => row.name)).toEqual(["Paper Lanterns.mp3", "Low Tide.mp3"]);
+  });
+});
+
+describe("MusicStep, the pace a new slideshow starts on (ADR-0050)", () => {
+  const paceLine = (target: HTMLElement) =>
+    target.querySelector(".pace")?.textContent.replace(/\s+/g, " ").trim();
+
+  it("names the mood Calm and its seconds per picture, with no picture-length choice", async () => {
+    const { session } = await withTwoPictures();
+    await session.addSongs([song("Low Tide.mp3")]);
+
+    const target = mountStep(session);
+
+    expect(paceLine(target)).toBe(
+      "Mood Calm · about 7 s per picture, on the music's phrases. Change it in the slideshow.",
+    );
+    expect(target.querySelector('[role="radio"]')).toBeNull();
+    expect(target.querySelector('[aria-label="Longer"]')).toBeNull();
+  });
+
+  it("centres the clock on the line's first row, also when the line wraps", async () => {
+    const { session } = await withTwoPictures();
+    const target = mountStep(session);
+    const line = target.querySelector<HTMLElement>(".pace");
+    if (line === null) throw new Error("no pace line");
+    line.style.width = "160px";
+    const centre = (element: Element | null) => {
+      if (element === null) throw new Error("no element");
+      const { top, height } = element.getBoundingClientRect();
+      return top + height / 2;
+    };
+
+    expect(line.getBoundingClientRect().height).toBeGreaterThan(
+      line.querySelector("b")?.getBoundingClientRect().height ?? 0,
+    );
+    expect(
+      Math.abs(centre(line.querySelector(".icon")) - centre(line.querySelector("b"))),
+    ).toBeLessThan(1);
+  });
+
+  it("without music names Calm's seconds, with no seconds stepper, and counts with them", async () => {
+    const { session } = await withTwoPictures();
+
+    const target = mountStep(session);
+
+    expect(paceLine(target)).toBe("Mood Calm · about 7 s per picture. Change it in the slideshow.");
+    expect(target.querySelector('[aria-label="Longer"]')).toBeNull();
+    expect(target.querySelector(".timing")?.textContent).toContain("0:14");
   });
 });

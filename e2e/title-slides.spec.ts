@@ -37,7 +37,7 @@ test("E2E-054 the title slide's tile sits before the first picture, opens with t
   const stylePicker = dialog.getByRole("radiogroup", { name: "Stil" });
   const classicStyle = stylePicker.getByRole("radio", { name: /Klassisch/ });
   await openApp(page);
-  await createSlideshow(page, ["2025-07-12", "2025-07-14", "2025-07-20"], 5);
+  await createSlideshow(page, ["2025-07-12", "2025-07-14", "2025-07-20"]);
   await renameSlideshow(page, "Sommer am See");
 
   // Absent cards: both tiles are dashed placeholders, the title slide before the first picture,
@@ -82,7 +82,7 @@ test("E2E-055 typing a title on the closing slide makes its tile show the card, 
   const dialog = page.getByRole("dialog");
   const titleField = page.getByRole("textbox", { name: "Titel", exact: true });
   await openApp(page);
-  await createSlideshow(page, ["2025-07-12", "2025-07-14", "2025-07-20"], 5);
+  await createSlideshow(page, ["2025-07-12", "2025-07-14", "2025-07-20"]);
 
   await expect(closingTile(page)).toHaveClass(/empty/);
   await expect(cardFaceOf(closingTile(page))).toHaveCount(0);
@@ -124,7 +124,7 @@ test("E2E-056 an entrance and a picture tint chosen on the title slide persist a
   const veilColour = (): Promise<string> =>
     veilOfOpeningTile.evaluate((veil) => getComputedStyle(veil).backgroundColor);
   await openApp(page);
-  await createSlideshow(page, ["2025-07-12", "2025-07-14", "2025-07-20"], 5);
+  await createSlideshow(page, ["2025-07-12", "2025-07-14", "2025-07-20"]);
 
   await openingTile(page).click();
   await expect(dialog).toBeVisible();
@@ -175,7 +175,7 @@ test("E2E-082 the title slide's default subtitle follows the slideshow's own tit
   const subtitleField = page.getByRole("textbox", { name: "Untertitel", exact: true });
   const days = ["2025-07-12", "2025-07-14", "2025-07-20"];
   await openApp(page);
-  await createSlideshow(page, days, 5);
+  await createSlideshow(page, days);
 
   // Defaults while the title is still the automatic month title: an empty subtitle, so it would
   // not just repeat that title (TITLE_SLIDES.md).

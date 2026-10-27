@@ -50,7 +50,7 @@ test("E2E-081 the music editor notes a shorter music that outlasts or fits the p
 
   await openApp(page);
   await createSlideshowWithMusic(page, silentTrack("Nachtlicht.wav", TRACK_SECONDS));
-  // The import left the pace untouched, so the slideshow opened on Calm (ADR-0049); this case is
+  // A new slideshow opens on Calm (ADR-0050); this case is
   // about the music fit against the pictures' own pace, so it switches back to Custom.
   await chooseCustomMood(page);
   // The Music tile is never folded away (ADR-0048).

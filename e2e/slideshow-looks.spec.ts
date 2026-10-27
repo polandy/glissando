@@ -7,7 +7,7 @@ test.use(GERMAN_BROWSER);
 /** Opens the slideshow's info panel's Look sheet from its row, Film still unchosen. */
 async function openLookSheet(page: Page): Promise<void> {
   await openApp(page);
-  await createSlideshow(page, ["2025-07-12", "2025-07-14", "2025-07-20"], 5);
+  await createSlideshow(page, ["2025-07-12", "2025-07-14", "2025-07-20"]);
   const defaultRow = page.getByRole("button", { name: "Look Ohne Vorgabe" });
   await expect(defaultRow).toBeVisible();
   await defaultRow.click();

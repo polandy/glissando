@@ -12,7 +12,7 @@ const ENERGY_SWITCH = "Folgt der Energie der Musik";
 test("E2E-080 the Mood sheet's energy switch stores at once and survives a reload", async ({
   page,
 }) => {
-  // A clear tempo starts the slideshow on Calm at once (ADR-0049).
+  // A new slideshow starts on Calm (ADR-0050).
   const moodTile = page.getByRole("button", { name: /^Stimmung Ruhig/ });
   const sheet = page.getByRole("dialog", { name: "Stimmung" });
   const sheetSwitch = sheet.getByRole("switch", { name: ENERGY_SWITCH });

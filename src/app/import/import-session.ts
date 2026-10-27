@@ -1,4 +1,3 @@
-import type { PictureLength } from "../../library/picture-length";
 import { buildStoredSlideshow } from "../../compose";
 import type { ImmichPhoto } from "../../immich/immich-client";
 import type { PictureImport } from "../../import/picture-import";
@@ -172,15 +171,6 @@ export class ImportSession {
     this.#setChoices({ songs: [...others.slice(0, at), song, ...others.slice(at)] });
   }
 
-  setSecondsPerPicture(secondsPerPicture: number): void {
-    this.#setChoices({ secondsPerPicture });
-  }
-
-  /** `undefined`: the pictures fill the music (ADR-0022). */
-  setPictureLength(pictureLength: PictureLength | undefined): void {
-    this.#setChoices({ pictureLength });
-  }
-
   /** `undefined`: the music plays once through, as it does by default (ADR-0047). */
   setRepeatMusic(repeatMusic: true | undefined): void {
     // `repeatMusic` is absent, not `undefined`, when turned off: it is an optional property.
@@ -231,10 +221,6 @@ export class ImportSession {
       pictures: state.pictures,
       order: this.arrangement.state.order,
       songs,
-      secondsPerPicture: this.#choices.secondsPerPicture,
-      ...(this.#choices.pictureLength === undefined
-        ? {}
-        : { pictureLength: this.#choices.pictureLength }),
       ...(this.arrangement.state.own ? { ownOrder: true } : {}),
       ...(this.#choices.repeatMusic ? { repeatMusic: true } : {}),
       locale,

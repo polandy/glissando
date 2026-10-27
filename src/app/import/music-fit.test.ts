@@ -21,18 +21,8 @@ describe("importTiming", () => {
     });
   });
 
-  it("lets the pictures that fill the music share what its videos leave", () => {
-    expect(
-      importTiming([undefined, 20_000], { durationMs: 60_000, filled: true }, 5, undefined),
-    ).toEqual({
-      perPictureSeconds: 30,
-      totalSeconds: 60,
-      music: { kind: "ends-with", seconds: 60 },
-    });
-  });
-
   it("with music the pictures stay their seconds, and a longer song fades out with them", () => {
-    expect(importTiming(photos(4), { durationMs: 60_000, filled: false }, 5, undefined)).toEqual({
+    expect(importTiming(photos(4), { durationMs: 60_000 }, 5, undefined)).toEqual({
       perPictureSeconds: 5,
       totalSeconds: 20,
       music: { kind: "fades-out", seconds: 60 },
@@ -40,7 +30,7 @@ describe("importTiming", () => {
   });
 
   it("shrinks own-seconds pictures to end with a shorter playlist instead of outlasting it (ADR-0047)", () => {
-    expect(importTiming(photos(10), { durationMs: 44_000, filled: false }, 5, undefined)).toEqual({
+    expect(importTiming(photos(10), { durationMs: 44_000 }, 5, undefined)).toEqual({
       perPictureSeconds: 4.4,
       totalSeconds: 44,
       music: { kind: "fitted", seconds: 44, shareSeconds: 4.4 },
@@ -48,7 +38,7 @@ describe("importTiming", () => {
   });
 
   it("keeps own seconds and ends in silence when even the shrunk share falls short, without a repeat (ADR-0047)", () => {
-    expect(importTiming(photos(4), { durationMs: 12_000, filled: false }, 5, undefined)).toEqual({
+    expect(importTiming(photos(4), { durationMs: 12_000 }, 5, undefined)).toEqual({
       perPictureSeconds: 5,
       totalSeconds: 20,
       music: { kind: "silent-after", seconds: 12 },
@@ -56,7 +46,7 @@ describe("importTiming", () => {
   });
 
   it("repeats the music from its first song instead of ending in silence once asked to (ADR-0047)", () => {
-    expect(importTiming(photos(4), { durationMs: 12_000, filled: false }, 5, true)).toEqual({
+    expect(importTiming(photos(4), { durationMs: 12_000 }, 5, true)).toEqual({
       perPictureSeconds: 5,
       totalSeconds: 20,
       music: { kind: "repeats", seconds: 12 },
@@ -69,32 +59,9 @@ describe("importTiming", () => {
     };
     const onceThroughMs = playlistMs(playlist);
 
-    expect(
-      importTiming(photos(4), { durationMs: onceThroughMs ?? 0, filled: false }, 5, true).music,
-    ).toEqual({ kind: "repeats", seconds: 12 });
-  });
-
-  it("with music the pictures fill, they share the track's length", () => {
-    expect(importTiming(photos(4), { durationMs: 60_000, filled: true }, 5, undefined)).toEqual({
-      perPictureSeconds: 15,
-      totalSeconds: 60,
-      music: { kind: "ends-with", seconds: 60 },
-    });
-  });
-
-  it("with music too short for the pictures that fill it every picture gets the minimum", () => {
-    expect(importTiming(photos(10), { durationMs: 5_000, filled: true }, 5, undefined)).toEqual({
-      perPictureSeconds: 2,
-      totalSeconds: 20,
-      music: { kind: "silent-after", seconds: 5 },
-    });
-  });
-
-  it("repeats the music even when filling it floors every picture at the minimum (ADR-0047)", () => {
-    expect(importTiming(photos(10), { durationMs: 5_000, filled: true }, 5, true)).toEqual({
-      perPictureSeconds: 2,
-      totalSeconds: 20,
-      music: { kind: "repeats", seconds: 5 },
+    expect(importTiming(photos(4), { durationMs: onceThroughMs ?? 0 }, 5, true).music).toEqual({
+      kind: "repeats",
+      seconds: 12,
     });
   });
 });

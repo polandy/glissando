@@ -5,6 +5,7 @@ import {
   chooseFiles,
   choosePictures,
   CREATED_TOAST,
+  editsStored,
   GERMAN_BROWSER,
   openImport,
   picturesTakenOn,
@@ -16,7 +17,7 @@ test.use(GERMAN_BROWSER);
 
 const TITLE = "Juli 2025";
 const DAYS = ["2025-07-12", "2025-07-14"] as const;
-/** The automatic picture times fit the slideshow to its music. */
+/** "Musik füllen" fits the picture times to its music. */
 const TRACK_SECONDS = 6;
 /** Larger than an MP4's boxes alone: the file carries encoded frames. */
 const MIN_VIDEO_BYTES = 10_000;
@@ -46,10 +47,23 @@ async function createSlideshowWithMusic(page: Page): Promise<void> {
     silentTrack("Sommerwind.wav", TRACK_SECONDS),
   ]);
   await expect(page.getByText("Sommerwind.wav", { exact: true })).toBeVisible();
-  // The pictures fill the music, so the video lasts exactly as long as the track.
-  await page.getByRole("radio", { name: "Musik füllen" }).click();
   await page.getByRole("button", { name: "Diashow erstellen" }).click();
   await expect(page.getByRole("status")).toHaveText(CREATED_TOAST);
+
+  // The slideshow opened on Calm (ADR-0050); leaving it for the music editor's own picture
+  // length lets the pictures fill the music, so the video lasts exactly as long as the track.
+  await page.getByRole("button", { name: /^Musik/ }).click();
+  const lengthSection = page.locator('section[aria-labelledby="music-picture-length"]');
+  await lengthSection.getByRole("button", { name: "Selbst festlegen" }).click();
+  await expect(
+    page.getByRole("status").filter({ hasText: "Stimmung ist jetzt Eigene" }),
+  ).toBeVisible();
+  const fillRadio = lengthSection.getByRole("radio", { name: "Musik füllen" });
+  await fillRadio.click();
+  await expect(fillRadio).toHaveAttribute("aria-checked", "true");
+  await editsStored(page);
+  await page.getByRole("button", { name: "Zurück", exact: true }).click();
+  await expect(page.getByRole("button", { name: /^Musik/ })).toBeVisible();
 }
 
 test("E2E-030 a slideshow saved as a 720p video from its menu downloads as an MP4 of its whole length", async ({

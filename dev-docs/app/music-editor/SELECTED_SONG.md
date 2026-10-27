@@ -35,8 +35,7 @@ The panel for the song selected in the [music editor](../MUSIC_EDITOR.md).
   to compare, which then plays. Below the song list,
   the collapsible "Loudness of the songs" (`VolumeComparisonBox.svelte`, closed by default):
   each song's bar to where it ends up now, a grey mark at its own loudness, and its state.
-- **Picture length** (`components/PictureLengthSection.svelte`, also in the new slideshow's
-  music step): a clock icon, "About 5 s each" and "Fill the music" as a radiogroup (arrows move
+- **Picture length** (`components/PictureLengthSection.svelte`): a clock icon, "About 5 s each" and "Fill the music" as a radiogroup (arrows move
   the choice), stored at once; with the first, the seconds stepper (− and + for half seconds, 2
   to 15 s) below it. Once own seconds or a mood (`MoodPictureTimesSection.svelte`) would outlast
   a shorter music and the pictures shrink to end with it instead (ADR-0047), a muted line below

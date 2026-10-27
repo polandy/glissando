@@ -1,6 +1,5 @@
-import { OWN_SECONDS_PICTURE_LENGTH, type PictureLength } from "../../library/picture-length";
 import type { LibraryStore } from "../../library/library-store";
-import { DEFAULT_SECONDS_PER_PICTURE, type StoredSlideshow } from "../../library/stored-slideshow";
+import type { StoredSlideshow } from "../../library/stored-slideshow";
 import type { SlideshowHome } from "../routes/slideshow-storage";
 import type { SampleSongPickPorts, SampleSongRow } from "../sample-music/sample-song-pick";
 import type { ChosenMusic, MusicPickPorts, PendingSong } from "./music-pick";
@@ -34,9 +33,6 @@ export interface ImportChoices {
   readonly home: SlideshowHome;
   /** Played one after another in this order (ADR-0023). */
   readonly songs: readonly ImportSong[];
-  readonly secondsPerPicture: number;
-  /** With music, the pictures last their seconds (the default) or, `undefined`, fill it. */
-  readonly pictureLength: PictureLength | undefined;
   /** The music repeats from its first song for as long as the slideshow lasts (ADR-0047). */
   readonly repeatMusic?: true;
 }
@@ -49,6 +45,4 @@ export function chosenSongs(choices: ImportChoices): ChosenSong[] {
 export const INITIAL_CHOICES: ImportChoices = {
   home: "device",
   songs: [],
-  secondsPerPicture: DEFAULT_SECONDS_PER_PICTURE,
-  pictureLength: OWN_SECONDS_PICTURE_LENGTH,
 };

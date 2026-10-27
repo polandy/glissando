@@ -23,7 +23,6 @@ describe("buildStoredSlideshow", () => {
       createdAt: "2025-07-21T00:00:00Z",
       pictures: [second, first],
       songs: [],
-      secondsPerPicture: 5,
       locale: "en",
     });
 
@@ -36,7 +35,6 @@ describe("buildStoredSlideshow", () => {
       createdAt: "2025-08-21T00:00:00Z",
       pictures: [picture("a", "2025-07-01T10:00:00Z"), picture("b", "2025-08-20T10:00:00Z")],
       songs: [],
-      secondsPerPicture: 5,
       locale: "en",
     });
 
@@ -49,7 +47,6 @@ describe("buildStoredSlideshow", () => {
       createdAt: "2025-07-21T00:00:00Z",
       pictures: [picture("a", "2025-07-01T10:00:00Z")],
       songs: [],
-      secondsPerPicture: 5,
       locale: "en",
     });
 
@@ -66,7 +63,6 @@ describe("buildStoredSlideshow", () => {
       pictures: [first, second],
       order: ["b", "a"],
       songs: [],
-      secondsPerPicture: 5,
       locale: "en",
     });
 
@@ -82,7 +78,6 @@ describe("buildStoredSlideshow", () => {
         pictures: [picture("a", "2025-07-01T10:00:00Z")],
         order: ["ghost"],
         songs: [],
-        secondsPerPicture: 5,
         locale: "en",
       });
 
@@ -97,7 +92,6 @@ describe("buildStoredSlideshow", () => {
         pictures: [picture("a", "2025-07-01T10:00:00Z"), picture("b", "2025-07-02T10:00:00Z")],
         order: ["a"],
         songs: [],
-        secondsPerPicture: 5,
         locale: "en",
       });
 
@@ -112,7 +106,6 @@ describe("buildStoredSlideshow", () => {
       order: ["a"],
       ownOrder: true,
       songs: [],
-      secondsPerPicture: 5,
       locale: "en",
     });
 
@@ -125,7 +118,6 @@ describe("buildStoredSlideshow", () => {
       createdAt: "2025-07-21T00:00:00Z",
       pictures: [picture("a", "2025-07-01T10:00:00Z")],
       songs: [],
-      secondsPerPicture: 5,
       locale: "en",
     });
 
@@ -140,7 +132,6 @@ describe("buildStoredSlideshow", () => {
       createdAt: "2025-07-21T00:00:00Z",
       pictures: [picture("a", "2025-07-01T10:00:00Z")],
       songs: [music],
-      secondsPerPicture: 5,
       locale: "en",
     });
 
@@ -153,7 +144,6 @@ describe("buildStoredSlideshow", () => {
       createdAt: "2025-07-21T00:00:00Z",
       pictures: [picture("a", "2025-07-01T10:00:00Z")],
       songs: [],
-      secondsPerPicture: 5,
       repeatMusic: true,
       locale: "en",
     });
@@ -167,41 +157,23 @@ describe("buildStoredSlideshow", () => {
       createdAt: "2025-07-21T00:00:00Z",
       pictures: [picture("a", "2025-07-01T10:00:00Z")],
       songs: [],
-      secondsPerPicture: 5,
       locale: "en",
     });
 
     expect(slideshow.repeatMusic).toBeUndefined();
   });
 
-  describe("starts on the mood Calm unless the import set the pace (ADR-0049)", () => {
-    it.each([
-      {
-        case: "the import's default pace",
-        seconds: 5,
-        pictureLength: "seconds" as const,
-        mood: "calm",
-      },
-      {
-        case: "own seconds per picture",
-        seconds: 8,
-        pictureLength: "seconds" as const,
-        mood: undefined,
-      },
-      { case: "Fill the music", seconds: 5, pictureLength: undefined, mood: undefined },
-    ])("$case: mood $mood", ({ seconds, pictureLength, mood }) => {
-      const slideshow = buildStoredSlideshow({
-        id: "s1",
-        createdAt: "2025-07-21T00:00:00Z",
-        pictures: [picture("a", "2025-07-01T10:00:00Z")],
-        songs: [],
-        secondsPerPicture: seconds,
-        ...(pictureLength === undefined ? {} : { pictureLength }),
-        locale: "en",
-      });
-
-      expect(slideshow.secondsPerPicture).toBe(seconds);
-      expect(slideshow.mood).toBe(mood);
+  it("starts on the mood Calm, its own seconds as Custom's fallback (ADR-0050)", () => {
+    const slideshow = buildStoredSlideshow({
+      id: "s1",
+      createdAt: "2025-07-21T00:00:00Z",
+      pictures: [picture("a", "2025-07-01T10:00:00Z")],
+      songs: [],
+      locale: "en",
     });
+
+    expect(slideshow.mood).toBe("calm");
+    expect(slideshow.secondsPerPicture).toBe(5);
+    expect(slideshow.pictureLength).toBe("seconds");
   });
 });

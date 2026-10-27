@@ -24,7 +24,11 @@ export { automaticTransition, pictureTransition, slideshowTransition } from "./p
 export { slideshowLook } from "./slideshow-look";
 export { titleForCaptureRange } from "./title-for-capture-range";
 export { dayRangeForCaptureRange } from "./day-range-for-capture-range";
-export { buildStoredSlideshow, type BuildStoredSlideshowInput } from "./build-stored-slideshow";
+export {
+  buildStoredSlideshow,
+  NEW_SLIDESHOW_MOOD,
+  type BuildStoredSlideshowInput,
+} from "./build-stored-slideshow";
 export { composeSlideshow, type SlideshowSources } from "./compose-slideshow";
 export { slideshowDurationMs } from "./slideshow-duration-ms";
 export { beatTransitionDurationMs } from "./beat-transition";

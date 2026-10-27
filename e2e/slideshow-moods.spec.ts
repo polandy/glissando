@@ -21,7 +21,7 @@ test("E2E-079 picking Calm sets its transitions, Ken Burns and picture times, an
 
   await openApp(page);
   await createSlideshowWithMusic(page, clickTrackWav("Takt.wav", 20, TRACK_BPM));
-  // An import that left the pace as it was starts the slideshow on Calm (ADR-0049).
+  // A new slideshow starts on Calm (ADR-0050).
   await expect(calmRow).toBeVisible();
   // The Transitions row lives behind the Fine settings fold (ADR-0048).
   await page.getByRole("button", { name: "Feineinstellungen" }).click();

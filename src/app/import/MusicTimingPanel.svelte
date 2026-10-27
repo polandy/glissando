@@ -1,23 +1,20 @@
 <script lang="ts">
-  import type { PictureLength } from "../../library/picture-length";
-  import { DEFAULT_SECONDS_PER_PICTURE } from "../../library/stored-slideshow";
-  import PictureLengthSection from "../components/PictureLengthSection.svelte";
-  import SecondsStepper from "../components/SecondsStepper.svelte";
+  import type { SlideshowMood } from "../../library/slideshow-mood";
+  import Icon from "../components/Icon.svelte";
   import { getTranslator } from "../i18n/context";
+  import { moodName } from "../screens/slideshow/mood-text";
   import type { PlaylistSongView } from "../music-editor/playlist-view";
   import type { ImportTiming } from "./music-fit";
   import MusicFit from "./MusicFit.svelte";
 
   /**
-   * Step 2's picture-length choice and the row "n pictures | x s per picture | m:ss total"
-   * (app/IMPORT_WIZARD.md, Music): with a chosen song, the pictures against it to one scale;
-   * without one, a stepper for the seconds per picture.
+   * Step 2's pace line, the mood the new slideshow starts on, and the row "n pictures | x s per
+   * picture | m:ss total" (import-wizard/MUSIC.md): with a chosen song, the pictures against it
+   * to one scale.
    */
   let {
-    ownSeconds,
-    secondsPerPicture,
-    onPictureLength,
-    onSecondsPerPicture,
+    mood,
+    moodSeconds,
     pictureIds,
     urls,
     segmentsMs,
@@ -27,11 +24,9 @@
     onRepeatMusic,
     onAddSong,
   }: {
-    ownSeconds: boolean;
-    secondsPerPicture: number;
-    /** `undefined`: the pictures fill the music. */
-    onPictureLength: (length: PictureLength | undefined) => void;
-    onSecondsPerPicture: (seconds: number) => void;
+    mood: SlideshowMood;
+    /** The mood's seconds per picture before the music's beats are known. */
+    moodSeconds: number;
     pictureIds: readonly string[];
     /** Thumbnail URLs by picture id, as far as loaded. */
     urls: ReadonlyMap<string, string>;
@@ -49,14 +44,18 @@
   const { t, formatDuration, formatSeconds } = getTranslator();
 </script>
 
+<p class="pace">
+  <Icon name="clock" />
+  <span>
+    <b>{t("import.paceMood", { mood: moodName(t, mood) })}</b> ·
+    {t(timing.music === null ? "import.paceWithoutMusic" : "import.paceWithMusic", {
+      seconds: formatSeconds(moodSeconds),
+    })}
+  </span>
+</p>
+
 {#if timing.music !== null}
   <div class="panel">
-    <PictureLengthSection
-      {ownSeconds}
-      {secondsPerPicture}
-      {onPictureLength}
-      {onSecondsPerPicture}
-    />
     <MusicFit
       {pictureIds}
       {urls}
@@ -67,16 +66,6 @@
       {onRepeatMusic}
       {onAddSong}
     />
-  </div>
-{:else}
-  <div class="panel track">
-    <div class="text">
-      <b>{t("import.secondsTitle")}</b>
-      <span class="muted meta">
-        {t("import.secondsHint", { seconds: formatSeconds(DEFAULT_SECONDS_PER_PICTURE) })}
-      </span>
-    </div>
-    <SecondsStepper seconds={secondsPerPicture} onChange={onSecondsPerPicture} />
   </div>
 {/if}
 
@@ -104,21 +93,22 @@
     border-radius: var(--gl-radius-large);
     background: var(--gl-surface);
   }
-  .track {
+  .pace {
     display: flex;
-    align-items: center;
-    gap: 12px;
+    align-items: start;
+    gap: 8px;
+    margin: 0;
+    color: var(--gl-muted);
+    font-size: var(--gl-size-small);
   }
-  .text {
-    flex: 1;
-    min-width: 0;
+  /* Centred on the first row, so it stays beside "Mood Calm" when the line wraps. */
+  .pace > :global(.icon) {
+    flex: none;
+    margin-block-start: calc((1lh - var(--gl-icon-size, var(--gl-size-icon))) / 2);
   }
-  .text b {
-    display: block;
+  .pace b {
+    color: var(--gl-ink);
     font-weight: var(--gl-weight-semibold);
-  }
-  .meta {
-    font-size: var(--gl-size-meta);
   }
   .timing {
     display: grid;
