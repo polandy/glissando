@@ -144,6 +144,7 @@
         readVideo={(id) => ports.store.videoBlob(id)}
         musicOutput={ports.musicOutput}
         decodeClipSound={ports.decodeClipSound}
+        onError={ports.log}
       />
     {/key}
     <span class="badge">{badgeText}</span>

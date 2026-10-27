@@ -265,6 +265,8 @@ export class WebGlRenderer implements SlideRenderer<BitmapPicture> {
     this.#fromCardTarget.dispose();
     this.#toCardTarget.dispose();
     this.#programs.forEach(({ program }) => this.#gl.deleteProgram(program));
+    // Without this the context lives until garbage collection, and a phone caps the live ones.
+    this.#gl.getExtension("WEBGL_lose_context")?.loseContext();
     this.#canvas.remove();
   }
 

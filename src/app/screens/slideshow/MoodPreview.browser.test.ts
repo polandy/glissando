@@ -35,17 +35,23 @@ async function openPreview(
   mood: MoodPreviewPorts["stored"]["mood"] = undefined,
   moodBpm: number | undefined = undefined,
   moodPending = false,
+  display = new Blob([]),
 ) {
   const store = new MemoryLibraryStore();
-  await store.putPicture("a", { display: new Blob([]), thumbnail: new Blob([]) });
+  await store.putPicture("a", { display, thumbnail: new Blob([]) });
   const logged: unknown[] = [];
+  let onFirstLog: (error: unknown) => void = () => {};
+  const firstLogged = new Promise<unknown>((resolve) => (onFirstLog = resolve));
   const stored: StoredSlideshow = mood === undefined ? SHOW : { ...SHOW, mood };
   const ports: MoodPreviewPorts = {
     store,
     stored,
     musicOutput: new MusicOutput(() => null),
     decodeClipSound: () => Promise.resolve(null),
-    log: (error: unknown) => logged.push(error),
+    log: (error: unknown) => {
+      logged.push(error);
+      onFirstLog(error);
+    },
   };
   const mounted = mountWithTranslator(
     MoodPreview,
@@ -53,7 +59,7 @@ async function openPreview(
     { current: createTranslator("en") },
   );
   destroy = mounted.destroy;
-  return { ...mounted, logged };
+  return { ...mounted, logged, firstLogged };
 }
 
 describe("MoodPreview", () => {
@@ -124,5 +130,17 @@ describe("MoodPreview", () => {
     // Over a light picture a transparent toggle disappears; the badge already contrasts, so the
     // toggle takes its same token (MOOD.md), not the player's glass tint.
     expect(getComputedStyle(sound).backgroundColor).toBe(getComputedStyle(badge).backgroundColor);
+  });
+
+  it("logs the player's error when a picture cannot be shown, instead of staying black silently", async () => {
+    const { target, firstLogged } = await openPreview(
+      undefined,
+      undefined,
+      false,
+      new Blob(["not a picture"], { type: "image/jpeg" }),
+    );
+    await whenRendered(target, ".stage");
+
+    expect(await firstLogged).toBeInstanceOf(Error);
   });
 });

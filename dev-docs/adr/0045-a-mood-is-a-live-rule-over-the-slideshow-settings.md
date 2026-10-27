@@ -1,6 +1,6 @@
 # ADR-0045: A mood is a live rule over the slideshow settings, worked out from the tempo
 
-**Status:** accepted; for a music shorter than the slideshow, amended by ADR-0047
+**Status:** accepted; for a music shorter than the slideshow, amended by ADR-0047; for a new slideshow's mood, by ADR-0049
 
 ## Context
 

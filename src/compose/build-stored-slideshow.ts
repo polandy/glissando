@@ -1,5 +1,11 @@
-import type { PictureLength } from "../library/picture-length";
-import type { StoredMusic, StoredPicture, StoredSlideshow } from "../library/stored-slideshow";
+import { OWN_SECONDS_PICTURE_LENGTH, type PictureLength } from "../library/picture-length";
+import type { SlideshowMood } from "../library/slideshow-mood";
+import {
+  DEFAULT_SECONDS_PER_PICTURE,
+  type StoredMusic,
+  type StoredPicture,
+  type StoredSlideshow,
+} from "../library/stored-slideshow";
 import { orderByCaptureDate } from "./order-by-capture-date";
 import { titleForCaptureRange } from "./title-for-capture-range";
 
@@ -42,9 +48,19 @@ function orderedById(
   });
 }
 
+/** The mood a new slideshow starts on while the import left the pace as it was (ADR-0049). */
+const NEW_SLIDESHOW_MOOD: SlideshowMood = "calm";
+
+function setsOwnPace(input: BuildStoredSlideshowInput): boolean {
+  return (
+    input.secondsPerPicture !== DEFAULT_SECONDS_PER_PICTURE ||
+    input.pictureLength !== OWN_SECONDS_PICTURE_LENGTH
+  );
+}
+
 /**
- * Applies the automatic choices an import makes: a title from the capture range, and, without an
- * explicit `order`, capture order.
+ * Applies the automatic choices an import makes: a title from the capture range, without an
+ * explicit `order` capture order, and the mood Calm unless the import set the pace (ADR-0049).
  */
 export function buildStoredSlideshow(input: BuildStoredSlideshowInput): StoredSlideshow {
   const pictures =
@@ -66,5 +82,6 @@ export function buildStoredSlideshow(input: BuildStoredSlideshowInput): StoredSl
     ...(input.pictureLength === undefined ? {} : { pictureLength: input.pictureLength }),
     ...(input.order !== undefined && input.ownOrder ? { ownOrder: true } : {}),
     ...(input.repeatMusic === undefined ? {} : { repeatMusic: input.repeatMusic }),
+    ...(setsOwnPace(input) ? {} : { mood: NEW_SLIDESHOW_MOOD }),
   };
 }

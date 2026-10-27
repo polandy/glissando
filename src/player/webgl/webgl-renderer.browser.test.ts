@@ -234,4 +234,13 @@ describe("WebGlRenderer", () => {
       expect(() => renderer.dispose()).not.toThrow();
     });
   });
+
+  it("releases its WebGL context on dispose, so a short-lived player frees the GPU at once", () => {
+    const { renderer, gl } = setUp();
+    expect(gl.isContextLost()).toBe(false);
+
+    renderer.dispose();
+
+    expect(gl.isContextLost()).toBe(true);
+  });
 });

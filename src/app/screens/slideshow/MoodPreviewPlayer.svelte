@@ -19,12 +19,15 @@
     readVideo,
     musicOutput,
     decodeClipSound,
+    onError,
   }: {
     slideshow: Slideshow;
     openPicture: OpenPicture;
     readVideo: (src: string) => Promise<Blob>;
     musicOutput: MusicOutput;
     decodeClipSound: DecodeClipSound;
+    /** A picture that cannot be shown stops the player; reported, never left as a silent black. */
+    onError: (error: Error) => void;
   } = $props();
 
   let stage: HTMLDivElement;
@@ -41,6 +44,9 @@
       player.play();
     };
     player.addEventListener("ended", loop);
+    player.addEventListener("error", () => {
+      if (player.error !== null) onError(player.error);
+    });
     player.play();
     return () => player.destroy();
   });
