@@ -122,6 +122,12 @@
     height: 100%;
     object-fit: cover;
   }
+  /* Above the shade: on a phone a wrapping title grows the shade over the card's top corners. */
+  .play,
+  .plus,
+  .ring {
+    z-index: 1;
+  }
   .play {
     position: absolute;
     top: 6px;
@@ -200,6 +206,7 @@
     padding: 22px 8px 6px;
     background: linear-gradient(transparent, var(--gl-photo-fade));
     color: var(--gl-on-photo);
+    pointer-events: none;
   }
   .title {
     display: -webkit-box;

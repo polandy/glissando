@@ -183,6 +183,31 @@ describe("SampleMusicGrid, adding", () => {
   });
 });
 
+/** The grid's width in the Add song sheet on a 390 px phone: three cards of about 85 px. */
+const PHONE_SHEET_WIDTH_PX = 280;
+
+/** Whether a tap at the centre of `control` lands on it rather than on a sibling painted over it. */
+function tapLandsOn(control: Element): boolean {
+  const box = control.getBoundingClientRect();
+  const hit = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2);
+  return hit !== null && control.contains(hit);
+}
+
+describe("SampleMusicGrid, at phone width", () => {
+  it("keeps every card's + and play tappable over a title that wraps", async () => {
+    const { target } = mountGrid(previewWith());
+    target.style.width = `${PHONE_SHEET_WIDTH_PX}px`;
+    await settled();
+
+    const shownCards = target.querySelector(".grid");
+    const controls = [...(shownCards?.querySelectorAll(".plus, .play") ?? [])];
+
+    expect(controls.length).toBeGreaterThan(0);
+    const covered = controls.filter((control) => !tapLandsOn(control));
+    expect(covered.map((control) => control.getAttribute("aria-label"))).toEqual([]);
+  });
+});
+
 describe("SampleMusicGrid, downloading", () => {
   it("shows a progress ring instead of + while a track downloads", async () => {
     const rows: readonly SampleSongRow[] = [
