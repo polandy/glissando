@@ -41,6 +41,12 @@ describe("SlideshowScreen, the mood tile", () => {
     expect(moodSummary()).toBe("automatisch · übliche Bewegung");
   });
 
+  it("counts own picture times under Custom", () => {
+    mountScreen(details(["a"], { ownDurationCount: 1 }));
+
+    expect(moodSummary()).toBe("automatisch, 1 eigene · übliche Bewegung");
+  });
+
   it("names the stored mood, with its own motion", () => {
     mountScreen(details(["a"], { mood: "calm" }));
 

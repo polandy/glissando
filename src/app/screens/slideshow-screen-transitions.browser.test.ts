@@ -78,8 +78,9 @@ describe("SlideshowScreen, the transitions row", () => {
 
   it("counts several own transitions in the plural", () => {
     mountScreen(withOwn(["a", "c"]));
+    openFineSettings();
 
-    expect(transitionsRow().querySelector("small")?.textContent).toBe("Vorgabe · 2 eigene");
+    expect(text(transitionsRow())).toBe("Übergänge Überblenden Vorgabe · 2 eigene");
   });
 });
 
