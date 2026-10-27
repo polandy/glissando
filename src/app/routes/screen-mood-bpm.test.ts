@@ -81,4 +81,29 @@ describe("ScreenMoodBpm.beatsOf", () => {
     expect(after).not.toBe(before);
     expect(after.get("a")).toBe(DRUMS);
   });
+
+  it("keeps the same map while the pass only moves on to listening to another song", () => {
+    let notify: (next: BeatPassState) => void = () => {};
+    const pass: Pick<BeatPass, "state" | "subscribe"> = {
+      state: IDLE_STATE,
+      subscribe: (onNext: (next: BeatPassState) => void) => {
+        notify = onNext;
+        return () => {};
+      },
+    };
+    const store: Pick<LibraryStore, "musicBeats"> = { musicBeats: async () => undefined };
+    const bpm = new ScreenMoodBpm(pass, store, () => {});
+    bpm.follow();
+    const show = stored([
+      { id: "a", fileName: "a.mp3", durationMs: 2000, mimeType: "audio/mpeg" },
+      { id: "b", fileName: "b.mp3", durationMs: 2000, mimeType: "audio/mpeg" },
+    ]);
+    notify({ ...IDLE_STATE, running: true, listening: new Set(["a"]) });
+
+    const before = bpm.beatsOf(show);
+    notify({ ...IDLE_STATE, running: true, listening: new Set(["b"]) });
+    const after = bpm.beatsOf(show);
+
+    expect(after).toBe(before);
+  });
 });

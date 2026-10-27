@@ -56,7 +56,9 @@ export class ScreenMoodBpm {
     ) {
       return cache.beats;
     }
-    const beats = composedSongBeats(stored, this.#storedBeats, this.#passState);
+    const composed = composedSongBeats(stored, this.#storedBeats, this.#passState);
+    // The pass publishes on every step of its progress; a new map would restart the preview.
+    const beats = cache !== null && sameSongBeats(cache.beats, composed) ? cache.beats : composed;
     this.#beatsCache = {
       songs: stored.songs,
       storedBeats: this.#storedBeats,
@@ -78,4 +80,11 @@ export class ScreenMoodBpm {
   follow(): () => void {
     return this.#pass.subscribe((next) => (this.#passState = next));
   }
+}
+
+function sameSongBeats(known: SongBeats, next: SongBeats): boolean {
+  return (
+    known.size === next.size &&
+    [...next].every(([songId, beats]) => known.has(songId) && known.get(songId) === beats)
+  );
 }
