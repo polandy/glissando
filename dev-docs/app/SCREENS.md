@@ -94,9 +94,23 @@
   while the server library is on (it can be hidden with its ✕ and is brought back in Settings),
   its set-up screen and the fullscreen running frame.
 
-Up to 1024 px wide (a container query on `.screen`) the info panel stacks full width above the
-pictures instead of beside them, folded to a slim header: title, "date range · N pictures ·
-duration" and "Play". A "Details" toggle (`aria-expanded`, folded on every visit) opens the rest
-— "Save as", storage, link, "Show on TV" and the facts — in two columns, one column up to 720 px.
-Above 1024 px the panel shows everything beside the pictures and has no toggle. Up to 720 px the
-layout narrows further: three tiles per row.
+The info panel (ADR-0048, mockup option A:
+`https://polandy.github.io/glissando-assets/mockups/details-panel/`) holds, top to bottom:
+
+- **Header**: title, "date range · N pictures · duration" and "Play".
+- **Three tiles**, one row of three at every width and never folded. Each tile is one button
+  with a small label and a chevron, the value and a summary, and opens its sheet:
+  - **Music**: "3 songs" (or the song's name), with "11:20 of music" underneath when the music's
+    length differs from the slideshow's. Without music: "None" and "Add music".
+  - **Mood**: the mood's name, with a summary of what it sets: picture times ("~6.3 s · 8 beats",
+    "~7 s" without a beat, the range "4.1–9.0 s" under the energy pacing; under Custom the
+    picture-times value), then the motion ("gentle motion", "strong motion", "standard motion"),
+    then "follows the energy" while the energy pacing is on and the slideshow has music.
+  - **Look**: the look's name beside a swatch of it.
+- **"Fine settings"**: a toggle (`aria-expanded`) at every width, folded until opened. Its state
+  is remembered on the device for every slideshow. It opens Transitions, Portrait pictures and
+  Trip chapters as rows (label, value, summary, chevron; the whole row opens the sheet), then
+  storage, "Save as", link and "Show on TV".
+
+Up to 1024 px wide (a container query on `.screen`) the panel stacks full width above the
+pictures instead of beside them. Up to 720 px the layout narrows further: three tiles per row.
