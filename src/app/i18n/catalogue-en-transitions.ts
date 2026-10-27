@@ -7,7 +7,6 @@ export const enTransitions: Pick<Catalogue, keyof typeof deTransitions> = {
   "slideshow.transitionOwnChoice": "own choice",
   "slideshow.transitionOwnCount": { one: "{count} own", other: "{count} own" },
   "slideshow.transitionSummary": "{choice} · {own}",
-  "slideshow.change": "Change",
   "transitions.title": "Slideshow transitions",
   "transitions.default": "Default",
   "transitions.ownChoice": "Own choice",

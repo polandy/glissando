@@ -7,7 +7,7 @@ test.use(GERMAN_BROWSER);
 
 const TRACK_SECONDS = 20;
 
-test("E2E-023 the music gets its own excerpt and fade-in, stored, summed up in the music row, and goes back to the whole track", async ({
+test("E2E-023 the music gets its own excerpt and fade-in, stored, and goes back to the whole track", async ({
   page,
 }) => {
   const excerpt = page.locator('section[aria-labelledby="music-excerpt"]');
@@ -25,7 +25,7 @@ test("E2E-023 the music gets its own excerpt and fade-in, stored, summed up in t
     fill: true,
   });
 
-  await page.getByRole("button", { name: "Musik Sommerwind.wav ganzer Titel Bearbeiten" }).click();
+  await page.getByRole("button", { name: /^Musik Sommerwind\.wav/ }).click();
   await expect(
     page.getByRole("navigation", { name: "Navigationspfad" }).locator('[aria-current="page"]'),
   ).toHaveText("Musik");
@@ -69,12 +69,10 @@ test("E2E-023 the music gets its own excerpt and fade-in, stored, summed up in t
   await expect(fadeIn.locator(".state")).toHaveText("Eigene");
 
   await back.click();
-  const trimmedRow = page.getByRole("button", {
-    name: "Musik Sommerwind.wav 0:01–0:17 · blendet ein und aus Bearbeiten",
-  });
-  await expect(trimmedRow).toBeVisible();
+  const musicTile = page.getByRole("button", { name: /^Musik Sommerwind\.wav/ });
+  await expect(musicTile).toBeVisible();
 
-  await trimmedRow.click();
+  await musicTile.click();
   await expect(excerptState).toHaveText("Gekürzt");
   await excerpt.getByRole("button", { name: "Ganzer Titel" }).click();
   await expect(excerptState).toHaveText("Ganzer Titel");
@@ -84,9 +82,7 @@ test("E2E-023 the music gets its own excerpt and fade-in, stored, summed up in t
   await editsStored(page);
 
   await back.click();
-  await expect(
-    page.getByRole("button", { name: "Musik Sommerwind.wav blendet ein Bearbeiten" }),
-  ).toBeVisible();
+  await expect(page.getByRole("button", { name: /^Musik Sommerwind\.wav/ })).toBeVisible();
 });
 
 /** Parses a `formatTenths` time such as "0:01,5" into seconds. */
@@ -114,7 +110,7 @@ test("E2E-061 listening to the excerpt draws one playhead through both lanes wit
   await createSlideshowWithMusic(page, silentTrack("Sommerwind.wav", TRACK_SECONDS), {
     fill: true,
   });
-  await page.getByRole("button", { name: "Musik Sommerwind.wav ganzer Titel Bearbeiten" }).click();
+  await page.getByRole("button", { name: /^Musik Sommerwind\.wav/ }).click();
 
   // A non-zero excerpt start, so the chip's time at the start of a listen is meaningfully
   // compared against it rather than trivially 0.
@@ -169,7 +165,7 @@ test("E2E-073 a song's own volume shows Own with its dB and the song-list badge,
   await createSlideshowWithMusic(page, silentTrack("Sommerwind.wav", TRACK_SECONDS), {
     fill: true,
   });
-  await page.getByRole("button", { name: "Musik Sommerwind.wav ganzer Titel Bearbeiten" }).click();
+  await page.getByRole("button", { name: /^Musik Sommerwind\.wav/ }).click();
 
   // The loudness pass measures the song in the background; the badge drops its pulsing
   // "Measuring…" once the song's blocks are stored — a positive signal, no sleep. A silent

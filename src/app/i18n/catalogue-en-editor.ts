@@ -9,8 +9,6 @@ export const enEditor: Pick<Catalogue, keyof typeof deEditor> = {
   "slideshow.ownMotionBadge": "own",
   "slideshow.pictureLabelOwnMotion": "Picture {number}, taken on {date}, own motion",
   "slideshow.automaticWithOwn": "automatic, {count} own",
-  "slideshow.captions": "Captions",
-  "slideshow.captionCount": "{count} of {total}",
   "editor.crumb": "Picture {number}",
   "editor.position": "Picture {number} of {count}",
   "editor.counter": "{number} / {count}",

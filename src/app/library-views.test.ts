@@ -41,7 +41,6 @@ describe("slideshowDetails", () => {
       songCount: 0,
       musicTitle: null,
       musicSeconds: null,
-      musicSummary: null,
       ownOrder: false,
       automaticChaptersOff: false,
       chapters: [],
@@ -53,7 +52,6 @@ describe("slideshowDetails", () => {
       look: "none",
       portraitPictures: "automatic",
       pairCount: 0,
-      captionCount: 0,
       capturedFrom: "2025-07-01T10:00:00Z",
       capturedTo: "2025-07-02T10:00:00Z",
       pictures: [
@@ -170,21 +168,7 @@ describe("slideshowDetails", () => {
     expect(details.ownMotionCount).toBe(1);
   });
 
-  it("counts the pictures with a caption", () => {
-    const [first, second] = stored.pictures;
-    const edited = { ...stored, pictures: [first, { ...second, caption: "Am Steg" }] };
-
-    expect(slideshowDetails(edited as StoredSlideshow, urlOf, "en").captionCount).toBe(1);
-  });
-
-  it("sums up the whole track with automatic fades as such", () => {
-    expect(slideshowDetails(withMusic, urlOf, "en").musicSummary).toEqual({
-      excerpt: null,
-      fades: null,
-    });
-  });
-
-  it("sums up an excerpt with the fades it plays, and its length as the music's", () => {
+  it("gives an excerpt's length as the music's", () => {
     const trimmed: StoredSlideshow = {
       ...withMusic,
       songs: [{ ...music, trim: { startMs: 2000, endMs: 22_000 } }],
@@ -192,28 +176,15 @@ describe("slideshowDetails", () => {
 
     const details = slideshowDetails(trimmed, urlOf, "en");
 
-    expect(details.musicSummary).toEqual({
-      excerpt: { fromSeconds: 2, toSeconds: 22 },
-      fades: "in-and-out",
-    });
     expect(details.musicSeconds).toBe(20);
     expect(details.durationSeconds).toBe(20);
-  });
-
-  it("names the fades once one is the user's own", () => {
-    const faded: StoredSlideshow = { ...withMusic, songs: [{ ...music, fadeInMs: 5000 }] };
-
-    expect(slideshowDetails(faded, urlOf, "en").musicSummary).toEqual({
-      excerpt: null,
-      fades: "in",
-    });
   });
 
   it("names the music by its file name", () => {
     expect(slideshowDetails(withMusic, urlOf, "en").musicTitle).toBe("Sommer.mp3");
   });
 
-  it("counts several songs and gives the playlist's length, less the crossfade, without a summary", () => {
+  it("counts several songs and gives the playlist's length, less the crossfade", () => {
     const second = { ...music, id: "m2", fileName: "Herbst.mp3" };
     const playlist: StoredSlideshow = { ...withMusic, songs: [music, second] };
 
@@ -221,7 +192,6 @@ describe("slideshowDetails", () => {
 
     expect(details.songCount).toBe(2);
     expect(details.musicSeconds).toBe(57);
-    expect(details.musicSummary).toBeNull();
   });
 
   it("tells an order of the user's own, and covers it first with its first picture", () => {

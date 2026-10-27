@@ -5,12 +5,6 @@ import type { deMusic } from "./catalogue-de-music.ts";
 export const enMusic: Pick<Catalogue, keyof typeof deMusic> = {
   "import.convertingButton": "Converting\u00a0…",
   "import.convertedFrom": "Converted from {format} on this device",
-  "slideshow.musicWholeTrack": "whole track",
-  "slideshow.musicExcerpt": "{from}–{to}",
-  "slideshow.musicFades-in-and-out": "fades in and out",
-  "slideshow.musicFades-in": "fades in",
-  "slideshow.musicFades-out": "fades out",
-  "slideshow.musicSummary": "{excerpt} · {fades}",
   "music.crumb": "Music",
   "music.trimmedTo": "{duration} · trimmed to {excerpt}",
   "music.start": "Start",

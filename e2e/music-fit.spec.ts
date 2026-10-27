@@ -45,9 +45,8 @@ test("E2E-081 the music editor notes a shorter music that outlasts or fits the p
 
   await openApp(page);
   await createSlideshowWithMusic(page, silentTrack("Nachtlicht.wav", TRACK_SECONDS));
-  // The info panel's details are folded away below desktop width (E2E-067).
-  await page.getByRole("button", { name: "Details" }).click();
-  await page.getByRole("button", { name: "Musik Nachtlicht.wav ganzer Titel Bearbeiten" }).click();
+  // The Music tile is never folded away (ADR-0048).
+  await page.getByRole("button", { name: /^Musik Nachtlicht\.wav/ }).click();
 
   // Shift+arrow steps the handle a second at a time (as in TrimSection), down to an excerpt the
   // 3 pictures, even squeezed, cannot end with: they keep their 5 s each and outlast it by 7 s.

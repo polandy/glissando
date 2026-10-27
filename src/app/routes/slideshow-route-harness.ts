@@ -1,4 +1,6 @@
 import { songIntakeStoringIn } from "../music-editor/testing/song-intake-device";
+import { createStorageFineSettingsFoldStore } from "../screens/slideshow/fine-settings-fold";
+import { createMemoryStorage } from "../testing/memory-storage";
 import { beatPassFindingNone } from "../../library/testing/beat-pass-finding-none";
 import { loudnessPassFindingNone } from "../../library/testing/loudness-pass-finding-none";
 import type { FocusPass } from "../../library/focus-pass";
@@ -94,6 +96,7 @@ export function mountRoute(
     serverOn: false,
     onKeepCopy: () => {},
     onSaveOnServer: () => {},
+    fineSettingsFold: createStorageFineSettingsFoldStore(createMemoryStorage()),
     serverSessions: {
       newShareLinkSession: (): never => {
         throw new Error("a device slideshow has no link to share");

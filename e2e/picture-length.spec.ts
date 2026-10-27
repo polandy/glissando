@@ -38,7 +38,7 @@ test("E2E-040 with music the pictures keep their own length on the beat, set in 
   await page.getByRole("button", { name: "Diashow erstellen" }).click();
   await expect(page.getByRole("status")).toHaveText(CREATED_TOAST);
 
-  await page.getByRole("button", { name: "Musik Takt.wav ganzer Titel Bearbeiten" }).click();
+  await page.getByRole("button", { name: /^Musik Takt\.wav/ }).click();
   await expect(page.locator('[aria-labelledby="music-picture-changes"] .state')).toHaveText(
     "120 BPM",
   );

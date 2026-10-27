@@ -7,12 +7,12 @@ afterEach(() => unmountScreen());
 
 /** The text as read, whitespace between elements collapsed. */
 const text = (within: Element | null) => within?.textContent?.replace(/\s+/g, " ").trim() ?? "";
-const moodRow = () => {
-  const row = document.querySelector<HTMLButtonElement>(".rows button.mood");
-  if (row === null) {
-    throw new Error("no mood row");
+const moodTile = () => {
+  const found = document.querySelector<HTMLButtonElement>(".tiles button.mood");
+  if (found === null) {
+    throw new Error("no mood tile");
   }
-  return row;
+  return found;
 };
 const sheet = () => document.querySelector("dialog");
 const tile = (choice: string) => {
@@ -24,59 +24,61 @@ const tile = (choice: string) => {
   }
   return found;
 };
-const moodValue = () => text(moodRow().querySelector(".value b") ?? null);
-const moodRowSummary = () => text(moodRow().querySelector(".value small") ?? null);
+const moodValue = () => text(moodTile().querySelector(".value b") ?? null);
+const moodSummary = () => text(moodTile().querySelector(".value small") ?? null);
 const resetButton = () => buttonNamed("Zurück auf Eigene");
-const factRow = (dt: string) =>
-  Array.from(document.querySelectorAll(".rows > div")).find(
-    (row) => text(row.querySelector("dt")) === dt,
-  ) ?? null;
-const factRowSummary = (dt: string) => text(factRow(dt)?.querySelector("dd small") ?? null);
-const factRowValue = (dt: string) => text(factRow(dt)?.querySelector(".pill") ?? null);
 
 function openSheet(): void {
-  moodRow().click();
+  moodTile().click();
   flushSync();
 }
 
-describe("SlideshowScreen, the mood row", () => {
-  it("names Custom and says it is the default", () => {
+describe("SlideshowScreen, the mood tile", () => {
+  it("names Custom with the automatic picture times and the standard motion", () => {
     mountScreen();
 
     expect(moodValue()).toBe("Eigene");
-    expect(moodRowSummary()).toBe("Vorgabe");
+    expect(moodSummary()).toBe("automatisch · übliche Bewegung");
   });
 
-  it("names the stored mood as plain text, with no summary", () => {
+  it("counts own picture times under Custom", () => {
+    mountScreen(details(["a"], { ownDurationCount: 1 }));
+
+    expect(moodSummary()).toBe("automatisch, 1 eigene · übliche Bewegung");
+  });
+
+  it("names the stored mood, with its own motion", () => {
     mountScreen(details(["a"], { mood: "calm" }));
 
     expect(moodValue()).toBe("Ruhig");
-    expect(moodRowSummary()).toBe("");
+    expect(moodSummary()).toContain("sanfte Bewegung");
   });
 
-  it("paces picture times and Ken Burns to the mood instead of the slideshow's own settings", () => {
-    mountScreen(details(["a"], { mood: "calm" }), { moodBpm: 80 });
+  it("follows the energy only once the energy pacing is on and the slideshow has music", () => {
+    mountScreen(
+      details(["a"], {
+        mood: "calm",
+        energyPacing: true,
+        songCount: 1,
+        musicTitle: "m.mp3",
+        musicSeconds: 90,
+      }),
+      {
+        moodBpm: 80,
+        moodEnergyPacing: { minMs: 5000, maxMs: 10_000, firstLiftUnitIndex: undefined },
+      },
+    );
 
-    expect(factRowSummary("Bildzeiten")).toBe("nach Stimmung");
-    expect(factRowSummary("Ken Burns")).toBe("nach Stimmung");
+    expect(moodSummary()).toContain("folgt der Energie");
   });
 
-  it("shows the energy pacing's found range under a mood, instead of the mood's own text", () => {
-    mountScreen(details(["a"], { mood: "calm" }), {
+  it("does not follow the energy without music, even with the energy pacing on", () => {
+    mountScreen(details(["a"], { mood: "calm", energyPacing: true }), {
       moodBpm: 80,
       moodEnergyPacing: { minMs: 5000, maxMs: 10_000, firstLiftUnitIndex: undefined },
     });
 
-    expect(factRowValue("Bildzeiten")).toBe("5 s – 10 s · nach Energie");
-  });
-
-  it("keeps Custom's picture times without a note once the energy pacing is on", () => {
-    mountScreen(details(["a"], { energyPacing: true }), {
-      moodEnergyPacing: { minMs: 5000, maxMs: 10_000, firstLiftUnitIndex: undefined },
-    });
-
-    expect(factRowValue("Bildzeiten")).toBe("automatisch");
-    expect(factRowSummary("Bildzeiten")).toBe("");
+    expect(moodSummary()).not.toContain("folgt der Energie");
   });
 });
 
@@ -100,7 +102,7 @@ describe("SlideshowScreen, the mood sheet", () => {
     expect(calls.moods).toEqual(["lively"]);
     expect(tile("lively").getAttribute("aria-checked")).toBe("true");
     expect(moodValue()).toBe("Lebhaft");
-    expect(moodRowSummary()).toBe("");
+    expect(moodSummary()).toContain("kräftige Bewegung");
   });
 
   it("goes back to Custom, which then is disabled and says why", () => {
@@ -116,22 +118,22 @@ describe("SlideshowScreen, the mood sheet", () => {
     expect(resetButton().getAttribute("aria-disabled")).toBe("true");
     expect(resetButton().title).toBe("Die Diashow steht schon auf Eigene");
     expect(moodValue()).toBe("Eigene");
-    expect(moodRowSummary()).toBe("Vorgabe");
+    expect(moodSummary()).toBe("automatisch · übliche Bewegung");
   });
 
-  it("closes with Done, focus back on the row", () => {
+  it("closes with Done, focus back on the tile", () => {
     mountScreen();
     openSheet();
 
     buttonNamed("Fertig").click();
     flushSync();
 
-    expect(moodRow()).not.toBeNull();
+    expect(moodTile()).not.toBeNull();
     expect(sheet()).toBeNull();
-    expect(document.activeElement).toBe(moodRow());
+    expect(document.activeElement).toBe(moodTile());
   });
 
-  it("closes with Esc, focus back on the row", async () => {
+  it("closes with Esc, focus back on the tile", async () => {
     mountScreen();
     openSheet();
 
@@ -139,20 +141,20 @@ describe("SlideshowScreen, the mood sheet", () => {
     flushSync();
     await tick();
 
-    expect(moodRow()).not.toBeNull();
+    expect(moodTile()).not.toBeNull();
     expect(sheet()).toBeNull();
-    expect(document.activeElement).toBe(moodRow());
+    expect(document.activeElement).toBe(moodTile());
   });
 
-  it("closes on a tap on the scrim, focus back on the row", () => {
+  it("closes on a tap on the scrim, focus back on the tile", () => {
     mountScreen();
     openSheet();
 
     sheet()?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     flushSync();
 
-    expect(moodRow()).not.toBeNull();
+    expect(moodTile()).not.toBeNull();
     expect(sheet()).toBeNull();
-    expect(document.activeElement).toBe(moodRow());
+    expect(document.activeElement).toBe(moodTile());
   });
 });

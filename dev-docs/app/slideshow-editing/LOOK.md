@@ -3,9 +3,8 @@
 The slideshow's colour grade (ADR-0044; table and maths in `dev-docs/player/LOOKS.md`). Mockup,
 option A: `https://polandy.github.io/glissando-assets/mockups/slideshow-looks/`.
 
-- **Row**: the info panel's "Look" row sits under "Transitions" and shows the look's name as
-  plain text, like the transitions row, with "default" underneath for None and no summary for
-  any other look, and "Change", which opens the sheet.
+- **Tile**: the info panel's "Look" tile, the third beside "Music" and "Mood", shows the look's
+  name beside a swatch of it and opens the sheet ([SCREENS](../SCREENS.md)).
 - **Sheet** (`slideshow/LookSheet.svelte`): modal like the transitions sheet (bottom sheet up to
   720 px wide, a centred dialog above, over a scrim), title "Look" and a state pill with
   the look's name, accent-tinted for any look but None.

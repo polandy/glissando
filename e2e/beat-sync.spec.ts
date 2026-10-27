@@ -14,7 +14,7 @@ test("E2E-039 the music editor finds the music's beat, changes the pictures on i
   await openApp(page);
   await createSlideshowWithMusic(page, clickTrackWav("Takt.wav", 20, 120));
 
-  await page.getByRole("button", { name: "Musik Takt.wav ganzer Titel Bearbeiten" }).click();
+  await page.getByRole("button", { name: /^Musik Takt\.wav/ }).click();
   await expect(section.locator(".state")).toHaveText("120 BPM");
   await expect(onTheBeat).toHaveAttribute("aria-checked", "true");
   await expect(

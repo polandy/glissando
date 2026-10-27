@@ -47,28 +47,40 @@ function withOwn(ownIds: readonly string[], overrides: Partial<SlideshowDetails>
   };
 }
 
+/** Transitions lives inside the "Fine settings" fold, closed by default (ADR-0048); open it so
+ * the row is rendered and can take focus back once its sheet closes. */
+function openFineSettings(): void {
+  const toggle = document.querySelector<HTMLButtonElement>(".toggle");
+  if (toggle?.getAttribute("aria-expanded") === "false") {
+    toggle.click();
+    flushSync();
+  }
+}
+
 function openSheet(): void {
+  openFineSettings();
   transitionsRow().click();
   flushSync();
 }
 
 describe("SlideshowScreen, the transitions row", () => {
-  it("names the default crossfade and offers to change it", () => {
+  it("names the default crossfade", () => {
     mountScreen();
 
-    expect(text(transitionsRow())).toBe("Übergänge Überblenden Vorgabe Ändern");
+    expect(text(transitionsRow())).toBe("Übergänge Überblenden Vorgabe");
   });
 
   it("names an own choice and counts the pictures with their own transition", () => {
     mountScreen(withOwn(["a"], { transition: "alternate" }));
 
-    expect(text(transitionsRow())).toBe("Übergänge Abwechselnd eigene Wahl · 1 eigener Ändern");
+    expect(text(transitionsRow())).toBe("Übergänge Abwechselnd eigene Wahl · 1 eigener");
   });
 
   it("counts several own transitions in the plural", () => {
     mountScreen(withOwn(["a", "c"]));
+    openFineSettings();
 
-    expect(transitionsRow().querySelector("small")?.textContent).toBe("Vorgabe · 2 eigene");
+    expect(text(transitionsRow())).toBe("Übergänge Überblenden Vorgabe · 2 eigene");
   });
 });
 

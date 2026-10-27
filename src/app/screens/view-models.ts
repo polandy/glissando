@@ -63,16 +63,6 @@ export interface PictureTile {
   readonly colours: PictureColours;
 }
 
-/** Which fades the music plays: named in its summary once the user changed the music. */
-export type MusicFades = "in-and-out" | "in" | "out";
-
-export interface MusicSummary {
-  /** The excerpt in seconds of the track; null: the whole track. */
-  readonly excerpt: { readonly fromSeconds: number; readonly toSeconds: number } | null;
-  /** Null while the music is untouched, or when it plays no fade. */
-  readonly fades: MusicFades | null;
-}
-
 export interface SlideshowDetails {
   readonly title: string;
   readonly coverUrl: string;
@@ -83,8 +73,6 @@ export interface SlideshowDetails {
   readonly musicTitle: string | null;
   /** How long the playlist plays, or null without music. */
   readonly musicSeconds: number | null;
-  /** What the music editor changed of the only song; null without music or with several songs. */
-  readonly musicSummary: MusicSummary | null;
   /** The user reordered the pictures; otherwise they are in capture-date order. */
   readonly ownOrder: boolean;
   /** Rule C, TRIP_CHAPTERS.md: the owner turned the automatic trip chapters off. */
@@ -109,8 +97,6 @@ export interface SlideshowDetails {
   readonly portraitPictures: ResolvedPortraitPictures;
   /** How many slides compose two portrait pictures into one pair. */
   readonly pairCount: number;
-  /** How many pictures have a caption. */
-  readonly captionCount: number;
   /** The earliest and the latest capture date, ISO 8601. */
   readonly capturedFrom: string;
   readonly capturedTo: string;

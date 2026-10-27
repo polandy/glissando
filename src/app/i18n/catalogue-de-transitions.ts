@@ -6,7 +6,6 @@ export const deTransitions = {
   "slideshow.transitionOwnChoice": "eigene Wahl",
   "slideshow.transitionOwnCount": { one: "{count} eigener", other: "{count} eigene" },
   "slideshow.transitionSummary": "{choice} · {own}",
-  "slideshow.change": "Ändern",
   "transitions.title": "Übergänge der Diashow",
   "transitions.default": "Vorgabe",
   "transitions.ownChoice": "Eigene Wahl",

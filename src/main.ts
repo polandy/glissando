@@ -17,6 +17,7 @@ import {
   browserScreenShortEdge,
 } from "./app/settings/playback-quality";
 import { applyThemePreference, createStorageThemePreferenceStore } from "./app/settings/theme";
+import { createStorageFineSettingsFoldStore } from "./app/screens/slideshow/fine-settings-fold";
 import { browserScheduler } from "./ui-kit/scheduler";
 import { handOverFromShell } from "./app/shell/app-shell";
 import { consumeFirstLaunch, createStorageFirstLaunchStore } from "./app/start/first-launch";
@@ -287,6 +288,7 @@ const services = {
   reload: () => window.location.reload(),
   ...createFrameServices(window, browserScheduler, logError),
   ...sampleMusic,
+  fineSettingsFold: createStorageFineSettingsFoldStore(window.localStorage),
 };
 
 const playStartAnimation = consumeFirstLaunch(createStorageFirstLaunchStore(window.localStorage));

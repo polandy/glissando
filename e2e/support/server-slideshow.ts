@@ -2,7 +2,8 @@ import { expect, type Page } from "@playwright/test";
 import { CREATED_TOAST, openImport } from "./app";
 import { LIBRARY_PAGE } from "./fake-glissando-server";
 
-/** Makes a slideshow on the fake server from its Immich photos, and stays on its screen. */
+/** Makes a slideshow on the fake server from its Immich photos, opens Fine settings (where its
+ * share link and TV rows live, ADR-0048) and stays on its screen. */
 export async function createServerSlideshow(page: Page): Promise<void> {
   await openImport(page);
   await page.getByRole("button", { name: /^Glissando-Server/ }).click();
@@ -14,4 +15,5 @@ export async function createServerSlideshow(page: Page): Promise<void> {
   await page.getByRole("button", { name: "Weiter" }).click();
   await page.getByRole("button", { name: "Ohne Musik erstellen" }).click();
   await expect(page.getByRole("status").filter({ hasText: CREATED_TOAST })).toBeVisible();
+  await page.getByRole("button", { name: "Feineinstellungen" }).click();
 }

@@ -18,7 +18,9 @@ import { NO_FOCUS_KNOWN, type PicturesFocus } from "../focus/pictures-focus";
 import type { SlideshowSearch } from "../../library/focus-pass";
 import type { ChapterSettingsEditor } from "../editing/chapter-settings-editor";
 import type { MoodEnergyPacing } from "./slideshow/mood-energy-pacing";
+import { createStorageFineSettingsFoldStore } from "./slideshow/fine-settings-fold";
 import { moodPreviewPortsFixture } from "./slideshow/mood-preview-ports-fixture";
+import { createMemoryStorage } from "../testing/memory-storage";
 import { withClosingCard, withMood, withOpeningCard } from "./slideshow-screen-harness-cards";
 
 /** The title slide a bare `ensureOpeningCard` call creates, for tests that don't care about it. */
@@ -62,7 +64,6 @@ export function details(ids: readonly string[], overrides: Partial<SlideshowDeta
     songCount: 0,
     musicTitle: null,
     musicSeconds: null,
-    musicSummary: null,
     ownOrder: false,
     automaticChaptersOff: false,
     chapters: [],
@@ -74,7 +75,6 @@ export function details(ids: readonly string[], overrides: Partial<SlideshowDeta
     look: "none",
     portraitPictures: "automatic",
     pairCount: 0,
-    captionCount: 0,
     capturedFrom: "2025-07-01T10:00:00Z",
     capturedTo: "2025-07-03T10:00:00Z",
     pictures: ids.map((id, index) => ({
@@ -111,6 +111,7 @@ export function mountScreen(
     moodPending = false,
     moodEnergyPacing = null as MoodEnergyPacing | null,
     moodPreviewPorts = moodPreviewPortsFixture(),
+    fineSettingsFold = createStorageFineSettingsFoldStore(createMemoryStorage()),
   } = {},
 ) {
   const clock = new FakeClock();
@@ -258,6 +259,7 @@ export function mountScreen(
     storage,
     serverRows,
     onStorageAction: (action: StorageAction) => calls.storageActions.push(action),
+    fineSettingsFold,
     focus,
     focusSearch,
     focusPaused,

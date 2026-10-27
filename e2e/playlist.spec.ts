@@ -31,7 +31,7 @@ test("E2E-041 several songs chosen in the import play as a playlist, reordered, 
 
   // A slideshow without music offers to add some, and the music editor opens on its empty state.
   await createSlideshow(page, ["2025-06-01", "2025-06-02"], 5);
-  await page.getByRole("button", { name: "Musik Ohne Musik Musik hinzufügen" }).click();
+  await page.getByRole("button", { name: "Musik Keine Musik hinzufügen" }).click();
   await expect(page.getByText("Noch keine Musik")).toBeVisible();
   await expect(page.getByRole("button", { name: "Song hinzufügen" })).toBeVisible();
   await expect(songs).toBeHidden();
@@ -54,7 +54,7 @@ test("E2E-041 several songs chosen in the import play as a playlist, reordered, 
   await expect(page.getByRole("status")).toHaveText(CREATED_TOAST);
 
   // Two songs of 8 s and 6 s crossfade for 3 s: the playlist lasts 0:11.
-  await page.getByRole("button", { name: "Musik 2 Songs 0:11 Bearbeiten" }).click();
+  await page.getByRole("button", { name: "Musik 2 Songs" }).click();
   await expect(songRows).toHaveText([new RegExp(MORNING), new RegExp(EVENING)]);
   await expect(page.getByText("Playlist, 2 Songs · 0:11")).toBeVisible();
 
@@ -94,5 +94,5 @@ test("E2E-041 several songs chosen in the import play as a playlist, reordered, 
   await page.reload();
   await expect(songRows).toHaveText([new RegExp(EVENING), new RegExp(MORNING), new RegExp(NIGHT)]);
   await back.click();
-  await expect(page.getByRole("button", { name: "Musik 3 Songs 0:13 Bearbeiten" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Musik 3 Songs" })).toBeVisible();
 });

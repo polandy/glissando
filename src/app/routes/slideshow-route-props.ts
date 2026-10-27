@@ -11,6 +11,7 @@ import type { MusicEditorAudio } from "../music-editor/music-editor-audio";
 import type { DecodeClipSound, MusicOutput } from "../../player";
 import type { SongIntakeDevice } from "../music-editor/song-intake";
 import type { SamplePreview } from "../sample-music/sample-preview";
+import type { FineSettingsFoldStore } from "../screens/slideshow/fine-settings-fold";
 import type { PlaybackQuality } from "../settings/playback-quality";
 import type { VideoExportDevice } from "../video-export/slideshow-video-export";
 import type { HtmlExportDevice } from "../html-export/slideshow-html-export";
@@ -69,6 +70,8 @@ export interface SlideshowRouteProps {
   /** Plays a sample track's preview in the music editor's "Add a song" sheet (SAMPLE_MUSIC.md);
    * `undefined` when the build turns sample music off. */
   samplePreview?: SamplePreview | undefined;
+  /** Whether the info panel's "Fine settings" fold is open, kept on this device (ADR-0048). */
+  fineSettingsFold: FineSettingsFoldStore;
   /** Also taken when the slideshow is no longer on this device. */
   onBack: () => void;
   onPlay: () => void;

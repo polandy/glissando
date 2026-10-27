@@ -9,24 +9,23 @@ test.use(GERMAN_BROWSER);
 const TRACK_BPM = 120;
 const ENERGY_SWITCH = "Folgt der Energie der Musik";
 
-test("E2E-080 the energy switch in the info panel stores at once, shows in the Mood sheet and survives a reload", async ({
+test("E2E-080 the Mood sheet's energy switch stores at once and survives a reload", async ({
   page,
 }) => {
-  const moodRow = page.getByRole("button", { name: "Stimmung Eigene Vorgabe Ändern" });
-  const panelSwitch = page.getByRole("switch", { name: ENERGY_SWITCH });
+  const moodTile = page.getByRole("button", { name: /^Stimmung Eigene/ });
   const sheet = page.getByRole("dialog", { name: "Stimmung" });
   const sheetSwitch = sheet.getByRole("switch", { name: ENERGY_SWITCH });
 
   await openApp(page);
   await createSlideshowWithMusic(page, clickTrackWav("Takt.wav", 20, TRACK_BPM));
-  await expect(panelSwitch).not.toBeChecked();
 
-  await clickSwitch(panelSwitch);
-  await expect(panelSwitch).toBeChecked();
+  await moodTile.click();
+  await expect(sheetSwitch).not.toBeChecked();
+
+  await clickSwitch(sheetSwitch);
+  await expect(sheetSwitch).toBeChecked();
   await editsStored(page);
 
-  await moodRow.click();
-  await expect(sheetSwitch).toBeChecked();
   await clickSwitch(sheetSwitch);
   await expect(sheetSwitch).not.toBeChecked();
   await clickSwitch(sheetSwitch);
@@ -36,5 +35,6 @@ test("E2E-080 the energy switch in the info panel stores at once, shows in the M
   await editsStored(page);
 
   await page.reload();
-  await expect(panelSwitch).toBeChecked();
+  await moodTile.click();
+  await expect(sheetSwitch).toBeChecked();
 });

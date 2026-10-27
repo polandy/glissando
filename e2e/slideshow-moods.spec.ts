@@ -10,10 +10,10 @@ const TRACK_BPM = 120;
 test("E2E-079 picking Calm sets its transitions, Ken Burns and picture times, and leaving it by another transition keeps an undo", async ({
   page,
 }) => {
-  const moodRow = page.getByRole("button", { name: "Stimmung Eigene Vorgabe Ändern" });
-  const calmRow = page.getByRole("button", { name: "Stimmung Ruhig Ändern" });
+  const moodRow = page.getByRole("button", { name: /^Stimmung Eigene/ });
+  const calmRow = page.getByRole("button", { name: /^Stimmung Ruhig/ });
   const transitionsRow = page.getByRole("button", {
-    name: "Übergänge Überblenden, lang nach Stimmung Ändern",
+    name: "Übergänge Überblenden, lang nach Stimmung",
   });
   const sheet = page.getByRole("dialog", { name: "Stimmung" });
   const customTile = sheet.getByRole("radio", { name: "Eigene" });
@@ -24,6 +24,8 @@ test("E2E-079 picking Calm sets its transitions, Ken Burns and picture times, an
   await openApp(page);
   await createSlideshowWithMusic(page, clickTrackWav("Takt.wav", 20, TRACK_BPM));
   await expect(moodRow).toBeVisible();
+  // The Transitions row lives behind the Fine settings fold (ADR-0048).
+  await page.getByRole("button", { name: "Feineinstellungen" }).click();
 
   await moodRow.click();
   await expect(sheet).toBeVisible();
@@ -42,8 +44,6 @@ test("E2E-079 picking Calm sets its transitions, Ken Burns and picture times, an
 
   await expect(calmRow).toBeVisible();
   await expect(transitionsRow).toBeVisible();
-  await expect(definitionOf(page, "Bildzeiten")).toContainText("nach Stimmung");
-  await expect(definitionOf(page, "Ken Burns")).toContainText("nach Stimmung");
 
   await transitionsRow.click();
   const transitionsSheet = page.getByRole("dialog", { name: "Übergänge der Diashow" });

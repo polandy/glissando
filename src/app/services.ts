@@ -29,6 +29,7 @@ import type { BuildInfo } from "./settings/build-info";
 import type { FrameDevice } from "./frame/browser-frame-device";
 import type { FrameCardPreference } from "./frame/frame-card-preference";
 import type { FramePreferences } from "./frame/frame-preferences";
+import type { FineSettingsFoldStore } from "./screens/slideshow/fine-settings-fold";
 
 /**
  * What the composition root (`main.ts`) wires into the app; a server slideshow's share link and
@@ -112,4 +113,6 @@ export interface AppServices extends ServerSlideshowSessions {
   readonly frameDevice: FrameDevice;
   /** Previews a sample track (SAMPLE_MUSIC.md); undefined when the build turns sample music off. */
   readonly samplePreview?: SamplePreview;
+  /** Whether the slideshow screen's "Fine settings" fold is open, kept on this device (ADR-0048). */
+  readonly fineSettingsFold: FineSettingsFoldStore;
 }

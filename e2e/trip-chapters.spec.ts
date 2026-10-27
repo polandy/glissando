@@ -140,6 +140,8 @@ test("E2E-078 inserting a chapter from the selection bar adds it right before th
   await expect(lisbon).toHaveCount(1);
   await expect(porto).toHaveCount(1);
 
+  // The Trip chapters row lives behind the Fine settings fold (ADR-0048).
+  await page.getByRole("button", { name: "Feineinstellungen" }).click();
   await page.getByRole("button", { name: /^Reisekapitel/ }).click();
   const generalDialog = page.getByRole("dialog", { name: "Reisekapitel" });
   await expect(generalDialog).toBeVisible();

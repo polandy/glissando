@@ -1,7 +1,6 @@
 import {
   pictureLayoutSummaries,
   playlistMs,
-  resolveMusicTiming,
   slideUnits,
   slideshowDurationMs,
   slideshowLook,
@@ -10,13 +9,8 @@ import {
 import { chaptersOfSlideshow } from "../compose/chapters-of-slideshow";
 import { MILLISECONDS_PER_SECOND } from "../player";
 import { resolvePortraitPictures } from "../library/portrait-pictures";
-import type { StoredMusic, StoredSlideshow } from "../library/stored-slideshow";
-import type {
-  MusicFades,
-  MusicSummary,
-  SlideshowDetails,
-  SlideshowSummary,
-} from "./screens/view-models";
+import type { StoredSlideshow } from "../library/stored-slideshow";
+import type { SlideshowDetails, SlideshowSummary } from "./screens/view-models";
 
 /** A start card's cover shows the first pictures in play order, one large and two small. */
 export const COVER_PICTURE_COUNT = 3;
@@ -61,7 +55,6 @@ export function slideshowDetails(
 ): SlideshowDetails {
   const span = captureSpan(stored);
   const firstSong = stored.songs[0];
-  const onlySong = stored.songs.length === 1 ? firstSong : undefined;
   const musicMs = playlistMs(stored);
   const lastIndex = stored.pictures.length - 1;
   const layouts = pictureLayoutSummaries(stored.pictures, stored.portraitPictures);
@@ -89,8 +82,6 @@ export function slideshowDetails(
     songCount: stored.songs.length,
     musicTitle: firstSong?.fileName ?? null,
     musicSeconds: musicMs === undefined ? null : musicMs / MILLISECONDS_PER_SECOND,
-    musicSummary:
-      onlySong === undefined ? null : musicSummary(onlySong, slideshowDurationMs(stored)),
     ownOrder: stored.ownOrder === true,
     automaticChaptersOff: stored.automaticChaptersOff === true,
     chapters: chaptersOfSlideshow(stored, locale),
@@ -105,39 +96,12 @@ export function slideshowDetails(
     pairCount: slideUnits(stored.pictures, stored.portraitPictures).filter(
       (unit) => unit.pictureIndices.length === 2,
     ).length,
-    captionCount: stored.pictures.filter((picture) => picture.caption !== undefined).length,
     capturedFrom: span.from,
     capturedTo: span.to,
     pictures: tiles,
     ...(stored.openingCard === undefined ? {} : { openingCard: stored.openingCard }),
     ...(stored.closingCard === undefined ? {} : { closingCard: stored.closingCard }),
   };
-}
-
-function musicSummary(music: StoredMusic, slideshowMs: number): MusicSummary {
-  const changed =
-    music.trim !== undefined || music.fadeInMs !== undefined || music.fadeOutMs !== undefined;
-  const { fadeInMs, fadeOutMs } = resolveMusicTiming(music, slideshowMs);
-  return {
-    excerpt:
-      music.trim === undefined
-        ? null
-        : {
-            fromSeconds: music.trim.startMs / MILLISECONDS_PER_SECOND,
-            toSeconds: music.trim.endMs / MILLISECONDS_PER_SECOND,
-          },
-    fades: changed ? fadesPlayed(fadeInMs > 0, fadeOutMs > 0) : null,
-  };
-}
-
-function fadesPlayed(fadesIn: boolean, fadesOut: boolean): MusicFades | null {
-  if (fadesIn && fadesOut) {
-    return "in-and-out";
-  }
-  if (fadesIn) {
-    return "in";
-  }
-  return fadesOut ? "out" : null;
 }
 
 /** What the player names as playing: the only song, or a playlist by its count. */

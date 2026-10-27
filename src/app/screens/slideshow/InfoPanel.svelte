@@ -2,18 +2,17 @@
   import Icon from "../../components/Icon.svelte";
   import { getTranslator } from "../../i18n/context";
   import type { SlideshowDetails, SlideshowStorage } from "../view-models";
-  import ShareLinkControl from "../../share-link/ShareLinkControl.svelte";
   import type { ServerSlideshowRows } from "../../server-library/server-slideshow-sessions";
-  import TvControl from "../../tv-remote/TvControl.svelte";
-  import InfoPanelRows from "./InfoPanelRows.svelte";
+  import DetailsTiles from "./DetailsTiles.svelte";
+  import type { FineSettingsFoldStore } from "./fine-settings-fold";
+  import FineSettings from "./FineSettings.svelte";
   import type { MoodEnergyPacing } from "./mood-energy-pacing";
-  import StorageRow from "./StorageRow.svelte";
   import TitleEditor from "./TitleEditor.svelte";
 
   /**
-   * Beside the pictures: the title (renamed in place), "Play", where it lives, its link and "Show on TV", and the slideshow's facts (`InfoPanelRows`).
-   * Stacked above the pictures, only the head (title, summary, "Play") shows; "Details" opens
-   * the rest.
+   * Beside the pictures: the title (renamed in place), "Play", the Music/Mood/Look tiles
+   * (`DetailsTiles`, never folded) and "Fine settings" (`FineSettings`, folded by default,
+   * ADR-0048).
    */
   let {
     slideshow,
@@ -27,9 +26,9 @@
     moodBpm,
     moodEnergyPacing,
     onEditMood,
-    onEnergyPacing,
     onEditPortraitPictures,
     onEditChapters,
+    fineSettingsFold,
   }: {
     slideshow: SlideshowDetails;
     onPlay: () => void;
@@ -45,49 +44,48 @@
     onEditLook: () => void;
     /** The slideshow's tempo under its mood (ADR-0045); undefined without one. */
     moodBpm: number | undefined;
-    /** The "Picture times" range under the energy pacing (ADR-0046); null without one. */
+    /** The Mood tile's picture-times range under the energy pacing (ADR-0046); null without one. */
     moodEnergyPacing: MoodEnergyPacing | null;
     /** Opens the Mood sheet. */
     onEditMood: () => void;
-    /** The info panel's own "Follow the music's energy" switch (ADR-0046): stores at once. */
-    onEnergyPacing: (on: boolean) => void;
     /** Opens the sheet of the slideshow's portrait pictures setting. */
     onEditPortraitPictures: () => void;
     /** Opens the trip chapters sheet in general mode (TRIP_CHAPTERS.md). */
     onEditChapters: () => void;
+    /** Whether the "Fine settings" fold is open, kept on this device (ADR-0048). */
+    fineSettingsFold: FineSettingsFoldStore;
   } = $props();
 
-  let rows: InfoPanelRows;
+  let tiles: DetailsTiles;
+  let fineSettings: FineSettings;
+
+  /** The look sheet closed: focus goes back to the tile it was opened from. */
+  export function focusLook(): void {
+    tiles.focusLook();
+  }
+
+  /** The Mood sheet closed: focus goes back to the tile it was opened from. */
+  export function focusMood(): void {
+    tiles.focusMood();
+  }
 
   /** The transitions sheet closed: focus goes back to the row it was opened from. */
   export function focusTransitions(): void {
-    rows.focusTransitions();
-  }
-
-  /** The look sheet closed: focus goes back to the row it was opened from. */
-  export function focusLook(): void {
-    rows.focusLook();
-  }
-
-  /** The Mood sheet closed: focus goes back to the row it was opened from. */
-  export function focusMood(): void {
-    rows.focusMood();
+    fineSettings.focusTransitions();
   }
 
   /** The portrait pictures sheet closed: focus goes back to the row it was opened from. */
   export function focusPortraitPictures(): void {
-    rows.focusPortraitPictures();
+    fineSettings.focusPortraitPictures();
   }
 
   /** The chapters sheet closed: focus goes back to the row it was opened from. */
   export function focusChapters(): void {
-    rows.focusChapters();
+    fineSettings.focusChapters();
   }
 
   const { t, formatDate, formatDuration } = getTranslator();
 
-  let detailsOpen = $state(false);
-  const detailsId = "slideshow-details";
   const summary = $derived(
     `${t("units.pictures", { count: slideshow.pictures.length })} · ${formatDuration(slideshow.durationSeconds)}`,
   );
@@ -112,50 +110,25 @@
       <Icon name="play" />{t("slideshow.play")}
     </button>
   </div>
-  <button
-    class="toggle"
-    type="button"
-    aria-expanded={detailsOpen}
-    aria-controls={detailsId}
-    onclick={() => (detailsOpen = !detailsOpen)}
-  >
-    {t("slideshow.details")}
-    <span class="chevron" class:open={detailsOpen}><Icon name="chevronRight" /></span>
-  </button>
-  <div class="more" class:open={detailsOpen} id={detailsId}>
-    <div class="actions">
-      {#if storage !== null}
-        <StorageRow {storage} />
-        {#if storage.kind === "device" || serverRows !== null}
-          <ShareLinkControl
-            session={storage.kind === "server" ? (serverRows?.shareLink ?? null) : null}
-            subject={{
-              title: slideshow.title,
-              pictureCount: slideshow.pictures.length,
-              durationSeconds: slideshow.durationSeconds,
-              hasMusic: slideshow.songCount > 0,
-            }}
-          />
-        {/if}
-        {#if storage.kind === "server" && serverRows !== null}
-          <TvControl session={serverRows.tv} />
-        {/if}
-      {/if}
-    </div>
-    <InfoPanelRows
-      bind:this={rows}
-      {slideshow}
-      {onEditMusic}
-      {onEditTransitions}
-      {onEditLook}
-      {moodBpm}
-      {moodEnergyPacing}
-      {onEditMood}
-      {onEnergyPacing}
-      {onEditPortraitPictures}
-      {onEditChapters}
-    />
-  </div>
+  <DetailsTiles
+    bind:this={tiles}
+    {slideshow}
+    {moodBpm}
+    {moodEnergyPacing}
+    {onEditMusic}
+    {onEditMood}
+    {onEditLook}
+  />
+  <FineSettings
+    bind:this={fineSettings}
+    {slideshow}
+    {fineSettingsFold}
+    {storage}
+    {serverRows}
+    {onEditTransitions}
+    {onEditPortraitPictures}
+    {onEditChapters}
+  />
 </aside>
 
 <style>
@@ -171,39 +144,12 @@
     display: grid;
     gap: 16px;
   }
-  .more {
-    display: grid;
-    gap: 16px;
-  }
-  .actions {
-    display: grid;
-    gap: 10px;
-  }
   .range {
     margin-top: 4px;
     font-size: var(--gl-size-meta);
   }
   .summary {
     display: none;
-  }
-  .toggle {
-    display: none;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0;
-    border: 0;
-    background: none;
-    font: inherit;
-    font-weight: var(--gl-weight-semibold);
-    color: var(--gl-muted);
-    cursor: pointer;
-  }
-  .chevron {
-    display: inline-flex;
-    transform: rotate(90deg);
-  }
-  .chevron.open {
-    transform: rotate(-90deg);
   }
   @container (max-width: 1024px) {
     .head {
@@ -212,16 +158,6 @@
     }
     .summary {
       display: inline;
-    }
-    .toggle {
-      display: flex;
-    }
-    .more:not(.open) {
-      display: none;
-    }
-    .actions {
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      align-items: start;
     }
   }
 </style>

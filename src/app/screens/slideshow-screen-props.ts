@@ -18,6 +18,7 @@ import type { FrameScheduler, SlideshowLook } from "../../player";
 import type { SlideshowSearch } from "../../library/focus-pass";
 import type { PicturesFocus } from "../focus/pictures-focus";
 import type { ChapterSettingsEditor } from "../editing/chapter-settings-editor";
+import type { FineSettingsFoldStore } from "./slideshow/fine-settings-fold";
 
 /** `SlideshowScreen`'s props: the slideshow's own screen, its pictures strip, the title slide
  * and closing slide sheets, and the export and delete flows reached from it. */
@@ -108,6 +109,8 @@ export interface SlideshowScreenProps {
   /** A server slideshow's link (share_link/IN_THE_APP.md); null for a device slideshow. */
   serverRows?: ServerSlideshowRows | null;
   onStorageAction: (action: StorageAction) => void;
+  /** Whether the info panel's "Fine settings" fold is open, kept on this device (ADR-0048). */
+  fineSettingsFold: FineSettingsFoldStore;
   /** The selection bar acts on this; kept by the parent across the picture editor. */
   selection?: StripSelection;
   /** The strip's 450 ms touch hold; a real timeout by default, faked in tests. */

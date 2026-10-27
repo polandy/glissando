@@ -46,17 +46,7 @@
   order, each with its order number and capture date, under "Sorted by capture date" or, once
   the user reordered, "Own order" (with "drag or tap", narrow: "tap to reorder"); right of the
   count "Add media" (narrow: "Add"; a dashed "+ Add" tile after the last picture, before the closing slide, does the same; [ADDING_PICTURES.md](slideshow-editing/ADDING_PICTURES.md), Adding pictures). Beside it (above it up to 1024 px) an
-  info panel: title with a ✎ button, date range (earliest to latest capture), "Play", and the
-  facts — pictures, duration (with "· music 0:44" beside it, muted, when the slideshow does not
-  end with the music's excerpt), music (with music a button spanning the row: the file name,
-  below it "whole track", or once changed in the music editor "0:12–2:30 · fades in and out",
-  and "Edit ›"; it opens the music editor ([MUSIC_EDITOR.md](MUSIC_EDITOR.md)); without music the plain "No music"), picture times "automatic" (with own durations "automatic, 1
-  own"), Ken Burns "automatic" (with own motions "automatic, 2 own"), transitions (a button
-  spanning the row like the music's: the effect, e.g. "Crossfade" or "Alternating", below it
-  "default" or "own choice", with own transitions "· 2 own" — a last picture's stored one does
-  not count — and "Change ›"; it opens the transitions sheet ([RENAME_TRANSITIONS_DELETE.md](slideshow-editing/RENAME_TRANSITIONS_DELETE.md), Transitions)), portrait pictures (a button spanning the row: "Automatic", "One at a time" or "Fill
-  the screen", below it "· 2 pairs" once any slide pairs two portrait pictures, and "Change ›";
-  it opens the portrait pictures sheet ([RENAME_TRANSITIONS_DELETE.md](slideshow-editing/RENAME_TRANSITIONS_DELETE.md), Portrait pictures), ADR-0028), captions "3 of 8" (pictures with a caption of all; none: "0 of 8"). A tile carries small
+  info panel (ADR-0048, below): title with a ✎ button, date range, "Play", the Music/Mood/Look tiles and "Fine settings". A tile carries small
   badges bottom right: a frame "own" for an own motion, a clock with "8 s" for an own duration,
   a transition mark (titled with the effect, e.g. "Circle") for an own transition, except on
   the last picture, "shown alone" for a picture set never to pair and "blurred fill" for one
@@ -94,9 +84,24 @@
   while the server library is on (it can be hidden with its ✕ and is brought back in Settings),
   its set-up screen and the fullscreen running frame.
 
-Up to 1024 px wide (a container query on `.screen`) the info panel stacks full width above the
-pictures instead of beside them, folded to a slim header: title, "date range · N pictures ·
-duration" and "Play". A "Details" toggle (`aria-expanded`, folded on every visit) opens the rest
-— "Save as", storage, link, "Show on TV" and the facts — in two columns, one column up to 720 px.
-Above 1024 px the panel shows everything beside the pictures and has no toggle. Up to 720 px the
-layout narrows further: three tiles per row.
+The info panel (ADR-0048, mockup option A:
+`https://polandy.github.io/glissando-assets/mockups/details-panel/`) holds, top to bottom:
+
+- **Header**: title, "date range · N pictures · duration" and "Play".
+- **Three tiles**, one row of three at every width and never folded. Each tile is one button
+  with a small label and a chevron, the value and a summary, and opens its sheet:
+  - **Music**: "3 songs" (or the song's name), with "11:20 of music" underneath when the music's
+    length differs from the slideshow's. Without music: "None" and "Add music".
+  - **Mood**: the mood's name, with a summary of what it sets: picture times ("~6.3 s · 8 beats",
+    "~7 s" without a beat, the range "4.1–9.0 s" under the energy pacing; under Custom the
+    picture-times value), then the motion ("gentle motion", "strong motion", "standard motion"),
+    then "follows the energy" while the energy pacing is on and the slideshow has music.
+  - **Look**: the look's name beside a swatch of it.
+- **"Fine settings"**: a toggle (`aria-expanded`) at every width, folded until opened. Its state
+  is remembered on the device for every slideshow. It opens Transitions, Portrait pictures and
+  Trip chapters as rows (label, value, summary, chevron; the whole row opens the sheet), then
+  storage, "Save as", link and "Show on TV". E2E-083 shows the three tiles up front, folds Fine
+  settings away by default, and checks its open or closed state survives a reload.
+
+Up to 1024 px wide (a container query on `.screen`) the panel stacks full width above the
+pictures instead of beside them. Up to 720 px the layout narrows further: three tiles per row.
