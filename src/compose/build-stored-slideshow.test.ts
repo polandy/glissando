@@ -176,7 +176,12 @@ describe("buildStoredSlideshow", () => {
 
   describe("starts on the mood Calm unless the import set the pace (ADR-0049)", () => {
     it.each([
-      { case: "the import's default pace", seconds: 5, pictureLength: "seconds" as const, mood: "calm" },
+      {
+        case: "the import's default pace",
+        seconds: 5,
+        pictureLength: "seconds" as const,
+        mood: "calm",
+      },
       {
         case: "own seconds per picture",
         seconds: 8,
