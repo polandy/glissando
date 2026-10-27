@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 import {
   chooseFiles,
   choosePictures,
+  createSlideshow,
   CREATED_TOAST,
   editsStored,
   GERMAN_BROWSER,
@@ -67,4 +68,34 @@ test("E2E-040 with music the pictures keep the mood's length on the beat until t
   await page.reload();
   await expect(fill).toHaveAttribute("aria-checked", "true");
   await expect(ownSeconds("7,5 s")).toHaveAttribute("aria-checked", "false");
+});
+
+test("E2E-085 without music the music editor sets the picture length below its empty state", async ({
+  page,
+}) => {
+  const lengthSection = page.locator('section[aria-labelledby="music-picture-length"]');
+  await openApp(page);
+  await createSlideshow(page, ["2025-07-12", "2025-07-14", "2025-07-20"]);
+
+  await page.getByRole("button", { name: "Musik Keine Musik hinzufügen" }).click();
+  await expect(page.getByText("Noch keine Musik")).toBeVisible();
+  // Every new slideshow starts on Calm (ADR-0050); without music there are no beats to count.
+  await expect(lengthSection).toContainText(
+    "Die Bilddauer wird durch die Stimmung Ruhig festgelegt — ~7 s",
+  );
+
+  await lengthSection.getByRole("button", { name: "Selbst festlegen" }).click();
+  await expect(
+    page.getByRole("status").filter({ hasText: "Stimmung ist jetzt Eigene" }),
+  ).toBeVisible();
+  await expect(lengthSection).toContainText("Je etwa 7 s");
+  // Nothing to fill without music: the stepper alone, no choice.
+  await expect(lengthSection.getByRole("radio")).toHaveCount(0);
+
+  await lengthSection.getByRole("button", { name: "Länger" }).click();
+  await expect(lengthSection).toContainText("Je etwa 7,5 s");
+  await editsStored(page);
+
+  await page.reload();
+  await expect(lengthSection).toContainText("Je etwa 7,5 s");
 });
