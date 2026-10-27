@@ -87,13 +87,13 @@ test("E2E-075 the sample-music block offers 9 tracks behind Show all, and a fail
 });
 
 test.describe("on a phone, in the music editor's Add song sheet", () => {
-  // The grid's width in the sheet at this size: three cards of about 85 px, narrow enough for a
-  // wrapping title to grow the card's shade over its + (13dad91); a real tap must still land.
+  // Three cards of about 85 px in the sheet at this size: a wrapping title grows the card's
+  // shade over its +, and a real tap must still land on the +.
   const PHONE_TOUCH = { width: 390, height: 844 };
   test.use({ hasTouch: true, isMobile: true, viewport: PHONE_TOUCH });
 
   test.beforeEach(async ({ page }) => {
-    // Narrower and touch-enabled than the import step's own phone screen set above.
+    // Narrower than the phone screen the file's own beforeEach sets.
     await page.setViewportSize(PHONE_TOUCH);
   });
 
