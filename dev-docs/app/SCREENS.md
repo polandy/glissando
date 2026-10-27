@@ -46,17 +46,7 @@
   order, each with its order number and capture date, under "Sorted by capture date" or, once
   the user reordered, "Own order" (with "drag or tap", narrow: "tap to reorder"); right of the
   count "Add media" (narrow: "Add"; a dashed "+ Add" tile after the last picture, before the closing slide, does the same; [ADDING_PICTURES.md](slideshow-editing/ADDING_PICTURES.md), Adding pictures). Beside it (above it up to 1024 px) an
-  info panel: title with a ✎ button, date range (earliest to latest capture), "Play", and the
-  facts — pictures, duration (with "· music 0:44" beside it, muted, when the slideshow does not
-  end with the music's excerpt), music (with music a button spanning the row: the file name,
-  below it "whole track", or once changed in the music editor "0:12–2:30 · fades in and out",
-  and "Edit ›"; it opens the music editor ([MUSIC_EDITOR.md](MUSIC_EDITOR.md)); without music the plain "No music"), picture times "automatic" (with own durations "automatic, 1
-  own"), Ken Burns "automatic" (with own motions "automatic, 2 own"), transitions (a button
-  spanning the row like the music's: the effect, e.g. "Crossfade" or "Alternating", below it
-  "default" or "own choice", with own transitions "· 2 own" — a last picture's stored one does
-  not count — and "Change ›"; it opens the transitions sheet ([RENAME_TRANSITIONS_DELETE.md](slideshow-editing/RENAME_TRANSITIONS_DELETE.md), Transitions)), portrait pictures (a button spanning the row: "Automatic", "One at a time" or "Fill
-  the screen", below it "· 2 pairs" once any slide pairs two portrait pictures, and "Change ›";
-  it opens the portrait pictures sheet ([RENAME_TRANSITIONS_DELETE.md](slideshow-editing/RENAME_TRANSITIONS_DELETE.md), Portrait pictures), ADR-0028), captions "3 of 8" (pictures with a caption of all; none: "0 of 8"). A tile carries small
+  info panel (ADR-0048, below): title with a ✎ button, date range, "Play", the Music/Mood/Look tiles and "Fine settings". A tile carries small
   badges bottom right: a frame "own" for an own motion, a clock with "8 s" for an own duration,
   a transition mark (titled with the effect, e.g. "Circle") for an own transition, except on
   the last picture, "shown alone" for a picture set never to pair and "blurred fill" for one

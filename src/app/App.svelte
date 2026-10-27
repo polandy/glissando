@@ -233,6 +233,7 @@
         readClipPeaks={services.readClipPeaks}
         songIntake={services.songIntake(opened.home)}
         samplePreview={services.samplePreview}
+        fineSettingsFold={services.fineSettingsFold}
         onBack={() => navigator.back()}
         onPlay={() => {
           // Within the Play gesture: the player starts the music only after its pictures load.

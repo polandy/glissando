@@ -68,6 +68,7 @@
     storage = null,
     serverRows = null,
     onStorageAction,
+    fineSettingsFold,
     selection = $bindable(NO_SELECTION),
     holdScheduler = browserScheduler,
     frameScheduler = animationFrames,
@@ -171,9 +172,9 @@
         {moodBpm}
         {moodEnergyPacing}
         onEditMood={() => editSheets?.openMood()}
-        {onEnergyPacing}
         onEditPortraitPictures={() => editSheets?.openPortraitPictures()}
         onEditChapters={() => editSheets?.openGeneralChapters()}
+        {fineSettingsFold}
       />
     </div>
   </main>

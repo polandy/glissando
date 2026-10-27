@@ -37,7 +37,6 @@ function details(
     songCount: 0,
     musicTitle: null,
     musicSeconds: null,
-    musicSummary: null,
     ownOrder: false,
     automaticChaptersOff: false,
     chapters: [],
@@ -49,7 +48,6 @@ function details(
     look: "none",
     portraitPictures: "automatic",
     pairCount: 0,
-    captionCount: 0,
     capturedFrom: "2025-07-01T10:00:00Z",
     capturedTo: "2025-07-03T10:00:00Z",
     pictures: ids.map((id, index) =>

@@ -1,13 +1,6 @@
 import { flushSync } from "svelte";
 import { afterEach, describe, expect, it } from "vitest";
-import {
-  buttonNamed,
-  details,
-  mountScreen,
-  PIXEL,
-  tile,
-  unmountScreen,
-} from "./slideshow-screen-harness";
+import { buttonNamed, details, mountScreen, tile, unmountScreen } from "./slideshow-screen-harness";
 
 afterEach(() => unmountScreen());
 
@@ -66,23 +59,5 @@ describe("SlideshowScreen, the way into the picture editor", () => {
 
     expect(own).not.toBeNull();
     expect(badges.map((badge) => badge.textContent?.trim())).toEqual(["eigen"]);
-  });
-
-  it("counts the own motions in the Ken Burns fact", () => {
-    mountScreen(ownMotionOnSecond());
-
-    const facts = document.querySelector(".rows")?.textContent ?? "";
-
-    expect(facts).toContain("Ken Burns");
-    expect(facts).toContain("automatisch, 1 eigene");
-  });
-
-  it("says just automatic while no picture has a motion of its own", () => {
-    mountScreen(details(["a"], { coverUrl: PIXEL }));
-
-    const facts = document.querySelector(".rows")?.textContent ?? "";
-
-    expect(facts).toContain("Ken Burns");
-    expect(facts).not.toContain("eigene");
   });
 });

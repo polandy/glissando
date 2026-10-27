@@ -23,12 +23,6 @@ const stored = (pictures: readonly StoredPicture[]): StoredSlideshow => ({
 const urlOf = (id: string) => `url:${id}`;
 
 describe("slideshowDetails captions", () => {
-  it("counts the pictures with a caption", () => {
-    const edited = stored([picture("p1"), picture("p2", { caption: "Am Steg" })]);
-
-    expect(slideshowDetails(edited, urlOf, "en").captionCount).toBe(1);
-  });
-
   it("carries a picture's caption on its tile, and no caption key at all without one", () => {
     const withCaption = stored([
       picture("p1", { caption: "Last light" }),

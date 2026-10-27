@@ -3,14 +3,13 @@
 
   /**
    * A row of the info panel that opens an editor: a button spanning the row with its label, the
-   * current value over a summary, and the action ("Bearbeiten", "Ändern").
+   * current value over a summary, and a chevron.
    */
   let {
     name,
     label,
     value,
     summary,
-    action,
     onclick,
   }: {
     /** Which row, as a class: "music", "transitions". */
@@ -19,7 +18,6 @@
     value: string;
     /** Empty: the value stands alone. */
     summary: string;
-    action: string;
     onclick: () => void;
   } = $props();
 
@@ -38,7 +36,7 @@
       <small>{summary}</small>
     {/if}
   </span>
-  <span class="go">{action}<Icon name="chevronRight" /></span>
+  <span class="go"><Icon name="chevronRight" /></span>
 </button>
 
 <style>

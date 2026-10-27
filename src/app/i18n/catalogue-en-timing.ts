@@ -4,7 +4,7 @@ import type { deTiming } from "./catalogue-de-timing.ts";
 /** English copy of a picture's own duration and transition; typed to the German keys. */
 export const enTiming: Pick<Catalogue, keyof typeof deTiming> = {
   "slideshow.pictureTimes": "Picture times",
-  "slideshow.musicLength": "music {duration}",
+  "slideshow.musicLength": "{duration} of music",
   "slideshow.pictureLabelOwnDuration": ", own duration {duration}",
   "slideshow.pictureLabelOwnTransition": ", own transition {effect}",
   "editor.endOfSlideshow": "End of slideshow",

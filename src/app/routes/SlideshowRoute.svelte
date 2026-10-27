@@ -28,6 +28,7 @@
   import { ScreenExports } from "./screen-exports.svelte";
   import { ScreenFocus } from "./screen-focus.svelte";
   import { ScreenStorage } from "./screen-storage.svelte";
+  import { slideshowRoutePictureActions } from "./slideshow-route-picture-actions";
   import type { SlideshowRouteProps } from "./slideshow-route-props";
 
   let {
@@ -58,6 +59,7 @@
     readClipPeaks,
     songIntake,
     samplePreview,
+    fineSettingsFold,
     onBack,
     onPlay,
     onAddPictures,
@@ -156,6 +158,7 @@
   // The ids are handed over once, when the screen opens after adding.
   // svelte-ignore state_referenced_locally
   const newPictureIds: ReadonlySet<string> = new Set(addedPictureIds);
+  const pictureActions = slideshowRoutePictureActions(() => editor);
 
   const details = $derived(
     stored === null ? null : thumbnails.details(stored, translator.language),
@@ -216,12 +219,7 @@
     {onPlay}
     onAddPictures={() => stored !== null && onAddPictures(stored)}
     {newPictureIds}
-    onRemove={(pictureId) => editor?.remove(pictureId)}
-    onShiftGroup={(pictureIds, offset) => editor?.shiftGroup(pictureIds, offset)}
-    onRemoveGroup={(pictureIds) => editor?.removeGroup(pictureIds)}
-    onShuffle={() => editor?.shuffle()}
-    onMoveGroup={(pictureIds, insertion) => editor?.moveGroup(pictureIds, insertion)}
-    onRename={(typed) => editor?.rename(typed)}
+    {...pictureActions}
     {onEdit}
     loadPicture={(id) => store.playbackPictureBlob(id)}
     {onError}
@@ -265,6 +263,7 @@
     {storage}
     serverRows={screenStorage.serverRows}
     onStorageAction={screenStorage.act}
+    {fineSettingsFold}
     {focus}
     focusSearch={screenFocus.search(slideshowId)}
     focusPaused={screenFocus.passPaused}

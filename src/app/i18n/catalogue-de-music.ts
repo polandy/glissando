@@ -4,12 +4,6 @@ import type { Message } from "./messages.ts";
 export const deMusic = {
   "import.convertingButton": "Wird umgewandelt\u00a0…",
   "import.convertedFrom": "Auf diesem Gerät aus {format} umgewandelt",
-  "slideshow.musicWholeTrack": "ganzer Titel",
-  "slideshow.musicExcerpt": "{from}–{to}",
-  "slideshow.musicFades-in-and-out": "blendet ein und aus",
-  "slideshow.musicFades-in": "blendet ein",
-  "slideshow.musicFades-out": "blendet aus",
-  "slideshow.musicSummary": "{excerpt} · {fades}",
   "music.crumb": "Musik",
   "music.trimmedTo": "{duration} · gekürzt auf {excerpt}",
   "music.start": "Anfang",
