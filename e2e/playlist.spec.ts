@@ -45,6 +45,10 @@ test("E2E-041 several songs chosen in the import play as a playlist, reordered, 
     3,
   );
   await page.getByRole("button", { name: "Weiter" }).click();
+  // A step off the default seconds per picture sets the import's own pace (ADR-0049), so the
+  // slideshow opens on Custom rather than Calm: this case is about the playlist against the
+  // pictures' own pace, which a mood would override.
+  await page.getByRole("button", { name: "Kürzer" }).click();
   await chooseFiles(page, page.getByRole("button", { name: "Dateien wählen" }), [
     silentTrack(MORNING, 8),
     silentTrack(EVENING, 6),

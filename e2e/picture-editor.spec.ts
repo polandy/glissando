@@ -1,5 +1,5 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
-import { createSlideshow, editsStored, GERMAN_BROWSER } from "./support/app";
+import { chooseCustomMood, createSlideshow, editsStored, GERMAN_BROWSER } from "./support/app";
 import { openApp } from "./support/browser";
 
 test.use(GERMAN_BROWSER);
@@ -135,6 +135,9 @@ test("E2E-022 a picture gets its own duration and transition, stored, and the tr
   const circleTile = transitionSection.getByRole("radio", { name: /Kreis/ });
   await openApp(page);
   await createSlideshow(page, ["2025-07-12", "2025-07-14", "2025-07-20"], 5);
+  // The import left the pace untouched, so the slideshow opened on Calm (ADR-0049); this case is
+  // about a picture's own duration against the automatic one, so it switches back to Custom.
+  await chooseCustomMood(page);
 
   await automaticTile.click();
   await selectionBar.getByRole("button", { name: "Bearbeiten" }).click();
