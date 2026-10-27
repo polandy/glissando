@@ -95,11 +95,16 @@
   }
   .pace {
     display: flex;
-    align-items: baseline;
+    align-items: start;
     gap: 8px;
     margin: 0;
     color: var(--gl-muted);
     font-size: var(--gl-size-small);
+  }
+  /* Centred on the first row, so it stays beside "Mood Calm" when the line wraps. */
+  .pace > :global(.icon) {
+    flex: none;
+    margin-block-start: calc((1lh - var(--gl-icon-size, var(--gl-size-icon))) / 2);
   }
   .pace b {
     color: var(--gl-ink);
