@@ -19,7 +19,7 @@
   import { PrepareFlow, type PrepareView } from "../player/prepare/prepare-flow";
   import type { PlaybackQuality } from "../settings/playback-quality";
   import { slideBoundaries } from "../player/slide-boundaries";
-  import { picturePassedBySlide } from "../player/prepare/slide-pictures";
+  import { picturePassedBySlide, slideOfPicture } from "../player/prepare/slide-pictures";
   import { loadPlayerMusic } from "./route-loading";
   import {
     pictureFailureFor,
@@ -181,8 +181,10 @@
     if (outcome.kind === "stop") return outcome.failure;
     const { pictureId } = outcome;
     onPictureMissing(pictureId);
-    const index = played.pictures.findIndex(({ id }) => id === pictureId);
-    if (slideshow === null || index === -1 || played.pictures.length === 1) return "picture";
+    if (slideshow === null || played.pictures.length === 1) return "picture";
+    const ids = played.pictures.map(({ id }) => id);
+    const index = slideOfPicture(slideshow.slides, ids, pictureId);
+    if (index === -1) return "picture";
     const boundaries = slideBoundaries(slideshow);
     startAt = boundaries.starts[index] ?? boundaries.duration;
     skipped = new Set([...skipped, pictureId]);

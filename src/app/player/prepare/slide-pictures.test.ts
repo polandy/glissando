@@ -4,7 +4,7 @@ import { NO_SONG_BEATS } from "../../../compose/playlist";
 import { NO_SONG_LOUDNESS } from "../../../compose/song-loudness";
 import type { PictureFocus } from "../../../library/picture-focus";
 import type { StoredCard, StoredPicture, StoredSlideshow } from "../../../library/stored-slideshow";
-import { picturePassedBySlide } from "./slide-pictures";
+import { picturePassedBySlide, slideOfPicture } from "./slide-pictures";
 
 const LANDSCAPE = { width: 400, height: 300 };
 const PORTRAIT = { width: 300, height: 400 };
@@ -38,8 +38,10 @@ function card(background: StoredCard["background"]): StoredCard {
   };
 }
 
-/** p1, then p2 and p3 as a portrait pair, then p4. */
-function passedBySlide(overrides: Partial<StoredSlideshow>): readonly (string | null)[] {
+const IDS = ["p1", "p2", "p3", "p4"];
+
+/** The slides of p1, then p2 and p3 as a portrait pair, then p4. */
+function composedSlides(overrides: Partial<StoredSlideshow>) {
   const stored: StoredSlideshow = {
     id: "show",
     title: "July 2025",
@@ -54,18 +56,11 @@ function passedBySlide(overrides: Partial<StoredSlideshow>): readonly (string | 
     secondsPerPicture: 5,
     ...overrides,
   };
-  const { slides } = composeSlideshow(
-    stored,
-    sources,
-    NO_FOCUS,
-    NO_SONG_BEATS,
-    NO_SONG_LOUDNESS,
-    "en",
-  );
-  return picturePassedBySlide(
-    slides,
-    stored.pictures.map(({ id }) => id),
-  );
+  return composeSlideshow(stored, sources, NO_FOCUS, NO_SONG_BEATS, NO_SONG_LOUDNESS, "en").slides;
+}
+
+function passedBySlide(overrides: Partial<StoredSlideshow>): readonly (string | null)[] {
+  return picturePassedBySlide(composedSlides(overrides), IDS);
 }
 
 describe("picturePassedBySlide", () => {
@@ -91,5 +86,28 @@ describe("picturePassedBySlide", () => {
     });
 
     expect(passed).toEqual(["p1", "p2", "p4", null]);
+  });
+});
+
+describe("slideOfPicture", () => {
+  it("finds each picture's own slide past a title card, a pair's partner on the pair", () => {
+    const slides = composedSlides({ openingCard: card({ kind: "colour", colour: "plum" }) });
+
+    expect(IDS.map((id) => slideOfPicture(slides, IDS, id))).toEqual([1, 2, 2, 3]);
+  });
+
+  it("finds a picture's own slide, not the title card shown over it", () => {
+    const slides = composedSlides({
+      openingCard: card({ kind: "picture", pictureId: "p4", fade: 60, tint: "picture" }),
+    });
+
+    expect(slideOfPicture(slides, IDS, "p4")).toBe(3);
+  });
+
+  it("finds no slide for a picture not played", () => {
+    const slides = composedSlides({});
+
+    expect(slideOfPicture(slides, IDS, "p1")).toBe(0);
+    expect(slideOfPicture(slides, IDS, "gone")).toBe(-1);
   });
 });
