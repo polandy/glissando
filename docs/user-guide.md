@@ -54,8 +54,8 @@ its motion.
 them automatically, naming the place and the dates. Tap a chapter tile in the picture strip to
 rename it, hide it, or reset it to its automatic text; select a picture and tap **Insert chapter**
 to add one of your own, or delete it again from its sheet. The **Trip chapters** row in the
-slideshow's side panel, under **Fine settings**, turns automatic chapters on or off for the whole
-slideshow, and shows how many there currently are.
+slideshow's side panel, under **Fine settings**, is where automatic chapters are turned on or off
+for the whole slideshow, and shows how many there currently are.
 
 ## Play
 

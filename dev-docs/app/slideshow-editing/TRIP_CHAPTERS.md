@@ -34,8 +34,8 @@ with an anchor picture's id, it shows:
 - For an **added** chapter: a **Delete chapter** button instead of the switch — deleting removes
   it outright and closes the sheet.
 
-Below the chapter's own fields (or alone, in general mode — see below): an **Automatic chapters**
-switch, with helper text explaining when it is off — including, always, while the slideshow's
+Only in general mode (see below), never with a chapter's own fields — it is slideshow-wide, not
+the chapter's: an **Automatic chapters** switch, with helper text explaining when it is off — including, always, while the slideshow's
 order is the owner's own (`ownOrder`), where it is disabled and the helper text says so.
 
 Every change saves as it is made, like the other sheets (`chapter-sheet-edits.ts` dispatches to
@@ -44,8 +44,8 @@ wherever it was opened from.
 
 ## Reaching the switch with zero chapters
 
-The **Automatic chapters** switch must stay reachable even when the strip shows no chapter at
-all (too few days, or every one hidden). A **Trip chapters** row in `InfoPanelRows.svelte`
+The **Automatic chapters** switch lives in the slideshow's settings, so it stays reachable even
+when the strip shows no chapter at all (too few days, or every one hidden). A **Trip chapters** row in `InfoPanelRows.svelte`
 (the same spot as the Transitions and Portrait pictures rows) shows the visible chapter count and
 opens the chapter sheet in **general mode**: no anchor picture, so no preview or title/subtitle
 fields, only the automatic-chapters switch.
