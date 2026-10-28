@@ -20,8 +20,8 @@
 
   /**
    * A trip chapter's sheet (TRIP_CHAPTERS.md): a bottom sheet on the phone, a dialog from 720 px.
-   * `anchorPictureId` null opens it in general mode, with only the automatic-chapters switch
-   * (reached from the slideshow's facts panel even when no chapter is shown). Every field change
+   * `anchorPictureId` null opens it in general mode, the only place with the slideshow-wide
+   * automatic-chapters switch (reached from the slideshow's Fine settings). Every field change
    * is stored as it is made, like the card sheet's.
    */
   let {
@@ -173,20 +173,20 @@
           {t("chapters.deleteChapter")}
         </button>
       {/if}
-    {/if}
-
-    <div class="row switch-row">
-      <div>
-        <b>{t("chapters.automaticSwitch")}</b>
-        <small>{automaticHelper}</small>
+    {:else}
+      <div class="row switch-row">
+        <div>
+          <b>{t("chapters.automaticSwitch")}</b>
+          <small>{automaticHelper}</small>
+        </div>
+        <Switch
+          checked={!slideshow.automaticChaptersOff}
+          disabled={slideshow.ownOrder}
+          label={t("chapters.automaticSwitch")}
+          onChange={(on) => chapterEditor?.setAutomaticChaptersOff(!on)}
+        />
       </div>
-      <Switch
-        checked={!slideshow.automaticChaptersOff}
-        disabled={slideshow.ownOrder}
-        label={t("chapters.automaticSwitch")}
-        onChange={(on) => chapterEditor?.setAutomaticChaptersOff(!on)}
-      />
-    </div>
+    {/if}
 
     <footer>
       <button class="btn primary" type="button" onclick={onClose}>{t("slideshow.done")}</button>

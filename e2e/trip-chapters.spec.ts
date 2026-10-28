@@ -107,6 +107,9 @@ test("E2E-078 inserting a chapter from the selection bar adds it right before th
   await expect(addedDialog).toBeVisible();
   await expect(titleField).toHaveValue("Lisbon");
   await expect(subtitleField).toHaveValue("Tag 2 · Sonntag, 13. Juli");
+  // The slideshow-wide switch lives only in the general sheet, never in one chapter's sheet.
+  await expect(addedDialog.getByRole("button", { name: "Kapitel löschen" })).toBeVisible();
+  await expect(addedDialog.getByRole("switch", { name: "Automatische Kapitel" })).toHaveCount(0);
   await editsStored(page);
   await addedDialog.getByRole("button", { name: "Fertig" }).click();
   await expect(addedDialog).toBeHidden();

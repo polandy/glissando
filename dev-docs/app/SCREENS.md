@@ -98,7 +98,8 @@ The info panel (ADR-0048, mockup option A:
   - **Look**: the look's name beside a swatch of it.
 - **"Fine settings"**: a toggle (`aria-expanded`) at every width, folded until opened. Its state
   is remembered on the device for every slideshow. It opens Transitions, Portrait pictures and
-  Trip chapters as rows (label, value, summary, chevron; the whole row opens the sheet), then
+  Trip chapters as rows (label, value, summary, chevron; the whole row opens the sheet; Trip
+  chapters' sheet is the only place with the slideshow-wide **Automatic chapters** switch), then
   storage, "Save as", link and "Show on TV". E2E-083 shows the three tiles up front, folds Fine
   settings away by default, and checks its open or closed state survives a reload.
 

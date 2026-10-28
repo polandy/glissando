@@ -137,6 +137,17 @@ describe("ChapterSheet: an automatic chapter", () => {
     expect(current().chapterEdits).toEqual([{ pictureId: "p3", hidden: true }]);
   });
 
+  it("leaves the slideshow-wide automatic-chapters switch to the general sheet", () => {
+    const { target } = setUp("p3");
+
+    expect(
+      must(target, 'input[role="switch"][aria-label="Dieses Kapitel ausblenden"]'),
+    ).not.toBeNull();
+    expect(
+      target.querySelector('input[role="switch"][aria-label="Automatische Kapitel"]'),
+    ).toBeNull();
+  });
+
   it("offers no delete button for an automatic chapter", () => {
     const { target } = setUp("p3");
 
@@ -160,6 +171,13 @@ describe("ChapterSheet: an added chapter", () => {
     expect(
       target.querySelector('input[role="switch"][aria-label="Dieses Kapitel ausblenden"]'),
     ).toBeNull();
+  });
+
+  it("leaves the slideshow-wide automatic-chapters switch to the general sheet", () => {
+    const { target } = setUpAdded();
+
+    expect(target.textContent).toContain("Kapitel löschen");
+    expect(target.querySelector('input[role="switch"]')).toBeNull();
   });
 
   it("removes the chapter and closes on delete", () => {
