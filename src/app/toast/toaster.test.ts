@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { FakeScheduler } from "../../ui-kit/testing/fake-scheduler";
+import type { Route } from "../navigation/route";
 import { TOAST_DURATION_MS, Toaster, type ToastMessage } from "./toaster";
 
 const SAVED: ToastMessage = { text: "Diashow erstellt", tone: "info" };
@@ -134,5 +135,37 @@ describe("Toaster", () => {
 
     expect(toaster.current).toBe(toast);
     expect(closed).toBe(0);
+  });
+
+  describe("follow", () => {
+    const slideshow: Route = { screen: "slideshow", slideshowId: "show-1" };
+    const created: ToastMessage = { text: "Diashow erstellt", tone: "info", route: slideshow };
+
+    it("ends a toast tied to a screen once the app leaves that screen", () => {
+      const { toaster } = setUp();
+      toaster.show(created);
+
+      toaster.follow({ screen: "picture", slideshowId: "show-1", pictureId: "p-1" });
+
+      expect(toaster.current).toBeNull();
+    });
+
+    it("keeps a toast tied to the screen the app is on", () => {
+      const { toaster } = setUp();
+      toaster.show(created);
+
+      toaster.follow({ ...slideshow });
+
+      expect(toaster.current).toEqual(created);
+    });
+
+    it("keeps a toast tied to no screen, as one that says why the app moved", () => {
+      const { toaster } = setUp();
+      toaster.show(SAVED);
+
+      toaster.follow({ screen: "start" });
+
+      expect(toaster.current).toEqual(SAVED);
+    });
   });
 });
