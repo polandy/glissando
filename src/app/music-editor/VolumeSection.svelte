@@ -63,9 +63,7 @@
     own={!volume.levelled}
   />
   <div class="readout">
-    <b class="mono"
-      >{volume.levelled ? t("music.volumeLevelled") : formatVolumeDb(volume.shownDb)}</b
-    >
+    <b>{volume.levelled ? t("music.volumeLevelled") : formatVolumeDb(volume.shownDb)}</b>
     <span class="sub">{t(subKeys[volume.sub.kind])}</span>
   </div>
   <div class="rail">
@@ -123,7 +121,7 @@
     <button class="listen-btn" type="button" aria-pressed={playing} onclick={onListen}>
       <span class="round"><Icon name={playing ? "pause" : "play"} /></span>
       <b>{playing ? t("music.volumeListenStop") : t("music.volumeListen")}</b>
-      <small class="mono">
+      <small>
         {original ? t("music.volumeListenOriginal") : t("music.volumeListenAt")}
       </small>
     </button>

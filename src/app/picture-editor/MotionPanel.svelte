@@ -47,7 +47,9 @@
   <div class="preview-block">{@render preview()}</div>
   <div class="who">
     <b>{t("editor.position", { number: picture.number, count: picture.count })}</b>
-    <span class="muted mono">{picture.fileName} · {formatDate(picture.capturedAt)}</span>
+    <span class="muted"
+      >{picture.fileName} · <span class="mono">{formatDate(picture.capturedAt)}</span></span
+    >
   </div>
   <section class="motion" aria-label={t("editor.kenBurns")}>
     <SectionHead
@@ -65,7 +67,9 @@
           onclick={() => onActivate(key)}
         >
           <b><i class="swatch"></i>{t(KEY_LABELS[key])}</b>
-          <span class="mono">{t("editor.zoom", { zoom: formatZoom(motion[key].zoom) })}</span>
+          <span
+            >{t("editor.zoomLabel")} <span class="mono">{formatZoom(motion[key].zoom)}</span></span
+          >
         </button>
       {/each}
     </div>

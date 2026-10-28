@@ -20,7 +20,7 @@ export const enEditor: Pick<Catalogue, keyof typeof deEditor> = {
   "editor.frames": "Frames",
   "editor.start": "Start",
   "editor.end": "End",
-  "editor.zoom": "Zoom {zoom}",
+  "editor.zoomLabel": "Zoom",
   "editor.startFrame": "Start frame, zoom {zoom}",
   "editor.endFrame": "End frame, zoom {zoom}",
   "editor.editStartFrame": "Edit the start frame",

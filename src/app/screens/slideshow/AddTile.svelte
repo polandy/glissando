@@ -15,7 +15,7 @@
 <li class="tile">
   <button class="add-tile" type="button" onclick={onAdd}>
     <Icon name="plus" />
-    <span class="label mono">{t("add.titleShort")}</span>
+    <span class="label">{t("add.titleShort")}</span>
   </button>
 </li>
 

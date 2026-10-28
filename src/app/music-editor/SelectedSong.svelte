@@ -49,7 +49,7 @@
   <b class="song-heading">
     {t("music.songHeading", { number: music.songNumber, name: music.fileName })}
   </b>
-  <span class="muted mono">
+  <span class="muted">
     {music.trimmed
       ? t("music.trimmedTo", {
           duration: formatDuration(seconds(music.durationMs)),
@@ -87,7 +87,7 @@
     >
       <span class="round"><Icon name={playing ? "pause" : "play"} /></span>
       <b>{t(listen.label)}</b>
-      <small class="mono">
+      <small>
         {t(listen.at, {
           time: formatTenths(seconds(listen.kind === "start" ? music.startMs : music.audibleEndMs)),
         })}

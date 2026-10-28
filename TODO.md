@@ -9,7 +9,6 @@ One line per item, newest at the end. A finished item is deleted.
 - [ ] Gather sharing in one Share button beside Play — video, web page and file sit in the ⋯ menu, the link in Details, and the .glissando file downloads without a sheet; mockup first (2026-10-25)
 - [ ] Drop "Focus … All looked at" from the ⋯ menu or name it in user language — the progress belongs in the global indicator (2026-10-25)
 - [ ] Keep the "Slideshow created — tap Play" toast from covering content — it lies over the Details, the picture and music editors and even the next import; end it when leaving the slideshow screen (2026-10-25)
-- [ ] Set labels in the text font, not Geist Mono — "Title slide", "Closing slide" and "Add" tiles break `dev-docs/BRAND.md` (mono for times, counts, dates only); check every use (2026-10-25)
 - [ ] Rework the sample-music tiles — Play and + sit over the title, descriptions are cut ("Warm·harmo…"); mockup first (2026-10-25)
 - [ ] Show one preview in the picture editor on a phone — the frame editor and the live preview are stacked full size; switch between frame and play, drop "Zoom 1.00×"; mockup first (2026-10-25)
 - [ ] Slim the selection bar — 7 icons, the bookmark for "Insert chapter" is unclear, the selected tile has its own X too; rare actions behind ⋯, the chapter action labelled (2026-10-25)

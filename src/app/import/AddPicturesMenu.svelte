@@ -114,7 +114,7 @@
       onclick={() => (open = !open)}
     >
       <Icon name="plus" />
-      <span class="label mono">{t("add.titleShort")}</span>
+      <span class="label">{t("add.titleShort")}</span>
     </button>
     {@render popover()}
   </li>

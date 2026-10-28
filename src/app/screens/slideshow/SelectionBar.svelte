@@ -107,7 +107,7 @@
   <div class="bar" role="toolbar" aria-label={t("slideshow.selection")}>
     <!-- Announced on every move; on a narrow screen hidden from sight, not from screen readers. -->
     {#if selection.several}
-      <span class="count mono several" aria-live="polite">
+      <span class="count several" aria-live="polite">
         <b class="mono">{count}</b><span class="word"
           >{range === null
             ? t("slideshow.selectedCount", { count })
@@ -120,7 +120,7 @@
         >
       </span>
     {:else}
-      <span class="count mono" aria-live="polite">
+      <span class="count" aria-live="polite">
         {t("slideshow.selectionCount", { number: soleIndex + 1, total: order.length })}
       </span>
     {/if}

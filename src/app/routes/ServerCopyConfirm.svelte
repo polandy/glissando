@@ -87,7 +87,6 @@
   .files {
     margin: 6px 0;
     padding-left: 20px;
-    font-family: var(--gl-font-mono);
     font-size: var(--gl-size-label);
     color: var(--gl-ink);
   }

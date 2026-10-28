@@ -50,7 +50,7 @@
 {:else}
   <div class="selbar">
     <span class="count">
-      <span class="mono">{t("immich.photos", { count: photoCount ?? album.photoCount })}</span>
+      <span>{t("immich.photos", { count: photoCount ?? album.photoCount })}</span>
       {#if videosHidden > 0}· {t("immich.videosHidden", { count: videosHidden })}{/if}
       {#if pick.alreadyIn > 0}· {t("immich.albumAlreadyIn", { count: pick.alreadyIn })}{/if}
     </span>

@@ -71,10 +71,10 @@
 <div class="compare" role="group" aria-label={t("htmlExport.compare")}>
   <span>{t("htmlExport.compareWebPage")}</span>
   <span class="bar"><i style:width="{pagePercent}%"></i></span>
-  <span class="value mono">{pageBytes === null ? "" : formatBytes(pageBytes)}</span>
+  <span class="value">{pageBytes === null ? "" : formatBytes(pageBytes)}</span>
   <span>{t("htmlExport.compareVideo")}</span>
   <span class="bar"><i class="video"></i></span>
-  <span class="value mono">{formatBytes(videoBytes)}</span>
+  <span class="value">{formatBytes(videoBytes)}</span>
 </div>
 {#if view.sizeId === TOO_BIG_TO_MAIL}
   <Notice tone="warn">
@@ -90,7 +90,7 @@
       : t("htmlExport.clipsText", { size: formatBytes(pageBytes) })}
   </Notice>
 {/if}
-<div class="spec mono">
+<div class="spec">
   <span>{t("htmlExport.chipFile")}</span>
   <span>{t("htmlExport.chipOffline")}</span>
   <span>{t("htmlExport.chipContent")}</span>

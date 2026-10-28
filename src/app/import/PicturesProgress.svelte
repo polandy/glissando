@@ -47,7 +47,7 @@
     <div class="queue">
       <div class="queue-head">
         <span>{t("import.queueHeader", { done: state.done, count: state.total })}</span>
-        <span class="mono muted">
+        <span class="muted">
           {t("import.queueLeft", { count: state.total - state.done })}
         </span>
       </div>
@@ -59,7 +59,7 @@
           <li class="queue-row">
             <Icon name={PICK_ICONS[row.pick.kind]} />
             <span class="name">{pickName(row.pick, t)}</span>
-            <span class="status mono">
+            <span class="status">
               {#if row.finished}
                 {t("import.pickDone", { count: row.pick.done })}
               {:else if row.inFlight}

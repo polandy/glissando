@@ -138,7 +138,7 @@
     {:else}
       <Notice tone="error">
         {t("videoExport.failedText")}
-        <small class="mono error-detail">{view.error.message}</small>
+        <small class="error-detail">{view.error.message}</small>
       </Notice>
     {/if}
     <footer>

@@ -65,8 +65,8 @@
       {onkeydown}
     >
       <span class="dot"></span>
-      <b>{option.name} <span class="mono resolution">{option.detail}</span></b>
-      <span class="size mono">{option.size}</span>
+      <b>{option.name} <span class="resolution">{option.detail}</span></b>
+      <span class="size">{option.size}</span>
       <small>{option.use}</small>
     </button>
   {/each}
