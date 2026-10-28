@@ -4,7 +4,6 @@ import type { deEditor } from "./catalogue-de-editor.ts";
 /** English copy of the picture editor; typed to the German keys. */
 export const enEditor: Pick<Catalogue, keyof typeof deEditor> = {
   "units.zoom": "{zoom}×",
-  "slideshow.edit": "Edit",
   "slideshow.view": "View",
   "slideshow.viewFullScreen": "View full screen",
   "slideshow.editPicture": "Edit picture",

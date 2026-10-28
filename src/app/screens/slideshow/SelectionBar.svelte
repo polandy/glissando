@@ -71,8 +71,6 @@
   const laterDisabled = $derived(
     count === 0 || orderWithGroupShifted(order, selection.ids, 1) === order,
   );
-  // Selecting several: disabled-looking with nothing selected. A single selection instead looks
-  // disabled for the last picture, which stays; Remove still answers that, with its own toast.
   // Select mode with nothing picked yet: Remove names no count.
   const removeLabel = $derived(
     !selection.several
@@ -81,6 +79,8 @@
         ? t("slideshow.removeNoPictures")
         : t("slideshow.removePictures", { count }),
   );
+  // Selecting several: disabled-looking with nothing selected. A single selection instead looks
+  // disabled for the last picture, which stays; Remove still answers that, with its own toast.
   const removeDisabledLook = $derived(selection.several ? count === 0 : order.length < 2);
 
   function earlier(): void {
