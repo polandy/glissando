@@ -67,7 +67,7 @@ test("E2E-028 the automatic motion's focus is found in the background: a face is
   await expect(card).not.toContainText("Motive werden gesucht");
 });
 
-test("E2E-074 the More menu's Fokus sheet sums a face and a faceless picture into its legend once the pass is done, a legend tap dims the other, and closing hides it", async ({
+test("E2E-074 the More menu's faces-and-subjects sheet sums a face and a faceless picture into its legend once the pass is done, a legend tap dims the other, and closing hides it", async ({
   page,
 }) => {
   await openApp(page);
@@ -85,8 +85,8 @@ test("E2E-074 the More menu's Fokus sheet sums a face and a faceless picture int
   await expect(page.getByRole("status")).toHaveText(CREATED_TOAST);
 
   await page.getByRole("button", { name: "Mehr" }).click();
-  await page.getByRole("menuitem", { name: /^Fokus/ }).click();
-  const sheet = page.getByRole("dialog", { name: "Fokus" });
+  await page.getByRole("menuitem", { name: /^Gesichter und Motive/ }).click();
+  const sheet = page.getByRole("dialog", { name: "Gesichter und Motive" });
   await expect(sheet).toBeVisible();
 
   // The background focus pass detects pictures one at a time; no fixed bound on how long two

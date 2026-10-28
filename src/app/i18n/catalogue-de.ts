@@ -125,14 +125,11 @@ export const de = {
   "slideshow.titleInput": "Titel",
   "slideshow.titleHint": "Enter speichert · Esc verwirft · leer = automatischer Titel",
   "slideshow.more": "Mehr",
-  "slideshow.focus": "Fokus\u00a0…",
-  "slideshow.focusLooking": "Wird gesucht · {done} von {total}",
-  "slideshow.focusLookingAgain": "Wird erneut gesucht · {done} von {total}",
+  "slideshow.focus": "Gesichter und Motive\u00a0…",
   "slideshow.focusFailedHint": {
     one: "{count} konnte nicht angesehen werden",
     other: "{count} konnten nicht angesehen werden",
   },
-  "slideshow.focusDone": "Alle angesehen",
   "slideshow.delete": "Diashow löschen\u00a0…",
   "slideshow.deleteTitle": "„{title}“ löschen?",
   "slideshow.deleteText": {
@@ -145,7 +142,7 @@ export const de = {
   "slideshow.deleted": "Diashow gelöscht",
   "slideshow.gone": "Diese Diashow gibt es nicht mehr.",
 
-  "focusSheet.title": "Fokus",
+  "focusSheet.title": "Gesichter und Motive",
   "focusSheet.looking": "Der Fokus wird gesucht · {done} von {total}",
   "focusSheet.lookingAgain": "Wird erneut gesucht · {done} von {total}",
   "focusSheet.lookingAgainHint": "Jedes Bild behält sein Ergebnis, bis das neue da ist.",

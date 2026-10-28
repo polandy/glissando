@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { FocusSlideshowSummary } from "../../focus/pictures-focus";
-import { focusMenuHint, type FocusMenuHint } from "./focus-menu-hint";
+import { focusMenuFailedCount } from "./focus-menu-hint";
 
 function summary(partial: Partial<FocusSlideshowSummary>): FocusSlideshowSummary {
   return {
@@ -14,28 +14,16 @@ function summary(partial: Partial<FocusSlideshowSummary>): FocusSlideshowSummary
   };
 }
 
-describe("focusMenuHint", () => {
-  const cases: readonly [string, Partial<FocusSlideshowSummary>, FocusMenuHint][] = [
-    [
-      "still looking for the first time",
-      { done: 5, total: 24, again: false },
-      { kind: "looking", again: false, done: 5, total: 24 },
-    ],
-    [
-      "looking again",
-      { done: 10, total: 24, again: true },
-      { kind: "looking", again: true, done: 10, total: 24 },
-    ],
-    ["done, nothing failed", { done: 24, total: 24, failedCount: 0 }, { kind: "done" }],
-    ["done, some failed", { done: 24, total: 24, failedCount: 3 }, { kind: "failed", count: 3 }],
-    [
-      "pending work wins over a leftover failed count",
-      { done: 5, total: 24, failedCount: 2 },
-      { kind: "looking", again: false, done: 5, total: 24 },
-    ],
+describe("focusMenuFailedCount", () => {
+  const cases: readonly [string, Partial<FocusSlideshowSummary>, number][] = [
+    ["done, some failed: their count", { done: 24, total: 24, failedCount: 3 }, 3],
+    ["done, nothing failed: none", { done: 24, total: 24, failedCount: 0 }, 0],
+    ["still looking: none, the progress is not the menu's", { done: 5, total: 24 }, 0],
+    ["looking again: none", { done: 10, total: 24, again: true }, 0],
+    ["pending work hides a leftover failed count", { done: 5, total: 24, failedCount: 2 }, 0],
   ];
 
   it.each(cases)("%s", (_name, partial, expected) => {
-    expect(focusMenuHint(summary(partial))).toEqual(expected);
+    expect(focusMenuFailedCount(summary(partial))).toBe(expected);
   });
 });

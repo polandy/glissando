@@ -30,12 +30,11 @@
   (server_library/IN_THE_APP.md).
 - **Slideshow** (`screens/SlideshowScreen.svelte`, parts in `screens/slideshow/`): breadcrumb
   "Library / title" and a ⋯ "More" button whose menu holds "Save as video", "Save as web page" and "Save as Glissando file" (subtitle "A .glissando
-  file, about 184 MB", measured when the menu opens, again only after its pictures or music changed), a separator, "Focus …" with a subtitle for the
-  slideshow's search ("Looking · 12 of 40", "Looking again · 12 of 40", "3 couldn't be looked at"
-  or, done and none failed, "All looked at"), a separator and "Delete slideshow …". "Focus …" opens
-  the Focus sheet (`screens/slideshow/FocusSheet.svelte`, mockup "Variant A · grid", ADR-0041): a
-  bottom sheet on phone, a 440 px right panel from 720 px — a status line with the same progress as
-  the menu's subtitle, a stacked bar and legend chips by result (filtering the grid below them, own
+  file, about 184 MB", measured when the menu opens, again only after its pictures or music changed), a separator, "Faces and subjects …" — with a
+  subtitle only once the search is done and some pictures failed ("3 couldn't be looked at"); its
+  progress is background work, not the menu's — a separator and "Delete slideshow …". "Faces and
+  subjects …" opens the Focus sheet (titled "Faces and subjects") (`screens/slideshow/FocusSheet.svelte`, mockup "Variant A · grid", ADR-0041): a
+  bottom sheet on phone, a 440 px right panel from 720 px — a status line with the search's progress, a stacked bar and legend chips by result (filtering the grid below them, own
   motion as its own chip), a 4-column grid of the slideshow's pictures with a status dot and, on an
   own-motion one, an "Own motion" badge (tapping a tile opens the picture editor), "Try the 3 again"
   once some failed or "Look again at all 12 pictures" otherwise (asking again at every picture,

@@ -123,14 +123,11 @@ export const en: Catalogue = {
   "slideshow.titleInput": "Title",
   "slideshow.titleHint": "Enter saves · Esc discards · empty = automatic title",
   "slideshow.more": "More",
-  "slideshow.focus": "Focus\u00a0…",
-  "slideshow.focusLooking": "Looking · {done} of {total}",
-  "slideshow.focusLookingAgain": "Looking again · {done} of {total}",
+  "slideshow.focus": "Faces and subjects\u00a0…",
   "slideshow.focusFailedHint": {
     one: "{count} couldn't be looked at",
     other: "{count} couldn't be looked at",
   },
-  "slideshow.focusDone": "All looked at",
   "slideshow.delete": "Delete slideshow\u00a0…",
   "slideshow.deleteTitle": "Delete “{title}”?",
   "slideshow.deleteText": {
@@ -143,7 +140,7 @@ export const en: Catalogue = {
   "slideshow.deleted": "Slideshow deleted",
   "slideshow.gone": "This slideshow no longer exists.",
 
-  "focusSheet.title": "Focus",
+  "focusSheet.title": "Faces and subjects",
   "focusSheet.looking": "Looking for the focus · {done} of {total}",
   "focusSheet.lookingAgain": "Looking again · {done} of {total}",
   "focusSheet.lookingAgainHint": "Each picture keeps its result until the new one is in.",
