@@ -8,4 +8,6 @@
 - **Toast** (`Toast` + `toast/toaster.ts`): one at a time, bottom (right from 700 px viewport width), gone after
   6 s; an optional action and a close button. A new toast replaces the shown one. While the import wizard's
   bottom actions or the slideshow's selection bar are shown, it rises above them.
+  A toast about one screen (`route`) ends once the app leaves that screen; one saying why the app
+  moved, such as "Slideshow deleted", stays.
 - **Dialog** (`Dialog`): a native modal dialog, only when the user must decide.
