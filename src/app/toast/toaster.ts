@@ -1,4 +1,5 @@
 import type { Scheduler } from "../../ui-kit/scheduler";
+import { sameRoute, type Route } from "../navigation/route";
 
 export const TOAST_DURATION_MS = 6000;
 
@@ -13,6 +14,8 @@ export interface ToastMessage {
   readonly text: string;
   readonly tone: ToastTone;
   readonly action?: ToastAction;
+  /** The screen the toast speaks about; it ends once the app leaves it (see `follow`). */
+  readonly route?: Route;
   /** Called once the toast leaves without its action run: it expired, or was dismissed or replaced. */
   readonly onClosed?: () => void;
 }
@@ -42,6 +45,14 @@ export class Toaster {
     this.#cancelTimeout?.();
     this.#cancelTimeout = null;
     this.#set(null);
+  }
+
+  /** The app is now on `route`: a toast tied to another screen ends, so it lies over no other. */
+  follow(route: Route): void {
+    const tiedTo = this.#current?.route;
+    if (tiedTo !== undefined && !sameRoute(tiedTo, route)) {
+      this.dismiss();
+    }
   }
 
   /** Runs the shown toast's action; dismissing first lets the action show a follow-up toast. */

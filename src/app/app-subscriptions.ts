@@ -57,6 +57,7 @@ export function subscribeAppState(
       importFlow.ensureSession();
     }
     addFlow.follow(next);
+    toaster.follow(next);
     if ((next.screen === "import" && next.step === "pictures") || next.screen === "add") {
       immich.availability.check().catch(reportError);
     }
