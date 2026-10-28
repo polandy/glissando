@@ -4,7 +4,6 @@
   import type { ExportMenuState } from "../../glissando-file/export-menu";
   import { getTranslator } from "../../i18n/context";
   import type { SlideshowStorage, StorageAction } from "../view-models";
-  import type { FocusMenuHint } from "./focus-menu-hint";
 
   /** The header's ⋯ button and its menu: every export of the slideshow, then focus, storage and
    * delete. */
@@ -18,7 +17,7 @@
     storage = null,
     pictureCount,
     onStorageAction,
-    focusHint,
+    focusFailed,
     onFocus,
   }: {
     exportState: ExportMenuState;
@@ -34,8 +33,8 @@
     storage?: SlideshowStorage | null;
     pictureCount: number;
     onStorageAction: (action: StorageAction) => void;
-    /** The Focus entry's hint line (ADR-0041). */
-    focusHint: FocusMenuHint;
+    /** Pictures the finished focus search couldn't look at; 0 shows no hint line (ADR-0041). */
+    focusFailed: number;
     /** Opens the Focus sheet. */
     onFocus: () => void;
   } = $props();
@@ -44,17 +43,6 @@
 
   const PERCENT = 100;
   const { t, formatBytes } = getTranslator();
-
-  const focusHintText = $derived(
-    focusHint.kind === "looking"
-      ? t(focusHint.again ? "slideshow.focusLookingAgain" : "slideshow.focusLooking", {
-          done: focusHint.done,
-          total: focusHint.total,
-        })
-      : focusHint.kind === "failed"
-        ? t("slideshow.focusFailedHint", { count: focusHint.count })
-        : t("slideshow.focusDone"),
-  );
 
   let open = $state(false);
   let toggle = $state<HTMLButtonElement>();
@@ -158,11 +146,19 @@
         </span>
       </button>
       <hr />
-      <button class="item two-line" type="button" role="menuitem" onclick={() => choose(onFocus)}>
+      <button
+        class="item"
+        class:two-line={focusFailed > 0}
+        type="button"
+        role="menuitem"
+        onclick={() => choose(onFocus)}
+      >
         <Icon name="search" />
         <span class="text">
           {t("slideshow.focus")}
-          <small>{focusHintText}</small>
+          {#if focusFailed > 0}
+            <small>{t("slideshow.focusFailedHint", { count: focusFailed })}</small>
+          {/if}
         </span>
       </button>
       <hr />

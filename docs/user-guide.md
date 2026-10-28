@@ -90,8 +90,8 @@ All three are in the ⋯ menu at the top right of a slideshow.
 - If the music is a little shorter than the pictures, they shrink to fit it on their own. If it
   ends well before the pictures do, the music editor offers to **Repeat the music** or **Add a
   song**.
-- Glissando looks for faces and other subjects in the background, so motion aims well; a card or
-  a slideshow's ⋯ menu shows how far it got, and **Focus …** lets you look again at any picture,
+- Glissando looks for faces and other subjects in the background, so motion aims well; a card shows
+  how far it got, and **Faces and subjects …** in a slideshow's ⋯ menu lets you look again at any picture,
   including one it couldn't look at the first time.
 - Your pictures stay on your device. Nothing is uploaded unless you use a server you run yourself.
 - Ask the browser to keep the data (Glissando requests it); clearing site data deletes slideshows

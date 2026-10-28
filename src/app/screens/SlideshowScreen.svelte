@@ -4,7 +4,7 @@
   import { viewerEntries } from "../components/picture-viewer-view";
   import { getTranslator } from "../i18n/context";
   import InfoPanel from "./slideshow/InfoPanel.svelte";
-  import { slideshowFocusMenuHint } from "./slideshow/focus-menu-hint";
+  import { slideshowFocusFailed } from "./slideshow/focus-menu-hint";
   import MoreMenu from "./slideshow/MoreMenu.svelte";
   import PicturesColumn from "./slideshow/PicturesColumn.svelte";
   import SelectionBar from "./slideshow/SelectionBar.svelte";
@@ -129,7 +129,7 @@
         {storage}
         pictureCount={slideshow.pictures.length}
         {onStorageAction}
-        focusHint={slideshowFocusMenuHint(focus, slideshow.pictures, focusSearch, focusPaused)}
+        focusFailed={slideshowFocusFailed(focus, slideshow.pictures, focusSearch, focusPaused)}
         onFocus={() => overlays?.showFocus()}
       />
     {/snippet}
