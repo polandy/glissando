@@ -114,6 +114,8 @@ export const en: Catalogue = {
   "slideshow.earlier": "Earlier",
   "slideshow.later": "Later",
   "slideshow.remove": "Remove",
+  "slideshow.removeNoPictures": "Remove pictures",
+  "slideshow.removePictures": { one: "Remove picture", other: "Remove {count} pictures" },
   "slideshow.done": "Done",
   "slideshow.lastPictureStays":
     "The last picture stays. To get rid of it, delete the whole slideshow.",

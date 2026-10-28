@@ -48,11 +48,12 @@ there to set your own order — new ones join by capture date until you do — a
 Adding pictures later skips the ones already in the slideshow (you can add them anyway). Drag
 pictures to reorder, or tap Shuffle for a random order (Undo in the message that follows
 brings the old one back); select a picture to view it full screen or open its editor to change
-its motion.
+its motion. The bar that appears shows its actions as icons: rest the mouse on one, or press and
+hold it with a finger, to see what it does.
 
 **Trip chapters**: a slideshow of several days in different places gets a chapter slide between
 them automatically, naming the place and the dates. Tap a chapter tile in the picture strip to
-rename it, hide it, or reset it to its automatic text; select a picture and tap **Insert chapter**
+rename it, hide it, or reset it to its automatic text; select a picture and tap **Insert chapter before**
 to add one of your own, or delete it again from its sheet. The **Trip chapters** row in the
 slideshow's side panel, under **Fine settings**, is where automatic chapters are turned on or off
 for the whole slideshow, and shows how many there currently are.

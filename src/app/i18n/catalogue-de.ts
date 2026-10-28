@@ -117,6 +117,8 @@ export const de = {
   "slideshow.earlier": "Früher",
   "slideshow.later": "Später",
   "slideshow.remove": "Entfernen",
+  "slideshow.removeNoPictures": "Bilder entfernen",
+  "slideshow.removePictures": { one: "Bild entfernen", other: "{count} Bilder entfernen" },
   "slideshow.done": "Fertig",
   "slideshow.lastPictureStays": "Das letzte Bild bleibt. Zum Wegwerfen die ganze Diashow löschen.",
   "slideshow.everyPictureStays":

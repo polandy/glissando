@@ -40,7 +40,7 @@ describe("SlideshowScreen editing", () => {
     const only = tile(1, "01.07.2025");
     only.click();
     flushSync();
-    const remove = buttonNamed("Entfernen");
+    const remove = buttonNamed("Bild entfernen");
 
     expect(byLabel("Bild 1 entfernen").disabled).toBe(true);
     expect(remove.disabled).toBe(false);
@@ -124,7 +124,7 @@ describe("SlideshowScreen editing", () => {
     tile(3, "03.07.2025").click();
     flushSync();
 
-    buttonNamed("Entfernen").click();
+    buttonNamed("Bild entfernen").click();
     flushSync();
 
     expect(calls.removedGroup).toEqual([["c"]]);

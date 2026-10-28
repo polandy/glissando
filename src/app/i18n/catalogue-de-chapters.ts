@@ -19,7 +19,7 @@ export const deChapters = {
   "chapters.automaticHelperOff":
     "Ein kurzes Bild, wo immer die Reise an einen neuen Ort weitergeht. Eigene Kapitel bleiben erhalten.",
   "chapters.automaticHelperDisabled": "Aus, solange du die Reihenfolge selbst bestimmst",
-  "chapters.insertChapter": "Kapitel einfügen",
+  "chapters.insertChapterBefore": "Kapitel davor einfügen",
   "chapters.rowLabel": "Reisekapitel",
   "chapters.count": {
     one: "{count} Kapitel",
