@@ -68,7 +68,6 @@
   }
   small {
     color: var(--gl-muted);
-    font-family: var(--gl-font-mono);
     font-size: var(--gl-size-small);
   }
 </style>

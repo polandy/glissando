@@ -71,7 +71,7 @@
   {#if feedState.photos.length > 0}
     <p class="end">
       {t("immich.thatsAll")} ·
-      <span class="mono">{t("immich.photos", { count: feedState.photos.length })}</span>
+      <span>{t("immich.photos", { count: feedState.photos.length })}</span>
     </p>
   {/if}
 {:else}

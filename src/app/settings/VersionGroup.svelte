@@ -59,8 +59,4 @@
     font-size: var(--gl-size-small);
     color: var(--gl-muted);
   }
-  .mono {
-    font-family: var(--gl-font-mono);
-    font-variant-numeric: tabular-nums;
-  }
 </style>

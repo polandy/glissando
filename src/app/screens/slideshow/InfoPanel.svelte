@@ -102,8 +102,8 @@
     <div class="identity">
       <div class="eyebrow">{t("slideshow.eyebrow")}</div>
       <TitleEditor title={slideshow.title} {onRename} />
-      <div class="muted mono range">
-        {dateRange}<span class="summary">{` · ${summary}`}</span>
+      <div class="muted range">
+        <span class="mono">{dateRange}</span><span class="summary">{` · ${summary}`}</span>
       </div>
     </div>
     <button class="btn primary large play" type="button" onclick={onPlay}>

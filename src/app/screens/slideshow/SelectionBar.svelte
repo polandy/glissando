@@ -120,7 +120,7 @@
         >
       </span>
     {:else}
-      <span class="count mono" aria-live="polite">
+      <span class="count" aria-live="polite">
         {t("slideshow.selectionCount", { number: soleIndex + 1, total: order.length })}
       </span>
     {/if}

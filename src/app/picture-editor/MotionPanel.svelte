@@ -67,7 +67,9 @@
           onclick={() => onActivate(key)}
         >
           <b><i class="swatch"></i>{t(KEY_LABELS[key])}</b>
-          <span>{t("editor.zoom", { zoom: formatZoom(motion[key].zoom) })}</span>
+          <span
+            >{t("editor.zoomLabel")} <span class="mono">{formatZoom(motion[key].zoom)}</span></span
+          >
         </button>
       {/each}
     </div>

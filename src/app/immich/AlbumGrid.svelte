@@ -73,7 +73,7 @@
             {/if}
           </span>
           <span class="name">{album.name}</span>
-          <span class="meta mono">{meta(album)}</span>
+          <span class="meta">{meta(album)}</span>
           {#if failure !== undefined}
             <span class="failed" role="alert">{t(browseFailureMessages(failure).line)}</span>
           {/if}

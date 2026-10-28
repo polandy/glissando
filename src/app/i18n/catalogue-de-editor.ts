@@ -19,7 +19,7 @@ export const deEditor = {
   "editor.frames": "Rahmen",
   "editor.start": "Start",
   "editor.end": "Ende",
-  "editor.zoom": "Zoom {zoom}",
+  "editor.zoomLabel": "Zoom",
   "editor.startFrame": "Startrahmen, Zoom {zoom}",
   "editor.endFrame": "Endrahmen, Zoom {zoom}",
   "editor.editStartFrame": "Startrahmen bearbeiten",

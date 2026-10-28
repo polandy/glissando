@@ -70,8 +70,9 @@
       <div class="track"><div class="fill measuring"></div></div>
       <div class="nums">
         <span>{t("prepare.measuring")}</span>
-        <span class="mono"
-          ><b>{view.measured}</b> {t("prepare.ofMeasuring", { total: view.measuring })}</span
+        <span
+          ><b class="mono">{view.measured}</b>
+          {t("prepare.ofMeasuring", { total: view.measuring })}</span
         >
       </div>
     {:else}
@@ -96,8 +97,8 @@
         <div class="fill" style:width="{(view.ready / view.target) * 100}%"></div>
       </div>
       <div class="nums">
-        <span class="mono"
-          ><b>{view.ready}</b> {t("prepare.ofPictures", { total: view.target })}</span
+        <span
+          ><b class="mono">{view.ready}</b> {t("prepare.ofPictures", { total: view.target })}</span
         >
         <span
           >{t("prepare.startsIn")}
