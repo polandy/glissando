@@ -66,11 +66,12 @@ both as build arguments (`deploy/Dockerfile`).
   toggle itself sits at the block's bottom and reads "Show fewer" once open, which folds the block
   again. Nothing scrolls sideways. Unfolded or not, the block keeps its state while the step is
   open.
-- **The grid**: 3 columns at every width. A card is a square, its cover filling it; the play
-  button (top left) and "+" (top right, `aria-label` "Add <title>"; "✓" once added) sit on the
-  cover, and the title, the mood and the length are overlaid at the bottom on a dark gradient: the
-  mood keeps to one line with an ellipsis, the length stays on its own line in the mono font so it
-  always shows in full, and a status line follows in the same overlay where one applies.
+- **The grid**: 3 columns at every width. A card is a square cover with its caption below it.
+  Only the play button (bottom left) and "+" (top right, `aria-label` "Add <title>"; "✓" once
+  added) sit on the cover; the title, the mood and the length (mono font) follow under it as plain
+  text, title and mood wrapping in full — never clamped or cut with an ellipsis, in either
+  language down to the Add a song sheet's narrow cards — and a status line follows where one
+  applies.
 
 ## Listening
 

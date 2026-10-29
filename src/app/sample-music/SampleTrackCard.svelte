@@ -12,7 +12,7 @@
 
   /**
    * One card of the sample-music grid (SAMPLE_MUSIC.md, "The grid"): cover with play/pause and
-   * add/added, a progress ring while it downloads, then its title, mood, length and status.
+   * add/added, a progress ring while it downloads; below it its title, mood, length and status.
    */
   let {
     track,
@@ -46,47 +46,54 @@
 </script>
 
 <li class="card" class:disabled class:added>
-  <img class="cover" src={SAMPLE_TRACK_COVER_URLS[track.id]} alt="" />
-  {#if !disabled}
-    <button
-      class="play"
-      type="button"
-      disabled={loading}
-      aria-label={playing
-        ? t("sampleMusicPicker.pauseTrack", { title: track.title })
-        : t("sampleMusicPicker.playTrack", { title: track.title })}
-      onclick={onTogglePlay}
-    >
-      <Icon name={playing ? "pause" : "play"} />
-    </button>
-  {/if}
-  {#if downloadProgress !== undefined}
-    <span
-      class="ring"
-      aria-hidden="true"
-      style:background="conic-gradient(var(--gl-accent) {downloadProgress * FULL_TURN_DEGREES}deg,
-      var(--gl-photo-badge) 0deg)"
-    >
-      <span class="ring-value">{Math.round(downloadProgress * PERCENT)}</span>
-    </span>
-  {:else}
-    <button
-      class="plus"
-      class:added
-      type="button"
-      aria-pressed={added}
-      disabled={disabled && !added}
-      aria-label={added
-        ? t("sampleMusicPicker.removeTrack", { title: track.title })
-        : t("sampleMusicPicker.addTrack", { title: track.title })}
-      onclick={onToggleAdd}
-    >
-      <span class="dot" aria-hidden="true">
-        <Icon name={added ? "check" : "plus"} />
+  <div class="art">
+    <img class="cover" src={SAMPLE_TRACK_COVER_URLS[track.id]} alt="" />
+    {#if !disabled}
+      <button
+        class="play"
+        type="button"
+        disabled={loading}
+        aria-label={playing
+          ? t("sampleMusicPicker.pauseTrack", { title: track.title })
+          : t("sampleMusicPicker.playTrack", { title: track.title })}
+        onclick={onTogglePlay}
+      >
+        <Icon name={playing ? "pause" : "play"} />
+      </button>
+    {/if}
+    {#if downloadProgress !== undefined}
+      <span
+        class="ring"
+        aria-hidden="true"
+        style:background="conic-gradient(var(--gl-accent) {downloadProgress * FULL_TURN_DEGREES}deg,
+        var(--gl-photo-badge) 0deg)"
+      >
+        <span class="ring-value">{Math.round(downloadProgress * PERCENT)}</span>
       </span>
-    </button>
-  {/if}
-  <div class="shade">
+    {:else}
+      <button
+        class="plus"
+        class:added
+        type="button"
+        aria-pressed={added}
+        disabled={disabled && !added}
+        aria-label={added
+          ? t("sampleMusicPicker.removeTrack", { title: track.title })
+          : t("sampleMusicPicker.addTrack", { title: track.title })}
+        onclick={onToggleAdd}
+      >
+        <span class="dot" aria-hidden="true">
+          <Icon name={added ? "check" : "plus"} />
+        </span>
+      </button>
+    {/if}
+    {#if playing || paused}
+      <span class="progress" aria-hidden="true">
+        <span class="bar" style:width="{previewProgress * PERCENT}%"></span>
+      </span>
+    {/if}
+  </div>
+  <div class="caption">
     <b class="title">
       {#if playing}
         <span class="bars" aria-hidden="true"><span></span><span></span><span></span></span>
@@ -97,15 +104,18 @@
     <p class="length mono">{formatDuration(track.durationMs / MILLISECONDS_PER_SECOND)}</p>
     {#if statusKey !== undefined}<span class="status">{t(statusKey)}</span>{/if}
   </div>
-  {#if playing || paused}
-    <span class="progress" aria-hidden="true">
-      <span class="bar" style:width="{previewProgress * PERCENT}%"></span>
-    </span>
-  {/if}
 </li>
 
 <style>
+  /* Overrides base.css's boxed .card: the cover and caption sit straight on the block. */
   .card {
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+  }
+  .art {
     position: relative;
     aspect-ratio: 1;
     overflow: hidden;
@@ -122,20 +132,14 @@
     height: 100%;
     object-fit: cover;
   }
-  /* Above the shade: on a phone a wrapping title grows the shade over the card's top corners. */
-  .play,
-  .plus,
-  .ring {
-    z-index: 1;
-  }
   .play {
     position: absolute;
-    top: 6px;
+    bottom: 6px;
     left: 6px;
     display: grid;
     place-items: center;
-    width: 28px;
-    height: 28px;
+    width: 36px;
+    height: 36px;
     border: 0;
     border-radius: 50%;
     background: var(--gl-photo-play-bg);
@@ -198,44 +202,34 @@
     color: var(--gl-on-photo);
     font-size: var(--gl-size-small);
   }
-  .shade {
-    position: absolute;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    padding: 22px 8px 6px;
-    background: linear-gradient(transparent, var(--gl-photo-fade));
-    color: var(--gl-on-photo);
-    pointer-events: none;
+  /* Title and mood wrap in full; a word wider than the narrowest card breaks rather than spill. */
+  .caption {
+    padding: 7px 2px 0;
+    overflow-wrap: anywhere;
   }
   .title {
-    display: -webkit-box;
+    display: block;
     margin: 0;
-    overflow: hidden;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
     font-size: var(--gl-size-small);
     font-weight: var(--gl-weight-semibold);
+    line-height: 1.25;
   }
   .mood {
     margin: 2px 0 0;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
+    color: var(--gl-muted);
     font-size: var(--gl-size-small);
-    opacity: 0.8;
+    line-height: 1.3;
   }
   .length {
-    margin: 1px 0 0;
-    font-size: var(--gl-size-small);
-    opacity: 0.8;
+    margin: 2px 0 0;
+    color: var(--gl-muted);
+    font-size: var(--gl-size-caption);
   }
   .status {
     display: block;
     margin-top: 2px;
-    font-size: var(--gl-size-small);
-    opacity: 0.8;
+    color: var(--gl-faint);
+    font-size: var(--gl-size-caption);
   }
   .progress {
     position: absolute;
