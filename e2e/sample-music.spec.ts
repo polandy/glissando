@@ -87,8 +87,8 @@ test("E2E-075 the sample-music block offers 9 tracks behind Show all, and a fail
 });
 
 test.describe("on a phone, in the music editor's Add song sheet", () => {
-  // Three cards of about 85 px in the sheet at this size: a wrapping title grows the card's
-  // shade over its +, and a real tap must still land on the +.
+  // Three cards of about 85 px in the sheet at this size: a real tap must still land on a
+  // card's +.
   const PHONE_TOUCH = { width: 390, height: 844 };
   test.use({ hasTouch: true, isMobile: true, viewport: PHONE_TOUCH });
 
@@ -110,8 +110,7 @@ test.describe("on a phone, in the music editor's Add song sheet", () => {
     const addSongSheet = page.getByRole("dialog", { name: "Add a song" });
     await expect(addSongSheet).toBeVisible();
 
-    // A real tap, unforced: Playwright's hit-target check fails it if the card's shade still
-    // covers the +. The route above fails the download fast, so the pressed "Remove" state can
+    // A real tap, unforced: Playwright's hit-target check fails it if anything covers the +. The route above fails the download fast, so the pressed "Remove" state can
     // flip back to "Add" before an assertion catches it; the song joining the list is the one
     // signal that survives whichever way the download lands.
     await addSongSheet.getByRole("button", { name: `Add ${FIRST_TRACK_TITLE}` }).tap();

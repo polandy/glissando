@@ -194,7 +194,7 @@ function tapLandsOn(control: Element): boolean {
 }
 
 describe("SampleMusicGrid, at phone width", () => {
-  it("keeps every card's + and play tappable over a title that wraps", async () => {
+  it("keeps every card's + and play tappable, nothing painted over them", async () => {
     const { target } = mountGrid(previewWith());
     target.style.width = `${PHONE_SHEET_WIDTH_PX}px`;
     await settled();
