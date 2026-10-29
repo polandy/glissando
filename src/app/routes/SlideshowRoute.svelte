@@ -256,7 +256,7 @@
     onDelete={() => deleteShownSlideshow(store, slideshowId, editor).then(onDeleted, onError)}
     exportState={exports.menuState(exportProgress, slideshowId)}
     {onExport}
-    onMenuOpened={exports.measure}
+    onShareOpened={exports.measure}
     newVideoExport={exports.newVideoExport}
     newHtmlExport={exports.newHtmlExport}
     mousePointer={mousePointer.current}

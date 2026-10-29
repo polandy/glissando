@@ -9,11 +9,6 @@ afterEach(() => destroy());
 function openMenu(focusFailed: number) {
   const calls: string[] = [];
   const mounted = mountWithTranslator(MoreMenu, {
-    exportState: { kind: "idle", sizeBytes: null },
-    onExport: () => {},
-    onSaveVideo: () => {},
-    onSaveWebPage: () => {},
-    onOpened: () => {},
     onDelete: () => {},
     pictureCount: 3,
     onStorageAction: () => {},

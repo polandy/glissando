@@ -4,6 +4,7 @@ import { openApp } from "./support/browser";
 import { holdPictureStore } from "./support/hold-pictures";
 import { textFile } from "./support/media";
 import { exportedFileWithRealMedia } from "./support/real-glissando-file";
+import { chooseShareRow } from "./support/share";
 
 test.use(GERMAN_BROWSER);
 
@@ -22,18 +23,19 @@ async function backToLibrary(page: Page): Promise<void> {
   await expect(page.getByRole("heading", { name: "Deine Diashows" })).toBeVisible();
 }
 
-test("E2E-015 a slideshow exported from its menu opens again from the library as a copy", async ({
+test("E2E-015 a slideshow exported from its Share sheet opens again from the library as a copy", async ({
   page,
 }, testInfo) => {
   await openApp(page);
   await createSlideshow(page, ["2025-07-12", "2025-07-14"], 2);
   await captionPicture(page, "Bild 1, aufgenommen am 12.07.2025", "Abends am Steg");
 
-  await page.getByRole("button", { name: "Mehr" }).click();
-  const exportItem = page.getByRole("menuitem", { name: /^Als Glissando-Datei sichern/ });
-  await expect(exportItem).toContainText(/Eine \.glissando-Datei, ca\. [\d,]+ MB/);
+  await chooseShareRow(page, /^Glissando-Datei/);
+  const sheet = page.getByRole("dialog", { name: "Glissando-Datei" });
+  await expect(sheet).toContainText(/\.glissando/);
+  await expect(sheet).toContainText(/[\d,]+ MB/);
   const releaseExport = await holdPictureStore(page);
-  await exportItem.click();
+  await sheet.getByRole("button", { name: "Datei sichern" }).click();
   await expect(status(page, `Exportiere „${TITLE}“`)).toBeVisible();
   const download = page.waitForEvent("download");
   await releaseExport();
@@ -42,6 +44,8 @@ test("E2E-015 a slideshow exported from its menu opens again from the library as
   await expect(status(page, `„${TITLE}.glissando“ heruntergeladen`)).toBeVisible();
   const saved = testInfo.outputPath(file.suggestedFilename());
   await file.saveAs(saved);
+  await expect(sheet).toContainText("In Downloads gesichert.");
+  await sheet.getByRole("button", { name: "Fertig" }).click();
 
   await backToLibrary(page);
   const releaseOpening = await holdPictureStore(page);

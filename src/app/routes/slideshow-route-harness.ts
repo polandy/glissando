@@ -71,7 +71,7 @@ export function mountRoute(
     playbackQuality: "1440" as const,
     slideshowId: SHOW.id,
     exportProgress: null,
-    onExport: () => {},
+    onExport: () => Promise.resolve("saved" as const),
     videoExport: new FakeExportPorts(),
     htmlExport: fakeHtmlExportDevice(),
     playing: false,

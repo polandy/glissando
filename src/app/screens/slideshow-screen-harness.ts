@@ -248,8 +248,8 @@ export function mountScreen(
     reducedMotion,
     onDelete: () => (calls.deletes += 1),
     exportState: { kind: "idle", sizeBytes: null } as ExportMenuState,
-    onExport: () => {},
-    onMenuOpened: () => {},
+    onExport: () => Promise.resolve("saved" as const),
+    onShareOpened: () => {},
     newVideoExport: () => {
       throw new Error("the video export sheet is not opened in these tests");
     },

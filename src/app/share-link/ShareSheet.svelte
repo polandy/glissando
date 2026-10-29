@@ -15,6 +15,7 @@
   import { getTranslator } from "../i18n/context";
   import type { MessageKey } from "../i18n/messages";
   import ExportDialog from "../screens/slideshow/export-sheet/ExportDialog.svelte";
+  import { shareSummary } from "./share-summary";
   import NotSharedBody from "./NotSharedBody.svelte";
   import SharedLinkBody from "./SharedLinkBody.svelte";
   import type { ShareLinkRequest, ShareLinkSession, ShareLinkState } from "./share-link-session";
@@ -26,12 +27,17 @@
   let {
     session,
     subject,
+    onClose,
   }: {
     session: ShareLinkSession;
     subject: ShareSubject;
+    /** Closes the whole Share flow. Back closes only the session's sheet, which the flow reads
+     * as returning to the chooser. */
+    onClose: () => void;
   } = $props();
 
-  const { t, formatDuration } = getTranslator();
+  const translator = getTranslator();
+  const { t } = translator;
 
   // svelte-ignore state_referenced_locally
   let view = $state.raw<ShareLinkState>(session.state);
@@ -44,14 +50,12 @@
   };
 
   const confirming = $derived(view.sheet === "confirmTurnOff");
-  const summary = $derived(
-    t("share.summary", {
-      title: subject.title,
-      pictures: t("units.pictures", { count: subject.pictureCount }),
-      duration: formatDuration(subject.durationSeconds),
-      music: subject.hasMusic ? t("htmlExport.withMusic") : t("htmlExport.withoutMusic"),
-    }),
-  );
+  function close(): void {
+    session.close();
+    onClose();
+  }
+
+  const summary = $derived(shareSummary(translator, subject));
 </script>
 
 <ExportDialog
@@ -60,7 +64,9 @@
   subtitle={confirming ? null : summary}
   closeLabel={t("common.close")}
   closeOnScrim={view.pending === null}
-  onClose={() => session.close()}
+  onClose={close}
+  onBack={() => session.close()}
+  backLabel={t("common.back")}
 >
   {#if confirming}
     <p class="confirm">{t("share.confirmText", { title: subject.title })}</p>
@@ -108,7 +114,7 @@
     </footer>
   {:else if view.link === null}
     <footer>
-      <button class="btn ghost" type="button" onclick={() => session.close()}>
+      <button class="btn ghost" type="button" onclick={close}>
         {t("common.cancel")}
       </button>
       <button
@@ -125,7 +131,7 @@
       <button class="btn danger-text" type="button" onclick={() => session.askTurnOff()}>
         <Icon name="unlink" />{t("share.turnOff")}
       </button>
-      <button class="btn primary" type="button" onclick={() => session.close()}>
+      <button class="btn primary" type="button" onclick={close}>
         {t("share.done")}
       </button>
     </footer>

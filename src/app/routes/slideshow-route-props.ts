@@ -4,7 +4,7 @@ import type { FocusPass } from "../../library/focus-pass";
 import type { LoudnessPass } from "../../library/loudness-pass";
 import type { SlideshowHome } from "./slideshow-storage";
 import type { RouteStore } from "./slideshow-home";
-import type { ExportProgress } from "../glissando-file/export-job";
+import type { ExportOutcome, ExportProgress } from "../glissando-file/export-job";
 import type { Toaster } from "../toast/toaster";
 import type { ReadClipPeaks } from "../clip-editor/clip-sound-wave";
 import type { MusicEditorAudio } from "../music-editor/music-editor-audio";
@@ -45,7 +45,7 @@ export interface SlideshowRouteProps {
   slideshowId: string;
   /** The export running in the background, of this slideshow or another. */
   exportProgress: ExportProgress | null;
-  onExport: () => void;
+  onExport: () => Promise<ExportOutcome>;
   /** What "Save as video" needs of the browser. */
   videoExport: VideoExportDevice;
   /** What "Save as web page" needs of the browser. */

@@ -3,8 +3,7 @@ import type { deVideo } from "./catalogue-de-video.ts";
 
 /** English copy of the video export; typed to the German keys. */
 export const enVideo: Pick<Catalogue, keyof typeof deVideo> = {
-  "slideshow.saveAsVideo": "Save as video",
-  "videoExport.title": "Save as video",
+  "videoExport.title": "Video",
   "videoExport.subtitle": "{title} · {duration} · {music}",
   "videoExport.withMusic": "with music",
   "videoExport.withoutMusic": "without music",

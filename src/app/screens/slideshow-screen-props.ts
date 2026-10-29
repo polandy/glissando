@@ -12,6 +12,7 @@ import type { SlideshowMood } from "../../library/slideshow-mood";
 import type { SongBeats } from "../../compose/playlist";
 import type { MoodEnergyPacing } from "./slideshow/mood-energy-pacing";
 import type { MoodPreviewPorts } from "./slideshow/mood-preview-ports";
+import type { ExportOutcome } from "../glissando-file/export-job";
 import type { ExportMenuState } from "../glissando-file/export-menu";
 import type { StripSelection } from "./slideshow/strip-selection";
 import type { Scheduler } from "../../ui-kit/scheduler";
@@ -94,13 +95,15 @@ export interface SlideshowScreenProps {
   reducedMotion: boolean;
   /** The user confirmed deleting the whole slideshow. */
   onDelete: () => void;
+  /** The Glissando file export's state, for the Share sheet's file row and sheet. */
   exportState: ExportMenuState;
-  onExport: () => void;
-  /** The ⋯ menu opened. */
-  onMenuOpened: () => void;
-  /** A video export of the slideshow as it is now, for the sheet "Save as video". */
+  /** Starts the Glissando file export; resolves with how it ended. */
+  onExport: () => Promise<ExportOutcome>;
+  /** The Share sheet opened. */
+  onShareOpened: () => void;
+  /** A video export of the slideshow as it is now, for the Share sheet's video row. */
   newVideoExport: () => VideoExportSession<ExportPreview>;
-  /** A web page export of the slideshow as it is now, for the sheet "Save as web page". */
+  /** A web page export of the slideshow as it is now, for the Share sheet's web page row. */
   newHtmlExport: () => HtmlExportSession;
   /** The primary pointer is a mouse (hovers, fine): a double-click opens a picture. */
   mousePointer: boolean;

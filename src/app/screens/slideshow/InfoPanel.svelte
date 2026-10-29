@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Icon from "../../components/Icon.svelte";
   import { getTranslator } from "../../i18n/context";
   import type { SlideshowDetails, SlideshowStorage } from "../view-models";
   import type { ServerSlideshowRows } from "../../server-library/server-slideshow-sessions";
@@ -18,6 +19,7 @@
     storage = null,
     serverRows = null,
     onRename,
+    onShare,
     onEditMusic,
     onEditTransitions,
     onEditLook,
@@ -34,6 +36,8 @@
     /** A server slideshow's link and "Show on TV"; null for a device slideshow. */
     serverRows?: ServerSlideshowRows | null;
     onRename: (typed: string) => void;
+    /** Opens the Share sheet. */
+    onShare: () => void;
     onEditMusic: () => void;
     /** Opens the sheet of the slideshow's default transition. */
     onEditTransitions: () => void;
@@ -53,8 +57,14 @@
     fineSettingsFold: FineSettingsFoldStore;
   } = $props();
 
+  let shareButton = $state<HTMLButtonElement>();
   let tiles: DetailsTiles;
   let fineSettings: FineSettings;
+
+  /** The Share sheet closed: focus goes back to the button it was opened from. */
+  export function focusShare(): void {
+    shareButton?.focus();
+  }
 
   /** The look sheet closed: focus goes back to the tile it was opened from. */
   export function focusLook(): void {
@@ -98,7 +108,13 @@
   <div class="head">
     <div class="identity">
       <div class="eyebrow">{t("slideshow.eyebrow")}</div>
-      <TitleEditor title={slideshow.title} {onRename} />
+      <TitleEditor title={slideshow.title} {onRename}>
+        {#snippet actions()}
+          <button bind:this={shareButton} class="btn small share" type="button" onclick={onShare}>
+            <Icon name="share" />{t("share.button")}
+          </button>
+        {/snippet}
+      </TitleEditor>
       <div class="muted range">
         <span class="mono">{dateRange}</span><span class="summary">{` · ${summary}`}</span>
       </div>
@@ -141,6 +157,9 @@
   .range {
     margin-top: 4px;
     font-size: var(--gl-size-meta);
+  }
+  .share {
+    border-radius: var(--gl-radius-pill);
   }
   .summary {
     display: none;
