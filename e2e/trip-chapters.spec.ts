@@ -103,7 +103,7 @@ test("E2E-078 inserting a chapter from the selection bar adds it right before th
 
   await secondPicture.click();
   await expect(secondPicture).toHaveAttribute("aria-pressed", "true");
-  await selectionBar(page).getByRole("button", { name: "Kapitel einfügen" }).click();
+  await selectionBar(page).getByRole("button", { name: "Kapitel davor einfügen" }).click();
   await expect(addedDialog).toBeVisible();
   await expect(titleField).toHaveValue("Lisbon");
   await expect(subtitleField).toHaveValue("Tag 2 · Sonntag, 13. Juli");
@@ -135,7 +135,7 @@ test("E2E-078 inserting a chapter from the selection bar adds it right before th
   await expect(secondPicture).toHaveAttribute("aria-pressed", "true");
 
   // Added again, so turning automatic chapters off can be shown to keep this one.
-  await selectionBar(page).getByRole("button", { name: "Kapitel einfügen" }).click();
+  await selectionBar(page).getByRole("button", { name: "Kapitel davor einfügen" }).click();
   await expect(addedDialog).toBeVisible();
   await editsStored(page);
   await addedDialog.getByRole("button", { name: "Fertig" }).click();

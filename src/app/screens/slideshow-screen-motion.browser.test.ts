@@ -20,12 +20,12 @@ describe("SlideshowScreen, the way into the picture editor", () => {
     flushSync();
 
     const labels = [...document.querySelectorAll(".bar button")].map((b) => b.textContent?.trim());
-    buttonNamed("Bearbeiten").click();
+    buttonNamed("Bild bearbeiten").click();
 
-    expect(labels.indexOf("Ansehen")).toBe(labels.indexOf("Später") + 1);
-    expect(labels.indexOf("Bearbeiten")).toBe(labels.indexOf("Ansehen") + 1);
-    expect(labels.indexOf("Kapitel einfügen")).toBe(labels.indexOf("Bearbeiten") + 1);
-    expect(labels.indexOf("Entfernen")).toBe(labels.indexOf("Kapitel einfügen") + 1);
+    expect(labels.indexOf("Vollbild ansehen")).toBe(labels.indexOf("Später") + 1);
+    expect(labels.indexOf("Bild bearbeiten")).toBe(labels.indexOf("Vollbild ansehen") + 1);
+    expect(labels.indexOf("Kapitel davor einfügen")).toBe(labels.indexOf("Bild bearbeiten") + 1);
+    expect(labels.indexOf("Bild entfernen")).toBe(labels.indexOf("Kapitel davor einfügen") + 1);
     expect(calls.edited).toEqual(["b"]);
   });
 

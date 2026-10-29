@@ -75,6 +75,10 @@
     :global(.tile:focus-within) .mark {
       opacity: 1;
     }
+    /* The selection bar removes the selected picture: one remove button is enough. */
+    :global(.tile.selected) .remove {
+      display: none;
+    }
   }
   /* Selecting several (dev-docs/app/slideshow-editing/SELECTING_SEVERAL.md, Selecting several): the check circle instead of the marks. */
   :global(.tile.selecting-mode) .mark {

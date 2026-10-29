@@ -9,7 +9,7 @@ same body serves "Add media") and the slideshow editor show one full screen on r
 - **Open**: in the pictures step, View in the selection bar, F on a focused strip tile, a double-click with a
   mouse ([IMPORT_ARRANGING.md](IMPORT_ARRANGING.md)); the whole tile of a set-aside picture (also the kept one of a
   similar group) is a button, "View picture from <date> at <time>" (`ViewPictureButton.svelte`, cursor zoom-in),
-  its + keeping its own target above it. In the editor, View in the selection bar beside Edit, or F on a focused
+  its + keeping its own target above it. In the editor, View full screen in the selection bar beside Edit picture, or F on a focused
   tile (a double-click still opens the picture editor); the editor's viewer shows the slideshow's pictures in play
   order, without set-aside ones.
 - **The view**: a modal dialog over the step on the player's black, labelled "Picture from <date>"; the picture

@@ -9,6 +9,5 @@ One line per item, newest at the end. A finished item is deleted.
 - [ ] Gather sharing in one Share button beside Play — video, web page and file sit in the ⋯ menu, the link in Details, and the .glissando file downloads without a sheet; mockup first (2026-10-25)
 - [ ] Rework the sample-music tiles — Play and + sit over the title, descriptions are cut ("Warm·harmo…"); mockup first (2026-10-25)
 - [ ] Show one preview in the picture editor on a phone — the frame editor and the live preview are stacked full size; switch between frame and play, drop "Zoom 1.00×"; mockup first (2026-10-25)
-- [ ] Slim the selection bar — 7 icons, the bookmark for "Insert chapter" is unclear, the selected tile has its own X too; rare actions behind ⋯, the chapter action labelled (2026-10-25)
 - [ ] Show the music editor simple first — order, start and end up front; loudness curves and hatched crossfades on demand; drop the empty "Loudness of the songs" card (2026-10-25)
 - [ ] Show the running faces-and-subjects search in the header's global indicator beside the export — today only the start cards show it; mockup first (2026-10-28)

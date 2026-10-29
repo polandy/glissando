@@ -189,6 +189,7 @@
       onView={(pictureId) => (viewing = pictureId)}
       onDone={() => (selection = endSelecting())}
       onInsertChapter={(pictureId) => editSheets?.insertAndOpenChapter(pictureId)}
+      {holdScheduler}
     />
   {/if}
 </div>

@@ -3,8 +3,9 @@ import type { Message } from "./messages.ts";
 /** German copy of the picture editor; part of the German catalogue, which defines the keys. */
 export const deEditor = {
   "units.zoom": "{zoom}×",
-  "slideshow.edit": "Bearbeiten",
   "slideshow.view": "Ansehen",
+  "slideshow.viewFullScreen": "Vollbild ansehen",
+  "slideshow.editPicture": "Bild bearbeiten",
   "slideshow.ownMotionBadge": "eigen",
   "slideshow.pictureLabelOwnMotion": "Bild {number}, aufgenommen am {date}, eigene Bewegung",
   "slideshow.automaticWithOwn": "automatisch, {count} eigene",

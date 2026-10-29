@@ -40,7 +40,7 @@ describe("the slideshow route, removing every picture", () => {
       flushSync();
     }
 
-    button(target, "Entfernen").click();
+    button(target, "2 Bilder entfernen").click();
     flushSync();
 
     expect(toaster.current?.text).toBe(EVERY_PICTURE_STAYS);
