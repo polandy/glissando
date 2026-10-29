@@ -29,7 +29,8 @@ here; this file is the full text.
 - **The shell's cwd is the hazard**: one `cd` into the main checkout persists, and a later commit
   lands there. Use `git -C <path>`; check `git branch --show-current` right before commit/push.
 - **"Next free" ids race** (ADR numbers, e2e case ids): pick against live state — `git fetch`,
-  open PRs, sibling worktrees — and re-check after merging `main` in.
+  open PRs, sibling worktrees — and re-check after merging `main` in. `scripts/e2e-ids.sh` (in
+  the verify target) fails when two e2e cases share an id.
 - **One open feature PR per session.** Release PRs and other sessions' PRs don't count; avoid
   touching their files where possible.
 - **One task per session, under ~150k context**; review/merge/clean-up run in a fresh session.
