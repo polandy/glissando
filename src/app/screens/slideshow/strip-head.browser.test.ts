@@ -108,7 +108,7 @@ describe("StripHead's Shuffle", () => {
 });
 
 describe("StripHead's hint", () => {
-  it("adds 'hold to select several' narrow only, sorted by capture date", () => {
+  it("does not mention holding to select, sorted by capture date", () => {
     const mounted = mountWithTranslator(StripHead, {
       count: 3,
       ownOrder: false,
@@ -120,6 +120,6 @@ describe("StripHead's hint", () => {
     destroy = mounted.destroy;
 
     expect(mounted.target.textContent).toContain("Nach Aufnahmedatum sortiert");
-    expect(mounted.target.textContent).toContain("halten für mehrere");
+    expect(mounted.target.textContent).not.toContain("halten");
   });
 });

@@ -2,7 +2,7 @@
   import Icon from "../../components/Icon.svelte";
   import { getTranslator } from "../../i18n/context";
 
-  /** The slideshow's cover with its running time; a tap plays the slideshow. */
+  /** The slideshow's cover with a "Play · running time" pill; a tap anywhere plays it. */
   let {
     coverUrl,
     durationSeconds,
@@ -14,12 +14,9 @@
 
 <button class="preview" type="button" aria-label={t("slideshow.play")} onclick={onPlay}>
   <img src={coverUrl} alt="" />
-  <span class="play"><Icon name="play" /></span>
-  <span class="time mono">
-    {t("player.time", {
-      current: formatDuration(0),
-      total: formatDuration(durationSeconds),
-    })}
+  <span class="pill">
+    <Icon name="play" />{t("slideshow.play")}
+    <span class="mono">{` · ${formatDuration(durationSeconds)}`}</span>
   </span>
 </button>
 
@@ -47,36 +44,19 @@
     inset: 0;
     background: radial-gradient(120% 90% at 50% 40%, transparent 55%, var(--gl-photo-vignette));
   }
-  .play {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    z-index: 1;
-    display: grid;
-    place-items: center;
-    width: 64px;
-    height: 64px;
-    translate: -50% -50%;
-    border-radius: 50%;
-    background: var(--gl-photo-play-bg);
-    color: var(--gl-photo-play-ink);
-    box-shadow: var(--gl-photo-play-shadow);
-    --gl-icon-size: var(--gl-size-icon-large);
-  }
-  /* The triangle's visual centre sits right of its box's centre. */
-  .play :global(svg) {
-    translate: 2px 0;
-  }
-  .time {
+  .pill {
     position: absolute;
     left: 14px;
     bottom: 12px;
     z-index: 1;
-    padding: 3px 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
     border-radius: var(--gl-radius-small);
-    background: var(--gl-photo-badge);
-    color: var(--gl-on-photo);
+    background: var(--gl-accent);
+    color: var(--gl-accent-ink);
     font-size: var(--gl-size-small);
-    backdrop-filter: blur(6px);
+    font-weight: 500;
   }
 </style>

@@ -41,11 +41,11 @@
   own-motion ones included: their automatic focus is still found and shown, only not used for their
   motion), a hint once any picture has its own motion, and where the result is kept ("Stored on
   this device." or "Shared with every device on your Glissando server."); a 16:9
-  preview of the first picture (tap plays) with the running time, then the pictures in play
+  cover of the first picture, the only Play control (a tap anywhere on it plays; a "▶ Play · 0:56" pill bottom left), then the pictures in play
   order, each with its order number and capture date, under "Sorted by capture date" or, once
   the user reordered, "Own order" (with "drag or tap", narrow: "tap to reorder"); right of the
-  count "Add media" (narrow: "Add"; a dashed "+ Add" tile after the last picture, before the closing slide, does the same; [ADDING_PICTURES.md](slideshow-editing/ADDING_PICTURES.md), Adding pictures). Beside it (above it up to 1024 px) an
-  info panel (ADR-0048, below): title with a ✎ button, date range, "Play", the Music/Mood/Look tiles and "Fine settings". A tile carries small
+  count "Add media" (narrow: "Add"; the only way in, the strip has no add tile; [ADDING_PICTURES.md](slideshow-editing/ADDING_PICTURES.md), Adding pictures). Beside it (above it up to 1024 px) an
+  info panel (ADR-0048, below): title with a ✎ button, date range, the Music/Mood/Look tiles and "Fine settings". A tile carries small
   badges bottom right: a frame "own" for an own motion, a clock with "8 s" for an own duration,
   a transition mark (titled with the effect, e.g. "Circle") for an own transition, except on
   the last picture, "shown alone" for a picture set never to pair and "blurred fill" for one
@@ -86,7 +86,7 @@
 The info panel (ADR-0048, mockup option A:
 `https://polandy.github.io/glissando-assets/mockups/details-panel/`) holds, top to bottom:
 
-- **Header**: title, "date range · N pictures · duration" and "Play".
+- **Header**: title and "date range · N pictures · duration". Play is the cover's alone.
 - **Three tiles**, one row of three at every width and never folded. Each tile is one button
   with a small label and a chevron, the value and a summary, and opens its sheet:
   - **Music**: "3 songs" (or the song's name), with "11:20 of music" underneath when the music's

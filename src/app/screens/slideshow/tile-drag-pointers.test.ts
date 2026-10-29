@@ -23,7 +23,7 @@ describe("TileDrag, only the primary mouse button", () => {
 
 describe("TileDrag, a second pointer while one drives the gesture", () => {
   it("neither cancels a pending hold nor drags by moving", () => {
-    const { drag, holdScheduler, calls } = harness();
+    const { drag, holdScheduler } = harness();
     drag.pointerDown({
       pointerType: "touch",
       pointerId: FINGER,
@@ -36,7 +36,6 @@ describe("TileDrag, a second pointer while one drives the gesture", () => {
     drag.pointerMove({ pointerId: OTHER_FINGER, x: 0, y: MOVE_THRESHOLD_PX + 1 });
     holdScheduler.advance(HOLD_MS);
 
-    expect(calls.held).toEqual(["b"]);
     expect(drag.state.groupIds).toBeNull();
   });
 
@@ -63,7 +62,7 @@ describe("TileDrag, a second pointer while one drives the gesture", () => {
   });
 
   it("does not restart the gesture by touching another tile", () => {
-    const { drag, holdScheduler, calls } = harness();
+    const { drag, holdScheduler } = harness();
     drag.pointerDown({
       pointerType: "touch",
       pointerId: FINGER,
@@ -86,6 +85,5 @@ describe("TileDrag, a second pointer while one drives the gesture", () => {
     holdScheduler.advance(HOLD_MS);
 
     expect(drag.state.groupIds).toEqual(["b"]);
-    expect(calls.held).toEqual(["b"]);
   });
 });

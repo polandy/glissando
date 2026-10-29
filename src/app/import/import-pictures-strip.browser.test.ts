@@ -181,16 +181,11 @@ describe("ImportPicturesStrip, adding more", () => {
     expect(target.querySelector('[role="menu"]')).not.toBeNull();
   });
 
-  it("offers a dashed add tile after the placeholders", () => {
+  it("has no add tile after the placeholders; the head button is the only way in", () => {
     const { target } = mountStrip({ ids: ["a", "b"], pending: 1 });
 
-    const tileButton = target.querySelector("li.tile button.add-tile");
-    expect(tileButton).not.toBeNull();
-
-    tileButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-    flushSync();
-
-    expect(target.querySelector('[role="menu"]')).not.toBeNull();
+    expect(target.querySelector('.strip-head button[aria-haspopup="menu"]')).not.toBeNull();
+    expect(target.querySelector("li.tile button.add-tile")).toBeNull();
   });
 
   it("offers only From Immich while linking a server slideshow", () => {

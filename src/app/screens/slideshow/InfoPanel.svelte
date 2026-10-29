@@ -1,5 +1,4 @@
 <script lang="ts">
-  import Icon from "../../components/Icon.svelte";
   import { getTranslator } from "../../i18n/context";
   import type { SlideshowDetails, SlideshowStorage } from "../view-models";
   import type { ServerSlideshowRows } from "../../server-library/server-slideshow-sessions";
@@ -10,13 +9,12 @@
   import TitleEditor from "./TitleEditor.svelte";
 
   /**
-   * Beside the pictures: the title (renamed in place), "Play", the Music/Mood/Look tiles
+   * Beside the pictures: the title (renamed in place), the Music/Mood/Look tiles
    * (`DetailsTiles`, never folded) and "Fine settings" (`FineSettings`, folded by default,
    * ADR-0048).
    */
   let {
     slideshow,
-    onPlay,
     storage = null,
     serverRows = null,
     onRename,
@@ -31,7 +29,6 @@
     fineSettingsFold,
   }: {
     slideshow: SlideshowDetails;
-    onPlay: () => void;
     /** Where the slideshow lives; null while the server library is off. */
     storage?: SlideshowStorage | null;
     /** A server slideshow's link and "Show on TV"; null for a device slideshow. */
@@ -106,9 +103,6 @@
         <span class="mono">{dateRange}</span><span class="summary">{` · ${summary}`}</span>
       </div>
     </div>
-    <button class="btn primary large play" type="button" onclick={onPlay}>
-      <Icon name="play" />{t("slideshow.play")}
-    </button>
   </div>
   <DetailsTiles
     bind:this={tiles}
@@ -152,10 +146,6 @@
     display: none;
   }
   @container (max-width: 1024px) {
-    .head {
-      grid-template-columns: minmax(0, 1fr) auto;
-      align-items: center;
-    }
     .summary {
       display: inline;
     }

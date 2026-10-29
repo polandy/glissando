@@ -162,7 +162,6 @@
       <InfoPanel
         bind:this={infoPanel}
         {slideshow}
-        {onPlay}
         {storage}
         {serverRows}
         {onRename}

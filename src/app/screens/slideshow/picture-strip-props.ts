@@ -1,4 +1,3 @@
-import type { Snippet } from "svelte";
 import type { StoredCard } from "../../../library/stored-slideshow";
 import type { FrameScheduler, SlideshowLook } from "../../../player";
 import type { Scheduler } from "../../../ui-kit/scheduler";
@@ -25,10 +24,6 @@ export interface PictureStripProps {
   onShiftGroup: (pictureIds: readonly string[], offset: number) => void;
   /** A drop: moves the group to the slot before the tile at `insertion`. */
   onMoveGroup: (pictureIds: readonly string[], insertion: number) => void;
-  /** The placeholder after the last picture: adds pictures. Unused while `suppressCards`. */
-  onAdd?: () => void;
-  /** Rendered after the placeholders instead of the default add tile, e.g. a menu's own. */
-  add?: Snippet | undefined;
   /** Opens the picture editor. */
   onOpen: (pictureId: string) => void;
   /** F on a focused tile: opens it in the full-screen viewer. */
@@ -47,7 +42,7 @@ export interface PictureStripProps {
   frameScheduler?: FrameScheduler;
   /** False while the strip only shows what is in, with no drag, Shift+arrows or Earlier/Later. */
   arranging?: boolean;
-  /** True while importing (IMPORT_ARRANGING.md): no title-slide tiles; `add` replaces the default add tile. */
+  /** True while importing (IMPORT_ARRANGING.md): no title-slide tiles. */
   suppressCards?: boolean;
   /** Shimmering tiles after the last picture, one per file still being read in; the first runs. */
   placeholderCount?: number;

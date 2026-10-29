@@ -1,11 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import {
-  captionPicture,
-  chooseFiles,
-  createSlideshow,
-  GERMAN_BROWSER,
-  openImport,
-} from "./support/app";
+import { captionPicture, chooseFiles, createSlideshow, GERMAN_BROWSER } from "./support/app";
 import { openApp } from "./support/browser";
 import { holdPictureStore } from "./support/hold-pictures";
 import { textFile } from "./support/media";
@@ -82,15 +76,9 @@ test("E2E-016 a file that is no .glissando file is refused in the library and st
   await expect(page.getByRole("button", { name: new RegExp(TITLE) })).toHaveCount(1);
 });
 
-test("E2E-017 step 1 of a new slideshow opens a .glissando file from another device", async ({
-  page,
-}) => {
+test("E2E-017 the start screen opens a .glissando file from another device", async ({ page }) => {
   const glissando = await exportedFileWithRealMedia();
   await openApp(page);
-  await openImport(page);
-
-  const box = page.getByText("Diashow von einem anderen Gerät?");
-  await expect(box).toBeVisible();
   await chooseFiles(page, page.getByRole("button", { name: "Datei öffnen" }), [glissando]);
 
   await expect(page.getByRole("heading", { name: "Herbst in Wien" })).toBeVisible();

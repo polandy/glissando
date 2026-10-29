@@ -3,8 +3,7 @@
 - **Adding pictures** (`add-pictures/`, route `{ screen: "add", slideshowId }`; mockup:
   https://polandy.github.io/glissando-assets/mockups/add-pictures/): the strip header's "Add
   pictures" opens the import's pictures step for this slideshow, under the crumbs "title / Add
-  pictures", without the step bar, the music step and the "Slideshow from another device?"
-  box. Its lead: "They go into place by capture date." (with own order: "Your own order stays;
+  pictures", without the step bar, and the music step. Its lead: "They go into place by capture date." (with own order: "Your own order stays;
   choose below where the new pictures go."), then "Glissando downscales them for this device;
   your originals stay untouched." The drop zone, the Immich box (its browser opens for this
   slideshow, Immich below), the queue and the tiles (selecting, View, F, removing — [IMPORT_ARRANGING.md](../IMPORT_ARRANGING.md), In "Add media"), the set-aside
