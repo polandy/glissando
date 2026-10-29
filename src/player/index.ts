@@ -16,6 +16,7 @@ export {
 } from "./browser/music-output";
 export { captionLength, MAX_CAPTION_LENGTH, normalizeCaption, withinCaptionLimit } from "./caption";
 export { CAPTION_GLIDE_MS } from "./caption-glide";
+export { DeferredMusic } from "./deferred-music";
 export { CAPTION_FONT_NAME, CAPTION_FONT_WEIGHT } from "./caption-layout";
 export { captionStyles } from "./caption-style";
 export {

@@ -11,4 +11,3 @@ One line per item, newest at the end. A finished item is deleted.
 - [ ] Show the running faces-and-subjects search in the header's global indicator beside the export — today only the start cards show it; mockup first (2026-10-28)
 - [ ] Give one of the two E2E-078 cases a new id — slideshow-looks and trip-chapters share it (2026-10-29)
 - [ ] Keep the strip head readable in German at 412 px — "Mischen" covers the "BILDER" eyebrow and count (StripHead.svelte grid) (2026-10-29)
-- [ ] Make E2E-073 deterministic in WebKit — on CI, the music editor's "Lautstärke" slider is never found before the timeout (e2e/music-editor.spec.ts:180; run 40873842032 attempt 2; 18/18 locally); same total-freeze trace signature as E2E-041, but no Web Audio routing in this test, and 24/24 locally under load; root cause, no retries (2026-10-29)
