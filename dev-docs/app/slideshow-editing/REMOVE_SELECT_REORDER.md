@@ -40,3 +40,6 @@
   "12 pictures shuffled" with "Undo" follows. Undo brings the order from before the shuffle back, leaving edits made since (a
   caption) alone; a newer toast replaces it, and leaving the screen dismisses it. The random
   source is injected into the editor (`SlideshowEditorPorts.random`).
+- **Strip header on a phone** (screen below 720 px): Shuffle, Select and Add take a row of their
+  own under the eyebrow and the picture count, and the order line follows below them, so a long
+  label (German) never squeezes out the eyebrow.
