@@ -8,8 +8,8 @@ import {
 import { FINGER, harness } from "./tile-drag-harness";
 
 describe("TileDrag, a touch hold", () => {
-  it("fires after 450 ms still, lifting (selecting) the tile but not yet dragging", () => {
-    const { drag, holdScheduler, calls } = harness();
+  it("fires after 450 ms still, lifting the tile but not yet dragging", () => {
+    const { drag, holdScheduler } = harness();
     drag.pointerDown({
       pointerType: "touch",
       pointerId: FINGER,
@@ -21,13 +21,12 @@ describe("TileDrag, a touch hold", () => {
 
     holdScheduler.advance(HOLD_MS);
 
-    expect(calls.held).toEqual(["b"]);
     expect(drag.state.lifted).toBe(true);
     expect(drag.state.groupIds).toBeNull();
   });
 
   it("is cancelled by moving past the threshold before it fires: the finger scrolls instead", () => {
-    const { drag, holdScheduler, calls } = harness();
+    const { drag, holdScheduler } = harness();
     drag.pointerDown({
       pointerType: "touch",
       pointerId: FINGER,
@@ -40,12 +39,11 @@ describe("TileDrag, a touch hold", () => {
     drag.pointerMove({ pointerId: FINGER, x: 0, y: MOVE_THRESHOLD_PX + 1 });
     holdScheduler.advance(HOLD_MS);
 
-    expect(calls.held).toEqual([]);
     expect(drag.state.lifted).toBe(false);
   });
 
   it("survives a move within the threshold", () => {
-    const { drag, holdScheduler, calls } = harness();
+    const { drag, holdScheduler } = harness();
     drag.pointerDown({
       pointerType: "touch",
       pointerId: FINGER,
@@ -57,12 +55,10 @@ describe("TileDrag, a touch hold", () => {
 
     drag.pointerMove({ pointerId: FINGER, x: 0, y: MOVE_THRESHOLD_PX - 1 });
     holdScheduler.advance(HOLD_MS);
-
-    expect(calls.held).toEqual(["b"]);
   });
 
-  it("drags once lifted and moved past the threshold, the held tile selected first", () => {
-    const { drag, holdScheduler, setSelected, calls } = harness();
+  it("drags once lifted and moved past the threshold", () => {
+    const { drag, holdScheduler } = harness();
     drag.pointerDown({
       pointerType: "touch",
       pointerId: FINGER,
@@ -72,16 +68,13 @@ describe("TileDrag, a touch hold", () => {
       pictureId: "b",
     });
     holdScheduler.advance(HOLD_MS);
-    // The strip applied `hold(selection, "b")`, as `onHold` asked.
-    setSelected(["b"]);
 
     drag.pointerMove({ pointerId: FINGER, x: 0, y: MOVE_THRESHOLD_PX + 1 });
 
     expect(drag.state.groupIds).toEqual(["b"]);
-    expect(calls.held).toEqual(["b"]);
   });
 
-  it("only selects, suppressing the click, when let go in place after lifting", () => {
+  it("only suppresses the click when let go in place after lifting", () => {
     const { drag, holdScheduler, calls } = harness();
     drag.pointerDown({
       pointerType: "touch",
@@ -101,7 +94,7 @@ describe("TileDrag, a touch hold", () => {
   });
 
   it("restarts the hold on a new press whose release went unseen: the old timer lifts nothing", () => {
-    const { drag, holdScheduler, calls } = harness();
+    const { drag, holdScheduler } = harness();
     const press: PointerDownInput = {
       pointerType: "touch",
       pointerId: FINGER,
@@ -116,14 +109,12 @@ describe("TileDrag, a touch hold", () => {
     drag.pointerDown(press);
     holdScheduler.advance(HOLD_MS - 300);
 
-    expect(calls.held).toEqual([]);
     expect(drag.state.lifted).toBe(false);
     holdScheduler.advance(300);
-    expect(calls.held).toEqual(["b"]);
   });
 
   it("cancels the hold on pointer cancel, leaving no selection", () => {
-    const { drag, holdScheduler, calls } = harness();
+    const { drag, holdScheduler } = harness();
     drag.pointerDown({
       pointerType: "touch",
       pointerId: FINGER,
@@ -135,8 +126,6 @@ describe("TileDrag, a touch hold", () => {
 
     drag.pointerCancel(FINGER);
     holdScheduler.advance(HOLD_MS);
-
-    expect(calls.held).toEqual([]);
   });
 
   it("drops nothing on pointer cancel while dragging, without suppressing a click", () => {

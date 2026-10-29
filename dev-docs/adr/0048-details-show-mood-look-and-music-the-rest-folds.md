@@ -12,7 +12,7 @@ visit, so the settings people change most took a tap each time. Mockup, option A
 
 ## Decision
 
-- **Three tiles up front, never folded:** Music, Mood and Look, in one row of three under "Play"
+- **Three tiles up front, never folded:** Music, Mood and Look, in one row of three under the title
   at every width. Each tile is one button that opens its sheet.
 - **Everything else under "Fine settings"**: Transitions, Portrait pictures and Trip chapters,
   then storage, link and "Show on TV". It is the same fold at every width, beside the pictures

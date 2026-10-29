@@ -165,13 +165,13 @@ describe("PicturesStep and .glissando files", () => {
     return step.target;
   }
 
-  it("offers to open a slideshow from another device below the drop zone", () => {
+  it("offers no Open file; the start screen is the one way in", () => {
     const target = mountStep(() => undefined);
 
-    expect(target.textContent).toContain("Diashow von einem anderen Gerät?");
-    expect([...target.querySelectorAll("button")].map((b) => b.textContent.trim())).toContain(
-      "Datei öffnen",
-    );
+    const labels = [...target.querySelectorAll("button")].map((b) => b.textContent.trim());
+    expect(labels.length).toBeGreaterThan(0);
+    expect(labels).not.toContain("Datei öffnen");
+    expect(target.textContent).not.toContain("Diashow von einem anderen Gerät?");
   });
 });
 

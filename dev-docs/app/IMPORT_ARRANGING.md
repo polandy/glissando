@@ -8,7 +8,7 @@ https://polandy.github.io/glissando-assets/mockups/import-arrange/
 ## Picking while an import runs
 
 - Once something is chosen, "Add pictures" sits in the strip head, like the editor's "Add
-  media" (`StripHead.svelte`), and the strip's dashed add tile opens the same menu
+  media" (`StripHead.svelte`), and opens the menu
   (`AddPicturesMenu.svelte`). The menu offers "Pictures and videos", "A folder" and, where
   Immich is offered, "From Immich"; also while an import runs. Each pick (files, a folder, a
   drop, an Immich selection) joins the running import as one **pick** (`PictureImport`,
@@ -36,9 +36,9 @@ everything in [REMOVE_SELECT_REORDER.md](slideshow-editing/REMOVE_SELECT_REORDER
 [SELECTING_SEVERAL.md](slideshow-editing/SELECTING_SEVERAL.md) holds, on stored pictures,
 while the import runs, with these differences:
 
-- No title-slide tiles; the placeholders follow the last picture, then the add tile where
-  "Add pictures" or "From Immich" is on offer (none while linking a server slideshow with
-  neither available).
+- No title-slide tiles; the placeholders follow the last picture. The strip head's button is the only add control,
+  shown where "Add pictures" or "From Immich" is on offer (none while linking a server slideshow
+  with neither available).
 - The selection bar has **View** alone, where the editor has View beside Edit; it opens the
   picture full screen ([PICTURE_VIEWER.md](PICTURE_VIEWER.md)), as do F on a focused tile and
   a double-click with a mouse. The picture editor needs a stored slideshow and stays in the

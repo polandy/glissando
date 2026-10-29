@@ -53,9 +53,7 @@
         · {t("import.sortedInByDate")}
       {/if}
     {:else}
-      {t("slideshow.sortedByDate")}<span class="narrow"
-        >&nbsp;· {t("slideshow.selectHintNarrow")}</span
-      >
+      {t("slideshow.sortedByDate")}
     {/if}
   </p>
   <span class="mono muted count">{count}</span>

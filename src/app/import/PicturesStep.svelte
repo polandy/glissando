@@ -3,7 +3,6 @@
   import ImmichBox from "../immich/ImmichBox.svelte";
   import { getTranslator } from "../i18n/context";
   import GlissandoFilePicker from "../glissando-file/GlissandoFilePicker.svelte";
-  import OpenFileBox from "../glissando-file/OpenFileBox.svelte";
   import type { OpenNotice as OpenNoticeModel } from "../glissando-file/open-flow";
   import OpenNotice from "../glissando-file/OpenNotice.svelte";
   import { singleGlissandoFile } from "./dropped-files";
@@ -140,9 +139,6 @@
         onSettings={onImmichSettings}
         primary={home === "server"}
       />
-      {#if home === "device"}
-        <OpenFileBox onPick={() => pickGlissando.pick()} />
-      {/if}
     {/snippet}
   </PictureIntakeBody>
 

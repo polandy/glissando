@@ -14,7 +14,6 @@ export function harness(overrides: Partial<TileDragPorts> = {}) {
   const holdScheduler = new FakeScheduler();
   const frameScheduler = new FakeFrameScheduler();
   const calls = {
-    held: [] as string[],
     changes: 0,
     scrolledBy: [] as number[],
     dropped: [] as [readonly string[], number][],
@@ -31,7 +30,6 @@ export function harness(overrides: Partial<TileDragPorts> = {}) {
     viewportEdges: () => viewportEdges,
     selection: () => selected,
     order: () => order,
-    onHold: (pictureId) => calls.held.push(pictureId),
     onChange: () => (calls.changes += 1),
     onScrollBy: (px) => calls.scrolledBy.push(px),
     onDrop: (groupIds, insertion) => calls.dropped.push([groupIds, insertion]),

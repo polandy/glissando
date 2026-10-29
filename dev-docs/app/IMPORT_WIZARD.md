@@ -5,7 +5,7 @@ Pictures | Music" and a numbered two-step bar (a done step shows a mint check); 
 (`import/import-session.ts`) holds the selection for the tab: leaving by the browser back
 gesture (which cannot be stopped) keeps it, and "New slideshow" resumes it. With the server
 library on, the pictures step starts with "Where should it live?"; a server slideshow links its
-Immich photos, offers no "Open file" and is created on the server
+Immich photos, and is created on the server
 (server_library/IN_THE_APP.md).
 
 - **Videos** are chosen with the pictures (`video/*`, mp4, webm, mov). A video tile carries a play glyph and
@@ -32,9 +32,9 @@ Immich photos, offers no "Open file" and is created on the server
   with "Start over" (discards the selection and shows the empty drop zone); the drop zone and
   "Add pictures" stay hidden until then. Its error is logged; the notice is its only message (no
   "unexpected error" toast besides). "Next" is enabled once nothing is in flight, every picture is checked (Culling) and at least one picture is stored; until then the footer says why ("12 still importing", "Checking pictures …").
-  Cancel and ← with a selection ask "Discard selection?" (Keep choosing / Discard). While the
-  drop zone shows, a box below it offers "Slideshow from another device?" with "Open file"; a
-  single .glissando file chosen or dropped on the drop zone opens it ([SCREENS.md](SCREENS.md)) instead of being
+  Cancel and ← with a selection ask "Discard selection?" (Keep choosing / Discard). The start
+  screen's "Open file" is the one button for a .glissando file; a single one chosen or dropped
+  on the drop zone opens it ([SCREENS.md](SCREENS.md)) instead of being
   imported as a picture. **Duplicates** (ADR-0016): a picture already in the slideshow being
   added to, or already taken in by this import, is skipped before it is downscaled and counts
   as done; a lemon notice per kind names them, "2 pictures are already in the slideshow and were

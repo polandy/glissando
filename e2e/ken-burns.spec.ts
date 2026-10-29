@@ -4,7 +4,7 @@ import { EXPORT_OPTIONS } from "../src/glissando-file/testing/glissando-fixtures
 import { THUMBNAIL_BOUND } from "../src/import/downscale";
 import type { StoredSlideshow } from "../src/library/stored-slideshow";
 import { MemoryLibraryStore } from "../src/library/testing/memory-store";
-import { chooseFiles, GERMAN_BROWSER, openImport } from "./support/app";
+import { chooseFiles, GERMAN_BROWSER } from "./support/app";
 import { openApp } from "./support/browser";
 import { framePixels, keepDrawnFrames, meanColour } from "./support/drawn-frame";
 import { blobFile, horizontalGradientJpeg, type TestFile } from "./support/media";
@@ -83,7 +83,6 @@ test("E2E-031 a Ken Burns motion that starts against the picture's edge pans one
   const glissando = await edgeSlideshowFile(page);
   await keepDrawnFrames(page);
   await openApp(page);
-  await openImport(page);
   await chooseFiles(page, page.getByRole("button", { name: "Datei öffnen" }), [glissando]);
   await expect(page.getByRole("heading", { name: TITLE })).toBeVisible();
 
