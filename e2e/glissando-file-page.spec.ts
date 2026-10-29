@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { createSlideshowWithMusic, GERMAN_BROWSER } from "./support/app";
 import { openApp } from "./support/browser";
 import { silentTrack } from "./support/media";
+import { chooseShareRow } from "./support/share";
 import { unpackGlissandoFile } from "./support/unpack-glissando-file";
 
 test.use(GERMAN_BROWSER);
@@ -22,9 +23,9 @@ test("E2E-071 a .glissando file's index.html, unpacked and opened from file://, 
   await openApp(page);
   await createSlideshowWithMusic(page, silentTrack("Sommerwind.wav", TRACK_SECONDS));
 
-  await page.getByRole("button", { name: "Mehr" }).click();
+  await chooseShareRow(page, /^Glissando-Datei/);
   const download = page.waitForEvent("download");
-  await page.getByRole("menuitem", { name: /^Als Glissando-Datei sichern/ }).click();
+  await page.getByRole("button", { name: "Datei sichern" }).click();
   const file = await download;
   const savedZip = testInfo.outputPath(file.suggestedFilename());
   await file.saveAs(savedZip);

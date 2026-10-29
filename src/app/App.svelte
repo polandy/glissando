@@ -217,7 +217,7 @@
         {now}
         {slideshowId}
         {exportProgress}
-        onExport={() => void exportJob.start(slideshowId, opened.store)}
+        onExport={() => exportJob.start(slideshowId, opened.store)}
         videoExport={services.videoExport}
         htmlExport={services.htmlExport}
         playing={route.screen === "player"}

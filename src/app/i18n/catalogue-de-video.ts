@@ -2,8 +2,7 @@ import type { Message } from "./messages.ts";
 
 /** German copy of the video export (dev-docs/VIDEO_EXPORT.md); part of the German catalogue. */
 export const deVideo = {
-  "slideshow.saveAsVideo": "Als Video sichern",
-  "videoExport.title": "Als Video sichern",
+  "videoExport.title": "Video",
   "videoExport.subtitle": "{title} · {duration} · {music}",
   "videoExport.withMusic": "mit Musik",
   "videoExport.withoutMusic": "ohne Musik",

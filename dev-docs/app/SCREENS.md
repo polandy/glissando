@@ -29,8 +29,7 @@
   server cards from the last list this device remembers while offline
   (server_library/IN_THE_APP.md).
 - **Slideshow** (`screens/SlideshowScreen.svelte`, parts in `screens/slideshow/`): breadcrumb
-  "Library / title" and a ⋯ "More" button whose menu holds "Save as video", "Save as web page" and "Save as Glissando file" (subtitle "A .glissando
-  file, about 184 MB", measured when the menu opens, again only after its pictures or music changed), a separator, "Faces and subjects …" — with a
+  "Library / title" and a ⋯ "More" button whose menu holds "Faces and subjects …" — with a
   subtitle only once the search is done and some pictures failed ("3 couldn't be looked at"); its
   progress is background work, not the menu's — a separator and "Delete slideshow …". "Faces and
   subjects …" opens the Focus sheet (titled "Faces and subjects") (`screens/slideshow/FocusSheet.svelte`, mockup "Variant A · grid", ADR-0041): a
@@ -45,7 +44,7 @@
   order, each with its order number and capture date, under "Sorted by capture date" or, once
   the user reordered, "Own order" (with "drag or tap", narrow: "tap to reorder"); right of the
   count "Add media" (narrow: "Add"; the only way in, the strip has no add tile; [ADDING_PICTURES.md](slideshow-editing/ADDING_PICTURES.md), Adding pictures). Beside it (above it up to 1024 px) an
-  info panel (ADR-0048, below): title with a ✎ button, date range, the Music/Mood/Look tiles and "Fine settings". A tile carries small
+  info panel (ADR-0048, below): title with a ✎ button and, right of it, the outlined "Share" pill, date range, the Music/Mood/Look tiles and "Fine settings". A tile carries small
   badges bottom right: a frame "own" for an own motion, a clock with "8 s" for an own duration,
   a transition mark (titled with the effect, e.g. "Circle") for an own transition, except on
   the last picture, "shown alone" for a picture set never to pair and "blurred fill" for one
@@ -56,9 +55,18 @@
   (`routes/slideshow-home.ts`); a server slideshow's screen adds where it lives, its missing
   pictures and its own ⋯ menu, and its edits are saved on the server
   (server_library/IN_THE_APP.md).
+- **Share** (`screens/slideshow/share/`, share_link/IN_THE_APP.md): the info panel's Share button
+  opens a chooser with the groups "Watch by link" (link row, only with a server library) and "Save
+  a copy" (Video, Web page, Glissando file); a row opens its sheet in place of the chooser, whose
+  Back control returns to it, and Close gives the focus back to the Share button. The file row's
+  subtitle reads "A .glissando file, about 184 MB" (a server slideshow: its Immich hint), measured
+  when the sheet opens, again only after its pictures or music changed.
+- **Glissando file sheet** (`share/GlissandoFileSheet.svelte`): name, facts, size and "Save file",
+  which starts the export below; then progress, "Saved to Downloads." with "Done", or "Try again".
+  Saving is disabled while another slideshow exports.
 - **Export** (`glissando-file/export-job.ts`): runs in the background, one at a time; the app
-  stays usable, also on other screens. While it runs, the menu item is `aria-disabled` and reads
-  "Exporting … 34 %" (for another slideshow: "Export", subtitle "Once the running export is
+  stays usable, also on other screens. While it runs, the chooser's file row reads
+  "Exporting … 34 %" (for another slideshow: "Once the running export is
   done"). At the end the browser downloads "title.glissando" and the toast "“title.glissando”
   downloaded · 184 MB" follows. A device out of storage or memory ends it with the coral toast
   "Export failed: not enough storage on the device." and "Try again"; any other failure is an
@@ -100,7 +108,7 @@ The info panel (ADR-0048, mockup option A:
   is remembered on the device for every slideshow. It opens Transitions, Portrait pictures and
   Trip chapters as rows (label, value, summary, chevron; the whole row opens the sheet; Trip
   chapters' sheet is the only place with the slideshow-wide **Automatic chapters** switch), then
-  storage, "Save as", link and "Show on TV". E2E-083 shows the three tiles up front, folds Fine
+  storage and "Show on TV". E2E-083 shows the three tiles up front, folds Fine
   settings away by default, and checks its open or closed state survives a reload.
 
 Up to 1024 px wide (a container query on `.screen`) the panel stacks full width above the

@@ -20,6 +20,7 @@
     coverUrl,
     thumbnailUrls,
     onClose,
+    onBack,
   }: {
     session: HtmlExportSession;
     /** The file row's thumbnail once the page is done: the first picture. */
@@ -27,6 +28,8 @@
     /** One per picture, in play order, lit while the export runs. */
     thumbnailUrls: readonly string[];
     onClose: () => void;
+    /** Reached from the Share chooser: returns to it; absent while the export runs. */
+    onBack?: () => void;
   } = $props();
 
   const { t, formatDuration } = getTranslator();
@@ -51,6 +54,11 @@
   function close(): void {
     session.close();
     onClose();
+  }
+
+  function back(): void {
+    session.close();
+    onBack?.();
   }
 
   const heading = $derived.by(() => {
@@ -87,6 +95,8 @@
   closeLabel={view.kind === "running" ? t("common.cancel") : t("common.close")}
   closeOnScrim={view.kind !== "running" && view.kind !== "done"}
   onClose={close}
+  onBack={onBack !== undefined && view.kind !== "running" ? back : undefined}
+  backLabel={t("common.back")}
 >
   {#if view.kind === "choose"}
     <PageChoose

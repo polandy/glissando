@@ -10,6 +10,7 @@ import {
 } from "./support/app";
 import { openApp } from "./support/browser";
 import { silentTrack } from "./support/media";
+import { chooseShareRow } from "./support/share";
 
 test.use(GERMAN_BROWSER);
 
@@ -53,9 +54,8 @@ test("E2E-033 a slideshow saved as a web page from its menu downloads as one .ht
   await openApp(page);
   await createSlideshowWithMusic(page);
 
-  await page.getByRole("button", { name: "Mehr" }).click();
-  await page.getByRole("menuitem", { name: "Als Webseite sichern" }).click();
-  const sheet = page.getByRole("dialog", { name: "Als Webseite sichern" });
+  await chooseShareRow(page, /^Webseite/);
+  const sheet = page.getByRole("dialog", { name: "Webseite" });
   // The default size: small is kept as is, so the page fits the usual estimate.
   await expect(sheet.getByRole("radio", { name: /^Klein/ })).toHaveAttribute(
     "aria-checked",

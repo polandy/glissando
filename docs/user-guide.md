@@ -68,11 +68,14 @@ for the whole slideshow, and shows how many there currently are.
 
 ## Keep and share
 
-All three are in the ⋯ menu at the top right of a slideshow.
+All of it is behind the **Share** button next to the slideshow's title. It opens a list in two
+groups; choose a row and its sheet opens, with **Back** to the list.
 
-- **Save as video**: an MP4 you can send or put on a TV stick.
-- **Save as web page**: one file that plays in any browser, no Glissando needed.
-- **Save as Glissando file**: moves a slideshow with its pictures, music and settings to another
+- **Watch by link** needs a self-hosted Glissando ([self-hosting](self-hosting.md)): a link anyone
+  can watch, which stays up to date until you turn it off.
+- **Video**: an MP4 you can send or put on a TV stick.
+- **Web page**: one file that plays in any browser, no Glissando needed.
+- **Glissando file**: **Save file** moves a slideshow with its pictures, music and settings to another
   device; import it there. Glissando checks a file whole, every picture and song included, before
   it keeps anything of it, and refuses a file that is damaged or not what it claims to be. The
   file is a ZIP: rename it to `.zip` to look inside. A copy you unpacked, edited and zipped again
@@ -82,9 +85,9 @@ All three are in the ⋯ menu at the top right of a slideshow.
   Glissando, unpack the whole file and open `index.html` in a browser; Firefox plays at once,
   Chrome, Edge and Safari ask you to choose the unpacked folder first. It plays what
   `glissando.json` says, so your edits show.
-- **Share link, TV, picture frame** need a self-hosted Glissando
-  ([self-hosting](self-hosting.md)): a link anyone can watch, a TV you control from the phone
-  (`/tv`), and an Immich album played endlessly (the Picture frame card, or Settings).
+- **TV, picture frame** need a self-hosted Glissando ([self-hosting](self-hosting.md)): a TV you
+  control from the phone (`/tv`), and an Immich album played endlessly (the Picture frame card,
+  or Settings).
 
 ## Good to know
 

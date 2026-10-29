@@ -1,11 +1,14 @@
 <script lang="ts">
   import type { PicturesFocus } from "../../focus/pictures-focus";
   import type { SlideshowSearch } from "../../../library/focus-pass";
+  import type { ExportOutcome } from "../../glissando-file/export-job";
+  import type { ExportMenuState } from "../../glissando-file/export-menu";
   import type { HtmlExportSession } from "../../html-export/html-export-session";
+  import type { ShareLinkSession } from "../../share-link/share-link-session";
   import type { ExportPreview } from "../../video-export/slideshow-video-export";
   import type { VideoExportSession } from "../../video-export/video-export-session";
   import type { SlideshowDetails, SlideshowStorage } from "../view-models";
-  import ExportSheets from "./ExportSheets.svelte";
+  import ShareFlow from "./share/ShareFlow.svelte";
   import FocusSheetHost from "./FocusSheetHost.svelte";
   import DeleteFlow from "./DeleteFlow.svelte";
 
@@ -22,10 +25,15 @@
     focusPaused,
     onEdit,
     onLookAgain,
+    linkSession,
+    exportState,
+    onExport,
+    onShareOpened,
     newVideoExport,
     newHtmlExport,
     onDelete,
     onClosed,
+    onShareClosed,
   }: {
     slideshow: SlideshowDetails;
     storage: SlideshowStorage | null;
@@ -34,23 +42,27 @@
     focusPaused: boolean;
     onEdit: (pictureId: string) => void;
     onLookAgain: (pictureIds: readonly string[]) => void;
+    /** A server slideshow's link; null for a device slideshow. */
+    linkSession: ShareLinkSession | null;
+    exportState: ExportMenuState;
+    onExport: () => Promise<ExportOutcome>;
+    /** The Share sheet opened: the Glissando file's size is due. */
+    onShareOpened: () => void;
     newVideoExport: () => VideoExportSession<ExportPreview>;
     newHtmlExport: () => HtmlExportSession;
     onDelete: () => void;
     /** An overlay closed without acting further; focus goes back to the button it opened from. */
     onClosed: () => void;
+    /** The Share sheet closed; focus goes back to the Share button. */
+    onShareClosed: () => void;
   } = $props();
 
-  let exportSheets = $state<ExportSheets>();
+  let shareFlow = $state<ShareFlow>();
   let focusSheetHost = $state<FocusSheetHost>();
   let deleteFlow = $state<DeleteFlow>();
 
-  export function openVideoExport(): void {
-    exportSheets?.openVideo();
-  }
-
-  export function openWebPageExport(): void {
-    exportSheets?.openWebPage();
+  export function openShare(): void {
+    shareFlow?.open();
   }
 
   export function showFocus(): void {
@@ -62,13 +74,17 @@
   }
 </script>
 
-<ExportSheets
-  bind:this={exportSheets}
+<ShareFlow
+  bind:this={shareFlow}
   {slideshow}
+  {storage}
+  {linkSession}
+  {exportState}
+  {onExport}
+  onOpened={onShareOpened}
   {newVideoExport}
   {newHtmlExport}
-  onVideoClosed={onClosed}
-  onHtmlClosed={onClosed}
+  onClosed={onShareClosed}
 />
 <FocusSheetHost
   bind:this={focusSheetHost}

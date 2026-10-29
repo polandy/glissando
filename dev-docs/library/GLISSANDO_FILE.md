@@ -7,6 +7,10 @@ again (`zip-reader.ts`, `entry-layout.ts`): entries stored or deflated (unpacked
 `DecompressionStream("deflate-raw")`), in any order. Every opened file is foreign and possibly
 hostile (ADR-0038):
 
+The export starts from the Share sheet's "Glissando-Datei" row, which opens a sheet with the file's
+name, facts and size and "Datei sichern" (`screens/slideshow/share/GlissandoFileSheet.svelte`,
+app/SCREENS.md).
+
 | Entry                   | Content                                                                                                              |
 | ----------------------- | -------------------------------------------------------------------------------------------------------------------- |
 | `glissando.json`        | first, as the export writes it, indented: `format` "glissando", `formatVersion` 21, the `slideshow`                  |

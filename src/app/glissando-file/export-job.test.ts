@@ -113,6 +113,22 @@ describe("ExportJob", () => {
     expect(downloads).toHaveLength(1);
   });
 
+  it("resolves a start with how the export ended: saved, or failed", async () => {
+    const { job } = await setUp();
+
+    expect(await job.start("show-1")).toBe("saved");
+    expect(await job.start("no-such-show")).toBe("failed");
+  });
+
+  it("resolves a start while one runs with the running export's outcome", async () => {
+    const { job } = await setUp();
+
+    const first = job.start("show-1");
+    const second = job.start("no-such-show");
+
+    expect(await second).toBe(await first);
+  });
+
   it.each([
     ["storage runs full", new DOMException("full", "QuotaExceededError")],
     ["memory runs out", new RangeError("Array buffer allocation failed")],
@@ -129,7 +145,7 @@ describe("ExportJob", () => {
       },
     }));
 
-    await job.start("show-1");
+    expect(await job.start("show-1")).toBe("failed");
 
     expect(toasts).toEqual([expect.objectContaining({ text: "Export failed", tone: "error" })]);
     expect(logged).toEqual([cause]);

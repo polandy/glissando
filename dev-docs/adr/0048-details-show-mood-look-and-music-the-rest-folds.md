@@ -15,8 +15,9 @@ visit, so the settings people change most took a tap each time. Mockup, option A
 - **Three tiles up front, never folded:** Music, Mood and Look, in one row of three under the title
   at every width. Each tile is one button that opens its sheet.
 - **Everything else under "Fine settings"**: Transitions, Portrait pictures and Trip chapters,
-  then storage, link and "Show on TV". It is the same fold at every width, beside the pictures
-  as well as above them.
+  then storage and "Show on TV". It is the same fold at every width, beside the pictures as well
+  as above them. The link sits with the copies under the Share button beside the title
+  (share_link/IN_THE_APP.md).
 - **The fold is remembered per device.** It starts folded. Opening or closing it is stored in
   the browser's storage (`localStorage`) and applies to every slideshow on that device. It is a
   view preference, not part of the slideshow, so it is neither in the `.glissando` file nor on

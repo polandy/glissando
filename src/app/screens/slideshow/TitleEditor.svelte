@@ -1,11 +1,18 @@
 <script lang="ts">
-  import { tick } from "svelte";
+  import { tick, type Snippet } from "svelte";
   import { MAX_TITLE_LENGTH } from "../../../library/slideshow-edits";
   import Icon from "../../components/Icon.svelte";
   import { getTranslator } from "../../i18n/context";
 
-  /** The slideshow's title, renamed in place: Enter or leaving the field saves, Esc cancels. */
-  let { title, onRename }: { title: string; onRename: (typed: string) => void } = $props();
+  /**
+   * The slideshow's title, renamed in place: Enter or leaving the field saves, Esc cancels.
+   * `actions` sit at the row's far end while the title is not being edited.
+   */
+  let {
+    title,
+    onRename,
+    actions,
+  }: { title: string; onRename: (typed: string) => void; actions?: Snippet } = $props();
 
   const { t } = getTranslator();
 
@@ -66,6 +73,9 @@
     >
       <Icon name="pencil" />
     </button>
+    {#if actions !== undefined}
+      <span class="actions">{@render actions()}</span>
+    {/if}
   </div>
 {/if}
 
@@ -81,6 +91,10 @@
     min-width: 0;
     font-size: var(--gl-size-panel-title);
     overflow-wrap: anywhere;
+  }
+  .actions {
+    flex: none;
+    margin-left: auto;
   }
   .rename {
     width: 32px;
