@@ -43,6 +43,9 @@ while the import runs, with these differences:
   picture full screen ([PICTURE_VIEWER.md](PICTURE_VIEWER.md)), as do F on a focused tile and
   a double-click with a mouse. The picture editor needs a stored slideshow and stays in the
   editor.
+- Earlier and Later in that bar are the editor's icons with a label bubble (`BarAction.svelte`,
+  [REMOVE_SELECT_REORDER.md](slideshow-editing/REMOVE_SELECT_REORDER.md)); View and Remove keep
+  their words beside their icons (`AddingBarActions.svelte`).
 - Removal is the step's own: the toast "Picture removed" · "Undo" that adds up, and the last
   picture can go too (the empty drop zone returns).
 - The strip head reads "Capture order" or "Own order"; while the import runs it adds
