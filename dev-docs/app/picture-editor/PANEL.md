@@ -1,7 +1,7 @@
 # Panel, automatic and own
 
 - **Panel**: below the preview "Picture 3 of 8", file name · capture date; "Ken Burns" with the
-  state "Automatic" or "Own motion" (accent-tinted); the toggle, each half with "Zoom 1.20×";
+  state "Automatic" or "Own motion" (accent-tinted); the "Start | End" toggle;
   up to 720 px the hint "Drag anywhere to move the frame; corners or two fingers zoom." (wider,
   under the well: "Drag to move the frame, drag a corner to zoom · mouse wheel zooms · arrow
   keys, + and −"); "Swap start and end" and "Back to automatic".
