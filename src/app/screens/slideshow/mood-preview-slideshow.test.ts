@@ -212,7 +212,7 @@ function trackWithGain(gain: number) {
 }
 
 describe("mutedPreviewSlideshow", () => {
-  it("zeroes every music track's gain, leaving the rest of the track untouched", () => {
+  it("leaves the music out, so a silent preview opens no audio, and keeps the pictures", () => {
     const stored = storedSlideshow({
       songs: [{ id: "s1", fileName: "song.mp3", durationMs: 1000, mimeType: "audio/mpeg" }],
     });
@@ -223,8 +223,8 @@ describe("mutedPreviewSlideshow", () => {
 
     const muted = mutedPreviewSlideshow(slideshow);
 
-    expect(muted.music?.map((track) => track.gain)).toEqual([0, 0]);
-    expect(muted.music?.map((track) => track.src)).toEqual(["song.mp3", "song.mp3"]);
+    expect(muted.slides).toEqual(slideshow.slides);
+    expect(muted.music).toBeUndefined();
   });
 
   it("leaves a slideshow without music as it was", () => {

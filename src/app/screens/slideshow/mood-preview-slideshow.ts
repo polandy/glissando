@@ -49,12 +49,16 @@ export function moodPreviewSlideshow(
 }
 
 /**
- * `slideshow` with its music silenced, for the preview's "Sound" toggle off (MOOD.md): pure, so
- * the player is recreated (via a `{#key}` on this new object) to pick the change up.
+ * `slideshow` without its music, for the preview's "Sound" toggle off (MOOD.md): pure, so the
+ * player is recreated (via a `{#key}` on this new object) to pick the change up. Left out rather
+ * than played at gain 0, so a silent preview opens no audio at all: in WebKit, songs streamed
+ * through Web Audio as the sheet opens can freeze the page.
  */
 export function mutedPreviewSlideshow(slideshow: Slideshow): Slideshow {
   if (slideshow.music === undefined) {
     return slideshow;
   }
-  return { ...slideshow, music: slideshow.music.map((track) => ({ ...track, gain: 0 })) };
+  const silent = { ...slideshow };
+  delete silent.music;
+  return silent;
 }
