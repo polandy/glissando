@@ -32,7 +32,8 @@ The panel for the song selected in the [music editor](../MUSIC_EDITOR.md).
   loudness, louder, quieter, or capped short to avoid distortion); "Back to levelled" once own.
   "Listen" plays the excerpt's loudest 8 s at the resolved gain (toggle to stop); "Original file"
   swaps it for the file's own gain in place; while listening, a hint invites tapping another song
-  to compare, which then plays. Below the song list,
+  to compare, which then plays. The song's audio opens only at its first listen (`DeferredMusic`): showing a song loads
+  none, as WebKit can hang the page when a routed audio element starts loading while it is busy. Below the song list,
   the collapsible "Loudness of the songs" (`VolumeComparisonBox.svelte`, closed by default):
   each song's bar to where it ends up now, a grey mark at its own loudness, and its state.
 - **Picture length** (`components/PictureLengthSection.svelte`): a clock icon, "About 5 s each" and "Fill the music" as a radiogroup (arrows move
