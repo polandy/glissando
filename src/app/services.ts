@@ -29,6 +29,7 @@ import type { BuildInfo } from "./settings/build-info";
 import type { FrameDevice } from "./frame/browser-frame-device";
 import type { FrameCardPreference } from "./frame/frame-card-preference";
 import type { FramePreferences } from "./frame/frame-preferences";
+import type { MusicEditorDetailsStore } from "./music-editor/music-editor-details";
 import type { FineSettingsFoldStore } from "./screens/slideshow/fine-settings-fold";
 
 /**
@@ -115,4 +116,6 @@ export interface AppServices extends ServerSlideshowSessions {
   readonly samplePreview?: SamplePreview;
   /** Whether the slideshow screen's "Fine settings" fold is open, kept on this device (ADR-0048). */
   readonly fineSettingsFold: FineSettingsFoldStore;
+  /** Whether the music editor shows its details, kept on this device (MUSIC_EDITOR.md). */
+  readonly musicEditorDetails: MusicEditorDetailsStore;
 }

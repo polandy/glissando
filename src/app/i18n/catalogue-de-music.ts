@@ -15,8 +15,9 @@ export const deMusic = {
   "music.listenEnd": "Ende anhören",
   "music.listenFrom": "ab {time}",
   "music.listenUntil": "bis {time}",
-  "music.hint":
-    "Griffe ziehen oder mit den Pfeiltasten verschieben (Umschalt: 1 s). Die orange Linie zeigt die Lautstärke mit Ein- und Ausblende.",
+  "music.hint": "Griffe ziehen oder mit den Pfeiltasten verschieben (Umschalt: 1 s).",
+  "music.hintVolumeLine": "Die orange Linie zeigt die Lautstärke mit Ein- und Ausblende.",
+  "music.details": "Details",
   "music.excerpt": "Ausschnitt",
   "music.wholeTrack": "Ganzer Titel",
   "music.trimmed": "Gekürzt",
@@ -121,6 +122,4 @@ export const deMusic = {
   "music.volumeOriginalFile": "Originaldatei",
   "music.volumeListenCompare":
     "Während des Anhörens auf einen anderen Titel tippen, um zu vergleichen.",
-  "music.volumeComparison": "Lautstärke der Titel",
-  "music.volumeComparisonHint": "Graue Linie: Originaldatei",
 } as const satisfies Record<string, Message>;

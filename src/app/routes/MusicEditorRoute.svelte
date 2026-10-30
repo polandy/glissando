@@ -18,6 +18,7 @@
     type SampleSongRow,
     type SongIntakeDevice,
   } from "../music-editor/song-intake";
+  import type { MusicEditorDetailsStore } from "../music-editor/music-editor-details";
   import type { SamplePreview } from "../sample-music/sample-preview";
   import type { Toaster } from "../toast/toaster";
 
@@ -31,6 +32,7 @@
     audio,
     songIntake,
     samplePreview,
+    detailsStore,
     toaster,
     saving,
     onBack,
@@ -49,6 +51,8 @@
     songIntake: SongIntakeDevice;
     /** `undefined` when the build turns sample music off (SAMPLE_MUSIC.md). */
     samplePreview?: SamplePreview | undefined;
+    /** Whether the editor shows its details, kept on this device. */
+    detailsStore: MusicEditorDetailsStore;
     toaster: Toaster;
     saving: boolean;
     onBack: () => void;
@@ -162,6 +166,7 @@
   {pending}
   {sampleRows}
   {samplePreview}
+  {detailsStore}
   {toaster}
   {onBack}
   {onError}

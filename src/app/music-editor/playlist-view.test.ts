@@ -61,6 +61,8 @@ describe("playlistView (ADR-0023)", () => {
         atMs: 0,
         reached: true,
         volumeBadge: { kind: "measuring" },
+        laneAtMs: 0,
+        laneMs: 60_000,
       },
       {
         id: "b",
@@ -72,6 +74,8 @@ describe("playlistView (ADR-0023)", () => {
         atMs: 57_000,
         reached: true,
         volumeBadge: { kind: "measuring" },
+        laneAtMs: 57_000,
+        laneMs: 60_000,
       },
       {
         id: "c",
@@ -83,6 +87,8 @@ describe("playlistView (ADR-0023)", () => {
         atMs: 114_000,
         reached: true,
         volumeBadge: { kind: "measuring" },
+        laneAtMs: 114_000,
+        laneMs: 60_000,
       },
     ]);
     expect(view.crossfades).toEqual([

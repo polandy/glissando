@@ -13,6 +13,11 @@ import { mountWithTranslator } from "../testing/mount-with-translator";
 import { reactiveProps } from "../testing/reactive-props.svelte";
 import { Toaster } from "../toast/toaster";
 import type { ListenKind, ListenState } from "./listen-preview";
+import { createMemoryStorage } from "../testing/memory-storage";
+import {
+  createStorageMusicEditorDetailsStore,
+  type MusicEditorDetailsStore,
+} from "./music-editor-details";
 import MusicEditorScreen from "./MusicEditorScreen.svelte";
 import type { PendingSong, SampleSongRow } from "./song-intake";
 
@@ -63,6 +68,18 @@ export function slideshowOfSongs(
   return { ...slideshowWith({}, { count }), songs, ...own };
 }
 
+/** A details store that starts with the "Details" switch on. */
+export function shownDetailsStore(): MusicEditorDetailsStore {
+  const store = createStorageMusicEditorDetailsStore(createMemoryStorage());
+  store.write("shown");
+  return store;
+}
+
+/** The header's "Details" switch. */
+export function detailsSwitch(): HTMLInputElement | null {
+  return document.querySelector<HTMLInputElement>('input[role="switch"][aria-label="Details"]');
+}
+
 let destroy: (() => void) | null = null;
 
 export function unmountEditor(): void {
@@ -79,6 +96,9 @@ export function mountEditor(
   beats: BeatsStatus = { kind: "listening" },
   loudness: LoudnessStatus = { kind: "listening" },
   samplePreview: SamplePreview | undefined = undefined,
+  detailsStore: MusicEditorDetailsStore = createStorageMusicEditorDetailsStore(
+    createMemoryStorage(),
+  ),
 ) {
   const calls = {
     trims: [] as (MusicTrim | undefined)[],
@@ -117,6 +137,7 @@ export function mountEditor(
     pending: [] as readonly PendingSong[],
     sampleRows: [] as readonly SampleSongRow[],
     samplePreview: samplePreview as SamplePreview | undefined,
+    detailsStore,
     toaster: new Toaster(new FakeScheduler()),
     onRemoveSampleRow: (trackId: SampleTrackId) => calls.removedSampleRows.push(trackId),
     isSampleTrackAdded: notAdded,
@@ -184,4 +205,13 @@ export function drag(on: Element, fromMs: number, toMs: number): void {
   flushSync();
   window.dispatchEvent(new PointerEvent("pointerup", at(toMs)));
   flushSync();
+}
+
+/** `mountEditor` with the "Details" switch on: the volume line, beat ticks, slideshow lane and hatching. */
+export function mountDetailed(
+  slideshow?: StoredSlideshow,
+  beats?: BeatsStatus,
+  loudness?: LoudnessStatus,
+) {
+  return mountEditor(slideshow, beats, loudness, undefined, shownDetailsStore());
 }
