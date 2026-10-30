@@ -22,6 +22,8 @@ const song = (
   excerptMs: 60_000,
   trimmed: false,
   atMs,
+  laneAtMs: atMs,
+  laneMs: 60_000,
   reached: true,
   volumeBadge: { kind: "none" },
   ...extra,
@@ -33,6 +35,7 @@ const playlist: PlaylistView = {
   songCount: 2,
   crossfade: true,
   crossfades: [{ atMs: 48_000, ms: 12_000 }],
+  details: true,
   playlistMs: 108_000,
   slideshowMs: 108_000,
   slideChangesMs: [],
@@ -107,6 +110,7 @@ describe("PlaylistLane", () => {
       songCount: 2,
       crossfade: false,
       crossfades: [],
+      details: true,
       playlistMs: 120_000,
       slideshowMs: 240_000,
       slideChangesMs: [],
@@ -126,6 +130,7 @@ describe("PlaylistLane", () => {
       songCount: 1,
       crossfade: true,
       crossfades: [{ atMs: 60_000, ms: 2_000 }],
+      details: true,
       playlistMs: 60_000,
       slideshowMs: 120_000,
       slideChangesMs: [],
@@ -142,5 +147,45 @@ describe("PlaylistLane", () => {
 
     expect(lane.target.textContent).toContain("Repeats until the slideshow ends");
     expect(lane.target.textContent).toContain("Music repeats");
+  });
+
+  describe("without the details", () => {
+    const simple: PlaylistView = {
+      ...playlist,
+      songs: [
+        song(1, 0, { laneMs: 54_000 }),
+        song(2, 48_000, { laneAtMs: 54_000, laneMs: 54_000 }),
+      ],
+      crossfades: [],
+      details: false,
+    };
+
+    it("draws no crossfade hatching and no label for it, but the numbers stay", () => {
+      const lane = mount(simple);
+
+      expect(lane.target.querySelectorAll(".block .number")).toHaveLength(2);
+      expect(lane.target.querySelector(".crossfade")).toBeNull();
+      expect(lane.target.textContent).not.toContain("Crossfades hatched");
+      expect(lane.target.textContent).not.toContain("One after another");
+    });
+
+    it("lets the blocks meet at the middle of their overlap", () => {
+      const lane = mount(simple);
+      lane.target.style.width = "600px";
+
+      const [first, second] = [...lane.target.querySelectorAll<HTMLElement>(".block")];
+
+      expect(first?.getBoundingClientRect().right).toBeCloseTo(
+        second?.getBoundingClientRect().left ?? Number.NaN,
+        0,
+      );
+      expect(first?.classList.contains("meeting")).toBe(true);
+    });
+  });
+
+  it("with the details, labels the crossfades as hatched", () => {
+    const lane = mount(playlist);
+
+    expect(lane.target.textContent).toContain("Crossfades hatched");
   });
 });

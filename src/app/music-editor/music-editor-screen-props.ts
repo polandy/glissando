@@ -2,6 +2,7 @@ import type { BetweenSongs, MusicTrim, PictureChanges } from "../../library/own-
 import type { PictureLength } from "../../library/picture-length";
 import type { StoredSlideshow } from "../../library/stored-slideshow";
 import type { SampleTrack, SampleTrackId } from "../../sample-music/sample-tracks";
+import type { MusicEditorDetailsStore } from "./music-editor-details";
 import type { ListenState } from "./listen-preview";
 import type { SongsBeatsStatus, SongsLoudnessStatus } from "./slideshow-times";
 import type { SamplePreview } from "../sample-music/sample-preview";
@@ -26,6 +27,8 @@ export interface MusicEditorScreenProps {
   sampleRows: readonly SampleSongRow[];
   /** `undefined` when the build turns sample music off (SAMPLE_MUSIC.md). */
   samplePreview?: SamplePreview | undefined;
+  /** Whether the editor shows its details, remembered on this device. */
+  detailsStore: MusicEditorDetailsStore;
   toaster: Toaster;
   onBack: () => void;
   onError: (error: unknown) => void;

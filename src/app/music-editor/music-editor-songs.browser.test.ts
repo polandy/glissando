@@ -2,7 +2,14 @@ import { flushSync } from "svelte";
 import { afterEach, describe, expect, it } from "vitest";
 import { SEQUENCE_BETWEEN_SONGS } from "../../library/own-music";
 import { OWN_SECONDS_PICTURE_LENGTH } from "../../library/picture-length";
-import { mountEditor, slideshowOfSongs, song, text, unmountEditor } from "./music-editor-harness";
+import {
+  mountDetailed,
+  mountEditor,
+  slideshowOfSongs,
+  song,
+  text,
+  unmountEditor,
+} from "./music-editor-harness";
 
 afterEach(() => unmountEditor());
 
@@ -153,7 +160,7 @@ describe("MusicEditorScreen, between the songs", () => {
 
 describe("MusicEditorScreen, the playlist lane", () => {
   it("draws a block per song at its start, hatching the crossfades", () => {
-    mountEditor(slideshowOfSongs(THREE));
+    mountDetailed(slideshowOfSongs(THREE));
 
     const blocks = [...document.querySelectorAll<HTMLElement>(".playlist-lane .block")];
     expect(blocks.map((block) => block.textContent?.trim())).toEqual(["1", "2", "3"]);
@@ -194,7 +201,7 @@ describe("MusicEditorScreen without music", () => {
 
 describe("MusicEditorScreen, the pictures under the selected song", () => {
   it("draws no pictures under a song the slideshow never reaches", () => {
-    const { set } = mountEditor(
+    const { set } = mountDetailed(
       slideshowOfSongs(THREE, { count: 4, pictureLength: OWN_SECONDS_PICTURE_LENGTH }),
     );
     set({ selectedSongId: "c" });
@@ -204,7 +211,9 @@ describe("MusicEditorScreen, the pictures under the selected song", () => {
   });
 
   it("runs the pictures under a song on into the next song, with no silence", () => {
-    mountEditor(slideshowOfSongs(THREE, { count: 30, pictureLength: OWN_SECONDS_PICTURE_LENGTH }));
+    mountDetailed(
+      slideshowOfSongs(THREE, { count: 30, pictureLength: OWN_SECONDS_PICTURE_LENGTH }),
+    );
 
     expect(document.querySelector<HTMLElement>(".wavebox .runs")?.style.width).toContain("100%");
     expect(document.querySelector(".wavebox .over")).toBeNull();

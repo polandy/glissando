@@ -15,12 +15,13 @@
   import WaveformBars from "./WaveformBars.svelte";
 
   /**
-   * The whole track as a waveform with the excerpt's two handles, the volume's fade envelope
-   * over it and the time ruler below. A grab anywhere moves the nearer handle.
+   * The whole track as a waveform with the excerpt's two handles and the time ruler below; with the
+   * details, the volume's fade envelope over it and the beat ticks. A grab anywhere moves the nearer handle.
    */
   let {
     music,
     peaks,
+    details,
     onDraft,
     onCommit,
     onGrab,
@@ -28,6 +29,8 @@
     music: MusicEditorView;
     /** Fine peaks of the whole track, 0..1; null while the track is decoded. */
     peaks: Float32Array | null;
+    /** Shows the volume line, the fade-shrunk bars and the beat ticks. */
+    details: boolean;
     /** The excerpt while a handle is dragged. */
     onDraft: (trim: MusicTrim) => void;
     /** The excerpt a drag or a key settled on. */
@@ -132,8 +135,10 @@
 <svelte:window {onpointermove} onpointerup={release} onpointercancel={release} />
 
 <div class="wave" bind:this={wave} bind:clientWidth={width} {onpointerdown} role="presentation">
-  <WaveformBars {music} {peaks} {width} />
-  <BeatTicks ticks={music.beatTicks} durationMs={music.durationMs} />
+  <WaveformBars {music} {peaks} {width} {details} />
+  {#if details}
+    <BeatTicks ticks={music.beatTicks} durationMs={music.durationMs} />
+  {/if}
   <div class="out" style:left="0" style:width={pct(music.startMs)}></div>
   <div class="out" style:left={pct(music.endMs)} style:right="0"></div>
   {#if music.audibleEndMs < music.endMs}

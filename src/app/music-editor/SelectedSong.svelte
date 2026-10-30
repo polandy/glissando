@@ -11,12 +11,13 @@
 
   /**
    * The selected song, headed by its place and name: its excerpt on the waveform with the
-   * pictures under it, and its start and end to listen to.
+   * pictures under it when `details` are shown, and its start and end to listen to.
    */
   let {
     music,
     peaks,
     listening,
+    details,
     onDraft,
     onCommit,
     onStopListening,
@@ -26,6 +27,8 @@
     /** Fine peaks of the whole track, 0..1; null while the track is decoded. */
     peaks: Float32Array | null;
     listening: ListenState | null;
+    /** The volume line, beat ticks and the slideshow lane under the waveform. */
+    details: boolean;
     /** The excerpt while a handle is dragged. */
     onDraft: (trim: MusicTrim) => void;
     /** The excerpt on release. */
@@ -60,8 +63,10 @@
 </div>
 <div class="wavebox">
   <div class="tracks">
-    <MusicWaveform {music} {peaks} {onDraft} {onCommit} onGrab={onStopListening} />
-    <SlideshowLane {music} listeningPositionMs={listening?.positionMs ?? null} />
+    <MusicWaveform {music} {peaks} {details} {onDraft} {onCommit} onGrab={onStopListening} />
+    {#if details}
+      <SlideshowLane {music} listeningPositionMs={listening?.positionMs ?? null} />
+    {/if}
     {#if listening !== null}
       <div class="playhead" style:left={pct(listening.positionMs)} aria-hidden="true"></div>
       <div
@@ -95,7 +100,7 @@
     </button>
   {/each}
 </div>
-<p class="hint">{t("music.hint")}</p>
+<p class="hint">{details ? `${t("music.hint")} ${t("music.hintVolumeLine")}` : t("music.hint")}</p>
 
 <style>
   .head {

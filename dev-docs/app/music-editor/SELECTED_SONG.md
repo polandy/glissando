@@ -4,14 +4,15 @@ The panel for the song selected in the [music editor](../MUSIC_EDITOR.md).
 
 - **Selected song** (`SelectedSong.svelte`): "Song 2 · name" and its length, then the
   waveform of the whole track (decoded once with Web Audio into 1000 peaks, drawn as a bar
-  every 5 px), dimmed outside the excerpt; an accent line over it is the volume, ramping
-  through the fades, and the bars inside a fade shrink with it. Two accent handles "Start"
+  every 5 px), dimmed outside the excerpt; with the Details switch on (MUSIC_EDITOR.md), an accent line over
+  it is the volume, ramping through the fades, and the bars inside a fade shrink with it
+  (`wave-view.ts`); off, neither. Two accent handles "Start"
   and "End" carry their time ("0:12,0"); dragging one, or grabbing the waveform anywhere (the
   nearer handle follows, keeping the grab's offset), moves it in tenths of a second, live,
   and stores it on release; as sliders the arrow keys move a tenth, with Shift a second. The
   excerpt stays at least 5 s; a track shorter than that stays whole. While the pictures change
-  on the beat, a tick per beat along the waveform's foot, every fourth taller. A time ruler
-  below. Then the lane "Slideshow, 24 pictures" with
+  on the beat and the Details are on, a tick per beat along the waveform's foot, every fourth
+  taller. A time ruler below. With the Details on, the lane "Slideshow, 24 pictures" with
   its length: a mint bar from the excerpt's start for as long as the slideshow plays this song
   (none for a song not reached), a tick
   per picture change (on the beat, a change that falls between beats — an own duration with no
@@ -20,9 +21,10 @@ The panel for the song selected in the [music editor](../MUSIC_EDITOR.md).
   excerpt's end. "Listen to the start" (the excerpt's first 8 s with the fade-in, "from
   0:12,0") and "Listen to the end" (the last 8 s before the music stops being heard, with the
   fade-out, "until 2:30,0") toggle to pause; while it plays, one line runs from the top of the
-  waveform down through both lanes, a time chip below the slideshow lane naming the position
+  waveform down through both lanes (the waveform alone without the Details), a time chip below
+  naming the position
   ("0:14,0"), and the picture it is over lit a stronger mint; grabbing a handle stops it. A
-  hint names the handles' keys and the line.
+  hint names the handles' keys and, with the Details, the line.
 - **Excerpt**: the state "Whole track" or "Trimmed" (accent-tinted), Start and End as
   "0:12,0" with − and + for half seconds, then "Whole track" (resets) or, untrimmed, "The
   slideshow uses the whole track, 3:24."
@@ -33,9 +35,7 @@ The panel for the song selected in the [music editor](../MUSIC_EDITOR.md).
   "Listen" plays the excerpt's loudest 8 s at the resolved gain (toggle to stop); "Original file"
   swaps it for the file's own gain in place; while listening, a hint invites tapping another song
   to compare, which then plays. The song's audio opens only at its first listen (`DeferredMusic`): showing a song loads
-  none, as WebKit can hang the page when a routed audio element starts loading while it is busy. Below the song list,
-  the collapsible "Loudness of the songs" (`VolumeComparisonBox.svelte`, closed by default):
-  each song's bar to where it ends up now, a grey mark at its own loudness, and its state.
+  none, as WebKit can hang the page when a routed audio element starts loading while it is busy.
 - **Picture length** (`components/PictureLengthSection.svelte`): a clock icon, "About 5 s each" and "Fill the music" as a radiogroup (arrows move
   the choice), stored at once; with the first, the seconds stepper (− and + for half seconds, 2
   to 15 s) below it. Once own seconds or a mood (`MoodPictureTimesSection.svelte`) would outlast

@@ -9,9 +9,10 @@
   /**
    * The playlist and the slideshow on one time scale: each song a block from where it starts (a
    * repeated one marked "↻", ADR-0047), the crossfades hatched including at a repeat's loop
-   * boundary, the slideshow's end marked where it comes before the playlist's; under it, the
-   * pictures' changes and, while the pictures outlast the playlist and it does not repeat, the time
-   * they would play on in silence, with a card offering to fix it (ADR-0023, ADR-0047).
+   * boundary (with the details; otherwise the blocks meet at the middle of each overlap), the
+   * slideshow's end marked where it comes before the playlist's; under it, the pictures' changes
+   * and, while the pictures outlast the playlist and it does not repeat, the time they would play
+   * on in silence, with a card offering to fix it (ADR-0023, ADR-0047).
    */
   let {
     playlist,
@@ -50,7 +51,7 @@
     </span>
     {#if playlist.repeatMusic}
       <span>{t("music.playlistRepeats")}</span>
-    {:else if playlist.songs.length > 1}
+    {:else if playlist.details && playlist.songs.length > 1}
       <span>{playlist.crossfade ? t("music.crossfadesHatched") : t("music.sequence")}</span>
     {/if}
   </div>
@@ -59,8 +60,9 @@
       <span
         class="block mono"
         class:unreached={!song.reached}
-        style:left={pct(song.atMs)}
-        style:width={pct(song.excerptMs)}
+        class:meeting={!playlist.details}
+        style:left={pct(song.laneAtMs)}
+        style:width={pct(song.laneMs)}
         style:background={songColour(song.number)}
         ><span
           class="number"
@@ -159,6 +161,11 @@
     font-size: var(--gl-size-caption);
     font-weight: var(--gl-weight-semibold);
     white-space: nowrap;
+  }
+  /* Without the crossfades, a thin line of the surface keeps blocks that meet apart. */
+  .block.meeting {
+    box-sizing: border-box;
+    box-shadow: 0 0 0 1px var(--gl-surface);
   }
   .block.unreached {
     opacity: 0.35;

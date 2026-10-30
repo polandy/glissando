@@ -111,6 +111,12 @@ test("E2E-061 listening to the excerpt draws one playhead through both lanes wit
     fill: true,
   });
   await page.getByRole("button", { name: /^Musik Sommerwind\.wav/ }).click();
+  // The slideshow lane under the waveform is one of the details; the switch's input is visually
+  // hidden behind its track, so its label is clicked.
+  await page
+    .locator(".switch")
+    .filter({ has: page.getByRole("switch", { name: "Details" }) })
+    .click();
 
   // A non-zero excerpt start, so the chip's time at the start of a listen is meaningfully
   // compared against it rather than trivially 0.

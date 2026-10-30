@@ -47,11 +47,6 @@ const originalButton = (): HTMLButtonElement => {
   if (found === null) throw new Error("no original-file button");
   return found;
 };
-const comparisonBox = (): HTMLDetailsElement => {
-  const found = document.querySelector<HTMLDetailsElement>(".box");
-  if (found === null) throw new Error("no comparison box");
-  return found;
-};
 
 describe("MusicEditorScreen, the volume", () => {
   it("plays unlevelled and says so while the loudness is still measuring", () => {
@@ -128,13 +123,11 @@ describe("MusicEditorScreen, the volume", () => {
 });
 
 describe("MusicEditorScreen, the loudness comparison box", () => {
-  it("is collapsed by default and opens", () => {
+  it("is gone: the song list shows and nothing compares the songs' loudness", () => {
     mountEditor(slideshowWith(), { kind: "listening" }, { kind: "listening" });
 
-    expect(comparisonBox().open).toBe(false);
-
-    comparisonBox().querySelector("summary")?.click();
-
-    expect(comparisonBox().open).toBe(true);
+    expect(document.querySelector(".songs")).not.toBeNull();
+    expect(document.querySelector(".box")).toBeNull();
+    expect(document.body.textContent).not.toContain("Lautstärke der Titel");
   });
 });

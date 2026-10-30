@@ -3,6 +3,7 @@
   import { setMusicTrim } from "../../library/slideshow-edits-music";
   import Header from "../components/Header.svelte";
   import Icon from "../components/Icon.svelte";
+  import Switch from "../components/Switch.svelte";
   import PictureLengthSection from "../components/PictureLengthSection.svelte";
   import { getTranslator } from "../i18n/context";
   import AddSongSheet from "./AddSongSheet.svelte";
@@ -15,7 +16,6 @@
   import { playlistView } from "./playlist-view";
   import SelectedSong from "./SelectedSong.svelte";
   import SongList from "./SongList.svelte";
-  import VolumeComparisonBox from "./VolumeComparisonBox.svelte";
 
   /**
    * The music editor: the playlist's songs and how they meet the slideshow; the selected song's
@@ -33,6 +33,7 @@
     pending,
     sampleRows,
     samplePreview,
+    detailsStore,
     toaster,
     onBack,
     onError,
@@ -66,6 +67,14 @@
 
   /** The excerpt while a handle is dragged; stored on release. */
   let draft = $state.raw<MusicTrim | null>(null);
+  /** The "Details" switch: the volume line, beat ticks, the slideshow lane and crossfade hatching. */
+  // The store is fixed for the screen's lifetime.
+  // svelte-ignore state_referenced_locally
+  let details = $state(detailsStore.read() === "shown");
+  function setDetails(shown: boolean): void {
+    details = shown;
+    detailsStore.write(shown ? "shown" : "hidden");
+  }
   let sheetOpen = $state(false);
   function openSheet(): void {
     sheetOpen = true;
@@ -79,7 +88,7 @@
   const music = $derived(
     songId === undefined ? null : musicEditorView(edited, beats, songId, loudness),
   );
-  const playlist = $derived(playlistView(edited, beats, loudness));
+  const playlist = $derived(playlistView(edited, beats, loudness, details));
   /** `SongList` edits the stored songs, each once; the playlist's repeats (ADR-0047) are `PlaylistLane`'s alone. */
   const ownedSongs = $derived(playlist.songs.filter((song) => song.repeated !== true));
 
@@ -90,7 +99,15 @@
 </script>
 
 <div class="screen" aria-busy={saving}>
-  <Header crumbs={[t("start.library"), slideshow.title, t("music.crumb")]} {onBack} />
+  <Header crumbs={[t("start.library"), slideshow.title, t("music.crumb")]} {onBack}>
+    {#snippet actions()}
+      {#if music !== null}
+        <span class="details-switch">
+          <Switch checked={details} label={t("music.details")} showLabel onChange={setDetails} />
+        </span>
+      {/if}
+    {/snippet}
+  </Header>
   {#if music === null}
     <main class="edit empty-edit">
       <div class="main-column">
@@ -148,7 +165,6 @@
           onDismiss={onDismissPending}
           {onRemoveSampleRow}
         />
-        <VolumeComparisonBox slideshow={edited} {loudness} />
         <AddSongsButton
           label={t("music.addSong")}
           onAdd={onAddSongs}
@@ -159,6 +175,7 @@
           {music}
           {peaks}
           {listening}
+          {details}
           onDraft={(trim) => (draft = trim)}
           onCommit={trimmed}
           {onStopListening}
@@ -217,6 +234,13 @@
     min-height: 0;
     padding: 22px;
     overflow: auto;
+  }
+  .details-switch {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--gl-muted);
+    font-size: var(--gl-size-label);
   }
   .empty {
     display: grid;

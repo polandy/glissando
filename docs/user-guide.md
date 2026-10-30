@@ -14,7 +14,9 @@ without internet. If you use a self-hosted Glissando, open its address instead
 2. **Add music**: any common format (MP3, M4A, Ogg, FLAC, WAV …), or pick from the nine sample
    tracks that come with Glissando if you have none of your own to hand. Pick the part of the song
    to use; the slideshow is timed to fit it. Several songs work too, automatically matched in
-   loudness so none plays louder than the rest; the music editor lets you listen and adjust that.
+   loudness so none plays louder than the rest; the music editor lets you listen and adjust that. It
+   shows the essentials first; turn on **Details** in its top bar for the volume line, the beats and
+   the crossfades.
 3. **Play.** Motion and transitions are chosen for you — people stay in frame, scenery gets a slow
    sweep, changes follow the beat.
 

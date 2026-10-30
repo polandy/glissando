@@ -16,8 +16,9 @@ export const enMusic: Pick<Catalogue, keyof typeof deMusic> = {
   "music.listenEnd": "Listen to the end",
   "music.listenFrom": "from {time}",
   "music.listenUntil": "until {time}",
-  "music.hint":
-    "Drag the handles or move them with the arrow keys (Shift: 1 s). The orange line shows the volume with its fades.",
+  "music.hint": "Drag the handles or move them with the arrow keys (Shift: 1 s).",
+  "music.hintVolumeLine": "The orange line shows the volume with its fades.",
+  "music.details": "Details",
   "music.excerpt": "Excerpt",
   "music.wholeTrack": "Whole track",
   "music.trimmed": "Trimmed",
@@ -121,6 +122,4 @@ export const enMusic: Pick<Catalogue, keyof typeof deMusic> = {
   "music.volumeListenOriginal": "original file, unlevelled",
   "music.volumeOriginalFile": "Original file",
   "music.volumeListenCompare": "While listening, tap another song to compare.",
-  "music.volumeComparison": "Loudness of the songs",
-  "music.volumeComparisonHint": "Grey line: original file",
 };
