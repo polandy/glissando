@@ -71,36 +71,34 @@ describe("the clip plan", () => {
 });
 
 /**
- * clip's video.startMs (1000) is inside the lead-in (3000): shiftMs = 3000 - 1000 = 2000. The
- * transition into the clip's slide starts at 7000 and the slide itself runs 10_000–14_000.
+ * clip's video.startMs (1000) is inside the lead-in (3000): the file has 1000 ms of footage
+ * before the excerpt, 2000 ms too little to fill the transition into the clip's slide, which
+ * starts at 7000; the slide itself runs 10_000–14_000.
  */
-describe("a clip shifted earlier because its file's start falls inside the lead-in", () => {
+describe("a clip whose file's start falls inside the lead-in", () => {
   const slides = [picture(10_000, 3000), clip(1000, 5000)];
   const plan = createClipPlan(slides);
 
-  it("plays, not waits, from file time 0 exactly when the transition starts", () => {
-    expect(plan(7000)).toMatchObject([{ phase: "playing", clipMs: 0, soundOn: false }]);
+  it("holds its first frame while the transition starts, until its footage reaches the clock", () => {
+    expect(plan(7000)).toMatchObject([{ phase: "holding", clipMs: 0, soundOn: false }]);
+    expect(plan(8999)).toMatchObject([{ phase: "holding", clipMs: 0 }]);
+    expect(plan(9000)).toMatchObject([{ phase: "playing", clipMs: 0 }]);
   });
 
-  it("advances the clip 1:1 with the slide clock through the transition", () => {
-    expect(plan(8500)[0]).toMatchObject({ clipMs: 1500 });
-    expect(plan(9800)[0]).toMatchObject({ clipMs: 2800 });
-  });
-
-  it("holds the waiting position at the clip time the transition starts from, so play needs no seek", () => {
+  it("holds the waiting position at the clip time it starts playing from, so play needs no seek", () => {
     const waitingClipMs = plan(7000 - VIDEO_PRELOAD_MS)[0]?.clipMs;
 
     expect(waitingClipMs).toBe(0);
-    expect(plan(7000)[0]?.clipMs).toBe(waitingClipMs);
+    expect(plan(9000)[0]?.clipMs).toBe(waitingClipMs);
   });
 
-  it("starts the clip's sound shiftMs into the transition, before the slide itself starts", () => {
-    expect(plan(7999)[0]).toMatchObject({ soundOn: false });
-    expect(plan(8000)[0]).toMatchObject({ soundOn: true });
+  it("starts the clip's sound with its slide", () => {
+    expect(plan(9999)[0]).toMatchObject({ soundOn: false });
+    expect(plan(10_000)[0]).toMatchObject({ soundOn: true, clipMs: 1000 });
   });
 
-  it("reaches the file's end shiftMs before the slide ends, and holds the last frame from there", () => {
-    expect(plan(12_000)[0]).toMatchObject({ phase: "playing", clipMs: 5000 });
-    expect(plan(13_000)[0]).toMatchObject({ phase: "playing", clipMs: 5000 });
+  it("keeps the picture moving until its slide ends, reaching the file's end only then", () => {
+    expect(plan(12_000)[0]).toMatchObject({ phase: "playing", clipMs: 3000 });
+    expect(plan(13_999)[0]).toMatchObject({ phase: "playing", clipMs: 4999 });
   });
 });

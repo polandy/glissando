@@ -28,14 +28,14 @@ const SLIDES: Slide[] = [
   picture(6000),
 ];
 
-function setUp() {
+function setUp(slides: Slide[] = SLIDES) {
   const sources: FakeVideoFrames[] = [];
   const open = (src: string): VideoFrameSource => {
     const source = new FakeVideoFrames(src);
     sources.push(source);
     return source;
   };
-  return { frames: new VideoFrames(SLIDES, open), sources };
+  return { frames: new VideoFrames(slides, open), sources };
 }
 
 describe("video frames for the export", () => {
@@ -50,6 +50,13 @@ describe("video frames for the export", () => {
     const { frames, sources } = setUp();
     await frames.load(9500);
     expect(sources[0]?.requested).toEqual([4500]);
+  });
+
+  it("asks for the first frame of a clip held on it while its slide fades in", async () => {
+    const short = { src: "c.mp4", startMs: 200, endMs: 4200, volume: 1 };
+    const { frames, sources } = setUp([picture(10_000, 1000), { ...picture(4000), video: short }]);
+    await frames.load(9500);
+    expect(sources[0]?.requested).toEqual([0]);
   });
 
   it("opens no source for a clip that is not on screen", async () => {

@@ -102,8 +102,7 @@ describe("videoSoundSpans", () => {
     expect(videoSoundSpans(slides)).toEqual([{ startMs: 8000, endMs: 9000 }]);
   });
 
-  it("starts a shifted clip's duck span where its sound starts, inside the transition", () => {
-    // video.startMs (1000) is inside the 3000 ms lead-in: shiftMs = 3000 - 1000 = 2000.
+  it("starts the duck span of a clip whose file's start falls inside the lead-in with its slide", () => {
     const slides = [
       picture({ transitionToNext: { effect: "crossfade", durationMs: 3000 } }),
       picture({
@@ -112,6 +111,6 @@ describe("videoSoundSpans", () => {
       }),
     ];
 
-    expect(videoSoundSpans(slides)).toEqual([{ startMs: 1000, endMs: 7000 }]);
+    expect(videoSoundSpans(slides)).toEqual([{ startMs: 3000, endMs: 7000 }]);
   });
 });
