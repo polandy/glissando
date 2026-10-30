@@ -13,7 +13,7 @@
   import SlideshowCard from "./SlideshowCard.svelte";
   import type { ServerShelf, SlideshowSummary } from "./view-models";
   import type { DemoSlideshowState } from "../start/demo-slideshow-flow";
-  import DemoSlideshowButton from "../start/DemoSlideshowButton.svelte";
+  import StartHero from "../start/StartHero.svelte";
 
   let {
     slideshows,
@@ -116,19 +116,7 @@
       <FrameCard onSetUp={onSetUpFrame} onHide={onHideFrameCard} />
     {/if}
     {#if slideshows.length === 0 && server === null}
-      <div class="hero">
-        <h1 class="title">{t("start.heroTitle")}</h1>
-        <p class="lead">{t("start.heroText")}</p>
-        {#if demo.visible}
-          <DemoSlideshowButton state={demo.state} onLoad={demo.onLoad} />
-        {/if}
-        <button class="btn primary large" type="button" onclick={onCreate}>
-          <Icon name="plus" />{t("start.newSlideshow")}
-        </button>
-        <button class="btn ghost" type="button" onclick={() => picker.pick()}>
-          <Icon name="open" />{t("glissandoFile.openGlissandoFile")}
-        </button>
-      </div>
+      <StartHero {demo} {onCreate} onPickFile={() => picker.pick()} />
     {:else}
       <div class="head">
         <div>
@@ -231,17 +219,6 @@
     display: flex;
     justify-content: center;
     padding-top: 8px;
-  }
-  .hero {
-    display: grid;
-    justify-items: center;
-    gap: 14px;
-    max-width: 520px;
-    margin: 0 auto;
-    text-align: center;
-  }
-  .hero .lead {
-    margin: 0;
   }
   .grid {
     display: grid;
