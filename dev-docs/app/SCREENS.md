@@ -1,11 +1,7 @@
 # Screens
 
-- **Header** (`components/Header.svelte`): a 56 px bar. On the start screen the logo mark and
-  the "Glissando" wordmark; elsewhere the back arrow and the breadcrumb (earlier crumbs hidden up
-  to 720 px wide, the current one ellipsised; the root crumb is "Library"); a right-hand slot for
-  the screen's own buttons. While an export runs, on every screen: a progress ring and "Exporting
-  “title” … 34 %" before the buttons (the label hidden up to 720 px, the ring stays) and a 3 px
-  mint line along the bar's bottom edge growing with the progress.
+- **Header** ([HEADER.md](HEADER.md)): the 56 px bar on every screen, with the export's and the
+  faces-and-subjects search's progress.
 - **Start** (`screens/StartScreen.svelte`): in the header a gear ("Settings", opens the
   settings sheet, [SETTINGS.md](SETTINGS.md)) and, with slideshows, "New slideshow"; the large logo while the library is empty, with the
   hero line and "New slideshow"; it also shows on a first launch over a filled library, so the

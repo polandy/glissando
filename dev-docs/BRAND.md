@@ -55,7 +55,7 @@ heading 26 (23 below 720 px), display 34 px.
 ## Colours — "studio"
 
 Neutral surfaces with a slight plum tint; peach is the one accent (the main action, the playhead);
-mint, lemon and coral are status only. Tokens in `src/styles/tokens.css`:
+mint, lemon, coral and lilac are status only. Tokens in `src/styles/tokens.css`:
 
 | Token                           | Use                                   | Light                  | Dark                  |
 | ------------------------------- | ------------------------------------- | ---------------------- | --------------------- |
@@ -73,6 +73,7 @@ mint, lemon and coral are status only. Tokens in `src/styles/tokens.css`:
 | `--gl-backdrop`                 | Behind a dialog or blocking overlay   | 38 %                   | same                  |
 | `--gl-mint`                     | Done, progress, offline dot           | `#6FCFB4`              | same                  |
 | `--gl-lemon`                    | Warnings                              | `#F5C94A`              | same                  |
+| `--gl-searching`                | The background search for subjects    | `#B9A6F2`              | same                  |
 | `--gl-coral`                    | Errors, destructive buttons           | `#F2786B`              | same                  |
 | `--gl-coral-hover` / `-ink`     | Destructive button hover / its text   | `#FF8F84` / `#2A1A14`  | same                  |
 | `--gl-danger-text`              | A destructive menu item's label       | `#C4473A`              | `--gl-coral`          |

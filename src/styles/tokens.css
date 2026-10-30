@@ -66,12 +66,15 @@
   --gl-inverse-hover: color-mix(in srgb, var(--gl-inverse-text) 14%, var(--gl-inverse-bg));
   --gl-inverse-danger: var(--gl-coral);
 
-  /* Status colours: mint for done and progress, lemon for warnings, coral for errors. */
+  /* Status colours: mint for done and progress, lemon for warnings, coral for errors, lilac for
+     the search. */
   --gl-mint: #6fcfb4;
   --gl-mint-ink: #16302a;
   /* Mint as a quiet fill on the surface: a state that is on or done, e.g. the "On" pill. */
   --gl-mint-tint: color-mix(in srgb, var(--gl-mint) 24%, var(--gl-surface));
   --gl-lemon: #f5c94a;
+  /* Lilac for the background search for faces and subjects, set apart from mint's export. */
+  --gl-searching: #b9a6f2;
   --gl-warn-icon: #b8890f;
   --gl-coral: #f2786b;
   --gl-coral-hover: #ff8f84;

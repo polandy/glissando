@@ -48,6 +48,6 @@ over real timers.
   the swap aim at what is known now. The player reads the stored focus as it opens; a focus that
   cannot be read is logged and the automatic motions aim at the middle, play goes on.
 - **Export and open** (`glissando-file/`): `App.svelte` owns the `ExportJob` (the header reads
-  its progress through a context) and the `OpenFlow` (its overlay and notices); the composition
+  its progress through a context, and likewise the focus passes' `runningSearch`) and the `OpenFlow` (its overlay and notices); the composition
   root supplies the download (an object URL on a clicked link, revoked a minute later), the free
   storage estimate and the reload.
