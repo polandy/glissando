@@ -1,7 +1,17 @@
 import { expect, test } from "@playwright/test";
-import { createSlideshowWithMusic, editsStored, GERMAN_BROWSER } from "./support/app";
+import {
+  chooseFiles,
+  choosePictures,
+  CREATED_TOAST,
+  createSlideshowWithMusic,
+  editsStored,
+  GERMAN_BROWSER,
+  openImport,
+  picturesTakenOn,
+} from "./support/app";
 import { openApp } from "./support/browser";
 import { silentTrack } from "./support/media";
+import { clickSwitch } from "./support/switch";
 
 test.use(GERMAN_BROWSER);
 
@@ -205,4 +215,50 @@ test("E2E-073 a song's own volume shows Own with its dB and the song-list badge,
   await expect(reset).toHaveCount(0);
   await expect(badge).toBeEmpty();
   await editsStored(page);
+});
+
+test("E2E-095 the music editor opens simple, and its Details switch shows the volume line, slideshow lane and crossfade hatching, still on after a reload", async ({
+  page,
+}) => {
+  const details = page.getByRole("switch", { name: "Details" });
+  const endHandle = page.getByRole("slider", { name: "Ende" });
+  const blocks = page.locator(".playlist-lane .block");
+  const volumeLine = page.locator(".wavebox .envelope");
+  const slideshowLane = page.locator(".wavebox .runs");
+  const hatching = page.locator(".playlist-lane .crossfade");
+  await openApp(page);
+  await openImport(page);
+  await choosePictures(
+    page,
+    await picturesTakenOn(page, ["2025-07-12", "2025-07-14", "2025-07-20"]),
+    3,
+  );
+  await page.getByRole("button", { name: "Weiter" }).click();
+  await chooseFiles(page, page.getByRole("button", { name: "Dateien wählen" }), [
+    silentTrack("Morgenlied.wav", 8),
+    silentTrack("Abendlied.wav", 6),
+  ]);
+  await page.getByRole("button", { name: "Diashow erstellen" }).click();
+  await expect(page.getByRole("status").filter({ hasText: CREATED_TOAST })).toBeVisible();
+  await page.getByRole("button", { name: "Musik 2 Songs" }).click();
+
+  // The waveform's handles and both songs' blocks are there before the details are found absent.
+  await expect(endHandle).toBeVisible();
+  await expect(blocks).toHaveCount(2);
+  await expect(details).not.toBeChecked();
+  await expect(volumeLine).toHaveCount(0);
+  await expect(slideshowLane).toHaveCount(0);
+  await expect(hatching).toHaveCount(0);
+
+  await clickSwitch(details);
+  await expect(details).toBeChecked();
+  await expect(volumeLine).toHaveCount(1);
+  await expect(slideshowLane).toHaveCount(1);
+  await expect(hatching).toHaveCount(1);
+
+  await page.reload();
+  await expect(details).toBeChecked();
+  await expect(volumeLine).toHaveCount(1);
+  await expect(slideshowLane).toHaveCount(1);
+  await expect(hatching).toHaveCount(1);
 });
