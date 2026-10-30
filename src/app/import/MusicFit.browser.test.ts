@@ -25,6 +25,8 @@ const song = (excerptMs: number): PlaylistSongView => ({
   excerptMs,
   trimmed: false,
   atMs: 0,
+  laneAtMs: 0,
+  laneMs: excerptMs,
   reached: true,
   volumeBadge: { kind: "none" },
 });

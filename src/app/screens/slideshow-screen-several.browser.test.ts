@@ -71,7 +71,7 @@ describe("SlideshowScreen, dragging a tile (ADR-0019)", () => {
     expect(second.getAttribute("aria-pressed")).toBe("true");
   });
 
-  it("drags by a touch hold once it fires, the held tile selected first", () => {
+  it("drags by a touch hold once it fires, without selecting the held tile", () => {
     const { calls, holdScheduler } = mountScreen();
     // The strip also holds the title and closing slide tiles (TITLE_SLIDES.md), neither a picture.
     const items = [...document.querySelectorAll<HTMLElement>(".strip > li")].filter(
@@ -88,10 +88,8 @@ describe("SlideshowScreen, dragging a tile (ADR-0019)", () => {
     firePointer(pick, "pointerdown", { x: 0, y: 0, pointerType: "touch" });
     holdScheduler.advance(HOLD_MS);
     flushSync();
-    expect(pick.getAttribute("aria-pressed")).toBe("true");
+    expect(pick.getAttribute("aria-pressed")).toBe("false");
 
-    // Selecting the held tile scrolls it clear of the selection bar (PictureStrip.svelte), which
-    // can move third too: read its box only now, as a real finger would find it under itself.
     const box = third.getBoundingClientRect();
     firePointer(window, "pointermove", {
       x: box.right - 2,
@@ -101,6 +99,23 @@ describe("SlideshowScreen, dragging a tile (ADR-0019)", () => {
     firePointer(window, "pointerup");
 
     expect(calls.moved).toEqual([[["a"], 3]]);
+  });
+
+  it("holding a picture does not start selecting; Select is the way in", () => {
+    const { holdScheduler } = mountScreen();
+    const pick = tile(1, "01.07.2025");
+    const select = [...document.querySelectorAll("button")].find(
+      (button) => button.textContent?.trim() === "Auswählen",
+    );
+    expect(select).toBeDefined();
+
+    firePointer(pick, "pointerdown", { x: 0, y: 0, pointerType: "touch" });
+    holdScheduler.advance(HOLD_MS);
+    firePointer(window, "pointerup");
+    flushSync();
+
+    expect(pick.getAttribute("aria-pressed")).toBe("false");
+    expect(document.querySelector('[role="toolbar"][aria-label="Selection"]')).toBeNull();
   });
 
   it("is cancelled by moving a touch past the threshold before the hold fires: it scrolls", () => {
@@ -149,7 +164,7 @@ describe("SlideshowScreen, selecting several", () => {
     expect(select.getAttribute("aria-pressed")).toBe("true");
     expect(selectionBar()).not.toBeNull();
     expect(buttonNamed("Früher").getAttribute("aria-disabled")).toBe("true");
-    expect(buttonNamed("Entfernen").getAttribute("aria-disabled")).toBe("true");
+    expect(buttonNamed("Bilder entfernen").getAttribute("aria-disabled")).toBe("true");
   });
 
   it("Ctrl-click starts selecting several, keeping the prior tile in it; Shift-click adds a range", () => {
@@ -173,12 +188,12 @@ describe("SlideshowScreen, selecting several", () => {
     const first = tile(1, "01.07.2025");
     first.click();
     flushSync();
-    expect(buttonNamed("Bearbeiten")).toBeDefined();
+    expect(buttonNamed("Bild bearbeiten")).toBeDefined();
 
     click(tile(2, "02.07.2025"), { ctrlKey: true });
     flushSync();
 
-    expect(() => buttonNamed("Bearbeiten")).toThrow();
+    expect(() => buttonNamed("Bild bearbeiten")).toThrow();
   });
 
   it("removes the whole selection with Remove", () => {
@@ -188,7 +203,7 @@ describe("SlideshowScreen, selecting several", () => {
     click(tile(3, "03.07.2025"), { ctrlKey: true });
     flushSync();
 
-    buttonNamed("Entfernen").click();
+    buttonNamed("2 Bilder entfernen").click();
 
     expect(calls.removedGroup).toEqual([["a", "c"]]);
   });

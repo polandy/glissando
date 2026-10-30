@@ -61,6 +61,7 @@
     songIntake,
     samplePreview,
     fineSettingsFold,
+    musicEditorDetails,
     onBack,
     onPlay,
     onAddPictures,
@@ -155,12 +156,10 @@
     thumbnails,
     editor: () => editor,
   });
-
   // The ids are handed over once, when the screen opens after adding.
   // svelte-ignore state_referenced_locally
   const newPictureIds: ReadonlySet<string> = new Set(addedPictureIds);
   const pictureActions = slideshowRoutePictureActions(() => editor);
-
   const details = $derived(
     stored === null ? null : thumbnails.details(stored, translator.language),
   );
@@ -206,6 +205,7 @@
     audio={musicAudio}
     {songIntake}
     {samplePreview}
+    detailsStore={musicEditorDetails}
     {toaster}
     {saving}
     {onBack}
@@ -256,7 +256,7 @@
     onDelete={() => deleteShownSlideshow(store, slideshowId, editor).then(onDeleted, onError)}
     exportState={exports.menuState(exportProgress, slideshowId)}
     {onExport}
-    onMenuOpened={exports.measure}
+    onShareOpened={exports.measure}
     newVideoExport={exports.newVideoExport}
     newHtmlExport={exports.newHtmlExport}
     mousePointer={mousePointer.current}

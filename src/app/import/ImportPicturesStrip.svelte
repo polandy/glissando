@@ -82,7 +82,7 @@
   // A picture whose thumbnail has not loaded yet shimmers like a file still being read.
   const placeholderCount = $derived(pending + (ordered.length - tiles.length));
   const showBar = $derived(selection.ids.size > 0 || selection.several);
-  // With neither on offer (linking a server slideshow, Immich unavailable), no add button or tile.
+  // With neither on offer (linking a server slideshow, Immich unavailable), no add button.
   const showAddMenu = $derived(onAddMore !== null || onOpenImmich !== null);
 
   // A selected picture that was removed meanwhile leaves no selection.
@@ -117,10 +117,6 @@
   <AddPicturesMenu {onAddMore} {onOpenImmich} />
 {/snippet}
 
-{#snippet tileAdd()}
-  <AddPicturesMenu {onAddMore} {onOpenImmich} tile />
-{/snippet}
-
 <div bind:this={root} class="import-strip">
   <StripHead
     count={ordered.length}
@@ -150,7 +146,6 @@
     suppressCards
     {placeholderCount}
     lastRemovable
-    add={showAddMenu ? tileAdd : undefined}
     {holdScheduler}
     {frameScheduler}
   />

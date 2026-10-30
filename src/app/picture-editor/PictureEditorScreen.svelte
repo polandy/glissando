@@ -16,6 +16,7 @@
   import MotionPreviewScreen from "./MotionPreviewScreen.svelte";
   import PictureNavigation from "./PictureNavigation.svelte";
   import TransitionSection from "./TransitionSection.svelte";
+  import ViewSwitch, { type PhoneView } from "./ViewSwitch.svelte";
   import { EditorPreview } from "./editor-preview";
   import { MotionPreview, type MotionPreviewPorts } from "./motion-preview";
   import { FRAME_KEYS, type FrameKey } from "./frame-keys";
@@ -80,6 +81,7 @@
   const { t } = getTranslator();
 
   let active = $state<FrameKey>(FRAME_KEYS[0]);
+  let phoneView = $state<PhoneView>("frame");
   /** The motion while a drag is under way; stored on release. */
   let draft = $state.raw<OwnKenBurns | null>(null);
   const motion = $derived(draft ?? picture.motion);
@@ -121,7 +123,22 @@
 
   function activate(key: FrameKey): void {
     active = key;
+    phoneView = "frame";
     editorPreview.showFrame(key);
+  }
+
+  /** Shows the preview in place of the picture on a phone, where it plays the change. */
+  function showPreview(): void {
+    phoneView = "play";
+  }
+
+  function switchView(view: PhoneView): void {
+    if (view === "frame") {
+      activate(active);
+    } else {
+      showPreview();
+      editorPreview.replay();
+    }
   }
 
   function frameChanged(key: FrameKey, framing: Framing, final: boolean): void {
@@ -146,7 +163,7 @@
     {/snippet}
   </Header>
   <main class="edit">
-    <div class="well-column">
+    <div class="well-column" class:off-phone={phoneView !== "frame"}>
       <FrameWell
         size={picture.size}
         {pictureUrl}
@@ -161,19 +178,22 @@
       />
       <FocusLine line={picture.focusLine} {onLookAgain} />
       <p class="hint wide-hint">{t("editor.hintWide")}</p>
+      <ViewSwitch view={phoneView} onView={switchView} />
     </div>
     <MotionPanel
       {picture}
-      {motion}
       {active}
+      previewOnPhone={phoneView === "play"}
       onActivate={activate}
       onSwap={() => {
         onSwap();
+        showPreview();
         editorPreview.replay();
       }}
       onReset={() => {
         if (picture.ownMotion) {
           onReset();
+          showPreview();
           editorPreview.replay();
         }
       }}
@@ -191,9 +211,20 @@
           onPlay={() => previewClock.play()}
           onPause={() => previewClock.pause()}
         />
+        <ViewSwitch view={phoneView} onView={switchView} />
       {/snippet}
       {#snippet timing()}
-        <DurationSection {picture} {onDuration} onReset={onResetDuration} />
+        <DurationSection
+          {picture}
+          onDuration={(durationMs) => {
+            onDuration(durationMs);
+            showPreview();
+          }}
+          onReset={() => {
+            onResetDuration();
+            showPreview();
+          }}
+        />
         <TransitionSection
           {picture}
           {pictureUrl}
@@ -202,10 +233,12 @@
           {reducedMotion}
           onTransition={(choice) => {
             onTransition(choice);
+            showPreview();
             editorPreview.showTransition(choice, picture);
           }}
           onReset={() => {
             onResetTransition();
+            showPreview();
             editorPreview.showTransition(picture.transition.automatic, picture);
           }}
         />
@@ -242,8 +275,21 @@
       flex: none;
       grid-template-columns: 1fr;
     }
+    /* The picture or the preview, never both: the shown one stays in view as the page scrolls. */
     .well-column {
-      padding: 0;
+      position: sticky;
+      top: 0;
+      z-index: 3;
+      gap: 0;
+      padding: 0 0 12px;
+      border-bottom: 1px solid var(--gl-line);
+      background: var(--gl-surface);
+    }
+    .well-column.off-phone {
+      display: none;
+    }
+    .well-column > :global(.view-switch) {
+      margin: 10px 16px 0;
     }
     .wide-hint {
       display: none;

@@ -15,3 +15,6 @@
   fake server (`e2e/support/fake-glissando-server.ts`) answers `/s/` with the built `share.html`
   and the public API from its own state, the pictures straight from the fake rather than through
   Caddy. All test pictures are generated.
+- E2E-089 opens the info panel's Share button on a server slideshow, opens each chooser row's
+  own sheet and returns with Back, then saves the Glissando file and closes, with the focus back
+  on the Share button.

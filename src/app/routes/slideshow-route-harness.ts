@@ -1,4 +1,5 @@
 import { songIntakeStoringIn } from "../music-editor/testing/song-intake-device";
+import { createStorageMusicEditorDetailsStore } from "../music-editor/music-editor-details";
 import { createStorageFineSettingsFoldStore } from "../screens/slideshow/fine-settings-fold";
 import { createMemoryStorage } from "../testing/memory-storage";
 import { beatPassFindingNone } from "../../library/testing/beat-pass-finding-none";
@@ -71,7 +72,7 @@ export function mountRoute(
     playbackQuality: "1440" as const,
     slideshowId: SHOW.id,
     exportProgress: null,
-    onExport: () => {},
+    onExport: () => Promise.resolve("saved" as const),
     videoExport: new FakeExportPorts(),
     htmlExport: fakeHtmlExportDevice(),
     playing: false,
@@ -97,6 +98,7 @@ export function mountRoute(
     onKeepCopy: () => {},
     onSaveOnServer: () => {},
     fineSettingsFold: createStorageFineSettingsFoldStore(createMemoryStorage()),
+    musicEditorDetails: createStorageMusicEditorDetailsStore(createMemoryStorage()),
     serverSessions: {
       newShareLinkSession: (): never => {
         throw new Error("a device slideshow has no link to share");

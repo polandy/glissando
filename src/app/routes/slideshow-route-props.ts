@@ -4,13 +4,14 @@ import type { FocusPass } from "../../library/focus-pass";
 import type { LoudnessPass } from "../../library/loudness-pass";
 import type { SlideshowHome } from "./slideshow-storage";
 import type { RouteStore } from "./slideshow-home";
-import type { ExportProgress } from "../glissando-file/export-job";
+import type { ExportOutcome, ExportProgress } from "../glissando-file/export-job";
 import type { Toaster } from "../toast/toaster";
 import type { ReadClipPeaks } from "../clip-editor/clip-sound-wave";
 import type { MusicEditorAudio } from "../music-editor/music-editor-audio";
 import type { DecodeClipSound, MusicOutput } from "../../player";
 import type { SongIntakeDevice } from "../music-editor/song-intake";
 import type { SamplePreview } from "../sample-music/sample-preview";
+import type { MusicEditorDetailsStore } from "../music-editor/music-editor-details";
 import type { FineSettingsFoldStore } from "../screens/slideshow/fine-settings-fold";
 import type { PlaybackQuality } from "../settings/playback-quality";
 import type { VideoExportDevice } from "../video-export/slideshow-video-export";
@@ -45,7 +46,7 @@ export interface SlideshowRouteProps {
   slideshowId: string;
   /** The export running in the background, of this slideshow or another. */
   exportProgress: ExportProgress | null;
-  onExport: () => void;
+  onExport: () => Promise<ExportOutcome>;
   /** What "Save as video" needs of the browser. */
   videoExport: VideoExportDevice;
   /** What "Save as web page" needs of the browser. */
@@ -72,6 +73,8 @@ export interface SlideshowRouteProps {
   samplePreview?: SamplePreview | undefined;
   /** Whether the info panel's "Fine settings" fold is open, kept on this device (ADR-0048). */
   fineSettingsFold: FineSettingsFoldStore;
+  /** Whether the music editor shows its details, kept on this device. */
+  musicEditorDetails: MusicEditorDetailsStore;
   /** Also taken when the slideshow is no longer on this device. */
   onBack: () => void;
   onPlay: () => void;

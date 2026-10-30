@@ -153,7 +153,8 @@ async function createSlideshow(page, folder) {
 }
 
 async function exportOnce(page, presetId, workDir) {
-  await page.getByRole("button", { name: "Als Video sichern" }).click();
+  await page.getByRole("button", { name: "Teilen", exact: true }).click();
+  await page.getByRole("button", { name: /^Video/ }).click();
   const sheet = page.getByRole("dialog", { name: "Als Video sichern" });
   const radio = sheet.getByRole("radio", { name: new RegExp(`^${PRESET_NAMES[presetId]}`) });
   await radio.waitFor();

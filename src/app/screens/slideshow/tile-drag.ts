@@ -149,7 +149,7 @@ export class TileDrag {
         this.#endDrag();
         return;
       case "lifted":
-        // Letting go of a held tile in place only selects it (already done by the hold).
+        // Letting go of a lifted tile in place drops nothing.
         this.#endDrag();
         this.#ports.onSuppressClick();
         this.#ports.onChange();
@@ -190,7 +190,6 @@ export class TileDrag {
       return;
     }
     const { x, y } = this.#phase;
-    this.#ports.onHold(pictureId);
     this.#phase = { kind: "lifted", pictureId, x, y };
     this.#ports.onChange();
   }

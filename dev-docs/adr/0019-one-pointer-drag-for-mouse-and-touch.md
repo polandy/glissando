@@ -17,8 +17,8 @@ pure and driven by the strip):
 
 - **A mouse** starts dragging once the pointer moves 8 px with the primary button held on a
   tile; a right- or middle-press starts nothing.
-- **A finger** first holds the tile still for 450 ms. The tile then lifts and is selected
-  (selecting several starts). Moving on drags; letting go in place only selects. Until the
+- **A finger** first holds the tile still for 450 ms. The tile then lifts, selecting nothing.
+  Moving on drags; letting go in place drops nothing. Until the
   lift, the finger scrolls as usual. From the lift on, the strip cancels `touchmove`, so the
   page stays put under the finger.
 - **One pointer drives a gesture**: the pointer that started it moves, drops or cancels it;

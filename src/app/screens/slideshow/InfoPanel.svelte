@@ -10,16 +10,16 @@
   import TitleEditor from "./TitleEditor.svelte";
 
   /**
-   * Beside the pictures: the title (renamed in place), "Play", the Music/Mood/Look tiles
+   * Beside the pictures: the title (renamed in place), the Music/Mood/Look tiles
    * (`DetailsTiles`, never folded) and "Fine settings" (`FineSettings`, folded by default,
    * ADR-0048).
    */
   let {
     slideshow,
-    onPlay,
     storage = null,
     serverRows = null,
     onRename,
+    onShare,
     onEditMusic,
     onEditTransitions,
     onEditLook,
@@ -31,12 +31,13 @@
     fineSettingsFold,
   }: {
     slideshow: SlideshowDetails;
-    onPlay: () => void;
     /** Where the slideshow lives; null while the server library is off. */
     storage?: SlideshowStorage | null;
     /** A server slideshow's link and "Show on TV"; null for a device slideshow. */
     serverRows?: ServerSlideshowRows | null;
     onRename: (typed: string) => void;
+    /** Opens the Share sheet. */
+    onShare: () => void;
     onEditMusic: () => void;
     /** Opens the sheet of the slideshow's default transition. */
     onEditTransitions: () => void;
@@ -56,8 +57,14 @@
     fineSettingsFold: FineSettingsFoldStore;
   } = $props();
 
+  let shareButton = $state<HTMLButtonElement>();
   let tiles: DetailsTiles;
   let fineSettings: FineSettings;
+
+  /** The Share sheet closed: focus goes back to the button it was opened from. */
+  export function focusShare(): void {
+    shareButton?.focus();
+  }
 
   /** The look sheet closed: focus goes back to the tile it was opened from. */
   export function focusLook(): void {
@@ -101,14 +108,17 @@
   <div class="head">
     <div class="identity">
       <div class="eyebrow">{t("slideshow.eyebrow")}</div>
-      <TitleEditor title={slideshow.title} {onRename} />
+      <TitleEditor title={slideshow.title} {onRename}>
+        {#snippet actions()}
+          <button bind:this={shareButton} class="btn small share" type="button" onclick={onShare}>
+            <Icon name="share" />{t("share.button")}
+          </button>
+        {/snippet}
+      </TitleEditor>
       <div class="muted range">
         <span class="mono">{dateRange}</span><span class="summary">{` · ${summary}`}</span>
       </div>
     </div>
-    <button class="btn primary large play" type="button" onclick={onPlay}>
-      <Icon name="play" />{t("slideshow.play")}
-    </button>
   </div>
   <DetailsTiles
     bind:this={tiles}
@@ -148,14 +158,13 @@
     margin-top: 4px;
     font-size: var(--gl-size-meta);
   }
+  .share {
+    border-radius: var(--gl-radius-pill);
+  }
   .summary {
     display: none;
   }
   @container (max-width: 1024px) {
-    .head {
-      grid-template-columns: minmax(0, 1fr) auto;
-      align-items: center;
-    }
     .summary {
       display: inline;
     }

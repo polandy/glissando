@@ -20,7 +20,7 @@ export class VideoFrames {
 
   /** Decodes the frame of every clip on screen at `timeMs`; resolves once all are in hand. */
   async load(timeMs: number): Promise<void> {
-    const onScreen = this.#plan(timeMs).filter((target) => target.phase === "playing");
+    const onScreen = this.#plan(timeMs).filter((target) => target.phase !== "waiting");
     const wanted = new Set(onScreen.map((target) => target.index));
     for (const [index, source] of this.#sources) {
       if (!wanted.has(index)) {

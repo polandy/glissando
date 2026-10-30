@@ -14,7 +14,9 @@ without internet. If you use a self-hosted Glissando, open its address instead
 2. **Add music**: any common format (MP3, M4A, Ogg, FLAC, WAV …), or pick from the nine sample
    tracks that come with Glissando if you have none of your own to hand. Pick the part of the song
    to use; the slideshow is timed to fit it. Several songs work too, automatically matched in
-   loudness so none plays louder than the rest; the music editor lets you listen and adjust that.
+   loudness so none plays louder than the rest; the music editor lets you listen and adjust that. It
+   shows the essentials first; turn on **Details** in its top bar for the volume line, the beats and
+   the crossfades.
 3. **Play.** Motion and transitions are chosen for you — people stay in frame, scenery gets a slow
    sweep, changes follow the beat.
 
@@ -48,14 +50,16 @@ there to set your own order — new ones join by capture date until you do — a
 Adding pictures later skips the ones already in the slideshow (you can add them anyway). Drag
 pictures to reorder, or tap Shuffle for a random order (Undo in the message that follows
 brings the old one back); select a picture to view it full screen or open its editor to change
-its motion.
+its motion (on a phone it shows the picture with its frames or the preview, one at a time:
+switch with **Frame | Play**). The bar that appears shows its actions as icons: rest the mouse on one, or press and
+hold it with a finger, to see what it does.
 
 **Trip chapters**: a slideshow of several days in different places gets a chapter slide between
 them automatically, naming the place and the dates. Tap a chapter tile in the picture strip to
-rename it, hide it, or reset it to its automatic text; select a picture and tap **Insert chapter**
+rename it, hide it, or reset it to its automatic text; select a picture and tap **Insert chapter before**
 to add one of your own, or delete it again from its sheet. The **Trip chapters** row in the
-slideshow's side panel, under **Fine settings**, turns automatic chapters on or off for the whole
-slideshow, and shows how many there currently are.
+slideshow's side panel, under **Fine settings**, is where automatic chapters are turned on or off
+for the whole slideshow, and shows how many there currently are.
 
 ## Play
 
@@ -67,11 +71,14 @@ slideshow, and shows how many there currently are.
 
 ## Keep and share
 
-All three are in the ⋯ menu at the top right of a slideshow.
+All of it is behind the **Share** button next to the slideshow's title. It opens a list in two
+groups; choose a row and its sheet opens, with **Back** to the list.
 
-- **Save as video**: an MP4 you can send or put on a TV stick.
-- **Save as web page**: one file that plays in any browser, no Glissando needed.
-- **Save as Glissando file**: moves a slideshow with its pictures, music and settings to another
+- **Watch by link** needs a self-hosted Glissando ([self-hosting](self-hosting.md)): a link anyone
+  can watch, which stays up to date until you turn it off.
+- **Video**: an MP4 you can send or put on a TV stick.
+- **Web page**: one file that plays in any browser, no Glissando needed.
+- **Glissando file**: **Save file** moves a slideshow with its pictures, music and settings to another
   device; import it there. Glissando checks a file whole, every picture and song included, before
   it keeps anything of it, and refuses a file that is damaged or not what it claims to be. The
   file is a ZIP: rename it to `.zip` to look inside. A copy you unpacked, edited and zipped again
@@ -81,17 +88,18 @@ All three are in the ⋯ menu at the top right of a slideshow.
   Glissando, unpack the whole file and open `index.html` in a browser; Firefox plays at once,
   Chrome, Edge and Safari ask you to choose the unpacked folder first. It plays what
   `glissando.json` says, so your edits show.
-- **Share link, TV, picture frame** need a self-hosted Glissando
-  ([self-hosting](self-hosting.md)): a link anyone can watch, a TV you control from the phone
-  (`/tv`), and an Immich album played endlessly (the Picture frame card, or Settings).
+- **TV, picture frame** need a self-hosted Glissando ([self-hosting](self-hosting.md)): a TV you
+  control from the phone (`/tv`), and an Immich album played endlessly (the Picture frame card,
+  or Settings).
 
 ## Good to know
 
 - If the music is a little shorter than the pictures, they shrink to fit it on their own. If it
   ends well before the pictures do, the music editor offers to **Repeat the music** or **Add a
   song**.
-- Glissando looks for faces and other subjects in the background, so motion aims well; a card shows
-  how far it got, and **Faces and subjects …** in a slideshow's ⋯ menu lets you look again at any picture,
+- Glissando looks for faces and other subjects in the background, so motion aims well; while it
+  runs, the bar at the top of every screen and each card show how far it got. **Faces and subjects
+  …** in a slideshow's ⋯ menu lets you look again at any picture,
   including one it couldn't look at the first time.
 - Your pictures stay on your device. Nothing is uploaded unless you use a server you run yourself.
 - Ask the browser to keep the data (Glissando requests it); clearing site data deletes slideshows

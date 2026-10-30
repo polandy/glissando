@@ -2,7 +2,6 @@
   import { animationFrames } from "../../../player";
   import { browserScheduler } from "../../../ui-kit/scheduler";
   import { getTranslator } from "../../i18n/context";
-  import AddTile from "./AddTile.svelte";
   import CardTile from "./card-sheet/CardTile.svelte";
   import ChapterTile from "./ChapterTile.svelte";
   import DragGhost from "./DragGhost.svelte";
@@ -12,7 +11,7 @@
   import type { PictureStripProps } from "./picture-strip-props";
   import { hitTest } from "./strip-hit-test";
   import StripTile from "./StripTile.svelte";
-  import { hold, pick } from "./strip-selection";
+  import { pick } from "./strip-selection";
   import { StripKeydown } from "./strip-keydown";
   import { TileDrag } from "./tile-drag";
   import { glideTiles, tilePositions } from "./tile-glide";
@@ -32,8 +31,6 @@
     onRemoveGroup,
     onShiftGroup,
     onMoveGroup,
-    onAdd = () => undefined,
-    add,
     openingCard,
     closingCard,
     onOpenOpeningCard = () => undefined,
@@ -107,7 +104,6 @@
     viewportEdges: () => ({ top: 0, bottom: window.innerHeight }),
     selection: () => selection.ids,
     order: () => order,
-    onHold: (pictureId) => onSelectionChange(hold(selection, pictureId)),
     onChange: () => (dragState = drag.state),
     onScrollBy: (px) => window.scrollBy(0, px),
     onDrop: (groupIds, insertion) => onMoveGroup(groupIds, insertion),
@@ -255,11 +251,6 @@
   {#each { length: placeholderCount }, index (index)}
     <PlaceholderTile active={index === 0} />
   {/each}
-  {#if add}
-    {@render add()}
-  {:else if !suppressCards}
-    <AddTile {onAdd} />
-  {/if}
   {#if !suppressCards}
     <CardTile
       bind:this={closingTile}

@@ -14,6 +14,23 @@ import {
 
 afterEach(() => unmountScreen());
 
+describe("SlideshowScreen, playing", () => {
+  it("the cover is the only Play control, a labelled pill with the running time", () => {
+    const { calls, target } = mountScreen();
+
+    const cover = target.querySelector<HTMLButtonElement>("button.preview");
+    expect(cover?.getAttribute("aria-label")).toBe("Abspielen");
+    expect(cover?.textContent).toMatch(/Abspielen\s*·\s*\d+:\d{2}/);
+    const playButtons = [...target.querySelectorAll("button")].filter((button) =>
+      (button.getAttribute("aria-label") ?? button.textContent).includes("Abspielen"),
+    );
+    expect(playButtons).toEqual([cover]);
+
+    cover?.click();
+    expect(calls.plays).toBe(1);
+  });
+});
+
 describe("SlideshowScreen editing", () => {
   it("removes a picture with its ✕ at once, without asking", () => {
     const { calls } = mountScreen();
@@ -40,7 +57,7 @@ describe("SlideshowScreen editing", () => {
     const only = tile(1, "01.07.2025");
     only.click();
     flushSync();
-    const remove = buttonNamed("Entfernen");
+    const remove = buttonNamed("Bild entfernen");
 
     expect(byLabel("Bild 1 entfernen").disabled).toBe(true);
     expect(remove.disabled).toBe(false);
@@ -124,7 +141,7 @@ describe("SlideshowScreen editing", () => {
     tile(3, "03.07.2025").click();
     flushSync();
 
-    buttonNamed("Entfernen").click();
+    buttonNamed("Bild entfernen").click();
     flushSync();
 
     expect(calls.removedGroup).toEqual([["c"]]);

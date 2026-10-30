@@ -1,11 +1,7 @@
 # Screens
 
-- **Header** (`components/Header.svelte`): a 56 px bar. On the start screen the logo mark and
-  the "Glissando" wordmark; elsewhere the back arrow and the breadcrumb (earlier crumbs hidden up
-  to 720 px wide, the current one ellipsised; the root crumb is "Library"); a right-hand slot for
-  the screen's own buttons. While an export runs, on every screen: a progress ring and "Exporting
-  “title” … 34 %" before the buttons (the label hidden up to 720 px, the ring stays) and a 3 px
-  mint line along the bar's bottom edge growing with the progress.
+- **Header** ([HEADER.md](HEADER.md)): the 56 px bar on every screen, with the export's and the
+  faces-and-subjects search's progress.
 - **Start** (`screens/StartScreen.svelte`): in the header a gear ("Settings", opens the
   settings sheet, [SETTINGS.md](SETTINGS.md)) and, with slideshows, "New slideshow"; the large logo while the library is empty, with the
   hero line and "New slideshow"; it also shows on a first launch over a filled library, so the
@@ -29,8 +25,7 @@
   server cards from the last list this device remembers while offline
   (server_library/IN_THE_APP.md).
 - **Slideshow** (`screens/SlideshowScreen.svelte`, parts in `screens/slideshow/`): breadcrumb
-  "Library / title" and a ⋯ "More" button whose menu holds "Save as video", "Save as web page" and "Save as Glissando file" (subtitle "A .glissando
-  file, about 184 MB", measured when the menu opens, again only after its pictures or music changed), a separator, "Faces and subjects …" — with a
+  "Library / title" and a ⋯ "More" button whose menu holds "Faces and subjects …" — with a
   subtitle only once the search is done and some pictures failed ("3 couldn't be looked at"); its
   progress is background work, not the menu's — a separator and "Delete slideshow …". "Faces and
   subjects …" opens the Focus sheet (titled "Faces and subjects") (`screens/slideshow/FocusSheet.svelte`, mockup "Variant A · grid", ADR-0041): a
@@ -41,11 +36,11 @@
   own-motion ones included: their automatic focus is still found and shown, only not used for their
   motion), a hint once any picture has its own motion, and where the result is kept ("Stored on
   this device." or "Shared with every device on your Glissando server."); a 16:9
-  preview of the first picture (tap plays) with the running time, then the pictures in play
+  cover of the first picture, the only Play control (a tap anywhere on it plays; a "▶ Play · 0:56" pill bottom left), then the pictures in play
   order, each with its order number and capture date, under "Sorted by capture date" or, once
   the user reordered, "Own order" (with "drag or tap", narrow: "tap to reorder"); right of the
-  count "Add media" (narrow: "Add"; a dashed "+ Add" tile after the last picture, before the closing slide, does the same; [ADDING_PICTURES.md](slideshow-editing/ADDING_PICTURES.md), Adding pictures). Beside it (above it up to 1024 px) an
-  info panel (ADR-0048, below): title with a ✎ button, date range, "Play", the Music/Mood/Look tiles and "Fine settings". A tile carries small
+  count "Add media" (narrow: "Add"; the only way in, the strip has no add tile; [ADDING_PICTURES.md](slideshow-editing/ADDING_PICTURES.md), Adding pictures). Beside it (above it up to 1024 px) an
+  info panel (ADR-0048, below): title with a ✎ button and, right of it, the outlined "Share" pill, date range, the Music/Mood/Look tiles and "Fine settings". A tile carries small
   badges bottom right: a frame "own" for an own motion, a clock with "8 s" for an own duration,
   a transition mark (titled with the effect, e.g. "Circle") for an own transition, except on
   the last picture, "shown alone" for a picture set never to pair and "blurred fill" for one
@@ -56,9 +51,18 @@
   (`routes/slideshow-home.ts`); a server slideshow's screen adds where it lives, its missing
   pictures and its own ⋯ menu, and its edits are saved on the server
   (server_library/IN_THE_APP.md).
+- **Share** (`screens/slideshow/share/`, share_link/IN_THE_APP.md): the info panel's Share button
+  opens a chooser with the groups "Watch by link" (link row, only with a server library) and "Save
+  a copy" (Video, Web page, Glissando file); a row opens its sheet in place of the chooser, whose
+  Back control returns to it, and Close gives the focus back to the Share button. The file row's
+  subtitle reads "A .glissando file, about 184 MB" (a server slideshow: its Immich hint), measured
+  when the sheet opens, again only after its pictures or music changed.
+- **Glissando file sheet** (`share/GlissandoFileSheet.svelte`): name, facts, size and "Save file",
+  which starts the export below; then progress, "Saved to Downloads." with "Done", or "Try again".
+  Saving is disabled while another slideshow exports.
 - **Export** (`glissando-file/export-job.ts`): runs in the background, one at a time; the app
-  stays usable, also on other screens. While it runs, the menu item is `aria-disabled` and reads
-  "Exporting … 34 %" (for another slideshow: "Export", subtitle "Once the running export is
+  stays usable, also on other screens. While it runs, the chooser's file row reads
+  "Exporting … 34 %" (for another slideshow: "Once the running export is
   done"). At the end the browser downloads "title.glissando" and the toast "“title.glissando”
   downloaded · 184 MB" follows. A device out of storage or memory ends it with the coral toast
   "Export failed: not enough storage on the device." and "Try again"; any other failure is an
@@ -86,7 +90,7 @@
 The info panel (ADR-0048, mockup option A:
 `https://polandy.github.io/glissando-assets/mockups/details-panel/`) holds, top to bottom:
 
-- **Header**: title, "date range · N pictures · duration" and "Play".
+- **Header**: title and "date range · N pictures · duration". Play is the cover's alone.
 - **Three tiles**, one row of three at every width and never folded. Each tile is one button
   with a small label and a chevron, the value and a summary, and opens its sheet:
   - **Music**: "3 songs" (or the song's name), with "11:20 of music" underneath when the music's
@@ -98,8 +102,9 @@ The info panel (ADR-0048, mockup option A:
   - **Look**: the look's name beside a swatch of it.
 - **"Fine settings"**: a toggle (`aria-expanded`) at every width, folded until opened. Its state
   is remembered on the device for every slideshow. It opens Transitions, Portrait pictures and
-  Trip chapters as rows (label, value, summary, chevron; the whole row opens the sheet), then
-  storage, "Save as", link and "Show on TV". E2E-083 shows the three tiles up front, folds Fine
+  Trip chapters as rows (label, value, summary, chevron; the whole row opens the sheet; Trip
+  chapters' sheet is the only place with the slideshow-wide **Automatic chapters** switch), then
+  storage and "Show on TV". E2E-083 shows the three tiles up front, folds Fine
   settings away by default, and checks its open or closed state survives a reload.
 
 Up to 1024 px wide (a container query on `.screen`) the panel stacks full width above the

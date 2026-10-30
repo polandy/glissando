@@ -60,7 +60,7 @@
     onDelete,
     exportState,
     onExport,
-    onMenuOpened,
+    onShareOpened,
     newVideoExport,
     newHtmlExport,
     mousePointer,
@@ -120,11 +120,6 @@
     {#snippet actions()}
       <MoreMenu
         bind:this={moreMenu}
-        {exportState}
-        {onExport}
-        onSaveVideo={() => overlays?.openVideoExport()}
-        onSaveWebPage={() => overlays?.openWebPageExport()}
-        onOpened={onMenuOpened}
         onDelete={() => overlays?.openDelete()}
         {storage}
         pictureCount={slideshow.pictures.length}
@@ -162,10 +157,10 @@
       <InfoPanel
         bind:this={infoPanel}
         {slideshow}
-        {onPlay}
         {storage}
         {serverRows}
         {onRename}
+        onShare={() => overlays?.openShare()}
         {onEditMusic}
         onEditTransitions={() => editSheets?.openTransitions()}
         onEditLook={() => editSheets?.openLook()}
@@ -189,6 +184,7 @@
       onView={(pictureId) => (viewing = pictureId)}
       onDone={() => (selection = endSelecting())}
       onInsertChapter={(pictureId) => editSheets?.insertAndOpenChapter(pictureId)}
+      {holdScheduler}
     />
   {/if}
 </div>
@@ -251,10 +247,15 @@
   {focusPaused}
   {onEdit}
   {onLookAgain}
+  linkSession={serverRows?.shareLink ?? null}
+  {exportState}
+  {onExport}
+  {onShareOpened}
   {newVideoExport}
   {newHtmlExport}
   {onDelete}
   onClosed={() => moreMenu?.focus()}
+  onShareClosed={() => infoPanel?.focusShare()}
 />
 
 <style>

@@ -3,7 +3,6 @@
   import Icon from "../../components/Icon.svelte";
   import { getTranslator } from "../../i18n/context";
   import type { ServerSlideshowRows } from "../../server-library/server-slideshow-sessions";
-  import ShareLinkControl from "../../share-link/ShareLinkControl.svelte";
   import TvControl from "../../tv-remote/TvControl.svelte";
   import type { SlideshowDetails, SlideshowStorage } from "../view-models";
   import type { FineSettingsFoldStore } from "./fine-settings-fold";
@@ -13,7 +12,7 @@
 
   /** The info panel's "Fine settings" fold (ADR-0048): folded by default, remembered per device
    * for every slideshow; holds Transitions, Portrait pictures and Trip chapters, then where the
-   * slideshow lives and its link and TV rows. */
+   * slideshow lives and its TV row. */
   let {
     slideshow,
     fineSettingsFold,
@@ -126,17 +125,6 @@
   {#if storage !== null}
     <div class="actions">
       <StorageRow {storage} />
-      {#if storage.kind === "device" || serverRows !== null}
-        <ShareLinkControl
-          session={storage.kind === "server" ? (serverRows?.shareLink ?? null) : null}
-          subject={{
-            title: slideshow.title,
-            pictureCount: slideshow.pictures.length,
-            durationSeconds: slideshow.durationSeconds,
-            hasMusic: slideshow.songCount > 0,
-          }}
-        />
-      {/if}
       {#if storage.kind === "server" && serverRows !== null}
         <TvControl session={serverRows.tv} />
       {/if}

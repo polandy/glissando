@@ -48,3 +48,41 @@ for (const colorScheme of ["light", "dark"] as const) {
     await expect(selectionBar).toBeHidden();
   });
 }
+
+/** Longer than the bar's hold before a bubble shows (BarAction.svelte), shorter than its linger. */
+const PAST_THE_HOLD_MS = 600;
+
+test("E2E-087 on a phone the selection bar shows icons; a held icon names its action without acting, a tap acts", async ({
+  page,
+}) => {
+  await page.clock.install();
+  await openApp(page);
+  await createSlideshow(page, ["2025-07-01", "2025-07-02", "2025-07-03"], 2);
+  const second = page.getByRole("button", {
+    name: "Bild 2, aufgenommen am 02.07.2025",
+    exact: true,
+  });
+  const selectionBar = page.getByRole("toolbar", { name: "Auswahl" });
+  await second.click();
+  const remove = selectionBar.getByRole("button", { name: "Bild entfernen" });
+  const bubble = remove.getByText("Bild entfernen");
+  await expect(remove).toBeVisible();
+  await expect(bubble).toHaveCSS("opacity", "0");
+
+  // Time stands still from here; only runFor moves the hold on.
+  const heldAt = await page.evaluate(() => Date.now());
+  await page.clock.pauseAt(heldAt + PAST_THE_HOLD_MS);
+  const finger = { pointerType: "touch", isPrimary: true, bubbles: true };
+  await remove.dispatchEvent("pointerdown", finger);
+  await page.clock.runFor(PAST_THE_HOLD_MS);
+  await expect(bubble).toHaveCSS("opacity", "1");
+  await remove.dispatchEvent("pointerup", finger);
+  await remove.dispatchEvent("click");
+
+  await expect(second).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("button", { name: /^Bild \d, aufgenommen/ })).toHaveCount(3);
+
+  await remove.click();
+  await expect(page.getByRole("button", { name: /^Bild \d, aufgenommen/ })).toHaveCount(2);
+  await expect(second).toBeHidden();
+});

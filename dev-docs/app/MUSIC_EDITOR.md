@@ -12,6 +12,15 @@
   panel on the right; up to 720 px stacked. Every change is stored at once; only a removed song
   has an undo toast ("Song removed"): "Whole track" and "Back to automatic" restore the rest in
   one tap.
+  - **Simple first, Details on demand** (mockup:
+    https://polandy.github.io/glissando-assets/mockups/music-editor-simple/): a "Details" switch
+    (`Switch.svelte`, role "switch") at the right end of the bar, off by default and remembered on
+    this device for every slideshow (`music-editor-details.ts`, injected as
+    `services.musicEditorDetails`); shown only while there is music. Off, the editor shows the song
+    list, the playlist lane without crossfade hatching, and the selected song's waveform with its
+    handles, listen buttons and the panel. On adds the volume line, the shrinking bars, the beat
+    ticks, the slideshow lane under the waveform, the crossfade hatching and its lane label, and
+    the hint's sentence about the line. The right-hand panel is the same either way.
   - **No music yet**: for a slideshow without songs (the panel's "Add music" opens it), a dashed
     card with a music disc, "No music yet", "Add one song or several; they play one after
     another and the pictures change on their beat." and the accent button "Add a song". Under
@@ -39,10 +48,11 @@
     playlist with it is stored; on the server uploaded), and appended in the order picked.
     Until then it is a dashed row with its name ("Converting to FLAC · 42 %" while converting);
     a file that cannot be used stays as a coral row "This file can't be used" until its ×.
-  - **Playlist lane** (`PlaylistLane.svelte`): "Playlist, 3 songs · 2:54" with "Crossfades
-    hatched" (or "One after another"), then the songs as numbered blocks in their colours from
+  - **Playlist lane** (`PlaylistLane.svelte`): "Playlist, 3 songs · 2:54" with, with the
+    Details, "Crossfades hatched" (or "One after another"), then the songs as numbered blocks in their colours from
     where each starts, a crossfade hatched where two overlap (the next song's number after the
-    hatching), songs not reached faded, and a coral mark "Slideshow ends" where the slideshow
+    hatching; without the Details no hatching: neighbouring blocks meet at the middle of their
+    overlap, a thin line of the lane's surface between them), songs not reached faded, and a coral mark "Slideshow ends" where the slideshow
     ends first. While the music repeats (ADR-0047) the lane shows "Repeats until the slideshow
     ends" instead, and each repeated block carries a trailing "↻" on its number; the crossfade
     hatching also covers a repeat's loop boundary, between the playlist's last block and its

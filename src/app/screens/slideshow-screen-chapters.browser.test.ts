@@ -44,12 +44,12 @@ describe("SlideshowScreen: inserting a trip chapter from the selection bar", () 
   it("offers Insert chapter only once a single picture is selected", () => {
     mountScreen(undefined, { chapterEditor: chapterEditor().editor });
 
-    expect(() => buttonNamed("Kapitel einfügen")).toThrow();
+    expect(() => buttonNamed("Kapitel davor einfügen")).toThrow();
 
     tile(1, "01.07.2025").click();
     flushSync();
 
-    expect(buttonNamed("Kapitel einfügen")).toBeInstanceOf(HTMLButtonElement);
+    expect(buttonNamed("Kapitel davor einfügen")).toBeInstanceOf(HTMLButtonElement);
   });
 
   it("inserts the chapter before the selected picture and opens its sheet", () => {
@@ -58,7 +58,7 @@ describe("SlideshowScreen: inserting a trip chapter from the selection bar", () 
     tile(2, "02.07.2025").click();
     flushSync();
 
-    buttonNamed("Kapitel einfügen").click();
+    buttonNamed("Kapitel davor einfügen").click();
     flushSync();
 
     expect(current().addedChapters).toEqual([{ beforePictureId: "b" }]);

@@ -20,11 +20,14 @@
     session,
     coverUrl,
     onClose,
+    onBack,
   }: {
     session: VideoExportSession<ExportPreview>;
     /** The file row's thumbnail once the video is done. */
     coverUrl: string;
     onClose: () => void;
+    /** Reached from the Share chooser: returns to it; absent while the export runs. */
+    onBack?: () => void;
   } = $props();
 
   const { t, formatDuration, formatBytes } = getTranslator();
@@ -52,6 +55,11 @@
   function close(): void {
     session.close();
     onClose();
+  }
+
+  function back(): void {
+    session.close();
+    onBack?.();
   }
 
   const heading = $derived.by(() => {
@@ -94,6 +102,8 @@
   closeLabel={view.kind === "running" ? t("common.cancel") : t("common.close")}
   closeOnScrim={view.kind !== "running" && view.kind !== "done"}
   onClose={close}
+  onBack={onBack !== undefined && view.kind !== "running" ? back : undefined}
+  backLabel={t("common.back")}
 >
   {#if view.kind === "probing"}
     <p class="hint">{t("videoExport.probing")}</p>

@@ -104,7 +104,6 @@
     {onRemoveGroup}
     {onShiftGroup}
     {onMoveGroup}
-    onAdd={onAddPictures}
     openingCard={slideshow.openingCard}
     closingCard={slideshow.closingCard}
     {onOpenOpeningCard}

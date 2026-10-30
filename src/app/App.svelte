@@ -10,6 +10,7 @@
   import AppOverlays from "./AppOverlays.svelte";
   import type { ExportProgress } from "./glissando-file/export-job";
   import { setExportStatus } from "./glissando-file/export-status";
+  import { setFocusSearchStatus } from "./focus-search-status";
   import type { OpenFlowState, OpenOrigin } from "./glissando-file/open-flow";
   import { getTranslator } from "./i18n/context";
   import ImportRoute from "./import/ImportRoute.svelte";
@@ -29,6 +30,7 @@
   import type { ToastMessage } from "./toast/toaster";
   import { ServerCopyFlows } from "./server-library/server-copy-flows";
   import type { ServerLibraryState } from "../server-library/server-library-availability";
+  import type { RunningSearch } from "../library/running-search";
 
   let { services, playStartAnimation }: { services: AppServices; playStartAnimation: boolean } =
     $props();
@@ -82,6 +84,12 @@
       return exportProgress;
     },
   });
+  let focusSearch = $state.raw<RunningSearch | null>(null);
+  setFocusSearchStatus({
+    get current() {
+      return focusSearch;
+    },
+  });
   let toast = $state.raw<ToastMessage | null>(toaster.current);
   let settingsState = $state.raw<SettingsState>(settings.state);
   let importSession = $state.raw<ImportSession | null>(null);
@@ -105,6 +113,7 @@
         setToast: (next) => (toast = next),
         setSettingsState: (next) => (settingsState = next),
         setExportProgress: (next) => (exportProgress = next),
+        setFocusSearch: (next) => (focusSearch = next),
         setOpenState: (next) => (openState = next),
         setImportSession: (session, refused) => {
           importSession = session;
@@ -217,7 +226,7 @@
         {now}
         {slideshowId}
         {exportProgress}
-        onExport={() => void exportJob.start(slideshowId, opened.store)}
+        onExport={() => exportJob.start(slideshowId, opened.store)}
         videoExport={services.videoExport}
         htmlExport={services.htmlExport}
         playing={route.screen === "player"}
@@ -234,6 +243,7 @@
         songIntake={services.songIntake(opened.home)}
         samplePreview={services.samplePreview}
         fineSettingsFold={services.fineSettingsFold}
+        musicEditorDetails={services.musicEditorDetails}
         onBack={() => navigator.back()}
         onPlay={() => {
           // Within the Play gesture: the player starts the music only after its pictures load.

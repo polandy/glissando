@@ -3,7 +3,7 @@ import { CREATED_TOAST, openImport } from "./app";
 import { LIBRARY_PAGE } from "./fake-glissando-server";
 
 /** Makes a slideshow on the fake server from its Immich photos, opens Fine settings (where its
- * share link and TV rows live, ADR-0048) and stays on its screen. */
+ * TV row lives, ADR-0048) and stays on its screen. */
 export async function createServerSlideshow(page: Page): Promise<void> {
   await openImport(page);
   await page.getByRole("button", { name: /^Glissando-Server/ }).click();

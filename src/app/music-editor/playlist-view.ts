@@ -11,6 +11,8 @@ import {
   type SongsLoudnessStatus,
 } from "./slideshow-times";
 
+const HALF = 2;
+
 /** The list's badge for a song's own volume (ADR-0040). */
 export type SongVolumeBadge =
   | { readonly kind: "none" }
@@ -40,6 +42,12 @@ export interface PlaylistSongView {
   readonly sampleTrack?: string;
   /** Set from the second time through the playlist on (`repeatMusic`, ADR-0047), for its "↻". */
   readonly repeated?: true;
+  /**
+   * Where its lane block starts and how long it is: the song's own span with the details, else
+   * cut at the middle of each overlap, so neighbours meet where they would crossfade.
+   */
+  readonly laneAtMs: number;
+  readonly laneMs: number;
 }
 
 /** Where two songs sound at once, in slideshow time. */
@@ -55,7 +63,10 @@ export interface PlaylistView {
   readonly songCount: number;
   /** The songs crossfade; otherwise they play one after another. */
   readonly crossfade: boolean;
+  /** Empty without the details: the lane draws no crossfades. */
   readonly crossfades: readonly CrossfadeView[];
+  /** The details are shown (the music editor's "Details" switch): crossfades hatched. */
+  readonly details: boolean;
   /** The playlist once through; 0 without songs (unchanged by `repeatMusic`). */
   readonly playlistMs: number;
   readonly slideshowMs: number;
@@ -77,6 +88,7 @@ export function playlistView(
   stored: StoredSlideshow,
   beats: SongsBeatsStatus,
   loudness: SongsLoudnessStatus = new Map(),
+  details = true,
 ): PlaylistView {
   const { beatsMs, durationsMs, slideshowMs, picturesFit } = slideshowTimes(
     stored,
@@ -88,7 +100,7 @@ export function playlistView(
   const placed = repeatMusic
     ? placeSongs(repeatedPlaylist(stored, slideshowMs))
     : placeSongs(stored);
-  const songs = placed.map(({ song, atMs }, index) => ({
+  const placedSongs = placed.map(({ song, atMs }, index) => ({
     id: song.id,
     number: (index % Math.max(originalCount, 1)) + 1,
     fileName: song.fileName,
@@ -101,12 +113,17 @@ export function playlistView(
     ...(song.sampleTrack !== undefined ? { sampleTrack: song.sampleTrack } : {}),
     ...(index >= originalCount ? { repeated: true as const } : {}),
   }));
-  const crossfades = songs.slice(1).flatMap((next, index) => {
+  const songs = placedSongs.map((song, index) => ({
+    ...song,
+    ...laneSpan(song, placedSongs[index - 1], placedSongs[index + 1], details),
+  }));
+  const allCrossfades = songs.slice(1).flatMap((next, index) => {
     // The songs before `next`: index is the previous one's.
     const previous = songs[index] as PlaylistSongView;
     const overlapMs = previous.atMs + previous.excerptMs - next.atMs;
     return overlapMs > 0 ? [{ atMs: next.atMs, ms: overlapMs }] : [];
   });
+  const crossfades = details ? allCrossfades : [];
   const playlistLengthMs = playlistMs(stored) ?? 0;
   const note = repeatMusic
     ? undefined
@@ -124,6 +141,7 @@ export function playlistView(
     songCount: originalCount,
     crossfade: stored.betweenSongs !== SEQUENCE_BETWEEN_SONGS,
     crossfades,
+    details,
     playlistMs: playlistLengthMs,
     slideshowMs,
     slideChangesMs: durationsMs.slice(0, -1).map((durationMs) => (changeMs += durationMs)),
@@ -154,4 +172,24 @@ function songVolumeBadge(
     return { kind: "measuring" };
   }
   return ownDb === undefined ? { kind: "none" } : { kind: "own", ownDb };
+}
+
+type PlacedSong = Omit<PlaylistSongView, "laneAtMs" | "laneMs">;
+
+/** `song`'s lane block: its own span, or without the details cut in half of each overlap. */
+function laneSpan(
+  song: PlacedSong,
+  previous: PlacedSong | undefined,
+  next: PlacedSong | undefined,
+  details: boolean,
+): Pick<PlaylistSongView, "laneAtMs" | "laneMs"> {
+  const endMs = song.atMs + song.excerptMs;
+  if (details) {
+    return { laneAtMs: song.atMs, laneMs: song.excerptMs };
+  }
+  const overlapBefore = previous === undefined ? 0 : previous.atMs + previous.excerptMs - song.atMs;
+  const overlapAfter = next === undefined ? 0 : endMs - next.atMs;
+  const laneAtMs = song.atMs + Math.max(overlapBefore, 0) / HALF;
+  const laneEndMs = endMs - Math.max(overlapAfter, 0) / HALF;
+  return { laneAtMs, laneMs: laneEndMs - laneAtMs };
 }

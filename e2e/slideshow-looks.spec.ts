@@ -13,7 +13,7 @@ async function openLookSheet(page: Page): Promise<void> {
   await defaultRow.click();
 }
 
-test("E2E-077 choosing Film in the look sheet stores it, shows it in the row and keeps it after a reload", async ({
+test("E2E-090 choosing Film in the look sheet stores it, shows it in the row and keeps it after a reload", async ({
   page,
 }) => {
   const filmRow = page.getByRole("button", { name: "Look Film" });
@@ -34,7 +34,7 @@ test("E2E-077 choosing Film in the look sheet stores it, shows it in the row and
   await expect(filmRow).toBeVisible();
 });
 
-test("E2E-078 'Look entfernen' goes back to None and its undo brings the chosen look back", async ({
+test("E2E-091 'Look entfernen' goes back to None and its undo brings the chosen look back", async ({
   page,
 }) => {
   const defaultRow = page.getByRole("button", { name: "Look Ohne Vorgabe" });

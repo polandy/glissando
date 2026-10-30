@@ -1,5 +1,8 @@
 import { createRawSnippet } from "svelte";
 import { afterEach, describe, expect, it } from "vitest";
+import "../../../styles/tokens.css";
+import "../../../styles/base.css";
+import { createTranslator } from "../../i18n/translator";
 import { mountWithTranslator } from "../../testing/mount-with-translator";
 import StripHead from "./StripHead.svelte";
 
@@ -108,7 +111,7 @@ describe("StripHead's Shuffle", () => {
 });
 
 describe("StripHead's hint", () => {
-  it("adds 'hold to select several' narrow only, sorted by capture date", () => {
+  it("does not mention holding to select, sorted by capture date", () => {
     const mounted = mountWithTranslator(StripHead, {
       count: 3,
       ownOrder: false,
@@ -120,6 +123,50 @@ describe("StripHead's hint", () => {
     destroy = mounted.destroy;
 
     expect(mounted.target.textContent).toContain("Nach Aufnahmedatum sortiert");
-    expect(mounted.target.textContent).toContain("halten für mehrere");
+    expect(mounted.target.textContent).not.toContain("halten");
   });
+});
+
+/** The strip's width on a 412 px phone: the screen's 16 px padding on either side. */
+const PHONE_STRIP_WIDTH_PX = 380;
+
+function overlaps(a: DOMRect, b: DOMRect): boolean {
+  return a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
+}
+
+describe("StripHead on a 412 px phone", () => {
+  it.each(["de", "en"] as const)(
+    "keeps the eyebrow and the count clear of the buttons in %s",
+    (locale) => {
+      const mounted = mountWithTranslator(
+        StripHead,
+        {
+          count: 248,
+          ownOrder: false,
+          selecting: false,
+          onToggleSelect: () => {},
+          onShuffle: () => {},
+          onAdd: () => {},
+        },
+        { current: createTranslator(locale) },
+      );
+      destroy = mounted.destroy;
+      mounted.target.style.containerType = "inline-size";
+      mounted.target.style.width = `${PHONE_STRIP_WIDTH_PX}px`;
+      const eyebrow = mounted.target.querySelector<HTMLElement>(".eyebrow");
+      const count = mounted.target.querySelector<HTMLElement>(".count");
+      const buttons = [...mounted.target.querySelectorAll<HTMLElement>("button")];
+      if (eyebrow === null || count === null) {
+        throw new Error("the strip head shows no eyebrow or count");
+      }
+
+      expect(buttons).toHaveLength(3);
+      expect(eyebrow.scrollWidth).toBeLessThanOrEqual(eyebrow.clientWidth);
+      for (const button of buttons) {
+        const box = button.getBoundingClientRect();
+        expect(overlaps(eyebrow.getBoundingClientRect(), box)).toBe(false);
+        expect(overlaps(count.getBoundingClientRect(), box)).toBe(false);
+      }
+    },
+  );
 });

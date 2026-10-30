@@ -174,6 +174,8 @@ export function importPlaylist(songs: readonly ChosenSong[], slideshowMs: number
         excerptMs: musicExcerptMs(song),
         trimmed: false,
         atMs,
+        laneAtMs: atMs,
+        laneMs: musicExcerptMs(song),
         reached: atMs < slideshowMs,
         volumeBadge: { kind: "none" },
         ...(trackId !== undefined ? { sampleTrack: trackId } : {}),

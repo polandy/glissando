@@ -4,8 +4,9 @@ import type { deEditor } from "./catalogue-de-editor.ts";
 /** English copy of the picture editor; typed to the German keys. */
 export const enEditor: Pick<Catalogue, keyof typeof deEditor> = {
   "units.zoom": "{zoom}×",
-  "slideshow.edit": "Edit",
   "slideshow.view": "View",
+  "slideshow.viewFullScreen": "View full screen",
+  "slideshow.editPicture": "Edit picture",
   "slideshow.ownMotionBadge": "own",
   "slideshow.pictureLabelOwnMotion": "Picture {number}, taken on {date}, own motion",
   "slideshow.automaticWithOwn": "automatic, {count} own",
@@ -20,7 +21,9 @@ export const enEditor: Pick<Catalogue, keyof typeof deEditor> = {
   "editor.frames": "Frames",
   "editor.start": "Start",
   "editor.end": "End",
-  "editor.zoomLabel": "Zoom",
+  "editor.view": "View",
+  "editor.viewFrame": "Frame",
+  "editor.viewPlay": "Play",
   "editor.startFrame": "Start frame, zoom {zoom}",
   "editor.endFrame": "End frame, zoom {zoom}",
   "editor.editStartFrame": "Edit the start frame",

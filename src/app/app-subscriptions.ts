@@ -1,4 +1,5 @@
 import type { ImmichAvailabilityState } from "../immich/immich-availability";
+import { runningSearch, type RunningSearch } from "../library/running-search";
 import type { ServerLibraryState } from "../server-library/server-library-availability";
 import type { PwaState } from "../pwa/status-bar-view";
 import type { AddedPictures } from "./add-pictures/add-pictures-flow";
@@ -26,6 +27,7 @@ export interface AppStateSetters {
   setToast(toast: ToastMessage | null): void;
   setSettingsState(state: SettingsState): void;
   setExportProgress(progress: ExportProgress | null): void;
+  setFocusSearch(search: RunningSearch | null): void;
   setOpenState(state: OpenFlowState): void;
   setImportSession(session: ImportSession | null, persistRefused: boolean): void;
   setAddState(session: AddPicturesSession | null, added: AddedPictures | null): void;
@@ -70,6 +72,14 @@ export function subscribeAppState(
   const stopToast = toaster.subscribe(setters.setToast);
   const stopSettings = settings.subscribe(setters.setSettingsState);
   const stopExport = exportJob.subscribe(setters.setExportProgress);
+  // One indicator for both libraries' passes: the device's and the server's.
+  const { focusPass, serverFocusPass } = services;
+  const showFocusSearch = () =>
+    setters.setFocusSearch(
+      runningSearch([focusPass.state.slideshows, serverFocusPass.state.slideshows]),
+    );
+  const stopFocus = focusPass.subscribe(showFocusSearch);
+  const stopServerFocus = serverFocusPass.subscribe(showFocusSearch);
   const stopOpen = openFlow.subscribe(setters.setOpenState);
   const stopAdd = addFlow.subscribe((next) => setters.setAddState(next.session, next.added));
   const stopImport = importFlow.subscribe((next) => {
@@ -94,6 +104,8 @@ export function subscribeAppState(
     stopImport();
     stopAdd();
     stopExport();
+    stopFocus();
+    stopServerFocus();
     stopOpen();
     stopPwa();
     stopImmich();

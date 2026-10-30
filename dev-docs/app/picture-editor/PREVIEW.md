@@ -18,6 +18,15 @@
   motion from the start, and so does a new duration. Picking a transition (or its "Back to
   automatic") plays from 1.2 s before the transition. With reduced motion it starts paused; a
   swap, reset or new duration holds it at the start, a picked transition half-way through it.
+- **On a phone** (up to 720 px; mockup, variant A:
+  https://polandy.github.io/glissando-assets/mockups/phone-editor-one-view/) the well and the
+  preview share one place on top, staying in view
+  (sticky) while the page scrolls, with a "Frame | Play" switch under it (`ViewSwitch.svelte`);
+  wider screens show both and no switch. The editor opens on Frame: the well with its focus line.
+  Play shows the preview alone and plays it from the start (paused at the start with reduced
+  motion). Picking Start or End, or Frame, goes back to the well, the preview resting on that
+  frame. "Swap start and end", "Back to automatic", a new duration (or its reset) and a picked
+  transition (or its reset) switch to Play, where the preview plays the change.
 - A picture composed into a portrait pair (ADR-0028) previews as its half of the pair's slide:
   the pair's duration and its half's motion (no sideways pan), and on either half the slide's
   one transition into the slide after the pair — "…into picture 6" for pictures 4 and 5. The

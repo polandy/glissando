@@ -39,9 +39,10 @@ test("E2E-067 on a tablet the info panel stacks above the pictures with fine set
 
   const transitions = page.getByRole("button", { name: /^Übergänge/ });
   const fineSettings = page.getByRole("button", { name: "Feineinstellungen" });
+  await expect(page.getByRole("button", { name: "Abspielen" })).toHaveCount(1);
   await expect(
     page.getByRole("complementary").getByRole("button", { name: "Abspielen" }),
-  ).toBeVisible();
+  ).toHaveCount(0);
   // The Music/Mood/Look tiles are never folded, each one its own button.
   await expect(page.getByRole("button", { name: /^Musik/ })).toBeVisible();
   await expect(page.getByRole("button", { name: /^Stimmung/ })).toBeVisible();

@@ -139,6 +139,7 @@ export function mountScreen(
     portraitPictureResets: 0,
     deletes: 0,
     adds: 0,
+    plays: 0,
     storageActions: [] as StorageAction[],
     openingCardsEnsured: 0,
     openingCards: [] as CardInput[],
@@ -154,7 +155,7 @@ export function mountScreen(
   const props = reactiveProps({
     slideshow,
     onBack: () => {},
-    onPlay: () => {},
+    onPlay: () => (calls.plays += 1),
     onAddPictures: () => (calls.adds += 1),
     newPictureIds,
     onRemove: (pictureId: string) => calls.removed.push(pictureId),
@@ -247,8 +248,8 @@ export function mountScreen(
     reducedMotion,
     onDelete: () => (calls.deletes += 1),
     exportState: { kind: "idle", sizeBytes: null } as ExportMenuState,
-    onExport: () => {},
-    onMenuOpened: () => {},
+    onExport: () => Promise.resolve("saved" as const),
+    onShareOpened: () => {},
     newVideoExport: () => {
       throw new Error("the video export sheet is not opened in these tests");
     },

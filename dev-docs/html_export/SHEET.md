@@ -1,15 +1,16 @@
 # Sheet
 
-The header's ⋯ menu holds "Als Video sichern" (film icon), "Als Webseite sichern" (page icon) and
-"Als Glissando-Datei sichern". "Als Webseite sichern" opens `HtmlExportSheet`: a dialog on desktop, a bottom sheet
-below 720 px. Its states follow the video sheet's (VIDEO_EXPORT.md):
+The Share sheet's "Webseite" row (page icon, group "Kopie sichern", share_link/IN_THE_APP.md) opens
+`HtmlExportSheet`, titled "Webseite": a dialog on desktop, a bottom sheet
+below 720 px. Its Back control (not shown while the export runs) returns to the Share sheet; Close
+closes the whole flow. Its states follow the video sheet's (VIDEO_EXPORT.md):
 
-| State   | Content                                                                                                                                                                                                                                                                                                                                  |
-| ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| choose  | Title "Als Webseite sichern", subtitle "<title> · <duration> · mit Musik"; three size radios with the estimate; a bar comparing the estimate with the 1080p video's; chips `eine .html-Datei · läuft offline · Musik, Untertitel, Ken Burns`; the 4K note; the hint "Läuft in jedem aktuellen Browser …"; Abbrechen / Webseite erstellen |
-| running | One thumbnail per picture, lit once that picture is done; a mint progress bar; "Bild 12 von 50"; the bytes so far; only "Abbrechen"                                                                                                                                                                                                      |
-| done    | File row (first picture, name, size, duration, size id). The video sheet's targets (picker: "Gespeichert" + "Fertig"; share: "Teilen …"; else "Herunterladen") plus "Öffnen", which opens the page in a new tab                                                                                                                          |
-| failed  | Coral note with the error; "Schließen"                                                                                                                                                                                                                                                                                                   |
+| State   | Content                                                                                                                                                                                                                                                                                                                      |
+| ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| choose  | Title "Webseite", subtitle "<title> · <duration> · mit Musik"; three size radios with the estimate; a bar comparing the estimate with the 1080p video's; chips `eine .html-Datei · läuft offline · Musik, Untertitel, Ken Burns`; the 4K note; the hint "Läuft in jedem aktuellen Browser …"; Abbrechen / Webseite erstellen |
+| running | One thumbnail per picture, lit once that picture is done; a mint progress bar; "Bild 12 von 50"; the bytes so far; only "Abbrechen"                                                                                                                                                                                          |
+| done    | File row (first picture, name, size, duration, size id). The video sheet's targets (picker: "Gespeichert" + "Fertig"; share: "Teilen …"; else "Herunterladen") plus "Öffnen", which opens the page in a new tab                                                                                                              |
+| failed  | Coral note with the error; "Schließen"                                                                                                                                                                                                                                                                                       |
 
 - **Clips**: a slideshow with video slides shows a lemon note beneath the comparison, "Videoclips
   in der Show: n. Sie kommen unverkleinert in die Datei, daher ist die Seite in jeder Größe etwa

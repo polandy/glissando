@@ -4,6 +4,7 @@ import { openApp } from "./support/browser";
 import { fakeGlissandoServer } from "./support/fake-glissando-server";
 import { pictureTakenOn } from "./support/media";
 import { createServerSlideshow } from "./support/server-slideshow";
+import { chooseShareRow } from "./support/share";
 
 test.use(GERMAN_BROWSER);
 
@@ -67,7 +68,7 @@ test("E2E-052 a guest on the share page scans the QR, and the remote pauses and 
   jpeg = (await pictureTakenOn(page, "photo.jpg", "2019-07-02", "#4db6ac")).buffer;
   await createServerSlideshow(page);
 
-  await page.getByRole("button", { name: /^Link teilen/ }).click();
+  await chooseShareRow(page, /^Link teilen/);
   const sheet = page.getByRole("dialog", { name: "Per Link teilen" });
   await sheet.getByRole("button", { name: "Link erstellen" }).click();
   const link = sheet.getByRole("status", { name: "Link" });

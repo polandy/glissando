@@ -12,6 +12,7 @@ import {
 } from "./support/app";
 import { openApp } from "./support/browser";
 import { silentTrack } from "./support/media";
+import { chooseShareRow } from "./support/share";
 
 test.use(GERMAN_BROWSER);
 
@@ -83,9 +84,8 @@ test("E2E-030 a slideshow saved as a 720p video from its menu downloads as an MP
   await openApp(page);
   await createSlideshowWithMusic(page);
 
-  await page.getByRole("button", { name: "Mehr" }).click();
-  await page.getByRole("menuitem", { name: "Als Video sichern" }).click();
-  const sheet = page.getByRole("dialog", { name: "Als Video sichern" });
+  await chooseShareRow(page, /^Video/);
+  const sheet = page.getByRole("dialog", { name: "Video" });
   const small = sheet.getByRole("radio", { name: /^Klein/ });
   await expect(small).toHaveAttribute("aria-disabled", "false");
   await small.click();

@@ -13,6 +13,8 @@
     closeLabel,
     closeOnScrim,
     onClose,
+    onBack,
+    backLabel,
     children,
   }: {
     /** The heading's id, unique on the page. */
@@ -24,6 +26,10 @@
     /** Whether a tap beside the sheet closes it: never where something would be lost. */
     closeOnScrim: boolean;
     onClose: () => void;
+    /** Where the sheet was reached from a chooser: shows a Back control before the heading. */
+    onBack?: (() => void) | undefined;
+    /** Back's name; given with `onBack`. */
+    backLabel?: string;
     children: Snippet;
   } = $props();
 
@@ -51,6 +57,17 @@
 <dialog bind:this={dialog} aria-labelledby={labelId} oncancel={cancel} onclick={onScrimClick}>
   <div class="sheet">
     <header>
+      {#if onBack !== undefined}
+        <button
+          class="icon-btn back"
+          type="button"
+          title={backLabel}
+          aria-label={backLabel}
+          onclick={onBack}
+        >
+          <Icon name="back" />
+        </button>
+      {/if}
       <div class="heading">
         <h2 id={labelId}>{title}</h2>
         {#if subtitle !== null}<p>{subtitle}</p>{/if}
@@ -116,6 +133,9 @@
   }
   .icon-btn {
     margin: -6px -8px 0 0;
+  }
+  .icon-btn.back {
+    margin: -6px 0 0 -8px;
   }
   /* Shared by the states' parts. */
   .sheet :global(b) {

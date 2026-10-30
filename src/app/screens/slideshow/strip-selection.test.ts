@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
   endSelecting,
-  hold,
   NO_SELECTION,
   pick,
   selectedInOrder,
@@ -73,8 +72,8 @@ describe("pick, while selecting several", () => {
   });
 
   it("ends several when the last tile is deselected, unless started with Select", () => {
-    const held = hold(NO_SELECTION, "b");
-    const ended = plain(held, "b");
+    const toggled = ctrl(NO_SELECTION, "b");
+    const ended = ctrl(toggled, "b");
     expect(ended.several).toBe(false);
     expect(ended.ids.size).toBe(0);
   });
@@ -84,20 +83,6 @@ describe("pick, while selecting several", () => {
     const ended = plain(held, "b");
     expect(ended.several).toBe(true);
     expect(ended.ids.size).toBe(0);
-  });
-});
-
-describe("hold", () => {
-  it("enters several with only the held tile selected", () => {
-    const selected = plain(NO_SELECTION, "b");
-    const held = hold(selected, "d");
-    expect(held.several).toBe(true);
-    expect(held.ids).toEqual(new Set(["d"]));
-  });
-
-  it("keeps the held tile selected, never toggling it off", () => {
-    const already = hold(NO_SELECTION, "b");
-    expect(hold(already, "b").ids).toEqual(new Set(["b"]));
   });
 });
 

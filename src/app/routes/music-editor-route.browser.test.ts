@@ -12,6 +12,8 @@ import { mountWithTranslator } from "../testing/mount-with-translator";
 import { Toaster } from "../toast/toaster";
 import MusicEditorRoute from "./MusicEditorRoute.svelte";
 import { PICKED_SONG_MS, songIntakeStoringIn } from "../music-editor/testing/song-intake-device";
+import { createStorageMusicEditorDetailsStore } from "../music-editor/music-editor-details";
+import { createMemoryStorage } from "../testing/memory-storage";
 
 const SHOW: StoredSlideshow = {
   id: "show",
@@ -159,6 +161,7 @@ async function mountRoute(stored: StoredSlideshow = SHOW) {
     onError: (error: unknown) => errors.push(error),
     log: (error: unknown) => errors.push(error),
     toaster: new Toaster(new FakeScheduler()),
+    detailsStore: createStorageMusicEditorDetailsStore(createMemoryStorage()),
   });
   destroy = mounted.destroy;
   return { ...fake, target: mounted.target, backs: () => backs, store, editor, errors };
