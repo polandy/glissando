@@ -78,7 +78,7 @@ export class VideoClips {
   isReady(timeMs: number): boolean {
     this.place(timeMs);
     return this.#plan(timeMs)
-      .filter((target) => target.phase === "playing")
+      .filter((target) => target.phase !== "waiting")
       .every((target) => this.#open.get(target.index)?.playback.isReady() === true);
   }
 
@@ -143,7 +143,7 @@ export class VideoClips {
 
   #placeClip(clip: OpenClip, target: ClipTarget): void {
     const { playback } = clip;
-    if (!this.#playing || target.phase === "waiting") {
+    if (!this.#playing || target.phase !== "playing") {
       if (clip.placedAtMs !== target.clipMs) {
         playback.seek(target.clipMs);
       }

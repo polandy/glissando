@@ -77,8 +77,8 @@ its media; `mediaBytes` counts them.
 
 ## Timing
 
-The slide clock leads; the clip follows it, never the other way round — the shift, catch-up,
-seek and start-tolerance details are in `TIMING.md`'s "Video clips". With reduced motion nothing
+The slide clock leads; the clip follows it, never the other way round — the first-frame hold,
+catch-up, seek and start-tolerance details are in `TIMING.md`'s "Video clips". With reduced motion nothing
 changes: a clip is content, not decoration.
 
 ## Sound and ducking
@@ -93,8 +93,7 @@ changes: a clip is content, not decoration.
   by more than `CLIP_SOUND_RESYNC_MS`. A clip not decoded in time plays silent until its sound is
   decoded, then joins at the current place; a sound that cannot be decoded is logged and the clip
   stays silent — the show never waits for it. Without Web Audio a clip plays silent.
-- A slide's clip sound is audible from `shift` ms into the transition before the slide (sooner
-  than the slide's own start for a shifted clip) until the slide ends, at `volume`.
+- A slide's clip sound is audible from the slide's start until it ends, at `volume`.
 - The music volume is multiplied by the **duck factor**: 1 outside a clip with sound; it ramps
   down, linearly over `VIDEO_DUCK_RAMP_DOWN_MS` = 1000 ms, to `0.2` (`VIDEO_DUCK_VOLUME`) so the
   music is already quieter — staying audible, never vanishing — by the time the clip's sound
