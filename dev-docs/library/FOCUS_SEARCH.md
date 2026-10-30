@@ -55,6 +55,8 @@ the pictures still to come; `found`, every focus it stored since the app opened;
 pictures whose detection failed this session. A slideshow's `failed` count outlives the pass taking
 it up — once every one of its pictures is taken up, it keeps reporting its failures with `done` and
 `total` both 0, for the start card and the Focus sheet to still show them — and is only cleared
-picture by picture, as each failure is looked at again and succeeds. The slideshow screen merges
+picture by picture, as each failure is looked at again and succeeds. `runningSearch` sums the
+slideshows with pictures left over the device's and the server's pass, for the header
+([HEADER.md](../app/HEADER.md)). The slideshow screen merges
 `found` into the focus it read on opening, so the editors' automatic motions and focus marks follow
 at once.
