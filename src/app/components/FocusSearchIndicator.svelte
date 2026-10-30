@@ -14,7 +14,14 @@
   const label = $derived(t(search.again ? "start.searchingAgain" : "start.searchingSubjects"));
 </script>
 
-<div class="indicator" role="status">
+<div
+  class="indicator"
+  role="progressbar"
+  aria-label={label}
+  aria-valuemin={0}
+  aria-valuemax={search.total}
+  aria-valuenow={search.done}
+>
   <svg class="progress-ring" viewBox="0 0 20 20" aria-hidden="true">
     <circle class="track" cx="10" cy="10" r="7.5" pathLength={PERCENT} />
     <circle

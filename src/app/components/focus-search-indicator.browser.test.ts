@@ -15,9 +15,12 @@ describe("FocusSearchIndicator", () => {
     );
     destroy = mounted.destroy;
 
-    expect(mounted.target.querySelector('[role="status"]')?.textContent).toContain(
-      "Looking for subjects · 12 of 40",
-    );
+    // A progress bar, not a live status: it changes with every picture, and the toast is the status.
+    const bar = mounted.target.querySelector('[role="progressbar"]');
+    expect(bar?.textContent).toContain("Looking for subjects · 12 of 40");
+    expect(bar?.getAttribute("aria-valuenow")).toBe("12");
+    expect(bar?.getAttribute("aria-valuemax")).toBe("40");
+    expect(mounted.target.querySelector('[role="status"]')).toBeNull();
     expect(mounted.target.querySelector<HTMLElement>(".line")?.style.width).toBe("30%");
   });
 
@@ -28,7 +31,7 @@ describe("FocusSearchIndicator", () => {
     });
     destroy = mounted.destroy;
 
-    expect(mounted.target.querySelector('[role="status"]')?.textContent).toContain(
+    expect(mounted.target.querySelector('[role="progressbar"]')?.textContent).toContain(
       "Motive werden erneut gesucht · 1 von 4",
     );
   });
