@@ -11,6 +11,7 @@ function mountStart(demo?: { visible: boolean; state: DemoSlideshowState; onLoad
   const mounted = mountWithTranslator(StartScreen, {
     slideshows: [],
     focusSearches: new Map(),
+    serverFocusSearches: new Map(),
     onCreate: () => {},
     onOpen: () => {},
     onSettings: () => {},
