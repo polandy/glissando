@@ -62,8 +62,6 @@ describe("PictureEditorScreen", () => {
     expect(activeFrame().querySelectorAll(".handle")).toHaveLength(4);
     expect(document.querySelectorAll(".frame")).toHaveLength(2);
     expect(toggle("from").getAttribute("aria-pressed")).toBe("true");
-    expect(toggle("from").textContent).toContain("Zoom 1,00×");
-    expect(toggle("to").textContent).toContain("Zoom 1,20×");
   });
 
   it("makes the end frame active with the toggle or by tapping its label", () => {

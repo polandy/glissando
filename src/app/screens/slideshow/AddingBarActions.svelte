@@ -1,14 +1,20 @@
 <script lang="ts">
+  import type { Scheduler } from "../../../ui-kit/scheduler";
   import Icon from "../../components/Icon.svelte";
   import { getTranslator } from "../../i18n/context";
+  import BarAction from "./BarAction.svelte";
 
-  /** The adding bar's actions (IMPORT_ARRANGING.md, Add media), in words beside their icons. */
+  /**
+   * The adding bar's actions (IMPORT_ARRANGING.md, Add media): Earlier and Later as the selection
+   * bar's icons with a label bubble, View and Remove in words beside their icons.
+   */
   let {
     arranging,
     single,
     earlierDisabled,
     laterDisabled,
     removeDisabledLook,
+    holdScheduler,
     onEarlier,
     onLater,
     onView,
@@ -21,6 +27,7 @@
     earlierDisabled: boolean;
     laterDisabled: boolean;
     removeDisabledLook: boolean;
+    holdScheduler: Scheduler;
     onEarlier: () => void;
     onLater: () => void;
     onView: () => void;
@@ -31,13 +38,20 @@
 </script>
 
 {#if arranging}
-  <!-- At the ends Earlier and Later look off but keep their place in the tab order. -->
-  <button class="btn icon-btn" type="button" aria-disabled={earlierDisabled} onclick={onEarlier}>
-    <Icon name="chevronLeft" /><span class="move-word">{t("slideshow.earlier")}</span>
-  </button>
-  <button class="btn icon-btn" type="button" aria-disabled={laterDisabled} onclick={onLater}>
-    <span class="move-word">{t("slideshow.later")}</span><Icon name="chevronRight" />
-  </button>
+  <BarAction
+    icon="chevronLeft"
+    label={t("slideshow.earlier")}
+    disabledLook={earlierDisabled}
+    {holdScheduler}
+    onclick={onEarlier}
+  />
+  <BarAction
+    icon="chevronRight"
+    label={t("slideshow.later")}
+    disabledLook={laterDisabled}
+    {holdScheduler}
+    onclick={onLater}
+  />
 {/if}
 {#if single}
   <button class="btn" type="button" onclick={onView}>
@@ -74,19 +88,6 @@
       gap: 4px;
       padding: 0 6px;
       font-size: var(--gl-size-caption);
-    }
-    /* Icon alone, no label to pad for. */
-    .icon-btn {
-      padding: 0 4px;
-    }
-    /* Earlier and Later show their icon alone, so every button fits a phone with German labels. */
-    .move-word {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      padding: 0;
-      overflow: hidden;
-      clip-path: inset(50%);
     }
   }
 </style>

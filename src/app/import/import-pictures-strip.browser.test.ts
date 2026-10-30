@@ -166,6 +166,21 @@ describe("ImportPicturesStrip, the selection bar", () => {
     const labels = [...(bar?.querySelectorAll("button") ?? [])].map((button) => text(button));
     expect(labels).toEqual(["Früher", "Später", "Ansehen", "Entfernen", "Fertig"]);
   });
+
+  it("shows Earlier and Later as icons named by their words, which sit in a bubble", () => {
+    const arrangement = arrangementWith(["a", "b", "c"]);
+    const { target } = mountStrip({ ids: ["a", "b", "c"], arrangement });
+
+    tiles(target)[1]?.click();
+    flushSync();
+
+    const bar = target.querySelector('[role="toolbar"]');
+    for (const name of ["Früher", "Später"]) {
+      const move = bar?.querySelector(`button[aria-label="${name}"]`);
+      expect(move?.querySelector("svg")).not.toBeNull();
+      expect(move?.querySelector(".bubble")?.textContent).toBe(name);
+    }
+  });
 });
 
 describe("ImportPicturesStrip, adding more", () => {

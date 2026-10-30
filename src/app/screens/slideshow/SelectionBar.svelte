@@ -153,6 +153,7 @@
         {earlierDisabled}
         {laterDisabled}
         {removeDisabledLook}
+        {holdScheduler}
         onEarlier={earlier}
         onLater={later}
         onView={edit}
