@@ -1,16 +1,8 @@
 import { expect, test } from "@playwright/test";
-import { exportedFile } from "../src/glissando-file/testing/glissando-fixtures";
 import { GERMAN_BROWSER } from "./support/app";
 import { openApp } from "./support/browser";
 import { DEMO_URL } from "./support/demo-slideshow";
-
-/**
- * Node's Buffer, which `route.fulfill`'s binary body is. The project's types describe the
- * browser only, so this declares the part it uses rather than pull in all of Node's types.
- */
-declare const Buffer: {
-  from(bytes: ArrayBuffer): Uint8Array;
-};
+import { exportedFileWithRealMedia } from "./support/real-glissando-file";
 
 test.use(GERMAN_BROWSER);
 
@@ -20,8 +12,7 @@ test("E2E-062 tapping the demo card on an empty library opens the demo slideshow
   page,
 }) => {
   await page.route(DEMO_URL, async (route) => {
-    const bytes = Buffer.from(await (await exportedFile()).arrayBuffer());
-    await route.fulfill({ body: bytes });
+    await route.fulfill({ body: (await exportedFileWithRealMedia()).buffer });
   });
   await openApp(page);
 
