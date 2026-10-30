@@ -19,7 +19,7 @@ import {
 import { applyThemePreference, createStorageThemePreferenceStore } from "./app/settings/theme";
 import { createDeviceSettingsStores } from "./app/device-settings-stores";
 import { browserScheduler } from "./ui-kit/scheduler";
-import { handOverFromShell } from "./app/shell/app-shell";
+import { handOverFromShell, requirePageElement } from "./app/shell/app-shell";
 import { consumeFirstLaunch, createStorageFirstLaunchStore } from "./app/start/first-launch";
 import {
   createStorageRefusalNoticeStore,
@@ -87,14 +87,8 @@ settings.subscribe(({ theme, effectiveLanguage }) => {
   }
 });
 
-const target = document.getElementById("app");
-if (!target) {
-  throw new Error("Mount point #app is missing from index.html");
-}
-const shell = document.getElementById("app-shell");
-if (!shell) {
-  throw new Error("The app shell #app-shell is missing from index.html");
-}
+const target = requirePageElement(document, "app");
+const shell = requirePageElement(document, "app-shell");
 
 const toaster = new Toaster(browserScheduler);
 const logError = (error: unknown): void => console.error(error);

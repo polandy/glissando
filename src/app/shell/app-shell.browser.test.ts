@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { handOverFromShell } from "./app-shell";
+import { handOverFromShell, requirePageElement } from "./app-shell";
 
 // Long enough that a real fade never ends during a test; the tests end it themselves.
 const FADING = "opacity 1000s";
@@ -59,5 +59,19 @@ describe("handOverFromShell", () => {
     const handedOver = handOverFromShell(shell);
     expect(shell.isConnected).toBe(false);
     await handedOver;
+  });
+});
+
+describe("requirePageElement", () => {
+  it("returns the element index.html carries under that id", () => {
+    const element = mountShell("none");
+    element.id = "app-shell-under-test";
+    expect(requirePageElement(document, "app-shell-under-test")).toBe(element);
+  });
+
+  it("fails loud, naming the id, when index.html lacks it", () => {
+    expect(() => requirePageElement(document, "nowhere")).toThrow(
+      "#nowhere is missing from index.html",
+    );
   });
 });

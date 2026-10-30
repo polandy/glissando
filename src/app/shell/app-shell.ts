@@ -36,3 +36,12 @@ export function handOverFromShell(shell: HTMLElement): Promise<void> {
     shell.addEventListener("transitioncancel", removeAfterFade);
   });
 }
+
+/** The element index.html carries under `id`; a missing one is a broken page, so it throws. */
+export function requirePageElement(document: Document, id: string): HTMLElement {
+  const element = document.getElementById(id);
+  if (element === null) {
+    throw new Error(`#${id} is missing from index.html`);
+  }
+  return element;
+}
