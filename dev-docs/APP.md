@@ -9,7 +9,8 @@ One file per section in `app/`; open only the one a change touches.
 
 | Section                                                 | What it covers                                                        |
 | ------------------------------------------------------- | --------------------------------------------------------------------- |
-| [Screens](app/SCREENS.md)                               | Header, start, slideshow screen, export, opening a `.glissando` file  |
+| [Header](app/HEADER.md)                                 | The bar on every screen, the export's and the search's progress       |
+| [Screens](app/SCREENS.md)                               | Start, slideshow screen, export, opening a `.glissando` file          |
 | [Editing the slideshow](app/SLIDESHOW_EDITING.md)       | Remove, select and reorder, move, add pictures, rename, transitions   |
 | [Picture editor](app/PICTURE_EDITOR.md)                 | Ken Burns frames, focus, caption, duration and transition per picture |
 | [Music editor](app/MUSIC_EDITOR.md)                     | Waveform, trim, fades                                                 |

@@ -2,7 +2,9 @@
   import type { Snippet } from "svelte";
   import ExportIndicator from "../glissando-file/ExportIndicator.svelte";
   import { getExportStatus } from "../glissando-file/export-status";
+  import { getFocusSearchStatus } from "../focus-search-status";
   import { getTranslator } from "../i18n/context";
+  import FocusSearchIndicator from "./FocusSearchIndicator.svelte";
   import Icon from "./Icon.svelte";
   import LogoMark from "./LogoMark.svelte";
 
@@ -24,6 +26,7 @@
 
   const { t } = getTranslator();
   const exportStatus = getExportStatus();
+  const focusSearchStatus = getFocusSearchStatus();
 </script>
 
 <header class="bar">
@@ -54,6 +57,12 @@
   </nav>
   {#if exportStatus?.current}
     <ExportIndicator progress={exportStatus.current} />
+  {/if}
+  {#if focusSearchStatus?.current}
+    <FocusSearchIndicator
+      search={focusSearchStatus.current}
+      besideExport={exportStatus?.current != null}
+    />
   {/if}
   {#if actions}
     <div class="actions">{@render actions()}</div>
