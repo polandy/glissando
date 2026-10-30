@@ -1,13 +1,23 @@
 import { expect, test } from "@playwright/test";
-import { createSlideshowWithMusic, editsStored, GERMAN_BROWSER } from "./support/app";
+import {
+  chooseFiles,
+  choosePictures,
+  CREATED_TOAST,
+  createSlideshowWithMusic,
+  editsStored,
+  GERMAN_BROWSER,
+  openImport,
+  picturesTakenOn,
+} from "./support/app";
 import { openApp } from "./support/browser";
 import { silentTrack } from "./support/media";
+import { clickSwitch } from "./support/switch";
 
 test.use(GERMAN_BROWSER);
 
 const TRACK_SECONDS = 20;
 
-test("E2E-023 the music gets its own excerpt and fade-in, stored, summed up in the music row, and goes back to the whole track", async ({
+test("E2E-023 the music gets its own excerpt and fade-in, stored, and goes back to the whole track", async ({
   page,
 }) => {
   const excerpt = page.locator('section[aria-labelledby="music-excerpt"]');
@@ -25,7 +35,7 @@ test("E2E-023 the music gets its own excerpt and fade-in, stored, summed up in t
     fill: true,
   });
 
-  await page.getByRole("button", { name: "Musik Sommerwind.wav ganzer Titel Bearbeiten" }).click();
+  await page.getByRole("button", { name: /^Musik Sommerwind\.wav/ }).click();
   await expect(
     page.getByRole("navigation", { name: "Navigationspfad" }).locator('[aria-current="page"]'),
   ).toHaveText("Musik");
@@ -57,7 +67,7 @@ test("E2E-023 the music gets its own excerpt and fade-in, stored, summed up in t
   await expect(fadeIn.locator(".state")).toHaveText("Eigene");
   await expect(fadeOut.locator(".state")).toHaveText("Automatisch");
   await expect(
-    fadeOut.getByText("Automatisch: kurz, weil der Ausschnitt vor dem Titelende aufhört."),
+    fadeOut.getByText("Automatisch: lang, weil der Ausschnitt vor dem Titelende aufhört."),
   ).toBeVisible();
   await editsStored(page);
 
@@ -69,12 +79,10 @@ test("E2E-023 the music gets its own excerpt and fade-in, stored, summed up in t
   await expect(fadeIn.locator(".state")).toHaveText("Eigene");
 
   await back.click();
-  const trimmedRow = page.getByRole("button", {
-    name: "Musik Sommerwind.wav 0:01–0:17 · blendet ein und aus Bearbeiten",
-  });
-  await expect(trimmedRow).toBeVisible();
+  const musicTile = page.getByRole("button", { name: /^Musik Sommerwind\.wav/ });
+  await expect(musicTile).toBeVisible();
 
-  await trimmedRow.click();
+  await musicTile.click();
   await expect(excerptState).toHaveText("Gekürzt");
   await excerpt.getByRole("button", { name: "Ganzer Titel" }).click();
   await expect(excerptState).toHaveText("Ganzer Titel");
@@ -84,9 +92,7 @@ test("E2E-023 the music gets its own excerpt and fade-in, stored, summed up in t
   await editsStored(page);
 
   await back.click();
-  await expect(
-    page.getByRole("button", { name: "Musik Sommerwind.wav blendet ein Bearbeiten" }),
-  ).toBeVisible();
+  await expect(page.getByRole("button", { name: /^Musik Sommerwind\.wav/ })).toBeVisible();
 });
 
 /** Parses a `formatTenths` time such as "0:01,5" into seconds. */
@@ -114,7 +120,13 @@ test("E2E-061 listening to the excerpt draws one playhead through both lanes wit
   await createSlideshowWithMusic(page, silentTrack("Sommerwind.wav", TRACK_SECONDS), {
     fill: true,
   });
-  await page.getByRole("button", { name: "Musik Sommerwind.wav ganzer Titel Bearbeiten" }).click();
+  await page.getByRole("button", { name: /^Musik Sommerwind\.wav/ }).click();
+  // The slideshow lane under the waveform is one of the details; the switch's input is visually
+  // hidden behind its track, so its label is clicked.
+  await page
+    .locator(".switch")
+    .filter({ has: page.getByRole("switch", { name: "Details" }) })
+    .click();
 
   // A non-zero excerpt start, so the chip's time at the start of a listen is meaningfully
   // compared against it rather than trivially 0.
@@ -169,7 +181,7 @@ test("E2E-073 a song's own volume shows Own with its dB and the song-list badge,
   await createSlideshowWithMusic(page, silentTrack("Sommerwind.wav", TRACK_SECONDS), {
     fill: true,
   });
-  await page.getByRole("button", { name: "Musik Sommerwind.wav ganzer Titel Bearbeiten" }).click();
+  await page.getByRole("button", { name: /^Musik Sommerwind\.wav/ }).click();
 
   // The loudness pass measures the song in the background; the badge drops its pulsing
   // "Measuring…" once the song's blocks are stored — a positive signal, no sleep. A silent
@@ -203,4 +215,50 @@ test("E2E-073 a song's own volume shows Own with its dB and the song-list badge,
   await expect(reset).toHaveCount(0);
   await expect(badge).toBeEmpty();
   await editsStored(page);
+});
+
+test("E2E-095 the music editor opens simple, and its Details switch shows the volume line, slideshow lane and crossfade hatching, still on after a reload", async ({
+  page,
+}) => {
+  const details = page.getByRole("switch", { name: "Details" });
+  const endHandle = page.getByRole("slider", { name: "Ende" });
+  const blocks = page.locator(".playlist-lane .block");
+  const volumeLine = page.locator(".wavebox .envelope");
+  const slideshowLane = page.locator(".wavebox .runs");
+  const hatching = page.locator(".playlist-lane .crossfade");
+  await openApp(page);
+  await openImport(page);
+  await choosePictures(
+    page,
+    await picturesTakenOn(page, ["2025-07-12", "2025-07-14", "2025-07-20"]),
+    3,
+  );
+  await page.getByRole("button", { name: "Weiter" }).click();
+  await chooseFiles(page, page.getByRole("button", { name: "Dateien wählen" }), [
+    silentTrack("Morgenlied.wav", 8),
+    silentTrack("Abendlied.wav", 6),
+  ]);
+  await page.getByRole("button", { name: "Diashow erstellen" }).click();
+  await expect(page.getByRole("status").filter({ hasText: CREATED_TOAST })).toBeVisible();
+  await page.getByRole("button", { name: "Musik 2 Songs" }).click();
+
+  // The waveform's handles and both songs' blocks are there before the details are found absent.
+  await expect(endHandle).toBeVisible();
+  await expect(blocks).toHaveCount(2);
+  await expect(details).not.toBeChecked();
+  await expect(volumeLine).toHaveCount(0);
+  await expect(slideshowLane).toHaveCount(0);
+  await expect(hatching).toHaveCount(0);
+
+  await clickSwitch(details);
+  await expect(details).toBeChecked();
+  await expect(volumeLine).toHaveCount(1);
+  await expect(slideshowLane).toHaveCount(1);
+  await expect(hatching).toHaveCount(1);
+
+  await page.reload();
+  await expect(details).toBeChecked();
+  await expect(volumeLine).toHaveCount(1);
+  await expect(slideshowLane).toHaveCount(1);
+  await expect(hatching).toHaveCount(1);
 });

@@ -154,6 +154,33 @@ describe("video clips", () => {
     expect(resolved).toBe(true);
   });
 
+  describe("a clip with less footage before its excerpt than the lead-in", () => {
+    /** The transition into the clip starts at 9000; its footage reaches the clock at 9800. */
+    const SHORT_LEAD: Slide[] = [picture(10_000, 1000), clip("c.mp4", 200, 4200)];
+
+    it("holds its first frame while its slide fades in, then plays to its end with the slide", () => {
+      const { clips, videos } = setUp(SHORT_LEAD);
+      clips.play(9000);
+      clips.place(9500);
+      clips.place(9800);
+      clips.place(13_900);
+      expect(videos.only().calls).toEqual(["seek@0", "play@0", "follow@4100"]);
+    });
+
+    it("waits in whenReady for the held clip, which is already on screen", async () => {
+      const { clips, videos } = setUp(SHORT_LEAD);
+      videos.readyOnOpen = false;
+      let resolved = false;
+      const pending = clips.whenReady(9500).then(() => (resolved = true));
+      await Promise.resolve();
+      expect(resolved).toBe(false);
+
+      videos.only().becomeReady();
+      await pending;
+      expect(resolved).toBe(true);
+    });
+  });
+
   it("resolves whenReady at once when no clip is on screen", async () => {
     const { clips } = setUp();
     await expect(clips.whenReady(1000)).resolves.toBeUndefined();

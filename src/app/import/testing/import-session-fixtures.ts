@@ -1,5 +1,6 @@
 import { UnreadableMusicError, type MusicProbe } from "../../../import/music-probe";
-import type { PictureBlobs, StoredSlideshow } from "../../../library/stored-slideshow";
+import type { PictureBlobs } from "../../../library/library-store";
+import type { StoredSlideshow } from "../../../library/stored-slideshow";
 import { MemoryLibraryStore } from "../../../library/testing/memory-store";
 import type { ImmichPhoto } from "../../../immich/immich-client";
 import type { PictureFocus } from "../../../library/picture-focus";
@@ -12,6 +13,7 @@ export const MUSIC_MS = 60_000;
 export const FACE: PictureFocus = {
   kind: "subject",
   box: { x: 0.25, y: 0.1, width: 0.5, height: 0.4 },
+  foundBy: "face",
 };
 
 export const pictureFile = (name: string, capturedAt: string): File =>
@@ -43,6 +45,8 @@ export function sessionWith(
         thumbnail: new Blob([`thumbnail ${file.name}`]),
       }),
     captureDate: (file) => Promise.resolve((file as File & { capturedAt: string }).capturedAt),
+    gps: () => Promise.resolve(null),
+    resolvePlace: () => Promise.resolve(null),
     immichSource: (photo: ImmichPhoto) => ({
       fileName: photo.fileName,
       mimeType: "image/jpeg",

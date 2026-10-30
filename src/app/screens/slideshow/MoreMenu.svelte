@@ -1,41 +1,32 @@
 <script lang="ts">
   import { tick } from "svelte";
   import Icon from "../../components/Icon.svelte";
-  import type { ExportMenuState } from "../../glissando-file/export-menu";
   import { getTranslator } from "../../i18n/context";
   import type { SlideshowStorage, StorageAction } from "../view-models";
 
-  /** The header's ⋯ button and its menu: every export of the slideshow, then storage and delete. */
+  /** The header's ⋯ button and its menu: focus, storage and delete. */
   let {
-    exportState,
-    onExport,
-    onSaveVideo,
-    onSaveWebPage,
-    onOpened,
     onDelete,
     storage = null,
     pictureCount,
     onStorageAction,
+    focusFailed,
+    onFocus,
   }: {
-    exportState: ExportMenuState;
-    onExport: () => void;
-    /** Opens the video export sheet. */
-    onSaveVideo: () => void;
-    /** Opens the web page export sheet. */
-    onSaveWebPage: () => void;
-    /** The menu opened: the export's size is due. */
-    onOpened: () => void;
     onDelete: () => void;
     /** Where the slideshow lives; null while the server library is off. */
     storage?: SlideshowStorage | null;
     pictureCount: number;
     onStorageAction: (action: StorageAction) => void;
+    /** Pictures the finished focus search couldn't look at; 0 shows no hint line (ADR-0041). */
+    focusFailed: number;
+    /** Opens the Focus sheet. */
+    onFocus: () => void;
   } = $props();
 
   const onServer = $derived(storage?.kind === "server");
 
-  const PERCENT = 100;
-  const { t, formatBytes } = getTranslator();
+  const { t } = getTranslator();
 
   let open = $state(false);
   let toggle = $state<HTMLButtonElement>();
@@ -64,15 +55,6 @@
 
   function toggleMenu(): void {
     open = !open;
-    if (open) {
-      onOpened();
-    }
-  }
-
-  function exportChosen(): void {
-    if (exportState.kind === "idle") {
-      choose(onExport);
-    }
   }
 
   function choose(action: () => void): void {
@@ -103,39 +85,19 @@
       onclick={() => void close()}
     ></button>
     <div class="menu" role="menu" tabindex="-1" use:focusFirstItem onkeydown={keydown}>
-      <button class="item" type="button" role="menuitem" onclick={() => choose(onSaveVideo)}>
-        <Icon name="film" />{t("slideshow.saveAsVideo")}
-      </button>
-      <button class="item" type="button" role="menuitem" onclick={() => choose(onSaveWebPage)}>
-        <Icon name="page" />{t("slideshow.saveAsWebPage")}
-      </button>
       <button
-        class="item two-line"
+        class="item"
+        class:two-line={focusFailed > 0}
         type="button"
         role="menuitem"
-        aria-disabled={exportState.kind !== "idle"}
-        onclick={exportChosen}
+        onclick={() => choose(onFocus)}
       >
-        <Icon name="download" />
+        <Icon name="search" />
         <span class="text">
-          {#if exportState.kind === "this"}
-            {t("glissandoFile.exportRunning", {
-              percent: Math.round(exportState.fraction * PERCENT),
-            })}
-          {:else}
-            {t("glissandoFile.export")}
+          {t("slideshow.focus")}
+          {#if focusFailed > 0}
+            <small>{t("slideshow.focusFailedHint", { count: focusFailed })}</small>
           {/if}
-          <small>
-            {#if exportState.kind === "other"}
-              {t("glissandoFile.exportAfterRunning")}
-            {:else if onServer}
-              {t("server.exportHint")}
-            {:else if exportState.kind === "idle" && exportState.sizeBytes !== null}
-              {t("glissandoFile.exportSize", { size: formatBytes(exportState.sizeBytes) })}
-            {:else}
-              {t("glissandoFile.exportSizeUnknown")}
-            {/if}
-          </small>
         </span>
       </button>
       <hr />
@@ -166,9 +128,7 @@
           </span>
         </button>
       {/if}
-      {#if storage !== null}
-        <hr />
-      {/if}
+      <hr />
       <button
         class="item danger"
         class:two-line={onServer}
@@ -246,13 +206,6 @@
   small {
     color: var(--gl-muted);
     font-size: var(--gl-size-small);
-  }
-  .item[aria-disabled="true"] {
-    color: var(--gl-muted);
-    cursor: default;
-  }
-  .item[aria-disabled="true"]:hover {
-    background: transparent;
   }
   hr {
     width: 100%;

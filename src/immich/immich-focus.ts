@@ -28,5 +28,9 @@ export function focusFromFaces(faces: readonly ImmichFace[]): PictureFocus | nul
   }
   if (largest === null) return null;
   const others = faces.filter((face) => face !== largest).map(normalisedBox);
-  return { kind: "subject", box: groupFocusBox(normalisedBox(largest), others) };
+  return {
+    kind: "subject",
+    box: groupFocusBox(normalisedBox(largest), others),
+    foundBy: "immich-faces",
+  };
 }

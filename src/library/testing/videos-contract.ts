@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import type { StoredVideo } from "../own-video";
-import { MediaNotFoundError, type LibraryStore, type StoredPicture } from "../stored-slideshow";
+import type { LibraryStore } from "../library-store";
+import { MediaNotFoundError } from "../library-store";
+import type { StoredPicture } from "../stored-slideshow";
 import {
   picture,
   pictureBlobs,

@@ -1,13 +1,6 @@
 import { flushSync } from "svelte";
 import { afterEach, describe, expect, it } from "vitest";
-import {
-  buttonNamed,
-  details,
-  mountScreen,
-  PIXEL,
-  tile,
-  unmountScreen,
-} from "./slideshow-screen-harness";
+import { buttonNamed, details, mountScreen, tile, unmountScreen } from "./slideshow-screen-harness";
 
 afterEach(() => unmountScreen());
 
@@ -21,16 +14,18 @@ const ownMotionOnSecond = () => {
 };
 
 describe("SlideshowScreen, the way into the picture editor", () => {
-  it("offers Edit in the selection bar, between Later and Remove, for the selected picture", () => {
+  it("offers View then Edit in the selection bar, between Later and Remove, for the selected picture", () => {
     const { calls } = mountScreen();
     tile(2, "02.07.2025").click();
     flushSync();
 
     const labels = [...document.querySelectorAll(".bar button")].map((b) => b.textContent?.trim());
-    buttonNamed("Bearbeiten").click();
+    buttonNamed("Bild bearbeiten").click();
 
-    expect(labels.indexOf("Bearbeiten")).toBe(labels.indexOf("Später") + 1);
-    expect(labels.indexOf("Entfernen")).toBe(labels.indexOf("Bearbeiten") + 1);
+    expect(labels.indexOf("Vollbild ansehen")).toBe(labels.indexOf("Später") + 1);
+    expect(labels.indexOf("Bild bearbeiten")).toBe(labels.indexOf("Vollbild ansehen") + 1);
+    expect(labels.indexOf("Kapitel davor einfügen")).toBe(labels.indexOf("Bild bearbeiten") + 1);
+    expect(labels.indexOf("Bild entfernen")).toBe(labels.indexOf("Kapitel davor einfügen") + 1);
     expect(calls.edited).toEqual(["b"]);
   });
 
@@ -64,23 +59,5 @@ describe("SlideshowScreen, the way into the picture editor", () => {
 
     expect(own).not.toBeNull();
     expect(badges.map((badge) => badge.textContent?.trim())).toEqual(["eigen"]);
-  });
-
-  it("counts the own motions in the Ken Burns fact", () => {
-    mountScreen(ownMotionOnSecond());
-
-    const facts = document.querySelector(".rows")?.textContent ?? "";
-
-    expect(facts).toContain("Ken Burns");
-    expect(facts).toContain("automatisch, 1 eigene");
-  });
-
-  it("says just automatic while no picture has a motion of its own", () => {
-    mountScreen(details(["a"], { coverUrl: PIXEL }));
-
-    const facts = document.querySelector(".rows")?.textContent ?? "";
-
-    expect(facts).toContain("Ken Burns");
-    expect(facts).not.toContain("eigene");
   });
 });

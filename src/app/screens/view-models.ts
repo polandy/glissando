@@ -1,7 +1,10 @@
+import type { SlideshowChapter } from "../../compose/chapters-of-slideshow";
 import type { SlideshowTransition, TransitionChoice } from "../../library/own-timing";
 import type { PictureColours } from "../../library/picture-colours";
 import type { ResolvedPortraitPictures } from "../../library/portrait-pictures";
+import type { SlideshowMood } from "../../library/slideshow-mood";
 import type { StoredCard } from "../../library/stored-slideshow";
+import type { SlideshowLook } from "../../player/looks/slideshow-look";
 
 /** What the screens show; the composition root derives these from the stored slideshows. */
 
@@ -42,6 +45,8 @@ export interface PictureTile {
   readonly capturedAt: string;
   /** The length of a video slide's excerpt; absent for a still picture. */
   readonly clipMs?: number;
+  /** Shown with the picture in the player; absent: none. Normalised (`normalizeCaption`). */
+  readonly caption?: string;
   /** The picture plays a Ken Burns motion of the user's own. */
   readonly ownMotion: boolean;
   /** The picture's own duration; null while automatic. */
@@ -58,16 +63,6 @@ export interface PictureTile {
   readonly colours: PictureColours;
 }
 
-/** Which fades the music plays: named in its summary once the user changed the music. */
-export type MusicFades = "in-and-out" | "in" | "out";
-
-export interface MusicSummary {
-  /** The excerpt in seconds of the track; null: the whole track. */
-  readonly excerpt: { readonly fromSeconds: number; readonly toSeconds: number } | null;
-  /** Null while the music is untouched, or when it plays no fade. */
-  readonly fades: MusicFades | null;
-}
-
 export interface SlideshowDetails {
   readonly title: string;
   readonly coverUrl: string;
@@ -78,10 +73,12 @@ export interface SlideshowDetails {
   readonly musicTitle: string | null;
   /** How long the playlist plays, or null without music. */
   readonly musicSeconds: number | null;
-  /** What the music editor changed of the only song; null without music or with several songs. */
-  readonly musicSummary: MusicSummary | null;
   /** The user reordered the pictures; otherwise they are in capture-date order. */
   readonly ownOrder: boolean;
+  /** Rule C, TRIP_CHAPTERS.md: the owner turned the automatic trip chapters off. */
+  readonly automaticChaptersOff: boolean;
+  /** Every chapter, automatic and added, in play order (TRIP_CHAPTERS.md). */
+  readonly chapters: readonly SlideshowChapter[];
   /** How many pictures play a Ken Burns motion of the user's own. */
   readonly ownMotionCount: number;
   /** How many pictures show for a duration of the user's own. */
@@ -90,12 +87,16 @@ export interface SlideshowDetails {
   readonly ownTransitionCount: number;
   /** The transition of every picture without its own. */
   readonly transition: SlideshowTransition;
+  /** The slideshow's mood (ADR-0045); absent is Custom. */
+  readonly mood?: SlideshowMood;
+  /** The Mood sheet's "Follow the music's energy" switch (ADR-0046). */
+  readonly energyPacing: boolean;
+  /** The slideshow's colour grade; `"none"` for its absent setting (ADR-0044). */
+  readonly look: SlideshowLook;
   /** How portrait pictures lay out; `"automatic"` for the slideshow's absent setting (ADR-0028). */
   readonly portraitPictures: ResolvedPortraitPictures;
   /** How many slides compose two portrait pictures into one pair. */
   readonly pairCount: number;
-  /** How many pictures have a caption. */
-  readonly captionCount: number;
   /** The earliest and the latest capture date, ISO 8601. */
   readonly capturedFrom: string;
   readonly capturedTo: string;

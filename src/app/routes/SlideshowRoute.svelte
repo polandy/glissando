@@ -1,10 +1,14 @@
 <script lang="ts">
-  import { onDestroy, onMount } from "svelte";
+  import { onDestroy, onMount, untrack } from "svelte";
   import { MediaQuery } from "svelte/reactivity";
-  import { SlideshowNotFoundError, type StoredSlideshow } from "../../library/stored-slideshow";
+  import { NO_SONG_BEATS } from "../../compose/playlist";
+  import { SlideshowNotFoundError } from "../../library/library-store";
+  import type { StoredSlideshow } from "../../library/stored-slideshow";
   import type { SlideshowEditor } from "../editing/slideshow-editor";
   import { createScreenEditor } from "./screen-editor";
   import { getTranslator } from "../i18n/context";
+  import { loadMusicAnalysis, ScreenEnergyPacing } from "./screen-energy-pacing.svelte";
+  import { ScreenMoodBpm } from "./screen-mood-bpm.svelte";
   import { ScreenThumbnails } from "./screen-thumbnails.svelte";
   import SlideshowScreen from "../screens/SlideshowScreen.svelte";
   import { animationFrames, performanceClock } from "../../player";
@@ -15,6 +19,7 @@
   import ServerCopyConfirm from "./ServerCopyConfirm.svelte";
   import { loadSlideshowScreen } from "./route-loading";
   import { deleteShownSlideshow } from "./slideshow-exits";
+  import { must } from "./must";
   import { MOUSE_POINTER_QUERY } from "../screens/slideshow/pointer";
   import {
     NO_SELECTION,
@@ -24,6 +29,7 @@
   import { ScreenExports } from "./screen-exports.svelte";
   import { ScreenFocus } from "./screen-focus.svelte";
   import { ScreenStorage } from "./screen-storage.svelte";
+  import { slideshowRoutePictureActions } from "./slideshow-route-picture-actions";
   import type { SlideshowRouteProps } from "./slideshow-route-props";
 
   let {
@@ -53,6 +59,9 @@
     decodeClipSound,
     readClipPeaks,
     songIntake,
+    samplePreview,
+    fineSettingsFold,
+    musicEditorDetails,
     onBack,
     onPlay,
     onAddPictures,
@@ -81,7 +90,6 @@
     (id) => store.thumbnailBlob(id),
     (error) => onError(error),
   );
-
   const left = new AbortController();
   // The pass, the store and the export ports are fixed for the screen's lifetime.
   // svelte-ignore state_referenced_locally
@@ -98,10 +106,13 @@
     onError,
     left: left.signal,
   });
-
+  // svelte-ignore state_referenced_locally
+  const screenMoodBpm = new ScreenMoodBpm(beatPass, store, log);
+  // svelte-ignore state_referenced_locally
+  const screenEnergyPacing = new ScreenEnergyPacing(store, log);
   onMount(() => {
-    const stopFocus = screenFocus.follow();
-    loadSlideshowScreen(store, slideshowId, thumbnails.urls, left.signal).then(
+    const stops = [screenFocus.follow(), screenMoodBpm.follow()];
+    loadSlideshowScreen(store, slideshowId, thumbnails.urls, translator.language, left.signal).then(
       (loaded) => {
         if (loaded !== null) {
           screenFocus.load(loaded.stored);
@@ -128,7 +139,7 @@
         else onError(error);
       },
     );
-    return stopFocus;
+    return () => stops.forEach((stop) => stop());
   });
   onDestroy(() => {
     left.abort();
@@ -136,7 +147,6 @@
     thumbnails.dispose();
     screenStorage.dispose();
   });
-
   // The slideshow and where it lives are fixed for the screen's lifetime.
   // svelte-ignore state_referenced_locally
   const screenStorage = new ScreenStorage({
@@ -146,19 +156,25 @@
     thumbnails,
     editor: () => editor,
   });
-
   // The ids are handed over once, when the screen opens after adding.
   // svelte-ignore state_referenced_locally
   const newPictureIds: ReadonlySet<string> = new Set(addedPictureIds);
-
-  /** The card sheet only opens once the screen (and so the editor) is shown. */
-  function mustEditor(): SlideshowEditor {
-    if (editor === null) throw new Error("the editor is not ready yet");
-    return editor;
-  }
-
-  const details = $derived(stored === null ? null : thumbnails.details(stored));
+  const pictureActions = slideshowRoutePictureActions(() => editor);
+  const details = $derived(
+    stored === null ? null : thumbnails.details(stored, translator.language),
+  );
   const storage = $derived(stored === null ? null : screenStorage.of(stored, { serverOn, saving }));
+
+  // Rereads only when the songs change: `stored` is read untracked, so only `songIds` reruns this.
+  const songIds = $derived(stored === null ? "" : stored.songs.map((song) => song.id).join(","));
+  $effect(() => {
+    void songIds;
+    const current = untrack(() => stored);
+    if (current !== null) loadMusicAnalysis(current, screenMoodBpm, screenEnergyPacing);
+  });
+  const moodBpm = $derived(stored === null ? undefined : screenMoodBpm.of(stored));
+  const moodBeats = $derived(stored === null ? NO_SONG_BEATS : screenMoodBpm.beatsOf(stored));
+  const moodEnergyPacing = $derived(stored === null ? null : screenEnergyPacing.of(stored));
 </script>
 
 {#if editingPictureId !== null && stored !== null && editor !== null}
@@ -166,7 +182,10 @@
     {store}
     {stored}
     {focus}
+    {focusPass}
+    passPaused={screenFocus.passPaused}
     {beatPass}
+    {loudnessPass}
     {editor}
     pictureId={editingPictureId}
     {saving}
@@ -185,6 +204,9 @@
     {loudnessPass}
     audio={musicAudio}
     {songIntake}
+    {samplePreview}
+    detailsStore={musicEditorDetails}
+    {toaster}
     {saving}
     {onBack}
     {onError}
@@ -198,32 +220,43 @@
     {onPlay}
     onAddPictures={() => stored !== null && onAddPictures(stored)}
     {newPictureIds}
-    onRemove={(pictureId) => editor?.remove(pictureId)}
-    onShiftGroup={(pictureIds, offset) => editor?.shiftGroup(pictureIds, offset)}
-    onRemoveGroup={(pictureIds) => editor?.removeGroup(pictureIds)}
-    onShuffle={() => editor?.shuffle()}
-    onMoveGroup={(pictureIds, insertion) => editor?.moveGroup(pictureIds, insertion)}
-    onRename={(typed) => editor?.rename(typed)}
+    {...pictureActions}
     {onEdit}
     loadPicture={(id) => store.playbackPictureBlob(id)}
     {onError}
     {onEditMusic}
     onTransition={(transition) => editor?.setSlideshowTransition(transition)}
     onResetTransition={() => editor?.resetSlideshowTransition()}
+    onLook={(look) => editor?.look.set(look)}
+    onResetLook={() => editor?.look.reset()}
+    {moodBpm}
+    {moodBeats}
+    {moodEnergyPacing}
+    moodPreviewPorts={{
+      store,
+      stored: must(stored, "the slideshow"),
+      musicOutput,
+      decodeClipSound,
+      log,
+    }}
+    onMood={(mood) => editor?.mood.set(mood)}
+    onResetMood={() => editor?.mood.reset()}
+    onEnergyPacing={(on) => editor?.setEnergyPacing(on)}
     onPortraitPictures={(choice) => editor?.setPortraitPictures(choice)}
     onResetPortraitPictures={() => editor?.resetPortraitPictures()}
-    onEnsureOpeningCard={() => mustEditor().ensureOpeningCard()}
+    onEnsureOpeningCard={() => must(editor, "the editor").ensureOpeningCard()}
     onOpeningCard={(card) => editor?.setOpeningCard(card)}
     onRemoveOpeningCard={() => editor?.removeOpeningCard()}
-    onEnsureClosingCard={() => mustEditor().ensureClosingCard()}
+    onEnsureClosingCard={() => must(editor, "the editor").ensureClosingCard()}
     onClosingCard={(card) => editor?.setClosingCard(card)}
     onRemoveClosingCard={() => editor?.removeClosingCard()}
+    chapterEditor={editor?.chapters ?? null}
     previewPorts={{ clock: performanceClock, frames: animationFrames }}
     reducedMotion={reducedMotion.current}
     onDelete={() => deleteShownSlideshow(store, slideshowId, editor).then(onDeleted, onError)}
     exportState={exports.menuState(exportProgress, slideshowId)}
     {onExport}
-    onMenuOpened={exports.measure}
+    onShareOpened={exports.measure}
     newVideoExport={exports.newVideoExport}
     newHtmlExport={exports.newHtmlExport}
     mousePointer={mousePointer.current}
@@ -231,6 +264,11 @@
     {storage}
     serverRows={screenStorage.serverRows}
     onStorageAction={screenStorage.act}
+    {fineSettingsFold}
+    {focus}
+    focusSearch={screenFocus.search(slideshowId)}
+    focusPaused={screenFocus.passPaused}
+    onLookAgain={(pictureIds) => focusPass.lookAgain(pictureIds)}
   />
 {/if}
 {#if playing && stored !== null}

@@ -42,7 +42,12 @@ describe("WebGlRenderer.forget, a blurred fill (ADR-0028)", () => {
     const { renderer, created, deleted } = setUp();
     const picture = await solidBitmap(RED);
     const motion = standingStill({ zoom: 1, centerX: 0.5, centerY: 0.5 });
-    renderer.render({ kind: "slide", slide: { kind: "picture", picture, motion }, endFade: 0 });
+    renderer.render({
+      kind: "slide",
+      slide: { kind: "picture", picture, motion },
+      endFade: 0,
+      look: "none",
+    });
     expect(created).toHaveLength(BLURRED_FILL_TEXTURES);
 
     renderer.forget(picture);

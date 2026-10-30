@@ -1,5 +1,6 @@
 import { ImmichUnavailableError } from "../../immich/immich-client";
-import type { LibraryStore, StoredSlideshow } from "../../library/stored-slideshow";
+import type { LibraryStore } from "../../library/library-store";
+import type { StoredSlideshow } from "../../library/stored-slideshow";
 import type { ServerLibrary } from "../../server-library/server-library";
 import {
   ServerLibraryRefusedError,

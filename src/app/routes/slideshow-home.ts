@@ -1,8 +1,5 @@
-import {
-  SlideshowNotFoundError,
-  type LibraryStore,
-  type SlideshowStore,
-} from "../../library/stored-slideshow";
+import type { LibraryStore, SlideshowStore } from "../../library/library-store";
+import { SlideshowNotFoundError } from "../../library/library-store";
 import type { SlideshowHome } from "./slideshow-storage";
 
 /** The store the slideshow route reads and edits through, of either home. */

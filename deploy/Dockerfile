@@ -11,6 +11,10 @@ RUN npm ci --no-fund --no-audit
 COPY . .
 ARG GLISSANDO_COMMIT
 ARG GLISSANDO_COMMIT_DATE
+# Unset (not set with --build-arg), these reach npm run build genuinely absent from the
+# environment, so a plain build keeps sample music's enabled, published-base default (ADR-0042).
+ARG GLISSANDO_SAMPLE_MUSIC
+ARG GLISSANDO_SAMPLE_MUSIC_URL
 RUN npm run build && npm run build:server
 
 FROM caddy:2.11.7-alpine@sha256:d8542f48d34a9cf4e4c11a478865229840e87e4c96ea3f439101f31a5d35f75f AS caddy

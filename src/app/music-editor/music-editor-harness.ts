@@ -3,14 +3,23 @@ import { flushSync } from "svelte";
 import type { BetweenSongs, MusicTrim, PictureChanges } from "../../library/own-music";
 import type { PictureLength } from "../../library/picture-length";
 import type { StoredMusic, StoredPicture, StoredSlideshow } from "../../library/stored-slideshow";
+import type { SampleTrack, SampleTrackId } from "../../sample-music/sample-tracks";
 import type { BeatsStatus } from "../beats/music-beats-known";
 import type { LoudnessStatus } from "../loudness/music-loudness-known";
-import type { SongsBeatsStatus, SongsLoudnessStatus } from "./music-editor-view";
+import type { SongsBeatsStatus, SongsLoudnessStatus } from "./slideshow-times";
+import { FakeScheduler } from "../../ui-kit/testing/fake-scheduler";
+import type { SamplePreview } from "../sample-music/sample-preview";
 import { mountWithTranslator } from "../testing/mount-with-translator";
 import { reactiveProps } from "../testing/reactive-props.svelte";
+import { Toaster } from "../toast/toaster";
 import type { ListenKind, ListenState } from "./listen-preview";
+import { createMemoryStorage } from "../testing/memory-storage";
+import {
+  createStorageMusicEditorDetailsStore,
+  type MusicEditorDetailsStore,
+} from "./music-editor-details";
 import MusicEditorScreen from "./MusicEditorScreen.svelte";
-import type { PendingSong } from "./song-intake";
+import type { PendingSong, SampleSongRow } from "./song-intake";
 
 export const TRACK_MS = 204_000;
 
@@ -59,6 +68,18 @@ export function slideshowOfSongs(
   return { ...slideshowWith({}, { count }), songs, ...own };
 }
 
+/** A details store that starts with the "Details" switch on. */
+export function shownDetailsStore(): MusicEditorDetailsStore {
+  const store = createStorageMusicEditorDetailsStore(createMemoryStorage());
+  store.write("shown");
+  return store;
+}
+
+/** The header's "Details" switch. */
+export function detailsSwitch(): HTMLInputElement | null {
+  return document.querySelector<HTMLInputElement>('input[role="switch"][aria-label="Details"]');
+}
+
 let destroy: (() => void) | null = null;
 
 export function unmountEditor(): void {
@@ -74,6 +95,10 @@ export function mountEditor(
   slideshow: StoredSlideshow = slideshowWith(),
   beats: BeatsStatus = { kind: "listening" },
   loudness: LoudnessStatus = { kind: "listening" },
+  samplePreview: SamplePreview | undefined = undefined,
+  detailsStore: MusicEditorDetailsStore = createStorageMusicEditorDetailsStore(
+    createMemoryStorage(),
+  ),
 ) {
   const calls = {
     trims: [] as (MusicTrim | undefined)[],
@@ -88,14 +113,20 @@ export function mountEditor(
     pictureChanges: [] as (PictureChanges | undefined)[],
     pictureLength: [] as (PictureLength | undefined)[],
     secondsPerPicture: [] as number[],
+    setOwnPictureTimes: 0,
     selected: [] as string[],
     moves: [] as string[],
     removed: [] as string[],
     added: [] as string[],
     dismissed: [] as number[],
     betweenSongs: [] as (BetweenSongs | undefined)[],
+    repeatMusic: [] as (true | undefined)[],
+    removedSampleRows: [] as SampleTrackId[],
+    addedSampleTracks: [] as SampleTrackId[],
+    errors: [] as unknown[],
   };
   const songId = slideshow.songs[0]?.id ?? null;
+  const notAdded: (trackId: SampleTrackId) => boolean = () => false;
   const props = reactiveProps({
     slideshow,
     selectedSongId: songId,
@@ -104,7 +135,15 @@ export function mountEditor(
     peaks: Float32Array.from({ length: 1000 }, (_, index) => (index % 10) / 10),
     listening: null as ListenState | null,
     pending: [] as readonly PendingSong[],
+    sampleRows: [] as readonly SampleSongRow[],
+    samplePreview: samplePreview as SamplePreview | undefined,
+    detailsStore,
+    toaster: new Toaster(new FakeScheduler()),
+    onRemoveSampleRow: (trackId: SampleTrackId) => calls.removedSampleRows.push(trackId),
+    isSampleTrackAdded: notAdded,
+    onAddSampleTrack: (track: SampleTrack) => calls.addedSampleTracks.push(track.id),
     onBack: () => {},
+    onError: (error: unknown) => calls.errors.push(error),
     onTrim: (trim: MusicTrim | undefined) => calls.trims.push(trim),
     onFadeIn: (fadeMs: number | undefined) => calls.fadesIn.push(fadeMs),
     onFadeOut: (fadeMs: number | undefined) => calls.fadesOut.push(fadeMs),
@@ -113,6 +152,7 @@ export function mountEditor(
     onPictureChanges: (changes: PictureChanges | undefined) => calls.pictureChanges.push(changes),
     onPictureLength: (length: PictureLength | undefined) => calls.pictureLength.push(length),
     onSecondsPerPicture: (seconds: number) => calls.secondsPerPicture.push(seconds),
+    onSetOwnPictureTimes: () => (calls.setOwnPictureTimes += 1),
     onListen: (kind: ListenKind) => calls.listens.push(kind),
     onStopListening: () => (calls.stops += 1),
     onListenVolume: () => (calls.listenVolumes += 1),
@@ -123,6 +163,7 @@ export function mountEditor(
     onAddSongs: (files: readonly File[]) => calls.added.push(...files.map((file) => file.name)),
     onDismissPending: (key: number) => calls.dismissed.push(key),
     onBetweenSongs: (between: BetweenSongs | undefined) => calls.betweenSongs.push(between),
+    onRepeatMusic: (repeatMusic: true | undefined) => calls.repeatMusic.push(repeatMusic),
     saving: false,
   });
   const mounted = mountWithTranslator(MusicEditorScreen, props);
@@ -164,4 +205,13 @@ export function drag(on: Element, fromMs: number, toMs: number): void {
   flushSync();
   window.dispatchEvent(new PointerEvent("pointerup", at(toMs)));
   flushSync();
+}
+
+/** `mountEditor` with the "Details" switch on: the volume line, beat ticks, slideshow lane and hatching. */
+export function mountDetailed(
+  slideshow?: StoredSlideshow,
+  beats?: BeatsStatus,
+  loudness?: LoudnessStatus,
+) {
+  return mountEditor(slideshow, beats, loudness, undefined, shownDetailsStore());
 }

@@ -1,11 +1,16 @@
 <script lang="ts">
   import { onDestroy } from "svelte";
   import type { BeatPass } from "../../library/beat-pass";
+  import type { FocusPass } from "../../library/focus-pass";
+  import type { LoudnessPass } from "../../library/loudness-pass";
   import { MediaQuery } from "svelte/reactivity";
-  import type { LibraryStore, StoredSlideshow } from "../../library/stored-slideshow";
+  import type { LibraryStore } from "../../library/library-store";
+  import type { StoredSlideshow } from "../../library/stored-slideshow";
   import { animationFrames, performanceClock } from "../../player";
   import { composedBeats, type BeatsStatus } from "../beats/music-beats-known";
   import { PlaylistBeats } from "../beats/playlist-beats";
+  import { composedLoudness, type LoudnessStatus } from "../loudness/music-loudness-known";
+  import { PlaylistLoudness } from "../loudness/playlist-loudness";
   import type { PicturesFocus } from "../focus/pictures-focus";
   import type { SlideshowEditor } from "../editing/slideshow-editor";
   import { browserObjectUrls, ObjectUrls } from "../media/object-urls";
@@ -20,7 +25,10 @@
     store,
     stored,
     focus,
+    focusPass,
+    passPaused,
     beatPass,
+    loudnessPass,
     editor,
     pictureId,
     saving,
@@ -30,12 +38,18 @@
     log,
     readClipPeaks,
   }: {
-    store: Pick<LibraryStore, "pictureBlob" | "videoBlob" | "musicBeats">;
+    store: Pick<LibraryStore, "pictureBlob" | "videoBlob" | "musicBeats" | "musicLoudness">;
     stored: StoredSlideshow;
     /** The pictures' focus, updated as the background pass finds it. */
     focus: PicturesFocus;
+    /** "Look again" asks it to look at one picture again; never touches Ken Burns (ADR-0041). */
+    focusPass: Pick<FocusPass, "lookAgain">;
+    /** The pass ended on a `pausesOn` error: the focus line says so, not "waiting". */
+    passPaused: boolean;
     /** What it finds puts the automatic changes on the music's beats as it goes. */
     beatPass: Pick<BeatPass, "subscribe" | "listenFor">;
+    /** What it finds paces the automatic changes by the music's energy, while that is on. */
+    loudnessPass: Pick<LoudnessPass, "subscribe" | "listenFor">;
     editor: SlideshowEditor;
     pictureId: string;
     saving: boolean;
@@ -90,8 +104,24 @@
     new Map([...beats].map(([songId, status]) => [songId, composedBeats(status)])),
   );
 
+  let loudness = $state.raw<ReadonlyMap<string, LoudnessStatus>>(new Map());
+  // The ports are fixed for the route's lifetime.
+  // svelte-ignore state_referenced_locally
+  const playlistLoudness = new PlaylistLoudness({ store, pass: loudnessPass, log }, (status) => {
+    loudness = status;
+  });
+  onDestroy(() => playlistLoudness.dispose());
+  $effect(() => {
+    playlistLoudness.follow(songIds).catch(onError);
+  });
+  const songLoudness = $derived(composedLoudness(loudness));
+
   const present = $derived(stored.pictures.some((picture) => picture.id === pictureId));
-  const view = $derived(present ? pictureEditorView(stored, pictureId, focus, songBeats) : null);
+  const view = $derived(
+    present
+      ? pictureEditorView(stored, pictureId, focus, songBeats, songLoudness, passPaused)
+      : null,
+  );
   // The neighbours load ahead, so ‹ and › show their picture at once.
   $effect(() =>
     pictures.sync(
@@ -169,6 +199,7 @@
       onTransition={(choice) => editor.setTransition(view.id, choice)}
       onResetTransition={() => editor.resetTransition(view.id)}
       onAlone={(alone) => editor.setPictureAlone(view.id, alone)}
+      onLookAgain={() => focusPass.lookAgain([view.id])}
       previewPorts={{ clock: performanceClock, frames: animationFrames }}
       reducedMotion={reducedMotion.current}
       {saving}

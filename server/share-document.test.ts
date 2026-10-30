@@ -42,7 +42,7 @@ const slideshow = (overrides: Partial<ServerSlideshow> = {}): ServerSlideshow =>
 describe("the share document", () => {
   it("keeps the slideshow's own settings as they are, its creation date cut to its month", () => {
     const shared = shareDocumentOf(
-      slideshow({ ownOrder: true, transition: "cut", betweenSongs: "sequence" }),
+      slideshow({ ownOrder: true, transition: "cut", betweenSongs: "sequence", look: "warm" }),
     );
     expect(shared).toMatchObject({
       title: "Herbst in Wien",
@@ -51,6 +51,7 @@ describe("the share document", () => {
       ownOrder: true,
       transition: "cut",
       betweenSongs: "sequence",
+      look: "warm",
     });
   });
 

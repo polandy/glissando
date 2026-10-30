@@ -1,3 +1,4 @@
+import type { SongLoudness } from "../../compose/song-loudness";
 import type { MusicLoudness } from "../../loudness";
 import type { LoudnessPassState } from "../../library/loudness-pass";
 
@@ -24,4 +25,15 @@ export function loudnessStatus(
     return { kind: "known", loudness };
   }
   return pass.undecodable.has(musicId) ? { kind: "undecodable" } : { kind: "listening" };
+}
+
+/** `loudness` composed for `playlistEnergy`: a song not measured yet is left out (ADR-0046). */
+export function composedLoudness(loudness: ReadonlyMap<string, LoudnessStatus>): SongLoudness {
+  const known = new Map<string, MusicLoudness>();
+  for (const [songId, status] of loudness) {
+    if (status.kind === "known") {
+      known.set(songId, status.loudness);
+    }
+  }
+  return known;
 }

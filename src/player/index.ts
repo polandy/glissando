@@ -16,6 +16,7 @@ export {
 } from "./browser/music-output";
 export { captionLength, MAX_CAPTION_LENGTH, normalizeCaption, withinCaptionLimit } from "./caption";
 export { CAPTION_GLIDE_MS } from "./caption-glide";
+export { DeferredMusic } from "./deferred-music";
 export { CAPTION_FONT_NAME, CAPTION_FONT_WEIGHT } from "./caption-layout";
 export { captionStyles } from "./caption-style";
 export {
@@ -31,6 +32,15 @@ export { type DecodeClipSound } from "./browser/open-video";
 export { VIDEO_RATE_TOLERANCE_MS, VIDEO_SEEK_DRIFT_MS } from "./browser/video-playback";
 export { layerTransform } from "./dom/layer-transform";
 export { cropAt, cropRect, type KenBurnsAt, type Rect, type Size } from "./ken-burns";
+export { gradeColour, type Rgb } from "./looks/grade-colour";
+export { lookFilterValues, type LookFilterValues } from "./looks/look-filter";
+export {
+  DEFAULT_SLIDESHOW_LOOK,
+  isGradedLook,
+  SLIDESHOW_LOOKS,
+  type GradedSlideshowLook,
+  type SlideshowLook,
+} from "./looks/slideshow-look";
 export { parseSlideshow, SlideshowFormatError } from "./parse-slideshow";
 export { SlideshowLoadError } from "./picture-buffer";
 export {

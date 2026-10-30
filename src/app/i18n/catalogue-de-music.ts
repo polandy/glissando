@@ -4,12 +4,6 @@ import type { Message } from "./messages.ts";
 export const deMusic = {
   "import.convertingButton": "Wird umgewandelt\u00a0…",
   "import.convertedFrom": "Auf diesem Gerät aus {format} umgewandelt",
-  "slideshow.musicWholeTrack": "ganzer Titel",
-  "slideshow.musicExcerpt": "{from}–{to}",
-  "slideshow.musicFades-in-and-out": "blendet ein und aus",
-  "slideshow.musicFades-in": "blendet ein",
-  "slideshow.musicFades-out": "blendet aus",
-  "slideshow.musicSummary": "{excerpt} · {fades}",
   "music.crumb": "Musik",
   "music.trimmedTo": "{duration} · gekürzt auf {excerpt}",
   "music.start": "Anfang",
@@ -21,8 +15,9 @@ export const deMusic = {
   "music.listenEnd": "Ende anhören",
   "music.listenFrom": "ab {time}",
   "music.listenUntil": "bis {time}",
-  "music.hint":
-    "Griffe ziehen oder mit den Pfeiltasten verschieben (Umschalt: 1 s). Die orange Linie zeigt die Lautstärke mit Ein- und Ausblende.",
+  "music.hint": "Griffe ziehen oder mit den Pfeiltasten verschieben (Umschalt: 1 s).",
+  "music.hintVolumeLine": "Die orange Linie zeigt die Lautstärke mit Ein- und Ausblende.",
+  "music.details": "Details",
   "music.excerpt": "Ausschnitt",
   "music.wholeTrack": "Ganzer Titel",
   "music.trimmed": "Gekürzt",
@@ -38,8 +33,8 @@ export const deMusic = {
   "music.automaticBecause": "Automatisch: {reason}.",
   "music.reason-excerpt-starts-mid-track": "kurz, weil der Ausschnitt mitten im Titel beginnt",
   "music.reason-track-starts": "aus, weil der Titel von vorn beginnt",
-  "music.reason-slideshow-ends": "kurz, weil die Diashow bei {time} endet",
-  "music.reason-excerpt-ends-early": "kurz, weil der Ausschnitt vor dem Titelende aufhört",
+  "music.reason-slideshow-ends": "lang, weil die Diashow bei {time} endet",
+  "music.reason-excerpt-ends-early": "lang, weil der Ausschnitt vor dem Titelende aufhört",
   "music.reason-track-ends": "aus, weil der Titel von selbst endet",
   "music.pictureTimes": "Bildzeiten",
   "music.noteShared": {
@@ -63,6 +58,10 @@ export const deMusic = {
   "music.noteEndsEarly":
     "Jedes Bild hat eine eigene Dauer. Die Diashow endet nach {time}, die Musik blendet dort aus.",
   "music.noteEndsWithMusic": "Jedes Bild hat eine eigene Dauer. Die Diashow endet mit der Musik.",
+  "music.noteFitted":
+    "Jedes Bild ohne eigene Dauer schrumpft auf etwa {seconds}, um mit der Musik zu enden.",
+  "music.noteFittedOnTheBeat":
+    "Jedes Bild ohne eigene Dauer schrumpft auf etwa {seconds}, jeder Wechsel auf dem nächsten Takt, um mit der Musik zu enden.",
   "music.noteOwnSeconds":
     "Jedes Bild ohne eigene Dauer bleibt {seconds}. Die Diashow dauert {time}, die Musik blendet dort aus.",
   "music.noteOwnSecondsOnTheBeat":
@@ -71,7 +70,10 @@ export const deMusic = {
     "Jedes Bild ohne eigene Dauer bleibt {seconds}; nach der Ausblende laufen die letzten Bilder still. Kürzere Bilder, längere Musik oder „Musik füllen“ beheben das.",
   "music.pictureLength": "Bilddauer",
   "music.aboutSecondsEach": "Je etwa {seconds}",
+  "music.pictureLengthFitted": "Auf {seconds} gekürzt, damit es zur Musik passt",
   "music.fillTheMusic": "Musik füllen",
+  "music.pictureTimesByMood": "Die Bilddauer wird durch die Stimmung {name} festgelegt — {value}",
+  "music.setOwnPictureTimes": "Selbst festlegen",
   "music.pictureChanges": "Bildwechsel",
   "music.beatsPerMinute": "{bpm} BPM",
   "music.onTheBeat": "Im Takt",
@@ -79,9 +81,9 @@ export const deMusic = {
   "music.onTheBeatHint":
     "Jeder automatische Wechsel landet auf einem Schlag der Musik; ein Übergang dauert ganze Schläge.",
   "music.ownDurationsOffBeat": {
-    one: "Bild {pictures} behält seine eigene Dauer, darum kann der Wechsel danach zwischen die Schläge fallen.",
+    one: "Bild {pictures} behält seine eigene Dauer genau: Danach folgt kein automatisches Bild, das den Versatz ausgleichen könnte, darum kann der Wechsel zwischen die Schläge fallen.",
     other:
-      "Die Bilder {pictures} behalten ihre eigene Dauer, darum kann der Wechsel nach jedem zwischen die Schläge fallen.",
+      "Die Bilder {pictures} behalten ihre eigene Dauer genau: Danach folgt kein automatisches Bild, das den Versatz ausgleichen könnte, darum können die Wechsel zwischen die Schläge fallen.",
   },
   "music.evenlyHint": "Die Bilder teilen sich die Musik gleichmäßig, unabhängig von ihrem Takt.",
   "music.evenlyHintSeconds": "Jedes Bild bleibt genau {seconds}, unabhängig vom Takt.",
@@ -120,6 +122,4 @@ export const deMusic = {
   "music.volumeOriginalFile": "Originaldatei",
   "music.volumeListenCompare":
     "Während des Anhörens auf einen anderen Titel tippen, um zu vergleichen.",
-  "music.volumeComparison": "Lautstärke der Titel",
-  "music.volumeComparisonHint": "Graue Linie: Originaldatei",
 } as const satisfies Record<string, Message>;

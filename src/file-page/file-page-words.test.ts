@@ -9,6 +9,7 @@ const WORDS: FilePageWords = {
   withMusic: "with music",
   withoutMusic: "without music",
   madeWith: "Made with Glissando",
+  sampleMusicCredit: "Music: Glissando, CC BY-NC 4.0",
   play: "Play",
   pause: "Pause",
   mute: "Mute",

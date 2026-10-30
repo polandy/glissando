@@ -8,10 +8,19 @@ import type { CardInput } from "../../library/stored-card";
 import type { SlideshowTransition } from "../../library/own-timing";
 import type { PortraitPictures } from "../../library/portrait-pictures";
 import type { MotionPreviewPorts } from "../picture-editor/motion-preview";
+import type { SlideshowMood } from "../../library/slideshow-mood";
+import type { SongBeats } from "../../compose/playlist";
+import type { MoodEnergyPacing } from "./slideshow/mood-energy-pacing";
+import type { MoodPreviewPorts } from "./slideshow/mood-preview-ports";
+import type { ExportOutcome } from "../glissando-file/export-job";
 import type { ExportMenuState } from "../glissando-file/export-menu";
 import type { StripSelection } from "./slideshow/strip-selection";
 import type { Scheduler } from "../../ui-kit/scheduler";
-import type { FrameScheduler } from "../../player";
+import type { FrameScheduler, SlideshowLook } from "../../player";
+import type { SlideshowSearch } from "../../library/focus-pass";
+import type { PicturesFocus } from "../focus/pictures-focus";
+import type { ChapterSettingsEditor } from "../editing/chapter-settings-editor";
+import type { FineSettingsFoldStore } from "./slideshow/fine-settings-fold";
 
 /** `SlideshowScreen`'s props: the slideshow's own screen, its pictures strip, the title slide
  * and closing slide sheets, and the export and delete flows reached from it. */
@@ -45,6 +54,27 @@ export interface SlideshowScreenProps {
   onTransition: (transition: SlideshowTransition) => void;
   /** "Back to crossfade" in the transitions sheet. */
   onResetTransition: () => void;
+  /** The slideshow's colour grade was picked in its sheet (ADR-0044). */
+  onLook: (look: SlideshowLook) => void;
+  /** "Back to None" in the look sheet. */
+  onResetLook: () => void;
+  /** The slideshow's tempo under its mood, for the info panel and the Mood sheet's "What it
+   * sets" (ADR-0045); undefined without a mood, or without a clear beat to pace to. */
+  moodBpm: number | undefined;
+  /** The pass-aware beats the Mood sheet's live preview composes and paces to (MOOD.md); a new
+   * map once the background pass finds a song's beats restarts the preview on them. */
+  moodBeats: SongBeats;
+  /** The info panel's "Picture times" range under the energy pacing (ADR-0046); null until
+   * loaded or without any songs. */
+  moodEnergyPacing: MoodEnergyPacing | null;
+  /** The Mood sheet's live preview data ports; left out while it has no pictures. */
+  moodPreviewPorts: MoodPreviewPorts;
+  /** A mood tile was tapped: stores at once. */
+  onMood: (mood: SlideshowMood | undefined) => void;
+  /** "Back to Custom" in the Mood sheet. */
+  onResetMood: () => void;
+  /** The Mood sheet's "Follow the music's energy" switch (ADR-0046): stores at once. */
+  onEnergyPacing: (on: boolean) => void;
   /** A choice was picked in the portrait pictures sheet. */
   onPortraitPictures: (choice: PortraitPictures) => void;
   /** "Back to automatic" in the portrait pictures sheet. */
@@ -57,19 +87,23 @@ export interface SlideshowScreenProps {
   onEnsureClosingCard: () => StoredCard;
   onClosingCard: (card: CardInput) => void;
   onRemoveClosingCard: () => void;
+  /** The trip chapters editor (TRIP_CHAPTERS.md); null while importing. */
+  chapterEditor: ChapterSettingsEditor | null;
   /** The transitions sheet's tiles loop on these. */
   previewPorts: MotionPreviewPorts;
   /** The transitions sheet's tiles stand still. */
   reducedMotion: boolean;
   /** The user confirmed deleting the whole slideshow. */
   onDelete: () => void;
+  /** The Glissando file export's state, for the Share sheet's file row and sheet. */
   exportState: ExportMenuState;
-  onExport: () => void;
-  /** The ⋯ menu opened. */
-  onMenuOpened: () => void;
-  /** A video export of the slideshow as it is now, for the sheet "Save as video". */
+  /** Starts the Glissando file export; resolves with how it ended. */
+  onExport: () => Promise<ExportOutcome>;
+  /** The Share sheet opened. */
+  onShareOpened: () => void;
+  /** A video export of the slideshow as it is now, for the Share sheet's video row. */
   newVideoExport: () => VideoExportSession<ExportPreview>;
-  /** A web page export of the slideshow as it is now, for the sheet "Save as web page". */
+  /** A web page export of the slideshow as it is now, for the Share sheet's web page row. */
   newHtmlExport: () => HtmlExportSession;
   /** The primary pointer is a mouse (hovers, fine): a double-click opens a picture. */
   mousePointer: boolean;
@@ -80,10 +114,20 @@ export interface SlideshowScreenProps {
   /** A server slideshow's link (share_link/IN_THE_APP.md); null for a device slideshow. */
   serverRows?: ServerSlideshowRows | null;
   onStorageAction: (action: StorageAction) => void;
+  /** Whether the info panel's "Fine settings" fold is open, kept on this device (ADR-0048). */
+  fineSettingsFold: FineSettingsFoldStore;
   /** The selection bar acts on this; kept by the parent across the picture editor. */
   selection?: StripSelection;
   /** The strip's 450 ms touch hold; a real timeout by default, faked in tests. */
   holdScheduler?: Scheduler;
   /** The strip's auto-scroll frames; real `requestAnimationFrame` by default, faked in tests. */
   frameScheduler?: FrameScheduler;
+  /** What is known of the pictures' focus, for the Focus menu entry and its sheet (ADR-0041). */
+  focus: PicturesFocus;
+  /** This slideshow's progress in the background focus pass; undefined once it has none to report. */
+  focusSearch?: SlideshowSearch | undefined;
+  /** The focus pass paused on a retryable error (ADR-0041): the Focus sheet says so, not "waiting". */
+  focusPaused: boolean;
+  /** The Focus sheet's "Try again"/"Look again at all" buttons. */
+  onLookAgain: (pictureIds: readonly string[]) => void;
 }

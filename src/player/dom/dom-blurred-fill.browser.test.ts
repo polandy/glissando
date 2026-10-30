@@ -39,6 +39,7 @@ describe("DomRenderer: the blurred fill (ADR-0028)", () => {
     renderer.render({
       kind: "transition",
       endFade: 0,
+      look: "none",
       effect: "crossfade",
       progress: 0.5,
       from: { kind: "picture", picture: red, motion: STILL, fit: "cover" },
@@ -61,6 +62,7 @@ describe("DomRenderer: the blurred fill (ADR-0028)", () => {
     renderer.render({
       kind: "slide",
       endFade: 0,
+      look: "none",
       slide: { kind: "picture", picture: red, motion: STILL },
     });
 
@@ -74,6 +76,7 @@ describe("DomRenderer: the blurred fill (ADR-0028)", () => {
     renderer.render({
       kind: "slide",
       endFade: 0,
+      look: "none",
       slide: { kind: "picture", picture: red, motion: STILL, caption: "Lake" },
     });
 
@@ -88,6 +91,7 @@ describe("DomRenderer: the blurred fill (ADR-0028)", () => {
     renderer.render({
       kind: "slide",
       endFade: 0,
+      look: "none",
       slide: { kind: "picture", picture: red, motion: STILL },
     });
     expect(box.querySelector("img[data-backdrop]")).not.toBeNull();
@@ -95,6 +99,7 @@ describe("DomRenderer: the blurred fill (ADR-0028)", () => {
     renderer.render({
       kind: "slide",
       endFade: 0,
+      look: "none",
       slide: { kind: "picture", picture: blue, motion: STILL, fit: "cover" },
     });
 
@@ -109,6 +114,7 @@ describe("DomRenderer: the blurred fill (ADR-0028)", () => {
     renderer.render({
       kind: "slide",
       endFade: 0,
+      look: "none",
       slide: { kind: "picture", picture: red, motion: STILL },
     });
     expect(box.querySelector("img[data-backdrop]")).not.toBeNull();
@@ -125,6 +131,7 @@ describe("DomRenderer: the blurred fill (ADR-0028)", () => {
     renderer.render({
       kind: "transition",
       endFade: 0,
+      look: "none",
       effect: "crossfade",
       progress: 0.5,
       from: {

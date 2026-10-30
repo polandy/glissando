@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { SlideshowNotFoundError, type StoredSlideshow } from "../../library/stored-slideshow";
+import { SlideshowNotFoundError } from "../../library/library-store";
+import type { StoredSlideshow } from "../../library/stored-slideshow";
 import { slideshow } from "../../library/testing/library-store-contract";
 import { ServerLibraryUnavailableError } from "../../server-library/server-library-client";
 import { SlideshowChangedError } from "../../server-library/server-slideshow-store";

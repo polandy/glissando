@@ -1,5 +1,6 @@
 import {
   AudioElementMusic,
+  DeferredMusic,
   animationFrames,
   performanceClock,
   type Clock,
@@ -13,7 +14,7 @@ import { decodePeaksWithWebAudio, type DecodePeaks } from "./decode-peaks";
 /** The browser's audio behind seams: decoding for the waveform, playback for listening. */
 export interface MusicEditorAudio {
   readonly decodePeaks: DecodePeaks;
-  /** Plays the music file at `url`. */
+  /** Plays the music file at `url`, opening it only at the first play. */
   readonly playback: (url: string) => MusicPlayback;
   readonly createUrl: (blob: Blob) => string;
   readonly revokeUrl: (url: string) => void;
@@ -25,7 +26,7 @@ export interface MusicEditorAudio {
 export function browserMusicEditorAudio(output: MusicOutput): MusicEditorAudio {
   return {
     decodePeaks: decodePeaksWithWebAudio,
-    playback: (url) => new AudioElementMusic(url, output),
+    playback: (url) => new DeferredMusic(() => new AudioElementMusic(url, output)),
     createUrl: browserObjectUrls.create,
     revokeUrl: browserObjectUrls.revoke,
     clock: performanceClock,

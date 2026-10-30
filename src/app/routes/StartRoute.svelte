@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onDestroy, onMount, type Snippet } from "svelte";
   import type { FocusPass, FocusPassState } from "../../library/focus-pass";
-  import type { LibraryStore } from "../../library/stored-slideshow";
+  import type { LibraryStore } from "../../library/library-store";
   import { browserObjectUrls, ObjectUrls } from "../media/object-urls";
   import type { OpenNotice } from "../glissando-file/open-flow";
   import StartScreen from "../screens/StartScreen.svelte";
@@ -21,6 +21,7 @@
     store,
     serverLibrary,
     focusPass,
+    serverFocusPass,
     playStartAnimation,
     onError,
     onCreate,
@@ -42,8 +43,10 @@
     store: LibraryStore;
     /** Its slideshows show in their own section while it is on or offline. */
     serverLibrary: Pick<ServerLibrary, "availability" | "store" | "memory">;
-    /** Its progress per slideshow shows on the cards. */
+    /** Its progress per slideshow shows on the device cards. */
     focusPass: Pick<FocusPass, "state" | "subscribe">;
+    /** Its progress per slideshow shows on the server cards (ADR-0041). */
+    serverFocusPass: Pick<FocusPass, "state" | "subscribe">;
     playStartAnimation: boolean;
     onError: (error: unknown) => void;
     onCreate: () => void;
@@ -70,6 +73,8 @@
   // The pass is fixed for the screen's lifetime.
   // svelte-ignore state_referenced_locally
   let passState = $state.raw<FocusPassState>(focusPass.state);
+  // svelte-ignore state_referenced_locally
+  let serverPassState = $state.raw<FocusPassState>(serverFocusPass.state);
   // The store is fixed for the screen's lifetime.
   // svelte-ignore state_referenced_locally
   const covers = new ObjectUrls({
@@ -107,6 +112,7 @@
   onMount(() => {
     const stopFocus = focusPass.subscribe((next) => (passState = next));
     const stopDemo = demoSlideshow.subscribe((next) => (demoState = next));
+    const stopServerFocus = serverFocusPass.subscribe((next) => (serverPassState = next));
     loadStartSlideshows(store, covers, left.signal).then((loaded) => {
       if (loaded !== null) {
         slideshows = loaded;
@@ -125,6 +131,7 @@
     return () => {
       stopFocus();
       stopDemo();
+      stopServerFocus();
       stopServer();
     };
   });
@@ -146,6 +153,7 @@
     {slideshows}
     {server}
     focusSearches={passState.slideshows}
+    serverFocusSearches={serverPassState.slideshows}
     {onCreate}
     {onOpen}
     {updateWaiting}

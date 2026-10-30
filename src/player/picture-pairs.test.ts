@@ -77,7 +77,7 @@ describe("PictureBuffer, a paired slide (ADR-0028)", () => {
 describe("renderFrame, a paired slide (ADR-0028)", () => {
   it("draws the partner picture with the partner's own Ken Burns motion", () => {
     const slideshow: Slideshow = {
-      formatVersion: 8,
+      formatVersion: 9,
       title: "Pairs",
       slides: [paired("a.jpg", "b.jpg")],
     };
@@ -107,7 +107,7 @@ describe("renderFrame, a paired slide (ADR-0028)", () => {
 describe("FramePictures, a paired slide (ADR-0028)", () => {
   it("prepares both pictures of an upcoming paired slide", async () => {
     const slideshow: Slideshow = {
-      formatVersion: 8,
+      formatVersion: 9,
       title: "Pairs",
       slides: [slide("c.jpg", 4000), paired("a.jpg", "b.jpg")],
     };

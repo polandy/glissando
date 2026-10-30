@@ -58,7 +58,7 @@ describe("musicEditorView, pictures lasting their own seconds with music", () =>
     expect(view.slideChanges.map((change) => change.atMs)).toEqual([4900, 9700, 14_900]);
     expect(view.slideshowMs).toBe(20_100);
     expect(view.audibleEndMs).toBe(20_100);
-    expect(view.fadeOut).toEqual({ ms: 2000, own: false, reason: "slideshow-ends" });
+    expect(view.fadeOut).toEqual({ ms: 5000, own: false, reason: "slideshow-ends" });
     expect(view.note).toEqual({
       kind: "own-seconds",
       secondsPerPicture: 5,
@@ -87,5 +87,13 @@ describe("musicEditorView, pictures lasting their own seconds with music", () =>
       automaticCount: 4,
       secondsPerPicture: 5,
     });
+  });
+
+  it("shrinks the pictures to end with a shorter song instead of outlasting it (ADR-0047)", () => {
+    // 4 pictures at 5 s would outlast a 16 s song, but a 4 s share stays at or above the
+    // floor (2/3 of 5 s), so they shrink to it instead of ending in silence.
+    const view = firstSongView(slideshow(16_000), FOUND);
+
+    expect(view.note).toEqual({ kind: "fitted", shareMs: 4000, onTheBeat: true });
   });
 });

@@ -95,8 +95,9 @@ export class ImportFlow<Session extends DiscardableSession> {
   async created(slideshowId: string): Promise<void> {
     this.#publish({ session: null });
     this.#ports.deleteAbandonedMedia();
-    this.#ports.navigator.open({ screen: "slideshow", slideshowId });
-    this.#ports.toaster.show({ text: this.#ports.createdText(), tone: "info" });
+    const slideshow = { screen: "slideshow", slideshowId } as const;
+    this.#ports.navigator.open(slideshow);
+    this.#ports.toaster.show({ text: this.#ports.createdText(), tone: "info", route: slideshow });
     await this.afterCreate();
   }
 

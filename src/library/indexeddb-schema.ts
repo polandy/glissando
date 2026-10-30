@@ -2,7 +2,7 @@
 
 /** Records and media share one database so a transaction can span both (see ADR-0003). */
 export const LIBRARY_DATABASE_NAME = "glissando";
-export const SCHEMA_VERSION = 7;
+export const SCHEMA_VERSION = 8;
 /** The version that added the `imports` store. */
 const IMPORTS_ADDED_IN = 2;
 /** The version that added the `focus` store (ADR-0012). */
@@ -20,6 +20,13 @@ const COLOURS_ADDED_IN = 5;
 const VIDEOS_ADDED_IN = 6;
 /** The version that added the `loudness` store (dev-docs/library/MUSIC.md). */
 const LOUDNESS_ADDED_IN = 7;
+/**
+ * The version whose `focus` records carry a `detector` version (ADR-0041). There is no
+ * production instance yet, so the store is dropped and refilled rather than migrated: every
+ * picture is looked at again by the current detector, including one stored as "none" before
+ * objects or scenery.
+ */
+const FOCUS_RESET_IN = 8;
 
 export const SLIDESHOWS = "slideshows";
 export const PICTURES = "pictures";
@@ -72,5 +79,9 @@ export function upgradeLibraryDatabase(database: IDBDatabase, oldVersion: number
   if (oldVersion > 0 && oldVersion < COLOURS_ADDED_IN) {
     database.deleteObjectStore(SLIDESHOWS);
     database.createObjectStore(SLIDESHOWS, { keyPath: "id" });
+  }
+  if (oldVersion > 0 && oldVersion < FOCUS_RESET_IN) {
+    database.deleteObjectStore(FOCUS);
+    database.createObjectStore(FOCUS);
   }
 }

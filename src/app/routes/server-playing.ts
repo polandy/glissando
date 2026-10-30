@@ -1,4 +1,5 @@
-import type { LibraryStore, StoredSlideshow } from "../../library/stored-slideshow";
+import type { LibraryStore } from "../../library/library-store";
+import type { StoredSlideshow } from "../../library/stored-slideshow";
 import { PictureMissingFromImmichError } from "../../server-library/server-slideshow-store";
 import type { PlayerFailure } from "../player/player-failure";
 import type { PrepareRendition } from "../player/prepare/prepared-pictures";

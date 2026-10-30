@@ -1,4 +1,5 @@
 import type { ImmichPhoto } from "../../immich/immich-client";
+import type { ExifGps } from "../../import/exif-gps";
 import { localPictureSource, type LocalPictureReaders } from "../../import/local-picture-source";
 import {
   PictureImport,
@@ -11,7 +12,8 @@ import type { PictureSource } from "../../import/picture-source";
 import { localVideoSource, type LocalVideoReaders } from "../../import/local-video-source";
 import type { PictureColours, RgbPixel } from "../../library/picture-colours";
 import type { PictureIdentity } from "../../library/picture-identity";
-import type { LibraryStore } from "../../library/stored-slideshow";
+import type { LibraryStore } from "../../library/library-store";
+import type { Place } from "../../places/nearest-place";
 import { linkImmichPhotos } from "../../server-library/link-immich-photos";
 import type { PictureChecker } from "../../culling/picture-checker";
 import { PictureCulling } from "./picture-culling";
@@ -33,6 +35,8 @@ export interface PictureIntakePorts
   pixels(blob: Blob): Promise<readonly RgbPixel[]>;
   /** A linked Immich photo's colours, read from a thumbnail; nothing else about it is downloaded. */
   immichColours(photo: ImmichPhoto): Promise<PictureColours>;
+  /** The nearest bundled place to a picture's GPS, or null beyond its reach (ADR-0043). */
+  resolvePlace(gps: ExifGps): Promise<Place | null>;
   /** Claim and media ids. */
   newId(): string;
   now(): Date;
@@ -95,6 +99,7 @@ export class PictureIntake {
       pixels: ports.pixels,
       newId: ports.newId,
       log: ports.log,
+      resolvePlace: ports.resolvePlace,
       known: () => this.#known,
       stored: (stored) => {
         // A clip is never a blur or a near-duplicate of a shot (ADR-0034).

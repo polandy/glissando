@@ -47,7 +47,12 @@ export class ScreenExports {
   }
 
   readonly newVideoExport = () =>
-    slideshowVideoExport(this.#ports.videoExport, this.#ports.store, this.#loaded());
+    slideshowVideoExport(
+      this.#ports.videoExport,
+      this.#ports.store,
+      this.#loaded(),
+      this.#ports.translator.language,
+    );
 
   readonly newHtmlExport = () => {
     const { htmlExport, store, translator, home } = this.#ports;

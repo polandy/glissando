@@ -98,7 +98,7 @@ async function layer(colour: Rgb, caption?: string): Promise<SlideLayer<BitmapPi
 }
 
 async function slideFrame(colour: Rgb, caption?: string): Promise<RenderFrame<BitmapPicture>> {
-  return { kind: "slide", slide: await layer(colour, caption), endFade: 0 };
+  return { kind: "slide", slide: await layer(colour, caption), endFade: 0, look: "none" };
 }
 
 /** Resolves once `type` fires on `target`. */
@@ -166,6 +166,7 @@ describe("WebGlRenderer captions", () => {
       from: await layer(RED),
       to: await layer(BLUE, CAPTION),
       endFade: 0,
+      look: "none",
     };
 
     expect(drawAndRead(frame, GRADIENT_CORNER)).toEqual(RED);
@@ -183,6 +184,7 @@ describe("WebGlRenderer captions", () => {
       from: await layer(RED, CAPTION),
       to: await layer(BLUE),
       endFade: 0,
+      look: "none",
     };
 
     expect(drawAndRead(frame, GRADIENT_CORNER)).toEqual(BLUE);

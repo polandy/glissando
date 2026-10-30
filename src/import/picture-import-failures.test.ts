@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MediaNotFoundError } from "../library/stored-slideshow";
+import { MediaNotFoundError } from "../library/library-store";
 import { PictureImportFailedError } from "./picture-import";
 import { UnreadablePictureError } from "./unreadable-picture";
 import {

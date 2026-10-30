@@ -32,7 +32,8 @@ is the share of pictures whose chosen focus point lies inside a tagged face (box
   source commit and sha256 in the header; the cascade is the upstream file at a fixed commit
   (`facefinder.bin` — without an extension Vite's dev server serves it as a module), pinned by
   sha256 in a unit test. The face fixture in the tests is NASA's public-domain portrait from
-  scikit-image's test data.
+  scikit-image's test data. Both MIT notices are listed in `third-party-licenses.md`
+  (`build/committed-licenses.ts`), since neither is an npm package Vite's own licences list sees.
 - It runs on the stored **480 px thumbnail**, in a **Web Worker**, so the ~0.2 s a phone needs
   per picture never blocks playback or the editor. Detections are clustered and kept above a
   score of 5 (picojs's own cut-off); the focus is the box of the one with the largest

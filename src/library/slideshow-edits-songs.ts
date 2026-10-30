@@ -64,6 +64,22 @@ export function setBetweenSongs(
       };
 }
 
+/**
+ * Repeats the playlist from its first song, joined like any two songs, for as long as the
+ * slideshow lasts, instead of the automatic pictures shrinking to fit a shorter one; `undefined`
+ * plays it once through (ADR-0047).
+ */
+export function setRepeatMusic(
+  slideshow: StoredSlideshow,
+  repeatMusic: true | undefined,
+): StoredSlideshow {
+  const onceThrough: { -readonly [Key in keyof StoredSlideshow]: StoredSlideshow[Key] } = {
+    ...slideshow,
+  };
+  delete onceThrough.repeatMusic;
+  return repeatMusic === undefined ? onceThrough : { ...onceThrough, repeatMusic };
+}
+
 /** Where the song is in the playlist; throws when the slideshow does not play it. */
 export function songIndex(slideshow: StoredSlideshow, songId: string): number {
   const index = slideshow.songs.findIndex(({ id }) => id === songId);

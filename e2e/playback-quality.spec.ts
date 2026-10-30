@@ -20,6 +20,7 @@ async function serverShowOnTheServer(page: Page) {
     id: "server-show",
     revision: 1,
     share: null,
+    focus: new Map(),
     document: {
       format: "glissando-server",
       formatVersion: SERVER_DOCUMENT_FORMAT_VERSION,

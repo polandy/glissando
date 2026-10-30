@@ -1,6 +1,8 @@
 /** Shared set-up of the `SlideshowScreen` browser tests. */
-import { flushSync } from "svelte";
+import { NO_SONG_BEATS, type SongBeats } from "../../compose/playlist";
 import type { SlideshowTransition } from "../../library/own-timing";
+import type { SlideshowLook } from "../../player";
+import type { SlideshowMood } from "../../library/slideshow-mood";
 import type { ResolvedPortraitPictures } from "../../library/portrait-pictures";
 import type { StoredCard } from "../../library/stored-slideshow";
 import type { CardInput } from "../../library/stored-card";
@@ -13,6 +15,14 @@ import type { ExportMenuState } from "../glissando-file/export-menu";
 import type { SlideshowDetails, SlideshowStorage, StorageAction } from "./view-models";
 import { createTranslator } from "../i18n/translator";
 import type { ServerSlideshowRows } from "../server-library/server-slideshow-sessions";
+import { NO_FOCUS_KNOWN, type PicturesFocus } from "../focus/pictures-focus";
+import type { SlideshowSearch } from "../../library/focus-pass";
+import type { ChapterSettingsEditor } from "../editing/chapter-settings-editor";
+import type { MoodEnergyPacing } from "./slideshow/mood-energy-pacing";
+import { createStorageFineSettingsFoldStore } from "./slideshow/fine-settings-fold";
+import { moodPreviewPortsFixture } from "./slideshow/mood-preview-ports-fixture";
+import { createMemoryStorage } from "../testing/memory-storage";
+import { withClosingCard, withMood, withOpeningCard } from "./slideshow-screen-harness-cards";
 
 /** The title slide a bare `ensureOpeningCard` call creates, for tests that don't care about it. */
 const DEFAULT_OPENING_CARD: StoredCard = {
@@ -55,15 +65,17 @@ export function details(ids: readonly string[], overrides: Partial<SlideshowDeta
     songCount: 0,
     musicTitle: null,
     musicSeconds: null,
-    musicSummary: null,
     ownOrder: false,
+    automaticChaptersOff: false,
+    chapters: [],
     ownMotionCount: 0,
     ownDurationCount: 0,
     ownTransitionCount: 0,
     transition: "crossfade",
+    energyPacing: false,
+    look: "none",
     portraitPictures: "automatic",
     pairCount: 0,
-    captionCount: 0,
     capturedFrom: "2025-07-01T10:00:00Z",
     capturedTo: "2025-07-03T10:00:00Z",
     pictures: ids.map((id, index) => ({
@@ -82,26 +94,6 @@ export function details(ids: readonly string[], overrides: Partial<SlideshowDeta
   return { ...base, ...overrides };
 }
 
-/** `slideshow` with its title slide set, or removed when `card` is undefined. */
-function withOpeningCard(
-  slideshow: SlideshowDetails,
-  card: StoredCard | undefined,
-): SlideshowDetails {
-  const { openingCard, ...rest } = slideshow;
-  void openingCard;
-  return card === undefined ? rest : { ...rest, openingCard: card };
-}
-
-/** `slideshow` with its closing slide set, or removed when `card` is undefined. */
-function withClosingCard(
-  slideshow: SlideshowDetails,
-  card: StoredCard | undefined,
-): SlideshowDetails {
-  const { closingCard, ...rest } = slideshow;
-  void closingCard;
-  return card === undefined ? rest : { ...rest, closingCard: card };
-}
-
 export function mountScreen(
   slideshow: SlideshowDetails = details(["a", "b", "c"]),
   {
@@ -111,7 +103,16 @@ export function mountScreen(
     newPictureIds = new Set<string>(),
     storage = null as SlideshowStorage | null,
     serverRows = null as ServerSlideshowRows | null,
+    focus = NO_FOCUS_KNOWN as PicturesFocus,
+    focusSearch = undefined as SlideshowSearch | undefined,
+    focusPaused = false,
     english = false,
+    chapterEditor = null as ChapterSettingsEditor | null,
+    moodBpm = undefined as number | undefined,
+    moodBeats = NO_SONG_BEATS as SongBeats,
+    moodEnergyPacing = null as MoodEnergyPacing | null,
+    moodPreviewPorts = moodPreviewPortsFixture(),
+    fineSettingsFold = createStorageFineSettingsFoldStore(createMemoryStorage()),
   } = {},
 ) {
   const clock = new FakeClock();
@@ -129,10 +130,16 @@ export function mountScreen(
     musicEdits: 0,
     transitions: [] as SlideshowTransition[],
     transitionResets: 0,
+    looks: [] as SlideshowLook[],
+    lookResets: 0,
+    moods: [] as (SlideshowMood | undefined)[],
+    moodResets: 0,
+    energyPacingChoices: [] as boolean[],
     portraitPictureChoices: [] as ResolvedPortraitPictures[],
     portraitPictureResets: 0,
     deletes: 0,
     adds: 0,
+    plays: 0,
     storageActions: [] as StorageAction[],
     openingCardsEnsured: 0,
     openingCards: [] as CardInput[],
@@ -142,12 +149,13 @@ export function mountScreen(
     closingCardsRemoved: 0,
     loaded: [] as string[],
     errors: [] as unknown[],
+    lookAgain: [] as string[][],
   };
   // The transitions sheet's picks and resets come back as the parent would show them.
   const props = reactiveProps({
     slideshow,
     onBack: () => {},
-    onPlay: () => {},
+    onPlay: () => (calls.plays += 1),
     onAddPictures: () => (calls.adds += 1),
     newPictureIds,
     onRemove: (pictureId: string) => calls.removed.push(pictureId),
@@ -174,6 +182,30 @@ export function mountScreen(
     onResetTransition: () => {
       calls.transitionResets += 1;
       props.slideshow = { ...props.slideshow, transition: "crossfade" };
+    },
+    onLook: (look: SlideshowLook) => {
+      calls.looks.push(look);
+      props.slideshow = { ...props.slideshow, look };
+    },
+    onResetLook: () => {
+      calls.lookResets += 1;
+      props.slideshow = { ...props.slideshow, look: "none" };
+    },
+    moodBpm,
+    moodBeats,
+    moodEnergyPacing,
+    moodPreviewPorts,
+    onMood: (mood: SlideshowMood | undefined) => {
+      calls.moods.push(mood);
+      props.slideshow = withMood(props.slideshow, mood);
+    },
+    onResetMood: () => {
+      calls.moodResets += 1;
+      props.slideshow = withMood(props.slideshow, undefined);
+    },
+    onEnergyPacing: (on: boolean) => {
+      calls.energyPacingChoices.push(on);
+      props.slideshow = { ...props.slideshow, energyPacing: on };
     },
     onPortraitPictures: (choice: ResolvedPortraitPictures) => {
       calls.portraitPictureChoices.push(choice);
@@ -211,12 +243,13 @@ export function mountScreen(
       calls.closingCardsRemoved += 1;
       props.slideshow = withClosingCard(props.slideshow, undefined);
     },
+    chapterEditor,
     previewPorts: { clock, frames },
     reducedMotion,
     onDelete: () => (calls.deletes += 1),
     exportState: { kind: "idle", sizeBytes: null } as ExportMenuState,
-    onExport: () => {},
-    onMenuOpened: () => {},
+    onExport: () => Promise.resolve("saved" as const),
+    onShareOpened: () => {},
     newVideoExport: () => {
       throw new Error("the video export sheet is not opened in these tests");
     },
@@ -228,6 +261,11 @@ export function mountScreen(
     storage,
     serverRows,
     onStorageAction: (action: StorageAction) => calls.storageActions.push(action),
+    fineSettingsFold,
+    focus,
+    focusSearch,
+    focusPaused,
+    onLookAgain: (pictureIds: readonly string[]) => calls.lookAgain.push([...pictureIds]),
   });
   const mounted = mountWithTranslator(
     SlideshowScreen,
@@ -238,63 +276,12 @@ export function mountScreen(
   return { target: mounted.target, calls, clock, frames, holdScheduler, dragFrames };
 }
 
-export function byLabel<T extends HTMLElement = HTMLButtonElement>(label: string): T {
-  const found = document.querySelector<T>(`[aria-label="${label}"]`);
-  if (found === null) {
-    throw new Error(`nothing labelled "${label}"`);
-  }
-  return found;
-}
-
-export function buttonNamed(name: string): HTMLButtonElement {
-  const found = [...document.querySelectorAll("button")].find(
-    (button) => button.textContent?.trim() === name,
-  );
-  if (found === undefined) {
-    throw new Error(`no button named "${name}"`);
-  }
-  return found;
-}
-
-/** A tile's button, named by its picture's description. */
-export function tile(number: number, date: string): HTMLButtonElement {
-  const picture = document.querySelector(`img[alt="Bild ${number}, aufgenommen am ${date}"]`);
-  const button = picture?.closest("button");
-  if (button === null || button === undefined) {
-    throw new Error(`no tile for picture ${number}`);
-  }
-  return button;
-}
-/** The selection bar, by its toolbar name: it holds one picture or several. */
-export const selectionBar = () => document.querySelector('[role="toolbar"][aria-label="Auswahl"]');
-
-export function press(target: HTMLElement, key: string, shiftKey = false): void {
-  target.dispatchEvent(new KeyboardEvent("keydown", { key, shiftKey, bubbles: true }));
-  flushSync();
-}
-
-export function click(
-  target: HTMLElement,
-  modifiers: { ctrlKey?: boolean; shiftKey?: boolean } = {},
-): void {
-  target.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, ...modifiers }));
-  flushSync();
-}
-
-/** A tile's drag, by mouse or touch (ADR-0019): `pointerdown` bubbles from its `.pick` button. */
-export function firePointer(
-  target: EventTarget,
-  type: "pointerdown" | "pointermove" | "pointerup" | "pointercancel",
-  { x = 0, y = 0, pointerType = "mouse" as "mouse" | "touch" } = {},
-): void {
-  target.dispatchEvent(
-    new PointerEvent(type, {
-      bubbles: true,
-      cancelable: true,
-      clientX: x,
-      clientY: y,
-      pointerType,
-    }),
-  );
-  flushSync();
-}
+export {
+  byLabel,
+  buttonNamed,
+  tile,
+  selectionBar,
+  press,
+  click,
+  firePointer,
+} from "./slideshow-screen-dom";

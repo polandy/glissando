@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { mountWithTranslator } from "../../testing/mount-with-translator";
 import type { PictureTile } from "../view-models";
+import { lookFilterId, lookFilterUrl } from "./look-filter-id";
 import StripTile from "./StripTile.svelte";
 
 let destroy: (() => void) | null = null;
@@ -25,13 +26,14 @@ function picture(overrides: Partial<PictureTile> = {}): PictureTile {
   };
 }
 
-function mountTile(pictureOverrides: Partial<PictureTile> = {}, number = 1) {
+function mountTile(pictureOverrides: Partial<PictureTile> = {}, number = 1, lookFilter = "") {
   const mounted = mountWithTranslator(StripTile, {
     picture: picture(pictureOverrides),
     number,
     selected: false,
     selecting: false,
     isNew: false,
+    lookFilter,
     mousePointer: true,
     dragging: false,
     drop: null,
@@ -105,5 +107,23 @@ describe("StripTile, the alone and blurred fill badges (ADR-0028)", () => {
     expect(target.querySelector("img")?.getAttribute("alt")).not.toMatch(/allein|Füllung/);
     expect(target.querySelector(ALONE)).toBeNull();
     expect(target.querySelector(BLURRED_FILL)).toBeNull();
+  });
+});
+
+describe("StripTile, the slideshow's look (LOOKS.md)", () => {
+  it("carries a graded look's filter on the picture", () => {
+    const id = lookFilterId("strip-test", "warm");
+    if (id === null) {
+      throw new Error("unreachable: warm is a graded look");
+    }
+    const target = mountTile({}, 1, lookFilterUrl("strip-test", "warm"));
+
+    expect(target.querySelector("img")?.style.filter).toContain(id);
+  });
+
+  it("carries no filter for the none look", () => {
+    const target = mountTile({}, 1, lookFilterUrl("strip-test", "none"));
+
+    expect(target.querySelector("img")?.style.filter).toBe("");
   });
 });

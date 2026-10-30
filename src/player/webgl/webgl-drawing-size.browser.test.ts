@@ -37,6 +37,7 @@ async function captionTextBox(drawingSize: Size) {
       caption: CAPTION,
     },
     endFade: 0,
+    look: "none",
   });
   const { width, height } = canvas;
   const pixels = new Uint8Array(width * height * 4);

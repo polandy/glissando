@@ -1,30 +1,27 @@
 <script lang="ts">
-  import type { BetweenSongs, MusicTrim, PictureChanges } from "../../library/own-music";
-  import type { PictureLength } from "../../library/picture-length";
+  import type { MusicTrim } from "../../library/own-music";
   import { setMusicTrim } from "../../library/slideshow-edits-music";
-  import type { StoredSlideshow } from "../../library/stored-slideshow";
   import Header from "../components/Header.svelte";
   import Icon from "../components/Icon.svelte";
+  import Switch from "../components/Switch.svelte";
+  import PictureLengthSection from "../components/PictureLengthSection.svelte";
   import { getTranslator } from "../i18n/context";
+  import AddSongSheet from "./AddSongSheet.svelte";
   import AddSongsButton from "./AddSongsButton.svelte";
-  import type { ListenState } from "./listen-preview";
+  import MoodPictureTimesSection from "./MoodPictureTimesSection.svelte";
   import MusicEditorPanel from "./MusicEditorPanel.svelte";
-  import {
-    musicEditorView,
-    type SongsBeatsStatus,
-    type SongsLoudnessStatus,
-  } from "./music-editor-view";
+  import { musicEditorView } from "./music-editor-view";
+  import type { MusicEditorScreenProps } from "./music-editor-screen-props";
   import PlaylistLane from "./PlaylistLane.svelte";
   import { playlistView } from "./playlist-view";
   import SelectedSong from "./SelectedSong.svelte";
-  import type { PendingSong } from "./song-intake";
   import SongList from "./SongList.svelte";
-  import VolumeComparisonBox from "./VolumeComparisonBox.svelte";
 
   /**
    * The music editor: the playlist's songs and how they meet the slideshow; the selected song's
    * excerpt on its waveform, its fades and how the pictures meet it, on its beats or evenly. Every
-   * change goes to its callback and is stored at once. Without songs, it offers to add one.
+   * change goes to its callback and is stored at once. Without songs, it offers to add one and
+   * still sets the picture length, the only place a slideshow without music does so.
    */
   let {
     slideshow,
@@ -34,13 +31,22 @@
     peaks,
     listening,
     pending,
+    sampleRows,
+    samplePreview,
+    detailsStore,
+    toaster,
     onBack,
+    onError,
     onSelectSong,
     onAddSongs,
     onRemoveSong,
     onMoveSong,
     onDismissPending,
+    onRemoveSampleRow,
+    isSampleTrackAdded,
+    onAddSampleTrack,
     onBetweenSongs,
+    onRepeatMusic,
     onTrim,
     onFadeIn,
     onFadeOut,
@@ -51,55 +57,28 @@
     onPictureChanges,
     onPictureLength,
     onSecondsPerPicture,
+    onSetOwnPictureTimes,
     onListen,
     onStopListening,
     saving,
-  }: {
-    slideshow: StoredSlideshow;
-    /** The song edited; the first while none is chosen or the chosen one is gone. */
-    selectedSongId: string | null;
-    /** What is known of the songs' beats, updated as the background pass listens. */
-    beats: SongsBeatsStatus;
-    /** What is known of the songs' loudness, updated as the background pass listens (ADR-0040). */
-    loudness: SongsLoudnessStatus;
-    /** Fine peaks of the selected song's whole track, 0..1; null while it is decoded. */
-    peaks: Float32Array | null;
-    listening: ListenState | null;
-    /** Picked files on their way into the playlist, or found unusable. */
-    pending: readonly PendingSong[];
-    onBack: () => void;
-    onSelectSong: (songId: string) => void;
-    onAddSongs: (files: readonly File[]) => void;
-    onRemoveSong: (songId: string) => void;
-    onMoveSong: (songId: string, toIndex: number) => void;
-    onDismissPending: (key: number) => void;
-    /** `undefined`: the songs crossfade. */
-    onBetweenSongs: (between: BetweenSongs | undefined) => void;
-    /** `undefined`: the whole track. */
-    onTrim: (trim: MusicTrim | undefined) => void;
-    /** `undefined`: automatic. */
-    onFadeIn: (fadeMs: number | undefined) => void;
-    onFadeOut: (fadeMs: number | undefined) => void;
-    /** `undefined`: levelled. */
-    onVolume: (volumeDb: number | undefined) => void;
-    onVolumeReset: () => void;
-    onListenVolume: () => void;
-    onToggleOriginal: () => void;
-    /** `undefined`: on the beat. */
-    onPictureChanges: (changes: PictureChanges | undefined) => void;
-    /** `undefined`: the pictures fill the music. */
-    onPictureLength: (length: PictureLength | undefined) => void;
-    onSecondsPerPicture: (seconds: number) => void;
-    onListen: (kind: "start" | "end") => void;
-    onStopListening: () => void;
-    /** An edit is being stored. */
-    saving: boolean;
-  } = $props();
+  }: MusicEditorScreenProps = $props();
 
   const { t } = getTranslator();
 
   /** The excerpt while a handle is dragged; stored on release. */
   let draft = $state.raw<MusicTrim | null>(null);
+  /** The "Details" switch: the volume line, beat ticks, the slideshow lane and crossfade hatching. */
+  // The store is fixed for the screen's lifetime.
+  // svelte-ignore state_referenced_locally
+  let details = $state(detailsStore.read() === "shown");
+  function setDetails(shown: boolean): void {
+    details = shown;
+    detailsStore.write(shown ? "shown" : "hidden");
+  }
+  let sheetOpen = $state(false);
+  function openSheet(): void {
+    sheetOpen = true;
+  }
   const songId = $derived(
     slideshow.songs.find((song) => song.id === selectedSongId)?.id ?? slideshow.songs[0]?.id,
   );
@@ -109,7 +88,9 @@
   const music = $derived(
     songId === undefined ? null : musicEditorView(edited, beats, songId, loudness),
   );
-  const playlist = $derived(playlistView(edited, beats, loudness));
+  const playlist = $derived(playlistView(edited, beats, loudness, details));
+  /** `SongList` edits the stored songs, each once; the playlist's repeats (ADR-0047) are `PlaylistLane`'s alone. */
+  const ownedSongs = $derived(playlist.songs.filter((song) => song.repeated !== true));
 
   function trimmed(trim: MusicTrim | undefined): void {
     draft = null;
@@ -118,7 +99,15 @@
 </script>
 
 <div class="screen" aria-busy={saving}>
-  <Header crumbs={[t("start.library"), slideshow.title, t("music.crumb")]} {onBack} />
+  <Header crumbs={[t("start.library"), slideshow.title, t("music.crumb")]} {onBack}>
+    {#snippet actions()}
+      {#if music !== null}
+        <span class="details-switch">
+          <Switch checked={details} label={t("music.details")} showLabel onChange={setDetails} />
+        </span>
+      {/if}
+    {/snippet}
+  </Header>
   {#if music === null}
     <main class="edit empty-edit">
       <div class="main-column">
@@ -126,17 +115,38 @@
           <span class="disc"><Icon name="music" /></span>
           <b>{t("music.noMusicYet")}</b>
           <p>{t("music.noMusicWhy")}</p>
-          <AddSongsButton primary label={t("music.addSong")} onAdd={onAddSongs} />
+          <AddSongsButton
+            primary
+            label={t("music.addSong")}
+            onAdd={onAddSongs}
+            {...samplePreview === undefined ? {} : { onOpenSheet: openSheet }}
+          />
         </div>
-        {#if pending.length > 0}
+        {#if pending.length > 0 || sampleRows.length > 0}
           <SongList
-            songs={playlist.songs}
+            songs={ownedSongs}
             selectedSongId=""
             {pending}
+            {sampleRows}
             onSelect={onSelectSong}
             onMove={onMoveSong}
             onRemove={onRemoveSong}
             onDismiss={onDismissPending}
+            {onRemoveSampleRow}
+          />
+        {/if}
+        {#if slideshow.mood === undefined}
+          <PictureLengthSection
+            withoutMusic
+            ownSeconds
+            secondsPerPicture={slideshow.secondsPerPicture}
+            {onPictureLength}
+            {onSecondsPerPicture}
+          />
+        {:else}
+          <MoodPictureTimesSection
+            moodPictureLength={{ mood: slideshow.mood, beatsPerMinute: undefined }}
+            {onSetOwnPictureTimes}
           />
         {/if}
       </div>
@@ -145,21 +155,27 @@
     <main class="edit">
       <div class="main-column">
         <SongList
-          songs={playlist.songs}
+          songs={ownedSongs}
           selectedSongId={music.songId}
           {pending}
+          {sampleRows}
           onSelect={onSelectSong}
           onMove={onMoveSong}
           onRemove={onRemoveSong}
           onDismiss={onDismissPending}
+          {onRemoveSampleRow}
         />
-        <VolumeComparisonBox slideshow={edited} {loudness} />
-        <AddSongsButton label={t("music.addSong")} onAdd={onAddSongs} />
-        <PlaylistLane {playlist} />
+        <AddSongsButton
+          label={t("music.addSong")}
+          onAdd={onAddSongs}
+          {...samplePreview === undefined ? {} : { onOpenSheet: openSheet }}
+        />
+        <PlaylistLane {playlist} {onRepeatMusic} {onAddSongs} />
         <SelectedSong
           {music}
           {peaks}
           {listening}
+          {details}
           onDraft={(trim) => (draft = trim)}
           onCommit={trimmed}
           {onStopListening}
@@ -180,11 +196,28 @@
         {onPictureChanges}
         {onPictureLength}
         {onSecondsPerPicture}
+        {onSetOwnPictureTimes}
         {onBetweenSongs}
+        {onRepeatMusic}
       />
     </main>
   {/if}
 </div>
+{#if sheetOpen && samplePreview !== undefined}
+  <AddSongSheet
+    songs={ownedSongs}
+    {samplePreview}
+    {sampleRows}
+    {toaster}
+    {isSampleTrackAdded}
+    {onAddSampleTrack}
+    {onRemoveSampleRow}
+    {onRemoveSong}
+    onAdd={onAddSongs}
+    {onError}
+    onClose={() => (sheetOpen = false)}
+  />
+{/if}
 
 <style>
   /* A zero basis: the screen keeps the viewport's height and each column scrolls inside it. */
@@ -201,6 +234,13 @@
     min-height: 0;
     padding: 22px;
     overflow: auto;
+  }
+  .details-switch {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--gl-muted);
+    font-size: var(--gl-size-label);
   }
   .empty {
     display: grid;

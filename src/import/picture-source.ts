@@ -1,6 +1,7 @@
 import type { PictureFocus } from "../library/picture-focus";
 import type { PictureIdentity } from "../library/picture-identity";
 import type { DecodedPicture } from "./downscale";
+import type { ExifGps } from "./exif-gps";
 
 /** A picture read from its source: downscaled, with the focus the source already knows. */
 export interface ReadPicture {
@@ -9,6 +10,8 @@ export interface ReadPicture {
   readonly focus: PictureFocus | null;
   /** The clip of a video: `decoded` is its poster, the frame at the excerpt's start (ADR-0034). */
   readonly video?: ReadVideo;
+  /** Absent for a video, or a picture with no GPS tag; resolved to a place at import (ADR-0043). */
+  readonly gps?: ExifGps;
 }
 
 /** A video's original file as chosen, with the length of the whole clip. */

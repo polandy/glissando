@@ -123,7 +123,9 @@ describe("ImportFlow", () => {
       "measure loudness",
     ]);
     expect(opened.at(-1)).toEqual({ screen: "slideshow", slideshowId: "show-1" });
-    expect(toasts).toEqual([{ text: CREATED_TEXT, tone: "info" }]);
+    expect(toasts).toEqual([
+      { text: CREATED_TEXT, tone: "info", route: { screen: "slideshow", slideshowId: "show-1" } },
+    ]);
   });
 
   it("looks for the focus and listens for the beats of a slideshow created from a file", async () => {

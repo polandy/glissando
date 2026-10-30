@@ -58,7 +58,7 @@ describe("SlideshowScreen selection bar look", () => {
   it.each(THEMES)("draws Remove's icon in the danger colour for the inverse bar (%s)", (theme) => {
     document.documentElement.setAttribute("data-theme", theme);
     const bar = openBar();
-    const icon = buttonNamed("Entfernen").querySelector("svg");
+    const icon = buttonNamed("Bild entfernen").querySelector("svg");
     if (icon === null) {
       throw new Error("Remove shows no icon");
     }

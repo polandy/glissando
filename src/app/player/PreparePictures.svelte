@@ -62,7 +62,7 @@
   </div>
   <div class="prepare">
     <div class="poster">
-      <span class="badge mono">{quality}</span>
+      <span class="badge">{quality}</span>
     </div>
     {#if view.stage === "measuring"}
       <h2>{t("prepare.measuringTitle")}</h2>
@@ -70,8 +70,9 @@
       <div class="track"><div class="fill measuring"></div></div>
       <div class="nums">
         <span>{t("prepare.measuring")}</span>
-        <span class="mono"
-          ><b>{view.measured}</b> {t("prepare.ofMeasuring", { total: view.measuring })}</span
+        <span
+          ><b class="mono">{view.measured}</b>
+          {t("prepare.ofMeasuring", { total: view.measuring })}</span
         >
       </div>
     {:else}
@@ -96,11 +97,12 @@
         <div class="fill" style:width="{(view.ready / view.target) * 100}%"></div>
       </div>
       <div class="nums">
-        <span class="mono"
-          ><b>{view.ready}</b> {t("prepare.ofPictures", { total: view.target })}</span
+        <span
+          ><b class="mono">{view.ready}</b> {t("prepare.ofPictures", { total: view.target })}</span
         >
-        <span class="mono"
-          >{t("prepare.startsIn")} <b>~{formatDuration(Math.ceil(view.secondsLeft))}</b></span
+        <span
+          >{t("prepare.startsIn")}
+          <b class="mono">~{formatDuration(Math.ceil(view.secondsLeft))}</b></span
         >
       </div>
       <div class="squares" aria-hidden="true">

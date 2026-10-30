@@ -53,9 +53,7 @@
         · {t("import.sortedInByDate")}
       {/if}
     {:else}
-      {t("slideshow.sortedByDate")}<span class="narrow"
-        >&nbsp;· {t("slideshow.selectHintNarrow")}</span
-      >
+      {t("slideshow.sortedByDate")}
     {/if}
   </p>
   <span class="mono muted count">{count}</span>
@@ -127,13 +125,34 @@
   .narrow {
     display: none;
   }
+  /* Narrow, the buttons take a row of their own: beside the eyebrow they squeeze it out in German. */
   @container (max-width: 720px) {
+    .strip-head {
+      grid-template-columns: auto auto auto minmax(0, 1fr);
+      row-gap: 8px;
+    }
+    h2 {
+      grid-column: 1 / span 3;
+    }
+    .count {
+      grid-area: 1 / 4;
+      justify-self: end;
+    }
     .btn,
     .add {
-      grid-row: 1;
+      grid-row: 2;
+    }
+    .shuffle {
+      grid-column: 1;
+    }
+    .select {
+      grid-column: 2;
+    }
+    .add {
+      grid-column: 3;
     }
     .sorted {
-      grid-column: 1 / -1;
+      grid-area: 3 / 1 / auto / -1;
     }
     .wide {
       display: none;

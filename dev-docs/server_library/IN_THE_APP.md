@@ -80,8 +80,9 @@ wizard as it was with a coral toast naming it and "Try again".
 - **Keep a copy**: a sheet "Keep a copy on this device?" — "Downloads n pictures from Immich and
   the music. The copy plays offline and appears under “On this device”." / "Later edits to either
   one stay in that one." — Cancel / "Download and keep". It runs like an import (originals
-  through `decodePicture`, Immich's faces as focus, claims, all or nothing, title made unique;
-  a picture no longer in Immich fails the copy — `keepCopyOnDevice`), the header progress
+  through `decodePicture`, each picture's own focus ([FOCUS.md](FOCUS.md)), claims, all or
+  nothing, title made unique; a picture no longer in Immich fails the copy —
+  `keepCopyOnDevice`), the header progress
   "Copying “title” … 34 %"; done: toast "Copied to this device" with "Open".
 - A device slideshow's ⋯ menu adds (server library on) "Save on the server" ("A copy for every
   device at home"). All pictures from Immich: the sheet "Save on the server?" — "Every device that
@@ -90,7 +91,8 @@ wizard as it was with a coral toast naming it and "Try again".
   as it is. The two copies are independent." — Cancel / "Save on the server". Some from the
   device (a video slide counts as one, whatever its poster's origin, as the server keeps no clip): "n pictures are only on this device", listing their file names, "Upload them to Immich
   and add them from there, or save the slideshow without them." — Cancel / "Save without these
-  n"; with no picture from Immich at all, the same sheet with Cancel only. Done: toast "Saved on
+  n"; with no picture from Immich at all, the same sheet with Cancel only. Once the copy exists,
+  its pictures' focus is put there too ([FOCUS.md](FOCUS.md)). Done: toast "Saved on
   the server" with "Open". Not answering: the coral toast "Couldn't save on the server. Your
   Glissando server isn't answering." Refused, as the request the server refused names it: a 413
   for the music "Couldn't save on the server: the music is larger than 200 MB.", a 413 for the
@@ -105,13 +107,12 @@ wizard as it was with a coral toast naming it and "Try again".
   original cannot be decoded, as on import), for the editors, exports and the copy;
   `playbackPictureBlob` is Immich's preview, what the player shows in 1440 (ADR-0027; on the
   device it is the stored display rendition); both take an `AbortSignal` that cancels the
-  download; `thumbnailBlob` is Immich's thumbnail; `musicBlob`
-  the server's music; `pictureFocus` the largest Immich face box (ADR-0013's rule), asked once per
-  picture and kept for the session (faces Immich could not give are logged and asked again
-  later); `putPictureFocus` keeps it for the session only; `musicBeats`/`musicLoudness` (with
-  `put…`) keep beats and loudness beside the server music, measured by the first device
+  download; `thumbnailBlob` is Immich's thumbnail; `musicBlob` the server's music; `pictureFocus`
+  the server's own focus, laid over by this session's `putPictureFocus` ([FOCUS.md](FOCUS.md));
+  `musicBeats`/`musicLoudness`
+  (with `put…`) keep beats and loudness beside the server music, measured by the first device
   opening the slideshow in the player or music editor (`serverBeatPass`/`serverLoudnessPass`). Both stores share the type
-  `SlideshowStore` (`src/library/stored-slideshow.ts`).
+  `SlideshowStore` (`src/library/library-store.ts`).
 - Errors the screens tell apart: an unknown slideshow is `SlideshowNotFoundError` as on the
   device; an edit at a stale revision `SlideshowChangedError` carrying the current slideshow; a
   server out of reach or failing (network, 5xx) `ServerLibraryUnavailableError`; a picture Immich

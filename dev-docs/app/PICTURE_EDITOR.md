@@ -9,8 +9,9 @@
   (`beats/playlist-beats.ts`, ADR-0023). Breadcrumb "Library / title / Picture 3"; header right ‹ previous picture, "3 / 8" (mono, hidden
   up to 720 px), › next picture (looking disabled at the ends). Back (arrow or browser) returns to
   the slideshow screen with that picture selected. Desktop: a dark well with the whole picture
-  left, a 340 px panel right; up to 720 px the well spans the width on top (as high as the
-  picture, at most 440 px, always the full width), the panel below.
+  left, a 340 px panel right; up to 720 px one view spans the width on top — the well (as high
+  as the picture, at most 440 px, always the full width) or the preview, never both — with a
+  "Frame | Play" switch under it, the panel below (see [Preview](picture-editor/PREVIEW.md)).
 
 A **video slide** opens the clip editor instead (ADR-0034, `dev-docs/player/VIDEO_SLIDES.md`):
 a preview that plays the excerpt in a loop, with a slider under it to move within the excerpt by

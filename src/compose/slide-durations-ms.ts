@@ -1,8 +1,17 @@
 import { MIN_SECONDS_PER_PICTURE, type StoredPicture } from "../library/stored-slideshow";
 import { MILLISECONDS_PER_SECOND } from "../player/slideshow";
+import { cutAtLifts } from "./energy/cut-at-lifts";
+import { paceByEnergy } from "./energy/pace-by-energy";
+import type { PlaylistEnergy } from "./energy/playlist-energy";
+import type { InsertedTime } from "./inserted-time";
+import { shareByWeightMs } from "./share-by-weight";
 import { snapToBeats } from "./snap-to-beats";
 
-const MIN_SLIDE_DURATION_MS = MIN_SECONDS_PER_PICTURE * MILLISECONDS_PER_SECOND;
+/** A slide's floor, shared with `filled-length.ts`'s fit decision. */
+export const MIN_SLIDE_DURATION_MS = MIN_SECONDS_PER_PICTURE * MILLISECONDS_PER_SECOND;
+
+/** A single picture's weight, also `filled-length.ts`'s default for one without it. */
+export const DEFAULT_WEIGHT = 1;
 
 /**
  * What the durations are computed from: a slide's own duration, if it has one, and its weight —
@@ -13,25 +22,32 @@ export interface TimedPicture extends Pick<StoredPicture, "durationMs"> {
   readonly weight?: number;
 }
 
-const DEFAULT_WEIGHT = 1;
-
 /**
- * The slide durations in play order. An own duration is kept exactly. The other slides show
+ * The slide durations in play order. An own duration keeps that length; the other slides show
  * `secondsPerPicture` each, scaled by weight, unless they fill the music: then they share the
  * rest of its excerpt by weight (the remainder going to the first of them so the sum matches
  * exactly). A share below `MIN_SECONDS_PER_PICTURE`, unweighted, is rejected in favour of the
  * minimum, so the slideshow outlasts a excerpt too short for it. With the playlist's beats, each
- * boundary ending an automatic slide then moves to the nearest beat (`snapToBeats`), and so does
- * the slideshow's end unless the pictures fill the music. See ADR-0008, ADR-0009, ADR-0021,
+ * boundary then moves to the nearest beat (`snapToBeats`), an own duration only to about its set
+ * length; the slideshow's end moves too unless the pictures fill the music. With the playlist's
+ * energy, the automatic durations are re-paced by it first, then cut at its lifts, before beats
+ * are considered (`paceByEnergy`, `cutAtLifts`; ADR-0046). See ADR-0008, ADR-0009, ADR-0021,
  * ADR-0022, ADR-0023 and ADR-0028.
+ *
+ * `inserted` is how much of a title card or chapter plays around each slide unit, ahead of this
+ * (`insertedTimeFor`) — absent with neither. The beats, energy and lifts are already in that real
+ * playlist time, so passing it keeps the pacing, the cuts and the beat snap aligned to it.
  */
 export function slideDurationsMs(
   pictures: readonly TimedPicture[],
-  /** The length the pictures fill (`filledMusicMs`); absent: they last their seconds. */
+  /** The length the pictures fill or fit (`picturesFillMs`); absent: they last their seconds. */
   filledMs: number | undefined,
   secondsPerPicture: number,
   /** The beats to change on, in ms of the playlist (`playlistBeatsMs`); absent: none. */
   beatsMs?: readonly number[],
+  /** The playlist's energy and lifts (`playlistEnergy`); absent: the usual durations stand. */
+  energy?: PlaylistEnergy,
+  inserted?: InsertedTime,
 ): number[] {
   if (pictures.length < 1) {
     throw new RangeError(`pictures: expected at least 1, got ${pictures.length}`);
@@ -45,40 +61,47 @@ export function slideDurationsMs(
       : evenSplitMs(automaticWeights, filledMs - ownTotalMs(pictures));
   let nextAutomatic = 0;
   // automaticMs holds exactly one entry per picture without an own duration.
-  const durationsMs = pictures.map(
+  const usualMs = pictures.map(
     (picture) => picture.durationMs ?? (automaticMs[nextAutomatic++] as number),
   );
+  const automatic = pictures.map((picture) => picture.durationMs === undefined);
+  const durationsMs =
+    energy === undefined
+      ? usualMs
+      : cutAtLifts(
+          paceByEnergy(usualMs, automatic, energy, MIN_SLIDE_DURATION_MS, inserted),
+          automatic,
+          energy.liftsMs,
+          MIN_SLIDE_DURATION_MS,
+          inserted,
+        );
   if (beatsMs === undefined) {
     return durationsMs;
   }
-  const automatic = pictures.map((picture) => picture.durationMs === undefined);
-  const endOnBeat = filledMs === undefined;
-  return snapToBeats(durationsMs, automatic, beatsMs, MIN_SLIDE_DURATION_MS, endOnBeat);
+  // Filling the music does not pin the end when there is no automatic slide to fill it with.
+  const endOnBeat = filledMs === undefined || automaticWeights.length === 0;
+  return snapToBeats(durationsMs, automatic, beatsMs, MIN_SLIDE_DURATION_MS, endOnBeat, inserted);
 }
 
-function ownTotalMs(pictures: readonly TimedPicture[]): number {
+/** The sum of the pictures' own durations, shared with `filled-length.ts`'s fit decision. */
+export function ownTotalMs(pictures: readonly TimedPicture[]): number {
   return pictures.reduce((sum, picture) => sum + (picture.durationMs ?? 0), 0);
 }
 
 /**
- * `restMs` shared in proportion to `weights`, the remainder of whole ms on the first slides so
- * the sum matches exactly; the minimum, unweighted, if a share would fall below it.
+ * `restMs` shared in proportion to `weights` (`shareByWeightMs`); the minimum, unweighted, if a
+ * share would floor below it.
  */
 function evenSplitMs(weights: readonly number[], restMs: number): number[] {
   if (weights.length === 0) {
     return [];
   }
   const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
-  const floorShares = weights.map((weight) => Math.floor((restMs * weight) / totalWeight));
-  if (floorShares.some((share) => share < MIN_SLIDE_DURATION_MS)) {
+  const anyFloorsBelowMinimum = weights.some(
+    (weight) => Math.floor((restMs * weight) / totalWeight) < MIN_SLIDE_DURATION_MS,
+  );
+  if (anyFloorsBelowMinimum) {
     return weights.map(() => MIN_SLIDE_DURATION_MS);
   }
-  let remainderMs = restMs - floorShares.reduce((sum, share) => sum + share, 0);
-  return floorShares.map((share) => {
-    if (remainderMs > 0) {
-      remainderMs -= 1;
-      return share + 1;
-    }
-    return share;
-  });
+  return shareByWeightMs(weights, restMs);
 }

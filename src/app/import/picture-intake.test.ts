@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MediaNotFoundError } from "../../library/stored-slideshow";
+import { MediaNotFoundError } from "../../library/library-store";
 import { MemoryLibraryStore } from "../../library/testing/memory-store";
 import { fakeIntakePorts, INTAKE_NOW, pictureFile } from "../testing/picture-intake-ports";
 import { PictureIntake } from "./picture-intake";

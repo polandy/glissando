@@ -5,6 +5,8 @@
   import Dialog from "../components/Dialog.svelte";
   import { getTranslator } from "../i18n/context";
   import type { ImportStep } from "../navigation/route";
+  import type { SamplePreview } from "../sample-music/sample-preview";
+  import type { Toaster } from "../toast/toaster";
   import MusicStep from "./MusicStep.svelte";
   import type { OpenNotice } from "../glissando-file/open-flow";
   import PicturesStep from "./PicturesStep.svelte";
@@ -34,6 +36,8 @@
     rememberedHome,
     onHomeChosen,
     onCreateFailed,
+    samplePreview,
+    toaster,
   }: {
     step: ImportStep;
     session: ImportSession;
@@ -59,6 +63,9 @@
     onHomeChosen: (home: SlideshowHome) => void;
     /** Creating a server slideshow failed as the server is away; the wizard stays as it was. */
     onCreateFailed: (retry: () => void) => void;
+    /** `undefined` when the build turns sample music off (SAMPLE_MUSIC.md). */
+    samplePreview?: SamplePreview | undefined;
+    toaster: Toaster;
   } = $props();
 
   const translator = getTranslator();
@@ -110,7 +117,15 @@
     {onHomeChosen}
   />
 {:else}
-  <MusicStep {session} {loadThumbnail} {onBack} onCreate={create} {onError} />
+  <MusicStep
+    {session}
+    {loadThumbnail}
+    {onBack}
+    onCreate={create}
+    {onError}
+    {samplePreview}
+    {toaster}
+  />
 {/if}
 
 {#if confirmingDiscard}

@@ -120,15 +120,15 @@ test("E2E-036 adding to a slideshow in its own order sorts the new pictures in b
   await expect(tile(page, 5, "14.07.2025")).toBeVisible();
 });
 
-test("E2E-069 the placeholder tile after the last picture adds media like the strip header", async ({
+test("E2E-069 the strip has no add tile; the header's Add media opens the add sheet", async ({
   page,
 }) => {
-  await createSlideshow(page, ["2025-07-12", "2025-07-14"], 5);
-  const placeholder = page.locator("ol.strip > li").filter({ hasText: "Hinzufügen" });
-  await expect(placeholder).toBeVisible();
-  await expect(placeholder.locator("xpath=following-sibling::li")).toHaveCount(1);
+  await createSlideshow(page, ["2025-07-12", "2025-07-14"]);
+  const header = page.locator(".strip-head").getByRole("button", { name: "Medien hinzufügen" });
+  await expect(header).toBeVisible();
+  await expect(page.locator("ol.strip > li").filter({ hasText: "Hinzufügen" })).toHaveCount(0);
 
-  await placeholder.getByRole("button").click();
+  await header.click();
 
   await expect(page.getByRole("heading", { name: "Medien hinzufügen" })).toBeVisible();
 });

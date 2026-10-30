@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 import type { MusicBeats } from "../beats";
 import { BeatDetectorGoneError } from "./beat-detector";
 import { BeatDetectionFailedError, BeatPass, type BeatPassPorts } from "./beat-pass";
-import type { LibraryStore, StoredSlideshow } from "./stored-slideshow";
+import type { LibraryStore } from "./library-store";
+import type { StoredSlideshow } from "./stored-slideshow";
 import {
   addShow,
   answersBy,

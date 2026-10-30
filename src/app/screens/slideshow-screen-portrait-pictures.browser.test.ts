@@ -33,7 +33,18 @@ const tile = (choice: string) => {
 const pill = () => text(sheet()?.querySelector(".state") ?? null);
 const resetButton = () => buttonNamed("Zurück auf Automatisch");
 
+/** Portrait pictures lives inside the "Fine settings" fold, closed by default (ADR-0048); open
+ * it so the row is rendered and can take focus back once its sheet closes. */
+function openFineSettings(): void {
+  const toggle = document.querySelector<HTMLButtonElement>(".toggle");
+  if (toggle?.getAttribute("aria-expanded") === "false") {
+    toggle.click();
+    flushSync();
+  }
+}
+
 function openSheet(): void {
+  openFineSettings();
   portraitRow().click();
   flushSync();
 }
@@ -42,7 +53,7 @@ describe("SlideshowScreen, the portrait pictures row", () => {
   it("names automatic by default and the pair count", () => {
     mountScreen(details(["a", "b"], { pairCount: 2 }));
 
-    expect(text(portraitRow())).toBe("Hochformatbilder Automatisch · 2 Paare Ändern");
+    expect(text(portraitRow())).toBe("Hochformatbilder Automatisch · 2 Paare");
   });
 
   it("names a single pair in the singular", () => {
@@ -54,7 +65,7 @@ describe("SlideshowScreen, the portrait pictures row", () => {
   it("names one at a time without a pair count", () => {
     mountScreen(details(["a", "b"], { portraitPictures: "one-at-a-time", pairCount: 0 }));
 
-    expect(text(portraitRow())).toBe("Hochformatbilder Einzeln Ändern");
+    expect(text(portraitRow())).toBe("Hochformatbilder Einzeln");
   });
 });
 

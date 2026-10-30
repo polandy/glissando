@@ -2,25 +2,31 @@ import type { OwnKenBurns } from "../../library/own-ken-burns";
 import type { BetweenSongs, MusicTrim, PictureChanges } from "../../library/own-music";
 import type { SlideshowTransition, TransitionChoice } from "../../library/own-timing";
 import type { PortraitPictures } from "../../library/portrait-pictures";
-import { setPictureAlone as setPictureAloneEdit } from "../../library/slideshow-edits";
+import {
+  setPictureAlone as setPictureAloneEdit,
+  setSlideshowEnergyPacing,
+} from "../../library/slideshow-edits";
 import type { PictureLength } from "../../library/picture-length";
 import type { StoredCard, StoredMusic, StoredSlideshow } from "../../library/stored-slideshow";
 import type { CardInput } from "../../library/stored-card";
-import { CardSettingsEditor } from "./card-settings-editor";
+import type { CardSettingsEditor } from "./card-settings-editor";
+import type { ChapterSettingsEditor } from "./chapter-settings-editor";
 import { EditSaver } from "./edit-saver";
 import { EditorUndos } from "./editor-undos";
-import { MusicSettingsEditor } from "./music-settings-editor";
-import { PictureListEditor } from "./picture-list-editor";
-import { PictureSettingsEditor } from "./picture-settings-editor";
-import { VideoSettingsEditor } from "./video-settings-editor";
+import type { LookSettingsEditor } from "./look-settings-editor";
+import type { MoodSettingsEditor } from "./mood-settings-editor";
+import type { MusicSettingsEditor } from "./music-settings-editor";
+import type { PictureListEditor } from "./picture-list-editor";
+import type { PictureSettingsEditor } from "./picture-settings-editor";
 import type { SlideshowEditorPorts } from "./slideshow-editor-ports";
+import { createSubEditors } from "./slideshow-sub-editors";
+import type { VideoSettingsEditor } from "./video-settings-editor";
 
 /**
- * The slideshow screen's edits: each applies at once and is stored. Removing needs no
- * confirmation; its toast undoes every removal made while it is shown, and any other edit
- * ends that batch, so an undo never puts pictures back at positions that shifted meanwhile.
- * While the toast is shown, the removed pictures' media is claimed, so a clean-up in any tab
- * spares it.
+ * The slideshow screen's edits: each applies at once and is stored. Removing needs no confirmation;
+ * its toast undoes every removal made while it is shown, and any other edit ends that batch, so an
+ * undo never puts pictures back at positions that shifted meanwhile. While the toast is shown, the
+ * removed pictures' media is claimed, so a clean-up in any tab spares it.
  */
 export class SlideshowEditor {
   readonly #listeners = new Set<(slideshow: StoredSlideshow) => void>();
@@ -33,6 +39,12 @@ export class SlideshowEditor {
   readonly #cardSettings: CardSettingsEditor;
   /** The clip settings of the video slides. */
   readonly video: VideoSettingsEditor;
+  /** The automatic and added trip chapters (TRIP_CHAPTERS.md). */
+  readonly chapters: ChapterSettingsEditor;
+  /** The slideshow's colour grade (ADR-0044). */
+  readonly look: LookSettingsEditor;
+  /** The slideshow's mood (ADR-0045). */
+  readonly mood: MoodSettingsEditor;
 
   constructor(initial: StoredSlideshow, ports: SlideshowEditorPorts) {
     this.#slideshow = initial;
@@ -54,32 +66,20 @@ export class SlideshowEditor {
       apply: (slideshow) => this.#apply(slideshow),
       track: (work) => this.#saver.track(work),
     });
-    this.#pictureSettings = new PictureSettingsEditor(
-      ports,
-      this.#undos.reset,
-      () => this.#slideshow,
-      (slideshow) => this.#apply(slideshow),
-    );
-    this.#pictureList = new PictureListEditor(
+    const subEditors = createSubEditors(
       ports,
       this.#undos,
       () => this.#slideshow,
       (slideshow) => this.#apply(slideshow),
     );
-    this.#musicSettings = new MusicSettingsEditor(
-      this.#undos.songRemoval,
-      () => this.#slideshow,
-      (slideshow) => this.#apply(slideshow),
-    );
-    this.video = new VideoSettingsEditor(
-      () => this.#slideshow,
-      (slideshow) => this.#apply(slideshow),
-    );
-    this.#cardSettings = new CardSettingsEditor(
-      ports,
-      () => this.#slideshow,
-      (slideshow) => this.#apply(slideshow),
-    );
+    this.#pictureSettings = subEditors.pictureSettings;
+    this.#pictureList = subEditors.pictureList;
+    this.#musicSettings = subEditors.musicSettings;
+    this.#cardSettings = subEditors.cardSettings;
+    this.video = subEditors.video;
+    this.chapters = subEditors.chapters;
+    this.look = subEditors.look;
+    this.mood = subEditors.mood;
   }
 
   get slideshow(): StoredSlideshow {
@@ -96,8 +96,6 @@ export class SlideshowEditor {
   subscribeSaving(listener: (saving: boolean) => void): () => void {
     return this.#saver.subscribeSaving(listener);
   }
-
-  // The picture list's shape and the slideshow's title delegate to `PictureListEditor`.
 
   /** The last picture stays; asking to remove it explains why in a toast. */
   remove(pictureId: string): void {
@@ -135,8 +133,6 @@ export class SlideshowEditor {
   rename(typed: string): void {
     this.#pictureList.rename(typed);
   }
-
-  // Ken Burns, duration and transition settings delegate to `PictureSettingsEditor`.
 
   setKenBurns(pictureId: string, kenBurns: OwnKenBurns): void {
     this.#pictureSettings.setKenBurns(pictureId, kenBurns);
@@ -183,6 +179,11 @@ export class SlideshowEditor {
     this.#apply(setPictureAloneEdit(this.#slideshow, pictureId, alone));
   }
 
+  /** The Mood sheet's "Follow the music's energy" switch (ADR-0046): stores at once. */
+  setEnergyPacing(on: boolean): void {
+    this.#apply(setSlideshowEnergyPacing(this.#slideshow, on));
+  }
+
   /** Reverses the picture's motion; an automatic one becomes the picture's own. */
   swapKenBurns(pictureId: string): void {
     this.#pictureSettings.swapKenBurns(pictureId);
@@ -192,9 +193,6 @@ export class SlideshowEditor {
   setCaption(pictureId: string, typed: string): void {
     this.#pictureList.setCaption(pictureId, typed);
   }
-
-  // The playlist and timing settings delegate to `MusicSettingsEditor`; the songs' edits offer
-  // no undo, since one tap on "whole track" or "automatic" restores them.
 
   addSongs(songs: readonly StoredMusic[]): void {
     this.#musicSettings.addSongs(songs);
@@ -210,6 +208,10 @@ export class SlideshowEditor {
 
   setBetweenSongs(betweenSongs: BetweenSongs | undefined): void {
     this.#musicSettings.setBetweenSongs(betweenSongs);
+  }
+
+  setRepeatMusic(repeatMusic: true | undefined): void {
+    this.#musicSettings.setRepeatMusic(repeatMusic);
   }
 
   setMusicTrim(songId: string, trim: MusicTrim | undefined): void {
@@ -239,8 +241,6 @@ export class SlideshowEditor {
   setSecondsPerPicture(seconds: number): void {
     this.#musicSettings.setSecondsPerPicture(seconds);
   }
-
-  // The title slide and closing slide (ADR-0032, TITLE_SLIDES.md) delegate to `CardSettingsEditor`.
 
   ensureOpeningCard(): StoredCard {
     return this.#cardSettings.ensureOpeningCard();

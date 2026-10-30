@@ -70,6 +70,11 @@ manifest and icons in `public/`; the PNG icons come from `scripts/brand/icons.sh
   (dimmed) with the hint "Needs a connection — once loaded, the demo works offline." A failed
   download toasts "Couldn't load the demo — try again" and returns the card to idle. Credit for
   the demo's pictures and music lives in the file's own content.
+- **Sample music** (library/SAMPLE_MUSIC.md, ADR-0042): on in every build, the public
+  installation and the self-hosted Docker image alike; `GLISSANDO_SAMPLE_MUSIC=off` at build time
+  (`build/sample-music-config.ts`, a Docker build argument) leaves it out, and
+  `GLISSANDO_SAMPLE_MUSIC_URL` names where the tracks are fetched from. The tracks are never
+  precached: offline, only those already on this device can be added.
 
 - **Double-click on a .glissando file** (`glissando-file/launched-files.ts`): the installed app
   registers as the program for `.glissando` (manifest `file_handlers`, type

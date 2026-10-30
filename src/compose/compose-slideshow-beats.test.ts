@@ -53,6 +53,7 @@ const compose = (music: StoredMusic, beats: MusicBeats) =>
     NO_FOCUS,
     new Map([[music.id, beats]]),
     NO_SONG_LOUDNESS,
+    "en",
   );
 const durationsOf = (music: StoredMusic, beats: MusicBeats) =>
   compose(music, beats).slides.map((slide) => slide.durationMs);

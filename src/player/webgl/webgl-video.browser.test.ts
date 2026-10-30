@@ -54,6 +54,7 @@ function setUp(viewport = SCREEN) {
   const frameOf = (poster: BitmapPicture, live?: LiveFrame): RenderFrame<BitmapPicture> => ({
     kind: "slide",
     endFade: 0,
+    look: "none",
     slide: {
       kind: "picture",
       picture: poster,

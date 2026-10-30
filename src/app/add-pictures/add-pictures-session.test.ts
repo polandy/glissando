@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { ImmichPhoto } from "../../immich/immich-client";
-import { SlideshowNotFoundError, type StoredSlideshow } from "../../library/stored-slideshow";
+import { SlideshowNotFoundError } from "../../library/library-store";
+import type { StoredSlideshow } from "../../library/stored-slideshow";
 import { MemoryLibraryStore } from "../../library/testing/memory-store";
 import { picture, slideshow } from "../../library/testing/library-store-contract";
 import { fakeIntakePorts, INTAKE_NOW, pictureFile } from "../testing/picture-intake-ports";

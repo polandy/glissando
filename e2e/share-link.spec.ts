@@ -3,6 +3,7 @@ import { GERMAN_BROWSER } from "./support/app";
 import { openApp } from "./support/browser";
 import { fakeGlissandoServer } from "./support/fake-glissando-server";
 import { pictureTakenOn } from "./support/media";
+import { chooseShareRow, openShare } from "./support/share";
 import { createServerSlideshow } from "./support/server-slideshow";
 
 test.use(GERMAN_BROWSER);
@@ -19,14 +20,17 @@ test("E2E-043 a server slideshow shared from its info panel plays from its link 
   jpeg = (await pictureTakenOn(page, "photo.jpg", "2019-07-02", "#4db6ac")).buffer;
   await createServerSlideshow(page);
 
-  await page.getByRole("button", { name: /^Link teilen/ }).click();
+  await chooseShareRow(page, /^Link teilen/);
   const sheet = page.getByRole("dialog", { name: "Per Link teilen" });
   await sheet.getByRole("button", { name: "Link erstellen" }).click();
   const link = sheet.getByRole("status", { name: "Link" });
   await expect(link).toHaveText(/\/s\/[\w-]{22}$/);
   const url = (await link.textContent()) ?? "";
   await sheet.getByRole("button", { name: "Fertig" }).click();
-  await expect(page.getByRole("button", { name: /^Per Link geteilt/ })).toBeVisible();
+  await expect(
+    (await openShare(page)).getByRole("button", { name: /^Per Link geteilt/ }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Schließen" }).click();
 
   const recipient = await page.context().newPage();
   server.attachPage(recipient);
@@ -35,21 +39,26 @@ test("E2E-043 a server slideshow shared from its info panel plays from its link 
   await recipient.getByRole("button", { name: "Abspielen" }).click();
   await expect(recipient.locator("html")).toHaveAttribute("data-state", "playing");
 
-  await page.getByRole("button", { name: /^Per Link geteilt/ }).click();
+  await chooseShareRow(page, /^Per Link geteilt/);
   await sheet.getByRole("button", { name: "Link ausschalten" }).click();
   await page
     .getByRole("dialog", { name: "Link ausschalten?" })
     .getByRole("button", { name: "Link ausschalten" })
     .click();
   await expect(page.getByRole("status").filter({ hasText: "Link ausgeschaltet" })).toBeVisible();
-  await expect(page.getByRole("button", { name: /^Link teilen/ })).toBeVisible();
+  await expect(
+    page.getByRole("dialog", { name: "Teilen", exact: true }).getByRole("button", {
+      name: /^Link teilen/,
+    }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Schließen" }).click();
 
   await recipient.reload();
   await expect(recipient.locator("html")).toHaveAttribute("data-state", "gone");
   await expect(recipient.getByText("Dieser Link funktioniert nicht mehr")).toBeVisible();
   await expect(recipient.getByRole("button", { name: "Abspielen" })).toHaveCount(0);
 
-  await page.getByRole("button", { name: /^Link teilen/ }).click();
+  await chooseShareRow(page, /^Link teilen/);
   await sheet.getByRole("button", { name: "Link erstellen" }).click();
   await expect(link).toHaveText(/\/s\/[\w-]{22}$/);
   await expect(link).not.toHaveText(url);

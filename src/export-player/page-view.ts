@@ -65,6 +65,10 @@ export function createPageView(document: Document, options: PageViewOptions): Pa
   const error = make("p", "error");
   error.hidden = true;
   error.setAttribute("role", "alert");
+  const made = make("div", "made", copy.madeWith);
+  if (copy.sampleMusicCredit !== "") {
+    made.append(document.createElement("br"), copy.sampleMusicCredit);
+  }
   const start = make(
     "div",
     "card start",
@@ -77,7 +81,7 @@ export function createPageView(document: Document, options: PageViewOptions): Pa
       bigPlay,
       error,
     ),
-    make("div", "made", copy.madeWith),
+    made,
   );
   const playAgain = make("button", "again", icon("replay"), copy.playAgain);
   playAgain.type = "button";

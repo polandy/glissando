@@ -1,4 +1,7 @@
 import { songIntakeStoringIn } from "../music-editor/testing/song-intake-device";
+import { createStorageMusicEditorDetailsStore } from "../music-editor/music-editor-details";
+import { createStorageFineSettingsFoldStore } from "../screens/slideshow/fine-settings-fold";
+import { createMemoryStorage } from "../testing/memory-storage";
 import { beatPassFindingNone } from "../../library/testing/beat-pass-finding-none";
 import { loudnessPassFindingNone } from "../../library/testing/loudness-pass-finding-none";
 import type { FocusPass } from "../../library/focus-pass";
@@ -52,7 +55,7 @@ export async function storeWithShow(): Promise<MemoryLibraryStore> {
 /** The slideshow route on `SHOW`, with the picture editor open on `editingPictureId`. */
 export function mountRoute(
   store: MemoryLibraryStore,
-  focusPass: Pick<FocusPass, "state" | "subscribe">,
+  focusPass: Pick<FocusPass, "state" | "subscribe" | "lookAgain">,
   editingPictureId: string | null,
 ) {
   const errors: unknown[] = [];
@@ -69,7 +72,7 @@ export function mountRoute(
     playbackQuality: "1440" as const,
     slideshowId: SHOW.id,
     exportProgress: null,
-    onExport: () => {},
+    onExport: () => Promise.resolve("saved" as const),
     videoExport: new FakeExportPorts(),
     htmlExport: fakeHtmlExportDevice(),
     playing: false,
@@ -94,6 +97,8 @@ export function mountRoute(
     serverOn: false,
     onKeepCopy: () => {},
     onSaveOnServer: () => {},
+    fineSettingsFold: createStorageFineSettingsFoldStore(createMemoryStorage()),
+    musicEditorDetails: createStorageMusicEditorDetailsStore(createMemoryStorage()),
     serverSessions: {
       newShareLinkSession: (): never => {
         throw new Error("a device slideshow has no link to share");

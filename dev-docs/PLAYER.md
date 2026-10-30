@@ -10,5 +10,6 @@
 | [Timing](player/TIMING.md)                 | Transitions, the Ken Burns path and show time                                  |
 | [Player API](player/PLAYER_API.md)         | `createPlayer`, `createBrowserPlayer`, `createFramePlayer` and their behaviour |
 | [Captions](player/CAPTIONS.md)             | A caption's look and layout                                                    |
+| [Looks](player/LOOKS.md)                   | A slideshow's colour grade: the table, the maths, what is graded               |
 | [Renderers](player/RENDERERS.md)           | WebGL2 and the DOM fallback                                                    |
 | [Tests](player/TESTS.md)                   | Unit tests and the browser test engines                                        |

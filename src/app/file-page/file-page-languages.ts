@@ -19,6 +19,7 @@ function filePageWords(catalogue: Catalogue): FilePageWords {
     withMusic: catalogue["htmlExport.withMusic"],
     withoutMusic: catalogue["htmlExport.withoutMusic"],
     madeWith: catalogue["htmlPage.madeWith"],
+    sampleMusicCredit: catalogue["sampleMusic.credit"],
     play: catalogue["htmlPage.play"],
     pause: catalogue["htmlPage.pause"],
     mute: catalogue["htmlPage.mute"],

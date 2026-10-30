@@ -118,7 +118,7 @@
         </div>
         <div class="in-film">
           <dt class="sr-only">{t("clip.inFilm", { length: "" })}</dt>
-          <dd class="mono" aria-live="polite">
+          <dd aria-live="polite">
             {t("clip.inFilm", { length: seconds(excerpt.endMs - excerpt.startMs) })}
           </dd>
         </div>

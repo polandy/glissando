@@ -78,4 +78,25 @@ describe("pictureTransition", () => {
       pictureTransition(2, 3, { ...automatic, transition: "push-left" }, 5000, "crossfade"),
     ).toBeUndefined();
   });
+
+  it("times an automatic transition by a mood's own share and cap", () => {
+    expect(pictureTransition(1, 3, automatic, 2000, "crossfade", 0.45, 1600)).toEqual({
+      effect: "crossfade",
+      durationMs: 900,
+    });
+  });
+
+  it("still times the picture's own effect by a mood's share and cap", () => {
+    expect(
+      pictureTransition(
+        1,
+        3,
+        { ...automatic, transition: "dissolve" },
+        2000,
+        "crossfade",
+        0.45,
+        1600,
+      ),
+    ).toEqual({ effect: "dissolve", durationMs: 900 });
+  });
 });

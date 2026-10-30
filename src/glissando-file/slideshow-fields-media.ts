@@ -7,8 +7,10 @@ import {
   checkMusicTrim,
   checkMusicVolumeDb,
   checkPictureChanges,
+  checkSampleTrack,
   InvalidOwnMusicError,
 } from "../library/own-music";
+import type { Place } from "../places/nearest-place";
 import {
   CAPTION_FROM_VERSION,
   MUSIC_TRIM_FROM_VERSION,
@@ -16,6 +18,8 @@ import {
   OWN_KEN_BURNS_FROM_VERSION,
   OWN_TIMING_FROM_VERSION,
   PICTURE_CHANGES_FROM_VERSION,
+  PLACE_FROM_VERSION,
+  SAMPLE_TRACK_FROM_VERSION,
 } from "./glissando-manifest";
 import {
   DocumentFormatError,
@@ -40,11 +44,12 @@ export function pictureKeys(version: number): string[] {
     ...(version >= CAPTION_FROM_VERSION ? ["caption"] : []),
     ...(version >= OWN_TIMING_FROM_VERSION ? ["durationMs", "transition"] : []),
     "alone",
+    ...(version >= PLACE_FROM_VERSION ? ["place"] : []),
   ];
 }
 
 export function readPictureFields(picture: JsonObject, path: string): PictureFields {
-  const { kenBurns, caption, durationMs, transition, alone } = picture;
+  const { kenBurns, caption, durationMs, transition, alone, place } = picture;
   if (alone !== undefined && alone !== true) {
     throw new DocumentFormatError(`${path}.alone`, "true or absent", alone);
   }
@@ -63,6 +68,7 @@ export function readPictureFields(picture: JsonObject, path: string): PictureFie
       ? {}
       : { transition: readOwnTiming(checkTransitionChoice, transition, path) }),
     ...(alone === true ? { alone: true } : {}),
+    ...(place === undefined ? {} : { place: readPlace(place, `${path}.place`) }),
   };
 }
 
@@ -74,6 +80,7 @@ export function musicKeys(version: number): string[] {
     ...(version >= MUSIC_TRIM_FROM_VERSION ? ["trim", "fadeInMs", "fadeOutMs"] : []),
     ...(version >= PICTURE_CHANGES_FROM_VERSION ? ["pictureChanges"] : []),
     ...(version >= MUSIC_VOLUME_FROM_VERSION ? ["volumeDb"] : []),
+    ...(version >= SAMPLE_TRACK_FROM_VERSION ? ["sampleTrack"] : []),
   ];
 }
 
@@ -86,7 +93,7 @@ export function readMusicFields(music: JsonObject, path: string): MusicFields {
       durationMs,
     );
   }
-  const { trim, fadeInMs, fadeOutMs, pictureChanges, volumeDb } = music;
+  const { trim, fadeInMs, fadeOutMs, pictureChanges, volumeDb, sampleTrack } = music;
   return {
     fileName: readText(music["fileName"], `${path}.fileName`),
     durationMs,
@@ -101,6 +108,7 @@ export function readMusicFields(music: JsonObject, path: string): MusicFields {
         ? {}
         : { pictureChanges: checkPictureChanges(pictureChanges, path) }),
       ...(volumeDb === undefined ? {} : { volumeDb: checkMusicVolumeDb(volumeDb, path) }),
+      ...(sampleTrack === undefined ? {} : { sampleTrack: checkSampleTrack(sampleTrack, path) }),
     })),
   };
 }
@@ -117,6 +125,19 @@ function readPictureColours(value: unknown, path: string): PictureColours {
     throw new DocumentFormatError(`${path}.accent`, "a #RRGGBB colour", accent);
   }
   return { veil, accent };
+}
+
+/** `value` as a picture's resolved place; throws `DocumentFormatError` naming the bad field. */
+function readPlace(value: unknown, path: string): Place {
+  const place = readObject(value, path, ["name", "latitude", "longitude"]);
+  const { latitude, longitude } = place;
+  if (typeof latitude !== "number" || latitude < -90 || latitude > 90) {
+    throw new DocumentFormatError(`${path}.latitude`, "a number from -90 to 90", latitude);
+  }
+  if (typeof longitude !== "number" || longitude < -180 || longitude > 180) {
+    throw new DocumentFormatError(`${path}.longitude`, "a number from -180 to 180", longitude);
+  }
+  return { name: readText(place["name"], `${path}.name`), latitude, longitude };
 }
 
 function readCaption(value: unknown, path: string): string {

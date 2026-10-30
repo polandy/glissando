@@ -34,7 +34,7 @@
 </div>
 <div class="row">
   <span>{t("htmlExport.pictures", { done: view.picturesDone, total: view.pictureCount })}</span>
-  <span class="mono">{formatBytes(view.bytesWritten)}</span>
+  <span>{formatBytes(view.bytesWritten)}</span>
 </div>
 <footer>
   <button class="btn" type="button" onclick={onCancel}>{t("common.cancel")}</button>

@@ -1,9 +1,13 @@
 import { orderByCaptureDate } from "../compose/order-by-capture-date";
 import { placeByCaptureDate, type AddedPlacement } from "./added-placement";
 import { normalizeCaption } from "../player/caption";
+import { DEFAULT_SLIDESHOW_LOOK, type SlideshowLook } from "../player/looks/slideshow-look";
 import { checkOwnKenBurns, type OwnKenBurns } from "./own-ken-burns";
 import { checkPortraitPictures, type PortraitPictures } from "./portrait-pictures";
+import { checkSlideshowLook } from "./slideshow-look";
+import { leaveMood } from "./slideshow-edits-mood";
 import { withPicturesAfterCardRemoval } from "./slideshow-edits-cards";
+import { withPicturesAfterChapterRemoval } from "./slideshow-edits-chapters";
 import {
   DEFAULT_SLIDESHOW_TRANSITION,
   checkOwnDurationMs,
@@ -54,8 +58,10 @@ export function removePicture(
   }
   const pictures = slideshow.pictures.filter((_, at) => at !== index);
   const picture = slideshow.pictures[index] as StoredPicture;
+  const removedPictureIds = new Set([pictureId]);
+  const withoutCard = withPicturesAfterCardRemoval(slideshow, pictures, removedPictureIds);
   return {
-    slideshow: withPicturesAfterCardRemoval(slideshow, pictures, new Set([pictureId])),
+    slideshow: withPicturesAfterChapterRemoval(withoutCard, pictures, removedPictureIds),
     removed: { picture, index },
   };
 }
@@ -105,7 +111,8 @@ export function takeOutPictures(
   if (pictures.length === 0) {
     throw new LastPictureError(slideshow.id);
   }
-  return withPicturesAfterCardRemoval(slideshow, pictures, taken);
+  const withoutCard = withPicturesAfterCardRemoval(slideshow, pictures, taken);
+  return withPicturesAfterChapterRemoval(withoutCard, pictures, taken);
 }
 
 /** Moves a picture to `toIndex` in play order; any move makes the order the user's own. */
@@ -195,14 +202,15 @@ export function setPictureTransition(
 
 /**
  * Sets the slideshow's default transition; `undefined` or the crossfade deletes the field, since
- * its absence is the crossfade (ADR-0010). The pictures' own transitions stay as they are.
+ * its absence is the crossfade (ADR-0010). The pictures' own transitions stay as they are. While
+ * a mood is on, leaves it first, writing its values into the single settings (ADR-0045).
  */
 export function setSlideshowTransition(
   slideshow: StoredSlideshow,
   transition: SlideshowTransition | undefined,
 ): StoredSlideshow {
   const withoutTransition: { -readonly [Key in keyof StoredSlideshow]: StoredSlideshow[Key] } = {
-    ...slideshow,
+    ...leaveMood(slideshow),
   };
   delete withoutTransition.transition;
   if (transition === undefined) {
@@ -212,6 +220,35 @@ export function setSlideshowTransition(
   return checked === DEFAULT_SLIDESHOW_TRANSITION
     ? withoutTransition
     : { ...withoutTransition, transition: checked };
+}
+
+/**
+ * Sets the slideshow's colour grade; `undefined` or None deletes the field, since its absence is
+ * None (ADR-0044).
+ */
+export function setSlideshowLook(
+  slideshow: StoredSlideshow,
+  look: SlideshowLook | undefined,
+): StoredSlideshow {
+  const withoutLook: { -readonly [Key in keyof StoredSlideshow]: StoredSlideshow[Key] } = {
+    ...slideshow,
+  };
+  delete withoutLook.look;
+  if (look === undefined || look === DEFAULT_SLIDESHOW_LOOK) {
+    return withoutLook;
+  }
+  const checked = checkSlideshowLook(look, `slideshow "${slideshow.id}"`);
+  return { ...withoutLook, look: checked };
+}
+
+/**
+ * Turns energy pacing (ADR-0046) on or off for this slideshow; off, which is never stored, is the
+ * default.
+ */
+export function setSlideshowEnergyPacing(slideshow: StoredSlideshow, on: boolean): StoredSlideshow {
+  const next: { -readonly [Key in keyof StoredSlideshow]: StoredSlideshow[Key] } = { ...slideshow };
+  delete next.energyPacing;
+  return on ? { ...next, energyPacing: true } : next;
 }
 
 /** Sets the slideshow's portrait layout; `undefined` makes it automatic again (ADR-0028). */

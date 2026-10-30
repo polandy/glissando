@@ -78,7 +78,7 @@ function button(target: HTMLElement, label: string): HTMLButtonElement {
 
 /**
  * The footer's primary action, found by its class rather than its label: while busy it reads
- * "Add" too, the same as the strip's own add-tile (AddPicturesMenu), so a label lookup is
+ * "Add" too, the same as the strip head's button (AddPicturesMenu), so a label lookup is
  * ambiguous.
  */
 function primaryButton(target: HTMLElement): HTMLButtonElement {

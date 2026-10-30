@@ -1,18 +1,28 @@
 <script lang="ts">
-  /** An on/off switch; `label` is its accessible name. */
+  /** An on/off switch; `label` is its accessible name, and with `showLabel` also its tap target. */
   let {
     checked,
     label,
+    showLabel = false,
+    disabled = false,
     onChange,
-  }: { checked: boolean; label: string; onChange: (checked: boolean) => void } = $props();
+  }: {
+    checked: boolean;
+    label: string;
+    showLabel?: boolean;
+    disabled?: boolean;
+    onChange: (checked: boolean) => void;
+  } = $props();
 </script>
 
-<label class="switch">
+<label class="switch" class:disabled class:labelled={showLabel}>
+  {#if showLabel}<span aria-hidden="true">{label}</span>{/if}
   <input
     type="checkbox"
     role="switch"
     aria-label={label}
     {checked}
+    {disabled}
     onchange={(event) => onChange(event.currentTarget.checked)}
   />
   <span class="track" aria-hidden="true"></span>
@@ -23,6 +33,16 @@
     position: absolute;
     opacity: 0;
     pointer-events: none;
+  }
+  .switch.labelled {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+  }
+  .switch.disabled {
+    cursor: default;
+    opacity: 0.5;
   }
   .track {
     position: relative;

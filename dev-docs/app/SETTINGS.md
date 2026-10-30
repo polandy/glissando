@@ -38,9 +38,11 @@ focus), the Picture frame group (server library on), the Immich group, the versi
 - **Documentation** opens the README on GitHub, **Source code on GitHub** the repository, both
   in a new tab (`settings/project-links.ts`); they need a connection, unlike the rest of the app.
 - **Open-source licences** opens `third-party-licenses.md` in a new tab: the name, version and
-  licence of every bundled dependency, among them mediabunny's MPL-2.0 (ADR-0015). The build
-  writes it, the service worker precaches it and answers a navigation to it with the file, so it
-  opens offline too.
+  licence of every bundled dependency, among them mediabunny's MPL-2.0 (ADR-0015), followed by
+  the committed components Vite cannot see on its own — the music decoder (ADR-0020), the
+  on-device detectors (ADR-0012, ADR-0036), the self-hosted fonts ([BRAND.md](../BRAND.md)) and
+  the bundled place names (ADR-0043). The build writes it, the service worker precaches it and
+  answers a navigation to it with the file, so it opens offline too.
 
 `settings/app-settings.ts` holds the three preferences: a choice is stored at once and announced to
 its subscribers, a new subscriber gets the current state immediately. `main.ts` subscribes and

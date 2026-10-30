@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onDestroy, onMount } from "svelte";
   import { MAX_TRANSITION_DURATION_MS, TRANSITION_SHARE_OF_SLIDE } from "../../../compose";
+  import { MOOD_PROFILES } from "../../../compose/mood-settings";
   import {
     ALTERNATE_TRANSITION,
     CUT_TRANSITION,
@@ -17,6 +18,7 @@
   import { FrameTicker } from "../../picture-editor/timing/frame-ticker";
   import { TILE_STILL_MS } from "../../picture-editor/timing/preview-timeline";
   import TransitionTile from "../../picture-editor/TransitionTile.svelte";
+  import { moodName } from "./mood-text";
   import type { SlideshowDetails } from "../view-models";
 
   /**
@@ -52,20 +54,30 @@
   const ticker = reducedMotion ? null : new FrameTicker(ports, (elapsed) => (elapsedMs = elapsed));
   onDestroy(() => ticker?.stop());
 
-  const isDefault = $derived(slideshow.transition === DEFAULT_SLIDESHOW_TRANSITION);
+  // Under a mood the default transition is the mood's, not the stored field (ADR-0045): the
+  // single settings stay untouched until a change leaves the mood.
+  const moodTransition = $derived(
+    slideshow.mood === undefined ? null : MOOD_PROFILES[slideshow.mood].transition,
+  );
+  const checkedTransition = $derived(moodTransition ?? slideshow.transition);
+  const isDefault = $derived(
+    moodTransition !== null || slideshow.transition === DEFAULT_SLIDESHOW_TRANSITION,
+  );
   const firstUrl = $derived(slideshow.pictures[0]?.thumbnailUrl ?? null);
   // With a single picture, it stands in for the second too.
   const secondUrl = $derived(slideshow.pictures[1]?.thumbnailUrl ?? firstUrl);
   const hint = $derived(
-    slideshow.transition === ALTERNATE_TRANSITION
-      ? t("transitions.hintAlternate")
-      : slideshow.transition === CUT_TRANSITION
-        ? t("transitions.hintCut")
-        : t("transitions.hintEffect", {
-            effect: t(`effect.${slideshow.transition}`),
-            share: TRANSITION_SHARE_OF_SLIDE * PERCENT,
-            max: MAX_TRANSITION_DURATION_MS / MILLISECONDS_PER_SECOND,
-          }),
+    slideshow.mood !== undefined
+      ? t("transitions.hintMood", { name: moodName(t, slideshow.mood) })
+      : slideshow.transition === ALTERNATE_TRANSITION
+        ? t("transitions.hintAlternate")
+        : slideshow.transition === CUT_TRANSITION
+          ? t("transitions.hintCut")
+          : t("transitions.hintEffect", {
+              effect: t(`effect.${slideshow.transition}`),
+              share: TRANSITION_SHARE_OF_SLIDE * PERCENT,
+              max: MAX_TRANSITION_DURATION_MS / MILLISECONDS_PER_SECOND,
+            }),
   );
   /** The pictures that keep a transition of their own, by number; the last one plays none. */
   const ownNumbers = $derived(
@@ -91,7 +103,7 @@
   // The native modal dialog traps focus and makes the page behind it inert.
   onMount(() => {
     dialog.showModal();
-    radios[SLIDESHOW_TRANSITIONS.indexOf(slideshow.transition)]?.focus();
+    radios[SLIDESHOW_TRANSITIONS.indexOf(checkedTransition)]?.focus();
     return () => dialog.close();
   });
 
@@ -138,7 +150,7 @@
         <TransitionTile
           bind:radio={radios[index]}
           {choice}
-          checked={choice === slideshow.transition}
+          checked={choice === checkedTransition}
           automatic={isDefault}
           tag={choice === DEFAULT_SLIDESHOW_TRANSITION ? t("transitions.defaultTag") : null}
           pictureUrl={firstUrl}

@@ -3,6 +3,8 @@ import { deEditor } from "./catalogue-de-editor.ts";
 import { deMusic } from "./catalogue-de-music.ts";
 import { deTiming } from "./catalogue-de-timing.ts";
 import { deTransitions } from "./catalogue-de-transitions.ts";
+import { deLook } from "./catalogue-de-look.ts";
+import { deMood } from "./catalogue-de-mood.ts";
 import { dePortrait } from "./catalogue-de-portrait.ts";
 import { deImmich } from "./catalogue-de-immich.ts";
 import { deHtml } from "./catalogue-de-html.ts";
@@ -19,7 +21,10 @@ import { deCulling } from "./catalogue-de-culling.ts";
 import { deView } from "./catalogue-de-view.ts";
 import { deFrame } from "./catalogue-de-frame.ts";
 import { deCards } from "./catalogue-de-cards.ts";
+import { deChapters } from "./catalogue-de-chapters.ts";
 import { deFilePage } from "./catalogue-de-file-page.ts";
+import { deSampleMusicCredit } from "./catalogue-de-sample-music-credit.ts";
+import { deSampleMusicPicker } from "./catalogue-de-sample-music-picker.ts";
 import type { Message } from "./messages.ts";
 
 /**
@@ -52,6 +57,7 @@ export const de = {
   "start.yourSlideshows": "Deine Diashows",
   "start.withMusic": "mit Musik",
   "start.searchingSubjects": "Motive werden gesucht",
+  "start.searchingAgain": "Motive werden erneut gesucht",
   "start.searchProgress": "{done} von {total}",
   "start.demoCardTitle": "Glissando in Aktion sehen",
   "start.loadDemo": "Demo-Slideshow laden",
@@ -59,6 +65,10 @@ export const de = {
   "start.loadingDemoProgress": "Demo wird geladen … {received} von {total} MB",
   "start.demoNeedsConnection": "Braucht eine Verbindung — einmal geladen, läuft die Demo offline.",
   "start.demoLoadFailed": "Demo konnte nicht geladen werden — versuch's noch mal",
+  "start.focusFailed": {
+    one: "{count} Bild konnte nicht angesehen werden",
+    other: "{count} Bilder konnten nicht angesehen werden",
+  },
 
   "settings.open": "Einstellungen",
   "settings.title": "Einstellungen",
@@ -84,21 +94,21 @@ export const de = {
 
   "slideshow.eyebrow": "Diashow",
   "slideshow.dateRange": "{from} – {to}",
-  "slideshow.duration": "Dauer",
   "slideshow.music": "Musik",
-  "slideshow.noMusic": "Ohne Musik",
+  "slideshow.noMusic": "Keine",
   "slideshow.kenBurns": "Ken Burns",
   "slideshow.automatic": "automatisch",
   "slideshow.transitions": "Übergänge",
+  "slideshow.look": "Look",
+  "slideshow.mood": "Stimmung",
   "slideshow.play": "Abspielen",
-  "slideshow.details": "Details",
+  "slideshow.fineSettings": "Feineinstellungen",
   "slideshow.pictures": "Bilder",
   "slideshow.sortedByDate": "Nach Aufnahmedatum sortiert",
   "slideshow.pictureLabel": "Bild {number}, aufgenommen am {date}",
   "slideshow.ownOrder": "Eigene Reihenfolge",
   "slideshow.reorderHintWide": "ziehen oder antippen",
-  "slideshow.reorderHintNarrow": "antippen zum Umsortieren, halten für mehrere",
-  "slideshow.selectHintNarrow": "halten für mehrere",
+  "slideshow.reorderHintNarrow": "antippen zum Umsortieren",
   "slideshow.select": "Auswählen",
   "slideshow.shuffle": "Mischen",
   "slideshow.shuffled": "{count} Bilder gemischt",
@@ -112,6 +122,8 @@ export const de = {
   "slideshow.earlier": "Früher",
   "slideshow.later": "Später",
   "slideshow.remove": "Entfernen",
+  "slideshow.removeNoPictures": "Bilder entfernen",
+  "slideshow.removePictures": { one: "Bild entfernen", other: "{count} Bilder entfernen" },
   "slideshow.done": "Fertig",
   "slideshow.lastPictureStays": "Das letzte Bild bleibt. Zum Wegwerfen die ganze Diashow löschen.",
   "slideshow.everyPictureStays":
@@ -120,6 +132,11 @@ export const de = {
   "slideshow.titleInput": "Titel",
   "slideshow.titleHint": "Enter speichert · Esc verwirft · leer = automatischer Titel",
   "slideshow.more": "Mehr",
+  "slideshow.focus": "Gesichter und Motive\u00a0…",
+  "slideshow.focusFailedHint": {
+    one: "{count} konnte nicht angesehen werden",
+    other: "{count} konnten nicht angesehen werden",
+  },
   "slideshow.delete": "Diashow löschen\u00a0…",
   "slideshow.deleteTitle": "„{title}“ löschen?",
   "slideshow.deleteText": {
@@ -131,6 +148,46 @@ export const de = {
   "slideshow.deleteConfirm": "Löschen",
   "slideshow.deleted": "Diashow gelöscht",
   "slideshow.gone": "Diese Diashow gibt es nicht mehr.",
+
+  "focusSheet.title": "Gesichter und Motive",
+  "focusSheet.looking": "Der Fokus wird gesucht · {done} von {total}",
+  "focusSheet.lookingAgain": "Wird erneut gesucht · {done} von {total}",
+  "focusSheet.lookingAgainHint": "Jedes Bild behält sein Ergebnis, bis das neue da ist.",
+  "focusSheet.lookedAtSoFar": "{done} von {total} angesehen.",
+  "focusSheet.waitingForServerHint": {
+    one: "Wartet auf deinen Glissando-Server: das andere Bild fehlt noch.",
+    other: "Wartet auf deinen Glissando-Server: {count} weitere Bilder fehlen noch.",
+  },
+  "focusSheet.failedHint": {
+    one: "{count} Bild konnte nicht angesehen werden. Glissando versucht es beim nächsten Öffnen erneut.",
+    other:
+      "{count} Bilder konnten nicht angesehen werden. Glissando versucht es beim nächsten Öffnen erneut.",
+  },
+  "focusSheet.allLookedAt": "Alle Bilder angesehen.",
+  "focusSheet.statusFace": "Gesichter",
+  "focusSheet.statusSubject": "Motive",
+  "focusSheet.statusImmich": "Gesichter von Immich",
+  "focusSheet.statusScenery": "Landschaft",
+  "focusSheet.statusNone": "Nichts gefunden",
+  "focusSheet.statusOutdated": "Ältere Erkennung",
+  "focusSheet.statusFailed": "Fehlgeschlagen",
+  "focusSheet.statusWaiting": "Noch nicht",
+  "focusSheet.statusWaitingForServer": "Wartet auf Server",
+  "focusSheet.statusLooking": "Wird gesucht",
+  "focusSheet.ownMotion": "Eigene Bewegung",
+  "focusSheet.tryAgain": "Die {count} erneut versuchen",
+  "focusSheet.lookAgainAll": {
+    one: "Das Bild erneut ansehen",
+    other: "Alle {count} Bilder erneut ansehen",
+  },
+  "focusSheet.lookingEllipsis": "Wird gesucht …",
+  "focusSheet.ownMotionHint": {
+    one: "Dieses Bild hat einen Start und ein Ende, die du von Hand gesetzt hast. Es behält sie, was auch gefunden wird.",
+    other:
+      "{count} Bilder haben einen Start und ein Ende, die du von Hand gesetzt hast. Sie behalten sie, was auch gefunden wird.",
+  },
+  "focusSheet.storedOnDevice": "Auf diesem Gerät gespeichert.",
+  "focusSheet.sharedOnServer": "Für jedes Gerät auf deinem Glissando-Server freigegeben.",
 
   "import.crumb": "Neue Diashow",
   "import.crumbPictures": "Bilder",
@@ -201,13 +258,17 @@ export const de = {
   "import.startOverText": "und die Bilder noch einmal wählen.",
   "import.musicTitle": "Welche Musik?",
   "import.musicText":
-    "Ein Song oder mehrere — sie spielen nacheinander, und die Bilder wechseln in ihrem Takt. Ohne Musik bleibt jedes Bild {seconds}.",
+    "Ein Song oder mehrere — sie spielen nacheinander, und die Bilder wechseln in ihrem Takt.",
   "import.musicFormats": "Eine oder mehrere Dateien · MP3, M4A, FLAC, WAV, Ogg, AIFF, WMA\u00a0…",
-  "import.addAnotherSong": "Weiteren Song hinzufügen",
-  "import.pickMusic": "Musik auswählen",
+  "import.ownMusicTitle": "Eigene Musik",
+  "import.chooseFiles": "Dateien wählen",
+  "import.soundtrackTitle": "Soundtrack",
+  "import.soundtrackEmpty": "Noch keine Musik — füge oben einen Titel oder eigene Songs hinzu.",
   "import.trackMeta": "{duration} · {format}",
-  "import.secondsTitle": "Dauer je Bild",
-  "import.secondsHint": "Voreinstellung {seconds}, in halben Sekunden, gilt für diese Diashow",
+  "import.paceMood": "Stimmung {mood}",
+  "import.paceWithMusic":
+    "etwa {seconds} je Bild, auf den Phrasen der Musik. Ändern lässt sie sich in der Diashow.",
+  "import.paceWithoutMusic": "etwa {seconds} je Bild. Ändern lässt sie sich in der Diashow.",
   "import.secondsShorter": "Kürzer",
   "import.secondsLonger": "Länger",
   "import.timingPictures": "Bilder",
@@ -218,7 +279,12 @@ export const de = {
   "import.fitFadesOut": "Die Musik blendet mit dem letzten Bild aus.",
   "import.fitFadesOutNotReached":
     "Die Musik blendet mit dem letzten Bild aus; die blassen Songs werden nicht erreicht.",
-  "import.fitSilentAfter": "Die letzten Bilder laufen still.",
+  "import.fitFitted": "Bilder je etwa {seconds}, damit sie mit der Musik enden.",
+  "import.fitOutlasts": "Die Musik endet {time} vor den Bildern",
+  "import.repeatButton": "Musik wiederholen",
+  "import.addSongButton": "Song hinzufügen",
+  "import.fitRepeats": "Die Musik wiederholt sich · blendet mit dem letzten Bild aus.",
+  "import.playOnceButton": "Einmal abspielen",
   "import.fitEndsWithMusic": "Die Diashow endet mit der Musik.",
   "import.backToPictures": "Bilder",
   "import.create": "Diashow erstellen",
@@ -289,20 +355,23 @@ export const de = {
   "pwa.firefoxDesktop.note":
     "Als eigenes Fenster im Dock oder in der Taskleiste: öffne Glissando in Chrome, Edge oder Safari und installiere es dort.",
 
-  "glissandoFile.export": "Als Glissando-Datei sichern",
-  "glissandoFile.exportSize": "Eine .glissando-Datei, ca. {size}",
-  "glissandoFile.exportSizeUnknown": "Eine .glissando-Datei",
   "glissandoFile.exportRunning": "Wird exportiert\u00a0… {percent}\u00a0%",
   "glissandoFile.exportAfterRunning": "Erst wenn der laufende Export fertig ist",
   "glissandoFile.exportIndicator": "Exportiere „{title}“\u00a0… {percent}\u00a0%",
   "glissandoFile.downloaded": "„{fileName}“ heruntergeladen · {size}",
   "glissandoFile.exportFailed": "Export fehlgeschlagen: zu wenig Speicher auf dem Gerät.",
   "glissandoFile.tryAgain": "Erneut versuchen",
+  "glissandoFile.sheetText":
+    "Die ganze Diashow – Bilder, Musik, alle Einstellungen – in einer .glissando-Datei. Öffne sie in Glissando auf einem anderen Gerät, um sie anzusehen oder weiterzubearbeiten.",
+  "glissandoFile.factsWithMusic": "{pictures} · Musik · Einstellungen",
+  "glissandoFile.factsWithoutMusic": "{pictures} · Einstellungen",
+  "glissandoFile.save": "Datei sichern",
+  "glissandoFile.saving": "Datei wird gesichert\u00a0… {percent}\u00a0%",
+  "glissandoFile.savingInBackground": "Du kannst weiterarbeiten – es läuft im Hintergrund weiter.",
+  "glissandoFile.saved": "In Downloads gesichert.",
+  "glissandoFile.saveFailed": "Die Datei konnte nicht gesichert werden.",
   "glissandoFile.openFile": "Datei öffnen",
   "glissandoFile.openGlissandoFile": ".glissando-Datei öffnen",
-  "glissandoFile.fromOtherDevice": "Diashow von einem anderen Gerät?",
-  "glissandoFile.fromOtherDeviceText":
-    "Eine exportierte .glissando-Datei öffnen, mit Bildern, Musik und Reihenfolge.",
   "glissandoFile.dropToOpen": "Loslassen, um die Diashow zu öffnen",
   "glissandoFile.openingTitle": "Diashow wird geöffnet\u00a0…",
   "glissandoFile.checking": "Datei wird geprüft\u00a0…",
@@ -350,6 +419,8 @@ export const de = {
   ...deAdd,
   ...deTiming,
   ...deTransitions,
+  ...deLook,
+  ...deMood,
   ...dePortrait,
   ...deImmich,
   ...deMusic,
@@ -367,5 +438,8 @@ export const de = {
   ...deView,
   ...deFrame,
   ...deCards,
+  ...deChapters,
   ...deFilePage,
+  ...deSampleMusicCredit,
+  ...deSampleMusicPicker,
 } as const satisfies Record<string, Message>;

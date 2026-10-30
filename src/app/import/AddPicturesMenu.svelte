@@ -5,20 +5,17 @@
 
   /**
    * The "Add pictures" menu, picking up where the empty step's drop zone left off: files, a
-   * folder, and, where Immich can be opened, "From Immich" (IMPORT_WIZARD.md, Pictures). Two
-   * triggers share it: the strip head's small button and the strip's own dashed add tile.
+   * folder, and, where Immich can be opened, "From Immich" (IMPORT_WIZARD.md, Pictures). The
+   * strip head's small button opens it.
    */
   let {
     onAddMore,
     onOpenImmich,
-    tile = false,
   }: {
     /** Null where no pictures come from the device, as for a server slideshow. */
     onAddMore: { readonly onPickFiles: () => void; readonly onPickFolder: () => void } | null;
     /** Null where Immich cannot be opened. */
     onOpenImmich: (() => void) | null;
-    /** The dashed add-tile presentation instead of the small head button. */
-    tile?: boolean;
   } = $props();
 
   const { t } = getTranslator();
@@ -101,75 +98,27 @@
   {/if}
 {/snippet}
 
-<!-- A single root per variant: the tile must be the strip's only `<li>` child, popover included. -->
-{#if tile}
-  <li class="tile">
-    <button
-      class="add-tile"
-      type="button"
-      bind:this={toggle}
-      aria-label={t("import.addMore")}
-      aria-haspopup="menu"
-      aria-expanded={open}
-      onclick={() => (open = !open)}
+<span class="add-pictures">
+  <button
+    class="btn small"
+    type="button"
+    bind:this={toggle}
+    aria-haspopup="menu"
+    aria-expanded={open}
+    aria-label={t("import.addMore")}
+    onclick={() => (open = !open)}
+  >
+    <Icon name="plus" /><span class="wide">{t("import.addMore")}</span><span class="narrow"
+      >{t("add.titleShort")}</span
     >
-      <Icon name="plus" />
-      <span class="label mono">{t("add.titleShort")}</span>
-    </button>
-    {@render popover()}
-  </li>
-{:else}
-  <span class="add-pictures">
-    <button
-      class="btn small"
-      type="button"
-      bind:this={toggle}
-      aria-haspopup="menu"
-      aria-expanded={open}
-      aria-label={t("import.addMore")}
-      onclick={() => (open = !open)}
-    >
-      <Icon name="plus" /><span class="wide">{t("import.addMore")}</span><span class="narrow"
-        >{t("add.titleShort")}</span
-      >
-    </button>
-    {@render popover()}
-  </span>
-{/if}
+  </button>
+  {@render popover()}
+</span>
 
 <style>
   /* Wraps the head button and its popover without adding a box of its own to the grid cell. */
   .add-pictures {
     display: contents;
-  }
-  .tile {
-    position: relative;
-    aspect-ratio: 4 / 3;
-  }
-  .add-tile {
-    position: absolute;
-    inset: 0;
-    display: grid;
-    align-content: center;
-    justify-items: center;
-    gap: 6px;
-    padding: 0;
-    border: 1.5px dashed var(--gl-line);
-    border-radius: var(--gl-radius-tile);
-    background: transparent;
-    color: var(--gl-muted);
-    cursor: pointer;
-  }
-  .add-tile:hover {
-    background: var(--gl-hover);
-  }
-  .add-tile:focus-visible {
-    outline: 3px solid var(--gl-accent);
-    outline-offset: 2px;
-  }
-  .label {
-    padding: 1px 6px;
-    font-size: var(--gl-size-caption);
   }
   .narrow {
     display: none;

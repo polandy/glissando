@@ -1,6 +1,5 @@
 <script lang="ts">
   import type { Snippet } from "svelte";
-  import type { OwnKenBurns } from "../../library/own-ken-burns";
   import Icon from "../components/Icon.svelte";
   import { getTranslator } from "../i18n/context";
   import { FRAME_KEYS, type FrameKey } from "./frame-keys";
@@ -12,12 +11,13 @@
   /**
    * Beside the picture (below it on a phone): the preview, staying in view while the panel
    * scrolls; which frame is edited and the motion's actions; the caption; then the timing.
+   * A phone shows the preview only in place of the picture.
    */
   let {
     picture,
-    motion,
     active,
     preview,
+    previewOnPhone,
     timing,
     onActivate,
     onSwap,
@@ -26,9 +26,10 @@
     onCaption,
   }: {
     picture: PictureEditorView;
-    motion: OwnKenBurns;
     active: FrameKey;
     preview: Snippet;
+    /** The phone shows the preview rather than the picture; wider screens show both. */
+    previewOnPhone: boolean;
     /** The duration and transition sections. */
     timing: Snippet;
     onActivate: (key: FrameKey) => void;
@@ -39,15 +40,17 @@
     onCaption: (typed: string) => void;
   } = $props();
 
-  const { t, formatDate, formatZoom } = getTranslator();
+  const { t, formatDate } = getTranslator();
   const KEY_LABELS = { from: "editor.start", to: "editor.end" } as const;
 </script>
 
 <aside class="panel">
-  <div class="preview-block">{@render preview()}</div>
+  <div class="preview-block" class:off-phone={!previewOnPhone}>{@render preview()}</div>
   <div class="who">
     <b>{t("editor.position", { number: picture.number, count: picture.count })}</b>
-    <span class="muted mono">{picture.fileName} · {formatDate(picture.capturedAt)}</span>
+    <span class="muted"
+      >{picture.fileName} · <span class="mono">{formatDate(picture.capturedAt)}</span></span
+    >
   </div>
   <section class="motion" aria-label={t("editor.kenBurns")}>
     <SectionHead
@@ -64,8 +67,7 @@
           data-key={key}
           onclick={() => onActivate(key)}
         >
-          <b><i class="swatch"></i>{t(KEY_LABELS[key])}</b>
-          <span class="mono">{t("editor.zoom", { zoom: formatZoom(motion[key].zoom) })}</span>
+          <i class="swatch"></i>{t(KEY_LABELS[key])}
         </button>
       {/each}
     </div>
@@ -133,30 +135,23 @@
     background: var(--gl-hover);
   }
   .keys button {
-    display: grid;
-    gap: 1px;
-    padding: 7px 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 10px;
     border: 0;
     border-radius: var(--gl-radius-small);
     background: transparent;
     color: var(--gl-ink);
     font: inherit;
+    font-size: var(--gl-size-label);
+    font-weight: 600;
     text-align: left;
     cursor: pointer;
   }
   .keys button[aria-pressed="true"] {
     background: var(--gl-surface);
     box-shadow: var(--gl-shadow);
-  }
-  .keys b {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: var(--gl-size-label);
-  }
-  .keys span {
-    color: var(--gl-muted);
-    font-size: var(--gl-size-small);
   }
   /* The frame's own border style: dashed while inactive, solid while edited. */
   .swatch {
@@ -189,6 +184,9 @@
       top: 0;
       margin: -16px -16px 0;
       padding: 12px 16px 10px;
+    }
+    .preview-block.off-phone {
+      display: none;
     }
     .narrow-hint {
       display: block;

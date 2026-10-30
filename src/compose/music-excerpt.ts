@@ -1,4 +1,9 @@
-import { MUSIC_FADE_OFF_MS, MUSIC_FADE_SHORT_MS, type MusicTrim } from "../library/own-music";
+import {
+  MUSIC_FADE_LONG_MS,
+  MUSIC_FADE_OFF_MS,
+  MUSIC_FADE_SHORT_MS,
+  type MusicTrim,
+} from "../library/own-music";
 import type { StoredMusic } from "../library/stored-slideshow";
 
 /**
@@ -6,8 +11,11 @@ import type { StoredMusic } from "../library/stored-slideshow";
  * length: the player only receives these numbers. See ADR-0009.
  */
 
-/** An automatic fade is the short one, wherever the music is cut. */
-export const AUTOMATIC_MUSIC_FADE_MS = MUSIC_FADE_SHORT_MS;
+/** An automatic fade-in is the short one, wherever the excerpt starts mid-track. */
+export const AUTOMATIC_MUSIC_FADE_IN_MS = MUSIC_FADE_SHORT_MS;
+
+/** An automatic fade-out is the long one, wherever the music is cut, so an ending is never abrupt. */
+export const AUTOMATIC_MUSIC_FADE_OUT_MS = MUSIC_FADE_LONG_MS;
 
 /** The music as the player plays it, in ms of the track. */
 export interface MusicTiming {
@@ -37,13 +45,13 @@ export function audibleEndMs(music: StoredMusic, slideshowMs: number): number {
 
 /** Short when the excerpt starts mid-track; off when the track plays from its start. */
 export function automaticFadeInMs(music: StoredMusic): number {
-  return musicExcerpt(music).startMs > 0 ? AUTOMATIC_MUSIC_FADE_MS : MUSIC_FADE_OFF_MS;
+  return musicExcerpt(music).startMs > 0 ? AUTOMATIC_MUSIC_FADE_IN_MS : MUSIC_FADE_OFF_MS;
 }
 
-/** Short when the music stops before the track's end; off when the track ends by itself. */
+/** Long when the music stops before the track's end; off when the track ends by itself. */
 export function automaticFadeOutMs(music: StoredMusic, slideshowMs: number): number {
   return audibleEndMs(music, slideshowMs) < music.durationMs
-    ? AUTOMATIC_MUSIC_FADE_MS
+    ? AUTOMATIC_MUSIC_FADE_OUT_MS
     : MUSIC_FADE_OFF_MS;
 }
 

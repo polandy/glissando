@@ -7,14 +7,15 @@ import {
   MUSIC_ID,
   slideshow,
   firstStoredPicture,
+  firstStoredSong,
   document,
 } from "./server-document-fixtures";
 
 describe("serverDocumentFor", () => {
-  it("names the server format and version 3 and links every picture by its Immich asset", () => {
+  it("names the server format and version 7 and links every picture by its Immich asset", () => {
     const written = document();
     expect(written.format).toBe("glissando-server");
-    expect(written.formatVersion).toBe(3);
+    expect(written.formatVersion).toBe(7);
     expect(written.slideshow.pictures[0]).toEqual({
       capturedAt: "2025-09-30T10:00:00Z",
       width: 3840,
@@ -46,6 +47,15 @@ describe("serverDocumentFor", () => {
     const written = serverDocumentFor({ ...slideshow, betweenSongs: SEQUENCE_BETWEEN_SONGS });
     expect(written.slideshow.betweenSongs).toBe("sequence");
     expect(document().slideshow).not.toHaveProperty("betweenSongs");
+  });
+
+  it("carries a sample song's sampleTrack, so the credit travels to the server", () => {
+    const written = serverDocumentFor({
+      ...slideshow,
+      songs: [{ ...firstStoredSong, sampleTrack: "hold-the-frame" }],
+    });
+    expect(written.slideshow.songs[0]).toMatchObject({ sampleTrack: "hold-the-frame" });
+    expect(document().slideshow.songs[0]).not.toHaveProperty("sampleTrack");
   });
 
   it("leaves out a picture's file size, which a linked picture does not have", () => {

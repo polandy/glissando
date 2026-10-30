@@ -5,7 +5,16 @@ import type { PortraitPictures } from "../library/portrait-pictures";
 import type { BetweenSongs, MusicTrim, PictureChanges } from "../library/own-music";
 import type { SlideshowTransition, TransitionChoice } from "../library/own-timing";
 import type { StoredVideo } from "../library/own-video";
+import type { SlideshowMood } from "../library/slideshow-mood";
 import type { StoredSlideshow } from "../library/stored-slideshow";
+import type { GradedSlideshowLook } from "../player/looks/slideshow-look";
+import type { Place } from "../places/nearest-place";
+import {
+  addedChaptersToManifest,
+  chapterEditsToManifest,
+  type ManifestAddedChapter,
+  type ManifestChapterEdit,
+} from "./manifest-chapters";
 import { cardToManifest, type ManifestCard } from "./manifest-card";
 import {
   clipMimeType,
@@ -14,6 +23,17 @@ import {
   videoToManifest,
   type ManifestVideo,
 } from "./manifest-video";
+import { picturePaths, songPath, typesAt, type PictureTypes } from "./manifest-paths";
+
+export {
+  PICTURE_FILE_EXTENSIONS,
+  PICTURE_NUMBER_DIGITS,
+  picturePaths,
+  songPath,
+  thumbnailPath,
+  typeOfPicturePath,
+  type PictureTypes,
+} from "./manifest-paths";
 
 /**
  * `glissando.json`, the first entry of a .glissando file: the format's id and version and the
@@ -31,14 +51,22 @@ export const GLISSANDO_FORMAT_ID = "glissando";
  * `portraitPictures` and a picture's `alone` (ADR-0028), version 12 the slideshow's `openingCard`
  * and `closingCard` (ADR-0032), version 13 a picture's `colours` and a card's picture background
  * `tint` (ADR-0033), version 14 a picture's `video` and the `videos/` entries (ADR-0034), version
- * 15 a song's own volume, `volumeDb` (ADR-0040).
+ * 15 a song's own volume, `volumeDb` (ADR-0040), version 16 a song's sample-track id,
+ * `sampleTrack` (ADR-0042), version 17 a picture's resolved `place` (ADR-0043) and a slideshow's
+ * trip chapters, `automaticChaptersOff`, `chapterEdits` and `addedChapters`
+ * (`dev-docs/player/TRIP_CHAPTERS.md`), version 18 the slideshow's colour grade, `look`
+ * (ADR-0044), version 19 the slideshow's mood (ADR-0045), version 20 the slideshow's energy
+ * pacing, `energyPacing` (ADR-0046), version 21 the slideshow's music repeat, `repeatMusic`
+ * (ADR-0047).
  *
- * Versions 13 to 15 are read (a version 13 file holds no clips, and versions 13 and 14 no song
- * volume). Any older file is refused rather than migrated, as there is no production instance
- * yet; before version 10 a file carried `music`, not `songs`, which cannot be told apart from the
- * rest of such a document.
+ * Versions 13 to 21 are read (a version 13 file holds no clips, versions 13 and 14 no song
+ * volume, versions 13 to 15 no sample-track id, versions 13 to 16 no place or chapters, versions
+ * 13 to 17 no look, versions 13 to 18 no mood, versions 13 to 19 no energy pacing, and versions 13
+ * to 20 no music repeat). Any older file is refused rather than migrated, as there is no
+ * production instance yet; before version 10 a file carried `music`, not `songs`, which cannot be
+ * told apart from the rest of such a document.
  */
-export const GLISSANDO_FORMAT_VERSION = 15;
+export const GLISSANDO_FORMAT_VERSION = 21;
 export const OLDEST_READABLE_FORMAT_VERSION = 13;
 /** The first version that carries a picture's own motion. */
 export const OWN_KEN_BURNS_FROM_VERSION = 2;
@@ -58,17 +86,21 @@ export const PICTURE_CHANGES_FROM_VERSION = 8;
 export const PICTURE_LENGTH_FROM_VERSION = 9;
 /** The first version that carries a song's own volume. */
 export const MUSIC_VOLUME_FROM_VERSION = 15;
+/** The first version that carries a song's sample-track id. */
+export const SAMPLE_TRACK_FROM_VERSION = 16;
+/** The first version that carries a picture's resolved place. */
+export const PLACE_FROM_VERSION = 17;
+/** The first version that carries a slideshow's trip chapters. */
+export const TRIP_CHAPTERS_FROM_VERSION = 17;
+/** The first version that carries the slideshow's colour grade. */
+export const LOOK_FROM_VERSION = 18;
+/** The first version that carries the slideshow's mood. */
+export const MOOD_FROM_VERSION = 19;
+/** The first version that carries the slideshow's energy pacing. */
+export const ENERGY_PACING_FROM_VERSION = 20;
+/** The first version that carries the slideshow's music repeat. */
+export const REPEAT_MUSIC_FROM_VERSION = 21;
 export const MANIFEST_ENTRY_NAME = "glissando.json";
-
-const PICTURE_EXTENSIONS: Readonly<Record<string, string>> = {
-  "image/jpeg": "jpg",
-  "image/png": "png",
-  "image/webp": "webp",
-};
-/** The extensions a picture or thumbnail entry may have, shared with the entry name allowlist. */
-export const PICTURE_FILE_EXTENSIONS: readonly string[] = Object.values(PICTURE_EXTENSIONS);
-export const PICTURE_NUMBER_DIGITS = 4;
-const MUSIC_EXTENSION = /\.([a-z0-9]{1,8})$/i;
 
 export interface ManifestPicture {
   readonly file: string;
@@ -91,6 +123,8 @@ export interface ManifestPicture {
   readonly colours: PictureColours;
   /** The clip the slide plays; the picture is its poster (ADR-0034). */
   readonly video?: ManifestVideo;
+  /** The nearest bundled place to the picture's GPS, resolved at import; absent: none (ADR-0043). */
+  readonly place?: Place;
 }
 
 export interface ManifestMusic {
@@ -103,6 +137,8 @@ export interface ManifestMusic {
   readonly fadeOutMs?: number;
   readonly pictureChanges?: PictureChanges;
   readonly volumeDb?: number;
+  /** The id of the Glissando sample track this song is; absent for the owner's own music. */
+  readonly sampleTrack?: string;
 }
 
 export interface ManifestSlideshow {
@@ -114,15 +150,29 @@ export interface ManifestSlideshow {
   readonly transition?: SlideshowTransition;
   /** How portrait pictures lay out; absent: automatic, pairs and a blurred fill (ADR-0028). */
   readonly portraitPictures?: PortraitPictures;
+  /** The colour grade every slide plays; absent: None (ADR-0044). */
+  readonly look?: GradedSlideshowLook;
+  /** The live rule over the picture times, default transition and Ken Burns strength; absent: Custom (ADR-0045). */
+  readonly mood?: SlideshowMood;
+  /** The automatic picture times follow the music's energy, with a cut at each lift; absent: off (ADR-0046). */
+  readonly energyPacing?: true;
   readonly pictures: readonly ManifestPicture[];
   /** The playlist, in play order; empty for no music (ADR-0023). */
   readonly songs: readonly ManifestMusic[];
   /** `"sequence"`: one after another; absent: crossfade (ADR-0023). */
   readonly betweenSongs?: BetweenSongs;
+  /** The playlist restarts from its first song until the slideshow ends; absent: plays once (ADR-0047). */
+  readonly repeatMusic?: true;
   /** The title slide; absent: none (ADR-0032). */
   readonly openingCard?: ManifestCard;
   /** The closing slide; absent: none. */
   readonly closingCard?: ManifestCard;
+  /** Automatic chapters turned off; absent: on (`dev-docs/player/TRIP_CHAPTERS.md`). */
+  readonly automaticChaptersOff?: true;
+  /** An automatic chapter's title, subtitle or visibility, overridden; absent: none. */
+  readonly chapterEdits?: readonly ManifestChapterEdit[];
+  /** A chapter added where none was automatic; absent: none. */
+  readonly addedChapters?: readonly ManifestAddedChapter[];
 }
 
 export interface GlissandoManifest {
@@ -137,47 +187,6 @@ export type ManifestReading =
   | { readonly kind: "foreign" }
   | { readonly kind: "newer" }
   | { readonly kind: "damaged"; readonly reason: string };
-
-/** Where picture `index` (from 0) and its thumbnail sit in the container. */
-export function picturePaths(
-  index: number,
-  types: PictureTypes,
-): { readonly file: string; readonly thumbnail: string } {
-  const number = String(index + 1).padStart(PICTURE_NUMBER_DIGITS, "0");
-  return {
-    file: `pictures/${number}.${pictureExtension(types.display)}`,
-    thumbnail: thumbnailPath(index, types.thumbnail),
-  };
-}
-
-/** Where thumbnail `index` (from 0) of type `type` sits in the container. */
-export function thumbnailPath(index: number, type: string): string {
-  const number = String(index + 1).padStart(PICTURE_NUMBER_DIGITS, "0");
-  return `thumbnails/${number}.${pictureExtension(type)}`;
-}
-
-/**
- * Where song `index` (from 0) of the playlist sits in the container: its own path, keeping its
- * file's extension so an unzipped file opens in any player.
- */
-export function songPath(index: number, fileName: string): string {
-  const base = `music/track-${index + 1}`;
-  const extension = MUSIC_EXTENSION.exec(fileName)?.[1];
-  return extension === undefined ? base : `${base}.${extension.toLowerCase()}`;
-}
-
-/** A picture's MIME type from its path's extension; null for one the format does not use. */
-export function typeOfPicturePath(path: string): string | null {
-  const extension = path.slice(path.lastIndexOf(".") + 1);
-  const found = Object.entries(PICTURE_EXTENSIONS).find(([, known]) => known === extension);
-  return found?.[0] ?? null;
-}
-
-/** A picture's two renditions' MIME types. */
-export interface PictureTypes {
-  readonly display: string;
-  readonly thumbnail: string;
-}
 
 /** The manifest of `slideshow`; `pictureTypes` holds each picture's types, in play order. */
 export function manifestFor(
@@ -206,6 +215,7 @@ export function manifestFor(
     ...(picture.fileBytes === undefined ? {} : { fileBytes: picture.fileBytes }),
     ...(picture.alone === true ? { alone: true } : {}),
     ...(picture.video === undefined ? {} : { video: manifestVideo(picture.video, clipFiles) }),
+    ...(picture.place === undefined ? {} : { place: picture.place }),
   }));
   const songs = slideshow.songs.map((song, index) => ({
     file: songPath(index, song.fileName),
@@ -217,6 +227,8 @@ export function manifestFor(
   const pictureIds = slideshow.pictures.map((picture) => picture.id);
   const openingCard = cardToManifest(slideshow.openingCard, pictureIds);
   const closingCard = cardToManifest(slideshow.closingCard, pictureIds);
+  const chapterEdits = chapterEditsToManifest(slideshow.chapterEdits, pictureIds);
+  const addedChapters = addedChaptersToManifest(slideshow.addedChapters, pictureIds);
   return {
     format: GLISSANDO_FORMAT_ID,
     formatVersion: GLISSANDO_FORMAT_VERSION,
@@ -230,11 +242,18 @@ export function manifestFor(
       ...(slideshow.portraitPictures === undefined
         ? {}
         : { portraitPictures: slideshow.portraitPictures }),
+      ...(slideshow.look === undefined ? {} : { look: slideshow.look }),
+      ...(slideshow.mood === undefined ? {} : { mood: slideshow.mood }),
+      ...(slideshow.energyPacing ? { energyPacing: true } : {}),
       pictures,
       songs,
       ...(slideshow.betweenSongs === undefined ? {} : { betweenSongs: slideshow.betweenSongs }),
+      ...(slideshow.repeatMusic ? { repeatMusic: true } : {}),
       ...(openingCard === undefined ? {} : { openingCard }),
       ...(closingCard === undefined ? {} : { closingCard }),
+      ...(slideshow.automaticChaptersOff ? { automaticChaptersOff: true } : {}),
+      ...(chapterEdits === undefined ? {} : { chapterEdits }),
+      ...(addedChapters === undefined ? {} : { addedChapters }),
     },
   };
 }
@@ -252,12 +271,12 @@ function manifestVideo(
 
 type OwnMusicFields = Pick<
   ManifestMusic,
-  "trim" | "fadeInMs" | "fadeOutMs" | "pictureChanges" | "volumeDb"
+  "trim" | "fadeInMs" | "fadeOutMs" | "pictureChanges" | "volumeDb" | "sampleTrack"
 >;
 
 /**
- * The music's own excerpt, fades, picture changes and volume, those it has; shared by both
- * directions of the file.
+ * The music's own excerpt, fades, picture changes, volume and sample-track id, those it has;
+ * shared by both directions of the file.
  */
 export function ownMusicFields(music: OwnMusicFields): OwnMusicFields {
   return {
@@ -266,23 +285,6 @@ export function ownMusicFields(music: OwnMusicFields): OwnMusicFields {
     ...(music.fadeOutMs === undefined ? {} : { fadeOutMs: music.fadeOutMs }),
     ...(music.pictureChanges === undefined ? {} : { pictureChanges: music.pictureChanges }),
     ...(music.volumeDb === undefined ? {} : { volumeDb: music.volumeDb }),
+    ...(music.sampleTrack === undefined ? {} : { sampleTrack: music.sampleTrack }),
   };
-}
-
-function typesAt(pictureTypes: readonly PictureTypes[], index: number): PictureTypes {
-  const types = pictureTypes[index];
-  if (types === undefined) {
-    throw new Error(`picture ${index} has no types: pass one entry per picture`);
-  }
-  return types;
-}
-
-function pictureExtension(type: string): string {
-  const extension = PICTURE_EXTENSIONS[type];
-  if (extension === undefined) {
-    throw new Error(
-      `a picture of type "${type}" cannot go into a .glissando file: expected one of ${Object.keys(PICTURE_EXTENSIONS).join(", ")}`,
-    );
-  }
-  return extension;
 }

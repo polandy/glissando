@@ -1,11 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import {
-  MediaNotFoundError,
-  SlideshowNotFoundError,
-  type LibraryStore,
-  type StoredPicture,
-  type StoredSlideshow,
-} from "../stored-slideshow";
+import type { LibraryStore } from "../library-store";
+import { MediaNotFoundError, SlideshowNotFoundError } from "../library-store";
+import type { StoredPicture, StoredSlideshow } from "../stored-slideshow";
 import { describeEditing } from "./editing-contract";
 import { describeImportsInProgress } from "./imports-in-progress-contract";
 import { describeMusicBeats } from "./music-beats-contract";
@@ -144,6 +140,14 @@ export function describeLibraryStoreContract(
       await store.putMusic("music-1", musicBlob("one"));
 
       expect(await (await store.musicBlob("music-1")).text()).toBe("one music");
+    });
+
+    it("says whether the music store holds an id, re-checked each call", async () => {
+      expect(await store.hasMusic("music-1")).toBe(false);
+
+      await store.putMusic("music-1", musicBlob("one"));
+
+      expect(await store.hasMusic("music-1")).toBe(true);
     });
 
     it("measures the bytes a slideshow's pictures, thumbnails and music take", async () => {

@@ -102,14 +102,20 @@ describe("musicEditorView, the picture changes", () => {
     });
   });
 
-  it("puts the change before an own duration on the beat, marks only the one after it off the beat, and names that picture", () => {
+  it("puts the change before and after an own duration on the beat too, within its slack", () => {
     const view = firstSongView(slideshow({}, [undefined, 3000, undefined, undefined]), FOUND);
 
     expect(view.slideChanges).toEqual([
       { atMs: 9700, offBeat: false },
-      { atMs: 12_700, offBeat: true },
+      { atMs: 12_500, offBeat: false },
       { atMs: 18_500, offBeat: false },
     ]);
+    expect(view.pictureChanges).toMatchObject({ ownDurationNumbers: [] });
+  });
+
+  it("names an own duration with no automatic picture left after it, whose change still falls between beats", () => {
+    const view = firstSongView(slideshow({}, [undefined, 3000, 3000]), FOUND);
+
     expect(view.pictureChanges).toMatchObject({ ownDurationNumbers: [2] });
   });
 

@@ -20,6 +20,10 @@ const SHARED_SLIDESHOW_KEYS = [
   "transition",
   "pictureLength",
   "portraitPictures",
+  "look",
+  "mood",
+  "energyPacing",
+  "repeatMusic",
   "openingCard",
   "closingCard",
 ] as const satisfies readonly (keyof ServerSlideshow)[];
@@ -42,6 +46,7 @@ const SHARED_SONG_KEYS = [
   "fadeOutMs",
   "pictureChanges",
   "volumeDb",
+  "sampleTrack",
 ] as const satisfies readonly (keyof ServerMusic)[];
 
 export type SharePicture = Pick<ServerPicture, (typeof SHARED_PICTURE_KEYS)[number]>;

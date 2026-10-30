@@ -44,7 +44,7 @@
   <span class="meta">
     <span class="name">{slideshow.title}</span>
     <span class="facts">
-      <span class="mono">
+      <span>
         {t("units.pictures", { count: slideshow.pictureCount })}
       </span>
       <span class="mono">{formatDuration(slideshow.durationSeconds)}</span>

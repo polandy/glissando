@@ -35,6 +35,8 @@ function session(): ImportSession {
       }),
     videoClips: noVideoClips,
     captureDate: () => Promise.resolve("2025-07-01T10:00:00Z"),
+    gps: () => Promise.resolve(null),
+    resolvePlace: () => Promise.resolve(null),
     immichSource: () => {
       throw new Error("no Immich download in this test");
     },
@@ -81,26 +83,23 @@ function mountStep(immich: ImmichAvailabilityState, importSession = session()) {
 
 describe("PicturesStep, the Immich box", () => {
   it.each([[{ kind: "checking" }], [{ kind: "notSetUp" }]] as const)(
-    "is hidden while Immich is %o, leaving the other device's box",
+    "is hidden while Immich is %o",
     (state) => {
-      const { target } = mountStep(state);
+      const { target, button } = mountStep(state);
 
-      expect(target.textContent).toContain("Slideshow from another device?");
+      expect(button("Cancel")).toBeDefined();
       expect(target.textContent).not.toContain("From Immich");
     },
   );
 
-  it("opens Immich when available, above the other device's box", () => {
+  it("opens Immich when available", () => {
     const { target, calls, button } = mountStep({
       kind: "available",
       version: "3.3.1",
       albumCount: 2,
     });
 
-    const text = target.textContent;
-    expect(text.indexOf("From Immich")).toBeLessThan(
-      text.indexOf("Slideshow from another device?"),
-    );
+    expect(target.textContent).toContain("From Immich");
     button("Open Immich")?.click();
     expect(calls).toEqual(["open"]);
   });

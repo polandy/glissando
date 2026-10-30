@@ -50,6 +50,7 @@ describe("composeSlideshow with an own duration and transition", () => {
       NO_FOCUS,
       NO_SONG_BEATS,
       NO_SONG_LOUDNESS,
+      "en",
     ).slides;
 
     expect(slide?.durationMs).toBe(2000);
@@ -60,7 +61,14 @@ describe("composeSlideshow with an own duration and transition", () => {
     const [first, second] = storedSlideshow().pictures as [StoredPicture, StoredPicture];
     const stored = storedSlideshow({ pictures: [{ ...first, transition: "cut" }, second] });
 
-    const composed = composeSlideshow(stored, sources, NO_FOCUS, NO_SONG_BEATS, NO_SONG_LOUDNESS);
+    const composed = composeSlideshow(
+      stored,
+      sources,
+      NO_FOCUS,
+      NO_SONG_BEATS,
+      NO_SONG_LOUDNESS,
+      "en",
+    );
 
     expect(composed.slides[0]?.durationMs).toBe(5000);
     expect(composed.slides[0]).not.toHaveProperty("transitionToNext");

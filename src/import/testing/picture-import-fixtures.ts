@@ -1,8 +1,10 @@
 import type { PictureIdentity } from "../../library/picture-identity";
 import type { RgbPixel } from "../../library/picture-colours";
 import { MemoryLibraryStore } from "../../library/testing/memory-store";
-import type { PictureBlobs } from "../../library/stored-slideshow";
+import type { PictureBlobs } from "../../library/library-store";
+import type { Place } from "../../places/nearest-place";
 import type { DecodedPicture } from "../downscale";
+import type { ExifGps } from "../exif-gps";
 import { UnreadablePictureError } from "../unreadable-picture";
 import { localPictureSource } from "../local-picture-source";
 import {
@@ -88,6 +90,10 @@ export function setUp(
     known?: readonly PictureIdentity[];
     /** The decoded display blob's pixels for `pictureColours`; a picture with no colour by default. */
     pixels?: (blob: Blob) => Promise<readonly RgbPixel[]>;
+    /** A file's EXIF GPS coordinate; none by default. */
+    gps?: (file: File) => Promise<ExifGps | null>;
+    /** The place a picture's GPS resolves to; absent: pictures get no place. */
+    resolvePlace?: (gps: ExifGps) => Promise<Place | null>;
   } = {},
 ) {
   const decoder = options.decoder ?? new FakeDecoder();
@@ -101,11 +107,13 @@ export function setUp(
     newId: sequentialIds(),
     stored: (picture) => stored.push(picture),
     ...(options.known === undefined ? {} : { known: () => options.known ?? [] }),
+    ...(options.resolvePlace === undefined ? {} : { resolvePlace: options.resolvePlace }),
   });
   const captureDate = options.captureDate ?? captureDates(options.dates ?? {});
+  const gps = options.gps ?? (() => Promise.resolve(null));
   const addFiles = (files: readonly File[], pick?: PickInput): void => {
     const sources = files.map((file) =>
-      localPictureSource(file, { decode: decoder.decode, captureDate }),
+      localPictureSource(file, { decode: decoder.decode, captureDate, gps }),
     );
     if (pick === undefined) pictureImport.add(sources);
     else pictureImport.add(sources, pick);

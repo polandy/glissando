@@ -2,14 +2,15 @@
   import { onDestroy, onMount } from "svelte";
   import type { BeatPass } from "../../library/beat-pass";
   import { composeSlideshow, type SongBeats, type SongLoudness } from "../../compose";
-  import type { LibraryStore, StoredSlideshow } from "../../library/stored-slideshow";
+  import type { LibraryStore } from "../../library/library-store";
+  import type { StoredSlideshow } from "../../library/stored-slideshow";
   import { performanceClock, type DecodeClipSound, type MusicOutput } from "../../player";
   import type { PictureFocus } from "../../library/picture-focus";
   import { getTranslator } from "../i18n/context";
   import { playingMusic } from "../library-views";
   import { browserObjectUrls } from "../media/object-urls";
   import { storedSongBeats } from "../beats/music-beats-known";
-  import { NO_FOCUS_KNOWN } from "../focus/pictures-focus";
+  import { bareFocus, NO_FOCUS_KNOWN } from "../focus/pictures-focus";
   import { storedSongLoudness } from "../loudness/music-loudness-composed";
   import type { PlayerFailure } from "../player/player-failure";
   import PlayerOverlay from "../player/PlayerOverlay.svelte";
@@ -18,6 +19,7 @@
   import { PrepareFlow, type PrepareView } from "../player/prepare/prepare-flow";
   import type { PlaybackQuality } from "../settings/playback-quality";
   import { slideBoundaries } from "../player/slide-boundaries";
+  import { picturePassedBySlide, slideOfPicture } from "../player/prepare/slide-pictures";
   import { loadPlayerMusic } from "./route-loading";
   import {
     pictureFailureFor,
@@ -79,7 +81,7 @@
     clock?: () => number;
   } = $props();
 
-  const { t } = getTranslator();
+  const { t, language } = getTranslator();
   /** The only song by its name; a playlist by its count of songs. */
   const musicTitle = $derived.by(() => {
     const music = playingMusic(stored);
@@ -124,6 +126,7 @@
           loaded.focus,
           loaded.beats,
           loaded.loudness,
+          language,
         ),
   );
 
@@ -151,6 +154,15 @@
   $effect(() => {
     if (flow !== null && slideshow !== null) flow.setSlides(slideBoundaries(slideshow));
   });
+  /** The picture each slide passes, so the flow releases the renditions before it. */
+  const passedBySlide = $derived(
+    slideshow === null
+      ? []
+      : picturePassedBySlide(
+          slideshow.slides,
+          played.pictures.map(({ id }) => id),
+        ),
+  );
   const openPicture = (id: string): Promise<Blob> =>
     flow === null ? store.playbackPictureBlob(id) : flow.openPicture(id);
 
@@ -169,8 +181,10 @@
     if (outcome.kind === "stop") return outcome.failure;
     const { pictureId } = outcome;
     onPictureMissing(pictureId);
-    const index = played.pictures.findIndex(({ id }) => id === pictureId);
-    if (slideshow === null || index === -1 || played.pictures.length === 1) return "picture";
+    if (slideshow === null || played.pictures.length === 1) return "picture";
+    const ids = played.pictures.map(({ id }) => id);
+    const index = slideOfPicture(slideshow.slides, ids, pictureId);
+    if (index === -1) return "picture";
     const boundaries = slideBoundaries(slideshow);
     startAt = boundaries.starts[index] ?? boundaries.duration;
     skipped = new Set([...skipped, pictureId]);
@@ -191,10 +205,12 @@
     // share the music evenly and play goes on.
     Promise.all([
       loadPlayerMusic(store, stored, browserObjectUrls.create, closed.signal),
-      store.pictureFocus(stored.pictures.map((picture) => picture.id)).catch((error: unknown) => {
-        log(error);
-        return NO_FOCUS_KNOWN.found;
-      }),
+      store
+        .pictureFocus(stored.pictures.map((picture) => picture.id))
+        .then(bareFocus, (error: unknown) => {
+          log(error);
+          return NO_FOCUS_KNOWN.found;
+        }),
       storedSongBeats(store, stored, log),
       storedSongLoudness(store, stored, log),
     ]).then(([music, focus, beats, loudness]) => {
@@ -237,13 +253,12 @@
     <PlayerOverlay
       {slideshow}
       {musicTitle}
-      slideDates={played.pictures.map((picture) => picture.capturedAt)}
       {openPicture}
       readVideo={(id) => store.videoBlob(id)}
       picturesAhead={picturesAheadFor(home)}
       onSlide={(index) => {
-        const picture = played.pictures[index];
-        if (picture !== undefined) flow?.slidePassed(picture.id);
+        const picture = passedBySlide[index];
+        if (picture !== undefined && picture !== null) flow?.slidePassed(picture);
       }}
       {musicOutput}
       {decodeClipSound}

@@ -23,7 +23,9 @@ export const deAdd = {
   "add.afterPerPicture": "Pro Bild",
   "add.beforeAfter": "{before} → {after}",
   "add.sharesMusic":
-    "Die Bilder teilen sich weiter die Musik; jedes wird etwas kürzer. Bilder mit eigener Dauer behalten sie.",
+    "Die Bilder teilen sich weiter die Musik; jedes wird etwas kürzer. Bilder mit eigener Dauer bleiben etwa so lange.",
+  "add.fitted":
+    "Jedes neue Bild schrumpft auf etwa {seconds}, damit die Diashow mit der Musik endet.",
   "add.musicTooShort": "Die Musik reicht nicht für alle Bilder.",
   "add.musicTooShortText":
     "Kürzer als {seconds} zeigt Glissando kein Bild; die Diashow dauert {total}, die Musik {music}.",

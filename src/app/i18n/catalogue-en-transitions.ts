@@ -7,7 +7,6 @@ export const enTransitions: Pick<Catalogue, keyof typeof deTransitions> = {
   "slideshow.transitionOwnChoice": "own choice",
   "slideshow.transitionOwnCount": { one: "{count} own", other: "{count} own" },
   "slideshow.transitionSummary": "{choice} · {own}",
-  "slideshow.change": "Change",
   "transitions.title": "Slideshow transitions",
   "transitions.default": "Default",
   "transitions.ownChoice": "Own choice",
@@ -15,6 +14,7 @@ export const enTransitions: Pick<Catalogue, keyof typeof deTransitions> = {
   "transitions.hintAlternate":
     "The effects alternate from picture to picture, never the same one twice in a row.",
   "transitions.hintCut": "The pictures follow one another without a transition.",
+  "transitions.hintMood": "Set by the mood {name}. Choosing another switches the mood to Custom.",
   "transitions.hintEffect":
     "Every transition: {effect}. It takes {share} % of the picture's time, at most {max} s.",
   "transitions.ownKept": {

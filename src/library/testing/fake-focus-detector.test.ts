@@ -2,7 +2,11 @@ import { describe, expect, it } from "vitest";
 import type { PictureFocus } from "../picture-focus";
 import { FakeFocusDetector } from "./fake-focus-detector";
 
-const FACE: PictureFocus = { kind: "subject", box: { x: 0.25, y: 0.1, width: 0.2, height: 0.3 } };
+const FACE: PictureFocus = {
+  kind: "subject",
+  box: { x: 0.25, y: 0.1, width: 0.2, height: 0.3 },
+  foundBy: "face",
+};
 const NONE: PictureFocus = { kind: "none" };
 
 describe("FakeFocusDetector", () => {

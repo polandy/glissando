@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { MusicBeats } from "../../beats";
-import type { LibraryStore, StoredMusic } from "../stored-slideshow";
+import type { LibraryStore } from "../library-store";
+import type { StoredMusic } from "../stored-slideshow";
 import { musicBlob, slideshow, type StoreHarness } from "./library-store-contract";
 
 const CLEAN_UP_AT = new Date("2026-10-08T12:00:00Z");

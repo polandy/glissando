@@ -1,7 +1,14 @@
 import { afterEach, describe, expect, it } from "vitest";
 import type { MusicBeats } from "../../beats";
 import type { BeatsStatus } from "../beats/music-beats-known";
-import { mountEditor, slideshowWith, text, TRACK_MS, unmountEditor } from "./music-editor-harness";
+import {
+  mountDetailed,
+  mountEditor,
+  slideshowWith,
+  text,
+  TRACK_MS,
+  unmountEditor,
+} from "./music-editor-harness";
 
 afterEach(() => unmountEditor());
 
@@ -31,7 +38,7 @@ const ticks = () => document.querySelectorAll(".beat-ticks i");
 
 describe("MusicEditorScreen, the picture changes", () => {
   it("says it listens for the beat, with no choice and no ticks, until the beats are known", () => {
-    mountEditor(slideshowWith(), { kind: "listening" });
+    mountDetailed(slideshowWith(), { kind: "listening" });
 
     expect(text('[aria-labelledby="music-picture-changes"]')).toContain(
       "Glissando hört den Takt heraus",
@@ -41,7 +48,7 @@ describe("MusicEditorScreen, the picture changes", () => {
   });
 
   it("with a beat found, shows the tempo and the pictures on the beat, ticking the beats", () => {
-    mountEditor(slideshowWith(), FOUND);
+    mountDetailed(slideshowWith(), FOUND);
 
     expect(section().textContent).toContain("120 BPM");
     expect(checked()).toBe("Im Takt");
@@ -51,7 +58,7 @@ describe("MusicEditorScreen, the picture changes", () => {
   });
 
   it("stores even picture changes, and back on the beat, without ticks while even", () => {
-    const { calls, set } = mountEditor(slideshowWith(), FOUND);
+    const { calls, set } = mountDetailed(slideshowWith(), FOUND);
 
     radio("Gleichmäßig").click();
     set({ slideshow: slideshowWith(EVEN) });
@@ -75,14 +82,22 @@ describe("MusicEditorScreen, the picture changes", () => {
     expect(document.activeElement).toBe(radio("Gleichmäßig"));
   });
 
-  it("names the pictures with an own duration and marks only the change after each off the beat", () => {
-    mountEditor(slideshowWith({}, { count: 6, durations: { 1: 7300, 4: 9100 } }), FOUND);
+  it("moves the change after a picture with an own duration onto the beat too, naming none", () => {
+    mountDetailed(slideshowWith({}, { count: 6, durations: { 1: 7300, 4: 9100 } }), FOUND);
+
+    expect(section().textContent).not.toContain("eigene Dauer");
+    expect(document.querySelectorAll(".runs i").length).toBe(5);
+    expect(document.querySelectorAll(".runs i.off-beat").length).toBe(0);
+  });
+
+  it("names an own duration with no automatic picture left after it to absorb the shift", () => {
+    mountDetailed(slideshowWith({}, { count: 4, durations: { 2: 7300, 3: 9100 } }), FOUND);
 
     expect(section().textContent).toContain(
-      "Die Bilder 2 und 5 behalten ihre eigene Dauer, darum kann der Wechsel nach jedem zwischen die Schläge fallen.",
+      "Bild 3 behält seine eigene Dauer genau: Danach folgt kein automatisches Bild, das den Versatz ausgleichen könnte, darum kann der Wechsel zwischen die Schläge fallen.",
     );
-    expect(document.querySelectorAll(".runs i").length).toBe(5);
-    // Off the beat by 300 and 100 ms once the change before each lands on one.
+    expect(document.querySelectorAll(".runs i").length).toBe(3);
+    // The automatic picture before it, and its own change, both have nothing left to absorb into.
     expect(document.querySelectorAll(".runs i.off-beat").length).toBe(2);
   });
 

@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { MAX_SECONDS_PER_PICTURE, MIN_SECONDS_PER_PICTURE } from "../../library/stored-slideshow";
 import { mountWithTranslator } from "../testing/mount-with-translator";
 import Header from "./Header.svelte";
+import PictureLengthSection from "./PictureLengthSection.svelte";
 import SecondsStepper from "./SecondsStepper.svelte";
 import Toast from "./Toast.svelte";
 
@@ -76,6 +77,32 @@ describe("SecondsStepper", () => {
 
     expect(button(target, "Kürzer").disabled).toBe(false);
     expect(button(target, "Länger").disabled).toBe(true);
+  });
+});
+
+describe("PictureLengthSection", () => {
+  function mountSection(fittedShareMs?: number) {
+    const mounted = mountWithTranslator(PictureLengthSection, {
+      ownSeconds: true,
+      secondsPerPicture: 5,
+      fittedShareMs,
+      onPictureLength: () => {},
+      onSecondsPerPicture: () => {},
+    });
+    destroy = mounted.destroy;
+    return mounted.target;
+  }
+
+  it("notes the shrunk share once the pictures fit a shorter music", () => {
+    const target = mountSection(3_300);
+
+    expect(target.textContent).toContain("Auf 3,3 s gekürzt, damit es zur Musik passt");
+  });
+
+  it("shows no such note while the pictures do not need to shrink", () => {
+    const target = mountSection(undefined);
+
+    expect(target.textContent).not.toContain("verkürzt");
   });
 });
 

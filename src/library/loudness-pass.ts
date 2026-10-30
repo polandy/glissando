@@ -4,7 +4,8 @@ import {
   MusicUnmeasurableError,
   type LoudnessMeter,
 } from "./loudness-meter";
-import { MediaNotFoundError, type LibraryStore } from "./stored-slideshow";
+import type { LibraryStore } from "./library-store";
+import { MediaNotFoundError } from "./library-store";
 
 export interface LoudnessPassPorts {
   readonly store: Pick<

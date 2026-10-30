@@ -1,5 +1,6 @@
 import type { Card, TransitionEffect } from "./slideshow";
 import type { KenBurnsAt, Size } from "./ken-burns";
+import type { SlideshowLook } from "./looks/slideshow-look";
 
 /**
  * A card's look at the moment drawn (ADR-0032): the card itself plus `cardTimingAt`'s numbers,
@@ -66,6 +67,8 @@ export type RenderFrame<Picture> =
       readonly slide: SlideLayer<Picture>;
       /** 0 clear .. 1 black, mixed over the whole frame at the show's end (ADR-0032). */
       readonly endFade: number;
+      /** The show's colour grade, graded onto every picture and video layer (ADR-0044). */
+      readonly look: SlideshowLook;
     }
   | {
       readonly kind: "transition";
@@ -75,6 +78,8 @@ export type RenderFrame<Picture> =
       readonly from: SlideLayer<Picture>;
       readonly to: SlideLayer<Picture>;
       readonly endFade: number;
+      /** The show's colour grade, graded onto every picture and video layer (ADR-0044). */
+      readonly look: SlideshowLook;
     };
 
 /** Draws frames into its viewport; WebGL2 or the DOM fallback. */

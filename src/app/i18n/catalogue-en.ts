@@ -3,6 +3,8 @@ import { enEditor } from "./catalogue-en-editor.ts";
 import { enMusic } from "./catalogue-en-music.ts";
 import { enTiming } from "./catalogue-en-timing.ts";
 import { enTransitions } from "./catalogue-en-transitions.ts";
+import { enLook } from "./catalogue-en-look.ts";
+import { enMood } from "./catalogue-en-mood.ts";
 import { enPortrait } from "./catalogue-en-portrait.ts";
 import { enImmich } from "./catalogue-en-immich.ts";
 import { enHtml } from "./catalogue-en-html.ts";
@@ -19,7 +21,10 @@ import { enCulling } from "./catalogue-en-culling.ts";
 import { enView } from "./catalogue-en-view.ts";
 import { enFrame } from "./catalogue-en-frame.ts";
 import { enCards } from "./catalogue-en-cards.ts";
+import { enChapters } from "./catalogue-en-chapters.ts";
 import { enFilePage } from "./catalogue-en-file-page.ts";
+import { enSampleMusicCredit } from "./catalogue-en-sample-music-credit.ts";
+import { enSampleMusicPicker } from "./catalogue-en-sample-music-picker.ts";
 import type { Catalogue } from "./messages.ts";
 
 /** English UI copy; the type demands exactly the German catalogue's keys and message shapes. */
@@ -49,6 +54,7 @@ export const en: Catalogue = {
   "start.yourSlideshows": "Your slideshows",
   "start.withMusic": "with music",
   "start.searchingSubjects": "Looking for subjects",
+  "start.searchingAgain": "Looking again",
   "start.searchProgress": "{done} of {total}",
   "start.demoCardTitle": "See Glissando in action",
   "start.loadDemo": "Load demo slideshow",
@@ -56,6 +62,10 @@ export const en: Catalogue = {
   "start.loadingDemoProgress": "Loading demo… {received} of {total} MB",
   "start.demoNeedsConnection": "Needs a connection — once loaded, the demo works offline.",
   "start.demoLoadFailed": "Couldn't load the demo — try again",
+  "start.focusFailed": {
+    one: "{count} picture couldn't be looked at",
+    other: "{count} pictures couldn't be looked at",
+  },
 
   "settings.open": "Settings",
   "settings.title": "Settings",
@@ -81,21 +91,21 @@ export const en: Catalogue = {
 
   "slideshow.eyebrow": "Slideshow",
   "slideshow.dateRange": "{from} – {to}",
-  "slideshow.duration": "Duration",
   "slideshow.music": "Music",
-  "slideshow.noMusic": "No music",
+  "slideshow.noMusic": "None",
   "slideshow.kenBurns": "Ken Burns",
   "slideshow.automatic": "automatic",
   "slideshow.transitions": "Transitions",
+  "slideshow.look": "Look",
+  "slideshow.mood": "Mood",
   "slideshow.play": "Play",
-  "slideshow.details": "Details",
+  "slideshow.fineSettings": "Fine settings",
   "slideshow.pictures": "Pictures",
   "slideshow.sortedByDate": "Sorted by capture date",
   "slideshow.pictureLabel": "Picture {number}, taken on {date}",
   "slideshow.ownOrder": "Own order",
   "slideshow.reorderHintWide": "drag or tap",
-  "slideshow.reorderHintNarrow": "tap to reorder, hold to select several",
-  "slideshow.selectHintNarrow": "hold to select several",
+  "slideshow.reorderHintNarrow": "tap to reorder",
   "slideshow.select": "Select",
   "slideshow.shuffle": "Shuffle",
   "slideshow.shuffled": "{count} pictures shuffled",
@@ -109,6 +119,8 @@ export const en: Catalogue = {
   "slideshow.earlier": "Earlier",
   "slideshow.later": "Later",
   "slideshow.remove": "Remove",
+  "slideshow.removeNoPictures": "Remove pictures",
+  "slideshow.removePictures": { one: "Remove picture", other: "Remove {count} pictures" },
   "slideshow.done": "Done",
   "slideshow.lastPictureStays":
     "The last picture stays. To get rid of it, delete the whole slideshow.",
@@ -118,6 +130,11 @@ export const en: Catalogue = {
   "slideshow.titleInput": "Title",
   "slideshow.titleHint": "Enter saves · Esc discards · empty = automatic title",
   "slideshow.more": "More",
+  "slideshow.focus": "Faces and subjects\u00a0…",
+  "slideshow.focusFailedHint": {
+    one: "{count} couldn't be looked at",
+    other: "{count} couldn't be looked at",
+  },
   "slideshow.delete": "Delete slideshow\u00a0…",
   "slideshow.deleteTitle": "Delete “{title}”?",
   "slideshow.deleteText": {
@@ -129,6 +146,46 @@ export const en: Catalogue = {
   "slideshow.deleteConfirm": "Delete",
   "slideshow.deleted": "Slideshow deleted",
   "slideshow.gone": "This slideshow no longer exists.",
+
+  "focusSheet.title": "Faces and subjects",
+  "focusSheet.looking": "Looking for the focus · {done} of {total}",
+  "focusSheet.lookingAgain": "Looking again · {done} of {total}",
+  "focusSheet.lookingAgainHint": "Each picture keeps its result until the new one is in.",
+  "focusSheet.lookedAtSoFar": "{done} of {total} looked at.",
+  "focusSheet.waitingForServerHint": {
+    one: "Waiting for your Glissando server to look at the other picture.",
+    other: "Waiting for your Glissando server to look at the other {count} pictures.",
+  },
+  "focusSheet.failedHint": {
+    one: "{count} picture couldn't be looked at. Glissando tries it again the next time it opens.",
+    other:
+      "{count} pictures couldn't be looked at. Glissando tries them again the next time it opens.",
+  },
+  "focusSheet.allLookedAt": "All pictures looked at.",
+  "focusSheet.statusFace": "Faces",
+  "focusSheet.statusSubject": "Subjects",
+  "focusSheet.statusImmich": "Faces from Immich",
+  "focusSheet.statusScenery": "Scenery",
+  "focusSheet.statusNone": "Nothing found",
+  "focusSheet.statusOutdated": "Older detection",
+  "focusSheet.statusFailed": "Couldn't look",
+  "focusSheet.statusWaiting": "Not yet",
+  "focusSheet.statusWaitingForServer": "Waiting for server",
+  "focusSheet.statusLooking": "Looking",
+  "focusSheet.ownMotion": "Own motion",
+  "focusSheet.tryAgain": "Try the {count} again",
+  "focusSheet.lookAgainAll": {
+    one: "Look again at the picture",
+    other: "Look again at all {count} pictures",
+  },
+  "focusSheet.lookingEllipsis": "Looking …",
+  "focusSheet.ownMotionHint": {
+    one: "This picture has a start and end you set by hand. It keeps it, whatever is found.",
+    other:
+      "{count} pictures have a start and end you set by hand. They keep it, whatever is found.",
+  },
+  "focusSheet.storedOnDevice": "Stored on this device.",
+  "focusSheet.sharedOnServer": "Shared with every device on your Glissando server.",
 
   "import.crumb": "New slideshow",
   "import.crumbPictures": "Pictures",
@@ -199,13 +256,17 @@ export const en: Catalogue = {
   "import.startOverText": "and choose the pictures again.",
   "import.musicTitle": "Which music?",
   "import.musicText":
-    "One song or several — they play one after another and the pictures change on their beat. Without music each picture stays {seconds}.",
+    "One song or several — they play one after another and the pictures change on their beat.",
   "import.musicFormats": "One or more files · MP3, M4A, FLAC, WAV, Ogg, AIFF, WMA\u00a0…",
-  "import.addAnotherSong": "Add another song",
-  "import.pickMusic": "Choose music",
+  "import.ownMusicTitle": "Your own music",
+  "import.chooseFiles": "Choose files",
+  "import.soundtrackTitle": "Soundtrack",
+  "import.soundtrackEmpty": "No music yet — add a track or your own songs above.",
   "import.trackMeta": "{duration} · {format}",
-  "import.secondsTitle": "Time per picture",
-  "import.secondsHint": "Default {seconds}, in half seconds, applies to this slideshow",
+  "import.paceMood": "Mood {mood}",
+  "import.paceWithMusic":
+    "about {seconds} per picture, on the music's phrases. Change it in the slideshow.",
+  "import.paceWithoutMusic": "about {seconds} per picture. Change it in the slideshow.",
   "import.secondsShorter": "Shorter",
   "import.secondsLonger": "Longer",
   "import.timingPictures": "Pictures",
@@ -216,7 +277,12 @@ export const en: Catalogue = {
   "import.fitFadesOut": "The music fades out with the last picture.",
   "import.fitFadesOutNotReached":
     "The music fades out with the last picture; the dimmed songs are not reached.",
-  "import.fitSilentAfter": "The last pictures play in silence.",
+  "import.fitFitted": "Pictures about {seconds} each, to end with the music.",
+  "import.fitOutlasts": "The music ends {time} before the pictures",
+  "import.repeatButton": "Repeat the music",
+  "import.addSongButton": "Add a song",
+  "import.fitRepeats": "The music repeats · fades out with the last picture.",
+  "import.playOnceButton": "Play once",
   "import.fitEndsWithMusic": "The slideshow ends with the music.",
   "import.backToPictures": "Pictures",
   "import.create": "Create slideshow",
@@ -287,20 +353,23 @@ export const en: Catalogue = {
   "pwa.firefoxDesktop.note":
     "As its own window in the Dock or taskbar: open Glissando in Chrome, Edge or Safari and install it there.",
 
-  "glissandoFile.export": "Save as Glissando file",
-  "glissandoFile.exportSize": "A .glissando file, about {size}",
-  "glissandoFile.exportSizeUnknown": "A .glissando file",
   "glissandoFile.exportRunning": "Exporting\u00a0… {percent}\u00a0%",
   "glissandoFile.exportAfterRunning": "Once the running export is done",
   "glissandoFile.exportIndicator": "Exporting “{title}”\u00a0… {percent}\u00a0%",
   "glissandoFile.downloaded": "“{fileName}” downloaded · {size}",
   "glissandoFile.exportFailed": "Export failed: not enough storage on the device.",
   "glissandoFile.tryAgain": "Try again",
+  "glissandoFile.sheetText":
+    "The whole slideshow — pictures, music, every setting — in one .glissando file. Open it in Glissando on another device to watch or edit on.",
+  "glissandoFile.factsWithMusic": "{pictures} · music · settings",
+  "glissandoFile.factsWithoutMusic": "{pictures} · settings",
+  "glissandoFile.save": "Save file",
+  "glissandoFile.saving": "Saving the file\u00a0… {percent}\u00a0%",
+  "glissandoFile.savingInBackground": "You can keep working — it carries on in the background.",
+  "glissandoFile.saved": "Saved to Downloads.",
+  "glissandoFile.saveFailed": "The file couldn't be saved.",
   "glissandoFile.openFile": "Open file",
   "glissandoFile.openGlissandoFile": "Open .glissando file",
-  "glissandoFile.fromOtherDevice": "Slideshow from another device?",
-  "glissandoFile.fromOtherDeviceText":
-    "Open an exported .glissando file, with pictures, music and order.",
   "glissandoFile.dropToOpen": "Drop to open the slideshow",
   "glissandoFile.openingTitle": "Opening slideshow\u00a0…",
   "glissandoFile.checking": "Checking file\u00a0…",
@@ -348,6 +417,8 @@ export const en: Catalogue = {
   ...enAdd,
   ...enTiming,
   ...enTransitions,
+  ...enLook,
+  ...enMood,
   ...enPortrait,
   ...enImmich,
   ...enMusic,
@@ -365,5 +436,8 @@ export const en: Catalogue = {
   ...enView,
   ...enFrame,
   ...enCards,
+  ...enChapters,
   ...enFilePage,
+  ...enSampleMusicCredit,
+  ...enSampleMusicPicker,
 };

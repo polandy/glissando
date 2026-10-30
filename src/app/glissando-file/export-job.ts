@@ -3,7 +3,8 @@ import {
   glissandoFileName,
   type ExportMedia,
 } from "../../glissando-file/export-slideshow";
-import type { LibraryStore, StoredSlideshow } from "../../library/stored-slideshow";
+import type { LibraryStore } from "../../library/library-store";
+import type { StoredSlideshow } from "../../library/stored-slideshow";
 import type { Toaster } from "../toast/toaster";
 import { isStorageShortage } from "./storage-shortage";
 
@@ -32,6 +33,9 @@ export interface ExportJobPorts {
   playerPage(slideshow: StoredSlideshow): Promise<string>;
 }
 
+/** How an export ended: the file was handed to the downloads, or it failed. */
+export type ExportOutcome = "saved" | "failed";
+
 /**
  * Exports one slideshow at a time in the background while the app stays usable; the header
  * shows its progress. It ends in a download and a toast; a device out of storage or memory
@@ -43,7 +47,7 @@ export class ExportJob {
   #running: ExportProgress | null = null;
   /** Set from the start, before the slideshow is read and its progress published. */
   #busy = false;
-  #settled: Promise<void> = Promise.resolve();
+  #settled: Promise<ExportOutcome> | null = null;
 
   constructor(ports: ExportJobPorts) {
     this.#ports = ports;
@@ -60,21 +64,29 @@ export class ExportJob {
   }
 
   /** Resolves once the export started last has ended, whichever way. */
-  settled(): Promise<void> {
-    return this.#settled;
+  async settled(): Promise<void> {
+    await this.#settled;
   }
 
-  /** Never rejects; a start while an export runs does nothing. */
-  /** Exports from `store` where given (a server slideshow's), else from the job's own. */
-  start(slideshowId: string, store: ExportJobPorts["store"] = this.#ports.store): Promise<void> {
-    if (!this.#busy) {
-      this.#busy = true;
-      this.#settled = this.#run(slideshowId, store).finally(() => (this.#busy = false));
+  /**
+   * Exports from `store` where given (a server slideshow's), else from the job's own. Never
+   * rejects; resolves with how the export ended. A start while an export runs starts nothing
+   * and resolves with the running one's outcome.
+   */
+  start(
+    slideshowId: string,
+    store: ExportJobPorts["store"] = this.#ports.store,
+  ): Promise<ExportOutcome> {
+    if (this.#busy && this.#settled !== null) {
+      return this.#settled;
     }
-    return this.#settled;
+    this.#busy = true;
+    const run = this.#run(slideshowId, store).finally(() => (this.#busy = false));
+    this.#settled = run;
+    return run;
   }
 
-  async #run(slideshowId: string, store: ExportJobPorts["store"]): Promise<void> {
+  async #run(slideshowId: string, store: ExportJobPorts["store"]): Promise<ExportOutcome> {
     const ports = this.#ports;
     try {
       const slideshow = await store.getSlideshow(slideshowId);
@@ -88,11 +100,12 @@ export class ExportJob {
       this.#publish(null);
       ports.download(file, fileName);
       ports.toaster.show({ text: ports.downloadedText(fileName, file.size), tone: "info" });
+      return "saved";
     } catch (error) {
       this.#publish(null);
       if (!isStorageShortage(error)) {
         ports.reportError(error);
-        return;
+        return "failed";
       }
       ports.log(error);
       ports.toaster.show({
@@ -100,6 +113,7 @@ export class ExportJob {
         tone: "error",
         action: { label: ports.tryAgainLabel(), run: () => void this.start(slideshowId, store) },
       });
+      return "failed";
     }
   }
 

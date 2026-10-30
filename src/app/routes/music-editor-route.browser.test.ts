@@ -12,6 +12,8 @@ import { mountWithTranslator } from "../testing/mount-with-translator";
 import { Toaster } from "../toast/toaster";
 import MusicEditorRoute from "./MusicEditorRoute.svelte";
 import { PICKED_SONG_MS, songIntakeStoringIn } from "../music-editor/testing/song-intake-device";
+import { createStorageMusicEditorDetailsStore } from "../music-editor/music-editor-details";
+import { createMemoryStorage } from "../testing/memory-storage";
 
 const SHOW: StoredSlideshow = {
   id: "show",
@@ -134,6 +136,9 @@ async function mountRoute(stored: StoredSlideshow = SHOW) {
     transitionAutomaticText: () => "Übergang wieder automatisch",
     slideshowTransitionResetText: () => "Übergänge wieder auf Überblenden",
     portraitPicturesResetText: () => "Hochformatbilder wieder automatisch",
+    lookResetText: () => "Look entfernt",
+    moodResetText: () => "Stimmung wieder auf Eigene",
+    moodNowCustomText: () => "Stimmung ist jetzt Eigene",
     songRemovedText: () => "Song entfernt",
     shuffledText: () => "",
     random: () => 0,
@@ -155,6 +160,8 @@ async function mountRoute(stored: StoredSlideshow = SHOW) {
     onBack: () => (backs += 1),
     onError: (error: unknown) => errors.push(error),
     log: (error: unknown) => errors.push(error),
+    toaster: new Toaster(new FakeScheduler()),
+    detailsStore: createStorageMusicEditorDetailsStore(createMemoryStorage()),
   });
   destroy = mounted.destroy;
   return { ...fake, target: mounted.target, backs: () => backs, store, editor, errors };

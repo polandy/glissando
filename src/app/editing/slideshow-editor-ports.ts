@@ -1,5 +1,6 @@
 import type { PictureFocus } from "../../library/picture-focus";
-import type { LibraryStore, StoredSlideshow } from "../../library/stored-slideshow";
+import type { LibraryStore } from "../../library/library-store";
+import type { StoredSlideshow } from "../../library/stored-slideshow";
 import type { Toaster } from "../toast/toaster";
 import type { EditRefusal } from "./edit-refusal";
 
@@ -36,6 +37,15 @@ export interface SlideshowEditorPorts {
   readonly slideshowTransitionResetText: () => string;
   /** The undo toast's text after the portrait pictures setting went back to automatic. */
   readonly portraitPicturesResetText: () => string;
+  /** The undo toast's text after the slideshow's look went back to None. */
+  readonly lookResetText: () => string;
+  /** The undo toast's text after the slideshow's mood went back to Custom by the "Back to Custom" button. */
+  readonly moodResetText: () => string;
+  /**
+   * The undo toast's text after a single setting's own edit (default transition, picture length
+   * or seconds per picture) silently left an active mood, turning it to Custom (ADR-0045 `leaveMood`).
+   */
+  readonly moodNowCustomText: () => string;
   /** The undo toast's text after a song was removed. */
   readonly songRemovedText: () => string;
   /** The undo toast's text after `count` pictures were shuffled. */

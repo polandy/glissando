@@ -3,7 +3,6 @@
   import {
     CAPTION_GLIDE_MS,
     createPlayer,
-    isGroundSlide,
     type DecodeClipSound,
     type MusicOutput,
     type OpenPicture,
@@ -26,12 +25,12 @@
   } from "../../ui-kit/fullscreen";
   import { performPlayerAction, playerActionForKey } from "./player-keys";
   import { slideBoundaries, slideIndexAt } from "./slide-boundaries";
+  import { slideCaptionText, slideCaptureDate, slideCardShows } from "./slide-heading";
   import "./player-overlay.css";
 
   let {
     slideshow,
     musicTitle = null,
-    slideDates = [],
     openPicture,
     readVideo,
     musicOutput,
@@ -46,8 +45,6 @@
     slideshow: Slideshow;
     /** Shown bottom left while there is music. */
     musicTitle?: string | null;
-    /** Each slide's capture date (ISO 8601), shown under the title; empty shows none. */
-    slideDates?: readonly string[];
     /** Reads a slide's picture by its `src`; without it, `src` is a URL. */
     openPicture?: OpenPicture;
     /** Reads a video slide's clip by its `video.src`; without it, `src` is a URL. */
@@ -84,6 +81,8 @@
   let currentTime = $state(startAt);
   let paused = $state(true);
   let ended = $state(false);
+  /** Until the show moves, it waits for its pictures or clips. */
+  let waitingForMedia = $state(true);
   let failure = $state<PlayerFailure | null>(null);
   let controlsVisible = $state(true);
   // The scheduler is fixed for the overlay's lifetime.
@@ -93,11 +92,10 @@
   const slideCount = $derived(boundaries.starts.length);
   const slideNumber = $derived(slideIndexAt(boundaries, currentTime) + 1);
   $effect(() => onSlide?.(slideNumber - 1));
-  const slideDate = $derived(slideDates[slideNumber - 1]);
-  const slideCaption = $derived.by(() => {
-    const slide = slideshow.slides[slideNumber - 1];
-    return slide === undefined || isGroundSlide(slide) ? "" : (slide.caption ?? "");
-  });
+  const currentSlide = $derived(slideshow.slides[slideNumber - 1]);
+  const slideHasCard = $derived(slideCardShows(currentSlide));
+  const slideDate = $derived(slideCaptureDate(currentSlide));
+  const slideCaption = $derived(slideCaptionText(currentSlide));
   const progress = $derived(boundaries.duration > 0 ? currentTime / boundaries.duration : 0);
   const KEY_HINTS = [
     "player.keyPlay",
@@ -127,7 +125,10 @@
     for (const event of STATE_EVENTS) {
       created.addEventListener(event, sync);
     }
+    created.addEventListener("waiting", () => (waitingForMedia = true));
+    created.addEventListener("playing", () => (waitingForMedia = false));
     created.addEventListener("error", () => {
+      waitingForMedia = false;
       sync();
       failure = failureOfPlayerError(created.error, pictureFailure);
     });
@@ -189,6 +190,7 @@
   role="dialog"
   aria-modal="true"
   aria-label={slideshow.title}
+  aria-busy={waitingForMedia}
 >
   <!-- A tap toggles the controls; the keyboard has its own shortcuts. -->
   <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
@@ -214,9 +216,11 @@
         <Icon name="close" />
       </button>
       <div class="heading">
-        <span class="name">{slideshow.title}</span>
-        {#if slideDate !== undefined}
-          <small class="mono">{formatDate(slideDate)}</small>
+        {#if !slideHasCard}
+          <span class="name">{slideshow.title}</span>
+          {#if slideDate !== undefined}
+            <small class="mono">{formatDate(slideDate)}</small>
+          {/if}
         {/if}
       </div>
       <span class="counter mono"
@@ -242,7 +246,7 @@
       onpointerdown={() => controls.reveal()}
     >
       <div class="hint" role="note" aria-label={t("player.hint")}>
-        {#each KEY_HINTS as key (key)}<kbd class="mono">{t(key)}</kbd>{/each}
+        {#each KEY_HINTS as key (key)}<kbd>{t(key)}</kbd>{/each}
       </div>
       <div class="scrub">
         <div class="rail" aria-hidden="true">

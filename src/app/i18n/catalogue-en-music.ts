@@ -5,12 +5,6 @@ import type { deMusic } from "./catalogue-de-music.ts";
 export const enMusic: Pick<Catalogue, keyof typeof deMusic> = {
   "import.convertingButton": "Converting\u00a0…",
   "import.convertedFrom": "Converted from {format} on this device",
-  "slideshow.musicWholeTrack": "whole track",
-  "slideshow.musicExcerpt": "{from}–{to}",
-  "slideshow.musicFades-in-and-out": "fades in and out",
-  "slideshow.musicFades-in": "fades in",
-  "slideshow.musicFades-out": "fades out",
-  "slideshow.musicSummary": "{excerpt} · {fades}",
   "music.crumb": "Music",
   "music.trimmedTo": "{duration} · trimmed to {excerpt}",
   "music.start": "Start",
@@ -22,8 +16,9 @@ export const enMusic: Pick<Catalogue, keyof typeof deMusic> = {
   "music.listenEnd": "Listen to the end",
   "music.listenFrom": "from {time}",
   "music.listenUntil": "until {time}",
-  "music.hint":
-    "Drag the handles or move them with the arrow keys (Shift: 1 s). The orange line shows the volume with its fades.",
+  "music.hint": "Drag the handles or move them with the arrow keys (Shift: 1 s).",
+  "music.hintVolumeLine": "The orange line shows the volume with its fades.",
+  "music.details": "Details",
   "music.excerpt": "Excerpt",
   "music.wholeTrack": "Whole track",
   "music.trimmed": "Trimmed",
@@ -39,8 +34,8 @@ export const enMusic: Pick<Catalogue, keyof typeof deMusic> = {
   "music.automaticBecause": "Automatic: {reason}.",
   "music.reason-excerpt-starts-mid-track": "short, as the excerpt starts mid-track",
   "music.reason-track-starts": "off, as the track plays from its start",
-  "music.reason-slideshow-ends": "short, as the slideshow ends at {time}",
-  "music.reason-excerpt-ends-early": "short, as the excerpt stops before the track ends",
+  "music.reason-slideshow-ends": "long, as the slideshow ends at {time}",
+  "music.reason-excerpt-ends-early": "long, as the excerpt stops before the track ends",
   "music.reason-track-ends": "off, as the track ends by itself",
   "music.pictureTimes": "Picture times",
   "music.noteShared": {
@@ -65,6 +60,10 @@ export const enMusic: Pick<Catalogue, keyof typeof deMusic> = {
     "Every picture has its own duration. The slideshow ends after {time}; the music fades out there.",
   "music.noteEndsWithMusic":
     "Every picture has its own duration. The slideshow ends with the music.",
+  "music.noteFitted":
+    "Each picture without its own duration shrinks to about {seconds}, to end with the music.",
+  "music.noteFittedOnTheBeat":
+    "Each picture without its own duration shrinks to about {seconds}, each change on the nearest beat, to end with the music.",
   "music.noteOwnSeconds":
     "Each picture without its own duration stays {seconds}. The slideshow lasts {time}; the music fades out there.",
   "music.noteOwnSecondsOnTheBeat":
@@ -73,7 +72,10 @@ export const enMusic: Pick<Catalogue, keyof typeof deMusic> = {
     "Each picture without its own duration stays {seconds}; after the fade-out the last pictures play in silence. Shorter pictures, longer music or “Fill the music” fix that.",
   "music.pictureLength": "Picture length",
   "music.aboutSecondsEach": "About {seconds} each",
+  "music.pictureLengthFitted": "Shortened to {seconds} to fit the music",
   "music.fillTheMusic": "Fill the music",
+  "music.pictureTimesByMood": "Picture times are set by the mood {name} — {value}",
+  "music.setOwnPictureTimes": "Set them yourself",
   "music.pictureChanges": "Picture changes",
   "music.beatsPerMinute": "{bpm} BPM",
   "music.onTheBeat": "On the beat",
@@ -81,9 +83,9 @@ export const enMusic: Pick<Catalogue, keyof typeof deMusic> = {
   "music.onTheBeatHint":
     "Every automatic change lands on a beat of the music; a transition lasts whole beats.",
   "music.ownDurationsOffBeat": {
-    one: "Picture {pictures} keeps its own duration, so the change after it can fall between beats.",
+    one: "Picture {pictures} keeps its own duration exactly: no automatic picture follows to take up the difference, so its change can fall between beats.",
     other:
-      "Pictures {pictures} keep their own duration, so the change after each can fall between beats.",
+      "Pictures {pictures} keep their own duration exactly: no automatic picture follows to take up the difference, so their changes can fall between beats.",
   },
   "music.evenlyHint": "The pictures share the music evenly, regardless of its beat.",
   "music.evenlyHintSeconds": "Each picture stays exactly {seconds}, regardless of the beat.",
@@ -120,6 +122,4 @@ export const enMusic: Pick<Catalogue, keyof typeof deMusic> = {
   "music.volumeListenOriginal": "original file, unlevelled",
   "music.volumeOriginalFile": "Original file",
   "music.volumeListenCompare": "While listening, tap another song to compare.",
-  "music.volumeComparison": "Loudness of the songs",
-  "music.volumeComparisonHint": "Grey line: original file",
 };

@@ -7,9 +7,9 @@ level). Closing destroys the player.
 - A tap toggles the controls. While playing they hide after 2.5 s; paused or ended they stay.
   They fade in `CAPTION_GLIDE_MS` (0.3 s), the time captions glide with them; the fade is off
   with reduced motion.
-- Top: close, the title with the current slide's capture date, "3 / 12" counting slides (a
-  portrait pair is one slide, ADR-0028) and a fullscreen button (hidden without the Fullscreen
-  API). Bottom: the key hint (above 720 px), the seek bar with one tick per slide, the white play/pause button, "0:12 / 1:00" and the music's name.
+- Top: close, the title with the current slide's own capture date — empty over a slide that
+  carries a title or closing card (ADR-0032) — "3 / 12" counting slides (a portrait pair is one
+  slide, ADR-0028) and a fullscreen button (hidden without the Fullscreen API). Bottom: the key hint (above 720 px), the seek bar with one tick per slide, the white play/pause button, "0:12 / 1:00" and the music's name.
 - Captions (ADR-0007) are drawn into their slide by the player, bottom left
   (`PlayerCaption.svelte`); while the controls show, the player's `captionInset` lifts them
   above the bottom bar's controls (its height without the fade above them, `caption-inset.ts`),
@@ -22,6 +22,8 @@ level). Closing destroys the player.
   right after, so the first caption is announced too.
 - Keys: Space play/pause, ←/→ previous/next picture, Esc close, F fullscreen. "Previous" more
   than a second into a picture restarts it, else goes to the one before.
+- The player dialog is `aria-busy` from opening until the show moves, and again while it waits
+  for a picture or clip it needs; a failure ends the wait.
 - At the end an "End" card offers "Again" and "Close"; it never jumps back by itself.
 - A picture that fails to load shows a short message with "Close". Music the browser refuses
   to start leaves the player paused with the controls showing; play retries.

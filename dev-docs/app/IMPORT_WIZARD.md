@@ -5,7 +5,7 @@ Pictures | Music" and a numbered two-step bar (a done step shows a mint check); 
 (`import/import-session.ts`) holds the selection for the tab: leaving by the browser back
 gesture (which cannot be stopped) keeps it, and "New slideshow" resumes it. With the server
 library on, the pictures step starts with "Where should it live?"; a server slideshow links its
-Immich photos, offers no "Open file" and is created on the server
+Immich photos, and is created on the server
 (server_library/IN_THE_APP.md).
 
 - **Videos** are chosen with the pictures (`video/*`, mp4, webm, mov). A video tile carries a play glyph and
@@ -32,9 +32,9 @@ Immich photos, offers no "Open file" and is created on the server
   with "Start over" (discards the selection and shows the empty drop zone); the drop zone and
   "Add pictures" stay hidden until then. Its error is logged; the notice is its only message (no
   "unexpected error" toast besides). "Next" is enabled once nothing is in flight, every picture is checked (Culling) and at least one picture is stored; until then the footer says why ("12 still importing", "Checking pictures …").
-  Cancel and ← with a selection ask "Discard selection?" (Keep choosing / Discard). While the
-  drop zone shows, a box below it offers "Slideshow from another device?" with "Open file"; a
-  single .glissando file chosen or dropped on the drop zone opens it ([SCREENS.md](SCREENS.md)) instead of being
+  Cancel and ← with a selection ask "Discard selection?" (Keep choosing / Discard). The start
+  screen's "Open file" is the one button for a .glissando file; a single one chosen or dropped
+  on the drop zone opens it ([SCREENS.md](SCREENS.md)) instead of being
   imported as a picture. **Duplicates** (ADR-0016): a picture already in the slideshow being
   added to, or already taken in by this import, is skipped before it is downscaled and counts
   as done; a lemon notice per kind names them, "2 pictures are already in the slideshow and were
@@ -71,34 +71,5 @@ Immich photos, offers no "Open file" and is created on the server
   it is kept without a focus (the on-device pass looks for one) and the error is logged. An Immich
   problem met on the way (e.g. a rejected key) is reported to `ImmichAvailability`, so the Immich
   box and the settings name it.
-- **Music** (optional): the intro "One song or several — they play one after another and the
-  pictures change on their beat. Without music each picture stays 5 s.", then a drop zone with
-  "Choose music" (`audio/*` plus every recognised extension, `MUSIC_FILE_PICKER_ACCEPT` — iPadOS greys out files it cannot type by location otherwise; several at once; hint "One or more files · MP3, M4A, FLAC, WAV, Ogg,
-  AIFF, WMA …"). Picked or dropped files join `ImportChoices.songs`, a keyed list, after the
-  songs already in it, and are read one at a time in the order picked by
-  `import/music-pick.ts` (`readPickedMusic`, the music editor's too): the format is recognised
-  from the file's first bytes (`src/import/music-format.ts`); MP3, AAC, FLAC, Opus and PCM WAV are
-  kept as they are; ALAC, AIFF, CAF, AC-3/E-AC-3, WMA, AMR and Ogg Vorbis, which a target browser
-  cannot decode, are converted on the device to a FLAC copy, and only the copy is stored
-  (ADR-0020). Once a song is in, the drop zone gives way to the song list, the music editor's
-  (`SongList.svelte`, without selecting): per song a grip, its number in its colour, the picked
-  name, "1:00 · WAV" (a converted one adds "Converted from Apple Lossless on this device"), "from
-  0:57" where it starts in the slideshow or, dimmed, "Not reached", and × removing it (cancelling
-  its conversion). The grip drags the song onto another row or moves it with the arrow keys while
-  focused (ADR-0019's pattern). A song being read is a dashed row with its name ("Converting to
-  FLAC · 42 %" while converting); a file that cannot be read or converted, or is copy-protected
-  (an iTunes `drms` track), is a coral row "This file can't be used" until its ×. A dashed "+ Add
-  another song" follows the list. The songs are placed as the slideshow will play them, each
-  crossfading into the next (ADR-0023). With a song chosen, a panel holds the **Picture length**
-  choice — "About 5 s each" (the default) with its stepper, or "Fill the music" — and a strip of
-  the pictures' thumbnails over the songs as numbered blocks in their colours, both to one scale,
-  a song not reached dimmed; under it "24 pictures · 2:00" and "Music 2:54", and "The music fades
-  out with the last picture." (with a song not reached "…; the dimmed songs are not reached.") /
-  "The last pictures play in silence." / "The slideshow ends with the music." No waveform, as
-  only the duration is probed. Without a chosen song a card "Time per picture" with the seconds
-  per picture (default 5 s). The row "n pictures | x s per picture | m:ss total" follows the
-  composition rules (`src/compose/`). "Pictures" goes back; while a song is read the primary
-  button is disabled as "Converting …"; otherwise "Create slideshow" (or "Create without music")
-  stores every chosen song in the list's order and then the slideshow record under the blocking
-  overlay "Creating slideshow …", opens the slideshow and shows the toast "Slideshow created —
-  tap Play".
+- **Music** (optional): [import-wizard/MUSIC.md](import-wizard/MUSIC.md) — picking songs or sample
+  music, the picture-length choice, and how the music and pictures end (ADR-0047).

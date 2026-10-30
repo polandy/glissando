@@ -49,34 +49,32 @@ test("E2E-005 importing pictures and music creates a slideshow ordered by captur
 
   await next.click();
   await expect(page.getByRole("heading", { name: "Welche Musik?" })).toBeVisible();
+  // Every new slideshow starts on Calm (ADR-0050), so the pace line names it and its own 7 s.
+  await expect(page.locator(".pace")).toHaveText(
+    "Stimmung Ruhig · etwa 7 s je Bild. Ändern lässt sie sich in der Diashow.",
+  );
   await expect(definitionOf(page, "Bilder")).toHaveText("3");
-  await expect(definitionOf(page, "je Bild")).toHaveText("5 s");
-  await expect(definitionOf(page, "Gesamt")).toHaveText("0:15");
+  await expect(definitionOf(page, "je Bild")).toHaveText("7 s");
+  await expect(definitionOf(page, "Gesamt")).toHaveText("0:21");
 
-  await page.getByRole("button", { name: "Kürzer" }).click();
-  await page.getByRole("button", { name: "Kürzer" }).click();
-  await expect(definitionOf(page, "je Bild")).toHaveText("4 s");
-  await expect(definitionOf(page, "Gesamt")).toHaveText("0:12");
-
-  await chooseFiles(page, page.getByRole("button", { name: "Musik auswählen" }), [
+  await chooseFiles(page, page.getByRole("button", { name: "Dateien wählen" }), [
     silentTrack("Sommerwind.wav", 9),
   ]);
   await expect(page.getByText("Sommerwind.wav", { exact: true })).toBeVisible();
   await expect(page.getByText("0:09 · WAV")).toBeVisible();
-  await expect(definitionOf(page, "je Bild")).toHaveText("4 s");
-  await expect(definitionOf(page, "Gesamt")).toHaveText("0:12");
-  await page.getByRole("radio", { name: "Musik füllen" }).click();
-  await expect(definitionOf(page, "je Bild")).toHaveText("3 s");
-  await expect(definitionOf(page, "Gesamt")).toHaveText("0:09");
+  // The 9 s song is too short to shrink the pictures down to (ADR-0047's floor keeps each one at
+  // least ⅔ of Calm's 7 s), so they keep their own pace and the music just ends before they do.
+  await expect(page.locator(".pace")).toHaveText(
+    "Stimmung Ruhig · etwa 7 s je Bild, auf den Phrasen der Musik. Ändern lässt sie sich in der Diashow.",
+  );
+  await expect(definitionOf(page, "je Bild")).toHaveText("7 s");
+  await expect(definitionOf(page, "Gesamt")).toHaveText("0:21");
 
   await page.getByRole("button", { name: "Diashow erstellen" }).click();
 
   await expect(page.getByRole("heading", { name: "Juli 2025" })).toBeVisible();
   await expect(page.getByText("12.07.2025 – 20.07.2025")).toBeVisible();
-  await expect(definitionOf(page, "Bilder")).toHaveText("3");
-  await expect(
-    page.getByRole("button", { name: "Musik Sommerwind.wav ganzer Titel Bearbeiten" }),
-  ).toBeVisible();
+  await expect(page.getByRole("button", { name: /^Musik Sommerwind\.wav/ })).toBeVisible();
   await expect(page.getByRole("status")).toHaveText(CREATED_TOAST);
 });
 
@@ -141,7 +139,6 @@ test.describe("Removing chosen pictures", () => {
     await page.getByRole("button", { name: "Ohne Musik erstellen" }).click();
 
     await expect(page.getByRole("status")).toHaveText(CREATED_TOAST);
-    await expect(definitionOf(page, "Bilder")).toHaveText("2");
     await expect(page.getByText("13.07.2025 – 14.07.2025")).toBeVisible();
   });
 });

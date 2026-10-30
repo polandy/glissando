@@ -35,6 +35,7 @@ export const ICONS = {
   back: { shapes: [path("M15 6l-6 6 6 6")] },
   chevronLeft: { shapes: [path("M15 6l-6 6 6 6")] },
   chevronRight: { shapes: [path("M9 6l6 6-6 6")] },
+  chevronDown: { shapes: [path("M6 9l6 6 6-6")] },
   plus: { shapes: [path("M12 5v14M5 12h14")] },
   minus: { shapes: [path("M5 12h14")] },
   play: { shapes: [path("M7 4.5v15l13-7.5z")], filled: true },
@@ -225,6 +226,8 @@ export const ICONS = {
     shapes: [path("M3 3l18 18"), path("M9 17H7A5 5 0 017 7M15 7h2a5 5 0 014 8"), path("M8 12h4")],
   },
   tv: { shapes: [rect(3, 7, 18, 13, 2), path("M8 3l4 4 4-4")] },
+  /** A bookmark: a trip chapter (TRIP_CHAPTERS.md). */
+  chapter: { shapes: [path("M6 3.5h12v17l-6-4.2-6 4.2z")] },
 } as const satisfies Record<string, IconDefinition>;
 
 export type IconName = keyof typeof ICONS;

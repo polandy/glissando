@@ -13,6 +13,7 @@
     selected,
     selecting,
     isNew,
+    lookFilter,
     mousePointer,
     dragging,
     drop,
@@ -30,6 +31,8 @@
     selecting: boolean;
     /** Just added: outlined and badged while the screen is shown. */
     isNew: boolean;
+    /** The slideshow's look, as a resolved CSS `filter` value ("" for "none", LOOKS.md). */
+    lookFilter: string;
     /** The primary pointer is a mouse: a double-click opens the picture editor. */
     mousePointer: boolean;
     /** Carried by the drag over the strip (ADR-0019): faded while it moves with the pointer. */
@@ -102,7 +105,7 @@
     {#if picture.missing}
       <span class="missing" role="img" aria-label={label}>{t("server.missingTile")}</span>
     {:else}
-      <img src={picture.thumbnailUrl} alt={label} draggable="false" />
+      <img src={picture.thumbnailUrl} alt={label} draggable="false" style:filter={lookFilter} />
     {/if}
     <span class="number mono" aria-hidden="true">{number}</span>
     {#if isNew || picture.clipMs !== undefined || picture.ownMotion || ownSeconds !== null || picture.ownTransition !== null || picture.alone || picture.blurredFill}

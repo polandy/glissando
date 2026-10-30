@@ -10,13 +10,21 @@ import {
   type SlideVideo,
 } from "../player/slideshow";
 import { DEFAULT_VIDEO_VOLUME, type StoredVideo } from "../library/own-video";
+import { isGradedLook } from "../player/looks/slideshow-look";
 import { beatTransitionDurationMs } from "./beat-transition";
 import { composeCards } from "./compose-cards";
-import { filledMusicMs, playlistBeatsMs, resolvePlaylist, type SongBeats } from "./playlist";
+import { composeChapters } from "./compose-chapters";
+import { composedChapters } from "./chapters-of-slideshow";
+import { playlistEnergy } from "./energy/playlist-energy";
+import { picturesFillMs, targetSecondsPerPicture } from "./filled-length";
+import { insertedTimeFor, realOffsetsMs } from "./inserted-time";
+import { moodSettings, moodTempo } from "./mood-settings";
+import { playlistBeatsMs, playlistMs, resolvePlaylist, type SongBeats } from "./playlist";
 import { pairKenBurns, pictureKenBurns } from "./picture-ken-burns";
 import { pictureTransition, slideshowTransition } from "./picture-transition";
 import { slideDurationsMs } from "./slide-durations-ms";
 import { slideUnits, timedUnit, type SlideUnit } from "./slide-units";
+import { slideshowLook } from "./slideshow-look";
 import type { SongLoudness } from "./song-loudness";
 import { trackGain } from "./track-gain";
 
@@ -46,6 +54,7 @@ const COVER_FIT = "cover";
  * pictures change on the songs' `beats` found so far, by music id; a song absent from it gives
  * none (ADR-0021, ADR-0023). Each track's `gain` levels its excerpt by the songs' `loudness`
  * measured so far, by music id; a song absent from it plays at its own volume alone (ADR-0040).
+ * `locale` picks the language of a trip chapter's automatic text (`TRIP_CHAPTERS.md`).
  */
 export function composeSlideshow(
   stored: StoredSlideshow,
@@ -53,15 +62,57 @@ export function composeSlideshow(
   focus: ReadonlyMap<string, PictureFocus>,
   beats: SongBeats,
   loudness: SongLoudness,
+  locale: string,
 ): Slideshow {
   const units = slideUnits(stored.pictures, stored.portraitPictures);
-  const defaultTransition = slideshowTransition(stored);
-  const beatsMs = playlistBeatsMs(stored, beats);
-  const durationsMs = slideDurationsMs(
-    units.map((unit) => timedUnit(stored.pictures, unit)),
-    filledMusicMs(stored),
+  const mood =
+    stored.mood === undefined ? undefined : moodSettings(stored.mood, moodTempo(stored, beats));
+  const defaultTransition = mood?.transition ?? slideshowTransition(stored);
+  const look = slideshowLook(stored);
+  const timedPictures = units.map((unit) => timedUnit(stored.pictures, unit));
+  const target = targetSecondsPerPicture(
+    stored.pictureLength,
     stored.secondsPerPicture,
+    mood?.secondsPerPicture,
+  );
+  // The pictures fill the playlist in fill mode, or fit a shorter one at their own or mood
+  // seconds, unless the music repeats instead of them shrinking (ADR-0022, ADR-0045, ADR-0047).
+  const filledMs = picturesFillMs(playlistMs(stored), timedPictures, target, stored.repeatMusic);
+  const secondsPerPicture = target ?? stored.secondsPerPicture;
+  // Roughly how long the slideshow plays, ahead of the beat snap and the cards below, so a
+  // repeating playlist's beats and energy reach far enough into the repeats (`repeatedPlaylist`);
+  // off by at most what the beat snap and the cards add, well inside a repeat's own margin.
+  const approxSlideshowMs = slideDurationsMs(timedPictures, filledMs, secondsPerPicture).reduce(
+    (sum, durationMs) => sum + durationMs,
+    0,
+  );
+  const beatsMs = playlistBeatsMs(stored, beats, approxSlideshowMs);
+  const energy =
+    stored.energyPacing === true
+      ? playlistEnergy(stored, loudness, beats, approxSlideshowMs)
+      : undefined;
+  const chapters = composedChapters(stored, locale);
+  // How much the opening card and the chapters add around a slide unit, before the beat and
+  // energy math below runs — the beats, energy and lifts are already in that real playlist time
+  // (`insertedTimeFor`).
+  const inserted = insertedTimeFor(
+    stored.openingCard,
+    chapters,
+    stored.pictures,
+    units,
     beatsMs,
+    defaultTransition,
+    mood?.transitionShare,
+    mood?.maxTransitionMs,
+  );
+  const insertedOffsets = realOffsetsMs(inserted, units.length);
+  const durationsMs = slideDurationsMs(
+    timedPictures,
+    filledMs,
+    secondsPerPicture,
+    beatsMs,
+    energy,
+    inserted,
   );
   const fit = stored.portraitPictures === "fill-screen" ? COVER_FIT : undefined;
   let slideEndMs = 0;
@@ -70,26 +121,53 @@ export function composeSlideshow(
     // durationsMs has exactly one entry per slide unit; the index is always in range.
     const durationMs = durationsMs[index] as number;
     slideEndMs += durationMs;
-    const slide = slideFor(index, stored.pictures, unit, sources, focus, durationMs, fit);
+    // The slide's real end in playlist ms, counting whatever the opening card or a chapter adds
+    // around it — the lift check and the beat-aligned transition below both read the playlist.
+    const realSlideEndMs = slideEndMs + (insertedOffsets.endMs[index] as number);
+    const slide = slideFor(
+      index,
+      stored.pictures,
+      unit,
+      sources,
+      focus,
+      durationMs,
+      fit,
+      mood?.kenBurnsStrength,
+    );
+    const picture = pictureOf(stored.pictures, unit.pictureIndices[0]);
     const transitionToNext = pictureTransition(
       index,
       units.length,
-      pictureOf(stored.pictures, unit.pictureIndices[0]),
+      picture,
       durationMs,
       defaultTransition,
+      mood?.transitionShare,
+      mood?.maxTransitionMs,
     );
     if (transitionToNext === undefined) {
+      return slide;
+    }
+    // A cut at a drop or chorus, unless the picture keeps its own transition (ADR-0046).
+    if (picture.transition === undefined && energy?.liftsMs.includes(realSlideEndMs) === true) {
       return slide;
     }
     if (beatsMs === undefined) {
       return { ...slide, transitionToNext };
     }
-    const onBeatMs = beatTransitionDurationMs(slideEndMs, transitionToNext.durationMs, beatsMs);
+    const onBeatMs = beatTransitionDurationMs(realSlideEndMs, transitionToNext.durationMs, beatsMs);
     return { ...slide, transitionToNext: { ...transitionToNext, durationMs: onBeatMs } };
   });
 
   const withCards = composeCards(stored, units, slides, sources, focus, defaultTransition, beatsMs);
-  const slideshowMs = withCards.slides.reduce((sum, finalSlide) => sum + finalSlide.durationMs, 0);
+  const withChapters = composeChapters(
+    chapters,
+    stored.pictures,
+    withCards.slides,
+    sources,
+    focus,
+    defaultTransition,
+  );
+  const slideshowMs = withChapters.reduce((sum, finalSlide) => sum + finalSlide.durationMs, 0);
   const music = resolvePlaylist(stored, slideshowMs, withCards.endFadeMs).map(
     ({ song, ...timing }) => ({
       src: sources.music(song.id),
@@ -106,8 +184,9 @@ export function composeSlideshow(
     formatVersion: SLIDESHOW_FORMAT_VERSION,
     title: stored.title,
     ...(music.length === 0 ? {} : { music }),
-    slides: withCards.slides,
+    slides: withChapters,
     ...(withCards.endFadeMs === undefined ? {} : { endFadeMs: withCards.endFadeMs }),
+    ...(isGradedLook(look) ? { look } : {}),
   };
 }
 
@@ -123,6 +202,8 @@ function slideFor(
   focus: ReadonlyMap<string, PictureFocus>,
   durationMs: number,
   fit: typeof COVER_FIT | undefined,
+  /** A mood's own Ken Burns strength, in place of the default (ADR-0045). */
+  kenBurnsStrength?: number,
 ): Slide {
   const first = pictureOf(pictures, unit.pictureIndices[0]);
   const firstFocus = focus.get(first.id);
@@ -132,14 +213,23 @@ function slideFor(
       image: { src: sources.picture(first.id), capturedAt: first.capturedAt },
       durationMs,
       kenBurns:
-        first.video === undefined ? pictureKenBurns(index, first, firstFocus) : STILL_KEN_BURNS,
+        first.video === undefined
+          ? pictureKenBurns(index, first, firstFocus, kenBurnsStrength)
+          : STILL_KEN_BURNS,
       ...(first.video === undefined ? {} : { video: videoOf(first.video, sources) }),
       ...(first.caption === undefined ? {} : { caption: first.caption }),
       ...(fit === undefined ? {} : { fit }),
     };
   }
   const second = pictureOf(pictures, partnerIndex);
-  const motion = pairKenBurns(index, first, firstFocus, second, focus.get(second.id));
+  const motion = pairKenBurns(
+    index,
+    first,
+    firstFocus,
+    second,
+    focus.get(second.id),
+    kenBurnsStrength,
+  );
   return {
     image: { src: sources.picture(first.id), capturedAt: first.capturedAt },
     durationMs,

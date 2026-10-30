@@ -13,7 +13,7 @@ function clipSlide(src: string, volume: number): Slide {
 describe("clipsToDecode", () => {
   it("lists the clips in show order, noting which have sound", () => {
     const slideshow = {
-      formatVersion: 8,
+      formatVersion: 9,
       title: "t",
       slides: [{ image: { src: "p" }, durationMs: 1000 }, clipSlide("a", 1), clipSlide("b", 0)],
     } as Slideshow;

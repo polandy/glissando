@@ -1,90 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { UnreadableMusicError, type MusicProbe } from "../../import/music-probe";
-import type { StoredMusic } from "../../library/stored-slideshow";
 import { MemoryLibraryStore } from "../../library/testing/memory-store";
-import { m4a } from "../../import/testing/music-headers";
-import {
-  deviceSongStorage,
-  serverSongStorage,
-  SongIntake,
-  type PendingSong,
-  type SongIntakePorts,
-} from "./song-intake";
-
-const mp3 = (name: string): File => new File(["ID3 tune"], name, { type: "audio/mpeg" });
-const appleLossless = (): File => new File([m4a("alac")], "Lanterns.m4a", { type: "audio/mp4" });
-
-/** An editor whose edits are stored at once, or, `holding`, once `store()` is called. */
-class FakeEditor {
-  readonly added: StoredMusic[][] = [];
-  readonly log: string[];
-  /** Resolves once songs were added. */
-  readonly whenAdded: Promise<void>;
-  #added: () => void = () => {};
-  #settle: () => void = () => {};
-  #settled = Promise.resolve();
-
-  readonly #holding: boolean;
-
-  constructor(log: string[], holding: boolean) {
-    this.log = log;
-    this.#holding = holding;
-    this.whenAdded = new Promise((resolve) => (this.#added = resolve));
-  }
-
-  addSongs(songs: readonly StoredMusic[]): void {
-    this.added.push([...songs]);
-    this.log.push(`add ${songs.map((song) => song.id).join(",")}`);
-    if (this.#holding) this.#settled = new Promise((resolve) => (this.#settle = resolve));
-    this.#added();
-  }
-
-  settled(): Promise<void> {
-    return this.#settled;
-  }
-
-  store(): void {
-    this.log.push("stored");
-    this.#settle();
-  }
-}
-
-function intakeWith(overrides: Partial<SongIntakePorts> = {}, { holding = false } = {}) {
-  const log: string[] = [];
-  const editor = new FakeEditor(log, holding);
-  const errors: unknown[] = [];
-  const shown: (readonly PendingSong[])[] = [];
-  let ids = 0;
-  const ports: SongIntakePorts = {
-    probeMusic: (file): Promise<MusicProbe> =>
-      file.name.endsWith(".broken")
-        ? Promise.reject(new UnreadableMusicError(file.name))
-        : Promise.resolve({ durationMs: 180_000 }),
-    convertMusic: (file, onProgress) => {
-      onProgress(0.5);
-      return Promise.resolve(new File(["flac"], "Lanterns.flac", { type: "audio/flac" }));
-    },
-    log: (error) => errors.push(error),
-    storage: {
-      store: (file) => {
-        const id = `song-${(ids += 1)}`;
-        log.push(`store ${file.name} as ${id}`);
-        return Promise.resolve({
-          id,
-          release: () => {
-            log.push(`release ${id}`);
-            return Promise.resolve();
-          },
-        });
-      },
-    },
-    editor,
-    onError: (error) => errors.push(error),
-    ...overrides,
-  };
-  const intake = new SongIntake(ports, (pending) => shown.push(pending));
-  return { intake, editor, log, errors, shown };
-}
+import { appleLossless, intakeWith, mp3 } from "./testing/song-intake-fixtures";
+import { deviceSongStorage, serverSongStorage } from "./song-intake";
 
 describe("SongIntake", () => {
   it("stores every picked song and appends them to the playlist in the order picked", async () => {
@@ -184,7 +101,10 @@ describe("SongIntake", () => {
   it("reports a song that could not be stored and drops its pending row", async () => {
     const failure = new Error("disk full");
     const { intake, editor, errors, shown } = intakeWith({
-      storage: { store: () => Promise.reject(failure) },
+      storage: {
+        store: () => Promise.reject(failure),
+        storeSample: () => Promise.reject(failure),
+      },
     });
 
     await intake.add([mp3("Morning Drive.mp3")]);

@@ -1,6 +1,6 @@
 /**
  * Resolves with the first element matching `selector` in `target`, once it is rendered and
- * `matches` it, such as once it shows a given text.
+ * `matches` it, such as once it shows a given text or carries a given attribute.
  */
 export function whenRendered(
   target: HTMLElement,
@@ -19,7 +19,12 @@ export function whenRendered(
         resolve(element);
       }
     });
-    observer.observe(target, { childList: true, subtree: true, characterData: true });
+    observer.observe(target, {
+      childList: true,
+      subtree: true,
+      characterData: true,
+      attributes: true,
+    });
     const already = found();
     if (already !== null) {
       observer.disconnect();

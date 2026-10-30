@@ -23,7 +23,6 @@ describe("buildStoredSlideshow", () => {
       createdAt: "2025-07-21T00:00:00Z",
       pictures: [second, first],
       songs: [],
-      secondsPerPicture: 5,
       locale: "en",
     });
 
@@ -36,7 +35,6 @@ describe("buildStoredSlideshow", () => {
       createdAt: "2025-08-21T00:00:00Z",
       pictures: [picture("a", "2025-07-01T10:00:00Z"), picture("b", "2025-08-20T10:00:00Z")],
       songs: [],
-      secondsPerPicture: 5,
       locale: "en",
     });
 
@@ -49,7 +47,6 @@ describe("buildStoredSlideshow", () => {
       createdAt: "2025-07-21T00:00:00Z",
       pictures: [picture("a", "2025-07-01T10:00:00Z")],
       songs: [],
-      secondsPerPicture: 5,
       locale: "en",
     });
 
@@ -66,7 +63,6 @@ describe("buildStoredSlideshow", () => {
       pictures: [first, second],
       order: ["b", "a"],
       songs: [],
-      secondsPerPicture: 5,
       locale: "en",
     });
 
@@ -82,7 +78,6 @@ describe("buildStoredSlideshow", () => {
         pictures: [picture("a", "2025-07-01T10:00:00Z")],
         order: ["ghost"],
         songs: [],
-        secondsPerPicture: 5,
         locale: "en",
       });
 
@@ -97,7 +92,6 @@ describe("buildStoredSlideshow", () => {
         pictures: [picture("a", "2025-07-01T10:00:00Z"), picture("b", "2025-07-02T10:00:00Z")],
         order: ["a"],
         songs: [],
-        secondsPerPicture: 5,
         locale: "en",
       });
 
@@ -112,7 +106,6 @@ describe("buildStoredSlideshow", () => {
       order: ["a"],
       ownOrder: true,
       songs: [],
-      secondsPerPicture: 5,
       locale: "en",
     });
 
@@ -125,7 +118,6 @@ describe("buildStoredSlideshow", () => {
       createdAt: "2025-07-21T00:00:00Z",
       pictures: [picture("a", "2025-07-01T10:00:00Z")],
       songs: [],
-      secondsPerPicture: 5,
       locale: "en",
     });
 
@@ -140,10 +132,48 @@ describe("buildStoredSlideshow", () => {
       createdAt: "2025-07-21T00:00:00Z",
       pictures: [picture("a", "2025-07-01T10:00:00Z")],
       songs: [music],
-      secondsPerPicture: 5,
       locale: "en",
     });
 
     expect(slideshow.songs).toEqual([music]);
+  });
+
+  it("sets repeatMusic when asked to", () => {
+    const slideshow = buildStoredSlideshow({
+      id: "s1",
+      createdAt: "2025-07-21T00:00:00Z",
+      pictures: [picture("a", "2025-07-01T10:00:00Z")],
+      songs: [],
+      repeatMusic: true,
+      locale: "en",
+    });
+
+    expect(slideshow.repeatMusic).toBe(true);
+  });
+
+  it("leaves repeatMusic unset by default", () => {
+    const slideshow = buildStoredSlideshow({
+      id: "s1",
+      createdAt: "2025-07-21T00:00:00Z",
+      pictures: [picture("a", "2025-07-01T10:00:00Z")],
+      songs: [],
+      locale: "en",
+    });
+
+    expect(slideshow.repeatMusic).toBeUndefined();
+  });
+
+  it("starts on the mood Calm, its own seconds as Custom's fallback (ADR-0050)", () => {
+    const slideshow = buildStoredSlideshow({
+      id: "s1",
+      createdAt: "2025-07-21T00:00:00Z",
+      pictures: [picture("a", "2025-07-01T10:00:00Z")],
+      songs: [],
+      locale: "en",
+    });
+
+    expect(slideshow.mood).toBe("calm");
+    expect(slideshow.secondsPerPicture).toBe(5);
+    expect(slideshow.pictureLength).toBe("seconds");
   });
 });

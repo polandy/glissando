@@ -1,6 +1,7 @@
 import { composeSlideshow, slideshowDurationMs } from "../../compose";
 import { DEFAULT_VIDEO_VOLUME } from "../../library/own-video";
-import type { LibraryStore, StoredSlideshow } from "../../library/stored-slideshow";
+import type { LibraryStore } from "../../library/library-store";
+import type { StoredSlideshow } from "../../library/stored-slideshow";
 import {
   canDecodeClip,
   clipsToDecode,
@@ -8,7 +9,7 @@ import {
   runVideoExport,
 } from "../../video-export";
 import { storedSongBeats } from "../beats/music-beats-known";
-import { NO_FOCUS_KNOWN } from "../focus/pictures-focus";
+import { bareFocus, NO_FOCUS_KNOWN } from "../focus/pictures-focus";
 import { storedSongLoudness } from "../loudness/music-loudness-composed";
 import type { ExportRun, VideoExportPorts } from "./export-sheet-state";
 import { VideoExportSession } from "./video-export-session";
@@ -30,14 +31,17 @@ export function slideshowVideoExport(
     "pictureBlob" | "musicBlob" | "videoBlob" | "pictureFocus" | "musicBeats" | "musicLoudness"
   >,
   stored: StoredSlideshow,
+  locale: string,
 ): VideoExportSession<ExportPreview> {
   const compose = async () => {
     const [focus, beats, loudness] = await Promise.all([
-      store.pictureFocus(stored.pictures.map((picture) => picture.id)).catch((error: unknown) => {
-        // Focus only aims the automatic motions: unread, they aim at the middle.
-        device.log(error);
-        return NO_FOCUS_KNOWN.found;
-      }),
+      store
+        .pictureFocus(stored.pictures.map((picture) => picture.id))
+        .then(bareFocus, (error: unknown) => {
+          // Focus only aims the automatic motions: unread, they aim at the middle.
+          device.log(error);
+          return NO_FOCUS_KNOWN.found;
+        }),
       storedSongBeats(store, stored, device.log),
       storedSongLoudness(store, stored, device.log),
     ]);
@@ -48,6 +52,7 @@ export function slideshowVideoExport(
       focus,
       beats,
       loudness,
+      locale,
     );
   };
   const run = async (job: ExportRun<ExportPreview>) => {

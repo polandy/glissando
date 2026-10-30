@@ -4,12 +4,15 @@ import type { FocusPass } from "../../library/focus-pass";
 import type { LoudnessPass } from "../../library/loudness-pass";
 import type { SlideshowHome } from "./slideshow-storage";
 import type { RouteStore } from "./slideshow-home";
-import type { ExportProgress } from "../glissando-file/export-job";
+import type { ExportOutcome, ExportProgress } from "../glissando-file/export-job";
 import type { Toaster } from "../toast/toaster";
 import type { ReadClipPeaks } from "../clip-editor/clip-sound-wave";
 import type { MusicEditorAudio } from "../music-editor/music-editor-audio";
 import type { DecodeClipSound, MusicOutput } from "../../player";
 import type { SongIntakeDevice } from "../music-editor/song-intake";
+import type { SamplePreview } from "../sample-music/sample-preview";
+import type { MusicEditorDetailsStore } from "../music-editor/music-editor-details";
+import type { FineSettingsFoldStore } from "../screens/slideshow/fine-settings-fold";
 import type { PlaybackQuality } from "../settings/playback-quality";
 import type { VideoExportDevice } from "../video-export/slideshow-video-export";
 import type { HtmlExportDevice } from "../html-export/slideshow-html-export";
@@ -29,10 +32,12 @@ export interface SlideshowRouteProps {
   onSaveOnServer: (slideshow: StoredSlideshow) => void;
   /** A server slideshow's share link and "Show on TV" rows (share_link/, tv_remote/). */
   serverSessions: Pick<ServerSlideshowSessions, "newShareLinkSession" | "newTvSession">;
-  /** What it finds updates the editors' automatic motions and focus marks as it goes. */
-  focusPass: Pick<FocusPass, "state" | "subscribe">;
-  /** What it finds puts the editors' automatic changes on the music's beats as it goes. */
-  beatPass: Pick<BeatPass, "subscribe" | "listenFor">;
+  /** What it finds updates the editors' automatic motions and focus marks as it goes; the picture
+   * editor's "Look again" asks it to look at one picture again (ADR-0041). */
+  focusPass: Pick<FocusPass, "state" | "subscribe" | "lookAgain">;
+  /** What it finds puts the editors' automatic changes on the music's beats as it goes; a mood
+   * reads its state directly, for the tempo it paces to (ADR-0045). */
+  beatPass: Pick<BeatPass, "state" | "subscribe" | "listenFor">;
   /** What it finds levels each song in the music editor as it goes (ADR-0040). */
   loudnessPass: Pick<LoudnessPass, "subscribe" | "listenFor">;
   toaster: Toaster;
@@ -41,7 +46,7 @@ export interface SlideshowRouteProps {
   slideshowId: string;
   /** The export running in the background, of this slideshow or another. */
   exportProgress: ExportProgress | null;
-  onExport: () => void;
+  onExport: () => Promise<ExportOutcome>;
   /** What "Save as video" needs of the browser. */
   videoExport: VideoExportDevice;
   /** What "Save as web page" needs of the browser. */
@@ -63,6 +68,13 @@ export interface SlideshowRouteProps {
   readClipPeaks: ReadClipPeaks;
   /** Reads songs picked in the music editor and stores their audio where the slideshow lives. */
   songIntake: SongIntakeDevice;
+  /** Plays a sample track's preview in the music editor's "Add a song" sheet (SAMPLE_MUSIC.md);
+   * `undefined` when the build turns sample music off. */
+  samplePreview?: SamplePreview | undefined;
+  /** Whether the info panel's "Fine settings" fold is open, kept on this device (ADR-0048). */
+  fineSettingsFold: FineSettingsFoldStore;
+  /** Whether the music editor shows its details, kept on this device. */
+  musicEditorDetails: MusicEditorDetailsStore;
   /** Also taken when the slideshow is no longer on this device. */
   onBack: () => void;
   onPlay: () => void;

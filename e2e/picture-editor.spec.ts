@@ -1,5 +1,5 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
-import { createSlideshow, definitionOf, editsStored, GERMAN_BROWSER } from "./support/app";
+import { chooseCustomMood, createSlideshow, editsStored, GERMAN_BROWSER } from "./support/app";
 import { openApp } from "./support/browser";
 
 test.use(GERMAN_BROWSER);
@@ -52,6 +52,8 @@ test("E2E-020 a picture gets its own Ken Burns motion that is stored, and goes b
   const startToggle = frames.getByRole("button", { name: /^Start/ });
   const endToggle = frames.getByRole("button", { name: /^Ende/ });
   const activeFrame = page.locator(".frame.active");
+  const startFrameBox = page.locator('.frame[data-key="from"]');
+  const endFrameBox = page.locator('.frame[data-key="to"]');
   await openApp(page);
   // The second picture zooms out: its start frame is inside the picture, free to move.
   await createSlideshow(page, ["2025-07-12", "2025-07-14", "2025-07-20"], 2);
@@ -66,7 +68,7 @@ test("E2E-020 a picture gets its own Ken Burns motion that is stored, and goes b
 
   await drag(page, await onPicture(page, 0.55, 0.5), await onPicture(page, 0.5, 0.45));
   await expect(state).toHaveText("Eigene Bewegung");
-  await expect(startToggle).toContainText("Zoom 1,20×");
+  await expect(startFrameBox).toHaveAttribute("aria-label", "Startrahmen, Zoom 1,20×");
 
   // Left of the moved start frame, inside the end frame, which spans the picture's width.
   const insideEndOnly = await onPicture(page, 0.04, 0.5);
@@ -77,29 +79,28 @@ test("E2E-020 a picture gets its own Ken Burns motion that is stored, and goes b
   await expect(activeFrame).toHaveAttribute("data-key", "from");
   await endToggle.click();
   await expect(activeFrame).toHaveAttribute("data-key", "to");
-  await expect(endToggle).toContainText("Zoom 1,00×");
+  await expect(endFrameBox).toHaveAttribute("aria-label", "Endrahmen, Zoom 1,00×");
 
   await drag(
     page,
     await centreOf(activeFrame.locator('[data-corner="se"]')),
     await onPicture(page, 0.8, 0.75),
   );
-  await expect(endToggle).not.toContainText("Zoom 1,00×");
-  const endZoom = await endToggle.locator(".mono").innerText();
-  const startFrame = await page.locator('.frame[data-key="from"]').getAttribute("style");
+  await expect(endFrameBox).not.toHaveAttribute("aria-label", "Endrahmen, Zoom 1,00×");
+  const endZoom = await endFrameBox.getAttribute("aria-label");
+  const startFrame = await startFrameBox.getAttribute("style");
   const endFrame = await activeFrame.getAttribute("style");
   await editsStored(page);
 
   await page.reload();
   await expect(state).toHaveText("Eigene Bewegung");
-  await expect(endToggle.locator(".mono")).toHaveText(endZoom);
-  await expect(page.locator('.frame[data-key="from"]')).toHaveAttribute("style", startFrame ?? "");
-  await expect(page.locator('.frame[data-key="to"]')).toHaveAttribute("style", endFrame ?? "");
+  await expect(endFrameBox).toHaveAttribute("aria-label", endZoom ?? "");
+  await expect(startFrameBox).toHaveAttribute("style", startFrame ?? "");
+  await expect(endFrameBox).toHaveAttribute("style", endFrame ?? "");
 
   await page.getByRole("button", { name: "Zurück", exact: true }).click();
   await expect(ownTile).toHaveAttribute("aria-pressed", "true");
   await expect(ownTile.locator(".badge")).toHaveText("eigen");
-  await expect(definitionOf(page, "Ken Burns")).toHaveText("automatisch, 1 eigene");
 
   await selectionBar.getByRole("button", { name: "Bearbeiten" }).click();
   await expect(state).toHaveText("Eigene Bewegung");
@@ -113,7 +114,7 @@ test("E2E-020 a picture gets its own Ken Burns motion that is stored, and goes b
   ).toBeVisible();
   await page.getByRole("button", { name: "Rückgängig" }).click();
   await expect(state).toHaveText("Eigene Bewegung");
-  await expect(endToggle.locator(".mono")).toHaveText(endZoom);
+  await expect(endFrameBox).toHaveAttribute("aria-label", endZoom ?? "");
 });
 
 test("E2E-022 a picture gets its own duration and transition, stored, and the transition goes back to automatic", async ({
@@ -135,7 +136,10 @@ test("E2E-022 a picture gets its own duration and transition, stored, and the tr
   const longer = durationSection.getByRole("button", { name: "Eine halbe Sekunde länger" });
   const circleTile = transitionSection.getByRole("radio", { name: /Kreis/ });
   await openApp(page);
-  await createSlideshow(page, ["2025-07-12", "2025-07-14", "2025-07-20"], 5);
+  await createSlideshow(page, ["2025-07-12", "2025-07-14", "2025-07-20"]);
+  // A new slideshow opens on Calm (ADR-0050); this case is
+  // about a picture's own duration against the automatic one, so it switches back to Custom.
+  await chooseCustomMood(page);
 
   await automaticTile.click();
   await selectionBar.getByRole("button", { name: "Bearbeiten" }).click();
@@ -157,9 +161,10 @@ test("E2E-022 a picture gets its own duration and transition, stored, and the tr
   await expect(ownTile).toHaveAttribute("aria-pressed", "true");
   await expect(ownTile.locator(".timing-badge.mono")).toHaveText("6,5 s");
   await expect(ownTile.locator(".timing-badge[title]")).toHaveAttribute("title", "Kreis");
-  await expect(definitionOf(page, "Bildzeiten")).toHaveText("automatisch, 1 eigene");
+  // The Transitions row lives behind the Fine settings fold (ADR-0048).
+  await page.getByRole("button", { name: "Feineinstellungen" }).click();
   await expect(
-    page.getByRole("button", { name: "Übergänge Überblenden Vorgabe · 1 eigener Ändern" }),
+    page.getByRole("button", { name: "Übergänge Überblenden Vorgabe · 1 eigener" }),
   ).toBeVisible();
 
   await selectionBar.getByRole("button", { name: "Bearbeiten" }).click();

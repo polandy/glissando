@@ -15,7 +15,8 @@ constraints of ADR-0012 stand: in the browser, offline, every asset shipped by t
   release 0.1.1rc0 byte for byte as `src/focus/yolox-nano.bin` (3.7 MB, 3.4 MB gzip), pinned by
   sha256 in a unit test. 80 COCO classes; every one counts as a subject (a person without a
   visible face, an animal, a vehicle, a cup), a score (objectness × class) of at least 0.35,
-  non-maximum suppression at 0.45.
+  non-maximum suppression at 0.45. Its Apache-2.0 notice is listed in `third-party-licenses.md`
+  (`build/committed-licenses.ts`), since it is not an npm package Vite's own licences list sees.
 - **Run by ~600 lines of TypeScript** (`src/focus/onnx/`): a protobuf reader for the ONNX graph
   and the ten operators this network uses (Conv, MaxPool, Resize, Slice, Concat, Reshape,
   Transpose, Add, Mul, Sigmoid) on float32. An unknown operator fails loud.
@@ -52,5 +53,5 @@ constraints of ADR-0012 stand: in the browser, offline, every asset shipped by t
 - A different network later needs only the operators it uses added to `tensor-ops.ts`; if the
   time per picture matters more than the download, onnxruntime-web can replace the runner
   behind `objectFocus` without touching anything else.
-- There is no migration: pictures stored without a focus are looked at, pictures already stored
-  as "none" stay so until the focus store is cleared.
+- A result found before the object detection is outdated by its detector version and looked at
+  again (ADR-0041).

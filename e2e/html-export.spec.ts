@@ -10,6 +10,7 @@ import {
 } from "./support/app";
 import { openApp } from "./support/browser";
 import { silentTrack } from "./support/media";
+import { chooseShareRow } from "./support/share";
 
 test.use(GERMAN_BROWSER);
 
@@ -38,7 +39,7 @@ async function createSlideshowWithMusic(page: Page): Promise<void> {
   await openImport(page);
   await choosePictures(page, await picturesTakenOn(page, DAYS), DAYS.length);
   await page.getByRole("button", { name: "Weiter" }).click();
-  await chooseFiles(page, page.getByRole("button", { name: "Musik auswählen" }), [
+  await chooseFiles(page, page.getByRole("button", { name: "Dateien wählen" }), [
     silentTrack("Sommerwind.wav", TRACK_SECONDS),
   ]);
   await expect(page.getByText("Sommerwind.wav", { exact: true })).toBeVisible();
@@ -53,9 +54,8 @@ test("E2E-033 a slideshow saved as a web page from its menu downloads as one .ht
   await openApp(page);
   await createSlideshowWithMusic(page);
 
-  await page.getByRole("button", { name: "Mehr" }).click();
-  await page.getByRole("menuitem", { name: "Als Webseite sichern" }).click();
-  const sheet = page.getByRole("dialog", { name: "Als Webseite sichern" });
+  await chooseShareRow(page, /^Webseite/);
+  const sheet = page.getByRole("dialog", { name: "Webseite" });
   // The default size: small is kept as is, so the page fits the usual estimate.
   await expect(sheet.getByRole("radio", { name: /^Klein/ })).toHaveAttribute(
     "aria-checked",

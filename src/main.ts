@@ -17,6 +17,7 @@ import {
   browserScreenShortEdge,
 } from "./app/settings/playback-quality";
 import { applyThemePreference, createStorageThemePreferenceStore } from "./app/settings/theme";
+import { createDeviceSettingsStores } from "./app/device-settings-stores";
 import { browserScheduler } from "./ui-kit/scheduler";
 import { handOverFromShell } from "./app/shell/app-shell";
 import { consumeFirstLaunch, createStorageFirstLaunchStore } from "./app/start/first-launch";
@@ -31,17 +32,18 @@ import { browserObjectUrls } from "./app/media/object-urls";
 import { readClipPeaksWithMediabunny } from "./app/clip-editor/read-clip-peaks";
 import { browserMusicEditorAudio } from "./app/music-editor/music-editor-audio";
 import { deviceSongStorage, serverSongStorage } from "./app/music-editor/song-intake";
+import { browserSampleMusic } from "./app/sample-music/browser-sample-music";
 import { freeStorageBytes } from "./library/free-storage";
 import { browserIntakePorts } from "./app/import/browser-intake-ports";
-import { HttpImmichClient } from "./immich/http-immich-client";
+import { browserImmich } from "./immich/browser-immich";
 import type { StoredSlideshow } from "./library/stored-slideshow";
 import type { SlideshowHome } from "./app/routes/slideshow-storage";
-import { browserNetworkStatus, ImmichAvailability } from "./immich/immich-availability";
 import { convertMusic } from "./import/browser/convert-music";
 import { probeMusic } from "./import/music-probe";
 import { createImmichReaders } from "./immich/immich-readers";
 import { createMusicAudioContext, MusicOutput } from "./player";
 import { FocusPass } from "./library/focus-pass";
+import { serializeFocusDetector } from "./library/serialized-focus-detector";
 import { openLibraryStore } from "./library/indexeddb-store";
 import { startFocusWorker, WorkerFocusDetector } from "./focus/worker-focus-detector";
 import { decodeMusicWithWebAudio } from "./beats/decode-music";
@@ -57,6 +59,7 @@ import { HttpServerLibraryClient } from "./server-library/http-server-library-cl
 import { serverSlideshowSessions } from "./app/server-library/server-slideshow-sessions";
 import { createServerLibrary } from "./server-library/server-library";
 import { createStorageServerLibraryMemory } from "./server-library/server-library-memory";
+import { startServerFocusPass } from "./app/server-focus-pass";
 import { browserHtmlExportDevice } from "./app/html-export/browser-html-export-device";
 import { bundledFilePage } from "./file-page/browser/bundled-file-page";
 import { browserVideoExportDevice } from "./app/video-export/browser-video-export-device";
@@ -65,15 +68,7 @@ import { browserMediaDecoders } from "./glissando-file/browser/media-decoders";
 import { decodeClipSound } from "./video-export/browser/decode-clip-sound";
 import { createDemoSlideshowServices } from "./app/start/demo-slideshow-services";
 
-/** Same origin: the self-hosted Glissando's `/immich/` route sets the API key (ADR-0013). */
-const immichClient = new HttpImmichClient({
-  baseUrl: new URL("./immich/", window.location.href),
-  fetch: window.fetch.bind(window),
-});
-const immichAvailability = new ImmichAvailability({
-  client: immichClient,
-  network: browserNetworkStatus(window),
-});
+const { client: immichClient, availability: immichAvailability } = browserImmich(window);
 
 const settings = new AppSettings({
   themes: createStorageThemePreferenceStore(window.localStorage),
@@ -128,6 +123,9 @@ const store = await openLibraryStore(window.indexedDB);
 const newId = (): string => randomId(crypto);
 const now = (): Date => new Date();
 const musicOutput = new MusicOutput(createMusicAudioContext);
+// Reads __GLISSANDO_SAMPLE_MUSIC__ through browser-sample-music.ts, the constant's only reader.
+const sampleMusicDependencies = { store, target: window, onError: logError };
+const sampleMusic = browserSampleMusic(__GLISSANDO_SAMPLE_MUSIC__, sampleMusicDependencies);
 
 function deleteAbandonedMedia(): void {
   store.deleteUnreferencedMedia(now()).catch(reportError);
@@ -136,14 +134,18 @@ deleteAbandonedMedia();
 // Exports a crash or a closed tab left behind (video_export/WRITING_THE_FILE.md).
 sweepPrivateExports().catch(logError);
 
+// One worker, never detecting for the device pass and the server pass at once, the device pass
+// always first (ADR-0041).
+const { primary: deviceFocusDetector, secondary: serverFocusDetector } = serializeFocusDetector(
+  new WorkerFocusDetector(startFocusWorker),
+);
 const focusPass = new FocusPass({
   store,
-  detector: new WorkerFocusDetector(startFocusWorker),
+  detector: deviceFocusDetector,
   log: logError,
   reportError,
 });
 focusPass.start();
-
 const freeBytes = (): Promise<number | null> => freeStorageBytes(window.navigator.storage);
 const download = createDownloader({
   document,
@@ -211,6 +213,16 @@ if (deepLinkedFrameAlbumId !== null) {
   );
 }
 
+const { serverFocusPass, serverLibrary: serverLibraryWithFocusStart } = startServerFocusPass({
+  serverLibrary,
+  detector: serverFocusDetector,
+  navigator,
+  immich: immichClient,
+  reportUnavailable: (kind) => immichReaders.reportUnavailable(kind),
+  log: logError,
+  reportError,
+});
+
 const services = {
   store,
   navigator,
@@ -230,12 +242,13 @@ const services = {
   musicAudio: browserMusicEditorAudio(musicOutput),
   readClipPeaks: readClipPeaksWithMediabunny,
   focusPass,
+  serverFocusPass,
   beatPass,
   serverBeatPass,
   loudnessPass,
   serverLoudnessPass,
   immich: { client: immichClient, availability: immichAvailability },
-  serverLibrary,
+  serverLibrary: serverLibraryWithFocusStart,
   newImportSession: () =>
     new ImportSession({
       ...intakePorts,
@@ -243,8 +256,9 @@ const services = {
       probeMusic,
       convertMusic,
       createOnServer: (slideshow, songsAudio) =>
-        serverLibrary.createSlideshow(slideshow, songsAudio),
+        serverLibraryWithFocusStart.createSlideshow(slideshow, songsAudio),
       random: Math.random,
+      ...sampleMusic,
     }),
   newAddPicturesSession: (slideshow: StoredSlideshow, home: SlideshowHome) =>
     new AddPicturesSession(slideshow, home, {
@@ -259,6 +273,7 @@ const services = {
       home === "device"
         ? deviceSongStorage({ store, newId, now })
         : serverSongStorage(serverLibrary),
+    ...sampleMusic,
   }),
   newId,
   now,
@@ -275,6 +290,8 @@ const services = {
   reload: () => window.location.reload(),
   ...createFrameServices(window, browserScheduler, logError),
   demoSlideshow,
+  ...sampleMusic,
+  ...createDeviceSettingsStores(window.localStorage),
 };
 
 const playStartAnimation = consumeFirstLaunch(createStorageFirstLaunchStore(window.localStorage));

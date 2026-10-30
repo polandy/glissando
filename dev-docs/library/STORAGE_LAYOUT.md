@@ -1,20 +1,23 @@
 # Storage layout
 
-One IndexedDB database, `glissando` (schema version 6; version 1 lacked `imports`, version 2
-`focus`, version 3 `beats`, version 5 cleared the slideshow records for the picture colours (ADR-0033),
-version 6 added `videos` — each other upgrade only adds its store, existing data stays as it is). A slideshow record holds
-`songs` (ADR-0023); one holding a single `music` is not read, and such a database is cleared
-by hand:
+One IndexedDB database, `glissando` (schema version 8; version 1 lacked `imports`, version 2
+`focus`, version 3 `beats`, version 5 cleared the slideshow records for the picture colours
+(ADR-0033), version 6 added `videos`, version 7 added `loudness`, version 8 dropped and recreated
+`focus` so every picture, including one stored as "none" before objects or scenery, is looked at
+by the current detector (ADR-0041) — each other upgrade only adds its store, existing data stays
+as it is). A slideshow record holds `songs` (ADR-0023); one holding a single `music` is not read,
+and such a database is cleared by hand:
 
-| Object store | Key      | Value                                                                    |
-| ------------ | -------- | ------------------------------------------------------------------------ |
-| `slideshows` | `id`     | the slideshow record (`StoredSlideshow`)                                 |
-| `pictures`   | media id | display and thumbnail rendition, bytes + type                            |
-| `music`      | media id | the music file, bytes + type                                             |
-| `imports`    | `id`     | a claim (import in progress or undoable removal): `startedAt`, media ids |
-| `focus`      | media id | a picture's `PictureFocus`: its subject box, or none found (ADR-0012)    |
-| `beats`      | media id | a track's `MusicBeats`: its beat times and tempo, or none (ADR-0021)     |
-| `videos`     | media id | a video's original file as chosen, bytes + type (ADR-0034)               |
+| Object store | Key      | Value                                                                                                                                       |
+| ------------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `slideshows` | `id`     | the slideshow record (`StoredSlideshow`)                                                                                                    |
+| `pictures`   | media id | display and thumbnail rendition, bytes + type                                                                                               |
+| `music`      | media id | the music file, bytes + type                                                                                                                |
+| `imports`    | `id`     | a claim (import in progress or undoable removal): `startedAt`, media ids                                                                    |
+| `focus`      | media id | a picture's `StoredFocus`: its `PictureFocus` (subject box, scenery, or none, ADR-0012) and the `detector` version that found it (ADR-0041) |
+| `beats`      | media id | a track's `MusicBeats`: its beat times and tempo, or none (ADR-0021)                                                                        |
+| `videos`     | media id | a video's original file as chosen, bytes + type (ADR-0034)                                                                                  |
+| `loudness`   | media id | a track's `MusicLoudness`: its measured integrated loudness (dev-docs/library/MUSIC.md)                                                     |
 
 Media is written while importing, the slideshow record last. Edits on the slideshow screen
 replace the record through `updateSlideshow`, which reads it in the same transaction and throws
@@ -39,7 +42,17 @@ validate them (`checkOwnDurationMs`, `checkTransitionChoice`) and delete the fie
 the default every picture without its own plays (one of `SLIDESHOW_TRANSITIONS`: a picture's
 choices or `"alternate"`); absent, it is the crossfade (ADR-0010). `setSlideshowTransition`
 validates it (`checkSlideshowTransition`) and deletes the field for `undefined` or
-`"crossfade"`; records without it need no migration. A picture's optional `video` (`StoredVideo`: `mediaId`, `sourceMs`,
+`"crossfade"`; records without it need no migration. The slideshow's optional `look` is its colour grade (one of
+`SLIDESHOW_LOOKS` other than `"none"`; ADR-0044); absent, it is none. `setSlideshowLook` validates
+it (`checkSlideshowLook`) and deletes the field for `undefined` or `"none"`; records without it
+need no migration. The slideshow's optional `mood` is its pacing rule (one of `"calm"` or
+`"lively"`, ADR-0045); absent, it is Custom. `setSlideshowMood` validates it
+(`checkSlideshowMood`) and deletes the field for `undefined`; records without it need no
+migration. The slideshow's optional `energyPacing` (only ever `true`, ADR-0046) has the
+pictures follow the music's energy; `setSlideshowEnergyPacing` deletes it for `false`. The
+slideshow's optional `repeatMusic` (only ever `true`, ADR-0047) has the playlist repeat from its
+first song for as long as the slideshow lasts, instead of its pictures fitting a shorter one;
+`setRepeatMusic` deletes it for `undefined`; records without it need no migration. A picture's optional `video` (`StoredVideo`: `mediaId`, `sourceMs`,
 `startMs`, `endMs`, `volume` 0 to 100 in steps of 5, `duckMusic` only ever `false`) makes it a video
 slide, its picture the poster; the file lives in `videos` under `mediaId` (`putVideo`, `videoBlob`).
 `setVideoExcerpt`, `setVideoVolume` and `setVideoDuckMusic` validate (`checkVideoExcerpt`,
@@ -48,12 +61,15 @@ source at import. `mediaBytes`
 measures what a slideshow's pictures (both renditions), videos and songs take, in one read-only
 transaction, for the export's size estimate. `deleteSlideshow` deletes the
 record and, in the same transaction, the media (videos included) no other slideshow references, those pictures'
-focus and those songs' beats with it.
+focus and those songs' beats and loudness with it.
 
 A picture's focus lives beside its media, not on the record: the editors save whole records
-from their copy, which would erase a focus found meanwhile. `putPictureFocus` checks for the
-picture's media in the same transaction and keeps nothing without it, so a detection finishing
-after its slideshow was deleted resurrects nothing; `pictureFocus(ids)` returns a map in which a
-picture not looked at yet is absent. A track's beats live beside its media the same way:
+from their copy, which would erase a focus found meanwhile, and `FocusPass`'s store port cannot
+write a slideshow record at all (ADR-0041). `putPictureFocus(id, { focus, detector })` checks for
+the picture's media in the same transaction and keeps nothing without it, so a detection finishing
+after its slideshow was deleted resurrects nothing; it writes whatever `detector` it is given, so
+only `FocusPass` — which always looks with the current `FOCUS_DETECTOR_VERSION` — keeps a result
+from ever regressing to an older one. `pictureFocus(ids)` returns a map in which a picture not
+looked at yet is absent. A track's beats live beside its media the same way:
 `putMusicBeats` keeps nothing without the music, `musicBeats(id)` is `undefined` for a track not
 listened to yet.

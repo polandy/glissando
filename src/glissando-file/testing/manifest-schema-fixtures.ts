@@ -1,5 +1,5 @@
 import Ajv from "ajv";
-import type { GlissandoManifest } from "../glissando-manifest";
+import { GLISSANDO_FORMAT_VERSION, type GlissandoManifest } from "../glissando-manifest";
 import type { PictureAsRead } from "../made-thumbnail-paths";
 import { MANIFEST_SCHEMA } from "../manifest-schema";
 
@@ -18,7 +18,7 @@ type ManifestDocument = Omit<GlissandoManifest, "slideshow"> & {
  */
 export const BASE_MANIFEST: ManifestDocument = {
   format: "glissando",
-  formatVersion: 15,
+  formatVersion: GLISSANDO_FORMAT_VERSION,
   slideshow: {
     title: "Herbst in Wien",
     createdAt: "2025-10-01T08:00:00Z",
@@ -28,6 +28,9 @@ export const BASE_MANIFEST: ManifestDocument = {
     betweenSongs: "sequence",
     pictureLength: "seconds",
     portraitPictures: "fill-screen",
+    look: "warm",
+    mood: "calm",
+    energyPacing: true,
     pictures: [
       {
         file: "pictures/0001.png",
@@ -46,6 +49,7 @@ export const BASE_MANIFEST: ManifestDocument = {
         transition: "dissolve",
         fileBytes: 2_500_000,
         alone: true,
+        place: { name: "Lisbon", latitude: 38.717, longitude: -9.133 },
         video: {
           file: "videos/clip-1.mp4",
           mimeType: "video/mp4",
@@ -77,6 +81,7 @@ export const BASE_MANIFEST: ManifestDocument = {
         fadeOutMs: 5000,
         pictureChanges: "even",
         volumeDb: -3,
+        sampleTrack: "hold-the-frame",
       },
     ],
     openingCard: {
@@ -96,10 +101,13 @@ export const BASE_MANIFEST: ManifestDocument = {
       background: { kind: "picture", pictureIndex: 0, fade: 60, tint: "picture" },
       motion: false,
     },
+    automaticChaptersOff: true,
+    chapterEdits: [{ pictureIndex: 0, title: "Lisbon", subtitle: "September 30", hidden: true }],
+    addedChapters: [{ beforePictureIndex: 1, title: "Sintra", subtitle: "October 1" }],
   },
 };
 
-/** The schema compiled once with ajv 6, the way `manifest-schema.test.ts` and its siblings do. */
+/** The schema compiled once, the way `manifest-schema.test.ts` and its siblings do. */
 export const validateManifestSchema = new Ajv().compile(MANIFEST_SCHEMA);
 
 function clone<Value>(value: Value): Value {

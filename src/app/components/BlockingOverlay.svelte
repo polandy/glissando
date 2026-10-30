@@ -44,7 +44,7 @@
     {/if}
     {#if note !== undefined || onCancel}
       <div class="row">
-        <span class="note mono">{note ?? ""}</span>
+        <span class="note">{note ?? ""}</span>
         {#if onCancel}
           <button class="btn" type="button" onclick={onCancel}>{t("common.cancel")}</button>
         {/if}

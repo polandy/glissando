@@ -1,24 +1,19 @@
 import {
-  AUTOMATIC_MUSIC_FADE_MS,
-  filledMusicMs,
+  AUTOMATIC_MUSIC_FADE_OUT_MS,
   musicExcerpt,
   placeSongs,
-  playlistBeatsMs,
   playlistMs,
   resolvePlaylist,
   scaledFades,
-  slideDurationsMs,
-  slideUnits,
-  timedUnit,
   type MusicTiming,
   type PlacedSong,
 } from "../../compose";
-import { excerptLoudnessLufs, excerptPeakDbfs } from "../../loudness";
+import { moodSettings, moodTempo } from "../../compose/mood-settings";
 import { SEQUENCE_BETWEEN_SONGS } from "../../library/own-music";
 import { songIndex } from "../../library/slideshow-edits-songs";
+import type { SlideshowMood } from "../../library/slideshow-mood";
 import type { StoredSlideshow } from "../../library/stored-slideshow";
-import { composedBeats, type BeatsStatus } from "../beats/music-beats-known";
-import type { LoudnessStatus } from "../loudness/music-loudness-known";
+import { excerptLoudnessLufs, excerptPeakDbfs } from "../../loudness";
 import { volumeListenPlan, type VolumeListenPlan } from "./listen-preview";
 import {
   beatTicks,
@@ -26,7 +21,16 @@ import {
   type BeatTick,
   type PictureChangesView,
 } from "./picture-changes-view";
-import { sum, timingNote, type TimingNote } from "./music-timing-note";
+import { timingNote, type TimingNote } from "./music-timing-note";
+import {
+  NO_SONGS_LOUDNESS_KNOWN,
+  slideshowTimes,
+  songBeats,
+  songBeatsStatus,
+  songLoudnessStatus,
+  type SongsBeatsStatus,
+  type SongsLoudnessStatus,
+} from "./slideshow-times";
 import { volumeView, volumeViewInput, type VolumeView } from "./volume-view";
 
 /** Why an automatic fade-in is what it is. */
@@ -48,6 +52,13 @@ export interface PictureLengthView {
   /** They last `secondsPerPicture` each; otherwise they fill the music. */
   readonly ownSeconds: boolean;
   readonly secondsPerPicture: number;
+}
+
+/** The slideshow's mood pacing the picture length instead of `PictureLengthView` (ADR-0045). */
+export interface MoodPictureLengthView {
+  readonly mood: SlideshowMood;
+  /** The tempo the mood paces to; absent without a song that gives one (`moodTempo`). */
+  readonly beatsPerMinute: number | undefined;
 }
 
 export interface MusicEditorView {
@@ -75,6 +86,8 @@ export interface MusicEditorView {
   /** The beats the pictures change on, while they do. */
   readonly beatTicks: readonly BeatTick[];
   readonly pictureLength: PictureLengthView;
+  /** Set instead of `pictureLength` while the slideshow has a mood (ADR-0045). */
+  readonly moodPictureLength: MoodPictureLengthView | undefined;
   readonly pictureChanges: PictureChangesView;
   readonly fadeIn: FadeView<FadeInReason>;
   readonly fadeOut: FadeView<FadeOutReason>;
@@ -89,55 +102,8 @@ export interface MusicEditorView {
 export interface SlideChange {
   /** Track time. */
   readonly atMs: number;
-  /** The pictures change on the beat, but this change falls between beats (an own duration). */
+  /** The pictures change on the beat, but no beat fits close enough to move this change onto. */
   readonly offBeat: boolean;
-}
-
-/** What is known of each song's beats; a song absent is still being listened for. */
-export type SongsBeatsStatus = ReadonlyMap<string, BeatsStatus>;
-
-/** What is known of each song's loudness; a song absent is still being listened for. */
-export type SongsLoudnessStatus = ReadonlyMap<string, LoudnessStatus>;
-
-const LISTENING: BeatsStatus = { kind: "listening" };
-const LISTENING_FOR_LOUDNESS: LoudnessStatus = { kind: "listening" };
-const NOTHING_LOUDNESS_KNOWN: SongsLoudnessStatus = new Map();
-
-/** What is known of the song's beats. */
-export function songBeatsStatus(beats: SongsBeatsStatus, songId: string): BeatsStatus {
-  return beats.get(songId) ?? LISTENING;
-}
-
-/** What is known of the song's loudness. */
-export function songLoudnessStatus(loudness: SongsLoudnessStatus, songId: string): LoudnessStatus {
-  return loudness.get(songId) ?? LISTENING_FOR_LOUDNESS;
-}
-
-/**
- * The slides' times over the whole playlist, with what is known of the songs' beats; one entry
- * per slide, a composed pair counting as one (ADR-0028), which is what the timeline's slide
- * changes are positioned on.
- */
-export interface SlideshowTimes {
-  /** In ms of the playlist; absent while no song gives beats to change on. */
-  readonly beatsMs: readonly number[] | undefined;
-  readonly durationsMs: readonly number[];
-  readonly slideshowMs: number;
-}
-
-export function slideshowTimes(stored: StoredSlideshow, beats: SongsBeatsStatus): SlideshowTimes {
-  const found = new Map(
-    stored.songs.map(({ id }) => [id, composedBeats(songBeatsStatus(beats, id))]),
-  );
-  const beatsMs = playlistBeatsMs(stored, found);
-  const units = slideUnits(stored.pictures, stored.portraitPictures);
-  const durationsMs = slideDurationsMs(
-    units.map((unit) => timedUnit(stored.pictures, unit)),
-    filledMusicMs(stored),
-    stored.secondsPerPicture,
-    beatsMs,
-  );
-  return { beatsMs, durationsMs, slideshowMs: sum(durationsMs) };
 }
 
 /**
@@ -148,14 +114,18 @@ export function musicEditorView(
   stored: StoredSlideshow,
   beats: SongsBeatsStatus,
   songId: string,
-  loudness: SongsLoudnessStatus = NOTHING_LOUDNESS_KNOWN,
+  loudness: SongsLoudnessStatus = NO_SONGS_LOUDNESS_KNOWN,
 ): MusicEditorView {
   const index = songIndex(stored, songId);
   const placed = placeSongs(stored);
   // songIndex only returns the index of a song the playlist has.
   const { song: music, atMs, fadeInMs, fadeOutMs } = placed[index] as PlacedSong;
   const { startMs, endMs } = musicExcerpt(music);
-  const { beatsMs, durationsMs, slideshowMs } = slideshowTimes(stored, beats);
+  const { beatsMs, durationsMs, slideshowMs, picturesFit } = slideshowTimes(
+    stored,
+    beats,
+    loudness,
+  );
   const status = songBeatsStatus(beats, songId);
   const pictureChanges = pictureChangesView(stored, music, status);
   const loudnessStatus = songLoudnessStatus(loudness, songId);
@@ -186,11 +156,17 @@ export function musicEditorView(
   };
   const heardEndMs = timing.endMs;
   const cutBySlideshow = heardEndMs < endMs;
-  const automaticFadeOutMs = cutBySlideshow ? AUTOMATIC_MUSIC_FADE_MS : fadeOutMs;
+  const automaticFadeOutMs = cutBySlideshow ? AUTOMATIC_MUSIC_FADE_OUT_MS : fadeOutMs;
   const playlistLengthMs = playlistMs(stored) ?? 0;
   const joinsPrevious = index > 0 && stored.betweenSongs !== SEQUENCE_BETWEEN_SONGS;
   const joinsNext =
     index < stored.songs.length - 1 && stored.betweenSongs !== SEQUENCE_BETWEEN_SONGS;
+  const moodBeatsPerMinute =
+    stored.mood === undefined ? undefined : moodTempo(stored, songBeats(beats));
+  const moodSecondsPerPicture =
+    stored.mood === undefined
+      ? undefined
+      : moodSettings(stored.mood, moodBeatsPerMinute).secondsPerPicture;
   return {
     songId,
     songNumber: index + 1,
@@ -211,6 +187,10 @@ export function musicEditorView(
       ownSeconds: stored.pictureLength !== undefined,
       secondsPerPicture: stored.secondsPerPicture,
     },
+    moodPictureLength:
+      stored.mood === undefined
+        ? undefined
+        : { mood: stored.mood, beatsPerMinute: moodBeatsPerMinute },
     pictureChanges,
     fadeIn: {
       ms: fadeInMs,
@@ -235,7 +215,14 @@ export function musicEditorView(
     volume,
     volumeListen,
     timing: { startMs, endMs: heardEndMs, fadeInMs: timing.fadeInMs, fadeOutMs: timing.fadeOutMs },
-    note: timingNote(stored, durationsMs, playlistLengthMs, beatsMs !== undefined),
+    note: timingNote(
+      stored,
+      durationsMs,
+      playlistLengthMs,
+      beatsMs !== undefined,
+      picturesFit,
+      moodSecondsPerPicture,
+    ),
   };
 }
 

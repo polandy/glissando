@@ -1,8 +1,11 @@
 <script lang="ts">
   import { orderWithGroupShifted } from "../../../library/group-order";
-  import Icon from "../../components/Icon.svelte";
+  import { browserScheduler, type Scheduler } from "../../../ui-kit/scheduler";
+  import type { IconName } from "../../../ui-kit/icons";
   import { keepToastsClear } from "../../components/toast-clearance";
   import { getTranslator } from "../../i18n/context";
+  import AddingBarActions from "./AddingBarActions.svelte";
+  import BarAction from "./BarAction.svelte";
   import { isContiguous, selectedInOrder, type StripSelection } from "./strip-selection";
 
   /**
@@ -16,9 +19,12 @@
     onShiftGroup,
     onRemoveGroup,
     onEdit,
+    onView,
     onDone,
     arranging = true,
     viewMode = false,
+    onInsertChapter,
+    holdScheduler = browserScheduler,
   }: {
     selection: StripSelection;
     /** The slideshow's current play order, for the group moves and the contiguous range. */
@@ -28,11 +34,20 @@
     onRemoveGroup: (pictureIds: readonly string[]) => void;
     /** Opens the picture editor, or the viewer while `viewMode`; one picture selected, only. */
     onEdit: (pictureId: string) => void;
+    /** Opens the picture full screen beside Edit (PICTURE_VIEWER.md); undefined while `viewMode`. */
+    onView?: (pictureId: string) => void;
     onDone: () => void;
     /** False hides Earlier/Later (IMPORT_ARRANGING.md, Add media): no moving while adding. */
     arranging?: boolean;
-    /** True shows View (full-screen) instead of Edit: no picture editor while importing. */
+    /**
+     * The adding bar (IMPORT_ARRANGING.md): View (full-screen) instead of Edit, as words, for no
+     * picture editor while importing. Otherwise every action is an icon with a label bubble.
+     */
     viewMode?: boolean;
+    /** Inserts a trip chapter before the selected picture (TRIP_CHAPTERS.md); omitted while importing. */
+    onInsertChapter?: (pictureId: string) => void;
+    /** Times the press and hold that shows an icon's bubble on a touch screen. */
+    holdScheduler?: Scheduler;
   } = $props();
 
   const { t } = getTranslator();
@@ -56,6 +71,14 @@
   const laterDisabled = $derived(
     count === 0 || orderWithGroupShifted(order, selection.ids, 1) === order,
   );
+  // Select mode with nothing picked yet: Remove names no count.
+  const removeLabel = $derived(
+    !selection.several
+      ? t("slideshow.removePictures", { count: 1 })
+      : count === 0
+        ? t("slideshow.removeNoPictures")
+        : t("slideshow.removePictures", { count }),
+  );
   // Selecting several: disabled-looking with nothing selected. A single selection instead looks
   // disabled for the last picture, which stays; Remove still answers that, with its own toast.
   const removeDisabledLook = $derived(selection.several ? count === 0 : order.length < 2);
@@ -78,18 +101,34 @@
     }
   }
 
+  function view(): void {
+    if (soleId !== null && onView !== undefined) {
+      onView(soleId);
+    }
+  }
+
   function remove(): void {
     if (count > 0) {
       onRemoveGroup(selectedIds);
     }
   }
+
+  function insertChapter(): void {
+    if (soleId !== null) {
+      onInsertChapter?.(soleId);
+    }
+  }
 </script>
+
+{#snippet action(icon: IconName, label: string, onclick: () => void, disabledLook = false)}
+  <BarAction {icon} {label} {disabledLook} {holdScheduler} {onclick} />
+{/snippet}
 
 <div class="dock" use:keepToastsClear>
   <div class="bar" role="toolbar" aria-label={t("slideshow.selection")}>
     <!-- Announced on every move; on a narrow screen hidden from sight, not from screen readers. -->
     {#if selection.several}
-      <span class="count mono several" aria-live="polite">
+      <span class="count several" aria-live="polite">
         <b class="mono">{count}</b><span class="word"
           >{range === null
             ? t("slideshow.selectedCount", { count })
@@ -102,30 +141,47 @@
         >
       </span>
     {:else}
-      <span class="count mono" aria-live="polite">
+      <span class="count" aria-live="polite">
         {t("slideshow.selectionCount", { number: soleIndex + 1, total: order.length })}
       </span>
     {/if}
     <span class="separator" aria-hidden="true"></span>
-    {#if arranging}
-      <!-- At the ends Earlier and Later look off but keep their place in the tab order. -->
-      <button class="btn" type="button" aria-disabled={earlierDisabled} onclick={earlier}>
-        <Icon name="chevronLeft" /><span class="move-word">{t("slideshow.earlier")}</span>
-      </button>
-      <button class="btn" type="button" aria-disabled={laterDisabled} onclick={later}>
-        <span class="move-word">{t("slideshow.later")}</span><Icon name="chevronRight" />
-      </button>
+    {#if viewMode}
+      <AddingBarActions
+        {arranging}
+        single={!selection.several || count === 1}
+        {earlierDisabled}
+        {laterDisabled}
+        {removeDisabledLook}
+        {holdScheduler}
+        onEarlier={earlier}
+        onLater={later}
+        onView={edit}
+        onRemove={remove}
+      />
+    {:else}
+      {#if arranging}
+        {@render action("chevronLeft", t("slideshow.earlier"), earlier, earlierDisabled)}
+        {@render action("chevronRight", t("slideshow.later"), later, laterDisabled)}
+      {/if}
+      {#if !selection.several || count === 1}
+        {#if onView !== undefined}
+          {@render action("eye", t("slideshow.viewFullScreen"), view)}
+        {/if}
+        {@render action("pencil", t("slideshow.editPicture"), edit)}
+        {#if onInsertChapter !== undefined}
+          {@render action("chapter", t("chapters.insertChapterBefore"), insertChapter)}
+        {/if}
+      {/if}
+      <BarAction
+        icon="trash"
+        label={removeLabel}
+        danger
+        disabledLook={removeDisabledLook}
+        {holdScheduler}
+        onclick={remove}
+      />
     {/if}
-    {#if !selection.several || count === 1}
-      <button class="btn" type="button" onclick={edit}>
-        <Icon name={viewMode ? "eye" : "pencil"} />
-        <span>{t(viewMode ? "slideshow.view" : "slideshow.edit")}</span>
-      </button>
-    {/if}
-    <!-- The last picture stays: Remove looks off but still answers, saying why. -->
-    <button class="btn remove" type="button" aria-disabled={removeDisabledLook} onclick={remove}>
-      <Icon name="trash" /><span>{t("slideshow.remove")}</span>
-    </button>
     <button class="btn done" type="button" onclick={onDone}>{t("slideshow.done")}</button>
   </div>
 </div>
@@ -155,31 +211,15 @@
     color: var(--gl-inverse-text);
     box-shadow: var(--gl-shadow);
   }
-  .bar .btn {
+  .done {
     height: 40px;
     padding: 0 12px;
     border-color: transparent;
-    background: transparent;
-    color: inherit;
-  }
-  .bar .remove :global(svg) {
-    color: var(--gl-inverse-danger);
-  }
-  .bar .done {
     background: var(--gl-accent);
     color: var(--gl-accent-ink);
   }
-  .bar .done:hover {
+  .done:hover {
     background: var(--gl-accent-hover);
-  }
-  /* A touch screen keeps the last tapped button "hovered": highlight for a mouse only. */
-  @media (hover: hover) {
-    .bar .btn:hover:not(:disabled, [aria-disabled="true"], .done) {
-      background: var(--gl-inverse-hover);
-    }
-    .bar .remove:hover:not([aria-disabled="true"]) {
-      background: color-mix(in srgb, var(--gl-inverse-danger) 30%, var(--gl-inverse-bg));
-    }
   }
   .count {
     padding: 0 8px 0 6px;
@@ -220,17 +260,16 @@
     .bar {
       justify-content: space-between;
     }
-    .bar .btn {
-      gap: 5px;
-      padding: 0 9px;
-      font-size: var(--gl-size-label);
+    .bar {
+      gap: 2px;
+      padding: 4px;
     }
-    /*
-     * A single selection's count is for assistive technology only; several's stays visible. Earlier
-     * and Later show their arrows alone, so all five buttons fit a phone's width with German labels.
-     */
-    .count:not(.several),
-    .move-word {
+    .done {
+      padding: 0 6px;
+      font-size: var(--gl-size-caption);
+    }
+    /* A single selection's count is for assistive technology only; several's stays visible. */
+    .count:not(.several) {
       position: absolute;
       width: 1px;
       height: 1px;

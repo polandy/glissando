@@ -1,6 +1,7 @@
 # ADR-0022: With music the pictures keep their own length, on the beat, unless they fill the music
 
-**Status:** accepted
+**Status:** accepted; for a music shorter than the slideshow, amended by ADR-0047; for a new
+slideshow's picture length, by ADR-0050
 
 ## Context
 
@@ -21,14 +22,14 @@ Three questions need an answer: where the choice is stored, what existing slides
 - **New slideshows last their seconds**: the import writes `"seconds"` unless the user picks
   "Fill the music" in the music step. Records and files without the field — every slideshow made
   before — fill the music, so nothing changes under them and nothing is migrated.
-- **About N s, on the beat**: each automatic boundary aims where it would fall without beats and
-  moves to the nearest beat that leaves both neighbours at least the minimum (`snapToBeats`, as
-  for filling), so the shifts never add up. The last automatic slide's end moves too, to the
-  nearest beat within its slack above the minimum, and the own durations after it follow; so
-  the slideshow ends on a beat, about as long as its pictures. Without a beat, or with picture
-  changes "Evenly", every picture stays exactly N s.
+- **About N s, on the beat**: each boundary aims where it would fall without beats and moves to
+  the nearest beat that leaves both neighbours at least the minimum (`snapToBeats`, as for
+  filling), an own duration only within its own slack above the minimum; so the shifts never add
+  up. The last slide's end moves too, the same bounded way; so the slideshow ends on a beat, about
+  as long as its pictures. Without a beat, or with picture changes "Evenly", every picture stays
+  exactly N s.
 - **The music follows the slideshow** (ADR-0009, unchanged): a longer song is heard until the
-  slideshow ends and fades out there (automatically 2 s); a shorter one leaves the last pictures
+  slideshow ends and fades out there (automatically 5 s); a shorter one leaves the last pictures
   in silence.
 - `.glissando` goes to version 9, which carries `pictureLength`; the server document carries it
   under the same rules.

@@ -88,6 +88,7 @@ function wholePicture(picture: BitmapPicture, caption?: string): RenderFrame<Bit
         ? { kind: "picture", picture, motion, fit }
         : { kind: "picture", picture, motion, caption, fit },
     endFade: 0,
+    look: "none",
   };
 }
 
@@ -164,6 +165,7 @@ describe("WebGlRenderer.prepare", () => {
       kind: "slide",
       slide: groundLayer(cardVisual(card, { textOpacity: 1, slideTimeMs: 500 })),
       endFade: 0,
+      look: "none",
     };
 
     drawAndRead(frame, 0.5);

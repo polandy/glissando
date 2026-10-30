@@ -101,15 +101,6 @@ export function pick(
   };
 }
 
-/**
- * A tile held on touch until it lifts (450 ms): enters several. Outside several
- * the selection becomes just `id`; inside, `id` is added if missing, never toggled off.
- */
-export function hold(selection: StripSelection, id: string): StripSelection {
-  const ids = selection.several ? new Set(selection.ids).add(id) : new Set([id]);
-  return { ids, several: true, startedBySelect: selection.startedBySelect, anchor: id };
-}
-
 /** The "Select" toggle: enters several, keeping a single prior selection in it. */
 export function startSelecting(selection: StripSelection): StripSelection {
   return {

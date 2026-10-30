@@ -30,6 +30,7 @@ export async function folderShow(
   manifest: GlissandoManifest,
   folder: FolderSource,
   createUrl: (song: Blob) => string,
+  language: string,
 ): Promise<FolderShow> {
   const { slideshow } = manifest;
   const stored: StoredSlideshow = {
@@ -52,6 +53,7 @@ export async function folderShow(
     NO_FOCUS,
     NO_SONG_BEATS,
     NO_SONG_LOUDNESS,
+    language,
   );
   const played = [...new Set(byPath.music?.map(({ src }) => src))];
   const songs = new Map(
@@ -69,6 +71,9 @@ export async function folderShow(
       pictureCount: slideshow.pictures.length,
       durationMs: composed.slides.reduce((sum, { durationMs }) => sum + durationMs, 0),
       withMusic: composed.music !== undefined,
+      withSampleMusic: stored.songs.some(
+        (song) => song.sampleTrack !== undefined && songs.has(song.id),
+      ),
     },
   };
 }

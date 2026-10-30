@@ -1,5 +1,5 @@
 import { slideshowDurationMs } from "../../compose";
-import type { LibraryStore } from "../../library/stored-slideshow";
+import type { LibraryStore } from "../../library/library-store";
 import { MILLISECONDS_PER_SECOND } from "../../player";
 import { HttpTvClient } from "../../server-library/http-tv-client";
 import type { Scheduler } from "../../ui-kit/scheduler";

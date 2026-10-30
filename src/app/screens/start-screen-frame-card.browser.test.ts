@@ -14,6 +14,7 @@ function mountStart({ serverOn, frameCardShown }: { serverOn: boolean; frameCard
     {
       slideshows: [],
       focusSearches: new Map(),
+      serverFocusSearches: new Map(),
       onCreate: () => {},
       onOpen: () => {},
       onSettings: () => {},

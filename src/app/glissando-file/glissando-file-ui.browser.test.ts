@@ -68,68 +68,22 @@ describe("BlockingOverlay", () => {
 });
 
 describe("MoreMenu", () => {
-  function openMenu(exportState: Parameters<typeof mountMenu>[0]) {
-    const calls: string[] = [];
-    const mounted = mountMenu(exportState, calls);
+  it("holds no export, which the Share sheet owns, and ends on deleting", () => {
+    const mounted = mountWithTranslator(MoreMenu, {
+      onDelete: () => {},
+      pictureCount: 3,
+      onStorageAction: () => {},
+      focusFailed: 0,
+      onFocus: () => {},
+    });
     destroy = mounted.destroy;
     mounted.target.querySelector<HTMLButtonElement>('button[aria-label="Mehr"]')?.click();
     flushSync();
-    return { target: mounted.target, calls };
-  }
 
-  function mountMenu(
-    exportState:
-      | { kind: "idle"; sizeBytes: number | null }
-      | { kind: "this"; fraction: number }
-      | { kind: "other" },
-    calls: string[],
-  ) {
-    return mountWithTranslator(MoreMenu, {
-      exportState,
-      onExport: () => calls.push("export"),
-      onSaveVideo: () => calls.push("video"),
-      onSaveWebPage: () => calls.push("webPage"),
-      onOpened: () => calls.push("opened"),
-      onDelete: () => calls.push("delete"),
-      pictureCount: 3,
-      onStorageAction: () => calls.push("storage"),
-    });
-  }
-
-  it("offers every export, with the file's size, above deleting", () => {
-    const { target, calls } = openMenu({ kind: "idle", sizeBytes: 184_000_000 });
-
-    const items = [...target.querySelectorAll('[role="menuitem"]')];
-    expect(items.map((item) => item.textContent?.trim())).toEqual([
-      "Als Video sichern",
-      "Als Webseite sichern",
-      "Als Glissando-Datei sichern Eine .glissando-Datei, ca. 184 MB",
-      "Diashow löschen …",
-    ]);
-    expect(target.querySelector('[role="menu"] hr')).not.toBeNull();
-    byText(target, "Als Video sichern").click();
-    byText(target, "Als Webseite sichern").click();
-    byText(target, "Als Glissando-Datei sichern").click();
-    expect(calls).toEqual(["opened", "video", "webPage", "export"]);
-  });
-
-  it("while this slideshow exports, shows the percentage and does nothing on a click", () => {
-    const { target, calls } = openMenu({ kind: "this", fraction: 0.34 });
-
-    const item = byText(target, "Wird exportiert");
-    item.click();
-
-    expect(item.getAttribute("aria-disabled")).toBe("true");
-    expect(item.textContent).toContain("Wird exportiert … 34 %");
-    expect(calls).toEqual(["opened"]);
-  });
-
-  it("while another slideshow exports, says Export waits for it", () => {
-    const { target } = openMenu({ kind: "other" });
-
-    const item = byText(target, "Als Glissando-Datei sichern");
-    expect(item.getAttribute("aria-disabled")).toBe("true");
-    expect(item.textContent).toContain("Erst wenn der laufende Export fertig ist");
+    const items = [...mounted.target.querySelectorAll('[role="menuitem"]')].map((item) =>
+      item.textContent?.trim(),
+    );
+    expect(items).toEqual(["Gesichter und Motive\u00a0…", "Diashow löschen\u00a0…"]);
   });
 });
 

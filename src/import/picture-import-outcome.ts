@@ -1,7 +1,11 @@
+import { FOCUS_DETECTOR_VERSION } from "../focus/focus-detector-version";
 import { isSamePicture, type PictureIdentity } from "../library/picture-identity";
 import { pictureColours, type RgbPixel } from "../library/picture-colours";
 import { MAX_VIDEO_EXCERPT_MS, type StoredVideo } from "../library/own-video";
-import type { LibraryStore, StoredPicture } from "../library/stored-slideshow";
+import type { LibraryStore } from "../library/library-store";
+import type { StoredPicture } from "../library/stored-slideshow";
+import type { Place } from "../places/nearest-place";
+import type { ExifGps } from "./exif-gps";
 import type { DuplicateReason, SkipReason } from "./picture-import-types";
 import {
   PictureNotDownloadedError,
@@ -21,6 +25,11 @@ export interface OutcomePorts {
   newId(): string;
   /** Told why a picture was skipped as unreadable or undecodable; absent: no one is told. */
   log?(error: unknown): void;
+  /**
+   * The nearest bundled place to a picture's GPS, or null beyond its reach (ADR-0043); absent, or
+   * the picture has no GPS: it is stored with no place. Never rejects.
+   */
+  resolvePlace?(gps: ExifGps): Promise<Place | null>;
 }
 
 export interface Queued {
@@ -89,7 +98,7 @@ export async function importOne(
       thumbnail: decoded.thumbnail,
     });
     if (focus !== null) {
-      await ports.store.putPictureFocus(id, focus);
+      await ports.store.putPictureFocus(id, { focus, detector: FOCUS_DETECTOR_VERSION });
     }
   } catch (error) {
     if (error instanceof DOMException && error.name === QUOTA_EXCEEDED) {
@@ -104,6 +113,7 @@ export async function importOne(
     ...(fileBytes === undefined ? {} : { fileBytes }),
   };
   const colours = pictureColours(await ports.pixels(decoded.display));
+  const place = read.gps === undefined ? null : ((await ports.resolvePlace?.(read.gps)) ?? null);
   return {
     kind: "stored",
     picture: {
@@ -115,6 +125,7 @@ export async function importOne(
       colours,
       ...origin,
       ...(storedVideo === undefined ? {} : { video: storedVideo }),
+      ...(place === null ? {} : { place }),
     },
     thumbnail: decoded.thumbnail,
   };

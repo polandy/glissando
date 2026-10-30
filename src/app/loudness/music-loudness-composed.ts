@@ -1,5 +1,6 @@
 import type { SongLoudness } from "../../compose";
-import type { LibraryStore, StoredSlideshow } from "../../library/stored-slideshow";
+import type { LibraryStore } from "../../library/library-store";
+import type { StoredSlideshow } from "../../library/stored-slideshow";
 import type { MusicLoudness } from "../../loudness";
 
 /**

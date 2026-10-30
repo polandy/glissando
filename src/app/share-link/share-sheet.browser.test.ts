@@ -2,13 +2,17 @@ import { flushSync, tick } from "svelte";
 import { afterEach, describe, expect, it } from "vitest";
 import type { ShareLink } from "../../server-library/server-library-client";
 import { FakeScheduler } from "../../ui-kit/testing/fake-scheduler";
+import { details } from "../screens/slideshow-screen-harness";
+import ShareFlowHost from "../screens/slideshow/share/testing/ShareFlowHost.svelte";
 import { mountWithTranslator } from "../testing/mount-with-translator";
 import { COPIED_FEEDBACK_MS, ShareLinkSession } from "./share-link-session";
-import ShareLinkControl from "./ShareLinkControl.svelte";
 import { FakeShareLinkApi } from "./testing/fake-share-link-api";
 
 const LINK: ShareLink = { token: "q7Rk2vN8xT4mWp1Lc9Hb3A", createdAt: "2026-10-11T09:30:00.000Z" };
-const SUBJECT = { title: "Sommer 2025", pictureCount: 50, durationSeconds: 250, hasMusic: true };
+const SLIDESHOW = details(
+  Array.from({ length: 50 }, (_, index) => `p${index}`),
+  { title: "Sommer 2025", durationSeconds: 250, songCount: 1 },
+);
 
 let destroy: (() => void) | null = null;
 afterEach(() => {
@@ -21,7 +25,6 @@ async function mountControl({
   origin = "https://photos.example.org",
   withShareSheet = true,
   withClipboard = true,
-  device = false,
 } = {}) {
   const api = new FakeShareLinkApi("show", shared);
   const scheduler = new FakeScheduler();
@@ -38,13 +41,25 @@ async function mountControl({
       throw error;
     },
   });
-  const mounted = mountWithTranslator(ShareLinkControl, {
-    session: device ? null : session,
-    subject: SUBJECT,
+  const mounted = mountWithTranslator(ShareFlowHost, {
+    slideshow: SLIDESHOW,
+    storage: { kind: "server", saving: false, missingCount: 0 },
+    linkSession: session,
+    exportState: { kind: "idle", sizeBytes: null },
+    onExport: () => Promise.resolve("saved" as const),
+    onOpened: () => {},
+    newVideoExport: () => {
+      throw new Error("not used");
+    },
+    newHtmlExport: () => {
+      throw new Error("not used");
+    },
+    onClosed: () => {},
   });
   destroy = mounted.destroy;
-  await settle();
   const { target } = mounted;
+  target.querySelector<HTMLButtonElement>(".share-button")?.click();
+  await settle();
 
   async function settle(): Promise<void> {
     await api.settled();
@@ -62,7 +77,7 @@ async function mountControl({
     button(text).click();
     await settle();
   };
-  const row = () => target.querySelector<HTMLElement>(".share-row");
+  const row = () => dialog()?.querySelector<HTMLElement>(".group .option") ?? null;
   const openSheet = async () => {
     row()?.click();
     await settle();
@@ -70,7 +85,7 @@ async function mountControl({
   return { target, api, session, scheduler, toasts, dialog, button, click, row, openSheet };
 }
 
-describe("The share row and sheet (share_link/IN_THE_APP.md)", () => {
+describe("The link row and sheet (share_link/IN_THE_APP.md)", () => {
   it("offers a server slideshow that is not shared to be shared", async () => {
     const { row } = await mountControl();
 
@@ -83,23 +98,14 @@ describe("The share row and sheet (share_link/IN_THE_APP.md)", () => {
     const { row } = await mountControl({ shared: LINK });
 
     expect(row()?.textContent).toContain("Per Link geteilt");
-    expect(row()?.querySelector(".url")?.textContent).toBe(
+    expect(row()?.querySelector("small")?.textContent).toBe(
       "photos.example.org/s/q7Rk2vN8xT4mWp1Lc9Hb3A",
     );
     expect(row()?.querySelector(".on-pill")?.textContent).toBe("An");
   });
 
-  it("dims a device slideshow's row, not a button, saying how to share it", async () => {
-    const { row } = await mountControl({ device: true });
-
-    expect(row()?.textContent).toContain(
-      "Speichere sie auf deinem Glissando-Server, um sie per Link zu teilen.",
-    );
-    expect(row()?.tagName).toBe("DIV");
-  });
-
   it("explains the link before making it, then shows it once made", async () => {
-    const { dialog, click, openSheet, api, row } = await mountControl();
+    const { dialog, click, openSheet, api } = await mountControl();
 
     await openSheet();
     expect(dialog()?.querySelector("h2")?.textContent).toBe("Per Link teilen");
@@ -111,6 +117,18 @@ describe("The share row and sheet (share_link/IN_THE_APP.md)", () => {
       `https://photos.example.org/s/${api.shared?.token ?? ""}`,
     );
     expect(dialog()?.textContent).toContain("Erstellt am");
+  });
+
+  it("returns to the chooser with Zurück, which then shows the link as shared", async () => {
+    const { dialog, click, openSheet, row } = await mountControl();
+    await openSheet();
+    await click("Link erstellen");
+
+    dialog()?.querySelector<HTMLButtonElement>('button[aria-label="Zurück"]')?.click();
+    await tick();
+    flushSync();
+
+    expect(dialog()?.querySelector("h2")?.textContent).toBe("Teilen");
     expect(row()?.textContent).toContain("Per Link geteilt");
   });
 
@@ -184,7 +202,7 @@ describe("The share row and sheet (share_link/IN_THE_APP.md)", () => {
     },
   );
 
-  it("asks before turning off, then closes with the toast and focus back on the row", async () => {
+  it("asks before turning off, then returns to the chooser with the toast", async () => {
     const { openSheet, click, dialog, toasts, row, api } = await mountControl({ shared: LINK });
     await openSheet();
 
@@ -196,9 +214,7 @@ describe("The share row and sheet (share_link/IN_THE_APP.md)", () => {
     expect(toasts).toEqual(["Link ausgeschaltet"]);
     expect(api.shared).toBeNull();
     expect(row()?.textContent).toContain("Link teilen");
-    expect(dialog()).toBeNull();
-    await tick();
-    expect(document.activeElement).toBe(row());
+    expect(dialog()?.querySelector("h2")?.textContent).toBe("Teilen");
   });
 
   it.each([

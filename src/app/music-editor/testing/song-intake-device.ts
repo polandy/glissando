@@ -1,4 +1,4 @@
-import type { LibraryStore } from "../../../library/stored-slideshow";
+import type { LibraryStore } from "../../../library/library-store";
 import { deviceSongStorage, type SongIntakeDevice } from "../song-intake";
 
 /** Every picked song this long. */

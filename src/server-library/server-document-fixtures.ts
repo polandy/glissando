@@ -1,4 +1,4 @@
-import type { StoredPicture, StoredSlideshow } from "../library/stored-slideshow";
+import type { StoredMusic, StoredPicture, StoredSlideshow } from "../library/stored-slideshow";
 import { DocumentFormatError } from "../glissando-file/document-values";
 import { readServerDocument, serverDocumentFor, type ServerDocument } from "./server-document";
 
@@ -53,6 +53,7 @@ export const slideshow: StoredSlideshow = {
 };
 
 export const [firstStoredPicture] = slideshow.pictures as [StoredPicture, ...StoredPicture[]];
+export const [firstStoredSong] = slideshow.songs as [StoredMusic, ...StoredMusic[]];
 
 /** A copy of `value` without `key`. */
 export function without(value: object, key: string): Record<string, unknown> {

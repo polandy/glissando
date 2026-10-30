@@ -62,11 +62,9 @@ export interface TileDragPorts {
   readonly hitTest: (x: number, y: number) => DropTarget | null;
   /** The scrollable viewport's edges, read fresh on every move (the page can scroll or resize). */
   readonly viewportEdges: () => { readonly top: number; readonly bottom: number };
-  /** The current selection and play order, read when a drag starts or a touch hold fires. */
+  /** The current selection and play order, read when a drag starts. */
   readonly selection: () => ReadonlySet<string>;
   readonly order: () => readonly string[];
-  /** A touch hold fired: the strip selects the held tile before dragging it can start. */
-  readonly onHold: (pictureId: string) => void;
   /** The state changed from a scheduled callback (a hold fired, an auto-scroll frame). */
   readonly onChange: () => void;
   /** Scrolls the page by this many px (auto-scroll near an edge); positive is down. */

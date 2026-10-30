@@ -2,8 +2,11 @@ import { SEQUENCE_BETWEEN_SONGS } from "../library/own-music";
 import { SLIDESHOW_TRANSITIONS } from "../library/own-timing";
 import { OWN_SECONDS_PICTURE_LENGTH } from "../library/picture-length";
 import { PORTRAIT_PICTURES_CHOICES } from "../library/portrait-pictures";
+import { SLIDESHOW_MOODS } from "../library/slideshow-mood";
 import { MAX_SECONDS_PER_PICTURE, MIN_SECONDS_PER_PICTURE } from "../library/stored-slideshow";
+import { GRADED_SLIDESHOW_LOOKS } from "../player/looks/slideshow-look";
 import { CARD_SCHEMA } from "./manifest-schema-card";
+import { ADDED_CHAPTER_SCHEMA, CHAPTER_EDIT_SCHEMA } from "./manifest-schema-chapters";
 import { GLISSANDO_FORMAT_ID, GLISSANDO_FORMAT_VERSION } from "./glissando-manifest";
 import { MUSIC_SCHEMA } from "./manifest-schema-music";
 import { PICTURE_SCHEMA } from "./manifest-schema-picture";
@@ -30,8 +33,14 @@ const SLIDESHOW_SCHEMA: JsonSchema = {
     transition: { enum: SLIDESHOW_TRANSITIONS },
     pictureLength: { const: OWN_SECONDS_PICTURE_LENGTH },
     portraitPictures: { enum: PORTRAIT_PICTURES_CHOICES },
+    look: { enum: GRADED_SLIDESHOW_LOOKS },
+    mood: { enum: SLIDESHOW_MOODS },
+    energyPacing: { const: true },
     openingCard: CARD_SCHEMA,
     closingCard: CARD_SCHEMA,
+    automaticChaptersOff: { const: true },
+    chapterEdits: { type: "array", items: CHAPTER_EDIT_SCHEMA },
+    addedChapters: { type: "array", items: ADDED_CHAPTER_SCHEMA },
   },
   required: ["title", "createdAt", "secondsPerPicture", "pictures", "songs"],
   additionalProperties: false,
@@ -46,6 +55,8 @@ const READER_ONLY_RULES = [
   "a caption or card text is at most 80 user-perceived characters",
   "a song's trim lies within its durationMs",
   "a video excerpt lies within its sourceMs and lasts at least the shortest excerpt",
+  "a chapter edit's or added chapter's picture index is below the number of pictures, naming each picture at most once",
+  "a chapter's title or subtitle, when given, is non-empty and at most 80 user-perceived characters",
 ];
 
 /**

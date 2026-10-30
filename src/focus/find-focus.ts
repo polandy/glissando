@@ -30,7 +30,7 @@ export function findFocus(image: GreyImage, cascade: Cascade): PictureFocus {
   );
   if (strongest === undefined) return { kind: "none" };
   const others = faces.filter((face) => face !== strongest).map((face) => boxOf(face, image));
-  return { kind: "subject", box: groupFocusBox(boxOf(strongest, image), others) };
+  return { kind: "subject", box: groupFocusBox(boxOf(strongest, image), others), foundBy: "face" };
 }
 
 function weight(face: Detection): number {

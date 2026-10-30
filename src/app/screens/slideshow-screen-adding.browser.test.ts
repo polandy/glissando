@@ -12,17 +12,15 @@ describe("SlideshowScreen, adding pictures", () => {
     expect(calls.adds).toBe(1);
   });
 
-  it("follows the last picture with a placeholder that adds pictures right there", () => {
+  it("has no Add tile in the strip; the head's Add is the one way in", () => {
     const { calls, target } = mountScreen(details(["a", "b"]));
 
+    const head = target.querySelector(".strip-head");
+    expect(head?.querySelector('button[aria-label="Medien hinzufügen"]')).not.toBeNull();
     const tiles = [...target.querySelectorAll(".strip > li")];
-    const placeholder = tiles.at(-2)?.querySelector("button");
-    expect(tiles.at(-3)?.querySelector(".pick")).not.toBeNull();
-    expect(placeholder?.textContent).toContain("Hinzufügen");
-    expect(tiles.at(-2)?.querySelector(".pick")).toBeNull();
-    placeholder?.click();
-
-    expect(calls.adds).toBe(1);
+    expect(tiles.filter((tile) => tile.querySelector(".pick") !== null)).toHaveLength(2);
+    expect(tiles.some((tile) => tile.textContent?.includes("Hinzufügen"))).toBe(false);
+    expect(calls.adds).toBe(0);
   });
 
   it("marks the pictures just added as new, for the eye and in their description", () => {

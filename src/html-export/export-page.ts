@@ -1,11 +1,7 @@
 import { composeSlideshow, type SongBeats, type SongLoudness } from "../compose";
 import type { PictureFocus } from "../library/picture-focus";
-import type {
-  LibraryStore,
-  StoredMusic,
-  StoredPicture,
-  StoredSlideshow,
-} from "../library/stored-slideshow";
+import type { LibraryStore } from "../library/library-store";
+import type { StoredMusic, StoredPicture, StoredSlideshow } from "../library/stored-slideshow";
 import { cardFontFilesUsedBy, isGroundSlide, type Slideshow } from "../player";
 import { encodeBase64 } from "./base64";
 import { cardFontFaceRules, MEDIA_BLOCK_END, mediaBlockStart, pageHead, pageTail } from "./page";
@@ -101,6 +97,7 @@ async function writePage(job: PageExportJob): Promise<PageExportResult> {
     job.focus,
     job.beats,
     job.loudness,
+    job.lang,
   );
   const songs = playedSongs(stored, composed);
   const clips = playedClips(composed);
@@ -130,7 +127,7 @@ async function writePage(job: PageExportJob): Promise<PageExportResult> {
       lang: job.lang,
       title: stored.title,
       noscript: job.noscript,
-      copy: job.copy,
+      copy: copyWithSampleCredit(job.copy, songs),
       slideshow,
       style: bundle.style,
       captionFontDataUrl: bundle.captionFontDataUrl,
@@ -165,6 +162,12 @@ async function writePage(job: PageExportJob): Promise<PageExportResult> {
 function playedSongs(stored: StoredSlideshow, slideshow: Slideshow): readonly StoredMusic[] {
   const played = new Set(slideshow.music?.map((track) => track.src));
   return stored.songs.filter((song) => played.has(song.id));
+}
+
+/** `copy` with its sample-music credit blanked unless one of `songs` is a sample track. */
+function copyWithSampleCredit(copy: PageCopy, songs: readonly StoredMusic[]): PageCopy {
+  const hasSampleTrack = songs.some((song) => song.sampleTrack !== undefined);
+  return hasSampleTrack ? copy : { ...copy, sampleMusicCredit: "" };
 }
 
 /** Points every track at its song's block. */

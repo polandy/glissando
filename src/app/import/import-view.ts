@@ -1,6 +1,6 @@
 import type { VideoRefusal } from "../../import/video-refusal";
 import type { ConvertibleSource } from "../../import/music-format";
-import { musicExcerptMs, placeSongs, playlistMs, slideDurationsMs } from "../../compose";
+import { musicExcerptMs, placeSongs, playlistMs } from "../../compose";
 import type {
   ImportPick,
   PictureImportState,
@@ -9,7 +9,6 @@ import type {
 } from "../../import/picture-import";
 import { MAX_VIDEO_EXCERPT_MS } from "../../library/own-video";
 import type { StoredPicture } from "../../library/stored-slideshow";
-import { MILLISECONDS_PER_SECOND } from "../../player";
 import type { PlaylistSongView } from "../music-editor/playlist-view";
 import type { Translator } from "../i18n/translator";
 import type { ChosenSong } from "./import-session";
@@ -143,75 +142,6 @@ export function captureRange(
     : { from: first.capturedAt, to: last.capturedAt };
 }
 
-/** The chosen music of a slideshow about to be created, and whether its pictures fill it. */
-export interface ImportMusic {
-  readonly durationMs: number;
-  readonly filled: boolean;
-}
-
-/** How the music meets the slideshow: it ends with it, fades out at its end, or ends first. */
-export type ImportMusicFit = "ends-with" | "fades-out" | "silent-after";
-
-export interface ImportTiming {
-  readonly perPictureSeconds: number;
-  readonly totalSeconds: number;
-  /** The music's length and how it meets the slideshow; null without music. */
-  readonly music: { readonly kind: ImportMusicFit; readonly seconds: number } | null;
-}
-
-/** A video lasts its excerpt; a photo has no own duration yet (`undefined`). */
-export function ownDurationsMs(
-  pictures: readonly Pick<StoredPicture, "video">[],
-): (number | undefined)[] {
-  return pictures.map(({ video }) =>
-    video === undefined ? undefined : video.endMs - video.startMs,
-  );
-}
-
-/**
- * The slide durations of a slideshow about to be created, from each picture's own duration; the
- * music's beats are not known yet.
- */
-export function importSlideDurationsMs(
-  ownMs: readonly (number | undefined)[],
-  music: ImportMusic | undefined,
-  secondsPerPicture: number,
-): number[] {
-  const pictures = ownMs.map((durationMs) => (durationMs === undefined ? {} : { durationMs }));
-  const filledMs = music?.filled === true ? music.durationMs : undefined;
-  return slideDurationsMs(pictures, filledMs, secondsPerPicture);
-}
-
-/** Step 2's timing row, by the same rule the slideshow is composed with. */
-export function importTiming(
-  ownMs: readonly (number | undefined)[],
-  music: ImportMusic | undefined,
-  secondsPerPicture: number,
-): ImportTiming {
-  const totalMs = importSlideDurationsMs(ownMs, music, secondsPerPicture).reduce(
-    (sum, durationMs) => sum + durationMs,
-    0,
-  );
-  return {
-    perPictureSeconds: totalMs / ownMs.length / MILLISECONDS_PER_SECOND,
-    totalSeconds: totalMs / MILLISECONDS_PER_SECOND,
-    music:
-      music === undefined
-        ? null
-        : {
-            kind: musicFit(totalMs, music.durationMs),
-            seconds: music.durationMs / MILLISECONDS_PER_SECOND,
-          },
-  };
-}
-
-function musicFit(slideshowMs: number, musicMs: number): ImportMusicFit {
-  if (slideshowMs > musicMs) {
-    return "silent-after";
-  }
-  return slideshowMs < musicMs ? "fades-out" : "ends-with";
-}
-
 /** Step 2's songs as the slideshow will play them; a song's id is its key. */
 export interface ImportPlaylist {
   readonly songs: readonly PlaylistSongView[];
@@ -233,17 +163,24 @@ export function importPlaylist(songs: readonly ChosenSong[], slideshowMs: number
     })),
   };
   return {
-    songs: placeSongs(playlist).map(({ song, atMs }, index) => ({
-      id: song.id,
-      number: index + 1,
-      fileName: song.fileName,
-      durationMs: song.durationMs,
-      excerptMs: musicExcerptMs(song),
-      trimmed: false,
-      atMs,
-      reached: atMs < slideshowMs,
-      volumeBadge: { kind: "none" },
-    })),
+    // `placeSongs` keeps the input order, one placed song per song: `index` is also `songs`'s.
+    songs: placeSongs(playlist).map(({ song, atMs }, index) => {
+      const trackId = songs[index]?.sample?.trackId;
+      return {
+        id: song.id,
+        number: index + 1,
+        fileName: song.fileName,
+        durationMs: song.durationMs,
+        excerptMs: musicExcerptMs(song),
+        trimmed: false,
+        atMs,
+        laneAtMs: atMs,
+        laneMs: musicExcerptMs(song),
+        reached: atMs < slideshowMs,
+        volumeBadge: { kind: "none" },
+        ...(trackId !== undefined ? { sampleTrack: trackId } : {}),
+      };
+    }),
     playlistMs: playlistMs(playlist) ?? 0,
   };
 }

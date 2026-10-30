@@ -18,7 +18,11 @@ const own = {
   to: { zoom: 1, centerX: 0.5, centerY: 0.5 },
 };
 
-const FOCUS = { kind: "subject", box: { x: 0.1, y: 0.1, width: 0.2, height: 0.2 } } as const;
+const FOCUS = {
+  kind: "subject",
+  box: { x: 0.1, y: 0.1, width: 0.2, height: 0.2 },
+  foundBy: "face",
+} as const;
 
 describe("pictureKenBurns", () => {
   it("is the automatic motion for the picture's position while it has none of its own", () => {
@@ -44,6 +48,20 @@ describe("pictureKenBurns", () => {
   it("aims the automatic motion at the picture's focus", () => {
     expect(pictureKenBurns(0, automatic, FOCUS).from.centerY).toBeCloseTo(0.2);
   });
+
+  it("scales the automatic motion by a mood's Ken Burns strength", () => {
+    expect(pictureKenBurns(0, automatic, undefined, 0.5)).toEqual(
+      autoKenBurns(0, automatic, undefined, true, 0.5),
+    );
+  });
+
+  it("keeps the picture's own motion over a mood's strength", () => {
+    const picture = { ...automatic, kenBurns: own };
+
+    expect(pictureKenBurns(0, picture, undefined, 0.5)).toEqual(
+      pictureKenBurns(0, picture, undefined),
+    );
+  });
 });
 
 describe("pairKenBurns", () => {
@@ -65,5 +83,12 @@ describe("pairKenBurns", () => {
     const { first, second } = pairKenBurns(0, portraitA, undefined, portraitB, undefined);
 
     expect(first.from.zoom < first.to.zoom).toBe(second.from.zoom < second.to.zoom);
+  });
+
+  it("scales both halves' motion by a mood's Ken Burns strength", () => {
+    const { first, second } = pairKenBurns(0, portraitA, undefined, portraitB, undefined, 0.5);
+
+    expect(first).toEqual(autoKenBurns(0, portraitA, undefined, false, 0.5));
+    expect(second).toEqual(autoKenBurns(0, portraitB, undefined, false, 0.5));
   });
 });

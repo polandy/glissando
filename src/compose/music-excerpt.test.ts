@@ -52,8 +52,8 @@ describe("automatic fades", () => {
 
   it.each([
     ["off when the track ends by itself", WHOLE, TRACK_MS, 0],
-    ["short when the excerpt stops before the track's end", trimmed(0, 150_000), 150_000, 2000],
-    ["short when the slideshow ends before the track", WHOLE, 120_000, 2000],
+    ["long when the excerpt stops before the track's end", trimmed(0, 150_000), 150_000, 5000],
+    ["long when the slideshow ends before the track", WHOLE, 120_000, 5000],
   ])("fade out %s", (_, music, slideshowMs, expected) => {
     expect(automaticFadeOutMs(music, slideshowMs)).toBe(expected);
   });
@@ -69,12 +69,12 @@ describe("resolveMusicTiming", () => {
     });
   });
 
-  it("fades automatically where the excerpt cuts the track", () => {
+  it("fades automatically where the excerpt cuts the track: short in, long out", () => {
     expect(resolveMusicTiming(trimmed(12_000, 150_000), 138_000)).toEqual({
       startMs: 12_000,
       endMs: 150_000,
       fadeInMs: 2000,
-      fadeOutMs: 2000,
+      fadeOutMs: 5000,
     });
   });
 
@@ -84,12 +84,12 @@ describe("resolveMusicTiming", () => {
     expect(resolveMusicTiming(music, 138_000)).toMatchObject({ fadeInMs: 0, fadeOutMs: 5000 });
   });
 
-  it("ends with a shorter slideshow, fading out there", () => {
+  it("ends with a shorter slideshow, fading out there over the long automatic fade", () => {
     expect(resolveMusicTiming(WHOLE, 60_000)).toEqual({
       startMs: 0,
       endMs: 60_000,
       fadeInMs: 0,
-      fadeOutMs: 2000,
+      fadeOutMs: 5000,
     });
   });
 
@@ -101,5 +101,9 @@ describe("resolveMusicTiming", () => {
     const music = trimmed(10_000, 20_000, { fadeInMs: 10_000, fadeOutMs: 5000 });
 
     expect(resolveMusicTiming(music, 6000)).toMatchObject({ fadeInMs: 4000, fadeOutMs: 2000 });
+  });
+
+  it("clamps the long automatic fade-out to a slideshow shorter than it, never past what is heard", () => {
+    expect(resolveMusicTiming(WHOLE, 3000)).toMatchObject({ endMs: 3000, fadeOutMs: 3000 });
   });
 });

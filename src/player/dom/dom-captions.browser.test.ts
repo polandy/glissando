@@ -28,6 +28,7 @@ describe("DomRenderer captions", () => {
     renderer.render({
       kind: "slide",
       endFade: 0,
+      look: "none",
       slide: { kind: "picture", picture: outgoing, motion: MOTION, caption: CAPTION, fit: FIT },
     });
 
@@ -44,6 +45,7 @@ describe("DomRenderer captions", () => {
     renderer.render({
       kind: "transition",
       endFade: 0,
+      look: "none",
       effect: "crossfade",
       progress: 0.25,
       from: { kind: "picture", picture: outgoing, motion: MOTION, fit: FIT },
@@ -60,12 +62,14 @@ describe("DomRenderer captions", () => {
     renderer.render({
       kind: "slide",
       endFade: 0,
+      look: "none",
       slide: { kind: "picture", picture: outgoing, motion: MOTION, caption: CAPTION, fit: FIT },
     });
 
     renderer.render({
       kind: "slide",
       endFade: 0,
+      look: "none",
       slide: { kind: "picture", picture: incoming, motion: MOTION, fit: FIT },
     });
 
@@ -80,6 +84,7 @@ describe("DomRenderer captions", () => {
     renderer.render({
       kind: "slide",
       endFade: 0,
+      look: "none",
       slide: { kind: "picture", picture: outgoing, motion: MOTION, caption: CAPTION, fit: FIT },
     });
 

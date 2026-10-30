@@ -16,3 +16,13 @@
 - A browser test that plays on real animation frames keeps its frame wholly in view: WebKit runs
   no animation frame in a frame outside the window's viewport, and in a full run Vitest stacks
   each test file's frame below the ones before it.
+- A look's grade (`webgl-looks.browser.test.ts`, `dom-looks.browser.test.ts`) is checked by
+  reading pixels in WebGL, as the other WebGL tests are; the DOM fallback's filter cannot be
+  pixel-read this way — WebKit's Canvas 2D `filter` does not apply a `url(...)` reference to a
+  document SVG filter — so it is checked by comparing each picture or video element's `style.filter`
+  against the look's own `<filter>` element and its `feColorMatrix`/`feComponentTransfer` values.
+- An e2e case that plays a show or the picture frame holds the page's clock
+  (`page.clock.install` + `pauseAt`) and waits for the player's dialog, or the frame's
+  `role="application"`, to stop being `aria-busy` before reading a frame or tapping. Real time
+  never decides what plays or is drawn: under CPU load a playing clip or round can starve the
+  page for seconds, longer than any assertion waits.

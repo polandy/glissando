@@ -5,7 +5,10 @@ import { MIN_KEN_BURNS_ZOOM, type Easing, type KenBurns } from "../player/slides
 /** Every motion, automatic or the user's own, runs at an even pace. */
 export const KEN_BURNS_EASING: Easing = "linear";
 
-/** Largest zoom the automatic framing reaches; `MIN_KEN_BURNS_ZOOM` is the smallest. */
+/**
+ * Largest zoom the automatic framing reaches for a subject or an unfocused picture;
+ * `MIN_KEN_BURNS_ZOOM` is the smallest. Scenery has its own range, below.
+ */
 const MAX_ZOOM = 1.2;
 
 /**
@@ -26,11 +29,17 @@ const PAN_OFFSET = 0.1;
  */
 const PORTRAIT_CENTER_Y = 0.4;
 
-/** The zoom a sweep over scenery holds; the frame shows 1/zoom of the width. */
-const SCENERY_ZOOM = 1.3;
+/** Scenery's wide end: the gentlest zoom of its slow zoom-in-or-out while it pans (ADR-0037). */
+export const SCENERY_ZOOM_WIDE = 1.15;
+
+/** Scenery's tight end: the closest zoom of the same sweep. */
+export const SCENERY_ZOOM_TIGHT = 1.35;
 
 /** The group's box grown by this factor is the room its frame keeps around the people. */
 const GROUP_MARGIN = 1.15;
+
+/** Today's unscaled Ken Burns motion: a mood's own strength takes its place (ADR-0045). */
+export const DEFAULT_KEN_BURNS_STRENGTH = 1;
 
 /**
  * A simple framing rule: zoom alternates in/out by slide index and pans gently sideways in a
@@ -38,7 +47,8 @@ const GROUP_MARGIN = 1.15;
  * around the middle, raised on a portrait picture toward where faces usually are. A focus box
  * wider or taller than the frame at the largest zoom lowers that zoom until the box fits
  * (ADR-0029); the frame is taken as 1/zoom of the picture on both axes, and the pan is small
- * enough to leave the box inside it.
+ * enough to leave the box inside it. `strength` scales how far the motion travels, `MOOD.md`'s
+ * Ken Burns strength bullet; `DEFAULT_KEN_BURNS_STRENGTH` reproduces today's motion exactly.
  */
 export function autoKenBurns(
   index: number,
@@ -46,14 +56,15 @@ export function autoKenBurns(
   focus: PictureFocus | undefined = undefined,
   /** False for a composed pair's half, so the two halves never drift apart (ADR-0028). */
   pansHorizontally = true,
+  strength = DEFAULT_KEN_BURNS_STRENGTH,
 ): KenBurns {
   const zoomsIn = index % 2 === 0;
   const pansRight = index % 2 === 0;
-  if (focus?.kind === "scenery" && pansHorizontally) return sceneryKenBurns(pansRight);
+  if (focus?.kind === "scenery" && pansHorizontally) return sceneryKenBurns(pansRight, strength);
   const center = restingCenter(picture, focus);
-  const maxZoom = largestZoomShowing(focus);
+  const maxZoom = largestZoomShowing(focus, strength);
 
-  const halfPan = pansHorizontally ? (pansRight ? 1 : -1) * (PAN_OFFSET / 2) : 0;
+  const halfPan = pansHorizontally ? (pansRight ? 1 : -1) * ((PAN_OFFSET * strength) / 2) : 0;
   const startCenterX = clampToPicture(center.x - halfPan);
   const endCenterX = clampToPicture(center.x + halfPan);
 
@@ -72,22 +83,42 @@ export function autoKenBurns(
   };
 }
 
-/** A slow sweep from one edge of the picture to the other at a steady zoom (ADR-0037). */
-function sceneryKenBurns(pansRight: boolean): KenBurns {
-  const leftmost = BASE_CENTER / SCENERY_ZOOM;
-  const rightmost = 1 - leftmost;
-  const [startX, endX] = pansRight ? [leftmost, rightmost] : [rightmost, leftmost];
+/**
+ * A slow sweep from one edge of the picture to the other, the zoom moving between
+ * `SCENERY_ZOOM_WIDE` and `SCENERY_ZOOM_TIGHT` along the way instead of holding steady
+ * (ADR-0037): zooming in while panning right, zooming out while panning left. Each end of the
+ * pan sits exactly at the edge its own end of the zoom allows (`sceneryEdge`), which keeps the
+ * frame inside the picture for every point of the sweep, not only its ends — the pan moves in a
+ * straight line between two points that already account for how far the zoom has moved.
+ */
+function sceneryKenBurns(pansRight: boolean, strength: number): KenBurns {
+  const fromZoom = scaledZoom(pansRight ? SCENERY_ZOOM_WIDE : SCENERY_ZOOM_TIGHT, strength);
+  const toZoom = scaledZoom(pansRight ? SCENERY_ZOOM_TIGHT : SCENERY_ZOOM_WIDE, strength);
+  const fromEdge = sceneryEdge(fromZoom);
+  const toEdge = sceneryEdge(toZoom);
+  const [startX, endX] = pansRight ? [fromEdge, 1 - toEdge] : [1 - fromEdge, toEdge];
   return {
-    from: { zoom: SCENERY_ZOOM, centerX: startX, centerY: BASE_CENTER },
-    to: { zoom: SCENERY_ZOOM, centerX: endX, centerY: BASE_CENTER },
+    from: { zoom: fromZoom, centerX: startX, centerY: BASE_CENTER },
+    to: { zoom: toZoom, centerX: endX, centerY: BASE_CENTER },
     easing: KEN_BURNS_EASING,
   };
 }
 
-function largestZoomShowing(focus: PictureFocus | undefined): number {
-  if (focus?.kind !== "subject") return MAX_ZOOM;
+/** How far the frame's near edge sits from the picture's own edge at `zoom`. */
+function sceneryEdge(zoom: number): number {
+  return BASE_CENTER / zoom;
+}
+
+function largestZoomShowing(focus: PictureFocus | undefined, strength: number): number {
+  const maxZoom = scaledZoom(MAX_ZOOM, strength);
+  if (focus?.kind !== "subject") return maxZoom;
   const extent = Math.max(focus.box.width, focus.box.height) * GROUP_MARGIN;
-  return Math.min(MAX_ZOOM, Math.max(SMALLEST_ZOOM_TRAVEL, 1 / extent));
+  return Math.min(maxZoom, Math.max(SMALLEST_ZOOM_TRAVEL, 1 / extent));
+}
+
+/** `zoom` scaled toward 1 by the Ken Burns strength `s`: `1 + (zoom - 1) * s` (`MOOD.md`). */
+function scaledZoom(zoom: number, strength: number): number {
+  return 1 + (zoom - 1) * strength;
 }
 
 function restingCenter(

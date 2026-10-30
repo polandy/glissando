@@ -1,6 +1,7 @@
 import { completed } from "./indexeddb-records";
 import { SLIDESHOWS } from "./indexeddb-schema";
-import { SlideshowNotFoundError, type StoredSlideshow } from "./stored-slideshow";
+import { SlideshowNotFoundError } from "./library-store";
+import type { StoredSlideshow } from "./stored-slideshow";
 
 /**
  * Replaces the slideshow record `id` with `edit` of it, read and written in one transaction, so

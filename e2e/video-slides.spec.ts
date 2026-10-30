@@ -7,6 +7,14 @@ import { generatedClip } from "./support/clip";
 test.use(GERMAN_BROWSER);
 
 const CLIP_SECONDS = 3;
+const CLIP_MS = CLIP_SECONDS * 1000;
+/** Any fixed start for the page's clock; the case only counts time from it. */
+const CLOCK_START = new Date("2026-01-01T12:00:00Z").getTime();
+/**
+ * How far the page's clock is moved on when it is held: past the moment it was installed, which
+ * holding it at an earlier time would refuse.
+ */
+const CLOCK_HOLD_MS = 60_000;
 const CLIP_COLOUR = "#4db6ac";
 const CLIP_RGB = [0x4d, 0xb6, 0xac] as const;
 const CENTRE = { x: 0.5, y: 0.5 } as const;
@@ -53,13 +61,21 @@ test("E2E-059 a clip imported as a slide shows its length, opens in the clip edi
   await page.getByRole("button", { name: "Fertig", exact: true }).click();
   await expect(page.getByText("Clip 1", { exact: true })).toBeHidden();
 
+  // The show runs on the page's clock, held still here and moved only by the case: what is drawn
+  // depends on the show's time, never on how fast a loaded machine plays it.
+  await page.clock.install({ time: CLOCK_START });
+  await page.clock.pauseAt(CLOCK_START + CLOCK_HOLD_MS);
   await page.getByRole("button", { name: "Abspielen" }).last().click();
   const player = page.getByRole("dialog");
+  await expect(player).toHaveAttribute("aria-busy", "false");
   await expect(player.getByText("1 / 1", { exact: true })).toBeVisible();
-  // The clip's colour is on the frame, and the show then runs its length out to the end card.
-  await expect
-    .poll(async () => distance(meanColour(await framePixels(page, player, CENTRE)), CLIP_RGB))
-    .toBeLessThan(COLOUR_TOLERANCE);
+
+  // Halfway through the clip its colour is on the frame; the show then runs out to the end card.
+  await page.clock.fastForward(CLIP_MS / 2);
+  expect(distance(meanColour(await framePixels(page, player, CENTRE)), CLIP_RGB)).toBeLessThan(
+    COLOUR_TOLERANCE,
+  );
+  await page.clock.fastForward(CLIP_MS);
   await expect(player.getByRole("heading", { name: "Ende" })).toBeVisible();
 });
 

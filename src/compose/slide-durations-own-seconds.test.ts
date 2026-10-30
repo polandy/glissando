@@ -37,9 +37,19 @@ describe("slideDurationsMs with music the pictures do not fill", () => {
     expect(slideDurationsMs(automatic(2), undefined, 5, [4900])).toEqual([4900, 5100]);
   });
 
-  it("keeps own durations exact after the last automatic picture, which ends on the beat", () => {
+  it("keeps an own duration exact at the end when no beat is within its slack", () => {
     const pictures = [{}, {}, { durationMs: 3000 }];
 
     expect(slideDurationsMs(pictures, undefined, 5, [4900, 9700])).toEqual([4900, 4800, 3000]);
+  });
+
+  it("moves the last own duration's end to a beat within its slack too, about its set length", () => {
+    // The own picture's slack, 1000 ms either way of its 3000 ms, holds the beat at 13 200 but not
+    // 9700, so its end moves there and it lasts 3500 ms instead of exactly 3000.
+    const pictures = [{}, {}, { durationMs: 3000 }];
+
+    expect(slideDurationsMs(pictures, undefined, 5, [4900, 9700, 13_200])).toEqual([
+      4900, 4800, 3500,
+    ]);
   });
 });

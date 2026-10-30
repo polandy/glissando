@@ -1,12 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { ImmichRequestFailedError } from "../immich/immich-client";
+import { storedFocus } from "../library/focus-pass-fixtures";
 import type { PictureFocus } from "../library/picture-focus";
 import { MemoryLibraryStore } from "../library/testing/memory-store";
 import { immichPictureSource } from "./immich-picture-source";
 import { PictureImport } from "./picture-import";
 import { PictureNotDownloadedError, type PictureSource, type ReadPicture } from "./picture-source";
 
-const FACE: PictureFocus = { kind: "subject", box: { x: 0.25, y: 0.1, width: 0.5, height: 0.4 } };
+const FACE: PictureFocus = {
+  kind: "subject",
+  box: { x: 0.25, y: 0.1, width: 0.5, height: 0.4 },
+  foundBy: "face",
+};
 
 const readPicture = (fileName: string, focus: PictureFocus | null): ReadPicture => ({
   decoded: {
@@ -53,7 +58,9 @@ describe("PictureImport with a picture source", () => {
     await pictureImport.settled();
 
     expect(pictureImport.state.pictures.map((picture) => picture.fileName)).toEqual(["face.jpg"]);
-    expect(await store.pictureFocus(["picture-1"])).toEqual(new Map([["picture-1", FACE]]));
+    expect(await store.pictureFocus(["picture-1"])).toEqual(
+      new Map([["picture-1", storedFocus(FACE)]]),
+    );
   });
 
   it("stores no focus for a source that brings none, leaving it to the on-device pass", async () => {
@@ -93,6 +100,7 @@ describe("PictureImport with a picture source", () => {
           : Promise.resolve(new Blob([photoId], { type: "image/jpeg" })),
       thumbnail: () => Promise.reject(new Error("no preview is needed")),
       faces: () => Promise.resolve([]),
+      gps: () => Promise.resolve(null),
     };
     const fromImmich = (id: string) =>
       immichPictureSource(

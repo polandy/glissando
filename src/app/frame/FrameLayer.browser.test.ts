@@ -4,7 +4,6 @@ import type { ImmichAlbum, ImmichClient, ImmichPhoto } from "../../immich/immich
 import type { ScreenAwakePorts } from "../video-export/screen-awake";
 import { mountWithTranslator } from "../testing/mount-with-translator";
 import { whenRendered } from "../testing/when-rendered";
-import { CONTROLS_VISIBLE_MS } from "../../frame/tap-controls";
 import FrameLayer from "./FrameLayer.svelte";
 
 const ALBUM: ImmichAlbum = {
@@ -57,7 +56,6 @@ function baseProps(client: Pick<ImmichClient, "albums" | "photos" | "thumbnail">
     },
     device: {
       scheduler: noopScheduler,
-      controlsVisibleMs: CONTROLS_VISIBLE_MS,
       clipboard: null,
       screenAwake: noopScreenAwake,
       linkFor: () => "",

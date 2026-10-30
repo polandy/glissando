@@ -12,14 +12,28 @@ import {
   PORTRAIT_PICTURES_CHOICES,
   type PortraitPictures,
 } from "../library/portrait-pictures";
+import { checkSlideshowLook, InvalidSlideshowLookError } from "../library/slideshow-look";
+import {
+  checkSlideshowMood,
+  InvalidSlideshowMoodError,
+  SLIDESHOW_MOODS,
+  type SlideshowMood,
+} from "../library/slideshow-mood";
 import { MAX_SECONDS_PER_PICTURE, MIN_SECONDS_PER_PICTURE } from "../library/stored-slideshow";
+import { GRADED_SLIDESHOW_LOOKS, type GradedSlideshowLook } from "../player/looks/slideshow-look";
 import {
   DEFAULT_TRANSITION_FROM_VERSION,
+  ENERGY_PACING_FROM_VERSION,
+  LOOK_FROM_VERSION,
+  MOOD_FROM_VERSION,
   PICTURE_LENGTH_FROM_VERSION,
+  REPEAT_MUSIC_FROM_VERSION,
+  TRIP_CHAPTERS_FROM_VERSION,
   type ManifestMusic,
   type ManifestPicture,
   type ManifestSlideshow,
 } from "./glissando-manifest";
+import { readManifestAddedChapters, readManifestChapterEdits } from "./manifest-chapters";
 import { readManifestCard, TITLE_CARDS_FROM_VERSION } from "./manifest-card";
 import { readOwnMusic } from "./slideshow-fields-media";
 import { DocumentFormatError, readDateTime, readText, type JsonObject } from "./document-values";
@@ -49,10 +63,17 @@ export function slideshowKeys(version: number): string[] {
     "pictures",
     "songs",
     "betweenSongs",
+    ...(version >= REPEAT_MUSIC_FROM_VERSION ? ["repeatMusic"] : []),
     ...(version >= DEFAULT_TRANSITION_FROM_VERSION ? ["transition"] : []),
     ...(version >= PICTURE_LENGTH_FROM_VERSION ? ["pictureLength"] : []),
     "portraitPictures",
     ...(version >= TITLE_CARDS_FROM_VERSION ? ["openingCard", "closingCard"] : []),
+    ...(version >= TRIP_CHAPTERS_FROM_VERSION
+      ? ["automaticChaptersOff", "chapterEdits", "addedChapters"]
+      : []),
+    ...(version >= LOOK_FROM_VERSION ? ["look"] : []),
+    ...(version >= MOOD_FROM_VERSION ? ["mood"] : []),
+    ...(version >= ENERGY_PACING_FROM_VERSION ? ["energyPacing"] : []),
   ];
 }
 
@@ -77,6 +98,19 @@ export function readSlideshowFields(
   if (show["ownOrder"] !== undefined && show["ownOrder"] !== true) {
     throw new DocumentFormatError(`${path}.ownOrder`, "true or absent", show["ownOrder"]);
   }
+  if (show["automaticChaptersOff"] !== undefined && show["automaticChaptersOff"] !== true) {
+    throw new DocumentFormatError(
+      `${path}.automaticChaptersOff`,
+      "true or absent",
+      show["automaticChaptersOff"],
+    );
+  }
+  if (show["energyPacing"] !== undefined && show["energyPacing"] !== true) {
+    throw new DocumentFormatError(`${path}.energyPacing`, "true or absent", show["energyPacing"]);
+  }
+  if (show["repeatMusic"] !== undefined && show["repeatMusic"] !== true) {
+    throw new DocumentFormatError(`${path}.repeatMusic`, "true or absent", show["repeatMusic"]);
+  }
   return {
     title: readText(show["title"], `${path}.title`),
     createdAt: readDateTime(show["createdAt"], `${path}.createdAt`),
@@ -91,9 +125,13 @@ export function readSlideshowFields(
     ...(show["betweenSongs"] === undefined
       ? {}
       : { betweenSongs: readBetweenSongs(show["betweenSongs"], path) }),
+    ...(show["repeatMusic"] === true ? { repeatMusic: true } : {}),
     ...(show["portraitPictures"] === undefined
       ? {}
       : { portraitPictures: readPortraitPictures(show["portraitPictures"], path) }),
+    ...(show["look"] === undefined ? {} : { look: readLook(show["look"], path) }),
+    ...(show["mood"] === undefined ? {} : { mood: readMood(show["mood"], path) }),
+    ...(show["energyPacing"] === true ? { energyPacing: true } : {}),
     ...(show["openingCard"] === undefined
       ? {}
       : {
@@ -104,7 +142,56 @@ export function readSlideshowFields(
       : {
           closingCard: readManifestCard(show["closingCard"], `${path}.closingCard`, pictureCount),
         }),
+    ...(show["automaticChaptersOff"] === true ? { automaticChaptersOff: true } : {}),
+    ...(show["chapterEdits"] === undefined
+      ? {}
+      : {
+          chapterEdits: readManifestChapterEdits(
+            show["chapterEdits"],
+            `${path}.chapterEdits`,
+            pictureCount,
+          ),
+        }),
+    ...(show["addedChapters"] === undefined
+      ? {}
+      : {
+          addedChapters: readManifestAddedChapters(
+            show["addedChapters"],
+            `${path}.addedChapters`,
+            pictureCount,
+          ),
+        }),
   };
+}
+
+function readLook(value: unknown, path: string): GradedSlideshowLook {
+  try {
+    return checkSlideshowLook(value, path);
+  } catch (error) {
+    if (error instanceof InvalidSlideshowLookError) {
+      throw new DocumentFormatError(
+        `${path}.look`,
+        `one of ${GRADED_SLIDESHOW_LOOKS.join(", ")}`,
+        error.actual,
+      );
+    }
+    throw error;
+  }
+}
+
+function readMood(value: unknown, path: string): SlideshowMood {
+  try {
+    return checkSlideshowMood(value, path);
+  } catch (error) {
+    if (error instanceof InvalidSlideshowMoodError) {
+      throw new DocumentFormatError(
+        `${path}.mood`,
+        `one of ${SLIDESHOW_MOODS.join(", ")}`,
+        error.actual,
+      );
+    }
+    throw error;
+  }
 }
 
 function readPortraitPictures(value: unknown, path: string): PortraitPictures {

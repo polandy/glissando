@@ -6,7 +6,6 @@ export const deTransitions = {
   "slideshow.transitionOwnChoice": "eigene Wahl",
   "slideshow.transitionOwnCount": { one: "{count} eigener", other: "{count} eigene" },
   "slideshow.transitionSummary": "{choice} · {own}",
-  "slideshow.change": "Ändern",
   "transitions.title": "Übergänge der Diashow",
   "transitions.default": "Vorgabe",
   "transitions.ownChoice": "Eigene Wahl",
@@ -14,6 +13,8 @@ export const deTransitions = {
   "transitions.hintAlternate":
     "Die Effekte wechseln von Bild zu Bild ab, nie zweimal derselbe hintereinander.",
   "transitions.hintCut": "Die Bilder folgen ohne Übergang aufeinander.",
+  "transitions.hintMood":
+    "Durch die Stimmung {name} festgelegt. Eine andere Wahl wechselt die Stimmung auf Eigene.",
   "transitions.hintEffect":
     "Jeder Übergang: {effect}. Er dauert {share} % der Bildzeit, höchstens {max} s.",
   "transitions.ownKept": {

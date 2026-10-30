@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { MediaNotFoundError, SlideshowNotFoundError, type LibraryStore } from "../stored-slideshow";
+import type { LibraryStore } from "../library-store";
+import { MediaNotFoundError, SlideshowNotFoundError } from "../library-store";
 import { picture, pictureBlobs, rejection, slideshow } from "./library-store-contract";
 
 const EDITED_AT = new Date("2026-10-08T12:00:00Z");

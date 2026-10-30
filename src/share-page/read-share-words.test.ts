@@ -8,6 +8,7 @@ const WORD_KEYS = [
   "withMusic",
   "withoutMusic",
   "madeWith",
+  "sampleMusicCredit",
   "play",
   "pause",
   "mute",

@@ -6,9 +6,11 @@
   import BetweenSongsSection from "./BetweenSongsSection.svelte";
   import FadeSection from "./FadeSection.svelte";
   import type { ListenState } from "./listen-preview";
+  import MoodPictureTimesSection from "./MoodPictureTimesSection.svelte";
   import type { MusicEditorView } from "./music-editor-view";
   import PictureChangesSection from "./PictureChangesSection.svelte";
   import type { PlaylistView } from "./playlist-view";
+  import RepeatMusicSection from "./RepeatMusicSection.svelte";
   import TimingNote from "./TimingNote.svelte";
   import TrimSection from "./TrimSection.svelte";
   import VolumeSection from "./VolumeSection.svelte";
@@ -31,7 +33,9 @@
     onPictureChanges,
     onPictureLength,
     onSecondsPerPicture,
+    onSetOwnPictureTimes,
     onBetweenSongs,
+    onRepeatMusic,
   }: {
     music: MusicEditorView;
     playlist: PlaylistView;
@@ -51,8 +55,12 @@
     /** `undefined`: the pictures fill the music. */
     onPictureLength: (length: PictureLength | undefined) => void;
     onSecondsPerPicture: (seconds: number) => void;
+    /** Leaves the slideshow's mood for its own picture times (MOOD.md). */
+    onSetOwnPictureTimes: () => void;
     /** `undefined`: the songs crossfade. */
     onBetweenSongs: (between: BetweenSongs | undefined) => void;
+    /** `undefined`: the playlist plays once (ADR-0047). */
+    onRepeatMusic: (repeatMusic: true | undefined) => void;
   } = $props();
 
   const { t } = getTranslator();
@@ -60,10 +68,24 @@
 
 <div class="panel">
   <h2 class="group-title">{t("music.sectionSlideshow")}</h2>
-  <PictureLengthSection {...music.pictureLength} {onPictureLength} {onSecondsPerPicture} />
-  {#if playlist.songs.length > 1}
+  {#if music.moodPictureLength !== undefined}
+    <MoodPictureTimesSection
+      moodPictureLength={music.moodPictureLength}
+      fittedShareMs={playlist.fittedShareMs}
+      {onSetOwnPictureTimes}
+    />
+  {:else}
+    <PictureLengthSection
+      {...music.pictureLength}
+      fittedShareMs={playlist.fittedShareMs}
+      {onPictureLength}
+      {onSecondsPerPicture}
+    />
+  {/if}
+  {#if playlist.songCount > 1}
     <BetweenSongsSection crossfade={playlist.crossfade} {onBetweenSongs} />
   {/if}
+  <RepeatMusicSection on={playlist.repeatMusic} {onRepeatMusic} />
   <h2 class="group-title">{t("music.sectionSong", { number: music.songNumber })}</h2>
   {#if !music.reached}
     <p class="unreached">{t("music.songNotReached")}</p>

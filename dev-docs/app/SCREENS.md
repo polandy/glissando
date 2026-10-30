@@ -1,11 +1,7 @@
 # Screens
 
-- **Header** (`components/Header.svelte`): a 56 px bar. On the start screen the logo mark and
-  the "Glissando" wordmark; elsewhere the back arrow and the breadcrumb (earlier crumbs hidden up
-  to 720 px wide, the current one ellipsised; the root crumb is "Library"); a right-hand slot for
-  the screen's own buttons. While an export runs, on every screen: a progress ring and "Exporting
-  “title” … 34 %" before the buttons (the label hidden up to 720 px, the ring stays) and a 3 px
-  mint line along the bar's bottom edge growing with the progress.
+- **Header** ([HEADER.md](HEADER.md)): the 56 px bar on every screen, with the export's and the
+  faces-and-subjects search's progress.
 - **Start** (`screens/StartScreen.svelte`): in the header a gear ("Settings", opens the
   settings sheet, [SETTINGS.md](SETTINGS.md)) and, with slideshows, "New slideshow"; the large logo while the library is empty, with the
   hero line and "New slideshow"; it also shows on a first launch over a filled library, so the
@@ -15,9 +11,13 @@
   a cover of the first three pictures (one large, two small), the title, "12 pictures · 1:00" and a
   music icon — ending in a dashed "New slideshow" card. While the background search for the
   focus (dev-docs/library/FOCUS_SEARCH.md) has pictures of a slideshow left, its card
-  adds the line "Looking for subjects · 12 of 40" over a 2 px mint hairline filling with the
-  progress (`screens/FocusSearchLine.svelte`); both go once the slideshow is done, and the card
-  stays fully usable meanwhile. A status bar at the bottom
+  adds the line "Looking for subjects · 12 of 40" (every picture already having a record:
+  "Looking again · 12 of 40") over a 2 px mint hairline filling with the
+  progress (`screens/FocusSearchLine.svelte`); the line and bar go once the slideshow is done. A
+  slideshow done searching with pictures the pass could not look at instead keeps the line, without
+  a bar: "3 pictures couldn't be looked at" (singular "1 picture couldn't be looked at"); this, too,
+  goes once a later look succeeds. The card stays fully usable meanwhile; both lines show the same
+  way on a device or a server card. A status bar at the bottom
   (`pwa/StatusBar.svelte`): "Offline · stored on this device", or what
   [Installing and offline](INSTALLING_AND_OFFLINE.md) says. A file dragged over the library shows
   the layer "Drop to open the slideshow"; dropped, it opens (below). With the server library on
@@ -25,24 +25,22 @@
   server cards from the last list this device remembers while offline
   (server_library/IN_THE_APP.md).
 - **Slideshow** (`screens/SlideshowScreen.svelte`, parts in `screens/slideshow/`): breadcrumb
-  "Library / title" and a ⋯ "More" button whose menu holds "Save as video", "Save as web page" and "Save as Glissando file" (subtitle "A .glissando
-  file, about 184 MB", measured when the menu opens, again only after its pictures or music changed), a separator and "Delete slideshow
-  …"; a 16:9
-  preview of the first picture (tap plays) with the running time, then the pictures in play
+  "Library / title" and a ⋯ "More" button whose menu holds "Faces and subjects …" — with a
+  subtitle only once the search is done and some pictures failed ("3 couldn't be looked at"); its
+  progress is background work, not the menu's — a separator and "Delete slideshow …". "Faces and
+  subjects …" opens the Focus sheet (titled "Faces and subjects") (`screens/slideshow/FocusSheet.svelte`, mockup "Variant A · grid", ADR-0041): a
+  bottom sheet on phone, a 440 px right panel from 720 px — a status line with the search's progress, a stacked bar and legend chips by result (filtering the grid below them, own
+  motion as its own chip), a 4-column grid of the slideshow's pictures with a status dot and, on an
+  own-motion one, an "Own motion" badge (tapping a tile opens the picture editor), "Try the 3 again"
+  once some failed or "Look again at all 12 pictures" otherwise (asking again at every picture,
+  own-motion ones included: their automatic focus is still found and shown, only not used for their
+  motion), a hint once any picture has its own motion, and where the result is kept ("Stored on
+  this device." or "Shared with every device on your Glissando server."); a 16:9
+  cover of the first picture, the only Play control (a tap anywhere on it plays; a "▶ Play · 0:56" pill bottom left), then the pictures in play
   order, each with its order number and capture date, under "Sorted by capture date" or, once
   the user reordered, "Own order" (with "drag or tap", narrow: "tap to reorder"); right of the
-  count "Add media" (narrow: "Add"; a dashed "+ Add" tile after the last picture, before the closing slide, does the same; [ADDING_PICTURES.md](slideshow-editing/ADDING_PICTURES.md), Adding pictures). Beside it (above it up to 1024 px) an
-  info panel: title with a ✎ button, date range (earliest to latest capture), "Play", and the
-  facts — pictures, duration (with "· music 0:44" beside it, muted, when the slideshow does not
-  end with the music's excerpt), music (with music a button spanning the row: the file name,
-  below it "whole track", or once changed in the music editor "0:12–2:30 · fades in and out",
-  and "Edit ›"; it opens the music editor ([MUSIC_EDITOR.md](MUSIC_EDITOR.md)); without music the plain "No music"), picture times "automatic" (with own durations "automatic, 1
-  own"), Ken Burns "automatic" (with own motions "automatic, 2 own"), transitions (a button
-  spanning the row like the music's: the effect, e.g. "Crossfade" or "Alternating", below it
-  "default" or "own choice", with own transitions "· 2 own" — a last picture's stored one does
-  not count — and "Change ›"; it opens the transitions sheet ([RENAME_TRANSITIONS_DELETE.md](slideshow-editing/RENAME_TRANSITIONS_DELETE.md), Transitions)), portrait pictures (a button spanning the row: "Automatic", "One at a time" or "Fill
-  the screen", below it "· 2 pairs" once any slide pairs two portrait pictures, and "Change ›";
-  it opens the portrait pictures sheet ([RENAME_TRANSITIONS_DELETE.md](slideshow-editing/RENAME_TRANSITIONS_DELETE.md), Portrait pictures), ADR-0028), captions "3 of 8" (pictures with a caption of all; none: "0 of 8"). A tile carries small
+  count "Add media" (narrow: "Add"; the only way in, the strip has no add tile; [ADDING_PICTURES.md](slideshow-editing/ADDING_PICTURES.md), Adding pictures). Beside it (above it up to 1024 px) an
+  info panel (ADR-0048, below): title with a ✎ button and, right of it, the outlined "Share" pill, date range, the Music/Mood/Look tiles and "Fine settings". A tile carries small
   badges bottom right: a frame "own" for an own motion, a clock with "8 s" for an own duration,
   a transition mark (titled with the effect, e.g. "Circle") for an own transition, except on
   the last picture, "shown alone" for a picture set never to pair and "blurred fill" for one
@@ -53,9 +51,18 @@
   (`routes/slideshow-home.ts`); a server slideshow's screen adds where it lives, its missing
   pictures and its own ⋯ menu, and its edits are saved on the server
   (server_library/IN_THE_APP.md).
+- **Share** (`screens/slideshow/share/`, share_link/IN_THE_APP.md): the info panel's Share button
+  opens a chooser with the groups "Watch by link" (link row, only with a server library) and "Save
+  a copy" (Video, Web page, Glissando file); a row opens its sheet in place of the chooser, whose
+  Back control returns to it, and Close gives the focus back to the Share button. The file row's
+  subtitle reads "A .glissando file, about 184 MB" (a server slideshow: its Immich hint), measured
+  when the sheet opens, again only after its pictures or music changed.
+- **Glissando file sheet** (`share/GlissandoFileSheet.svelte`): name, facts, size and "Save file",
+  which starts the export below; then progress, "Saved to Downloads." with "Done", or "Try again".
+  Saving is disabled while another slideshow exports.
 - **Export** (`glissando-file/export-job.ts`): runs in the background, one at a time; the app
-  stays usable, also on other screens. While it runs, the menu item is `aria-disabled` and reads
-  "Exporting … 34 %" (for another slideshow: "Export", subtitle "Once the running export is
+  stays usable, also on other screens. While it runs, the chooser's file row reads
+  "Exporting … 34 %" (for another slideshow: "Once the running export is
   done"). At the end the browser downloads "title.glissando" and the toast "“title.glissando”
   downloaded · 184 MB" follows. A device out of storage or memory ends it with the coral toast
   "Export failed: not enough storage on the device." and "Try again"; any other failure is an
@@ -80,9 +87,25 @@
   while the server library is on (it can be hidden with its ✕ and is brought back in Settings),
   its set-up screen and the fullscreen running frame.
 
-Up to 1024 px wide (a container query on `.screen`) the info panel stacks full width above the
-pictures instead of beside them, folded to a slim header: title, "date range · N pictures ·
-duration" and "Play". A "Details" toggle (`aria-expanded`, folded on every visit) opens the rest
-— "Save as", storage, link, "Show on TV" and the facts — in two columns, one column up to 720 px.
-Above 1024 px the panel shows everything beside the pictures and has no toggle. Up to 720 px the
-layout narrows further: three tiles per row.
+The info panel (ADR-0048, mockup option A:
+`https://polandy.github.io/glissando-assets/mockups/details-panel/`) holds, top to bottom:
+
+- **Header**: title and "date range · N pictures · duration". Play is the cover's alone.
+- **Three tiles**, one row of three at every width and never folded. Each tile is one button
+  with a small label and a chevron, the value and a summary, and opens its sheet:
+  - **Music**: "3 songs" (or the song's name), with "11:20 of music" underneath when the music's
+    length differs from the slideshow's. Without music: "None" and "Add music".
+  - **Mood**: the mood's name, with a summary of what it sets: picture times ("~6.3 s · 8 beats",
+    "~7 s" without a beat, the range "4.1–9.0 s" under the energy pacing; under Custom the
+    picture-times value), then the motion ("gentle motion", "strong motion", "standard motion"),
+    then "follows the energy" while the energy pacing is on and the slideshow has music.
+  - **Look**: the look's name beside a swatch of it.
+- **"Fine settings"**: a toggle (`aria-expanded`) at every width, folded until opened. Its state
+  is remembered on the device for every slideshow. It opens Transitions, Portrait pictures and
+  Trip chapters as rows (label, value, summary, chevron; the whole row opens the sheet; Trip
+  chapters' sheet is the only place with the slideshow-wide **Automatic chapters** switch), then
+  storage and "Show on TV". E2E-083 shows the three tiles up front, folds Fine
+  settings away by default, and checks its open or closed state survives a reload.
+
+Up to 1024 px wide (a container query on `.screen`) the panel stacks full width above the
+pictures instead of beside them. Up to 720 px the layout narrows further: three tiles per row.

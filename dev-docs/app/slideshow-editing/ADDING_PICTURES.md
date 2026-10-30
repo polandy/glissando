@@ -3,8 +3,7 @@
 - **Adding pictures** (`add-pictures/`, route `{ screen: "add", slideshowId }`; mockup:
   https://polandy.github.io/glissando-assets/mockups/add-pictures/): the strip header's "Add
   pictures" opens the import's pictures step for this slideshow, under the crumbs "title / Add
-  pictures", without the step bar, the music step and the "Slideshow from another device?"
-  box. Its lead: "They go into place by capture date." (with own order: "Your own order stays;
+  pictures", without the step bar and the music step. Its lead: "They go into place by capture date." (with own order: "Your own order stays;
   choose below where the new pictures go."), then "Glissando downscales them for this device;
   your originals stay untouched." The drop zone, the Immich box (its browser opens for this
   slideshow, Immich below), the queue and the tiles (selecting, View, F, removing — [IMPORT_ARRANGING.md](../IMPORT_ARRANGING.md), In "Add media"), the set-aside
@@ -20,7 +19,7 @@
   duration "5:40 → 5:40" and, when automatic pictures share the music, per picture "14.2 s →
   10.6 s" — the composition rules (`src/compose/`, ADR-0008) on the slideshow with the new
   pictures, so own durations stay. With music the pictures fill, a line "The pictures keep sharing the music;
-  each gets a little shorter. Pictures with their own duration keep it.", or, when the
+  each gets a little shorter. Pictures with their own duration stay about that long.", or, when the
   automatic pictures' share would fall below the 2 s floor, a lemon notice "The music is too short for all pictures: no
   picture shows for less than 2 s, so the slideshow runs 7:28 and the music 5:40."; without
   music, or with music whose pictures last their own seconds (ADR-0022), "Each new picture gets

@@ -85,3 +85,31 @@ describe("SlideshowScreen, F opens the full-screen viewer", () => {
     expect(document.querySelector(".pill.remove")).toBeNull();
   });
 });
+
+describe("SlideshowScreen, View in the selection bar opens the same full-screen viewer", () => {
+  it("offers View beside Edit for the selected picture", () => {
+    mountScreen();
+    click(tile(2, "02.07.2025"));
+
+    expect(selectionBar()?.textContent).toContain("Vollbild ansehen");
+    expect(selectionBar()?.textContent).toContain("Bild bearbeiten");
+  });
+
+  it("opens the selected picture full screen, the same viewer F opens", () => {
+    mountScreen();
+    click(tile(2, "02.07.2025"));
+
+    click(buttonNamed("Vollbild ansehen"));
+
+    expect(dialog().getAttribute("aria-label")).toBe("Bild vom 02.07.2025");
+  });
+
+  it("hides View once a second picture joins the selection", () => {
+    mountScreen();
+    click(tile(1, "01.07.2025"));
+
+    click(tile(2, "02.07.2025"), { ctrlKey: true });
+
+    expect(() => buttonNamed("Vollbild ansehen")).toThrow();
+  });
+});

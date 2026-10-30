@@ -34,6 +34,7 @@ describe("DomRenderer: title cards (ADR-0032)", () => {
     renderer.render({
       kind: "slide",
       endFade: 0,
+      look: "none",
       slide: {
         kind: "ground",
         ground: GROUND,
@@ -66,6 +67,7 @@ describe("DomRenderer: title cards (ADR-0032)", () => {
     renderer.render({
       kind: "slide",
       endFade: 0,
+      look: "none",
       slide: {
         kind: "picture",
         picture,
@@ -95,6 +97,7 @@ describe("DomRenderer: title cards (ADR-0032)", () => {
     renderer.render({
       kind: "slide",
       endFade: 0,
+      look: "none",
       slide: {
         kind: "picture",
         picture,
@@ -122,6 +125,7 @@ describe("DomRenderer: title cards (ADR-0032)", () => {
     renderer.render({
       kind: "slide",
       endFade: 1,
+      look: "none",
       slide: { kind: "picture", picture, motion: MOTION, fit: "cover" },
     });
 
@@ -139,6 +143,7 @@ describe("DomRenderer: title card entrances (ADR-0032)", () => {
     renderer.render({
       kind: "slide",
       endFade: 0,
+      look: "none",
       slide: {
         kind: "ground",
         ground: GROUND,
@@ -166,6 +171,7 @@ describe("DomRenderer: title card entrances (ADR-0032)", () => {
     renderer.render({
       kind: "slide",
       endFade: 0,
+      look: "none",
       slide: {
         kind: "ground",
         ground: GROUND,

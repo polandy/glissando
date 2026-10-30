@@ -26,7 +26,7 @@ async function panelAndFirstPicture(page: Page): Promise<{ panel: Box; picture: 
   };
 }
 
-test("E2E-067 on a tablet the info panel stacks above the pictures with its details folded away", async ({
+test("E2E-067 on a tablet the info panel stacks above the pictures with fine settings folded away", async ({
   page,
 }) => {
   await page.setViewportSize(TABLET);
@@ -36,26 +36,34 @@ test("E2E-067 on a tablet the info panel stacks above the pictures with its deta
   const { panel, picture } = await panelAndFirstPicture(page);
   expect(panel.y + panel.height).toBeLessThanOrEqual(picture.y);
   expect(panel.width).toBeGreaterThan(TABLET.width * 0.8);
-  // Folded, the panel is a slim header, not a block that pushes the pictures down.
-  expect(panel.height).toBeLessThan(200);
 
   const transitions = page.getByRole("button", { name: /^Übergänge/ });
-  const details = page.getByRole("button", { name: "Details" });
+  const fineSettings = page.getByRole("button", { name: "Feineinstellungen" });
+  await expect(page.getByRole("button", { name: "Abspielen" })).toHaveCount(1);
   await expect(
     page.getByRole("complementary").getByRole("button", { name: "Abspielen" }),
-  ).toBeVisible();
+  ).toHaveCount(0);
+  // The Music/Mood/Look tiles are never folded, each one its own button.
+  await expect(page.getByRole("button", { name: /^Musik/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: /^Stimmung/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: /^Look/ })).toBeVisible();
   await expect(transitions).toBeHidden();
-  await expect(details).toHaveAttribute("aria-expanded", "false");
+  await expect(fineSettings).toHaveAttribute("aria-expanded", "false");
+  const panelFolded = await boxOf(page.getByRole("complementary"));
 
-  await details.click();
-  await expect(details).toHaveAttribute("aria-expanded", "true");
+  await fineSettings.click();
+
+  await expect(fineSettings).toHaveAttribute("aria-expanded", "true");
   await expect(transitions).toBeVisible();
+  // Opened, the fold's rows push the panel taller than folded.
+  const panelOpen = await boxOf(page.getByRole("complementary"));
+  expect(panelOpen.height).toBeGreaterThan(panelFolded.height);
 
-  await details.click();
+  await fineSettings.click();
   await expect(transitions).toBeHidden();
 });
 
-test("E2E-068 on a desktop the info panel stays beside the pictures, everything shown", async ({
+test("E2E-068 on a desktop the info panel stays beside the pictures, fine settings folds there too", async ({
   page,
 }) => {
   await page.setViewportSize(DESKTOP);
@@ -64,6 +72,15 @@ test("E2E-068 on a desktop the info panel stays beside the pictures, everything 
 
   const { panel, picture } = await panelAndFirstPicture(page);
   expect(panel.x).toBeGreaterThan(picture.x + picture.width);
-  await expect(page.getByRole("button", { name: "Details" })).toBeHidden();
-  await expect(page.getByRole("button", { name: /^Übergänge/ })).toBeVisible();
+
+  const transitions = page.getByRole("button", { name: /^Übergänge/ });
+  const fineSettings = page.getByRole("button", { name: "Feineinstellungen" });
+  await expect(page.getByRole("button", { name: /^Musik/ })).toBeVisible();
+  await expect(fineSettings).toHaveAttribute("aria-expanded", "false");
+  await expect(transitions).toBeHidden();
+
+  await fineSettings.click();
+
+  await expect(fineSettings).toHaveAttribute("aria-expanded", "true");
+  await expect(transitions).toBeVisible();
 });

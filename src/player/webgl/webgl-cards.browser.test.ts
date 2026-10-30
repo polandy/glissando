@@ -38,6 +38,7 @@ describe("WebGlRenderer ground slides", () => {
       kind: "slide",
       slide: groundLayer(cardVisual(baseCard())),
       endFade: 0,
+      look: "none",
     };
 
     expect(readPixel(frame, [0.02, 0.02])).toSatisfy((pixel: Rgb) =>
@@ -60,6 +61,7 @@ describe("WebGlRenderer ground slides", () => {
       from: groundLayer(cardVisual(baseCard())),
       to,
       endFade: 0,
+      look: "none",
     };
     const expected: Rgb = [
       GROUND_COLOUR[0] / 2,
@@ -78,6 +80,7 @@ describe("WebGlRenderer title cards", () => {
       kind: "slide",
       slide: groundLayer(cardVisual(baseCard(), { textOpacity: 1, slideTimeMs: 800 })),
       endFade: 0,
+      look: "none",
     };
 
     expect(everyPixelIsGround(readAllPixels(frame), GROUND_COLOUR)).toBe(true);
@@ -96,6 +99,7 @@ describe("WebGlRenderer title cards", () => {
       kind: "slide",
       slide: groundLayer(cardVisual(card, { textOpacity: 1, slideTimeMs: 300 })),
       endFade: 0,
+      look: "none",
     };
     // The two words' own slices, to split the canvas between them rather than down the middle,
     // which would let the first word's own trailing pixels leak into the second word's half.
@@ -134,6 +138,7 @@ describe("WebGlRenderer title cards", () => {
       kind: "slide",
       slide: groundLayer(cardVisual(baseCard(), { textOpacity: 1, slideTimeMs: 800 })),
       endFade: 0,
+      look: "none",
     };
 
     const firstFramePixels = readAllPixels(frame);
@@ -158,7 +163,7 @@ describe("WebGlRenderer veils", () => {
         motion,
         card: cardVisual(card, { veilAmount }),
       };
-      return { kind: "slide", slide, endFade: 0 };
+      return { kind: "slide", slide, endFade: 0, look: "none" };
     }
 
     const unveiled = readPixel(frame(0), [0.5, 0.5]);
@@ -174,9 +179,11 @@ describe("WebGlRenderer end fade", () => {
     const { readPixel } = setUp();
     const layer = groundLayer(cardVisual(baseCard()));
 
-    expect(readPixel({ kind: "slide", slide: layer, endFade: 0 }, [0.5, 0.5])).toSatisfy(
-      (pixel: Rgb) => isColour(pixel, GROUND_COLOUR),
-    );
-    expect(readPixel({ kind: "slide", slide: layer, endFade: 1 }, [0.5, 0.5])).toEqual([0, 0, 0]);
+    expect(
+      readPixel({ kind: "slide", slide: layer, endFade: 0, look: "none" }, [0.5, 0.5]),
+    ).toSatisfy((pixel: Rgb) => isColour(pixel, GROUND_COLOUR));
+    expect(
+      readPixel({ kind: "slide", slide: layer, endFade: 1, look: "none" }, [0.5, 0.5]),
+    ).toEqual([0, 0, 0]);
   });
 });

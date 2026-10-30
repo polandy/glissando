@@ -38,17 +38,16 @@ const SCENE_LINE_WIDTH = 2;
 const SCENE_LINE_PERIOD = 6;
 
 /**
- * A real, decodable JPEG of `size` whose EXIF says it was taken on `day` ("YYYY-MM-DD", at noon):
- * the browser encodes a plain-coloured canvas, and the EXIF segment is spliced in after its start.
+ * A plain-coloured canvas JPEG's own bytes, base64-encoded, with no EXIF segment at all yet:
+ * shared by `pictureTakenOn` here and `pictureTakenOnAt` (`gps-media.ts`), which each splice in
+ * their own EXIF segment after this.
  */
-export async function pictureTakenOn(
+export async function plainCanvasJpegBase64(
   page: Page,
-  name: string,
-  day: string,
   colour: string,
-  size: { readonly width: number; readonly height: number } = LANDSCAPE_PICTURE,
-): Promise<TestFile> {
-  const encoded = await page.evaluate(
+  size: { readonly width: number; readonly height: number },
+): Promise<string> {
+  return page.evaluate(
     ({ width, height, fill }) => {
       const canvas = document.createElement("canvas");
       canvas.width = width;
@@ -63,6 +62,16 @@ export async function pictureTakenOn(
     },
     { width: size.width, height: size.height, fill: colour },
   );
+}
+
+export async function pictureTakenOn(
+  page: Page,
+  name: string,
+  day: string,
+  colour: string,
+  size: { readonly width: number; readonly height: number } = LANDSCAPE_PICTURE,
+): Promise<TestFile> {
+  const encoded = await plainCanvasJpegBase64(page, colour, size);
   return {
     name,
     mimeType: "image/jpeg",
@@ -192,8 +201,18 @@ export function portraitTakenOn(name: string, day: string): TestFile {
 
 /** `jpeg` with an EXIF segment saying it was taken on `day` at `time`, spliced in after its start. */
 function withCaptureDay(jpeg: Uint8Array, day: string, time = NOON): Uint8Array {
-  const exifDate = `${day.replaceAll("-", ":")} ${time}`;
-  const exifSource = syntheticJpeg({ byteOrder: "little", dateTimeOriginal: exifDate }).bytes;
+  const exifSource = syntheticJpeg({
+    byteOrder: "little",
+    dateTimeOriginal: `${day.replaceAll("-", ":")} ${time}`,
+  }).bytes;
+  return withExifApp1(jpeg, exifSource);
+}
+
+/**
+ * Splices `exifSource`'s one APP1/EXIF segment right after `jpeg`'s start-of-image marker: shared
+ * by `withCaptureDay` here and `gps-media.ts`'s `withCaptureDayAndGps`.
+ */
+export function withExifApp1(jpeg: Uint8Array, exifSource: Uint8Array): Uint8Array {
   const app1Start = JPEG_START_OF_IMAGE_LENGTH;
   const app1Length = SEGMENT_MARKER_LENGTH + ((exifSource[4] ?? 0) << 8) + (exifSource[5] ?? 0);
   const app1 = exifSource.subarray(app1Start, app1Start + app1Length);

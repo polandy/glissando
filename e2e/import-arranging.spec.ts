@@ -25,12 +25,14 @@ function dates(page: Page): Locator {
   return page.getByRole("listitem").locator(".date");
 }
 
-/** The dashed add tile that opens "Add pictures" (`AddPicturesMenu.svelte`, `tile` variant). */
-function addTile(page: Page): Locator {
-  return page.locator("ol.strip > li").filter({ hasText: "Hinzufügen" });
+/** The strip head's "Add pictures" button (`AddPicturesMenu.svelte`). */
+function addButton(page: Page): Locator {
+  return page
+    .locator(".strip-head")
+    .getByRole("button", { name: "Bilder hinzufügen", exact: true });
 }
 
-/** Opens an "Add pictures" menu (the strip head's or the add tile's) and picks "Bilder und Videos". */
+/** Opens the "Add pictures" menu and picks "Bilder und Videos". */
 async function addMorePictures(page: Page, opener: Locator, files: TestFile[]): Promise<void> {
   await opener.click();
   const addPicturesAndVideos = page.getByRole("menuitem", {
@@ -65,11 +67,7 @@ test("E2E-072 pictures added, moved and shuffled while arranging a new slideshow
   // Step 3: add more while arranging, via the strip head's "Add pictures" menu; sorted in by date.
   const between = await pictureTakenOn(page, "picture-13th.jpg", "2025-07-13", "#ff8a65");
   const laterStill = await pictureTakenOn(page, "picture-22nd.jpg", "2025-07-22", "#4db6ac");
-  await addMorePictures(
-    page,
-    page.locator(".strip-head").getByRole("button", { name: "Bilder hinzufügen", exact: true }),
-    [between, laterStill],
-  );
+  await addMorePictures(page, addButton(page), [between, laterStill]);
 
   await expect(dates(page)).toHaveText([
     "12.07.2025",
@@ -79,8 +77,7 @@ test("E2E-072 pictures added, moved and shuffled while arranging a new slideshow
     "20.07.2025",
     "22.07.2025",
   ]);
-  await expect(addTile(page)).toBeVisible();
-  await expect(addTile(page).locator("xpath=following-sibling::li")).toHaveCount(0);
+  await expect(page.locator("ol.strip > li").filter({ hasText: "Hinzufügen" })).toHaveCount(0);
 
   // Step 4: moving a tile makes the order the user's own.
   await tile(page, 1, "12.07.2025").click();
@@ -99,7 +96,7 @@ test("E2E-072 pictures added, moved and shuffled while arranging a new slideshow
 
   // Step 5: once the order is the user's own, an added picture goes at the end, not sorted in.
   const veryEarly = await pictureTakenOn(page, "picture-1st.jpg", "2025-07-01", "#ffd54f");
-  await addMorePictures(page, addTile(page).getByRole("button"), [veryEarly]);
+  await addMorePictures(page, addButton(page), [veryEarly]);
   await expect(tile(page, 7, "01.07.2025")).toBeVisible();
   await expect(dates(page)).toHaveText([
     "13.07.2025",

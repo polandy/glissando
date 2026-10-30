@@ -1,7 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { autoKenBurns, SMALLEST_ZOOM_TRAVEL } from "./auto-ken-burns";
-import { cropRect } from "../player/ken-burns";
+import {
+  autoKenBurns,
+  SCENERY_ZOOM_TIGHT,
+  SCENERY_ZOOM_WIDE,
+  SMALLEST_ZOOM_TRAVEL,
+} from "./auto-ken-burns";
+import { cropRect, framingAt } from "../player/ken-burns";
 import { MIN_KEN_BURNS_ZOOM } from "../player/slideshow";
+
+const SWEEP_PROGRESS_SAMPLES = [0, 0.25, 0.5, 0.75, 1];
 
 const LANDSCAPE = { width: 400, height: 300 };
 const PORTRAIT = { width: 300, height: 400 };
@@ -76,7 +83,11 @@ describe("autoKenBurns", () => {
 
   describe("with a focus", () => {
     const FACE_TOP_RIGHT = { x: 0.7, y: 0.1, width: 0.1, height: 0.2 };
-    const subject = (box: typeof FACE_TOP_RIGHT) => ({ kind: "subject" as const, box });
+    const subject = (box: typeof FACE_TOP_RIGHT) => ({
+      kind: "subject" as const,
+      box,
+      foundBy: "face" as const,
+    });
 
     it("swings the pan around the focus centre instead of the picture's middle", () => {
       const { from, to } = autoKenBurns(0, LANDSCAPE, subject(FACE_TOP_RIGHT));
@@ -203,19 +214,54 @@ describe("autoKenBurns", () => {
       [1, "right to left"],
     ])("sweeps the whole width at index %d, %s", (index) => {
       const { from, to } = autoKenBurns(index, LANDSCAPE, scenery);
-      const halfFrame = 0.5 / from.zoom;
+      const fromEdge = 0.5 / from.zoom;
+      const toEdge = 0.5 / to.zoom;
+      const sweepsRight = from.centerX < to.centerX;
 
-      expect(Math.min(from.centerX, to.centerX)).toBeCloseTo(halfFrame);
-      expect(Math.max(from.centerX, to.centerX)).toBeCloseTo(1 - halfFrame);
-      expect(from.centerX < to.centerX).toBe(index % 2 === 0);
+      expect(sweepsRight ? from.centerX : to.centerX).toBeCloseTo(sweepsRight ? fromEdge : toEdge);
+      expect(sweepsRight ? to.centerX : from.centerX).toBeCloseTo(
+        sweepsRight ? 1 - toEdge : 1 - fromEdge,
+      );
+      expect(sweepsRight).toBe(index % 2 === 0);
     });
 
-    it("keeps its zoom steady and the frame inside the picture", () => {
+    it("zooms between SCENERY_ZOOM_WIDE and SCENERY_ZOOM_TIGHT instead of holding steady", () => {
       const { from, to } = autoKenBurns(0, LANDSCAPE, scenery);
 
-      expect(from.zoom).toBe(to.zoom);
-      expect(from.zoom).toBeGreaterThan(MIN_KEN_BURNS_ZOOM);
-      expect(from.centerX).toBeGreaterThanOrEqual(0.5 / from.zoom);
+      expect(from.zoom).not.toBe(to.zoom);
+      expect([from.zoom, to.zoom].sort((a, b) => a - b)).toEqual([
+        SCENERY_ZOOM_WIDE,
+        SCENERY_ZOOM_TIGHT,
+      ]);
+    });
+
+    it("alternates the zoom direction across consecutive slides, tied to the pan", () => {
+      const panningRight = autoKenBurns(0, LANDSCAPE, scenery);
+      const panningLeft = autoKenBurns(1, LANDSCAPE, scenery);
+
+      expect(panningRight.from.zoom).toBeLessThan(panningRight.to.zoom);
+      expect(panningLeft.from.zoom).toBeGreaterThan(panningLeft.to.zoom);
+    });
+
+    it.each([0, 1])(
+      "keeps the frame inside the picture all the way through the sweep, index %d",
+      (index) => {
+        const kenBurns = autoKenBurns(index, LANDSCAPE, scenery);
+
+        for (const progress of SWEEP_PROGRESS_SAMPLES) {
+          const framing = framingAt(kenBurns, progress);
+          const halfFrame = 0.5 / framing.zoom;
+
+          expect(framing.centerX - halfFrame).toBeGreaterThanOrEqual(0);
+          expect(framing.centerX + halfFrame).toBeLessThanOrEqual(1);
+        }
+      },
+    );
+
+    it("keeps the zoom above MIN_KEN_BURNS_ZOOM at both ends", () => {
+      const { from, to } = autoKenBurns(0, LANDSCAPE, scenery);
+
+      for (const zoom of [from.zoom, to.zoom]) expect(zoom).toBeGreaterThan(MIN_KEN_BURNS_ZOOM);
     });
 
     it("does not sweep sideways in a composed pair's half", () => {

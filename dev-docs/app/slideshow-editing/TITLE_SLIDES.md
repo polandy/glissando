@@ -40,9 +40,10 @@ Mockup: https://polandy.github.io/glissando-assets/mockups/title-slides/. Player
   Otherwise the tile shows a small still of the card, taken at the end of its enter phase.
 - Tapping a tile opens the card sheet: a bottom sheet on the phone, a dialog from 720 px.
   Opening an absent card creates it with defaults:
-  - **Title slide:** the title is the slideshow's title, the subtitle the capture range as the
-    start card shows it, style `modern`, `centre`, entrance `rise`. The background is the first
-    picture at fade 60, tint `picture`, with reveal on.
+  - **Title slide:** the title is the slideshow's title; the subtitle is empty while that title
+    is still the automatic month title (it would only repeat it), otherwise the capture day
+    range. Style `modern`, `centre`, entrance `rise`. The background is the first picture at
+    fade 60, tint `picture`, with reveal on.
   - **Closing slide:** an empty title (placeholder "Thank you for watching"), an empty
     subtitle, style `modern`, `centre`, entrance `rise`. The background is the last picture at
     fade 60, tint `picture`, with fade in on.

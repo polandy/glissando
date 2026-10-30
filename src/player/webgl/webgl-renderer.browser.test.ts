@@ -81,6 +81,7 @@ describe("WebGlRenderer", () => {
       kind: "slide",
       slide: { kind: "picture", picture, motion: standingStill(WHOLE_PICTURE) },
       endFade: 0,
+      look: "none",
     };
 
     expect(drawAndRead(frame, 0.2, 0.2)).toEqual(RED);
@@ -97,6 +98,7 @@ describe("WebGlRenderer", () => {
       kind: "slide",
       slide: { kind: "picture", picture, motion: standingStill(framing) },
       endFade: 0,
+      look: "none",
     };
 
     for (const [x, y] of SAMPLE_GRID) {
@@ -121,6 +123,7 @@ describe("WebGlRenderer", () => {
           motion: standingStill(WHOLE_PICTURE),
         },
         endFade: 0,
+        look: "none",
       };
     }
 
@@ -170,6 +173,7 @@ describe("WebGlRenderer", () => {
         kind: "slide",
         slide: { kind: "picture", picture, motion: standingStill(WHOLE_PICTURE) },
         endFade: 0,
+        look: "none",
       };
       drawAndRead(frame, 0.5, 0.5);
 
@@ -191,6 +195,7 @@ describe("WebGlRenderer", () => {
         kind: "slide",
         slide: { kind: "picture", picture, motion: standingStill(WHOLE_PICTURE) },
         endFade: 0,
+        look: "none",
       };
       drawAndRead(frame, 0.5, 0.5);
 
@@ -218,6 +223,7 @@ describe("WebGlRenderer", () => {
         kind: "slide",
         slide: { kind: "picture", picture, motion: standingStill(WHOLE_PICTURE) },
         endFade: 0,
+        look: "none",
       };
       drawAndRead(frame, 0.5, 0.5);
 
@@ -227,5 +233,14 @@ describe("WebGlRenderer", () => {
 
       expect(() => renderer.dispose()).not.toThrow();
     });
+  });
+
+  it("releases its WebGL context on dispose, so a short-lived player frees the GPU at once", () => {
+    const { renderer, gl } = setUp();
+    expect(gl.isContextLost()).toBe(false);
+
+    renderer.dispose();
+
+    expect(gl.isContextLost()).toBe(true);
   });
 });

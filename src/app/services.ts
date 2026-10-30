@@ -4,7 +4,8 @@ import type { LoudnessPass } from "../library/loudness-pass";
 import type { ImmichAvailability } from "../immich/immich-availability";
 import type { ImmichClient } from "../immich/immich-client";
 import type { DecodeClipSound, MusicOutput } from "../player";
-import type { LibraryStore, StoredSlideshow } from "../library/stored-slideshow";
+import type { LibraryStore } from "../library/library-store";
+import type { StoredSlideshow } from "../library/stored-slideshow";
 import type { PwaStatus } from "../pwa/pwa-status";
 import type { ServerLibrary } from "../server-library/server-library";
 import type { MediaDecoders } from "../glissando-file/media-decoders";
@@ -16,6 +17,7 @@ import type { SlideshowHome } from "./routes/slideshow-storage";
 import type { ImportSession } from "./import/import-session";
 import type { MusicEditorAudio } from "./music-editor/music-editor-audio";
 import type { SongIntakeDevice } from "./music-editor/song-intake";
+import type { SamplePreview } from "./sample-music/sample-preview";
 import type { Navigator } from "./navigation/navigator";
 import type { AppSettings } from "./settings/app-settings";
 import type { PersistencePrompt } from "./storage/persistence-prompt";
@@ -28,6 +30,8 @@ import type { FrameDevice } from "./frame/browser-frame-device";
 import type { FrameCardPreference } from "./frame/frame-card-preference";
 import type { FramePreferences } from "./frame/frame-preferences";
 import type { DemoSlideshowServices } from "./start/demo-slideshow-services";
+import type { MusicEditorDetailsStore } from "./music-editor/music-editor-details";
+import type { FineSettingsFoldStore } from "./screens/slideshow/fine-settings-fold";
 
 /**
  * What the composition root (`main.ts`) wires into the app; a server slideshow's share link and
@@ -52,6 +56,8 @@ export interface AppServices extends ServerSlideshowSessions {
   readonly readClipPeaks: ReadClipPeaks;
   /** Looks for the pictures' focus in the background (ADR-0012); started as the app opens. */
   readonly focusPass: FocusPass;
+  /** Looks for a server slideshow's focus as it opens and keeps it on the server (ADR-0041). */
+  readonly serverFocusPass: FocusPass;
   /** Listens for the music's beats in the background (ADR-0021); started as the app opens. */
   readonly beatPass: BeatPass;
   /** Listens for a server slideshow's beats as it opens and keeps them on the server (ADR-0021). */
@@ -109,4 +115,10 @@ export interface AppServices extends ServerSlideshowSessions {
   readonly frameDevice: FrameDevice;
   /** The start screen's "Load demo slideshow" button (dev-docs/app/INSTALLING_AND_OFFLINE.md). */
   readonly demoSlideshow: DemoSlideshowServices;
+  /** Previews a sample track (SAMPLE_MUSIC.md); undefined when the build turns sample music off. */
+  readonly samplePreview?: SamplePreview;
+  /** Whether the slideshow screen's "Fine settings" fold is open, kept on this device (ADR-0048). */
+  readonly fineSettingsFold: FineSettingsFoldStore;
+  /** Whether the music editor shows its details, kept on this device (MUSIC_EDITOR.md). */
+  readonly musicEditorDetails: MusicEditorDetailsStore;
 }

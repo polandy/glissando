@@ -1,5 +1,6 @@
 import { MILLISECONDS_PER_SECOND } from "../../player";
 import type { PageCopy } from "../../html-export/page-contract";
+import { SAMPLE_MUSIC_CREDIT } from "../../sample-music/sample-music-credit";
 import type { Language, Translator } from "../i18n/translator";
 import type { HtmlExportSubject } from "./html-export-state";
 
@@ -22,6 +23,8 @@ export function pageWords(translator: Translator, subject: HtmlExportSubject): P
         music: subject.withMusic ? t("htmlExport.withMusic") : t("htmlExport.withoutMusic"),
       }),
       madeWith: t("htmlPage.madeWith"),
+      // Always carries the real text; export-page.ts blanks it when no played song is a sample.
+      sampleMusicCredit: t(SAMPLE_MUSIC_CREDIT),
       play: t("htmlPage.play"),
       pause: t("htmlPage.pause"),
       mute: t("htmlPage.mute"),

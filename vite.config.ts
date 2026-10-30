@@ -3,11 +3,12 @@ import { playwright } from "@vitest/browser-playwright";
 import { defineConfig } from "vitest/config";
 import { buildInfoPlugin } from "./build/build-info.ts";
 import { demoSlideshowConfigPlugin } from "./build/demo-slideshow-config.ts";
+import { committedLicensesPlugin } from "./build/committed-licenses.ts";
 import { exportPlayerPlugin } from "./build/export-player-plugin.ts";
 import { filePagePlugin } from "./build/file-page-plugin.ts";
-import { libavLicensePlugin } from "./build/libav-license.ts";
 import { pinnedThemePlugin } from "./build/pinned-theme-script.ts";
 import { remotePagePlugin } from "./build/remote-page-plugin.ts";
+import { sampleMusicConfigPlugin } from "./build/sample-music-config.ts";
 import { serviceWorkerPlugin } from "./build/service-worker-plugin.ts";
 import { sharePagePlugin } from "./build/share-page-plugin.ts";
 import { tvStreamPlugin } from "./e2e/support/tv-stream-plugin.ts";
@@ -48,7 +49,8 @@ export default defineConfig({
     filePagePlugin(),
     sharePagePlugin(),
     remotePagePlugin(),
-    libavLicensePlugin(),
+    sampleMusicConfigPlugin(),
+    committedLicensesPlugin(),
     serviceWorkerPlugin(),
     // Only its configurePreviewServer hook does anything; e2e/support/fake-tv-api.ts needs it.
     tvStreamPlugin(),
@@ -105,6 +107,7 @@ export default defineConfig({
                   "src/app/clip-editor/read-clip-peaks.browser.test.ts",
                   "src/player/create-frame-player.browser.test.ts",
                   "src/player/create-frame-player-video.browser.test.ts",
+                  "src/compose/compose-chapters.browser.test.ts",
                 ],
               },
               { browser: "webkit" },

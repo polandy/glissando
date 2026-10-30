@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { SlideshowNotFoundError, type StoredSlideshow } from "../../library/stored-slideshow";
+import { SlideshowNotFoundError } from "../../library/library-store";
+import type { StoredSlideshow } from "../../library/stored-slideshow";
 import { MemoryLibraryStore } from "../../library/testing/memory-store";
 import { SlideshowEditor } from "../editing/slideshow-editor";
 import { FakeScheduler } from "../../ui-kit/testing/fake-scheduler";
@@ -59,6 +60,9 @@ function editorOver(store: MemoryLibraryStore, toaster: Toaster): SlideshowEdito
     transitionAutomaticText: () => "Übergang wieder automatisch",
     slideshowTransitionResetText: () => "Übergänge wieder auf Überblenden",
     portraitPicturesResetText: () => "Hochformatbilder wieder automatisch",
+    lookResetText: () => "Look entfernt",
+    moodResetText: () => "Stimmung wieder auf Eigene",
+    moodNowCustomText: () => "Stimmung ist jetzt Eigene",
     songRemovedText: () => "Song entfernt",
     shuffledText: () => "",
     random: () => 0,

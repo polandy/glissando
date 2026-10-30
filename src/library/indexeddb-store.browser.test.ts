@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { SlideshowNotFoundError, type StoredSlideshow } from "./stored-slideshow";
+import { SlideshowNotFoundError } from "./library-store";
+import type { StoredSlideshow } from "./stored-slideshow";
+import { storedFocus } from "./focus-pass-fixtures";
 import { IndexedDbLibraryStore, LIBRARY_DATABASE_NAME, openLibraryStore } from "./indexeddb-store";
 import { describeLibraryStoreContract } from "./testing/library-store-contract";
 import { MemoryLibraryStore } from "./testing/memory-store";
@@ -218,9 +220,9 @@ describe("IndexedDbLibraryStore focus upgrade", () => {
       await expect(store.getSlideshow("show-1")).rejects.toBeInstanceOf(SlideshowNotFoundError);
       expect((await store.thumbnailBlob("saved-picture")).size).toBe(1);
       expect(await store.pictureFocus(["saved-picture"])).toEqual(new Map());
-      await store.putPictureFocus("saved-picture", { kind: "none" });
+      await store.putPictureFocus("saved-picture", storedFocus({ kind: "none" }));
       expect(await store.pictureFocus(["saved-picture"])).toEqual(
-        new Map([["saved-picture", { kind: "none" }]]),
+        new Map([["saved-picture", storedFocus({ kind: "none" })]]),
       );
     } finally {
       store.close();

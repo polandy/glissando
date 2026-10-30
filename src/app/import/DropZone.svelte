@@ -4,14 +4,21 @@
   import type { IconName } from "../../ui-kit/icons";
   import { droppedFiles } from "./dropped-files";
 
-  /** Dashed area that takes files dropped on it (desktop); the buttons inside open pickers. */
+  /**
+   * Area that takes files dropped on it (desktop); the buttons inside open pickers. Dashed and
+   * centred by default (the picture intake's call to action); `compact` draws a plain row instead
+   * (SAMPLE_MUSIC.md, "Your own music"), its dashed accent outline shown only while something is
+   * dragged over it.
+   */
   let {
     icon,
+    compact = false,
     onFiles,
     onError,
     children,
   }: {
     icon: IconName;
+    compact?: boolean;
     onFiles: (files: File[]) => void;
     onError: (error: unknown) => void;
     children: Snippet;
@@ -35,6 +42,7 @@
 
 <div
   class="drop"
+  class:compact
   class:hover
   role="group"
   ondragover={over}
@@ -64,5 +72,32 @@
   .icon {
     --gl-icon-size: var(--gl-size-display);
     color: var(--gl-faint);
+    flex: none;
+  }
+  .drop.compact {
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border: 1px solid var(--gl-line);
+    border-radius: var(--gl-radius-large);
+    background: var(--gl-surface);
+    color: inherit;
+    text-align: left;
+  }
+  .drop.compact .icon {
+    --gl-icon-size: var(--gl-size-icon);
+    width: 40px;
+    height: 40px;
+    border-radius: var(--gl-radius);
+    background: var(--gl-hover);
+    display: grid;
+    place-items: center;
+    color: var(--gl-muted);
+  }
+  .drop.compact.hover {
+    border-style: dashed;
+    border-color: var(--gl-accent);
+    background: var(--gl-surface);
   }
 </style>

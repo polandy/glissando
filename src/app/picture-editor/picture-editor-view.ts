@@ -1,11 +1,11 @@
 import {
   automaticTransition,
   beatTransitionDurationMs,
-  filledMusicMs,
   pairKenBurns,
   pictureKenBurns,
   pictureLayoutSummaries,
   type PictureLayoutSummary,
+  NO_SONG_LOUDNESS,
   playlistBeatsMs,
   playlistMs,
   pictureTransition,
@@ -16,30 +16,24 @@ import {
   timedUnit,
   type SlideUnit,
   type SongBeats,
+  type SongLoudness,
 } from "../../compose";
+import { playlistEnergy } from "../../compose/energy/playlist-energy";
+import { picturesFillMs } from "../../compose/filled-length";
+import { slideshowTargetSecondsPerPicture } from "../../compose/mood-settings";
 import type { OwnKenBurns } from "../../library/own-ken-burns";
-import {
-  MIN_OWN_DURATION_MS,
-  type SlideshowTransition,
-  type TransitionChoice,
-} from "../../library/own-timing";
+import type { SlideshowTransition, TransitionChoice } from "../../library/own-timing";
 import type { PortraitPictures } from "../../library/portrait-pictures";
 import type { StoredPicture, StoredSlideshow } from "../../library/stored-slideshow";
-import { MILLISECONDS_PER_SECOND, type Size } from "../../player";
-import { focusStatus, type PictureFocusStatus, type PicturesFocus } from "../focus/pictures-focus";
-
-/** What an automatic duration follows: the slideshow's seconds per picture, or the music. */
-export type DurationBasis =
-  | { readonly kind: "seconds-per-picture"; readonly automaticMs: number }
-  | {
-      readonly kind: "music";
-      /** The pictures without an own duration, sharing the rest of the music. */
-      readonly automaticCount: number;
-      /** What a single slide of them gets (a pair `PAIR_WEIGHT` times it); null when none. */
-      readonly shareMs: number | null;
-      /** The own durations use up the music; the automatic pictures get the minimum instead. */
-      readonly clamped: boolean;
-    };
+import type { Size } from "../../player";
+import {
+  focusStatus,
+  pictureFocusDisplay,
+  type PictureFocusStatus,
+  type PicturesFocus,
+} from "../focus/pictures-focus";
+import { durationBasis, type DurationBasis } from "./picture-editor-duration-basis";
+import { focusLineView, type FocusLineView } from "./focus-indication";
 
 export interface TransitionView {
   /** The own choice, else the automatic one. */
@@ -97,6 +91,8 @@ export interface PictureEditorView {
   readonly ownMotion: boolean;
   /** What the automatic motion aims at, or that the search for it is still to come. */
   readonly focus: PictureFocusStatus;
+  /** The focus line's state and action: the 10-state search status, own motion included. */
+  readonly focusLine: FocusLineView;
   /** How long the picture's slide shows: its own duration or the automatic one. */
   readonly durationMs: number;
   readonly ownDuration: boolean;
@@ -113,13 +109,18 @@ export interface PictureEditorView {
 
 /**
  * `focus`: the automatic motions aim at it; `beats`: each song's beats found so far, which the
- * automatic changes land on (ADR-0021, ADR-0023). So the preview plays what the player will.
+ * automatic changes land on (ADR-0021, ADR-0023); `loudness`: each song's loudness found so far,
+ * which paces the automatic changes further while `stored.energyPacing` is set (ADR-0046). So
+ * the preview plays what the player will.
  */
 export function pictureEditorView(
   stored: StoredSlideshow,
   pictureId: string,
   focus: PicturesFocus,
   beats: SongBeats,
+  loudness: SongLoudness = NO_SONG_LOUDNESS,
+  /** Only the server or Immich pauses the pass (ADR-0041); says so instead of just "waiting". */
+  passPaused = false,
 ): PictureEditorView {
   const { pictures } = stored;
   const index = pictures.findIndex((picture) => picture.id === pictureId);
@@ -128,14 +129,19 @@ export function pictureEditorView(
     throw new Error(`slideshow "${stored.id}" holds no picture "${pictureId}"`);
   }
   const beatsMs = playlistBeatsMs(stored, beats);
+  const energy = stored.energyPacing === true ? playlistEnergy(stored, loudness, beats) : undefined;
   // The preview plays the picture's slide as composed (ADR-0028): a pair is one slide, timed
   // once, with one transition and the pair's motion.
   const units = slideUnits(pictures, stored.portraitPictures);
+  const timedPictures = units.map((unit) => timedUnit(pictures, unit));
+  const target = slideshowTargetSecondsPerPicture(stored, beats);
+  const filledMs = picturesFillMs(playlistMs(stored), timedPictures, target, stored.repeatMusic);
   const durationsMs = slideDurationsMs(
-    units.map((unit) => timedUnit(pictures, unit)),
-    filledMusicMs(stored),
-    stored.secondsPerPicture,
+    timedPictures,
+    filledMs,
+    target ?? stored.secondsPerPicture,
     beatsMs,
+    energy,
   );
   const slideIndex = slideOfPicture(units, index);
   // One duration per slide unit; every slide index below is in range.
@@ -160,6 +166,10 @@ export function pictureEditorView(
     motion: motionOf(units, slideIndex, index, pictures, focus),
     ownMotion: picture.kenBurns !== undefined,
     focus: focusStatus(focus, picture.id),
+    focusLine: focusLineView(
+      pictureFocusDisplay(focus, picture.id, picture.kenBurns !== undefined, passPaused),
+      focus.found.get(picture.id),
+    ),
     durationMs: durationAt(slideIndex),
     ownDuration: picture.durationMs !== undefined,
     durationBasis: durationBasis(stored, units, durationsMs),
@@ -252,43 +262,6 @@ function motionOf(
   );
   const { from, to } = pictureIndex === firstIndex ? pair.first : pair.second;
   return { from, to };
-}
-
-/** A single slide's weight; a composed pair weighs `PAIR_WEIGHT`. */
-const SINGLE_WEIGHT = 1;
-
-function durationBasis(
-  stored: StoredSlideshow,
-  units: readonly SlideUnit[],
-  durationsMs: readonly number[],
-): DurationBasis {
-  const musicMs = playlistMs(stored);
-  if (musicMs === undefined) {
-    return {
-      kind: "seconds-per-picture",
-      automaticMs: stored.secondsPerPicture * MILLISECONDS_PER_SECOND,
-    };
-  }
-  const automaticCount = stored.pictures.filter(
-    ({ durationMs }) => durationMs === undefined,
-  ).length;
-  const automatic = units.flatMap((unit, slide) => {
-    const { durationMs, weight = SINGLE_WEIGHT } = timedUnit(stored.pictures, unit);
-    return durationMs === undefined ? [{ weight, durationMs: durationsMs[slide] as number }] : [];
-  });
-  if (automatic.length === 0) {
-    return { kind: "music", automaticCount: 0, shareMs: null, clamped: false };
-  }
-  const ownTotalMs = sum(stored.pictures.map(({ durationMs }) => durationMs ?? 0));
-  const totalWeight = sum(automatic.map(({ weight }) => weight));
-  const lightestWeight = Math.min(...automatic.map(({ weight }) => weight));
-  const lightestShareMs = Math.floor(((musicMs - ownTotalMs) * lightestWeight) / totalWeight);
-  return {
-    kind: "music",
-    automaticCount,
-    shareMs: sum(automatic.map(({ durationMs }) => durationMs)) / totalWeight,
-    clamped: lightestShareMs < MIN_OWN_DURATION_MS,
-  };
 }
 
 function sum(values: readonly number[]): number {

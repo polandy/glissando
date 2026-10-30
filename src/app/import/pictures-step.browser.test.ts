@@ -59,6 +59,8 @@ function failingSession(): ImportSession {
       file.name === "a.jpg"
         ? Promise.resolve("2025-07-01T10:00:00Z")
         : Promise.reject(new Error("the disk went away")),
+    gps: () => Promise.resolve(null),
+    resolvePlace: () => Promise.resolve(null),
     immichSource: () => {
       throw new Error("no Immich in this test");
     },
@@ -86,6 +88,8 @@ function workingSession(decoder: FakeDecoder): ImportSession {
     decode: decoder.decode,
     videoClips: noVideoClips,
     captureDate: () => Promise.resolve("2025-07-01T10:00:00Z"),
+    gps: () => Promise.resolve(null),
+    resolvePlace: () => Promise.resolve(null),
     immichSource: () => {
       throw new Error("no Immich in this test");
     },
@@ -161,13 +165,13 @@ describe("PicturesStep and .glissando files", () => {
     return step.target;
   }
 
-  it("offers to open a slideshow from another device below the drop zone", () => {
+  it("offers no Open file; the start screen is the one way in", () => {
     const target = mountStep(() => undefined);
 
-    expect(target.textContent).toContain("Diashow von einem anderen Gerät?");
-    expect([...target.querySelectorAll("button")].map((b) => b.textContent.trim())).toContain(
-      "Datei öffnen",
-    );
+    const labels = [...target.querySelectorAll("button")].map((b) => b.textContent.trim());
+    expect(labels.length).toBeGreaterThan(0);
+    expect(labels).not.toContain("Datei öffnen");
+    expect(target.textContent).not.toContain("Diashow von einem anderen Gerät?");
   });
 });
 

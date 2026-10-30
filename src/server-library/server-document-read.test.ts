@@ -7,6 +7,7 @@ import {
   ASSET_A,
   MUSIC_ID,
   slideshow,
+  firstStoredSong,
   without,
   document,
   withSlideshow,
@@ -25,7 +26,7 @@ describe("readServerDocument", () => {
       { format: "glissando" },
       'format: expected "glissando-server", got "glissando"',
     ],
-    ["another version", { formatVersion: 1 }, "formatVersion: expected 3, got 1"],
+    ["another version", { formatVersion: 1 }, "formatVersion: expected 7, got 1"],
     ["an unknown key", { extra: true }, "extra: expected one of format, formatVersion, slideshow"],
   ])("refuses %s at the root, naming path and value", (_case, change, reason) => {
     expect(readFails({ ...document(), ...change })).toContain(reason);
@@ -69,6 +70,25 @@ describe("readServerDocument", () => {
 
     expect(storedSlideshowFrom("server-show-1", readServerDocument(written)).betweenSongs).toBe(
       "sequence",
+    );
+  });
+
+  it("keeps a sample song's sampleTrack through writing and reading", () => {
+    const withSample: StoredSlideshow = {
+      ...slideshow,
+      songs: [{ ...firstStoredSong, sampleTrack: "hold-the-frame" }],
+    };
+    const written = serverDocumentFor(withSample);
+
+    expect(storedSlideshowFrom("server-show-1", readServerDocument(written)).songs).toEqual(
+      withSample.songs,
+    );
+  });
+
+  it("refuses an invalid sample-track id, naming the path and value", () => {
+    const [song] = document().slideshow.songs;
+    expect(readFails(withSlideshow({ songs: [{ ...song, sampleTrack: "Hold The Frame" }] }))).toBe(
+      'slideshow.songs[0].sampleTrack: expected lowercase letters, digits and hyphens, 1 to 64 characters, got "Hold The Frame"',
     );
   });
 

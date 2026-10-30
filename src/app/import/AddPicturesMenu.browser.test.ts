@@ -17,18 +17,12 @@ function mountMenu(
     onPickFiles?: () => void;
     onPickFolder?: () => void;
     onOpenImmich?: (() => void) | null;
-    tile?: boolean;
   } = {},
 ) {
-  const {
-    onPickFiles = () => {},
-    onPickFolder = () => {},
-    onOpenImmich = null,
-    tile = false,
-  } = options;
+  const { onPickFiles = () => {}, onPickFolder = () => {}, onOpenImmich = null } = options;
   const mounted = mountWithTranslator(
     AddPicturesMenu,
-    { onAddMore: { onPickFiles, onPickFolder }, onOpenImmich, tile },
+    { onAddMore: { onPickFiles, onPickFolder }, onOpenImmich },
     english,
   );
   unmounts.push(mounted.destroy);
@@ -141,18 +135,9 @@ describe("AddPicturesMenu, the head trigger", () => {
   });
 });
 
-describe("AddPicturesMenu, the add-tile trigger", () => {
-  it("shows the dashed add tile instead of the head button", () => {
-    const target = mountMenu({ tile: true });
-
-    expect(target.querySelector("li.tile")).not.toBeNull();
-    expect(target.querySelector(".add-tile")).not.toBeNull();
-    // Named in full: "Add" alone is also the footer's button in "Add media".
-    expect(toggle(target)?.getAttribute("aria-label")).toBe("Add pictures");
-  });
-
-  it("opens the same menu as the head trigger", () => {
-    const target = mountMenu({ tile: true, onOpenImmich: () => {} });
+describe("AddPicturesMenu, the head trigger", () => {
+  it("opens the menu with every way in", () => {
+    const target = mountMenu({ onOpenImmich: () => {} });
 
     toggle(target)?.click();
     flushSync();
@@ -167,7 +152,7 @@ describe("AddPicturesMenu, the add-tile trigger", () => {
 
 describe("AddPicturesMenu, placement", () => {
   function openAt(edge: "top" | "bottom") {
-    const target = mountMenu({ tile: true });
+    const target = mountMenu();
     target.style.position = "fixed";
     target.style[edge] = "0";
     target.style.width = "160px";

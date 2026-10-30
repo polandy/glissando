@@ -60,6 +60,11 @@ export interface PageCopy {
   readonly summary: string;
   /** At the bottom of the start card: "Erstellt mit Glissando · läuft offline". */
   readonly madeWith: string;
+  /**
+   * Below `madeWith` when a song the page plays is a Glissando sample track; empty otherwise
+   * (SAMPLE_MUSIC.md).
+   */
+  readonly sampleMusicCredit: string;
   readonly play: string;
   readonly pause: string;
   readonly mute: string;
@@ -76,6 +81,7 @@ export const PAGE_COPY_KEYS = [
   "eyebrow",
   "summary",
   "madeWith",
+  "sampleMusicCredit",
   "play",
   "pause",
   "mute",

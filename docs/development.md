@@ -25,6 +25,26 @@ The image is Caddy serving the built app plus the optional Immich proxy and libr
 (`deploy/`, `server/`). Releases are cut by release-please: merging its PR publishes
 `ghcr.io/polandy/glissando:<version>` and the GitHub Pages site.
 
+Sample music (`dev-docs/library/SAMPLE_MUSIC.md`) is on by default; `build-image.sh` forwards
+extra `docker build` flags, so turn it off or point it at a mirror with:
+
+```sh
+deploy/build-image.sh -t glissando:dev --build-arg GLISSANDO_SAMPLE_MUSIC=off
+deploy/build-image.sh -t glissando:dev --build-arg GLISSANDO_SAMPLE_MUSIC_URL=https://example.test/music/
+```
+
+## Regenerate the bundled place names
+
+`public/places/cities15000.tsv` (trip chapters' offline place lookup, ADR-0043) is generated,
+committed output, never hand-edited:
+
+```sh
+scripts/places/build.sh
+```
+
+It downloads GeoNames' `cities15000` dump, checks it against a hash recorded in the script, and
+writes the reduced TSV; a changed dump fails the build with how to review and update that hash.
+
 ## Map
 
 | Where       | What                                                    |

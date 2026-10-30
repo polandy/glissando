@@ -19,6 +19,7 @@ function sharePageWords(catalogue: Catalogue): SharePageWords {
     withMusic: catalogue["htmlExport.withMusic"],
     withoutMusic: catalogue["htmlExport.withoutMusic"],
     madeWith: catalogue["sharePage.madeWith"],
+    sampleMusicCredit: catalogue["sampleMusic.credit"],
     play: catalogue["htmlPage.play"],
     pause: catalogue["htmlPage.pause"],
     mute: catalogue["htmlPage.mute"],

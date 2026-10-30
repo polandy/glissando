@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
   drag,
   handle,
+  mountDetailed,
   mountEditor,
   slideshowWith,
   text,
@@ -136,19 +137,19 @@ describe("MusicEditorScreen, the fades", () => {
     mountEditor(slideshowWith(TRIMMED));
 
     expect(checked("Einblenden")).toBe("Kurz 2 s");
-    expect(checked("Ausblenden")).toBe("Kurz 2 s");
+    expect(checked("Ausblenden")).toBe("Lang 5 s");
     expect(text(".panel")).toContain(
       "Automatisch: kurz, weil der Ausschnitt mitten im Titel beginnt.",
     );
     expect(text(".panel")).toContain(
-      "Automatisch: kurz, weil der Ausschnitt vor dem Titelende aufhört.",
+      "Automatisch: lang, weil der Ausschnitt vor dem Titelende aufhört.",
     );
   });
 
   it("explains a fade-out where the slideshow ends before the excerpt", () => {
     mountEditor(slideshowWith({}, { count: 4, durations: { 0: 5000, 1: 5000, 2: 5000, 3: 5000 } }));
 
-    expect(text(".panel")).toContain("Automatisch: kurz, weil die Diashow bei 0:20 endet.");
+    expect(text(".panel")).toContain("Automatisch: lang, weil die Diashow bei 0:20 endet.");
   });
 
   it("picks an own fade, and goes back to automatic", () => {
@@ -173,7 +174,7 @@ describe("MusicEditorScreen, the pictures' times and listening", () => {
   });
 
   it("warns when the slideshow outlasts the excerpt", () => {
-    mountEditor(slideshowWith({ trim: { startMs: 0, endMs: 20_000 } }, { count: 12 }));
+    mountDetailed(slideshowWith({ trim: { startMs: 0, endMs: 20_000 } }, { count: 12 }));
 
     expect(document.querySelector(".note.warn")).not.toBeNull();
     expect(text(".note b")).toBe("Die Diashow läuft 0:04 länger als die Musik.");
@@ -181,7 +182,7 @@ describe("MusicEditorScreen, the pictures' times and listening", () => {
   });
 
   it("shows no playhead, chip or current picture before anything plays", () => {
-    mountEditor(slideshowWith(TRIMMED));
+    mountDetailed(slideshowWith(TRIMMED));
 
     expect(document.querySelector(".lane .runs")).not.toBeNull();
     expect(document.querySelector(".playhead")).toBeNull();
@@ -190,7 +191,7 @@ describe("MusicEditorScreen, the pictures' times and listening", () => {
   });
 
   it("listens to the start and shows where it plays, over both lanes", () => {
-    const { calls, set } = mountEditor(slideshowWith(TRIMMED));
+    const { calls, set } = mountDetailed(slideshowWith(TRIMMED));
 
     buttonNamed("Anfang anhören ab 0:12,0").click();
     set({ listening: { kind: "start", positionMs: 14_000 } });
