@@ -189,6 +189,7 @@
     onCreateFailed={actions.createFailed}
     onToMusic={() => navigator.open({ screen: "import", step: "music" })}
     onBack={() => navigator.back()}
+    guardLeave={(guard) => navigator.guardLeave(guard)}
     onDiscard={(leave) => void importFlow.discard(leave)}
     onCreated={(slideshow) => void importFlow.created(slideshow.id)}
     onOpenFile={(file) => void openFlow.open(file, "pictures")}

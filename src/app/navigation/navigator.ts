@@ -14,12 +14,15 @@ export interface HistoryPort {
   onPop(listener: (state: unknown) => void): () => void;
 }
 
+/** Asked before a history move leaves the current screen; `false` keeps the screen and restores its entry. */
+export type LeaveGuard = (to: Route) => boolean;
+
 const BACK_ONE = -1;
 
 /**
  * One history entry per screen, so the back arrow and the browser's back gesture do the same.
  * A route history cannot restore (see `isRestorable`) is left again for its nearest restorable
- * ancestor.
+ * ancestor. The current screen may guard against being left by a history move it did not start.
  */
 export class Navigator {
   readonly #history: HistoryPort;
@@ -27,6 +30,7 @@ export class Navigator {
   #route: Route;
   /** A route to push once a backward move lands; set while `open` climbs the history down. */
   #pushAfterPop: Route | null = null;
+  #leaveGuard: LeaveGuard | null = null;
 
   constructor(history: HistoryPort) {
     this.#history = history;
@@ -46,6 +50,19 @@ export class Navigator {
   subscribe(listener: (route: Route) => void): () => void {
     this.#listeners.add(listener);
     return () => this.#listeners.delete(listener);
+  }
+
+  /**
+   * Sets the current screen's guard, asked on every history move away that `open` did not make;
+   * returns the function that removes this guard, which leaves a newer one alone.
+   */
+  guardLeave(guard: LeaveGuard): () => void {
+    this.#leaveGuard = guard;
+    return () => {
+      if (this.#leaveGuard === guard) {
+        this.#leaveGuard = null;
+      }
+    };
   }
 
   /**
@@ -78,6 +95,20 @@ export class Navigator {
     }
   }
 
+  /** Back to `ancestor` on the path to the current screen; the route follows when the move lands. */
+  backTo(ancestor: Route): void {
+    const steps = this.#stepsDownTo(ancestor);
+    if (steps === null) {
+      throw new Error(
+        `cannot go back to ${JSON.stringify(ancestor)} from ${JSON.stringify(this.#route)}: ` +
+          "it is not on the path",
+      );
+    }
+    if (steps > 0) {
+      this.#history.go(-steps);
+    }
+  }
+
   #stepsDownTo(ancestor: Route): number | null {
     let steps = 0;
     for (let route: Route | null = this.#route; route !== null; route = parentOf(route)) {
@@ -96,7 +127,12 @@ export class Navigator {
       this.#history.push(pending);
       return;
     }
-    this.#setRoute(this.#leaveUnrestorable(parseRoute(state) ?? START_ROUTE, this.#route));
+    const next = parseRoute(state) ?? START_ROUTE;
+    if (this.#leaveGuard !== null && !this.#leaveGuard(next)) {
+      this.#history.push(this.#route);
+      return;
+    }
+    this.#setRoute(this.#leaveUnrestorable(next, this.#route));
   }
 
   /** The nearest restorable ancestor of `route`; moves the history there when it differs. */

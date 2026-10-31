@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { Snippet } from "svelte";
+  import type { Crumb } from "../components/crumbs";
   import Header from "../components/Header.svelte";
   import Icon from "../components/Icon.svelte";
   import { keepToastsClear } from "../components/toast-clearance";
@@ -21,7 +22,7 @@
     actions,
   }: {
     step: ImportStep | null;
-    crumbs?: readonly string[] | null;
+    crumbs?: readonly Crumb[] | null;
     onBack: () => void;
     /** See `Header`. */
     backDisabled?: boolean;
@@ -40,7 +41,11 @@
 
 <div class="screen">
   <Header
-    crumbs={crumbs ?? [t("start.library"), t("import.crumb"), stepCrumb]}
+    crumbs={crumbs ?? [
+      t("start.library"),
+      { label: t("import.crumb"), isScreen: false },
+      stepCrumb,
+    ]}
     {onBack}
     {backDisabled}
   />

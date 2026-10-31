@@ -13,6 +13,15 @@ screens below their slideshow
 - Every screen is one history entry; the back arrow calls history back, so it and the browser
   or phone back gesture do the same. `open(route)` pushes from the route's parent, or first goes
   back to that parent: the created slideshow replaces the import steps, so back leads to start.
+- A screen whose in-memory selection would be lost (import, add pictures) registers a leave guard
+  with `guardLeave`. A history move away from it that `open()` did not start asks the guard with
+  the destination; on `false` the navigator pushes the entry back and the screen shows its
+  discard dialog. Moves between the selecting screens pass, and an `open()` climbing down skips
+  the guard.
+- The header's crumbs before the current one are links to their screens (`Navigator.backTo`, so
+  the leave guard applies); the import wizard's name is a label, not a link.
+- Sheets (native `<dialog>`), menus and the picture viewer push no history entry: Android's back
+  gesture closes the open layer itself and leaves the screen in place.
 - History state is validated on every read; anything unknown is the start screen.
 - History never restores what is gone: after a reload, or on browser forward, an import step
   or the Immich browser returns to start (its selection lived in memory), the player to its slideshow (music needs

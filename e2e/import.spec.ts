@@ -113,6 +113,30 @@ test.describe("Abbrechen with pictures chosen", () => {
   });
 });
 
+test("E2E-098 the browser's back asks before dropping the chosen pictures and Weiter auswählen keeps them", async ({
+  page,
+}) => {
+  await openImport(page);
+  await choosePictures(page, await picturesTakenOn(page, ["2025-07-12", "2025-07-14"]), 2);
+  const discardDialog = page.getByRole("dialog", { name: "Auswahl entfernen?" });
+
+  await page.goBack();
+  await expect(discardDialog).toBeVisible();
+  await page.getByRole("button", { name: "Weiter auswählen" }).click();
+
+  await expect(discardDialog).toBeHidden();
+  await expect(page.getByRole("heading", { name: "Welche Bilder?" })).toBeVisible();
+  await expect(page.getByRole("listitem").locator(".date")).toHaveText([
+    "12.07.2025",
+    "14.07.2025",
+  ]);
+
+  await page.goBack();
+  await expect(discardDialog).toBeVisible();
+  await page.getByRole("button", { name: "Weiter auswählen" }).click();
+  await expect(discardDialog).toBeHidden();
+});
+
 test.describe("Removing chosen pictures", () => {
   test.beforeEach(async ({ page }) => {
     await openImport(page);

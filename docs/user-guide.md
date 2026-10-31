@@ -94,6 +94,8 @@ groups; choose a row and its sheet opens, with **Back** to the list.
 
 ## Good to know
 
+- The path at the top (Library / your slideshow / …) is tappable: **Library** brings you home from
+  any screen.
 - If the music is a little shorter than the pictures, they shrink to fit it on their own. If it
   ends well before the pictures do, the music editor offers to **Repeat the music** or **Add a
   song**.
@@ -101,6 +103,8 @@ groups; choose a row and its sheet opens, with **Back** to the list.
   runs, the bar at the top of every screen and each card show how far it got. **Faces and subjects
   …** in a slideshow's ⋯ menu lets you look again at any picture,
   including one it couldn't look at the first time.
+- The phone's back gesture or the browser's back button asks before it drops pictures you have
+  chosen but not yet used, the same as the Back arrow.
 - Your pictures stay on your device. Nothing is uploaded unless you use a server you run yourself.
 - Ask the browser to keep the data (Glissando requests it); clearing site data deletes slideshows
   stored on the device — save a `.glissando` file as a backup.

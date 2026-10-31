@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { createSlideshow, GERMAN_BROWSER } from "./support/app";
+import { createSlideshow, editPicture, GERMAN_BROWSER } from "./support/app";
 import { openApp } from "./support/browser";
 
 test.use(GERMAN_BROWSER);
@@ -18,4 +18,17 @@ test("E2E-008 a created slideshow stays in the library after a reload", async ({
   await expect(page.getByRole("heading", { name: "Juli 2025" })).toBeVisible();
   await expect(page.getByRole("img", { name: "Bild 1, aufgenommen am 12.07.2025" })).toBeVisible();
   await expect(page.getByRole("img", { name: "Bild 2, aufgenommen am 14.07.2025" })).toBeVisible();
+});
+
+test("E2E-097 the Bibliothek crumb takes the picture editor back to the library", async ({
+  page,
+}) => {
+  await openApp(page);
+  await createSlideshow(page, ["2025-07-12", "2025-07-14"], 2);
+  await editPicture(page, "Bild 1, aufgenommen am 12.07.2025");
+
+  await page.getByRole("button", { name: "Bibliothek" }).click();
+
+  await expect(page.getByRole("heading", { name: "Deine Diashows" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Juli 2025" })).toBeHidden();
 });

@@ -88,6 +88,7 @@ function mountMusicStep(importSession: ImportSession) {
         told();
       },
       toaster: new Toaster(new FakeScheduler()),
+      guardLeave: () => () => undefined,
     },
     { current: createTranslator("en") },
   );

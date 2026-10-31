@@ -61,6 +61,11 @@ export function parentOf(route: Route): Route | null {
 /** The screens whose selection of pictures lives in memory only. */
 const SELECTING_SCREENS: ReadonlySet<Route["screen"]> = new Set(["import", "immich", "add"]);
 
+/** The screens whose selection of pictures lives in memory; moving between them keeps it. */
+export function isSelectingScreen(route: Route): boolean {
+  return SELECTING_SCREENS.has(route.screen);
+}
+
 /**
  * Whether history may bring the route back: a selection of pictures lives in memory only, so
  * only its own screens bring each other back; the player's music needs a user gesture to start,
@@ -136,4 +141,19 @@ export function parseRoute(state: unknown): Route | null {
     default:
       return null;
   }
+}
+
+/** The route `levelsUp` parents above `route`; throws when the path is shorter. */
+export function ancestorAt(route: Route, levelsUp: number): Route {
+  let current: Route = route;
+  for (let level = 0; level < levelsUp; level += 1) {
+    const parent = parentOf(current);
+    if (parent === null) {
+      throw new Error(
+        `${JSON.stringify(route)} has no ancestor ${levelsUp} levels up: the path ends after ${level}`,
+      );
+    }
+    current = parent;
+  }
+  return current;
 }
