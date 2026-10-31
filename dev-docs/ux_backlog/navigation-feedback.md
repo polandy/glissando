@@ -41,20 +41,6 @@ check; popstate re-pushes the entry when the user chooses Keep choosing.
 Done when — Browser test: popstate during import with a selection shows the dialog; Keep keeps
 the route and the pictures.
 
-### UX-24 Blank screen while route data loads (size S)
-
-Problem — The start screen renders nothing until slideshows are loaded
-(`StartRoute.svelte:126`); the slideshow route has no loading branch (`SlideshowRoute.svelte`
-~180–215). On a slow device with many slideshows the first paint is an empty shell.
-
-Why — "Never a spinner without a label", and never nothing.
-
-Proposal — Skeleton cards (three grey cards) on the start screen and a skeleton strip on the
-slideshow route, each with a visually hidden "Loading…" status, replaced in place.
-
-Done when — A browser test with a delayed store shows the skeleton, then the content, with no
-layout jump larger than the header.
-
 ### UX-25 Reload stays in the open slideshow; the Library crumb is not a link (size S, decide)
 
 Problem — A reload restores the route from the tab's `history.state`
@@ -95,21 +81,3 @@ fixed.
 Done when — At 390×844 the editor's sections are reachable within two screens; no tile in the
 editor, Look or Transitions sheet carries a numeric badge; browser tests for the phone editor
 still pass.
-
-### UX-28 Phone header shows a spinning ring with no words (size S)
-
-Problem — While subjects are being detected after import, the header shows a lilac progress
-ring; the label "Looking for subjects · 1 of 30" is hidden below a 720 px container width
-(`FocusSearchIndicator.svelte`, `@container (max-width: 720px)`). On every phone this is a
-spinner without a label for up to a minute.
-
-Where — Start screen and slideshow screen header, phone, right after creating a slideshow.
-
-Why — "Never a spinner without a label" (SCOPE.md), and the phone is the primary device.
-
-Proposal — On narrow widths keep a short label ("Finding subjects 1/30") or move the status
-into a one-line strip under the header; the ring alone is never the only signal. Tapping it
-opens the Faces and subjects sheet, which already exists.
-
-Done when — At 390 px a visible text label accompanies the ring (browser test with a running
-search); the `aria-label` stays.

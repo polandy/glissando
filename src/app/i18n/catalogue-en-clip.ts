@@ -40,4 +40,6 @@ export const enClip: Pick<Catalogue, keyof typeof deClip> = {
     "The transition to the next slide runs in the last {length} of the excerpt.",
   "clip.reset": "Reset",
   "clip.done": "Done",
+  "clip.resetDone": "Clip reset",
+  "clip.soundReading": "Reading the sound…",
 };

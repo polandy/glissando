@@ -436,4 +436,6 @@ export const de = {
   ...deFilePage,
   ...deSampleMusicCredit,
   ...deSampleMusicPicker,
+  "route.loading": "Lädt …",
+  "start.searchShort": "Motive {done}/{total}",
 } as const satisfies Record<string, Message>;

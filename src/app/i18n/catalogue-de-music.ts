@@ -123,4 +123,5 @@ export const deMusic = {
   "music.volumeOriginalFile": "Originaldatei",
   "music.volumeListenCompare":
     "Während des Anhörens auf einen anderen Song tippen, um zu vergleichen.",
+  "music.waveformReading": "Song wird gelesen …",
 } as const satisfies Record<string, Message>;

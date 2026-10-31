@@ -2,7 +2,16 @@ import { flushSync } from "svelte";
 import { afterEach, describe, expect, it } from "vitest";
 import type { StoredSlideshow } from "../../library/stored-slideshow";
 import { ChapterSettingsEditor } from "../editing/chapter-settings-editor";
+import { ResetUndo } from "../editing/reset-undo";
+import { Toaster } from "../toast/toaster";
+import { FakeScheduler } from "../../ui-kit/testing/fake-scheduler";
 import { buttonNamed, mountScreen, tile, unmountScreen } from "./slideshow-screen-harness";
+
+const CHAPTER_PORTS = {
+  chapterDeletedText: () => "Kapitel gelöscht",
+  chapterTitleResetText: () => "Kapiteltitel wieder automatisch",
+  chapterSubtitleResetText: () => "Kapitel-Untertitel wieder automatisch",
+};
 
 afterEach(() => unmountScreen());
 
@@ -31,6 +40,8 @@ function chapterEditor() {
   let current = baseStored();
   const applied: StoredSlideshow[] = [];
   const editor = new ChapterSettingsEditor(
+    CHAPTER_PORTS,
+    new ResetUndo(new Toaster(new FakeScheduler()), () => "Rückgängig"),
     () => current,
     (next) => {
       current = next;

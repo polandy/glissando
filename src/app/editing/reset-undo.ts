@@ -4,14 +4,21 @@ import type { Toaster, ToastMessage } from "../toast/toaster";
 /**
  * The settings a reset drops: a picture's own ones ("Back to automatic"), the slideshow's
  * default transition ("Back to crossfade"), its portrait pictures setting (ADR-0028, "Back to
- * automatic"), its look (ADR-0044, "Back to None") and its mood (ADR-0045, "Back to Custom").
+ * automatic"), its look (ADR-0044, "Back to None") and its mood (ADR-0045, "Back to Custom"); also
+ * what a removal or reset of a title slide, a closing slide, a chapter or a video clip drops.
  */
 export type ResettableSetting =
   | keyof Pick<StoredPicture, "kenBurns" | "durationMs" | "transition">
   | "slideshowTransition"
   | "portraitPictures"
   | "slideshowLook"
-  | "slideshowMood";
+  | "slideshowMood"
+  | "openingCard"
+  | "closingCard"
+  | "addedChapter"
+  | "chapterTitle"
+  | "chapterSubtitle"
+  | "videoClip";
 
 interface PendingReset {
   readonly toast: ToastMessage;

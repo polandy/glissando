@@ -51,6 +51,47 @@ describe("SlideshowEditor's title slide and closing slide (ADR-0032, TITLE_SLIDE
     expect((await store.getSlideshow("show")).openingCard).toBeUndefined();
   });
 
+  it("removing the title slide offers an undo that restores it exactly", async () => {
+    const { editor, toaster, store } = await setUp(["a", "b"]);
+    const card = editor.ensureOpeningCard();
+    editor.removeOpeningCard();
+    await editor.settled();
+    expect(toaster.current?.text).toBe("Titelbild entfernt");
+    expect(toaster.current?.action?.label).toBe("Rückgängig");
+
+    toaster.act();
+
+    await editor.settled();
+    expect((await store.getSlideshow("show")).openingCard).toEqual(card);
+  });
+
+  it("a later edit of the title slide ends the removal's undo", async () => {
+    const { editor, toaster, store } = await setUp(["a", "b"]);
+    editor.ensureOpeningCard();
+    editor.removeOpeningCard();
+    const undo = toaster.current?.action;
+
+    const created = editor.ensureOpeningCard();
+    undo?.run();
+
+    await editor.settled();
+    expect(toaster.current).toBeNull();
+    expect((await store.getSlideshow("show")).openingCard).toEqual(created);
+  });
+
+  it("removing the closing slide offers an undo that restores it exactly", async () => {
+    const { editor, toaster, store } = await setUp(["a", "b"]);
+    const card = editor.ensureClosingCard();
+    editor.removeClosingCard();
+    await editor.settled();
+    expect(toaster.current?.text).toBe("Schlussbild entfernt");
+
+    toaster.act();
+
+    await editor.settled();
+    expect((await store.getSlideshow("show")).closingCard).toEqual(card);
+  });
+
   it("creates and stores the closing card's defaults over the last picture", async () => {
     const { editor, store } = await setUp(["a", "b", "c"]);
 

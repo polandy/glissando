@@ -11,6 +11,7 @@
   import { loadServerShelf } from "./server-shelf-loading";
   import StartLogo from "../start/StartLogo.svelte";
   import { loadStartSlideshows } from "./route-loading";
+  import RouteSkeleton from "./RouteSkeleton.svelte";
 
   let {
     store,
@@ -123,7 +124,9 @@
   <StartLogo play={playStartAnimation} />
 {/snippet}
 
-{#if slideshows !== null}
+{#if slideshows === null}
+  <RouteSkeleton variant="start" />
+{:else}
   <!-- The header carries the brand; the large logo greets an empty library and plays the
        first-launch animation even over a filled one. -->
   <StartScreen

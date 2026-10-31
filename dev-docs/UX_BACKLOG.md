@@ -4,14 +4,14 @@ Findings of the UX review of 2026-10-31 (main at 0a165a9, release 0.0.12), kept 
 until each item is done or rejected. One file per theme in `ux_backlog/`; an item is removed
 once it ships. `TODO.md` carries one line per theme and points here.
 
-| Theme                                                        | Items          | Weight  |
-| ------------------------------------------------------------ | -------------- | ------- |
-| [Slideshow screen](ux_backlog/slideshow-screen.md)           | UX-01 … 04, 27 | highest |
-| [Selection and editing](ux_backlog/selection-editing.md)     | UX-05 … 09     | high    |
-| [Music editor](ux_backlog/music-editor.md)                   | UX-10 … 13     | high    |
-| [Copy and terminology](ux_backlog/copy.md)                   | UX-14 … 17     | high    |
-| [Exports and settings](ux_backlog/exports-settings.md)       | UX-18 … 21     | medium  |
-| [Navigation and feedback](ux_backlog/navigation-feedback.md) | UX-22 … 26, 28 | medium  |
+| Theme                                                        | Items             | Weight  |
+| ------------------------------------------------------------ | ----------------- | ------- |
+| [Slideshow screen](ux_backlog/slideshow-screen.md)           | UX-01 … 04, 27    | highest |
+| [Selection and editing](ux_backlog/selection-editing.md)     | UX-05 … 09        | high    |
+| [Music editor](ux_backlog/music-editor.md)                   | UX-10 … 12        | high    |
+| [Copy and terminology](ux_backlog/copy.md)                   | UX-14 … 17        | high    |
+| [Exports and settings](ux_backlog/exports-settings.md)       | UX-18 … 21        | medium  |
+| [Navigation and feedback](ux_backlog/navigation-feedback.md) | UX-22, 23, 25, 26 | medium  |
 
 ## How the review was made
 
@@ -65,7 +65,7 @@ binding, a package that needs a change in a file it does not own waits for that 
 | P5  | UX-01, 02, 03, 27     | `SlideshowScreen.svelte` + its panel/strip-head, `FineSettings.svelte`, `chapter-sheet/*`, toast placement, catalogue `-mood` tile strings, `chapters.*` keys                                  | yes    | opus   |
 | P6  | UX-05, 06, 08         | selection bar, `StripTile.svelte`, strip, `base.css` coarse-pointer block                                                                                                                      | yes    | opus   |
 | P7  | UX-10, 11, 12         | `music-editor/*` except the stepper component, catalogue `-music -playlist -timing`                                                                                                            | yes    | opus   |
-| P8  | UX-07, 26             | `picture-editor/*`, the shared stepper component, the shared preview-tile component (badge), catalogue `-editor -transitions`                                                                  | yes    | opus   |
+| P8  | UX-07, 26, 09 rest    | `picture-editor/*`, the shared stepper component, the shared preview-tile component (badge), catalogue `-editor -transitions`                                                                  | yes    | opus   |
 | P9  | UX-04                 | title derivation, the creation step's last screen, `SlideshowCard.svelte`                                                                                                                      | yes    | opus   |
 
 Order and waves:
