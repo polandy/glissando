@@ -120,4 +120,38 @@ describe("VideoExportSession — outcomes", () => {
     expect(sheet.state).toEqual({ kind: "failed", error: broken });
     expect(ports.privateTargets[0]?.discarded).toBe(1);
   });
+
+  it("retries a failed export back to choose with the preset kept", async () => {
+    const ports = new FakeExportPorts();
+    const sheet = await opened(ports);
+    sheet.select("720p");
+    const { ended } = await running(ports, sheet);
+    ports.finish({ kind: "failed", error: new Error("encoder broke") });
+    await ended;
+
+    await sheet.retry();
+
+    expect(sheet.state).toMatchObject({ kind: "choose", preset: "720p", starting: false });
+  });
+
+  it("probes again on retry when a clip could not be decoded", async () => {
+    const ports = new FakeExportPorts();
+    ports.undecodable = 2;
+    const sheet = await opened(ports);
+    expect(sheet.state).toEqual({ kind: "clip-unsupported", clip: 2 });
+    ports.undecodable = null;
+
+    await sheet.retry();
+
+    expect(sheet.state.kind).toBe("choose");
+  });
+
+  it("does not retry outside a failure", async () => {
+    const sheet = await opened();
+    const before = sheet.state;
+
+    await sheet.retry();
+
+    expect(sheet.state).toBe(before);
+  });
 });

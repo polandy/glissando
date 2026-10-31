@@ -107,10 +107,9 @@ export const deServer = {
   "settings.playbackQualityAuto": "Automatisch",
   "settings.playbackQualityAutoHint":
     "Zurzeit {quality} · dieser Bildschirm hat {pixels} Pixel an der kurzen Kante",
-  "settings.playbackQuality1440": "1440 Pixel",
-  "settings.playbackQuality1440Hint": "Startet sofort, scharf auf Handy und Laptop",
-  "settings.playbackQuality4k": "4K",
-  "settings.playbackQuality4kHint": "Scharf auf großen Bildschirmen; lädt vor dem Start Bilder vor",
+  "settings.playbackQualityStandardHint": "1440 px · Startet sofort, scharf auf Handy und Laptop",
+  "settings.playbackQualityLargeHint":
+    "4K · Scharf auf großen Bildschirmen; lädt vor dem Start Bilder vor",
   "prepare.quality1440": "1440",
   "prepare.quality4k": "4K",
   "prepare.measuringTitle": "Prüfe die Verbindung …",

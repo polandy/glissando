@@ -6,18 +6,21 @@ gesture all close it the same way: by going back. A native modal dialog (focus t
 behind inert, focus back on the gear when closed): above 720 px viewport width a 380 px panel at
 the top right, narrower a bottom sheet. Radio groups, three with the server library on, else two
 (`components/RadioGroup.svelte`: one tab stop, arrows and Home/End move the choice with the
-focus), the Picture frame group (server library on), the Immich group, the version group, the footnote
-"Applies at once and is stored on this device" and a row of three links, wrapping when narrow:
-"Documentation", "Source code on GitHub" and "Open-source licences":
+focus), the Picture frame and Immich groups (server library on), the version group, the footnote
+"Applies at once and is stored on this device" and a row of four links, wrapping when narrow:
+"Documentation", "Source code on GitHub", "Open-source licences" and, always last, "Self-hosting
+and Immich" (the self-hosting guide — the one place that tells a user without a server how Immich
+comes in):
 
 - **Appearance**: "Same as device" (hint "Light or dark, following the system setting"),
   "Light", "Dark" — the theme preference ([THEMES.md](THEMES.md)).
 - **Language**: "Same as browser" (hint "Currently German" or "Currently English", what the
   browser languages pick), "Deutsch", "English" — the language preference ([LANGUAGES.md](LANGUAGES.md)).
 - **Quality of server slideshows**, only while the server library is on: "Automatic" (hint
-  "Currently 1440 · this screen has 1280 pixels on its short edge" — what it picks now and why),
-  "1440 pixels" ("Starts at once, sharp on phones and laptops"), "4K" ("Sharp on large screens;
-  prepares pictures before it starts"). Automatic plays 4K only when the screen's short edge in
+  "Currently Standard · this screen has 1280 pixels on its short edge" — what it picks now and
+  why), "Standard" ("1440 px · Starts at once, sharp on phones and laptops"), "Large" ("4K · Sharp
+  on large screens; prepares pictures before it starts") — the one size scale Small / Standard /
+  Large the export sheets use too (`sizeScale.*`). Automatic plays 4K only when the screen's short edge in
   device pixels (screen size × `devicePixelRatio`, `screenShortEdge` in
   `settings/playback-quality.ts`) is larger than 1440. What a server slideshow then does before
   it plays: [PREPARING.md](PREPARING.md), ADR-0027.
@@ -25,7 +28,9 @@ focus), the Picture frame group (server library on), the Immich group, the versi
   "Set up a picture frame" opens the frame's set-up screen ([FRAME.md](FRAME.md)); the switch
   "Show the card on the start page" (sub-line "Shown above your slideshows" or "Hidden in this
   browser") shows or hides the start screen's card, kept in this browser.
-- **Immich** (`immich/ImmichSettingsGroup.svelte`): read-only, see [IMMICH.md](IMMICH.md).
+- **Immich** (`immich/ImmichSettingsGroup.svelte`), only while the server library is on: read-only,
+  see [IMMICH.md](IMMICH.md). Without a server the group is absent; the "Self-hosting and Immich"
+  link stands in for it.
 - **Version** (`settings/VersionGroup.svelte`): "Glissando 0.0.2" and below it, in mono, the
   abbreviated commit and its date ("416d018 · 12/10/2026"). While a new version waits the box
   turns peach and offers "Reload to update", the same as the status bar's "Reload now"

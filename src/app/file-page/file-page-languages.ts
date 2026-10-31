@@ -35,6 +35,8 @@ function filePageWords(catalogue: Catalogue): FilePageWords {
     noManifest: catalogue["filePage.noManifest"],
     missing: catalogue["filePage.missing"],
     damaged: catalogue["filePage.damaged"],
+    showDetails: catalogue["filePage.showDetails"],
+    hideDetails: catalogue["filePage.hideDetails"],
     foreign: catalogue["filePage.foreign"],
     newer: catalogue["filePage.newer"],
   };

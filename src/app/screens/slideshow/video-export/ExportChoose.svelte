@@ -1,10 +1,11 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { FRAMES_PER_SECOND, type PresetId } from "../../../../video-export";
+  import type { PresetId } from "../../../../video-export";
   import Icon from "../../../components/Icon.svelte";
   import Notice from "../../../components/Notice.svelte";
   import { getTranslator } from "../../../i18n/context";
   import type { ExportSheetState } from "../../../video-export/export-sheet-state";
+  import { PRESET_NAME_KEY } from "../../../video-export/size-scale";
   import PresetRadios from "./PresetRadios.svelte";
 
   /** The size, the format and the notes before the start. */
@@ -36,33 +37,24 @@
   {estimate}
   {onSelect}
 />
-<div class="spec">
-  <span>{t("videoExport.container")}</span>
-  <span>{t("videoExport.videoCodec")}</span>
-  {#if view.audioCodec !== null}<span>{t(`videoExport.audio-${view.audioCodec}`)}</span>{/if}
-  <span>{t("videoExport.frameRate", { fps: FRAMES_PER_SECOND })}</span>
-</div>
 {#if view.audioCodec === "opus"}
-  <Notice tone="warn">
-    <b>{t("videoExport.opusTitle")}</b>
-    {t("videoExport.opusText")}
-  </Notice>
+  <p class="hint note"><Icon name="info" />{t("videoExport.appleNote")}</p>
 {/if}
 {#if shortage !== null}
   <Notice tone="warn">
     <b>{t("videoExport.spaceTitle")}</b>
     {t("videoExport.spaceText", {
       free: formatBytes(shortage.freeBytes),
-      preset: t(`videoExport.preset-${view.preset}`),
+      preset: t(PRESET_NAME_KEY[view.preset]),
       needed: formatBytes(shortage.neededBytes),
     })}
     {#if shortage.fitting !== null}
-      {t("videoExport.spaceFits", { preset: t(`videoExport.preset-${shortage.fitting}`) })}
+      {t("videoExport.spaceFits", { preset: t(PRESET_NAME_KEY[shortage.fitting]) })}
     {/if}
   </Notice>
 {/if}
-<p class="hint">{t("videoExport.hint")}</p>
 <footer>
+  <p class="hint footnote">{t("videoExport.hint")}</p>
   <button class="btn ghost" type="button" onclick={onCancel}>{t("common.cancel")}</button>
   <button class="btn primary" type="button" disabled={view.starting} onclick={onStart}>
     <Icon name="film" />{t("videoExport.start")}
@@ -70,17 +62,24 @@
 </footer>
 
 <style>
-  .spec {
+  .note {
     display: flex;
-    flex-wrap: wrap;
+    align-items: flex-start;
     gap: 6px;
   }
-  .spec span {
-    padding: 3px 8px;
-    border-radius: var(--gl-radius-pill);
-    background: var(--gl-hover);
-    color: var(--gl-muted);
-    font-size: var(--gl-size-small);
+  .note :global(.icon) {
+    margin-top: 2px;
+  }
+  .footnote {
+    flex: 1 1 0;
+    align-self: center;
+    min-width: 0;
+  }
+  /* The same breakpoint as the dialog: on a phone the line sits above the buttons. */
+  @media (max-width: 720px) {
+    .footnote {
+      flex-basis: 100%;
+    }
   }
   b {
     font-weight: var(--gl-weight-semibold);

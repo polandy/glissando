@@ -9,28 +9,19 @@ export const enVideo: Pick<Catalogue, keyof typeof deVideo> = {
   "videoExport.withoutMusic": "without music",
   "videoExport.probing": "Glissando is checking what this device can do …",
   "videoExport.sizes": "Size",
-  "videoExport.preset-720p": "Small",
-  "videoExport.preset-1080p": "Standard",
-  "videoExport.preset-4k": "Large",
   "videoExport.use-720p": "For sending",
-  "videoExport.use-1080p": "For computer, phone and tablet",
-  "videoExport.use-4k": "For the TV",
+  "videoExport.use-1080p": "Full HD, for computer, phone and tablet",
+  "videoExport.use-4k": "4K, for the TV",
   "videoExport.resolution": "{width} × {height}",
+  "videoExport.sizeLine": "{resolution} · {use}",
   "videoExport.about": "about {size}",
   "videoExport.cannotEncode": "This device cannot encode it",
-  "videoExport.container": "MP4",
-  "videoExport.videoCodec": "H.264",
-  "videoExport.audio-aac": "AAC",
-  "videoExport.audio-opus": "Opus",
-  "videoExport.frameRate": "{fps} fps",
-  "videoExport.opusTitle": "The sound will be Opus.",
-  "videoExport.opusText":
-    "This browser cannot encode AAC. The video plays on computers, in VLC and on Android, but not on iPhone, iPad and Apple TV. For Apple devices, save it in Safari, or in Chrome on Windows or macOS.",
   "videoExport.spaceTitle": "There is probably not enough space.",
   "videoExport.spaceText": "About {free} is free, “{preset}” needs about {needed}.",
   "videoExport.spaceFits": "“{preset}” fits.",
-  "videoExport.hint":
-    "Glissando renders every frame one by one, which takes about as long as the slideshow, depending on the device. Keep Glissando open meanwhile; the screen stays on.",
+  "videoExport.appleNote":
+    "Won't play on iPhone, iPad or Apple TV from this browser. For those, create it in Safari.",
+  "videoExport.hint": "Takes about as long as the slideshow. Keep Glissando open.",
   "videoExport.start": "Create video",
   "videoExport.runningTitle": "Creating the video",
   "videoExport.runningSubtitle": "{preset} · {resolution}",
@@ -50,16 +41,4 @@ export const enVideo: Pick<Catalogue, keyof typeof deVideo> = {
   "videoExport.download": "Download",
   "videoExport.downloadHint": "Closing deletes the copy in Glissando; download it first.",
   "videoExport.failedTitle": "Video not created",
-  "videoExport.storageFullTitle": "The device's storage is full.",
-  "videoExport.storageFullText":
-    "At frame {frame} of {total} there was no space left. The unfinished file is deleted. About {missing} is missing; “Small”, or tidying up the device, will do.",
-  "videoExport.otherSize": "Choose another size",
-  "videoExport.failedText":
-    "Something went wrong while creating it. The unfinished file is discarded.",
-  "videoExport.clipUnsupportedTitle": "Clip {clip} cannot be exported.",
-  "videoExport.clipUnsupportedText":
-    "This browser cannot decode that clip frame by frame. It still plays in the show; remove the clip or export from another browser.",
-  "videoExport.unsupportedTitle": "This browser cannot create videos.",
-  "videoExport.unsupportedText":
-    "Glissando needs WebCodecs for it. Current Chrome, Edge, Firefox and Safari (also on iPhone and iPad) have it.",
 };

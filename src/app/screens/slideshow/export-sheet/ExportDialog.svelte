@@ -4,7 +4,8 @@
 
   /**
    * The export sheets' frame (video_export/SHEET.md and html_export/SHEET.md): a modal dialog on
-   * desktop, a bottom sheet on a phone, with the heading and ✕. Esc and ✕ call `onClose`.
+   * desktop, a bottom sheet on a phone, with the heading and ✕. ✕ calls `onClose`; Esc goes back one
+   * level through `onBack` when there is one, else it calls `onClose`.
    */
   let {
     labelId,
@@ -43,7 +44,7 @@
 
   function cancel(event: Event): void {
     event.preventDefault();
-    onClose();
+    (onBack ?? onClose)();
   }
 
   // The sheet fills the dialog, so a click that lands on the dialog itself is on its backdrop.
@@ -146,13 +147,6 @@
     color: var(--gl-muted);
     font-size: var(--gl-size-meta);
     line-height: 1.45;
-  }
-  .sheet :global(.error-detail) {
-    display: block;
-    margin-top: 6px;
-    color: var(--gl-muted);
-    font-size: var(--gl-size-small);
-    overflow-wrap: anywhere;
   }
   .sheet :global(footer) {
     display: flex;

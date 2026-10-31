@@ -17,7 +17,7 @@
     type PlaybackQualityPreference,
   } from "./playback-quality";
   import type { ThemePreference } from "./theme";
-  import { DOCUMENTATION_URL, SOURCE_CODE_URL } from "./project-links";
+  import { DOCUMENTATION_URL, SELF_HOSTING_GUIDE_URL, SOURCE_CODE_URL } from "./project-links";
   import { THIRD_PARTY_LICENSES_FILE } from "./third-party-licenses";
   import VersionGroup from "./VersionGroup.svelte";
 
@@ -51,7 +51,7 @@
     onReload: () => void;
     onTheme: (theme: ThemePreference) => void;
     onLanguage: (language: LanguagePreference) => void;
-    /** The server library is on: its slideshows' quality can be chosen. */
+    /** The server library is on: its slideshows' quality can be chosen and Immich is offered. */
     serverOn: boolean;
     /** This screen's short edge in device pixels, what "auto" decides by. */
     screenShortEdge: number;
@@ -92,8 +92,8 @@
   ]);
 
   const QUALITY_NAME: Readonly<Record<PlaybackQuality, MessageKey>> = {
-    "1440": "prepare.quality1440",
-    "4k": "prepare.quality4k",
+    "1440": "sizeScale.standard",
+    "4k": "sizeScale.large",
   };
   const playbackQualities: readonly RadioOption<PlaybackQualityPreference>[] = $derived([
     {
@@ -107,13 +107,13 @@
     },
     {
       value: "1440",
-      label: t("settings.playbackQuality1440"),
-      hint: t("settings.playbackQuality1440Hint"),
+      label: t("sizeScale.standard"),
+      hint: t("settings.playbackQualityStandardHint"),
     },
     {
       value: "4k",
-      label: t("settings.playbackQuality4k"),
-      hint: t("settings.playbackQuality4kHint"),
+      label: t("sizeScale.large"),
+      hint: t("settings.playbackQualityLargeHint"),
     },
   ]);
 
@@ -191,8 +191,8 @@
         onSetUp={onSetUpFrame}
         onCardShown={onFrameCardShown}
       />
+      <ImmichSettingsGroup state={immich} onCheck={onCheckImmich} {onReload} />
     {/if}
-    <ImmichSettingsGroup state={immich} onCheck={onCheckImmich} {onReload} />
     <VersionGroup {build} {updateWaiting} {onUpdate} />
     <p class="footnote">{t("settings.footnote")}</p>
     <div class="links">
@@ -203,6 +203,9 @@
         >{t("settings.sourceCode")}</a
       >
       <a href={THIRD_PARTY_LICENSES_FILE} target="_blank" rel="noopener">{t("settings.licenses")}</a
+      >
+      <a href={SELF_HOSTING_GUIDE_URL} target="_blank" rel="noopener noreferrer"
+        >{t("settings.selfHosting")}</a
       >
     </div>
   </div>

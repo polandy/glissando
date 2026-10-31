@@ -72,7 +72,7 @@ chapters are turned on or off for the whole slideshow, and shows how many there 
 ## Keep and share
 
 All of it is behind the **Share** button next to the slideshow's title. It opens a list in two
-groups; choose a row and its sheet opens, with **Back** to the list.
+groups; choose a row and its sheet opens, with **Back** (or Esc) to the list and ✕ to close.
 
 - **Watch by link** needs a self-hosted Glissando ([self-hosting](self-hosting.md)): a link anyone
   can watch, which stays up to date until you turn it off.
@@ -109,3 +109,5 @@ groups; choose a row and its sheet opens, with **Back** to the list.
 - Ask the browser to keep the data (Glissando requests it); clearing site data deletes slideshows
   stored on the device — save a `.glissando` file as a backup.
 - Language and light/dark follow your device; both can be changed in Settings.
+  Immich and the server quality settings appear in Settings only when Glissando runs with its own
+  server (see the self-hosting guide).

@@ -1,10 +1,12 @@
 # Sizes
 
-| Size (id)      | Fits within | Label (de / en)                                               |
-| -------------- | ----------- | ------------------------------------------------------------- |
-| Klein / Small  | 1280 × 720  | Zum Verschicken in einer Nachricht / For sending in a message |
-| Scharf / Sharp | 1920 × 1080 | Für Rechner und Tablet / For a computer or tablet             |
-| 4K             | 3840 × 2160 | Für den Fernseher / For the TV                                |
+| Size (id), shared name | Fits within | Use (de / en)                                                       |
+| ---------------------- | ----------- | ------------------------------------------------------------------- |
+| `small`, Klein / Small | 1280 × 720  | Zum Verschicken in einer Nachricht / For sending in a message       |
+| `sharp`, Standard      | 1920 × 1080 | Full HD, für Rechner und Tablet / Full HD, for a computer or tablet |
+| `4k`, Groß / Large     | 3840 × 2160 | 4K, für den Fernseher / 4K, for the TV                              |
+
+The names come from the shared `sizeScale.*` keys, the same as in the video sheet.
 
 - Each picture is fitted within the size (`fitWithin`, long and short edge, never scaled up) and
   encoded as JPEG q 0.85. The stored display picture already fits within 3840 × 2160, so 4K takes

@@ -1,44 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { estimatePageBytes } from "../../html-export/plan";
 import { estimatedBytes, presetById } from "../../video-export";
-import { HtmlExportSession } from "./html-export-session";
+import {
+  FILE_NAME,
+  PICTURES,
+  DURATION_MS,
+  opened,
+  running,
+  session,
+} from "./html-export-session-fixtures";
 import { FakeHtmlExportPorts, fakeDestination } from "./testing/fake-html-export-ports";
-
-const TITLE = "Sommer am See";
-const FILE_NAME = "Sommer am See.html";
-const DURATION_MS = 10_000;
-const PICTURES = 3;
-
-function session(
-  ports: FakeHtmlExportPorts,
-  withMusic = true,
-  picturesFromImmich = false,
-): HtmlExportSession {
-  return new HtmlExportSession(
-    {
-      title: TITLE,
-      durationMs: DURATION_MS,
-      withMusic,
-      pictureCount: PICTURES,
-      picturesFromImmich,
-      clipCount: 0,
-    },
-    ports,
-  );
-}
-
-async function opened(ports = new FakeHtmlExportPorts()) {
-  const sheet = session(ports);
-  await sheet.open();
-  return sheet;
-}
-
-/** Starts the export and waits until it runs; `ended` settles once its outcome is shown. */
-async function running(ports: FakeHtmlExportPorts, sheet: HtmlExportSession) {
-  const ended = sheet.start();
-  const run = await ports.nextRun();
-  return { ended, run };
-}
 
 describe("HtmlExportSession — choose", () => {
   it("offers Small first and estimates each size once the stored sizes are read", async () => {

@@ -3,11 +3,9 @@
   export interface SizeOption<Id extends string> {
     readonly id: Id;
     readonly name: string;
-    /** Beside the name: "1920 × 1080", "1280 px". */
-    readonly detail: string;
     /** At the end of the row: "ca. 16 MB"; empty while unknown. */
     readonly size: string;
-    /** Under the name: what the size is for, or why it is unusable. */
+    /** Under the name, one line: "1920 × 1080 · Full HD …", or why the size is unusable. */
     readonly use: string;
     readonly usable: boolean;
   }
@@ -65,7 +63,7 @@
       {onkeydown}
     >
       <span class="dot"></span>
-      <b>{option.name} <span class="resolution">{option.detail}</span></b>
+      <b>{option.name}</b>
       <span class="size">{option.size}</span>
       <small>{option.use}</small>
     </button>
@@ -119,11 +117,6 @@
     font-weight: var(--gl-weight-semibold);
     font-size: var(--gl-size-body);
   }
-  .resolution {
-    color: var(--gl-muted);
-    font-weight: var(--gl-weight-regular);
-    font-size: var(--gl-size-meta);
-  }
   small {
     grid-column: 2;
     color: var(--gl-muted);
@@ -134,7 +127,7 @@
     color: var(--gl-muted);
     text-align: right;
   }
-  .preset[aria-disabled="true"] :is(small, .size, .resolution) {
+  .preset[aria-disabled="true"] :is(small, .size) {
     color: var(--gl-faint);
   }
 </style>

@@ -14,6 +14,7 @@ import type {
   PageDestination,
   PageEstimates,
 } from "./html-export-state";
+import { preselectedPageSize, sizesBarelyDiffer } from "./size-note";
 
 /** The video the choose state compares the page with. */
 const COMPARED_VIDEO_PRESET: PresetId = "1080p";
@@ -30,6 +31,9 @@ export class HtmlExportSession {
   readonly #listeners = new Set<(state: HtmlExportState) => void>();
   readonly #closed = new AbortController();
   readonly #releaseOpened: (() => void)[] = [];
+  #userChose = false;
+  #sizeId: PageSizeId = DEFAULT_PAGE_SIZE;
+  #estimates: PageEstimates | null = null;
   #state: HtmlExportState = {
     kind: "choose",
     sizeId: DEFAULT_PAGE_SIZE,
@@ -77,14 +81,31 @@ export class HtmlExportSession {
       return;
     }
     if (this.#state.kind === "choose") {
-      this.#set({ ...this.#state, estimates: estimates(weights) });
+      const measured = estimates(weights);
+      // Clips go in whole at every size, so with clips the sizes may hardly differ.
+      const alike = this.#subject.clipCount > 0 && sizesBarelyDiffer(Object.values(measured));
+      const sizeId = preselectedPageSize(this.#state.sizeId, alike, this.#userChose);
+      this.#set({ ...this.#state, sizeId, estimates: measured });
     }
   }
 
   select(sizeId: PageSizeId): void {
     if (this.#state.kind === "choose" && !this.#state.starting) {
+      this.#userChose = true;
       this.#set({ ...this.#state, sizeId });
     }
+  }
+
+  /** "Try again" after a failure: back to choose with the size kept. */
+  async retry(): Promise<void> {
+    if (this.#state.kind !== "failed") return;
+    this.#set({
+      kind: "choose",
+      sizeId: this.#sizeId,
+      estimates: this.#estimates,
+      starting: false,
+    });
+    if (this.#estimates === null) await this.open();
   }
 
   /** "Webseite erstellen"; call it in the click, since the save picker needs its user gesture. */
@@ -200,6 +221,8 @@ export class HtmlExportSession {
 
   #set(state: HtmlExportState): void {
     this.#state = state;
+    if (state.kind === "choose") this.#estimates = state.estimates;
+    if (state.kind === "choose" || state.kind === "running") this.#sizeId = state.sizeId;
     for (const listener of this.#listeners) {
       listener(state);
     }

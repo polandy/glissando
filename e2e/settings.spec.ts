@@ -63,3 +63,18 @@ test("E2E-070 the settings link to the documentation and the source code on GitH
   await expect(sourceCode).toHaveAttribute("href", "https://github.com/polandy/glissando");
   await expect(sourceCode).toHaveAttribute("target", "_blank");
 });
+
+test("E2E-102 without a server the settings leave out Immich, and the self-hosting link comes last", async ({
+  page,
+}) => {
+  const dialog = settingsDialog(page);
+
+  await expect(dialog.getByRole("region", { name: "Version" })).toBeVisible();
+  await expect(dialog.getByText("Immich", { exact: true })).toHaveCount(0);
+  const lastLink = dialog.getByRole("link").last();
+  await expect(lastLink).toHaveText("Selbst hosten und Immich");
+  await expect(lastLink).toHaveAttribute(
+    "href",
+    "https://github.com/polandy/glissando/blob/main/docs/self-hosting.md",
+  );
+});

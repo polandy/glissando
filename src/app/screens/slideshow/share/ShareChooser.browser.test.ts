@@ -201,4 +201,49 @@ describe("The Share chooser", () => {
     expect(calls.closed).toBe(1);
     expect(document.activeElement).toBe(shareButton());
   });
+
+  it("goes back to the chooser with Esc in a nested sheet, and closes with the next Esc", async () => {
+    const { dialog, option, heading, press, calls } = await mountShare();
+    await press(option("Video"));
+    expect(heading()).not.toBe("Teilen");
+
+    dialog()?.dispatchEvent(new Event("cancel", { cancelable: true }));
+    await tick();
+    flushSync();
+
+    expect(heading()).toBe("Teilen");
+    expect(option("Video")).toBeDefined();
+    expect(calls.closed).toBe(0);
+
+    dialog()?.dispatchEvent(new Event("cancel", { cancelable: true }));
+    await tick();
+    flushSync();
+
+    expect(dialog()).toBeNull();
+    expect(calls.closed).toBe(1);
+  });
+
+  it("goes back to the chooser with Esc in the Glissando file sheet", async () => {
+    const { dialog, option, heading, press } = await mountShare();
+    await press(option("Glissando-Datei"));
+    expect(heading()).toBe("Glissando-Datei");
+
+    dialog()?.dispatchEvent(new Event("cancel", { cancelable: true }));
+    await tick();
+    flushSync();
+
+    expect(heading()).toBe("Teilen");
+  });
+
+  it("closes everything with a tap on the scrim in a nested sheet", async () => {
+    const { dialog, option, press, calls } = await mountShare();
+    await press(option("Glissando-Datei"));
+
+    dialog()?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    await tick();
+    flushSync();
+
+    expect(dialog()).toBeNull();
+    expect(calls.closed).toBe(1);
+  });
 });
