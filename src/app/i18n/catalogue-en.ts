@@ -23,6 +23,7 @@ import { enFrame } from "./catalogue-en-frame.ts";
 import { enCards } from "./catalogue-en-cards.ts";
 import { enChapters } from "./catalogue-en-chapters.ts";
 import { enFilePage } from "./catalogue-en-file-page.ts";
+import { enExportErrors } from "./catalogue-en-export-errors.ts";
 import { enSampleMusicCredit } from "./catalogue-en-sample-music-credit.ts";
 import { enSampleMusicPicker } from "./catalogue-en-sample-music-picker.ts";
 import type { Catalogue } from "./messages.ts";
@@ -78,6 +79,7 @@ export const en: Catalogue = {
   "settings.documentation": "Documentation",
   "settings.sourceCode": "Source code on GitHub",
   "settings.licenses": "Open-source licences",
+  "settings.selfHosting": "Self-hosting and Immich",
   "settings.version": "Version",
   "settings.versionName": "Glissando {version}",
   "settings.update": "Reload to update",
@@ -431,6 +433,7 @@ export const en: Catalogue = {
   ...enCards,
   ...enChapters,
   ...enFilePage,
+  ...enExportErrors,
   ...enSampleMusicCredit,
   ...enSampleMusicPicker,
   "route.loading": "Loading…",

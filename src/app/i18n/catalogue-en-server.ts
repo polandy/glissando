@@ -107,10 +107,9 @@ export const enServer: Pick<Catalogue, keyof typeof deServer> = {
   "settings.playbackQualityAuto": "Automatic",
   "settings.playbackQualityAutoHint":
     "Currently {quality} · this screen has {pixels} pixels on its short edge",
-  "settings.playbackQuality1440": "1440 pixels",
-  "settings.playbackQuality1440Hint": "Starts at once, sharp on phones and laptops",
-  "settings.playbackQuality4k": "4K",
-  "settings.playbackQuality4kHint": "Sharp on large screens; prepares pictures before it starts",
+  "settings.playbackQualityStandardHint": "1440 px · Starts at once, sharp on phones and laptops",
+  "settings.playbackQualityLargeHint":
+    "4K · Sharp on large screens; prepares pictures before it starts",
   "prepare.quality1440": "1440",
   "prepare.quality4k": "4K",
   "prepare.measuringTitle": "Checking the connection …",

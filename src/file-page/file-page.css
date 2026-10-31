@@ -15,3 +15,31 @@
   max-width: 34em;
   margin-inline: auto;
 }
+
+.choose .problem {
+  max-width: 34em;
+  margin-inline: auto;
+}
+
+.details-toggle {
+  margin-top: 8px;
+  padding: 4px 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: var(--gl-size-label);
+  text-decoration: underline;
+  opacity: 0.82;
+  cursor: pointer;
+}
+
+.error-details {
+  margin: 8px 0 0;
+  font-family: var(--gl-font-mono);
+  font-size: var(--gl-size-small);
+  text-align: left;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  opacity: 0.7;
+}
