@@ -70,6 +70,7 @@
     loadPicture={(id) =>
       (adding.home === "server" ? serverLibrary.store : store).playbackPictureBlob(id)}
     onError={reportError}
+    guardLeave={(guard) => navigator.guardLeave(guard)}
     onDiscard={(leave) => void addFlow.discard(leave)}
     onCommit={() => addFlow.commit()}
     immich={immichState}

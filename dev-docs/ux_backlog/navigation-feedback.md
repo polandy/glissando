@@ -24,23 +24,6 @@ player already behaves this way per SCOPE.md ("back arrow and browser back do th
 Done when — A browser test simulates popstate with an open sheet and asserts the sheet closes
 and the route stays; manual check on Android noted in the PR.
 
-### UX-23 Browser back skips the "Discard selection?" guard (size S)
-
-Problem — Leaving the import or add-pictures route with pictures selected asks "Discard
-selection?" from the in-app Back and Cancel only; the browser back / popstate path has no
-guard, so the selection is lost silently.
-
-Where — `ImportRoute.svelte:78`, `AddPicturesRoute.svelte:75` (guard), `navigator.ts:92` (no
-guard).
-
-Why — Data loss without warning; the same action should behave the same from either back.
-
-Proposal — Route the guard through the navigator: a route can register a "before leave"
-check; popstate re-pushes the entry when the user chooses Keep choosing.
-
-Done when — Browser test: popstate during import with a selection shows the dialog; Keep keeps
-the route and the pictures.
-
 ### UX-25 Reload stays in the open slideshow; the Library crumb is not a link (size S, decide)
 
 Problem — A reload restores the route from the tab's `history.state`

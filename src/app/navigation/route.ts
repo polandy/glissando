@@ -61,6 +61,11 @@ export function parentOf(route: Route): Route | null {
 /** The screens whose selection of pictures lives in memory only. */
 const SELECTING_SCREENS: ReadonlySet<Route["screen"]> = new Set(["import", "immich", "add"]);
 
+/** The screens whose selection of pictures lives in memory; moving between them keeps it. */
+export function isSelectingScreen(route: Route): boolean {
+  return SELECTING_SCREENS.has(route.screen);
+}
+
 /**
  * Whether history may bring the route back: a selection of pictures lives in memory only, so
  * only its own screens bring each other back; the player's music needs a user gesture to start,

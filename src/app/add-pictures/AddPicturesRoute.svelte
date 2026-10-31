@@ -5,6 +5,8 @@
   import RadioGroup from "../components/RadioGroup.svelte";
   import ImmichBox from "../immich/ImmichBox.svelte";
   import { getTranslator } from "../i18n/context";
+  import type { Navigator } from "../navigation/navigator";
+  import { isSelectingScreen } from "../navigation/route";
   import ImportFrame from "../import/ImportFrame.svelte";
   import {
     canContinue,
@@ -29,6 +31,7 @@
     immich,
     onOpenImmich,
     onImmichSettings,
+    guardLeave,
   }: {
     session: AddPicturesSession;
     loadThumbnail: (pictureId: string) => Promise<Blob>;
@@ -42,6 +45,8 @@
     onOpenImmich: () => void;
     /** An Immich problem's details are in the settings. */
     onImmichSettings: () => void;
+    /** Registers the check that keeps a selection from being dropped silently by the browser back. */
+    guardLeave: Navigator["guardLeave"];
   } = $props();
 
   const { t } = getTranslator();
@@ -71,6 +76,16 @@
     session.placement = chosen;
     placement = chosen;
   }
+
+  $effect(() =>
+    guardLeave((to) => {
+      if (isSelectingScreen(to) || !hasSelection(importState)) {
+        return true;
+      }
+      confirmingDiscard = true;
+      return false;
+    }),
+  );
 
   function leave(): void {
     if (hasSelection(importState)) {
