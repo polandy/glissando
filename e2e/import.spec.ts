@@ -97,8 +97,13 @@ test.describe("Abbrechen with pictures chosen", () => {
     ]);
   });
 
-  test("E2E-007 Verwerfen returns to start and stores nothing", async ({ page }) => {
-    await page.getByRole("button", { name: "Entfernen" }).click();
+  test("E2E-007 Entfernen in the discard dialog returns to start and stores nothing", async ({
+    page,
+  }) => {
+    await page
+      .getByRole("dialog", { name: "Auswahl entfernen?" })
+      .getByRole("button", { name: "Entfernen" })
+      .click();
     await expect(page.getByRole("heading", { name: "Bilder rein, Diashow raus." })).toBeVisible();
 
     await page.reload();

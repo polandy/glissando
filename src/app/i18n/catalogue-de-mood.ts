@@ -28,7 +28,8 @@ export const deMood = {
   "mood.customSubtitle": "Ihre Einstellungen",
   "mood.hintMood":
     "Die Bilddauer folgt dem Beat des Songs. Bilder mit eigener Dauer, eigenem Übergang oder eigener Bewegung behalten sie.",
-  "mood.hintCustom": "Bilddauer, Übergänge und Bewegung, wie du sie an der Diashow eingestellt hast.",
+  "mood.hintCustom":
+    "Bilddauer, Übergänge und Bewegung, wie du sie an der Diashow eingestellt hast.",
   "mood.backToCustom": "Stimmung ausschalten",
   "mood.alreadyCustom": "Keine Stimmung ist an",
   "mood.sound": "Ton",

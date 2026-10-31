@@ -12,7 +12,8 @@ export const dePortrait = {
   "portrait.title": "Hochformatbilder",
   "portrait.hintAutomatic":
     "Zwei Hochformatbilder stehen nebeneinander; ein einzelnes, das der Zuschnitt stark beschneiden würde, bekommt eine unscharfe Füllung.",
-  "portrait.hintOneAtATime": "Jedes Bild wird einzeln gezeigt; eines, das der Zuschnitt stark beschneiden würde, bekommt eine unscharfe Füllung.",
+  "portrait.hintOneAtATime":
+    "Jedes Bild wird einzeln gezeigt; eines, das der Zuschnitt stark beschneiden würde, bekommt eine unscharfe Füllung.",
   "portrait.hintFillScreen":
     "Jedes Bild füllt den Bildschirm, auch wenn das Kopf oder Füße abschneidet.",
   "portrait.note": "Bilder mit eigenen Einstellungen werden immer einzeln gezeigt.",
