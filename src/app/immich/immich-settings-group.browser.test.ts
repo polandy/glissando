@@ -48,7 +48,7 @@ describe("ImmichSettingsGroup", () => {
   });
 
   it.each([
-    ["unreachable", "The Glissando backend cannot reach the Immich server."],
+    ["unreachable", "The Glissando server cannot reach the Immich server."],
     ["keyRejected", "Immich rejects the server's key."],
     ["offline", "Offline — Immich needs a connection to your Glissando server."],
   ] as const)("names %s in one line and checks again on request", (kind, line) => {
@@ -59,12 +59,10 @@ describe("ImmichSettingsGroup", () => {
     expect(calls).toEqual(["check"]);
   });
 
-  it("names the five permissions the server's key lacks", () => {
+  it("points to the setup guide when the key lacks permissions", () => {
     const { target } = mountGroup({ kind: "permissionMissing" });
 
-    expect(target.querySelector(".notice")?.textContent).toContain(
-      "album.read, asset.read, asset.view, asset.download and face.read",
-    );
+    expect(target.querySelector(".notice")?.textContent).toContain("see the setup guide");
   });
 
   it("offers Reload, not Check again, when the sign-in has expired", () => {

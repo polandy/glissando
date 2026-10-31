@@ -124,7 +124,7 @@ describe("preparing a server slideshow in the player layer", () => {
     const { store, target } = await mountLayer("4k");
     await preparing(target);
 
-    button(target, "In 1440 abspielen").click();
+    button(target, "Früher abspielen, etwas weniger scharf").click();
     const counter = await whenRendered(target, ".counter");
 
     expect(counter.textContent).toBe("1 / 3");

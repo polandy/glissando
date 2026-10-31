@@ -21,10 +21,8 @@ describe("MoodSheet", () => {
 
     expect(tile("custom").getAttribute("aria-checked")).toBe("true");
     expect(tile("calm").getAttribute("aria-checked")).toBe("false");
-    expect(hint()).toBe(
-      "Your own picture times, transitions and Ken Burns, as set on the slideshow.",
-    );
-    expect(setText("Transitions")).toBe("standard");
+    expect(hint()).toBe("Picture length, transitions and motion as you set them on the slideshow.");
+    expect(setText("Transitions")).toBe("automatic");
   });
 
   it("checks the stored mood's tile and shows the mood's hint and what it sets", () => {
@@ -32,11 +30,11 @@ describe("MoodSheet", () => {
 
     expect(tile("calm").getAttribute("aria-checked")).toBe("true");
     expect(hint()).toBe(
-      "Picture times follow the song's beats and phrases. Pictures with their own duration, transition or motion keep them.",
+      "Picture length follows the song's beat. Pictures with their own duration, transition or motion keep them.",
     );
     expect(setText("Transitions")).toBe("Crossfade, long");
-    expect(setText("Ken Burns")).toBe("Gentle");
-    expect(setText("Picture times")).toBe("~8 s · 8 beats");
+    expect(setText("Motion")).toBe("Gentle");
+    expect(setText("Picture length")).toBe("~8 s · 8 beats");
   });
 
   it("stores a tapped tile at once", () => {
@@ -134,6 +132,6 @@ describe("MoodSheet", () => {
 
     await whenRendered(target, ".stage");
 
-    expect(setText("Picture times")).toBe("~6.9 s · 12 beats");
+    expect(setText("Picture length")).toBe("~6.9 s · 12 beats");
   });
 });

@@ -73,7 +73,7 @@ export async function choosePictures(
   files: TestFile[],
   storedCount: number,
 ): Promise<void> {
-  await chooseFiles(page, page.getByRole("button", { name: "Medien auswählen" }), files);
+  await chooseFiles(page, page.getByRole("button", { name: "Bilder auswählen" }), files);
   await expect(page.getByText(`${storedCount} Bilder`, { exact: true })).toBeVisible();
 }
 
@@ -99,9 +99,7 @@ function pictureLengthSection(page: Page): Locator {
 async function leaveMoodForOwnPictureTimes(page: Page): Promise<Locator> {
   const lengthSection = pictureLengthSection(page);
   await lengthSection.getByRole("button", { name: "Selbst festlegen" }).click();
-  await expect(
-    page.getByRole("status").filter({ hasText: "Stimmung ist jetzt Eigene" }),
-  ).toBeVisible();
+  await expect(page.getByRole("status").filter({ hasText: "Keine Stimmung ist an" })).toBeVisible();
   return lengthSection;
 }
 
@@ -224,7 +222,7 @@ export async function captionPicture(page: Page, tile: string, caption: string):
 export async function chooseCustomMood(page: Page): Promise<void> {
   await page.getByRole("button", { name: /^Stimmung/ }).click();
   const sheet = page.getByRole("dialog", { name: "Stimmung" });
-  await sheet.getByRole("radio", { name: "Eigene" }).click();
+  await sheet.getByRole("radio", { name: "Keine Stimmung" }).click();
   await sheet.getByRole("button", { name: "Fertig" }).click();
   await expect(sheet).toBeHidden();
 }

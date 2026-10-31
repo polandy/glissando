@@ -34,7 +34,7 @@ test("E2E-042 the import sets aside the blurrier of two similar shots and a blur
   ];
 
   await openImport(page);
-  await chooseFiles(page, page.getByRole("button", { name: "Medien auswählen" }), files);
+  await chooseFiles(page, page.getByRole("button", { name: "Bilder auswählen" }), files);
 
   const setAside = page.getByRole("region", { name: /^Beiseitegelegt/ });
   await expect(setAside.getByRole("heading", { level: 2 })).toHaveText("Beiseitegelegt · 2");

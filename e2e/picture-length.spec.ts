@@ -40,14 +40,12 @@ test("E2E-040 with music the pictures keep the mood's length on the beat until t
 
   await page.getByRole("button", { name: /^Musik Takt\.wav/ }).click();
   await expect(page.locator('[aria-labelledby="music-picture-changes"] .state')).toHaveText(
-    "120 BPM",
+    "120 Schläge pro Minute",
   );
   // Calm still sets the picture length, so "Selbst festlegen" is the only control here (ADR-0045).
   await expect(lengthSection.getByRole("button", { name: "Selbst festlegen" })).toBeVisible();
   await lengthSection.getByRole("button", { name: "Selbst festlegen" }).click();
-  await expect(
-    page.getByRole("status").filter({ hasText: "Stimmung ist jetzt Eigene" }),
-  ).toBeVisible();
+  await expect(page.getByRole("status").filter({ hasText: "Keine Stimmung ist an" })).toBeVisible();
 
   await expect(ownSeconds("7 s")).toHaveAttribute("aria-checked", "true");
   await lengthSection.getByRole("button", { name: "Länger" }).click();
@@ -85,9 +83,7 @@ test("E2E-085 without music the music editor sets the picture length below its e
   );
 
   await lengthSection.getByRole("button", { name: "Selbst festlegen" }).click();
-  await expect(
-    page.getByRole("status").filter({ hasText: "Stimmung ist jetzt Eigene" }),
-  ).toBeVisible();
+  await expect(page.getByRole("status").filter({ hasText: "Keine Stimmung ist an" })).toBeVisible();
   await expect(lengthSection).toContainText("Je etwa 7 s");
   // Nothing to fill without music: the stepper alone, no choice.
   await expect(lengthSection.getByRole("radio")).toHaveCount(0);

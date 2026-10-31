@@ -14,8 +14,8 @@ test.use(GERMAN_BROWSER);
 test("E2E-025 the slideshow's default transition is chosen in the info panel, stored, followed by the picture editor and goes back to crossfade with undo", async ({
   page,
 }) => {
-  const defaultRow = page.getByRole("button", { name: "Übergänge Überblenden Vorgabe" });
-  const pushRow = page.getByRole("button", { name: "Übergänge Schieben eigene Wahl" });
+  const defaultRow = page.getByRole("button", { name: "Übergänge Überblenden Automatisch" });
+  const pushRow = page.getByRole("button", { name: "Übergänge Schieben gewählt" });
   const sheet = page.getByRole("dialog", { name: "Übergänge der Diashow" });
   const pushTile = sheet.getByRole("radio", { name: /Schieben/ });
   const crossfadeTile = sheet.getByRole("radio", { name: /Überblenden/ });
@@ -26,13 +26,13 @@ test("E2E-025 the slideshow's default transition is chosen in the info panel, st
   // about the slideshow's own default transition, so it switches back to Custom.
   await chooseCustomMood(page);
   // The Transitions row lives behind the Fine settings fold (ADR-0048).
-  await page.getByRole("button", { name: "Feineinstellungen" }).click();
+  await page.getByRole("button", { name: "Weitere Einstellungen" }).click();
 
   await defaultRow.click();
   await expect(crossfadeTile).toHaveAttribute("aria-checked", "true");
   await pushTile.click();
   await expect(pushTile).toHaveAttribute("aria-checked", "true");
-  await expect(sheet.getByText("Eigene Wahl")).toBeVisible();
+  await expect(sheet.getByText("Gewählt")).toBeVisible();
   await editsStored(page);
   await sheet.getByRole("button", { name: "Fertig" }).click();
   await expect(sheet).toBeHidden();

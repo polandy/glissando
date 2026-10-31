@@ -7,9 +7,9 @@ export const enClip: Pick<Catalogue, keyof typeof deClip> = {
   "clip.badgeLength": "Video, {length}",
   "clip.cutFlag": "Excerpt",
   "clip.longNotice": {
-    one: "{count} video is longer than {max}. The film plays an excerpt of up to {max}; you choose it later in the clip editor.",
+    one: "{count} clip is longer than {max}. The slideshow plays an excerpt of up to {max}; you choose it later in the clip editor.",
     other:
-      "{count} videos are longer than {max}. The film plays an excerpt of up to {max} of each; you choose it later in the clip editor.",
+      "{count} clips are longer than {max}. The slideshow plays an excerpt of up to {max} of each; you choose it later in the clip editor.",
   },
   "clip.refusedUnplayable":
     "“{fileName}” cannot be played on this device. This format isn't supported here.",
@@ -29,7 +29,7 @@ export const enClip: Pick<Catalogue, keyof typeof deClip> = {
   "clip.handleEnd": "End",
   "clip.from": "From",
   "clip.to": "To",
-  "clip.inFilm": "In the film: {length}",
+  "clip.inFilm": "In the slideshow: {length}",
   "clip.sound": "Sound",
   "clip.soundOn": "On",
   "clip.soundOff": "Off",

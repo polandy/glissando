@@ -152,11 +152,11 @@ describe("The Share chooser", () => {
   it.each([
     {
       state: { kind: "this", fraction: 0.34 } as ExportState,
-      text: "Wird exportiert\u00a0… 34\u00a0%",
+      text: "Wird gespeichert\u00a0… 34\u00a0%",
     },
     {
       state: { kind: "other" } as ExportState,
-      text: "Erst wenn der laufende Export fertig ist",
+      text: "Erst wenn das laufende Speichern fertig ist",
     },
   ])("tells the file row's state: $text", async ({ state, text }) => {
     const { option } = await mountShare({ exportState: state });

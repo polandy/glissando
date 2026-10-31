@@ -19,7 +19,7 @@ export const deServer = {
   "server.whereChosen": "Für diese Diashow gewählt. Entferne die Bilder, um es zu ändern.",
   "server.devicePictures": "Bilder von diesem Gerät",
   "server.deviceDisabled":
-    "Eine Server-Diashow verknüpft nur Fotos aus Immich. Lade diese zuerst in Immich hoch oder speichere die Diashow auf diesem Gerät.",
+    "Eine Server-Diashow verknüpft nur Bilder aus Immich. Lade diese zuerst in Immich hoch oder speichere die Diashow auf diesem Gerät.",
   "server.linked":
     "Aus Immich verknüpft. Jetzt wird nichts heruntergeladen; beim Abspielen kommen die Bilder aus Immich.",
   "server.creating": "Wird auf deinem Glissando-Server gespeichert …",
@@ -92,7 +92,7 @@ export const deServer = {
     other: "{count} Bilder sind nur auf diesem Gerät",
   },
   "server.onlyHereText":
-    "Eine Server-Diashow verknüpft Fotos aus Immich und speichert selbst weder Bilder noch Videoclips. Diese sind nur auf diesem Gerät:",
+    "Eine Server-Diashow verknüpft Bilder aus Immich und speichert selbst weder Bilder noch Videoclips. Diese sind nur auf diesem Gerät:",
   "server.onlyHereHint":
     "Lade sie in Immich hoch und füge sie von dort hinzu, oder speichere die Diashow ohne sie.",
   "server.saveWithout": { one: "Ohne dieses speichern", other: "Ohne diese {count} speichern" },
@@ -114,8 +114,7 @@ export const deServer = {
   "prepare.quality1440": "1440",
   "prepare.quality4k": "4K",
   "prepare.measuringTitle": "Prüfe die Verbindung …",
-  "prepare.measuringLine":
-    "Lädt die ersten {count} Bilder in {quality}, um zu messen, wie lange eins braucht.",
+  "prepare.measuringLine": "Prüft, wie schnell {count} Bilder in {quality} laden.",
   "prepare.measuring": "Messung",
   "prepare.ofMeasuring": "von {total}",
   "prepare.preparingTitle": "Bereite Bilder vor",
@@ -125,6 +124,6 @@ export const deServer = {
   "prepare.ofPictures": "von {total} Bildern",
   "prepare.startsIn": "startet in",
   "prepare.startNow": "Jetzt starten",
-  "prepare.playInPreview": "In 1440 abspielen",
+  "prepare.playInPreview": "Früher abspielen, etwas weniger scharf",
   "prepare.footnote": "Startet von selbst, sobald genug Bilder bereit sind.",
 } as const satisfies Record<string, Message>;

@@ -2,7 +2,7 @@ import type { Message } from "./messages.ts";
 
 /** German copy of adding pictures to a slideshow and of duplicates; part of the German catalogue. */
 export const deAdd = {
-  "add.title": "Medien hinzufügen",
+  "add.title": "Bilder hinzufügen",
   "add.titleShort": "Hinzufügen",
   "add.leadByDate": "Sie kommen nach Aufnahmedatum an ihren Platz.",
   "add.leadOwnOrder":
@@ -19,7 +19,7 @@ export const deAdd = {
   "add.placementOrder": "Reihenfolge nach dem Hinzufügen",
   "add.afterTitle": "Danach",
   "add.afterPictures": "Bilder",
-  "add.afterDuration": "Dauer",
+  "add.afterDuration": "Länge",
   "add.afterPerPicture": "Pro Bild",
   "add.beforeAfter": "{before} → {after}",
   "add.sharesMusic":

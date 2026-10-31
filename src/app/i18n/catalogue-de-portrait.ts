@@ -7,17 +7,16 @@ export const dePortrait = {
   "portrait.choice-one-at-a-time": "Einzeln",
   "portrait.choice-fill-screen": "Bildschirm füllen",
   "portrait.pairCount": { one: "{count} Paar", other: "{count} Paare" },
-  "portrait.default": "Vorgabe",
-  "portrait.ownChoice": "Eigene Wahl",
+  "portrait.default": "Automatisch",
+  "portrait.ownChoice": "Gewählt",
   "portrait.title": "Hochformatbilder",
   "portrait.hintAutomatic":
-    "Zwei aufeinanderfolgende Hochformatbilder werden nebeneinander gezeigt; ein einzelnes, das ein breiter Bildschirm stark beschneiden würde, bekommt eine unscharfe Füllung.",
+    "Zwei Hochformatbilder stehen nebeneinander; ein einzelnes, das der Zuschnitt stark beschneiden würde, bekommt eine unscharfe Füllung.",
   "portrait.hintOneAtATime":
-    "Jedes Bild wird einzeln gezeigt; eines, das ein breiter Bildschirm stark beschneiden würde, bekommt eine unscharfe Füllung.",
+    "Jedes Bild wird einzeln gezeigt; eines, das der Zuschnitt stark beschneiden würde, bekommt eine unscharfe Füllung.",
   "portrait.hintFillScreen":
-    "Jedes Bild füllt den Bildschirm wie bisher, auch wenn das Kopf oder Füße abschneidet.",
-  "portrait.note":
-    "Bilder mit eigener Bewegung, Dauer, Bildunterschrift oder eigenem Übergang, oder als „immer allein“ markiert, werden immer einzeln gezeigt.",
+    "Jedes Bild füllt den Bildschirm, auch wenn das Kopf oder Füße abschneidet.",
+  "portrait.note": "Bilder mit eigenen Einstellungen werden immer einzeln gezeigt.",
   "portrait.reset": "Zurück auf Automatisch",
   "portrait.alreadyAutomatic": "Hochformatbilder stehen schon auf Automatisch",
   "portrait.resetDone": "Hochformatbilder wieder automatisch",

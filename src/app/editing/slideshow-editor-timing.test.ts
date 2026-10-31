@@ -12,7 +12,7 @@ const settings = [
     set: (editor: SlideshowEditor, id: string, value: number | string) =>
       editor.setDuration(id, value as number),
     reset: (editor: SlideshowEditor, id: string) => editor.resetDuration(id),
-    toast: "Dauer wieder automatisch",
+    toast: "Bilddauer wieder automatisch",
   },
   {
     setting: "transition",

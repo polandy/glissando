@@ -16,8 +16,8 @@ export const dePlaylist = {
   "music.songUnusable": "Diese Datei lässt sich nicht verwenden",
   "music.sampleBadge": "Sample",
   "music.playlistLane": {
-    one: "Playlist, 1 Song · {duration}",
-    other: "Playlist, {count} Songs · {duration}",
+    one: "Musik, 1 Song · {duration}",
+    other: "Musik, {count} Songs · {duration}",
   },
   "music.crossfadesHatched": "Überblendungen schraffiert",
   "music.slideshowLaneTotal": {

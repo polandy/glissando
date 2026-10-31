@@ -30,7 +30,7 @@ test("E2E-092 on a phone in German the strip head's eyebrow and count stay clear
   const buttons = [
     head.getByRole("button", { name: "Mischen" }),
     head.getByRole("button", { name: "Auswählen" }),
-    head.getByRole("button", { name: "Medien hinzufügen" }),
+    head.getByRole("button", { name: "Bilder hinzufügen" }),
   ];
   await expect(eyebrow).toBeAttached();
   await expect(count).toHaveText("3");

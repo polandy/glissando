@@ -58,6 +58,6 @@ describe("SlideshowScreen, the way into the picture editor", () => {
     const badges = [...document.querySelectorAll(".strip .badge")];
 
     expect(own).not.toBeNull();
-    expect(badges.map((badge) => badge.textContent?.trim())).toEqual(["eigen"]);
+    expect(badges.map((badge) => badge.textContent?.trim())).toEqual(["gewählt"]);
   });
 });

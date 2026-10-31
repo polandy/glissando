@@ -53,7 +53,7 @@ describe("ClipEditorScreen", () => {
   it("tells the excerpt's length in the film and its bounds", () => {
     mount();
 
-    expect(document.body.textContent).toContain("Im Film: 15,0 s");
+    expect(document.body.textContent).toContain("In der Diashow: 15,0 s");
     expect(handle("Anfang").getAttribute("aria-valuenow")).toBe("10000");
     expect(handle("Ende").getAttribute("aria-valuenow")).toBe("25000");
   });

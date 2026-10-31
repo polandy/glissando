@@ -100,7 +100,7 @@ describe("PictureIntakeBody, removing a chosen picture", () => {
     flushSync();
 
     expect(storedNames(intake)).toEqual([]);
-    expect(document.activeElement?.textContent?.trim()).toBe("Medien auswählen");
+    expect(document.activeElement?.textContent?.trim()).toBe("Bilder auswählen");
   });
 
   it("makes the removals final on leaving the step", async () => {

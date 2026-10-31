@@ -78,7 +78,7 @@ describe("the sheet confirming “Save on the server”", () => {
     expect(saveOnServerSheet(t, shown, 3 * MB)).toEqual({
       title: "2 pictures are only on this device",
       message: [
-        "A server slideshow links photos from Immich and stores no pictures or video clips itself. These are only on this device:",
+        "A server slideshow links pictures from Immich and stores no pictures or video clips itself. These are only on this device:",
       ],
       fileNames: ["IMG_1.jpg", "IMG_2.jpg"],
       closing: "Upload them to Immich and add them from there, or save the slideshow without them.",

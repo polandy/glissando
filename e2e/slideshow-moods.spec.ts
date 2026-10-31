@@ -15,7 +15,7 @@ test("E2E-079 picking Calm sets its transitions, Ken Burns and picture times, an
     name: "Übergänge Überblenden, lang nach Stimmung",
   });
   const sheet = page.getByRole("dialog", { name: "Stimmung" });
-  const customTile = sheet.getByRole("radio", { name: "Eigene" });
+  const customTile = sheet.getByRole("radio", { name: "Keine Stimmung" });
   const calmTile = sheet.getByRole("radio", { name: "Ruhig" });
   const statePill = sheet.locator(".state");
 
@@ -24,22 +24,22 @@ test("E2E-079 picking Calm sets its transitions, Ken Burns and picture times, an
   // A new slideshow starts on Calm (ADR-0050).
   await expect(calmRow).toBeVisible();
   // The Transitions row lives behind the Fine settings fold (ADR-0048).
-  await page.getByRole("button", { name: "Feineinstellungen" }).click();
+  await page.getByRole("button", { name: "Weitere Einstellungen" }).click();
 
   await calmRow.click();
   await expect(sheet).toBeVisible();
   await expect(sheet.getByRole("radio")).toHaveCount(3);
   await expect(calmTile).toHaveAttribute("aria-checked", "true");
   await expect(statePill).toHaveText("Ruhig");
-  // The live preview plays at once; the tempo shows in "Bildzeiten" while a mood paces to it.
+  // The live preview plays at once; the tempo shows in "Bilddauer" while a mood paces to it.
   await expect(sheet.locator(".stage")).toBeVisible();
-  await expect(definitionOf(sheet, "Bildzeiten")).toHaveText("~8 s · 16 Beats");
+  await expect(definitionOf(sheet, "Bilddauer")).toHaveText("~8 s · 16 Beats");
   await expect(definitionOf(sheet, "Übergänge")).toHaveText("Überblenden, lang");
-  await expect(definitionOf(sheet, "Ken Burns")).toHaveText("Sanft");
+  await expect(definitionOf(sheet, "Bewegung")).toHaveText("Sanft");
 
   await customTile.click();
   await expect(customTile).toHaveAttribute("aria-checked", "true");
-  await expect(definitionOf(sheet, "Bildzeiten")).toHaveText("automatisch");
+  await expect(definitionOf(sheet, "Bilddauer")).toHaveText("automatisch");
 
   await calmTile.click();
   await expect(calmTile).toHaveAttribute("aria-checked", "true");
@@ -58,7 +58,7 @@ test("E2E-079 picking Calm sets its transitions, Ken Burns and picture times, an
   await transitionsSheet.getByRole("button", { name: "Fertig" }).click();
   await expect(transitionsSheet).toBeHidden();
 
-  const toast = page.getByRole("status").filter({ hasText: "Stimmung ist jetzt Eigene" });
+  const toast = page.getByRole("status").filter({ hasText: "Keine Stimmung ist an" });
   await expect(toast).toBeVisible();
   await toast.getByRole("button", { name: "Rückgängig" }).click();
   await expect(calmRow).toBeVisible();

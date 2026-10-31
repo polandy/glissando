@@ -7,7 +7,7 @@ export const enEditor: Pick<Catalogue, keyof typeof deEditor> = {
   "slideshow.view": "View",
   "slideshow.viewFullScreen": "View full screen",
   "slideshow.editPicture": "Edit picture",
-  "slideshow.ownMotionBadge": "own",
+  "slideshow.ownMotionBadge": "chosen",
   "slideshow.pictureLabelOwnMotion": "Picture {number}, taken on {date}, own motion",
   "slideshow.automaticWithOwn": "automatic, {count} own",
   "editor.crumb": "Picture {number}",
@@ -15,7 +15,7 @@ export const enEditor: Pick<Catalogue, keyof typeof deEditor> = {
   "editor.counter": "{number} / {count}",
   "editor.previous": "Previous picture",
   "editor.next": "Next picture",
-  "editor.kenBurns": "Ken Burns",
+  "editor.kenBurns": "Motion",
   "editor.automatic": "Automatic",
   "editor.own": "Own motion",
   "editor.frames": "Frames",
@@ -35,7 +35,7 @@ export const enEditor: Pick<Catalogue, keyof typeof deEditor> = {
   "editor.reset": "Back to automatic",
   "editor.alreadyAutomatic": "The motion is already automatic",
   "editor.motionAutomatic": "Motion back to automatic",
-  "editor.durationAutomatic": "Duration back to automatic",
+  "editor.durationAutomatic": "Picture length back to automatic",
   "editor.transitionAutomatic": "Transition back to automatic",
   "editor.hintWide":
     "Drag to move the frame, drag a corner to zoom · mouse wheel zooms · arrow keys, + and −",
@@ -77,7 +77,7 @@ export const enEditor: Pick<Catalogue, keyof typeof deEditor> = {
   "editor.caption": "Caption",
   "editor.captionPlaceholder": "e.g. Evening on the jetty",
   "editor.captionCount": "{count} / {max}",
-  "editor.captionClear": "Clear caption",
+  "editor.captionClear": "Remove caption",
   "editor.captionHint":
     "Shown bottom left in the player, fading in and out with the picture. Empty: no caption.",
 };

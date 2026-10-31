@@ -6,9 +6,9 @@ export const deClip = {
   "clip.badgeLength": "Video, {length}",
   "clip.cutFlag": "Ausschnitt",
   "clip.longNotice": {
-    one: "{count} Video ist länger als {max}. Im Film läuft ein Ausschnitt bis {max}; du wählst ihn später im Clip-Editor.",
+    one: "{count} Clip ist länger als {max}. In der Diashow läuft ein Ausschnitt bis {max}; du wählst ihn später im Clip-Editor.",
     other:
-      "{count} Videos sind länger als {max}. Im Film läuft jeweils ein Ausschnitt bis {max}; du wählst ihn später im Clip-Editor.",
+      "{count} Clips sind länger als {max}. In der Diashow läuft jeweils ein Ausschnitt bis {max}; du wählst ihn später im Clip-Editor.",
   },
   "clip.refusedUnplayable":
     "„{fileName}“ lässt sich auf diesem Gerät nicht abspielen. Das Format wird hier nicht unterstützt.",
@@ -28,7 +28,7 @@ export const deClip = {
   "clip.handleEnd": "Ende",
   "clip.from": "Von",
   "clip.to": "Bis",
-  "clip.inFilm": "Im Film: {length}",
+  "clip.inFilm": "In der Diashow: {length}",
   "clip.sound": "Ton",
   "clip.soundOn": "An",
   "clip.soundOff": "Aus",

@@ -30,7 +30,7 @@ describe("SlideshowScreen, a picture's own timing", () => {
 
     expect(timed).not.toBeNull();
     expect(marks.map((mark) => mark.textContent?.trim() || mark.title)).toEqual([
-      "Schnitt",
+      "Harter Schnitt",
       "8 s",
       "Kreis",
     ]);

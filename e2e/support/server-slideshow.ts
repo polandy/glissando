@@ -15,5 +15,5 @@ export async function createServerSlideshow(page: Page): Promise<void> {
   await page.getByRole("button", { name: "Weiter" }).click();
   await page.getByRole("button", { name: "Ohne Musik erstellen" }).click();
   await expect(page.getByRole("status").filter({ hasText: CREATED_TOAST })).toBeVisible();
-  await page.getByRole("button", { name: "Feineinstellungen" }).click();
+  await page.getByRole("button", { name: "Weitere Einstellungen" }).click();
 }

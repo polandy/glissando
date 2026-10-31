@@ -33,7 +33,7 @@ test.beforeEach(async ({ page }) => {
   await page.getByRole("button", { name: "New slideshow" }).first().click();
   await chooseFiles(
     page,
-    page.getByRole("button", { name: "Choose media" }),
+    page.getByRole("button", { name: "Choose pictures" }),
     await picturesTakenOn(page, ["2025-07-12", "2025-07-14"]),
   );
   await expect(page.getByText("2 pictures", { exact: true })).toBeVisible();

@@ -38,7 +38,7 @@ test("E2E-067 on a tablet the info panel stacks above the pictures with fine set
   expect(panel.width).toBeGreaterThan(TABLET.width * 0.8);
 
   const transitions = page.getByRole("button", { name: /^Übergänge/ });
-  const fineSettings = page.getByRole("button", { name: "Feineinstellungen" });
+  const fineSettings = page.getByRole("button", { name: "Weitere Einstellungen" });
   await expect(page.getByRole("button", { name: "Abspielen" })).toHaveCount(1);
   await expect(
     page.getByRole("complementary").getByRole("button", { name: "Abspielen" }),
@@ -74,7 +74,7 @@ test("E2E-068 on a desktop the info panel stays beside the pictures, fine settin
   expect(panel.x).toBeGreaterThan(picture.x + picture.width);
 
   const transitions = page.getByRole("button", { name: /^Übergänge/ });
-  const fineSettings = page.getByRole("button", { name: "Feineinstellungen" });
+  const fineSettings = page.getByRole("button", { name: "Weitere Einstellungen" });
   await expect(page.getByRole("button", { name: /^Musik/ })).toBeVisible();
   await expect(fineSettings).toHaveAttribute("aria-expanded", "false");
   await expect(transitions).toBeHidden();

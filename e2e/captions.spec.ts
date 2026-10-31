@@ -54,7 +54,7 @@ test("E2E-021 a picture's caption is stored, shown by the player, and cleared wi
   await closePlayer(page);
 
   await editPicture(page, FIRST_TILE);
-  await page.getByRole("button", { name: "Bildtitel leeren" }).click();
+  await page.getByRole("button", { name: "Bildtitel entfernen" }).click();
   await expect(captionField(page)).toHaveValue("");
   await expect(captionField(page)).toBeFocused();
   await editsStored(page);

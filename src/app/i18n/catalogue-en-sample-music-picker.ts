@@ -4,7 +4,7 @@ import type { deSampleMusicPicker } from "./catalogue-de-sample-music-picker.ts"
 /** English copy of the sample-music picker; typed to the German keys. */
 export const enSampleMusicPicker: Pick<Catalogue, keyof typeof deSampleMusicPicker> = {
   "sampleMusicPicker.blockTitle": "Glissando music",
-  "sampleMusicPicker.blockSubtitle": "{count} tracks · come with Glissando",
+  "sampleMusicPicker.blockSubtitle": "{count} songs · come with Glissando",
   "sampleMusicPicker.or": "or",
   "sampleMusicPicker.showAll": "Show all {count}",
   "sampleMusicPicker.showFewer": "Show fewer",
@@ -15,7 +15,7 @@ export const enSampleMusicPicker: Pick<Catalogue, keyof typeof deSampleMusicPick
   "sampleMusicPicker.onDevice": "On this device",
   "sampleMusicPicker.needsConnection": "Needs a connection",
   "sampleMusicPicker.offlineNotice":
-    "You are offline. Tracks already on this device can be added; listening to the others needs a connection.",
+    "You are offline. Songs already on this device can be added; listening to the others needs a connection.",
   "sampleMusicPicker.previewError": "Couldn't play this song — try again",
   "sampleMusicPicker.downloading": "Downloading · {percent} %",
   "sampleMusicPicker.downloadFailed": "Couldn't download this song",

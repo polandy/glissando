@@ -27,7 +27,7 @@ describe("ImmichRoute, All photos", () => {
 
     expect(client.photoQueries).toEqual([{ page: 1 }, { page: 2 }]);
     expect(target.querySelectorAll(".ph")).toHaveLength(2);
-    expect(target.textContent).toContain("That's all · 2 photos");
+    expect(target.textContent).toContain("That's all · 2 pictures");
     expect(end.watched()).toBe(0);
   });
 
@@ -38,7 +38,7 @@ describe("ImmichRoute, All photos", () => {
       nextPage: null,
     });
     const { browser, target, added, button, footer } = mountRoute(client);
-    expect(footer()).toContain("Tap photos or pick a whole album");
+    expect(footer()).toContain("Tap pictures or pick a whole album");
 
     await browser.library.loadMore();
     flushSync();
@@ -154,7 +154,7 @@ describe("ImmichRoute, one album", () => {
     const { browser, target, button } = mountRoute(client, "lake");
     await until(browser, (state) => state.albumsFailure !== null);
     flushSync();
-    expect(target.textContent).toContain("The server's key lacks permissions");
+    expect(target.textContent).toContain("The key lacks permissions");
 
     client.albumsError = null;
     client.albumList = [LAKE];

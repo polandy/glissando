@@ -17,8 +17,8 @@ export const enPlaylist: Pick<Catalogue, keyof typeof dePlaylist> = {
   "music.songUnusable": "This file can't be used",
   "music.sampleBadge": "Sample",
   "music.playlistLane": {
-    one: "Playlist, 1 song · {duration}",
-    other: "Playlist, {count} songs · {duration}",
+    one: "Music, 1 song · {duration}",
+    other: "Music, {count} songs · {duration}",
   },
   "music.crossfadesHatched": "Crossfades hatched",
   "music.slideshowLaneTotal": {

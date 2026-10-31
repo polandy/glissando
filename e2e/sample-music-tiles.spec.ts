@@ -42,7 +42,7 @@ test.beforeEach(async ({ page }) => {
   await page.getByRole("button", { name: "Neue Diashow" }).first().click();
   await chooseFiles(
     page,
-    page.getByRole("button", { name: "Medien auswählen" }),
+    page.getByRole("button", { name: "Bilder auswählen" }),
     await picturesTakenOn(page, ["2025-07-12", "2025-07-14"]),
   );
   await expect(page.getByText("2 Bilder", { exact: true })).toBeVisible();

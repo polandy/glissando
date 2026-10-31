@@ -6,7 +6,7 @@ export const deEditor = {
   "slideshow.view": "Ansehen",
   "slideshow.viewFullScreen": "Vollbild ansehen",
   "slideshow.editPicture": "Bild bearbeiten",
-  "slideshow.ownMotionBadge": "eigen",
+  "slideshow.ownMotionBadge": "gewählt",
   "slideshow.pictureLabelOwnMotion": "Bild {number}, aufgenommen am {date}, eigene Bewegung",
   "slideshow.automaticWithOwn": "automatisch, {count} eigene",
   "editor.crumb": "Bild {number}",
@@ -14,7 +14,7 @@ export const deEditor = {
   "editor.counter": "{number} / {count}",
   "editor.previous": "Vorheriges Bild",
   "editor.next": "Nächstes Bild",
-  "editor.kenBurns": "Ken Burns",
+  "editor.kenBurns": "Bewegung",
   "editor.automatic": "Automatisch",
   "editor.own": "Eigene Bewegung",
   "editor.frames": "Rahmen",
@@ -34,7 +34,7 @@ export const deEditor = {
   "editor.reset": "Zurück auf automatisch",
   "editor.alreadyAutomatic": "Die Bewegung ist schon automatisch",
   "editor.motionAutomatic": "Bewegung wieder automatisch",
-  "editor.durationAutomatic": "Dauer wieder automatisch",
+  "editor.durationAutomatic": "Bilddauer wieder automatisch",
   "editor.transitionAutomatic": "Übergang wieder automatisch",
   "editor.hintWide":
     "Ziehen verschiebt den Rahmen, an den Ecken ziehen zoomt · Mausrad zoomt · Pfeiltasten, + und −",
@@ -81,7 +81,7 @@ export const deEditor = {
   "editor.caption": "Bildtitel",
   "editor.captionPlaceholder": "z. B. Abends am Steg",
   "editor.captionCount": "{count} / {max}",
-  "editor.captionClear": "Bildtitel leeren",
+  "editor.captionClear": "Bildtitel entfernen",
   "editor.captionHint":
     "Steht im Player unten links und blendet mit dem Bild ein und aus. Leer: kein Titel.",
 } as const satisfies Record<string, Message>;

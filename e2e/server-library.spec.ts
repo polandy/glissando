@@ -44,7 +44,7 @@ test("E2E-034 a slideshow created on the Glissando server links its Immich photo
 
   await expect(page.getByRole("status").filter({ hasText: CREATED_TOAST })).toBeVisible();
   // The storage row lives behind the Fine settings fold (ADR-0048).
-  await page.getByRole("button", { name: "Feineinstellungen" }).click();
+  await page.getByRole("button", { name: "Weitere Einstellungen" }).click();
   await expect(page.getByText("Auf deinem Glissando-Server", { exact: true })).toBeVisible();
   expect(server.slideshows).toHaveLength(1);
   expect(server.slideshows[0]?.document.slideshow.pictures).toHaveLength(3);

@@ -3,7 +3,7 @@ import type { deTiming } from "./catalogue-de-timing.ts";
 
 /** English copy of a picture's own duration and transition; typed to the German keys. */
 export const enTiming: Pick<Catalogue, keyof typeof deTiming> = {
-  "slideshow.pictureTimes": "Picture times",
+  "slideshow.pictureTimes": "Picture length",
   "slideshow.musicLength": "{duration} of music",
   "slideshow.pictureLabelOwnDuration": ", own duration {duration}",
   "slideshow.pictureLabelOwnTransition": ", own transition {effect}",
@@ -11,13 +11,12 @@ export const enTiming: Pick<Catalogue, keyof typeof deTiming> = {
   "editor.previewTransition": "{duration}, with {effect} {length} into picture {next}",
   "editor.previewCut": "{duration}, then a cut to picture {next}",
   "editor.previewEnd": "{duration}, then the slideshow ends",
-  "editor.duration": "Duration",
+  "editor.duration": "Picture length",
   "editor.ownDuration": "Own duration",
   "editor.durationShorter": "Half a second shorter",
   "editor.durationLonger": "Half a second longer",
-  "editor.durationHintAutomatic":
-    "The slideshow's seconds per picture. − and + make it this picture's own.",
-  "editor.durationHintOwn": "Automatic would be {duration}, the slideshow's seconds per picture.",
+  "editor.durationHintAutomatic": "Follows the slideshow's picture length.",
+  "editor.durationHintOwn": "Automatic would be {duration}.",
   "editor.durationHintMusic": {
     one: "The music goes to the one picture without an own duration.",
     other: "The music is shared evenly across the {count} pictures without an own duration.",
@@ -47,7 +46,7 @@ export const enTiming: Pick<Catalogue, keyof typeof deTiming> = {
   "editor.transitionsAlternate":
     "Automatically, the transitions alternate, as set for the slideshow.",
   "editor.transitionHint":
-    "Takes {length} at the end of picture {number}: {share} % of the picture's time, at most {max} s.",
+    "Takes {length} at the end of picture {number}: {share} % of the picture length, at most {max} s.",
   "editor.cutHint": "Picture {number} follows without a transition.",
   "editor.transitionAlreadyAutomatic": "The transition is already automatic",
   "editor.autoTag": "Auto",
@@ -57,6 +56,6 @@ export const enTiming: Pick<Catalogue, keyof typeof deTiming> = {
   "effect.circle-open": "Circle",
   "effect.zoom-in": "Zoom",
   "effect.dissolve": "Dissolve",
-  "effect.cut": "Cut",
+  "effect.cut": "Hard cut",
   "effect.alternate": "Alternating",
 };

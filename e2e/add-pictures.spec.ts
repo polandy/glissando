@@ -41,8 +41,8 @@ test("E2E-032 adding pictures skips a duplicate and sorts the new ones in by cap
   await page.getByRole("button", { name: "Ohne Musik erstellen" }).click();
   await expect(page.getByRole("status")).toHaveText(CREATED_TOAST);
 
-  await page.getByRole("button", { name: "Medien hinzufügen" }).click();
-  await expect(page.getByRole("heading", { name: "Medien hinzufügen" })).toBeVisible();
+  await page.getByRole("button", { name: "Bilder hinzufügen" }).click();
+  await expect(page.getByRole("heading", { name: "Bilder hinzufügen" })).toBeVisible();
 
   const between = await pictureTakenOn(page, "picture-between.jpg", "2025-07-13", "#4db6ac");
   const after = await pictureTakenOn(page, "picture-after.jpg", "2025-07-25", "#ffd54f");
@@ -92,7 +92,7 @@ test("E2E-036 adding to a slideshow in its own order sorts the new pictures in b
   await expect(page.getByText("Eigene Reihenfolge")).toBeVisible();
   await expect(tile(page, 1, "20.07.2025")).toBeVisible();
 
-  await page.getByRole("button", { name: "Medien hinzufügen" }).click();
+  await page.getByRole("button", { name: "Bilder hinzufügen" }).click();
   const between = await pictureTakenOn(page, "picture-13th.jpg", "2025-07-13", "#4db6ac");
   const later = await pictureTakenOn(page, "picture-21st.jpg", "2025-07-21", "#ffd54f");
   await choosePictures(page, [between, later], 2);
@@ -124,11 +124,11 @@ test("E2E-069 the strip has no add tile; the header's Add media opens the add sh
   page,
 }) => {
   await createSlideshow(page, ["2025-07-12", "2025-07-14"]);
-  const header = page.locator(".strip-head").getByRole("button", { name: "Medien hinzufügen" });
+  const header = page.locator(".strip-head").getByRole("button", { name: "Bilder hinzufügen" });
   await expect(header).toBeVisible();
   await expect(page.locator("ol.strip > li").filter({ hasText: "Hinzufügen" })).toHaveCount(0);
 
   await header.click();
 
-  await expect(page.getByRole("heading", { name: "Medien hinzufügen" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Bilder hinzufügen" })).toBeVisible();
 });

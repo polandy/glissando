@@ -39,15 +39,15 @@ test("E2E-023 the music gets its own excerpt and fade-in, stored, and goes back 
   await expect(
     page.getByRole("navigation", { name: "Navigationspfad" }).locator('[aria-current="page"]'),
   ).toHaveText("Musik");
-  await expect(excerptState).toHaveText("Ganzer Titel");
-  await expect(excerpt.getByText("Die Diashow nutzt den ganzen Titel, 0:20.")).toBeVisible();
+  await expect(excerptState).toHaveText("Ganzer Song");
+  await expect(excerpt.getByText("Die Diashow nutzt den ganzen Song, 0:20.")).toBeVisible();
   await expect(fadeIn.locator(".state")).toHaveText("Automatisch");
 
   await startLater.click();
   await expect(startValue).toHaveText("0:00,5");
   await startLater.click();
   await expect(startValue).toHaveText("0:01,0");
-  await expect(excerptState).toHaveText("Gekürzt");
+  await expect(excerptState).toHaveText("Ausschnitt");
 
   // The handle steps a second per Shift+arrow, as a slider does.
   await endHandle.focus();
@@ -64,31 +64,31 @@ test("E2E-023 the music gets its own excerpt and fade-in, stored, and goes back 
 
   await longFadeIn.click();
   await expect(longFadeIn).toHaveAttribute("aria-checked", "true");
-  await expect(fadeIn.locator(".state")).toHaveText("Eigene");
+  await expect(fadeIn.locator(".state")).toHaveText("Gewählt");
   await expect(fadeOut.locator(".state")).toHaveText("Automatisch");
   await expect(
-    fadeOut.getByText("Automatisch: lang, weil der Ausschnitt vor dem Titelende aufhört."),
+    fadeOut.getByText("Automatisch: lang, weil der Ausschnitt vor dem Songende aufhört."),
   ).toBeVisible();
   await editsStored(page);
 
   await page.reload();
-  await expect(excerptState).toHaveText("Gekürzt");
+  await expect(excerptState).toHaveText("Ausschnitt");
   await expect(startValue).toHaveText("0:01,0");
   await expect(endValue).toHaveText("0:17,0");
   await expect(longFadeIn).toHaveAttribute("aria-checked", "true");
-  await expect(fadeIn.locator(".state")).toHaveText("Eigene");
+  await expect(fadeIn.locator(".state")).toHaveText("Gewählt");
 
   await back.click();
   const musicTile = page.getByRole("button", { name: /^Musik Sommerwind\.wav/ });
   await expect(musicTile).toBeVisible();
 
   await musicTile.click();
-  await expect(excerptState).toHaveText("Gekürzt");
-  await excerpt.getByRole("button", { name: "Ganzer Titel" }).click();
-  await expect(excerptState).toHaveText("Ganzer Titel");
+  await expect(excerptState).toHaveText("Ausschnitt");
+  await excerpt.getByRole("button", { name: "Ganzer Song" }).click();
+  await expect(excerptState).toHaveText("Ganzer Song");
   await expect(startValue).toHaveText("0:00,0");
   await expect(endValue).toHaveText("0:20,0");
-  await expect(fadeIn.locator(".state")).toHaveText("Eigene");
+  await expect(fadeIn.locator(".state")).toHaveText("Gewählt");
   await editsStored(page);
 
   await back.click();
@@ -174,7 +174,7 @@ test("E2E-073 a song's own volume shows Own with its dB and the song-list badge,
   const sub = volume.locator(".sub");
   const readout = volume.locator(".readout b");
   const slider = page.getByRole("slider", { name: "Lautstärke" });
-  const reset = page.getByRole("button", { name: "Zurück auf angeglichen" });
+  const reset = page.getByRole("button", { name: "Zurück auf Automatisch" });
   const badge = page.getByRole("list", { name: "Songs" }).locator(".badge");
 
   await openApp(page);
@@ -187,8 +187,8 @@ test("E2E-073 a song's own volume shows Own with its dB and the song-list badge,
   // "Measuring…" once the song's blocks are stored — a positive signal, no sleep. A silent
   // track can measure before this first check runs, so the state before is not asserted.
   await expect(badge).not.toHaveClass(/measuring/);
-  await expect(state).toHaveText("Angeglichen");
-  await expect(sub).toHaveText("Gleich laut wie die anderen Titel");
+  await expect(state).toHaveText("Gleich laut wie die anderen Songs");
+  await expect(sub).toHaveText("Gleich laut wie die anderen Songs");
   await expect(reset).toHaveCount(0);
 
   await slider.focus();
@@ -196,21 +196,21 @@ test("E2E-073 a song's own volume shows Own with its dB and the song-list badge,
   await slider.press("ArrowUp");
   await slider.press("ArrowUp");
   await expect(slider).toHaveValue("3");
-  await expect(state).toHaveText("Eigene");
+  await expect(state).toHaveText("Gewählt");
   await expect(readout).toHaveText("+3 dB");
-  await expect(sub).toHaveText("Lauter als angeglichen");
+  await expect(sub).toHaveText("Lauter als die anderen Songs");
   await expect(reset).toBeVisible();
   await expect(badge).toHaveText("+3 dB");
   await editsStored(page);
 
   await page.reload();
   await expect(slider).toHaveValue("3");
-  await expect(state).toHaveText("Eigene");
+  await expect(state).toHaveText("Gewählt");
   await expect(badge).toHaveText("+3 dB");
 
   await reset.click();
-  await expect(state).toHaveText("Angeglichen");
-  await expect(sub).toHaveText("Gleich laut wie die anderen Titel");
+  await expect(state).toHaveText("Gleich laut wie die anderen Songs");
+  await expect(sub).toHaveText("Gleich laut wie die anderen Songs");
   await expect(slider).toHaveValue("0");
   await expect(reset).toHaveCount(0);
   await expect(badge).toBeEmpty();

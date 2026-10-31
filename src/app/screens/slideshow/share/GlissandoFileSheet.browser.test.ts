@@ -99,6 +99,6 @@ describe("The Glissando file sheet", () => {
     const { dialog, button } = mountSheet({ kind: "other" }, () => Promise.resolve("saved"));
 
     expect(button("Datei sichern")?.disabled).toBe(true);
-    expect(dialog()?.textContent).toContain("Erst wenn der laufende Export fertig ist");
+    expect(dialog()?.textContent).toContain("Erst wenn das laufende Speichern fertig ist");
   });
 });

@@ -8,17 +8,16 @@ export const enPortrait: Pick<Catalogue, keyof typeof dePortrait> = {
   "portrait.choice-one-at-a-time": "One at a time",
   "portrait.choice-fill-screen": "Fill the screen",
   "portrait.pairCount": { one: "{count} pair", other: "{count} pairs" },
-  "portrait.default": "Default",
-  "portrait.ownChoice": "Own choice",
+  "portrait.default": "Automatic",
+  "portrait.ownChoice": "Chosen",
   "portrait.title": "Portrait pictures",
   "portrait.hintAutomatic":
-    "Two consecutive portrait pictures are shown side by side; a single one a wide screen would crop a lot gets a blurred fill instead.",
+    "Two portrait pictures sit side by side; a single one that would lose a lot to the crop gets a blurred fill.",
   "portrait.hintOneAtATime":
-    "Every picture is shown alone; one a wide screen would crop a lot gets a blurred fill instead.",
+    "Every picture is shown alone; one that would lose a lot to the crop gets a blurred fill.",
   "portrait.hintFillScreen":
-    "Every picture fills the screen as before, even where that crops off a head or feet.",
-  "portrait.note":
-    "Pictures with an own motion, duration, caption or transition, or set to always alone, are shown alone.",
+    "Every picture fills the screen, even where that crops a head or feet.",
+  "portrait.note": "Pictures with their own settings are always shown alone.",
   "portrait.reset": "Back to automatic",
   "portrait.alreadyAutomatic": "Portrait pictures are already set to automatic",
   "portrait.resetDone": "Portrait pictures back to automatic",

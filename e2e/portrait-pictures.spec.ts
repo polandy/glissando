@@ -64,7 +64,7 @@ test("E2E-045 two portrait pictures in a row share a slide; a picture's “alway
   await page.getByRole("button", { name: "Ohne Musik erstellen" }).click();
   await expect(page.getByRole("status")).toHaveText(CREATED_TOAST);
   // The Portrait pictures row lives behind the Fine settings fold (ADR-0048).
-  await page.getByRole("button", { name: "Feineinstellungen" }).click();
+  await page.getByRole("button", { name: "Weitere Einstellungen" }).click();
 
   await expect(portraitRow(page, "Automatisch · 1 Paar")).toBeVisible();
   await expect(page.getByRole("button", { name: PAIRED_SECOND_TILE, exact: true })).toBeVisible();

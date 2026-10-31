@@ -3,7 +3,7 @@ import type { Message } from "./messages.ts";
 /** German copy of the sample-music picker: its accordion block, cards and credit (SAMPLE_MUSIC.md). */
 export const deSampleMusicPicker = {
   "sampleMusicPicker.blockTitle": "Glissando-Musik",
-  "sampleMusicPicker.blockSubtitle": "{count} Titel · gehören zu Glissando",
+  "sampleMusicPicker.blockSubtitle": "{count} Songs · gehören zu Glissando",
   "sampleMusicPicker.or": "oder",
   "sampleMusicPicker.showAll": "Alle {count} zeigen",
   "sampleMusicPicker.showFewer": "Weniger zeigen",
@@ -14,7 +14,7 @@ export const deSampleMusicPicker = {
   "sampleMusicPicker.onDevice": "Auf diesem Gerät",
   "sampleMusicPicker.needsConnection": "Verbindung nötig",
   "sampleMusicPicker.offlineNotice":
-    "Du bist offline. Titel, die schon auf diesem Gerät sind, lassen sich hinzufügen; die anderen anzuhören braucht eine Verbindung.",
+    "Du bist offline. Songs, die schon auf diesem Gerät sind, lassen sich hinzufügen; die anderen anzuhören braucht eine Verbindung.",
   "sampleMusicPicker.previewError":
     "Dieser Song ließ sich nicht abspielen — versuch es noch einmal",
   "sampleMusicPicker.downloading": "Wird heruntergeladen · {percent} %",

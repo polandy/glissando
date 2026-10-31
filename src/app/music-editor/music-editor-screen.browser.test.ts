@@ -31,8 +31,8 @@ describe("MusicEditorScreen, the excerpt", () => {
     mountEditor();
 
     expect(text(".head")).toBe("Song 1 · Sommerwind.mp3 3:24");
-    expect(text("#music-excerpt + .state")).toBe("Ganzer Titel");
-    expect(text(".panel")).toContain("Die Diashow nutzt den ganzen Titel, 3:24.");
+    expect(text("#music-excerpt + .state")).toBe("Ganzer Song");
+    expect(text(".panel")).toContain("Die Diashow nutzt den ganzen Song, 3:24.");
     expect(handle("Anfang").getAttribute("aria-valuetext")).toBe("0:00,0");
     expect(handle("Ende").getAttribute("aria-valuetext")).toBe("3:24,0");
   });
@@ -41,7 +41,7 @@ describe("MusicEditorScreen, the excerpt", () => {
     const { calls } = mountEditor(slideshowWith(TRIMMED));
 
     expect(text(".head")).toBe("Song 1 · Sommerwind.mp3 3:24 · gekürzt auf 2:18");
-    buttonNamed("Ganzer Titel").click();
+    buttonNamed("Ganzer Song").click();
 
     expect(calls.trims).toEqual([undefined]);
   });
@@ -139,10 +139,10 @@ describe("MusicEditorScreen, the fades", () => {
     expect(checked("Einblenden")).toBe("Kurz 2 s");
     expect(checked("Ausblenden")).toBe("Lang 5 s");
     expect(text(".panel")).toContain(
-      "Automatisch: kurz, weil der Ausschnitt mitten im Titel beginnt.",
+      "Automatisch: kurz, weil der Ausschnitt mitten im Song beginnt.",
     );
     expect(text(".panel")).toContain(
-      "Automatisch: lang, weil der Ausschnitt vor dem Titelende aufhört.",
+      "Automatisch: lang, weil der Ausschnitt vor dem Songende aufhört.",
     );
   });
 
@@ -169,7 +169,7 @@ describe("MusicEditorScreen, the pictures' times and listening", () => {
     mountEditor(slideshowWith(TRIMMED, { count: 24, durations: { 2: 8000 } }));
 
     expect(text(".note")).toBe(
-      "Bildzeiten 23 Bilder ohne eigene Dauer teilen sich den Ausschnitt: je 5,7 s. Die Diashow endet mit der Musik.",
+      "Bilddauer 23 Bilder ohne eigene Dauer teilen sich den Ausschnitt: je 5,7 s. Die Diashow endet mit der Musik.",
     );
   });
 
