@@ -119,10 +119,14 @@
     font: inherit;
     white-space: nowrap;
     cursor: pointer;
+    /* Always underlined, faintly: touch has no hover to reveal the link. */
+    text-decoration: underline;
+    text-decoration-color: var(--gl-faint);
+    text-underline-offset: 3px;
   }
   .crumb-link:hover {
     color: var(--gl-ink);
-    text-decoration: underline;
+    text-decoration-color: currentColor;
   }
   @media (pointer: coarse) {
     .crumb-link {
