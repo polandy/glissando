@@ -94,6 +94,8 @@ groups; choose a row and its sheet opens, with **Back** to the list.
 
 ## Good to know
 
+- The path at the top (Library / your slideshow / …) is tappable: **Library** brings you home from
+  any screen.
 - If the music is a little shorter than the pictures, they shrink to fit it on their own. If it
   ends well before the pictures do, the music editor offers to **Repeat the music** or **Add a
   song**.

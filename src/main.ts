@@ -1,7 +1,7 @@
 import { mount } from "svelte";
 import App from "./app/App.svelte";
 import { createErrorReporter } from "./app/errors/error-reporter";
-import { translatorContext } from "./app/i18n/context";
+import { appContext } from "./app/app-context";
 import { createTranslator } from "./app/i18n/translator";
 import { TranslatorState } from "./app/i18n/translator-state.svelte";
 import { AddPicturesSession, serverAddingStore } from "./app/add-pictures/add-pictures-session";
@@ -295,6 +295,6 @@ const playStartAnimation = consumeFirstLaunch(createStorageFirstLaunchStore(wind
 mount(App, {
   target,
   props: { services, playStartAnimation },
-  context: translatorContext(translator),
+  context: appContext(translator, services.navigator),
 });
 handOverFromShell(shell).catch(reportError);

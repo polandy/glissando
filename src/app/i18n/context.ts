@@ -39,6 +39,6 @@ export function getTranslator(): Translator {
 }
 
 /** The context for `mount(App, { context })`, for a root mounted outside a component. */
-export function translatorContext(source: TranslatorSource): Map<symbol, TranslatorSource> {
+export function translatorContext(source: TranslatorSource): Map<symbol, unknown> {
   return new Map([[TRANSLATOR_CONTEXT, source]]);
 }

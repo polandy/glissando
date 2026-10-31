@@ -109,7 +109,7 @@
 
 <ImportFrame
   step={null}
-  crumbs={[session.slideshow.title, t("add.title")]}
+  crumbs={[t("start.library"), session.slideshow.title, t("add.title")]}
   onBack={leave}
   backDisabled={committing}
 >

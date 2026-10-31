@@ -95,6 +95,20 @@ export class Navigator {
     }
   }
 
+  /** Back to `ancestor` on the path to the current screen; the route follows when the move lands. */
+  backTo(ancestor: Route): void {
+    const steps = this.#stepsDownTo(ancestor);
+    if (steps === null) {
+      throw new Error(
+        `cannot go back to ${JSON.stringify(ancestor)} from ${JSON.stringify(this.#route)}: ` +
+          "it is not on the path",
+      );
+    }
+    if (steps > 0) {
+      this.#history.go(-steps);
+    }
+  }
+
   #stepsDownTo(ancestor: Route): number | null {
     let steps = 0;
     for (let route: Route | null = this.#route; route !== null; route = parentOf(route)) {

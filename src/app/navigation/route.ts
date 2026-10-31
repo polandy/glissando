@@ -142,3 +142,18 @@ export function parseRoute(state: unknown): Route | null {
       return null;
   }
 }
+
+/** The route `levelsUp` parents above `route`; throws when the path is shorter. */
+export function ancestorAt(route: Route, levelsUp: number): Route {
+  let current: Route = route;
+  for (let level = 0; level < levelsUp; level += 1) {
+    const parent = parentOf(current);
+    if (parent === null) {
+      throw new Error(
+        `${JSON.stringify(route)} has no ancestor ${levelsUp} levels up: the path ends after ${level}`,
+      );
+    }
+    current = parent;
+  }
+  return current;
+}

@@ -18,6 +18,8 @@ screens below their slideshow
   the destination; on `false` the navigator pushes the entry back and the screen shows its
   discard dialog. Moves between the selecting screens pass, and an `open()` climbing down skips
   the guard.
+- The header's crumbs before the current one are links to their screens (`Navigator.backTo`, so
+  the leave guard applies); the import wizard's name is a label, not a link.
 - History state is validated on every read; anything unknown is the start screen.
 - History never restores what is gone: after a reload, or on browser forward, an import step
   or the Immich browser returns to start (its selection lived in memory), the player to its slideshow (music needs

@@ -24,23 +24,6 @@ player already behaves this way per SCOPE.md ("back arrow and browser back do th
 Done when — A browser test simulates popstate with an open sheet and asserts the sheet closes
 and the route stays; manual check on Android noted in the PR.
 
-### UX-25 Reload stays in the open slideshow; the Library crumb is not a link (size S, decide)
-
-Problem — A reload restores the route from the tab's `history.state`
-(`navigator.ts:33–37`), so the slideshow that was open comes back, not the library. That is a
-fair "resume where you were", but the header crumb "Library" is plain text, so a user who
-expects "home" has only the back arrow, which on a deep screen means several steps.
-
-Where — `navigator.ts` launch restore; `Header.svelte` crumbs.
-
-Why — Resume is fine; a visible, one-tap way home is missing.
-
-Proposal — Keep resume. Make every crumb except the last a link (Library, the slideshow's
-title inside an editor), styled as the brand's text link, 44 px tall hit area on touch.
-
-Done when — Crumbs before the current one are links on every screen; e2e covers Library from an
-editor.
-
 ### UX-26 Picture editor density on the phone (size M)
 
 Problem — Three stacked segmented controls (Frame | Play, Start | End, the Automatic badge
