@@ -62,12 +62,12 @@ async function playTheServerShow(page: Page): Promise<void> {
   await page.getByRole("button", { name: "Abspielen", exact: true }).last().click();
 }
 
-test("E2E-046 a server slideshow plays Immich's previews at 1440 and prepares the originals at 4K", async ({
+test("E2E-046 a server slideshow plays Immich's previews at Standard (1440) and prepares the originals at Large (4K)", async ({
   page,
 }) => {
   const server = await serverShowOnTheServer(page);
 
-  await chooseQuality(page, "1440 Pixel");
+  await chooseQuality(page, "Standard");
   await playTheServerShow(page);
   await expect(page.getByRole("dialog", { name: TITLE })).toBeVisible();
   await expect.poll(() => server.previewsAsked.length).toBeGreaterThan(0);
@@ -75,7 +75,7 @@ test("E2E-046 a server slideshow plays Immich's previews at 1440 and prepares th
 
   await page.keyboard.press("Escape");
   await page.getByRole("button", { name: "Zurück", exact: true }).click();
-  await chooseQuality(page, "4K");
+  await chooseQuality(page, "Groß");
   await playTheServerShow(page);
   await expect(page.getByRole("dialog", { name: TITLE })).toBeVisible();
   await expect.poll(() => server.originalsAsked.length).toBeGreaterThan(0);
