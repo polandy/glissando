@@ -72,7 +72,7 @@ chapters are turned on or off for the whole slideshow, and shows how many there 
 ## Keep and share
 
 All of it is behind the **Share** button next to the slideshow's title. It opens a list in two
-groups; choose a row and its sheet opens, with **Back** to the list.
+groups; choose a row and its sheet opens, with **Back** (or Esc) to the list and ✕ to close.
 
 - **Watch by link** needs a self-hosted Glissando ([self-hosting](self-hosting.md)): a link anyone
   can watch, which stays up to date until you turn it off.

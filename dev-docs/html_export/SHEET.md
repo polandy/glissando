@@ -32,4 +32,5 @@ closes the whole flow. Its states follow the video sheet's (VIDEO_EXPORT.md):
 - "Abbrechen" stops before the next picture (an `AbortSignal`), and a picked file
   is left as it was: its writer is aborted, and File System Access commits only on `close()`.
   Esc and ✕ cancel while running; a tap on the scrim closes the sheet only in choose and failed.
-  Closed, focus goes back to "Webseite".
+  Opened from the Share list, Esc steps back to the list in every other state (`ExportDialog`'s
+  `onBack`); ✕ always closes. Closed, focus goes back to "Webseite".

@@ -26,7 +26,8 @@ size radios, file row and saved note are shared with the web page export.
   delete.
 - One export at a time; the sheet is modal while running. While running, ✕ reads "Abbrechen"
   and Esc cancels too; a tap on the scrim closes the sheet only where nothing is lost (not while
-  running, not once done). Closed, focus goes back to "Video".
+  running, not once done). Opened from the Share list, Esc steps back to the list in every other
+  state (`ExportDialog`'s `onBack`); ✕ always closes. Closed, focus goes back to "Video".
 - While the browser is being probed, the sheet shows "Glissando prüft, was dieses Gerät kann …".
   A probe or a target that fails shows as failed.
 - Below the done file row: with "Teilen …" the hint on the share menu, with "Herunterladen"
