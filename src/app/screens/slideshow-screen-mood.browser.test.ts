@@ -26,7 +26,7 @@ const tile = (choice: string) => {
 };
 const moodValue = () => text(moodTile().querySelector(".value b") ?? null);
 const moodSummary = () => text(moodTile().querySelector(".value small") ?? null);
-const resetButton = () => buttonNamed("Zurück auf Eigene");
+const resetButton = () => buttonNamed("Zurück auf Automatisch");
 
 function openSheet(): void {
   moodTile().click();
@@ -37,7 +37,7 @@ describe("SlideshowScreen, the mood tile", () => {
   it("names Custom with the automatic picture times and the standard motion", () => {
     mountScreen();
 
-    expect(moodValue()).toBe("Eigene");
+    expect(moodValue()).toBe("Automatisch");
     expect(moodSummary()).toBe("automatisch · übliche Bewegung");
   });
 
@@ -116,8 +116,8 @@ describe("SlideshowScreen, the mood sheet", () => {
 
     expect(calls.moodResets).toBe(1);
     expect(resetButton().getAttribute("aria-disabled")).toBe("true");
-    expect(resetButton().title).toBe("Die Diashow steht schon auf Eigene");
-    expect(moodValue()).toBe("Eigene");
+    expect(resetButton().title).toBe("Die Stimmung ist schon automatisch");
+    expect(moodValue()).toBe("Automatisch");
     expect(moodSummary()).toBe("automatisch · übliche Bewegung");
   });
 

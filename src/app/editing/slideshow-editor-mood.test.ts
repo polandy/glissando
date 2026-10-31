@@ -30,7 +30,7 @@ describe("SlideshowEditor, the slideshow's mood", () => {
 
     await editor.settled();
     expect(await store.getSlideshow("show")).not.toHaveProperty("mood");
-    expect(toaster.current?.text).toBe("Stimmung wieder auf Eigene");
+    expect(toaster.current?.text).toBe("Stimmung wieder automatisch");
     expect(toaster.current?.action?.label).toBe("Rückgängig");
   });
 
@@ -64,7 +64,7 @@ describe("SlideshowEditor, the slideshow's mood", () => {
 
     await editor.settled();
     expect(await store.getSlideshow("show")).not.toHaveProperty("mood");
-    expect(toaster.current?.text).toBe("Stimmung ist jetzt Eigene");
+    expect(toaster.current?.text).toBe("Stimmung ist jetzt automatisch");
     expect(toaster.current?.action?.label).toBe("Rückgängig");
   });
 
@@ -91,7 +91,7 @@ describe("SlideshowEditor, the slideshow's mood", () => {
 
     await editor.settled();
     expect(await store.getSlideshow("show")).not.toHaveProperty("mood");
-    expect(toaster.current?.text).toBe("Stimmung ist jetzt Eigene");
+    expect(toaster.current?.text).toBe("Stimmung ist jetzt automatisch");
   });
 
   it("the picture length change's undo restores the mood as it was", async () => {
@@ -115,7 +115,7 @@ describe("SlideshowEditor, the slideshow's mood", () => {
 
     await editor.settled();
     expect(await store.getSlideshow("show")).not.toHaveProperty("mood");
-    expect(toaster.current?.text).toBe("Stimmung ist jetzt Eigene");
+    expect(toaster.current?.text).toBe("Stimmung ist jetzt automatisch");
   });
 
   it("the seconds per picture change's undo restores the mood as it was", async () => {
@@ -153,7 +153,7 @@ describe("SlideshowEditor, the slideshow's mood", () => {
     expect(slideshow.pictureLength).toBe("seconds");
     expect(slideshow.secondsPerPicture).toBe(3);
     expect(slideshow.transition).toBe("alternate");
-    expect(toaster.current?.text).toBe("Stimmung ist jetzt Eigene");
+    expect(toaster.current?.text).toBe("Stimmung ist jetzt automatisch");
     expect(toaster.current?.action?.label).toBe("Rückgängig");
   });
 

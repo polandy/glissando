@@ -29,7 +29,7 @@ test("E2E-060 a picture of the pictures step opens full screen, browses, removes
     await pictureTakenOn(page, "lake.jpg", "2025-07-14", "#ffd54f"),
   ];
   await openImport(page);
-  await chooseFiles(page, page.getByRole("button", { name: "Medien auswählen" }), files);
+  await chooseFiles(page, page.getByRole("button", { name: "Bilder auswählen" }), files);
 
   // Selects the tile, then opens it full screen from the selection bar (IMPORT_ARRANGING.md).
   await page.getByRole("button", { name: "Bild 2, aufgenommen am 13.07.2025" }).click();
@@ -72,7 +72,7 @@ test.describe("coarse pointer", () => {
       await pictureTakenOn(page, "lake.jpg", "2025-07-14", "#ffd54f"),
     ];
     await openImport(page);
-    await chooseFiles(page, page.getByRole("button", { name: "Medien auswählen" }), files);
+    await chooseFiles(page, page.getByRole("button", { name: "Bilder auswählen" }), files);
     await page.getByRole("button", { name: "Bild 2, aufgenommen am 13.07.2025" }).click();
     await page.getByRole("button", { name: "Ansehen" }).click();
 

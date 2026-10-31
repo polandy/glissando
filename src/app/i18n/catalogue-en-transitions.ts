@@ -3,20 +3,21 @@ import type { deTransitions } from "./catalogue-de-transitions.ts";
 
 /** English copy of the slideshow's default transition; typed to the German keys. */
 export const enTransitions: Pick<Catalogue, keyof typeof deTransitions> = {
-  "slideshow.transitionDefault": "default",
-  "slideshow.transitionOwnChoice": "own choice",
+  "slideshow.transitionDefault": "automatic",
+  "slideshow.transitionOwnChoice": "chosen",
   "slideshow.transitionOwnCount": { one: "{count} own", other: "{count} own" },
   "slideshow.transitionSummary": "{choice} · {own}",
   "transitions.title": "Slideshow transitions",
-  "transitions.default": "Default",
-  "transitions.ownChoice": "Own choice",
-  "transitions.defaultTag": "Default",
+  "transitions.default": "Automatic",
+  "transitions.ownChoice": "Chosen",
+  "transitions.defaultTag": "Automatic",
   "transitions.hintAlternate":
     "The effects alternate from picture to picture, never the same one twice in a row.",
   "transitions.hintCut": "The pictures follow one another without a transition.",
-  "transitions.hintMood": "Set by the mood {name}. Choosing another switches the mood to Custom.",
+  "transitions.hintMood":
+    "Set by the mood {name}. Choosing another switches the mood to Automatic.",
   "transitions.hintEffect":
-    "Every transition: {effect}. It takes {share} % of the picture's time, at most {max} s.",
+    "Every transition: {effect}. It takes {share} % of the picture length, at most {max} s.",
   "transitions.ownKept": {
     one: "Picture {numbers} keeps its own transition – change it in the picture editor.",
     other: "Pictures {numbers} keep their own transitions – change them in the picture editor.",

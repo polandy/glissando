@@ -167,7 +167,7 @@ describe("MusicEditorScreen, the playlist lane", () => {
     const lefts = blocks.map((block) => Number.parseFloat(block.style.left));
     [0, 32.7586, 65.5172].forEach((left, index) => expect(lefts[index]).toBeCloseTo(left, 3));
     expect(document.querySelectorAll(".playlist-lane .crossfade")).toHaveLength(2);
-    expect(text(".lane-label")).toBe("Playlist, 3 Songs · 2:54 Überblendungen schraffiert");
+    expect(text(".lane-label")).toBe("Musik, 3 Songs · 2:54 Überblendungen schraffiert");
   });
 
   it("marks where the slideshow ends before the playlist", () => {

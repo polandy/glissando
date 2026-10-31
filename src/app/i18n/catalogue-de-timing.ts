@@ -2,7 +2,7 @@ import type { Message } from "./messages.ts";
 
 /** German copy of a picture's own duration and transition; part of the German catalogue. */
 export const deTiming = {
-  "slideshow.pictureTimes": "Bildzeiten",
+  "slideshow.pictureTimes": "Bilddauer",
   "slideshow.musicLength": "{duration} Musik",
   "slideshow.pictureLabelOwnDuration": ", eigene Dauer {duration}",
   "slideshow.pictureLabelOwnTransition": ", eigener Übergang {effect}",
@@ -10,14 +10,12 @@ export const deTiming = {
   "editor.previewTransition": "{duration}, darin {effect} {length} zu Bild {next}",
   "editor.previewCut": "{duration}, dann Schnitt zu Bild {next}",
   "editor.previewEnd": "{duration}, dann endet die Diashow",
-  "editor.duration": "Dauer",
+  "editor.duration": "Bilddauer",
   "editor.ownDuration": "Eigene Dauer",
   "editor.durationShorter": "Eine halbe Sekunde kürzer",
   "editor.durationLonger": "Eine halbe Sekunde länger",
-  "editor.durationHintAutomatic":
-    "Die Sekunden pro Bild dieser Diashow. Mit + und − wird es eine eigene Dauer.",
-  "editor.durationHintOwn":
-    "Automatisch wären es {duration}, die Sekunden pro Bild dieser Diashow.",
+  "editor.durationHintAutomatic": "Folgt der Bilddauer der Diashow.",
+  "editor.durationHintOwn": "Automatisch wären es {duration}.",
   "editor.durationHintMusic": {
     one: "Die Musik gehört dem einen Bild ohne eigene Dauer.",
     other: "Die Musik verteilt sich gleichmäßig auf die {count} Bilder ohne eigene Dauer.",
@@ -47,7 +45,7 @@ export const deTiming = {
   "editor.transitionsAlternate":
     "Automatisch wechseln die Übergänge ab, wie für die Diashow eingestellt.",
   "editor.transitionHint":
-    "Dauert {length}, am Ende von Bild {number}: {share} % der Bildzeit, höchstens {max} s.",
+    "Dauert {length}, am Ende von Bild {number}: {share} % der Bilddauer, höchstens {max} s.",
   "editor.cutHint": "Bild {number} folgt ohne Übergang.",
   "editor.transitionAlreadyAutomatic": "Der Übergang ist schon automatisch",
   "editor.autoTag": "Auto",
@@ -57,6 +55,6 @@ export const deTiming = {
   "effect.circle-open": "Kreis",
   "effect.zoom-in": "Zoom",
   "effect.dissolve": "Auflösen",
-  "effect.cut": "Schnitt",
+  "effect.cut": "Harter Schnitt",
   "effect.alternate": "Abwechselnd",
 } as const satisfies Record<string, Message>;

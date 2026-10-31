@@ -5,7 +5,6 @@ One line per item, newest at the end. A finished item is deleted.
 ## Open
 
 - [ ] UX P0: glossary in BRAND.md + commit the UX backlog — `dev-docs/UX_BACKLOG.md`, merges first (2026-10-31)
-- [ ] UX P1: copy sweep — terminology, jargon, mechanics-to-outcomes in the catalogues and user guide; UX-14…16 (2026-10-31)
 - [ ] UX P2: undo for chapter/card removal, waveform loading label, route skeletons, phone search label; UX-09, 13, 24, 28 (2026-10-31)
 - [ ] UX P3: discard guard on popstate, Library crumb as link, Android back with open sheet after owner check; UX-23, 25, 22 (2026-10-31)
 - [ ] UX P4: export sheets and settings — error mapping, codec notice, one size scale, hide Immich block, Esc as Back; UX-17…21 (2026-10-31)

@@ -12,9 +12,7 @@ describe("PictureEditorScreen duration", () => {
 
     expect(chip(durationSection())).toBe("Automatisch");
     expect(element("output").textContent).toBe("5,0 s");
-    expect(text(durationSection())).toContain(
-      "Die Sekunden pro Bild dieser Diashow. Mit + und − wird es eine eigene Dauer. 2 bis 15 s.",
-    );
+    expect(text(durationSection())).toContain("Folgt der Bilddauer der Diashow. 2 bis 15 s.");
     expect(calls.durations).toEqual([5500]);
   });
 
@@ -35,9 +33,7 @@ describe("PictureEditorScreen duration", () => {
     resetIn(durationSection()).click();
 
     expect(chip(durationSection())).toBe("Eigene Dauer");
-    expect(text(durationSection())).toContain(
-      "Automatisch wären es 5,0 s, die Sekunden pro Bild dieser Diashow.",
-    );
+    expect(text(durationSection())).toContain("Automatisch wären es 5,0 s.");
     expect(calls.durationResets).toBe(1);
   });
 

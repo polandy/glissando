@@ -47,7 +47,7 @@ function withOwn(ownIds: readonly string[], overrides: Partial<SlideshowDetails>
   };
 }
 
-/** Transitions lives inside the "Fine settings" fold, closed by default (ADR-0048); open it so
+/** Transitions lives inside the "More settings" fold, closed by default (ADR-0048); open it so
  * the row is rendered and can take focus back once its sheet closes. */
 function openFineSettings(): void {
   const toggle = document.querySelector<HTMLButtonElement>(".toggle");
@@ -67,20 +67,20 @@ describe("SlideshowScreen, the transitions row", () => {
   it("names the default crossfade", () => {
     mountScreen();
 
-    expect(text(transitionsRow())).toBe("Übergänge Überblenden Vorgabe");
+    expect(text(transitionsRow())).toBe("Übergänge Überblenden Automatisch");
   });
 
   it("names an own choice and counts the pictures with their own transition", () => {
     mountScreen(withOwn(["a"], { transition: "alternate" }));
 
-    expect(text(transitionsRow())).toBe("Übergänge Abwechselnd eigene Wahl · 1 eigener");
+    expect(text(transitionsRow())).toBe("Übergänge Abwechselnd gewählt · 1 eigener");
   });
 
   it("counts several own transitions in the plural", () => {
     mountScreen(withOwn(["a", "c"]));
     openFineSettings();
 
-    expect(text(transitionsRow())).toBe("Übergänge Überblenden Vorgabe · 2 eigene");
+    expect(text(transitionsRow())).toBe("Übergänge Überblenden Automatisch · 2 eigene");
   });
 });
 
@@ -94,12 +94,12 @@ describe("SlideshowScreen, the transitions sheet", () => {
     expect(text(sheet()?.querySelector("#transitions-title") ?? null)).toBe(
       "Übergänge der Diashow",
     );
-    expect(pill()).toBe("Vorgabe");
+    expect(pill()).toBe("Automatisch");
     const radios = [...(sheet()?.querySelectorAll('[role="radio"]') ?? [])];
     expect(
       radios.map((radio) =>
         text(radio)
-          .replace(/^Vorgabe/, "")
+          .replace(/^Automatisch/, "")
           .trim(),
       ),
     ).toEqual([
@@ -109,16 +109,16 @@ describe("SlideshowScreen, the transitions sheet", () => {
       "Kreis",
       "Zoom",
       "Auflösen",
-      "Schnitt",
+      "Harter Schnitt",
       "Abwechselnd",
     ]);
     expect(tile("crossfade").getAttribute("aria-checked")).toBe("true");
     expect(tile("crossfade").classList.contains("automatic")).toBe(true);
-    expect(tile("crossfade").querySelector(".tag")?.textContent).toBe("Vorgabe");
+    expect(tile("crossfade").querySelector(".tag")?.textContent).toBe("Automatisch");
     expect(sheet()?.querySelectorAll(".tag")).toHaveLength(1);
     expect(document.activeElement).toBe(tile("crossfade"));
     expect(text(sheet())).toContain(
-      "Jeder Übergang: Überblenden. Er dauert 30 % der Bildzeit, höchstens 1 s.",
+      "Jeder Übergang: Überblenden. Er dauert 30 % der Bilddauer, höchstens 1 s.",
     );
   });
 
@@ -139,11 +139,11 @@ describe("SlideshowScreen, the transitions sheet", () => {
     flushSync();
 
     expect(calls.transitions).toEqual(["dissolve"]);
-    expect(pill()).toBe("Eigene Wahl");
+    expect(pill()).toBe("Gewählt");
     expect(tile("dissolve").getAttribute("aria-checked")).toBe("true");
     expect(tile("dissolve").classList.contains("automatic")).toBe(false);
     expect(text(sheet())).toContain("Jeder Übergang: Auflösen.");
-    expect(text(transitionsRow())).toContain("Auflösen eigene Wahl");
+    expect(text(transitionsRow())).toContain("Auflösen gewählt");
   });
 
   it("explains alternating and the cut", () => {
@@ -214,7 +214,7 @@ describe("SlideshowScreen, the transitions sheet", () => {
     resetButton().click();
 
     expect(calls.transitionResets).toBe(1);
-    expect(pill()).toBe("Vorgabe");
+    expect(pill()).toBe("Automatisch");
     expect(resetButton().getAttribute("aria-disabled")).toBe("true");
     expect(resetButton().title).toBe("Die Übergänge stehen schon auf Überblenden");
   });

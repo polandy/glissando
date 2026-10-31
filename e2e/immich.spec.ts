@@ -37,7 +37,7 @@ const FACE = fixture<{ boundingBoxX1: number; imageWidth: number }[]>("faces-one
 const FACE_LEFT = (FACE[0]?.boundingBoxX1 ?? 0) / (FACE[0]?.imageWidth ?? 1);
 
 /**
- * The library's "All photos": the recorded first page (a face photo and two landscapes) and one
+ * The library's "All pictures": the recorded first page (a face photo and two landscapes) and one
  * more landscape a day earlier, so a range has a photo between its ends.
  */
 function libraryPage(): ImmichSearch {
@@ -130,7 +130,7 @@ test("E2E-029 photos picked in Immich by day, by range and by whole album are im
   await expect(page.getByText("Aus Immich", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Immich öffnen" }).click();
 
-  await expect(page.getByRole("tab", { name: "Alle Fotos" })).toHaveAttribute(
+  await expect(page.getByRole("tab", { name: "Alle Bilder" })).toHaveAttribute(
     "aria-selected",
     "true",
   );
@@ -140,7 +140,7 @@ test("E2E-029 photos picked in Immich by day, by range and by whole album are im
     /2\. Juli 2019/,
     /1\. Juli 2019/,
   ]);
-  await expect(footer).toContainText("Tippe Fotos an oder wähle ein ganzes Album");
+  await expect(footer).toContainText("Tippe Bilder an oder wähle ein ganzes Album");
   const july2025 = page.locator("section").filter({
     has: page.getByRole("heading", { name: /12\. Juli 2025/ }),
   });

@@ -117,11 +117,11 @@ describe("PicturesStep, where a new slideshow lives", () => {
     expect(chosen).toEqual(["server"]);
     const text = target.textContent;
     expect(text.indexOf("From Immich")).toBeLessThan(text.indexOf("Pictures from this device"));
-    expect(text).toContain("A server slideshow only links photos from Immich.");
+    expect(text).toContain("A server slideshow only links pictures from Immich.");
     expect(target.querySelector(".immich-first .btn.primary")?.textContent).toContain(
       "Open Immich",
     );
-    expect(text).not.toContain("Choose media");
+    expect(text).not.toContain("Choose pictures");
   });
 
   it("fixes the choice once a picture is linked, and says the pictures stay in Immich", async () => {
@@ -136,7 +136,7 @@ describe("PicturesStep, where a new slideshow lives", () => {
     expect(option("This device")?.disabled).toBe(true);
     expect(option("Glissando server")?.disabled).toBe(true);
     expect(target.textContent).toContain(
-      "Chosen for this slideshow. Clear the pictures to change it.",
+      "Chosen for this slideshow. Remove the pictures to change it.",
     );
     expect(target.querySelector(".notice.mint")?.textContent).toContain(
       "Linked from Immich. Nothing is downloaded now",

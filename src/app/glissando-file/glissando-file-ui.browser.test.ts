@@ -28,7 +28,7 @@ describe("ExportIndicator", () => {
     destroy = mounted.destroy;
 
     expect(mounted.target.querySelector('[role="status"]')?.textContent).toContain(
-      "Exportiere „Herbst in Wien“ … 34 %",
+      "Speichere „Herbst in Wien“ … 34 %",
     );
     expect(mounted.target.querySelector<HTMLElement>(".line")?.style.width).toBe("34.2%");
   });

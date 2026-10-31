@@ -85,16 +85,16 @@ describe("PictureEditorScreen, the caption", () => {
 
   it("shows the clear button only while there is text; it empties the field and keeps focus", () => {
     const { calls } = mountEditor();
-    expect(document.querySelector('[aria-label="Bildtitel leeren"]')).toBeNull();
+    expect(document.querySelector('[aria-label="Bildtitel entfernen"]')).toBeNull();
     type("Steg");
 
-    button("Bildtitel leeren").click();
+    button("Bildtitel entfernen").click();
     flushSync();
 
     expect(field().value).toBe("");
     expect(calls.captions.at(-1)).toBe("");
     expect(document.activeElement).toBe(field());
-    expect(document.querySelector('[aria-label="Bildtitel leeren"]')).toBeNull();
+    expect(document.querySelector('[aria-label="Bildtitel entfernen"]')).toBeNull();
   });
 
   it("leaves the field on Enter", () => {

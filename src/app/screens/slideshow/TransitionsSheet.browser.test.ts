@@ -125,14 +125,14 @@ describe("TransitionsSheet", () => {
 
     expect(tile("alternate").getAttribute("aria-checked")).toBe("true");
     expect(tile("cut").getAttribute("aria-checked")).toBe("false");
-    expect(hint()).toBe("Set by the mood Lively. Choosing another switches the mood to Custom.");
+    expect(hint()).toBe("Set by the mood Lively. Choosing another switches the mood to Automatic.");
   });
 
   it("checks calm's crossfade under that mood, with the mood's own hint", () => {
     setUp(details(["a", "b"], { transition: "cut", mood: "calm" }));
 
     expect(tile("crossfade").getAttribute("aria-checked")).toBe("true");
-    expect(hint()).toBe("Set by the mood Calm. Choosing another switches the mood to Custom.");
+    expect(hint()).toBe("Set by the mood Calm. Choosing another switches the mood to Automatic.");
   });
 
   it("picking another tile under a mood still calls onTransition, to leave the mood", () => {

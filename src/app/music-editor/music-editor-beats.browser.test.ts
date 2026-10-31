@@ -12,7 +12,7 @@ import {
 
 afterEach(() => unmountEditor());
 
-/** A beat every 500 ms (120 BPM) across the whole track. */
+/** A beat every 500 ms (120 Schläge pro Minute) across the whole track. */
 const STEADY: MusicBeats = {
   kind: "beats",
   beatsMs: Array.from({ length: TRACK_MS / 500 }, (_, beat) => 250 + beat * 500),
@@ -50,7 +50,7 @@ describe("MusicEditorScreen, the picture changes", () => {
   it("with a beat found, shows the tempo and the pictures on the beat, ticking the beats", () => {
     mountDetailed(slideshowWith(), FOUND);
 
-    expect(section().textContent).toContain("120 BPM");
+    expect(section().textContent).toContain("120 Schläge pro Minute");
     expect(checked()).toBe("Im Takt");
     expect(section().textContent).toContain("Jeder automatische Wechsel landet auf einem Schlag");
     expect(ticks()).toHaveLength(STEADY.beatsMs.length);

@@ -130,7 +130,7 @@ describe("MusicStep, the pace a new slideshow starts on (ADR-0050)", () => {
     const target = mountStep(session);
 
     expect(paceLine(target)).toBe(
-      "Mood Calm · about 7 s per picture, on the music's phrases. Change it in the slideshow.",
+      "Mood Calm · about 7 s per picture, to the music. Change it in the slideshow.",
     );
     expect(target.querySelector('[role="radio"]')).toBeNull();
     expect(target.querySelector('[aria-label="Longer"]')).toBeNull();

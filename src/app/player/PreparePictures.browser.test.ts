@@ -44,9 +44,7 @@ describe("PreparePictures", () => {
     const { text } = mountScreen({ stage: "measuring", quality: "4k", measured: 1, measuring: 2 });
 
     expect(text("h2")).toBe("Prüfe die Verbindung …");
-    expect(text(".line")).toBe(
-      "Lädt die ersten 2 Bilder in 4K, um zu messen, wie lange eins braucht.",
-    );
+    expect(text(".line")).toBe("Prüft, wie schnell 2 Bilder in 4K laden.");
     expect(text(".nums")).toBe("Messung 1 von 2");
   });
 
@@ -82,7 +80,7 @@ describe("PreparePictures", () => {
     const { target, asked } = mountScreen(PREPARING);
 
     button(target, "Jetzt starten")?.click();
-    button(target, "In 1440 abspielen")?.click();
+    button(target, "Früher abspielen, etwas weniger scharf")?.click();
     button(target, "Schließen (Esc)")?.click();
     flushSync();
 
@@ -93,6 +91,6 @@ describe("PreparePictures", () => {
     const { target } = mountScreen({ ...PREPARING, quality: "1440" });
 
     expect(button(target, "Jetzt starten")).toBeDefined();
-    expect(button(target, "In 1440 abspielen")).toBeUndefined();
+    expect(button(target, "Früher abspielen, etwas weniger scharf")).toBeUndefined();
   });
 });

@@ -37,8 +37,8 @@ describe("SlideshowScreen, the look tile", () => {
     mountScreen();
 
     expect(lookValue()).toBe("Ohne");
-    expect(lookSummary()).toBe("Vorgabe");
-    expect(text(lookTile())).toBe("Look Ohne Vorgabe");
+    expect(lookSummary()).toBe("Automatisch");
+    expect(text(lookTile())).toBe("Look Ohne Automatisch");
   });
 
   it("names the chosen look as plain text, with no summary", () => {
@@ -58,7 +58,7 @@ describe("SlideshowScreen, the look sheet", () => {
     expect(sheet()?.open).toBe(true);
     expect(pill()).toBe("Ohne");
     expect(tile("none").getAttribute("aria-checked")).toBe("true");
-    expect(tile("none").querySelector(".tag")?.textContent).toBe("Standard");
+    expect(tile("none").querySelector(".tag")?.textContent).toBe("Automatisch");
   });
 
   it("stores a picked look at once and shows it as the slideshow's own choice", () => {
@@ -89,7 +89,7 @@ describe("SlideshowScreen, the look sheet", () => {
     expect(resetButton().getAttribute("aria-disabled")).toBe("true");
     expect(resetButton().title).toBe("Die Diashow hat keinen Look");
     expect(lookValue()).toBe("Ohne");
-    expect(lookSummary()).toBe("Vorgabe");
+    expect(lookSummary()).toBe("Automatisch");
   });
 
   it("closes with Done, focus back on the tile", () => {

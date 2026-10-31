@@ -15,7 +15,7 @@ test("E2E-039 the music editor finds the music's beat, changes the pictures on i
   await createSlideshowWithMusic(page, clickTrackWav("Takt.wav", 20, 120));
 
   await page.getByRole("button", { name: /^Musik Takt\.wav/ }).click();
-  await expect(section.locator(".state")).toHaveText("120 BPM");
+  await expect(section.locator(".state")).toHaveText("120 Schläge pro Minute");
   await expect(onTheBeat).toHaveAttribute("aria-checked", "true");
   await expect(
     section.getByText(
@@ -31,7 +31,7 @@ test("E2E-039 the music editor finds the music's beat, changes the pictures on i
   await editsStored(page);
 
   await page.reload();
-  await expect(section.locator(".state")).toHaveText("120 BPM");
+  await expect(section.locator(".state")).toHaveText("120 Schläge pro Minute");
   await expect(evenly).toHaveAttribute("aria-checked", "true");
   await expect(onTheBeat).toHaveAttribute("aria-checked", "false");
 });

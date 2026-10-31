@@ -16,7 +16,7 @@ describe("PictureEditorScreen transition", () => {
       "Kreis",
       "Zoom",
       "Auflösen",
-      "Schnitt",
+      "Harter Schnitt",
     ]);
     expect(element(".eyebrow#transition-label").textContent).toBe("Übergang zu Bild 3");
     expect(chip(transitionSection())).toBe("Automatisch");
@@ -24,7 +24,7 @@ describe("PictureEditorScreen transition", () => {
     expect(tile("crossfade").classList.contains("automatic")).toBe(true);
     expect(tile("crossfade").querySelector(".tag")?.textContent).toBe("Auto");
     expect(text(transitionSection())).toContain(
-      "Automatisch gilt der Übergang der Diashow: Überblenden. Dauert 1,0 s, am Ende von Bild 2: 30 % der Bildzeit, höchstens 1 s.",
+      "Automatisch gilt der Übergang der Diashow: Überblenden. Dauert 1,0 s, am Ende von Bild 2: 30 % der Bilddauer, höchstens 1 s.",
     );
   });
 

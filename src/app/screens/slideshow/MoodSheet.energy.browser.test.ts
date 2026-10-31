@@ -54,7 +54,7 @@ describe("MoodSheet energy pacing", () => {
     setUp(details({ energyPacing: true }), previewPorts({ energyPacing: true }));
 
     expect(hint()).toBe(
-      "Your picture times stay the average. With “Fill the music” the slideshow still ends with the song. Pictures with their own duration keep it.",
+      "Your picture length stays the average. With “Fill the music” the slideshow still ends with the song. Pictures with their own duration keep it.",
     );
   });
 
@@ -138,6 +138,6 @@ describe("MoodSheet energy pacing", () => {
 
     await whenRendered(target, ".stage");
 
-    expect(setText("At a drop or chorus")).toBe("Cut on the beat");
+    expect(setText("When the music picks up")).toBe("Cut on the beat");
   });
 });

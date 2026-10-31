@@ -53,10 +53,10 @@ describe("MusicEditorScreen, the volume", () => {
     mountEditor(slideshowWith(), { kind: "listening" }, { kind: "listening" });
 
     expect(text('[aria-labelledby="music-volume"]')).toContain(
-      "Spielt unangeglichen, bis gemessen",
+      "Spielt wie aufgenommen, bis gemessen",
     );
     expect(text('[aria-labelledby="music-volume"]')).toContain(
-      "Die Lautheit wird gemessen… bis dahin spielt er unangeglichen.",
+      "Die Lautheit wird gemessen… bis dahin spielt er wie aufgenommen.",
     );
     expect(resetButton()).toBeNull();
   });
@@ -64,10 +64,10 @@ describe("MusicEditorScreen, the volume", () => {
   it("shows it levelled by the measured amount, with no reset button", () => {
     mountEditor(slideshowWith(), { kind: "listening" }, ROOM_TO_LEVEL);
 
-    expect(text(".readout")).toContain("Angeglichen");
-    expect(text(".readout")).toContain("Gleich laut wie die anderen Titel");
+    expect(text(".readout")).toContain("Gleich laut wie die anderen Songs");
+    expect(text(".readout")).toContain("Gleich laut wie die anderen Songs");
     expect(text('[aria-labelledby="music-volume"]')).toContain(
-      "Um +3 dB angeglichen, um die anderen Titel zu erreichen.",
+      "Gleich laut wie die anderen Songs, angepasst um +3 dB.",
     );
     expect(slider().value).toBe("0");
     expect(resetButton()).toBeNull();
@@ -82,7 +82,7 @@ describe("MusicEditorScreen, the volume", () => {
     expect(calls.volumes).toEqual([2]);
     set({ slideshow: slideshowWith({ volumeDb: 2 }) });
     expect(text(".readout")).toContain("+2 dB");
-    expect(text(".sub")).toBe("Lauter als angeglichen");
+    expect(text(".sub")).toBe("Lauter als die anderen Songs");
     resetButton()?.click();
     expect(calls.volumeResets).toBe(1);
   });
@@ -92,7 +92,7 @@ describe("MusicEditorScreen, the volume", () => {
 
     expect(slider().max).toBe("-4");
     expect(text('[aria-labelledby="music-volume"]')).toContain(
-      "4 dB unter dem Ziel, um nicht zu verzerren.",
+      "4 dB leiser als die anderen Songs, damit es sauber klingt.",
     );
     expect(section().querySelector(".cap")).not.toBeNull();
   });

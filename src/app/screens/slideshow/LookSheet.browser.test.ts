@@ -112,7 +112,7 @@ describe("LookSheet", () => {
       "black-and-white",
       "faded",
     ]);
-    expect(tile("none").querySelector(".tag")?.textContent).toBe("Standard");
+    expect(tile("none").querySelector(".tag")?.textContent).toBe("Automatisch");
     expect(dialog()?.querySelectorAll(".tag")).toHaveLength(1);
     expect(tile("none").getAttribute("aria-checked")).toBe("true");
     expect(document.activeElement).toBe(tile("none"));

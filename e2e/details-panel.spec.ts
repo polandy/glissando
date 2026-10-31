@@ -15,7 +15,7 @@ test("E2E-083 the slideshow's details show music, mood and look up front; fine s
   const musicTile = page.getByRole("button", { name: /^Musik/ });
   const moodTile = page.getByRole("button", { name: /^Stimmung/ });
   const lookTile = page.getByRole("button", { name: /^Look/ });
-  const fineSettings = page.getByRole("button", { name: "Feineinstellungen" });
+  const fineSettings = page.getByRole("button", { name: "Weitere Einstellungen" });
   const transitionsRow = page.getByRole("button", { name: /^Übergänge/ });
   const portraitRow = page.getByRole("button", { name: /^Hochformatbilder/ });
   const chaptersRow = page.getByRole("button", { name: /^Reisekapitel/ });

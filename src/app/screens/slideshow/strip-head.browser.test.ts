@@ -29,7 +29,7 @@ function mountHead(narrow: boolean, { selecting = false, onToggleSelect = () => 
   mounted.target.style.width = narrow ? "400px" : "1000px";
   const buttons = [...mounted.target.querySelectorAll<HTMLButtonElement>("button")];
   const addButton = buttons.find(
-    (button) => button.getAttribute("aria-label") === "Medien hinzufügen",
+    (button) => button.getAttribute("aria-label") === "Bilder hinzufügen",
   );
   const selectButton = buttons.find((button) => button.getAttribute("aria-label") === "Auswählen");
   if (addButton === undefined || selectButton === undefined) {
@@ -40,7 +40,7 @@ function mountHead(narrow: boolean, { selecting = false, onToggleSelect = () => 
 
 describe("StripHead's Add media", () => {
   it.each([
-    { layout: "wide", narrow: false, label: "Medien hinzufügen" },
+    { layout: "wide", narrow: false, label: "Bilder hinzufügen" },
     { layout: "narrow", narrow: true, label: "Hinzufügen" },
   ])(
     "reads $label in the $layout layout, named in full for assistive technology",
@@ -48,7 +48,7 @@ describe("StripHead's Add media", () => {
       const { button } = mountHead(narrow);
 
       expect(button.innerText.trim()).toBe(label);
-      expect(button.getAttribute("aria-label")).toBe("Medien hinzufügen");
+      expect(button.getAttribute("aria-label")).toBe("Bilder hinzufügen");
     },
   );
 
@@ -94,7 +94,7 @@ describe("StripHead's add", () => {
     expect(mounted.target.querySelector(".own-add")).not.toBeNull();
     expect(
       [...mounted.target.querySelectorAll("button")].some(
-        (button) => button.getAttribute("aria-label") === "Medien hinzufügen",
+        (button) => button.getAttribute("aria-label") === "Bilder hinzufügen",
       ),
     ).toBe(false);
   });

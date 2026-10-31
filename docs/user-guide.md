@@ -10,33 +10,33 @@ without internet. If you use a self-hosted Glissando, open its address instead
 ## Make a slideshow
 
 1. **New slideshow** and choose pictures from the device (or from Immich, on a self-hosted
-   Glissando). They are ordered by capture date, and the originals stay untouched.
+   Glissando). They are ordered by capture date, and your pictures stay untouched.
 2. **Add music**: any common format (MP3, M4A, Ogg, FLAC, WAV …), or pick from the nine sample
-   tracks that come with Glissando if you have none of your own to hand. Pick the part of the song
+   songs that come with Glissando if you have none of your own to hand. Pick the part of the song
    to use; the slideshow is timed to fit it. Several songs work too, automatically matched in
    loudness so none plays louder than the rest; the music editor lets you listen and adjust that. It
-   shows the essentials first; turn on **Details** in its top bar for the volume line, the beats and
+   shows the essentials first; turn on **Details** in its top bar for the volume line, the beat and
    the crossfades.
 3. **Play.** Motion and transitions are chosen for you — people stay in frame, scenery gets a slow
    sweep, changes follow the beat.
 
 For a different feel, tap Mood beside Music and Look on the slideshow's screen. **Calm** shows each
 picture longer, with soft crossfades and gentle motion; **Lively** changes pictures quickly with
-mixed transitions and stronger motion. Both fit the picture changes to the song's beats and phrases,
+mixed transitions and stronger motion. Both fit the picture changes to the song's beat,
 so a slow and a fast song pace the same mood differently. A new slideshow starts on Calm; choose
-**Custom**, or set your own time per picture or "Fill the music" in the music editor, to use your
-own settings. A slideshow without music sets its time per picture in the music editor too, below
+**Automatic**, or set the picture length or "Fill the music" in the music editor, to use your
+own settings. A slideshow without music sets its picture length in the music editor too, below
 "No music yet". A picture with its own duration, transition or motion keeps it under any mood, and
-changing a single setting while a mood is on turns it into Custom with the mood's values to start
+changing a single setting while a mood is on turns it into Automatic with the mood's values to start
 from.
 
-Turn on **Follow the music's energy** in the Mood sheet, under any mood or Custom, and the pictures
-stay longer where the music is quiet and change quicker where it is loud; at a drop or chorus the
+Turn on **Follow the music's energy** in the Mood sheet, under any mood or Automatic, and the pictures
+stay longer where the music is quiet and change quicker where it is loud; when the music picks up, the
 next picture cuts in on the beat. The slideshow stays as long as before, and pictures with their own
 duration keep it.
 
 Tap Look on the slideshow's screen to give it a look — Warm, Cool, Vivid, Film, Black & white or
-Faded — if you want one. It colours every picture and video, in the exported video and web page
+Faded — if you want one. It colours every picture and video, in the video and web page you share
 too; the title and closing slides and the captions stay as they are.
 
 <p align="center">
@@ -58,7 +58,7 @@ hold it with a finger, to see what it does.
 them automatically, naming the place and the dates. Tap a chapter tile in the picture strip to
 rename it, hide it, or reset it to its automatic text; select a picture and tap **Insert chapter before**
 to add one of your own, or delete it again from its sheet. The **Trip chapters** row in the
-slideshow's side panel, under **Fine settings**, is where automatic chapters are turned on or off
+slideshow's side panel, under **More settings**, is where automatic chapters are turned on or off
 for the whole slideshow, and shows how many there currently are.
 
 ## Play
@@ -103,5 +103,5 @@ groups; choose a row and its sheet opens, with **Back** to the list.
   including one it couldn't look at the first time.
 - Your pictures stay on your device. Nothing is uploaded unless you use a server you run yourself.
 - Ask the browser to keep the data (Glissando requests it); clearing site data deletes slideshows
-  stored on the device — export a `.glissando` file as a backup.
+  stored on the device — save a `.glissando` file as a backup.
 - Language and light/dark follow your device; both can be changed in Settings.

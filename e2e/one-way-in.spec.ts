@@ -16,7 +16,7 @@ test("E2E-088 each slideshow action has one way in: the cover plays, the strip h
 
   await openImport(page);
 
-  await expect(page.getByRole("button", { name: "Medien auswählen" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Bilder auswählen" })).toBeVisible();
   await expect(openFile).toHaveCount(0);
   await expect(page.getByRole("button", { name: ".glissando-Datei öffnen" })).toHaveCount(0);
 
@@ -26,7 +26,7 @@ test("E2E-088 each slideshow action has one way in: the cover plays, the strip h
   const play = page.getByRole("button", { name: /^Abspielen/ });
   await expect(play).toHaveCount(1);
   await expect(play).toBeVisible();
-  const add = page.getByRole("button", { name: "Medien hinzufügen" });
+  const add = page.getByRole("button", { name: "Bilder hinzufügen" });
   await expect(add).toHaveCount(1);
   await expect(
     page.locator(".strip-head").getByRole("button", { name: "Auswählen" }),
@@ -42,5 +42,5 @@ test("E2E-088 each slideshow action has one way in: the cover plays, the strip h
   await expect(player).toBeHidden();
 
   await add.click();
-  await expect(page.getByRole("heading", { name: "Medien hinzufügen" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Bilder hinzufügen" })).toBeVisible();
 });

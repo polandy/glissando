@@ -39,7 +39,7 @@ test("E2E-028 the automatic motion's focus is found in the background: a face is
   const noSubject = page.getByText("Kein Motiv erkannt – die Bewegung bleibt mittig.");
   const state = page.locator(".motion .state");
   const frames = page.getByRole("group", { name: "Rahmen" });
-  const kenBurns = page.getByRole("region", { name: "Ken Burns" });
+  const kenBurns = page.getByRole("region", { name: "Bewegung" });
   await openApp(page);
   await openImport(page);
   await choosePictures(
@@ -114,12 +114,12 @@ test("E2E-074 the More menu's faces-and-subjects sheet sums a face and a faceles
     timeout: 0,
   });
   const faceChip = sheet.getByRole("button", { name: "Gesichter 1", exact: true });
-  const noSubjectChip = sheet.getByRole("button", { name: "Nichts gefunden 1", exact: true });
+  const noSubjectChip = sheet.getByRole("button", { name: "Ganz gezeigt 1", exact: true });
   await expect(faceChip).toBeVisible();
   await expect(noSubjectChip).toBeVisible();
 
   const faceTile = sheet.getByRole("button", { name: "Gesichter", exact: true });
-  const noSubjectTile = sheet.getByRole("button", { name: "Nichts gefunden", exact: true });
+  const noSubjectTile = sheet.getByRole("button", { name: "Ganz gezeigt", exact: true });
   // No filter is active yet: neither tile is dimmed, which is what the tap below changes.
   await expect(sheet.locator(".tile.dim")).toHaveCount(0);
 
