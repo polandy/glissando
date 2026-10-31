@@ -121,3 +121,24 @@ test("E2E-030 a slideshow saved as a 720p video from its menu downloads as an MP
     );
   }
 });
+
+test("E2E-100 the video sheet notes that the Opus sound does not play on Apple devices", async ({
+  page,
+  browserName,
+}) => {
+  test.skip(
+    browserName !== "chromium",
+    "Only Chromium's test build lacks an AAC encoder, so the video gets Opus sound",
+  );
+  await openApp(page);
+  await createSlideshowWithMusic(page);
+
+  await chooseShareRow(page, /^Video/);
+  const sheet = page.getByRole("dialog", { name: "Video" });
+  await expect(sheet.getByRole("button", { name: "Video erstellen" })).toBeVisible();
+  await expect(
+    sheet.getByText(
+      "Läuft aus diesem Browser nicht auf iPhone, iPad oder Apple TV. Dafür in Safari erstellen.",
+    ),
+  ).toBeVisible();
+});
