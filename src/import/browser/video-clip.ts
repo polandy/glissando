@@ -10,7 +10,9 @@ const MIN_READY_STATE_WITH_FRAME = 2;
 /**
  * Loads a video file the way the player will play it, in a `<video>` element; null when the
  * browser cannot decode its video track or it has no known end. `canPlayType` is no verdict (Chrome
- * answers "" for a playable .mov), so loading the first frame decides.
+ * answers "" for a playable .mov), so loading the first frame decides. Its length is where its
+ * picture ends: the element reports the longer track, and a sound track running past the picture
+ * would hold the last frame still for the difference.
  */
 export async function openClipInVideoElement(file: File): Promise<OpenedClip | null> {
   const url = URL.createObjectURL(file);
@@ -33,11 +35,29 @@ export async function openClipInVideoElement(file: File): Promise<OpenedClip | n
     close();
     return null;
   }
+  const pictureEndMs = await videoTrackEndMs(file);
   return {
-    durationMs: Math.round(durationMs),
+    durationMs: Math.round(Math.min(durationMs, pictureEndMs ?? durationMs)),
     posterFrame: (atMs) => frameAt(video, file, atMs),
     close,
   };
+}
+
+/** Where the file's video track ends; null when mediabunny cannot read the container. */
+async function videoTrackEndMs(file: File): Promise<number | null> {
+  try {
+    const { ALL_FORMATS, BlobSource, Input } = await import("mediabunny");
+    const input = new Input({ source: new BlobSource(file), formats: ALL_FORMATS });
+    try {
+      const track = await input.getPrimaryVideoTrack();
+      return track === null ? null : (await track.computeDuration()) * MILLISECONDS_PER_SECOND;
+    } finally {
+      input.dispose();
+    }
+  } catch {
+    // The element played it, so its own length stands.
+    return null;
+  }
 }
 
 async function frameAt(video: HTMLVideoElement, file: File, atMs: number): Promise<File> {
