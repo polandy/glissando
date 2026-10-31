@@ -59,6 +59,12 @@ export const de = {
   "start.searchingSubjects": "Motive werden gesucht",
   "start.searchingAgain": "Motive werden erneut gesucht",
   "start.searchProgress": "{done} von {total}",
+  "start.demoCardTitle": "Glissando in Aktion sehen",
+  "start.loadDemo": "Demo-Slideshow laden",
+  "start.loadingDemo": "Demo wird geladen …",
+  "start.loadingDemoProgress": "Demo wird geladen … {received} von {total} MB",
+  "start.demoNeedsConnection": "Braucht eine Verbindung — einmal geladen, läuft die Demo offline.",
+  "start.demoLoadFailed": "Demo konnte nicht geladen werden — versuch's noch mal",
   "start.focusFailed": {
     one: "{count} Bild konnte nicht angesehen werden",
     other: "{count} Bilder konnten nicht angesehen werden",

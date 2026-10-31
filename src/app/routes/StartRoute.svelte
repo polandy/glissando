@@ -11,6 +11,11 @@
   import { loadServerShelf } from "./server-shelf-loading";
   import StartLogo from "../start/StartLogo.svelte";
   import { loadStartSlideshows } from "./route-loading";
+  import {
+    isDemoSlideshowVisible,
+    type DemoSlideshowFlow,
+    type DemoSlideshowState,
+  } from "../start/demo-slideshow-flow";
 
   let {
     store,
@@ -32,6 +37,8 @@
     onSetUpFrame,
     onHideFrameCard,
     frameCardShown,
+    demoSlideshow,
+    publicInstall,
   }: {
     store: LibraryStore;
     /** Its slideshows show in their own section while it is on or offline. */
@@ -57,6 +64,9 @@
     onSetUpFrame: () => void;
     onHideFrameCard: () => void;
     frameCardShown: boolean;
+    /** The "Load demo slideshow" button (dev-docs/app/INSTALLING_AND_OFFLINE.md). */
+    demoSlideshow: Pick<DemoSlideshowFlow, "state" | "subscribe" | "start">;
+    publicInstall: boolean;
   } = $props();
 
   let slideshows = $state.raw<readonly SlideshowSummary[] | null>(null);
@@ -74,6 +84,17 @@
   });
 
   let server = $state.raw<ServerShelf | null>(null);
+
+  // The flow is fixed for the screen's lifetime.
+  // svelte-ignore state_referenced_locally
+  let demoState = $state.raw<DemoSlideshowState>(demoSlideshow.state);
+  const demoVisible = $derived(
+    isDemoSlideshowVisible({
+      publicInstall,
+      libraryEmpty: (slideshows?.length ?? 0) === 0 && server === null,
+    }),
+  );
+
   /** Bumped by every availability change, so only the latest shelf load shows. */
   let shelfLoads = 0;
   // The server library is fixed for the screen's lifetime.
@@ -90,6 +111,7 @@
 
   onMount(() => {
     const stopFocus = focusPass.subscribe((next) => (passState = next));
+    const stopDemo = demoSlideshow.subscribe((next) => (demoState = next));
     const stopServerFocus = serverFocusPass.subscribe((next) => (serverPassState = next));
     loadStartSlideshows(store, covers, left.signal).then((loaded) => {
       if (loaded !== null) {
@@ -108,6 +130,7 @@
     });
     return () => {
       stopFocus();
+      stopDemo();
       stopServerFocus();
       stopServer();
     };
@@ -144,6 +167,7 @@
     {onSetUpFrame}
     {onHideFrameCard}
     {frameCardShown}
+    demo={{ visible: demoVisible, state: demoState, onLoad: () => void demoSlideshow.start() }}
     logo={slideshows.length === 0 || playStartAnimation ? startLogo : undefined}
   />
 {/if}

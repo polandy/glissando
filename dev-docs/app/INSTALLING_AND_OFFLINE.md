@@ -55,6 +55,21 @@ manifest and icons in `public/`; the PNG icons come from `scripts/brand/icons.sh
 - **Updates**: "Reload now" (or "Reload to update" in the settings) asks the waiting version to take over, then this tab reloads into the
   new version; other tabs keep running their version until their next start.
 
+- **The demo slideshow** (approved mockup:
+  https://polandy.github.io/glissando-assets/mockups/demo-card/, variant A): on the public
+  installation only (`GLISSANDO_PUBLIC_INSTALL`, never on the self-hosted Docker image), an empty
+  library shows a card, a play-icon cover above "See Glissando in action" over "Load demo
+  slideshow →", above "New slideshow" and "Open .glissando file"; it hides once the library holds
+  a slideshow and reappears once it is empty again. A tap downloads `GLISSANDO_DEMO_URL`
+  (`build/demo-slideshow-config.ts`; defaults to the file published at `glissando-assets/demo/`,
+  overridable for a LAN preview) and hands the bytes to the same import path a picked `.glissando`
+  file takes (`app/start/demo-slideshow-flow.ts`). The demo file is never part of the bundle or
+  the precache, so its size costs nothing until someone asks for it. While loading, the card's action line carries
+  progress, "Loading demo… 12 of 31 MB", with a hairline bar along the card's bottom edge
+  (indeterminate until the download's `Content-Length` is known). Offline, the card is disabled
+  (dimmed) with the hint "Needs a connection — once loaded, the demo works offline." A failed
+  download toasts "Couldn't load the demo — try again" and returns the card to idle. Credit for
+  the demo's pictures and music lives in the file's own content.
 - **Sample music** (library/SAMPLE_MUSIC.md, ADR-0042): on in every build, the public
   installation and the self-hosted Docker image alike; `GLISSANDO_SAMPLE_MUSIC=off` at build time
   (`build/sample-music-config.ts`, a Docker build argument) leaves it out, and

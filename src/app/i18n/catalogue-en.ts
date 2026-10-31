@@ -56,6 +56,12 @@ export const en: Catalogue = {
   "start.searchingSubjects": "Looking for subjects",
   "start.searchingAgain": "Looking again",
   "start.searchProgress": "{done} of {total}",
+  "start.demoCardTitle": "See Glissando in action",
+  "start.loadDemo": "Load demo slideshow",
+  "start.loadingDemo": "Loading demo…",
+  "start.loadingDemoProgress": "Loading demo… {received} of {total} MB",
+  "start.demoNeedsConnection": "Needs a connection — once loaded, the demo works offline.",
+  "start.demoLoadFailed": "Couldn't load the demo — try again",
   "start.focusFailed": {
     one: "{count} picture couldn't be looked at",
     other: "{count} pictures couldn't be looked at",

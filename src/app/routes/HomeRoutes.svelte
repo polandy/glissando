@@ -11,6 +11,7 @@
   import FrameRoutes from "../frame/FrameRoutes.svelte";
   import type { AppServices } from "../services";
   import type { SettingsState } from "../settings/app-settings";
+  import type { DemoSlideshowFlow } from "../start/demo-slideshow-flow";
   import SettingsSheet from "../settings/SettingsSheet.svelte";
   import StartRoute from "./StartRoute.svelte";
 
@@ -30,6 +31,7 @@
     immichState,
     notice,
     onDismissNotice,
+    demoSlideshow,
   }: {
     route: Extract<Route, { screen: "start" | "settings" | "frame" | "frameSetup" }>;
     services: AppServices;
@@ -45,6 +47,7 @@
     immichState: ImmichAvailabilityState;
     notice: OpenNotice | null;
     onDismissNotice: () => void;
+    demoSlideshow: DemoSlideshowFlow;
   } = $props();
 
   // svelte-ignore state_referenced_locally
@@ -72,6 +75,8 @@
     onSetUpFrame={() => navigator.open({ screen: "frameSetup" })}
     onHideFrameCard={actions.hideFrameCard}
     {frameCardShown}
+    {demoSlideshow}
+    publicInstall={services.demoSlideshow.config.publicInstall}
   />
   <FrameRoutes {route} {services} {navigator} />
   {#if route.screen === "settings"}

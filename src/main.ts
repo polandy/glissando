@@ -19,7 +19,7 @@ import {
 import { applyThemePreference, createStorageThemePreferenceStore } from "./app/settings/theme";
 import { createDeviceSettingsStores } from "./app/device-settings-stores";
 import { browserScheduler } from "./ui-kit/scheduler";
-import { handOverFromShell } from "./app/shell/app-shell";
+import { handOverFromShell, requirePageElement } from "./app/shell/app-shell";
 import { consumeFirstLaunch, createStorageFirstLaunchStore } from "./app/start/first-launch";
 import {
   createStorageRefusalNoticeStore,
@@ -66,6 +66,7 @@ import { browserVideoExportDevice } from "./app/video-export/browser-video-expor
 import { createFrameServices } from "./app/frame/frame-services";
 import { browserMediaDecoders } from "./glissando-file/browser/media-decoders";
 import { decodeClipSound } from "./video-export/browser/decode-clip-sound";
+import { createDemoSlideshowServices } from "./app/start/demo-slideshow-services";
 
 const { client: immichClient, availability: immichAvailability } = browserImmich(window);
 
@@ -86,14 +87,8 @@ settings.subscribe(({ theme, effectiveLanguage }) => {
   }
 });
 
-const target = document.getElementById("app");
-if (!target) {
-  throw new Error("Mount point #app is missing from index.html");
-}
-const shell = document.getElementById("app-shell");
-if (!shell) {
-  throw new Error("The app shell #app-shell is missing from index.html");
-}
+const target = requirePageElement(document, "app");
+const shell = requirePageElement(document, "app-shell");
 
 const toaster = new Toaster(browserScheduler);
 const logError = (error: unknown): void => console.error(error);
@@ -198,6 +193,7 @@ const serverSessions = serverSlideshowSessions(window, {
   onError: reportError,
   log: logError,
 });
+const demoSlideshow = createDemoSlideshowServices(window);
 
 // Read before the navigator exists, so its own first route is never raced by this one.
 const deepLinkedFrameAlbumId = parseFrameDeepLink(window.location.hash);
@@ -287,6 +283,7 @@ const services = {
   ...serverSessions,
   reload: () => window.location.reload(),
   ...createFrameServices(window, browserScheduler, logError),
+  demoSlideshow,
   ...sampleMusic,
   ...createDeviceSettingsStores(window.localStorage),
 };

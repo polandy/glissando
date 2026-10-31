@@ -29,6 +29,7 @@ import type { BuildInfo } from "./settings/build-info";
 import type { FrameDevice } from "./frame/browser-frame-device";
 import type { FrameCardPreference } from "./frame/frame-card-preference";
 import type { FramePreferences } from "./frame/frame-preferences";
+import type { DemoSlideshowServices } from "./start/demo-slideshow-services";
 import type { MusicEditorDetailsStore } from "./music-editor/music-editor-details";
 import type { FineSettingsFoldStore } from "./screens/slideshow/fine-settings-fold";
 
@@ -112,6 +113,8 @@ export interface AppServices extends ServerSlideshowSessions {
   readonly frameCardPreference: FrameCardPreference;
   /** What the picture frame needs of the browser beyond Immich and storage. */
   readonly frameDevice: FrameDevice;
+  /** The start screen's "Load demo slideshow" button (dev-docs/app/INSTALLING_AND_OFFLINE.md). */
+  readonly demoSlideshow: DemoSlideshowServices;
   /** Previews a sample track (SAMPLE_MUSIC.md); undefined when the build turns sample music off. */
   readonly samplePreview?: SamplePreview;
   /** Whether the slideshow screen's "Fine settings" fold is open, kept on this device (ADR-0048). */

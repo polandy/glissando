@@ -12,6 +12,8 @@
   import { getTranslator } from "../i18n/context";
   import SlideshowCard from "./SlideshowCard.svelte";
   import type { ServerShelf, SlideshowSummary } from "./view-models";
+  import type { DemoSlideshowState } from "../start/demo-slideshow-flow";
+  import StartHero from "../start/StartHero.svelte";
 
   let {
     slideshows,
@@ -32,6 +34,7 @@
     onSetUpFrame,
     onHideFrameCard,
     frameCardShown = true,
+    demo = { visible: false, state: { kind: "idle", online: true }, onLoad: () => {} },
   }: {
     /** Newest first. */
     slideshows: readonly SlideshowSummary[];
@@ -61,6 +64,8 @@
     onHideFrameCard: () => void;
     /** The owner can hide the picture frame card; Settings brings it back. */
     frameCardShown?: boolean;
+    /** The "Load demo slideshow" button (dev-docs/app/INSTALLING_AND_OFFLINE.md). */
+    demo?: { visible: boolean; state: DemoSlideshowState; onLoad: () => void };
   } = $props();
 
   const { t } = getTranslator();
@@ -111,16 +116,7 @@
       <FrameCard onSetUp={onSetUpFrame} onHide={onHideFrameCard} />
     {/if}
     {#if slideshows.length === 0 && server === null}
-      <div class="hero">
-        <h1 class="title">{t("start.heroTitle")}</h1>
-        <p class="lead">{t("start.heroText")}</p>
-        <button class="btn primary large" type="button" onclick={onCreate}>
-          <Icon name="plus" />{t("start.newSlideshow")}
-        </button>
-        <button class="btn ghost" type="button" onclick={() => picker.pick()}>
-          <Icon name="open" />{t("glissandoFile.openGlissandoFile")}
-        </button>
-      </div>
+      <StartHero {demo} {onCreate} onPickFile={() => picker.pick()} />
     {:else}
       <div class="head">
         <div>
@@ -223,17 +219,6 @@
     display: flex;
     justify-content: center;
     padding-top: 8px;
-  }
-  .hero {
-    display: grid;
-    justify-items: center;
-    gap: 14px;
-    max-width: 520px;
-    margin: 0 auto;
-    text-align: center;
-  }
-  .hero .lead {
-    margin: 0;
   }
   .grid {
     display: grid;
