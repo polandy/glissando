@@ -23,6 +23,7 @@ import { deFrame } from "./catalogue-de-frame.ts";
 import { deCards } from "./catalogue-de-cards.ts";
 import { deChapters } from "./catalogue-de-chapters.ts";
 import { deFilePage } from "./catalogue-de-file-page.ts";
+import { deExportErrors } from "./catalogue-de-export-errors.ts";
 import { deSampleMusicCredit } from "./catalogue-de-sample-music-credit.ts";
 import { deSampleMusicPicker } from "./catalogue-de-sample-music-picker.ts";
 import type { Message } from "./messages.ts";
@@ -81,6 +82,7 @@ export const de = {
   "settings.documentation": "Dokumentation",
   "settings.sourceCode": "Quellcode auf GitHub",
   "settings.licenses": "Open-Source-Lizenzen",
+  "settings.selfHosting": "Selbst hosten und Immich",
   "settings.version": "Version",
   "settings.versionName": "Glissando {version}",
   "settings.update": "Neu laden zum Aktualisieren",
@@ -434,6 +436,7 @@ export const de = {
   ...deCards,
   ...deChapters,
   ...deFilePage,
+  ...deExportErrors,
   ...deSampleMusicCredit,
   ...deSampleMusicPicker,
   "route.loading": "Lädt …",

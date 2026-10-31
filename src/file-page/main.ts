@@ -13,7 +13,12 @@ import { pageCopyFor, shareLanguage } from "../share-page/share-page-words";
 import type { GlissandoManifest } from "../glissando-file/glissando-manifest";
 import { checkFolder } from "./check-folder";
 import { createChooseCard } from "./choose-card";
-import { FILE_WORDS_BLOCK_ID, folderProblemText, readFileWords } from "./file-page-words";
+import {
+  FILE_WORDS_BLOCK_ID,
+  folderProblemDetails,
+  folderProblemText,
+  readFileWords,
+} from "./file-page-words";
 import { folderShow } from "./folder-show";
 import { fetchedFolder, pickedFolder, type FolderSource } from "./folder-source";
 import "./file-page.css";
@@ -51,9 +56,8 @@ async function startPage(): Promise<void> {
           return play(check.manifest, picked);
         }
         // A picked folder is always readable; one without glissando.json says so.
-        chooseCard.show(
-          check.kind === "unreadable" ? words.noManifest : folderProblemText(words, check),
-        );
+        if (check.kind === "unreadable") chooseCard.show(words.noManifest);
+        else chooseCard.show(folderProblemText(words, check), folderProblemDetails(check));
       })
       .catch(showStartFailure);
   });
@@ -61,7 +65,8 @@ async function startPage(): Promise<void> {
   const beside = fetchedFolder((path) => fetch(path));
   const check = await checkFolder(beside);
   if (check.kind === "ok") return play(check.manifest, beside);
-  chooseCard.show(check.kind === "unreadable" ? null : folderProblemText(words, check));
+  if (check.kind === "unreadable") chooseCard.show(null);
+  else chooseCard.show(folderProblemText(words, check), folderProblemDetails(check));
 }
 
 startPage().catch(showStartFailure);

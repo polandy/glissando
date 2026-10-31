@@ -10,7 +10,9 @@ export const deFilePage = {
     "In diesem Ordner liegt keine glissando.json. Entpacke die ganze .glissando-Datei und wähle dann den Ordner mit der index.html.",
   "filePage.missing":
     "In diesem Ordner fehlen Dateien, die die Diashow braucht: {files}. Entpacke die ganze .glissando-Datei noch einmal.",
-  "filePage.damaged": "glissando.json lässt sich nicht lesen: {reason}",
+  "filePage.damaged": "Diese Datei ist beschädigt. Versuch es noch einmal mit der Originaldatei.",
+  "filePage.showDetails": "Details anzeigen",
+  "filePage.hideDetails": "Details ausblenden",
   "filePage.foreign": "Die glissando.json in diesem Ordner ist keine Glissando-Diashow.",
   "filePage.newer":
     "Diese Diashow stammt aus einem neueren Glissando als diese Seite. Öffne die .glissando-Datei stattdessen in Glissando: https://polandy.github.io/glissando/",

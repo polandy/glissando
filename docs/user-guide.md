@@ -109,3 +109,5 @@ groups; choose a row and its sheet opens, with **Back** to the list.
 - Ask the browser to keep the data (Glissando requests it); clearing site data deletes slideshows
   stored on the device — save a `.glissando` file as a backup.
 - Language and light/dark follow your device; both can be changed in Settings.
+  Immich and the server quality settings appear in Settings only when Glissando runs with its own
+  server (see the self-hosting guide).

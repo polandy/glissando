@@ -4,8 +4,11 @@ import type { PickedEntry } from "./folder-source.ts";
 
 /** The card asking for the slideshow's folder where the browser will not read it unasked. */
 export interface ChooseCard {
-  /** Shows the card, with `problem` under the button, or none. */
-  show(problem: string | null): void;
+  /**
+   * Shows the card, with `problem` under the button, or none; `details` (the raw reason) sits
+   * behind a "Show details" button, closed.
+   */
+  show(problem: string | null, details?: string | null): void;
   hide(): void;
 }
 
@@ -45,6 +48,18 @@ export function createChooseCard(
   choose.addEventListener("click", () => picker.click());
   const error = make("p", "error");
   error.setAttribute("role", "alert");
+  const detailsText = make("pre", "error-details");
+  detailsText.hidden = true;
+  const detailsToggle = make("button", "details-toggle", words.showDetails);
+  detailsToggle.type = "button";
+  detailsToggle.setAttribute("aria-expanded", "false");
+  detailsToggle.addEventListener("click", () => {
+    const open = detailsText.hidden;
+    detailsText.hidden = !open;
+    detailsToggle.setAttribute("aria-expanded", String(open));
+    detailsToggle.textContent = open ? words.hideDetails : words.showDetails;
+  });
+  const problemBox = make("div", "problem", error, detailsToggle, detailsText);
   const card = make(
     "div",
     "card choose",
@@ -56,7 +71,7 @@ export function createChooseCard(
       make("p", "choose-text", words.chooseText),
       choose,
       picker,
-      error,
+      problemBox,
     ),
     make("div", "made", words.madeWith),
   );
@@ -64,9 +79,15 @@ export function createChooseCard(
   document.body.append(card);
 
   return {
-    show(problem) {
+    show(problem, details = null) {
       error.textContent = problem ?? "";
+      problemBox.hidden = problem === null;
       error.hidden = problem === null;
+      detailsText.textContent = details ?? "";
+      detailsText.hidden = true;
+      detailsToggle.hidden = details === null;
+      detailsToggle.setAttribute("aria-expanded", "false");
+      detailsToggle.textContent = words.showDetails;
       card.hidden = false;
     },
     hide() {

@@ -14,11 +14,11 @@ import type {
   ExportSubject,
   VideoExportPorts,
 } from "./export-sheet-state";
+import { deliverFile } from "./deliver-file";
 import { spaceShortage } from "./space-shortage";
 
 /** The preset "Andere Größe wählen" offers after the storage ran out: the smallest. */
 const SMALLEST_PRESET: PresetId = "720p";
-const SHARE_DISMISSED = "AbortError";
 
 type ChooseState = Extract<ExportSheetState, { readonly kind: "choose" }>;
 
@@ -36,6 +36,7 @@ export class VideoExportSession<Preview> {
   #state: ExportSheetState = { kind: "probing" };
   #capabilities: Extract<ExportCapabilities, { readonly supported: true }> | null = null;
   #freeBytes: number | null = null;
+  #preset: PresetId | null = null;
   #target: ExportTarget | null = null;
   #awake: { release(): void } | null = null;
 
@@ -131,13 +132,22 @@ export class VideoExportSession<Preview> {
 
   /** After the storage ran out: choose again, the smallest preset selected. */
   backToChoose(): void {
-    if (this.#state.kind === "storage-full" && this.#capabilities !== null) {
-      this.#choose(
-        this.#capabilities.available.includes(SMALLEST_PRESET)
-          ? SMALLEST_PRESET
-          : this.#capabilities.defaultPreset,
-      );
+    const capabilities = this.#capabilities;
+    if (this.#state.kind !== "storage-full" || capabilities === null) return;
+    const smallest = capabilities.available.includes(SMALLEST_PRESET);
+    this.#choose(smallest ? SMALLEST_PRESET : capabilities.defaultPreset);
+  }
+
+  /** "Try again": probes again if the browser was never probed, else choose with the preset kept. */
+  async retry(): Promise<void> {
+    const { kind } = this.#state;
+    if (kind !== "failed" && kind !== "clip-unsupported") return;
+    if (this.#capabilities === null) {
+      this.#set({ kind: "probing" });
+      await this.open();
+      return;
     }
+    this.#choose(this.#preset ?? this.#capabilities.defaultPreset);
   }
 
   /** "Teilen …" or "Herunterladen" for a finished private file. */
@@ -146,15 +156,7 @@ export class VideoExportSession<Preview> {
     if (state.kind !== "done") {
       return;
     }
-    if (state.delivery === "download") {
-      this.#ports.download(state.file);
-    } else if (state.delivery === "share") {
-      await this.#ports.share(state.file).catch((error: unknown) => {
-        if (!(error instanceof DOMException && error.name === SHARE_DISMISSED)) {
-          this.#ports.log(error);
-        }
-      });
-    }
+    await deliverFile(this.#ports, state.delivery, state.file);
   }
 
   /** Cancels a running export at once; a finished private file is discarded. */
@@ -257,6 +259,7 @@ export class VideoExportSession<Preview> {
     if (capabilities === null) {
       throw new Error("the sheet chooses a preset only once the browser was probed");
     }
+    this.#preset = preset;
     this.#set({
       kind: "choose",
       available: capabilities.available,
