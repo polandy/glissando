@@ -29,6 +29,25 @@ export default tseslint.config(
     },
   },
   {
+    // The UX screenshot tour is a Node script whose page.evaluate callbacks run in the browser;
+    // no-undef only knows a fixed list, so both sides' globals are named here.
+    files: ["scripts/ux-tour/*.mjs"],
+    languageOptions: {
+      globals: {
+        process: "readonly",
+        Buffer: "readonly",
+        console: "readonly",
+        URL: "readonly",
+        document: "readonly",
+        Element: "readonly",
+        Event: "readonly",
+        StorageManager: "readonly",
+        getComputedStyle: "readonly",
+        innerHeight: "readonly",
+      },
+    },
+  },
+  {
     // Raw HTML insertion bypasses Svelte's escaping; a .glissando file's own README.txt or
     // index.html (ADR-0038) must never reach the DOM through it.
     rules: {

@@ -2,7 +2,8 @@
 
 The name: _glissando_ (Italian, "gliding") — sliding from one note to the next; here, fluid
 transitions from one picture to the next. Character: a calm, professional tool — neutral surfaces, the pictures bring the colour; the
-logo keeps the playful touch.
+logo keeps the playful touch. The words the app uses, one per concept in English and German:
+[COPY.md](COPY.md).
 
 ## Logo
 
