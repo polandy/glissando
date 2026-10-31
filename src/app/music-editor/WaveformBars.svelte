@@ -5,6 +5,7 @@
   import { barCountFor } from "./waveform-scale";
   import { envelopePoints, waveBars } from "./wave-view";
   import WaveBars from "./WaveBars.svelte";
+  import WaveReading from "./WaveReading.svelte";
 
   /**
    * The whole track's peaks as bars. With the details, the bars shrink by the fade envelope
@@ -35,7 +36,7 @@
 </script>
 
 {#if peaks === null}
-  <p class="reading" role="status">{t("music.waveformReading")}</p>
+  <WaveReading text={t("music.waveformReading")} />
 {:else}
   <WaveBars {bars}>
     {#if details}
@@ -51,37 +52,5 @@
     stroke-width: 2.2;
     stroke-linejoin: round;
     vector-effect: non-scaling-stroke;
-  }
-
-  .reading {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0;
-    color: var(--gl-muted);
-    font-size: var(--gl-size-caption);
-    background: linear-gradient(
-      90deg,
-      transparent 0%,
-      color-mix(in srgb, var(--gl-faint) 30%, transparent) 50%,
-      transparent 100%
-    );
-    background-size: 200% 100%;
-    animation: reading-shimmer 1.6s linear infinite;
-  }
-  @keyframes reading-shimmer {
-    from {
-      background-position: 200% 0;
-    }
-    to {
-      background-position: -200% 0;
-    }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .reading {
-      animation: none;
-    }
   }
 </style>

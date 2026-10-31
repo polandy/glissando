@@ -2,6 +2,7 @@
   import Icon from "../components/Icon.svelte";
   import { getTranslator } from "../i18n/context";
   import WaveBars from "../music-editor/WaveBars.svelte";
+  import WaveReading from "../music-editor/WaveReading.svelte";
   import { waveformPeaks } from "../music-editor/waveform-peaks";
   import { barCountFor } from "../music-editor/waveform-scale";
   import type { ClipSoundWave } from "./clip-sound-wave";
@@ -49,7 +50,7 @@
       <span class="warn"><Icon name="alert" /></span>{t("clip.soundUnreadable")}
     </p>
   {:else if wave === null}
-    <p class="reading" role="status">{t("clip.soundReading")}</p>
+    <WaveReading text={t("clip.soundReading")} />
   {:else}
     <WaveBars {bars} muted={soundOff} />
   {/if}
@@ -76,37 +77,5 @@
     display: flex;
     color: var(--gl-warn-icon);
     --gl-icon-size: var(--gl-size-icon-small);
-  }
-
-  .reading {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0;
-    color: var(--gl-muted);
-    font-size: var(--gl-size-caption);
-    background: linear-gradient(
-      90deg,
-      transparent 0%,
-      color-mix(in srgb, var(--gl-faint) 30%, transparent) 50%,
-      transparent 100%
-    );
-    background-size: 200% 100%;
-    animation: reading-shimmer 1.6s linear infinite;
-  }
-  @keyframes reading-shimmer {
-    from {
-      background-position: 200% 0;
-    }
-    to {
-      background-position: -200% 0;
-    }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .reading {
-      animation: none;
-    }
   }
 </style>
