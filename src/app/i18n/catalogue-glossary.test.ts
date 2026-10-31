@@ -39,8 +39,8 @@ const OWNED_BY_P4 = new Set<string>([
   ...Object.keys(enFilePage),
 ]);
 
-/** "Film" is a look's name, not the slideshow; the decibel keys carry a number the component passes in. */
-const STYLE_NAMES = new Set<string>(["look.film", "units.decibels", "music.volumeHintCappedShort"]);
+/** Keys a pattern may not judge: "Film" is a look's name, and the two decibel keys show a measured number with its unit. */
+const EXEMPT = new Set<string>(["look.film", "units.decibels", "music.volumeHintCappedShort"]);
 
 /** Placeholder names such as {track} are code, not copy. */
 const strings = (value: unknown): string[] =>
@@ -51,7 +51,7 @@ const strings = (value: unknown): string[] =>
 describe("English catalogue against the glossary", () => {
   const hits: string[] = [];
   for (const [key, value] of Object.entries(en)) {
-    if (OWNED_BY_P4.has(key) || key.startsWith("settings.") || STYLE_NAMES.has(key)) continue;
+    if (OWNED_BY_P4.has(key) || key.startsWith("settings.") || EXEMPT.has(key)) continue;
     for (const text of strings(value)) {
       for (const [pattern, use] of BANNED) {
         if (pattern.test(text)) hits.push(`${key}: ${pattern} (use ${use}) in "${text}"`);

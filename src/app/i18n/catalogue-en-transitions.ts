@@ -15,7 +15,7 @@ export const enTransitions: Pick<Catalogue, keyof typeof deTransitions> = {
     "The effects alternate from picture to picture, never the same one twice in a row.",
   "transitions.hintCut": "The pictures follow one another without a transition.",
   "transitions.hintMood":
-    "Set by the mood {name}. Choosing another switches the mood to Automatic.",
+    "Set by the mood {name}. Choosing another turns the mood off.",
   "transitions.hintEffect":
     "Every transition: {effect}. It takes {share} % of the picture length, at most {max} s.",
   "transitions.ownKept": {

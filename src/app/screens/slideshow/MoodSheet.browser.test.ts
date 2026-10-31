@@ -21,7 +21,7 @@ describe("MoodSheet", () => {
 
     expect(tile("custom").getAttribute("aria-checked")).toBe("true");
     expect(tile("calm").getAttribute("aria-checked")).toBe("false");
-    expect(hint()).toBe("Your picture length, transitions and motion, as set on the slideshow.");
+    expect(hint()).toBe("Picture length, transitions and motion as you set them on the slideshow.");
     expect(setText("Transitions")).toBe("automatic");
   });
 

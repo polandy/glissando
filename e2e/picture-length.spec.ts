@@ -46,7 +46,7 @@ test("E2E-040 with music the pictures keep the mood's length on the beat until t
   await expect(lengthSection.getByRole("button", { name: "Selbst festlegen" })).toBeVisible();
   await lengthSection.getByRole("button", { name: "Selbst festlegen" }).click();
   await expect(
-    page.getByRole("status").filter({ hasText: "Stimmung ist jetzt automatisch" }),
+    page.getByRole("status").filter({ hasText: "Keine Stimmung ist an" }),
   ).toBeVisible();
 
   await expect(ownSeconds("7 s")).toHaveAttribute("aria-checked", "true");
@@ -86,7 +86,7 @@ test("E2E-085 without music the music editor sets the picture length below its e
 
   await lengthSection.getByRole("button", { name: "Selbst festlegen" }).click();
   await expect(
-    page.getByRole("status").filter({ hasText: "Stimmung ist jetzt automatisch" }),
+    page.getByRole("status").filter({ hasText: "Keine Stimmung ist an" }),
   ).toBeVisible();
   await expect(lengthSection).toContainText("Je etwa 7 s");
   // Nothing to fill without music: the stepper alone, no choice.

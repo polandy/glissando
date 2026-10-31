@@ -15,7 +15,7 @@ test("E2E-079 picking Calm sets its transitions, Ken Burns and picture times, an
     name: "Übergänge Überblenden, lang nach Stimmung",
   });
   const sheet = page.getByRole("dialog", { name: "Stimmung" });
-  const customTile = sheet.getByRole("radio", { name: "Automatisch" });
+  const customTile = sheet.getByRole("radio", { name: "Keine Stimmung" });
   const calmTile = sheet.getByRole("radio", { name: "Ruhig" });
   const statePill = sheet.locator(".state");
 
@@ -58,7 +58,7 @@ test("E2E-079 picking Calm sets its transitions, Ken Burns and picture times, an
   await transitionsSheet.getByRole("button", { name: "Fertig" }).click();
   await expect(transitionsSheet).toBeHidden();
 
-  const toast = page.getByRole("status").filter({ hasText: "Stimmung ist jetzt automatisch" });
+  const toast = page.getByRole("status").filter({ hasText: "Keine Stimmung ist an" });
   await expect(toast).toBeVisible();
   await toast.getByRole("button", { name: "Rückgängig" }).click();
   await expect(calmRow).toBeVisible();

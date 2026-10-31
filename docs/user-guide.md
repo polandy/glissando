@@ -24,13 +24,12 @@ For a different feel, tap Mood beside Music and Look on the slideshow's screen. 
 picture longer, with soft crossfades and gentle motion; **Lively** changes pictures quickly with
 mixed transitions and stronger motion. Both fit the picture changes to the song's beat,
 so a slow and a fast song pace the same mood differently. A new slideshow starts on Calm; choose
-**Automatic**, or set the picture length or "Fill the music" in the music editor, to use your
+**No mood**, or set the picture length or "Fill the music" in the music editor, to use your
 own settings. A slideshow without music sets its picture length in the music editor too, below
 "No music yet". A picture with its own duration, transition or motion keeps it under any mood, and
-changing a single setting while a mood is on turns it into Automatic with the mood's values to start
-from.
+changing a single setting while a mood is on turns the mood off, keeping its values as a start.
 
-Turn on **Follow the music's energy** in the Mood sheet, under any mood or Automatic, and the pictures
+Turn on **Follow the music's energy** in the Mood sheet, with or without a mood, and the pictures
 stay longer where the music is quiet and change quicker where it is loud; when the music picks up, the
 next picture cuts in on the beat. The slideshow stays as long as before, and pictures with their own
 duration keep it.

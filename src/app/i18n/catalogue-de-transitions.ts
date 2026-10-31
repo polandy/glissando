@@ -14,7 +14,7 @@ export const deTransitions = {
     "Die Effekte wechseln von Bild zu Bild ab, nie zweimal derselbe hintereinander.",
   "transitions.hintCut": "Die Bilder folgen ohne Übergang aufeinander.",
   "transitions.hintMood":
-    "Durch die Stimmung {name} festgelegt. Eine andere Wahl wechselt die Stimmung auf Automatisch.",
+    "Durch die Stimmung {name} festgelegt. Eine andere Wahl schaltet die Stimmung aus.",
   "transitions.hintEffect":
     "Jeder Übergang: {effect}. Er dauert {share} % der Bilddauer, höchstens {max} s.",
   "transitions.ownKept": {

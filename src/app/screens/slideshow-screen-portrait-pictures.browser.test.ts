@@ -82,8 +82,8 @@ describe("SlideshowScreen, the portrait pictures sheet", () => {
     expect(
       ["automatic", "one-at-a-time", "fill-screen"].map((choice) => text(tile(choice))),
     ).toEqual([
-      "Automatisch Zwei Hochformatbilder stehen nebeneinander; ein einzelnes bekommt eine unscharfe Füllung.",
-      "Einzeln Jedes Bild wird einzeln gezeigt.",
+      "Automatisch Zwei Hochformatbilder stehen nebeneinander; ein einzelnes, das der Zuschnitt stark beschneiden würde, bekommt eine unscharfe Füllung.",
+      "Einzeln Jedes Bild wird einzeln gezeigt; eines, das der Zuschnitt stark beschneiden würde, bekommt eine unscharfe Füllung.",
       "Bildschirm füllen Jedes Bild füllt den Bildschirm, auch wenn das Kopf oder Füße abschneidet.",
     ]);
   });

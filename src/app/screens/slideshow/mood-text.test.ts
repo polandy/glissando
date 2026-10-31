@@ -6,7 +6,7 @@ const en = createTranslator("en");
 
 describe("moodName", () => {
   it("names Custom and every mood", () => {
-    expect(moodName(en.t, undefined)).toBe("Automatic");
+    expect(moodName(en.t, undefined)).toBe("No mood");
     expect(moodName(en.t, "calm")).toBe("Calm");
     expect(moodName(en.t, "lively")).toBe("Lively");
   });

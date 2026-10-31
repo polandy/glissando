@@ -2,12 +2,12 @@ import type { Message } from "./messages.ts";
 
 /** German copy of the slideshow's mood (ADR-0045); part of the German catalogue. */
 export const deMood = {
-  "mood.resetDone": "Stimmung wieder automatisch",
-  "mood.nowCustom": "Stimmung ist jetzt automatisch",
+  "mood.resetDone": "Stimmung ausgeschaltet",
+  "mood.nowCustom": "Keine Stimmung ist an",
   "mood.title": "Stimmung",
   "mood.calm": "Ruhig",
   "mood.lively": "Lebhaft",
-  "mood.custom": "Automatisch",
+  "mood.custom": "Keine Stimmung",
   "mood.byMood": "nach Stimmung",
   "mood.pictureTimesWithBeats": "~{seconds} · {beats} Beats",
   "mood.pictureTimesNoBeat": "~{seconds}",
@@ -28,9 +28,9 @@ export const deMood = {
   "mood.customSubtitle": "Ihre Einstellungen",
   "mood.hintMood":
     "Die Bilddauer folgt dem Beat des Songs. Bilder mit eigener Dauer, eigenem Übergang oder eigener Bewegung behalten sie.",
-  "mood.hintCustom": "Bilddauer, Übergänge und Bewegung, wie an der Diashow eingestellt.",
-  "mood.backToCustom": "Zurück auf Automatisch",
-  "mood.alreadyCustom": "Die Stimmung ist schon automatisch",
+  "mood.hintCustom": "Bilddauer, Übergänge und Bewegung, wie du sie an der Diashow eingestellt hast.",
+  "mood.backToCustom": "Stimmung ausschalten",
+  "mood.alreadyCustom": "Keine Stimmung ist an",
   "mood.sound": "Ton",
   "mood.energySwitch": "Folgt der Energie der Musik",
   "mood.energySwitchSubtitle":

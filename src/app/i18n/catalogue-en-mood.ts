@@ -3,12 +3,12 @@ import type { deMood } from "./catalogue-de-mood.ts";
 
 /** English copy of the slideshow's mood; typed to the German keys. */
 export const enMood: Pick<Catalogue, keyof typeof deMood> = {
-  "mood.resetDone": "Mood back to automatic",
-  "mood.nowCustom": "Mood is now automatic",
+  "mood.resetDone": "Mood turned off",
+  "mood.nowCustom": "No mood is on",
   "mood.title": "Mood",
   "mood.calm": "Calm",
   "mood.lively": "Lively",
-  "mood.custom": "Automatic",
+  "mood.custom": "No mood",
   "mood.byMood": "by mood",
   "mood.pictureTimesWithBeats": "~{seconds} · {beats} beats",
   "mood.pictureTimesNoBeat": "~{seconds}",
@@ -29,9 +29,9 @@ export const enMood: Pick<Catalogue, keyof typeof deMood> = {
   "mood.customSubtitle": "Your settings",
   "mood.hintMood":
     "Picture length follows the song's beat. Pictures with their own duration, transition or motion keep them.",
-  "mood.hintCustom": "Your picture length, transitions and motion, as set on the slideshow.",
-  "mood.backToCustom": "Back to automatic",
-  "mood.alreadyCustom": "The mood is already automatic",
+  "mood.hintCustom": "Picture length, transitions and motion as you set them on the slideshow.",
+  "mood.backToCustom": "Turn the mood off",
+  "mood.alreadyCustom": "No mood is on",
   "mood.sound": "Sound",
   "mood.energySwitch": "Follow the music's energy",
   "mood.energySwitchSubtitle":

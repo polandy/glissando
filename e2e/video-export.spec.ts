@@ -57,7 +57,7 @@ async function createSlideshowWithMusic(page: Page): Promise<void> {
   const lengthSection = page.locator('section[aria-labelledby="music-picture-length"]');
   await lengthSection.getByRole("button", { name: "Selbst festlegen" }).click();
   await expect(
-    page.getByRole("status").filter({ hasText: "Stimmung ist jetzt automatisch" }),
+    page.getByRole("status").filter({ hasText: "Keine Stimmung ist an" }),
   ).toBeVisible();
   const fillRadio = lengthSection.getByRole("radio", { name: "Musik füllen" });
   await fillRadio.click();

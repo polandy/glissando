@@ -100,7 +100,7 @@ async function leaveMoodForOwnPictureTimes(page: Page): Promise<Locator> {
   const lengthSection = pictureLengthSection(page);
   await lengthSection.getByRole("button", { name: "Selbst festlegen" }).click();
   await expect(
-    page.getByRole("status").filter({ hasText: "Stimmung ist jetzt automatisch" }),
+    page.getByRole("status").filter({ hasText: "Keine Stimmung ist an" }),
   ).toBeVisible();
   return lengthSection;
 }
