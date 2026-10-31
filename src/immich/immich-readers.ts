@@ -15,6 +15,6 @@ export function createImmichReaders(
     decode: decodePicture,
     reportUnavailable: (kind: ImmichUnavailableKind) => availability.report(kind),
     log,
-    videos: { client, openClip: openClipInVideoElement },
+    videos: { client, openClip: (file) => openClipInVideoElement(file, log) },
   };
 }

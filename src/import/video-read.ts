@@ -5,6 +5,7 @@ import { VideoRefusedError } from "./video-refusal";
 
 /** A clip loaded far enough to know its length and to show a frame of it. */
 export interface OpenedClip {
+  /** Up to where its picture ends, however long its sound runs on. */
   readonly durationMs: number;
   /** The frame at `atMs` as a picture file, upright as the browser shows it. */
   posterFrame(atMs: number): Promise<File>;

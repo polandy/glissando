@@ -28,6 +28,9 @@ https://polandy.github.io/glissando-assets/mockups/video-slides/.
   play this video format."); the rest of the batch goes on. Loading its metadata into a `<video>`
   decides: `canPlayType` is not asked, as Chrome answers "" for a `.mov` it plays.
   A source over `MAX_VIDEO_BYTES` (1 GiB) is refused the same way.
+- A clip's length is where its video track ends (read with mediabunny), not the longer sound
+  track a `<video>` reports, so a slide never holds a still last frame while the sound runs on.
+  A container mediabunny cannot read keeps the element's length.
 - A clip longer than 5 min is accepted; its excerpt starts as the first 5 min and the user moves it.
 
 ## Stored form
@@ -37,7 +40,7 @@ https://polandy.github.io/glissando-assets/mockups/video-slides/.
 | Field       | Meaning                                                                           |
 | ----------- | --------------------------------------------------------------------------------- |
 | `mediaId`   | the original file in the `videos` object store (bytes + type)                     |
-| `sourceMs`  | the whole clip's length, whole ms                                                 |
+| `sourceMs`  | the whole clip's length up to where its picture ends, whole ms                    |
 | `startMs`   | where the excerpt starts, whole ms of the clip                                    |
 | `endMs`     | where it ends; `endMs − startMs` is 500 to 300000                                 |
 | `volume`    | 0 to 100 in steps of 5; absent: 100; 0 is "sound off"                             |
