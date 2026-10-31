@@ -1,5 +1,44 @@
 # Changelog
 
+## [0.0.12](https://github.com/polandy/glissando/compare/glissando-v0.0.11...glissando-v0.0.12) (2026-10-31)
+
+
+### Features
+
+* fit the pictures to a shorter music, or repeat it on a tap ([#131](https://github.com/polandy/glissando/issues/131)) ([bd3e3d6](https://github.com/polandy/glissando/commit/bd3e3d68c126adaf1f2f163f9fd43caf6027fc9a))
+* gather sharing in one Share button ([#144](https://github.com/polandy/glissando/issues/144)) ([be2129d](https://github.com/polandy/glissando/commit/be2129d870992afe7ee2e50d2e9ae8136869e4e6))
+* give each slideshow action one way in ([#143](https://github.com/polandy/glissando/issues/143)) ([88aac38](https://github.com/polandy/glissando/commit/88aac38fa11d5f4e4dbe1010dac4c188e3b01df9))
+* insert trip chapters at each change of place in a slideshow ([#124](https://github.com/polandy/glissando/issues/124)) ([79752ec](https://github.com/polandy/glissando/commit/79752ec32fbe7c7540b83d2e156d8e07d7d7edd4))
+* offer looks for a slideshow ([#125](https://github.com/polandy/glissando/issues/125)) ([340ee03](https://github.com/polandy/glissando/commit/340ee038e5a300789ce09028943f4a787e7f1b9c))
+* pace the slideshow by the music's energy ([#127](https://github.com/polandy/glissando/issues/127)) ([32d80ba](https://github.com/polandy/glissando/commit/32d80ba37fdaa1df0a2cea986c01d7621779aac3))
+* pick a mood for a slideshow instead of single settings ([#126](https://github.com/polandy/glissando/issues/126)) ([93ca041](https://github.com/polandy/glissando/commit/93ca0418d49e5d1a6e87f5f47ff3ab38a537a5e8))
+* show mood, look and music up front in the slideshow's details ([#133](https://github.com/polandy/glissando/issues/133)) ([7418615](https://github.com/polandy/glissando/commit/7418615d9c567ec48055c9f5ec398a299f2aa7b5))
+* show one view at a time in the picture editor on a phone ([#150](https://github.com/polandy/glissando/issues/150)) ([f3901e1](https://github.com/polandy/glissando/commit/f3901e1bd6992167fe6b174d7e6bcbeb5e0fce4c))
+* show the music editor simple first, details on demand ([#151](https://github.com/polandy/glissando/issues/151)) ([115e3d3](https://github.com/polandy/glissando/commit/115e3d31a53cfa1b51d196cc87193bcc834c1637))
+* show the running faces-and-subjects search in the header ([#152](https://github.com/polandy/glissando/issues/152)) ([ff5c4d8](https://github.com/polandy/glissando/commit/ff5c4d8dbd155145c3f76e9c53ff4ad51caa6921))
+* slim the selection bar to icons whose labels show in a bubble ([#142](https://github.com/polandy/glissando/issues/142)) ([2034d8b](https://github.com/polandy/glissando/commit/2034d8b5e40119d8650988bb51134b9c0e409672))
+* start a new slideshow on Calm, preview the mood at once ([#134](https://github.com/polandy/glissando/issues/134)) ([a826530](https://github.com/polandy/glissando/commit/a826530d87e1587f5584c7d1b30ada907c240eaa))
+* take the picture length out of the import's music step ([#135](https://github.com/polandy/glissando/issues/135)) ([1090e2a](https://github.com/polandy/glissando/commit/1090e2a36452702a9cb754c33eb6bf126937d32b))
+
+
+### Bug Fixes
+
+* end a video slide where its clip's picture ends ([#156](https://github.com/polandy/glissando/issues/156)) ([f26cfbe](https://github.com/polandy/glissando/commit/f26cfbe9d42b3b541ed057a93bc2268209ed4318))
+* end the created toast once the slideshow screen is left ([#138](https://github.com/polandy/glissando/issues/138)) ([30f17ac](https://github.com/polandy/glissando/commit/30f17ac82e5e56c58fcbe217b47791b0273b857d))
+* give the sample-music tiles' title and mood room below the cover ([#149](https://github.com/polandy/glissando/issues/149)) ([d3f2d2f](https://github.com/polandy/glissando/commit/d3f2d2f13cdadacdcaf5ef31c0363f86ff049e1d))
+* give the strip head's buttons their own row on a phone ([96b2dad](https://github.com/polandy/glissando/commit/96b2dad528651fac99a81e69240a467c7e26bcb2))
+* keep a video slide's picture moving until its slide ends ([#155](https://github.com/polandy/glissando/issues/155)) ([e11d3c2](https://github.com/polandy/glissando/commit/e11d3c2cbe56c1162b18d096a508c128960e1576))
+* keep the Automatic chapters switch in the slideshow's settings only ([#141](https://github.com/polandy/glissando/issues/141)) ([c1fe3b5](https://github.com/polandy/glissando/commit/c1fe3b5608872fd3e6752f0e6c71c32360787d87))
+* make E2E-047 deterministic under CPU load ([#129](https://github.com/polandy/glissando/issues/129)) ([1cd64a1](https://github.com/polandy/glissando/commit/1cd64a159e1b15e3854d25df8875633e69939f40))
+* make E2E-059 deterministic under CPU load ([#128](https://github.com/polandy/glissando/issues/128)) ([bdca286](https://github.com/polandy/glissando/commit/bdca28693617734b35d01c67a18974ef79f4977e))
+* map each slide to its own picture in the player ([#136](https://github.com/polandy/glissando/issues/136)) ([41a12bc](https://github.com/polandy/glissando/commit/41a12bc5df6edfa7ac5094d04ccf39d623c0f77a))
+* name the ⋯ menu's focus entry in user language, drop its progress line ([417882f](https://github.com/polandy/glissando/commit/417882f7f34edcabc17f69d1d282f8413cd939a5))
+* open a song's audio in the music editor only at the first listen ([#146](https://github.com/polandy/glissando/issues/146)) ([bdd9eb5](https://github.com/polandy/glissando/commit/bdd9eb5f61cd2a3e01c0bd7d454ff6503b371305))
+* open no audio in the Mood sheet's silent preview ([#145](https://github.com/polandy/glissando/issues/145)) ([d778915](https://github.com/polandy/glissando/commit/d77891586dd595fba1391db6634267ba2248ba19))
+* say pictures with their own duration stay about that long when pictures are added ([#122](https://github.com/polandy/glissando/issues/122)) ([b919939](https://github.com/polandy/glissando/commit/b91993999b60eb767b97a56a95fbba2dd3a3953a))
+* set labels in the text font, not Geist Mono ([#137](https://github.com/polandy/glissando/issues/137)) ([a3d42f4](https://github.com/polandy/glissando/commit/a3d42f4098229087c45665a32883f913f2c4a2c6))
+* stop the title slide repeating its title ([#132](https://github.com/polandy/glissando/issues/132)) ([c0d2ca7](https://github.com/polandy/glissando/commit/c0d2ca7ee3064f9fda317a31f31e0fe978fb972f))
+
 ## [0.0.11](https://github.com/polandy/glissando/compare/glissando-v0.0.10...glissando-v0.0.11) (2026-10-22)
 
 
