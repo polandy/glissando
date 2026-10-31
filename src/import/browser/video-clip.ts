@@ -12,9 +12,13 @@ const MIN_READY_STATE_WITH_FRAME = 2;
  * browser cannot decode its video track or it has no known end. `canPlayType` is no verdict (Chrome
  * answers "" for a playable .mov), so loading the first frame decides. Its length is where its
  * picture ends: the element reports the longer track, and a sound track running past the picture
- * would hold the last frame still for the difference.
+ * would hold the last frame still for the difference. A container mediabunny cannot read keeps
+ * the element's length, its error passed to `log`.
  */
-export async function openClipInVideoElement(file: File): Promise<OpenedClip | null> {
+export async function openClipInVideoElement(
+  file: File,
+  log: (error: unknown) => void,
+): Promise<OpenedClip | null> {
   const url = URL.createObjectURL(file);
   const video = document.createElement("video");
   video.muted = true;
@@ -35,7 +39,7 @@ export async function openClipInVideoElement(file: File): Promise<OpenedClip | n
     close();
     return null;
   }
-  const pictureEndMs = await videoTrackEndMs(file);
+  const pictureEndMs = await videoTrackEndMs(file, log);
   return {
     durationMs: Math.round(Math.min(durationMs, pictureEndMs ?? durationMs)),
     posterFrame: (atMs) => frameAt(video, file, atMs),
@@ -44,7 +48,7 @@ export async function openClipInVideoElement(file: File): Promise<OpenedClip | n
 }
 
 /** Where the file's video track ends; null when mediabunny cannot read the container. */
-async function videoTrackEndMs(file: File): Promise<number | null> {
+async function videoTrackEndMs(file: File, log: (error: unknown) => void): Promise<number | null> {
   try {
     const { ALL_FORMATS, BlobSource, Input } = await import("mediabunny");
     const input = new Input({ source: new BlobSource(file), formats: ALL_FORMATS });
@@ -54,8 +58,8 @@ async function videoTrackEndMs(file: File): Promise<number | null> {
     } finally {
       input.dispose();
     }
-  } catch {
-    // The element played it, so its own length stands.
+  } catch (error) {
+    log(error);
     return null;
   }
 }

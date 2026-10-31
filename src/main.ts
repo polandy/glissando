@@ -279,7 +279,7 @@ const services = {
   deleteAbandonedMedia,
   log: logError,
   freeBytes,
-  mediaDecoders: browserMediaDecoders(),
+  mediaDecoders: browserMediaDecoders(logError),
   download,
   videoExport: browserVideoExportDevice({ window, freeBytes, download, log: logError }),
   htmlExport: browserHtmlExportDevice({ window, download, log: logError }),

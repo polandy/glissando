@@ -48,7 +48,10 @@ function tinyWav(sampleRate = 8000, samples = 16): Blob {
 }
 
 describe("browserMediaDecoders", () => {
-  const decoders = browserMediaDecoders();
+  // Nothing here should log, so a logged error fails the test.
+  const decoders = browserMediaDecoders((error) => {
+    throw error;
+  });
 
   it.each(["image/png", "image/jpeg"])("accepts a canvas-generated %s picture", async (type) => {
     const blob = await canvasBlob(type, 5, 4);

@@ -57,7 +57,7 @@ export function browserIntakePorts(
     gps: captureGps,
     resolvePlace,
     videoClips: {
-      openClip: openClipInVideoElement,
+      openClip: (file) => openClipInVideoElement(file, log),
       captureDate: (file) => videoCaptureDate(file, log),
     },
     immichSource: (photo: ImmichPhoto) => immichPictureSource(photo, immichReaders),

@@ -17,12 +17,14 @@ async function fixture(url: string, name: string): Promise<File> {
 describe("openClipInVideoElement", () => {
   it("measures a clip whose sound outlasts its picture by its picture's end", async () => {
     const file = await fixture(audioOutlastsPictureUrl, "audio-outlasts-picture.webm");
+    const logged: unknown[] = [];
 
-    const clip = await openClipInVideoElement(file);
+    const clip = await openClipInVideoElement(file, (error) => logged.push(error));
 
     expect(clip).not.toBeNull();
     expect(clip?.durationMs).toBeGreaterThan(PICTURE_END_MS - FRAME_MS);
     expect(clip?.durationMs).toBeLessThanOrEqual(PICTURE_END_MS);
+    expect(logged).toEqual([]);
     clip?.close();
   });
 });

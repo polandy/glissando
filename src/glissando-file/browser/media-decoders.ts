@@ -9,9 +9,9 @@ const CLIP_PLACEHOLDER_NAME = "clip";
 /**
  * Decodes a .glissando file's media with the browser's own codecs (ADR-0038). A picture decodes
  * on the main thread: WebKit's worker cannot read a `file://` blob, which is where an opened
- * .glissando file's media sit.
+ * .glissando file's media sit. `log` takes a clip's length-reading error (`openClipInVideoElement`).
  */
-export function browserMediaDecoders(): MediaDecoders {
+export function browserMediaDecoders(log: (error: unknown) => void): MediaDecoders {
   return {
     // Each medium is read before the decode's try, so a read failure stays an error and is not
     // taken for a damaged file.
@@ -41,7 +41,7 @@ export function browserMediaDecoders(): MediaDecoders {
 
     async clip(clip) {
       const file = new File([clip], CLIP_PLACEHOLDER_NAME);
-      const opened = await openClipInVideoElement(file);
+      const opened = await openClipInVideoElement(file, log);
       if (opened === null) {
         return false;
       }
