@@ -31,7 +31,7 @@ function present<T extends Element>(element: T | null | undefined, what: string)
 }
 
 describe("the slideshow route while the slideshow loads", () => {
-  it("shows a skeleton strip and a status, then the strip in the same place", async () => {
+  it("shows a skeleton strip with a busy label, then the strip in the same place", async () => {
     const { store, release } = await delayedStore();
     const focusPass = new FocusPass({
       store,
@@ -41,7 +41,7 @@ describe("the slideshow route while the slideshow loads", () => {
     });
     const { target } = mountRoute(store, focusPass, null);
 
-    expect(target.querySelector('[role="status"]')?.textContent).toBe("Lädt …");
+    expect(target.querySelector('[aria-busy="true"]')?.getAttribute("aria-label")).toBe("Lädt …");
     const skeleton = present(target.querySelector<HTMLElement>("ul.skeleton"), "skeleton");
     expect(skeleton.children.length).toBeGreaterThan(0);
     const before = skeleton.getBoundingClientRect();
@@ -54,7 +54,7 @@ describe("the slideshow route while the slideshow loads", () => {
     const strip = (await whenRendered(target, "ol.strip")) as HTMLElement;
 
     expect(target.querySelector("ul.skeleton")).toBeNull();
-    expect(target.querySelector('[role="status"]')).toBeNull();
+    expect(target.querySelector('[aria-busy="true"]')).toBeNull();
     const tile = present(strip.firstElementChild, "strip tile").getBoundingClientRect();
     expect(Math.abs(tile.height - blockHeight)).toBeLessThanOrEqual(TILE_HEIGHT_TOLERANCE);
     // Only the screen's header and the strip's heading arrive above the strip.

@@ -6,9 +6,9 @@
   const COUNT = { start: 3, strip: 6 } as const;
 </script>
 
-<!-- Stands where the loaded content will be, so it is replaced in place. -->
-<p role="status" class="sr-only">{t("route.loading")}</p>
-<ul class="skeleton {variant}" aria-hidden="true">
+<!-- Stands where the loaded content will be, so it is replaced in place. A busy region, not a
+     live one: the toasts are the page's only live status. -->
+<ul class="skeleton {variant}" aria-busy="true" aria-label={t("route.loading")}>
   {#each { length: COUNT[variant] }, index (index)}
     <li class={variant === "start" ? "slideshow" : "block"}>
       {#if variant === "start"}
@@ -20,14 +20,6 @@
 </ul>
 
 <style>
-  .sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
-  }
   .skeleton {
     display: grid;
     margin: 0;

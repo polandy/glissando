@@ -75,11 +75,11 @@ function present<T extends Element>(element: T | null | undefined, what: string)
 }
 
 describe("the start route while the slideshows load", () => {
-  it("shows three skeleton cards and a status, then the cards in the same place", async () => {
+  it("shows three skeleton cards with a busy label, then the cards in the same place", async () => {
     const { store, release } = await delayedStore();
     const target = mountStart(store);
 
-    expect(target.querySelector('[role="status"]')?.textContent).toBe("Lädt …");
+    expect(target.querySelector('[aria-busy="true"]')?.getAttribute("aria-label")).toBe("Lädt …");
     const skeleton = present(target.querySelector<HTMLElement>("ul.skeleton"), "skeleton");
     expect(skeleton.children).toHaveLength(3);
     const before = skeleton.getBoundingClientRect();
@@ -90,7 +90,7 @@ describe("the start route while the slideshows load", () => {
     const grid = (await whenRendered(target, "ul.grid")) as HTMLElement;
 
     expect(target.querySelector("ul.skeleton")).toBeNull();
-    expect(target.querySelector('[role="status"]')).toBeNull();
+    expect(target.querySelector('[aria-busy="true"]')).toBeNull();
     // Only the header and the section heading arrive above the cards.
     const head = present(
       target.querySelector<HTMLElement>(".head"),
