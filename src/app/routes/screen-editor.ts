@@ -39,6 +39,12 @@ export function createScreenEditor(
     portraitPicturesResetText: () => t("portrait.resetDone"),
     lookResetText: () => t("look.resetDone"),
     moodResetText: () => t("mood.resetDone"),
+    openingCardRemovedText: () => t("cards.openingRemoved"),
+    closingCardRemovedText: () => t("cards.closingRemoved"),
+    chapterDeletedText: () => t("chapters.deleted"),
+    chapterTitleResetText: () => t("chapters.titleResetDone"),
+    chapterSubtitleResetText: () => t("chapters.subtitleResetDone"),
+    clipResetText: () => t("clip.resetDone"),
     moodNowCustomText: () => t("mood.nowCustom"),
     songRemovedText: () => t("music.songRemoved"),
     automaticTitle: (slideshow) =>

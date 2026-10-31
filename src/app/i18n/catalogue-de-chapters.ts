@@ -26,4 +26,7 @@ export const deChapters = {
     other: "{count} Kapitel",
   },
   "chapters.automaticOffSummary": "Automatisch aus",
+  "chapters.deleted": "Kapitel gelöscht",
+  "chapters.titleResetDone": "Kapiteltitel wieder automatisch",
+  "chapters.subtitleResetDone": "Kapitel-Untertitel wieder automatisch",
 } as const satisfies Record<string, Message>;

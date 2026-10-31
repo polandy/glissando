@@ -14,6 +14,7 @@
   import { animationFrames, performanceClock } from "../../player";
   import { REDUCED_MOTION_QUERY } from "../../ui-kit/reduced-motion";
   import MusicEditorRoute from "./MusicEditorRoute.svelte";
+  import RouteSkeleton from "./RouteSkeleton.svelte";
   import PictureEditorRoute from "./PictureEditorRoute.svelte";
   import PlayerLayer from "./PlayerLayer.svelte";
   import ServerCopyConfirm from "./ServerCopyConfirm.svelte";
@@ -31,7 +32,6 @@
   import { ScreenStorage } from "./screen-storage.svelte";
   import { slideshowRoutePictureActions } from "./slideshow-route-picture-actions";
   import type { SlideshowRouteProps } from "./slideshow-route-props";
-
   let {
     store,
     home,
@@ -73,7 +73,6 @@
     onError,
     log,
   }: SlideshowRouteProps = $props();
-
   const translator = getTranslator();
   let stored = $state.raw<StoredSlideshow | null>(null);
   let editor = $state.raw<SlideshowEditor | null>(null);
@@ -164,7 +163,6 @@
     stored === null ? null : thumbnails.details(stored, translator.language),
   );
   const storage = $derived(stored === null ? null : screenStorage.of(stored, { serverOn, saving }));
-
   // Rereads only when the songs change: `stored` is read untracked, so only `songIds` reruns this.
   const songIds = $derived(stored === null ? "" : stored.songs.map((song) => song.id).join(","));
   $effect(() => {
@@ -270,6 +268,8 @@
     focusPaused={screenFocus.passPaused}
     onLookAgain={(pictureIds) => focusPass.lookAgain(pictureIds)}
   />
+{:else}
+  <RouteSkeleton variant="strip" />
 {/if}
 {#if playing && stored !== null}
   <PlayerLayer

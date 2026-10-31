@@ -26,4 +26,7 @@ export const enChapters: Pick<Catalogue, keyof typeof deChapters> = {
     other: "{count} chapters",
   },
   "chapters.automaticOffSummary": "Automatic off",
+  "chapters.deleted": "Chapter deleted",
+  "chapters.titleResetDone": "Chapter title back to automatic",
+  "chapters.subtitleResetDone": "Chapter subtitle back to automatic",
 };

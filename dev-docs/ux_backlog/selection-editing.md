@@ -73,18 +73,18 @@ remove into the selection bar on touch, or enlarge its hit area to 44 px with an
 Done when — A browser test at phone viewport with coarse pointer asserts every interactive
 element on the slideshow screen, sheets and editors measures at least 44×44 px.
 
-### UX-09 Some destructive actions have neither confirm nor undo (size S)
+### UX-09 Clear caption and TV Disconnect have neither confirm nor undo (size S)
 
-Problem — Delete chapter, Remove title slide / closing slide, chapter title reset, Clear
-caption, clip Reset and TV Disconnect act at once with no undo toast, while removing a picture
-or a song does offer Undo.
+Problem — Clear caption and TV Disconnect act at once with no undo toast, while removing a
+picture, a song, a chapter, a title slide or a clip's settings offers Undo.
 
-Where — `card-settings-editor.ts:31`, `chapter-settings-editor.ts:23`, clip editor Reset.
+Where — `picture-editor/CaptionField.svelte` (the clear button), the TV sheet's Disconnect.
 
 Why — The app's own rule: undo from a toast, confirm only for deleting a slideshow.
 
-Proposal — Raise the existing undo toast pattern for each: "Chapter deleted · Undo", "Title
-slide removed · Undo", "Caption cleared · Undo", "Clip reset · Undo".
+Proposal — Raise the existing undo toast pattern: "Caption cleared · Undo" (goes with P8, which
+owns `picture-editor/*`); decide whether Disconnect needs one at all — nothing is lost, the TV
+can be connected again.
 
-Done when — Each action has a unit test proving the undo restores the previous state, and the
-toast appears in a browser test.
+Done when — Clearing a caption has a unit test proving the undo restores the previous text, and
+the toast appears in a browser test.

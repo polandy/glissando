@@ -2,6 +2,7 @@
   import Icon from "../components/Icon.svelte";
   import { getTranslator } from "../i18n/context";
   import WaveBars from "../music-editor/WaveBars.svelte";
+  import WaveReading from "../music-editor/WaveReading.svelte";
   import { waveformPeaks } from "../music-editor/waveform-peaks";
   import { barCountFor } from "../music-editor/waveform-scale";
   import type { ClipSoundWave } from "./clip-sound-wave";
@@ -48,6 +49,8 @@
     <p class="empty">
       <span class="warn"><Icon name="alert" /></span>{t("clip.soundUnreadable")}
     </p>
+  {:else if wave === null}
+    <WaveReading text={t("clip.soundReading")} />
   {:else}
     <WaveBars {bars} muted={soundOff} />
   {/if}

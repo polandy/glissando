@@ -1,9 +1,11 @@
 <script lang="ts">
   import type { MusicEditorView } from "./music-editor-view";
   import { waveformPeaks } from "./waveform-peaks";
+  import { getTranslator } from "../i18n/context";
   import { barCountFor } from "./waveform-scale";
   import { envelopePoints, waveBars } from "./wave-view";
   import WaveBars from "./WaveBars.svelte";
+  import WaveReading from "./WaveReading.svelte";
 
   /**
    * The whole track's peaks as bars. With the details, the bars shrink by the fade envelope
@@ -29,14 +31,19 @@
     const heights = peaks === null ? Array<number>(count).fill(0) : waveformPeaks(peaks, count);
     return waveBars(heights, music, details);
   });
+  const { t } = getTranslator();
   const envelope = $derived(envelopePoints(music));
 </script>
 
-<WaveBars {bars}>
-  {#if details}
-    <polyline class="envelope" points={envelope} />
-  {/if}
-</WaveBars>
+{#if peaks === null}
+  <WaveReading text={t("music.waveformReading")} />
+{:else}
+  <WaveBars {bars}>
+    {#if details}
+      <polyline class="envelope" points={envelope} />
+    {/if}
+  </WaveBars>
+{/if}
 
 <style>
   .envelope {

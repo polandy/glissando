@@ -39,4 +39,6 @@ export const deClip = {
     "Der Übergang zur nächsten Slide läuft in den letzten {length} des Ausschnitts mit.",
   "clip.reset": "Zurücksetzen",
   "clip.done": "Fertig",
+  "clip.resetDone": "Clip zurückgesetzt",
+  "clip.soundReading": "Ton wird gelesen …",
 } as const satisfies Record<string, Message>;

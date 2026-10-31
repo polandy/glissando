@@ -46,6 +46,18 @@ export interface SlideshowEditorPorts {
    * or seconds per picture) silently left an active mood, turning it to Custom (ADR-0045 `leaveMood`).
    */
   readonly moodNowCustomText: () => string;
+  /** The undo toast's text after the title slide was removed. */
+  readonly openingCardRemovedText: () => string;
+  /** The undo toast's text after the closing slide was removed. */
+  readonly closingCardRemovedText: () => string;
+  /** The undo toast's text after an added chapter was deleted. */
+  readonly chapterDeletedText: () => string;
+  /** The undo toast's text after a chapter's title went back to automatic. */
+  readonly chapterTitleResetText: () => string;
+  /** The undo toast's text after a chapter's subtitle went back to automatic. */
+  readonly chapterSubtitleResetText: () => string;
+  /** The undo toast's text after a video clip's settings were reset. */
+  readonly clipResetText: () => string;
   /** The undo toast's text after a song was removed. */
   readonly songRemovedText: () => string;
   /** The undo toast's text after `count` pictures were shuffled. */

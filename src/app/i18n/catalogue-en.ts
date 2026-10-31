@@ -433,4 +433,6 @@ export const en: Catalogue = {
   ...enFilePage,
   ...enSampleMusicCredit,
   ...enSampleMusicPicker,
+  "route.loading": "Loading…",
+  "start.searchShort": "Finding subjects {done}/{total}",
 };

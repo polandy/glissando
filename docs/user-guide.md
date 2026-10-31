@@ -56,9 +56,10 @@ hold it with a finger, to see what it does.
 **Trip chapters**: a slideshow of several days in different places gets a chapter slide between
 them automatically, naming the place and the dates. Tap a chapter tile in the picture strip to
 rename it, hide it, or reset it to its automatic text; select a picture and tap **Insert chapter before**
-to add one of your own, or delete it again from its sheet. The **Trip chapters** row in the
-slideshow's side panel, under **More settings**, is where automatic chapters are turned on or off
-for the whole slideshow, and shows how many there currently are.
+to add one of your own, or delete it again from its sheet. Deleting a chapter, resetting its
+text, removing a title or closing slide and resetting a clip each show a message with Undo. The
+**Trip chapters** row in the slideshow's side panel, under **More settings**, is where automatic
+chapters are turned on or off for the whole slideshow, and shows how many there currently are.
 
 ## Play
 

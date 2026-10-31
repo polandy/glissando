@@ -117,6 +117,59 @@ describe("SlideshowEditor's trip chapters (TRIP_CHAPTERS.md)", () => {
     expect((await store.getSlideshow("show")).addedChapters).toBeUndefined();
   });
 
+  it("deleting an added chapter offers an undo that restores it with its text", async () => {
+    const { editor, toaster, store } = await setUp(["a", "b"]);
+    editor.chapters.insertChapter("b");
+    editor.chapters.setAddedChapterTitle("b", "Lisbon");
+    editor.chapters.removeAddedChapter("b");
+    await editor.settled();
+    expect(toaster.current?.text).toBe("Kapitel gelöscht");
+
+    toaster.act();
+
+    await editor.settled();
+    expect((await store.getSlideshow("show")).addedChapters).toEqual([
+      { beforePictureId: "b", title: "Lisbon" },
+    ]);
+  });
+
+  it("resetting a chapter's title or subtitle offers an undo restoring the text", async () => {
+    const { editor, toaster, store } = await setUp(["a", "b"]);
+    editor.chapters.setChapterTitle("b", "Lisbon");
+    editor.chapters.resetChapterTitle("b");
+    expect(toaster.current?.text).toBe("Kapiteltitel wieder automatisch");
+    toaster.act();
+    await editor.settled();
+    expect((await store.getSlideshow("show")).chapterEdits).toEqual([
+      { pictureId: "b", title: "Lisbon" },
+    ]);
+
+    editor.chapters.setChapterSubtitle("b", "Day 11");
+    editor.chapters.resetChapterSubtitle("b");
+    expect(toaster.current?.text).toBe("Kapitel-Untertitel wieder automatisch");
+    toaster.act();
+    await editor.settled();
+    expect((await store.getSlideshow("show")).chapterEdits?.[0]?.subtitle).toBe("Day 11");
+  });
+
+  it("resetting an added chapter's title offers an undo; a newer title ends it", async () => {
+    const { editor, toaster, store } = await setUp(["a", "b"]);
+    editor.chapters.insertChapter("b");
+    editor.chapters.setAddedChapterTitle("b", "Lisbon");
+    editor.chapters.resetAddedChapterTitle("b");
+    toaster.act();
+    await editor.settled();
+    expect((await store.getSlideshow("show")).addedChapters?.[0]?.title).toBe("Lisbon");
+
+    editor.chapters.resetAddedChapterTitle("b");
+    const undo = toaster.current?.action;
+    editor.chapters.setAddedChapterTitle("b", "Porto");
+    undo?.run();
+    await editor.settled();
+    expect(toaster.current).toBeNull();
+    expect((await store.getSlideshow("show")).addedChapters?.[0]?.title).toBe("Porto");
+  });
+
   it("stores and resets an added chapter's own title and subtitle", async () => {
     const { editor, store } = await setUp(["a", "b"]);
     editor.chapters.insertChapter("b");

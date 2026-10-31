@@ -5,6 +5,7 @@ import { view } from "../picture-editor/picture-editor-harness";
 import { mountWithTranslator } from "../testing/mount-with-translator";
 import { reactiveProps } from "../testing/reactive-props.svelte";
 import type { ClipSoundWave } from "./clip-sound-wave";
+import ClipWaveform from "./ClipWaveform.svelte";
 import ClipEditorScreen from "./ClipEditorScreen.svelte";
 
 const CLIP: StoredVideo = { mediaId: "v", sourceMs: 60_000, startMs: 20_000, endMs: 40_000 };
@@ -122,5 +123,30 @@ describe("ExcerptStrip, the clip's waveform", () => {
 
     const after = bars().find((bar) => bar.atMs > 50_000 && bar.atMs < 58_000);
     expect(after?.inside).toBe(true);
+  });
+});
+
+describe("ExcerptStrip, while the clip's sound is read", () => {
+  it("shows a status label until the wave arrives, then the bars", () => {
+    const props = reactiveProps({
+      wave: null as ClipSoundWave | null,
+      excerpt: { startMs: 20_000, endMs: 40_000 },
+      sourceMs: CLIP.sourceMs,
+      soundOff: false,
+      width: 300,
+    });
+    const mounted = mountWithTranslator(ClipWaveform, props);
+    destroy = mounted.destroy;
+    const label = () => mounted.target.querySelector('[role="status"]');
+    const rects = () => mounted.target.querySelectorAll("svg.bars rect");
+
+    expect(label()?.textContent).toBe("Ton wird gelesen …");
+    expect(rects().length).toBe(0);
+
+    props.wave = { kind: "peaks", peaks: new Float32Array(BAR_COUNT).fill(1) };
+    flushSync();
+
+    expect(rects().length).toBeGreaterThan(0);
+    expect(label()).toBeNull();
   });
 });

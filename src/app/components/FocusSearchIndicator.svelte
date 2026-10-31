@@ -36,6 +36,9 @@
   <span class="label">
     {label} · {t("start.searchProgress", { done: search.done, total: search.total })}
   </span>
+  <span class="label-short"
+    >{t("start.searchShort", { done: search.done, total: search.total })}</span
+  >
 </div>
 <!-- Beside an export, it sits on top of the export's thicker line, so both stay readable. -->
 <span
@@ -88,9 +91,16 @@
       transition: none;
     }
   }
+  .label-short {
+    display: none;
+  }
+  /* A phone has no room for the long label; the short one keeps the ring from being the only signal. */
   @container (max-width: 720px) {
     .label {
       display: none;
+    }
+    .label-short {
+      display: inline;
     }
   }
 </style>

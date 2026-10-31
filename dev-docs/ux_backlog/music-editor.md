@@ -63,18 +63,3 @@ duplicate button.
 
 Done when — Only one "Add a song" control exists on the screen in that state; the notice uses
 the warning colour only above the chosen threshold (unit test on the threshold).
-
-### UX-13 Waveform is flat while decoding, with no text (size S)
-
-Problem — While peaks are being computed the waveform shows flat bars, which looks like a silent
-or broken file; the clip editor's waveform has the same gap.
-
-Where — `WaveformBars.svelte:29` (peaks null), `ClipWaveform.svelte`.
-
-Why — "Never a spinner without a label"; here there is not even a spinner.
-
-Proposal — A labelled placeholder in the waveform area ("Reading the song…") and a shimmer in
-reduced-motion-safe form, replaced by the bars when peaks arrive.
-
-Done when — A browser test with delayed decoding asserts the label is visible before peaks and
-gone after.

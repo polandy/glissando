@@ -4,10 +4,19 @@ import { chaptersOfSlideshow } from "../../../../compose/chapters-of-slideshow";
 import type { Place } from "../../../../places/nearest-place";
 import type { StoredPicture, StoredSlideshow } from "../../../../library/stored-slideshow";
 import { ChapterSettingsEditor } from "../../../editing/chapter-settings-editor";
+import { ResetUndo } from "../../../editing/reset-undo";
+import { Toaster } from "../../../toast/toaster";
+import { FakeScheduler } from "../../../../ui-kit/testing/fake-scheduler";
 import { slideshowDetails } from "../../../library-views";
 import { mountWithTranslator } from "../../../testing/mount-with-translator";
 import { reactiveProps } from "../../../testing/reactive-props.svelte";
 import ChapterSheet from "./ChapterSheet.svelte";
+
+const CHAPTER_PORTS = {
+  chapterDeletedText: () => "Kapitel gelöscht",
+  chapterTitleResetText: () => "Kapiteltitel wieder automatisch",
+  chapterSubtitleResetText: () => "Kapitel-Untertitel wieder automatisch",
+};
 
 const LISBON: Place = { name: "Lisbon", latitude: 38.7223, longitude: -9.1393 };
 const PORTO: Place = { name: "Porto", latitude: 41.1579, longitude: -8.6291 };
@@ -66,7 +75,10 @@ function setUp(anchorPictureId: string | null, overrides: Partial<StoredSlidesho
   const onClose = vi.fn();
   // Assigned once props exists, so its apply callback can update it (forward reference).
   let updateSlideshow: (next: StoredSlideshow) => void = () => {};
+  const toaster = new Toaster(new FakeScheduler());
   const chapterEditor = new ChapterSettingsEditor(
+    CHAPTER_PORTS,
+    new ResetUndo(toaster, () => "Rückgängig"),
     () => current,
     (next) => {
       current = next;
@@ -82,7 +94,7 @@ function setUp(anchorPictureId: string | null, overrides: Partial<StoredSlidesho
   updateSlideshow = (next) => (props.slideshow = slideshowDetails(next, url, "de"));
   const mounted = mountWithTranslator(ChapterSheet, props);
   destroy = mounted.destroy;
-  return { target: mounted.target, props, onClose, chapterEditor, current: () => current };
+  return { target: mounted.target, props, onClose, chapterEditor, toaster, current: () => current };
 }
 
 describe("ChapterSheet: an automatic chapter", () => {
@@ -190,6 +202,21 @@ describe("ChapterSheet: an added chapter", () => {
 
     expect(current().addedChapters).toBeUndefined();
     expect(onClose).toHaveBeenCalledOnce();
+  });
+
+  it("offers an undo toast after delete, which brings the chapter back", () => {
+    const { target, current, toaster } = setUpAdded();
+    expect(toaster.current).toBeNull();
+    const before = current().addedChapters;
+
+    Array.from(target.querySelectorAll("button"))
+      .find((button) => button.textContent?.includes("Kapitel löschen"))
+      ?.click();
+
+    expect(toaster.current?.text).toBe("Kapitel gelöscht");
+    expect(toaster.current?.action?.label).toBe("Rückgängig");
+    toaster.act();
+    expect(current().addedChapters).toEqual(before);
   });
 });
 

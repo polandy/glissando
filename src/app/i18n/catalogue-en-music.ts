@@ -122,4 +122,5 @@ export const enMusic: Pick<Catalogue, keyof typeof deMusic> = {
   "music.volumeListenOriginal": "original file, as recorded",
   "music.volumeOriginalFile": "Original file",
   "music.volumeListenCompare": "While listening, tap another song to compare.",
+  "music.waveformReading": "Reading the song…",
 };
