@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.0.13](https://github.com/polandy/glissando/compare/glissando-v0.0.12...glissando-v0.0.13) (2026-10-31)
+
+
+### Bug Fixes
+
+* **copy:** sweep the catalogues and user guide against the glossary ([#158](https://github.com/polandy/glissando/issues/158)) ([60bf5b6](https://github.com/polandy/glissando/commit/60bf5b645b5bd9c810d424d879ee4ff3a78b729b))
+* **ux:** browser-back guard for selections and header crumbs as links ([#161](https://github.com/polandy/glissando/issues/161)) ([c949e33](https://github.com/polandy/glissando/commit/c949e33ec372e4d06702cb63b202d6bd0d145045))
+* **ux:** undo for removals, loading labels, route skeletons, phone search label ([#160](https://github.com/polandy/glissando/issues/160)) ([74cf6f2](https://github.com/polandy/glissando/commit/74cf6f28116cfc7f6f6abd00097296244c8f90c5))
+
 ## [0.0.12](https://github.com/polandy/glissando/compare/glissando-v0.0.11...glissando-v0.0.12) (2026-10-31)
 
 
