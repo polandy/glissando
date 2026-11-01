@@ -1,11 +1,13 @@
 <script lang="ts">
   import { orderWithGroupShifted } from "../../../library/group-order";
-  import { browserScheduler, type Scheduler } from "../../../ui-kit/scheduler";
-  import type { IconName } from "../../../ui-kit/icons";
   import { keepToastsClear } from "../../components/toast-clearance";
   import { getTranslator } from "../../i18n/context";
   import AddingBarActions from "./AddingBarActions.svelte";
   import BarAction from "./BarAction.svelte";
+  import MoveToSheet from "./MoveToSheet.svelte";
+  import SelectionCount from "./SelectionCount.svelte";
+  import SelectionBarMenu from "./SelectionBarMenu.svelte";
+  import { barItem, type BarItem } from "./SelectionBarItem";
   import { isContiguous, selectedInOrder, type StripSelection } from "./strip-selection";
 
   /**
@@ -24,7 +26,7 @@
     arranging = true,
     viewMode = false,
     onInsertChapter,
-    holdScheduler = browserScheduler,
+    onMoveGroup,
   }: {
     selection: StripSelection;
     /** The slideshow's current play order, for the group moves and the contiguous range. */
@@ -37,17 +39,18 @@
     /** Opens the picture full screen beside Edit (PICTURE_VIEWER.md); undefined while `viewMode`. */
     onView?: (pictureId: string) => void;
     onDone: () => void;
-    /** False hides Earlier/Later (IMPORT_ARRANGING.md, Add media): no moving while adding. */
+    /** False hides Earlier/Later and Move to… (IMPORT_ARRANGING.md, Add media): no moving while adding. */
     arranging?: boolean;
     /**
      * The adding bar (IMPORT_ARRANGING.md): View (full-screen) instead of Edit, as words, for no
-     * picture editor while importing. Otherwise every action is an icon with a label bubble.
+     * picture editor while importing. Otherwise every action is labelled, with the moves in "More"
+     * on a narrow screen.
      */
     viewMode?: boolean;
     /** Inserts a trip chapter before the selected picture (TRIP_CHAPTERS.md); omitted while importing. */
     onInsertChapter?: (pictureId: string) => void;
-    /** Times the press and hold that shows an icon's bubble on a touch screen. */
-    holdScheduler?: Scheduler;
+    /** Moves the pictures to an insertion in the current order ("Move to…"); omitted hides it. */
+    onMoveGroup?: (pictureIds: readonly string[], insertion: number) => void;
   } = $props();
 
   const { t } = getTranslator();
@@ -55,6 +58,7 @@
   const count = $derived(selectedIds.length);
   const soleId = $derived(selectedIds[0] ?? null);
   const soleIndex = $derived(soleId === null ? -1 : order.indexOf(soleId));
+  const single = $derived(!selection.several || count === 1);
   const range = $derived(
     count > 0 && isContiguous(selection.ids, order)
       ? {
@@ -83,6 +87,8 @@
   // disabled for the last picture, which stays; Remove still answers that, with its own toast.
   const removeDisabledLook = $derived(selection.several ? count === 0 : order.length < 2);
 
+  let moving = $state(false);
+
   function earlier(): void {
     if (!earlierDisabled) {
       onShiftGroup(selectedIds, -1);
@@ -95,95 +101,105 @@
     }
   }
 
-  function edit(): void {
-    if (soleId !== null) {
-      onEdit(soleId);
-    }
+  const edit = (): void => void (soleId !== null && onEdit(soleId));
+  const view = (): void => void (soleId !== null && onView?.(soleId));
+  const insertChapter = (): void => void (soleId !== null && onInsertChapter?.(soleId));
+  const remove = (): void => void (count > 0 && onRemoveGroup(selectedIds));
+
+  // The selection stays; the first moved tile is brought into view once the strip shows the new order.
+  function move(insertion: number): void {
+    moving = false;
+    onMoveGroup?.(selectedIds, insertion);
   }
 
-  function view(): void {
-    if (soleId !== null && onView !== undefined) {
-      onView(soleId);
-    }
-  }
-
-  function remove(): void {
-    if (count > 0) {
-      onRemoveGroup(selectedIds);
-    }
-  }
-
-  function insertChapter(): void {
-    if (soleId !== null) {
-      onInsertChapter?.(soleId);
-    }
-  }
+  const shifts = $derived<BarItem[]>(
+    arranging
+      ? [
+          barItem("earlier", t("slideshow.earlier"), earlier, earlierDisabled),
+          barItem("later", t("slideshow.later"), later, laterDisabled),
+        ]
+      : [],
+  );
+  const extras = $derived<BarItem[]>([
+    ...(single && onInsertChapter !== undefined
+      ? [barItem("chapter", t("chapters.insertChapterBefore"), insertChapter)]
+      : []),
+    ...(arranging && onMoveGroup !== undefined && count > 0
+      ? [barItem("moveTo", t("slideshow.moveTo"), () => (moving = true))]
+      : []),
+  ]);
 </script>
 
-{#snippet action(icon: IconName, label: string, onclick: () => void, disabledLook = false)}
-  <BarAction {icon} {label} {disabledLook} {holdScheduler} {onclick} />
+{#snippet inline(items: readonly BarItem[])}
+  {#each items as item (item.key)}
+    <BarAction
+      icon={item.icon}
+      label={item.label}
+      disabledLook={item.disabled}
+      onclick={item.run}
+    />
+  {/each}
 {/snippet}
 
 <div class="dock" use:keepToastsClear>
-  <div class="bar" role="toolbar" aria-label={t("slideshow.selection")}>
-    <!-- Announced on every move; on a narrow screen hidden from sight, not from screen readers. -->
-    {#if selection.several}
-      <span class="count several" aria-live="polite">
-        <b class="mono">{count}</b><span class="word"
-          >{range === null
-            ? t("slideshow.selectedCount", { count })
-            : t("slideshow.selectedRange", {
-                count,
-                from: range.from,
-                to: range.to,
-                total: order.length,
-              })}</span
-        >
-      </span>
-    {:else}
-      <span class="count" aria-live="polite">
-        {t("slideshow.selectionCount", { number: soleIndex + 1, total: order.length })}
-      </span>
-    {/if}
+  <div class="bar" class:labelled={!viewMode} role="toolbar" aria-label={t("slideshow.selection")}>
+    <SelectionCount several={selection.several} {count} {range} total={order.length} {soleIndex} />
     <span class="separator" aria-hidden="true"></span>
     {#if viewMode}
       <AddingBarActions
         {arranging}
-        single={!selection.several || count === 1}
+        {single}
         {earlierDisabled}
         {laterDisabled}
         {removeDisabledLook}
-        {holdScheduler}
         onEarlier={earlier}
         onLater={later}
         onView={edit}
         onRemove={remove}
       />
     {:else}
-      {#if arranging}
-        {@render action("chevronLeft", t("slideshow.earlier"), earlier, earlierDisabled)}
-        {@render action("chevronRight", t("slideshow.later"), later, laterDisabled)}
-      {/if}
-      {#if !selection.several || count === 1}
+      <!-- A wide screen shows the moves inline; a narrow one keeps them in "More". -->
+      <span class="wide-only">{@render inline(shifts)}</span>
+      {#if single}
         {#if onView !== undefined}
-          {@render action("eye", t("slideshow.viewFullScreen"), view)}
+          <BarAction
+            icon="eye"
+            label={t("slideshow.view")}
+            name={t("slideshow.viewFullScreen")}
+            onclick={view}
+          />
         {/if}
-        {@render action("pencil", t("slideshow.editPicture"), edit)}
-        {#if onInsertChapter !== undefined}
-          {@render action("chapter", t("chapters.insertChapterBefore"), insertChapter)}
-        {/if}
+        <BarAction
+          icon="pencil"
+          label={t("slideshow.edit")}
+          name={t("slideshow.editPicture")}
+          onclick={edit}
+        />
       {/if}
+      <span class="wide-only">{@render inline(extras)}</span>
       <BarAction
         icon="trash"
-        label={removeLabel}
+        label={t("slideshow.remove")}
+        name={removeLabel}
         danger
         disabledLook={removeDisabledLook}
-        {holdScheduler}
         onclick={remove}
       />
+      {#if shifts.length + extras.length > 0}
+        <span class="narrow-only"><SelectionBarMenu items={[...shifts, ...extras]} /></span>
+      {/if}
     {/if}
+    <span class="spacer"></span>
     <button class="btn done" type="button" onclick={onDone}>{t("slideshow.done")}</button>
   </div>
+  {#if moving}
+    <MoveToSheet
+      orderLength={order.length}
+      startNumber={soleIndex + 1}
+      onMove={move}
+      onCancel={() => (moving = false)}
+    />
+  {/if}
 </div>
 
 <style>
@@ -211,9 +227,16 @@
     color: var(--gl-inverse-text);
     box-shadow: var(--gl-shadow);
   }
+  .spacer {
+    flex: 1;
+  }
+  .narrow-only,
+  .wide-only {
+    display: contents;
+  }
   .done {
-    height: 40px;
-    padding: 0 12px;
+    height: 44px;
+    padding: 0 14px;
     border-color: transparent;
     background: var(--gl-accent);
     color: var(--gl-accent-ink);
@@ -221,35 +244,23 @@
   .done:hover {
     background: var(--gl-accent-hover);
   }
-  .count {
-    padding: 0 8px 0 6px;
-    color: var(--gl-inverse-muted);
-    font-size: var(--gl-size-small);
-    white-space: nowrap;
-  }
-  /* Selecting several (dev-docs/app/slideshow-editing/SELECTING_SEVERAL.md, Selecting several): the count in the accent. */
-  .count.several {
-    color: var(--gl-inverse-text);
-    font-weight: var(--gl-weight-medium);
-  }
-  .count.several b {
-    display: inline-grid;
-    min-width: 22px;
-    height: 22px;
-    padding: 0 6px;
-    margin-right: 5px;
-    border-radius: var(--gl-radius-pill);
-    background: var(--gl-accent);
-    color: var(--gl-accent-ink);
-    font-weight: var(--gl-weight-medium);
-    place-items: center;
-  }
   .separator {
     width: 1px;
     height: 24px;
     background: var(--gl-inverse-line);
   }
-  @container (max-width: 720px) {
+  /* The moves and extras sit inline only where they all fit; below that they are in "More". */
+  @container (width < 1140px) {
+    .wide-only {
+      display: none;
+    }
+  }
+  @container (width >= 1140px) {
+    .narrow-only {
+      display: none;
+    }
+  }
+  @container (width < 1140px) {
     .dock {
       left: 8px;
       right: 8px;
@@ -258,30 +269,8 @@
       translate: none;
     }
     .bar {
-      justify-content: space-between;
-    }
-    .bar {
       gap: 2px;
       padding: 4px;
-    }
-    .done {
-      padding: 0 6px;
-      font-size: var(--gl-size-caption);
-    }
-    /* A single selection's count is for assistive technology only; several's stays visible. */
-    .count:not(.several) {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      padding: 0;
-      overflow: hidden;
-      clip-path: inset(50%);
-    }
-    .count.several {
-      padding: 0 2px 0 4px;
-    }
-    .count.several .word {
-      display: none;
     }
     .separator {
       display: none;

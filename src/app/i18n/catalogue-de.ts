@@ -4,6 +4,7 @@ import { deMusic } from "./catalogue-de-music.ts";
 import { deTiming } from "./catalogue-de-timing.ts";
 import { deTransitions } from "./catalogue-de-transitions.ts";
 import { deLook } from "./catalogue-de-look.ts";
+import { deSelection } from "./catalogue-de-selection.ts";
 import { deMood } from "./catalogue-de-mood.ts";
 import { dePortrait } from "./catalogue-de-portrait.ts";
 import { deImmich } from "./catalogue-de-immich.ts";
@@ -103,12 +104,11 @@ export const de = {
   "slideshow.sortedByDate": "Nach Aufnahmedatum sortiert",
   "slideshow.pictureLabel": "Bild {number}, aufgenommen am {date}",
   "slideshow.ownOrder": "Eigene Reihenfolge",
-  "slideshow.reorderHintWide": "ziehen oder antippen",
-  "slideshow.reorderHintNarrow": "antippen zum Umsortieren",
+  "slideshow.reorderHintWide": "Ziehen zum Umsortieren",
+  "slideshow.reorderHintNarrow": "Halten und ziehen zum Umsortieren",
   "slideshow.select": "Auswählen",
   "slideshow.shuffle": "Mischen",
   "slideshow.shuffled": "{count} Bilder gemischt",
-  "slideshow.removePicture": "Bild {number} entfernen",
   "slideshow.removed": { one: "Bild entfernt", other: "{count} Bilder entfernt" },
   "slideshow.undo": "Rückgängig",
   "slideshow.selection": "Auswahl",
@@ -416,6 +416,7 @@ export const de = {
   ...deTiming,
   ...deTransitions,
   ...deLook,
+  ...deSelection,
   ...deMood,
   ...dePortrait,
   ...deImmich,

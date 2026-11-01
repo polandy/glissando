@@ -86,7 +86,7 @@ jobs:
           cache: npm
       - run: npm ci --no-fund --no-audit
       - if: matrix.suite == 'vitest'
-        run: npx vitest run --project "browser (${{ matrix.engine }})"
+        run: npx vitest run --project "browser (${{ matrix.engine }}*)"
       - if: matrix.suite == 'playwright'
         run: npx playwright test --project ${{ matrix.engine }}
       - if: failure()

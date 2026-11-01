@@ -12,6 +12,8 @@ import { serviceWorkerPlugin } from "./build/service-worker-plugin.ts";
 import { sharePagePlugin } from "./build/share-page-plugin.ts";
 import { tvStreamPlugin } from "./e2e/support/tv-stream-plugin.ts";
 // Every module this config loads imports with explicit file extensions (ADR-0026).
+import { setCoarsePointer } from "./src/app/testing/coarse-pointer-command.ts";
+import { dispatchTouch, endTouchInput } from "./src/app/testing/touch-input-command.ts";
 import {
   fakeRemoteStreamPlugin,
   nextFakeRemoteCommand,
@@ -33,6 +35,17 @@ import {
 import { THIRD_PARTY_LICENSES_FILE } from "./src/app/settings/third-party-licenses.ts";
 
 const BROWSER_TESTS = "src/**/*.browser.test.ts";
+/**
+ * The files that turn on Chromium's touch emulation (a coarse pointer, real touch input).
+ * Chromium keeps the page at `(hover: none)` and `(pointer: coarse)` for the rest of its life
+ * once that has run, so these get a Chromium page of their own and no other file lands on it.
+ */
+const TOUCH_EMULATION_TESTS = [
+  "src/styles/touch-targets.browser.test.ts",
+  "src/app/screens/slideshow-screen-touch-targets.browser.test.ts",
+  "src/app/editors-touch-targets.browser.test.ts",
+  "src/app/screens/slideshow/PictureStrip.touch.browser.test.ts",
+];
 
 export default defineConfig({
   // Relative, so the same build runs from any static host path (ADR-0005).
@@ -76,6 +89,9 @@ export default defineConfig({
             headless: true,
             provider: playwright(),
             commands: {
+              setCoarsePointer,
+              dispatchTouch,
+              endTouchInput,
               serveFakeShareApi,
               stopFakeShareApi,
               releaseFakeSharePicture,
@@ -89,7 +105,12 @@ export default defineConfig({
               stopFakeRemoteApi,
             },
             instances: [
-              { browser: "chromium" },
+              { browser: "chromium", exclude: TOUCH_EMULATION_TESTS },
+              {
+                browser: "chromium",
+                name: "browser (chromium-touch)",
+                include: TOUCH_EMULATION_TESTS,
+              },
               // Headless Firefox in the CI image has no WebGL at all, whatever its prefs; it
               // tests the DOM fallback, Chromium and WebKit test the WebGL renderer. Nor has it
               // an audio output, so its AudioContext never runs. The video export needs WebGL2.

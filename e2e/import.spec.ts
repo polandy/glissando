@@ -152,18 +152,18 @@ test.describe("Removing chosen pictures", () => {
   }) => {
     const tiles = page.getByRole("listitem").locator(".date");
     // Tile 2 (13.07.2025): removing it leaves 12.07.2025 and 14.07.2025, the latter now tile 2.
-    await page.getByRole("button", { name: "Bild 2 entfernen" }).click();
+    await page.getByRole("button", { name: "Bild 2, aufgenommen am 13.07.2025" }).press("Delete");
     await expect(page.getByRole("status")).toContainText("Bild entfernt");
     await expect(page.getByText("2 Bilder", { exact: true })).toBeVisible();
 
-    // Delete/Backspace remove the focused tile itself (its keydown sits on the tile, not the mark).
+    // Delete removes the focused tile itself.
     await page.getByRole("button", { name: "Bild 2, aufgenommen am 14.07.2025" }).press("Delete");
     await expect(page.getByRole("status")).toContainText("2 Bilder entfernt");
     await expect(tiles).toHaveText(["12.07.2025"]);
     await page.getByRole("status").getByRole("button", { name: "Rückgängig" }).click();
     await expect(tiles).toHaveText(["12.07.2025", "13.07.2025", "14.07.2025"]);
 
-    await page.getByRole("button", { name: "Bild 1 entfernen" }).click();
+    await page.getByRole("button", { name: "Bild 1, aufgenommen am 12.07.2025" }).press("Delete");
     await page.getByRole("button", { name: "Weiter" }).click();
     await page.getByRole("button", { name: "Ohne Musik erstellen" }).click();
 

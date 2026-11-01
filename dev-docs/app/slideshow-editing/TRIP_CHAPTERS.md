@@ -15,8 +15,8 @@ reorder (no `.pick` class, no `data-picture-id`); tapping it opens the chapter s
 
 ## Insert chapter
 
-With exactly one picture selected, the selection bar offers **Insert chapter before**, an icon
-with its words in a bubble (`SelectionBar.svelte`, [REMOVE_SELECT_REORDER.md](REMOVE_SELECT_REORDER.md)). It inserts an added chapter right before that picture
+With exactly one picture selected, the selection bar offers **Insert chapter before**, a labelled
+action, inline on a wide screen and in the "More" menu on a narrow one (`SelectionBar.svelte`, [REMOVE_SELECT_REORDER.md](REMOVE_SELECT_REORDER.md)). It inserts an added chapter right before that picture
 (`ChapterSettingsEditor.insertChapter`, a no-op if one is already there) and opens its sheet at
 once, prefilled with the automatic text for that spot.
 

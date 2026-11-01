@@ -1,4 +1,5 @@
 <script lang="ts">
+  import "./slideshow/selection-clearance.css";
   import Header from "../components/Header.svelte";
   import PictureViewer from "../components/PictureViewer.svelte";
   import { viewerEntries } from "../components/picture-viewer-view";
@@ -115,7 +116,7 @@
   let overlays = $state<SlideshowScreenOverlays>();
 </script>
 
-<div class="screen" class:selecting={showBar} aria-busy={saving}>
+<div class="screen slideshow-screen" class:selecting={showBar} aria-busy={saving}>
   <Header crumbs={[t("start.library"), slideshow.title]} {onBack}>
     {#snippet actions()}
       <MoreMenu
@@ -141,7 +142,6 @@
         {mousePointer}
         {onEdit}
         onView={(pictureId) => (viewing = pictureId)}
-        {onRemove}
         onRemoveGroup={removeGroup}
         {onShuffle}
         {onShiftGroup}
@@ -184,7 +184,7 @@
       onView={(pictureId) => (viewing = pictureId)}
       onDone={() => (selection = endSelecting())}
       onInsertChapter={(pictureId) => editSheets?.insertAndOpenChapter(pictureId)}
-      {holdScheduler}
+      {onMoveGroup}
     />
   {/if}
 </div>
@@ -265,23 +265,6 @@
     gap: 24px;
     align-items: start;
   }
-  /*
-   * Room below the content for the selection bar fixed over it, so the last row scrolls clear;
-   * a tile scrolled into view keeps the same distance (StripTile's scroll margin).
-   */
-  .screen {
-    --selection-bar-height: 54px;
-    --selection-bar-inset: 16px;
-    --selection-bar-gap: 12px;
-  }
-  .screen.selecting {
-    --selection-clearance: calc(
-      var(--selection-bar-height) + var(--selection-bar-inset) + var(--selection-bar-gap)
-    );
-  }
-  .screen.selecting .content {
-    padding-bottom: var(--selection-clearance);
-  }
   /* Below a desktop the info panel stacks over the pictures instead of squeezing them. */
   @container (max-width: 1024px) {
     .detail {
@@ -289,12 +272,6 @@
     }
     .detail > :global(.panel) {
       order: -1;
-    }
-  }
-  @container (max-width: 720px) {
-    /* A container query styles descendants only: the bar and the content inherit this. */
-    .screen > :global(*) {
-      --selection-bar-inset: 10px;
     }
   }
 </style>

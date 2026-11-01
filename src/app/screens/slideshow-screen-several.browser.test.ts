@@ -164,7 +164,7 @@ describe("SlideshowScreen, selecting several", () => {
     expect(select.getAttribute("aria-pressed")).toBe("true");
     expect(selectionBar()).not.toBeNull();
     expect(buttonNamed("Früher").getAttribute("aria-disabled")).toBe("true");
-    expect(buttonNamed("Bilder entfernen").getAttribute("aria-disabled")).toBe("true");
+    expect(buttonNamed("Entfernen").getAttribute("aria-disabled")).toBe("true");
   });
 
   it("Ctrl-click starts selecting several, keeping the prior tile in it; Shift-click adds a range", () => {
@@ -188,12 +188,12 @@ describe("SlideshowScreen, selecting several", () => {
     const first = tile(1, "01.07.2025");
     first.click();
     flushSync();
-    expect(buttonNamed("Bild bearbeiten")).toBeDefined();
+    expect(buttonNamed("Bearbeiten")).toBeDefined();
 
     click(tile(2, "02.07.2025"), { ctrlKey: true });
     flushSync();
 
-    expect(() => buttonNamed("Bild bearbeiten")).toThrow();
+    expect(() => buttonNamed("Bearbeiten")).toThrow();
   });
 
   it("removes the whole selection with Remove", () => {
@@ -203,7 +203,7 @@ describe("SlideshowScreen, selecting several", () => {
     click(tile(3, "03.07.2025"), { ctrlKey: true });
     flushSync();
 
-    buttonNamed("2 Bilder entfernen").click();
+    buttonNamed("Entfernen").click();
 
     expect(calls.removedGroup).toEqual([["a", "c"]]);
   });

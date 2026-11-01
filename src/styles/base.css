@@ -215,3 +215,24 @@ button {
   color: var(--gl-muted);
   --gl-icon-size: var(--gl-size-icon-small);
 }
+
+/*
+ * A finger needs 44 px; the controls keep their look and grow an invisible pad to that size
+ * around their own box. Neighbours need a gap of twice the pad's overhang so pads don't overlap.
+ */
+@media (pointer: coarse) {
+  .btn,
+  .icon-btn {
+    position: relative;
+  }
+  .btn::after,
+  .icon-btn::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: max(100%, var(--gl-hit-min));
+    height: max(100%, var(--gl-hit-min));
+    transform: translate(-50%, -50%);
+  }
+}

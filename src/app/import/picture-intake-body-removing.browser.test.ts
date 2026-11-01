@@ -37,37 +37,39 @@ async function mountWithPictures(...names: string[]) {
   return { intake, toaster, target: body.target, destroy: body.destroy };
 }
 
-// The tile's own ✕: a mouse-only mark, always present in the DOM for removal by click.
-const removeButtons = (target: HTMLElement): HTMLButtonElement[] => [
-  ...target.querySelectorAll<HTMLButtonElement>(".strip .tile button.remove"),
-];
-
 // The tile itself: what Delete, Backspace and the focus chain after a removal move between.
 const tiles = (target: HTMLElement): HTMLButtonElement[] => [
   ...target.querySelectorAll<HTMLButtonElement>(".strip button.pick"),
 ];
 
+/** Delete on the first tile, the strip's way to remove a picture. */
+function deleteFirstTile(target: HTMLElement): void {
+  tiles(target)[0]?.focus();
+  document.activeElement?.dispatchEvent(
+    new KeyboardEvent("keydown", { key: "Delete", bubbles: true }),
+  );
+}
+
 const storedNames = (intake: PictureIntake): string[] =>
   intake.pictures.state.pictures.map(({ fileName }) => fileName);
 
 describe("PictureIntakeBody, removing a chosen picture", () => {
-  it("gives every stored tile a remove button named by its position", async () => {
+  it("shows no remove button on any stored tile", async () => {
     const { target } = await mountWithPictures("beach.jpg", "hill.jpg");
 
-    const buttons = removeButtons(target);
-
-    expect(buttons).toHaveLength(2);
-    expect(buttons[0]?.getAttribute("aria-label")).toBe("Bild 1 entfernen");
+    expect(tiles(target)).toHaveLength(2);
+    expect(target.querySelector(".strip .tile button.remove")).toBeNull();
   });
 
-  it("removes the picture on its button, with the undo toast", async () => {
+  it("removes the picture on Delete, with the undo toast", async () => {
     const { intake, toaster, target } = await mountWithPictures("beach.jpg", "hill.jpg");
 
-    removeButtons(target)[0]?.click();
+    deleteFirstTile(target);
+    await tick();
     flushSync();
 
     expect(storedNames(intake)).toEqual(["hill.jpg"]);
-    expect(removeButtons(target)).toHaveLength(1);
+    expect(tiles(target)).toHaveLength(1);
     expect(toaster.current?.text).toBe("1 picture removed");
   });
 
@@ -96,7 +98,8 @@ describe("PictureIntakeBody, removing a chosen picture", () => {
   it("moves the focus to Choose media once the last picture is removed", async () => {
     const { intake, target } = await mountWithPictures("beach.jpg");
 
-    removeButtons(target)[0]?.click();
+    deleteFirstTile(target);
+    await tick();
     flushSync();
 
     expect(storedNames(intake)).toEqual([]);
@@ -105,7 +108,8 @@ describe("PictureIntakeBody, removing a chosen picture", () => {
 
   it("makes the removals final on leaving the step", async () => {
     const { intake, toaster, target, destroy } = await mountWithPictures("beach.jpg", "hill.jpg");
-    removeButtons(target)[0]?.click();
+    deleteFirstTile(target);
+    await tick();
     flushSync();
     expect(toaster.current).not.toBeNull();
 

@@ -15,8 +15,7 @@ Immich photos, and is created on the server
   folder", and drag-and-drop on desktop (folders read recursively). While anything is in flight, more can be picked at any time; each pick joins the
   running import as a row of a queue, and the tiles arrange like the editor's
   ([IMPORT_ARRANGING.md](IMPORT_ARRANGING.md): the queue, placeholders, order, selecting,
-  moving, viewing, the keys). Then "n pictures · from – to". **Removing**: ✕ on a tile (mouse
-  only), Remove in the selection bar, or Delete or Backspace on a focused tile; never
+  moving, viewing, the keys). Then "n pictures · from – to". **Removing**: Remove in the selection bar, or Delete or Backspace on a focused tile; never
   confirmed. The toast "Picture removed" with "Undo" follows; removals while
   it shows add up ("3 pictures removed") and one Undo puts them all back. Choosing more pictures,
   discarding, or leaving the step (Next, Cancel, ←) ends the undo and dismisses the toast. A
@@ -53,7 +52,7 @@ Immich photos, and is created on the server
   their time to the second. A tile's + ("Take in picture from <date> at <time>", a 44 px target)
   puts it back into the strip at its capture-date place (at the end once the order is the
   user's own) and focus moves to the next +; from then
-  on it is an ordinary picture (✕ removes it) and never set aside again; "Take all in" takes all
+  on it is an ordinary picture (Remove removes it) and never set aside again; "Take all in" takes all
   back. Once none is left set aside, focus moves to the strip tile of the picture taken in
   last (for "Take all in", the latest of them). Set-aside pictures are not kept: the slideshow never references them, so the clean-up
   after Next deletes their media. Exact duplicates are skipped before the check, and neither

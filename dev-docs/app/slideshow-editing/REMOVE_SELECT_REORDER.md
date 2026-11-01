@@ -1,30 +1,40 @@
 # Remove, select and reorder
 
-- **Remove**: a ✕ on a tile, "Remove" in the selection bar, or Delete/Backspace on a focused
-  tile — never confirmed. The ✕ and the drag grip are for a mouse only (`(hover: hover) and
-(pointer: fine)`): shown on hover, and the grip on the selected tile too; the selected tile has
-  no ✕ of its own, the bar's Remove removes it; touch has neither and uses the selection bar. A toast "Picture removed" with "Undo" follows; removals made while it is
+- **Remove**: "Remove" in the selection bar, or Delete/Backspace on a focused tile — never
+  confirmed; a tile has no ✕ of its own, with a mouse or with touch. The drag grip is for a
+  mouse only (`(hover: hover) and (pointer: fine)`): shown on hover and on the selected tile.
+  A toast "Picture removed" with "Undo" follows; removals made while it is
   shown add up ("3 pictures removed") and one Undo puts them all back where they were. Any move
   ends that batch and dismisses the toast, so Undo never puts pictures back at positions that
   shifted meanwhile; leaving the screen dismisses it too. While the toast shows, the removed
-  pictures' media is claimed against the clean-up (`dev-docs/LIBRARY.md`). The last picture stays: its ✕ is disabled (titled with the reason);
-  "Remove" looks disabled but stays focusable and clickable (`aria-disabled`), and it and
+  pictures' media is claimed against the clean-up (`dev-docs/LIBRARY.md`). The last picture stays: "Remove" looks disabled but stays focusable and clickable (`aria-disabled`), and it and
   Delete answer with the toast "The last picture stays. To get rid of it, delete the whole
   slideshow.", keeping the selection.
 - **Select and reorder** (mockup:
   https://polandy.github.io/glissando-assets/mockups/move-together/): a tap on a tile selects
   it (outlined in the accent, its number badge in the accent; another tap deselects) and opens
   the selection bar at the bottom — "Picture 3 of 12" (a polite live region, so every move is
-  announced; visually hidden up to 720 px, where the bar spans the width), then one icon per
-  action — ◀ "Earlier", ▶ "Later", 👁 "View full screen" (opens the picture full screen,
-  [PICTURE_VIEWER.md](../PICTURE_VIEWER.md)), ✎ "Edit picture" (opens the picture editor,
-  [PICTURE_EDITOR.md](../PICTURE_EDITOR.md)), "Insert chapter before"
-  ([TRIP_CHAPTERS.md](TRIP_CHAPTERS.md)), 🗑 "Remove picture" — and "Done" in words. Each icon's
-  words are its accessible name and show in a bubble above it (`BarAction.svelte`; mockup:
-  https://polandy.github.io/glissando-assets/mockups/selection-bar/, variant A): with a mouse
-  after resting on it a moment, or on keyboard focus; with a finger on a press and hold (450 ms)
-  — letting go then does nothing, and the bubble stays a moment to be read; a quick tap acts at
-  once. The bar is drawn inverse to the
+  announced; visually hidden below 1140 px, where the bar spans the width), then every action
+  with its label always visible (mockup:
+  https://polandy.github.io/glissando-assets/mockups/ux-p5-p6-slideshow-screen/, variant A;
+  `BarAction.svelte`). At 1140 px and wider they sit inline, the icon beside its label: ◀
+  "Earlier", ▶ "Later", 👁 "View" (accessible name "View full screen"; opens the picture full
+  screen, [PICTURE_VIEWER.md](../PICTURE_VIEWER.md)), ✎ "Edit" ("Edit picture"; opens the
+  picture editor, [PICTURE_EDITOR.md](../PICTURE_EDITOR.md)), "Insert chapter before"
+  ([TRIP_CHAPTERS.md](TRIP_CHAPTERS.md)), ⇄ "Move to …", 🗑 "Remove" (named with the count,
+  "Remove 3 pictures"), and "Done" in the accent. Below 1140 px the icon sits over its label
+  (the bar 68 px high, every target at least 44 × 44 px) and shows View, Edit, Remove and "More"
+  ("More actions"), then Done; with several selected, the count chip, Remove, More and Done.
+  "More" opens a menu above the bar (`SelectionBarMenu.svelte`; rows at least 48 px high, closing
+  on a tap outside, Esc and a choice; focus moves into it, the arrow keys move between rows and
+  Esc returns focus to More) with Earlier, Later, Insert chapter before (one picture, only) and
+  "Move to …". Earlier and Later look disabled at the ends but stay focusable
+  (`aria-disabled`). "Move to …" opens a small dialog (`MoveToSheet.svelte`) with the choices
+  Start, End and "Before picture …" (a − N + stepper from 1 to the picture count, starting at
+  the selected picture's number) and "Move"; the selection stays and the moved tile scrolls
+  into view. The adding bar ([IMPORT_ARRANGING.md](../IMPORT_ARRANGING.md)) keeps its own
+  actions (Earlier and Later as icons with a tooltip, View and Remove in words) and has no
+  "Move to …". The bar is drawn inverse to the
   screen (dark on the light theme, light on the dark one), with "Done" in the accent and
   Remove's icon in the danger colour, so it stands out in either theme (mockup:
   https://claude.ai/artifact/6a6E2dqYM52hUkjCek4CLE, variant B). At the ends Earlier
