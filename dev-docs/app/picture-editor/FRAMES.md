@@ -21,11 +21,12 @@
   the marker settles in (fades in from slightly larger; at once with reduced motion); a focus
   already known, on opening or on ‹/›, shows at once. An own motion hides the marker — its frames
   say where it goes — and brings it back at once if the motion returns to automatic.
-- **Focus line** (`focus-indication.ts`, `FocusLine.svelte`): one quiet line under the picture
+- **Focus line** (`focus-indication.ts`, `FocusLine.svelte`): one quiet line at the end of the
+  Ken Burns section (the dark picture area shows only the picture)
   for every state of the picture's focus search, each with its own action button next to it:
   not yet looked at ("Not looked at yet – it's in the queue.", "Look now"); searching (the
   existing pulsing-dot pill, no action); found — face, subject, Immich faces, scenery or no
-  subject — with a small "Look again" link; found by an older detector version ("… found by an
+  subject — with a small "Look again" text button; found by an older detector version ("… found by an
   older version – looking again soon.", "Look again now"); the look failed ("Couldn't look at
   this picture.", "Try again"); waiting on the server or Immich to look ("Waiting for your
   Glissando server to look at this picture.", no action). Every action calls the slideshow's
