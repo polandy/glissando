@@ -33,6 +33,7 @@ export const deEditor = {
   "editor.reset": "Zurück auf automatisch",
   "editor.alreadyAutomatic": "Die Bewegung ist schon automatisch",
   "editor.motionAutomatic": "Bewegung wieder automatisch",
+  "editor.timingAutomatic": "Zeitablauf wieder automatisch",
   "editor.durationAutomatic": "Bilddauer wieder automatisch",
   "editor.transitionAutomatic": "Übergang wieder automatisch",
   "editor.hintWide":
@@ -80,6 +81,7 @@ export const deEditor = {
   "editor.caption": "Bildtitel",
   "editor.captionPlaceholder": "z. B. Abends am Steg",
   "editor.captionCount": "{count} / {max}",
+  "editor.captionCleared": "Bildtitel entfernt",
   "editor.captionClear": "Bildtitel entfernen",
   "editor.captionHint":
     "Steht im Player unten links und blendet mit dem Bild ein und aus. Leer: kein Titel.",

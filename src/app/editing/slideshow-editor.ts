@@ -158,6 +158,10 @@ export class SlideshowEditor {
     this.#pictureSettings.resetTransition(pictureId);
   }
 
+  resetTiming(pictureId: string): void {
+    this.#pictureSettings.resetTiming(pictureId);
+  }
+
   setSlideshowTransition(transition: SlideshowTransition): void {
     this.#pictureSettings.setSlideshowTransition(transition);
   }
@@ -192,6 +196,11 @@ export class SlideshowEditor {
   /** Stores the caption as typed, normalised; a keystroke that changes nothing stores nothing. */
   setCaption(pictureId: string, typed: string): void {
     this.#pictureList.setCaption(pictureId, typed);
+  }
+
+  /** Removes the caption; the toast's undo brings the previous text back. */
+  clearCaption(pictureId: string): void {
+    this.#pictureList.clearCaption(pictureId);
   }
 
   addSongs(songs: readonly StoredMusic[]): void {

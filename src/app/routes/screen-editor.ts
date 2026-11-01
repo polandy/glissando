@@ -35,6 +35,8 @@ export function createScreenEditor(
     motionAutomaticText: () => t("editor.motionAutomatic"),
     durationAutomaticText: () => t("editor.durationAutomatic"),
     transitionAutomaticText: () => t("editor.transitionAutomatic"),
+    timingAutomaticText: () => t("editor.timingAutomatic"),
+    captionClearedText: () => t("editor.captionCleared"),
     slideshowTransitionResetText: () => t("transitions.resetDone"),
     portraitPicturesResetText: () => t("portrait.resetDone"),
     lookResetText: () => t("look.resetDone"),

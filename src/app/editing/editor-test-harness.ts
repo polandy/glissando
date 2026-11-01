@@ -92,6 +92,8 @@ export async function setUp(
     motionAutomaticText: () => "Bewegung wieder automatisch",
     durationAutomaticText: () => "Bilddauer wieder automatisch",
     transitionAutomaticText: () => "Übergang wieder automatisch",
+    timingAutomaticText: () => "Zeitablauf wieder automatisch",
+    captionClearedText: () => "Bildtitel entfernt",
     slideshowTransitionResetText: () => "Übergänge wieder auf Überblenden",
     openingCardRemovedText: () => "Titelbild entfernt",
     closingCardRemovedText: () => "Schlussbild entfernt",

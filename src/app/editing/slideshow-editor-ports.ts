@@ -33,6 +33,10 @@ export interface SlideshowEditorPorts {
   readonly durationAutomaticText: () => string;
   /** The undo toast's text after a picture's own transition was dropped. */
   readonly transitionAutomaticText: () => string;
+  /** The undo toast's text after a picture's own duration and transition were dropped together. */
+  readonly timingAutomaticText: () => string;
+  /** The undo toast's text after a picture's caption was cleared. */
+  readonly captionClearedText: () => string;
   /** The undo toast's text after the slideshow's default transition went back to crossfade. */
   readonly slideshowTransitionResetText: () => string;
   /** The undo toast's text after the portrait pictures setting went back to automatic. */
