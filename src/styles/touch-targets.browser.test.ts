@@ -57,6 +57,20 @@ describe.skipIf(!canEmulate)("shared controls under a coarse pointer", () => {
 
     expect(touchTargetViolations(host)).toEqual([]);
   });
+
+  it("keeps a pad at the screen's edge from widening the page", async () => {
+    await emulateCoarsePointer(true);
+    host.id = "app";
+    host.append(
+      markup(`<div style="display:flex;justify-content:space-between;padding:6px">
+        <button class="icon-btn small" aria-label="A"></button>
+        <button class="icon-btn small" aria-label="B"></button></div>`),
+    );
+    const scroller = document.scrollingElement as Element;
+
+    expect(host.querySelectorAll(".icon-btn")).toHaveLength(2);
+    expect(scroller.scrollWidth).toBe(scroller.clientWidth);
+  });
 });
 
 describe("shared controls under any pointer", () => {

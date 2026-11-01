@@ -221,6 +221,10 @@ button {
  * around their own box. Neighbours need a gap of twice the pad's overhang so pads don't overlap.
  */
 @media (pointer: coarse) {
+  /* A pad past the screen's edge would widen the page: a phone browser then zooms out to fit. */
+  #app {
+    overflow-x: clip;
+  }
   .btn,
   .icon-btn {
     position: relative;
