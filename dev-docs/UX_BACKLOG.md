@@ -7,7 +7,7 @@ once it ships. `TODO.md` carries one line per theme and points here.
 | Theme                                                        | Items      | Weight  |
 | ------------------------------------------------------------ | ---------- | ------- |
 | [Slideshow screen](ux_backlog/slideshow-screen.md)           | UX-04      | highest |
-| [Selection and editing](ux_backlog/selection-editing.md)     | UX-05 … 09 | high    |
+| [Selection and editing](ux_backlog/selection-editing.md)     | UX-07 … 09 | high    |
 | [Music editor](ux_backlog/music-editor.md)                   | UX-10 … 12 | high    |
 | [Copy and terminology](ux_backlog/copy.md)                   | UX-14 … 16 | high    |
 | [Navigation and feedback](ux_backlog/navigation-feedback.md) | UX-26      | medium  |
@@ -54,18 +54,18 @@ One package = one branch, one worktree beside the checkout, one PR, one session.
 disjoint files, so they run in parallel without merge conflicts; the owner table below is
 binding, a package that needs a change in a file it does not own waits for that file's package.
 
-| Pkg | Items                 | Owns (nothing else is edited)                                                                                                                                                                  | Mockup | Model  |
-| --- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ |
-| P0  | UX-14 glossary        | this backlog, `COPY.md`, the `BRAND.md` pointer                                                                                                                                                | no     | any    |
-| P1  | UX-14 sweep, 15, 16   | every `catalogue-{en,de}-*.ts` not owned below, `catalogue-{en,de}.ts` except settings keys, `docs/user-guide.md`, the banned-variant test                                                     | no     | sonnet |
-| P2  | UX-09, 13, 24, 28     | `card-settings-editor.ts`, `chapter-settings-editor.ts`, clip Reset, `WaveformBars.svelte`, `ClipWaveform.svelte`, `StartRoute.svelte`, `SlideshowRoute.svelte`, `FocusSearchIndicator.svelte` | no     | sonnet |
-| P3  | UX-23, 25, then 22    | `navigation/*`, `ImportRoute.svelte`, `AddPicturesRoute.svelte`, `Header.svelte`                                                                                                               | no     | sonnet |
-| P4  | UX-17, 18, 19, 20, 21 | `ExportDialog`, `VideoExportSheet`, `HtmlExportSheet`, file page, `SettingsSheet`, catalogue `-video -html -share -file-page` + settings keys                                                  | light  | opus   |
-| P5  | UX-01, 02, 03, 27     | `SlideshowScreen.svelte` + its panel/strip-head, `FineSettings.svelte`, `chapter-sheet/*`, toast placement, catalogue `-mood` tile strings, `chapters.*` keys                                  | yes    | opus   |
-| P6  | UX-05, 06, 08         | selection bar, `StripTile.svelte`, strip, `base.css` coarse-pointer block                                                                                                                      | yes    | opus   |
-| P7  | UX-10, 11, 12         | `music-editor/*` except the stepper component, catalogue `-music -playlist -timing`                                                                                                            | yes    | opus   |
-| P8  | UX-07, 26, 09 rest    | `picture-editor/*`, the shared stepper component, the shared preview-tile component (badge), catalogue `-editor -transitions`                                                                  | yes    | opus   |
-| P9  | UX-04                 | title derivation, the creation step's last screen, `SlideshowCard.svelte`                                                                                                                      | yes    | opus   |
+| Pkg | Items                                 | Owns (nothing else is edited)                                                                                                                                                                  | Mockup | Model  |
+| --- | ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ |
+| P0  | UX-14 glossary                        | this backlog, `COPY.md`, the `BRAND.md` pointer                                                                                                                                                | no     | any    |
+| P1  | UX-14 sweep, 15, 16                   | every `catalogue-{en,de}-*.ts` not owned below, `catalogue-{en,de}.ts` except settings keys, `docs/user-guide.md`, the banned-variant test                                                     | no     | sonnet |
+| P2  | UX-09, 13, 24, 28                     | `card-settings-editor.ts`, `chapter-settings-editor.ts`, clip Reset, `WaveformBars.svelte`, `ClipWaveform.svelte`, `StartRoute.svelte`, `SlideshowRoute.svelte`, `FocusSearchIndicator.svelte` | no     | sonnet |
+| P3  | UX-23, 25, then 22                    | `navigation/*`, `ImportRoute.svelte`, `AddPicturesRoute.svelte`, `Header.svelte`                                                                                                               | no     | sonnet |
+| P4  | UX-17, 18, 19, 20, 21                 | `ExportDialog`, `VideoExportSheet`, `HtmlExportSheet`, file page, `SettingsSheet`, catalogue `-video -html -share -file-page` + settings keys                                                  | light  | opus   |
+| P5  | UX-01, 02, 03, 27                     | `SlideshowScreen.svelte` + its panel/strip-head, `FineSettings.svelte`, `chapter-sheet/*`, toast placement, catalogue `-mood` tile strings, `chapters.*` keys                                  | yes    | opus   |
+| P6  | UX-05, 06, 08                         | selection bar, `StripTile.svelte`, strip, `base.css` coarse-pointer block                                                                                                                      | yes    | opus   |
+| P7  | UX-10, 11, 12, 08 music               | `music-editor/*` except the stepper component, catalogue `-music -playlist -timing`                                                                                                            | yes    | opus   |
+| P8  | UX-07, 26, 09 rest, 08 picture editor | `picture-editor/*`, the shared stepper component, the shared preview-tile component (badge), catalogue `-editor -transitions`                                                                  | yes    | opus   |
+| P9  | UX-04                                 | title derivation, the creation step's last screen, `SlideshowCard.svelte`                                                                                                                      | yes    | opus   |
 
 Order and waves:
 

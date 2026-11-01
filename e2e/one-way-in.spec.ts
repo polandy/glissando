@@ -32,8 +32,7 @@ test("E2E-088 each slideshow action has one way in: the cover plays, the strip h
     page.locator(".strip-head").getByRole("button", { name: "Auswählen" }),
   ).toBeVisible();
   await page.locator(".strip-head").getByRole("button", { name: "Mischen" }).click();
-  await expect(page.getByText("antippen zum Umsortieren")).toBeVisible();
-  await expect(page.getByText(/halten/)).toHaveCount(0);
+  await expect(page.getByText("Halten und ziehen zum Umsortieren")).toBeVisible();
 
   await play.click();
   const player = page.getByRole("dialog", { name: "Juli 2025" });

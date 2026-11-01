@@ -138,14 +138,12 @@
     onSelectionChange={(next) => (selection = next)}
     onOpen={onView}
     {onView}
-    {onRemove}
     onRemoveGroup={removeGroup}
     onShiftGroup={shiftGroup}
     onMoveGroup={moveGroup}
     arranging={arrangement !== null}
     suppressCards
     {placeholderCount}
-    lastRemovable
     {holdScheduler}
     {frameScheduler}
   />

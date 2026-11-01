@@ -35,7 +35,7 @@ for (const colorScheme of ["light", "dark"] as const) {
     });
     expect(barColour).not.toBe(screenColour);
 
-    // Every button inside the phone's width; Earlier and Later keep their names as arrows.
+    // Every button inside the phone's width; Earlier and Later sit in the second row.
     const done = selectionBar.getByRole("button", { name: "Fertig" });
     const doneBox = await done.boundingBox();
     expect(doneBox).not.toBeNull();
@@ -49,13 +49,9 @@ for (const colorScheme of ["light", "dark"] as const) {
   });
 }
 
-/** Longer than the bar's hold before a bubble shows (BarAction.svelte), shorter than its linger. */
-const PAST_THE_HOLD_MS = 600;
-
-test("E2E-087 on a phone the selection bar shows icons; a held icon names its action without acting, a tap acts", async ({
+test("E2E-087 on a phone the selection bar shows each action with its label; a tap acts", async ({
   page,
 }) => {
-  await page.clock.install();
   await openApp(page);
   await createSlideshow(page, ["2025-07-01", "2025-07-02", "2025-07-03"], 2);
   const second = page.getByRole("button", {
@@ -65,22 +61,8 @@ test("E2E-087 on a phone the selection bar shows icons; a held icon names its ac
   const selectionBar = page.getByRole("toolbar", { name: "Auswahl" });
   await second.click();
   const remove = selectionBar.getByRole("button", { name: "Bild entfernen" });
-  const bubble = remove.getByText("Bild entfernen");
   await expect(remove).toBeVisible();
-  await expect(bubble).toHaveCSS("opacity", "0");
-
-  // Time stands still from here; only runFor moves the hold on.
-  const heldAt = await page.evaluate(() => Date.now());
-  await page.clock.pauseAt(heldAt + PAST_THE_HOLD_MS);
-  const finger = { pointerType: "touch", isPrimary: true, bubbles: true };
-  await remove.dispatchEvent("pointerdown", finger);
-  await page.clock.runFor(PAST_THE_HOLD_MS);
-  await expect(bubble).toHaveCSS("opacity", "1");
-  await remove.dispatchEvent("pointerup", finger);
-  await remove.dispatchEvent("click");
-
-  await expect(second).toHaveAttribute("aria-pressed", "true");
-  await expect(page.getByRole("button", { name: /^Bild \d, aufgenommen/ })).toHaveCount(3);
+  await expect(remove.locator(".label:visible")).toHaveText("Entfernen");
 
   await remove.click();
   await expect(page.getByRole("button", { name: /^Bild \d, aufgenommen/ })).toHaveCount(2);

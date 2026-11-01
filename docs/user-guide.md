@@ -47,11 +47,14 @@ there to set your own order — new ones join by capture date until you do — a
 (another folder, or more from Immich) while it runs.
 
 Adding pictures later skips the ones already in the slideshow (you can add them anyway). Drag
-pictures to reorder, or tap Shuffle for a random order (Undo in the message that follows
+pictures to reorder (on a phone, hold a picture until it lifts, then drag; the page scrolls along near the
+screen edge), or tap Shuffle for a random order (Undo in the message that follows
 brings the old one back); select a picture to view it full screen or open its editor to change
 its motion (on a phone it shows the picture with its frames or the preview, one at a time:
-switch with **Frame | Play**). The bar that appears shows its actions as icons: rest the mouse on one, or press and
-hold it with a finger, to see what it does.
+switch with **Frame | Play**). The bar that appears labels every action: **Earlier**, **Later**, **View**, **Edit**,
+**Insert chapter before**, **Move to …** and **Remove**; on a phone they form a second row, with
+**Chapter** and **Move** as the short labels. **Move to …** goes to the start, the end, or before
+a picture by its number — handy when dragging is too far.
 
 **Trip chapters**: a slideshow of several days in different places gets a chapter slide between
 them automatically, naming the place and the dates. Tap a chapter tile in the picture strip to

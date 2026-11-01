@@ -3,45 +3,6 @@
 Back to [UX_BACKLOG.md](../UX_BACKLOG.md). Strip, selection bar
 (`src/app/screens/slideshow/`), picture editor (`src/app/picture-editor/`), `src/styles/base.css`.
 
-### UX-05 Selection bar on the phone is seven unlabelled icons (size M)
-
-Problem — Selecting a picture opens a bottom bar with ‹ › (Earlier / Later), eye (View),
-pencil (Edit), bookmark (Insert chapter before), bin (Remove) and a "Done" button. Only Done
-has a label. "Insert chapter before" as a bookmark glyph is not guessable; the user guide tells
-people to long-press an icon to learn what it does, which is the manual the principles forbid.
-
-Where — Slideshow screen, tap a strip tile, phone. Desktop shows the same bar with room to
-spare.
-
-Why — Icon-only bars work for universally known glyphs (play, delete); chapter insertion is
-not one. Seven targets in 390 px also squeezes each below 44 pt.
-
-Proposal — Three labelled primary actions in the bar (View, Edit, Remove) plus Done; put
-Earlier / Later and Insert chapter into a "⋯" overflow, or make the bar scroll horizontally with
-icon + label stacked. On desktop keep all with labels. Pair with UX-06 so reordering no longer
-needs the bar.
-
-Done when — Every action in the bar shows a visible label at 390 px; each target is at least
-44×44 CSS px; browser test on labels and bounding boxes.
-
-### UX-06 Reordering on the phone costs three taps per position (size L)
-
-Problem — On narrow layouts the strip says "tap to reorder": select, then Earlier / Later once
-per step. Moving one picture ten places is twelve taps. Drag exists only on wide/mouse layouts.
-
-Where — Strip head hint text; `StripTile.svelte` (double-click opens the editor with a mouse
-only).
-
-Why — Direct manipulation for ordering is the expectation on touch; the step buttons are a
-fallback, not the main path.
-
-Proposal — Long-press to lift a tile, drag with auto-scroll, drop between tiles, with a
-haptic/visual lift. Keep Earlier / Later for accessibility (keyboard, switch access). Consider
-"Move to…" (start / end / before picture N) in the overflow for long moves.
-
-Done when — A picture is moved from position 1 to 10 with one gesture in the phone e2e flow;
-keyboard reordering still works.
-
 ### UX-07 Duration stepper moves 0.5 s per tap (size S)
 
 Problem — The picture editor's Duration is a − / + stepper in half-second steps; reaching 15 s
@@ -56,22 +17,26 @@ plus fine − / +. Press-and-hold acceleration is the minimum.
 
 Done when — Any value in the range is reached in at most three interactions.
 
-### UX-08 Touch targets below the platform minimum (size M)
+### UX-08 Touch targets below the platform minimum in component styles (size M)
 
-Problem — `.btn` is 38 px high, `.icon-btn` 36×36, `.icon-btn.small` 28×28, the switch
-38×22 with an 18 px knob; the per-tile remove "×" on strip tiles is small and sits on the
-image. Only `PictureFrame.svelte` and `FrameWell.svelte` have coarse-pointer rules.
+Problem — Under a coarse pointer the shared controls (`.btn`, `.icon-btn`, the switch) pad their
+hit area to `--gl-hit-min` (44 px), but targets styled in their own components stay smaller:
+Fine settings' "More settings" toggle (18 px high); in the picture editor the frame chips, "View
+now", the Frame | Play and Start | End segments, the half-second steppers, a bare checkbox, the
+caption field, "Swap start and end" (its pad overlaps the next button) and "Back to automatic"
+(clipped by its container); in the music editor the grip and remove buttons, the pick and add
+rows, the trim handles, "About 5 s each", "Fill with music", the steppers and the range input.
+The cards, export, chapter and focus sheets, the clip editor and the header are not measured yet.
 
-Where — `src/styles/base.css` (~93, ~134, ~153); strip tiles; sheets' header close buttons.
+Where — `FineSettings.svelte`, `src/app/picture-editor/`, the music editor; the `KNOWN` lists in
+`slideshow-screen-touch-targets.browser.test.ts` and `editors-touch-targets.browser.test.ts`.
 
-Why — 44 pt / 48 dp guidelines; mis-taps on a dense strip remove or select the wrong picture.
+Why — 44 pt / 48 dp guidelines; mis-taps in a dense editor change the wrong value.
 
-Proposal — A `@media (pointer: coarse)` block in `base.css` raising `.btn`, `.icon-btn` and
-the switch hit area to 44 px (visual size can stay, pad the hit area). Move the strip tile
-remove into the selection bar on touch, or enlarge its hit area to 44 px with an inset.
+Proposal — Pad each hit area to `--gl-hit-min` under `(pointer: coarse)`, as `base.css` does;
+measure the unmeasured sheets with `src/app/testing/touch-target.ts`.
 
-Done when — A browser test at phone viewport with coarse pointer asserts every interactive
-element on the slideshow screen, sheets and editors measures at least 44×44 px.
+Done when — The `KNOWN` lists are empty and the remaining sheets and editors are measured.
 
 ### UX-09 Clear caption and TV Disconnect have neither confirm nor undo (size S)
 

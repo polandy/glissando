@@ -16,8 +16,6 @@ export interface PictureStripProps {
   /** The primary pointer is a mouse: a mouse drags after 8 px, a double-click opens a picture. */
   mousePointer: boolean;
   onSelectionChange: (next: StripSelection) => void;
-  /** The tile's own ✕: removes just that picture, never the rest of the selection. */
-  onRemove: (pictureId: string) => void;
   /** The selection bar's Remove, or Delete/Backspace on a focused (selected) tile. */
   onRemoveGroup: (pictureIds: readonly string[]) => void;
   /** Earlier/Later or Shift+arrows: moves the group by `offset` steps (ADR-0019). */
@@ -46,8 +44,6 @@ export interface PictureStripProps {
   suppressCards?: boolean;
   /** Shimmering tiles after the last picture, one per file still being read in; the first runs. */
   placeholderCount?: number;
-  /** True lets the very last picture be removed too, unlike the editor. */
-  lastRemovable?: boolean;
   /** Trip chapters shown before their anchor picture (TRIP_CHAPTERS.md); none while importing. */
   chapters?: readonly SlideshowChapter[];
   /** Opens the chapter's sheet. Unused while `chapters` is absent. */

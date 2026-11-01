@@ -58,7 +58,7 @@ describe("SlideshowScreen selection bar look", () => {
   it.each(THEMES)("draws Remove's icon in the danger colour for the inverse bar (%s)", (theme) => {
     document.documentElement.setAttribute("data-theme", theme);
     const bar = openBar();
-    const icon = buttonNamed("Bild entfernen").querySelector("svg");
+    const icon = buttonNamed("Entfernen").querySelector("svg");
     if (icon === null) {
       throw new Error("Remove shows no icon");
     }
@@ -71,16 +71,17 @@ describe("SlideshowScreen selection bar look", () => {
     expect(iconColour).not.toBe(getComputedStyle(bar).color);
   });
 
-  it("fits every button inside the bar on a phone, Earlier and Later as arrows that keep their names", async () => {
+  it("fits every button inside the bar on a phone, the moves in the second row", async () => {
     await page.viewport(PHONE.width, PHONE.height);
     const bar = openBar();
     const barBox = bar.getBoundingClientRect();
     const done = buttonNamed("Fertig").getBoundingClientRect();
-    const earlier = buttonNamed("Früher");
 
     expect(done.right).toBeLessThanOrEqual(barBox.right);
     expect(barBox.right).toBeLessThanOrEqual(PHONE.width);
-    expect(earlier.getBoundingClientRect().width).toBeLessThan(done.width);
-    expect(buttonNamed("Später").getBoundingClientRect().width).toBeLessThan(done.width);
+    expect(buttonNamed("Früher").getBoundingClientRect().top).toBeGreaterThanOrEqual(done.bottom);
+    expect(buttonNamed("Entfernen").getBoundingClientRect().right).toBeLessThanOrEqual(
+      barBox.right,
+    );
   });
 });

@@ -14,6 +14,9 @@ here; this file is the full text.
 - **Prove it can fail**: break the behaviour and watch exactly that case go red.
 - **A flake under load** is reproduced and its fix proven by repeated overloaded runs in each
   engine: `scripts/browser-stress.sh <engine> <runs> <cpus> <workers> <files…>`.
+- **Touch emulation** (`src/app/testing/coarse-pointer.ts`, `touch-input.ts`) leaves Chromium's
+  page at `(hover: none)` for good: a file that uses it goes into `TOUCH_EMULATION_TESTS` in
+  `vite.config.ts`, which runs on a Chromium page of its own.
 
 ## Working agreement
 

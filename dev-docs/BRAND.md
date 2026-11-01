@@ -99,6 +99,8 @@ Rules:
 Shape: `--gl-radius` 10 px (buttons, notices, summary cells), `--gl-radius-large` 14 px (cards,
 panels, dialogs), `--gl-radius-tile` 8 px (picture tiles), `--gl-radius-tiny` 3 px (the
 prepare screen's picture squares), hairlines instead of shadows.
+Touch: under a coarse pointer `.btn`, `.icon-btn` and the switch keep their look and grow an invisible
+pad to `--gl-hit-min` (44 px); neighbours need room for both pads, or a gap of at least the overhang.
 Layer: `--gl-layer-bar` (5) puts a sticky bottom bar above the content that scrolls under it; a tile
 isolates its own marks, so their z-index stays local.
 

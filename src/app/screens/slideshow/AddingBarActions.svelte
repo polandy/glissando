@@ -1,12 +1,10 @@
 <script lang="ts">
-  import type { Scheduler } from "../../../ui-kit/scheduler";
   import Icon from "../../components/Icon.svelte";
   import { getTranslator } from "../../i18n/context";
-  import BarAction from "./BarAction.svelte";
 
   /**
-   * The adding bar's actions (IMPORT_ARRANGING.md, Add media): Earlier and Later as the selection
-   * bar's icons with a label bubble, View and Remove in words beside their icons.
+   * The adding bar's actions (IMPORT_ARRANGING.md, Add media): Earlier and Later as icons named by
+   * their tooltip, View and Remove in words beside their icons.
    */
   let {
     arranging,
@@ -14,7 +12,6 @@
     earlierDisabled,
     laterDisabled,
     removeDisabledLook,
-    holdScheduler,
     onEarlier,
     onLater,
     onView,
@@ -27,7 +24,6 @@
     earlierDisabled: boolean;
     laterDisabled: boolean;
     removeDisabledLook: boolean;
-    holdScheduler: Scheduler;
     onEarlier: () => void;
     onLater: () => void;
     onView: () => void;
@@ -38,20 +34,26 @@
 </script>
 
 {#if arranging}
-  <BarAction
-    icon="chevronLeft"
-    label={t("slideshow.earlier")}
-    disabledLook={earlierDisabled}
-    {holdScheduler}
+  <button
+    class="btn"
+    type="button"
+    aria-label={t("slideshow.earlier")}
+    title={t("slideshow.earlier")}
+    aria-disabled={earlierDisabled}
     onclick={onEarlier}
-  />
-  <BarAction
-    icon="chevronRight"
-    label={t("slideshow.later")}
-    disabledLook={laterDisabled}
-    {holdScheduler}
+  >
+    <Icon name="chevronLeft" />
+  </button>
+  <button
+    class="btn"
+    type="button"
+    aria-label={t("slideshow.later")}
+    title={t("slideshow.later")}
+    aria-disabled={laterDisabled}
     onclick={onLater}
-  />
+  >
+    <Icon name="chevronRight" />
+  </button>
 {/if}
 {#if single}
   <button class="btn" type="button" onclick={onView}>

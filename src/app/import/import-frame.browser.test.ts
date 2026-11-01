@@ -76,16 +76,32 @@ function mountStripInto(frame: HTMLElement): void {
   frame.querySelector(".content")?.prepend(strip.target);
 }
 
+/** Resolves once every image has finished loading or failed, so no tile changes size afterwards. */
+async function imagesSettled(root: HTMLElement): Promise<void> {
+  await Promise.all(
+    [...root.querySelectorAll("img")].map((image) => image.decode().catch(() => undefined)),
+  );
+}
+
+/** Resolves after the browser has run a rendering update, which applies scroll and sticky offsets. */
+function renderedFrame(): Promise<void> {
+  return new Promise((resolve) => requestAnimationFrame(() => resolve()));
+}
+
 describe("ImportFrame", () => {
-  it.each([".remove", ".date"])(
+  it.each([".grab", ".date"])(
     "paints the bottom actions over a tile's %s mark scrolled under it",
-    (selector) => {
+    async (selector) => {
       const frame = mountFrame();
       frame.style.cssText = `height: ${SCROLLER_HEIGHT}; overflow: auto`;
       mountStripInto(frame);
+      await document.fonts.ready;
+      await imagesSettled(frame);
+      await renderedFrame();
       const bar = frame.querySelector<HTMLElement>(".actions")?.getBoundingClientRect();
       const mark = frame.querySelectorAll<HTMLElement>(`.strip ${selector}`)[20];
       mark?.scrollIntoView({ block: "end", behavior: "instant" });
+      await renderedFrame();
       const box = mark?.getBoundingClientRect();
       const centerX = (box?.left ?? 0) + (box?.width ?? 0) / 2;
       const centerY = (box?.top ?? 0) + (box?.height ?? 0) / 2;

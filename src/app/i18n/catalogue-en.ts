@@ -4,6 +4,7 @@ import { enMusic } from "./catalogue-en-music.ts";
 import { enTiming } from "./catalogue-en-timing.ts";
 import { enTransitions } from "./catalogue-en-transitions.ts";
 import { enLook } from "./catalogue-en-look.ts";
+import { enSelection } from "./catalogue-en-selection.ts";
 import { enMood } from "./catalogue-en-mood.ts";
 import { enPortrait } from "./catalogue-en-portrait.ts";
 import { enImmich } from "./catalogue-en-immich.ts";
@@ -100,12 +101,11 @@ export const en: Catalogue = {
   "slideshow.sortedByDate": "Sorted by capture date",
   "slideshow.pictureLabel": "Picture {number}, taken on {date}",
   "slideshow.ownOrder": "Own order",
-  "slideshow.reorderHintWide": "drag or tap",
-  "slideshow.reorderHintNarrow": "tap to reorder",
+  "slideshow.reorderHintWide": "Drag to reorder",
+  "slideshow.reorderHintNarrow": "Hold and drag to reorder",
   "slideshow.select": "Select",
   "slideshow.shuffle": "Shuffle",
   "slideshow.shuffled": "{count} pictures shuffled",
-  "slideshow.removePicture": "Remove picture {number}",
   "slideshow.removed": { one: "Picture removed", other: "{count} pictures removed" },
   "slideshow.undo": "Undo",
   "slideshow.selection": "Selection",
@@ -412,6 +412,7 @@ export const en: Catalogue = {
   ...enTiming,
   ...enTransitions,
   ...enLook,
+  ...enSelection,
   ...enMood,
   ...enPortrait,
   ...enImmich,

@@ -38,7 +38,7 @@
   this device." or "Shared with every device on your Glissando server."); a 16:9
   cover of the first picture, the only Play control (a tap anywhere on it plays; a "▶ Play · 0:56" pill bottom left), then the pictures in play
   order, each with its order number and capture date, under "Sorted by capture date" or, once
-  the user reordered, "Own order" (with "drag or tap", narrow: "tap to reorder"); right of the
+  the user reordered, "Own order" (with "Drag to reorder", narrow: "Hold and drag to reorder"); right of the
   count "Add media" (narrow: "Add"; the only way in, the strip has no add tile; [ADDING_PICTURES.md](slideshow-editing/ADDING_PICTURES.md), Adding pictures). Beside it (up to 1024 px: under the play preview, above the strip's header) an
   info panel (ADR-0048, below): title with a ✎ button and, right of it, the outlined "Share" pill, date range, the Music/Mood/Look tiles and "Fine settings". A tile carries small
   badges bottom right: a frame "own" for an own motion, a clock with "8 s" for an own duration,

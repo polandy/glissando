@@ -71,6 +71,21 @@
   .switch input:checked + .track::after {
     transform: translateX(16px);
   }
+  /* The track keeps its look; the label around it grows an invisible pad to a finger's size. */
+  @media (pointer: coarse) {
+    .switch {
+      position: relative;
+    }
+    .switch::before {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: max(100%, var(--gl-hit-min));
+      height: max(100%, var(--gl-hit-min));
+      transform: translate(-50%, -50%);
+    }
+  }
   .switch input:focus-visible + .track {
     outline: 2px solid var(--gl-accent);
     outline-offset: 2px;

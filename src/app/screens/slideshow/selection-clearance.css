@@ -1,0 +1,30 @@
+/*
+ * Room below the content for the selection bar fixed over it, so the last row scrolls clear;
+ * a tile scrolled into view keeps the same distance (StripTile's scroll margin). A container
+ * query styles descendants only, so the screen's children carry the values and the clearance
+ * computed from them.
+ */
+.slideshow-screen > * {
+  --selection-bar-height: 54px;
+  --selection-bar-inset: 16px;
+  --selection-bar-gap: 12px;
+}
+/* The bar is taller where its actions carry labels (SelectionBar's same breakpoint). */
+@container (width < 1140px) {
+  .slideshow-screen > * {
+    --selection-bar-height: var(--gl-selection-bar-labelled-height);
+  }
+}
+@container (max-width: 720px) {
+  .slideshow-screen > * {
+    --selection-bar-inset: 10px;
+  }
+}
+.slideshow-screen.selecting > * {
+  --selection-clearance: calc(
+    var(--selection-bar-height) + var(--selection-bar-inset) + var(--selection-bar-gap)
+  );
+}
+.slideshow-screen.selecting .content {
+  padding-bottom: var(--selection-clearance);
+}

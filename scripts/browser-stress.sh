@@ -10,7 +10,7 @@ engine="$1" runs="$2" cpus="$3" workers="$4"
 shift 4
 passed=0
 for run in $(seq 1 "$runs"); do
-  output="$(CI_IMAGE_CPUS="$cpus" "$dir/ci-image.sh" npx vitest run --project "browser ($engine)" \
+  output="$(CI_IMAGE_CPUS="$cpus" "$dir/ci-image.sh" npx vitest run --project "browser ($engine*)" \
     --reporter=dot --maxWorkers="$workers" "$@" 2>&1 | sed -E $'s/\x1b\\[[0-9;]*m//g')"
   if grep -qE '^ +Tests +[0-9]+ passed' <<<"$output"; then
     passed=$((passed + 1))

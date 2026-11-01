@@ -89,6 +89,8 @@ function mountStrip(options: {
   return { target: mounted.target, removed, viewed };
 }
 
+/** A button's accessible name where it has one (Earlier and Later are icons), else its words. */
+const nameOf = (button: Element): string => button.getAttribute("aria-label") ?? text(button);
 const text = (element: Element | null | undefined): string =>
   (element?.textContent ?? "").replace(/\s+/g, " ").trim();
 const tiles = (target: HTMLElement) => [
@@ -163,11 +165,11 @@ describe("ImportPicturesStrip, the selection bar", () => {
     flushSync();
 
     const bar = target.querySelector('[role="toolbar"]');
-    const labels = [...(bar?.querySelectorAll("button") ?? [])].map((button) => text(button));
+    const labels = [...(bar?.querySelectorAll("button") ?? [])].map(nameOf);
     expect(labels).toEqual(["Früher", "Später", "Ansehen", "Entfernen", "Fertig"]);
   });
 
-  it("shows Earlier and Later as icons named by their words, which sit in a bubble", () => {
+  it("shows Earlier and Later as icons named by their words, which are also their tooltips", () => {
     const arrangement = arrangementWith(["a", "b", "c"]);
     const { target } = mountStrip({ ids: ["a", "b", "c"], arrangement });
 
@@ -178,7 +180,8 @@ describe("ImportPicturesStrip, the selection bar", () => {
     for (const name of ["Früher", "Später"]) {
       const move = bar?.querySelector(`button[aria-label="${name}"]`);
       expect(move?.querySelector("svg")).not.toBeNull();
-      expect(move?.querySelector(".bubble")?.textContent).toBe(name);
+      expect(move?.getAttribute("title")).toBe(name);
+      expect(text(move)).toBe("");
     }
   });
 });
@@ -269,7 +272,7 @@ describe("ImportPicturesStrip, arranging after the import", () => {
     tiles(target)[0]?.click();
     flushSync();
     const later = [...target.querySelectorAll('[role="toolbar"] button')].find(
-      (button) => text(button) === "Später",
+      (button) => nameOf(button) === "Später",
     );
     (later as HTMLButtonElement | undefined)?.click();
     flushSync();

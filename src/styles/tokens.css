@@ -174,6 +174,11 @@
   --gl-radius: 10px;
   --gl-radius-large: 14px;
   --gl-radius-pill: 999px;
+  /* The narrow selection bar: the count and Done over a row of labelled actions. */
+  --gl-selection-bar-labelled-height: 112px;
+
+  /* The smallest touch target a finger can hit with confidence (44 pt); see base.css. */
+  --gl-hit-min: 44px;
 
   /* The picture editor's corner handles: the visible square and its finger-sized hit area. */
   --gl-editor-handle: 12px;

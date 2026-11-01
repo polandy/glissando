@@ -3,7 +3,7 @@
 - **Selecting several**: "Select" (a toggle, `aria-pressed`) left of "Add media" in the
   strip header, Ctrl/⌘+click, Shift+click or Ctrl+Space start it, and nothing else does: holding
   a tile on touch only lifts it for a drag; a single selection stays in it. Every tile then shows a circle top right (filled
-  in the accent with a check when selected; the ✕ and the grip give way to it), and a tap,
+  in the accent with a check when selected; the grip gives way to it), and a tap,
   click, Space or Enter adds or removes a tile; Shift+click and Shift+Space add the range from
   the last tile picked. The bar's count reads
   "3 selected" (with a contiguous group "3 selected · 4–6 of 12"; up to 720 px only the

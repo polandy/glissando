@@ -17,6 +17,7 @@ export const deChapters = {
   "chapters.automaticHelperOff": "Nur Kapitel, die du hinzugefügt hast, werden gezeigt.",
   "chapters.automaticHelperDisabled": "Aus, solange du die Reihenfolge selbst bestimmst",
   "chapters.insertChapterBefore": "Kapitel davor einfügen",
+  "chapters.insertChapterShort": "Kapitel",
   "chapters.rowLabel": "Reisekapitel",
   "chapters.deleted": "Kapitel gelöscht",
   "chapters.titleResetDone": "Kapiteltitel wieder automatisch",

@@ -99,7 +99,7 @@ test("E2E-035 several pictures are selected and gathered by the bar, moved toget
 });
 
 // A touch hold-then-drag of a group (ADR-0019) is not run here: `playwright.config.ts` configures
-// no touch or mobile project, so there is no engine to drive `hasTouch` events against, and the
-// 450 ms hold would need a real wait without one. The gesture's logic (hold, lift, carry the
-// selection, auto-scroll) is covered by `src/app/screens/slideshow/tile-drag-*.test.ts`, which
-// drives it with an injected scheduler instead of real time.
+// no touch or mobile project. Real CDP touch input drives the gesture in
+// `src/app/screens/slideshow/PictureStrip.touch.browser.test.ts` (Chromium), and synthetic touch
+// pointers in `PictureStrip.drag.browser.test.ts` (every engine); both inject the hold and frame
+// schedulers instead of waiting on real time.

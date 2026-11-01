@@ -17,6 +17,7 @@ export const enChapters: Pick<Catalogue, keyof typeof deChapters> = {
   "chapters.automaticHelperOff": "Only chapters you added show.",
   "chapters.automaticHelperDisabled": "Off while you arrange the order yourself",
   "chapters.insertChapterBefore": "Insert chapter before",
+  "chapters.insertChapterShort": "Chapter",
   "chapters.rowLabel": "Trip chapters",
   "chapters.deleted": "Chapter deleted",
   "chapters.titleResetDone": "Chapter title back to automatic",
