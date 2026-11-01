@@ -1,6 +1,13 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { element, mountEditor, press, unmountEditor, view } from "./picture-editor-harness";
-import { chip, resetIn, text, tile, timingSection, transitionSection } from "./picture-editor-timing-fixtures";
+import {
+  chip,
+  resetIn,
+  text,
+  tile,
+  timingSection,
+  transitionSection,
+} from "./picture-editor-timing-fixtures";
 
 afterEach(() => unmountEditor());
 

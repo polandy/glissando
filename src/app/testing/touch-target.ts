@@ -35,7 +35,10 @@ function isRendered(element: Element): boolean {
   const style = getComputedStyle(shown);
   // An element that takes no pointer cannot be tapped, so its size is no concern.
   return (
-    box.width > 0 && box.height > 0 && style.visibility !== "hidden" && style.pointerEvents !== "none"
+    box.width > 0 &&
+    box.height > 0 &&
+    style.visibility !== "hidden" &&
+    style.pointerEvents !== "none"
   );
 }
 

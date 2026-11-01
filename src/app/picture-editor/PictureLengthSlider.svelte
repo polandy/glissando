@@ -34,7 +34,8 @@
   const shownMs = $derived(live ?? durationMs);
   const share = (ms: number) =>
     (ms - MIN_OWN_DURATION_MS) / (MAX_OWN_DURATION_MS - MIN_OWN_DURATION_MS);
-  const asMs = (input: HTMLInputElement) => Math.round(Number(input.value) * MILLISECONDS_PER_SECOND);
+  const asMs = (input: HTMLInputElement) =>
+    Math.round(Number(input.value) * MILLISECONDS_PER_SECOND);
 </script>
 
 <div class="slider">
@@ -66,9 +67,13 @@
     {/if}
   </div>
   <div class="scale mono" aria-hidden="true">
-    <span>{t("editor.lengthScale", { seconds: MIN_OWN_DURATION_MS / MILLISECONDS_PER_SECOND })}</span>
+    <span
+      >{t("editor.lengthScale", { seconds: MIN_OWN_DURATION_MS / MILLISECONDS_PER_SECOND })}</span
+    >
     {#each SCALE_MIDDLE_SECONDS as middle (middle)}<span>{middle}</span>{/each}
-    <span>{t("editor.lengthScale", { seconds: MAX_OWN_DURATION_MS / MILLISECONDS_PER_SECOND })}</span>
+    <span
+      >{t("editor.lengthScale", { seconds: MAX_OWN_DURATION_MS / MILLISECONDS_PER_SECOND })}</span
+    >
   </div>
 </div>
 

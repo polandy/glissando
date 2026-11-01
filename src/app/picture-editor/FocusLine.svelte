@@ -17,7 +17,9 @@
     <span class="msg">{t(text.textKey)}</span>
   {/if}
   {#if text.actionKey !== null}
-    <button type="button" class="btn small ghost action" onclick={onLookAgain}>{t(text.actionKey)}</button>
+    <button type="button" class="btn small ghost action" onclick={onLookAgain}
+      >{t(text.actionKey)}</button
+    >
   {/if}
 </p>
 

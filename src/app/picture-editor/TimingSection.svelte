@@ -71,7 +71,14 @@
   />
   <PictureLengthSlider durationMs={picture.durationMs} {automaticMs} {onDuration} />
   <p class="hint">{hint}</p>
-  <TransitionPicker {picture} {pictureUrl} {nextPictureUrl} {ports} {reducedMotion} {onTransition} />
+  <TransitionPicker
+    {picture}
+    {pictureUrl}
+    {nextPictureUrl}
+    {ports}
+    {reducedMotion}
+    {onTransition}
+  />
   <ResetButton
     automatic={!own}
     alreadyAutomatic={t("editor.timingAlreadyAutomatic")}
