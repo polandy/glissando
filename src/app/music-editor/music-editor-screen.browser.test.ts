@@ -26,11 +26,14 @@ const buttonNamed = (name: string): HTMLButtonElement => {
 
 const TRIMMED = { trim: { startMs: 12_000, endMs: 150_000 } };
 
+/** The song's heading and its length line, without the info button's popover. */
+const headText = () => `${text(".song-heading")} ${text(".head .muted")}`;
+
 describe("MusicEditorScreen, the excerpt", () => {
   it("shows the whole track, its length, and says the slideshow uses all of it", () => {
     mountEditor();
 
-    expect(text(".head")).toBe("Song 1 · Sommerwind.mp3 3:24");
+    expect(headText()).toBe("Song 1 · Sommerwind.mp3 3:24");
     expect(text("#music-excerpt + .state")).toBe("Ganzer Song");
     expect(text(".panel")).toContain("Die Diashow nutzt den ganzen Song, 3:24.");
     expect(handle("Anfang").getAttribute("aria-valuetext")).toBe("0:00,0");
@@ -40,7 +43,7 @@ describe("MusicEditorScreen, the excerpt", () => {
   it("names a trimmed excerpt's length and offers the whole track back", () => {
     const { calls } = mountEditor(slideshowWith(TRIMMED));
 
-    expect(text(".head")).toBe("Song 1 · Sommerwind.mp3 3:24 · gekürzt auf 2:18");
+    expect(headText()).toBe("Song 1 · Sommerwind.mp3 3:24 · gekürzt auf 2:18");
     buttonNamed("Ganzer Song").click();
 
     expect(calls.trims).toEqual([undefined]);
@@ -72,7 +75,7 @@ describe("MusicEditorScreen, the excerpt", () => {
     flushSync();
 
     expect(handle("Anfang").getAttribute("aria-valuetext")).toBe("0:30,0");
-    expect(text(".head")).toBe("Song 1 · Sommerwind.mp3 3:24 · gekürzt auf 2:00");
+    expect(headText()).toBe("Song 1 · Sommerwind.mp3 3:24 · gekürzt auf 2:00");
     expect(calls.trims).toEqual([]);
     window.dispatchEvent(new PointerEvent("pointerup", at(30_000)));
     expect(calls.trims).toEqual([{ startMs: 30_000, endMs: 150_000 }]);
@@ -165,19 +168,16 @@ describe("MusicEditorScreen, the fades", () => {
 });
 
 describe("MusicEditorScreen, the pictures' times and listening", () => {
-  it("names the share of each picture without an own duration", () => {
+  it("states one outcome line for the pictures without an own duration", () => {
     mountEditor(slideshowWith(TRIMMED, { count: 24, durations: { 2: 8000 } }));
 
-    expect(text(".note")).toBe(
-      "Bilddauer 23 Bilder ohne eigene Dauer teilen sich den Ausschnitt: je 5,7 s. Die Diashow endet mit der Musik.",
-    );
+    expect(text(".length-notice")).toBe("Diashow 2:18 · endet mit der Musik");
   });
 
-  it("warns when the slideshow outlasts the excerpt", () => {
+  it("states how much earlier the music ends when the slideshow outlasts the excerpt", () => {
     mountDetailed(slideshowWith({ trim: { startMs: 0, endMs: 20_000 } }, { count: 12 }));
 
-    expect(document.querySelector(".note.warn")).not.toBeNull();
-    expect(text(".note b")).toBe("Die Diashow läuft 0:04 länger als die Musik.");
+    expect(text(".length-notice")).toContain("Die Musik endet 0:04 vor den Bildern.");
     expect(document.querySelector(".lane .over")).not.toBeNull();
   });
 

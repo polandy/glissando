@@ -24,11 +24,11 @@ hit area to `--gl-hit-min` (44 px), but targets styled in their own components s
 Fine settings' "More settings" toggle (18 px high); in the picture editor the frame chips, "View
 now", the Frame | Play and Start | End segments, the half-second steppers, a bare checkbox, the
 caption field, "Swap start and end" (its pad overlaps the next button) and "Back to automatic"
-(clipped by its container); in the music editor the grip and remove buttons, the pick and add
-rows, the trim handles, "About 5 s each", "Fill with music", the steppers and the range input.
+(clipped by its container). The music editor's own controls are padded; its half-second steppers come from the shared
+stepper component and are padded with it (P8).
 The cards, export, chapter and focus sheets, the clip editor and the header are not measured yet.
 
-Where — `FineSettings.svelte`, `src/app/picture-editor/`, the music editor; the `KNOWN` lists in
+Where — `FineSettings.svelte`, `src/app/picture-editor/`; the `KNOWN` lists in
 `slideshow-screen-touch-targets.browser.test.ts` and `editors-touch-targets.browser.test.ts`.
 
 Why — 44 pt / 48 dp guidelines; mis-taps in a dense editor change the wrong value.

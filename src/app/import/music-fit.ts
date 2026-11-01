@@ -16,7 +16,7 @@ export type ImportMusicFit = "ends-with" | "fades-out" | "fitted" | "repeats" | 
 
 /**
  * `shareSeconds`, the shrunk automatic pictures' mean length, is only present for `"fitted"`
- * (mirrors `music-timing-note.ts`'s `TimingNote`).
+ * (`picture-fit.ts`'s `fittedShareMs`).
  */
 export type ImportMusicTiming =
   | { readonly kind: Exclude<ImportMusicFit, "fitted">; readonly seconds: number }

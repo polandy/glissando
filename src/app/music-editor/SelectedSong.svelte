@@ -5,6 +5,7 @@
   import { getTranslator } from "../i18n/context";
   import type { ListenState } from "./listen-preview";
   import type { MusicEditorView } from "./music-editor-view";
+  import InfoButton from "./InfoButton.svelte";
   import MusicWaveform from "./MusicWaveform.svelte";
   import SlideshowLane from "./SlideshowLane.svelte";
   import { percentOf } from "./waveform-scale";
@@ -60,6 +61,10 @@
         })
       : formatDuration(seconds(music.durationMs))}
   </span>
+  <InfoButton label={t("music.infoTrim")}>
+    <p>{t("music.hint")}</p>
+    {#if details}<p>{t("music.hintVolumeLine")}</p>{/if}
+  </InfoButton>
 </div>
 <div class="wavebox">
   <div class="tracks">
@@ -100,7 +105,6 @@
     </button>
   {/each}
 </div>
-<p class="hint">{details ? `${t("music.hint")} ${t("music.hintVolumeLine")}` : t("music.hint")}</p>
 
 <style>
   .head {
@@ -119,6 +123,9 @@
     overflow-wrap: anywhere;
   }
   .head span.muted {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
     font-size: var(--gl-size-meta);
   }
   .wavebox {
@@ -202,11 +209,6 @@
     border-radius: 50%;
     background: var(--gl-inverse-bg);
     color: var(--gl-inverse-text);
-  }
-  .hint {
-    margin: 0;
-    color: var(--gl-muted);
-    font-size: var(--gl-size-meta);
   }
   @container (max-width: 720px) {
     .wavebox {

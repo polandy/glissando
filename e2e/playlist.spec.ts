@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { showMusicDetails } from "./support/switch";
 import {
   chooseCustomMood,
   chooseFiles,
@@ -24,7 +25,7 @@ test("E2E-041 several songs chosen in the import play as a playlist, reordered, 
 }) => {
   const back = page.getByRole("button", { name: "Zurück", exact: true });
   const songs = page.getByRole("list", { name: "Songs" });
-  const songRows = songs.getByRole("listitem");
+  const songRows = songs.locator("li.song");
   const betweenSongs = page.getByRole("radiogroup", { name: "Zwischen den Songs" });
   const crossfade = betweenSongs.getByRole("radio", { name: "Überblenden" });
   const sequence = betweenSongs.getByRole("radio", { name: "Nacheinander" });
@@ -59,6 +60,7 @@ test("E2E-041 several songs chosen in the import play as a playlist, reordered, 
 
   // Two songs of 8 s and 6 s crossfade for 3 s: the playlist lasts 0:11.
   await page.getByRole("button", { name: "Musik 2 Songs" }).click();
+  await showMusicDetails(page);
   await expect(songRows).toHaveText([new RegExp(MORNING), new RegExp(EVENING)]);
   await expect(page.getByText("Musik, 2 Songs · 0:11")).toBeVisible();
 
@@ -68,6 +70,10 @@ test("E2E-041 several songs chosen in the import play as a playlist, reordered, 
   await expect(crossfade).toHaveAttribute("aria-checked", "true");
   await sequence.click();
   await expect(sequence).toHaveAttribute("aria-checked", "true");
+  await page
+    .locator('section[aria-labelledby="music-between-songs"]')
+    .getByRole("button", { name: "Über den Übergang zwischen den Songs" })
+    .click();
   await expect(
     page.getByText("Der nächste Song beginnt, wenn der vorige ausgeblendet hat."),
   ).toBeVisible();

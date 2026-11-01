@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 import type { MusicBeats } from "../../beats";
 import type { StoredPicture, StoredSlideshow } from "../../library/stored-slideshow";
 import type { BeatsStatus } from "../beats/music-beats-known";
-import { firstSongView } from "./testing/first-song-view";
+import { pictureLengthNotice } from "./picture-length-notice";
+import { playlistView } from "./playlist-view";
 
 /** 105 BPM: calm's 4-beat step is ~2.286 s, closest to its 7 s target at 3 steps, ~6.857 s. */
 const KNOWN_105_BPM: MusicBeats = {
@@ -35,18 +36,7 @@ function slideshow(own: Partial<StoredSlideshow> = {}): StoredSlideshow {
   };
 }
 
-describe("musicEditorView's picture-times note under a mood (MOOD.md)", () => {
-  it("uses the mood's seconds per picture, not the leftover single-settings value", () => {
-    const view = firstSongView(slideshow(), FOUND);
-
-    expect(view.note).toMatchObject({
-      kind: "own-seconds",
-      // calm at 105 BPM: 3 beat-steps of ~2.286 s each, ~6.857 s.
-      secondsPerPicture: expect.closeTo(6.857142857142857, 10),
-      onTheBeat: true,
-    });
-  });
-
+describe("the picture-length notice under a mood (MOOD.md)", () => {
   it("shrinks the mood's pace to end with a shorter song instead of outlasting it (ADR-0047)", () => {
     // 4 pictures at calm's ~6.857 s would outlast a 20 s song, but the share stays at or above
     // the floor (2/3 of ~6.857 s, ~4.571 s), so they shrink to it instead of ending in silence.
@@ -54,8 +44,9 @@ describe("musicEditorView's picture-times note under a mood (MOOD.md)", () => {
       songs: [{ id: "m1", fileName: "generated.wav", durationMs: 20_000, mimeType: "audio/wav" }],
     });
 
-    const view = firstSongView(show, FOUND);
-
-    expect(view.note).toEqual({ kind: "fitted", shareMs: 5000, onTheBeat: true });
+    expect(pictureLengthNotice(playlistView(show, new Map([["m1", FOUND]])))).toEqual({
+      kind: "fitted",
+      shareMs: 5000,
+    });
   });
 });

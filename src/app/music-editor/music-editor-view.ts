@@ -2,13 +2,12 @@ import {
   AUTOMATIC_MUSIC_FADE_OUT_MS,
   musicExcerpt,
   placeSongs,
-  playlistMs,
   resolvePlaylist,
   scaledFades,
   type MusicTiming,
   type PlacedSong,
 } from "../../compose";
-import { moodSettings, moodTempo } from "../../compose/mood-settings";
+import { moodTempo } from "../../compose/mood-settings";
 import { SEQUENCE_BETWEEN_SONGS } from "../../library/own-music";
 import { songIndex } from "../../library/slideshow-edits-songs";
 import type { SlideshowMood } from "../../library/slideshow-mood";
@@ -21,7 +20,6 @@ import {
   type BeatTick,
   type PictureChangesView,
 } from "./picture-changes-view";
-import { timingNote, type TimingNote } from "./music-timing-note";
 import {
   NO_SONGS_LOUDNESS_KNOWN,
   slideshowTimes,
@@ -96,7 +94,6 @@ export interface MusicEditorView {
   readonly volumeListen: VolumeListenPlan;
   /** The excerpt and fades as the player plays them in the playlist. */
   readonly timing: MusicTiming;
-  readonly note: TimingNote;
 }
 
 export interface SlideChange {
@@ -121,11 +118,7 @@ export function musicEditorView(
   // songIndex only returns the index of a song the playlist has.
   const { song: music, atMs, fadeInMs, fadeOutMs } = placed[index] as PlacedSong;
   const { startMs, endMs } = musicExcerpt(music);
-  const { beatsMs, durationsMs, slideshowMs, picturesFit } = slideshowTimes(
-    stored,
-    beats,
-    loudness,
-  );
+  const { beatsMs, durationsMs, slideshowMs } = slideshowTimes(stored, beats, loudness);
   const status = songBeatsStatus(beats, songId);
   const pictureChanges = pictureChangesView(stored, music, status);
   const loudnessStatus = songLoudnessStatus(loudness, songId);
@@ -157,16 +150,11 @@ export function musicEditorView(
   const heardEndMs = timing.endMs;
   const cutBySlideshow = heardEndMs < endMs;
   const automaticFadeOutMs = cutBySlideshow ? AUTOMATIC_MUSIC_FADE_OUT_MS : fadeOutMs;
-  const playlistLengthMs = playlistMs(stored) ?? 0;
   const joinsPrevious = index > 0 && stored.betweenSongs !== SEQUENCE_BETWEEN_SONGS;
   const joinsNext =
     index < stored.songs.length - 1 && stored.betweenSongs !== SEQUENCE_BETWEEN_SONGS;
   const moodBeatsPerMinute =
     stored.mood === undefined ? undefined : moodTempo(stored, songBeats(beats));
-  const moodSecondsPerPicture =
-    stored.mood === undefined
-      ? undefined
-      : moodSettings(stored.mood, moodBeatsPerMinute).secondsPerPicture;
   return {
     songId,
     songNumber: index + 1,
@@ -215,14 +203,6 @@ export function musicEditorView(
     volume,
     volumeListen,
     timing: { startMs, endMs: heardEndMs, fadeInMs: timing.fadeInMs, fadeOutMs: timing.fadeOutMs },
-    note: timingNote(
-      stored,
-      durationsMs,
-      playlistLengthMs,
-      beatsMs !== undefined,
-      picturesFit,
-      moodSecondsPerPicture,
-    ),
   };
 }
 

@@ -1,21 +1,21 @@
 <script lang="ts">
-  import { MILLISECONDS_PER_SECOND } from "../../player";
+  import type { Snippet } from "svelte";
   import { OWN_SECONDS_PICTURE_LENGTH, type PictureLength } from "../../library/picture-length";
   import { getTranslator } from "../i18n/context";
   import { radioIndexForKey } from "./radio-keys";
   import SecondsStepper from "./SecondsStepper.svelte";
-  import SectionHead from "./SectionHead.svelte";
+  import InfoHead from "../music-editor/InfoHead.svelte";
 
   /**
    * Whether the pictures without an own duration last their own seconds, set by the stepper, or
    * fill the music (ADR-0022), in the music editor. Without music there is nothing to fill: only
-   * the own seconds show. While `fittedShareMs` is set, the pictures instead shrink to end with a
-   * shorter music (ADR-0047).
+   * the own seconds show. The section ends with `notice`, the one line on how the pictures meet
+   * the music (ADR-0023, ADR-0047); what each choice does sits behind its ⓘ button.
    */
   let {
     ownSeconds,
     secondsPerPicture,
-    fittedShareMs,
+    notice,
     withoutMusic = false,
     onPictureLength,
     onSecondsPerPicture,
@@ -23,8 +23,8 @@
     /** The pictures last `secondsPerPicture` each; otherwise they fill the music. */
     ownSeconds: boolean;
     secondsPerPicture: number;
-    /** The mean shrunk share, while the automatic pictures fit a shorter music (ADR-0047). */
-    fittedShareMs?: number | undefined;
+    /** The one line under the choices. */
+    notice?: Snippet;
     /** No music to fill: the own seconds alone, without the choice. */
     withoutMusic?: boolean;
     /** `undefined`: they fill the music. */
@@ -32,7 +32,7 @@
     onSecondsPerPicture: (seconds: number) => void;
   } = $props();
 
-  const { t, formatSeconds, formatTenthSeconds } = getTranslator();
+  const { t, formatSeconds } = getTranslator();
   const HEAD_ID = "music-picture-length";
   const CHOICES = [OWN_SECONDS_PICTURE_LENGTH, undefined] as const;
 
@@ -57,7 +57,15 @@
 </script>
 
 <section class="section" aria-labelledby={HEAD_ID}>
-  <SectionHead id={HEAD_ID} icon="clock" title={t("music.pictureLength")} own={false} />
+  <InfoHead
+    id={HEAD_ID}
+    icon="clock"
+    title={t("music.pictureLength")}
+    infoLabel={t("music.infoPictureLength")}
+  >
+    <p>{t("music.infoPictureLengthAbout", { seconds: formatSeconds(secondsPerPicture) })}</p>
+    <p>{t("music.infoPictureLengthFill")}</p>
+  </InfoHead>
   {#if withoutMusic}
     <p class="own-seconds">{label(OWN_SECONDS_PICTURE_LENGTH)}</p>
     <SecondsStepper seconds={secondsPerPicture} onChange={onSecondsPerPicture} />
@@ -82,13 +90,7 @@
       <SecondsStepper seconds={secondsPerPicture} onChange={onSecondsPerPicture} />
     {/if}
   {/if}
-  {#if fittedShareMs !== undefined}
-    <p class="fitted">
-      {t("music.pictureLengthFitted", {
-        seconds: formatTenthSeconds(fittedShareMs / MILLISECONDS_PER_SECOND),
-      })}
-    </p>
-  {/if}
+  {@render notice?.()}
 </section>
 
 <style>
@@ -123,10 +125,5 @@
     margin: 0;
     font-size: var(--gl-size-label);
     font-weight: var(--gl-weight-semibold);
-  }
-  .fitted {
-    margin: 0;
-    color: var(--gl-muted);
-    font-size: var(--gl-size-meta);
   }
 </style>

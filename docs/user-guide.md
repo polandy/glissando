@@ -15,8 +15,11 @@ without internet. If you use a self-hosted Glissando, open its address instead
    songs that come with Glissando if you have none of your own to hand. Pick the part of the song
    to use; the slideshow is timed to fit it. Several songs work too, automatically matched in
    loudness so none plays louder than the rest; the music editor lets you listen and adjust that. It
-   shows the essentials first; turn on **Details** in its top bar for the volume line, the beat and
-   the crossfades.
+   shows the essentials first: your songs (with **Add a song** as the last row), a bar showing how
+   long the music and the pictures run, the picture length,
+   **Repeat the music** and one line saying how pictures and music fit. Turn on **Details** in its top
+   bar for the crossfades in that bar, the waveform, volume, beat and fades. The small **i** buttons
+   explain a setting when you tap them.
 3. **Play.** Motion and transitions are chosen for you — people stay in frame, scenery gets a slow
    sweep, changes follow the beat.
 
@@ -100,8 +103,8 @@ groups; choose a row and its sheet opens, with **Back** (or Esc) to the list and
 - The path at the top (Library / your slideshow / …) is tappable: **Library** brings you home from
   any screen.
 - If the music is a little shorter than the pictures, they shrink to fit it on their own. If it
-  ends well before the pictures do, the music editor offers to **Repeat the music** or **Add a
-  song**.
+  ends well before the pictures do, the music editor says so and offers **Repeat the music**; you
+  can also add a song.
 - Glissando looks for faces and other subjects in the background, so motion aims well; while it
   runs, the bar at the top of every screen and each card show how far it got. **Faces and subjects
   …** in a slideshow's ⋯ menu lets you look again at any picture,

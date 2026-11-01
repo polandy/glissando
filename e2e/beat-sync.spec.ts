@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { createSlideshowWithMusic, editsStored, GERMAN_BROWSER } from "./support/app";
+import { showMusicDetails } from "./support/switch";
 import { openApp } from "./support/browser";
 import { clickTrackWav } from "./support/media";
 
@@ -11,12 +12,15 @@ test("E2E-039 the music editor finds the music's beat, changes the pictures on i
   const section = page.locator('section[aria-labelledby="music-picture-changes"]');
   const onTheBeat = section.getByRole("radio", { name: "Im Takt" });
   const evenly = section.getByRole("radio", { name: "Gleichmäßig" });
+  const info = section.getByRole("button", { name: "Über die Bildwechsel" });
   await openApp(page);
   await createSlideshowWithMusic(page, clickTrackWav("Takt.wav", 20, 120));
 
   await page.getByRole("button", { name: /^Musik Takt\.wav/ }).click();
+  await showMusicDetails(page);
   await expect(section.locator(".state")).toHaveText("120 Schläge pro Minute");
   await expect(onTheBeat).toHaveAttribute("aria-checked", "true");
+  await info.click();
   await expect(
     section.getByText(
       "Jeder automatische Wechsel landet auf einem Schlag der Musik; ein Übergang dauert ganze Schläge.",
@@ -25,6 +29,7 @@ test("E2E-039 the music editor finds the music's beat, changes the pictures on i
 
   await evenly.click();
   await expect(evenly).toHaveAttribute("aria-checked", "true");
+  await info.click();
   await expect(
     section.getByText("Jedes Bild bleibt genau 5 s, unabhängig vom Takt."),
   ).toBeVisible();

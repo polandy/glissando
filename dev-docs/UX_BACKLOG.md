@@ -8,7 +8,6 @@ once it ships. `TODO.md` carries one line per theme and points here.
 | ------------------------------------------------------------ | ---------- | ------- |
 | [Slideshow screen](ux_backlog/slideshow-screen.md)           | UX-04      | highest |
 | [Selection and editing](ux_backlog/selection-editing.md)     | UX-07 … 09 | high    |
-| [Music editor](ux_backlog/music-editor.md)                   | UX-10 … 12 | high    |
 | [Copy and terminology](ux_backlog/copy.md)                   | UX-14 … 16 | high    |
 | [Navigation and feedback](ux_backlog/navigation-feedback.md) | UX-26      | medium  |
 

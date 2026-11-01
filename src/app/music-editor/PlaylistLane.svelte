@@ -1,7 +1,6 @@
 <script lang="ts">
   import { MILLISECONDS_PER_SECOND } from "../../player";
   import { getTranslator } from "../i18n/context";
-  import AddSongsButton from "./AddSongsButton.svelte";
   import type { PlaylistView } from "./playlist-view";
   import { songColour } from "./song-colour";
   import { percentOf } from "./waveform-scale";
@@ -12,20 +11,11 @@
    * boundary (with the details; otherwise the blocks meet at the middle of each overlap), the
    * slideshow's end marked where it comes before the playlist's; under it, the pictures' changes
    * and, while the pictures outlast the playlist and it does not repeat, the time they would play
-   * on in silence, with a card offering to fix it (ADR-0023, ADR-0047).
+   * on in silence (ADR-0023, ADR-0047). What to do about that is the picture-length notice's.
    */
-  let {
-    playlist,
-    onRepeatMusic,
-    onAddSongs,
-  }: {
-    playlist: PlaylistView;
-    /** `undefined`: the playlist plays once. */
-    onRepeatMusic: (repeatMusic: true | undefined) => void;
-    onAddSongs: (files: readonly File[]) => void;
-  } = $props();
+  let { playlist }: { playlist: PlaylistView } = $props();
 
-  const { t, formatDuration, formatTenthSeconds } = getTranslator();
+  const { t, formatDuration } = getTranslator();
   const HALF = 2;
 
   const spanMs = $derived(Math.max(playlist.slideshowMs, playlist.playlistMs));
@@ -35,7 +25,6 @@
   const endsEarly = $derived(playlist.slideshowMs < playlist.playlistMs);
   /** The pictures outlast the playlist and it does not repeat (ADR-0047): by how much. */
   const short = $derived(playlist.overMs !== undefined);
-  const fitted = $derived(playlist.fittedShareMs !== undefined);
   /** How long a song starting at `atMs` overlaps the one before; its number follows the overlap. */
   const overlapIntoMs = (atMs: number) =>
     playlist.crossfades.find((crossfade) => crossfade.atMs === atMs)?.ms ?? 0;
@@ -87,15 +76,6 @@
         duration: duration(playlist.slideshowMs),
       })}
     </span>
-    <span>
-      {#if endsEarly}
-        {t("music.laneFadesOut")}
-      {:else if playlist.repeatMusic}
-        {t("music.laneRepeats")}
-      {:else if !short}
-        {t("music.laneEndsWith")}
-      {/if}
-    </span>
   </div>
   <div class="slides" aria-hidden="true">
     <span class="runs" style:width={pct(playlist.slideshowMs)}></span>
@@ -113,21 +93,6 @@
   <div class="scale mono" aria-hidden="true">
     <span>{duration(0)}</span><span>{duration(spanMs / HALF)}</span><span>{duration(spanMs)}</span>
   </div>
-  {#if fitted}
-    <p class="fit-note mint">
-      {t("music.laneFitted", { seconds: formatTenthSeconds(seconds(playlist.fittedShareMs ?? 0)) })}
-    </p>
-  {:else if short}
-    <div class="fit-note lemon">
-      <p>{t("music.laneOutlasts", { time: duration(playlist.overMs ?? 0) })}</p>
-      <div class="actions">
-        <button type="button" class="btn small primary" onclick={() => onRepeatMusic(true)}>
-          {t("music.repeatMusic")}
-        </button>
-        <AddSongsButton label={t("music.addSong")} onAdd={onAddSongs} />
-      </div>
-    </div>
-  {/if}
 </div>
 
 <style>
@@ -224,25 +189,5 @@
     justify-content: space-between;
     color: var(--gl-muted);
     font-size: var(--gl-size-caption);
-  }
-  .fit-note {
-    display: grid;
-    gap: 8px;
-    padding: 10px 12px;
-    border-radius: var(--gl-radius);
-    font-size: var(--gl-size-meta);
-  }
-  .fit-note.mint {
-    background: color-mix(in srgb, var(--gl-mint) 22%, var(--gl-surface));
-  }
-  .fit-note.lemon {
-    background: color-mix(in srgb, var(--gl-lemon) 22%, var(--gl-surface));
-  }
-  .fit-note p {
-    margin: 0;
-  }
-  .fit-note .actions {
-    display: flex;
-    gap: 8px;
   }
 </style>

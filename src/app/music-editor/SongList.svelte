@@ -25,6 +25,7 @@
     onRemove,
     onDismiss,
     onRemoveSampleRow,
+    addRow,
   }: {
     songs: readonly PlaylistSongView[];
     /** Without it, a row selects nothing. */
@@ -39,6 +40,8 @@
     /** Takes an unusable file's, or a failed sample download's, row away. */
     onDismiss: (key: number) => void;
     onRemoveSampleRow: (trackId: SampleTrackId) => void;
+    /** The list's last row: the one control that adds a song. */
+    addRow?: Snippet;
   } = $props();
 
   const { t } = getTranslator();
@@ -158,6 +161,9 @@
       onRemove={() => onRemoveSampleRow(row.trackId)}
     />
   {/each}
+  {#if addRow !== undefined}
+    <li class="add-row">{@render addRow()}</li>
+  {/if}
 </ol>
 
 <style>
@@ -167,6 +173,9 @@
     margin: 0;
     padding: 0;
     list-style: none;
+  }
+  .add-row {
+    display: grid;
   }
   .song {
     display: grid;

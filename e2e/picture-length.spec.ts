@@ -1,3 +1,4 @@
+import { showMusicDetails } from "./support/switch";
 import { expect, test } from "@playwright/test";
 import {
   chooseFiles,
@@ -39,6 +40,7 @@ test("E2E-040 with music the pictures keep the mood's length on the beat until t
   await expectSlideshowScreen(page);
 
   await page.getByRole("button", { name: /^Musik Takt\.wav/ }).click();
+  await showMusicDetails(page);
   await expect(page.locator('[aria-labelledby="music-picture-changes"] .state')).toHaveText(
     "120 Schläge pro Minute",
   );
@@ -50,12 +52,8 @@ test("E2E-040 with music the pictures keep the mood's length on the beat until t
   await expect(ownSeconds("7 s")).toHaveAttribute("aria-checked", "true");
   await lengthSection.getByRole("button", { name: "Länger" }).click();
   await expect(ownSeconds("7,5 s")).toHaveAttribute("aria-checked", "true");
-  await expect(
-    page.getByText(
-      "Jedes Bild ohne eigene Dauer bleibt etwa 7,5 s, jeder Wechsel auf dem nächsten Schlag.",
-      { exact: false },
-    ),
-  ).toBeVisible();
+  // 3 pictures at 7,5 s are shorter than the 60 s track: the notice says it fades out.
+  await expect(page.getByText("die Musik blendet am Ende aus")).toBeVisible();
   await editsStored(page);
 
   await fill.click();

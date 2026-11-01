@@ -176,7 +176,7 @@ describe("MusicEditorScreen, the playlist lane", () => {
     expect(document.querySelector(".playlist-lane .end")?.getAttribute("title")).toBe(
       "Die Diashow endet",
     );
-    expect(text(".playlist-timeline")).toContain("Die Musik blendet mit dem letzten Bild aus");
+    expect(text(".length-notice")).toContain("die Musik blendet am Ende aus");
   });
 });
 

@@ -50,7 +50,6 @@ describe("MusicEditorScreen without music, the picture length (MUSIC_EDITOR.md)"
     expect(section().textContent).toContain("Je etwa 5 s");
     expect(section().querySelector(".stepper")).not.toBeNull();
     expect(section().querySelector('[role="radio"]')).toBeNull();
-    expect(section().textContent).not.toContain("Musik füllen");
   });
 
   it("stores a picture length one half second longer", () => {

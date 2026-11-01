@@ -39,20 +39,15 @@ const KNOWN_PICTURE_EDITOR: readonly string[] = [
   'button "Eine halbe Sekunde länger"',
   'input ""',
 ];
+/**
+ * The music editor's own controls all pass. What remains comes from `SecondsStepper`, which
+ * belongs to the picture editor's package (P8) and shrinks the same way there.
+ */
 const KNOWN_MUSIC_EDITOR: readonly string[] = [
-  'button.grip "Sommerwind.mp3 verschieben"',
-  'button.pick "1 Sommerwind.mp3',
-  'button.remove "Sommerwind.mp3 entfernen"',
-  'button.add "Song hinzufügen"',
-  'button "Anfang"',
-  'button "Ende"',
-  'button "Je etwa 5 s"',
-  'button "Musik füllen"',
   'button "Anfang eine halbe Sekunde früher"',
   'button "Anfang eine halbe Sekunde später"',
   'button "Ende eine halbe Sekunde früher"',
   'button "Ende eine halbe Sekunde später"',
-  'input ""',
 ];
 
 /** What is reported besides the known; every known entry must still be reported. */
