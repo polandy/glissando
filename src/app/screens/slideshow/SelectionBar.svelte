@@ -253,24 +253,26 @@
       justify-items: stretch;
       translate: none;
     }
-    /* Row 1: the count and Done; row 2: every action, equally wide, scrolling within the bar
-       where a language's labels do not all fit. */
     .bar {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      grid-template-rows: auto 1fr;
       gap: 2px;
       padding: 2px;
     }
-    .bar > :global(.count) {
+    /* Row 1: the count and Done; row 2: every action, equally wide, scrolling within the bar
+       where a language's labels do not all fit. The adding bar keeps its one row of words. */
+    .labelled {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      grid-template-rows: auto 1fr;
+    }
+    .labelled > :global(.count) {
       grid-row: 1;
       grid-column: 1;
     }
-    .done {
+    .labelled .done {
       grid-row: 1;
       grid-column: 2;
     }
-    .spacer {
+    .labelled .spacer {
       display: none;
     }
     .actions {
