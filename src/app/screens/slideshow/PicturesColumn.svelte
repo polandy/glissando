@@ -13,6 +13,7 @@
   let {
     slideshow,
     onPlay,
+    pulsePlay,
     onAddPictures,
     newPictureIds,
     selection = $bindable(),
@@ -33,6 +34,7 @@
   }: {
     slideshow: SlideshowDetails;
     onPlay: () => void;
+    pulsePlay: boolean;
     onAddPictures: () => void;
     newPictureIds: ReadonlySet<string>;
     selection: StripSelection;
@@ -77,7 +79,12 @@
 </script>
 
 <div class="pictures">
-  <PlayPreview coverUrl={slideshow.coverUrl} durationSeconds={slideshow.durationSeconds} {onPlay} />
+  <PlayPreview
+    coverUrl={slideshow.coverUrl}
+    durationSeconds={slideshow.durationSeconds}
+    {onPlay}
+    pulse={pulsePlay}
+  />
 
   <StripHead
     count={slideshow.pictures.length}
@@ -122,5 +129,18 @@
   .pictures {
     display: grid;
     gap: 20px;
+  }
+  /* Stacked: the preview first, the settings card (a sibling of this column) next, then the
+     strip, so Play and the first tiles meet on one phone screen. */
+  @container (max-width: 1024px) {
+    .pictures {
+      display: contents;
+    }
+    .pictures > :global(*) {
+      order: 1;
+    }
+    .pictures > :global(.preview) {
+      order: -1;
+    }
   }
 </style>

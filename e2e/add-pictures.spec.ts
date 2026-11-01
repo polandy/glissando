@@ -2,7 +2,7 @@ import { expect, test, type Locator, type Page } from "@playwright/test";
 import {
   choosePictures,
   createSlideshow,
-  CREATED_TOAST,
+  expectSlideshowScreen,
   definitionOf,
   GERMAN_BROWSER,
   openImport,
@@ -39,7 +39,7 @@ test("E2E-032 adding pictures skips a duplicate and sorts the new ones in by cap
   await choosePictures(page, originals, 3);
   await page.getByRole("button", { name: "Weiter" }).click();
   await page.getByRole("button", { name: "Ohne Musik erstellen" }).click();
-  await expect(page.getByRole("status")).toHaveText(CREATED_TOAST);
+  await expectSlideshowScreen(page);
 
   await page.getByRole("button", { name: "Bilder hinzufügen" }).click();
   await expect(page.getByRole("heading", { name: "Bilder hinzufügen" })).toBeVisible();

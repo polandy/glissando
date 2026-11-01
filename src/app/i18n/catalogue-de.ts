@@ -291,7 +291,6 @@ export const de = {
   "import.discard": "Entfernen",
   "import.creatingTitle": "Diashow wird erzeugt\u00a0…",
   "import.creatingText": "Deine Bilder werden geordnet, mit Bewegung und Übergängen",
-  "import.created": "Diashow erstellt — tippe auf Abspielen",
 
   "storage.persistRefusedTitle": "Glissando darf nichts dauerhaft speichern",
   "storage.persistRefusedText":

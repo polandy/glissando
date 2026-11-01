@@ -13,7 +13,7 @@ visit, so the settings people change most took a tap each time. Mockup, option A
 ## Decision
 
 - **Three tiles up front, never folded:** Music, Mood and Look, in one row of three under the title
-  at every width. Each tile is one button that opens its sheet.
+  at every width (a compact chip on a stacked layout). Each tile is one button that opens its sheet.
 - **Everything else under "Fine settings"**: Transitions, Portrait pictures and Trip chapters,
   then storage and "Show on TV". It is the same fold at every width, beside the pictures as well
   as above them. The link sits with the copies under the Share button beside the title
@@ -22,12 +22,12 @@ visit, so the settings people change most took a tap each time. Mockup, option A
   the browser's storage (`localStorage`) and applies to every slideshow on that device. It is a
   view preference, not part of the slideshow, so it is neither in the `.glissando` file nor on
   the server.
-- **The energy switch lives only in the Mood sheet.** While it is on, the Mood tile's summary
-  says "follows the energy".
-- **Derived facts go into summaries.** Picture times and the Ken Burns strength make up the Mood
-  tile's summary. The picture count and the duration are in the header already. The music's
-  length goes into the Music summary when it differs from the slideshow. The captions count is
-  dropped.
+- **The energy switch lives only in the Mood sheet.**
+- **The Mood tile carries one short phrase**, not derived facts: "Slow, soft", "Quick, on the
+  beat" or "Your settings" under Custom. Picture times, beats, motion and "follows the energy"
+  stay in the Mood sheet's summary box, so the three tiles fit two lines each. The picture count
+  and the duration are in the header already. The music's length goes into the Music summary
+  when it differs from the slideshow. The captions count is dropped.
 
 ## Options weighed
 

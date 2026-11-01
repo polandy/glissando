@@ -103,9 +103,9 @@ The composed player JSON carries no new field.
 
 - **Preview**: with the switch on and a lift found, the preview plays the four slide units around
   the first lift (two before, two after) instead of the first four.
-- **Info panel**: the switch is in the Mood sheet only (ADR-0048). While it is on and the
-  slideshow has music, the Mood tile's summary shows the range of picture times under a mood and
-  ends in "follows the energy" ([SCREENS](../SCREENS.md)).
+- **Info panel**: the switch is in the Mood sheet only (ADR-0048). The Mood tile
+  shows its short phrase only; the range of picture times is in the Mood sheet
+  ([SCREENS](../SCREENS.md)).
 
 ## Stored
 

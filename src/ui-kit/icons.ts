@@ -43,6 +43,10 @@ export const ICONS = {
   replay: { shapes: [path("M4.5 12a7.5 7.5 0 102.2-5.3L4.5 9"), path("M4.5 4.5V9H9")] },
   close: { shapes: [path("M6 6l12 12M18 6L6 18")] },
   image: { shapes: [rect(3, 4.5, 18, 15, 2.5), circle(9, 10, 1.8), path("M21 16l-5-5-9 8.5")] },
+  mood: {
+    shapes: [circle(12, 12, 9), path("M8.5 14a4.5 4.5 0 007 0"), path("M9 9.5h.01M15 9.5h.01")],
+  },
+  look: { shapes: [path("M12 3.5s6 6.2 6 10.5a6 6 0 01-12 0c0-4.3 6-10.5 6-10.5z")] },
   music: { shapes: [path("M9 18V6l11-2v12"), circle(6.5, 18, 2.5), circle(17.5, 16, 2.5)] },
   volume: {
     shapes: [

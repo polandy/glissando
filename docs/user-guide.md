@@ -20,7 +20,7 @@ without internet. If you use a self-hosted Glissando, open its address instead
 3. **Play.** Motion and transitions are chosen for you — people stay in frame, scenery gets a slow
    sweep, changes follow the beat.
 
-For a different feel, tap Mood beside Music and Look on the slideshow's screen. **Calm** shows each
+For a different feel, tap Mood beside Music and Look on the slideshow's screen (on a phone: Play first, then these three as one row of buttons with More settings below them, then the pictures). The Mood button shows only a short phrase; its sheet lists what it sets. **Calm** shows each
 picture longer, with soft crossfades and gentle motion; **Lively** changes pictures quickly with
 mixed transitions and stronger motion. Both fit the picture changes to the song's beat,
 so a slow and a fast song pace the same mood differently. A new slideshow starts on Calm; choose
@@ -61,8 +61,8 @@ them automatically, naming the place and the dates. Tap a chapter tile in the pi
 rename it, hide it, or reset it to its automatic text; select a picture and tap **Insert chapter before**
 to add one of your own, or delete it again from its sheet. Deleting a chapter, resetting its
 text, removing a title or closing slide and resetting a clip each show a message with Undo. The
-**Trip chapters** row in the slideshow's side panel, under **More settings**, is where automatic
-chapters are turned on or off for the whole slideshow, and shows how many there currently are.
+**Trip chapters** switch in the slideshow's side panel, under **More settings**, turns automatic
+chapters on or off for the whole slideshow; chapters you added stay either way.
 
 ## Play
 

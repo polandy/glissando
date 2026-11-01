@@ -6,7 +6,10 @@ import { pictureTakenOn, type TestFile } from "./media";
 /** A German browser, so the copy a case asserts is the German catalogue's. */
 export const GERMAN_BROWSER = { locale: "de-DE" } as const;
 
-export const CREATED_TOAST = "Diashow erstellt — tippe auf Abspielen";
+/** The slideshow screen is shown, as right after creating a slideshow: its Play button is there. */
+export async function expectSlideshowScreen(page: Page): Promise<void> {
+  await expect(page.getByRole("button", { name: "Abspielen" }).first()).toBeVisible();
+}
 
 const PICTURE_COLOURS = ["#ff8a65", "#4db6ac", "#ffd54f", "#9575cd"] as const;
 
@@ -150,7 +153,7 @@ export async function createSlideshowFromFiles(
   await choosePictures(page, files, files.length);
   await page.getByRole("button", { name: "Weiter" }).click();
   await page.getByRole("button", { name: "Ohne Musik erstellen" }).click();
-  await expect(page.getByRole("status")).toHaveText(CREATED_TOAST);
+  await expectSlideshowScreen(page);
   if (secondsPerPicture !== undefined) {
     await setPictureLengthWithoutMusic(page, secondsPerPicture);
   }
@@ -247,7 +250,7 @@ export async function createSlideshowWithMusic(
   await chooseFiles(page, page.getByRole("button", { name: "Dateien wählen" }), [track]);
   await expect(page.getByText(track.name, { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Diashow erstellen" }).click();
-  await expect(page.getByRole("status")).toHaveText(CREATED_TOAST);
+  await expectSlideshowScreen(page);
   if (fill) {
     await openMusicEditor(page);
     const lengthSection = await leaveMoodForOwnPictureTimes(page);

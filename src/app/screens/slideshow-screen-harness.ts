@@ -18,7 +18,6 @@ import type { ServerSlideshowRows } from "../server-library/server-slideshow-ses
 import { NO_FOCUS_KNOWN, type PicturesFocus } from "../focus/pictures-focus";
 import type { SlideshowSearch } from "../../library/focus-pass";
 import type { ChapterSettingsEditor } from "../editing/chapter-settings-editor";
-import type { MoodEnergyPacing } from "./slideshow/mood-energy-pacing";
 import { createStorageFineSettingsFoldStore } from "./slideshow/fine-settings-fold";
 import { moodPreviewPortsFixture } from "./slideshow/mood-preview-ports-fixture";
 import { createMemoryStorage } from "../testing/memory-storage";
@@ -110,7 +109,6 @@ export function mountScreen(
     chapterEditor = null as ChapterSettingsEditor | null,
     moodBpm = undefined as number | undefined,
     moodBeats = NO_SONG_BEATS as SongBeats,
-    moodEnergyPacing = null as MoodEnergyPacing | null,
     moodPreviewPorts = moodPreviewPortsFixture(),
     fineSettingsFold = createStorageFineSettingsFoldStore(createMemoryStorage()),
   } = {},
@@ -193,7 +191,6 @@ export function mountScreen(
     },
     moodBpm,
     moodBeats,
-    moodEnergyPacing,
     moodPreviewPorts,
     onMood: (mood: SlideshowMood | undefined) => {
       calls.moods.push(mood);
@@ -273,7 +270,7 @@ export function mountScreen(
     english ? { current: createTranslator("en") } : undefined,
   );
   destroy = mounted.destroy;
-  return { target: mounted.target, calls, clock, frames, holdScheduler, dragFrames };
+  return { target: mounted.target, props, calls, clock, frames, holdScheduler, dragFrames };
 }
 
 export {

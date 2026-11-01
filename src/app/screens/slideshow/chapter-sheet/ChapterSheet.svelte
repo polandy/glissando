@@ -20,9 +20,7 @@
 
   /**
    * A trip chapter's sheet (TRIP_CHAPTERS.md): a bottom sheet on the phone, a dialog from 720 px.
-   * `anchorPictureId` null opens it in general mode, the only place with the slideshow-wide
-   * automatic-chapters switch (reached from the slideshow's Fine settings). Every field change
-   * is stored as it is made, like the card sheet's.
+   * Every field change is stored as it is made, like the card sheet's.
    */
   let {
     slideshow,
@@ -32,17 +30,14 @@
   }: {
     slideshow: SlideshowDetails;
     chapterEditor: ChapterSettingsEditor | null;
-    anchorPictureId: string | null;
+    anchorPictureId: string;
     onClose: () => void;
   } = $props();
 
   const { t } = getTranslator();
 
   const chapter = $derived(
-    anchorPictureId === null
-      ? null
-      : (slideshow.chapters.find((candidate) => candidate.anchorPictureId === anchorPictureId) ??
-          null),
+    slideshow.chapters.find((candidate) => candidate.anchorPictureId === anchorPictureId) ?? null,
   );
   const face = $derived(chapter === null ? null : chapterPreviewFace(chapter, slideshow.pictures));
 
@@ -87,19 +82,9 @@
   }
 
   const sheetTitle = $derived(
-    chapter === null
-      ? t("chapters.sheetTitleGeneral")
-      : chapter.kind === "automatic"
-        ? t("chapters.sheetTitleAutomatic")
-        : t("chapters.sheetTitleAdded"),
-  );
-
-  const automaticHelper = $derived(
-    slideshow.ownOrder
-      ? t("chapters.automaticHelperDisabled")
-      : slideshow.automaticChaptersOff
-        ? t("chapters.automaticHelperOff")
-        : t("chapters.automaticHelperOn"),
+    chapter?.kind === "automatic"
+      ? t("chapters.sheetTitleAutomatic")
+      : t("chapters.sheetTitleAdded"),
   );
 </script>
 
@@ -173,19 +158,6 @@
           {t("chapters.deleteChapter")}
         </button>
       {/if}
-    {:else}
-      <div class="row switch-row">
-        <div>
-          <b>{t("chapters.automaticSwitch")}</b>
-          <small>{automaticHelper}</small>
-        </div>
-        <Switch
-          checked={!slideshow.automaticChaptersOff}
-          disabled={slideshow.ownOrder}
-          label={t("chapters.automaticSwitch")}
-          onChange={(on) => chapterEditor?.setAutomaticChaptersOff(!on)}
-        />
-      </div>
     {/if}
 
     <footer>

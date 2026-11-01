@@ -1,5 +1,5 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
-import { CREATED_TOAST, GERMAN_BROWSER, openImport } from "./support/app";
+import { expectSlideshowScreen, GERMAN_BROWSER, openImport } from "./support/app";
 import { openApp } from "./support/browser";
 import { fakeGlissandoServer, LIBRARY_PAGE } from "./support/fake-glissando-server";
 import { pictureTakenOn } from "./support/media";
@@ -42,7 +42,7 @@ test("E2E-034 a slideshow created on the Glissando server links its Immich photo
   await page.getByRole("button", { name: "Weiter" }).click();
   await page.getByRole("button", { name: "Ohne Musik erstellen" }).click();
 
-  await expect(page.getByRole("status").filter({ hasText: CREATED_TOAST })).toBeVisible();
+  await expectSlideshowScreen(page);
   // The storage row lives behind the Fine settings fold (ADR-0048).
   await page.getByRole("button", { name: "Weitere Einstellungen" }).click();
   await expect(page.getByText("Auf deinem Glissando-Server", { exact: true })).toBeVisible();

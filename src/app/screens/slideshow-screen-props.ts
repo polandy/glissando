@@ -10,7 +10,6 @@ import type { PortraitPictures } from "../../library/portrait-pictures";
 import type { MotionPreviewPorts } from "../picture-editor/motion-preview";
 import type { SlideshowMood } from "../../library/slideshow-mood";
 import type { SongBeats } from "../../compose/playlist";
-import type { MoodEnergyPacing } from "./slideshow/mood-energy-pacing";
 import type { MoodPreviewPorts } from "./slideshow/mood-preview-ports";
 import type { ExportOutcome } from "../glissando-file/export-job";
 import type { ExportMenuState } from "../glissando-file/export-menu";
@@ -28,6 +27,8 @@ export interface SlideshowScreenProps {
   slideshow: SlideshowDetails;
   onBack: () => void;
   onPlay: () => void;
+  /** The slideshow was just created: its Play button pulses once on arrival. */
+  pulsePlay?: boolean;
   /** "Add media" in the strip header. */
   onAddPictures: () => void;
   /** The pictures just added, marked as new while the screen is shown. */
@@ -58,15 +59,12 @@ export interface SlideshowScreenProps {
   onLook: (look: SlideshowLook) => void;
   /** "Back to None" in the look sheet. */
   onResetLook: () => void;
-  /** The slideshow's tempo under its mood, for the info panel and the Mood sheet's "What it
+  /** The slideshow's tempo under its mood, for the Mood sheet's "What it
    * sets" (ADR-0045); undefined without a mood, or without a clear beat to pace to. */
   moodBpm: number | undefined;
   /** The pass-aware beats the Mood sheet's live preview composes and paces to (MOOD.md); a new
    * map once the background pass finds a song's beats restarts the preview on them. */
   moodBeats: SongBeats;
-  /** The info panel's "Picture times" range under the energy pacing (ADR-0046); null until
-   * loaded or without any songs. */
-  moodEnergyPacing: MoodEnergyPacing | null;
   /** The Mood sheet's live preview data ports; left out while it has no pictures. */
   moodPreviewPorts: MoodPreviewPorts;
   /** A mood tile was tapped: stores at once. */

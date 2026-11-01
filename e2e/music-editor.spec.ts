@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import {
   chooseFiles,
   choosePictures,
-  CREATED_TOAST,
+  expectSlideshowScreen,
   createSlideshowWithMusic,
   editsStored,
   GERMAN_BROWSER,
@@ -239,7 +239,7 @@ test("E2E-095 the music editor opens simple, and its Details switch shows the vo
     silentTrack("Abendlied.wav", 6),
   ]);
   await page.getByRole("button", { name: "Diashow erstellen" }).click();
-  await expect(page.getByRole("status").filter({ hasText: CREATED_TOAST })).toBeVisible();
+  await expectSlideshowScreen(page);
   await page.getByRole("button", { name: "Musik 2 Songs" }).click();
 
   // The waveform's handles and both songs' blocks are there before the details are found absent.

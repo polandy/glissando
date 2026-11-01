@@ -1,9 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Route } from "../navigation/route";
-import type { ToastMessage } from "../toast/toaster";
 import { ImportFlow, type ImportFlowState } from "./import-flow";
-
-const CREATED_TEXT = "Slideshow created";
 
 /** A session whose discard settles only when the test says so. */
 class FakeSession {
@@ -30,7 +27,6 @@ class FakeSession {
 function setUp(persistRefused: Promise<boolean> = Promise.resolve(false)) {
   const log: string[] = [];
   const opened: Route[] = [];
-  const toasts: ToastMessage[] = [];
   const errors: unknown[] = [];
   const sessions: FakeSession[] = [];
   const flow = new ImportFlow<FakeSession>({
@@ -44,17 +40,15 @@ function setUp(persistRefused: Promise<boolean> = Promise.resolve(false)) {
       open: (route) => opened.push(route),
       back: () => log.push("back"),
     },
-    toaster: { show: (toast) => toasts.push(toast) },
     persistencePrompt: { afterCreate: () => persistRefused },
     focusPass: { start: () => log.push("look for focus") },
     beatPass: { start: () => log.push("listen for beats") },
     loudnessPass: { start: () => log.push("measure loudness") },
     reportError: (error) => errors.push(error),
-    createdText: () => CREATED_TEXT,
   });
   const states: ImportFlowState<FakeSession>[] = [];
   flow.subscribe((state) => states.push(state));
-  return { flow, log, opened, toasts, errors, sessions, states };
+  return { flow, log, opened, errors, sessions, states };
 }
 
 describe("ImportFlow", () => {
@@ -108,8 +102,8 @@ describe("ImportFlow", () => {
     expect(log).toEqual([]);
   });
 
-  it("after creating: forgets the session, cleans up, opens the slideshow and confirms", async () => {
-    const { flow, log, opened, toasts, sessions } = setUp();
+  it("after creating: forgets the session, cleans up and opens the slideshow", async () => {
+    const { flow, log, opened, sessions } = setUp();
     flow.open();
 
     await flow.created("show-1");
@@ -123,9 +117,17 @@ describe("ImportFlow", () => {
       "measure loudness",
     ]);
     expect(opened.at(-1)).toEqual({ screen: "slideshow", slideshowId: "show-1" });
-    expect(toasts).toEqual([
-      { text: CREATED_TEXT, tone: "info", route: { screen: "slideshow", slideshowId: "show-1" } },
-    ]);
+  });
+
+  it("offers the Play pulse once, only for the slideshow just created", async () => {
+    const { flow } = setUp();
+    flow.open();
+
+    await flow.created("show-1");
+
+    expect(flow.takePlayPulse("other")).toBe(false);
+    expect(flow.takePlayPulse("show-1")).toBe(true);
+    expect(flow.takePlayPulse("show-1")).toBe(false);
   });
 
   it("looks for the focus and listens for the beats of a slideshow created from a file", async () => {

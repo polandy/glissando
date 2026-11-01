@@ -13,6 +13,14 @@ export function moodName(t: Translator["t"], mood: SlideshowMood | undefined): s
   return mood === "calm" ? t("mood.calm") : t("mood.lively");
 }
 
+/** The one short phrase under a mood's name on the Mood tile and the Mood sheet's choices. */
+export function moodSubtitle(t: Translator["t"], mood: SlideshowMood | undefined): string {
+  if (mood === undefined) {
+    return t("mood.customSubtitle");
+  }
+  return mood === "calm" ? t("mood.calmSubtitle") : t("mood.livelySubtitle");
+}
+
 /**
  * "Picture times" worked out for `mood` at `beatsPerMinute` (MOOD.md): "~6.3 s · 8 beats" with a
  * tempo, "~7 s" without one; the slideshow's own automatic text while Custom.
