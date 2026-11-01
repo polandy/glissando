@@ -117,7 +117,7 @@ test("E2E-020 a picture gets its own Ken Burns motion that is stored, and goes b
   await expect(endFrameBox).toHaveAttribute("aria-label", endZoom ?? "");
 });
 
-test("E2E-022 a picture gets its own duration and transition, stored, and the transition goes back to automatic", async ({
+test("E2E-022 a picture gets its own duration and transition, stored, and both go back to automatic together", async ({
   page,
 }) => {
   const selectionBar = page.getByRole("toolbar", { name: "Auswahl" });
@@ -128,13 +128,10 @@ test("E2E-022 a picture gets its own duration and transition, stored, and the tr
   const ownTile = page.getByRole("button", {
     name: "Bild 2, aufgenommen am 14.07.2025, eigene Dauer 6,5 s, eigener Übergang Kreis",
   });
-  const durationSection = page.locator('section[aria-labelledby="duration-label"]');
-  const transitionSection = page.locator('section[aria-labelledby="transition-label"]');
-  const durationState = durationSection.locator(".state");
-  const transitionState = transitionSection.locator(".state");
-  const durationValue = durationSection.locator("output.mono");
-  const longer = durationSection.getByRole("button", { name: "Eine halbe Sekunde länger" });
-  const circleTile = transitionSection.getByRole("radio", { name: /Kreis/ });
+  const timingSection = page.locator('section[aria-labelledby="timing-label"]');
+  const timingState = timingSection.locator(".state");
+  const lengthSlider = timingSection.getByRole("slider", { name: "Bilddauer" });
+  const circleTile = timingSection.getByRole("radio", { name: /Kreis/ });
   await openApp(page);
   await createSlideshow(page, ["2025-07-12", "2025-07-14", "2025-07-20"]);
   // A new slideshow opens on Calm (ADR-0050); this case is
@@ -143,17 +140,17 @@ test("E2E-022 a picture gets its own duration and transition, stored, and the tr
 
   await automaticTile.click();
   await selectionBar.getByRole("button", { name: "Bearbeiten" }).click();
-  await expect(durationState).toHaveText("Automatisch");
-  await expect(transitionState).toHaveText("Automatisch");
+  await expect(timingState).toHaveText("Automatisch");
 
-  await longer.click();
-  await longer.click();
-  await longer.click();
-  await expect(durationState).toHaveText("Eigene Dauer");
-  await expect(durationValue).toHaveText("6,5 s");
+  // Each ArrowRight is one stored half-second step.
+  await lengthSlider.focus();
+  for (let step = 0; step < 3; step += 1) {
+    await lengthSlider.press("ArrowRight");
+  }
+  await expect(timingState).toHaveText("Eigener Zeitablauf");
+  await expect(lengthSlider).toHaveAttribute("aria-valuetext", "6,5 s");
 
   await circleTile.click();
-  await expect(transitionState).toHaveText("Eigener Übergang");
   await expect(circleTile).toHaveAttribute("aria-checked", "true");
   await editsStored(page);
 
@@ -168,10 +165,12 @@ test("E2E-022 a picture gets its own duration and transition, stored, and the tr
   ).toBeVisible();
 
   await selectionBar.getByRole("button", { name: "Bearbeiten" }).click();
-  await expect(transitionState).toHaveText("Eigener Übergang");
-  await transitionSection.getByRole("button", { name: "Zurück auf automatisch" }).click();
-  await expect(transitionState).toHaveText("Automatisch");
+  await expect(timingState).toHaveText("Eigener Zeitablauf");
+  await expect(lengthSlider).toHaveAttribute("aria-valuetext", "6,5 s");
+  await timingSection.getByRole("button", { name: "Zurück auf automatisch" }).click();
+  await expect(timingState).toHaveText("Automatisch");
+  await expect(circleTile).toHaveAttribute("aria-checked", "false");
   await expect(
-    page.getByRole("status").filter({ hasText: "Übergang wieder automatisch" }),
+    page.getByRole("status").filter({ hasText: "Zeitablauf wieder automatisch" }),
   ).toBeVisible();
 });
