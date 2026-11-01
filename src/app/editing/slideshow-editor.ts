@@ -146,16 +146,8 @@ export class SlideshowEditor {
     this.#pictureSettings.setDuration(pictureId, durationMs);
   }
 
-  resetDuration(pictureId: string): void {
-    this.#pictureSettings.resetDuration(pictureId);
-  }
-
   setTransition(pictureId: string, transition: TransitionChoice): void {
     this.#pictureSettings.setTransition(pictureId, transition);
-  }
-
-  resetTransition(pictureId: string): void {
-    this.#pictureSettings.resetTransition(pictureId);
   }
 
   resetTiming(pictureId: string): void {

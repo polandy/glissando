@@ -33,8 +33,6 @@ export function createScreenEditor(
     lastPictureText: () => t("slideshow.lastPictureStays"),
     everyPictureText: () => t("slideshow.everyPictureStays"),
     motionAutomaticText: () => t("editor.motionAutomatic"),
-    durationAutomaticText: () => t("editor.durationAutomatic"),
-    transitionAutomaticText: () => t("editor.transitionAutomatic"),
     timingAutomaticText: () => t("editor.timingAutomatic"),
     captionClearedText: () => t("editor.captionCleared"),
     slideshowTransitionResetText: () => t("transitions.resetDone"),

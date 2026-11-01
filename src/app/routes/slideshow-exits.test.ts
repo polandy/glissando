@@ -56,8 +56,6 @@ function editorOver(store: MemoryLibraryStore, toaster: Toaster): SlideshowEdito
     lastPictureText: () => "Das letzte Bild bleibt.",
     everyPictureText: () => "Mindestens ein Bild bleibt.",
     motionAutomaticText: () => "Bewegung wieder automatisch",
-    durationAutomaticText: () => "Bilddauer wieder automatisch",
-    transitionAutomaticText: () => "Übergang wieder automatisch",
     timingAutomaticText: () => "Zeitablauf wieder automatisch",
     captionClearedText: () => "Bildtitel entfernt",
     slideshowTransitionResetText: () => "Übergänge wieder auf Überblenden",

@@ -9,7 +9,7 @@ import type { Toaster, ToastMessage } from "../toast/toaster";
  * what a removal or reset of a title slide, a closing slide, a chapter or a video clip drops.
  */
 export type ResettableSetting =
-  | keyof Pick<StoredPicture, "kenBurns" | "durationMs" | "transition">
+  | keyof Pick<StoredPicture, "kenBurns">
   | "timing"
   | "caption"
   | "slideshowTransition"

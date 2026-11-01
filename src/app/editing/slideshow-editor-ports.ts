@@ -30,9 +30,7 @@ export interface SlideshowEditorPorts {
   /** The undo toast's text after a picture's own motion was dropped. */
   readonly motionAutomaticText: () => string;
   /** The undo toast's text after a picture's own duration was dropped. */
-  readonly durationAutomaticText: () => string;
   /** The undo toast's text after a picture's own transition was dropped. */
-  readonly transitionAutomaticText: () => string;
   /** The undo toast's text after a picture's own duration and transition were dropped together. */
   readonly timingAutomaticText: () => string;
   /** The undo toast's text after a picture's caption was cleared. */
