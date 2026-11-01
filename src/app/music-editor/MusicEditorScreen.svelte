@@ -5,7 +5,6 @@
   import Header from "../components/Header.svelte";
   import Switch from "../components/Switch.svelte";
   import PictureLengthSection from "../components/PictureLengthSection.svelte";
-  import "./music-editor-touch.css";
   import { getTranslator } from "../i18n/context";
   import AddSongSheet from "./AddSongSheet.svelte";
   import AddSongsButton from "./AddSongsButton.svelte";
@@ -100,7 +99,7 @@
   }
 </script>
 
-<div class="screen" aria-busy={saving}>
+<div class="screen music-editor" aria-busy={saving}>
   <Header crumbs={[t("start.library"), slideshow.title, t("music.crumb")]} {onBack}>
     {#snippet actions()}
       {#if music !== null}
