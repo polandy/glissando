@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.0.13](https://github.com/polandy/glissando/compare/glissando-v0.0.12...glissando-v0.0.13) (2026-11-01)
+
+
+### Bug Fixes
+
+* **copy:** sweep the catalogues and user guide against the glossary ([#158](https://github.com/polandy/glissando/issues/158)) ([60bf5b6](https://github.com/polandy/glissando/commit/60bf5b645b5bd9c810d424d879ee4ff3a78b729b))
+* **ux:** browser-back guard for selections and header crumbs as links ([#161](https://github.com/polandy/glissando/issues/161)) ([c949e33](https://github.com/polandy/glissando/commit/c949e33ec372e4d06702cb63b202d6bd0d145045))
+* **ux:** export failures explained, codec note, one size scale, Immich only with a server, Esc as Back ([#162](https://github.com/polandy/glissando/issues/162)) ([b1cb9ae](https://github.com/polandy/glissando/commit/b1cb9ae8c5c2759002ed21092ea72826f8c0e87e))
+* **ux:** labelled selection bar, one-gesture reorder on touch, 44 px touch targets ([#164](https://github.com/polandy/glissando/issues/164)) ([910ab6a](https://github.com/polandy/glissando/commit/910ab6a5de0660fcf17fa1bff2027c73e32b2ab3))
+* **ux:** music editor essentials first, one fit notice, info popovers, 44 px touch targets ([#165](https://github.com/polandy/glissando/issues/165)) ([824c4f1](https://github.com/polandy/glissando/commit/824c4f1caa562ddbbb1d5403671e46fe2036de6b))
+* **ux:** picture editor Timing section with a length slider, caption undo, 44 px touch targets ([#166](https://github.com/polandy/glissando/issues/166)) ([4f15616](https://github.com/polandy/glissando/commit/4f15616ea46af8a50cf8f8ae5dd1b4c2aa30424d))
+* **ux:** slideshow screen puts Play and pictures first, inline trip chapters ([#163](https://github.com/polandy/glissando/issues/163)) ([08f6f90](https://github.com/polandy/glissando/commit/08f6f90261ab115744388bc8c07a5114e2a18247))
+* **ux:** undo for removals, loading labels, route skeletons, phone search label ([#160](https://github.com/polandy/glissando/issues/160)) ([74cf6f2](https://github.com/polandy/glissando/commit/74cf6f28116cfc7f6f6abd00097296244c8f90c5))
+
 ## [0.0.12](https://github.com/polandy/glissando/compare/glissando-v0.0.11...glissando-v0.0.12) (2026-10-31)
 
 
