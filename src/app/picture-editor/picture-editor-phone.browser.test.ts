@@ -4,7 +4,7 @@ import { flushSync } from "svelte";
 import { afterEach, describe, expect, it } from "vitest";
 import { page } from "vitest/browser";
 import { button, element, mountEditor, unmountEditor } from "./picture-editor-harness";
-import { tile } from "./picture-editor-timing-fixtures";
+import { dragLength, releaseLength, tile } from "./picture-editor-timing-fixtures";
 
 /** The reference phone, a Pixel 9 Pro, in CSS pixels. */
 const PHONE = { width: 412, height: 915 };
@@ -76,13 +76,26 @@ describe("PictureEditorScreen on a phone: one view at a time", () => {
 
   it.each([
     ["Swap start and end", () => button("Start und Ende tauschen")],
-    ["a longer duration", () => button("Eine halbe Sekunde länger")],
     ["a transition", () => tile("push-left")],
   ])("shows the preview after %s", async (_, control) => {
     await onPhone();
     expect(shown(well())).toBe(true);
 
     click(control());
+
+    expect(shown(preview())).toBe(true);
+    expect(shown(well())).toBe(false);
+    expect(pressed("Abspielen")).toBe("true");
+  });
+});
+
+describe("PictureEditorScreen, the phone's picture length", () => {
+  it("shows the preview after a new picture length is released", async () => {
+    await onPhone();
+    expect(shown(well())).toBe(true);
+
+    dragLength(7);
+    releaseLength();
 
     expect(shown(preview())).toBe(true);
     expect(shown(well())).toBe(false);

@@ -1,51 +1,103 @@
+import "../../styles/tokens.css";
+import "../../styles/base.css";
 import { afterEach, describe, expect, it } from "vitest";
-import { button, element, mountEditor, unmountEditor, view } from "./picture-editor-harness";
-import { chip, durationSection, resetIn, text } from "./picture-editor-timing-fixtures";
+import { element, mountEditor, unmountEditor, view } from "./picture-editor-harness";
+import {
+  chip,
+  dragLength,
+  lengthInput,
+  lengthSlider,
+  lengthValue,
+  releaseLength,
+  resetIn,
+  text,
+  timingSection,
+} from "./picture-editor-timing-fixtures";
 
 afterEach(() => unmountEditor());
 
-describe("PictureEditorScreen duration", () => {
-  it("shows an automatic duration with its value; + makes it own, half a second longer", () => {
-    const { calls } = mountEditor();
+describe("PictureEditorScreen picture length", () => {
+  it("is a slider from 2 to 15 s in half-second steps, named and read out in seconds", () => {
+    mountEditor();
 
-    button("Eine halbe Sekunde länger").click();
-
-    expect(chip(durationSection())).toBe("Automatisch");
-    expect(element("output").textContent).toBe("5,0 s");
-    expect(text(durationSection())).toContain("Folgt der Bilddauer der Diashow. 2 bis 15 s.");
-    expect(calls.durations).toEqual([5500]);
+    const input = lengthInput();
+    expect(input.getAttribute("aria-label")).toBe("Bilddauer");
+    expect([input.min, input.max, input.step, input.value]).toEqual(["2", "15", "0.5", "5"]);
+    expect(input.getAttribute("aria-valuetext")).toBe("5,0 s");
+    expect(lengthValue()).toBe("5,0 s");
+    const marks = [...element(".slider .scale").children].map((mark) => mark.textContent);
+    expect(marks).toEqual(["2 s", "5", "10", "15 s"]);
   });
 
-  it("calls an automatic duration so: Back to automatic looks off and says why", () => {
+  it("shows the value live while dragging and stores nothing until release", () => {
     const { calls } = mountEditor();
-    const reset = resetIn(durationSection());
+
+    dragLength(7.5);
+
+    expect(lengthValue()).toBe("7,5 s");
+    expect(lengthInput().getAttribute("aria-valuetext")).toBe("7,5 s");
+    expect(calls.durations).toEqual([]);
+
+    releaseLength();
+
+    expect(calls.durations).toEqual([7500]);
+  });
+
+  it("marks the automatic duration on the track", () => {
+    mountEditor(view({ durationMs: 8000, ownDuration: true }));
+
+    const mark = element(".slider .mark");
+    expect(mark.title).toBe("Automatisch: 5,0 s");
+  });
+
+  it("has no automatic mark while the automatic duration is shared music", () => {
+    mountEditor(
+      view({
+        durationBasis: { kind: "music", automaticCount: 7, shareMs: null, clamped: false },
+      }),
+    );
+
+    expect(lengthInput()).toBeDefined();
+    expect(lengthSlider().querySelector(".mark")).toBeNull();
+  });
+
+  it("calls an automatic timing so: Back to automatic looks off and says why", () => {
+    const { calls } = mountEditor();
+    const reset = resetIn(timingSection());
 
     reset.click();
 
+    expect(chip(timingSection())).toBe("Automatisch");
     expect(reset.getAttribute("aria-disabled")).toBe("true");
-    expect(reset.title).toBe("Die Dauer ist schon automatisch");
-    expect(calls.durationResets).toBe(0);
+    expect(reset.title).toBe("Der Zeitablauf ist schon automatisch");
+    expect(calls.timingResets).toBe(0);
   });
 
-  it("shows an own duration beside the automatic one; Back to automatic resets it", () => {
+  it("an own duration alone makes the timing own and names the automatic one", () => {
+    mountEditor(view({ durationMs: 8000, ownDuration: true }));
+
+    expect(chip(timingSection())).toBe("Eigener Zeitablauf");
+    expect(text(timingSection())).toContain("Automatisch wären es 5,0 s.");
+    expect(text(timingSection())).not.toContain("2 bis 15 s.");
+  });
+
+  it("Back to automatic resets duration and transition with one press", () => {
     const { calls } = mountEditor(view({ durationMs: 8000, ownDuration: true }));
 
-    resetIn(durationSection()).click();
+    resetIn(timingSection()).click();
 
-    expect(chip(durationSection())).toBe("Eigene Dauer");
-    expect(text(durationSection())).toContain("Automatisch wären es 5,0 s.");
-    expect(calls.durationResets).toBe(1);
+    expect(calls.timingResets).toBe(1);
+    expect(chip(timingSection())).toBe("Automatisch");
+    expect(lengthValue()).toBe("5,0 s");
   });
 
-  it("looks off at the longest duration and stays there", () => {
-    const { calls } = mountEditor(view({ durationMs: 15_000, ownDuration: true }));
-    const longer = button("Eine halbe Sekunde länger");
+  it("has a single Back to automatic for the whole timing", () => {
+    mountEditor();
 
-    longer.click();
-    button("Eine halbe Sekunde kürzer").click();
-
-    expect(longer.getAttribute("aria-disabled")).toBe("true");
-    expect(calls.durations).toEqual([14_500]);
+    const resets = [...timingSection().querySelectorAll("button")].filter((candidate) =>
+      candidate.textContent?.includes("Zurück auf automatisch"),
+    );
+    expect(resets).toHaveLength(1);
   });
 
   it("with music, names the share of the other pictures", () => {
@@ -57,7 +109,7 @@ describe("PictureEditorScreen duration", () => {
       }),
     );
 
-    expect(text(durationSection())).toContain(
+    expect(text(timingSection())).toContain(
       "Die übrigen 7 Bilder teilen sich den Rest der Musik: je 4,6 s.",
     );
   });
@@ -71,7 +123,7 @@ describe("PictureEditorScreen duration", () => {
       }),
     );
 
-    expect(text(durationSection())).toContain(
+    expect(text(timingSection())).toContain(
       "Die Musik ist aufgebraucht; die übrigen 7 Bilder bekommen das Minimum, je 2,0 s.",
     );
   });

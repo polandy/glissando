@@ -16,7 +16,7 @@ export const enTiming: Pick<Catalogue, keyof typeof deTiming> = {
   "editor.timingAlreadyAutomatic": "The timing is already automatic",
   "editor.pictureLength": "Picture length",
   "editor.lengthScale": "{seconds} s",
-  "editor.lengthAutomaticMark": "Automatic: {seconds} s",
+  "editor.lengthAutomaticMark": "Automatic: {seconds}",
   "editor.durationHintAutomatic": "Follows the slideshow's picture length.",
   "editor.durationHintOwn": "Automatic would be {duration}.",
   "editor.durationHintMusic": {

@@ -2,7 +2,7 @@
   import { getTranslator } from "../i18n/context";
   import { focusLineText, type FocusLineView } from "./focus-indication";
 
-  /** One quiet line under the picture: its focus search's state, and an action to look again. */
+  /** One quiet line below the motion controls: its focus search's state, and an action to look again. */
   let { line, onLookAgain }: { line: FocusLineView; onLookAgain: () => void } = $props();
 
   const { t } = getTranslator();
@@ -17,14 +17,14 @@
     <span class="msg">{t(text.textKey)}</span>
   {/if}
   {#if text.actionKey !== null}
-    <button type="button" class="action" onclick={onLookAgain}>{t(text.actionKey)}</button>
+    <button type="button" class="btn small ghost action" onclick={onLookAgain}>{t(text.actionKey)}</button>
   {/if}
 </p>
 
 <style>
   .focus-line {
     display: flex;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: center;
     flex-wrap: wrap;
     gap: 8px;
@@ -33,7 +33,6 @@
     color: var(--gl-muted);
     font-size: var(--gl-size-meta);
     line-height: 1.45;
-    text-align: center;
   }
   .searching {
     display: inline-flex;
@@ -54,21 +53,6 @@
   @keyframes pulse {
     50% {
       opacity: 0.3;
-    }
-  }
-  .action {
-    padding: 0;
-    border: none;
-    background: none;
-    color: var(--gl-accent);
-    font: inherit;
-    font-weight: var(--gl-weight-medium);
-    text-decoration: underline;
-    cursor: pointer;
-  }
-  @container (max-width: 720px) {
-    .focus-line {
-      padding: 0 16px;
     }
   }
   @media (prefers-reduced-motion: reduce) {

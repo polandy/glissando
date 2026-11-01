@@ -6,16 +6,14 @@
   import { normalizeCaption, type Framing } from "../../player";
   import Header from "../components/Header.svelte";
   import { getTranslator } from "../i18n/context";
-  import FocusLine from "./FocusLine.svelte";
   import { focusIndication } from "./focus-indication";
   import FrameWell from "./FrameWell.svelte";
   import { playheadRect } from "./frame-geometry";
-  import DurationSection from "./DurationSection.svelte";
   import LayoutSection from "./LayoutSection.svelte";
   import MotionPanel from "./MotionPanel.svelte";
   import MotionPreviewScreen from "./MotionPreviewScreen.svelte";
   import PictureNavigation from "./PictureNavigation.svelte";
-  import TransitionSection from "./TransitionSection.svelte";
+  import TimingSection from "./TimingSection.svelte";
   import ViewSwitch, { type PhoneView } from "./ViewSwitch.svelte";
   import { EditorPreview } from "./editor-preview";
   import { MotionPreview, type MotionPreviewPorts } from "./motion-preview";
@@ -38,10 +36,10 @@
     onSwap,
     onReset,
     onCaption,
+    onClearCaption,
     onDuration,
-    onResetDuration,
     onTransition,
-    onResetTransition,
+    onResetTiming,
     onAlone,
     onLookAgain,
     previewPorts,
@@ -62,11 +60,13 @@
     onReset: () => void;
     /** The caption as typed, on every keystroke. */
     onCaption: (typed: string) => void;
+    /** The caption's clear button was pressed; its undo is offered by the caller. */
+    onClearCaption: () => void;
     /** An own duration in whole milliseconds. */
     onDuration: (durationMs: number) => void;
-    onResetDuration: () => void;
     onTransition: (choice: TransitionChoice) => void;
-    onResetTransition: () => void;
+    /** Duration and transition back to automatic, together. */
+    onResetTiming: () => void;
     /** "Always alone" was toggled (ADR-0028). */
     onAlone: (alone: boolean) => void;
     /** Looks at this picture's focus again; never touches its Ken Burns motion (ADR-0041). */
@@ -176,7 +176,6 @@
         onActivate={activate}
         onFraming={frameChanged}
       />
-      <FocusLine line={picture.focusLine} {onLookAgain} />
       <p class="hint wide-hint">{t("editor.hintWide")}</p>
       <ViewSwitch view={phoneView} onView={switchView} />
     </div>
@@ -197,8 +196,10 @@
           editorPreview.replay();
         }
       }}
+      {onLookAgain}
       bind:caption
       {onCaption}
+      {onClearCaption}
     >
       {#snippet preview()}
         <MotionPreviewScreen
@@ -214,30 +215,23 @@
         <ViewSwitch view={phoneView} onView={switchView} />
       {/snippet}
       {#snippet timing()}
-        <DurationSection
-          {picture}
-          onDuration={(durationMs) => {
-            onDuration(durationMs);
-            showPreview();
-          }}
-          onReset={() => {
-            onResetDuration();
-            showPreview();
-          }}
-        />
-        <TransitionSection
+        <TimingSection
           {picture}
           {pictureUrl}
           {nextPictureUrl}
           ports={previewPorts}
           {reducedMotion}
+          onDuration={(durationMs) => {
+            onDuration(durationMs);
+            showPreview();
+          }}
           onTransition={(choice) => {
             onTransition(choice);
             showPreview();
             editorPreview.showTransition(choice, picture);
           }}
           onReset={() => {
-            onResetTransition();
+            onResetTiming();
             showPreview();
             editorPreview.showTransition(picture.transition.automatic, picture);
           }}

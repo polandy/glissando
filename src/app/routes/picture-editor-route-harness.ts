@@ -136,9 +136,10 @@ export async function mountRoute(
   await store.saveSlideshow(stored);
   const focusPass = createFocusPass(store);
   const errors: unknown[] = [];
+  const toaster = new Toaster(new FakeScheduler());
   const editor = new SlideshowEditor(stored, {
     store,
-    toaster: new Toaster(new FakeScheduler()),
+    toaster,
     newId: () => "claim-1",
     now: () => new Date("2026-10-08T12:00:00Z"),
     onError: (error) => errors.push(error),
@@ -199,5 +200,14 @@ export async function mountRoute(
   });
   const mounted = mountWithTranslator(PictureEditorRoute, props);
   destroy = mounted.destroy;
-  return { target: mounted.target, backs: () => backs, store, editor, errors, logged, props };
+  return {
+    target: mounted.target,
+    backs: () => backs,
+    store,
+    editor,
+    toaster,
+    errors,
+    logged,
+    props,
+  };
 }

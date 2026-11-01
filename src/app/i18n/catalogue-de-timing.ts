@@ -15,7 +15,7 @@ export const deTiming = {
   "editor.timingAlreadyAutomatic": "Der Zeitablauf ist schon automatisch",
   "editor.pictureLength": "Bilddauer",
   "editor.lengthScale": "{seconds} s",
-  "editor.lengthAutomaticMark": "Automatisch: {seconds} s",
+  "editor.lengthAutomaticMark": "Automatisch: {seconds}",
   "editor.durationHintAutomatic": "Folgt der Bilddauer der Diashow.",
   "editor.durationHintOwn": "Automatisch wären es {duration}.",
   "editor.durationHintMusic": {

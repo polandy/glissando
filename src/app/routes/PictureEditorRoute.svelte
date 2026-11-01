@@ -194,10 +194,10 @@
       onSwap={() => editor.swapKenBurns(view.id)}
       onReset={() => editor.resetKenBurns(view.id)}
       onCaption={(typed) => editor.setCaption(view.id, typed)}
+      onClearCaption={() => editor.clearCaption(view.id)}
       onDuration={(durationMs) => editor.setDuration(view.id, durationMs)}
-      onResetDuration={() => editor.resetDuration(view.id)}
       onTransition={(choice) => editor.setTransition(view.id, choice)}
-      onResetTransition={() => editor.resetTransition(view.id)}
+      onResetTiming={() => editor.resetTiming(view.id)}
       onAlone={(alone) => editor.setPictureAlone(view.id, alone)}
       onLookAgain={() => focusPass.lookAgain([view.id])}
       previewPorts={{ clock: performanceClock, frames: animationFrames }}

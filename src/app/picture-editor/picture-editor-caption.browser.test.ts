@@ -92,7 +92,7 @@ describe("PictureEditorScreen, the caption", () => {
     flushSync();
 
     expect(field().value).toBe("");
-    expect(calls.captions.at(-1)).toBe("");
+    expect(calls.clearedCaptions).toBe(1);
     expect(document.activeElement).toBe(field());
     expect(document.querySelector('[aria-label="Bildtitel entfernen"]')).toBeNull();
   });

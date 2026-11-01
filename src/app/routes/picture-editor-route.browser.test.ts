@@ -50,6 +50,31 @@ describe("the picture editor route", () => {
     expect(errors).toEqual([]);
   });
 
+  it("clearing the caption raises an undo toast, and its undo puts the text back in the field", async () => {
+    const { target, toaster, editor, props } = await mountRoute("b");
+    const field = target.querySelector<HTMLInputElement>('input[type="text"]');
+    if (field === null) {
+      throw new Error("the caption field is missing");
+    }
+    field.value = "Abends am Steg";
+    field.dispatchEvent(new Event("input", { bubbles: true }));
+    flushSync();
+    expect(toaster.current).toBeNull();
+
+    target.querySelector<HTMLButtonElement>('[aria-label="Bildtitel entfernen"]')?.click();
+    flushSync();
+
+    expect(toaster.current?.text).toBe("Bildtitel entfernt");
+    expect(field.value).toBe("");
+
+    toaster.act();
+    props.stored = editor.slideshow;
+    flushSync();
+    await editor.settled();
+
+    expect(field.value).toBe("Abends am Steg");
+  });
+
   it("marks the focus the background pass finds while the picture is open", async () => {
     const { target, store, props } = await mountRoute("b");
     const detector = new FakeFocusDetector(() => FACE);
