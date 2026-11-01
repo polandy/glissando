@@ -2,8 +2,8 @@
   import { MUSIC_VOLUME_MAX_DB, MUSIC_VOLUME_MIN_DB } from "../../library/own-music";
   import Icon from "../components/Icon.svelte";
   import ResetButton from "../components/ResetButton.svelte";
-  import SectionHead from "../components/SectionHead.svelte";
   import { getTranslator } from "../i18n/context";
+  import InfoHead from "./InfoHead.svelte";
   import type { ListenState } from "./listen-preview";
   import type { VolumeView } from "./volume-view";
 
@@ -55,13 +55,23 @@
 </script>
 
 <section class="section" aria-labelledby="music-volume">
-  <SectionHead
+  <InfoHead
     id="music-volume"
     icon="volume"
     title={t("music.volume")}
     stateText={volume.levelled ? t("music.volumeLevelled") : t("music.volumeOwn")}
     own={!volume.levelled}
-  />
+    infoLabel={t("music.infoVolume")}
+  >
+    <p>{t("music.infoVolumeText")}</p>
+    {#if volume.hint.kind === "levelledBy"}
+      <p>
+        {t("music.volumeHintLevelledBy", {
+          levelDb: formatVolumeDb(Math.round(volume.hint.levelDb)),
+        })}
+      </p>
+    {/if}
+  </InfoHead>
   <div class="readout">
     <b>{volume.levelled ? t("music.volumeLevelled") : formatVolumeDb(volume.shownDb)}</b>
     <span class="sub">{t(subKeys[volume.sub.kind])}</span>
@@ -104,12 +114,6 @@
   {:else if volume.hint.kind === "cappedMax"}
     <p class="hint">
       <span class="warn"><Icon name="alert" /></span>{t("music.volumeHintCappedMax")}
-    </p>
-  {:else if volume.hint.kind === "levelledBy"}
-    <p class="hint">
-      {t("music.volumeHintLevelledBy", {
-        levelDb: formatVolumeDb(Math.round(volume.hint.levelDb)),
-      })}
     </p>
   {/if}
   {#if !volume.levelled}

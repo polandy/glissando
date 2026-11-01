@@ -81,11 +81,10 @@ describe("SecondsStepper", () => {
 });
 
 describe("PictureLengthSection", () => {
-  function mountSection(fittedShareMs?: number) {
+  function mountSection() {
     const mounted = mountWithTranslator(PictureLengthSection, {
       ownSeconds: true,
       secondsPerPicture: 5,
-      fittedShareMs,
       onPictureLength: () => {},
       onSecondsPerPicture: () => {},
     });
@@ -93,15 +92,10 @@ describe("PictureLengthSection", () => {
     return mounted.target;
   }
 
-  it("notes the shrunk share once the pictures fit a shorter music", () => {
-    const target = mountSection(3_300);
+  it("offers an info button instead of a paragraph of mechanics", () => {
+    const target = mountSection();
 
-    expect(target.textContent).toContain("Auf 3,3 s gekürzt, damit es zur Musik passt");
-  });
-
-  it("shows no such note while the pictures do not need to shrink", () => {
-    const target = mountSection(undefined);
-
+    expect(target.querySelector("button.info")).not.toBeNull();
     expect(target.textContent).not.toContain("verkürzt");
   });
 });

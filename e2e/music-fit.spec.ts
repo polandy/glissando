@@ -7,7 +7,7 @@ import {
 } from "./support/app";
 import { openApp } from "./support/browser";
 import { silentTrack } from "./support/media";
-import { clickSwitch } from "./support/switch";
+import { clickSwitch, showMusicDetails } from "./support/switch";
 
 /** The reference phone, a Pixel 9 Pro, in CSS pixels. */
 const PHONE = { width: 412, height: 915 };
@@ -43,10 +43,10 @@ test("E2E-081 the music editor notes a shorter music that outlasts or fits the p
 }) => {
   const endHandle = page.getByRole("slider", { name: "Ende" });
   const outlastsNote = page.getByText("Die Musik endet 0:07 vor den Bildern");
-  const fittedNote = page.getByText("Bilder je etwa 4,0 s, damit sie mit der Musik enden.");
+  const fittedNote = page.getByText("Auf je 4,0 s gekürzt, damit die Bilder mit der Musik enden");
   const repeatButton = page.getByRole("button", { name: "Musik wiederholen", exact: true });
   const panelSwitch = page.getByRole("switch", { name: "Musik wiederholen" });
-  const laneRepeats = page.getByText("Musik wiederholt · blendet mit dem letzten Bild aus");
+  const laneRepeats = page.getByText("die Musik wiederholt sich und blendet am Ende aus");
 
   await openApp(page);
   await createSlideshowWithMusic(page, silentTrack("Nachtlicht.wav", TRACK_SECONDS));
@@ -55,6 +55,7 @@ test("E2E-081 the music editor notes a shorter music that outlasts or fits the p
   await chooseCustomMood(page);
   // The Music tile is never folded away (ADR-0048).
   await page.getByRole("button", { name: /^Musik Nachtlicht\.wav/ }).click();
+  await showMusicDetails(page);
 
   // Shift+arrow steps the handle a second at a time (as in TrimSection), down to an excerpt the
   // 3 pictures, even squeezed, cannot end with: they keep their 5 s each and outlast it by 7 s.

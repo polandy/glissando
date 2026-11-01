@@ -38,41 +38,8 @@ export const enMusic: Pick<Catalogue, keyof typeof deMusic> = {
   "music.reason-excerpt-ends-early": "long, as the excerpt stops before the song ends",
   "music.reason-track-ends": "off, as the song ends by itself",
   "music.pictureTimes": "Picture length",
-  "music.noteShared": {
-    one: "The picture without its own duration gets the excerpt: {share}. The slideshow ends with the music.",
-    other:
-      "{count} pictures without their own duration share the excerpt: {share} each. The slideshow ends with the music.",
-  },
-  "music.noteSharedOnTheBeat": {
-    one: "The picture without its own duration gets the excerpt: {share}. The slideshow ends with the music.",
-    other:
-      "{count} pictures without their own duration share the excerpt: about {share} each. The slideshow ends with the music.",
-  },
-  "music.noteOutlasts": "The slideshow runs {over} longer than the music.",
-  "music.noteOutlastsWhy": {
-    one: "The picture without its own duration gets the minimum of {min}; after the fade-out the last pictures play in silence. A longer excerpt fixes that.",
-    other:
-      "{count} pictures get the minimum of {min}; after the fade-out the last pictures play in silence. A longer excerpt fixes that.",
-  },
-  "music.noteOutlastsAllOwn":
-    "Every picture has its own duration; after the fade-out the last pictures play in silence.",
-  "music.noteEndsEarly":
-    "Every picture has its own duration. The slideshow ends after {time}; the music fades out there.",
-  "music.noteEndsWithMusic":
-    "Every picture has its own duration. The slideshow ends with the music.",
-  "music.noteFitted":
-    "Each picture without its own duration shrinks to about {seconds}, to end with the music.",
-  "music.noteFittedOnTheBeat":
-    "Each picture without its own duration shrinks to about {seconds}, each change on the nearest beat, to end with the music.",
-  "music.noteOwnSeconds":
-    "Each picture without its own duration stays {seconds}. The slideshow lasts {time}; the music fades out there.",
-  "music.noteOwnSecondsOnTheBeat":
-    "Each picture without its own duration stays about {seconds}, each change on the nearest beat. The slideshow lasts {time}; the music fades out there.",
-  "music.noteOutlastsOwnSeconds":
-    "Each picture without its own duration stays {seconds}; after the fade-out the last pictures play in silence. Shorter pictures, longer music or “Fill the music” fix that.",
   "music.pictureLength": "Picture length",
   "music.aboutSecondsEach": "About {seconds} each",
-  "music.pictureLengthFitted": "Shortened to {seconds} to fit the music",
   "music.fillTheMusic": "Fill the music",
   "music.pictureTimesByMood": "Picture length is set by the mood {name} — {value}",
   "music.setOwnPictureTimes": "Set it yourself",
@@ -123,4 +90,25 @@ export const enMusic: Pick<Catalogue, keyof typeof deMusic> = {
   "music.volumeOriginalFile": "Original file",
   "music.volumeListenCompare": "While listening, tap another song to compare.",
   "music.waveformReading": "Reading the song…",
+  "music.infoPictureLength": "About picture length",
+  "music.infoPictureLengthAbout":
+    "About {seconds} each: every picture stays about that long, and shrinks to end with the music when the music is shorter.",
+  "music.infoPictureLengthFill": "Fill the music: the pictures share the music evenly.",
+  "music.infoRepeatMusic": "About repeating the music",
+  "music.infoRepeatMusicText":
+    "When the songs end before the pictures, they play again from the first song. The music fades out with the last picture.",
+  "music.infoBetweenSongs": "About the hand-over between songs",
+  "music.infoPictureChanges": "About picture changes",
+  "music.infoFadeIn": "About the fade in",
+  "music.infoFadeOut": "About the fade out",
+  "music.infoVolume": "About volume",
+  "music.infoVolumeText":
+    "Every song is measured and played at the same loudness, so no song jumps out. Choose a volume of your own to make one louder or quieter; Listen plays it from its loudest part.",
+  "music.infoTrim": "About the excerpt",
+  "music.fadeAutomaticChoice": "Automatic · {choice}",
+  "music.noticeMusicEndsEarly": "The music ends {time} before the pictures.",
+  "music.noticeFitted": "Shortened to {seconds} each, to end with the music",
+  "music.noticeEndsWithMusic": "Slideshow {duration} · ends with the music",
+  "music.noticeFadesOut": "Slideshow {duration} · the music fades out at the end",
+  "music.noticeRepeats": "Slideshow {duration} · the music repeats and fades out at the end",
 };

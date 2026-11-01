@@ -37,40 +37,8 @@ export const deMusic = {
   "music.reason-excerpt-ends-early": "lang, weil der Ausschnitt vor dem Songende aufhört",
   "music.reason-track-ends": "aus, weil der Song von selbst endet",
   "music.pictureTimes": "Bilddauer",
-  "music.noteShared": {
-    one: "Das Bild ohne eigene Dauer bekommt den Ausschnitt: {share}. Die Diashow endet mit der Musik.",
-    other:
-      "{count} Bilder ohne eigene Dauer teilen sich den Ausschnitt: je {share}. Die Diashow endet mit der Musik.",
-  },
-  "music.noteSharedOnTheBeat": {
-    one: "Das Bild ohne eigene Dauer bekommt den Ausschnitt: {share}. Die Diashow endet mit der Musik.",
-    other:
-      "{count} Bilder ohne eigene Dauer teilen sich den Ausschnitt: je etwa {share}. Die Diashow endet mit der Musik.",
-  },
-  "music.noteOutlasts": "Die Diashow läuft {over} länger als die Musik.",
-  "music.noteOutlastsWhy": {
-    one: "Das Bild ohne eigene Dauer bekommt das Minimum von {min}; nach der Ausblende laufen die letzten Bilder still. Ein längerer Ausschnitt behebt das.",
-    other:
-      "{count} Bilder bekommen das Minimum von {min}; nach der Ausblende laufen die letzten Bilder still. Ein längerer Ausschnitt behebt das.",
-  },
-  "music.noteOutlastsAllOwn":
-    "Jedes Bild hat eine eigene Dauer; nach der Ausblende laufen die letzten Bilder still.",
-  "music.noteEndsEarly":
-    "Jedes Bild hat eine eigene Dauer. Die Diashow endet nach {time}, die Musik blendet dort aus.",
-  "music.noteEndsWithMusic": "Jedes Bild hat eine eigene Dauer. Die Diashow endet mit der Musik.",
-  "music.noteFitted":
-    "Jedes Bild ohne eigene Dauer schrumpft auf etwa {seconds}, um mit der Musik zu enden.",
-  "music.noteFittedOnTheBeat":
-    "Jedes Bild ohne eigene Dauer schrumpft auf etwa {seconds}, jeder Wechsel auf dem nächsten Takt, um mit der Musik zu enden.",
-  "music.noteOwnSeconds":
-    "Jedes Bild ohne eigene Dauer bleibt {seconds}. Die Diashow dauert {time}, die Musik blendet dort aus.",
-  "music.noteOwnSecondsOnTheBeat":
-    "Jedes Bild ohne eigene Dauer bleibt etwa {seconds}, jeder Wechsel auf dem nächsten Schlag. Die Diashow dauert {time}, die Musik blendet dort aus.",
-  "music.noteOutlastsOwnSeconds":
-    "Jedes Bild ohne eigene Dauer bleibt {seconds}; nach der Ausblende laufen die letzten Bilder still. Kürzere Bilder, längere Musik oder „Musik füllen“ beheben das.",
   "music.pictureLength": "Bilddauer",
   "music.aboutSecondsEach": "Je etwa {seconds}",
-  "music.pictureLengthFitted": "Auf {seconds} gekürzt, damit es zur Musik passt",
   "music.fillTheMusic": "Musik füllen",
   "music.pictureTimesByMood": "Die Bilddauer wird durch die Stimmung {name} festgelegt — {value}",
   "music.setOwnPictureTimes": "Selbst festlegen",
@@ -124,4 +92,25 @@ export const deMusic = {
   "music.volumeListenCompare":
     "Während des Anhörens auf einen anderen Song tippen, um zu vergleichen.",
   "music.waveformReading": "Song wird gelesen …",
+  "music.infoPictureLength": "Über die Bilddauer",
+  "music.infoPictureLengthAbout":
+    "Je etwa {seconds}: Jedes Bild bleibt etwa so lange und wird kürzer, wenn die Musik früher endet, damit es mit ihr endet.",
+  "music.infoPictureLengthFill": "Musik füllen: Die Bilder teilen sich die Musik gleichmäßig.",
+  "music.infoRepeatMusic": "Über Musik wiederholen",
+  "music.infoRepeatMusicText":
+    "Enden die Songs vor den Bildern, spielen sie wieder von vorn. Die Musik blendet mit dem letzten Bild aus.",
+  "music.infoBetweenSongs": "Über den Übergang zwischen den Songs",
+  "music.infoPictureChanges": "Über die Bildwechsel",
+  "music.infoFadeIn": "Über das Einblenden",
+  "music.infoFadeOut": "Über das Ausblenden",
+  "music.infoVolume": "Über die Lautstärke",
+  "music.infoVolumeText":
+    "Jeder Song wird gemessen und gleich laut abgespielt, damit keiner heraussticht. Wähle eine eigene Lautstärke, um einen Song lauter oder leiser zu machen; „Anhören“ spielt ihn ab der lautesten Stelle.",
+  "music.infoTrim": "Über den Ausschnitt",
+  "music.fadeAutomaticChoice": "Automatisch · {choice}",
+  "music.noticeMusicEndsEarly": "Die Musik endet {time} vor den Bildern.",
+  "music.noticeFitted": "Auf je {seconds} gekürzt, damit die Bilder mit der Musik enden",
+  "music.noticeEndsWithMusic": "Diashow {duration} · endet mit der Musik",
+  "music.noticeFadesOut": "Diashow {duration} · die Musik blendet am Ende aus",
+  "music.noticeRepeats": "Diashow {duration} · die Musik wiederholt sich und blendet am Ende aus",
 } as const satisfies Record<string, Message>;

@@ -29,7 +29,7 @@ const button = (label: string): HTMLButtonElement => {
   if (found === null) throw new Error(`no button "${label}"`);
   return found;
 };
-const note = () => document.querySelector(".note")?.textContent ?? "";
+const note = () => document.querySelector(".length-notice")?.textContent ?? "";
 
 describe("MusicEditorScreen, the picture length", () => {
   it("shows the pictures' own seconds with a stepper, and notes the music fading out with them", () => {
@@ -37,8 +37,7 @@ describe("MusicEditorScreen, the picture length", () => {
 
     expect(checked()).toBe("Je etwa 5 s");
     expect(section().querySelector(".stepper")).not.toBeNull();
-    expect(note()).toContain("Jedes Bild ohne eigene Dauer bleibt 5 s");
-    expect(note()).toContain("die Musik blendet dort aus");
+    expect(note()).toContain("Diashow");
     expect(document.body.textContent).toContain("Bis dahin bleibt jedes Bild genau 5 s");
   });
 

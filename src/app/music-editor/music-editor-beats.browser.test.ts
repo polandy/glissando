@@ -101,14 +101,12 @@ describe("MusicEditorScreen, the picture changes", () => {
     expect(document.querySelectorAll(".runs i.off-beat").length).toBe(2);
   });
 
-  it("names the shares as approximate while the pictures change on the beat, exact when even", () => {
-    const { set } = mountEditor(slideshowWith({}, { count: 4 }), FOUND);
+  it("keeps how the pictures change in the info popover, not as a paragraph on the page", () => {
+    mountEditor(slideshowWith({}, { count: 4 }), FOUND);
 
-    expect(text(".note")).toContain("teilen sich den Ausschnitt: je etwa ");
-
-    set({ slideshow: slideshowWith(EVEN, { count: 4 }) });
-    expect(text(".note")).toContain("teilen sich den Ausschnitt: je ");
-    expect(text(".note")).not.toContain("etwa");
+    const popover = section().querySelector<HTMLElement>(".pop");
+    expect(popover?.textContent).toContain("Jeder automatische Wechsel landet auf einem Schlag");
+    expect(section().querySelectorAll("p:not(.pop p)")).toHaveLength(0);
   });
 
   it("says when the music has no steady beat, offering no choice", () => {

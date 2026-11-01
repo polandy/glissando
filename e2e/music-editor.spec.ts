@@ -11,7 +11,7 @@ import {
 } from "./support/app";
 import { openApp } from "./support/browser";
 import { silentTrack } from "./support/media";
-import { clickSwitch } from "./support/switch";
+import { clickSwitch, showMusicDetails } from "./support/switch";
 
 test.use(GERMAN_BROWSER);
 
@@ -39,9 +39,10 @@ test("E2E-023 the music gets its own excerpt and fade-in, stored, and goes back 
   await expect(
     page.getByRole("navigation", { name: "Navigationspfad" }).locator('[aria-current="page"]'),
   ).toHaveText("Musik");
+  await showMusicDetails(page);
   await expect(excerptState).toHaveText("Ganzer Song");
   await expect(excerpt.getByText("Die Diashow nutzt den ganzen Song, 0:20.")).toBeVisible();
-  await expect(fadeIn.locator(".state")).toHaveText("Automatisch");
+  await expect(fadeIn.locator(".state")).toHaveText(/^Automatisch · /);
 
   await startLater.click();
   await expect(startValue).toHaveText("0:00,5");
@@ -65,7 +66,8 @@ test("E2E-023 the music gets its own excerpt and fade-in, stored, and goes back 
   await longFadeIn.click();
   await expect(longFadeIn).toHaveAttribute("aria-checked", "true");
   await expect(fadeIn.locator(".state")).toHaveText("Gewählt");
-  await expect(fadeOut.locator(".state")).toHaveText("Automatisch");
+  await expect(fadeOut.locator(".state")).toHaveText(/^Automatisch · /);
+  await fadeOut.getByRole("button", { name: "Über das Ausblenden" }).click();
   await expect(
     fadeOut.getByText("Automatisch: lang, weil der Ausschnitt vor dem Songende aufhört."),
   ).toBeVisible();
@@ -182,6 +184,7 @@ test("E2E-073 a song's own volume shows Own with its dB and the song-list badge,
     fill: true,
   });
   await page.getByRole("button", { name: /^Musik Sommerwind\.wav/ }).click();
+  await showMusicDetails(page);
 
   // The loudness pass measures the song in the background; the badge drops its pulsing
   // "Measuring…" once the song's blocks are stored — a positive signal, no sleep. A silent
@@ -242,16 +245,20 @@ test("E2E-095 the music editor opens simple, and its Details switch shows the vo
   await expectSlideshowScreen(page);
   await page.getByRole("button", { name: "Musik 2 Songs" }).click();
 
-  // The waveform's handles and both songs' blocks are there before the details are found absent.
-  await expect(endHandle).toBeVisible();
-  await expect(blocks).toHaveCount(2);
+  // The song list is there before the details are found absent: the essentials show neither
+  // the waveform's handles nor the lane's blocks.
+  await expect(page.getByRole("list", { name: "Songs" })).toBeVisible();
   await expect(details).not.toBeChecked();
+  await expect(endHandle).toHaveCount(0);
+  await expect(blocks).toHaveCount(0);
   await expect(volumeLine).toHaveCount(0);
   await expect(slideshowLane).toHaveCount(0);
   await expect(hatching).toHaveCount(0);
 
   await clickSwitch(details);
   await expect(details).toBeChecked();
+  await expect(endHandle).toBeVisible();
+  await expect(blocks).toHaveCount(2);
   await expect(volumeLine).toHaveCount(1);
   await expect(slideshowLane).toHaveCount(1);
   await expect(hatching).toHaveCount(1);

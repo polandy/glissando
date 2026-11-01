@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { MILLISECONDS_PER_SECOND } from "../../player";
+  import type { Snippet } from "svelte";
   import SectionHead from "../components/SectionHead.svelte";
   import { getTranslator } from "../i18n/context";
   import { moodPictureTimesRowText } from "./mood-picture-times-text";
@@ -7,22 +7,22 @@
 
   /**
    * The picture-length section while the slideshow's mood sets it, instead of the own-seconds
-   * choice (MOOD.md): its text, and a button that leaves the mood for the single settings. While
-   * `fittedShareMs` is set, the pictures instead shrink to end with a shorter music (ADR-0047).
+   * choice (MOOD.md): its text, and a button that leaves the mood for the single settings, then
+   * `notice`, the one line on how the pictures meet the music (ADR-0047).
    */
   let {
     moodPictureLength,
-    fittedShareMs,
+    notice,
     onSetOwnPictureTimes,
   }: {
     moodPictureLength: MoodPictureLengthView;
-    /** The mean shrunk share, while the automatic pictures fit a shorter music (ADR-0047). */
-    fittedShareMs?: number | undefined;
+    /** The one line under the mood's text. */
+    notice?: Snippet;
     onSetOwnPictureTimes: () => void;
   } = $props();
 
   const translator = getTranslator();
-  const { t, formatTenthSeconds } = translator;
+  const { t } = translator;
   const HEAD_ID = "music-picture-length";
 </script>
 
@@ -31,16 +31,10 @@
   <p class="by-mood">
     {moodPictureTimesRowText(translator, moodPictureLength.mood, moodPictureLength.beatsPerMinute)}
   </p>
-  {#if fittedShareMs !== undefined}
-    <p class="fitted">
-      {t("music.pictureLengthFitted", {
-        seconds: formatTenthSeconds(fittedShareMs / MILLISECONDS_PER_SECOND),
-      })}
-    </p>
-  {/if}
   <button type="button" class="btn small ghost set-own" onclick={onSetOwnPictureTimes}>
     {t("music.setOwnPictureTimes")}
   </button>
+  {@render notice?.()}
 </section>
 
 <style>
@@ -49,11 +43,6 @@
     gap: 10px;
   }
   .by-mood {
-    margin: 0;
-    color: var(--gl-muted);
-    font-size: var(--gl-size-meta);
-  }
-  .fitted {
     margin: 0;
     color: var(--gl-muted);
     font-size: var(--gl-size-meta);

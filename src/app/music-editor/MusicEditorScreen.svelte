@@ -1,14 +1,16 @@
 <script lang="ts">
+  import "./music-editor-touch.css";
   import type { MusicTrim } from "../../library/own-music";
   import { setMusicTrim } from "../../library/slideshow-edits-music";
   import Header from "../components/Header.svelte";
-  import Icon from "../components/Icon.svelte";
   import Switch from "../components/Switch.svelte";
   import PictureLengthSection from "../components/PictureLengthSection.svelte";
+  import "./music-editor-touch.css";
   import { getTranslator } from "../i18n/context";
   import AddSongSheet from "./AddSongSheet.svelte";
   import AddSongsButton from "./AddSongsButton.svelte";
   import MoodPictureTimesSection from "./MoodPictureTimesSection.svelte";
+  import NoMusicCard from "./NoMusicCard.svelte";
   import MusicEditorPanel from "./MusicEditorPanel.svelte";
   import { musicEditorView } from "./music-editor-view";
   import type { MusicEditorScreenProps } from "./music-editor-screen-props";
@@ -111,17 +113,10 @@
   {#if music === null}
     <main class="edit empty-edit">
       <div class="main-column">
-        <div class="empty">
-          <span class="disc"><Icon name="music" /></span>
-          <b>{t("music.noMusicYet")}</b>
-          <p>{t("music.noMusicWhy")}</p>
-          <AddSongsButton
-            primary
-            label={t("music.addSong")}
-            onAdd={onAddSongs}
-            {...samplePreview === undefined ? {} : { onOpenSheet: openSheet }}
-          />
-        </div>
+        <NoMusicCard
+          onAdd={onAddSongs}
+          {...samplePreview === undefined ? {} : { onOpenSheet: openSheet }}
+        />
         {#if pending.length > 0 || sampleRows.length > 0}
           <SongList
             songs={ownedSongs}
@@ -154,37 +149,47 @@
   {:else}
     <main class="edit">
       <div class="main-column">
-        <SongList
-          songs={ownedSongs}
-          selectedSongId={music.songId}
-          {pending}
-          {sampleRows}
-          onSelect={onSelectSong}
-          onMove={onMoveSong}
-          onRemove={onRemoveSong}
-          onDismiss={onDismissPending}
-          {onRemoveSampleRow}
-        />
-        <AddSongsButton
-          label={t("music.addSong")}
-          onAdd={onAddSongs}
-          {...samplePreview === undefined ? {} : { onOpenSheet: openSheet }}
-        />
-        <PlaylistLane {playlist} {onRepeatMusic} {onAddSongs} />
-        <SelectedSong
-          {music}
-          {peaks}
-          {listening}
-          {details}
-          onDraft={(trim) => (draft = trim)}
-          onCommit={trimmed}
-          {onStopListening}
-          {onListen}
-        />
+        <div class="songs-block">
+          <SongList
+            songs={ownedSongs}
+            selectedSongId={music.songId}
+            {pending}
+            {sampleRows}
+            onSelect={onSelectSong}
+            onMove={onMoveSong}
+            onRemove={onRemoveSong}
+            onDismiss={onDismissPending}
+            {onRemoveSampleRow}
+          >
+            {#snippet addRow()}
+              <AddSongsButton
+                label={t("music.addSong")}
+                onAdd={onAddSongs}
+                {...samplePreview === undefined ? {} : { onOpenSheet: openSheet }}
+              />
+            {/snippet}
+          </SongList>
+        </div>
+        {#if details}
+          <div class="lane-block"><PlaylistLane {playlist} /></div>
+          <div class="wave-block">
+            <SelectedSong
+              {music}
+              {peaks}
+              {listening}
+              {details}
+              onDraft={(trim) => (draft = trim)}
+              onCommit={trimmed}
+              {onStopListening}
+              {onListen}
+            />
+          </div>
+        {/if}
       </div>
       <MusicEditorPanel
         {music}
         {playlist}
+        {details}
         {listening}
         onTrim={trimmed}
         {onFadeIn}
@@ -242,47 +247,38 @@
     color: var(--gl-muted);
     font-size: var(--gl-size-label);
   }
-  .empty {
-    display: grid;
-    justify-items: center;
-    gap: 10px;
-    padding: 28px;
-    border: 1px dashed var(--gl-line);
-    border-radius: var(--gl-radius-large);
-    color: var(--gl-muted);
-    text-align: center;
-  }
-  .empty b {
-    color: var(--gl-ink);
-    font-family: var(--gl-font-display);
-    font-size: var(--gl-size-name);
-  }
-  .empty p {
-    max-width: 44ch;
-    margin: 0;
-  }
-  .disc {
-    display: grid;
-    place-items: center;
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    background: color-mix(in srgb, var(--gl-accent) 30%, var(--gl-surface));
-    color: var(--gl-ink);
-  }
   .empty-edit {
     grid-template-columns: minmax(0, 720px);
     justify-content: center;
   }
+  .main-column > :where(.lane-block, .wave-block) {
+    display: grid;
+    gap: 10px;
+  }
   @container (max-width: 720px) {
-    /* The phone layout scrolls as one: the waveform on top, the panel below. */
+    /*
+     * The phone layout scrolls as one column of grid items, in this order: the songs, the
+     * Slideshow group, the lane, the selected song's waveform, its settings. The two column
+     * wrappers vanish so the panel's groups can sit between the main column's blocks.
+     */
     .edit {
       flex: none;
       grid-template-columns: 1fr;
+      align-content: start;
+      gap: 16px;
+      padding: 16px;
     }
     .main-column {
-      padding: 16px;
-      overflow: visible;
+      display: contents;
+    }
+    .songs-block {
+      order: 1;
+    }
+    .lane-block {
+      order: 3;
+    }
+    .wave-block {
+      order: 4;
     }
   }
 </style>

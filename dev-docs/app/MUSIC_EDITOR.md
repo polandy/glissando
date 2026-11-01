@@ -8,19 +8,30 @@
   https://polandy.github.io/glissando-assets/mockups/music-fits/, ADR-0009, ADR-0021, ADR-0022,
   ADR-0023, ADR-0047): the playlist's songs, how long the pictures last and how one song hands
   over to the next; for the selected song its excerpt, whether the pictures change on its beats,
-  and its fades. Bar: back and "Library / title / Music". Desktop: a main column and a 340 px
-  panel on the right; up to 720 px stacked. Every change is stored at once; only a removed song
+  and its fades. Bar: back and "Library / title / Music". Desktop: two columns, the songs (and with Details the
+  lane and the selected song's waveform) on the left, the settings on the right; a container up to
+  720 px wide stacks them in one column (see "Simple first"). Every change is stored at once; only a removed song
   has an undo toast ("Song removed"): "Whole track" and "Back to automatic" restore the rest in
   one tap.
   - **Simple first, Details on demand** (mockup:
     https://polandy.github.io/glissando-assets/mockups/music-editor-simple/): a "Details" switch
     (`Switch.svelte`, role "switch") at the right end of the bar, off by default and remembered on
     this device for every slideshow (`music-editor-details.ts`, injected as
-    `services.musicEditorDetails`); shown only while there is music. Off, the editor shows the song
-    list, the playlist lane without crossfade hatching, and the selected song's waveform with its
-    handles, listen buttons and the panel. On adds the volume line, the shrinking bars, the beat
-    ticks, the slideshow lane under the waveform, the crossfade hatching and its lane label, and
-    the hint's sentence about the line. The right-hand panel is the same either way.
+    `services.musicEditorDetails`); shown only while there is music. Off (the Essentials), the
+    editor shows only the song list (add, remove, reorder), the Picture length section (or the
+    mood's), "Repeat the music" and the one-line notice; with Essentials on a 390 × 844 phone and
+    two songs it fits in two screens. On adds the playlist lane, the selected song (heading,
+    waveform with its handles, volume line, beat ticks, slideshow lane, listen buttons), "Between
+    songs" (with two songs or more) and the "Song N" group: Excerpt, Volume, Picture changes,
+    Fade in, Fade out. Layout (`MusicEditorScreen.svelte`, `MusicEditorPanel.svelte`, CSS only:
+    `display: contents` and `order`): desktop, left the songs then (Details) lane and waveform,
+    right the "Slideshow" group (Picture length, Repeat, Between songs) then (Details) the "Song N"
+    group; phone, one column in the order songs, Slideshow group, lane, waveform and Listen, Song
+    settings. Each section is its control plus at most one outcome line; the mechanics sit behind
+    an ⓘ button (`InfoButton.svelte`, the native `popover`, fixed under its button, Esc or a tap
+    outside closes it), named by its section ("About volume", …). Under a coarse pointer every
+    control of the editor pads its hit area to 44 px (`music-editor-touch.css`; the info button
+    is 44 px itself).
   - **No music yet**: for a slideshow without songs (the panel's "Add music" opens it), a dashed
     card with a music disc, "No music yet", "Add one song or several; they play one after
     another and the pictures change on their beat." and the accent button "Add a song". Under
@@ -40,32 +51,25 @@
     reached"; it stays and plays once the slideshow grows. Tapping a row selects the song; the
     first is selected on opening and when the selected one goes. The grip
     (`song-drag.ts`, ADR-0019's pattern) drags the song onto another row, which a dashed accent
-    outline marks, or moves it up and down with the arrow keys while focused. Then "+ Add a song", a dashed
-    button; with sample music it opens a sheet with the import's two blocks, the music block unfolded (library/SAMPLE_MUSIC.md).
+    outline marks, or moves it up and down with the arrow keys while focused. The last row of the list is "+ Add a song", a dashed
+    button — the screen's only one while there are songs; with sample music it opens a sheet with the import's two blocks, the music block unfolded (library/SAMPLE_MUSIC.md).
     Picking one file or several (`song-intake.ts`): each is read as in
     the import's music step (converted to FLAC where a target browser cannot play it,
     ADR-0020), its audio stored where the slideshow lives (on this device claimed until the
     playlist with it is stored; on the server uploaded), and appended in the order picked.
     Until then it is a dashed row with its name ("Converting to FLAC · 42 %" while converting);
     a file that cannot be used stays as a coral row "This file can't be used" until its ×.
-  - **Playlist lane** (`PlaylistLane.svelte`): "Playlist, 3 songs · 2:54" with, with the
-    Details, "Crossfades hatched" (or "One after another"), then the songs as numbered blocks in their colours from
+  - **Playlist lane** (`PlaylistLane.svelte`, Details only): "Playlist, 3 songs · 2:54" with, "Crossfades hatched" (or "One after another"), then the songs as numbered blocks in their colours from
     where each starts, a crossfade hatched where two overlap (the next song's number after the
     hatching; without the Details no hatching: neighbouring blocks meet at the middle of their
     overlap, a thin line of the lane's surface between them), songs not reached faded, and a coral mark "Slideshow ends" where the slideshow
     ends first. While the music repeats (ADR-0047) the lane shows "Repeats until the slideshow
     ends" instead, and each repeated block carries a trailing "↻" on its number; the crossfade
     hatching also covers a repeat's loop boundary, between the playlist's last block and its
-    first repeated one. Below on the same scale "Slideshow, 24 pictures · 2:00" with "Music
-    fades out with the last picture", "Music repeats · fades out with the last picture", or
-    "Ends with the music" (the last also while the pictures are fitted to a shorter music; absent
-    only while they instead outlast it, see below): a mint bar with a tick per picture change;
-    and a scale "0:00 … 2:54".
-    Under the lane, one of two notes (ADR-0047): once the automatic pictures shrink to end with
-    the music, a mint note "Pictures about {n} s each, to end with the music."; once they instead
-    outlast it and the music does not repeat, a lemon note with "The music ends {over} before the
-    pictures" and two buttons, "Repeat the music" (sets `repeatMusic`) and "Add a song" (the same
-    file picker as elsewhere in the lane).
+    first repeated one. Below on the same scale "Slideshow, 24 pictures · 2:00": a mint bar with a
+    tick per picture change; and a scale "0:00 … 2:54". The lane carries no note and no button;
+    how the pictures meet the music is the Picture length section's one line (see
+    `music-editor/SELECTED_SONG.md`).
 
 | Section                                            | What it covers                                                    |
 | -------------------------------------------------- | ----------------------------------------------------------------- |

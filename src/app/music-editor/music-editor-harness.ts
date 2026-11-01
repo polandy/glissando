@@ -68,6 +68,11 @@ export function slideshowOfSongs(
   return { ...slideshowWith({}, { count }), songs, ...own };
 }
 
+/** A details store that starts with the "Details" switch off: the Essentials. */
+export function hiddenDetailsStore(): MusicEditorDetailsStore {
+  return createStorageMusicEditorDetailsStore(createMemoryStorage());
+}
+
 /** A details store that starts with the "Details" switch on. */
 export function shownDetailsStore(): MusicEditorDetailsStore {
   const store = createStorageMusicEditorDetailsStore(createMemoryStorage());
@@ -88,7 +93,8 @@ export function unmountEditor(): void {
 }
 
 /**
- * Mounts the editor on `slideshow` with what is known of its beats; its props can be changed
+ * Mounts the editor on `slideshow` with what is known of its beats, the "Details" switch on so
+ * every control is there (`hiddenDetailsStore` for the Essentials); its props can be changed
  * afterwards, as the route does.
  */
 export function mountEditor(
@@ -96,9 +102,7 @@ export function mountEditor(
   beats: BeatsStatus = { kind: "listening" },
   loudness: LoudnessStatus = { kind: "listening" },
   samplePreview: SamplePreview | undefined = undefined,
-  detailsStore: MusicEditorDetailsStore = createStorageMusicEditorDetailsStore(
-    createMemoryStorage(),
-  ),
+  detailsStore: MusicEditorDetailsStore = shownDetailsStore(),
 ) {
   const calls = {
     trims: [] as (MusicTrim | undefined)[],
