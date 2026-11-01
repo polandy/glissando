@@ -2,13 +2,16 @@ import type { StoredPicture } from "../../library/stored-slideshow";
 import type { Toaster, ToastMessage } from "../toast/toaster";
 
 /**
- * The settings a reset drops: a picture's own ones ("Back to automatic"), the slideshow's
+ * The settings a reset drops: a picture's own ones ("Back to automatic", its duration and
+ * transition together as "timing"), its cleared caption, the slideshow's
  * default transition ("Back to crossfade"), its portrait pictures setting (ADR-0028, "Back to
  * automatic"), its look (ADR-0044, "Back to None") and its mood (ADR-0045, "Back to Custom"); also
  * what a removal or reset of a title slide, a closing slide, a chapter or a video clip drops.
  */
 export type ResettableSetting =
-  | keyof Pick<StoredPicture, "kenBurns" | "durationMs" | "transition">
+  | keyof Pick<StoredPicture, "kenBurns">
+  | "timing"
+  | "caption"
   | "slideshowTransition"
   | "portraitPictures"
   | "slideshowLook"

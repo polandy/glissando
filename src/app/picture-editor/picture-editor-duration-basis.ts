@@ -1,7 +1,6 @@
 import { type SlideUnit, timedUnit, playlistMs } from "../../compose";
 import type { StoredSlideshow } from "../../library/stored-slideshow";
 import { MIN_OWN_DURATION_MS } from "../../library/own-timing";
-import { MILLISECONDS_PER_SECOND } from "../../player";
 
 /** What an automatic duration follows: the slideshow's seconds per picture, or the music. */
 export type DurationBasis =
@@ -23,13 +22,12 @@ export function durationBasis(
   stored: StoredSlideshow,
   units: readonly SlideUnit[],
   durationsMs: readonly number[],
+  /** What the picture's slide would last with no own duration. */
+  automaticMs: number,
 ): DurationBasis {
   const musicMs = playlistMs(stored);
   if (musicMs === undefined) {
-    return {
-      kind: "seconds-per-picture",
-      automaticMs: stored.secondsPerPicture * MILLISECONDS_PER_SECOND,
-    };
+    return { kind: "seconds-per-picture", automaticMs };
   }
   const automaticCount = stored.pictures.filter(
     ({ durationMs }) => durationMs === undefined,

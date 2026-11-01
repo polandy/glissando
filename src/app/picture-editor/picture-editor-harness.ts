@@ -90,9 +90,9 @@ export function mountEditor(shown: PictureEditorView = view(), { reducedMotion =
     backs: 0,
     captions: [] as string[],
     durations: [] as number[],
-    durationResets: 0,
+    clearedCaptions: 0,
     transitions: [] as TransitionChoice[],
-    transitionResets: 0,
+    timingResets: 0,
     alones: [] as boolean[],
     lookAgains: 0,
   };
@@ -114,15 +114,23 @@ export function mountEditor(shown: PictureEditorView = view(), { reducedMotion =
     onReset: () => (calls.resets += 1),
     onCaption: (typed: string) => calls.captions.push(typed),
     onDuration: (durationMs: number) => calls.durations.push(durationMs),
-    onResetDuration: () => (calls.durationResets += 1),
+    onClearCaption: () => (calls.clearedCaptions += 1),
     // A picked (or reset) transition is stored at once, as the real app's store does.
     onTransition: (choice: TransitionChoice) => {
       calls.transitions.push(choice);
       update(transitionedView(current, choice, true));
     },
-    onResetTransition: () => {
-      calls.transitionResets += 1;
-      update(transitionedView(current, current.transition.automatic, false));
+    onResetTiming: () => {
+      calls.timingResets += 1;
+      const automaticMs =
+        current.durationBasis.kind === "seconds-per-picture"
+          ? current.durationBasis.automaticMs
+          : current.durationMs;
+      update({
+        ...transitionedView(current, current.transition.automatic, false),
+        durationMs: automaticMs,
+        ownDuration: false,
+      });
     },
     onAlone: (alone: boolean) => {
       calls.alones.push(alone);

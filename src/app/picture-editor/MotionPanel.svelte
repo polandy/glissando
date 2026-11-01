@@ -4,13 +4,14 @@
   import { getTranslator } from "../i18n/context";
   import { FRAME_KEYS, type FrameKey } from "./frame-keys";
   import type { PictureEditorView } from "./picture-editor-view";
+  import FocusLine from "./FocusLine.svelte";
   import CaptionField from "./CaptionField.svelte";
   import ResetButton from "../components/ResetButton.svelte";
   import SectionHead from "../components/SectionHead.svelte";
 
   /**
    * Beside the picture (below it on a phone): the preview, staying in view while the panel
-   * scrolls; which frame is edited and the motion's actions; the caption; then the timing.
+   * scrolls; which frame is edited, the motion's actions and its focus status; the caption; then the timing.
    * A phone shows the preview only in place of the picture.
    */
   let {
@@ -22,22 +23,28 @@
     onActivate,
     onSwap,
     onReset,
+    onLookAgain,
     caption = $bindable(),
     onCaption,
+    onClearCaption,
   }: {
     picture: PictureEditorView;
     active: FrameKey;
     preview: Snippet;
     /** The phone shows the preview rather than the picture; wider screens show both. */
     previewOnPhone: boolean;
-    /** The duration and transition sections. */
+    /** The timing and layout sections. */
     timing: Snippet;
     onActivate: (key: FrameKey) => void;
     onSwap: () => void;
     onReset: () => void;
+    /** Looks at this picture's focus again; never touches its motion (ADR-0041). */
+    onLookAgain: () => void;
     /** The caption as typed. */
     caption: string;
     onCaption: (typed: string) => void;
+    /** The caption was cleared by its button. */
+    onClearCaption: () => void;
   } = $props();
 
   const { t, formatDate } = getTranslator();
@@ -82,8 +89,15 @@
         {onReset}
       />
     </div>
+    <FocusLine line={picture.focusLine} {onLookAgain} />
   </section>
-  <CaptionField pictureId={picture.id} bind:value={caption} onInput={onCaption} />
+  <CaptionField
+    pictureId={picture.id}
+    stored={picture.caption}
+    bind:value={caption}
+    onInput={onCaption}
+    onClear={onClearCaption}
+  />
   {@render timing()}
 </aside>
 
@@ -173,6 +187,15 @@
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
+  }
+  /* Neighbouring buttons' touch pads need twice their overhang between them. */
+  @media (pointer: coarse) {
+    .keys button {
+      min-height: var(--gl-hit-min);
+    }
+    .actions {
+      gap: calc(var(--gl-hit-min) / 3);
+    }
   }
   @container (max-width: 720px) {
     .panel {

@@ -43,6 +43,5 @@ duration section: the excerpt is the slide's length. Slideshow tiles show the le
 | [Preview](picture-editor/PREVIEW.md)                           | Playing the motion in the well                   |
 | [Panel, automatic and own](picture-editor/PANEL.md)            | The panel's Ken Burns section, automatic vs. own |
 | [Caption](picture-editor/CAPTION.md)                           | The caption field                                |
-| [Duration](picture-editor/DURATION.md)                         | A picture's own duration                         |
-| [Transition](picture-editor/TRANSITION.md)                     | The transition into the next picture             |
+| [Timing](picture-editor/TIMING.md)                             | Picture length, transition, one way back         |
 | [Layout](picture-editor/LAYOUT.md)                             | The "Always alone" switch (ADR-0028)             |

@@ -34,8 +34,7 @@ export const enEditor: Pick<Catalogue, keyof typeof deEditor> = {
   "editor.reset": "Back to automatic",
   "editor.alreadyAutomatic": "The motion is already automatic",
   "editor.motionAutomatic": "Motion back to automatic",
-  "editor.durationAutomatic": "Picture length back to automatic",
-  "editor.transitionAutomatic": "Transition back to automatic",
+  "editor.timingAutomatic": "Timing back to automatic",
   "editor.hintWide":
     "Drag to move the frame, drag a corner to zoom · mouse wheel zooms · arrow keys, + and −",
   "editor.hintNarrow": "Drag anywhere to move the frame; corners or two fingers zoom.",
@@ -76,6 +75,7 @@ export const enEditor: Pick<Catalogue, keyof typeof deEditor> = {
   "editor.caption": "Caption",
   "editor.captionPlaceholder": "e.g. Evening on the jetty",
   "editor.captionCount": "{count} / {max}",
+  "editor.captionCleared": "Caption cleared",
   "editor.captionClear": "Remove caption",
   "editor.captionHint":
     "Shown bottom left in the player, fading in and out with the picture. Empty: no caption.",

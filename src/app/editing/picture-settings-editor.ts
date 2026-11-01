@@ -19,8 +19,8 @@ export interface PictureSettingsPorts {
   /** The picture's focus as known now; the automatic motion aims at it. */
   readonly focusOf: (pictureId: string) => PictureFocus | undefined;
   readonly motionAutomaticText: () => string;
-  readonly durationAutomaticText: () => string;
-  readonly transitionAutomaticText: () => string;
+  /** The undo toast's text after a picture's own duration and transition were dropped together. */
+  readonly timingAutomaticText: () => string;
   readonly slideshowTransitionResetText: () => string;
   /** The undo toast's text after the portrait pictures setting went back to automatic. */
   readonly portraitPicturesResetText: () => string;
@@ -74,38 +74,39 @@ export class PictureSettingsEditor {
 
   /** The picture shows `durationMs` (validated) from now on, wherever it moves. */
   setDuration(pictureId: string, durationMs: number): void {
-    this.#reset.supersede(pictureId, "durationMs");
+    this.#reset.supersede(pictureId, "timing");
     this.#apply(setPictureDuration(this.#current(), pictureId, durationMs));
-  }
-
-  /** Makes the picture's duration automatic without asking; the toast's undo brings it back. */
-  resetDuration(pictureId: string): void {
-    const previous = this.#picture(pictureId).durationMs;
-    if (previous === undefined) {
-      return;
-    }
-    this.#apply(setPictureDuration(this.#current(), pictureId, undefined));
-    this.#offerUndo(pictureId, "durationMs", this.#ports.durationAutomaticText(), () =>
-      this.setDuration(pictureId, previous),
-    );
   }
 
   /** The picture hands over to the next one with `transition` from now on, wherever it moves. */
   setTransition(pictureId: string, transition: TransitionChoice): void {
-    this.#reset.supersede(pictureId, "transition");
+    this.#reset.supersede(pictureId, "timing");
     this.#apply(setPictureTransition(this.#current(), pictureId, transition));
   }
 
-  /** Makes the picture's transition automatic without asking; the toast's undo brings it back. */
-  resetTransition(pictureId: string): void {
-    const previous = this.#picture(pictureId).transition;
-    if (previous === undefined) {
+  /**
+   * Makes the picture's duration and transition automatic together, without asking; one toast's
+   * undo brings back whichever of the two was own. Nothing own, nothing to do.
+   */
+  resetTiming(pictureId: string): void {
+    const { durationMs, transition } = this.#picture(pictureId);
+    if (durationMs === undefined && transition === undefined) {
       return;
     }
-    this.#apply(setPictureTransition(this.#current(), pictureId, undefined));
-    this.#offerUndo(pictureId, "transition", this.#ports.transitionAutomaticText(), () =>
-      this.setTransition(pictureId, previous),
+    const dropped = setPictureTransition(
+      setPictureDuration(this.#current(), pictureId, undefined),
+      pictureId,
+      undefined,
     );
+    this.#apply(dropped);
+    this.#offerUndo(pictureId, "timing", this.#ports.timingAutomaticText(), () => {
+      const restored = setPictureTransition(
+        setPictureDuration(this.#current(), pictureId, durationMs),
+        pictureId,
+        transition,
+      );
+      this.#apply(restored);
+    });
   }
 
   /**
@@ -179,7 +180,7 @@ export class PictureSettingsEditor {
   /** The undo of a reset; a picture removed meanwhile has nothing to bring back. */
   #offerUndo(
     pictureId: string,
-    setting: "kenBurns" | "durationMs" | "transition",
+    setting: "kenBurns" | "timing",
     text: string,
     restore: () => void,
   ): void {

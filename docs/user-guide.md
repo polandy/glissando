@@ -59,6 +59,12 @@ switch with **Frame | Play**). The bar that appears labels every action: **Earli
 **Chapter** and **Move** as the short labels. **Move to …** goes to the start, the end, or before
 a picture by its number — handy when dragging is too far.
 
+In a picture's editor, **Timing** holds the picture length (a slider from 2 to 15 seconds; it
+shows its value while you drag) and the transition into the next picture; **Back to automatic**
+there resets both at once, and Undo in the message that follows brings them back. Clearing the
+caption shows **Caption cleared** with Undo. **Look again**, for the picture's focus, sits at
+the end of the motion section.
+
 **Trip chapters**: a slideshow of several days in different places gets a chapter slide between
 them automatically, naming the place and the dates. Tap a chapter tile in the picture strip to
 rename it, hide it, or reset it to its automatic text; select a picture and tap **Insert chapter before**

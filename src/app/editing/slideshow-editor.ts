@@ -146,16 +146,12 @@ export class SlideshowEditor {
     this.#pictureSettings.setDuration(pictureId, durationMs);
   }
 
-  resetDuration(pictureId: string): void {
-    this.#pictureSettings.resetDuration(pictureId);
-  }
-
   setTransition(pictureId: string, transition: TransitionChoice): void {
     this.#pictureSettings.setTransition(pictureId, transition);
   }
 
-  resetTransition(pictureId: string): void {
-    this.#pictureSettings.resetTransition(pictureId);
+  resetTiming(pictureId: string): void {
+    this.#pictureSettings.resetTiming(pictureId);
   }
 
   setSlideshowTransition(transition: SlideshowTransition): void {
@@ -194,6 +190,9 @@ export class SlideshowEditor {
     this.#pictureList.setCaption(pictureId, typed);
   }
 
+  clearCaption(pictureId: string): void {
+    this.#pictureList.clearCaption(pictureId);
+  }
   addSongs(songs: readonly StoredMusic[]): void {
     this.#musicSettings.addSongs(songs);
   }

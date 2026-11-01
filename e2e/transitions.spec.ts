@@ -19,7 +19,7 @@ test("E2E-025 the slideshow's default transition is chosen in the info panel, st
   const sheet = page.getByRole("dialog", { name: "Übergänge der Diashow" });
   const pushTile = sheet.getByRole("radio", { name: /Schieben/ });
   const crossfadeTile = sheet.getByRole("radio", { name: /Überblenden/ });
-  const transitionSection = page.locator('section[aria-labelledby="transition-label"]');
+  const timingSection = page.locator('section[aria-labelledby="timing-label"]');
   await openApp(page);
   await createSlideshow(page, ["2025-07-12", "2025-07-14", "2025-07-20"]);
   // A new slideshow opens on Calm (ADR-0050); this case is
@@ -42,14 +42,12 @@ test("E2E-025 the slideshow's default transition is chosen in the info panel, st
   await expect(pushRow).toBeVisible();
 
   await editPicture(page, "Bild 1, aufgenommen am 12.07.2025");
-  await expect(transitionSection.locator(".state")).toHaveText("Automatisch");
-  await expect(transitionSection.getByRole("radio", { name: /Schieben/ })).toHaveAttribute(
+  await expect(timingSection.locator(".state")).toHaveText("Automatisch");
+  await expect(timingSection.getByRole("radio", { name: /Schieben/ })).toHaveAttribute(
     "aria-checked",
     "true",
   );
-  await expect(transitionSection).toContainText(
-    "Automatisch gilt der Übergang der Diashow: Schieben.",
-  );
+  await expect(timingSection).toContainText("Automatisch gilt der Übergang der Diashow: Schieben.");
   await leaveEditor(page);
 
   await pushRow.click();

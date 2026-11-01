@@ -136,9 +136,10 @@ export async function mountRoute(
   await store.saveSlideshow(stored);
   const focusPass = createFocusPass(store);
   const errors: unknown[] = [];
+  const toaster = new Toaster(new FakeScheduler());
   const editor = new SlideshowEditor(stored, {
     store,
-    toaster: new Toaster(new FakeScheduler()),
+    toaster,
     newId: () => "claim-1",
     now: () => new Date("2026-10-08T12:00:00Z"),
     onError: (error) => errors.push(error),
@@ -150,8 +151,8 @@ export async function mountRoute(
     lastPictureText: () => "Das letzte Bild bleibt.",
     everyPictureText: () => "Mindestens ein Bild bleibt.",
     motionAutomaticText: () => "Bewegung wieder automatisch",
-    durationAutomaticText: () => "Bilddauer wieder automatisch",
-    transitionAutomaticText: () => "Übergang wieder automatisch",
+    timingAutomaticText: () => "Zeitablauf wieder automatisch",
+    captionClearedText: () => "Bildtitel entfernt",
     slideshowTransitionResetText: () => "Übergänge wieder auf Überblenden",
     openingCardRemovedText: () => "Titelbild entfernt",
     closingCardRemovedText: () => "Schlussbild entfernt",
@@ -197,5 +198,14 @@ export async function mountRoute(
   });
   const mounted = mountWithTranslator(PictureEditorRoute, props);
   destroy = mounted.destroy;
-  return { target: mounted.target, backs: () => backs, store, editor, errors, logged, props };
+  return {
+    target: mounted.target,
+    backs: () => backs,
+    store,
+    editor,
+    toaster,
+    errors,
+    logged,
+    props,
+  };
 }

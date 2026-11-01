@@ -12,15 +12,14 @@
   import { getTranslator } from "../i18n/context";
   import type { MotionPreviewPorts } from "./motion-preview";
   import type { PictureEditorView } from "./picture-editor-view";
-  import ResetButton from "../components/ResetButton.svelte";
-  import SectionHead from "../components/SectionHead.svelte";
   import { FrameTicker } from "./timing/frame-ticker";
   import { TILE_STILL_MS } from "./timing/preview-timeline";
   import TransitionTile from "./TransitionTile.svelte";
 
   /**
    * How the picture hands over to the next: automatic until a tile is picked. The last picture
-   * has none; an own one stored there stays, and applies again once a picture follows.
+   * has none; an own one stored there stays, and applies again once a picture follows. Its
+   * reset belongs to the timing section around it.
    */
   let {
     picture,
@@ -29,7 +28,6 @@
     ports,
     reducedMotion,
     onTransition,
-    onReset,
   }: {
     picture: PictureEditorView;
     pictureUrl: string | null;
@@ -39,7 +37,6 @@
     /** The tiles stand still half-way through their effect. */
     reducedMotion: boolean;
     onTransition: (choice: TransitionChoice) => void;
-    onReset: () => void;
   } = $props();
 
   const { t, formatTenthSeconds } = getTranslator();
@@ -88,14 +85,9 @@
   }
 </script>
 
-{#if picture.next === null}
-  <section class="timing" aria-labelledby="transition-label">
-    <SectionHead
-      id="transition-label"
-      title={t("editor.transition")}
-      stateText={t("editor.lastPicture")}
-      own={false}
-    />
+<div class="transition">
+  {#if picture.next === null}
+    <h3 class="sub">{t("editor.lastPicture")}</h3>
     <div class="note">
       <span><b>{t("editor.endsHere")}</b>{t("editor.endsHereRest")}</span>
       {#if own}
@@ -104,18 +96,10 @@
         </span>
       {/if}
     </div>
-    {#if own}
-      <div><ResetButton automatic={false} alreadyAutomatic="" {onReset} /></div>
-    {/if}
-  </section>
-{:else}
-  <section class="timing" aria-labelledby="transition-label">
-    <SectionHead
-      id="transition-label"
-      title={t("editor.transitionTo", { number: picture.number + 1 })}
-      stateText={own ? t("editor.ownTransition") : t("editor.automatic")}
-      {own}
-    />
+  {:else}
+    <h3 class="sub" id="transition-label">
+      {t("editor.transitionTo", { number: picture.number + 1 })}
+    </h3>
     <div class="tiles" role="radiogroup" aria-labelledby="transition-label">
       {#each TRANSITION_CHOICES as choice, index (choice)}
         <TransitionTile
@@ -136,20 +120,18 @@
       {#if !own}{automaticHint}{/if}
       {hint}
     </p>
-    <div>
-      <ResetButton
-        automatic={!own}
-        alreadyAutomatic={t("editor.transitionAlreadyAutomatic")}
-        {onReset}
-      />
-    </div>
-  </section>
-{/if}
+  {/if}
+</div>
 
 <style>
-  .timing {
+  .transition {
     display: grid;
     gap: 12px;
+  }
+  .sub {
+    margin: 0;
+    font-size: var(--gl-size-label);
+    font-weight: var(--gl-weight-semibold);
   }
   .tiles {
     display: grid;

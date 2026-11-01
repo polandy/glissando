@@ -7,7 +7,7 @@
   "done") with a ✕ inside on the right while it holds text, which empties it and keeps the
   focus; the hint "Shown bottom left in the player, fading in and out with the picture. Empty:
   no caption." Every keystroke is stored at once, normalised (`normalizeCaption`: whitespace
-  runs become one space, trimmed, at most 80 characters; nothing left removes the caption), and
+  runs become one space, trimmed, at most 80 characters; nothing left removes the caption; clearing it with the field's clear button raises the toast "Caption cleared" with "Undo", which brings the previous text back), and
   a keystroke that changes nothing stored stores nothing. Enter leaves the field; leaving it
   tidies the text to what is stored. Nothing is filled in automatically. The preview shows
   the caption in the player's place, size and type over a 16:9 screen (`captionStyles`, type
