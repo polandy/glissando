@@ -1,6 +1,6 @@
 import { expect, test, type Page, type Route } from "@playwright/test";
 import { readFileSync } from "node:fs";
-import { CREATED_TOAST, GERMAN_BROWSER, openImport } from "./support/app";
+import { expectSlideshowScreen, GERMAN_BROWSER, openImport } from "./support/app";
 import { openApp } from "./support/browser";
 import { pictureTakenOn } from "./support/media";
 
@@ -193,7 +193,7 @@ test("E2E-029 photos picked in Immich by day, by range and by whole album are im
 
   await next.click();
   await page.getByRole("button", { name: "Ohne Musik erstellen" }).click();
-  await expect(page.getByRole("status")).toHaveText(CREATED_TOAST);
+  await expectSlideshowScreen(page);
 
   expect([...traffic.facesAsked]).toHaveLength(9);
   expect(traffic.headers.length).toBeGreaterThan(traffic.facesAsked.size);

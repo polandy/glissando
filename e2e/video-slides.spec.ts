@@ -1,5 +1,5 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
-import { chooseFiles, CREATED_TOAST, GERMAN_BROWSER, openImport } from "./support/app";
+import { chooseFiles, expectSlideshowScreen, GERMAN_BROWSER, openImport } from "./support/app";
 import { openApp } from "./support/browser";
 import { framePixels, keepDrawnFrames, meanColour } from "./support/drawn-frame";
 import { generatedClip } from "./support/clip";
@@ -42,7 +42,7 @@ test("E2E-059 a clip imported as a slide shows its length, opens in the clip edi
   await expect(page.getByText("1 Bilder", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Weiter" }).click();
   await page.getByRole("button", { name: "Ohne Musik erstellen" }).click();
-  await expect(page.getByRole("status")).toHaveText("Diashow erstellt — tippe auf Abspielen");
+  await expectSlideshowScreen(page);
 
   await expect(page.getByText("Video, 0:03")).toBeAttached();
 
@@ -133,7 +133,7 @@ test("E2E-063 the clip editor's strip shows the player's place as a draggable ma
   await expect(page.getByText("1 Bilder", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Weiter" }).click();
   await page.getByRole("button", { name: "Ohne Musik erstellen" }).click();
-  await expect(page.getByRole("status")).toHaveText(CREATED_TOAST);
+  await expectSlideshowScreen(page);
 
   const tile = page
     .getByRole("listitem")

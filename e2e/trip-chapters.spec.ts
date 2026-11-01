@@ -5,26 +5,12 @@ import {
   GERMAN_BROWSER,
   picturesTakenAt,
   selectionBar,
-  type PlaceVisit,
 } from "./support/app";
 import { clickSwitch } from "./support/switch";
 import { openApp } from "./support/browser";
+import { TRIP } from "./support/trip";
 
 test.use(GERMAN_BROWSER);
-
-// Two places from public/places/cities15000.tsv, picked only as made-up coordinates for this
-// test (never a real photo's own location): over 25 km apart (chapter-stays.ts, STAY_RADIUS_KM),
-// so the second one starts a new stay (TRIP_CHAPTERS.md, Rule B).
-const LISBON = { latitude: 38.725, longitude: -9.15 };
-const PORTO = { latitude: 41.148, longitude: -8.611 };
-
-/** Two days at Lisbon, then two at Porto: one automatic chapter, right before Porto's first day. */
-const TRIP: readonly PlaceVisit[] = [
-  { day: "2025-07-12", place: LISBON },
-  { day: "2025-07-13", place: LISBON },
-  { day: "2025-07-14", place: PORTO },
-  { day: "2025-07-15", place: PORTO },
-];
 
 const SECOND_PICTURE = "Bild 2, aufgenommen am 13.07.2025";
 const THIRD_PICTURE = "Bild 3, aufgenommen am 14.07.2025";
@@ -107,9 +93,9 @@ test("E2E-078 inserting a chapter from the selection bar adds it right before th
   await expect(addedDialog).toBeVisible();
   await expect(titleField).toHaveValue("Lisbon");
   await expect(subtitleField).toHaveValue("Tag 2 · Sonntag, 13. Juli");
-  // The slideshow-wide switch lives only in the general sheet, never in one chapter's sheet.
+  // The slideshow-wide switch lives in Fine settings, never in one chapter's sheet.
   await expect(addedDialog.getByRole("button", { name: "Kapitel löschen" })).toBeVisible();
-  await expect(addedDialog.getByRole("switch", { name: "Automatische Kapitel" })).toHaveCount(0);
+  await expect(addedDialog.getByRole("switch", { name: "Reisekapitel" })).toHaveCount(0);
   await editsStored(page);
   await addedDialog.getByRole("button", { name: "Fertig" }).click();
   await expect(addedDialog).toBeHidden();
@@ -143,19 +129,14 @@ test("E2E-078 inserting a chapter from the selection bar adds it right before th
   await expect(lisbon).toHaveCount(1);
   await expect(porto).toHaveCount(1);
 
-  // The Trip chapters row lives behind the Fine settings fold (ADR-0048).
+  // The Trip chapters switch lives behind the Fine settings fold (ADR-0048).
   await page.getByRole("button", { name: "Weitere Einstellungen" }).click();
-  await page.getByRole("button", { name: /^Reisekapitel/ }).click();
-  const generalDialog = page.getByRole("dialog", { name: "Reisekapitel" });
-  await expect(generalDialog).toBeVisible();
-  const automaticSwitch = generalDialog.getByRole("switch", { name: "Automatische Kapitel" });
+  const automaticSwitch = page.getByRole("switch", { name: "Reisekapitel" });
   await expect(automaticSwitch).toBeChecked();
 
   await clickSwitch(automaticSwitch);
   await expect(automaticSwitch).not.toBeChecked();
   await editsStored(page);
-  await generalDialog.getByRole("button", { name: "Fertig" }).click();
-  await expect(generalDialog).toBeHidden();
 
   await expect(lisbon).toHaveCount(1);
   await expect(porto).toHaveCount(0);

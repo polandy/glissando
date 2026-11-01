@@ -217,6 +217,7 @@
   {#key slideshowId}
     {#await openedSlideshow(slideshowId) then opened}
       {@const onDevice = opened.home === "device"}
+      {@const pulsePlay = importFlow.takePlayPulse(slideshowId)}
       <SlideshowRoute
         store={opened.store}
         focusPass={onDevice ? services.focusPass : services.serverFocusPass}
@@ -231,6 +232,7 @@
         videoExport={services.videoExport}
         htmlExport={services.htmlExport}
         playing={route.screen === "player"}
+        {pulsePlay}
         playbackQuality={effectivePlaybackQuality(
           settingsState.playbackQuality,
           services.screenShortEdge(),

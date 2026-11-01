@@ -23,6 +23,7 @@
     slideshow,
     onBack,
     onPlay,
+    pulsePlay = false,
     onAddPictures,
     newPictureIds = new Set(),
     onRemove,
@@ -41,7 +42,6 @@
     onResetLook,
     moodBpm,
     moodBeats,
-    moodEnergyPacing,
     moodPreviewPorts,
     onMood,
     onResetMood,
@@ -135,6 +135,7 @@
         bind:this={picturesColumn}
         {slideshow}
         {onPlay}
+        {pulsePlay}
         {onAddPictures}
         {newPictureIds}
         bind:selection
@@ -164,11 +165,9 @@
         {onEditMusic}
         onEditTransitions={() => editSheets?.openTransitions()}
         onEditLook={() => editSheets?.openLook()}
-        {moodBpm}
-        {moodEnergyPacing}
         onEditMood={() => editSheets?.openMood()}
         onEditPortraitPictures={() => editSheets?.openPortraitPictures()}
-        onEditChapters={() => editSheets?.openGeneralChapters()}
+        {chapterEditor}
         {fineSettingsFold}
       />
     </div>
@@ -235,7 +234,6 @@
   {onRemoveClosingCard}
   onClosingCardClosed={() => picturesColumn?.focusClosingCard()}
   {chapterEditor}
-  onChaptersClosed={() => infoPanel?.focusChapters()}
 />
 
 <SlideshowScreenOverlays
@@ -282,13 +280,12 @@
   .screen.selecting .content {
     padding-bottom: var(--selection-clearance);
   }
-  /* Below a desktop the info panel stacks over the pictures instead of squeezing them. */
+  /* Below a desktop the info panel stacks under the play preview instead of squeezing the
+     pictures (PicturesColumn dissolves its wrapper to order its parts around the panel). */
   @container (max-width: 1024px) {
     .detail {
       grid-template-columns: 1fr;
-    }
-    .detail > :global(.panel) {
-      order: -1;
+      gap: 8px;
     }
   }
   @container (max-width: 720px) {

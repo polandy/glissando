@@ -40,7 +40,7 @@ const TWO_STAYS: readonly StoredPicture[] = [
   picture("p3", "2025-06-21T09:00:00Z", PORTO),
 ];
 
-function baseSlideshow(overrides: Partial<StoredSlideshow> = {}): StoredSlideshow {
+function baseSlideshow(): StoredSlideshow {
   return {
     id: "show",
     title: "Trip",
@@ -48,7 +48,6 @@ function baseSlideshow(overrides: Partial<StoredSlideshow> = {}): StoredSlidesho
     pictures: TWO_STAYS,
     songs: [],
     secondsPerPicture: 5,
-    ...overrides,
   };
 }
 
@@ -70,8 +69,8 @@ function must<T extends Element>(target: ParentNode, selector: string): T {
 }
 
 /** A chapter sheet over a live `ChapterSettingsEditor`: edits store at once, like the real app's. */
-function setUp(anchorPictureId: string | null, overrides: Partial<StoredSlideshow> = {}) {
-  let current = baseSlideshow(overrides);
+function setUp(anchorPictureId: string) {
+  let current = baseSlideshow();
   const onClose = vi.fn();
   // Assigned once props exists, so its apply callback can update it (forward reference).
   let updateSlideshow: (next: StoredSlideshow) => void = () => {};
@@ -149,17 +148,6 @@ describe("ChapterSheet: an automatic chapter", () => {
     expect(current().chapterEdits).toEqual([{ pictureId: "p3", hidden: true }]);
   });
 
-  it("leaves the slideshow-wide automatic-chapters switch to the general sheet", () => {
-    const { target } = setUp("p3");
-
-    expect(
-      must(target, 'input[role="switch"][aria-label="Dieses Kapitel ausblenden"]'),
-    ).not.toBeNull();
-    expect(
-      target.querySelector('input[role="switch"][aria-label="Automatische Kapitel"]'),
-    ).toBeNull();
-  });
-
   it("offers no delete button for an automatic chapter", () => {
     const { target } = setUp("p3");
 
@@ -183,13 +171,6 @@ describe("ChapterSheet: an added chapter", () => {
     expect(
       target.querySelector('input[role="switch"][aria-label="Dieses Kapitel ausblenden"]'),
     ).toBeNull();
-  });
-
-  it("leaves the slideshow-wide automatic-chapters switch to the general sheet", () => {
-    const { target } = setUpAdded();
-
-    expect(target.textContent).toContain("Kapitel löschen");
-    expect(target.querySelector('input[role="switch"]')).toBeNull();
   });
 
   it("removes the chapter and closes on delete", () => {
@@ -217,35 +198,5 @@ describe("ChapterSheet: an added chapter", () => {
     expect(toaster.current?.action?.label).toBe("Rückgängig");
     toaster.act();
     expect(current().addedChapters).toEqual(before);
-  });
-});
-
-describe("ChapterSheet: general mode (no chapter picked)", () => {
-  it("shows only the automatic-chapters switch, no preview or fields", () => {
-    const { target } = setUp(null);
-
-    expect(target.querySelector(".preview")).toBeNull();
-    expect(target.querySelector("#chapter-title")).toBeNull();
-    expect(target.querySelector('input[role="switch"]')).not.toBeNull();
-  });
-
-  it("turns automatic chapters off and back on", () => {
-    const { target, current } = setUp(null);
-
-    target.querySelector<HTMLInputElement>('input[role="switch"]')?.click();
-    flushSync();
-    expect(current().automaticChaptersOff).toBe(true);
-
-    target.querySelector<HTMLInputElement>('input[role="switch"]')?.click();
-    flushSync();
-    expect(current().automaticChaptersOff).toBeUndefined();
-  });
-
-  it("disables the switch while the order is the owner's own", () => {
-    const { target } = setUp(null, { ownOrder: true });
-
-    const toggle = target.querySelector<HTMLInputElement>('input[role="switch"]');
-    expect(toggle?.disabled).toBe(true);
-    expect(target.textContent).toContain("Aus, solange du die Reihenfolge selbst bestimmst");
   });
 });

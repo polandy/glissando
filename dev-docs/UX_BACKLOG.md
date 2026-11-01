@@ -4,13 +4,13 @@ Findings of the UX review of 2026-10-31 (main at 0a165a9, release 0.0.12), kept 
 until each item is done or rejected. One file per theme in `ux_backlog/`; an item is removed
 once it ships. `TODO.md` carries one line per theme and points here.
 
-| Theme                                                        | Items          | Weight  |
-| ------------------------------------------------------------ | -------------- | ------- |
-| [Slideshow screen](ux_backlog/slideshow-screen.md)           | UX-01 … 04, 27 | highest |
-| [Selection and editing](ux_backlog/selection-editing.md)     | UX-05 … 09     | high    |
-| [Music editor](ux_backlog/music-editor.md)                   | UX-10 … 12     | high    |
-| [Copy and terminology](ux_backlog/copy.md)                   | UX-14 … 16     | high    |
-| [Navigation and feedback](ux_backlog/navigation-feedback.md) | UX-26          | medium  |
+| Theme                                                        | Items      | Weight  |
+| ------------------------------------------------------------ | ---------- | ------- |
+| [Slideshow screen](ux_backlog/slideshow-screen.md)           | UX-04      | highest |
+| [Selection and editing](ux_backlog/selection-editing.md)     | UX-05 … 09 | high    |
+| [Music editor](ux_backlog/music-editor.md)                   | UX-10 … 12 | high    |
+| [Copy and terminology](ux_backlog/copy.md)                   | UX-14 … 16 | high    |
+| [Navigation and feedback](ux_backlog/navigation-feedback.md) | UX-26      | medium  |
 
 ## How the review was made
 

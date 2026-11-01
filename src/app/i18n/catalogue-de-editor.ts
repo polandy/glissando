@@ -8,7 +8,6 @@ export const deEditor = {
   "slideshow.editPicture": "Bild bearbeiten",
   "slideshow.ownMotionBadge": "gewählt",
   "slideshow.pictureLabelOwnMotion": "Bild {number}, aufgenommen am {date}, eigene Bewegung",
-  "slideshow.automaticWithOwn": "automatisch, {count} eigene",
   "editor.crumb": "Bild {number}",
   "editor.position": "Bild {number} von {count}",
   "editor.counter": "{number} / {count}",

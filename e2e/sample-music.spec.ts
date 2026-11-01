@@ -101,7 +101,7 @@ test.describe("on a phone, in the music editor's Add song sheet", () => {
     page,
   }) => {
     await page.getByRole("button", { name: "Create without music" }).click();
-    await expect(page.getByRole("status")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Play", exact: true })).toBeVisible();
 
     await page.getByRole("button", { name: "Music None Add music" }).click();
     await expect(page.getByText("No music yet")).toBeVisible();

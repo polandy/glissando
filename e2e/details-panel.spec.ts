@@ -18,7 +18,7 @@ test("E2E-083 the slideshow's details show music, mood and look up front; fine s
   const fineSettings = page.getByRole("button", { name: "Weitere Einstellungen" });
   const transitionsRow = page.getByRole("button", { name: /^Übergänge/ });
   const portraitRow = page.getByRole("button", { name: /^Hochformatbilder/ });
-  const chaptersRow = page.getByRole("button", { name: /^Reisekapitel/ });
+  const chaptersSwitch = page.getByRole("switch", { name: "Reisekapitel" });
   const sheet = page.getByRole("dialog", { name: "Stimmung" });
   const sheetSwitch = sheet.getByRole("switch", { name: ENERGY_SWITCH });
 
@@ -43,8 +43,10 @@ test("E2E-083 the slideshow's details show music, mood and look up front; fine s
   await sheet.getByRole("button", { name: "Fertig" }).click();
   await expect(sheet).toBeHidden();
 
-  // A positive signal (the tile's new text) before the negative one (no switch in the panel).
-  await expect(moodTile).toContainText("folgt der Energie");
+  // A positive signal (the tile's short phrase) before the negatives (no derived text, no switch
+  // in the panel).
+  await expect(moodTile).toContainText("Langsam, sanft");
+  await expect(moodTile).not.toContainText("folgt der Energie");
   await expect(page.getByRole("switch", { name: ENERGY_SWITCH })).toBeHidden();
 
   // Opened, Fine settings shows its rows.
@@ -52,7 +54,7 @@ test("E2E-083 the slideshow's details show music, mood and look up front; fine s
   await expect(fineSettings).toHaveAttribute("aria-expanded", "true");
   await expect(transitionsRow).toBeVisible();
   await expect(portraitRow).toBeVisible();
-  await expect(chaptersRow).toBeVisible();
+  await expect(chaptersSwitch).toBeVisible();
 
   // The fold is remembered per device: open survives a reload.
   await page.reload();

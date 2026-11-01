@@ -54,5 +54,5 @@ The row "n pictures | x s per picture | m:ss total" follows the composition rule
 "Pictures" goes back; while a song is read the primary button is disabled as "Converting …";
 otherwise "Create slideshow" (or "Create without music") stores every chosen song in the list's
 order and then the slideshow record under the blocking overlay "Creating slideshow …", opens the
-slideshow and shows the toast "Slideshow created — tap Play", which ends early once the slideshow
-screen is left.
+slideshow; no toast confirms it, the slideshow screen's Play button pulses once on arrival
+(`ImportFlow.takePlayPulse`, `PlayPreview`'s `pulse`; not under reduced motion).

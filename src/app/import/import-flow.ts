@@ -3,7 +3,6 @@ import type { FocusPass } from "../../library/focus-pass";
 import type { LoudnessPass } from "../../library/loudness-pass";
 import type { Navigator } from "../navigation/navigator";
 import type { PersistencePrompt } from "../storage/persistence-prompt";
-import type { Toaster } from "../toast/toaster";
 
 interface DiscardableSession {
   /** Resolves once the store spares the discarded import's media no more. */
@@ -15,7 +14,6 @@ export interface ImportFlowPorts<Session extends DiscardableSession> {
   /** Deletes media no slideshow uses and no claim in any tab spares; reports failures. */
   deleteAbandonedMedia(): void;
   readonly navigator: Pick<Navigator, "open" | "back">;
-  readonly toaster: Pick<Toaster, "show">;
   readonly persistencePrompt: Pick<PersistencePrompt, "afterCreate">;
   /** Looks for the new slideshow's pictures' focus in the background. */
   readonly focusPass: Pick<FocusPass, "start">;
@@ -24,7 +22,6 @@ export interface ImportFlowPorts<Session extends DiscardableSession> {
   /** Measures the new slideshow's music's loudness in the background. */
   readonly loudnessPass: Pick<LoudnessPass, "start">;
   reportError(error: unknown): void;
-  createdText(): string;
 }
 
 export interface ImportFlowState<Session> {
@@ -43,6 +40,7 @@ export class ImportFlow<Session extends DiscardableSession> {
   readonly #ports: ImportFlowPorts<Session>;
   readonly #listeners = new Set<(state: ImportFlowState<Session>) => void>();
   #state: ImportFlowState<Session> = { session: null, persistRefused: false };
+  #playPulseFor: string | null = null;
 
   constructor(ports: ImportFlowPorts<Session>) {
     this.#ports = ports;
@@ -92,12 +90,24 @@ export class ImportFlow<Session extends DiscardableSession> {
     this.#ports.deleteAbandonedMedia();
   }
 
+  /**
+   * Whether the slideshow was just created and its Play button should pulse once on arrival: true
+   * once for that slideshow, false afterwards and for any other.
+   */
+  takePlayPulse(slideshowId: string): boolean {
+    const due = this.#playPulseFor === slideshowId;
+    if (due) {
+      this.#playPulseFor = null;
+    }
+    return due;
+  }
+
   async created(slideshowId: string): Promise<void> {
     this.#publish({ session: null });
     this.#ports.deleteAbandonedMedia();
     const slideshow = { screen: "slideshow", slideshowId } as const;
     this.#ports.navigator.open(slideshow);
-    this.#ports.toaster.show({ text: this.#ports.createdText(), tone: "info", route: slideshow });
+    this.#playPulseFor = slideshowId;
     await this.afterCreate();
   }
 

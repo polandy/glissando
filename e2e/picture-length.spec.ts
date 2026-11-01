@@ -3,7 +3,7 @@ import {
   chooseFiles,
   choosePictures,
   createSlideshow,
-  CREATED_TOAST,
+  expectSlideshowScreen,
   editsStored,
   GERMAN_BROWSER,
   openImport,
@@ -36,7 +36,7 @@ test("E2E-040 with music the pictures keep the mood's length on the beat until t
   // than the 60 s track, so it fades out with the last one.
   await expect(page.getByText("Die Musik blendet mit dem letzten Bild aus.")).toBeVisible();
   await page.getByRole("button", { name: "Diashow erstellen" }).click();
-  await expect(page.getByRole("status")).toHaveText(CREATED_TOAST);
+  await expectSlideshowScreen(page);
 
   await page.getByRole("button", { name: /^Musik Takt\.wav/ }).click();
   await expect(page.locator('[aria-labelledby="music-picture-changes"] .state')).toHaveText(
