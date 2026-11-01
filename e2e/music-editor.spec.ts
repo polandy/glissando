@@ -245,12 +245,12 @@ test("E2E-095 the music editor opens simple, and its Details switch shows the vo
   await expectSlideshowScreen(page);
   await page.getByRole("button", { name: "Musik 2 Songs" }).click();
 
-  // The song list is there before the details are found absent: the essentials show neither
-  // the waveform's handles nor the lane's blocks.
+  // The song list and the lane's blocks are there before the details are found absent: the
+  // essentials show neither the waveform's handles nor the lane's crossfade hatching.
   await expect(page.getByRole("list", { name: "Songs" })).toBeVisible();
+  await expect(blocks).toHaveCount(2);
   await expect(details).not.toBeChecked();
   await expect(endHandle).toHaveCount(0);
-  await expect(blocks).toHaveCount(0);
   await expect(volumeLine).toHaveCount(0);
   await expect(slideshowLane).toHaveCount(0);
   await expect(hatching).toHaveCount(0);

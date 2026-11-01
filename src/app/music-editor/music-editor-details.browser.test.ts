@@ -46,12 +46,12 @@ const slideshowLane = () => document.querySelector(".wavebox .runs");
 const hatching = () => document.querySelector(".playlist-lane .crossfade");
 
 describe("MusicEditorScreen, the Details switch", () => {
-  it("is off by default and shows the simple editor", () => {
+  it("is off by default and shows the simple editor: the lane without crossfades", () => {
     mountHidden(slideshowOfSongs(TWO), FOUND);
 
     expect(detailsSwitch()?.checked).toBe(false);
     expect(document.querySelector(".songs")).not.toBeNull();
-    expect(document.querySelector(".playlist-lane")).toBeNull();
+    expect(document.querySelector(".playlist-lane")).not.toBeNull();
     expect(document.querySelector(".wave")).toBeNull();
     expect(envelope()).toBeNull();
     expect(document.querySelector(".beat-ticks")).toBeNull();

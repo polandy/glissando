@@ -16,9 +16,8 @@ import {
 afterEach(() => unmountEditor());
 
 const TWO = [song("a", 60_000), song("b", 60_000)];
-/** What only the Details show: the lane, the song's waveform and Listen buttons, its settings. */
+/** What only the Details show: the song's waveform and Listen buttons, its settings. */
 const DETAILS_ONLY = [
-  ".playlist-timeline",
   ".wavebox",
   ".listen",
   ".song-heading",
@@ -38,11 +37,12 @@ const addButtons = () =>
   );
 
 describe("MusicEditorScreen, the Essentials", () => {
-  it("shows only the songs, the picture length, repeat and the one-line notice", () => {
+  it("shows only the songs, the music/pictures lane, the picture length, repeat and the notice", () => {
     mountEditor(slideshowOfSongs(TWO), undefined, undefined, undefined, hiddenDetailsStore());
 
     expect(detailsSwitch()?.checked).toBe(false);
     expect(document.querySelectorAll(".songs .song")).toHaveLength(2);
+    expect(document.querySelector(".playlist-timeline")).not.toBeNull();
     expect(document.querySelector('[aria-labelledby="music-picture-length"]')).not.toBeNull();
     expect(repeatSwitch()).not.toBeNull();
     expect(notice()).not.toBeNull();
@@ -51,7 +51,18 @@ describe("MusicEditorScreen, the Essentials", () => {
     }
   });
 
-  it("adds the lane, the selected song and its settings, and Between songs, with Details on", () => {
+  it("puts the music/pictures lane in the main column, under the songs", () => {
+    mountEditor(slideshowOfSongs(TWO), undefined, undefined, undefined, hiddenDetailsStore());
+
+    const songs = document.querySelector(".songs");
+    const lane = document.querySelector(".playlist-timeline");
+    expect(lane?.closest(".main-column")).not.toBeNull();
+    expect(songs?.getBoundingClientRect().bottom).toBeLessThanOrEqual(
+      lane?.getBoundingClientRect().top ?? Number.NaN,
+    );
+  });
+
+  it("adds the selected song and its settings, and Between songs, with Details on", () => {
     mountEditor(slideshowOfSongs(TWO), undefined, undefined, undefined, hiddenDetailsStore());
 
     detailsSwitch()?.click();
@@ -115,5 +126,20 @@ describe("MusicEditorScreen, the Essentials on a phone", () => {
 
     const screen = document.querySelector<HTMLElement>(".screen");
     expect(screen?.scrollHeight).toBeLessThanOrEqual(SCREENS * PHONE.height);
+  });
+
+  it("puts the music/pictures lane between the songs and the picture length", async () => {
+    await page.viewport(PHONE.width, PHONE.height);
+    mountEditor(slideshowOfSongs(TWO), undefined, undefined, undefined, hiddenDetailsStore());
+
+    const songs = document.querySelector(".songs");
+    const lane = document.querySelector(".playlist-timeline");
+    const pictureLength = document.querySelector('[aria-labelledby="music-picture-length"]');
+    expect(songs?.getBoundingClientRect().bottom).toBeLessThanOrEqual(
+      lane?.getBoundingClientRect().top ?? Number.NaN,
+    );
+    expect(lane?.getBoundingClientRect().bottom).toBeLessThanOrEqual(
+      pictureLength?.getBoundingClientRect().top ?? Number.NaN,
+    );
   });
 });

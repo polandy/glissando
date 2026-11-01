@@ -8,8 +8,8 @@
   https://polandy.github.io/glissando-assets/mockups/music-fits/, ADR-0009, ADR-0021, ADR-0022,
   ADR-0023, ADR-0047): the playlist's songs, how long the pictures last and how one song hands
   over to the next; for the selected song its excerpt, whether the pictures change on its beats,
-  and its fades. Bar: back and "Library / title / Music". Desktop: two columns, the songs (and with Details the
-  lane and the selected song's waveform) on the left, the settings on the right; a container up to
+  and its fades. Bar: back and "Library / title / Music". Desktop: two columns, the songs, the lane (and with Details
+  the selected song's waveform) on the left, the settings on the right; a container up to
   720 px wide stacks them in one column (see "Simple first"). Every change is stored at once; only a removed song
   has an undo toast ("Song removed"): "Whole track" and "Back to automatic" restore the rest in
   one tap.
@@ -18,15 +18,17 @@
     (`Switch.svelte`, role "switch") at the right end of the bar, off by default and remembered on
     this device for every slideshow (`music-editor-details.ts`, injected as
     `services.musicEditorDetails`); shown only while there is music. Off (the Essentials), the
-    editor shows only the song list (add, remove, reorder), the Picture length section (or the
+    editor shows only the song list (add, remove, reorder), the playlist lane right under it
+    (mockup: https://polandy.github.io/glissando-assets/mockups/ux-p7-music-editor/, variant A2),
+    the Picture length section (or the
     mood's), "Repeat the music" and the one-line notice; with Essentials on a 390 × 844 phone and
-    two songs it fits in two screens. On adds the playlist lane, the selected song (heading,
+    two songs it fits in two screens. On adds the lane's crossfade hatching, the selected song (heading,
     waveform with its handles, volume line, beat ticks, slideshow lane, listen buttons), "Between
     songs" (with two songs or more) and the "Song N" group: Excerpt, Volume, Picture changes,
     Fade in, Fade out. Layout (`MusicEditorScreen.svelte`, `MusicEditorPanel.svelte`, CSS only:
-    `display: contents` and `order`): desktop, left the songs then (Details) lane and waveform,
+    `display: contents` and `order`): desktop, left the songs, the lane, then (Details) the waveform,
     right the "Slideshow" group (Picture length, Repeat, Between songs) then (Details) the "Song N"
-    group; phone, one column in the order songs, Slideshow group, lane, waveform and Listen, Song
+    group; phone, one column in the order songs, lane, Slideshow group, waveform and Listen, Song
     settings. Each section is its control plus at most one outcome line; the mechanics sit behind
     an ⓘ button (`InfoButton.svelte`, the native `popover`, fixed under its button, Esc or a tap
     outside closes it), named by its section ("About volume", …). Under a coarse pointer every
@@ -59,7 +61,7 @@
     playlist with it is stored; on the server uploaded), and appended in the order picked.
     Until then it is a dashed row with its name ("Converting to FLAC · 42 %" while converting);
     a file that cannot be used stays as a coral row "This file can't be used" until its ×.
-  - **Playlist lane** (`PlaylistLane.svelte`, Details only): "Playlist, 3 songs · 2:54" with, "Crossfades hatched" (or "One after another"), then the songs as numbered blocks in their colours from
+  - **Playlist lane** (`PlaylistLane.svelte`, in the Essentials too): "Playlist, 3 songs · 2:54" with, "Crossfades hatched" (or "One after another"), then the songs as numbered blocks in their colours from
     where each starts, a crossfade hatched where two overlap (the next song's number after the
     hatching; without the Details no hatching: neighbouring blocks meet at the middle of their
     overlap, a thin line of the lane's surface between them), songs not reached faded, and a coral mark "Slideshow ends" where the slideshow

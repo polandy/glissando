@@ -179,7 +179,7 @@
       border-top: 1px solid var(--gl-line);
     }
     .slideshow-group {
-      order: 2;
+      order: 3;
     }
     .song-group {
       order: 5;

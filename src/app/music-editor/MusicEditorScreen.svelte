@@ -170,8 +170,8 @@
             {/snippet}
           </SongList>
         </div>
+        <div class="lane-block"><PlaylistLane {playlist} /></div>
         {#if details}
-          <div class="lane-block"><PlaylistLane {playlist} /></div>
           <div class="wave-block">
             <SelectedSong
               {music}
@@ -258,7 +258,7 @@
   @container (max-width: 720px) {
     /*
      * The phone layout scrolls as one column of grid items, in this order: the songs, the
-     * Slideshow group, the lane, the selected song's waveform, its settings. The two column
+     * lane, the Slideshow group, the selected song's waveform, its settings. The two column
      * wrappers vanish so the panel's groups can sit between the main column's blocks.
      */
     .edit {
@@ -275,7 +275,7 @@
       order: 1;
     }
     .lane-block {
-      order: 3;
+      order: 2;
     }
     .wave-block {
       order: 4;

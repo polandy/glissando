@@ -15,9 +15,10 @@ without internet. If you use a self-hosted Glissando, open its address instead
    songs that come with Glissando if you have none of your own to hand. Pick the part of the song
    to use; the slideshow is timed to fit it. Several songs work too, automatically matched in
    loudness so none plays louder than the rest; the music editor lets you listen and adjust that. It
-   shows the essentials first: your songs (with **Add a song** as the last row), the picture length,
+   shows the essentials first: your songs (with **Add a song** as the last row), a bar showing how
+   long the music and the pictures run, the picture length,
    **Repeat the music** and one line saying how pictures and music fit. Turn on **Details** in its top
-   bar for the playlist, the waveform, volume, beat, fades and crossfades. The small **i** buttons
+   bar for the crossfades in that bar, the waveform, volume, beat and fades. The small **i** buttons
    explain a setting when you tap them.
 3. **Play.** Motion and transitions are chosen for you — people stay in frame, scenery gets a slow
    sweep, changes follow the beat.
