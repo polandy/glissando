@@ -25,9 +25,9 @@ visit, so the settings people change most took a tap each time. Mockup, option A
 - **The energy switch lives only in the Mood sheet.**
 - **The Mood tile carries one short phrase**, not derived facts: "Slow, soft", "Quick, on the
   beat" or "Your settings" under Custom. Picture times, beats, motion and "follows the energy"
-  stay in the Mood sheet's summary box, so the three tiles fit two lines each. The picture count and the duration are in the header already. The music's
-  length goes into the Music summary when it differs from the slideshow. The captions count is
-  dropped.
+  stay in the Mood sheet's summary box, so the three tiles fit two lines each. The picture count
+  and the duration are in the header already. The music's length goes into the Music summary
+  when it differs from the slideshow. The captions count is dropped.
 
 ## Options weighed
 

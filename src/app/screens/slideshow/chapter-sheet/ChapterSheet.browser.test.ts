@@ -40,7 +40,7 @@ const TWO_STAYS: readonly StoredPicture[] = [
   picture("p3", "2025-06-21T09:00:00Z", PORTO),
 ];
 
-function baseSlideshow(overrides: Partial<StoredSlideshow> = {}): StoredSlideshow {
+function baseSlideshow(): StoredSlideshow {
   return {
     id: "show",
     title: "Trip",
@@ -48,7 +48,6 @@ function baseSlideshow(overrides: Partial<StoredSlideshow> = {}): StoredSlidesho
     pictures: TWO_STAYS,
     songs: [],
     secondsPerPicture: 5,
-    ...overrides,
   };
 }
 
@@ -70,8 +69,8 @@ function must<T extends Element>(target: ParentNode, selector: string): T {
 }
 
 /** A chapter sheet over a live `ChapterSettingsEditor`: edits store at once, like the real app's. */
-function setUp(anchorPictureId: string, overrides: Partial<StoredSlideshow> = {}) {
-  let current = baseSlideshow(overrides);
+function setUp(anchorPictureId: string) {
+  let current = baseSlideshow();
   const onClose = vi.fn();
   // Assigned once props exists, so its apply callback can update it (forward reference).
   let updateSlideshow: (next: StoredSlideshow) => void = () => {};
