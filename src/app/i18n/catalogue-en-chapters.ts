@@ -20,6 +20,7 @@ export const enChapters: Pick<Catalogue, keyof typeof deChapters> = {
     "A short slide wherever the trip moves on to a new place. Chapters you added stay.",
   "chapters.automaticHelperDisabled": "Off while you arrange the order yourself",
   "chapters.insertChapterBefore": "Insert chapter before",
+  "chapters.insertChapterShort": "Chapter",
   "chapters.rowLabel": "Trip chapters",
   "chapters.count": {
     one: "{count} chapter",

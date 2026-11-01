@@ -174,8 +174,8 @@
   --gl-radius: 10px;
   --gl-radius-large: 14px;
   --gl-radius-pill: 999px;
-  /* The selection bar with its actions' labels under their icons (a narrow screen). */
-  --gl-selection-bar-labelled-height: 68px;
+  /* The narrow selection bar: the count and Done over a row of labelled actions. */
+  --gl-selection-bar-labelled-height: 112px;
 
   /* The smallest touch target a finger can hit with confidence (44 pt); see base.css. */
   --gl-hit-min: 44px;

@@ -35,15 +35,13 @@ for (const colorScheme of ["light", "dark"] as const) {
     });
     expect(barColour).not.toBe(screenColour);
 
-    // Every button inside the phone's width; Earlier and Later wait in More.
+    // Every button inside the phone's width; Earlier and Later sit in the second row.
     const done = selectionBar.getByRole("button", { name: "Fertig" });
     const doneBox = await done.boundingBox();
     expect(doneBox).not.toBeNull();
     expect((doneBox?.x ?? Infinity) + (doneBox?.width ?? 0)).toBeLessThanOrEqual(PHONE.width);
-    await selectionBar.getByRole("button", { name: "Weitere Aktionen" }).click();
-    await expect(page.getByRole("menuitem", { name: "Früher" })).toBeVisible();
-    await expect(page.getByRole("menuitem", { name: "Später" })).toBeVisible();
-    await page.keyboard.press("Escape");
+    await expect(selectionBar.getByRole("button", { name: "Früher" })).toBeVisible();
+    await expect(selectionBar.getByRole("button", { name: "Später" })).toBeVisible();
 
     await done.click();
     await expect(third).toHaveAttribute("aria-pressed", "false");
@@ -64,7 +62,7 @@ test("E2E-087 on a phone the selection bar shows each action with its label; a t
   await second.click();
   const remove = selectionBar.getByRole("button", { name: "Bild entfernen" });
   await expect(remove).toBeVisible();
-  await expect(remove.getByText("Entfernen")).toBeVisible();
+  await expect(remove.locator(".label:visible")).toHaveText("Entfernen");
 
   await remove.click();
   await expect(page.getByRole("button", { name: /^Bild \d, aufgenommen/ })).toHaveCount(2);

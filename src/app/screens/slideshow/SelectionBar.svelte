@@ -6,8 +6,7 @@
   import BarAction from "./BarAction.svelte";
   import MoveToSheet from "./MoveToSheet.svelte";
   import SelectionCount from "./SelectionCount.svelte";
-  import SelectionBarMenu from "./SelectionBarMenu.svelte";
-  import { barItem, type BarItem } from "./SelectionBarItem";
+  import { barItem, chapterItem, moveToItem, type BarItem } from "./SelectionBarItem";
   import { isContiguous, selectedInOrder, type StripSelection } from "./strip-selection";
 
   /**
@@ -43,8 +42,8 @@
     arranging?: boolean;
     /**
      * The adding bar (IMPORT_ARRANGING.md): View (full-screen) instead of Edit, as words, for no
-     * picture editor while importing. Otherwise every action is labelled, with the moves in "More"
-     * on a narrow screen.
+     * picture editor while importing. Otherwise every action is labelled; a narrow screen shows
+     * them all in a second row under the count and Done.
      */
     viewMode?: boolean;
     /** Inserts a trip chapter before the selected picture (TRIP_CHAPTERS.md); omitted while importing. */
@@ -121,11 +120,9 @@
       : [],
   );
   const extras = $derived<BarItem[]>([
-    ...(single && onInsertChapter !== undefined
-      ? [barItem("chapter", t("chapters.insertChapterBefore"), insertChapter)]
-      : []),
+    ...(single && onInsertChapter !== undefined ? [chapterItem(t, insertChapter)] : []),
     ...(arranging && onMoveGroup !== undefined && count > 0
-      ? [barItem("moveTo", t("slideshow.moveTo"), () => (moving = true))]
+      ? [moveToItem(t, () => (moving = true))]
       : []),
   ]);
 </script>
@@ -135,6 +132,7 @@
     <BarAction
       icon={item.icon}
       label={item.label}
+      shortLabel={item.shortLabel}
       disabledLook={item.disabled}
       onclick={item.run}
     />
@@ -158,36 +156,35 @@
         onRemove={remove}
       />
     {:else}
-      <!-- A wide screen shows the moves inline; a narrow one keeps them in "More". -->
-      <span class="wide-only">{@render inline(shifts)}</span>
-      {#if single}
-        {#if onView !== undefined}
+      <!-- One row of actions: inline on a wide screen, the bar's second row on a narrow one. -->
+      <div class="actions">
+        {@render inline(shifts)}
+        {#if single}
+          {#if onView !== undefined}
+            <BarAction
+              icon="eye"
+              label={t("slideshow.view")}
+              name={t("slideshow.viewFullScreen")}
+              onclick={view}
+            />
+          {/if}
           <BarAction
-            icon="eye"
-            label={t("slideshow.view")}
-            name={t("slideshow.viewFullScreen")}
-            onclick={view}
+            icon="pencil"
+            label={t("slideshow.edit")}
+            name={t("slideshow.editPicture")}
+            onclick={edit}
           />
         {/if}
+        {@render inline(extras)}
         <BarAction
-          icon="pencil"
-          label={t("slideshow.edit")}
-          name={t("slideshow.editPicture")}
-          onclick={edit}
+          icon="trash"
+          label={t("slideshow.remove")}
+          name={removeLabel}
+          danger
+          disabledLook={removeDisabledLook}
+          onclick={remove}
         />
-      {/if}
-      <span class="wide-only">{@render inline(extras)}</span>
-      <BarAction
-        icon="trash"
-        label={t("slideshow.remove")}
-        name={removeLabel}
-        danger
-        disabledLook={removeDisabledLook}
-        onclick={remove}
-      />
-      {#if shifts.length + extras.length > 0}
-        <span class="narrow-only"><SelectionBarMenu items={[...shifts, ...extras]} /></span>
-      {/if}
+      </div>
     {/if}
     <span class="spacer"></span>
     <button class="btn done" type="button" onclick={onDone}>{t("slideshow.done")}</button>
@@ -230,8 +227,7 @@
   .spacer {
     flex: 1;
   }
-  .narrow-only,
-  .wide-only {
+  .actions {
     display: contents;
   }
   .done {
@@ -249,28 +245,45 @@
     height: 24px;
     background: var(--gl-inverse-line);
   }
-  /* The moves and extras sit inline only where they all fit; below that they are in "More". */
-  @container (width < 1140px) {
-    .wide-only {
-      display: none;
-    }
-  }
-  @container (width >= 1140px) {
-    .narrow-only {
-      display: none;
-    }
-  }
   @container (width < 1140px) {
     .dock {
-      left: 8px;
-      right: 8px;
+      left: 4px;
+      right: 4px;
       max-width: none;
       justify-items: stretch;
       translate: none;
     }
+    /* Row 1: the count and Done; row 2: every action, equally wide, scrolling within the bar
+       where a language's labels do not all fit. */
     .bar {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      grid-template-rows: auto 1fr;
       gap: 2px;
-      padding: 4px;
+      padding: 2px;
+    }
+    .bar > :global(.count) {
+      grid-row: 1;
+      grid-column: 1;
+    }
+    .done {
+      grid-row: 1;
+      grid-column: 2;
+    }
+    .spacer {
+      display: none;
+    }
+    .actions {
+      display: flex;
+      grid-row: 2;
+      grid-column: 1 / -1;
+      overflow-x: auto;
+      overscroll-behavior-x: contain;
+    }
+    .actions :global(.action) {
+      flex: 1 1 0;
+      min-width: min-content;
+      padding: 0;
     }
     .separator {
       display: none;

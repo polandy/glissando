@@ -10,22 +10,23 @@
   let {
     icon,
     label,
+    shortLabel = label,
     name = label,
     danger = false,
     disabledLook = false,
-    menuOpen,
     element = $bindable(),
     onclick,
   }: {
     icon: IconName;
+    /** The wide bar's label, beside the icon. */
     label: string;
+    /** The narrow bar's label, under the icon. */
+    shortLabel?: string;
     name?: string;
     /** Remove: the icon and label in the danger colour. */
     danger?: boolean;
     /** Looks off but still answers a tap, and keeps its place in the tab order. */
     disabledLook?: boolean;
-    /** Set for the button that opens a menu: whether that menu is open. */
-    menuOpen?: boolean;
     element?: HTMLButtonElement | undefined;
     onclick: () => void;
   } = $props();
@@ -38,12 +39,11 @@
   type="button"
   aria-label={name}
   aria-disabled={disabledLook}
-  aria-haspopup={menuOpen === undefined ? undefined : "menu"}
-  aria-expanded={menuOpen}
   {onclick}
 >
   <Icon name={icon} />
-  <span class="label">{label}</span>
+  <span class="label short">{shortLabel}</span>
+  <span class="label long">{label}</span>
 </button>
 
 <style>
@@ -64,6 +64,9 @@
   .danger {
     color: var(--gl-inverse-danger);
   }
+  .long {
+    display: none;
+  }
   /* A touch screen keeps the last tapped button "hovered": highlight for a mouse only. */
   @media (hover: hover) {
     .action:hover:not([aria-disabled="true"]) {
@@ -82,6 +85,12 @@
       height: 44px;
       padding: 0 12px;
       font-size: var(--gl-size-label);
+    }
+    .short {
+      display: none;
+    }
+    .long {
+      display: inline;
     }
   }
 </style>

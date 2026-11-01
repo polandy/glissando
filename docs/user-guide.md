@@ -51,9 +51,10 @@ pictures to reorder (on a phone, hold a picture until it lifts, then drag; the p
 screen edge), or tap Shuffle for a random order (Undo in the message that follows
 brings the old one back); select a picture to view it full screen or open its editor to change
 its motion (on a phone it shows the picture with its frames or the preview, one at a time:
-switch with **Frame | Play**). The bar that appears labels every action: **View**, **Edit** and **Remove**
-and, behind **More** on a phone, **Earlier**, **Later**, **Insert chapter before** and **Move to …**
-(to the start, the end, or before a picture by its number — handy when dragging is too far).
+switch with **Frame | Play**). The bar that appears labels every action: **Earlier**, **Later**, **View**, **Edit**,
+**Insert chapter before**, **Move to …** and **Remove**; on a phone they form a second row, with
+**Chapter** and **Move** as the short labels. **Move to …** goes to the start, the end, or before
+a picture by its number — handy when dragging is too far.
 
 **Trip chapters**: a slideshow of several days in different places gets a chapter slide between
 them automatically, naming the place and the dates. Tap a chapter tile in the picture strip to

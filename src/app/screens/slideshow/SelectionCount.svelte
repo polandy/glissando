@@ -3,8 +3,7 @@
 
   /**
    * What is selected, announced on every change (SELECTING_SEVERAL.md, Selecting several): "Picture
-   * 3 of 12" for one, a count chip for several. On a narrow screen a single selection's words are
-   * hidden from sight, not from screen readers; several's chip stays.
+   * 3 of 12" for one, a count chip for several.
    */
   let {
     several,
@@ -61,21 +60,5 @@
     color: var(--gl-accent-ink);
     font-weight: var(--gl-weight-medium);
     place-items: center;
-  }
-  @container (width < 1140px) {
-    .count:not(.several) {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      padding: 0;
-      overflow: hidden;
-      clip-path: inset(50%);
-    }
-    .count.several {
-      padding: 0 2px 0 4px;
-    }
-    .count.several .word {
-      display: none;
-    }
   }
 </style>

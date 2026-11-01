@@ -71,7 +71,7 @@ describe("SlideshowScreen selection bar look", () => {
     expect(iconColour).not.toBe(getComputedStyle(bar).color);
   });
 
-  it("fits every button inside the bar on a phone, the moves kept in More", async () => {
+  it("fits every button inside the bar on a phone, the moves in the second row", async () => {
     await page.viewport(PHONE.width, PHONE.height);
     const bar = openBar();
     const barBox = bar.getBoundingClientRect();
@@ -79,7 +79,9 @@ describe("SlideshowScreen selection bar look", () => {
 
     expect(done.right).toBeLessThanOrEqual(barBox.right);
     expect(barBox.right).toBeLessThanOrEqual(PHONE.width);
-    expect(buttonNamed("Früher").getClientRects()).toHaveLength(0);
-    expect(buttonNamed("Mehr").getClientRects()).not.toHaveLength(0);
+    expect(buttonNamed("Früher").getBoundingClientRect().top).toBeGreaterThanOrEqual(done.bottom);
+    expect(buttonNamed("Entfernen").getBoundingClientRect().right).toBeLessThanOrEqual(
+      barBox.right,
+    );
   });
 });

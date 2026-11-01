@@ -2,7 +2,7 @@ import "../../styles/tokens.css";
 import "../../styles/base.css";
 import { flushSync } from "svelte";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { page, userEvent } from "vitest/browser";
+import { page } from "vitest/browser";
 import { click } from "./slideshow-screen-dom";
 import { details, mountScreen, tile, unmountScreen } from "./slideshow-screen-harness";
 
@@ -36,7 +36,7 @@ function barButtons(): Map<string, HTMLButtonElement> {
   const shown = [...bar().querySelectorAll<HTMLButtonElement>("button")].filter(
     (button) => button.getClientRects().length > 0,
   );
-  return new Map(shown.map((button) => [button.textContent?.trim() ?? "", button]));
+  return new Map(shown.map((button) => [button.innerText.trim(), button]));
 }
 
 function selectNth(number: number, date: string): ReturnType<typeof mountScreen> {
@@ -46,40 +46,27 @@ function selectNth(number: number, date: string): ReturnType<typeof mountScreen>
   return mounted;
 }
 
-async function openMore(): Promise<HTMLElement> {
-  const more = barButtons().get("Mehr");
-  if (more === undefined) {
-    throw new Error("no More button");
-  }
-  more.click();
-  flushSync();
-  await expect.poll(() => document.querySelector('[role="menu"]')).not.toBeNull();
-  return document.querySelector<HTMLElement>('[role="menu"]') as HTMLElement;
-}
-
-const menuItem = (menu: HTMLElement, name: string): HTMLElement => {
-  const found = [...menu.querySelectorAll<HTMLElement>('[role="menuitem"]')].find(
-    (item) => item.textContent?.trim() === name,
-  );
-  if (found === undefined) {
-    throw new Error(`no menu item "${name}"`);
-  }
-  return found;
-};
-
 describe.each(THEMES)("selection bar on the phone, %s theme", (theme) => {
   beforeEach(() => {
     document.documentElement.dataset["theme"] = theme;
   });
 
-  it("labels View, Edit, Remove and More under their icons, every target at least 44 px", () => {
+  it("labels every action under its icon, every target at least 44 px high", () => {
     selectNth(2, "02.07.2025");
     const buttons = barButtons();
 
-    expect([...buttons.keys()]).toEqual(["Ansehen", "Bearbeiten", "Entfernen", "Mehr", "Fertig"]);
+    expect([...buttons.keys()]).toEqual([
+      "Früher",
+      "Später",
+      "Ansehen",
+      "Bearbeiten",
+      "Kapitel",
+      "Verschieben",
+      "Entfernen",
+      "Fertig",
+    ]);
     for (const [label, button] of buttons) {
       const box = button.getBoundingClientRect();
-      expect(box.width, `${label} width`).toBeGreaterThanOrEqual(MIN_TARGET);
       expect(box.height, `${label} height`).toBeGreaterThanOrEqual(MIN_TARGET);
       const text = button.querySelector(".label") ?? button;
       expect(text.getBoundingClientRect().width, `${label} text`).toBeGreaterThan(0);
@@ -90,53 +77,28 @@ describe.each(THEMES)("selection bar on the phone, %s theme", (theme) => {
     expect(text.getBoundingClientRect().top).toBeGreaterThanOrEqual(
       icon.getBoundingClientRect().bottom,
     );
-    expect(buttons.get("Mehr")?.getAttribute("aria-label")).toBe("Weitere Aktionen");
     expect(bar().getBoundingClientRect().right).toBeLessThanOrEqual(PHONE.width);
   });
 
-  it("opens More with Earlier, Later, Insert chapter and Move to, closing on Escape back to More", async () => {
+  it("names the short-labelled actions in full for assistive technology", () => {
     selectNth(2, "02.07.2025");
-    const menu = await openMore();
+    const names = [...bar().querySelectorAll("button")].map((b) => b.getAttribute("aria-label"));
 
-    const names = [...menu.querySelectorAll('[role="menuitem"]')].map((item) =>
-      item.textContent?.trim(),
-    );
-    expect(names).toEqual(["Früher", "Später", "Kapitel davor einfügen", "Verschieben nach …"]);
-    for (const item of menu.querySelectorAll<HTMLElement>('[role="menuitem"]')) {
-      expect(item.getBoundingClientRect().height).toBeGreaterThanOrEqual(48);
-    }
-    expect(document.activeElement).toBe(menuItem(menu, "Früher"));
-
-    await userEvent.keyboard("{ArrowDown}");
-    expect(document.activeElement).toBe(menuItem(menu, "Später"));
-
-    await userEvent.keyboard("{Escape}");
-    await expect.poll(() => document.querySelector('[role="menu"]')).toBeNull();
-    expect(document.activeElement).toBe(barButtons().get("Mehr"));
+    expect(names).toContain("Kapitel davor einfügen");
+    expect(names).toContain("Verschieben nach\u00a0…");
   });
 
-  it("disables Earlier at the first picture and Later at the last, and does nothing when tapped", async () => {
+  it("disables Earlier at the first picture and Later at the last, and does nothing when tapped", () => {
     const { calls } = selectNth(1, "01.07.2025");
-    const menu = await openMore();
-    expect(menuItem(menu, "Früher").getAttribute("aria-disabled")).toBe("true");
-    expect(menuItem(menu, "Später").getAttribute("aria-disabled")).toBe("false");
+    const earlier = barButtons().get("Früher") as HTMLElement;
+    const later = barButtons().get("Später") as HTMLElement;
+    expect(earlier.getAttribute("aria-disabled")).toBe("true");
+    expect(later.getAttribute("aria-disabled")).toBe("false");
 
-    click(menuItem(menu, "Früher"));
+    click(earlier);
     expect(calls.shifted).toEqual([]);
-    click(menuItem(menu, "Später"));
+    click(later);
     expect(calls.shifted).toEqual([[["a"], 1]]);
-    await expect.poll(() => document.querySelector('[role="menu"]')).toBeNull();
-    expect(document.activeElement).toBe(barButtons().get("Mehr"));
-  });
-
-  it("closes the menu on a tap outside it", async () => {
-    selectNth(2, "02.07.2025");
-    await openMore();
-
-    document.body.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
-    flushSync();
-
-    await expect.poll(() => document.querySelector('[role="menu"]')).toBeNull();
   });
 
   it.each([
@@ -148,7 +110,7 @@ describe.each(THEMES)("selection bar on the phone, %s theme", (theme) => {
     "Move to %s hands onMoveGroup the insertion in the current order",
     async (choice, stepsDown, insertion) => {
       const { calls } = selectNth(3, "03.07.2025");
-      click(menuItem(await openMore(), "Verschieben nach\u00a0…"));
+      click(barButtons().get("Verschieben") as HTMLElement);
       flushSync();
       await expect.poll(() => document.querySelector("dialog[open]")).not.toBeNull();
       const dialog = document.querySelector("dialog") as HTMLDialogElement;
@@ -180,17 +142,20 @@ describe.each(THEMES)("selection bar on the phone, %s theme", (theme) => {
 });
 
 describe("selection bar just under the wide breakpoint", () => {
-  it("keeps the narrow bar with More, not an overflowing wide one", async () => {
+  it("keeps the narrow two-row bar, not an overflowing wide one", async () => {
     await page.viewport(1100, DESKTOP.height);
     mountScreen(details(["a", "b", "c", "d"]));
     tile(2, "02.07.2025").click();
     flushSync();
 
     expect([...barButtons().keys()]).toEqual([
+      "Früher",
+      "Später",
       "Ansehen",
       "Bearbeiten",
+      "Kapitel",
+      "Verschieben",
       "Entfernen",
-      "Mehr",
       "Fertig",
     ]);
     expect(bar().getBoundingClientRect().right).toBeLessThanOrEqual(1100);
@@ -223,7 +188,7 @@ describe.each([1160, DESKTOP.width])("selection bar when %s px wide", (width) =>
       expect(box.right, label).toBeLessThanOrEqual(barBox.right);
       expect(box.height, label).toBeGreaterThanOrEqual(MIN_TARGET);
       const icon = button.querySelector("svg") as SVGElement;
-      const text = button.querySelector(".label");
+      const text = button.querySelector(".label.long");
       if (text !== null) {
         expect(text.getBoundingClientRect().left, label).toBeGreaterThanOrEqual(
           icon.getBoundingClientRect().right,
@@ -231,6 +196,6 @@ describe.each([1160, DESKTOP.width])("selection bar when %s px wide", (width) =>
       }
     }
     expect(barBox.right).toBeLessThanOrEqual(width);
-    expect(barButtons().has("Mehr")).toBe(false);
+    expect(bar().querySelector("[aria-haspopup]")).toBeNull();
   });
 });

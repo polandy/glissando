@@ -9,9 +9,10 @@ export function byLabel<T extends HTMLElement = HTMLButtonElement>(label: string
   return found;
 }
 
+/** By its rendered text: a bar action holds a short and a long label, one of them hidden. */
 export function buttonNamed(name: string): HTMLButtonElement {
   const found = [...document.querySelectorAll("button")].find(
-    (button) => button.textContent?.trim() === name,
+    (button) => button.innerText.trim() === name,
   );
   if (found === undefined) {
     throw new Error(`no button named "${name}"`);

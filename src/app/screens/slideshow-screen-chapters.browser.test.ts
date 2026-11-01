@@ -5,7 +5,7 @@ import { ChapterSettingsEditor } from "../editing/chapter-settings-editor";
 import { ResetUndo } from "../editing/reset-undo";
 import { Toaster } from "../toast/toaster";
 import { FakeScheduler } from "../../ui-kit/testing/fake-scheduler";
-import { buttonNamed, mountScreen, tile, unmountScreen } from "./slideshow-screen-harness";
+import { byLabel, mountScreen, tile, unmountScreen } from "./slideshow-screen-harness";
 
 const CHAPTER_PORTS = {
   chapterDeletedText: () => "Kapitel gelöscht",
@@ -55,12 +55,12 @@ describe("SlideshowScreen: inserting a trip chapter from the selection bar", () 
   it("offers Insert chapter only once a single picture is selected", () => {
     mountScreen(undefined, { chapterEditor: chapterEditor().editor });
 
-    expect(() => buttonNamed("Kapitel davor einfügen")).toThrow();
+    expect(() => byLabel("Kapitel davor einfügen")).toThrow();
 
     tile(1, "01.07.2025").click();
     flushSync();
 
-    expect(buttonNamed("Kapitel davor einfügen")).toBeInstanceOf(HTMLButtonElement);
+    expect(byLabel("Kapitel davor einfügen")).toBeInstanceOf(HTMLButtonElement);
   });
 
   it("inserts the chapter before the selected picture and opens its sheet", () => {
@@ -69,7 +69,7 @@ describe("SlideshowScreen: inserting a trip chapter from the selection bar", () 
     tile(2, "02.07.2025").click();
     flushSync();
 
-    buttonNamed("Kapitel davor einfügen").click();
+    byLabel("Kapitel davor einfügen").click();
     flushSync();
 
     expect(current().addedChapters).toEqual([{ beforePictureId: "b" }]);

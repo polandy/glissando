@@ -22,13 +22,15 @@
   screen, [PICTURE_VIEWER.md](../PICTURE_VIEWER.md)), ✎ "Edit" ("Edit picture"; opens the
   picture editor, [PICTURE_EDITOR.md](../PICTURE_EDITOR.md)), "Insert chapter before"
   ([TRIP_CHAPTERS.md](TRIP_CHAPTERS.md)), ⇄ "Move to …", 🗑 "Remove" (named with the count,
-  "Remove 3 pictures"), and "Done" in the accent. Below 1140 px the icon sits over its label
-  (the bar 68 px high, every target at least 44 × 44 px) and shows View, Edit, Remove and "More"
-  ("More actions"), then Done; with several selected, the count chip, Remove, More and Done.
-  "More" opens a menu above the bar (`SelectionBarMenu.svelte`; rows at least 48 px high, closing
-  on a tap outside, Esc and a choice; focus moves into it, the arrow keys move between rows and
-  Esc returns focus to More) with Earlier, Later, Insert chapter before (one picture, only) and
-  "Move to …". Earlier and Later look disabled at the ends but stay focusable
+  "Remove 3 pictures"), and "Done" in the accent. Below 1140 px the bar has two rows: the count ("Picture 3 of 12", or the chip
+  with the range for several) on the left and "Done" on the right, then every action in one
+  row, the icon over its label, the buttons equally wide (the bar 112 px high, every target at
+  least 44 px: the coarse-pointer pad extends the hit area of a button narrower than that). The
+  row holds Earlier, Later, View and Edit (one picture, only), Insert chapter before (one
+  picture, only; labelled "Chapter"), "Move to …" (labelled "Move"; with a selection, only) and
+  Remove. Earlier, Later and Move to are absent while adding. There is no "More" menu. The
+  labels are never cut off at 360 px; a still narrower screen scrolls the row inside the bar,
+  never the page. The full names stay the accessible names. Earlier and Later look disabled at the ends but stay focusable
   (`aria-disabled`). "Move to …" opens a small dialog (`MoveToSheet.svelte`) with the choices
   Start, End and "Before picture …" (a − N + stepper from 1 to the picture count, starting at
   the selected picture's number) and "Move"; the selection stays and the moved tile scrolls
