@@ -149,6 +149,14 @@
   .field:focus {
     border-color: var(--gl-accent);
   }
+  @media (pointer: coarse) {
+    .field {
+      height: var(--gl-hit-min);
+    }
+    .clear {
+      top: 6px;
+    }
+  }
   .clear {
     position: absolute;
     top: 3px;

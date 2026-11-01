@@ -32,7 +32,11 @@ function isRendered(element: Element): boolean {
   const shown = hiddenInput ? element.closest("label") : element;
   if (shown === null) return false;
   const box = shown.getBoundingClientRect();
-  return box.width > 0 && box.height > 0 && getComputedStyle(shown).visibility !== "hidden";
+  const style = getComputedStyle(shown);
+  // An element that takes no pointer cannot be tapped, so its size is no concern.
+  return (
+    box.width > 0 && box.height > 0 && style.visibility !== "hidden" && style.pointerEvents !== "none"
+  );
 }
 
 /** The visible interactive elements under `root`. */

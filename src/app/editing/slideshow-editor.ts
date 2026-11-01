@@ -198,11 +198,9 @@ export class SlideshowEditor {
     this.#pictureList.setCaption(pictureId, typed);
   }
 
-  /** Removes the caption; the toast's undo brings the previous text back. */
   clearCaption(pictureId: string): void {
     this.#pictureList.clearCaption(pictureId);
   }
-
   addSongs(songs: readonly StoredMusic[]): void {
     this.#musicSettings.addSongs(songs);
   }

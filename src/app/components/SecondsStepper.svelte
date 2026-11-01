@@ -43,8 +43,15 @@
     gap: 4px;
   }
   .stepper-btn {
+    flex: none;
     width: 38px;
     padding: 0;
+  }
+  @media (pointer: coarse) {
+    .stepper-btn {
+      width: var(--gl-hit-min);
+      height: var(--gl-hit-min);
+    }
   }
   b {
     min-width: 56px;

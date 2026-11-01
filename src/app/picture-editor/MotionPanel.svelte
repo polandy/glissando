@@ -188,6 +188,15 @@
     flex-wrap: wrap;
     gap: 8px;
   }
+  /* Neighbouring buttons' touch pads need twice their overhang between them. */
+  @media (pointer: coarse) {
+    .keys button {
+      min-height: var(--gl-hit-min);
+    }
+    .actions {
+      gap: calc(var(--gl-hit-min) / 3);
+    }
+  }
   @container (max-width: 720px) {
     .panel {
       padding: 16px;
