@@ -12,7 +12,7 @@ import { moodSettings, moodTempo } from "../../compose/mood-settings";
 import type { StoredSlideshow } from "../../library/stored-slideshow";
 import { composedBeats, type BeatsStatus } from "../beats/music-beats-known";
 import { composedLoudness, type LoudnessStatus } from "../loudness/music-loudness-known";
-import { sum } from "./music-timing-note";
+import { sum } from "./picture-fit";
 
 /** What is known of each song's beats; a song absent is still being listened for. */
 export type SongsBeatsStatus = ReadonlyMap<string, BeatsStatus>;

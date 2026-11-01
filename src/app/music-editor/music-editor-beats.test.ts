@@ -85,21 +85,6 @@ describe("musicEditorView, the picture changes", () => {
     expect(view.slideChanges.every((change) => !change.offBeat)).toBe(true);
     expect(view.beatTicks).toEqual([]);
     expect(view.pictureChanges).toMatchObject({ kind: "beats", onTheBeat: false });
-    expect(view.note).toEqual({
-      kind: "shared",
-      automaticCount: 4,
-      shareMs: 5000,
-      onTheBeat: false,
-    });
-  });
-
-  it("notes the shares as varying while the pictures change on the beat", () => {
-    expect(firstSongView(slideshow({}), FOUND).note).toEqual({
-      kind: "shared",
-      automaticCount: 4,
-      shareMs: 5000,
-      onTheBeat: true,
-    });
   });
 
   it("puts the change before and after an own duration on the beat too, within its slack", () => {
