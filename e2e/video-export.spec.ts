@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import {
   chooseFiles,
   choosePictures,
-  CREATED_TOAST,
+  expectSlideshowScreen,
   editsStored,
   GERMAN_BROWSER,
   openImport,
@@ -49,7 +49,7 @@ async function createSlideshowWithMusic(page: Page): Promise<void> {
   ]);
   await expect(page.getByText("Sommerwind.wav", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Diashow erstellen" }).click();
-  await expect(page.getByRole("status")).toHaveText(CREATED_TOAST);
+  await expectSlideshowScreen(page);
 
   // The slideshow opened on Calm (ADR-0050); leaving it for the music editor's own picture
   // length lets the pictures fill the music, so the video lasts exactly as long as the track.

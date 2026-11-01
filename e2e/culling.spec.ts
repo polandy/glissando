@@ -1,7 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import {
   chooseFiles,
-  CREATED_TOAST,
+  expectSlideshowScreen,
   definitionOf,
   GERMAN_BROWSER,
   openImport,
@@ -70,7 +70,7 @@ test("E2E-042 the import sets aside the blurrier of two similar shots and a blur
   await expect(definitionOf(page, "Bilder")).toHaveText("3");
   await page.getByRole("button", { name: "Ohne Musik erstellen" }).click();
 
-  await expect(page.getByRole("status")).toHaveText(CREATED_TOAST);
+  await expectSlideshowScreen(page);
   const slideshowTiles = page.getByRole("button", { name: SLIDESHOW_TILE });
   await expect(
     page.getByRole("button", { name: "Bild 1, aufgenommen am 12.07.2025" }),

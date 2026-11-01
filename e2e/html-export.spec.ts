@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import {
   chooseFiles,
   choosePictures,
-  CREATED_TOAST,
+  expectSlideshowScreen,
   GERMAN_BROWSER,
   openImport,
   picturesTakenOn,
@@ -49,7 +49,7 @@ async function createSlideshowWithMusic(page: Page): Promise<void> {
   ]);
   await expect(page.getByText("Sommerwind.wav", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Diashow erstellen" }).click();
-  await expect(page.getByRole("status")).toHaveText(CREATED_TOAST);
+  await expectSlideshowScreen(page);
 }
 
 test("E2E-033 a slideshow saved as a web page from its menu downloads as one .html that plays from file://", async ({
@@ -132,7 +132,7 @@ test("E2E-101 the web page export preselects Standard for a slideshow with a cli
   await expect(page.getByText("1 Bilder", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Weiter" }).click();
   await page.getByRole("button", { name: "Ohne Musik erstellen" }).click();
-  await expect(page.getByRole("status")).toHaveText(CREATED_TOAST);
+  await expectSlideshowScreen(page);
 
   await chooseShareRow(page, /^Webseite/);
   const sheet = page.getByRole("dialog", { name: "Webseite" });

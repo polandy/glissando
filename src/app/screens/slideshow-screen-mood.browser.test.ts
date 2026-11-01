@@ -34,51 +34,34 @@ function openSheet(): void {
 }
 
 describe("SlideshowScreen, the mood tile", () => {
-  it("names Custom with the automatic picture times and the standard motion", () => {
+  it("names Custom with one short phrase", () => {
     mountScreen();
 
     expect(moodValue()).toBe("Keine Stimmung");
-    expect(moodSummary()).toBe("automatisch · übliche Bewegung");
+    expect(moodSummary()).toBe("Ihre Einstellungen");
   });
 
-  it("counts own picture times under Custom", () => {
-    mountScreen(details(["a"], { ownDurationCount: 1 }));
-
-    expect(moodSummary()).toBe("automatisch, 1 eigene · übliche Bewegung");
-  });
-
-  it("names the stored mood, with its own motion", () => {
+  it("names the stored mood with its short phrase", () => {
     mountScreen(details(["a"], { mood: "calm" }));
 
     expect(moodValue()).toBe("Ruhig");
-    expect(moodSummary()).toContain("sanfte Bewegung");
+    expect(moodSummary()).toBe("Langsam, sanft");
   });
 
-  it("follows the energy only once the energy pacing is on and the slideshow has music", () => {
+  it("keeps the derived numbers off the tile, even with the energy pacing and music", () => {
     mountScreen(
       details(["a"], {
-        mood: "calm",
+        mood: "lively",
         energyPacing: true,
         songCount: 1,
         musicTitle: "m.mp3",
         musicSeconds: 90,
+        ownDurationCount: 1,
       }),
-      {
-        moodBpm: 80,
-        moodEnergyPacing: { minMs: 5000, maxMs: 10_000, firstLiftUnitIndex: undefined },
-      },
+      { moodBpm: 80 },
     );
 
-    expect(moodSummary()).toContain("folgt der Energie");
-  });
-
-  it("does not follow the energy without music, even with the energy pacing on", () => {
-    mountScreen(details(["a"], { mood: "calm", energyPacing: true }), {
-      moodBpm: 80,
-      moodEnergyPacing: { minMs: 5000, maxMs: 10_000, firstLiftUnitIndex: undefined },
-    });
-
-    expect(moodSummary()).not.toContain("folgt der Energie");
+    expect(moodSummary()).toBe("Schnell, auf dem Beat");
   });
 });
 
@@ -102,7 +85,7 @@ describe("SlideshowScreen, the mood sheet", () => {
     expect(calls.moods).toEqual(["lively"]);
     expect(tile("lively").getAttribute("aria-checked")).toBe("true");
     expect(moodValue()).toBe("Lebhaft");
-    expect(moodSummary()).toContain("kräftige Bewegung");
+    expect(moodSummary()).toBe("Schnell, auf dem Beat");
   });
 
   it("goes back to Custom, which then is disabled and says why", () => {
@@ -118,7 +101,7 @@ describe("SlideshowScreen, the mood sheet", () => {
     expect(resetButton().getAttribute("aria-disabled")).toBe("true");
     expect(resetButton().title).toBe("Keine Stimmung ist an");
     expect(moodValue()).toBe("Keine Stimmung");
-    expect(moodSummary()).toBe("automatisch · übliche Bewegung");
+    expect(moodSummary()).toBe("Ihre Einstellungen");
   });
 
   it("closes with Done, focus back on the tile", () => {

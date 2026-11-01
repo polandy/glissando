@@ -51,5 +51,5 @@ test("E2E-038 music a browser cannot play becomes a FLAC copy; an unreadable fil
   await expect(definitionOf(page, "Pictures")).toHaveText("2");
 
   await page.getByRole("button", { name: "Create slideshow" }).click();
-  await expect(page.getByText("Slideshow created — tap Play")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Play" }).first()).toBeVisible();
 });

@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import {
-  CREATED_TOAST,
+  expectSlideshowScreen,
   chooseFiles,
   choosePictures,
   definitionOf,
@@ -75,7 +75,7 @@ test("E2E-005 importing pictures and music creates a slideshow ordered by captur
   await expect(page.getByRole("heading", { name: "Juli 2025" })).toBeVisible();
   await expect(page.getByText("12.07.2025 – 20.07.2025")).toBeVisible();
   await expect(page.getByRole("button", { name: /^Musik Sommerwind\.wav/ })).toBeVisible();
-  await expect(page.getByRole("status")).toHaveText(CREATED_TOAST);
+  await expectSlideshowScreen(page);
 });
 
 test.describe("Abbrechen with pictures chosen", () => {
@@ -167,7 +167,7 @@ test.describe("Removing chosen pictures", () => {
     await page.getByRole("button", { name: "Weiter" }).click();
     await page.getByRole("button", { name: "Ohne Musik erstellen" }).click();
 
-    await expect(page.getByRole("status")).toHaveText(CREATED_TOAST);
+    await expectSlideshowScreen(page);
     await expect(page.getByText("13.07.2025 – 14.07.2025")).toBeVisible();
   });
 });

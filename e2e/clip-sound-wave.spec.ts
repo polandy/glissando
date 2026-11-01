@@ -1,5 +1,5 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
-import { chooseFiles, CREATED_TOAST, GERMAN_BROWSER, openImport } from "./support/app";
+import { chooseFiles, expectSlideshowScreen, GERMAN_BROWSER, openImport } from "./support/app";
 import { openApp } from "./support/browser";
 import { generatedClip } from "./support/clip";
 import type { TestFile } from "./support/media";
@@ -52,7 +52,7 @@ async function openClipEditor(
   await expect(page.getByText("1 Bilder", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Weiter" }).click();
   await page.getByRole("button", { name: "Ohne Musik erstellen" }).click();
-  await expect(page.getByRole("status")).toHaveText(CREATED_TOAST);
+  await expectSlideshowScreen(page);
   await beforeOpening();
 
   const tile = page

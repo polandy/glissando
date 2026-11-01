@@ -7,7 +7,6 @@
   import type { SlideshowEditor } from "../editing/slideshow-editor";
   import { createScreenEditor } from "./screen-editor";
   import { getTranslator } from "../i18n/context";
-  import { loadMusicAnalysis, ScreenEnergyPacing } from "./screen-energy-pacing.svelte";
   import { ScreenMoodBpm } from "./screen-mood-bpm.svelte";
   import { ScreenThumbnails } from "./screen-thumbnails.svelte";
   import SlideshowScreen from "../screens/SlideshowScreen.svelte";
@@ -64,6 +63,7 @@
     musicEditorDetails,
     onBack,
     onPlay,
+    pulsePlay = false,
     onAddPictures,
     addedPictureIds,
     onEdit,
@@ -107,8 +107,6 @@
   });
   // svelte-ignore state_referenced_locally
   const screenMoodBpm = new ScreenMoodBpm(beatPass, store, log);
-  // svelte-ignore state_referenced_locally
-  const screenEnergyPacing = new ScreenEnergyPacing(store, log);
   onMount(() => {
     const stops = [screenFocus.follow(), screenMoodBpm.follow()];
     loadSlideshowScreen(store, slideshowId, thumbnails.urls, translator.language, left.signal).then(
@@ -168,11 +166,10 @@
   $effect(() => {
     void songIds;
     const current = untrack(() => stored);
-    if (current !== null) loadMusicAnalysis(current, screenMoodBpm, screenEnergyPacing);
+    if (current !== null) screenMoodBpm.load(current);
   });
   const moodBpm = $derived(stored === null ? undefined : screenMoodBpm.of(stored));
   const moodBeats = $derived(stored === null ? NO_SONG_BEATS : screenMoodBpm.beatsOf(stored));
-  const moodEnergyPacing = $derived(stored === null ? null : screenEnergyPacing.of(stored));
 </script>
 
 {#if editingPictureId !== null && stored !== null && editor !== null}
@@ -216,6 +213,7 @@
     slideshow={details}
     {onBack}
     {onPlay}
+    {pulsePlay}
     onAddPictures={() => stored !== null && onAddPictures(stored)}
     {newPictureIds}
     {...pictureActions}
@@ -229,7 +227,6 @@
     onResetLook={() => editor?.look.reset()}
     {moodBpm}
     {moodBeats}
-    {moodEnergyPacing}
     moodPreviewPorts={{
       store,
       stored: must(stored, "the slideshow"),

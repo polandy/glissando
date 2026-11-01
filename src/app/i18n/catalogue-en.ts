@@ -288,7 +288,6 @@ export const en: Catalogue = {
   "import.discard": "Remove",
   "import.creatingTitle": "Creating slideshow\u00a0…",
   "import.creatingText": "Putting your pictures in order, with motion and transitions",
-  "import.created": "Slideshow created — tap Play",
 
   "storage.persistRefusedTitle": "Glissando may not store anything permanently",
   "storage.persistRefusedText":

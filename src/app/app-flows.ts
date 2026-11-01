@@ -14,10 +14,7 @@ export function createAppFlows(
   services: AppServices,
   { t, formatBytes }: Pick<Translator, "t" | "formatBytes">,
 ) {
-  const importFlow = new ImportFlow<ImportSession>({
-    ...services,
-    createdText: () => t("import.created"),
-  });
+  const importFlow = new ImportFlow<ImportSession>(services);
   const addFlow = new AddPicturesFlow<AddPicturesSession>({
     ...services,
     newSession: (slideshow, home) => services.newAddPicturesSession(slideshow, home),

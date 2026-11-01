@@ -52,7 +52,7 @@ its pace otherwise. Own duration, own transition and own motion of a picture win
 ## UI
 
 - **Tile**: the info panel's "Mood" tile sits between "Music" and "Look" and opens the sheet. It
-  shows the mood's name and a summary of picture times and motion ([SCREENS](../SCREENS.md)).
+  shows the mood's name and one short phrase ([SCREENS](../SCREENS.md)).
 - **What it sets elsewhere**: under a mood, the "Transitions" row under "Fine settings" shows the
   mood's transition with "by mood" underneath. The Transitions sheet checks the mood's transition and says "Set by the
   mood Calm. Choosing another switches the mood to Custom." The music sheet shows, instead of

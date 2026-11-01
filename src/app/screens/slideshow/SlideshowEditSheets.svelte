@@ -52,7 +52,6 @@
     onRemoveClosingCard,
     onClosingCardClosed,
     chapterEditor,
-    onChaptersClosed,
   }: {
     slideshow: SlideshowDetails;
     /** The transitions sheet's tiles loop on these. */
@@ -93,7 +92,6 @@
     onClosingCardClosed: () => void;
     /** The trip chapters editor (TRIP_CHAPTERS.md); null while importing. */
     chapterEditor: ChapterSettingsEditor | null;
-    onChaptersClosed: () => void;
   } = $props();
 
   let editingTransitions = $state(false);
@@ -102,8 +100,8 @@
   let editingPortraitPictures = $state(false);
   let editingOpeningCard = $state(false);
   let editingClosingCard = $state(false);
-  // null closes the sheet; a null anchorPictureId inside opens it in general mode.
-  let editingChapter = $state<{ anchorPictureId: string | null } | null>(null);
+  // The anchor picture of the chapter whose sheet is open; null closes the sheet.
+  let editingChapter = $state<{ anchorPictureId: string } | null>(null);
 
   export function openTransitions(): void {
     editingTransitions = true;
@@ -131,10 +129,6 @@
 
   export function openChapter(anchorPictureId: string): void {
     editingChapter = { anchorPictureId };
-  }
-
-  export function openGeneralChapters(): void {
-    editingChapter = { anchorPictureId: null };
   }
 
   /** Inserts an added chapter before the picture (TRIP_CHAPTERS.md), then opens its sheet. */
@@ -187,9 +181,6 @@
 
   function closeChapters(): void {
     editingChapter = null;
-    // The modal dialog must be gone first: until then the page behind it is inert.
-    flushSync();
-    onChaptersClosed();
   }
 </script>
 

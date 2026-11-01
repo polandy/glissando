@@ -39,7 +39,7 @@
   cover of the first picture, the only Play control (a tap anywhere on it plays; a "▶ Play · 0:56" pill bottom left), then the pictures in play
   order, each with its order number and capture date, under "Sorted by capture date" or, once
   the user reordered, "Own order" (with "drag or tap", narrow: "tap to reorder"); right of the
-  count "Add media" (narrow: "Add"; the only way in, the strip has no add tile; [ADDING_PICTURES.md](slideshow-editing/ADDING_PICTURES.md), Adding pictures). Beside it (above it up to 1024 px) an
+  count "Add media" (narrow: "Add"; the only way in, the strip has no add tile; [ADDING_PICTURES.md](slideshow-editing/ADDING_PICTURES.md), Adding pictures). Beside it (up to 1024 px: under the play preview, above the strip's header) an
   info panel (ADR-0048, below): title with a ✎ button and, right of it, the outlined "Share" pill, date range, the Music/Mood/Look tiles and "Fine settings". A tile carries small
   badges bottom right: a frame "own" for an own motion, a clock with "8 s" for an own duration,
   a transition mark (titled with the effect, e.g. "Circle") for an own transition, except on
@@ -90,22 +90,25 @@
 The info panel (ADR-0048, mockup option A:
 `https://polandy.github.io/glissando-assets/mockups/details-panel/`) holds, top to bottom:
 
-- **Header**: title and "date range · N pictures · duration". Play is the cover's alone.
+- **Header**: title and "date range" (the stacked card leaves the date range out). Play is the cover's alone.
 - **Three tiles**, one row of three at every width and never folded. Each tile is one button
   with a small label and a chevron, the value and a summary, and opens its sheet:
   - **Music**: "3 songs" (or the song's name), with "11:20 of music" underneath when the music's
     length differs from the slideshow's. Without music: "None" and "Add music".
-  - **Mood**: the mood's name, with a summary of what it sets: picture times ("~6.3 s · 8 beats",
-    "~7 s" without a beat, the range "4.1–9.0 s" under the energy pacing; under Custom the
-    picture-times value), then the motion ("gentle motion", "strong motion", "standard motion"),
-    then "follows the energy" while the energy pacing is on and the slideshow has music.
+  - **Mood**: the mood's name, with one short phrase underneath ("Slow, soft", "Quick, on the
+    beat", "Your settings" under Custom). The derived numbers (picture times, beats, motion,
+    "follows the energy") are in the Mood sheet's summary box only.
   - **Look**: the look's name beside a swatch of it.
 - **"Fine settings"**: a toggle (`aria-expanded`) at every width, folded until opened. Its state
-  is remembered on the device for every slideshow. It opens Transitions, Portrait pictures and
-  Trip chapters as rows (label, value, summary, chevron; the whole row opens the sheet; Trip
-  chapters' sheet is the only place with the slideshow-wide **Automatic chapters** switch), then
+  is remembered on the device for every slideshow. It opens Transitions and Portrait pictures as
+  rows (label, value, summary, chevron; the whole row opens the sheet) and Trip chapters as an
+  inline switch row with a one-line helper (the slideshow-wide automatic-chapters switch), then
   storage and "Show on TV". E2E-083 shows the three tiles up front, folds Fine
   settings away by default, and checks its open or closed state survives a reload.
 
-Up to 1024 px wide (a container query on `.screen`) the panel stacks full width above the
-pictures instead of beside them. Up to 720 px the layout narrows further: three tiles per row.
+Up to 1024 px wide (a container query on `.screen`) the layout stacks: the play preview, then
+the panel as a compact card, then the strip's header and the strip, so Play and the first row of
+tiles share a phone screen (390 x 844, with "More settings" closed or open). The card is one
+title row (the title and "Share"; no eyebrow, no date range), the Music/Mood/Look tiles
+shrunk to chips (icon, small uppercase label, the value in at most two lines; only Mood keeps
+its phrase) and the "More settings" row.

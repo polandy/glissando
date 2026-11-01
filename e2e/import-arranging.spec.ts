@@ -2,7 +2,7 @@ import { expect, test, type Locator, type Page } from "@playwright/test";
 import {
   chooseFiles,
   choosePictures,
-  CREATED_TOAST,
+  expectSlideshowScreen,
   GERMAN_BROWSER,
   openImport,
 } from "./support/app";
@@ -148,7 +148,7 @@ test("E2E-072 pictures added, moved and shuffled while arranging a new slideshow
   await page.getByRole("button", { name: "Weiter" }).click();
   await expect(page.getByRole("heading", { name: "Welche Musik?" })).toBeVisible();
   await page.getByRole("button", { name: "Ohne Musik erstellen" }).click();
-  await expect(page.getByRole("status")).toHaveText(CREATED_TOAST);
+  await expectSlideshowScreen(page);
 
   await expect(dates(page)).toHaveText(finalOrder);
 });

@@ -2,19 +2,23 @@
   import Icon from "../../components/Icon.svelte";
   import { getTranslator } from "../../i18n/context";
 
-  /** The slideshow's cover with a "Play · running time" pill; a tap anywhere plays it. */
+  /**
+   * The slideshow's cover with a "Play · running time" pill; a tap anywhere plays it. `pulse`
+   * runs the pill's one-shot attention ring, for the arrival right after creating the slideshow.
+   */
   let {
     coverUrl,
     durationSeconds,
     onPlay,
-  }: { coverUrl: string; durationSeconds: number; onPlay: () => void } = $props();
+    pulse = false,
+  }: { coverUrl: string; durationSeconds: number; onPlay: () => void; pulse?: boolean } = $props();
 
   const { t, formatDuration } = getTranslator();
 </script>
 
 <button class="preview" type="button" aria-label={t("slideshow.play")} onclick={onPlay}>
   <img src={coverUrl} alt="" />
-  <span class="pill">
+  <span class="pill" class:pulse>
     <Icon name="play" />{t("slideshow.play")}
     <span class="mono">{` · ${formatDuration(durationSeconds)}`}</span>
   </span>
@@ -58,5 +62,26 @@
     color: var(--gl-accent-ink);
     font-size: var(--gl-size-small);
     font-weight: 500;
+  }
+  .pill.pulse {
+    animation: pulse 1s ease-out 1;
+  }
+  @keyframes pulse {
+    0% {
+      box-shadow: 0 0 0 0 color-mix(in srgb, var(--gl-accent) 90%, transparent);
+      transform: scale(1);
+    }
+    40% {
+      transform: scale(1.1);
+    }
+    100% {
+      box-shadow: 0 0 0 22px color-mix(in srgb, var(--gl-accent) 0%, transparent);
+      transform: scale(1);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .pill.pulse {
+      animation: none;
+    }
   }
 </style>

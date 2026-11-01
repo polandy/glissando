@@ -1,7 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import {
   choosePictures,
-  CREATED_TOAST,
+  expectSlideshowScreen,
   editPicture,
   GERMAN_BROWSER,
   leaveEditor,
@@ -52,7 +52,7 @@ test("E2E-028 the automatic motion's focus is found in the background: a face is
   );
   await page.getByRole("button", { name: "Weiter" }).click();
   await page.getByRole("button", { name: "Ohne Musik erstellen" }).click();
-  await expect(page.getByRole("status")).toHaveText(CREATED_TOAST);
+  await expectSlideshowScreen(page);
 
   await editPicture(page, "Bild 1, aufgenommen am 12.07.2025, über einer unscharfen Füllung");
   await expect(picture).toBeVisible();
@@ -101,7 +101,7 @@ test("E2E-074 the More menu's faces-and-subjects sheet sums a face and a faceles
   );
   await page.getByRole("button", { name: "Weiter" }).click();
   await page.getByRole("button", { name: "Ohne Musik erstellen" }).click();
-  await expect(page.getByRole("status")).toHaveText(CREATED_TOAST);
+  await expectSlideshowScreen(page);
 
   await page.getByRole("button", { name: "Mehr" }).click();
   await page.getByRole("menuitem", { name: /^Gesichter und Motive/ }).click();
@@ -151,7 +151,7 @@ test("E2E-096 the header shows the running faces-and-subjects search with its co
   );
   await page.getByRole("button", { name: "Weiter" }).click();
   await page.getByRole("button", { name: "Ohne Musik erstellen" }).click();
-  await expect(page.getByRole("status")).toHaveText(CREATED_TOAST);
+  await expectSlideshowScreen(page);
 
   await expect(search).toBeVisible();
   await expect(search).toContainText("Motive werden gesucht · 0 von 2");
