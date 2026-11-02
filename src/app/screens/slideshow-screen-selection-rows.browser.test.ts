@@ -3,6 +3,7 @@ import "../../styles/base.css";
 import { flushSync } from "svelte";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { page } from "vitest/browser";
+import { expectActionRowScrollsToRemove } from "./slideshow-screen-dom";
 import { details, mountScreen, tile, unmountScreen } from "./slideshow-screen-harness";
 
 /** The narrowest phone the bar is held to, in CSS pixels. */
@@ -93,9 +94,7 @@ describe("selection bar at 360 px, German, one picture selected", () => {
     expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(pageWidthBefore);
     const barBox = bar().getBoundingClientRect();
     expect(barBox.right).toBeLessThanOrEqual(NARROW.width);
-    // Eight actions are wider than 360 px: the row scrolls inside the bar instead of spilling out.
-    const row = bar().querySelector(".actions");
-    expect(row?.getBoundingClientRect().right).toBeLessThanOrEqual(barBox.right);
-    expect(getComputedStyle(row as Element).overflowX).toBe("auto");
+    // Eight actions are wider than the phone: the row scrolls inside the bar.
+    expectActionRowScrollsToRemove(bar());
   });
 });

@@ -61,12 +61,15 @@ export class PrepareFlow {
   #slides: SlideBoundaries | null = null;
   /** The slide playing begins with. */
   #startSlide = 0;
+  /** The first picture of the start slide; the chosen one until the slides say it opens a pair. */
+  #startPicture: string | null;
   #playing = false;
   #view: PrepareView;
 
   constructor(options: PrepareFlowOptions) {
     this.#options = options;
     this.#quality = options.quality;
+    this.#startPicture = options.startPicture ?? null;
     this.#pictures = this.#prepare();
     this.#view = this.#viewNow();
   }
@@ -83,12 +86,16 @@ export class PrepareFlow {
   }
 
   /**
-   * The played slides, once composed, and the slide playing begins with; again when a missing
-   * picture left the slideshow.
+   * The played slides, once composed, the slide playing begins with and that slide's first
+   * picture; again when a missing picture left the slideshow.
    */
-  setSlides(slides: SlideBoundaries, startSlide = 0): void {
+  setSlides(slides: SlideBoundaries, startSlide = 0, firstPicture?: string): void {
     this.#slides = slides;
     this.#startSlide = startSlide;
+    if (firstPicture !== undefined && !this.#playing) {
+      this.#startPicture = firstPicture;
+      this.#pictures.startFrom(firstPicture);
+    }
     this.#update();
   }
 
@@ -121,7 +128,7 @@ export class PrepareFlow {
   #prepare(): PreparedPictures {
     const pictures = new PreparedPictures({
       ids: this.#options.ids,
-      startPicture: this.#options.startPicture ?? null,
+      startPicture: this.#startPicture,
       prepare: this.#options.renditionFor(this.#quality),
       clock: this.#options.clock,
       capacity: PREPARED_PICTURES_LIMIT,

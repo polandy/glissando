@@ -170,7 +170,14 @@
   });
   $effect(() => {
     if (flow !== null && slideshow !== null)
-      flow.setSlides(slideBoundaries(slideshow), start.slide);
+      flow.setSlides(
+        slideBoundaries(slideshow),
+        start.slide,
+        picturePassedBySlide(
+          slideshow.slides,
+          played.pictures.map(({ id }) => id),
+        )[start.slide] ?? undefined,
+      );
   });
   /** The picture each slide passes, so the flow releases the renditions before it. */
   const passedBySlide = $derived(

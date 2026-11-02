@@ -15,7 +15,10 @@ function evenSlides(count: number, seconds: number) {
   };
 }
 
-function flowFor(quality: PlaybackQuality = "4k", start?: { slide: number; picture: string }) {
+function flowFor(
+  quality: PlaybackQuality = "4k",
+  start?: { slide: number; picture: string; first?: string },
+) {
   const renditions: Partial<Record<PlaybackQuality, FakeRenditions>> = {};
   const asked: PlaybackQuality[] = [];
   const clock = new ManualClock();
@@ -41,7 +44,7 @@ function flowFor(quality: PlaybackQuality = "4k", start?: { slide: number; pictu
   });
   /** Settles at the next view the flow announces. */
   const nextView = () => new Promise<void>((resolve) => (viewChanged = resolve));
-  flow.setSlides(evenSlides(IDS.length, 5), start?.slide);
+  flow.setSlides(evenSlides(IDS.length, 5), start?.slide, start?.first);
   const fake = (of: PlaybackQuality): FakeRenditions => {
     const found = renditions[of];
     if (found === undefined) throw new Error(`no ${of} renditions were asked for`);
@@ -192,5 +195,14 @@ describe("PrepareFlow", () => {
       pictureCount: 10,
       secondsPerSlide: 5,
     });
+  });
+
+  it("prepares the first picture of a pair whose partner was chosen", async () => {
+    const { fake, answer } = flowFor("4k", { slide: 20, picture: "p21", first: "p20" });
+
+    expect((await fake("4k").request(0)).id).toBe("p21");
+    await answer(0, 6);
+
+    expect((await fake("4k").request(1)).id).toBe("p20");
   });
 });

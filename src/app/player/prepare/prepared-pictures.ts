@@ -75,6 +75,14 @@ export class PreparedPictures {
     });
   }
 
+  /** Playing begins at `id`, an earlier picture than first assumed: preparing reaches back to it. */
+  startFrom(id: string): void {
+    const index = this.#options.ids.indexOf(id);
+    if (index === -1 || index >= this.#current) return;
+    this.#current = index;
+    this.#work();
+  }
+
   /** `id`'s slide is on screen: the pictures before it are released. */
   passed(id: string): void {
     const index = this.#options.ids.indexOf(id);

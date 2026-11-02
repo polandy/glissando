@@ -11,8 +11,8 @@ export interface PlayStart {
 export const FROM_THE_START: PlayStart = { slide: 0, seconds: 0 };
 
 /**
- * Where playing from `pictureId` begins: the start of the slide that plays it in its own place
- * (a pair's partner on the pair). From the start for no picture and for one not played.
+ * Where playing from `pictureId` begins: the start of the slide that plays it — a pair's slide
+ * for either of its pictures. From the start for no picture and for one not played.
  */
 export function playStart(
   slideshow: Pick<Slideshow, "slides">,
