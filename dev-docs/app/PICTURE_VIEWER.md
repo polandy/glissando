@@ -21,6 +21,7 @@ same body serves "Add media") and the slideshow editor show one full screen on r
 - **Order** (`components/picture-viewer-view.ts`): the strip's pictures, then the set-aside ones group by group. ← / →,
   the side arrows (shown on every pointer, disabled at the ends) and a horizontal swipe step through them; the ends
   do not wrap.
+- **Play from here**: a primary "Play from here" button in the bottom bar (beside Remove, hidden while a picture is set aside) plays the slideshow from the shown picture; it unlocks the music output in the tap, like every Play.
 - **Deciding**: a strip picture offers "Remove" (also Delete / Backspace): the same removal as ✕ with the same
   "Picture removed" · "Undo" toast (in the editor its removal, so the last picture stays), which stays above the viewer; the next picture is shown, the previous at the
   end, and the viewer closes when none is left. A set-aside picture offers "Take in" (as +) and stays shown, now

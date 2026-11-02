@@ -1,7 +1,8 @@
 # Navigation
 
 Routes: `start`, `settings`, `slideshow(id)`, `import(pictures | music)`, `immich(albumId | null)`
-(below the pictures step; an album below the browser), `player(slideshowId)`,
+(below the pictures step; an album below the browser), `player(slideshowId, pictureId?)`
+(the optional picture the show opens at; a malformed id makes the route invalid),
 `picture(slideshowId, pictureId)`, `music(slideshowId)`, `frameSetup`, `frame(albumId)` — four
 levels at most (start → import →
 Immich browser → album); the player and the running picture frame are modal

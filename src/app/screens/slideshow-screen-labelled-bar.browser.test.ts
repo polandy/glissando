@@ -58,6 +58,7 @@ describe.each(THEMES)("selection bar on the phone, %s theme", (theme) => {
     expect([...buttons.keys()]).toEqual([
       "Früher",
       "Später",
+      "Ab hier",
       "Ansehen",
       "Bearbeiten",
       "Kapitel",
@@ -151,6 +152,7 @@ describe("selection bar just under the wide breakpoint", () => {
     expect([...barButtons().keys()]).toEqual([
       "Früher",
       "Später",
+      "Ab hier",
       "Ansehen",
       "Bearbeiten",
       "Kapitel",
@@ -173,6 +175,7 @@ describe.each([1160, DESKTOP.width])("selection bar when %s px wide", (width) =>
     expect([...buttons.keys()]).toEqual([
       "Früher",
       "Später",
+      "Ab hier",
       "Ansehen",
       "Bearbeiten",
       "Kapitel davor einfügen",

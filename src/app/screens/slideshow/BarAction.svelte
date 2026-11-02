@@ -13,6 +13,7 @@
     shortLabel = label,
     name = label,
     danger = false,
+    accent = false,
     disabledLook = false,
     element = $bindable(),
     onclick,
@@ -25,6 +26,8 @@
     name?: string;
     /** Remove: the icon and label in the danger colour. */
     danger?: boolean;
+    /** Play from here: the accent fill, as the screen's other main action. */
+    accent?: boolean;
     /** Looks off but still answers a tap, and keeps its place in the tab order. */
     disabledLook?: boolean;
     element?: HTMLButtonElement | undefined;
@@ -36,6 +39,7 @@
   bind:this={element}
   class="btn action"
   class:danger
+  class:accent
   type="button"
   aria-label={name}
   aria-disabled={disabledLook}
@@ -64,6 +68,10 @@
   .danger {
     color: var(--gl-inverse-danger);
   }
+  .accent {
+    background: var(--gl-accent);
+    color: var(--gl-accent-ink);
+  }
   .long {
     display: none;
   }
@@ -71,6 +79,9 @@
   @media (hover: hover) {
     .action:hover:not([aria-disabled="true"]) {
       background: var(--gl-inverse-hover);
+    }
+    .accent:hover:not([aria-disabled="true"]) {
+      background: var(--gl-accent-hover);
     }
     .danger:hover:not([aria-disabled="true"]) {
       background: color-mix(in srgb, var(--gl-inverse-danger) 30%, var(--gl-inverse-bg));
@@ -83,7 +94,7 @@
       gap: 7px;
       min-width: 0;
       height: 44px;
-      padding: 0 12px;
+      padding: 0 10px;
       font-size: var(--gl-size-label);
     }
     .short {

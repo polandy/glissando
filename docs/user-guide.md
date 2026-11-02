@@ -60,9 +60,9 @@ screen edge), or tap Shuffle for a random order (Undo in the message that follow
 brings the old one back), and **Sort by date** (shown once the order is your own) puts every picture back in the order it was taken (Undo likewise); select a picture to view it full screen or open its editor to change
 its motion (on a phone it shows the picture with its frames or the preview, one at a time:
 switch with **Frame | Play**). The bar that appears labels every action: **Earlier**, **Later**, **View**, **Edit**,
-**Insert chapter before**, **Move to …** and **Remove**; on a phone they form a second row, with
+**Play from here** (one picture selected), **Insert chapter before**, **Move to …** and **Remove**; on a phone they form a second row, with
 **Chapter** and **Move** as the short labels. **Move to …** goes to the start, the end, or before
-a picture by its number — handy when dragging is too far.
+a picture by its number — handy when dragging is too far. **Play from here** also sits in the full-screen view and the picture editor; the show starts at that picture (music fades in) and you can still go back.
 
 In a picture's editor, **Timing** holds the picture length (a slider from 2 to 15 seconds; it
 shows its value while you drag) and the transition into the next picture; **Back to automatic**

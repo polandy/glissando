@@ -91,7 +91,7 @@
 The info panel (ADR-0048, mockup option A:
 `https://polandy.github.io/glissando-assets/mockups/details-panel/`) holds, top to bottom:
 
-- **Header**: title and "date range" (the stacked card leaves the date range out). Play is the cover's alone.
+- **Header**: title and "date range" (stacked card: no date range). Play is the cover's alone, bar "Play from here".
 - **Three tiles**, one row of three at every width and never folded. Each tile is one button
   with a small label and a chevron, the value and a summary, and opens its sheet:
   - **Music**: "3 songs" (or the song's name), with "11:20 of music" underneath when the music's

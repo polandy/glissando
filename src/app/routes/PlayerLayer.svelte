@@ -18,6 +18,7 @@
   import PreparePictures from "../player/PreparePictures.svelte";
   import { PrepareFlow, type PrepareView } from "../player/prepare/prepare-flow";
   import type { PlaybackQuality } from "../settings/playback-quality";
+  import { FROM_THE_START, playStart } from "../player/play-start";
   import { slideBoundaries } from "../player/slide-boundaries";
   import { picturePassedBySlide, slideOfPicture } from "../player/prepare/slide-pictures";
   import { loadPlayerMusic } from "./route-loading";
@@ -50,6 +51,7 @@
     missing,
     onPictureMissing,
     playbackQuality,
+    startPicture,
     clock = performanceClock.now,
   }: {
     store: Pick<
@@ -77,6 +79,8 @@
     onPictureMissing: (pictureId: string) => void;
     /** The quality a server slideshow plays in, as this device's setting picks it. */
     playbackQuality: PlaybackQuality;
+    /** The picture playing begins with, at its slide; null for the start. */
+    startPicture: string | null;
     /** Monotonic milliseconds, for timing the pictures prepared. */
     clock?: () => number;
   } = $props();
@@ -99,7 +103,8 @@
   }
 
   let loaded = $state.raw<Loaded | null>(null);
-  let startAt = $state(0);
+  /** Where a picture that failed while playing restarts the player, over the chosen start. */
+  let restartAt = $state<number | null>(null);
   let musicUrls: ReadonlyMap<string, string> = new Map();
   /** The pictures known missing when playing began, and those skipped since. */
   // svelte-ignore state_referenced_locally
@@ -130,11 +135,23 @@
         ),
   );
 
+  const start = $derived(
+    slideshow === null
+      ? FROM_THE_START
+      : playStart(
+          slideshow,
+          played.pictures.map(({ id }) => id),
+          startPicture,
+        ),
+  );
+  const startAt = $derived(restartAt ?? start.seconds);
+
   // svelte-ignore state_referenced_locally
   const flow =
     home === "server"
       ? new PrepareFlow({
           ids: played.pictures.map(({ id }) => id),
+          startPicture,
           quality: playbackQuality,
           renditionFor: (quality) => serverRenditionFor(store, quality),
           clock,
@@ -152,7 +169,15 @@
     return view;
   });
   $effect(() => {
-    if (flow !== null && slideshow !== null) flow.setSlides(slideBoundaries(slideshow));
+    if (flow !== null && slideshow !== null)
+      flow.setSlides(
+        slideBoundaries(slideshow),
+        start.slide,
+        picturePassedBySlide(
+          slideshow.slides,
+          played.pictures.map(({ id }) => id),
+        )[start.slide] ?? undefined,
+      );
   });
   /** The picture each slide passes, so the flow releases the renditions before it. */
   const passedBySlide = $derived(
@@ -186,7 +211,7 @@
     const index = slideOfPicture(slideshow.slides, ids, pictureId);
     if (index === -1) return "picture";
     const boundaries = slideBoundaries(slideshow);
-    startAt = boundaries.starts[index] ?? boundaries.duration;
+    restartAt = boundaries.starts[index] ?? boundaries.duration;
     skipped = new Set([...skipped, pictureId]);
     return null;
   }

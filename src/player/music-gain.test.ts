@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { isTrackHeardAt, musicGainAt, trackGainAt, trackSecondsAt } from "./music-gain";
+import {
+  isTrackHeardAt,
+  musicGainAt,
+  START_FADE_IN_MS,
+  startFadeGainAt,
+  trackGainAt,
+  trackSecondsAt,
+} from "./music-gain";
 
 const MUSIC = { src: "m.mp3", startMs: 10_000, endMs: 30_000, fadeInMs: 2000, fadeOutMs: 4000 };
 
@@ -51,5 +58,19 @@ describe("trackGainAt (slideshow time; the track starts at its atMs)", () => {
     ["silent after its end", 80_000, 0],
   ])("is %s", (_, timeMs, gain) => {
     expect(trackGainAt(PLACED, timeMs)).toBeCloseTo(gain);
+  });
+});
+
+describe("startFadeGainAt (play time; the fade-in of a show started part-way)", () => {
+  const FROM_MS = 30_000;
+
+  it.each([
+    ["full before the start, so a replay from the beginning is untouched", 10_000, 1],
+    ["silent where the show started", FROM_MS, 0],
+    ["half way up", FROM_MS + START_FADE_IN_MS / 2, 0.5],
+    ["full once the fade-in has run", FROM_MS + START_FADE_IN_MS, 1],
+    ["full long after", FROM_MS + 60_000, 1],
+  ])("is %s", (_, timeMs, gain) => {
+    expect(startFadeGainAt(FROM_MS, timeMs)).toBeCloseTo(gain);
   });
 });

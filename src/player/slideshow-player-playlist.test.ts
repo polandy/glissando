@@ -65,6 +65,7 @@ function setUp() {
     player,
     summer: tracks.of(SUMMER.src),
     autumn: tracks.of(AUTUMN.src),
+    load: (src: string) => pictures.complete(src),
     async ready() {
       const shown = new Promise((resolve) =>
         player.addEventListener("canplay", resolve, { once: true }),
@@ -188,5 +189,79 @@ describe("SlideshowPlayer with a playlist of placed tracks", () => {
 
     expect(player.error?.name).toBe("MusicPlaybackError");
     expect(player.paused).toBe(true);
+  });
+
+  it("fades the music in over a second from where startAt began, at the track's own place", async () => {
+    const { player, summer, ready, advance } = setUp();
+    await ready();
+
+    player.startAt(2);
+    player.play();
+    expect(summer.volumesAtPlay).toEqual([0]);
+    advance(500);
+    expect(summer.volume).toBeCloseTo(0.5);
+    advance(500);
+    expect(summer.volume).toBeCloseTo(1);
+    expect(summer.calls[0]).toBe("play@12");
+  });
+
+  it("leaves a later seek at full volume, also one into the first second", async () => {
+    const { player, summer, ready, advance } = setUp();
+    await ready();
+    player.startAt(1);
+    player.play();
+    advance(1000);
+
+    player.currentTime = 1.2;
+    advance(100);
+
+    expect(summer.volume).toBeCloseTo(1);
+  });
+
+  it("fades in again at every startAt, as when a failed picture restarts the show", async () => {
+    const { player, summer, ready, advance } = setUp();
+    await ready();
+    player.startAt(2);
+    player.play();
+    advance(1000);
+
+    player.pause();
+    player.startAt(2);
+    player.play();
+    advance(500);
+
+    expect(summer.volume).toBeCloseTo(0.5);
+  });
+
+  it("plays a replay from the end at full volume", async () => {
+    const { player, autumn, ready, advance, load } = setUp();
+    await ready();
+    player.startAt(11);
+    const playing = new Promise((resolve) =>
+      player.addEventListener("playing", resolve, { once: true }),
+    );
+    load("c.jpg");
+    player.play();
+    await playing;
+    advance(1000);
+    expect(player.ended).toBe(true);
+    const replaying = new Promise((resolve) =>
+      player.addEventListener("playing", resolve, { once: true }),
+    );
+    player.play();
+    load("a.jpg");
+    await replaying;
+    for (const next of ["b.jpg", "c.jpg"]) {
+      for (let step = 0; step < 8; step += 1) advance(500);
+      const resumed = new Promise((resolve) =>
+        player.addEventListener("playing", resolve, { once: true }),
+      );
+      load(next);
+      await resumed;
+    }
+    advance(3250);
+
+    expect(player.currentTime).toBeCloseTo(11.25);
+    expect(autumn.volume).toBeCloseTo(1);
   });
 });

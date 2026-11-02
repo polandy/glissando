@@ -190,6 +190,7 @@ export async function mountRoute(
     saving: false,
     onBack: () => (backs += 1),
     onOpen: () => {},
+    onPlayFrom: () => {},
     onError: (error: unknown) => errors.push(error),
     log: (error: unknown) => {
       errors.push(error);

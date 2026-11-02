@@ -40,6 +40,7 @@ The player:
 
 - `play()`, `pause()`, `currentTime` (seconds, settable to seek, clamped), `duration`,
   `paused`, `ended`, `ready` (first frame shown), `error`.
+- `startAt(seconds)`: seeks like `currentTime` and fades the music in over `START_FADE_IN_MS` (1000 ms, `music-gain.ts`) from that play time, as a pure function of play time (`startFadeGainAt`); any later seek (`currentTime`) or replay from the end clears it. Calling it again (a restart after a failed picture) fades in again.
 - `renderAt(seconds): Promise<void>` (paused only, for the video export): pauses, moves to
   `seconds` (clamped), waits until that frame's pictures are loaded, draws it, prepares the
   upcoming pictures and resolves; rejects with the load's error, emits no events.

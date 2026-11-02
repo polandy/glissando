@@ -24,6 +24,7 @@
     slideshow,
     onBack,
     onPlay,
+    onPlayFrom,
     pulsePlay = false,
     onAddPictures,
     newPictureIds = new Set(),
@@ -183,6 +184,7 @@
       onRemoveGroup={removeGroup}
       {onEdit}
       onView={(pictureId) => (viewing = pictureId)}
+      {onPlayFrom}
       onDone={() => (selection = endSelecting())}
       onInsertChapter={(pictureId) => editSheets?.insertAndOpenChapter(pictureId)}
       {onMoveGroup}
@@ -198,6 +200,7 @@
     {loadPicture}
     {onError}
     onShow={(pictureId) => (viewing = pictureId)}
+    {onPlayFrom}
     onRemove={slideshow.pictures.length > 1 ? onRemove : undefined}
     onClose={(pictureId) => {
       viewing = null;

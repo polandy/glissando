@@ -51,8 +51,8 @@ export interface SlideshowRouteProps {
   videoExport: VideoExportDevice;
   /** What "Save as web page" needs of the browser. */
   htmlExport: HtmlExportDevice;
-  /** The player layer is open over the screen. */
-  playing: boolean;
+  /** The player layer is open over the screen, starting at this picture or, null, at the start. */
+  playing: { readonly pictureId: string | null } | null;
   /** The quality a server slideshow plays in on this device. */
   playbackQuality: PlaybackQuality;
   /** The picture editor is open on this picture, in place of the screen. */
@@ -78,6 +78,8 @@ export interface SlideshowRouteProps {
   /** Also taken when the slideshow is no longer on this device. */
   onBack: () => void;
   onPlay: () => void;
+  /** Plays from a picture: from the strip's selection bar, the viewer and the picture editor. */
+  onPlayFrom: (pictureId: string) => void;
   /** The slideshow was just created: its Play button pulses once on arrival. */
   pulsePlay?: boolean;
   /** "Add media", with the slideshow as shown. */

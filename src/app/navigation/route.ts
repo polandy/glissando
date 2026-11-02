@@ -22,7 +22,8 @@ export type Route =
       readonly slideshowId: string | null;
     }
   | { readonly screen: "add"; readonly slideshowId: string }
-  | { readonly screen: "player"; readonly slideshowId: string }
+  /** With a picture, the player starts at the slide that plays it; without, at the start. */
+  | { readonly screen: "player"; readonly slideshowId: string; readonly pictureId?: string }
   | { readonly screen: "music"; readonly slideshowId: string }
   | { readonly screen: "picture"; readonly slideshowId: string; readonly pictureId: string }
   | { readonly screen: "frameSetup" }
@@ -114,8 +115,13 @@ export function parseRoute(state: unknown): Route | null {
       const albumId = state["albumId"];
       return isId(albumId) ? { screen: "frame", albumId } : null;
     }
+    case "player": {
+      const { slideshowId, pictureId } = state;
+      if (!isId(slideshowId)) return null;
+      if (pictureId === undefined) return { screen: "player", slideshowId };
+      return isId(pictureId) ? { screen: "player", slideshowId, pictureId } : null;
+    }
     case "slideshow":
-    case "player":
     case "music":
     case "add": {
       const slideshowId = state["slideshowId"];

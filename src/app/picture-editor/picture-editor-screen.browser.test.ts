@@ -145,3 +145,13 @@ describe("PictureEditorScreen", () => {
     expect(frames.hasPendingFrame).toBe(false);
   });
 });
+
+describe("PictureEditorScreen, play from this picture", () => {
+  it("plays the slideshow from the edited picture", () => {
+    const { calls } = mountEditor();
+
+    button("Ab hier abspielen").click();
+
+    expect(calls.played).toEqual(["b"]);
+  });
+});

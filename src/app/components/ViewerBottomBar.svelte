@@ -14,6 +14,7 @@
     onShow,
     onRemove,
     onTakeIn,
+    onPlayFrom,
   }: {
     entries: readonly ViewerEntry[];
     pictureId: string;
@@ -27,6 +28,8 @@
     onRemove?: (() => void) | undefined;
     /** Left out where set-aside pictures do not apply. */
     onTakeIn?: (() => void) | undefined;
+    /** Left out where the shown picture cannot start a show. */
+    onPlayFrom?: (() => void) | undefined;
   } = $props();
 
   const { t } = getTranslator();
@@ -48,11 +51,18 @@
     {/each}
   </ul>
   {#if setAside === null}
-    {#if onRemove !== undefined}
-      <button class="pill remove" type="button" onclick={onRemove}>
-        <Icon name="trash" />{t("slideshow.remove")}
-      </button>
-    {/if}
+    <div class="decisions">
+      {#if onPlayFrom !== undefined}
+        <button class="pill play" type="button" onclick={onPlayFrom}>
+          <Icon name="play" />{t("slideshow.playFromHere")}
+        </button>
+      {/if}
+      {#if onRemove !== undefined}
+        <button class="pill remove" type="button" onclick={onRemove}>
+          <Icon name="trash" />{t("slideshow.remove")}
+        </button>
+      {/if}
+    </div>
   {:else if onTakeIn !== undefined}
     <button class="pill take" type="button" onclick={onTakeIn}>
       <Icon name="plus" />{t("view.takeIn")}
@@ -109,6 +119,12 @@
     object-fit: cover;
     display: block;
   }
+  .decisions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+  }
   .pill {
     display: inline-flex;
     align-items: center;
@@ -123,7 +139,8 @@
     font-weight: var(--gl-weight-semibold);
     cursor: pointer;
   }
-  .take {
+  .take,
+  .play {
     background: var(--gl-accent);
     color: var(--gl-accent-ink);
   }

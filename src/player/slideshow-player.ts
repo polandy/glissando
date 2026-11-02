@@ -1,3 +1,4 @@
+import { settleSeek } from "./settle-seek";
 import { CaptionInset } from "./caption-inset";
 import { FramePictures } from "./frame-pictures";
 import { PlaybackTime } from "./playback-time";
@@ -75,18 +76,18 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
     this.#media.restart();
     this.#time.holdAt(seconds * MILLISECONDS_PER_SECOND);
     this.#ended = false;
-    const announceSeeked = () => {
-      this.#emit("seeked");
-      this.#emit("timeupdate");
-    };
-    if (this.#paused) {
-      this.#whenDrawable(() => {
-        this.#draw();
-        announceSeeked();
-      });
-    } else {
-      this.#startAdvancing(announceSeeked);
-    }
+    settleSeek({
+      paused: this.#paused,
+      target: this,
+      whenDrawable: (action) => this.#whenDrawable(action),
+      draw: () => this.#draw(),
+      startAdvancing: (onFirstFrame) => this.#startAdvancing(onFirstFrame),
+    });
+  }
+
+  startAt(seconds: number): void {
+    this.currentTime = seconds;
+    this.#media.fadeMusicInFrom(seconds * MILLISECONDS_PER_SECOND);
   }
 
   get paused(): boolean {
@@ -112,6 +113,7 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
       return;
     }
     if (this.#ended || this.#time.isAtEnd) {
+      this.#media.restart();
       this.#time.holdAt(0);
       this.#ended = false;
     }
@@ -122,9 +124,7 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
   }
 
   pause(): void {
-    if (this.#paused) {
-      return;
-    }
+    if (this.#paused) return;
     this.#stopAdvancing();
     this.#paused = true;
     this.#emit("pause");

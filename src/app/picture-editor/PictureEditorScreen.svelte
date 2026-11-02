@@ -32,6 +32,7 @@
     slideshowTitle,
     onBack,
     onOpen,
+    onPlayFrom,
     onChange,
     onSwap,
     onReset,
@@ -55,6 +56,8 @@
     onBack: () => void;
     /** Opens another picture of the slideshow in the editor. */
     onOpen: (pictureId: string) => void;
+    /** Plays the slideshow from this picture. */
+    onPlayFrom: (pictureId: string) => void;
     onChange: (motion: OwnKenBurns) => void;
     onSwap: () => void;
     onReset: () => void;
@@ -159,7 +162,7 @@
     {onBack}
   >
     {#snippet actions()}
-      <PictureNavigation {picture} {onOpen} />
+      <PictureNavigation {picture} {onOpen} {onPlayFrom} />
     {/snippet}
   </Header>
   <main class="edit">

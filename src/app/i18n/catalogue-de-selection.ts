@@ -3,6 +3,8 @@ import type { Message } from "./messages.ts";
 /** German copy of the selection bar and Move to…; part of the German catalogue. */
 export const deSelection = {
   "slideshow.edit": "Bearbeiten",
+  "slideshow.playFromHere": "Ab hier abspielen",
+  "slideshow.playFromHereShort": "Ab hier",
   "slideshow.moveTo": "Verschieben nach\u00a0…",
   "slideshow.moveToShort": "Verschieben",
   "slideshow.moveStart": "Anfang",
