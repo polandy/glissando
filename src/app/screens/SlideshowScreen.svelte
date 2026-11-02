@@ -31,6 +31,7 @@
     onShiftGroup,
     onRemoveGroup,
     onShuffle,
+    onSortByDate,
     onMoveGroup,
     onRename,
     onEdit,
@@ -145,6 +146,7 @@
         onView={(pictureId) => (viewing = pictureId)}
         onRemoveGroup={removeGroup}
         {onShuffle}
+        {onSortByDate}
         {onShiftGroup}
         {onMoveGroup}
         onOpenOpeningCard={() => editSheets?.openOpeningCard()}

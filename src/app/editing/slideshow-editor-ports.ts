@@ -64,6 +64,8 @@ export interface SlideshowEditorPorts {
   readonly songRemovedText: () => string;
   /** The undo toast's text after `count` pictures were shuffled. */
   readonly shuffledText: (count: number) => string;
+  /** The undo toast's text after `count` pictures were sorted by capture date. */
+  readonly sortedByDateText: (count: number) => string;
   /** Uniform in [0, 1); what a shuffle draws its order from. */
   readonly random: () => number;
   /** The title from the capture dates, which an emptied title falls back to. */

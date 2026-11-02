@@ -120,6 +120,7 @@ export function mountScreen(
   const calls = {
     removed: [] as string[],
     shuffles: 0,
+    sortsByDate: 0,
     removedGroup: [] as string[][],
     shifted: [] as [readonly string[], number][],
     moved: [] as [readonly string[], number][],
@@ -158,6 +159,7 @@ export function mountScreen(
     newPictureIds,
     onRemove: (pictureId: string) => calls.removed.push(pictureId),
     onShuffle: () => (calls.shuffles += 1),
+    onSortByDate: () => (calls.sortsByDate += 1),
     onShiftGroup: (pictureIds: readonly string[], offset: number) =>
       calls.shifted.push([pictureIds, offset]),
     onRemoveGroup: (pictureIds: readonly string[]) => calls.removedGroup.push([...pictureIds]),

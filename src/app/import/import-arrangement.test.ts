@@ -6,6 +6,7 @@ import {
   reconcile,
   shiftGroup,
   shuffle,
+  sortByCaptureDate,
   type ArrangementState,
 } from "./import-arrangement";
 
@@ -85,6 +86,25 @@ describe("shuffle", () => {
     const result = shuffle(state, randoms(0, 0));
 
     expect(result.moved).toEqual(new Set());
+  });
+});
+
+describe("sortByCaptureDate", () => {
+  it("puts the pictures in the order given, which is capture order, and ends the user's own order", () => {
+    const state: ArrangementState = { order: ["c", "a", "b"], own: true, moved: new Set(["c"]) };
+
+    const result = sortByCaptureDate(state, ["a", "b", "c"]);
+
+    expect(result.order).toEqual(["a", "b", "c"]);
+    expect(result.own).toBe(false);
+  });
+
+  it("keeps moved as it was: a picture once moved stays exempt from culling", () => {
+    const state: ArrangementState = { order: ["b", "a"], own: true, moved: new Set(["b"]) };
+
+    const result = sortByCaptureDate(state, ["a", "b"]);
+
+    expect(result.moved).toEqual(new Set(["b"]));
   });
 });
 

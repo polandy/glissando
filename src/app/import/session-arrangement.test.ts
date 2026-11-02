@@ -89,6 +89,20 @@ describe("SessionArrangement", () => {
     expect(arrangement.state.own).toBe(true);
   });
 
+  it("sorts the ready pictures back into capture order and ends the order's own", () => {
+    const { arrangement, exempted } = arrangementWith(["a", "b", "c"]);
+    arrangement.moveGroup(new Set(["c"]), 0);
+
+    arrangement.sortByDate();
+
+    expect(arrangement.state).toEqual({
+      order: ["a", "b", "c"],
+      own: false,
+      moved: new Set(["c"]),
+    });
+    expect(exempted).toEqual([["c"]]);
+  });
+
   it("resets to capture order, not the user's own, forgetting every moved picture", () => {
     const { arrangement } = arrangementWith(["a", "b"]);
     arrangement.moveGroup(new Set(["b"]), 0);

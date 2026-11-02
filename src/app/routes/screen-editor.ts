@@ -29,6 +29,7 @@ export function createScreenEditor(
     removedText: (count) => t("slideshow.removed", { count }),
     addedText: (count) => t("add.added", { count }),
     shuffledText: (count) => t("slideshow.shuffled", { count }),
+    sortedByDateText: (count) => t("slideshow.sortedByDateToast", { count }),
     undoLabel: () => t("slideshow.undo"),
     lastPictureText: () => t("slideshow.lastPictureStays"),
     everyPictureText: () => t("slideshow.everyPictureStays"),

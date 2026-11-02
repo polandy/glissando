@@ -52,6 +52,18 @@ describe("SlideshowScreen editing", () => {
     expect(byLabel("Mischen").disabled).toBe(true);
   });
 
+  it("offers Sort by date only in an own order, and asks for the capture-date order with it", () => {
+    mountScreen(details(["a", "b"]));
+    expect(byLabel("Mischen")).toBeTruthy();
+    expect(document.querySelector('[aria-label="Nach Aufnahmedatum sortieren"]')).toBeNull();
+    unmountScreen();
+
+    const { calls } = mountScreen(details(["a", "b"], { ownOrder: true }));
+    byLabel("Nach Aufnahmedatum sortieren").click();
+
+    expect(calls.sortsByDate).toBe(1);
+  });
+
   it("keeps the last picture: Remove and Delete look off but ask, keeping the selection", () => {
     const { calls } = mountScreen(details(["a"]));
     const only = tile(1, "01.07.2025");

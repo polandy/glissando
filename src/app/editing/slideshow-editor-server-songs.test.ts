@@ -56,6 +56,7 @@ describe("SlideshowEditor on a server slideshow, the playlist (ADR-0023)", () =>
       moodNowCustomText: () => "Keine Stimmung ist an",
       songRemovedText: () => "Song entfernt",
       shuffledText: () => "",
+      sortedByDateText: () => "",
       random: () => 0,
       automaticTitle: () => "Juli 2025",
       locale: () => "de-DE",

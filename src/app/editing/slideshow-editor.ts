@@ -130,6 +130,11 @@ export class SlideshowEditor {
     this.#pictureList.shuffle();
   }
 
+  /** Puts every picture back in capture-date order; the toast's undo brings the own order back. */
+  sortByDate(): void {
+    this.#pictureList.sortByDate();
+  }
+
   rename(typed: string): void {
     this.#pictureList.rename(typed);
   }

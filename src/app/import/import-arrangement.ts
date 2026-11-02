@@ -73,6 +73,14 @@ export function shuffle(state: ArrangementState, random: () => number): Arrangem
   return { ...state, order: shuffledIds(state.order, random), own: true };
 }
 
+/** Back to capture order (`readyIds` are in it): not the user's own; `moved` is unchanged, so moved pictures stay exempt from culls. */
+export function sortByCaptureDate(
+  state: ArrangementState,
+  readyIds: readonly string[],
+): ArrangementState {
+  return { ...state, order: readyIds, own: false };
+}
+
 /** The ready `pictures` in the strip's order; one not in the order yet is left out. */
 export function orderedPictures<Picture extends { readonly id: string }>(
   state: ArrangementState,

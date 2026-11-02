@@ -7,6 +7,7 @@ export interface SlideshowRoutePictureActions {
   readonly onShiftGroup: (pictureIds: readonly string[], offset: number) => void;
   readonly onRemoveGroup: (pictureIds: readonly string[]) => void;
   readonly onShuffle: () => void;
+  readonly onSortByDate: () => void;
   readonly onMoveGroup: (pictureIds: readonly string[], insertion: number) => void;
   readonly onRename: (typed: string) => void;
 }
@@ -23,6 +24,7 @@ export function slideshowRoutePictureActions(
     onShiftGroup: (pictureIds, offset) => current()?.shiftGroup(pictureIds, offset),
     onRemoveGroup: (pictureIds) => current()?.removeGroup(pictureIds),
     onShuffle: () => current()?.shuffle(),
+    onSortByDate: () => current()?.sortByDate(),
     onMoveGroup: (pictureIds, insertion) => current()?.moveGroup(pictureIds, insertion),
     onRename: (typed) => current()?.rename(typed),
   };

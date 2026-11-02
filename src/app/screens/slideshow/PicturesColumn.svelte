@@ -22,6 +22,7 @@
     onView,
     onRemoveGroup,
     onShuffle,
+    onSortByDate,
     onShiftGroup,
     onMoveGroup,
     onOpenOpeningCard,
@@ -46,6 +47,8 @@
     onRemoveGroup: (pictureIds: readonly string[]) => void;
     /** Puts the pictures in a new random order. */
     onShuffle: () => void;
+    /** Puts every picture back in capture-date order. */
+    onSortByDate: () => void;
     onShiftGroup: (pictureIds: readonly string[], offset: number) => void;
     onMoveGroup: (pictureIds: readonly string[], insertion: number) => void;
     /** Opens the title slide / closing slide sheet (TITLE_SLIDES.md). */
@@ -65,10 +68,10 @@
     strip?.focusOpeningCard();
   }
 
-  /** The tiles glide to their new places, so the shuffle shows. */
-  async function shuffle(): Promise<void> {
+  /** The tiles glide to their new places, so the new order shows. */
+  async function glideThrough(reorder: () => void): Promise<void> {
     const glide = strip?.beginGlide();
-    onShuffle();
+    reorder();
     await tick();
     glide?.();
   }
@@ -92,7 +95,8 @@
     selecting={selection.several}
     onToggleSelect={() =>
       (selection = selection.several ? endSelecting() : startSelecting(selection))}
-    onShuffle={shuffle}
+    onShuffle={() => glideThrough(onShuffle)}
+    onSortByDate={() => glideThrough(onSortByDate)}
     onAdd={onAddPictures}
   />
   <PictureStrip

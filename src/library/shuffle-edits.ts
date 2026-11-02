@@ -1,8 +1,9 @@
+import { orderByCaptureDate } from "../compose/order-by-capture-date";
 import type { StoredPicture, StoredSlideshow } from "./stored-slideshow";
 
 /**
- * Shuffling the pictures of a stored slideshow into a random order, and taking that back
- * (dev-docs/app/slideshow-editing/REMOVE_SELECT_REORDER.md, Shuffle).
+ * Shuffling the pictures of a stored slideshow into a random order, sorting them by capture date again,
+ * and taking either back (dev-docs/app/slideshow-editing/REMOVE_SELECT_REORDER.md, Shuffle and Sort by date).
  */
 
 function withPictureOrder(
@@ -46,6 +47,15 @@ export function shuffleSlideshow(
   }
   const order = slideshow.pictures.map((picture) => picture.id);
   return withPictureOrder(slideshow, shuffledIds(order, random), true);
+}
+
+/** Every picture back in capture-date order, which is no longer the user's own; unchanged when it was not. */
+export function sortSlideshowByCaptureDate(slideshow: StoredSlideshow): StoredSlideshow {
+  if (!slideshow.ownOrder) {
+    return slideshow;
+  }
+  const order = orderByCaptureDate(slideshow.pictures).map((picture) => picture.id);
+  return withPictureOrder(slideshow, order, undefined);
 }
 
 /**

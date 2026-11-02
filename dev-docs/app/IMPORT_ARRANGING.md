@@ -58,13 +58,18 @@ set-aside pictures taken in, go at the end, in capture order among themselves; n
 moves. A picture the user moved counts as chosen and is never set aside by a cull. "Create
 slideshow" stores the order shown and, when it is the user's own, `ownOrder`.
 
+"Sort by date" in the strip header (between Shuffle and Select, shown only while the order is the
+user's own) returns to capture order: the own order ends, pictures that become ready are sorted
+in by date again, and pictures once moved stay exempt from culls. There is no undo toast, as
+with Shuffle here.
+
 A selection follows its pictures, not their places: a picture sorted in before it shifts the
 tile and keeps it selected; new tiles glide in (not with reduced motion).
 
 ## In "Add media"
 
 The queue, the placeholders, selecting, View, F and removing are the same; there is no
-arranging: no Earlier, Later, drag, Shift+arrows or Shuffle, and the bar has View, Remove and
+arranging: no Earlier, Later, drag, Shift+arrows, Shuffle or Sort by date, and the bar has View, Remove and
 Done. The pictures go into the slideshow as ADDING_PICTURES.md places them.
 
 ## Keys (on a focused tile)

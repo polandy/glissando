@@ -2,7 +2,11 @@ import {
   moveGroup as moveGroupInSlideshow,
   shiftGroup as shiftGroupInSlideshow,
 } from "../../library/group-edits";
-import { restoreOrder, shuffleSlideshow } from "../../library/shuffle-edits";
+import {
+  restoreOrder,
+  shuffleSlideshow,
+  sortSlideshowByCaptureDate,
+} from "../../library/shuffle-edits";
 import {
   removePicture,
   renameSlideshow,
@@ -12,9 +16,9 @@ import {
 import type { StoredSlideshow } from "../../library/stored-slideshow";
 import type { Toaster } from "../toast/toaster";
 import type { AddUndo } from "./add-undo";
+import type { OrderUndo } from "./order-undo";
 import type { RemovalUndo } from "./removal-undo";
 import type { ResetUndo } from "./reset-undo";
-import type { ShuffleUndo } from "./shuffle-undo";
 
 /** What `PictureListEditor` needs from the screen to word its toasts. */
 export interface PictureListPorts {
@@ -29,6 +33,8 @@ export interface PictureListPorts {
   readonly automaticTitle: (slideshow: StoredSlideshow) => string;
   /** The undo toast's text after `count` pictures were shuffled. */
   readonly shuffledText: (count: number) => string;
+  /** The undo toast's text after `count` pictures were sorted by capture date. */
+  readonly sortedByDateText: (count: number) => string;
   /** Uniform in [0, 1); what a shuffle draws its order from. */
   readonly random: () => number;
 }
@@ -37,7 +43,7 @@ export interface PictureListPorts {
 export interface PictureListUndos {
   readonly removal: RemovalUndo;
   readonly add: AddUndo;
-  readonly shuffle: ShuffleUndo;
+  readonly order: OrderUndo;
   readonly reset: ResetUndo;
 }
 
@@ -125,10 +131,29 @@ export class PictureListEditor {
     if (shuffled === before) {
       return;
     }
-    const previousIds = before.pictures.map((picture) => picture.id);
     this.#undos.removal.end();
     this.#apply(shuffled);
-    this.#undos.shuffle.offer(this.#ports.shuffledText(shuffled.pictures.length), () =>
+    this.#offerOrderUndo(this.#ports.shuffledText(shuffled.pictures.length), before);
+  }
+
+  /**
+   * Puts every picture back in capture-date order, which ends the user's own order; nothing
+   * happens while the order is not own. Its toast undoes just the order, like a shuffle's.
+   */
+  sortByDate(): void {
+    const before = this.#current();
+    const sorted = sortSlideshowByCaptureDate(before);
+    if (sorted === before) {
+      return;
+    }
+    this.#undos.removal.end();
+    this.#apply(sorted);
+    this.#offerOrderUndo(this.#ports.sortedByDateText(sorted.pictures.length), before);
+  }
+
+  #offerOrderUndo(text: string, before: StoredSlideshow): void {
+    const previousIds = before.pictures.map((picture) => picture.id);
+    this.#undos.order.offer(text, () =>
       this.#apply(restoreOrder(this.#current(), previousIds, before.ownOrder)),
     );
   }

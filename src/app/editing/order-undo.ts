@@ -1,7 +1,7 @@
 import type { Toaster, ToastMessage } from "../toast/toaster";
 
-/** The undo of the latest shuffle: its toast brings the order from before it back. */
-export class ShuffleUndo {
+/** The undo of the latest order change (shuffle or sort by date): its toast brings the order from before it back. */
+export class OrderUndo {
   readonly #toaster: Pick<Toaster, "current" | "show" | "dismiss">;
   readonly #undoLabel: () => string;
   #pending: ToastMessage | null = null;
