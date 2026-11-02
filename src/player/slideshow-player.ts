@@ -113,6 +113,7 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
       return;
     }
     if (this.#ended || this.#time.isAtEnd) {
+      this.#media.restart();
       this.#time.holdAt(0);
       this.#ended = false;
     }

@@ -234,7 +234,7 @@ describe("SlideshowPlayer with a playlist of placed tracks", () => {
   });
 
   it("plays a replay from the end at full volume", async () => {
-    const { player, summer, ready, advance, load } = setUp();
+    const { player, autumn, ready, advance, load } = setUp();
     await ready();
     player.startAt(11);
     const playing = new Promise((resolve) =>
@@ -251,10 +251,17 @@ describe("SlideshowPlayer with a playlist of placed tracks", () => {
     player.play();
     load("a.jpg");
     await replaying;
-    load("b.jpg");
+    for (const next of ["b.jpg", "c.jpg"]) {
+      for (let step = 0; step < 8; step += 1) advance(500);
+      const resumed = new Promise((resolve) =>
+        player.addEventListener("playing", resolve, { once: true }),
+      );
+      load(next);
+      await resumed;
+    }
+    advance(3250);
 
-    for (let step = 0; step < 23; step += 1) advance(500);
-
-    expect(summer.volume).toBeCloseTo(1);
+    expect(player.currentTime).toBeCloseTo(11.25);
+    expect(autumn.volume).toBeCloseTo(1);
   });
 });
