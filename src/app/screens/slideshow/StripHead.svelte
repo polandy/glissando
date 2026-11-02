@@ -60,7 +60,7 @@
     {/if}
   </p>
   <span class="mono muted count">{count}</span>
-  <div class="actions">
+  <div class="head-buttons">
     <button
       class="btn small shuffle"
       type="button"
@@ -122,7 +122,7 @@
     grid-area: 2 / 1;
     margin: 3px 0 0;
   }
-  .actions {
+  .head-buttons {
     grid-area: 1 / 3 / span 2;
     align-self: center;
     display: flex;
@@ -142,7 +142,7 @@
       grid-area: 1 / 2;
       justify-self: end;
     }
-    .actions {
+    .head-buttons {
       grid-area: 2 / 1 / auto / -1;
       flex-wrap: wrap;
       row-gap: 8px;
