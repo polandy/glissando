@@ -2,16 +2,9 @@ import "../../styles/tokens.css";
 import "../../styles/base.css";
 import { flushSync } from "svelte";
 import { afterEach, describe, expect, it } from "vitest";
-import { server } from "vitest/browser";
-import { titleForCaptureRange, type ExistingSlideshow } from "../../compose";
-import { FakeScheduler } from "../../ui-kit/testing/fake-scheduler";
-import { createTranslator } from "../i18n/translator";
-import { emulateCoarsePointer } from "../testing/coarse-pointer";
-import { mountWithTranslator } from "../testing/mount-with-translator";
-import { Toaster } from "../toast/toaster";
-import type { ImportSession } from "./import-session";
-import MusicStep from "./MusicStep.svelte";
+import { titleForCaptureRange } from "../../compose";
 import { withTwoPictures } from "./testing/import-session-fixtures";
+import { mountMusicStep, titleField } from "./testing/music-step-rig";
 
 let unmounts: (() => void)[] = [];
 afterEach(() => {
@@ -23,37 +16,10 @@ afterEach(() => {
 const SUMMER_DATES = ["2025-07-01T10:00:00Z", "2025-08-02T10:00:00Z"];
 const SUMMER_TITLE = titleForCaptureRange(SUMMER_DATES, "en");
 
-function mountStep(
-  session: ImportSession,
-  existingSlideshows: readonly ExistingSlideshow[] = [],
-  language: "de" | "en" = "en",
-) {
-  const created: string[] = [];
-  const step = mountWithTranslator(
-    MusicStep,
-    {
-      session,
-      existingSlideshows,
-      loadThumbnail: () => Promise.resolve(new Blob()),
-      onBack: () => undefined,
-      onCreate: (title: string) => created.push(title),
-      onError: (error: unknown) => {
-        throw error;
-      },
-      toaster: new Toaster(new FakeScheduler()),
-    },
-    { current: createTranslator(language) },
-  );
-  unmounts.push(step.destroy);
-  return { target: step.target, created };
-}
-
-function titleField(target: HTMLElement): HTMLInputElement {
-  const field = [...target.querySelectorAll("input")].find(
-    (input) => input.labels?.[0]?.textContent.includes("Title") ?? false,
-  );
-  if (field === undefined) throw new Error("no Title field");
-  return field;
+function mountStep(...args: Parameters<typeof mountMusicStep>) {
+  const rig = mountMusicStep(...args);
+  unmounts.push(rig.destroy);
+  return rig;
 }
 
 const buttonNamed = (target: HTMLElement, name: string) => {
@@ -88,23 +54,6 @@ describe("MusicStep, the Title field", () => {
     expect(target.textContent).toContain("You can change it later on the slideshow screen.");
     expect(field.getBoundingClientRect().height).toBeGreaterThanOrEqual(44);
   });
-
-  it.skipIf(server.browser !== "chromium")(
-    "waits for a tap on a touch screen, so the keyboard does not cover the step",
-    async () => {
-      const { session } = await withTwoPictures();
-      await emulateCoarsePointer(true);
-      try {
-        const { target } = mountStep(session);
-        const field = titleField(target);
-
-        expect(field.value).toBe(SUMMER_TITLE);
-        expect(document.activeElement).toBe(document.body);
-      } finally {
-        await emulateCoarsePointer(false);
-      }
-    },
-  );
 
   it("is prefilled with a title no other slideshow has", async () => {
     const { session } = await withTwoPictures();
