@@ -57,7 +57,8 @@ selected when the step opens under a mouse or trackpad (`MOUSE_POINTER_QUERY`; o
 it waits for a tap, so the keyboard does not cover the step), and the hint "You can change it later on the slideshow screen."
 Enter creates the slideshow like "Create slideshow" does (not while a song is still being read);
 a blank field falls back to the automatic title. `ImportRoute` lists the library's titles and
-capture dates (`existing-slideshows.ts`) before showing the step.
+capture dates (`existing-slideshows.ts`) before showing the step. E2E-109 imports a second July
+and replaces its day-range title.
 
 "Pictures" goes back; while a song is read the primary button is disabled as "Converting …";
 otherwise "Create slideshow" (or "Create without music") stores every chosen song in the list's
