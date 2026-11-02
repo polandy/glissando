@@ -10,6 +10,8 @@ const MILLISECONDS_PER_SECOND = 1000;
 export interface PreparedPicturesOptions {
   /** The pictures in the order they play. */
   readonly ids: readonly string[];
+  /** The picture preparing begins with, the pictures before it left; the first without it. */
+  readonly startPicture?: string | null;
   readonly prepare: PrepareRendition;
   /** Monotonic milliseconds. */
   readonly clock: () => number;
@@ -42,13 +44,14 @@ export class PreparedPictures {
   readonly #closed = new AbortController();
   #wanted: string[] = [];
   /** The first picture whose slide has not passed. */
-  #current = 0;
+  #current: number;
   #working = false;
   /** A failure other than a missing picture: preparing ahead stops, asking still tries. */
   #failure: unknown = null;
 
   constructor(options: PreparedPicturesOptions) {
     this.#options = options;
+    this.#current = Math.max(0, options.ids.indexOf(options.startPicture ?? ""));
   }
 
   start(): void {

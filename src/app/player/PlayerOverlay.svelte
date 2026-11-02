@@ -114,7 +114,7 @@
     });
     player = created;
     if (startAt > 0) {
-      created.currentTime = startAt;
+      created.startAt(startAt);
     }
     const sync = () => {
       currentTime = created.currentTime;

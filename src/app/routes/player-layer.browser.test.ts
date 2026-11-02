@@ -59,6 +59,7 @@ describe("the player layer", () => {
       onPictureMissing: () => {},
       playbackQuality: "1440",
       clock: () => 0,
+      startPicture: null,
     });
     destroy = mounted.destroy;
 
@@ -91,6 +92,7 @@ describe("the player layer", () => {
       onPictureMissing: () => {},
       playbackQuality: "1440",
       clock: () => 0,
+      startPicture: null,
     });
     destroy = mounted.destroy;
 
@@ -139,6 +141,7 @@ function mountServerLayer(store: MemoryLibraryStore, missing = new SvelteSet<str
     onPictureMissing: (id: string) => missing.add(id),
     playbackQuality: "1440",
     clock: () => 0,
+    startPicture: null,
   });
   destroy = mounted.destroy;
   return { ...mounted, missing };
@@ -225,6 +228,7 @@ describe("the pictures the player layer loads ahead", () => {
       onPictureMissing: () => {},
       playbackQuality: "1440",
       clock: () => 0,
+      startPicture: null,
     });
     destroy = mounted.destroy;
 

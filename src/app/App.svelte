@@ -16,6 +16,7 @@
   import ImportRoute from "./import/ImportRoute.svelte";
   import type { ImportSession } from "./import/import-session";
   import type { Route } from "./navigation/route";
+  import { startPlaying } from "./navigation/start-playing";
   import type { PwaSheetContent } from "./pwa/PwaSheet.svelte";
   import StatusBar from "./pwa/StatusBar.svelte";
   import HomeRoutes from "./routes/HomeRoutes.svelte";
@@ -239,7 +240,7 @@
         onExport={() => exportJob.start(slideshowId, opened.store)}
         videoExport={services.videoExport}
         htmlExport={services.htmlExport}
-        playing={route.screen === "player"}
+        playing={route.screen === "player" ? { pictureId: route.pictureId ?? null } : null}
         {pulsePlay}
         playbackQuality={effectivePlaybackQuality(
           settingsState.playbackQuality,
@@ -256,11 +257,8 @@
         fineSettingsFold={services.fineSettingsFold}
         musicEditorDetails={services.musicEditorDetails}
         onBack={() => navigator.back()}
-        onPlay={() => {
-          // Within the Play gesture: the player starts the music only after its pictures load.
-          services.musicOutput.unlock();
-          navigator.open({ screen: "player", slideshowId });
-        }}
+        onPlay={() => startPlaying(services, slideshowId)}
+        onPlayFrom={(pictureId) => startPlaying(services, slideshowId, pictureId)}
         onAddPictures={(slideshow) => addFlow.open(slideshow, opened.home)}
         addedPictureIds={added?.slideshowId === slideshowId ? added.pictureIds : []}
         onEdit={(pictureId) => navigator.open({ screen: "picture", slideshowId, pictureId })}

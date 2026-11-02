@@ -1,5 +1,7 @@
 # Selecting several, moving, removing several
 
+With exactly one picture selected the bar's first item is "Play from here" (accent style, play icon; short label "From here" on a phone): it plays the slideshow from that picture and keeps the selection, so it is still there on return. With several selected the item is absent.
+
 - **Selecting several**: "Select" (a toggle, `aria-pressed`) left of "Add media" in the
   strip header, Ctrl/⌘+click, Shift+click or Ctrl+Space start it, and nothing else does: holding
   a tile on touch only lifts it for a drag; a single selection stays in it. Every tile then shows a circle top right (filled

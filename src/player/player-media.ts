@@ -55,8 +55,19 @@ export class PlayerMedia {
     this.video?.pause();
   }
 
+  /** The music rises from silence over a second from `timeMs`, until the show next jumps. */
+  fadeMusicInFrom(timeMs: number): void {
+    this.#music?.fadeInFrom(timeMs);
+  }
+
+  /** The music is at full volume again, whatever fade-in was running. */
+  endMusicFadeIn(): void {
+    this.#music?.clearFadeIn();
+  }
+
   /** The show jumped to a new time. */
   restart(): void {
+    this.endMusicFadeIn();
     this.video?.restart();
   }
 

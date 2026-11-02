@@ -189,4 +189,31 @@ describe("SlideshowPlayer with a playlist of placed tracks", () => {
     expect(player.error?.name).toBe("MusicPlaybackError");
     expect(player.paused).toBe(true);
   });
+
+  it("fades the music in over a second from where startAt began, at the track's own place", async () => {
+    const { player, summer, ready, advance } = setUp();
+    await ready();
+
+    player.startAt(2);
+    player.play();
+    expect(summer.volumesAtPlay).toEqual([0]);
+    advance(500);
+    expect(summer.volume).toBeCloseTo(0.5);
+    advance(500);
+    expect(summer.volume).toBeCloseTo(1);
+    expect(summer.calls[0]).toBe("play@12");
+  });
+
+  it("leaves a later seek at full volume, also one into the first second", async () => {
+    const { player, summer, ready, advance } = setUp();
+    await ready();
+    player.startAt(1);
+    player.play();
+    advance(1000);
+
+    player.currentTime = 1.2;
+    advance(100);
+
+    expect(summer.volume).toBeCloseTo(1);
+  });
 });

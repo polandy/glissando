@@ -78,6 +78,7 @@ async function mountLayer(playbackQuality: PlaybackQuality = "4k") {
     onPictureMissing: () => {},
     playbackQuality,
     clock: () => store.now,
+    startPicture: null,
   });
   destroy = mounted.destroy;
   return { store, target: mounted.target, closes: () => closes };
@@ -159,6 +160,7 @@ describe("preparing a server slideshow in the player layer", () => {
       onPictureMissing: () => {},
       playbackQuality: "4k",
       clock: () => store.now,
+      startPicture: null,
     });
     destroy = mounted.destroy;
 

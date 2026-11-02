@@ -34,6 +34,7 @@
     saving,
     onBack,
     onOpen,
+    onPlayFrom,
     onError,
     log,
     readClipPeaks,
@@ -55,6 +56,7 @@
     saving: boolean;
     onBack: () => void;
     onOpen: (pictureId: string) => void;
+    onPlayFrom: (pictureId: string) => void;
     onError: (error: unknown) => void;
     /** Logs beats that could not be read: the pictures share the music evenly meanwhile. */
     log: (error: unknown) => void;
@@ -190,6 +192,7 @@
       slideshowTitle={stored.title}
       {onBack}
       {onOpen}
+      {onPlayFrom}
       onChange={(motion) => editor.setKenBurns(view.id, motion)}
       onSwap={() => editor.swapKenBurns(view.id)}
       onReset={() => editor.resetKenBurns(view.id)}

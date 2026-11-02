@@ -6,6 +6,7 @@
   import BarAction from "./BarAction.svelte";
   import MoveToSheet from "./MoveToSheet.svelte";
   import SelectionCount from "./SelectionCount.svelte";
+  import SoleActions from "./SoleActions.svelte";
   import { barItem, chapterItem, moveToItem, type BarItem } from "./SelectionBarItem";
   import { isContiguous, selectedInOrder, type StripSelection } from "./strip-selection";
 
@@ -21,6 +22,7 @@
     onRemoveGroup,
     onEdit,
     onView,
+    onPlayFrom,
     onDone,
     arranging = true,
     viewMode = false,
@@ -37,6 +39,8 @@
     onEdit: (pictureId: string) => void;
     /** Opens the picture full screen beside Edit (PICTURE_VIEWER.md); undefined while `viewMode`. */
     onView?: (pictureId: string) => void;
+    /** Plays the slideshow from the picture (PLAYER_OVERLAY.md); one picture selected, only. */
+    onPlayFrom?: (pictureId: string) => void;
     onDone: () => void;
     /** False hides Earlier/Later and Move to… (IMPORT_ARRANGING.md, Add media): no moving while adding. */
     arranging?: boolean;
@@ -102,6 +106,7 @@
 
   const edit = (): void => void (soleId !== null && onEdit(soleId));
   const view = (): void => void (soleId !== null && onView?.(soleId));
+  const playFrom = (): void => void (soleId !== null && onPlayFrom?.(soleId));
   const insertChapter = (): void => void (soleId !== null && onInsertChapter?.(soleId));
   const remove = (): void => void (count > 0 && onRemoveGroup(selectedIds));
 
@@ -160,19 +165,10 @@
       <div class="actions">
         {@render inline(shifts)}
         {#if single}
-          {#if onView !== undefined}
-            <BarAction
-              icon="eye"
-              label={t("slideshow.view")}
-              name={t("slideshow.viewFullScreen")}
-              onclick={view}
-            />
-          {/if}
-          <BarAction
-            icon="pencil"
-            label={t("slideshow.edit")}
-            name={t("slideshow.editPicture")}
-            onclick={edit}
+          <SoleActions
+            onPlayFrom={onPlayFrom === undefined ? undefined : playFrom}
+            onView={onView === undefined ? undefined : view}
+            onEdit={edit}
           />
         {/if}
         {@render inline(extras)}
@@ -284,7 +280,7 @@
     }
     .actions :global(.action) {
       flex: 1 1 0;
-      min-width: min-content;
+      min-width: max(44px, min-content);
       padding: 0;
     }
     .separator {

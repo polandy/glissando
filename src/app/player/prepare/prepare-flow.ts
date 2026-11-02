@@ -37,6 +37,8 @@ export type PreparingView = Extract<PrepareView, { readonly stage: "measuring" |
 export interface PrepareFlowOptions {
   /** The pictures in play order, those known missing left out. */
   readonly ids: readonly string[];
+  /** The picture playing begins with: the pictures before it are not prepared. */
+  readonly startPicture?: string | null;
   readonly quality: PlaybackQuality;
   readonly renditionFor: (quality: PlaybackQuality) => PrepareRendition;
   /** Monotonic milliseconds. */
@@ -57,6 +59,8 @@ export class PrepareFlow {
   #quality: PlaybackQuality;
   #pictures: PreparedPictures;
   #slides: SlideBoundaries | null = null;
+  /** The slide playing begins with. */
+  #startSlide = 0;
   #playing = false;
   #view: PrepareView;
 
@@ -78,9 +82,13 @@ export class PrepareFlow {
     return () => this.#listeners.delete(listener);
   }
 
-  /** The played slides, once composed; again when a missing picture left the slideshow. */
-  setSlides(slides: SlideBoundaries): void {
+  /**
+   * The played slides, once composed, and the slide playing begins with; again when a missing
+   * picture left the slideshow.
+   */
+  setSlides(slides: SlideBoundaries, startSlide = 0): void {
     this.#slides = slides;
+    this.#startSlide = startSlide;
     this.#update();
   }
 
@@ -113,6 +121,7 @@ export class PrepareFlow {
   #prepare(): PreparedPictures {
     const pictures = new PreparedPictures({
       ids: this.#options.ids,
+      startPicture: this.#options.startPicture ?? null,
       prepare: this.#options.renditionFor(this.#quality),
       clock: this.#options.clock,
       capacity: PREPARED_PICTURES_LIMIT,
@@ -147,15 +156,16 @@ export class PrepareFlow {
     const failure = this.#pictures.failure();
     if (failure !== null) return { stage: "failed", error: failure };
     const ready = this.#pictures.readyInOrder();
-    const pictureCount =
-      this.#slides?.starts.length ?? this.#options.ids.length - this.#pictures.missing().size;
+    const pictureCount = this.#slides
+      ? this.#slides.starts.length - this.#startSlide
+      : this.#options.ids.length - this.#pictures.missing().size;
     const measuring = Math.min(MEASURED_PICTURES, pictureCount);
     const secondsPerPicture = this.#pictures.secondsPerPicture();
     if (this.#slides === null || secondsPerPicture === null || ready < measuring) {
       return { stage: "measuring", quality, measured: Math.min(ready, measuring), measuring };
     }
     const target = Math.min(
-      planPreload(secondsPerPicture, this.#slides.starts).preloadCount,
+      planPreload(secondsPerPicture, this.#slides.starts, this.#startSlide).preloadCount,
       PREPARED_PICTURES_LIMIT,
     );
     if (ready >= target) return { stage: "playing", quality };
@@ -166,7 +176,8 @@ export class PrepareFlow {
       target,
       pictureCount,
       secondsPerPicture,
-      secondsPerSlide: this.#slides.duration / pictureCount,
+      secondsPerSlide:
+        (this.#slides.duration - (this.#slides.starts[this.#startSlide] ?? 0)) / pictureCount,
       secondsLeft: (target - ready) * secondsPerPicture,
     };
   }

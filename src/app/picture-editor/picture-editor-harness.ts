@@ -85,6 +85,7 @@ export function mountEditor(shown: PictureEditorView = view(), { reducedMotion =
   const calls = {
     changed: [] as OwnKenBurns[],
     opened: [] as string[],
+    played: [] as string[],
     swaps: 0,
     resets: 0,
     backs: 0,
@@ -109,6 +110,7 @@ export function mountEditor(shown: PictureEditorView = view(), { reducedMotion =
     slideshowTitle: "Sommer am See",
     onBack: () => (calls.backs += 1),
     onOpen: (pictureId: string) => calls.opened.push(pictureId),
+    onPlayFrom: (pictureId: string) => calls.played.push(pictureId),
     onChange: (motion: OwnKenBurns) => calls.changed.push(motion),
     onSwap: () => (calls.swaps += 1),
     onReset: () => (calls.resets += 1),

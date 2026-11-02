@@ -56,6 +56,7 @@ describe("selection bar at 360 px, German, one picture selected", () => {
     const actions = [
       "Früher",
       "Später",
+      "Ab hier",
       "Ansehen",
       "Bearbeiten",
       "Kapitel",
@@ -92,8 +93,9 @@ describe("selection bar at 360 px, German, one picture selected", () => {
     expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(pageWidthBefore);
     const barBox = bar().getBoundingClientRect();
     expect(barBox.right).toBeLessThanOrEqual(NARROW.width);
-    for (const button of visibleButtons()) {
-      expect(button.getBoundingClientRect().right).toBeLessThanOrEqual(barBox.right);
-    }
+    // Eight actions are wider than 360 px: the row scrolls inside the bar instead of spilling out.
+    const row = bar().querySelector(".actions");
+    expect(row?.getBoundingClientRect().right).toBeLessThanOrEqual(barBox.right);
+    expect(getComputedStyle(row as Element).overflowX).toBe("auto");
   });
 });

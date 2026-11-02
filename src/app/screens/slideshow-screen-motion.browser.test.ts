@@ -14,7 +14,7 @@ const ownMotionOnSecond = () => {
 };
 
 describe("SlideshowScreen, the way into the picture editor", () => {
-  it("offers View then Edit in the selection bar, between Later and Remove, for the selected picture", () => {
+  it("offers Play from here, View, then Edit in the selection bar, between Later and Remove, for the selected picture", () => {
     const { calls } = mountScreen();
     tile(2, "02.07.2025").click();
     flushSync();
@@ -24,7 +24,8 @@ describe("SlideshowScreen, the way into the picture editor", () => {
     );
     buttonNamed("Bearbeiten").click();
 
-    expect(labels.indexOf("Ansehen")).toBe(labels.indexOf("Später") + 1);
+    expect(labels.indexOf("Ab hier")).toBe(labels.indexOf("Später") + 1);
+    expect(labels.indexOf("Ansehen")).toBe(labels.indexOf("Ab hier") + 1);
     expect(labels.indexOf("Bearbeiten")).toBe(labels.indexOf("Ansehen") + 1);
     expect(labels.indexOf("Kapitel")).toBe(labels.indexOf("Bearbeiten") + 1);
     expect(labels.indexOf("Verschieben")).toBe(labels.indexOf("Kapitel") + 1);

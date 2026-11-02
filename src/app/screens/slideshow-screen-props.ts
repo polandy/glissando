@@ -27,6 +27,8 @@ export interface SlideshowScreenProps {
   slideshow: SlideshowDetails;
   onBack: () => void;
   onPlay: () => void;
+  /** Plays from a picture: the selection bar and the viewer offer it. */
+  onPlayFrom: (pictureId: string) => void;
   /** The slideshow was just created: its Play button pulses once on arrival. */
   pulsePlay?: boolean;
   /** "Add media" in the strip header. */

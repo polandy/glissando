@@ -1,4 +1,4 @@
-import { isTrackHeardAt, trackGainAt, trackSecondsAt } from "./music-gain";
+import { isTrackHeardAt, startFadeGainAt, trackGainAt, trackSecondsAt } from "./music-gain";
 import type { MusicPlayback } from "./ports";
 import type { MusicTrack } from "./slideshow";
 
@@ -16,6 +16,8 @@ interface PlacedTrack {
 export class PlaylistMusic {
   readonly #tracks: readonly PlacedTrack[];
   readonly #duckAt: (timeMs: number) => number;
+  /** Where the show started part-way, null for a start at the beginning or after a seek. */
+  #fadeInFromMs: number | null = null;
 
   /** `duckAt` is the factor every track's volume is multiplied by at a slideshow time (ADR-0035). */
   constructor(
@@ -67,6 +69,15 @@ export class PlaylistMusic {
     return Promise.all(starts).then(() => undefined);
   }
 
+  /** Fades every track in from slideshow time `timeMs`, until the next `clearFadeIn`. */
+  fadeInFrom(timeMs: number): void {
+    this.#fadeInFromMs = timeMs;
+  }
+
+  clearFadeIn(): void {
+    this.#fadeInFromMs = null;
+  }
+
   /** Pauses every sounding track. */
   pause(): void {
     for (const placed of this.#tracks) {
@@ -90,7 +101,8 @@ export class PlaylistMusic {
   }
 
   #volumeAt(track: MusicTrack, timeMs: number): number {
-    return track.gain * trackGainAt(track, timeMs) * this.#duckAt(timeMs);
+    const fadeIn = this.#fadeInFromMs === null ? 1 : startFadeGainAt(this.#fadeInFromMs, timeMs);
+    return track.gain * trackGainAt(track, timeMs) * this.#duckAt(timeMs) * fadeIn;
   }
 }
 

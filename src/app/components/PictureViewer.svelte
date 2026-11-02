@@ -19,6 +19,7 @@
     onShow,
     onRemove,
     onTakeIn,
+    onPlayFrom,
     onClose,
   }: {
     /** The strip's pictures, then the set-aside ones, if any. */
@@ -32,6 +33,8 @@
     /** Left out to hide "Remove" (the last-picture rule); `onTakeIn` left out with no set-aside. */
     onRemove?: ((pictureId: string) => void) | undefined;
     onTakeIn?: ((pictureId: string) => void) | undefined;
+    /** Plays the slideshow from the shown picture; left out where there is none to play. */
+    onPlayFrom?: ((pictureId: string) => void) | undefined;
     onClose: (shownPictureId: string) => void;
   } = $props();
   const SWIPE_MIN_PX = 50;
@@ -194,6 +197,7 @@
       {onShow}
       onRemove={onRemove === undefined ? undefined : remove}
       onTakeIn={onTakeIn === undefined ? undefined : () => onTakeIn(pictureId)}
+      onPlayFrom={onPlayFrom === undefined ? undefined : () => onPlayFrom(pictureId)}
     />
   </div>
 {/if}

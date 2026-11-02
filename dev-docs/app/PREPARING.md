@@ -11,6 +11,8 @@ into the display rendition on the device. Device slideshows start at once, as be
 renders `player/PreparePictures.svelte` while it measures or prepares, and the player once it
 plays.
 
+The flow starts at the slide of the chosen picture when the player route carries one (`startPicture` option, `setSlides(slides, startSlide)`): measuring, the plan (`planPreload(…, fromSlide)`, starts rebased to the start slide) and preparing all begin there; earlier pictures are fetched on demand if the viewer goes back.
+
 1. **Measuring**: the first two pictures (one for a one-picture slideshow) are prepared and timed.
 2. **The plan**: from the time per picture (moving average of the last four) and the played
    slides' start times, `planPreload` says how many must be ready before playing (formula in

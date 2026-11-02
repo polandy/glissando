@@ -63,6 +63,7 @@
     musicEditorDetails,
     onBack,
     onPlay,
+    onPlayFrom,
     pulsePlay = false,
     onAddPictures,
     addedPictureIds,
@@ -114,10 +115,9 @@
         if (loaded !== null) {
           screenFocus.load(loaded.stored);
           stored = loaded.stored;
-          const focusOf = (pictureId: string) => focus.found.get(pictureId);
           const ports = {
             store,
-            focusOf,
+            focusOf: (pictureId: string) => focus.found.get(pictureId),
             toaster,
             newId,
             now,
@@ -186,6 +186,7 @@
     {saving}
     {onBack}
     onOpen={onEdit}
+    {onPlayFrom}
     {onError}
     {log}
     {readClipPeaks}
@@ -213,6 +214,7 @@
     slideshow={details}
     {onBack}
     {onPlay}
+    {onPlayFrom}
     {pulsePlay}
     onAddPictures={() => stored !== null && onAddPictures(stored)}
     {newPictureIds}
@@ -268,7 +270,7 @@
 {:else}
   <RouteSkeleton variant="strip" />
 {/if}
-{#if playing && stored !== null}
+{#if playing !== null && stored !== null}
   <PlayerLayer
     {store}
     {stored}
@@ -280,6 +282,7 @@
     {beatPass}
     {home}
     {playbackQuality}
+    startPicture={playing.pictureId}
     missing={thumbnails.missing}
     onPictureMissing={(id) => thumbnails.missing.add(id)}
   />

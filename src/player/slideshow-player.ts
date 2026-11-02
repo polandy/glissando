@@ -37,9 +37,7 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
       onError: (error) => this.#fail(error),
       // Playback draws the next frame anyway; a paused show draws the frame that arrived.
       onFrameReady: () => {
-        if (this.#paused) {
-          this.redraw();
-        }
+        if (this.#paused) this.redraw();
       },
     });
     this.#captionInset = new CaptionInset({
@@ -89,6 +87,12 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
     }
   }
 
+  /** Seeks to `seconds`, the music rising from silence over a second; a later seek or replay does not. */
+  startAt(seconds: number): void {
+    this.currentTime = seconds;
+    this.#media.fadeMusicInFrom(seconds * MILLISECONDS_PER_SECOND);
+  }
+
   get paused(): boolean {
     return this.#paused;
   }
@@ -108,11 +112,10 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
 
   play(): void {
     this.#assertAlive();
-    if (!this.#paused) {
-      return;
-    }
+    if (!this.#paused) return;
     if (this.#ended || this.#time.isAtEnd) {
       this.#time.holdAt(0);
+      this.#media.endMusicFadeIn();
       this.#ended = false;
     }
     this.#paused = false;
@@ -122,9 +125,7 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
   }
 
   pause(): void {
-    if (this.#paused) {
-      return;
-    }
+    if (this.#paused) return;
     this.#stopAdvancing();
     this.#paused = true;
     this.#emit("pause");
@@ -132,9 +133,8 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
   }
 
   /**
-   * How far, in CSS pixels, every caption sits above its usual place at the bottom: the height of
-   * controls laid over the player while they show, 0 otherwise. Setting it glides the captions
-   * there over the next frames (`CAPTION_GLIDE_MS`), also while paused.
+   * How far, in CSS pixels, every caption sits above its usual place: the height of controls
+   * laid over the player while they show, else 0. Setting it glides there (`CAPTION_GLIDE_MS`).
    */
   get captionInset(): number {
     return this.#captionInset.target;
@@ -170,15 +170,11 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
 
   /** Draws the current frame again, e.g. after the viewport changed size. */
   redraw(): void {
-    if (!this.#destroyed && this.#pictures.areOnScreenLoaded()) {
-      this.#draw();
-    }
+    if (!this.#destroyed && this.#pictures.areOnScreenLoaded()) this.#draw();
   }
 
   destroy(): void {
-    if (this.#destroyed) {
-      return;
-    }
+    if (this.#destroyed) return;
     this.#stopAdvancing();
     this.#captionInset.dispose();
     this.#paused = true;
@@ -214,10 +210,9 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
     if (this.#time.stopAdvancing()) {
       this.#media.pause();
     }
-    if (this.#frameHandle !== null) {
-      this.#deps.frames.cancel(this.#frameHandle);
-      this.#frameHandle = null;
-    }
+    if (this.#frameHandle === null) return;
+    this.#deps.frames.cancel(this.#frameHandle);
+    this.#frameHandle = null;
   }
 
   #scheduleFrame(): void {
