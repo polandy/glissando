@@ -1,9 +1,9 @@
 import { takeOutPictures } from "../../library/slideshow-edits";
 import type { StoredSlideshow } from "../../library/stored-slideshow";
 import { AddUndo, type AddUndoPorts } from "./add-undo";
+import { OrderUndo } from "./order-undo";
 import { RemovalUndo, type RemovalUndoPorts } from "./removal-undo";
 import { ResetUndo } from "./reset-undo";
-import { ShuffleUndo } from "./shuffle-undo";
 import { SongRemovalUndo, type SongRemovalUndoPorts } from "./song-removal-undo";
 
 export type EditorUndosPorts = Omit<RemovalUndoPorts, "track"> &
@@ -19,19 +19,19 @@ interface EditedSlideshow {
 }
 
 /**
- * The editor's undo toasts: of removals, of a song's removal, of resets, of a shuffle and of an adding. Taking added pictures out
+ * The editor's undo toasts: of removals, of a song's removal, of resets, of an order change and of an adding. Taking added pictures out
  * ends a pending batch of removals, as any other edit does.
  */
 export class EditorUndos {
   readonly removal: RemovalUndo;
   readonly reset: ResetUndo;
   readonly add: AddUndo;
-  readonly shuffle: ShuffleUndo;
+  readonly order: OrderUndo;
   readonly songRemoval: SongRemovalUndo;
 
   constructor(ports: EditorUndosPorts, edited: EditedSlideshow) {
     this.reset = new ResetUndo(ports.toaster, ports.undoLabel);
-    this.shuffle = new ShuffleUndo(ports.toaster, ports.undoLabel);
+    this.order = new OrderUndo(ports.toaster, ports.undoLabel);
     this.removal = new RemovalUndo({ ...ports, track: (work) => edited.track(work) });
     this.songRemoval = new SongRemovalUndo({ ...ports, track: (work) => edited.track(work) });
     this.add = new AddUndo({
@@ -49,7 +49,7 @@ export class EditorUndos {
     this.removal.end();
     this.reset.end();
     this.add.end();
-    this.shuffle.end();
+    this.order.end();
     this.songRemoval.end();
   }
 }

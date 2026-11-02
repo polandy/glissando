@@ -41,6 +41,8 @@ export interface SlideshowScreenProps {
   onRemoveGroup: (pictureIds: readonly string[]) => void;
   /** "Shuffle" in the strip header: puts the pictures in a new random order. */
   onShuffle: () => void;
+  /** "Sort by date" in the strip header, offered while the order is the user's own. */
+  onSortByDate: () => void;
   /** A drop: moves the group to the slot before the tile at `insertion`. */
   onMoveGroup: (pictureIds: readonly string[], insertion: number) => void;
   onRename: (typed: string) => void;

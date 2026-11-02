@@ -105,6 +105,7 @@ export async function setUp(
     moodNowCustomText: () => "Keine Stimmung ist an",
     songRemovedText: () => "Song entfernt",
     shuffledText: (count) => `${count} Bilder gemischt`,
+    sortedByDateText: (count) => `${count} Bilder nach Datum sortiert`,
     random: () => 0,
     automaticTitle: () => "Juli 2025",
     locale: () => "de-DE",

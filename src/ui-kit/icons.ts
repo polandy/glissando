@@ -189,6 +189,16 @@ export const ICONS = {
   shuffle: {
     shapes: [path("M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5")],
   },
+  sortByDate: {
+    shapes: [
+      rect(3, 5, 13, 14, 2),
+      path("M3 9h13"),
+      path("M7 3v4"),
+      path("M12 3v4"),
+      path("M20 8v12"),
+      path("M17 17l3 3 3-3"),
+    ],
+  },
   checkCircle: { shapes: [circle(12, 12, 8.5), path("M8.3 12.3l2.8 2.8L15.8 9")] },
   fadeIn: { shapes: [path("M2 18L12 7h10")] },
   fadeOut: { shapes: [path("M2 7h10l10 11")] },

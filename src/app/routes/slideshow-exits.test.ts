@@ -71,6 +71,7 @@ function editorOver(store: MemoryLibraryStore, toaster: Toaster): SlideshowEdito
     moodNowCustomText: () => "Keine Stimmung ist an",
     songRemovedText: () => "Song entfernt",
     shuffledText: () => "",
+    sortedByDateText: () => "",
     random: () => 0,
     automaticTitle: () => "Juli 2025",
     locale: () => "de-DE",

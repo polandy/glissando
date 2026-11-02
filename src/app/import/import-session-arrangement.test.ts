@@ -37,4 +37,24 @@ describe("ImportSession, arranging the pictures step's strip", () => {
     ]);
     expect(slideshow.ownOrder).toBe(true);
   });
+
+  it("creates the slideshow in capture order, without ownOrder, after a move was sorted by date", async () => {
+    const { session } = sessionWith();
+    session.addPictures([
+      pictureFile("late.jpg", "2025-08-02T10:00:00Z"),
+      pictureFile("early.jpg", "2025-07-01T10:00:00Z"),
+    ]);
+    await session.intake.settled();
+    const [early] = session.pictures.state.pictures;
+    session.arrangement.moveGroup(new Set([early?.id ?? ""]), 2);
+
+    session.arrangement.sortByDate();
+    const slideshow = await session.create("en");
+
+    expect(slideshow.pictures.map((picture) => picture.fileName)).toEqual([
+      "early.jpg",
+      "late.jpg",
+    ]);
+    expect(slideshow.ownOrder).toBeUndefined();
+  });
 });

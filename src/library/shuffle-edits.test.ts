@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { restoreOrder, shuffleSlideshow } from "./shuffle-edits";
+import { restoreOrder, shuffleSlideshow, sortSlideshowByCaptureDate } from "./shuffle-edits";
 import type { StoredSlideshow } from "./stored-slideshow";
 
 function slideshow(ids: readonly string[], ownOrder?: true): StoredSlideshow {
@@ -65,5 +65,62 @@ describe("restoreOrder", () => {
     const now = slideshow(["c", "x", "a"], true);
 
     expect(ids(restoreOrder(now, ["a", "b", "c"], undefined))).toEqual(["a", "c", "x"]);
+  });
+});
+
+describe("sortSlideshowByCaptureDate", () => {
+  function dated(captured: Record<string, string>, ownOrder?: true): StoredSlideshow {
+    const base = slideshow(Object.keys(captured), ownOrder);
+    return {
+      ...base,
+      pictures: base.pictures.map((picture) => ({
+        ...picture,
+        capturedAt: captured[picture.id] as string,
+      })),
+    };
+  }
+
+  it("puts every picture in capture-date order and ends the own order", () => {
+    const own = dated(
+      { c: "2025-07-03T10:00:00Z", a: "2025-07-01T10:00:00Z", b: "2025-07-02T10:00:00Z" },
+      true,
+    );
+
+    const sorted = sortSlideshowByCaptureDate(own);
+
+    expect(ids(sorted)).toEqual(["a", "b", "c"]);
+    expect("ownOrder" in sorted).toBe(false);
+  });
+
+  it("breaks a tie in capture time by file name, as the import does", () => {
+    const own = dated(
+      { z: "2025-07-01T10:00:00Z", y: "2025-07-01T10:00:00Z", x: "2025-07-01T10:00:00Z" },
+      true,
+    );
+
+    expect(ids(sortSlideshowByCaptureDate(own))).toEqual(["x", "y", "z"]);
+  });
+
+  it("returns the same slideshow when the order is not the user's own", () => {
+    const sorted = dated({ b: "2025-07-02T10:00:00Z", a: "2025-07-01T10:00:00Z" });
+
+    expect(sortSlideshowByCaptureDate(sorted)).toBe(sorted);
+  });
+
+  it("leaves everything but the order and its flag as it was", () => {
+    const own = dated({ b: "2025-07-02T10:00:00Z", a: "2025-07-01T10:00:00Z" }, true);
+    const withCaption: StoredSlideshow = {
+      ...own,
+      title: "Lake trip",
+      pictures: own.pictures.map((picture) =>
+        picture.id === "b" ? { ...picture, caption: "Lake" } : picture,
+      ),
+    };
+
+    const sorted = sortSlideshowByCaptureDate(withCaption);
+
+    expect(sorted.title).toBe("Lake trip");
+    expect(sorted.secondsPerPicture).toBe(5);
+    expect(sorted.pictures.find((picture) => picture.id === "b")?.caption).toBe("Lake");
   });
 });

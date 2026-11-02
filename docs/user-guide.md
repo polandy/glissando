@@ -57,7 +57,7 @@ there to set your own order — new ones join by capture date until you do — a
 Adding pictures later skips the ones already in the slideshow (you can add them anyway). Drag
 pictures to reorder (on a phone, hold a picture until it lifts, then drag; the page scrolls along near the
 screen edge), or tap Shuffle for a random order (Undo in the message that follows
-brings the old one back); select a picture to view it full screen or open its editor to change
+brings the old one back), and **Sort by date** (shown once the order is your own) puts every picture back in the order it was taken (Undo likewise); select a picture to view it full screen or open its editor to change
 its motion (on a phone it shows the picture with its frames or the preview, one at a time:
 switch with **Frame | Play**). The bar that appears labels every action: **Earlier**, **Later**, **View**, **Edit**,
 **Insert chapter before**, **Move to …** and **Remove**; on a phone they form a second row, with
