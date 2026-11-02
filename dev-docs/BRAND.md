@@ -101,6 +101,8 @@ panels, dialogs), `--gl-radius-tile` 8 px (picture tiles), `--gl-radius-tiny` 3 
 prepare screen's picture squares), hairlines instead of shadows.
 Touch: under a coarse pointer `.btn`, `.icon-btn` and the switch keep their look and grow an invisible
 pad to `--gl-hit-min` (44 px); neighbours need room for both pads, or a gap of at least the overhang.
+A component-styled control with flush neighbours (a full-width row, an input, a pill) takes a
+`min-height` of `--gl-hit-min` instead. `src/app/*touch-targets.browser.test.ts` hit-test every screen, sheet and editor.
 Layer: `--gl-layer-bar` (5) puts a sticky bottom bar above the content that scrolls under it; a tile
 isolates its own marks, so their z-index stays local.
 

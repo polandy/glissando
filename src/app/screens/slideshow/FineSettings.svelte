@@ -145,6 +145,12 @@
     color: var(--gl-muted);
     cursor: pointer;
   }
+  /* The neighbours sit flush against the row, so it grows instead of padding its hit area. */
+  @media (pointer: coarse) {
+    .toggle {
+      min-height: var(--gl-hit-min);
+    }
+  }
   .chevron {
     display: inline-flex;
     transform: rotate(90deg);

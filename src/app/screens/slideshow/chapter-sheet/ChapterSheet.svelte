@@ -211,6 +211,11 @@
     font: inherit;
     font-size: var(--gl-size-body);
   }
+  @media (pointer: coarse) {
+    .input {
+      height: var(--gl-hit-min);
+    }
+  }
   .input:focus {
     border-color: var(--gl-accent);
   }

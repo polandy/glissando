@@ -254,6 +254,12 @@
     position: absolute;
     inset: -4px -7px;
   }
+  /* A finger needs a hit-min wide pad, centred on the handle (a percentage is the handle's width). */
+  @media (pointer: coarse) {
+    .handle::before {
+      inset: -4px calc((100% - var(--gl-hit-min)) / 2);
+    }
+  }
   .handle:focus-visible,
   .handle.active {
     outline: 3px solid var(--gl-accent-halo);

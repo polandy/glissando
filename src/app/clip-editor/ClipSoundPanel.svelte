@@ -148,6 +148,25 @@
   .duck input {
     accent-color: var(--gl-accent);
   }
+  @media (pointer: coarse) {
+    .seg button {
+      min-height: var(--gl-hit-min);
+    }
+    input[type="range"] {
+      height: var(--gl-hit-min);
+    }
+    /* The checkbox sits at the label's start, so the label's invisible pad reaches half a hit-min
+       past it, giving the checkbox's 44 px square to the label. */
+    .duck {
+      position: relative;
+      min-height: var(--gl-hit-min);
+    }
+    .duck::after {
+      content: "";
+      position: absolute;
+      inset: 0 0 0 calc(var(--gl-hit-min) / -2);
+    }
+  }
   .off {
     opacity: 0.5;
   }

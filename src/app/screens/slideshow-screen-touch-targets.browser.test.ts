@@ -20,15 +20,6 @@ const canEmulate = server.browser === "chromium";
 const PHONE = { width: 390, height: 844 };
 const THEMES = ["light", "dark"] as const;
 
-/**
- * Controls known to be under 44 px, each owned by a file this change does not touch; the entry
- * is the line `touchTargetViolations` reports, up to the measured size. Remove an entry when its
- * file is fixed: a test fails on an entry that no longer applies.
- */
-const KNOWN: readonly string[] = [
-  // FineSettings.svelte: the fold's toggle is a full-width row 18 px high.
-  'button.toggle "Weitere Einstellungen"',
-];
 /** Panel tiles that leave the screen instead of opening a sheet. */
 const TILES_WITHOUT_SHEET = ["music"];
 
@@ -41,13 +32,6 @@ afterEach(async () => {
   document.documentElement.removeAttribute("data-theme");
   await emulateCoarsePointer(false);
 });
-
-/** What the page reports, minus what is known; the known ones must still be reported. */
-function unexpected(root: ParentNode): string[] {
-  return touchTargetViolations(root).filter(
-    (line) => !KNOWN.some((known) => line.startsWith(known)),
-  );
-}
 
 const openDialog = () => document.querySelector<HTMLDialogElement>("dialog[open]");
 
@@ -70,14 +54,7 @@ describe.skipIf(!canEmulate).each(THEMES)("SlideshowScreen touch targets, %s the
       ),
     });
 
-    expect(unexpected(document.body)).toEqual([]);
-    const reported = touchTargetViolations(document.body);
-    for (const known of KNOWN) {
-      expect(
-        reported.some((line) => line.startsWith(known)),
-        `${known} is fixed`,
-      ).toBe(true);
-    }
+    expect(touchTargetViolations(document.body)).toEqual([]);
   });
 
   it("gives every control of the selection bar a 44 px square", () => {
@@ -87,7 +64,7 @@ describe.skipIf(!canEmulate).each(THEMES)("SlideshowScreen touch targets, %s the
     const bar = selectionBar();
     if (bar === null) throw new Error("the selection bar did not open");
 
-    expect(unexpected(bar)).toEqual([]);
+    expect(touchTargetViolations(bar)).toEqual([]);
   });
 
   it("gives every control of every panel sheet a 44 px square", () => {
@@ -99,7 +76,9 @@ describe.skipIf(!canEmulate).each(THEMES)("SlideshowScreen touch targets, %s the
     for (const panelTile of tiles) {
       if (TILES_WITHOUT_SHEET.some((name) => panelTile.classList.contains(name))) continue;
       const sheet = openSheet(panelTile);
-      found.push(...unexpected(sheet).map((line) => `[${panelTile.classList[1]}] ${line}`));
+      found.push(
+        ...touchTargetViolations(sheet).map((line) => `[${panelTile.classList[1]}] ${line}`),
+      );
       sheet.close();
       flushSync();
     }

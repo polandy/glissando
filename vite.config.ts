@@ -44,6 +44,7 @@ const TOUCH_EMULATION_TESTS = [
   "src/styles/touch-targets.browser.test.ts",
   "src/app/screens/slideshow-screen-touch-targets.browser.test.ts",
   "src/app/editors-touch-targets.browser.test.ts",
+  "src/app/surfaces-touch-targets.browser.test.ts",
   "src/app/screens/slideshow/PictureStrip.touch.browser.test.ts",
   "src/app/import/music-step-title.touch.browser.test.ts",
 ];
