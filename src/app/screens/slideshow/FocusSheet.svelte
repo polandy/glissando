@@ -167,6 +167,21 @@
   .ib:hover {
     background: var(--gl-hover);
   }
+  @media (pointer: coarse) {
+    .ib {
+      position: relative;
+    }
+    /* The button keeps its look and grows an invisible pad to a 44 px square. */
+    .ib::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: max(100%, var(--gl-hit-min));
+      height: max(100%, var(--gl-hit-min));
+      transform: translate(-50%, -50%);
+    }
+  }
   .sbody {
     flex: 1;
     display: flex;

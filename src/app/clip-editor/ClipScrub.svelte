@@ -47,6 +47,11 @@
     /* Dragging along the slider must not scroll the page on a touch screen. */
     touch-action: pan-y;
   }
+  @media (pointer: coarse) {
+    .scrub {
+      height: var(--gl-hit-min);
+    }
+  }
   .scrub:focus-visible {
     outline: 3px solid var(--gl-accent-halo);
     outline-offset: 2px;

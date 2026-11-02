@@ -79,6 +79,11 @@
     font-size: var(--gl-size-label);
     cursor: pointer;
   }
+  @media (pointer: coarse) {
+    .legend button {
+      min-height: var(--gl-hit-min);
+    }
+  }
   .legend button[aria-pressed="true"] {
     border-color: var(--gl-ink);
     background: var(--gl-ink);
