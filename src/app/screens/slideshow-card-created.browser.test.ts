@@ -36,18 +36,18 @@ const createdLine = (target: HTMLElement) =>
 
 describe("SlideshowCard, the Created line", () => {
   it("says when the slideshow was created, without the year in the current year", () => {
-    const target = mountCard(summary("2025-11-02T09:00:00Z"));
+    const target = mountCard(summary("2025-11-02T12:00:00Z"));
 
     expect(target.querySelector(".name")?.textContent).toBe("Summer by the lake");
     expect(createdLine(target)).toBe("Created 2 Nov");
   });
 
   it("adds the year for an earlier year", () => {
-    expect(createdLine(mountCard(summary("2024-11-02T09:00:00Z")))).toBe("Created 2 Nov 2024");
+    expect(createdLine(mountCard(summary("2024-11-02T12:00:00Z")))).toBe("Created 2 Nov 2024");
   });
 
   it("is written in German for German", () => {
-    expect(createdLine(mountCard(summary("2025-11-02T09:00:00Z"), "de"))).toBe(
+    expect(createdLine(mountCard(summary("2025-11-02T12:00:00Z"), "de"))).toBe(
       "Erstellt am 2. Nov.",
     );
   });

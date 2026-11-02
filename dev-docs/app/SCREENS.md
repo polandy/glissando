@@ -9,7 +9,7 @@
   file". With slideshows: "Library / Your slideshows" with an "Open file" button beside it and a
   card grid —
   a cover of the first three pictures (one large, two small), the title, "12 pictures · 1:00", a
-  music icon and a muted "Created 2 Nov" line (the year only when it is not the current one; a
+  music icon and a muted "Created 2 Nov" line (the day in the viewer's time zone, the year only when it is not the current one; a
   server card remembered offline has no creation date and leaves the line out) — ending in a dashed "New slideshow" card. While the background search for the
   focus (dev-docs/library/FOCUS_SEARCH.md) has pictures of a slideshow left, its card
   adds the line "Looking for subjects · 12 of 40" (every picture already having a record:
