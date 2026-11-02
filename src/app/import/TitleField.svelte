@@ -1,8 +1,12 @@
 <script lang="ts">
   import { MAX_TITLE_LENGTH } from "../../library/slideshow-edits";
   import { getTranslator } from "../i18n/context";
+  import { MOUSE_POINTER_QUERY } from "../screens/slideshow/pointer";
 
-  /** The new slideshow's title; focused with its text selected, so typing replaces it. */
+  /**
+   * The new slideshow's title. Under a mouse it is focused with its text selected, so typing
+   * replaces it; on a touch screen it waits for a tap, so the keyboard does not cover the step.
+   */
   let {
     value = $bindable(),
     onEnter,
@@ -15,6 +19,7 @@
   const { t } = getTranslator();
 
   function focusSelected(input: HTMLInputElement): void {
+    if (!matchMedia(MOUSE_POINTER_QUERY).matches) return;
     input.focus();
     input.select();
   }

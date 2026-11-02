@@ -53,7 +53,8 @@ The row "n pictures | x s per picture | m:ss total" follows the composition rule
 
 Above the actions sits a labelled **Title** field (44 px, `TitleField.svelte`), prefilled with the
 distinct automatic title (`dev-docs/composition/ORDER_AND_TITLE.md`), focused with its text
-selected when the step opens, and the hint "You can change it later on the slideshow screen."
+selected when the step opens under a mouse or trackpad (`MOUSE_POINTER_QUERY`; on a touch screen
+it waits for a tap, so the keyboard does not cover the step), and the hint "You can change it later on the slideshow screen."
 Enter creates the slideshow like "Create slideshow" does (not while a song is still being read);
 a blank field falls back to the automatic title. `ImportRoute` lists the library's titles and
 capture dates (`existing-slideshows.ts`) before showing the step.

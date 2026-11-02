@@ -2,9 +2,11 @@ import "../../styles/tokens.css";
 import "../../styles/base.css";
 import { flushSync } from "svelte";
 import { afterEach, describe, expect, it } from "vitest";
+import { server } from "vitest/browser";
 import { titleForCaptureRange, type ExistingSlideshow } from "../../compose";
 import { FakeScheduler } from "../../ui-kit/testing/fake-scheduler";
 import { createTranslator } from "../i18n/translator";
+import { emulateCoarsePointer } from "../testing/coarse-pointer";
 import { mountWithTranslator } from "../testing/mount-with-translator";
 import { Toaster } from "../toast/toaster";
 import type { ImportSession } from "./import-session";
@@ -74,7 +76,7 @@ const pressEnter = (field: HTMLInputElement) => {
 };
 
 describe("MusicStep, the Title field", () => {
-  it("is prefilled with the automatic title, focused with its text selected, and carries its hint", async () => {
+  it("is prefilled with the automatic title, focused with its text selected under a mouse, and carries its hint", async () => {
     const { session } = await withTwoPictures();
 
     const { target } = mountStep(session);
@@ -86,6 +88,23 @@ describe("MusicStep, the Title field", () => {
     expect(target.textContent).toContain("You can change it later on the slideshow screen.");
     expect(field.getBoundingClientRect().height).toBeGreaterThanOrEqual(44);
   });
+
+  it.skipIf(server.browser !== "chromium")(
+    "waits for a tap on a touch screen, so the keyboard does not cover the step",
+    async () => {
+      const { session } = await withTwoPictures();
+      await emulateCoarsePointer(true);
+      try {
+        const { target } = mountStep(session);
+        const field = titleField(target);
+
+        expect(field.value).toBe(SUMMER_TITLE);
+        expect(document.activeElement).toBe(document.body);
+      } finally {
+        await emulateCoarsePointer(false);
+      }
+    },
+  );
 
   it("is prefilled with a title no other slideshow has", async () => {
     const { session } = await withTwoPictures();
