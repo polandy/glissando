@@ -43,7 +43,7 @@
     aspect-ratio: 16 / 10;
   }
   .meta {
-    height: 60px;
+    height: 88px;
     background: none;
     animation: none;
   }

@@ -23,6 +23,7 @@ function mountStep(session: ImportSession): HTMLElement {
     MusicStep,
     {
       session,
+      existingSlideshows: [],
       loadThumbnail: () => Promise.resolve(new Blob()),
       onBack: () => undefined,
       onCreate: () => undefined,

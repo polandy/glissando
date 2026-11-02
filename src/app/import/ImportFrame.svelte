@@ -120,6 +120,7 @@
     bottom: 0;
     z-index: var(--gl-layer-bar);
     display: flex;
+    flex-wrap: wrap;
     gap: 10px;
     justify-content: flex-end;
     align-items: center;

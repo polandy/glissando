@@ -181,9 +181,9 @@ export class ImportSession {
 
   /**
    * Stores every chosen song and the slideshow record, last, or creates it on the server; `locale` writes
-   * the title's month. A failure keeps the session as it was.
+   * the automatic title's month; a given `title` replaces that title. A failure keeps the session as it was.
    */
-  async create(locale: string): Promise<StoredSlideshow> {
+  async create(locale: string, title?: string): Promise<StoredSlideshow> {
     const state = this.pictures.state;
     if (state.busy) {
       throw new Error("cannot create the slideshow: pictures are still being imported");
@@ -224,6 +224,7 @@ export class ImportSession {
       ...(this.arrangement.state.own ? { ownOrder: true } : {}),
       ...(this.#choices.repeatMusic ? { repeatMusic: true } : {}),
       locale,
+      ...(title === undefined ? {} : { title }),
     });
     if (onServer) {
       return this.#ports.createOnServer(

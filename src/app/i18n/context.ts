@@ -34,6 +34,8 @@ export function getTranslator(): Translator {
     formatZoom: (zoom) => source.current.formatZoom(zoom),
     formatTenths: (seconds) => source.current.formatTenths(seconds),
     formatList: (items) => source.current.formatList(items),
+    formatShortDate: (isoDateTime, relativeTo) =>
+      source.current.formatShortDate(isoDateTime, relativeTo),
     formatVolumeDb: (db) => source.current.formatVolumeDb(db),
   };
 }

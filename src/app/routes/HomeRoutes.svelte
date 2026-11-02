@@ -60,6 +60,7 @@
     playStartAnimation={logoPlays}
     onError={reportError}
     onCreate={() => importFlow.open()}
+    now={() => services.now()}
     onOpen={(slideshowId) => navigator.open({ screen: "slideshow", slideshowId })}
     updateWaiting={pwaState.updateWaiting}
     onSettings={() => navigator.open({ screen: "settings" })}

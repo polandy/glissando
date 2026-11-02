@@ -1,4 +1,5 @@
-import { defaultClosingCard, defaultOpeningCard, type CardInput } from "../../library/stored-card";
+import { defaultClosingCard, defaultOpeningCard } from "../../library/default-cards";
+import type { CardInput } from "../../library/stored-card";
 import {
   setClosingCard as setClosingCardEdit,
   setOpeningCard as setOpeningCardEdit,

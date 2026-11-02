@@ -10,6 +10,7 @@
   import type { OpenNotice as OpenNoticeModel } from "../glissando-file/open-flow";
   import OpenNotice from "../glissando-file/OpenNotice.svelte";
   import { getTranslator } from "../i18n/context";
+  import NewSlideshowCard from "./NewSlideshowCard.svelte";
   import SlideshowCard from "./SlideshowCard.svelte";
   import type { ServerShelf, SlideshowSummary } from "./view-models";
 
@@ -19,6 +20,7 @@
     focusSearches,
     serverFocusSearches,
     onCreate,
+    today,
     onOpen,
     updateWaiting,
     onSettings,
@@ -42,6 +44,8 @@
     /** The same, for the server's own slideshows (ADR-0041). */
     serverFocusSearches: ReadonlyMap<string, SlideshowSearch>;
     onCreate: () => void;
+    /** ISO 8601 date-time of now, for the cards' Created lines. */
+    today: string;
     onOpen: (slideshowId: string) => void;
     /** A new version waits to take over: the gear carries a dot. */
     updateWaiting: boolean;
@@ -143,14 +147,17 @@
         <ul class="grid">
           {#each slideshows as slideshow (slideshow.id)}
             <li>
-              <SlideshowCard {slideshow} search={focusSearches.get(slideshow.id)} {onOpen} />
+              <SlideshowCard
+                {slideshow}
+                {today}
+                search={focusSearches.get(slideshow.id)}
+                {onOpen}
+              />
             </li>
           {/each}
           {#if server === null}
             <li>
-              <button class="new" type="button" onclick={onCreate}>
-                <Icon name="plus" />{t("start.newSlideshow")}
-              </button>
+              <NewSlideshowCard {onCreate} />
             </li>
           {/if}
         </ul>
@@ -172,6 +179,7 @@
               <li>
                 <SlideshowCard
                   {slideshow}
+                  {today}
                   search={serverFocusSearches.get(slideshow.id)}
                   onServer
                   offline={server.offline}
@@ -180,9 +188,7 @@
               </li>
             {/each}
             <li>
-              <button class="new" type="button" onclick={onCreate}>
-                <Icon name="plus" />{t("start.newSlideshow")}
-              </button>
+              <NewSlideshowCard {onCreate} />
             </li>
           </ul>
         </section>
@@ -271,24 +277,6 @@
     color: var(--gl-muted);
     font-size: var(--gl-size-meta);
     --gl-icon-size: var(--gl-size-icon-small);
-  }
-  .new {
-    display: grid;
-    place-content: center;
-    justify-items: center;
-    gap: 8px;
-    min-height: 200px;
-    border: 1.5px dashed var(--gl-line);
-    border-radius: var(--gl-radius-large);
-    background: transparent;
-    color: var(--gl-muted);
-    font: inherit;
-    font-weight: var(--gl-weight-semibold);
-    cursor: pointer;
-  }
-  .new:hover {
-    border-color: var(--gl-accent);
-    color: var(--gl-ink);
   }
   @container (max-width: 720px) {
     .grid {

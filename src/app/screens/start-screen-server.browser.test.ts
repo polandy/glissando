@@ -37,6 +37,7 @@ function mountStart(
       focusSearches: new Map(),
       serverFocusSearches,
       onCreate: () => created.push(true),
+      today: "2025-12-01T10:00:00Z",
       onOpen: (slideshowId: string) => opened.push(slideshowId),
       onSettings: () => {},
       onOpenFile: () => {},

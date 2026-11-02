@@ -22,6 +22,7 @@
   import IntakeRoutes from "./routes/IntakeRoutes.svelte";
   import SlideshowRoute from "./routes/SlideshowRoute.svelte";
   import { leaveWithToast } from "./routes/slideshow-exits";
+  import { existingSlideshowsOf } from "./import/existing-slideshows";
   import { findSlideshowHome, serverRouteStore, type RouteStore } from "./routes/slideshow-home";
   import type { SlideshowHome } from "./routes/slideshow-storage";
   import type { AppServices } from "./services";
@@ -149,6 +150,12 @@
   /** A server slideshow's pictures in the making are linked: their media is Immich's. */
   const importStore = (): RouteStore =>
     importSession?.choices.current().home === "server" ? serverRoute : store;
+
+  const existingSlideshows = () =>
+    existingSlideshowsOf(
+      { device: store, server: serverRoute },
+      importSession?.choices.current().home === "server",
+    );
 </script>
 
 {#snippet statusBar()}
@@ -180,6 +187,7 @@
   <ImportRoute
     step={route.step}
     session={importSession}
+    loadExistingSlideshows={existingSlideshows}
     loadThumbnail={(id) => importStore().thumbnailBlob(id)}
     loadPicture={(id) => importStore().playbackPictureBlob(id)}
     onError={reportError}

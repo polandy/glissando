@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { de } from "./catalogue-de";
 import { en } from "./catalogue-en";
 import { createTranslator, pickLanguage } from "./translator";
@@ -154,6 +154,41 @@ describe("formatters", () => {
     ["de", "2025-05-04T08:00:00Z", "2025-05-04T20:00:00Z", "4. Mai 2025"],
   ] as const)("in %s formats the days %s to %s as %s", (language, from, to, expected) => {
     expect(createTranslator(language).formatDayRange(from, to)).toBe(expected);
+  });
+});
+
+describe("formatShortDate", () => {
+  it.each([
+    ["en", "2025-11-02T12:00:00Z", "2 Nov"],
+    ["de", "2025-11-02T12:00:00Z", "2. Nov."],
+    ["en", "2024-11-02T12:00:00Z", "2 Nov 2024"],
+    ["de", "2024-11-02T12:00:00Z", "2. Nov. 2024"],
+  ] as const)(
+    "in %s formats %s, seen on 2025-12-01, as %s: the year only when it is not the current one",
+    (language, date, expected) => {
+      expect(createTranslator(language).formatShortDate(date, "2025-12-01T10:00:00Z")).toBe(
+        expected,
+      );
+    },
+  );
+  describe("in the viewer's time zone", () => {
+    afterEach(() => {
+      vi.unstubAllEnvs();
+    });
+
+    it("reads a moment shortly after midnight in Zurich as that day, not the UTC day before", () => {
+      vi.stubEnv("TZ", "Europe/Zurich");
+      expect(
+        createTranslator("en").formatShortDate("2025-11-01T23:30:00Z", "2025-12-01T10:00:00Z"),
+      ).toBe("2 Nov");
+    });
+
+    it("reads New Year's Eve in UTC as the new year in Zurich, so the year is left out", () => {
+      vi.stubEnv("TZ", "Europe/Zurich");
+      expect(
+        createTranslator("en").formatShortDate("2025-12-31T23:30:00Z", "2026-01-05T10:00:00Z"),
+      ).toBe("1 Jan");
+    });
   });
 });
 

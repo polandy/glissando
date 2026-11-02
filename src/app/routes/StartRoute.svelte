@@ -21,6 +21,7 @@
     playStartAnimation,
     onError,
     onCreate,
+    now,
     onOpen,
     updateWaiting,
     onSettings,
@@ -44,6 +45,7 @@
     playStartAnimation: boolean;
     onError: (error: unknown) => void;
     onCreate: () => void;
+    now: () => Date;
     onOpen: (slideshowId: string) => void;
     /** A new version waits to take over: the gear carries a dot. */
     updateWaiting: boolean;
@@ -135,6 +137,7 @@
     focusSearches={passState.slideshows}
     serverFocusSearches={serverPassState.slideshows}
     {onCreate}
+    today={now().toISOString()}
     {onOpen}
     {updateWaiting}
     {onSettings}

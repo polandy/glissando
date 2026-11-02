@@ -20,7 +20,12 @@ without internet. If you use a self-hosted Glissando, open its address instead
    **Repeat the music** and one line saying how pictures and music fit. Turn on **Details** in its top
    bar for the crossfades in that bar, the waveform, volume, beat and fades. The small **i** buttons
    explain a setting when you tap them.
-3. **Play.** Motion and transitions are chosen for you — people stay in frame, scenery gets a slow
+3. **Name it.** The last step has a **Title** field, filled in with the month the pictures were
+   taken in ("July 2025"). When another slideshow already has that title, it becomes the day range
+   ("12–19 July 2025"), or "July 2025 · 2" for pictures of the same days. Type your own, or press
+   Enter to create the slideshow; you can change the title later on the slideshow screen. Each card
+   in the library shows when the slideshow was created.
+4. **Play.** Motion and transitions are chosen for you — people stay in frame, scenery gets a slow
    sweep, changes follow the beat.
 
 For a different feel, tap Mood beside Music and Look on the slideshow's screen (on a phone: Play first, then these three as one row of buttons with More settings below them, then the pictures). The Mood button shows only a short phrase; its sheet lists what it sets. **Calm** shows each

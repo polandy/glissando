@@ -62,6 +62,8 @@ export interface Translator {
   formatDay(day: string): string;
   /** The days between two date-times, read in UTC, as compact as the locale allows. */
   formatDayRange(fromIsoDateTime: string, toIsoDateTime: string): string;
+  /** A moment's day and month in the local time zone: "2 Nov"; with the year unless it is `relativeTo`'s. */
+  formatShortDate(isoDateTime: string, relativeTo: string): string;
   /** A Ken Burns zoom with two decimals in the locale: "1,20×". */
   formatZoom(zoom: number): string;
   /** `m:ss` and the tenth, cut off, with the locale's decimal sign: "0:02,4". */
@@ -122,6 +124,13 @@ export function createTranslator(language: Language): Translator {
     year: "numeric",
     timeZone: "UTC",
   });
+  // A moment such as a creation time, unlike a capture date, is read in the viewer's time zone.
+  const shortDates = new Intl.DateTimeFormat(locale, { day: "numeric", month: "short" });
+  const shortDatesWithYear = new Intl.DateTimeFormat(locale, {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
   const dayRanges = new Intl.DateTimeFormat(locale, {
     day: "numeric",
     month: "long",
@@ -181,6 +190,11 @@ export function createTranslator(language: Language): Translator {
     },
     formatTime(isoDateTime) {
       return times.format(parseDate(isoDateTime));
+    },
+    formatShortDate(isoDateTime, relativeTo) {
+      const date = parseDate(isoDateTime);
+      const sameYear = date.getFullYear() === parseDate(relativeTo).getFullYear();
+      return (sameYear ? shortDates : shortDatesWithYear).format(date);
     },
     formatMinuteRange(fromIsoDateTime, toIsoDateTime) {
       const from = minutes.format(parseDate(fromIsoDateTime));
