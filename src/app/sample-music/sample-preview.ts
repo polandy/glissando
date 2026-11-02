@@ -43,6 +43,11 @@ export interface SamplePreviewError {
 
 const IDLE: SamplePreviewIdle = { kind: "idle" };
 
+/** Ten milliseconds of silence (8 kHz, 8-bit mono WAV), played within the tap to unlock the element. */
+const SILENCE =
+  "data:audio/wav;base64,UklGRnQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YVAAAACAgICAgICAgICAgICAgICA" +
+  "gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgA==";
+
 /**
  * One track previewed at a time, through one shared `<audio>` element (SAMPLE_MUSIC.md,
  * Listening): a track on this device plays from its stored blob, any other streams from
@@ -139,6 +144,7 @@ export class SamplePreview {
     this.#generation += 1;
     const generation = this.#generation;
     this.#reset();
+    this.#unlockWithinTap();
     this.#activeTrack = track;
     this.#publish({ kind: "loading", trackId: track.id });
 
@@ -177,6 +183,17 @@ export class SamplePreview {
     }
     if (generation !== this.#generation) return;
     this.#publish({ kind: "playing", trackId: track.id, progress: this.#progress(track) });
+  }
+
+  /**
+   * iOS lets an element sound later only once it was played synchronously within a user gesture,
+   * and the track's source is known only after the awaits below; so the element plays silence now.
+   */
+  #unlockWithinTap(): void {
+    this.#audio.src = SILENCE;
+    // The pause right after interrupts this play; what counts is that it was called in the tap.
+    this.#audio.play().catch(() => undefined);
+    this.#audio.pause();
   }
 
   async #resume(track: SampleTrack): Promise<void> {

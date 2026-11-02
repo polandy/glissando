@@ -30,11 +30,29 @@ export class FakeAudio implements SamplePreviewAudio {
   readonly played: string[] = [];
   readonly paused: boolean[] = [];
   playResult: () => Promise<void> = () => Promise.resolve();
+  /** Like iOS: `play()` is refused until one call was made within a user gesture (`tap`). */
+  requiresGesture = false;
   readonly #listeners = new Map<string, Set<() => void>>();
+  #withinGesture = false;
+  #unlocked = false;
 
   play(): Promise<void> {
     this.played.push(this.src);
+    if (this.#withinGesture) this.#unlocked = true;
+    if (this.requiresGesture && !this.#unlocked) {
+      return Promise.reject(new DOMException("Not within a user gesture", "NotAllowedError"));
+    }
     return this.playResult();
+  }
+
+  /** Runs `gesture` as a user's tap: a `play()` made synchronously within it unlocks the element. */
+  tap(gesture: () => void): void {
+    this.#withinGesture = true;
+    try {
+      gesture();
+    } finally {
+      this.#withinGesture = false;
+    }
   }
 
   pause(): void {

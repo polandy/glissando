@@ -79,7 +79,9 @@ Tapping a cover streams the track from the base URL into one shared `<audio>` el
 preview at a time — tapping another switches to it, tapping the playing one pauses it, tapping
 it again resumes. The playing card shows a pause icon on its cover, a progress bar along the
 cover's bottom edge and moving bars before its title. A track on this device (below) plays from
-the device instead of the network. Nothing is stored for a preview. The preview stops when the
+the device instead of the network. Since iOS lets an element sound later only if it was played
+within the tap, the tap plays a moment of silence before the track's source is looked up. Nothing
+is stored for a preview. The preview stops when the
 picker closes, the block folds over the playing card, the step is left or the device goes offline (a streamed one; one from the device
 plays on). A preview that fails to load returns its card to idle with the toast "Couldn't play
 this song — try again".

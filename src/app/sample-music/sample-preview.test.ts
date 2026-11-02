@@ -30,6 +30,20 @@ describe("SamplePreview", () => {
     expect(audio.src.startsWith("blob:")).toBe(true);
   });
 
+  it("plays within the tap, so iOS still lets a track start once it has loaded", async () => {
+    const { preview, audio, states } = previewWith();
+    audio.requiresGesture = true;
+    let started: Promise<void> = Promise.resolve();
+
+    audio.tap(() => {
+      started = preview.toggle(track);
+    });
+    await started;
+
+    expect(audio.src).toBe("https://assets.example/music/hold-the-frame.mp3");
+    expect(states.at(-1)).toEqual({ kind: "playing", trackId: "hold-the-frame", progress: 0 });
+  });
+
   it("reports loading, then playing, as the states a caller's listener sees in order", async () => {
     const { preview, states } = previewWith();
 
@@ -58,10 +72,11 @@ describe("SamplePreview", () => {
     const { preview, audio, states } = previewWith();
     await preview.toggle(track);
     await preview.toggle(track);
+    const playedSoFar = audio.played.length;
 
     await preview.toggle(track);
 
-    expect(audio.played).toHaveLength(2);
+    expect(audio.played).toHaveLength(playedSoFar + 1);
     expect(states.at(-1)).toEqual({ kind: "playing", trackId: "hold-the-frame", progress: 0 });
   });
 
