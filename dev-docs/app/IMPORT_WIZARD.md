@@ -71,4 +71,6 @@ Immich photos, and is created on the server
   problem met on the way (e.g. a rejected key) is reported to `ImmichAvailability`, so the Immich
   box and the settings name it.
 - **Music** (optional): [import-wizard/MUSIC.md](import-wizard/MUSIC.md) — picking songs or sample
-  music, the picture-length choice, and how the music and pictures end (ADR-0047).
+  music, the picture-length choice, and how the music and pictures end (ADR-0047). The step
+  also holds the **Title** field above the create actions: prefilled with a title no other
+  slideshow has, Enter creates, blank falls back to it.

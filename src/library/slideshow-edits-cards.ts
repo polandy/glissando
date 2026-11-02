@@ -1,4 +1,5 @@
-import { cardWithoutPicture, checkStoredCard, type CardInput } from "./stored-card";
+import { cardWithoutPicture } from "./default-cards";
+import { checkStoredCard, type CardInput } from "./stored-card";
 import type { StoredPicture, StoredSlideshow } from "./stored-slideshow";
 
 /**

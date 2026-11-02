@@ -37,6 +37,7 @@ describe("slideshowSummary", () => {
     expect(slideshowSummary(withMusic, urlOf)).toEqual({
       id: "show",
       title: "Juli 2025",
+      createdAt: "2026-10-08T12:00:00Z",
       coverUrls: ["url:p1", "url:p2"],
       pictureCount: 2,
       durationSeconds: 30,

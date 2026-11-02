@@ -13,6 +13,7 @@ function gear(updateWaiting: boolean): HTMLButtonElement {
     serverFocusSearches: new Map(),
     updateWaiting,
     onCreate: () => {},
+    today: "2025-12-01T10:00:00Z",
     onOpen: () => {},
     onSettings: () => {},
     onOpenFile: () => {},

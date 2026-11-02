@@ -16,6 +16,7 @@ function mountStart({ serverOn, frameCardShown }: { serverOn: boolean; frameCard
       focusSearches: new Map(),
       serverFocusSearches: new Map(),
       onCreate: () => {},
+      today: "2025-12-01T10:00:00Z",
       onOpen: () => {},
       onSettings: () => {},
       onOpenFile: () => {},

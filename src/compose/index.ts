@@ -23,6 +23,11 @@ export {
 export { automaticTransition, pictureTransition, slideshowTransition } from "./picture-transition";
 export { slideshowLook } from "./slideshow-look";
 export { titleForCaptureRange } from "./title-for-capture-range";
+export {
+  distinctTitleForCaptureRange,
+  typedTitleOrAutomatic,
+  type ExistingSlideshow,
+} from "./distinct-title-for-capture-range";
 export { dayRangeForCaptureRange } from "./day-range-for-capture-range";
 export {
   buildStoredSlideshow,

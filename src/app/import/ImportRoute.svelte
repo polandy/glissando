@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { ImmichAvailabilityState } from "../../immich/immich-availability";
+  import type { ExistingSlideshow } from "../../compose";
   import type { StoredSlideshow } from "../../library/stored-slideshow";
   import BlockingOverlay from "../components/BlockingOverlay.svelte";
   import Dialog from "../components/Dialog.svelte";
@@ -19,6 +20,7 @@
   let {
     step,
     session,
+    loadExistingSlideshows,
     loadThumbnail,
     loadPicture,
     onError,
@@ -43,6 +45,8 @@
   }: {
     step: ImportStep;
     session: ImportSession;
+    /** The slideshows the new one's automatic title keeps clear of. */
+    loadExistingSlideshows: () => Promise<readonly ExistingSlideshow[]>;
     loadThumbnail: (pictureId: string) => Promise<Blob>;
     loadPicture: (pictureId: string) => Promise<Blob>;
     onError: (error: unknown) => void;
@@ -97,13 +101,21 @@
     }
   }
 
-  function create(): void {
+  /** A library that cannot be listed is reported; the title then only keeps clear of nothing. */
+  function existingSlideshows(): Promise<readonly ExistingSlideshow[]> {
+    return loadExistingSlideshows().catch((error: unknown) => {
+      onError(error);
+      return [];
+    });
+  }
+
+  function create(title: string): void {
     creatingOnServer = session.choices.current().home === "server";
     creating = true;
     session
-      .create(translator.language)
+      .create(translator.language, title)
       .then(onCreated, (error: unknown) => {
-        if (error instanceof ServerLibraryUnavailableError) onCreateFailed(create);
+        if (error instanceof ServerLibraryUnavailableError) onCreateFailed(() => create(title));
         else onError(error);
       })
       .finally(() => (creating = false));
@@ -131,15 +143,18 @@
     {onHomeChosen}
   />
 {:else}
-  <MusicStep
-    {session}
-    {loadThumbnail}
-    {onBack}
-    onCreate={create}
-    {onError}
-    {samplePreview}
-    {toaster}
-  />
+  {#await existingSlideshows() then existing}
+    <MusicStep
+      {session}
+      existingSlideshows={existing}
+      {loadThumbnail}
+      {onBack}
+      onCreate={create}
+      {onError}
+      {samplePreview}
+      {toaster}
+    />
+  {/await}
 {/if}
 
 {#if confirmingDiscard}

@@ -176,4 +176,17 @@ describe("buildStoredSlideshow", () => {
     expect(slideshow.secondsPerPicture).toBe(5);
     expect(slideshow.pictureLength).toBe("seconds");
   });
+
+  it("takes the given title in place of the automatic one", () => {
+    const slideshow = buildStoredSlideshow({
+      id: "s1",
+      createdAt: "2025-08-21T00:00:00Z",
+      pictures: [picture("a", "2025-07-01T10:00:00Z")],
+      songs: [],
+      locale: "en",
+      title: "July 2025 · 2",
+    });
+
+    expect(slideshow.title).toBe("July 2025 · 2");
+  });
 });

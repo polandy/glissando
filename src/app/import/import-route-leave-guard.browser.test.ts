@@ -26,6 +26,7 @@ function mountRoute(session: ImportSession) {
   const route = mountWithTranslator(ImportRoute, {
     step: "pictures",
     session,
+    loadExistingSlideshows: () => Promise.resolve([]),
     loadThumbnail: () => Promise.resolve(new Blob()),
     loadPicture: () => Promise.resolve(new Blob()),
     onError: () => undefined,

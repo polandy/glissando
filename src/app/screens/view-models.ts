@@ -16,6 +16,8 @@ export interface SlideshowSummary {
   readonly pictureCount: number;
   readonly durationSeconds: number;
   readonly hasMusic: boolean;
+  /** ISO 8601 date-time; absent for a card this device only remembers (no creation date kept). */
+  readonly createdAt?: string;
 }
 
 /** The library's section of server slideshows (`dev-docs/server_library/IN_THE_APP.md`). */

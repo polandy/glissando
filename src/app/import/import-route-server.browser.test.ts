@@ -1,5 +1,5 @@
 import { noVideoClips } from "./testing/import-session-fixtures";
-import { flushSync } from "svelte";
+import { flushSync, tick } from "svelte";
 import { FakePictureChecker } from "../../culling/testing/fake-picture-checker";
 import { afterEach, describe, expect, it } from "vitest";
 import { MemoryLibraryStore } from "../../library/testing/memory-store";
@@ -57,6 +57,7 @@ function session(createOnServer: ImportSessionPorts["createOnServer"]): ImportSe
 function mountMusicStep(importSession: ImportSession) {
   const failed: (() => void)[] = [];
   const created: string[] = [];
+  const existing = Promise.resolve([]);
   let told = () => {};
   const toldFailure = new Promise<void>((resolve) => (told = resolve));
   const route = mountWithTranslator(
@@ -64,6 +65,7 @@ function mountMusicStep(importSession: ImportSession) {
     {
       step: "music",
       session: importSession,
+      loadExistingSlideshows: () => existing,
       loadThumbnail: () => Promise.resolve(new Blob()),
       loadPicture: () => Promise.resolve(new Blob()),
       onError: (error: unknown) => {
@@ -93,11 +95,13 @@ function mountMusicStep(importSession: ImportSession) {
     { current: createTranslator("en") },
   );
   unmounts.push(route.destroy);
+  // The step is shown once the library's slideshows are listed.
+  const stepShown = existing.then(() => tick());
   const createButton = () =>
     [...route.target.querySelectorAll("button")].find(
       (button) => button.textContent.trim() === "Create without music",
     );
-  return { target: route.target, failed, created, toldFailure, createButton };
+  return { target: route.target, failed, created, toldFailure, createButton, stepShown };
 }
 
 describe("ImportRoute, creating a server slideshow", () => {
@@ -112,7 +116,9 @@ describe("ImportRoute, creating a server slideshow", () => {
     // Linking reads the photo's colours off its thumbnail (ADR-0033), so it settles later than
     // the synchronous call above.
     await importSession.intake.settled();
-    const { target, failed, created, toldFailure, createButton } = mountMusicStep(importSession);
+    const { target, failed, created, toldFailure, createButton, stepShown } =
+      mountMusicStep(importSession);
+    await stepShown;
 
     createButton()?.click();
     flushSync();

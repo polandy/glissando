@@ -1,6 +1,11 @@
 <script lang="ts">
   import { onDestroy } from "svelte";
-  import { NEW_SLIDESHOW_MOOD } from "../../compose";
+  import {
+    distinctTitleForCaptureRange,
+    NEW_SLIDESHOW_MOOD,
+    typedTitleOrAutomatic,
+    type ExistingSlideshow,
+  } from "../../compose";
   import { moodSettings } from "../../compose/mood-settings";
   import { MUSIC_FILE_PICKER_ACCEPT } from "../../import/music-format";
   import { MILLISECONDS_PER_SECOND } from "../../player";
@@ -20,9 +25,11 @@
   import { importSlideDurationsMs, ownDurationsMs, importTiming } from "./music-fit";
   import type { PendingSong } from "./music-pick";
   import MusicTimingPanel from "./MusicTimingPanel.svelte";
+  import TitleField from "./TitleField.svelte";
 
   let {
     session,
+    existingSlideshows,
     loadThumbnail,
     onBack,
     onCreate,
@@ -31,16 +38,19 @@
     toaster,
   }: {
     session: ImportSession;
+    /** The library's slideshows, which the automatic title keeps clear of. */
+    existingSlideshows: readonly ExistingSlideshow[];
     loadThumbnail: (pictureId: string) => Promise<Blob>;
     onBack: () => void;
-    onCreate: () => void;
+    /** Creates the slideshow with this title. */
+    onCreate: (title: string) => void;
     onError: (error: unknown) => void;
     /** `undefined` when the build turns sample music off (SAMPLE_MUSIC.md). */
     samplePreview?: SamplePreview | undefined;
     toaster: Toaster;
   } = $props();
 
-  const { t, formatDuration } = getTranslator();
+  const { t, formatDuration, language } = getTranslator();
   // A new slideshow starts on this mood (ADR-0050); its beats are only known once created.
   const moodSeconds = moodSettings(NEW_SLIDESHOW_MOOD, undefined).secondsPerPicture;
 
@@ -51,6 +61,13 @@
   let pictureIds = $state.raw(session.pictures.state.pictures.map((picture) => picture.id));
   // svelte-ignore state_referenced_locally
   let ownMs = $state.raw(ownDurationsMs(session.pictures.state.pictures));
+  // svelte-ignore state_referenced_locally
+  const automaticTitle = distinctTitleForCaptureRange(
+    session.pictures.state.pictures.map((picture) => picture.capturedAt),
+    language,
+    existingSlideshows,
+  );
+  let title = $state(automaticTitle);
   let urls = $state<ReadonlyMap<string, string>>(new Map());
   let pickMusic: HTMLInputElement;
 
@@ -113,6 +130,10 @@
     importSlideDurationsMs(ownMs, music, moodSeconds, choices.repeatMusic),
   );
   const playlist = $derived(importPlaylist(chosen, timing.totalSeconds * MILLISECONDS_PER_SECOND));
+
+  function create(): void {
+    if (!reading) onCreate(typedTitleOrAutomatic(title, automaticTitle));
+  }
 
   function add(files: readonly File[]): void {
     if (files.length > 0) session.addSongs(files).catch(onError);
@@ -206,13 +227,14 @@
   />
 
   {#snippet actions()}
+    <TitleField bind:value={title} onEnter={create} />
     <button class="btn" type="button" onclick={onBack}>
       <Icon name="back" />{t("import.backToPictures")}
     </button>
     {#if reading}
       <button class="btn primary" type="button" disabled>{t("import.convertingButton")}</button>
     {:else}
-      <button class="btn primary" type="button" onclick={onCreate}>
+      <button class="btn primary" type="button" onclick={create}>
         {chosen.length > 0 ? t("import.create") : t("import.createWithoutMusic")}
       </button>
     {/if}

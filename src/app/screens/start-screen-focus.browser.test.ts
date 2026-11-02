@@ -28,6 +28,7 @@ function mountStart(focusSearches: ReadonlyMap<string, SlideshowSearch>) {
     focusSearches,
     serverFocusSearches: new Map(),
     onCreate: () => {},
+    today: "2025-12-01T10:00:00Z",
     onOpen: (slideshowId: string) => opened.push(slideshowId),
     onSettings: () => {},
     onOpenFile: () => {},

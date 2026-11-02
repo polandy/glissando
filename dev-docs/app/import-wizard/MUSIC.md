@@ -51,6 +51,13 @@ last picture." (with a song not reached "…; the dimmed songs are not reached."
 The row "n pictures | x s per picture | m:ss total" follows the composition rules
 (`src/compose/`) at Calm's seconds.
 
+Above the actions sits a labelled **Title** field (44 px, `TitleField.svelte`), prefilled with the
+distinct automatic title (`dev-docs/composition/ORDER_AND_TITLE.md`), focused with its text
+selected when the step opens, and the hint "You can change it later on the slideshow screen."
+Enter creates the slideshow like "Create slideshow" does (not while a song is still being read);
+a blank field falls back to the automatic title. `ImportRoute` lists the library's titles and
+capture dates (`existing-slideshows.ts`) before showing the step.
+
 "Pictures" goes back; while a song is read the primary button is disabled as "Converting …";
 otherwise "Create slideshow" (or "Create without music") stores every chosen song in the list's
 order and then the slideshow record under the blocking overlay "Creating slideshow …", opens the

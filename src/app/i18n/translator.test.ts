@@ -157,6 +157,22 @@ describe("formatters", () => {
   });
 });
 
+describe("formatShortDate", () => {
+  it.each([
+    ["en", "2025-11-02T09:00:00Z", "2 Nov"],
+    ["de", "2025-11-02T09:00:00Z", "2. Nov."],
+    ["en", "2024-11-02T09:00:00Z", "2 Nov 2024"],
+    ["de", "2024-11-02T09:00:00Z", "2. Nov. 2024"],
+  ] as const)(
+    "in %s formats %s, seen on 2025-12-01, as %s: the year only when it is not the current one",
+    (language, date, expected) => {
+      expect(createTranslator(language).formatShortDate(date, "2025-12-01T10:00:00Z")).toBe(
+        expected,
+      );
+    },
+  );
+});
+
 describe("formatBytes", () => {
   it.each([
     ["de", 184_000_000, "184 MB"],

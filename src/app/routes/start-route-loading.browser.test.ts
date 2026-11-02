@@ -48,6 +48,7 @@ function mountStart(store: MemoryLibraryStore) {
     onError: (error: unknown) => {
       throw error;
     },
+    now: () => new Date("2025-12-01T10:00:00Z"),
     onCreate: () => {},
     onOpen: () => {},
     updateWaiting: false,
