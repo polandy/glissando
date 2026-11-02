@@ -59,7 +59,8 @@
   line reads "Sorted by capture date", automatic chapters are back on and pictures added later are
   sorted in by date. A toast "12 pictures sorted by capture date" with "Undo" follows; Undo brings
   the own order from before back, leaving edits made since (a caption) alone. It shares the
-  shuffle's undo: a newer toast replaces it, and leaving the screen dismisses it.
+  shuffle's undo: a newer toast replaces it, and leaving the screen dismisses it. E2E-110
+  covers showing, sorting, the Undo and the stored order after a reload.
 - **Strip header on a phone** (screen below 720 px): Shuffle, Sort by date, Select and Add take a row of their
   own (wrapping to a second line when they do not fit) under the eyebrow and the picture count, and the order line follows below them, so a long
   label (German) never squeezes out the eyebrow.
