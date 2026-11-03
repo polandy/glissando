@@ -15,7 +15,7 @@ const TIFF_BIG_ENDIAN = 0x4d4d;
 const TIFF_MAGIC = 42;
 
 /** Byte length of one IFD entry: tag(2) + type(2) + count(4) + value-or-offset(4). */
-export const IFD_ENTRY_LENGTH = 12;
+const IFD_ENTRY_LENGTH = 12;
 
 /** Values up to four bytes sit in the entry itself, longer ones at an offset. */
 export const INLINE_VALUE_BYTES = 4;

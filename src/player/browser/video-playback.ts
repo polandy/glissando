@@ -18,7 +18,7 @@ const SAME_TIME_MS = 1;
  * A clip at most this far from its place when `play` starts it is not seeked: a start a frame or
  * two behind the clock is caught up by `follow`, but a seek right at the start is a visible hitch.
  */
-export const VIDEO_START_TOLERANCE_MS = 250;
+const VIDEO_START_TOLERANCE_MS = 250;
 const HAVE_CURRENT_DATA = 2;
 const HAVE_FUTURE_DATA = 3;
 /** What a media element's `play()` rejects with when a later `pause()` interrupts it. */

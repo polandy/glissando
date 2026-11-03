@@ -10,10 +10,9 @@ import { createBrowserPlayer, type BrowserPlayer } from "../player/browser-playe
 import DecodeWorker from "../player/browser/picture-decode-worker.ts?worker&inline";
 import type { DecodeClipSound } from "../player/browser/open-video";
 import type { OpenPicture } from "../player/browser/picture-loader";
-import { SlideshowLoadError } from "../player/picture-buffer";
-import { MusicPlaybackError } from "../player/ports";
 import type { Slideshow } from "../player/slideshow";
 import type { MutableMusicOutput } from "./mutable-music-output";
+import { attachPlayerEvents } from "./page-player-events";
 import { pageKeyAction, timelineKeyAction, type PageAction } from "./page-keys";
 import { startsOf, wireTimeline } from "./page-timeline";
 import type { PageView } from "./page-view";
@@ -67,10 +66,6 @@ export interface PagePlayer {
   /** Stops the player and the page's listeners for good; the view stays the caller's. */
   dispose(): void;
 }
-
-const PLAYING_EVENTS = ["play", "pause", "playing", "ended"] as const;
-const TIME_EVENTS = ["timeupdate", "seeked", "canplay"] as const;
-const STOPPED_WAITING_EVENTS = ["playing", "pause", "ended", "error"] as const;
 
 /** Wires `view` to a player, which `show` creates and replaces. */
 export function createPagePlayer(
@@ -143,57 +138,17 @@ export function createPagePlayer(
     }
   };
 
-  const attach = (shownPlayer: BrowserPlayer, signal: AbortSignal) => {
-    const on = (event: string, listener: () => void) =>
-      shownPlayer.addEventListener(event, listener, { signal });
-    on("playing", () => view.showState("playing"));
-    on("pause", () => {
-      if (!shownPlayer.ended) view.showState("paused");
+  const attach = (shownPlayer: BrowserPlayer, signal: AbortSignal) =>
+    attachPlayerEvents(shownPlayer, signal, {
+      view,
+      controls,
+      hooks,
+      placeCaptions,
+      showTime,
+      setPlayRefused: (refused) => {
+        playRefused = refused;
+      },
     });
-    on("ended", () => view.showState("ended"));
-    for (const event of PLAYING_EVENTS) {
-      on(event, () => {
-        view.showPaused(shownPlayer.paused);
-        controls.setPlaying(!shownPlayer.paused);
-        placeCaptions(controls.visible);
-      });
-    }
-    for (const event of TIME_EVENTS) on(event, showTime);
-    on("play", () => {
-      playRefused = false;
-    });
-    const changed = hooks.changed;
-    if (changed !== undefined) {
-      on("playing", () => changed("playing"));
-      // The end pauses the player too; `ended` tells it once.
-      on("pause", () => shownPlayer.ended || changed("pause"));
-      on("ended", () => changed("ended"));
-      on("timeupdate", () => changed("time"));
-    }
-    if (hooks.waiting !== undefined) {
-      const waiting = hooks.waiting;
-      on("waiting", () => waiting(true));
-      for (const event of STOPPED_WAITING_EVENTS) on(event, () => waiting(false));
-    }
-    on("error", () => {
-      const error = shownPlayer.error;
-      // A refused music start is no failure: the player pauses, and Play retries with a gesture.
-      if (error instanceof MusicPlaybackError) {
-        playRefused = true;
-        hooks.changed?.("refused");
-        return;
-      }
-      if (
-        error instanceof SlideshowLoadError &&
-        hooks.pictureFailed?.(error.cause, shownPlayer.currentTime) === true
-      ) {
-        return;
-      }
-      console.error("the slideshow cannot play", error);
-      view.showState("error");
-      view.showError(error?.name ?? "Error");
-    });
-  };
 
   view.bigPlay.addEventListener("click", start);
   view.playAgain.addEventListener("click", start);

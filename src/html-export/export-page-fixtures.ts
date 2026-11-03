@@ -2,7 +2,7 @@ import type { StoredPicture, StoredSlideshow } from "../library/stored-slideshow
 import { type PageExportJob, type PageExportProgress } from "./export-page";
 import { FakeScaler, fixedPlayerAsset, MemoryPageSink } from "./testing/fakes";
 
-export function picture(id: string, width: number, height: number): StoredPicture {
+function picture(id: string, width: number, height: number): StoredPicture {
   return {
     id,
     capturedAt: "2026-07-01T10:00:00Z",
@@ -52,7 +52,7 @@ export const WITH_SAMPLE_SONG: StoredSlideshow = {
 
 export const SAMPLE_MUSIC_CREDIT_TEXT = "Musik: Glissando, CC BY-NC 4.0";
 
-export const COPY = {
+const COPY = {
   eyebrow: "Diashow",
   summary: "3 Bilder · 0:12 · mit Musik",
   madeWith: "Erstellt mit Glissando",

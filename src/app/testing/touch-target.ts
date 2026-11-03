@@ -1,15 +1,15 @@
 /** Measuring what a finger actually reaches: hit-testing, not the size of a box. */
 
 /** The platform guideline for a touch target (44 pt), in CSS px. */
-export const MIN_TOUCH_TARGET = 44;
+const MIN_TOUCH_TARGET = 44;
 /** The probes stay this far inside the square's edge, so rounding cannot push one outside. */
 const PROBE_INSET = 1;
 
-export const INTERACTIVE_SELECTOR =
+const INTERACTIVE_SELECTOR =
   'button, a[href], input:not([type="hidden"]), select, textarea, [role="button"], [role="switch"], [role="radio"], [role="tab"], [tabindex="0"]';
 
 /** The points of the minimum square centred on the box: centre, four corners, four edge middles. */
-export function probePoints(box: DOMRect): { x: number; y: number }[] {
+function probePoints(box: DOMRect): { x: number; y: number }[] {
   const centreX = box.left + box.width / 2;
   const centreY = box.top + box.height / 2;
   const reach = MIN_TOUCH_TARGET / 2 - PROBE_INSET;
@@ -43,7 +43,7 @@ function isRendered(element: Element): boolean {
 }
 
 /** The visible interactive elements under `root`. */
-export function interactiveElements(root: ParentNode): HTMLElement[] {
+function interactiveElements(root: ParentNode): HTMLElement[] {
   return [...root.querySelectorAll<HTMLElement>(INTERACTIVE_SELECTOR)].filter(isRendered);
 }
 
@@ -51,7 +51,7 @@ export function interactiveElements(root: ParentNode): HTMLElement[] {
  * The probe points of the element's minimum square at which a tap lands elsewhere, or none when
  * the whole square is the element's own. A visually hidden input stands for the label around it.
  */
-export function missedProbes(element: HTMLElement): { x: number; y: number; hit: string }[] {
+function missedProbes(element: HTMLElement): { x: number; y: number; hit: string }[] {
   const target =
     element instanceof HTMLInputElement && getComputedStyle(element).opacity === "0"
       ? (element.closest("label") ?? element)
@@ -64,7 +64,7 @@ export function missedProbes(element: HTMLElement): { x: number; y: number; hit:
 }
 
 /** An element in a few words, for a failure message. */
-export function describeElement(element: Element | null): string {
+function describeElement(element: Element | null): string {
   if (element === null) return "nothing";
   const classes = [...element.classList]
     .filter((name) => !name.startsWith("svelte-"))

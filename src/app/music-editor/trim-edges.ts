@@ -6,12 +6,12 @@ export type TrimEdge = "start" | "end";
 export type TrimStepDirection = "earlier" | "later";
 
 /** Where the handles land: a tenth of a second. */
-export const TRIM_SNAP_MS = MILLISECONDS_PER_SECOND / 10;
+const TRIM_SNAP_MS = MILLISECONDS_PER_SECOND / 10;
 /** An arrow key on a handle; with Shift, the large step. */
 export const ARROW_STEP_MS = TRIM_SNAP_MS;
 export const ARROW_STEP_LARGE_MS = MILLISECONDS_PER_SECOND;
 /** The − and + of the time steppers. */
-export const STEPPER_STEP_MS = MILLISECONDS_PER_SECOND / 2;
+const STEPPER_STEP_MS = MILLISECONDS_PER_SECOND / 2;
 
 const SIGN: Readonly<Record<TrimStepDirection, number>> = { earlier: -1, later: 1 };
 

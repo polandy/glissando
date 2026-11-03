@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { CODE_ALPHABET, createTvHub, type RemoteEvent, type TvEvent } from "./tv-hub";
+import { createTvHub, type RemoteEvent, type TvEvent } from "./tv-hub";
+import { CODE_ALPHABET } from "./tv-code";
 import {
   claimedSession,
   hubHarness,

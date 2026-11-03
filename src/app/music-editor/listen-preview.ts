@@ -12,7 +12,7 @@ import { decibelsToGain, loudestStretchStartMs, type MusicLoudness } from "../..
 export type ListenKind = "start" | "end" | "volume";
 
 /** How much of the excerpt each listen plays. */
-export const LISTEN_PREVIEW_MS = 8 * MILLISECONDS_PER_SECOND;
+const LISTEN_PREVIEW_MS = 8 * MILLISECONDS_PER_SECOND;
 
 /** What plays: track times in ms. */
 export interface ListenRange {

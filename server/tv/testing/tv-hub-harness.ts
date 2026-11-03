@@ -1,5 +1,6 @@
 import type { PlaybackState } from "../../../src/tv-remote/tv-protocol";
-import { CODE_ALPHABET, createTvHub, type EventSink } from "../tv-hub";
+import { createTvHub, type EventSink } from "../tv-hub";
+import { CODE_ALPHABET } from "../tv-code";
 
 export const KEY_PATTERN = /^[A-Za-z0-9_-]{22}$/;
 export const KEY_BYTES = 16;

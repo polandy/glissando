@@ -2,7 +2,7 @@ import type { Size } from "./ken-burns";
 import type { PictureLoader, SlideRenderer } from "./ports";
 
 /** Slides loaded beyond the last one on screen, unless the player is told otherwise. */
-export const DEFAULT_PICTURES_AHEAD = 1;
+const DEFAULT_PICTURES_AHEAD = 1;
 
 export class SlideshowLoadError extends Error {
   constructor(src: string, cause: unknown) {

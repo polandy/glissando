@@ -8,14 +8,15 @@ import {
   type PresetId,
   type VideoExportResult,
 } from "../../video-export";
-import type {
-  Delivery,
-  ExportSheetState,
-  ExportSubject,
-  VideoExportPorts,
-} from "./export-sheet-state";
+import type { ExportSheetState, ExportSubject, VideoExportPorts } from "./export-sheet-state";
 import { deliverFile } from "./deliver-file";
-import { spaceShortage } from "./space-shortage";
+import {
+  type BrowserProbe,
+  chooseState,
+  deliveryOf,
+  finishedState,
+  probeBrowser,
+} from "./sheet-states";
 
 /** The preset "Andere Größe wählen" offers after the storage ran out: the smallest. */
 const SMALLEST_PRESET: PresetId = "720p";
@@ -66,33 +67,20 @@ export class VideoExportSession<Preview> {
   }
 
   async open(): Promise<void> {
-    const ports = this.#ports;
-    let capabilities: ExportCapabilities;
+    let probe: BrowserProbe;
     try {
-      [capabilities, this.#freeBytes] = await Promise.all([
-        ports.probe(this.#subject.withAudio),
-        // A picked file is not the browser's storage, so only a private one is measured.
-        ports.canPickSaveFile() ? null : ports.freeBytes(),
-      ]);
+      probe = await probeBrowser(this.#ports, this.#subject.withAudio);
     } catch (error: unknown) {
       this.#fail(error);
       return;
     }
-    if (!capabilities.supported) {
-      this.#set({ kind: "unsupported", reason: capabilities.reason });
+    if (probe.kind === "ended") {
+      this.#set(probe.state);
       return;
     }
-    const clip = await ports.undecodableClip().catch((error: unknown) => {
-      // An unreadable clip is no verdict on the browser; the run itself fails loud if it must.
-      ports.log(error);
-      return null;
-    });
-    if (clip !== null) {
-      this.#set({ kind: "clip-unsupported", clip });
-      return;
-    }
-    this.#capabilities = capabilities;
-    this.#choose(capabilities.defaultPreset);
+    this.#freeBytes = probe.freeBytes;
+    this.#capabilities = probe.capabilities;
+    this.#choose(probe.capabilities.defaultPreset);
   }
 
   select(preset: PresetId): void {
@@ -220,24 +208,17 @@ export class VideoExportSession<Preview> {
   ): void {
     switch (result.kind) {
       case "done":
-        this.#set({
-          kind: "done",
-          preset,
-          file: result.file,
-          delivery: this.#delivery(target, result.file),
-        });
+      case "storage-full":
+        this.#set(
+          finishedState({
+            preset,
+            framesTotal,
+            estimate: this.estimate(preset),
+            delivery: (file) => deliveryOf(target, this.#ports.canShare(file)),
+            result,
+          }),
+        );
         return;
-      case "storage-full": {
-        const estimate = this.estimate(preset);
-        this.#set({
-          kind: "storage-full",
-          preset,
-          frameReached: result.frameReached,
-          framesTotal,
-          missingBytes: estimate * (1 - result.frameReached / framesTotal),
-        });
-        return;
-      }
       case "failed":
         this.#fail(result.error);
         return;
@@ -247,29 +228,13 @@ export class VideoExportSession<Preview> {
     }
   }
 
-  #delivery(target: ExportTarget, file: File): Delivery {
-    if (target.kind === "picked") {
-      return "saved";
-    }
-    return this.#ports.canShare(file) ? "share" : "download";
-  }
-
   #choose(preset: PresetId): void {
     const capabilities = this.#capabilities;
     if (capabilities === null) {
       throw new Error("the sheet chooses a preset only once the browser was probed");
     }
     this.#preset = preset;
-    this.#set({
-      kind: "choose",
-      available: capabilities.available,
-      preset,
-      audioCodec: capabilities.audioCodec,
-      spaceShortage: spaceShortage(preset, capabilities.available, this.#freeBytes, (id) =>
-        this.estimate(id),
-      ),
-      starting: false,
-    });
+    this.#set(chooseState(capabilities, preset, this.#freeBytes, (id) => this.estimate(id)));
   }
 
   #fail(error: unknown): void {

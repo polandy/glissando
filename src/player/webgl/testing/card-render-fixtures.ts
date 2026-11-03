@@ -13,11 +13,11 @@ export const VIEWPORT = { width: 200, height: 200 };
 export const WHOLE_PICTURE = { zoom: 1, centerX: 0.5, centerY: 0.5 } as const;
 /** `#101010`. */
 export const GROUND_COLOUR: Rgb = [16, 16, 16];
-export const GROUND_HEX = "#101010";
-export const COLOUR_TOLERANCE = 8;
+const GROUND_HEX = "#101010";
+const COLOUR_TOLERANCE = 8;
 
 /** Fonts the test lets load when it wants (`webgl-captions.browser.test.ts`'s pattern). */
-export class ControlledFonts implements Fonts {
+class ControlledFonts implements Fonts {
   #resolve: () => void = () => undefined;
   readonly #loaded = new Promise<void>((resolve) => (this.#resolve = resolve));
   load(): Promise<unknown> {

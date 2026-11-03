@@ -4,9 +4,9 @@ import { planPreload } from "./preload-plan";
 import { PreparedPictures, type PrepareRendition } from "./prepared-pictures";
 
 /** The pictures timed before the plan is made. */
-export const MEASURED_PICTURES = 2;
+const MEASURED_PICTURES = 2;
 /** Prepared renditions held at most: a 4K one is 1–2 MB, so this stays well within memory. */
-export const PREPARED_PICTURES_LIMIT = 60;
+const PREPARED_PICTURES_LIMIT = 60;
 
 /** Where a server slideshow is before and as it plays (`dev-docs/app/PREPARING.md`). */
 export type PrepareView =

@@ -1,7 +1,7 @@
 import { TRANSITION_EFFECTS, type TransitionEffect } from "../slideshow";
 import { fragmentShader, VERTEX_SHADER } from "./transition-shaders";
 
-export class ShaderCompileError extends Error {
+class ShaderCompileError extends Error {
   constructor(effect: TransitionEffect, log: string) {
     super(`the ${effect} shader does not compile or link: ${log}`);
     this.name = "ShaderCompileError";

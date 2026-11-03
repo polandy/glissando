@@ -9,6 +9,8 @@ steps=(
   "doc-sizes:scripts/doc-sizes.sh"
   "source-sizes:scripts/source-sizes.sh"
   "raw-error-text:scripts/no-raw-error-text.sh"
+  "unused-exports:scripts/unused-exports.sh"
+  "pins:scripts/pins.sh"
   "e2e-ids:scripts/e2e-ids.sh"
   "lint:npx eslint ."
   "typecheck:npx svelte-check --fail-on-warnings"

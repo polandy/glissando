@@ -2,7 +2,7 @@ import { readEntry, readZipDirectory } from "../../glissando-file/zip-reader";
 import type { PickedEntry } from "../folder-source";
 
 /** The folder name the unpacked fixtures sit in, as a folder picker reports it. */
-export const UNPACKED_FOLDER = "Herbst";
+const UNPACKED_FOLDER = "Herbst";
 
 /** `file`'s entries as the files of the folder it was unpacked into, each under `folder`. */
 export async function unpackedFolder(file: Blob, folder = UNPACKED_FOLDER): Promise<PickedEntry[]> {

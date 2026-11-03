@@ -5,7 +5,7 @@ import { blurBackdrop } from "../backdrop-blur";
  * The long side, in pixels, of the small copy a blurred fill's backdrop is made from: small
  * enough to blur on the CPU in a fraction of a frame, and the blur hides its coarseness.
  */
-export const BACKDROP_LONG_SIDE = 96;
+const BACKDROP_LONG_SIDE = 96;
 
 /**
  * The picture shrunk to `BACKDROP_LONG_SIDE`, blurred once (`blurBackdrop`) and uploaded as a

@@ -10,7 +10,7 @@ export const PAIR_GAP_SHARE = 0.006;
  * A single picture is drawn whole over a blurred fill once cropping it to cover the viewport
  * would hide more of it than this share (ADR-0028).
  */
-export const BLURRED_FILL_HIDDEN_SHARE = 1 / 3;
+const BLURRED_FILL_HIDDEN_SHARE = 1 / 3;
 
 /** The blurred backdrop is darkened to this fraction of its original brightness (ADR-0028). */
 export const BACKDROP_BRIGHTNESS = 0.55;

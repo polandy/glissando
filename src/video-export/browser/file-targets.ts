@@ -10,7 +10,7 @@ export interface SaveFileType {
   readonly extension: string;
 }
 
-export const MP4_FILE_TYPE: SaveFileType = {
+const MP4_FILE_TYPE: SaveFileType = {
   description: "MP4",
   mimeType: "video/mp4",
   extension: ".mp4",

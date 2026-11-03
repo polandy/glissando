@@ -1,5 +1,7 @@
 import type { Command, PlaybackState } from "../../src/tv-remote/tv-protocol";
 import { newShareToken, type RandomBytes } from "../share-token";
+import { drawCode } from "./tv-code";
+import { evictionCandidate, type Session } from "./tv-session";
 
 /**
  * The TV sessions, in memory only (dev-docs/tv_remote/SESSIONS.md): who may control which TV,
@@ -9,13 +11,6 @@ import { newShareToken, type RandomBytes } from "../share-token";
 
 export const SESSION_IDLE_MS = 15 * 60 * 1000;
 export const MAX_SESSIONS = 100;
-/** No I, L or O, which a TV's font shows like 1 and 0. */
-export const CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ";
-const CODE_LENGTH = 4;
-/** Far more than a hub of MAX_SESSIONS codes among 23^4 ever needs. */
-const MAX_CODE_DRAWS = 64;
-/** A byte from here up is drawn again, so that every letter is equally likely. */
-const UNBIASED_BYTE_LIMIT = Math.floor(256 / CODE_ALPHABET.length) * CODE_ALPHABET.length;
 
 type NoData = Readonly<Record<string, never>>;
 const NO_DATA: NoData = {};
@@ -61,20 +56,6 @@ export interface TvHubDependencies {
   readonly randomBytes: RandomBytes;
 }
 
-interface Session {
-  readonly tvKey: string;
-  remoteSecret: string | undefined;
-  /** Way A until claimed. */
-  code: string | undefined;
-  source: SlideshowSource;
-  tv: EventSink<TvEvent> | undefined;
-  readonly remotes: Set<EventSink<RemoteEvent>>;
-  state: PlaybackState | undefined;
-  readonly createdAt: number;
-  /** When the TV's stream last closed, or the session was made. */
-  tvLeftAt: number;
-}
-
 export type TvHub = ReturnType<typeof createTvHub>;
 
 export function createTvHub({ now, randomBytes }: TvHubDependencies) {
@@ -88,19 +69,6 @@ export function createTvHub({ now, randomBytes }: TvHubDependencies) {
       throw new Error("the random source answered a key a live session already has");
     }
     return key;
-  };
-
-  const newCode = (): string => {
-    for (let draw = 0; draw < MAX_CODE_DRAWS; draw++) {
-      const bytes = randomBytes(CODE_LENGTH);
-      if (bytes.length !== CODE_LENGTH) {
-        throw new Error(`the random source answered ${bytes.length} bytes, not ${CODE_LENGTH}`);
-      }
-      if (bytes.some((byte) => byte >= UNBIASED_BYTE_LIMIT)) continue;
-      const code = Array.from(bytes, (byte) => CODE_ALPHABET[byte % CODE_ALPHABET.length]).join("");
-      if (!byCode.has(code)) return code;
-    }
-    throw new Error(`no unused code after ${MAX_CODE_DRAWS} draws from the random source`);
   };
 
   const end = (session: Session): void => {
@@ -128,25 +96,10 @@ export function createTvHub({ now, randomBytes }: TvHubDependencies) {
     }
   };
 
-  /** The session whose TV has been away the longest, else the oldest. */
-  const evictionCandidate = (): Session | undefined => {
-    const sessions = [...byTvKey.values()];
-    const away = sessions.filter((session) => session.tv === undefined);
-    const earliest = (candidates: Session[], time: (session: Session) => number) =>
-      candidates.reduce<Session | undefined>(
-        (found, session) => (found === undefined || time(session) < time(found) ? session : found),
-        undefined,
-      );
-    return (
-      earliest(away, (session) => session.tvLeftAt) ??
-      earliest(sessions, (session) => session.createdAt)
-    );
-  };
-
   const add = (session: Omit<Session, "tvKey" | "remotes" | "createdAt" | "tvLeftAt">) => {
     sweep();
     if (byTvKey.size >= MAX_SESSIONS) {
-      const candidate = evictionCandidate();
+      const candidate = evictionCandidate([...byTvKey.values()]);
       if (candidate !== undefined) end(candidate);
     }
     const time = now();
@@ -177,7 +130,7 @@ export function createTvHub({ now, randomBytes }: TvHubDependencies) {
     create(): { tvKey: string; code: string } {
       const session = add({
         remoteSecret: undefined,
-        code: newCode(),
+        code: drawCode(randomBytes, (code) => byCode.has(code)),
         source: { kind: "chosen", slideshowId: undefined },
         tv: undefined,
         state: undefined,

@@ -24,7 +24,7 @@ const VERSION_NEEDED = 10;
 const DOS_EPOCH_YEAR = 1980;
 
 /** The container would need ZIP64: over 4 GiB or 65,535 entries. */
-export class ZipTooLargeError extends Error {
+class ZipTooLargeError extends Error {
   constructor(what: string) {
     super(`the .glissando container cannot hold ${what}: it is limited to 4 GiB and 65535 entries`);
     this.name = "ZipTooLargeError";

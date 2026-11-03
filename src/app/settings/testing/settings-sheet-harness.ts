@@ -21,7 +21,7 @@ export const STATE: SettingsState = {
   effectiveLanguage: "de",
 };
 
-export const BUILD: BuildInfo = {
+const BUILD: BuildInfo = {
   version: "0.0.2",
   commit: "87dd486",
   commitDate: "2026-10-12T16:30:00.000Z",

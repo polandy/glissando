@@ -45,7 +45,7 @@ export function focusSheetStatus(
 }
 
 /** The legend's and stacked bar's statuses, in the order the Focus sheet shows them. */
-export const FOCUS_SHEET_STATUS_ORDER: readonly FocusDisplayStatus[] = [
+const FOCUS_SHEET_STATUS_ORDER: readonly FocusDisplayStatus[] = [
   "face",
   "immich",
   "subject",

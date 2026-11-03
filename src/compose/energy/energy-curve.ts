@@ -5,13 +5,13 @@ import { shortTermLoudnessLufs } from "./short-term-loudness";
 export const NEUTRAL_ENERGY = 0.5;
 
 /** The percentile of a song's own short-term loudness that reads as fully quiet (energy 0). */
-export const ENERGY_QUIET_PERCENTILE = 10;
+const ENERGY_QUIET_PERCENTILE = 10;
 /** The percentile a lift's "after" window must reach (ADR-0046, "Lifts"). */
-export const LIFT_LEVEL_PERCENTILE = 50;
+const LIFT_LEVEL_PERCENTILE = 50;
 /** The percentile of a song's own short-term loudness that reads as fully loud (energy 1). */
-export const ENERGY_LOUD_PERCENTILE = 90;
+const ENERGY_LOUD_PERCENTILE = 90;
 /** Below this many LU between the quiet and loud percentiles, a song has no audible dynamics. */
-export const ENERGY_MIN_RANGE_LU = 2;
+const ENERGY_MIN_RANGE_LU = 2;
 
 /** A song's own quiet, median and loud short-term loudness, in LUFS (ADR-0046, "Energy curve"). */
 export interface SongEnergyRange {

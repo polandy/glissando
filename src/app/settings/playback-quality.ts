@@ -5,19 +5,19 @@ import { createStoredChoice, type StoredChoice } from "./stored-choice.ts";
  * The rendition a server slideshow plays its pictures in (ADR-0027): Immich's preview, or the
  * original made into the display rendition on this device.
  */
-export const PLAYBACK_QUALITIES = ["1440", "4k"] as const;
+const PLAYBACK_QUALITIES = ["1440", "4k"] as const;
 export type PlaybackQuality = (typeof PLAYBACK_QUALITIES)[number];
 
 /** "auto" picks the quality by the screen; the others pin one. */
-export const PLAYBACK_QUALITY_PREFERENCES = ["auto", ...PLAYBACK_QUALITIES] as const;
+const PLAYBACK_QUALITY_PREFERENCES = ["auto", ...PLAYBACK_QUALITIES] as const;
 export type PlaybackQualityPreference = (typeof PLAYBACK_QUALITY_PREFERENCES)[number];
 
-export const DEFAULT_PLAYBACK_QUALITY_PREFERENCE: PlaybackQualityPreference = "auto";
+const DEFAULT_PLAYBACK_QUALITY_PREFERENCE: PlaybackQualityPreference = "auto";
 
-export const PLAYBACK_QUALITY_KEY = "glissando.playbackQuality";
+const PLAYBACK_QUALITY_KEY = "glissando.playbackQuality";
 
 /** The short edge of Immich's preview by default: a screen up to it shows the preview sharp. */
-export const PREVIEW_SHORT_EDGE = 1440;
+const PREVIEW_SHORT_EDGE = 1440;
 
 export type PlaybackQualityStore = StoredChoice<PlaybackQualityPreference>;
 

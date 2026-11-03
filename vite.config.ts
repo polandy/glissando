@@ -75,7 +75,12 @@ export default defineConfig({
         extends: true,
         test: {
           name: "unit",
-          include: ["src/**/*.test.ts", "build/**/*.test.ts", "server/**/*.test.ts"],
+          include: [
+            "src/**/*.test.ts",
+            "build/**/*.test.ts",
+            "scripts/**/*.test.ts",
+            "server/**/*.test.ts",
+          ],
           exclude: [BROWSER_TESTS],
         },
       },

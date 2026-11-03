@@ -2,21 +2,12 @@ import { mount } from "svelte";
 import App from "./app/App.svelte";
 import { createErrorReporter } from "./app/errors/error-reporter";
 import { appContext } from "./app/app-context";
-import { createTranslator } from "./app/i18n/translator";
-import { TranslatorState } from "./app/i18n/translator-state.svelte";
-import { AddPicturesSession, serverAddingStore } from "./app/add-pictures/add-pictures-session";
-import { ImportSession } from "./app/import/import-session";
 import { createWindowHistory, Navigator } from "./app/navigation/navigator";
 import { parseFrameDeepLink } from "./app/frame/frame-deep-link";
 import { browserClearDeepLinkHash, openDeepLinkedFrame } from "./app/frame/frame-startup-deep-link";
 import { randomId } from "./app/random-id";
-import { AppSettings } from "./app/settings/app-settings";
-import { createStorageLanguagePreferenceStore } from "./app/settings/language";
-import {
-  createStoragePlaybackQualityStore,
-  browserScreenShortEdge,
-} from "./app/settings/playback-quality";
-import { applyThemePreference, createStorageThemePreferenceStore } from "./app/settings/theme";
+import { browserScreenShortEdge } from "./app/settings/playback-quality";
+import { bootstrapSettings } from "./app/settings/bootstrap-settings";
 import { createDeviceSettingsStores } from "./app/device-settings-stores";
 import { browserScheduler } from "./ui-kit/scheduler";
 import { handOverFromShell } from "./app/shell/app-shell";
@@ -31,15 +22,11 @@ import { browserLaunchQueue } from "./app/glissando-file/launched-files";
 import { browserObjectUrls } from "./app/media/object-urls";
 import { readClipPeaksWithMediabunny } from "./app/clip-editor/read-clip-peaks";
 import { browserMusicEditorAudio } from "./app/music-editor/music-editor-audio";
-import { deviceSongStorage, serverSongStorage } from "./app/music-editor/song-intake";
+import { createSessionFactories } from "./app/session-factories";
 import { browserSampleMusic } from "./app/sample-music/browser-sample-music";
 import { freeStorageBytes } from "./library/free-storage";
 import { browserIntakePorts } from "./app/import/browser-intake-ports";
 import { browserImmich } from "./immich/browser-immich";
-import type { StoredSlideshow } from "./library/stored-slideshow";
-import type { SlideshowHome } from "./app/routes/slideshow-storage";
-import { convertMusic } from "./import/browser/convert-music";
-import { probeMusic } from "./import/music-probe";
 import { createImmichReaders } from "./immich/immich-readers";
 import { createMusicAudioContext, MusicOutput } from "./player";
 import { FocusPass } from "./library/focus-pass";
@@ -69,22 +56,7 @@ import { decodeClipSound } from "./video-export/browser/decode-clip-sound";
 
 const { client: immichClient, availability: immichAvailability } = browserImmich(window);
 
-const settings = new AppSettings({
-  themes: createStorageThemePreferenceStore(window.localStorage),
-  playbackQualities: createStoragePlaybackQualityStore(window.localStorage),
-  languages: createStorageLanguagePreferenceStore(window.localStorage),
-  browserLanguages: window.navigator.languages,
-});
-const translator = new TranslatorState(createTranslator(settings.state.effectiveLanguage));
-// Before anything awaits, so a pinned theme is in place for the first paint; a later choice
-// in the settings sheet applies at once.
-settings.subscribe(({ theme, effectiveLanguage }) => {
-  applyThemePreference(document.documentElement, theme);
-  document.documentElement.lang = effectiveLanguage;
-  if (translator.current.language !== effectiveLanguage) {
-    translator.current = createTranslator(effectiveLanguage);
-  }
-});
+const { settings, translator } = bootstrapSettings(window, document.documentElement);
 
 const target = document.getElementById("app");
 if (!target) {
@@ -247,31 +219,15 @@ const services = {
   serverLoudnessPass,
   immich: { client: immichClient, availability: immichAvailability },
   serverLibrary: serverLibraryWithFocusStart,
-  newImportSession: () =>
-    new ImportSession({
-      ...intakePorts,
-      store,
-      probeMusic,
-      convertMusic,
-      createOnServer: (slideshow, songsAudio) =>
-        serverLibraryWithFocusStart.createSlideshow(slideshow, songsAudio),
-      random: Math.random,
-      ...sampleMusic,
-    }),
-  newAddPicturesSession: (slideshow: StoredSlideshow, home: SlideshowHome) =>
-    new AddPicturesSession(slideshow, home, {
-      ...intakePorts,
-      store: home === "device" ? store : serverAddingStore(serverLibrary.store),
-    }),
-  songIntake: (home: SlideshowHome) => ({
-    probeMusic,
-    convertMusic,
+  ...createSessionFactories({
+    store,
+    serverLibrary: serverLibraryWithFocusStart,
+    serverLibraryForAdding: serverLibrary,
+    intakePorts,
+    sampleMusic,
+    newId,
+    now,
     log: logError,
-    storage:
-      home === "device"
-        ? deviceSongStorage({ store, newId, now })
-        : serverSongStorage(serverLibrary),
-    ...sampleMusic,
   }),
   newId,
   now,

@@ -12,7 +12,7 @@ import type {
 /** Every port writes what happens to one shared log, so tests can check the order. */
 export type ExportLog = string[];
 
-export class FakeFrame {
+class FakeFrame {
   readonly label: string;
   closed = false;
   constructor(label: string) {
@@ -100,7 +100,7 @@ export class FakeVideoEncoder implements VideoEncoderPort<FakeFrame> {
   }
 }
 
-export class FakeAudioBlock {
+class FakeAudioBlock {
   readonly segment: AudioSegment;
   closed = false;
   constructor(segment: AudioSegment) {

@@ -2,7 +2,7 @@
 import { MILLISECONDS_PER_SECOND, type Slideshow } from "../../player/slideshow";
 
 /** Within this many seconds of a slide's start, "previous" goes to the slide before. */
-export const RESTART_SLIDE_AFTER_SECONDS = 1;
+const RESTART_SLIDE_AFTER_SECONDS = 1;
 
 /** Where each slide starts on the slideshow's time line, in seconds. */
 export interface SlideBoundaries {

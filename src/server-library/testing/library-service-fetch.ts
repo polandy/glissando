@@ -2,7 +2,7 @@ import { libraryHarness } from "../../../server/testing/library-harness";
 import { HttpServerLibraryClient } from "../http-server-library-client";
 
 /** Where the app is served in these tests; the library service answers under `api/library`. */
-export const APP_URL = "https://glissando.example/";
+const APP_URL = "https://glissando.example/";
 
 const NO_BODY_STATUSES: ReadonlySet<number> = new Set([204, 304]);
 

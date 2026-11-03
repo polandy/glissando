@@ -33,7 +33,7 @@ const FLOATS_PER_VERTEX = 4;
 const VERTEX_COUNT = 4;
 const QUAD_FLOATS = FLOATS_PER_VERTEX * VERTEX_COUNT;
 
-export class CardItemProgramCompileError extends Error {
+class CardItemProgramCompileError extends Error {
   constructor(log: string) {
     super(`the card item shader does not compile or link: ${log}`);
     this.name = "CardItemProgramCompileError";

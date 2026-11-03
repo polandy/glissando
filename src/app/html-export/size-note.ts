@@ -1,7 +1,7 @@
 import type { PageSizeId } from "../../html-export/plan";
 
 /** Estimates within this ratio of each other read as one size: clips go in whole at every size. */
-export const BARELY_DIFFERENT_RATIO = 1.05;
+const BARELY_DIFFERENT_RATIO = 1.05;
 
 /** The size a page starts on when the picture size hardly matters. */
 const PRESELECTED_WHEN_ALIKE: PageSizeId = "sharp";

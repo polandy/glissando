@@ -19,7 +19,7 @@ import PictureEditorRoute from "./PictureEditorRoute.svelte";
 export const CLIP_VIDEO = { mediaId: "video-1", sourceMs: 60_000, startMs: 0, endMs: 10_000 };
 export const CLIP_BLOB = new Blob(["clip bytes"], { type: "video/mp4" });
 
-export const SHOW: StoredSlideshow = {
+const SHOW: StoredSlideshow = {
   id: "show",
   title: "Juli 2025",
   createdAt: "2025-07-02T00:00:00Z",

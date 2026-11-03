@@ -61,7 +61,7 @@ export const captureDates =
   (file: File): Promise<string> =>
     Promise.resolve(dates[file.name] ?? "2025-07-01T10:00:00Z");
 
-export function sequentialIds(): () => string {
+function sequentialIds(): () => string {
   let next = 1;
   return () => `picture-${next++}`;
 }

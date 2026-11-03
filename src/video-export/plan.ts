@@ -3,13 +3,13 @@ import { MILLISECONDS_PER_SECOND, type Size } from "../player";
 /** What a video export writes, frame by frame, and how big it gets. See VIDEO_EXPORT.md. */
 
 export const FRAMES_PER_SECOND = 30;
-export const KEYFRAME_INTERVAL_FRAMES = 60;
-export const MICROSECONDS_PER_SECOND = 1_000_000;
+const KEYFRAME_INTERVAL_FRAMES = 60;
+const MICROSECONDS_PER_SECOND = 1_000_000;
 
 export const AUDIO_SAMPLE_RATE = 48_000;
 export const AUDIO_CHANNELS = 2;
 export const AUDIO_BITRATE = 160_000;
-export const AUDIO_SEGMENT_SECONDS = 30;
+const AUDIO_SEGMENT_SECONDS = 30;
 /** Shorter than any AAC or Opus packet, so it bounds their count from above. */
 const AUDIO_PACKET_MIN_MS = 10;
 /** Room for an encoder's priming and trailing packets. */

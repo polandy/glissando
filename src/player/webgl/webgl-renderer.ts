@@ -5,9 +5,7 @@ import type { Fonts } from "../fonts";
 import type { Size } from "../ken-burns";
 import type { PreparedSlide, RenderFrame, SlideRenderer } from "../ports";
 import type { CardStyle, TransitionEffect } from "../slideshow";
-import { bindCaption } from "./bind-overlays";
-import { bindLayer, fromUniforms, toUniforms, type LayerTextureUnits } from "./bind-layer";
-import { bindLook } from "./bind-look";
+import { bindFrame } from "./bind-frame";
 import { CaptionTextures } from "./caption-textures";
 import { CardRenderTarget } from "./card-render-target";
 import { renderCardLayer } from "./card-pass";
@@ -23,12 +21,6 @@ const FULL_SCREEN_TRIANGLE_STRIP = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]
 const VERTEX_COUNT = 4;
 const POSITION_ATTRIBUTE = 0;
 const COORDINATES_PER_VERTEX = 2;
-const FROM_TEXTURE_UNITS: LayerTextureUnits = { picture: 0, partner: 4, backdrop: 6 };
-const TO_TEXTURE_UNITS: LayerTextureUnits = { picture: 1, partner: 5, backdrop: 7 };
-const FROM_CAPTION_TEXTURE_UNIT = 2;
-const TO_CAPTION_TEXTURE_UNIT = 3;
-const FROM_CARD_TEXTURE_UNIT = 8;
-const TO_CARD_TEXTURE_UNIT = 9;
 
 export interface WebGlRendererOptions {
   /** Device pixels per CSS pixel. */
@@ -167,55 +159,27 @@ export class WebGlRenderer implements SlideRenderer<BitmapPicture> {
       to,
       viewport,
     );
-    const { program, uniforms } = this.#program(effect);
-    gl.useProgram(program);
-    bindLayer(gl, this.#pictures, FROM_TEXTURE_UNITS, from, fromUniforms(uniforms), viewport);
-    bindLayer(gl, this.#pictures, TO_TEXTURE_UNITS, to, toUniforms(uniforms), viewport);
-    bindCaption(
+    bindFrame(
       gl,
-      this.#captions,
-      FROM_CAPTION_TEXTURE_UNIT,
-      from,
-      uniforms.fromCaption,
-      uniforms.fromCaptionOpacity,
-      viewport,
+      this.#program(effect),
+      {
+        pictures: this.#pictures,
+        captions: this.#captions,
+        fromCard: this.#fromCardTarget,
+        toCard: this.#toCardTarget,
+      },
+      { from, to },
+      {
+        frame,
+        progress,
+        viewport,
+        captionInsetCssPixels: this.#captionInsetCssPixels,
+        pixelRatio: this.#pixelRatio(),
+      },
     );
-    bindCaption(
-      gl,
-      this.#captions,
-      TO_CAPTION_TEXTURE_UNIT,
-      to,
-      uniforms.toCaption,
-      uniforms.toCaptionOpacity,
-      viewport,
-    );
-    this.#bindCardTexture(FROM_CARD_TEXTURE_UNIT, this.#fromCardTarget, uniforms.fromCard);
-    this.#bindCardTexture(TO_CARD_TEXTURE_UNIT, this.#toCardTarget, uniforms.toCard);
-    gl.uniform1f(uniforms.progress, progress);
-    gl.uniform1f(uniforms.aspect, viewport.width / viewport.height);
-    gl.uniform1f(uniforms.captionBand, this.#captions.bandShare(viewport));
-    gl.uniform1f(
-      uniforms.captionInset,
-      (this.#captionInsetCssPixels * this.#pixelRatio()) / viewport.height,
-    );
-    gl.uniform1f(uniforms.endFade, frame.endFade);
-    bindLook(gl, uniforms, frame.look);
     gl.bindBuffer(gl.ARRAY_BUFFER, this.#mainBuffer);
     gl.vertexAttribPointer(POSITION_ATTRIBUTE, COORDINATES_PER_VERTEX, gl.FLOAT, false, 0, 0);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, VERTEX_COUNT);
-  }
-
-  /** Binds a layer's rendered card texture (or none, drawn transparent by `renderCardLayer`) to
-   * the main program's `sampler` uniform. */
-  #bindCardTexture(
-    unit: number,
-    target: CardRenderTarget,
-    sampler: WebGLUniformLocation | null,
-  ): void {
-    const gl = this.#gl;
-    gl.activeTexture(gl.TEXTURE0 + unit);
-    gl.bindTexture(gl.TEXTURE_2D, target.texture);
-    gl.uniform1i(sampler, unit);
   }
 
   /** Delegates to `prepareSlide`: one upload step of the picture (and its backdrop) per call,

@@ -3,7 +3,7 @@ import { realOffsetsMs, type InsertedTime } from "./inserted-time";
 export { snapToNextBeat } from "./snap-to-next-beat";
 
 /** Beats per phrase: a bar of four, so a change on a phrase start sits where the music turns. */
-export const BEATS_PER_PHRASE = 4;
+const BEATS_PER_PHRASE = 4;
 
 /**
  * Moves slide boundaries onto the music's beats (ADR-0021): each one, automatic or an own

@@ -19,7 +19,7 @@ export interface SyntheticTrack {
 }
 
 /** A deterministic generator of values in [-1, 1) (a linear congruential generator). */
-export function seededNoise(seed: number): () => number {
+function seededNoise(seed: number): () => number {
   let state = seed >>> 0;
   return () => {
     state = (Math.imul(state, 1_664_525) + 1_013_904_223) >>> 0;

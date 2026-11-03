@@ -3,9 +3,9 @@ import { dayRangeForCaptureRange } from "./day-range-for-capture-range";
 import { titleForCaptureRange } from "./title-for-capture-range";
 
 /** Written between a title and its number, e.g. "July 2025 · 2". */
-export const TITLE_NUMBER_SEPARATOR = " · ";
+const TITLE_NUMBER_SEPARATOR = " · ";
 /** The first number a repeated title gets. */
-export const FIRST_TITLE_NUMBER = 2;
+const FIRST_TITLE_NUMBER = 2;
 const DAY_LENGTH = "YYYY-MM-DD".length;
 
 /** A slideshow already in the library, as far as a new title must keep clear of it. */
