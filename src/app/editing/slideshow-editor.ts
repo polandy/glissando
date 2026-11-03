@@ -1,18 +1,16 @@
 import type { OwnKenBurns } from "../../library/own-ken-burns";
-import type { BetweenSongs, MusicTrim, PictureChanges } from "../../library/own-music";
 import type { SlideshowTransition, TransitionChoice } from "../../library/own-timing";
 import type { PortraitPictures } from "../../library/portrait-pictures";
 import {
   setPictureAlone as setPictureAloneEdit,
   setSlideshowEnergyPacing,
 } from "../../library/slideshow-edits";
-import type { PictureLength } from "../../library/picture-length";
-import type { StoredCard, StoredMusic, StoredSlideshow } from "../../library/stored-slideshow";
-import type { CardInput } from "../../library/stored-card";
+import type { StoredSlideshow } from "../../library/stored-slideshow";
 import type { CardSettingsEditor } from "./card-settings-editor";
 import type { ChapterSettingsEditor } from "./chapter-settings-editor";
 import { EditSaver } from "./edit-saver";
 import { EditorUndos } from "./editor-undos";
+import { MusicAndCardEdits } from "./music-and-card-edits";
 import type { LookSettingsEditor } from "./look-settings-editor";
 import type { MoodSettingsEditor } from "./mood-settings-editor";
 import type { MusicSettingsEditor } from "./music-settings-editor";
@@ -28,15 +26,15 @@ import type { VideoSettingsEditor } from "./video-settings-editor";
  * undo never puts pictures back at positions that shifted meanwhile. While the toast is shown, the
  * removed pictures' media is claimed, so a clean-up in any tab spares it.
  */
-export class SlideshowEditor {
+export class SlideshowEditor extends MusicAndCardEdits {
   readonly #listeners = new Set<(slideshow: StoredSlideshow) => void>();
   #slideshow: StoredSlideshow;
   readonly #undos: EditorUndos;
   readonly #saver: EditSaver;
   readonly #pictureSettings: PictureSettingsEditor;
   readonly #pictureList: PictureListEditor;
-  readonly #musicSettings: MusicSettingsEditor;
-  readonly #cardSettings: CardSettingsEditor;
+  protected readonly musicSettings: MusicSettingsEditor;
+  protected readonly cardSettings: CardSettingsEditor;
   /** The clip settings of the video slides. */
   readonly video: VideoSettingsEditor;
   /** The automatic and added trip chapters (TRIP_CHAPTERS.md). */
@@ -47,6 +45,7 @@ export class SlideshowEditor {
   readonly mood: MoodSettingsEditor;
 
   constructor(initial: StoredSlideshow, ports: SlideshowEditorPorts) {
+    super();
     this.#slideshow = initial;
     this.#saver = new EditSaver(initial, {
       store: ports.store,
@@ -74,8 +73,8 @@ export class SlideshowEditor {
     );
     this.#pictureSettings = subEditors.pictureSettings;
     this.#pictureList = subEditors.pictureList;
-    this.#musicSettings = subEditors.musicSettings;
-    this.#cardSettings = subEditors.cardSettings;
+    this.musicSettings = subEditors.musicSettings;
+    this.cardSettings = subEditors.cardSettings;
     this.video = subEditors.video;
     this.chapters = subEditors.chapters;
     this.look = subEditors.look;
@@ -197,77 +196,6 @@ export class SlideshowEditor {
 
   clearCaption(pictureId: string): void {
     this.#pictureList.clearCaption(pictureId);
-  }
-  addSongs(songs: readonly StoredMusic[]): void {
-    this.#musicSettings.addSongs(songs);
-  }
-
-  removeSong(songId: string): void {
-    this.#musicSettings.removeSong(songId);
-  }
-
-  moveSong(songId: string, toIndex: number): void {
-    this.#musicSettings.moveSong(songId, toIndex);
-  }
-
-  setBetweenSongs(betweenSongs: BetweenSongs | undefined): void {
-    this.#musicSettings.setBetweenSongs(betweenSongs);
-  }
-
-  setRepeatMusic(repeatMusic: true | undefined): void {
-    this.#musicSettings.setRepeatMusic(repeatMusic);
-  }
-
-  setMusicTrim(songId: string, trim: MusicTrim | undefined): void {
-    this.#musicSettings.setMusicTrim(songId, trim);
-  }
-
-  setMusicFadeIn(songId: string, fadeInMs: number | undefined): void {
-    this.#musicSettings.setMusicFadeIn(songId, fadeInMs);
-  }
-
-  setMusicFadeOut(songId: string, fadeOutMs: number | undefined): void {
-    this.#musicSettings.setMusicFadeOut(songId, fadeOutMs);
-  }
-
-  setMusicPictureChanges(songId: string, pictureChanges: PictureChanges | undefined): void {
-    this.#musicSettings.setMusicPictureChanges(songId, pictureChanges);
-  }
-
-  setMusicVolume(songId: string, volumeDb: number | undefined): void {
-    this.#musicSettings.setMusicVolume(songId, volumeDb);
-  }
-
-  setPictureLength(pictureLength: PictureLength | undefined): void {
-    this.#musicSettings.setPictureLength(pictureLength);
-  }
-
-  setSecondsPerPicture(seconds: number): void {
-    this.#musicSettings.setSecondsPerPicture(seconds);
-  }
-
-  ensureOpeningCard(): StoredCard {
-    return this.#cardSettings.ensureOpeningCard();
-  }
-
-  setOpeningCard(card: CardInput): void {
-    this.#cardSettings.setOpeningCard(card);
-  }
-
-  removeOpeningCard(): void {
-    this.#cardSettings.removeOpeningCard();
-  }
-
-  ensureClosingCard(): StoredCard {
-    return this.#cardSettings.ensureClosingCard();
-  }
-
-  setClosingCard(card: CardInput): void {
-    this.#cardSettings.setClosingCard(card);
-  }
-
-  removeClosingCard(): void {
-    this.#cardSettings.removeClosingCard();
   }
 
   /** Resolves once every edit made so far is stored (or reported as failed). */

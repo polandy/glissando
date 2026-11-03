@@ -10,6 +10,7 @@
   import { getTranslator } from "../i18n/context";
   import BlockingOverlay from "../components/BlockingOverlay.svelte";
   import FrameCaption from "./FrameCaption.svelte";
+  import FrameControls from "./FrameControls.svelte";
   import Notice from "../components/Notice.svelte";
   import type { FrameDevice } from "./browser-frame-device";
   import { fetchAlbumPictures } from "../../frame/frame-album-pictures";
@@ -200,16 +201,13 @@
     {#if showDate && currentPicture !== undefined}
       <FrameCaption picture={currentPicture} />
     {/if}
-    <button class="exit" type="button" onclick={onExit}>{t("frame.exit")}</button>
-    <div class="bar">
-      <button
-        type="button"
-        onclick={() => (handoverState.paused ? handover?.resume() : handover?.pause())}
-      >
-        {handoverState.paused ? t("frame.resume") : t("frame.pause")}
-      </button>
-      <button type="button" onclick={() => handover?.skip()}>{t("frame.next")}</button>
-    </div>
+    <FrameControls
+      idle={!controlsVisible}
+      paused={handoverState.paused}
+      {onExit}
+      onTogglePause={() => (handoverState.paused ? handover?.resume() : handover?.pause())}
+      onSkip={() => handover?.skip()}
+    />
   {/if}
 </div>
 
@@ -239,57 +237,14 @@
     position: absolute;
     inset: 0;
   }
-  .clock,
-  .exit,
-  .bar {
+  .clock {
     position: absolute;
     z-index: 1;
     color: var(--gl-player-text);
-    transition: opacity 0.2s;
-  }
-  .idle ~ .exit,
-  .idle ~ .bar {
-    opacity: 0;
-    pointer-events: none;
-  }
-  .clock {
     top: 20px;
     right: 24px;
     font-size: 2.2rem;
     font-weight: var(--gl-weight-semibold);
     text-shadow: 0 1px 6px rgb(0 0 0 / 0.5);
-  }
-  .exit {
-    top: 16px;
-    left: 16px;
-    padding: 8px 14px;
-    border: 0;
-    border-radius: var(--gl-radius-pill);
-    background: var(--gl-photo-badge);
-    color: var(--gl-player-text);
-    font: inherit;
-    cursor: pointer;
-  }
-  .bar {
-    bottom: 20px;
-    left: 50%;
-    display: flex;
-    gap: 6px;
-    padding: 8px;
-    border-radius: var(--gl-radius-pill);
-    background: var(--gl-photo-badge);
-    transform: translateX(-50%);
-  }
-  .bar button {
-    padding: 8px 14px;
-    border: 0;
-    border-radius: var(--gl-radius-pill);
-    background: transparent;
-    color: var(--gl-player-text);
-    font: inherit;
-    cursor: pointer;
-  }
-  .bar button:hover {
-    background: var(--gl-player-glass);
   }
 </style>

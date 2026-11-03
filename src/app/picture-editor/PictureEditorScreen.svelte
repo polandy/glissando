@@ -7,16 +7,15 @@
   import Header from "../components/Header.svelte";
   import { getTranslator } from "../i18n/context";
   import { focusIndication } from "./focus-indication";
-  import FrameWell from "./FrameWell.svelte";
   import { playheadRect } from "./frame-geometry";
-  import LayoutSection from "./LayoutSection.svelte";
   import MotionPanel from "./MotionPanel.svelte";
   import MotionPreviewScreen from "./MotionPreviewScreen.svelte";
   import PictureNavigation from "./PictureNavigation.svelte";
-  import TimingSection from "./TimingSection.svelte";
+  import PictureEditorTiming from "./PictureEditorTiming.svelte";
+  import PictureEditorWell from "./PictureEditorWell.svelte";
   import ViewSwitch, { type PhoneView } from "./ViewSwitch.svelte";
-  import { EditorPreview } from "./editor-preview";
-  import { MotionPreview, type MotionPreviewPorts } from "./motion-preview";
+  import { EditorPreviewSession } from "./editor-preview-session.svelte";
+  import type { MotionPreviewPorts } from "./motion-preview";
   import { FRAME_KEYS, type FrameKey } from "./frame-keys";
   import type { PictureEditorView } from "./picture-editor-view";
 
@@ -95,30 +94,17 @@
 
   // The screen is keyed by picture: the start state is fixed for its lifetime.
   // svelte-ignore state_referenced_locally
-  const previewClock = new MotionPreview(
-    { durationMs: picture.durationMs, playing: !reducedMotion },
-    previewPorts,
-  );
-  let previewState = $state.raw(previewClock.state);
-  previewClock.subscribe((state) => (previewState = state));
-  onDestroy(() => previewClock.dispose());
-  // svelte-ignore state_referenced_locally
-  const editorPreview = new EditorPreview(previewClock, reducedMotion);
-
-  // svelte-ignore state_referenced_locally
-  let previewedDurationMs = picture.durationMs;
-  $effect(() => {
-    if (picture.durationMs !== previewedDurationMs) {
-      previewedDurationMs = picture.durationMs;
-      editorPreview.retime(picture.durationMs);
-    }
-  });
+  const previewSession = new EditorPreviewSession(picture.durationMs, reducedMotion, previewPorts);
+  const previewClock = previewSession.clock;
+  const editorPreview = previewSession.answers;
+  onDestroy(() => previewSession.dispose());
+  $effect(() => previewSession.retimeTo(picture.durationMs));
 
   const previewPlayhead = $derived(
     playheadRect(
       {
         kenBurns: { ...motion, easing: KEN_BURNS_EASING },
-        progress: Math.min(1, previewState.elapsedMs / picture.durationMs),
+        progress: Math.min(1, previewSession.state.elapsedMs / picture.durationMs),
       },
       picture.size,
     ),
@@ -166,22 +152,20 @@
     {/snippet}
   </Header>
   <main class="edit">
-    <div class="well-column" class:off-phone={phoneView !== "frame"}>
-      <FrameWell
-        size={picture.size}
-        {pictureUrl}
-        alt={t("editor.crumb", { number: picture.number })}
-        {motion}
-        {active}
-        playhead={previewState.playing ? previewPlayhead : null}
-        {focus}
-        {reducedMotion}
-        onActivate={activate}
-        onFraming={frameChanged}
-      />
-      <p class="hint wide-hint">{t("editor.hintWide")}</p>
-      <ViewSwitch view={phoneView} onView={switchView} />
-    </div>
+    <PictureEditorWell
+      size={picture.size}
+      {pictureUrl}
+      alt={t("editor.crumb", { number: picture.number })}
+      {motion}
+      {active}
+      playhead={previewSession.state.playing ? previewPlayhead : null}
+      {focus}
+      {reducedMotion}
+      {phoneView}
+      onActivate={activate}
+      onFraming={frameChanged}
+      onView={switchView}
+    />
     <MotionPanel
       {picture}
       {active}
@@ -211,35 +195,26 @@
           {pictureUrl}
           {nextPictureUrl}
           caption={normalizeCaption(caption)}
-          playback={previewState}
+          playback={previewSession.state}
           onPlay={() => previewClock.play()}
           onPause={() => previewClock.pause()}
         />
         <ViewSwitch view={phoneView} onView={switchView} />
       {/snippet}
       {#snippet timing()}
-        <TimingSection
+        <PictureEditorTiming
           {picture}
           {pictureUrl}
           {nextPictureUrl}
-          ports={previewPorts}
+          {previewPorts}
           {reducedMotion}
-          onDuration={(durationMs) => {
-            onDuration(durationMs);
-            showPreview();
-          }}
-          onTransition={(choice) => {
-            onTransition(choice);
-            showPreview();
-            editorPreview.showTransition(choice, picture);
-          }}
-          onReset={() => {
-            onResetTiming();
-            showPreview();
-            editorPreview.showTransition(picture.transition.automatic, picture);
-          }}
+          {editorPreview}
+          {showPreview}
+          {onDuration}
+          {onTransition}
+          {onResetTiming}
+          {onAlone}
         />
-        <LayoutSection {picture} {onAlone} />
       {/snippet}
     </MotionPanel>
   </main>
@@ -253,43 +228,11 @@
     grid-template-columns: minmax(0, 1fr) 340px;
     min-height: 0;
   }
-  .well-column {
-    display: grid;
-    grid-template-rows: minmax(0, 1fr) auto auto;
-    gap: 10px;
-    min-height: 0;
-    padding: 18px;
-  }
-  .hint {
-    margin: 0;
-    color: var(--gl-muted);
-    font-size: var(--gl-size-meta);
-    text-align: center;
-  }
   @container (max-width: 720px) {
     /* The phone layout scrolls as one: the picture on top, the panel below. */
     .edit {
       flex: none;
       grid-template-columns: 1fr;
-    }
-    /* The picture or the preview, never both: the shown one stays in view as the page scrolls. */
-    .well-column {
-      position: sticky;
-      top: 0;
-      z-index: 3;
-      gap: 0;
-      padding: 0 0 12px;
-      border-bottom: 1px solid var(--gl-line);
-      background: var(--gl-surface);
-    }
-    .well-column.off-phone {
-      display: none;
-    }
-    .well-column > :global(.view-switch) {
-      margin: 10px 16px 0;
-    }
-    .wide-hint {
-      display: none;
     }
   }
 </style>
