@@ -15,9 +15,10 @@
 - **Order**: by capture date ascending, equal dates by file name.
 - **From Immich** (ADR-0013): the original is downloaded and goes through the same decode; one
   the browser cannot decode falls back to Immich's preview (JPEG, ≤ 1440 px). The capture date is
-  Immich's `localDateTime` cut to whole seconds (wall time with `Z`, as above), so a photo
-  met once as a file and once through Immich has one capture date and counts as one picture. A photo whose download fails (Immich or
-  the server gone meanwhile) is skipped as _not downloaded_; the import goes on. Files and Immich
+  Immich's `localDateTime` cut to whole seconds (wall time with `Z`, as above), so a photo met
+  once as a file and once through Immich has one capture date and counts as one picture. A photo
+  whose download fails (Immich or the server gone meanwhile) is skipped as _not downloaded_; the
+  import goes on. Files and Immich
   photos are two `PictureSource` adapters of the one `PictureImport`.
 - **Origin** (ADR-0016): a picture keeps `immichAssetId` (from Immich) or `fileBytes` (a file's
   size). **Duplicates**: before a picture is read, its identity (`PictureSource.identify()`: file
