@@ -3,10 +3,10 @@ import type { KeyValueStorage } from "../start/first-launch";
 import { createStoredChoice, type StoredChoice } from "./stored-choice";
 
 /** "auto" speaks the first browser language the app knows; the others pin a language. */
-export const LANGUAGE_PREFERENCES = ["auto", "de", "en"] as const;
+const LANGUAGE_PREFERENCES = ["auto", "de", "en"] as const;
 export type LanguagePreference = (typeof LANGUAGE_PREFERENCES)[number];
 
-export const DEFAULT_LANGUAGE_PREFERENCE: LanguagePreference = "auto";
+const DEFAULT_LANGUAGE_PREFERENCE: LanguagePreference = "auto";
 
 export type LanguagePreferenceStore = StoredChoice<LanguagePreference>;
 

@@ -2,7 +2,7 @@ import { de } from "./catalogue-de";
 import { en } from "./catalogue-en";
 import type { Catalogue, Message, MessageArgs, MessageKey, ParamValue } from "./messages";
 
-export const LANGUAGES = ["de", "en"] as const;
+const LANGUAGES = ["de", "en"] as const;
 export type Language = (typeof LANGUAGES)[number];
 
 const FALLBACK_LANGUAGE: Language = "en";

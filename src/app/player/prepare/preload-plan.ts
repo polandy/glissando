@@ -2,7 +2,7 @@
  * Reserve on the shortfall between preparing and showing the pictures, for a Wi-Fi whose speed
  * varies while the slideshow plays (ADR-0027).
  */
-export const PRELOAD_SAFETY_FACTOR = 1.2;
+const PRELOAD_SAFETY_FACTOR = 1.2;
 
 /** How long to prepare before playing so that preparing never falls behind the slides. */
 export interface PreloadPlan {

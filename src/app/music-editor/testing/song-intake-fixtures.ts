@@ -13,7 +13,7 @@ export const appleLossless = (): File =>
   new File([m4a("alac")], "Lanterns.m4a", { type: "audio/mp4" });
 
 /** An editor whose edits are stored at once, or, `holding`, once `store()` is called. */
-export class FakeEditor {
+class FakeEditor {
   readonly added: StoredMusic[][] = [];
   readonly log: string[];
   /** Resolves once songs were added. */

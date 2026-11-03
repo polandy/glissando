@@ -18,7 +18,7 @@ import { fakeHtmlExportDevice } from "../html-export/testing/fake-html-export-po
 import { FakeExportPorts } from "../video-export/testing/fake-export-ports";
 
 /** Two pictures, "a" and "b"; the stored pictures are empty blobs, never real photos. */
-export const SHOW: StoredSlideshow = {
+const SHOW: StoredSlideshow = {
   id: "show",
   title: "Juli 2025",
   createdAt: "2025-07-02T00:00:00Z",

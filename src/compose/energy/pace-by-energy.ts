@@ -6,7 +6,7 @@ import { spansOf, type SlideSpan } from "./slide-spans";
 /** Fixed number of re-weighting passes (ADR-0046, "Pacing"). */
 export const ENERGY_PASSES = 3;
 /** How strongly a quiet or loud span stretches or compresses an automatic slide's weight. */
-export const ENERGY_SPREAD = 2;
+const ENERGY_SPREAD = 2;
 
 /**
  * The usual durations, re-weighted by the playlist's energy (ADR-0046, "Pacing"): `ENERGY_PASSES`

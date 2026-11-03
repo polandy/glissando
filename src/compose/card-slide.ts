@@ -50,7 +50,7 @@ export function groundColourOf(colour: CardColour): string {
   return isCardSwatchId(colour) ? CARD_SWATCHES[colour] : colour;
 }
 
-export function isCardSwatchId(colour: CardColour): colour is CardSwatchId {
+function isCardSwatchId(colour: CardColour): colour is CardSwatchId {
   return colour in CARD_SWATCHES;
 }
 

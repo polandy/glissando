@@ -65,7 +65,7 @@ export function letters(text: string): readonly string[] {
 }
 
 /** `card`'s texts in reading order: the title, then the subtitle if it has one. */
-export function cardTexts(card: Pick<Card, "title" | "subtitle">): readonly string[] {
+function cardTexts(card: Pick<Card, "title" | "subtitle">): readonly string[] {
   return card.subtitle === undefined ? [card.title] : [card.title, card.subtitle];
 }
 

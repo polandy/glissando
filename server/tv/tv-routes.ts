@@ -35,10 +35,10 @@ import { redactTvSecrets } from "./tv-redaction";
  * a stream out, so it is tested without sockets.
  */
 
-export const TV_PATH = "/api/tv";
-export const LIBRARY_TV_PATH = `${LIBRARY_PATH}/tv`;
+const TV_PATH = "/api/tv";
+const LIBRARY_TV_PATH = `${LIBRARY_PATH}/tv`;
 /** Asked by Caddy's forward_auth on loopback only, as the share picture check is. */
-export const TV_PICTURE_CHECK_PATH = "/internal/tv-picture";
+const TV_PICTURE_CHECK_PATH = "/internal/tv-picture";
 
 const CLAIM_PART = "claim";
 const SHOW_PART = "show";

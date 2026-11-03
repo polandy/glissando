@@ -8,7 +8,7 @@ import PictureStrip from "./PictureStrip.svelte";
 import { NO_SELECTION, type StripSelection } from "./strip-selection";
 import { HOLD_MS } from "./tile-drag-types";
 
-export const PHONE = { width: 390, height: 844 };
+const PHONE = { width: 390, height: 844 };
 /** The page above the strip, so the strip starts low and its later rows lie below the screen. */
 const HEADER_PX = 700;
 const PICTURE_COUNT = 14;

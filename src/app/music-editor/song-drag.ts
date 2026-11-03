@@ -22,8 +22,8 @@ export interface SongDragState {
   readonly overIndex: number;
 }
 
-export const MOVE_UP_KEY = "ArrowUp";
-export const MOVE_DOWN_KEY = "ArrowDown";
+const MOVE_UP_KEY = "ArrowUp";
+const MOVE_DOWN_KEY = "ArrowDown";
 
 /** The place a focused grip's key moves its song to; null for any other key or at an end. */
 export function songIndexAfterKey(key: string, index: number, count: number): number | null {

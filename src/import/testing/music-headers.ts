@@ -26,7 +26,7 @@ function uint32(value: number): Uint8Array<ArrayBuffer> {
 }
 
 /** An ISO base media box (MP4, M4A, MOV): size, type, body. */
-export function box(type: string, ...body: readonly Uint8Array[]): Uint8Array<ArrayBuffer> {
+function box(type: string, ...body: readonly Uint8Array[]): Uint8Array<ArrayBuffer> {
   const content = concat(...body);
   return concat(uint32(8 + content.length), ascii(type), content);
 }

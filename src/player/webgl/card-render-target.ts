@@ -1,7 +1,7 @@
 import type { Size } from "../ken-burns";
 import { setLinearClamped } from "./caption-textures";
 
-export class CardRenderTargetError extends Error {
+class CardRenderTargetError extends Error {
   constructor(reason: string) {
     super(`could not set up a card render target: ${reason}`);
     this.name = "CardRenderTargetError";

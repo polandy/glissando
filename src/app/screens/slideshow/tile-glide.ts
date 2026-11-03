@@ -1,6 +1,6 @@
 import { REDUCED_MOTION_QUERY } from "../../../ui-kit/reduced-motion";
 
-export const TILE_GLIDE_MS = 550;
+const TILE_GLIDE_MS = 550;
 
 /** The strip's picture tiles (the list items) by picture id. */
 function tilesById(strip: HTMLElement): Map<string, HTMLElement> {

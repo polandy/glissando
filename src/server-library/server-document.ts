@@ -24,7 +24,7 @@ import {
  * (`dev-docs/server_library/SERVER_DOCUMENT.md`). Shared by the app and the server.
  */
 
-export const SERVER_DOCUMENT_FORMAT_ID = "glissando-server";
+const SERVER_DOCUMENT_FORMAT_ID = "glissando-server";
 /**
  * Version 2 added the slideshow's `openingCard` and `closingCard` (ADR-0032), version 3 a
  * picture's `colours` and a card's picture background `tint` (ADR-0033), version 4 the

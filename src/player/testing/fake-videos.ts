@@ -9,7 +9,7 @@ export function labelOf(frame: LiveFrame | undefined): string | undefined {
   return (frame as unknown as { label?: string } | undefined)?.label;
 }
 
-export class FakeVideo implements VideoPlayback {
+class FakeVideo implements VideoPlayback {
   /** Every call in order, `follow` and `setVolume` included. */
   readonly calls: string[] = [];
   volume: number | undefined;

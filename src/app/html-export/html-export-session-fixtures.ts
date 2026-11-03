@@ -1,7 +1,7 @@
 import { HtmlExportSession } from "./html-export-session";
 import { FakeHtmlExportPorts } from "./testing/fake-html-export-ports";
 
-export const TITLE = "Sommer am See";
+const TITLE = "Sommer am See";
 export const FILE_NAME = "Sommer am See.html";
 export const DURATION_MS = 10_000;
 export const PICTURES = 3;

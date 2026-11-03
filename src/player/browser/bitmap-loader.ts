@@ -14,7 +14,7 @@ export interface PictureDecoder {
   dispose(): void;
 }
 
-export class PictureFetchError extends Error {
+class PictureFetchError extends Error {
   constructor(src: string, status: number) {
     super(`the picture ${src} did not load: HTTP ${status}`);
     this.name = "PictureFetchError";

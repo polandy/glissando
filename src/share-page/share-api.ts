@@ -27,7 +27,7 @@ export class ShareMediumMissingError extends Error {
 }
 
 /** The service's answer to anything else. */
-export class ShareAnswerError extends Error {
+class ShareAnswerError extends Error {
   override readonly name = "ShareAnswerError";
 }
 

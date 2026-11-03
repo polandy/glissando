@@ -5,7 +5,7 @@ import { fill } from "./share-page-words";
 import type { TvPageWords } from "./tv-page-words";
 
 /** How long a command's note stays on screen. */
-export const NOTE_SHOWN_MS = 1800;
+const NOTE_SHOWN_MS = 1800;
 
 /** The TV's own cards (dev-docs/tv_remote/TV_PAGE.md); at most one shows at a time. */
 export type TvCard =
