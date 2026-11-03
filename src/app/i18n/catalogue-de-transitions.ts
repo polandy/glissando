@@ -15,8 +15,7 @@ export const deTransitions = {
   "transitions.hintCut": "Die Bilder folgen ohne Übergang aufeinander.",
   "transitions.hintMood":
     "Durch die Stimmung {name} festgelegt. Eine andere Wahl schaltet die Stimmung aus.",
-  "transitions.hintEffect":
-    "Jeder Übergang: {effect}. Er dauert {share} % der Bilddauer, höchstens {max} s.",
+  "transitions.hintEffect": "Jeder Übergang: {effect}.",
   "transitions.ownKept": {
     one: "Bild {numbers} behält seinen eigenen Übergang – zu ändern im Bildeditor.",
     other: "Bild {numbers} behalten ihren eigenen Übergang – zu ändern im Bildeditor.",

@@ -32,7 +32,7 @@
     "4k": "prepare.quality4k",
   };
 
-  const { t, formatSeconds, formatDuration } = getTranslator();
+  const { t, formatDuration } = getTranslator();
   const quality = $derived(t(QUALITY_NAME[view.quality]));
   const squares = $derived(
     view.stage === "preparing"
@@ -80,8 +80,6 @@
       <p class="line">
         {t("prepare.preparingLine", {
           quality,
-          picture: formatSeconds(view.secondsPerPicture),
-          slide: formatSeconds(view.secondsPerSlide),
           target: view.target,
           count: view.pictureCount,
         })}

@@ -23,9 +23,6 @@ export type PrepareView =
       readonly ready: number;
       readonly target: number;
       readonly pictureCount: number;
-      readonly secondsPerPicture: number;
-      /** The slides' average length. */
-      readonly secondsPerSlide: number;
       readonly secondsLeft: number;
     }
   | { readonly stage: "playing"; readonly quality: PlaybackQuality }
@@ -182,9 +179,6 @@ export class PrepareFlow {
       ready,
       target,
       pictureCount,
-      secondsPerPicture,
-      secondsPerSlide:
-        (this.#slides.duration - (this.#slides.starts[this.#startSlide] ?? 0)) / pictureCount,
       secondsLeft: (target - ready) * secondsPerPicture,
     };
   }

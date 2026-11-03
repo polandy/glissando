@@ -31,7 +31,7 @@ describe("PictureEditorScreen transition", () => {
     expect(tile("crossfade").classList.contains("automatic")).toBe(true);
     expect(tile("crossfade").querySelector(".tag")?.textContent).toBe("Auto");
     expect(text(transitionSection())).toContain(
-      "Automatisch gilt der Übergang der Diashow: Überblenden. Dauert 1,0 s, am Ende von Bild 2: 30 % der Bilddauer, höchstens 1 s.",
+      "Automatisch gilt der Übergang der Diashow: Überblenden. Überblenden zu Bild 3, 1,0 s.",
     );
   });
 
@@ -70,6 +70,7 @@ describe("PictureEditorScreen transition", () => {
     expect(tile("zoom-in").querySelector(".tag")?.textContent).toBe("Auto");
     expect(tile("crossfade").querySelector(".tag")).toBeNull();
     expect(text(transitionSection())).toContain("Automatisch gilt der Übergang der Diashow: Zoom.");
+    expect(text(transitionSection())).toContain("Zoom zu Bild 3, 1,0 s.");
   });
 
   it("makes a tapped effect own, also the automatic one", () => {

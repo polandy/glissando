@@ -43,8 +43,7 @@ export const enTiming: Pick<Catalogue, keyof typeof deTiming> = {
     "Automatically, the slideshow's transition applies: {effect}.",
   "editor.transitionsAlternate":
     "Automatically, the transitions alternate, as set for the slideshow.",
-  "editor.transitionHint":
-    "Takes {length} at the end of picture {number}: {share} % of the picture length, at most {max} s.",
+  "editor.transitionHint": "{effect} to picture {number}, {length}.",
   "editor.cutHint": "Picture {number} follows without a transition.",
   "editor.autoTag": "Auto",
   "effect.crossfade": "Crossfade",

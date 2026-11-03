@@ -1,6 +1,5 @@
 <script lang="ts">
   import { onDestroy } from "svelte";
-  import { MAX_TRANSITION_DURATION_MS, TRANSITION_SHARE_OF_SLIDE } from "../../compose";
   import {
     ALTERNATE_TRANSITION,
     CUT_TRANSITION,
@@ -40,7 +39,6 @@
   } = $props();
 
   const { t, formatTenthSeconds } = getTranslator();
-  const PERCENT = 100;
 
   let elapsedMs = $state(TILE_STILL_MS);
   // The ports and the motion preference are fixed for the screen's lifetime.
@@ -58,9 +56,8 @@
       ? t("editor.cutHint", { number: picture.number + 1 })
       : t("editor.transitionHint", {
           length: formatTenthSeconds(picture.transition.durationMs / MILLISECONDS_PER_SECOND),
-          number: picture.number,
-          share: TRANSITION_SHARE_OF_SLIDE * PERCENT,
-          max: MAX_TRANSITION_DURATION_MS / MILLISECONDS_PER_SECOND,
+          number: picture.number + 1,
+          effect: t(`effect.${picture.transition.choice}`),
         }),
   );
 

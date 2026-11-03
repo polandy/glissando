@@ -118,7 +118,7 @@ export const deServer = {
   "prepare.ofMeasuring": "von {total}",
   "prepare.preparingTitle": "Bereite Bilder vor",
   "prepare.preparingLine":
-    "{quality} · ein Bild braucht hier ~{picture}, gezeigt wird es {slide}. Damit die Diashow ohne Anhalten läuft, lädt Glissando {target} von {count} Bildern vor.",
+    "{quality} · Damit die Diashow ohne Anhalten läuft, bereitet Glissando zuerst {target} von {count} Bildern vor.",
   "prepare.progressLabel": "Vorbereitete Bilder",
   "prepare.ofPictures": "von {total} Bildern",
   "prepare.startsIn": "startet in",

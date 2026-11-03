@@ -42,9 +42,8 @@ middle, at most 420 px wide: a 3:2 frame with the quality ("1440" or "4K") as a 
 - **Measuring**: "Checking the connection …", "Loading the first 2 pictures in 4K to measure how
   long one takes.", an indeterminate mint bar (a static, dimmed one with reduced motion), and
   "Measuring" · "1 of 2".
-- **Preparing**: "Preparing pictures", "4K · a picture takes ~6 s here and is shown for 5 s. So
-  the slideshow plays without stopping, Glissando prepares 7 of 30 pictures first." (the slide
-  length is the slides' average), a mint bar (`role="progressbar"`, "Prepared pictures", values
+- **Preparing**: "Preparing pictures", "4K · So the
+  slideshow plays without stopping, Glissando prepares 7 of 30 pictures first.", a mint bar (`role="progressbar"`, "Prepared pictures", values
   ready of target), "3 of 7 pictures" and "starts in ~0:24" in mono tabular figures, and a row of
   small squares, one per picture up to 40: ready ones mint, the ones to prepare first outlined.
 

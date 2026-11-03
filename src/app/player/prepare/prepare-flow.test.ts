@@ -84,8 +84,6 @@ describe("PrepareFlow", () => {
       ready: 6,
       target: 7,
       pictureCount: 30,
-      secondsPerPicture: 6,
-      secondsPerSlide: 5,
       secondsLeft: 6,
     });
     await answer(6, 6);
@@ -102,7 +100,7 @@ describe("PrepareFlow", () => {
     await answer(3, 10);
 
     // The last four average 8 s: 8 + 29 · 3 · 1.2 = 112.4 s, 15 pictures.
-    expect(flow.view).toMatchObject({ stage: "preparing", target: 15, secondsPerPicture: 8 });
+    expect(flow.view).toMatchObject({ stage: "preparing", target: 15 });
   });
 
   it("plays at once when asked and goes on preparing behind the slides", async () => {
@@ -193,7 +191,6 @@ describe("PrepareFlow", () => {
       ready: 2,
       target: 3,
       pictureCount: 10,
-      secondsPerSlide: 5,
     });
   });
 

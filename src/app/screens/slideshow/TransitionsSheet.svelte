@@ -1,6 +1,5 @@
 <script lang="ts">
   import { onDestroy, onMount } from "svelte";
-  import { MAX_TRANSITION_DURATION_MS, TRANSITION_SHARE_OF_SLIDE } from "../../../compose";
   import { MOOD_PROFILES } from "../../../compose/mood-settings";
   import {
     ALTERNATE_TRANSITION,
@@ -9,7 +8,6 @@
     SLIDESHOW_TRANSITIONS,
     type SlideshowTransition,
   } from "../../../library/own-timing";
-  import { MILLISECONDS_PER_SECOND } from "../../../player";
   import ResetButton from "../../components/ResetButton.svelte";
   import SectionHead from "../../components/SectionHead.svelte";
   import { radioIndexForKey } from "../../components/radio-keys";
@@ -46,7 +44,6 @@
   } = $props();
 
   const { t } = getTranslator();
-  const PERCENT = 100;
 
   let elapsedMs = $state(TILE_STILL_MS);
   // The ports and the motion preference are fixed while the sheet is open.
@@ -75,8 +72,6 @@
           ? t("transitions.hintCut")
           : t("transitions.hintEffect", {
               effect: t(`effect.${slideshow.transition}`),
-              share: TRANSITION_SHARE_OF_SLIDE * PERCENT,
-              max: MAX_TRANSITION_DURATION_MS / MILLISECONDS_PER_SECOND,
             }),
   );
   /** The pictures that keep a transition of their own, by number; the last one plays none. */

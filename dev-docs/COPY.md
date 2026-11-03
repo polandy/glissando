@@ -38,5 +38,5 @@ Rules beyond the table:
 - A button says the outcome ("Save", "Remove"), never the mechanism ("Export", "Clear").
 - German keeps the English loan words the table lists (Clip, Song) and compounds the rest with a
   hyphen (Glissando-Server).
-- Jargon (codec names, BPM, dB, pixel sizes) and mechanics explanations are their own items,
-  UX-15 and UX-16 in `ux_backlog/copy.md`.
+- A helper line says what the viewer will see ("Crossfade to picture 4, 0.6 s."), never how the
+  app works it out.

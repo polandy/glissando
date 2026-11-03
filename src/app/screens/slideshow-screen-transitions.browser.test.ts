@@ -117,9 +117,7 @@ describe("SlideshowScreen, the transitions sheet", () => {
     expect(tile("crossfade").querySelector(".tag")?.textContent).toBe("Automatisch");
     expect(sheet()?.querySelectorAll(".tag")).toHaveLength(1);
     expect(document.activeElement).toBe(tile("crossfade"));
-    expect(text(sheet())).toContain(
-      "Jeder Übergang: Überblenden. Er dauert 30 % der Bilddauer, höchstens 1 s.",
-    );
+    expect(text(sheet()?.querySelector(".hint") ?? null)).toBe("Jeder Übergang: Überblenden.");
   });
 
   it("opens with focus on the checked choice", () => {
@@ -142,7 +140,7 @@ describe("SlideshowScreen, the transitions sheet", () => {
     expect(pill()).toBe("Gewählt");
     expect(tile("dissolve").getAttribute("aria-checked")).toBe("true");
     expect(tile("dissolve").classList.contains("automatic")).toBe(false);
-    expect(text(sheet())).toContain("Jeder Übergang: Auflösen.");
+    expect(text(sheet()?.querySelector(".hint") ?? null)).toBe("Jeder Übergang: Auflösen.");
     expect(text(transitionsRow())).toContain("Auflösen gewählt");
   });
 
