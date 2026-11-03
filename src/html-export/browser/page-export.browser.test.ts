@@ -117,6 +117,14 @@ describe("an exported web page", () => {
       .forEach((cleanup) => cleanup()),
   );
 
+  it("names mediabunny, its MPL-2.0 licence and its source in the head (ADR-0015)", async () => {
+    const text = await (await exportedPage()).text();
+
+    expect(text.slice(0, text.indexOf("<body>"))).toMatch(
+      /mediabunny \d+\.\d+\.\d+, MPL-2\.0 \(https:\/\/spdx\.org\/licenses\/MPL-2\.0\.html\), source https:\/\/github\.com\/Vanilagy\/mediabunny/,
+    );
+  });
+
   it("holds each picture fitted within the size, never scaled up", async () => {
     const text = await (await exportedPage()).text();
     const sizes = await Promise.all(

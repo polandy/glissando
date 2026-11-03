@@ -91,6 +91,7 @@ describe("playerBundleBytes", () => {
       style: "a{content:'é'}",
       captionFontDataUrl: "data:x",
       cardFontDataUrls: {},
+      notices: [],
     };
 
     expect(playerBundleBytes(bundle)).toBe(6 + 15 + 6);

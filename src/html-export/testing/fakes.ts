@@ -9,6 +9,7 @@ export const FAKE_BUNDLE: PlayerBundle = {
   cardFontDataUrls: Object.fromEntries(
     CARD_FONT_FILES.map((file, index) => [file.assetPath, `data:font/woff2;base64,BBB${index}`]),
   ),
+  notices: [],
 };
 
 export function fixedPlayerAsset(bundle: PlayerBundle = FAKE_BUNDLE): PlayerAsset {

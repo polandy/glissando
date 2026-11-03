@@ -27,6 +27,18 @@ const COPY: PageCopy = {
 
 const HOSTILE = "</script><script>alert(1)</script><!--";
 
+const MEDIABUNNY_NOTICE = {
+  name: "mediabunny",
+  version: "1.62.1",
+  licenseId: "MPL-2.0",
+  sourceUrl: "https://github.com/Vanilagy/mediabunny",
+};
+
+const MEDIABUNNY_COMMENT =
+  "<!--\nThird-party code in this page's script:\n" +
+  "mediabunny 1.62.1, MPL-2.0 (https://spdx.org/licenses/MPL-2.0.html), " +
+  "source https://github.com/Vanilagy/mediabunny\n-->";
+
 const SLIDESHOW: Slideshow = {
   formatVersion: SLIDESHOW_FORMAT_VERSION,
   title: "Rom",
@@ -54,6 +66,7 @@ function frame(overrides: Partial<PageFrame> = {}): PageFrame {
     style: "body{margin:0}",
     captionFontDataUrl: "data:font/woff2;base64,AAAA",
     cardFontFaceRules: [],
+    notices: [],
     ...overrides,
   };
 }
@@ -82,6 +95,26 @@ describe("pageHead", () => {
     expect(pageHead(frame())).toContain(
       `<meta http-equiv="Content-Security-Policy" content="${PAGE_CONTENT_SECURITY_POLICY}">`,
     );
+  });
+
+  it("names each bundled package, its licence and its source in a comment before the style", () => {
+    const head = pageHead(frame({ notices: [MEDIABUNNY_NOTICE] }));
+
+    expect(head).toContain(MEDIABUNNY_COMMENT);
+    expect(head.indexOf(MEDIABUNNY_COMMENT)).toBeGreaterThan(head.indexOf("<title>"));
+    expect(head.indexOf(MEDIABUNNY_COMMENT)).toBeLessThan(head.indexOf("<style>"));
+  });
+
+  it("writes no comment when the script bundles no third-party package", () => {
+    const head = pageHead(frame({ notices: [] }));
+
+    expect(head).toContain("<title>");
+    expect(head).not.toContain("<!--");
+  });
+
+  it("fails on a notice that would end the comment early", () => {
+    const hostile = { ...MEDIABUNNY_NOTICE, sourceUrl: "https://example.com/--> <script>" };
+    expect(() => pageHead(frame({ notices: [hostile] }))).toThrow(/comment/);
   });
 
   it("inlines the page style and the caption font as a data: URL", () => {

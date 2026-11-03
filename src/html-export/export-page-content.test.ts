@@ -13,6 +13,7 @@ import {
   block,
   decoded,
 } from "./export-page-fixtures";
+import { FAKE_BUNDLE, fixedPlayerAsset } from "./testing/fakes";
 
 describe("exportPage, what the page holds", () => {
   it("writes the page in order: head, each picture as p<n>, each song as s<n>, the player, then closes", async () => {
@@ -29,6 +30,25 @@ describe("exportPage, what the page holds", () => {
     expect(page.indexOf("<script>startPage()</script>")).toBeGreaterThan(order.at(-1) ?? 0);
     expect(page.endsWith("</html>\n")).toBe(true);
     expect(sink.closed).toBe(true);
+  });
+
+  it("names the player bundle's third-party packages in the head", async () => {
+    const notice = {
+      name: "mediabunny",
+      version: "1.62.1",
+      licenseId: "MPL-2.0",
+      sourceUrl: "https://github.com/Vanilagy/mediabunny",
+    };
+    const { job, sink } = run({
+      playerAsset: fixedPlayerAsset({ ...FAKE_BUNDLE, notices: [notice] }),
+    });
+
+    await exportPage(job);
+
+    const page = sink.text;
+    const at = page.indexOf("mediabunny 1.62.1, MPL-2.0");
+    expect(at).toBeGreaterThan(-1);
+    expect(at).toBeLessThan(page.indexOf("<body>"));
   });
 
   it("points the slideshow's pictures at their blocks and its track at its song's block", async () => {

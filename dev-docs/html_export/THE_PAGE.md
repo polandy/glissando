@@ -5,7 +5,9 @@
   font is an `@font-face` with a `data:` URL, as is every font a card on the slideshow uses beyond
   it (ADR-0032: `cardFontFilesUsedBy` picks only the fonts the slideshow's cards need). Nothing
   loads from outside the file, and the page sets a CSP `default-src 'none'` that allows only
-  inline script, inline style and `data:`/`blob:` media.
+  inline script, inline style and `data:`/`blob:` media. The head also holds an HTML comment
+  naming every npm package the script bundles with its version, licence and source (today
+  mediabunny, MPL-2.0), derived at build time from the bundle.
 - **Data**: the slideshow JSON (as composed for the player, `parseSlideshow` format) sits in
   `<script type="application/json" id="slideshow">`. Each picture's `image.src` is a key `p<n>`,
   every track's `src` the key `s<n>` of its song: each song the composed JSON plays is embedded

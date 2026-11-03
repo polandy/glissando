@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { bundleParts, playerBundleModule, tokenDeclarations } from "./export-player-bundle.ts";
 
+const MEDIABUNNY_NOTICE = {
+  name: "mediabunny",
+  version: "1.62.1",
+  licenseId: "MPL-2.0",
+  sourceUrl: "https://github.com/Vanilagy/mediabunny",
+};
+
 const TOKENS = `
 @font-face { font-family: "X"; src: url("x.woff2"); }
 :root {
@@ -47,16 +54,16 @@ describe("bundleParts", () => {
   it("takes the one script chunk and the one stylesheet", () => {
     expect(
       bundleParts([
-        { type: "chunk", fileName: "main.js", code: "run()" },
+        { type: "chunk", fileName: "main.js", code: "run()", moduleIds: ["/app/src/main.ts"] },
         { type: "asset", fileName: "style.css", source: ".a{}" },
       ]),
-    ).toEqual({ script: "run()", style: ".a{}" });
+    ).toEqual({ script: "run()", style: ".a{}", moduleIds: ["/app/src/main.ts"] });
   });
 
   it("fails when the build emitted any other file, e.g. a worker that was not inlined", () => {
     expect(() =>
       bundleParts([
-        { type: "chunk", fileName: "main.js", code: "run()" },
+        { type: "chunk", fileName: "main.js", code: "run()", moduleIds: [] },
         { type: "asset", fileName: "style.css", source: ".a{}" },
         { type: "asset", fileName: "assets/picture-decode-worker.js", source: "" },
       ]),
@@ -67,7 +74,7 @@ describe("bundleParts", () => {
     "fails when the script holds %j, which would end or garble its inline <script> block",
     (sequence) => {
       const files = (code: string) => [
-        { type: "chunk", fileName: "main.js", code } as const,
+        { type: "chunk", fileName: "main.js", code, moduleIds: [] } as const,
         { type: "asset", fileName: "style.css", source: ".a{}" } as const,
       ];
       expect(bundleParts(files("run()")).script).toBe("run()");
@@ -76,19 +83,20 @@ describe("bundleParts", () => {
   );
 
   it("fails without a stylesheet", () => {
-    expect(() => bundleParts([{ type: "chunk", fileName: "main.js", code: "run()" }])).toThrow(
-      /stylesheet/,
-    );
+    expect(() =>
+      bundleParts([{ type: "chunk", fileName: "main.js", code: "run()", moduleIds: [] }]),
+    ).toThrow(/stylesheet/);
   });
 });
 
 describe("playerBundleModule", () => {
-  it("exports the script, the style and the font as a data: URL", async () => {
+  it("exports the script, the style, the font as a data: URL and the bundled packages' notices", async () => {
     const source = playerBundleModule({
       script: 'run("</script>")',
       style: ".a{}",
       fontBytes: new Uint8Array([0, 1, 2]),
       cardFontBytes: {},
+      notices: [MEDIABUNNY_NOTICE],
     });
     const url = `data:text/javascript;base64,${btoa(source)}`;
     const module = (await import(/* @vite-ignore */ url)) as { default: unknown };
@@ -98,6 +106,7 @@ describe("playerBundleModule", () => {
       style: ".a{}",
       captionFontDataUrl: "data:font/woff2;base64,AAEC",
       cardFontDataUrls: {},
+      notices: [MEDIABUNNY_NOTICE],
     });
   });
 
@@ -107,6 +116,7 @@ describe("playerBundleModule", () => {
       style: ".a{}",
       fontBytes: new Uint8Array([0, 1, 2]),
       cardFontBytes: { "assets/fonts/bricolagegrotesque-latin-wght700.woff2": new Uint8Array([9]) },
+      notices: [],
     });
     const url = `data:text/javascript;base64,${btoa(source)}`;
     const module = (await import(/* @vite-ignore */ url)) as {
