@@ -1,7 +1,7 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { GERMAN_BROWSER } from "./support/app";
 import { openApp } from "./support/browser";
-import { fakeGlissandoServer } from "./support/fake-glissando-server";
+import { fakeGlissandoServer, immichFixture } from "./support/fake-glissando-server";
 import { pictureTakenOn } from "./support/media";
 
 test.use(GERMAN_BROWSER);
@@ -181,6 +181,40 @@ test("E2E-049 a #frame= link starts the frame directly, skipping set-up", async 
   // the fake library is from Annecy.
   await expect(page.locator(".stamp b")).toHaveText("Annecy");
   await expect(page.locator(".stamp small")).toHaveText(/\d{4}/);
+});
+
+test("E2E-117 the frame's caption names each picture's place above its date, and a picture without a place by its date alone", async ({
+  page,
+}) => {
+  await openAppWithServer(page);
+  // The recorded album's Lyon picture (19 June 2019) and its picture without a place (18 June
+  // 2019), the album's newest two: registered after the fake server's own routes, so it wins.
+  const album = immichFixture<{ assets: { items: { exifInfo: { city: string | null } }[] } }>(
+    "search-album",
+  );
+  const lyon = album.assets.items.find((asset) => asset.exifInfo.city === "Lyon");
+  const unplaced = album.assets.items.find((asset) => asset.exifInfo.city === null);
+  await page.route(/\/immich\/api\/search\/metadata$/, (route) =>
+    route.fulfill({ json: { assets: { items: [lyon, unplaced], nextPage: null } } }),
+  );
+
+  await setUpCard(page).click();
+  await albumTile(page, "Landscapes Lab").click();
+  await page.getByRole("button", { name: "10 s" }).click();
+  await page.getByRole("button", { name: "Neueste zuerst" }).click();
+
+  await startFrameButton(page).click();
+  await expect(page.locator(".stamp b")).toHaveText("Lyon");
+  await expect(page.locator(".stamp small")).toHaveText("Mi., 19. Juni 2019");
+
+  // Oldest first opens on the picture without a place. The caption following the playback from
+  // one picture to the next is proven in `FrameLayer.browser.test.ts`.
+  await page.keyboard.press("Escape");
+  await setUpCard(page).click();
+  await page.getByRole("button", { name: "Älteste zuerst" }).click();
+  await startFrameButton(page).click();
+  await expect(page.locator(".stamp b")).toHaveText("Di., 18. Juni 2019");
+  await expect(page.locator(".stamp small")).toHaveCount(0);
 });
 
 test("E2E-057 the picture frame card is hidden with its close button, stays hidden after a reload, the frame is still set up from Settings and the card is brought back there", async ({

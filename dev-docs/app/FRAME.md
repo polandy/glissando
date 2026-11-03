@@ -58,7 +58,7 @@ describes the picture on screen: its place as the bold title and its capture dat
 the translator's day format ("Sat, 12 July 2025"). The place is the city Immich's reverse
 geocoding gave the picture (`exifInfo.city`, read with the album's picture list), without the
 country — on a frame at home the country rarely tells anything. A picture without a city shows its
-date as the title and nothing below. The album's name is not shown: the frame shows one album, so
+date as the title and nothing below (E2E-117). The album's name is not shown: the frame shows one album, so
 it would never change. Mockup: https://polandy.github.io/glissando-assets/mockups/frame-place/
 (variant B, "City"). The screen is kept awake for as long as the frame
 runs
