@@ -1,8 +1,9 @@
 /**
  * Hands playback over from one round's player to the next without the player itself being
- * incremental (`dev-docs/app/FRAME.md`, ADR-0030): the next round is created and started, muted
- * from view, as soon as the current one starts, so by the time it ends the next is usually
- * already showing its first picture; only then is the old one torn down.
+ * incremental (`dev-docs/app/FRAME.md`, ADR-0030): the next round is created hidden as soon as
+ * the current one starts and shows its first picture ahead of its turn, so by the time the
+ * current one ends the next is usually ready. It starts playing only when it is swapped in, so
+ * every round plays from its beginning; only then is the old one torn down.
  */
 
 /** The player API the hand-over needs; `BrowserPlayer` (src/player) satisfies it. */
@@ -10,8 +11,11 @@ export interface FrameRoundPlayer {
   play(): void;
   pause(): void;
   destroy(): void;
-  addEventListener(type: "ended" | "playing" | "waiting", listener: () => void): void;
-  removeEventListener(type: "ended" | "playing" | "waiting", listener: () => void): void;
+  addEventListener(type: "ended" | "playing" | "waiting" | "canplay", listener: () => void): void;
+  removeEventListener(
+    type: "ended" | "playing" | "waiting" | "canplay",
+    listener: () => void,
+  ): void;
 }
 
 export type RoundOutcome =
@@ -141,7 +145,7 @@ export class RoundHandover {
     this.#current?.removeEventListener("waiting", this.#onCurrentWaiting);
     this.#current?.destroy();
     this.#current = null;
-    this.#preparing?.removeEventListener("playing", this.#onPreparingReady);
+    this.#preparing?.removeEventListener("canplay", this.#onPreparingReady);
     this.#preparing?.destroy();
     this.#preparing = null;
   }
@@ -155,8 +159,7 @@ export class RoundHandover {
       return;
     }
     this.#preparing = outcome.player;
-    this.#preparing.addEventListener("playing", this.#onPreparingReady);
-    this.#preparing.play();
+    this.#preparing.addEventListener("canplay", this.#onPreparingReady);
   }
 
   /** The round ended (naturally or via `skip`): swaps in the next round if it is ready, else waits. */
@@ -180,12 +183,12 @@ export class RoundHandover {
     if (next === null) {
       return;
     }
-    next.removeEventListener("playing", this.#onPreparingReady);
+    next.removeEventListener("canplay", this.#onPreparingReady);
     this.#current?.removeEventListener("playing", this.#onCurrentPlaying);
     this.#current?.removeEventListener("waiting", this.#onCurrentWaiting);
     this.#current?.destroy();
     this.#current = next;
-    // The prepared round only ever got here because its own "playing" already fired.
+    // The prepared round only ever got here because its "canplay" fired: it shows its first picture.
     this.#currentPlaying = true;
     this.#current.addEventListener("ended", this.#onEnded);
     this.#current.addEventListener("playing", this.#onCurrentPlaying);
@@ -193,6 +196,9 @@ export class RoundHandover {
     this.#preparing = null;
     this.#preparingReady = false;
     this.#waitingToSwap = false;
+    if (!this.#paused) {
+      this.#current.play();
+    }
     this.#notify();
     this.#prepareNext();
   }
