@@ -16,17 +16,13 @@ class CardRenderTargetError extends Error {
  */
 export class CardRenderTarget {
   readonly #gl: WebGL2RenderingContext;
-  readonly #framebuffer: WebGLFramebuffer;
+  #framebuffer: WebGLFramebuffer;
   #texture: WebGLTexture;
   #size: Size = { width: 0, height: 0 };
 
   constructor(gl: WebGL2RenderingContext) {
     this.#gl = gl;
-    const framebuffer = gl.createFramebuffer();
-    if (framebuffer === null) {
-      throw new CardRenderTargetError("createFramebuffer returned null");
-    }
-    this.#framebuffer = framebuffer;
+    this.#framebuffer = this.#createFramebuffer();
     this.#texture = this.#createTexture();
   }
 
@@ -52,8 +48,9 @@ export class CardRenderTarget {
     gl.viewport(0, 0, viewport.width, viewport.height);
   }
 
-  /** The context was restored: the old framebuffer's texture is gone; draw into a fresh one. */
+  /** The context was restored: the old framebuffer and texture are gone; draw into fresh ones. */
   recreate(): void {
+    this.#framebuffer = this.#createFramebuffer();
     this.#texture = this.#createTexture();
     this.#size = { width: 0, height: 0 };
   }
@@ -83,6 +80,14 @@ export class CardRenderTarget {
       gl.UNSIGNED_BYTE,
       null,
     );
+  }
+
+  #createFramebuffer(): WebGLFramebuffer {
+    const framebuffer = this.#gl.createFramebuffer();
+    if (framebuffer === null) {
+      throw new CardRenderTargetError("createFramebuffer returned null");
+    }
+    return framebuffer;
   }
 
   #createTexture(): WebGLTexture {
