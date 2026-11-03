@@ -174,3 +174,26 @@ test("E2E-022 a picture gets its own duration and transition, stored, and both g
     page.getByRole("status").filter({ hasText: "Zeitablauf wieder automatisch" }),
   ).toBeVisible();
 });
+
+test("E2E-116 the picture editor's transition hint says what plays into the next picture and for how long", async ({
+  page,
+}) => {
+  const timingSection = page.locator('section[aria-labelledby="timing-label"]');
+  const hint = timingSection.locator(".transition .hint");
+  await openApp(page);
+  await createSlideshow(page, ["2025-07-12", "2025-07-14", "2025-07-20"]);
+  await chooseCustomMood(page);
+
+  await page
+    .getByRole("button", { name: "Bild 2, aufgenommen am 14.07.2025", exact: true })
+    .click();
+  await page
+    .getByRole("toolbar", { name: "Auswahl" })
+    .getByRole("button", { name: "Bearbeiten" })
+    .click();
+  await expect(hint).toContainText(/Überblenden zu Bild 3, \d+,\d s\.$/);
+  await expect(hint).not.toContainText("%");
+
+  await timingSection.getByRole("radio", { name: /Kreis/ }).click();
+  await expect(hint).toContainText(/Kreis zu Bild 3, \d+,\d s\.$/);
+});

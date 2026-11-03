@@ -42,8 +42,7 @@ export const deTiming = {
   "editor.transitionFollowsSlideshow": "Automatisch gilt der Übergang der Diashow: {effect}.",
   "editor.transitionsAlternate":
     "Automatisch wechseln die Übergänge ab, wie für die Diashow eingestellt.",
-  "editor.transitionHint":
-    "Dauert {length}, am Ende von Bild {number}: {share} % der Bilddauer, höchstens {max} s.",
+  "editor.transitionHint": "{effect} zu Bild {number}, {length}.",
   "editor.cutHint": "Bild {number} folgt ohne Übergang.",
   "editor.autoTag": "Auto",
   "effect.crossfade": "Überblenden",

@@ -11,7 +11,7 @@
   still with reduced motion), the picture editor's `TransitionTile`. Crossfade carries the
   tag "Default"; while it applies, the checked outline is dashed. A tap stores the choice at
   once; the arrow keys move it (selection follows focus). The hint: "Every transition:
-  Dissolve. It takes 30 % of the picture's time, at most 1 s.", for a cut "The pictures follow
+  Dissolve.", for a cut "The pictures follow
   one another without a transition.", for alternating "The effects alternate from picture to
   picture, never the same one twice in a row." A note names the pictures that keep an own
   transition: "Pictures 5 and 7 keep their own transitions – change them in the picture

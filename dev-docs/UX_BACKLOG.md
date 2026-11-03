@@ -1,12 +1,9 @@
 # UX backlog
 
 Findings of the UX review of 2026-10-31 (main at 0a165a9, release 0.0.12), kept as open work
-until each item is done or rejected. One file per theme in `ux_backlog/`; an item is removed
-once it ships. `TODO.md` carries one line per theme and points here.
+until each item is done or rejected.
 
-| Theme                                      | Items      | Weight |
-| ------------------------------------------ | ---------- | ------ |
-| [Copy and terminology](ux_backlog/copy.md) | UX-14 … 16 | high   |
+Every item is done; there are no open items.
 
 ## How the review was made
 

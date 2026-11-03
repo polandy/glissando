@@ -118,7 +118,7 @@ export const enServer: Pick<Catalogue, keyof typeof deServer> = {
   "prepare.ofMeasuring": "of {total}",
   "prepare.preparingTitle": "Preparing pictures",
   "prepare.preparingLine":
-    "{quality} · a picture takes ~{picture} here and is shown for {slide}. So the slideshow plays without stopping, Glissando prepares {target} of {count} pictures first.",
+    "{quality} · So the slideshow plays without stopping, Glissando prepares {target} of {count} pictures first.",
   "prepare.progressLabel": "Prepared pictures",
   "prepare.ofPictures": "of {total} pictures",
   "prepare.startsIn": "starts in",

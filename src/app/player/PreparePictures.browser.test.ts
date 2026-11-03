@@ -13,8 +13,6 @@ const PREPARING: PreparingView = {
   ready: 3,
   target: 7,
   pictureCount: 30,
-  secondsPerPicture: 6,
-  secondsPerSlide: 5,
   secondsLeft: 24,
 };
 
@@ -54,7 +52,7 @@ describe("PreparePictures", () => {
 
     expect(text("h2")).toBe("Bereite Bilder vor");
     expect(text(".line")).toBe(
-      "4K · ein Bild braucht hier ~6 s, gezeigt wird es 5 s. Damit die Diashow ohne Anhalten läuft, lädt Glissando 7 von 30 Bildern vor.",
+      "4K · Damit die Diashow ohne Anhalten läuft, bereitet Glissando zuerst 7 von 30 Bildern vor.",
     );
     expect(bar?.getAttribute("aria-label")).toBe("Vorbereitete Bilder");
     expect(bar?.getAttribute("aria-valuemax")).toBe("7");
