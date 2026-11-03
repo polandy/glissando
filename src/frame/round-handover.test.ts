@@ -6,7 +6,7 @@ import {
   type RoundOutcome,
 } from "./round-handover";
 
-/** A player stand-in whose "ended" and "playing" events the test fires by hand. */
+/** A player stand-in whose "canplay", "playing", "waiting" and "ended" events the test fires by hand. */
 class FakePlayer extends EventTarget implements FrameRoundPlayer {
   readonly play = vi.fn();
   readonly pause = vi.fn();
@@ -16,7 +16,12 @@ class FakePlayer extends EventTarget implements FrameRoundPlayer {
     this.dispatchEvent(new Event("ended"));
   }
 
+  /** The first frame is drawn; a player does this once its picture loaded, before any play(). */
   showFirstPicture(): void {
+    this.dispatchEvent(new Event("canplay"));
+  }
+
+  startPlaying(): void {
     this.dispatchEvent(new Event("playing"));
   }
 
@@ -41,7 +46,7 @@ function fakePorts(players: readonly FakePlayer[]): RoundHandoverPorts & { calls
 }
 
 describe("RoundHandover", () => {
-  it("starts the first round and prepares the next one right away", () => {
+  it("starts the first round and prepares the next one right away, without playing it", () => {
     const [first, second] = [new FakePlayer(), new FakePlayer()];
     const ports = fakePorts([first, second]);
     const handover = new RoundHandover(ports);
@@ -50,8 +55,21 @@ describe("RoundHandover", () => {
 
     expect(handover.state.player).toBe(first);
     expect(first.play).toHaveBeenCalledOnce();
-    expect(second.play).toHaveBeenCalledOnce();
     expect(ports.calls).toBe(2);
+    expect(second.play).not.toHaveBeenCalled();
+  });
+
+  it("plays the prepared round only once it is swapped in, so it starts from its first picture", () => {
+    const [first, second] = [new FakePlayer(), new FakePlayer()];
+    const handover = new RoundHandover(fakePorts([first, second]));
+    handover.start();
+    second.showFirstPicture();
+    expect(second.play).not.toHaveBeenCalled(); // ready, but its turn has not come
+
+    first.end();
+
+    expect(handover.state.player).toBe(second);
+    expect(second.play).toHaveBeenCalledOnce();
   });
 
   it("reports no pictures when the album is empty from the start", () => {
@@ -69,7 +87,8 @@ describe("RoundHandover", () => {
 
   it("swaps to the prepared round as soon as the current one ends, if it is already ready", () => {
     const [first, second, third] = [new FakePlayer(), new FakePlayer(), new FakePlayer()];
-    const handover = new RoundHandover(fakePorts([first, second, third]));
+    const ports = fakePorts([first, second, third]);
+    const handover = new RoundHandover(ports);
     handover.start();
     second.showFirstPicture();
 
@@ -77,7 +96,8 @@ describe("RoundHandover", () => {
 
     expect(handover.state.player).toBe(second);
     expect(first.destroy).toHaveBeenCalledOnce();
-    expect(third.play).toHaveBeenCalledOnce(); // the next round is already being prepared
+    expect(ports.calls).toBe(3); // the next round is already being prepared, unplayed
+    expect(third.play).not.toHaveBeenCalled();
   });
 
   it("keeps the ended round's last frame until the prepared round is ready", () => {
@@ -85,7 +105,7 @@ describe("RoundHandover", () => {
     const handover = new RoundHandover(fakePorts([first, second]));
     handover.start();
 
-    first.end(); // "second" has not fired "playing" yet
+    first.end(); // "second" has not drawn its first picture yet
 
     expect(handover.state.player).toBe(first);
     expect(first.destroy).not.toHaveBeenCalled();
@@ -121,6 +141,25 @@ describe("RoundHandover", () => {
     expect(handover.state.paused).toBe(false);
   });
 
+  it("a skip while paused shows the next round's first picture and leaves it paused; resume plays it", () => {
+    const [first, second] = [new FakePlayer(), new FakePlayer()];
+    const handover = new RoundHandover(fakePorts([first, second]));
+    handover.start();
+    second.showFirstPicture();
+    handover.pause();
+
+    handover.skip();
+
+    expect(handover.state.player).toBe(second);
+    expect(handover.state.paused).toBe(true);
+    expect(second.play).not.toHaveBeenCalled();
+
+    handover.resume();
+
+    expect(second.play).toHaveBeenCalledOnce();
+    expect(handover.state.paused).toBe(false);
+  });
+
   it("tears down the current and prepared players on destroy, and stops reacting to them", () => {
     const [first, second] = [new FakePlayer(), new FakePlayer()];
     const handover = new RoundHandover(fakePorts([first, second]));
@@ -146,7 +185,7 @@ describe("RoundHandover", () => {
     handover.start();
     expect(handover.state.waiting).toBe(true); // play() was called, but not "playing" yet
 
-    first.showFirstPicture();
+    first.startPlaying();
 
     expect(handover.state.waiting).toBe(false);
   });
@@ -155,12 +194,12 @@ describe("RoundHandover", () => {
     const [first, second] = [new FakePlayer(), new FakePlayer()];
     const handover = new RoundHandover(fakePorts([first, second]));
     handover.start();
-    first.showFirstPicture();
+    first.startPlaying();
 
     first.stall();
     expect(handover.state.waiting).toBe(true);
 
-    first.showFirstPicture();
+    first.startPlaying();
     expect(handover.state.waiting).toBe(false);
   });
 
@@ -168,9 +207,9 @@ describe("RoundHandover", () => {
     const [first, second] = [new FakePlayer(), new FakePlayer()];
     const handover = new RoundHandover(fakePorts([first, second]));
     handover.start();
-    first.showFirstPicture();
+    first.startPlaying();
 
-    first.end(); // "second" has not fired "playing" yet
+    first.end(); // "second" has not drawn its first picture yet
 
     expect(handover.state.waiting).toBe(true);
 
@@ -191,7 +230,7 @@ describe("RoundHandover", () => {
     const [first, second] = [new FakePlayer(), new FakePlayer()];
     const handover = new RoundHandover(fakePorts([first, second]));
     handover.start();
-    first.showFirstPicture();
+    first.startPlaying();
     second.showFirstPicture();
     first.end(); // already ready, so "second" swaps in at once
 

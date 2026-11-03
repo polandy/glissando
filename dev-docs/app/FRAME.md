@@ -89,6 +89,7 @@ the next — the design and the rejected alternatives are ADR-0030. In short:
   row across a reshuffle) or capture-date order (oldest/newest first), cycling forever.
   `composeRound` turns one round's ids into a finite `Slideshow`.
 - `RoundHandover` keeps exactly one round playing: as soon as a round starts, the next is
-  created and started hidden, so it is usually already showing its first picture by the time the
-  current one ends; only then is the old round torn down. An album with nothing to compose a
+  created hidden and loads its first picture ahead, so it is usually ready to show by the time
+  the current one ends; it starts playing at the hand-over, so every round plays from its first
+  picture; only then is the old round torn down. An album with nothing to compose a
   round from (e.g. every photo removed in Immich) ends the frame with `endOfPictures`.

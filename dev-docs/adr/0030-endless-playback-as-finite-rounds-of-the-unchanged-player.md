@@ -18,9 +18,10 @@ The album is never turned into one slideshow. `src/frame/frame-deck.ts` orders t
 hands out bounded rounds of `ROUND_SIZE` (40) picture ids at a time. `round-composition.ts`
 composes one round's ids into an ordinary finite `Slideshow`, reusing `autoKenBurns` and
 `autoTransitionEffect` from `src/compose` unchanged. `round-handover.ts` keeps exactly one
-round's player active: as soon as a round starts playing, the next round is composed and started
-off-screen, so by the time the current round's `ended` fires the next is usually already showing
-its first picture, and the swap is invisible; only then is the finished round's player torn down.
+round's player active: as soon as a round starts playing, the next round is composed and created
+off-screen and loads its first picture ahead, so by the time the current round's `ended` fires
+the next is usually ready, and the swap is invisible; it starts playing at the swap, so every
+round plays from its first picture; only then is the finished round's player torn down.
 The player itself gains no new mode or API.
 
 ## Options weighed
