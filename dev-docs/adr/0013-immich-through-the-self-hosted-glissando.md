@@ -32,6 +32,8 @@ What the feature needs, with the API key's permission:
 - `POST /api/search/metadata` with `type: "IMAGE"`, `order: "desc"`, `size`, `page`
   (`asset.read`): all photos newest first, page by page until `nextPage` is `null`; with
   `albumIds` the same for one album. `GET /api/albums/{id}` no longer lists assets in v3.
+- `GET /api/assets/{id}` (`asset.read`): the asset with its `exifInfo`, whose latitude and
+  longitude place a picture the import brings in.
 - `GET /api/assets/{id}/thumbnail?size=thumbnail|preview` (`asset.view`): WebP ≈ 250 px short side;
   JPEG, long side ≤ 1440 px. `GET /api/assets/{id}/original` (`asset.download`): the file itself.
   `GET /api/assets/{id}/video/playback` (`asset.view`): a video as Immich plays it, its
@@ -56,7 +58,7 @@ What the feature needs, with the API key's permission:
   sets it as `x-api-key` on the way to Immich and strips any `x-api-key` the browser sends. The
   browser never sees, stores or exports it; there is no key field in the app.
 - **The route lets through only what Glissando reads**: `GET` on `/api/server/version`,
-  `/api/albums`, `/api/assets/{id}/thumbnail`, `/api/assets/{id}/original`, `/api/assets/{id}/video/playback`, `/api/faces`, and
+  `/api/albums`, `/api/assets/{id}`, `/api/assets/{id}/thumbnail`, `/api/assets/{id}/original`, `/api/assets/{id}/video/playback`, `/api/faces`, and
   `POST /api/search/metadata`. Everything else answers 403. The key is created with the five read
   permissions above, so a hole in one layer is still read-only.
 - **Access to Glissando is the access to the photos.** Whoever can open the self-hosted Glissando
