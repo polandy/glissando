@@ -59,8 +59,11 @@ export function groundLayer(card: CardVisual): GroundSlideLayer {
 export function setUpCardRenderer({
   fontsLoaded = true,
   cardItemLayouts,
+  onResize = () => undefined,
 }: {
   readonly fontsLoaded?: boolean;
+  /** Called when the renderer asks the player to redraw, e.g. after a context restore. */
+  readonly onResize?: () => void;
   /** A test's own instance, e.g. to count the measure factory's calls; the renderer's default
    * otherwise. */
   readonly cardItemLayouts?: CardItemLayouts;
@@ -68,6 +71,8 @@ export function setUpCardRenderer({
   readonly renderer: WebGlRenderer;
   readonly fonts: ControlledFonts;
   readonly box: HTMLElement;
+  readonly canvas: HTMLCanvasElement;
+  readonly gl: WebGL2RenderingContext;
   readPixel(frame: RenderFrame<BitmapPicture>, point: readonly [number, number]): Rgb;
   readAllPixels(frame: RenderFrame<BitmapPicture>): Uint8Array;
 } {
@@ -83,7 +88,7 @@ export function setUpCardRenderer({
   // functions below, which close over this variable rather than being called immediately.
   const gl: WebGL2RenderingContext = context;
   const fonts = new ControlledFonts();
-  const renderer = new WebGlRenderer(canvas, gl, () => undefined, {
+  const renderer = new WebGlRenderer(canvas, gl, onResize, {
     pixelRatio: () => 1,
     fonts,
     ...(cardItemLayouts === undefined ? {} : { cardItemLayouts }),
@@ -113,7 +118,7 @@ export function setUpCardRenderer({
     gl.readPixels(0, 0, canvas.width, canvas.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
     return pixels;
   }
-  return { renderer, fonts, box, readPixel, readAllPixels };
+  return { renderer, fonts, box, canvas, gl, readPixel, readAllPixels };
 }
 
 export function isColour(actual: Rgb, expected: Rgb): boolean {

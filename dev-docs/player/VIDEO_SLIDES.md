@@ -106,7 +106,8 @@ changes: a clip is content, not decoration.
   multiply on top.
 - Two clips closer together than a ramp up plus a ramp down stay ducked between them.
 - A clip whose bytes are missing or that the browser cannot decode raises `VideoPlaybackError`
-  when it loads, so a show never waits for it.
+  when it loads, so a show never waits for it. The failed clip is closed; the next Play opens it
+  afresh, and reports the error again if it still fails.
 
 ## Composition
 
