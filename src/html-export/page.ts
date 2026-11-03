@@ -10,6 +10,7 @@ import {
   type PageCopy,
 } from "./page-contract.ts";
 import { assertInlineableScript } from "./inline-script.ts";
+import type { BundledNotice } from "./ports.ts";
 
 /**
  * The exported page as text, in the order it is written: `pageHead`, one media block per medium
@@ -37,6 +38,8 @@ export interface PageFrame {
   readonly slideshow: Slideshow;
   /** The page's CSS. */
   readonly style: string;
+  /** The npm packages the script bundles, named in a comment (ADR-0015). */
+  readonly notices: readonly BundledNotice[];
   readonly captionFontDataUrl: string;
   /** `@font-face` rules for the fonts this slideshow's cards use, beyond the caption font
    * (ADR-0032); empty without a card. */
@@ -65,6 +68,25 @@ export function captionFontFace(captionFontDataUrl: string): string {
   );
 }
 
+/** What a notice's fields may hold: nothing that could end an HTML comment (`-->`, `--!>`). */
+const SAFE_NOTICE_VALUE = /^[\w@/.:+-]+$/;
+const SPDX_LICENSE_URL = "https://spdx.org/licenses/";
+
+/** The head's comment naming the script's third-party packages; empty when it has none. */
+function noticeComment(notices: readonly BundledNotice[]): string[] {
+  if (notices.length === 0) return [];
+  const lines = notices.map((notice) => {
+    for (const value of Object.values(notice)) {
+      if (!SAFE_NOTICE_VALUE.test(value) || value.includes("--")) {
+        throw new Error(`"${value}" cannot go into the page's HTML comment of bundled packages`);
+      }
+    }
+    const { name, version, licenseId, sourceUrl } = notice;
+    return `${name} ${version}, ${licenseId} (${SPDX_LICENSE_URL}${licenseId}.html), source ${sourceUrl}`;
+  });
+  return ["<!--", "Third-party code in this page's script:", ...lines, "-->"];
+}
+
 export function pageHead(frame: PageFrame): string {
   const fontFace = [captionFontFace(frame.captionFontDataUrl), ...frame.cardFontFaceRules].join(
     "\n",
@@ -77,6 +99,7 @@ export function pageHead(frame: PageFrame): string {
     '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">',
     `<meta http-equiv="Content-Security-Policy" content="${PAGE_CONTENT_SECURITY_POLICY}">`,
     `<title>${escapeHtml(frame.title)}</title>`,
+    ...noticeComment(frame.notices),
     `<style>${fontFace}\n${escapeStyle(frame.style)}</style>`,
     "</head>",
     "<body>",

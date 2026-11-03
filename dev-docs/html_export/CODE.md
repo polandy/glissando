@@ -24,8 +24,10 @@
   `show` replaces the player, so a page can play a changed slideshow on. A Vite plugin
   (`build/export-player-plugin.ts`, modelled on the service worker plugin) bundles it into one
   self-contained script with the decode worker inline (`buildPlayerPage`, which the share page's
-  plugin uses too). The app imports it as a virtual module and loads it on the first export, and
-  the service worker precaches it.
+  plugin uses too). `buildPlayerPage` also derives the notices of the npm packages the chunk
+  bundles from its module ids (`build/bundled-notices.ts`), and the page head writes them. The
+  app imports it as a virtual module and loads it on the first export, and the service worker
+  precaches it.
 - `src/export-player/` imports only `src/player/`, `src/html-export/page-contract.ts`,
   `src/html-export/base64.ts` (the media blocks' encoding, the other half of that contract) and
   `src/ui-kit/` (icons, scheduler, controls visibility, caption inset, fullscreen), which the app
