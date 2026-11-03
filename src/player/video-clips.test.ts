@@ -49,6 +49,41 @@ describe("video clips", () => {
     expect(errors).toEqual([failure]);
   });
 
+  it("closes a failed clip", () => {
+    const { clips, videos } = setUp();
+    clips.place(8000);
+    videos.only().fail(new VideoPlaybackError(new Error("missing")));
+    expect(videos.only().calls).toContain("dispose");
+  });
+
+  it("opens a failed clip afresh on the next play and reports it again if it fails again", () => {
+    const { clips, videos, errors } = setUp();
+    clips.place(11_000);
+    const first = new VideoPlaybackError(new Error("missing"));
+    videos.opened[0]?.fail(first);
+    clips.play(11_000);
+    const second = new VideoPlaybackError(new Error("still missing"));
+    videos.opened[1]?.fail(second);
+    expect(videos.opened).toHaveLength(2);
+    expect(errors).toEqual([first, second]);
+  });
+
+  it("resolves whenReady once the clip reopened after a failure can play on", async () => {
+    const { clips, videos } = setUp();
+    clips.place(11_000);
+    videos.opened[0]?.fail(new VideoPlaybackError(new Error("missing")));
+    videos.readyOnOpen = false;
+    let resolved = false;
+    const pending = clips.whenReady(11_000).then(() => (resolved = true));
+    await Promise.resolve();
+    expect(videos.opened).toHaveLength(2);
+    expect(resolved).toBe(false);
+
+    videos.opened[1]?.becomeReady();
+    await pending;
+    expect(resolved).toBe(true);
+  });
+
   it("opens no playback before a clip is near", () => {
     const { clips, videos } = setUp();
     clips.place(1000);
