@@ -1,0 +1,204 @@
+# Code review findings — todo
+
+Full-repo review of `main` at cccadb7 (2026-11-03), ten areas read against
+`dev-docs/CODING_PRINCIPLES.md` and `dev-docs/WORKFLOW.md`. One line per item, severity first
+(HIGH = bug, data loss or security; MED = likely bug or a principle violation that costs
+maintainability; LOW = cleanup). A finished item is deleted; the file goes when it is empty.
+Items PR #177 (code-health sweep) already covers are marked `(#177)`.
+
+Each fix starts with the failing test the item names or implies (WORKFLOW.md, Testing).
+
+## HIGH
+
+- [ ] **player** `src/player/webgl/card-render-target.ts:19,56` — `recreate()` makes a new texture but keeps the framebuffer of the lost context, so title/chapter cards vanish after a WebGL context restore. Fix: create a new framebuffer in `recreate()`; add a restore test that draws a card layer.
+- [ ] **player** `src/player/video-clips.ts:31,62-75,120-126` — `#failed` latches for the instance's lifetime and the failed clip stays open; pressing Play again after a clip error waits forever with no new error. Fix: drop failed clips and reset the flag on play/restart, or make `whenReady` reject.
+- [ ] **import** `src/immich/http-immich-client.ts:126` + `src/import/exif-capture-date.ts:160` + `src/library/picture-identity.ts:20` — Immich `takenAt` carries milliseconds, device EXIF dates do not, and identity compares strings, so the same photo from a file and from Immich is imported twice (ADR-0016). The test at `immich-view.test.ts:96` uses the unrealistic millisecond form. Fix: one canonical whole-second form at both sources; test with each source's real format.
+- [ ] **import** `src/app/import/import-session.ts:113`, `src/app/add-pictures/add-pictures-session.ts:78` — Server linking of Immich photos is fire-and-forget: `busy` stays false, the home can be switched server→device mid-link, create/commit can run before the link lands, overlapping links can add a picture id twice. Fix: make linking part of the session state, serialise it, gate home switch and commit on it.
+- [ ] **frame** `src/frame/round-handover.ts:149-160` — The prepared round is started hidden and never held, so its timeline runs unseen; in steady state most of every other round is skipped, and a hidden round that ends before the swap (e.g. while the current one is paused) is installed already ended and the frame stalls. Fix: pause the prepared player on "playing", play it in `#swapIn`, include it in pause/resume; test with an advancing clock.
+- [ ] **export** `src/export-player/main.ts:7`, `build/export-player-plugin.ts` — Exported HTML pages embed mediabunny (MPL-2.0) with its licence header stripped and no notice; recipients never see `third-party-licenses.md` (ADR-0015). Fix: keep legal comments in the player build or add an MPL notice with the source URL to the page head; test that the page carries it.
+- [ ] **screens** `src/app/screens/slideshow/MoodPreview.svelte:67` — If the Mood sheet closes while focus or loudness is still loading, the `Promise.all(...).then` runs after `onDestroy`, assigns song URLs nobody revokes and calls `onLoaded` on a destroyed component. Fix: check `closed.signal.aborted` in the `.then`, revoke and return.
+- [ ] **tv** `src/app/tv-remote/tv-session.ts:127-176` — Closing the TV sheet mid-request is undone by the late answer: `#closings` is only checked on a successful claim, so `noSuchCode`/`noSuchTv` reopen the sheet and a late successful show still navigates to the remote page. Fix: capture `#closings` at the start of `#request` and drop every state change or navigation after an await when it changed.
+
+## MED
+
+### Server, sync and TV
+
+- [ ] `server/main.ts:83-99` + `server/tv/event-stream.ts:333` — The SSE close listener is attached only after the body is read; a client gone in that gap stays the session's TV forever (no expiry, keep-alive runs on, remotes see `tvPresent`). Fix: register close before awaiting the body; end at once if the socket is already destroyed.
+- [ ] `server/tv/tv-hub.ts:146-151` — `POST /api/tv/sessions` is public and at `MAX_SESSIONS` evicts sessions with a live TV, so 100 anonymous POSTs end every pairing in use. Fix: never evict a session whose stream is open (503 instead), or rate-limit in Caddy.
+- [ ] `src/server-library/server-slideshow-store.ts:65-71,191-195,229-237` — A list/read answered after an edit overwrites the remembered revision with an older one; the next edit gets 412 and a false "changed on another device". Fix: `#remember` keeps the newer stored revision.
+- [ ] `src/server-library/http-server-library-client.ts:68-73` + `server-library-availability.ts:103` — Discovery maps 5xx and the auth redirect (status 0) to "no library" and persists it, so a restart or expired sign-in turns the next offline start into "off". Fix: throw `ServerLibraryUnavailableError` as `check` does.
+- [ ] `server/music-routes.ts:116-117` — Any exception from `parseMusicLoudness` becomes 400 via `(error as Error).message`, so a bug looks like bad input. Fix: a typed error for the parser; catch only that.
+
+### Player
+
+- [ ] `src/player/playlist-music.ts:229-242` — Music is never resynced to the show clock; a stall leaves it permanently offset from beat-aligned slides (ADR-0021/0046), while clips do get drift correction. Fix: compare element time with `trackSecondsAt(showMs)` in `follow` and seek past a named tolerance; document in `dev-docs/player/TIMING.md`.
+- [ ] `src/player/video-clip-plan.ts:194-216` — Slide spans and transition lead-in are recomputed instead of taken from `timeline.ts:48-63`; a change to the overlap rule desyncs clips from what is drawn. Fix: derive clip spans from the timeline's span function.
+- [ ] `src/player/card-timing.ts:150-225` — `cardTimingAt` and `cardItemTimingAt` carry two copies of the enter/reveal/drift presence formula. Fix: one shared presence helper.
+- [ ] `src/player/browser-player.ts:170-171` — The canvas is appended before `new WebGlRenderer(...)`; a shader/target failure leaves an orphan canvas and no DOM-renderer fallback. Fix: append after construction; fall back to `DomRenderer` on the typed errors.
+
+### Library and file format
+
+- [ ] `src/app/media/object-urls.ts:92-95` — A re-requested id whose newer load finishes first leaks the older load's URL (second URL created, first never revoked); the only test releases oldest-first. Fix: compare the latest load before `finally` clears it; revoke before replacing; add the newest-first test.
+- [ ] `src/glissando-file/media-descriptors.ts:172` + `read-manifest.ts:83-89` — Two pictures may name the same `file`; the second descriptor silently replaces the first, so one picture's size goes in unchecked, bytes are stored twice and the free-space check under-counts. Fix: refuse repeated picture and thumbnail paths like `refuseRepeatedSongPaths`.
+- [ ] `src/glissando-file/slideshow-fields-media.ts:103`, `manifest-video.ts:97` — A manifest's song/clip `mimeType` is only checked to be non-empty and becomes the stored Blob type. Fix: require `audio/*` / `video/*` (or the import allow-list), else damaged.
+- [ ] `src/library/beat-pass.ts` / `src/library/loudness-pass.ts` — Two ~215-line classes that are the same algorithm with renamed identifiers (plus matching contract tests); fixes must be made twice. Fix: one generic `MusicAnalysisPass<Result>` with ports, two thin instantiations.
+- [ ] `src/glissando-file/round-trip.browser.test.ts:35-88` — The round trip checks only title, one picture's bytes and media bytes; the ~25 optional fields are hand-listed in five mappers and a field forgotten in one is silently dropped. Fix: a fixture with every optional field set and a `toEqual` modulo ids/title/createdAt; or type the mappers so an unmapped key fails to compile.
+
+### Import and Immich
+
+- [ ] `src/server-library/link-immich-photos.ts:46` — One photo's thumbnail failure (asset deleted since browsing) fails the whole link batch as an unexpected error and the selection is lost. Fix: skip that photo as not-downloaded, link the rest.
+- [ ] `src/import/immich-picture-source.ts:150,172,201` — No AbortSignal reaches the original/thumbnail/video downloads; cancel or leaving keeps downloading, and a video is fetched in full before the `MAX_VIDEO_BYTES` check. Fix: thread the import's signal through; check size from metadata before downloading.
+- [ ] `src/import/immich-picture-source.ts:221` — One extra `GET api/assets/{id}` per photo only for GPS, although the search already has `withExif`; coordinates are not range-checked. Fix: read latitude/longitude in `photos()`, validate ranges at the boundary.
+- [ ] `src/import/local-picture-source.ts:368` — A GPS read failure throws `UnreadablePictureError`, so a picture that decoded fine is skipped, against its own doc comment; the 128 KB head is read twice. Fix: read the head once; make the GPS read best-effort.
+- [ ] `src/import/downscale.ts:425` — Untrusted images are decoded at full resolution with no byte/pixel cap; `thumbnailFromImage` failures are not mapped to `UnreadablePictureError`. Fix: byte limit, `resizeWidth/Height` from the header, uniform error wrapping.
+
+### Music, composition and focus
+
+- [ ] `src/frame/round-handover.ts:132-135,178-198` — A skip or natural end while paused swaps in a playing round but `#paused` stays true, so the UI offers "Resume" while pictures advance. Fix: pause the new current when paused, or reset the flag in `#swapIn`.
+- [ ] `src/app/music-editor/song-intake.ts:160-165,207-262` — Remove a sample and add it again quickly: the aborted download's `finally` deletes the new download's controller, so its progress rows are dropped and it can no longer be aborted. Fix: delete only when the stored controller is this one.
+- [ ] `src/beats/decode-music.ts`, `src/loudness/decode-music-full-rate.ts`, `src/app/music-editor/decode-peaks.ts` — Untrusted audio has no byte or duration cap and is decoded three times per song on the main thread; a 2 h stereo 48 kHz file is ~2.7 GB of Float32. Fix: cap bytes and duration at intake with a message; probe the rate once; one shared decode for peaks, beats and loudness.
+- [ ] `src/beats/worker-beat-detector.ts` / `src/loudness/worker-loudness-meter.ts` / `src/focus/worker-focus-detector.ts` and `src/app/beats/playlist-beats.ts` / `src/app/loudness/playlist-loudness.ts` (+ `track-*.ts`) — Worker client and playlist follower copied per pass; lifecycle fixes land in one copy only. Fix: a generic worker request client and `PlaylistFollower<T>`.
+
+### Exports, share and PWA
+
+- [ ] `src/video-export/browser/file-targets.ts:102` (called from `src/main.ts:134`) — `sweepPrivateExports()` empties OPFS `video-export/` at every start with no multi-tab guard; a second tab or the PWA deletes a finished or in-progress private export. Fix: `navigator.locks` per export file or a folder per run; sweep only unlocked entries.
+- [ ] `src/video-export/browser/run-video-export.ts:184` — `new WebCodecsVideoEncoder(...)` runs outside both try blocks; a configure error breaks the "never rejects" contract, skips muxer cancel and leaves the writable locked. Fix: construct it inside `prepare`'s try next to the audio encoder.
+- [ ] `src/share-page/shared-show.ts:66` — Song blob URLs are created inside `Promise.all`; one failed song leaks the others, and the TV page repeats that on every retry for days. Fix: fetch all blobs first, then create URLs; revoke on failure.
+
+### App shell, routing and editors
+
+- [ ] `src/main.ts:121` — A failed `openLibraryStore` (blocked IndexedDB, VersionError) leaves the loading shell forever with no message; the toaster lives inside the unmounted App. Fix: catch and replace the shell with a translated fatal message; report it.
+- [ ] `src/app/picture-editor/FrameWell.svelte:158` — Every wheel tick commits a final framing edit: dozens of IndexedDB writes or queued HTTP PUTs per second. Fix: drafts while zooming, one commit after a short idle via the injected scheduler.
+- [ ] `src/app/routes/SlideshowRoute.svelte:124` — `random: Math.random` is wired inside a route component while `now`/`newId` come from the root; shuffle cannot be made deterministic through `AppServices`. Fix: add `random` to `AppServices`.
+
+### Screens
+
+- [ ] `src/app/screens/slideshow/card-sheet/CardFace.svelte:60-66` — Font loads are not cancelled on style switch; the old style's late promise sets `fontsReady` while the new fonts are still loading and the card is laid out with fallback metrics. Fix: per-run token, set `fontsReady` only when it still matches.
+- [ ] `src/app/screens/slideshow/SlideshowScreenOverlays.svelte:89` + `FocusSheetHost.svelte:48` — The focus sheet gets no `onClosed`, so focus drops to `<body>`, against the contract in the file's own comment. Fix: pass and call `onClosed`; browser test that focus lands on "Mehr".
+- [ ] `src/app/screens/slideshow/SlideshowEditSheets.svelte:182` — `closeChapters` hands no focus back, unlike its five siblings. Fix: same focus-return callback.
+- [ ] `src/app/screens/slideshow/SlideshowEditSheets.svelte:140-185` — Seven independent open booleans plus six near-identical `closeX` functions; "two sheets open" is representable. Fix: one `openSheet: SheetKind | null` and one `close()`.
+- [ ] `src/app/screens/SlideshowScreen.svelte` — ~58 props drilled through four layers; sheets opened through an optional-chained `bind:this` chain that fails silently. Fix: editor commands in a context object, sheets opened via state.
+- [ ] `src/app/screens/slideshow/{Look,Mood,PortraitPictures,Transitions,Focus,Chapter}Sheet.svelte`, `card-sheet/CardSheet.svelte` — Dialog scaffolding (showModal/close, cancel, scrim click, ~35 lines of CSS) copied seven times although `export-sheet/ExportDialog.svelte` is that frame. Fix: promote it to `components/Sheet.svelte` and use it everywhere.
+- [ ] `src/app/screens/slideshow/card-sheet/CardSheet.svelte:147,157`, `CardBackgroundPicker.svelte:94,104,148` — `role="radio"` buttons without arrow keys or roving tabindex. Fix: `components/RadioGroup.svelte` / `radioIndexForKey`.
+- [ ] `src/app/screens/slideshow/card-sheet/CardTintPicker.svelte:53`, `CardEntrancePicker.svelte:53`, `CardSheet.svelte`, `CardBackgroundPicker.svelte` `.option` — Chips and options are ~30 px tall, below the 44 px hit rule, and the touch-target test covers no sheet but the tile panels (BRAND.md:105). Fix: `min-height: var(--gl-hit-min)` under coarse pointer; add CardSheet, ShareChooser, MoveToSheet, DeleteDialog, MoreMenu and GlissandoFileSheet to the touch-targets test.
+- [ ] `src/app/screens/slideshow-screen-viewer.browser.test.ts:85` — "hides Remove on the last picture" asserts only that the pill is absent, with no proof the viewer opened. Fix: assert another viewer control first.
+- [ ] `src/app/screens/slideshow-screen-several.browser.test.ts:118` — Asserts `[aria-label="Selection"]` is absent on a German screen (label "Auswahl"), so it can never fail. Fix: query via the catalogue key and pair with a positive check.
+- [ ] `src/app/screens/slideshow/SelectionBar.svelte` — Decision logic (enabled states, labels, range text with `as string` casts) lives in the 290-line component. Fix: pure `selection-bar-view.ts` with table tests.
+
+### Tooling and tests
+
+- [ ] `scripts/source-sizes.sh:18` — The 300-line gate never scans `server/`, `build/`, `deploy/` or `*.mjs`; `scripts/ux-tour/tour.mjs` (511) is over the limit and verify stays green (the two server files are split in #177, the script gap is not). Fix: add the roots and `*.mjs`; split `tour.mjs`.
+- [ ] `eslint.config.js:18` — The strict preset runs without type information, so `no-floating-promises` / `no-misused-promises` are off and nothing catches a missing `await` mechanically. Fix: `parserOptions.projectService` plus those two rules; fix what they find.
+- [ ] `scripts/brand/requirements.txt:1`, `scripts/brand/build.sh:7` — Python deps are exact but not hash-pinned (CODING_PRINCIPLES §5). Fix: `pip-compile --generate-hashes`, install with `--require-hashes`.
+- [ ] `src/app/app-actions.ts:5`, `src/app/share-link/share-summary.ts:2` — Plain `.ts` modules import types declared in `.svelte` components; `npx tsc --noEmit` reports 10 errors (svelte-check passes), and pure logic depends on a component. Fix: move `PwaSheetContent` and `ShareSubject` into sibling `.ts` files.
+- [ ] `package-lock.json` — `npm audit` (dev only): `fast-uri` via ajv is fixable without a major bump; `minimatch` and `deepmerge` chains wait on upstream. Fix: `npm update fast-uri`; track the other two; never `audit fix --force`.
+- [ ] `src/player/browser/open-video.test.ts:111-121` and the "not yet resolved" checks in `slideshow-player-render-at.test.ts:64`, `video-clips.test.ts:148,174`, `fonts.test.ts:54`, `create-frame-player.browser.test.ts:85`, `clip-sound-track.test.ts:232` (20 files count microtask ticks) — Absence asserted after one or two `await Promise.resolve()`; a resolve one `.then` later is false-green. Fix: one shared `settleMicrotasks()` helper plus a positive signal where missing.
+- [ ] 23 test files with 56 `vi.fn`/`vi.spyOn` sites, against "no mocking frameworks" (§2): prototype patches in `create-frame-player.browser.test.ts:71`, `webgl-captions.browser.test.ts:221`, console patches in `open-video.test.ts:135` and `share-page/tv-session.test.ts:123`, interaction-only `player-keys.test.ts:13-16`, callback recorders in the sheet tests. Fix: recording arrays and hand-written fakes; inject a font-loader port and a logger instead of patching.
+- [ ] `e2e/playback-quality.spec.ts:73-74` — "Standard never fetches originals" is asserted right after the first preview lands, before the player prepares the next pictures. Fix: wait until every picture was requested or prepared, then assert.
+- [ ] `e2e/*.spec.ts` — `tile()` copied in 8 specs with differing rules (`editing.spec.ts:16` lacks `exact`), `player()` in 3, `boxOf` in 3, `centreOf`/`drag` and `deliverByDownload`/`createSlideshowWithMusic` verbatim twice. Fix: move to `e2e/support/` with one tile-name builder.
+- [ ] 32 browser-test files each define their own "button by name" finder with differing matching. Fix: one `src/app/testing/by-role.ts` that throws when missing (or `page.getByRole`), delete the copies.
+- [ ] ~120 CSS-class selectors across 20 e2e specs where a role or label exists (`tv-remote.spec.ts:38` `.code input` sits in a labelled group; `picture-frame`, `music-editor`, `move-together` `xpath=..`). Fix: `getByRole`/`getByLabel`; `data-testid` only for purely visual parts.
+
+## LOW
+
+### Server, sync and TV
+
+- [ ] `server/main.ts:96-106` — The stream branch and `writeHead`/`end` run outside the `try`; a throw there is an unhandled rejection that stops the container via `supervise.sh`. Fix: same try/catch, log and close.
+- [ ] `src/server-library/http-server-library-client.ts:192` — Every 409 on `putPictureFocus` reads as `newerKept` without checking the code. Fix: check `refusal.code === "newerFocus"`, else `check`.
+- [ ] `src/server-library/http-server-library-client.ts:101-103` — The 412 branch calls `response.json()` without `isJson`, so a proxy's HTML 412 is a bare `SyntaxError`. Fix: `isJson` first, same descriptive error as `#json`.
+- [ ] `src/app/server-library/server-copy-flows.ts:75` — `keepCopy` passes a signal nobody can abort, so the required signal in `keep-copy.ts` is dead weight; `#progress` is one slot for concurrent copies. Fix: expose cancel per flow or drop the signal; key progress by slideshow.
+- [ ] `server/collect-body.ts:13-18` — An oversized body is drained to its end with no byte or time cap. Fix: a fixed drain budget, then destroy the socket after the 413.
+- [ ] `server/music-routes.ts:16-17,45-50` + `src/server-library/save-on-server.ts:39-45` — The 1 h music grace runs per upload and every upload sweeps, so a slow multi-song save can lose its own earlier songs (409 `musicMissing`). Fix: restart the caller's grace on each upload, or measure from the last upload.
+
+### Player
+
+- [ ] `src/player/webgl/shader-programs.ts:289-310`, `webgl/card-item-program.ts:144-167` — Compile/link failures throw without deleting shaders/program. Fix: delete before throwing.
+- [ ] `src/player/webgl/webgl-renderer.ts:257-271` — `dispose()` never deletes `#mainBuffer`. Fix: `deleteBuffer`.
+- [ ] `src/player/create-frame-player.ts:277-280` — `loseContext()` called a second time after `renderer.dispose()`, a GL warning per dispose. Fix: let the renderer own context release.
+- [ ] `src/player/webgl/card-item-program.ts:78,80`, `webgl/card-pass.ts:178` vs `webgl-renderer.ts:30` — Literal `2`/`4` in `vertexAttribPointer`; two texture-unit constants silently equal across modules. Fix: name the vertex constants; one texture-unit map module.
+- [ ] `src/player/browser/music-output.ts:267-272` — `createOrNull` swallows the error without logging. Fix: warn before returning null.
+- [ ] `src/player/browser-player.ts:131` — `matchMedia` called on every drawn frame. Fix: one `MediaQueryList`, read `.matches`.
+- [ ] `src/player/parse-primitives.ts:359-364` — `readPositiveInteger` has no upper bound; `durationMs: 1e308` makes the timeline `Infinity`. Fix: a named maximum.
+- [ ] `src/player/slideshow-player.ts:282-284` — A `loadAroundScreen` rejection is swallowed with a comment only. Fix: log it.
+
+### Library and file format
+
+- [ ] `src/library/indexeddb-store.ts:105,119`, `indexeddb-media.ts:194-203,248` — The media-keyed store list is written out four times. Fix: one exported `MEDIA_KEYED_STORES`.
+- [ ] `src/glissando-file/slideshow-fields-media.ts:43-47,82-86`, `slideshow-fields.ts:67-70`, `read-manifest.ts:121` — Version gates against versions 2–12 are dead code since `OLDEST_READABLE_FORMAT_VERSION` is 13. Fix: drop the gates and constants, list keys unconditionally.
+- [ ] `src/library/indexeddb-store.ts:288-291`, `src/main.ts:121` — A `VersionError` (newer DB) and a `versionchange` close give a blank app or "unexpected error" toasts with no reload prompt; no `onblocked`. Fix: a "reload / newer version open" screen; reload on `versionchange`.
+- [ ] `src/library/indexeddb-schema.ts:58-87` — Incremental v1→v8 upgrade chain despite the no-migration policy. Fix: on any `oldVersion > 0`, drop every store and create the current set.
+- [ ] `src/app/glissando-file/open-flow.ts:161-164` — When the signal is aborted, every error counts as the cancel; a real failure racing Cancel is lost. Fix: log unless it is the signal's reason.
+- [ ] `src/glissando-file/write-glissando-file.ts:126-136` — A `releaseClaim` rejection after a successful save shows an error for an open that worked. Fix: release after the try, or log without failing.
+- [ ] `src/glissando-file/browser/media-decoders.ts:22` + `check-media-file.ts:258` — EXIF orientation 5–8 swaps width/height in the size check, so a hand-swapped picture (ADR-0038) is refused as damaged. Fix: `imageOrientation: "none"` for the check.
+
+### Import and Immich
+
+- [ ] `src/app/import/browser-intake-ports.ts:44` — Place-data fetch has no `response.ok` check; a 404 becomes a parse error and every picture refetches 848 KB. Fix: check `ok`, stop retrying for the import.
+- [ ] `src/places/nearest-place.ts:185` — The 3×3 one-degree cell search misses places within 50 km east/west above ~64° latitude. Fix: widen the longitude span by `ceil(1/cos(lat))`.
+- [ ] `src/immich/photo-selection.ts` (`allAlbumPhotos`) — A non-advancing `nextPage` loops forever. Fix: fail loud unless it advances.
+- [ ] `src/import/flac-samples.ts:70`, `browser/libav-flac.ts` — `channels`/`frameSize` not validated; a frame length of 0 never progresses. Fix: validate in the constructor and `startEncoding`.
+- [ ] `src/import/picture-import.ts:126` — `stop()` records pick ids with nothing in flight, never removed. Fix: add only when a file is in flight, or clear on drain.
+- [ ] `src/app/import/import-session.ts:49` — `#songReads` entries are never deleted after success; `probeMusic` has no abort, so one stalled probe blocks the queue. Fix: delete settled entries; give the probe a signal.
+
+### Music, composition and focus
+
+- [ ] `src/compose/snap-to-beats.ts:84-86` — Docstring says "one beat", the code and ADR-0021 use half a beat. Fix: correct the comment.
+- [ ] `src/compose/snap-to-beats.ts:111` — `oneBeatMs` averages the whole playlist incl. gaps and mixed tempi. Fix: the local beat interval around the cut.
+- [ ] `src/compose/playlist.ts:94-117` — `repeatedPlaylist` grows quadratically; a very short song under a long show stalls compose. Fix: place once and extend by the period.
+- [ ] `src/app/beats/playlist-beats.ts:40-44`, `src/app/loudness/playlist-loudness.ts` — The first replayed status is discarded because the map entry is set after subscribing. Fix: set the entry first.
+- [ ] `src/focus/focus-worker.ts:16` — A `postMessage` throw is an unhandled rejection and the request never settles. Fix: catch and post a "failed" reply with the id.
+- [ ] `src/app/sample-music/sample-preview.ts:235`, `src/app/clip-editor/fine-peaks.ts:3`, `src/frame/round-position.ts:1` — Literal `/ 1000` and two local copies of the ms-per-second constant. Fix: import `MILLISECONDS_PER_SECOND`.
+- [ ] `src/app/server-focus-pass.ts:248-250` — The allow check is repeated from `followServerFocusStart`. Fix: one place.
+
+### Exports, share and PWA
+
+- [ ] `src/share-page/qr-svg.ts:1`, `shared-show.ts:1` — The standalone share page imports from `src/app/` (qr-code, slide-boundaries), risking app code in `share.html`. Fix: move both into a shared non-app module.
+- [ ] `src/app/export-errors/describe-export-failure.ts:36` vs `export-video.ts:180-185` — Two "storage full" detectors; the sheet's does not walk `cause`, so a wrapped quota error shows as "unknown". Fix: one exported cause-walking `isQuotaExceeded`.
+- [ ] `src/app/html-export/html-export-session.ts:198` — Once the sheet is closed, every error is dropped unlogged. Fix: log any error that is not the signal's reason.
+- [ ] `src/app/video-export/deliver-file.ts:3` and siblings — `"AbortError"`/`"QuotaExceededError"` names defined in four places; `HtmlExportSession.deliver` re-implements `deliverFile`. Fix: one DOMException-names module; reuse `deliverFile`.
+- [ ] `src/app/html-export/browser-html-export-device.ts:47` — "Open" runs the exported page as a `blob:` URL on the app's origin; one future escaping slip is app-origin XSS. Fix: sandboxed iframe, or download/share only.
+- [ ] `src/app/video-export/video-export-session.ts` — Open/probe, target choice, run, outcome mapping and delivery in one module. (#177 trims it to 263 lines.) Fix: move `#finish`'s outcome→state mapping into a pure function beside `export-sheet-state.ts`.
+
+### App shell, routing and editors
+
+- [ ] `src/app/App.svelte:227` — The slideshow route's `{#await}` has no pending or catch branch: blank while loading, blank with no back on failure. Fix: a `RouteSkeleton` while pending; leave to the parent on failure.
+- [ ] `src/app/navigation/navigator.ts:132` — A refused leave guard restores with one `push` after a multi-entry back, so later backs skip levels. Fix: `history.go(+n)` for the popped steps.
+- [ ] `src/app/navigation/navigator.ts:79-88` — A second `open()` while a pop is pending counts steps from the pending target. Fix: queue or ignore an open while `#pushAfterPop` is set.
+- [ ] `src/app/routes/PlayerLayer.svelte` (onMount) — If music, focus or beats fail to load, the player stays invisible. Fix: a failure state with the PlayerCard error and a way out.
+- [ ] `src/app/i18n/translator.ts:154` — An unknown runtime key fails with a misleading plural error. Fix: throw naming the missing key.
+- [ ] `src/main.ts:105` — `reportError(event.error)` gets `null` for cross-origin errors. Fix: `event.error ?? new Error(event.message)`.
+- [ ] `src/main.ts` — The composition root sits at the line limit (#177 brings it to 256). Fix: `wire-*.ts` modules for the server and music wiring.
+- [ ] `src/app/start/first-launch.ts` — `KeyValueStorage` lives in the first-launch module and settings import it sideways. Fix: a small shared `storage-port.ts`.
+- [ ] `src/app/settings/stored-choice.ts:16-19` — An unrecognised stored value is read as the default without a log. Fix (optional): warn once.
+
+### Screens
+
+- [ ] `src/app/screens/slideshow-screen-strip-marks.browser.test.ts:39-40` — `toBeDefined()` on a `querySelector` result cannot fail; `expect.poll` on `:hover` is polling. Fix: `not.toBeNull()`, await the hover event.
+- [ ] `src/app/screens/slideshow/{Look,Mood,Transitions,PortraitPictures}Sheet.svelte` — Each reimplements radio arrow-key handling although `components/RadioGroup.svelte` exists. Fix: use it.
+- [ ] `src/app/screens/slideshow/MoreMenu.svelte:103,131` — `role="menu"` without arrow navigation; Tab leaves it open; double `<hr>` when `storage` is null. Fix: arrow keys; render the separator only before a non-empty group.
+- [ ] `src/app/screens/slideshow/export-sheet/ExportFailure.svelte:37-38` — `as ClipFreeKey` / `as ClipKey` casts hide the title↔clip relation. Fix: a discriminated union.
+- [ ] `src/app/screens/slideshow/card-sheet/CardTintPicker.svelte` vs `CardEntrancePicker.svelte` — Near-identical 72-line files. Fix: one `ChipRow.svelte`.
+- [ ] `CardTintPicker.svelte:59,66`, `CardEntrancePicker.svelte:59,66`, `PlayPreview.svelte:64`, `CardStylePicker.svelte:89`, `FocusSearchLine.svelte:50,56`, `PlaceholderTile.svelte:45,53`, `PanelTile.svelte:114` — Raw `font-weight`, `font-size: 22px` and 1–3 px radii instead of tokens. Fix: tokens (add a hairline radius token if needed).
+- [ ] `src/app/screens/slideshow/card-sheet/CardBackgroundPicker.svelte:96` — Magic `"plum"` duplicates `FALLBACK_CARD_SWATCH`. Fix: import it.
+- [ ] `src/app/screens/SlideshowScreen.svelte:96` — `$effect` writes `selection` which it reads; converges only by object identity. Fix: prune at the mutation sites or derive.
+- [ ] `src/app/screens/slideshow-screen-harness.ts:227,241` and `slideshow-route-harness.ts`, `strip-drag-rig.ts`, `picture-editor-route-harness.ts` — `card as StoredCard` cast, module-level mutable `destroy`, picture fixture duplicated four times. Fix: one typed fixture module.
+
+### Tooling, docs and tests
+
+- [ ] `dev-docs/library/SAMPLE_MUSIC.md:36` — Points to `build/demo-slideshow-config.ts`, which does not exist. Fix: drop or repoint.
+- [ ] `dev-docs/UX_BACKLOG.md` — A finished, dated review record among current specs. Fix: delete it (git holds it) or move the method notes to `scripts/ux-tour/README.md`.
+- [ ] `dev-docs/player/VIDEO_SLIDES.md:23` — "no longer hidden" narrates history. Fix: state the current behaviour.
+- [ ] `.github/workflows/ci.yml:44,58,64`, `release-please.yml` — No `timeout-minutes`; a hung job holds a runner 6 h. Fix: per-job timeouts.
+- [ ] `vite.config.ts:13,68` — The e2e-only `tvStreamPlugin` runs in every `vite preview`, incl. the LAN preview, with an unbounded push buffer. Fix: register it only from the Playwright webServer command.
+- [ ] `scripts/brand/webfonts.py:105` — Licence files are fetched without a hash check. Fix: `license_sha256` per `FontSource`.
+- [ ] `scripts/serve-server-library.sh:16` — A hard-coded port list that the live `ss` check already covers. Fix: drop it.
+- [ ] `scripts/ci-failures.sh:5` — Takes the latest run whatever its state. Fix: `--status failure`.
+- [ ] `e2e/touch-reorder.spec.ts:90` — Waits out the hold timer on the real clock. Fix: `page.clock.install()` + `runFor(HOLD_MS)`.
+- [ ] `src/player/browser/open-video.test.ts:123` — Named "never fetches" but asserts one read and checks no decode. Fix: rename to what it checks.
+- [ ] 27 `as unknown as` casts in tests (`video-playback.test.ts:166`, `open-video.test.ts`, lifecycle/follow/fallback tests) force fakes into DOM types. Fix: a narrow `VideoElementPort` the fakes implement.
+- [ ] `slideshow-screen-selection-rows.browser.test.ts:85-90`, `slideshow-screen-labelled-bar.browser.test.ts:195-199` — `if (label !== null) expect(...)` skips the check silently. Fix: assert the expected labelled set, then check each.
+- [ ] `src/video-export/browser/run-video-export.browser.test.ts:204` — `if (browser !== "webkit") expect(...)` hides a skipped check. Fix: own case with `it.skipIf`.
+
+## Not reviewed
+
+Vendored `src/import/libav`, `src/focus/onnx` models and `pico`, `compose/compose-slideshow` and chapters, `loudness/measure-loudness`, `beats/onset-envelope`/`tempo`/`fft`, most Svelte components outside `screens/` and the editors, `deploy/test-image*.sh` and the fake-Immich scripts, the bodies of the 15 largest unit tests.
