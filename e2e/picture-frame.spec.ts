@@ -1,7 +1,7 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { GERMAN_BROWSER } from "./support/app";
 import { openApp } from "./support/browser";
-import { fakeGlissandoServer } from "./support/fake-glissando-server";
+import { fakeGlissandoServer, immichFixture } from "./support/fake-glissando-server";
 import { pictureTakenOn } from "./support/media";
 
 test.use(GERMAN_BROWSER);
@@ -92,9 +92,9 @@ test("E2E-047 the picture frame is set up from the start screen, runs full scree
     "true",
   );
   await toggleSwitch(page, "Uhr anzeigen");
-  await toggleSwitch(page, "Datum anzeigen");
+  await toggleSwitch(page, "Datum und Ort anzeigen");
   await expect(settingSwitch(page, "Uhr anzeigen")).not.toBeChecked();
-  await expect(settingSwitch(page, "Datum anzeigen")).not.toBeChecked();
+  await expect(settingSwitch(page, "Datum und Ort anzeigen")).not.toBeChecked();
 
   // The frame's player draws on the page's clock, held still so it never competes on the main
   // thread with the taps below; the tap controls' auto-hide timer is held with it.
@@ -151,7 +151,7 @@ test("E2E-048 the picture frame's set-up choices survive a reload", async ({ pag
   await page.getByRole("button", { name: "1 min" }).click();
   await page.getByRole("button", { name: "Älteste zuerst" }).click();
   await toggleSwitch(page, "Uhr anzeigen");
-  await toggleSwitch(page, "Datum anzeigen");
+  await toggleSwitch(page, "Datum und Ort anzeigen");
 
   // The album is only remembered once a frame actually starts with it.
   await startFrameButton(page).click();
@@ -170,16 +170,51 @@ test("E2E-048 the picture frame's set-up choices survive a reload", async ({ pag
     "true",
   );
   await expect(settingSwitch(page, "Uhr anzeigen")).not.toBeChecked();
-  await expect(settingSwitch(page, "Datum anzeigen")).not.toBeChecked();
+  await expect(settingSwitch(page, "Datum und Ort anzeigen")).not.toBeChecked();
 });
 
 test("E2E-049 a #frame= link starts the frame directly, skipping set-up", async ({ page }) => {
   await openAppWithServer(page, `/#frame=${LANDSCAPES_ALBUM_ID}`);
 
   await expect(exitButton(page)).toBeVisible();
-  // The default showDate stamps the running picture with the album's own name: proof the deep
-  // link's album, not just any frame, is the one playing.
-  await expect(page.locator(".stamp")).toHaveText("Landscapes Lab");
+  // The default showDate captions the running picture with its place and date; every picture of
+  // the fake library is from Annecy.
+  await expect(page.locator(".stamp b")).toHaveText("Annecy");
+  await expect(page.locator(".stamp small")).toHaveText(/\d{4}/);
+});
+
+test("E2E-117 the frame's caption names each picture's place above its date, and a picture without a place by its date alone", async ({
+  page,
+}) => {
+  await openAppWithServer(page);
+  // The recorded album's Lyon picture (19 June 2019) and its picture without a place (18 June
+  // 2019), the album's newest two: registered after the fake server's own routes, so it wins.
+  const album = immichFixture<{ assets: { items: { exifInfo: { city: string | null } }[] } }>(
+    "search-album",
+  );
+  const lyon = album.assets.items.find((asset) => asset.exifInfo.city === "Lyon");
+  const unplaced = album.assets.items.find((asset) => asset.exifInfo.city === null);
+  await page.route(/\/immich\/api\/search\/metadata$/, (route) =>
+    route.fulfill({ json: { assets: { items: [lyon, unplaced], nextPage: null } } }),
+  );
+
+  await setUpCard(page).click();
+  await albumTile(page, "Landscapes Lab").click();
+  await page.getByRole("button", { name: "10 s" }).click();
+  await page.getByRole("button", { name: "Neueste zuerst" }).click();
+
+  await startFrameButton(page).click();
+  await expect(page.locator(".stamp b")).toHaveText("Lyon");
+  await expect(page.locator(".stamp small")).toHaveText("Mi., 19. Juni 2019");
+
+  // Oldest first opens on the picture without a place. The caption following the playback from
+  // one picture to the next is proven in `round-position.test.ts`.
+  await page.keyboard.press("Escape");
+  await setUpCard(page).click();
+  await page.getByRole("button", { name: "Älteste zuerst" }).click();
+  await startFrameButton(page).click();
+  await expect(page.locator(".stamp b")).toHaveText("Di., 18. Juni 2019");
+  await expect(page.locator(".stamp small")).toHaveCount(0);
 });
 
 test("E2E-057 the picture frame card is hidden with its close button, stays hidden after a reload, the frame is still set up from Settings and the card is brought back there", async ({

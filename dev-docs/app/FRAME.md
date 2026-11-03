@@ -34,7 +34,8 @@ finds the choices kept. Fields and their defaults, all device-persisted
 - **Order** — Shuffled, Newest first or Oldest first; default Shuffled — the mockup calls the
   third choice "By date, then repeat"; "Oldest first" says the same thing more plainly and matches
   "Newest first"'s phrasing.
-- **Clock** and **date** — shown over the running frame; both on by default.
+- **Clock** and **date and place** — shown over the running frame; both on by default. The
+  switch reads "Show date and place", "When and where each picture was taken, bottom left".
 
 A footer carries "Copy frame link" (`#frame=<albumId>`, below) and "Start frame", disabled until
 an album is chosen. Waiting and errors follow `dev-docs/app/WAITING_AND_ERRORS.md`: the album
@@ -52,10 +53,14 @@ screen) covers the same need until a dedicated in-frame settings path is worth i
 The frame's `role="application"` is `aria-busy` while it has no picture to show: until the first
 round plays, while a round waits for a picture, and while an ended round waits for the next one
 (`src/frame/round-handover.ts`).
-The clock (if on) sits top-right, the date and album name (if the date is on) bottom-left — the
-mockup's copy says "date and place", but place comes from Immich's reverse geocoding, which this
-screen does not read, so only the date and the album's own name are shown; a future iteration may
-add place once Immich exposes it to the client. The screen is kept awake for as long as the frame
+The clock (if on) sits top-right. The caption (if date and place are on) sits bottom-left and
+describes the picture on screen: its place as the bold title and its capture date below it, in
+the translator's day format ("Sat, 12 July 2025"). The place is the city Immich's reverse
+geocoding gave the picture (`exifInfo.city`, read with the album's picture list), without the
+country — on a frame at home the country rarely tells anything. A picture without a city shows its
+date as the title and nothing below (E2E-117). The album's name is not shown: the frame shows one album, so
+it would never change. Mockup: https://polandy.github.io/glissando-assets/mockups/frame-place/
+(variant B, "City"). The screen is kept awake for as long as the frame
 runs
 (`keepScreenAwake`, `src/app/video-export/screen-awake.ts` — despite its path, generic). Ken
 Burns and transitions are the player's usual automatic choices (`src/compose`); there is no

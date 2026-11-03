@@ -11,7 +11,7 @@ import {
   type ImmichThumbnailSize,
   type ImmichUnavailableKind,
 } from "./immich-client";
-import { ImmichJsonReader } from "./immich-json";
+import { ImmichJsonReader, type JsonRecord } from "./immich-json";
 
 /** Photos per page of a library or album listing. */
 export const PAGE_SIZE = 60;
@@ -108,6 +108,8 @@ export class HttpImmichClient implements ImmichClient {
       order: NEWEST_FIRST,
       size: PAGE_SIZE,
       page: query.page,
+      // The search leaves the EXIF block out unless asked; the place is read from it.
+      withExif: true,
       ...(query.albumId === undefined ? {} : { albumIds: [query.albumId] }),
     });
     const assets = reader.record(reader.record(answer, "a body").assets, '"assets"');
@@ -126,6 +128,7 @@ export class HttpImmichClient implements ImmichClient {
           reader.optionalNumber(asset, "width"),
           reader.optionalNumber(asset, "height"),
         ),
+        place: placeOf(reader, asset),
       };
       return [
         type === VIDEO_ASSET_TYPE
@@ -263,6 +266,13 @@ export class HttpImmichClient implements ImmichClient {
 function photoSize(width: number | null, height: number | null): ImmichPhoto["size"] {
   // Immich answers 0 for a size it could not read.
   return width === null || height === null || width <= 0 || height <= 0 ? null : { width, height };
+}
+
+/** The EXIF city; Immich leaves `exifInfo` or the city out for a picture it could not place. */
+function placeOf(reader: ImmichJsonReader, asset: JsonRecord): string | null {
+  if (asset.exifInfo === undefined || asset.exifInfo === null) return null;
+  const city = reader.optionalString(reader.record(asset.exifInfo, '"exifInfo"'), "city");
+  return city === "" ? null : city;
 }
 
 function assetPath(photoId: string): string {

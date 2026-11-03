@@ -23,6 +23,8 @@ export interface ImmichPhoto {
   readonly takenAt: string;
   /** Immich's `width`/`height` in pixels; null while Immich has not read them. */
   readonly size: { readonly width: number; readonly height: number } | null;
+  /** The city of the capture from Immich's EXIF data; null where Immich has none. */
+  readonly place?: string | null;
   /** Present for a video (only listed with `withVideos`); its length when Immich knows it. */
   readonly video?: { readonly durationMs: number | null };
 }

@@ -63,6 +63,10 @@ const ALBUMS = [
   { number: 2, name: "Old town", days: [2, 3] },
   { number: 3, name: "Mountains", days: [4] },
 ];
+// One town per day of the gallery; every sixth photo has no place, as Immich leaves a photo
+// without GPS unplaced.
+const CITIES = ["Annecy", "Talloires", "Lyon", "Lyon", "Chamonix", "Chamonix"];
+const UNPLACED_EVERY = 6;
 const GONE_ID = "00000000-0000-4000-8000-00000000dead";
 
 const hex12 = (n) => n.toString(16).padStart(12, "0");
@@ -88,6 +92,7 @@ const photos = Array.from({ length: PHOTO_COUNT }, (_, index) => {
     faces,
     fileName: `GLS_${String(number).padStart(4, "0")}.png`,
     takenAt: iso(FIRST_DAY + day * DAY_MS + (index % PHOTOS_PER_DAY) * PHOTO_SPACING_MS),
+    city: number % UNPLACED_EVERY === 0 ? null : CITIES[day],
   };
 });
 
@@ -137,6 +142,7 @@ function searchMetadata(query) {
     height: photo.height,
     isFavorite: false,
     isTrashed: false,
+    ...(query.withExif === true ? { exifInfo: { city: photo.city } } : {}),
   }));
   const nextPage = page * size < matching.length ? String(page + 1) : null;
   const noAlbums = { total: 0, count: 0, items: [], facets: [], nextPage: null };
