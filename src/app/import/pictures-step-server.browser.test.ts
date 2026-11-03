@@ -8,7 +8,9 @@ import { fakeRemovalPorts, fakeStoppedPickText } from "../testing/picture-intake
 import type { SlideshowHome } from "../../server-library/server-library-memory";
 import { createTranslator } from "../i18n/translator";
 import { mountWithTranslator } from "../testing/mount-with-translator";
+import type { PictureIntakePorts } from "./picture-intake";
 import { ImportSession } from "./import-session";
+import { deferredColours, LINKED_COLOURS } from "./testing/deferred-colours";
 import PicturesStep from "./PicturesStep.svelte";
 
 let unmounts: (() => void)[] = [];
@@ -20,7 +22,9 @@ afterEach(() => {
 const AVAILABLE: ImmichAvailabilityState = { kind: "available", version: "3.3.1", albumCount: 2 };
 const PHOTO = { id: "asset-1", fileName: "a.jpg", takenAt: "2025-07-01T10:00:00Z", size: null };
 
-function session(): ImportSession {
+function session(
+  immichColours: PictureIntakePorts["immichColours"] = () => Promise.resolve(LINKED_COLOURS),
+): ImportSession {
   let nextId = 1;
   return new ImportSession({
     store: new MemoryLibraryStore(),
@@ -29,7 +33,7 @@ function session(): ImportSession {
     checker: new FakePictureChecker(),
     random: () => 0,
     pixels: () => Promise.resolve([]),
-    immichColours: () => Promise.resolve({ veil: "#404040", accent: "#C0C0C0" }),
+    immichColours,
     decode: (file) =>
       Promise.resolve({
         width: 300,
@@ -141,5 +145,23 @@ describe("PicturesStep, where a new slideshow lives", () => {
     expect(target.querySelector(".notice.mint")?.textContent).toContain(
       "Linked from Immich. Nothing is downloaded now",
     );
+  });
+
+  it("locks the choice while photos are being linked, and keeps it locked once they are in", async () => {
+    const deferred = deferredColours();
+    const { option, session: importSession } = mountStep(true, "server", session(deferred.colours));
+
+    importSession.addImmichPhotos([PHOTO]);
+    const read = await deferred.asked(PHOTO.id);
+    flushSync();
+
+    expect(option("This device")?.disabled).toBe(true);
+    expect(option("Glissando server")?.disabled).toBe(true);
+
+    read.resolve();
+    await importSession.intake.linked();
+    flushSync();
+
+    expect(option("This device")?.disabled).toBe(true);
   });
 });
