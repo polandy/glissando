@@ -38,8 +38,8 @@ What the feature needs, with the API key's permission:
   JPEG, long side ≤ 1440 px. `GET /api/assets/{id}/original` (`asset.download`): the file itself.
   `GET /api/assets/{id}/video/playback` (`asset.view`): a video as Immich plays it, its
   transcoded copy or else the original, downloaded whole for a video slide (ADR-0034).
-- `localDateTime` on every asset: the capture time as wall time with a `Z`, the convention
-  `captureDate()` already uses for local files.
+- `localDateTime` on every asset: the capture time as wall time with a `Z` and sub-seconds; cut
+  to whole seconds it is the convention `captureDate()` already uses for local files.
 - `GET /api/faces?id=` (`face.read`): boxes in pixels of `imageWidth × imageHeight`, which is the
   preview's size in display orientation (checked with an EXIF-rotated photo). No score. A photo
   without faces and a photo Immich has not yet scanned both return `[]`; nothing the key may read

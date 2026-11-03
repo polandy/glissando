@@ -26,7 +26,7 @@ export function readPhotoPage(
     const photo: ImmichPhoto = {
       id: reader.string(asset, "id"),
       fileName: reader.string(asset, "originalFileName"),
-      takenAt: reader.string(asset, "localDateTime"),
+      takenAt: reader.wallTime(asset, "localDateTime"),
       size: photoSize(
         reader.optionalNumber(asset, "width"),
         reader.optionalNumber(asset, "height"),

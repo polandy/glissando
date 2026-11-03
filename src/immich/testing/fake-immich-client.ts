@@ -14,7 +14,7 @@ type PhotoAnswer = ImmichPhotoPage | Error;
 /** A photo whose day and id are all a test cares about. */
 export function photo(
   id: string,
-  takenAt = "2025-07-12T14:30:00.000Z",
+  takenAt = "2025-07-12T14:30:00Z",
   place: string | null = null,
 ): ImmichPhoto {
   return { id, fileName: `${id}.jpg`, takenAt, size: { width: 4000, height: 3000 }, place };
