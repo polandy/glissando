@@ -9,9 +9,11 @@
   import { keepScreenAwake } from "../video-export/screen-awake";
   import { getTranslator } from "../i18n/context";
   import BlockingOverlay from "../components/BlockingOverlay.svelte";
+  import FrameCaption from "./FrameCaption.svelte";
   import Notice from "../components/Notice.svelte";
   import type { FrameDevice } from "./browser-frame-device";
   import { fetchAlbumPictures } from "../../frame/frame-album-pictures";
+  import type { RoundPicture } from "../../frame/round-composition";
   import { createFrameRoundHandoverPorts } from "./frame-round-handover-ports";
   import type { FrameRoundPlayer } from "../../frame/round-handover";
   import type { FramePreferences } from "./frame-preferences";
@@ -42,6 +44,8 @@
   let stage: HTMLDivElement | undefined = $state();
   let failure = $state<"unavailable" | "notFound" | null>(null);
   let albumName = $state<string | null>(null);
+  // The picture each live round's player shows now; the caption follows the shown round's.
+  const shownPictures = new SvelteMap<FrameRoundPlayer, RoundPicture>();
   let handover: RoundHandover | null = null;
   let handoverState = $state.raw<RoundHandoverState>({
     player: null,
@@ -107,6 +111,7 @@
               },
               onPhotoFailed: log,
               onRoundReady: (player, container) => containers.set(player, container),
+              onPictureShown: (player, picture) => shownPictures.set(player, picture),
             }),
           );
           const stopHandover = handover.subscribe((next) => {
@@ -118,6 +123,7 @@
               }
               if (shownPlayer !== null) {
                 containers.delete(shownPlayer);
+                shownPictures.delete(shownPlayer);
               }
               shownPlayer = next.player;
             }
@@ -151,7 +157,9 @@
   const clockText = $derived(
     now.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" }),
   );
-  const currentPictureCaption = $derived(showDate && albumName !== null ? albumName : null);
+  const currentPicture = $derived(
+    handoverState.player === null ? undefined : shownPictures.get(handoverState.player),
+  );
 </script>
 
 <svelte:window onkeydown={exitKey} />
@@ -189,10 +197,8 @@
     {#if showClock}
       <div class="clock mono" aria-hidden="true">{clockText}</div>
     {/if}
-    {#if currentPictureCaption !== null}
-      <div class="stamp">
-        <b>{currentPictureCaption}</b>
-      </div>
+    {#if showDate && currentPicture !== undefined}
+      <FrameCaption picture={currentPicture} />
     {/if}
     <button class="exit" type="button" onclick={onExit}>{t("frame.exit")}</button>
     <div class="bar">
@@ -234,7 +240,6 @@
     inset: 0;
   }
   .clock,
-  .stamp,
   .exit,
   .bar {
     position: absolute;
@@ -252,11 +257,6 @@
     right: 24px;
     font-size: 2.2rem;
     font-weight: var(--gl-weight-semibold);
-    text-shadow: 0 1px 6px rgb(0 0 0 / 0.5);
-  }
-  .stamp {
-    bottom: 20px;
-    left: 24px;
     text-shadow: 0 1px 6px rgb(0 0 0 / 0.5);
   }
   .exit {

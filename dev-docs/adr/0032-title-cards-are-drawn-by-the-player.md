@@ -17,7 +17,7 @@ required).
 
 Options weighed:
 
-1. **An overlay per target** (DOM text above the player, as the frame's album name is drawn).
+1. **An overlay per target** (DOM text above the player, as the frame's caption is drawn).
    This is cheap in the app, but the video export records only the canvas, and each target
    would need its own copy of the motion.
 2. **Rasterise the card into a picture at compose time** and play it as an ordinary picture

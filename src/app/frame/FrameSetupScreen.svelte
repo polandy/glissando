@@ -129,10 +129,10 @@
       </div>
       <div class="row">
         <div>
-          <b>{t("frame.showDate")}</b>
-          <small>{t("frame.showDateHint")}</small>
+          <b>{t("frame.showDateAndPlace")}</b>
+          <small>{t("frame.showDateAndPlaceHint")}</small>
         </div>
-        <Switch checked={showDate} label={t("frame.showDate")} onChange={onShowDate} />
+        <Switch checked={showDate} label={t("frame.showDateAndPlace")} onChange={onShowDate} />
       </div>
     {/if}
   </main>

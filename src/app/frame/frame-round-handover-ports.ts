@@ -1,5 +1,6 @@
 import { createPlayer, type OpenPicture } from "../../player";
-import { composeRound } from "../../frame/round-composition";
+import { composeRound, type RoundPicture } from "../../frame/round-composition";
+import { pictureIndexAt } from "../../frame/round-position";
 import type { FrameAlbumDeck } from "../../frame/frame-album-deck";
 import type {
   FrameRoundPlayer,
@@ -9,7 +10,7 @@ import type {
 
 export interface FrameRoundHandoverDeps {
   readonly deck: FrameAlbumDeck;
-  /** The running caption's title; the album's own name. */
+  /** The slideshow title of each round; the album's own name. */
   readonly albumName: string;
   readonly intervalMs: number;
   readonly openPicture: OpenPicture;
@@ -22,6 +23,11 @@ export interface FrameRoundHandoverDeps {
    * its container hidden, ahead of the hand-over that reveals it (`dev-docs/app/FRAME.md`).
    */
   readonly onRoundReady: (player: FrameRoundPlayer, container: HTMLElement) => void;
+  /**
+   * The picture a round's player shows: once the round exists (its first picture) and again each
+   * time its playback moves on to the next. Hidden rounds report too; the caller picks the shown one.
+   */
+  readonly onPictureShown: (player: FrameRoundPlayer, picture: RoundPicture) => void;
 }
 
 /**
@@ -49,10 +55,31 @@ export function createFrameRoundHandoverPorts(deps: FrameRoundHandoverDeps): Rou
         deps.onPhotoFailed(new Error("frame: a picture failed to load")),
       );
       const wrapped = wrapPlayer(player, container);
+      const pictureCount = round.pictureIds.length;
+      let shownIndex = 0;
+      deps.onPictureShown(wrapped, requirePicture(round.picturesById, round.pictureIds[0]));
+      player.addEventListener("timeupdate", () => {
+        const index = pictureIndexAt(player.currentTime, deps.intervalMs, pictureCount);
+        if (index !== shownIndex) {
+          shownIndex = index;
+          deps.onPictureShown(wrapped, requirePicture(round.picturesById, round.pictureIds[index]));
+        }
+      });
       deps.onRoundReady(wrapped, container);
       return { kind: "player", player: wrapped };
     },
   };
+}
+
+function requirePicture(
+  picturesById: ReadonlyMap<string, RoundPicture>,
+  id: string | undefined,
+): RoundPicture {
+  const picture = id === undefined ? undefined : picturesById.get(id);
+  if (picture === undefined) {
+    throw new Error(`frame: picture "${String(id)}" is not in the album's own list`);
+  }
+  return picture;
 }
 
 /** Ties a round's container to its player's lifetime: `destroy()` removes both. */

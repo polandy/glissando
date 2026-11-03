@@ -92,9 +92,9 @@ test("E2E-047 the picture frame is set up from the start screen, runs full scree
     "true",
   );
   await toggleSwitch(page, "Uhr anzeigen");
-  await toggleSwitch(page, "Datum anzeigen");
+  await toggleSwitch(page, "Datum und Ort anzeigen");
   await expect(settingSwitch(page, "Uhr anzeigen")).not.toBeChecked();
-  await expect(settingSwitch(page, "Datum anzeigen")).not.toBeChecked();
+  await expect(settingSwitch(page, "Datum und Ort anzeigen")).not.toBeChecked();
 
   // The frame's player draws on the page's clock, held still so it never competes on the main
   // thread with the taps below; the tap controls' auto-hide timer is held with it.
@@ -151,7 +151,7 @@ test("E2E-048 the picture frame's set-up choices survive a reload", async ({ pag
   await page.getByRole("button", { name: "1 min" }).click();
   await page.getByRole("button", { name: "Älteste zuerst" }).click();
   await toggleSwitch(page, "Uhr anzeigen");
-  await toggleSwitch(page, "Datum anzeigen");
+  await toggleSwitch(page, "Datum und Ort anzeigen");
 
   // The album is only remembered once a frame actually starts with it.
   await startFrameButton(page).click();
@@ -170,16 +170,17 @@ test("E2E-048 the picture frame's set-up choices survive a reload", async ({ pag
     "true",
   );
   await expect(settingSwitch(page, "Uhr anzeigen")).not.toBeChecked();
-  await expect(settingSwitch(page, "Datum anzeigen")).not.toBeChecked();
+  await expect(settingSwitch(page, "Datum und Ort anzeigen")).not.toBeChecked();
 });
 
 test("E2E-049 a #frame= link starts the frame directly, skipping set-up", async ({ page }) => {
   await openAppWithServer(page, `/#frame=${LANDSCAPES_ALBUM_ID}`);
 
   await expect(exitButton(page)).toBeVisible();
-  // The default showDate stamps the running picture with the album's own name: proof the deep
-  // link's album, not just any frame, is the one playing.
-  await expect(page.locator(".stamp")).toHaveText("Landscapes Lab");
+  // The default showDate captions the running picture with its place and date; every picture of
+  // the fake library is from Annecy.
+  await expect(page.locator(".stamp b")).toHaveText("Annecy");
+  await expect(page.locator(".stamp small")).toHaveText(/\d{4}/);
 });
 
 test("E2E-057 the picture frame card is hidden with its close button, stays hidden after a reload, the frame is still set up from Settings and the card is brought back there", async ({

@@ -1,3 +1,4 @@
+import { flushSync } from "svelte";
 import { afterEach, describe, expect, it } from "vitest";
 import type { ImmichAvailability } from "../../immich/immich-availability";
 import type { ImmichAlbum, ImmichClient, ImmichPhoto } from "../../immich/immich-client";
@@ -15,17 +16,18 @@ const ALBUM: ImmichAlbum = {
   endDate: null,
 };
 
-function photo(id: string): ImmichPhoto {
-  return { id, fileName: `${id}.jpg`, takenAt: "2025-07-01T10:00:00Z", size: null };
+function photo(id: string, place: string | null): ImmichPhoto {
+  return { id, fileName: `${id}.jpg`, takenAt: "2025-07-12T10:00:00Z", size: null, place };
 }
 
 /** Resolves every call at once; a frame's own test never races on network timing. */
 function fakeImmichClient(
   albums: readonly ImmichAlbum[],
+  place: string | null = null,
 ): Pick<ImmichClient, "albums" | "photos" | "thumbnail"> {
   return {
     albums: () => Promise.resolve(albums),
-    photos: () => Promise.resolve({ photos: [photo("a")], nextPage: null }),
+    photos: () => Promise.resolve({ photos: [photo("a", place)], nextPage: null }),
     thumbnail: () => Promise.resolve(new Blob([])),
   };
 }
@@ -69,14 +71,43 @@ let destroy = () => {};
 afterEach(() => destroy());
 
 describe("FrameLayer", () => {
-  it("shows the stage and the album's name once the album and its pictures are read", async () => {
+  it("captions the picture on screen with its place as the title and its date below", async () => {
+    const mounted = mountWithTranslator(FrameLayer, baseProps(fakeImmichClient([ALBUM], "Annecy")));
+    destroy = mounted.destroy;
+
+    await whenRendered(mounted.target, ".stamp");
+
+    expect(mounted.target.querySelector(".bar")).not.toBeNull();
+    expect(mounted.target.querySelector(".stamp b")?.textContent).toBe("Annecy");
+    expect(mounted.target.querySelector(".stamp small")?.textContent).toMatch(/12\. Juli 2025/);
+    expect(mounted.target.querySelector(".stamp")?.textContent).not.toContain("Sommer am See");
+  });
+
+  it("makes the date the title, with no second line, for a picture without a place", async () => {
     const mounted = mountWithTranslator(FrameLayer, baseProps(fakeImmichClient([ALBUM])));
     destroy = mounted.destroy;
 
-    await whenRendered(mounted.target, ".stage");
+    await whenRendered(mounted.target, ".stamp");
 
-    expect(mounted.target.querySelector(".stamp")?.textContent).toContain("Sommer am See");
+    expect(mounted.target.querySelector(".stamp b")?.textContent).toMatch(/12\. Juli 2025/);
+    expect(mounted.target.querySelector(".stamp small")).toBeNull();
+  });
+
+  it("shows no caption when the date preference is off", async () => {
+    const props = baseProps(fakeImmichClient([ALBUM], "Annecy"));
+    const mounted = mountWithTranslator(FrameLayer, {
+      ...props,
+      preferences: { state: { ...props.preferences.state, showDate: false } },
+    });
+    destroy = mounted.destroy;
+
+    // The round's player container is the positive signal that the picture is on its way; the
+    // caption would render in the same flush.
+    await whenRendered(mounted.target, ".stage > div");
+    flushSync();
+
     expect(mounted.target.querySelector(".bar")).not.toBeNull();
+    expect(mounted.target.querySelector(".stamp")).toBeNull();
   });
 
   it("tells the owner when the linked album no longer exists", async () => {

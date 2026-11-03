@@ -6,6 +6,8 @@ import { SLIDESHOW_FORMAT_VERSION, type Slide, type Slideshow } from "../player/
 export interface RoundPicture {
   readonly id: string;
   readonly takenAt: string;
+  /** Where it was taken, for the frame's caption; null or absent when unknown. */
+  readonly place?: string | null;
   /** Null while Immich has not read it yet: the automatic framing then treats it as square. */
   readonly size: { readonly width: number; readonly height: number } | null;
 }
@@ -16,7 +18,7 @@ const UNKNOWN_SIZE = { width: 1, height: 1 };
 /**
  * Composes one round's finite `Slideshow` (`dev-docs/app/FRAME.md`, ADR-0030): the automatic Ken
  * Burns and transitions a normal slideshow gets, `intervalMs` per picture, no music, no caption
- * baked into the slide (the frame draws the album name and date as its own overlay).
+ * baked into the slide (the frame draws the place and date as its own overlay).
  */
 export function composeRound(
   title: string,
