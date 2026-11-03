@@ -1,5 +1,6 @@
 // Reads the repository and prints unused exports, one per line, with what to do about each.
 import { readdirSync, readFileSync } from "node:fs";
+import process from "node:process";
 import { findUnusedExports, type SourceFile } from "./analyse.ts";
 
 const SOURCE_PATTERN = /\.(ts|svelte|js|mjs)$/;
