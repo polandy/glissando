@@ -19,7 +19,7 @@ export interface ImmichAlbum {
 export interface ImmichPhoto {
   readonly id: string;
   readonly fileName: string;
-  /** Immich's `localDateTime`: the capture time as wall time with a `Z`, as `captureDate()`. */
+  /** Immich's `localDateTime` cut to whole seconds: the wall time with a `Z` of `captureDate()`. */
   readonly takenAt: string;
   /** Immich's `width`/`height` in pixels; null while Immich has not read them. */
   readonly size: { readonly width: number; readonly height: number } | null;

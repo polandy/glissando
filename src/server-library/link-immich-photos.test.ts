@@ -9,7 +9,7 @@ function immichPhoto(
   id: string,
   size: ImmichPhoto["size"] = { width: 4000, height: 3000 },
 ): ImmichPhoto {
-  return { id, fileName: `${id}.jpg`, takenAt: "2025-07-12T14:30:00.000Z", size };
+  return { id, fileName: `${id}.jpg`, takenAt: "2025-07-12T14:30:00Z", size };
 }
 
 /** Answers every photo with `SOME_COLOURS` and records which photos it was asked about. */
@@ -33,7 +33,7 @@ describe("linkImmichPhotos", () => {
         id: "asset-1",
         immichAssetId: "asset-1",
         fileName: "asset-1.jpg",
-        capturedAt: "2025-07-12T14:30:00.000Z",
+        capturedAt: "2025-07-12T14:30:00Z",
         colours: SOME_COLOURS,
         width: 2880,
         height: 2160,
