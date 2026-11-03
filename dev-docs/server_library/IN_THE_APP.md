@@ -41,7 +41,7 @@ With the server library on, the pictures step shows above everything a group "Wh
 live?" with two options: "This device" ("Pictures are downloaded and stored here. Plays
 offline.") and "Glissando server" ("Pictures stay in Immich. Plays on every device at home,
 online."); the last choice is remembered per device, "This device" by default. Once a picture is
-in, both are disabled with "Chosen for this slideshow. Clear the pictures to change it." Not on:
+in, both are disabled with "Chosen for this slideshow. Remove the pictures to change it." Not on:
 no group, the step as before.
 
 **Glissando server** chosen: the "From Immich" box comes first with "Open Immich" as the primary

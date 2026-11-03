@@ -25,7 +25,8 @@ primarily for offline use: once installed it needs neither the internet nor a se
 - **Offline is the primary use.** With local pictures and music, Glissando works with no
   network and no server at all: every asset (code, fonts, shaders, detection models) ships with
   the app and is cached by the service worker; nothing is fetched from a third party. Features
-  that need a network — Immich, sync, TV control — are optional extras on top, never required.
+  that need a network — Immich, the Glissando server, TV control — are optional extras on top,
+  never required.
 - **Any common audio format.** MP3, AAC/M4A, Ogg/Opus, FLAC, WAV and the like are accepted. The
   browser decodes what it can natively; anything else is converted client-side (WASM decoder) to
   a format every target browser plays, before it enters the slideshow.
