@@ -10,6 +10,7 @@ import {
   type PageCopy,
 } from "./page-contract.ts";
 import { assertInlineableScript } from "./inline-script.ts";
+import { assertCommentSafe } from "./notice-values.ts";
 import type { BundledNotice } from "./ports.ts";
 
 /**
@@ -68,19 +69,13 @@ export function captionFontFace(captionFontDataUrl: string): string {
   );
 }
 
-/** What a notice's fields may hold: nothing that could end an HTML comment (`-->`, `--!>`). */
-const SAFE_NOTICE_VALUE = /^[\w@/.:+-]+$/;
 const SPDX_LICENSE_URL = "https://spdx.org/licenses/";
 
 /** The head's comment naming the script's third-party packages; empty when it has none. */
 function noticeComment(notices: readonly BundledNotice[]): string[] {
   if (notices.length === 0) return [];
   const lines = notices.map((notice) => {
-    for (const value of Object.values(notice)) {
-      if (!SAFE_NOTICE_VALUE.test(value) || value.includes("--")) {
-        throw new Error(`"${value}" cannot go into the page's HTML comment of bundled packages`);
-      }
-    }
+    assertCommentSafe(notice);
     const { name, version, licenseId, sourceUrl } = notice;
     return `${name} ${version}, ${licenseId} (${SPDX_LICENSE_URL}${licenseId}.html), source ${sourceUrl}`;
   });

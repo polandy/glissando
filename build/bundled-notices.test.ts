@@ -73,6 +73,16 @@ describe("bundledNotices", () => {
     ]);
   });
 
+  it("fails at build time on a value the page's comment cannot hold", async () => {
+    const hostile = { ...MEDIABUNNY_JSON, license: "(MIT OR MPL-2.0)" };
+    await expect(
+      bundledNotices(
+        [`${ROOT}/node_modules/mediabunny/dist/index.js`],
+        packages({ [MEDIABUNNY]: hostile }),
+      ),
+    ).rejects.toThrow(/comment/);
+  });
+
   it("fails on a package that names no licence or no source, naming the package", async () => {
     const modules = [`${ROOT}/node_modules/mediabunny/dist/index.js`];
     await expect(

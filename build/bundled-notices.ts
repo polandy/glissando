@@ -1,3 +1,4 @@
+import { assertCommentSafe } from "../src/html-export/notice-values.ts";
 import type { BundledNotice } from "../src/html-export/ports.ts";
 
 const NODE_MODULES = "node_modules/";
@@ -57,10 +58,12 @@ async function noticeOf(directory: string, readFile: ReadFile): Promise<BundledN
   if (typeof url !== "string") {
     throw new Error(`${name} names no source repository in its package.json`);
   }
-  return {
+  const notice: BundledNotice = {
     name,
     version,
     licenseId: license,
     sourceUrl: url.replace(GIT_URL_PREFIX, "").replace(GIT_URL_SUFFIX, ""),
   };
+  assertCommentSafe(notice);
+  return notice;
 }
