@@ -94,7 +94,11 @@ export class ImportSession {
   /** Where the slideshow lives; fixed once a picture is in. */
   chooseHome(home: SlideshowHome): void {
     if (home === this.#choices.home) return;
-    if (this.pictures.state.pictures.length > 0 || this.pictures.state.busy) {
+    if (
+      this.pictures.state.pictures.length > 0 ||
+      this.pictures.state.busy ||
+      this.intake.linking.current()
+    ) {
       throw new Error(`cannot move the slideshow to the ${home}: clear the pictures first`);
     }
     this.#setChoices({ home });
@@ -184,6 +188,8 @@ export class ImportSession {
    * the automatic title's month; a given `title` replaces that title. A failure keeps the session as it was.
    */
   async create(locale: string, title?: string): Promise<StoredSlideshow> {
+    // A link still reading colours is waited for; one that failed is reported already.
+    await this.intake.linked();
     const state = this.pictures.state;
     if (state.busy) {
       throw new Error("cannot create the slideshow: pictures are still being imported");

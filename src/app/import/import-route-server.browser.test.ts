@@ -107,8 +107,11 @@ function mountMusicStep(importSession: ImportSession) {
 describe("ImportRoute, creating a server slideshow", () => {
   it("saves under the server's overlay, and tells a failure keeping the wizard to try again", async () => {
     let attempts = 0;
+    let retried = () => {};
+    const secondAttempt = new Promise<void>((resolve) => (retried = resolve));
     const importSession = session(() => {
       attempts += 1;
+      if (attempts === 2) retried();
       return Promise.reject(new ServerLibraryUnavailableError("POST /slideshows"));
     });
     importSession.chooseHome("server");
@@ -130,6 +133,7 @@ describe("ImportRoute, creating a server slideshow", () => {
     expect(created).toEqual([]);
     expect(importSession.pictures.state.pictures).toHaveLength(1);
     failed[0]?.();
+    await secondAttempt;
     expect(attempts).toBe(2);
   });
 });
