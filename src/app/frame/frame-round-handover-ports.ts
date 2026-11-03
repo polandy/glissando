@@ -1,6 +1,6 @@
 import { createPlayer, type OpenPicture } from "../../player";
 import { composeRound, type RoundPicture } from "../../frame/round-composition";
-import { pictureIndexAt } from "../../frame/round-position";
+import { followShownPicture } from "../../frame/round-position";
 import type { FrameAlbumDeck } from "../../frame/frame-album-deck";
 import type {
   FrameRoundPlayer,
@@ -55,16 +55,10 @@ export function createFrameRoundHandoverPorts(deps: FrameRoundHandoverDeps): Rou
         deps.onPhotoFailed(new Error("frame: a picture failed to load")),
       );
       const wrapped = wrapPlayer(player, container);
-      const pictureCount = round.pictureIds.length;
-      let shownIndex = 0;
-      deps.onPictureShown(wrapped, requirePicture(round.picturesById, round.pictureIds[0]));
-      player.addEventListener("timeupdate", () => {
-        const index = pictureIndexAt(player.currentTime, deps.intervalMs, pictureCount);
-        if (index !== shownIndex) {
-          shownIndex = index;
-          deps.onPictureShown(wrapped, requirePicture(round.picturesById, round.pictureIds[index]));
-        }
-      });
+      const showPicture = (index: number) =>
+        deps.onPictureShown(wrapped, requirePicture(round.picturesById, round.pictureIds[index]));
+      showPicture(0);
+      followShownPicture(player, deps.intervalMs, round.pictureIds.length, showPicture);
       deps.onRoundReady(wrapped, container);
       return { kind: "player", player: wrapped };
     },

@@ -208,7 +208,7 @@ test("E2E-117 the frame's caption names each picture's place above its date, and
   await expect(page.locator(".stamp small")).toHaveText("Mi., 19. Juni 2019");
 
   // Oldest first opens on the picture without a place. The caption following the playback from
-  // one picture to the next is proven in `FrameLayer.browser.test.ts`.
+  // one picture to the next is proven in `round-position.test.ts`.
   await page.keyboard.press("Escape");
   await setUpCard(page).click();
   await page.getByRole("button", { name: "Älteste zuerst" }).click();
