@@ -75,12 +75,12 @@ describe("tileDimmed", () => {
     expect(tileDimmed("failed", true, null)).toBe(false);
   });
 
-  it("filters by own motion, regardless of status", () => {
+  it("filters by chosen motion, regardless of status", () => {
     expect(tileDimmed("face", true, "ownMotion")).toBe(false);
     expect(tileDimmed("face", false, "ownMotion")).toBe(true);
   });
 
-  it("filters by status, regardless of own motion", () => {
+  it("filters by status, regardless of chosen motion", () => {
     expect(tileDimmed("face", true, "face")).toBe(false);
     expect(tileDimmed("subject", true, "face")).toBe(true);
     expect(tileDimmed("subject", false, "face")).toBe(true);
@@ -137,7 +137,7 @@ describe("focusSheetTiles", () => {
     return { ...NO_FOCUS_KNOWN, ...partial };
   }
 
-  it("pairs each picture with its status and own motion, none dimmed with no filter", () => {
+  it("pairs each picture with its status and chosen motion, none dimmed with no filter", () => {
     const focus = focusWith({ found: new Map([["a", { kind: "none" }]]) });
 
     expect(focusSheetTiles(focus, pictures, false, null)).toEqual([

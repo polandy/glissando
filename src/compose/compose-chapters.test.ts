@@ -92,7 +92,7 @@ describe("composeChapters", () => {
     expect(pictureSlideOf(composed[1]).kenBurns).toEqual(KEN_BURNS);
   });
 
-  it("lengthens the anchor's own duration by the fixed chapter time, on top of its own", () => {
+  it("lengthens the anchor's chosen duration by the fixed chapter time, on top of its own", () => {
     const composed = composeChapters(
       [chapter],
       pictures,
@@ -140,7 +140,7 @@ describe("composeChapters", () => {
     });
   });
 
-  it("leaves the other slides and their own durations untouched", () => {
+  it("leaves the other slides and their chosen durations untouched", () => {
     const composed = composeChapters(
       [chapter],
       pictures,

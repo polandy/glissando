@@ -29,7 +29,7 @@ describe("pictureKenBurns", () => {
     expect(pictureKenBurns(3, automatic, undefined)).toEqual(autoKenBurns(3, automatic));
   });
 
-  it("is the picture's own motion, whatever its position, eased like the automatic one", () => {
+  it("is the picture's chosen motion, whatever its position, eased like the automatic one", () => {
     const picture = { ...automatic, kenBurns: own };
 
     expect(pictureKenBurns(0, picture, undefined)).toEqual({
@@ -39,7 +39,7 @@ describe("pictureKenBurns", () => {
     expect(pictureKenBurns(1, picture, undefined)).toEqual(pictureKenBurns(0, picture, undefined));
   });
 
-  it("keeps the picture's own motion over the automatic one aimed at its focus", () => {
+  it("keeps the picture's chosen motion over the automatic one aimed at its focus", () => {
     const picture = { ...automatic, kenBurns: own };
 
     expect(pictureKenBurns(0, picture, FOCUS)).toEqual(pictureKenBurns(0, picture, undefined));
@@ -55,7 +55,7 @@ describe("pictureKenBurns", () => {
     );
   });
 
-  it("keeps the picture's own motion over a mood's strength", () => {
+  it("keeps the picture's chosen motion over a mood's strength", () => {
     const picture = { ...automatic, kenBurns: own };
 
     expect(pictureKenBurns(0, picture, undefined, 0.5)).toEqual(

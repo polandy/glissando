@@ -57,7 +57,7 @@ describe("pictureEditorView timing", () => {
     expect([beatOfSong(first), beatOfSong(first + second)]).toEqual([0, 0]);
   });
 
-  it("shows an own duration and still names the automatic one", () => {
+  it("shows a chosen duration and still names the automatic one", () => {
     const timed = withPicture(1, { durationMs: 8000 });
 
     const view = pictureEditorView(timed, "p2", NO_FOCUS_KNOWN, NO_SONG_BEATS);
@@ -99,7 +99,7 @@ describe("pictureEditorView timing", () => {
     });
   });
 
-  it("with music, marks the automatic pictures clamped once the own durations use it up", () => {
+  it("with music, marks the automatic pictures clamped once the chosen durations use it up", () => {
     const outlasted = { ...withPicture(1, { durationMs: 15_000 }), songs: [music(17_000)] };
 
     expect(pictureEditorView(outlasted, "p1", NO_FOCUS_KNOWN, NO_SONG_BEATS).durationBasis).toEqual(

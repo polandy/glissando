@@ -113,7 +113,7 @@ export function passOver(
   return { pass, logged, reported };
 }
 
-/** Methods of `LibraryStore` that write; a picture's own motion must never go through any of them. */
+/** Methods of `LibraryStore` that write; a picture's chosen motion must never go through any of them. */
 type WriteMethodName =
   | "putPicture"
   | "putMusic"

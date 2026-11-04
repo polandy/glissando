@@ -20,7 +20,7 @@ const timedSecond = () => {
 };
 
 describe("SlideshowScreen, a picture's own timing", () => {
-  it("marks an own duration and an own transition on the tile and in its label", () => {
+  it("marks a chosen duration and a chosen transition on the tile and in its label", () => {
     mountScreen(timedSecond());
 
     const timed = document.querySelector(

@@ -88,7 +88,7 @@ describe("writeGlissandoFile", () => {
     expect(song).not.toHaveProperty("fadeInMs");
   });
 
-  it("keeps each picture's own motion and leaves the automatic ones automatic", async () => {
+  it("keeps each picture's chosen motion and leaves the automatic ones automatic", async () => {
     const store = new MemoryLibraryStore();
     const created = await writeGlissandoFile(await checked(), ports(store), {
       existingTitles: [],
@@ -114,7 +114,7 @@ describe("writeGlissandoFile", () => {
     expect(without).not.toHaveProperty("caption");
   });
 
-  it("keeps each picture's own duration and transition and leaves the others automatic", async () => {
+  it("keeps each picture's chosen duration and transition and leaves the others automatic", async () => {
     const store = new MemoryLibraryStore();
     const created = await writeGlissandoFile(await checked(), ports(store), {
       existingTitles: [],

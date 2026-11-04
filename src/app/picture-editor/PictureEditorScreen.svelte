@@ -64,7 +64,7 @@
     onCaption: (typed: string) => void;
     /** The caption's clear button was pressed; its undo is offered by the caller. */
     onClearCaption: () => void;
-    /** An own duration in whole milliseconds. */
+    /** A chosen duration in whole milliseconds. */
     onDuration: (durationMs: number) => void;
     onTransition: (choice: TransitionChoice) => void;
     /** Duration and transition back to automatic, together. */

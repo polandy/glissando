@@ -12,7 +12,7 @@ const ENERGY_SPREAD = 2;
  * The usual durations, re-weighted by the playlist's energy (ADR-0046, "Pacing"): `ENERGY_PASSES`
  * passes, each weighting every automatic slide by `usual × ENERGY_SPREAD ^ (1 − 2·meanEnergy)` of
  * its span in the previous pass, then re-sharing the automatic slides' combined usual length by
- * those weights, in whole ms. Own durations, and their place in the timeline, never change. A
+ * those weights, in whole ms. Chosen durations, and their place in the timeline, never change. A
  * share that would land below `minSlideMs` is raised to it and the rest re-shared by weight among
  * the other automatic slides; only when the automatic total cannot give every one of them the
  * minimum at all are the usual durations kept instead, unweighted.

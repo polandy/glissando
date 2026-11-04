@@ -57,7 +57,7 @@ const cases: readonly {
     },
   },
   {
-    name: "a picture's own duration stays out of the share",
+    name: "a picture's chosen duration stays out of the share",
     show: slideshow({
       pictures: [{ ...picture("own"), durationMs: 20_000 }, ...pictures(2, "old")],
       songs: [MUSIC],
@@ -96,7 +96,7 @@ const cases: readonly {
     },
   },
   {
-    name: "own durations alone outlasting the music, with no automatic picture, are not the floor",
+    name: "chosen durations alone outlasting the music, with no automatic picture, are not the floor",
     show: slideshow({ pictures: [{ ...picture("own"), durationMs: 70_000 }], songs: [MUSIC] }),
     added: 0,
     expected: {

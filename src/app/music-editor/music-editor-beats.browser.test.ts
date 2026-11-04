@@ -82,7 +82,7 @@ describe("MusicEditorScreen, the picture changes", () => {
     expect(document.activeElement).toBe(radio("Gleichmäßig"));
   });
 
-  it("moves the change after a picture with an own duration onto the beat too, naming none", () => {
+  it("moves the change after a picture with a chosen duration onto the beat too, naming none", () => {
     mountDetailed(slideshowWith({}, { count: 6, durations: { 1: 7300, 4: 9100 } }), FOUND);
 
     expect(section().textContent).not.toContain("gewählte Bilddauer");
@@ -90,7 +90,7 @@ describe("MusicEditorScreen, the picture changes", () => {
     expect(document.querySelectorAll(".runs i.off-beat").length).toBe(0);
   });
 
-  it("names an own duration with no automatic picture left after it to absorb the shift", () => {
+  it("names a chosen duration with no automatic picture left after it to absorb the shift", () => {
     mountDetailed(slideshowWith({}, { count: 4, durations: { 2: 7300, 3: 9100 } }), FOUND);
 
     expect(section().textContent).toContain(

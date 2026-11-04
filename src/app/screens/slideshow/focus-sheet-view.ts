@@ -83,7 +83,7 @@ export const FOCUS_STATUS_COLOR: Readonly<Record<FocusDisplayStatus, string>> = 
 /** A legend chip, or none: the grid's tiles the chip does not cover are dimmed. */
 export type FocusSheetFilter = FocusDisplayStatus | "ownMotion" | null;
 
-/** Whether a tile is dimmed under the current legend filter; a status filter ignores own motion. */
+/** Whether a tile is dimmed under the current legend filter; a status filter ignores chosen motion. */
 export function tileDimmed(
   status: FocusDisplayStatus,
   ownMotion: boolean,

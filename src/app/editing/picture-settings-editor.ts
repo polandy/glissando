@@ -19,7 +19,7 @@ export interface PictureSettingsPorts {
   /** The picture's focus as known now; the automatic motion aims at it. */
   readonly focusOf: (pictureId: string) => PictureFocus | undefined;
   readonly motionAutomaticText: () => string;
-  /** The undo toast's text after a picture's own duration and transition were dropped together. */
+  /** The undo toast's text after a picture's chosen duration and transition were dropped together. */
   readonly timingAutomaticText: () => string;
   readonly slideshowTransitionResetText: () => string;
   /** The undo toast's text after the portrait pictures setting went back to automatic. */
@@ -60,7 +60,7 @@ export class PictureSettingsEditor {
     this.#apply(setPictureKenBurns(this.#current(), pictureId, kenBurns));
   }
 
-  /** Drops the picture's own motion without asking; the toast's undo brings it back. */
+  /** Drops the picture's chosen motion without asking; the toast's undo brings it back. */
   resetKenBurns(pictureId: string): void {
     const previous = this.#picture(pictureId).kenBurns;
     if (previous === undefined) {
@@ -110,7 +110,7 @@ export class PictureSettingsEditor {
   }
 
   /**
-   * Every picture without its own transition hands over with `transition` from now on. While a
+   * Every picture without its chosen transition hands over with `transition` from now on. While a
    * mood is on, this leaves it first (ADR-0045); the toast's undo brings the slideshow back as
    * it was, mood included.
    */

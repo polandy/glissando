@@ -29,7 +29,7 @@ export interface ImportTiming {
   readonly music: ImportMusicTiming | null;
 }
 
-/** A video lasts its excerpt; a photo has no own duration yet (`undefined`). */
+/** A video lasts its excerpt; a photo has no chosen duration yet (`undefined`). */
 export function ownDurationsMs(
   pictures: readonly Pick<StoredPicture, "video">[],
 ): (number | undefined)[] {
@@ -58,7 +58,7 @@ function fittedMs(
 }
 
 /**
- * The slide durations of a slideshow about to be created, from each picture's own duration; the
+ * The slide durations of a slideshow about to be created, from each picture's chosen duration; the
  * music's beats are not known yet.
  */
 export function importSlideDurationsMs(

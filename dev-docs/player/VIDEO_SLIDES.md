@@ -11,7 +11,7 @@ https://polandy.github.io/glissando-assets/mockups/video-slides/.
 | ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Model         | A stored picture with an optional `video`; its picture is the **poster** frame (ADR-0034)                                                                |
 | Stored bytes  | The original file as chosen, never re-encoded; accepted when this browser can play it (ADR-0034)                                                         |
-| Length        | The chosen excerpt, 0.5 s to 5 min; a fixed own duration, like ADR-0008                                                                                  |
+| Length        | The chosen excerpt, 0.5 s to 5 min; a fixed chosen duration, like ADR-0008                                                                               |
 | Sound         | On by default; the music ducks to 20 %, staying audible, while a clip with sound plays (ADR-0035)                                                        |
 | Decoder       | A muted `<video>` in the player, its sound decoded with mediabunny; WebCodecs through mediabunny in the video export (ADR-0035)                          |
 | Network       | Clips are downloaded whole before they play, from Immich; never streamed (ADR-0034). The server keeps no clips: a server slideshow holds no video slides |
@@ -113,7 +113,7 @@ changes: a clip is content, not decoration.
 
 - The composer emits a video slide's `video` from the stored one; the slide has no Ken Burns
   (still framing) and its transition and caption follow the picture's rules.
-- Duration: a fixed own duration (ADR-0008): with music the other pictures share what is left
+- Duration: a fixed chosen duration (ADR-0008): with music the other pictures share what is left
   (ADR-0022); on the beat the video's own length is not snapped (ADR-0021). A card (ADR-0032)
   never lengthens it, opening or closing (`TITLE_CARD_COMPOSITION.md`).
 - A card (ADR-0032) may sit over a video slide's poster background, never over the playing clip.

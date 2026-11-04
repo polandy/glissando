@@ -18,7 +18,7 @@ import {
 /** The next picture follows without a transition. */
 export const CUT_TRANSITION = "cut";
 
-/** The choices for a picture's own transition: the player's effects plus the cut. */
+/** The choices for a picture's chosen transition: the player's effects plus the cut. */
 export const TRANSITION_CHOICES = [...TRANSITION_EFFECTS, CUT_TRANSITION] as const;
 export type TransitionChoice = TransitionEffect | typeof CUT_TRANSITION;
 
@@ -49,7 +49,7 @@ export class InvalidOwnTimingError extends Error {
   }
 }
 
-/** `value` as an own duration; throws `InvalidOwnTimingError` naming `where`. */
+/** `value` as a chosen duration; throws `InvalidOwnTimingError` naming `where`. */
 export function checkOwnDurationMs(value: unknown, where: string): number {
   if (
     typeof value !== "number" ||
@@ -68,7 +68,7 @@ export function checkOwnDurationMs(value: unknown, where: string): number {
   return value;
 }
 
-/** `value` as an own transition; throws `InvalidOwnTimingError` naming `where`. */
+/** `value` as a chosen transition; throws `InvalidOwnTimingError` naming `where`. */
 export function checkTransitionChoice(value: unknown, where: string): TransitionChoice {
   const choice = TRANSITION_CHOICES.find((candidate) => candidate === value);
   if (choice === undefined) {

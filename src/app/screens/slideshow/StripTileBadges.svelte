@@ -5,7 +5,7 @@
   import type { PictureTile } from "../view-models";
 
   /**
-   * The small marks on a strip tile: just added, own motion, own duration, own transition, always
+   * The small marks on a strip tile: just added, chosen motion, chosen duration, chosen transition, always
    * alone and shown over a blurred fill (ADR-0028).
    */
   let {
@@ -15,7 +15,7 @@
   }: {
     picture: PictureTile;
     isNew: boolean;
-    /** The tile's own duration, already formatted; null to use the slideshow's. */
+    /** The tile's chosen duration, already formatted; null to use the slideshow's. */
     ownSeconds: string | null;
   } = $props();
 

@@ -125,7 +125,7 @@ const motion = {
 };
 
 describe("setPictureKenBurns", () => {
-  it("gives the picture its own motion and leaves the others automatic", () => {
+  it("gives the picture its chosen motion and leaves the others automatic", () => {
     const edited = setPictureKenBurns(slideshow(["a", "b"]), "b", motion);
 
     expect(edited.pictures[1]?.kenBurns).toEqual(motion);
@@ -149,7 +149,7 @@ describe("setPictureKenBurns", () => {
     );
   });
 
-  it("keeps the own motion with its picture when the picture moves", () => {
+  it("keeps the chosen motion with its picture when the picture moves", () => {
     const own = setPictureKenBurns(slideshow(["a", "b", "c"]), "a", motion);
 
     const moved = movePicture(own, "a", 2);
@@ -158,7 +158,7 @@ describe("setPictureKenBurns", () => {
     expect(moved.pictures[2]?.kenBurns).toEqual(motion);
   });
 
-  it("keeps the own motion through a removal and its undo", () => {
+  it("keeps the chosen motion through a removal and its undo", () => {
     const own = setPictureKenBurns(slideshow(["a", "b"]), "b", motion);
     const { slideshow: without, removed } = removePicture(own, "b");
 
@@ -185,7 +185,7 @@ describe("setPictureCaption", () => {
     expect(cleared.pictures[0]).not.toHaveProperty("caption");
   });
 
-  it("keeps the picture's own motion", () => {
+  it("keeps the picture's chosen motion", () => {
     const own = setPictureKenBurns(slideshow(["a"]), "a", motion);
 
     const captioned = setPictureCaption(own, "a", "Jetty");

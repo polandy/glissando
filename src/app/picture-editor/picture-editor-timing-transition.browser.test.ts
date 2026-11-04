@@ -115,7 +115,7 @@ describe("PictureEditorScreen transition", () => {
     expect(calls.timingResets).toBe(1);
   });
 
-  it("at the last picture with an own transition stored, says the slideshow ends and names it", () => {
+  it("at the last picture with a chosen transition stored, says the slideshow ends and names it", () => {
     mountEditor(
       view({
         number: 3,

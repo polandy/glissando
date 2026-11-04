@@ -35,6 +35,6 @@
   a transition."; with a chosen transition stored it adds "The chosen transition “Dissolve” stays
   saved and applies again once a picture follows."
 - **Back to automatic**: one button for both settings, disabled-looking and titled "The timing
-  is already automatic" while both are automatic. It drops the own length and the own transition
+  is already automatic" while both are automatic. It drops the own length and the chosen transition
   in one change and raises one toast "Timing back to automatic" with "Undo", which restores
   both. A newer edit of either setting ends the pending undo, so it never overwrites it.

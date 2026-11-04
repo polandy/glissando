@@ -40,7 +40,7 @@ function cutAtLift(
     return [...durationsMs];
   }
   const { index, span, nextSpan } = boundary;
-  // The boundary's two nominal, own durations: the lift sits in real time, so a card or chapter
+  // The boundary's two nominal, chosen durations: the lift sits in real time, so a card or chapter
   // widening either slide's own end (`ownMs`), or a dedicated slide played between the two
   // (`beforeMs` of the next), is backed out before storing the nominal lengths.
   const ownAtIndexMs = inserted?.ownMs[index] ?? 0;

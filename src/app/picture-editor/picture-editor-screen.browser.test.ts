@@ -46,7 +46,7 @@ describe("PictureEditorScreen", () => {
     expect(calls.resets).toBe(0);
   });
 
-  it("calls an own motion so; Back to automatic resets it", () => {
+  it("calls a chosen motion so; Back to automatic resets it", () => {
     const { calls } = mountEditor(view({ ownMotion: true }));
 
     button("Zurück auf automatisch").click();

@@ -35,7 +35,7 @@ const tile = (choice: string) => {
 const pill = () => text(sheet()?.querySelector(".state") ?? null);
 const resetButton = () => buttonNamed("Zurück auf Überblenden");
 
-/** Pictures a to d, the ones named with an own transition into the next. */
+/** Pictures a to d, the ones named with a chosen transition into the next. */
 function withOwn(ownIds: readonly string[], overrides: Partial<SlideshowDetails> = {}) {
   const base = details(["a", "b", "c", "d"], overrides);
   return {
@@ -70,13 +70,13 @@ describe("SlideshowScreen, the transitions row", () => {
     expect(text(transitionsRow())).toBe("Übergänge Überblenden Automatisch");
   });
 
-  it("names an own choice and counts the pictures with their own transition", () => {
+  it("names a chosen transition and counts the pictures with their chosen transition", () => {
     mountScreen(withOwn(["a"], { transition: "alternate" }));
 
     expect(text(transitionsRow())).toBe("Übergänge Abwechselnd gewählt · 1 Bild gewählt");
   });
 
-  it("counts several own transitions in the plural", () => {
+  it("counts several chosen transitions in the plural", () => {
     mountScreen(withOwn(["a", "c"]));
     openFineSettings();
 
@@ -129,7 +129,7 @@ describe("SlideshowScreen, the transitions sheet", () => {
     expect(document.activeElement).toBe(tile("zoom-in"));
   });
 
-  it("stores a picked effect at once and shows it as the own choice", () => {
+  it("stores a picked effect at once and shows it as the chosen one", () => {
     const { calls } = mountScreen();
     openSheet();
 
@@ -184,7 +184,7 @@ describe("SlideshowScreen, the transitions sheet", () => {
     expect(looks("alternate")).not.toEqual(looks("crossfade"));
   });
 
-  it("names the pictures that keep their own transition", () => {
+  it("names the pictures that keep their chosen transition", () => {
     mountScreen(withOwn(["a", "c"]));
     openSheet();
 
@@ -193,7 +193,7 @@ describe("SlideshowScreen, the transitions sheet", () => {
     );
   });
 
-  it("names a single picture that keeps its own transition", () => {
+  it("names a single picture that keeps its chosen transition", () => {
     mountScreen(withOwn(["b"]));
     openSheet();
 

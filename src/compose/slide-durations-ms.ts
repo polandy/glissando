@@ -14,7 +14,7 @@ export const MIN_SLIDE_DURATION_MS = MIN_SECONDS_PER_PICTURE * MILLISECONDS_PER_
 export const DEFAULT_WEIGHT = 1;
 
 /**
- * What the durations are computed from: a slide's own duration, if it has one, and its weight —
+ * What the durations are computed from: a slide's chosen duration, if it has one, and its weight —
  * a composed portrait pair counts as `PAIR_WEIGHT` slides, a single picture as 1 (ADR-0028).
  */
 export interface TimedPicture extends Pick<StoredPicture, "durationMs"> {
@@ -23,12 +23,12 @@ export interface TimedPicture extends Pick<StoredPicture, "durationMs"> {
 }
 
 /**
- * The slide durations in play order. An own duration keeps that length; the other slides show
+ * The slide durations in play order. A chosen duration keeps that length; the other slides show
  * `secondsPerPicture` each, scaled by weight, unless they fill the music: then they share the
  * rest of its excerpt by weight (the remainder going to the first of them so the sum matches
  * exactly). A share below `MIN_SECONDS_PER_PICTURE`, unweighted, is rejected in favour of the
  * minimum, so the slideshow outlasts a excerpt too short for it. With the playlist's beats, each
- * boundary then moves to the nearest beat (`snapToBeats`), an own duration only to about its set
+ * boundary then moves to the nearest beat (`snapToBeats`), a chosen duration only to about its set
  * length; the slideshow's end moves too unless the pictures fill the music. With the playlist's
  * energy, the automatic durations are re-paced by it first, then cut at its lifts, before beats
  * are considered (`paceByEnergy`, `cutAtLifts`; ADR-0046). See ADR-0008, ADR-0009, ADR-0021,
@@ -60,7 +60,7 @@ export function slideDurationsMs(
       ? automaticWeights.map((weight) => secondsPerPicture * MILLISECONDS_PER_SECOND * weight)
       : evenSplitMs(automaticWeights, filledMs - ownTotalMs(pictures));
   let nextAutomatic = 0;
-  // automaticMs holds exactly one entry per picture without an own duration.
+  // automaticMs holds exactly one entry per picture without a chosen duration.
   const usualMs = pictures.map(
     (picture) => picture.durationMs ?? (automaticMs[nextAutomatic++] as number),
   );
@@ -83,7 +83,7 @@ export function slideDurationsMs(
   return snapToBeats(durationsMs, automatic, beatsMs, MIN_SLIDE_DURATION_MS, endOnBeat, inserted);
 }
 
-/** The sum of the pictures' own durations, shared with `filled-length.ts`'s fit decision. */
+/** The sum of the pictures' chosen durations, shared with `filled-length.ts`'s fit decision. */
 export function ownTotalMs(pictures: readonly TimedPicture[]): number {
   return pictures.reduce((sum, picture) => sum + (picture.durationMs ?? 0), 0);
 }

@@ -5,7 +5,6 @@ export const deTransitions = {
   "slideshow.transitionDefault": "Automatisch",
   "slideshow.transitionOwnChoice": "gewählt",
   "slideshow.transitionOwnCount": { one: "{count} Bild gewählt", other: "{count} Bilder gewählt" },
-  "slideshow.transitionSummary": "{choice} · {own}",
   "transitions.title": "Übergänge der Diashow",
   "transitions.default": "Automatisch",
   "transitions.ownChoice": "Gewählt",

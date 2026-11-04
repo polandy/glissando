@@ -81,7 +81,7 @@ describe("PictureEditorScreen, the focus of the automatic motion", () => {
     expect(marker()).toBeNull();
   });
 
-  it("hides the marker while the picture has its own motion and brings it back with the automatic one", () => {
+  it("hides the marker while the picture has its chosen motion and brings it back with the automatic one", () => {
     const automatic = view({ focus: { kind: "subject", box: FACE, foundBy: "face" } });
     const { update } = mountEditor(automatic);
 

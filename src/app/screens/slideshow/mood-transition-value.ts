@@ -6,7 +6,7 @@ import { moodTransitionText } from "./mood-text";
  * settings decide it. */
 export interface MoodTransitionValue {
   readonly transitionValue: string;
-  readonly transitionRowSummary: string;
+  readonly transitionRowSummary: readonly string[];
 }
 
 /**
@@ -16,7 +16,7 @@ export interface MoodTransitionValue {
 export function moodTransitionValue(
   t: Translator["t"],
   slideshow: Pick<SlideshowDetails, "mood" | "transition">,
-  transitionSummary: string,
+  transitionSummary: readonly string[],
 ): MoodTransitionValue {
   if (slideshow.mood === undefined) {
     return {
@@ -26,6 +26,6 @@ export function moodTransitionValue(
   }
   return {
     transitionValue: moodTransitionText(t, slideshow.mood),
-    transitionRowSummary: t("mood.byMood"),
+    transitionRowSummary: [t("mood.byMood")],
   };
 }
