@@ -3,6 +3,7 @@
   import { MediaQuery } from "svelte/reactivity";
   import { NO_SONG_BEATS } from "../../compose/playlist";
   import { getTranslator } from "../i18n/context";
+  import { browserObjectUrls } from "../media/object-urls";
   import { ScreenMoodBpm } from "./screen-mood-bpm.svelte";
   import { ScreenThumbnails } from "./screen-thumbnails.svelte";
   import SlideshowScreen from "../screens/SlideshowScreen.svelte";
@@ -216,6 +217,7 @@
     moodPreviewPorts={{
       store,
       stored: must(stored, "the slideshow"),
+      objectUrls: browserObjectUrls,
       musicOutput,
       decodeClipSound,
       log,
