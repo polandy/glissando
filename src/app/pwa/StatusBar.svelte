@@ -131,8 +131,9 @@
     color: var(--gl-accent);
   }
   @container (max-width: 720px) {
+    /* The right side keeps room for the touch pad of the hint's small close button (base.css). */
     .status {
-      padding: 6px 6px 6px 16px;
+      padding: 6px 8px 6px 16px;
     }
     .wide {
       display: none;

@@ -254,8 +254,12 @@
     position: absolute;
     inset: -4px -7px;
   }
-  /* A finger needs a hit-min wide pad, centred on the handle (a percentage is the handle's width). */
+  /* A finger needs a hit-min wide pad, centred on the handle (a percentage is the handle's width);
+     the strip's sides keep room for half of it, so a handle at the clip's end stays on screen. */
   @media (pointer: coarse) {
+    .strip {
+      padding-inline: calc(var(--gl-hit-min) / 2);
+    }
     .handle::before {
       inset: -4px calc((100% - var(--gl-hit-min)) / 2);
     }
