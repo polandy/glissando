@@ -4,7 +4,7 @@
   saves, Esc cancels, an empty title falls back to the automatic one from the capture dates.
 - **Transitions** (`slideshow/TransitionsSheet.svelte`, ADR-0010): the info panel's
   transitions row opens a modal sheet "Slideshow transitions" (bottom sheet up to 720 px wide,
-  a centred dialog above, over a scrim) with the state "Default" or, accent-tinted, "Chosen". A radiogroup of eight tiles in four columns — Crossfade, Push, Wipe, Circle, Zoom,
+  a centred dialog above, over a scrim) with the state "Automatic" or, accent-tinted, "Chosen". A radiogroup of eight tiles in four columns — Crossfade, Push, Wipe, Circle, Zoom,
   Dissolve, Cut, Alternating — each looping its effect from the first picture to the second
   (the only picture twice when there is one; "Alternating" shows the next effect each loop;
   still with reduced motion), the picture editor's `TransitionTile`. Crossfade carries the
@@ -19,8 +19,8 @@
   follows) and "Done". Done, Esc or a tap on the scrim closes it; focus starts on the checked
   tile and goes back to the row.
 - **Portrait pictures** (`slideshow/PortraitPicturesSheet.svelte`, ADR-0028): the info panel's
-  portrait pictures row opens a modal sheet "Portrait pictures" with the state "Default" or,
-  accent-tinted, "Chosen". Three radio tiles, each with a tiny diagram and a hint:
+  portrait pictures row opens a modal sheet "Portrait pictures" with the state "Automatic"
+  or, accent-tinted, "Chosen". Three radio tiles, each with a tiny diagram and a hint:
   "Automatic" (two consecutive portrait pictures side by side; a lone one a wide screen would
   crop a lot gets a blurred fill instead), "One at a time" (every picture shown alone; a
   mismatched one gets a blurred fill), "Fill the screen" (every picture crops to cover, as
