@@ -76,7 +76,10 @@ export class TvSession {
   #state: TvSessionState = CLOSED;
   /** The claimed session's secret until it is shown, disconnected or forgotten. */
   #remoteSecret: string | null = null;
-  /** Counts the sheet's closings, so a claim that lands after one is disconnected. */
+  /**
+   * Counts the sheet's closings: an answer that lands after one changes nothing, and a claim
+   * is disconnected.
+   */
   #closings = 0;
 
   /** `openedFrom`: the slideshow whose screen opened the sheet; null from the start screen. */
@@ -119,19 +122,18 @@ export class TvSession {
     if (!isCompleteTvCode(code)) {
       return Promise.reject(new Error(`a TV's code has 4 letters, not "${code}"`));
     }
-    const closings = this.#closings;
-    return this.#request("claim", async () => {
+    return this.#request("claim", async (closedSince) => {
       let secret: string;
       try {
         secret = await this.#ports.api.claim(code);
       } catch (error) {
         if (error instanceof TvRefusedError && error.refusal === "noSuchCode") {
-          this.#set({ step: "noMatch" });
+          if (!closedSince()) this.#set({ step: "noMatch" });
           return;
         }
         throw error;
       }
-      if (closings !== this.#closings) {
+      if (closedSince()) {
         this.#disconnect(secret);
         return;
       }
@@ -156,21 +158,24 @@ export class TvSession {
     if (secret === null || slideshowId === null) {
       return Promise.reject(new Error("nothing to show: no TV connected or no slideshow chosen"));
     }
-    return this.#request("show", async () => {
+    return this.#request("show", async (closedSince) => {
       try {
         await this.#ports.api.show(secret, slideshowId);
       } catch (error) {
         if (!(error instanceof TvRefusedError)) throw error;
         if (error.refusal === "noSuchTv") {
+          if (closedSince()) return;
           this.#remoteSecret = null;
           this.#set({ step: "code", code: "", connectedCode: null, tvClosed: true });
           return;
         }
         if (error.refusal !== "notFound") throw error;
+        if (closedSince()) return;
         this.#set({ pending: null });
         void this.#list();
         return;
       }
+      if (closedSince()) return;
       this.#remoteSecret = null;
       this.#ports.openRemote(`${REMOTE_PATH}${secret}`);
     });
@@ -209,8 +214,9 @@ export class TvSession {
   }
 
   #list(): Promise<void> {
-    return this.#request("list", async () => {
+    return this.#request("list", async (closedSince) => {
       const slideshows = await this.#ports.api.listSlideshows();
+      if (closedSince()) return;
       const kept = slideshows.some(({ id }) => id === this.#state.selected);
       const wanted = slideshows.find(({ id }) => id === this.#openedFrom) ?? slideshows[0];
       this.#set({
@@ -224,16 +230,27 @@ export class TvSession {
     this.#ports.api.disconnect(secret).catch((error: unknown) => this.#ports.log(error));
   }
 
-  async #request(request: TvRequest, call: () => Promise<void>): Promise<void> {
+  /**
+   * Runs `call` as the one request on its way. `call` asks `closedSince` after each await: once
+   * the sheet closed, the request's answer changes nothing, so it cannot undo the close or touch
+   * a request of the reopened sheet.
+   */
+  async #request(request: TvRequest, call: (closedSince: () => boolean) => Promise<void>) {
     if (this.#state.pending !== null) return;
+    const closings = this.#closings;
+    const closedSince = () => closings !== this.#closings;
     this.#set({ pending: request, unanswered: null });
     try {
-      await call();
-      if (this.#state.pending === request) this.#set({ pending: null });
+      await call(closedSince);
+      if (!closedSince()) this.#set({ pending: null });
     } catch (error) {
-      if (this.#state.pending === request) this.#set({ pending: null });
+      if (closedSince()) {
+        if (!(error instanceof ServerLibraryUnavailableError)) this.#ports.onError(error);
+        return;
+      }
+      this.#set({ pending: null });
       if (error instanceof ServerLibraryUnavailableError) {
-        if (this.#state.step !== "closed") this.#set({ unanswered: request });
+        this.#set({ unanswered: request });
         return;
       }
       this.#ports.onError(error);

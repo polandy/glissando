@@ -3,6 +3,7 @@ import { TvSession } from "./tv-session";
 import { FakeTvApi } from "./testing/fake-tv-api";
 
 export const SECRET = "r7Rk2vN8xT4mWp1Lc9Hb3A";
+export const OTHER_SECRET = "Zq5Ye0uD6sJf2Gn8Vx4PaB";
 export const CODE = "KXQM";
 export const SLIDESHOWS: readonly TvSlideshowCard[] = [
   { id: "july", title: "July 2025", pictureCount: 48, durationSeconds: 200 },

@@ -128,4 +128,62 @@ describe("the TV sheet's pick step (tv_remote/IN_THE_APP.md)", () => {
     expect(logged).toHaveLength(1);
     expect(errors).toEqual([]);
   });
+
+  it("does not open the remote page when a show lands after the sheet closed", async () => {
+    const { session, api, opened } = await connected();
+
+    const showing = session.show();
+    session.close();
+    await showing;
+    await api.settled();
+
+    expect(api.shown).toEqual([{ remoteSecret: SECRET, slideshowId: "hike" }]);
+    expect(api.disconnected).toEqual([SECRET]);
+    expect(opened).toEqual([]);
+  });
+
+  it("stays closed when the TV's end is answered after the sheet closed", async () => {
+    const { session, api } = await connected();
+    api.ended.add(SECRET);
+
+    const showing = session.show();
+    session.close();
+    await showing;
+
+    expect(api.disconnected).toEqual([SECRET]);
+    expect(session.state).toMatchObject({ step: "closed", tvClosed: false });
+  });
+
+  it("does not read the list again when a gone slideshow is answered after the sheet closed", async () => {
+    const { session, api } = await connected();
+    api.slideshows = [];
+
+    const showing = session.show();
+    session.close();
+    await showing;
+    await api.settled();
+
+    expect(api.disconnected).toEqual([SECRET]);
+    expect(session.state).toMatchObject({ step: "closed", slideshows: undefined, pending: null });
+  });
+
+  it("drops a list that lands after the sheet closed", async () => {
+    const { session, api } = harness();
+    const landList = api.hold("list");
+    const picking = new Promise<void>((resolve) => {
+      session.subscribe((state) => {
+        if (state.step === "pick") resolve();
+      });
+    });
+    session.open(CODE);
+    await picking;
+
+    session.close();
+    landList();
+    await api.settled();
+
+    expect(api.disconnected).toEqual([SECRET]);
+    expect(session.state.slideshows).toBeUndefined();
+    expect(session.state.selected).toBeNull();
+  });
 });
