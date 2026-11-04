@@ -2,13 +2,13 @@ import type { Page } from "@playwright/test";
 
 const IMMICH_THUMBNAIL = /\/immich\/api\/assets\/[^/]+\/thumbnail/;
 
-export type ThumbnailHold = {
+export interface ThumbnailHold {
   /** Resolves once a thumbnail request made after `arm()` is waiting. */
   firstHeld: Promise<void>;
   arm: () => void;
   /** Lets every held and every later thumbnail request through to the fake server. */
   release: () => void;
-};
+}
 
 /**
  * Holds the Immich thumbnail requests that arrive between `arm()` and `release()`. Register it
