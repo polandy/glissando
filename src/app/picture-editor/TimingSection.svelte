@@ -29,7 +29,7 @@
     /** The transition tiles' loop runs on these. */
     ports: MotionPreviewPorts;
     reducedMotion: boolean;
-    /** An own duration in whole milliseconds, on the half-second grid. */
+    /** A chosen duration in whole milliseconds, on the half-second grid. */
     onDuration: (durationMs: number) => void;
     onTransition: (choice: TransitionChoice) => void;
     /** Duration and transition back to automatic, together. */

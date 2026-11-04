@@ -18,7 +18,7 @@
   date. Below it, a box "After adding" shows pictures "24 → 32",
   duration "5:40 → 5:40" and, when automatic pictures share the music, per picture "14.2 s →
   10.6 s" — the composition rules (`src/compose/`, ADR-0008) on the slideshow with the new
-  pictures, so own durations stay. With music the pictures fill, a line "The pictures keep sharing the music;
+  pictures, so chosen durations stay. With music the pictures fill, a line "The pictures keep sharing the music;
   each gets a little shorter. Pictures with a chosen picture length stay about that long.", or, when the
   automatic pictures' share would fall below the 2 s floor, a lemon notice "The music is too short for all pictures: no
   picture shows for less than 2 s, so the slideshow runs 7:28 and the music 5:40."; without

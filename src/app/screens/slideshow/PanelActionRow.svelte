@@ -1,6 +1,9 @@
 <script lang="ts">
   import Icon from "../../components/Icon.svelte";
 
+  /** Between two parts of the summary; the spaces keep the parts apart in the accessible name. */
+  const SEPARATOR = " · ";
+
   /**
    * A row of the info panel that opens an editor: a button spanning the row with its label, the
    * current value over a summary, and a chevron.
@@ -16,8 +19,8 @@
     name: string;
     label: string;
     value: string;
-    /** Empty: the value stands alone. */
-    summary: string;
+    /** Shown under the value, parted by dots; empty: the value stands alone. */
+    summary: readonly string[];
     onclick: () => void;
   } = $props();
 
@@ -32,8 +35,12 @@
   <span class="text">
     <span class="label">{label}</span>
     <span class="value">{value}</span>
-    {#if summary !== ""}
-      <span class="summary">{summary}</span>
+    {#if summary.length > 0}
+      <span class="summary">
+        {#each summary as part, index (index)}{#if index > 0}<span class="separator"
+              >{SEPARATOR}</span
+            >{/if}{part}{/each}
+      </span>
     {/if}
   </span>
   <span class="go"><Icon name="chevronRight" /></span>
@@ -79,6 +86,10 @@
     display: block;
     color: var(--gl-muted);
     font-size: var(--gl-size-small);
+  }
+  /* The font's "·" and spaces are narrow; at the small size a bare " · " runs together. */
+  .separator {
+    padding: 0 3px;
   }
   .go {
     display: flex;

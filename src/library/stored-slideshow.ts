@@ -18,7 +18,7 @@ import type { SlideshowMood } from "./slideshow-mood";
  */
 
 /**
- * Each picture without an own duration stays this long, without music or with music the pictures
+ * Each picture without a chosen duration stays this long, without music or with music the pictures
  * do not fill (`StoredSlideshow.pictureLength`); the user changes it in half-second steps.
  */
 export const DEFAULT_SECONDS_PER_PICTURE = 5;
@@ -34,7 +34,7 @@ export interface StoredPicture {
   readonly width: number;
   readonly height: number;
   readonly fileName: string;
-  /** The user's own motion for this picture; absent while it is automatic (see ADR-0006). */
+  /** The user's chosen motion for this picture; absent while it is automatic (see ADR-0006). */
   readonly kenBurns?: OwnKenBurns;
   /** Shown with the picture in the player; absent: none. Normalised (`normalizeCaption`). */
   readonly caption?: string;

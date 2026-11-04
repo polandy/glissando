@@ -84,7 +84,7 @@ export const FOCUS_DISPLAY_STATUSES = [
 ] as const;
 export type FocusDisplayStatus = (typeof FOCUS_DISPLAY_STATUSES)[number];
 
-/** One picture's focus status for display, and whether its own motion ignores it (ADR-0041). */
+/** One picture's focus status for display, and whether its chosen motion ignores it (ADR-0041). */
 export interface PictureFocusDisplay {
   readonly status: FocusDisplayStatus;
   readonly ownMotion: boolean;
@@ -157,7 +157,7 @@ export interface FocusSlideshowSummary {
   readonly ownMotionCount: number;
 }
 
-/** A slideshow's pictures, their own-motion flag, matched against `SlideshowSearch` for progress. */
+/** A slideshow's pictures, their chosen-motion flag, matched against `SlideshowSearch` for progress. */
 export function focusSlideshowSummary(
   focus: PicturesFocus,
   pictures: readonly { readonly id: string; readonly ownMotion: boolean }[],

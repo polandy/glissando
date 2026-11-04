@@ -8,7 +8,7 @@ import {
 } from "./stored-slideshow";
 
 /**
- * The editing of how long the pictures without an own duration last (ADR-0022). Pure functions
+ * The editing of how long the pictures without a chosen duration last (ADR-0022). Pure functions
  * over the stored record; the caller stores the result.
  */
 
@@ -33,7 +33,7 @@ export function setPictureLength(
 }
 
 /**
- * Each picture without an own duration stays `seconds`: half-second steps from 2 to 15 s. While
+ * Each picture without a chosen duration stays `seconds`: half-second steps from 2 to 15 s. While
  * a mood is on, leaves it first (ADR-0045).
  */
 export function setSecondsPerPicture(slideshow: StoredSlideshow, seconds: number): StoredSlideshow {

@@ -27,11 +27,11 @@ export interface SlideshowEditorPorts {
   readonly lastPictureText: () => string;
   /** Why removing every picture of a selection is refused instead. */
   readonly everyPictureText: () => string;
-  /** The undo toast's text after a picture's own motion was dropped. */
+  /** The undo toast's text after a picture's chosen motion was dropped. */
   readonly motionAutomaticText: () => string;
-  /** The undo toast's text after a picture's own duration was dropped. */
-  /** The undo toast's text after a picture's own transition was dropped. */
-  /** The undo toast's text after a picture's own duration and transition were dropped together. */
+  /** The undo toast's text after a picture's chosen duration was dropped. */
+  /** The undo toast's text after a picture's chosen transition was dropped. */
+  /** The undo toast's text after a picture's chosen duration and transition were dropped together. */
   readonly timingAutomaticText: () => string;
   /** The undo toast's text after a picture's caption was cleared. */
   readonly captionClearedText: () => string;

@@ -40,7 +40,7 @@ reported too.
 
 The pass writes only the focus record it found: its store port (`FocusPassPorts["store"]`) can
 only list slideshows, read a thumbnail and read or write a picture's focus, so it can never touch
-a picture's own motion (Ken Burns) or any other field of a slideshow record (ADR-0041). A store
+a picture's chosen motion (Ken Burns) or any other field of a slideshow record (ADR-0041). A store
 may add `detectionInput(pictureId)` in place of the thumbnail: answering a focus directly skips the
 detector; answering a `Blob` is detected the same as a thumbnail would be. A second `FocusPass`
 runs this way over the Glissando server's own slideshows, sharing one detector with the device pass

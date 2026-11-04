@@ -145,7 +145,7 @@ describe("the picture editor route", () => {
     expect(call.signal.aborted).toBe(true);
   });
 
-  it("looks again at an own-motion picture's focus without touching its motion or the stored slideshow", async () => {
+  it("looks again at a chosen-motion picture's focus without touching its motion or the stored slideshow", async () => {
     const detector = new FakeFocusDetector(() => FACE);
     let pass!: FocusPass;
     const { target, store, props } = await mountRoute(

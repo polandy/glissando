@@ -168,7 +168,7 @@ describe("MusicEditorScreen, the fades", () => {
 });
 
 describe("MusicEditorScreen, the pictures' times and listening", () => {
-  it("states one outcome line for the pictures without an own duration", () => {
+  it("states one outcome line for the pictures without a chosen duration", () => {
     mountEditor(slideshowWith(TRIMMED, { count: 24, durations: { 2: 8000 } }));
 
     expect(text(".length-notice")).toBe("Diashow 2:18 · endet mit der Musik");

@@ -14,10 +14,10 @@ an answer: when the pictures adapt by themselves, how far, and what the user is 
 
 ## Decision
 
-- **The pictures fit a shorter music by themselves**: when the pictures without an own duration,
+- **The pictures fit a shorter music by themselves**: when the pictures without a chosen duration,
   at their own seconds or their mood's length, would outlast the playlist, they share the
   playlist instead, as "Fill the music" does (ADR-0022, ADR-0023), so the slideshow ends with the
-  music. Own durations are kept (ADR-0008); energy pacing and the beats then work on the fitted
+  music. Chosen durations are kept (ADR-0008); energy pacing and the beats then work on the fitted
   durations as on filled ones (ADR-0046, ADR-0021). Nothing is stored: the fit is worked out
   each time the slideshow is composed, so adding pictures or a song re-fits it.
 - **Down to ⅔ of the picture length, never below 2 s**: a picture may shrink to ⅔ of its

@@ -12,7 +12,7 @@ absent, the whole track. `fadeInMs` and `fadeOutMs` are own fades in whole ms, 0
 steps of 500, 0 being off (the editor offers off, 2000 and 5000); absent, automatic.
 `pictureChanges` `"even"` has the pictures share the music evenly; absent, they change on the
 beat when one was found (ADR-0021). `StoredSlideshow.pictureLength` `"seconds"` has the
-pictures without an own duration last `secondsPerPicture` each with music too; absent, they
+pictures without a chosen duration last `secondsPerPicture` each with music too; absent, they
 fill the music (ADR-0022). A new slideshow is created with `"seconds"` unless the user picks
 "Fill the music". `setPictureLength` (deleting the field for `undefined`, validated by
 `checkPictureLength`) and `setSecondsPerPicture` (half seconds, 2 to 15) are in

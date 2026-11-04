@@ -45,7 +45,7 @@ describe("slideshowDurationMs", () => {
     expect(slideshowDurationMs(stored)).toBe(10_000);
   });
 
-  it("follows the own durations: the automatic pictures share the rest of the music", () => {
+  it("follows the chosen durations: the automatic pictures share the rest of the music", () => {
     const stored: StoredSlideshow = {
       id: "s1",
       title: "July 2025",

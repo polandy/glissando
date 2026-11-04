@@ -50,7 +50,7 @@ describe("focusIndication", () => {
     expect(focusIndication({ kind: "not-looked-at" }, false)).toEqual({ kind: "nothing" });
   });
 
-  it("shows nothing of the focus while the picture has its own motion", () => {
+  it("shows nothing of the focus while the picture has its chosen motion", () => {
     expect(focusIndication({ kind: "subject", box: FACE, foundBy: "face" }, true)).toEqual({
       kind: "nothing",
     });
@@ -80,7 +80,7 @@ describe("focusLineView", () => {
     ownMotion,
   });
 
-  it("carries the status and own motion through", () => {
+  it("carries the status and chosen motion through", () => {
     expect(focusLineView(display("waiting"), undefined)).toEqual({
       status: "waiting",
       ownMotion: false,
@@ -176,7 +176,7 @@ describe("focusLineText", () => {
     expect(focusLineText(line("outdated", "subject", true)).textKey).toBe("editor.ownMotion");
   });
 
-  it("leaves a status with no result yet unaffected by own motion", () => {
+  it("leaves a status with no result yet unaffected by chosen motion", () => {
     expect(focusLineText(line("waiting", null, true)).textKey).toBe("editor.focusWaiting");
     expect(focusLineText(line("looking", null, true)).textKey).toBe("editor.searchingFocus");
     expect(focusLineText(line("failed", null, true)).textKey).toBe("editor.focusFailed");

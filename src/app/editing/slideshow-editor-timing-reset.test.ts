@@ -12,7 +12,7 @@ describe("SlideshowEditor, a picture's timing back to automatic", () => {
     expect((await storedPicture("b"))?.transition).toBe("cut");
   });
 
-  it("drops the own duration and the own transition together, with one undo toast", async () => {
+  it("drops the chosen duration and the chosen transition together, with one undo toast", async () => {
     const { editor, toaster, storedPicture } = await setUp();
     editor.setDuration("b", 8000);
     editor.setTransition("b", "cut");
@@ -51,7 +51,7 @@ describe("SlideshowEditor, a picture's timing back to automatic", () => {
     expect(picture).not.toHaveProperty("transition");
   });
 
-  it("a newer own duration ends the undo, so it never overwrites that value", async () => {
+  it("a newer chosen duration ends the undo, so it never overwrites that value", async () => {
     const { editor, toaster, storedPicture } = await setUp();
     editor.setDuration("b", 8000);
     editor.resetTiming("b");
@@ -62,7 +62,7 @@ describe("SlideshowEditor, a picture's timing back to automatic", () => {
     expect((await storedPicture("b"))?.durationMs).toBe(9500);
   });
 
-  it("a newer own transition ends the undo", async () => {
+  it("a newer chosen transition ends the undo", async () => {
     const { editor, toaster } = await setUp();
     editor.setTransition("b", "cut");
     editor.resetTiming("b");

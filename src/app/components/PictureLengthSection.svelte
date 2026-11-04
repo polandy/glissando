@@ -7,7 +7,7 @@
   import InfoHead from "../music-editor/InfoHead.svelte";
 
   /**
-   * Whether the pictures without an own duration last their own seconds, set by the stepper, or
+   * Whether the pictures without a chosen duration last their own seconds, set by the stepper, or
    * fill the music (ADR-0022), in the music editor. Without music there is nothing to fill: only
    * the own seconds show. The section ends with `notice`, the one line on how the pictures meet
    * the music (ADR-0023, ADR-0047); what each choice does sits behind its ⓘ button.

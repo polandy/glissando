@@ -26,7 +26,7 @@ edit of the record as stored), so an edit (or an Undo) from a tab still showing 
 slideshow deleted elsewhere never brings it back; that tab goes back to start with the toast
 "This slideshow no longer exists." `ownOrder` marks pictures the user reordered. A picture's
 optional `kenBurns` (`{ from, to }`, two framings as in the player's JSON: zoom 1 to
-`MAX_OWN_KEN_BURNS_ZOOM` = 3, centre 0..1) is its own motion from the picture editor; absent, the
+`MAX_OWN_KEN_BURNS_ZOOM` = 3, centre 0..1) is its chosen motion from the picture editor; absent, the
 motion is automatic (ADR-0006). `setPictureKenBurns` validates it before it is stored
 (`checkOwnKenBurns`, failing loud with the field and value); records without it need no
 migration. A picture's optional `caption` is the one line shown with it in the player, stored

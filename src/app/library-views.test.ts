@@ -154,7 +154,7 @@ describe("slideshowDetails", () => {
     expect(details.pictures.map((picture) => picture.alone)).toEqual([false, true]);
   });
 
-  it("marks the pictures with an own motion and counts them", () => {
+  it("marks the pictures with a chosen motion and counts them", () => {
     const motion = {
       from: { zoom: 1, centerX: 0.5, centerY: 0.5 },
       to: { zoom: 2, centerX: 0.5, centerY: 0.5 },
@@ -228,7 +228,7 @@ describe("slideshowDetails", () => {
     expect(slideshowDetails({ ...stored, look: "warm" }, urlOf, "en").look).toBe("warm");
   });
 
-  it("marks own durations and own transitions, a last picture's transition not counting", () => {
+  it("marks chosen durations and chosen transitions, a last picture's transition not counting", () => {
     const timed: StoredSlideshow = {
       ...withMusic,
       pictures: [

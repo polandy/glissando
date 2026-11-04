@@ -73,7 +73,7 @@ describe("PictureEditorScreen picture length", () => {
     expect(calls.timingResets).toBe(0);
   });
 
-  it("an own duration alone makes the timing own and names the automatic one", () => {
+  it("a chosen duration alone makes the timing own and names the automatic one", () => {
     mountEditor(view({ durationMs: 8000, ownDuration: true }));
 
     expect(chip(timingSection())).toBe("Gewählt");
@@ -123,7 +123,7 @@ describe("PictureEditorScreen picture length", () => {
     expect(text(timingSection())).toContain("Die übrigen 7 Bilder stehen jetzt je 4,6 s.");
   });
 
-  it("with music used up by own durations, says the others are as short as they can be", () => {
+  it("with music used up by chosen durations, says the others are as short as they can be", () => {
     mountEditor(
       view({
         durationMs: 8000,

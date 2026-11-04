@@ -91,7 +91,7 @@ describe("composeSlideshow with a video slide", () => {
     expect(c).toMatchObject({ volume: 1 });
   });
 
-  it("lasts the excerpt, whatever the seconds per picture or an own duration", () => {
+  it("lasts the excerpt, whatever the seconds per picture or a chosen duration", () => {
     const slideshow = composeSlideshow(
       show([clip("a", {}, { durationMs: 3000 }), picture("b")]),
       sources,

@@ -31,10 +31,10 @@
   progress is background work, not the menu's — a separator and "Delete slideshow …". "Faces and
   subjects …" opens the Focus sheet (titled "Faces and subjects") (`screens/slideshow/FocusSheet.svelte`, mockup "Variant A · grid", ADR-0041): a
   bottom sheet on phone, a 440 px right panel from 720 px — a status line with the search's progress, a stacked bar and legend chips by result (filtering the grid below them, own
-  motion as its own chip), a 4-column grid of the slideshow's pictures with a status dot and, on an
-  own-motion one, a "Chosen motion" badge (a tap opens the picture editor), "Try the 3 again"
+  motion as its own chip), a 4-column grid of the slideshow's pictures with a status dot and, on a
+  chosen-motion one, a "Chosen motion" badge (a tap opens the picture editor), "Try the 3 again"
   once some failed or "Look again at all 12 pictures" otherwise (asking again at every picture,
-  own-motion ones included: their automatic focus is still found and shown, only not used for their
+  chosen-motion ones included: their automatic focus is still found and shown, not used for their
   motion), a hint once a motion is chosen, and where the result is kept ("Stored on
   this device." or "Shared with every device on your Glissando server."); a 16:9
   cover of the first picture, the only Play control (a tap anywhere on it plays; a "▶ Play · 0:56" pill bottom left), then the pictures in play

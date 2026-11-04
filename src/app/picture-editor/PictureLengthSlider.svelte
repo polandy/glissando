@@ -19,7 +19,7 @@
     durationMs: number;
     /** What automatic would be; null when it is not one fixed value (shared music). */
     automaticMs: number | null;
-    /** An own duration in whole milliseconds, on the half-second grid. */
+    /** A chosen duration in whole milliseconds, on the half-second grid. */
     onDuration: (durationMs: number) => void;
   } = $props();
 

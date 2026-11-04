@@ -19,7 +19,7 @@
   found it — "Face", "Subject" or "Immich" (below a box at the picture's top, right-aligned at
   its right edge); over the frames, never in the way of a drag. Found while the editor is open,
   the marker settles in (fades in from slightly larger; at once with reduced motion); a focus
-  already known, on opening or on ‹/›, shows at once. An own motion hides the marker — its frames
+  already known, on opening or on ‹/›, shows at once. A chosen motion hides the marker — its frames
   say where it goes — and brings it back at once if the motion returns to automatic.
 - **Focus line** (`focus-indication.ts`, `FocusLine.svelte`): one quiet line at the end of the
   Ken Burns section (the dark picture area shows only the picture)
@@ -31,9 +31,9 @@
   this picture.", "Try again"); waiting on the server or Immich to look ("Waiting for your
   Glissando server to look at this picture.", no action). Every action calls the slideshow's
   focus pass's `lookAgain` for this picture alone and never touches its Ken Burns motion
-  (ADR-0041). An own motion replaces every found result's sentence with one: "Chosen motion – it
+  (ADR-0041). A chosen motion replaces every found result's sentence with one: "Chosen motion – it
   runs from your start to your end, whatever is found." — the same action beside it; a process state (searching, failed, waiting on the
-  server) shows as usual, since own motion changes only what a found result means, not whether
+  server) shows as usual, since chosen motion changes only what a found result means, not whether
   the search itself is still running.
 - **Changing a frame**: a drag anywhere on the picture (one pointer, past 8 px, counted from
   where it went down) moves the active frame by the pointer's travel; a corner resizes it about

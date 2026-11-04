@@ -31,7 +31,7 @@ async function holdObjectNetwork(page: Page): Promise<() => void> {
   return release;
 }
 
-test("E2E-028 the automatic motion's focus is found in the background: a face is marked in the picture editor until an own motion replaces it, a faceless picture says so, and the library card ends without a search line", async ({
+test("E2E-028 the automatic motion's focus is found in the background: a face is marked in the picture editor until a chosen motion replaces it, a faceless picture says so, and the library card ends without a search line", async ({
   page,
 }) => {
   const picture = page.locator(".pic");

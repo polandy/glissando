@@ -4,7 +4,7 @@
 
 ## Context
 
-Every picture without an own transition (ADR-0008) cycled through the player's six effects by
+Every picture without a chosen transition (ADR-0008) cycled through the player's six effects by
 position. One effect throughout, mostly the crossfade, could only be had by setting it
 picture by picture. The slideshow screen's info panel gets a "Transitions" row
 that opens a sheet of eight choices: the six effects, the cut and "Alternating", the cycle.
@@ -19,13 +19,13 @@ choices (`TRANSITION_CHOICES`) plus `"alternate"`. Absent means the crossfade
 field. The value is validated where it enters (`setSlideshowTransition` and the `.glissando`
 reader, `checkSlideshowTransition`).
 
-- **A picture without an own transition plays the default** (`automaticTransition`); only
+- **A picture without a chosen transition plays the default** (`automaticTransition`); only
   `"alternate"` keeps the cycle by position (`autoTransitionEffect`), and `"cut"` composes no
-  transition. A picture's own transition still overrides it, and the last slide still has none
+  transition. A picture's chosen transition still overrides it, and the last slide still has none
   (ADR-0002, ADR-0008).
 - **The player's JSON is unchanged**: composing resolves each slide's `transitionToNext` as
   before.
-- **Changing the default never touches own transitions**, even one equal to the new default.
+- **Changing the default never touches chosen transitions**, even one equal to the new default.
 - **No migration**: records and files without the field are crossfade, so existing slideshows
   switch from alternating to the crossfade.
 
@@ -40,7 +40,7 @@ to 5 are still read, without the field.
   "Alternating" restores the cycle.
 - _Store the default in the player's JSON and resolve it in the player_ — rejected: the player
   stays a renderer of resolved slides; every automatic choice is made while composing.
-- _Store `"crossfade"` explicitly_ — rejected: absent means automatic, as for the own motion,
+- _Store `"crossfade"` explicitly_ — rejected: absent means automatic, as for the chosen motion,
   duration and transition (ADR-0006, ADR-0008); two spellings of the same state would need
   normalising everywhere.
 

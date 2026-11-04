@@ -45,7 +45,7 @@ describe("slideshowFromManifest", () => {
     ]);
   });
 
-  it("keeps a picture's own motion, caption, duration, transition, origin and alone mark", () => {
+  it("keeps a picture's chosen motion, caption, duration, transition, origin and alone mark", () => {
     const mapped = slideshowFromManifest(
       manifestSlideshow({
         pictures: [

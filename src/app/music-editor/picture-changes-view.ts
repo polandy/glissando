@@ -25,10 +25,10 @@ type PictureChangesState =
       /** The automatic changes land on the beats; otherwise the music's choice is even. */
       readonly onTheBeat: boolean;
       /**
-       * The positions (from 1) of the pictures with an own duration whose change still can fall
+       * The positions (from 1) of the pictures with a chosen duration whose change still can fall
        * between beats: filling the music, with an automatic picture somewhere but none left after
        * it to take up the difference. Empty unless on the beat, and also empty with no automatic
-       * picture anywhere, where every own duration moves about its own length instead
+       * picture anywhere, where every chosen duration moves about its own length instead
        * (`snapToBeats`).
        */
       readonly ownDurationNumbers: readonly number[];
@@ -60,7 +60,7 @@ export function pictureChangesView(
   const onTheBeat = song.pictureChanges !== EVEN_PICTURE_CHANGES;
   const handingOver = stored.pictures.slice(0, -1);
   // Filling the music (no own picture length) with no automatic picture left after it to absorb
-  // the difference: nothing then moves this own duration's end onto a beat (`snapToBeats`).
+  // the difference: nothing then moves this chosen duration's end onto a beat (`snapToBeats`).
   const fillsMusic = stored.pictureLength === undefined;
   const hasAutomatic = stored.pictures.some((picture) => picture.durationMs === undefined);
   const noAbsorberAfter = (index: number) =>

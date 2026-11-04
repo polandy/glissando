@@ -36,7 +36,7 @@ import { durationBasis, type DurationBasis } from "./picture-editor-duration-bas
 import { focusLineView, type FocusLineView } from "./focus-indication";
 
 export interface TransitionView {
-  /** The own choice, else the automatic one. */
+  /** The chosen value, else the automatic one. */
   readonly choice: TransitionChoice;
   readonly own: boolean;
   /** What the slideshow's default gives the picture's position. */
@@ -91,9 +91,9 @@ export interface PictureEditorView {
   readonly ownMotion: boolean;
   /** What the automatic motion aims at, or that the search for it is still to come. */
   readonly focus: PictureFocusStatus;
-  /** The focus line's state and action: the 10-state search status, own motion included. */
+  /** The focus line's state and action: the 10-state search status, chosen motion included. */
   readonly focusLine: FocusLineView;
-  /** How long the picture's slide shows: its own duration or the automatic one. */
+  /** How long the picture's slide shows: its chosen duration or the automatic one. */
   readonly durationMs: number;
   readonly ownDuration: boolean;
   readonly durationBasis: DurationBasis;
@@ -147,7 +147,7 @@ export function pictureEditorView(
   const slideIndex = slideOfPicture(units, index);
   // One duration per slide unit; every slide index below is in range.
   const durationAt = (slide: number) => durationsMs[slide] as number;
-  // The same pipeline with this picture's own duration cleared: what "automatic" would give.
+  // The same pipeline with this picture's chosen duration cleared: what "automatic" would give.
   const automaticMs =
     picture.durationMs === undefined
       ? durationAt(slideIndex)

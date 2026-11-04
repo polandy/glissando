@@ -46,14 +46,14 @@ describe("picturesFillMs", () => {
     expect(picturesFillMs(5000, automatic(3), 3, undefined)).toBeUndefined();
   });
 
-  it("counts a picture's own duration against the outlast check and the share", () => {
+  it("counts a picture's chosen duration against the outlast check and the share", () => {
     // 1 own 10 s + 2 automatic × 5 s = 20 s outlasts 16 s; (16 - 10) / 2 = 3 s, below the 3.33 s floor.
     const pictures = [{ durationMs: 10_000 }, {}, {}];
 
     expect(picturesFillMs(16_000, pictures, 5, undefined)).toBeUndefined();
   });
 
-  it("fits once the own duration leaves the automatic pictures enough", () => {
+  it("fits once the chosen duration leaves the automatic pictures enough", () => {
     // 1 own 2 s + 2 automatic × 6 s = 14 s outlasts 10 s; (10 - 2) / 2 = 4 s, right at the ⅔ floor.
     const pictures = [{ durationMs: 2000 }, {}, {}];
 
@@ -68,7 +68,7 @@ describe("picturesFillMs", () => {
     expect(picturesFillMs(60_000, automatic(6), 5, undefined)).toBeUndefined();
   });
 
-  it("keeps the target when every picture already has its own duration", () => {
+  it("keeps the target when every picture already has its chosen duration", () => {
     const pictures = [{ durationMs: 30_000 }, { durationMs: 30_000 }];
 
     expect(picturesFillMs(10_000, pictures, 5, undefined)).toBeUndefined();

@@ -23,7 +23,7 @@ const FIT_SHRINK_FACTOR = 2 / 3;
  * - `repeatMusic` `true`, or no playlist, keeps the target: `undefined`, since there is then no
  *   gap to fit or nothing to fit against.
  * - Otherwise, when the automatic pictures at their target would outlast the playlist and
- *   shrinking them (unweighted, after the own durations) to share what is left still leaves at
+ *   shrinking them (unweighted, after the chosen durations) to share what is left still leaves at
  *   least `max(MIN_SLIDE_DURATION_MS, FIT_SHRINK_FACTOR × target)` each, `playlistLengthMs` is
  *   returned so they fill it instead, ending the slideshow with the music; a squeeze that would
  *   still fall short keeps the target (`undefined`), since it would still end in silence.

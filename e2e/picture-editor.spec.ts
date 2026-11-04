@@ -124,7 +124,7 @@ test("E2E-020 a picture gets its own Ken Burns motion that is stored, and goes b
   await expect(endFrameBox).toHaveAttribute("aria-label", endZoom ?? "");
 });
 
-test("E2E-022 a picture gets its own duration and transition, stored, and both go back to automatic together", async ({
+test("E2E-022 a picture gets its chosen duration and transition, stored, and both go back to automatic together", async ({
   page,
 }) => {
   const selectionBar = page.getByRole("toolbar", { name: "Auswahl" });
@@ -142,7 +142,7 @@ test("E2E-022 a picture gets its own duration and transition, stored, and both g
   await openApp(page);
   await createSlideshow(page, ["2025-07-12", "2025-07-14", "2025-07-20"]);
   // A new slideshow opens on Calm (ADR-0050); this case is
-  // about a picture's own duration against the automatic one, so it switches back to Custom.
+  // about a picture's chosen duration against the automatic one, so it switches back to Custom.
   await chooseCustomMood(page);
 
   await automaticTile.click();

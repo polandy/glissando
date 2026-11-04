@@ -17,7 +17,7 @@ export interface SlideUnit {
 /**
  * The slide units for `pictures`. With `portraitPictures` set (not automatic), every picture is
  * single. Automatic pairs two consecutive pictures that are both portrait and have none of a
- * caption, own motion, duration or transition, and are neither a video nor marked `alone`.
+ * caption, chosen motion, duration or transition, and are neither a video nor marked `alone`.
  */
 export function slideUnits(
   pictures: readonly StoredPicture[],
@@ -56,8 +56,8 @@ export function slideOfPicture(units: readonly SlideUnit[], pictureIndex: number
 }
 
 /**
- * A paired slide is always automatic; a single one keeps its picture's own duration, if any, and
- * a video slide always lasts its excerpt, an own duration that is never snapped to the beats.
+ * A paired slide is always automatic; a single one keeps its picture's chosen duration, if any, and
+ * a video slide always lasts its excerpt, a chosen duration that is never snapped to the beats.
  */
 export function timedUnit(pictures: readonly StoredPicture[], unit: SlideUnit): TimedPicture {
   if (unit.pictureIndices.length === 2) {

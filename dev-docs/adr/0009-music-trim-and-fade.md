@@ -7,7 +7,7 @@
 The music editor (roadmap 1, `dev-docs/SCOPE.md`; mockup:
 https://polandy.github.io/glissando-assets/mockups/music-trim/) lets the user play only part of
 the track and choose how it fades in and out. Until then the whole track played, from its
-start, at full volume, and the pictures without an own duration shared its whole length
+start, at full volume, and the pictures without a chosen duration shared its whole length
 (ADR-0008). Four questions need an answer: how the track is cut, where the choice is stored,
 what the player is told, and what happens when the slideshow and the excerpt differ in length.
 

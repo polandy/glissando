@@ -42,7 +42,7 @@ shown whole, and how the renderer draws two pictures and a blurred backdrop in o
 
 - _The player pairs pictures at play time, per screen_ — rejected: the number of slides and their
   timing would differ between the phone, the TV and the video export, and the beats, the music
-  and an own duration would no longer line up with one composed timeline.
+  and a chosen duration would no longer line up with one composed timeline.
 - _Pairs as one collage image made at import_ — rejected: it is bound to one screen orientation,
   stores every portrait picture twice and breaks a picture's identity in the editor.
 - _A separable Gaussian blur in a framebuffer pass_ — rejected: two extra passes and render
@@ -60,5 +60,5 @@ shown whole, and how the renderer draws two pictures and a blurred backdrop in o
 - Composition works in slides, not pictures: callers that showed one duration per picture map a
   picture to its slide (`slideOfPicture`).
 - A slide holds one or two pictures; the player's picture buffer loads both.
-- Caption, own motion and own duration keep their meaning, because such a picture is never
+- Caption, chosen motion and chosen duration keep their meaning, because such a picture is never
   paired.

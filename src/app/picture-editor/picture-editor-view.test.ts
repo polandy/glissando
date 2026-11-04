@@ -147,7 +147,7 @@ describe("pictureEditorView", () => {
     });
   });
 
-  it("shows a picture's own motion", () => {
+  it("shows a picture's chosen motion", () => {
     const view = pictureEditorView(stored, "p2", NO_FOCUS_KNOWN, NO_SONG_BEATS);
 
     expect(view.motion).toEqual(own);
@@ -159,7 +159,7 @@ describe("pictureEditorView", () => {
     expect(pictureEditorView(stored, "p2", NO_FOCUS_KNOWN, NO_SONG_BEATS).caption).toBe("Am Steg");
   });
 
-  it("shows an own transition beside the automatic one, its length from the duration", () => {
+  it("shows a chosen transition beside the automatic one, its length from the duration", () => {
     const timed = withPicture(1, { transition: "dissolve", durationMs: 2000 });
 
     expect(pictureEditorView(timed, "p2", NO_FOCUS_KNOWN, NO_SONG_BEATS).transition).toEqual({

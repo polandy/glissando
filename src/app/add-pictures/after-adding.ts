@@ -137,7 +137,7 @@ interface Timing {
 
 /**
  * The total and a single automatic slide's share (a pair weighs `PAIR_WEIGHT`), null when every
- * slide has its own duration; the length the pictures fill or fit, and whether a fill-mode share
+ * slide has its chosen duration; the length the pictures fill or fit, and whether a fill-mode share
  * fell below the floor the automatic slides are kept at regardless (`picturesFillMs` already
  * settles the own-seconds/mood case, so `shareAtFloor` does not apply there).
  */

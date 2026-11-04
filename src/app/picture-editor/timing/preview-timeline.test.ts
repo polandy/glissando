@@ -90,7 +90,7 @@ describe("tileProgress", () => {
 });
 
 describe("tileEffect", () => {
-  it("shows a tile's own choice in every loop", () => {
+  it("shows a tile's chosen value in every loop", () => {
     expect(tileEffect("dissolve", 0)).toBe("dissolve");
     expect(tileEffect("dissolve", 3 * TILE_LOOP_MS)).toBe("dissolve");
   });

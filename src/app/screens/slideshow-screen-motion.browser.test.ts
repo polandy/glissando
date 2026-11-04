@@ -53,7 +53,7 @@ describe("SlideshowScreen, the way into the picture editor", () => {
     expect(calls.edited).toEqual([]);
   });
 
-  it("marks a picture with an own motion on its tile and in its label", () => {
+  it("marks a picture with a chosen motion on its tile and in its label", () => {
     mountScreen(ownMotionOnSecond());
 
     const own = document.querySelector(
