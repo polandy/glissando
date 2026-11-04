@@ -2,6 +2,7 @@ import { expect, test, type Locator, type Page } from "@playwright/test";
 import { expectSlideshowScreen, GERMAN_BROWSER, openImport } from "./support/app";
 import { openApp } from "./support/browser";
 import { fakeGlissandoServer, LIBRARY_PAGE } from "./support/fake-glissando-server";
+import { holdImmichThumbnails } from "./support/hold-immich-thumbnails";
 import { pictureTakenOn } from "./support/media";
 
 test.use(GERMAN_BROWSER);
@@ -94,4 +95,43 @@ test("E2E-034 a slideshow created on the Glissando server links its Immich photo
   await expect(
     page.getByText("1 Bild ist nicht mehr in Immich. Es wird beim Abspielen übersprungen."),
   ).toBeVisible();
+});
+
+test("E2E-118 while the Immich link of the added photos is pending, the home of a new slideshow stays locked", async ({
+  page,
+}) => {
+  let jpeg: Uint8Array | null = null;
+  await fakeGlissandoServer(page, () => {
+    if (jpeg === null) throw new Error("a photo was asked for before the case made one");
+    return jpeg;
+  });
+  const thumbnails = await holdImmichThumbnails(page);
+  await openApp(page);
+  jpeg = (await pictureTakenOn(page, "photo.jpg", "2019-07-02", "#4db6ac")).buffer;
+
+  await openImport(page);
+  const serverHome = page.getByRole("button", { name: /^Glissando-Server/ });
+  const deviceHome = page.getByRole("button", { name: /^Dieses Gerät/ });
+  await serverHome.click();
+  await expect(serverHome).toHaveAttribute("aria-pressed", "true");
+  await expect(deviceHome).toBeEnabled();
+  await page.getByRole("button", { name: "Immich öffnen" }).click();
+  for (const { originalFileName } of LIBRARY_PAGE.assets.items) {
+    await page.getByRole("button", { name: originalFileName, exact: true }).click();
+  }
+  thumbnails.arm();
+  await page.locator(".actions").getByRole("button", { name: "3 hinzufügen" }).click();
+  await thumbnails.firstHeld;
+
+  const lockNote = page.getByText(
+    "Für diese Diashow gewählt. Entferne die Bilder, um es zu ändern.",
+  );
+  await expect(lockNote).toBeVisible();
+  await expect(serverHome).toBeDisabled();
+  await expect(deviceHome).toBeDisabled();
+  await expect(page.getByText("3 Bilder", { exact: true })).toHaveCount(0);
+
+  thumbnails.release();
+  await expect(page.getByText("3 Bilder", { exact: true })).toBeVisible();
+  await expect(page.getByText(/^Aus Immich verknüpft\./)).toBeVisible();
 });
