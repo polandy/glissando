@@ -11,13 +11,13 @@
   pointer. Moving it makes the length the picture's own, also from an automatic length off the
   half-second grid (shared music can leave it off). The hint follows the case: without music
   "The slideshow's seconds per picture." or, own, "Automatic would be 5.0 s, the slideshow's
-  seconds per picture."; with music "The music is shared evenly across the 7 pictures without an
-  own duration." or, own, "The other 7 pictures share the rest of the music: 4.6 s each." or,
-  when the own durations use up the music, "The music is used up; the other 7 pictures get the
-  minimum, 2.0 s each." or, when every picture has its own, "Every picture has its own
-  duration; the slideshow no longer follows the music's length." The count is of pictures;
-  "each" is a single slide's share, a portrait pair's slide getting 1.5 times it, and "used up"
-  means that share fell below the minimum (ADR-0028). A paired picture shows its pair's length.
+  seconds per picture."; with music "Follows the music: 4.6 s." or, own, "The other 7 pictures now
+  show 4.6 s each." or, when the own durations use up the music, "The other 7 pictures now show
+  only 2.0 s each, the shortest they can." or, when every picture has its own, "Every picture has
+  a chosen picture length; the music sets none of them." Each hint says what the viewer sees,
+  never how the music is shared. The count is of pictures; "each" is a single slide's share, a
+  portrait pair's slide getting 1.5 times it, and "the shortest they can" means that share fell
+  below the minimum (ADR-0028). A paired picture shows its pair's length.
   How durations share the music: `dev-docs/COMPOSITION.md`.
 - **Transition** (`TransitionPicker.svelte`): the sub-heading "Transition to picture 6"; a
   radiogroup of seven tiles in four columns — Crossfade, Push, Wipe, Circle, Zoom, Dissolve,

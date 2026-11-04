@@ -1,6 +1,13 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
-import { chooseCustomMood, createSlideshow, editsStored, GERMAN_BROWSER } from "./support/app";
+import {
+  chooseCustomMood,
+  createSlideshow,
+  createSlideshowWithMusic,
+  editsStored,
+  GERMAN_BROWSER,
+} from "./support/app";
 import { openApp } from "./support/browser";
+import { clickTrackWav } from "./support/media";
 
 test.use(GERMAN_BROWSER);
 
@@ -196,4 +203,24 @@ test("E2E-116 the picture editor's transition hint says what plays into the next
 
   await timingSection.getByRole("radio", { name: /Kreis/ }).click();
   await expect(hint).toContainText(/Kreis zu Bild 3, \d+,\d s\.$/);
+});
+
+test("E2E-124 the picture editor says a picture whose length follows the music shows for as long as its slider says", async ({
+  page,
+}) => {
+  const timingSection = page.locator('section[aria-labelledby="timing-label"]');
+  const lengthSlider = timingSection.getByRole("slider", { name: "Bilddauer" });
+  await openApp(page);
+  await createSlideshowWithMusic(page, clickTrackWav("Takt.wav", 20, 120), { fill: true });
+
+  await page
+    .getByRole("button", { name: "Bild 2, aufgenommen am 14.07.2025", exact: true })
+    .click();
+  await page
+    .getByRole("toolbar", { name: "Auswahl" })
+    .getByRole("button", { name: "Bearbeiten" })
+    .click();
+  const length = await lengthSlider.getAttribute("aria-valuetext");
+  expect(length).toMatch(/^\d+,\d s$/);
+  await expect(timingSection.locator(":scope > .hint")).toHaveText(`Folgt der Musik: ${length}.`);
 });

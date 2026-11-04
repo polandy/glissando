@@ -31,9 +31,8 @@
   this picture.", "Try again"); waiting on the server or Immich to look ("Waiting for your
   Glissando server to look at this picture.", no action). Every action calls the slideshow's
   focus pass's `lookAgain` for this picture alone and never touches its Ken Burns motion
-  (ADR-0041). An own motion replaces a found result's sentence with its own: "Own motion – your
-  start and end stay, whatever is found. The focus (‹result›) is used only if you go back to
-  automatic." — the same action beside it; a process state (searching, failed, waiting on the
+  (ADR-0041). An own motion replaces every found result's sentence with one: "Chosen motion – it
+  runs from your start to your end, whatever is found." — the same action beside it; a process state (searching, failed, waiting on the
   server) shows as usual, since own motion changes only what a found result means, not whether
   the search itself is still running.
 - **Changing a frame**: a drag anywhere on the picture (one pointer, past 8 px, counted from

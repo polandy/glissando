@@ -65,16 +65,8 @@ export const deEditor = {
   "editor.lookAgain": "Erneut ansehen",
   "editor.lookAgainNow": "Jetzt erneut ansehen",
   "editor.tryAgain": "Erneut versuchen",
-  "editor.ownMotionFace":
-    "Eigene Bewegung – dein Start und Ende bleiben, was auch gefunden wird. Der Fokus (Gesicht erkannt) wird nur verwendet, wenn du zurück auf automatisch gehst.",
-  "editor.ownMotionSubject":
-    "Eigene Bewegung – dein Start und Ende bleiben, was auch gefunden wird. Der Fokus (Motiv erkannt) wird nur verwendet, wenn du zurück auf automatisch gehst.",
-  "editor.ownMotionImmich":
-    "Eigene Bewegung – dein Start und Ende bleiben, was auch gefunden wird. Der Fokus (Gesichter von Immich) wird nur verwendet, wenn du zurück auf automatisch gehst.",
-  "editor.ownMotionScenery":
-    "Eigene Bewegung – dein Start und Ende bleiben, was auch gefunden wird. Der Fokus (Landschaft) wird nur verwendet, wenn du zurück auf automatisch gehst.",
-  "editor.ownMotionNone":
-    "Eigene Bewegung – dein Start und Ende bleiben, was auch gefunden wird. Der Fokus (kein Motiv erkannt) wird nur verwendet, wenn du zurück auf automatisch gehst.",
+  "editor.ownMotion":
+    "Gewählte Bewegung – sie läuft von deinem Start zu deinem Ende, was auch gefunden wird.",
   "editor.searchingFocus": "Fokus wird gesucht …",
   "editor.caption": "Bildtitel",
   "editor.captionPlaceholder": "z. B. Abends am Steg",

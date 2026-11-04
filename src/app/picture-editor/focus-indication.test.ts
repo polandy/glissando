@@ -165,22 +165,15 @@ describe("focusLineText", () => {
     expect(focusLineText(line("face", "face")).pending).toBe(false);
   });
 
-  it.each<[string, string]>([
-    ["face", "editor.ownMotionFace"],
-    ["subject", "editor.ownMotionSubject"],
-    ["immich", "editor.ownMotionImmich"],
-    ["scenery", "editor.ownMotionScenery"],
-    ["none", "editor.ownMotionNone"],
-  ])("replaces a %s result's line with the own-motion sentence", (resultKind, textKey) => {
-    expect(
-      focusLineText(line("face", resultKind as FocusLineView["resultKind"], true)).textKey,
-    ).toBe(textKey);
-  });
+  it.each(["face", "subject", "immich", "scenery", "none"] as const)(
+    "replaces a %s result's line with the one chosen-motion sentence",
+    (resultKind) => {
+      expect(focusLineText(line("face", resultKind, true)).textKey).toBe("editor.ownMotion");
+    },
+  );
 
-  it("keeps an outdated result's own-motion sentence by its underlying kind, not its staleness", () => {
-    expect(focusLineText(line("outdated", "subject", true)).textKey).toBe(
-      "editor.ownMotionSubject",
-    );
+  it("keeps the chosen-motion sentence for an outdated result, never its staleness", () => {
+    expect(focusLineText(line("outdated", "subject", true)).textKey).toBe("editor.ownMotion");
   });
 
   it("leaves a status with no result yet unaffected by own motion", () => {
