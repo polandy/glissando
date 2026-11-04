@@ -76,7 +76,7 @@ describe("PictureEditorScreen picture length", () => {
   it("an own duration alone makes the timing own and names the automatic one", () => {
     mountEditor(view({ durationMs: 8000, ownDuration: true }));
 
-    expect(chip(timingSection())).toBe("Eigener Zeitablauf");
+    expect(chip(timingSection())).toBe("Gewählt");
     expect(text(timingSection())).toContain("Automatisch wären es 5,0 s.");
     expect(text(timingSection())).not.toContain("2 bis 15 s.");
   });

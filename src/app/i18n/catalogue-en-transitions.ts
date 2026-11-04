@@ -5,7 +5,10 @@ import type { deTransitions } from "./catalogue-de-transitions.ts";
 export const enTransitions: Pick<Catalogue, keyof typeof deTransitions> = {
   "slideshow.transitionDefault": "automatic",
   "slideshow.transitionOwnChoice": "chosen",
-  "slideshow.transitionOwnCount": { one: "{count} own", other: "{count} own" },
+  "slideshow.transitionOwnCount": {
+    one: "{count} picture chosen",
+    other: "{count} pictures chosen",
+  },
   "slideshow.transitionSummary": "{choice} · {own}",
   "transitions.title": "Slideshow transitions",
   "transitions.default": "Automatic",
@@ -17,8 +20,8 @@ export const enTransitions: Pick<Catalogue, keyof typeof deTransitions> = {
   "transitions.hintMood": "Set by the mood {name}. Choosing another turns the mood off.",
   "transitions.hintEffect": "Every transition: {effect}.",
   "transitions.ownKept": {
-    one: "Picture {numbers} keeps its own transition – change it in the picture editor.",
-    other: "Pictures {numbers} keep their own transitions – change them in the picture editor.",
+    one: "Picture {numbers} keeps its chosen transition – change it in the picture editor.",
+    other: "Pictures {numbers} keep their chosen transitions – change them in the picture editor.",
   },
   "transitions.numberList": "{rest} and {last}",
   "transitions.reset": "Back to crossfade",

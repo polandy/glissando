@@ -21,7 +21,7 @@ describe("ImportPicturesStrip, the order rule", () => {
     flushSync();
 
     expect(text(target.querySelector(".sorted"))).toBe(
-      "Eigene Reihenfolge · neue Bilder kommen ans Ende",
+      "Deine Reihenfolge · neue Bilder kommen ans Ende",
     );
   });
 });

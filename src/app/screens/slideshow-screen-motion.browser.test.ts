@@ -57,7 +57,7 @@ describe("SlideshowScreen, the way into the picture editor", () => {
     mountScreen(ownMotionOnSecond());
 
     const own = document.querySelector(
-      'img[alt="Bild 2, aufgenommen am 02.07.2025, eigene Bewegung"]',
+      'img[alt="Bild 2, aufgenommen am 02.07.2025, gewählte Bewegung"]',
     );
     const badges = [...document.querySelectorAll(".strip .badge")];
 

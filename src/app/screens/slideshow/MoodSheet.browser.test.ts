@@ -30,7 +30,7 @@ describe("MoodSheet", () => {
 
     expect(tile("calm").getAttribute("aria-checked")).toBe("true");
     expect(hint()).toBe(
-      "Picture length follows the song's beat. Pictures with their own duration, transition or motion keep them.",
+      "Picture length follows the song's beat. Pictures with a chosen picture length, transition or motion keep them.",
     );
     expect(setText("Transitions")).toBe("Crossfade, long");
     expect(setText("Motion")).toBe("Gentle");

@@ -24,7 +24,7 @@ describe("SlideshowScreen, a picture's own timing", () => {
     mountScreen(timedSecond());
 
     const timed = document.querySelector(
-      'img[alt="Bild 2, aufgenommen am 02.07.2025, eigene Dauer 8 s, eigener Übergang Kreis"]',
+      'img[alt="Bild 2, aufgenommen am 02.07.2025, gewählte Bilddauer 8 s, gewählter Übergang Kreis"]',
     );
     const marks = [...document.querySelectorAll<HTMLElement>(".strip .timing-badge")];
 

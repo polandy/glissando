@@ -38,7 +38,7 @@ test("E2E-014 pictures are removed with undo, reordered and renamed across a rel
   await selectionBar.getByRole("button", { name: "Später" }).click();
   await expect(tile(page, 1, "14.07.2025")).toBeVisible();
   await expect(tile(page, 2, "12.07.2025")).toBeVisible();
-  await expect(page.getByText("Eigene Reihenfolge")).toBeVisible();
+  await expect(page.getByText("Deine Reihenfolge")).toBeVisible();
   await selectionBar.getByRole("button", { name: "Fertig" }).click();
 
   await page.getByRole("button", { name: "Titel umbenennen" }).click();
@@ -51,7 +51,7 @@ test("E2E-014 pictures are removed with undo, reordered and renamed across a rel
   await expect(tile(page, 1, "14.07.2025")).toBeVisible();
   await expect(tile(page, 2, "12.07.2025")).toBeVisible();
   await expect(tile(page, 3, "20.07.2025")).toBeVisible();
-  await expect(page.getByText("Eigene Reihenfolge")).toBeVisible();
+  await expect(page.getByText("Deine Reihenfolge")).toBeVisible();
 
   await tile(page, 3, "20.07.2025").click();
   await selectionBar.getByRole("button", { name: "Entfernen" }).click();

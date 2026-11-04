@@ -34,13 +34,13 @@ mixed transitions and stronger motion. Both fit the picture changes to the song'
 so a slow and a fast song pace the same mood differently. A new slideshow starts on Calm; choose
 **No mood**, or set the picture length or "Fill the music" in the music editor, to use your
 own settings. A slideshow without music sets its picture length in the music editor too, below
-"No music yet". A picture with its own duration, transition or motion keeps it under any mood, and
+"No music yet". A picture with a chosen picture length, transition or motion keeps it under any mood, and
 changing a single setting while a mood is on turns the mood off, keeping its values as a start.
 
 Turn on **Follow the music's energy** in the Mood sheet, with or without a mood, and the pictures
 stay longer where the music is quiet and change quicker where it is loud; when the music picks up, the
-next picture cuts in on the beat. The slideshow stays as long as before, and pictures with their own
-duration keep it.
+next picture cuts in on the beat. The slideshow stays as long as before, and pictures with a chosen
+picture length keep it.
 
 Tap Look on the slideshow's screen to give it a look — Warm, Cool, Vivid, Film, Black & white or
 Faded — if you want one. It colours every picture and video, in the video and web page you share

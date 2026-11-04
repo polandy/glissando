@@ -50,9 +50,9 @@ export const enMusic: Pick<Catalogue, keyof typeof deMusic> = {
   "music.onTheBeatHint":
     "Every automatic change lands on a beat of the music; a transition lasts whole beats.",
   "music.ownDurationsOffBeat": {
-    one: "Picture {pictures} keeps its own duration exactly: no automatic picture follows to take up the difference, so its change can fall between beats.",
+    one: "Picture {pictures} keeps its chosen picture length exactly: no automatic picture follows to take up the difference, so its change can fall between beats.",
     other:
-      "Pictures {pictures} keep their own duration exactly: no automatic picture follows to take up the difference, so their changes can fall between beats.",
+      "Pictures {pictures} keep their chosen picture length exactly: no automatic picture follows to take up the difference, so their changes can fall between beats.",
   },
   "music.evenlyHint": "The pictures share the music evenly, regardless of its beat.",
   "music.evenlyHintSeconds": "Each picture stays exactly {seconds}, regardless of the beat.",
@@ -103,7 +103,7 @@ export const enMusic: Pick<Catalogue, keyof typeof deMusic> = {
   "music.infoFadeOut": "About the fade out",
   "music.infoVolume": "About volume",
   "music.infoVolumeText":
-    "Every song is measured and played at the same loudness, so no song jumps out. Choose a volume of your own to make one louder or quieter; Listen plays it from its loudest part.",
+    "Every song is measured and played at the same loudness, so no song jumps out. Choose a volume to make one louder or quieter; Listen plays it from its loudest part.",
   "music.infoTrim": "About the excerpt",
   "music.fadeAutomaticChoice": "Automatic · {choice}",
   "music.noticeMusicEndsEarly": "The music ends {time} before the pictures.",

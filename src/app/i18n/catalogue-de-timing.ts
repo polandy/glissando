@@ -1,17 +1,17 @@
 import type { Message } from "./messages.ts";
 
-/** German copy of a picture's own duration and transition; part of the German catalogue. */
+/** German copy of a picture's chosen picture length and transition; part of the German catalogue. */
 export const deTiming = {
   "slideshow.pictureTimes": "Bilddauer",
   "slideshow.musicLength": "{duration} Musik",
-  "slideshow.pictureLabelOwnDuration": ", eigene Dauer {duration}",
-  "slideshow.pictureLabelOwnTransition": ", eigener Übergang {effect}",
+  "slideshow.pictureLabelOwnDuration": ", gewählte Bilddauer {duration}",
+  "slideshow.pictureLabelOwnTransition": ", gewählter Übergang {effect}",
   "editor.endOfSlideshow": "Ende der Diashow",
   "editor.previewTransition": "{duration}, darin {effect} {length} zu Bild {next}",
   "editor.previewCut": "{duration}, dann Schnitt zu Bild {next}",
   "editor.previewEnd": "{duration}, dann endet die Diashow",
   "editor.timing": "Zeitablauf",
-  "editor.ownTiming": "Eigener Zeitablauf",
+  "editor.ownTiming": "Gewählt",
   "editor.timingAlreadyAutomatic": "Der Zeitablauf ist schon automatisch",
   "editor.pictureLength": "Bilddauer",
   "editor.lengthScale": "{seconds} s",
@@ -34,7 +34,7 @@ export const deTiming = {
   "editor.endsHere": "Hier endet die Diashow",
   "editor.endsHereRest": ", ohne Übergang.",
   "editor.storedTransitionStays":
-    "Der eigene Übergang „{effect}“ bleibt gespeichert und gilt wieder, sobald ein Bild folgt.",
+    "Der gewählte Übergang „{effect}“ bleibt gespeichert und gilt wieder, sobald ein Bild folgt.",
   "editor.transitionFollowsSlideshow": "Automatisch gilt der Übergang der Diashow: {effect}.",
   "editor.transitionsAlternate":
     "Automatisch wechseln die Übergänge ab, wie für die Diashow eingestellt.",

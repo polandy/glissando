@@ -4,7 +4,7 @@ import type { Message } from "./messages.ts";
 export const deChapters = {
   "chapters.edited": "Bearbeitet",
   "chapters.sheetTitleAutomatic": "Kapitel",
-  "chapters.sheetTitleAdded": "Eigenes Kapitel",
+  "chapters.sheetTitleAdded": "Dein Kapitel",
   "chapters.titleLabel": "Titel",
   "chapters.subtitleLabel": "Untertitel",
   "chapters.titleAlreadyAutomatic": "Der Titel ist schon automatisch",

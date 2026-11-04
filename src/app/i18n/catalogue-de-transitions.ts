@@ -4,7 +4,7 @@ import type { Message } from "./messages.ts";
 export const deTransitions = {
   "slideshow.transitionDefault": "Automatisch",
   "slideshow.transitionOwnChoice": "gewählt",
-  "slideshow.transitionOwnCount": { one: "{count} eigener", other: "{count} eigene" },
+  "slideshow.transitionOwnCount": { one: "{count} Bild gewählt", other: "{count} Bilder gewählt" },
   "slideshow.transitionSummary": "{choice} · {own}",
   "transitions.title": "Übergänge der Diashow",
   "transitions.default": "Automatisch",
@@ -17,8 +17,8 @@ export const deTransitions = {
     "Durch die Stimmung {name} festgelegt. Eine andere Wahl schaltet die Stimmung aus.",
   "transitions.hintEffect": "Jeder Übergang: {effect}.",
   "transitions.ownKept": {
-    one: "Bild {numbers} behält seinen eigenen Übergang – zu ändern im Bildeditor.",
-    other: "Bild {numbers} behalten ihren eigenen Übergang – zu ändern im Bildeditor.",
+    one: "Bild {numbers} behält seinen gewählten Übergang – zu ändern im Bildeditor.",
+    other: "Bild {numbers} behalten ihren gewählten Übergang – zu ändern im Bildeditor.",
   },
   "transitions.numberList": "{rest} und {last}",
   "transitions.reset": "Zurück auf Überblenden",

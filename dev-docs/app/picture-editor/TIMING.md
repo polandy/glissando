@@ -1,8 +1,8 @@
 # Timing
 
 - **Timing** (`TimingSection.svelte`): below the caption, the eyebrow "Timing" with the state
-  "Automatic" or "Own timing" (accent-tinted; own when the picture's length or its transition
-  is own), then the picture length, the transition and one full-width "Back to automatic".
+  "Automatic" or "Chosen" (accent-tinted; chosen when the picture's length or its transition
+  is chosen), then the picture length, the transition and one full-width "Back to automatic".
 - **Picture length** (`PictureLengthSlider.svelte`): a native range slider from 2 to 15 s in
   half-second steps (the own-timing constants), `aria-label` "Picture length", `aria-valuetext`
   in seconds. The value shows live beside the sub-heading while dragging and is stored on
@@ -32,7 +32,7 @@
   as set for the slideshow." (E2E-116) The automatic choice is the slideshow's default (ADR-0010); an own
   transition stays own even when it equals the default. At the last picture the sub-heading is
   "Transition", the state "Last picture", and a note says "**The slideshow ends here**, without
-  a transition."; with an own transition stored it adds "The own transition “Dissolve” stays
+  a transition."; with an own transition stored it adds "The chosen transition “Dissolve” stays
   saved and applies again once a picture follows."
 - **Back to automatic**: one button for both settings, disabled-looking and titled "The timing
   is already automatic" while both are automatic. It drops the own length and the own transition

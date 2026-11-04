@@ -85,7 +85,7 @@ describe("MusicEditorScreen, the picture changes", () => {
   it("moves the change after a picture with an own duration onto the beat too, naming none", () => {
     mountDetailed(slideshowWith({}, { count: 6, durations: { 1: 7300, 4: 9100 } }), FOUND);
 
-    expect(section().textContent).not.toContain("eigene Dauer");
+    expect(section().textContent).not.toContain("gewählte Bilddauer");
     expect(document.querySelectorAll(".runs i").length).toBe(5);
     expect(document.querySelectorAll(".runs i.off-beat").length).toBe(0);
   });
@@ -94,7 +94,7 @@ describe("MusicEditorScreen, the picture changes", () => {
     mountDetailed(slideshowWith({}, { count: 4, durations: { 2: 7300, 3: 9100 } }), FOUND);
 
     expect(section().textContent).toContain(
-      "Bild 3 behält seine eigene Dauer genau: Danach folgt kein automatisches Bild, das den Versatz ausgleichen könnte, darum kann der Wechsel zwischen die Schläge fallen.",
+      "Bild 3 behält seine gewählte Bilddauer genau: Danach folgt kein automatisches Bild, das den Versatz ausgleichen könnte, darum kann der Wechsel zwischen die Schläge fallen.",
     );
     expect(document.querySelectorAll(".runs i").length).toBe(3);
     // The automatic picture before it, and its own change, both have nothing left to absorb into.

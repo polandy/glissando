@@ -73,14 +73,14 @@ describe("SlideshowScreen, the transitions row", () => {
   it("names an own choice and counts the pictures with their own transition", () => {
     mountScreen(withOwn(["a"], { transition: "alternate" }));
 
-    expect(text(transitionsRow())).toBe("Übergänge Abwechselnd gewählt · 1 eigener");
+    expect(text(transitionsRow())).toBe("Übergänge Abwechselnd gewählt · 1 Bild gewählt");
   });
 
   it("counts several own transitions in the plural", () => {
     mountScreen(withOwn(["a", "c"]));
     openFineSettings();
 
-    expect(text(transitionsRow())).toBe("Übergänge Überblenden Automatisch · 2 eigene");
+    expect(text(transitionsRow())).toBe("Übergänge Überblenden Automatisch · 2 Bilder gewählt");
   });
 });
 
@@ -189,7 +189,7 @@ describe("SlideshowScreen, the transitions sheet", () => {
     openSheet();
 
     expect(text(sheet())).toContain(
-      "Bild 1 und 3 behalten ihren eigenen Übergang – zu ändern im Bildeditor.",
+      "Bild 1 und 3 behalten ihren gewählten Übergang – zu ändern im Bildeditor.",
     );
   });
 
@@ -198,7 +198,7 @@ describe("SlideshowScreen, the transitions sheet", () => {
     openSheet();
 
     expect(text(sheet())).toContain(
-      "Bild 2 behält seinen eigenen Übergang – zu ändern im Bildeditor.",
+      "Bild 2 behält seinen gewählten Übergang – zu ändern im Bildeditor.",
     );
   });
 

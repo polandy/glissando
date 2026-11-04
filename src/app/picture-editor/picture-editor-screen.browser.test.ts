@@ -51,7 +51,7 @@ describe("PictureEditorScreen", () => {
 
     button("Zurück auf automatisch").click();
 
-    expect(element(".state").textContent?.trim()).toBe("Eigene Bewegung");
+    expect(element(".state").textContent?.trim()).toBe("Gewählt");
     expect(calls.resets).toBe(1);
   });
 

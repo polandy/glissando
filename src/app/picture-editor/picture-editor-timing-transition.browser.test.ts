@@ -97,7 +97,7 @@ describe("PictureEditorScreen transition", () => {
       view({ transition: { ...view().transition, choice: "cut", own: true, durationMs: 0 } }),
     );
 
-    expect(chip(timingSection())).toBe("Eigener Zeitablauf");
+    expect(chip(timingSection())).toBe("Gewählt");
     expect(transitionSection().querySelector(".tag")).toBeNull();
     expect(text(transitionSection())).toContain("Bild 3 folgt ohne Übergang.");
     expect(text(transitionSection())).not.toContain("Automatisch gilt");
@@ -128,7 +128,7 @@ describe("PictureEditorScreen transition", () => {
     expect(text(transitionSection())).toContain("Letztes Bild");
     expect(text(transitionSection())).toContain("Hier endet die Diashow, ohne Übergang.");
     expect(text(transitionSection())).toContain(
-      "Der eigene Übergang „Auflösen“ bleibt gespeichert und gilt wieder, sobald ein Bild folgt.",
+      "Der gewählte Übergang „Auflösen“ bleibt gespeichert und gilt wieder, sobald ein Bild folgt.",
     );
     expect(transitionSection().querySelector('[role="radio"]')).toBeNull();
   });

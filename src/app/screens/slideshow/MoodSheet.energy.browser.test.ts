@@ -46,7 +46,7 @@ describe("MoodSheet energy pacing", () => {
       "Slower when it's quiet, quicker when it's loud, a strong change at a drop",
     );
     expect(hint()).toBe(
-      "The mood sets the average pace; the energy makes it slower in quiet passages and quicker in loud ones. Pictures with their own duration, transition or motion keep them.",
+      "The mood sets the average pace; the energy makes it slower in quiet passages and quicker in loud ones. Pictures with a chosen picture length, transition or motion keep them.",
     );
   });
 
@@ -54,7 +54,7 @@ describe("MoodSheet energy pacing", () => {
     setUp(details({ energyPacing: true }), previewPorts({ energyPacing: true }));
 
     expect(hint()).toBe(
-      "Your picture length stays the average. With “Fill the music” the slideshow still ends with the song. Pictures with their own duration keep it.",
+      "Your picture length stays the average. With “Fill the music” the slideshow still ends with the song. Pictures with a chosen picture length keep it.",
     );
   });
 

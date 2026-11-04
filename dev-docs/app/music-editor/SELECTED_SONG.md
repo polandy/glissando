@@ -65,7 +65,7 @@ The panel for the song selected in the [music editor](../MUSIC_EDITOR.md).
   the choice), stored with the music at once; the ⓘ explains "Every automatic
   change lands on a beat of the music; a transition lasts whole beats." — every own duration
   moves there too, about its set length, except one with no automatic picture left after it to
-  absorb the shift, named "Pictures 5 and 12 keep their own duration exactly: …" — and, for
+  absorb the shift, named "Pictures 5 and 12 keep their chosen picture length exactly: …" — and, for
   evenly, "The pictures share the music evenly, regardless of its beat." (or "Each picture stays
   exactly 5 s, regardless of the beat."). No such paragraph shows on the page.
   Music without a clear beat: "No steady beat found in this music. The pictures share it

@@ -17,7 +17,7 @@ export const enPortrait: Pick<Catalogue, keyof typeof dePortrait> = {
     "Every picture is shown alone; one that would lose a lot to the crop gets a blurred fill.",
   "portrait.hintFillScreen":
     "Every picture fills the screen, even where that crops a head or feet.",
-  "portrait.note": "Pictures with their own settings are always shown alone.",
+  "portrait.note": "Pictures with chosen settings are always shown alone.",
   "portrait.reset": "Back to automatic",
   "portrait.alreadyAutomatic": "Portrait pictures are already set to automatic",
   "portrait.resetDone": "Portrait pictures back to automatic",

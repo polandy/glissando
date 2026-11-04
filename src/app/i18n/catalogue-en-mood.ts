@@ -23,7 +23,7 @@ export const enMood: Pick<Catalogue, keyof typeof deMood> = {
   "mood.livelySubtitle": "Quick, on the beat",
   "mood.customSubtitle": "Your settings",
   "mood.hintMood":
-    "Picture length follows the song's beat. Pictures with their own duration, transition or motion keep them.",
+    "Picture length follows the song's beat. Pictures with a chosen picture length, transition or motion keep them.",
   "mood.hintCustom": "Picture length, transitions and motion as you set them on the slideshow.",
   "mood.backToCustom": "Turn the mood off",
   "mood.alreadyCustom": "No mood is on",
@@ -35,9 +35,9 @@ export const enMood: Pick<Catalogue, keyof typeof deMood> = {
   "mood.energyLiftLabel": "When the music picks up",
   "mood.energyLiftValue": "Cut on the beat",
   "mood.hintMoodEnergy":
-    "The mood sets the average pace; the energy makes it slower in quiet passages and quicker in loud ones. Pictures with their own duration, transition or motion keep them.",
+    "The mood sets the average pace; the energy makes it slower in quiet passages and quicker in loud ones. Pictures with a chosen picture length, transition or motion keep them.",
   "mood.hintCustomEnergy":
-    "Your picture length stays the average. With “Fill the music” the slideshow still ends with the song. Pictures with their own duration keep it.",
+    "Your picture length stays the average. With “Fill the music” the slideshow still ends with the song. Pictures with a chosen picture length keep it.",
   "mood.energyStripQuiet": "quiet → longer",
   "mood.energyStripLoud": "loud → quicker",
 };
