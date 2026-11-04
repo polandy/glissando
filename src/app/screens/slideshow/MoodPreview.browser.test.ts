@@ -2,10 +2,12 @@ import { flushSync } from "svelte";
 import { afterEach, describe, expect, it } from "vitest";
 import "../../../styles/tokens.css";
 import { NO_SONG_BEATS, type SongBeats } from "../../../compose/playlist";
+import type { SongLoudness } from "../../../compose/song-loudness";
 import type { StoredSlideshow } from "../../../library/stored-slideshow";
 import { DRUMS } from "../../../library/testing/beat-pass-fixtures";
 import { MemoryLibraryStore } from "../../../library/testing/memory-store";
 import { MusicOutput } from "../../../player";
+import { browserObjectUrls } from "../../media/object-urls";
 import { createTranslator } from "../../i18n/translator";
 import { mountWithTranslator } from "../../testing/mount-with-translator";
 import { reactiveProps } from "../../testing/reactive-props.svelte";
@@ -38,6 +40,7 @@ type Props = {
   ports: MoodPreviewPorts;
   mood: MoodPreviewPorts["stored"]["mood"];
   moodBeats: SongBeats;
+  onLoaded?: (loaded: { loudness: SongLoudness }) => void;
 };
 
 async function openPreview(
@@ -54,6 +57,7 @@ async function openPreview(
   const ports: MoodPreviewPorts = {
     store,
     stored,
+    objectUrls: browserObjectUrls,
     musicOutput: new MusicOutput(() => null),
     decodeClipSound: () => Promise.resolve(null),
     log: (error: unknown) => {
@@ -134,6 +138,7 @@ describe("MoodPreview", () => {
     const ports: MoodPreviewPorts = {
       store,
       stored,
+      objectUrls: browserObjectUrls,
       musicOutput: new MusicOutput(() => null),
       decodeClipSound: () => Promise.resolve(null),
       log: (error: unknown) => logged.push(error),
@@ -149,5 +154,70 @@ describe("MoodPreview", () => {
 
     expect(after).not.toBeNull();
     expect(after).not.toBe(before);
+  });
+
+  it("revokes the song URLs and reports nothing when it closes while focus is still loading", async () => {
+    const memory = new MemoryLibraryStore();
+    await memory.putPicture("a", { display: new Blob([]), thumbnail: new Blob([]) });
+    await memory.putMusic("m", new Blob([]));
+    let releaseFocus: () => void = () => {};
+    const focusGate = new Promise<void>((resolve) => (releaseFocus = resolve));
+    const store: MoodPreviewPorts["store"] = {
+      playbackPictureBlob: (id) => memory.playbackPictureBlob(id),
+      videoBlob: (id) => memory.videoBlob(id),
+      musicBlob: (id) => memory.musicBlob(id),
+      musicLoudness: (id) => memory.musicLoudness(id),
+      pictureFocus: async (ids) => {
+        await focusGate;
+        return memory.pictureFocus(ids);
+      },
+    };
+    const created: string[] = [];
+    const revoked: string[] = [];
+    let onCreated: () => void = () => {};
+    const firstCreated = new Promise<void>((resolve) => (onCreated = resolve));
+    let onSettled: () => void = () => {};
+    const settled = new Promise<void>((resolve) => (onSettled = resolve));
+    const loadedCalls: unknown[] = [];
+    const ports: MoodPreviewPorts = {
+      store,
+      stored: {
+        ...SHOW,
+        mood: "calm",
+        songs: [{ id: "m", fileName: "m.mp3", durationMs: 2000, mimeType: "audio/mpeg" }],
+      },
+      objectUrls: {
+        create: () => {
+          const url = `blob:song-${created.length + 1}`;
+          created.push(url);
+          onCreated();
+          return url;
+        },
+        revoke: (url) => {
+          revoked.push(url);
+          onSettled();
+        },
+      },
+      musicOutput: new MusicOutput(() => null),
+      decodeClipSound: () => Promise.resolve(null),
+      log: () => {},
+    };
+    const onLoaded = (loaded: unknown) => {
+      loadedCalls.push(loaded);
+      onSettled();
+    };
+    const props = reactiveProps<Props>({ ports, mood: "calm", moodBeats: NO_SONG_BEATS, onLoaded });
+    const mounted = mountWithTranslator(MoodPreview, props, { current: createTranslator("en") });
+    destroy = mounted.destroy;
+
+    await firstCreated;
+    expect(created).toEqual(["blob:song-1"]);
+    destroy();
+    destroy = () => {};
+    releaseFocus();
+    await settled;
+
+    expect(revoked).toEqual(created);
+    expect(loadedCalls).toEqual([]);
   });
 });
