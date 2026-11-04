@@ -5,8 +5,7 @@ export const deAdd = {
   "add.title": "Bilder hinzufügen",
   "add.titleShort": "Hinzufügen",
   "add.leadByDate": "Sie kommen nach Aufnahmedatum an ihren Platz.",
-  "add.leadOwnOrder":
-    "Deine eigene Reihenfolge bleibt; wähle unten, wohin die neuen Bilder kommen.",
+  "add.leadOwnOrder": "Deine Reihenfolge bleibt; wähle unten, wohin die neuen Bilder kommen.",
   "add.leadDownscale": "Glissando verkleinert sie fürs Gerät, die Originale bleiben unberührt.",
   "add.placementTitle": "Wohin sie kommen",
   "add.placementByDate": "Nach Aufnahmedatum",
@@ -23,7 +22,7 @@ export const deAdd = {
   "add.afterPerPicture": "Pro Bild",
   "add.beforeAfter": "{before} → {after}",
   "add.sharesMusic":
-    "Die Bilder teilen sich weiter die Musik; jedes wird etwas kürzer. Bilder mit eigener Dauer bleiben etwa so lange.",
+    "Die Bilder teilen sich weiter die Musik; jedes wird etwas kürzer. Bilder mit gewählter Bilddauer bleiben etwa so lange.",
   "add.fitted":
     "Jedes neue Bild schrumpft auf etwa {seconds}, damit die Diashow mit der Musik endet.",
   "add.musicTooShort": "Die Musik reicht nicht für alle Bilder.",

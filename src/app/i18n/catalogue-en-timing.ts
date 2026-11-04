@@ -1,18 +1,18 @@
 import type { Catalogue } from "./messages.ts";
 import type { deTiming } from "./catalogue-de-timing.ts";
 
-/** English copy of a picture's own duration and transition; typed to the German keys. */
+/** English copy of a picture's chosen picture length and transition; typed to the German keys. */
 export const enTiming: Pick<Catalogue, keyof typeof deTiming> = {
   "slideshow.pictureTimes": "Picture length",
   "slideshow.musicLength": "{duration} of music",
-  "slideshow.pictureLabelOwnDuration": ", own duration {duration}",
-  "slideshow.pictureLabelOwnTransition": ", own transition {effect}",
+  "slideshow.pictureLabelOwnDuration": ", chosen picture length {duration}",
+  "slideshow.pictureLabelOwnTransition": ", chosen transition {effect}",
   "editor.endOfSlideshow": "End of slideshow",
   "editor.previewTransition": "{duration}, with {effect} {length} into picture {next}",
   "editor.previewCut": "{duration}, then a cut to picture {next}",
   "editor.previewEnd": "{duration}, then the slideshow ends",
   "editor.timing": "Timing",
-  "editor.ownTiming": "Own timing",
+  "editor.ownTiming": "Chosen",
   "editor.timingAlreadyAutomatic": "The timing is already automatic",
   "editor.pictureLength": "Picture length",
   "editor.lengthScale": "{seconds} s",
@@ -35,7 +35,7 @@ export const enTiming: Pick<Catalogue, keyof typeof deTiming> = {
   "editor.endsHere": "The slideshow ends here",
   "editor.endsHereRest": ", without a transition.",
   "editor.storedTransitionStays":
-    "The own transition “{effect}” stays saved and applies again once a picture follows.",
+    "The chosen transition “{effect}” stays saved and applies again once a picture follows.",
   "editor.transitionFollowsSlideshow":
     "Automatically, the slideshow's transition applies: {effect}.",
   "editor.transitionsAlternate":

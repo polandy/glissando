@@ -89,7 +89,7 @@ test("E2E-036 adding to a slideshow in its own order sorts the new pictures in b
   await selectionBar.getByRole("button", { name: "Früher" }).click();
   await selectionBar.getByRole("button", { name: "Früher" }).click();
   await selectionBar.getByRole("button", { name: "Fertig" }).click();
-  await expect(page.getByText("Eigene Reihenfolge")).toBeVisible();
+  await expect(page.getByText("Deine Reihenfolge")).toBeVisible();
   await expect(tile(page, 1, "20.07.2025")).toBeVisible();
 
   await page.getByRole("button", { name: "Bilder hinzufügen" }).click();
@@ -112,7 +112,7 @@ test("E2E-036 adding to a slideshow in its own order sorts the new pictures in b
   await expect(page.getByRole("status").filter({ hasText: "hinzugefügt" })).toContainText(
     "2 Bilder hinzugefügt",
   );
-  await expect(page.getByText("Eigene Reihenfolge")).toBeVisible();
+  await expect(page.getByText("Deine Reihenfolge")).toBeVisible();
   await expect(tile(page, 1, "20.07.2025")).toBeVisible();
   await expect(tile(page, 2, "21.07.2025", true)).toBeVisible();
   await expect(tile(page, 3, "12.07.2025")).toBeVisible();

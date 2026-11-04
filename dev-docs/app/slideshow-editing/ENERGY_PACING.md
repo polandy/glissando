@@ -88,9 +88,9 @@ The composed player JSON carries no new field.
     energy" (to 0.1 s, a trailing ".0" dropped), or as usual when they are all equal;
   - an extra row, "At a drop or chorus", shows "Cut on the beat" when a lift was found.
 - **Hint** with the switch on: under a mood, "The mood sets the average pace; the energy makes it
-  slower in quiet passages and quicker in loud ones. Pictures with their own duration, transition
+  slower in quiet passages and quicker in loud ones. Pictures with a chosen picture length, transition
   or motion keep them."; under Custom, "Your picture times stay the average. With “Fill the
-  music” the slideshow still ends with the song. Pictures with their own duration keep it."
+  music” the slideshow still ends with the song. Pictures with a chosen picture length keep it."
 - **Energy strip** (`EnergyStrip.svelte`), under the preview while the switch is on:
   - the energy curve of the whole slideshow as an area;
   - a tick at every picture change;

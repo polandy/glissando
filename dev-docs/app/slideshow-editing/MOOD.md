@@ -69,9 +69,9 @@ its pace otherwise. Own duration, own transition and own motion of a picture win
     settings"; three columns. A tap stores at once; arrow keys move it.
   - **What it sets**: Picture times, Transitions ("Crossfade, long" / "Mixed, short" /
     "standard") and Ken Burns, worked out for this slideshow's tempo.
-  - **Hint**: under a mood "Picture times follow the song's beats and phrases. Pictures with
-    their own duration, transition or motion keep them."; for Custom "Your own picture times,
-    transitions and Ken Burns, as set on the slideshow."
+  - **Hint**: under a mood "Picture length follows the song's beat. Pictures with a chosen
+    picture length, transition or motion keep them."; for Custom "Picture length, transitions and
+    motion as you set them on the slideshow."
   - **Footer**: "Back to Custom" (disabled-looking under Custom; toast "Mood back to Custom"
     with "Undo") and "Done". Done, Esc or a tap on the scrim closes it; focus starts on the
     checked tile and goes back to the row.

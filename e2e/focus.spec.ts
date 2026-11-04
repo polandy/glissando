@@ -63,7 +63,7 @@ test("E2E-028 the automatic motion's focus is found in the background: a face is
   await expect(marker).toContainText("Gesicht");
 
   await page.locator(".frame.active").press("+");
-  await expect(state).toHaveText("Eigene Bewegung");
+  await expect(state).toHaveText("Gewählt");
   await expect(frames).toBeVisible();
   await expect(marker).toBeHidden();
 

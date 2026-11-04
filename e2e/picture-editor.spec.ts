@@ -52,7 +52,7 @@ test("E2E-020 a picture gets its own Ken Burns motion that is stored, and goes b
     exact: true,
   });
   const ownTile = page.getByRole("button", {
-    name: "Bild 2, aufgenommen am 14.07.2025, eigene Bewegung",
+    name: "Bild 2, aufgenommen am 14.07.2025, gewählte Bewegung",
   });
   const state = page.locator(".motion .state");
   const frames = page.getByRole("group", { name: "Rahmen" });
@@ -74,7 +74,7 @@ test("E2E-020 a picture gets its own Ken Burns motion that is stored, and goes b
   await expect(startToggle).toHaveAttribute("aria-pressed", "true");
 
   await drag(page, await onPicture(page, 0.55, 0.5), await onPicture(page, 0.5, 0.45));
-  await expect(state).toHaveText("Eigene Bewegung");
+  await expect(state).toHaveText("Gewählt");
   await expect(startFrameBox).toHaveAttribute("aria-label", "Startrahmen, Zoom 1,20×");
 
   // Left of the moved start frame, inside the end frame, which spans the picture's width.
@@ -100,7 +100,7 @@ test("E2E-020 a picture gets its own Ken Burns motion that is stored, and goes b
   await editsStored(page);
 
   await page.reload();
-  await expect(state).toHaveText("Eigene Bewegung");
+  await expect(state).toHaveText("Gewählt");
   await expect(endFrameBox).toHaveAttribute("aria-label", endZoom ?? "");
   await expect(startFrameBox).toHaveAttribute("style", startFrame ?? "");
   await expect(endFrameBox).toHaveAttribute("style", endFrame ?? "");
@@ -110,7 +110,7 @@ test("E2E-020 a picture gets its own Ken Burns motion that is stored, and goes b
   await expect(ownTile.locator(".badge")).toHaveText("gewählt");
 
   await selectionBar.getByRole("button", { name: "Bearbeiten" }).click();
-  await expect(state).toHaveText("Eigene Bewegung");
+  await expect(state).toHaveText("Gewählt");
   await page
     .getByRole("region", { name: "Bewegung" })
     .getByRole("button", { name: "Zurück auf automatisch" })
@@ -120,7 +120,7 @@ test("E2E-020 a picture gets its own Ken Burns motion that is stored, and goes b
     page.getByRole("status").filter({ hasText: "Bewegung wieder automatisch" }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Rückgängig" }).click();
-  await expect(state).toHaveText("Eigene Bewegung");
+  await expect(state).toHaveText("Gewählt");
   await expect(endFrameBox).toHaveAttribute("aria-label", endZoom ?? "");
 });
 
@@ -133,7 +133,7 @@ test("E2E-022 a picture gets its own duration and transition, stored, and both g
     exact: true,
   });
   const ownTile = page.getByRole("button", {
-    name: "Bild 2, aufgenommen am 14.07.2025, eigene Dauer 6,5 s, eigener Übergang Kreis",
+    name: "Bild 2, aufgenommen am 14.07.2025, gewählte Bilddauer 6,5 s, gewählter Übergang Kreis",
   });
   const timingSection = page.locator('section[aria-labelledby="timing-label"]');
   const timingState = timingSection.locator(".state");
@@ -154,7 +154,7 @@ test("E2E-022 a picture gets its own duration and transition, stored, and both g
   for (let step = 0; step < 3; step += 1) {
     await lengthSlider.press("ArrowRight");
   }
-  await expect(timingState).toHaveText("Eigener Zeitablauf");
+  await expect(timingState).toHaveText("Gewählt");
   await expect(lengthSlider).toHaveAttribute("aria-valuetext", "6,5 s");
 
   await circleTile.click();
@@ -168,11 +168,11 @@ test("E2E-022 a picture gets its own duration and transition, stored, and both g
   // The Transitions row lives behind the Fine settings fold (ADR-0048).
   await page.getByRole("button", { name: "Weitere Einstellungen" }).click();
   await expect(
-    page.getByRole("button", { name: "Übergänge Überblenden Automatisch · 1 eigener" }),
+    page.getByRole("button", { name: "Übergänge Überblenden Automatisch · 1 Bild gewählt" }),
   ).toBeVisible();
 
   await selectionBar.getByRole("button", { name: "Bearbeiten" }).click();
-  await expect(timingState).toHaveText("Eigener Zeitablauf");
+  await expect(timingState).toHaveText("Gewählt");
   await expect(lengthSlider).toHaveAttribute("aria-valuetext", "6,5 s");
   await timingSection.getByRole("button", { name: "Zurück auf automatisch" }).click();
   await expect(timingState).toHaveText("Automatisch");

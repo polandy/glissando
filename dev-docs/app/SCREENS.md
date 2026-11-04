@@ -32,21 +32,21 @@
   subjects …" opens the Focus sheet (titled "Faces and subjects") (`screens/slideshow/FocusSheet.svelte`, mockup "Variant A · grid", ADR-0041): a
   bottom sheet on phone, a 440 px right panel from 720 px — a status line with the search's progress, a stacked bar and legend chips by result (filtering the grid below them, own
   motion as its own chip), a 4-column grid of the slideshow's pictures with a status dot and, on an
-  own-motion one, an "Own motion" badge (tapping a tile opens the picture editor), "Try the 3 again"
+  own-motion one, a "Chosen motion" badge (a tap opens the picture editor), "Try the 3 again"
   once some failed or "Look again at all 12 pictures" otherwise (asking again at every picture,
   own-motion ones included: their automatic focus is still found and shown, only not used for their
-  motion), a hint once any picture has its own motion, and where the result is kept ("Stored on
+  motion), a hint once a motion is chosen, and where the result is kept ("Stored on
   this device." or "Shared with every device on your Glissando server."); a 16:9
   cover of the first picture, the only Play control (a tap anywhere on it plays; a "▶ Play · 0:56" pill bottom left), then the pictures in play
   order, each with its order number and capture date, under "Sorted by capture date" or, once
-  the user reordered, "Own order" (with "Drag to reorder", narrow: "Hold and drag to reorder"); right of the
+  the user reordered, "Your order" (with "Drag to reorder", narrow: "Hold and drag to reorder"); right of the
   count "Add media" (narrow: "Add"; the only way in, the strip has no add tile; [ADDING_PICTURES.md](slideshow-editing/ADDING_PICTURES.md), Adding pictures). Beside it (up to 1024 px: under the play preview, above the strip's header) an
   info panel (ADR-0048, below): title with a ✎ button and, right of it, the outlined "Share" pill, date range, the Music/Mood/Look tiles and "Fine settings". A tile carries small
-  badges bottom right: a frame "own" for an own motion, a clock with "8 s" for an own duration,
-  a transition mark (titled with the effect, e.g. "Circle") for an own transition, except on
+  badges bottom right: a frame for a chosen motion, a clock with "8 s" for a chosen picture length,
+  a transition mark (titled with the effect, e.g. "Circle") for a chosen transition, except on
   the last picture, "shown alone" for a picture set never to pair and "blurred fill" for one
   shown whole over a blurred copy of itself; a pair's two tiles are joined by a peach bar below
-  them (ADR-0028). Its label adds "own motion", "own duration 8 s", "own transition Circle" and,
+  them (ADR-0028). Its label adds "chosen motion", "chosen picture length 8 s", "chosen transition Circle" and,
   paired, "shown as a pair with picture 4", "shown alone" and "over a blurred fill". The info panel and the player always use the edited picture list.
   A slideshow opened by id is looked up on the device first, then taken for a server slideshow
   (`routes/slideshow-home.ts`); a server slideshow's screen adds where it lives, its missing

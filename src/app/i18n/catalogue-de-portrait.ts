@@ -16,7 +16,7 @@ export const dePortrait = {
     "Jedes Bild wird einzeln gezeigt; eines, das der Zuschnitt stark beschneiden würde, bekommt eine unscharfe Füllung.",
   "portrait.hintFillScreen":
     "Jedes Bild füllt den Bildschirm, auch wenn das Kopf oder Füße abschneidet.",
-  "portrait.note": "Bilder mit eigenen Einstellungen werden immer einzeln gezeigt.",
+  "portrait.note": "Bilder mit gewählten Einstellungen werden immer einzeln gezeigt.",
   "portrait.reset": "Zurück auf Automatisch",
   "portrait.alreadyAutomatic": "Hochformatbilder stehen schon auf Automatisch",
   "portrait.resetDone": "Hochformatbilder wieder automatisch",

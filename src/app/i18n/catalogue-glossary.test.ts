@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { de } from "./catalogue-de";
 import { en } from "./catalogue-en";
 import { enFilePage } from "./catalogue-en-file-page";
 import { enHtml } from "./catalogue-en-html";
@@ -27,6 +28,10 @@ const BANNED: ReadonlyArray<readonly [RegExp, string]> = [
   [/\bdB\b/, "plain words"],
   [/^Cut$/, "Hard cut"],
   [/^(Own|Duration)$|\bpicture times\b/i, "Automatic / Picture length"],
+  [
+    /\bown (timing|motion|duration|transitions?|order|settings)\b|^\s*own$|\bof your own\b/i,
+    "Chosen",
+  ],
   [/levelled/i, "Same volume as the other songs"],
   [/distortion/i, "dropped"],
 ];
@@ -54,6 +59,29 @@ describe("English catalogue against the glossary", () => {
     if (OWNED_BY_P4.has(key) || key.startsWith("settings.") || EXEMPT.has(key)) continue;
     for (const text of strings(value)) {
       for (const [pattern, use] of BANNED) {
+        if (pattern.test(text)) hits.push(`${key}: ${pattern} (use ${use}) in "${text}"`);
+      }
+    }
+  }
+
+  it("uses no banned variant", () => {
+    expect(hits).toEqual([]);
+  });
+});
+
+/** The German mirror of "own" for a value set by hand, with the glossary word to use. */
+const BANNED_GERMAN: ReadonlyArray<readonly [RegExp, string]> = [
+  [
+    /\beigene[mnrs]? (Zeitablauf|Bewegung|Dauer|Übergang|Reihenfolge|Einstellungen|Kapitel|Lautstärke)\b|^\s*eigener?$/i,
+    "Gewählt",
+  ],
+];
+
+describe("German catalogue against the glossary", () => {
+  const hits: string[] = [];
+  for (const [key, value] of Object.entries(de)) {
+    for (const text of strings(value)) {
+      for (const [pattern, use] of BANNED_GERMAN) {
         if (pattern.test(text)) hits.push(`${key}: ${pattern} (use ${use}) in "${text}"`);
       }
     }
