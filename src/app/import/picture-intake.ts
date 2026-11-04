@@ -185,7 +185,7 @@ export class PictureIntake {
       const { pictures, skipped } = await linkImmichPhotos(
         photos,
         this.#known,
-        { colours: this.#ports.immichColours },
+        { colours: this.#ports.immichColours, log: this.#ports.log },
         this.pictures.state.pictures,
       );
       if (generation === this.#generation) this.pictures.link(pictures, skipped);

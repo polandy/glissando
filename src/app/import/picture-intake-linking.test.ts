@@ -29,8 +29,8 @@ describe("PictureIntake, linking Immich photos for a server slideshow", () => {
     expect(seen).toEqual([false, true, false]);
   });
 
-  it("is not linking after a link failed, and the failure is reported", async () => {
-    const { session, deferred, errors } = serverSession();
+  it("links a photo whose thumbnail cannot be read, logs the failure and does not report it", async () => {
+    const { session, deferred, errors, logged } = serverSession();
     const failure = new Error("thumbnail unreadable");
 
     session.addImmichPhotos([PHOTO]);
@@ -39,7 +39,9 @@ describe("PictureIntake, linking Immich photos for a server slideshow", () => {
     await session.reported();
 
     expect(session.intake.linking.current()).toBe(false);
-    expect(errors).toEqual([failure]);
+    expect(session.pictures.state.pictures.map(({ id }) => id)).toEqual(["asset-1"]);
+    expect(logged).toEqual([failure]);
+    expect(errors).toEqual([]);
   });
 
   it("takes a photo picked twice in overlapping links once", async () => {
@@ -72,7 +74,7 @@ describe("PictureIntake, linking Immich photos for a server slideshow", () => {
     expect(session.intake.linking.current()).toBe(false);
   });
 
-  it("links the next pick although the one before it failed", async () => {
+  it("links the next pick although the one before it had an unreadable thumbnail", async () => {
     const { session, deferred } = serverSession();
     const other = immichPhoto("asset-2", "2025-07-02T10:00:00Z");
 
@@ -82,7 +84,7 @@ describe("PictureIntake, linking Immich photos for a server slideshow", () => {
     (await deferred.asked(other.id)).resolve();
     await session.intake.linked();
 
-    expect(session.pictures.state.pictures.map(({ id }) => id)).toEqual(["asset-2"]);
+    expect(session.pictures.state.pictures.map(({ id }) => id)).toEqual(["asset-1", "asset-2"]);
   });
 });
 
