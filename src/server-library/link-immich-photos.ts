@@ -2,7 +2,7 @@ import type { ImmichPhoto } from "../immich/immich-client";
 import { DISPLAY_BOUND, fitWithin, type Size } from "../import/downscale";
 import type { SkippedFile } from "../import/picture-import";
 import { isSamePicture, type PictureIdentity } from "../library/picture-identity";
-import type { PictureColours } from "../library/picture-colours";
+import { GREY_PICTURE_COLOURS, type PictureColours } from "../library/picture-colours";
 import type { StoredPicture } from "../library/stored-slideshow";
 
 /** The size a picture gets whose size Immich has not read; the rendition played is authoritative. */
@@ -18,13 +18,17 @@ export interface LinkedPhotos {
 export interface LinkImmichPhotosPorts {
   /** A linked photo's colours (ADR-0033); its full size is never downloaded, only a thumbnail. */
   colours(photo: ImmichPhoto): Promise<PictureColours>;
+  /** Receives the error of a thumbnail that could not be read; the photo is linked regardless. */
+  log(error: unknown): void;
 }
 
 /**
  * Picked Immich photos as pictures of a server slideshow, linked, not downloaded
  * (`dev-docs/server_library/SERVER_DOCUMENT.md`): each picture's id is its asset id and its
  * size Immich's fitted into the display bound. Each kept photo's colours are read from a
- * thumbnail, the only part of it fetched.
+ * thumbnail, the only part of it fetched. A photo whose thumbnail cannot be read is still
+ * linked, with `GREY_PICTURE_COLOURS`; the error goes to `ports.log`, the other photos are
+ * unaffected.
  */
 export async function linkImmichPhotos(
   photos: readonly ImmichPhoto[],
@@ -62,7 +66,19 @@ async function linkedPicture(
     immichAssetId: photo.id,
     fileName: photo.fileName,
     capturedAt: photo.takenAt,
-    colours: await ports.colours(photo),
+    colours: await coloursOrGrey(photo, ports),
     ...fitWithin(photo.size ?? UNREAD_SIZE, DISPLAY_BOUND),
   };
+}
+
+async function coloursOrGrey(
+  photo: ImmichPhoto,
+  ports: LinkImmichPhotosPorts,
+): Promise<PictureColours> {
+  try {
+    return await ports.colours(photo);
+  } catch (error: unknown) {
+    ports.log(error);
+    return GREY_PICTURE_COLOURS;
+  }
 }
