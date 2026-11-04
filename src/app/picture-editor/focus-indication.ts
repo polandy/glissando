@@ -121,15 +121,6 @@ const OUTDATED_TEXT: Record<FocusResultKind, MessageKey> = {
   none: "editor.focusOutdatedNone",
 };
 
-/** Own motion ignores whatever is found (ADR-0041), so its sentence never mentions staleness. */
-const OWN_MOTION_TEXT: Record<FocusResultKind, MessageKey> = {
-  face: "editor.ownMotionFace",
-  subject: "editor.ownMotionSubject",
-  immich: "editor.ownMotionImmich",
-  scenery: "editor.ownMotionScenery",
-  none: "editor.ownMotionNone",
-};
-
 /** The action a status offers, regardless of own motion: a done result offers to look again. */
 const ACTION_KEY: Record<FocusDisplayStatus, MessageKey | null> = {
   face: "editor.lookAgain",
@@ -153,7 +144,7 @@ const ACTION_KEY: Record<FocusDisplayStatus, MessageKey | null> = {
 export function focusLineText({ status, ownMotion, resultKind }: FocusLineView): FocusLineText {
   const actionKey = ACTION_KEY[status];
   if (ownMotion && resultKind !== null) {
-    return { textKey: OWN_MOTION_TEXT[resultKind], actionKey, pending: false };
+    return { textKey: "editor.ownMotion", actionKey, pending: false };
   }
   if (status === "outdated") {
     // `resultKind` is always set alongside "outdated" (pictureFocusDisplay only returns it once a

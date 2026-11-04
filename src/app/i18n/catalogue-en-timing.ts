@@ -19,20 +19,17 @@ export const enTiming: Pick<Catalogue, keyof typeof deTiming> = {
   "editor.lengthAutomaticMark": "Automatic: {seconds}",
   "editor.durationHintAutomatic": "Follows the slideshow's picture length.",
   "editor.durationHintOwn": "Automatic would be {duration}.",
-  "editor.durationHintMusic": {
-    one: "The music goes to the one picture without an own duration.",
-    other: "The music is shared evenly across the {count} pictures without an own duration.",
-  },
+  "editor.durationHintMusic": "Follows the music: {duration}.",
   "editor.durationHintMusicOwn": {
-    one: "The one other picture gets the rest of the music: {share}.",
-    other: "The other {count} pictures share the rest of the music: {share} each.",
+    one: "The other picture now shows {share}.",
+    other: "The other {count} pictures now show {share} each.",
   },
   "editor.durationHintMusicClamped": {
-    one: "The music is used up; the one other picture gets the minimum, {share}.",
-    other: "The music is used up; the other {count} pictures get the minimum, {share} each.",
+    one: "The other picture now shows only {share}, the shortest it can.",
+    other: "The other {count} pictures now show only {share} each, the shortest they can.",
   },
   "editor.durationHintAllOwn":
-    "Every picture has its own duration; the slideshow no longer follows the music's length.",
+    "Every picture has a chosen picture length; the music sets none of them.",
   "editor.transitionTo": "Transition to picture {number}",
   "editor.lastPicture": "Last picture",
   "editor.endsHere": "The slideshow ends here",

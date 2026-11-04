@@ -52,7 +52,7 @@
         : t("editor.durationHintAutomatic");
     }
     if (!picture.ownDuration) {
-      return t("editor.durationHintMusic", { count: basis.automaticCount });
+      return t("editor.durationHintMusic", { duration: seconds(picture.durationMs) });
     }
     if (basis.shareMs === null) {
       return t("editor.durationHintAllOwn");

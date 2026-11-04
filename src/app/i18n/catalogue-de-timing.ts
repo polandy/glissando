@@ -18,21 +18,17 @@ export const deTiming = {
   "editor.lengthAutomaticMark": "Automatisch: {seconds}",
   "editor.durationHintAutomatic": "Folgt der Bilddauer der Diashow.",
   "editor.durationHintOwn": "Automatisch wären es {duration}.",
-  "editor.durationHintMusic": {
-    one: "Die Musik gehört dem einen Bild ohne eigene Dauer.",
-    other: "Die Musik verteilt sich gleichmäßig auf die {count} Bilder ohne eigene Dauer.",
-  },
+  "editor.durationHintMusic": "Folgt der Musik: {duration}.",
   "editor.durationHintMusicOwn": {
-    one: "Das übrige Bild bekommt den Rest der Musik: {share}.",
-    other: "Die übrigen {count} Bilder teilen sich den Rest der Musik: je {share}.",
+    one: "Das übrige Bild steht jetzt {share}.",
+    other: "Die übrigen {count} Bilder stehen jetzt je {share}.",
   },
   "editor.durationHintMusicClamped": {
-    one: "Die Musik ist aufgebraucht; das übrige Bild bekommt das Minimum, {share}.",
-    other:
-      "Die Musik ist aufgebraucht; die übrigen {count} Bilder bekommen das Minimum, je {share}.",
+    one: "Das übrige Bild steht jetzt nur {share}, so kurz wie möglich.",
+    other: "Die übrigen {count} Bilder stehen jetzt nur je {share}, so kurz wie möglich.",
   },
   "editor.durationHintAllOwn":
-    "Alle Bilder haben eine eigene Dauer; die Diashow folgt nicht mehr der Länge der Musik.",
+    "Jedes Bild hat eine gewählte Bilddauer; die Musik bestimmt keine davon.",
   "editor.transitionTo": "Übergang zu Bild {number}",
   "editor.lastPicture": "Letztes Bild",
   "editor.endsHere": "Hier endet die Diashow",
