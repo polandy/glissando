@@ -21,6 +21,9 @@ describe("Separator", () => {
     const separator = mounted.target.querySelector<HTMLElement>(".separator");
     if (separator === null) throw new Error("no separator");
     expect(separator.textContent).toBe(" · ");
+    // Between two parts, as on every line: a space at a line's edge is dropped, room and all.
+    separator.before("Warm");
+    separator.after("ruhig");
     expect(separatorRoom(separator)).toBeGreaterThanOrEqual(SEPARATOR_MIN_ROOM_PX);
   });
 });
