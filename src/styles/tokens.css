@@ -166,6 +166,8 @@
   --gl-size-icon-small: 14px;
   --gl-size-icon-large: 26px;
   --gl-icon-stroke: 1.7;
+  /* Room on each side of a " · " between parts; the font's dot and spaces are narrow. */
+  --gl-separator-room: 3px;
 
   --gl-layer-bar: 5;
   --gl-radius-tiny: 3px;

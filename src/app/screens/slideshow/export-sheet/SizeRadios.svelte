@@ -12,6 +12,7 @@
 </script>
 
 <script lang="ts" generics="Id extends string">
+  import Separated from "../../../components/Separated.svelte";
   import { radioIndexForKey } from "../../../components/radio-keys";
 
   /** An export's sizes; one that cannot be made is greyed out and skipped by the arrows. */
@@ -65,7 +66,7 @@
       <span class="dot"></span>
       <b>{option.name}</b>
       <span class="size">{option.size}</span>
-      <small>{option.use}</small>
+      <small><Separated text={option.use} /></small>
     </button>
   {/each}
 </div>

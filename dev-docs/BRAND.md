@@ -53,6 +53,10 @@ wordmark is outlined to paths). Sizes come from the `--gl-size-*` scale: caption
 meta 12.5, label 13, body 14, large button 15, title 16, name 17, wordmark 19, panel title 22,
 heading 26 (23 below 720 px), display 34 px.
 
+A " · " between two parts of a line goes through `Separated.svelte` (a string) or `Separator.svelte`
+(between markup), which widen the spaces around the dot by `--gl-separator-room` (3 px): Instrument
+Sans's dot and spaces are narrow, and a bare " · " runs together at the small sizes.
+
 ## Colours — "studio"
 
 Neutral surfaces with a slight plum tint; peach is the one accent (the main action, the playhead);

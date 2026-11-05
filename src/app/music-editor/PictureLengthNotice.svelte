@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Separated from "../components/Separated.svelte";
   import { MILLISECONDS_PER_SECOND } from "../../player";
   import { getTranslator } from "../i18n/context";
   import { pictureLengthNotice, type NoticeInput } from "./picture-length-notice";
@@ -34,13 +35,23 @@
       {t("music.repeatMusic")}
     </button>
   {:else if notice.kind === "fitted"}
-    {t("music.noticeFitted", { seconds: formatTenthSeconds(seconds(notice.shareMs)) })}
+    <Separated
+      text={t("music.noticeFitted", { seconds: formatTenthSeconds(seconds(notice.shareMs)) })}
+    />
   {:else if notice.kind === "repeats"}
-    {t("music.noticeRepeats", { duration: formatDuration(seconds(notice.slideshowMs)) })}
+    <Separated
+      text={t("music.noticeRepeats", { duration: formatDuration(seconds(notice.slideshowMs)) })}
+    />
   {:else if notice.kind === "fades-out"}
-    {t("music.noticeFadesOut", { duration: formatDuration(seconds(notice.slideshowMs)) })}
+    <Separated
+      text={t("music.noticeFadesOut", { duration: formatDuration(seconds(notice.slideshowMs)) })}
+    />
   {:else}
-    {t("music.noticeEndsWithMusic", { duration: formatDuration(seconds(notice.slideshowMs)) })}
+    <Separated
+      text={t("music.noticeEndsWithMusic", {
+        duration: formatDuration(seconds(notice.slideshowMs)),
+      })}
+    />
   {/if}
 </p>
 

@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount, type Snippet } from "svelte";
   import Icon from "../../../components/Icon.svelte";
+  import Separated from "../../../components/Separated.svelte";
 
   /**
    * The export sheets' frame (video_export/SHEET.md and html_export/SHEET.md): a modal dialog on
@@ -71,7 +72,7 @@
       {/if}
       <div class="heading">
         <h2 id={labelId}>{title}</h2>
-        {#if subtitle !== null}<p>{subtitle}</p>{/if}
+        {#if subtitle !== null}<p><Separated text={subtitle} /></p>{/if}
       </div>
       <button
         class="icon-btn"

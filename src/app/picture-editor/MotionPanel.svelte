@@ -1,6 +1,8 @@
 <script lang="ts">
   import type { Snippet } from "svelte";
   import Icon from "../components/Icon.svelte";
+  import Separated from "../components/Separated.svelte";
+  import { SEPARATOR } from "../components/separator";
   import { getTranslator } from "../i18n/context";
   import { FRAME_KEYS, type FrameKey } from "./frame-keys";
   import type { PictureEditorView } from "./picture-editor-view";
@@ -56,7 +58,9 @@
   <div class="who">
     <b>{t("editor.position", { number: picture.number, count: picture.count })}</b>
     <span class="muted"
-      >{picture.fileName} · <span class="mono">{formatDate(picture.capturedAt)}</span></span
+      >{picture.fileName}<Separated text={SEPARATOR} /><span class="mono"
+        >{formatDate(picture.capturedAt)}</span
+      ></span
     >
   </div>
   <section class="motion" aria-label={t("editor.kenBurns")}>

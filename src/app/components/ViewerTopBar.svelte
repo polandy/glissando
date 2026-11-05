@@ -1,6 +1,8 @@
 <script lang="ts">
   import { getTranslator } from "../i18n/context";
   import Icon from "./Icon.svelte";
+  import Separated from "./Separated.svelte";
+  import { SEPARATOR } from "./separator";
   import ViewerRoundButton from "./ViewerRoundButton.svelte";
 
   /** The viewer's top bar: the close button, the shown picture's date and time, its position. */
@@ -25,6 +27,18 @@
     closeButton?: HTMLButtonElement | undefined;
   } = $props();
   const { t } = getTranslator();
+  const positionLine = $derived(
+    [
+      t("view.position", { position, count }),
+      ...(setAsideReason === null
+        ? []
+        : [
+            t("view.setAside", {
+              reason: t(setAsideReason === "similar" ? "cull.similar" : "cull.blurry"),
+            }),
+          ]),
+    ].join(SEPARATOR),
+  );
 </script>
 
 <header class="bar top" class:hidden>
@@ -32,15 +46,8 @@
     <Icon name="close" />
   </ViewerRoundButton>
   <div class="meta">
-    <b class="mono">{date} · {time}</b>
-    <span>
-      {t("view.position", { position, count })}
-      {#if setAsideReason !== null}
-        · {t("view.setAside", {
-          reason: t(setAsideReason === "similar" ? "cull.similar" : "cull.blurry"),
-        })}
-      {/if}
-    </span>
+    <b class="mono"><Separated text={[date, time].join(SEPARATOR)} /></b>
+    <span><Separated text={positionLine} /></span>
   </div>
 </header>
 
