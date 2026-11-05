@@ -4,4 +4,4 @@ One line per item, newest at the end. A finished item is deleted.
 
 ## Open
 
-- [ ] Work through the code-review findings — `TODO-code-review.md`, HIGH first, one PR per item or area (2026-11-03)
+- [ ] Work through the code-review findings — `TODO-code-review.md`, MED first, one PR per item or area (2026-11-03)

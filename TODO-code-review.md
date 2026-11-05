@@ -4,19 +4,8 @@ Full-repo review of `main` at cccadb7 (2026-11-03), ten areas read against
 `dev-docs/CODING_PRINCIPLES.md` and `dev-docs/WORKFLOW.md`. One line per item, severity first
 (HIGH = bug, data loss or security; MED = likely bug or a principle violation that costs
 maintainability; LOW = cleanup). A finished item is deleted; the file goes when it is empty.
-Items PR #177 (code-health sweep) already covers are marked `(#177)`.
 
 Each fix starts with the failing test the item names or implies (WORKFLOW.md, Testing).
-
-## HIGH
-
-- [x] **player** `src/player/webgl/card-render-target.ts:19,56` — `recreate()` makes a new texture but keeps the framebuffer of the lost context, so title/chapter cards vanish after a WebGL context restore. Fix: create a new framebuffer in `recreate()`; add a restore test that draws a card layer. — fixed in #178
-- [x] **player** `src/player/video-clips.ts:31,62-75,120-126` — `#failed` latches for the instance's lifetime and the failed clip stays open; pressing Play again after a clip error waits forever with no new error. Fix: drop failed clips and reset the flag on play/restart, or make `whenReady` reject. — fixed in #178
-- [x] **import** `src/app/import/import-session.ts:113`, `src/app/add-pictures/add-pictures-session.ts:78` — Server linking of Immich photos is fire-and-forget: `busy` stays false, the home can be switched server→device mid-link, create/commit can run before the link lands, overlapping links can add a picture id twice. Fix: make linking part of the session state, serialise it, gate home switch and commit on it. — fixed in #181
-- [x] **frame** `src/frame/round-handover.ts:149-160` — The prepared round is started hidden and never held, so its timeline runs unseen; in steady state most of every other round is skipped, and a hidden round that ends before the swap (e.g. while the current one is paused) is installed already ended and the frame stalls. Fix: pause the prepared player on "playing", play it in `#swapIn`, include it in pause/resume; test with an advancing clock. — fixed in #180
-- [x] **export** `src/export-player/main.ts:7`, `build/export-player-plugin.ts` — Exported HTML pages embed mediabunny (MPL-2.0) with its licence header stripped and no notice; recipients never see `third-party-licenses.md` (ADR-0015). Fix: keep legal comments in the player build or add an MPL notice with the source URL to the page head; test that the page carries it. — fixed in #182
-- [x] **screens** `src/app/screens/slideshow/MoodPreview.svelte:67` — If the Mood sheet closes while focus or loudness is still loading, the `Promise.all(...).then` runs after `onDestroy`, assigns song URLs nobody revokes and calls `onLoaded` on a destroyed component. Fix: check `closed.signal.aborted` in the `.then`, revoke and return.
-- [x] **tv** `src/app/tv-remote/tv-session.ts:127-176` — Closing the TV sheet mid-request is undone by the late answer: `#closings` is only checked on a successful claim, so `noSuchCode`/`noSuchTv` reopen the sheet and a late successful show still navigates to the remote page. Fix: capture `#closings` at the start of `#request` and drop every state change or navigation after an await when it changed.
 
 ## MED
 
@@ -45,7 +34,6 @@ Each fix starts with the failing test the item names or implies (WORKFLOW.md, Te
 
 ### Import and Immich
 
-- [x] `src/server-library/link-immich-photos.ts:46` — One photo's thumbnail failure (asset deleted since browsing) fails the whole link batch as an unexpected error and the selection is lost. Fix: skip that photo as not-downloaded, link the rest. — fixed in #184 (the photo is linked with grey colours instead of skipped)
 - [ ] `src/import/immich-picture-source.ts:150,172,201` — No AbortSignal reaches the original/thumbnail/video downloads; cancel or leaving keeps downloading, and a video is fetched in full before the `MAX_VIDEO_BYTES` check. Fix: thread the import's signal through; check size from metadata before downloading.
 - [ ] `src/import/immich-picture-source.ts:221` — One extra `GET api/assets/{id}` per photo only for GPS, although the search already has `withExif`; coordinates are not range-checked. Fix: read latitude/longitude in `photos()`, validate ranges at the boundary.
 - [ ] `src/import/local-picture-source.ts:368` — A GPS read failure throws `UnreadablePictureError`, so a picture that decoded fine is skipped, against its own doc comment; the 128 KB head is read twice. Fix: read the head once; make the GPS read best-effort.
