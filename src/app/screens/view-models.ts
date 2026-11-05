@@ -51,9 +51,9 @@ export interface PictureTile {
   readonly caption?: string;
   /** The picture plays a Ken Burns motion of the user's own. */
   readonly ownMotion: boolean;
-  /** The picture's own duration; null while automatic. */
+  /** The picture's chosen duration; null while automatic. */
   readonly ownDurationMs: number | null;
-  /** The own transition it plays into the next picture; null while automatic and at the end. */
+  /** The chosen transition it plays into the next picture; null while automatic and at the end. */
   readonly ownTransition: TransitionChoice | null;
   /** The pair partner's number (1-based), when the picture shares a slide with it (ADR-0028). */
   readonly pairedWithNumber: number | null;
@@ -85,7 +85,7 @@ export interface SlideshowDetails {
   readonly ownMotionCount: number;
   /** How many pictures show for a duration of the user's own. */
   readonly ownDurationCount: number;
-  /** How many pictures play an own transition into the next one. */
+  /** How many pictures play a chosen transition into the next one. */
   readonly ownTransitionCount: number;
   /** The transition of every picture without its own. */
   readonly transition: SlideshowTransition;

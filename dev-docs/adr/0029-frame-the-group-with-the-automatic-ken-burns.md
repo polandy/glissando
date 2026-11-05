@@ -26,7 +26,7 @@ window, and whether small background faces count.
   picture on both axes, since the screen is not known when the slideshow is composed; with a
   picture and a screen of different shapes the cover crop is tighter than that on one axis.
 - **Everything else stays**: centre on the box's centre, the alternating zoom and pan, the pair
-  halves' no-pan rule (ADR-0028), an own motion replacing the automatic one (ADR-0006).
+  halves' no-pan rule (ADR-0028), a chosen motion replacing the automatic one (ADR-0006).
 
 ## Options weighed
 

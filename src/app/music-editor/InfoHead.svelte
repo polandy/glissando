@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Separated from "../components/Separated.svelte";
   import type { Snippet } from "svelte";
   import type { IconName } from "../../ui-kit/icons";
   import SectionHead from "../components/SectionHead.svelte";
@@ -28,7 +29,8 @@
 <div class="head">
   <SectionHead {id} {title} {own} {...icon === undefined ? {} : { icon }} />
   <InfoButton label={infoLabel} {children} />
-  {#if stateText !== undefined}<span class="state" class:own>{stateText}</span>{/if}
+  {#if stateText !== undefined}<span class="state" class:own><Separated text={stateText} /></span
+    >{/if}
 </div>
 
 <style>

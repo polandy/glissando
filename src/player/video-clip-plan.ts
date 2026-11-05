@@ -16,7 +16,7 @@ export interface ClipTarget {
   readonly phase: ClipPhase;
   /** ms of the clip, never before its file's start. */
   readonly clipMs: number;
-  /** The clip's sound is audible for its slide's own duration only. */
+  /** The clip's sound is audible for its slide's chosen duration only. */
   readonly soundOn: boolean;
 }
 

@@ -7,7 +7,7 @@
 The picture editor (roadmap 1, `dev-docs/SCOPE.md`) lets the user set a picture's Ken Burns
 motion by hand: a start and an end framing. Until then every motion is automatic, composed from
 the picture's position at play time (`dev-docs/COMPOSITION.md`), so a reorder or a better
-automatic rule (roadmap 2) reaches every picture. The own motion has to be stored, survive a
+automatic rule (roadmap 2) reaches every picture. The chosen motion has to be stored, survive a
 reorder, a removal and its undo, and travel in a `.glissando` file; "back to automatic" has to
 bring the automatic motion back.
 
@@ -33,12 +33,12 @@ which may carry the field; version 1 files are still read.
 
 ## Consequences
 
-- An own motion stays with its picture through reorder, removal and undo for free: it is part of
+- A chosen motion stays with its picture through reorder, removal and undo for free: it is part of
   the picture record that moves.
-- Every `.glissando` file is written as version 2, even without an own motion: an older app
+- Every `.glissando` file is written as version 2, even without a chosen motion: an older app
   reports such a file as coming from a newer version instead of calling it damaged.
 - Records in IndexedDB need no migration: a record without the field is all automatic.
 - A picture's caption follows the same pattern: an optional `caption`, `.glissando` version 3
   (how it is drawn: ADR-0007).
-- A picture's own duration and transition follow it as well: `.glissando` version 4 (ADR-0008).
+- A picture's chosen duration and transition follow it as well: `.glissando` version 4 (ADR-0008).
 - The music's excerpt and fades follow it on the stored music: `.glissando` version 5 (ADR-0009).

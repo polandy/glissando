@@ -46,7 +46,7 @@ is the share of pictures whose chosen focus point lies inside a tagged face (box
   with it — not on `StoredPicture`, whose record the editor rewrites from its in-memory copy.
 - **`.glissando` files do not carry it** (format unchanged): the focus is an automatic result, like
   the automatic motion; the receiving device detects it again in the background.
-- **Override:** a picture's own motion (ADR-0006) still replaces the automatic one, focus or not.
+- **Override:** a picture's chosen motion (ADR-0006) still replaces the automatic one, focus or not.
 
 ## Options weighed
 

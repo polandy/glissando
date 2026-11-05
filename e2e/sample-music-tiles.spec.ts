@@ -1,5 +1,6 @@
 import { expect, test, type Locator, type Route } from "@playwright/test";
 import { chooseFiles, GERMAN_BROWSER, picturesTakenOn } from "./support/app";
+import { separatorRoom } from "../src/app/testing/separator-room";
 import { openApp } from "./support/browser";
 
 // German carries the longest moods ("Warm · harmonisch · melancholisch").
@@ -71,6 +72,32 @@ test("E2E-093 on a phone in German, every sample track's title and mood show in 
     for (const control of [card.locator(".play"), card.locator(".plus")]) {
       await expect(control).toBeVisible();
       expect(await overlaps(control, title), await title.innerText()).toBe(false);
+    }
+  }
+});
+
+test("E2E-125 on a phone in German, every dot in a sample track's mood gets room around it and stays within the mood's width", async ({
+  page,
+}) => {
+  await page.getByRole("button", { name: `Alle ${SAMPLE_TRACK_COUNT} zeigen` }).click();
+  const cards = page.locator("li.card");
+  await expect(cards).toHaveCount(SAMPLE_TRACK_COUNT);
+
+  for (const card of await cards.all()) {
+    const mood = card.locator(".mood");
+    const separators = mood.locator(".separator");
+    await expect(separators.first()).toBeAttached();
+    const label = await mood.innerText();
+    const moodBox = await mood.boundingBox();
+    if (moodBox === null) throw new Error("a mood is not rendered");
+    for (const separator of await separators.all()) {
+      expect(await separator.evaluate(separatorRoom), label).toBeGreaterThan(0);
+      const box = await separator.boundingBox();
+      if (box === null) throw new Error("a dot is not rendered");
+      expect(box.x, label).toBeGreaterThanOrEqual(moodBox.x - SUBPIXEL_ROUNDING_PX);
+      expect(box.x + box.width, label).toBeLessThanOrEqual(
+        moodBox.x + moodBox.width + SUBPIXEL_ROUNDING_PX,
+      );
     }
   }
 });

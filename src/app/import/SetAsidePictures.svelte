@@ -2,6 +2,7 @@
   import { flushSync } from "svelte";
   import type { StoredPicture } from "../../library/stored-slideshow";
   import Icon from "../components/Icon.svelte";
+  import Separated from "../components/Separated.svelte";
   import { getTranslator } from "../i18n/context";
   import ViewPictureButton from "./ViewPictureButton.svelte";
   import type { SetAsideGroup } from "./picture-culling";
@@ -128,7 +129,8 @@
         {#if first !== undefined && last !== undefined}
           {@const heading = headingParts(kept !== undefined, first, last)}
           <h3>
-            {heading.before}<span class="when mono">{heading.when}</span>{heading.after}
+            <Separated text={heading.before} /><span class="when mono">{heading.when}</span
+            ><Separated text={heading.after} />
           </h3>
         {/if}
         <ul class="set">

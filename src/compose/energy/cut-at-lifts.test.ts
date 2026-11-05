@@ -23,7 +23,7 @@ describe("cutAtLifts", () => {
     expect(result).toEqual(durationsMs);
   });
 
-  it("never moves a boundary that touches an own duration, even when it sits closer to the lift", () => {
+  it("never moves a boundary that touches a chosen duration, even when it sits closer to the lift", () => {
     const durationsMs = [1000, 1000, 1000, 1000];
     const automatic = [false, true, true, true];
 

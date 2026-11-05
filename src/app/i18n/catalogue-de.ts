@@ -104,7 +104,7 @@ export const de = {
   "slideshow.pictures": "Bilder",
   "slideshow.sortedByDate": "Nach Aufnahmedatum sortiert",
   "slideshow.pictureLabel": "Bild {number}, aufgenommen am {date}",
-  "slideshow.ownOrder": "Eigene Reihenfolge",
+  "slideshow.ownOrder": "Deine Reihenfolge",
   "slideshow.reorderHintWide": "Ziehen zum Umsortieren",
   "slideshow.reorderHintNarrow": "Halten und ziehen zum Umsortieren",
   "slideshow.select": "Auswählen",
@@ -174,7 +174,7 @@ export const de = {
   "focusSheet.statusWaiting": "Noch nicht",
   "focusSheet.statusWaitingForServer": "Wartet auf Server",
   "focusSheet.statusLooking": "Wird gesucht",
-  "focusSheet.ownMotion": "Eigene Bewegung",
+  "focusSheet.ownMotion": "Gewählte Bewegung",
   "focusSheet.tryAgain": "Die {count} erneut versuchen",
   "focusSheet.lookAgainAll": {
     one: "Das Bild erneut ansehen",

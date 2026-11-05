@@ -3,7 +3,7 @@ import type { PictureTile } from "../screens/view-models";
 
 /**
  * A stored picture as the reused picture strip can show it while importing
- * (IMPORT_ARRANGING.md, Arranging): always alone, with no motion, own duration, own transition or
+ * (IMPORT_ARRANGING.md, Arranging): always alone, with no motion, chosen duration, chosen transition or
  * pairing of its own, since those belong to the picture editor the pictures step never opens.
  */
 export function importPictureTile(picture: StoredPicture, thumbnailUrl: string): PictureTile {

@@ -45,7 +45,7 @@ export interface FadeView<Reason> {
   readonly reason: Reason;
 }
 
-/** How long the pictures without an own duration last (ADR-0022). */
+/** How long the pictures without a chosen duration last (ADR-0022). */
 export interface PictureLengthView {
   /** They last `secondsPerPicture` each; otherwise they fill the music. */
   readonly ownSeconds: boolean;

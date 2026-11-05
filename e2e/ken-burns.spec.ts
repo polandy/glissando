@@ -24,7 +24,7 @@ const MIN_STEP = 4;
 const FRAME_CENTRE = { x: 0.5, y: 0.5 } as const;
 
 /**
- * One wide picture whose own motion starts against its right edge, zoomed out, and ends zoomed
+ * One wide picture whose chosen motion starts against its right edge, zoomed out, and ends zoomed
  * far in towards its left: the start frame reaches past the edge, so the edge holds it. Clamping
  * the frames on the way instead would push the view right while the zoom narrows it, then swing
  * it back left — a pan that reverses.

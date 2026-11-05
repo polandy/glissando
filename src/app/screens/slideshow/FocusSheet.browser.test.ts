@@ -14,7 +14,7 @@ const PICTURES = [
   { id: "c", thumbnailUrl: PIXEL, ownMotion: false },
 ] as const;
 
-/** "a" has its own motion and a found face; "b" failed; "c" found scenery (ADR-0041). */
+/** "a" has its chosen motion and a found face; "b" failed; "c" found scenery (ADR-0041). */
 const FOCUS: PicturesFocus = {
   found: new Map([
     ["a", { kind: "subject", box: { x: 0.1, y: 0.1, width: 0.5, height: 0.5 }, foundBy: "face" }],
@@ -59,7 +59,7 @@ function ownBadgeCount(target: HTMLElement): number {
 }
 
 describe("FocusSheet", () => {
-  it("shows each picture's status and marks only the own-motion one, offering to try the failure again", () => {
+  it("shows each picture's status and marks only the chosen-motion one, offering to try the failure again", () => {
     const { target, onLookAgain } = setUp(FOCUS);
 
     expect(tileTitles(target)).toEqual(["Gesichter", "Fehlgeschlagen", "Landschaft"]);
@@ -74,7 +74,7 @@ describe("FocusSheet", () => {
     expect(onLookAgain).toHaveBeenCalledWith(["b"]);
   });
 
-  it("looking again at the failed picture updates only it, leaving the others and the own-motion badge as they were", () => {
+  it("looking again at the failed picture updates only it, leaving the others and the chosen-motion badge as they were", () => {
     const { target, props } = setUp(FOCUS);
 
     // The parent moved "b" from failed to searching; "a" and "c" keep their earlier result.
@@ -96,7 +96,7 @@ describe("FocusSheet", () => {
     ).toBe(false);
   });
 
-  it("'look again at all' asks for every picture, including the one with its own motion", () => {
+  it("'look again at all' asks for every picture, including the one with its chosen motion", () => {
     const { target, onLookAgain } = setUp(FOCUS);
 
     const lookAgainAll = [...target.querySelectorAll("button")].find((button) =>

@@ -118,7 +118,7 @@ describe("pictureFocusDisplay", () => {
     expect(pictureFocusDisplay(focus, "p1", false, paused).status).toBe(status);
   });
 
-  it("carries the picture's own motion through untouched", () => {
+  it("carries the picture's chosen motion through untouched", () => {
     const focus = picturesFocus(new Map([["p1", FACES]]), passState());
 
     expect(pictureFocusDisplay(focus, "p1", true, false).ownMotion).toBe(true);
@@ -136,7 +136,7 @@ describe("pictureFocusDisplay", () => {
 });
 
 describe("focusSlideshowSummary", () => {
-  it("counts each picture's status, and the pictures with their own motion", () => {
+  it("counts each picture's status, and the pictures with their chosen motion", () => {
     const focus = picturesFocus(
       new Map<string, PictureFocus>([
         ["p1", FACES],

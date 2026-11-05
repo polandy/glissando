@@ -73,10 +73,10 @@ describe("PictureEditorScreen picture length", () => {
     expect(calls.timingResets).toBe(0);
   });
 
-  it("an own duration alone makes the timing own and names the automatic one", () => {
+  it("a chosen duration alone makes the timing own and names the automatic one", () => {
     mountEditor(view({ durationMs: 8000, ownDuration: true }));
 
-    expect(chip(timingSection())).toBe("Eigener Zeitablauf");
+    expect(chip(timingSection())).toBe("Gewählt");
     expect(text(timingSection())).toContain("Automatisch wären es 5,0 s.");
     expect(text(timingSection())).not.toContain("2 bis 15 s.");
   });
@@ -100,7 +100,18 @@ describe("PictureEditorScreen picture length", () => {
     expect(resets).toHaveLength(1);
   });
 
-  it("with music, names the share of the other pictures", () => {
+  it("with music and an automatic length, says it follows the music and how long it is", () => {
+    mountEditor(
+      view({
+        durationMs: 4620,
+        durationBasis: { kind: "music", automaticCount: 7, shareMs: 4620, clamped: false },
+      }),
+    );
+
+    expect(text(timingSection())).toContain("Folgt der Musik: 4,6 s.");
+  });
+
+  it("with music, says how long the other pictures now show", () => {
     mountEditor(
       view({
         durationMs: 8000,
@@ -109,12 +120,10 @@ describe("PictureEditorScreen picture length", () => {
       }),
     );
 
-    expect(text(timingSection())).toContain(
-      "Die übrigen 7 Bilder teilen sich den Rest der Musik: je 4,6 s.",
-    );
+    expect(text(timingSection())).toContain("Die übrigen 7 Bilder stehen jetzt je 4,6 s.");
   });
 
-  it("with music used up by own durations, says the others get the minimum", () => {
+  it("with music used up by chosen durations, says the others are as short as they can be", () => {
     mountEditor(
       view({
         durationMs: 8000,
@@ -124,7 +133,21 @@ describe("PictureEditorScreen picture length", () => {
     );
 
     expect(text(timingSection())).toContain(
-      "Die Musik ist aufgebraucht; die übrigen 7 Bilder bekommen das Minimum, je 2,0 s.",
+      "Die übrigen 7 Bilder stehen jetzt nur je 2,0 s, so kurz wie möglich.",
+    );
+  });
+
+  it("with every picture at a chosen length, says the music sets none of them", () => {
+    mountEditor(
+      view({
+        durationMs: 8000,
+        ownDuration: true,
+        durationBasis: { kind: "music", automaticCount: 0, shareMs: null, clamped: false },
+      }),
+    );
+
+    expect(text(timingSection())).toContain(
+      "Jedes Bild hat eine gewählte Bilddauer; die Musik bestimmt keine davon.",
     );
   });
 });

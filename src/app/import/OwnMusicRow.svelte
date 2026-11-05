@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Separated from "../components/Separated.svelte";
   import { getTranslator } from "../i18n/context";
   import DropZone from "./DropZone.svelte";
 
@@ -22,7 +23,7 @@
 <DropZone icon="music" compact {onFiles} {onError}>
   <div class="txt">
     <span class="own-title">{t("import.ownMusicTitle")}</span>
-    <span class="own-hint">{t("import.musicFormats")}</span>
+    <span class="own-hint"><Separated text={t("import.musicFormats")} /></span>
   </div>
   <button class="btn" type="button" onclick={onChoose}>{t("import.chooseFiles")}</button>
 </DropZone>

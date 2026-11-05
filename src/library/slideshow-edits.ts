@@ -145,7 +145,7 @@ export function renameSlideshow(
   return { ...slideshow, title: title === "" ? automaticTitle : title };
 }
 
-/** Gives the picture its own motion; `undefined` makes it automatic again. */
+/** Gives the picture its chosen motion; `undefined` makes it automatic again. */
 export function setPictureKenBurns(
   slideshow: StoredSlideshow,
   pictureId: string,
@@ -172,7 +172,7 @@ export function setPictureCaption(
   });
 }
 
-/** Gives the picture its own duration in ms; `undefined` makes it automatic again. */
+/** Gives the picture its chosen duration in ms; `undefined` makes it automatic again. */
 export function setPictureDuration(
   slideshow: StoredSlideshow,
   pictureId: string,
@@ -186,7 +186,7 @@ export function setPictureDuration(
   });
 }
 
-/** Gives the picture its own transition to the next; `undefined` makes it automatic again. */
+/** Gives the picture its chosen transition to the next; `undefined` makes it automatic again. */
 export function setPictureTransition(
   slideshow: StoredSlideshow,
   pictureId: string,
@@ -202,7 +202,7 @@ export function setPictureTransition(
 
 /**
  * Sets the slideshow's default transition; `undefined` or the crossfade deletes the field, since
- * its absence is the crossfade (ADR-0010). The pictures' own transitions stay as they are. While
+ * its absence is the crossfade (ADR-0010). The pictures' chosen transitions stay as they are. While
  * a mood is on, leaves it first, writing its values into the single settings (ADR-0045).
  */
 export function setSlideshowTransition(

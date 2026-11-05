@@ -47,7 +47,7 @@ Per song, over its excerpt, sampled every `LOUDNESS_HOP_MS`:
 the real time an opening title card or a trip chapter adds around a slide unit
 (`InsertedTime`/`insertedTimeFor`, `DURATIONS.md` "On the beat") — absent, nothing is added.
 
-1. The usual durations, as before: own durations, `secondsPerPicture × weight`, or the filled
+1. The usual durations, as before: chosen durations, `secondsPerPicture × weight`, or the filled
    music's even split.
 2. **Weights** (`paceByEnergy`): three passes (`ENERGY_PASSES`). Each pass weights every
    automatic slide by `usual × ENERGY_SPREAD ^ (1 − 2·meanEnergy(span))`, with
@@ -55,7 +55,7 @@ the real time an opening title card or a trip chapter adds around a slide unit
    The automatic total is then shared out by those weights, in whole ms, with the remainder going
    to the first slides. A share below `MIN_SECONDS_PER_PICTURE` is raised to it and the rest of
    the total is shared again among the others, until none is below. Only when the total cannot
-   give every automatic slide the minimum are the usual durations kept. Own durations never
+   give every automatic slide the minimum are the usual durations kept. Chosen durations never
    change.
 3. **Lifts** (`cutAtLifts`): for each lift, the nearest boundary between two automatic slides
    moves onto it, if both stay at or above the minimum. Otherwise the lift is skipped.
@@ -69,7 +69,7 @@ When `stored.energyPacing` is set, `composeSlideshow` builds the `PlaylistEnergy
 `loudness` and `beats` and passes it to `slideDurationsMs`, together with the real time an opening
 title card or a trip chapter adds (`insertedTimeFor`, `DURATIONS.md` "On the beat"). A slide whose
 end lands exactly on a lift, in that real time, gets no `transitionToNext` (a cut), unless its
-picture has an own transition. The picture editor and the music editor (`picture-editor-view.ts`,
+picture has a chosen transition. The picture editor and the music editor (`picture-editor-view.ts`,
 `slideshow-times.ts`) pass the same energy for their own per-picture times, but never a card or
 chapter's added time: their times are the nominal ones, without it, same as before energy pacing
 existed. After adding pictures and the import view show the slideshow before its songs are
@@ -88,9 +88,9 @@ The composed player JSON carries no new field.
     energy" (to 0.1 s, a trailing ".0" dropped), or as usual when they are all equal;
   - an extra row, "At a drop or chorus", shows "Cut on the beat" when a lift was found.
 - **Hint** with the switch on: under a mood, "The mood sets the average pace; the energy makes it
-  slower in quiet passages and quicker in loud ones. Pictures with their own duration, transition
+  slower in quiet passages and quicker in loud ones. Pictures with a chosen picture length, transition
   or motion keep them."; under Custom, "Your picture times stay the average. With “Fill the
-  music” the slideshow still ends with the song. Pictures with their own duration keep it."
+  music” the slideshow still ends with the song. Pictures with a chosen picture length keep it."
 - **Energy strip** (`EnergyStrip.svelte`), under the preview while the switch is on:
   - the energy curve of the whole slideshow as an area;
   - a tick at every picture change;

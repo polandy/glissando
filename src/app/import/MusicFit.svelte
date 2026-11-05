@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Separated from "../components/Separated.svelte";
   import { getTranslator } from "../i18n/context";
   import Notice from "../components/Notice.svelte";
   import type { PlaylistSongView } from "../music-editor/playlist-view";
@@ -69,10 +70,12 @@
   </div>
   <div class="fitline">
     <span>
-      {t("import.fitPictures", {
-        count: pictureIds.length,
-        time: formatDuration(timing.totalSeconds),
-      })}
+      <Separated
+        text={t("import.fitPictures", {
+          count: pictureIds.length,
+          time: formatDuration(timing.totalSeconds),
+        })}
+      />
     </span>
     <span>{t("import.fitMusic", { time: formatDuration(music.seconds) })}</span>
   </div>
@@ -93,7 +96,7 @@
   </Notice>
 {:else if music.kind === "repeats"}
   <p class="note">
-    {t("import.fitRepeats")}
+    <Separated text={t("import.fitRepeats")} />
     <button class="linkbtn" type="button" onclick={() => onRepeatMusic(undefined)}>
       {t("import.playOnceButton")}
     </button>

@@ -1,6 +1,13 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
-import { chooseCustomMood, createSlideshow, editsStored, GERMAN_BROWSER } from "./support/app";
+import {
+  chooseCustomMood,
+  createSlideshow,
+  createSlideshowWithMusic,
+  editsStored,
+  GERMAN_BROWSER,
+} from "./support/app";
 import { openApp } from "./support/browser";
+import { clickTrackWav } from "./support/media";
 
 test.use(GERMAN_BROWSER);
 
@@ -45,7 +52,7 @@ test("E2E-020 a picture gets its own Ken Burns motion that is stored, and goes b
     exact: true,
   });
   const ownTile = page.getByRole("button", {
-    name: "Bild 2, aufgenommen am 14.07.2025, eigene Bewegung",
+    name: "Bild 2, aufgenommen am 14.07.2025, gewählte Bewegung",
   });
   const state = page.locator(".motion .state");
   const frames = page.getByRole("group", { name: "Rahmen" });
@@ -67,7 +74,7 @@ test("E2E-020 a picture gets its own Ken Burns motion that is stored, and goes b
   await expect(startToggle).toHaveAttribute("aria-pressed", "true");
 
   await drag(page, await onPicture(page, 0.55, 0.5), await onPicture(page, 0.5, 0.45));
-  await expect(state).toHaveText("Eigene Bewegung");
+  await expect(state).toHaveText("Gewählt");
   await expect(startFrameBox).toHaveAttribute("aria-label", "Startrahmen, Zoom 1,20×");
 
   // Left of the moved start frame, inside the end frame, which spans the picture's width.
@@ -93,7 +100,7 @@ test("E2E-020 a picture gets its own Ken Burns motion that is stored, and goes b
   await editsStored(page);
 
   await page.reload();
-  await expect(state).toHaveText("Eigene Bewegung");
+  await expect(state).toHaveText("Gewählt");
   await expect(endFrameBox).toHaveAttribute("aria-label", endZoom ?? "");
   await expect(startFrameBox).toHaveAttribute("style", startFrame ?? "");
   await expect(endFrameBox).toHaveAttribute("style", endFrame ?? "");
@@ -103,7 +110,7 @@ test("E2E-020 a picture gets its own Ken Burns motion that is stored, and goes b
   await expect(ownTile.locator(".badge")).toHaveText("gewählt");
 
   await selectionBar.getByRole("button", { name: "Bearbeiten" }).click();
-  await expect(state).toHaveText("Eigene Bewegung");
+  await expect(state).toHaveText("Gewählt");
   await page
     .getByRole("region", { name: "Bewegung" })
     .getByRole("button", { name: "Zurück auf automatisch" })
@@ -113,11 +120,11 @@ test("E2E-020 a picture gets its own Ken Burns motion that is stored, and goes b
     page.getByRole("status").filter({ hasText: "Bewegung wieder automatisch" }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Rückgängig" }).click();
-  await expect(state).toHaveText("Eigene Bewegung");
+  await expect(state).toHaveText("Gewählt");
   await expect(endFrameBox).toHaveAttribute("aria-label", endZoom ?? "");
 });
 
-test("E2E-022 a picture gets its own duration and transition, stored, and both go back to automatic together", async ({
+test("E2E-022 a picture gets its chosen duration and transition, stored, and both go back to automatic together", async ({
   page,
 }) => {
   const selectionBar = page.getByRole("toolbar", { name: "Auswahl" });
@@ -126,7 +133,7 @@ test("E2E-022 a picture gets its own duration and transition, stored, and both g
     exact: true,
   });
   const ownTile = page.getByRole("button", {
-    name: "Bild 2, aufgenommen am 14.07.2025, eigene Dauer 6,5 s, eigener Übergang Kreis",
+    name: "Bild 2, aufgenommen am 14.07.2025, gewählte Bilddauer 6,5 s, gewählter Übergang Kreis",
   });
   const timingSection = page.locator('section[aria-labelledby="timing-label"]');
   const timingState = timingSection.locator(".state");
@@ -135,7 +142,7 @@ test("E2E-022 a picture gets its own duration and transition, stored, and both g
   await openApp(page);
   await createSlideshow(page, ["2025-07-12", "2025-07-14", "2025-07-20"]);
   // A new slideshow opens on Calm (ADR-0050); this case is
-  // about a picture's own duration against the automatic one, so it switches back to Custom.
+  // about a picture's chosen duration against the automatic one, so it switches back to Custom.
   await chooseCustomMood(page);
 
   await automaticTile.click();
@@ -147,7 +154,7 @@ test("E2E-022 a picture gets its own duration and transition, stored, and both g
   for (let step = 0; step < 3; step += 1) {
     await lengthSlider.press("ArrowRight");
   }
-  await expect(timingState).toHaveText("Eigener Zeitablauf");
+  await expect(timingState).toHaveText("Gewählt");
   await expect(lengthSlider).toHaveAttribute("aria-valuetext", "6,5 s");
 
   await circleTile.click();
@@ -161,11 +168,11 @@ test("E2E-022 a picture gets its own duration and transition, stored, and both g
   // The Transitions row lives behind the Fine settings fold (ADR-0048).
   await page.getByRole("button", { name: "Weitere Einstellungen" }).click();
   await expect(
-    page.getByRole("button", { name: "Übergänge Überblenden Automatisch · 1 eigener" }),
+    page.getByRole("button", { name: "Übergänge Überblenden Automatisch · 1 Bild gewählt" }),
   ).toBeVisible();
 
   await selectionBar.getByRole("button", { name: "Bearbeiten" }).click();
-  await expect(timingState).toHaveText("Eigener Zeitablauf");
+  await expect(timingState).toHaveText("Gewählt");
   await expect(lengthSlider).toHaveAttribute("aria-valuetext", "6,5 s");
   await timingSection.getByRole("button", { name: "Zurück auf automatisch" }).click();
   await expect(timingState).toHaveText("Automatisch");
@@ -196,4 +203,24 @@ test("E2E-116 the picture editor's transition hint says what plays into the next
 
   await timingSection.getByRole("radio", { name: /Kreis/ }).click();
   await expect(hint).toContainText(/Kreis zu Bild 3, \d+,\d s\.$/);
+});
+
+test("E2E-124 the picture editor says a picture whose length follows the music shows for as long as its slider says", async ({
+  page,
+}) => {
+  const timingSection = page.locator('section[aria-labelledby="timing-label"]');
+  const lengthSlider = timingSection.getByRole("slider", { name: "Bilddauer" });
+  await openApp(page);
+  await createSlideshowWithMusic(page, clickTrackWav("Takt.wav", 20, 120), { fill: true });
+
+  await page
+    .getByRole("button", { name: "Bild 2, aufgenommen am 14.07.2025", exact: true })
+    .click();
+  await page
+    .getByRole("toolbar", { name: "Auswahl" })
+    .getByRole("button", { name: "Bearbeiten" })
+    .click();
+  const length = await lengthSlider.getAttribute("aria-valuetext");
+  expect(length).toMatch(/^\d+,\d s$/);
+  await expect(timingSection.locator(":scope > .hint")).toHaveText(`Folgt der Musik: ${length}.`);
 });

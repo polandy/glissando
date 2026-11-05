@@ -29,7 +29,7 @@
     /** The transition tiles' loop runs on these. */
     ports: MotionPreviewPorts;
     reducedMotion: boolean;
-    /** An own duration in whole milliseconds, on the half-second grid. */
+    /** A chosen duration in whole milliseconds, on the half-second grid. */
     onDuration: (durationMs: number) => void;
     onTransition: (choice: TransitionChoice) => void;
     /** Duration and transition back to automatic, together. */
@@ -52,7 +52,7 @@
         : t("editor.durationHintAutomatic");
     }
     if (!picture.ownDuration) {
-      return t("editor.durationHintMusic", { count: basis.automaticCount });
+      return t("editor.durationHintMusic", { duration: seconds(picture.durationMs) });
     }
     if (basis.shareMs === null) {
       return t("editor.durationHintAllOwn");

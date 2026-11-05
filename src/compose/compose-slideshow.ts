@@ -147,7 +147,7 @@ export function composeSlideshow(
     if (transitionToNext === undefined) {
       return slide;
     }
-    // A cut at a drop or chorus, unless the picture keeps its own transition (ADR-0046).
+    // A cut at a drop or chorus, unless the picture keeps its chosen transition (ADR-0046).
     if (picture.transition === undefined && energy?.liftsMs.includes(realSlideEndMs) === true) {
       return slide;
     }

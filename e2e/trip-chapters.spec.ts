@@ -79,7 +79,7 @@ test("E2E-077 a trip across two stays shows one automatic chapter right before t
 test("E2E-078 inserting a chapter from the selection bar adds it right before the picture and it can be deleted; turning automatic chapters off drops only the automatic one", async ({
   page,
 }) => {
-  const addedDialog = page.getByRole("dialog", { name: "Eigenes Kapitel" });
+  const addedDialog = page.getByRole("dialog", { name: "Dein Kapitel" });
   const titleField = addedDialog.getByRole("textbox", { name: "Titel", exact: true });
   const subtitleField = addedDialog.getByRole("textbox", { name: "Untertitel", exact: true });
   const secondPicture = page.getByRole("button", { name: SECOND_PICTURE, exact: true });

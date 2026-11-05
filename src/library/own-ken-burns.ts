@@ -11,7 +11,7 @@ export interface OwnKenBurns {
 }
 
 /**
- * The largest zoom an own motion may reach: the pictures are stored at display resolution, so
+ * The largest zoom a chosen motion may reach: the pictures are stored at display resolution, so
  * further in they would turn visibly soft.
  */
 export const MAX_OWN_KEN_BURNS_ZOOM = 3;
@@ -34,7 +34,7 @@ export class InvalidOwnKenBurnsError extends Error {
   }
 }
 
-/** `value` as an own motion; throws `InvalidOwnKenBurnsError` naming `where` and the bad field. */
+/** `value` as a chosen motion; throws `InvalidOwnKenBurnsError` naming `where` and the bad field. */
 export function checkOwnKenBurns(value: unknown, where: string): OwnKenBurns {
   const motion = readObject(value, where, "", MOTION_KEYS);
   return {

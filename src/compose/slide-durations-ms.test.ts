@@ -3,7 +3,7 @@ import type { PlaylistEnergy } from "./energy/playlist-energy";
 import { slideDurationsMs } from "./slide-durations-ms";
 import { MIN_SECONDS_PER_PICTURE } from "../library/stored-slideshow";
 
-/** `count` pictures without an own duration. */
+/** `count` pictures without a chosen duration. */
 const automatic = (count: number) => Array.from({ length: count }, () => ({}));
 const sum = (durations: readonly number[]) => durations.reduce((total, ms) => total + ms, 0);
 
@@ -36,8 +36,8 @@ describe("slideDurationsMs", () => {
     expect(() => slideDurationsMs([], undefined, 5)).toThrow(RangeError);
   });
 
-  describe("with own durations", () => {
-    it("keeps an own duration exactly and gives the others secondsPerPicture without music", () => {
+  describe("with chosen durations", () => {
+    it("keeps a chosen duration exactly and gives the others secondsPerPicture without music", () => {
       expect(slideDurationsMs([{}, { durationMs: 8000 }, {}], undefined, 5)).toEqual([
         5000, 8000, 5000,
       ]);
@@ -62,13 +62,13 @@ describe("slideDurationsMs", () => {
       expect(durations).toEqual([15_000, 2000, 2000]);
     });
 
-    it("gives the automatic pictures the minimum when the own durations outlast the track", () => {
+    it("gives the automatic pictures the minimum when the chosen durations outlast the track", () => {
       const durations = slideDurationsMs([{ durationMs: 15_000 }, {}], 12_000, 5);
 
       expect(durations).toEqual([15_000, 2000]);
     });
 
-    it("ignores the music when every picture has its own duration", () => {
+    it("ignores the music when every picture has its chosen duration", () => {
       expect(slideDurationsMs([{ durationMs: 8000 }, { durationMs: 2500 }], 60_000, 5)).toEqual([
         8000, 2500,
       ]);

@@ -12,6 +12,6 @@
 - **Video slides** (`StoredPicture.video`, ADR-0034, [VIDEO_SLIDES](../player/VIDEO_SLIDES.md)): the
   slide carries `video` (`src` from `SlideshowSources.video(mediaId)`, `volume` as 0 to 1,
   `duckMusic` written only when `false`), a still framing instead of any Ken Burns, and its
-  poster as `image`. Its duration is `endMs − startMs`, an own duration (ADR-0008) that is never
+  poster as `image`. Its duration is `endMs − startMs`, a chosen duration (ADR-0008) that is never
   snapped to the beats; the picture's `durationMs` is not used. Caption and transition follow the
   picture's rules.

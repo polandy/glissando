@@ -35,7 +35,7 @@ The sheet also holds the switch "Follow the music's energy" ([ENERGY_PACING](ENE
 (`stored.pictureLength` ignored), the default transition is the mood's, and the transition
 length and Ken Burns strength follow the table. A shorter music still shrinks the mood's seconds
 to fit it, like "Fill the music" and own seconds (`picturesFillMs`, ADR-0047) — the mood keeps
-its pace otherwise. Own duration, own transition and own motion of a picture win as always
+its pace otherwise. Chosen duration, chosen transition and chosen motion of a picture win as always
 (ADR-0008); beats snap as in `dev-docs/COMPOSITION.md`.
 
 ## Editing
@@ -69,9 +69,9 @@ its pace otherwise. Own duration, own transition and own motion of a picture win
     settings"; three columns. A tap stores at once; arrow keys move it.
   - **What it sets**: Picture times, Transitions ("Crossfade, long" / "Mixed, short" /
     "standard") and Ken Burns, worked out for this slideshow's tempo.
-  - **Hint**: under a mood "Picture times follow the song's beats and phrases. Pictures with
-    their own duration, transition or motion keep them."; for Custom "Your own picture times,
-    transitions and Ken Burns, as set on the slideshow."
+  - **Hint**: under a mood "Picture length follows the song's beat. Pictures with a chosen
+    picture length, transition or motion keep them."; for Custom "Picture length, transitions and
+    motion as you set them on the slideshow."
   - **Footer**: "Back to Custom" (disabled-looking under Custom; toast "Mood back to Custom"
     with "Undo") and "Done". Done, Esc or a tap on the scrim closes it; focus starts on the
     checked tile and goes back to the row.

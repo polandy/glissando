@@ -1,7 +1,6 @@
 import { flushSync } from "svelte";
 import { afterEach, describe, expect, it } from "vitest";
 import { FocusPass } from "../../library/focus-pass";
-import type { PictureFocus } from "../../library/picture-focus";
 import { FakeFocusDetector } from "../../library/testing/fake-focus-detector";
 import { NO_FOCUS_KNOWN, picturesFocus } from "../focus/pictures-focus";
 import {
@@ -146,9 +145,8 @@ describe("the picture editor route", () => {
     expect(call.signal.aborted).toBe(true);
   });
 
-  it("looks again at an own-motion picture's focus without touching its motion or the stored slideshow", async () => {
-    let answer: PictureFocus = FACE;
-    const detector = new FakeFocusDetector(() => answer);
+  it("looks again at a chosen-motion picture's focus without touching its motion or the stored slideshow", async () => {
+    const detector = new FakeFocusDetector(() => FACE);
     let pass!: FocusPass;
     const { target, store, props } = await mountRoute(
       "p",
@@ -165,16 +163,17 @@ describe("the picture editor route", () => {
     await pass.settled();
     flushSync();
 
-    expect(target.querySelector(".focus-line")?.textContent).toContain("Gesicht erkannt");
+    expect(target.querySelector(".focus-line")?.textContent).toContain("Gewählte Bewegung");
+    expect(detector.calls).toBe(1);
     const button = target.querySelector<HTMLButtonElement>(".focus-line .action");
     expect(button).not.toBeNull();
 
-    answer = { kind: "scenery" };
     button?.click();
     await pass.settled();
     flushSync();
 
-    expect(target.querySelector(".focus-line")?.textContent).toContain("Landschaft");
+    expect(detector.calls).toBe(2);
+    expect(target.querySelector(".focus-line")?.textContent).toContain("Gewählte Bewegung");
     const stored = await store.getSlideshow("show-own");
     expect(stored.pictures[0]?.kenBurns).toEqual(OWN_MOTION);
   });

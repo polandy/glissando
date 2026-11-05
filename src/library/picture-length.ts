@@ -1,5 +1,5 @@
 /**
- * How long the pictures without an own duration last when the slideshow has music (ADR-0022):
+ * How long the pictures without a chosen duration last when the slideshow has music (ADR-0022):
  * their `secondsPerPicture` each, the slideshow then lasting as long as its pictures, or (the
  * field absent) sharing the music's excerpt so that the slideshow ends with it.
  */

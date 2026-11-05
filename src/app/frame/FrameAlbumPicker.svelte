@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Separated from "../components/Separated.svelte";
   import type { BrowseFailure } from "../../immich/browse-failure";
   import type { ImmichAlbum } from "../../immich/immich-client";
   import Notice from "../components/Notice.svelte";
@@ -57,7 +58,7 @@
             {/if}
           </span>
           <b>{album.name}</b>
-          <span class="meta">{albumMeta(album)}</span>
+          <span class="meta"><Separated text={albumMeta(album)} /></span>
         </button>
       </li>
     {/each}

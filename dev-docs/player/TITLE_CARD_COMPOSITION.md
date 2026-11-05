@@ -3,7 +3,7 @@
 The stored title slide and closing slide (`openingCard`, `closingCard`, see
 [GLISSANDO_FILE](../library/GLISSANDO_FILE.md)) become cards in `composeSlideshow`. A card
 whose title is empty is not composed. The card durations are fixed: the pictures share the rest
-of the music, as for any slide with its own duration.
+of the music, as for any slide with its chosen duration.
 
 - **Beats.** With music, each moment below is snapped to the nearest beat at or after the
   minimum (`snapToNextBeat`). Without music, the nominal values apply. The lead carries forward
@@ -16,7 +16,7 @@ of the music, as for any slide with its own duration.
   `CARD_HOLD_MS` (2500). The **lead** is `revealAtMs + CARD_REVEAL_MS`.
   - If the picture is the first picture in the show's order **and** is not paired into a
     portrait slide with another one, the first slide carries the card, and the lead is added to
-    its own duration. A **video** slide (`VIDEO_SLIDES.md`) is never lengthened this way: the
+    its chosen duration. A **video** slide (`VIDEO_SLIDES.md`) is never lengthened this way: the
     card merges onto it only if the reveal still ends before the slide hands over to the next
     one, i.e. `revealAtMs + CARD_REVEAL_MS <= durationMs − (transitionToNext?.durationMs ?? 0)`.
     Otherwise it falls back to the next rule, with the clip itself left untouched.
@@ -28,7 +28,7 @@ of the music, as for any slide with its own duration.
   with `endFadeMs = CARD_END_FADE_MS`.
 - **Closing slide on a picture, fade in on:**
   - If the picture is the last picture **and** is not paired into a portrait slide, the last
-    slide carries the card. Its `enterAtMs` is the slide's own duration.
+    slide carries the card. Its `enterAtMs` is the slide's chosen duration.
     `CARD_SLIDE_MS + CARD_END_FADE_MS` is added to the slide. A **video** slide keeps its own
     `durationMs` instead: `enterAtMs` is `durationMs − CARD_SLIDE_MS − CARD_END_FADE_MS`, and the
     card merges only if that is at or after the transition into the slide (the previous slide's

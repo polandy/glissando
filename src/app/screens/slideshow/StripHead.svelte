@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Separator from "../../components/Separator.svelte";
   import type { Snippet } from "svelte";
   import Icon from "../../components/Icon.svelte";
   import { getTranslator } from "../../i18n/context";
@@ -44,16 +45,16 @@
     {#if ownOrder}
       {t("slideshow.ownOrder")}
       {#if variant === "editor"}
-        · <span class="wide">{t("slideshow.reorderHintWide")}</span><span class="narrow"
+        <Separator /><span class="wide">{t("slideshow.reorderHintWide")}</span><span class="narrow"
           >{t("slideshow.reorderHintNarrow")}</span
         >
       {:else if busy}
-        · {t("import.sortedInAtEnd")}
+        <Separator />{t("import.sortedInAtEnd")}
       {/if}
     {:else if variant === "import"}
       {t("import.captureOrder")}
       {#if busy}
-        · {t("import.sortedInByDate")}
+        <Separator />{t("import.sortedInByDate")}
       {/if}
     {:else}
       {t("slideshow.sortedByDate")}

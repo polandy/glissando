@@ -221,7 +221,7 @@ describe("SlideshowScreen editing", () => {
   it("calls the order the user's own once it was changed", () => {
     mountScreen(details(["a", "b"], { ownOrder: true }));
 
-    expect(document.body.textContent).toContain("Eigene Reihenfolge");
+    expect(document.body.textContent).toContain("Deine Reihenfolge");
     expect(document.body.textContent).not.toContain("Nach Aufnahmedatum sortiert");
   });
 

@@ -19,8 +19,8 @@ import {
  * Rule F, `TRIP_CHAPTERS.md`: a chapter plays over its stay's first picture's own slide, which
  * keeps running its own Ken Burns motion from the start. The card darkens the picture and sets
  * its text in the lower third immediately, then both fade away (`CARD_REVEAL_MS`) so the picture
- * is left to play on, plain, for the rest of its own duration — `CHAPTER_SLIDE_MS` is added to
- * that slide's own duration, like the title cards. A hidden chapter produces no slide. Only when
+ * is left to play on, plain, for the rest of its chosen duration — `CHAPTER_SLIDE_MS` is added to
+ * that slide's chosen duration, like the title cards. A hidden chapter produces no slide. Only when
  * the anchor cannot carry the card itself — paired into a portrait slide, or a video clip too
  * short for the reveal to finish before its transition out — does a dedicated slide of just that
  * picture play first instead, card for its whole `CHAPTER_SLIDE_MS`, same as before. The player

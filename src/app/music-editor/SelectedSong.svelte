@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Separated from "../components/Separated.svelte";
   import type { MusicTrim } from "../../library/own-music";
   import { MILLISECONDS_PER_SECOND } from "../../player";
   import Icon from "../components/Icon.svelte";
@@ -51,15 +52,17 @@
 
 <div class="head">
   <b class="song-heading">
-    {t("music.songHeading", { number: music.songNumber, name: music.fileName })}
+    <Separated text={t("music.songHeading", { number: music.songNumber, name: music.fileName })} />
   </b>
   <span class="muted">
-    {music.trimmed
-      ? t("music.trimmedTo", {
-          duration: formatDuration(seconds(music.durationMs)),
-          excerpt: formatDuration(seconds(music.endMs - music.startMs)),
-        })
-      : formatDuration(seconds(music.durationMs))}
+    <Separated
+      text={music.trimmed
+        ? t("music.trimmedTo", {
+            duration: formatDuration(seconds(music.durationMs)),
+            excerpt: formatDuration(seconds(music.endMs - music.startMs)),
+          })
+        : formatDuration(seconds(music.durationMs))}
+    />
   </span>
   <InfoButton label={t("music.infoTrim")}>
     <p>{t("music.hint")}</p>

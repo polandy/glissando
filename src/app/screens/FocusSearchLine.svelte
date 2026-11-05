@@ -1,5 +1,7 @@
 <script lang="ts">
   import type { SlideshowSearch } from "../../library/focus-pass";
+  import Separated from "../components/Separated.svelte";
+  import { SEPARATOR } from "../components/separator";
   import { getTranslator } from "../i18n/context";
 
   /** On a library card: how far the background search for the slideshow's subjects is. */
@@ -9,12 +11,15 @@
   // Still pending pictures: a progress line. Done but some failed: that count, no bar. Else: nothing.
   const searching = $derived(search.done < search.total);
   const label = $derived(t(search.again ? "start.searchingAgain" : "start.searchingSubjects"));
+  const progressLine = $derived(
+    [label, t("start.searchProgress", { done: search.done, total: search.total })].join(SEPARATOR),
+  );
 </script>
 
 {#if searching}
   <span class="search">
     <span class="line">
-      {label} · {t("start.searchProgress", { done: search.done, total: search.total })}
+      <Separated text={progressLine} />
     </span>
     <span
       class="hairline"

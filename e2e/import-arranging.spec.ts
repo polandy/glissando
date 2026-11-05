@@ -91,7 +91,7 @@ test("E2E-072 pictures added, moved and shuffled while arranging a new slideshow
     "20.07.2025",
     "22.07.2025",
   ]);
-  await expect(page.getByText("Eigene Reihenfolge")).toBeVisible();
+  await expect(page.getByText("Deine Reihenfolge")).toBeVisible();
   await selectionBar.getByRole("button", { name: "Fertig" }).click();
 
   // Step 5: once the order is the user's own, an added picture goes at the end, not sorted in.
@@ -114,7 +114,7 @@ test("E2E-072 pictures added, moved and shuffled while arranging a new slideshow
   await expect(dates(page)).toHaveCount(7);
   const afterShuffle = await dates(page).allTextContents();
   expect(new Set(afterShuffle)).toEqual(new Set(beforeShuffle));
-  await expect(page.getByText("Eigene Reihenfolge")).toBeVisible();
+  await expect(page.getByText("Deine Reihenfolge")).toBeVisible();
 
   // Step 7: F opens the focused tile full screen, Escape closes it, Delete removes it.
   const firstDate = afterShuffle[0];

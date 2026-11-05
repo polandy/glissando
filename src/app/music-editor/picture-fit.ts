@@ -23,7 +23,7 @@ export function pictureFit(
   picturesFit: boolean,
   moodSecondsPerPicture?: number,
 ): PictureFit {
-  // One entry per picture without an own duration, `durationsMs` indexed by slide: a paired
+  // One entry per picture without a chosen duration, `durationsMs` indexed by slide: a paired
   // picture's slide holds two pictures sharing its one duration (ADR-0028), so counting by
   // picture index into `durationsMs` would miss one of every pair once pairs are composed.
   const units = slideUnits(stored.pictures, stored.portraitPictures);

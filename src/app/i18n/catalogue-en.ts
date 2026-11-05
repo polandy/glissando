@@ -101,7 +101,7 @@ export const en: Catalogue = {
   "slideshow.pictures": "Pictures",
   "slideshow.sortedByDate": "Sorted by capture date",
   "slideshow.pictureLabel": "Picture {number}, taken on {date}",
-  "slideshow.ownOrder": "Own order",
+  "slideshow.ownOrder": "Your order",
   "slideshow.reorderHintWide": "Drag to reorder",
   "slideshow.reorderHintNarrow": "Hold and drag to reorder",
   "slideshow.select": "Select",
@@ -172,7 +172,7 @@ export const en: Catalogue = {
   "focusSheet.statusWaiting": "Not yet",
   "focusSheet.statusWaitingForServer": "Waiting for server",
   "focusSheet.statusLooking": "Looking",
-  "focusSheet.ownMotion": "Own motion",
+  "focusSheet.ownMotion": "Chosen motion",
   "focusSheet.tryAgain": "Try the {count} again",
   "focusSheet.lookAgainAll": {
     one: "Look again at the picture",

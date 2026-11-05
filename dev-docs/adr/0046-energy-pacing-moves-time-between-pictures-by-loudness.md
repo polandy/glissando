@@ -26,7 +26,7 @@ worked out.
   off — off by default) applies under Calm, Lively and Custom alike. Leaving a mood or choosing
   "Back to Custom" leaves the switch as it is.
 - **It moves time between pictures; it never changes how long the slideshow is.** The pictures
-  without an own duration first get their usual lengths: the mood's seconds, the own seconds, or
+  without a chosen duration first get their usual lengths: the mood's seconds, the own seconds, or
   their share of the music when it is filled. Each then gets the weight
   `usual × 2^(1 − 2e)`, where `e` is the mean energy over its span. Quiet (`e = 0`) gives 2×
   and loud (`e = 1`) gives 0.5×. Their total is then shared out again by those weights. Positions
@@ -34,8 +34,8 @@ worked out.
   `MIN_SECONDS_PER_PICTURE` is raised to it and the rest shared again among the others; only
   when the total cannot give every picture the minimum are the usual lengths kept. "Fill the music" therefore still ends
   with the music, and a mood keeps its average pace.
-- **A picture's own values always win** (ADR-0008). Own durations are neither weighted nor moved
-  to a lift. An own transition stays at a lift.
+- **A picture's own values always win** (ADR-0008). Chosen durations are neither weighted nor moved
+  to a lift. A chosen transition stays at a lift.
 - **A lift is a jump into a loud passage.** It is where the mean loudness of the next 4 s is at
   least 4 LU above that of the previous 4 s, the next 4 s are at or above the song's median
   short-term loudness, and the rise is a local maximum. It is not within the excerpt's first
@@ -45,7 +45,7 @@ worked out.
   must be automatic and stay at or above the minimum, or the lift is skipped. The beat snap then
   leaves that boundary where it is, because it is already on a beat. The slide that ends there
   has no transition, so the next picture cuts in on the beat, unless that slide's picture has an
-  own transition.
+  chosen transition.
 - **No player change.** Durations and transitions are already resolved in the composed JSON. The
   `.glissando` format goes to version 20 and the server document to version 6, both with an
   optional `energyPacing`. There is no migration.

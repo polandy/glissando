@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Separated from "../../components/Separated.svelte";
   import { onMount } from "svelte";
   import type { SongBeats } from "../../../compose/playlist";
   import type { SongLoudness } from "../../../compose/song-loudness";
@@ -147,7 +148,7 @@
     <dl class="sets">
       <div>
         <dt>{t("slideshow.pictureTimes")}</dt>
-        <dd>{energyView.pictureTimesText}</dd>
+        <dd><Separated text={energyView.pictureTimesText} /></dd>
       </div>
       {#if energyView.hasLift}
         <div>

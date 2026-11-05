@@ -32,7 +32,7 @@ test("E2E-110 Sort by date shows only for the user's own order, puts the picture
   await selectionBar.getByRole("button", { name: "Fertig" }).click();
   await expect(tile(page, 1, "02.07.2025")).toBeVisible();
   await expect(tile(page, 2, "01.07.2025")).toBeVisible();
-  await expect(orderLine).toHaveText(/^Eigene Reihenfolge/);
+  await expect(orderLine).toHaveText(/^Deine Reihenfolge/);
 
   // Sort by date restores capture order, ends the own order and hides itself again.
   await sortByDate.click();
@@ -46,7 +46,7 @@ test("E2E-110 Sort by date shows only for the user's own order, puts the picture
   await page.getByRole("button", { name: "Rückgängig" }).click();
   await expect(tile(page, 1, "02.07.2025")).toBeVisible();
   await expect(tile(page, 2, "01.07.2025")).toBeVisible();
-  await expect(orderLine).toHaveText(/^Eigene Reihenfolge/);
+  await expect(orderLine).toHaveText(/^Deine Reihenfolge/);
   await expect(sortByDate).toBeVisible();
 
   // Sorted once more, the capture order is what is stored.

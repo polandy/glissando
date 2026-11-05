@@ -48,7 +48,7 @@ while the import runs, with these differences:
   ([REMOVE_SELECT_REORDER.md](slideshow-editing/REMOVE_SELECT_REORDER.md)).
 - Removal is the step's own: the toast "Picture removed" · "Undo" that adds up, and the last
   picture can go too (the empty drop zone returns).
-- The strip head reads "Capture order" or "Own order"; while the import runs it adds
+- The strip head reads "Capture order" or "Your order"; while the import runs it adds
   "· new pictures are sorted in by date" or "· new pictures go at the end".
 
 **Order**: as long as nothing was moved, the strip is in capture order and every picture that

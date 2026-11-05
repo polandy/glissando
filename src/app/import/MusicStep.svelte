@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Separated from "../components/Separated.svelte";
   import { onDestroy } from "svelte";
   import {
     distinctTitleForCaptureRange,
@@ -162,10 +163,12 @@
   {@const picked = chosen.find((candidate) => candidate.key === keyOf(song))}
   {#if picked !== undefined}
     <small>
-      {t("import.trackMeta", {
-        duration: formatDuration(picked.durationMs / MILLISECONDS_PER_SECOND),
-        format: musicFormatLabel(picked.file.name, picked.file.type),
-      })}
+      <Separated
+        text={t("import.trackMeta", {
+          duration: formatDuration(picked.durationMs / MILLISECONDS_PER_SECOND),
+          format: musicFormatLabel(picked.file.name, picked.file.type),
+        })}
+      />
     </small>
     {#if picked.convertedFrom !== null}
       <small>

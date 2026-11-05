@@ -1,5 +1,7 @@
 <script lang="ts">
   import Icon from "../../components/Icon.svelte";
+  import Separated from "../../components/Separated.svelte";
+  import { SEPARATOR } from "../../components/separator";
 
   /**
    * A row of the info panel that opens an editor: a button spanning the row with its label, the
@@ -16,8 +18,8 @@
     name: string;
     label: string;
     value: string;
-    /** Empty: the value stands alone. */
-    summary: string;
+    /** Shown under the value, parted by dots; empty: the value stands alone. */
+    summary: readonly string[];
     onclick: () => void;
   } = $props();
 
@@ -32,8 +34,8 @@
   <span class="text">
     <span class="label">{label}</span>
     <span class="value">{value}</span>
-    {#if summary !== ""}
-      <span class="summary">{summary}</span>
+    {#if summary.length > 0}
+      <span class="summary"><Separated text={summary.join(SEPARATOR)} /></span>
     {/if}
   </span>
   <span class="go"><Icon name="chevronRight" /></span>

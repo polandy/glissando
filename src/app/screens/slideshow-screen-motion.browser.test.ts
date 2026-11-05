@@ -53,11 +53,11 @@ describe("SlideshowScreen, the way into the picture editor", () => {
     expect(calls.edited).toEqual([]);
   });
 
-  it("marks a picture with an own motion on its tile and in its label", () => {
+  it("marks a picture with a chosen motion on its tile and in its label", () => {
     mountScreen(ownMotionOnSecond());
 
     const own = document.querySelector(
-      'img[alt="Bild 2, aufgenommen am 02.07.2025, eigene Bewegung"]',
+      'img[alt="Bild 2, aufgenommen am 02.07.2025, gewählte Bewegung"]',
     );
     const badges = [...document.querySelectorAll(".strip .badge")];
 

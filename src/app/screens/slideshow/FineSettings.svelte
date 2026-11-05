@@ -68,15 +68,14 @@
         ? t("slideshow.transitionDefault")
         : t("slideshow.transitionOwnChoice");
     return slideshow.ownTransitionCount === 0
-      ? choice
-      : t("slideshow.transitionSummary", {
-          choice,
-          own: t("slideshow.transitionOwnCount", { count: slideshow.ownTransitionCount }),
-        });
+      ? [choice]
+      : [choice, t("slideshow.transitionOwnCount", { count: slideshow.ownTransitionCount })];
   });
   const transition = $derived(moodTransitionValue(t, slideshow, ownTransitionSummary));
   const portraitPicturesSummary = $derived(
-    slideshow.pairCount === 0 ? "" : `· ${t("portrait.pairCount", { count: slideshow.pairCount })}`,
+    slideshow.pairCount === 0
+      ? []
+      : [`· ${t("portrait.pairCount", { count: slideshow.pairCount })}`],
   );
   const chaptersHelper = $derived(
     slideshow.ownOrder

@@ -1,4 +1,6 @@
 <script lang="ts">
+  import Separated from "../../../components/Separated.svelte";
+
   /** A finished export's file: thumbnail, name and facts. */
   let { thumbnailUrl, name, facts }: { thumbnailUrl: string; name: string; facts: string } =
     $props();
@@ -7,7 +9,7 @@
 <div class="file">
   <img class="thumb" alt="" src={thumbnailUrl} />
   <b>{name}</b>
-  <small class="mono">{facts}</small>
+  <small class="mono"><Separated text={facts} /></small>
 </div>
 
 <style>

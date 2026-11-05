@@ -15,7 +15,7 @@ The panel for the song selected in the [music editor](../MUSIC_EDITOR.md).
   taller. A time ruler below. With the Details on, the lane "Slideshow, 24 pictures" with
   its length: a mint bar from the excerpt's start for as long as the slideshow plays this song
   (none for a song not reached), a tick
-  per picture change (on the beat, a change that falls between beats — an own duration with no
+  per picture change (on the beat, a change that falls between beats — a chosen duration with no
   automatic picture left after it to absorb the shift — is a wider coral tick), lemon hatching past the last song's excerpt end when the pictures play on
   in silence; when the slideshow ends earlier, the waveform is hatched from there to the
   excerpt's end. "Listen to the start" (the excerpt's first 8 s with the fade-in, "from
@@ -63,9 +63,9 @@ The panel for the song selected in the [music editor](../MUSIC_EDITOR.md).
   evenly." (pictures lasting their seconds: "… Until then each picture stays exactly 5 s.").
   With a beat, "On the beat" (the default) and "Evenly" as a radiogroup (arrows move
   the choice), stored with the music at once; the ⓘ explains "Every automatic
-  change lands on a beat of the music; a transition lasts whole beats." — every own duration
+  change lands on a beat of the music; a transition lasts whole beats." — every chosen duration
   moves there too, about its set length, except one with no automatic picture left after it to
-  absorb the shift, named "Pictures 5 and 12 keep their own duration exactly: …" — and, for
+  absorb the shift, named "Pictures 5 and 12 keep their chosen picture length exactly: …" — and, for
   evenly, "The pictures share the music evenly, regardless of its beat." (or "Each picture stays
   exactly 5 s, regardless of the beat."). No such paragraph shows on the page.
   Music without a clear beat: "No steady beat found in this music. The pictures share it

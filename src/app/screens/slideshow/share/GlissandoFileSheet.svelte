@@ -1,5 +1,6 @@
 <script lang="ts">
   import Notice from "../../../components/Notice.svelte";
+  import Separated from "../../../components/Separated.svelte";
   import { getTranslator } from "../../../i18n/context";
   import { glissandoFileName } from "../../../../glissando-file/export-slideshow";
   import type { ExportMenuState } from "../../../glissando-file/export-menu";
@@ -85,7 +86,7 @@
     {/if}
     <div class="file">
       <b>{fileName}</b>
-      <small>{facts}</small>
+      <small><Separated text={facts} /></small>
       {#if exportState.kind === "idle" && exportState.sizeBytes !== null}
         <span class="size mono">{formatBytes(exportState.sizeBytes)}</span>
       {/if}

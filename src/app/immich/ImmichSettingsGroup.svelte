@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Separated from "../components/Separated.svelte";
   import type { ImmichAvailabilityState } from "../../immich/immich-availability";
   import Notice from "../components/Notice.svelte";
   import { getTranslator } from "../i18n/context";
@@ -28,7 +29,9 @@
         {:else if view.kind === "available"}
           <b>{t("immich.throughServer")}</b>
           <span>
-            {t("immich.serverDetails", { version: view.version, count: view.albumCount })}
+            <Separated
+              text={t("immich.serverDetails", { version: view.version, count: view.albumCount })}
+            />
           </span>
         {:else if view.kind === "notSetUp"}
           <b>{t("immich.notSetUp")}</b>

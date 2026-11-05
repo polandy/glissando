@@ -60,7 +60,7 @@ export function unmountEditor(): void {
   destroy();
 }
 
-/** The view after `choice` is picked (`own: true`) or an own transition is reset to it. */
+/** The view after `choice` is picked (`own: true`) or a chosen transition is reset to it. */
 function transitionedView(
   current: PictureEditorView,
   choice: TransitionChoice,

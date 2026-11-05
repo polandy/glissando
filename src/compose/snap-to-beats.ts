@@ -8,13 +8,13 @@ const BEATS_PER_PHRASE = 4;
 /**
  * Moves slide boundaries onto the music's beats (ADR-0021): each one, automatic or an own
  * duration, to the nearest beat (preferring a phrase start, `nearestBeatMs`) that leaves this
- * slide and the next automatic one ahead at least `minSlideMs`. An own duration also keeps its
+ * slide and the next automatic one ahead at least `minSlideMs`. A chosen duration also keeps its
  * slide within its slack of that duration — half its length above the minimum — so it moves to
  * about its set length rather than exactly it. The difference absorbs into the next automatic
- * slide ahead, whose own boundary may then snap again in turn; a slide with an own duration in
+ * slide ahead, whose own boundary may then snap again in turn; a slide with a chosen duration in
  * between carries over unaffected, its own boundary decided separately on its own terms. With
  * `endOnBeat`, a slide with no automatic slide ahead to absorb into — the last automatic slide
- * when the pictures do not fill the music, or an own duration after it — still moves its own end
+ * when the pictures do not fill the music, or a chosen duration after it — still moves its own end
  * the same bounded way; otherwise it stays, and the sum of the durations does not change.
  *
  * `inserted` is how much of a title card or chapter plays around each slide unit (`InsertedTime`)

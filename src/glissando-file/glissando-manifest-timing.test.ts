@@ -54,7 +54,7 @@ function withFirstPicture(
   });
 }
 
-describe("a picture's own duration and transition in the .glissando file", () => {
+describe("a picture's chosen duration and transition in the .glissando file", () => {
   it("is written from format version 4, the version that carries them", () => {
     expect(OWN_TIMING_FROM_VERSION).toBe(4);
     expect(manifest().slideshow.pictures[0]).toMatchObject({ durationMs: 8000, transition: "cut" });
@@ -83,13 +83,13 @@ describe("a picture's own duration and transition in the .glissando file", () =>
   });
 
   it.each([
-    ["an own duration in a version 3 file", withFirstPicture({ transition: undefined }, 3)],
-    ["an own transition in a version 3 file", withFirstPicture({ durationMs: undefined }, 3)],
+    ["a chosen duration in a version 3 file", withFirstPicture({ transition: undefined }, 3)],
+    ["a chosen transition in a version 3 file", withFirstPicture({ durationMs: undefined }, 3)],
   ])("takes %s for a damaged file", (_, text) => {
     expect(readManifest(text).kind).toBe("damaged");
   });
 
-  it("names a bad own duration's path, its value and what is expected", () => {
+  it("names a bad chosen duration's path, its value and what is expected", () => {
     expect(readManifest(withFirstPicture({ durationMs: 8200 }))).toEqual({
       kind: "damaged",
       reason:
@@ -97,7 +97,7 @@ describe("a picture's own duration and transition in the .glissando file", () =>
     });
   });
 
-  it("names a bad own transition's path, its value and what is expected", () => {
+  it("names a bad chosen transition's path, its value and what is expected", () => {
     expect(readManifest(withFirstPicture({ transition: "fade" }))).toEqual({
       kind: "damaged",
       reason:

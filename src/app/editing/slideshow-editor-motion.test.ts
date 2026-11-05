@@ -7,8 +7,8 @@ const own = {
   to: { zoom: 1, centerX: 0.5, centerY: 0.5 },
 };
 
-describe("SlideshowEditor, a picture's own motion", () => {
-  it("stores the own motion at once", async () => {
+describe("SlideshowEditor, a picture's chosen motion", () => {
+  it("stores the chosen motion at once", async () => {
     const { editor, storedPicture } = await setUp();
 
     editor.setKenBurns("b", own);
@@ -17,7 +17,7 @@ describe("SlideshowEditor, a picture's own motion", () => {
     expect((await storedPicture("b"))?.kenBurns).toEqual(own);
   });
 
-  it("back to automatic drops the own motion without asking and offers an undo", async () => {
+  it("back to automatic drops the chosen motion without asking and offers an undo", async () => {
     const { editor, toaster, storedPicture } = await setUp();
     editor.setKenBurns("b", own);
 
@@ -30,7 +30,7 @@ describe("SlideshowEditor, a picture's own motion", () => {
     expect(toaster.current?.action?.label).toBe("Rückgängig");
   });
 
-  it("the undo brings the previous own motion back", async () => {
+  it("the undo brings the previous chosen motion back", async () => {
     const { editor, toaster, storedPicture } = await setUp();
     editor.setKenBurns("b", own);
     editor.resetKenBurns("b");
@@ -106,7 +106,7 @@ describe("SlideshowEditor, a picture's own motion", () => {
     expect(toaster.current).toBeNull();
   });
 
-  it("swapping start and end of an automatic picture makes it an own motion, reversed", async () => {
+  it("swapping start and end of an automatic picture makes it a chosen motion, reversed", async () => {
     const { editor, storedPicture } = await setUp();
     const automatic = pictureKenBurns(2, editor.slideshow.pictures[2] ?? fail(), undefined);
 
@@ -133,7 +133,7 @@ describe("SlideshowEditor, a picture's own motion", () => {
     expect((await storedPicture("c"))?.kenBurns).toEqual({ from: aimed.to, to: aimed.from });
   });
 
-  it("swapping an own motion reverses it", async () => {
+  it("swapping a chosen motion reverses it", async () => {
     const { editor, storedPicture } = await setUp();
     editor.setKenBurns("a", own);
 

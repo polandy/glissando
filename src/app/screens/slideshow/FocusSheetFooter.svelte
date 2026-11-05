@@ -2,7 +2,7 @@
   import { getTranslator } from "../../i18n/context";
   import type { FocusSheetStatus } from "./focus-sheet-view";
 
-  /** "Try again"/"Look again at all" and the own-motion hint (ADR-0041). */
+  /** "Try again"/"Look again at all" and the chosen-motion hint (ADR-0041). */
   let {
     status,
     total,

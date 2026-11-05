@@ -22,7 +22,7 @@ export const deMood = {
   "mood.livelySubtitle": "Schnell, auf dem Beat",
   "mood.customSubtitle": "Ihre Einstellungen",
   "mood.hintMood":
-    "Die Bilddauer folgt dem Beat des Songs. Bilder mit eigener Dauer, eigenem Übergang oder eigener Bewegung behalten sie.",
+    "Die Bilddauer folgt dem Beat des Songs. Bilder mit gewählter Bilddauer, gewähltem Übergang oder gewählter Bewegung behalten sie.",
   "mood.hintCustom":
     "Bilddauer, Übergänge und Bewegung, wie du sie an der Diashow eingestellt hast.",
   "mood.backToCustom": "Stimmung ausschalten",
@@ -35,9 +35,9 @@ export const deMood = {
   "mood.energyLiftLabel": "Wenn die Musik Fahrt aufnimmt",
   "mood.energyLiftValue": "Schnitt auf den Beat",
   "mood.hintMoodEnergy":
-    "Die Stimmung bestimmt das durchschnittliche Tempo; die Energie macht es in leisen Passagen langsamer und in lauten schneller. Bilder mit eigener Dauer, eigenem Übergang oder eigener Bewegung behalten sie.",
+    "Die Stimmung bestimmt das durchschnittliche Tempo; die Energie macht es in leisen Passagen langsamer und in lauten schneller. Bilder mit gewählter Bilddauer, gewähltem Übergang oder gewählter Bewegung behalten sie.",
   "mood.hintCustomEnergy":
-    "Ihre Bilddauer bleibt der Durchschnitt. Mit „Musik füllen“ endet die Diashow weiterhin mit dem Song. Bilder mit eigener Dauer behalten sie.",
+    "Ihre Bilddauer bleibt der Durchschnitt. Mit „Musik füllen“ endet die Diashow weiterhin mit dem Song. Bilder mit gewählter Bilddauer behalten sie.",
   "mood.energyStripQuiet": "leise → länger",
   "mood.energyStripLoud": "laut → schneller",
 } as const satisfies Record<string, Message>;

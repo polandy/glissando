@@ -71,7 +71,7 @@ describe("composeSlideshow with the slideshow's mood", () => {
     expect(composed(stored).slides.map((slide) => slide.durationMs)).toEqual([7000, 7000]);
   });
 
-  it("keeps a picture's own duration, transition and motion under a mood", () => {
+  it("keeps a picture's chosen duration, transition and motion under a mood", () => {
     const own = {
       from: { zoom: 2, centerX: 0.5, centerY: 0.5 },
       to: { zoom: 1, centerX: 0.5, centerY: 0.5 },

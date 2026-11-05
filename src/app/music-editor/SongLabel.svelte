@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Separated from "../components/Separated.svelte";
   import type { Snippet } from "svelte";
   import { MILLISECONDS_PER_SECOND } from "../../player";
   import { getTranslator } from "../i18n/context";
@@ -30,12 +31,14 @@
   </span>
   {#if detail === undefined}
     <small>
-      {song.trimmed
-        ? t("music.trimmedTo", {
-            duration: duration(song.durationMs),
-            excerpt: duration(song.excerptMs),
-          })
-        : duration(song.durationMs)}
+      <Separated
+        text={song.trimmed
+          ? t("music.trimmedTo", {
+              duration: duration(song.durationMs),
+              excerpt: duration(song.excerptMs),
+            })
+          : duration(song.durationMs)}
+      />
     </small>
   {:else}
     {@render detail(song)}

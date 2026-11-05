@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { FocusSlideshowSummary } from "../../focus/pictures-focus";
   import Icon from "../../components/Icon.svelte";
+  import Separated from "../../components/Separated.svelte";
   import { getTranslator } from "../../i18n/context";
   import { focusSheetStatus } from "./focus-sheet-view";
 
@@ -22,10 +23,12 @@
 <div class="status">
   {#if status.kind === "looking"}
     <span
-      >{t(status.again ? "focusSheet.lookingAgain" : "focusSheet.looking", {
-        done: status.done,
-        total: status.total,
-      })}</span
+      ><Separated
+        text={t(status.again ? "focusSheet.lookingAgain" : "focusSheet.looking", {
+          done: status.done,
+          total: status.total,
+        })}
+      /></span
     >
     <div class="bar"><i style:width="{(status.done / status.total) * PERCENT}%"></i></div>
     {#if status.again}

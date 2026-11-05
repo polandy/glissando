@@ -22,7 +22,7 @@ export function pictureKenBurns(
 /**
  * The motion each half of a composed portrait pair plays at `index`: automatic, aimed at its own
  * focus, with no horizontal pan so the two halves stay in step (ADR-0028). A paired picture never
- * has an own motion (see `slideUnits`). `strength` is a mood's Ken Burns strength in place of the
+ * has a chosen motion (see `slideUnits`). `strength` is a mood's Ken Burns strength in place of the
  * default (ADR-0045).
  */
 export function pairKenBurns(

@@ -14,8 +14,8 @@ export const EXPORT_OPTIONS = {
 };
 
 /**
- * Two pictures in an own order, the first with a caption, its own duration and transition and a
- * file size of origin, the second with its own motion, an Immich asset id of origin, an
+ * Two pictures in an own order, the first with a caption, its chosen duration and transition and a
+ * file size of origin, the second with its chosen motion, an Immich asset id of origin, an
  * alternating default transition, and music, as stored on the exporting device.
  */
 export const EXPORTED_SLIDESHOW: StoredSlideshow = {

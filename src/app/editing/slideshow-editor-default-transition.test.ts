@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { setUp } from "./editor-test-harness";
 
 describe("SlideshowEditor, the slideshow's default transition", () => {
-  it("stores the default at once and leaves the pictures' own transitions alone", async () => {
+  it("stores the default at once and leaves the pictures' chosen transitions alone", async () => {
     const { editor, store, storedPicture } = await setUp();
     editor.setTransition("a", "cut");
 

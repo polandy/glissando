@@ -24,8 +24,8 @@ it does to "fill the music" (ADR-0022), and where it is worked out.
   them (`leaveMood`: its transition, its target seconds, own seconds), then applies the change,
   with the editor's undo. The Ken Burns strength and the transition share have no single setting
   and go back to the standard ones.
-- **A picture's own values always win** (ADR-0008): own duration, own transition and own
-  motion are kept under every mood; an own duration still snaps to the beat within its slack.
+- **A picture's own values always win** (ADR-0008): chosen duration, chosen transition and own
+  motion are kept under every mood; a chosen duration still snaps to the beat within its slack.
 - **The tempo is the first song's that has beats** (`beatsPerMinute` of the first song in play
   order with a clear beat and `pictureChanges` not `"even"`). The picture length is the whole
   number of the mood's beat steps — a phrase of 4 for Calm, 2 for Lively — closest to its target
