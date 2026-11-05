@@ -1,10 +1,11 @@
 import "../../../styles/tokens.css";
 import { afterEach, describe, expect, it } from "vitest";
+import { separatorRoom } from "../../testing/separator-room";
 import { mountWithTranslator } from "../../testing/mount-with-translator";
 import PanelActionRow from "./PanelActionRow.svelte";
 
-/** Room the "·" gets on each side beyond the font's narrow spaces, in CSS pixels. */
-const SEPARATOR_MIN_PADDING_PX = 3;
+/** Room the "·" gets on both sides together beyond the font's narrow spaces, in CSS pixels. */
+const SEPARATOR_MIN_ROOM_PX = 6;
 
 let destroy: (() => void) | null = null;
 afterEach(() => {
@@ -34,9 +35,7 @@ describe("PanelActionRow", () => {
     expect(separators.map((separator) => separator.textContent)).toEqual([" · "]);
     const [separator] = separators;
     if (separator === undefined) throw new Error("no separator in the summary");
-    const { paddingLeft, paddingRight } = getComputedStyle(separator);
-    expect(parseFloat(paddingLeft)).toBeGreaterThanOrEqual(SEPARATOR_MIN_PADDING_PX);
-    expect(parseFloat(paddingRight)).toBeGreaterThanOrEqual(SEPARATOR_MIN_PADDING_PX);
+    expect(separatorRoom(separator)).toBeGreaterThanOrEqual(SEPARATOR_MIN_ROOM_PX);
   });
 
   it("shows the value alone with an empty summary", () => {

@@ -6,7 +6,8 @@
 <span class="separator">{SEPARATOR}</span>
 
 <style>
+  /* Wider spaces rather than padding: a line that wraps at the dot drops its space, room included. */
   .separator {
-    padding: 0 var(--gl-separator-room);
+    word-spacing: var(--gl-separator-room);
   }
 </style>
