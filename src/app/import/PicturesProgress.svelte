@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Separator from "../components/Separator.svelte";
   import Separated from "../components/Separated.svelte";
   import Icon from "../components/Icon.svelte";
   import { getTranslator } from "../i18n/context";
@@ -101,7 +102,10 @@
       <span>
         <b>{t("units.pictures", { count: state.pictures.length })}</b>
         <span class="muted">
-          · {t("import.dateRange", { from: formatDate(range.from), to: formatDate(range.to) })}
+          <Separator />{t("import.dateRange", {
+            from: formatDate(range.from),
+            to: formatDate(range.to),
+          })}
         </span>
       </span>
     </div>
