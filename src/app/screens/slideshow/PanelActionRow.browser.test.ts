@@ -1,3 +1,4 @@
+import "../../../styles/tokens.css";
 import { afterEach, describe, expect, it } from "vitest";
 import { mountWithTranslator } from "../../testing/mount-with-translator";
 import PanelActionRow from "./PanelActionRow.svelte";
