@@ -49,14 +49,15 @@ export type Repeat = (everyMs: number, action: () => void) => () => void;
 
 /**
  * Writes `answer`'s stream to `response`; answers how to end it, as at shutdown. A client that
- * left while its request was read never opens the stream, so it is never counted as present.
+ * left while its request was read never opens the stream, so it is never counted as present,
+ * and the answer is `null`: there is nothing to end.
  */
 export function pipeEventStream(
   answer: StreamAnswer,
   response: StreamResponse,
   repeat: Repeat,
-): () => void {
-  if (response.destroyed) return () => {};
+): (() => void) | null {
+  if (response.destroyed) return null;
   let ended = false;
   response.writeHead(answer.status, answer.headers);
   const write = (chunk: string) => {

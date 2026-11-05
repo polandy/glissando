@@ -95,6 +95,7 @@ async function serve(
   }
   if (isStreamAnswer(answer)) {
     const end = pipeEventStream(answer, response, repeatEvery);
+    if (end === null) return;
     handlers.openStreams.add(end);
     response.once("close", () => handlers.openStreams.delete(end));
     return;

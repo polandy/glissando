@@ -100,10 +100,12 @@ describe("an event stream on the HTTP response", () => {
     const leftAnswer = drivenAnswer();
     const present = edge();
     const presentAnswer = drivenAnswer();
-    pipeEventStream(presentAnswer.answer, present.response, present.repeat);
-    pipeEventStream(leftAnswer.answer, left.response, left.repeat);
+    const presentEnd = pipeEventStream(presentAnswer.answer, present.response, present.repeat);
+    const leftEnd = pipeEventStream(leftAnswer.answer, left.response, left.repeat);
     expect([presentAnswer.opened.length, present.repeats.length]).toEqual([1, 1]);
+    expect(presentEnd).toBeTypeOf("function");
     expect([leftAnswer.opened.length, left.repeats.length, left.heads.length]).toEqual([0, 0, 0]);
+    expect(leftEnd).toBeNull();
   });
 
   it("ends the response when the owner closes the stream, writing nothing after", () => {
@@ -121,7 +123,7 @@ describe("an event stream on the HTTP response", () => {
     const { response, repeat, repeats, isEnded } = edge();
     const end = pipeEventStream(drivenAnswer().answer, response, repeat);
     expect(isEnded()).toBe(false);
-    end();
+    end?.();
     expect([isEnded(), repeats[0]?.cancelled]).toEqual([true, true]);
   });
 });
