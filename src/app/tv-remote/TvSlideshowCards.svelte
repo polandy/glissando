@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Separated from "../components/Separated.svelte";
   import { getTranslator } from "../i18n/context";
   import type { TvSlideshowCard } from "./tv-session";
 
@@ -26,10 +27,12 @@
     >
       <b>{slideshow.title}</b>
       <small>
-        {t("tvSheet.cardFacts", {
-          pictures: t("units.pictures", { count: slideshow.pictureCount }),
-          duration: formatDuration(slideshow.durationSeconds),
-        })}
+        <Separated
+          text={t("tvSheet.cardFacts", {
+            pictures: t("units.pictures", { count: slideshow.pictureCount }),
+            duration: formatDuration(slideshow.durationSeconds),
+          })}
+        />
       </small>
     </button>
   {/each}

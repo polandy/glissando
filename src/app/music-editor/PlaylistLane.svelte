@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Separated from "../components/Separated.svelte";
   import { MILLISECONDS_PER_SECOND } from "../../player";
   import { getTranslator } from "../i18n/context";
   import type { PlaylistView } from "./playlist-view";
@@ -33,10 +34,12 @@
 <div class="playlist-timeline">
   <div class="lane-label">
     <span>
-      {t("music.playlistLane", {
-        count: playlist.songCount,
-        duration: duration(playlist.playlistMs),
-      })}
+      <Separated
+        text={t("music.playlistLane", {
+          count: playlist.songCount,
+          duration: duration(playlist.playlistMs),
+        })}
+      />
     </span>
     {#if playlist.repeatMusic}
       <span>{t("music.playlistRepeats")}</span>
@@ -71,10 +74,12 @@
   </div>
   <div class="lane-label">
     <span>
-      {t("music.slideshowLaneTotal", {
-        count: playlist.slideChangesMs.length + 1,
-        duration: duration(playlist.slideshowMs),
-      })}
+      <Separated
+        text={t("music.slideshowLaneTotal", {
+          count: playlist.slideChangesMs.length + 1,
+          duration: duration(playlist.slideshowMs),
+        })}
+      />
     </span>
   </div>
   <div class="slides" aria-hidden="true">

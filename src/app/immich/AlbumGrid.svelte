@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Separated from "../components/Separated.svelte";
   import type { BrowseFailure } from "../../immich/browse-failure";
   import type { ImmichAlbum } from "../../immich/immich-client";
   import Icon from "../components/Icon.svelte";
@@ -73,7 +74,7 @@
             {/if}
           </span>
           <span class="name">{album.name}</span>
-          <span class="meta">{meta(album)}</span>
+          <span class="meta"><Separated text={meta(album)} /></span>
           {#if failure !== undefined}
             <span class="failed" role="alert">{t(browseFailureMessages(failure).line)}</span>
           {/if}

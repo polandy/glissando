@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Separated from "../components/Separated.svelte";
   import { onDestroy } from "svelte";
   import {
     SAMPLE_TRACKS,
@@ -122,7 +123,7 @@
   <div class="header">
     <h2 class="block-title">{t("sampleMusicPicker.blockTitle")}</h2>
     <p class="block-subtitle">
-      {t("sampleMusicPicker.blockSubtitle", { count: SAMPLE_TRACKS.length })}
+      <Separated text={t("sampleMusicPicker.blockSubtitle", { count: SAMPLE_TRACKS.length })} />
     </p>
   </div>
   {#if !online}
@@ -140,7 +141,7 @@
           {@render card(track)}
         {/each}
       </ul>
-      <p class="footer">{t("sampleMusicPicker.footer")}</p>
+      <p class="footer"><Separated text={t("sampleMusicPicker.footer")} /></p>
     </div>
   </div>
   <button

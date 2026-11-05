@@ -2,6 +2,7 @@
   import type { OwnKenBurns } from "../../library/own-ken-burns";
   import type { Framing, Rect, Size } from "../../player";
   import { getTranslator } from "../i18n/context";
+  import Separated from "../components/Separated.svelte";
   import type { FocusIndication } from "./focus-indication";
   import FrameWell from "./FrameWell.svelte";
   import type { FrameKey } from "./frame-keys";
@@ -54,7 +55,7 @@
     {onActivate}
     {onFraming}
   />
-  <p class="hint wide-hint">{t("editor.hintWide")}</p>
+  <p class="hint wide-hint"><Separated text={t("editor.hintWide")} /></p>
   <ViewSwitch view={phoneView} {onView} />
 </div>
 

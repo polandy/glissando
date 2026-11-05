@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Separated from "../../components/Separated.svelte";
   import Icon from "../../components/Icon.svelte";
   import { getTranslator } from "../../i18n/context";
   import type { SlideshowStorage } from "../view-models";
@@ -23,7 +24,7 @@
     <strong>
       {storage.kind === "server" ? t("server.sectionServer") : t("server.sectionDevice")}
     </strong>
-    <small>{origin}</small>
+    <small><Separated text={origin} /></small>
   </span>
   {#if storage.kind === "server"}
     <span class="status" role="status">

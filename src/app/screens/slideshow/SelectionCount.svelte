@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Separated from "../../components/Separated.svelte";
   import { getTranslator } from "../../i18n/context";
 
   /**
@@ -26,9 +27,11 @@
 {#if several}
   <span class="count several" aria-live="polite">
     <b class="mono">{count}</b><span class="word"
-      >{range === null
-        ? t("slideshow.selectedCount", { count })
-        : t("slideshow.selectedRange", { count, from: range.from, to: range.to, total })}</span
+      ><Separated
+        text={range === null
+          ? t("slideshow.selectedCount", { count })
+          : t("slideshow.selectedRange", { count, from: range.from, to: range.to, total })}
+      /></span
     >
   </span>
 {:else}

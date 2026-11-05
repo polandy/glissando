@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Separated from "../components/Separated.svelte";
   import type { Snippet } from "svelte";
   import SectionHead from "../components/SectionHead.svelte";
   import { getTranslator } from "../i18n/context";
@@ -29,7 +30,13 @@
 <section class="section" aria-labelledby={HEAD_ID}>
   <SectionHead id={HEAD_ID} icon="clock" title={t("music.pictureLength")} own={false} />
   <p class="by-mood">
-    {moodPictureTimesRowText(translator, moodPictureLength.mood, moodPictureLength.beatsPerMinute)}
+    <Separated
+      text={moodPictureTimesRowText(
+        translator,
+        moodPictureLength.mood,
+        moodPictureLength.beatsPerMinute,
+      )}
+    />
   </p>
   <button type="button" class="btn small ghost set-own" onclick={onSetOwnPictureTimes}>
     {t("music.setOwnPictureTimes")}

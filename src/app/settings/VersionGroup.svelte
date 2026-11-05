@@ -1,5 +1,7 @@
 <script lang="ts">
   import Icon from "../components/Icon.svelte";
+  import Separated from "../components/Separated.svelte";
+  import { SEPARATOR } from "../components/separator";
   import { getTranslator } from "../i18n/context";
   import type { BuildInfo } from "./build-info";
 
@@ -18,7 +20,11 @@
   <div class="box" class:update={updateWaiting}>
     <div class="text">
       <b>{t("settings.versionName", { version: build.version })}</b>
-      <span>{build.commit} · <span class="mono">{formatDate(build.commitDate)}</span></span>
+      <span
+        >{build.commit}<Separated text={SEPARATOR} /><span class="mono"
+          >{formatDate(build.commitDate)}</span
+        ></span
+      >
     </div>
     {#if updateWaiting}
       <button class="btn primary small" type="button" onclick={onUpdate}>

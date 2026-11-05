@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Separated from "../components/Separated.svelte";
   import Icon from "../components/Icon.svelte";
   import { getTranslator } from "../i18n/context";
   import type { ImportPick, PictureImportState } from "../../import/picture-import";
@@ -46,7 +47,11 @@
   {#if importing}
     <div class="queue">
       <div class="queue-head">
-        <span>{t("import.queueHeader", { done: state.done, count: state.total })}</span>
+        <span
+          ><Separated
+            text={t("import.queueHeader", { done: state.done, count: state.total })}
+          /></span
+        >
         <span class="muted">
           {t("import.queueLeft", { count: state.total - state.done })}
         </span>
@@ -58,7 +63,7 @@
         {#each rows.rows as row (row.pick.id)}
           <li class="queue-row">
             <Icon name={PICK_ICONS[row.pick.kind]} />
-            <span class="name">{pickName(row.pick, t)}</span>
+            <span class="name"><Separated text={pickName(row.pick, t)} /></span>
             <span class="status">
               {#if row.finished}
                 {t("import.pickDone", { count: row.pick.done })}

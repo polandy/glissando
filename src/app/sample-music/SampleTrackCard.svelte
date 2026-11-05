@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Separated from "../components/Separated.svelte";
   import { MILLISECONDS_PER_SECOND } from "../../player";
   import type { SampleTrack } from "../../sample-music/sample-tracks";
   import { SAMPLE_TRACK_COVER_URLS } from "../../sample-music/sample-track-covers";
@@ -100,7 +101,7 @@
       {/if}
       <span class="name">{track.title}</span>
     </b>
-    <p class="mood">{t(SAMPLE_TRACK_MOOD_KEYS[track.id])}</p>
+    <p class="mood"><Separated text={t(SAMPLE_TRACK_MOOD_KEYS[track.id])} /></p>
     <p class="length mono">{formatDuration(track.durationMs / MILLISECONDS_PER_SECOND)}</p>
     {#if statusKey !== undefined}<span class="status">{t(statusKey)}</span>{/if}
   </div>

@@ -6,6 +6,7 @@
   import FrameAlbumPicker from "./FrameAlbumPicker.svelte";
   import Header from "../components/Header.svelte";
   import Notice from "../components/Notice.svelte";
+  import Separated from "../components/Separated.svelte";
   import Switch from "../components/Switch.svelte";
   import { getTranslator } from "../i18n/context";
   import type { MessageKey } from "../i18n/messages";
@@ -139,7 +140,7 @@
   <div class="foot">
     <span class="grow">
       {#if selectedAlbum !== null && !emptyAlbum}
-        {t("frame.footerSummary", { count: selectedAlbum.photoCount })}
+        <Separated text={t("frame.footerSummary", { count: selectedAlbum.photoCount })} />
       {/if}
     </span>
     {#if canCopyLink}

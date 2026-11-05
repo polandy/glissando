@@ -1,6 +1,8 @@
 <script lang="ts">
   import { CUT_TRANSITION } from "../../library/own-timing";
   import { MILLISECONDS_PER_SECOND } from "../../player";
+  import Separated from "../components/Separated.svelte";
+  import { SEPARATOR } from "../components/separator";
   import { getTranslator } from "../i18n/context";
   import type { PictureEditorView } from "./picture-editor-view";
 
@@ -30,7 +32,7 @@
 </script>
 
 <p class="preview-line">
-  <b>{t("editor.crumb", { number: picture.number })}</b> · {line}
+  <b>{t("editor.crumb", { number: picture.number })}</b><Separated text={SEPARATOR} />{line}
 </p>
 
 <style>
