@@ -32,7 +32,9 @@ carrying a key or secret is `Cache-Control: no-store`.
 `Content-Type: text/event-stream`, `Cache-Control: no-store`, `X-Accel-Buffering: no`, and
 a `: keep-alive` comment every `KEEP_ALIVE_MS` (25 s) from `main.ts`'s timer so a proxy keeps
 the connection. Each event is `event: <name>` and `data: <JSON>`. A stream of a session that
-ended answers 404 `noSuchTv` before it opens; the service ends every open stream when it stops.
+ended answers 404 `noSuchTv` before it opens; a client that left while its request was read
+never opens its stream, so it never counts as present; the service ends every open stream when
+it stops.
 
 - **TV stream**: first `snapshot` `{ "claimed": boolean, "showing": boolean, "remotePresent": boolean }`, then
   `claimed` `{}` (way A: the phone claimed the code), `show` `{}`, `command` `<Command>`,

@@ -9,7 +9,7 @@ import {
 import type { EventSink } from "./tv-hub";
 
 /** A response that records what was written, and a repeat the test fires by hand. */
-function edge() {
+function edge({ destroyed = false } = {}) {
   const written: string[] = [];
   const heads: [number, Record<string, string>][] = [];
   const closeListeners: (() => void)[] = [];
@@ -21,6 +21,7 @@ function edge() {
       ended = true;
     },
     once: (_, listener) => closeListeners.push(listener),
+    destroyed,
   };
   const repeats: { everyMs: number; action: () => void; cancelled: boolean }[] = [];
   const repeat = (everyMs: number, action: () => void) => {
@@ -92,6 +93,17 @@ describe("an event stream on the HTTP response", () => {
     expect(closedByClient()).toBe(0);
     clientLeaves();
     expect([closedByClient(), repeats[0]?.cancelled]).toEqual([1, true]);
+  });
+
+  it("never opens the stream of a client that left before its answer was ready", () => {
+    const left = edge({ destroyed: true });
+    const leftAnswer = drivenAnswer();
+    const present = edge();
+    const presentAnswer = drivenAnswer();
+    pipeEventStream(presentAnswer.answer, present.response, present.repeat);
+    pipeEventStream(leftAnswer.answer, left.response, left.repeat);
+    expect([presentAnswer.opened.length, present.repeats.length]).toEqual([1, 1]);
+    expect([leftAnswer.opened.length, left.repeats.length, left.heads.length]).toEqual([0, 0, 0]);
   });
 
   it("ends the response when the owner closes the stream, writing nothing after", () => {

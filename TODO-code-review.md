@@ -11,7 +11,6 @@ Each fix starts with the failing test the item names or implies (WORKFLOW.md, Te
 
 ### Server, sync and TV
 
-- [ ] `server/main.ts:83-99` + `server/tv/event-stream.ts:333` — The SSE close listener is attached only after the body is read; a client gone in that gap stays the session's TV forever (no expiry, keep-alive runs on, remotes see `tvPresent`). Fix: register close before awaiting the body; end at once if the socket is already destroyed.
 - [ ] `server/tv/tv-hub.ts:146-151` — `POST /api/tv/sessions` is public and at `MAX_SESSIONS` evicts sessions with a live TV, so 100 anonymous POSTs end every pairing in use. Fix: never evict a session whose stream is open (503 instead), or rate-limit in Caddy.
 - [ ] `src/server-library/server-slideshow-store.ts:65-71,191-195,229-237` — A list/read answered after an edit overwrites the remembered revision with an older one; the next edit gets 412 and a false "changed on another device". Fix: `#remember` keeps the newer stored revision.
 - [ ] `src/server-library/http-server-library-client.ts:68-73` + `server-library-availability.ts:103` — Discovery maps 5xx and the auth redirect (status 0) to "no library" and persists it, so a restart or expired sign-in turns the next offline start into "off". Fix: throw `ServerLibraryUnavailableError` as `check` does.
