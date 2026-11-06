@@ -37,7 +37,7 @@ the server.
   later devices read it instead of detecting again; a later `PUT` replaces the stored result
   (two devices may race, but the same detector gives the same answer).
 - **Loudness** (`MusicLoudness`, `src/loudness/measure-loudness.ts`, `dev-docs/library/MUSIC.md`):
-  a device `PUT`s what the loudness pass measured, as the compact dB/dBFS JSON
+  a device `PUT`s what the music analysis measured, as the compact dB/dBFS JSON
   `src/loudness/music-loudness-json.ts` defines, so later devices read it instead of measuring
   again; a later `PUT` replaces the stored result the same way beats does.
 - **Focus** (`StoredFocus`, `src/library/picture-focus.ts`, ADR-0041): a device `PUT`s the focus it

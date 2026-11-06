@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onDestroy, onMount } from "svelte";
-  import type { BeatPass } from "../../library/beat-pass";
+  import type { MusicAnalysisPass } from "../../library/music-analysis-pass";
   import type { LibraryStore } from "../../library/library-store";
   import type { StoredSlideshow } from "../../library/stored-slideshow";
   import { performanceClock, type DecodeClipSound, type MusicOutput } from "../../player";
@@ -41,7 +41,7 @@
     onClose,
     onError,
     log,
-    beatPass,
+    analysisPass,
     home,
     missing,
     onPictureMissing,
@@ -67,7 +67,7 @@
     /** Logs a focus or beats that could not be read: play goes on without them. */
     log: (error: unknown) => void;
     /** Listens for the music's beats if none are known yet, for the next time it plays. */
-    beatPass: Pick<BeatPass, "listenFor">;
+    analysisPass: Pick<MusicAnalysisPass, "listenFor">;
     home: SlideshowHome;
     /** Pictures Immich answered 404 for, as the screen knows them when playing begins. */
     missing: ReadonlySet<string>;
@@ -190,7 +190,7 @@
       prepareView = view;
     });
     for (const song of stored.songs) {
-      beatPass.listenFor(song.id);
+      analysisPass.listenFor(song.id);
     }
     loadPlayerData(store, stored, log, closed.signal).then((data) => {
       if (data === null) {

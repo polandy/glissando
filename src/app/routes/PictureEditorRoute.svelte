@@ -1,8 +1,7 @@
 <script lang="ts">
   import { onDestroy } from "svelte";
-  import type { BeatPass } from "../../library/beat-pass";
   import type { FocusPass } from "../../library/focus-pass";
-  import type { LoudnessPass } from "../../library/loudness-pass";
+  import type { MusicAnalysisPass } from "../../library/music-analysis-pass";
   import { MediaQuery } from "svelte/reactivity";
   import type { LibraryStore } from "../../library/library-store";
   import type { StoredSlideshow } from "../../library/stored-slideshow";
@@ -27,8 +26,7 @@
     focus,
     focusPass,
     passPaused,
-    beatPass,
-    loudnessPass,
+    analysisPass,
     editor,
     pictureId,
     saving,
@@ -47,10 +45,9 @@
     focusPass: Pick<FocusPass, "lookAgain">;
     /** The pass ended on a `pausesOn` error: the focus line says so, not "waiting". */
     passPaused: boolean;
-    /** What it finds puts the automatic changes on the music's beats as it goes. */
-    beatPass: Pick<BeatPass, "subscribe" | "listenFor">;
-    /** What it finds paces the automatic changes by the music's energy, while that is on. */
-    loudnessPass: Pick<LoudnessPass, "subscribe" | "listenFor">;
+    /** What it finds puts the automatic changes on the music's beats and paces them by the
+     * music's energy, while that is on (ADR-0051). */
+    analysisPass: Pick<MusicAnalysisPass, "subscribe" | "listenFor">;
     editor: SlideshowEditor;
     pictureId: string;
     saving: boolean;
@@ -94,7 +91,7 @@
   let beats = $state.raw<ReadonlyMap<string, BeatsStatus>>(new Map());
   // The ports are fixed for the route's lifetime.
   // svelte-ignore state_referenced_locally
-  const playlistBeats = new PlaylistBeats({ store, pass: beatPass, log }, (status) => {
+  const playlistBeats = new PlaylistBeats({ store, pass: analysisPass, log }, (status) => {
     beats = status;
   });
   onDestroy(() => playlistBeats.dispose());
@@ -109,7 +106,7 @@
   let loudness = $state.raw<ReadonlyMap<string, LoudnessStatus>>(new Map());
   // The ports are fixed for the route's lifetime.
   // svelte-ignore state_referenced_locally
-  const playlistLoudness = new PlaylistLoudness({ store, pass: loudnessPass, log }, (status) => {
+  const playlistLoudness = new PlaylistLoudness({ store, pass: analysisPass, log }, (status) => {
     loudness = status;
   });
   onDestroy(() => playlistLoudness.dispose());

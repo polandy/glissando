@@ -1,9 +1,9 @@
-import type { LoudnessPass } from "../../library/loudness-pass";
+import type { MusicAnalysisPass } from "../../library/music-analysis-pass";
 import type { LoudnessStatus } from "./music-loudness-known";
 import { TrackLoudness, type TrackLoudnessPorts } from "./track-loudness";
 
 export interface PlaylistLoudnessPorts extends TrackLoudnessPorts {
-  readonly pass: Pick<LoudnessPass, "subscribe" | "listenFor">;
+  readonly pass: Pick<MusicAnalysisPass, "subscribe" | "listenFor">;
 }
 
 /**

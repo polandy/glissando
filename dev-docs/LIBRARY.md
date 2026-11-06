@@ -13,8 +13,7 @@ ADR-0003; file container: ADR-0038.
 | [Sample music](library/SAMPLE_MUSIC.md)                            | Glissando's own tracks: preview, download, offline, credit                    |
 | [Storage layout](library/STORAGE_LAYOUT.md)                        | The IndexedDB schema and what each edit stores                                |
 | [Looking for the focus](library/FOCUS_SEARCH.md)                   | `FocusPass` finding a picture's subject in the background                     |
-| [Listening for the beats](library/BEAT_LISTENING.md)               | `BeatPass` finding a song's beats in the background                           |
-| [Measuring the loudness](library/LOUDNESS_LISTENING.md)            | `LoudnessPass` measuring a song's loudness in the background                  |
+| [Analysing the music](library/MUSIC_ANALYSIS.md)                   | `MusicAnalysisPass` finding a song's beats and loudness in the background     |
 | [Abandoned imports and claims](library/ABANDONED_IMPORTS.md)       | Claims on media and the clean-up of what nothing references                   |
 | [The .glissando file](library/GLISSANDO_FILE.md)                   | The ZIP container's entries and the manifest's fields and validation          |
 | [.glissando export, check and write](library/GLISSANDO_FILE_IO.md) | Export, the check before a file is stored, write, and `index.html`            |

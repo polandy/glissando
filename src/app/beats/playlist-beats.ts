@@ -1,9 +1,9 @@
-import type { BeatPass } from "../../library/beat-pass";
+import type { MusicAnalysisPass } from "../../library/music-analysis-pass";
 import type { BeatsStatus } from "./music-beats-known";
 import { TrackBeats, type TrackBeatsPorts } from "./track-beats";
 
 export interface PlaylistBeatsPorts extends TrackBeatsPorts {
-  readonly pass: Pick<BeatPass, "subscribe" | "listenFor">;
+  readonly pass: Pick<MusicAnalysisPass, "subscribe" | "listenFor">;
 }
 
 /**

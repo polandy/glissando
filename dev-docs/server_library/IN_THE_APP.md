@@ -97,7 +97,7 @@ The wizard's choice and server mode: [Where a new slideshow lives](NEW_SLIDESHOW
   the server's own focus, laid over by this session's `putPictureFocus` ([FOCUS.md](FOCUS.md));
   `musicBeats`/`musicLoudness`
   (with `put…`) keep beats and loudness beside the server music, measured by the first device
-  opening the slideshow in the player or music editor (`serverBeatPass`/`serverLoudnessPass`). Both stores share the type
+  opening the slideshow in the player or music editor (`serverAnalysisPass`). Both stores share the type
   `SlideshowStore` (`src/library/library-store.ts`).
 - Errors the screens tell apart: an unknown slideshow is `SlideshowNotFoundError` as on the
   device; an edit at a stale revision `SlideshowChangedError` carrying the current slideshow; a

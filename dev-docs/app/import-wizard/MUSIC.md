@@ -29,7 +29,7 @@ slideshow will play them, each crossfading into the next (ADR-0023).
 
 **Limits** (`src/import/music-limits.ts`): a song may weigh at most `MAX_MUSIC_BYTES` (200 MiB),
 what the server accepts as an upload, and play at most `MAX_MUSIC_DURATION_MS` (20 minutes). The
-duration bounds the memory of the loudness pass, which decodes at the device's full rate with every
+duration bounds the memory of the music analysis, which decodes at the device's full rate with every
 channel kept (ADR-0040): about 23 MB of Float32 per stereo minute at 48 kHz, so 460 MB at worst.
 20 minutes covers any normal song and a long track and refuses an hour-long mix. Exactly at a cap
 is allowed. The bytes are checked on the picked file before it is recognised, converted or probed,

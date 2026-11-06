@@ -1,6 +1,14 @@
 import { assertMusicWithinLimits } from "../import/music-limits";
 import { probeMusicDurationMs } from "../import/music-probe";
-import type { DecodeMusic } from "./worker-loudness-meter";
+
+/** A track decoded to every channel at its own sample rate (ADR-0040, ADR-0051). */
+export interface DecodedMusic {
+  readonly channels: readonly Float32Array[];
+  readonly sampleRate: number;
+}
+
+/** Turns a music file into its channels; the browser's decoder behind a seam. Rejects when it cannot. */
+export type DecodeMusic = (music: Blob) => Promise<DecodedMusic>;
 
 /** The device's output rate; asked once, since it does not change while the app runs. */
 export type ProbeSampleRate = () => Promise<number>;
@@ -21,8 +29,8 @@ export const probeDeviceSampleRate: ProbeSampleRate = async () => {
 
 /**
  * Decodes with Web Audio at this device's own output rate, every channel kept apart (ADR-0040):
- * unlike the beat pass's decode, nothing is resampled down or mixed to mono, so the measured
- * peaks and loudness are not blurred by either. The rate is probed on the first song, not at
+ * nothing is resampled down or mixed to mono here, so the measured peaks and loudness are not
+ * blurred by either; the beat analysis mixes and resamples on its own. The rate is probed on the first song, not at
  * boot: an `AudioContext` made before a user gesture draws browser warnings. A song over
  * `MAX_MUSIC_BYTES` or `MAX_MUSIC_DURATION_MS` is refused before it is read, which bounds the
  * decoded size.

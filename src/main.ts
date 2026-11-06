@@ -33,10 +33,11 @@ import { FocusPass } from "./library/focus-pass";
 import { serializeFocusDetector } from "./library/serialized-focus-detector";
 import { openLibraryStore } from "./library/indexeddb-store";
 import { startFocusWorker, WorkerFocusDetector } from "./focus/worker-focus-detector";
-import { decodeMusicWithWebAudio } from "./beats/decode-music";
-import { startBeatWorker, WorkerBeatDetector } from "./beats/worker-beat-detector";
-import { createFullRateDecoder, probeDeviceSampleRate } from "./loudness/decode-music-full-rate";
-import { startLoudnessWorker, WorkerLoudnessMeter } from "./loudness/worker-loudness-meter";
+import {
+  createFullRateDecoder,
+  probeDeviceSampleRate,
+} from "./music-analysis/decode-music-full-rate";
+import { startAnalysisWorker, WorkerMusicAnalyser } from "./music-analysis/worker-music-analyser";
 import { startBackgroundMusicPasses } from "./app/background-music-passes";
 import { requestPersistentStorage } from "./library/persistent-storage";
 import { browserPwaPorts } from "./pwa/browser-pwa";
@@ -142,13 +143,12 @@ const serverLibrary = createServerLibrary({
   log: logError,
 });
 
-const { beatPass, loudnessPass, serverBeatPass, serverLoudnessPass } = startBackgroundMusicPasses({
+const { analysisPass, serverAnalysisPass } = startBackgroundMusicPasses({
   store,
   serverStore: serverLibrary.store,
-  beatDetector: new WorkerBeatDetector(decodeMusicWithWebAudio, startBeatWorker),
-  loudnessMeter: new WorkerLoudnessMeter(
+  analyser: new WorkerMusicAnalyser(
     createFullRateDecoder(probeDeviceSampleRate),
-    startLoudnessWorker,
+    startAnalysisWorker,
   ),
   log: logError,
   reportError,
@@ -216,10 +216,8 @@ const services = {
   readClipPeaks: readClipPeaksWithMediabunny,
   focusPass,
   serverFocusPass,
-  beatPass,
-  serverBeatPass,
-  loudnessPass,
-  serverLoudnessPass,
+  analysisPass,
+  serverAnalysisPass,
   immich: { client: immichClient, availability: immichAvailability },
   serverLibrary: serverLibraryWithFocusStart,
   ...createSessionFactories({

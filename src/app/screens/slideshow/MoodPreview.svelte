@@ -22,7 +22,7 @@
    * units composed under `mood`, looping, silent until the "Sound" toggle is on. The caller
    * leaves this out while the slideshow has no pictures. `moodBeats` is the same pass-aware map
    * the sheet's tempo row is built from (`composedSongBeats`); the caller passes a new map once
-   * the background beat pass finds a song's beats, and the preview then re-paces to it, since a
+   * the background music analysis finds a song's beats, and the preview then re-paces to it, since a
    * new `previewSlideshow` remounts the player (`{#key}` below). `onLoaded`, once given, fires
    * with the loudness once it is loaded, so the Mood sheet can draw the energy strip (ADR-0046)
    * from that and `moodBeats`, instead of loading loudness twice.

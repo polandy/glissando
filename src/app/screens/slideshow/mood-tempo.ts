@@ -1,18 +1,18 @@
 import { moodTempo } from "../../../compose/mood-settings";
 import type { SongBeats } from "../../../compose/playlist";
-import type { BeatPassState } from "../../../library/beat-pass";
+import type { MusicAnalysisPassState } from "../../../library/music-analysis-pass";
 import type { StoredMusic, StoredSlideshow } from "../../../library/stored-slideshow";
 import { beatsStatus, composedBeats } from "../../beats/music-beats-known";
 
 /**
  * Each of the slideshow's songs' beats as already stored, overtaken by whatever the background
- * pass has found this session (`BeatPass`): the live preview (MoodPreview.svelte) composes and
+ * pass has found this session (`MusicAnalysisPass`): the live preview (MoodPreview.svelte) composes and
  * paces to this same map, so it re-paces once a song it is still listening to gets a result.
  */
 export function composedSongBeats(
   stored: Pick<StoredSlideshow, "songs">,
   storedBeats: SongBeats,
-  pass: BeatPassState,
+  pass: MusicAnalysisPassState,
 ): SongBeats {
   return new Map(
     stored.songs.map((song: StoredMusic) => [
@@ -30,7 +30,7 @@ export function composedSongBeats(
 export function slideshowMoodBpm(
   stored: Pick<StoredSlideshow, "songs">,
   storedBeats: SongBeats,
-  pass: BeatPassState,
+  pass: MusicAnalysisPassState,
 ): number | undefined {
   return moodTempo(stored, composedSongBeats(stored, storedBeats, pass));
 }

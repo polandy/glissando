@@ -40,8 +40,9 @@ Decoding at 11 025 Hz takes about 0.14 s for 3 minutes and is native code.
 
 ## Decision
 
-- **An own detector**, about 200 lines in `src/beats/`, no dependency: the decoded track (mono,
-  11 025 Hz, decoded by `OfflineAudioContext` on the main thread) goes to a **Web Worker** that
+- **An own detector**, about 200 lines in `src/beats/`, no dependency: the decoded track goes to
+  a **Web Worker** (mixed to mono and resampled to 11 025 Hz there, from the song's one full-rate
+  decode, ADR-0051) that
   builds a spectral-flux onset curve (512-sample frames, 128-sample hop), finds the tempo by
   autocorrelation between 50 and 200 BPM (harmonics weighted in, a log-normal preference around
   120 BPM), and tracks the individual beats by dynamic programming (Ellis 2007), so a song that

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { NO_BEATS, type MusicBeats } from "../../beats";
-import type { BeatPassState } from "../../library/beat-pass";
+import { SILENT } from "../../library/testing/music-analysis-pass-fixtures";
+import type { MusicAnalysisPassState } from "../../library/music-analysis-pass";
 import type { StoredSlideshow } from "../../library/stored-slideshow";
 import { beatsStatus, composedBeats, storedSongBeats } from "./music-beats-known";
 
@@ -20,7 +21,7 @@ const song = (id: string) => ({
   mimeType: "audio/mpeg",
 });
 const WITH_MUSIC: StoredSlideshow = { ...WITHOUT_MUSIC, songs: [song("drums"), song("ambient")] };
-const IDLE: BeatPassState = {
+const IDLE: MusicAnalysisPassState = {
   running: false,
   listening: new Set(),
   found: new Map(),
@@ -73,7 +74,7 @@ describe("storedSongBeats", () => {
 
 describe("beatsStatus", () => {
   it("is what the pass found, before what was stored", () => {
-    const pass = { ...IDLE, found: new Map([["drums", DRUMS]]) };
+    const pass = { ...IDLE, found: new Map([["drums", { beats: DRUMS, loudness: SILENT }]]) };
 
     expect(beatsStatus("drums", NO_BEATS, pass)).toEqual({ kind: "known", beats: DRUMS });
   });

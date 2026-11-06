@@ -230,8 +230,7 @@
       <SlideshowRoute
         store={opened.store}
         focusPass={onDevice ? services.focusPass : services.serverFocusPass}
-        beatPass={onDevice ? services.beatPass : services.serverBeatPass}
-        loudnessPass={onDevice ? services.loudnessPass : services.serverLoudnessPass}
+        analysisPass={onDevice ? services.analysisPass : services.serverAnalysisPass}
         {toaster}
         {newId}
         {now}

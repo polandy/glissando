@@ -1,6 +1,6 @@
 import type { SongLoudness } from "../../compose/song-loudness";
 import type { MusicLoudness } from "../../loudness";
-import type { LoudnessPassState } from "../../library/loudness-pass";
+import type { MusicAnalysisPassState } from "../../library/music-analysis-pass";
 
 /**
  * What the music editor knows of a track's loudness: found, undecodable on this device, or still
@@ -18,9 +18,10 @@ export const READING_LOUDNESS = "reading";
 export function loudnessStatus(
   musicId: string,
   stored: MusicLoudness | undefined | typeof READING_LOUDNESS,
-  pass: LoudnessPassState,
+  pass: MusicAnalysisPassState,
 ): LoudnessStatus {
-  const loudness = pass.found.get(musicId) ?? (stored === READING_LOUDNESS ? undefined : stored);
+  const loudness =
+    pass.found.get(musicId)?.loudness ?? (stored === READING_LOUDNESS ? undefined : stored);
   if (loudness !== undefined) {
     return { kind: "known", loudness };
   }

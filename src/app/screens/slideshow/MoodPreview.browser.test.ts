@@ -4,7 +4,7 @@ import "../../../styles/tokens.css";
 import { NO_SONG_BEATS, type SongBeats } from "../../../compose/playlist";
 import type { SongLoudness } from "../../../compose/song-loudness";
 import type { StoredSlideshow } from "../../../library/stored-slideshow";
-import { DRUMS } from "../../../library/testing/beat-pass-fixtures";
+import { DRUMS } from "../../../library/testing/music-analysis-pass-fixtures";
 import { MemoryLibraryStore } from "../../../library/testing/memory-store";
 import { MusicOutput } from "../../../player";
 import { browserObjectUrls } from "../../media/object-urls";

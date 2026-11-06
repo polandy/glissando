@@ -23,7 +23,6 @@ Each fix starts with the failing test the item names or implies (WORKFLOW.md, Te
 - [ ] `src/app/media/object-urls.ts:92-95` — A re-requested id whose newer load finishes first leaks the older load's URL (second URL created, first never revoked); the only test releases oldest-first. Fix: compare the latest load before `finally` clears it; revoke before replacing; add the newest-first test.
 - [ ] `src/glissando-file/media-descriptors.ts:172` + `read-manifest.ts:83-89` — Two pictures may name the same `file`; the second descriptor silently replaces the first, so one picture's size goes in unchecked, bytes are stored twice and the free-space check under-counts. Fix: refuse repeated picture and thumbnail paths like `refuseRepeatedSongPaths`.
 - [ ] `src/glissando-file/slideshow-fields-media.ts:103`, `manifest-video.ts:97` — A manifest's song/clip `mimeType` is only checked to be non-empty and becomes the stored Blob type. Fix: require `audio/*` / `video/*` (or the import allow-list), else damaged.
-- [ ] `src/library/beat-pass.ts` / `src/library/loudness-pass.ts` — Two ~215-line classes that are the same algorithm with renamed identifiers (plus matching contract tests); fixes must be made twice. Fix: one generic `MusicAnalysisPass<Result>` with ports, two thin instantiations.
 - [ ] `src/glissando-file/round-trip.browser.test.ts:35-88` — The round trip checks only title, one picture's bytes and media bytes; the ~25 optional fields are hand-listed in five mappers and a field forgotten in one is silently dropped. Fix: a fixture with every optional field set and a `toEqual` modulo ids/title/createdAt; or type the mappers so an unmapped key fails to compile.
 
 ### Import and Immich
@@ -35,8 +34,8 @@ Each fix starts with the failing test the item names or implies (WORKFLOW.md, Te
 
 ### Music, composition and focus
 
-- [ ] `src/beats/decode-music.ts`, `src/loudness/decode-music-full-rate.ts`, `src/app/music-editor/decode-peaks.ts` — A song is decoded three times (peaks, beats, loudness) on the main thread. Fix: one shared decode for peaks, beats and loudness; the decodes stay on the main thread.
-- [ ] `src/beats/worker-beat-detector.ts` / `src/loudness/worker-loudness-meter.ts` / `src/focus/worker-focus-detector.ts` and `src/app/beats/playlist-beats.ts` / `src/app/loudness/playlist-loudness.ts` (+ `track-*.ts`) — Worker client and playlist follower copied per pass; lifecycle fixes land in one copy only. Fix: a generic worker request client and `PlaylistFollower<T>`.
+- [ ] `src/app/music-editor/decode-peaks.ts` — The music editor decodes a song again for its waveform, beside the analysis's one full-rate decode (ADR-0051). Fix: draw the waveform from the stored loudness `hopPeaks`.
+- [ ] `src/music-analysis/worker-music-analyser.ts` / `src/focus/worker-focus-detector.ts` and `src/app/beats/playlist-beats.ts` / `src/app/loudness/playlist-loudness.ts` (+ `track-*.ts`) — Worker client and playlist follower copied per pass; lifecycle fixes land in one copy only. Fix: a generic worker request client and `PlaylistFollower<T>`.
 
 ### Exports, share and PWA
 

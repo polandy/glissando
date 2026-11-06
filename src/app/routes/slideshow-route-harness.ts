@@ -2,8 +2,7 @@ import { songIntakeStoringIn } from "../music-editor/testing/song-intake-device"
 import { createStorageMusicEditorDetailsStore } from "../music-editor/music-editor-details";
 import { createStorageFineSettingsFoldStore } from "../screens/slideshow/fine-settings-fold";
 import { createMemoryStorage } from "../testing/memory-storage";
-import { beatPassFindingNone } from "../../library/testing/beat-pass-finding-none";
-import { loudnessPassFindingNone } from "../../library/testing/loudness-pass-finding-none";
+import { analysisPassFindingNone } from "../../library/testing/music-analysis-pass-finding-none";
 import type { FocusPass } from "../../library/focus-pass";
 import type { StoredSlideshow } from "../../library/stored-slideshow";
 import { MemoryLibraryStore } from "../../library/testing/memory-store";
@@ -64,8 +63,7 @@ export function mountRoute(
   const props = reactiveProps({
     store,
     focusPass,
-    beatPass: beatPassFindingNone(store),
-    loudnessPass: loudnessPassFindingNone(store),
+    analysisPass: analysisPassFindingNone(store),
     toaster,
     newId: () => "claim-1",
     now: () => new Date("2026-10-08T12:00:00Z"),
