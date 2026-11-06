@@ -1,3 +1,6 @@
+/** How many fine peaks a whole track is drawn from; the waveform takes its bars from these. */
+export const FINE_PEAK_COUNT = 1000;
+
 /**
  * The waveform's bar heights: the loudest sample in each of `bars` even slices of the track,
  * scaled so the loudest bar is 1. Silence stays flat.

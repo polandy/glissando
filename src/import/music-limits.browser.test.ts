@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { decodePeaksWithWebAudio } from "../app/music-editor/decode-peaks";
 import {
   createFullRateDecoder,
   probeDeviceSampleRate,
@@ -24,12 +23,9 @@ async function outcome(decoding: Promise<unknown>): Promise<string> {
   }
 }
 
-const decoders = {
-  peaks: (music: Blob) => decodePeaksWithWebAudio(music),
-  analysis: createFullRateDecoder(probeDeviceSampleRate),
-};
+describe("the analysis decode", () => {
+  const decode = createFullRateDecoder(probeDeviceSampleRate);
 
-describe.each(Object.entries(decoders))("the %s decode", (_name, decode) => {
   it("decodes a short song", async () => {
     expect(await outcome(decode(new Blob([silentWav(SHORT_MS, SAMPLE_RATE)])))).toBe("decoded");
   });

@@ -8,7 +8,8 @@ A song was decoded twice in the background on the main thread: at 11 025 Hz mono
 (ADR-0021) and at the device's own rate with every channel kept for the loudness (ADR-0040). Each
 decode is the browser's native code and holds the whole song in memory; on a phone the two add
 up, and the beat and loudness passes were the
-same background pass written twice, with two workers and two worker clients.
+same background pass written twice, with two workers and two worker clients. The music editor
+decoded the selected song a third time, at 8 kHz, for its waveform's 1000 fine peaks.
 
 ## Options
 
@@ -21,6 +22,14 @@ same background pass written twice, with two workers and two worker clients.
    measured from the full-rate channels as before; the beats come from our own mix to mono and
    resampling to 11 025 Hz in the worker.
 
+For the waveform:
+
+1. **Store 1000 fine peaks per song beside the loudness.** The bars stay as fine as the decoded
+   ones for every length of song; the cost is a new field in both stores, the server API and its
+   repositories.
+2. **Draw the waveform from the loudness's hop peaks (chosen).** The loudness already keeps each
+   100 ms hop's sample peak, the loudest of the channels; no new stored field.
+
 ## Decision
 
 Option 3. `MusicAnalysisPass` (`src/library/music-analysis-pass.ts`) replaces the beat and
@@ -28,7 +37,9 @@ loudness passes: for each song without beats or loudness it decodes once at the 
 (`src/music-analysis/decode-music-full-rate.ts`) and hands every channel to one worker
 (`src/music-analysis/analysis-worker.ts`), which measures the loudness, mixes and resamples to
 11 025 Hz with a windowed-sinc low-pass (`mix-to-detection-rate.ts`) and finds the beats. The
-decode stays on the main thread, where `OfflineAudioContext` lives.
+decode stays on the main thread, where `OfflineAudioContext` lives. The music editor spreads the
+stored `hopPeaks` over its 1000 fine peaks (`src/app/music-editor/hop-fine-peaks.ts`) and decodes
+nothing itself.
 
 ## Consequences
 
@@ -41,3 +52,6 @@ decode stays on the main thread, where `OfflineAudioContext` lives.
 - Beats and loudness are found together: a failure loses both until the next pass.
 - The `.glissando` check still decodes each song once to prove it plays (ADR-0038); that is a
   check, not an analysis, and keeps its own low rate.
+- The waveform appears once the song is analysed; until then, and for a song the device cannot
+  decode, it shows its reading state. Selecting a song puts it first in the pass (`listenFor`).
+- A song under 100 s has fewer hops than fine peaks: its bars repeat a hop's peak, 100 ms wide.

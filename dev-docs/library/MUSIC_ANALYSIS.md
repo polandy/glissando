@@ -28,7 +28,9 @@ editor analyses it and keeps both results on the server beside the music
 analyser; a server out of reach is only logged. The player and both exports read the stored beats
 of every song once when they start (`storedSongBeats`); the picture and music editors follow the
 pass as it finds the first song's (`TrackBeats`) and read a song's loudness the same way
-(`src/app/loudness/track-loudness.ts`, `playlist-loudness.ts`). `.glissando` files carry neither:
+(`src/app/loudness/track-loudness.ts`, `playlist-loudness.ts`); the music editor draws the
+selected song's waveform from that loudness's hop peaks and asks the pass for the song when it is
+selected (ADR-0051). `.glissando` files carry neither:
 the receiver analyses again.
 
 A write commits its transaction explicitly (`commit()`) as soon as its last request is placed —

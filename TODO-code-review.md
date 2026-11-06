@@ -34,7 +34,6 @@ Each fix starts with the failing test the item names or implies (WORKFLOW.md, Te
 
 ### Music, composition and focus
 
-- [ ] `src/app/music-editor/decode-peaks.ts` — The music editor decodes a song again for its waveform, beside the analysis's one full-rate decode (ADR-0051). Fix: draw the waveform from the stored loudness `hopPeaks`.
 - [ ] `src/music-analysis/worker-music-analyser.ts` / `src/focus/worker-focus-detector.ts` and `src/app/beats/playlist-beats.ts` / `src/app/loudness/playlist-loudness.ts` (+ `track-*.ts`) — Worker client and playlist follower copied per pass; lifecycle fixes land in one copy only. Fix: a generic worker request client and `PlaylistFollower<T>`.
 
 ### Exports, share and PWA

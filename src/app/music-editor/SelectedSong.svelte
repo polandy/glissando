@@ -26,7 +26,7 @@
     onListen,
   }: {
     music: MusicEditorView;
-    /** Fine peaks of the whole track, 0..1; null while the track is decoded. */
+    /** Fine peaks of the whole track, 0..1; null until the song's loudness is measured. */
     peaks: Float32Array | null;
     listening: ListenState | null;
     /** The volume line, beat ticks and the slideshow lane under the waveform. */

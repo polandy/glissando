@@ -3,8 +3,8 @@
 The panel for the song selected in the [music editor](../MUSIC_EDITOR.md).
 
 - **Selected song** (`SelectedSong.svelte`): "Song 2 · name" and its length, then the
-  waveform of the whole track (decoded once with Web Audio into 1000 peaks, drawn as a bar
-  every 5 px), dimmed outside the excerpt; with the Details switch on (MUSIC_EDITOR.md), an accent line over
+  waveform of the whole track (the stored loudness's 100 ms hop peaks spread over 1000 fine
+  peaks, ADR-0051, drawn as a bar every 5 px; reading until the song is analysed), dimmed outside the excerpt; with the Details switch on (MUSIC_EDITOR.md), an accent line over
   it is the volume, ramping through the fades, and the bars inside a fade shrink with it
   (`wave-view.ts`); off, neither. Two accent handles "Start"
   and "End" carry their time ("0:12,0"); dragging one, or grabbing the waveform anywhere (the
