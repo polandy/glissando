@@ -35,7 +35,6 @@ Each fix starts with the failing test the item names or implies (WORKFLOW.md, Te
 
 ### Exports, share and PWA
 
-- [ ] `src/video-export/browser/run-video-export.ts:184` — `new WebCodecsVideoEncoder(...)` runs outside both try blocks; a configure error breaks the "never rejects" contract, skips muxer cancel and leaves the writable locked. Fix: construct it inside `prepare`'s try next to the audio encoder.
 - [ ] `src/share-page/shared-show.ts:66` — Song blob URLs are created inside `Promise.all`; one failed song leaks the others, and the TV page repeats that on every retry for days. Fix: fetch all blobs first, then create URLs; revoke on failure.
 
 ### App shell, routing and editors
