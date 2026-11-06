@@ -29,6 +29,26 @@ describe("AudioElementMusic", () => {
     music.dispose();
   });
 
+  it("reports no position before it plays and none once paused", async () => {
+    const music = await musicWithUserActivation();
+    expect(music.playingSeconds()).toBeNull();
+
+    await music.play(0.5);
+    music.pause();
+
+    expect(music.playingSeconds()).toBeNull();
+    music.dispose();
+  });
+
+  it("moves to a second without playing", async () => {
+    const music = await musicWithUserActivation();
+
+    music.seek(0.5);
+
+    expect(music.playingSeconds()).toBeNull();
+    music.dispose();
+  });
+
   it("plays routed through Web Audio", async () => {
     const output = new MusicOutput(createMusicAudioContext);
     const music = await musicWithUserActivation(output);
