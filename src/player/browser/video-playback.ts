@@ -1,6 +1,7 @@
 import { VideoPlaybackError, type LiveFrame, type VideoPlayback } from "../ports";
 import { ClipSoundTrack } from "./clip-sound-track";
 import type { ClipSoundOutput } from "./music-output";
+import { HAVE_CURRENT_DATA, HAVE_FUTURE_DATA, playingSecondsOf } from "./media-position";
 
 /** A clip further than this from where the slide clock puts it is seeked. */
 export const VIDEO_SEEK_DRIFT_MS = 2000;
@@ -19,8 +20,6 @@ const SAME_TIME_MS = 1;
  * two behind the clock is caught up by `follow`, but a seek right at the start is a visible hitch.
  */
 const VIDEO_START_TOLERANCE_MS = 250;
-const HAVE_CURRENT_DATA = 2;
-const HAVE_FUTURE_DATA = 3;
 /** What a media element's `play()` rejects with when a later `pause()` interrupts it. */
 const INTERRUPTED_PLAY = "AbortError";
 const READY_EVENTS = ["seeked", "loadeddata", "canplay", "playing"] as const;
@@ -127,14 +126,11 @@ export class VideoElementPlayback implements VideoPlayback {
     this.#sound?.follow(clipMs);
     // Until it really plays, a clip lags the clock only by its start-up; a seek then would restart
     // that start-up and make the clip stutter.
-    if (
-      this.#element.seeking ||
-      this.#element.paused ||
-      this.#element.readyState < HAVE_FUTURE_DATA
-    ) {
+    const playingSeconds = playingSecondsOf(this.#element);
+    if (playingSeconds === null) {
       return;
     }
-    const aheadMs = this.#element.currentTime * MS_PER_SECOND - clipMs;
+    const aheadMs = playingSeconds * MS_PER_SECOND - clipMs;
     if (Math.abs(aheadMs) > VIDEO_SEEK_DRIFT_MS) {
       this.#setRate(1);
       this.#moveTo(clipMs);

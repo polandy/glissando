@@ -1,5 +1,6 @@
 import type { Clock, FrameScheduler, MusicPlayback } from "../ports";
 import { MusicOutput, type MusicVolume } from "./music-output";
+import { playingSecondsOf } from "./media-position";
 
 export const performanceClock: Clock = { now: () => performance.now() };
 
@@ -43,6 +44,14 @@ export class AudioElementMusic implements MusicPlayback {
 
   setVolume(volume: number): void {
     this.#volume.set(volume);
+  }
+
+  playingSeconds(): number | null {
+    return playingSecondsOf(this.#audio);
+  }
+
+  seek(atSeconds: number): void {
+    this.#audio.currentTime = atSeconds;
   }
 
   pause(): void {
