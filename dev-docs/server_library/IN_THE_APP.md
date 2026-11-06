@@ -104,7 +104,8 @@ The wizard's choice and server mode: [Where a new slideshow lives](NEW_SLIDESHOW
   answers 404 for `PictureMissingFromImmichError`; Immich itself unavailable
   `ImmichUnavailableError` (also reported to `ImmichAvailability`). Edits are applied one at a
   time, each naming the revision the one before left; one that failed leaves the last saved
-  version as the one the next edit names.
+  version as the one the next edit names. A list or read answered with an older revision than
+  the one last seen (sent before an edit, answered after it) keeps the newer one.
 - Before playing, the player measures and prepares the pictures in this device's quality
   ([app/PREPARING.md](../app/PREPARING.md), ADR-0027): 1440 from `playbackPictureBlob`, 4K from
   `pictureBlob` (`serverRenditionFor` in `server-playing.ts`). It opens them from the prepared
