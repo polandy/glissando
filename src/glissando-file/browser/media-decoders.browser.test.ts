@@ -119,7 +119,7 @@ describe("browserMediaDecoders", () => {
   it.each(["picture", "music"] as const)(
     "lets a failed read of a %s through instead of calling it undecodable",
     async (kind) => {
-      const unreadable = kind === "music" ? tinyWav() : new Blob(["bytes"]);
+      const unreadable = new Blob(["bytes"]);
       const readError = new DOMException("the file went away", "NotReadableError");
       unreadable.arrayBuffer = () => Promise.reject(readError);
 

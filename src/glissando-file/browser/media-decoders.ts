@@ -30,17 +30,17 @@ export function browserMediaDecoders(log: (error: unknown) => void): MediaDecode
       return { width, height };
     },
 
-    // A song over a limit, or one the browser cannot play, is undecodable and never read.
+    // A song over a limit, or one the browser cannot play, is undecodable and never decoded.
     async music(song) {
+      const bytes = await song.arrayBuffer();
       try {
-        await assertMusicWithinLimits(song, probeMusicDurationMs);
+        await assertMusicWithinLimits(new Blob([bytes]), probeMusicDurationMs);
       } catch (error) {
         if (error instanceof MusicOverLimitError || error instanceof UnreadableMusicError) {
           return false;
         }
         throw error;
       }
-      const bytes = await song.arrayBuffer();
       const context = new OfflineAudioContext(1, 1, DETECTION_SAMPLE_RATE);
       try {
         await context.decodeAudioData(bytes);
