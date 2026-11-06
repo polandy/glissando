@@ -11,7 +11,7 @@ const DRUMS: MusicBeats = { kind: "beats", beatsMs: [500, 1000], beatsPerMinute:
 class FakePass {
   readonly asked: string[] = [];
   subscribers = 0;
-  readonly state: MusicAnalysisPassState = {
+  state: MusicAnalysisPassState = {
     running: true,
     listening: new Set(),
     found: new Map([["b", { beats: DRUMS, loudness: SILENT }]]),
@@ -73,5 +73,40 @@ describe("PlaylistBeats", () => {
     beats.dispose();
 
     expect(pass.subscribers).toBe(0);
+  });
+
+  it("keeps the status of a song taken out and added again when its first stored read settles late", async () => {
+    const pass = new FakePass();
+    pass.state = { ...pass.state, found: new Map() };
+    const reads: { settle(value: undefined): void; promise: Promise<undefined> }[] = [];
+    let latest: SongsBeatsStatus = new Map();
+    const beats = new PlaylistBeats(
+      {
+        store: {
+          musicBeats: () => {
+            let settle: (value: undefined) => void = () => {};
+            const promise = new Promise<undefined>((resolve) => (settle = resolve));
+            reads.push({ settle, promise });
+            return promise;
+          },
+        },
+        pass,
+        log: () => {},
+      },
+      (status) => (latest = status),
+    );
+    const first = beats.follow(["a"]);
+    await beats.follow([]);
+    pass.state = { ...pass.state, found: new Map([["a", { beats: DRUMS, loudness: SILENT }]]) };
+    const second = beats.follow(["a"]);
+    const added = { kind: "known", beats: DRUMS };
+
+    reads[1]?.settle(undefined);
+    await second;
+    expect(latest.get("a")).toEqual(added);
+
+    reads[0]?.settle(undefined);
+    await first;
+    expect(latest.get("a")).toEqual(added);
   });
 });

@@ -18,7 +18,9 @@ are stored. Music deleted meanwhile is skipped; a failed analysis is logged
 (`MusicAnalysisFailedError`), keeps no result and is tried again on the next pass; music the device
 cannot decode (`MusicUndecodableError`) is marked `undecodable` until it is analysed after all; a
 crashed worker (`MusicAnalyserGoneError`) ends the pass and is reported once; later passes meeting
-it only log it. Its state: `running`; `listening`, the tracks still to come; `found`, every
+it only log it. The analyser talks to its worker through `WorkerRequestClient`
+(`src/worker-requests/`), the same id-tagged request client the focus detector uses: started on
+the first request, and once crashed or sent an unreadable reply, gone for good. Its state: `running`; `listening`, the tracks still to come; `found`, every
 analysis stored since the app opened; and `undecodable`.
 
 A second `MusicAnalysisPass` over the server store (`serverAnalysisPass`) does the same for server
@@ -28,7 +30,10 @@ editor analyses it and keeps both results on the server beside the music
 analyser; a server out of reach is only logged. The player and both exports read the stored beats
 of every song once when they start (`storedSongBeats`); the picture and music editors follow the
 pass as it finds the first song's (`TrackBeats`) and read a song's loudness the same way
-(`src/app/loudness/track-loudness.ts`, `playlist-loudness.ts`); the music editor draws the
+(`src/app/loudness/track-loudness.ts`, `playlist-loudness.ts`). Both are thin over one
+`TrackFollower` and one `PlaylistFollower` (`src/app/music-follow/`); a song taken out of the
+playlist and added again is told only by its new track, never by the old one's late stored read.
+The music editor draws the
 selected song's waveform from that loudness's hop peaks and asks the pass for the song when it is
 selected (ADR-0051). `.glissando` files carry neither:
 the receiver analyses again.

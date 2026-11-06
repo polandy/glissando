@@ -30,8 +30,8 @@ rest; one whose detection fails is logged
 (`FocusDetectionFailedError`), keeps no focus and is tried again on the next pass — its id is
 added to `failed` for this app session and removed once a later look at it succeeds. A detection
 failing because the detector itself is gone (`FocusDetectorGoneError`: its worker crashed, sent a
-reply that could not be read, or answered `unavailable` as its face cascade did not load) ends the
-pass and is reported once; the pictures left wait for the next pass. An error from reading a
+reply that could not be read, or answered `unavailable` as its face cascade did not load — the
+lifecycle of `WorkerRequestClient`, shared with the music analyser) ends the pass and is reported once; the pictures left wait for the next pass. An error from reading a
 thumbnail or storing a result that the injected `pausesOn` predicate accepts — "try again later",
 such as a server being unreachable, rather than "this picture's detection failed" — ends the pass
 quietly (logged, not reported) and sets `paused`; the next `start()` or `lookAgain()` resumes

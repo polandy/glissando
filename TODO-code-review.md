@@ -34,8 +34,6 @@ Each fix starts with the failing test the item names or implies (WORKFLOW.md, Te
 
 ### Music, composition and focus
 
-- [ ] `src/music-analysis/worker-music-analyser.ts` / `src/focus/worker-focus-detector.ts` and `src/app/beats/playlist-beats.ts` / `src/app/loudness/playlist-loudness.ts` (+ `track-*.ts`) — Worker client and playlist follower copied per pass; lifecycle fixes land in one copy only. Fix: a generic worker request client and `PlaylistFollower<T>`.
-
 ### Exports, share and PWA
 
 - [ ] `src/video-export/browser/file-targets.ts:102` (called from `src/main.ts:134`) — `sweepPrivateExports()` empties OPFS `video-export/` at every start with no multi-tab guard; a second tab or the PWA deletes a finished or in-progress private export. Fix: `navigator.locks` per export file or a folder per run; sweep only unlocked entries.
