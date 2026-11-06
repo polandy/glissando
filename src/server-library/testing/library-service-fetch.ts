@@ -20,10 +20,10 @@ export function libraryServiceFetch() {
   };
   let held: { answered(): void; delivered: Promise<void> } | null = null;
   function holdNextAnswer(): { answered: Promise<void>; release(): void } {
-    const answered = Promise.withResolvers<void>();
-    const delivered = Promise.withResolvers<void>();
-    held = { answered: answered.resolve, delivered: delivered.promise };
-    return { answered: answered.promise, release: delivered.resolve };
+    const answered = Promise.withResolvers<undefined>();
+    const delivered = Promise.withResolvers<undefined>();
+    held = { answered: () => answered.resolve(undefined), delivered: delivered.promise };
+    return { answered: answered.promise, release: () => delivered.resolve(undefined) };
   }
   const fetch: typeof globalThis.fetch = async (input, init) => {
     if (control.down) throw new TypeError("Failed to fetch");
