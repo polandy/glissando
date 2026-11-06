@@ -37,6 +37,17 @@ describe("HttpServerLibraryClient", () => {
     expect(await client.discover()).toBe(false);
   });
 
+  it.each([
+    ["the server failing (5xx)", () => new Response("Bad Gateway", { status: 502 })],
+    // A forward auth's sign-in redirect, under `redirect: "manual"`, has status 0 as well.
+    ["no status (an auth redirect)", () => Response.error()],
+  ])("rejects the discovery with ServerLibraryUnavailableError behind %s", async (_, answer) => {
+    const { client, control } = libraryServiceFetch();
+    control.answerWith = answer;
+
+    expect(await rejection(client.discover())).toBeInstanceOf(ServerLibraryUnavailableError);
+  });
+
   it("rejects with ServerLibraryUnavailableError when the server cannot be reached", async () => {
     const { client, control } = libraryServiceFetch();
     control.down = true;
