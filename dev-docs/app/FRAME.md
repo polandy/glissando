@@ -47,7 +47,8 @@ albums".
 
 Fullscreen, no chrome by default. A tap reveals, for `CONTROLS_VISIBLE_MS` (4 s,
 `src/frame/tap-controls.ts`): an exit pill (also Esc) and a bottom bar with pause/resume and
-next; a further tap hides them again at once. The mockup's bottom bar also carries a "Settings"
+next; a further tap hides them again at once. A round that ends or is skipped while paused hands
+over to the next one, which shows its first picture and stays paused until resume. The mockup's bottom bar also carries a "Settings"
 button back to the set-up screen; this build omits it; exiting the frame (back to the set-up
 screen) covers the same need until a dedicated in-frame settings path is worth its own screen.
 The frame's `role="application"` is `aria-busy` while it has no picture to show: until the first
