@@ -2,6 +2,7 @@ import {
   canPickSaveFile,
   pickSaveTarget,
   privateExportTarget,
+  type PrivateExportStorage,
   probeVideoExport,
 } from "../../video-export";
 import { browserScreenAwakePorts, keepScreenAwake } from "./screen-awake";
@@ -9,6 +10,7 @@ import type { VideoExportDevice } from "./slideshow-video-export";
 
 export interface BrowserVideoExportOptions {
   readonly window: Window;
+  readonly privateStorage: PrivateExportStorage;
   /** Quota minus usage; null where the browser cannot tell. */
   readonly freeBytes: () => Promise<number | null>;
   readonly download: (file: Blob, fileName: string) => void;
@@ -18,6 +20,7 @@ export interface BrowserVideoExportOptions {
 /** The video export sheet's browser: WebCodecs, the file targets, wake lock and share sheet. */
 export function browserVideoExportDevice({
   window,
+  privateStorage,
   freeBytes,
   download,
   log,
@@ -28,7 +31,7 @@ export function browserVideoExportDevice({
     freeBytes,
     canPickSaveFile,
     pickSaveTarget,
-    privateExportTarget,
+    privateExportTarget: (fileName) => privateExportTarget(privateStorage, fileName),
     keepScreenAwake: () => keepScreenAwake(browserScreenAwakePorts(document, navigator, log)),
     canShare: (file) => "canShare" in navigator && navigator.canShare({ files: [file] }),
     share: (file) => navigator.share({ files: [file], title: file.name }),
