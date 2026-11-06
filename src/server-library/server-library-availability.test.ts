@@ -3,6 +3,7 @@ import type { ImmichAvailabilityState } from "../immich/immich-availability";
 import type { ImmichStatus } from "../immich/immich-client";
 import { ServerLibraryAvailability, type ServerLibraryState } from "./server-library-availability";
 import { ServerLibraryUnavailableError } from "./server-library-client";
+import { libraryServiceFetch } from "./testing/library-service-fetch";
 import { createMemoryStorage } from "../app/testing/memory-storage";
 import {
   createStorageServerLibraryMemory,
@@ -193,6 +194,23 @@ describe("ServerLibraryAvailability", () => {
     client.answers.push(new ServerLibraryUnavailableError("unreachable"));
 
     await immichAnswers(AVAILABLE);
+
+    expect(memory.wasOn()).toBe(true);
+  });
+
+  it.each([
+    ["fails (5xx)", () => new Response("Bad Gateway", { status: 502 })],
+    ["asks for a new sign-in", () => Response.error()],
+  ])("keeps the memory when the server %s", async (_, answer) => {
+    const memory = newMemory();
+    memory.rememberOn(true);
+    const { client, control } = libraryServiceFetch();
+    control.answerWith = answer;
+    const immich = new FakeImmichAvailability();
+    const availability = new ServerLibraryAvailability({ client, immich, memory, log: () => {} });
+
+    immich.publish(AVAILABLE);
+    await availability.settled();
 
     expect(memory.wasOn()).toBe(true);
   });
