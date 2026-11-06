@@ -9,7 +9,7 @@ import {
 import type { EventSink } from "./tv-hub";
 
 /** A response that records what was written, and a repeat the test fires by hand. */
-function edge() {
+function edge({ destroyed = false } = {}) {
   const written: string[] = [];
   const heads: [number, Record<string, string>][] = [];
   const closeListeners: (() => void)[] = [];
@@ -21,6 +21,7 @@ function edge() {
       ended = true;
     },
     once: (_, listener) => closeListeners.push(listener),
+    destroyed,
   };
   const repeats: { everyMs: number; action: () => void; cancelled: boolean }[] = [];
   const repeat = (everyMs: number, action: () => void) => {
@@ -94,6 +95,19 @@ describe("an event stream on the HTTP response", () => {
     expect([closedByClient(), repeats[0]?.cancelled]).toEqual([1, true]);
   });
 
+  it("never opens the stream of a client that left before its answer was ready", () => {
+    const left = edge({ destroyed: true });
+    const leftAnswer = drivenAnswer();
+    const present = edge();
+    const presentAnswer = drivenAnswer();
+    const presentEnd = pipeEventStream(presentAnswer.answer, present.response, present.repeat);
+    const leftEnd = pipeEventStream(leftAnswer.answer, left.response, left.repeat);
+    expect([presentAnswer.opened.length, present.repeats.length]).toEqual([1, 1]);
+    expect(presentEnd).toBeTypeOf("function");
+    expect([leftAnswer.opened.length, left.repeats.length, left.heads.length]).toEqual([0, 0, 0]);
+    expect(leftEnd).toBeNull();
+  });
+
   it("ends the response when the owner closes the stream, writing nothing after", () => {
     const { response, repeat, written, repeats, isEnded } = edge();
     const { answer, opened } = drivenAnswer();
@@ -109,7 +123,7 @@ describe("an event stream on the HTTP response", () => {
     const { response, repeat, repeats, isEnded } = edge();
     const end = pipeEventStream(drivenAnswer().answer, response, repeat);
     expect(isEnded()).toBe(false);
-    end();
+    end?.();
     expect([isEnded(), repeats[0]?.cancelled]).toEqual([true, true]);
   });
 });
