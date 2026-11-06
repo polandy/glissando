@@ -1,6 +1,6 @@
 /**
  * Mixes a decoded song to mono and resamples it to the rate the beat detector works at (ADR-0021),
- * with an anti-alias low-pass of our own instead of the browser's resampler. Pure: no DOM.
+ * with an anti-alias low-pass of our own, so one full-rate decode serves both analyses (ADR-0051).
  */
 
 /** Cutoff as a share of the lower of the two Nyquist rates: leaves room for the transition band. */
