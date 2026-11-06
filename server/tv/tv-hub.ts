@@ -96,7 +96,7 @@ export function createTvHub({ now, randomBytes }: TvHubDependencies) {
     }
   };
 
-  const add = (session: Omit<Session, "tvKey" | "remotes" | "createdAt" | "tvLeftAt">) => {
+  const add = (session: Omit<Session, "tvKey" | "remotes" | "tvLeftAt">) => {
     sweep();
     if (byTvKey.size >= MAX_SESSIONS) {
       const candidate = evictionCandidate([...byTvKey.values()]);
@@ -108,7 +108,6 @@ export function createTvHub({ now, randomBytes }: TvHubDependencies) {
       ...session,
       tvKey: newKey(),
       remotes: new Set(),
-      createdAt: time,
       tvLeftAt: time,
     };
     byTvKey.set(made.tvKey, made);

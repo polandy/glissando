@@ -10,7 +10,6 @@ export interface Session {
   tv: EventSink<TvEvent> | undefined;
   readonly remotes: Set<EventSink<RemoteEvent>>;
   state: PlaybackState | undefined;
-  readonly createdAt: number;
   /** When the TV's stream last closed, or the session was made. */
   tvLeftAt: number;
 }
