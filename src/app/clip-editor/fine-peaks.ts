@@ -1,4 +1,4 @@
-import { FINE_PEAK_COUNT } from "../music-editor/decode-peaks";
+import { FINE_PEAK_COUNT } from "../music-editor/waveform-peaks";
 
 const MS_PER_SECOND = 1000;
 /** Report once filled by this many slices (1 % of `FINE_PEAK_COUNT`), so the bars visibly grow. */

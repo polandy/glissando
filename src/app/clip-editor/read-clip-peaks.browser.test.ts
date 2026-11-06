@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import { server } from "vitest/browser";
 import type { Slideshow } from "../../player";
-import { FINE_PEAK_COUNT } from "../music-editor/decode-peaks";
+import { FINE_PEAK_COUNT } from "../music-editor/waveform-peaks";
 import { probeVideoExport, runVideoExport } from "../../video-export";
 import { generatedClip, solidPicture } from "../../video-export/testing/generated-clip";
 import { memoryExportTarget } from "../../video-export/testing/memory-target";

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { FINE_PEAK_COUNT } from "../music-editor/decode-peaks";
+import { FINE_PEAK_COUNT } from "../music-editor/waveform-peaks";
 import { FinePeaks } from "./fine-peaks";
 
 /** 1000 slices of exactly 1 s each, so a slice index equals a whole second. */
