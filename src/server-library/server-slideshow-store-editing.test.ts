@@ -85,6 +85,43 @@ describe("ServerSlideshowStore editing", () => {
     expect(await titleOnServer(seeded.id)).toBe("Edited elsewhere");
   });
 
+  it("keeps the revision of its own edit when a list sent before it is answered after it", async () => {
+    const { store, seed, holdNextAnswer, titleOnServer } = serverStoreHarness();
+    const seeded = await seed();
+    await store.getSlideshow(seeded.id);
+    const listAnswer = holdNextAnswer();
+    const listing = store.listSlideshows();
+    await listAnswer.answered;
+    await store.updateSlideshow({ ...seeded, title: "First" });
+    listAnswer.release();
+
+    const listed = await listing;
+    await store.updateSlideshowWith(seeded.id, (current) => ({
+      ...current,
+      title: `${current.title}, then second`,
+    }));
+
+    expect(listed).toEqual([{ ...seeded, title: "First" }]);
+    expect(await titleOnServer(seeded.id)).toBe("First, then second");
+  });
+
+  it("keeps the revision of its own edit when a read sent before it is answered after it", async () => {
+    const { store, seed, holdNextAnswer, titleOnServer } = serverStoreHarness();
+    const seeded = await seed();
+    await store.getSlideshow(seeded.id);
+    const readAnswer = holdNextAnswer();
+    const reading = store.getSlideshow(seeded.id);
+    await readAnswer.answered;
+    await store.updateSlideshow({ ...seeded, title: "First" });
+    readAnswer.release();
+
+    const read = await reading;
+    await store.updateSlideshow({ ...seeded, title: "Second" });
+
+    expect(read).toEqual({ ...seeded, title: "First" });
+    expect(await titleOnServer(seeded.id)).toBe("Second");
+  });
+
   it("edits on top of the current version once a conflict has shown it", async () => {
     const { store, seed, client, titleOnServer } = serverStoreHarness();
     const seeded = await seed();
