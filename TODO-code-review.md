@@ -11,8 +11,6 @@ Each fix starts with the failing test the item names or implies (WORKFLOW.md, Te
 
 ### Server, sync and TV
 
-- [ ] `server/music-routes.ts:116-117` — Any exception from `parseMusicLoudness` becomes 400 via `(error as Error).message`, so a bug looks like bad input. Fix: a typed error for the parser; catch only that.
-
 ### Player
 
 - [ ] `src/player/playlist-music.ts:229-242` — Music is never resynced to the show clock; a stall leaves it permanently offset from beat-aligned slides (ADR-0021/0046), while clips do get drift correction. Fix: compare element time with `trackSecondsAt(showMs)` in `follow` and seek past a named tolerance; document in `dev-docs/player/TIMING.md`.

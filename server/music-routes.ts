@@ -1,5 +1,9 @@
 import { parseMusicBeats } from "../src/beats/music-beats-json";
-import { musicLoudnessToJson, parseMusicLoudness } from "../src/loudness/music-loudness-json";
+import {
+  musicLoudnessToJson,
+  MusicLoudnessFormatError,
+  parseMusicLoudness,
+} from "../src/loudness/music-loudness-json";
 import type { LibraryHandlerDependencies } from "./library-handler";
 import {
   errorResponse,
@@ -114,7 +118,10 @@ export function musicRoutes({ repository, now, newId }: LibraryHandlerDependenci
       try {
         loudness = parseMusicLoudness(read.value);
       } catch (error) {
-        return errorResponse(HTTP_STATUS.badRequest, "invalidLoudness", (error as Error).message);
+        if (error instanceof MusicLoudnessFormatError) {
+          return errorResponse(HTTP_STATUS.badRequest, "invalidLoudness", error.message);
+        }
+        throw error;
       }
       return repository.inTransaction(() => {
         if (repository.findMusic(id) === undefined) {

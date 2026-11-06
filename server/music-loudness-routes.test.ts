@@ -61,6 +61,21 @@ describe("music loudness", () => {
     });
     expect(response.status).toBe(400);
     expect(response.json["error"]).toBe("invalidLoudness");
+    expect(response.json["detail"]).toMatch(/"blockLoudnessDb" entries/);
+  });
+
+  it("lets an unexpected failure storing loudness through, for a 500 instead of a 400", () => {
+    const library = libraryHarness();
+    const musicId = library.uploadMusic();
+    library.repository.putMusicLoudness = () => {
+      throw new TypeError("a bug in the repository");
+    };
+
+    expect(() =>
+      library.send("PUT", `${MUSIC}/${musicId}/loudness`, {
+        body: { blockLoudnessDb: [], hopPeaksDbfs: [] },
+      }),
+    ).toThrow(TypeError);
   });
 
   it("refuses a loudness put over MAX_DOCUMENT_BYTES with 413", () => {
