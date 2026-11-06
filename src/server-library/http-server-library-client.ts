@@ -67,6 +67,7 @@ export class HttpServerLibraryClient implements ServerLibraryClient {
 
   async discover(): Promise<boolean> {
     const response = await this.#send("GET", LIBRARY_PATH);
+    throwIfUnavailable("GET", LIBRARY_PATH, response);
     if (!response.ok || !isJson(response)) return false;
     const answer: unknown = await response.json();
     return isRecord(answer) && answer["service"] === DISCOVERY_SERVICE;
@@ -258,12 +259,17 @@ function jsonBody(document: ServerDocument | Record<string, never>): RequestInit
 }
 
 /** Throws the typed error a failed answer stands for. */
+/** A 5xx, or status 0 (the forward auth's sign-in redirect), is the server out of reach. */
+function throwIfUnavailable(method: HttpMethod, path: string, response: Response): void {
+  if (response.status === 0 || response.status >= HTTP_SERVER_ERROR) {
+    throw new ServerLibraryUnavailableError(`${method} ${path} (${String(response.status)})`);
+  }
+}
+
 async function check(method: HttpMethod, path: string, response: Response): Promise<void> {
   if (response.ok) return;
+  throwIfUnavailable(method, path, response);
   const request = `${method} ${path}`;
-  if (response.status === 0 || response.status >= HTTP_SERVER_ERROR) {
-    throw new ServerLibraryUnavailableError(`${request} (${String(response.status)})`);
-  }
   if (response.status === HTTP_NOT_FOUND) throw new ServerLibraryNotFoundError(request);
   const { code, detail } = await refusal(response);
   const refused = path.startsWith(MUSIC_PATH)

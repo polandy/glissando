@@ -7,8 +7,9 @@ availability answers (not while it is `checking` or `offline`). The server libra
 that answers the discovery and Immich is available; **offline** when the device is offline
 (Immich's `offline`: the Glissando server is out of reach) and the last answer this session was
 the discovery; otherwise **off**; **checking** until Immich and the first discovery have answered.
-A discovery that cannot reach the server keeps the last answer; of two under way, the later one
-counts. Off, nothing below shows and the app is as without this feature.
+A discovery that cannot reach the server, or that the server answers 5xx or with a new sign-in
+(the forward auth's redirect), keeps the last answer, also the remembered one; of two under way,
+the later one counts. Off, nothing below shows and the app is as without this feature.
 
 ## What this device remembers
 

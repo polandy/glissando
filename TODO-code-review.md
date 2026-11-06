@@ -11,7 +11,6 @@ Each fix starts with the failing test the item names or implies (WORKFLOW.md, Te
 
 ### Server, sync and TV
 
-- [ ] `src/server-library/http-server-library-client.ts:68-73` + `server-library-availability.ts:103` — Discovery maps 5xx and the auth redirect (status 0) to "no library" and persists it, so a restart or expired sign-in turns the next offline start into "off". Fix: throw `ServerLibraryUnavailableError` as `check` does.
 - [ ] `server/music-routes.ts:116-117` — Any exception from `parseMusicLoudness` becomes 400 via `(error as Error).message`, so a bug looks like bad input. Fix: a typed error for the parser; catch only that.
 
 ### Player
