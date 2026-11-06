@@ -5,12 +5,13 @@
  * 2. `estimatedBytes(presetById(id), durationMs, withAudio)` beside each preset; with a private
  *    target, compared with `navigator.storage.estimate()` for the space note.
  * 3. On "Video erstellen" (in the click's gesture): `canPickSaveFile()` ? `pickSaveTarget(name)`
- *    (null: dismissed, back to choose) : `privateExportTarget(name)`, with
+ *    (null: dismissed, back to choose) : `privateExportTarget(storage, name)`, with
  *    `exportFileName(title, presetId)`.
  * 4. `runVideoExport({...})` resolves with "done" (and the `File`), "cancelled", "storage-full"
  *    (`frameReached`; the file is discarded) or "failed".
- * 5. A private target's file is removed with `target.discard()` when the sheet closes, and
- *    `sweepPrivateExports()` runs once at app start.
+ * 5. A private target lives in its own folder under a Web Lock held until `target.discard()`
+ *    removes it when the sheet closes. `sweepPrivateExports(storage)` runs once at app start and
+ *    removes only the runs no tab holds a lock for, so another tab's export survives.
  */
 export {
   AUDIO_CODECS,
@@ -37,6 +38,7 @@ export {
   canPickSaveFile,
   pickSaveTarget,
   privateExportTarget,
+  type PrivateExportStorage,
   type SaveFileType,
   sweepPrivateExports,
   type ExportTarget,

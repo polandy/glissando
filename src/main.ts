@@ -42,7 +42,7 @@ import { startBackgroundMusicPasses } from "./app/background-music-passes";
 import { requestPersistentStorage } from "./library/persistent-storage";
 import { browserPwaPorts } from "./pwa/browser-pwa";
 import { createStorageHintDismissalStore, PwaStatus } from "./pwa/pwa-status";
-import { sweepPrivateExports } from "./video-export";
+import { sweepPrivateExports, type PrivateExportStorage } from "./video-export";
 import { HttpServerLibraryClient } from "./server-library/http-server-library-client";
 import { serverSlideshowSessions } from "./app/server-library/server-slideshow-sessions";
 import { createServerLibrary } from "./server-library/server-library";
@@ -103,8 +103,13 @@ function deleteAbandonedMedia(): void {
   store.deleteUnreferencedMedia(now()).catch(reportError);
 }
 deleteAbandonedMedia();
+const privateExportStorage: PrivateExportStorage = {
+  root: () => window.navigator.storage.getDirectory(),
+  locks: "locks" in window.navigator ? window.navigator.locks : null,
+  newId,
+};
 // Exports a crash or a closed tab left behind (video_export/WRITING_THE_FILE.md).
-sweepPrivateExports().catch(logError);
+sweepPrivateExports(privateExportStorage).catch(logError);
 
 // One worker, never detecting for the device pass and the server pass at once, the device pass
 // always first (ADR-0041).
@@ -238,7 +243,13 @@ const services = {
   freeBytes,
   mediaDecoders: browserMediaDecoders(logError),
   download,
-  videoExport: browserVideoExportDevice({ window, freeBytes, download, log: logError }),
+  videoExport: browserVideoExportDevice({
+    window,
+    privateStorage: privateExportStorage,
+    freeBytes,
+    download,
+    log: logError,
+  }),
   htmlExport: browserHtmlExportDevice({ window, download, log: logError }),
   playerPage: bundledFilePage,
   ...serverSessions,

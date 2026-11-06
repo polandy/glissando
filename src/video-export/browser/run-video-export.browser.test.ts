@@ -8,6 +8,7 @@ import {
   probeVideoExport,
   runVideoExport,
   type ExportProgress,
+  type PrivateExportStorage,
 } from "..";
 import { memoryExportTarget } from "../testing/memory-target";
 import { PRIVATE_EXPORT_FOLDER } from "./file-targets";
@@ -113,7 +114,7 @@ async function exportGenerated(
   const target =
     server.browser === "webkit"
       ? memoryExportTarget(fileName)
-      : await privateExportTarget(fileName);
+      : await privateExportTarget(browserStorage(), fileName);
   const result = await runVideoExport({
     slideshow: SLIDESHOW,
     openPicture: (src) => {
@@ -131,6 +132,18 @@ async function exportGenerated(
     onProgress,
   });
   return { result, target, capabilities };
+}
+
+/** Runs across the file never share an id, so a run left locked cannot stall the next. */
+let runs = 0;
+
+/** The real origin private file system and locks; a counter names the runs. */
+function browserStorage(): PrivateExportStorage {
+  return {
+    root: () => navigator.storage.getDirectory(),
+    locks: navigator.locks,
+    newId: () => `run-video-export-${(runs += 1)}`,
+  };
 }
 
 async function privateExportNames(): Promise<string[]> {
