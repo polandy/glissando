@@ -129,6 +129,26 @@ describe("MusicEditorScreen, the playlist's songs", () => {
   });
 });
 
+describe("MusicEditorScreen, songs over a limit", () => {
+  it("names the limit a too-large and a too-long pending song is over", () => {
+    const { set } = mountEditor(slideshowOfSongs(THREE));
+    set({
+      pending: [
+        { key: 1, kind: "unusable", pickedName: "Huge.wav", reason: "tooLarge" },
+        { key: 2, kind: "unusable", pickedName: "Mix.mp3", reason: "tooLong" },
+      ],
+    });
+
+    const rows = [...document.querySelectorAll(".row.failed")].map((row) =>
+      row.textContent?.trim(),
+    );
+    expect(rows).toEqual([
+      expect.stringContaining("Huge.wav Diese Datei ist größer als 200\u00a0MB"),
+      expect.stringContaining("Mix.mp3 Diese Datei ist länger als 20\u00a0Minuten"),
+    ]);
+  });
+});
+
 describe("MusicEditorScreen, between the songs", () => {
   it("offers the hand-over only with two songs or more", () => {
     mountEditor(slideshowOfSongs([song("a", 60_000)]));

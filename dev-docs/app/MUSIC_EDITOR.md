@@ -60,7 +60,9 @@
     ADR-0020), its audio stored where the slideshow lives (on this device claimed until the
     playlist with it is stored; on the server uploaded), and appended in the order picked.
     Until then it is a dashed row with its name ("Converting to FLAC · 42 %" while converting);
-    a file that cannot be used stays as a coral row "This file can't be used" until its ×.
+    a file that cannot be used stays as a coral row "This file can't be used" until its ×; one over
+    the limits of import-wizard/MUSIC.md reads "This file is larger than 200 MB" or "This file is
+    longer than 20 minutes".
   - **Playlist lane** (`PlaylistLane.svelte`, in the Essentials too): "Playlist, 3 songs · 2:54" with, "Crossfades hatched" (or "One after another"), then the songs as numbered blocks in their colours from
     where each starts, a crossfade hatched where two overlap (the next song's number after the
     hatching; without the Details no hatching: neighbouring blocks meet at the middle of their

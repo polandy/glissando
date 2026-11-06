@@ -35,7 +35,7 @@ Each fix starts with the failing test the item names or implies (WORKFLOW.md, Te
 
 ### Music, composition and focus
 
-- [ ] `src/beats/decode-music.ts`, `src/loudness/decode-music-full-rate.ts`, `src/app/music-editor/decode-peaks.ts` — Untrusted audio has no byte or duration cap and is decoded three times per song on the main thread; a 2 h stereo 48 kHz file is ~2.7 GB of Float32. Fix: cap bytes and duration at intake with a message; probe the rate once; one shared decode for peaks, beats and loudness.
+- [ ] `src/beats/decode-music.ts`, `src/loudness/decode-music-full-rate.ts`, `src/app/music-editor/decode-peaks.ts` — A song is decoded three times (peaks, beats, loudness) on the main thread. Fix: one shared decode for peaks, beats and loudness; the decodes stay on the main thread.
 - [ ] `src/beats/worker-beat-detector.ts` / `src/loudness/worker-loudness-meter.ts` / `src/focus/worker-focus-detector.ts` and `src/app/beats/playlist-beats.ts` / `src/app/loudness/playlist-loudness.ts` (+ `track-*.ts`) — Worker client and playlist follower copied per pass; lifecycle fixes land in one copy only. Fix: a generic worker request client and `PlaylistFollower<T>`.
 
 ### Exports, share and PWA

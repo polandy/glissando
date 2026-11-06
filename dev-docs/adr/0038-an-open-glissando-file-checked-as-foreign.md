@@ -53,13 +53,15 @@ anything it could use to sign a file ships with the app and is public.
   - `glissando.json` against the format's schema: an unknown key, a wrong type or a value out of
     range refuses the file;
   - limits on the entries' count, the file's size and each entry's and all entries' unpacked size
-    (ZIP bombs); unpacking stops at an entry's declared size;
+    (ZIP bombs), a song being at most `MAX_MUSIC_BYTES` and a clip `MAX_CLIP_BYTES`; unpacking
+    stops at an entry's declared size;
   - every entry name matches the format's pattern (no `../`, no absolute path, nothing else but
     the fixed list of tool entries above, which is never read);
   - every picture's dimensions are read from its header and bounded before it is decoded, so a
     picture that would take gigabytes to decode is refused unread;
   - every picture, thumbnail, song and clip is decoded (or, a clip, loaded) before it is stored,
-    not only checksummed: a file that is not what its name says is refused;
+    not only checksummed: a file that is not what its name says is refused, and so is a song
+    longer than `MAX_MUSIC_DURATION_MS`;
   - text from a file is shown as text only, never as HTML (enforced by lint);
   - `README.txt`, `index.html` and the schema are skipped on opening, never read or run.
 

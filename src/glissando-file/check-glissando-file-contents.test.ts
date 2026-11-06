@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { DISPLAY_BOUND } from "../import/downscale";
+import { MAX_MUSIC_BYTES } from "../import/music-limits";
 import { checkGlissandoFile } from "./check-glissando-file";
 import { MAX_MANIFEST_BYTES, MAX_THUMBNAIL_BYTES } from "./file-limits";
 import {
@@ -10,6 +11,9 @@ import {
 } from "./testing/check-fixtures";
 import { fakeMediaDecoders } from "./testing/fake-media-decoders";
 import { exportedFile, tinyPicture, zipWith } from "./testing/glissando-fixtures";
+
+/** The song limit is built from this many equal blocks. */
+const BLOCKS_IN_SONG_LIMIT = 200;
 
 describe("checkGlissandoFile contents", () => {
   it("refuses a file with an entry name outside the format, naming it", async () => {
@@ -117,6 +121,32 @@ describe("checkGlissandoFile contents", () => {
 
     expect(damagedReason(check)).toContain("does not decode as a picture");
     expect(decoders.pictureCalls.length).toBeGreaterThan(0);
+  });
+
+  it("refuses a song over the music size limit, naming the entry and the limit", async () => {
+    const manifest = JSON.parse(await manifestText((m) => m)) as ExportedManifest;
+    const [first, second] = manifest.slideshow.pictures;
+    const [song] = manifest.slideshow.songs;
+    if (first === undefined || second === undefined || song === undefined) {
+      throw new Error("the fixture manifest should have two pictures and a song");
+    }
+    // Repeats one block by reference, so the test never holds the song's bytes twice.
+    const block = new Blob([new Uint8Array(MAX_MUSIC_BYTES / BLOCKS_IN_SONG_LIMIT)]);
+    const oversizedSong = new Blob([...Array<Blob>(BLOCKS_IN_SONG_LIMIT).fill(block), "x"]);
+    const file = await zipWith({
+      "glissando.json": JSON.stringify(manifest),
+      [first.file]: "display one",
+      [first.thumbnail]: "thumb one",
+      [second.file]: "display two",
+      [second.thumbnail]: "thumb two",
+      [song.file]: oversizedSong,
+    });
+
+    const check = await checkGlissandoFile(file, plentyOfSpace);
+
+    const reason = damagedReason(check);
+    expect(reason).toContain(song.file);
+    expect(reason).toContain(`over the ${MAX_MUSIC_BYTES} limit`);
   });
 
   it("refuses a song that does not decode, naming it", async () => {
