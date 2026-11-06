@@ -32,6 +32,7 @@ export const HTTP_STATUS = {
   unsupportedMediaType: 415,
   preconditionRequired: 428,
   internalError: 500,
+  serviceUnavailable: 503,
 } as const;
 
 /** The body as received, or the note that it passed the path's `maxBodyBytes`. */
@@ -111,6 +112,7 @@ export type ErrorCode =
   | "tvAway"
   | "invalidState"
   | "invalidCommand"
+  | "tvFull"
   | "internalError";
 
 export function errorResponse(

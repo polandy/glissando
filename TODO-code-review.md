@@ -11,7 +11,6 @@ Each fix starts with the failing test the item names or implies (WORKFLOW.md, Te
 
 ### Server, sync and TV
 
-- [ ] `server/tv/tv-hub.ts:146-151` — `POST /api/tv/sessions` is public and at `MAX_SESSIONS` evicts sessions with a live TV, so 100 anonymous POSTs end every pairing in use. Fix: never evict a session whose stream is open (503 instead), or rate-limit in Caddy.
 - [ ] `src/server-library/server-slideshow-store.ts:65-71,191-195,229-237` — A list/read answered after an edit overwrites the remembered revision with an older one; the next edit gets 412 and a false "changed on another device". Fix: `#remember` keeps the newer stored revision.
 - [ ] `src/server-library/http-server-library-client.ts:68-73` + `server-library-availability.ts:103` — Discovery maps 5xx and the auth redirect (status 0) to "no library" and persists it, so a restart or expired sign-in turns the next offline start into "off". Fix: throw `ServerLibraryUnavailableError` as `check` does.
 - [ ] `server/music-routes.ts:116-117` — Any exception from `parseMusicLoudness` becomes 400 via `(error as Error).message`, so a bug looks like bad input. Fix: a typed error for the parser; catch only that.
