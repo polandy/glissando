@@ -154,7 +154,7 @@ export class SongIntake {
     ]);
     const controller = new AbortController();
     this.#sampleDownloads.set(track.id, controller);
-    await this.#takeSampleTrack(track, sampleMusic, controller.signal);
+    await this.#takeSampleTrack(track, sampleMusic, controller);
   }
 
   /** Takes the row holding `trackId` away, cancelling its download. */
@@ -207,28 +207,26 @@ export class SongIntake {
   async #takeSampleTrack(
     track: SampleTrack,
     sampleMusic: SampleSongPickPorts,
-    signal: AbortSignal,
+    download: AbortController,
   ): Promise<void> {
+    const signal = download.signal;
     try {
       const result = await pickSampleTrack(
         track,
         sampleMusic,
         (progress) =>
-          this.#replaceSampleRow({
-            kind: "downloadingSample",
-            trackId: track.id,
-            title: track.title,
-            progress,
-          }),
+          this.#replaceSampleRow(
+            { kind: "downloadingSample", trackId: track.id, title: track.title, progress },
+            download,
+          ),
         signal,
       );
       if (signal.aborted || result.kind === "aborted") return;
       if (result.kind === "failed") {
-        this.#replaceSampleRow({
-          kind: "failedSampleDownload",
-          trackId: track.id,
-          title: track.title,
-        });
+        this.#replaceSampleRow(
+          { kind: "failedSampleDownload", trackId: track.id, title: track.title },
+          download,
+        );
         return;
       }
       const audio = await this.#ports.storage.storeSample(
@@ -255,16 +253,24 @@ export class SongIntake {
         await audio.release();
       }
     } catch (error) {
-      this.#dropSampleRow(track.id);
+      if (this.#isCurrentDownload(track.id, download)) this.#dropSampleRow(track.id);
       if (!signal.aborted) this.#ports.onError(error);
     } finally {
-      this.#sampleDownloads.delete(track.id);
+      // A removed download settling late must not end the one that added the track again.
+      if (this.#isCurrentDownload(track.id, download)) this.#sampleDownloads.delete(track.id);
     }
   }
 
-  /** Updates the row for `row.trackId`; one removed meanwhile (`removeSampleTrack`) stays out. */
-  #replaceSampleRow(row: SampleSongRow): void {
-    if (!this.#sampleDownloads.has(row.trackId)) return;
+  #isCurrentDownload(trackId: SampleTrackId, download: AbortController): boolean {
+    return this.#sampleDownloads.get(trackId) === download;
+  }
+
+  /**
+   * Updates the row for `row.trackId` from `download`; a row removed meanwhile
+   * (`removeSampleTrack`) stays out, and one added again belongs to its new download.
+   */
+  #replaceSampleRow(row: SampleSongRow, download: AbortController): void {
+    if (!this.#isCurrentDownload(row.trackId, download)) return;
     this.#tellSampleRows(
       this.#sampleRows.map((candidate) => (candidate.trackId === row.trackId ? row : candidate)),
     );
