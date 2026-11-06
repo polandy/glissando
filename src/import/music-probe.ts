@@ -36,3 +36,11 @@ export async function probeMusic(file: File): Promise<MusicProbe> {
     URL.revokeObjectURL(url);
   }
 }
+
+/** The name given a song's blob to open it in an `<audio>` element; never shown to anyone. */
+const SONG_PLACEHOLDER_NAME = "song";
+
+/** The length of a song held as a blob, in milliseconds. */
+export async function probeMusicDurationMs(music: Blob): Promise<number> {
+  return (await probeMusic(new File([music], SONG_PLACEHOLDER_NAME))).durationMs;
+}

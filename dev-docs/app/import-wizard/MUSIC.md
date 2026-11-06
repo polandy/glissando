@@ -23,8 +23,21 @@ name, "1:00 · WAV" (a converted one adds "Converted from Apple Lossless on this
 conversion). The grip drags the song onto another row or moves it with the arrow keys while
 focused (ADR-0019's pattern). A song being read is a dashed row with its name ("Converting to FLAC
 · 42 %" while converting); a file that cannot be read or converted, or is copy-protected (an iTunes
-`drms` track), is a coral row "This file can't be used" until its ×. The songs are placed as the
+`drms` track), is a coral row "This file can't be used" until its ×; a song over a limit (below) is
+a coral row "This file is larger than 200 MB" or "This file is longer than 20 minutes". The songs are placed as the
 slideshow will play them, each crossfading into the next (ADR-0023).
+
+**Limits** (`src/import/music-limits.ts`): a song may weigh at most `MAX_MUSIC_BYTES` (200 MiB),
+what the server accepts as an upload, and play at most `MAX_MUSIC_DURATION_MS` (20 minutes). The
+duration bounds the memory of the loudness pass, which decodes at the device's full rate with every
+channel kept (ADR-0040): about 23 MB of Float32 per stereo minute at 48 kHz, so 460 MB at worst.
+20 minutes covers any normal song and a long track and refuses an hour-long mix. Exactly at a cap
+is allowed. The bytes are checked on the picked file before it is recognised, converted or probed,
+and again on the FLAC copy; the duration is the probed length. A sample track (SAMPLE_MUSIC.md) is
+ours and is not checked. Music that did not come through this intake, from an opened .glissando
+file or a server slideshow, meets the same limits before every decode (peaks, beats, loudness and
+the file check, ADR-0038): a song over them is undecodable, so its beats and loudness stay unmeasured
+and an opened file holding one is refused.
 
 Below the songs, a muted line with a clock icon names that pace: "**Mood Calm** · about 7 s per
 picture, on the music's phrases. Change it in the slideshow." — without a chosen song "…about 7 s

@@ -15,6 +15,8 @@ export const enPlaylist: Pick<Catalogue, keyof typeof dePlaylist> = {
   "music.done": "Done",
   "music.songConverting": "Converting to FLAC\u00a0· {percent}\u00a0%",
   "music.songUnusable": "This file can't be used",
+  "music.songTooLarge": "This file is larger than {megabytes} MB",
+  "music.songTooLong": "This file is longer than {minutes} minutes",
   "music.sampleBadge": "Sample",
   "music.playlistLane": {
     one: "Music, 1 song · {duration}",

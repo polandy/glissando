@@ -1,4 +1,6 @@
 import { DETECTION_SAMPLE_RATE } from "../../beats/decode-music";
+import { assertMusicWithinLimits, MusicOverLimitError } from "../../import/music-limits";
+import { probeMusicDurationMs, UnreadableMusicError } from "../../import/music-probe";
 import { openClipInVideoElement } from "../../import/browser/video-clip";
 import { encodeThumbnail } from "../../import/downscale";
 import type { MediaDecoders } from "../media-decoders";
@@ -28,8 +30,17 @@ export function browserMediaDecoders(log: (error: unknown) => void): MediaDecode
       return { width, height };
     },
 
+    // A song over a limit, or one the browser cannot play, is undecodable and never decoded.
     async music(song) {
       const bytes = await song.arrayBuffer();
+      try {
+        await assertMusicWithinLimits(new Blob([bytes]), probeMusicDurationMs);
+      } catch (error) {
+        if (error instanceof MusicOverLimitError || error instanceof UnreadableMusicError) {
+          return false;
+        }
+        throw error;
+      }
       const context = new OfflineAudioContext(1, 1, DETECTION_SAMPLE_RATE);
       try {
         await context.decodeAudioData(bytes);

@@ -1,4 +1,5 @@
 import { parseMusicBeats } from "../src/beats/music-beats-json";
+import { MAX_MUSIC_BYTES } from "../src/import/music-limits";
 import {
   musicLoudnessToJson,
   MusicLoudnessFormatError,
@@ -10,7 +11,6 @@ import {
   HTTP_STATUS,
   jsonResponse,
   MAX_DOCUMENT_BYTES,
-  MAX_MUSIC_BYTES,
   notFound,
   readJsonBody,
   type LibraryRequest,

@@ -1,10 +1,16 @@
+import { assertMusicWithinLimits } from "../import/music-limits";
+import { probeMusicDurationMs } from "../import/music-probe";
 import type { DecodeMusic } from "./worker-beat-detector";
 
 /** The rate the beats are found at (ADR-0021): enough for drums, quick to analyse. */
 export const DETECTION_SAMPLE_RATE = 11_025;
 
-/** Decodes with Web Audio, resampled to `DETECTION_SAMPLE_RATE`, its channels mixed to mono. */
+/**
+ * Decodes with Web Audio, resampled to `DETECTION_SAMPLE_RATE`, its channels mixed to mono. A song
+ * over `MAX_MUSIC_BYTES` or `MAX_MUSIC_DURATION_MS` is refused before it is read.
+ */
 export const decodeMusicWithWebAudio: DecodeMusic = async (music) => {
+  await assertMusicWithinLimits(music, probeMusicDurationMs);
   const context = new OfflineAudioContext(1, 1, DETECTION_SAMPLE_RATE);
   const buffer = await context.decodeAudioData(await music.arrayBuffer());
   const samples = new Float32Array(buffer.length);

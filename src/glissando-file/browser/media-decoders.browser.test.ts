@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { THUMBNAIL_BOUND } from "../../import/downscale";
+import { MAX_MUSIC_DURATION_MS } from "../../import/music-limits";
+import { silentWav } from "../../import/testing/silent-wav";
 import { browserMediaDecoders } from "./media-decoders";
 
 /** A canvas filled with a flat colour, encoded as `type`; null where the browser cannot encode it. */
@@ -98,6 +100,12 @@ describe("browserMediaDecoders", () => {
 
   it("accepts a generated PCM WAV song", async () => {
     expect(await decoders.music(tinyWav())).toBe(true);
+  });
+
+  it("refuses a song longer than the duration cap without decoding it", async () => {
+    const tooLong = new Blob([silentWav(MAX_MUSIC_DURATION_MS + 1000, 8000)]);
+
+    expect(await decoders.music(tooLong)).toBe(false);
   });
 
   it("refuses a WAV that does not decode", async () => {

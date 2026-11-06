@@ -14,6 +14,8 @@ export const dePlaylist = {
   "music.done": "Fertig",
   "music.songConverting": "Wird in FLAC umgewandelt\u00a0· {percent}\u00a0%",
   "music.songUnusable": "Diese Datei lässt sich nicht verwenden",
+  "music.songTooLarge": "Diese Datei ist größer als {megabytes} MB",
+  "music.songTooLong": "Diese Datei ist länger als {minutes} Minuten",
   "music.sampleBadge": "Sample",
   "music.playlistLane": {
     one: "Musik, 1 Song · {duration}",
