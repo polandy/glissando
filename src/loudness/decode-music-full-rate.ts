@@ -12,7 +12,7 @@ export function onceProbed(probe: ProbeSampleRate): ProbeSampleRate {
 }
 
 /** Opens an `AudioContext` only to read its rate, which is the device's output rate. */
-const probeDeviceSampleRate: ProbeSampleRate = async () => {
+export const probeDeviceSampleRate: ProbeSampleRate = async () => {
   const context = new AudioContext();
   const { sampleRate } = context;
   await context.close();
@@ -39,5 +39,3 @@ export function createFullRateDecoder(probeSampleRate: ProbeSampleRate): DecodeM
     return { channels, sampleRate: buffer.sampleRate };
   };
 }
-
-export const decodeMusicFullRate: DecodeMusic = createFullRateDecoder(probeDeviceSampleRate);

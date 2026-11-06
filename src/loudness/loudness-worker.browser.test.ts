@@ -1,6 +1,8 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { excerptLoudnessLufs } from "./excerpt-loudness";
-import { decodeMusicFullRate } from "./decode-music-full-rate";
+import { createFullRateDecoder, probeDeviceSampleRate } from "./decode-music-full-rate";
+
+const decodeMusicFullRate = createFullRateDecoder(probeDeviceSampleRate);
 import { pcmWav } from "./testing/pcm-wav";
 import { sineTone } from "./testing/synthetic-tones";
 import { startLoudnessWorker, WorkerLoudnessMeter } from "./worker-loudness-meter";

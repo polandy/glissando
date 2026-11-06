@@ -35,7 +35,7 @@ import { openLibraryStore } from "./library/indexeddb-store";
 import { startFocusWorker, WorkerFocusDetector } from "./focus/worker-focus-detector";
 import { decodeMusicWithWebAudio } from "./beats/decode-music";
 import { startBeatWorker, WorkerBeatDetector } from "./beats/worker-beat-detector";
-import { decodeMusicFullRate } from "./loudness/decode-music-full-rate";
+import { createFullRateDecoder, probeDeviceSampleRate } from "./loudness/decode-music-full-rate";
 import { startLoudnessWorker, WorkerLoudnessMeter } from "./loudness/worker-loudness-meter";
 import { startBackgroundMusicPasses } from "./app/background-music-passes";
 import { requestPersistentStorage } from "./library/persistent-storage";
@@ -146,7 +146,10 @@ const { beatPass, loudnessPass, serverBeatPass, serverLoudnessPass } = startBack
   store,
   serverStore: serverLibrary.store,
   beatDetector: new WorkerBeatDetector(decodeMusicWithWebAudio, startBeatWorker),
-  loudnessMeter: new WorkerLoudnessMeter(decodeMusicFullRate, startLoudnessWorker),
+  loudnessMeter: new WorkerLoudnessMeter(
+    createFullRateDecoder(probeDeviceSampleRate),
+    startLoudnessWorker,
+  ),
   log: logError,
   reportError,
 });
