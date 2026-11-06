@@ -64,7 +64,7 @@ export class ServerSlideshowStore implements SlideshowStore {
 
   async listSlideshows(): Promise<readonly StoredSlideshow[]> {
     const records = await this.#options.client.listSlideshows();
-    return records.map((record) => this.#remember(record));
+    return records.map((record) => this.#remember(record).slideshow);
   }
 
   async getSlideshow(id: string): Promise<StoredSlideshow> {
@@ -190,8 +190,7 @@ export class ServerSlideshowStore implements SlideshowStore {
 
   async #read(id: string): Promise<SeenSlideshow> {
     const record = await this.#notFoundAs(id, () => this.#options.client.getSlideshow(id));
-    this.#remember(record);
-    return this.#seenOf(record);
+    return this.#remember(record);
   }
 
   async #replace(slideshow: StoredSlideshow, revision: number): Promise<void> {
@@ -207,7 +206,7 @@ export class ServerSlideshowStore implements SlideshowStore {
       );
     } catch (error) {
       if (error instanceof ServerRevisionChangedError) {
-        throw new SlideshowChangedError(this.#remember(error.current));
+        throw new SlideshowChangedError(this.#remember(error.current).slideshow);
       }
       throw error;
     }
@@ -226,14 +225,20 @@ export class ServerSlideshowStore implements SlideshowStore {
     }
   }
 
-  #remember(record: ServerSlideshowRecord): StoredSlideshow {
-    const seen = this.#seenOf(record);
+  /**
+   * Keeps the newer of `record` and the version last seen: a list or read sent before an edit
+   * may be answered after it, and naming its older revision would refuse the next edit (412).
+   */
+  #remember(record: ServerSlideshowRecord): SeenSlideshow {
+    const known = this.#seen.get(record.id);
+    const seen =
+      known !== undefined && known.revision > record.revision ? known : this.#seenOf(record);
     this.#seen.set(record.id, seen);
     this.#pictureFocus.noteSlideshow(
       record.id,
       seen.slideshow.pictures.map((picture) => picture.id),
     );
-    return seen.slideshow;
+    return seen;
   }
 
   #seenOf(record: ServerSlideshowRecord): SeenSlideshow {
