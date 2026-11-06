@@ -73,7 +73,7 @@ The panel for the song selected in the [music editor](../MUSIC_EDITOR.md).
   decode reads "Glissando could not listen to this music's beat. The pictures share it
   evenly." (or "… Each picture stays exactly 5 s."); a detection that failed otherwise
   reads as still listening, as the next pass tries again. Opening the editor, and adding a song,
-  listens for each song next (`BeatPass.listenFor`), so music kept since the app opened and a
+  listens for each song next (`MusicAnalysisPass.listenFor`), so music kept since the app opened and a
   server slideshow's music are listened to as well.
 - **Between songs** (`BetweenSongsSection.svelte`, Details, only with two songs or more): "Crossfade"
   (the default) and "One after another" as a radiogroup; the ⓘ says "The next song starts while

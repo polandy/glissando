@@ -1,6 +1,5 @@
 /** Shared set-up of the `PictureEditorRoute` browser tests. */
-import { beatPassFindingNone } from "../../library/testing/beat-pass-finding-none";
-import { loudnessPassFindingNone } from "../../library/testing/loudness-pass-finding-none";
+import { analysisPassFindingNone } from "../../library/testing/music-analysis-pass-finding-none";
 import type { FocusPass, FocusPassState } from "../../library/focus-pass";
 import type { OwnKenBurns } from "../../library/own-ken-burns";
 import type { PictureFocus } from "../../library/picture-focus";
@@ -183,8 +182,7 @@ export async function mountRoute(
     focus: NO_FOCUS_KNOWN,
     focusPass,
     passPaused: false,
-    beatPass: beatPassFindingNone(store),
-    loudnessPass: loudnessPassFindingNone(store),
+    analysisPass: analysisPassFindingNone(store),
     editor,
     pictureId,
     saving: false,

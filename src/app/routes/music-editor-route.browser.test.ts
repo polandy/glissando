@@ -1,5 +1,4 @@
-import { beatPassFindingNone } from "../../library/testing/beat-pass-finding-none";
-import { loudnessPassFindingNone } from "../../library/testing/loudness-pass-finding-none";
+import { analysisPassFindingNone } from "../../library/testing/music-analysis-pass-finding-none";
 import { flushSync } from "svelte";
 import { afterEach, describe, expect, it } from "vitest";
 import type { StoredSlideshow } from "../../library/stored-slideshow";
@@ -158,8 +157,7 @@ async function mountRoute(stored: StoredSlideshow = SHOW) {
     store,
     stored,
     editor,
-    beatPass: beatPassFindingNone(store),
-    loudnessPass: loudnessPassFindingNone(store),
+    analysisPass: analysisPassFindingNone(store),
     audio: fake.audio,
     songIntake: songIntakeStoringIn(store, (error) => errors.push(error)),
     saving: false,

@@ -1,6 +1,6 @@
 import type { SongBeats } from "../../compose/playlist";
 import { NO_SONG_BEATS } from "../../compose/playlist";
-import type { BeatPass, BeatPassState } from "../../library/beat-pass";
+import type { MusicAnalysisPass, MusicAnalysisPassState } from "../../library/music-analysis-pass";
 import type { LibraryStore } from "../../library/library-store";
 import type { StoredSlideshow } from "../../library/stored-slideshow";
 import { storedSongBeats } from "../beats/music-beats-known";
@@ -13,20 +13,20 @@ import { composedSongBeats, slideshowMoodBpm } from "../screens/slideshow/mood-t
  */
 export class ScreenMoodBpm {
   #storedBeats = $state.raw<SongBeats>(NO_SONG_BEATS);
-  #passState: BeatPassState;
-  readonly #pass: Pick<BeatPass, "state" | "subscribe">;
+  #passState: MusicAnalysisPassState;
+  readonly #pass: Pick<MusicAnalysisPass, "state" | "subscribe">;
   readonly #store: Pick<LibraryStore, "musicBeats">;
   readonly #log: (error: unknown) => void;
 
   #beatsCache: {
     songs: StoredSlideshow["songs"];
     storedBeats: SongBeats;
-    pass: BeatPassState;
+    pass: MusicAnalysisPassState;
     beats: SongBeats;
   } | null = null;
 
   constructor(
-    pass: Pick<BeatPass, "state" | "subscribe">,
+    pass: Pick<MusicAnalysisPass, "state" | "subscribe">,
     store: Pick<LibraryStore, "musicBeats">,
     log: (error: unknown) => void,
   ) {

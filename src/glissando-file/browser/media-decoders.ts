@@ -1,9 +1,11 @@
-import { DETECTION_SAMPLE_RATE } from "../../beats/decode-music";
 import { assertMusicWithinLimits, MusicOverLimitError } from "../../import/music-limits";
 import { probeMusicDurationMs, UnreadableMusicError } from "../../import/music-probe";
 import { openClipInVideoElement } from "../../import/browser/video-clip";
 import { encodeThumbnail } from "../../import/downscale";
 import type { MediaDecoders } from "../media-decoders";
+
+/** Any rate proves a song decodes; a low one keeps the decoded copy small. */
+const DECODE_PROBE_SAMPLE_RATE = 8000;
 
 /** The name given a clip's blob to open it in a `<video>` element; never shown to anyone. */
 const CLIP_PLACEHOLDER_NAME = "clip";
@@ -41,7 +43,7 @@ export function browserMediaDecoders(log: (error: unknown) => void): MediaDecode
         }
         throw error;
       }
-      const context = new OfflineAudioContext(1, 1, DETECTION_SAMPLE_RATE);
+      const context = new OfflineAudioContext(1, 1, DECODE_PROBE_SAMPLE_RATE);
       try {
         await context.decodeAudioData(bytes);
         return true;

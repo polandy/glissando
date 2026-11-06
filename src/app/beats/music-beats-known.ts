@@ -1,6 +1,6 @@
 import { NO_BEATS, type MusicBeats } from "../../beats";
 import type { SongBeats } from "../../compose";
-import type { BeatPassState } from "../../library/beat-pass";
+import type { MusicAnalysisPassState } from "../../library/music-analysis-pass";
 import type { LibraryStore } from "../../library/library-store";
 import type { StoredSlideshow } from "../../library/stored-slideshow";
 
@@ -45,9 +45,9 @@ export const READING_BEATS = "reading";
 export function beatsStatus(
   musicId: string,
   stored: MusicBeats | undefined | typeof READING_BEATS,
-  pass: BeatPassState,
+  pass: MusicAnalysisPassState,
 ): BeatsStatus {
-  const beats = pass.found.get(musicId) ?? (stored === READING_BEATS ? undefined : stored);
+  const beats = pass.found.get(musicId)?.beats ?? (stored === READING_BEATS ? undefined : stored);
   if (beats !== undefined) {
     return { kind: "known", beats };
   }

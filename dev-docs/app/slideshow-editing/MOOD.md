@@ -63,7 +63,7 @@ its pace otherwise. Chosen duration, chosen transition and chosen motion of a pi
   - **Preview** (`MoodPreview.svelte`): the real player (`createPlayer`) on the slideshow's
     first four slide units composed with the shown mood, looping, silent until its "Sound"
     toggle is on — until then it plays without the music, so it opens no audio; no badge over it, the tempo shows only in "What it sets" below. Plays at once
-    and re-paces once the background beat pass finds a song's beats, or once a mood is chosen.
+    and re-paces once the background music analysis finds a song's beats, or once a mood is chosen.
     Left out without pictures.
   - **Tiles**: a radiogroup — Calm "Slow, soft", Lively "Quick, on the beat", Custom "Your
     settings"; three columns. A tap stores at once; arrow keys move it.

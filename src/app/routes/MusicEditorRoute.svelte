@@ -1,7 +1,6 @@
 <script lang="ts">
   import { onDestroy } from "svelte";
-  import type { BeatPass } from "../../library/beat-pass";
-  import type { LoudnessPass } from "../../library/loudness-pass";
+  import type { MusicAnalysisPass } from "../../library/music-analysis-pass";
   import type { LibraryStore } from "../../library/library-store";
   import type { StoredSlideshow } from "../../library/stored-slideshow";
   import { PlaylistBeats } from "../beats/playlist-beats";
@@ -27,8 +26,7 @@
     store,
     stored,
     editor,
-    beatPass,
-    loudnessPass,
+    analysisPass,
     audio,
     songIntake,
     samplePreview,
@@ -42,10 +40,9 @@
     store: Pick<LibraryStore, "musicBlob" | "musicBeats" | "musicLoudness">;
     stored: StoredSlideshow;
     editor: SlideshowEditor;
-    /** What it finds puts the automatic changes on the music's beats as it goes. */
-    beatPass: Pick<BeatPass, "subscribe" | "listenFor">;
-    /** What it finds levels each song as it goes (ADR-0040). */
-    loudnessPass: Pick<LoudnessPass, "subscribe" | "listenFor">;
+    /** What it finds puts the automatic changes on the music's beats and levels each song as it
+     * goes (ADR-0040, ADR-0051). */
+    analysisPass: Pick<MusicAnalysisPass, "subscribe" | "listenFor">;
     audio: MusicEditorAudio;
     /** Reads picked songs and stores their audio where the slideshow lives. */
     songIntake: SongIntakeDevice;
@@ -84,11 +81,11 @@
 
   // The ports are fixed for the route's lifetime.
   // svelte-ignore state_referenced_locally
-  const playlistBeats = new PlaylistBeats({ store, pass: beatPass, log }, (status) => {
+  const playlistBeats = new PlaylistBeats({ store, pass: analysisPass, log }, (status) => {
     beats = status;
   });
   // svelte-ignore state_referenced_locally
-  const playlistLoudness = new PlaylistLoudness({ store, pass: loudnessPass, log }, (status) => {
+  const playlistLoudness = new PlaylistLoudness({ store, pass: analysisPass, log }, (status) => {
     loudness = status;
   });
   // svelte-ignore state_referenced_locally

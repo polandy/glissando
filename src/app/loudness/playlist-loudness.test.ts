@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { MusicLoudness } from "../../loudness";
-import type { LoudnessPassState } from "../../library/loudness-pass";
+import { NO_BEATS } from "../../beats";
+import type { MusicAnalysisPassState } from "../../library/music-analysis-pass";
 import type { LoudnessStatus } from "./music-loudness-known";
 import { PlaylistLoudness } from "./playlist-loudness";
 
@@ -13,14 +14,14 @@ const MEASURED: MusicLoudness = {
 class FakePass {
   readonly asked: string[] = [];
   subscribers = 0;
-  readonly state: LoudnessPassState = {
+  readonly state: MusicAnalysisPassState = {
     running: true,
     listening: new Set(),
-    found: new Map([["b", MEASURED]]),
+    found: new Map([["b", { beats: NO_BEATS, loudness: MEASURED }]]),
     undecodable: new Set(),
   };
 
-  subscribe(listener: (state: LoudnessPassState) => void): () => void {
+  subscribe(listener: (state: MusicAnalysisPassState) => void): () => void {
     this.subscribers += 1;
     listener(this.state);
     return () => (this.subscribers -= 1);

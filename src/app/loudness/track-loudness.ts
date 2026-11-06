@@ -1,11 +1,11 @@
 import type { MusicLoudness } from "../../loudness";
-import type { LoudnessPass, LoudnessPassState } from "../../library/loudness-pass";
+import type { MusicAnalysisPass, MusicAnalysisPassState } from "../../library/music-analysis-pass";
 import type { LibraryStore } from "../../library/library-store";
 import { loudnessStatus, READING_LOUDNESS, type LoudnessStatus } from "./music-loudness-known";
 
 export interface TrackLoudnessPorts {
   readonly store: Pick<LibraryStore, "musicLoudness">;
-  readonly pass: Pick<LoudnessPass, "subscribe">;
+  readonly pass: Pick<MusicAnalysisPass, "subscribe">;
   log(error: unknown): void;
 }
 
@@ -18,7 +18,7 @@ export class TrackLoudness {
   readonly read: Promise<void>;
   readonly #stopPass: () => void;
   #stored: MusicLoudness | undefined | typeof READING_LOUDNESS = READING_LOUDNESS;
-  #pass: LoudnessPassState | undefined;
+  #pass: MusicAnalysisPassState | undefined;
 
   constructor(
     musicId: string,

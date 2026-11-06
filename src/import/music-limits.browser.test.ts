@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { decodeMusicWithWebAudio } from "../beats/decode-music";
 import { decodePeaksWithWebAudio } from "../app/music-editor/decode-peaks";
-import { createFullRateDecoder, probeDeviceSampleRate } from "../loudness/decode-music-full-rate";
+import {
+  createFullRateDecoder,
+  probeDeviceSampleRate,
+} from "../music-analysis/decode-music-full-rate";
 import { MAX_MUSIC_DURATION_MS, MusicOverLimitError } from "./music-limits";
 import { silentWav } from "./testing/silent-wav";
 
@@ -24,8 +26,7 @@ async function outcome(decoding: Promise<unknown>): Promise<string> {
 
 const decoders = {
   peaks: (music: Blob) => decodePeaksWithWebAudio(music),
-  beats: (music: Blob) => decodeMusicWithWebAudio(music),
-  loudness: createFullRateDecoder(probeDeviceSampleRate),
+  analysis: createFullRateDecoder(probeDeviceSampleRate),
 };
 
 describe.each(Object.entries(decoders))("the %s decode", (_name, decode) => {

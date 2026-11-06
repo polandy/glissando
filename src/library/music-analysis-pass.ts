@@ -1,46 +1,51 @@
-import type { MusicLoudness } from "../loudness";
 import {
-  LoudnessMeterGoneError,
-  MusicUnmeasurableError,
-  type LoudnessMeter,
-} from "./loudness-meter";
+  MusicAnalyserGoneError,
+  MusicUndecodableError,
+  type MusicAnalyser,
+  type MusicAnalysis,
+} from "./music-analyser";
 import type { LibraryStore } from "./library-store";
 import { MediaNotFoundError } from "./library-store";
 
-export interface LoudnessPassPorts {
+export interface MusicAnalysisPassPorts {
   readonly store: Pick<
     LibraryStore,
-    "listSlideshows" | "musicLoudness" | "musicBlob" | "putMusicLoudness"
+    | "listSlideshows"
+    | "musicBeats"
+    | "musicLoudness"
+    | "musicBlob"
+    | "putMusicBeats"
+    | "putMusicLoudness"
   >;
-  readonly meter: LoudnessMeter;
-  /** A measurement failed for one track: logged, the pass carries on. */
+  readonly analyser: MusicAnalyser;
+  /** An analysis failed for one track: logged, the pass carries on. */
   log(error: unknown): void;
-  /** An unexpected error, or the meter gone (told once; later passes log it), ended the pass. */
+  /** An unexpected error, or the analyser gone (told once; later passes log it), ended the pass. */
   reportError(error: unknown): void;
 }
 
-export interface LoudnessPassState {
+export interface MusicAnalysisPassState {
   readonly running: boolean;
-  /** The music the pass will still measure, the track in flight included, by music id. */
+  /** The music the pass will still analyse, the track in flight included, by music id. */
   readonly listening: ReadonlySet<string>;
   /** Every result the pass stored since the app opened, by music id. */
-  readonly found: ReadonlyMap<string, MusicLoudness>;
-  /** The music this device could not decode, by music id, until its loudness is found after all. */
+  readonly found: ReadonlyMap<string, MusicAnalysis>;
+  /** The music this device could not decode, by music id, until its analysis succeeds after all. */
   readonly undecodable: ReadonlySet<string>;
 }
 
-/** The meter failed on one track; it is measured again on the next pass. */
-export class LoudnessMeasurementFailedError extends Error {
+/** The analyser failed on one track; it is analysed again on the next pass. */
+export class MusicAnalysisFailedError extends Error {
   constructor(
     readonly musicId: string,
     cause: unknown,
   ) {
-    super(`measuring the loudness of music "${musicId}" failed`, { cause });
-    this.name = "LoudnessMeasurementFailedError";
+    super(`analysing music "${musicId}" failed`, { cause });
+    this.name = "MusicAnalysisFailedError";
   }
 }
 
-const IDLE: LoudnessPassState = {
+const IDLE: MusicAnalysisPassState = {
   running: false,
   listening: new Set(),
   found: new Map(),
@@ -48,14 +53,15 @@ const IDLE: LoudnessPassState = {
 };
 
 /**
- * Measures, in the background, the loudness of every stored track that has none yet (ADR-0040):
- * one track at a time, its file through the meter into the store. Music deleted meanwhile is
- * skipped; a track whose measurement fails is logged and left for the next pass, and marked
- * undecodable when that is why. A meter gone ends the pass, the rest left for the next.
+ * Analyses, in the background, every stored track that lacks its beats or its loudness
+ * (ADR-0021, ADR-0040, ADR-0051): one track at a time, its file through the analyser, both
+ * results into the store. Music deleted meanwhile is skipped; a track whose analysis fails is
+ * logged and left for the next pass, and marked undecodable when that is why. An analyser gone
+ * ends the pass, the rest left for the next.
  */
-export class LoudnessPass {
-  readonly #ports: LoudnessPassPorts;
-  readonly #listeners = new Set<(state: LoudnessPassState) => void>();
+export class MusicAnalysisPass {
+  readonly #ports: MusicAnalysisPassPorts;
+  readonly #listeners = new Set<(state: MusicAnalysisPassState) => void>();
   #state = IDLE;
   #queue: string[] = [];
   /** Music asked for by `listenFor`, not yet taken up. */
@@ -64,20 +70,20 @@ export class LoudnessPass {
   readonly #takenUp = new Set<string>();
   #rescanRequested = false;
   #isRunning = false;
-  /** A gone meter stays gone: told once, as every later pass meets it again. */
+  /** A gone analyser stays gone: told once, as every later pass meets it again. */
   #goneReported = false;
   #running: Promise<void> = Promise.resolve();
 
-  constructor(ports: LoudnessPassPorts) {
+  constructor(ports: MusicAnalysisPassPorts) {
     this.#ports = ports;
   }
 
-  get state(): LoudnessPassState {
+  get state(): MusicAnalysisPassState {
     return this.#state;
   }
 
   /** The Svelte store contract: called now with the current state, then on every change. */
-  subscribe(listener: (state: LoudnessPassState) => void): () => void {
+  subscribe(listener: (state: MusicAnalysisPassState) => void): () => void {
     this.#listeners.add(listener);
     listener(this.#state);
     return () => this.#listeners.delete(listener);
@@ -93,7 +99,7 @@ export class LoudnessPass {
   }
 
   /**
-   * Measures the one track next, unless its loudness is stored or this pass took it up already:
+   * Analyses the one track next, unless its beats and loudness are stored or this pass took it up already:
    * the slideshow opened goes ahead of the rest.
    */
   listenFor(musicId: string): void {
@@ -127,14 +133,14 @@ export class LoudnessPass {
           continue;
         }
         const musicId = this.#queue.shift() as string;
-        await this.#measure(musicId);
+        await this.#analyse(musicId);
         this.#publish({ listening: new Set(this.#queue) });
       }
     } catch (error) {
-      if (error instanceof LoudnessMeterGoneError && this.#goneReported) {
+      if (error instanceof MusicAnalyserGoneError && this.#goneReported) {
         this.#ports.log(error);
       } else {
-        this.#goneReported ||= error instanceof LoudnessMeterGoneError;
+        this.#goneReported ||= error instanceof MusicAnalyserGoneError;
         this.#ports.reportError(error);
       }
     } finally {
@@ -146,12 +152,12 @@ export class LoudnessPass {
     }
   }
 
-  /** Queues every track without a result that this pass has not taken up yet, newest slideshow first. */
+  /** Queues every track lacking beats or loudness that this pass has not taken up yet, newest slideshow first. */
   async #scan(): Promise<void> {
     const slideshows = await this.#ports.store.listSlideshows();
     const musicIds = new Set(slideshows.flatMap((show) => show.songs.map((song) => song.id)));
     for (const musicId of musicIds) {
-      if (this.#takenUp.has(musicId) || (await this.#ports.store.musicLoudness(musicId))) {
+      if (this.#takenUp.has(musicId) || (await this.#isAnalysed(musicId))) {
         continue;
       }
       this.#takenUp.add(musicId);
@@ -166,10 +172,7 @@ export class LoudnessPass {
     this.#asked = [];
     for (const musicId of asked) {
       const queued = this.#queue.includes(musicId);
-      if (
-        !queued &&
-        (this.#takenUp.has(musicId) || (await this.#ports.store.musicLoudness(musicId)))
-      ) {
+      if (!queued && (this.#takenUp.has(musicId) || (await this.#isAnalysed(musicId)))) {
         continue;
       }
       this.#takenUp.add(musicId);
@@ -178,7 +181,7 @@ export class LoudnessPass {
     this.#publish({ listening: new Set(this.#queue) });
   }
 
-  async #measure(musicId: string): Promise<void> {
+  async #analyse(musicId: string): Promise<void> {
     let music: Blob;
     try {
       music = await this.#ports.store.musicBlob(musicId);
@@ -188,28 +191,37 @@ export class LoudnessPass {
       }
       throw error;
     }
-    let loudness: MusicLoudness;
+    let analysis: MusicAnalysis;
     try {
-      loudness = await this.#ports.meter.measure(music);
+      analysis = await this.#ports.analyser.analyse(music);
     } catch (error) {
-      if (error instanceof LoudnessMeterGoneError) {
-        // Every later measurement would fail alike: the pass ends, the rest waits for the next.
+      if (error instanceof MusicAnalyserGoneError) {
+        // Every later analysis would fail alike: the pass ends, the rest waits for the next.
         throw error;
       }
-      this.#ports.log(new LoudnessMeasurementFailedError(musicId, error));
-      if (error instanceof MusicUnmeasurableError) {
+      this.#ports.log(new MusicAnalysisFailedError(musicId, error));
+      if (error instanceof MusicUndecodableError) {
         this.#publish({ undecodable: new Set(this.#state.undecodable).add(musicId) });
       }
       return;
     }
     // The store keeps nothing for music deleted meanwhile.
-    await this.#ports.store.putMusicLoudness(musicId, loudness);
+    await this.#ports.store.putMusicBeats(musicId, analysis.beats);
+    await this.#ports.store.putMusicLoudness(musicId, analysis.loudness);
     const undecodable = new Set(this.#state.undecodable);
     undecodable.delete(musicId);
-    this.#publish({ found: new Map(this.#state.found).set(musicId, loudness), undecodable });
+    this.#publish({ found: new Map(this.#state.found).set(musicId, analysis), undecodable });
   }
 
-  #publish(change: Partial<LoudnessPassState>): void {
+  async #isAnalysed(musicId: string): Promise<boolean> {
+    const { store } = this.#ports;
+    return (
+      (await store.musicBeats(musicId)) !== undefined &&
+      (await store.musicLoudness(musicId)) !== undefined
+    );
+  }
+
+  #publish(change: Partial<MusicAnalysisPassState>): void {
     this.#state = { ...this.#state, ...change };
     for (const listener of this.#listeners) {
       listener(this.#state);

@@ -37,8 +37,7 @@
     onSaveOnServer,
     serverSessions,
     focusPass,
-    beatPass,
-    loudnessPass,
+    analysisPass,
     toaster,
     newId,
     now,
@@ -119,7 +118,7 @@
     left: left.signal,
   });
   // svelte-ignore state_referenced_locally
-  const screenMoodBpm = new ScreenMoodBpm(beatPass, store, log);
+  const screenMoodBpm = new ScreenMoodBpm(analysisPass, store, log);
   onMount(() => {
     const stops = [screenFocus.follow(), screenMoodBpm.follow()];
     screenSlideshow.load();
@@ -167,8 +166,7 @@
     {focus}
     {focusPass}
     passPaused={screenFocus.passPaused}
-    {beatPass}
-    {loudnessPass}
+    {analysisPass}
     {editor}
     pictureId={editingPictureId}
     {saving}
@@ -184,8 +182,7 @@
     {store}
     {stored}
     {editor}
-    {beatPass}
-    {loudnessPass}
+    {analysisPass}
     audio={musicAudio}
     {songIntake}
     {samplePreview}
@@ -254,7 +251,7 @@
     onClose={onBack}
     {onError}
     {log}
-    {beatPass}
+    {analysisPass}
     {home}
     {playbackQuality}
     startPicture={playing.pictureId}

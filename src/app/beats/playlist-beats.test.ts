@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { MusicBeats } from "../../beats";
-import type { BeatPassState } from "../../library/beat-pass";
+import { SILENT } from "../../library/testing/music-analysis-pass-fixtures";
+import type { MusicAnalysisPassState } from "../../library/music-analysis-pass";
 import type { SongsBeatsStatus } from "../music-editor/slideshow-times";
 import { PlaylistBeats } from "./playlist-beats";
 
@@ -10,14 +11,14 @@ const DRUMS: MusicBeats = { kind: "beats", beatsMs: [500, 1000], beatsPerMinute:
 class FakePass {
   readonly asked: string[] = [];
   subscribers = 0;
-  readonly state: BeatPassState = {
+  readonly state: MusicAnalysisPassState = {
     running: true,
     listening: new Set(),
-    found: new Map([["b", DRUMS]]),
+    found: new Map([["b", { beats: DRUMS, loudness: SILENT }]]),
     undecodable: new Set(),
   };
 
-  subscribe(listener: (state: BeatPassState) => void): () => void {
+  subscribe(listener: (state: MusicAnalysisPassState) => void): () => void {
     this.subscribers += 1;
     listener(this.state);
     return () => (this.subscribers -= 1);

@@ -35,9 +35,9 @@ slideshow, which the player and the video export apply alike.
 ## Consequences
 
 - A song plays unlevelled until its pass finished; the editor shows "Measuring…".
-- The full-rate decode is separate from the beat decode (11 025 Hz mono would underestimate the
-  peaks), so a file is decoded twice in the background, one song at a time — about 100 MB
-  transient memory for a 5-minute stereo song.
+- The loudness is measured at full rate (11 025 Hz mono would underestimate the peaks); the beats
+  are resampled from that same decode in the worker (ADR-0051), so a file is decoded once in the
+  background, one song at a time — about 100 MB transient memory for a 5-minute stereo song.
 - −14 LUFS turns loud masters down by ~5 dB compared with playing the file as it is; the TV's
   volume makes up for it.
 - Sample peak, not true peak: an inter-sample overshoot may pass the ceiling by a fraction of a
