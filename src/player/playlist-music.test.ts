@@ -38,7 +38,7 @@ describe("PlaylistMusic resync", () => {
   it.each([
     ["behind", 2.849],
     ["ahead", 3.151],
-  ])("seeks a sounding track more than %s the tolerance back to its place", async (_, at) => {
+  ])("seeks a sounding track more than 150 ms %s back to its place", async (_, at) => {
     const { music, of } = setUp(FIRST);
     await music.play(0);
     of("first.mp3").playingAt = at;
@@ -69,7 +69,7 @@ describe("PlaylistMusic resync", () => {
     expect(of("second.mp3").calls).toEqual(["play@0", "pause"]);
   });
 
-  it("does not seek after a pause", async () => {
+  it("restarts a paused track at its place instead of seeking it", async () => {
     const { music, of } = setUp(FIRST);
     await music.play(0);
     music.pause();

@@ -40,7 +40,7 @@ describe("AudioElementMusic", () => {
     music.dispose();
   });
 
-  it("moves to a second without playing", async () => {
+  it("does not start the music when it seeks", async () => {
     const music = await musicWithUserActivation();
 
     music.seek(0.5);
