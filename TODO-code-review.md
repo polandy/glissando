@@ -35,7 +35,6 @@ Each fix starts with the failing test the item names or implies (WORKFLOW.md, Te
 
 ### Music, composition and focus
 
-- [ ] `src/frame/round-handover.ts:132-135,178-198` — A skip or natural end while paused swaps in a playing round but `#paused` stays true, so the UI offers "Resume" while pictures advance. Fix: pause the new current when paused, or reset the flag in `#swapIn`.
 - [ ] `src/app/music-editor/song-intake.ts:160-165,207-262` — Remove a sample and add it again quickly: the aborted download's `finally` deletes the new download's controller, so its progress rows are dropped and it can no longer be aborted. Fix: delete only when the stored controller is this one.
 - [ ] `src/beats/decode-music.ts`, `src/loudness/decode-music-full-rate.ts`, `src/app/music-editor/decode-peaks.ts` — Untrusted audio has no byte or duration cap and is decoded three times per song on the main thread; a 2 h stereo 48 kHz file is ~2.7 GB of Float32. Fix: cap bytes and duration at intake with a message; probe the rate once; one shared decode for peaks, beats and loudness.
 - [ ] `src/beats/worker-beat-detector.ts` / `src/loudness/worker-loudness-meter.ts` / `src/focus/worker-focus-detector.ts` and `src/app/beats/playlist-beats.ts` / `src/app/loudness/playlist-loudness.ts` (+ `track-*.ts`) — Worker client and playlist follower copied per pass; lifecycle fixes land in one copy only. Fix: a generic worker request client and `PlaylistFollower<T>`.

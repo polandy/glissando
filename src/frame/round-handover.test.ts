@@ -160,6 +160,34 @@ describe("RoundHandover", () => {
     expect(handover.state.paused).toBe(false);
   });
 
+  it("a round ending naturally while paused hands over to the next round and leaves it paused", () => {
+    const [first, second] = [new FakePlayer(), new FakePlayer()];
+    const handover = new RoundHandover(fakePorts([first, second]));
+    handover.start();
+    second.showFirstPicture();
+    handover.pause();
+
+    first.end();
+
+    expect(handover.state.player).toBe(second);
+    expect(handover.state.paused).toBe(true);
+    expect(second.play).not.toHaveBeenCalled();
+  });
+
+  it("a skip while paused that waits for the prepared round leaves it paused once it is ready", () => {
+    const [first, second] = [new FakePlayer(), new FakePlayer()];
+    const handover = new RoundHandover(fakePorts([first, second]));
+    handover.start();
+    handover.pause();
+    handover.skip();
+
+    second.showFirstPicture();
+
+    expect(handover.state.player).toBe(second);
+    expect(handover.state.paused).toBe(true);
+    expect(second.play).not.toHaveBeenCalled();
+  });
+
   it("tears down the current and prepared players on destroy, and stops reacting to them", () => {
     const [first, second] = [new FakePlayer(), new FakePlayer()];
     const handover = new RoundHandover(fakePorts([first, second]));
