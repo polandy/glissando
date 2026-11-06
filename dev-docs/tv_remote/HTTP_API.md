@@ -17,8 +17,8 @@ carrying a key or secret is `Cache-Control: no-store`.
 
 | Request                                                | Answer                                                                                                                                                      |
 | ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `POST /api/tv/sessions` (any JSON body)                | 201 `{ "tvKey", "code" }` — way A                                                                                                                           |
-| `POST /api/share/{token}/tv` (any JSON body)           | 201 `{ "tvKey", "remoteSecret" }` — way B; 404 `notShared`                                                                                                  |
+| `POST /api/tv/sessions` (any JSON body)                | 201 `{ "tvKey", "code" }` — way A; 503 `tvFull` (Sessions, Lifetime)                                                                                        |
+| `POST /api/share/{token}/tv` (any JSON body)           | 201 `{ "tvKey", "remoteSecret" }` — way B; 404 `notShared`; 503 `tvFull`                                                                                    |
 | `GET /api/tv/{tvKey}/events`                           | The TV's stream (below); 404 `noSuchTv`                                                                                                                     |
 | `PUT /api/tv/{tvKey}/state` `PlaybackState`            | 204; 404 `noSuchTv`; 400 `invalidState`                                                                                                                     |
 | `GET /api/tv/{tvKey}/show`                             | Way A: the share document of the chosen slideshow, as `GET /api/share/{token}`; 404 `notShown` until one is chosen, once it is deleted, and always in way B |

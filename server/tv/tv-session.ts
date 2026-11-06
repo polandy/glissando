@@ -10,21 +10,20 @@ export interface Session {
   tv: EventSink<TvEvent> | undefined;
   readonly remotes: Set<EventSink<RemoteEvent>>;
   state: PlaybackState | undefined;
-  readonly createdAt: number;
   /** When the TV's stream last closed, or the session was made. */
   tvLeftAt: number;
 }
 
-/** The session whose TV has been away the longest, else the oldest. */
+/**
+ * The session whose TV has been away the longest; none while every TV is there, since the route
+ * that makes sessions is public and must never end a pairing in use.
+ */
 export function evictionCandidate(sessions: readonly Session[]): Session | undefined {
-  const away = sessions.filter((session) => session.tv === undefined);
-  const earliest = (candidates: readonly Session[], time: (session: Session) => number) =>
-    candidates.reduce<Session | undefined>(
-      (found, session) => (found === undefined || time(session) < time(found) ? session : found),
+  return sessions
+    .filter((session) => session.tv === undefined)
+    .reduce<Session | undefined>(
+      (found, session) =>
+        found === undefined || session.tvLeftAt < found.tvLeftAt ? session : found,
       undefined,
     );
-  return (
-    earliest(away, (session) => session.tvLeftAt) ??
-    earliest(sessions, (session) => session.createdAt)
-  );
 }

@@ -18,8 +18,9 @@ database never sees them, and a restart of the service ends them all.
 - **Lifetime**: a session ends when `disconnect` arrives (also while the TV is away), or
   `SESSION_IDLE_MS` (15 min) after the TV's stream last closed (or after the session was made,
   when the TV never opened one). The hub checks lazily on each request; there is no timer. At
-  most `MAX_SESSIONS` (100) live; one more drops the session whose TV has been away the longest,
-  else the oldest.
+  most `MAX_SESSIONS` (100) live; one more drops the session whose TV has been away the longest.
+  While every TV is there, none is dropped and `create`/`createBound` make none: making a session
+  is public, and must never end a pairing in use.
 - **What the hub does**: `create`/`createBound(token)`, `claim(code)`,
   `show(secret, slideshowId)`, `connectTv(tvKey, sink)` (replays a `snapshot` first),
   `connectRemote(secret, sink)` (replays a `snapshot` first), `command(secret, command)`,

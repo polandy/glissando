@@ -6,7 +6,7 @@ import {
   type RemoteEvent,
   type TvEvent,
 } from "./tv-hub";
-import { claimedSession, hubHarness, recordingSink } from "./testing/tv-hub-harness";
+import { claimedSession, hubHarness, recordingSink, made } from "./testing/tv-hub-harness";
 
 describe("a session's lifetime", () => {
   it.each([
@@ -14,7 +14,7 @@ describe("a session's lifetime", () => {
     ["a TV that never connected, at the idle time", SESSION_IDLE_MS, false],
   ])("%s: alive %s", (_, elapsed, alive) => {
     const { hub, advanceClock } = hubHarness();
-    const { tvKey } = hub.create();
+    const { tvKey } = made(hub.create());
     advanceClock(elapsed);
     expect(hub.sourceOf(tvKey) !== undefined).toBe(alive);
   });
@@ -37,7 +37,7 @@ describe("a session's lifetime", () => {
 
   it("frees an expired session's code", () => {
     const { hub, advanceClock } = hubHarness();
-    const { code } = hub.create();
+    const { code } = made(hub.create());
     advanceClock(SESSION_IDLE_MS);
     expect(hub.claim(code)).toBeUndefined();
   });
@@ -47,7 +47,7 @@ describe("at most MAX_SESSIONS sessions", () => {
   const fill = (hub: ReturnType<typeof createTvHub>, advanceClock: (ms: number) => void) =>
     Array.from({ length: MAX_SESSIONS }, () => {
       advanceClock(1);
-      return hub.create().tvKey;
+      return made(hub.create()).tvKey;
     });
 
   it("drops the session whose TV has been away the longest for one more", () => {
@@ -57,20 +57,20 @@ describe("at most MAX_SESSIONS sessions", () => {
     closes[7]?.();
     advanceClock(1);
     closes[3]?.();
-    hub.create();
+    made(hub.create());
     expect(hub.sourceOf(keys[3] ?? "")).toBeDefined();
     expect(hub.sourceOf(keys[7] ?? "")).toBeUndefined();
     expect(keys.filter((key) => hub.sourceOf(key) !== undefined)).toHaveLength(MAX_SESSIONS - 1);
   });
 
-  it("drops the oldest session when every TV is there", () => {
+  it("refuses one more while every TV is there, ending none of them", () => {
     const { hub, advanceClock } = hubHarness();
     const keys = fill(hub, advanceClock);
     const tvs = keys.map(() => recordingSink<TvEvent>());
     keys.forEach((key, index) => hub.connectTv(key, tvs[index]?.sink ?? recordingSink().sink));
-    hub.create();
-    expect(hub.sourceOf(keys[1] ?? "")).toBeDefined();
-    expect(hub.sourceOf(keys[0] ?? "")).toBeUndefined();
-    expect([tvs[0]?.events.at(-1), tvs[0]?.sink.closed]).toEqual([{ name: "end", data: {} }, true]);
+    expect(hub.create()).toBeUndefined();
+    expect(hub.createBound("token")).toBeUndefined();
+    expect(keys.filter((key) => hub.sourceOf(key) !== undefined)).toHaveLength(MAX_SESSIONS);
+    expect(tvs.some((tv) => tv.sink.closed)).toBe(false);
   });
 });

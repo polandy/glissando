@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { tvHarness } from "./testing/tv-routes-harness";
 import { playingState } from "./testing/tv-hub-harness";
+import { MAX_SESSIONS } from "./tv-hub";
 import { isTvPath } from "./tv-routes";
 
 const KEY_PATTERN = /^[A-Za-z0-9_-]{22}$/;
@@ -26,6 +27,18 @@ describe("making a session", () => {
   it("POST /api/share/{token}/tv answers 404 notShared for a token nothing is shared by", () => {
     const response = tvHarness().send("POST", `/api/share/${UNKNOWN_KEY}/tv`);
     expect([response.status, response.json["error"]]).toEqual([404, "notShared"]);
+  });
+
+  it("answers 503 tvFull while MAX_SESSIONS TVs are watching, on either way", () => {
+    const tv = tvHarness();
+    const token = tv.shareSlideshow();
+    const made = Array.from({ length: MAX_SESSIONS }, () => tv.send("POST", "/api/tv/sessions"));
+    made.forEach((response) => tv.openStream(`/api/tv/${String(response.json["tvKey"])}/events`));
+    expect(made.every((response) => response.status === 201)).toBe(true);
+    const wayA = tv.send("POST", "/api/tv/sessions");
+    const wayB = tv.send("POST", `/api/share/${token}/tv`);
+    expect([wayA.status, wayA.json["error"]]).toEqual([503, "tvFull"]);
+    expect([wayB.status, wayB.json["error"]]).toEqual([503, "tvFull"]);
   });
 
   it("refuses a body that is not application/json with 415 notJson", () => {

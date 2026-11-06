@@ -8,11 +8,12 @@ import {
   KEY_PATTERN,
   playingState,
   recordingSink,
+  made,
 } from "./testing/tv-hub-harness";
 
 describe("making a session (way A)", () => {
   it("answers a 22-character base64url key and a code of four letters from the alphabet", () => {
-    const { tvKey, code } = hubHarness().hub.create();
+    const { tvKey, code } = made(hubHarness().hub.create());
     expect(tvKey).toMatch(KEY_PATTERN);
     expect(code).toHaveLength(4);
     expect([...code].every((letter) => CODE_ALPHABET.includes(letter))).toBe(true);
@@ -28,12 +29,12 @@ describe("making a session (way A)", () => {
     ["a byte past the alphabet wraps around", [23, 24, 45, 252], "ABZZ"],
   ])("draws a code from the random bytes: %s", (_, bytes, code) => {
     const { hub } = hubHarness([new Uint8Array(bytes)]);
-    expect(hub.create().code).toBe(code);
+    expect(made(hub.create()).code).toBe(code);
   });
 
   it("draws again when a byte would favour some letters (253 and above)", () => {
     const { hub } = hubHarness([new Uint8Array([0, 0, 0, 253]), new Uint8Array([1, 1, 1, 1])]);
-    expect(hub.create().code).toBe("BBBB");
+    expect(made(hub.create()).code).toBe("BBBB");
   });
 
   it("draws again when the code belongs to a live session", () => {
@@ -43,8 +44,8 @@ describe("making a session (way A)", () => {
       new Uint8Array([0, 0, 0, 0]),
       new Uint8Array([2, 2, 2, 2]),
     ]);
-    expect(hub.create().code).toBe("AAAA");
-    expect(hub.create().code).toBe("CCCC");
+    expect(made(hub.create()).code).toBe("AAAA");
+    expect(made(hub.create()).code).toBe("CCCC");
   });
 
   it("fails loud when the random source never gives an unused code", () => {
@@ -53,14 +54,14 @@ describe("making a session (way A)", () => {
       now: () => 0,
       randomBytes: (count) => new Uint8Array(count).fill(count === KEY_BYTES ? ++calls : 255),
     });
-    expect(() => hub.create()).toThrow("code");
+    expect(() => made(hub.create())).toThrow("code");
   });
 });
 
 describe("claiming a code", () => {
   it("answers the remote's secret once, then the code is gone", () => {
     const { hub } = hubHarness();
-    const { tvKey, code } = hub.create();
+    const { tvKey, code } = made(hub.create());
     const secret = hub.claim(code);
     expect(secret).toMatch(KEY_PATTERN);
     expect(secret).not.toBe(tvKey);
@@ -69,13 +70,13 @@ describe("claiming a code", () => {
 
   it("answers nothing for a code no session has", () => {
     const { hub } = hubHarness();
-    hub.create();
+    made(hub.create());
     expect(hub.claim("QQQQ")).toBeUndefined();
   });
 
   it("tells the TV it was claimed", () => {
     const { hub } = hubHarness();
-    const { tvKey, code } = hub.create();
+    const { tvKey, code } = made(hub.create());
     const tv = recordingSink<TvEvent>();
     hub.connectTv(tvKey, tv.sink);
     hub.claim(code);
@@ -97,7 +98,7 @@ describe("choosing a slideshow", () => {
 
   it("refuses a session bound to a share link", () => {
     const { hub } = hubHarness();
-    const { tvKey, remoteSecret } = hub.createBound("SHARETOKENSHARETOKEN12");
+    const { tvKey, remoteSecret } = made(hub.createBound("SHARETOKENSHARETOKEN12"));
     expect(hub.show(remoteSecret, "slideshow-1")).toBe("boundToLink");
     expect(hub.sourceOf(tvKey)).toEqual({ kind: "link", token: "SHARETOKENSHARETOKEN12" });
   });
@@ -111,7 +112,7 @@ describe("replaying the state on connect, so the order of connecting does not ma
   it("gives a fresh way A TV nothing claimed, shown or present", () => {
     const { hub } = hubHarness();
     const tv = recordingSink<TvEvent>();
-    hub.connectTv(hub.create().tvKey, tv.sink);
+    hub.connectTv(made(hub.create()).tvKey, tv.sink);
     expect(tv.events).toEqual([
       { name: "snapshot", data: { claimed: false, showing: false, remotePresent: false } },
     ]);
@@ -132,7 +133,7 @@ describe("replaying the state on connect, so the order of connecting does not ma
   it("gives a way B TV a claimed session that is showing its link", () => {
     const { hub } = hubHarness();
     const tv = recordingSink<TvEvent>();
-    hub.connectTv(hub.createBound("SHARETOKENSHARETOKEN12").tvKey, tv.sink);
+    hub.connectTv(made(hub.createBound("SHARETOKENSHARETOKEN12")).tvKey, tv.sink);
     expect(tv.events).toEqual([
       { name: "snapshot", data: { claimed: true, showing: true, remotePresent: false } },
     ]);

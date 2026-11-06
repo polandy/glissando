@@ -96,18 +96,18 @@ export function createTvHub({ now, randomBytes }: TvHubDependencies) {
     }
   };
 
-  const add = (session: Omit<Session, "tvKey" | "remotes" | "createdAt" | "tvLeftAt">) => {
+  const add = (session: Omit<Session, "tvKey" | "remotes" | "tvLeftAt">) => {
     sweep();
     if (byTvKey.size >= MAX_SESSIONS) {
       const candidate = evictionCandidate([...byTvKey.values()]);
-      if (candidate !== undefined) end(candidate);
+      if (candidate === undefined) return undefined;
+      end(candidate);
     }
     const time = now();
     const made: Session = {
       ...session,
       tvKey: newKey(),
       remotes: new Set(),
-      createdAt: time,
       tvLeftAt: time,
     };
     byTvKey.set(made.tvKey, made);
@@ -126,8 +126,8 @@ export function createTvHub({ now, randomBytes }: TvHubDependencies) {
   };
 
   return {
-    /** Way A: a session waiting for the phone to claim its code. */
-    create(): { tvKey: string; code: string } {
+    /** Way A: a session waiting for the phone to claim its code; none while the hub is full. */
+    create(): { tvKey: string; code: string } | undefined {
       const session = add({
         remoteSecret: undefined,
         code: drawCode(randomBytes, (code) => byCode.has(code)),
@@ -135,11 +135,12 @@ export function createTvHub({ now, randomBytes }: TvHubDependencies) {
         tv: undefined,
         state: undefined,
       });
+      if (session === undefined) return undefined;
       return { tvKey: session.tvKey, code: session.code ?? "" };
     },
 
-    /** Way B: a session bound to the share link `token` for its whole life. */
-    createBound(token: string): { tvKey: string; remoteSecret: string } {
+    /** Way B: a session bound to the share link `token` for its whole life; none while full. */
+    createBound(token: string): { tvKey: string; remoteSecret: string } | undefined {
       const remoteSecret = newKey();
       const session = add({
         remoteSecret,
@@ -148,6 +149,7 @@ export function createTvHub({ now, randomBytes }: TvHubDependencies) {
         tv: undefined,
         state: undefined,
       });
+      if (session === undefined) return undefined;
       return { tvKey: session.tvKey, remoteSecret };
     },
 

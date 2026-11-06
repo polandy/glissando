@@ -84,6 +84,12 @@ export function isTvPath(path: string): boolean {
 const noContent = (): LibraryResponse => ({ status: HTTP_STATUS.noContent, headers: {}, body: "" });
 const noSuchTv = () =>
   errorResponse(HTTP_STATUS.notFound, "noSuchTv", "no TV session has this key or secret");
+const tvFull = () =>
+  errorResponse(
+    HTTP_STATUS.serviceUnavailable,
+    "tvFull",
+    "every TV session is in use; try again once a TV has left",
+  );
 const notShown = () =>
   errorResponse(HTTP_STATUS.notFound, "notShown", "the TV is showing no slideshow yet");
 const tooLargeDetail = `a TV request is at most ${MAX_DOCUMENT_BYTES} bytes`;
@@ -169,7 +175,8 @@ export function createTvHandler({ repository, hub, log }: TvHandlerDependencies)
   const createSession: TvHandler = (request) => {
     const body = readBody(request, anyJson, "invalidDocument");
     if (body.kind === "refused") return body.response;
-    return jsonResponse(HTTP_STATUS.created, hub.create(), SECRET_HEADERS);
+    const made = hub.create();
+    return made === undefined ? tvFull() : jsonResponse(HTTP_STATUS.created, made, SECRET_HEADERS);
   };
 
   const createBoundSession =
@@ -177,9 +184,11 @@ export function createTvHandler({ repository, hub, log }: TvHandlerDependencies)
     (request) => {
       const body = readBody(request, anyJson, "invalidDocument");
       if (body.kind === "refused") return body.response;
-      return repository.slideshowByShareToken(token) === undefined
-        ? notShared()
-        : jsonResponse(HTTP_STATUS.created, hub.createBound(token), SECRET_HEADERS);
+      if (repository.slideshowByShareToken(token) === undefined) return notShared();
+      const made = hub.createBound(token);
+      return made === undefined
+        ? tvFull()
+        : jsonResponse(HTTP_STATUS.created, made, SECRET_HEADERS);
     };
 
   const tvEvents = (tvKey: string): TvAnswer =>
