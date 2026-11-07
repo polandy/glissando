@@ -1,5 +1,5 @@
 import { flushSync } from "svelte";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import { FakeClock, FakeFrameScheduler } from "../../../player/testing/fakes";
 import { createTranslator } from "../../i18n/translator";
 import { mountWithTranslator } from "../../testing/mount-with-translator";
@@ -91,22 +91,22 @@ function withoutMood(
 }
 
 function setUp(slideshow: SlideshowDetails) {
-  const onTransition = vi.fn((transition: SlideshowDetails["transition"]) => {
+  const transitions: SlideshowDetails["transition"][] = [];
+  const onTransition = (transition: SlideshowDetails["transition"]) => {
+    transitions.push(transition);
     props.slideshow = withoutMood(props.slideshow, transition);
-  });
-  const onReset = vi.fn();
-  const onClose = vi.fn();
+  };
   const props = reactiveProps({
     slideshow,
     ports: { clock: new FakeClock(), frames: new FakeFrameScheduler() },
     reducedMotion: true,
     onTransition,
-    onReset,
-    onClose,
+    onReset: () => undefined,
+    onClose: () => undefined,
   });
   const mounted = mountWithTranslator(TransitionsSheet, props, { current: createTranslator("en") });
   destroy = mounted.destroy;
-  return { target: mounted.target, onTransition, onReset, onClose };
+  return { target: mounted.target, transitions };
 }
 
 describe("TransitionsSheet", () => {
@@ -136,12 +136,12 @@ describe("TransitionsSheet", () => {
   });
 
   it("picking another tile under a mood still calls onTransition, to leave the mood", () => {
-    const { onTransition } = setUp(details(["a", "b"], { transition: "cut", mood: "lively" }));
+    const { transitions } = setUp(details(["a", "b"], { transition: "cut", mood: "lively" }));
 
     tile("crossfade").click();
     flushSync();
 
-    expect(onTransition).toHaveBeenCalledWith("crossfade");
+    expect(transitions).toEqual(["crossfade"]);
     expect(tile("crossfade").getAttribute("aria-checked")).toBe("true");
   });
 });

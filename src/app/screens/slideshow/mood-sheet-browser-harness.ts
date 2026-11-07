@@ -1,4 +1,4 @@
-import { vi } from "vitest";
+import type { SlideshowMood } from "../../../library/slideshow-mood";
 import { NO_SONG_BEATS, type SongBeats } from "../../../compose/playlist";
 import { createTranslator } from "../../i18n/translator";
 import { mountWithTranslator } from "../../testing/mount-with-translator";
@@ -81,21 +81,21 @@ export function setUp(
   moodBpm: number | undefined = undefined,
   moodBeats: SongBeats = NO_SONG_BEATS,
 ) {
-  const onMood = vi.fn();
-  const onResetMood = vi.fn();
-  const onEnergyPacing = vi.fn();
-  const onClose = vi.fn();
+  const moods: (SlideshowMood | undefined)[] = [];
+  const moodResets: null[] = [];
+  const energyPacings: boolean[] = [];
+  const closes: null[] = [];
   const props = reactiveProps({
     slideshow,
     previewPorts: ports,
     moodBpm,
     moodBeats,
-    onMood,
-    onResetMood,
-    onEnergyPacing,
-    onClose,
+    onMood: (mood: SlideshowMood | undefined) => moods.push(mood),
+    onResetMood: () => moodResets.push(null),
+    onEnergyPacing: (on: boolean) => energyPacings.push(on),
+    onClose: () => closes.push(null),
   });
   const mounted = mountWithTranslator(MoodSheet, props, { current: createTranslator("en") });
   destroy = mounted.destroy;
-  return { target: mounted.target, onMood, onResetMood, onEnergyPacing, onClose };
+  return { target: mounted.target, moods, moodResets, energyPacings, closes };
 }

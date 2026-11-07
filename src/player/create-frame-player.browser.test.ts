@@ -1,7 +1,7 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { createFramePlayer } from "./create-frame-player";
+import type { Fonts } from "./fonts";
 import type { Slideshow } from "./slideshow";
-import { WebGlRenderer } from "./webgl/webgl-renderer";
 import { settleMicrotasks } from "../testing/settle-microtasks";
 
 const SLIDESHOW: Slideshow = {
@@ -39,6 +39,20 @@ const SLIDESHOW_WITH_CARD: Slideshow = {
   ],
 };
 
+/** Records each font asked for; every load settles only on `finishLoading`. */
+class ControlledFonts implements Fonts {
+  readonly requested: string[] = [];
+  #resolve: () => void = () => undefined;
+  readonly #loaded = new Promise<void>((resolve) => (this.#resolve = resolve));
+  load(font: string): Promise<unknown> {
+    this.requested.push(font);
+    return this.#loaded;
+  }
+  finishLoading(): void {
+    this.#resolve();
+  }
+}
+
 describe("createFramePlayer", () => {
   it("gives its WebGL context back on dispose, so repeated exports never exhaust the browser's contexts", () => {
     const framePlayer = createFramePlayer(SLIDESHOW, { width: 64, height: 36 });
@@ -64,34 +78,27 @@ describe("createFramePlayer", () => {
     framePlayer.dispose();
   });
 
-  describe("cardFontsLoaded", () => {
-    afterEach(() => vi.restoreAllMocks());
+  it("waits for every style the slideshow's cards use to load before settling, not before", async () => {
+    const fonts = new ControlledFonts();
+    const framePlayer = createFramePlayer(
+      SLIDESHOW_WITH_CARD,
+      { width: 64, height: 36 },
+      { fonts },
+    );
+    if (framePlayer === null) {
+      throw new Error("this browser has no WebGL2");
+    }
+    let settled = false;
+    void framePlayer.cardFontsLoaded.then(() => (settled = true));
 
-    it("waits for every style the slideshow's cards use to load before settling, not before", async () => {
-      let resolveStyleLoaded: () => void = () => undefined;
-      const cardFontLoaded = vi.spyOn(WebGlRenderer.prototype, "cardFontLoaded").mockImplementation(
-        () =>
-          new Promise((resolve) => {
-            resolveStyleLoaded = resolve;
-          }),
-      );
+    await settleMicrotasks();
+    expect(settled).toBe(false);
+    expect(fonts.requested.some((font) => font.includes("Instrument Serif"))).toBe(true);
 
-      const framePlayer = createFramePlayer(SLIDESHOW_WITH_CARD, { width: 64, height: 36 });
-      if (framePlayer === null) {
-        throw new Error("this browser has no WebGL2");
-      }
-      let settled = false;
-      void framePlayer.cardFontsLoaded.then(() => (settled = true));
+    fonts.finishLoading();
+    await framePlayer.cardFontsLoaded;
 
-      await settleMicrotasks();
-      expect(settled).toBe(false);
-      expect(cardFontLoaded).toHaveBeenCalledWith("classic");
-
-      resolveStyleLoaded();
-      await framePlayer.cardFontsLoaded;
-
-      expect(settled).toBe(true);
-      framePlayer.dispose();
-    });
+    expect(settled).toBe(true);
+    framePlayer.dispose();
   });
 });

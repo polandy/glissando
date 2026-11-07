@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { FakeHistory } from "../testing/fake-history";
 import { Navigator, type Route } from "./navigator";
 
@@ -6,8 +6,17 @@ const START: Route = { screen: "start" };
 const SHOW: Route = { screen: "slideshow", slideshowId: "s1" };
 const PICTURE: Route = { screen: "picture", slideshowId: "s1", pictureId: "p1" };
 
+class RecordingHistory extends FakeHistory {
+  readonly goes: number[] = [];
+
+  override go(delta: number): void {
+    this.goes.push(delta);
+    super.go(delta);
+  }
+}
+
 function onPicture() {
-  const history = new FakeHistory();
+  const history = new RecordingHistory();
   const navigator = new Navigator(history);
   navigator.open(SHOW);
   navigator.open(PICTURE);
@@ -29,10 +38,9 @@ describe("Navigator.backTo", () => {
   it("moves nothing for the current route, and a later back still works", () => {
     const { history, navigator } = onPicture();
     const entries = [...history.entries];
-    const go = vi.spyOn(history, "go");
 
     navigator.backTo(PICTURE);
-    expect(go).not.toHaveBeenCalled();
+    expect(history.goes).toEqual([]);
     expect(history.entries).toEqual(entries);
     expect(history.index).toBe(2);
 

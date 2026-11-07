@@ -9,11 +9,11 @@ afterEach(() => {
   unmounts = [];
 });
 
-function mountRow(onFiles: (files: File[]) => void = () => {}) {
+function mountRow(onFiles: (files: File[]) => void = () => undefined) {
   const mounted = mountWithTranslator(OwnMusicRow, {
     onFiles,
-    onError: () => {},
-    onChoose: () => {},
+    onError: () => undefined,
+    onChoose: () => undefined,
   });
   unmounts.push(mounted.destroy);
   return mounted.target;
@@ -56,8 +56,8 @@ describe("OwnMusicRow, the own-music drop target", () => {
   });
 
   it("reports the dropped files and clears the dashed accent", async () => {
-    const onFiles = vi.fn();
-    const target = mountRow(onFiles);
+    const dropped: File[][] = [];
+    const target = mountRow((files) => dropped.push(files));
     const dropTarget = row(target);
     const file = new File(["sound"], "song.mp3", { type: "audio/mpeg" });
 
@@ -66,6 +66,6 @@ describe("OwnMusicRow, the own-music drop target", () => {
     flushSync();
 
     expect(dropTarget?.classList.contains("hover")).toBe(false);
-    await vi.waitFor(() => expect(onFiles).toHaveBeenCalledWith([file]));
+    await vi.waitFor(() => expect(dropped).toEqual([[file]]));
   });
 });

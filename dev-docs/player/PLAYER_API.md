@@ -21,14 +21,15 @@ keeps the worker alone, so a broken picture is never decoded twice. It and its c
 engine's modules directly, never the index, whose `createPlayer` would bring the worker in as a
 separate file.
 
-`createFramePlayer(slideshow, size, openPicture?, openVideoFrames?)` is the video export's: a silent player on a
+`createFramePlayer(slideshow, size, { openPicture?, openVideoFrames?, fonts? })` is the video export's: a silent player on a
 canvas in no document, drawn with WebGL2 at exactly `size` (pixel ratio 1, drawing buffer
 preserved for `new VideoFrame(canvas)`), with `captionFontLoaded` and `cardFontsLoaded` (settled at
 once without a card) to await before the first `renderAt`, and `dispose()`, which destroys the
 player and loses the WebGL context on purpose, since a page holds only a few; `null` without
 WebGL2. It never plays a `<video>`: `openVideoFrames(src): VideoFrameSource` supplies a video
 slide's frames, one `frameAt(clipMs)` per `renderAt`, so the export can inject frame-accurate
-decoded frames (a `TexImageSource`); without it a video slide draws its poster.
+decoded frames (a `TexImageSource`); without it a video slide draws its poster. `fonts` loads the
+caption and card fonts, `document.fonts` without it.
 
 Video slides (VIDEO_SLIDES.md) play through the optional `PlayerDependencies.openVideo(src,
 volume): VideoPlayback` port (`seek`, `play`, `follow`, `pause`, `setVolume`, `frame`,

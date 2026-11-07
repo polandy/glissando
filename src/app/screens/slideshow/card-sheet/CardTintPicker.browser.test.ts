@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import type { CardTint } from "../../../../library/stored-slideshow";
 import { createTranslator } from "../../../i18n/translator";
 import { mountWithTranslator } from "../../../testing/mount-with-translator";
@@ -12,14 +12,14 @@ afterEach(() => {
 });
 
 function setUp(tint: CardTint = "picture") {
-  const onChange = vi.fn();
+  const changes: CardTint[] = [];
   const props = reactiveProps<{ tint: CardTint; onChange: (tint: CardTint) => void }>({
     tint,
-    onChange,
+    onChange: (value) => changes.push(value),
   });
   const mounted = mountWithTranslator(CardTintPicker, props, { current: createTranslator("en") });
   destroy = mounted.destroy;
-  return { target: mounted.target, onChange };
+  return { target: mounted.target, changes };
 }
 
 describe("CardTintPicker", () => {
@@ -37,12 +37,12 @@ describe("CardTintPicker", () => {
   });
 
   it("calls onChange with the picked tint", () => {
-    const { target, onChange } = setUp("picture");
+    const { target, changes } = setUp("picture");
 
     const chips = target.querySelectorAll<HTMLButtonElement>(".chip");
     const light = Array.from(chips).find((chip) => chip.textContent === "Light");
     light?.click();
 
-    expect(onChange).toHaveBeenCalledWith("light");
+    expect(changes).toEqual(["light"]);
   });
 });

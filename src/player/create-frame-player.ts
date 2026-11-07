@@ -4,6 +4,7 @@ import { animationFrames, performanceClock } from "./browser/platform";
 import { startPictureDecodeWorker } from "./browser/start-picture-decode-worker";
 import { WorkerPictureDecoder } from "./browser/worker-picture-decoder";
 import { cardStylesUsedBy } from "./card-fonts";
+import type { Fonts } from "./fonts";
 import type { Size } from "./ken-burns";
 import type { VideoFrameSource } from "./ports";
 import type { Slideshow } from "./slideshow";
@@ -24,6 +25,14 @@ export interface FramePlayer {
   dispose(): void;
 }
 
+/** Where a frame player reads what it draws; each falls back as `createFramePlayer` says. */
+export interface FrameSources {
+  readonly openPicture?: OpenPicture;
+  readonly openVideoFrames?: (src: string) => VideoFrameSource;
+  /** Loads caption and card fonts; `document.fonts` without it. */
+  readonly fonts?: Fonts;
+}
+
 /**
  * For the video export: draws `slideshow` with WebGL2 at exactly `size` pixels and no music.
  * A video slide's frames come from `openVideoFrames` (decoded exactly), never from a `<video>`
@@ -32,8 +41,7 @@ export interface FramePlayer {
 export function createFramePlayer(
   slideshow: Slideshow,
   size: Size,
-  openPicture?: OpenPicture,
-  openVideoFrames?: (src: string) => VideoFrameSource,
+  { openPicture, openVideoFrames, fonts }: FrameSources = {},
 ): FramePlayer | null {
   const canvas = document.createElement("canvas");
   // The drawing buffer is read into a video frame after drawing, never shown.
@@ -48,6 +56,7 @@ export function createFramePlayer(
   const renderer = new WebGlRenderer(canvas, gl, () => undefined, {
     pixelRatio: () => 1,
     drawingSize: size,
+    ...(fonts === undefined ? {} : { fonts }),
   });
   const decoder = new WorkerPictureDecoder(startPictureDecodeWorker);
   const pictures = new BitmapLoader(decoder, openPicture);
