@@ -27,6 +27,7 @@
     preferences,
     device,
     onExit,
+    random,
     log,
   }: {
     albumId: string;
@@ -34,6 +35,8 @@
     preferences: Pick<FramePreferences, "state">;
     device: FrameDevice;
     onExit: () => void;
+    /** Uniform in [0, 1); what a shuffled album's order is drawn from. */
+    random: () => number;
     log: (error: unknown) => void;
   } = $props();
 
@@ -87,7 +90,7 @@
         return fetchAlbumPictures(immich.client, albumId).then((pictures) => {
           const deck = new FrameAlbumDeck(pictures, {
             order,
-            random: Math.random,
+            random,
             refresh: () => fetchAlbumPictures(immich.client, albumId),
             onRefreshFailed: log,
           });

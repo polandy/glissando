@@ -58,6 +58,8 @@ export function mountRoute(
   editingPictureId: string | null,
 ) {
   const errors: unknown[] = [];
+  /** What each draw of the route's `random` returned, in order. */
+  const randomDraws: number[] = [];
   const toaster = new Toaster(new FakeScheduler());
   const musicOutput = new MusicOutput(() => null);
   const props = reactiveProps({
@@ -67,6 +69,10 @@ export function mountRoute(
     toaster,
     newId: () => "claim-1",
     now: () => new Date("2026-10-08T12:00:00Z"),
+    random: () => {
+      randomDraws.push(0);
+      return 0;
+    },
     playbackQuality: "1440" as const,
     slideshowId: SHOW.id,
     exportProgress: null,
@@ -109,5 +115,5 @@ export function mountRoute(
   });
   const mounted = mountWithTranslator(SlideshowRoute, props);
   destroy = mounted.destroy;
-  return { target: mounted.target, props, errors, toaster };
+  return { target: mounted.target, props, errors, toaster, randomDraws };
 }

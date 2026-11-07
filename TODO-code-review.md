@@ -26,7 +26,6 @@ Each fix starts with the failing test the item names or implies (WORKFLOW.md, Te
 ### App shell, routing and editors
 
 - [ ] `src/main.ts:121` — A failed `openLibraryStore` (blocked IndexedDB, VersionError) leaves the loading shell forever with no message; the toaster lives inside the unmounted App. Fix: catch and replace the shell with a translated fatal message; report it.
-- [ ] `src/app/routes/SlideshowRoute.svelte:124` — `random: Math.random` is wired inside a route component while `now`/`newId` come from the root; shuffle cannot be made deterministic through `AppServices`. Fix: add `random` to `AppServices`.
 
 ### Screens
 

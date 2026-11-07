@@ -41,6 +41,7 @@ export interface SlideshowRouteProps {
   toaster: Toaster;
   newId: () => string;
   now: () => Date;
+  random: () => number;
   slideshowId: string;
   /** The export running in the background, of this slideshow or another. */
   exportProgress: ExportProgress | null;

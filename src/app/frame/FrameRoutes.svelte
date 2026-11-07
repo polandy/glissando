@@ -34,6 +34,7 @@
     preferences={services.framePreferences}
     device={services.frameDevice}
     onExit={() => navigator.back()}
+    random={services.random}
     log={services.log}
   />
 {/if}

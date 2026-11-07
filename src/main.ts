@@ -94,6 +94,7 @@ pwa.start().catch(reportError);
 const store = await openLibraryStore(window.indexedDB);
 const newId = (): string => randomId(crypto);
 const now = (): Date => new Date();
+const random = (): number => Math.random();
 const musicOutput = new MusicOutput(createMusicAudioContext);
 // Reads __GLISSANDO_SAMPLE_MUSIC__ through browser-sample-music.ts, the constant's only reader.
 const sampleMusicDependencies = { store, target: window, onError: logError };
@@ -233,10 +234,12 @@ const services = {
     sampleMusic,
     newId,
     now,
+    random,
     log: logError,
   }),
   newId,
   now,
+  random,
   screenShortEdge: () => browserScreenShortEdge(window),
   deleteAbandonedMedia,
   log: logError,

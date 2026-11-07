@@ -39,7 +39,8 @@
 
   // The services are wired once, by the composition root.
   // svelte-ignore state_referenced_locally
-  const { store, navigator, toaster, reportError, settings, newId, now, pwa, immich } = services;
+  const { store, navigator, toaster, reportError, settings, newId, now, random, pwa, immich } =
+    services;
   const translator = getTranslator();
   const { t } = translator;
   // svelte-ignore state_referenced_locally
@@ -234,6 +235,7 @@
         {toaster}
         {newId}
         {now}
+        {random}
         {slideshowId}
         {exportProgress}
         onExport={() => exportJob.start(slideshowId, opened.store)}

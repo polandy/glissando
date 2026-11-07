@@ -63,6 +63,7 @@ function baseProps(client: Pick<ImmichClient, "albums" | "photos" | "thumbnail">
       linkFor: () => "",
     },
     onExit: () => {},
+    random: () => 0,
     log: () => {},
   };
 }

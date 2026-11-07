@@ -21,13 +21,15 @@ export interface SessionFactoriesDependencies {
   readonly sampleMusic: BrowserSampleMusic;
   readonly newId: BrowserIntakePortsDependencies["newId"];
   readonly now: BrowserIntakePortsDependencies["now"];
+  /** Uniform in [0, 1); what a new slideshow's order is shuffled from. */
+  readonly random: () => number;
   readonly log: (error: unknown) => void;
 }
 
 /** Starts the sessions of the three flows that bring media in: import, add pictures and songs. */
 export function createSessionFactories(deps: SessionFactoriesDependencies) {
   const { store, serverLibrary, serverLibraryForAdding, intakePorts, sampleMusic } = deps;
-  const { newId, now, log } = deps;
+  const { newId, now, random, log } = deps;
   return {
     newImportSession: () =>
       new ImportSession({
@@ -37,7 +39,7 @@ export function createSessionFactories(deps: SessionFactoriesDependencies) {
         convertMusic,
         createOnServer: (slideshow, songsAudio) =>
           serverLibrary.createSlideshow(slideshow, songsAudio),
-        random: Math.random,
+        random,
         ...sampleMusic,
       }),
     newAddPicturesSession: (slideshow: StoredSlideshow, home: SlideshowHome) =>
