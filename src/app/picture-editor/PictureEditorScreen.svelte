@@ -17,6 +17,8 @@
   import { EditorPreviewSession } from "./editor-preview-session.svelte";
   import type { MotionPreviewPorts } from "./motion-preview";
   import { FRAME_KEYS, type FrameKey } from "./frame-keys";
+  import { WHEEL_REST_MS, type FramingStep } from "./framing-step";
+  import type { Scheduler } from "../../ui-kit/scheduler";
   import type { PictureEditorView } from "./picture-editor-view";
 
   /**
@@ -43,6 +45,7 @@
     onAlone,
     onLookAgain,
     previewPorts,
+    scheduler,
     reducedMotion,
     saving,
   }: {
@@ -57,7 +60,9 @@
     onOpen: (pictureId: string) => void;
     /** Plays the slideshow from this picture. */
     onPlayFrom: (pictureId: string) => void;
-    onChange: (motion: OwnKenBurns) => void;
+    /** Carries the screen's own picture: a waiting wheel zoom is stored on leaving, when the
+     * route may already show the next picture. */
+    onChange: (pictureId: string, motion: OwnKenBurns) => void;
     onSwap: () => void;
     onReset: () => void;
     /** The caption as typed, on every keystroke. */
@@ -74,6 +79,8 @@
     /** Looks at this picture's focus again; never touches its Ken Burns motion (ADR-0041). */
     onLookAgain: () => void;
     previewPorts: MotionPreviewPorts;
+    /** Times the wheel's rest before its zoom is stored. */
+    scheduler: Scheduler;
     /** The preview starts paused. */
     reducedMotion: boolean;
     /** An edit is being stored. */
@@ -84,7 +91,10 @@
 
   let active = $state<FrameKey>(FRAME_KEYS[0]);
   let phoneView = $state<PhoneView>("frame");
-  /** The motion while a drag is under way; stored on release. */
+  // The screen is keyed by picture: its id is fixed for its lifetime.
+  // svelte-ignore state_referenced_locally
+  const pictureId = picture.id;
+  /** The motion while a drag or a wheel zoom is under way; stored when it ends. */
   let draft = $state.raw<OwnKenBurns | null>(null);
   const motion = $derived(draft ?? picture.motion);
   const focus = $derived(focusIndication(picture.focus, picture.ownMotion));
@@ -130,14 +140,34 @@
     }
   }
 
-  function frameChanged(key: FrameKey, framing: Framing, final: boolean): void {
+  let cancelWheelRest = (): void => {};
+
+  function store(changed: OwnKenBurns): void {
+    cancelWheelRest();
+    draft = null;
+    onChange(pictureId, changed);
+  }
+
+  /** Stores what a wheel zoom or a drag left waiting, before another edit or on leaving. */
+  function storeDraft(): void {
+    if (draft !== null) {
+      store(draft);
+    }
+  }
+  onDestroy(storeDraft);
+
+  function frameChanged(key: FrameKey, framing: Framing, step: FramingStep): void {
     const changed = { ...motion, [key]: framing };
     editorPreview.showFrame(key);
-    if (final) {
-      draft = null;
-      onChange(changed);
-    } else {
-      draft = changed;
+    if (step === "done") {
+      store(changed);
+      return;
+    }
+    draft = changed;
+    // A drag takes over a zoom the wheel left waiting and stores it with its own release.
+    cancelWheelRest();
+    if (step === "wheeling") {
+      cancelWheelRest = scheduler.after(WHEEL_REST_MS, storeDraft);
     }
   }
 </script>
@@ -172,12 +202,14 @@
       previewOnPhone={phoneView === "play"}
       onActivate={activate}
       onSwap={() => {
+        storeDraft();
         onSwap();
         showPreview();
         editorPreview.replay();
       }}
       onReset={() => {
         if (picture.ownMotion) {
+          storeDraft();
           onReset();
           showPreview();
           editorPreview.replay();

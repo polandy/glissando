@@ -14,6 +14,7 @@
   import type { SlideshowEditor } from "../editing/slideshow-editor";
   import { browserObjectUrls, ObjectUrls } from "../media/object-urls";
   import { REDUCED_MOTION_QUERY } from "../../ui-kit/reduced-motion";
+  import { browserScheduler } from "../../ui-kit/scheduler";
   import type { ClipSoundWave, ReadClipPeaks } from "../clip-editor/clip-sound-wave";
   import ClipEditorScreen from "../clip-editor/ClipEditorScreen.svelte";
   import PictureEditorScreen from "../picture-editor/PictureEditorScreen.svelte";
@@ -190,7 +191,7 @@
       {onBack}
       {onOpen}
       {onPlayFrom}
-      onChange={(motion) => editor.setKenBurns(view.id, motion)}
+      onChange={(pictureId, motion) => editor.setKenBurns(pictureId, motion)}
       onSwap={() => editor.swapKenBurns(view.id)}
       onReset={() => editor.resetKenBurns(view.id)}
       onCaption={(typed) => editor.setCaption(view.id, typed)}
@@ -201,6 +202,7 @@
       onAlone={(alone) => editor.setPictureAlone(view.id, alone)}
       onLookAgain={() => focusPass.lookAgain([view.id])}
       previewPorts={{ clock: performanceClock, frames: animationFrames }}
+      scheduler={browserScheduler}
       reducedMotion={reducedMotion.current}
       {saving}
     />

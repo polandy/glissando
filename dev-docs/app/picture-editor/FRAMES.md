@@ -40,5 +40,6 @@
   the opposite corner (shape kept), the wheel and two fingers anywhere zoom (at once, without
   the 8 px); on the focused frame the arrow keys move it by
   1 % (Shift 5 %), + and − zoom by 0.05. Zoom runs from 1 (the whole picture as far as it fills
-  a 16:9 screen) to 3, and the frame never leaves the picture. A drag is stored when it ends,
-  every other change at once.
+  a 16:9 screen) to 3, and the frame never leaves the picture. A drag is stored when it ends, a
+  wheel zoom once the wheel has rested 400 ms (or earlier, before a swap, a reset, a drag's
+  release or leaving the editor), every other change at once.

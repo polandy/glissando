@@ -6,6 +6,7 @@
   import { FrameGesture } from "./frame-gesture";
   import { tappedFrame, TAP_TOLERANCE_PX } from "./frame-hit";
   import { FRAME_KEYS, type FrameKey } from "./frame-keys";
+  import type { FramingStep } from "./framing-step";
   import FrameOverlays from "./FrameOverlays.svelte";
 
   /**
@@ -36,8 +37,7 @@
     focus: FocusIndication;
     reducedMotion: boolean;
     onActivate: (key: FrameKey) => void;
-    /** A frame changed; `final` once a gesture ends, while dragging it is false. */
-    onFraming: (key: FrameKey, framing: Framing, final: boolean) => void;
+    onFraming: (key: FrameKey, framing: Framing, step: FramingStep) => void;
   } = $props();
 
   let fitWidth = $state(0);
@@ -101,14 +101,14 @@
     const point = { x: event.clientX, y: event.clientY };
     const framing = gesture.move(event.pointerId, point, pictureElement.getBoundingClientRect());
     if (framing !== null) {
-      onFraming(gestureKey, framing, false);
+      onFraming(gestureKey, framing, "dragging");
     }
   }
 
   function pointerUp(event: PointerEvent): void {
     const end = gesture.up(event.pointerId);
     if (end.kind === "framing") {
-      onFraming(gestureKey, end.framing, true);
+      onFraming(gestureKey, end.framing, "done");
     } else if (end.kind === "tap") {
       const picked = tapped(event);
       if (picked !== null && picked !== active) {
@@ -121,7 +121,7 @@
   function pointerCancel(event: PointerEvent): void {
     const end = gesture.up(event.pointerId);
     if (end.kind === "framing") {
-      onFraming(gestureKey, end.framing, true);
+      onFraming(gestureKey, end.framing, "done");
     }
   }
 
@@ -134,7 +134,7 @@
     const changed = framingForKey(motion[active], event.key, event.shiftKey, size);
     if (changed !== null) {
       event.preventDefault();
-      onFraming(active, changed, true);
+      onFraming(active, changed, "done");
     }
   }
 
@@ -142,7 +142,7 @@
   function wheelZoom(element: HTMLElement) {
     const wheel = (event: WheelEvent) => {
       event.preventDefault();
-      onFraming(active, wheelZoomedFraming(motion[active], event.deltaY, size), true);
+      onFraming(active, wheelZoomedFraming(motion[active], event.deltaY, size), "wheeling");
     };
     element.addEventListener("wheel", wheel, { passive: false });
     return { destroy: () => element.removeEventListener("wheel", wheel) };

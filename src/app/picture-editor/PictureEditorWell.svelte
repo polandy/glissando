@@ -6,6 +6,7 @@
   import type { FocusIndication } from "./focus-indication";
   import FrameWell from "./FrameWell.svelte";
   import type { FrameKey } from "./frame-keys";
+  import type { FramingStep } from "./framing-step";
   import ViewSwitch, { type PhoneView } from "./ViewSwitch.svelte";
 
   /**
@@ -36,7 +37,7 @@
     reducedMotion: boolean;
     phoneView: PhoneView;
     onActivate: (key: FrameKey) => void;
-    onFraming: (key: FrameKey, framing: Framing, final: boolean) => void;
+    onFraming: (key: FrameKey, framing: Framing, step: FramingStep) => void;
     onView: (view: PhoneView) => void;
   } = $props();
   const { t } = getTranslator();
