@@ -1,6 +1,6 @@
 import { decodePicture } from "../../import/downscale";
-import { captureDate } from "../../import/exif-capture-date";
-import { captureGps, type ExifGps } from "../../import/exif-gps";
+import type { ExifGps } from "../../import/exif-gps";
+import { readPictureExif } from "../../import/picture-exif";
 import { immichPictureSource, type ImmichPictureReaders } from "../../import/immich-picture-source";
 import { openClipInVideoElement, videoCaptureDate } from "../../import/browser/video-clip";
 import { samplePictureColourPixels } from "../../import/sample-picture-colours";
@@ -53,8 +53,7 @@ export function browserIntakePorts(
   };
   return {
     decode: decodePicture,
-    captureDate,
-    gps: captureGps,
+    exif: readPictureExif,
     resolvePlace,
     videoClips: {
       openClip: (file) => openClipInVideoElement(file, log),

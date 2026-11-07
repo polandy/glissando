@@ -1,5 +1,3 @@
-import { EXIF_SEARCH_BYTES } from "./exif-capture-date";
-import { readPictureHead } from "./unreadable-picture";
 import {
   findEntry,
   findExifTiffStart,
@@ -46,12 +44,6 @@ export function readExifGps(bytes: ArrayBuffer): ExifGps | null {
   const data = new DataView(bytes);
   const tiffStart = findExifTiffStart(data);
   return tiffStart === null ? null : readGpsCoordinates(data, tiffStart);
-}
-
-/** EXIF GPS coordinate of the file's head, or null when the picture carries none. */
-export async function captureGps(file: File): Promise<ExifGps | null> {
-  const head = await readPictureHead(file, EXIF_SEARCH_BYTES);
-  return readExifGps(head);
 }
 
 function readGpsCoordinates(data: DataView, tiffStart: number): ExifGps | null {
