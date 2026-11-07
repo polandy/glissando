@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onDestroy, onMount } from "svelte";
+  import { onDestroy } from "svelte";
   import { MOOD_PROFILES } from "../../../compose/mood-settings";
   import {
     ALTERNATE_TRANSITION,
@@ -10,6 +10,7 @@
   } from "../../../library/own-timing";
   import ResetButton from "../../components/ResetButton.svelte";
   import SectionHead from "../../components/SectionHead.svelte";
+  import Sheet from "../../components/Sheet.svelte";
   import { radioIndexForKey } from "../../components/radio-keys";
   import { getTranslator } from "../../i18n/context";
   import type { MotionPreviewPorts } from "../../picture-editor/motion-preview";
@@ -92,26 +93,10 @@
     return t("transitions.ownKept", { count: ownNumbers.length, numbers });
   });
 
-  let dialog: HTMLDialogElement;
   const radios: HTMLButtonElement[] = $state([]);
 
-  // The native modal dialog traps focus and makes the page behind it inert.
-  onMount(() => {
-    dialog.showModal();
+  function focusCheckedTransition(): void {
     radios[SLIDESHOW_TRANSITIONS.indexOf(checkedTransition)]?.focus();
-    return () => dialog.close();
-  });
-
-  function cancel(event: Event): void {
-    event.preventDefault();
-    onClose();
-  }
-
-  // The sheet fills the dialog, so a click that lands on the dialog itself is on its backdrop.
-  function closeOnScrim(event: MouseEvent): void {
-    if (event.target === dialog) {
-      onClose();
-    }
   }
 
   // Selection follows focus, as in the WAI-ARIA radio group: one tab stop, arrows choose.
@@ -127,72 +112,45 @@
   }
 </script>
 
-<dialog
-  bind:this={dialog}
-  aria-labelledby="transitions-title"
-  oncancel={cancel}
-  onclick={closeOnScrim}
->
-  <div class="sheet">
-    <SectionHead
-      id="transitions-title"
-      title={t("transitions.title")}
-      stateText={isDefault ? t("transitions.default") : t("transitions.ownChoice")}
-      own={!isDefault}
-    />
-    <div class="tiles" role="radiogroup" aria-labelledby="transitions-title">
-      {#each SLIDESHOW_TRANSITIONS as choice, index (choice)}
-        <TransitionTile
-          bind:radio={radios[index]}
-          {choice}
-          checked={choice === checkedTransition}
-          automatic={isDefault}
-          tag={choice === DEFAULT_SLIDESHOW_TRANSITION ? t("transitions.defaultTag") : null}
-          pictureUrl={firstUrl}
-          nextPictureUrl={secondUrl}
-          {elapsedMs}
-          onPick={() => onTransition(choice)}
-          onKeydown={(event) => onkeydown(event, index)}
-        />
-      {/each}
-    </div>
-    <p class="hint">{hint}</p>
-    {#if ownNote !== null}
-      <p class="note">{ownNote}</p>
-    {/if}
-    <footer>
-      <ResetButton
+<Sheet labelId="transitions-title" onOpen={focusCheckedTransition} {onClose}>
+  <SectionHead
+    id="transitions-title"
+    title={t("transitions.title")}
+    stateText={isDefault ? t("transitions.default") : t("transitions.ownChoice")}
+    own={!isDefault}
+  />
+  <div class="tiles" role="radiogroup" aria-labelledby="transitions-title">
+    {#each SLIDESHOW_TRANSITIONS as choice, index (choice)}
+      <TransitionTile
+        bind:radio={radios[index]}
+        {choice}
+        checked={choice === checkedTransition}
         automatic={isDefault}
-        alreadyAutomatic={t("transitions.alreadyDefault")}
-        label={t("transitions.reset")}
-        {onReset}
+        tag={choice === DEFAULT_SLIDESHOW_TRANSITION ? t("transitions.defaultTag") : null}
+        pictureUrl={firstUrl}
+        nextPictureUrl={secondUrl}
+        {elapsedMs}
+        onPick={() => onTransition(choice)}
+        onKeydown={(event) => onkeydown(event, index)}
       />
-      <button class="btn primary" type="button" onclick={onClose}>{t("slideshow.done")}</button>
-    </footer>
+    {/each}
   </div>
-</dialog>
+  <p class="hint">{hint}</p>
+  {#if ownNote !== null}
+    <p class="note">{ownNote}</p>
+  {/if}
+  <footer>
+    <ResetButton
+      automatic={isDefault}
+      alreadyAutomatic={t("transitions.alreadyDefault")}
+      label={t("transitions.reset")}
+      {onReset}
+    />
+    <button class="btn primary" type="button" onclick={onClose}>{t("slideshow.done")}</button>
+  </footer>
+</Sheet>
 
 <style>
-  dialog {
-    width: calc(100% - 40px);
-    max-width: 520px;
-    max-height: calc(100% - 48px);
-    padding: 0;
-    overflow: auto;
-    border: 1px solid var(--gl-line);
-    border-radius: var(--gl-radius-large);
-    background: var(--gl-surface);
-    color: var(--gl-ink);
-    box-shadow: var(--gl-shadow);
-  }
-  dialog::backdrop {
-    background: var(--gl-backdrop);
-  }
-  .sheet {
-    display: grid;
-    gap: 14px;
-    padding: 18px;
-  }
   .tiles {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -216,21 +174,5 @@
     align-items: center;
     justify-content: space-between;
     gap: 10px;
-  }
-  /* The dialog sits in the top layer, outside the screen's container, so the viewport decides;
-     the app fills it, so this matches the screens' 720 px container queries. */
-  @media (max-width: 720px) {
-    dialog {
-      inset: auto 0 0;
-      width: auto;
-      max-width: none;
-      max-height: 85%;
-      margin: 0;
-      border-width: 1px 0 0;
-      border-radius: var(--gl-radius-large) var(--gl-radius-large) 0 0;
-    }
-    .sheet {
-      padding-bottom: calc(18px + env(safe-area-inset-bottom));
-    }
   }
 </style>

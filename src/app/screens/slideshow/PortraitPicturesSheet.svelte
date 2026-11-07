@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { onMount } from "svelte";
   import {
     AUTOMATIC_PORTRAIT_PICTURES,
     RESOLVED_PORTRAIT_PICTURES_CHOICES,
@@ -8,6 +7,7 @@
   } from "../../../library/portrait-pictures";
   import ResetButton from "../../components/ResetButton.svelte";
   import SectionHead from "../../components/SectionHead.svelte";
+  import Sheet from "../../components/Sheet.svelte";
   import { radioIndexForKey } from "../../components/radio-keys";
   import { getTranslator } from "../../i18n/context";
   import type { SlideshowDetails } from "../view-models";
@@ -35,33 +35,17 @@
 
   const isAutomatic = $derived(slideshow.portraitPictures === AUTOMATIC_PORTRAIT_PICTURES);
 
-  let dialog: HTMLDialogElement;
   const radios: HTMLButtonElement[] = $state([]);
 
-  // The native modal dialog traps focus and makes the page behind it inert.
-  onMount(() => {
-    dialog.showModal();
+  function focusChosenPicture(): void {
     radios[RESOLVED_PORTRAIT_PICTURES_CHOICES.indexOf(slideshow.portraitPictures)]?.focus();
-    return () => dialog.close();
-  });
+  }
 
   function pick(choice: ResolvedPortraitPictures): void {
     if (choice === AUTOMATIC_PORTRAIT_PICTURES) {
       onReset();
     } else {
       onPortraitPictures(choice);
-    }
-  }
-
-  function cancel(event: Event): void {
-    event.preventDefault();
-    onClose();
-  }
-
-  // The sheet fills the dialog, so a click that lands on the dialog itself is on its backdrop.
-  function closeOnScrim(event: MouseEvent): void {
-    if (event.target === dialog) {
-      onClose();
     }
   }
 
@@ -78,65 +62,38 @@
   }
 </script>
 
-<dialog
-  bind:this={dialog}
-  aria-labelledby="portrait-pictures-title"
-  oncancel={cancel}
-  onclick={closeOnScrim}
->
-  <div class="sheet">
-    <SectionHead
-      id="portrait-pictures-title"
-      title={t("portrait.title")}
-      stateText={isAutomatic ? t("portrait.default") : t("portrait.ownChoice")}
-      own={!isAutomatic}
-    />
-    <div class="options" role="radiogroup" aria-labelledby="portrait-pictures-title">
-      {#each RESOLVED_PORTRAIT_PICTURES_CHOICES as choice, index (choice)}
-        <PortraitPictureTile
-          bind:radio={radios[index]}
-          {choice}
-          checked={choice === slideshow.portraitPictures}
-          automatic={isAutomatic}
-          onPick={() => pick(choice)}
-          onKeydown={(event) => onkeydown(event, index)}
-        />
-      {/each}
-    </div>
-    <p class="note">{t("portrait.note")}</p>
-    <footer>
-      <ResetButton
+<Sheet labelId="portrait-pictures-title" onOpen={focusChosenPicture} {onClose}>
+  <SectionHead
+    id="portrait-pictures-title"
+    title={t("portrait.title")}
+    stateText={isAutomatic ? t("portrait.default") : t("portrait.ownChoice")}
+    own={!isAutomatic}
+  />
+  <div class="options" role="radiogroup" aria-labelledby="portrait-pictures-title">
+    {#each RESOLVED_PORTRAIT_PICTURES_CHOICES as choice, index (choice)}
+      <PortraitPictureTile
+        bind:radio={radios[index]}
+        {choice}
+        checked={choice === slideshow.portraitPictures}
         automatic={isAutomatic}
-        alreadyAutomatic={t("portrait.alreadyAutomatic")}
-        label={t("portrait.reset")}
-        {onReset}
+        onPick={() => pick(choice)}
+        onKeydown={(event) => onkeydown(event, index)}
       />
-      <button class="btn primary" type="button" onclick={onClose}>{t("slideshow.done")}</button>
-    </footer>
+    {/each}
   </div>
-</dialog>
+  <p class="note">{t("portrait.note")}</p>
+  <footer>
+    <ResetButton
+      automatic={isAutomatic}
+      alreadyAutomatic={t("portrait.alreadyAutomatic")}
+      label={t("portrait.reset")}
+      {onReset}
+    />
+    <button class="btn primary" type="button" onclick={onClose}>{t("slideshow.done")}</button>
+  </footer>
+</Sheet>
 
 <style>
-  dialog {
-    width: calc(100% - 40px);
-    max-width: 520px;
-    max-height: calc(100% - 48px);
-    padding: 0;
-    overflow: auto;
-    border: 1px solid var(--gl-line);
-    border-radius: var(--gl-radius-large);
-    background: var(--gl-surface);
-    color: var(--gl-ink);
-    box-shadow: var(--gl-shadow);
-  }
-  dialog::backdrop {
-    background: var(--gl-backdrop);
-  }
-  .sheet {
-    display: grid;
-    gap: 14px;
-    padding: 18px;
-  }
   .options {
     display: grid;
     gap: 8px;
@@ -154,21 +111,5 @@
     align-items: center;
     justify-content: space-between;
     gap: 10px;
-  }
-  /* The dialog sits in the top layer, outside the screen's container, so the viewport decides;
-     the app fills it, so this matches the screens' 720 px container queries. */
-  @media (max-width: 720px) {
-    dialog {
-      inset: auto 0 0;
-      width: auto;
-      max-width: none;
-      max-height: 85%;
-      margin: 0;
-      border-width: 1px 0 0;
-      border-radius: var(--gl-radius-large) var(--gl-radius-large) 0 0;
-    }
-    .sheet {
-      padding-bottom: calc(18px + env(safe-area-inset-bottom));
-    }
   }
 </style>

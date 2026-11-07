@@ -1,11 +1,11 @@
 <script lang="ts">
   import Separated from "../../components/Separated.svelte";
-  import { onMount } from "svelte";
   import type { SongBeats } from "../../../compose/playlist";
   import type { SongLoudness } from "../../../compose/song-loudness";
   import { SLIDESHOW_MOODS, type SlideshowMood } from "../../../library/slideshow-mood";
   import ResetButton from "../../components/ResetButton.svelte";
   import SectionHead from "../../components/SectionHead.svelte";
+  import Sheet from "../../components/Sheet.svelte";
   import Switch from "../../components/Switch.svelte";
   import { radioIndexForKey } from "../../components/radio-keys";
   import { getTranslator } from "../../i18n/context";
@@ -66,30 +66,14 @@
     moodSheetEnergyView(translator, previewPorts.stored, slideshow.mood, moodBpm, moodAnalysis),
   );
 
-  let dialog: HTMLDialogElement;
   const radios: HTMLButtonElement[] = $state([]);
 
-  // The native modal dialog traps focus and makes the page behind it inert.
-  onMount(() => {
-    dialog.showModal();
+  function focusChosenMood(): void {
     radios[MOOD_CHOICES.indexOf(slideshow.mood)]?.focus();
-    return () => dialog.close();
-  });
+  }
 
   function pick(choice: SlideshowMood | undefined): void {
     onMood(choice);
-  }
-
-  function cancel(event: Event): void {
-    event.preventDefault();
-    onClose();
-  }
-
-  // The sheet fills the dialog, so a click that lands on the dialog itself is on its backdrop.
-  function closeOnScrim(event: MouseEvent): void {
-    if (event.target === dialog) {
-      onClose();
-    }
   }
 
   // Selection follows focus, as in the WAI-ARIA radio group: one tab stop, arrows choose.
@@ -104,101 +88,79 @@
   }
 </script>
 
-<dialog bind:this={dialog} aria-labelledby="mood-title" oncancel={cancel} onclick={closeOnScrim}>
-  <div class="sheet">
-    <SectionHead
-      id="mood-title"
-      title={t("mood.title")}
-      stateText={moodName(t, slideshow.mood)}
-      own={slideshow.mood !== undefined}
+<Sheet labelId="mood-title" onOpen={focusChosenMood} {onClose}>
+  <SectionHead
+    id="mood-title"
+    title={t("mood.title")}
+    stateText={moodName(t, slideshow.mood)}
+    own={slideshow.mood !== undefined}
+  />
+  {#if hasPictures}
+    <MoodPreview
+      ports={previewPorts}
+      mood={slideshow.mood}
+      {moodBeats}
+      onLoaded={(loaded) => (loudness = loaded.loudness)}
     />
-    {#if hasPictures}
-      <MoodPreview
-        ports={previewPorts}
-        mood={slideshow.mood}
-        {moodBeats}
-        onLoaded={(loaded) => (loudness = loaded.loudness)}
-      />
-      {#if energyView.stripGeometry !== null}
-        <EnergyStrip geometry={energyView.stripGeometry} />
-      {/if}
+    {#if energyView.stripGeometry !== null}
+      <EnergyStrip geometry={energyView.stripGeometry} />
     {/if}
-    <div class="tiles" role="radiogroup" aria-labelledby="mood-title">
-      {#each MOOD_CHOICES as choice, index (choice ?? "custom")}
-        <MoodTile
-          bind:radio={radios[index]}
-          mood={choice}
-          checked={choice === slideshow.mood}
-          onPick={() => pick(choice)}
-          onKeydown={(event) => onkeydown(event, index)}
-        />
-      {/each}
-    </div>
-    <div class="row switch-row">
-      <div>
-        <b>{t("mood.energySwitch")}</b>
-        <small>{t("mood.energySwitchSubtitle")}</small>
-      </div>
-      <Switch
-        checked={slideshow.energyPacing}
-        label={t("mood.energySwitch")}
-        onChange={onEnergyPacing}
+  {/if}
+  <div class="tiles" role="radiogroup" aria-labelledby="mood-title">
+    {#each MOOD_CHOICES as choice, index (choice ?? "custom")}
+      <MoodTile
+        bind:radio={radios[index]}
+        mood={choice}
+        checked={choice === slideshow.mood}
+        onPick={() => pick(choice)}
+        onKeydown={(event) => onkeydown(event, index)}
       />
-    </div>
-    <dl class="sets">
-      <div>
-        <dt>{t("slideshow.pictureTimes")}</dt>
-        <dd><Separated text={energyView.pictureTimesText} /></dd>
-      </div>
-      {#if energyView.hasLift}
-        <div>
-          <dt>{t("mood.energyLiftLabel")}</dt>
-          <dd>{t("mood.energyLiftValue")}</dd>
-        </div>
-      {/if}
-      <div>
-        <dt>{t("slideshow.transitions")}</dt>
-        <dd>{moodTransitionText(t, slideshow.mood)}</dd>
-      </div>
-      <div>
-        <dt>{t("slideshow.kenBurns")}</dt>
-        <dd>{moodKenBurnsText(t, slideshow.mood)}</dd>
-      </div>
-    </dl>
-    <p class="hint">{energyView.hintText}</p>
-    <footer>
-      <ResetButton
-        automatic={slideshow.mood === undefined}
-        alreadyAutomatic={t("mood.alreadyCustom")}
-        label={t("mood.backToCustom")}
-        onReset={onResetMood}
-      />
-      <button class="btn primary" type="button" onclick={onClose}>{t("slideshow.done")}</button>
-    </footer>
+    {/each}
   </div>
-</dialog>
+  <div class="row switch-row">
+    <div>
+      <b>{t("mood.energySwitch")}</b>
+      <small>{t("mood.energySwitchSubtitle")}</small>
+    </div>
+    <Switch
+      checked={slideshow.energyPacing}
+      label={t("mood.energySwitch")}
+      onChange={onEnergyPacing}
+    />
+  </div>
+  <dl class="sets">
+    <div>
+      <dt>{t("slideshow.pictureTimes")}</dt>
+      <dd><Separated text={energyView.pictureTimesText} /></dd>
+    </div>
+    {#if energyView.hasLift}
+      <div>
+        <dt>{t("mood.energyLiftLabel")}</dt>
+        <dd>{t("mood.energyLiftValue")}</dd>
+      </div>
+    {/if}
+    <div>
+      <dt>{t("slideshow.transitions")}</dt>
+      <dd>{moodTransitionText(t, slideshow.mood)}</dd>
+    </div>
+    <div>
+      <dt>{t("slideshow.kenBurns")}</dt>
+      <dd>{moodKenBurnsText(t, slideshow.mood)}</dd>
+    </div>
+  </dl>
+  <p class="hint">{energyView.hintText}</p>
+  <footer>
+    <ResetButton
+      automatic={slideshow.mood === undefined}
+      alreadyAutomatic={t("mood.alreadyCustom")}
+      label={t("mood.backToCustom")}
+      onReset={onResetMood}
+    />
+    <button class="btn primary" type="button" onclick={onClose}>{t("slideshow.done")}</button>
+  </footer>
+</Sheet>
 
 <style>
-  dialog {
-    width: calc(100% - 40px);
-    max-width: 520px;
-    max-height: calc(100% - 48px);
-    padding: 0;
-    overflow: auto;
-    border: 1px solid var(--gl-line);
-    border-radius: var(--gl-radius-large);
-    background: var(--gl-surface);
-    color: var(--gl-ink);
-    box-shadow: var(--gl-shadow);
-  }
-  dialog::backdrop {
-    background: var(--gl-backdrop);
-  }
-  .sheet {
-    display: grid;
-    gap: 14px;
-    padding: 18px;
-  }
   .tiles {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -250,21 +212,5 @@
     align-items: center;
     justify-content: space-between;
     gap: 10px;
-  }
-  /* The dialog sits in the top layer, outside the screen's container, so the viewport decides;
-     the app fills it, so this matches the screens' 720 px container queries. */
-  @media (max-width: 720px) {
-    dialog {
-      inset: auto 0 0;
-      width: auto;
-      max-width: none;
-      max-height: 85%;
-      margin: 0;
-      border-width: 1px 0 0;
-      border-radius: var(--gl-radius-large) var(--gl-radius-large) 0 0;
-    }
-    .sheet {
-      padding-bottom: calc(18px + env(safe-area-inset-bottom));
-    }
   }
 </style>
