@@ -12,13 +12,14 @@ import type { ImportSession } from "./import/import-session";
 import type { Route } from "./navigation/route";
 import type { AppServices } from "./services";
 import type { SettingsState } from "./settings/app-settings";
+import type { ServerCopyFlows } from "./server-library/server-copy-flows";
 import type { ToastMessage } from "./toast/toaster";
 
 /** The long-running flows this wiring reacts to, as `createAppFlows` returns them. */
 type AppFlows = Pick<
   ReturnType<typeof createAppFlows>,
   "importFlow" | "addFlow" | "exportJob" | "openFlow"
->;
+> & { readonly serverCopies: Pick<ServerCopyFlows, "subscribe"> };
 
 export interface AppStateSetters {
   setRoute(route: Route): void;
@@ -27,6 +28,7 @@ export interface AppStateSetters {
   setToast(toast: ToastMessage | null): void;
   setSettingsState(state: SettingsState): void;
   setExportProgress(progress: ExportProgress | null): void;
+  setServerCopies(copies: readonly ExportProgress[]): void;
   setFocusSearch(search: RunningSearch | null): void;
   setOpenState(state: OpenFlowState): void;
   setImportSession(session: ImportSession | null, persistRefused: boolean): void;
@@ -49,7 +51,7 @@ export function subscribeAppState(
   getCurrentRoute: () => Route,
 ): () => void {
   const { navigator, toaster, settings, immich, pwa, launchQueue, reportError } = services;
-  const { importFlow, addFlow, exportJob, openFlow } = flows;
+  const { importFlow, addFlow, exportJob, openFlow, serverCopies } = flows;
 
   const stopRoute = navigator.subscribe((next) => {
     if (next.screen !== "start" && next.screen !== "settings") {
@@ -72,6 +74,7 @@ export function subscribeAppState(
   const stopToast = toaster.subscribe(setters.setToast);
   const stopSettings = settings.subscribe(setters.setSettingsState);
   const stopExport = exportJob.subscribe(setters.setExportProgress);
+  const stopServerCopies = serverCopies.subscribe(setters.setServerCopies);
   // One indicator for both libraries' passes: the device's and the server's.
   const { focusPass, serverFocusPass } = services;
   const showFocusSearch = () =>
@@ -104,6 +107,7 @@ export function subscribeAppState(
     stopImport();
     stopAdd();
     stopExport();
+    stopServerCopies();
     stopFocus();
     stopServerFocus();
     stopOpen();

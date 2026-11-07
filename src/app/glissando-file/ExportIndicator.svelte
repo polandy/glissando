@@ -4,9 +4,9 @@
 
   /**
    * The background export's, or a server slideshow's copy's, place in the header: a progress
-   * ring, its label and a line below.
+   * ring, its label and, with `drawsLine`, a line below the bar.
    */
-  let { progress }: { progress: ExportProgress } = $props();
+  let { progress, drawsLine = true }: { progress: ExportProgress; drawsLine?: boolean } = $props();
 
   const PERCENT = 100;
   const { t } = getTranslator();
@@ -32,7 +32,9 @@
     })}
   </span>
 </div>
-<span class="line" style:width="{progress.fraction * PERCENT}%" aria-hidden="true"></span>
+{#if drawsLine}
+  <span class="line" style:width="{progress.fraction * PERCENT}%" aria-hidden="true"></span>
+{/if}
 
 <style>
   .indicator {

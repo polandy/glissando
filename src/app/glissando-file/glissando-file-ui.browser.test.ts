@@ -32,6 +32,19 @@ describe("ExportIndicator", () => {
     );
     expect(mounted.target.querySelector<HTMLElement>(".line")?.style.width).toBe("34.2%");
   });
+
+  it("beside an earlier job's progress names its copy but leaves the line under the bar to that job", () => {
+    const mounted = mountWithTranslator(ExportIndicator, {
+      progress: { slideshowId: "s", title: "Herbst in Wien", fraction: 0.5, copying: true },
+      drawsLine: false,
+    });
+    destroy = mounted.destroy;
+
+    expect(mounted.target.querySelector('[role="status"]')?.textContent).toContain(
+      "„Herbst in Wien“ wird kopiert\u00a0… 50\u00a0%",
+    );
+    expect(mounted.target.querySelector(".line")).toBeNull();
+  });
 });
 
 describe("BlockingOverlay", () => {

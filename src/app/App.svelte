@@ -9,7 +9,7 @@
   import { subscribeAppState } from "./app-subscriptions";
   import AppOverlays from "./AppOverlays.svelte";
   import type { ExportProgress } from "./glissando-file/export-job";
-  import { setExportStatus } from "./glissando-file/export-status";
+  import { runningInHeader, setExportStatus } from "./glissando-file/export-status";
   import { setFocusSearchStatus } from "./focus-search-status";
   import type { OpenFlowState, OpenOrigin } from "./glissando-file/open-flow";
   import { getTranslator } from "./i18n/context";
@@ -81,10 +81,11 @@
 
   let route = $state.raw<Route>(navigator.route);
   let exportProgress = $state.raw<ExportProgress | null>(null);
+  let serverCopyProgress = $state.raw<readonly ExportProgress[]>([]);
   let openState = $state.raw<OpenFlowState>(openFlow.state);
   setExportStatus({
-    get current() {
-      return exportProgress;
+    get running() {
+      return runningInHeader(exportProgress, serverCopyProgress);
     },
   });
   let focusSearch = $state.raw<RunningSearch | null>(null);
@@ -109,13 +110,14 @@
   onMount(() =>
     subscribeAppState(
       services,
-      { importFlow, addFlow, exportJob, openFlow },
+      { importFlow, addFlow, exportJob, openFlow, serverCopies },
       {
         setRoute: (next) => (route = next),
         stopLogoPlaying: () => (logoPlays = false),
         setToast: (next) => (toast = next),
         setSettingsState: (next) => (settingsState = next),
         setExportProgress: (next) => (exportProgress = next),
+        setServerCopies: (next) => (serverCopyProgress = next),
         setFocusSearch: (next) => (focusSearch = next),
         setOpenState: (next) => (openState = next),
         setImportSession: (session, refused) => {
