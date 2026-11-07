@@ -4,6 +4,7 @@ import type { ExportOutcome } from "../../../glissando-file/export-job";
 import type { ExportMenuState } from "../../../glissando-file/export-menu";
 import { mountWithTranslator } from "../../../testing/mount-with-translator";
 import GlissandoFileSheet from "./GlissandoFileSheet.svelte";
+import { findButtonNamed } from "../../../testing/by-role";
 
 const SUBJECT = {
   title: "Sommer am See",
@@ -26,10 +27,10 @@ function mountSheet(exportState: ExportMenuState, save: () => Promise<ExportOutc
   });
   destroy = mounted.destroy;
   const dialog = () => mounted.target.querySelector("dialog");
-  const button = (label: string) =>
-    [...(dialog()?.querySelectorAll("button") ?? [])].find(
-      (candidate) => candidate.textContent?.trim() === label,
-    );
+  const button = (label: string) => {
+    const root = dialog();
+    return root === null ? undefined : findButtonNamed(root, label);
+  };
   return { calls, dialog, button };
 }
 

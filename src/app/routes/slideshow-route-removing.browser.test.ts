@@ -4,21 +4,12 @@ import { FocusPass } from "../../library/focus-pass";
 import { FakeFocusDetector } from "../../library/testing/fake-focus-detector";
 import { whenRendered } from "../testing/when-rendered";
 import { mountRoute, storeWithShow, unmountRoute } from "./slideshow-route-harness";
+import { buttonNamed } from "../testing/by-role";
 
 const EVERY_PICTURE_STAYS =
   "Mindestens ein Bild bleibt. Um alle loszuwerden, die ganze Diashow löschen.";
 
 afterEach(() => unmountRoute());
-
-function button(target: HTMLElement, name: string): HTMLButtonElement {
-  const found = [...target.querySelectorAll<HTMLButtonElement>("button")].find(
-    (candidate) => candidate.textContent?.trim() === name || candidate.ariaLabel === name,
-  );
-  if (found === undefined) {
-    throw new Error(`no button "${name}"`);
-  }
-  return found;
-}
 
 describe("the slideshow route, removing every picture", () => {
   it("answers Remove with every picture selected with a toast, keeping the selection", async () => {
@@ -33,14 +24,14 @@ describe("the slideshow route, removing every picture", () => {
     const { target, toaster } = mountRoute(store, focusPass, null);
     await whenRendered(target, ".strip .pick");
     const picks = [...target.querySelectorAll<HTMLButtonElement>(".strip .pick")];
-    button(target, "Auswählen").click();
+    buttonNamed(target, "Auswählen").click();
     flushSync();
     for (const pick of picks) {
       pick.click();
       flushSync();
     }
 
-    button(target, "2 Bilder entfernen").click();
+    buttonNamed(target, "2 Bilder entfernen").click();
     flushSync();
 
     expect(toaster.current?.text).toBe(EVERY_PICTURE_STAYS);

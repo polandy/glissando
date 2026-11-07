@@ -9,6 +9,7 @@ import { FakeScheduler } from "../../ui-kit/testing/fake-scheduler";
 import ImportRoute from "./ImportRoute.svelte";
 import { sessionWith, withTwoPictures } from "./testing/import-session-fixtures";
 import type { ImportSession } from "./import-session";
+import { buttonNamed } from "../testing/by-role";
 
 const de = createTranslator("de");
 const START: Route = { screen: "start" };
@@ -57,14 +58,6 @@ function mountRoute(session: ImportSession) {
   return { guard, discards, target: route.target };
 }
 
-function dialogButton(label: string): HTMLButtonElement {
-  const found = [...document.querySelectorAll<HTMLButtonElement>("dialog button")].find(
-    (candidate) => candidate.textContent.trim() === label,
-  );
-  if (found === undefined) throw new Error(`no dialog button "${label}"`);
-  return found;
-}
-
 describe("ImportRoute leave guard (UX-23)", () => {
   it("refuses to leave with pictures chosen and asks Auswahl entfernen?", async () => {
     const { session } = await withTwoPictures();
@@ -83,7 +76,7 @@ describe("ImportRoute leave guard (UX-23)", () => {
     guard(START);
     flushSync();
 
-    dialogButton(de.t("import.keepChoosing")).click();
+    buttonNamed(document, de.t("import.keepChoosing")).click();
     flushSync();
 
     expect(document.querySelector("dialog")).toBeNull();
@@ -115,7 +108,7 @@ describe("ImportRoute leave guard (UX-23)", () => {
     guard(START);
     flushSync();
 
-    dialogButton(de.t("import.discard")).click();
+    buttonNamed(document, de.t("import.discard")).click();
     flushSync();
     void session.discard();
 

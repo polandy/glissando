@@ -11,16 +11,11 @@ import {
   tile,
   unmountScreen,
 } from "./slideshow-screen-harness";
+import { findButtonNamed } from "../testing/by-role";
 
 afterEach(() => unmountScreen());
 
 const PLAY_FROM_HERE = "Ab hier abspielen";
-
-function hasButtonNamed(root: ParentNode, name: string): boolean {
-  return [...root.querySelectorAll("button")].some(
-    (candidate) => (candidate.getAttribute("aria-label") ?? candidate.textContent).trim() === name,
-  );
-}
 
 describe("SlideshowScreen, play from a chosen picture", () => {
   it("offers Play from here for exactly one selected picture and plays from it", () => {
@@ -43,7 +38,7 @@ describe("SlideshowScreen, play from a chosen picture", () => {
 
     const bar = selectionBar();
     expect(bar?.textContent).toContain("2 ausgewählt");
-    expect(bar !== null && hasButtonNamed(bar, PLAY_FROM_HERE)).toBe(false);
+    expect(bar !== null && findButtonNamed(bar, PLAY_FROM_HERE) !== undefined).toBe(false);
   });
 
   it("plays from the picture shown in the full-screen viewer", () => {

@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { OWN_SECONDS_PICTURE_LENGTH } from "../../library/picture-length";
 import type { StoredSlideshow } from "../../library/stored-slideshow";
 import { mountEditor, slideshowWith, unmountEditor } from "./music-editor-harness";
+import { buttonNamed } from "../testing/by-role";
 
 afterEach(() => unmountEditor());
 
@@ -24,11 +25,7 @@ const radio = (name: string): HTMLButtonElement => {
   return found;
 };
 const checked = () => section().querySelector('[aria-checked="true"]')?.textContent?.trim();
-const button = (label: string): HTMLButtonElement => {
-  const found = section().querySelector<HTMLButtonElement>(`button[aria-label="${label}"]`);
-  if (found === null) throw new Error(`no button "${label}"`);
-  return found;
-};
+const button = (label: string) => buttonNamed(section(), label);
 const note = () => document.querySelector(".length-notice")?.textContent ?? "";
 
 describe("MusicEditorScreen, the picture length", () => {

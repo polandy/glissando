@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { mountWithTranslator } from "../testing/mount-with-translator";
 import FrameCard from "./FrameCard.svelte";
+import { findButtonNamed } from "../testing/by-role";
 
 let destroy = () => {};
 afterEach(() => destroy());
@@ -13,10 +14,7 @@ function mountCard() {
     onHide: () => (hides += 1),
   });
   destroy = mounted.destroy;
-  const button = (name: string) =>
-    [...mounted.target.querySelectorAll<HTMLButtonElement>("button")].find(
-      (candidate) => candidate.textContent?.trim() === name || candidate.ariaLabel === name,
-    );
+  const button = (name: string) => findButtonNamed(mounted.target, name);
   return { button, setUps: () => setUps, hides: () => hides };
 }
 

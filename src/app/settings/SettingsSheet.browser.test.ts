@@ -1,6 +1,7 @@
 import { flushSync } from "svelte";
 import { afterEach, describe, expect, it } from "vitest";
 import { STATE, mountSheet, radios, unmountSheet } from "./testing/settings-sheet-harness";
+import { buttonNamed } from "../testing/by-role";
 
 afterEach(() => unmountSheet());
 
@@ -91,10 +92,7 @@ describe("SettingsSheet", () => {
 
   it("offers the update at the version while a new version waits", () => {
     const { dialog, updates } = mountSheet(STATE, { updateWaiting: true });
-    const button = [...dialog.querySelectorAll("button")].find(
-      (candidate) => candidate.textContent?.trim() === "Neu laden zum Aktualisieren",
-    );
-    button?.click();
+    buttonNamed(dialog, "Neu laden zum Aktualisieren").click();
     expect(updates()).toBe(1);
   });
 

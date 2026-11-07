@@ -5,6 +5,7 @@ import { createTranslator } from "../i18n/translator";
 import { mountWithTranslator } from "../testing/mount-with-translator";
 import { whenRendered } from "../testing/when-rendered";
 import ServerCopyConfirm from "./ServerCopyConfirm.svelte";
+import { buttonNamed } from "../testing/by-role";
 
 const picture = (id: string, immichAssetId?: string): StoredPicture => ({
   id,
@@ -56,21 +57,13 @@ function mountConfirm(action: CopyAction, afterClose: CopyAction = action) {
   return { ...mounted, ran, closed };
 }
 
-function buttonNamed(name: string): HTMLButtonElement {
-  const found = [...document.querySelectorAll<HTMLButtonElement>("dialog button")].find(
-    (button) => button.textContent.trim() === name,
-  );
-  if (found === undefined) throw new Error(`no button "${name}"`);
-  return found;
-}
-
 describe("ServerCopyConfirm", () => {
   it("asks before keeping a copy and runs it only once confirmed", () => {
     const { ran, closed } = mountConfirm("keepCopy");
 
     expect(document.querySelector("dialog h3")?.textContent).toBe("Keep a copy on this device?");
     expect(ran).toEqual([]);
-    buttonNamed("Download and keep").click();
+    buttonNamed(document, "Download and keep").click();
     flushSync();
 
     expect(ran).toEqual(["keep show"]);
@@ -80,7 +73,7 @@ describe("ServerCopyConfirm", () => {
   it("runs the copy it asked about, though closing it changes what the parent passes", () => {
     const { ran } = mountConfirm("keepCopy", "saveOnServer");
 
-    buttonNamed("Download and keep").click();
+    buttonNamed(document, "Download and keep").click();
     flushSync();
 
     expect(ran).toEqual(["keep show"]);
@@ -89,7 +82,7 @@ describe("ServerCopyConfirm", () => {
   it("cancelling runs nothing", () => {
     const { ran, closed } = mountConfirm("keepCopy");
 
-    buttonNamed("Cancel").click();
+    buttonNamed(document, "Cancel").click();
 
     expect(closed).toEqual([true]);
     expect(ran).toEqual([]);
@@ -101,7 +94,7 @@ describe("ServerCopyConfirm", () => {
     const list = await whenRendered(document.body, "dialog li");
     expect(target.isConnected).toBe(true);
     expect(list.textContent).toBe("IMG_9.jpg");
-    buttonNamed("Save without this one").click();
+    buttonNamed(document, "Save without this one").click();
 
     expect(ran).toEqual(["save show"]);
   });

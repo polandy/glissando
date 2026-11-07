@@ -11,18 +11,9 @@ import {
   unmountEditor,
   xOf,
 } from "./music-editor-harness";
+import { buttonNamed } from "../testing/by-role";
 
 afterEach(() => unmountEditor());
-
-const buttonNamed = (name: string): HTMLButtonElement => {
-  const found = [...document.querySelectorAll("button")].find(
-    (button) => button.textContent?.replace(/\s+/g, " ").trim() === name,
-  );
-  if (found === undefined) {
-    throw new Error(`no button named "${name}"`);
-  }
-  return found;
-};
 
 const TRIMMED = { trim: { startMs: 12_000, endMs: 150_000 } };
 
@@ -44,7 +35,7 @@ describe("MusicEditorScreen, the excerpt", () => {
     const { calls } = mountEditor(slideshowWith(TRIMMED));
 
     expect(headText()).toBe("Song 1 · Sommerwind.mp3 3:24 · gekürzt auf 2:18");
-    buttonNamed("Ganzer Song").click();
+    buttonNamed(document, "Ganzer Song").click();
 
     expect(calls.trims).toEqual([undefined]);
   });
@@ -160,7 +151,7 @@ describe("MusicEditorScreen, the fades", () => {
 
     (fadeGroup("Einblenden").querySelectorAll("button")[2] as HTMLButtonElement).click();
     set({ slideshow: slideshowWith({ ...TRIMMED, fadeInMs: 5000 }) });
-    buttonNamed("Zurück auf automatisch").click();
+    buttonNamed(document, "Zurück auf automatisch").click();
 
     expect(calls.fadesIn).toEqual([5000, undefined]);
     expect(checked("Einblenden")).toBe("Lang 5 s");
@@ -193,11 +184,13 @@ describe("MusicEditorScreen, the pictures' times and listening", () => {
   it("listens to the start and shows where it plays, over both lanes", () => {
     const { calls, set } = mountDetailed(slideshowWith(TRIMMED));
 
-    buttonNamed("Anfang anhören ab 0:12,0").click();
+    buttonNamed(document, "Anfang anhören ab 0:12,0").click();
     set({ listening: { kind: "start", positionMs: 14_000 } });
 
     expect(calls.listens).toEqual(["start"]);
-    expect(buttonNamed("Anfang anhören ab 0:12,0").getAttribute("aria-pressed")).toBe("true");
+    expect(buttonNamed(document, "Anfang anhören ab 0:12,0").getAttribute("aria-pressed")).toBe(
+      "true",
+    );
     const playheads = document.querySelectorAll(".playhead");
     expect(playheads).toHaveLength(1);
     const lane = document.querySelector(".lane") as Element;

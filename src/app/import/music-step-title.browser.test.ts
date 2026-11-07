@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { titleForCaptureRange } from "../../compose";
 import { withTwoPictures } from "./testing/import-session-fixtures";
 import { mountMusicStep, titleField } from "./testing/music-step-rig";
+import { buttonNamed } from "../testing/by-role";
 
 let unmounts: (() => void)[] = [];
 afterEach(() => {
@@ -21,14 +22,6 @@ function mountStep(...args: Parameters<typeof mountMusicStep>) {
   unmounts.push(rig.destroy);
   return rig;
 }
-
-const buttonNamed = (target: HTMLElement, name: string) => {
-  const button = [...target.querySelectorAll("button")].find(
-    (candidate) => candidate.textContent.trim() === name,
-  );
-  if (button === undefined) throw new Error(`no button "${name}"`);
-  return button;
-};
 
 function type(field: HTMLInputElement, value: string): void {
   field.value = value;
