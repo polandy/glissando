@@ -62,6 +62,8 @@ Mockup: https://polandy.github.io/glissando-assets/mockups/title-slides/. Player
     Strong), the **Tint** chips (From picture · Light · Dark), and the **Reveal** toggle (title
     slide) or the **Fade in** toggle (closing slide).
   - **Position**: Centre | Bottom left.
+  - Style, Colour | Picture, the pictures and Position are radio groups: one tab stop on the chosen
+    option, the arrow keys, Home and End choose and focus another (selection follows focus).
   - A one-line **hint** on the timing ("About 4 s, on the beat. With Reveal, the picture takes
     over.").
   - **Remove** (title slide / closing slide). This deletes the card, and its tile turns dashed.

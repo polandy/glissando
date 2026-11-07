@@ -230,4 +230,42 @@ describe("CardBackgroundPicker", () => {
 
     expect(onMotionChange).toHaveBeenCalledWith(false);
   });
+  describe("radio keys", () => {
+    const key = (el: Element | null | undefined, name: string) =>
+      el?.dispatchEvent(new KeyboardEvent("keydown", { key: name, bubbles: true }));
+
+    it("keeps one tab stop in the Colour | Picture toggle, on the checked option", () => {
+      const { target } = setUp({ kind: "colour", colour: "plum" });
+
+      const radios = target.querySelectorAll<HTMLButtonElement>(".kind-toggle [role=radio]");
+      expect([...radios].map((radio) => radio.tabIndex)).toEqual([0, -1]);
+    });
+
+    it("moves the toggle to Picture with ArrowRight and focuses it", () => {
+      const { target, onChange } = setUp({ kind: "colour", colour: "plum" });
+
+      const radios = target.querySelectorAll<HTMLButtonElement>(".kind-toggle [role=radio]");
+      radios[0]?.focus();
+      key(radios[0], "ArrowRight");
+
+      expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ kind: "picture" }));
+      expect(document.activeElement).toBe(radios[1]);
+    });
+
+    it("keeps one tab stop among the pictures and moves with ArrowRight", () => {
+      const { target, onChange } = setUp({
+        kind: "picture",
+        pictureId: "a",
+        fade: 60,
+        tint: "picture",
+      });
+
+      const pictures = target.querySelectorAll<HTMLButtonElement>(".picture");
+      expect([...pictures].map((picture) => picture.tabIndex)).toEqual([0, -1]);
+      key(pictures[0], "ArrowRight");
+
+      expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ pictureId: "b" }));
+      expect(document.activeElement).toBe(pictures[1]);
+    });
+  });
 });

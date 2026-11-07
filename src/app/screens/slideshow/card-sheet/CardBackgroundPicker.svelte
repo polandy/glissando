@@ -12,6 +12,7 @@
     StoredCardBackground,
   } from "../../../../library/stored-slideshow";
   import { CARD_SWATCHES, type CardSwatchId } from "../../../../player/card-palette";
+  import { radioGroupKeys } from "../../../components/radio-group-keys";
   import SectionHead from "../../../components/SectionHead.svelte";
   import { getTranslator } from "../../../i18n/context";
   import type { PictureTile } from "../../view-models";
@@ -67,6 +68,16 @@
     }
   }
 
+  // One tab stop in the picture group: the chosen picture, or the first when none matches.
+  const tabStop = $derived(
+    background.kind === "picture"
+      ? Math.max(
+          0,
+          pictures.findIndex((picture) => picture.id === background.pictureId),
+        )
+      : 0,
+  );
+
   const motionLabel = $derived(
     kind === "opening" ? t("cards.revealLabel") : t("cards.fadeInLabel"),
   );
@@ -86,13 +97,19 @@
 
 <section class="background">
   <SectionHead id="card-background-title" title={t("cards.backgroundLabel")} own={false} />
-  <div class="kind-toggle" role="radiogroup" aria-labelledby="card-background-title">
+  <div
+    class="kind-toggle"
+    role="radiogroup"
+    aria-labelledby="card-background-title"
+    use:radioGroupKeys
+  >
     <button
       class="option"
       class:checked={background.kind === "colour"}
       type="button"
       role="radio"
       aria-checked={background.kind === "colour"}
+      tabindex={background.kind === "colour" ? 0 : -1}
       onclick={() => pickColour(background.kind === "colour" ? background.colour : "plum")}
     >
       {t("cards.backgroundColour")}
@@ -103,6 +120,7 @@
       type="button"
       role="radio"
       aria-checked={background.kind === "picture"}
+      tabindex={background.kind === "picture" ? 0 : -1}
       onclick={() => pickPicture(pictures[0]?.id ?? "")}
       disabled={pictures.length === 0}
     >
@@ -139,7 +157,12 @@
       {/each}
     </div>
   {:else}
-    <div class="pictures" role="radiogroup" aria-label={t("cards.backgroundPicture")}>
+    <div
+      class="pictures"
+      role="radiogroup"
+      aria-label={t("cards.backgroundPicture")}
+      use:radioGroupKeys
+    >
       {#each pictures as picture, index (picture.id)}
         <button
           class="picture"
@@ -148,6 +171,7 @@
           role="radio"
           aria-checked={background.pictureId === picture.id}
           aria-label={t("cards.pictureOption", { number: index + 1 })}
+          tabindex={index === tabStop ? 0 : -1}
           onclick={() => pickPicture(picture.id)}
         >
           <img src={picture.thumbnailUrl} alt="" draggable="false" />

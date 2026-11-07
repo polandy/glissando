@@ -110,4 +110,18 @@ describe("CardSheet", () => {
 
     expect(onClose).toHaveBeenCalledOnce();
   });
+
+  it("keeps one tab stop in the Position group and moves it with ArrowDown", () => {
+    const { target, onChange } = setUp(CARD);
+
+    const radios = target.querySelectorAll<HTMLButtonElement>(
+      '[aria-labelledby="card-position-title"] [role=radio]',
+    );
+    expect([...radios].map((radio) => radio.tabIndex)).toEqual([0, -1]);
+    radios[0]?.focus();
+    radios[0]?.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }));
+
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ position: "bottom-left" }));
+    expect(document.activeElement).toBe(radios[1]);
+  });
 });
