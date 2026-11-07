@@ -64,6 +64,18 @@ describe("HttpServerLibraryClient focus", () => {
     });
   });
 
+  it("rejects a 409 that is not newerFocus instead of reading it as newerKept", async () => {
+    const { client, control, slideshowId } = await created();
+    control.answerWith = () => Response.json({ error: "somethingElse" }, { status: 409 });
+
+    const failure = client.putPictureFocus(slideshowId, PICTURE_ASSET_ID, FOUND);
+
+    await expect(failure).rejects.toThrow(ServerLibraryRefusedError);
+    await failure.catch((error: ServerLibraryRefusedError) => {
+      expect(error.code).toBe("somethingElse");
+    });
+  });
+
   it("fails loud on a focus the server answers in a shape it does not know", async () => {
     const { client, control, slideshowId } = await created();
     control.answerWith = () =>
