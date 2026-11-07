@@ -6,6 +6,7 @@
 import type { StoredPicture } from "../library/stored-slideshow";
 import type { OutcomePorts } from "./picture-import-outcome";
 import type { PictureIdentity } from "../library/picture-identity";
+import type { ImportPick } from "./picture-import-picks";
 import type { VideoRefusal } from "./video-refusal";
 
 /** Why a picture was skipped as a duplicate: one of the known ones, or one this import took in. */
@@ -52,3 +53,31 @@ export class PictureImportFailedError extends Error {
     this.name = "PictureImportFailedError";
   }
 }
+
+export interface PictureImportState {
+  /** Picture files accepted so far; files dropped at full storage leave the count. */
+  readonly total: number;
+  /** Accepted files processed, stored or skipped, so progress "done of total" reaches total. */
+  readonly done: number;
+  /** By capture date ascending, ties by file name. */
+  readonly pictures: readonly StoredPicture[];
+  /** One per `add()` call (or Immich selection), in pick order. */
+  readonly picks: readonly ImportPick[];
+  readonly skipped: readonly SkippedFile[];
+  readonly storageFull: boolean;
+  readonly busy: boolean;
+  /** An unexpected error ended the import; `settled()` rejects with it. */
+  readonly failed: boolean;
+}
+
+/** An import with nothing picked yet. */
+export const EMPTY_IMPORT: PictureImportState = {
+  total: 0,
+  done: 0,
+  pictures: [],
+  picks: [],
+  skipped: [],
+  storageFull: false,
+  busy: false,
+  failed: false,
+};

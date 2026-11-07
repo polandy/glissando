@@ -8,7 +8,8 @@ publishes a state with the Svelte store contract:
 - Each `add` (and each Immich selection) is one **pick** with a name and a kind (files, folder,
   Immich); `picks` lists them in pick order with their own `total` and `done`. `stop(pickId)`
   drops the pick's waiting files from the queue and from `total`; stored pictures stay, and the
-  file in flight is dropped when it finishes. `cancel` stops every pick, as before.
+  file in flight has its download aborted (the signal `PictureSource.read` gets) and is dropped.
+  `cancel` stops every pick the same way.
 - `pictures` lists the stored pictures in capture-date order as they arrive.
 - **Storage full** (`QuotaExceededError`): the import stops, keeps what is stored, drops the
   remaining files from `total` and reports `storageFull`. Adding files again tries again.
@@ -19,9 +20,10 @@ publishes a state with the Svelte store contract:
   its bytes go to the library's video store (`putVideo`), its poster (the frame at the excerpt's
   start) runs through the picture pipeline, and its claims cover the video's media id. Culling
   skips it: a video is never removed as a blur or a duplicate.
-- **Cancel** stops after the file in flight and clears the state.
+- **Cancel** aborts the file in flight's download, reads no further file and clears the state.
 - Any other error ends the import as `failed`; it is never swallowed: `settled()` rejects with
   `PictureImportFailedError` (the error as its `cause`), which the app logs and shows as the
-  failed state only. The error of a file cancelled in flight fails nothing and rejects as itself,
+  failed state only. The abort of a file cancelled or stopped in flight is no error; any other
+  error of a file cancelled in flight fails nothing and rejects as itself,
   so the app reports it. A failed import takes no more files until it is cancelled, which starts
   it over.

@@ -1,11 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
+  ImmichDownloadTooLargeError,
   ImmichRequestFailedError,
   ImmichUnavailableError,
   type ImmichPhoto,
   type ImmichUnavailableKind,
 } from "../immich/immich-client";
-import { immichPictureSource } from "./immich-picture-source";
+import { MAX_VIDEO_BYTES } from "../library/own-video";
+import { immichPictureSource, type ImmichVideoReaders } from "./immich-picture-source";
 import { PictureNotDownloadedError } from "./picture-source";
 import { VideoRefusedError } from "./video-refusal";
 
@@ -19,7 +21,7 @@ const VIDEO: ImmichPhoto = {
   video: { durationMs: CLIP_MS },
 };
 
-function setUp(video: () => Promise<Blob>, playable = true) {
+function setUp(video: ImmichVideoReaders["client"]["video"], playable = true) {
   const reported: ImmichUnavailableKind[] = [];
   const faceCalls: string[] = [];
   const source = immichPictureSource(VIDEO, {
@@ -95,6 +97,35 @@ describe("immichPictureSource for a video", () => {
     });
 
     await expect(source.read()).rejects.toBeInstanceOf(VideoRefusedError);
+  });
+
+  it("refuses a video Immich announces as over MAX_VIDEO_BYTES as too large", async () => {
+    const limits: number[] = [];
+    const { source } = setUp((id, maxBytes) => {
+      limits.push(maxBytes);
+      return Promise.reject(new ImmichDownloadTooLargeError(`GET ${id}`, maxBytes + 1, maxBytes));
+    });
+
+    const refusal = await source.read().catch((error: unknown) => error);
+
+    expect(limits).toEqual([MAX_VIDEO_BYTES]);
+    expect(refusal).toBeInstanceOf(VideoRefusedError);
+    expect((refusal as VideoRefusedError).reason).toBe("videoTooLarge");
+  });
+
+  it("cancels the download with the read's signal", async () => {
+    const { source } = setUp(
+      (_id, _maxBytes, signal) =>
+        new Promise((_resolve, reject) => {
+          signal?.addEventListener("abort", () => reject(signal.reason as Error));
+        }),
+    );
+    const cancel = new AbortController();
+    const reading = source.read(cancel.signal);
+
+    cancel.abort();
+
+    await expect(reading).rejects.toBe(cancel.signal.reason);
   });
 
   it("refuses a version this browser cannot play, naming the video", async () => {

@@ -199,7 +199,7 @@ describe("HttpImmichClient reading the library", () => {
       () => new Response(new Uint8Array([1, 2, 3, 4]), { status: 200 }),
     );
 
-    expect((await clientWith(fake).video("clip-1")).size).toBe(4);
+    expect((await clientWith(fake).video("clip-1", 4)).size).toBe(4);
   });
 
   it("reads an empty last page", async () => {

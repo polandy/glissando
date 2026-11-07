@@ -25,13 +25,14 @@ export interface ReadVideo {
  * `identify()` is cheap, so a duplicate is known before the picture is read (ADR-0016). Both
  * reject with `UnreadablePictureError` for a picture the browser cannot read or decode,
  * and with `PictureNotDownloadedError` for one whose bytes could not be fetched. A video this
- * browser cannot take in rejects with `VideoRefusedError`.
+ * browser cannot take in rejects with `VideoRefusedError`. An abort of `read()`'s `signal` cancels
+ * its downloads; it then rejects with the signal's reason.
  */
 export interface PictureSource {
   readonly fileName: string;
   readonly mimeType: string;
   identify(): Promise<PictureIdentity>;
-  read(): Promise<ReadPicture>;
+  read(signal?: AbortSignal): Promise<ReadPicture>;
 }
 
 /** A picture whose bytes could not be fetched from its source; the import skips it. */

@@ -8,14 +8,15 @@ import {
   pickStopped,
   pickToStop,
   picksTruncated,
-  type ImportPick,
   type PickInput,
 } from "./picture-import-picks";
 import type { PictureSource } from "./picture-source";
 import {
+  EMPTY_IMPORT,
   PictureImportFailedError,
   type DuplicateReason,
   type PictureImportPorts,
+  type PictureImportState,
   type SkippedFile,
 } from "./picture-import-types";
 
@@ -24,39 +25,13 @@ export {
   PictureImportFailedError,
   type DuplicateReason,
   type PictureImportPorts,
+  type PictureImportState,
   type SkippedFile,
   type SkipReason,
   type StoredWithThumbnail,
 } from "./picture-import-types";
 
-export interface PictureImportState {
-  /** Picture files accepted so far; files dropped at full storage leave the count. */
-  readonly total: number;
-  /** Accepted files processed, stored or skipped, so progress "done of total" reaches total. */
-  readonly done: number;
-  /** By capture date ascending, ties by file name. */
-  readonly pictures: readonly StoredPicture[];
-  /** One per `add()` call (or Immich selection), in pick order. */
-  readonly picks: readonly ImportPick[];
-  readonly skipped: readonly SkippedFile[];
-  readonly storageFull: boolean;
-  readonly busy: boolean;
-  /** An unexpected error ended the import; `settled()` rejects with it. */
-  readonly failed: boolean;
-}
-
 const PICTURE_TYPE_PREFIXES = ["image/", "video/"];
-
-const EMPTY: PictureImportState = {
-  total: 0,
-  done: 0,
-  pictures: [],
-  picks: [],
-  skipped: [],
-  storageFull: false,
-  busy: false,
-  failed: false,
-};
 
 /**
  * Step 1 of creating a slideshow, or adding to one: pictures from files or Immich in, stored
@@ -67,7 +42,7 @@ const EMPTY: PictureImportState = {
 export class PictureImport {
   readonly #ports: PictureImportPorts;
   readonly #listeners = new Set<(state: PictureImportState) => void>();
-  #state = EMPTY;
+  #state = EMPTY_IMPORT;
   #queue: Queued[] = [];
   /** The sources skipped as duplicates, for `addDuplicates`. */
   #duplicates: { readonly source: PictureSource; readonly reason: DuplicateReason }[] = [];
@@ -79,6 +54,9 @@ export class PictureImport {
   #nextPickId = 0;
   /** A pick stopped while its file in flight was still being read; that file is dropped once done. */
   readonly #stoppedPickIds = new Set<string>();
+  /** The file being read, whose download `cancel()` or stopping its pick aborts. */
+  #inFlight: { readonly pickId: string | undefined; readonly download: AbortController } | null =
+    null;
 
   constructor(ports: PictureImportPorts) {
     this.#ports = ports;
@@ -120,11 +98,12 @@ export class PictureImport {
 
   /**
    * Drops the pick's waiting files from the queue and the overall total; its pictures already
-   * stored stay. A file of it already being read finishes but is then dropped, as if it had
-   * never been picked (`PICTURE_IMPORT.md`).
+   * stored stay. A file of it already being read has its download aborted and is dropped, as if
+   * it had never been picked (`PICTURE_IMPORT.md`).
    */
   stop(pickId: string): void {
     pickToStop(this.#state.picks, pickId);
+    if (this.#inFlight?.pickId === pickId) this.#inFlight.download.abort();
     const waiting = this.#queue.filter((entry) => entry.pickId === pickId).length;
     this.#queue = this.#queue.filter((entry) => entry.pickId !== pickId);
     this.#stoppedPickIds.add(pickId);
@@ -209,8 +188,9 @@ export class PictureImport {
     return this.#draining;
   }
 
-  /** Stops after the file in flight and clears the state. */
+  /** Aborts the file in flight's download, stops after it and clears the state. */
   cancel(): void {
+    this.#inFlight?.download.abort();
     this.#generation += 1;
     this.#queue = [];
     this.#duplicates = [];
@@ -218,7 +198,7 @@ export class PictureImport {
     if (!this.#isDraining) {
       this.#draining = Promise.resolve();
     }
-    this.#update(EMPTY);
+    this.#update(EMPTY_IMPORT);
   }
 
   /**
@@ -230,10 +210,16 @@ export class PictureImport {
     try {
       for (let entry = this.#queue.shift(); entry !== undefined; entry = this.#queue.shift()) {
         const generation = this.#generation;
+        const download = new AbortController();
+        this.#inFlight = { pickId: entry.pickId, download };
         let outcome: Outcome;
         try {
-          outcome = await this.#importOne(entry);
+          outcome = await this.#importOne(entry, download.signal);
         } catch (error) {
+          if (download.signal.aborted && error === download.signal.reason) {
+            if (generation === this.#generation) this.#dropStopped(entry);
+            continue;
+          }
           if (generation === this.#generation) {
             throw error;
           }
@@ -255,16 +241,26 @@ export class PictureImport {
       throw new PictureImportFailedError(error);
     } finally {
       this.#isDraining = false;
+      this.#inFlight = null;
     }
     if (cancelledFileError !== null) {
       throw cancelledFileError.error;
     }
   }
 
-  #importOne(entry: Queued): Promise<Outcome> {
-    return importOne(entry, this.#ports, (identity) =>
-      duplicateReason(identity, this.#ports.known?.() ?? [], this.#state.pictures),
+  #importOne(entry: Queued, signal: AbortSignal): Promise<Outcome> {
+    return importOne(
+      entry,
+      this.#ports,
+      (identity) => duplicateReason(identity, this.#ports.known?.() ?? [], this.#state.pictures),
+      signal,
     );
+  }
+
+  /** A file whose download stopping its pick aborted: dropped like any file of a stopped pick. */
+  #dropStopped(entry: Queued): void {
+    if (entry.pickId !== undefined) this.#stoppedPickIds.delete(entry.pickId);
+    this.#update({ total: this.#state.total - 1, busy: this.#queue.length > 0 });
   }
 
   #apply(entry: Queued, outcome: Outcome): void {
