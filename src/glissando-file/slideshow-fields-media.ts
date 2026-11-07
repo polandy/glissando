@@ -26,6 +26,7 @@ import {
   readDateTime,
   readObject,
   readPositiveInteger,
+  readSongMediaType,
   readText,
   type JsonObject,
 } from "./document-values";
@@ -97,7 +98,7 @@ export function readMusicFields(music: JsonObject, path: string): MusicFields {
   return {
     fileName: readText(music["fileName"], `${path}.fileName`),
     durationMs,
-    mimeType: readText(music["mimeType"], `${path}.mimeType`),
+    mimeType: readSongMediaType(music["mimeType"], `${path}.mimeType`),
     ...readOwnMusic(path, () => ({
       ...(trim === undefined ? {} : { trim: checkMusicTrim(trim, durationMs, path) }),
       ...(fadeInMs === undefined ? {} : { fadeInMs: checkMusicFadeMs(fadeInMs, "fadeInMs", path) }),

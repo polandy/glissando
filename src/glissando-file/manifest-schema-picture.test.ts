@@ -104,6 +104,18 @@ describe("PICTURE_SCHEMA: broken pictures", () => {
       "video.endMs of the wrong type",
       withAt(BASE_MANIFEST, [...picture0, "video", "endMs"], "6000"),
     ],
+    [
+      "video.mimeType text/html",
+      withAt(BASE_MANIFEST, [...picture0, "video", "mimeType"], "text/html"),
+    ],
+    [
+      "video.mimeType of a song",
+      withAt(BASE_MANIFEST, [...picture0, "video", "mimeType"], "audio/mpeg"),
+    ],
+    [
+      "video.mimeType with parameters",
+      withAt(BASE_MANIFEST, [...picture0, "video", "mimeType"], "video/mp4;codecs=avc1"),
+    ],
     ["video.volume below its minimum", withAt(BASE_MANIFEST, [...picture0, "video", "volume"], -5)],
     [
       "video.volume above its maximum",

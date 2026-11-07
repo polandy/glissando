@@ -16,13 +16,8 @@ import {
   type ManifestChapterEdit,
 } from "./manifest-chapters";
 import { cardToManifest, type ManifestCard } from "./manifest-card";
-import {
-  clipMimeType,
-  clipPath,
-  distinctClipIds,
-  videoToManifest,
-  type ManifestVideo,
-} from "./manifest-video";
+import { clipMediaType, songMediaType } from "./document-values";
+import { clipPath, distinctClipIds, videoToManifest, type ManifestVideo } from "./manifest-video";
 import { picturePaths, songPath, typesAt, type PictureTypes } from "./manifest-paths";
 
 export {
@@ -196,7 +191,7 @@ export function manifestFor(
 ): GlissandoManifest {
   const clipFiles = new Map(
     distinctClipIds(slideshow.pictures).map((mediaId, index) => {
-      const mimeType = clipMimeType(clipTypes.get(mediaId) ?? "");
+      const mimeType = clipMediaType(clipTypes.get(mediaId) ?? "");
       return [mediaId, { file: clipPath(index, mimeType), mimeType }] as const;
     }),
   );
@@ -221,7 +216,7 @@ export function manifestFor(
     file: songPath(index, song.fileName),
     fileName: song.fileName,
     durationMs: song.durationMs,
-    mimeType: song.mimeType,
+    mimeType: songMediaType(song.mimeType),
     ...ownMusicFields(song),
   }));
   const pictureIds = slideshow.pictures.map((picture) => picture.id);

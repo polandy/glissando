@@ -20,6 +20,9 @@ describe("MUSIC_SCHEMA: broken songs", () => {
     ["missing fileName", withoutAt(BASE_MANIFEST, [...song0, "fileName"])],
     ["missing durationMs", withoutAt(BASE_MANIFEST, [...song0, "durationMs"])],
     ["missing mimeType", withoutAt(BASE_MANIFEST, [...song0, "mimeType"])],
+    ["mimeType text/html", withAt(BASE_MANIFEST, [...song0, "mimeType"], "text/html")],
+    ["mimeType with parameters", withAt(BASE_MANIFEST, [...song0, "mimeType"], "audio/mpeg;a=b")],
+    ["mimeType uppercase", withAt(BASE_MANIFEST, [...song0, "mimeType"], "Audio/mpeg")],
     ["an unknown key", withAt(BASE_MANIFEST, [...song0, "extra"], true)],
     ["fileName of the wrong type", withAt(BASE_MANIFEST, [...song0, "fileName"], 5)],
     ["durationMs of the wrong type", withAt(BASE_MANIFEST, [...song0, "durationMs"], "240000")],
@@ -46,4 +49,16 @@ describe("MUSIC_SCHEMA: broken songs", () => {
   ])("%s is refused by both the reader and the schema", (_name, doc) => {
     expectBothRefuse(doc);
   });
+});
+
+describe("MUSIC_SCHEMA: the song types it accepts", () => {
+  it.each(["audio/mpeg", "video/webm", "application/octet-stream"])(
+    "%s is accepted by both the reader and the schema",
+    (type) => {
+      const doc = withAt(BASE_MANIFEST, [...song0, "mimeType"], type);
+
+      expect(validateManifestSchema(doc)).toBe(true);
+      expect(readManifest(JSON.stringify(doc)).kind).toBe("ok");
+    },
+  );
 });

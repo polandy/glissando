@@ -9,6 +9,7 @@ import {
   DocumentFormatError,
   readObject,
   readPositiveInteger,
+  readClipMediaType,
   readText,
   type JsonObject,
 } from "./document-values";
@@ -18,7 +19,6 @@ export const VIDEO_FROM_VERSION = 14;
 
 const VIDEO_KEYS = ["file", "mimeType", "sourceMs", "startMs", "endMs", "volume", "duckMusic"];
 const CLIP_EXTENSION = /\/([a-z0-9]{1,8})$/i;
-const UNKNOWN_CLIP_TYPE = "application/octet-stream";
 /** The extension `video/quicktime` is known by. */
 const QUICKTIME_EXTENSION = "mov";
 
@@ -36,10 +36,6 @@ export function clipPath(index: number, mimeType: string): string {
     return base;
   }
   return `${base}.${subtype === "quicktime" ? QUICKTIME_EXTENSION : subtype}`;
-}
-
-export function clipMimeType(type: string): string {
-  return type === "" ? UNKNOWN_CLIP_TYPE : type;
 }
 
 /** The distinct clips the pictures play, by first use. */
@@ -94,7 +90,7 @@ export function readManifestVideo(value: unknown, path: string): ManifestVideo {
   try {
     return {
       file: readText(video["file"], `${path}.file`),
-      mimeType: readText(video["mimeType"], `${path}.mimeType`),
+      mimeType: readClipMediaType(video["mimeType"], `${path}.mimeType`),
       sourceMs,
       ...checkVideoExcerpt({ sourceMs, startMs: startMs as number, endMs: endMs as number }, path),
       ...(volume === undefined ? {} : { volume: checkVideoVolume(volume, path) }),

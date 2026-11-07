@@ -103,3 +103,44 @@ describe("the playlist in the .glissando file (ADR-0023)", () => {
     expect(readManifest(text)).toEqual({ kind: "newer" });
   });
 });
+
+describe("a song or clip of a type outside the allowed ones in the .glissando file", () => {
+  it.each(["", "text/html", "audio/mpeg; codecs=mp3"])(
+    "writes a song stored as %j as application/octet-stream, which reads back",
+    (mimeType) => {
+      const written = manifest({
+        ...playlist,
+        songs: [{ id: "m1", fileName: "a.mp3", durationMs: 1000, mimeType }],
+      });
+
+      expect(written.slideshow.songs[0]?.mimeType).toBe("application/octet-stream");
+      expect(readManifest(asText(written)).kind).toBe("ok");
+    },
+  );
+
+  it("keeps a song type that is allowed", () => {
+    expect(manifest(playlist).slideshow.songs.map((song) => song.mimeType)).toEqual([
+      "audio/mp4",
+      "audio/mpeg",
+    ]);
+  });
+
+  it.each(["", "text/html", "audio/mpeg", "video/mp4; codecs=avc1"])(
+    "writes a clip stored as %j as application/octet-stream, which reads back",
+    (type) => {
+      const video = { mediaId: "c1", sourceMs: 5000, startMs: 0, endMs: 5000 };
+      const withClip: StoredSlideshow = {
+        ...noSongs,
+        pictures: noSongs.pictures.map((picture) => ({ ...picture, video })),
+      };
+
+      const written = manifestFor(withClip, [JPEG], new Map([["c1", type]]));
+
+      expect(written.slideshow.pictures[0]?.video).toMatchObject({
+        file: "videos/clip-1",
+        mimeType: "application/octet-stream",
+      });
+      expect(readManifest(asText(written)).kind).toBe("ok");
+    },
+  );
+});
