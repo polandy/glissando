@@ -111,6 +111,26 @@ function tripWithAddedChapter(): StoredSlideshow {
   };
 }
 
+describe("SlideshowScreen: closing a trip chapter's sheet", () => {
+  it("hands focus back to the chapter's strip tile", () => {
+    const current = tripWithAddedChapter();
+    mountScreen(slideshowDetails(current, (id) => `${id}.jpg`, "de"));
+    const chip = Array.from(document.querySelectorAll<HTMLElement>(".chip")).find((c) =>
+      c.textContent?.includes("Mein Kapitel"),
+    );
+    chip?.click();
+    flushSync();
+    expect(sheet()).not.toBeNull();
+
+    buttonNamed("Fertig").click();
+    flushSync();
+
+    expect(sheet()).toBeNull();
+    expect(chip).toBeInstanceOf(HTMLElement);
+    expect(document.activeElement).toBe(chip);
+  });
+});
+
 describe("SlideshowScreen: the Trip chapters switch in Fine settings", () => {
   it("hides and brings back the automatic chapter markers, keeping the added chapter", () => {
     let current = tripWithAddedChapter();

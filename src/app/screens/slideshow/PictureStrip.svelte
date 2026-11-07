@@ -59,6 +59,13 @@
     closingTile?.focus();
   }
 
+  /** The chapter's sheet closed: focus goes back to its tile, when the chapter still has one. */
+  export function focusChapter(anchorPictureId: string): void {
+    strip
+      .querySelector<HTMLElement>(`[data-chapter-anchor="${CSS.escape(anchorPictureId)}"] button`)
+      ?.focus();
+  }
+
   /** Remembers where the tiles are; the returned function glides them from there once the order changed. */
   export function beginGlide(): () => void {
     const shown = strip;

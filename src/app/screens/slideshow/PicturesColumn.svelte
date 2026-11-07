@@ -79,6 +79,10 @@
   export function focusClosingCard(): void {
     strip?.focusClosingCard();
   }
+
+  export function focusChapter(anchorPictureId: string): void {
+    strip?.focusChapter(anchorPictureId);
+  }
 </script>
 
 <div class="pictures">
