@@ -15,8 +15,6 @@ Each fix starts with the failing test the item names or implies (WORKFLOW.md, Te
 
 ### Library and file format
 
-- [ ] `src/glissando-file/round-trip.browser.test.ts:35-88` — The round trip checks only title, one picture's bytes and media bytes; the ~25 optional fields are hand-listed in five mappers and a field forgotten in one is silently dropped. Fix: a fixture with every optional field set and a `toEqual` modulo ids/title/createdAt; or type the mappers so an unmapped key fails to compile.
-
 ### Import and Immich
 
 - [ ] `src/import/immich-picture-source.ts:150,172,201` — No AbortSignal reaches the original/thumbnail/video downloads; cancel or leaving keeps downloading, and a video is fetched in full before the `MAX_VIDEO_BYTES` check. Fix: thread the import's signal through; check size from metadata before downloading.
