@@ -39,7 +39,12 @@ describe("openDeepLinkedFrame", () => {
   it("opens the set-up screen then the frame once the server library is already on", () => {
     const navigator = new FakeNavigator();
 
-    openDeepLinkedFrame("album-1", new FakeAvailability({ kind: "on" }), navigator, () => {});
+    openDeepLinkedFrame(
+      "album-1",
+      new FakeAvailability({ kind: "on" }),
+      navigator,
+      () => undefined,
+    );
 
     expect(navigator.opened).toEqual([
       { screen: "frameSetup" },
@@ -51,7 +56,7 @@ describe("openDeepLinkedFrame", () => {
     const navigator = new FakeNavigator();
     const availability = new FakeAvailability({ kind: "checking" });
 
-    openDeepLinkedFrame("album-1", availability, navigator, () => {});
+    openDeepLinkedFrame("album-1", availability, navigator, () => undefined);
     expect(navigator.opened).toEqual([]);
 
     availability.set({ kind: "on" });
@@ -66,7 +71,7 @@ describe("openDeepLinkedFrame", () => {
     const navigator = new FakeNavigator();
     const availability = new FakeAvailability({ kind: "checking" });
 
-    openDeepLinkedFrame("album-1", availability, navigator, () => {});
+    openDeepLinkedFrame("album-1", availability, navigator, () => undefined);
     availability.set({ kind: "off" });
 
     expect(navigator.opened).toEqual([]);
@@ -76,7 +81,7 @@ describe("openDeepLinkedFrame", () => {
     const navigator = new FakeNavigator();
     const availability = new FakeAvailability({ kind: "on" });
 
-    openDeepLinkedFrame("album-1", availability, navigator, () => {});
+    openDeepLinkedFrame("album-1", availability, navigator, () => undefined);
     availability.set({ kind: "off" });
     availability.set({ kind: "on" });
 
@@ -90,7 +95,7 @@ describe("openDeepLinkedFrame", () => {
     const navigator = new FakeNavigator();
     const availability = new FakeAvailability({ kind: "checking" });
 
-    openDeepLinkedFrame("album-1", availability, navigator, () => {});
+    openDeepLinkedFrame("album-1", availability, navigator, () => undefined);
     navigator.route = { screen: "settings" };
     availability.set({ kind: "on" });
 

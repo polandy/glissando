@@ -73,7 +73,7 @@ function setUp(anchorPictureId: string) {
   let current = baseSlideshow();
   const closes: null[] = [];
   // Assigned once props exists, so its apply callback can update it (forward reference).
-  let updateSlideshow: (next: StoredSlideshow) => void = () => {};
+  let updateSlideshow: (next: StoredSlideshow) => void = () => undefined;
   const toaster = new Toaster(new FakeScheduler());
   const chapterEditor = new ChapterSettingsEditor(
     CHAPTER_PORTS,

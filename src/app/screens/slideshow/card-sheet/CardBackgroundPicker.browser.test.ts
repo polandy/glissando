@@ -88,8 +88,8 @@ describe("CardBackgroundPicker", () => {
       motion: true,
       pictures: [],
       kind: "opening",
-      onChange: () => {},
-      onMotionChange: () => {},
+      onChange: () => undefined,
+      onMotionChange: () => undefined,
     });
     const mounted = mountWithTranslator(CardBackgroundPicker, props, {
       current: createTranslator("en"),

@@ -39,9 +39,9 @@ function setUp(focus: PicturesFocus) {
     search: undefined,
     passPaused: false,
     onServer: false,
-    onEdit: () => {},
+    onEdit: () => undefined,
     onLookAgain: (ids: readonly string[]) => lookAgains.push(ids),
-    onClose: () => {},
+    onClose: () => undefined,
   });
   const mounted = mountWithTranslator(FocusSheet, props);
   destroy = mounted.destroy;

@@ -101,8 +101,8 @@ function setUp(slideshow: SlideshowDetails) {
     ports: { clock: new FakeClock(), frames: new FakeFrameScheduler() },
     reducedMotion: true,
     onTransition,
-    onReset: () => {},
-    onClose: () => {},
+    onReset: () => undefined,
+    onClose: () => undefined,
   });
   const mounted = mountWithTranslator(TransitionsSheet, props, { current: createTranslator("en") });
   destroy = mounted.destroy;

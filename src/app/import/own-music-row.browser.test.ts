@@ -9,11 +9,11 @@ afterEach(() => {
   unmounts = [];
 });
 
-function mountRow(onFiles: (files: File[]) => void = () => {}) {
+function mountRow(onFiles: (files: File[]) => void = () => undefined) {
   const mounted = mountWithTranslator(OwnMusicRow, {
     onFiles,
-    onError: () => {},
-    onChoose: () => {},
+    onError: () => undefined,
+    onChoose: () => undefined,
   });
   unmounts.push(mounted.destroy);
   return mounted.target;
