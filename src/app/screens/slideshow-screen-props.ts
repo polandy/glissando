@@ -3,19 +3,15 @@ import type { ExportPreview } from "../video-export/slideshow-video-export";
 import type { VideoExportSession } from "../video-export/video-export-session";
 import type { SlideshowDetails, SlideshowStorage, StorageAction } from "./view-models";
 import type { ServerSlideshowRows } from "../server-library/server-slideshow-sessions";
-import type { StoredCard } from "../../library/stored-slideshow";
-import type { CardInput } from "../../library/stored-card";
-import type { SlideshowTransition } from "../../library/own-timing";
-import type { PortraitPictures } from "../../library/portrait-pictures";
 import type { MotionPreviewPorts } from "../picture-editor/motion-preview";
-import type { SlideshowMood } from "../../library/slideshow-mood";
 import type { SongBeats } from "../../compose/playlist";
 import type { MoodPreviewPorts } from "./slideshow/mood-preview-ports";
+import type { SlideshowEditCommands } from "./slideshow/slideshow-edit-commands";
 import type { ExportOutcome } from "../glissando-file/export-job";
 import type { ExportMenuState } from "../glissando-file/export-menu";
 import type { StripSelection } from "./slideshow/strip-selection";
 import type { Scheduler } from "../../ui-kit/scheduler";
-import type { FrameScheduler, SlideshowLook } from "../../player";
+import type { FrameScheduler } from "../../player";
 import type { SlideshowSearch } from "../../library/focus-pass";
 import type { PicturesFocus } from "../focus/pictures-focus";
 import type { ChapterSettingsEditor } from "../editing/chapter-settings-editor";
@@ -55,14 +51,6 @@ export interface SlideshowScreenProps {
   onError: (error: unknown) => void;
   /** Opens the music editor; only offered with music. */
   onEditMusic: () => void;
-  /** The slideshow's default transition was picked in its sheet. */
-  onTransition: (transition: SlideshowTransition) => void;
-  /** "Back to crossfade" in the transitions sheet. */
-  onResetTransition: () => void;
-  /** The slideshow's colour grade was picked in its sheet (ADR-0044). */
-  onLook: (look: SlideshowLook) => void;
-  /** "Back to None" in the look sheet. */
-  onResetLook: () => void;
   /** The slideshow's tempo under its mood, for the Mood sheet's "What it
    * sets" (ADR-0045); undefined without a mood, or without a clear beat to pace to. */
   moodBpm: number | undefined;
@@ -71,24 +59,8 @@ export interface SlideshowScreenProps {
   moodBeats: SongBeats;
   /** The Mood sheet's live preview data ports; left out while it has no pictures. */
   moodPreviewPorts: MoodPreviewPorts;
-  /** A mood tile was tapped: stores at once. */
-  onMood: (mood: SlideshowMood | undefined) => void;
-  /** "Back to Custom" in the Mood sheet. */
-  onResetMood: () => void;
-  /** The Mood sheet's "Follow the music's energy" switch (ADR-0046): stores at once. */
-  onEnergyPacing: (on: boolean) => void;
-  /** A choice was picked in the portrait pictures sheet. */
-  onPortraitPictures: (choice: PortraitPictures) => void;
-  /** "Back to automatic" in the portrait pictures sheet. */
-  onResetPortraitPictures: () => void;
-  /** Creates the title slide with its defaults, storing it at once. */
-  onEnsureOpeningCard: () => StoredCard;
-  onOpeningCard: (card: CardInput) => void;
-  onRemoveOpeningCard: () => void;
-  /** Creates the closing slide with its defaults, storing it at once. */
-  onEnsureClosingCard: () => StoredCard;
-  onClosingCard: (card: CardInput) => void;
-  onRemoveClosingCard: () => void;
+  /** The slideshow-level edits its setting sheets store, provided to them as context. */
+  editCommands: SlideshowEditCommands;
   /** The trip chapters editor (TRIP_CHAPTERS.md); null while importing. */
   chapterEditor: ChapterSettingsEditor | null;
   /** The transitions sheet's tiles loop on these. */

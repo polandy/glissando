@@ -1,5 +1,6 @@
 <script lang="ts">
   import "./slideshow/selection-clearance.css";
+  import { flushSync } from "svelte";
   import Header from "../components/Header.svelte";
   import PictureViewer from "../components/PictureViewer.svelte";
   import { viewerEntries } from "../components/picture-viewer-view";
@@ -11,6 +12,8 @@
   import SelectionBar from "./slideshow/SelectionBar.svelte";
   import SlideshowEditSheets from "./slideshow/SlideshowEditSheets.svelte";
   import SlideshowScreenOverlays from "./slideshow/SlideshowScreenOverlays.svelte";
+  import { provideSlideshowEditCommands } from "./slideshow/slideshow-edit-commands";
+  import { SlideshowSheets, type OpenSheet } from "./slideshow/slideshow-sheets.svelte";
   import {
     endSelecting,
     NO_SELECTION,
@@ -39,24 +42,10 @@
     loadPicture,
     onError,
     onEditMusic,
-    onTransition,
-    onResetTransition,
-    onLook,
-    onResetLook,
     moodBpm,
     moodBeats,
     moodPreviewPorts,
-    onMood,
-    onResetMood,
-    onEnergyPacing,
-    onPortraitPictures,
-    onResetPortraitPictures,
-    onEnsureOpeningCard,
-    onOpeningCard,
-    onRemoveOpeningCard,
-    onEnsureClosingCard,
-    onClosingCard,
-    onRemoveClosingCard,
+    editCommands,
     chapterEditor,
     previewPorts,
     reducedMotion,
@@ -82,6 +71,9 @@
   }: SlideshowScreenProps = $props();
 
   const { t } = getTranslator();
+  // The route builds the commands once, for the screen's lifetime.
+  // svelte-ignore state_referenced_locally
+  provideSlideshowEditCommands(editCommands);
 
   let viewing = $state<string | null>(null);
   const order = $derived(slideshow.pictures.map((picture) => picture.id));
@@ -111,11 +103,42 @@
       );
     }
   }
+  /** Inserts an added chapter before the picture (TRIP_CHAPTERS.md), then opens its sheet. */
+  function insertAndOpenChapter(pictureId: string): void {
+    chapterEditor?.insertChapter(pictureId);
+    sheets.open({ kind: "chapter", anchorPictureId: pictureId });
+  }
   let moreMenu = $state<MoreMenu>();
   let infoPanel = $state<InfoPanel>();
   let picturesColumn = $state<PicturesColumn>();
-  let editSheets = $state<SlideshowEditSheets>();
-  let overlays = $state<SlideshowScreenOverlays>();
+  const sheets = new SlideshowSheets(focusOpener);
+
+  /** Hands focus back to the button, row or tile a closed sheet was opened from. */
+  function focusOpener(closed: OpenSheet): void {
+    // The modal dialog must be gone first: until then the page behind it is inert.
+    flushSync();
+    switch (closed.kind) {
+      case "transitions":
+        return infoPanel?.focusTransitions();
+      case "look":
+        return infoPanel?.focusLook();
+      case "mood":
+        return infoPanel?.focusMood();
+      case "portraitPictures":
+        return infoPanel?.focusPortraitPictures();
+      case "share":
+        return infoPanel?.focusShare();
+      case "openingCard":
+        return picturesColumn?.focusOpeningCard();
+      case "closingCard":
+        return picturesColumn?.focusClosingCard();
+      case "chapter":
+        return picturesColumn?.focusChapter(closed.anchorPictureId);
+      case "focus":
+      case "delete":
+        return moreMenu?.focus();
+    }
+  }
 </script>
 
 <div class="screen slideshow-screen" class:selecting={showBar} aria-busy={saving}>
@@ -123,12 +146,12 @@
     {#snippet actions()}
       <MoreMenu
         bind:this={moreMenu}
-        onDelete={() => overlays?.openDelete()}
+        onDelete={() => sheets.open({ kind: "delete" })}
         {storage}
         pictureCount={slideshow.pictures.length}
         {onStorageAction}
         focusFailed={slideshowFocusFailed(focus, slideshow.pictures, focusSearch, focusPaused)}
-        onFocus={() => overlays?.showFocus()}
+        onFocus={() => sheets.open({ kind: "focus" })}
       />
     {/snippet}
   </Header>
@@ -150,9 +173,9 @@
         {onSortByDate}
         {onShiftGroup}
         {onMoveGroup}
-        onOpenOpeningCard={() => editSheets?.openOpeningCard()}
-        onOpenClosingCard={() => editSheets?.openClosingCard()}
-        onOpenChapter={(anchorPictureId) => editSheets?.openChapter(anchorPictureId)}
+        onOpenOpeningCard={() => sheets.open({ kind: "openingCard" })}
+        onOpenClosingCard={() => sheets.open({ kind: "closingCard" })}
+        onOpenChapter={(anchorPictureId) => sheets.open({ kind: "chapter", anchorPictureId })}
         {storage}
         {onStorageAction}
         {holdScheduler}
@@ -164,12 +187,12 @@
         {storage}
         {serverRows}
         {onRename}
-        onShare={() => overlays?.openShare()}
+        onShare={() => sheets.open({ kind: "share" })}
         {onEditMusic}
-        onEditTransitions={() => editSheets?.openTransitions()}
-        onEditLook={() => editSheets?.openLook()}
-        onEditMood={() => editSheets?.openMood()}
-        onEditPortraitPictures={() => editSheets?.openPortraitPictures()}
+        onEditTransitions={() => sheets.open({ kind: "transitions" })}
+        onEditLook={() => sheets.open({ kind: "look" })}
+        onEditMood={() => sheets.open({ kind: "mood" })}
+        onEditPortraitPictures={() => sheets.open({ kind: "portraitPictures" })}
         {chapterEditor}
         {fineSettingsFold}
       />
@@ -186,7 +209,7 @@
       onView={(pictureId) => (viewing = pictureId)}
       {onPlayFrom}
       onDone={() => (selection = endSelecting())}
-      onInsertChapter={(pictureId) => editSheets?.insertAndOpenChapter(pictureId)}
+      onInsertChapter={insertAndOpenChapter}
       {onMoveGroup}
     />
   {/if}
@@ -210,40 +233,18 @@
 {/if}
 
 <SlideshowEditSheets
-  bind:this={editSheets}
+  {sheets}
   {slideshow}
   {previewPorts}
   {reducedMotion}
-  {onTransition}
-  {onResetTransition}
-  {onLook}
-  {onResetLook}
   {moodPreviewPorts}
   {moodBpm}
   {moodBeats}
-  {onMood}
-  {onResetMood}
-  {onEnergyPacing}
-  {onPortraitPictures}
-  {onResetPortraitPictures}
-  onTransitionsClosed={() => infoPanel?.focusTransitions()}
-  onLookClosed={() => infoPanel?.focusLook()}
-  onMoodClosed={() => infoPanel?.focusMood()}
-  onPortraitPicturesClosed={() => infoPanel?.focusPortraitPictures()}
-  {onEnsureOpeningCard}
-  {onOpeningCard}
-  {onRemoveOpeningCard}
-  onOpeningCardClosed={() => picturesColumn?.focusOpeningCard()}
-  {onEnsureClosingCard}
-  {onClosingCard}
-  {onRemoveClosingCard}
-  onClosingCardClosed={() => picturesColumn?.focusClosingCard()}
-  onChapterClosed={(anchorPictureId) => picturesColumn?.focusChapter(anchorPictureId)}
   {chapterEditor}
 />
 
 <SlideshowScreenOverlays
-  bind:this={overlays}
+  {sheets}
   {slideshow}
   {storage}
   {focus}
@@ -258,8 +259,6 @@
   {newVideoExport}
   {newHtmlExport}
   {onDelete}
-  onClosed={() => moreMenu?.focus()}
-  onShareClosed={() => infoPanel?.focusShare()}
 />
 
 <style>

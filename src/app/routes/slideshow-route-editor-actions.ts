@@ -1,31 +1,30 @@
 import type { SlideshowEditor } from "../editing/slideshow-editor";
+import type { SlideshowEditCommands } from "../screens/slideshow/slideshow-edit-commands";
 import { must } from "./must";
 
 /**
- * Builds the slideshow-level edits `SlideshowScreen` triggers directly on the editor, grouped so
- * `SlideshowRoute` passes them to it as one prop, against whichever editor `current` returns at the
- * time one is called, so they keep working once the editor loads in behind them.
+ * Builds the slideshow-level edits `SlideshowScreen`'s setting sheets store, against whichever
+ * editor `current` returns at the time one is called, so they keep working once the editor loads
+ * in behind them.
  */
-export function slideshowRouteEditorActions(current: () => SlideshowEditor | null) {
+export function slideshowRouteEditorActions(
+  current: () => SlideshowEditor | null,
+): SlideshowEditCommands {
   return {
-    onTransition: (transition: Parameters<SlideshowEditor["setSlideshowTransition"]>[0]) =>
-      current()?.setSlideshowTransition(transition),
+    onTransition: (transition) => current()?.setSlideshowTransition(transition),
     onResetTransition: () => current()?.resetSlideshowTransition(),
-    onLook: (look: Parameters<SlideshowEditor["look"]["set"]>[0]) => current()?.look.set(look),
+    onLook: (look) => current()?.look.set(look),
     onResetLook: () => current()?.look.reset(),
-    onMood: (mood: Parameters<SlideshowEditor["mood"]["set"]>[0]) => current()?.mood.set(mood),
+    onMood: (mood) => current()?.mood.set(mood),
     onResetMood: () => current()?.mood.reset(),
-    onEnergyPacing: (on: boolean) => current()?.setEnergyPacing(on),
-    onPortraitPictures: (choice: Parameters<SlideshowEditor["setPortraitPictures"]>[0]) =>
-      current()?.setPortraitPictures(choice),
+    onEnergyPacing: (on) => current()?.setEnergyPacing(on),
+    onPortraitPictures: (choice) => current()?.setPortraitPictures(choice),
     onResetPortraitPictures: () => current()?.resetPortraitPictures(),
     onEnsureOpeningCard: () => must(current(), "the editor").ensureOpeningCard(),
-    onOpeningCard: (card: Parameters<SlideshowEditor["setOpeningCard"]>[0]) =>
-      current()?.setOpeningCard(card),
+    onOpeningCard: (card) => current()?.setOpeningCard(card),
     onRemoveOpeningCard: () => current()?.removeOpeningCard(),
     onEnsureClosingCard: () => must(current(), "the editor").ensureClosingCard(),
-    onClosingCard: (card: Parameters<SlideshowEditor["setClosingCard"]>[0]) =>
-      current()?.setClosingCard(card),
+    onClosingCard: (card) => current()?.setClosingCard(card),
     onRemoveClosingCard: () => current()?.removeClosingCard(),
   };
 }

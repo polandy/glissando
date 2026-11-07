@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { flushSync, onMount } from "svelte";
+  import { onMount } from "svelte";
   import type { ExportOutcome } from "../../../glissando-file/export-job";
   import type { ExportMenuState } from "../../../glissando-file/export-menu";
   import type { HtmlExportSession } from "../../../html-export/html-export-session";
@@ -14,9 +14,9 @@
   import ShareChooser, { type ShareChooserLink } from "./ShareChooser.svelte";
 
   /**
-   * Everything the Share button opens: the chooser and, in place of it, the sheet of the row
-   * chosen, each with Back to the chooser. Each sheet keeps its own logic; this only decides
-   * which one is on screen. Closing any of them gives focus back through `onClosed`.
+   * Everything the Share button opens, mounted while it is open: the chooser and, in place of
+   * it, the sheet of the row chosen, each with Back to the chooser. Each sheet keeps its own
+   * logic; this only decides which one is on screen. Closing any of them calls `onClose`.
    */
   let {
     slideshow,
@@ -27,7 +27,7 @@
     onOpened,
     newVideoExport,
     newHtmlExport,
-    onClosed,
+    onClose,
   }: {
     slideshow: SlideshowDetails;
     /** Where the slideshow lives; null while the server library is off. */
@@ -40,12 +40,12 @@
     onOpened: () => void;
     newVideoExport: () => VideoExportSession<ExportPreview>;
     newHtmlExport: () => HtmlExportSession;
-    onClosed: () => void;
+    onClose: () => void;
   } = $props();
 
   type Step = "chooser" | "link" | "video" | "page" | "file";
 
-  let step = $state<Step | null>(null);
+  let step = $state<Step>("chooser");
   let videoExport = $state.raw<VideoExportSession<ExportPreview> | null>(null);
   let htmlExport = $state.raw<HtmlExportSession | null>(null);
   // svelte-ignore state_referenced_locally
@@ -65,28 +65,16 @@
   });
 
   onMount(() => {
+    onOpened();
     if (linkSession === null) return;
-    return linkSession.subscribe((next) => {
+    const unsubscribe = linkSession.subscribe((next) => {
       linkView = next;
       // The link sheet closing on its own, Back or a turned-off link, lands on the chooser.
       if (step === "link" && next.sheet === "closed") step = "chooser";
     });
+    void linkSession.load();
+    return unsubscribe;
   });
-
-  export function open(): void {
-    step = "chooser";
-    onOpened();
-    void linkSession?.load();
-  }
-
-  // The modal dialog must be gone first: until then the page behind it is inert.
-  function closeAll(): void {
-    step = null;
-    videoExport = null;
-    htmlExport = null;
-    flushSync();
-    onClosed();
-  }
 
   function backToChooser(): void {
     step = "chooser";
@@ -120,15 +108,15 @@
     onChooseVideo={chooseVideo}
     onChooseWebPage={chooseWebPage}
     onChooseFile={() => (step = "file")}
-    onClose={closeAll}
+    {onClose}
   />
 {:else if step === "link" && linkSession !== null}
-  <ShareSheet session={linkSession} {subject} onClose={closeAll} />
+  <ShareSheet session={linkSession} {subject} {onClose} />
 {:else if step === "video" && videoExport !== null}
   <VideoExportSheet
     session={videoExport}
     coverUrl={slideshow.coverUrl}
-    onClose={closeAll}
+    {onClose}
     onBack={backToChooser}
   />
 {:else if step === "page" && htmlExport !== null}
@@ -136,15 +124,9 @@
     session={htmlExport}
     coverUrl={slideshow.coverUrl}
     thumbnailUrls={slideshow.pictures.map((picture) => picture.thumbnailUrl)}
-    onClose={closeAll}
+    {onClose}
     onBack={backToChooser}
   />
 {:else if step === "file"}
-  <GlissandoFileSheet
-    {subject}
-    {exportState}
-    onSave={onExport}
-    onBack={backToChooser}
-    onClose={closeAll}
-  />
+  <GlissandoFileSheet {subject} {exportState} onSave={onExport} onBack={backToChooser} {onClose} />
 {/if}
