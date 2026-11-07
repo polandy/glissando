@@ -5,7 +5,7 @@
   import { glissandoFileName } from "../../../../glissando-file/export-slideshow";
   import type { ExportMenuState } from "../../../glissando-file/export-menu";
   import type { ExportOutcome } from "../../../glissando-file/export-job";
-  import type { ShareSubject } from "../../../share-link/ShareSheet.svelte";
+  import type { ShareSubject } from "../../../share-link/share-subject";
   import ExportDialog from "../export-sheet/ExportDialog.svelte";
   import SavedNote from "../export-sheet/SavedNote.svelte";
 

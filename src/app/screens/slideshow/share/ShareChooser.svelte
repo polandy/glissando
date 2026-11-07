@@ -15,7 +15,7 @@
   import { getTranslator } from "../../../i18n/context";
   import type { ExportMenuState } from "../../../glissando-file/export-menu";
   import { shareSummary } from "../../../share-link/share-summary";
-  import type { ShareSubject } from "../../../share-link/ShareSheet.svelte";
+  import type { ShareSubject } from "../../../share-link/share-subject";
   import ExportDialog from "../export-sheet/ExportDialog.svelte";
   import ShareOption from "./ShareOption.svelte";
 

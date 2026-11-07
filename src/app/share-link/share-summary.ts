@@ -1,5 +1,5 @@
 import type { Translator } from "../i18n/translator";
-import type { ShareSubject } from "./ShareSheet.svelte";
+import type { ShareSubject } from "./share-subject";
 
 /** The line under a share sheet's heading: title, pictures, duration and whether it has music. */
 export function shareSummary(
