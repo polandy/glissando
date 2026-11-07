@@ -95,6 +95,7 @@
   onServer={storage?.kind === "server"}
   {onEdit}
   {onLookAgain}
+  {onClosed}
 />
 
 <DeleteFlow

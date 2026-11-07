@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { flushSync } from "svelte";
   import type { PicturesFocus } from "../../focus/pictures-focus";
   import type { SlideshowSearch } from "../../../library/focus-pass";
   import FocusSheet from "./FocusSheet.svelte";
@@ -12,6 +13,7 @@
     onServer,
     onEdit,
     onLookAgain,
+    onClosed,
   }: {
     focus: PicturesFocus;
     pictures: readonly {
@@ -24,6 +26,8 @@
     onServer: boolean;
     onEdit: (pictureId: string) => void;
     onLookAgain: (pictureIds: readonly string[]) => void;
+    /** The sheet was closed without opening a picture's editor; focus goes back to its opener. */
+    onClosed: () => void;
   } = $props();
 
   let open = $state(false);
@@ -45,6 +49,11 @@
       onEdit(pictureId);
     }}
     {onLookAgain}
-    onClose={() => (open = false)}
+    onClose={() => {
+      open = false;
+      // The modal dialog must be gone first: until then the page behind it is inert.
+      flushSync();
+      onClosed();
+    }}
   />
 {/if}
