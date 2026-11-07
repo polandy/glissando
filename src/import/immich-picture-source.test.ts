@@ -26,20 +26,27 @@ const UNDECODABLE = "undecodable";
 /** Serves blobs by what they hold; `fails` makes that call reject with the given error. */
 class FakeImmichClient {
   readonly calls: string[] = [];
+  readonly signals: (AbortSignal | undefined)[] = [];
   original_ = new Blob(["original bytes"], { type: "image/heic" });
   preview = new Blob(["preview bytes"], { type: "image/jpeg" });
   faceList: readonly ImmichFace[] = [FACE];
   fails: Partial<Record<"original" | "thumbnail" | "faces", Error>> = {};
 
-  readonly original = (photoId: string): Promise<Blob> => {
+  readonly original = (photoId: string, signal?: AbortSignal): Promise<Blob> => {
     this.calls.push(`original ${photoId}`);
+    this.signals.push(signal);
     return this.fails.original
       ? Promise.reject(this.fails.original)
       : Promise.resolve(this.original_);
   };
 
-  readonly thumbnail = (photoId: string, size: ImmichThumbnailSize): Promise<Blob> => {
+  readonly thumbnail = (
+    photoId: string,
+    size: ImmichThumbnailSize,
+    signal?: AbortSignal,
+  ): Promise<Blob> => {
     this.calls.push(`thumbnail ${photoId} ${size}`);
+    this.signals.push(signal);
     return this.fails.thumbnail
       ? Promise.reject(this.fails.thumbnail)
       : Promise.resolve(this.preview);
@@ -96,6 +103,21 @@ describe("immichPictureSource", () => {
       immichAssetId: "asset-1",
     });
     expect(client.calls).toEqual([]);
+  });
+
+  it("hands the read's signal to the original's download and to the preview fallback's", async () => {
+    const client = new FakeImmichClient();
+    client.original_ = new Blob([UNDECODABLE]);
+    const cancel = new AbortController();
+
+    await sourceFor(client).read(cancel.signal);
+
+    expect(client.calls).toEqual([
+      "original asset-1",
+      "thumbnail asset-1 preview",
+      "faces asset-1",
+    ]);
+    expect(client.signals).toEqual([cancel.signal, cancel.signal]);
   });
 
   it("decodes the original, aimed at the largest face", async () => {

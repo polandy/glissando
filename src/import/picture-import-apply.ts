@@ -7,7 +7,7 @@
 import { orderByCaptureDate } from "../compose";
 import { pickWithOneDone, picksTruncated } from "./picture-import-picks";
 import type { Outcome, Queued } from "./picture-import-outcome";
-import type { PictureImportState } from "./picture-import";
+import type { PictureImportState } from "./picture-import-types";
 import type { StoredWithThumbnail } from "./picture-import-types";
 
 export interface ApplyResult {
