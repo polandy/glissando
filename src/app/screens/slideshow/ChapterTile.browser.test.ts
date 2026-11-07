@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import type { SlideshowChapter } from "../../../compose/chapters-of-slideshow";
 import { mountWithTranslator } from "../../testing/mount-with-translator";
 import ChapterTile from "./ChapterTile.svelte";
@@ -24,10 +24,12 @@ function chapter(overrides: Partial<SlideshowChapter> = {}): SlideshowChapter {
   };
 }
 
-function mountTile(overrides: Partial<SlideshowChapter> = {}, onOpen = vi.fn()) {
+function mountTile(overrides: Partial<SlideshowChapter> = {}) {
+  const opens: null[] = [];
+  const onOpen = () => opens.push(null);
   const mounted = mountWithTranslator(ChapterTile, { chapter: chapter(overrides), onOpen });
   destroy = mounted.destroy;
-  return { target: mounted.target, onOpen };
+  return { target: mounted.target, opens };
 }
 
 describe("ChapterTile", () => {
@@ -39,11 +41,11 @@ describe("ChapterTile", () => {
   });
 
   it("opens the chapter's sheet on tap", () => {
-    const { target, onOpen } = mountTile();
+    const { target, opens } = mountTile();
 
     target.querySelector<HTMLButtonElement>(".chip")?.click();
 
-    expect(onOpen).toHaveBeenCalledOnce();
+    expect(opens).toHaveLength(1);
   });
 
   it("shows no edited dot for a chapter with only automatic text", () => {

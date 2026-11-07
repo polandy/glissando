@@ -38,22 +38,22 @@ describe("MoodSheet", () => {
   });
 
   it("stores a tapped tile at once", () => {
-    const { onMood } = setUp(details());
+    const { moods } = setUp(details());
 
     tile("lively").click();
     flushSync();
 
-    expect(onMood).toHaveBeenCalledWith("lively");
+    expect(moods).toEqual(["lively"]);
   });
 
   it("stores Custom at once from its own tile, not through the reset", () => {
-    const { onMood, onResetMood } = setUp(details({ mood: "calm" }));
+    const { moods, moodResets } = setUp(details({ mood: "calm" }));
 
     tile("custom").click();
     flushSync();
 
-    expect(onMood).toHaveBeenCalledWith(undefined);
-    expect(onResetMood).not.toHaveBeenCalled();
+    expect(moods).toEqual([undefined]);
+    expect(moodResets).toEqual([]);
   });
 
   it("leaves out the live preview while the slideshow has no pictures", () => {

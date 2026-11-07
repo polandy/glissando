@@ -1,5 +1,5 @@
 import { flushSync } from "svelte";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import { chaptersOfSlideshow } from "../../../../compose/chapters-of-slideshow";
 import type { Place } from "../../../../places/nearest-place";
 import type { StoredPicture, StoredSlideshow } from "../../../../library/stored-slideshow";
@@ -71,7 +71,7 @@ function must<T extends Element>(target: ParentNode, selector: string): T {
 /** A chapter sheet over a live `ChapterSettingsEditor`: edits store at once, like the real app's. */
 function setUp(anchorPictureId: string) {
   let current = baseSlideshow();
-  const onClose = vi.fn();
+  const closes: null[] = [];
   // Assigned once props exists, so its apply callback can update it (forward reference).
   let updateSlideshow: (next: StoredSlideshow) => void = () => {};
   const toaster = new Toaster(new FakeScheduler());
@@ -88,12 +88,12 @@ function setUp(anchorPictureId: string) {
     slideshow: slideshowDetails(current, url, "de"),
     chapterEditor,
     anchorPictureId,
-    onClose,
+    onClose: () => closes.push(null),
   });
   updateSlideshow = (next) => (props.slideshow = slideshowDetails(next, url, "de"));
   const mounted = mountWithTranslator(ChapterSheet, props);
   destroy = mounted.destroy;
-  return { target: mounted.target, props, onClose, chapterEditor, toaster, current: () => current };
+  return { target: mounted.target, props, closes, chapterEditor, toaster, current: () => current };
 }
 
 describe("ChapterSheet: an automatic chapter", () => {
@@ -174,7 +174,7 @@ describe("ChapterSheet: an added chapter", () => {
   });
 
   it("removes the chapter and closes on delete", () => {
-    const { target, current, onClose } = setUpAdded();
+    const { target, current, closes } = setUpAdded();
 
     const deleteButton = Array.from(target.querySelectorAll("button")).find((button) =>
       button.textContent?.includes("Kapitel löschen"),
@@ -182,7 +182,7 @@ describe("ChapterSheet: an added chapter", () => {
     deleteButton?.click();
 
     expect(current().addedChapters).toBeUndefined();
-    expect(onClose).toHaveBeenCalledOnce();
+    expect(closes).toHaveLength(1);
   });
 
   it("offers an undo toast after delete, which brings the chapter back", () => {

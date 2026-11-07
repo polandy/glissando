@@ -1,5 +1,5 @@
 import { flushSync } from "svelte";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import type { PicturesFocus } from "../../focus/pictures-focus";
 import { mountWithTranslator } from "../../testing/mount-with-translator";
 import { reactiveProps } from "../../testing/reactive-props.svelte";
@@ -32,22 +32,20 @@ afterEach(() => {
 });
 
 function setUp(focus: PicturesFocus) {
-  const onEdit = vi.fn();
-  const onLookAgain = vi.fn();
-  const onClose = vi.fn();
+  const lookAgains: (readonly string[])[] = [];
   const props = reactiveProps({
     focus,
     pictures: PICTURES,
     search: undefined,
     passPaused: false,
     onServer: false,
-    onEdit,
-    onLookAgain,
-    onClose,
+    onEdit: () => {},
+    onLookAgain: (ids: readonly string[]) => lookAgains.push(ids),
+    onClose: () => {},
   });
   const mounted = mountWithTranslator(FocusSheet, props);
   destroy = mounted.destroy;
-  return { target: mounted.target, props, onEdit, onLookAgain, onClose };
+  return { target: mounted.target, props, lookAgains };
 }
 
 function tileTitles(target: HTMLElement): (string | null)[] {
@@ -60,7 +58,7 @@ function ownBadgeCount(target: HTMLElement): number {
 
 describe("FocusSheet", () => {
   it("shows each picture's status and marks only the chosen-motion one, offering to try the failure again", () => {
-    const { target, onLookAgain } = setUp(FOCUS);
+    const { target, lookAgains } = setUp(FOCUS);
 
     expect(tileTitles(target)).toEqual(["Gesichter", "Fehlgeschlagen", "Landschaft"]);
     expect(ownBadgeCount(target)).toBe(1);
@@ -70,8 +68,7 @@ describe("FocusSheet", () => {
     );
     tryAgain?.click();
 
-    expect(onLookAgain).toHaveBeenCalledTimes(1);
-    expect(onLookAgain).toHaveBeenCalledWith(["b"]);
+    expect(lookAgains).toEqual([["b"]]);
   });
 
   it("looking again at the failed picture updates only it, leaving the others and the chosen-motion badge as they were", () => {
@@ -97,14 +94,13 @@ describe("FocusSheet", () => {
   });
 
   it("'look again at all' asks for every picture, including the one with its chosen motion", () => {
-    const { target, onLookAgain } = setUp(FOCUS);
+    const { target, lookAgains } = setUp(FOCUS);
 
     const lookAgainAll = [...target.querySelectorAll("button")].find((button) =>
       button.textContent?.includes("Alle 3 Bilder erneut ansehen"),
     );
     lookAgainAll?.click();
 
-    expect(onLookAgain).toHaveBeenCalledTimes(1);
-    expect(onLookAgain).toHaveBeenCalledWith(["a", "b", "c"]);
+    expect(lookAgains).toEqual([["a", "b", "c"]]);
   });
 });

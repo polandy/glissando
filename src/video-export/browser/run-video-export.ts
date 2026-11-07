@@ -83,14 +83,12 @@ export async function runVideoExportWith(
   if (hasClips && openVideo === undefined) {
     throw new Error("runVideoExport needs openVideo for a slideshow with video slides");
   }
-  const framePlayer = createFramePlayer(
-    slideshow,
-    preset.size,
-    options.openPicture,
-    openVideo === undefined
-      ? undefined
-      : (src) => new ClipFrames(src, openVideo, preset.size.width),
-  );
+  const framePlayer = createFramePlayer(slideshow, preset.size, {
+    ...(options.openPicture === undefined ? {} : { openPicture: options.openPicture }),
+    ...(openVideo === undefined
+      ? {}
+      : { openVideoFrames: (src: string) => new ClipFrames(src, openVideo, preset.size.width) }),
+  });
   if (framePlayer === null) {
     return { kind: "failed", error: new Error("this browser has no WebGL2 to draw the video") };
   }

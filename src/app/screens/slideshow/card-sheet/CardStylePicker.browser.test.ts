@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import { CARD_STYLES, type CardStyle } from "../../../../player/slideshow";
 import { mountWithTranslator } from "../../../testing/mount-with-translator";
 import { reactiveProps } from "../../../testing/reactive-props.svelte";
@@ -11,14 +11,14 @@ afterEach(() => {
 });
 
 function setUp(style: CardStyle = "modern") {
-  const onChange = vi.fn();
+  const changes: CardStyle[] = [];
   const props = reactiveProps<{ style: CardStyle; onChange: (style: CardStyle) => void }>({
     style,
-    onChange,
+    onChange: (value) => changes.push(value),
   });
   const mounted = mountWithTranslator(CardStylePicker, props);
   destroy = mounted.destroy;
-  return { target: mounted.target, onChange, props };
+  return { target: mounted.target, changes, props };
 }
 
 describe("CardStylePicker", () => {
@@ -33,38 +33,38 @@ describe("CardStylePicker", () => {
   });
 
   it("calls onChange when a style is picked", () => {
-    const { target, onChange } = setUp();
+    const { target, changes } = setUp();
 
     const options = target.querySelectorAll<HTMLButtonElement>('[role="radio"]');
     options[2]?.click();
 
-    expect(onChange).toHaveBeenCalledWith("bold");
+    expect(changes).toEqual(["bold"]);
   });
 
   it("moves to the next style with ArrowRight", () => {
-    const { target, onChange } = setUp("modern");
+    const { target, changes } = setUp("modern");
 
     const first = target.querySelector<HTMLButtonElement>('[role="radio"]');
     first?.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
 
-    expect(onChange).toHaveBeenCalledWith("quiet");
+    expect(changes).toEqual(["quiet"]);
   });
 
   it("jumps to the last style with End", () => {
-    const { target, onChange } = setUp("modern");
+    const { target, changes } = setUp("modern");
 
     const first = target.querySelector<HTMLButtonElement>('[role="radio"]');
     first?.dispatchEvent(new KeyboardEvent("keydown", { key: "End", bubbles: true }));
 
-    expect(onChange).toHaveBeenCalledWith("classic");
+    expect(changes).toEqual(["classic"]);
   });
 
   it("stays on the first style when Home is pressed there already", () => {
-    const { target, onChange } = setUp("modern");
+    const { target, changes } = setUp("modern");
 
     const first = target.querySelector<HTMLButtonElement>('[role="radio"]');
     first?.dispatchEvent(new KeyboardEvent("keydown", { key: "Home", bubbles: true }));
 
-    expect(onChange).toHaveBeenCalledWith("modern");
+    expect(changes).toEqual(["modern"]);
   });
 });

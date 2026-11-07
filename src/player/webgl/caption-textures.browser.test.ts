@@ -1,5 +1,6 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import { CaptionTextures } from "./caption-textures";
+import { recordingGl, type GlCall } from "./testing/recording-gl";
 
 const VIEWPORT = { width: 200, height: 100 };
 const CAPTION = "Abends am Steg";
@@ -14,18 +15,20 @@ async function setUp() {
   if (gl === null) {
     throw new Error("this browser has no WebGL2");
   }
+  const uploads: GlCall<"texImage2D">[] = [];
   let pixelRatio = 1;
   textures = new CaptionTextures(
-    gl,
+    recordingGl(gl, "texImage2D", uploads),
     loadedFonts,
     () => pixelRatio,
     () => undefined,
   );
   await textures.fontLoaded;
-  /** Counts the captions drawn into a texture, i.e. uploads from the raster canvas. */
-  const uploads = vi.spyOn(gl, "texImage2D");
+  const uploadsBefore = uploads.length;
+  /** Counts the captions drawn into a texture since set-up, i.e. uploads from the raster canvas. */
   const rasterized = () =>
-    uploads.mock.calls.filter((call) => call.at(-1) instanceof HTMLCanvasElement).length;
+    uploads.slice(uploadsBefore).filter(({ args }) => args.at(-1) instanceof HTMLCanvasElement)
+      .length;
   return {
     gl,
     textures,

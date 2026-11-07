@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import type { BitmapPicture } from "../browser/bitmap-loader";
 import type { RenderFrame, SlideLayer } from "../ports";
 import type { Framing } from "../slideshow";
@@ -11,6 +11,7 @@ import {
   type Rgb,
 } from "../testing/browser-pictures";
 import type { Fonts } from "../fonts";
+import { recordingGl, type GlCall } from "./testing/recording-gl";
 import { WebGlRenderer } from "./webgl-renderer";
 
 const VIEWPORT = { width: 100, height: 100 };
@@ -50,10 +51,16 @@ async function setUp({ fontsLoaded = true } = {}) {
     throw new Error("this browser has no WebGL2");
   }
   const fonts = new ControlledFonts();
-  const renderer = new WebGlRenderer(canvas, gl, () => undefined, {
-    pixelRatio: () => 1,
-    fonts,
-  });
+  const textureCreations: GlCall<"createTexture">[] = [];
+  const renderer = new WebGlRenderer(
+    canvas,
+    recordingGl(gl, "createTexture", textureCreations),
+    () => undefined,
+    {
+      pixelRatio: () => 1,
+      fonts,
+    },
+  );
   if (fontsLoaded) {
     fonts.finishLoading();
     await renderer.captionFontLoaded;
@@ -81,7 +88,7 @@ async function setUp({ fontsLoaded = true } = {}) {
     gl?.readPixels(0, 0, canvas.width, half, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
     return [...pixels].filter((_, index) => index % 4 === 0);
   }
-  return { renderer, fonts, drawAndRead, bottomHalfReds, canvas, gl };
+  return { renderer, fonts, drawAndRead, bottomHalfReds, canvas, gl, textureCreations };
 }
 
 function isColour(actual: Rgb, expected: Rgb): boolean {
@@ -214,16 +221,11 @@ describe("WebGlRenderer captions", () => {
   });
 
   it("deletes the caption's texture when its slide's picture is released", async () => {
-    const { renderer, drawAndRead, gl } = await setUp();
+    const { renderer, drawAndRead, gl, textureCreations } = await setUp();
     const frame = await slideFrame(BLUE, CAPTION);
-    const created: WebGLTexture[] = [];
-    const createTexture = gl.createTexture.bind(gl);
-    vi.spyOn(gl, "createTexture").mockImplementation(() => {
-      const texture = createTexture();
-      created.push(texture);
-      return texture;
-    });
+    const createdBefore = textureCreations.length;
     drawAndRead(frame, GRADIENT_CORNER);
+    const created = textureCreations.slice(createdBefore).map(({ result }) => result);
     expect(created.length).toBeGreaterThan(0);
     expect(created.every((texture) => gl.isTexture(texture))).toBe(true);
 

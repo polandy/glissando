@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { FakeScheduler } from "../ui-kit/testing/fake-scheduler";
 import {
   TvAnswerError,
@@ -58,11 +58,12 @@ function session(report: TvApi["report"] = () => Promise.resolve()) {
     },
   };
   const scheduler = new FakeScheduler();
+  const logged: unknown[] = [];
   const opened = openTvSession(
-    { api, openEvents: () => source, scheduler },
+    { api, openEvents: () => source, scheduler, log: (error) => logged.push(error) },
     { tvKey: TV_KEY, note: (note) => notes.push(note), event: (event) => events.push(event) },
   );
-  return { source, reports, events, notes, scheduler, session: opened };
+  return { source, reports, events, notes, logged, scheduler, session: opened };
 }
 
 describe("a TV session", () => {
@@ -121,15 +122,13 @@ describe("a TV session", () => {
     { what: "a server away", error: new TvUnreachableError("away"), logged: 0 },
     { what: "any other answer", error: new TvAnswerError("400"), logged: 1 },
   ])("logs a refused report only for $what that is no state of the session", async (refusal) => {
-    const logged = vi.spyOn(console, "error").mockImplementation(() => undefined);
     let refused: Promise<void> = Promise.resolve();
-    const { session: tv } = session(() => (refused = Promise.reject(refusal.error)));
+    const { session: tv, logged } = session(() => (refused = Promise.reject(refusal.error)));
 
     tv.drive(new FakePlayer(), "Generated");
     await refused.catch(() => undefined);
     await settleMicrotasks();
 
-    expect(logged).toHaveBeenCalledTimes(refusal.logged);
-    logged.mockRestore();
+    expect(logged).toHaveLength(refusal.logged);
   });
 });

@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import type { StoredCardBackground } from "../../../../library/stored-slideshow";
 import { createTranslator } from "../../../i18n/translator";
 import { mountWithTranslator } from "../../../testing/mount-with-translator";
@@ -35,8 +35,8 @@ function setUp(
   motion = true,
   kind: "opening" | "closing" = "opening",
 ) {
-  const onChange = vi.fn();
-  const onMotionChange = vi.fn();
+  const changes: StoredCardBackground[] = [];
+  const motionChanges: boolean[] = [];
   const props = reactiveProps<{
     background: StoredCardBackground;
     motion: boolean;
@@ -44,12 +44,19 @@ function setUp(
     kind: "opening" | "closing";
     onChange: (background: StoredCardBackground) => void;
     onMotionChange: (motion: boolean) => void;
-  }>({ background, motion, pictures: PICTURES, kind, onChange, onMotionChange });
+  }>({
+    background,
+    motion,
+    pictures: PICTURES,
+    kind,
+    onChange: (value) => changes.push(value),
+    onMotionChange: (value) => motionChanges.push(value),
+  });
   const mounted = mountWithTranslator(CardBackgroundPicker, props, {
     current: createTranslator("en"),
   });
   destroy = mounted.destroy;
-  return { target: mounted.target, onChange, onMotionChange };
+  return { target: mounted.target, changes, motionChanges };
 }
 
 describe("CardBackgroundPicker", () => {
@@ -69,8 +76,6 @@ describe("CardBackgroundPicker", () => {
   });
 
   it("shows only the six fixed swatches, with no hairline, when there is no picture", () => {
-    const onChange = vi.fn();
-    const onMotionChange = vi.fn();
     const props = reactiveProps<{
       background: StoredCardBackground;
       motion: boolean;
@@ -83,8 +88,8 @@ describe("CardBackgroundPicker", () => {
       motion: true,
       pictures: [],
       kind: "opening",
-      onChange,
-      onMotionChange,
+      onChange: () => {},
+      onMotionChange: () => {},
     });
     const mounted = mountWithTranslator(CardBackgroundPicker, props, {
       current: createTranslator("en"),
@@ -96,20 +101,20 @@ describe("CardBackgroundPicker", () => {
   });
 
   it("calls onChange with the picked swatch", () => {
-    const { target, onChange } = setUp();
+    const { target, changes } = setUp();
 
     const swatches = target.querySelectorAll<HTMLButtonElement>(".swatch");
     swatches[3]?.click();
 
-    expect(onChange).toHaveBeenCalledWith({ kind: "colour", colour: "night" });
+    expect(changes).toEqual([{ kind: "colour", colour: "night" }]);
   });
 
   it("calls onChange with the picture's hex when a picture swatch is picked", () => {
-    const { target, onChange } = setUp();
+    const { target, changes } = setUp();
 
     target.querySelectorAll<HTMLButtonElement>(".swatch")[0]?.click();
 
-    expect(onChange).toHaveBeenCalledWith({ kind: "colour", colour: "#404040" });
+    expect(changes).toEqual([{ kind: "colour", colour: "#404040" }]);
   });
 
   it("marks a picture swatch pressed by comparing hex, not position", () => {
@@ -126,7 +131,7 @@ describe("CardBackgroundPicker", () => {
   });
 
   it("calls onChange with the picked tint, keeping the picture and fade", () => {
-    const { target, onChange } = setUp({
+    const { target, changes } = setUp({
       kind: "picture",
       pictureId: "a",
       fade: 80,
@@ -137,12 +142,14 @@ describe("CardBackgroundPicker", () => {
     const dark = Array.from(chips).find((chip) => chip.textContent === "Dark");
     dark?.click();
 
-    expect(onChange).toHaveBeenCalledWith({
-      kind: "picture",
-      pictureId: "a",
-      fade: 80,
-      tint: "dark",
-    });
+    expect(changes).toEqual([
+      {
+        kind: "picture",
+        pictureId: "a",
+        fade: 80,
+        tint: "dark",
+      },
+    ]);
   });
 
   it("shows the pictures, fade slider and reveal toggle for a picture background", () => {
@@ -164,7 +171,7 @@ describe("CardBackgroundPicker", () => {
   });
 
   it("moves the fade slider, keeping the tint", () => {
-    const { target, onChange } = setUp({
+    const { target, changes } = setUp({
       kind: "picture",
       pictureId: "a",
       fade: 60,
@@ -177,16 +184,18 @@ describe("CardBackgroundPicker", () => {
       slider.dispatchEvent(new Event("input", { bubbles: true }));
     }
 
-    expect(onChange).toHaveBeenCalledWith({
-      kind: "picture",
-      pictureId: "a",
-      fade: 80,
-      tint: "dark",
-    });
+    expect(changes).toEqual([
+      {
+        kind: "picture",
+        pictureId: "a",
+        fade: 80,
+        tint: "dark",
+      },
+    ]);
   });
 
   it("keeps the tint when a different picture is picked", () => {
-    const { target, onChange } = setUp({
+    const { target, changes } = setUp({
       kind: "picture",
       pictureId: "a",
       fade: 60,
@@ -195,29 +204,33 @@ describe("CardBackgroundPicker", () => {
 
     target.querySelectorAll<HTMLButtonElement>(".picture")[1]?.click();
 
-    expect(onChange).toHaveBeenCalledWith({
-      kind: "picture",
-      pictureId: "b",
-      fade: 60,
-      tint: "dark",
-    });
+    expect(changes).toEqual([
+      {
+        kind: "picture",
+        pictureId: "b",
+        fade: 60,
+        tint: "dark",
+      },
+    ]);
   });
 
   it("defaults to the picture tint when switching from a colour background", () => {
-    const { target, onChange } = setUp({ kind: "colour", colour: "plum" });
+    const { target, changes } = setUp({ kind: "colour", colour: "plum" });
 
     target.querySelector<HTMLButtonElement>('.option[role="radio"]:not(.checked)')?.click();
 
-    expect(onChange).toHaveBeenCalledWith({
-      kind: "picture",
-      pictureId: "a",
-      fade: 60,
-      tint: "picture",
-    });
+    expect(changes).toEqual([
+      {
+        kind: "picture",
+        pictureId: "a",
+        fade: 60,
+        tint: "picture",
+      },
+    ]);
   });
 
   it("calls onMotionChange when the reveal toggle is flipped", () => {
-    const { target, onMotionChange } = setUp(
+    const { target, motionChanges } = setUp(
       { kind: "picture", pictureId: "a", fade: 60, tint: "picture" },
       true,
     );
@@ -228,7 +241,7 @@ describe("CardBackgroundPicker", () => {
       checkbox.dispatchEvent(new Event("change", { bubbles: true }));
     }
 
-    expect(onMotionChange).toHaveBeenCalledWith(false);
+    expect(motionChanges).toEqual([false]);
   });
   describe("radio keys", () => {
     const key = (el: Element | null | undefined, name: string) =>
@@ -242,18 +255,18 @@ describe("CardBackgroundPicker", () => {
     });
 
     it("moves the toggle to Picture with ArrowRight and focuses it", () => {
-      const { target, onChange } = setUp({ kind: "colour", colour: "plum" });
+      const { target, changes } = setUp({ kind: "colour", colour: "plum" });
 
       const radios = target.querySelectorAll<HTMLButtonElement>(".kind-toggle [role=radio]");
       radios[0]?.focus();
       key(radios[0], "ArrowRight");
 
-      expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ kind: "picture" }));
+      expect(changes).toEqual([expect.objectContaining({ kind: "picture" })]);
       expect(document.activeElement).toBe(radios[1]);
     });
 
     it("keeps one tab stop among the pictures and moves with ArrowRight", () => {
-      const { target, onChange } = setUp({
+      const { target, changes } = setUp({
         kind: "picture",
         pictureId: "a",
         fade: 60,
@@ -264,7 +277,7 @@ describe("CardBackgroundPicker", () => {
       expect([...pictures].map((picture) => picture.tabIndex)).toEqual([0, -1]);
       key(pictures[0], "ArrowRight");
 
-      expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ pictureId: "b" }));
+      expect(changes).toEqual([expect.objectContaining({ pictureId: "b" })]);
       expect(document.activeElement).toBe(pictures[1]);
     });
   });

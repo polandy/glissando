@@ -1,5 +1,5 @@
 import { flushSync } from "svelte";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import type { StoredCard } from "../../../../library/stored-slideshow";
 import { FakeFonts } from "../../../../player/testing/fakes";
 import { mountWithTranslator } from "../../../testing/mount-with-translator";
@@ -38,7 +38,8 @@ afterEach(() => {
 });
 
 function setUp(card: StoredCard | undefined, fonts: FakeFonts = new FakeFonts()) {
-  const onOpen = vi.fn();
+  const opens: null[] = [];
+  const onOpen = () => opens.push(null);
   const mounted = mountWithTranslator(CardTile, {
     card,
     pictures: PICTURES,
@@ -47,7 +48,7 @@ function setUp(card: StoredCard | undefined, fonts: FakeFonts = new FakeFonts())
     fonts,
   });
   destroy = mounted.destroy;
-  return { target: mounted.target, onOpen };
+  return { target: mounted.target, opens };
 }
 
 describe("CardTile", () => {
@@ -91,11 +92,11 @@ describe("CardTile", () => {
   });
 
   it("calls onOpen when tapped", () => {
-    const { target, onOpen } = setUp(undefined);
+    const { target, opens } = setUp(undefined);
 
     target.querySelector<HTMLButtonElement>(".card-tile")?.click();
 
-    expect(onOpen).toHaveBeenCalledOnce();
+    expect(opens).toHaveLength(1);
   });
 
   it("carries neither the .pick class nor data-picture-id, so the strip's hit-testing skips it", () => {

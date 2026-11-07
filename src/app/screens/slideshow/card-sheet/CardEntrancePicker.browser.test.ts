@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import type { CardEntrance } from "../../../../player/slideshow";
 import { createTranslator } from "../../../i18n/translator";
 import { mountWithTranslator } from "../../../testing/mount-with-translator";
@@ -12,16 +12,16 @@ afterEach(() => {
 });
 
 function setUp(entrance: CardEntrance = "rise") {
-  const onChange = vi.fn();
+  const changes: CardEntrance[] = [];
   const props = reactiveProps<{
     entrance: CardEntrance;
     onChange: (entrance: CardEntrance) => void;
-  }>({ entrance, onChange });
+  }>({ entrance, onChange: (value) => changes.push(value) });
   const mounted = mountWithTranslator(CardEntrancePicker, props, {
     current: createTranslator("en"),
   });
   destroy = mounted.destroy;
-  return { target: mounted.target, onChange };
+  return { target: mounted.target, changes };
 }
 
 describe("CardEntrancePicker", () => {
@@ -39,13 +39,13 @@ describe("CardEntrancePicker", () => {
   });
 
   it("calls onChange with the picked entrance", () => {
-    const { target, onChange } = setUp("rise");
+    const { target, changes } = setUp("rise");
 
     const chips = target.querySelectorAll<HTMLButtonElement>(".chip");
     const letters = Array.from(chips).find((chip) => chip.textContent === "Letter by letter");
     letters?.click();
 
-    expect(onChange).toHaveBeenCalledWith("letters");
+    expect(changes).toEqual(["letters"]);
   });
 
   it("names each chip accessibly and keeps it keyboard reachable", () => {

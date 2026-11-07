@@ -31,12 +31,12 @@ describe("MoodSheet energy pacing", () => {
   });
 
   it("stores the energy switch at once, like a mood tile", () => {
-    const { onEnergyPacing } = setUp(details());
+    const { energyPacings } = setUp(details());
 
     energySwitch()?.click();
     flushSync();
 
-    expect(onEnergyPacing).toHaveBeenCalledWith(true);
+    expect(energyPacings).toEqual([true]);
   });
 
   it("shows the switch's own hint and the mood's energy hint once it is on", () => {

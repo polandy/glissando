@@ -1,5 +1,5 @@
 import { flushSync, tick } from "svelte";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import { userEvent } from "vitest/browser";
 import { createTranslator } from "../../i18n/translator";
 import { mountWithTranslator } from "../../testing/mount-with-translator";
@@ -80,13 +80,18 @@ afterEach(() => {
 });
 
 function setUp(slideshow: SlideshowDetails, english = false) {
-  const onLook = vi.fn((look: SlideshowDetails["look"]) => {
+  const looks: SlideshowDetails["look"][] = [];
+  const resets: null[] = [];
+  const closes: null[] = [];
+  const onLook = (look: SlideshowDetails["look"]) => {
+    looks.push(look);
     props.slideshow = { ...props.slideshow, look };
-  });
-  const onReset = vi.fn(() => {
+  };
+  const onReset = () => {
+    resets.push(null);
     props.slideshow = { ...props.slideshow, look: "none" };
-  });
-  const onClose = vi.fn();
+  };
+  const onClose = () => closes.push(null);
   const props = reactiveProps({ slideshow, onLook, onReset, onClose });
   const mounted = mountWithTranslator(
     LookSheet,
@@ -94,7 +99,7 @@ function setUp(slideshow: SlideshowDetails, english = false) {
     english ? { current: createTranslator("en") } : undefined,
   );
   destroy = mounted.destroy;
-  return { target: mounted.target, onLook, onReset, onClose };
+  return { target: mounted.target, looks, resets, closes };
 }
 
 describe("LookSheet", () => {
@@ -130,19 +135,19 @@ describe("LookSheet", () => {
   });
 
   it("stores a tapped look at once and shows it as checked", () => {
-    const { onLook } = setUp(details(["a", "b"]));
+    const { looks } = setUp(details(["a", "b"]));
 
     tile("warm").click();
     flushSync();
 
-    expect(onLook).toHaveBeenCalledWith("warm");
+    expect(looks).toEqual(["warm"]);
     expect(tile("warm").getAttribute("aria-checked")).toBe("true");
     expect(tile("none").getAttribute("aria-checked")).toBe("false");
     expect(pill()).toBe("Warm");
   });
 
   it("moves the checked tile with the arrow keys, selection following focus", () => {
-    const { onLook } = setUp(details(["a", "b"]));
+    const { looks } = setUp(details(["a", "b"]));
 
     tile("none").focus();
     tile("none").dispatchEvent(
@@ -150,39 +155,39 @@ describe("LookSheet", () => {
     );
     flushSync();
 
-    expect(onLook).toHaveBeenCalledWith("warm");
+    expect(looks).toEqual(["warm"]);
     expect(document.activeElement).toBe(tile("warm"));
     expect(tile("warm").getAttribute("aria-checked")).toBe("true");
   });
 
   it("looks off the reset button with a title while already None, resets otherwise", () => {
-    const { onReset } = setUp(details(["a", "b"], { look: "warm" }));
+    const { resets } = setUp(details(["a", "b"], { look: "warm" }));
     expect(resetButton()?.getAttribute("aria-disabled")).toBe("false");
 
     resetButton()?.click();
     flushSync();
 
-    expect(onReset).toHaveBeenCalledOnce();
+    expect(resets).toHaveLength(1);
     expect(resetButton()?.getAttribute("aria-disabled")).toBe("true");
     expect(resetButton()?.title).toBe("Die Diashow hat keinen Look");
 
     resetButton()?.click();
-    expect(onReset).toHaveBeenCalledOnce();
+    expect(resets).toHaveLength(1);
   });
 
   it("closes with Done, Esc and a tap on the scrim", async () => {
-    const { onClose } = setUp(details(["a", "b"]));
+    const { closes } = setUp(details(["a", "b"]));
 
     doneButton()?.click();
-    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(closes).toHaveLength(1);
 
     dialog()?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-    expect(onClose).toHaveBeenCalledTimes(2);
+    expect(closes).toHaveLength(2);
 
     await userEvent.keyboard("{Escape}");
     flushSync();
     await tick();
-    expect(onClose).toHaveBeenCalledTimes(3);
+    expect(closes).toHaveLength(3);
   });
 
   it("holding the compare button shows the original, releasing restores the look", () => {
