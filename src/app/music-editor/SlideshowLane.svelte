@@ -34,16 +34,18 @@
   <span>{t("music.slideshowLane", { count: music.pictureCount })}</span>
   <span class="mono">{formatDuration(music.slideshowMs / MILLISECONDS_PER_SECOND)}</span>
 </div>
-<div class="lane" aria-hidden="true">
+<div class="lane" data-testid="slideshow-lane" aria-hidden="true">
   {#if music.reached}
     <div
       class="runs"
+      data-testid="slideshow-lane-runs"
       style:left={pct(music.startMs)}
       style:width="calc({pct(runEndMs)} - {pct(music.startMs)})"
     >
       {#if currentSpan !== null}
         <div
           class="current"
+          data-testid="slideshow-current-picture"
           style:left="{runPct(currentSpan.startMs)}%"
           style:width="{runPct(currentSpan.endMs) - runPct(currentSpan.startMs)}%"
         ></div>

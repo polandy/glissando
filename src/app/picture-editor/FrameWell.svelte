@@ -155,12 +155,13 @@
   onpointercancel={pointerCancel}
 />
 
-<div class="well" style:--picture-aspect={aspect}>
+<div class="well" data-testid="frame-well" style:--picture-aspect={aspect}>
   <div class="fit" bind:clientWidth={fitWidth} bind:clientHeight={fitHeight}>
     <!-- Pointer gestures on the picture; the keyboard works on the focused frame instead. -->
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div
       class="pic"
+      data-testid="frame-well-picture"
       bind:this={pictureElement}
       style:width="{shownWidth}px"
       style:height="{shownWidth / aspect}px"

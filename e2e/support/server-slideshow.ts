@@ -11,7 +11,7 @@ export async function createServerSlideshow(page: Page): Promise<void> {
   for (const { originalFileName } of LIBRARY_PAGE.assets.items) {
     await page.getByRole("button", { name: originalFileName, exact: true }).click();
   }
-  await page.locator(".actions").getByRole("button", { name: "3 hinzufügen" }).click();
+  await page.getByRole("button", { name: "3 hinzufügen" }).click();
   await page.getByRole("button", { name: "Weiter" }).click();
   await page.getByRole("button", { name: "Ohne Musik erstellen" }).click();
   await expectSlideshowScreen(page);

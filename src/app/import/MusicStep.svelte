@@ -52,6 +52,7 @@
   } = $props();
 
   const { t, formatDuration, language } = getTranslator();
+  const soundtrackTitleId = $props.id();
   // A new slideshow starts on this mood (ADR-0050); its beats are only known once created.
   const moodSeconds = moodSettings(NEW_SLIDESHOW_MOOD, undefined).secondsPerPicture;
 
@@ -198,8 +199,8 @@
   {/if}
   <OwnMusicRow onFiles={add} {onError} onChoose={() => pickMusic.click()} />
 
-  <div class="soundtrack">
-    <h2 class="soundtrack-title">{t("import.soundtrackTitle")}</h2>
+  <section class="soundtrack" aria-labelledby={soundtrackTitleId}>
+    <h2 class="soundtrack-title" id={soundtrackTitleId}>{t("import.soundtrackTitle")}</h2>
     {#if choices.songs.length > 0}
       <SongList
         songs={playlist.songs}
@@ -214,7 +215,7 @@
     {:else}
       <p class="soundtrack-empty">{t("import.soundtrackEmpty")}</p>
     {/if}
-  </div>
+  </section>
 
   <MusicTimingPanel
     mood={NEW_SLIDESHOW_MOOD}

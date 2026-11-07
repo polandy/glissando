@@ -11,10 +11,10 @@
   const place = $derived(picture.place ?? null);
 </script>
 
-<div class="stamp">
-  <b>{place ?? date}</b>
+<div class="stamp" data-testid="frame-caption">
+  <b data-testid="frame-caption-title">{place ?? date}</b>
   {#if place !== null}
-    <small>{date}</small>
+    <small data-testid="frame-caption-date">{date}</small>
   {/if}
 </div>
 

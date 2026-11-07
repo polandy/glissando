@@ -42,6 +42,11 @@ export function createTvParts(
     node.append(...children);
     return node;
   };
+  const codeBox = (code: string) => {
+    const box = make("div", "tv-code", code);
+    box.dataset["testid"] = "tv-code";
+    return box;
+  };
   const qr = (link: string) => make("div", "qr-frame", qrSvg(document, link, words.tvQrCode));
 
   const allowSound = make("button", "again allow-sound", words.tvAllowSound);
@@ -65,7 +70,7 @@ export function createTvParts(
     switch (shown.kind) {
       case "pairing":
         return [
-          body(words.tvPairTitle, words.tvPairText, make("div", "tv-code", shown.code), allowSound),
+          body(words.tvPairTitle, words.tvPairText, codeBox(shown.code), allowSound),
           qr(shown.link),
         ];
       case "connected":

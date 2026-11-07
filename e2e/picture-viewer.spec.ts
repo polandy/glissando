@@ -77,15 +77,15 @@ test.describe("coarse pointer", () => {
     await expect(next).toBeVisible();
 
     // Vertically centred between the top bar and the filmstrip, so neither overlaps them.
-    const topBar = await boxOf(viewer.locator(".bar.top"));
-    const filmstrip = await boxOf(viewer.locator(".bottom"));
+    const topBar = await boxOf(viewer.getByTestId("viewer-top-bar"));
+    const filmstrip = await boxOf(viewer.getByTestId("viewer-filmstrip-bar"));
     const previousBox = await boxOf(previous);
     expect(previousBox.y).toBeGreaterThanOrEqual(topBar.y + topBar.height);
     expect(previousBox.y + previousBox.height).toBeLessThanOrEqual(filmstrip.y);
 
     // A swipe on the picture (not on an arrow) still steps forward. Dispatched directly, since
     // simulating a touch drag through real input differs too much between engines to be reliable.
-    const stagePicture = viewer.locator(".stage img");
+    const stagePicture = viewer.getByTestId("viewer-picture");
     const y = PHONE.height / 2;
     await stagePicture.dispatchEvent("pointerdown", { clientX: 250, clientY: y, bubbles: true });
     await stagePicture.dispatchEvent("pointerup", { clientX: 150, clientY: y, bubbles: true });

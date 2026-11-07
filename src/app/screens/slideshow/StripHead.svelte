@@ -39,7 +39,7 @@
   const { t } = getTranslator();
 </script>
 
-<div class="strip-head">
+<div class="strip-head" role="group" aria-label={t("slideshow.pictures")}>
   <h2 class="eyebrow">{t("slideshow.pictures")}</h2>
   <p class="muted sorted">
     {#if ownOrder}

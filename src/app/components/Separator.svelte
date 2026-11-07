@@ -3,7 +3,7 @@
   import { SEPARATOR } from "./separator";
 </script>
 
-<span class="separator">{SEPARATOR}</span>
+<span class="separator" data-testid="separator">{SEPARATOR}</span>
 
 <style>
   /* Wider spaces rather than padding: a line that wraps at the dot drops its space, room included. */

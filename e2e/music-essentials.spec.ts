@@ -44,8 +44,8 @@ test("E2E-107 the music editor's Essentials on a phone show the songs, the music
   page,
 }) => {
   const songs = page.getByRole("list", { name: "Songs" });
-  const blocks = page.locator(".playlist-lane .block");
-  const lane = page.locator(".playlist-timeline");
+  const blocks = page.getByTestId("playlist-block");
+  const lane = page.getByTestId("playlist-timeline");
   const repeat = page.getByRole("switch", { name: "Musik wiederholen" });
   const addSong = page.getByRole("button", { name: "Song hinzufügen" });
   await openMusicOfTwoSongs(page);

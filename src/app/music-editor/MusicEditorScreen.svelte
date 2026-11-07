@@ -99,7 +99,7 @@
   }
 </script>
 
-<div class="screen music-editor" aria-busy={saving}>
+<div class="screen music-editor" data-testid="editing-screen" aria-busy={saving}>
   <Header crumbs={[t("start.library"), slideshow.title, t("music.crumb")]} {onBack}>
     {#snippet actions()}
       {#if music !== null}

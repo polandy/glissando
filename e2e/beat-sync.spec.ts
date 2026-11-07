@@ -18,7 +18,7 @@ test("E2E-039 the music editor finds the music's beat, changes the pictures on i
 
   await page.getByRole("button", { name: /^Musik Takt\.wav/ }).click();
   await showMusicDetails(page);
-  await expect(section.locator(".state")).toHaveText("120 Schläge pro Minute");
+  await expect(section.getByText("120 Schläge pro Minute", { exact: true })).toBeVisible();
   await expect(onTheBeat).toHaveAttribute("aria-checked", "true");
   await info.click();
   await expect(
@@ -36,7 +36,7 @@ test("E2E-039 the music editor finds the music's beat, changes the pictures on i
   await editsStored(page);
 
   await page.reload();
-  await expect(section.locator(".state")).toHaveText("120 Schläge pro Minute");
+  await expect(section.getByText("120 Schläge pro Minute", { exact: true })).toBeVisible();
   await expect(evenly).toHaveAttribute("aria-checked", "true");
   await expect(onTheBeat).toHaveAttribute("aria-checked", "false");
 });

@@ -1,6 +1,7 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { createSlideshow, editsStored, GERMAN_BROWSER } from "./support/app";
 import { openApp } from "./support/browser";
+import { pictureList } from "./support/strip-head";
 import { dayRangeForCaptureRange } from "../src/compose/day-range-for-capture-range";
 
 test.use(GERMAN_BROWSER);
@@ -17,7 +18,7 @@ function closingTile(page: Page): Locator {
 
 /** The still shown on a title/closing tile once its card has a title; absent on a dashed tile. */
 function cardFaceOf(tile: Locator): Locator {
-  return tile.locator('[data-testid="card-face"]');
+  return tile.getByTestId("card-face");
 }
 
 /** Renames the current slideshow, waiting on the stored title. */
@@ -42,7 +43,7 @@ test("E2E-054 the title slide's tile sits before the first picture, opens with t
 
   // Absent cards: both tiles are dashed placeholders, the title slide before the first picture,
   // the closing slide after the last one.
-  const strip = page.locator("ol.strip > li");
+  const strip = pictureList(page).getByRole("listitem");
   await expect(strip.first()).toContainText("Titelbild");
   await expect(strip.last()).toContainText("Schlussbild");
   await expect(openingTile(page)).toHaveClass(/empty/);
@@ -120,7 +121,7 @@ test("E2E-056 an entrance and a picture tint chosen on the title slide persist a
   const wordByWord = entrance.getByRole("button", { name: "Wort für Wort" });
   const darkTint = tint.getByRole("button", { name: "Dunkel" });
   const lightTint = tint.getByRole("button", { name: "Hell" });
-  const veilOfOpeningTile = openingTile(page).locator(".veil");
+  const veilOfOpeningTile = openingTile(page).getByTestId("card-tint-veil");
   const veilColour = (): Promise<string> =>
     veilOfOpeningTile.evaluate((veil) => getComputedStyle(veil).backgroundColor);
   await openApp(page);
@@ -214,15 +215,16 @@ test("E2E-082 the title slide's default subtitle follows the slideshow's own tit
   await page.clock.pauseAt(CLOCK_START + CLOCK_HOLD_MS);
   await page.getByRole("button", { name: "Abspielen" }).last().click();
   const player = page.getByRole("dialog", { name: "Sommer am See" });
+  const heading = player.getByTestId("player-heading");
   await expect(player).toHaveAttribute("aria-busy", "false");
   await expect(player.getByText("1 / 3", { exact: true })).toBeVisible();
-  await expect(player.locator(".heading .name")).toHaveCount(0);
+  await expect(heading.getByText("Sommer am See", { exact: true })).toHaveCount(0);
   await expect(player.getByRole("button", { name: "Schließen (Esc)" })).toBeVisible();
 
   await page.keyboard.press("ArrowRight");
   await expect(player.getByText("2 / 3", { exact: true })).toBeVisible();
-  await expect(player.locator(".heading .name")).toHaveText("Sommer am See");
-  await expect(player.locator(".heading .mono")).toHaveText("14.07.2025");
+  await expect(heading.getByText("Sommer am See", { exact: true })).toHaveText("Sommer am See");
+  await expect(heading.getByText("14.07.2025", { exact: true })).toHaveText("14.07.2025");
 });
 
 /** Switches the open title slide's sheet back to the dark tint and closes it. */

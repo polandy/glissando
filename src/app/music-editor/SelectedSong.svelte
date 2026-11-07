@@ -76,9 +76,15 @@
       <SlideshowLane {music} listeningPositionMs={listening?.positionMs ?? null} />
     {/if}
     {#if listening !== null}
-      <div class="playhead" style:left={pct(listening.positionMs)} aria-hidden="true"></div>
+      <div
+        class="playhead"
+        data-testid="music-playhead"
+        style:left={pct(listening.positionMs)}
+        aria-hidden="true"
+      ></div>
       <div
         class="chip mono"
+        data-testid="music-time-chip"
         style:left="clamp(0px, calc({pct(listening.positionMs)} - {CHIP_WIDTH_PX / 2}px), calc(100%
         - {CHIP_WIDTH_PX}px))"
         style:width="{CHIP_WIDTH_PX}px"

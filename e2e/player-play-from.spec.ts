@@ -3,6 +3,7 @@ import { createSlideshow, editPicture, GERMAN_BROWSER, selectionBar } from "./su
 import { openApp } from "./support/browser";
 import { player } from "./support/player";
 import { tile } from "./support/strip";
+import { stripHead } from "./support/strip-head";
 
 test.use(GERMAN_BROWSER);
 
@@ -33,7 +34,7 @@ test("E2E-111 the selection bar's Play from here plays from the one selected pic
   await expect(tile(page, 2, "14.07.2025")).toHaveAttribute("aria-pressed", "true");
 
   // Selecting mode lets a second tap add to the selection.
-  await page.locator(".strip-head").getByRole("button", { name: "Auswählen" }).click();
+  await stripHead(page).getByRole("button", { name: "Auswählen" }).click();
   await tile(page, 3, "20.07.2025").click();
   await expect(tile(page, 3, "20.07.2025")).toHaveAttribute("aria-pressed", "true");
   await expect(tile(page, 2, "14.07.2025")).toHaveAttribute("aria-pressed", "true");

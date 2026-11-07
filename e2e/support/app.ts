@@ -60,10 +60,7 @@ export async function chooseFiles(page: Page, button: Locator, files: TestFile[]
 
 /** The value a description list gives `term` (a <dt> and the <dd> after it). */
 export function definitionOf(scope: Page | Locator, term: string): Locator {
-  return scope
-    .getByRole("term")
-    .filter({ hasText: new RegExp(`^${term}$`) })
-    .locator("xpath=following-sibling::dd[1]");
+  return scope.locator(`dt:text-is(${JSON.stringify(term)}) + dd`);
 }
 
 export function openImport(page: Page): Promise<void> {
@@ -176,7 +173,7 @@ export async function createSlideshow(
  * own result is asserted first, so the busy mark has been set by the time this checks it.
  */
 export async function editsStored(page: Page): Promise<void> {
-  await expect(page.locator(".screen")).toHaveAttribute("aria-busy", "false");
+  await expect(page.getByTestId("editing-screen")).toHaveAttribute("aria-busy", "false");
 }
 
 /** The picture editor's caption field. */

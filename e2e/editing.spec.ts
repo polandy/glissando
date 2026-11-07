@@ -1,17 +1,9 @@
-import { expect, test, type Page } from "@playwright/test";
-import { createSlideshow, GERMAN_BROWSER } from "./support/app";
+import { expect, test } from "@playwright/test";
+import { createSlideshow, editsStored, GERMAN_BROWSER } from "./support/app";
 import { openApp } from "./support/browser";
 import { tile } from "./support/strip";
 
 test.use(GERMAN_BROWSER);
-
-/**
- * Waits until every edit is stored: the screen is busy from an edit until then, and that edit's
- * own result is asserted first, so the busy mark has been set by the time this checks it.
- */
-async function editsStored(page: Page): Promise<void> {
-  await expect(page.locator(".screen")).toHaveAttribute("aria-busy", "false");
-}
 
 test("E2E-014 pictures are removed with undo, reordered and renamed across a reload, and the slideshow deleted", async ({
   page,

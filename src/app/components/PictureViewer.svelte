@@ -144,6 +144,7 @@
       <img
         src={fullUrls.get(pictureId) ?? urls.get(pictureId)}
         alt=""
+        data-testid="viewer-picture"
         draggable="false"
         onpointerdown={(event) => (swipeStartX = event.clientX)}
         onpointerup={swipeEnded}

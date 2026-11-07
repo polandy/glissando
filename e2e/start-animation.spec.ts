@@ -87,7 +87,7 @@ test("E2E-004 with reduced motion the start animation only fades in", async ({ p
 
   await page.goto("/");
 
-  const backCard = page.locator(".card-back");
+  const backCard = page.getByTestId("start-logo-back-card");
   await expect(backCard).toHaveCSS("opacity", "0");
   await expect(backCard).toHaveCSS("transform", "none");
 });

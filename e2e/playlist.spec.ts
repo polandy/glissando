@@ -25,7 +25,9 @@ test("E2E-041 several songs chosen in the import play as a playlist, reordered, 
 }) => {
   const back = page.getByRole("button", { name: "Zurück", exact: true });
   const songs = page.getByRole("list", { name: "Songs" });
-  const songRows = songs.locator("li.song");
+  const songRows = songs
+    .getByRole("listitem")
+    .filter({ has: page.getByRole("button", { name: /verschieben$/ }) });
   const betweenSongs = page.getByRole("radiogroup", { name: "Zwischen den Songs" });
   const crossfade = betweenSongs.getByRole("radio", { name: "Überblenden" });
   const sequence = betweenSongs.getByRole("radio", { name: "Nacheinander" });
