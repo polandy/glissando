@@ -46,6 +46,7 @@ const HTTP_SERVER_ERROR = 500;
 const SHARE_SUFFIX = "/share";
 /** The 404 code of a link that is already off. */
 const NOT_SHARED = "notShared";
+const NEWER_FOCUS = "newerFocus";
 
 type HttpMethod = "GET" | "POST" | "PUT" | "DELETE";
 
@@ -190,7 +191,12 @@ export class HttpServerLibraryClient implements ServerLibraryClient {
       body: JSON.stringify(stored),
       headers: { "content-type": JSON_MEDIA_TYPE },
     });
-    if (response.status === HTTP_CONFLICT) return "newerKept";
+    if (
+      response.status === HTTP_CONFLICT &&
+      (await refusal(response.clone())).code === NEWER_FOCUS
+    ) {
+      return "newerKept";
+    }
     await check("PUT", path, response);
     return "stored";
   }
