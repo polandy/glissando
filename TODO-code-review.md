@@ -25,7 +25,6 @@ Each fix starts with the failing test the item names or implies (WORKFLOW.md, Te
 
 ### Screens
 
-- [ ] `src/app/screens/slideshow-screen-several.browser.test.ts:118` — Asserts `[aria-label="Selection"]` is absent on a German screen (label "Auswahl"), so it can never fail. Fix: query via the catalogue key and pair with a positive check.
 - [ ] `src/app/screens/slideshow/SelectionBar.svelte` — Decision logic (enabled states, labels, range text with `as string` casts) lives in the 290-line component. Fix: pure `selection-bar-view.ts` with table tests.
 
 ### Tooling and tests
