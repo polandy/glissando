@@ -115,7 +115,11 @@ describe("SlideshowScreen, dragging a tile (ADR-0019)", () => {
     flushSync();
 
     expect(pick.getAttribute("aria-pressed")).toBe("false");
-    expect(document.querySelector('[role="toolbar"][aria-label="Selection"]')).toBeNull();
+    expect(selectionBar()).toBeNull();
+
+    (select as HTMLElement).click();
+    flushSync();
+    expect(selectionBar()).not.toBeNull();
   });
 
   it("is cancelled by moving a touch past the threshold before the hold fires: it scrolls", () => {
