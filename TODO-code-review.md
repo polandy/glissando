@@ -32,7 +32,6 @@ Each fix starts with the failing test the item names or implies (WORKFLOW.md, Te
 
 ### Server, sync and TV
 
-- [ ] `server/main.ts:96-106` — The stream branch and `writeHead`/`end` run outside the `try`; a throw there is an unhandled rejection that stops the container via `supervise.sh`. Fix: same try/catch, log and close.
 - [ ] `src/server-library/http-server-library-client.ts:192` — Every 409 on `putPictureFocus` reads as `newerKept` without checking the code. Fix: check `refusal.code === "newerFocus"`, else `check`.
 - [ ] `src/server-library/http-server-library-client.ts:101-103` — The 412 branch calls `response.json()` without `isJson`, so a proxy's HTML 412 is a bare `SyntaxError`. Fix: `isJson` first, same descriptive error as `#json`.
 - [ ] `src/app/server-library/server-copy-flows.ts:75` — `keepCopy` passes a signal nobody can abort, so the required signal in `keep-copy.ts` is dead weight; `#progress` is one slot for concurrent copies. Fix: expose cancel per flow or drop the signal; key progress by slideshow.
