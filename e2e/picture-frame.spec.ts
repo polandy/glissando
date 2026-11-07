@@ -18,7 +18,7 @@ const CLOCK_START = new Date("2026-01-01T12:00:00Z").getTime();
 const CLOCK_HOLD_MS = 60_000;
 
 function setUpCard(page: Page): Locator {
-  return page.getByRole("button", { name: "Einrichten" });
+  return page.getByRole("button", { name: "Einrichten", exact: true });
 }
 
 function startFrameButton(page: Page): Locator {
