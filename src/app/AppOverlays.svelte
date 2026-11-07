@@ -3,7 +3,8 @@
   import type { OpenFlowState } from "./glissando-file/open-flow";
   import OpeningOverlay from "./glissando-file/OpeningOverlay.svelte";
   import Toast from "./components/Toast.svelte";
-  import PwaSheet, { type PwaSheetContent } from "./pwa/PwaSheet.svelte";
+  import PwaSheet from "./pwa/PwaSheet.svelte";
+  import type { PwaSheetContent } from "./pwa/pwa-sheet-content";
   import PersistRefusedDialog from "./storage/PersistRefusedDialog.svelte";
   import type { ToastMessage } from "./toast/toaster";
   import TvControl from "./tv-remote/TvControl.svelte";

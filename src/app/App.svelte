@@ -17,7 +17,7 @@
   import type { ImportSession } from "./import/import-session";
   import type { Route } from "./navigation/route";
   import { startPlaying } from "./navigation/start-playing";
-  import type { PwaSheetContent } from "./pwa/PwaSheet.svelte";
+  import type { PwaSheetContent } from "./pwa/pwa-sheet-content";
   import StatusBar from "./pwa/StatusBar.svelte";
   import HomeRoutes from "./routes/HomeRoutes.svelte";
   import IntakeRoutes from "./routes/IntakeRoutes.svelte";

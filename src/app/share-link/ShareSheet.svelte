@@ -1,13 +1,3 @@
-<script lang="ts" module>
-  /** What the sheet's summary line names of the slideshow. */
-  export interface ShareSubject {
-    readonly title: string;
-    readonly pictureCount: number;
-    readonly durationSeconds: number;
-    readonly hasMusic: boolean;
-  }
-</script>
-
 <script lang="ts">
   import { onMount } from "svelte";
   import Icon from "../components/Icon.svelte";
@@ -16,6 +6,7 @@
   import type { MessageKey } from "../i18n/messages";
   import ExportDialog from "../screens/slideshow/export-sheet/ExportDialog.svelte";
   import { shareSummary } from "./share-summary";
+  import type { ShareSubject } from "./share-subject";
   import NotSharedBody from "./NotSharedBody.svelte";
   import SharedLinkBody from "./SharedLinkBody.svelte";
   import type { ShareLinkRequest, ShareLinkSession, ShareLinkState } from "./share-link-session";
