@@ -66,7 +66,10 @@ export function slideSpans(slides: readonly Slide[]): readonly SlideSpan[] {
   return spans;
 }
 
-/** Plays `slides` laid out by `slideSpans`; the incoming slide's Ken Burns starts with its transition. */
+/**
+ * Plays `slides` laid out by `slideSpans`; the incoming slide's Ken Burns starts with its
+ * transition.
+ */
 export function createTimeline(slides: readonly Slide[]): Timeline {
   const spans = slideSpans(slides);
   const durationMs = spans.at(-1)?.endMs ?? 0;

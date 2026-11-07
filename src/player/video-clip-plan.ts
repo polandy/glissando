@@ -28,7 +28,10 @@ interface PlacedClip {
   readonly isLast: boolean;
 }
 
-/** The video slides of `slides`, placed as the timeline draws them, answering which clips matter at a show time. */
+/**
+ * The video slides of `slides`, placed as the timeline draws them, answering which clips matter
+ * at a show time.
+ */
 export function createClipPlan(
   slides: readonly Slide[],
 ): (timeMs: number) => readonly ClipTarget[] {
