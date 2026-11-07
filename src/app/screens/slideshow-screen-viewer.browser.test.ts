@@ -82,6 +82,7 @@ describe("SlideshowScreen, F opens the full-screen viewer", () => {
 
     press(tile(1, "01.07.2025"), "f");
 
+    expect(dialog().textContent).toContain("1 von 1");
     expect(document.querySelector(".pill.remove")).toBeNull();
   });
 });
