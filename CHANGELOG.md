@@ -1,5 +1,70 @@
 # Changelog
 
+## [0.0.13](https://github.com/polandy/glissando/compare/glissando-v0.0.12...glissando-v0.0.13) (2026-11-07)
+
+
+### Features
+
+* **editor:** Sort by date puts the pictures back in capture order after a shuffle or move ([#168](https://github.com/polandy/glissando/issues/168)) ([d7b4456](https://github.com/polandy/glissando/commit/d7b4456229848d97598bcb5582002469ce32013b))
+* **frame:** the caption names each picture's place and date ([#175](https://github.com/polandy/glissando/issues/175)) ([fde29eb](https://github.com/polandy/glissando/commit/fde29eb259cbcd2db27c42415fc241cd8be237b8))
+* **player:** play from a chosen picture ([#169](https://github.com/polandy/glissando/issues/169)) ([500dd21](https://github.com/polandy/glissando/commit/500dd21deccc608a5b676a45ac6398754e43a873))
+
+
+### Bug Fixes
+
+* **app:** say so on the app shell when the library cannot open ([#223](https://github.com/polandy/glissando/issues/223)) ([f863dab](https://github.com/polandy/glissando/commit/f863dab5e9cc9d320cd08cc4157e7bf083ecef52))
+* **card-face:** ignore a replaced style's late font load ([#225](https://github.com/polandy/glissando/issues/225)) ([f9b6f8b](https://github.com/polandy/glissando/commit/f9b6f8b49bdf90cb590aca1d1e694bc861954290))
+* **card-sheet:** give sheet chips, options and menu items a 44 px hit square under a coarse pointer ([#232](https://github.com/polandy/glissando/issues/232)) ([fd0cae6](https://github.com/polandy/glissando/commit/fd0cae665c840c771fce434cfa7835776f98854b))
+* **card-sheet:** give the radio groups arrow keys and a roving tabindex ([#231](https://github.com/polandy/glissando/issues/231)) ([9b32179](https://github.com/polandy/glissando/commit/9b321795232382b7a9dab098a5e937c5088b6fc1))
+* **chapters:** hand focus back to the chapter's strip tile when its sheet closes ([#227](https://github.com/polandy/glissando/issues/227)) ([5b7392d](https://github.com/polandy/glissando/commit/5b7392db8ce342845883f079ea534de2d40faaa1))
+* **copy:** sweep the catalogues and user guide against the glossary ([#158](https://github.com/polandy/glissando/issues/158)) ([60bf5b6](https://github.com/polandy/glissando/commit/60bf5b645b5bd9c810d424d879ee4ff3a78b729b))
+* **export:** the exported page names mediabunny, its MPL-2.0 licence and its source ([#182](https://github.com/polandy/glissando/issues/182)) ([5b43d29](https://github.com/polandy/glissando/commit/5b43d298c861ffe040227a41b44c161ade2890e9))
+* **focus-sheet:** give focus back to the More button when the sheet closes ([#226](https://github.com/polandy/glissando/issues/226)) ([4f1279e](https://github.com/polandy/glissando/commit/4f1279eb5cad1fb8a6baad38191d72ebe4f7151d))
+* **frame:** the prepared round starts playing at the hand-over, not hidden ahead of it ([#180](https://github.com/polandy/glissando/issues/180)) ([7ba330f](https://github.com/polandy/glissando/commit/7ba330f0fb08d4ba920969509e6cf8ba4a2fcb03))
+* **glissando-file:** allow only audio, video or octet-stream media types ([#212](https://github.com/polandy/glissando/issues/212)) ([351e046](https://github.com/polandy/glissando/commit/351e04643241df7a38d9c1119887a2edae06ab02))
+* **glissando-file:** refuse two pictures or thumbnails at one path ([#211](https://github.com/polandy/glissando/issues/211)) ([ebd2f33](https://github.com/polandy/glissando/commit/ebd2f3361f41a784845bc6d8ccb964f0b7536afa))
+* **immich:** a photo's capture date is cut to whole seconds, so it matches the same file's EXIF date ([#179](https://github.com/polandy/glissando/issues/179)) ([ea80b22](https://github.com/polandy/glissando/commit/ea80b22b6a980f4415f9b5ad41f50e36ce107d90))
+* **immich:** read a photo's GPS from the search, range-checked ([2c31c6d](https://github.com/polandy/glissando/commit/2c31c6dd5c2dd5e118364e2dc75fe7c39338e2ea))
+* **immich:** the proxy lets the import's GPS lookup through ([#176](https://github.com/polandy/glissando/issues/176)) ([cccadb7](https://github.com/polandy/glissando/commit/cccadb76ea48bcfbc6b06284aeb1ea707b585142))
+* **import:** a linked Immich photo whose thumbnail can't be read gets grey colours and is still linked ([#184](https://github.com/polandy/glissando/issues/184)) ([edf54b7](https://github.com/polandy/glissando/commit/edf54b7b3e94b0e068229c0a5cce2a3f516dcad5))
+* **import:** abort Immich downloads on cancel and refuse oversized videos unread ([#216](https://github.com/polandy/glissando/issues/216)) ([e32b8db](https://github.com/polandy/glissando/commit/e32b8db0c33c31091ec1e9ae3d55d350db01c6aa))
+* **import:** cap pictures at 100 MiB and 268 MP before decoding ([#213](https://github.com/polandy/glissando/issues/213)) ([24a41ac](https://github.com/polandy/glissando/commit/24a41ac2b056eef7975d03a5c73ba96138564dba))
+* **import:** Immich links are serialised session state; home switch, create and add wait for them ([#181](https://github.com/polandy/glissando/issues/181)) ([9351058](https://github.com/polandy/glissando/commit/9351058d026ad8e880f21d1f08b5b33d4629cc8a))
+* **import:** read a picture's EXIF once for its date and GPS ([#214](https://github.com/polandy/glissando/issues/214)) ([f137ed1](https://github.com/polandy/glissando/commit/f137ed1b5663601785aee7db3d390bfd14d3a756))
+* **media:** let only the latest load of a re-requested id make its URL ([#210](https://github.com/polandy/glissando/issues/210)) ([89318a0](https://github.com/polandy/glissando/commit/89318a07451b6bf8bb9f2d44b6f0655ae0263b24))
+* **mood:** the preview revokes its song URLs when it closes while focus or loudness still loads ([#183](https://github.com/polandy/glissando/issues/183)) ([115fb54](https://github.com/polandy/glissando/commit/115fb5413bee597fa273a368571a5043192bcc62))
+* **music-editor:** a removed sample download settling late keeps the re-added download's progress and abort ([#201](https://github.com/polandy/glissando/issues/201)) ([7ab1b66](https://github.com/polandy/glissando/commit/7ab1b66d6cd29c49cf248ca2a38059d34629b82f))
+* **music:** cap songs at 200 MB and 20 minutes at intake and before every decode ([#202](https://github.com/polandy/glissando/issues/202)) ([13e6609](https://github.com/polandy/glissando/commit/13e660996f070916cb56033e205a91b3de997062))
+* **music:** sample-song preview plays on iPad Safari — the tap unlocks the audio before the song is looked up ([#170](https://github.com/polandy/glissando/issues/170)) ([1e4c200](https://github.com/polandy/glissando/commit/1e4c2004248b6cfa531c76d810bf72ea80d33d6c))
+* **picture-editor:** store a wheel zoom once the wheel rests ([#221](https://github.com/polandy/glissando/issues/221)) ([5292379](https://github.com/polandy/glissando/commit/5292379fd2a4c981a51f31c4c5506ed25591b427))
+* **player:** cards survive a context restore; Play retries a failed clip ([#178](https://github.com/polandy/glissando/issues/178)) ([b58a8ba](https://github.com/polandy/glissando/commit/b58a8baa25047a7cab7d60e3c5dba93af598acc1))
+* **player:** fall back to the DOM renderer when the WebGL2 setup fails ([#219](https://github.com/polandy/glissando/issues/219)) ([79235d4](https://github.com/polandy/glissando/commit/79235d44b98fde4a0e4176929bd470f8a73d4594))
+* **player:** seek the music back to the show clock after a stall ([#206](https://github.com/polandy/glissando/issues/206)) ([875a11e](https://github.com/polandy/glissando/commit/875a11e88c5a6624281c5b1d5de6981e96bda72a))
+* **server-library:** a discovery answered 5xx or with a sign-in redirect keeps the remembered library ([#198](https://github.com/polandy/glissando/issues/198)) ([a9a1950](https://github.com/polandy/glissando/commit/a9a19507c90da72912640731a5f294aa5f641790))
+* **server-library:** keep the newer revision when a list or read is answered after an edit ([#197](https://github.com/polandy/glissando/issues/197)) ([662538f](https://github.com/polandy/glissando/commit/662538f7685c0b3b97aef4fb1e1cfbfbe056e40f))
+* **server:** never end a TV pairing in use to make room for a new session; answer 503 tvFull instead ([#196](https://github.com/polandy/glissando/issues/196)) ([73d55ca](https://github.com/polandy/glissando/commit/73d55ca0599b66095b5b433129b2f14bade291ea))
+* **server:** never open the TV stream of a client that left while its request was read ([#195](https://github.com/polandy/glissando/issues/195)) ([47adde2](https://github.com/polandy/glissando/commit/47adde2a49e2aefeaee513c1a50ac3bc6f84ea00))
+* **server:** only a MusicLoudnessFormatError answers 400 invalidLoudness; any other failure answers 500 ([#199](https://github.com/polandy/glissando/issues/199)) ([6bae559](https://github.com/polandy/glissando/commit/6bae559fc799fecee2aa5442041ca17fdbe3a996))
+* **share-page:** make song URLs only once every song has arrived ([#209](https://github.com/polandy/glissando/issues/209)) ([2c5e9b4](https://github.com/polandy/glissando/commit/2c5e9b43d9be20993af9bc53373da903cf57764f))
+* **tv:** an answer that lands after the TV sheet closed changes nothing ([#185](https://github.com/polandy/glissando/issues/185)) ([bd49c80](https://github.com/polandy/glissando/commit/bd49c806d5cd2f4090b64dc4c459cf801fc33b34))
+* **ux:** a picture's hand-set timing, motion and transition say Chosen, as the glossary does ([#191](https://github.com/polandy/glissando/issues/191)) ([f7e615e](https://github.com/polandy/glissando/commit/f7e615eeafe113317cd5dfc94c26eb9c70713209))
+* **ux:** browser-back guard for selections and header crumbs as links ([#161](https://github.com/polandy/glissando/issues/161)) ([c949e33](https://github.com/polandy/glissando/commit/c949e33ec372e4d06702cb63b202d6bd0d145045))
+* **ux:** distinct slideshow titles — a Title field on the music step, day range when the month is taken, created date on library cards ([#167](https://github.com/polandy/glissando/issues/167)) ([a243089](https://github.com/polandy/glissando/commit/a2430891b3a431990edccfcbc58fa643b5a13b4c))
+* **ux:** every control owns a 44 px touch target — fine settings, header, chapter and focus sheets, clip editor ([#171](https://github.com/polandy/glissando/issues/171)) ([58cb968](https://github.com/polandy/glissando/commit/58cb96889a9ac19453e181881e35f742894fd6c7))
+* **ux:** every dotted line in the app gives its " · " room, and keeps within its width when it wraps at a dot ([#193](https://github.com/polandy/glissando/issues/193)) ([e93bda8](https://github.com/polandy/glissando/commit/e93bda8718e7e03c79dc9db0599c4d14a978e55b))
+* **ux:** export failures explained, codec note, one size scale, Immich only with a server, Esc as Back ([#162](https://github.com/polandy/glissando/issues/162)) ([b1cb9ae](https://github.com/polandy/glissando/commit/b1cb9ae8c5c2759002ed21092ea72826f8c0e87e))
+* **ux:** hints say the outcome, not the mechanics — transition and preparing copy ([#172](https://github.com/polandy/glissando/issues/172)) ([c8bf430](https://github.com/polandy/glissando/commit/c8bf430f43f2cd6133a83baff7183ccb7bcd4964))
+* **ux:** labelled selection bar, one-gesture reorder on touch, 44 px touch targets ([#164](https://github.com/polandy/glissando/issues/164)) ([910ab6a](https://github.com/polandy/glissando/commit/910ab6a5de0660fcf17fa1bff2027c73e32b2ab3))
+* **ux:** music editor essentials first, one fit notice, info popovers, 44 px touch targets ([#165](https://github.com/polandy/glissando/issues/165)) ([824c4f1](https://github.com/polandy/glissando/commit/824c4f1caa562ddbbb1d5403671e46fe2036de6b))
+* **ux:** picture editor Timing section with a length slider, caption undo, 44 px touch targets ([#166](https://github.com/polandy/glissando/issues/166)) ([4f15616](https://github.com/polandy/glissando/commit/4f15616ea46af8a50cf8f8ae5dd1b4c2aa30424d))
+* **ux:** slideshow screen puts Play and pictures first, inline trip chapters ([#163](https://github.com/polandy/glissando/issues/163)) ([08f6f90](https://github.com/polandy/glissando/commit/08f6f90261ab115744388bc8c07a5114e2a18247))
+* **ux:** the clip editor's handles and the install hint's close button keep their 44 px square on screen ([#188](https://github.com/polandy/glissando/issues/188)) ([be548ef](https://github.com/polandy/glissando/commit/be548ef34aa044199bce5f499b912b2987d1c921))
+* **ux:** the picture editor's length hints and own-motion line say what you get, not how it is worked out ([#190](https://github.com/polandy/glissando/issues/190)) ([bc670e4](https://github.com/polandy/glissando/commit/bc670e4a2bf6f2e6f78d6c564288500838576a14))
+* **ux:** the Transitions summary's dot gets room, and developer prose says chosen, as the glossary does ([#192](https://github.com/polandy/glissando/issues/192)) ([6e875b2](https://github.com/polandy/glissando/commit/6e875b22761246c8167f35bf816d2db2faaacfd2))
+* **ux:** undo for removals, loading labels, route skeletons, phone search label ([#160](https://github.com/polandy/glissando/issues/160)) ([74cf6f2](https://github.com/polandy/glissando/commit/74cf6f28116cfc7f6f6abd00097296244c8f90c5))
+* **video-export:** build the video encoder inside prepare so a failure resolves and cleans up ([#208](https://github.com/polandy/glissando/issues/208)) ([4fe6780](https://github.com/polandy/glissando/commit/4fe678001893b2f1e2bb6db0ce1baae20ee70226))
+* **video-export:** sweep only private exports no tab holds a lock for ([#207](https://github.com/polandy/glissando/issues/207)) ([d124faa](https://github.com/polandy/glissando/commit/d124faad3e5096695f3c5b6b3c9d78f36bf3d863))
+
 ## [0.0.12](https://github.com/polandy/glissando/compare/glissando-v0.0.11...glissando-v0.0.12) (2026-10-31)
 
 
