@@ -1,7 +1,8 @@
 import { TRANSITION_EFFECTS, type TransitionEffect } from "../slideshow";
 import { fragmentShader, VERTEX_SHADER } from "./transition-shaders";
+import { WebGlSetupError } from "./webgl-setup-error";
 
-class ShaderCompileError extends Error {
+class ShaderCompileError extends WebGlSetupError {
   constructor(effect: TransitionEffect, log: string) {
     super(`the ${effect} shader does not compile or link: ${log}`);
     this.name = "ShaderCompileError";

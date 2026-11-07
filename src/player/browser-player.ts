@@ -19,6 +19,7 @@ import type { PictureLoader, SlideRenderer } from "./ports";
 import type { Slideshow } from "./slideshow";
 import { SlideshowPlayer } from "./slideshow-player";
 import { WebGlRenderer } from "./webgl/webgl-renderer";
+import { WebGlSetupError } from "./webgl/webgl-setup-error";
 
 /** Mirrors `ui-kit/reduced-motion`'s query; the player engine imports nothing from the app. */
 const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
@@ -159,16 +160,20 @@ function createDrawing(
   Object.assign(canvas.style, { position: "absolute", inset: "0", width: "100%", height: "100%" });
   const gl = webGl2Context(canvas);
   if (gl === null) {
-    return {
-      kind: "dom",
-      renderer: new DomRenderer(container, onResize),
-      pictures: new ImageElementLoader(
-        openPicture === undefined ? null : { openPicture, urls: browserObjectUrls },
-      ),
-    };
+    return domDrawing(container, onResize, openPicture);
+  }
+  let renderer: WebGlRenderer;
+  try {
+    renderer = new WebGlRenderer(canvas, gl, onResize, fonts === undefined ? {} : { fonts });
+  } catch (error) {
+    if (!(error instanceof WebGlSetupError)) {
+      throw error;
+    }
+    console.warn("WebGL2 setup failed; drawing with the DOM fallback", error);
+    gl.getExtension("WEBGL_lose_context")?.loseContext();
+    return domDrawing(container, onResize, openPicture);
   }
   container.append(canvas);
-  const renderer = new WebGlRenderer(canvas, gl, onResize, fonts === undefined ? {} : { fonts });
   // Starts a card style's font loading as soon as the renderer exists, rather than leaving it to
   // begin mid-playback on the first frame that draws it (ADR-0032). Never swallowed silently:
   // `CardTextures` itself logs a failed load (`#loadStyle`); this merely asks it to start one.
@@ -179,5 +184,19 @@ function createDrawing(
     kind: "webgl",
     renderer,
     pictures: new BitmapLoader(createDecoder(), openPicture),
+  };
+}
+
+function domDrawing(
+  container: HTMLElement,
+  onResize: () => void,
+  openPicture: OpenPicture | undefined,
+): Drawing {
+  return {
+    kind: "dom",
+    renderer: new DomRenderer(container, onResize),
+    pictures: new ImageElementLoader(
+      openPicture === undefined ? null : { openPicture, urls: browserObjectUrls },
+    ),
   };
 }

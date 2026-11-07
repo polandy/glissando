@@ -13,8 +13,6 @@ Each fix starts with the failing test the item names or implies (WORKFLOW.md, Te
 
 ### Player
 
-- [ ] `src/player/browser-player.ts:170-171` — The canvas is appended before `new WebGlRenderer(...)`; a shader/target failure leaves an orphan canvas and no DOM-renderer fallback. Fix: append after construction; fall back to `DomRenderer` on the typed errors.
-
 ### Library and file format
 
 - [ ] `src/glissando-file/round-trip.browser.test.ts:35-88` — The round trip checks only title, one picture's bytes and media bytes; the ~25 optional fields are hand-listed in five mappers and a field forgotten in one is silently dropped. Fix: a fixture with every optional field set and a `toEqual` modulo ids/title/createdAt; or type the mappers so an unmapped key fails to compile.

@@ -1,7 +1,8 @@
 import type { Size } from "../ken-burns";
 import { setLinearClamped } from "./caption-textures";
+import { WebGlSetupError } from "./webgl-setup-error";
 
-class CardRenderTargetError extends Error {
+class CardRenderTargetError extends WebGlSetupError {
   constructor(reason: string) {
     super(`could not set up a card render target: ${reason}`);
     this.name = "CardRenderTargetError";
