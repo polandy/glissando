@@ -71,7 +71,9 @@ test("E2E-046 a server slideshow plays Immich's previews at Standard (1440) and 
   await chooseQuality(page, "Standard");
   await playTheServerShow(page);
   await expect(page.getByRole("dialog", { name: TITLE })).toBeVisible();
-  await expect.poll(() => server.previewsAsked.length).toBeGreaterThan(0);
+  await expect
+    .poll(() => new Set(server.previewsAsked).size)
+    .toBe(LIBRARY_PAGE.assets.items.length);
   expect(server.originalsAsked).toEqual([]);
 
   await page.keyboard.press("Escape");
