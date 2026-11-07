@@ -180,6 +180,11 @@ export class FocusPass {
         this.#ports.log(error);
         return true;
       }
+      if (this.#ports.failsPictureOn?.(error) === true) {
+        this.#ports.log(new FocusDetectionFailedError(pictureId, error));
+        this.#setFailed(pictureId, true);
+        return false;
+      }
       throw error;
     }
     let focus: PictureFocus;

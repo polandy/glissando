@@ -177,6 +177,25 @@ describe("immichPictureSource", () => {
     expect(client.calls).toContain("thumbnail asset-1 preview");
   });
 
+  it("falls back to Immich's preview when the original is too large", async () => {
+    const client = new FakeImmichClient();
+    const tooLarge = (file: File): Promise<DecodedPicture> =>
+      file.type === "image/heic"
+        ? Promise.reject(new UnreadablePictureError(file.name, "tooLarge"))
+        : decode(file);
+    const source = immichPictureSource(PHOTO, {
+      client,
+      decode: tooLarge,
+      reportUnavailable: () => undefined,
+      log: () => undefined,
+    });
+
+    const read = await source.read();
+
+    expect(client.calls).toContain("thumbnail asset-1 preview");
+    expect(await read.decoded.display.text()).toBe("preview bytes as IMG_0001.HEIC (image/jpeg)");
+  });
+
   it("is unreadable when the preview cannot be decoded either", async () => {
     const client = new FakeImmichClient();
     client.original_ = new Blob([UNDECODABLE], { type: "image/heic" });

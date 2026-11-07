@@ -88,6 +88,8 @@ export interface SkippedNotices {
   readonly unreadable: readonly string[];
   /** Pictures the browser read but cannot decode. */
   readonly undecodable: readonly string[];
+  /** Pictures over the import's size limit. */
+  readonly tooLarge: readonly string[];
   /** Photos Immich could not deliver. */
   readonly notDownloaded: readonly string[];
   /** Pictures already in the slideshow being added to, which "Add anyway" takes in after all. */
@@ -122,6 +124,7 @@ export function skippedNotices(skipped: readonly SkippedFile[]): SkippedNotices 
   return {
     unreadable: namesFor((reason) => reason === "unsupported" || reason === "unreadable"),
     undecodable: namesFor((reason) => reason === "undecodable"),
+    tooLarge: namesFor((reason) => reason === "tooLarge"),
     notDownloaded: namesFor((reason) => reason === "notDownloaded"),
     alreadyIn: namesFor((reason) => reason === "alreadyIn"),
     chosenTwice: namesFor((reason) => reason === "chosenTwice"),

@@ -87,6 +87,15 @@ describe("localPictureSource", () => {
       expect(calls.count).toBe(2);
     });
 
+    it("is not retried when the picture is too large", async () => {
+      const failure = new UnreadablePictureError("a.jpg", "tooLarge");
+      const { calls, run } = flaky(1, failure, DECODED);
+      const source = localPictureSource(file(), { decode: run, captureDate, gps: noGps });
+
+      await expect(source.read()).rejects.toBe(failure);
+      expect(calls.count).toBe(1);
+    });
+
     it("is retried once when the GPS coordinate cannot be read", async () => {
       const coordinate: ExifGps = { latitude: 48.2082, longitude: 16.3738 };
       const failure = new UnreadablePictureError("a.jpg", "read");

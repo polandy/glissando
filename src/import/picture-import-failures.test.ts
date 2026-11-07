@@ -28,6 +28,22 @@ describe("PictureImport, failures: unreadable files, full storage, cancel", () =
     });
   });
 
+  it("skips a picture over the size limit as tooLarge and goes on", async () => {
+    const { pictureImport, addFiles } = setUp({
+      decoder: new FakeDecoder(new Set(), new Set(["huge.jpg"])),
+    });
+
+    addFiles([picture("huge.jpg"), picture("a.jpg")]);
+    await pictureImport.settled();
+
+    expect(fileNames(pictureImport.state)).toEqual(["a.jpg"]);
+    expect(pictureImport.state).toMatchObject({
+      total: 2,
+      done: 2,
+      skipped: [{ fileName: "huge.jpg", reason: "tooLarge" }],
+    });
+  });
+
   it("skips a picture the browser cannot read as unreadable and goes on", async () => {
     const { pictureImport, addFiles } = setUp({
       captureDate: (file) =>

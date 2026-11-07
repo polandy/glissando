@@ -99,6 +99,7 @@ export function passOver(
   detector: FocusDetector,
   pausesOn?: (error: unknown) => boolean,
   isGone?: (error: unknown) => boolean,
+  failsPictureOn?: (error: unknown) => boolean,
 ): { pass: FocusPass; logged: unknown[]; reported: unknown[] } {
   const logged: unknown[] = [];
   const reported: unknown[] = [];
@@ -109,6 +110,7 @@ export function passOver(
     reportError: (error) => reported.push(error),
     ...(pausesOn === undefined ? {} : { pausesOn }),
     ...(isGone === undefined ? {} : { isGone }),
+    ...(failsPictureOn === undefined ? {} : { failsPictureOn }),
   });
   return { pass, logged, reported };
 }

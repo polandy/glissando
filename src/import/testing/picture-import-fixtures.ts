@@ -26,7 +26,10 @@ export class FakeDecoder {
   /** Settles once a decode waits behind `hold()`. */
   reached: Promise<void> = Promise.resolve();
 
-  constructor(private readonly unreadable: ReadonlySet<string> = new Set()) {}
+  constructor(
+    private readonly unreadable: ReadonlySet<string> = new Set(),
+    private readonly tooLarge: ReadonlySet<string> = new Set(),
+  ) {}
 
   /** Holds every decode until `open()`, to act while a file is in flight. */
   hold(): void {
@@ -45,6 +48,9 @@ export class FakeDecoder {
     await this.#gate;
     if (this.unreadable.has(file.name)) {
       throw new UnreadablePictureError(file.name, "decode");
+    }
+    if (this.tooLarge.has(file.name)) {
+      throw new UnreadablePictureError(file.name, "tooLarge");
     }
     return {
       width: 300,

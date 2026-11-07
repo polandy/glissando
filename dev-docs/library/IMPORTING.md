@@ -5,6 +5,14 @@
   decode (e.g. HEIC outside Safari) or can no longer read (`NotReadableError`, e.g. when Android
   Chrome lets the picker's permission lapse before the file's turn comes) is skipped as
   _unreadable_. The adapters that read a file's bytes map both to `UnreadablePictureError`.
+- **Size limits** (`picture-limits.ts`): a picture over 100 MiB, or whose header claims more than
+  16384 x 16384 pixels (Chrome's canvas-area limit), is skipped as _tooLarge_ before the browser
+  decodes it, so a huge file or a small one claiming a huge size cannot crash the tab. The claimed
+  size is read from the first 256 KiB of a JPEG, PNG, WebP or GIF (`picture-dimensions.ts`); other
+  formats (AVIF, HEIC, ...) meet only the byte limit. A too-large picture is not retried. An
+  Immich original over a limit is replaced by Immich's 1440 px preview, as an undecodable one is.
+  The server focus pass's thumbnail decode meets the same limits and wraps a decode failure in
+  `UnreadablePictureError` as well.
 - **Downscaled** to fit 3840 px on the long edge and 2160 px on the short edge (about 4K, either
   orientation), never upscaled, turned upright by its EXIF orientation and stored as JPEG
   (quality 0.9). A thumbnail fits 480 px on the long edge (JPEG, quality 0.8).

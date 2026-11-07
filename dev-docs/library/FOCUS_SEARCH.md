@@ -26,7 +26,8 @@ any other.
 
 A picture whose media is gone meanwhile is skipped, as is a whole slideshow gone by the time a
 scan reads its own stored focus (the injected `isGone` predicate), the scan carrying on with the
-rest; one whose detection fails is logged
+rest; one whose detection fails, or whose input cannot be decoded (an error the injected
+`failsPictureOn` predicate accepts, e.g. an undecodable server preview), is logged
 (`FocusDetectionFailedError`), keeps no focus and is tried again on the next pass — its id is
 added to `failed` for this app session and removed once a later look at it succeeds. A detection
 failing because the detector itself is gone (`FocusDetectorGoneError`: its worker crashed, sent a

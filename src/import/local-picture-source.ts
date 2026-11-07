@@ -5,8 +5,9 @@ import { UnreadablePictureError } from "./unreadable-picture";
 
 /**
  * `decode` and `captureDate` reject with `UnreadablePictureError` for a file they cannot read;
- * each is tried twice. `gps` never rejects with it (no GPS tag reads the same as an unreadable
- * one: null), so it is tried twice only on the same error the other two retry on.
+ * each is tried twice, except a picture that is too large. `gps` never rejects with it (no GPS
+ * tag reads the same as an unreadable one: null), so it is tried twice only on the same error the
+ * other two retry on.
  */
 export interface LocalPictureReaders {
   decode(file: File): Promise<DecodedPicture>;
@@ -16,13 +17,14 @@ export interface LocalPictureReaders {
 
 /**
  * Android Chrome fails a picked file's read or decode intermittently, so a second try often
- * succeeds; any other error is not retried.
+ * succeeds. A picture over the size limit would fail the same way again, so it is not retried,
+ * nor is any other error.
  */
 async function retryOnce<T>(operation: () => Promise<T>): Promise<T> {
   try {
     return await operation();
   } catch (error) {
-    if (!(error instanceof UnreadablePictureError)) {
+    if (!(error instanceof UnreadablePictureError) || error.stage === "tooLarge") {
       throw error;
     }
     return operation();

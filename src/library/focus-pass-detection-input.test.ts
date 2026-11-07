@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { FocusPassPorts } from "./focus-pass";
+import { FocusDetectionFailedError, type FocusPassPorts } from "./focus-pass";
 import type { PictureFocus } from "./picture-focus";
 import { MediaNotFoundError } from "./library-store";
 import { FakeFocusDetector } from "./testing/fake-focus-detector";
@@ -18,6 +18,8 @@ function withDetectionInput(
     detectionInput,
   };
 }
+
+class UndecodableInputError extends Error {}
 
 describe("FocusPass, a store with a detectionInput port (ADR-0041)", () => {
   it("stores a PictureFocus the port answers directly, without running the detector", async () => {
@@ -64,5 +66,43 @@ describe("FocusPass, a store with a detectionInput port (ADR-0041)", () => {
     await pass.settled();
 
     expect(await store.pictureFocus(["a", "b"])).toEqual(new Map([["b", storedFocus(NOTHING)]]));
+  });
+
+  it("marks a picture whose input cannot be decoded as failed and goes on to the next", async () => {
+    const { store } = await storeWith({ "show-1": ["a", "b"] });
+    const undecodable = new UndecodableInputError();
+    const detector = new FakeFocusDetector(() => NOTHING);
+    const input = withDetectionInput(store, (id) =>
+      id === "a" ? Promise.reject(undecodable) : Promise.resolve(FACES),
+    );
+    const { pass, logged, reported } = passOver(
+      input,
+      detector,
+      undefined,
+      undefined,
+      (error) => error instanceof UndecodableInputError,
+    );
+
+    pass.start();
+    await pass.settled();
+
+    expect(await store.pictureFocus(["a", "b"])).toEqual(new Map([["b", storedFocus(FACES)]]));
+    expect(pass.state.failed.has("a")).toBe(true);
+    expect(logged).toEqual([expect.any(FocusDetectionFailedError)]);
+    expect((logged[0] as FocusDetectionFailedError).pictureId).toBe("a");
+    expect((logged[0] as FocusDetectionFailedError).cause).toBe(undecodable);
+    expect(reported).toEqual([]);
+  });
+
+  it("ends the pass on an input error the failsPictureOn port does not accept", async () => {
+    const { store } = await storeWith({ "show-1": ["a", "b"] });
+    const input = withDetectionInput(store, () => Promise.reject(new UndecodableInputError()));
+    const { pass, reported } = passOver(input, new FakeFocusDetector(() => NOTHING));
+
+    pass.start();
+    await pass.settled();
+
+    expect(reported).toEqual([expect.any(UndecodableInputError)]);
+    expect(pass.state.failed.size).toBe(0);
   });
 });

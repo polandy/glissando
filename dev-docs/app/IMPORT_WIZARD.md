@@ -24,8 +24,9 @@ Immich photos, and is created on the server
   notice "n files could not be read as pictures and were skipped: names. The other m pictures
   are in." (photos that could not be downloaded from Immich get their own sentence "n photos
   could not be downloaded from Immich and were skipped: names." and a picture the browser read
-  but cannot decode "n pictures could not be decoded and were skipped: names.", in the same
-  notice; each read and each decode is tried twice before a picture is skipped, and the skip is
+  but cannot decode "n pictures could not be decoded and were skipped: names." and a picture over
+  the size limit "n pictures are too large and were skipped: names.", in the same notice; each
+  read and each decode is tried twice (a too-large picture once) before it is skipped, and the skip is
   logged with its cause), full storage a coral one with "Choose fewer pictures" (discards and reopens the
   picker). A failed import is a coral notice "The import failed. No more pictures can be added."
   with "Start over" (discards the selection and shows the empty drop zone); the drop zone and
