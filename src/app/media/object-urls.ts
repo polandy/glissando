@@ -79,17 +79,19 @@ export class ObjectUrls {
     const load = Symbol(id);
     this.#latestLoad.set(id, load);
     let blob: Blob;
+    let isLatest: boolean;
     try {
       blob = await this.#ports.load(id);
     } catch (error) {
       this.#ports.onError(error);
       return;
     } finally {
-      if (this.#latestLoad.get(id) === load) {
+      isLatest = this.#latestLoad.get(id) === load;
+      if (isLatest) {
         this.#latestLoad.delete(id);
       }
     }
-    if (this.#latestLoad.has(id) || !this.#wanted.has(id)) {
+    if (!isLatest || !this.#wanted.has(id)) {
       return;
     }
     this.#publish(new Map(this.#urls).set(id, this.#ports.create(blob)));
