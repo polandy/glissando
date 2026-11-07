@@ -40,7 +40,11 @@ function stored(songCount: number): StoredSlideshow {
 }
 
 /** A share API over `answers`, served one after the other; records what was fetched. */
-function fakeApi(answers: ShareAnswer[], missing: ReadonlySet<number> = new Set()) {
+function fakeApi(
+  answers: ShareAnswer[],
+  missing: ReadonlySet<number> = new Set(),
+  unreachableSongs: ReadonlySet<number> = new Set(),
+) {
   const fetched: string[] = [];
   const queue = [...answers];
   const api: ShareApi = {
@@ -59,7 +63,9 @@ function fakeApi(answers: ShareAnswer[], missing: ReadonlySet<number> = new Set(
     },
     song(index) {
       fetched.push(`song ${index}`);
-      return Promise.resolve(new Blob([`song ${index}`]));
+      return unreachableSongs.has(index)
+        ? Promise.reject(new ShareUnreachableError(`song ${index} unreachable`))
+        : Promise.resolve(new Blob([`song ${index}`]));
     },
   };
   return { api, fetched };
@@ -80,6 +86,26 @@ describe("loadSharedShow", () => {
     expect([...show.songUrls.keys()]).toEqual([songKey(0), songKey(1)]);
     const { slideshow } = playableShow(show, api, new Set());
     expect(slideshow.music?.map(({ src }) => src)).toEqual([...show.songUrls.values()]);
+  });
+
+  it("makes no song URL when a song cannot be fetched", async () => {
+    const { api, fetched } = fakeApi(
+      [{ revision: 1, slideshow: stored(2), beats: new Map(), loudness: new Map() }],
+      new Set(),
+      new Set([1]),
+    );
+    const made: Blob[] = [];
+    const recordingUrl = (song: Blob) => {
+      made.push(song);
+      return "blob:recorded";
+    };
+
+    await expect(loadSharedShow(api, recordingUrl, null, "en")).rejects.toBeInstanceOf(
+      ShareUnreachableError,
+    );
+
+    expect(fetched).toEqual(expect.arrayContaining(["song 0", "song 1"]));
+    expect(made).toEqual([]);
   });
 
   it("keeps the slideshow it has, songs and all, while the revision is the same", async () => {

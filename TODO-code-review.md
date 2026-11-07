@@ -35,7 +35,6 @@ Each fix starts with the failing test the item names or implies (WORKFLOW.md, Te
 
 ### Exports, share and PWA
 
-- [ ] `src/share-page/shared-show.ts:66` — Song blob URLs are created inside `Promise.all`; one failed song leaks the others, and the TV page repeats that on every retry for days. Fix: fetch all blobs first, then create URLs; revoke on failure.
 
 ### App shell, routing and editors
 
