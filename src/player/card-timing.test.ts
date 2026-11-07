@@ -181,6 +181,33 @@ describe("cardItemTimingAt: stagger order", () => {
   });
 });
 
+describe("cardItemTimingAt: one presence with the whole card", () => {
+  const rising = heldCard({ entrance: "rise", enterAtMs: 500, revealAtMs: 3000 });
+
+  it.each([
+    ["before the enter", 0],
+    ["partway through the enter", 900],
+    ["held", 2000],
+    ["partway through the reveal", 3600],
+    ["after the reveal", 5000],
+  ])("matches cardTimingAt's opacity and drift for a one-item entrance, %s", (_, slideTimeMs) => {
+    const card = cardTimingAt(rising, slideTimeMs, false);
+    const item = cardItemTimingAt(rising, 0, 1, slideTimeMs, false);
+
+    expect(item.opacity).toBeCloseTo(card.textOpacity);
+    expect(item.driftEm).toBeCloseTo(card.driftEm);
+  });
+
+  it("has every staggered item fully dissolved once the last reveal window ends", () => {
+    const revealing = { entrance: "words" as const, enterAtMs: 0, revealAtMs: 2000 };
+
+    const items = [0, 1, 2, 3].map((index) => cardItemTimingAt(revealing, index, 4, 10_000, false));
+
+    expect(items).toHaveLength(4);
+    expect(items.map((item) => item.opacity)).toEqual([0, 0, 0, 0]);
+  });
+});
+
 describe("cardItemTimingAt: focus cross-fade", () => {
   const focusCard = { entrance: "focus" as const, enterAtMs: 0 };
 

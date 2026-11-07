@@ -13,7 +13,6 @@ Each fix starts with the failing test the item names or implies (WORKFLOW.md, Te
 
 ### Player
 
-- [ ] `src/player/card-timing.ts:150-225` — `cardTimingAt` and `cardItemTimingAt` carry two copies of the enter/reveal/drift presence formula. Fix: one shared presence helper.
 - [ ] `src/player/browser-player.ts:170-171` — The canvas is appended before `new WebGlRenderer(...)`; a shader/target failure leaves an orphan canvas and no DOM-renderer fallback. Fix: append after construction; fall back to `DomRenderer` on the typed errors.
 
 ### Library and file format
