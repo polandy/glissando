@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { StoredCard } from "../../../../library/stored-slideshow";
+  import { radioGroupKeys } from "../../../components/radio-group-keys";
   import SectionHead from "../../../components/SectionHead.svelte";
   import Sheet from "../../../components/Sheet.svelte";
   import { getTranslator } from "../../../i18n/context";
@@ -118,13 +119,19 @@
 
   <section class="field">
     <SectionHead id="card-position-title" title={t("cards.positionLabel")} own={false} />
-    <div class="kind-toggle" role="radiogroup" aria-labelledby="card-position-title">
+    <div
+      class="kind-toggle"
+      role="radiogroup"
+      aria-labelledby="card-position-title"
+      use:radioGroupKeys
+    >
       <button
         class="option"
         class:checked={card.position === "centre"}
         type="button"
         role="radio"
         aria-checked={card.position === "centre"}
+        tabindex={card.position === "centre" ? 0 : -1}
         onclick={() => update({ ...card, position: "centre" })}
       >
         {t("cards.position-centre")}
@@ -135,6 +142,7 @@
         type="button"
         role="radio"
         aria-checked={card.position === "bottom-left"}
+        tabindex={card.position === "bottom-left" ? 0 : -1}
         onclick={() => update({ ...card, position: "bottom-left" })}
       >
         {t("cards.position-bottom-left")}
