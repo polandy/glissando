@@ -92,7 +92,7 @@ async function frameAt(video: HTMLVideoElement, file: File, atMs: number): Promi
 
 /**
  * A video's capture time: the container's creation time as the device's wall time (as EXIF
- * dates are, see `captureDate`), else the file's date. A container mediabunny cannot read falls
+ * dates are, see `readPictureExif`), else the file's date. A container mediabunny cannot read falls
  * back too; the playability check is what refuses the file.
  */
 export async function videoCaptureDate(file: File, log: (error: unknown) => void): Promise<string> {
