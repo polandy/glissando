@@ -24,6 +24,7 @@ describe("ExportIndicator", () => {
   it("names the slideshow and the percentage and draws the progress line", () => {
     const mounted = mountWithTranslator(ExportIndicator, {
       progress: { slideshowId: "s", title: "Herbst in Wien", fraction: 0.342 },
+      drawsLine: true,
     });
     destroy = mounted.destroy;
 

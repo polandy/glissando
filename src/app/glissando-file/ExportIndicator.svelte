@@ -6,7 +6,7 @@
    * The background export's, or a server slideshow's copy's, place in the header: a progress
    * ring, its label and, with `drawsLine`, a line below the bar.
    */
-  let { progress, drawsLine = true }: { progress: ExportProgress; drawsLine?: boolean } = $props();
+  let { progress, drawsLine }: { progress: ExportProgress; drawsLine: boolean } = $props();
 
   const PERCENT = 100;
   const { t } = getTranslator();
