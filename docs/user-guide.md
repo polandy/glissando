@@ -126,6 +126,9 @@ groups; choose a row and its sheet opens, with **Back** (or Esc) to the list and
 - Your pictures stay on your device. Nothing is uploaded unless you use a server you run yourself.
 - Ask the browser to keep the data (Glissando requests it); clearing site data deletes slideshows
   stored on the device — save a `.glissando` file as a backup.
+- If the browser won't let Glissando store data (some private windows, or site data blocked in
+  its settings), Glissando can't start and says so under its logo; reload the page or allow this
+  site to store data.
 - Language and light/dark follow your device; both can be changed in Settings.
   Immich and the server quality settings appear in Settings only when Glissando runs with its own
   server (see the self-hosting guide).

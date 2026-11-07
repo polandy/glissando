@@ -1,5 +1,8 @@
 /** app-shell.css fades the shell out while it carries this attribute. */
 const LEAVING_ATTRIBUTE = "data-leaving";
+/** app-shell.css stops the logo's waiting breath while the shell carries this attribute. */
+const FAILED_ATTRIBUTE = "data-failed";
+const STAGE_SELECTOR = ".app-shell-stage";
 
 function fadesOut(shell: HTMLElement): boolean {
   const view = shell.ownerDocument.defaultView;
@@ -35,4 +38,22 @@ export function handOverFromShell(shell: HTMLElement): Promise<void> {
     shell.addEventListener("transitionend", removeAfterFade);
     shell.addEventListener("transitioncancel", removeAfterFade);
   });
+}
+
+/**
+ * Turns the app shell into the app's last word when it cannot start: the message appears under
+ * the logo as an alert, and the shell, decoration until now, is exposed to assistive technology.
+ */
+export function showStartupFailure(shell: HTMLElement, message: string): void {
+  const stage = shell.querySelector(STAGE_SELECTOR);
+  if (stage === null) {
+    throw new Error(`The app shell has no ${STAGE_SELECTOR} to show the startup failure on`);
+  }
+  const alert = shell.ownerDocument.createElement("p");
+  alert.className = "app-shell-failure";
+  alert.setAttribute("role", "alert");
+  alert.textContent = message;
+  stage.append(alert);
+  shell.removeAttribute("aria-hidden");
+  shell.setAttribute(FAILED_ATTRIBUTE, "");
 }

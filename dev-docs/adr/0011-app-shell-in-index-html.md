@@ -52,4 +52,5 @@ Afterwards the shell paints in 80–85 ms on the phone profile, on the dev serve
 
 - The shell's bar, strip and logo position mirror `Header.svelte`, `StatusBar.svelte` and the
   start screen by hand; a change there needs the same change in `app-shell.css`.
-- If the app fails before it mounts, the shell stays on screen instead of a blank page.
+- If the app fails before it mounts, the shell stays on screen instead of a blank page; a library
+  store that cannot open puts a message on it (`showStartupFailure`, `dev-docs/app/WIRING.md`).
