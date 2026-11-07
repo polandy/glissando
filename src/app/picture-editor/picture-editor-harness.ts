@@ -4,6 +4,7 @@ import { transitionDurationMs } from "../../compose";
 import type { OwnKenBurns } from "../../library/own-ken-burns";
 import { CUT_TRANSITION, type TransitionChoice } from "../../library/own-timing";
 import { FakeClock, FakeFrameScheduler } from "../../player/testing/fakes";
+import { FakeScheduler } from "../../ui-kit/testing/fake-scheduler";
 import { mountWithTranslator } from "../testing/mount-with-translator";
 import { reactiveProps } from "../testing/reactive-props.svelte";
 import PictureEditorScreen from "./PictureEditorScreen.svelte";
@@ -81,9 +82,13 @@ function transitionedView(
 export function mountEditor(shown: PictureEditorView = view(), { reducedMotion = false } = {}) {
   const clock = new FakeClock();
   const frames = new FakeFrameScheduler();
+  const scheduler = new FakeScheduler();
   let current = shown;
   const calls = {
     changed: [] as OwnKenBurns[],
+    changedPictureIds: [] as string[],
+    /** The motion edits in the order they reached the store. */
+    motionEdits: [] as ("change" | "swap" | "reset")[],
     opened: [] as string[],
     played: [] as string[],
     swaps: 0,
@@ -111,9 +116,19 @@ export function mountEditor(shown: PictureEditorView = view(), { reducedMotion =
     onBack: () => (calls.backs += 1),
     onOpen: (pictureId: string) => calls.opened.push(pictureId),
     onPlayFrom: (pictureId: string) => calls.played.push(pictureId),
-    onChange: (motion: OwnKenBurns) => calls.changed.push(motion),
-    onSwap: () => (calls.swaps += 1),
-    onReset: () => (calls.resets += 1),
+    onChange: (pictureId: string, motion: OwnKenBurns) => {
+      calls.changedPictureIds.push(pictureId);
+      calls.changed.push(motion);
+      calls.motionEdits.push("change");
+    },
+    onSwap: () => {
+      calls.swaps += 1;
+      calls.motionEdits.push("swap");
+    },
+    onReset: () => {
+      calls.resets += 1;
+      calls.motionEdits.push("reset");
+    },
     onCaption: (typed: string) => calls.captions.push(typed),
     onDuration: (durationMs: number) => calls.durations.push(durationMs),
     onClearCaption: () => (calls.clearedCaptions += 1),
@@ -140,6 +155,7 @@ export function mountEditor(shown: PictureEditorView = view(), { reducedMotion =
     },
     onLookAgain: () => (calls.lookAgains += 1),
     previewPorts: { clock, frames },
+    scheduler,
     reducedMotion,
     saving: false,
   });
@@ -151,7 +167,7 @@ export function mountEditor(shown: PictureEditorView = view(), { reducedMotion =
     frames.runFrame();
     flushSync();
   };
-  return { target: mounted.target, calls, frames, advance, update };
+  return { target: mounted.target, calls, frames, scheduler, advance, update };
 }
 
 export function element<T extends Element = HTMLElement>(selector: string): T {
