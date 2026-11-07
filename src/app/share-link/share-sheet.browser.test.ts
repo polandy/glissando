@@ -54,7 +54,7 @@ async function mountControl({
     newHtmlExport: () => {
       throw new Error("not used");
     },
-    onClosed: () => {},
+    onClose: () => {},
   });
   destroy = mounted.destroy;
   const { target } = mounted;

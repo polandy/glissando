@@ -137,6 +137,7 @@ export function mountScreen(
     portraitPictureChoices: [] as ResolvedPortraitPictures[],
     portraitPictureResets: 0,
     deletes: 0,
+    sharesOpened: 0,
     adds: 0,
     plays: 0,
     playedFrom: [] as string[],
@@ -177,72 +178,74 @@ export function mountScreen(
     },
     onError: (error: unknown) => calls.errors.push(error),
     onEditMusic: () => (calls.musicEdits += 1),
-    onTransition: (transition: SlideshowTransition) => {
-      calls.transitions.push(transition);
-      props.slideshow = { ...props.slideshow, transition };
-    },
-    onResetTransition: () => {
-      calls.transitionResets += 1;
-      props.slideshow = { ...props.slideshow, transition: "crossfade" };
-    },
-    onLook: (look: SlideshowLook) => {
-      calls.looks.push(look);
-      props.slideshow = { ...props.slideshow, look };
-    },
-    onResetLook: () => {
-      calls.lookResets += 1;
-      props.slideshow = { ...props.slideshow, look: "none" };
-    },
     moodBpm,
     moodBeats,
     moodPreviewPorts,
-    onMood: (mood: SlideshowMood | undefined) => {
-      calls.moods.push(mood);
-      props.slideshow = withMood(props.slideshow, mood);
-    },
-    onResetMood: () => {
-      calls.moodResets += 1;
-      props.slideshow = withMood(props.slideshow, undefined);
-    },
-    onEnergyPacing: (on: boolean) => {
-      calls.energyPacingChoices.push(on);
-      props.slideshow = { ...props.slideshow, energyPacing: on };
-    },
-    onPortraitPictures: (choice: ResolvedPortraitPictures) => {
-      calls.portraitPictureChoices.push(choice);
-      props.slideshow = { ...props.slideshow, portraitPictures: choice };
-    },
-    onResetPortraitPictures: () => {
-      calls.portraitPictureResets += 1;
-      props.slideshow = { ...props.slideshow, portraitPictures: "automatic" };
-    },
-    onEnsureOpeningCard: () => {
-      calls.openingCardsEnsured += 1;
-      const created = props.slideshow.openingCard ?? DEFAULT_OPENING_CARD;
-      props.slideshow = withOpeningCard(props.slideshow, created);
-      return created;
-    },
-    onOpeningCard: (card: CardInput) => {
-      calls.openingCards.push(card);
-      props.slideshow = withOpeningCard(props.slideshow, card as StoredCard);
-    },
-    onRemoveOpeningCard: () => {
-      calls.openingCardsRemoved += 1;
-      props.slideshow = withOpeningCard(props.slideshow, undefined);
-    },
-    onEnsureClosingCard: () => {
-      calls.closingCardsEnsured += 1;
-      const created = props.slideshow.closingCard ?? DEFAULT_CLOSING_CARD;
-      props.slideshow = withClosingCard(props.slideshow, created);
-      return created;
-    },
-    onClosingCard: (card: CardInput) => {
-      calls.closingCards.push(card);
-      props.slideshow = withClosingCard(props.slideshow, card as StoredCard);
-    },
-    onRemoveClosingCard: () => {
-      calls.closingCardsRemoved += 1;
-      props.slideshow = withClosingCard(props.slideshow, undefined);
+    editCommands: {
+      onTransition: (transition: SlideshowTransition) => {
+        calls.transitions.push(transition);
+        props.slideshow = { ...props.slideshow, transition };
+      },
+      onResetTransition: () => {
+        calls.transitionResets += 1;
+        props.slideshow = { ...props.slideshow, transition: "crossfade" };
+      },
+      onLook: (look: SlideshowLook) => {
+        calls.looks.push(look);
+        props.slideshow = { ...props.slideshow, look };
+      },
+      onResetLook: () => {
+        calls.lookResets += 1;
+        props.slideshow = { ...props.slideshow, look: "none" };
+      },
+      onMood: (mood: SlideshowMood | undefined) => {
+        calls.moods.push(mood);
+        props.slideshow = withMood(props.slideshow, mood);
+      },
+      onResetMood: () => {
+        calls.moodResets += 1;
+        props.slideshow = withMood(props.slideshow, undefined);
+      },
+      onEnergyPacing: (on: boolean) => {
+        calls.energyPacingChoices.push(on);
+        props.slideshow = { ...props.slideshow, energyPacing: on };
+      },
+      onPortraitPictures: (choice: ResolvedPortraitPictures) => {
+        calls.portraitPictureChoices.push(choice);
+        props.slideshow = { ...props.slideshow, portraitPictures: choice };
+      },
+      onResetPortraitPictures: () => {
+        calls.portraitPictureResets += 1;
+        props.slideshow = { ...props.slideshow, portraitPictures: "automatic" };
+      },
+      onEnsureOpeningCard: () => {
+        calls.openingCardsEnsured += 1;
+        const created = props.slideshow.openingCard ?? DEFAULT_OPENING_CARD;
+        props.slideshow = withOpeningCard(props.slideshow, created);
+        return created;
+      },
+      onOpeningCard: (card: CardInput) => {
+        calls.openingCards.push(card);
+        props.slideshow = withOpeningCard(props.slideshow, card as StoredCard);
+      },
+      onRemoveOpeningCard: () => {
+        calls.openingCardsRemoved += 1;
+        props.slideshow = withOpeningCard(props.slideshow, undefined);
+      },
+      onEnsureClosingCard: () => {
+        calls.closingCardsEnsured += 1;
+        const created = props.slideshow.closingCard ?? DEFAULT_CLOSING_CARD;
+        props.slideshow = withClosingCard(props.slideshow, created);
+        return created;
+      },
+      onClosingCard: (card: CardInput) => {
+        calls.closingCards.push(card);
+        props.slideshow = withClosingCard(props.slideshow, card as StoredCard);
+      },
+      onRemoveClosingCard: () => {
+        calls.closingCardsRemoved += 1;
+        props.slideshow = withClosingCard(props.slideshow, undefined);
+      },
     },
     chapterEditor,
     previewPorts: { clock, frames },
@@ -250,7 +253,7 @@ export function mountScreen(
     onDelete: () => (calls.deletes += 1),
     exportState: { kind: "idle", sizeBytes: null } as ExportMenuState,
     onExport: () => Promise.resolve("saved" as const),
-    onShareOpened: () => {},
+    onShareOpened: () => (calls.sharesOpened += 1),
     newVideoExport: () => {
       throw new Error("the video export sheet is not opened in these tests");
     },

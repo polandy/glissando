@@ -205,7 +205,7 @@
     onAddPictures={() => stored !== null && onAddPictures(stored)}
     {newPictureIds}
     {...pictureActions}
-    {...editorActions}
+    editCommands={editorActions}
     {onEdit}
     loadPicture={(id) => store.playbackPictureBlob(id)}
     {onError}

@@ -75,7 +75,7 @@ async function mountShare({
         },
         new FakeHtmlExportPorts(),
       ),
-    onClosed: () => (calls.closed += 1),
+    onClose: () => (calls.closed += 1),
   });
   destroy = mounted.destroy;
   const { target } = mounted;
