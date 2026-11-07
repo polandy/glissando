@@ -1,7 +1,6 @@
 <script lang="ts">
   import { onDestroy, onMount } from "svelte";
   import { SvelteMap } from "svelte/reactivity";
-  import type { ImmichAvailability } from "../../immich/immich-availability";
   import type { ImmichClient } from "../../immich/immich-client";
   import { FrameAlbumDeck } from "../../frame/frame-album-deck";
   import { RoundHandover, type RoundHandoverState } from "../../frame/round-handover";
@@ -31,7 +30,7 @@
     log,
   }: {
     albumId: string;
-    immich: { readonly client: ImmichClient; readonly availability: ImmichAvailability };
+    immich: { readonly client: ImmichClient };
     preferences: Pick<FramePreferences, "state">;
     device: FrameDevice;
     onExit: () => void;

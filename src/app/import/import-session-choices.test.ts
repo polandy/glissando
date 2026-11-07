@@ -177,7 +177,7 @@ describe("ImportSession, its choices of songs", () => {
     const { session } = await withTwoPictures();
     await session.addSongs([new File(["tune"], "Sommer.mp3", { type: "audio/mpeg" })]);
 
-    session.discard();
+    await session.discard();
 
     expect(session.pictures.state.pictures).toEqual([]);
     expect(choicesOf(session).songs).toEqual([]);

@@ -93,7 +93,7 @@ describe("AddPicturesRoute leave guard (UX-23)", () => {
 
     dialogButton(de.t("import.discard")).click();
     flushSync();
-    session.intake.discard();
+    await session.intake.discard();
 
     expect(discards).toEqual([true]);
     expect(guard(SLIDESHOW)).toBe(true);
