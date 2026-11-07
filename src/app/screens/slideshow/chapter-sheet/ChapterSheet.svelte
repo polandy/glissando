@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { onMount } from "svelte";
   import type { SlideshowChapter } from "../../../../compose/chapters-of-slideshow";
   import { withinCaptionLimit } from "../../../../player/caption";
   import ResetButton from "../../../components/ResetButton.svelte";
   import SectionHead from "../../../components/SectionHead.svelte";
+  import Sheet from "../../../components/Sheet.svelte";
   import Switch from "../../../components/Switch.svelte";
   import type { ChapterSettingsEditor } from "../../../editing/chapter-settings-editor";
   import { getTranslator } from "../../../i18n/context";
@@ -41,25 +41,6 @@
   );
   const face = $derived(chapter === null ? null : chapterPreviewFace(chapter, slideshow.pictures));
 
-  let dialog: HTMLDialogElement;
-
-  onMount(() => {
-    dialog.showModal();
-    return () => dialog.close();
-  });
-
-  function cancel(event: Event): void {
-    event.preventDefault();
-    onClose();
-  }
-
-  // The sheet fills the dialog, so a click that lands on the dialog itself is on its backdrop.
-  function closeOnScrim(event: MouseEvent): void {
-    if (event.target === dialog) {
-      onClose();
-    }
-  }
-
   function titleInput(current: SlideshowChapter, target: HTMLInputElement): void {
     const capped = withinCaptionLimit(target.value);
     if (capped !== target.value) {
@@ -88,105 +69,78 @@
   );
 </script>
 
-<dialog
-  bind:this={dialog}
-  aria-labelledby="chapter-sheet-title"
-  oncancel={cancel}
-  onclick={closeOnScrim}
->
-  <div class="sheet">
-    <SectionHead id="chapter-sheet-title" title={sheetTitle} own={false} />
+<Sheet labelId="chapter-sheet-title" width="narrow" gap="roomy" {onClose}>
+  <SectionHead id="chapter-sheet-title" title={sheetTitle} own={false} />
 
-    {#if chapter !== null && face !== null}
-      <div class="preview">
-        <CardFace
-          card={face.card}
-          pictureUrl={face.pictureUrl}
-          elapsedMs={CARD_PREVIEW_SETTLED_MS}
-          fonts={document.fonts}
+  {#if chapter !== null && face !== null}
+    <div class="preview">
+      <CardFace
+        card={face.card}
+        pictureUrl={face.pictureUrl}
+        elapsedMs={CARD_PREVIEW_SETTLED_MS}
+        fonts={document.fonts}
+      />
+    </div>
+
+    <section class="field">
+      <label class="eyebrow" for="chapter-title">{t("chapters.titleLabel")}</label>
+      <input
+        id="chapter-title"
+        class="input"
+        type="text"
+        value={chapter.title}
+        autocomplete="off"
+        oninput={(event) => titleInput(chapter, event.currentTarget)}
+      />
+      <ResetButton
+        automatic={!chapter.titleEdited}
+        alreadyAutomatic={t("chapters.titleAlreadyAutomatic")}
+        onReset={() => resetChapterTitle(chapterEditor, chapter)}
+      />
+    </section>
+
+    <section class="field">
+      <label class="eyebrow" for="chapter-subtitle">{t("chapters.subtitleLabel")}</label>
+      <input
+        id="chapter-subtitle"
+        class="input"
+        type="text"
+        value={chapter.subtitle}
+        autocomplete="off"
+        oninput={(event) => subtitleInput(chapter, event.currentTarget)}
+      />
+      <ResetButton
+        automatic={!chapter.subtitleEdited}
+        alreadyAutomatic={t("chapters.subtitleAlreadyAutomatic")}
+        onReset={() => resetChapterSubtitle(chapterEditor, chapter)}
+      />
+    </section>
+
+    {#if chapter.kind === "automatic"}
+      <div class="row switch-row">
+        <div>
+          <b>{t("chapters.hideSwitch")}</b>
+          <small>{t("chapters.hideHelper")}</small>
+        </div>
+        <Switch
+          checked={chapter.hidden}
+          label={t("chapters.hideSwitch")}
+          onChange={(hidden) => chapterEditor?.setChapterHidden(chapter.anchorPictureId, hidden)}
         />
       </div>
-
-      <section class="field">
-        <label class="eyebrow" for="chapter-title">{t("chapters.titleLabel")}</label>
-        <input
-          id="chapter-title"
-          class="input"
-          type="text"
-          value={chapter.title}
-          autocomplete="off"
-          oninput={(event) => titleInput(chapter, event.currentTarget)}
-        />
-        <ResetButton
-          automatic={!chapter.titleEdited}
-          alreadyAutomatic={t("chapters.titleAlreadyAutomatic")}
-          onReset={() => resetChapterTitle(chapterEditor, chapter)}
-        />
-      </section>
-
-      <section class="field">
-        <label class="eyebrow" for="chapter-subtitle">{t("chapters.subtitleLabel")}</label>
-        <input
-          id="chapter-subtitle"
-          class="input"
-          type="text"
-          value={chapter.subtitle}
-          autocomplete="off"
-          oninput={(event) => subtitleInput(chapter, event.currentTarget)}
-        />
-        <ResetButton
-          automatic={!chapter.subtitleEdited}
-          alreadyAutomatic={t("chapters.subtitleAlreadyAutomatic")}
-          onReset={() => resetChapterSubtitle(chapterEditor, chapter)}
-        />
-      </section>
-
-      {#if chapter.kind === "automatic"}
-        <div class="row switch-row">
-          <div>
-            <b>{t("chapters.hideSwitch")}</b>
-            <small>{t("chapters.hideHelper")}</small>
-          </div>
-          <Switch
-            checked={chapter.hidden}
-            label={t("chapters.hideSwitch")}
-            onChange={(hidden) => chapterEditor?.setChapterHidden(chapter.anchorPictureId, hidden)}
-          />
-        </div>
-      {:else}
-        <button class="btn small ghost" type="button" onclick={() => deleteChapter(chapter)}>
-          {t("chapters.deleteChapter")}
-        </button>
-      {/if}
+    {:else}
+      <button class="btn small ghost" type="button" onclick={() => deleteChapter(chapter)}>
+        {t("chapters.deleteChapter")}
+      </button>
     {/if}
+  {/if}
 
-    <footer>
-      <button class="btn primary" type="button" onclick={onClose}>{t("slideshow.done")}</button>
-    </footer>
-  </div>
-</dialog>
+  <footer>
+    <button class="btn primary" type="button" onclick={onClose}>{t("slideshow.done")}</button>
+  </footer>
+</Sheet>
 
 <style>
-  dialog {
-    width: calc(100% - 40px);
-    max-width: 480px;
-    max-height: calc(100% - 48px);
-    padding: 0;
-    overflow: auto;
-    border: 1px solid var(--gl-line);
-    border-radius: var(--gl-radius-large);
-    background: var(--gl-surface);
-    color: var(--gl-ink);
-    box-shadow: var(--gl-shadow);
-  }
-  dialog::backdrop {
-    background: var(--gl-backdrop);
-  }
-  .sheet {
-    display: grid;
-    gap: 16px;
-    padding: 18px;
-  }
   .preview {
     aspect-ratio: 4 / 3;
     overflow: hidden;
@@ -234,19 +188,5 @@
   footer {
     display: flex;
     justify-content: flex-end;
-  }
-  @media (max-width: 720px) {
-    dialog {
-      inset: auto 0 0;
-      width: auto;
-      max-width: none;
-      max-height: 85%;
-      margin: 0;
-      border-width: 1px 0 0;
-      border-radius: var(--gl-radius-large) var(--gl-radius-large) 0 0;
-    }
-    .sheet {
-      padding-bottom: calc(18px + env(safe-area-inset-bottom));
-    }
   }
 </style>

@@ -25,7 +25,6 @@ Each fix starts with the failing test the item names or implies (WORKFLOW.md, Te
 
 ### Screens
 
-- [ ] `src/app/screens/slideshow/{Look,Mood,PortraitPictures,Transitions,Focus,Chapter}Sheet.svelte`, `card-sheet/CardSheet.svelte` — Dialog scaffolding (showModal/close, cancel, scrim click, ~35 lines of CSS) copied seven times although `export-sheet/ExportDialog.svelte` is that frame. Fix: promote it to `components/Sheet.svelte` and use it everywhere.
 - [ ] `src/app/screens/slideshow/card-sheet/CardSheet.svelte:147,157`, `CardBackgroundPicker.svelte:94,104,148` — `role="radio"` buttons without arrow keys or roving tabindex. Fix: `components/RadioGroup.svelte` / `radioIndexForKey`.
 - [ ] `src/app/screens/slideshow/card-sheet/CardTintPicker.svelte:53`, `CardEntrancePicker.svelte:53`, `CardSheet.svelte`, `CardBackgroundPicker.svelte` `.option` — Chips and options are ~30 px tall, below the 44 px hit rule, and the touch-target test covers no sheet but the tile panels (BRAND.md:105). Fix: `min-height: var(--gl-hit-min)` under coarse pointer; add CardSheet, ShareChooser, MoveToSheet, DeleteDialog, MoreMenu and GlissandoFileSheet to the touch-targets test.
 - [ ] `src/app/screens/slideshow-screen-viewer.browser.test.ts:85` — "hides Remove on the last picture" asserts only that the pill is absent, with no proof the viewer opened. Fix: assert another viewer control first.
@@ -120,6 +119,7 @@ Each fix starts with the failing test the item names or implies (WORKFLOW.md, Te
 
 ### Screens
 
+- [ ] `src/app/settings/SettingsSheet.svelte`, `src/app/screens/slideshow/export-sheet/ExportDialog.svelte` — Still carry their own dialog frame beside `components/Sheet.svelte`; their metrics differ (Settings docks top right, Export pads 20 px and grows to 92 %). Fix: settle the metrics, then frame both with `Sheet`.
 - [ ] `src/app/screens/slideshow-screen-strip-marks.browser.test.ts:39-40` — `toBeDefined()` on a `querySelector` result cannot fail; `expect.poll` on `:hover` is polling. Fix: `not.toBeNull()`, await the hover event.
 - [ ] `src/app/screens/slideshow/{Look,Mood,Transitions,PortraitPictures}Sheet.svelte` — Each reimplements radio arrow-key handling although `components/RadioGroup.svelte` exists. Fix: use it.
 - [ ] `src/app/screens/slideshow/MoreMenu.svelte:103,131` — `role="menu"` without arrow navigation; Tab leaves it open; double `<hr>` when `storage` is null. Fix: arrow keys; render the separator only before a non-empty group.
