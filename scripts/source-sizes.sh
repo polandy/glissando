@@ -15,7 +15,8 @@ while IFS= read -r -d '' file; do
     echo "FAIL $file is $lines lines, over the ${limit_lines}-line limit"
     failed=1
   fi
-done < <(find src e2e scripts -type f \( -name '*.ts' -o -name '*.svelte' -o -name '*.js' -o -name '*.sh' \) \
+done < <(find src e2e scripts server build deploy -type f \
+  \( -name '*.ts' -o -name '*.svelte' -o -name '*.js' -o -name '*.mjs' -o -name '*.sh' \) \
   -not -path 'src/app/i18n/catalogue-*.ts' -not -path 'src/import/libav/*' -print0)
 
 exit "$failed"
