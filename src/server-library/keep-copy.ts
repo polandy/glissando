@@ -30,8 +30,6 @@ export interface KeepCopyPorts {
 export interface KeepCopyOptions {
   /** The titles on this device; the copy never takes one of them. */
   readonly existingTitles: readonly string[];
-  /** Cancels the copy; it then rejects with the signal's reason. */
-  readonly signal: AbortSignal;
   /** The share of the pictures and music copied so far, from 0 to 1. */
   readonly onProgress?: (fraction: number) => void;
 }
@@ -43,7 +41,7 @@ export interface KeepCopyOptions {
  * faces lookup, e.g. confirmed or found by scenery), else Immich's faces. All or nothing, as
  * `writeGlissandoFile`: every media id is claimed before its media is written and the record is
  * saved last, so a failure (e.g. `PictureNotDownloadedError` for a picture no longer in Immich)
- * or a cancel keeps nothing.
+ * keeps nothing.
  */
 export async function keepCopyOnDevice(
   slideshow: StoredSlideshow,
@@ -58,7 +56,6 @@ export async function keepCopyOnDevice(
   const stepDone = () => options.onProgress?.(++done / steps);
 
   const claimed = async (write: (id: string) => Promise<void>): Promise<string> => {
-    options.signal.throwIfAborted();
     const id = ports.newId();
     await store.claimMedia(claimId, startedAt, id);
     await write(id);
@@ -93,7 +90,6 @@ export async function keepCopyOnDevice(
       const id = await claimed((musicId) => store.putMusic(musicId, audio));
       songs.push({ ...song, id });
     }
-    options.signal.throwIfAborted();
     const copy: StoredSlideshow = {
       ...slideshow,
       id: ports.newId(),

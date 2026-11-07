@@ -69,7 +69,10 @@ The wizard's choice and server mode: [Where a new slideshow lives](NEW_SLIDESHOW
   through `decodePicture`, each picture's own focus ([FOCUS.md](FOCUS.md)), claims, all or
   nothing, title made unique; a picture no longer in Immich fails the copy —
   `keepCopyOnDevice`), the header progress
-  "Copying “title” … 34 %"; done: toast "Copied to this device" with "Open".
+  "Copying “title” … 34 %"; done: toast "Copied to this device" with "Open". Copies of different
+  slideshows run side by side, each with its own progress (`ServerCopyFlows`); choosing it again
+  while that slideshow's copy runs joins the running copy. A copy runs to its end: there is no
+  cancel.
 - A device slideshow's ⋯ menu adds (server library on) "Save on the server" ("A copy for every
   device at home"). All pictures from Immich: the sheet "Save on the server?" — "Every device that
   opens this Glissando can then play and edit it. Its n pictures stay in Immich and are linked,

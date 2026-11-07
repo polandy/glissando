@@ -49,13 +49,9 @@ function setUp() {
     now: () => COPIED_AT,
     log: () => undefined,
   };
-  const keep = (
-    slideshow: StoredSlideshow,
-    options: { existingTitles?: string[]; signal?: AbortSignal } = {},
-  ) =>
+  const keep = (slideshow: StoredSlideshow, options: { existingTitles?: string[] } = {}) =>
     keepCopyOnDevice(slideshow, ports, {
       existingTitles: options.existingTitles ?? [],
-      signal: options.signal ?? new AbortController().signal,
       onProgress: (fraction) => progress.push(fraction),
     });
   return { store, immich, serverMusic, serverFocus, progress, keep };
@@ -180,18 +176,5 @@ describe("keepCopyOnDevice", () => {
     expect(error).toBeInstanceOf(PictureNotDownloadedError);
     expect(await store.listSlideshows()).toEqual([kept]);
     expect(await rejection(store.pictureBlob("id-2"))).toBeInstanceOf(MediaNotFoundError);
-  });
-
-  it("keeps nothing when cancelled, rejecting with the signal's reason", async () => {
-    const { store, immich, keep } = setUp();
-    immich.add("asset-1");
-    const cancel = new AbortController();
-    const cancelled = new Error("cancelled");
-    cancel.abort(cancelled);
-
-    const error = await rejection(keep(serverSlideshow(), { signal: cancel.signal }));
-
-    expect(error).toBe(cancelled);
-    expect(await store.listSlideshows()).toEqual([]);
   });
 });
