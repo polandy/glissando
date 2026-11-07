@@ -11,6 +11,7 @@ import {
   FakeRenderer,
 } from "./testing/fakes";
 import { VIDEO_DUCK_RAMP_DOWN_MS, VIDEO_DUCK_VOLUME } from "./video-duck";
+import { settleMicrotasks } from "../testing/settle-microtasks";
 
 const STILL = {
   from: { zoom: 1, centerX: 0.5, centerY: 0.5 },
@@ -164,8 +165,7 @@ describe("a player with video slides", () => {
     await run.showing("v.jpg");
     run.videos.only().refuseNextPlay(new Error("NotAllowedError"));
     run.player.play();
-    await Promise.resolve();
-    await Promise.resolve();
+    await settleMicrotasks();
     expect(run.errors).toHaveLength(1);
     expect(run.player.error).toBeInstanceOf(VideoPlaybackError);
     expect(run.player.paused).toBe(true);
@@ -216,7 +216,7 @@ describe("renderAt with a video frame source", () => {
   it("draws the clip's frame at startMs plus the slide's time", async () => {
     const run = setUp({ frames: true });
     const drawn = run.player.renderAt(5);
-    await Promise.resolve();
+    await settleMicrotasks();
     run.pictures.complete("v.jpg");
     await drawn;
     expect(run.frameSources[0]?.requested).toEqual([3000]);

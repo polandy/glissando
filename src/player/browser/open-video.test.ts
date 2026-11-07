@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { openVideoElement } from "./open-video";
 import type { ClipSoundOutput } from "./music-output";
 import type { VideoOutput } from "./video-playback";
+import { settleMicrotasks } from "../../testing/settle-microtasks";
 
 const OUTPUT: VideoOutput = {
   unlock: () => undefined,
@@ -87,8 +88,7 @@ describe("openVideoElement", () => {
     playback.dispose();
 
     arrive(new Blob(["x"]));
-    await Promise.resolve();
-    await Promise.resolve();
+    await settleMicrotasks();
 
     expect(revoked).toEqual(["blob:clip"]);
   });
@@ -102,21 +102,21 @@ describe("openVideoElement's clip sound", () => {
     const { open } = setUp(read, decodeClipSound);
 
     open("media-1").dispose();
-    await Promise.resolve();
-    await Promise.resolve();
+    await settleMicrotasks();
 
     expect(read).toHaveBeenCalledTimes(1);
     expect(decodeClipSound).toHaveBeenCalledWith(blob);
   });
 
   it("never decodes a silent clip: no decoder call for a clip with no volume", async () => {
+    const read = vi.fn(() => Promise.resolve(new Blob(["x"])));
     const decodeClipSound = vi.fn(() => Promise.resolve(null));
-    const { open } = setUp(() => Promise.resolve(new Blob(["x"])), decodeClipSound);
+    const { open } = setUp(read, decodeClipSound);
 
     open("media-1", 0).dispose();
-    await Promise.resolve();
-    await Promise.resolve();
+    await settleMicrotasks();
 
+    expect(read).toHaveBeenCalledTimes(1);
     expect(decodeClipSound).not.toHaveBeenCalled();
   });
 
@@ -143,8 +143,7 @@ describe("openVideoElement's clip sound", () => {
 
       const playback = open("media-1");
       await playback.play(0);
-      await Promise.resolve();
-      await Promise.resolve();
+      await settleMicrotasks();
 
       expect(warned).toHaveLength(1);
     } finally {

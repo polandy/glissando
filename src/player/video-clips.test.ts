@@ -3,6 +3,7 @@ import { VideoPlaybackError } from "./ports";
 import type { PictureSlide, Slide } from "./slideshow";
 import { FakeVideos, fakeLiveFrame, labelOf } from "./testing/fake-videos";
 import { VideoClips } from "./video-clips";
+import { settleMicrotasks } from "../testing/settle-microtasks";
 
 const STILL = {
   from: { zoom: 1, centerX: 0.5, centerY: 0.5 },
@@ -75,7 +76,7 @@ describe("video clips", () => {
     videos.readyOnOpen = false;
     let resolved = false;
     const pending = clips.whenReady(11_000).then(() => (resolved = true));
-    await Promise.resolve();
+    await settleMicrotasks();
     expect(videos.opened).toHaveLength(2);
     expect(resolved).toBe(false);
 
@@ -163,8 +164,7 @@ describe("video clips", () => {
     const cause = new Error("NotAllowedError");
     videos.only().refuseNextPlay(cause);
     clips.play(11_000);
-    await Promise.resolve();
-    await Promise.resolve();
+    await settleMicrotasks();
     expect(errors).toHaveLength(1);
     expect(errors[0]).toBeInstanceOf(VideoPlaybackError);
     expect(errors[0]?.cause).toBe(cause);
@@ -181,7 +181,8 @@ describe("video clips", () => {
     videos.readyOnOpen = false;
     let resolved = false;
     const pending = clips.whenReady(10_000).then(() => (resolved = true));
-    await Promise.resolve();
+    await settleMicrotasks();
+    expect(videos.opened).toHaveLength(1);
     expect(resolved).toBe(false);
 
     videos.only().becomeReady();
@@ -207,7 +208,8 @@ describe("video clips", () => {
       videos.readyOnOpen = false;
       let resolved = false;
       const pending = clips.whenReady(9500).then(() => (resolved = true));
-      await Promise.resolve();
+      await settleMicrotasks();
+      expect(videos.opened).toHaveLength(1);
       expect(resolved).toBe(false);
 
       videos.only().becomeReady();

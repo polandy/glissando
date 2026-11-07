@@ -8,6 +8,7 @@ import { whenRendered } from "../testing/when-rendered";
 import { FramePreferences, createStorageFramePreferences } from "./frame-preferences";
 import type { FrameDevice } from "./browser-frame-device";
 import FrameSetupRoute from "./FrameSetupRoute.svelte";
+import { settleMicrotasks } from "../../testing/settle-microtasks";
 
 function album(id: string, name: string): ImmichAlbum {
   return { id, name, photoCount: 1, coverId: null, startDate: null, endDate: null };
@@ -166,9 +167,7 @@ describe("FrameSetupRoute", () => {
     await albumsCall.promise?.catch(() => undefined);
     // `FrameAlbums#fetch`'s rethrow reaches this route's own catch through its `finally` and the
     // `load()` promise it returns: a couple of microtask hops past the rejection above.
-    await Promise.resolve();
-    await Promise.resolve();
-    await Promise.resolve();
+    await settleMicrotasks();
 
     expect(logged).toEqual([bug]);
   });

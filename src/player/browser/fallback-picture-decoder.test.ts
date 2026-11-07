@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { PictureDecoder } from "./bitmap-loader";
 import { FallbackPictureDecoder } from "./fallback-picture-decoder";
 import { PictureDecodeError } from "./worker-picture-decoder";
+import { settleMicrotasks } from "../../testing/settle-microtasks";
 
 /** A decoder whose decodes stay pending until the test settles them, in any order. */
 class FakeDecoder implements PictureDecoder {
@@ -46,11 +47,8 @@ const SECOND = new Blob(["second"]);
 const BITMAP = { width: 4, height: 3 } as ImageBitmap;
 const OTHER_BITMAP = { width: 2, height: 1 } as ImageBitmap;
 
-/** Lets every already-settled promise run its reactions. */
 async function settled(): Promise<void> {
-  await Promise.resolve();
-  await Promise.resolve();
-  await Promise.resolve();
+  await settleMicrotasks();
 }
 
 describe("FallbackPictureDecoder", () => {

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { PictureFocus } from "../picture-focus";
 import { FakeFocusDetector } from "./fake-focus-detector";
+import { settleMicrotasks } from "../../testing/settle-microtasks";
 
 const FACE: PictureFocus = {
   kind: "subject",
@@ -41,7 +42,7 @@ describe("FakeFocusDetector", () => {
     let settled: PictureFocus | undefined;
 
     const detection = detector.detect(new Blob()).then((focus) => (settled = focus));
-    await Promise.resolve();
+    await settleMicrotasks();
     expect(detector.calls).toBe(1);
     expect(settled).toBeUndefined();
 

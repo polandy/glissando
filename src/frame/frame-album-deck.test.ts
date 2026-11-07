@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { FrameAlbumDeck } from "./frame-album-deck";
 import { ROUND_SIZE } from "./frame-deck";
+import { settleMicrotasks } from "../testing/settle-microtasks";
 
 function picture(id: string, takenAt = "2025-01-01T00:00:00Z") {
   return { id, takenAt, size: null };
@@ -51,8 +52,7 @@ describe("FrameAlbumDeck", () => {
     deck.nextRound();
 
     expect(refreshed).toBe(true);
-    await Promise.resolve();
-    await Promise.resolve();
+    await settleMicrotasks();
 
     const round = deck.nextRound();
     expect(round.picturesById.get("c")).toEqual(picture("c"));
@@ -87,8 +87,7 @@ describe("FrameAlbumDeck", () => {
     });
 
     deck.nextRound();
-    await Promise.resolve();
-    await Promise.resolve();
+    await settleMicrotasks();
 
     expect(failures).toHaveLength(1);
     expect(deck.nextRound().pictureIds).toEqual(["a", "b"]);
