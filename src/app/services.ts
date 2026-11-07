@@ -81,6 +81,8 @@ export interface AppServices extends ServerSlideshowSessions {
   newId(): string;
   /** The current instant. */
   now(): Date;
+  /** Uniform in [0, 1); what shuffles draw their order from. */
+  random(): number;
   /** This screen's short edge in device pixels, what the automatic playback quality goes by. */
   screenShortEdge(): number;
   /** Deletes media no slideshow uses and no claim in any tab spares; reports failures. */
