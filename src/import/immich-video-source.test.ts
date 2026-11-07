@@ -30,7 +30,6 @@ function setUp(video: () => Promise<Blob>, playable = true) {
         faceCalls.push(id);
         return Promise.resolve([]);
       },
-      gps: () => Promise.resolve(null),
     },
     decode: (file) =>
       Promise.resolve({
@@ -89,7 +88,6 @@ describe("immichPictureSource for a video", () => {
         original: () => Promise.reject(new Error("no")),
         thumbnail: () => Promise.reject(new Error("no")),
         faces: () => Promise.resolve([]),
-        gps: () => Promise.resolve(null),
       },
       decode: () => Promise.reject(new Error("no")),
       reportUnavailable: () => undefined,

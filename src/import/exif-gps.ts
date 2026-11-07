@@ -78,8 +78,14 @@ function readGpsCoordinates(data: DataView, tiffStart: number): ExifGps | null {
     return null;
   }
 
-  const latitude = latitudeSign * latitudeMagnitude;
-  const longitude = longitudeSign * longitudeMagnitude;
+  return gpsCoordinate(latitudeSign * latitudeMagnitude, longitudeSign * longitudeMagnitude);
+}
+
+/**
+ * The coordinate, or null for the no-fix sentinel or a value off the globe: a camera's bad
+ * reading, which leaves the picture unplaced rather than failing its import.
+ */
+export function gpsCoordinate(latitude: number, longitude: number): ExifGps | null {
   if (latitude === NO_GPS_DATA_SENTINEL && longitude === NO_GPS_DATA_SENTINEL) {
     return null;
   }

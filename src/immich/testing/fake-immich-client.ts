@@ -1,4 +1,3 @@
-import type { ExifGps } from "../../import/exif-gps";
 import type {
   ImmichAlbum,
   ImmichClient,
@@ -91,10 +90,6 @@ export class FakeImmichClient implements ImmichClient {
 
   faces(): Promise<readonly ImmichFace[]> {
     return Promise.resolve([]);
-  }
-
-  gps(): Promise<ExifGps | null> {
-    return Promise.resolve(null);
   }
 }
 

@@ -118,7 +118,6 @@ echo "# allowed reads reach Immich, without the prefix, with only the server's k
 allowed=(
 	"GET /immich/api/server/version /api/server/version"
 	"GET /immich/api/albums /api/albums"
-	"GET /immich/api/assets/$UUID /api/assets/$UUID"
 	"GET /immich/api/assets/$UUID/thumbnail?size=preview /api/assets/$UUID/thumbnail?size=preview"
 	"GET /immich/api/assets/$UUID/original /api/assets/$UUID/original"
 	"GET /immich/api/assets/$UUID/video/playback /api/assets/$UUID/video/playback"
@@ -144,7 +143,7 @@ forbidden=(
 	"GET /immich/api/assets/not-a-uuid-but-thirty-six-characters/video/playback"
 	"POST /immich/api/assets/$UUID/video/playback"
 	"GET /immich/api/assets/not-a-uuid-but-thirty-six-characters/original"
-	"GET /immich/api/assets/not-a-uuid-but-thirty-six-characters"
+	"GET /immich/api/assets/$UUID"
 	"GET /immich/api/assets/$UUID/"
 	"PUT /immich/api/assets/$UUID"
 	"DELETE /immich/api/assets/$UUID"

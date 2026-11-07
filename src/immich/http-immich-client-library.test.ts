@@ -62,6 +62,7 @@ describe("HttpImmichClient reading the library", () => {
       takenAt: "2025-07-12T14:30:00Z",
       size: { width: 520, height: 671 },
       place: "Annecy",
+      gps: null,
     });
     expect(page.photos).toHaveLength(3);
     expect(page.nextPage).toBe(2);

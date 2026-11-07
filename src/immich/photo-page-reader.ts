@@ -1,3 +1,4 @@
+import { gpsCoordinate, type ExifGps } from "../import/exif-gps";
 import type { ImmichPhoto, ImmichPhotoPage } from "./immich-client";
 import type { ImmichJsonReader, JsonRecord } from "./immich-json";
 
@@ -23,6 +24,7 @@ export function readPhotoPage(
     const type = reader.optionalString(asset, "type");
     if (type === VIDEO_ASSET_TYPE && !withVideos) return [];
     if (type !== null && type !== IMAGE_ASSET_TYPE && type !== VIDEO_ASSET_TYPE) return [];
+    const exif = exifOf(reader, asset);
     const photo: ImmichPhoto = {
       id: reader.string(asset, "id"),
       fileName: reader.string(asset, "originalFileName"),
@@ -31,7 +33,8 @@ export function readPhotoPage(
         reader.optionalNumber(asset, "width"),
         reader.optionalNumber(asset, "height"),
       ),
-      place: placeOf(reader, asset),
+      place: placeOf(reader, exif),
+      gps: gpsOf(reader, exif),
     };
     return [
       type === VIDEO_ASSET_TYPE
@@ -50,11 +53,24 @@ function photoSize(width: number | null, height: number | null): ImmichPhoto["si
   return width === null || height === null || width <= 0 || height <= 0 ? null : { width, height };
 }
 
-/** The EXIF city; Immich leaves `exifInfo` or the city out for a picture it could not place. */
-function placeOf(reader: ImmichJsonReader, asset: JsonRecord): string | null {
+/** The asset's EXIF block; `withExif` asks for it, but Immich leaves it out where it read none. */
+function exifOf(reader: ImmichJsonReader, asset: JsonRecord): JsonRecord | null {
   if (asset.exifInfo === undefined || asset.exifInfo === null) return null;
-  const city = reader.optionalString(reader.record(asset.exifInfo, '"exifInfo"'), "city");
+  return reader.record(asset.exifInfo, '"exifInfo"');
+}
+
+/** The EXIF city; Immich leaves it out for a picture it could not place. */
+function placeOf(reader: ImmichJsonReader, exif: JsonRecord | null): string | null {
+  const city = exif === null ? null : reader.optionalString(exif, "city");
   return city === "" ? null : city;
+}
+
+/** The EXIF coordinate, under the same range rule as a file's own EXIF. */
+function gpsOf(reader: ImmichJsonReader, exif: JsonRecord | null): ExifGps | null {
+  if (exif === null) return null;
+  const latitude = reader.optionalNumber(exif, "latitude");
+  const longitude = reader.optionalNumber(exif, "longitude");
+  return latitude === null || longitude === null ? null : gpsCoordinate(latitude, longitude);
 }
 
 /** A video's length in ms; null where Immich has none (it answers "0:00:00.00000" then). */

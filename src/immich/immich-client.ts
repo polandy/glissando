@@ -25,6 +25,8 @@ export interface ImmichPhoto {
   readonly size: { readonly width: number; readonly height: number } | null;
   /** The city of the capture from Immich's EXIF data; null where Immich has none. */
   readonly place?: string | null;
+  /** The GPS coordinate from Immich's EXIF data; null where Immich has none or one off the globe. */
+  readonly gps?: ExifGps | null;
   /** Present for a video (only listed with `withVideos`); its length when Immich knows it. */
   readonly video?: { readonly durationMs: number | null };
 }
@@ -120,6 +122,4 @@ export interface ImmichClient {
    */
   video(photoId: string, signal?: AbortSignal): Promise<Blob>;
   faces(photoId: string): Promise<readonly ImmichFace[]>;
-  /** The GPS coordinate Immich already read from the photo's EXIF; null when it has none. */
-  gps(photoId: string): Promise<ExifGps | null>;
 }
