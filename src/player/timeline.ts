@@ -34,7 +34,9 @@ export interface Timeline {
   frameAt(timeMs: number): TimelineFrame;
 }
 
-interface SlideSpan {
+/** Where one slide sits on the show clock; the one source for what is drawn and what plays. */
+export interface SlideSpan {
+  readonly startMs: number;
   readonly endMs: number;
   /** From its incoming transition's start (or its own start) to its end. */
   readonly visibleFromMs: number;
@@ -43,9 +45,9 @@ interface SlideSpan {
 
 /**
  * Lays slides end to end. A transition runs during the last part of the outgoing slide, and
- * the incoming slide's Ken Burns starts with it, so the total is the sum of slide durations.
+ * the incoming slide is visible from its start, so the total is the sum of slide durations.
  */
-export function createTimeline(slides: readonly Slide[]): Timeline {
+export function slideSpans(slides: readonly Slide[]): readonly SlideSpan[] {
   const spans: SlideSpan[] = [];
   let startMs = 0;
   let incomingTransitionMs = 0;
@@ -53,6 +55,7 @@ export function createTimeline(slides: readonly Slide[]): Timeline {
     const endMs = startMs + slide.durationMs;
     const outgoingTransitionMs = slide.transitionToNext?.durationMs ?? 0;
     spans.push({
+      startMs,
       endMs,
       visibleFromMs: startMs - incomingTransitionMs,
       transitionFromMs: endMs - outgoingTransitionMs,
@@ -60,23 +63,23 @@ export function createTimeline(slides: readonly Slide[]): Timeline {
     startMs = endMs;
     incomingTransitionMs = outgoingTransitionMs;
   }
-  const durationMs = startMs;
+  return spans;
+}
+
+/**
+ * Plays `slides` laid out by `slideSpans`; the incoming slide's Ken Burns starts with its
+ * transition.
+ */
+export function createTimeline(slides: readonly Slide[]): Timeline {
+  const spans = slideSpans(slides);
+  const durationMs = spans.at(-1)?.endMs ?? 0;
 
   function slideAt(index: number, timeMs: number): SlideAtTime {
     const span = spanAt(index);
     const progress = (timeMs - span.visibleFromMs) / (span.endMs - span.visibleFromMs);
-    const durationMs = slideDurationAt(index);
-    const startMs = span.endMs - durationMs;
-    const slideTimeMs = Math.min(durationMs, Math.max(0, timeMs - startMs));
+    const durationMs = span.endMs - span.startMs;
+    const slideTimeMs = Math.min(durationMs, Math.max(0, timeMs - span.startMs));
     return { index, kenBurnsProgress: Math.min(1, Math.max(0, progress)), slideTimeMs };
-  }
-
-  function slideDurationAt(index: number): number {
-    const slide = slides[index];
-    if (slide === undefined) {
-      throw new RangeError(`no slide at index ${index}`);
-    }
-    return slide.durationMs;
   }
 
   function spanAt(index: number): SlideSpan {

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { PictureSlide, Slide, SlideVideo } from "./slideshow";
+import { createTimeline } from "./timeline";
 import { createClipPlan, VIDEO_PRELOAD_MS } from "./video-clip-plan";
 
 const STILL = {
@@ -100,5 +101,34 @@ describe("a clip whose file's start falls inside the lead-in", () => {
   it("keeps the picture moving until its slide ends, reaching the file's end only then", () => {
     expect(plan(12_000)[0]).toMatchObject({ phase: "playing", clipMs: 3000 });
     expect(plan(13_999)[0]).toMatchObject({ phase: "playing", clipMs: 4999 });
+  });
+});
+
+describe("the clip plan against the timeline", () => {
+  /** Clips in the middle and at the end, with and without transitions on either side. */
+  const slides: Slide[] = [
+    picture(5000, 1500),
+    clip(2000, 6000, 1000),
+    picture(3000),
+    clip(0, 4000, 2000),
+    clip(1000, 3000),
+  ];
+  const timeline = createTimeline(slides);
+  const plan = createClipPlan(slides);
+
+  function drawnIndices(timeMs: number): readonly number[] {
+    const frame = timeline.frameAt(timeMs);
+    return frame.kind === "slide" ? [frame.slide.index] : [frame.from.index, frame.to.index];
+  }
+
+  it("has a clip on screen exactly while the timeline draws its slide", () => {
+    for (let timeMs = 0; timeMs <= timeline.durationMs; timeMs += 250) {
+      const onScreen = plan(timeMs)
+        .filter((target) => target.phase !== "waiting")
+        .map((target) => target.index);
+      const drawnClips = drawnIndices(timeMs).filter((index) => index !== 0 && index !== 2);
+
+      expect(onScreen, `at ${timeMs} ms`).toEqual(drawnClips);
+    }
   });
 });

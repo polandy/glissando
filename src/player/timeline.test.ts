@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Slide, Transition } from "./slideshow";
-import { createTimeline } from "./timeline";
+import { createTimeline, slideSpans } from "./timeline";
 
 function slide(durationMs: number, transitionToNext?: Transition): Slide {
   const base: Slide = {
@@ -86,5 +86,15 @@ describe("createTimeline", () => {
       slide: expectedSlide,
       showTimeMs,
     });
+  });
+});
+
+describe("slideSpans", () => {
+  it("places each slide end to end, visible from its incoming transition's start", () => {
+    expect(slideSpans([slide(4000, crossfade(1000)), slide(3000), slide(2000)])).toEqual([
+      { startMs: 0, endMs: 4000, visibleFromMs: 0, transitionFromMs: 3000 },
+      { startMs: 4000, endMs: 7000, visibleFromMs: 3000, transitionFromMs: 7000 },
+      { startMs: 7000, endMs: 9000, visibleFromMs: 7000, transitionFromMs: 9000 },
+    ]);
   });
 });
