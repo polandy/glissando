@@ -50,7 +50,10 @@
   // The style's fonts load once per style, not on every edit: a title/subtitle change still
   // reassigns `card`, but must not hide the text while an already-loaded font "reloads".
   let fontsReady = $state(false);
+  // A load that outlives its style must not mark the next style's fonts ready, so only the
+  // latest run may set `fontsReady`.
   let loadedStyle: Card["style"] | undefined;
+  let loadRun = 0;
   $effect(() => {
     const style = card.style;
     if (style === loadedStyle) {
@@ -58,12 +61,17 @@
     }
     loadedStyle = style;
     fontsReady = false;
+    const run = ++loadRun;
     const spec = CARD_STYLE_SPECS[style];
     loadFonts(fonts, [toFontSpec(spec.title), toFontSpec(spec.subtitle)])
       .catch((error: unknown) => {
         console.error(`the ${style} card font did not load; it draws with a fallback font`, error);
       })
-      .then(() => (fontsReady = true));
+      .then(() => {
+        if (run === loadRun) {
+          fontsReady = true;
+        }
+      });
   });
 
   function toFontSpec(spec: CardTextSpec): FontSpec {
