@@ -25,7 +25,7 @@ export interface ImmichPhoto {
   readonly size: { readonly width: number; readonly height: number } | null;
   /** The city of the capture from Immich's EXIF data; null where Immich has none. */
   readonly place?: string | null;
-  /** The GPS coordinate from Immich's EXIF data; null where Immich has none or one off the globe. */
+  /** The GPS coordinate from Immich's EXIF data; null where it has none `gpsCoordinate()` accepts. */
   readonly gps?: ExifGps | null;
   /** Present for a video (only listed with `withVideos`); its length when Immich knows it. */
   readonly video?: { readonly durationMs: number | null };
