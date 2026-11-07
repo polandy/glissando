@@ -25,7 +25,6 @@ Each fix starts with the failing test the item names or implies (WORKFLOW.md, Te
 
 ### Screens
 
-- [ ] `src/app/screens/slideshow/SlideshowEditSheets.svelte:140-185` — Seven independent open booleans plus six near-identical `closeX` functions; "two sheets open" is representable. Fix: one `openSheet: SheetKind | null` and one `close()`.
 - [ ] `src/app/screens/SlideshowScreen.svelte` — ~58 props drilled through four layers; sheets opened through an optional-chained `bind:this` chain that fails silently. Fix: editor commands in a context object, sheets opened via state.
 - [ ] `src/app/screens/slideshow/{Look,Mood,PortraitPictures,Transitions,Focus,Chapter}Sheet.svelte`, `card-sheet/CardSheet.svelte` — Dialog scaffolding (showModal/close, cancel, scrim click, ~35 lines of CSS) copied seven times although `export-sheet/ExportDialog.svelte` is that frame. Fix: promote it to `components/Sheet.svelte` and use it everywhere.
 - [ ] `src/app/screens/slideshow/card-sheet/CardSheet.svelte:147,157`, `CardBackgroundPicker.svelte:94,104,148` — `role="radio"` buttons without arrow keys or roving tabindex. Fix: `components/RadioGroup.svelte` / `radioIndexForKey`.
