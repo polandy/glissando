@@ -42,7 +42,8 @@ const NO_FOCUS: ReadonlyMap<string, PictureFocus> = new Map();
 
 /**
  * The slideshow as it is now. While the revision is still `known`'s, `known` is kept, songs and
- * all; otherwise each song it plays is fetched once and made a URL by `createUrl`.
+ * all; otherwise each song it plays is fetched once and made a URL by `createUrl`. URLs are made
+ * only once every song has arrived, so a failed load leaves none to revoke.
  */
 export async function loadSharedShow(
   api: ShareApi,
@@ -63,13 +64,15 @@ export async function loadSharedShow(
   );
   const playedSongs = [...new Set(byKey.music?.map(({ src }) => src))];
   const songIndex = new Map(answer.slideshow.songs.map(({ id }, index) => [id, index]));
-  const songUrls = await Promise.all(
-    playedSongs.map(async (key) => {
-      const index = songIndex.get(key);
-      if (index === undefined) throw new Error(`the shared slideshow plays no song ${key}`);
-      return [key, createUrl(await api.song(index))] as const;
-    }),
+  const played = playedSongs.map((key) => {
+    const index = songIndex.get(key);
+    if (index === undefined) throw new Error(`the shared slideshow plays no song ${key}`);
+    return { key, index };
+  });
+  const blobs = await Promise.all(
+    played.map(async ({ key, index }) => [key, await api.song(index)] as const),
   );
+  const songUrls = blobs.map(([key, blob]) => [key, createUrl(blob)] as const);
   return {
     revision: answer.revision,
     stored: answer.slideshow,
