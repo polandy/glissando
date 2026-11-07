@@ -19,6 +19,8 @@ import { FakeScheduler } from "../ui-kit/testing/fake-scheduler";
 import { slideshowDetails } from "./library-views";
 import Header from "./components/Header.svelte";
 import ClipEditorScreen from "./clip-editor/ClipEditorScreen.svelte";
+import CardSheet from "./screens/slideshow/card-sheet/CardSheet.svelte";
+import { FakeClock, FakeFrameScheduler } from "../player/testing/fakes";
 import FocusSheet from "./screens/slideshow/FocusSheet.svelte";
 import HtmlExportSheet from "./screens/slideshow/HtmlExportSheet.svelte";
 import VideoExportSheet from "./screens/slideshow/VideoExportSheet.svelte";
@@ -210,6 +212,43 @@ describe.skipIf(!canEmulate).each(THEMES)("surface touch targets, %s theme", (th
       onServer: false,
       onEdit: () => {},
       onLookAgain: () => {},
+      onClose: () => {},
+    });
+
+    expect(touchTargetViolations(target)).toEqual([]);
+  });
+
+  it("gives every control of the card sheet a 44 px square", () => {
+    const target = mount(CardSheet, {
+      kind: "opening",
+      card: {
+        title: "Juli 2025",
+        subtitle: "1.–20. Juli",
+        style: "modern",
+        position: "centre",
+        entrance: "rise",
+        background: { kind: "picture", pictureId: "p1", fade: 60, tint: "picture" },
+        motion: true,
+      },
+      ensureCard: () => {
+        throw new Error("the card is present");
+      },
+      pictures: storedSlideshow().pictures.map((picture) => ({
+        id: picture.id,
+        thumbnailUrl: PIXEL,
+        capturedAt: picture.capturedAt,
+        ownMotion: false,
+        ownDurationMs: null,
+        ownTransition: null,
+        pairedWithNumber: null,
+        blurredFill: false,
+        alone: false,
+        colours: picture.colours,
+      })),
+      previewPorts: { clock: new FakeClock(), frames: new FakeFrameScheduler() },
+      reducedMotion: true,
+      onChange: () => {},
+      onRemove: () => {},
       onClose: () => {},
     });
 

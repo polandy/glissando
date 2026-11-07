@@ -1,11 +1,5 @@
 <script lang="ts">
-  import {
-    CARD_FADE_STEP,
-    MAX_CARD_FADE,
-    MIN_CARD_FADE,
-    DEFAULT_CARD_FADE,
-    DEFAULT_CARD_TINT,
-  } from "../../../../library/stored-card";
+  import { DEFAULT_CARD_FADE, DEFAULT_CARD_TINT } from "../../../../library/stored-card";
   import type {
     CardColour,
     CardTint,
@@ -16,6 +10,7 @@
   import SectionHead from "../../../components/SectionHead.svelte";
   import { getTranslator } from "../../../i18n/context";
   import type { PictureTile } from "../../view-models";
+  import CardFadeSlider from "./CardFadeSlider.svelte";
   import CardTintPicker from "./CardTintPicker.svelte";
 
   /**
@@ -179,22 +174,7 @@
       {/each}
     </div>
 
-    <div class="fade">
-      <label class="eyebrow" for="card-fade">{t("cards.fadeLabel")}</label>
-      <input
-        id="card-fade"
-        type="range"
-        min={MIN_CARD_FADE}
-        max={MAX_CARD_FADE}
-        step={CARD_FADE_STEP}
-        value={background.fade}
-        oninput={(event) => setFade(event.currentTarget.valueAsNumber)}
-      />
-      <div class="fade-ends">
-        <span>{t("cards.fadeSubtle")}</span>
-        <span>{t("cards.fadeStrong")}</span>
-      </div>
-    </div>
+    <CardFadeSlider fade={background.fade} onChange={setFade} />
 
     <CardTintPicker tint={background.tint} onChange={setTint} />
 
@@ -275,19 +255,24 @@
     height: 100%;
     object-fit: cover;
   }
-  .fade {
-    display: grid;
-    gap: 4px;
-  }
-  .fade-ends {
-    display: flex;
-    justify-content: space-between;
-    color: var(--gl-muted);
-    font-size: var(--gl-size-small);
-  }
   .motion {
     display: flex;
     align-items: center;
     gap: 8px;
+  }
+
+  @media (pointer: coarse) {
+    .option {
+      min-height: var(--gl-hit-min);
+    }
+    .swatch {
+      min-height: var(--gl-hit-min);
+    }
+    /* The label reaches half a hit square past the 13 px box, kept in place by the negative margin. */
+    .motion {
+      min-height: var(--gl-hit-min);
+      margin-inline: calc(var(--gl-hit-min) / -2);
+      padding-inline: calc(var(--gl-hit-min) / 2);
+    }
   }
 </style>

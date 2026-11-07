@@ -69,4 +69,11 @@
     outline: 2px solid var(--gl-accent);
     outline-offset: 2px;
   }
+
+  @media (pointer: coarse) {
+    .chip {
+      min-height: var(--gl-hit-min);
+      padding-inline: 14px;
+    }
+  }
 </style>

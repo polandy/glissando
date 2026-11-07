@@ -216,4 +216,9 @@
   .item.danger {
     color: var(--gl-danger-text);
   }
+  @media (pointer: coarse) {
+    .item {
+      min-height: var(--gl-hit-min);
+    }
+  }
 </style>
