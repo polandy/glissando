@@ -38,7 +38,7 @@ read and write path.
   holds, so it never takes up a stray entry's bytes. Each stored media file, a
   clip too, is read as a slice of the file, never all at once; a deflated one is unpacked into
   memory one file at a time, during the check and again when it is written. A clip counts in
-  the media bytes that must fit, once however many slides play it; two slides naming one clip file with two types make the file damaged.
+  the media bytes that must fit, once however many slides play it; two slides naming one clip file with two types make the file damaged, as do two pictures naming one picture file or one thumbnail file.
 - **Write** (`writeGlissandoFile`): always a new slideshow with fresh ids, created now, keeping
   every setting the file carries (picture length, portrait pictures, each picture's `alone` mark); a title
   the library already has gets the first free " (2)", " (3)" …. All or nothing: it claims each

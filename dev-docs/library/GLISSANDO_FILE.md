@@ -40,7 +40,7 @@ leading, trailing or repeated whitespace); the reason names its path and value.
 `readManifest` checks against, so the two cannot drift apart; `manifest-schema.test.ts` and its
 siblings keep them in sync by running both over one table of manifests. A few rules it cannot
 express stay reader-only, and are named in the schema's own `description` and proved by
-`manifest-schema-reader-only.test.ts`: a repeated song path, a card background's `pictureIndex`
+`manifest-schema-reader-only.test.ts`: a repeated song path, a repeated picture or thumbnail path, a card background's `pictureIndex`
 past the picture count, two clips sharing a file but not a `mimeType`, a date-time that matches
 the pattern but not a real calendar time, a caption, card or chapter text over 80 graphemes
 (their whitespace rule is in the schema), a music trim past its track's `durationMs`, a video
