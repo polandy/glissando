@@ -46,5 +46,10 @@ the pattern but not a real calendar time, a caption, card or chapter text over 8
 (their whitespace rule is in the schema), a music trim past its track's `durationMs`, a video
 excerpt under 500 ms, and a chapter's picture index past the picture count or repeated.
 
+No stored field may be lost between export and open: `round-trip-every-field.test.ts` exports a
+slideshow with every optional field set, nested ones included, and opens it as an equal copy
+but for its ids and title. Its fixture (`testing/every-field-fixture.ts`) is typed so that a
+field added to a stored type does not compile until the fixture sets it.
+
 Export, the check before a file is stored, write, and `index.html`:
 [GLISSANDO_FILE_IO](GLISSANDO_FILE_IO.md).
