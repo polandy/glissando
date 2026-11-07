@@ -11,8 +11,6 @@ Each fix starts with the failing test the item names or implies (WORKFLOW.md, Te
 
 ### Server, sync and TV
 
-- [ ] `src/app/App.svelte:53` — nothing subscribes to `ServerCopyFlows`, so "Keep a copy"'s header progress ("Copying “title” … 34 %", `IN_THE_APP.md`) never shows. Fix: feed its running copies into the header's `ExportIndicator` beside the export's progress, with an e2e case.
-
 ### Player
 
 ### Library and file format

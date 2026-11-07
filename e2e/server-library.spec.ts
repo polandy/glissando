@@ -2,7 +2,7 @@ import { expect, test, type Locator, type Page } from "@playwright/test";
 import { expectSlideshowScreen, GERMAN_BROWSER, openImport } from "./support/app";
 import { openApp } from "./support/browser";
 import { fakeGlissandoServer, LIBRARY_PAGE } from "./support/fake-glissando-server";
-import { holdImmichThumbnails } from "./support/hold-immich-thumbnails";
+import { holdImmichImages } from "./support/hold-immich-images";
 import { pictureTakenOn } from "./support/media";
 
 test.use(GERMAN_BROWSER);
@@ -15,7 +15,7 @@ function serverSection(page: Page): Locator {
   return page.getByRole("region", { name: "Auf deinem Glissando-Server" });
 }
 
-test("E2E-034 a slideshow created on the Glissando server links its Immich photos, is edited there, copied to this device and shows a photo deleted in Immich as missing", async ({
+test("E2E-034 a slideshow created on the Glissando server links its Immich photos, is edited there, copied to this device with its progress in the header and shows a photo deleted in Immich as missing", async ({
   page,
 }) => {
   let jpeg: Uint8Array | null = null;
@@ -23,6 +23,7 @@ test("E2E-034 a slideshow created on the Glissando server links its Immich photo
     if (jpeg === null) throw new Error("a photo was asked for before the case made one");
     return jpeg;
   });
+  const originals = await holdImmichImages(page, "original");
   await openApp(page);
   jpeg = (await pictureTakenOn(page, "photo.jpg", "2019-07-02", "#4db6ac")).buffer;
 
@@ -69,15 +70,23 @@ test("E2E-034 a slideshow created on the Glissando server links its Immich photo
 
   await page.getByRole("button", { name: "Mehr" }).click();
   await page.getByRole("menuitem", { name: /Kopie auf diesem Gerät behalten/ }).click();
+  originals.arm();
   await page
     .getByRole("dialog")
     .getByRole("button", { name: "Herunterladen und behalten" })
     .click();
+  await originals.firstHeld;
+  const copyProgress = page
+    .getByRole("status")
+    .filter({ hasText: `„${SERVER_TITLE}“ wird kopiert` });
+  await expect(copyProgress).toBeVisible();
+  originals.release();
   // Bounded by the test's timeout only: the copy decodes each original on the device, as fast
   // as the CI image's load allows.
   await expect(
     page.getByRole("status").filter({ hasText: "Auf dieses Gerät kopiert" }),
   ).toBeVisible({ timeout: 0 });
+  await expect(copyProgress).toHaveCount(0);
 
   await page.getByRole("button", { name: "Zurück", exact: true }).click();
   // The copy is the card outside the server's section.
@@ -104,7 +113,7 @@ test("E2E-118 while the Immich link of the added photos is pending, the home of 
     if (jpeg === null) throw new Error("a photo was asked for before the case made one");
     return jpeg;
   });
-  const thumbnails = await holdImmichThumbnails(page);
+  const thumbnails = await holdImmichImages(page, "thumbnail");
   await openApp(page);
   jpeg = (await pictureTakenOn(page, "photo.jpg", "2019-07-02", "#4db6ac")).buffer;
 

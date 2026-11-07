@@ -71,13 +71,14 @@
       {/if}
     {/each}
   </nav>
-  {#if exportStatus?.current}
-    <ExportIndicator progress={exportStatus.current} />
-  {/if}
+  {#each exportStatus?.running ?? [] as progress, index (index)}
+    <!-- One progress line under the bar: the first job's, so lines never stack. -->
+    <ExportIndicator {progress} drawsLine={index === 0} />
+  {/each}
   {#if focusSearchStatus?.current}
     <FocusSearchIndicator
       search={focusSearchStatus.current}
-      besideExport={exportStatus?.current != null}
+      besideExport={(exportStatus?.running.length ?? 0) > 0}
     />
   {/if}
   {#if actions}
