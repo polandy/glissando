@@ -10,6 +10,7 @@ import {
 import type { CommandNote, PlayerControl } from "../tv-remote/tv-controller";
 import type { PlaybackState } from "../tv-remote/tv-protocol";
 import { openTvSession, type TvPageEvent } from "./tv-session";
+import { settleMicrotasks } from "../testing/settle-microtasks";
 
 const TV_KEY = "TvKeyTvKeyTvKeyTvKey12";
 
@@ -126,7 +127,7 @@ describe("a TV session", () => {
 
     tv.drive(new FakePlayer(), "Generated");
     await refused.catch(() => undefined);
-    await Promise.resolve();
+    await settleMicrotasks();
 
     expect(logged).toHaveBeenCalledTimes(refusal.logged);
     logged.mockRestore();

@@ -10,6 +10,7 @@ import {
   FakePictureLoader,
   FakeRenderer,
 } from "./testing/fakes";
+import { settleMicrotasks } from "../testing/settle-microtasks";
 
 function slide(src: string, durationMs: number): Slide {
   return {
@@ -62,7 +63,7 @@ describe("SlideshowPlayer.renderAt", () => {
 
     const rendering = player.renderAt(3.5).then(() => (resolved = true));
     pictures.complete("a.jpg");
-    await Promise.resolve();
+    await settleMicrotasks();
     expect(resolved).toBe(false);
     pictures.complete("b.jpg");
     await rendering;

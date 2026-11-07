@@ -7,6 +7,7 @@ import { mountWithTranslator } from "../testing/mount-with-translator";
 import { Toaster } from "../toast/toaster";
 import SampleMusicGrid from "./SampleMusicGrid.svelte";
 import { previewWith } from "./testing/sample-preview-fixtures";
+import { settleMicrotasks } from "../../testing/settle-microtasks";
 
 /** The grid's width in the Add song sheet on a 390 px phone: three cards of about 85 px. */
 const ADD_SONG_SHEET_WIDTH_PX = 280;
@@ -35,8 +36,7 @@ async function mountGerman(widthPx: number): Promise<HTMLElement> {
   unmounts.push(mounted.destroy);
   mounted.target.style.width = `${widthPx}px`;
   // hasTrackOnDevice resolves on a microtask per track; a flush after lets its effect settle.
-  await Promise.resolve();
-  await Promise.resolve();
+  await settleMicrotasks();
   flushSync();
   return mounted.target;
 }

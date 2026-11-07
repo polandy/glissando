@@ -8,6 +8,7 @@ import type {
   GainNodeLike,
 } from "./music-output";
 import { CLIP_SOUND_RESYNC_MS, ClipSoundTrack } from "./clip-sound-track";
+import { settleMicrotasks } from "../../testing/settle-microtasks";
 
 const END_MS = 10_000;
 
@@ -74,7 +75,7 @@ async function decodedTrack(context: FakeContext, buffer: AudioBuffer | null = {
   const { output } = outputWith(context);
   const track = new ClipSoundTrack(Promise.resolve(buffer), output, END_MS);
   // The constructor's `.then` settles on a microtask, even for an already-resolved promise.
-  await Promise.resolve();
+  await settleMicrotasks();
   return track;
 }
 
@@ -101,7 +102,7 @@ describe("ClipSoundTrack", () => {
     expect(context.sources).toHaveLength(0);
 
     resolveDecode(buffer);
-    await Promise.resolve();
+    await settleMicrotasks();
     track.follow(500);
 
     expect(context.sources[0]?.buffer).toBe(buffer);
@@ -230,7 +231,7 @@ describe("ClipSoundTrack", () => {
 
     track.dispose();
     resolveDecode({} as AudioBuffer);
-    await Promise.resolve();
+    await settleMicrotasks();
     track.follow(0);
 
     expect(context.sources).toHaveLength(0);

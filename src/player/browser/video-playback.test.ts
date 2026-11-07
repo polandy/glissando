@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { VideoPlaybackError } from "../ports";
 import type { ClipSoundOutput } from "./music-output";
 import { VideoElementPlayback, VIDEO_RATE_TOLERANCE_MS, type VideoOutput } from "./video-playback";
+import { settleMicrotasks } from "../../testing/settle-microtasks";
 
 const HAVE_NOTHING = 0;
 const HAVE_CURRENT_DATA = 2;
@@ -262,7 +263,7 @@ describe("VideoElementPlayback", () => {
     );
 
     await playback.play(500);
-    await Promise.resolve();
+    await settleMicrotasks();
     playback.follow(500);
 
     expect(bufferSource.buffer).toBe(decodedBuffer);

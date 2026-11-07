@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { createFramePlayer } from "./create-frame-player";
 import type { Slideshow } from "./slideshow";
 import { WebGlRenderer } from "./webgl/webgl-renderer";
+import { settleMicrotasks } from "../testing/settle-microtasks";
 
 const SLIDESHOW: Slideshow = {
   formatVersion: 9,
@@ -82,8 +83,7 @@ describe("createFramePlayer", () => {
       let settled = false;
       void framePlayer.cardFontsLoaded.then(() => (settled = true));
 
-      await Promise.resolve();
-      await Promise.resolve();
+      await settleMicrotasks();
       expect(settled).toBe(false);
       expect(cardFontLoaded).toHaveBeenCalledWith("classic");
 
