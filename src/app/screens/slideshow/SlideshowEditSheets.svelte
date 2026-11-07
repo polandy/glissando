@@ -19,9 +19,9 @@
   import TransitionsSheet from "./TransitionsSheet.svelte";
 
   /**
-   * The slideshow screen's setting sheets (default transition, colour grade, portrait pictures,
-   * title slide, closing slide): each opens over the screen and, once closed, hands focus back to
-   * the row or tile it was opened from.
+   * The slideshow screen's setting sheets (default transition, look, mood, portrait pictures,
+   * title slide, closing slide, chapter): one at a time opens over the screen and, once closed,
+   * hands focus back to the row or tile it was opened from.
    */
   let {
     slideshow,
@@ -96,41 +96,39 @@
     chapterEditor: ChapterSettingsEditor | null;
   } = $props();
 
-  let editingTransitions = $state(false);
-  let editingLook = $state(false);
-  let editingMood = $state(false);
-  let editingPortraitPictures = $state(false);
-  let editingOpeningCard = $state(false);
-  let editingClosingCard = $state(false);
-  // The anchor picture of the chapter whose sheet is open; null closes the sheet.
-  let editingChapter = $state<{ anchorPictureId: string } | null>(null);
+  // At most one sheet is open; the chapter sheet carries its chapter's anchor picture.
+  type OpenSheet =
+    | { kind: "transitions" | "look" | "mood" | "portraitPictures" | "openingCard" | "closingCard" }
+    | { kind: "chapter"; anchorPictureId: string };
+
+  let openSheet = $state<OpenSheet | null>(null);
 
   export function openTransitions(): void {
-    editingTransitions = true;
+    openSheet = { kind: "transitions" };
   }
 
   export function openLook(): void {
-    editingLook = true;
+    openSheet = { kind: "look" };
   }
 
   export function openMood(): void {
-    editingMood = true;
+    openSheet = { kind: "mood" };
   }
 
   export function openPortraitPictures(): void {
-    editingPortraitPictures = true;
+    openSheet = { kind: "portraitPictures" };
   }
 
   export function openOpeningCard(): void {
-    editingOpeningCard = true;
+    openSheet = { kind: "openingCard" };
   }
 
   export function openClosingCard(): void {
-    editingClosingCard = true;
+    openSheet = { kind: "closingCard" };
   }
 
   export function openChapter(anchorPictureId: string): void {
-    editingChapter = { anchorPictureId };
+    openSheet = { kind: "chapter", anchorPictureId };
   }
 
   /** Inserts an added chapter before the picture (TRIP_CHAPTERS.md), then opens its sheet. */
@@ -139,76 +137,50 @@
     openChapter(pictureId);
   }
 
-  function closeTransitions(): void {
-    editingTransitions = false;
-    // The modal dialog must be gone first: until then the page behind it is inert.
-    flushSync();
-    onTransitionsClosed();
+  /** Hands focus back to the row or tile the closed sheet was opened from. */
+  function focusOpener(closed: OpenSheet): void {
+    switch (closed.kind) {
+      case "transitions":
+        return onTransitionsClosed();
+      case "look":
+        return onLookClosed();
+      case "mood":
+        return onMoodClosed();
+      case "portraitPictures":
+        return onPortraitPicturesClosed();
+      case "openingCard":
+        return onOpeningCardClosed();
+      case "closingCard":
+        return onClosingCardClosed();
+      case "chapter":
+        return onChapterClosed(closed.anchorPictureId);
+    }
   }
 
-  function closeLook(): void {
-    editingLook = false;
-    // The modal dialog must be gone first: until then the page behind it is inert.
-    flushSync();
-    onLookClosed();
-  }
-
-  function closeMood(): void {
-    editingMood = false;
-    // The modal dialog must be gone first: until then the page behind it is inert.
-    flushSync();
-    onMoodClosed();
-  }
-
-  function closePortraitPictures(): void {
-    editingPortraitPictures = false;
-    // The modal dialog must be gone first: until then the page behind it is inert.
-    flushSync();
-    onPortraitPicturesClosed();
-  }
-
-  function closeOpeningCard(): void {
-    editingOpeningCard = false;
-    // The modal dialog must be gone first: until then the page behind it is inert.
-    flushSync();
-    onOpeningCardClosed();
-  }
-
-  function closeClosingCard(): void {
-    editingClosingCard = false;
-    // The modal dialog must be gone first: until then the page behind it is inert.
-    flushSync();
-    onClosingCardClosed();
-  }
-
-  function closeChapters(): void {
-    if (editingChapter === null) {
+  function close(): void {
+    const closed = openSheet;
+    if (closed === null) {
       return;
     }
-    const { anchorPictureId } = editingChapter;
-    editingChapter = null;
+    openSheet = null;
     // The modal dialog must be gone first: until then the page behind it is inert.
     flushSync();
-    onChapterClosed(anchorPictureId);
+    focusOpener(closed);
   }
 </script>
 
-{#if editingTransitions}
+{#if openSheet?.kind === "transitions"}
   <TransitionsSheet
     {slideshow}
     ports={previewPorts}
     {reducedMotion}
     {onTransition}
     onReset={onResetTransition}
-    onClose={closeTransitions}
+    onClose={close}
   />
-{/if}
-
-{#if editingLook}
-  <LookSheet {slideshow} {onLook} onReset={onResetLook} onClose={closeLook} />
-{/if}
-
-{#if editingMood}
+{:else if openSheet?.kind === "look"}
+  <LookSheet {slideshow} {onLook} onReset={onResetLook} onClose={close} />
+{:else if openSheet?.kind === "mood"}
   <MoodSheet
     {slideshow}
     previewPorts={moodPreviewPorts}
@@ -217,20 +189,16 @@
     {onMood}
     {onResetMood}
     {onEnergyPacing}
-    onClose={closeMood}
+    onClose={close}
   />
-{/if}
-
-{#if editingPortraitPictures}
+{:else if openSheet?.kind === "portraitPictures"}
   <PortraitPicturesSheet
     {slideshow}
     {onPortraitPictures}
     onReset={onResetPortraitPictures}
-    onClose={closePortraitPictures}
+    onClose={close}
   />
-{/if}
-
-{#if editingOpeningCard}
+{:else if openSheet?.kind === "openingCard"}
   <CardSheet
     kind="opening"
     card={slideshow.openingCard}
@@ -240,11 +208,9 @@
     {reducedMotion}
     onChange={onOpeningCard}
     onRemove={onRemoveOpeningCard}
-    onClose={closeOpeningCard}
+    onClose={close}
   />
-{/if}
-
-{#if editingClosingCard}
+{:else if openSheet?.kind === "closingCard"}
   <CardSheet
     kind="closing"
     card={slideshow.closingCard}
@@ -254,15 +220,13 @@
     {reducedMotion}
     onChange={onClosingCard}
     onRemove={onRemoveClosingCard}
-    onClose={closeClosingCard}
+    onClose={close}
   />
-{/if}
-
-{#if editingChapter !== null}
+{:else if openSheet?.kind === "chapter"}
   <ChapterSheet
     {slideshow}
     {chapterEditor}
-    anchorPictureId={editingChapter.anchorPictureId}
-    onClose={closeChapters}
+    anchorPictureId={openSheet.anchorPictureId}
+    onClose={close}
   />
 {/if}
