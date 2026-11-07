@@ -51,6 +51,7 @@
     onClosingCard,
     onRemoveClosingCard,
     onClosingCardClosed,
+    onChapterClosed,
     chapterEditor,
   }: {
     slideshow: SlideshowDetails;
@@ -90,6 +91,7 @@
     onClosingCard: (card: CardInput) => void;
     onRemoveClosingCard: () => void;
     onClosingCardClosed: () => void;
+    onChapterClosed: (anchorPictureId: string) => void;
     /** The trip chapters editor (TRIP_CHAPTERS.md); null while importing. */
     chapterEditor: ChapterSettingsEditor | null;
   } = $props();
@@ -180,7 +182,14 @@
   }
 
   function closeChapters(): void {
+    if (editingChapter === null) {
+      return;
+    }
+    const { anchorPictureId } = editingChapter;
     editingChapter = null;
+    // The modal dialog must be gone first: until then the page behind it is inert.
+    flushSync();
+    onChapterClosed(anchorPictureId);
   }
 </script>
 

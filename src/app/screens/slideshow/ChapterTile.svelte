@@ -15,7 +15,7 @@
   const edited = $derived(chapter.titleEdited || chapter.subtitleEdited);
 </script>
 
-<li class="tile">
+<li class="tile" data-chapter-anchor={chapter.anchorPictureId}>
   <button class="chip" type="button" onclick={onOpen}>
     <span class="line">
       {#if edited}<span class="dot" aria-hidden="true"></span><span class="sr-only"

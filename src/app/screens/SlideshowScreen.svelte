@@ -238,6 +238,7 @@
   {onClosingCard}
   {onRemoveClosingCard}
   onClosingCardClosed={() => picturesColumn?.focusClosingCard()}
+  onChapterClosed={(anchorPictureId) => picturesColumn?.focusChapter(anchorPictureId)}
   {chapterEditor}
 />
 
