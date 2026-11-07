@@ -17,6 +17,14 @@ describe("reader-only rules: accepted by the schema, refused by the reader", () 
       ),
     ],
     [
+      "two pictures at the same file path",
+      withAt(BASE_MANIFEST, ["slideshow", "pictures", 1, "file"], "pictures/0001.png"),
+    ],
+    [
+      "two pictures with the same thumbnail path",
+      withAt(BASE_MANIFEST, ["slideshow", "pictures", 1, "thumbnail"], "thumbnails/0001.png"),
+    ],
+    [
       "a card background's pictureIndex at or past the picture count",
       withAt(BASE_MANIFEST, ["slideshow", "closingCard", "background", "pictureIndex"], 5),
     ],
