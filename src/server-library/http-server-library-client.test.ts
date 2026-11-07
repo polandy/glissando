@@ -120,6 +120,20 @@ describe("HttpServerLibraryClient", () => {
     expect((await client.getSlideshow(id)).document.slideshow.title).toBe("Elsewhere");
   });
 
+  it("explains a replace answered with a proxy's HTML 412 instead of a bare SyntaxError", async () => {
+    const { client, control } = libraryServiceFetch();
+    control.answerWith = () =>
+      new Response("<html>Precondition Failed</html>", {
+        status: 412,
+        headers: { "content-type": "text/html" },
+      });
+
+    const error = await rejection(client.replaceSlideshow("any", 1, sampleDocument()));
+
+    expect(error).not.toBeInstanceOf(SyntaxError);
+    expect((error as Error).message).toContain("text/html");
+  });
+
   it("deletes a slideshow, which is then not found", async () => {
     const { client } = libraryServiceFetch();
     const { id } = await client.createSlideshow(sampleDocument());

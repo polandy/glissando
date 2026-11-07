@@ -31,7 +31,6 @@ Each fix starts with the failing test the item names or implies (WORKFLOW.md, Te
 
 ### Server, sync and TV
 
-- [ ] `src/server-library/http-server-library-client.ts:101-103` — The 412 branch calls `response.json()` without `isJson`, so a proxy's HTML 412 is a bare `SyntaxError`. Fix: `isJson` first, same descriptive error as `#json`.
 - [ ] `src/app/server-library/server-copy-flows.ts:75` — `keepCopy` passes a signal nobody can abort, so the required signal in `keep-copy.ts` is dead weight; `#progress` is one slot for concurrent copies. Fix: expose cancel per flow or drop the signal; key progress by slideshow.
 - [ ] `server/collect-body.ts:13-18` — An oversized body is drained to its end with no byte or time cap. Fix: a fixed drain budget, then destroy the socket after the 413.
 - [ ] `server/music-routes.ts:16-17,45-50` + `src/server-library/save-on-server.ts:39-45` — The 1 h music grace runs per upload and every upload sweeps, so a slow multi-song save can lose its own earlier songs (409 `musicMissing`). Fix: restart the caller's grace on each upload, or measure from the last upload.
