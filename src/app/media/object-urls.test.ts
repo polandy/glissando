@@ -36,26 +36,33 @@ class FakePorts implements ObjectUrlPorts {
 
   release(id: string): void {
     const blob = Object.assign(new Blob([id]), { label: id });
-    this.#take(id).resolve(blob);
+    this.#take(id, "oldest").resolve(blob);
+  }
+
+  /** Resolves the most recently started load of `id`, ahead of any older one. */
+  releaseNewest(id: string): void {
+    const blob = Object.assign(new Blob([id]), { label: id });
+    this.#take(id, "newest").resolve(blob);
   }
 
   fail(id: string, error: unknown): void {
-    this.#take(id).reject(error);
+    this.#take(id, "oldest").reject(error);
   }
 
   get loading(): string[] {
     return [...this.#pending.keys()];
   }
 
-  #take(id: string) {
-    const [pending, ...rest] = this.#pending.get(id) ?? [];
+  #take(id: string, which: "oldest" | "newest") {
+    const queue = [...(this.#pending.get(id) ?? [])];
+    const pending = which === "oldest" ? queue.shift() : queue.pop();
     if (pending === undefined) {
       throw new Error(`nothing is loading "${id}"`);
     }
-    if (rest.length === 0) {
+    if (queue.length === 0) {
       this.#pending.delete(id);
     } else {
-      this.#pending.set(id, rest);
+      this.#pending.set(id, queue);
     }
     return pending;
   }
@@ -74,6 +81,22 @@ describe("ObjectUrls", () => {
     await urls.settled();
 
     expect(urls.get("a")).toBeDefined();
+    expect(ports.created - ports.revoked.length).toBe(1);
+  });
+
+  it("an id wanted again keeps the newer load's URL when that load arrives first", async () => {
+    const ports = new FakePorts();
+    const urls = new ObjectUrls(ports);
+
+    urls.sync(["a"]);
+    urls.sync([]);
+    urls.sync(["a"]);
+    ports.releaseNewest("a");
+    ports.release("a");
+    await urls.settled();
+
+    expect(urls.get("a")).toBe("url:a:1");
+    expect(ports.created).toBe(1);
     expect(ports.created - ports.revoked.length).toBe(1);
   });
 
