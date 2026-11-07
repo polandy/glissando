@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { mountWithTranslator } from "../testing/mount-with-translator";
 import { CODE, SECRET, harness } from "./tv-session-fixtures";
 import TvControl from "./TvControl.svelte";
+import { buttonNamed } from "../testing/by-role";
 
 let destroy: (() => void) | null = null;
 afterEach(() => {
@@ -28,13 +29,7 @@ async function mountControl({ prefilled = null as string | null } = {}) {
   await settle();
   const dialog = () => target.querySelector("dialog");
   const boxes = () => [...target.querySelectorAll<HTMLInputElement>(".code input")];
-  const button = (text: string): HTMLButtonElement => {
-    const found = [...target.querySelectorAll("button")].find(
-      (candidate) => candidate.textContent?.trim() === text,
-    );
-    if (found === undefined) throw new Error(`no button "${text}" in ${target.innerText}`);
-    return found;
-  };
+  const button = (text: string) => buttonNamed(target, text);
   const click = async (text: string) => {
     button(text).click();
     await settle();

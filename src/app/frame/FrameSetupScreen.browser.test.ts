@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import type { ImmichAlbum } from "../../immich/immich-client";
 import { mountWithTranslator } from "../testing/mount-with-translator";
 import FrameSetupScreen from "./FrameSetupScreen.svelte";
+import { buttonNamed } from "../testing/by-role";
 
 let destroy = () => {};
 afterEach(() => destroy());
@@ -35,14 +36,6 @@ function baseProps() {
   };
 }
 
-function button(target: HTMLElement, text: string): HTMLButtonElement {
-  const found = [...target.querySelectorAll<HTMLButtonElement>("button")].find((candidate) =>
-    candidate.textContent?.includes(text),
-  );
-  if (found === undefined) throw new Error(`no button with text "${text}"`);
-  return found;
-}
-
 describe("FrameSetupScreen", () => {
   it("shows a lemon notice instead of the choices for an empty album", () => {
     const mounted = mountWithTranslator(FrameSetupScreen, {
@@ -64,7 +57,7 @@ describe("FrameSetupScreen", () => {
     });
     destroy = mounted.destroy;
 
-    button(mounted.target, "Zurück zu den Alben").click();
+    buttonNamed(mounted.target, "Zurück zu den Alben").click();
 
     expect(backToAlbums).toBe(1);
   });
@@ -79,8 +72,8 @@ describe("FrameSetupScreen", () => {
     });
     destroy = mounted.destroy;
 
-    button(mounted.target, "1 min").click();
-    button(mounted.target, "Gemischt").click();
+    buttonNamed(mounted.target, "1 min").click();
+    buttonNamed(mounted.target, "Gemischt").click();
 
     expect(intervals).toEqual([60]);
     expect(orders).toEqual(["shuffled"]);
@@ -111,7 +104,7 @@ describe("FrameSetupScreen", () => {
     });
     destroy = mounted.destroy;
 
-    expect(button(mounted.target, "Rahmen starten").disabled).toBe(true);
+    expect(buttonNamed(mounted.target, "Rahmen starten").disabled).toBe(true);
   });
 
   it("copies the link on request", () => {
@@ -122,7 +115,7 @@ describe("FrameSetupScreen", () => {
     });
     destroy = mounted.destroy;
 
-    button(mounted.target, "Rahmen-Link kopieren").click();
+    buttonNamed(mounted.target, "Rahmen-Link kopieren").click();
 
     expect(copies).toBe(1);
   });

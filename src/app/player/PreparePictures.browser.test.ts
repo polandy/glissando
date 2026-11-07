@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { mountWithTranslator } from "../testing/mount-with-translator";
 import type { PreparingView } from "./prepare/prepare-flow";
 import PreparePictures from "./PreparePictures.svelte";
+import { findButtonNamed } from "../testing/by-role";
 
 let destroy = () => {};
 afterEach(() => destroy());
@@ -29,12 +30,6 @@ function mountScreen(view: PreparingView) {
   const text = (selector: string) =>
     mounted.target.querySelector(selector)?.textContent?.replace(/\s+/g, " ").trim();
   return { target: mounted.target, asked, text };
-}
-
-function button(target: HTMLElement, name: string): HTMLButtonElement | undefined {
-  return [...target.querySelectorAll("button")].find(
-    (candidate) => (candidate.getAttribute("aria-label") ?? candidate.textContent?.trim()) === name,
-  );
 }
 
 describe("PreparePictures", () => {
@@ -77,9 +72,9 @@ describe("PreparePictures", () => {
   it("starts now, plays in 1440 or closes when asked", () => {
     const { target, asked } = mountScreen(PREPARING);
 
-    button(target, "Jetzt starten")?.click();
-    button(target, "Früher abspielen, etwas weniger scharf")?.click();
-    button(target, "Schließen (Esc)")?.click();
+    findButtonNamed(target, "Jetzt starten")?.click();
+    findButtonNamed(target, "Früher abspielen, etwas weniger scharf")?.click();
+    findButtonNamed(target, "Schließen (Esc)")?.click();
     flushSync();
 
     expect(asked).toEqual(["start", "preview", "close"]);
@@ -88,7 +83,7 @@ describe("PreparePictures", () => {
   it("offers 1440 only while preparing 4K", () => {
     const { target } = mountScreen({ ...PREPARING, quality: "1440" });
 
-    expect(button(target, "Jetzt starten")).toBeDefined();
-    expect(button(target, "Früher abspielen, etwas weniger scharf")).toBeUndefined();
+    expect(findButtonNamed(target, "Jetzt starten")).toBeDefined();
+    expect(findButtonNamed(target, "Früher abspielen, etwas weniger scharf")).toBeUndefined();
   });
 });

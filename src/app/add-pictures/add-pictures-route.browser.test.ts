@@ -7,6 +7,7 @@ import { createTranslator } from "../i18n/translator";
 import { pictureFile } from "../testing/picture-intake-ports";
 import type { AddPicturesSession } from "./add-pictures-session";
 import { mountRoute, SHOW, unmountRoutes } from "./testing/mount-add-route";
+import { buttonNamed } from "../testing/by-role";
 
 const de = createTranslator("de");
 afterEach(unmountRoutes);
@@ -22,16 +23,6 @@ async function choosePicture(session: AddPicturesSession): Promise<void> {
   session.intake.addPictures([pictureFile("new.jpg", "2025-07-02T10:00:00Z")]);
   await session.intake.settled();
   flushSync();
-}
-
-function button(target: HTMLElement, label: string): HTMLButtonElement {
-  const found = [...target.querySelectorAll<HTMLButtonElement>("button")].find(
-    (candidate) => candidate.textContent.trim() === label || candidate.ariaLabel === label,
-  );
-  if (found === undefined) {
-    throw new Error(`no button "${label}"`);
-  }
-  return found;
 }
 
 /**
@@ -87,7 +78,7 @@ describe("AddPicturesRoute", () => {
     expect(primaryButton(target).disabled).toBe(true);
     await session.intake.settled();
     flushSync();
-    expect(button(target, de.t("add.add", { count: 1 })).disabled).toBe(false);
+    expect(buttonNamed(target, de.t("add.add", { count: 1 })).disabled).toBe(false);
   });
 
   it("names how many pictures are left while Add is disabled for importing", async () => {
@@ -115,27 +106,27 @@ describe("AddPicturesRoute", () => {
     const commit = deferred();
     const { session, target } = mountRoute(SHOW, () => commit.promise);
     await choosePicture(session);
-    const add = button(target, de.t("add.add", { count: 1 }));
+    const add = buttonNamed(target, de.t("add.add", { count: 1 }));
     expect(add.disabled).toBe(false);
 
     add.click();
     flushSync();
 
     expect(add.disabled).toBe(true);
-    expect(button(target, de.t("common.cancel")).disabled).toBe(true);
-    expect(button(target, de.t("common.back")).disabled).toBe(true);
+    expect(buttonNamed(target, de.t("common.cancel")).disabled).toBe(true);
+    expect(buttonNamed(target, de.t("common.back")).disabled).toBe(true);
     commit.resolve();
     await commit.promise;
     flushSync();
     expect(add.disabled).toBe(false);
-    expect(button(target, de.t("common.cancel")).disabled).toBe(false);
+    expect(buttonNamed(target, de.t("common.cancel")).disabled).toBe(false);
   });
 
   it("asks Discard selection? on Cancel with pictures chosen, discarding nothing yet", async () => {
     const { session, target, discards } = mountRoute();
     await choosePicture(session);
 
-    button(target, de.t("common.cancel")).click();
+    buttonNamed(target, de.t("common.cancel")).click();
     flushSync();
 
     expect(document.querySelector("dialog h3")?.textContent).toBe(de.t("import.discardTitle"));
@@ -145,7 +136,7 @@ describe("AddPicturesRoute", () => {
   it("leaves without asking on Cancel with nothing chosen", () => {
     const { target, discards } = mountRoute();
 
-    button(target, de.t("common.cancel")).click();
+    buttonNamed(target, de.t("common.cancel")).click();
     flushSync();
 
     expect(discards).toEqual([true]);

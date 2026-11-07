@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 import type { StoredSlideshow } from "../../library/stored-slideshow";
 import { mountEditor, slideshowWith, unmountEditor } from "./music-editor-harness";
+import { buttonNamed } from "../testing/by-role";
 
 afterEach(() => unmountEditor());
 
@@ -16,14 +17,7 @@ const section = (): HTMLElement => {
   if (found === null) throw new Error("no picture length section");
   return found;
 };
-const button = (name: string): HTMLButtonElement => {
-  const found = [...section().querySelectorAll("button")].find(
-    (candidate) =>
-      candidate.textContent?.trim() === name || candidate.getAttribute("aria-label") === name,
-  );
-  if (found === undefined) throw new Error(`no button "${name}"`);
-  return found;
-};
+const button = (name: string) => buttonNamed(section(), name);
 
 describe("MusicEditorScreen without music, the picture length (MUSIC_EDITOR.md)", () => {
   it("shows the mood's picture times, without beats, under the empty state", () => {

@@ -10,6 +10,7 @@ import {
   text,
   unmountEditor,
 } from "./music-editor-harness";
+import { buttonNamed } from "../testing/by-role";
 
 afterEach(() => unmountEditor());
 
@@ -25,16 +26,6 @@ const grip = (name: string): HTMLElement => {
   if (found === null) throw new Error(`no grip for "${name}"`);
   return found;
 };
-const buttonNamed = (name: string): HTMLButtonElement => {
-  const found = [...document.querySelectorAll("button")].find(
-    (button) =>
-      button.getAttribute("aria-label") === name ||
-      button.textContent?.replace(/\s+/g, " ").trim() === name,
-  );
-  if (found === undefined) throw new Error(`no button named "${name}"`);
-  return found;
-};
-
 describe("MusicEditorScreen, the playlist's songs", () => {
   it("lists the songs in order with their lengths and where each starts", () => {
     mountEditor(slideshowOfSongs(THREE));
@@ -91,7 +82,7 @@ describe("MusicEditorScreen, the playlist's songs", () => {
   it("removes a song by its ×", () => {
     const { calls } = mountEditor(slideshowOfSongs(THREE));
 
-    buttonNamed("b.mp3 entfernen").click();
+    buttonNamed(document, "b.mp3 entfernen").click();
 
     expect(calls.removed).toEqual(["b"]);
   });
@@ -123,7 +114,7 @@ describe("MusicEditorScreen, the playlist's songs", () => {
 
     expect(text(".row")).toContain("Lanterns.m4a Wird in FLAC umgewandelt · 42 %");
     expect(text(".row.failed")).toBe("Concert.wma Diese Datei lässt sich nicht verwenden");
-    buttonNamed("Concert.wma entfernen").click();
+    buttonNamed(document, "Concert.wma entfernen").click();
 
     expect(calls.dismissed).toEqual([2]);
   });
@@ -161,9 +152,9 @@ describe("MusicEditorScreen, between the songs", () => {
     const { calls, set } = mountEditor(slideshowOfSongs(THREE));
 
     expect(text(".panel")).toContain("Der nächste Song beginnt, während der vorige ausblendet.");
-    buttonNamed("Nacheinander").click();
+    buttonNamed(document, "Nacheinander").click();
     set({ slideshow: slideshowOfSongs(THREE, { betweenSongs: SEQUENCE_BETWEEN_SONGS }) });
-    buttonNamed("Überblenden").click();
+    buttonNamed(document, "Überblenden").click();
 
     expect(calls.betweenSongs).toEqual([SEQUENCE_BETWEEN_SONGS, undefined]);
   });
@@ -214,7 +205,7 @@ describe("MusicEditorScreen without music", () => {
       input.dispatchEvent(new Event("change", { bubbles: true }));
     }
 
-    expect(buttonNamed("Song hinzufügen")).toBeDefined();
+    expect(buttonNamed(document, "Song hinzufügen")).toBeDefined();
     expect(calls.added).toEqual(["Low Tide.mp3"]);
   });
 });

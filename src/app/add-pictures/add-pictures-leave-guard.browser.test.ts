@@ -5,6 +5,7 @@ import type { Route } from "../navigation/route";
 import { pictureFile } from "../testing/picture-intake-ports";
 import type { AddPicturesSession } from "./add-pictures-session";
 import { mountRoute, unmountRoutes } from "./testing/mount-add-route";
+import { buttonNamed } from "../testing/by-role";
 
 const de = createTranslator("de");
 const SLIDESHOW: Route = { screen: "slideshow", slideshowId: "s1" };
@@ -20,16 +21,6 @@ async function choosePicture(session: AddPicturesSession): Promise<void> {
 
 function dialogTitle(): string | undefined {
   return document.querySelector("dialog h3")?.textContent;
-}
-
-function dialogButton(label: string): HTMLButtonElement {
-  const found = [...document.querySelectorAll<HTMLButtonElement>("dialog button")].find(
-    (candidate) => candidate.textContent.trim() === label,
-  );
-  if (found === undefined) {
-    throw new Error(`no dialog button "${label}"`);
-  }
-  return found;
 }
 
 function currentGuard(guards: ReturnType<typeof mountRoute>["guards"]) {
@@ -58,7 +49,7 @@ describe("AddPicturesRoute leave guard (UX-23)", () => {
     currentGuard(guards)(SLIDESHOW);
     flushSync();
 
-    dialogButton(de.t("import.keepChoosing")).click();
+    buttonNamed(document, de.t("import.keepChoosing")).click();
     flushSync();
 
     expect(document.querySelector("dialog")).toBeNull();
@@ -91,7 +82,7 @@ describe("AddPicturesRoute leave guard (UX-23)", () => {
     guard(SLIDESHOW);
     flushSync();
 
-    dialogButton(de.t("import.discard")).click();
+    buttonNamed(document, de.t("import.discard")).click();
     flushSync();
     await session.intake.discard();
 

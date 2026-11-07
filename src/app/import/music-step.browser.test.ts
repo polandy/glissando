@@ -9,6 +9,7 @@ import { Toaster } from "../toast/toaster";
 import type { ImportSession } from "./import-session";
 import MusicStep from "./MusicStep.svelte";
 import { choicesOf, withTwoPictures } from "./testing/import-session-fixtures";
+import { buttonNamed } from "../testing/by-role";
 
 let unmounts: (() => void)[] = [];
 afterEach(() => {
@@ -44,15 +45,6 @@ const rows = (target: HTMLElement) =>
     tag: row.querySelector(".tag")?.textContent.trim(),
     unreached: row.classList.contains("unreached"),
   }));
-
-const buttonNamed = (target: HTMLElement, name: string) => {
-  const button = [...target.querySelectorAll("button")].find(
-    (candidate) =>
-      candidate.getAttribute("aria-label") === name || candidate.textContent.trim() === name,
-  );
-  if (button === undefined) throw new Error(`no button "${name}"`);
-  return button;
-};
 
 describe("MusicStep, the import's song list", () => {
   it("lists the songs in play order with where each starts, dimming one the slideshow does not reach", async () => {

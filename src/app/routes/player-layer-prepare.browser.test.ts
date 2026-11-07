@@ -9,6 +9,7 @@ import type { PlaybackQuality } from "../settings/playback-quality";
 import { mountWithTranslator } from "../testing/mount-with-translator";
 import { whenRendered } from "../testing/when-rendered";
 import PlayerLayer from "./PlayerLayer.svelte";
+import { buttonNamed } from "../testing/by-role";
 
 const IDS = ["p1", "p2", "p3"];
 const SHOW: StoredSlideshow = {
@@ -84,14 +85,6 @@ async function mountLayer(playbackQuality: PlaybackQuality = "4k") {
   return { store, target: mounted.target, closes: () => closes };
 }
 
-function button(target: HTMLElement, name: string): HTMLButtonElement {
-  const found = [...target.querySelectorAll("button")].find(
-    (candidate) => (candidate.getAttribute("aria-label") ?? candidate.textContent?.trim()) === name,
-  );
-  if (found === undefined) throw new Error(`no button "${name}"`);
-  return found;
-}
-
 const preparing = (target: HTMLElement) =>
   whenRendered(target, "h2", (found) => found.textContent === "Bereite Bilder vor");
 
@@ -103,7 +96,7 @@ describe("preparing a server slideshow in the player layer", () => {
     expect(target.querySelector('[role="progressbar"]')?.getAttribute("aria-valuenow")).toBe("2");
     expect(target.querySelector(".counter")).toBeNull();
 
-    button(target, "Jetzt starten").click();
+    buttonNamed(target, "Jetzt starten").click();
     const counter = await whenRendered(target, ".counter");
 
     expect(counter.textContent).toBe("1 / 3");
@@ -114,7 +107,7 @@ describe("preparing a server slideshow in the player layer", () => {
     const { store, target, closes } = await mountLayer("4k");
     await preparing(target);
 
-    button(target, "Schließen (Esc)").click();
+    buttonNamed(target, "Schließen (Esc)").click();
     flushSync();
 
     expect(closes()).toBe(1);
@@ -125,7 +118,7 @@ describe("preparing a server slideshow in the player layer", () => {
     const { store, target } = await mountLayer("4k");
     await preparing(target);
 
-    button(target, "Früher abspielen, etwas weniger scharf").click();
+    buttonNamed(target, "Früher abspielen, etwas weniger scharf").click();
     const counter = await whenRendered(target, ".counter");
 
     expect(counter.textContent).toBe("1 / 3");
