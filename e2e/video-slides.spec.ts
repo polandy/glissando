@@ -1,6 +1,7 @@
-import { expect, test, type Locator, type Page } from "@playwright/test";
+import { expect, test, type Locator } from "@playwright/test";
 import { chooseFiles, expectSlideshowScreen, GERMAN_BROWSER, openImport } from "./support/app";
 import { openApp } from "./support/browser";
+import { centreOf, drag, DRAG_STEPS } from "./support/pointer";
 import { framePixels, keepDrawnFrames, meanColour } from "./support/drawn-frame";
 import { generatedClip } from "./support/clip";
 
@@ -80,8 +81,6 @@ test("E2E-059 a clip imported as a slide shows its length, opens in the clip edi
 });
 
 const PLAYHEAD_CLIP_SECONDS = 8;
-/** Pointer travel split into steps, so a drag passes the editor's drag threshold as a hand does. */
-const DRAG_STEPS = 8;
 
 /** A point at `ms` of the whole clip on the strip's track, at its vertical centre. */
 async function trackPointAt(
@@ -94,26 +93,6 @@ async function trackPointAt(
     throw new Error("the excerpt strip is not shown");
   }
   return { x: box.x + (ms / sourceMs) * box.width, y: box.y + box.height / 2 };
-}
-
-/** The centre of `target` on the page. */
-async function centreOf(target: Locator): Promise<{ x: number; y: number }> {
-  const box = await target.boundingBox();
-  if (box === null) {
-    throw new Error("the drag target is not shown");
-  }
-  return { x: box.x + box.width / 2, y: box.y + box.height / 2 };
-}
-
-async function drag(
-  page: Page,
-  from: { x: number; y: number },
-  to: { x: number; y: number },
-): Promise<void> {
-  await page.mouse.move(from.x, from.y);
-  await page.mouse.down();
-  await page.mouse.move(to.x, to.y, { steps: DRAG_STEPS });
-  await page.mouse.up();
 }
 
 test("E2E-063 the clip editor's strip shows the player's place as a draggable mark with a time chip, which a dragged handle leaves where it was", async ({

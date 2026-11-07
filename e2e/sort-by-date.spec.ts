@@ -1,13 +1,9 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import { createSlideshow, editsStored, GERMAN_BROWSER } from "./support/app";
 import { openApp } from "./support/browser";
+import { tile } from "./support/strip";
 
 test.use(GERMAN_BROWSER);
-
-/** A tile of the picture strip, named by its position and capture date. */
-function tile(page: Page, number: number, date: string) {
-  return page.getByRole("button", { name: `Bild ${number}, aufgenommen am ${date}`, exact: true });
-}
 
 test("E2E-110 Sort by date shows only for the user's own order, puts the pictures back in capture order with an undo, and the date order survives a reload", async ({
   page,

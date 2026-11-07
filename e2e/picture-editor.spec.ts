@@ -1,4 +1,4 @@
-import { expect, test, type Locator, type Page } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 import {
   chooseCustomMood,
   createSlideshow,
@@ -7,12 +7,10 @@ import {
   GERMAN_BROWSER,
 } from "./support/app";
 import { openApp } from "./support/browser";
+import { centreOf, drag } from "./support/pointer";
 import { clickTrackWav } from "./support/media";
 
 test.use(GERMAN_BROWSER);
-
-/** Pointer travel split into steps, so a drag passes the editor's drag threshold as a hand does. */
-const DRAG_STEPS = 8;
 
 /** A page point given in picture coordinates (0–1 across and down the shown picture). */
 async function onPicture(page: Page, x: number, y: number): Promise<{ x: number; y: number }> {
@@ -21,26 +19,6 @@ async function onPicture(page: Page, x: number, y: number): Promise<{ x: number;
     throw new Error("the picture editor shows no picture");
   }
   return { x: box.x + x * box.width, y: box.y + y * box.height };
-}
-
-/** The centre of `target` on the page. */
-async function centreOf(target: Locator): Promise<{ x: number; y: number }> {
-  const box = await target.boundingBox();
-  if (box === null) {
-    throw new Error("the drag target is not shown");
-  }
-  return { x: box.x + box.width / 2, y: box.y + box.height / 2 };
-}
-
-async function drag(
-  page: Page,
-  from: { x: number; y: number },
-  to: { x: number; y: number },
-): Promise<void> {
-  await page.mouse.move(from.x, from.y);
-  await page.mouse.down();
-  await page.mouse.move(to.x, to.y, { steps: DRAG_STEPS });
-  await page.mouse.up();
 }
 
 test("E2E-020 a picture gets its own Ken Burns motion that is stored, and goes back to automatic with undo", async ({
