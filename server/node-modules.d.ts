@@ -37,6 +37,8 @@ declare module "node:http" {
     once(event: "close", listener: () => void): void;
     /** True once the client went away; its "close" has then already fired. */
     readonly destroyed: boolean;
+    /** Closes the connection without finishing the answer. */
+    destroy(): void;
   }
 
   export interface Server {
