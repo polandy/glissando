@@ -7,7 +7,11 @@ import {
   MUSIC_VOLUME_MAX_DB,
   MUSIC_VOLUME_MIN_DB,
 } from "../library/own-music";
-import { NON_EMPTY_STRING_SCHEMA, type JsonSchema } from "./manifest-schema-values";
+import {
+  NON_EMPTY_STRING_SCHEMA,
+  SONG_MEDIA_TYPE_SCHEMA,
+  type JsonSchema,
+} from "./manifest-schema-values";
 
 const MUSIC_FADE_SCHEMA: JsonSchema = {
   type: "integer",
@@ -50,7 +54,7 @@ export const MUSIC_SCHEMA: JsonSchema = {
   properties: {
     file: NON_EMPTY_STRING_SCHEMA,
     fileName: NON_EMPTY_STRING_SCHEMA,
-    mimeType: NON_EMPTY_STRING_SCHEMA,
+    mimeType: SONG_MEDIA_TYPE_SCHEMA,
     durationMs: { type: "integer", minimum: 1 },
     trim: MUSIC_TRIM_SCHEMA,
     fadeInMs: MUSIC_FADE_SCHEMA,

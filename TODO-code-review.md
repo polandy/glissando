@@ -19,7 +19,6 @@ Each fix starts with the failing test the item names or implies (WORKFLOW.md, Te
 
 ### Library and file format
 
-- [ ] `src/glissando-file/slideshow-fields-media.ts:103`, `manifest-video.ts:97` — A manifest's song/clip `mimeType` is only checked to be non-empty and becomes the stored Blob type. Fix: require `audio/*` / `video/*` (or the import allow-list), else damaged.
 - [ ] `src/glissando-file/round-trip.browser.test.ts:35-88` — The round trip checks only title, one picture's bytes and media bytes; the ~25 optional fields are hand-listed in five mappers and a field forgotten in one is silently dropped. Fix: a fixture with every optional field set and a `toEqual` modulo ids/title/createdAt; or type the mappers so an unmapped key fails to compile.
 
 ### Import and Immich

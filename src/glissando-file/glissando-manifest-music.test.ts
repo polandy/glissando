@@ -134,3 +134,19 @@ describe("a song's excerpt and fades in the .glissando file", () => {
     });
   });
 });
+
+describe("a song's MIME type in the .glissando file", () => {
+  it.each(["text/html", "image/svg+xml", "audio/mpeg;codecs=mp3", "Audio/MPEG", ""])(
+    "takes %j for damaged, naming the field",
+    (mimeType) => {
+      const reading = readManifest(withSong({ mimeType }));
+
+      expect(reading).toMatchObject({ kind: "damaged" });
+      expect(reading.kind === "damaged" && reading.reason).toContain("slideshow.songs[0].mimeType");
+    },
+  );
+
+  it.each(["audio/mpeg", "video/webm", "application/octet-stream"])("reads %s", (mimeType) => {
+    expect(readManifest(withSong({ mimeType })).kind).toBe("ok");
+  });
+});

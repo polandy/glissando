@@ -1,5 +1,6 @@
 import { MAX_VIDEO_VOLUME, VIDEO_VOLUME_STEP } from "../library/own-video";
 import {
+  CLIP_MEDIA_TYPE_SCHEMA,
   NON_EMPTY_STRING_SCHEMA,
   POSITIVE_SAFE_INTEGER_SCHEMA,
   type JsonSchema,
@@ -14,7 +15,7 @@ export const VIDEO_SCHEMA: JsonSchema = {
   type: "object",
   properties: {
     file: NON_EMPTY_STRING_SCHEMA,
-    mimeType: NON_EMPTY_STRING_SCHEMA,
+    mimeType: CLIP_MEDIA_TYPE_SCHEMA,
     sourceMs: POSITIVE_SAFE_INTEGER_SCHEMA,
     startMs: { type: "integer", minimum: 0 },
     endMs: { type: "integer" },

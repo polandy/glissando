@@ -198,6 +198,14 @@ describe("video slides in a .glissando file", () => {
     ["a duckMusic of true", { duckMusic: true }, "slideshow.pictures[0].video.duckMusic"],
     ["a clip length of zero", { sourceMs: 0 }, "slideshow.pictures[0].video.sourceMs"],
     ["no MIME type", { mimeType: "" }, "slideshow.pictures[0].video.mimeType"],
+    ["a text type", { mimeType: "text/html" }, "slideshow.pictures[0].video.mimeType"],
+    ["a song type", { mimeType: "audio/mpeg" }, "slideshow.pictures[0].video.mimeType"],
+    [
+      "a type with parameters",
+      { mimeType: "video/mp4; codecs=avc1" },
+      "slideshow.pictures[0].video.mimeType",
+    ],
+    ["an uppercase type", { mimeType: "Video/MP4" }, "slideshow.pictures[0].video.mimeType"],
   ])("takes %s for damaged, naming the field", async (_, change, path) => {
     const manifest = await manifestOf(await exportedVideoFile());
 
@@ -206,6 +214,25 @@ describe("video slides in a .glissando file", () => {
     expect(reading).toMatchObject({ kind: "damaged" });
     expect(reading.kind === "damaged" && reading.reason).toContain(path);
   });
+
+  it.each(["application/octet-stream", "video/quicktime"])(
+    "reads a clip of type %s",
+    async (type) => {
+      const manifest = await manifestOf(await exportedVideoFile());
+      const show = manifest["slideshow"] as { pictures: { video?: object }[] };
+      const pictures = show.pictures.map((picture) =>
+        picture.video === undefined
+          ? picture
+          : { ...picture, video: { ...picture.video, mimeType: type } },
+      );
+
+      const reading = readManifest(
+        JSON.stringify({ ...manifest, slideshow: { ...show, pictures } }),
+      );
+
+      expect(reading.kind).toBe("ok");
+    },
+  );
 
   it("takes two slides sharing a clip file but disagreeing on its type for damaged", async () => {
     const manifest = await manifestOf(await exportedVideoFile());
