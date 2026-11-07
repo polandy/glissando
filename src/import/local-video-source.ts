@@ -2,7 +2,7 @@ import type { PictureSource } from "./picture-source";
 import { readVideoFile, type VideoReaders } from "./video-read";
 
 export interface LocalVideoReaders extends VideoReaders {
-  /** The container's creation time, else the file's date, as `captureDate()` writes it. */
+  /** The container's creation time, else the file's date, as `readPictureExif()` writes it. */
   captureDate(file: File): Promise<string>;
 }
 

@@ -58,7 +58,7 @@ export class ImmichJsonReader {
 
   /**
    * An instant Immich serialises as "YYYY-MM-DDTHH:MM:SS.fffZ", cut to whole seconds: the wall-time
-   * form `captureDate()` writes for a file, so the same photo from both sources has one capture
+   * form `readPictureExif()` writes for a file, so the same photo from both sources has one capture
    * date (ADR-0016 compares it as text).
    */
   wallTime(record: JsonRecord, field: string): string {

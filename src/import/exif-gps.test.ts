@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import {
-  captureGps,
   readExifGps,
   MAX_LATITUDE,
   MAX_LONGITUDE,
@@ -227,55 +226,4 @@ describe("readExifGps", () => {
       expect(readExifGps(buffer(jpeg))).toEqual({ latitude, longitude });
     },
   );
-});
-
-/** A file whose bytes fail to read with `error`, as a picked file whose permission lapsed. */
-function unreadableFile(name: string, error: Error): File {
-  const file = new File(["bytes"], name, { type: "image/jpeg" });
-  file.slice = () => {
-    const blob = new Blob();
-    blob.arrayBuffer = () => Promise.reject(error);
-    return blob;
-  };
-  return file;
-}
-
-describe("captureGps", () => {
-  it("takes the EXIF GPS coordinate of a JPEG", async () => {
-    const jpeg = syntheticGpsJpeg({
-      byteOrder: "big",
-      gpsIfd: [
-        gpsRef(TAG_GPS_LATITUDE_REF, "N"),
-        NORTH_LATITUDE,
-        gpsRef(TAG_GPS_LONGITUDE_REF, "E"),
-        EAST_LONGITUDE,
-      ],
-    });
-    const file = new File([buffer(jpeg)], "a.jpg", { type: "image/jpeg" });
-
-    expect(await captureGps(file)).toEqual({
-      latitude: decimalDegrees(
-        NORTH_LATITUDE.degrees,
-        NORTH_LATITUDE.minutes,
-        NORTH_LATITUDE.seconds,
-      ),
-      longitude: decimalDegrees(
-        EAST_LONGITUDE.degrees,
-        EAST_LONGITUDE.minutes,
-        EAST_LONGITUDE.seconds,
-      ),
-    });
-  });
-
-  it("resolves to null when the file has no GPS tags, rather than rejecting", async () => {
-    const file = new File(["not a jpeg"], "a.png", { type: "image/png" });
-
-    expect(await captureGps(file)).toBeNull();
-  });
-
-  it("passes a read error through unchanged", async () => {
-    const failure = new DOMException("the read was aborted", "AbortError");
-
-    await expect(captureGps(unreadableFile("a.jpg", failure))).rejects.toBe(failure);
-  });
 });

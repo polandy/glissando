@@ -1,4 +1,3 @@
-import { readPictureHead } from "./unreadable-picture";
 import {
   findEntry,
   findExifTiffStart,
@@ -18,9 +17,6 @@ import {
  * fallback follows the same convention with the device's local time.
  */
 
-/** Enough of a file to hold the EXIF segment of any camera picture. */
-export const EXIF_SEARCH_BYTES = 128 * 1024;
-
 const TAG_DATE_TIME_ORIGINAL = 0x9003;
 /** "YYYY:MM:DD HH:MM:SS" */
 const EXIF_DATE_LENGTH = 19;
@@ -31,12 +27,6 @@ export function readExifCaptureDate(bytes: ArrayBuffer): string | null {
   const data = new DataView(bytes);
   const tiffStart = findExifTiffStart(data);
   return tiffStart === null ? null : readDateTimeOriginal(data, tiffStart);
-}
-
-/** EXIF date of the file's head, else its modification time (see the module comment). */
-export async function captureDate(file: File): Promise<string> {
-  const head = await readPictureHead(file, EXIF_SEARCH_BYTES);
-  return readExifCaptureDate(head) ?? localWallTime(new Date(file.lastModified));
 }
 
 export function localWallTime(date: Date): string {

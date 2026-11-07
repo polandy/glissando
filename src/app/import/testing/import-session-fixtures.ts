@@ -44,8 +44,11 @@ export function sessionWith(
         display: new Blob([`display ${file.name}`]),
         thumbnail: new Blob([`thumbnail ${file.name}`]),
       }),
-    captureDate: (file) => Promise.resolve((file as File & { capturedAt: string }).capturedAt),
-    gps: () => Promise.resolve(null),
+    exif: (file) =>
+      Promise.resolve({
+        capturedAt: (file as File & { capturedAt: string }).capturedAt,
+        gps: null,
+      }),
     resolvePlace: () => Promise.resolve(null),
     immichSource: (photo: ImmichPhoto) => ({
       fileName: photo.fileName,

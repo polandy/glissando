@@ -119,7 +119,10 @@ export function setUp(
   const gps = options.gps ?? (() => Promise.resolve(null));
   const addFiles = (files: readonly File[], pick?: PickInput): void => {
     const sources = files.map((file) =>
-      localPictureSource(file, { decode: decoder.decode, captureDate, gps }),
+      localPictureSource(file, {
+        decode: decoder.decode,
+        exif: async (f) => ({ capturedAt: await captureDate(f), gps: await gps(f) }),
+      }),
     );
     if (pick === undefined) pictureImport.add(sources);
     else pictureImport.add(sources, pick);

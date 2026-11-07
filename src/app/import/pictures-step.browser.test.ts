@@ -55,11 +55,10 @@ function failingSession(): ImportSession {
         thumbnail: new Blob([file.name]),
       }),
     videoClips: noVideoClips,
-    captureDate: (file) =>
+    exif: (file) =>
       file.name === "a.jpg"
-        ? Promise.resolve("2025-07-01T10:00:00Z")
+        ? Promise.resolve({ capturedAt: "2025-07-01T10:00:00Z", gps: null })
         : Promise.reject(new Error("the disk went away")),
-    gps: () => Promise.resolve(null),
     resolvePlace: () => Promise.resolve(null),
     immichSource: () => {
       throw new Error("no Immich in this test");
@@ -87,8 +86,7 @@ function workingSession(decoder: FakeDecoder): ImportSession {
     immichColours: () => Promise.resolve({ veil: "#404040", accent: "#C0C0C0" }),
     decode: decoder.decode,
     videoClips: noVideoClips,
-    captureDate: () => Promise.resolve("2025-07-01T10:00:00Z"),
-    gps: () => Promise.resolve(null),
+    exif: () => Promise.resolve({ capturedAt: "2025-07-01T10:00:00Z", gps: null }),
     resolvePlace: () => Promise.resolve(null),
     immichSource: () => {
       throw new Error("no Immich in this test");

@@ -34,8 +34,7 @@ function session(): ImportSession {
         thumbnail: new Blob([file.name]),
       }),
     videoClips: noVideoClips,
-    captureDate: () => Promise.resolve("2025-07-01T10:00:00Z"),
-    gps: () => Promise.resolve(null),
+    exif: () => Promise.resolve({ capturedAt: "2025-07-01T10:00:00Z", gps: null }),
     resolvePlace: () => Promise.resolve(null),
     immichSource: () => {
       throw new Error("no Immich download in this test");
