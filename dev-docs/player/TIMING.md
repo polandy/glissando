@@ -16,7 +16,9 @@ centre moves one way only.
 
 ## Video clips
 
-The slide clock leads and a clip follows (`video-clip-plan.ts`, `video-clips.ts`). A video slide's
+The slide clock leads and a clip follows (`video-clip-plan.ts`, `video-clips.ts`). The clip plan
+places each clip on the timeline's own `slideSpans`, so a clip is on screen exactly while its slide
+is drawn. A video slide's
 clip time is `startMs + slide time`, clamped to `endMs`; the slide time is negative during the
 transition into it, so the clip plays from the start of that transition, and a transition out keeps
 it playing. A file with less footage before `startMs` than that lead-in **holds** its first frame

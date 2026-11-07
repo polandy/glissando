@@ -13,7 +13,6 @@ Each fix starts with the failing test the item names or implies (WORKFLOW.md, Te
 
 ### Player
 
-- [ ] `src/player/video-clip-plan.ts:194-216` — Slide spans and transition lead-in are recomputed instead of taken from `timeline.ts:48-63`; a change to the overlap rule desyncs clips from what is drawn. Fix: derive clip spans from the timeline's span function.
 - [ ] `src/player/card-timing.ts:150-225` — `cardTimingAt` and `cardItemTimingAt` carry two copies of the enter/reveal/drift presence formula. Fix: one shared presence helper.
 - [ ] `src/player/browser-player.ts:170-171` — The canvas is appended before `new WebGlRenderer(...)`; a shader/target failure leaves an orphan canvas and no DOM-renderer fallback. Fix: append after construction; fall back to `DomRenderer` on the typed errors.
 
