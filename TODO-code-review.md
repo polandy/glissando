@@ -25,7 +25,6 @@ Each fix starts with the failing test the item names or implies (WORKFLOW.md, Te
 
 ### Tooling and tests
 
-- [ ] `scripts/brand/requirements.txt:1`, `scripts/brand/build.sh:7` — Python deps are exact but not hash-pinned (CODING_PRINCIPLES §5). Fix: `pip-compile --generate-hashes`, install with `--require-hashes`.
 - [ ] `src/app/app-actions.ts:5`, `src/app/share-link/share-summary.ts:2` — Plain `.ts` modules import types declared in `.svelte` components; `npx tsc --noEmit` reports 10 errors (svelte-check passes), and pure logic depends on a component. Fix: move `PwaSheetContent` and `ShareSubject` into sibling `.ts` files.
 - [ ] `package-lock.json` — `npm audit` (dev only): `fast-uri` via ajv is fixable without a major bump; `minimatch` and `deepmerge` chains wait on upstream. Fix: `npm update fast-uri`; track the other two; never `audit fix --force`.
 - [ ] `src/player/browser/open-video.test.ts:111-121` and the "not yet resolved" checks in `slideshow-player-render-at.test.ts:64`, `video-clips.test.ts:148,174`, `fonts.test.ts:54`, `create-frame-player.browser.test.ts:85`, `clip-sound-track.test.ts:232` (20 files count microtask ticks) — Absence asserted after one or two `await Promise.resolve()`; a resolve one `.then` later is false-green. Fix: one shared `settleMicrotasks()` helper plus a positive signal where missing.
