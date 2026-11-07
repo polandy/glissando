@@ -29,7 +29,9 @@
   throwing) until `webglcontextrestored`, when it rebuilds its buffers and shader programs, drops
   its texture cache (textures are uploaded anew from the still-held bitmaps when each picture is
   next prepared or drawn), and triggers a redraw of the current frame.
-- **DOM fallback** when the browser has no WebGL2: pictures load as `<img>` elements decoded by the
+- **DOM fallback** when the browser has no WebGL2, or when the WebGL2 renderer's setup fails (a
+  `WebGlSetupError`: a context lost at birth, a shader the driver refuses — logged, its context
+  released, its canvas never added to the page): pictures load as `<img>` elements decoded by the
   browser (`ImageElementLoader`), and `prepare` does nothing. Each slide is its `<img>`, framed by a
   CSS transform, followed by its caption element (`[data-caption]`, styled by `captionStyles`)
   outside that transform; every transition becomes a crossfade, the caption fading with its slide.

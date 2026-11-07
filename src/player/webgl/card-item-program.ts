@@ -1,5 +1,6 @@
 import type { CardItemSlice } from "../card-item-layout";
 import type { Size } from "../ken-burns";
+import { WebGlSetupError } from "./webgl-setup-error";
 
 /**
  * Draws a card's title/subtitle texture one slice at a time, each its own quad with its own
@@ -33,7 +34,7 @@ const FLOATS_PER_VERTEX = 4;
 const VERTEX_COUNT = 4;
 const QUAD_FLOATS = FLOATS_PER_VERTEX * VERTEX_COUNT;
 
-class CardItemProgramCompileError extends Error {
+class CardItemProgramCompileError extends WebGlSetupError {
   constructor(log: string) {
     super(`the card item shader does not compile or link: ${log}`);
     this.name = "CardItemProgramCompileError";

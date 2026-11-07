@@ -14,6 +14,7 @@ import { CardTextures } from "./card-textures";
 import { PictureTextures } from "./picture-textures";
 import { prepareSlide } from "./prepare-slide";
 import { compilePrograms, type EffectProgram } from "./shader-programs";
+import { WebGlSetupError } from "./webgl-setup-error";
 
 /** A single slide is a crossfade that has not started. */
 const SINGLE_SLIDE_EFFECT: TransitionEffect = "crossfade";
@@ -97,7 +98,7 @@ export class WebGlRenderer implements SlideRenderer<BitmapPicture> {
     const gl = this.#gl;
     const buffer = gl.createBuffer();
     if (buffer === null) {
-      throw new Error("createBuffer returned null for the full-screen quad");
+      throw new WebGlSetupError("createBuffer returned null for the full-screen quad");
     }
     this.#mainBuffer = buffer;
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
