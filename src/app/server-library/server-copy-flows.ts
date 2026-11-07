@@ -29,22 +29,26 @@ function isUnavailable(error: unknown): boolean {
 
 /**
  * "Keep a copy on this device" and "Save on the server" (`dev-docs/SERVER_LIBRARY.md`), run in
- * the background: the copy's progress shows in the header (`ExportProgress`, `copying`), the end
- * in a toast with "Open". Never rejects.
+ * the background: each running copy's progress (`ExportProgress`, `copying`) is published, keyed
+ * by its slideshow; the end shows in a toast with "Open". Never rejects.
  */
 export class ServerCopyFlows {
   readonly #ports: ServerCopyFlowsPorts;
-  readonly #listeners = new Set<(progress: ExportProgress | null) => void>();
-  #progress: ExportProgress | null = null;
+  readonly #listeners = new Set<(copies: readonly ExportProgress[]) => void>();
+  /** The running copies by server slideshow id, in the order they started. */
+  readonly #copies = new Map<string, ExportProgress>();
+  /** Each running copy's flow by server slideshow id, so a second "Keep a copy" joins it. */
+  readonly #copying = new Map<string, Promise<void>>();
   #settled: Promise<void> = Promise.resolve();
 
   constructor(ports: ServerCopyFlowsPorts) {
     this.#ports = ports;
   }
 
-  subscribe(listener: (progress: ExportProgress | null) => void): () => void {
+  /** Hears the running copies, in the order they started; empty when none runs. */
+  subscribe(listener: (copies: readonly ExportProgress[]) => void): () => void {
     this.#listeners.add(listener);
-    listener(this.#progress);
+    listener(this.#running());
     return () => this.#listeners.delete(listener);
   }
 
@@ -53,9 +57,16 @@ export class ServerCopyFlows {
     return this.#settled;
   }
 
+  /** Copies a server slideshow to this device, or joins its copy already running. */
   keepCopy(serverSlideshow: StoredSlideshow): Promise<void> {
-    this.#settled = this.#keepCopy(serverSlideshow);
-    return this.#settled;
+    const running = this.#copying.get(serverSlideshow.id);
+    if (running !== undefined) return running;
+    const flow = this.#keepCopy(serverSlideshow).finally(() =>
+      this.#copying.delete(serverSlideshow.id),
+    );
+    this.#copying.set(serverSlideshow.id, flow);
+    this.#settled = flow;
+    return flow;
   }
 
   saveOnServer(deviceSlideshow: StoredSlideshow): Promise<void> {
@@ -69,16 +80,16 @@ export class ServerCopyFlows {
     const { t } = translator;
     try {
       const existingTitles = (await deviceStore.listSlideshows()).map((shown) => shown.title);
-      this.#publish({ slideshowId, title, fraction: 0, copying: true });
+      this.#publish(slideshowId, { slideshowId, title, fraction: 0, copying: true });
       const copy = await serverLibrary.keepCopy(serverSlideshow, {
         existingTitles,
-        signal: new AbortController().signal,
-        onProgress: (fraction) => this.#publish({ slideshowId, title, fraction, copying: true }),
+        onProgress: (fraction) =>
+          this.#publish(slideshowId, { slideshowId, title, fraction, copying: true }),
       });
-      this.#publish(null);
+      this.#publish(slideshowId, null);
       toaster.show({ text: t("server.copied"), tone: "info", action: this.#opening(copy.id) });
     } catch (error) {
-      this.#publish(null);
+      this.#publish(slideshowId, null);
       if (error instanceof PictureMissingFromImmichError) {
         this.#ports.log(error);
         toaster.show({ text: t("server.copyMissing"), tone: "error" });
@@ -125,9 +136,16 @@ export class ServerCopyFlows {
     return { label: t("server.open"), run: () => this.#ports.open(slideshowId) };
   }
 
-  #publish(progress: ExportProgress | null): void {
-    this.#progress = progress;
-    for (const listener of this.#listeners) listener(progress);
+  /** Sets one copy's progress, or ends it with `null`, and tells the listeners. */
+  #publish(slideshowId: string, progress: ExportProgress | null): void {
+    if (progress === null) this.#copies.delete(slideshowId);
+    else this.#copies.set(slideshowId, progress);
+    const copies = this.#running();
+    for (const listener of this.#listeners) listener(copies);
+  }
+
+  #running(): readonly ExportProgress[] {
+    return [...this.#copies.values()];
   }
 }
 
