@@ -31,7 +31,7 @@
     playlist.crossfades.find((crossfade) => crossfade.atMs === atMs)?.ms ?? 0;
 </script>
 
-<div class="playlist-timeline">
+<div class="playlist-timeline" data-testid="playlist-timeline">
   <div class="lane-label">
     <span>
       <Separated
@@ -47,10 +47,11 @@
       <span>{playlist.crossfade ? t("music.crossfadesHatched") : t("music.sequence")}</span>
     {/if}
   </div>
-  <div class="playlist-lane" aria-hidden="true">
+  <div class="playlist-lane" data-testid="playlist-lane" aria-hidden="true">
     {#each playlist.songs as song (song.atMs)}
       <span
         class="block mono"
+        data-testid="playlist-block"
         class:unreached={!song.reached}
         class:meeting={!playlist.details}
         style:left={pct(song.laneAtMs)}
@@ -64,7 +65,11 @@
       >
     {/each}
     {#each playlist.crossfades as crossfade (crossfade.atMs)}
-      <span class="crossfade" style:left={pct(crossfade.atMs)} style:width={pct(crossfade.ms)}
+      <span
+        class="crossfade"
+        data-testid="playlist-crossfade"
+        style:left={pct(crossfade.atMs)}
+        style:width={pct(crossfade.ms)}
       ></span>
     {/each}
     {#if endsEarly}
@@ -83,7 +88,8 @@
     </span>
   </div>
   <div class="slides" aria-hidden="true">
-    <span class="runs" style:width={pct(playlist.slideshowMs)}></span>
+    <span class="runs" data-testid="playlist-slideshow-runs" style:width={pct(playlist.slideshowMs)}
+    ></span>
     {#each playlist.slideChangesMs as atMs (atMs)}
       <i style:left={pct(atMs)}></i>
     {/each}

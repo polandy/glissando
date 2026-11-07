@@ -81,7 +81,7 @@
   }
 </script>
 
-<div class="screen" aria-busy={saving}>
+<div class="screen" data-testid="editing-screen" aria-busy={saving}>
   <Header
     crumbs={[t("start.library"), slideshowTitle, t("clip.crumb", { number: slide.number })]}
     {onBack}

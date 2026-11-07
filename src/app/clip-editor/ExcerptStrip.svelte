@@ -126,7 +126,7 @@
 />
 
 <div class="strip" role="group" aria-label={t("clip.strip")}>
-  <div class="track" bind:this={track} bind:clientWidth={trackWidth}>
+  <div class="track" data-testid="excerpt-track" bind:this={track} bind:clientWidth={trackWidth}>
     <ClipWaveform {wave} {excerpt} {sourceMs} {soundOff} width={trackWidth} />
     <span class="dim" style:left="0" style:width="{percentOf(excerpt.startMs)}%"></span>
     <span class="dim" style:right="0" style:width="{PERCENT - percentOf(excerpt.endMs)}%"></span>
@@ -136,11 +136,17 @@
       style:width="{percentOf(excerpt.endMs - excerpt.startMs)}%"
     ></span>
     {#if positionMs !== null}
-      <span class="playhead" style:left="{percentOf(positionMs)}%" aria-hidden="true"></span>
+      <span
+        class="playhead"
+        data-testid="excerpt-playhead"
+        style:left="{percentOf(positionMs)}%"
+        aria-hidden="true"
+      ></span>
       <!-- Pointer only: dragging the line seeks the same way as the slider above, which stays
            the keyboard and assistive-technology way to move the player's place. -->
       <div
         class="playhead-zone"
+        data-testid="excerpt-playhead-zone"
         role="presentation"
         style:left="{percentOf(positionMs)}%"
         style:width="{PLAYHEAD_HIT_WIDTH_PX}px"
@@ -168,6 +174,7 @@
     {#if positionMs !== null}
       <div
         class="chip mono"
+        data-testid="excerpt-time-chip"
         style:left="clamp(0px, calc({percentOf(positionMs)}% - {CHIP_WIDTH_PX / 2}px), calc(100% - {CHIP_WIDTH_PX}px))"
         style:width="{CHIP_WIDTH_PX}px"
         aria-hidden="true"

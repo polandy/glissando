@@ -141,7 +141,12 @@
   }
 </script>
 
-<div class="screen slideshow-screen" class:selecting={showBar} aria-busy={saving}>
+<div
+  class="screen slideshow-screen"
+  class:selecting={showBar}
+  data-testid="editing-screen"
+  aria-busy={saving}
+>
   <Header crumbs={[t("start.library"), slideshow.title]} {onBack}>
     {#snippet actions()}
       <MoreMenu

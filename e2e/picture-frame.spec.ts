@@ -3,6 +3,7 @@ import { GERMAN_BROWSER } from "./support/app";
 import { openApp } from "./support/browser";
 import { fakeGlissandoServer, immichFixture } from "./support/fake-glissando-server";
 import { pictureTakenOn } from "./support/media";
+import { clickSwitch } from "./support/switch";
 
 test.use(GERMAN_BROWSER);
 
@@ -33,24 +34,14 @@ function albumTile(page: Page, name: string): Locator {
   return page.getByRole("button", { name: new RegExp(name) });
 }
 
-/** The clock/date switches, which carry no accessible name of their own: found by their row. */
+/** A setting's switch, found by its accessible name. */
 function settingSwitch(page: Page, label: string): Locator {
-  return page
-    .locator(".row")
-    .filter({ has: page.getByText(label, { exact: true }) })
-    .getByRole("switch");
+  return page.getByRole("switch", { name: label, exact: true });
 }
 
-/**
- * Toggles a setting switch: the input itself is visually hidden behind its track (`gl-radius-pill`
- * styling), so the click goes to the `<label>` wrapping both, the way a tap on the row would land.
- */
+/** Toggles a setting switch the way a tap on it lands (`clickSwitch`). */
 function toggleSwitch(page: Page, label: string): Promise<void> {
-  return page
-    .locator(".row")
-    .filter({ has: page.getByText(label, { exact: true }) })
-    .locator(".switch")
-    .click();
+  return clickSwitch(settingSwitch(page, label));
 }
 
 /**
@@ -111,7 +102,7 @@ test("E2E-047 the picture frame is set up from the start screen, runs full scree
   // The controls stay hidden until a tap: proven by opacity, since the pill is in the DOM (so
   // the regular `toBeVisible` cannot tell idle from revealed) but not interactive while idle.
   await expect(exitButton(page)).toHaveCSS("opacity", "0");
-  await page.locator(".stage").click();
+  await page.getByTestId("frame-stage").click();
   await expect(exitButton(page)).toHaveCSS("opacity", "1");
   const pauseButton = page.getByRole("button", { name: "Pause" });
   await expect(pauseButton).toBeVisible();
@@ -136,7 +127,7 @@ test("E2E-047 the picture frame is set up from the start screen, runs full scree
     "aria-busy",
     "false",
   );
-  await page.locator(".stage").click();
+  await page.getByTestId("frame-stage").click();
   await expect(exitButton(page)).toHaveCSS("opacity", "1");
   await page.keyboard.press("Escape");
   await expect(setUpCard(page)).toBeVisible();
@@ -179,8 +170,8 @@ test("E2E-049 a #frame= link starts the frame directly, skipping set-up", async 
   await expect(exitButton(page)).toBeVisible();
   // The default showDate captions the running picture with its place and date; every picture of
   // the fake library is from Annecy.
-  await expect(page.locator(".stamp b")).toHaveText("Annecy");
-  await expect(page.locator(".stamp small")).toHaveText(/\d{4}/);
+  await expect(page.getByTestId("frame-caption-title")).toHaveText("Annecy");
+  await expect(page.getByTestId("frame-caption-date")).toHaveText(/\d{4}/);
 });
 
 test("E2E-117 the frame's caption names each picture's place above its date, and a picture without a place by its date alone", async ({
@@ -204,8 +195,8 @@ test("E2E-117 the frame's caption names each picture's place above its date, and
   await page.getByRole("button", { name: "Neueste zuerst" }).click();
 
   await startFrameButton(page).click();
-  await expect(page.locator(".stamp b")).toHaveText("Lyon");
-  await expect(page.locator(".stamp small")).toHaveText("Mi., 19. Juni 2019");
+  await expect(page.getByTestId("frame-caption-title")).toHaveText("Lyon");
+  await expect(page.getByTestId("frame-caption-date")).toHaveText("Mi., 19. Juni 2019");
 
   // Oldest first opens on the picture without a place. The caption following the playback from
   // one picture to the next is proven in `round-position.test.ts`.
@@ -213,8 +204,8 @@ test("E2E-117 the frame's caption names each picture's place above its date, and
   await setUpCard(page).click();
   await page.getByRole("button", { name: "Älteste zuerst" }).click();
   await startFrameButton(page).click();
-  await expect(page.locator(".stamp b")).toHaveText("Di., 18. Juni 2019");
-  await expect(page.locator(".stamp small")).toHaveCount(0);
+  await expect(page.getByTestId("frame-caption-title")).toHaveText("Di., 18. Juni 2019");
+  await expect(page.getByTestId("frame-caption-date")).toHaveCount(0);
 });
 
 test("E2E-057 the picture frame card is hidden with its close button, stays hidden after a reload, the frame is still set up from Settings and the card is brought back there", async ({

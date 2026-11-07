@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { createSlideshow, GERMAN_BROWSER, openImport } from "./support/app";
 import { openApp } from "./support/browser";
+import { stripHead } from "./support/strip-head";
 
 test.use(GERMAN_BROWSER);
 
@@ -28,10 +29,8 @@ test("E2E-088 each slideshow action has one way in: the cover plays, the strip h
   await expect(play).toBeVisible();
   const add = page.getByRole("button", { name: "Bilder hinzufügen" });
   await expect(add).toHaveCount(1);
-  await expect(
-    page.locator(".strip-head").getByRole("button", { name: "Auswählen" }),
-  ).toBeVisible();
-  await page.locator(".strip-head").getByRole("button", { name: "Mischen" }).click();
+  await expect(stripHead(page).getByRole("button", { name: "Auswählen" })).toBeVisible();
+  await stripHead(page).getByRole("button", { name: "Mischen" }).click();
   await expect(page.getByText("Halten und ziehen zum Umsortieren")).toBeVisible();
 
   await play.click();

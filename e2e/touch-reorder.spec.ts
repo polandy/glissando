@@ -87,7 +87,7 @@ test("E2E-105 on a phone a picture moves from 1 to 10 in one hold-and-drag gestu
   // set now, with a later deadline than the hold's, runs after the hold has fired.
   await page.evaluate((ms) => new Promise((done) => setTimeout(done, ms)), HOLD_MS + 1);
   await finger.move(startX, start.y + 2 * MOVE_PX);
-  await expect(page.locator(".ghost")).toBeVisible();
+  await expect(page.getByTestId("drag-ghost")).toBeVisible();
 
   // Down to the bottom edge: the strip scrolls by itself until picture 10 has come into view.
   for (let step = 1; step <= STEPS; step += 1) {
@@ -106,7 +106,7 @@ test("E2E-105 on a phone a picture moves from 1 to 10 in one hold-and-drag gestu
   await finger.up();
 
   // Picture 1 now sits at 10; the former 2 to 10 moved up by one.
-  await expect(page.locator(".ghost")).toBeHidden();
+  await expect(page.getByTestId("drag-ghost")).toBeHidden();
   await expect(tileAt(page, 10)).toHaveAccessibleName("Bild 10, aufgenommen am 01.07.2025");
   await expect(tileAt(page, 1)).toHaveAccessibleName("Bild 1, aufgenommen am 02.07.2025");
   await expect(tileAt(page, 9)).toHaveAccessibleName("Bild 9, aufgenommen am 10.07.2025");

@@ -67,7 +67,7 @@
 </script>
 
 <!-- The caption is drawn into the picture; screen readers hear it from here. -->
-<p class="caption-text" aria-live="polite">{announcing ? caption : ""}</p>
+<p class="caption-text" role="status" aria-live="polite">{announcing ? caption : ""}</p>
 <div bind:this={safeAreaProbe} class="safe-area-probe" aria-hidden="true"></div>
 
 <style>

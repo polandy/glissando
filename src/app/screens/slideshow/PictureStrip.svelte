@@ -217,7 +217,13 @@
 
 <LookFilterDefs prefix={filterPrefix} />
 
-<ol class="strip" bind:this={strip} onpointerdown={pointerDown} oncontextmenu={contextmenu}>
+<ol
+  class="strip"
+  aria-label={t("slideshow.pictures")}
+  bind:this={strip}
+  onpointerdown={pointerDown}
+  oncontextmenu={contextmenu}
+>
   {#if !suppressCards}
     <CardTile
       bind:this={openingTile}

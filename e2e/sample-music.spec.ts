@@ -45,14 +45,15 @@ test("E2E-075 the sample-music block offers 9 tracks behind Show all, and a fail
   page,
 }) => {
   const toggle = page.getByRole("button", { name: "Show all 9" });
-  const soundtrack = page.locator(".soundtrack");
+  const soundtrack = page.getByRole("region", { name: "Music", exact: true });
   // The first three cards sit directly in the block's own grid and stay rendered either way;
   // the other six sit inside ".more", which the accordion collapses to zero height (its cards
   // keep their own layout box under the clip, so visibility is asserted on ".more" itself, the
   // one element whose box genuinely collapses).
-  const topCards = page.locator(".block > ul.grid > li.card");
-  const more = page.locator(".more");
-  const restCards = more.locator("li.card");
+  const sampleBlock = page.getByRole("region", { name: "Glissando music" });
+  const topCards = sampleBlock.getByRole("list").first().getByRole("listitem");
+  const more = page.getByTestId("sample-more");
+  const restCards = more.getByRole("listitem");
 
   // On entry: three cards show, the rest fold away.
   await expect(topCards).toHaveCount(3);

@@ -42,7 +42,7 @@ test("E2E-025 the slideshow's default transition is chosen in the info panel, st
   await expect(pushRow).toBeVisible();
 
   await editPicture(page, "Bild 1, aufgenommen am 12.07.2025");
-  await expect(timingSection.locator(".state")).toHaveText("Automatisch");
+  await expect(timingSection.getByText("Automatisch", { exact: true })).toBeVisible();
   await expect(timingSection.getByRole("radio", { name: /Schieben/ })).toHaveAttribute(
     "aria-checked",
     "true",

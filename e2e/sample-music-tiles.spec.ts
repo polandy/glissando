@@ -1,4 +1,4 @@
-import { expect, test, type Locator, type Route } from "@playwright/test";
+import { expect, test, type Locator, type Page, type Route } from "@playwright/test";
 import { chooseFiles, GERMAN_BROWSER, picturesTakenOn } from "./support/app";
 import { separatorRoom } from "../src/app/testing/separator-room";
 import { openApp } from "./support/browser";
@@ -51,25 +51,33 @@ test.beforeEach(async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Welche Musik?" })).toBeVisible();
 });
 
+/** Every sample track card of the Glissando-music block. */
+function sampleCards(page: Page): Locator {
+  return page.getByRole("region", { name: "Glissando-Musik" }).getByRole("listitem");
+}
+
 test("E2E-093 on a phone in German, every sample track's title and mood show in full below its cover, clear of play and +", async ({
   page,
 }) => {
   await page.getByRole("button", { name: `Alle ${SAMPLE_TRACK_COUNT} zeigen` }).click();
-  await expect(page.locator(".more")).toBeVisible();
-  const cards = page.locator("li.card");
+  await expect(page.getByTestId("sample-more")).toBeVisible();
+  const cards = sampleCards(page);
   await expect(cards).toHaveCount(SAMPLE_TRACK_COUNT);
 
   for (const card of await cards.all()) {
-    const title = card.locator(".title");
-    const mood = card.locator(".mood");
-    const cover = card.locator(".cover");
+    const title = card.getByTestId("sample-card-title");
+    const mood = card.getByTestId("sample-card-mood");
+    const cover = card.getByTestId("sample-card-cover");
     await expect(mood).not.toHaveText("");
     expect(await showsInFull(title), await title.innerText()).toBe(true);
     expect(await showsInFull(mood), await mood.innerText()).toBe(true);
     // The caption sits below the cover, so nothing on the cover can reach it.
     expect(await overlaps(cover, title), await title.innerText()).toBe(false);
     expect(await overlaps(cover, mood), await title.innerText()).toBe(false);
-    for (const control of [card.locator(".play"), card.locator(".plus")]) {
+    for (const control of [
+      card.getByRole("button", { name: /abspielen$/ }),
+      card.getByRole("button", { name: /hinzufügen$/ }),
+    ]) {
       await expect(control).toBeVisible();
       expect(await overlaps(control, title), await title.innerText()).toBe(false);
     }
@@ -80,12 +88,12 @@ test("E2E-125 on a phone in German, every dot in a sample track's mood gets room
   page,
 }) => {
   await page.getByRole("button", { name: `Alle ${SAMPLE_TRACK_COUNT} zeigen` }).click();
-  const cards = page.locator("li.card");
+  const cards = sampleCards(page);
   await expect(cards).toHaveCount(SAMPLE_TRACK_COUNT);
 
   for (const card of await cards.all()) {
-    const mood = card.locator(".mood");
-    const separators = mood.locator(".separator");
+    const mood = card.getByTestId("sample-card-mood");
+    const separators = mood.getByTestId("separator");
     await expect(separators.first()).toBeAttached();
     const label = await mood.innerText();
     const moodBox = await mood.boundingBox();

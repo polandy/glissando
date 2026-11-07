@@ -192,6 +192,7 @@
   {:else}
     <div
       class="stage"
+      data-testid="frame-stage"
       class:idle={!controlsVisible}
       bind:this={stage}
       onclick={() => controls.tap()}

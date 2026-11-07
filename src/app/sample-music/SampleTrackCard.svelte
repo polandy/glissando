@@ -48,7 +48,12 @@
 
 <li class="card" class:disabled class:added>
   <div class="art">
-    <img class="cover" src={SAMPLE_TRACK_COVER_URLS[track.id]} alt="" />
+    <img
+      class="cover"
+      data-testid="sample-card-cover"
+      src={SAMPLE_TRACK_COVER_URLS[track.id]}
+      alt=""
+    />
     {#if !disabled}
       <button
         class="play"
@@ -95,13 +100,15 @@
     {/if}
   </div>
   <div class="caption">
-    <b class="title">
+    <b class="title" data-testid="sample-card-title">
       {#if playing}
         <span class="bars" aria-hidden="true"><span></span><span></span><span></span></span>
       {/if}
       <span class="name">{track.title}</span>
     </b>
-    <p class="mood"><Separated text={t(SAMPLE_TRACK_MOOD_KEYS[track.id])} /></p>
+    <p class="mood" data-testid="sample-card-mood">
+      <Separated text={t(SAMPLE_TRACK_MOOD_KEYS[track.id])} />
+    </p>
     <p class="length mono">{formatDuration(track.durationMs / MILLISECONDS_PER_SECOND)}</p>
     {#if statusKey !== undefined}<span class="status">{t(statusKey)}</span>{/if}
   </div>

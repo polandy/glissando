@@ -62,7 +62,9 @@ test("E2E-087 on a phone the selection bar shows each action with its label; a t
   await second.click();
   const remove = selectionBar.getByRole("button", { name: "Bild entfernen" });
   await expect(remove).toBeVisible();
-  await expect(remove.locator(".label:visible")).toHaveText("Entfernen");
+  await expect(remove.getByText("Entfernen", { exact: true }).filter({ visible: true })).toHaveText(
+    "Entfernen",
+  );
 
   await remove.click();
   await expect(page.getByRole("button", { name: /^Bild \d, aufgenommen/ })).toHaveCount(2);

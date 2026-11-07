@@ -11,6 +11,7 @@ import {
 import { openApp } from "./support/browser";
 import { tile } from "./support/strip";
 import { pictureTakenOn } from "./support/media";
+import { stripHead, pictureList } from "./support/strip-head";
 
 test.use(GERMAN_BROWSER);
 
@@ -94,7 +95,7 @@ test("E2E-036 adding to a slideshow in its own order sorts the new pictures in b
 
   const where = page.getByRole("radiogroup", { name: "Wohin sie kommen" });
   await expect(where.getByRole("radio", { name: "Nach Aufnahmedatum" })).toBeChecked();
-  const spots = page.locator(".spots li");
+  const spots = page.getByRole("listitem").filter({ hasText: /^\d+ hinter Bild \d+$/ });
   await expect(spots).toHaveText(["1 hinter Bild 1", "1 hinter Bild 2"]);
 
   await where.getByRole("radio", { name: "Ans Ende" }).click();
@@ -119,9 +120,11 @@ test("E2E-069 the strip has no add tile; the header's Add media opens the add sh
   page,
 }) => {
   await createSlideshow(page, ["2025-07-12", "2025-07-14"]);
-  const header = page.locator(".strip-head").getByRole("button", { name: "Bilder hinzufügen" });
+  const header = stripHead(page).getByRole("button", { name: "Bilder hinzufügen" });
   await expect(header).toBeVisible();
-  await expect(page.locator("ol.strip > li").filter({ hasText: "Hinzufügen" })).toHaveCount(0);
+  await expect(
+    pictureList(page).getByRole("listitem").filter({ hasText: "Hinzufügen" }),
+  ).toHaveCount(0);
 
   await header.click();
 

@@ -1,6 +1,7 @@
 import { expect, test, type Page, type Route } from "@playwright/test";
 import { readFileSync } from "node:fs";
 import { expectSlideshowScreen, GERMAN_BROWSER, openImport } from "./support/app";
+import { expectCapturedDates } from "./support/picture-dates";
 import { openApp } from "./support/browser";
 import { pictureTakenOn } from "./support/media";
 
@@ -123,7 +124,7 @@ test("E2E-029 photos picked in Immich by day, by range and by whole album are im
   await openApp(page);
   // A capture day Immich does not know, so a tile showing Immich's date shows it came from Immich.
   jpeg = (await pictureTakenOn(page, "photo.jpg", "2001-01-01", "#4db6ac")).buffer;
-  const footer = page.locator(".actions");
+  const footer = page.getByRole("group", { name: "Auswahl" });
   const tile = (fileName: string) => page.getByRole("button", { name: fileName, exact: true });
 
   await openImport(page);
@@ -167,7 +168,7 @@ test("E2E-029 photos picked in Immich by day, by range and by whole album are im
 
   await expect(page.getByRole("heading", { name: "Welche Bilder?" })).toBeVisible();
   await expect(page.getByText("9 Bilder", { exact: true })).toBeVisible();
-  await expect(page.getByRole("listitem").locator(".date")).toHaveText([
+  await expectCapturedDates(page, [
     "15.06.2019",
     "16.06.2019",
     "17.06.2019",

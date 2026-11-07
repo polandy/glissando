@@ -9,6 +9,8 @@ import {
 import { openApp } from "./support/browser";
 import { tile } from "./support/strip";
 import { pictureTakenOn, type TestFile } from "./support/media";
+import { stripHead, pictureList } from "./support/strip-head";
+import { capturedDates } from "./support/picture-dates";
 
 test.use(GERMAN_BROWSER);
 
@@ -16,16 +18,9 @@ test.beforeEach(async ({ page }) => {
   await openApp(page);
 });
 
-/** Every tile's `.date` text, in the order the strip shows them. */
-function dates(page: Page): Locator {
-  return page.getByRole("listitem").locator(".date");
-}
-
 /** The strip head's "Add pictures" button (`AddPicturesMenu.svelte`). */
 function addButton(page: Page): Locator {
-  return page
-    .locator(".strip-head")
-    .getByRole("button", { name: "Bilder hinzufügen", exact: true });
+  return stripHead(page).getByRole("button", { name: "Bilder hinzufügen", exact: true });
 }
 
 /** Opens the "Add pictures" menu and picks "Bilder und Videos". */
@@ -58,35 +53,29 @@ test("E2E-072 pictures added, moved and shuffled while arranging a new slideshow
   await choosePictures(page, scrambled, 4);
 
   await expect(page.getByText("Aufnahmereihenfolge")).toBeVisible();
-  await expect(dates(page)).toHaveText(["12.07.2025", "14.07.2025", "18.07.2025", "20.07.2025"]);
+  await expect
+    .poll(() => capturedDates(page))
+    .toEqual(["12.07.2025", "14.07.2025", "18.07.2025", "20.07.2025"]);
 
   // Step 3: add more while arranging, via the strip head's "Add pictures" menu; sorted in by date.
   const between = await pictureTakenOn(page, "picture-13th.jpg", "2025-07-13", "#ff8a65");
   const laterStill = await pictureTakenOn(page, "picture-22nd.jpg", "2025-07-22", "#4db6ac");
   await addMorePictures(page, addButton(page), [between, laterStill]);
 
-  await expect(dates(page)).toHaveText([
-    "12.07.2025",
-    "13.07.2025",
-    "14.07.2025",
-    "18.07.2025",
-    "20.07.2025",
-    "22.07.2025",
-  ]);
-  await expect(page.locator("ol.strip > li").filter({ hasText: "Hinzufügen" })).toHaveCount(0);
+  await expect
+    .poll(() => capturedDates(page))
+    .toEqual(["12.07.2025", "13.07.2025", "14.07.2025", "18.07.2025", "20.07.2025", "22.07.2025"]);
+  await expect(
+    pictureList(page).getByRole("listitem").filter({ hasText: "Hinzufügen" }),
+  ).toHaveCount(0);
 
   // Step 4: moving a tile makes the order the user's own.
   await tile(page, 1, "12.07.2025").click();
   await expect(selectionBar).toBeVisible();
   await selectionBar.getByRole("button", { name: "Später" }).click();
-  await expect(dates(page)).toHaveText([
-    "13.07.2025",
-    "12.07.2025",
-    "14.07.2025",
-    "18.07.2025",
-    "20.07.2025",
-    "22.07.2025",
-  ]);
+  await expect
+    .poll(() => capturedDates(page))
+    .toEqual(["13.07.2025", "12.07.2025", "14.07.2025", "18.07.2025", "20.07.2025", "22.07.2025"]);
   await expect(page.getByText("Deine Reihenfolge")).toBeVisible();
   await selectionBar.getByRole("button", { name: "Fertig" }).click();
 
@@ -94,21 +83,23 @@ test("E2E-072 pictures added, moved and shuffled while arranging a new slideshow
   const veryEarly = await pictureTakenOn(page, "picture-1st.jpg", "2025-07-01", "#ffd54f");
   await addMorePictures(page, addButton(page), [veryEarly]);
   await expect(tile(page, 7, "01.07.2025")).toBeVisible();
-  await expect(dates(page)).toHaveText([
-    "13.07.2025",
-    "12.07.2025",
-    "14.07.2025",
-    "18.07.2025",
-    "20.07.2025",
-    "22.07.2025",
-    "01.07.2025",
-  ]);
+  await expect
+    .poll(() => capturedDates(page))
+    .toEqual([
+      "13.07.2025",
+      "12.07.2025",
+      "14.07.2025",
+      "18.07.2025",
+      "20.07.2025",
+      "22.07.2025",
+      "01.07.2025",
+    ]);
 
   // Step 6: Shuffle keeps every picture and the user's own order, without asserting any one order.
-  const beforeShuffle = await dates(page).allTextContents();
+  const beforeShuffle = await capturedDates(page);
   await page.getByRole("button", { name: "Mischen", exact: true }).click();
-  await expect(dates(page)).toHaveCount(7);
-  const afterShuffle = await dates(page).allTextContents();
+  await expect.poll(() => capturedDates(page)).toHaveLength(7);
+  const afterShuffle = await capturedDates(page);
   expect(new Set(afterShuffle)).toEqual(new Set(beforeShuffle));
   await expect(page.getByText("Deine Reihenfolge")).toBeVisible();
 
@@ -138,7 +129,7 @@ test("E2E-072 pictures added, moved and shuffled while arranging a new slideshow
     name: /^Bild \d+, aufgenommen am \d{2}\.\d{2}\.\d{4}$/,
   });
   await expect(stripTiles).toHaveCount(6);
-  const finalOrder = await dates(page).allTextContents();
+  const finalOrder = await capturedDates(page);
 
   // Step 8: the arranged order is stored and carries into the editor.
   await page.getByRole("button", { name: "Weiter" }).click();
@@ -146,5 +137,5 @@ test("E2E-072 pictures added, moved and shuffled while arranging a new slideshow
   await page.getByRole("button", { name: "Ohne Musik erstellen" }).click();
   await expectSlideshowScreen(page);
 
-  await expect(dates(page)).toHaveText(finalOrder);
+  await expect.poll(() => capturedDates(page)).toEqual(finalOrder);
 });

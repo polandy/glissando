@@ -40,7 +40,7 @@
 {:else}
   <WaveBars {bars}>
     {#if details}
-      <polyline class="envelope" points={envelope} />
+      <polyline class="envelope" data-testid="volume-envelope" points={envelope} />
     {/if}
   </WaveBars>
 {/if}

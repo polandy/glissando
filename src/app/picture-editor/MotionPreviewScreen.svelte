@@ -76,7 +76,12 @@
   const seconds = (ms: number) => formatTenths(ms / MILLISECONDS_PER_SECOND);
 </script>
 
-<div class="preview" bind:clientWidth={width} bind:clientHeight={height}>
+<div
+  class="preview"
+  data-testid="motion-preview"
+  bind:clientWidth={width}
+  bind:clientHeight={height}
+>
   {#if scene.kind === "picture" || scene.kind === "transition"}
     <PreviewLayer
       size={picture.size}

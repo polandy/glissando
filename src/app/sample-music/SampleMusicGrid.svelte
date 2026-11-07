@@ -48,6 +48,7 @@
 
   const { t } = getTranslator();
   const moreId = $props.id();
+  const titleId = `${moreId}-title`;
 
   // svelte-ignore state_referenced_locally
   let expanded = $state(initiallyExpanded);
@@ -119,9 +120,9 @@
   />
 {/snippet}
 
-<div class="block">
+<section class="block" aria-labelledby={titleId}>
   <div class="header">
-    <h2 class="block-title">{t("sampleMusicPicker.blockTitle")}</h2>
+    <h2 class="block-title" id={titleId}>{t("sampleMusicPicker.blockTitle")}</h2>
     <p class="block-subtitle">
       <Separated text={t("sampleMusicPicker.blockSubtitle", { count: SAMPLE_TRACKS.length })} />
     </p>
@@ -134,7 +135,7 @@
       {@render card(track)}
     {/each}
   </ul>
-  <div class="more" id={moreId} class:open={expanded}>
+  <div class="more" id={moreId} class:open={expanded} data-testid="sample-more">
     <div class="more-inner">
       <ul class="grid">
         {#each rest as track (track.id)}
@@ -156,7 +157,7 @@
       : t("sampleMusicPicker.showAll", { count: SAMPLE_TRACKS.length })}
     <span class="chevron" class:open={expanded}><Icon name="chevronDown" /></span>
   </button>
-</div>
+</section>
 
 <style>
   .block {

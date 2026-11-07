@@ -26,7 +26,6 @@ Each fix starts with the failing test the item names or implies (WORKFLOW.md, Te
 ### Tooling and tests
 
 - [ ] `package-lock.json` — `npm audit` (dev only): the `minimatch` (via eslint, typescript-eslint) and `deepmerge` (via vite-plugin-svelte) chains wait on upstream. Fix: update when a non-major release lands; never `audit fix --force`.
-- [ ] ~120 CSS-class selectors across 20 e2e specs where a role or label exists (`tv-remote.spec.ts:38` `.code input` sits in a labelled group; `picture-frame`, `music-editor`, `move-together` `xpath=..`). Fix: `getByRole`/`getByLabel`; `data-testid` only for purely visual parts.
 
 ## LOW
 

@@ -9,13 +9,13 @@
 </script>
 
 {#if badge.kind === "measuring"}
-  <span class="badge measuring"
+  <span class="badge measuring" data-testid="volume-badge"
     ><span class="dot" aria-hidden="true"></span>{t("music.volumeMeasuring")}</span
   >
 {:else if badge.kind === "own"}
-  <span class="badge own">{formatVolumeDb(badge.ownDb)}</span>
+  <span class="badge own" data-testid="volume-badge">{formatVolumeDb(badge.ownDb)}</span>
 {:else}
-  <span class="badge" aria-hidden="true"></span>
+  <span class="badge" data-testid="volume-badge" aria-hidden="true"></span>
 {/if}
 
 <style>

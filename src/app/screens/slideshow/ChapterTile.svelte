@@ -16,7 +16,7 @@
 </script>
 
 <li class="tile" data-chapter-anchor={chapter.anchorPictureId}>
-  <button class="chip" type="button" onclick={onOpen}>
+  <button class="chip" type="button" data-testid="chapter-chip" onclick={onOpen}>
     <span class="line">
       {#if edited}<span class="dot" aria-hidden="true"></span><span class="sr-only"
           >{t("chapters.edited")}</span

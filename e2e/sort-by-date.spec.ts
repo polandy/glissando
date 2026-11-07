@@ -2,17 +2,18 @@ import { expect, test } from "@playwright/test";
 import { createSlideshow, editsStored, GERMAN_BROWSER } from "./support/app";
 import { openApp } from "./support/browser";
 import { tile } from "./support/strip";
+import { stripHead } from "./support/strip-head";
 
 test.use(GERMAN_BROWSER);
 
 test("E2E-110 Sort by date shows only for the user's own order, puts the pictures back in capture order with an undo, and the date order survives a reload", async ({
   page,
 }) => {
-  const head = page.locator(".strip-head");
+  const head = stripHead(page);
   const sortByDate = head.getByRole("button", { name: "Nach Aufnahmedatum sortieren" });
   const selectionBar = page.getByRole("toolbar", { name: "Auswahl" });
   // The order line under the strip header: which order the pictures are in.
-  const orderLine = head.locator(".sorted");
+  const orderLine = head.getByText(/^(Nach Aufnahmedatum sortiert|Deine Reihenfolge)/);
   await openApp(page);
   await createSlideshow(page, ["2025-07-01", "2025-07-02", "2025-07-03", "2025-07-04"]);
 

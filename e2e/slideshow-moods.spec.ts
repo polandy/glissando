@@ -17,7 +17,7 @@ test("E2E-079 picking Calm sets its transitions, Ken Burns and picture times, an
   const sheet = page.getByRole("dialog", { name: "Stimmung" });
   const customTile = sheet.getByRole("radio", { name: "Keine Stimmung" });
   const calmTile = sheet.getByRole("radio", { name: "Ruhig" });
-  const statePill = sheet.locator(".state");
+  const statePill = sheet.getByTestId("section-state");
 
   await openApp(page);
   await createSlideshowWithMusic(page, clickTrackWav("Takt.wav", 20, TRACK_BPM));
@@ -32,7 +32,7 @@ test("E2E-079 picking Calm sets its transitions, Ken Burns and picture times, an
   await expect(calmTile).toHaveAttribute("aria-checked", "true");
   await expect(statePill).toHaveText("Ruhig");
   // The live preview plays at once; the tempo shows in "Bilddauer" while a mood paces to it.
-  await expect(sheet.locator(".stage")).toBeVisible();
+  await expect(sheet.getByTestId("mood-preview-stage")).toBeVisible();
   await expect(definitionOf(sheet, "Bilddauer")).toHaveText("~8 s · 16 Beats");
   await expect(definitionOf(sheet, "Übergänge")).toHaveText("Überblenden, lang");
   await expect(definitionOf(sheet, "Bewegung")).toHaveText("Sanft");

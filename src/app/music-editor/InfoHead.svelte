@@ -29,7 +29,8 @@
 <div class="head">
   <SectionHead {id} {title} {own} {...icon === undefined ? {} : { icon }} />
   <InfoButton label={infoLabel} {children} />
-  {#if stateText !== undefined}<span class="state" class:own><Separated text={stateText} /></span
+  {#if stateText !== undefined}<span class="state" class:own data-testid="section-state"
+      ><Separated text={stateText} /></span
     >{/if}
 </div>
 

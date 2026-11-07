@@ -10,6 +10,7 @@ import {
   picturesTakenAt,
   selectionBar,
 } from "./support/app";
+import { chapterChip } from "./support/chapter-chip";
 import { openApp } from "./support/browser";
 import { generatedClip } from "./support/clip";
 import { portraitTakenOn, stripedPictureTakenOn } from "./support/media";
@@ -126,7 +127,7 @@ test("E2E-121 on a touch phone every control of the chapter sheet owns a 44 px s
   await openApp(page);
   await createSlideshowFromFiles(page, await picturesTakenAt(page, TRIP));
 
-  await page.locator("button.chip").filter({ hasText: "Porto" }).click();
+  await chapterChip(page, "Porto").click();
   const sheet = page.getByRole("dialog", { name: "Kapitel" });
   await expect(sheet.getByRole("textbox", { name: "Titel", exact: true })).toBeVisible();
   expect(await violationsIn(sheet)).toEqual([]);

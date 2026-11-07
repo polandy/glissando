@@ -21,9 +21,9 @@ test("E2E-023 the music gets its own excerpt and fade-in, stored, and goes back 
   page,
 }) => {
   const excerpt = page.locator('section[aria-labelledby="music-excerpt"]');
-  const excerptState = excerpt.locator(".state");
-  const startValue = excerpt.locator("output.mono").first();
-  const endValue = excerpt.locator("output.mono").last();
+  const excerptState = excerpt.getByTestId("section-state");
+  const startValue = excerpt.getByRole("status").first();
+  const endValue = excerpt.getByRole("status").last();
   const startLater = excerpt.getByRole("button", { name: "Anfang eine halbe Sekunde später" });
   const endHandle = page.getByRole("slider", { name: "Ende" });
   const fadeIn = page.locator('section[aria-labelledby="music-fade-in"]');
@@ -42,7 +42,7 @@ test("E2E-023 the music gets its own excerpt and fade-in, stored, and goes back 
   await showMusicDetails(page);
   await expect(excerptState).toHaveText("Ganzer Song");
   await expect(excerpt.getByText("Die Diashow nutzt den ganzen Song, 0:20.")).toBeVisible();
-  await expect(fadeIn.locator(".state")).toHaveText(/^Automatisch · /);
+  await expect(fadeIn.getByTestId("section-state")).toHaveText(/^Automatisch · /);
 
   await startLater.click();
   await expect(startValue).toHaveText("0:00,5");
@@ -65,8 +65,8 @@ test("E2E-023 the music gets its own excerpt and fade-in, stored, and goes back 
 
   await longFadeIn.click();
   await expect(longFadeIn).toHaveAttribute("aria-checked", "true");
-  await expect(fadeIn.locator(".state")).toHaveText("Gewählt");
-  await expect(fadeOut.locator(".state")).toHaveText(/^Automatisch · /);
+  await expect(fadeIn.getByTestId("section-state")).toHaveText("Gewählt");
+  await expect(fadeOut.getByTestId("section-state")).toHaveText(/^Automatisch · /);
   await fadeOut.getByRole("button", { name: "Über das Ausblenden" }).click();
   await expect(
     fadeOut.getByText("Automatisch: lang, weil der Ausschnitt vor dem Songende aufhört."),
@@ -78,7 +78,7 @@ test("E2E-023 the music gets its own excerpt and fade-in, stored, and goes back 
   await expect(startValue).toHaveText("0:01,0");
   await expect(endValue).toHaveText("0:17,0");
   await expect(longFadeIn).toHaveAttribute("aria-checked", "true");
-  await expect(fadeIn.locator(".state")).toHaveText("Gewählt");
+  await expect(fadeIn.getByTestId("section-state")).toHaveText("Gewählt");
 
   await back.click();
   const musicTile = page.getByRole("button", { name: /^Musik Sommerwind\.wav/ });
@@ -90,7 +90,7 @@ test("E2E-023 the music gets its own excerpt and fade-in, stored, and goes back 
   await expect(excerptState).toHaveText("Ganzer Song");
   await expect(startValue).toHaveText("0:00,0");
   await expect(endValue).toHaveText("0:20,0");
-  await expect(fadeIn.locator(".state")).toHaveText("Gewählt");
+  await expect(fadeIn.getByTestId("section-state")).toHaveText("Gewählt");
   await editsStored(page);
 
   await back.click();
@@ -112,10 +112,10 @@ test("E2E-061 listening to the excerpt draws one playhead through both lanes wit
 }) => {
   const excerpt = page.locator('section[aria-labelledby="music-excerpt"]');
   const startLater = excerpt.getByRole("button", { name: "Anfang eine halbe Sekunde später" });
-  const lane = page.locator(".lane");
-  const playhead = page.locator(".tracks .playhead");
-  const chip = page.locator(".chip");
-  const current = lane.locator(".current");
+  const lane = page.getByTestId("slideshow-lane");
+  const playhead = page.getByTestId("music-playhead");
+  const chip = page.getByTestId("music-time-chip");
+  const current = lane.getByTestId("slideshow-current-picture");
   const listenStart = page.getByRole("button", { name: /^Anfang anhören/ });
 
   await openApp(page);
@@ -125,10 +125,7 @@ test("E2E-061 listening to the excerpt draws one playhead through both lanes wit
   await page.getByRole("button", { name: /^Musik Sommerwind\.wav/ }).click();
   // The slideshow lane under the waveform is one of the details; the switch's input is visually
   // hidden behind its track, so its label is clicked.
-  await page
-    .locator(".switch")
-    .filter({ has: page.getByRole("switch", { name: "Details" }) })
-    .click();
+  await clickSwitch(page.getByRole("switch", { name: "Details" }));
 
   // A non-zero excerpt start, so the chip's time at the start of a listen is meaningfully
   // compared against it rather than trivially 0.
@@ -172,12 +169,12 @@ test("E2E-073 a song's own volume shows Own with its dB and the song-list badge,
   page,
 }) => {
   const volume = page.locator('section[aria-labelledby="music-volume"]');
-  const state = volume.locator(".state");
-  const sub = volume.locator(".sub");
-  const readout = volume.locator(".readout b");
+  const state = volume.getByTestId("section-state");
+  const sub = volume.getByTestId("volume-comparison");
+  const readout = volume.getByTestId("volume-readout");
   const slider = page.getByRole("slider", { name: "Lautstärke" });
   const reset = page.getByRole("button", { name: "Zurück auf Automatisch" });
-  const badge = page.getByRole("list", { name: "Songs" }).locator(".badge");
+  const badge = page.getByRole("list", { name: "Songs" }).getByTestId("volume-badge");
 
   await openApp(page);
   await createSlideshowWithMusic(page, silentTrack("Sommerwind.wav", TRACK_SECONDS), {
@@ -189,7 +186,7 @@ test("E2E-073 a song's own volume shows Own with its dB and the song-list badge,
   // The loudness pass measures the song in the background; the badge drops its pulsing
   // "Measuring…" once the song's blocks are stored — a positive signal, no sleep. A silent
   // track can measure before this first check runs, so the state before is not asserted.
-  await expect(badge).not.toHaveClass(/measuring/);
+  await expect(badge).not.toHaveText("Wird gemessen…");
   await expect(state).toHaveText("Gleich laut wie die anderen Songs");
   await expect(sub).toHaveText("Gleich laut wie die anderen Songs");
   await expect(reset).toHaveCount(0);
@@ -225,10 +222,10 @@ test("E2E-095 the music editor opens simple, and its Details switch shows the vo
 }) => {
   const details = page.getByRole("switch", { name: "Details" });
   const endHandle = page.getByRole("slider", { name: "Ende" });
-  const blocks = page.locator(".playlist-lane .block");
-  const volumeLine = page.locator(".wavebox .envelope");
-  const slideshowLane = page.locator(".wavebox .runs");
-  const hatching = page.locator(".playlist-lane .crossfade");
+  const blocks = page.getByTestId("playlist-block");
+  const volumeLine = page.getByTestId("volume-envelope");
+  const slideshowLane = page.getByTestId("slideshow-lane-runs");
+  const hatching = page.getByTestId("playlist-crossfade");
   await openApp(page);
   await openImport(page);
   await choosePictures(

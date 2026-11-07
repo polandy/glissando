@@ -225,7 +225,7 @@ def animated_logo(path: str, paint: LogoPaint) -> str:
     angle, cx, cy = WORDMARK_ROTATION
     return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="{STACKED_VIEW_BOX}" role="img" aria-label="{WORDMARK_TEXT}">
   <g transform="translate(110 0) scale(1.5)" fill="none">
-    <g class="card card-back"><g transform="rotate(-14 36 56)"><rect x="10" y="36" width="52" height="40" rx="9" fill="{paint.peach}" stroke="{paint.outline}" stroke-width="4"/></g></g>
+    <g class="card card-back" data-testid="start-logo-back-card"><g transform="rotate(-14 36 56)"><rect x="10" y="36" width="52" height="40" rx="9" fill="{paint.peach}" stroke="{paint.outline}" stroke-width="4"/></g></g>
     <g class="card card-middle"><g transform="rotate(-2 56 44)"><rect x="30" y="24" width="52" height="40" rx="9" fill="{paint.mint}" stroke="{paint.outline}" stroke-width="4"/></g></g>
     <g class="card card-front"><g transform="rotate(10 78 32)">
       <rect x="52" y="12" width="52" height="40" rx="9" fill="{paint.lemon}" stroke="{paint.outline}" stroke-width="4"/>

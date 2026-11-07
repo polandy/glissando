@@ -1,4 +1,4 @@
-import { expect, test, type Locator, type Page } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 import {
   createSlideshowFromFiles,
   editsStored,
@@ -6,6 +6,7 @@ import {
   picturesTakenAt,
   selectionBar,
 } from "./support/app";
+import { chapterChip, tileAfterChapter } from "./support/chapter-chip";
 import { clickSwitch } from "./support/switch";
 import { openApp } from "./support/browser";
 import { TRIP } from "./support/trip";
@@ -20,32 +21,23 @@ async function createTrip(page: Page): Promise<void> {
   await createSlideshowFromFiles(page, await picturesTakenAt(page, TRIP));
 }
 
-/** A chapter's strip chip whose own text contains `text` — its title, or an edited title. */
-function chapterChip(page: Page, text: string): Locator {
-  return page.locator("button.chip").filter({ hasText: text });
-}
-
-/** The `<li>` a strip tile (chapter chip or picture) sits in, for an adjacency check. */
-function tileOf(locator: Locator): Locator {
-  return locator.locator("xpath=ancestor::li[1]");
-}
-
 test("E2E-077 a trip across two stays shows one automatic chapter right before the second stay, and an edited title persists until reset", async ({
   page,
 }) => {
   const dialog = page.getByRole("dialog", { name: "Kapitel" });
   const titleField = dialog.getByRole("textbox", { name: "Titel", exact: true });
-  const resetTitle = titleField.locator("xpath=following-sibling::button[1]");
+  const resetTitle = dialog
+    .locator("section")
+    .filter({ has: page.getByRole("textbox", { name: "Titel", exact: true }) })
+    .getByRole("button", { name: "Zurück auf automatisch" });
   await createTrip(page);
 
   // Exactly one chapter chip exists at all, and it is Porto's: none before the opening stay.
   const porto = chapterChip(page, "Porto");
-  await expect(page.locator("button.chip")).toHaveCount(1);
+  await expect(chapterChip(page)).toHaveCount(1);
   await expect(porto).toContainText("Tag 3–4 · 14.–15. Juli");
   await expect(
-    tileOf(porto)
-      .locator("xpath=following-sibling::li[1]")
-      .getByRole("button", { name: THIRD_PICTURE, exact: true }),
+    tileAfterChapter(page, "Porto").getByRole("button", { name: THIRD_PICTURE, exact: true }),
   ).toBeVisible();
 
   await porto.click();
@@ -102,9 +94,7 @@ test("E2E-078 inserting a chapter from the selection bar adds it right before th
 
   await expect(lisbon).toHaveCount(1);
   await expect(
-    tileOf(lisbon)
-      .locator("xpath=following-sibling::li[1]")
-      .getByRole("button", { name: SECOND_PICTURE, exact: true }),
+    tileAfterChapter(page, "Lisbon").getByRole("button", { name: SECOND_PICTURE, exact: true }),
   ).toBeVisible();
 
   // Porto's automatic chapter is the positive signal still in place before deleting the added one.

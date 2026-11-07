@@ -35,7 +35,7 @@
   const { t } = getTranslator();
 </script>
 
-<footer class="bottom" class:hidden use:keepToastsClear>
+<footer class="bottom" data-testid="viewer-filmstrip-bar" class:hidden use:keepToastsClear>
   <ul class="film" aria-label={t("view.pictures")}>
     {#each entries as other, position (other.picture.id)}
       <li>

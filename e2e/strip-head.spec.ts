@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 import { createSlideshow, GERMAN_BROWSER } from "./support/app";
 import { openApp } from "./support/browser";
 import { boxOf, type Box } from "./support/pointer";
+import { stripHead } from "./support/strip-head";
 
 /** The reference phone, a Pixel 9 Pro, in CSS pixels. */
 const PHONE = { width: 412, height: 915 };
@@ -17,9 +18,9 @@ test("E2E-092 on a phone in German the strip head's eyebrow and count stay clear
 }) => {
   await openApp(page);
   await createSlideshow(page, ["2025-07-01", "2025-07-02", "2025-07-03"]);
-  const head = page.locator(".strip-head");
+  const head = stripHead(page);
   const eyebrow = head.getByRole("heading", { name: "Bilder" });
-  const count = head.locator(".count");
+  const count = head.getByText("3", { exact: true });
   const buttons = [
     head.getByRole("button", { name: "Mischen" }),
     head.getByRole("button", { name: "Auswählen" }),

@@ -125,13 +125,13 @@ test("E2E-063 the clip editor's strip shows the player's place as a draggable ma
     .click();
   await expect(page.getByText("Clip 1", { exact: true })).toBeVisible();
 
-  const track = page.locator('[aria-label="Ausschnitt wählen"] .track');
-  const chip = track.locator(".chip");
+  const track = page.getByRole("group", { name: "Ausschnitt wählen" }).getByTestId("excerpt-track");
+  const chip = track.getByTestId("excerpt-time-chip");
   const endHandle = page.getByRole("slider", { name: "Ende" });
   const scrub = page.getByRole("slider", { name: "Position im Ausschnitt" });
 
   // The mark and its chip are shown at the player's place without ever pressing play.
-  await expect(track.locator(".playhead")).toBeVisible();
+  await expect(track.getByTestId("excerpt-playhead")).toBeVisible();
   await expect(chip).toHaveText("0:00,0");
 
   // The scrub slider moves the player's place, which the strip's mark and chip follow.
@@ -142,7 +142,7 @@ test("E2E-063 the clip editor's strip shows the player's place as a draggable ma
   // scrub slider follows it back.
   await drag(
     page,
-    await centreOf(track.locator(".playhead-zone")),
+    await centreOf(track.getByTestId("excerpt-playhead-zone")),
     await trackPointAt(track, 6_000, sourceMs),
   );
   await expect(chip).toHaveText("0:06,0");

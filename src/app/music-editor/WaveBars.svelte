@@ -23,6 +23,7 @@
 
 <svg
   class="bars"
+  data-testid="wave-bars"
   viewBox="0 0 {VIEW_WIDTH} {VIEW_HEIGHT}"
   preserveAspectRatio="none"
   aria-hidden="true"
@@ -30,6 +31,7 @@
   {#each bars as bar, index (index)}
     {@const height = Math.max(MIN_BAR_HEIGHT, bar.share * VIEW_HEIGHT)}
     <rect
+      data-testid="wave-bar"
       class:inside={bar.inside && !muted}
       x={(index / bars.length) * VIEW_WIDTH + (VIEW_WIDTH / bars.length - barWidth) / 2}
       y={(VIEW_HEIGHT - height) / 2}

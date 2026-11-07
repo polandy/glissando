@@ -25,7 +25,7 @@ const LONGEST_SECONDS_PER_PICTURE = 15;
 async function playFirstPicture(page: Page) {
   await page.getByRole("button", { name: "Abspielen" }).last().click();
   await expect(player(page, TITLE).getByText("1 / 2", { exact: true })).toBeVisible();
-  return player(page, TITLE).locator(".caption-text");
+  return player(page, TITLE).getByRole("status");
 }
 
 async function closePlayer(page: Page): Promise<void> {

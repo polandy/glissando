@@ -109,7 +109,12 @@
   {:else if pictureUrl !== undefined}
     <img class="picture" src={pictureUrl} alt="" style:filter={pictureFilter} />
     {#if veilTint !== undefined && timing.veilAmount > 0}
-      <div class="veil" style:background={veilTint} style:opacity={timing.veilAmount * 0.55}></div>
+      <div
+        class="veil"
+        data-testid="card-tint-veil"
+        style:background={veilTint}
+        style:opacity={timing.veilAmount * 0.55}
+      ></div>
     {/if}
   {/if}
   {#if styles !== null}

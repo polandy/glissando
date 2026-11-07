@@ -215,7 +215,7 @@
       >
         <Icon name="close" />
       </button>
-      <div class="heading">
+      <div class="heading" data-testid="player-heading">
         {#if !slideHasCard}
           <span class="name">{slideshow.title}</span>
           {#if slideDate !== undefined}

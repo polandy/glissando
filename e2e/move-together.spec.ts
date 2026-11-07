@@ -8,7 +8,7 @@ test.use(GERMAN_BROWSER);
 
 /** The tile's row, which carries the dashed drop mark (`StripTile.svelte`, `.tile`). */
 function tileRow(page: Page, number: number, date: string): Locator {
-  return tile(page, number, date).locator("xpath=..");
+  return page.getByRole("listitem").filter({ has: tile(page, number, date) });
 }
 
 /**

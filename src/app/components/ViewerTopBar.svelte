@@ -41,7 +41,7 @@
   );
 </script>
 
-<header class="bar top" class:hidden>
+<header class="bar top" data-testid="viewer-top-bar" class:hidden>
   <ViewerRoundButton bind:element={closeButton} label={t("common.close")} onclick={onClose}>
     <Icon name="close" />
   </ViewerRoundButton>

@@ -6,6 +6,7 @@ import {
   GERMAN_BROWSER,
   picturesTakenAt,
 } from "./support/app";
+import { chapterChip } from "./support/chapter-chip";
 import { openApp } from "./support/browser";
 import { boxOf, type Box } from "./support/pointer";
 import { tile } from "./support/strip";
@@ -110,7 +111,7 @@ test("E2E-104 on a phone the slideshow screen shows Play and a row of pictures w
   expect(second.y).toBe(first.y);
 
   // The switch sits in the fold itself: turning it off opens no chapter sheet (UX-27).
-  const portoChapter = page.locator("button.chip").filter({ hasText: "Porto" });
+  const portoChapter = chapterChip(page, "Porto");
   await expect(portoChapter).toHaveCount(1);
   await fineSettings.click();
   const tripChapters = page.getByRole("switch", { name: "Reisekapitel" });

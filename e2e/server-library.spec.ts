@@ -36,8 +36,7 @@ test("E2E-034 a slideshow created on the Glissando server links its Immich photo
   for (const { originalFileName } of LIBRARY_PAGE.assets.items) {
     await page.getByRole("button", { name: originalFileName, exact: true }).click();
   }
-  const footer = page.locator(".actions");
-  await footer.getByRole("button", { name: "3 hinzufügen" }).click();
+  await page.getByRole("button", { name: "3 hinzufügen" }).click();
   await expect(page.getByText("3 Bilder", { exact: true })).toBeVisible();
   await expect(page.getByText(/^Aus Immich verknüpft\./)).toBeVisible();
   await page.getByRole("button", { name: "Weiter" }).click();
@@ -120,7 +119,7 @@ test("E2E-118 while the Immich link of the added photos is pending, the home of 
     await page.getByRole("button", { name: originalFileName, exact: true }).click();
   }
   thumbnails.arm();
-  await page.locator(".actions").getByRole("button", { name: "3 hinzufügen" }).click();
+  await page.getByRole("button", { name: "3 hinzufügen" }).click();
   await thumbnails.firstHeld;
 
   const lockNote = page.getByText(

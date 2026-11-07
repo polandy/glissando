@@ -10,9 +10,9 @@ test.use(GERMAN_BROWSER);
 
 const TV_CODE_LENGTH = 4;
 
-/** The 4-letter code the TV page shows while unpaired (`tv-parts.ts`'s `.tv-code`). */
+/** The 4-letter code the TV page shows while unpaired (`tv-parts.ts`'s `tv-code` test id). */
 function tvCode(tv: Page) {
-  return tv.locator(".tv-code");
+  return tv.getByTestId("tv-code");
 }
 
 test("E2E-051 the TV shows a code, the phone claims it and chooses the slideshow, and the remote pauses it", async ({
@@ -35,12 +35,16 @@ test("E2E-051 the TV shows a code, the phone claims it and chooses the slideshow
 
   await page.getByRole("button", { name: /^Auf dem Fernseher zeigen/ }).click();
   const sheet = page.getByRole("dialog", { name: "Auf dem Fernseher zeigen" });
-  await sheet.locator(".code input").first().fill(code);
+  await sheet
+    .getByRole("group", { name: "Code vom Fernseher" })
+    .getByRole("textbox")
+    .first()
+    .fill(code);
   await sheet.getByRole("button", { name: "Verbinden" }).click();
-  await expect(sheet.locator(".pill")).toHaveText(`Mit Fernseher ${code} verbunden`);
-  await expect(tv.locator(".tv-card")).toHaveText(/Handy verbunden/);
+  await expect(sheet.getByText(`Mit Fernseher ${code} verbunden`, { exact: true })).toBeVisible();
+  await expect(tv.getByRole("heading", { name: /Handy verbunden/ })).toBeVisible();
 
-  await sheet.locator(".card").first().click();
+  await sheet.getByRole("button", { name: /\d+ Bild/ }).click();
   await sheet.getByRole("button", { name: "Auf dem Fernseher zeigen", exact: true }).click();
 
   // Choosing the slideshow navigates this same tab away, to become the remote.
@@ -52,7 +56,7 @@ test("E2E-051 the TV shows a code, the phone claims it and chooses the slideshow
   await pauseButton.click();
 
   await expect(tv.locator("html")).toHaveAttribute("data-state", "paused");
-  await expect(tv.locator(".tv-note")).toHaveText("Pausiert");
+  await expect(tv.getByRole("status")).toHaveText("Pausiert");
   await expect(page.getByRole("button", { name: "Abspielen" })).toBeVisible();
 });
 
@@ -101,5 +105,5 @@ test("E2E-052 a guest on the share page scans the QR, and the remote pauses and 
   await expect(remote.getByRole("button", { name: "Abspielen" })).toBeVisible();
 
   await remote.getByRole("button", { name: "Nächstes Bild" }).click();
-  await expect(remote.locator(".line")).toHaveText("Bild 2 von 3 · Pausiert");
+  await expect(remote.getByText("Bild 2 von 3 · Pausiert", { exact: true })).toBeVisible();
 });

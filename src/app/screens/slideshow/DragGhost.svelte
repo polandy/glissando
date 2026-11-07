@@ -13,7 +13,11 @@
 </script>
 
 {#if groupIds !== null && position !== null}
-  <div class="ghost" style="left: {position.x - 48}px; top: {position.y - 60}px;">
+  <div
+    class="ghost"
+    data-testid="drag-ghost"
+    style="left: {position.x - 48}px; top: {position.y - 60}px;"
+  >
     {#each groupIds.slice(0, 3) as pictureId, stackIndex (pictureId)}
       <img
         src={thumbnailUrl(pictureId)}
