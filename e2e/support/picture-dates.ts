@@ -13,3 +13,11 @@ export async function expectCapturedDates(page: Page, dates: readonly string[]):
     );
   }
 }
+
+/** Every strip tile's capture date (from its picture's accessible name), in the order shown. */
+export async function capturedDates(page: Page): Promise<string[]> {
+  const names = await page
+    .getByRole("img", { name: /^Bild \d+, aufgenommen am / })
+    .evaluateAll((pictures) => pictures.map((picture) => picture.getAttribute("alt") ?? ""));
+  return names.map((name) => /(\d{2}\.\d{2}\.\d{4})/.exec(name)?.[1] ?? name);
+}

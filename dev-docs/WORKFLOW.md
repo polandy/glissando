@@ -13,8 +13,9 @@ here; this file is the full text.
 - **An absence needs a positive signal** — assert what must still be there before what is gone.
 - **Prove it can fail**: break the behaviour and watch exactly that case go red.
 - **E2e finds elements as a user does**: `getByRole`, `getByLabel`, `getByText`, scoped with
-  `filter`; `data-testid` only for purely visual parts (wave bars, playhead, ghost). Never a CSS
-  class or an xpath walk — a restyle must not break a test.
+  `filter`; `data-testid` only for purely visual parts (wave bars, playhead, ghost) and for a
+  readout whose changing text is what the case asserts. Never a CSS class or an xpath walk — a
+  restyle must not break a test.
 - **A flake under load** is reproduced and its fix proven by repeated overloaded runs in each
   engine: `scripts/browser-stress.sh <engine> <runs> <cpus> <workers> <files…>`.
 - **Touch emulation** (`src/app/testing/coarse-pointer.ts`, `touch-input.ts`) leaves Chromium's
