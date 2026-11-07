@@ -1,4 +1,5 @@
 import {
+  ImmichDownloadTooLargeError,
   ImmichRequestFailedError,
   ImmichUnavailableError,
   type ImmichAlbum,
@@ -25,6 +26,7 @@ const LIST_THUMBNAIL_SIZE: ImmichThumbnailSize = "thumbnail";
 const JSON_MEDIA_TYPE = "application/json";
 /** What `fetch` returns for a redirect under `redirect: "manual"`. */
 const OPAQUE_REDIRECT = "opaqueredirect";
+const CONTENT_LENGTH_HEADER = "content-length";
 const HTTP_NOT_FOUND = 404;
 
 /** Answers of the Glissando server or Immich that the user is told as an `ImmichStatus`. */
@@ -119,8 +121,14 @@ export class HttpImmichClient implements ImmichClient {
     return (await this.#download(`${assetPath(photoId)}/original`, signal)).blob();
   }
 
-  async video(photoId: string, signal?: AbortSignal): Promise<Blob> {
-    const response = await this.#download(`${assetPath(photoId)}/video/playback`, signal);
+  async video(photoId: string, maxBytes: number, signal?: AbortSignal): Promise<Blob> {
+    const path = `${assetPath(photoId)}/video/playback`;
+    const response = await this.#download(path, signal);
+    const announced = response.headers.get(CONTENT_LENGTH_HEADER);
+    if (announced !== null && Number(announced) > maxBytes) {
+      await response.body?.cancel();
+      throw new ImmichDownloadTooLargeError(`GET ${path}`, Number(announced), maxBytes);
+    }
     return response.blob();
   }
 

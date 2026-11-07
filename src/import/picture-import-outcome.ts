@@ -64,11 +64,15 @@ export function duplicateReason(
   return chosen.some(matches) ? "chosenTwice" : null;
 }
 
-/** Identifies, decodes and stores one queued picture, or reports why it was skipped instead. */
+/**
+ * Identifies, decodes and stores one queued picture, or reports why it was skipped instead. An
+ * abort of `signal` cancels its download and rejects with the signal's reason.
+ */
 export async function importOne(
   { source, skipDuplicate }: Queued,
   ports: OutcomePorts,
   duplicateReasonFor: (identity: PictureIdentity) => DuplicateReason | null,
+  signal: AbortSignal,
 ): Promise<Outcome> {
   let identity: PictureIdentity;
   let read: ReadPicture;
@@ -78,7 +82,7 @@ export async function importOne(
     if (duplicate !== null) {
       return { kind: "skipped", reason: duplicate };
     }
-    read = await source.read();
+    read = await source.read(signal);
   } catch (error) {
     if (error instanceof UnreadablePictureError) {
       ports.log?.(error);

@@ -93,6 +93,16 @@ export class ImmichRequestFailedError extends Error {
   }
 }
 
+/** A download Immich announces (its `Content-Length`) as bigger than the caller takes. */
+export class ImmichDownloadTooLargeError extends Error {
+  constructor(request: string, announcedBytes: number, maxBytes: number) {
+    super(
+      `${request} announces ${String(announcedBytes)} bytes, over the ${String(maxBytes)} taken`,
+    );
+    this.name = "ImmichDownloadTooLargeError";
+  }
+}
+
 /**
  * Every method but `status()` and `thumbnailUrl()` rejects with `ImmichUnavailableError` when
  * Immich cannot be used, with `ImmichRequestFailedError` for another failing HTTP status, and with
@@ -118,8 +128,9 @@ export interface ImmichClient {
   original(photoId: string, signal?: AbortSignal): Promise<Blob>;
   /**
    * A video's playable version, as Immich plays it (its transcoded copy, else the original),
-   * downloaded whole. `signal` cancels it; it then rejects with the signal's reason.
+   * downloaded whole. Rejects with `ImmichDownloadTooLargeError`, before its bytes are read, when
+   * Immich announces more than `maxBytes`. `signal` cancels it; it then rejects with its reason.
    */
-  video(photoId: string, signal?: AbortSignal): Promise<Blob>;
+  video(photoId: string, maxBytes: number, signal?: AbortSignal): Promise<Blob>;
   faces(photoId: string): Promise<readonly ImmichFace[]>;
 }

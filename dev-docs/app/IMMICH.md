@@ -24,7 +24,8 @@ intake, the import's or the adding's):
   "That's all · n photos". Videos are listed with a play glyph and their length in the corner of
   the tile when the slideshow lives on the device; a server slideshow links photos only and does
   not list them. A picked video is downloaded whole — Immich's playable version (its transcoded
-  copy, else the original), never streamed — and becomes a video slide (dev-docs/player/VIDEO_SLIDES.md);
+  copy, else the original), never streamed; one whose `Content-Length` is over `MAX_VIDEO_BYTES`
+  is refused as _videoTooLarge_ before its bytes are read — and becomes a video slide (dev-docs/player/VIDEO_SLIDES.md);
   its tile shows the wait, and a failed download names the video at its tile like a photo's.
 - **Albums**: a grid of covers with name and "n photos · date range" (mono), a filter field
   (by name; "No album matches"), shimmering cards while loading. The circle on a cover selects the
