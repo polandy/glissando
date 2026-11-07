@@ -101,6 +101,7 @@ export class HttpServerLibraryClient implements ServerLibraryClient {
       headers: { "content-type": JSON_MEDIA_TYPE, "if-match": `"${String(current)}"` },
     });
     if (response.status === HTTP_PRECONDITION_FAILED) {
+      requireJson("PUT", path, response);
       const answer: unknown = await response.json();
       throw new ServerRevisionChangedError(readRecord(field(answer, "current", path), path));
     }
@@ -225,12 +226,7 @@ export class HttpServerLibraryClient implements ServerLibraryClient {
   async #json(method: HttpMethod, path: string, init: RequestInit = {}): Promise<unknown> {
     const response = await this.#send(method, path, init);
     await check(method, path, response);
-    if (!isJson(response)) {
-      throw new Error(
-        `${method} ${path} answered ${response.headers.get("content-type") ?? "no content type"}, ` +
-          `not ${JSON_MEDIA_TYPE}; is the Glissando server's /api/library route pointing at its library service?`,
-      );
-    }
+    requireJson(method, path, response);
     return response.json();
   }
 
@@ -270,6 +266,14 @@ function throwIfUnavailable(method: HttpMethod, path: string, response: Response
   if (response.status === 0 || response.status >= HTTP_SERVER_ERROR) {
     throw new ServerLibraryUnavailableError(`${method} ${path} (${String(response.status)})`);
   }
+}
+
+function requireJson(method: HttpMethod, path: string, response: Response): void {
+  if (isJson(response)) return;
+  throw new Error(
+    `${method} ${path} answered ${response.headers.get("content-type") ?? "no content type"}, ` +
+      `not ${JSON_MEDIA_TYPE}; is the Glissando server's /api/library route pointing at its library service?`,
+  );
 }
 
 async function check(method: HttpMethod, path: string, response: Response): Promise<void> {
