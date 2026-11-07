@@ -1,4 +1,4 @@
-import { expect, test, type Locator, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import {
   choosePictures,
   createSlideshow,
@@ -9,18 +9,13 @@ import {
   picturesTakenOn,
 } from "./support/app";
 import { openApp } from "./support/browser";
+import { tile } from "./support/strip";
 import { pictureTakenOn } from "./support/media";
 
 test.use(GERMAN_BROWSER);
 
 /** A strip tile's accessible name, matching any tile whether or not it carries the "new" badge. */
 const ANY_TILE = /^Bild \d+, aufgenommen am \d{2}\.\d{2}\.\d{4}(, neu)?$/;
-
-/** A strip tile named by its position and capture date; `isNew` for one added by Add media. */
-function tile(page: Page, number: number, date: string, isNew = false): Locator {
-  const name = `Bild ${number}, aufgenommen am ${date}${isNew ? ", neu" : ""}`;
-  return page.getByRole("button", { name, exact: true });
-}
 
 test.beforeEach(async ({ page }) => {
   await openApp(page);
@@ -67,10 +62,10 @@ test("E2E-032 adding pictures skips a duplicate and sorts the new ones in by cap
   await expect(addedToast).toContainText("2 Bilder hinzugefügt");
   await expect(page.getByRole("button", { name: ANY_TILE })).toHaveCount(5);
   await expect(tile(page, 1, "12.07.2025")).toBeVisible();
-  await expect(tile(page, 2, "13.07.2025", true)).toBeVisible();
+  await expect(tile(page, 2, "13.07.2025", { isNew: true })).toBeVisible();
   await expect(tile(page, 3, "14.07.2025")).toBeVisible();
   await expect(tile(page, 4, "20.07.2025")).toBeVisible();
-  await expect(tile(page, 5, "25.07.2025", true)).toBeVisible();
+  await expect(tile(page, 5, "25.07.2025", { isNew: true })).toBeVisible();
 
   await addedToast.getByRole("button", { name: "Rückgängig", exact: true }).click();
 
@@ -114,9 +109,9 @@ test("E2E-036 adding to a slideshow in its own order sorts the new pictures in b
   );
   await expect(page.getByText("Deine Reihenfolge")).toBeVisible();
   await expect(tile(page, 1, "20.07.2025")).toBeVisible();
-  await expect(tile(page, 2, "21.07.2025", true)).toBeVisible();
+  await expect(tile(page, 2, "21.07.2025", { isNew: true })).toBeVisible();
   await expect(tile(page, 3, "12.07.2025")).toBeVisible();
-  await expect(tile(page, 4, "13.07.2025", true)).toBeVisible();
+  await expect(tile(page, 4, "13.07.2025", { isNew: true })).toBeVisible();
   await expect(tile(page, 5, "14.07.2025")).toBeVisible();
 });
 

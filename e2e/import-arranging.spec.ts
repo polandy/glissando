@@ -7,6 +7,7 @@ import {
   openImport,
 } from "./support/app";
 import { openApp } from "./support/browser";
+import { tile } from "./support/strip";
 import { pictureTakenOn, type TestFile } from "./support/media";
 
 test.use(GERMAN_BROWSER);
@@ -14,11 +15,6 @@ test.use(GERMAN_BROWSER);
 test.beforeEach(async ({ page }) => {
   await openApp(page);
 });
-
-/** A strip tile named by its position and capture date (IMPORT_ARRANGING.md, Arranging). */
-function tile(page: Page, number: number, date: string): Locator {
-  return page.getByRole("button", { name: `Bild ${number}, aufgenommen am ${date}`, exact: true });
-}
 
 /** Every tile's `.date` text, in the order the strip shows them. */
 function dates(page: Page): Locator {

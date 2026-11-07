@@ -1,23 +1,23 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import { readFileSync } from "node:fs";
 import {
   chooseFiles,
-  choosePictures,
+  createSlideshowWithMusic,
   expectSlideshowScreen,
   GERMAN_BROWSER,
   openImport,
-  picturesTakenOn,
 } from "./support/app";
 import { openApp } from "./support/browser";
 import { generatedClip } from "./support/clip";
 import { silentTrack } from "./support/media";
-import { chooseShareRow } from "./support/share";
+import { chooseShareRow, deliverByDownload } from "./support/share";
 
 test.use(GERMAN_BROWSER);
 
 const TITLE = "Juli 2025";
 const DAYS = ["2025-07-12", "2025-07-14"] as const;
 const TRACK_SECONDS = 6;
+const MUSIC = silentTrack("Sommerwind.wav", TRACK_SECONDS);
 /** The page's JSON block holding the slideshow, read back from the downloaded file. */
 const SLIDESHOW_BLOCK = '<script type="application/json" id="slideshow">';
 /** Nothing in the page may load from outside it. */
@@ -27,37 +27,12 @@ const PLAYER_CHUNK = "**/assets/_virtual_glissando-export-player-*.js";
 const CLIP_SECONDS = 2;
 const CLIP_COLOUR = "#4db6ac";
 
-/**
- * Makes every engine deliver the finished page as a download, as the video export's own case
- * does: without a save picker (Chromium's picker is a native dialog a case cannot answer) and
- * without a share sheet for files, the done state offers "Herunterladen".
- */
-async function deliverByDownload(page: Page): Promise<void> {
-  await page.addInitScript(() => {
-    Reflect.deleteProperty(Window.prototype, "showSaveFilePicker");
-    Reflect.deleteProperty(window, "showSaveFilePicker");
-    Navigator.prototype.canShare = () => false;
-  });
-}
-
-async function createSlideshowWithMusic(page: Page): Promise<void> {
-  await openImport(page);
-  await choosePictures(page, await picturesTakenOn(page, DAYS), DAYS.length);
-  await page.getByRole("button", { name: "Weiter" }).click();
-  await chooseFiles(page, page.getByRole("button", { name: "Dateien wählen" }), [
-    silentTrack("Sommerwind.wav", TRACK_SECONDS),
-  ]);
-  await expect(page.getByText("Sommerwind.wav", { exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "Diashow erstellen" }).click();
-  await expectSlideshowScreen(page);
-}
-
 test("E2E-033 a slideshow saved as a web page from its menu downloads as one .html that plays from file://", async ({
   page,
 }, testInfo) => {
   await deliverByDownload(page);
   await openApp(page);
-  await createSlideshowWithMusic(page);
+  await createSlideshowWithMusic(page, MUSIC, { days: DAYS });
 
   await chooseShareRow(page, /^Webseite/);
   const sheet = page.getByRole("dialog", { name: "Webseite" });
@@ -93,7 +68,7 @@ test("E2E-099 a failed web page export shows its title and sentence, with the ra
   page,
 }) => {
   await openApp(page);
-  await createSlideshowWithMusic(page);
+  await createSlideshowWithMusic(page, MUSIC, { days: DAYS });
   await page.route(PLAYER_CHUNK, (route) => route.abort());
 
   // The sheet loads the player chunk to weigh the sizes, so it fails as soon as it opens.
@@ -150,7 +125,7 @@ test("E2E-103 Esc in the web page sheet steps back to the Share sheet and leaves
   page,
 }) => {
   await openApp(page);
-  await createSlideshowWithMusic(page);
+  await createSlideshowWithMusic(page, MUSIC, { days: DAYS });
   await chooseShareRow(page, /^Webseite/);
   const sheet = page.getByRole("dialog", { name: "Webseite" });
   await expect(sheet.getByRole("button", { name: "Webseite erstellen" })).toBeVisible();

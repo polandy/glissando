@@ -1,22 +1,15 @@
-import { expect, test, type Locator } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import { createSlideshow, GERMAN_BROWSER } from "./support/app";
 import { openApp } from "./support/browser";
+import { boxOf, type Box } from "./support/pointer";
 
 /** The reference phone, a Pixel 9 Pro, in CSS pixels. */
 const PHONE = { width: 412, height: 915 };
 
 test.use({ ...GERMAN_BROWSER, viewport: PHONE });
 
-type Box = { x: number; y: number; width: number; height: number };
-
 function overlaps(a: Box, b: Box): boolean {
   return a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
-}
-
-async function boxOf(locator: Locator): Promise<Box> {
-  const box = await locator.boundingBox();
-  if (box === null) throw new Error("the element has no box on screen");
-  return box;
 }
 
 test("E2E-092 on a phone in German the strip head's eyebrow and count stay clear of Mischen, Auswählen and Hinzufügen", async ({

@@ -1,18 +1,11 @@
-import { expect, test, type Locator } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import { chooseFiles, GERMAN_BROWSER, openImport } from "./support/app";
 import { openApp } from "./support/browser";
+import { boxOf } from "./support/pointer";
 import { pictureTakenOn } from "./support/media";
 
 // A common phone width, tall enough that the top bar and the filmstrip never meet (E2E-076).
 const PHONE = { width: 412, height: 915 };
-
-type Box = NonNullable<Awaited<ReturnType<Locator["boundingBox"]>>>;
-
-async function boxOf(locator: Locator): Promise<Box> {
-  const box = await locator.boundingBox();
-  if (box === null) throw new Error("the element has no layout box");
-  return box;
-}
 
 test.use(GERMAN_BROWSER);
 

@@ -1,6 +1,7 @@
 import { expect, test, type CDPSession, type Locator, type Page } from "@playwright/test";
 import { createSlideshow, GERMAN_BROWSER } from "./support/app";
 import { openApp } from "./support/browser";
+import { tile } from "./support/strip";
 import { HOLD_MS } from "../src/app/screens/slideshow/tile-drag-types";
 
 /** The reference phone, a Pixel 9 Pro, in CSS pixels. */
@@ -21,12 +22,9 @@ const RIGHT_HALF = 0.75;
 
 test.use({ ...GERMAN_BROWSER, hasTouch: true, isMobile: true, viewport: PHONE });
 
-function tile(page: Page, number: number): Locator {
-  const day = String(number).padStart(2, "0");
-  return page.getByRole("button", {
-    name: `Bild ${String(number)}, aufgenommen am ${day}.07.2025`,
-    exact: true,
-  });
+/** The tile of the picture taken on July `number`, which the strip shows at `number`. */
+function julyTile(page: Page, number: number): Locator {
+  return tile(page, number, `${String(number).padStart(2, "0")}.07.2025`);
 }
 
 /** The tile at `position` whatever picture it shows, by its number in the label. */
@@ -78,8 +76,8 @@ test("E2E-105 on a phone a picture moves from 1 to 10 in one hold-and-drag gestu
   );
   await openApp(page);
   await createSlideshow(page, DAYS, 2);
-  const first = tile(page, 1);
-  await expect(tile(page, PICTURE_COUNT)).toBeAttached();
+  const first = julyTile(page, 1);
+  await expect(julyTile(page, PICTURE_COUNT)).toBeAttached();
   const finger = new Finger(await page.context().newCDPSession(page));
 
   const start = await centre(first);
@@ -96,13 +94,13 @@ test("E2E-105 on a phone a picture moves from 1 to 10 in one hold-and-drag gestu
     await finger.move(startX, start.y + ((PHONE.height - EDGE_REST_PX - start.y) * step) / STEPS);
   }
   await expect
-    .poll(async () => ((await tile(page, 10).boundingBox())?.y ?? Infinity) < MIDDLE_Y)
+    .poll(async () => ((await julyTile(page, 10).boundingBox())?.y ?? Infinity) < MIDDLE_Y)
     .toBe(true);
   // Out of the edge zone the scrolling stops; then the finger goes onto picture 10's right half.
   await finger.move(startX, MIDDLE_Y);
-  const tenth = await centre(tile(page, 10));
+  const tenth = await centre(julyTile(page, 10));
   await finger.move(tenth.x + tenth.width * RIGHT_HALF, tenth.y);
-  const settled = await centre(tile(page, 10));
+  const settled = await centre(julyTile(page, 10));
   expect(Math.abs(settled.y - tenth.y)).toBeLessThan(settled.width);
   await finger.move(settled.x + settled.width * RIGHT_HALF, settled.y);
   await finger.up();
@@ -120,8 +118,8 @@ test("E2E-106 on a phone the keyboard still reorders a picture, Shift and an arr
 }) => {
   await openApp(page);
   await createSlideshow(page, DAYS.slice(0, 12), 2);
-  await tile(page, 1).focus();
-  await expect(tile(page, 1)).toBeFocused();
+  await julyTile(page, 1).focus();
+  await expect(julyTile(page, 1)).toBeFocused();
 
   for (let step = 0; step < 9; step += 1) {
     await page.keyboard.press("Shift+ArrowRight");

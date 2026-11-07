@@ -230,22 +230,21 @@ export async function chooseCustomMood(page: Page): Promise<void> {
   await expect(sheet).toBeHidden();
 }
 
+/** The capture days `createSlideshowWithMusic` imports unless told otherwise. */
+const THREE_JULY_DAYS = ["2025-07-12", "2025-07-14", "2025-07-20"] as const;
+
 /**
- * Imports three pictures with `track` and waits on the created slideshow's screen, left on Calm
- * (ADR-0050); with `fill`, afterwards leaves the mood in the music editor and sets the pictures
- * to fill the music there.
+ * Imports pictures taken on `days` (three July days by default) with `track` and waits on the
+ * created slideshow's screen, left on Calm (ADR-0050); with `fill`, afterwards leaves the mood in
+ * the music editor and sets the pictures to fill the music there.
  */
 export async function createSlideshowWithMusic(
   page: Page,
   track: TestFile,
-  { fill = false } = {},
+  { days = THREE_JULY_DAYS, fill = false }: { days?: readonly string[]; fill?: boolean } = {},
 ): Promise<void> {
   await openImport(page);
-  await choosePictures(
-    page,
-    await picturesTakenOn(page, ["2025-07-12", "2025-07-14", "2025-07-20"]),
-    3,
-  );
+  await choosePictures(page, await picturesTakenOn(page, days), days.length);
   await page.getByRole("button", { name: "Weiter" }).click();
   await chooseFiles(page, page.getByRole("button", { name: "Dateien wählen" }), [track]);
   await expect(page.getByText(track.name, { exact: true })).toBeVisible();

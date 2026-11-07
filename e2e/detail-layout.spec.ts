@@ -1,4 +1,4 @@
-import { expect, test, type Locator, type Page } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 import {
   createSlideshow,
   createSlideshowFromFiles,
@@ -7,10 +7,10 @@ import {
   picturesTakenAt,
 } from "./support/app";
 import { openApp } from "./support/browser";
+import { boxOf, type Box } from "./support/pointer";
+import { tile } from "./support/strip";
 import { clickSwitch } from "./support/switch";
 import { TRIP } from "./support/trip";
-
-type Box = NonNullable<Awaited<ReturnType<Locator["boundingBox"]>>>;
 
 const PHONE = { width: 390, height: 844 };
 const TABLET = { width: 820, height: 1180 };
@@ -18,20 +18,10 @@ const DESKTOP = { width: 1280, height: 800 };
 
 test.use(GERMAN_BROWSER);
 
-async function boxOf(locator: Locator): Promise<Box> {
-  const box = await locator.boundingBox();
-  if (box === null) throw new Error("the element has no layout box");
-  return box;
-}
-
 async function panelAndFirstPicture(page: Page): Promise<{ panel: Box; picture: Box }> {
-  const firstPicture = page.getByRole("button", {
-    name: "Bild 1, aufgenommen am 01.07.2025",
-    exact: true,
-  });
   return {
     panel: await boxOf(page.getByRole("complementary")),
-    picture: await boxOf(firstPicture),
+    picture: await boxOf(tile(page, 1, "01.07.2025")),
   };
 }
 

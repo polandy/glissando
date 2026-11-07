@@ -1,6 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import { createSlideshow, GERMAN_BROWSER } from "./support/app";
 import { openApp } from "./support/browser";
+import { tile } from "./support/strip";
 
 test.use(GERMAN_BROWSER);
 
@@ -10,11 +11,6 @@ test.use(GERMAN_BROWSER);
  */
 async function editsStored(page: Page): Promise<void> {
   await expect(page.locator(".screen")).toHaveAttribute("aria-busy", "false");
-}
-
-/** A tile of the picture strip, named by its position and capture date. */
-function tile(page: Page, number: number, date: string) {
-  return page.getByRole("button", { name: `Bild ${number}, aufgenommen am ${date}` });
 }
 
 test("E2E-014 pictures are removed with undo, reordered and renamed across a reload, and the slideshow deleted", async ({
