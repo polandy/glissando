@@ -11,7 +11,9 @@ over real timers.
 - **App shell** (ADR-0011): `index.html` paints the header bar with the brand, the logo where the
   start screen has its mark, and the status strip before any script runs. Once the app has
   mounted, `main.ts` hands over (`shell/app-shell.ts`): the shell fades out over the app in
-  0.18 s and is removed, at once with reduced motion. The app's stylesheets are linked by
+  0.18 s and is removed, at once with reduced motion. When the library store cannot open
+  (IndexedDB blocked or refused), the app never mounts: the shell stops its breath and shows the
+  `common.storageUnavailable` message under the logo as an alert, and the error is reported. The app's stylesheets are linked by
   `index.html`, not imported by `main.ts`, so the shell is styled from the first paint.
 
 - **Server library** (server_library/IN_THE_APP.md): `createServerLibrary` wires the

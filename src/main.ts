@@ -10,7 +10,7 @@ import { browserScreenShortEdge } from "./app/settings/playback-quality";
 import { bootstrapSettings } from "./app/settings/bootstrap-settings";
 import { createDeviceSettingsStores } from "./app/device-settings-stores";
 import { browserScheduler } from "./ui-kit/scheduler";
-import { handOverFromShell } from "./app/shell/app-shell";
+import { handOverFromShell, showStartupFailure } from "./app/shell/app-shell";
 import { consumeFirstLaunch, createStorageFirstLaunchStore } from "./app/start/first-launch";
 import {
   createStorageRefusalNoticeStore,
@@ -31,7 +31,7 @@ import { createImmichReaders } from "./immich/immich-readers";
 import { createMusicAudioContext, MusicOutput } from "./player";
 import { FocusPass } from "./library/focus-pass";
 import { serializeFocusDetector } from "./library/serialized-focus-detector";
-import { openLibraryStore } from "./library/indexeddb-store";
+import { type IndexedDbLibraryStore, openLibraryStore } from "./library/indexeddb-store";
 import { startFocusWorker, WorkerFocusDetector } from "./focus/worker-focus-detector";
 import {
   createFullRateDecoder,
@@ -91,7 +91,16 @@ const pwa = new PwaStatus(
 );
 pwa.start().catch(reportError);
 
-const store = await openLibraryStore(window.indexedDB);
+// Rethrown so the error listener above reports it; the app stops here, the shell keeps the screen.
+async function openLibraryOrShowFailure(appShell: HTMLElement): Promise<IndexedDbLibraryStore> {
+  try {
+    return await openLibraryStore(window.indexedDB);
+  } catch (error) {
+    showStartupFailure(appShell, translator.current.t("common.storageUnavailable"));
+    throw error;
+  }
+}
+const store = await openLibraryOrShowFailure(shell);
 const newId = (): string => randomId(crypto);
 const now = (): Date => new Date();
 const random = (): number => Math.random();

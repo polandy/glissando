@@ -25,8 +25,6 @@ Each fix starts with the failing test the item names or implies (WORKFLOW.md, Te
 
 ### App shell, routing and editors
 
-- [ ] `src/main.ts:121` — A failed `openLibraryStore` (blocked IndexedDB, VersionError) leaves the loading shell forever with no message; the toaster lives inside the unmounted App. Fix: catch and replace the shell with a translated fatal message; report it.
-
 ### Screens
 
 - [ ] `src/app/screens/slideshow/card-sheet/CardFace.svelte:60-66` — Font loads are not cancelled on style switch; the old style's late promise sets `fontsReady` while the new fonts are still loading and the card is laid out with fallback metrics. Fix: per-run token, set `fontsReady` only when it still matches.

@@ -44,6 +44,8 @@ export const de = {
   "common.breadcrumb": "Navigationspfad",
   "common.next": "Weiter",
   "common.unexpectedError": "Etwas ist schiefgegangen. Bitte versuche es noch einmal.",
+  "common.storageUnavailable":
+    "Glissando kann seinen Speicher in diesem Browser nicht öffnen. Lade die Seite neu — hilft das nicht, prüfe, ob diese Seite Daten speichern darf.",
 
   "units.seconds": "{seconds} s",
   "units.pictures": { one: "{count} Bild", other: "{count} Bilder" },
