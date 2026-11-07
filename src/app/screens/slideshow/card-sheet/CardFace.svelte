@@ -63,7 +63,7 @@
     fontsReady = false;
     const run = ++loadRun;
     const spec = CARD_STYLE_SPECS[style];
-    loadFonts(fonts, [toFontSpec(spec.title), toFontSpec(spec.subtitle)])
+    void loadFonts(fonts, [toFontSpec(spec.title), toFontSpec(spec.subtitle)])
       .catch((error: unknown) => {
         console.error(`the ${style} card font did not load; it draws with a fallback font`, error);
       })

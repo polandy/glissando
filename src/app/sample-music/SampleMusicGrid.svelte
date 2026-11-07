@@ -66,7 +66,7 @@
   );
   $effect(() => {
     let left = false;
-    Promise.all(
+    void Promise.all(
       SAMPLE_TRACKS.map(
         async (track) => [track.id, await preview.hasTrackOnDevice(track.id)] as const,
       ),

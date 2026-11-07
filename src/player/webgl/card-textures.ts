@@ -57,7 +57,7 @@ export class CardTextures {
 
   /** `card`'s rasterised texture, or a transparent one before its style's fonts have loaded. */
   texture(card: Card, viewport: Size): WebGLTexture {
-    this.#ensureLoading(card.style);
+    void this.#ensureLoading(card.style);
     if (!this.#loadedStyles.has(card.style)) {
       return this.#transparent;
     }
@@ -87,7 +87,7 @@ export class CardTextures {
    * height, never re-blurred per frame. Transparent before its style's fonts have loaded.
    */
   blurredTexture(card: Card, viewport: Size): WebGLTexture {
-    this.#ensureLoading(card.style);
+    void this.#ensureLoading(card.style);
     if (!this.#loadedStyles.has(card.style)) {
       return this.#transparent;
     }

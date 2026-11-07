@@ -25,7 +25,6 @@ Each fix starts with the failing test the item names or implies (WORKFLOW.md, Te
 
 ### Tooling and tests
 
-- [ ] `eslint.config.js:18` — The strict preset runs without type information, so `no-floating-promises` / `no-misused-promises` are off and nothing catches a missing `await` mechanically. Fix: `parserOptions.projectService` plus those two rules; fix what they find.
 - [ ] `scripts/brand/requirements.txt:1`, `scripts/brand/build.sh:7` — Python deps are exact but not hash-pinned (CODING_PRINCIPLES §5). Fix: `pip-compile --generate-hashes`, install with `--require-hashes`.
 - [ ] `src/app/app-actions.ts:5`, `src/app/share-link/share-summary.ts:2` — Plain `.ts` modules import types declared in `.svelte` components; `npx tsc --noEmit` reports 10 errors (svelte-check passes), and pure logic depends on a component. Fix: move `PwaSheetContent` and `ShareSubject` into sibling `.ts` files.
 - [ ] `package-lock.json` — `npm audit` (dev only): `fast-uri` via ajv is fixable without a major bump; `minimatch` and `deepmerge` chains wait on upstream. Fix: `npm update fast-uri`; track the other two; never `audit fix --force`.

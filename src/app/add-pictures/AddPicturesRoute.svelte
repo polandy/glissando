@@ -103,7 +103,7 @@
 
   function commit(): void {
     committing = true;
-    onCommit().finally(() => (committing = false));
+    void onCommit().finally(() => (committing = false));
   }
 </script>
 

@@ -18,6 +18,18 @@ export default tseslint.config(
   ...tseslint.configs.strict,
   ...svelte.configs.recommended,
   {
+    // Type information is what lets these two rules see a promise that is dropped or passed
+    // where a void callback is expected; the strict preset runs without it.
+    files: ["**/*.ts", "**/*.svelte"],
+    languageOptions: {
+      parserOptions: { projectService: true, extraFileExtensions: [".svelte"] },
+    },
+    rules: {
+      "@typescript-eslint/no-floating-promises": "error",
+      "@typescript-eslint/no-misused-promises": "error",
+    },
+  },
+  {
     files: ["**/*.svelte", "**/*.svelte.ts"],
     languageOptions: { parserOptions: { parser: tseslint.parser } },
     // TypeScript resolves globals (svelte-check); no-undef only knows a fixed list.

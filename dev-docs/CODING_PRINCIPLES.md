@@ -123,7 +123,8 @@ as a fallback.
   Svelte. Svelte components live in `src/app/` and drive the engine through its public API.
 - **Strict TypeScript** (`tsconfig.json`: `strict`, `noUncheckedIndexedAccess`,
   `exactOptionalPropertyTypes`); `any` is a lint error.
-- **Tooling**: Prettier formats, ESLint (typescript-eslint strict + eslint-plugin-svelte) lints,
+- **Tooling**: Prettier formats, ESLint (typescript-eslint strict + eslint-plugin-svelte, with `no-floating-promises` and
+  `no-misused-promises` type-aware) lints, a dropped promise is `await`ed or marked `void`,
   `svelte-check` type-checks, Vitest runs unit tests next to the code as `*.test.ts`.
 - **npm** with `package-lock.json` (integrity hashes) and `npm ci`; Node pinned in `.node-version`.
 - **UI copy** comes from the message catalogue (German and English), never a literal in a
