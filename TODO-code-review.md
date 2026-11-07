@@ -25,7 +25,6 @@ Each fix starts with the failing test the item names or implies (WORKFLOW.md, Te
 
 ### Screens
 
-- [ ] `src/app/screens/slideshow/card-sheet/CardTintPicker.svelte:53`, `CardEntrancePicker.svelte:53`, `CardSheet.svelte`, `CardBackgroundPicker.svelte` `.option` — Chips and options are ~30 px tall, below the 44 px hit rule, and the touch-target test covers no sheet but the tile panels (BRAND.md:105). Fix: `min-height: var(--gl-hit-min)` under coarse pointer; add CardSheet, ShareChooser, MoveToSheet, DeleteDialog, MoreMenu and GlissandoFileSheet to the touch-targets test.
 - [ ] `src/app/screens/slideshow-screen-viewer.browser.test.ts:85` — "hides Remove on the last picture" asserts only that the pill is absent, with no proof the viewer opened. Fix: assert another viewer control first.
 - [ ] `src/app/screens/slideshow-screen-several.browser.test.ts:118` — Asserts `[aria-label="Selection"]` is absent on a German screen (label "Auswahl"), so it can never fail. Fix: query via the catalogue key and pair with a positive check.
 - [ ] `src/app/screens/slideshow/SelectionBar.svelte` — Decision logic (enabled states, labels, range text with `as string` casts) lives in the 290-line component. Fix: pure `selection-bar-view.ts` with table tests.

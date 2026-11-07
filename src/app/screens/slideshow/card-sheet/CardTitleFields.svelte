@@ -115,4 +115,10 @@
   .input:focus {
     border-color: var(--gl-accent);
   }
+
+  @media (pointer: coarse) {
+    .input {
+      min-height: var(--gl-hit-min);
+    }
+  }
 </style>

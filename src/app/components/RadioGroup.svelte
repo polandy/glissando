@@ -99,6 +99,11 @@
   .option[aria-checked="true"] {
     background: color-mix(in srgb, var(--gl-accent) 12%, var(--gl-surface));
   }
+  @media (pointer: coarse) {
+    .option {
+      min-height: var(--gl-hit-min);
+    }
+  }
   /* The group clips its corners, so the focus ring sits inside the option. */
   .option:focus-visible {
     outline-offset: -2px;

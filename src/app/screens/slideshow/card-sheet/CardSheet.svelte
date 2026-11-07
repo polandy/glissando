@@ -180,6 +180,12 @@
     border-color: var(--gl-accent);
     background: color-mix(in srgb, var(--gl-accent) 14%, var(--gl-raised));
   }
+
+  @media (pointer: coarse) {
+    .option {
+      min-height: var(--gl-hit-min);
+    }
+  }
   .hint {
     margin: 0;
     color: var(--gl-muted);
