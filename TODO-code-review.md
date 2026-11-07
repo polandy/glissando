@@ -26,7 +26,6 @@ Each fix starts with the failing test the item names or implies (WORKFLOW.md, Te
 - [ ] `src/import/immich-picture-source.ts:150,172,201` — No AbortSignal reaches the original/thumbnail/video downloads; cancel or leaving keeps downloading, and a video is fetched in full before the `MAX_VIDEO_BYTES` check. Fix: thread the import's signal through; check size from metadata before downloading.
 - [ ] `src/import/immich-picture-source.ts:221` — One extra `GET api/assets/{id}` per photo only for GPS, although the search already has `withExif`; coordinates are not range-checked. Fix: read latitude/longitude in `photos()`, validate ranges at the boundary.
 - [ ] `src/import/local-picture-source.ts:368` — A GPS read failure throws `UnreadablePictureError`, so a picture that decoded fine is skipped, against its own doc comment; the 128 KB head is read twice. Fix: read the head once; make the GPS read best-effort.
-- [ ] `src/import/downscale.ts:425` — Untrusted images are decoded at full resolution with no byte/pixel cap; `thumbnailFromImage` failures are not mapped to `UnreadablePictureError`. Fix: byte limit, `resizeWidth/Height` from the header, uniform error wrapping.
 
 ### Music, composition and focus
 

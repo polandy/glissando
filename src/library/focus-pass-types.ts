@@ -33,6 +33,12 @@ export interface FocusPassPorts {
    * skipped in `#lookAt`.
    */
   isGone?(error: unknown): boolean;
+  /**
+   * An error from reading one picture's detection input that means "this picture's input cannot
+   * be decoded", e.g. an undecodable server preview: that picture is logged as failed, like a
+   * failed detection, and the pass carries on with the next. Any other input error ends the pass.
+   */
+  failsPictureOn?(error: unknown): boolean;
 }
 
 /** How far the pass is with one slideshow's pictures. */

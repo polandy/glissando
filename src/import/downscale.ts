@@ -1,3 +1,4 @@
+import { assertPictureWithinLimits, PICTURE_LIMITS, type PictureLimits } from "./picture-limits";
 import { UnreadablePictureError } from "./unreadable-picture";
 
 /** Imported pictures are stored downscaled: a slideshow never needs more than display resolution. */
@@ -44,8 +45,15 @@ export function fitsWithin(size: Size, bound: Bound): boolean {
   return longEdge <= bound.longEdge && shortEdge <= bound.shortEdge;
 }
 
-/** Decodes a picture file, upright per its EXIF orientation, into its two stored renditions. */
-export async function decodePicture(file: File): Promise<DecodedPicture> {
+/**
+ * Decodes a picture file, upright per its EXIF orientation, into its two stored renditions; a
+ * picture over `limits` rejects with `UnreadablePictureError` before it is decoded.
+ */
+export async function decodePicture(
+  file: File,
+  limits: PictureLimits = PICTURE_LIMITS,
+): Promise<DecodedPicture> {
+  await assertPictureWithinLimits(file, limits);
   let bitmap: ImageBitmap;
   try {
     bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
@@ -69,9 +77,24 @@ export function encodeThumbnail(bitmap: ImageBitmap): Promise<Blob> {
   return encodeJpeg(bitmap, fitWithin(bitmap, THUMBNAIL_BOUND), THUMBNAIL_JPEG_QUALITY);
 }
 
-/** Downscales an already-upright image to the thumbnail bound (ADR-0041's server focus pass). */
-export async function thumbnailFromImage(image: Blob): Promise<Blob> {
-  const bitmap = await createImageBitmap(image);
+/** What a blob without a name is called in the errors for it. */
+const UNNAMED_IMAGE = "picture";
+
+/**
+ * Downscales an already-upright image to the thumbnail bound (ADR-0041's server focus pass); an
+ * image over `limits` or one the browser cannot decode rejects with `UnreadablePictureError`.
+ */
+export async function thumbnailFromImage(
+  image: Blob,
+  limits: PictureLimits = PICTURE_LIMITS,
+): Promise<Blob> {
+  await assertPictureWithinLimits(new File([image], UNNAMED_IMAGE), limits);
+  let bitmap: ImageBitmap;
+  try {
+    bitmap = await createImageBitmap(image);
+  } catch (error) {
+    throw new UnreadablePictureError(UNNAMED_IMAGE, "decode", { cause: error });
+  }
   try {
     return await encodeThumbnail(bitmap);
   } finally {

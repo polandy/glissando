@@ -235,6 +235,10 @@ export const de = {
     one: "{count} Datei konnte nicht als Bild gelesen werden und wurde übersprungen:",
     other: "{count} Dateien konnten nicht als Bild gelesen werden und wurden übersprungen:",
   },
+  "import.tooLarge": {
+    one: "{count} Bild ist zu groß und wurde übersprungen:",
+    other: "{count} Bilder sind zu groß und wurden übersprungen:",
+  },
   "import.undecodable": {
     one: "{count} Bild konnte nicht gelesen werden und wurde übersprungen:",
     other: "{count} Bilder konnten nicht gelesen werden und wurden übersprungen:",

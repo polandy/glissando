@@ -13,10 +13,17 @@ export type DuplicateReason = "alreadyIn" | "chosenTwice";
 
 /**
  * "unreadable": the bytes could not be read; "undecodable": they could not be decoded into pixels;
+ * "tooLarge": the picture is over the byte or pixel limit and was not decoded;
  * a video is refused as "videoUnplayable", "videoTooLarge" or "videoTooShort".
  */
 export type SkipReason =
-  "unsupported" | "unreadable" | "undecodable" | "notDownloaded" | VideoRefusal | DuplicateReason;
+  | "unsupported"
+  | "unreadable"
+  | "undecodable"
+  | "tooLarge"
+  | "notDownloaded"
+  | VideoRefusal
+  | DuplicateReason;
 
 export interface SkippedFile {
   readonly fileName: string;

@@ -233,6 +233,10 @@ export const en: Catalogue = {
     one: "{count} file could not be read as a picture and was skipped:",
     other: "{count} files could not be read as pictures and were skipped:",
   },
+  "import.tooLarge": {
+    one: "{count} picture is too large and was skipped:",
+    other: "{count} pictures are too large and were skipped:",
+  },
   "import.undecodable": {
     one: "{count} picture could not be read and was skipped:",
     other: "{count} pictures could not be read and were skipped:",
