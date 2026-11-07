@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { orderWithGroupShifted } from "../../../library/group-order";
   import { keepToastsClear } from "../../components/toast-clearance";
   import { getTranslator } from "../../i18n/context";
   import AddingBarActions from "./AddingBarActions.svelte";
@@ -8,7 +7,8 @@
   import SelectionCount from "./SelectionCount.svelte";
   import SoleActions from "./SoleActions.svelte";
   import { barItem, chapterItem, moveToItem, type BarItem } from "./SelectionBarItem";
-  import { isContiguous, selectedInOrder, type StripSelection } from "./strip-selection";
+  import { selectionBarView } from "./selection-bar-view";
+  import type { StripSelection } from "./strip-selection";
 
   /**
    * What the selection offers, fixed to the bottom of the viewport (dev-docs/app/slideshow-editing/:
@@ -57,38 +57,20 @@
   } = $props();
 
   const { t } = getTranslator();
-  const selectedIds = $derived(selectedInOrder(selection, order));
-  const count = $derived(selectedIds.length);
-  const soleId = $derived(selectedIds[0] ?? null);
-  const soleIndex = $derived(soleId === null ? -1 : order.indexOf(soleId));
-  const single = $derived(!selection.several || count === 1);
-  const range = $derived(
-    count > 0 && isContiguous(selection.ids, order)
-      ? {
-          from: order.indexOf(selectedIds[0] as string) + 1,
-          to: order.indexOf(selectedIds.at(-1) as string) + 1,
-        }
-      : null,
+  const bar = $derived(
+    selectionBarView(selection, order, {
+      arranging,
+      canInsertChapter: onInsertChapter !== undefined,
+      canMoveGroup: onMoveGroup !== undefined,
+    }),
   );
-  // Disabled exactly when moving that way would change nothing (`orderWithGroupShifted` says so
-  // by returning the same order): one block already at that end, or nothing selected.
-  const earlierDisabled = $derived(
-    count === 0 || orderWithGroupShifted(order, selection.ids, -1) === order,
-  );
-  const laterDisabled = $derived(
-    count === 0 || orderWithGroupShifted(order, selection.ids, 1) === order,
-  );
-  // Select mode with nothing picked yet: Remove names no count.
+  const { selectedIds, count, soleId, soleIndex, single, range } = $derived(bar);
+  const { earlierDisabled, laterDisabled, removeDisabledLook } = $derived(bar);
   const removeLabel = $derived(
-    !selection.several
-      ? t("slideshow.removePictures", { count: 1 })
-      : count === 0
-        ? t("slideshow.removeNoPictures")
-        : t("slideshow.removePictures", { count }),
+    bar.removeLabel.key === "slideshow.removePictures"
+      ? t(bar.removeLabel.key, { count: bar.removeLabel.count })
+      : t(bar.removeLabel.key),
   );
-  // Selecting several: disabled-looking with nothing selected. A single selection instead looks
-  // disabled for the last picture, which stays; Remove still answers that, with its own toast.
-  const removeDisabledLook = $derived(selection.several ? count === 0 : order.length < 2);
 
   let moving = $state(false);
 
@@ -125,10 +107,8 @@
       : [],
   );
   const extras = $derived<BarItem[]>([
-    ...(single && onInsertChapter !== undefined ? [chapterItem(t, insertChapter)] : []),
-    ...(arranging && onMoveGroup !== undefined && count > 0
-      ? [moveToItem(t, () => (moving = true))]
-      : []),
+    ...(bar.showChapter ? [chapterItem(t, insertChapter)] : []),
+    ...(bar.showMoveTo ? [moveToItem(t, () => (moving = true))] : []),
   ]);
 </script>
 

@@ -23,10 +23,6 @@ Each fix starts with the failing test the item names or implies (WORKFLOW.md, Te
 
 ### App shell, routing and editors
 
-### Screens
-
-- [ ] `src/app/screens/slideshow/SelectionBar.svelte` — Decision logic (enabled states, labels, range text with `as string` casts) lives in the 290-line component. Fix: pure `selection-bar-view.ts` with table tests.
-
 ### Tooling and tests
 
 - [ ] `scripts/source-sizes.sh:18` — The 300-line gate never scans `server/`, `build/`, `deploy/` or `*.mjs`; `scripts/ux-tour/tour.mjs` (511) is over the limit and verify stays green (the two server files are split in #177, the script gap is not). Fix: add the roots and `*.mjs`; split `tour.mjs`.
