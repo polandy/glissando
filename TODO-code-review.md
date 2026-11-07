@@ -25,7 +25,6 @@ Each fix starts with the failing test the item names or implies (WORKFLOW.md, Te
 
 ### Screens
 
-- [ ] `src/app/screens/slideshow/card-sheet/CardFace.svelte:60-66` — Font loads are not cancelled on style switch; the old style's late promise sets `fontsReady` while the new fonts are still loading and the card is laid out with fallback metrics. Fix: per-run token, set `fontsReady` only when it still matches.
 - [ ] `src/app/screens/slideshow/SlideshowScreenOverlays.svelte:89` + `FocusSheetHost.svelte:48` — The focus sheet gets no `onClosed`, so focus drops to `<body>`, against the contract in the file's own comment. Fix: pass and call `onClosed`; browser test that focus lands on "Mehr".
 - [ ] `src/app/screens/slideshow/SlideshowEditSheets.svelte:182` — `closeChapters` hands no focus back, unlike its five siblings. Fix: same focus-return callback.
 - [ ] `src/app/screens/slideshow/SlideshowEditSheets.svelte:140-185` — Seven independent open booleans plus six near-identical `closeX` functions; "two sheets open" is representable. Fix: one `openSheet: SheetKind | null` and one `close()`.
