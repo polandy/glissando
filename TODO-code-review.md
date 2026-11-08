@@ -31,7 +31,6 @@ Each fix starts with the failing test the item names or implies (WORKFLOW.md, Te
 
 ### Player
 
-- [ ] `src/player/webgl/webgl-renderer.ts:257-271` — `dispose()` never deletes `#mainBuffer`. Fix: `deleteBuffer`.
 - [ ] `src/player/create-frame-player.ts:277-280` — `loseContext()` called a second time after `renderer.dispose()`, a GL warning per dispose. Fix: let the renderer own context release.
 - [ ] `src/player/webgl/card-item-program.ts:78,80`, `webgl/card-pass.ts:178` vs `webgl-renderer.ts:30` — Literal `2`/`4` in `vertexAttribPointer`; two texture-unit constants silently equal across modules. Fix: name the vertex constants; one texture-unit map module.
 - [ ] `src/player/browser/music-output.ts:267-272` — `createOrNull` swallows the error without logging. Fix: warn before returning null.
