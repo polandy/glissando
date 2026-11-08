@@ -1,3 +1,4 @@
+import { isQuotaExceeded } from "../../storage-quota/is-quota-exceeded";
 import type { MessageKey } from "../i18n/messages";
 
 /** What is exported; only the words differ. */
@@ -27,13 +28,12 @@ export interface ExportFailureDescription {
   readonly details: string;
 }
 
-const QUOTA_EXCEEDED = "QuotaExceededError";
 const ABORTED = "AbortError";
 
 /** Only keys: a sheet never renders an `Error`'s own message (scripts/no-raw-error-text.sh). */
 export function describeExportFailure(error: unknown, kind: ExportKind): ExportFailureDescription {
   const details = errorDetails(error);
-  if (isDomException(error, QUOTA_EXCEEDED)) return storageFull(details);
+  if (isQuotaExceeded(error)) return storageFull(details);
   if (isDomException(error, ABORTED)) return cancelled(details);
   return {
     failure: "unknown",

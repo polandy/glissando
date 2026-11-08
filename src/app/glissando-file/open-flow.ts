@@ -4,7 +4,7 @@ import { writeGlissandoFile, type WritePorts } from "../../glissando-file/write-
 import type { LibraryStore } from "../../library/library-store";
 import type { Navigator } from "../navigation/navigator";
 import type { Toaster } from "../toast/toaster";
-import { isQuotaExceeded } from "./storage-shortage";
+import { isQuotaExceeded } from "../../storage-quota/is-quota-exceeded";
 
 /** The screen an open started from; its notice shows there (dev-docs/app/SCREENS.md). */
 export type OpenOrigin = "library" | "pictures";
