@@ -106,17 +106,28 @@ describe("music no slideshow references", () => {
     expect(library.send("GET", `${MUSIC}/${song}`).status).toBe(200);
   });
 
-  it("is deleted on an upload once it is older than the grace period, never before", () => {
+  it("is deleted on the first upload after the grace period passed without one, never before", () => {
     const library = libraryHarness();
     const stale = library.uploadMusic();
     library.advanceClock(HOUR_MS);
-    const recent = library.uploadMusic();
+    library.uploadMusic();
     expect(library.send("GET", `${MUSIC}/${stale}`).status).toBe(200);
 
-    library.advanceClock(1);
-    library.uploadMusic();
-    expect(library.send("GET", `${MUSIC}/${recent}`).status).toBe(200);
+    library.advanceClock(HOUR_MS + 1);
+    const later = library.uploadMusic();
+    expect(library.send("GET", `${MUSIC}/${later}`).status).toBe(200);
     expect(library.send("GET", `${MUSIC}/${stale}`).status).toBe(404);
+  });
+
+  it("is kept while uploads follow one another within the grace period, as in a slow multi-song save", () => {
+    const library = libraryHarness();
+    const first = library.uploadMusic();
+    library.advanceClock(HOUR_MS - 1);
+    const second = library.uploadMusic();
+    library.advanceClock(HOUR_MS - 1);
+    library.uploadMusic();
+    expect(library.send("GET", `${MUSIC}/${first}`).status).toBe(200);
+    expect(library.send("GET", `${MUSIC}/${second}`).status).toBe(200);
   });
 
   it("is kept past the grace period while a slideshow names it", () => {

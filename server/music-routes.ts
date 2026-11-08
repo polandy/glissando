@@ -17,7 +17,7 @@ import {
   type LibraryResponse,
 } from "./library-http";
 
-/** Music uploaded but named by no slideshow this long is deleted on the next upload. */
+/** Music named by no slideshow is deleted on the first upload after this long without one. */
 const UNREFERENCED_MUSIC_GRACE_MS = 60 * 60 * 1000;
 
 const CONTENT_TYPE = "content-type";
@@ -48,6 +48,10 @@ export function musicRoutes({ repository, now, newId }: LibraryHandlerDependenci
         const graceStart = uploadedAt - UNREFERENCED_MUSIC_GRACE_MS;
         for (const stale of repository.unreferencedMusicUploadedBefore(graceStart)) {
           repository.deleteMusic(stale);
+        }
+        // A save uploads its songs one by one before naming them, so each upload restarts the rest's grace.
+        for (const pending of repository.unreferencedMusicUploadedBefore(uploadedAt + 1)) {
+          repository.restartMusicGrace(pending, uploadedAt);
         }
         const musicId = newId();
         repository.insertMusic({ id: musicId, contentType, bytes, uploadedAt });
