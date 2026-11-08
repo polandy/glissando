@@ -48,5 +48,7 @@ async function readSong(
     if (signal.aborted) return;
     host.removeSong(key);
     throw error;
+  } finally {
+    host.endRead(key);
   }
 }

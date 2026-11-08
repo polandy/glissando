@@ -224,6 +224,35 @@ describe("ImportSession, songs a target browser cannot play", () => {
     expect(choicesOf(session).songs).toHaveLength(1);
   });
 
+  it("cancels a song's probe when it is removed and reads the songs after it", async () => {
+    let probeSignal: AbortSignal | undefined;
+    let markStarted: () => void = () => undefined;
+    const started = new Promise<void>((resolve) => (markStarted = resolve));
+    let probes = 0;
+    const { session } = sessionWith(new MemoryLibraryStore(), {
+      probeMusic: (_file: File, signal: AbortSignal) => {
+        probes += 1;
+        if (probes > 1) return Promise.resolve({ durationMs: MUSIC_MS });
+        probeSignal = signal;
+        markStarted();
+        return new Promise<{ durationMs: number }>((_resolve, reject) =>
+          signal.addEventListener("abort", () => reject(signal.reason), { once: true }),
+        );
+      },
+    });
+    const added = session.addSongs([
+      new File([concat(ascii("ID3"), new Uint8Array(20))], "Stalled.mp3"),
+      new File([concat(ascii("ID3"), new Uint8Array(20))], "Later.mp3"),
+    ]);
+    await started;
+
+    session.removeSong(1);
+    await added;
+
+    expect(probeSignal?.aborted).toBe(true);
+    expect(chosenSongs(choicesOf(session)).map((song) => song.pickedName)).toEqual(["Later.mp3"]);
+  });
+
   it("cancels every conversion under way when the import is discarded", async () => {
     const conversion = heldConversion();
     const { session } = sessionWith(new MemoryLibraryStore(), conversion);

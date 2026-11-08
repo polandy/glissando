@@ -12,6 +12,8 @@ export interface SongRowHost {
   nextKey(): number;
   /** Starts tracking `key`'s cancellation; returns its signal. */
   beginRead(key: number): AbortSignal;
+  /** Stops tracking `key` once its read has settled. */
+  endRead(key: number): void;
   readSignal(key: number): AbortSignal | undefined;
   /** Takes the row out of the list, cancelling its read. */
   removeSong(key: number): void;

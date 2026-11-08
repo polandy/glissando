@@ -14,12 +14,14 @@ export class UnreadableMusicError extends Error {
   }
 }
 
-/** Loads a music file's metadata the way the player will play it, to learn its length. */
-export async function probeMusic(file: File): Promise<MusicProbe> {
+/** Loads a music file's metadata the way the player will play it, to learn its length; an abort of `signal` rejects. */
+export async function probeMusic(file: File, signal?: AbortSignal): Promise<MusicProbe> {
+  signal?.throwIfAborted();
   const url = URL.createObjectURL(file);
   const audio = document.createElement("audio");
   try {
     const durationSeconds = await new Promise<number>((resolve, reject) => {
+      signal?.addEventListener("abort", () => reject(signal.reason), { once: true });
       audio.onloadedmetadata = () => resolve(audio.duration);
       audio.onerror = () => reject(new UnreadableMusicError(file.name, { cause: audio.error }));
       audio.preload = "metadata";

@@ -38,7 +38,6 @@ Each fix starts with the failing test the item names or implies (WORKFLOW.md, Te
 ### Import and Immich
 
 - [ ] `src/import/picture-import.ts:126` — `stop()` records pick ids with nothing in flight, never removed. Fix: add only when a file is in flight, or clear on drain.
-- [ ] `src/app/import/import-session.ts:49` — `#songReads` entries are never deleted after success; `probeMusic` has no abort, so one stalled probe blocks the queue. Fix: delete settled entries; give the probe a signal.
 
 ### Music, composition and focus
 
