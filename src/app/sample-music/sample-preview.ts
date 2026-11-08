@@ -5,6 +5,7 @@ import {
   type SampleTrack,
   type SampleTrackId,
 } from "../../sample-music/sample-tracks";
+import { MILLISECONDS_PER_SECOND } from "../../player";
 import type { ObjectUrlPorts } from "../media/object-urls";
 
 /** The shared `<audio>` element `SamplePreview` plays through; the browser's `Audio` satisfies it. */
@@ -232,7 +233,7 @@ export class SamplePreview {
   }
 
   #progress(track: SampleTrack): number {
-    const seconds = track.durationMs / 1000;
+    const seconds = track.durationMs / MILLISECONDS_PER_SECOND;
     return seconds <= 0 ? 0 : Math.min(1, this.#audio.currentTime / seconds);
   }
 

@@ -1,4 +1,4 @@
-const MILLISECONDS_PER_SECOND = 1000;
+import { MILLISECONDS_PER_SECOND } from "../player/slideshow";
 
 /**
  * Which picture of a round is on screen at the player's `currentTime`: a round gives each of its
