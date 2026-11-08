@@ -1,5 +1,6 @@
 import { isQuotaExceeded } from "../../storage-quota/is-quota-exceeded";
 import type { MessageKey } from "../i18n/messages";
+import { DOM_EXCEPTION, isDomException } from "../../dom-exception/dom-exception";
 
 /** What is exported; only the words differ. */
 export type ExportKind = "video" | "page";
@@ -28,13 +29,11 @@ export interface ExportFailureDescription {
   readonly details: string;
 }
 
-const ABORTED = "AbortError";
-
 /** Only keys: a sheet never renders an `Error`'s own message (scripts/no-raw-error-text.sh). */
 export function describeExportFailure(error: unknown, kind: ExportKind): ExportFailureDescription {
   const details = errorDetails(error);
   if (isQuotaExceeded(error)) return storageFull(details);
-  if (isDomException(error, ABORTED)) return cancelled(details);
+  if (isDomException(error, DOM_EXCEPTION.aborted)) return cancelled(details);
   return {
     failure: "unknown",
     title: kind === "video" ? "exportErrors.unknownVideoTitle" : "exportErrors.unknownPageTitle",
@@ -97,10 +96,6 @@ function cancelled(details: string): ExportFailureDescription {
     action: "try-again",
     details,
   };
-}
-
-function isDomException(error: unknown, name: string): boolean {
-  return error instanceof DOMException && error.name === name;
 }
 
 function errorDetails(error: unknown): string {

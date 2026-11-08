@@ -1,10 +1,16 @@
-import type { Delivery, VideoExportPorts } from "./export-sheet-state";
+import { DOM_EXCEPTION, isDomException } from "../../dom-exception/dom-exception";
+import type { Delivery } from "./export-sheet-state";
 
-const SHARE_DISMISSED = "AbortError";
+/** The ports a delivery uses; both export sheets' ports satisfy it. */
+export interface DeliveryPorts {
+  share(file: File): Promise<void>;
+  download(file: File): void;
+  log(error: unknown): void;
+}
 
 /** Hands a finished private file over: a download, or the share sheet (a dismissal is no error). */
-export async function deliverFile<Preview>(
-  ports: VideoExportPorts<Preview>,
+export async function deliverFile(
+  ports: DeliveryPorts,
   delivery: Delivery,
   file: File,
 ): Promise<void> {
@@ -12,7 +18,7 @@ export async function deliverFile<Preview>(
     ports.download(file);
   } else if (delivery === "share") {
     await ports.share(file).catch((error: unknown) => {
-      if (!(error instanceof DOMException && error.name === SHARE_DISMISSED)) {
+      if (!isDomException(error, DOM_EXCEPTION.aborted)) {
         ports.log(error);
       }
     });
