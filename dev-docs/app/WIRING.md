@@ -35,6 +35,8 @@ over real timers.
   app" while installing is possible), once per device. Installing and offline: [INSTALLING_AND_OFFLINE.md](INSTALLING_AND_OFFLINE.md).
 - **Unexpected errors**, including uncaught ones, are logged and shown as a coral toast;
   none is swallowed.
+- **Opening a slideshow by id** shows the strip skeleton while it is looked up; a failed lookup
+  is reported and leaves to the parent screen (`routes/opened-slideshow.ts`).
 - **Object URLs**: thumbnails and covers exist while their screen shows them; a screen left
   before its data arrived drops the late result (`routes/route-loading.ts`). The player reads
   each display picture by media id only when it buffers it (`openPicture`), and every song when
