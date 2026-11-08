@@ -96,6 +96,8 @@ async function takeSampleTrack(
     if (signal.aborted) return;
     host.removeSong(key);
     throw error;
+  } finally {
+    host.endRead(key);
   }
 }
 

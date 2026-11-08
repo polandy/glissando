@@ -58,6 +58,7 @@ export class ImportSession {
       this.#songReads.set(key, controller);
       return controller.signal;
     },
+    endRead: (key) => void this.#songReads.delete(key),
     readSignal: (key) => this.#songReads.get(key)?.signal,
     removeSong: (key) => this.removeSong(key),
   };

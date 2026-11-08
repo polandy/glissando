@@ -7,7 +7,7 @@ import type { SampleOrigin } from "../sample-music/sample-song-pick";
 
 /** What reads a picked music file: its probe, its FLAC conversion (ADR-0020) and the log. */
 export interface MusicPickPorts {
-  probeMusic(file: File): Promise<MusicProbe>;
+  probeMusic(file: File, signal: AbortSignal): Promise<MusicProbe>;
   readonly convertMusic: ConvertMusic;
   log(error: unknown): void;
 }
@@ -53,7 +53,7 @@ export type PendingSong = { readonly key: number } & (
 /**
  * Reads a picked file as music: the file itself, or its FLAC copy when a target browser cannot
  * decode it, telling `onConverting` how far the conversion is; music that cannot be read is
- * `unusable`, one over `MAX_MUSIC_BYTES` or `MAX_MUSIC_DURATION_MS` with the limit it hit. An abort of `signal` cancels the conversion and rejects.
+ * `unusable`, one over `MAX_MUSIC_BYTES` or `MAX_MUSIC_DURATION_MS` with the limit it hit. An abort of `signal` cancels the conversion or the probe and rejects.
  */
 export async function readPickedMusic(
   file: File,
@@ -86,7 +86,7 @@ export async function readPickedMusic(
       );
     }
     if (playable.size > MAX_MUSIC_BYTES) return unusable("tooLarge");
-    const { durationMs } = await ports.probeMusic(playable);
+    const { durationMs } = await ports.probeMusic(playable, signal);
     if (durationMs > MAX_MUSIC_DURATION_MS) return unusable("tooLong");
     return {
       kind: "chosen",
