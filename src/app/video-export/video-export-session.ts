@@ -14,7 +14,8 @@ import {
   type BrowserProbe,
   chooseState,
   deliveryOf,
-  finishedState,
+  failedState,
+  outcomeState,
   probeBrowser,
 } from "./sheet-states";
 
@@ -206,26 +207,16 @@ export class VideoExportSession<Preview> {
     target: ExportTarget,
     result: VideoExportResult,
   ): void {
-    switch (result.kind) {
-      case "done":
-      case "storage-full":
-        this.#set(
-          finishedState({
-            preset,
-            framesTotal,
-            estimate: this.estimate(preset),
-            delivery: (file) => deliveryOf(target, this.#ports.canShare(file)),
-            result,
-          }),
-        );
-        return;
-      case "failed":
-        this.#fail(result.error);
-        return;
-      case "cancelled":
-        // Only closing the sheet cancels, and a closed sheet shows nothing.
-        return;
-    }
+    const state = outcomeState({
+      preset,
+      framesTotal,
+      estimate: this.estimate(preset),
+      delivery: (file) => deliveryOf(target, this.#ports.canShare(file)),
+      result,
+    });
+    if (state === null) return;
+    if (state.kind === "failed") this.#ports.log(state.error);
+    this.#set(state);
   }
 
   #choose(preset: PresetId): void {
@@ -239,7 +230,7 @@ export class VideoExportSession<Preview> {
 
   #fail(error: unknown): void {
     this.#ports.log(error);
-    this.#set({ kind: "failed", error: error instanceof Error ? error : new Error(String(error)) });
+    this.#set(failedState(error));
   }
 
   #releaseScreen(): void {
