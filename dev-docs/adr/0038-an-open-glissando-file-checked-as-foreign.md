@@ -61,7 +61,9 @@ anything it could use to sign a file ships with the app and is public.
     picture that would take gigabytes to decode is refused unread;
   - every picture, thumbnail, song and clip is decoded (or, a clip, loaded) before it is stored,
     not only checksummed: a file that is not what its name says is refused, and so is a song
-    longer than `MAX_MUSIC_DURATION_MS`;
+    longer than `MAX_MUSIC_DURATION_MS`; a picture's decoded size must equal its header's, or
+    the header's turned a quarter (a browser decodes upright, so an EXIF orientation of 5–8
+    swaps it; `imageOrientation: "none"` does not prevent that);
   - text from a file is shown as text only, never as HTML (enforced by lint);
   - `README.txt`, `index.html` and the schema are skipped on opening, never read or run.
 

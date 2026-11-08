@@ -111,6 +111,15 @@ describe("checkGlissandoFile contents", () => {
     expect(reason).toContain(`not the ${first.width}×${first.height} the manifest declares`);
   });
 
+  it("accepts a picture that decodes turned a quarter, as one with an EXIF orientation does", async () => {
+    const check = await checkGlissandoFile(await exportedFile(), {
+      ...plentyOfSpace,
+      mediaDecoders: fakeMediaDecoders({ turnPictures: true }),
+    });
+
+    expect(check.kind).toBe("ok");
+  });
+
   it("refuses a picture that does not decode, naming it, after calling the decoder", async () => {
     const decoders = fakeMediaDecoders({ refusePictureContaining: "display two" });
 
