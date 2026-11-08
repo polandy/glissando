@@ -3,10 +3,8 @@ import type { MediaClaim } from "./library-store";
 import type { StoredSlideshow } from "./stored-slideshow";
 import type { StoredMedia, StoredPictureMedia } from "./indexeddb-records";
 import {
-  BEATS,
-  FOCUS,
   IMPORTS,
-  LOUDNESS,
+  MEDIA_KEYED_STORES,
   MUSIC,
   PICTURES,
   SLIDESHOWS,
@@ -15,16 +13,7 @@ import {
 } from "./indexeddb-schema";
 
 /** The stores `deleteUnreferenced` reads and writes in its one transaction. */
-export const CLEAN_UP_STORES: StoreName[] = [
-  SLIDESHOWS,
-  PICTURES,
-  MUSIC,
-  VIDEOS,
-  IMPORTS,
-  FOCUS,
-  BEATS,
-  LOUDNESS,
-];
+export const CLEAN_UP_STORES: StoreName[] = [SLIDESHOWS, IMPORTS, ...MEDIA_KEYED_STORES];
 
 /**
  * Adds up the stored bytes of a slideshow's media inside `transaction` (over `PICTURES`,
@@ -69,7 +58,7 @@ export function deleteUnreferenced(transaction: IDBTransaction, now: Date): void
     const { sparedMediaIds, staleClaimIds } = claimsAt(imports.result as MediaClaim[], now);
     staleClaimIds.forEach((id) => importStore.delete(id));
     // Focus, beats and loudness are media too: one kept for media that went goes with it.
-    for (const name of [PICTURES, MUSIC, VIDEOS, FOCUS, BEATS, LOUDNESS]) {
+    for (const name of MEDIA_KEYED_STORES) {
       const media = transaction.objectStore(name);
       const keys = media.getAllKeys();
       keys.onsuccess = () => {

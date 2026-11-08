@@ -50,6 +50,16 @@ export type StoreName =
   | typeof VIDEOS
   | typeof LOUDNESS;
 
+/** The stores keyed by media id: a media's record in each goes when the media does. */
+export const MEDIA_KEYED_STORES: readonly StoreName[] = [
+  PICTURES,
+  MUSIC,
+  VIDEOS,
+  FOCUS,
+  BEATS,
+  LOUDNESS,
+];
+
 /**
  * Adds what each version after `oldVersion` brought. Existing data stays untouched, except the
  * slideshow records a version before `COLOURS_ADDED_IN` left behind: cleared, not migrated, since
