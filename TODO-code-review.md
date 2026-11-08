@@ -35,7 +35,6 @@ Each fix starts with the failing test the item names or implies (WORKFLOW.md, Te
 
 ### Exports, share and PWA
 
-
 ### App shell, routing and editors
 
 - [ ] `src/app/App.svelte:227` — The slideshow route's `{#await}` has no pending or catch branch: blank while loading, blank with no back on failure. Fix: a `RouteSkeleton` while pending; leave to the parent on failure.
