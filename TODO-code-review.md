@@ -37,7 +37,6 @@ Each fix starts with the failing test the item names or implies (WORKFLOW.md, Te
 
 ### Import and Immich
 
-- [ ] `src/app/import/browser-intake-ports.ts:44` — Place-data fetch has no `response.ok` check; a 404 becomes a parse error and every picture refetches 848 KB. Fix: check `ok`, stop retrying for the import.
 - [ ] `src/places/nearest-place.ts:185` — The 3×3 one-degree cell search misses places within 50 km east/west above ~64° latitude. Fix: widen the longitude span by `ceil(1/cos(lat))`.
 - [ ] `src/immich/photo-selection.ts` (`allAlbumPhotos`) — A non-advancing `nextPage` loops forever. Fix: fail loud unless it advances.
 - [ ] `src/import/flac-samples.ts:70`, `browser/libav-flac.ts` — `channels`/`frameSize` not validated; a frame length of 0 never progresses. Fix: validate in the constructor and `startEncoding`.

@@ -1,5 +1,4 @@
 import { decodePicture } from "../../import/downscale";
-import type { ExifGps } from "../../import/exif-gps";
 import { readPictureExif } from "../../import/picture-exif";
 import { immichPictureSource, type ImmichPictureReaders } from "../../import/immich-picture-source";
 import { openClipInVideoElement, videoCaptureDate } from "../../import/browser/video-clip";
@@ -8,7 +7,8 @@ import type { ImmichPhoto } from "../../immich/immich-client";
 import { HttpImmichClient } from "../../immich/http-immich-client";
 import { pictureColours } from "../../library/picture-colours";
 import { createPlaceDataLoader } from "../../places/place-data-loader";
-import { nearestPlace, type Place } from "../../places/nearest-place";
+import { fetchPlaceText } from "../../places/fetch-place-text";
+import { createPlaceResolver } from "../../places/place-resolver";
 import { WorkerPictureChecker, startCheckWorker } from "../../culling/worker-picture-checker";
 import type { Toaster } from "../toast/toaster";
 import type { TranslatorState } from "../i18n/translator-state.svelte";
@@ -40,17 +40,8 @@ export function browserIntakePorts(
 ): Omit<PictureIntakePorts, "store"> {
   const { immichClient, immichReaders, newId, now, onError, log, toaster, translator } = deps;
   // A fresh, independently memoised loader per call, never a module-level singleton.
-  const placeData = createPlaceDataLoader(() =>
-    fetch(PLACE_DATA_URL).then((response) => response.text()),
-  );
-  const resolvePlace = async (gps: ExifGps): Promise<Place | null> => {
-    try {
-      return nearestPlace(await placeData.load(), gps.latitude, gps.longitude);
-    } catch (error) {
-      log(error);
-      return null;
-    }
-  };
+  const placeData = createPlaceDataLoader(() => fetchPlaceText(fetch, PLACE_DATA_URL));
+  const resolvePlace = createPlaceResolver(() => placeData.load(), log);
   return {
     decode: decodePicture,
     exif: readPictureExif,
