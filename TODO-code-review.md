@@ -35,10 +35,6 @@ Each fix starts with the failing test the item names or implies (WORKFLOW.md, Te
 
 - [ ] `src/library/indexeddb-store.ts:288-291`, `src/main.ts:121` — A `VersionError` (newer DB) and a `versionchange` close give a blank app or "unexpected error" toasts with no reload prompt; no `onblocked`. Fix: a "reload / newer version open" screen; reload on `versionchange`.
 
-### Import and Immich
-
-- [ ] `src/import/picture-import.ts:126` — `stop()` records pick ids with nothing in flight, never removed. Fix: add only when a file is in flight, or clear on drain.
-
 ### Music, composition and focus
 
 - [ ] `src/app/sample-music/sample-preview.ts:235`, `src/app/clip-editor/fine-peaks.ts:3`, `src/frame/round-position.ts:1` — Literal `/ 1000` and two local copies of the ms-per-second constant. Fix: import `MILLISECONDS_PER_SECOND`.
