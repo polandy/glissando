@@ -57,6 +57,13 @@ function toFlacSample(format: number): (value: number) => number {
   return (value) => value;
 }
 
+/** A zero or fractional count would make the queue's frame length never progress. */
+export function requirePositiveInteger(name: string, value: number): void {
+  if (!Number.isInteger(value) || value < 1) {
+    throw new Error(`${name} must be a positive whole number, got ${value}`);
+  }
+}
+
 /**
  * Interleaves decoded frames into the FLAC encoder's sample format and cuts them into the
  * encoder's frame size; only the last frame may be shorter.
@@ -68,6 +75,8 @@ export class FlacSampleQueue {
   #pending: number[] = [];
 
   constructor(depth: FlacDepth, channels: number, frameSize: number) {
+    requirePositiveInteger("channels", channels);
+    requirePositiveInteger("frameSize", frameSize);
     this.#channels = channels;
     this.#frameSize = frameSize;
     this.#depth = depth;
