@@ -17,6 +17,9 @@ const GRID_BOUNDARY_TOWN = "Grid Boundary Town\t40.001\t2.001";
 // with no other place close enough to interfere.
 const BOUNDARY_TOWN = "Boundary Town\t0.000\t50.000";
 
+// Proves the longitude span of the cell search widens with latitude.
+const HIGH_LATITUDE_PLACE = "High Latitude Place\t70.000\t0.900";
+
 const FIXTURE_TSV = [
   LISBON,
   SINTRA,
@@ -142,6 +145,14 @@ describe("nearestPlace", () => {
     const result = nearestPlace(index, 10.0, -179.95);
 
     expect(result?.name).toBe("Dateline Place");
+  });
+
+  it("finds a place two longitude cells away at 70° north, where a degree is only ~38 km wide", () => {
+    const index = parsePlaceList(HIGH_LATITUDE_PLACE);
+    // ~45.7 km east-west, inside PLACE_LOOKUP_MAX_KM, but longitude cells 0 and 2 apart.
+    const result = nearestPlace(index, 70.0, 2.1);
+
+    expect(result?.name).toBe("High Latitude Place");
   });
 
   it("finds a place near the pole without crashing or misbehaving", () => {
