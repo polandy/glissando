@@ -15,6 +15,7 @@ import {
   FOCUS,
   IMPORTS,
   LIBRARY_DATABASE_NAME,
+  MEDIA_KEYED_STORES,
   LOUDNESS,
   MUSIC,
   PICTURES,
@@ -101,30 +102,27 @@ export class IndexedDbLibraryStore implements LibraryStore {
   /** Reads the other records and deletes in one transaction, so a concurrent save cannot interleave. */
   deleteSlideshow(id: string): Promise<void> {
     let found = true;
-    const deleted = this.#update(
-      [SLIDESHOWS, PICTURES, MUSIC, VIDEOS, FOCUS, BEATS, LOUDNESS],
-      (transaction) => {
-        const slideshows = transaction.objectStore(SLIDESHOWS);
-        const all = slideshows.getAll();
-        all.onsuccess = () => {
-          const records = all.result as StoredSlideshow[];
-          const record = records.find((slideshow) => slideshow.id === id);
-          if (record === undefined) {
-            found = false;
-            return;
+    const deleted = this.#update([SLIDESHOWS, ...MEDIA_KEYED_STORES], (transaction) => {
+      const slideshows = transaction.objectStore(SLIDESHOWS);
+      const all = slideshows.getAll();
+      all.onsuccess = () => {
+        const records = all.result as StoredSlideshow[];
+        const record = records.find((slideshow) => slideshow.id === id);
+        if (record === undefined) {
+          found = false;
+          return;
+        }
+        slideshows.delete(id);
+        const remaining = records.filter((slideshow) => slideshow.id !== id);
+        for (const mediaId of mediaOnlyIn(record, remaining)) {
+          for (const name of MEDIA_KEYED_STORES) {
+            transaction.objectStore(name).delete(mediaId);
           }
-          slideshows.delete(id);
-          const remaining = records.filter((slideshow) => slideshow.id !== id);
-          for (const mediaId of mediaOnlyIn(record, remaining)) {
-            for (const name of [PICTURES, FOCUS, MUSIC, VIDEOS, BEATS, LOUDNESS]) {
-              transaction.objectStore(name).delete(mediaId);
-            }
-          }
-          // The last request is placed: commit before a reload can abort the deletion.
-          transaction.commit();
-        };
-      },
-    );
+        }
+        // The last request is placed: commit before a reload can abort the deletion.
+        transaction.commit();
+      };
+    });
     return deleted.then(() => {
       if (!found) throw new SlideshowNotFoundError(id);
     });
