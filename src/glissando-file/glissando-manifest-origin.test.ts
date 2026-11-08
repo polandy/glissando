@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { GLISSANDO_FORMAT_VERSION, ORIGIN_FROM_VERSION, manifestFor } from "./glissando-manifest";
+import { GLISSANDO_FORMAT_VERSION, manifestFor } from "./glissando-manifest";
 import { readManifest } from "./read-manifest";
 import type { StoredSlideshow } from "../library/stored-slideshow";
 
@@ -50,7 +50,6 @@ function withPicture(
 
 describe("a picture's origin in the .glissando file", () => {
   it("is written from format version 7, the version that carries it", () => {
-    expect(ORIGIN_FROM_VERSION).toBe(7);
     expect(manifest().slideshow.pictures[0]).toMatchObject({ immichAssetId: "asset-123" });
     expect(manifest().slideshow.pictures[1]).toMatchObject({ fileBytes: 4_200_000 });
     expect(manifest().slideshow.pictures[0]).not.toHaveProperty("fileBytes");

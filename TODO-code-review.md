@@ -33,7 +33,6 @@ Each fix starts with the failing test the item names or implies (WORKFLOW.md, Te
 
 ### Library and file format
 
-- [ ] `src/glissando-file/slideshow-fields-media.ts:43-47,82-86`, `slideshow-fields.ts:67-70`, `read-manifest.ts:121` — Version gates against versions 2–12 are dead code since `OLDEST_READABLE_FORMAT_VERSION` is 13. Fix: drop the gates and constants, list keys unconditionally.
 - [ ] `src/library/indexeddb-store.ts:288-291`, `src/main.ts:121` — A `VersionError` (newer DB) and a `versionchange` close give a blank app or "unexpected error" toasts with no reload prompt; no `onblocked`. Fix: a "reload / newer version open" screen; reload on `versionchange`.
 - [ ] `src/library/indexeddb-schema.ts:58-87` — Incremental v1→v8 upgrade chain despite the no-migration policy. Fix: on any `oldVersion > 0`, drop every store and create the current set.
 - [ ] `src/app/glissando-file/open-flow.ts:161-164` — When the signal is aborted, every error counts as the cancel; a real failure racing Cancel is lost. Fix: log unless it is the signal's reason.

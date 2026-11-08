@@ -3,7 +3,6 @@ import {
   GLISSANDO_FORMAT_VERSION,
   MANIFEST_ENTRY_NAME,
   OLDEST_READABLE_FORMAT_VERSION,
-  ORIGIN_FROM_VERSION,
   type GlissandoManifest,
   type ManifestMusic,
   type ManifestPicture,
@@ -141,7 +140,8 @@ function readPicture(value: unknown, path: string, version: number): PictureAsRe
     "file",
     "thumbnail",
     ...pictureKeys(version),
-    ...(version >= ORIGIN_FROM_VERSION ? ["immichAssetId", "fileBytes"] : []),
+    "immichAssetId",
+    "fileBytes",
     ...(version >= VIDEO_FROM_VERSION ? ["video"] : []),
   ]);
   const { thumbnail, immichAssetId, fileBytes, video } = picture;
