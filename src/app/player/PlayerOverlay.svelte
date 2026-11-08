@@ -24,7 +24,7 @@
     toggleFullscreen,
   } from "../../ui-kit/fullscreen";
   import { performPlayerAction, playerActionForKey } from "./player-keys";
-  import { slideBoundaries, slideIndexAt } from "./slide-boundaries";
+  import { slideBoundaries, slideIndexAt } from "../../player/slide-boundaries";
   import { slideCaptionText, slideCaptureDate, slideCardShows } from "./slide-heading";
   import "./player-overlay.css";
 

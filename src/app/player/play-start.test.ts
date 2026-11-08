@@ -4,7 +4,7 @@ import { NO_SONG_BEATS } from "../../compose/playlist";
 import { NO_SONG_LOUDNESS } from "../../compose/song-loudness";
 import type { StoredPicture, StoredSlideshow } from "../../library/stored-slideshow";
 import { FROM_THE_START, playStart } from "./play-start";
-import { slideBoundaries } from "./slide-boundaries";
+import { slideBoundaries } from "../../player/slide-boundaries";
 
 const LANDSCAPE = { width: 400, height: 300 };
 const PORTRAIT = { width: 300, height: 400 };

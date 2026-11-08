@@ -35,7 +35,6 @@ Each fix starts with the failing test the item names or implies (WORKFLOW.md, Te
 
 ### Exports, share and PWA
 
-- [ ] `src/share-page/qr-svg.ts:1`, `shared-show.ts:1` — The standalone share page imports from `src/app/` (qr-code, slide-boundaries), risking app code in `share.html`. Fix: move both into a shared non-app module.
 - [ ] `src/app/export-errors/describe-export-failure.ts:36` vs `export-video.ts:180-185` — Two "storage full" detectors; the sheet's does not walk `cause`, so a wrapped quota error shows as "unknown". Fix: one exported cause-walking `isQuotaExceeded`.
 - [ ] `src/app/html-export/html-export-session.ts:198` — Once the sheet is closed, every error is dropped unlogged. Fix: log any error that is not the signal's reason.
 - [ ] `src/app/video-export/deliver-file.ts:3` and siblings — `"AbortError"`/`"QuotaExceededError"` names defined in four places; `HtmlExportSession.deliver` re-implements `deliverFile`. Fix: one DOMException-names module; reuse `deliverFile`.

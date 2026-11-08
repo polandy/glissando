@@ -1,4 +1,4 @@
-import { slideBoundaries } from "../app/player/slide-boundaries";
+import { slideBoundaries } from "../player/slide-boundaries";
 import {
   composeSlideshow,
   slideOfPicture,

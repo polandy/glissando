@@ -1,4 +1,4 @@
-import { qrCodeOf } from "../app/share-link/qr-code";
+import { qrCodeOf } from "../qr-code/qr-code";
 
 const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
 

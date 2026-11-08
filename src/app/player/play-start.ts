@@ -1,5 +1,5 @@
 import type { Slideshow } from "../../player/slideshow";
-import { slideBoundaries } from "./slide-boundaries";
+import { slideBoundaries } from "../../player/slide-boundaries";
 import { slideOfPicture } from "./prepare/slide-pictures";
 
 /** Where a show opens: the slide, and its start on the time line in seconds. */
