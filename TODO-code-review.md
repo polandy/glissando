@@ -34,7 +34,6 @@ Each fix starts with the failing test the item names or implies (WORKFLOW.md, Te
 ### Library and file format
 
 - [ ] `src/library/indexeddb-store.ts:288-291`, `src/main.ts:121` — A `VersionError` (newer DB) and a `versionchange` close give a blank app or "unexpected error" toasts with no reload prompt; no `onblocked`. Fix: a "reload / newer version open" screen; reload on `versionchange`.
-- [ ] `src/app/glissando-file/open-flow.ts:161-164` — When the signal is aborted, every error counts as the cancel; a real failure racing Cancel is lost. Fix: log unless it is the signal's reason.
 - [ ] `src/glissando-file/write-glissando-file.ts:126-136` — A `releaseClaim` rejection after a successful save shows an error for an open that worked. Fix: release after the try, or log without failing.
 - [ ] `src/glissando-file/browser/media-decoders.ts:22` + `check-media-file.ts:258` — EXIF orientation 5–8 swaps width/height in the size check, so a hand-swapped picture (ADR-0038) is refused as damaged. Fix: `imageOrientation: "none"` for the check.
 

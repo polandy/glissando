@@ -178,7 +178,7 @@ describe("OpenFlow", () => {
   });
 
   it("cancelled, writes nothing and says so", async () => {
-    const { store, flow, toasts, opened } = await setUp();
+    const { store, flow, toasts, opened, logged } = await setUp();
     await store.saveSlideshow(existing);
     flow.subscribe((state) => {
       if (state.opening?.line.kind === "picture" && state.opening.line.number === 2) {
@@ -189,9 +189,26 @@ describe("OpenFlow", () => {
     await flow.open(await glissando(), "library");
 
     expect(toasts).toEqual([{ text: "cancelled", tone: "info" }]);
+    expect(logged).toEqual([]);
     expect((await store.listSlideshows()).map((show) => show.id)).toEqual(["other"]);
     expect(opened).toEqual([]);
     expect(flow.state).toEqual({ opening: null, notice: null });
+  });
+
+  it("cancelled, logs a real failure that raced the cancel", async () => {
+    const broken = new Error("disk on fire");
+    const { flow, toasts, logged, errors } = await setUp({
+      freeBytes: () => {
+        flow.cancel();
+        return Promise.reject(broken);
+      },
+    });
+
+    await flow.open(await glissando(), "library");
+
+    expect(toasts).toEqual([{ text: "cancelled", tone: "info" }]);
+    expect(logged).toEqual([broken]);
+    expect(errors).toEqual([]);
   });
 
   it("reports any other failure as unexpected", async () => {

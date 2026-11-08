@@ -146,7 +146,7 @@ export class OpenFlow {
       this.#ports.afterCreate();
     } catch (error) {
       await this.#failed(error, {
-        cancelled: cancel.signal.aborted,
+        cancel: cancel.signal,
         origin,
         fileName,
         neededBytes,
@@ -156,9 +156,12 @@ export class OpenFlow {
 
   async #failed(
     error: unknown,
-    context: { cancelled: boolean; origin: OpenOrigin; fileName: string; neededBytes: number },
+    context: { cancel: AbortSignal; origin: OpenOrigin; fileName: string; neededBytes: number },
   ): Promise<void> {
-    if (context.cancelled) {
+    if (context.cancel.aborted) {
+      if (error !== context.cancel.reason) {
+        this.#ports.log(error);
+      }
       this.#end({});
       this.#ports.toaster.show({ text: this.#ports.cancelledText(), tone: "info" });
       return;
