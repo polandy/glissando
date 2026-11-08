@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { THUMBNAIL_BOUND } from "../../import/downscale";
 import { MAX_MUSIC_DURATION_MS } from "../../import/music-limits";
+import { turnedByExif } from "../../import/testing/turned-by-exif";
 import { silentWav } from "../../import/testing/silent-wav";
 import { browserMediaDecoders } from "./media-decoders";
 
@@ -69,6 +70,15 @@ describe("browserMediaDecoders", () => {
       return;
     }
     expect(await decoders.picture(blob)).toEqual({ width: 5, height: 4 });
+  });
+
+  it("decodes a picture an EXIF orientation turns to its turned size, as an <img> shows it", async () => {
+    const blob = await canvasBlob("image/jpeg", 32, 16);
+    if (blob === null) {
+      throw new Error("this browser could not encode image/jpeg");
+    }
+
+    expect(await decoders.picture(await turnedByExif(blob))).toEqual({ width: 16, height: 32 });
   });
 
   it("makes a JPEG thumbnail within the thumbnail bound, keeping the picture's aspect", async () => {

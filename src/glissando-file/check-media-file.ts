@@ -56,10 +56,17 @@ async function checkPicture(
   if (decoded === null) {
     return `"${path}" does not decode as a picture`;
   }
-  if (decoded.width !== header.width || decoded.height !== header.height) {
+  if (!isSameSizeOrTurned(decoded, header)) {
     return `"${path}" decodes to ${decoded.width}×${decoded.height}, not the ${header.width}×${header.height} its header declares`;
   }
   return null;
+}
+
+/** A browser decodes a picture upright, so an EXIF orientation of 5–8 swaps its width and height. */
+function isSameSizeOrTurned(decoded: Size, header: Size): boolean {
+  const same = decoded.width === header.width && decoded.height === header.height;
+  const turned = decoded.width === header.height && decoded.height === header.width;
+  return same || turned;
 }
 
 function boundError(path: string, size: Size, bound: Bound): string {
