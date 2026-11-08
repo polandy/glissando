@@ -83,7 +83,7 @@ function sum(durationsMs: readonly number[]): number {
 /**
  * The beat nearest `targetMs` from `earliestMs` to `latestMs`, the earlier one on a tie — but a
  * phrase start (every `BEATS_PER_PHRASE`th beat of the list) when the nearest one of those is at
- * most half a beat further from the target.
+ * most half a beat further from the target — a beat being the interval after the nearest beat.
  */
 function nearestBeatMs(
   beatsMs: readonly number[],
@@ -92,11 +92,13 @@ function nearestBeatMs(
   latestMs: number,
 ): number | undefined {
   let nearest: number | undefined;
+  let nearestIndex = -1;
   let nearestPhrase: number | undefined;
   beatsMs.forEach((beatMs, index) => {
     if (beatMs < earliestMs || beatMs > latestMs) return;
     if (nearest === undefined || distance(beatMs, targetMs) < distance(nearest, targetMs)) {
       nearest = beatMs;
+      nearestIndex = index;
     }
     const startsPhrase = index % BEATS_PER_PHRASE === 0;
     if (
@@ -108,7 +110,10 @@ function nearestBeatMs(
     }
   });
   if (nearest === undefined || nearestPhrase === undefined) return nearest;
-  const oneBeatMs = ((beatsMs.at(-1) as number) - (beatsMs[0] as number)) / (beatsMs.length - 1);
+  const nextMs = beatsMs[nearestIndex + 1];
+  const previousMs = beatsMs[nearestIndex - 1];
+  const oneBeatMs =
+    nextMs !== undefined ? nextMs - nearest : previousMs !== undefined ? nearest - previousMs : 0;
   return distance(nearestPhrase, targetMs) <= distance(nearest, targetMs) + oneBeatMs / 2
     ? nearestPhrase
     : nearest;

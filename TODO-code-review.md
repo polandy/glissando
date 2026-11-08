@@ -42,7 +42,6 @@ Each fix starts with the failing test the item names or implies (WORKFLOW.md, Te
 
 ### Music, composition and focus
 
-- [ ] `src/compose/snap-to-beats.ts:111` — `oneBeatMs` averages the whole playlist incl. gaps and mixed tempi. Fix: the local beat interval around the cut.
 - [ ] `src/compose/playlist.ts:94-117` — `repeatedPlaylist` grows quadratically; a very short song under a long show stalls compose. Fix: place once and extend by the period.
 - [ ] `src/app/beats/playlist-beats.ts:40-44`, `src/app/loudness/playlist-loudness.ts` — The first replayed status is discarded because the map entry is set after subscribing. Fix: set the entry first.
 - [ ] `src/focus/focus-worker.ts:16` — A `postMessage` throw is an unhandled rejection and the request never settles. Fix: catch and post a "failed" reply with the id.
