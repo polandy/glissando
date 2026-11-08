@@ -1,5 +1,6 @@
 import type { CardItemSlice } from "../card-item-layout";
 import type { Size } from "../ken-burns";
+import { linkProgram } from "./link-program";
 import { WebGlSetupError } from "./webgl-setup-error";
 
 /**
@@ -142,28 +143,14 @@ function fillQuad(out: Float32Array, item: CardItemDraw, viewport: Size): void {
 }
 
 function compile(gl: WebGL2RenderingContext): WebGLProgram {
-  const program = gl.createProgram();
-  for (const [type, source] of [
-    [gl.VERTEX_SHADER, VERTEX_SHADER],
-    [gl.FRAGMENT_SHADER, FRAGMENT_SHADER],
-  ] as const) {
-    const shader = gl.createShader(type);
-    if (shader === null) {
-      throw new CardItemProgramCompileError("createShader returned null");
-    }
-    gl.shaderSource(shader, source);
-    gl.compileShader(shader);
-    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-      throw new CardItemProgramCompileError(gl.getShaderInfoLog(shader) ?? "no log");
-    }
-    gl.attachShader(program, shader);
-    gl.deleteShader(shader);
-  }
-  gl.bindAttribLocation(program, POSITION_ATTRIBUTE, "position");
-  gl.bindAttribLocation(program, UV_ATTRIBUTE, "uv");
-  gl.linkProgram(program);
-  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-    throw new CardItemProgramCompileError(gl.getProgramInfoLog(program) ?? "no log");
-  }
-  return program;
+  return linkProgram(
+    gl,
+    VERTEX_SHADER,
+    FRAGMENT_SHADER,
+    new Map([
+      ["position", POSITION_ATTRIBUTE],
+      ["uv", UV_ATTRIBUTE],
+    ]),
+    (log) => new CardItemProgramCompileError(log),
+  );
 }
