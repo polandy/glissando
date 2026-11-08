@@ -196,9 +196,11 @@ export class HtmlExportSession {
       });
       file = await destination.file();
     } catch (error: unknown) {
-      // Only closing the sheet cancels, and a closed sheet shows nothing.
+      // Closing the sheet cancels the run and shows nothing; any other error is still logged.
       if (!this.#closed.signal.aborted) {
         this.#fail(error);
+      } else if (error !== this.#closed.signal.reason) {
+        this.#ports.log(error);
       }
       return;
     }
