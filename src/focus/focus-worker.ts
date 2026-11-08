@@ -7,13 +7,18 @@ import type { FocusReply, FocusRequest } from "./focus-worker-protocol";
 import type { RgbaImage } from "./object-focus";
 import { parseOnnx } from "./onnx/onnx-model";
 import { unpackCascade } from "./pico";
+import { messageOf, postReply } from "./post-reply";
 import objectNetworkUrl from "./yolox-nano.bin?url";
 
 // Loaded once, when the worker starts, and shared by every request.
 const models = loadModels();
 
 self.addEventListener("message", (event: MessageEvent<FocusRequest>) => {
-  void answer(event.data).then((reply) => self.postMessage(reply));
+  void postReply(
+    event.data,
+    () => answer(event.data),
+    (reply) => self.postMessage(reply),
+  );
 });
 
 async function answer({ id, thumbnail }: FocusRequest): Promise<FocusReply> {
@@ -28,10 +33,6 @@ async function answer({ id, thumbnail }: FocusRequest): Promise<FocusReply> {
   } catch (error) {
     return { id, kind: "failed", message: messageOf(error) };
   }
-}
-
-function messageOf(error: unknown): string {
-  return error instanceof Error ? error.message : String(error);
 }
 
 async function loadModels(): Promise<FocusModels> {

@@ -41,7 +41,6 @@ Each fix starts with the failing test the item names or implies (WORKFLOW.md, Te
 
 ### Music, composition and focus
 
-- [ ] `src/focus/focus-worker.ts:16` — A `postMessage` throw is an unhandled rejection and the request never settles. Fix: catch and post a "failed" reply with the id.
 - [ ] `src/app/sample-music/sample-preview.ts:235`, `src/app/clip-editor/fine-peaks.ts:3`, `src/frame/round-position.ts:1` — Literal `/ 1000` and two local copies of the ms-per-second constant. Fix: import `MILLISECONDS_PER_SECOND`.
 - [ ] `src/app/server-focus-pass.ts:248-250` — The allow check is repeated from `followServerFocusStart`. Fix: one place.
 
