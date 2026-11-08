@@ -63,10 +63,7 @@ export function startServerFocusPass(options: ServerFocusPassOptions): ServerFoc
     failsPictureOn: (error) => error instanceof UnreadablePictureError,
   });
 
-  const startIfAllowed = (): void => {
-    if (navigator.route.screen !== "frame") serverFocusPass.start();
-  };
-  followServerFocusStart({
+  const startIfAllowed = followServerFocusStart({
     availability: serverLibrary.availability,
     navigator,
     start: () => serverFocusPass.start(),

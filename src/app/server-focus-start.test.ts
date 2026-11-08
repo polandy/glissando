@@ -15,7 +15,7 @@ function harness(initial: { state: ServerLibraryState; route: Route }) {
   const stateListeners = new Set<(s: ServerLibraryState) => void>();
   const routeListeners = new Set<(r: Route) => void>();
   let starts = 0;
-  followServerFocusStart({
+  const startIfAllowed = followServerFocusStart({
     availability: {
       get state() {
         return state;
@@ -40,6 +40,7 @@ function harness(initial: { state: ServerLibraryState; route: Route }) {
     },
   });
   return {
+    startIfAllowed,
     starts: () => starts,
     setState(next: ServerLibraryState) {
       state = next;
@@ -89,5 +90,17 @@ describe("followServerFocusStart", () => {
     const h = harness({ state: ON, route: START });
     h.open({ screen: "settings" });
     expect(h.starts()).toBe(1);
+  });
+
+  it("hands back the same check for a start of the caller's own", () => {
+    const h = harness({ state: OFFLINE, route: START });
+    h.startIfAllowed();
+    expect(h.starts()).toBe(0);
+    h.setState(ON);
+    h.startIfAllowed();
+    expect(h.starts()).toBe(2);
+    h.open(FRAME);
+    h.startIfAllowed();
+    expect(h.starts()).toBe(2);
   });
 });
