@@ -187,6 +187,21 @@ describe("HtmlExportSession — cancel", () => {
     expect(ports.logged).toEqual([]);
   });
 
+  it("logs an error that arrives after the sheet closed and is not the cancellation", async () => {
+    const ports = new FakeHtmlExportPorts();
+    const sheet = await opened(ports);
+    const { ended, run } = await running(ports, sheet);
+    sheet.close();
+    const error = new Error("disk full");
+
+    await ports.failRun(error);
+    await ended;
+
+    expect(run.signal.aborted).toBe(true);
+    expect(sheet.state.kind).toBe("running");
+    expect(ports.logged).toEqual([error]);
+  });
+
   it("never starts an export once the sheet closed while the picker was open", async () => {
     const ports = new FakeHtmlExportPorts();
     ports.pickerAvailable = true;

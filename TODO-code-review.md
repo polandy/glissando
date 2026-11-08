@@ -35,7 +35,6 @@ Each fix starts with the failing test the item names or implies (WORKFLOW.md, Te
 
 ### Exports, share and PWA
 
-- [ ] `src/app/html-export/html-export-session.ts:198` — Once the sheet is closed, every error is dropped unlogged. Fix: log any error that is not the signal's reason.
 - [ ] `src/app/video-export/deliver-file.ts:3` and siblings — `"AbortError"`/`"QuotaExceededError"` names defined in four places; `HtmlExportSession.deliver` re-implements `deliverFile`. Fix: one DOMException-names module; reuse `deliverFile`.
 - [ ] `src/app/html-export/browser-html-export-device.ts:47` — "Open" runs the exported page as a `blob:` URL on the app's origin; one future escaping slip is app-origin XSS. Fix: sandboxed iframe, or download/share only.
 - [ ] `src/app/video-export/video-export-session.ts` — Open/probe, target choice, run, outcome mapping and delivery in one module. (#177 trims it to 263 lines.) Fix: move `#finish`'s outcome→state mapping into a pure function beside `export-sheet-state.ts`.
