@@ -87,9 +87,9 @@ export function resolvePlaylist(
  * The playlist repeated from its first song, joined like any two songs, until it reaches
  * `slideshowMs` (`StoredSlideshow.repeatMusic`, ADR-0047); the playlist once through otherwise, or
  * without songs. Grows by whole songs, so it may run a little past `slideshowMs` — `resolvePlaylist`
- * cuts what plays beyond it. Each repeat is checked to end later than the one before; a playlist
- * that never advances (every song's excerpt plays for 0 ms) throws `PlaylistNeverFillsSlideshowError`
- * rather than loop forever.
+ * cuts what plays beyond it. From the second repeat on every one ends a fixed period after the one
+ * before, so the count follows from placing three; a playlist that never advances (every song's
+ * excerpt plays for 0 ms) throws `PlaylistNeverFillsSlideshowError` rather than loop forever.
  */
 export function repeatedPlaylist(playlist: Playlist, slideshowMs: number): Playlist {
   const { songs, betweenSongs } = playlist;
@@ -97,23 +97,25 @@ export function repeatedPlaylist(playlist: Playlist, slideshowMs: number): Playl
   if (playlist.repeatMusic !== true || songs.length === 0) {
     return onceThrough;
   }
-  let repeated = songs;
-  let reachedMs = -1;
-  for (;;) {
+  const endAfterMs = (repeats: number): number => {
+    const all = Array.from({ length: repeats }, () => songs).flat();
     // placeSongs never returns an empty list for a non-empty songs array.
-    const last = placeSongs({ ...onceThrough, songs: repeated }).at(-1) as PlacedSong;
-    const endMs = last.atMs + musicExcerptMs(last.song);
-    if (endMs >= slideshowMs) {
-      return { ...onceThrough, songs: repeated };
-    }
-    if (endMs <= reachedMs) {
+    const last = placeSongs({ ...onceThrough, songs: all }).at(-1) as PlacedSong;
+    return last.atMs + musicExcerptMs(last.song);
+  };
+  const firstEndMs = endAfterMs(1);
+  const secondEndMs = endAfterMs(2);
+  let repeats = 1;
+  if (firstEndMs < slideshowMs) {
+    const periodMs = endAfterMs(3) - secondEndMs;
+    if (periodMs <= 0) {
       throw new PlaylistNeverFillsSlideshowError(
         `playlist: repeating its ${songs.length} song(s) never reaches ${slideshowMs} ms of music`,
       );
     }
-    reachedMs = endMs;
-    repeated = [...repeated, ...songs];
+    repeats = 2 + Math.max(0, Math.ceil((slideshowMs - secondEndMs) / periodMs));
   }
+  return { ...onceThrough, songs: Array.from({ length: repeats }, () => songs).flat() };
 }
 
 /**
