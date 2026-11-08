@@ -28,7 +28,10 @@ closes the whole flow. Its states follow the video sheet's (VIDEO_EXPORT.md):
 - "Öffnen" opens the finished file through a `blob:` URL in a new tab. A picked file is read
   back from disk (`FileSystemFileHandle.getFile()`), a page built in memory is its Blob, so the
   page is never held twice. The URL is revoked when the sheet closes; a tab that has loaded the
-  page keeps it.
+  page keeps it. A `blob:` URL has the app's origin, so the tab never loads it bare: it holds
+  only a full-size `<iframe sandbox="allow-scripts">` with the page, which runs in an opaque
+  origin (as from `file://`) and cannot reach the app's storage or DOM; full screen and autoplay
+  are delegated to it.
 - "Abbrechen" stops before the next picture (an `AbortSignal`), and a picked file
   is left as it was: its writer is aborted, and File System Access commits only on `close()`.
   Esc and ✕ cancel while running; a tap on the scrim closes the sheet only in choose and failed.
