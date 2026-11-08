@@ -14,8 +14,8 @@ const EARTH_RADIUS_KM = 6371;
 /** Places are bucketed into 1°-latitude x 1°-longitude cells; see {@link nearestPlace}. */
 const GRID_CELL_SIZE_DEGREES = 1;
 
-/** The 3x3 block of cells a lookup checks: the query's own cell and its 8 neighbours. */
-const NEIGHBOUR_CELL_OFFSETS = [-1, 0, 1] as const;
+/** Latitude cells a lookup checks either side of the query's own. */
+const LATITUDE_CELL_SPAN = 1;
 
 const FULL_CIRCLE_DEGREES = 360;
 const HALF_CIRCLE_DEGREES = 180;
@@ -33,6 +33,17 @@ const PLACE_LINE_FIELD_COUNT = 3;
  */
 export interface PlaceIndex {
   readonly placesByCellKey: ReadonlyMap<string, readonly Place[]>;
+}
+
+/**
+ * Longitude cells to check either side of the query's own. A 1° cell is only ~cos(latitude) as
+ * wide as it is tall, so the span grows as 1/cos at the poleward edge of the checked rows, capped
+ * at half the circle (every cell).
+ */
+function longitudeCellSpan(latitude: number): number {
+  const polewardLatitude = Math.min(Math.abs(latitude) + LATITUDE_CELL_SPAN, 90);
+  const span = Math.ceil(GRID_CELL_SIZE_DEGREES / Math.cos(toRadians(polewardLatitude)));
+  return Math.min(span, HALF_CIRCLE_DEGREES);
 }
 
 function toRadians(degrees: number): number {
@@ -139,13 +150,11 @@ export function parsePlaceList(tsvText: string): PlaceIndex {
 /** The nearest place to (latitude, longitude) by great-circle distance, within
  *  PLACE_LOOKUP_MAX_KM; null beyond that (or for an empty index).
  *
- *  Looks at the query's cell and its 8 neighbours (a 3x3 block), not just its own cell, so a
- *  place just across a cell boundary is not missed. A 1° cell is roughly 111 km tall and up to
- *  111 km wide at the equator (narrower nearer the poles), so a 3x3 block spans well over the
- *  50 km radius in every direction. This finds the nearest place *within the 3x3 block*: a
- *  correct and sufficient approximation of "nearest within 50 km" for this bundled, sparse
- *  (>=15k population) dataset, not a literal nearest-neighbour-on-the-sphere guarantee in
- *  extreme edge cases. */
+ *  Looks at the query's cell and its neighbours, not just its own cell, so a place just across
+ *  a cell boundary is not missed: one cell either side in latitude (a cell is ~111 km tall) and,
+ *  because a cell narrows towards the poles, `longitudeCellSpan` cells either side in longitude
+ *  (one at the equator). This finds the nearest place *within that block*, which covers the
+ *  50 km radius in every direction. */
 export function nearestPlace(index: PlaceIndex, latitude: number, longitude: number): Place | null {
   const baseLatCell = latitudeCell(latitude);
   const baseLonCell = longitudeCell(longitude);
@@ -153,8 +162,9 @@ export function nearestPlace(index: PlaceIndex, latitude: number, longitude: num
   let nearest: Place | null = null;
   let nearestDistanceKm = Infinity;
 
-  for (const latOffset of NEIGHBOUR_CELL_OFFSETS) {
-    for (const lonOffset of NEIGHBOUR_CELL_OFFSETS) {
+  const lonSpan = longitudeCellSpan(latitude);
+  for (let latOffset = -LATITUDE_CELL_SPAN; latOffset <= LATITUDE_CELL_SPAN; latOffset++) {
+    for (let lonOffset = -lonSpan; lonOffset <= lonSpan; lonOffset++) {
       // Latitude cells beyond the poles (e.g. 90, -91) simply have no entry — no wrap, no crash.
       const key = cellKey(baseLatCell + latOffset, normalizeLongitudeCell(baseLonCell + lonOffset));
       const placesInCell = index.placesByCellKey.get(key);
