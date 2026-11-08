@@ -1,5 +1,5 @@
 import type { PlaybackQuality } from "../../settings/playback-quality";
-import type { SlideBoundaries } from "../slide-boundaries";
+import type { SlideBoundaries } from "../../../player/slide-boundaries";
 import { planPreload } from "./preload-plan";
 import { PreparedPictures, type PrepareRendition } from "./prepared-pictures";
 

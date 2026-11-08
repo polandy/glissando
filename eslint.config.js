@@ -41,6 +41,20 @@ export default tseslint.config(
     },
   },
   {
+    // share.html is built without the app (RECIPIENTS_PAGE.md); its code must not pull app modules in.
+    files: ["src/share-page/**/*.ts"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            { group: ["**/app/**"], message: "The share page must not import from src/app/." },
+          ],
+        },
+      ],
+    },
+  },
+  {
     // The UX screenshot tour is a Node script whose page.evaluate callbacks run in the browser;
     // no-undef only knows a fixed list, so both sides' globals are named here.
     files: ["scripts/ux-tour/*.mjs"],

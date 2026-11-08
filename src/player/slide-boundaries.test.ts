@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { Slide } from "../../player";
+import type { Slide } from "./slideshow";
 import {
   nextSlideStart,
   previousSlideStart,

@@ -14,7 +14,7 @@
   import { PrepareFlow, type PrepareView } from "../player/prepare/prepare-flow";
   import type { PlaybackQuality } from "../settings/playback-quality";
   import { FROM_THE_START, playStart } from "../player/play-start";
-  import { slideBoundaries } from "../player/slide-boundaries";
+  import { slideBoundaries } from "../../player/slide-boundaries";
   import { picturePassedBySlide, slideOfPicture } from "../player/prepare/slide-pictures";
   import { composePlayerSlideshow, loadPlayerData, type PlayerData } from "./player-layer-data";
   import {

@@ -1,4 +1,8 @@
-import { nextSlideStart, previousSlideStart, type SlideBoundaries } from "./slide-boundaries";
+import {
+  nextSlideStart,
+  previousSlideStart,
+  type SlideBoundaries,
+} from "../../player/slide-boundaries";
 
 export type PlayerAction = "toggle-play" | "previous" | "next" | "close" | "toggle-fullscreen";
 

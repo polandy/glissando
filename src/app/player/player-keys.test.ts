@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { performPlayerAction, playerActionForKey, type PlayerActionContext } from "./player-keys";
-import type { SlideBoundaries } from "./slide-boundaries";
+import type { SlideBoundaries } from "../../player/slide-boundaries";
 
 const plain = { altKey: false, ctrlKey: false, metaKey: false };
 

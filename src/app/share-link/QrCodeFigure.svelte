@@ -1,6 +1,6 @@
 <script lang="ts">
   import { getTranslator } from "../i18n/context";
-  import { qrCodeOf } from "./qr-code";
+  import { qrCodeOf } from "../../qr-code/qr-code";
 
   /** The link's QR code beside how to use it. */
   let { url }: { url: string } = $props();
