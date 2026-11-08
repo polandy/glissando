@@ -63,22 +63,6 @@ export const GLISSANDO_FORMAT_ID = "glissando";
  */
 export const GLISSANDO_FORMAT_VERSION = 21;
 export const OLDEST_READABLE_FORMAT_VERSION = 13;
-/** The first version that carries a picture's chosen motion. */
-export const OWN_KEN_BURNS_FROM_VERSION = 2;
-/** The first version that carries a picture's caption. */
-export const CAPTION_FROM_VERSION = 3;
-/** The first version that carries a picture's chosen duration and transition. */
-export const OWN_TIMING_FROM_VERSION = 4;
-/** The first version that carries the music's excerpt and fades. */
-export const MUSIC_TRIM_FROM_VERSION = 5;
-/** The first version that carries the slideshow's default transition. */
-export const DEFAULT_TRANSITION_FROM_VERSION = 6;
-/** The first version that carries a picture's origin, `immichAssetId` or `fileBytes`. */
-export const ORIGIN_FROM_VERSION = 7;
-/** The first version that carries the music's picture changes. */
-export const PICTURE_CHANGES_FROM_VERSION = 8;
-/** The first version that carries the slideshow's picture length. */
-export const PICTURE_LENGTH_FROM_VERSION = 9;
 /** The first version that carries a song's own volume. */
 export const MUSIC_VOLUME_FROM_VERSION = 15;
 /** The first version that carries a song's sample-track id. */

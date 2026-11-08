@@ -1,9 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  GLISSANDO_FORMAT_VERSION,
-  PICTURE_CHANGES_FROM_VERSION,
-  manifestFor,
-} from "./glissando-manifest";
+import { GLISSANDO_FORMAT_VERSION, manifestFor } from "./glissando-manifest";
 import { readManifest } from "./read-manifest";
 import type { StoredMusic, StoredSlideshow } from "../library/stored-slideshow";
 
@@ -53,7 +49,6 @@ function withPictureChanges(
 
 describe("the music's picture changes in the .glissando file", () => {
   it("are written from format version 8, the version that carries them", () => {
-    expect(PICTURE_CHANGES_FROM_VERSION).toBe(8);
     expect(evenManifest().formatVersion).toBeGreaterThanOrEqual(8);
     expect(evenManifest().slideshow.songs).toMatchObject([{ pictureChanges: "even" }]);
   });

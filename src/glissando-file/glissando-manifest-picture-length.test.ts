@@ -1,9 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  GLISSANDO_FORMAT_VERSION,
-  PICTURE_LENGTH_FROM_VERSION,
-  manifestFor,
-} from "./glissando-manifest";
+import { GLISSANDO_FORMAT_VERSION, manifestFor } from "./glissando-manifest";
 import { readManifest } from "./read-manifest";
 import { OWN_SECONDS_PICTURE_LENGTH } from "../library/picture-length";
 import type { StoredSlideshow } from "../library/stored-slideshow";
@@ -45,7 +41,6 @@ function withPictureLength(
 
 describe("the slideshow's picture length in the .glissando file", () => {
   it("is written from format version 9, the version that carries it", () => {
-    expect(PICTURE_LENGTH_FROM_VERSION).toBe(9);
     expect(ownSecondsManifest().formatVersion).toBeGreaterThanOrEqual(9);
     expect(ownSecondsManifest().slideshow).toMatchObject({ pictureLength: "seconds" });
   });
