@@ -83,7 +83,7 @@ function sum(durationsMs: readonly number[]): number {
 /**
  * The beat nearest `targetMs` from `earliestMs` to `latestMs`, the earlier one on a tie — but a
  * phrase start (every `BEATS_PER_PHRASE`th beat of the list) when the nearest one of those is at
- * most one beat further from the target.
+ * most half a beat further from the target.
  */
 function nearestBeatMs(
   beatsMs: readonly number[],
