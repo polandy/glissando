@@ -31,7 +31,11 @@ void main() {
 
 const POSITION_ATTRIBUTE = 0;
 const UV_ATTRIBUTE = 1;
-const FLOATS_PER_VERTEX = 4;
+const COORDINATES_PER_ATTRIBUTE = 2;
+const FLOATS_PER_VERTEX = 2 * COORDINATES_PER_ATTRIBUTE;
+const BYTES_PER_FLOAT = 4;
+const VERTEX_STRIDE_BYTES = FLOATS_PER_VERTEX * BYTES_PER_FLOAT;
+const UV_OFFSET_BYTES = COORDINATES_PER_ATTRIBUTE * BYTES_PER_FLOAT;
 const VERTEX_COUNT = 4;
 const QUAD_FLOATS = FLOATS_PER_VERTEX * VERTEX_COUNT;
 
@@ -77,9 +81,23 @@ export class CardItemProgram {
     gl.useProgram(this.#program);
     gl.bindBuffer(gl.ARRAY_BUFFER, this.#buffer);
     gl.enableVertexAttribArray(POSITION_ATTRIBUTE);
-    gl.vertexAttribPointer(POSITION_ATTRIBUTE, 2, gl.FLOAT, false, FLOATS_PER_VERTEX * 4, 0);
+    gl.vertexAttribPointer(
+      POSITION_ATTRIBUTE,
+      COORDINATES_PER_ATTRIBUTE,
+      gl.FLOAT,
+      false,
+      VERTEX_STRIDE_BYTES,
+      0,
+    );
     gl.enableVertexAttribArray(UV_ATTRIBUTE);
-    gl.vertexAttribPointer(UV_ATTRIBUTE, 2, gl.FLOAT, false, FLOATS_PER_VERTEX * 4, 2 * 4);
+    gl.vertexAttribPointer(
+      UV_ATTRIBUTE,
+      COORDINATES_PER_ATTRIBUTE,
+      gl.FLOAT,
+      false,
+      VERTEX_STRIDE_BYTES,
+      UV_OFFSET_BYTES,
+    );
   }
 
   /** One item's quad: its slice drifted and scaled about its own centre, sampling that slice of

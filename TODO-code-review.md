@@ -31,7 +31,6 @@ Each fix starts with the failing test the item names or implies (WORKFLOW.md, Te
 
 ### Player
 
-- [ ] `src/player/webgl/card-item-program.ts:78,80`, `webgl/card-pass.ts:178` vs `webgl-renderer.ts:30` — Literal `2`/`4` in `vertexAttribPointer`; two texture-unit constants silently equal across modules. Fix: name the vertex constants; one texture-unit map module.
 - [ ] `src/player/browser/music-output.ts:267-272` — `createOrNull` swallows the error without logging. Fix: warn before returning null.
 - [ ] `src/player/browser-player.ts:131` — `matchMedia` called on every drawn frame. Fix: one `MediaQueryList`, read `.matches`.
 - [ ] `src/player/parse-primitives.ts:359-364` — `readPositiveInteger` has no upper bound; `durationMs: 1e308` makes the timeline `Infinity`. Fix: a named maximum.

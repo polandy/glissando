@@ -2,19 +2,13 @@ import type { BitmapPicture } from "../browser/bitmap-loader";
 import type { Size } from "../ken-burns";
 import type { RenderFrame, SlideLayer } from "../ports";
 import { bindCaption } from "./bind-overlays";
-import { bindLayer, fromUniforms, toUniforms, type LayerTextureUnits } from "./bind-layer";
+import { bindLayer, fromUniforms, toUniforms } from "./bind-layer";
 import { bindLook } from "./bind-look";
 import type { CaptionTextures } from "./caption-textures";
 import type { CardRenderTarget } from "./card-render-target";
 import type { PictureTextures } from "./picture-textures";
 import type { EffectProgram } from "./shader-programs";
-
-const FROM_TEXTURE_UNITS: LayerTextureUnits = { picture: 0, partner: 4, backdrop: 6 };
-const TO_TEXTURE_UNITS: LayerTextureUnits = { picture: 1, partner: 5, backdrop: 7 };
-const FROM_CAPTION_TEXTURE_UNIT = 2;
-const TO_CAPTION_TEXTURE_UNIT = 3;
-const FROM_CARD_TEXTURE_UNIT = 8;
-const TO_CARD_TEXTURE_UNIT = 9;
+import { TEXTURE_UNITS } from "./texture-units";
 
 /** What a frame's two layers are drawn from. */
 export interface FrameTextures {
@@ -43,12 +37,12 @@ export function bindFrame(
 ): void {
   const { from, to } = layers;
   gl.useProgram(program);
-  bindLayer(gl, textures.pictures, FROM_TEXTURE_UNITS, from, fromUniforms(uniforms), viewport);
-  bindLayer(gl, textures.pictures, TO_TEXTURE_UNITS, to, toUniforms(uniforms), viewport);
+  bindLayer(gl, textures.pictures, TEXTURE_UNITS.from, from, fromUniforms(uniforms), viewport);
+  bindLayer(gl, textures.pictures, TEXTURE_UNITS.to, to, toUniforms(uniforms), viewport);
   bindCaption(
     gl,
     textures.captions,
-    FROM_CAPTION_TEXTURE_UNIT,
+    TEXTURE_UNITS.from.caption,
     from,
     uniforms.fromCaption,
     uniforms.fromCaptionOpacity,
@@ -57,14 +51,14 @@ export function bindFrame(
   bindCaption(
     gl,
     textures.captions,
-    TO_CAPTION_TEXTURE_UNIT,
+    TEXTURE_UNITS.to.caption,
     to,
     uniforms.toCaption,
     uniforms.toCaptionOpacity,
     viewport,
   );
-  bindCardTexture(gl, FROM_CARD_TEXTURE_UNIT, textures.fromCard, uniforms.fromCard);
-  bindCardTexture(gl, TO_CARD_TEXTURE_UNIT, textures.toCard, uniforms.toCard);
+  bindCardTexture(gl, TEXTURE_UNITS.from.card, textures.fromCard, uniforms.fromCard);
+  bindCardTexture(gl, TEXTURE_UNITS.to.card, textures.toCard, uniforms.toCard);
   gl.uniform1f(uniforms.progress, progress);
   gl.uniform1f(uniforms.aspect, viewport.width / viewport.height);
   gl.uniform1f(uniforms.captionBand, textures.captions.bandShare(viewport));
