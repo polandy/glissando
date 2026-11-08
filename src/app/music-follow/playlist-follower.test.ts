@@ -26,7 +26,7 @@ class FakeTrack {
   }
 }
 
-function watch() {
+function watch(toldOnStart?: string) {
   const asked: string[] = [];
   const started: { songId: string; track: FakeTrack }[] = [];
   let latest: ReadonlyMap<string, string> = new Map();
@@ -34,6 +34,7 @@ function watch() {
     {
       pass: { listenFor: (musicId) => asked.push(musicId) },
       startTrack: (songId, onChange) => {
+        if (toldOnStart !== undefined) onChange(toldOnStart);
         const track = new FakeTrack(onChange);
         started.push({ songId, track });
         return track;
@@ -91,6 +92,17 @@ describe("PlaylistFollower", () => {
 
     expect(tracksOf("a")[0]?.disposed).toBe(true);
     expect(tracksOf("b")[0]?.disposed).toBe(true);
+  });
+
+  it("keeps the status a song tells while it starts, as a replayed pass state does", async () => {
+    const { playlist, tracksOf, latest } = watch("replayed");
+
+    const following = playlist.follow(["a"]);
+
+    expect(latest().get("a")).toBe("replayed");
+    tracksOf("a")[0]?.finishRead("read");
+    await following;
+    expect(latest().get("a")).toBe("read");
   });
 
   it("ignores a late tell from a song taken out, even once the song is added again", async () => {

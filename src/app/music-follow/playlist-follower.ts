@@ -18,7 +18,7 @@ export interface PlaylistFollowerPorts<Status> {
 export class PlaylistFollower<Status> {
   readonly #ports: PlaylistFollowerPorts<Status>;
   readonly #onChange: (status: ReadonlyMap<string, Status>) => void;
-  readonly #tracks = new Map<string, StartedTrack>();
+  readonly #tracks = new Map<string, { track?: StartedTrack }>();
   #status = new Map<string, Status>();
 
   constructor(
@@ -32,9 +32,9 @@ export class PlaylistFollower<Status> {
   /** Follows exactly `songIds`; resolves once the stored values of the new ones are read. */
   async follow(songIds: readonly string[]): Promise<void> {
     const wanted = new Set(songIds);
-    for (const [songId, track] of this.#tracks) {
+    for (const [songId, { track }] of this.#tracks) {
       if (!wanted.has(songId)) {
-        track.dispose();
+        track?.dispose();
         this.#tracks.delete(songId);
         this.#tell(new Map([...this.#status].filter(([id]) => id !== songId)));
       }
@@ -42,24 +42,22 @@ export class PlaylistFollower<Status> {
     const added = songIds.filter((songId) => !this.#tracks.has(songId));
     const reads: Promise<void>[] = [];
     for (const songId of added) {
-      // Judged by identity: a song taken out and added again has a new track, and the old one's
-      // late tell must not count. A track that tells while it starts is not held yet and is skipped.
-      const held: { track?: StartedTrack } = {};
-      const started = this.#ports.startTrack(songId, (status) => {
-        if (held.track !== undefined && this.#tracks.get(songId) === held.track) {
+      // Held before the start so a replayed status counts; identity drops a removed track's late tell.
+      const entry: { track?: StartedTrack } = {};
+      this.#tracks.set(songId, entry);
+      entry.track = this.#ports.startTrack(songId, (status) => {
+        if (this.#tracks.get(songId) === entry) {
           this.#tell(new Map([...this.#status, [songId, status]]));
         }
       });
-      held.track = started;
-      this.#tracks.set(songId, started);
-      reads.push(started.read);
+      reads.push(entry.track.read);
       this.#ports.pass.listenFor(songId);
     }
     await Promise.all(reads);
   }
 
   dispose(): void {
-    for (const track of this.#tracks.values()) track.dispose();
+    for (const { track } of this.#tracks.values()) track?.dispose();
     this.#tracks.clear();
   }
 

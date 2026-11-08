@@ -32,7 +32,8 @@ of every song once when they start (`storedSongBeats`); the picture and music ed
 pass as it finds the first song's (`TrackBeats`) and read a song's loudness the same way
 (`src/app/loudness/track-loudness.ts`, `playlist-loudness.ts`). Both are thin over one
 `TrackFollower` and one `PlaylistFollower` (`src/app/music-follow/`); a song taken out of the
-playlist and added again is told only by its new track, never by the old one's late stored read.
+playlist and added again is told only by its new track, never by the old one's late stored read,
+and the pass state a track replays while it starts counts.
 The music editor draws the
 selected song's waveform from that loudness's hop peaks and asks the pass for the song when it is
 selected (ADR-0051). `.glissando` files carry neither:
