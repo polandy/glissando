@@ -220,4 +220,28 @@ describe("writeGlissandoFile", () => {
     await expect(store.pictureBlob("new-2")).rejects.toThrow(MediaNotFoundError);
     expect((await store.listSlideshows()).map((show) => show.id)).toEqual(["other"]);
   });
+
+  it("when only releasing the claim fails after the slideshow was saved, returns the slideshow and logs it", async () => {
+    const store = new MemoryLibraryStore();
+    const refusal = new Error("release refused");
+    const logged: unknown[] = [];
+    const releasing: WritePorts["store"] = {
+      claimMedia: (claimId, startedAt, mediaId) => store.claimMedia(claimId, startedAt, mediaId),
+      putPicture: (id, blobs) => store.putPicture(id, blobs),
+      putMusic: (id, blob) => store.putMusic(id, blob),
+      putVideo: (id, blob) => store.putVideo(id, blob),
+      saveSlideshow: (slideshow) => store.saveSlideshow(slideshow),
+      releaseClaim: () => Promise.reject(refusal),
+      deleteUnreferencedMedia: (now) => store.deleteUnreferencedMedia(now),
+    };
+
+    const created = await writeGlissandoFile(
+      await checked(),
+      { ...ports(releasing), log: (error) => logged.push(error) },
+      { existingTitles: [], signal: new AbortController().signal },
+    );
+
+    expect((await store.listSlideshows()).map((show) => show.id)).toContain(created.id);
+    expect(logged).toEqual([refusal]);
+  });
 });

@@ -26,7 +26,7 @@ export interface WritePorts {
   >;
   newId(): string;
   now(): Date;
-  /** Where a failed clean-up after a failed write is reported; the write's own error wins. */
+  /** Where a failed clean-up or claim release is reported; a failed write's own error wins. */
   log(error: unknown): void;
 }
 
@@ -51,6 +51,7 @@ export async function writeGlissandoFile(
 ): Promise<StoredSlideshow> {
   const { store } = ports;
   const claimId = ports.newId();
+  let saved: StoredSlideshow;
   const startedAt = ports.now();
   const { slideshow } = contents.manifest;
   const count = slideshow.pictures.length;
@@ -124,8 +125,7 @@ export async function writeGlissandoFile(
       ...slideshowFromManifest(slideshow, { pictureIds, songIds, clipIds }),
     };
     await store.saveSlideshow(created);
-    await store.releaseClaim(claimId);
-    return created;
+    saved = created;
   } catch (error) {
     try {
       await store.releaseClaim(claimId);
@@ -135,6 +135,12 @@ export async function writeGlissandoFile(
     }
     throw error;
   }
+  try {
+    await store.releaseClaim(claimId);
+  } catch (releaseError) {
+    ports.log(releaseError);
+  }
+  return saved;
 }
 
 function requireId(ids: readonly string[], index: number, kind: string): string {
