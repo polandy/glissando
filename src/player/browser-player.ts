@@ -100,6 +100,7 @@ export function createBrowserPlayer(
   }: BrowserPlayerOptions,
 ): BrowserPlayer {
   let player: BrowserPlayer | null = null;
+  const reducedMotionQuery = window.matchMedia(REDUCED_MOTION_QUERY);
   const redraw = () => player?.redraw();
   const createDecoder = (): PictureDecoder => {
     const workerDecoder = new WorkerPictureDecoder(startDecodeWorker);
@@ -129,7 +130,7 @@ export function createBrowserPlayer(
           : { source: { openVideo: readVideo, urls: browserObjectUrls } }),
         ...(decodeClipSound === undefined ? {} : { decodeClipSound }),
       }),
-    reducedMotion: () => window.matchMedia(REDUCED_MOTION_QUERY).matches,
+    reducedMotion: () => reducedMotionQuery.matches,
     ...(picturesAhead === undefined ? {} : { picturesAhead }),
   };
   player =

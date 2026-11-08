@@ -56,7 +56,7 @@ are rejected.
 
 - **Order**: slides play in array order, which starts as capture order (`capturedAt`) and follows
   the user's reordering. `music` is optional.
-- **Durations** are positive whole milliseconds.
+- **Durations** are positive whole milliseconds, at most the largest safe integer (2^53 − 1).
 - **Ken Burns**: a framing is `zoom` (≥ 1, where 1 is crop-to-fit) and a centre in picture
   coordinates (0..1 from the top left). It is independent of the screen's aspect ratio. Near
   an edge the crop stops at the picture's border. Easings: `linear`, `ease-in`, `ease-out`,

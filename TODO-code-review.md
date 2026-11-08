@@ -31,11 +31,6 @@ Each fix starts with the failing test the item names or implies (WORKFLOW.md, Te
 
 ### Player
 
-- [ ] `src/player/browser/music-output.ts:267-272` — `createOrNull` swallows the error without logging. Fix: warn before returning null.
-- [ ] `src/player/browser-player.ts:131` — `matchMedia` called on every drawn frame. Fix: one `MediaQueryList`, read `.matches`.
-- [ ] `src/player/parse-primitives.ts:359-364` — `readPositiveInteger` has no upper bound; `durationMs: 1e308` makes the timeline `Infinity`. Fix: a named maximum.
-- [ ] `src/player/slideshow-player.ts:282-284` — A `loadAroundScreen` rejection is swallowed with a comment only. Fix: log it.
-
 ### Library and file format
 
 - [ ] `src/library/indexeddb-store.ts:105,119`, `indexeddb-media.ts:194-203,248` — The media-keyed store list is written out four times. Fix: one exported `MEDIA_KEYED_STORES`.

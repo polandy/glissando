@@ -89,6 +89,12 @@ describe("parseSlideshow", () => {
       "a positive integer",
     ],
     [
+      validSlideshow({ slides: [validSlide({ durationMs: 1e308 })] }),
+      "a duration beyond the safe integers",
+      "slides[0].durationMs",
+      "a positive integer",
+    ],
+    [
       validSlideshow({ slides: [validSlide({ durationMs: 2500.5 })] }),
       "a fractional duration",
       "slides[0].durationMs",
