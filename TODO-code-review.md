@@ -37,7 +37,6 @@ Each fix starts with the failing test the item names or implies (WORKFLOW.md, Te
 
 ### Import and Immich
 
-- [ ] `src/immich/photo-selection.ts` (`allAlbumPhotos`) — A non-advancing `nextPage` loops forever. Fix: fail loud unless it advances.
 - [ ] `src/import/flac-samples.ts:70`, `browser/libav-flac.ts` — `channels`/`frameSize` not validated; a frame length of 0 never progresses. Fix: validate in the constructor and `startEncoding`.
 - [ ] `src/import/picture-import.ts:126` — `stop()` records pick ids with nothing in flight, never removed. Fix: add only when a file is in flight, or clear on drain.
 - [ ] `src/app/import/import-session.ts:49` — `#songReads` entries are never deleted after success; `probeMusic` has no abort, so one stalled probe blocks the queue. Fix: delete settled entries; give the probe a signal.

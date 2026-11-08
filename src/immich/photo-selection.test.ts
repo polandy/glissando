@@ -169,4 +169,12 @@ describe("allAlbumPhotos", () => {
 
     await expect(allAlbumPhotos(client, "album-1")).rejects.toBeInstanceOf(ImmichUnavailableError);
   });
+
+  it("fails loud when the next page does not advance", async () => {
+    const client = new FakeImmichClient();
+    client.photoAnswers.push({ photos: [A], nextPage: 1 });
+
+    await expect(allAlbumPhotos(client, "album-1")).rejects.toThrow(/does not advance/);
+    expect(client.photoQueries).toHaveLength(1);
+  });
 });
