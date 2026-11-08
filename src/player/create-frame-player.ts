@@ -78,7 +78,6 @@ export function createFramePlayer(
     cardFontsLoaded,
     dispose: () => {
       player.destroy();
-      gl.getExtension("WEBGL_lose_context")?.loseContext();
     },
   };
 }

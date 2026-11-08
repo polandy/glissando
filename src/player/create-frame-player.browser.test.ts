@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { createFramePlayer } from "./create-frame-player";
 import type { Fonts } from "./fonts";
 import type { Slideshow } from "./slideshow";
@@ -65,6 +65,25 @@ describe("createFramePlayer", () => {
     framePlayer.dispose();
 
     expect(gl?.isContextLost()).toBe(true);
+  });
+
+  it("asks for the context release once on dispose, leaving it to the renderer", () => {
+    const framePlayer = createFramePlayer(SLIDESHOW, { width: 64, height: 36 });
+    if (framePlayer === null) {
+      throw new Error("this browser has no WebGL2");
+    }
+    const gl = framePlayer.canvas.getContext("webgl2");
+    if (gl === null) {
+      throw new Error("this browser has no WebGL2");
+    }
+    const getExtension = vi.spyOn(gl, "getExtension");
+
+    framePlayer.dispose();
+
+    expect(gl.isContextLost()).toBe(true);
+    expect(
+      getExtension.mock.calls.filter(([name]) => (name as string) === "WEBGL_lose_context"),
+    ).toHaveLength(1);
   });
 
   it("settles cardFontsLoaded at once without a card", async () => {
