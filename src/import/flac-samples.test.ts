@@ -65,3 +65,15 @@ describe("FlacSampleQueue, decoded audio as the FLAC encoder takes it", () => {
     ).toThrow(/1 channel.*2/);
   });
 });
+
+describe("FlacSampleQueue, its constructor arguments", () => {
+  it.each([
+    ["no channels", 0, 4],
+    ["a fractional channel count", 1.5, 4],
+    ["a zero frame size", 2, 0],
+    ["a negative frame size", 2, -1],
+    ["a fractional frame size", 2, 1.5],
+  ])("rejects %s, as a zero frame length never progresses", (_name, channels, frameSize) => {
+    expect(() => new FlacSampleQueue(16, channels, frameSize)).toThrow(/positive whole number/);
+  });
+});
