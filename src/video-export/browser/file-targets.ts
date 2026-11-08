@@ -1,4 +1,5 @@
 import type { FileSink } from "../ports";
+import { DOM_EXCEPTION, isDomException } from "../../dom-exception/dom-exception";
 
 /** The folder in the origin private file system that holds exports until the sheet closes. */
 export const PRIVATE_EXPORT_FOLDER = "video-export";
@@ -72,7 +73,7 @@ export async function pickSaveTarget(
       ],
     });
   } catch (error: unknown) {
-    if (error instanceof DOMException && error.name === "AbortError") {
+    if (isDomException(error, DOM_EXCEPTION.aborted)) {
       return null;
     }
     throw error;
@@ -155,7 +156,7 @@ export async function privateExportTarget(
 }
 
 function isNotFound(error: unknown): boolean {
-  return error instanceof DOMException && error.name === "NotFoundError";
+  return isDomException(error, DOM_EXCEPTION.notFound);
 }
 
 /**

@@ -15,10 +15,10 @@ import type {
   PageEstimates,
 } from "./html-export-state";
 import { preselectedPageSize, sizesBarelyDiffer } from "./size-note";
+import { deliverFile } from "../video-export/deliver-file";
 
 /** The video the choose state compares the page with. */
 const COMPARED_VIDEO_PRESET: PresetId = "1080p";
-const SHARE_DISMISSED = "AbortError";
 
 /**
  * The web page export sheet's flow, from choosing a size to the finished file
@@ -142,15 +142,7 @@ export class HtmlExportSession {
     if (state.kind !== "done") {
       return;
     }
-    if (state.delivery === "download") {
-      this.#ports.download(state.file);
-    } else if (state.delivery === "share") {
-      await this.#ports.share(state.file).catch((error: unknown) => {
-        if (!(error instanceof DOMException && error.name === SHARE_DISMISSED)) {
-          this.#ports.log(error);
-        }
-      });
-    }
+    await deliverFile(this.#ports, state.delivery, state.file);
   }
 
   /** "Öffnen": the finished page in a new tab; call it in the click. */

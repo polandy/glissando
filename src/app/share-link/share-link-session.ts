@@ -4,14 +4,13 @@ import {
   type ShareLink,
 } from "../../server-library/server-library-client";
 import { isHomeNetworkOrigin } from "./home-network-origin";
+import { DOM_EXCEPTION, isDomException } from "../../dom-exception/dom-exception";
 
 /** How long "Copy" reads "Copied" after copying the link. */
 export const COPIED_FEEDBACK_MS = 2000;
 
 /** Where a link opens: the recipient's page, under the origin the app is open at. */
 const SHARE_PATH = "/s/";
-/** The browser's share sheet rejects with this when the user dismisses it. */
-const SHARE_DISMISSED = "AbortError";
 
 /**
  * The private API's calls about one slideshow's link. Each rejects with
@@ -174,7 +173,7 @@ export class ShareLinkSession {
     try {
       await shareSheet({ title, url: this.#url() });
     } catch (error) {
-      if (error instanceof DOMException && error.name === SHARE_DISMISSED) return;
+      if (isDomException(error, DOM_EXCEPTION.aborted)) return;
       this.#ports.onError(error);
     }
   }

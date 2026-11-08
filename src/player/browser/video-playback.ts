@@ -2,6 +2,7 @@ import { VideoPlaybackError, type LiveFrame, type VideoPlayback } from "../ports
 import { ClipSoundTrack } from "./clip-sound-track";
 import type { ClipSoundOutput } from "./music-output";
 import { HAVE_CURRENT_DATA, HAVE_FUTURE_DATA, playingSecondsOf } from "./media-position";
+import { DOM_EXCEPTION, isDomException } from "../../dom-exception/dom-exception";
 
 /** A clip further than this from where the slide clock puts it is seeked. */
 export const VIDEO_SEEK_DRIFT_MS = 2000;
@@ -20,8 +21,6 @@ const SAME_TIME_MS = 1;
  * two behind the clock is caught up by `follow`, but a seek right at the start is a visible hitch.
  */
 const VIDEO_START_TOLERANCE_MS = 250;
-/** What a media element's `play()` rejects with when a later `pause()` interrupts it. */
-const INTERRUPTED_PLAY = "AbortError";
 const READY_EVENTS = ["seeked", "loadeddata", "canplay", "playing"] as const;
 
 /** The parts of the music output a clip's sound uses (ADR-0009). */
@@ -115,7 +114,7 @@ export class VideoElementPlayback implements VideoPlayback {
       await this.#element.play();
     } catch (error) {
       // A pause before the start lands is not a refusal.
-      if (error instanceof DOMException && error.name === INTERRUPTED_PLAY) {
+      if (isDomException(error, DOM_EXCEPTION.aborted)) {
         return;
       }
       throw new VideoPlaybackError(error);
