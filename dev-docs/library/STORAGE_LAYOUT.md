@@ -1,11 +1,8 @@
 # Storage layout
 
-One IndexedDB database, `glissando` (schema version 8; version 1 lacked `imports`, version 2
-`focus`, version 3 `beats`, version 5 cleared the slideshow records for the picture colours
-(ADR-0033), version 6 added `videos`, version 7 added `loudness`, version 8 dropped and recreated
-`focus` so every picture, including one stored as "none" before objects or scenery, is looked at
-by the current detector (ADR-0041) — each other upgrade only adds its store, existing data stays
-as it is). A slideshow record holds `songs` (ADR-0023); one holding a single `music` is not read,
+One IndexedDB database, `glissando` (schema version 8). An older version is not migrated: its
+upgrade drops every store and creates the current set, so the library starts empty (no production
+instance yet). A slideshow record holds `songs` (ADR-0023); one holding a single `music` is not read,
 and such a database is cleared by hand:
 
 | Object store | Key      | Value                                                                                                                                       |

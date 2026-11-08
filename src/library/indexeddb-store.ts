@@ -285,6 +285,6 @@ export class IndexedDbLibraryStore implements LibraryStore {
 /** Opens (and creates or upgrades) the library database. */
 export function openLibraryStore(indexedDB: IDBFactory): Promise<IndexedDbLibraryStore> {
   const request = indexedDB.open(LIBRARY_DATABASE_NAME, SCHEMA_VERSION);
-  request.onupgradeneeded = (event) => upgradeLibraryDatabase(request.result, event.oldVersion);
+  request.onupgradeneeded = () => upgradeLibraryDatabase(request.result);
   return requestResult(request).then(() => new IndexedDbLibraryStore(request.result));
 }
