@@ -1,7 +1,7 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { collectBody } from "./collect-body";
 import type { LibraryHandler } from "./library-handler";
-import { errorResponse, HTTP_STATUS, maxBodyBytes } from "./library-http";
+import { errorResponse, HTTP_STATUS, maxBodyBytes, type RequestBody } from "./library-http";
 import { redactShareTokens } from "./share-token";
 import { pipeEventStream, type Repeat } from "./tv/event-stream";
 import { redactTvSecrets } from "./tv/tv-redaction";
@@ -37,8 +37,12 @@ export async function serve(
   const headers = singleValued(request.headers);
   let answer: TvAnswer;
   let closeAfter = false;
+  let destroyAfter = false;
   try {
-    const body = await collectBody(request, maxBodyBytes(path));
+    const collected = await collectBody(request, maxBodyBytes(path));
+    destroyAfter = collected.kind === "tooLargeUnread";
+    const body: RequestBody =
+      collected.kind === "tooLargeUnread" ? { kind: "tooLarge" } : collected;
     closeAfter = body.kind === "tooLarge";
     const handle = isTvPath(path) ? handlers.tv : handlers.library;
     answer = handle({ method, path, headers, body });
@@ -62,7 +66,10 @@ export async function serve(
       answer.status,
       closeAfter ? { ...answer.headers, connection: "close" } : answer.headers,
     );
-    response.end(answer.body);
+    // A body left unread past the drain budget would otherwise keep the socket open for the rest.
+    response.end(answer.body, () => {
+      if (destroyAfter) request.destroy();
+    });
   } catch (error) {
     fail(error);
     response.destroy();

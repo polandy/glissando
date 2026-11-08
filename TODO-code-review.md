@@ -31,7 +31,6 @@ Each fix starts with the failing test the item names or implies (WORKFLOW.md, Te
 
 ### Server, sync and TV
 
-- [ ] `server/collect-body.ts:13-18` — An oversized body is drained to its end with no byte or time cap. Fix: a fixed drain budget, then destroy the socket after the 413.
 - [ ] `server/music-routes.ts:16-17,45-50` + `src/server-library/save-on-server.ts:39-45` — The 1 h music grace runs per upload and every upload sweeps, so a slow multi-song save can lose its own earlier songs (409 `musicMissing`). Fix: restart the caller's grace on each upload, or measure from the last upload.
 
 ### Player
