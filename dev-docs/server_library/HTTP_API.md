@@ -23,6 +23,10 @@ the server.
 
 - **Share links** add `…/slideshows/{id}/share` and the public `/api/share/` (`dev-docs/SHARE_LINK.md`).
 - **TV remote** adds `/api/library/tv/`, the public `/api/tv/` and `/api/share/{token}/tv`, served by `server/tv/` beside the library (`dev-docs/TV_REMOTE.md`).
+- **Too large**: a body over its path's limit answers 413 `tooLarge` with `Connection: close`.
+  Up to `DRAIN_BUDGET_BYTES` (1 MiB) past the limit is read and dropped first so the answer
+  reaches the client; a longer body is left unread and its connection closed after the 413
+  (`server/collect-body.ts`).
 - **Unreadable documents**: the list leaves out a slideshow whose stored document the service
   cannot read and logs it (`SERVER_DOCUMENT.md`).
 - **Revision**: a positive whole number, 1 on create, +1 on every accepted `PUT`. Compared in the

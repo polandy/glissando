@@ -1,13 +1,17 @@
 import { describe, expect, it } from "vitest";
-import { collectBody } from "./collect-body";
+import { collectBody, DRAIN_BUDGET_BYTES } from "./collect-body";
 
-/** Chunks of the given sizes, counting how many were read. */
+/** Chunks of the given sizes, counting how many were read and whether the stream was closed. */
 function chunks(...sizes: number[]) {
-  const reading = { read: 0 };
+  const reading = { read: 0, closed: false };
   async function* generate() {
-    for (const size of sizes) {
-      reading.read += 1;
-      yield new Uint8Array(size).fill(size);
+    try {
+      for (const size of sizes) {
+        reading.read += 1;
+        yield new Uint8Array(size).fill(size);
+      }
+    } finally {
+      reading.closed = true;
     }
   }
   return { body: generate(), reading };
@@ -31,5 +35,18 @@ describe("collectBody", () => {
     const { body, reading } = chunks(6, 6, 6);
     expect(await collectBody(body, 10)).toEqual({ kind: "tooLarge" });
     expect(reading.read).toBe(3);
+  });
+
+  it("stops reading once the drain budget past the limit is spent, leaving the stream open", async () => {
+    const { body, reading } = chunks(6, 6, DRAIN_BUDGET_BYTES, 6);
+    expect(await collectBody(body, 10)).toEqual({ kind: "tooLargeUnread" });
+    expect(reading.read).toBe(3);
+    expect(reading.closed).toBe(false);
+  });
+
+  it("drains a body that passes the limit by exactly the budget", async () => {
+    const { body, reading } = chunks(10, DRAIN_BUDGET_BYTES);
+    expect(await collectBody(body, 10)).toEqual({ kind: "tooLarge" });
+    expect(reading.closed).toBe(true);
   });
 });
