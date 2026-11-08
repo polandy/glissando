@@ -66,26 +66,37 @@ export function deliveryOf(target: ExportTarget, canShare: boolean): Delivery {
   return canShare ? "share" : "download";
 }
 
-interface FinishedRun {
+/** The sheet's state for an error, whatever was thrown. */
+export function failedState(error: unknown): ExportSheetState {
+  return { kind: "failed", error: error instanceof Error ? error : new Error(String(error)) };
+}
+
+interface EndedRun {
   readonly preset: PresetId;
   readonly framesTotal: number;
   /** The whole file's rough size with `preset`. */
   readonly estimate: number;
   readonly delivery: (file: File) => Delivery;
-  readonly result: Extract<VideoExportResult, { readonly kind: "done" | "storage-full" }>;
+  readonly result: VideoExportResult;
 }
 
-/** The sheet's state after an export ended with a file or with the storage running out. */
-export function finishedState(run: FinishedRun): ExportSheetState {
+/** The sheet's state after an export ended; null after a cancel, which only closing the sheet causes. */
+export function outcomeState(run: EndedRun): ExportSheetState | null {
   const { preset, framesTotal, result } = run;
-  if (result.kind === "done") {
-    return { kind: "done", preset, file: result.file, delivery: run.delivery(result.file) };
+  switch (result.kind) {
+    case "done":
+      return { kind: "done", preset, file: result.file, delivery: run.delivery(result.file) };
+    case "storage-full":
+      return {
+        kind: "storage-full",
+        preset,
+        frameReached: result.frameReached,
+        framesTotal,
+        missingBytes: run.estimate * (1 - result.frameReached / framesTotal),
+      };
+    case "failed":
+      return failedState(result.error);
+    case "cancelled":
+      return null;
   }
-  return {
-    kind: "storage-full",
-    preset,
-    frameReached: result.frameReached,
-    framesTotal,
-    missingBytes: run.estimate * (1 - result.frameReached / framesTotal),
-  };
 }

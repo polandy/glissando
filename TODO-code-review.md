@@ -35,7 +35,6 @@ Each fix starts with the failing test the item names or implies (WORKFLOW.md, Te
 
 ### Exports, share and PWA
 
-- [ ] `src/app/video-export/video-export-session.ts` — Open/probe, target choice, run, outcome mapping and delivery in one module. (#177 trims it to 263 lines.) Fix: move `#finish`'s outcome→state mapping into a pure function beside `export-sheet-state.ts`.
 
 ### App shell, routing and editors
 
