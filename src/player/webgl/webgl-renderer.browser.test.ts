@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import type { BitmapPicture } from "../browser/bitmap-loader";
 import type { RenderFrame } from "../ports";
 import { TRANSITION_EFFECTS, type Framing } from "../slideshow";
@@ -71,7 +71,10 @@ function isColour(actual: Rgb, expected: Rgb): boolean {
   );
 }
 
-afterEach(() => box.remove());
+afterEach(() => {
+  box.remove();
+  vi.restoreAllMocks();
+});
 
 describe("WebGlRenderer", () => {
   it("draws the whole picture upright at zoom 1", async () => {
@@ -242,5 +245,32 @@ describe("WebGlRenderer", () => {
     renderer.dispose();
 
     expect(gl.isContextLost()).toBe(true);
+  });
+
+  it("deletes every WebGL buffer it created on dispose", () => {
+    const created: WebGLBuffer[] = [];
+    const deleted: WebGLBuffer[] = [];
+    const { createBuffer, deleteBuffer } = WebGL2RenderingContext.prototype;
+    vi.spyOn(WebGL2RenderingContext.prototype, "createBuffer").mockImplementation(function (
+      this: WebGL2RenderingContext,
+    ) {
+      const buffer = createBuffer.call(this);
+      created.push(buffer);
+      return buffer;
+    });
+    vi.spyOn(WebGL2RenderingContext.prototype, "deleteBuffer").mockImplementation(function (
+      this: WebGL2RenderingContext,
+      buffer: WebGLBuffer | null,
+    ) {
+      deleted.push(buffer as WebGLBuffer);
+      deleteBuffer.call(this, buffer);
+    });
+    const { renderer } = setUp();
+    expect(created.length).toBeGreaterThan(0);
+
+    renderer.dispose();
+
+    // Opaque GL handles compare equal under toEqual, so check identity.
+    expect(created.filter((buffer) => !deleted.includes(buffer))).toHaveLength(0);
   });
 });
