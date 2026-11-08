@@ -166,6 +166,22 @@ describe("MusicOutput", () => {
     expect(element.volume).toBe(0.4);
   });
 
+  it("logs why Web Audio could not be created", () => {
+    const failure = new Error("no audio hardware");
+    const logged: unknown[] = [];
+    const output = new MusicOutput<VolumeElement>(
+      () => {
+        throw failure;
+      },
+      (error) => logged.push(error),
+    );
+
+    output.route({ volume: 1 });
+    output.route({ volume: 1 });
+
+    expect(logged).toEqual([failure]);
+  });
+
   it("hands a clip's sound the same context and destination the music routes through", () => {
     const { output, context } = outputWithContext();
 

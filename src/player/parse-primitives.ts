@@ -60,7 +60,7 @@ export function readIsoDate(value: unknown, path: string): string {
 }
 
 export function readPositiveInteger(value: unknown, path: string): number {
-  if (typeof value !== "number" || !Number.isInteger(value) || value <= 0) {
+  if (typeof value !== "number" || !Number.isSafeInteger(value) || value <= 0) {
     throw new SlideshowFormatError(path, "a positive integer", value);
   }
   return value;

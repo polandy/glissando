@@ -62,11 +62,16 @@ const RUNNING = "running";
  */
 export class MusicOutput<Element extends VolumeElement = HTMLMediaElement> {
   readonly #createContext: CreateMusicAudioContext<Element>;
+  readonly #log: (error: unknown) => void;
   /** Undefined until first needed; null once Web Audio turned out unavailable. */
   #context: MusicAudioContext<Element> | null | undefined;
 
-  constructor(createContext: CreateMusicAudioContext<Element>) {
+  constructor(
+    createContext: CreateMusicAudioContext<Element>,
+    log: (error: unknown) => void = warnInConsole,
+  ) {
     this.#createContext = createContext;
+    this.#log = log;
   }
 
   /**
@@ -112,18 +117,22 @@ export class MusicOutput<Element extends VolumeElement = HTMLMediaElement> {
 
   #ensureContext(): MusicAudioContext<Element> | null {
     if (this.#context === undefined) {
-      this.#context = createOrNull(this.#createContext);
+      this.#context = createOrNull(this.#createContext, this.#log);
     }
     return this.#context;
   }
 }
 
+const warnInConsole = (error: unknown): void => console.warn(error);
+
 function createOrNull<Element extends VolumeElement>(
   createContext: CreateMusicAudioContext<Element>,
+  log: (error: unknown) => void,
 ): MusicAudioContext<Element> | null {
   try {
     return createContext();
-  } catch {
+  } catch (error) {
+    log(error);
     // Explicitly the element-volume fallback: the music still plays, only fades are lost on iOS.
     return null;
   }

@@ -10,6 +10,8 @@ import { MILLISECONDS_PER_SECOND, type Slideshow } from "./slideshow";
 import { createTimeline, type Timeline } from "./timeline";
 import type { PlayerEvent } from "./player-events";
 
+const warnInConsole = (error: unknown): void => console.warn(error);
+
 /**
  * Plays a slideshow with the API of an HTML video element: `play`, `pause`, `currentTime` and
  * `duration` in seconds, and the media events in `PLAYER_EVENTS`.
@@ -222,9 +224,7 @@ export class SlideshowPlayer<Picture extends Size> extends EventTarget {
 
   #draw(): void {
     this.#pictures.draw(this.#captionInset.current);
-    this.#pictures.loadAroundScreen().catch(() => {
-      // The buffer retries a failed picture and reports it once the frame needs it.
-    });
+    this.#pictures.loadAroundScreen().catch(warnInConsole);
     if (!this.#ready) {
       this.#ready = true;
       this.#emit("canplay");
