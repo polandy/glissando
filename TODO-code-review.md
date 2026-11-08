@@ -25,7 +25,7 @@ Each fix starts with the failing test the item names or implies (WORKFLOW.md, Te
 
 ### Tooling and tests
 
-- [ ] `package-lock.json` — `npm audit` (dev only): the `minimatch` (via eslint, typescript-eslint) and `deepmerge` (via vite-plugin-svelte) chains wait on upstream. Fix: update when a non-major release lands; never `audit fix --force`.
+- [ ] `package-lock.json` — `npm audit` (dev only, low): `deepmerge` (GHSA-gcqx-w48m-w2h4) via `@sveltejs/vite-plugin-svelte`. Accepted: unreachable, the plugin merges only our own `svelte.config.js`. Revisit when vite-plugin-svelte drops or patches it; never `audit fix --force`.
 
 ## LOW
 
