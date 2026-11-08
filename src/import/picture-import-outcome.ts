@@ -14,9 +14,8 @@ import {
   type ReadVideo,
 } from "./picture-source";
 import { UnreadablePictureError, type PictureFailureStage } from "./unreadable-picture";
+import { isQuotaExceeded } from "../storage-quota/is-quota-exceeded";
 import { VideoRefusedError } from "./video-refusal";
-
-const QUOTA_EXCEEDED = "QuotaExceededError";
 
 const SKIP_REASON_OF_STAGE: Record<PictureFailureStage, SkipReason> = {
   read: "unreadable",
@@ -111,7 +110,7 @@ export async function importOne(
       await ports.store.putPictureFocus(id, { focus, detector: FOCUS_DETECTOR_VERSION });
     }
   } catch (error) {
-    if (error instanceof DOMException && error.name === QUOTA_EXCEEDED) {
+    if (isQuotaExceeded(error)) {
       return { kind: "storageFull" };
     }
     throw error;

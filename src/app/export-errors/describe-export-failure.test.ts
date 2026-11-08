@@ -2,6 +2,14 @@ import { describe, expect, it } from "vitest";
 import { describeExportFailure, describeExportProblem } from "./describe-export-failure";
 
 describe("describeExportFailure", () => {
+  it("maps a quota error wrapped as a cause to storage-full", () => {
+    const wrapped = new Error("write failed", {
+      cause: new DOMException("disk is full", "QuotaExceededError"),
+    });
+
+    expect(describeExportFailure(wrapped, "page").failure).toBe("storage-full");
+  });
+
   it("maps a full storage quota to the smaller-size action", () => {
     const description = describeExportFailure(
       new DOMException("disk is full", "QuotaExceededError"),
