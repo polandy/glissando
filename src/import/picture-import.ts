@@ -52,11 +52,12 @@ export class PictureImport {
   #generation = 0;
   /** Names each pick, counting up so ids stay stable across tests regardless of media ids. */
   #nextPickId = 0;
-  /** A pick stopped while its file in flight was still being read; that file is dropped once done. */
-  readonly #stoppedPickIds = new Set<string>();
-  /** The file being read, whose download `cancel()` or stopping its pick aborts. */
-  #inFlight: { readonly pickId: string | undefined; readonly download: AbortController } | null =
-    null;
+  /** The file being read, whose download `cancel()` or stopping its pick aborts; `stopped` drops it once done. */
+  #inFlight: {
+    readonly pickId: string | undefined;
+    readonly download: AbortController;
+    stopped: boolean;
+  } | null = null;
 
   constructor(ports: PictureImportPorts) {
     this.#ports = ports;
@@ -103,10 +104,12 @@ export class PictureImport {
    */
   stop(pickId: string): void {
     pickToStop(this.#state.picks, pickId);
-    if (this.#inFlight?.pickId === pickId) this.#inFlight.download.abort();
+    if (this.#inFlight?.pickId === pickId) {
+      this.#inFlight.stopped = true;
+      this.#inFlight.download.abort();
+    }
     const waiting = this.#queue.filter((entry) => entry.pickId === pickId).length;
     this.#queue = this.#queue.filter((entry) => entry.pickId !== pickId);
-    this.#stoppedPickIds.add(pickId);
     this.#update({
       total: this.#state.total - waiting,
       picks: pickStopped(this.#state.picks, pickId),
@@ -194,7 +197,6 @@ export class PictureImport {
     this.#generation += 1;
     this.#queue = [];
     this.#duplicates = [];
-    this.#stoppedPickIds.clear();
     if (!this.#isDraining) {
       this.#draining = Promise.resolve();
     }
@@ -211,13 +213,13 @@ export class PictureImport {
       for (let entry = this.#queue.shift(); entry !== undefined; entry = this.#queue.shift()) {
         const generation = this.#generation;
         const download = new AbortController();
-        this.#inFlight = { pickId: entry.pickId, download };
+        this.#inFlight = { pickId: entry.pickId, download, stopped: false };
         let outcome: Outcome;
         try {
           outcome = await this.#importOne(entry, download.signal);
         } catch (error) {
           if (download.signal.aborted && error === download.signal.reason) {
-            if (generation === this.#generation) this.#dropStopped(entry);
+            if (generation === this.#generation) this.#dropStopped();
             continue;
           }
           if (generation === this.#generation) {
@@ -258,14 +260,13 @@ export class PictureImport {
   }
 
   /** A file whose download stopping its pick aborted: dropped like any file of a stopped pick. */
-  #dropStopped(entry: Queued): void {
-    if (entry.pickId !== undefined) this.#stoppedPickIds.delete(entry.pickId);
+  #dropStopped(): void {
     this.#update({ total: this.#state.total - 1, busy: this.#queue.length > 0 });
   }
 
   #apply(entry: Queued, outcome: Outcome): void {
     const busy = this.#queue.length > 0;
-    const wasStopped = entry.pickId !== undefined && this.#stoppedPickIds.delete(entry.pickId);
+    const wasStopped = this.#inFlight?.stopped ?? false;
     const result = applyOutcome(this.#state, busy, entry, outcome, wasStopped);
     if (outcome.kind === "storageFull") {
       this.#queue = [];
