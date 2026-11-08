@@ -33,10 +33,12 @@ the server.
   same transaction as the write. An `If-Match` other than the
   current `"<revision>"` (also `*` or a weak tag) is a stale one: 412.
 - **Music**: a document naming, in any song, a `musicId` the server does not have is refused
-  (409). Music no document references is deleted after `UNREFERENCED_MUSIC_GRACE_MS` (1 h, the
-  service's injected clock, checked on every upload), its beats and loudness with it. The grace
-  starts at the upload, and again when a `PUT` or `DELETE` drops the last reference
-  (`uploaded_at` is set to that time), so undoing a song's removal can name the music again.
+  (409). Music no document references is deleted, its beats and loudness with it, on the first
+  upload after `UNREFERENCED_MUSIC_GRACE_MS` (1 h, the service's injected clock) passed without an
+  upload. Each upload restarts the grace of all unreferenced music, so a slow save that uploads
+  its songs one by one before naming them keeps its earlier songs. The grace restarts too when a
+  `PUT` or `DELETE` drops the last reference (`uploaded_at` is set to that time), so undoing a
+  song's removal can name the music again.
 - **Beats** (`MusicBeats`, `src/beats/music-beats.ts`, ADR-0021): a device `PUT`s what it found so
   later devices read it instead of detecting again; a later `PUT` replaces the stored result
   (two devices may race, but the same detector gives the same answer).
