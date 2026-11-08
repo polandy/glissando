@@ -165,6 +165,16 @@ describe("resolvePlaylist when the music repeats (StoredSlideshow.repeatMusic, A
     expect(last?.endMs).toBe(5_000);
   });
 
+  it("repeats a very short song under a long slideshow without growing quadratically", () => {
+    const playlist: Playlist = { ...crossfading(song("a", 20), song("b", 20)), repeatMusic: true };
+    const ninetyMinutesMs = 90 * 60 * 1_000;
+
+    const tracks = placed(playlist, ninetyMinutesMs);
+
+    expect(tracks.at(-1)?.atMs).toBeLessThan(ninetyMinutesMs);
+    expect(tracks.length).toBeGreaterThan(100_000);
+  });
+
   it("fails loud, not by looping forever, when repeating never reaches the slideshow's end", () => {
     const playlist: Playlist = { ...inSequence(song("a", 0)), repeatMusic: true };
 
