@@ -124,24 +124,36 @@ describe("runVideoExport", () => {
     REAL_EXPORT_CEILING_MS,
   );
 
-  it(
-    "stops at once on abort and leaves no file behind",
-    async () => {
-      const controller = new AbortController();
-      const progress: ExportProgress[] = [];
-
-      const { result } = await exportGenerated(controller.signal, (update) => {
-        progress.push(update);
-        if (update.framesDone === 10) {
-          controller.abort();
-        }
-      });
-
-      expect(result).toEqual({ kind: "cancelled" });
-      expect(progress.at(-1)?.framesDone).toBe(10);
-      if (server.browser !== "webkit") {
-        expect(await privateExportNames()).toEqual([]);
+  async function abortAtFrame10(): Promise<ExportProgress[]> {
+    const controller = new AbortController();
+    const progress: ExportProgress[] = [];
+    const { result } = await exportGenerated(controller.signal, (update) => {
+      progress.push(update);
+      if (update.framesDone === 10) {
+        controller.abort();
       }
+    });
+    expect(result).toEqual({ kind: "cancelled" });
+    return progress;
+  }
+
+  it(
+    "stops at once on abort",
+    async () => {
+      const progress = await abortAtFrame10();
+
+      expect(progress.at(-1)?.framesDone).toBe(10);
+    },
+    REAL_EXPORT_CEILING_MS,
+  );
+
+  // WebKit has no origin private file system to inspect.
+  it.skipIf(server.browser === "webkit")(
+    "leaves no file behind after an abort",
+    async () => {
+      await abortAtFrame10();
+
+      expect(await privateExportNames()).toEqual([]);
     },
     REAL_EXPORT_CEILING_MS,
   );
