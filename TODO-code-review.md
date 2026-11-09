@@ -37,8 +37,6 @@ Each fix starts with the failing test the item names or implies (WORKFLOW.md, Te
 
 ### App shell, routing and editors
 
-- [ ] `src/app/settings/stored-choice.ts:16-19` — An unrecognised stored value is read as the default without a log. Fix (optional): warn once.
-
 ### Screens
 
 - [ ] `src/app/settings/SettingsSheet.svelte`, `src/app/screens/slideshow/export-sheet/ExportDialog.svelte` — Still carry their own dialog frame beside `components/Sheet.svelte`; their metrics differ (Settings docks top right, Export pads 20 px and grows to 92 %). Fix: settle the metrics, then frame both with `Sheet`.
