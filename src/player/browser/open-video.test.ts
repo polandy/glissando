@@ -138,7 +138,7 @@ describe("openVideoElement's clip sound", () => {
     expect(clip.decoded).toEqual([]);
   });
 
-  it("without a decoder, never fetches or decodes: the clip just plays silent", () => {
+  it("without a decoder, reads the clip once for the picture: the clip just plays silent", () => {
     const clip = recordingClipReads();
     const { open } = setUp(clip.read);
 
