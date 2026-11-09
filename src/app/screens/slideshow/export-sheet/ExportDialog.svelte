@@ -5,8 +5,9 @@
   import Sheet from "../../../components/Sheet.svelte";
 
   /**
-   * The export sheets' heading and ✕ in a `Sheet` (video_export/SHEET.md and html_export/SHEET.md). ✕ calls `onClose`; Esc goes back one
-   * level through `onBack` when there is one, else it calls `onClose`.
+   * The export sheets' heading and ✕ in a `Sheet` (video_export/SHEET.md and html_export/SHEET.md).
+   * ✕ calls `onClose`; Esc goes back one level through `onBack` when there is one, else it calls
+   * `onClose`.
    */
   let {
     labelId,

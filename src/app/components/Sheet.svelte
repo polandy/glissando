@@ -2,10 +2,10 @@
   import { onMount, type Snippet } from "svelte";
 
   /**
-   * The settings sheets' frame: a modal dialog on desktop, a bottom sheet on a phone. `side` docks
-   * it to the right edge at full height instead, `corner` to the top right under the header; both
-   * are still a bottom sheet on a phone. A tap beside the
-   * sheet calls `onClose`; Esc calls `onCancel` when there is one, else `onClose`.
+   * The sheets' frame: a modal dialog on desktop, a bottom sheet on a phone. `side` docks it to the
+   * right edge at full height instead, `corner` to the top right under the header; both are still
+   * a bottom sheet on a phone. A tap beside the sheet calls `onClose`; Esc calls `onCancel` when
+   * there is one, else `onClose`.
    */
   let {
     labelId,
