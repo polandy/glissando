@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { VideoPlaybackError } from "../ports";
 import type { ClipSoundOutput } from "./music-output";
-import { VideoElementPlayback, VIDEO_RATE_TOLERANCE_MS, type VideoOutput } from "./video-playback";
+import {
+  VideoElementPlayback,
+  VIDEO_RATE_TOLERANCE_MS,
+  type VideoElementPort,
+  type VideoOutput,
+} from "./video-playback";
 import { settleMicrotasks } from "../../testing/settle-microtasks";
 
 const HAVE_NOTHING = 0;
@@ -9,17 +14,18 @@ const HAVE_CURRENT_DATA = 2;
 const HAVE_FUTURE_DATA = 3;
 const END_MS = 10_000;
 
-class FakeElement extends EventTarget {
+class FakeElement extends EventTarget implements VideoElementPort {
   currentTime = 0;
   muted = false;
   volume = 1;
   playsInline = false;
   playbackRate = 1;
-  preload = "";
+  preload: VideoElementPort["preload"] = "";
   readyState = HAVE_CURRENT_DATA;
   seeking = false;
   paused = false;
   src = "";
+  error = null;
   playCalls = 0;
   pauseCalls = 0;
   loadCalls = 0;
@@ -58,7 +64,7 @@ function setUp(volume = 1, decoded: Promise<AudioBuffer | null> = Promise.resolv
   const { output, unlocked } = outputWithUnlock();
   const released: string[] = [];
   const playback = new VideoElementPlayback(
-    element as unknown as HTMLVideoElement,
+    element,
     volume,
     END_MS,
     output,
@@ -164,7 +170,7 @@ describe("VideoElementPlayback", () => {
     const failures: Error[] = [];
     const { output } = outputWithUnlock();
     const playback = new VideoElementPlayback(
-      new FakeElement() as unknown as HTMLVideoElement,
+      new FakeElement(),
       1,
       END_MS,
       output,
@@ -191,7 +197,7 @@ describe("VideoElementPlayback", () => {
     const element = new FakeElement();
     const { output } = outputWithUnlock();
     const playback = new VideoElementPlayback(
-      element as unknown as HTMLVideoElement,
+      element,
       1,
       END_MS,
       output,
@@ -210,7 +216,7 @@ describe("VideoElementPlayback", () => {
     const element = new FakeElement();
     const { output } = outputWithUnlock();
     const playback = new VideoElementPlayback(
-      element as unknown as HTMLVideoElement,
+      element,
       1,
       END_MS,
       output,
@@ -253,7 +259,7 @@ describe("VideoElementPlayback", () => {
     const output: VideoOutput = { unlock: () => undefined, clipSoundOutput: () => clipSoundOutput };
     const element = new FakeElement();
     const playback = new VideoElementPlayback(
-      element as unknown as HTMLVideoElement,
+      element,
       1,
       END_MS,
       output,

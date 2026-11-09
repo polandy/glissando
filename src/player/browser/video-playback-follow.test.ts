@@ -1,13 +1,18 @@
 import { describe, expect, it } from "vitest";
 import type { ClipSoundOutput } from "./music-output";
-import { VIDEO_RATE_TOLERANCE_MS, VideoElementPlayback, type VideoOutput } from "./video-playback";
+import {
+  VIDEO_RATE_TOLERANCE_MS,
+  VideoElementPlayback,
+  type VideoElementPort,
+  type VideoOutput,
+} from "./video-playback";
 
 const HAVE_CURRENT_DATA = 2;
 const HAVE_FUTURE_DATA = 3;
 const END_MS = 20_000;
 
 /** A `<video>` fake covering only what `follow` reads and writes. */
-class FakeElement extends EventTarget {
+class FakeElement extends EventTarget implements VideoElementPort {
   currentTime = 0;
   muted = false;
   volume = 1;
@@ -22,11 +27,15 @@ class FakeElement extends EventTarget {
     this.playbackRateAssignments += 1;
     this.#playbackRate = value;
   }
-  preload = "";
+  preload: VideoElementPort["preload"] = "";
   readyState = HAVE_CURRENT_DATA;
   seeking = false;
   paused = false;
   src = "";
+  error = null;
+  play = () => Promise.resolve();
+  pause = () => undefined;
+  load = () => undefined;
   removeAttribute(name: string): void {
     if (name === "src") {
       this.src = "";
@@ -42,7 +51,7 @@ const OUTPUT: VideoOutput = {
 function setUp(volume = 1) {
   const element = new FakeElement();
   const playback = new VideoElementPlayback(
-    element as unknown as HTMLVideoElement,
+    element,
     volume,
     END_MS,
     OUTPUT,
