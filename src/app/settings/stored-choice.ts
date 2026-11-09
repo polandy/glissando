@@ -11,12 +11,20 @@ export function createStoredChoice<Choice extends string>(
   key: string,
   choices: readonly Choice[],
   fallback: Choice,
+  warn: (message: string) => void = console.warn,
 ): StoredChoice<Choice> {
+  let warned = false;
   return {
-    // A stored value this version does not know reads as the default.
+    // A stored value this version does not know reads as the default, with one warning.
     read: () => {
       const stored = storage.getItem(key);
-      return choices.find((choice) => choice === stored) ?? fallback;
+      const known = choices.find((choice) => choice === stored);
+      if (known !== undefined) return known;
+      if (stored !== null && !warned) {
+        warned = true;
+        warn(`unknown stored value ${JSON.stringify(stored)} for "${key}"; using "${fallback}"`);
+      }
+      return fallback;
     },
     write: (choice) => storage.setItem(key, choice),
   };
