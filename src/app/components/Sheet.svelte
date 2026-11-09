@@ -31,7 +31,7 @@
     /** Once the dialog is open, e.g. to focus the checked choice. */
     onOpen?: () => void;
     onClose: () => void;
-    onCancel?: () => void;
+    onCancel?: (() => void) | undefined;
     children: Snippet;
   } = $props();
 
