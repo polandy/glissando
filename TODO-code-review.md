@@ -41,7 +41,6 @@ Each fix starts with the failing test the item names or implies (WORKFLOW.md, Te
 
 ### Tooling, docs and tests
 
-- [ ] `dev-docs/library/SAMPLE_MUSIC.md:36` — Points to `build/demo-slideshow-config.ts`, which does not exist. Fix: drop or repoint.
 - [ ] `dev-docs/UX_BACKLOG.md` — A finished, dated review record among current specs. Fix: delete it (git holds it) or move the method notes to `scripts/ux-tour/README.md`.
 - [ ] `dev-docs/player/VIDEO_SLIDES.md:23` — "no longer hidden" narrates history. Fix: state the current behaviour.
 - [ ] `.github/workflows/ci.yml:44,58,64`, `release-please.yml` — No `timeout-minutes`; a hung job holds a runner 6 h. Fix: per-job timeouts.
