@@ -31,6 +31,8 @@
   already set to automatic" while they are; the toast "Portrait pictures back to automatic"
   with "Undo" follows) and "Done". Done, Esc or a tap on the scrim closes it; focus starts on
   the checked tile and goes back to the row.
+- **More menu keys**: ↑/↓ (wrapping), Home and End move through the ⋯ menu's items; Tab or Esc
+  closes it and puts the focus back on the ⋯ button. A separator sits only between non-empty groups.
 - **Delete**: "Delete slideshow …" asks in a dialog, "Delete “title”?", what goes (the
   slideshow and its n pictures, not the original photos; cannot be undone), "Keep" (focused)
   and a coral "Delete"; Keep or Esc puts the focus back on the ⋯ button. Deleting first closes
