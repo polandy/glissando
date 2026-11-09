@@ -21,3 +21,7 @@ declare module "node:path" {
 declare module "node:zlib" {
   export function deflateSync(data: Uint8Array): Uint8Array<ArrayBuffer>;
 }
+
+declare module "node:process" {
+  export const env: Readonly<Record<string, string | undefined>>;
+}
