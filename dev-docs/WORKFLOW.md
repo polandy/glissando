@@ -59,6 +59,8 @@ here; this file is the full text.
   watch-polling. Targeted checks (one failing test, a suspected flake, one e2e case) run locally
   first in the pinned image — the owner's machine is faster than the CI runners; rerun on GitHub
   only after the local run answered the question.
+- **Every workflow job sets `timeout-minutes`**, at about three times its slowest run, so a hung job
+  frees its runner instead of holding it for 6 h.
 - **English throughout** — code, comments, docs, commits, PR text. The owner's German is
   translated, never quoted. German only as content (UI copy, seed data).
 - **No attribution lines**: no `Co-Authored-By`, no "Generated with" — not in commits, squash
