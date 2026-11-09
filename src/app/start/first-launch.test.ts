@@ -1,9 +1,6 @@
 import { describe, expect, it } from "vitest";
-import {
-  consumeFirstLaunch,
-  createStorageFirstLaunchStore,
-  type KeyValueStorage,
-} from "./first-launch";
+import type { KeyValueStorage } from "../storage/storage-port";
+import { consumeFirstLaunch, createStorageFirstLaunchStore } from "./first-launch";
 
 function createMemoryStorage(): KeyValueStorage {
   const entries = new Map<string, string>();

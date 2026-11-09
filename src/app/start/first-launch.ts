@@ -1,4 +1,4 @@
-export type KeyValueStorage = Pick<Storage, "getItem" | "setItem">;
+import type { KeyValueStorage } from "../storage/storage-port";
 
 export interface FirstLaunchStore {
   hasLaunchedBefore(): boolean;

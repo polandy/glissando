@@ -1,4 +1,4 @@
-import type { KeyValueStorage } from "../start/first-launch";
+import type { KeyValueStorage } from "../storage/storage-port";
 import { createStoredChoice, type StoredChoice } from "../settings/stored-choice";
 
 const MUSIC_EDITOR_DETAILS_CHOICES = ["shown", "hidden"] as const;
