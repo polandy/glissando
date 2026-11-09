@@ -41,7 +41,6 @@ Each fix starts with the failing test the item names or implies (WORKFLOW.md, Te
 
 ### Tooling, docs and tests
 
-- [ ] `dev-docs/player/VIDEO_SLIDES.md:23` — "no longer hidden" narrates history. Fix: state the current behaviour.
 - [ ] `.github/workflows/ci.yml:44,58,64`, `release-please.yml` — No `timeout-minutes`; a hung job holds a runner 6 h. Fix: per-job timeouts.
 - [ ] `vite.config.ts:13,68` — The e2e-only `tvStreamPlugin` runs in every `vite preview`, incl. the LAN preview, with an unbounded push buffer. Fix: register it only from the Playwright webServer command.
 - [ ] `scripts/brand/webfonts.py:105` — Licence files are fetched without a hash check. Fix: `license_sha256` per `FontSource`.
