@@ -20,7 +20,7 @@ https://polandy.github.io/glissando-assets/mockups/video-slides/.
 ## Import
 
 - Videos come in through the same picker as pictures, mixed in capture order. A picture list shows a
-  video with a length badge; Immich videos are no longer hidden (`IMMICH.md`).
+  video with a length badge; Immich videos are listed too (`IMMICH.md`).
 - Capture time: the container's creation time (read with mediabunny, taken as device wall time
   like a photo's), then the file date. The poster is the frame at the
   start of the excerpt, downscaled like a picture (`PICTURE_IMPORT.md`) and cached as its picture.
