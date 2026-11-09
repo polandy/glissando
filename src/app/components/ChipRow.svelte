@@ -64,6 +64,7 @@
   @media (pointer: coarse) {
     .chip {
       min-height: var(--gl-hit-min);
+      padding-inline: 14px;
     }
   }
 </style>
