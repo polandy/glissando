@@ -41,7 +41,6 @@ Each fix starts with the failing test the item names or implies (WORKFLOW.md, Te
 
 ### Tooling, docs and tests
 
-- [ ] `scripts/ci-failures.sh:5` — Takes the latest run whatever its state. Fix: `--status failure`.
 - [ ] `e2e/touch-reorder.spec.ts:90` — Waits out the hold timer on the real clock. Fix: `page.clock.install()` + `runFor(HOLD_MS)`.
 - [ ] `src/player/browser/open-video.test.ts:123` — Named "never fetches" but asserts one read and checks no decode. Fix: rename to what it checks.
 - [ ] 27 `as unknown as` casts in tests (`video-playback.test.ts:166`, `open-video.test.ts`, lifecycle/follow/fallback tests) force fakes into DOM types. Fix: a narrow `VideoElementPort` the fakes implement.
