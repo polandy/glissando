@@ -1,5 +1,5 @@
 import type { PersistentStorageResult } from "../../library/persistent-storage";
-import type { KeyValueStorage } from "../start/first-launch";
+import type { KeyValueStorage } from "./storage-port";
 
 /** Remembers, across reloads, that the user was told about a refused persistent storage. */
 export interface RefusalNoticeStore {

@@ -1,5 +1,5 @@
 import { pickLanguage, type Language } from "../i18n/translator";
-import type { KeyValueStorage } from "../start/first-launch";
+import type { KeyValueStorage } from "../storage/storage-port";
 import { createStoredChoice, type StoredChoice } from "./stored-choice";
 
 /** "auto" speaks the first browser language the app knows; the others pin a language. */

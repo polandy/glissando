@@ -37,7 +37,6 @@ Each fix starts with the failing test the item names or implies (WORKFLOW.md, Te
 
 ### App shell, routing and editors
 
-- [ ] `src/app/start/first-launch.ts` — `KeyValueStorage` lives in the first-launch module and settings import it sideways. Fix: a small shared `storage-port.ts`.
 - [ ] `src/app/settings/stored-choice.ts:16-19` — An unrecognised stored value is read as the default without a log. Fix (optional): warn once.
 
 ### Screens
