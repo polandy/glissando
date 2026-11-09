@@ -1,4 +1,4 @@
-import { mount } from "svelte";
+import { mount, unmount } from "svelte";
 import App from "./app/App.svelte";
 import { createErrorReporter, errorEventCause } from "./app/errors/error-reporter";
 import { appContext } from "./app/app-context";
@@ -10,7 +10,7 @@ import { browserScreenShortEdge } from "./app/settings/playback-quality";
 import { bootstrapSettings } from "./app/settings/bootstrap-settings";
 import { createDeviceSettingsStores } from "./app/device-settings-stores";
 import { browserScheduler } from "./ui-kit/scheduler";
-import { handOverFromShell, showStartupFailure } from "./app/shell/app-shell";
+import { handOverFromShell, showInPlaceOfApp, showStartupFailure } from "./app/shell/app-shell";
 import { consumeFirstLaunch, createStorageFirstLaunchStore } from "./app/start/first-launch";
 import {
   createStorageRefusalNoticeStore,
@@ -29,7 +29,8 @@ import { browserImmich } from "./immich/browser-immich";
 import { createImmichReaders } from "./immich/immich-readers";
 import { FocusPass } from "./library/focus-pass";
 import { serializeFocusDetector } from "./library/serialized-focus-detector";
-import { type IndexedDbLibraryStore, openLibraryStore } from "./library/indexeddb-store";
+import type { IndexedDbLibraryStore } from "./library/indexeddb-store";
+import { isNewerVersionError, openLibraryStore } from "./library/indexeddb-open";
 import { startFocusWorker, WorkerFocusDetector } from "./focus/worker-focus-detector";
 import { requestPersistentStorage } from "./library/persistent-storage";
 import { browserPwaPorts } from "./pwa/browser-pwa";
@@ -80,12 +81,39 @@ const pwa = new PwaStatus(
 );
 pwa.start().catch(reportError);
 
+const reloadPage = (): void => window.location.reload();
+const reloadAction = (): { label: string; run: () => void } => ({
+  label: translator.current.t("common.reload"),
+  run: reloadPage,
+});
+
+// A running show or frame is never cut off: the newer-version screen waits for the button there.
+const reloadForNewerVersion = (): void => {
+  const screen = navigator.route.screen;
+  if (screen !== "player" && screen !== "frame") {
+    reloadPage();
+    return;
+  }
+  unmount(app)
+    .then(() =>
+      showInPlaceOfApp(target, translator.current.t("common.newerVersionOpen"), reloadAction()),
+    )
+    .catch(reportError);
+};
+
 // Rethrown so the error listener above reports it; the app stops here, the shell keeps the screen.
 async function openLibraryOrShowFailure(appShell: HTMLElement): Promise<IndexedDbLibraryStore> {
   try {
-    return await openLibraryStore(window.indexedDB);
+    return await openLibraryStore(window.indexedDB, {
+      onNewerVersion: reloadForNewerVersion,
+      onBlocked: () => logError(new Error("The library upgrade waits for another tab to close")),
+    });
   } catch (error) {
-    showStartupFailure(appShell, translator.current.t("common.storageUnavailable"));
+    if (isNewerVersionError(error)) {
+      showStartupFailure(appShell, translator.current.t("common.newerVersionOpen"), reloadAction());
+    } else {
+      showStartupFailure(appShell, translator.current.t("common.storageUnavailable"));
+    }
     throw error;
   }
 }
@@ -237,7 +265,7 @@ const services = {
 };
 
 const playStartAnimation = consumeFirstLaunch(createStorageFirstLaunchStore(window.localStorage));
-mount(App, {
+const app = mount(App, {
   target,
   props: { services, playStartAnimation },
   context: appContext(translator, services.navigator),

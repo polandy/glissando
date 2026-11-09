@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { handOverFromShell, showStartupFailure } from "./app-shell";
+import { handOverFromShell, showInPlaceOfApp, showStartupFailure } from "./app-shell";
 
 // Long enough that a real fade never ends during a test; the tests end it themselves.
 const FADING = "opacity 1000s";
@@ -89,8 +89,44 @@ describe("showStartupFailure", () => {
     expect(shell.hasAttribute("data-failed")).toBe(true);
   });
 
+  it("offers a button that runs the given action", () => {
+    const shell = mountShellWithStage();
+    let reloads = 0;
+    showStartupFailure(shell, "Reload to continue.", {
+      label: "Reload",
+      run: () => (reloads += 1),
+    });
+
+    const button = shell.querySelector<HTMLButtonElement>("[role=alert] button");
+    expect(button?.textContent).toBe("Reload");
+    button?.click();
+    expect(reloads).toBe(1);
+  });
+
+  it("shows no button without an action", () => {
+    const shell = mountShellWithStage();
+    showStartupFailure(shell, "Glissando cannot start.");
+    expect(shell.querySelector("button")).toBeNull();
+  });
+
   it("fails loud when the shell has no stage", () => {
     const shell = mountShell("none");
     expect(() => showStartupFailure(shell, "Glissando cannot start.")).toThrow(/app-shell-stage/);
+  });
+});
+
+describe("showInPlaceOfApp", () => {
+  it("replaces the app with the message and a button that runs the action", () => {
+    const target = mountShell("none");
+    let reloads = 0;
+    showInPlaceOfApp(target, "A newer version is open.", {
+      label: "Reload",
+      run: () => (reloads += 1),
+    });
+
+    expect(target.querySelector("span")).toBeNull();
+    expect(target.querySelector("[role=alert]")?.textContent).toContain("A newer version is open.");
+    target.querySelector("button")?.click();
+    expect(reloads).toBe(1);
   });
 });

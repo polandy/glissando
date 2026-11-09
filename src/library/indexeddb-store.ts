@@ -14,15 +14,12 @@ import {
   BEATS,
   FOCUS,
   IMPORTS,
-  LIBRARY_DATABASE_NAME,
   MEDIA_KEYED_STORES,
   LOUDNESS,
   MUSIC,
   PICTURES,
-  SCHEMA_VERSION,
   SLIDESHOWS,
   VIDEOS,
-  upgradeLibraryDatabase,
   type StoreName,
 } from "./indexeddb-schema";
 import { editSlideshowRecord } from "./indexeddb-edit";
@@ -37,10 +34,13 @@ export { LIBRARY_DATABASE_NAME } from "./indexeddb-schema";
 export class IndexedDbLibraryStore implements LibraryStore {
   readonly #database: IDBDatabase;
 
-  constructor(database: IDBDatabase) {
+  constructor(database: IDBDatabase, onNewerVersion: () => void = () => undefined) {
     this.#database = database;
     // Another tab upgrading the schema must not stay blocked behind this connection.
-    database.onversionchange = () => database.close();
+    database.onversionchange = () => {
+      database.close();
+      onNewerVersion();
+    };
   }
 
   close(): void {
@@ -280,11 +280,4 @@ export class IndexedDbLibraryStore implements LibraryStore {
     work(transaction);
     return committed;
   }
-}
-
-/** Opens (and creates or upgrades) the library database. */
-export function openLibraryStore(indexedDB: IDBFactory): Promise<IndexedDbLibraryStore> {
-  const request = indexedDB.open(LIBRARY_DATABASE_NAME, SCHEMA_VERSION);
-  request.onupgradeneeded = () => upgradeLibraryDatabase(request.result);
-  return requestResult(request).then(() => new IndexedDbLibraryStore(request.result));
 }

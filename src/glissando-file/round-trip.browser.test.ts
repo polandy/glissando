@@ -1,9 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
-import {
-  LIBRARY_DATABASE_NAME,
-  openLibraryStore,
-  type IndexedDbLibraryStore,
-} from "../library/indexeddb-store";
+import { LIBRARY_DATABASE_NAME, type IndexedDbLibraryStore } from "../library/indexeddb-store";
+import { openLibraryStore } from "../library/indexeddb-open";
 import { checkGlissandoFile } from "./check-glissando-file";
 import { fakeMediaDecoders } from "./testing/fake-media-decoders";
 import {
