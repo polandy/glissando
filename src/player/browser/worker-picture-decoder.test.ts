@@ -34,20 +34,7 @@ class FakeDecodeWorker implements PictureDecodeWorker {
 }
 
 const BYTES = new Blob(["picture"]);
-const BITMAP = { width: 4, height: 3 } as ImageBitmap;
-
-/** A bitmap that records whether it was closed. */
-function closableBitmap(): { readonly bitmap: ImageBitmap; closed(): boolean } {
-  let closed = false;
-  const bitmap = {
-    width: 4,
-    height: 3,
-    close: () => {
-      closed = true;
-    },
-  } as ImageBitmap;
-  return { bitmap, closed: () => closed };
-}
+const PICTURE = { width: 1, height: 1, data: new Uint8ClampedArray(4) };
 
 describe("WorkerPictureDecoder", () => {
   it("starts one worker on the first decode and resolves each request with its own reply", async () => {
@@ -60,11 +47,11 @@ describe("WorkerPictureDecoder", () => {
     const first = decoder.decode(BYTES);
     const second = decoder.decode(BYTES);
     const [worker] = workers;
-    worker?.reply({ id: worker.requests[1]?.id ?? -1, kind: "decoded", bitmap: BITMAP });
+    worker?.reply({ id: worker.requests[1]?.id ?? -1, kind: "decoded", picture: PICTURE });
     worker?.reply({ id: worker.requests[0]?.id ?? -1, kind: "failed", message: "corrupt" });
 
     expect(workers).toHaveLength(1);
-    await expect(second).resolves.toBe(BITMAP);
+    await expect(second).resolves.toBe(PICTURE);
     await expect(first).rejects.toThrow(new PictureDecodeError("corrupt"));
   });
 
@@ -116,17 +103,15 @@ describe("WorkerPictureDecoder", () => {
     expect(worker.terminated).toBe(true);
   });
 
-  it("closes a decoded picture whose request was already rejected", async () => {
+  it("keeps a request rejected when its decoded picture arrives late", async () => {
     const worker = new FakeDecodeWorker();
     const decoder = new WorkerPictureDecoder(() => worker);
     const pending = decoder.decode(BYTES);
     worker.onmessageerror?.(new MessageEvent("messageerror"));
-    const late = closableBitmap();
 
-    worker.reply({ id: worker.requests[0]?.id ?? -1, kind: "decoded", bitmap: late.bitmap });
+    worker.reply({ id: worker.requests[0]?.id ?? -1, kind: "decoded", picture: PICTURE });
 
     await expect(pending).rejects.toBeInstanceOf(PictureDecodeError);
-    expect(late.closed()).toBe(true);
   });
 
   it("terminates the worker on dispose and rejects what it was decoding", async () => {

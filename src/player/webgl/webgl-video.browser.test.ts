@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
-import type { BitmapPicture } from "../browser/bitmap-loader";
+import type { PixelPicture } from "../browser/pixel-loader";
 import type { LiveFrame, RenderFrame } from "../ports";
 import {
   BLUE,
@@ -8,8 +8,8 @@ import {
   WHITE,
   quadrantCanvas,
   repaint,
-  solidBitmap,
-  solidBitmapOfSize,
+  solidPixels,
+  solidPixelsOfSize,
   solidCanvas,
   standingStill,
   viewportBox,
@@ -51,7 +51,7 @@ function setUp(viewport = SCREEN) {
     deleted.push(texture);
     deleteTexture(texture);
   };
-  const frameOf = (poster: BitmapPicture, live?: LiveFrame): RenderFrame<BitmapPicture> => ({
+  const frameOf = (poster: PixelPicture, live?: LiveFrame): RenderFrame<PixelPicture> => ({
     kind: "slide",
     endFade: 0,
     look: "none",
@@ -63,7 +63,7 @@ function setUp(viewport = SCREEN) {
     },
   });
   const drawAndRead = (
-    frame: RenderFrame<BitmapPicture>,
+    frame: RenderFrame<PixelPicture>,
     xFromLeft: number,
     yFromTop: number,
   ): Rgb => {
@@ -92,19 +92,19 @@ function isColour(actual: Rgb, expected: Rgb): boolean {
 describe("WebGlRenderer: video slides (ADR-0035)", () => {
   it("draws the poster while the layer has no live frame", async () => {
     const { frameOf, drawAndRead } = setUp();
-    const poster = await solidBitmap(RED);
+    const poster = solidPixels(RED);
     expect(drawAndRead(frameOf(poster), 0.5, 0.5)).toEqual(RED);
   });
 
   it("draws the live frame in place of the poster", async () => {
     const { frameOf, drawAndRead } = setUp();
-    const poster = await solidBitmap(RED);
+    const poster = solidPixels(RED);
     expect(drawAndRead(frameOf(poster, solidCanvas(BLUE)), 0.5, 0.5)).toEqual(BLUE);
   });
 
   it("draws the live frame the right way up", async () => {
     const { frameOf, drawAndRead } = setUp();
-    const poster = await solidBitmapOfSize(RED, SCREEN);
+    const poster = solidPixelsOfSize(RED, SCREEN);
     const frame = frameOf(poster, quadrantCanvas());
     expect(drawAndRead(frame, 0.1, 0.1)).toEqual(RED);
     expect(drawAndRead(frame, 0.9, 0.1)).toEqual(GREEN);
@@ -114,7 +114,7 @@ describe("WebGlRenderer: video slides (ADR-0035)", () => {
 
   it("uploads the live source again for every frame drawn", async () => {
     const { frameOf, drawAndRead } = setUp();
-    const poster = await solidBitmap(RED);
+    const poster = solidPixels(RED);
     const live = solidCanvas(BLUE);
     const frame = frameOf(poster, live);
     expect(drawAndRead(frame, 0.5, 0.5)).toEqual(BLUE);
@@ -124,14 +124,14 @@ describe("WebGlRenderer: video slides (ADR-0035)", () => {
 
   it("goes back to the poster when the live frame is gone", async () => {
     const { frameOf, drawAndRead } = setUp();
-    const poster = await solidBitmap(RED);
+    const poster = solidPixels(RED);
     expect(drawAndRead(frameOf(poster, solidCanvas(BLUE)), 0.5, 0.5)).toEqual(BLUE);
     expect(drawAndRead(frameOf(poster), 0.5, 0.5)).toEqual(RED);
   });
 
   it("keeps the blurred fill of a portrait clip from its poster, the live frame in front", async () => {
     const { frameOf, drawAndRead } = setUp({ width: 1920, height: 1080 });
-    const poster = await solidBitmapOfSize(RED, { width: 300, height: 400 });
+    const poster = solidPixelsOfSize(RED, { width: 300, height: 400 });
     const frame = frameOf(poster, solidCanvas(BLUE));
     expect(drawAndRead(frame, 0.5, 0.5)).toEqual(BLUE);
     const side = drawAndRead(frame, 0.02, 0.5);
@@ -142,7 +142,7 @@ describe("WebGlRenderer: video slides (ADR-0035)", () => {
 
   it("deletes the live texture with the poster's when the slide is forgotten", async () => {
     const { renderer, frameOf, drawAndRead, created, deleted } = setUp();
-    const poster = await solidBitmap(RED);
+    const poster = solidPixels(RED);
     drawAndRead(frameOf(poster, solidCanvas(BLUE)), 0.5, 0.5);
     expect(created).toHaveLength(TEXTURES_OF_A_LIVE_SLIDE);
 

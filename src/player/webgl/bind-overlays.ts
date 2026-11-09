@@ -1,4 +1,4 @@
-import type { BitmapPicture } from "../browser/bitmap-loader";
+import type { PixelPicture } from "../browser/pixel-loader";
 import type { Size } from "../ken-burns";
 import type { PictureSlideLayer, SlideLayer } from "../ports";
 import type { CaptionTextures } from "./caption-textures";
@@ -11,7 +11,7 @@ export function bindCaption(
   gl: WebGL2RenderingContext,
   captions: CaptionTextures,
   unit: number,
-  layer: SlideLayer<BitmapPicture>,
+  layer: SlideLayer<PixelPicture>,
   sampler: WebGLUniformLocation | null,
   opacityUniform: WebGLUniformLocation | null,
   viewport: Size,
@@ -25,7 +25,7 @@ export function bindCaption(
 
 /** A picture layer's caption, keyed by its own picture, opaque unless shared with a card; a
  * ground layer has none (ports.ts). */
-function captionTarget(layer: SlideLayer<BitmapPicture>): {
+function captionTarget(layer: SlideLayer<PixelPicture>): {
   readonly owner: object;
   readonly caption: string | undefined;
   readonly opacity: number;
@@ -33,6 +33,6 @@ function captionTarget(layer: SlideLayer<BitmapPicture>): {
   if (layer.kind === "ground") {
     return { owner: layer.card.card, caption: undefined, opacity: OPAQUE_CAPTION };
   }
-  const { picture, caption }: PictureSlideLayer<BitmapPicture> = layer;
+  const { picture, caption }: PictureSlideLayer<PixelPicture> = layer;
   return { owner: picture, caption, opacity: layer.captionOpacity ?? OPAQUE_CAPTION };
 }

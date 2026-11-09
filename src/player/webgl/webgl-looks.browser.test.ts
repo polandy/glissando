@@ -1,12 +1,12 @@
 import { afterEach, describe, expect, it } from "vitest";
-import type { BitmapPicture } from "../browser/bitmap-loader";
+import type { PixelPicture } from "../browser/pixel-loader";
 import type { Fonts } from "../fonts";
 import { gradeColour, type Rgb as GradeRgb } from "../looks/grade-colour";
 import { GRADED_SLIDESHOW_LOOKS, type SlideshowLook } from "../looks/slideshow-look";
 import type { RenderFrame, SlideLayer } from "../ports";
 import {
   BLUE,
-  solidBitmap,
+  solidPixels,
   standingStill,
   viewportBox,
   type Rgb,
@@ -62,7 +62,7 @@ async function setUp() {
   fonts.finishLoading();
   await renderer.captionFontLoaded;
   /** Reads straight after drawing, before the browser presents and clears the frame. */
-  function drawAndRead(frame: RenderFrame<BitmapPicture>, [x, y]: readonly [number, number]): Rgb {
+  function drawAndRead(frame: RenderFrame<PixelPicture>, [x, y]: readonly [number, number]): Rgb {
     renderer.render(frame);
     const pixel = new Uint8Array(4);
     gl.readPixels(
@@ -77,7 +77,7 @@ async function setUp() {
     return [pixel[0] ?? 0, pixel[1] ?? 0, pixel[2] ?? 0];
   }
   /** Every pixel's red channel in the bottom half, where the caption's text sits. */
-  function bottomHalfReds(frame: RenderFrame<BitmapPicture>): number[] {
+  function bottomHalfReds(frame: RenderFrame<PixelPicture>): number[] {
     renderer.render(frame);
     const half = canvas.height / 2;
     const pixels = new Uint8Array(canvas.width * half * 4);
@@ -87,8 +87,8 @@ async function setUp() {
   return { drawAndRead, bottomHalfReds };
 }
 
-async function layer(colour: Rgb, caption?: string): Promise<SlideLayer<BitmapPicture>> {
-  const picture = await solidBitmap(colour);
+async function layer(colour: Rgb, caption?: string): Promise<SlideLayer<PixelPicture>> {
+  const picture = solidPixels(colour);
   return caption === undefined
     ? { kind: "picture", picture, motion: standingStill(WHOLE_PICTURE) }
     : { kind: "picture", picture, motion: standingStill(WHOLE_PICTURE), caption };
@@ -98,7 +98,7 @@ async function slideFrame(
   colour: Rgb,
   look: SlideshowLook,
   caption?: string,
-): Promise<RenderFrame<BitmapPicture>> {
+): Promise<RenderFrame<PixelPicture>> {
   return { kind: "slide", slide: await layer(colour, caption), endFade: 0, look };
 }
 
@@ -140,7 +140,7 @@ describe("WebGlRenderer looks (ADR-0044)", () => {
     async (look) => {
       const support = setUpCardRenderer();
       box = support.box;
-      const frame: RenderFrame<BitmapPicture> = {
+      const frame: RenderFrame<PixelPicture> = {
         kind: "slide",
         slide: groundLayer(cardVisual(baseCard())),
         endFade: 0,

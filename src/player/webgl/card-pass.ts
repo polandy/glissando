@@ -1,6 +1,6 @@
 import type { CardItemLayouts } from "../card-item-layouts";
 import { cardItemTimingAt, drawsBlurredCopy } from "../card-timing";
-import type { BitmapPicture } from "../browser/bitmap-loader";
+import type { PixelPicture } from "../browser/pixel-loader";
 import type { Size } from "../ken-burns";
 import type { SlideLayer } from "../ports";
 import type { CardRenderTarget } from "./card-render-target";
@@ -21,7 +21,7 @@ export function renderCardLayer(
   cards: CardTextures,
   cardItemLayouts: CardItemLayouts,
   target: CardRenderTarget,
-  layer: SlideLayer<BitmapPicture>,
+  layer: SlideLayer<PixelPicture>,
   viewport: Size,
 ): void {
   target.renderInto(viewport, () => {
@@ -43,7 +43,7 @@ function drawCardItems(
   cardItems: CardItemProgram,
   cards: CardTextures,
   cardItemLayouts: CardItemLayouts,
-  layer: SlideLayer<BitmapPicture>,
+  layer: SlideLayer<PixelPicture>,
   viewport: Size,
 ): void {
   const visual = layer.card;

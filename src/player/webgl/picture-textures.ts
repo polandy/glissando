@@ -1,10 +1,12 @@
-import type { BitmapPicture } from "../browser/bitmap-loader";
+import type { PixelPicture } from "../browser/pixel-loader";
 import type { LiveFrame } from "../ports";
 import { createBackdropTexture } from "./backdrop-texture";
 import { setLinearClamped } from "./caption-textures";
 
 /** Pixels uploaded by one `prepare` step: a few milliseconds of a frame in WebKit (ADR-0014). */
 export const UPLOAD_PIXELS_PER_FRAME = 1_048_576;
+
+const BYTES_PER_PIXEL = 4;
 
 /** A ground layer's colour comes from a uniform, not a texture; its sampler units still need a
  * complete texture bound, so every layer binds one of these (ADR-0032). */
@@ -35,8 +37,8 @@ interface LiveTexture {
  */
 export class PictureTextures {
   readonly #gl: WebGL2RenderingContext;
-  readonly #textures = new Map<BitmapPicture, PictureTexture>();
-  readonly #live = new Map<BitmapPicture, LiveTexture>();
+  readonly #textures = new Map<PixelPicture, PictureTexture>();
+  readonly #live = new Map<PixelPicture, LiveTexture>();
   #frame = 0;
   #placeholder: WebGLTexture;
 
@@ -51,12 +53,12 @@ export class PictureTextures {
     return this.#placeholder;
   }
 
-  isComplete(picture: BitmapPicture): boolean {
+  isComplete(picture: PixelPicture): boolean {
     return (this.#textures.get(picture)?.backdrop ?? null) !== null;
   }
 
   /** Does the next bounded step of the upload, if any is left. */
-  prepareStep(picture: BitmapPicture): void {
+  prepareStep(picture: PixelPicture): void {
     const entry = this.#entry(picture);
     if (entry.rowsUploaded < picture.height) {
       this.#uploadRows(picture, entry, rowsPerSlice(picture));
@@ -68,7 +70,7 @@ export class PictureTextures {
   }
 
   /** The picture's complete texture, bound to the active unit. */
-  texture(picture: BitmapPicture): WebGLTexture {
+  texture(picture: PixelPicture): WebGLTexture {
     const entry = this.#entry(picture);
     if (entry.rowsUploaded < picture.height) {
       this.#uploadRows(picture, entry, picture.height - entry.rowsUploaded);
@@ -86,7 +88,7 @@ export class PictureTextures {
   }
 
   /** The clip's current `frame` as the texture standing for `poster`, bound to the active unit. */
-  live(poster: BitmapPicture, frame: LiveFrame): WebGLTexture {
+  live(poster: PixelPicture, frame: LiveFrame): WebGLTexture {
     const gl = this.#gl;
     const entry = this.#liveEntry(poster);
     gl.bindTexture(gl.TEXTURE_2D, entry.texture);
@@ -98,14 +100,14 @@ export class PictureTextures {
   }
 
   /** The picture's blurred backdrop texture, bound to the active unit. */
-  backdrop(picture: BitmapPicture): WebGLTexture {
+  backdrop(picture: PixelPicture): WebGLTexture {
     const entry = this.#entry(picture);
     entry.backdrop ??= createBackdropTexture(this.#gl, picture);
     this.#gl.bindTexture(this.#gl.TEXTURE_2D, entry.backdrop);
     return entry.backdrop;
   }
 
-  forget(picture: BitmapPicture): void {
+  forget(picture: PixelPicture): void {
     const entry = this.#textures.get(picture);
     if (entry !== undefined) {
       this.#gl.deleteTexture(entry.texture);
@@ -137,7 +139,7 @@ export class PictureTextures {
     this.#gl.deleteTexture(this.#placeholder);
   }
 
-  #liveEntry(poster: BitmapPicture): LiveTexture {
+  #liveEntry(poster: PixelPicture): LiveTexture {
     const existing = this.#live.get(poster);
     if (existing !== undefined) {
       return existing;
@@ -152,7 +154,7 @@ export class PictureTextures {
   }
 
   /** The picture's texture, its storage allocated for the whole mip chain on first use. */
-  #entry(picture: BitmapPicture): PictureTexture {
+  #entry(picture: PixelPicture): PictureTexture {
     const existing = this.#textures.get(picture);
     if (existing !== undefined) {
       return existing;
@@ -170,12 +172,12 @@ export class PictureTextures {
     return entry;
   }
 
-  #uploadRows(picture: BitmapPicture, entry: PictureTexture, rows: number): void {
+  #uploadRows(picture: PixelPicture, entry: PictureTexture, rows: number): void {
     const gl = this.#gl;
     const top = entry.rowsUploaded;
     const height = Math.min(rows, picture.height - top);
+    const rowBytes = picture.width * BYTES_PER_PIXEL;
     gl.bindTexture(gl.TEXTURE_2D, entry.texture);
-    gl.pixelStorei(gl.UNPACK_SKIP_ROWS, top);
     gl.texSubImage2D(
       gl.TEXTURE_2D,
       0,
@@ -185,9 +187,8 @@ export class PictureTextures {
       height,
       gl.RGBA,
       gl.UNSIGNED_BYTE,
-      picture.bitmap,
+      picture.data.subarray(top * rowBytes, (top + height) * rowBytes),
     );
-    gl.pixelStorei(gl.UNPACK_SKIP_ROWS, 0);
     entry.rowsUploaded = top + height;
   }
 
@@ -206,10 +207,10 @@ function createPlaceholder(gl: WebGL2RenderingContext): WebGLTexture {
   return texture;
 }
 
-function rowsPerSlice({ width }: BitmapPicture): number {
+function rowsPerSlice({ width }: PixelPicture): number {
   return Math.max(1, Math.floor(UPLOAD_PIXELS_PER_FRAME / width));
 }
 
-function mipLevels({ width, height }: BitmapPicture): number {
+function mipLevels({ width, height }: PixelPicture): number {
   return Math.floor(Math.log2(Math.max(width, height))) + 1;
 }

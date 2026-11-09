@@ -1,4 +1,4 @@
-import type { BitmapPicture } from "../browser/bitmap-loader";
+import type { PixelPicture } from "../browser/pixel-loader";
 import type { Size } from "../ken-burns";
 import type { RenderFrame, SlideLayer } from "../ports";
 import { bindCaption } from "./bind-overlays";
@@ -20,7 +20,7 @@ export interface FrameTextures {
 
 /** The frame's own values, apart from its layers. */
 export interface FrameParameters {
-  readonly frame: RenderFrame<BitmapPicture>;
+  readonly frame: RenderFrame<PixelPicture>;
   readonly progress: number;
   readonly viewport: Size;
   readonly captionInsetCssPixels: number;
@@ -32,7 +32,7 @@ export function bindFrame(
   gl: WebGL2RenderingContext,
   { program, uniforms }: EffectProgram,
   textures: FrameTextures,
-  layers: { readonly from: SlideLayer<BitmapPicture>; readonly to: SlideLayer<BitmapPicture> },
+  layers: { readonly from: SlideLayer<PixelPicture>; readonly to: SlideLayer<PixelPicture> },
   { frame, progress, viewport, captionInsetCssPixels, pixelRatio }: FrameParameters,
 ): void {
   const { from, to } = layers;

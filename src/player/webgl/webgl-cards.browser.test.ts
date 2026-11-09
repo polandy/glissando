@@ -1,11 +1,11 @@
 import { afterEach, describe, expect, it } from "vitest";
-import type { BitmapPicture } from "../browser/bitmap-loader";
+import type { PixelPicture } from "../browser/pixel-loader";
 import { CARD_STYLE_SPECS, layoutCard, type CardTextSpec } from "../card-layout";
 import { cardItemSlices } from "../card-item-layout";
 import { CardItemLayouts, type MeasureFactory } from "../card-item-layouts";
 import { canvasCardMeasure } from "../card-measure";
 import type { PictureSlideLayer, RenderFrame } from "../ports";
-import { BLUE, solidBitmap, standingStill, RED, type Rgb } from "../testing/browser-pictures";
+import { BLUE, solidPixels, standingStill, RED, type Rgb } from "../testing/browser-pictures";
 import {
   baseCard,
   cardVisual,
@@ -34,7 +34,7 @@ function setUp(
 describe("WebGlRenderer ground slides", () => {
   it("fills a ground slide's corner with its own colour, not a picture's", () => {
     const { readPixel } = setUp();
-    const frame: RenderFrame<BitmapPicture> = {
+    const frame: RenderFrame<PixelPicture> = {
       kind: "slide",
       slide: groundLayer(cardVisual(baseCard())),
       endFade: 0,
@@ -48,13 +48,13 @@ describe("WebGlRenderer ground slides", () => {
 
   it("mixes a ground slide and a picture slide halfway through a crossfade", async () => {
     const { readPixel } = setUp();
-    const picture = await solidBitmap(BLUE);
-    const to: PictureSlideLayer<BitmapPicture> = {
+    const picture = solidPixels(BLUE);
+    const to: PictureSlideLayer<PixelPicture> = {
       kind: "picture",
       picture,
       motion: standingStill(WHOLE_PICTURE),
     };
-    const frame: RenderFrame<BitmapPicture> = {
+    const frame: RenderFrame<PixelPicture> = {
       kind: "transition",
       effect: "crossfade",
       progress: 0.5,
@@ -76,7 +76,7 @@ describe("WebGlRenderer ground slides", () => {
 describe("WebGlRenderer title cards", () => {
   it("draws nothing for a card until its style's fonts have loaded, then draws its text", async () => {
     const { renderer, fonts, readAllPixels } = setUp({ fontsLoaded: false });
-    const frame: RenderFrame<BitmapPicture> = {
+    const frame: RenderFrame<PixelPicture> = {
       kind: "slide",
       slide: groundLayer(cardVisual(baseCard(), { textOpacity: 1, slideTimeMs: 800 })),
       endFade: 0,
@@ -95,7 +95,7 @@ describe("WebGlRenderer title cards", () => {
     const { renderer, readAllPixels } = setUp();
     await renderer.cardFontLoaded("modern");
     const card = baseCard({ title: "Summer Lake", entrance: "words" });
-    const frame: RenderFrame<BitmapPicture> = {
+    const frame: RenderFrame<PixelPicture> = {
       kind: "slide",
       slide: groundLayer(cardVisual(card, { textOpacity: 1, slideTimeMs: 300 })),
       endFade: 0,
@@ -134,7 +134,7 @@ describe("WebGlRenderer title cards", () => {
     const cardItemLayouts = new CardItemLayouts(countingMeasure);
     const { renderer, readAllPixels } = setUp({ cardItemLayouts });
     await renderer.cardFontLoaded("modern");
-    const frame: RenderFrame<BitmapPicture> = {
+    const frame: RenderFrame<PixelPicture> = {
       kind: "slide",
       slide: groundLayer(cardVisual(baseCard(), { textOpacity: 1, slideTimeMs: 800 })),
       endFade: 0,
@@ -153,11 +153,11 @@ describe("WebGlRenderer title cards", () => {
 describe("WebGlRenderer veils", () => {
   it("leaves the picture unchanged at amount 0, and less saturated at amount 1", async () => {
     const { readPixel } = setUp();
-    const picture = await solidBitmap(RED);
+    const picture = solidPixels(RED);
     const motion = standingStill(WHOLE_PICTURE);
     const card = baseCard({ veil: { amount: 1, tint: "#2A2340" } });
-    function frame(veilAmount: number): RenderFrame<BitmapPicture> {
-      const slide: PictureSlideLayer<BitmapPicture> = {
+    function frame(veilAmount: number): RenderFrame<PixelPicture> {
+      const slide: PictureSlideLayer<PixelPicture> = {
         kind: "picture",
         picture,
         motion,

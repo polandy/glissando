@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Size } from "../ken-burns";
-import { BLUE, solidBitmap, standingStill } from "../testing/browser-pictures";
+import { BLUE, solidPixels, standingStill } from "../testing/browser-pictures";
 import { WebGlRenderer } from "./webgl-renderer";
 
 const HD: Size = { width: 1280, height: 720 };
@@ -27,7 +27,7 @@ async function exportRenderer(drawingSize: Size) {
 /** The caption text's bounding box as shares of the canvas: rows from the top, columns from the left. */
 async function captionTextBox(drawingSize: Size) {
   const { renderer, canvas, gl } = await exportRenderer(drawingSize);
-  const picture = await solidBitmap(BLUE);
+  const picture = solidPixels(BLUE);
   renderer.render({
     kind: "slide",
     slide: {

@@ -1,11 +1,11 @@
 import { afterEach, describe, expect, it } from "vitest";
-import type { BitmapPicture } from "../browser/bitmap-loader";
+import type { PixelPicture } from "../browser/pixel-loader";
 import type { RenderFrame, SlideLayer } from "../ports";
 import type { Framing } from "../slideshow";
 import {
   BLUE,
   RED,
-  solidBitmap,
+  solidPixels,
   standingStill,
   viewportBox,
   type Rgb,
@@ -66,7 +66,7 @@ async function setUp({ fontsLoaded = true } = {}) {
     await renderer.captionFontLoaded;
   }
   /** Reads straight after drawing, before the browser presents and clears the frame. */
-  function drawAndRead(frame: RenderFrame<BitmapPicture>, [x, y]: readonly [number, number]) {
+  function drawAndRead(frame: RenderFrame<PixelPicture>, [x, y]: readonly [number, number]) {
     renderer.render(frame);
     const pixel = new Uint8Array(4);
     gl?.readPixels(
@@ -81,7 +81,7 @@ async function setUp({ fontsLoaded = true } = {}) {
     return [pixel[0] ?? 0, pixel[1] ?? 0, pixel[2] ?? 0] as const;
   }
   /** Every pixel's red channel in the bottom half, after drawing `frame`. */
-  function bottomHalfReds(frame: RenderFrame<BitmapPicture>): number[] {
+  function bottomHalfReds(frame: RenderFrame<PixelPicture>): number[] {
     renderer.render(frame);
     const half = canvas.height / 2;
     const pixels = new Uint8Array(canvas.width * half * 4);
@@ -97,14 +97,14 @@ function isColour(actual: Rgb, expected: Rgb): boolean {
   );
 }
 
-async function layer(colour: Rgb, caption?: string): Promise<SlideLayer<BitmapPicture>> {
-  const picture = await solidBitmap(colour);
+async function layer(colour: Rgb, caption?: string): Promise<SlideLayer<PixelPicture>> {
+  const picture = solidPixels(colour);
   return caption === undefined
     ? { kind: "picture", picture, motion: standingStill(WHOLE_PICTURE) }
     : { kind: "picture", picture, motion: standingStill(WHOLE_PICTURE), caption };
 }
 
-async function slideFrame(colour: Rgb, caption?: string): Promise<RenderFrame<BitmapPicture>> {
+async function slideFrame(colour: Rgb, caption?: string): Promise<RenderFrame<PixelPicture>> {
   return { kind: "slide", slide: await layer(colour, caption), endFade: 0, look: "none" };
 }
 
@@ -166,7 +166,7 @@ describe("WebGlRenderer captions", () => {
 
   it("pushes the caption in with its slide on push-left, not fixed on the screen", async () => {
     const { drawAndRead } = await setUp();
-    const frame: RenderFrame<BitmapPicture> = {
+    const frame: RenderFrame<PixelPicture> = {
       kind: "transition",
       effect: "push-left",
       progress: 0.5,
@@ -184,7 +184,7 @@ describe("WebGlRenderer captions", () => {
 
   it("fades the caption with its slide on crossfade", async () => {
     const { drawAndRead } = await setUp();
-    const frame: RenderFrame<BitmapPicture> = {
+    const frame: RenderFrame<PixelPicture> = {
       kind: "transition",
       effect: "crossfade",
       progress: 1,

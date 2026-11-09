@@ -1,4 +1,4 @@
-import type { BitmapPicture } from "../browser/bitmap-loader";
+import type { PixelPicture } from "../browser/pixel-loader";
 import { CardItemLayouts } from "../card-item-layouts";
 import { canvasCardMeasure } from "../card-measure";
 import type { Fonts } from "../fonts";
@@ -36,7 +36,7 @@ export interface WebGlRendererOptions {
 }
 
 /** Draws slides and the GLSL transitions into a canvas that fills its container. */
-export class WebGlRenderer implements SlideRenderer<BitmapPicture> {
+export class WebGlRenderer implements SlideRenderer<PixelPicture> {
   readonly #canvas: HTMLCanvasElement;
   readonly #gl: WebGL2RenderingContext;
   readonly #onResize: () => void;
@@ -116,7 +116,7 @@ export class WebGlRenderer implements SlideRenderer<BitmapPicture> {
 
   /**
    * The lost context destroyed every GL object; rebuild them, then let the player redraw.
-   * Textures are not re-uploaded here: they are uploaded anew, from the bitmaps the player still
+   * Textures are not re-uploaded here: they are uploaded anew, from the bytes the player still
    * holds, when each picture is next prepared or drawn.
    */
   readonly #handleContextRestored = (): void => {
@@ -130,7 +130,7 @@ export class WebGlRenderer implements SlideRenderer<BitmapPicture> {
     this.#onResize();
   };
 
-  render(frame: RenderFrame<BitmapPicture>): void {
+  render(frame: RenderFrame<PixelPicture>): void {
     if (this.#contextLost) {
       return;
     }
@@ -185,7 +185,7 @@ export class WebGlRenderer implements SlideRenderer<BitmapPicture> {
 
   /** Delegates to `prepareSlide`: one upload step of the picture (and its backdrop) per call,
    * then its caption and card, or a ground slide's card alone (see `PictureTextures`). */
-  prepare(slide: PreparedSlide<BitmapPicture>): void {
+  prepare(slide: PreparedSlide<PixelPicture>): void {
     if (this.#contextLost) {
       return;
     }
@@ -214,7 +214,7 @@ export class WebGlRenderer implements SlideRenderer<BitmapPicture> {
     return this.#cards.fontLoaded(style);
   }
 
-  forget(picture: BitmapPicture): void {
+  forget(picture: PixelPicture): void {
     this.#captions.forget(picture);
     this.#pictures.forget(picture);
   }

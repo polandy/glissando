@@ -1,7 +1,14 @@
 import { afterEach, describe, expect, it } from "vitest";
-import type { BitmapPicture } from "../browser/bitmap-loader";
+import type { PixelPicture } from "../browser/pixel-loader";
 import type { RenderFrame } from "../ports";
-import { BLUE, RED, standingStill, viewportBox, type Rgb } from "../testing/browser-pictures";
+import {
+  BLUE,
+  pixelsOfCanvas,
+  RED,
+  standingStill,
+  viewportBox,
+  type Rgb,
+} from "../testing/browser-pictures";
 import { baseCard, cardVisual, groundLayer } from "./testing/card-render-fixtures";
 import { UPLOAD_PIXELS_PER_FRAME } from "./picture-textures";
 import { WebGlRenderer } from "./webgl-renderer";
@@ -21,7 +28,7 @@ let box: HTMLElement;
 afterEach(() => box.remove());
 
 /** Red above `BAND_ROW`, blue below. */
-async function twoBandPicture(): Promise<BitmapPicture> {
+function twoBandPicture(): PixelPicture {
   const canvas = new OffscreenCanvas(PICTURE.width, PICTURE.height);
   const context = canvas.getContext("2d");
   if (context === null) {
@@ -31,8 +38,7 @@ async function twoBandPicture(): Promise<BitmapPicture> {
   context.fillRect(0, 0, PICTURE.width, BAND_ROW);
   context.fillStyle = "rgb(0 0 255)";
   context.fillRect(0, BAND_ROW, PICTURE.width, PICTURE.height - BAND_ROW);
-  const bitmap = await createImageBitmap(canvas);
-  return { bitmap, width: bitmap.width, height: bitmap.height };
+  return pixelsOfCanvas(canvas);
 }
 
 /** A renderer whose context records the pixels of every picture upload. */
@@ -46,39 +52,39 @@ function setUp() {
     throw new Error("this browser has no WebGL2");
   }
   const uploads: number[] = [];
+  /** Every picture slice's source, to check what each upload reads. */
+  const sliceSources: unknown[] = [];
   /** One entry per caption or card rasterised and uploaded; both are uploaded from a canvas. */
   const canvasUploads: HTMLCanvasElement[] = [];
   const texSubImage2D = gl.texSubImage2D.bind(gl) as (...args: unknown[]) => void;
   gl.texSubImage2D = ((...args: unknown[]) => {
-    if (args[8] instanceof ImageBitmap) {
+    if (args[4] === PICTURE.width) {
       uploads.push(Number(args[4]) * Number(args[5]));
+      sliceSources.push(args[8]);
     }
     texSubImage2D(...args);
   }) as typeof gl.texSubImage2D;
   const texImage2D = gl.texImage2D.bind(gl) as (...args: unknown[]) => void;
   gl.texImage2D = ((...args: unknown[]) => {
     const source = args[5];
-    if (source instanceof ImageBitmap) {
-      uploads.push(source.width * source.height);
-    }
     if (source instanceof HTMLCanvasElement) {
       canvasUploads.push(source);
     }
     texImage2D(...args);
   }) as typeof gl.texImage2D;
   const renderer = new WebGlRenderer(canvas, gl, () => undefined, { pixelRatio: () => 1 });
-  function drawAndRead(frame: RenderFrame<BitmapPicture>, yFromTop: number, xFromLeft = 0.5): Rgb {
+  function drawAndRead(frame: RenderFrame<PixelPicture>, yFromTop: number, xFromLeft = 0.5): Rgb {
     renderer.render(frame);
     const pixel = new Uint8Array(4);
     const [x, y] = [Math.floor(xFromLeft * 100), Math.floor((1 - yFromTop) * 100)];
     gl?.readPixels(x, y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel);
     return [pixel[0] ?? 0, pixel[1] ?? 0, pixel[2] ?? 0];
   }
-  return { renderer, uploads, canvasUploads, drawAndRead };
+  return { renderer, uploads, sliceSources, canvasUploads, drawAndRead };
 }
 
 /** `fit: "cover"`, since this suite is about upload mechanics, not the picture's layout. */
-function wholePicture(picture: BitmapPicture, caption?: string): RenderFrame<BitmapPicture> {
+function wholePicture(picture: PixelPicture, caption?: string): RenderFrame<PixelPicture> {
   const motion = standingStill({ zoom: 1, centerX: 0.5, centerY: 0.5 });
   const fit = "cover" as const;
   return {
@@ -101,7 +107,7 @@ function expectColour(actual: Rgb, expected: Rgb): void {
 describe("WebGlRenderer.prepare", () => {
   it("uploads a picture in slices no larger than the per-frame budget, so drawing it afterwards uploads nothing", async () => {
     const { renderer, uploads, drawAndRead } = setUp();
-    const picture = await twoBandPicture();
+    const picture = twoBandPicture();
     const pixels = PICTURE.width * PICTURE.height;
     const slices = Math.ceil(pixels / UPLOAD_PIXELS_PER_FRAME) + 1;
 
@@ -120,10 +126,24 @@ describe("WebGlRenderer.prepare", () => {
     expect(uploads).toEqual([]);
   });
 
+  it("uploads each slice from the bytes of its own rows, so no slice reads the whole picture", async () => {
+    const { renderer, uploads, sliceSources } = setUp();
+    const picture = twoBandPicture();
+
+    renderer.prepare({ picture });
+    renderer.prepare({ picture });
+
+    expect(sliceSources).toHaveLength(2);
+    sliceSources.forEach((source, slice) => {
+      expect(source).toBeInstanceOf(Uint8ClampedArray);
+      expect((source as Uint8ClampedArray).length).toBe((uploads[slice] ?? 0) * 4);
+    });
+  });
+
   it("rasterises a slide's caption once its picture is uploaded, so drawing the captioned slide afterwards rasterises nothing", async () => {
     const { renderer, uploads, canvasUploads, drawAndRead } = setUp();
     await renderer.captionFontLoaded;
-    const picture = await twoBandPicture();
+    const picture = twoBandPicture();
     // The picture's slices, its mipmaps and its backdrop, then one step for the caption.
     const pictureSteps = Math.ceil((PICTURE.width * PICTURE.height) / UPLOAD_PIXELS_PER_FRAME) + 2;
 
@@ -143,7 +163,7 @@ describe("WebGlRenderer.prepare", () => {
 
   it("draws a picture prepared only in part by uploading the rest at once", async () => {
     const { renderer, uploads, drawAndRead } = setUp();
-    const picture = await twoBandPicture();
+    const picture = twoBandPicture();
 
     renderer.prepare({ picture });
     const top = drawAndRead(wholePicture(picture), 0.1);
@@ -161,7 +181,7 @@ describe("WebGlRenderer.prepare", () => {
 
     renderer.prepare({ ground: "#101010", card });
     const rasterisedWhilePreparing = canvasUploads.splice(0).length;
-    const frame: RenderFrame<BitmapPicture> = {
+    const frame: RenderFrame<PixelPicture> = {
       kind: "slide",
       slide: groundLayer(cardVisual(card, { textOpacity: 1, slideTimeMs: 500 })),
       endFade: 0,
