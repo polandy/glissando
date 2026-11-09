@@ -74,6 +74,7 @@ test("E2E-105 on a phone a picture moves from 1 to 10 in one hold-and-drag gestu
     browserName !== "chromium",
     "Genuine touch input exists only through Chromium's DevTools protocol",
   );
+  await page.clock.install();
   await openApp(page);
   await createSlideshow(page, DAYS, 2);
   const first = julyTile(page, 1);
@@ -83,9 +84,8 @@ test("E2E-105 on a phone a picture moves from 1 to 10 in one hold-and-drag gestu
   const start = await centre(first);
   const startX = start.x + start.width / 2;
   await finger.down(startX, start.y);
-  // The lift shows nothing until the finger moves, and moving early cancels the hold. A timer
-  // set now, with a later deadline than the hold's, runs after the hold has fired.
-  await page.evaluate((ms) => new Promise((done) => setTimeout(done, ms)), HOLD_MS + 1);
+  // The lift shows nothing until the finger moves, and moving early cancels the hold.
+  await page.clock.runFor(HOLD_MS + 1);
   await finger.move(startX, start.y + 2 * MOVE_PX);
   await expect(page.getByTestId("drag-ghost")).toBeVisible();
 
