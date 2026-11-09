@@ -3,7 +3,8 @@
 
   /**
    * The settings sheets' frame: a modal dialog on desktop, a bottom sheet on a phone. `side` docks
-   * it to the right edge at full height instead, still a bottom sheet on a phone. A tap beside the
+   * it to the right edge at full height instead, `corner` to the top right under the header; both
+   * are still a bottom sheet on a phone. A tap beside the
    * sheet calls `onClose`; Esc calls `onCancel` when there is one, else `onClose`.
    */
   let {
@@ -24,7 +25,7 @@
     /** The space between the sheet's parts. */
     gap?: "compact" | "roomy";
     /** `side` leaves the padding and the layout of the parts to the content. */
-    placement?: "center" | "side";
+    placement?: "center" | "side" | "corner";
     /** Whether a tap beside the sheet closes it: never where something would be lost. */
     closeOnScrim?: boolean;
     /** Once the dialog is open, e.g. to focus the checked choice. */
@@ -60,6 +61,7 @@
   bind:this={dialog}
   class:narrow={width === "narrow"}
   class:side={placement === "side"}
+  class:corner={placement === "corner"}
   aria-labelledby={labelId}
   oncancel={cancel}
   onclick={onScrimClick}
@@ -97,11 +99,21 @@
     border-left: 1px solid var(--gl-line);
     border-radius: 0;
   }
+  dialog.corner {
+    position: fixed;
+    inset: 72px 24px auto auto;
+    width: 380px;
+    max-width: calc(100% - 48px);
+    max-height: calc(100% - 96px);
+    margin: 0;
+  }
   dialog::backdrop {
     background: var(--gl-backdrop);
   }
   .sheet {
     display: grid;
+    /* A long line that does not wrap, such as a link, ellipsizes instead of widening the sheet. */
+    grid-template-columns: minmax(0, 1fr);
     gap: 14px;
     padding: 18px;
   }
@@ -117,7 +129,8 @@
   /* The dialog sits in the top layer, outside the screen's container, so the viewport decides;
      the app fills it, so this matches the screens' 720 px container queries. */
   @media (max-width: 720px) {
-    dialog {
+    dialog,
+    dialog.corner {
       inset: auto 0 0;
       width: auto;
       max-width: none;
