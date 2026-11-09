@@ -3,12 +3,12 @@
 - **WebGL2** (default): one shader program per transition, compiled up front;
   `ShaderCompileError` carries the driver's log. The canvas follows its CSS size times the
   device pixel ratio, or keeps a fixed `drawingSize` (the video export's, with pixel ratio 1).
-  Its pictures are `ImageBitmap`s decoded in a worker (`BitmapLoader`,
+  Its pictures are RGBA bytes decoded in a worker (`PixelLoader`,
   `WorkerPictureDecoder`, which rejects every decode once its worker could not start, crashed or
-  was disposed), upright by their EXIF orientation; a released picture's bitmap is
-  closed. Each becomes a mipmapped texture (`picture-textures.ts`), uploaded by `prepare` in
+  was disposed), upright by their EXIF orientation; a released picture's bytes are left to the
+  garbage collector. Each becomes a mipmapped texture (`picture-textures.ts`), uploaded by `prepare` in
   steps: the storage for the whole mip chain with a first slice of rows, one slice of at most
-  `UPLOAD_PIXELS_PER_FRAME` pixels per call, the mipmaps in a call of their own, the blurred
+  `UPLOAD_PIXELS_PER_FRAME` pixels per call, each from a view of its own rows' bytes, the mipmaps in a call of their own, the blurred
   fill's small backdrop texture in another, then the caption. Drawing a picture not fully prepared (after a seek) uploads the rest at once
   (ADR-0014).
 - **Captions in WebGL**: once the caption font has loaded (`document.fonts.load`, an injected port;
@@ -27,7 +27,7 @@
   so neither rasterises on the frame that first draws the card.
 - **Context loss**: on `webglcontextlost` it stops issuing GL calls (`render()` is a no-op, never
   throwing) until `webglcontextrestored`, when it rebuilds its buffers and shader programs, drops
-  its texture cache (textures are uploaded anew from the still-held bitmaps when each picture is
+  its texture cache (textures are uploaded anew from the still-held bytes when each picture is
   next prepared or drawn), and triggers a redraw of the current frame.
 - **DOM fallback** when the browser has no WebGL2, or when the WebGL2 renderer's setup fails (a
   `WebGlSetupError`: a context lost at birth, a shader the driver refuses — logged, its context

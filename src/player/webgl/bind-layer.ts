@@ -1,4 +1,4 @@
-import type { BitmapPicture } from "../browser/bitmap-loader";
+import type { PixelPicture } from "../browser/pixel-loader";
 import { CARD_DEFAULT_TINT } from "../card-palette";
 import type { Rect, Size } from "../ken-burns";
 import type { GroundSlideLayer, PictureSlideLayer, SlideLayer } from "../ports";
@@ -104,7 +104,7 @@ export function bindLayer(
   gl: WebGL2RenderingContext,
   pictures: PictureTextures,
   units: LayerTextureUnits,
-  layer: SlideLayer<BitmapPicture>,
+  layer: SlideLayer<PixelPicture>,
   uniforms: LayerUniforms,
   viewport: Size,
 ): void {
@@ -121,7 +121,7 @@ function bindPictureLayer(
   gl: WebGL2RenderingContext,
   pictures: PictureTextures,
   units: LayerTextureUnits,
-  layer: PictureSlideLayer<BitmapPicture>,
+  layer: PictureSlideLayer<PixelPicture>,
   uniforms: LayerUniforms,
   viewport: Size,
 ): void {

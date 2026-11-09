@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
-import type { BitmapPicture } from "../browser/bitmap-loader";
+import type { PixelPicture } from "../browser/pixel-loader";
 import type { RenderFrame } from "../ports";
 import {
   baseCard,
@@ -34,7 +34,7 @@ describe("WebGlRenderer card layers across a lost WebGL context", () => {
     box = support.box;
     const { renderer, readAllPixels, canvas, gl } = support;
     await renderer.cardFontLoaded("modern");
-    const frame: RenderFrame<BitmapPicture> = {
+    const frame: RenderFrame<PixelPicture> = {
       kind: "slide",
       slide: groundLayer(
         cardVisual(baseCard({ title: "Summer Lake", entrance: "words" }), {

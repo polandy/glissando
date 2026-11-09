@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
-import type { BitmapPicture } from "../browser/bitmap-loader";
-import { standingStill, viewportBox } from "../testing/browser-pictures";
+import type { PixelPicture } from "../browser/pixel-loader";
+import { pixelsOfCanvas, standingStill, viewportBox } from "../testing/browser-pictures";
 import { WebGlRenderer } from "./webgl-renderer";
 
 const SCREEN = { width: 1920, height: 1080 };
@@ -38,7 +38,7 @@ let box: HTMLElement;
 
 afterEach(() => box.remove());
 
-async function bitmapOf(draw: (context: CanvasRenderingContext2D) => void): Promise<BitmapPicture> {
+function pixelsOf(draw: (context: CanvasRenderingContext2D) => void): PixelPicture {
   const canvas = document.createElement("canvas");
   canvas.width = PICTURE.width;
   canvas.height = PICTURE.height;
@@ -47,12 +47,11 @@ async function bitmapOf(draw: (context: CanvasRenderingContext2D) => void): Prom
     throw new Error("no 2D canvas context to draw a test picture");
   }
   draw(context);
-  const bitmap = await createImageBitmap(canvas);
-  return { bitmap, width: bitmap.width, height: bitmap.height };
+  return pixelsOfCanvas(canvas);
 }
 
-function stripedBitmap(): Promise<BitmapPicture> {
-  return bitmapOf((context) => {
+function stripedPicture(): PixelPicture {
+  return pixelsOf((context) => {
     const stripe = PICTURE.width / STRIPES;
     for (let index = 0; index < STRIPES; index += 1) {
       context.fillStyle = index % 2 === 0 ? "black" : "white";
@@ -62,8 +61,8 @@ function stripedBitmap(): Promise<BitmapPicture> {
 }
 
 /** Black, with one small white dot. */
-function dotBitmap(): Promise<BitmapPicture> {
-  return bitmapOf((context) => {
+function dotPicture(): PixelPicture {
+  return pixelsOf((context) => {
     context.fillStyle = "black";
     context.fillRect(0, 0, PICTURE.width, PICTURE.height);
     context.fillStyle = "white";
@@ -71,7 +70,7 @@ function dotBitmap(): Promise<BitmapPicture> {
   });
 }
 
-function backdropRow(picture: BitmapPicture): number[] {
+function backdropRow(picture: PixelPicture): number[] {
   box = viewportBox(SCREEN);
   const canvas = document.createElement("canvas");
   Object.assign(canvas.style, { width: "100%", height: "100%", display: "block" });
@@ -98,7 +97,7 @@ function backdropRow(picture: BitmapPicture): number[] {
 
 describe("WebGlRenderer: the blurred fill's backdrop (ADR-0028)", () => {
   it("blurs the backdrop softly, without the kinks of an upscaled coarse image", async () => {
-    const row = backdropRow(await stripedBitmap());
+    const row = backdropRow(stripedPicture());
 
     const slopes = row
       .slice(SLOPE_STRIDE)
@@ -113,7 +112,7 @@ describe("WebGlRenderer: the blurred fill's backdrop (ADR-0028)", () => {
   });
 
   it("spreads a bright dot into one round glow that fades steadily away from it, without ghost copies", async () => {
-    const row = backdropRow(await dotBitmap());
+    const row = backdropRow(dotPicture());
     const brightest = Math.max(...row);
     const peak = Math.round((row.indexOf(brightest) + row.lastIndexOf(brightest)) / 2);
 

@@ -1,4 +1,4 @@
-import type { PictureDecoder } from "./bitmap-loader";
+import type { PictureDecoder, PixelPicture } from "./pixel-loader";
 
 /** Asks the decode worker for one picture; the id pairs it with its reply. */
 export interface DecodeRequest {
@@ -8,7 +8,7 @@ export interface DecodeRequest {
 
 /** The decode worker's answer to the request with the same id. */
 export type DecodeReply =
-  | { readonly id: number; readonly kind: "decoded"; readonly bitmap: ImageBitmap }
+  | { readonly id: number; readonly kind: "decoded"; readonly picture: PixelPicture }
   | { readonly id: number; readonly kind: "failed"; readonly message: string };
 
 /** The part of a `Worker` running `picture-decode-worker.ts` that the decoder talks to. */
@@ -26,7 +26,7 @@ export class PictureDecodeError extends Error {
 }
 
 interface PendingDecode {
-  resolve(bitmap: ImageBitmap): void;
+  resolve(picture: PixelPicture): void;
   reject(error: Error): void;
 }
 
@@ -46,10 +46,10 @@ export class WorkerPictureDecoder implements PictureDecoder {
     this.#startWorker = startWorker;
   }
 
-  decode(bytes: Blob): Promise<ImageBitmap> {
+  decode(bytes: Blob): Promise<PixelPicture> {
     if (this.#gone) return Promise.reject(this.#gone);
     const id = this.#nextId++;
-    const { promise, resolve, reject } = Promise.withResolvers<ImageBitmap>();
+    const { promise, resolve, reject } = Promise.withResolvers<PixelPicture>();
     this.#pending.set(id, { resolve, reject });
     let worker: PictureDecodeWorker;
     try {
@@ -80,10 +80,9 @@ export class WorkerPictureDecoder implements PictureDecoder {
   #settle(reply: DecodeReply): void {
     const pending = this.#pending.get(reply.id);
     this.#pending.delete(reply.id);
+    // A reply to a request already rejected is nobody's and dropped.
     if (reply.kind === "failed") pending?.reject(new PictureDecodeError(reply.message));
-    // A reply to a request already rejected is nobody's, so its bitmap is closed here.
-    else if (pending === undefined) reply.bitmap.close();
-    else pending.resolve(reply.bitmap);
+    else pending?.resolve(reply.picture);
   }
 
   #goneWith(message: string, options?: ErrorOptions): void {

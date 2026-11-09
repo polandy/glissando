@@ -6,11 +6,11 @@ import { canvasCardMeasure } from "../player/card-measure";
 import { cardItemSlices } from "../player/card-item-layout";
 import { CARD_STYLE_SPECS, layoutCard } from "../player/card-layout";
 import { isGroundSlide, type KenBurns, type PictureSlide, type Slide } from "../player/slideshow";
-import type { BitmapPicture } from "../player/browser/bitmap-loader";
+import type { PixelPicture } from "../player/browser/pixel-loader";
 import type { PictureSlideLayer, RenderFrame } from "../player/ports";
 import {
-  quadrantBitmap,
-  solidBitmap,
+  quadrantPixels,
+  solidPixels,
   standingStill,
   BLUE,
   type Rgb,
@@ -117,10 +117,10 @@ describe("a composed chapter slide, rendered", () => {
     const { renderer, readPixel, readAllPixels, box: renderBox } = setUpCardRenderer();
     box = renderBox;
     await renderer.cardFontLoaded(card.style);
-    const picturePixel = await solidBitmap(BLUE);
+    const picturePixel = solidPixels(BLUE);
     const motion = standingStill(WHOLE_PICTURE);
-    function frame(textOpacity: number, veilAmount: number): RenderFrame<BitmapPicture> {
-      const layer: PictureSlideLayer<BitmapPicture> = {
+    function frame(textOpacity: number, veilAmount: number): RenderFrame<PixelPicture> {
+      const layer: PictureSlideLayer<PixelPicture> = {
         kind: "picture",
         picture: picturePixel,
         motion,
@@ -215,12 +215,12 @@ describe("a chapter composed before its anchor picture, rendered across the hand
     // difference between them.
     const { readPixel, box: renderBox } = setUpCardRenderer();
     box = renderBox;
-    const quadrants = await quadrantBitmap();
+    const quadrants = quadrantPixels();
 
-    function frameAt(elapsedMs: number): RenderFrame<BitmapPicture> {
+    function frameAt(elapsedMs: number): RenderFrame<PixelPicture> {
       const { slide, slideTimeMs } = pictureSlideAt(composed, elapsedMs);
       const progress = Math.min(1, Math.max(0, slideTimeMs / slide.durationMs));
-      const layer: PictureSlideLayer<BitmapPicture> = {
+      const layer: PictureSlideLayer<PixelPicture> = {
         kind: "picture",
         picture: quadrants,
         motion: { kenBurns: slide.kenBurns, progress },

@@ -1,4 +1,4 @@
-import { BitmapLoader, type BitmapPicture } from "./browser/bitmap-loader";
+import { PixelLoader, type PixelPicture } from "./browser/pixel-loader";
 import type { OpenPicture } from "./browser/picture-loader";
 import { animationFrames, performanceClock } from "./browser/platform";
 import { startPictureDecodeWorker } from "./browser/start-picture-decode-worker";
@@ -13,7 +13,7 @@ import { WebGlRenderer } from "./webgl/webgl-renderer";
 
 /** A player that draws frames on demand (`renderAt`) into a canvas of its own. */
 export interface FramePlayer {
-  readonly player: SlideshowPlayer<BitmapPicture>;
+  readonly player: SlideshowPlayer<PixelPicture>;
   /** In no document, `size` large; holds the last frame drawn. */
   readonly canvas: HTMLCanvasElement;
   /** Settles once captions can be drawn; wait for it before the first frame. */
@@ -59,7 +59,7 @@ export function createFramePlayer(
     ...(fonts === undefined ? {} : { fonts }),
   });
   const decoder = new WorkerPictureDecoder(startPictureDecodeWorker);
-  const pictures = new BitmapLoader(decoder, openPicture);
+  const pictures = new PixelLoader(decoder, openPicture);
   // Without a music playback the player stays silent; the export renders the music itself.
   const player = new SlideshowPlayer(slideshow, {
     renderer,

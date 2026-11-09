@@ -1,10 +1,10 @@
 import { afterEach, describe, expect, it } from "vitest";
-import type { BitmapPicture } from "../browser/bitmap-loader";
+import type { PixelPicture } from "../browser/pixel-loader";
 import { CARD_STYLE_SPECS, layoutCard } from "../card-layout";
 import { cardItemSlices } from "../card-item-layout";
 import { canvasCardMeasure } from "../card-measure";
 import type { PictureSlideLayer, RenderFrame } from "../ports";
-import { BLUE, solidBitmap, standingStill } from "../testing/browser-pictures";
+import { BLUE, solidPixels, standingStill } from "../testing/browser-pictures";
 import {
   baseCard,
   cardVisual,
@@ -23,8 +23,8 @@ describe("WebGlRenderer title cards under a transition", () => {
     const { renderer, box: stage, readAllPixels } = setUpCardRenderer();
     box = stage;
     await renderer.cardFontLoaded("modern");
-    const picture = await solidBitmap(BLUE);
-    const to: PictureSlideLayer<BitmapPicture> = {
+    const picture = solidPixels(BLUE);
+    const to: PictureSlideLayer<PixelPicture> = {
       kind: "picture",
       picture,
       motion: standingStill(WHOLE_PICTURE),
@@ -61,7 +61,7 @@ describe("WebGlRenderer title cards under a transition", () => {
     if (incomingEnd <= incomingStart || outgoingEnd <= outgoingStart) {
       throw new Error("expected each word to have a safe margin clear of the wipe's own edge");
     }
-    const frame: RenderFrame<BitmapPicture> = {
+    const frame: RenderFrame<PixelPicture> = {
       kind: "transition",
       effect: "wipe-right",
       progress: 0.5,

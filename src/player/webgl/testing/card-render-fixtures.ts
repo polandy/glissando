@@ -1,4 +1,4 @@
-import type { BitmapPicture } from "../../browser/bitmap-loader";
+import type { PixelPicture } from "../../browser/pixel-loader";
 import type { CardItemLayouts } from "../../card-item-layouts";
 import type { Fonts } from "../../fonts";
 import type { CardVisual, GroundSlideLayer, RenderFrame } from "../../ports";
@@ -73,8 +73,8 @@ export function setUpCardRenderer({
   readonly box: HTMLElement;
   readonly canvas: HTMLCanvasElement;
   readonly gl: WebGL2RenderingContext;
-  readPixel(frame: RenderFrame<BitmapPicture>, point: readonly [number, number]): Rgb;
-  readAllPixels(frame: RenderFrame<BitmapPicture>): Uint8Array;
+  readPixel(frame: RenderFrame<PixelPicture>, point: readonly [number, number]): Rgb;
+  readAllPixels(frame: RenderFrame<PixelPicture>): Uint8Array;
 } {
   const box = viewportBox(VIEWPORT);
   const canvas = document.createElement("canvas");
@@ -97,7 +97,7 @@ export function setUpCardRenderer({
     fonts.finishLoading();
   }
   /** Reads one pixel straight after drawing, before the browser presents and clears the frame. */
-  function readPixel(frame: RenderFrame<BitmapPicture>, [x, y]: readonly [number, number]): Rgb {
+  function readPixel(frame: RenderFrame<PixelPicture>, [x, y]: readonly [number, number]): Rgb {
     renderer.render(frame);
     const pixel = new Uint8Array(4);
     gl.readPixels(
@@ -112,7 +112,7 @@ export function setUpCardRenderer({
     return [pixel[0] ?? 0, pixel[1] ?? 0, pixel[2] ?? 0];
   }
   /** Every pixel of the frame, as `[r, g, b, a, r, g, b, a, ...]`. */
-  function readAllPixels(frame: RenderFrame<BitmapPicture>): Uint8Array {
+  function readAllPixels(frame: RenderFrame<PixelPicture>): Uint8Array {
     renderer.render(frame);
     const pixels = new Uint8Array(canvas.width * canvas.height * 4);
     gl.readPixels(0, 0, canvas.width, canvas.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);

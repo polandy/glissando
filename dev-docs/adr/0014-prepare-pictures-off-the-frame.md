@@ -19,21 +19,27 @@ A benchmark in the same engine: `createImageBitmap(blob)` in a worker does not s
 thread; `texSubImage2D` of a 270-row strip from an `ImageBitmap` (with `UNPACK_SKIP_ROWS`, into
 `texStorage2D` storage) takes 4–6 ms, `generateMipmap` 3–9 ms, while one whole `texImage2D`
 from the `<img>` plus mipmaps takes up to 85 ms. In Chromium, strips from an `<img>` cost 63 ms
-each, from an `ImageBitmap` a few — so slices must come from bitmaps.
+each, from an `ImageBitmap` a few — so slices must not come from an `<img>`.
+
+A later trace of a 12-picture 4K show at device pixel ratio 2, reported to stutter in Safari and
+Firefox on a MacBook Air, found a strip from an `ImageBitmap` costing 20–39 ms in Playwright
+WebKit inside the app (3 ms in an isolated benchmark): a sub-rectangle upload from a bitmap reads
+the whole bitmap for every strip. The same strip from a typed array of its own rows takes ~1 ms
+in WebKit and well under 1 ms in Chromium.
 
 ## Decision
 
-- **Decode in a worker.** The WebGL renderer's pictures are loaded by `BitmapLoader`: the bytes
+- **Decode in a worker.** The WebGL renderer's pictures are loaded by `PixelLoader`: the bytes
   come from `openPicture` (or `fetch` for a URL `src`), a module worker decodes them with
   `createImageBitmap(…, { imageOrientation: "from-image" })` — upright by EXIF, as an `<img>`
-  shows them — draws it onto an `OffscreenCanvas` and transfers that copy back: WebKit hands
-  decodes running at once of equally sized pictures (photos of one camera) each other's bitmaps,
-  the copy is the picture's own and costs ~10 ms per 4K picture in the worker; a decode in a
-  chain inside the worker did not help. Release closes it; destroying the player
-  terminates the worker.
+  shows them — draws it onto an `OffscreenCanvas`, reads its RGBA bytes there (`pixelsOf`) and
+  transfers them back. Reading from a canvas copy also keeps WebKit from handing decodes
+  running at once of equally sized pictures (photos of one camera) each other's bitmaps; a
+  decode in a chain inside the worker did not help. A released picture's bytes are left to the
+  garbage collector; destroying the player terminates the worker.
 - **Upload in slices before the picture is needed.** `SlideRenderer.prepare` does a bounded
   step of the work to draw a picture later. In WebGL: storage for the whole mip chain with a
-  first slice, then one slice of at most `UPLOAD_PIXELS_PER_FRAME` (1 Mi pixels, ~4 ms in the
+  first slice, each slice uploaded from a view of just its rows' bytes, then one slice of at most `UPLOAD_PIXELS_PER_FRAME` (1 Mi pixels, ~4 ms in the
   WebKit benchmark) per call, the mipmaps in a call of their own, then the caption texture.
   While playing, the player calls it after drawing each frame for the buffered pictures after
   the ones on screen. A picture drawn before it is fully prepared — after a seek — uploads the
@@ -54,7 +60,8 @@ each, from an `ImageBitmap` a few — so slices must come from bitmaps.
 
 - Two picture loaders and picture types, one per renderer; `createPlayer` picks each renderer
   with its loader.
-- A worker per player, and each buffered picture is held decoded as an `ImageBitmap` (~33 MB
-  for a 4K picture) besides its texture until released.
+- A worker per player, and each buffered picture is held decoded as its RGBA bytes (~33 MB for a
+  4K picture) besides its texture until released. Its blurred-fill backdrop is shrunk from those
+  bytes in JavaScript (`shrinkPixels`, a grid of samples per backdrop pixel), not by a canvas.
 - A seek to a picture not yet prepared still draws its first frame late; playing never starts
   its clock before that frame, so it shows as a pause, not a jump.

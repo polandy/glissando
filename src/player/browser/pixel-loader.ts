@@ -1,16 +1,16 @@
+import type { RgbaPixels } from "../backdrop-blur";
 import type { PictureLoader } from "../ports";
 import type { OpenPicture } from "./picture-loader";
 
-/** A picture decoded into a bitmap, drawn by the WebGL renderer. */
-export interface BitmapPicture {
-  readonly bitmap: ImageBitmap;
-  readonly width: number;
-  readonly height: number;
-}
+/**
+ * A picture decoded into its RGBA bytes, drawn by the WebGL renderer: a slice of rows uploads
+ * from its own bytes, where a bitmap is read whole for every slice (ADR-0014).
+ */
+export type PixelPicture = RgbaPixels;
 
 /** Decodes a picture's bytes, upright by its EXIF orientation; `WorkerPictureDecoder` is one. */
 export interface PictureDecoder {
-  decode(bytes: Blob): Promise<ImageBitmap>;
+  decode(bytes: Blob): Promise<PixelPicture>;
   dispose(): void;
 }
 
@@ -32,9 +32,10 @@ async function fetchPicture(src: string): Promise<Blob> {
 /**
  * Reads each picture's bytes when it is loaded, from `openPicture` or else by fetching `src`,
  * and decodes them with `decoder`, off the main thread in production (see ADR-0014). A released
- * picture's bitmap is closed, so a long slideshow holds just the buffered pictures.
+ * picture's bytes are left to the garbage collector, so a long slideshow holds just the buffered
+ * pictures.
  */
-export class BitmapLoader implements PictureLoader<BitmapPicture> {
+export class PixelLoader implements PictureLoader<PixelPicture> {
   readonly #decoder: PictureDecoder;
   readonly #open: OpenPicture;
 
@@ -43,13 +44,12 @@ export class BitmapLoader implements PictureLoader<BitmapPicture> {
     this.#open = openPicture;
   }
 
-  async load(src: string): Promise<BitmapPicture> {
-    const bitmap = await this.#decoder.decode(await this.#open(src));
-    return { bitmap, width: bitmap.width, height: bitmap.height };
+  async load(src: string): Promise<PixelPicture> {
+    return this.#decoder.decode(await this.#open(src));
   }
 
-  release(picture: BitmapPicture): void {
-    picture.bitmap.close();
+  release(): void {
+    // The picture holds only bytes, which nothing references once the buffer drops it.
   }
 
   dispose(): void {

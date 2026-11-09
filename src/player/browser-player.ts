@@ -1,4 +1,4 @@
-import { BitmapLoader, type BitmapPicture, type PictureDecoder } from "./browser/bitmap-loader";
+import { PixelLoader, type PixelPicture, type PictureDecoder } from "./browser/pixel-loader";
 import { MusicOutput } from "./browser/music-output";
 import { openVideoElement, type DecodeClipSound } from "./browser/open-video";
 import {
@@ -68,8 +68,8 @@ const browserObjectUrls = {
 type Drawing =
   | {
       readonly kind: "webgl";
-      readonly renderer: SlideRenderer<BitmapPicture>;
-      readonly pictures: PictureLoader<BitmapPicture>;
+      readonly renderer: SlideRenderer<PixelPicture>;
+      readonly pictures: PictureLoader<PixelPicture>;
     }
   | {
       readonly kind: "dom";
@@ -78,7 +78,7 @@ type Drawing =
     };
 
 /** A player drawing with WebGL2 or with the DOM fallback; they differ only inside. */
-export type BrowserPlayer = SlideshowPlayer<BitmapPicture> | SlideshowPlayer<BrowserPicture>;
+export type BrowserPlayer = SlideshowPlayer<PixelPicture> | SlideshowPlayer<BrowserPicture>;
 
 /**
  * `createPlayer` with the decode worker started by the caller: the exported page starts it from
@@ -185,7 +185,7 @@ function createDrawing(
   return {
     kind: "webgl",
     renderer,
-    pictures: new BitmapLoader(createDecoder(), openPicture),
+    pictures: new PixelLoader(createDecoder(), openPicture),
   };
 }
 

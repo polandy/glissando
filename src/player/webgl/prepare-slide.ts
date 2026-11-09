@@ -1,4 +1,4 @@
-import type { BitmapPicture } from "../browser/bitmap-loader";
+import type { PixelPicture } from "../browser/pixel-loader";
 import { drawsBlurredCopy } from "../card-timing";
 import type { Size } from "../ken-burns";
 import type { PreparedSlide } from "../ports";
@@ -21,7 +21,7 @@ export interface PrepareTargets {
  * ground slide's card alone (see `PictureTextures`). Called from `WebGlRenderer.prepare`, which
  * first checks the context is not lost.
  */
-export function prepareSlide(targets: PrepareTargets, slide: PreparedSlide<BitmapPicture>): void {
+export function prepareSlide(targets: PrepareTargets, slide: PreparedSlide<PixelPicture>): void {
   if ("ground" in slide) {
     prepareCard(targets, slide.card);
     return;
