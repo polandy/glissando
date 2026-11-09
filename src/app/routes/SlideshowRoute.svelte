@@ -250,7 +250,6 @@
     {musicOutput}
     {decodeClipSound}
     onClose={onBack}
-    {onError}
     {log}
     {analysisPass}
     {home}

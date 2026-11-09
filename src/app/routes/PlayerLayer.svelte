@@ -31,7 +31,7 @@
    * the music's object URL lives exactly as long as the layer. A server slideshow is prepared in
    * `playbackQuality` before it plays (ADR-0027) and plays without the pictures Immich no longer
    * has: one found missing while playing restarts the player without it, where its slide would
-   * have begun.
+   * have begun. Music that cannot be read stops it with the failure card.
    */
   let {
     store,
@@ -39,7 +39,6 @@
     musicOutput,
     decodeClipSound,
     onClose,
-    onError,
     log,
     analysisPass,
     home,
@@ -63,8 +62,7 @@
     musicOutput: MusicOutput;
     decodeClipSound: DecodeClipSound;
     onClose: () => void;
-    onError: (error: unknown) => void;
-    /** Logs a focus or beats that could not be read: play goes on without them. */
+    /** Logs a focus or beats that could not be read (play goes on) and music that could not (it stops). */
     log: (error: unknown) => void;
     /** Listens for the music's beats if none are known yet, for the next time it plays. */
     analysisPass: Pick<MusicAnalysisPass, "listenFor">;
@@ -91,6 +89,7 @@
   });
 
   let loaded = $state.raw<PlayerData | null>(null);
+  let loadFailed = $state(false);
   /** Where a picture that failed while playing restarts the player, over the chosen start. */
   let restartAt = $state<number | null>(null);
   let musicUrls: ReadonlyMap<string, string> = new Map();
@@ -192,13 +191,19 @@
     for (const song of stored.songs) {
       analysisPass.listenFor(song.id);
     }
-    loadPlayerData(store, stored, log, closed.signal).then((data) => {
-      if (data === null) {
-        return;
-      }
-      musicUrls = data.musicUrls;
-      loaded = data;
-    }, onError);
+    loadPlayerData(store, stored, log, closed.signal).then(
+      (data) => {
+        if (data === null) {
+          return;
+        }
+        musicUrls = data.musicUrls;
+        loaded = data;
+      },
+      (error: unknown) => {
+        log(error);
+        loadFailed = true;
+      },
+    );
     return unsubscribe;
   });
   onDestroy(() => {
@@ -210,7 +215,16 @@
   });
 </script>
 
-{#if preparing !== null}
+{#if loadFailed || prepareView?.stage === "failed"}
+  <div class="player" role="dialog" aria-modal="true" aria-label={stored.title}>
+    <PlayerCard
+      failure={prepareView?.stage === "failed" ? prepareFailure(prepareView.error) : "playback"}
+      ended={false}
+      onPlayAgain={close}
+      onClose={close}
+    />
+  </div>
+{:else if preparing !== null}
   <PreparePictures
     title={stored.title}
     view={preparing}
@@ -218,15 +232,6 @@
     onPlayInPreview={() => flow?.playInPreview()}
     onClose={close}
   />
-{:else if prepareView?.stage === "failed"}
-  <div class="player" role="dialog" aria-modal="true" aria-label={stored.title}>
-    <PlayerCard
-      failure={prepareFailure(prepareView.error)}
-      ended={false}
-      onPlayAgain={close}
-      onClose={close}
-    />
-  </div>
 {:else if slideshow !== null}
   {#key slideshow}
     <PlayerOverlay

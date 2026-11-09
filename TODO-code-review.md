@@ -37,7 +37,6 @@ Each fix starts with the failing test the item names or implies (WORKFLOW.md, Te
 
 ### App shell, routing and editors
 
-- [ ] `src/app/routes/PlayerLayer.svelte` (onMount) — If music, focus or beats fail to load, the player stays invisible. Fix: a failure state with the PlayerCard error and a way out.
 - [ ] `src/app/i18n/translator.ts:154` — An unknown runtime key fails with a misleading plural error. Fix: throw naming the missing key.
 - [ ] `src/main.ts:105` — `reportError(event.error)` gets `null` for cross-origin errors. Fix: `event.error ?? new Error(event.message)`.
 - [ ] `src/main.ts` — The composition root sits at the line limit (#177 brings it to 256). Fix: `wire-*.ts` modules for the server and music wiring.

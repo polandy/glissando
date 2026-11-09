@@ -51,7 +51,8 @@ over real timers.
   it while shown: the picture editor's view carries the
   picture's focus status (`subject`, `none`, `searching`, `not-looked-at`), and its motion and
   the swap aim at what is known now. The player reads the stored focus as it opens; a focus that
-  cannot be read is logged and the automatic motions aim at the middle, play goes on.
+  cannot be read is logged and the automatic motions aim at the middle, play goes on. Music that
+  cannot be read is logged and stops the player with the failure card and its "Close".
 - **Export and open** (`glissando-file/`): `App.svelte` owns the `ExportJob` (the header reads
   its progress through a context, and likewise the focus passes' `runningSearch`) and the `OpenFlow` (its overlay and notices); the composition
   root supplies the download (an object URL on a clicked link, revoked a minute later), the free
