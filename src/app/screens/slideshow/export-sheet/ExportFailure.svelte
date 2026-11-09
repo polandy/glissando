@@ -1,11 +1,7 @@
 <script lang="ts">
   import Notice from "../../../components/Notice.svelte";
   import { getTranslator } from "../../../i18n/context";
-  import type { MessageKey } from "../../../i18n/messages";
   import type { ExportFailureDescription } from "../../../export-errors/describe-export-failure";
-
-  type ClipKey = "exportErrors.clipVideoTitle" | "exportErrors.clipPageTitle";
-  type ClipFreeKey = Exclude<MessageKey, ClipKey> & `exportErrors.${string}Title`;
 
   /**
    * An export that cannot go on: the sentence with its way out, the raw error one press away
@@ -33,9 +29,8 @@
   );
   const title = $derived(
     description.clip === null
-      ? // Only the clip titles take a parameter, and they come with a clip number.
-        t(description.title as ClipFreeKey)
-      : t(description.title as ClipKey, { clip: description.clip }),
+      ? t(description.title)
+      : t(description.title, { clip: description.clip }),
   );
 </script>
 
